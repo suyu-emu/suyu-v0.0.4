@@ -27,6 +27,7 @@ public:
     explicit QtProfileSelectionDialog(QWidget* parent);
     ~QtProfileSelectionDialog() override;
 
+    int exec() override;
     void accept() override;
     void reject() override;
 
@@ -59,7 +60,7 @@ public:
     explicit QtProfileSelector(GMainWindow& parent);
     ~QtProfileSelector() override;
 
-    void SelectProfile(std::function<void(std::optional<Common::UUID>)> callback) const override;
+    void SelectProfile(std::function<void(std::optional<Common::UUID>)> callback_) const override;
 
 signals:
     void MainWindowSelectProfile() const;

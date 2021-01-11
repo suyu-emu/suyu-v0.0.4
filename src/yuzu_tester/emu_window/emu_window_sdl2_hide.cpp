@@ -109,8 +109,6 @@ EmuWindow_SDL2_Hide::~EmuWindow_SDL2_Hide() {
     SDL_Quit();
 }
 
-void EmuWindow_SDL2_Hide::PollEvents() {}
-
 bool EmuWindow_SDL2_Hide::IsShown() const {
     return false;
 }

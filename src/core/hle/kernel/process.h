@@ -216,6 +216,16 @@ public:
         total_process_running_time_ticks += ticks;
     }
 
+    /// Gets the process schedule count, used for thread yelding
+    s64 GetScheduledCount() const {
+        return schedule_count;
+    }
+
+    /// Increments the process schedule count, used for thread yielding.
+    void IncrementScheduledCount() {
+        ++schedule_count;
+    }
+
     /// Gets 8 bytes of random data for svcGetInfo RandomEntropy
     u64 GetRandomEntropy(std::size_t index) const {
         return random_entropy.at(index);
@@ -396,6 +406,9 @@ private:
 
     /// Name of this process
     std::string name;
+
+    /// Schedule count of this process
+    s64 schedule_count{};
 
     /// System context
     Core::System& system;

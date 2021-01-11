@@ -30,7 +30,12 @@ public:
     virtual StatusType GetStatus() const {
         return {};
     }
-    virtual bool GetAnalogDirectionStatus(AnalogDirection direction) const {
+    virtual bool GetAnalogDirectionStatus([[maybe_unused]] AnalogDirection direction) const {
+        return {};
+    }
+    virtual bool SetRumblePlay([[maybe_unused]] f32 amp_low, [[maybe_unused]] f32 freq_low,
+                               [[maybe_unused]] f32 amp_high,
+                               [[maybe_unused]] f32 freq_high) const {
         return {};
     }
 };
@@ -119,6 +124,13 @@ using ButtonDevice = InputDevice<bool>;
 using AnalogDevice = InputDevice<std::tuple<float, float>>;
 
 /**
+ * A vibration device is an input device that returns an unsigned byte as status.
+ * It represents whether the vibration device supports vibration or not.
+ * If the status returns 1, it supports vibration. Otherwise, it does not support vibration.
+ */
+using VibrationDevice = InputDevice<u8>;
+
+/**
  * A motion status is an object that returns a tuple of accelerometer state vector,
  * gyroscope state vector, rotation state vector and orientation state matrix.
  *
@@ -151,10 +163,15 @@ using MotionStatus = std::tuple<Common::Vec3<float>, Common::Vec3<float>, Common
 using MotionDevice = InputDevice<MotionStatus>;
 
 /**
- * A touch device is an input device that returns a tuple of two floats and a bool. The floats are
+ * A touch status is an object that returns a tuple of two floats and a bool. The floats are
  * x and y coordinates in the range 0.0 - 1.0, and the bool indicates whether it is pressed.
  */
-using TouchDevice = InputDevice<std::tuple<float, float, bool>>;
+using TouchStatus = std::tuple<float, float, bool>;
+
+/**
+ * A touch device is an input device that returns a touch status object
+ */
+using TouchDevice = InputDevice<TouchStatus>;
 
 /**
  * A mouse device is an input device that returns a tuple of two floats and four ints.

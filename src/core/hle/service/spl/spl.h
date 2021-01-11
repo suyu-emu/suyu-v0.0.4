@@ -6,11 +6,15 @@
 
 #include "core/hle/service/spl/module.h"
 
+namespace Core {
+class System;
+}
+
 namespace Service::SPL {
 
 class SPL final : public Module::Interface {
 public:
-    explicit SPL(std::shared_ptr<Module> module);
+    explicit SPL(Core::System& system_, std::shared_ptr<Module> module_);
     ~SPL() override;
 };
 

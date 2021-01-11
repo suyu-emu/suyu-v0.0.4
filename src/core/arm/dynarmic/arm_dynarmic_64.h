@@ -12,7 +12,6 @@
 #include "common/hash.h"
 #include "core/arm/arm_interface.h"
 #include "core/arm/exclusive_monitor.h"
-#include "core/arm/unicorn/arm_unicorn.h"
 
 namespace Core::Memory {
 class Memory;
@@ -41,6 +40,7 @@ public:
     void SetPSTATE(u32 pstate) override;
     void Run() override;
     void Step() override;
+    void ExceptionalExit() override;
     VAddr GetTlsAddress() const override;
     void SetTlsAddress(VAddr address) override;
     void SetTPIDR_EL0(u64 value) override;
@@ -56,6 +56,7 @@ public:
     void ClearExclusiveState() override;
 
     void ClearInstructionCache() override;
+    void InvalidateCacheRange(VAddr addr, std::size_t size) override;
     void PageTableChanged(Common::PageTable& new_page_table,
                           std::size_t new_address_space_size_in_bits) override;
 
@@ -71,7 +72,6 @@ private:
     std::unique_ptr<DynarmicCallbacks64> cb;
     JitCacheType jit_cache;
     std::shared_ptr<Dynarmic::A64::Jit> jit;
-    ARM_Unicorn inner_unicorn;
 
     std::size_t core_index;
     DynarmicExclusiveMonitor& exclusive_monitor;

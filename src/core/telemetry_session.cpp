@@ -147,7 +147,9 @@ TelemetrySession::~TelemetrySession() {
     }
 }
 
-void TelemetrySession::AddInitialInfo(Loader::AppLoader& app_loader) {
+void TelemetrySession::AddInitialInfo(Loader::AppLoader& app_loader,
+                                      const Service::FileSystem::FileSystemController& fsc,
+                                      const FileSys::ContentProvider& content_provider) {
     // Log one-time top-level information
     AddField(Telemetry::FieldType::None, "TelemetryId", GetTelemetryId());
 
@@ -167,7 +169,10 @@ void TelemetrySession::AddInitialInfo(Loader::AppLoader& app_loader) {
         app_loader.ReadTitle(name);
 
         if (name.empty()) {
-            const auto metadata = FileSys::PatchManager(program_id).GetControlMetadata();
+            const auto metadata = [&content_provider, &fsc, program_id] {
+                const FileSys::PatchManager pm{program_id, fsc, content_provider};
+                return pm.GetControlMetadata();
+            }();
             if (metadata.first != nullptr) {
                 name = metadata.first->GetApplicationName();
             }
@@ -206,12 +211,14 @@ void TelemetrySession::AddInitialInfo(Loader::AppLoader& app_loader) {
              TranslateGPUAccuracyLevel(Settings::values.gpu_accuracy.GetValue()));
     AddField(field_type, "Renderer_UseAsynchronousGpuEmulation",
              Settings::values.use_asynchronous_gpu_emulation.GetValue());
+    AddField(field_type, "Renderer_UseNvdecEmulation",
+             Settings::values.use_nvdec_emulation.GetValue());
     AddField(field_type, "Renderer_UseVsync", Settings::values.use_vsync.GetValue());
     AddField(field_type, "Renderer_UseAssemblyShaders",
              Settings::values.use_assembly_shaders.GetValue());
     AddField(field_type, "Renderer_UseAsynchronousShaders",
              Settings::values.use_asynchronous_shaders.GetValue());
-    AddField(field_type, "System_UseDockedMode", Settings::values.use_docked_mode);
+    AddField(field_type, "System_UseDockedMode", Settings::values.use_docked_mode.GetValue());
 }
 
 bool TelemetrySession::SubmitTestcase() {

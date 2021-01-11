@@ -68,9 +68,10 @@ static std::vector<std::string> BuildLocationNameCache(Core::System& system) {
     return location_name_cache;
 }
 
-TimeZoneContentManager::TimeZoneContentManager(TimeManager& time_manager, Core::System& system)
-    : system{system}, location_name_cache{BuildLocationNameCache(system)} {
+TimeZoneContentManager::TimeZoneContentManager(Core::System& system)
+    : system{system}, location_name_cache{BuildLocationNameCache(system)} {}
 
+void TimeZoneContentManager::Initialize(TimeManager& time_manager) {
     std::string location_name;
     const auto timezone_setting = Settings::GetTimeZoneString();
     if (timezone_setting == "auto" || timezone_setting == "default") {

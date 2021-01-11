@@ -6,11 +6,15 @@
 
 #include "core/hle/service/service.h"
 
+namespace Core {
+class System;
+}
+
 namespace Service::Audio {
 
 class HwOpus final : public ServiceFramework<HwOpus> {
 public:
-    explicit HwOpus();
+    explicit HwOpus(Core::System& system_);
     ~HwOpus() override;
 
 private:

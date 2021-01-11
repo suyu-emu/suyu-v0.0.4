@@ -6,7 +6,7 @@
 
 namespace Service::Audio {
 
-AudRenA::AudRenA() : ServiceFramework{"audren:a"} {
+AudRenA::AudRenA(Core::System& system_) : ServiceFramework{system_, "audren:a"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "RequestSuspendAudioRenderers"},

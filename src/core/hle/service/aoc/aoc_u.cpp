@@ -6,6 +6,8 @@
 #include <numeric>
 #include <vector>
 #include "common/logging/log.h"
+#include "core/core.h"
+#include "core/file_sys/common_funcs.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/nca_metadata.h"
@@ -22,11 +24,8 @@
 
 namespace Service::AOC {
 
-constexpr u64 DLC_BASE_TITLE_ID_MASK = 0xFFFFFFFFFFFFE000;
-constexpr u64 DLC_BASE_TO_AOC_ID = 0x1000;
-
 static bool CheckAOCTitleIDMatchesBase(u64 title_id, u64 base) {
-    return (title_id & DLC_BASE_TITLE_ID_MASK) == base;
+    return FileSys::GetBaseTitleID(title_id) == base;
 }
 
 static std::vector<u64> AccumulateAOCTitleIDs(Core::System& system) {
@@ -47,8 +46,64 @@ static std::vector<u64> AccumulateAOCTitleIDs(Core::System& system) {
     return add_on_content;
 }
 
-AOC_U::AOC_U(Core::System& system)
-    : ServiceFramework("aoc:u"), add_on_content(AccumulateAOCTitleIDs(system)), system(system) {
+class IPurchaseEventManager final : public ServiceFramework<IPurchaseEventManager> {
+public:
+    explicit IPurchaseEventManager(Core::System& system_)
+        : ServiceFramework{system_, "IPurchaseEventManager"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, &IPurchaseEventManager::SetDefaultDeliveryTarget, "SetDefaultDeliveryTarget"},
+            {1, &IPurchaseEventManager::SetDeliveryTarget, "SetDeliveryTarget"},
+            {2, &IPurchaseEventManager::GetPurchasedEventReadableHandle, "GetPurchasedEventReadableHandle"},
+            {3, nullptr, "PopPurchasedProductInfo"},
+            {4, nullptr, "PopPurchasedProductInfoWithUid"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+
+        purchased_event = Kernel::WritableEvent::CreateEventPair(
+            system.Kernel(), "IPurchaseEventManager:PurchasedEvent");
+    }
+
+private:
+    void SetDefaultDeliveryTarget(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+
+        const auto unknown_1 = rp.Pop<u64>();
+        [[maybe_unused]] const auto unknown_2 = ctx.ReadBuffer();
+
+        LOG_WARNING(Service_AOC, "(STUBBED) called, unknown_1={}", unknown_1);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
+
+    void SetDeliveryTarget(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+
+        const auto unknown_1 = rp.Pop<u64>();
+        [[maybe_unused]] const auto unknown_2 = ctx.ReadBuffer();
+
+        LOG_WARNING(Service_AOC, "(STUBBED) called, unknown_1={}", unknown_1);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
+
+    void GetPurchasedEventReadableHandle(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_AOC, "called");
+
+        IPC::ResponseBuilder rb{ctx, 2, 1};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushCopyObjects(purchased_event.readable);
+    }
+
+    Kernel::EventPair purchased_event;
+};
+
+AOC_U::AOC_U(Core::System& system_)
+    : ServiceFramework{system_, "aoc:u"}, add_on_content{AccumulateAOCTitleIDs(system)} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "CountAddOnContentByApplicationId"},
@@ -61,8 +116,8 @@ AOC_U::AOC_U(Core::System& system)
         {7, &AOC_U::PrepareAddOnContent, "PrepareAddOnContent"},
         {8, &AOC_U::GetAddOnContentListChangedEvent, "GetAddOnContentListChangedEvent"},
         {9, nullptr, "GetAddOnContentLostErrorCode"},
-        {100, nullptr, "CreateEcPurchasedEventManager"},
-        {101, nullptr, "CreatePermanentEcPurchasedEventManager"},
+        {100, &AOC_U::CreateEcPurchasedEventManager, "CreateEcPurchasedEventManager"},
+        {101, &AOC_U::CreatePermanentEcPurchasedEventManager, "CreatePermanentEcPurchasedEventManager"},
     };
     // clang-format on
 
@@ -122,11 +177,11 @@ void AOC_U::ListAddOnContent(Kernel::HLERequestContext& ctx) {
     const auto& disabled = Settings::values.disabled_addons[current];
     if (std::find(disabled.begin(), disabled.end(), "DLC") == disabled.end()) {
         for (u64 content_id : add_on_content) {
-            if ((content_id & DLC_BASE_TITLE_ID_MASK) != current) {
+            if (FileSys::GetBaseTitleID(content_id) != current) {
                 continue;
             }
 
-            out.push_back(static_cast<u32>(content_id & 0x7FF));
+            out.push_back(static_cast<u32>(FileSys::GetAOCID(content_id)));
         }
     }
 
@@ -163,11 +218,12 @@ void AOC_U::GetAddOnContentBaseId(Kernel::HLERequestContext& ctx) {
     rb.Push(RESULT_SUCCESS);
 
     const auto title_id = system.CurrentProcess()->GetTitleID();
-    FileSys::PatchManager pm{title_id};
+    const FileSys::PatchManager pm{title_id, system.GetFileSystemController(),
+                                   system.GetContentProvider()};
 
     const auto res = pm.GetControlMetadata();
     if (res.first == nullptr) {
-        rb.Push(title_id + DLC_BASE_TO_AOC_ID);
+        rb.Push(FileSys::GetAOCBaseTitleID(title_id));
         return;
     }
 
@@ -197,6 +253,22 @@ void AOC_U::GetAddOnContentListChangedEvent(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushCopyObjects(aoc_change_event.readable);
+}
+
+void AOC_U::CreateEcPurchasedEventManager(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_AOC, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushIpcInterface<IPurchaseEventManager>(system);
+}
+
+void AOC_U::CreatePermanentEcPurchasedEventManager(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_AOC, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushIpcInterface<IPurchaseEventManager>(system);
 }
 
 void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system) {

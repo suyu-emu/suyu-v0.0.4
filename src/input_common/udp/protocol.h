@@ -7,7 +7,16 @@
 #include <array>
 #include <optional>
 #include <type_traits>
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4701)
+#endif
 #include <boost/crc.hpp>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #include "common/bit_field.h"
 #include "common/swap.h"
 
@@ -93,7 +102,7 @@ static_assert(std::is_trivially_copyable_v<PadData>,
 
 /**
  * Creates a message with the proper header data that can be sent to the server.
- * @param T data Request body to send
+ * @param data Request body to send
  * @param client_id ID of the udp client (usually not checked on the server)
  */
 template <typename T>

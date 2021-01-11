@@ -2,54 +2,60 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include "common/assert.h"
-#include "common/logging/log.h"
 #include "common/spin_lock.h"
-#include "core/arm/arm_interface.h"
-#ifdef ARCHITECTURE_x86_64
+#include "core/arm/cpu_interrupt_handler.h"
 #include "core/arm/dynarmic/arm_dynarmic_32.h"
 #include "core/arm/dynarmic/arm_dynarmic_64.h"
-#endif
-#include "core/arm/cpu_interrupt_handler.h"
-#include "core/arm/exclusive_monitor.h"
-#include "core/arm/unicorn/arm_unicorn.h"
 #include "core/core.h"
+#include "core/hle/kernel/k_scheduler.h"
+#include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/physical_core.h"
-#include "core/hle/kernel/scheduler.h"
-#include "core/hle/kernel/thread.h"
 
 namespace Kernel {
 
-PhysicalCore::PhysicalCore(Core::System& system, std::size_t id, Kernel::Scheduler& scheduler,
-                           Core::CPUInterruptHandler& interrupt_handler)
-    : interrupt_handler{interrupt_handler}, core_index{id}, scheduler{scheduler} {
-
-    guard = std::make_unique<Common::SpinLock>();
-}
+PhysicalCore::PhysicalCore(std::size_t core_index, Core::System& system,
+                           Kernel::KScheduler& scheduler, Core::CPUInterrupts& interrupts)
+    : core_index{core_index}, system{system}, scheduler{scheduler},
+      interrupts{interrupts}, guard{std::make_unique<Common::SpinLock>()} {}
 
 PhysicalCore::~PhysicalCore() = default;
 
-void PhysicalCore::Idle() {
-    interrupt_handler.AwaitInterrupt();
+void PhysicalCore::Initialize([[maybe_unused]] bool is_64_bit) {
+#ifdef ARCHITECTURE_x86_64
+    auto& kernel = system.Kernel();
+    if (is_64_bit) {
+        arm_interface = std::make_unique<Core::ARM_Dynarmic_64>(
+            system, interrupts, kernel.IsMulticore(), kernel.GetExclusiveMonitor(), core_index);
+    } else {
+        arm_interface = std::make_unique<Core::ARM_Dynarmic_32>(
+            system, interrupts, kernel.IsMulticore(), kernel.GetExclusiveMonitor(), core_index);
+    }
+#else
+#error Platform not supported yet.
+#endif
 }
 
-void PhysicalCore::Shutdown() {
-    scheduler.Shutdown();
+void PhysicalCore::Run() {
+    arm_interface->Run();
+}
+
+void PhysicalCore::Idle() {
+    interrupts[core_index].AwaitInterrupt();
 }
 
 bool PhysicalCore::IsInterrupted() const {
-    return interrupt_handler.IsInterrupted();
+    return interrupts[core_index].IsInterrupted();
 }
 
 void PhysicalCore::Interrupt() {
     guard->lock();
-    interrupt_handler.SetInterrupt(true);
+    interrupts[core_index].SetInterrupt(true);
     guard->unlock();
 }
 
 void PhysicalCore::ClearInterrupt() {
     guard->lock();
-    interrupt_handler.SetInterrupt(false);
+    interrupts[core_index].SetInterrupt(false);
     guard->unlock();
 }
 

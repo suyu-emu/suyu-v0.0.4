@@ -53,7 +53,7 @@ void MixContext::UpdateDistancesFromFinalMix() {
         auto mix_id = in_params.mix_id;
         // Needs to be referenced out of scope
         s32 distance_to_final_mix{AudioCommon::FINAL_MIX};
-        for (; distance_to_final_mix < info_count; distance_to_final_mix++) {
+        for (; distance_to_final_mix < static_cast<s32>(info_count); distance_to_final_mix++) {
             if (mix_id == AudioCommon::FINAL_MIX) {
                 // If we're at the final mix, we're done
                 break;
@@ -77,7 +77,7 @@ void MixContext::UpdateDistancesFromFinalMix() {
         }
 
         // If we're out of range for our distance, mark it as no final mix
-        if (distance_to_final_mix >= info_count) {
+        if (distance_to_final_mix >= static_cast<s32>(info_count)) {
             distance_to_final_mix = AudioCommon::NO_FINAL_MIX;
         }
 

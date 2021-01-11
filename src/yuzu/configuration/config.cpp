@@ -5,7 +5,9 @@
 #include <array>
 #include <QKeySequence>
 #include <QSettings>
+#include "common/common_paths.h"
 #include "common/file_util.h"
+#include "core/core.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/hid/controllers/npad.h"
 #include "input_common/main.h"
@@ -14,14 +16,10 @@
 
 namespace FS = Common::FS;
 
-Config::Config(const std::string& config_file, bool is_global) {
-    // TODO: Don't hardcode the path; let the frontend decide where to put the config files.
-    qt_config_loc = FS::GetUserPath(FS::UserPath::ConfigDir) + config_file;
-    FS::CreateFullPath(qt_config_loc);
-    qt_config =
-        std::make_unique<QSettings>(QString::fromStdString(qt_config_loc), QSettings::IniFormat);
-    global = is_global;
-    Reload();
+Config::Config(const std::string& config_name, ConfigType config_type) : type(config_type) {
+    global = config_type == ConfigType::GlobalConfig;
+
+    Initialize(config_name);
 }
 
 Config::~Config() {
@@ -242,84 +240,152 @@ const std::array<UISettings::Shortcut, 16> Config::default_hotkeys{{
 }};
 // clang-format on
 
-void Config::ReadPlayerValues() {
-    for (std::size_t p = 0; p < Settings::values.players.size(); ++p) {
-        auto& player = Settings::values.players[p];
+void Config::Initialize(const std::string& config_name) {
+    switch (type) {
+    case ConfigType::GlobalConfig:
+        qt_config_loc = fmt::format("{}" DIR_SEP "{}.ini", FS::GetUserPath(FS::UserPath::ConfigDir),
+                                    config_name);
+        FS::CreateFullPath(qt_config_loc);
+        qt_config = std::make_unique<QSettings>(QString::fromStdString(qt_config_loc),
+                                                QSettings::IniFormat);
+        Reload();
+        break;
+    case ConfigType::PerGameConfig:
+        qt_config_loc = fmt::format("{}custom" DIR_SEP "{}.ini",
+                                    FS::GetUserPath(FS::UserPath::ConfigDir), config_name);
+        FS::CreateFullPath(qt_config_loc);
+        qt_config = std::make_unique<QSettings>(QString::fromStdString(qt_config_loc),
+                                                QSettings::IniFormat);
+        Reload();
+        break;
+    case ConfigType::InputProfile:
+        qt_config_loc = fmt::format("{}input" DIR_SEP "{}.ini",
+                                    FS::GetUserPath(FS::UserPath::ConfigDir), config_name);
+        FS::CreateFullPath(qt_config_loc);
+        qt_config = std::make_unique<QSettings>(QString::fromStdString(qt_config_loc),
+                                                QSettings::IniFormat);
+        break;
+    }
+}
 
-        player.connected =
-            ReadSetting(QStringLiteral("player_%1_connected").arg(p), false).toBool();
+void Config::ReadPlayerValue(std::size_t player_index) {
+    const QString player_prefix = [this, player_index] {
+        if (type == ConfigType::InputProfile) {
+            return QString{};
+        } else {
+            return QStringLiteral("player_%1_").arg(player_index);
+        }
+    }();
 
-        player.controller_type = static_cast<Settings::ControllerType>(
+    auto& player = Settings::values.players.GetValue()[player_index];
+
+    if (player_prefix.isEmpty()) {
+        const auto controller = static_cast<Settings::ControllerType>(
             qt_config
-                ->value(QStringLiteral("player_%1_type").arg(p),
+                ->value(QStringLiteral("%1type").arg(player_prefix),
                         static_cast<u8>(Settings::ControllerType::ProController))
                 .toUInt());
 
+        if (controller == Settings::ControllerType::LeftJoycon ||
+            controller == Settings::ControllerType::RightJoycon) {
+            player.controller_type = controller;
+        }
+    } else {
+        player.connected =
+            ReadSetting(QStringLiteral("%1connected").arg(player_prefix), player_index == 0)
+                .toBool();
+
+        player.controller_type = static_cast<Settings::ControllerType>(
+            qt_config
+                ->value(QStringLiteral("%1type").arg(player_prefix),
+                        static_cast<u8>(Settings::ControllerType::ProController))
+                .toUInt());
+
+        player.vibration_enabled =
+            qt_config->value(QStringLiteral("%1vibration_enabled").arg(player_prefix), true)
+                .toBool();
+
+        player.vibration_strength =
+            qt_config->value(QStringLiteral("%1vibration_strength").arg(player_prefix), 100)
+                .toInt();
+
         player.body_color_left = qt_config
-                                     ->value(QStringLiteral("player_%1_body_color_left").arg(p),
+                                     ->value(QStringLiteral("%1body_color_left").arg(player_prefix),
                                              Settings::JOYCON_BODY_NEON_BLUE)
                                      .toUInt();
-        player.body_color_right = qt_config
-                                      ->value(QStringLiteral("player_%1_body_color_right").arg(p),
-                                              Settings::JOYCON_BODY_NEON_RED)
-                                      .toUInt();
-        player.button_color_left = qt_config
-                                       ->value(QStringLiteral("player_%1_button_color_left").arg(p),
-                                               Settings::JOYCON_BUTTONS_NEON_BLUE)
-                                       .toUInt();
+        player.body_color_right =
+            qt_config
+                ->value(QStringLiteral("%1body_color_right").arg(player_prefix),
+                        Settings::JOYCON_BODY_NEON_RED)
+                .toUInt();
+        player.button_color_left =
+            qt_config
+                ->value(QStringLiteral("%1button_color_left").arg(player_prefix),
+                        Settings::JOYCON_BUTTONS_NEON_BLUE)
+                .toUInt();
         player.button_color_right =
             qt_config
-                ->value(QStringLiteral("player_%1_button_color_right").arg(p),
+                ->value(QStringLiteral("%1button_color_right").arg(player_prefix),
                         Settings::JOYCON_BUTTONS_NEON_RED)
                 .toUInt();
+    }
 
-        for (int i = 0; i < Settings::NativeButton::NumButtons; ++i) {
-            const std::string default_param =
-                InputCommon::GenerateKeyboardParam(default_buttons[i]);
-            auto& player_buttons = player.buttons[i];
+    for (int i = 0; i < Settings::NativeButton::NumButtons; ++i) {
+        const std::string default_param = InputCommon::GenerateKeyboardParam(default_buttons[i]);
+        auto& player_buttons = player.buttons[i];
 
-            player_buttons = qt_config
-                                 ->value(QStringLiteral("player_%1_").arg(p) +
-                                             QString::fromUtf8(Settings::NativeButton::mapping[i]),
-                                         QString::fromStdString(default_param))
-                                 .toString()
-                                 .toStdString();
-            if (player_buttons.empty()) {
-                player_buttons = default_param;
-            }
+        player_buttons = qt_config
+                             ->value(QStringLiteral("%1").arg(player_prefix) +
+                                         QString::fromUtf8(Settings::NativeButton::mapping[i]),
+                                     QString::fromStdString(default_param))
+                             .toString()
+                             .toStdString();
+        if (player_buttons.empty()) {
+            player_buttons = default_param;
         }
+    }
 
-        for (int i = 0; i < Settings::NativeMotion::NumMotions; ++i) {
-            const std::string default_param =
-                InputCommon::GenerateKeyboardParam(default_motions[i]);
-            auto& player_motions = player.motions[i];
+    for (int i = 0; i < Settings::NativeAnalog::NumAnalogs; ++i) {
+        const std::string default_param = InputCommon::GenerateAnalogParamFromKeys(
+            default_analogs[i][0], default_analogs[i][1], default_analogs[i][2],
+            default_analogs[i][3], default_stick_mod[i], 0.5f);
+        auto& player_analogs = player.analogs[i];
 
-            player_motions = qt_config
-                                 ->value(QStringLiteral("player_%1_").arg(p) +
-                                             QString::fromUtf8(Settings::NativeMotion::mapping[i]),
-                                         QString::fromStdString(default_param))
-                                 .toString()
-                                 .toStdString();
-            if (player_motions.empty()) {
-                player_motions = default_param;
-            }
+        player_analogs = qt_config
+                             ->value(QStringLiteral("%1").arg(player_prefix) +
+                                         QString::fromUtf8(Settings::NativeAnalog::mapping[i]),
+                                     QString::fromStdString(default_param))
+                             .toString()
+                             .toStdString();
+        if (player_analogs.empty()) {
+            player_analogs = default_param;
         }
+    }
 
-        for (int i = 0; i < Settings::NativeAnalog::NumAnalogs; ++i) {
-            const std::string default_param = InputCommon::GenerateAnalogParamFromKeys(
-                default_analogs[i][0], default_analogs[i][1], default_analogs[i][2],
-                default_analogs[i][3], default_stick_mod[i], 0.5f);
-            auto& player_analogs = player.analogs[i];
+    for (int i = 0; i < Settings::NativeVibration::NumVibrations; ++i) {
+        auto& player_vibrations = player.vibrations[i];
 
-            player_analogs = qt_config
-                                 ->value(QStringLiteral("player_%1_").arg(p) +
-                                             QString::fromUtf8(Settings::NativeAnalog::mapping[i]),
-                                         QString::fromStdString(default_param))
-                                 .toString()
-                                 .toStdString();
-            if (player_analogs.empty()) {
-                player_analogs = default_param;
-            }
+        player_vibrations =
+            qt_config
+                ->value(QStringLiteral("%1").arg(player_prefix) +
+                            QString::fromUtf8(Settings::NativeVibration::mapping[i]),
+                        QString{})
+                .toString()
+                .toStdString();
+    }
+
+    for (int i = 0; i < Settings::NativeMotion::NumMotions; ++i) {
+        const std::string default_param = InputCommon::GenerateKeyboardParam(default_motions[i]);
+        auto& player_motions = player.motions[i];
+
+        player_motions = qt_config
+                             ->value(QStringLiteral("%1").arg(player_prefix) +
+                                         QString::fromUtf8(Settings::NativeMotion::mapping[i]),
+                                     QString::fromStdString(default_param))
+                             .toString()
+                             .toStdString();
+        if (player_motions.empty()) {
+            player_motions = default_param;
         }
     }
 }
@@ -436,18 +502,24 @@ void Config::ReadAudioValues() {
 void Config::ReadControlValues() {
     qt_config->beginGroup(QStringLiteral("Controls"));
 
-    ReadPlayerValues();
+    for (std::size_t p = 0; p < Settings::values.players.GetValue().size(); ++p) {
+        ReadPlayerValue(p);
+    }
     ReadDebugValues();
     ReadKeyboardValues();
     ReadMouseValues();
     ReadTouchscreenValues();
     ReadMotionTouchValues();
 
-    Settings::values.vibration_enabled =
-        ReadSetting(QStringLiteral("vibration_enabled"), true).toBool();
-    Settings::values.motion_enabled = ReadSetting(QStringLiteral("motion_enabled"), true).toBool();
-    Settings::values.use_docked_mode =
-        ReadSetting(QStringLiteral("use_docked_mode"), false).toBool();
+    Settings::values.emulate_analog_keyboard =
+        ReadSetting(QStringLiteral("emulate_analog_keyboard"), false).toBool();
+
+    ReadSettingGlobal(Settings::values.use_docked_mode, QStringLiteral("use_docked_mode"), true);
+    ReadSettingGlobal(Settings::values.vibration_enabled, QStringLiteral("vibration_enabled"),
+                      true);
+    ReadSettingGlobal(Settings::values.enable_accurate_vibrations,
+                      QStringLiteral("enable_accurate_vibrations"), false);
+    ReadSettingGlobal(Settings::values.motion_enabled, QStringLiteral("motion_enabled"), true);
 
     qt_config->endGroup();
 }
@@ -500,22 +572,17 @@ void Config::ReadMotionTouchValues() {
         ReadSetting(QStringLiteral("touch_from_button_map"), 0).toInt();
     Settings::values.touch_from_button_map_index =
         std::clamp(Settings::values.touch_from_button_map_index, 0, num_touch_from_button_maps - 1);
-    Settings::values.udp_input_address =
-        ReadSetting(QStringLiteral("udp_input_address"),
-                    QString::fromUtf8(InputCommon::CemuhookUDP::DEFAULT_ADDR))
+    Settings::values.udp_input_servers =
+        ReadSetting(QStringLiteral("udp_input_servers"),
+                    QString::fromUtf8(InputCommon::CemuhookUDP::DEFAULT_SRV))
             .toString()
             .toStdString();
-    Settings::values.udp_input_port = static_cast<u16>(
-        ReadSetting(QStringLiteral("udp_input_port"), InputCommon::CemuhookUDP::DEFAULT_PORT)
-            .toInt());
-    Settings::values.udp_pad_index =
-        static_cast<u8>(ReadSetting(QStringLiteral("udp_pad_index"), 0).toUInt());
 }
 
 void Config::ReadCoreValues() {
     qt_config->beginGroup(QStringLiteral("Core"));
 
-    ReadSettingGlobal(Settings::values.use_multi_core, QStringLiteral("use_multi_core"), false);
+    ReadSettingGlobal(Settings::values.use_multi_core, QStringLiteral("use_multi_core"), true);
 
     qt_config->endGroup();
 }
@@ -570,8 +637,6 @@ void Config::ReadDebuggingValues() {
     // Intentionally not using the QT default setting as this is intended to be changed in the ini
     Settings::values.record_frame_times =
         qt_config->value(QStringLiteral("record_frame_times"), false).toBool();
-    Settings::values.use_gdbstub = ReadSetting(QStringLiteral("use_gdbstub"), false).toBool();
-    Settings::values.gdbstub_port = ReadSetting(QStringLiteral("gdbstub_port"), 24689).toInt();
     Settings::values.program_args =
         ReadSetting(QStringLiteral("program_args"), QString{}).toString().toStdString();
     Settings::values.dump_exefs = ReadSetting(QStringLiteral("dump_exefs"), false).toBool();
@@ -581,6 +646,8 @@ void Config::ReadDebuggingValues() {
     Settings::values.quest_flag = ReadSetting(QStringLiteral("quest_flag"), false).toBool();
     Settings::values.disable_macro_jit =
         ReadSetting(QStringLiteral("disable_macro_jit"), false).toBool();
+    Settings::values.extended_logging =
+        ReadSetting(QStringLiteral("extended_logging"), false).toBool();
 
     qt_config->endGroup();
 }
@@ -697,6 +764,8 @@ void Config::ReadCpuValues() {
             ReadSetting(QStringLiteral("cpuopt_unsafe_unfuse_fma"), true).toBool();
         Settings::values.cpuopt_unsafe_reduce_fp_error =
             ReadSetting(QStringLiteral("cpuopt_unsafe_reduce_fp_error"), true).toBool();
+        Settings::values.cpuopt_unsafe_inaccurate_nan =
+            ReadSetting(QStringLiteral("cpuopt_unsafe_inaccurate_nan"), true).toBool();
     }
 
     qt_config->endGroup();
@@ -716,10 +785,12 @@ void Config::ReadRendererValues() {
                       QStringLiteral("use_disk_shader_cache"), true);
     ReadSettingGlobal(Settings::values.gpu_accuracy, QStringLiteral("gpu_accuracy"), 0);
     ReadSettingGlobal(Settings::values.use_asynchronous_gpu_emulation,
-                      QStringLiteral("use_asynchronous_gpu_emulation"), false);
+                      QStringLiteral("use_asynchronous_gpu_emulation"), true);
+    ReadSettingGlobal(Settings::values.use_nvdec_emulation, QStringLiteral("use_nvdec_emulation"),
+                      true);
     ReadSettingGlobal(Settings::values.use_vsync, QStringLiteral("use_vsync"), true);
     ReadSettingGlobal(Settings::values.use_assembly_shaders, QStringLiteral("use_assembly_shaders"),
-                      false);
+                      true);
     ReadSettingGlobal(Settings::values.use_asynchronous_shaders,
                       QStringLiteral("use_asynchronous_shaders"), false);
     ReadSettingGlobal(Settings::values.use_fast_gpu_time, QStringLiteral("use_fast_gpu_time"),
@@ -918,49 +989,64 @@ void Config::ReadValues() {
     ReadSystemValues();
 }
 
-void Config::SavePlayerValues() {
-    for (std::size_t p = 0; p < Settings::values.players.size(); ++p) {
-        const auto& player = Settings::values.players[p];
+void Config::SavePlayerValue(std::size_t player_index) {
+    const QString player_prefix = [this, player_index] {
+        if (type == ConfigType::InputProfile) {
+            return QString{};
+        } else {
+            return QStringLiteral("player_%1_").arg(player_index);
+        }
+    }();
 
-        WriteSetting(QStringLiteral("player_%1_connected").arg(p), player.connected, false);
-        WriteSetting(QStringLiteral("player_%1_type").arg(p),
-                     static_cast<u8>(player.controller_type),
-                     static_cast<u8>(Settings::ControllerType::ProController));
+    const auto& player = Settings::values.players.GetValue()[player_index];
 
-        WriteSetting(QStringLiteral("player_%1_body_color_left").arg(p), player.body_color_left,
+    WriteSetting(QStringLiteral("%1type").arg(player_prefix),
+                 static_cast<u8>(player.controller_type),
+                 static_cast<u8>(Settings::ControllerType::ProController));
+
+    if (!player_prefix.isEmpty()) {
+        WriteSetting(QStringLiteral("%1connected").arg(player_prefix), player.connected, false);
+        WriteSetting(QStringLiteral("%1vibration_enabled").arg(player_prefix),
+                     player.vibration_enabled, true);
+        WriteSetting(QStringLiteral("%1vibration_strength").arg(player_prefix),
+                     player.vibration_strength, 100);
+        WriteSetting(QStringLiteral("%1body_color_left").arg(player_prefix), player.body_color_left,
                      Settings::JOYCON_BODY_NEON_BLUE);
-        WriteSetting(QStringLiteral("player_%1_body_color_right").arg(p), player.body_color_right,
-                     Settings::JOYCON_BODY_NEON_RED);
-        WriteSetting(QStringLiteral("player_%1_button_color_left").arg(p), player.button_color_left,
-                     Settings::JOYCON_BUTTONS_NEON_BLUE);
-        WriteSetting(QStringLiteral("player_%1_button_color_right").arg(p),
+        WriteSetting(QStringLiteral("%1body_color_right").arg(player_prefix),
+                     player.body_color_right, Settings::JOYCON_BODY_NEON_RED);
+        WriteSetting(QStringLiteral("%1button_color_left").arg(player_prefix),
+                     player.button_color_left, Settings::JOYCON_BUTTONS_NEON_BLUE);
+        WriteSetting(QStringLiteral("%1button_color_right").arg(player_prefix),
                      player.button_color_right, Settings::JOYCON_BUTTONS_NEON_RED);
+    }
 
-        for (int i = 0; i < Settings::NativeButton::NumButtons; ++i) {
-            const std::string default_param =
-                InputCommon::GenerateKeyboardParam(default_buttons[i]);
-            WriteSetting(QStringLiteral("player_%1_").arg(p) +
-                             QString::fromStdString(Settings::NativeButton::mapping[i]),
-                         QString::fromStdString(player.buttons[i]),
-                         QString::fromStdString(default_param));
-        }
-        for (int i = 0; i < Settings::NativeMotion::NumMotions; ++i) {
-            const std::string default_param =
-                InputCommon::GenerateKeyboardParam(default_motions[i]);
-            WriteSetting(QStringLiteral("player_%1_").arg(p) +
-                             QString::fromStdString(Settings::NativeMotion::mapping[i]),
-                         QString::fromStdString(player.motions[i]),
-                         QString::fromStdString(default_param));
-        }
-        for (int i = 0; i < Settings::NativeAnalog::NumAnalogs; ++i) {
-            const std::string default_param = InputCommon::GenerateAnalogParamFromKeys(
-                default_analogs[i][0], default_analogs[i][1], default_analogs[i][2],
-                default_analogs[i][3], default_stick_mod[i], 0.5f);
-            WriteSetting(QStringLiteral("player_%1_").arg(p) +
-                             QString::fromStdString(Settings::NativeAnalog::mapping[i]),
-                         QString::fromStdString(player.analogs[i]),
-                         QString::fromStdString(default_param));
-        }
+    for (int i = 0; i < Settings::NativeButton::NumButtons; ++i) {
+        const std::string default_param = InputCommon::GenerateKeyboardParam(default_buttons[i]);
+        WriteSetting(QStringLiteral("%1").arg(player_prefix) +
+                         QString::fromStdString(Settings::NativeButton::mapping[i]),
+                     QString::fromStdString(player.buttons[i]),
+                     QString::fromStdString(default_param));
+    }
+    for (int i = 0; i < Settings::NativeAnalog::NumAnalogs; ++i) {
+        const std::string default_param = InputCommon::GenerateAnalogParamFromKeys(
+            default_analogs[i][0], default_analogs[i][1], default_analogs[i][2],
+            default_analogs[i][3], default_stick_mod[i], 0.5f);
+        WriteSetting(QStringLiteral("%1").arg(player_prefix) +
+                         QString::fromStdString(Settings::NativeAnalog::mapping[i]),
+                     QString::fromStdString(player.analogs[i]),
+                     QString::fromStdString(default_param));
+    }
+    for (int i = 0; i < Settings::NativeVibration::NumVibrations; ++i) {
+        WriteSetting(QStringLiteral("%1").arg(player_prefix) +
+                         QString::fromStdString(Settings::NativeVibration::mapping[i]),
+                     QString::fromStdString(player.vibrations[i]), QString{});
+    }
+    for (int i = 0; i < Settings::NativeMotion::NumMotions; ++i) {
+        const std::string default_param = InputCommon::GenerateKeyboardParam(default_motions[i]);
+        WriteSetting(QStringLiteral("%1").arg(player_prefix) +
+                         QString::fromStdString(Settings::NativeMotion::mapping[i]),
+                     QString::fromStdString(player.motions[i]),
+                     QString::fromStdString(default_param));
     }
 }
 
@@ -1021,12 +1107,9 @@ void Config::SaveMotionTouchValues() {
                  false);
     WriteSetting(QStringLiteral("touch_from_button_map"),
                  Settings::values.touch_from_button_map_index, 0);
-    WriteSetting(QStringLiteral("udp_input_address"),
-                 QString::fromStdString(Settings::values.udp_input_address),
-                 QString::fromUtf8(InputCommon::CemuhookUDP::DEFAULT_ADDR));
-    WriteSetting(QStringLiteral("udp_input_port"), Settings::values.udp_input_port,
-                 InputCommon::CemuhookUDP::DEFAULT_PORT);
-    WriteSetting(QStringLiteral("udp_pad_index"), Settings::values.udp_pad_index, 0);
+    WriteSetting(QStringLiteral("udp_input_servers"),
+                 QString::fromStdString(Settings::values.udp_input_servers),
+                 QString::fromUtf8(InputCommon::CemuhookUDP::DEFAULT_SRV));
 
     qt_config->beginWriteArray(QStringLiteral("touch_from_button_maps"));
     for (std::size_t p = 0; p < Settings::values.touch_from_button_maps.size(); ++p) {
@@ -1085,14 +1168,20 @@ void Config::SaveAudioValues() {
 void Config::SaveControlValues() {
     qt_config->beginGroup(QStringLiteral("Controls"));
 
-    SavePlayerValues();
+    for (std::size_t p = 0; p < Settings::values.players.GetValue().size(); ++p) {
+        SavePlayerValue(p);
+    }
     SaveDebugValues();
     SaveMouseValues();
     SaveTouchscreenValues();
     SaveMotionTouchValues();
 
-    WriteSetting(QStringLiteral("vibration_enabled"), Settings::values.vibration_enabled, true);
-    WriteSetting(QStringLiteral("motion_enabled"), Settings::values.motion_enabled, true);
+    WriteSettingGlobal(QStringLiteral("use_docked_mode"), Settings::values.use_docked_mode, true);
+    WriteSettingGlobal(QStringLiteral("vibration_enabled"), Settings::values.vibration_enabled,
+                       true);
+    WriteSettingGlobal(QStringLiteral("enable_accurate_vibrations"),
+                       Settings::values.enable_accurate_vibrations, false);
+    WriteSettingGlobal(QStringLiteral("motion_enabled"), Settings::values.motion_enabled, true);
     WriteSetting(QStringLiteral("motion_device"),
                  QString::fromStdString(Settings::values.motion_device),
                  QStringLiteral("engine:motion_emu,update_period:100,sensitivity:0.01"));
@@ -1100,7 +1189,8 @@ void Config::SaveControlValues() {
                  QString::fromStdString(Settings::values.touch_device),
                  QStringLiteral("engine:emu_window"));
     WriteSetting(QStringLiteral("keyboard_enabled"), Settings::values.keyboard_enabled, false);
-    WriteSetting(QStringLiteral("use_docked_mode"), Settings::values.use_docked_mode, false);
+    WriteSetting(QStringLiteral("emulate_analog_keyboard"),
+                 Settings::values.emulate_analog_keyboard, false);
 
     qt_config->endGroup();
 }
@@ -1108,7 +1198,7 @@ void Config::SaveControlValues() {
 void Config::SaveCoreValues() {
     qt_config->beginGroup(QStringLiteral("Core"));
 
-    WriteSettingGlobal(QStringLiteral("use_multi_core"), Settings::values.use_multi_core, false);
+    WriteSettingGlobal(QStringLiteral("use_multi_core"), Settings::values.use_multi_core, true);
 
     qt_config->endGroup();
 }
@@ -1146,8 +1236,6 @@ void Config::SaveDebuggingValues() {
 
     // Intentionally not using the QT default setting as this is intended to be changed in the ini
     qt_config->setValue(QStringLiteral("record_frame_times"), Settings::values.record_frame_times);
-    WriteSetting(QStringLiteral("use_gdbstub"), Settings::values.use_gdbstub, false);
-    WriteSetting(QStringLiteral("gdbstub_port"), Settings::values.gdbstub_port, 24689);
     WriteSetting(QStringLiteral("program_args"),
                  QString::fromStdString(Settings::values.program_args), QString{});
     WriteSetting(QStringLiteral("dump_exefs"), Settings::values.dump_exefs, false);
@@ -1241,6 +1329,8 @@ void Config::SaveCpuValues() {
                      Settings::values.cpuopt_unsafe_unfuse_fma, true);
         WriteSetting(QStringLiteral("cpuopt_unsafe_reduce_fp_error"),
                      Settings::values.cpuopt_unsafe_reduce_fp_error, true);
+        WriteSetting(QStringLiteral("cpuopt_unsafe_inaccurate_nan"),
+                     Settings::values.cpuopt_unsafe_inaccurate_nan, true);
     }
 
     qt_config->endGroup();
@@ -1264,10 +1354,12 @@ void Config::SaveRendererValues() {
                        static_cast<int>(Settings::values.gpu_accuracy.GetValue(global)),
                        Settings::values.gpu_accuracy.UsingGlobal(), 0);
     WriteSettingGlobal(QStringLiteral("use_asynchronous_gpu_emulation"),
-                       Settings::values.use_asynchronous_gpu_emulation, false);
+                       Settings::values.use_asynchronous_gpu_emulation, true);
+    WriteSettingGlobal(QStringLiteral("use_nvdec_emulation"), Settings::values.use_nvdec_emulation,
+                       true);
     WriteSettingGlobal(QStringLiteral("use_vsync"), Settings::values.use_vsync, true);
     WriteSettingGlobal(QStringLiteral("use_assembly_shaders"),
-                       Settings::values.use_assembly_shaders, false);
+                       Settings::values.use_assembly_shaders, true);
     WriteSettingGlobal(QStringLiteral("use_asynchronous_shaders"),
                        Settings::values.use_asynchronous_shaders, false);
     WriteSettingGlobal(QStringLiteral("use_fast_gpu_time"), Settings::values.use_fast_gpu_time,
@@ -1501,13 +1593,27 @@ void Config::WriteSettingGlobal(const QString& name, const QVariant& value, bool
 
 void Config::Reload() {
     ReadValues();
-    Settings::Sanitize();
     // To apply default value changes
     SaveValues();
-    Settings::Apply();
+    Settings::Apply(Core::System::GetInstance());
 }
 
 void Config::Save() {
-    Settings::Sanitize();
     SaveValues();
+}
+
+void Config::ReadControlPlayerValue(std::size_t player_index) {
+    qt_config->beginGroup(QStringLiteral("Controls"));
+    ReadPlayerValue(player_index);
+    qt_config->endGroup();
+}
+
+void Config::SaveControlPlayerValue(std::size_t player_index) {
+    qt_config->beginGroup(QStringLiteral("Controls"));
+    SavePlayerValue(player_index);
+    qt_config->endGroup();
+}
+
+const std::string& Config::GetConfigFilePath() const {
+    return qt_config_loc;
 }

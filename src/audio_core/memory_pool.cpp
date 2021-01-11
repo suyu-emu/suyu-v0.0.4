@@ -10,11 +10,10 @@ namespace AudioCore {
 
 ServerMemoryPoolInfo::ServerMemoryPoolInfo() = default;
 ServerMemoryPoolInfo::~ServerMemoryPoolInfo() = default;
-bool ServerMemoryPoolInfo::Update(const ServerMemoryPoolInfo::InParams& in_params,
-                                  ServerMemoryPoolInfo::OutParams& out_params) {
+
+bool ServerMemoryPoolInfo::Update(const InParams& in_params, OutParams& out_params) {
     // Our state does not need to be changed
-    if (in_params.state != ServerMemoryPoolInfo::State::RequestAttach &&
-        in_params.state != ServerMemoryPoolInfo::State::RequestDetach) {
+    if (in_params.state != State::RequestAttach && in_params.state != State::RequestDetach) {
         return true;
     }
 
@@ -32,11 +31,11 @@ bool ServerMemoryPoolInfo::Update(const ServerMemoryPoolInfo::InParams& in_param
         return false;
     }
 
-    if (in_params.state == ServerMemoryPoolInfo::State::RequestAttach) {
+    if (in_params.state == State::RequestAttach) {
         cpu_address = in_params.address;
         size = in_params.size;
         used = true;
-        out_params.state = ServerMemoryPoolInfo::State::Attached;
+        out_params.state = State::Attached;
     } else {
         // Unexpected address
         if (cpu_address != in_params.address) {
@@ -54,7 +53,7 @@ bool ServerMemoryPoolInfo::Update(const ServerMemoryPoolInfo::InParams& in_param
         cpu_address = 0;
         size = 0;
         used = false;
-        out_params.state = ServerMemoryPoolInfo::State::Detached;
+        out_params.state = State::Detached;
     }
     return true;
 }

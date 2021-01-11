@@ -8,6 +8,6 @@
 
 namespace FileSys::SystemArchive::SharedFontData {
 
-extern const std::array<unsigned char, 2932> FONT_NINTENDO_EXTENDED;
+extern const std::array<unsigned char, 6024> FONT_NINTENDO_EXTENDED;
 
 } // namespace FileSys::SystemArchive::SharedFontData

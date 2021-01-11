@@ -6,7 +6,7 @@
 
 namespace Service::AM {
 
-OMM::OMM() : ServiceFramework{"omm"} {
+OMM::OMM(Core::System& system_) : ServiceFramework{system_, "omm"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "GetOperationMode"},

@@ -7,7 +7,6 @@
 #include <array>
 #include "audio_core/common.h"
 #include "audio_core/voice_context.h"
-#include "common/common_funcs.h"
 #include "common/common_types.h"
 
 namespace Core::Memory {
@@ -26,10 +25,10 @@ using MixVolumeBuffer = std::array<float, AudioCommon::MAX_MIX_BUFFERS>;
 
 class CommandGenerator {
 public:
-    explicit CommandGenerator(AudioCommon::AudioRendererParameter& worker_params,
-                              VoiceContext& voice_context, MixContext& mix_context,
-                              SplitterContext& splitter_context, EffectContext& effect_context,
-                              Core::Memory::Memory& memory);
+    explicit CommandGenerator(AudioCommon::AudioRendererParameter& worker_params_,
+                              VoiceContext& voice_context_, MixContext& mix_context_,
+                              SplitterContext& splitter_context_, EffectContext& effect_context_,
+                              Core::Memory::Memory& memory_);
     ~CommandGenerator();
 
     void ClearMixBuffers();
@@ -40,13 +39,13 @@ public:
     void PreCommand();
     void PostCommand();
 
-    s32* GetChannelMixBuffer(s32 channel);
-    const s32* GetChannelMixBuffer(s32 channel) const;
-    s32* GetMixBuffer(std::size_t index);
-    const s32* GetMixBuffer(std::size_t index) const;
-    std::size_t GetMixChannelBufferOffset(s32 channel) const;
+    [[nodiscard]] s32* GetChannelMixBuffer(s32 channel);
+    [[nodiscard]] const s32* GetChannelMixBuffer(s32 channel) const;
+    [[nodiscard]] s32* GetMixBuffer(std::size_t index);
+    [[nodiscard]] const s32* GetMixBuffer(std::size_t index) const;
+    [[nodiscard]] std::size_t GetMixChannelBufferOffset(s32 channel) const;
 
-    std::size_t GetTotalMixBufferCount() const;
+    [[nodiscard]] std::size_t GetTotalMixBufferCount() const;
 
 private:
     void GenerateDataSourceCommand(ServerVoiceInfo& voice_info, VoiceState& dsp_state, s32 channel);
@@ -74,7 +73,7 @@ private:
     void GenerateI3dl2ReverbEffectCommand(s32 mix_buffer_offset, EffectBase* info, bool enabled);
     void GenerateBiquadFilterEffectCommand(s32 mix_buffer_offset, EffectBase* info, bool enabled);
     void GenerateAuxCommand(s32 mix_buffer_offset, EffectBase* info, bool enabled);
-    ServerSplitterDestinationData* GetDestinationData(s32 splitter_id, s32 index);
+    [[nodiscard]] ServerSplitterDestinationData* GetDestinationData(s32 splitter_id, s32 index);
 
     s32 WriteAuxBuffer(AuxInfoDSP& dsp_info, VAddr send_buffer, u32 max_samples, const s32* data,
                        u32 sample_count, u32 write_offset, u32 write_count);

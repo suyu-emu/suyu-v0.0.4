@@ -146,7 +146,7 @@ std::vector<s16> Interpolate(InterpolationState& state, std::vector<s16> input, 
         return {};
 
     if (ratio <= 0) {
-        LOG_CRITICAL(Audio, "Nonsensical interpolation ratio {}", ratio);
+        LOG_ERROR(Audio, "Nonsensical interpolation ratio {}", ratio);
         return input;
     }
 
@@ -164,7 +164,8 @@ std::vector<s16> Interpolate(InterpolationState& state, std::vector<s16> input, 
     const std::size_t num_frames{input.size() / 2};
 
     std::vector<s16> output;
-    output.reserve(static_cast<std::size_t>(input.size() / ratio + InterpolationState::taps));
+    output.reserve(static_cast<std::size_t>(static_cast<double>(input.size()) / ratio +
+                                            InterpolationState::taps));
 
     for (std::size_t frame{}; frame < num_frames; ++frame) {
         const std::size_t lut_index{(state.fraction >> 8) * InterpolationState::taps};
@@ -217,7 +218,7 @@ void Resample(s32* output, const s32* input, s32 pitch, s32& fraction, std::size
         const auto l2 = lut[lut_index + 2];
         const auto l3 = lut[lut_index + 3];
 
-        const auto s0 = static_cast<s32>(input[index]);
+        const auto s0 = static_cast<s32>(input[index + 0]);
         const auto s1 = static_cast<s32>(input[index + 1]);
         const auto s2 = static_cast<s32>(input[index + 2]);
         const auto s3 = static_cast<s32>(input[index + 3]);

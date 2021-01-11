@@ -4,19 +4,21 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <memory>
+
+#include "core/arm/arm_interface.h"
 
 namespace Common {
 class SpinLock;
 }
 
 namespace Kernel {
-class Scheduler;
+class KScheduler;
 } // namespace Kernel
 
 namespace Core {
-class ARM_Interface;
 class CPUInterruptHandler;
 class ExclusiveMonitor;
 class System;
@@ -26,17 +28,24 @@ namespace Kernel {
 
 class PhysicalCore {
 public:
-    PhysicalCore(Core::System& system, std::size_t id, Kernel::Scheduler& scheduler,
-                 Core::CPUInterruptHandler& interrupt_handler);
+    PhysicalCore(std::size_t core_index, Core::System& system, Kernel::KScheduler& scheduler,
+                 Core::CPUInterrupts& interrupts);
     ~PhysicalCore();
 
     PhysicalCore(const PhysicalCore&) = delete;
     PhysicalCore& operator=(const PhysicalCore&) = delete;
 
     PhysicalCore(PhysicalCore&&) = default;
-    PhysicalCore& operator=(PhysicalCore&&) = default;
+    PhysicalCore& operator=(PhysicalCore&&) = delete;
+
+    /// Initialize the core for the specified parameters.
+    void Initialize(bool is_64_bit);
+
+    /// Execute current jit state
+    void Run();
 
     void Idle();
+
     /// Interrupt this physical core.
     void Interrupt();
 
@@ -46,8 +55,17 @@ public:
     /// Check if this core is interrupted
     bool IsInterrupted() const;
 
-    // Shutdown this physical core.
-    void Shutdown();
+    bool IsInitialized() const {
+        return arm_interface != nullptr;
+    }
+
+    Core::ARM_Interface& ArmInterface() {
+        return *arm_interface;
+    }
+
+    const Core::ARM_Interface& ArmInterface() const {
+        return *arm_interface;
+    }
 
     bool IsMainCore() const {
         return core_index == 0;
@@ -61,19 +79,21 @@ public:
         return core_index;
     }
 
-    Kernel::Scheduler& Scheduler() {
+    Kernel::KScheduler& Scheduler() {
         return scheduler;
     }
 
-    const Kernel::Scheduler& Scheduler() const {
+    const Kernel::KScheduler& Scheduler() const {
         return scheduler;
     }
 
 private:
-    Core::CPUInterruptHandler& interrupt_handler;
-    std::size_t core_index;
-    Kernel::Scheduler& scheduler;
+    const std::size_t core_index;
+    Core::System& system;
+    Kernel::KScheduler& scheduler;
+    Core::CPUInterrupts& interrupts;
     std::unique_ptr<Common::SpinLock> guard;
+    std::unique_ptr<Core::ARM_Interface> arm_interface;
 };
 
 } // namespace Kernel

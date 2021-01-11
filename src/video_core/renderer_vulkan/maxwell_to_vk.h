@@ -6,10 +6,10 @@
 
 #include "common/common_types.h"
 #include "video_core/engines/maxwell_3d.h"
-#include "video_core/renderer_vulkan/vk_device.h"
-#include "video_core/renderer_vulkan/wrapper.h"
 #include "video_core/surface.h"
 #include "video_core/textures/texture.h"
+#include "video_core/vulkan_common/vulkan_device.h"
+#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan::MaxwellToVK {
 
@@ -22,7 +22,7 @@ VkFilter Filter(Tegra::Texture::TextureFilter filter);
 
 VkSamplerMipmapMode MipmapMode(Tegra::Texture::TextureMipmapFilter mipmap_filter);
 
-VkSamplerAddressMode WrapMode(const VKDevice& device, Tegra::Texture::WrapMode wrap_mode,
+VkSamplerAddressMode WrapMode(const Device& device, Tegra::Texture::WrapMode wrap_mode,
                               Tegra::Texture::TextureFilter filter);
 
 VkCompareOp DepthCompareFunction(Tegra::Texture::DepthCompareFunc depth_compare_func);
@@ -35,17 +35,17 @@ struct FormatInfo {
     bool storage;
 };
 
-FormatInfo SurfaceFormat(const VKDevice& device, FormatType format_type, PixelFormat pixel_format);
+FormatInfo SurfaceFormat(const Device& device, FormatType format_type, PixelFormat pixel_format);
 
 VkShaderStageFlagBits ShaderStage(Tegra::Engines::ShaderType stage);
 
-VkPrimitiveTopology PrimitiveTopology(const VKDevice& device, Maxwell::PrimitiveTopology topology);
+VkPrimitiveTopology PrimitiveTopology(const Device& device, Maxwell::PrimitiveTopology topology);
 
 VkFormat VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttribute::Size size);
 
 VkCompareOp ComparisonOp(Maxwell::ComparisonOp comparison);
 
-VkIndexType IndexFormat(const VKDevice& device, Maxwell::IndexFormat index_format);
+VkIndexType IndexFormat(const Device& device, Maxwell::IndexFormat index_format);
 
 VkStencilOp StencilOp(Maxwell::StencilOp stencil_op);
 
@@ -60,5 +60,7 @@ VkCullModeFlags CullFace(Maxwell::CullFace cull_face);
 VkComponentSwizzle SwizzleSource(Tegra::Texture::SwizzleSource swizzle);
 
 VkViewportCoordinateSwizzleNV ViewportSwizzle(Maxwell::ViewportSwizzle swizzle);
+
+VkSamplerReductionMode SamplerReduction(Tegra::Texture::SamplerReduction reduction);
 
 } // namespace Vulkan::MaxwellToVK

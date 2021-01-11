@@ -902,8 +902,10 @@ inline uint16_t MicroProfileGetGroupIndex(MicroProfileToken t)
 #include <windows.h>
 #define snprintf _snprintf
 
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable: 4244)
+#endif
 int64_t MicroProfileTicksPerSecondCpu()
 {
     static int64_t nTicksPerSecond = 0;
@@ -946,7 +948,11 @@ typedef HANDLE MicroProfileThread;
 DWORD _stdcall ThreadTrampoline(void* pFunc)
 {
     MicroProfileThreadFunc F = (MicroProfileThreadFunc)pFunc;
-    return (uint32_t)F(0);
+
+    // The return value of F will always return a void*, however, this is for
+    // compatibility with pthreads. The underlying "address" of the pointer
+    // is always a 32-bit value, so this cast is safe to perform.
+    return static_cast<DWORD>(reinterpret_cast<uint64_t>(F(0)));
 }
 
 inline void MicroProfileThreadStart(MicroProfileThread* pThread, MicroProfileThreadFunc Func)
@@ -1742,10 +1748,10 @@ void MicroProfileFlip()
                             }
                         }
                     }
-                    for(uint32_t i = 0; i < MICROPROFILE_MAX_GROUPS; ++i)
+                    for(uint32_t j = 0; j < MICROPROFILE_MAX_GROUPS; ++j)
                     {
-                        pLog->nGroupTicks[i] += nGroupTicks[i];
-                        pFrameGroup[i] += nGroupTicks[i];
+                        pLog->nGroupTicks[j] += nGroupTicks[j];
+                        pFrameGroup[j] += nGroupTicks[j];
                     }
                     pLog->nStackPos = nStackPos;
                 }
@@ -3328,7 +3334,7 @@ bool MicroProfileIsLocalThread(uint32_t nThreadId)
 #endif
 #else
 
-bool MicroProfileIsLocalThread(uint32_t nThreadId){return false;}
+bool MicroProfileIsLocalThread([[maybe_unused]] uint32_t nThreadId) { return false; }
 void MicroProfileStopContextSwitchTrace(){}
 void MicroProfileStartContextSwitchTrace(){}
 
@@ -3576,7 +3582,7 @@ int MicroProfileGetGpuTickReference(int64_t* pOutCpu, int64_t* pOutGpu)
 
 #undef S
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 

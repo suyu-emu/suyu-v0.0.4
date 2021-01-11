@@ -8,7 +8,7 @@
 
 namespace Service::Audio {
 
-AudCtl::AudCtl() : ServiceFramework{"audctl"} {
+AudCtl::AudCtl(Core::System& system_) : ServiceFramework{system_, "audctl"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "GetTargetVolume"},

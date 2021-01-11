@@ -72,11 +72,13 @@ public:
 
     struct RenderEnable {
         enum class Mode : u32 {
-            FALSE = 0,
-            TRUE = 1,
-            CONDITIONAL = 2,
-            RENDER_IF_EQUAL = 3,
-            RENDER_IF_NOT_EQUAL = 4,
+            // Note: This uses Pascal case in order to avoid the identifiers
+            // FALSE and TRUE, which are reserved on Darwin.
+            False = 0,
+            True = 1,
+            Conditional = 2,
+            RenderIfEqual = 3,
+            RenderIfNotEqual = 4,
         };
 
         PackedGPUVAddr address;
@@ -185,8 +187,8 @@ public:
     };
     static_assert(sizeof(RemapConst) == 12);
 
-    explicit MaxwellDMA(Core::System& system, MemoryManager& memory_manager);
-    ~MaxwellDMA() = default;
+    explicit MaxwellDMA(Core::System& system_, MemoryManager& memory_manager_);
+    ~MaxwellDMA();
 
     /// Write the value to the register identified by method.
     void CallMethod(u32 method, u32 method_argument, bool is_last_call) override;

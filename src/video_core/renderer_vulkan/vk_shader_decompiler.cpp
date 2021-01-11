@@ -22,11 +22,11 @@
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/engines/shader_header.h"
 #include "video_core/engines/shader_type.h"
-#include "video_core/renderer_vulkan/vk_device.h"
 #include "video_core/renderer_vulkan/vk_shader_decompiler.h"
 #include "video_core/shader/node.h"
 #include "video_core/shader/shader_ir.h"
 #include "video_core/shader/transform_feedback.h"
+#include "video_core/vulkan_common/vulkan_device.h"
 
 namespace Vulkan {
 
@@ -55,8 +55,8 @@ enum class Type { Void, Bool, Bool2, Float, Int, Uint, HalfFloat };
 
 class Expression final {
 public:
-    Expression(Id id, Type type) : id{id}, type{type} {
-        ASSERT(type != Type::Void);
+    Expression(Id id_, Type type_) : id{id_}, type{type_} {
+        ASSERT(type_ != Type::Void);
     }
     Expression() : type{Type::Void} {}
 
@@ -102,7 +102,7 @@ struct GenericVaryingDescription {
     bool is_scalar = false;
 };
 
-spv::Dim GetSamplerDim(const Sampler& sampler) {
+spv::Dim GetSamplerDim(const SamplerEntry& sampler) {
     ASSERT(!sampler.is_buffer);
     switch (sampler.type) {
     case Tegra::Shader::TextureType::Texture1D:
@@ -114,12 +114,12 @@ spv::Dim GetSamplerDim(const Sampler& sampler) {
     case Tegra::Shader::TextureType::TextureCube:
         return spv::Dim::Cube;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented sampler type={}", static_cast<int>(sampler.type));
+        UNIMPLEMENTED_MSG("Unimplemented sampler type={}", sampler.type);
         return spv::Dim::Dim2D;
     }
 }
 
-std::pair<spv::Dim, bool> GetImageDim(const Image& image) {
+std::pair<spv::Dim, bool> GetImageDim(const ImageEntry& image) {
     switch (image.type) {
     case Tegra::Shader::ImageType::Texture1D:
         return {spv::Dim::Dim1D, false};
@@ -134,7 +134,7 @@ std::pair<spv::Dim, bool> GetImageDim(const Image& image) {
     case Tegra::Shader::ImageType::Texture3D:
         return {spv::Dim::Dim3D, false};
     default:
-        UNIMPLEMENTED_MSG("Unimplemented image type={}", static_cast<int>(image.type));
+        UNIMPLEMENTED_MSG("Unimplemented image type={}", image.type);
         return {spv::Dim::Dim2D, false};
     }
 }
@@ -274,12 +274,12 @@ bool IsPrecise(Operation operand) {
 
 class SPIRVDecompiler final : public Sirit::Module {
 public:
-    explicit SPIRVDecompiler(const VKDevice& device, const ShaderIR& ir, ShaderType stage,
-                             const Registry& registry, const Specialization& specialization)
-        : Module(0x00010300), device{device}, ir{ir}, stage{stage}, header{ir.GetHeader()},
-          registry{registry}, specialization{specialization} {
-        if (stage != ShaderType::Compute) {
-            transform_feedback = BuildTransformFeedback(registry.GetGraphicsInfo());
+    explicit SPIRVDecompiler(const Device& device_, const ShaderIR& ir_, ShaderType stage_,
+                             const Registry& registry_, const Specialization& specialization_)
+        : Module(0x00010300), device{device_}, ir{ir_}, stage{stage_}, header{ir_.GetHeader()},
+          registry{registry_}, specialization{specialization_} {
+        if (stage_ != ShaderType::Compute) {
+            transform_feedback = BuildTransformFeedback(registry_.GetGraphicsInfo());
         }
 
         AddCapability(spv::Capability::Shader);
@@ -293,6 +293,7 @@ public:
         AddCapability(spv::Capability::DrawParameters);
         AddCapability(spv::Capability::SubgroupBallotKHR);
         AddCapability(spv::Capability::SubgroupVoteKHR);
+        AddExtension("SPV_KHR_16bit_storage");
         AddExtension("SPV_KHR_shader_ballot");
         AddExtension("SPV_KHR_subgroup_vote");
         AddExtension("SPV_KHR_storage_buffer_storage_class");
@@ -307,7 +308,6 @@ public:
                                          "supported on this device");
             }
         }
-
         if (ir.UsesLayer() || ir.UsesViewportIndex()) {
             if (ir.UsesViewportIndex()) {
                 AddCapability(spv::Capability::MultiViewport);
@@ -317,15 +317,13 @@ public:
                 AddCapability(spv::Capability::ShaderViewportIndexLayerEXT);
             }
         }
-
         if (device.IsFormatlessImageLoadSupported()) {
             AddCapability(spv::Capability::StorageImageReadWithoutFormat);
         }
-
         if (device.IsFloat16Supported()) {
             AddCapability(spv::Capability::Float16);
         }
-        t_scalar_half = Name(TypeFloat(device.IsFloat16Supported() ? 16 : 32), "scalar_half");
+        t_scalar_half = Name(TypeFloat(device_.IsFloat16Supported() ? 16 : 32), "scalar_half");
         t_half = Name(TypeVector(t_scalar_half, 2), "half");
 
         const Id main = Decompile();
@@ -368,6 +366,9 @@ public:
             AddExecutionMode(main, spv::ExecutionMode::OriginUpperLeft);
             if (header.ps.omap.depth) {
                 AddExecutionMode(main, spv::ExecutionMode::DepthReplacing);
+            }
+            if (specialization.early_fragment_tests) {
+                AddExecutionMode(main, spv::ExecutionMode::EarlyFragmentTests);
             }
             break;
         case ShaderType::Compute:
@@ -972,7 +973,7 @@ private:
         return binding;
     }
 
-    void DeclareImage(const Image& image, u32& binding) {
+    void DeclareImage(const ImageEntry& image, u32& binding) {
         const auto [dim, arrayed] = GetImageDim(image);
         constexpr int depth = 0;
         constexpr bool ms = false;
@@ -1080,9 +1081,9 @@ private:
             indices.point_size = AddBuiltIn(t_float, spv::BuiltIn::PointSize, "point_size");
         }
 
-        const auto& output_attributes = ir.GetOutputAttributes();
-        const bool declare_clip_distances =
-            std::any_of(output_attributes.begin(), output_attributes.end(), [](const auto& index) {
+        const auto& ir_output_attributes = ir.GetOutputAttributes();
+        const bool declare_clip_distances = std::any_of(
+            ir_output_attributes.begin(), ir_output_attributes.end(), [](const auto& index) {
                 return index == Attribute::Index::ClipDistances0123 ||
                        index == Attribute::Index::ClipDistances4567;
             });
@@ -1246,7 +1247,7 @@ private:
                 const Id pointer = ArrayPass(type_descriptor.scalar, attribute_id, elements);
                 return {OpLoad(GetTypeDefinition(type), pointer), type};
             }
-            UNIMPLEMENTED_MSG("Unhandled input attribute: {}", static_cast<u32>(attribute));
+            UNIMPLEMENTED_MSG("Unhandled input attribute: {}", attribute);
             return {v_float_zero, Type::Float};
         }
 
@@ -1882,7 +1883,7 @@ private:
             case Tegra::Shader::TextureType::Texture3D:
                 return 3;
             default:
-                UNREACHABLE_MSG("Invalid texture type={}", static_cast<int>(type));
+                UNREACHABLE_MSG("Invalid texture type={}", type);
                 return 2;
             }
         }();
@@ -2067,6 +2068,46 @@ private:
         return {};
     }
 
+    Id MaxwellToSpirvComparison(Maxwell::ComparisonOp compare_op, Id operand_1, Id operand_2) {
+        using Compare = Maxwell::ComparisonOp;
+        switch (compare_op) {
+        case Compare::NeverOld:
+            return v_false; // Never let the test pass
+        case Compare::LessOld:
+            return OpFOrdLessThan(t_bool, operand_1, operand_2);
+        case Compare::EqualOld:
+            return OpFOrdEqual(t_bool, operand_1, operand_2);
+        case Compare::LessEqualOld:
+            return OpFOrdLessThanEqual(t_bool, operand_1, operand_2);
+        case Compare::GreaterOld:
+            return OpFOrdGreaterThan(t_bool, operand_1, operand_2);
+        case Compare::NotEqualOld:
+            return OpFOrdNotEqual(t_bool, operand_1, operand_2);
+        case Compare::GreaterEqualOld:
+            return OpFOrdGreaterThanEqual(t_bool, operand_1, operand_2);
+        default:
+            UNREACHABLE();
+            return v_true;
+        }
+    }
+
+    void AlphaTest(Id pointer) {
+        if (specialization.alpha_test_func == Maxwell::ComparisonOp::AlwaysOld) {
+            return;
+        }
+        const Id true_label = OpLabel();
+        const Id discard_label = OpLabel();
+        const Id alpha_reference = Constant(t_float, specialization.alpha_test_ref);
+        const Id alpha_value = OpLoad(t_float, pointer);
+        const Id condition =
+            MaxwellToSpirvComparison(specialization.alpha_test_func, alpha_value, alpha_reference);
+
+        OpBranchConditional(condition, true_label, discard_label);
+        AddLabel(discard_label);
+        OpKill();
+        AddLabel(true_label);
+    }
+
     void PreExit() {
         if (stage == ShaderType::Vertex && specialization.ndc_minus_one_to_one) {
             const u32 position_index = out_indices.position.value();
@@ -2078,8 +2119,7 @@ private:
             OpStore(z_pointer, depth);
         }
         if (stage == ShaderType::Fragment) {
-            const auto SafeGetRegister = [&](u32 reg) {
-                // TODO(Rodrigo): Replace with contains once C++20 releases
+            const auto SafeGetRegister = [this](u32 reg) {
                 if (const auto it = registers.find(reg); it != registers.end()) {
                     return OpLoad(t_float, it->second);
                 }
@@ -2088,8 +2128,6 @@ private:
 
             UNIMPLEMENTED_IF_MSG(header.ps.omap.sample_mask != 0,
                                  "Sample mask write is unimplemented");
-
-            // TODO(Rodrigo): Alpha testing
 
             // Write the color outputs using the data in the shader registers, disabled
             // rendertargets/components are skipped in the register assignment.
@@ -2102,6 +2140,9 @@ private:
                     }
                     const Id pointer = AccessElement(t_out_float, frag_colors[rt], component);
                     OpStore(pointer, SafeGetRegister(current_reg));
+                    if (rt == 0 && component == 3) {
+                        AlphaTest(pointer);
+                    }
                     ++current_reg;
                 }
             }
@@ -2701,7 +2742,7 @@ private:
     };
     static_assert(operation_decompilers.size() == static_cast<std::size_t>(OperationCode::Amount));
 
-    const VKDevice& device;
+    const Device& device;
     const ShaderIR& ir;
     const ShaderType stage;
     const Tegra::Shader::Header header;
@@ -2843,7 +2884,7 @@ private:
 
 class ExprDecompiler {
 public:
-    explicit ExprDecompiler(SPIRVDecompiler& decomp) : decomp{decomp} {}
+    explicit ExprDecompiler(SPIRVDecompiler& decomp_) : decomp{decomp_} {}
 
     Id operator()(const ExprAnd& expr) {
         const Id type_def = decomp.GetTypeDefinition(Type::Bool);
@@ -2899,7 +2940,7 @@ private:
 
 class ASTDecompiler {
 public:
-    explicit ASTDecompiler(SPIRVDecompiler& decomp) : decomp{decomp} {}
+    explicit ASTDecompiler(SPIRVDecompiler& decomp_) : decomp{decomp_} {}
 
     void operator()(const ASTProgram& ast) {
         ASTNode current = ast.nodes.GetFirst();
@@ -3089,7 +3130,7 @@ ShaderEntries GenerateShaderEntries(const VideoCommon::Shader::ShaderIR& ir) {
     return entries;
 }
 
-std::vector<u32> Decompile(const VKDevice& device, const VideoCommon::Shader::ShaderIR& ir,
+std::vector<u32> Decompile(const Device& device, const VideoCommon::Shader::ShaderIR& ir,
                            ShaderType stage, const VideoCommon::Shader::Registry& registry,
                            const Specialization& specialization) {
     return SPIRVDecompiler(device, ir, stage, registry, specialization).Assemble();

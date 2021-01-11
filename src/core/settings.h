@@ -14,6 +14,10 @@
 #include "common/common_types.h"
 #include "input_common/settings.h"
 
+namespace Core {
+class System;
+}
+
 namespace Settings {
 
 enum class RendererBackend {
@@ -32,8 +36,6 @@ enum class CPUAccuracy {
     Unsafe = 1,
     DebugMode = 2,
 };
-
-extern bool configuring_global;
 
 template <typename Type>
 class Setting final {
@@ -59,6 +61,38 @@ public:
         } else {
             local = value;
         }
+    }
+
+private:
+    bool use_global = true;
+    Type global{};
+    Type local{};
+};
+
+/**
+ * The InputSetting class allows for getting a reference to either the global or local members.
+ * This is required as we cannot easily modify the values of user-defined types within containers
+ * using the SetValue() member function found in the Setting class. The primary purpose of this
+ * class is to store an array of 10 PlayerInput structs for both the global and local (per-game)
+ * setting and allows for easily accessing and modifying both settings.
+ */
+template <typename Type>
+class InputSetting final {
+public:
+    InputSetting() = default;
+    explicit InputSetting(Type val) : global{val} {}
+    ~InputSetting() = default;
+    void SetGlobal(bool to_global) {
+        use_global = to_global;
+    }
+    bool UsingGlobal() const {
+        return use_global;
+    }
+    Type& GetValue(bool need_global = false) {
+        if (use_global || need_global) {
+            return global;
+        }
+        return local;
     }
 
 private:
@@ -97,13 +131,14 @@ struct Values {
 
     bool cpuopt_unsafe_unfuse_fma;
     bool cpuopt_unsafe_reduce_fp_error;
+    bool cpuopt_unsafe_inaccurate_nan;
 
     // Renderer
     Setting<RendererBackend> renderer_backend;
     bool renderer_debug;
     Setting<int> vulkan_device;
 
-    Setting<u16> resolution_factor = Setting(static_cast<u16>(1));
+    Setting<u16> resolution_factor{1};
     Setting<int> aspect_ratio;
     Setting<int> max_anisotropy;
     Setting<bool> use_frame_limit;
@@ -111,6 +146,7 @@ struct Values {
     Setting<bool> use_disk_shader_cache;
     Setting<GPUAccuracy> gpu_accuracy;
     Setting<bool> use_asynchronous_gpu_emulation;
+    Setting<bool> use_nvdec_emulation;
     Setting<bool> use_vsync;
     Setting<bool> use_assembly_shaders;
     Setting<bool> use_asynchronous_shaders;
@@ -134,9 +170,18 @@ struct Values {
     Setting<s32> sound_index;
 
     // Controls
-    std::array<PlayerInput, 10> players;
+    InputSetting<std::array<PlayerInput, 10>> players;
 
-    bool use_docked_mode;
+    Setting<bool> use_docked_mode;
+
+    Setting<bool> vibration_enabled;
+    Setting<bool> enable_accurate_vibrations;
+
+    Setting<bool> motion_enabled;
+    std::string motion_device;
+    std::string udp_input_servers;
+
+    bool emulate_analog_keyboard;
 
     bool mouse_enabled;
     std::string mouse_device;
@@ -150,19 +195,14 @@ struct Values {
     ButtonsRaw debug_pad_buttons;
     AnalogsRaw debug_pad_analogs;
 
-    bool vibration_enabled;
-
-    bool motion_enabled;
-    std::string motion_device;
-    std::string touch_device;
     TouchscreenInput touchscreen;
-    std::atomic_bool is_device_reload_pending{true};
+
     bool use_touch_from_button;
+    std::string touch_device;
     int touch_from_button_map_index;
-    std::string udp_input_address;
-    u16 udp_input_port;
-    u8 udp_pad_index;
     std::vector<TouchFromButtonMap> touch_from_button_maps;
+
+    std::atomic_bool is_device_reload_pending{true};
 
     // Data Storage
     bool use_virtual_sd;
@@ -180,8 +220,9 @@ struct Values {
     bool reporting_services;
     bool quest_flag;
     bool disable_macro_jit;
+    bool extended_logging;
 
-    // Misceallaneous
+    // Miscellaneous
     std::string log_filter;
     bool use_dev_keys;
 
@@ -197,22 +238,24 @@ struct Values {
 
     // Add-Ons
     std::map<u64, std::vector<std::string>> disabled_addons;
-} extern values;
+};
 
-float Volume();
+extern Values values;
+
+bool IsConfiguringGlobal();
+void SetConfiguringGlobal(bool is_global);
 
 bool IsGPULevelExtreme();
 bool IsGPULevelHigh();
 
+float Volume();
+
 std::string GetTimeZoneString();
 
-void Apply();
+void Apply(Core::System& system);
 void LogSettings();
 
 // Restore the global state of all applicable settings in the Values struct
-void RestoreGlobalState();
-
-// Fixes settings that are known to cause issues with the emulator
-void Sanitize();
+void RestoreGlobalState(bool is_powered_on);
 
 } // namespace Settings

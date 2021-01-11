@@ -16,23 +16,21 @@ public:
     explicit nvhost_nvjpg(Core::System& system);
     ~nvhost_nvjpg() override;
 
-    u32 ioctl(Ioctl command, const std::vector<u8>& input, const std::vector<u8>& input2,
-              std::vector<u8>& output, std::vector<u8>& output2, IoctlCtrl& ctrl,
-              IoctlVersion version) override;
+    NvResult Ioctl1(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) override;
+    NvResult Ioctl2(Ioctl command, const std::vector<u8>& input,
+                    const std::vector<u8>& inline_input, std::vector<u8>& output) override;
+    NvResult Ioctl3(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
+                    std::vector<u8>& inline_output) override;
 
 private:
-    enum class IoctlCommand : u32_le {
-        IocSetNVMAPfdCommand = 0x40044801,
-    };
-
     struct IoctlSetNvmapFD {
-        u32_le nvmap_fd;
+        s32_le nvmap_fd{};
     };
     static_assert(sizeof(IoctlSetNvmapFD) == 4, "IoctlSetNvmapFD is incorrect size");
 
-    u32_le nvmap_fd{};
+    s32_le nvmap_fd{};
 
-    u32 SetNVMAPfd(const std::vector<u8>& input, std::vector<u8>& output);
+    NvResult SetNVMAPfd(const std::vector<u8>& input, std::vector<u8>& output);
 };
 
 } // namespace Service::Nvidia::Devices

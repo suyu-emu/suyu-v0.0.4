@@ -67,12 +67,12 @@ s32 ApplyMixDepop(s32* output, s32 first_sample, s32 delta, s32 sample_count) {
 
 } // namespace
 
-CommandGenerator::CommandGenerator(AudioCommon::AudioRendererParameter& worker_params,
-                                   VoiceContext& voice_context, MixContext& mix_context,
-                                   SplitterContext& splitter_context, EffectContext& effect_context,
-                                   Core::Memory::Memory& memory)
-    : worker_params(worker_params), voice_context(voice_context), mix_context(mix_context),
-      splitter_context(splitter_context), effect_context(effect_context), memory(memory),
+CommandGenerator::CommandGenerator(AudioCommon::AudioRendererParameter& worker_params_,
+                                   VoiceContext& voice_context_, MixContext& mix_context_,
+                                   SplitterContext& splitter_context_,
+                                   EffectContext& effect_context_, Core::Memory::Memory& memory_)
+    : worker_params(worker_params_), voice_context(voice_context_), mix_context(mix_context_),
+      splitter_context(splitter_context_), effect_context(effect_context_), memory(memory_),
       mix_buffer((worker_params.mix_buffer_count + AudioCommon::MAX_CHANNEL_COUNT) *
                  worker_params.sample_count),
       sample_buffer(MIX_BUFFER_SIZE),
@@ -152,7 +152,7 @@ void CommandGenerator::GenerateVoiceCommand(ServerVoiceInfo& voice_info) {
                     if (!destination_data->IsConfigured()) {
                         continue;
                     }
-                    if (destination_data->GetMixId() >= mix_context.GetCount()) {
+                    if (destination_data->GetMixId() >= static_cast<int>(mix_context.GetCount())) {
                         continue;
                     }
 
@@ -255,7 +255,8 @@ void CommandGenerator::GenerateDataSourceCommand(ServerVoiceInfo& voice_info, Vo
 
 void CommandGenerator::GenerateBiquadFilterCommandForVoice(ServerVoiceInfo& voice_info,
                                                            VoiceState& dsp_state,
-                                                           s32 mix_buffer_count, s32 channel) {
+                                                           [[maybe_unused]] s32 mix_buffer_count,
+                                                           [[maybe_unused]] s32 channel) {
     for (std::size_t i = 0; i < AudioCommon::MAX_BIQUAD_FILTERS; i++) {
         const auto& in_params = voice_info.GetInParams();
         auto& biquad_filter = in_params.biquad_filter[i];
@@ -278,9 +279,12 @@ void CommandGenerator::GenerateBiquadFilterCommandForVoice(ServerVoiceInfo& voic
     }
 }
 
-void AudioCore::CommandGenerator::GenerateBiquadFilterCommand(
-    s32 mix_buffer, const BiquadFilterParameter& params, std::array<s64, 2>& state,
-    std::size_t input_offset, std::size_t output_offset, s32 sample_count, s32 node_id) {
+void CommandGenerator::GenerateBiquadFilterCommand([[maybe_unused]] s32 mix_buffer_id,
+                                                   const BiquadFilterParameter& params,
+                                                   std::array<s64, 2>& state,
+                                                   std::size_t input_offset,
+                                                   std::size_t output_offset, s32 sample_count,
+                                                   s32 node_id) {
     if (dumping_frame) {
         LOG_DEBUG(Audio,
                   "(DSP_TRACE) GenerateBiquadFilterCommand node_id={}, "
@@ -435,7 +439,7 @@ void CommandGenerator::GenerateAuxCommand(s32 mix_buffer_offset, EffectBase* inf
                     GetMixBuffer(output_index), worker_params.sample_count, offset, write_count);
                 memory.WriteBlock(aux->GetRecvInfo(), &recv_info, sizeof(AuxInfoDSP));
 
-                if (samples_read != worker_params.sample_count &&
+                if (samples_read != static_cast<int>(worker_params.sample_count) &&
                     samples_read <= params.sample_count) {
                     std::memset(GetMixBuffer(output_index), 0, params.sample_count - samples_read);
                 }
@@ -611,7 +615,8 @@ void CommandGenerator::GenerateMixCommands(ServerMixInfo& mix_info) {
             const auto& dest_mix = mix_context.GetInfo(destination_data->GetMixId());
             const auto& dest_in_params = dest_mix.GetInParams();
             const auto mix_index = (base - 1) % in_params.buffer_count + in_params.buffer_offset;
-            for (std::size_t i = 0; i < dest_in_params.buffer_count; i++) {
+            for (std::size_t i = 0; i < static_cast<std::size_t>(dest_in_params.buffer_count);
+                 i++) {
                 const auto mixed_volume = in_params.volume * destination_data->GetMixVolume(i);
                 if (mixed_volume != 0.0f) {
                     GenerateMixCommand(dest_in_params.buffer_offset + i, mix_index, mixed_volume,
@@ -704,7 +709,7 @@ s32 CommandGenerator::DecodePcm16(ServerVoiceInfo& voice_info, VoiceState& dsp_s
         std::vector<s16> buffer(samples_processed * channel_count);
         memory.ReadBlock(buffer_pos, buffer.data(), buffer.size() * sizeof(s16));
 
-        for (std::size_t i = 0; i < samples_processed; i++) {
+        for (std::size_t i = 0; i < static_cast<std::size_t>(samples_processed); i++) {
             sample_buffer[mix_offset + i] = buffer[i * channel_count + channel];
         }
     }
@@ -713,7 +718,8 @@ s32 CommandGenerator::DecodePcm16(ServerVoiceInfo& voice_info, VoiceState& dsp_s
 }
 
 s32 CommandGenerator::DecodeAdpcm(ServerVoiceInfo& voice_info, VoiceState& dsp_state,
-                                  s32 sample_count, s32 channel, std::size_t mix_offset) {
+                                  s32 sample_count, [[maybe_unused]] s32 channel,
+                                  std::size_t mix_offset) {
     const auto& in_params = voice_info.GetInParams();
     const auto& wave_buffer = in_params.wave_buffer[dsp_state.wave_buffer_index];
     if (wave_buffer.buffer_address == 0) {
@@ -726,8 +732,9 @@ s32 CommandGenerator::DecodeAdpcm(ServerVoiceInfo& voice_info, VoiceState& dsp_s
         return 0;
     }
 
-    constexpr std::array<int, 16> SIGNED_NIBBLES = {
-        {0, 1, 2, 3, 4, 5, 6, 7, -8, -7, -6, -5, -4, -3, -2, -1}};
+    static constexpr std::array<int, 16> SIGNED_NIBBLES{
+        0, 1, 2, 3, 4, 5, 6, 7, -8, -7, -6, -5, -4, -3, -2, -1,
+    };
 
     constexpr std::size_t FRAME_LEN = 8;
     constexpr std::size_t NIBBLES_PER_SAMPLE = 16;
@@ -789,9 +796,8 @@ s32 CommandGenerator::DecodeAdpcm(ServerVoiceInfo& voice_info, VoiceState& dsp_s
             position_in_frame += 2;
 
             // Decode entire frame
-            if (remaining_samples >= SAMPLES_PER_FRAME) {
+            if (remaining_samples >= static_cast<int>(SAMPLES_PER_FRAME)) {
                 for (std::size_t i = 0; i < SAMPLES_PER_FRAME / 2; i++) {
-
                     // Sample 1
                     const s32 s0 = SIGNED_NIBBLES[buffer[buffer_offset] >> 4];
                     const s32 s1 = SIGNED_NIBBLES[buffer[buffer_offset++] & 0xf];
@@ -800,7 +806,7 @@ s32 CommandGenerator::DecodeAdpcm(ServerVoiceInfo& voice_info, VoiceState& dsp_s
                     sample_buffer[cur_mix_offset++] = sample_1;
                     sample_buffer[cur_mix_offset++] = sample_2;
                 }
-                remaining_samples -= SAMPLES_PER_FRAME;
+                remaining_samples -= static_cast<int>(SAMPLES_PER_FRAME);
                 position_in_frame += SAMPLES_PER_FRAME;
                 continue;
             }
@@ -866,7 +872,6 @@ void CommandGenerator::DecodeFromWaveBuffers(ServerVoiceInfo& voice_info, s32* o
     const auto resample_rate = static_cast<s32>(
         static_cast<float>(in_params.sample_rate) / static_cast<float>(target_sample_rate) *
         static_cast<float>(static_cast<s32>(in_params.pitch * 32768.0f)));
-    auto* output_base = output;
     if (dsp_state.fraction + sample_count * resample_rate >
         static_cast<s32>(SCALED_MIX_BUFFER_SIZE - 4ULL)) {
         return;

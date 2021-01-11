@@ -16,8 +16,14 @@ class QDialogButtonBox;
 class QGroupBox;
 class QLabel;
 
+class InputProfiles;
+
 namespace InputCommon {
 class InputSubsystem;
+}
+
+namespace Settings {
+enum class ControllerType;
 }
 
 namespace Ui {
@@ -33,6 +39,8 @@ public:
                                         InputCommon::InputSubsystem* input_subsystem_);
     ~QtControllerSelectorDialog() override;
 
+    int exec() override;
+
 private:
     // Applies the current configuration.
     void ApplyConfiguration();
@@ -40,15 +48,27 @@ private:
     // Loads the current input configuration into the frontend applet.
     void LoadConfiguration();
 
-    // Initializes the "Configure Input" Dialog.
-    void CallConfigureInputDialog();
+    // Initializes the "Configure Vibration" Dialog.
+    void CallConfigureVibrationDialog();
 
-    // Checks the current configuration against the given parameters and
-    // sets the value of parameters_met.
-    void CheckIfParametersMet();
+    // Initializes the "Create Input Profile" Dialog.
+    void CallConfigureInputProfileDialog();
+
+    // Checks the current configuration against the given parameters.
+    // This sets and returns the value of parameters_met.
+    bool CheckIfParametersMet();
 
     // Sets the controller icons for "Supported Controller Types".
     void SetSupportedControllers();
+
+    // Sets the emulated controllers per player.
+    void SetEmulatedControllers(std::size_t player_index);
+
+    // Gets the Controller Type for a given controller combobox index per player.
+    Settings::ControllerType GetControllerTypeFromIndex(int index, std::size_t player_index) const;
+
+    // Gets the controller combobox index for a given Controller Type per player.
+    int GetIndexFromControllerType(Settings::ControllerType type, std::size_t player_index) const;
 
     // Updates the controller icons per player.
     void UpdateControllerIcon(std::size_t player_index);
@@ -78,6 +98,8 @@ private:
 
     InputCommon::InputSubsystem* input_subsystem;
 
+    std::unique_ptr<InputProfiles> input_profiles;
+
     // This is true if and only if all parameters are met. Otherwise, this is false.
     // This determines whether the "OK" button can be clicked to exit the applet.
     bool parameters_met{false};
@@ -105,6 +127,10 @@ private:
     // Comboboxes with a list of emulated controllers per player.
     std::array<QComboBox*, NUM_PLAYERS> emulated_controllers;
 
+    /// Pairs of emulated controller index and Controller Type enum per player.
+    std::array<std::vector<std::pair<int, Settings::ControllerType>>, NUM_PLAYERS>
+        index_controller_type_pairs;
+
     // Labels representing the number of connected controllers
     // above the "Connected Controllers" checkboxes.
     std::array<QLabel*, NUM_PLAYERS> connected_controller_labels;
@@ -120,11 +146,13 @@ public:
     explicit QtControllerSelector(GMainWindow& parent);
     ~QtControllerSelector() override;
 
-    void ReconfigureControllers(std::function<void()> callback,
-                                Core::Frontend::ControllerParameters parameters) const override;
+    void ReconfigureControllers(
+        std::function<void()> callback_,
+        const Core::Frontend::ControllerParameters& parameters) const override;
 
 signals:
-    void MainWindowReconfigureControllers(Core::Frontend::ControllerParameters parameters) const;
+    void MainWindowReconfigureControllers(
+        const Core::Frontend::ControllerParameters& parameters) const;
 
 private:
     void MainWindowReconfigureFinished();

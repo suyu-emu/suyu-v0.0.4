@@ -7,6 +7,10 @@
 #include "core/hle/kernel/object.h"
 #include "core/hle/service/service.h"
 
+namespace Core {
+class System;
+}
+
 namespace Kernel {
 class SharedMemory;
 }
@@ -15,7 +19,7 @@ namespace Service::HID {
 
 class IRS final : public ServiceFramework<IRS> {
 public:
-    explicit IRS(Core::System& system);
+    explicit IRS(Core::System& system_);
     ~IRS() override;
 
 private:
@@ -37,14 +41,14 @@ private:
     void RunIrLedProcessor(Kernel::HLERequestContext& ctx);
     void StopImageProcessorAsync(Kernel::HLERequestContext& ctx);
     void ActivateIrsensorWithFunctionLevel(Kernel::HLERequestContext& ctx);
+
     std::shared_ptr<Kernel::SharedMemory> shared_mem;
     const u32 device_handle{0xABCD};
-    Core::System& system;
 };
 
 class IRS_SYS final : public ServiceFramework<IRS_SYS> {
 public:
-    explicit IRS_SYS();
+    explicit IRS_SYS(Core::System& system);
     ~IRS_SYS() override;
 };
 

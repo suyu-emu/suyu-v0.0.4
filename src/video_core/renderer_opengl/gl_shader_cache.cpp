@@ -27,7 +27,6 @@
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
 #include "video_core/renderer_opengl/gl_shader_disk_cache.h"
 #include "video_core/renderer_opengl/gl_state_tracker.h"
-#include "video_core/renderer_opengl/utils.h"
 #include "video_core/shader/memory_util.h"
 #include "video_core/shader/registry.h"
 #include "video_core/shader/shader_ir.h"
@@ -198,10 +197,10 @@ ProgramSharedPtr BuildShader(const Device& device, ShaderType shader_type, u64 u
     return program;
 }
 
-Shader::Shader(std::shared_ptr<VideoCommon::Shader::Registry> registry_, ShaderEntries entries_,
-               ProgramSharedPtr program_, bool is_built)
+Shader::Shader(std::shared_ptr<Registry> registry_, ShaderEntries entries_,
+               ProgramSharedPtr program_, bool is_built_)
     : registry{std::move(registry_)}, entries{std::move(entries_)}, program{std::move(program_)},
-      is_built(is_built) {
+      is_built{is_built_} {
     handle = program->assembly_program.handle;
     if (handle == 0) {
         handle = program->source_program.handle;
@@ -318,14 +317,13 @@ std::unique_ptr<Shader> Shader::CreateFromCache(const ShaderParameters& params,
         precompiled_shader.registry, precompiled_shader.entries, precompiled_shader.program));
 }
 
-ShaderCacheOpenGL::ShaderCacheOpenGL(RasterizerOpenGL& rasterizer,
+ShaderCacheOpenGL::ShaderCacheOpenGL(RasterizerOpenGL& rasterizer_,
                                      Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
                                      Tegra::Engines::Maxwell3D& maxwell3d_,
                                      Tegra::Engines::KeplerCompute& kepler_compute_,
                                      Tegra::MemoryManager& gpu_memory_, const Device& device_)
-    : VideoCommon::ShaderCache<Shader>{rasterizer}, emu_window{emu_window_}, gpu{gpu_},
-      gpu_memory{gpu_memory_}, maxwell3d{maxwell3d_},
-      kepler_compute{kepler_compute_}, device{device_} {}
+    : ShaderCache{rasterizer_}, emu_window{emu_window_}, gpu{gpu_}, gpu_memory{gpu_memory_},
+      maxwell3d{maxwell3d_}, kepler_compute{kepler_compute_}, device{device_} {}
 
 ShaderCacheOpenGL::~ShaderCacheOpenGL() = default;
 
@@ -460,7 +458,7 @@ void ShaderCacheOpenGL::LoadDiskCache(u64 title_id, const std::atomic_bool& stop
 ProgramSharedPtr ShaderCacheOpenGL::GeneratePrecompiledProgram(
     const ShaderDiskCacheEntry& entry, const ShaderDiskCachePrecompiled& precompiled_entry,
     const std::unordered_set<GLenum>& supported_formats) {
-    if (supported_formats.find(precompiled_entry.binary_format) == supported_formats.end()) {
+    if (!supported_formats.contains(precompiled_entry.binary_format)) {
         LOG_INFO(Render_OpenGL, "Precompiled cache entry with unsupported format, removing");
         return {};
     }

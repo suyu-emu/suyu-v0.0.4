@@ -13,28 +13,44 @@ namespace Service::Nvidia::Devices {
 nvhost_nvjpg::nvhost_nvjpg(Core::System& system) : nvdevice(system) {}
 nvhost_nvjpg::~nvhost_nvjpg() = default;
 
-u32 nvhost_nvjpg::ioctl(Ioctl command, const std::vector<u8>& input, const std::vector<u8>& input2,
-                        std::vector<u8>& output, std::vector<u8>& output2, IoctlCtrl& ctrl,
-                        IoctlVersion version) {
-    LOG_DEBUG(Service_NVDRV, "called, command=0x{:08X}, input_size=0x{:X}, output_size=0x{:X}",
-              command.raw, input.size(), output.size());
-
-    switch (static_cast<IoctlCommand>(command.raw)) {
-    case IoctlCommand::IocSetNVMAPfdCommand:
-        return SetNVMAPfd(input, output);
+NvResult nvhost_nvjpg::Ioctl1(Ioctl command, const std::vector<u8>& input,
+                              std::vector<u8>& output) {
+    switch (command.group) {
+    case 'H':
+        switch (command.cmd) {
+        case 0x1:
+            return SetNVMAPfd(input, output);
+        default:
+            break;
+        }
+        break;
+    default:
+        break;
     }
 
-    UNIMPLEMENTED_MSG("Unimplemented ioctl");
-    return 0;
+    UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
+    return NvResult::NotImplemented;
 }
 
-u32 nvhost_nvjpg::SetNVMAPfd(const std::vector<u8>& input, std::vector<u8>& output) {
+NvResult nvhost_nvjpg::Ioctl2(Ioctl command, const std::vector<u8>& input,
+                              const std::vector<u8>& inline_input, std::vector<u8>& output) {
+    UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
+    return NvResult::NotImplemented;
+}
+
+NvResult nvhost_nvjpg::Ioctl3(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
+                              std::vector<u8>& inline_output) {
+    UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
+    return NvResult::NotImplemented;
+}
+
+NvResult nvhost_nvjpg::SetNVMAPfd(const std::vector<u8>& input, std::vector<u8>& output) {
     IoctlSetNvmapFD params{};
     std::memcpy(&params, input.data(), input.size());
     LOG_DEBUG(Service_NVDRV, "called, fd={}", params.nvmap_fd);
 
     nvmap_fd = params.nvmap_fd;
-    return 0;
+    return NvResult::Success;
 }
 
 } // namespace Service::Nvidia::Devices

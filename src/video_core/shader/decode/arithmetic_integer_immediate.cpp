@@ -28,23 +28,26 @@ u32 ShaderIR::DecodeArithmeticIntegerImmediate(NodeBlock& bb, u32 pc) {
     case OpCode::Id::IADD32I: {
         UNIMPLEMENTED_IF_MSG(instr.iadd32i.saturate, "IADD32I saturation is not implemented");
 
-        op_a = GetOperandAbsNegInteger(op_a, false, instr.iadd32i.negate_a, true);
+        op_a = GetOperandAbsNegInteger(std::move(op_a), false, instr.iadd32i.negate_a != 0, true);
 
-        const Node value = Operation(OperationCode::IAdd, PRECISE, op_a, op_b);
+        Node value = Operation(OperationCode::IAdd, PRECISE, std::move(op_a), std::move(op_b));
 
-        SetInternalFlagsFromInteger(bb, value, instr.op_32.generates_cc);
-        SetRegister(bb, instr.gpr0, value);
+        SetInternalFlagsFromInteger(bb, value, instr.op_32.generates_cc != 0);
+        SetRegister(bb, instr.gpr0, std::move(value));
         break;
     }
     case OpCode::Id::LOP32I: {
-        if (instr.alu.lop32i.invert_a)
-            op_a = Operation(OperationCode::IBitwiseNot, NO_PRECISE, op_a);
+        if (instr.alu.lop32i.invert_a) {
+            op_a = Operation(OperationCode::IBitwiseNot, NO_PRECISE, std::move(op_a));
+        }
 
-        if (instr.alu.lop32i.invert_b)
-            op_b = Operation(OperationCode::IBitwiseNot, NO_PRECISE, op_b);
+        if (instr.alu.lop32i.invert_b) {
+            op_b = Operation(OperationCode::IBitwiseNot, NO_PRECISE, std::move(op_b));
+        }
 
-        WriteLogicOperation(bb, instr.gpr0, instr.alu.lop32i.operation, op_a, op_b,
-                            PredicateResultMode::None, Pred::UnusedIndex, instr.op_32.generates_cc);
+        WriteLogicOperation(bb, instr.gpr0, instr.alu.lop32i.operation, std::move(op_a),
+                            std::move(op_b), PredicateResultMode::None, Pred::UnusedIndex,
+                            instr.op_32.generates_cc != 0);
         break;
     }
     default:
@@ -58,18 +61,18 @@ u32 ShaderIR::DecodeArithmeticIntegerImmediate(NodeBlock& bb, u32 pc) {
 void ShaderIR::WriteLogicOperation(NodeBlock& bb, Register dest, LogicOperation logic_op, Node op_a,
                                    Node op_b, PredicateResultMode predicate_mode, Pred predicate,
                                    bool sets_cc) {
-    const Node result = [&]() {
+    Node result = [&] {
         switch (logic_op) {
         case LogicOperation::And:
-            return Operation(OperationCode::IBitwiseAnd, PRECISE, op_a, op_b);
+            return Operation(OperationCode::IBitwiseAnd, PRECISE, std::move(op_a), std::move(op_b));
         case LogicOperation::Or:
-            return Operation(OperationCode::IBitwiseOr, PRECISE, op_a, op_b);
+            return Operation(OperationCode::IBitwiseOr, PRECISE, std::move(op_a), std::move(op_b));
         case LogicOperation::Xor:
-            return Operation(OperationCode::IBitwiseXor, PRECISE, op_a, op_b);
+            return Operation(OperationCode::IBitwiseXor, PRECISE, std::move(op_a), std::move(op_b));
         case LogicOperation::PassB:
             return op_b;
         default:
-            UNIMPLEMENTED_MSG("Unimplemented logic operation={}", static_cast<u32>(logic_op));
+            UNIMPLEMENTED_MSG("Unimplemented logic operation={}", logic_op);
             return Immediate(0);
         }
     }();
@@ -84,13 +87,12 @@ void ShaderIR::WriteLogicOperation(NodeBlock& bb, Register dest, LogicOperation 
         return;
     case PredicateResultMode::NotZero: {
         // Set the predicate to true if the result is not zero.
-        const Node compare = Operation(OperationCode::LogicalINotEqual, result, Immediate(0));
-        SetPredicate(bb, static_cast<u64>(predicate), compare);
+        Node compare = Operation(OperationCode::LogicalINotEqual, std::move(result), Immediate(0));
+        SetPredicate(bb, static_cast<u64>(predicate), std::move(compare));
         break;
     }
     default:
-        UNIMPLEMENTED_MSG("Unimplemented predicate result mode: {}",
-                          static_cast<u32>(predicate_mode));
+        UNIMPLEMENTED_MSG("Unimplemented predicate result mode: {}", predicate_mode);
     }
 }
 

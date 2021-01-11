@@ -8,7 +8,7 @@
 
 namespace Service::Nvidia {
 
-NVMEMP::NVMEMP() : ServiceFramework("nvmemp") {
+NVMEMP::NVMEMP(Core::System& system_) : ServiceFramework{system_, "nvmemp"} {
     static const FunctionInfo functions[] = {
         {0, &NVMEMP::Open, "Open"},
         {1, &NVMEMP::GetAruid, "GetAruid"},

@@ -83,7 +83,7 @@ u32 ShaderIR::DecodeArithmeticInteger(NodeBlock& bb, u32 pc) {
             case IAdd3Height::UpperHalfWord:
                 return BitfieldExtract(value, 16, 16);
             default:
-                UNIMPLEMENTED_MSG("Unhandled IADD3 height: {}", static_cast<u32>(height));
+                UNIMPLEMENTED_MSG("Unhandled IADD3 height: {}", height);
                 return Immediate(0);
             }
         };
@@ -258,7 +258,7 @@ u32 ShaderIR::DecodeArithmeticInteger(NodeBlock& bb, u32 pc) {
     case OpCode::Id::LEA_IMM:
     case OpCode::Id::LEA_RZ:
     case OpCode::Id::LEA_HI: {
-        auto [op_a, op_b, op_c] = [&]() -> std::tuple<Node, Node, Node> {
+        auto [op_a_, op_b_, op_c_] = [&]() -> std::tuple<Node, Node, Node> {
             switch (opcode->get().GetId()) {
             case OpCode::Id::LEA_R2: {
                 return {GetRegister(instr.gpr20), GetRegister(instr.gpr39),
@@ -294,8 +294,9 @@ u32 ShaderIR::DecodeArithmeticInteger(NodeBlock& bb, u32 pc) {
         UNIMPLEMENTED_IF_MSG(instr.lea.pred48 != static_cast<u64>(Pred::UnusedIndex),
                              "Unhandled LEA Predicate");
 
-        Node value = Operation(OperationCode::ILogicalShiftLeft, std::move(op_a), std::move(op_c));
-        value = Operation(OperationCode::IAdd, std::move(op_b), std::move(value));
+        Node value =
+            Operation(OperationCode::ILogicalShiftLeft, std::move(op_a_), std::move(op_c_));
+        value = Operation(OperationCode::IAdd, std::move(op_b_), std::move(value));
         SetRegister(bb, instr.gpr0, std::move(value));
 
         break;

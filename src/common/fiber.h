@@ -7,14 +7,9 @@
 #include <functional>
 #include <memory>
 
-#include "common/common_types.h"
-#include "common/spin_lock.h"
-
-#if !defined(_WIN32) && !defined(WIN32)
 namespace boost::context::detail {
 struct transfer_t;
 }
-#endif
 
 namespace Common {
 
@@ -46,10 +41,10 @@ public:
 
     /// Yields control from Fiber 'from' to Fiber 'to'
     /// Fiber 'from' must be the currently running fiber.
-    static void YieldTo(std::shared_ptr<Fiber>& from, std::shared_ptr<Fiber>& to);
+    static void YieldTo(std::shared_ptr<Fiber> from, std::shared_ptr<Fiber> to);
     [[nodiscard]] static std::shared_ptr<Fiber> ThreadToFiber();
 
-    void SetRewindPoint(std::function<void(void*)>&& rewind_func, void* start_parameter);
+    void SetRewindPoint(std::function<void(void*)>&& rewind_func, void* rewind_param);
 
     void Rewind();
 
@@ -57,36 +52,18 @@ public:
     void Exit();
 
     /// Changes the start parameter of the fiber. Has no effect if the fiber already started
-    void SetStartParameter(void* new_parameter) {
-        start_parameter = new_parameter;
-    }
+    void SetStartParameter(void* new_parameter);
 
 private:
     Fiber();
 
-#if defined(_WIN32) || defined(WIN32)
-    void OnRewind();
-    void Start();
-    static void FiberStartFunc(void* fiber_parameter);
-    static void RewindStartFunc(void* fiber_parameter);
-#else
     void OnRewind(boost::context::detail::transfer_t& transfer);
     void Start(boost::context::detail::transfer_t& transfer);
     static void FiberStartFunc(boost::context::detail::transfer_t transfer);
     static void RewindStartFunc(boost::context::detail::transfer_t transfer);
-#endif
 
     struct FiberImpl;
-
-    SpinLock guard{};
-    std::function<void(void*)> entry_point;
-    std::function<void(void*)> rewind_point;
-    void* rewind_parameter{};
-    void* start_parameter{};
-    std::shared_ptr<Fiber> previous_fiber;
     std::unique_ptr<FiberImpl> impl;
-    bool is_thread_fiber{};
-    bool released{};
 };
 
 } // namespace Common

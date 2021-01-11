@@ -28,9 +28,6 @@ ConfigureDebug::ConfigureDebug(QWidget* parent) : QWidget(parent), ui(new Ui::Co
 ConfigureDebug::~ConfigureDebug() = default;
 
 void ConfigureDebug::SetConfiguration() {
-    ui->toggle_gdbstub->setChecked(Settings::values.use_gdbstub);
-    ui->gdbport_spinbox->setEnabled(Settings::values.use_gdbstub);
-    ui->gdbport_spinbox->setValue(Settings::values.gdbstub_port);
     ui->toggle_console->setEnabled(!Core::System::GetInstance().IsPoweredOn());
     ui->toggle_console->setChecked(UISettings::values.show_console);
     ui->log_filter_edit->setText(QString::fromStdString(Settings::values.log_filter));
@@ -41,11 +38,10 @@ void ConfigureDebug::SetConfiguration() {
     ui->enable_graphics_debugging->setChecked(Settings::values.renderer_debug);
     ui->disable_macro_jit->setEnabled(!Core::System::GetInstance().IsPoweredOn());
     ui->disable_macro_jit->setChecked(Settings::values.disable_macro_jit);
+    ui->extended_logging->setChecked(Settings::values.extended_logging);
 }
 
 void ConfigureDebug::ApplyConfiguration() {
-    Settings::values.use_gdbstub = ui->toggle_gdbstub->isChecked();
-    Settings::values.gdbstub_port = ui->gdbport_spinbox->value();
     UISettings::values.show_console = ui->toggle_console->isChecked();
     Settings::values.log_filter = ui->log_filter_edit->text().toStdString();
     Settings::values.program_args = ui->homebrew_args_edit->text().toStdString();
@@ -53,6 +49,7 @@ void ConfigureDebug::ApplyConfiguration() {
     Settings::values.quest_flag = ui->quest_flag->isChecked();
     Settings::values.renderer_debug = ui->enable_graphics_debugging->isChecked();
     Settings::values.disable_macro_jit = ui->disable_macro_jit->isChecked();
+    Settings::values.extended_logging = ui->extended_logging->isChecked();
     Debugger::ToggleConsole();
     Log::Filter filter;
     filter.ParseFilterString(Settings::values.log_filter);

@@ -29,10 +29,11 @@ public:
     void ExecuteInteractive() override;
     void Execute() override;
 
-    void AuthFinished(bool successful = true);
+    void AuthFinished(bool is_successful = true);
 
 private:
     Core::Frontend::ParentalControlsApplet& frontend;
+    Core::System& system;
     bool complete = false;
     bool successful = false;
 

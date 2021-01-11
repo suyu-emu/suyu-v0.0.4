@@ -19,14 +19,13 @@
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
 #include "video_core/renderer_vulkan/vk_graphics_pipeline.h"
-#include "video_core/renderer_vulkan/vk_renderpass_cache.h"
 #include "video_core/renderer_vulkan/vk_shader_decompiler.h"
-#include "video_core/renderer_vulkan/wrapper.h"
 #include "video_core/shader/async_shaders.h"
 #include "video_core/shader/memory_util.h"
 #include "video_core/shader/registry.h"
 #include "video_core/shader/shader_ir.h"
 #include "video_core/shader_cache.h"
+#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Core {
 class System;
@@ -34,10 +33,10 @@ class System;
 
 namespace Vulkan {
 
+class Device;
 class RasterizerVulkan;
 class VKComputePipeline;
 class VKDescriptorPool;
-class VKDevice;
 class VKScheduler;
 class VKUpdateDescriptorQueue;
 
@@ -84,9 +83,9 @@ namespace Vulkan {
 
 class Shader {
 public:
-    explicit Shader(Tegra::Engines::ConstBufferEngineInterface& engine,
-                    Tegra::Engines::ShaderType stage, GPUVAddr gpu_addr, VAddr cpu_addr,
-                    VideoCommon::Shader::ProgramCode program_code, u32 main_offset);
+    explicit Shader(Tegra::Engines::ConstBufferEngineInterface& engine_,
+                    Tegra::Engines::ShaderType stage_, GPUVAddr gpu_addr, VAddr cpu_addr_,
+                    VideoCommon::Shader::ProgramCode program_code, u32 main_offset_);
     ~Shader();
 
     GPUVAddr GetGpuAddr() const {
@@ -122,15 +121,15 @@ public:
     explicit VKPipelineCache(RasterizerVulkan& rasterizer, Tegra::GPU& gpu,
                              Tegra::Engines::Maxwell3D& maxwell3d,
                              Tegra::Engines::KeplerCompute& kepler_compute,
-                             Tegra::MemoryManager& gpu_memory, const VKDevice& device,
+                             Tegra::MemoryManager& gpu_memory, const Device& device,
                              VKScheduler& scheduler, VKDescriptorPool& descriptor_pool,
-                             VKUpdateDescriptorQueue& update_descriptor_queue,
-                             VKRenderPassCache& renderpass_cache);
+                             VKUpdateDescriptorQueue& update_descriptor_queue);
     ~VKPipelineCache() override;
 
     std::array<Shader*, Maxwell::MaxShaderProgram> GetShaders();
 
     VKGraphicsPipeline* GetGraphicsPipeline(const GraphicsPipelineCacheKey& key,
+                                            u32 num_color_buffers,
                                             VideoCommon::Shader::AsyncShaders& async_shaders);
 
     VKComputePipeline& GetComputePipeline(const ComputePipelineCacheKey& key);
@@ -149,11 +148,10 @@ private:
     Tegra::Engines::KeplerCompute& kepler_compute;
     Tegra::MemoryManager& gpu_memory;
 
-    const VKDevice& device;
+    const Device& device;
     VKScheduler& scheduler;
     VKDescriptorPool& descriptor_pool;
     VKUpdateDescriptorQueue& update_descriptor_queue;
-    VKRenderPassCache& renderpass_cache;
 
     std::unique_ptr<Shader> null_shader;
     std::unique_ptr<Shader> null_kernel;

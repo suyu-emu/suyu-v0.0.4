@@ -8,7 +8,8 @@ namespace Service::Capture {
 
 class IAlbumAccessorSession final : public ServiceFramework<IAlbumAccessorSession> {
 public:
-    explicit IAlbumAccessorSession() : ServiceFramework{"IAlbumAccessorSession"} {
+    explicit IAlbumAccessorSession(Core::System& system_)
+        : ServiceFramework{system_, "IAlbumAccessorSession"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {2001, nullptr, "OpenAlbumMovieReadStream"},
@@ -26,7 +27,7 @@ public:
     }
 };
 
-CAPS_A::CAPS_A() : ServiceFramework("caps:a") {
+CAPS_A::CAPS_A(Core::System& system_) : ServiceFramework{system_, "caps:a"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "GetAlbumFileCount"},

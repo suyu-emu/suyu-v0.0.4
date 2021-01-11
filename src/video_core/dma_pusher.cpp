@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include "common/cityhash.h"
 #include "common/microprofile.h"
 #include "core/core.h"
 #include "core/memory.h"
@@ -12,7 +13,7 @@
 
 namespace Tegra {
 
-DmaPusher::DmaPusher(Core::System& system, GPU& gpu) : gpu{gpu}, system{system} {}
+DmaPusher::DmaPusher(Core::System& system_, GPU& gpu_) : gpu{gpu_}, system{system_} {}
 
 DmaPusher::~DmaPusher() = default;
 
@@ -45,32 +46,41 @@ bool DmaPusher::Step() {
         return false;
     }
 
-    const CommandList& command_list{dma_pushbuffer.front()};
-    ASSERT_OR_EXECUTE(!command_list.empty(), {
-        // Somehow the command_list is empty, in order to avoid a crash
-        // We ignore it and assume its size is 0.
+    CommandList& command_list{dma_pushbuffer.front()};
+
+    ASSERT_OR_EXECUTE(
+        command_list.command_lists.size() || command_list.prefetch_command_list.size(), {
+            // Somehow the command_list is empty, in order to avoid a crash
+            // We ignore it and assume its size is 0.
+            dma_pushbuffer.pop();
+            dma_pushbuffer_subindex = 0;
+            return true;
+        });
+
+    if (command_list.prefetch_command_list.size()) {
+        // Prefetched command list from nvdrv, used for things like synchronization
+        command_headers = std::move(command_list.prefetch_command_list);
         dma_pushbuffer.pop();
-        dma_pushbuffer_subindex = 0;
-        return true;
-    });
-    const CommandListHeader command_list_header{command_list[dma_pushbuffer_subindex++]};
-    const GPUVAddr dma_get = command_list_header.addr;
+    } else {
+        const CommandListHeader command_list_header{
+            command_list.command_lists[dma_pushbuffer_subindex++]};
+        const GPUVAddr dma_get = command_list_header.addr;
 
-    if (dma_pushbuffer_subindex >= command_list.size()) {
-        // We've gone through the current list, remove it from the queue
-        dma_pushbuffer.pop();
-        dma_pushbuffer_subindex = 0;
+        if (dma_pushbuffer_subindex >= command_list.command_lists.size()) {
+            // We've gone through the current list, remove it from the queue
+            dma_pushbuffer.pop();
+            dma_pushbuffer_subindex = 0;
+        }
+
+        if (command_list_header.size == 0) {
+            return true;
+        }
+
+        // Push buffer non-empty, read a word
+        command_headers.resize(command_list_header.size);
+        gpu.MemoryManager().ReadBlockUnsafe(dma_get, command_headers.data(),
+                                            command_list_header.size * sizeof(u32));
     }
-
-    if (command_list_header.size == 0) {
-        return true;
-    }
-
-    // Push buffer non-empty, read a word
-    command_headers.resize(command_list_header.size);
-    gpu.MemoryManager().ReadBlockUnsafe(dma_get, command_headers.data(),
-                                        command_list_header.size * sizeof(u32));
-
     for (std::size_t index = 0; index < command_headers.size();) {
         const CommandHeader& command_header = command_headers[index];
 
@@ -142,7 +152,12 @@ void DmaPusher::SetState(const CommandHeader& command_header) {
 
 void DmaPusher::CallMethod(u32 argument) const {
     if (dma_state.method < non_puller_methods) {
-        gpu.CallMethod({dma_state.method, argument, dma_state.subchannel, dma_state.method_count});
+        gpu.CallMethod(GPU::MethodCall{
+            dma_state.method,
+            argument,
+            dma_state.subchannel,
+            dma_state.method_count,
+        });
     } else {
         subchannels[dma_state.subchannel]->CallMethod(dma_state.method, argument,
                                                       dma_state.is_last_call);

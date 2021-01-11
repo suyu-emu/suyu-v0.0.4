@@ -9,6 +9,7 @@
 #include "common/assert.h"
 #include "common/microprofile.h"
 #include "video_core/renderer_opengl/gl_device.h"
+#include "video_core/renderer_opengl/gl_state_tracker.h"
 #include "video_core/renderer_opengl/gl_stream_buffer.h"
 
 MICROPROFILE_DEFINE(OpenGL_StreamBuffer, "OpenGL", "Stream Buffer Orphaning",
@@ -16,24 +17,14 @@ MICROPROFILE_DEFINE(OpenGL_StreamBuffer, "OpenGL", "Stream Buffer Orphaning",
 
 namespace OpenGL {
 
-OGLStreamBuffer::OGLStreamBuffer(const Device& device, GLsizeiptr size, bool vertex_data_usage)
-    : buffer_size(size) {
+OGLStreamBuffer::OGLStreamBuffer(const Device& device, StateTracker& state_tracker_)
+    : state_tracker{state_tracker_} {
     gl_buffer.Create();
 
-    GLsizeiptr allocate_size = size;
-    if (vertex_data_usage) {
-        // On AMD GPU there is a strange crash in indexed drawing. The crash happens when the buffer
-        // read position is near the end and is an out-of-bound access to the vertex buffer. This is
-        // probably a bug in the driver and is related to the usage of vec3<byte> attributes in the
-        // vertex array. Doubling the allocation size for the vertex buffer seems to avoid the
-        // crash.
-        allocate_size *= 2;
-    }
-
     static constexpr GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT;
-    glNamedBufferStorage(gl_buffer.handle, allocate_size, nullptr, flags);
+    glNamedBufferStorage(gl_buffer.handle, BUFFER_SIZE, nullptr, flags);
     mapped_ptr = static_cast<u8*>(
-        glMapNamedBufferRange(gl_buffer.handle, 0, buffer_size, flags | GL_MAP_FLUSH_EXPLICIT_BIT));
+        glMapNamedBufferRange(gl_buffer.handle, 0, BUFFER_SIZE, flags | GL_MAP_FLUSH_EXPLICIT_BIT));
 
     if (device.UseAssemblyShaders() || device.HasVertexBufferUnifiedMemory()) {
         glMakeNamedBufferResidentNV(gl_buffer.handle, GL_READ_ONLY);
@@ -46,25 +37,24 @@ OGLStreamBuffer::~OGLStreamBuffer() {
     gl_buffer.Release();
 }
 
-std::tuple<u8*, GLintptr, bool> OGLStreamBuffer::Map(GLsizeiptr size, GLintptr alignment) {
-    ASSERT(size <= buffer_size);
-    ASSERT(alignment <= buffer_size);
+std::pair<u8*, GLintptr> OGLStreamBuffer::Map(GLsizeiptr size, GLintptr alignment) {
+    ASSERT(size <= BUFFER_SIZE);
+    ASSERT(alignment <= BUFFER_SIZE);
     mapped_size = size;
 
     if (alignment > 0) {
         buffer_pos = Common::AlignUp<std::size_t>(buffer_pos, alignment);
     }
 
-    bool invalidate = false;
-    if (buffer_pos + size > buffer_size) {
+    if (buffer_pos + size > BUFFER_SIZE) {
         MICROPROFILE_SCOPE(OpenGL_StreamBuffer);
         glInvalidateBufferData(gl_buffer.handle);
+        state_tracker.InvalidateStreamBuffer();
 
         buffer_pos = 0;
-        invalidate = true;
     }
 
-    return std::make_tuple(mapped_ptr + buffer_pos, buffer_pos, invalidate);
+    return std::make_pair(mapped_ptr + buffer_pos, buffer_pos);
 }
 
 void OGLStreamBuffer::Unmap(GLsizeiptr size) {

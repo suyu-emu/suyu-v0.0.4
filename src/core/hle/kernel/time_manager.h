@@ -5,6 +5,7 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 #include <unordered_map>
 
 #include "core/hle/kernel/object.h"
@@ -42,6 +43,7 @@ private:
     Core::System& system;
     std::shared_ptr<Core::Timing::EventType> time_manager_event_type;
     std::unordered_map<Handle, bool> cancelled_events;
+    std::mutex mutex;
 };
 
 } // namespace Kernel

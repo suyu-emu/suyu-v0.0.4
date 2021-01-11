@@ -22,127 +22,169 @@ BufferQueue::BufferQueue(Kernel::KernelCore& kernel, u32 id, u64 layer_id)
 BufferQueue::~BufferQueue() = default;
 
 void BufferQueue::SetPreallocatedBuffer(u32 slot, const IGBPBuffer& igbp_buffer) {
+    ASSERT(slot < buffer_slots);
     LOG_WARNING(Service, "Adding graphics buffer {}", slot);
 
-    free_buffers.push_back(slot);
-    queue.push_back({
+    {
+        std::unique_lock lock{free_buffers_mutex};
+        free_buffers.push_back(slot);
+    }
+    free_buffers_condition.notify_one();
+
+    buffers[slot] = {
         .slot = slot,
         .status = Buffer::Status::Free,
         .igbp_buffer = igbp_buffer,
-    });
+        .transform = {},
+        .crop_rect = {},
+        .swap_interval = 0,
+        .multi_fence = {},
+    };
 
     buffer_wait_event.writable->Signal();
 }
 
 std::optional<std::pair<u32, Service::Nvidia::MultiFence*>> BufferQueue::DequeueBuffer(u32 width,
                                                                                        u32 height) {
+    // Wait for first request before trying to dequeue
+    {
+        std::unique_lock lock{free_buffers_mutex};
+        free_buffers_condition.wait(lock, [this] { return !free_buffers.empty() || !is_connect; });
+    }
 
-    if (free_buffers.empty()) {
+    if (!is_connect) {
+        // Buffer was disconnected while the thread was blocked, this is most likely due to
+        // emulation being stopped
         return std::nullopt;
     }
 
+    std::unique_lock lock{free_buffers_mutex};
+
     auto f_itr = free_buffers.begin();
-    auto itr = queue.end();
+    auto slot = buffers.size();
 
     while (f_itr != free_buffers.end()) {
-        auto slot = *f_itr;
-        itr = std::find_if(queue.begin(), queue.end(), [&](const Buffer& buffer) {
-            // Only consider free buffers. Buffers become free once again after they've been
-            // Acquired and Released by the compositor, see the NVFlinger::Compose method.
-            if (buffer.status != Buffer::Status::Free) {
-                return false;
-            }
-
-            if (buffer.slot != slot) {
-                return false;
-            }
-
-            // Make sure that the parameters match.
-            return buffer.igbp_buffer.width == width && buffer.igbp_buffer.height == height;
-        });
-
-        if (itr != queue.end()) {
+        const Buffer& buffer = buffers[*f_itr];
+        if (buffer.status == Buffer::Status::Free && buffer.igbp_buffer.width == width &&
+            buffer.igbp_buffer.height == height) {
+            slot = *f_itr;
             free_buffers.erase(f_itr);
             break;
         }
         ++f_itr;
     }
-
-    if (itr == queue.end()) {
+    if (slot == buffers.size()) {
         return std::nullopt;
     }
-
-    itr->status = Buffer::Status::Dequeued;
-    return {{itr->slot, &itr->multi_fence}};
+    buffers[slot].status = Buffer::Status::Dequeued;
+    return {{buffers[slot].slot, &buffers[slot].multi_fence}};
 }
 
 const IGBPBuffer& BufferQueue::RequestBuffer(u32 slot) const {
-    auto itr = std::find_if(queue.begin(), queue.end(),
-                            [&](const Buffer& buffer) { return buffer.slot == slot; });
-    ASSERT(itr != queue.end());
-    ASSERT(itr->status == Buffer::Status::Dequeued);
-    return itr->igbp_buffer;
+    ASSERT(slot < buffers.size());
+    ASSERT(buffers[slot].status == Buffer::Status::Dequeued);
+    ASSERT(buffers[slot].slot == slot);
+
+    return buffers[slot].igbp_buffer;
 }
 
 void BufferQueue::QueueBuffer(u32 slot, BufferTransformFlags transform,
                               const Common::Rectangle<int>& crop_rect, u32 swap_interval,
                               Service::Nvidia::MultiFence& multi_fence) {
-    auto itr = std::find_if(queue.begin(), queue.end(),
-                            [&](const Buffer& buffer) { return buffer.slot == slot; });
-    ASSERT(itr != queue.end());
-    ASSERT(itr->status == Buffer::Status::Dequeued);
-    itr->status = Buffer::Status::Queued;
-    itr->transform = transform;
-    itr->crop_rect = crop_rect;
-    itr->swap_interval = swap_interval;
-    itr->multi_fence = multi_fence;
+    ASSERT(slot < buffers.size());
+    ASSERT(buffers[slot].status == Buffer::Status::Dequeued);
+    ASSERT(buffers[slot].slot == slot);
+
+    buffers[slot].status = Buffer::Status::Queued;
+    buffers[slot].transform = transform;
+    buffers[slot].crop_rect = crop_rect;
+    buffers[slot].swap_interval = swap_interval;
+    buffers[slot].multi_fence = multi_fence;
+    std::unique_lock lock{queue_sequence_mutex};
     queue_sequence.push_back(slot);
 }
 
-std::optional<std::reference_wrapper<const BufferQueue::Buffer>> BufferQueue::AcquireBuffer() {
-    auto itr = queue.end();
-    // Iterate to find a queued buffer matching the requested slot.
-    while (itr == queue.end() && !queue_sequence.empty()) {
-        const u32 slot = queue_sequence.front();
-        itr = std::find_if(queue.begin(), queue.end(), [&slot](const Buffer& buffer) {
-            return buffer.status == Buffer::Status::Queued && buffer.slot == slot;
-        });
-        queue_sequence.pop_front();
-    }
-    if (itr == queue.end()) {
-        return std::nullopt;
-    }
-    itr->status = Buffer::Status::Acquired;
-    return *itr;
-}
+void BufferQueue::CancelBuffer(u32 slot, const Service::Nvidia::MultiFence& multi_fence) {
+    ASSERT(slot < buffers.size());
+    ASSERT(buffers[slot].status != Buffer::Status::Free);
+    ASSERT(buffers[slot].slot == slot);
 
-void BufferQueue::ReleaseBuffer(u32 slot) {
-    auto itr = std::find_if(queue.begin(), queue.end(),
-                            [&](const Buffer& buffer) { return buffer.slot == slot; });
-    ASSERT(itr != queue.end());
-    ASSERT(itr->status == Buffer::Status::Acquired);
-    itr->status = Buffer::Status::Free;
-    free_buffers.push_back(slot);
+    buffers[slot].status = Buffer::Status::Free;
+    buffers[slot].multi_fence = multi_fence;
+    buffers[slot].swap_interval = 0;
+
+    {
+        std::unique_lock lock{free_buffers_mutex};
+        free_buffers.push_back(slot);
+    }
+    free_buffers_condition.notify_one();
 
     buffer_wait_event.writable->Signal();
 }
 
-void BufferQueue::Disconnect() {
-    queue.clear();
+std::optional<std::reference_wrapper<const BufferQueue::Buffer>> BufferQueue::AcquireBuffer() {
+    std::unique_lock lock{queue_sequence_mutex};
+    std::size_t buffer_slot = buffers.size();
+    // Iterate to find a queued buffer matching the requested slot.
+    while (buffer_slot == buffers.size() && !queue_sequence.empty()) {
+        const auto slot = static_cast<std::size_t>(queue_sequence.front());
+        ASSERT(slot < buffers.size());
+        if (buffers[slot].status == Buffer::Status::Queued) {
+            ASSERT(buffers[slot].slot == slot);
+            buffer_slot = slot;
+        }
+        queue_sequence.pop_front();
+    }
+    if (buffer_slot == buffers.size()) {
+        return std::nullopt;
+    }
+    buffers[buffer_slot].status = Buffer::Status::Acquired;
+    return {{buffers[buffer_slot]}};
+}
+
+void BufferQueue::ReleaseBuffer(u32 slot) {
+    ASSERT(slot < buffers.size());
+    ASSERT(buffers[slot].status == Buffer::Status::Acquired);
+    ASSERT(buffers[slot].slot == slot);
+
+    buffers[slot].status = Buffer::Status::Free;
+    {
+        std::unique_lock lock{free_buffers_mutex};
+        free_buffers.push_back(slot);
+    }
+    free_buffers_condition.notify_one();
+
+    buffer_wait_event.writable->Signal();
+}
+
+void BufferQueue::Connect() {
+    std::unique_lock lock{queue_sequence_mutex};
     queue_sequence.clear();
-    id = 1;
-    layer_id = 1;
+    is_connect = true;
+}
+
+void BufferQueue::Disconnect() {
+    buffers.fill({});
+    {
+        std::unique_lock lock{queue_sequence_mutex};
+        queue_sequence.clear();
+    }
+    buffer_wait_event.writable->Signal();
+    is_connect = false;
+    free_buffers_condition.notify_one();
 }
 
 u32 BufferQueue::Query(QueryType type) {
-    LOG_WARNING(Service, "(STUBBED) called type={}", static_cast<u32>(type));
+    LOG_WARNING(Service, "(STUBBED) called type={}", type);
 
     switch (type) {
     case QueryType::NativeWindowFormat:
         return static_cast<u32>(PixelFormat::RGBA8888);
+    case QueryType::NativeWindowWidth:
+    case QueryType::NativeWindowHeight:
+        break;
     }
-
-    UNIMPLEMENTED();
+    UNIMPLEMENTED_MSG("Unimplemented query type={}", type);
     return 0;
 }
 

@@ -15,23 +15,21 @@
 #include "video_core/shader/shader_ir.h"
 
 namespace Vulkan {
-class VKDevice;
-}
 
-namespace Vulkan {
+class Device;
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
-using UniformTexelEntry = VideoCommon::Shader::Sampler;
-using SamplerEntry = VideoCommon::Shader::Sampler;
-using StorageTexelEntry = VideoCommon::Shader::Image;
-using ImageEntry = VideoCommon::Shader::Image;
+using UniformTexelEntry = VideoCommon::Shader::SamplerEntry;
+using SamplerEntry = VideoCommon::Shader::SamplerEntry;
+using StorageTexelEntry = VideoCommon::Shader::ImageEntry;
+using ImageEntry = VideoCommon::Shader::ImageEntry;
 
 constexpr u32 DESCRIPTOR_SET = 0;
 
 class ConstBufferEntry : public VideoCommon::Shader::ConstBuffer {
 public:
-    explicit constexpr ConstBufferEntry(const VideoCommon::Shader::ConstBuffer& entry, u32 index)
-        : VideoCommon::Shader::ConstBuffer{entry}, index{index} {}
+    explicit constexpr ConstBufferEntry(const ConstBuffer& entry_, u32 index_)
+        : ConstBuffer{entry_}, index{index_} {}
 
     constexpr u32 GetIndex() const {
         return index;
@@ -43,8 +41,8 @@ private:
 
 class GlobalBufferEntry {
 public:
-    constexpr explicit GlobalBufferEntry(u32 cbuf_index, u32 cbuf_offset, bool is_written)
-        : cbuf_index{cbuf_index}, cbuf_offset{cbuf_offset}, is_written{is_written} {}
+    constexpr explicit GlobalBufferEntry(u32 cbuf_index_, u32 cbuf_offset_, bool is_written_)
+        : cbuf_index{cbuf_index_}, cbuf_offset{cbuf_offset_}, is_written{is_written_} {}
 
     constexpr u32 GetCbufIndex() const {
         return cbuf_index;
@@ -95,6 +93,9 @@ struct Specialization final {
     std::bitset<Maxwell::NumVertexAttributes> enabled_attributes;
     std::array<Maxwell::VertexAttribute::Type, Maxwell::NumVertexAttributes> attribute_types{};
     bool ndc_minus_one_to_one{};
+    bool early_fragment_tests{};
+    float alpha_test_ref{};
+    Maxwell::ComparisonOp alpha_test_func{};
 };
 // Old gcc versions don't consider this trivially copyable.
 // static_assert(std::is_trivially_copyable_v<Specialization>);
@@ -106,7 +107,7 @@ struct SPIRVShader {
 
 ShaderEntries GenerateShaderEntries(const VideoCommon::Shader::ShaderIR& ir);
 
-std::vector<u32> Decompile(const VKDevice& device, const VideoCommon::Shader::ShaderIR& ir,
+std::vector<u32> Decompile(const Device& device, const VideoCommon::Shader::ShaderIR& ir,
                            Tegra::Engines::ShaderType stage,
                            const VideoCommon::Shader::Registry& registry,
                            const Specialization& specialization);

@@ -12,7 +12,6 @@
 #include <utility>
 #include "common/assert.h"
 #include "common/common_types.h"
-#include "core/core.h"
 #include "core/hle/ipc.h"
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/client_session.h"
@@ -38,10 +37,11 @@ public:
     explicit RequestHelperBase(Kernel::HLERequestContext& context)
         : context(&context), cmdbuf(context.CommandBuffer()) {}
 
-    void Skip(unsigned size_in_words, bool set_to_null) {
-        if (set_to_null)
+    void Skip(u32 size_in_words, bool set_to_null) {
+        if (set_to_null) {
             memset(cmdbuf + index, 0, size_in_words * sizeof(u32));
-        index += size_in_words;
+        }
+        index += static_cast<ptrdiff_t>(size_in_words);
     }
 
     /**
@@ -49,15 +49,15 @@ public:
      */
     void AlignWithPadding() {
         if (index & 3) {
-            Skip(4 - (index & 3), true);
+            Skip(static_cast<u32>(4 - (index & 3)), true);
         }
     }
 
-    unsigned GetCurrentOffset() const {
-        return static_cast<unsigned>(index);
+    u32 GetCurrentOffset() const {
+        return static_cast<u32>(index);
     }
 
-    void SetCurrentOffset(unsigned offset) {
+    void SetCurrentOffset(u32 offset) {
         index = static_cast<ptrdiff_t>(offset);
     }
 };
@@ -72,14 +72,12 @@ public:
         AlwaysMoveHandles = 1,
     };
 
-    explicit ResponseBuilder(u32* command_buffer) : RequestHelperBase(command_buffer) {}
-
     explicit ResponseBuilder(Kernel::HLERequestContext& context, u32 normal_params_size,
                              u32 num_handles_to_copy = 0, u32 num_objects_to_move = 0,
                              Flags flags = Flags::None)
-
         : RequestHelperBase(context), normal_params_size(normal_params_size),
-          num_handles_to_copy(num_handles_to_copy), num_objects_to_move(num_objects_to_move) {
+          num_handles_to_copy(num_handles_to_copy),
+          num_objects_to_move(num_objects_to_move), kernel{context.kernel} {
 
         memset(cmdbuf, 0, sizeof(u32) * IPC::COMMAND_BUFFER_LENGTH);
 
@@ -89,7 +87,7 @@ public:
 
         // The entire size of the raw data section in u32 units, including the 16 bytes of mandatory
         // padding.
-        u32 raw_data_size = sizeof(IPC::DataPayloadHeader) / 4 + 4 + normal_params_size;
+        u64 raw_data_size = sizeof(IPC::DataPayloadHeader) / 4 + 4 + normal_params_size;
 
         u32 num_handles_to_move{};
         u32 num_domain_objects{};
@@ -105,7 +103,7 @@ public:
             raw_data_size += sizeof(DomainMessageHeader) / 4 + num_domain_objects;
         }
 
-        header.data_size.Assign(raw_data_size);
+        header.data_size.Assign(static_cast<u32>(raw_data_size));
         if (num_handles_to_copy || num_handles_to_move) {
             header.enable_handle_descriptor.Assign(1);
         }
@@ -139,7 +137,6 @@ public:
         if (context->Session()->IsDomain()) {
             context->AddDomainObject(std::move(iface));
         } else {
-            auto& kernel = Core::System::GetInstance().Kernel();
             auto [client, server] = Kernel::Session::Create(kernel, iface->GetServiceName());
             context->AddMoveObject(std::move(client));
             iface->ClientConnected(std::move(server));
@@ -169,8 +166,23 @@ public:
         ValidateHeader();
     }
 
+    void PushImpl(s8 value);
+    void PushImpl(s16 value);
+    void PushImpl(s32 value);
+    void PushImpl(s64 value);
+    void PushImpl(u8 value);
+    void PushImpl(u16 value);
+    void PushImpl(u32 value);
+    void PushImpl(u64 value);
+    void PushImpl(float value);
+    void PushImpl(double value);
+    void PushImpl(bool value);
+    void PushImpl(ResultCode value);
+
     template <typename T>
-    void Push(T value);
+    void Push(T value) {
+        return PushImpl(value);
+    }
 
     template <typename First, typename... Other>
     void Push(const First& first_value, const Other&... other_values);
@@ -213,17 +225,16 @@ private:
     u32 num_handles_to_copy{};
     u32 num_objects_to_move{}; ///< Domain objects or move handles, context dependent
     std::ptrdiff_t datapayload_index{};
+    Kernel::KernelCore& kernel;
 };
 
 /// Push ///
 
-template <>
-inline void ResponseBuilder::Push(s32 value) {
+inline void ResponseBuilder::PushImpl(s32 value) {
     cmdbuf[index++] = static_cast<u32>(value);
 }
 
-template <>
-inline void ResponseBuilder::Push(u32 value) {
+inline void ResponseBuilder::PushImpl(u32 value) {
     cmdbuf[index++] = value;
 }
 
@@ -235,62 +246,52 @@ void ResponseBuilder::PushRaw(const T& value) {
     index += (sizeof(T) + 3) / 4; // round up to word length
 }
 
-template <>
-inline void ResponseBuilder::Push(ResultCode value) {
+inline void ResponseBuilder::PushImpl(ResultCode value) {
     // Result codes are actually 64-bit in the IPC buffer, but only the high part is discarded.
     Push(value.raw);
     Push<u32>(0);
 }
 
-template <>
-inline void ResponseBuilder::Push(s8 value) {
+inline void ResponseBuilder::PushImpl(s8 value) {
     PushRaw(value);
 }
 
-template <>
-inline void ResponseBuilder::Push(s16 value) {
+inline void ResponseBuilder::PushImpl(s16 value) {
     PushRaw(value);
 }
 
-template <>
-inline void ResponseBuilder::Push(s64 value) {
-    Push(static_cast<u32>(value));
-    Push(static_cast<u32>(value >> 32));
+inline void ResponseBuilder::PushImpl(s64 value) {
+    PushImpl(static_cast<u32>(value));
+    PushImpl(static_cast<u32>(value >> 32));
 }
 
-template <>
-inline void ResponseBuilder::Push(u8 value) {
+inline void ResponseBuilder::PushImpl(u8 value) {
     PushRaw(value);
 }
 
-template <>
-inline void ResponseBuilder::Push(u16 value) {
+inline void ResponseBuilder::PushImpl(u16 value) {
     PushRaw(value);
 }
 
-template <>
-inline void ResponseBuilder::Push(u64 value) {
-    Push(static_cast<u32>(value));
-    Push(static_cast<u32>(value >> 32));
+inline void ResponseBuilder::PushImpl(u64 value) {
+    PushImpl(static_cast<u32>(value));
+    PushImpl(static_cast<u32>(value >> 32));
 }
 
-template <>
-inline void ResponseBuilder::Push(float value) {
+inline void ResponseBuilder::PushImpl(float value) {
     u32 integral;
     std::memcpy(&integral, &value, sizeof(u32));
-    Push(integral);
+    PushImpl(integral);
 }
 
-template <>
-inline void ResponseBuilder::Push(double value) {
+inline void ResponseBuilder::PushImpl(double value) {
     u64 integral;
     std::memcpy(&integral, &value, sizeof(u64));
-    Push(integral);
+    PushImpl(integral);
 }
 
-template <>
-inline void ResponseBuilder::Push(bool value) {
-    Push(static_cast<u8>(value));
+inline void ResponseBuilder::PushImpl(bool value) {
+    PushImpl(static_cast<u8>(value));
 }
 
 template <typename First, typename... Other>

@@ -11,7 +11,7 @@
 #ifdef _WIN32
 #define _WINSOCK_DEPRECATED_NO_WARNINGS // gethostname
 #include <winsock2.h>
-#elif __unix__
+#elif YUZU_UNIX
 #include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
@@ -54,7 +54,7 @@ constexpr IPv4Address TranslateIPv4(in_addr addr) {
 sockaddr TranslateFromSockAddrIn(SockAddrIn input) {
     sockaddr_in result;
 
-#ifdef __unix__
+#if YUZU_UNIX
     result.sin_len = sizeof(result);
 #endif
 
@@ -63,7 +63,7 @@ sockaddr TranslateFromSockAddrIn(SockAddrIn input) {
         result.sin_family = AF_INET;
         break;
     default:
-        UNIMPLEMENTED_MSG("Unhandled sockaddr family={}", static_cast<int>(input.family));
+        UNIMPLEMENTED_MSG("Unhandled sockaddr family={}", input.family);
         result.sin_family = AF_INET;
         break;
     }
@@ -99,7 +99,7 @@ bool EnableNonBlock(SOCKET fd, bool enable) {
     return ioctlsocket(fd, FIONBIO, &value) != SOCKET_ERROR;
 }
 
-#elif __unix__ // ^ _WIN32 v __unix__
+#elif YUZU_UNIX // ^ _WIN32 v YUZU_UNIX
 
 using SOCKET = int;
 using WSAPOLLFD = pollfd;
@@ -133,7 +133,7 @@ sockaddr TranslateFromSockAddrIn(SockAddrIn input) {
         result.sin_family = AF_INET;
         break;
     default:
-        UNIMPLEMENTED_MSG("Unhandled sockaddr family={}", static_cast<int>(input.family));
+        UNIMPLEMENTED_MSG("Unhandled sockaddr family={}", input.family);
         result.sin_family = AF_INET;
         break;
     }
@@ -148,7 +148,7 @@ sockaddr TranslateFromSockAddrIn(SockAddrIn input) {
 }
 
 int WSAPoll(WSAPOLLFD* fds, ULONG nfds, int timeout) {
-    return poll(fds, nfds, timeout);
+    return poll(fds, static_cast<nfds_t>(nfds), timeout);
 }
 
 int closesocket(SOCKET fd) {
@@ -186,7 +186,7 @@ int TranslateDomain(Domain domain) {
     case Domain::INET:
         return AF_INET;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented domain={}", static_cast<int>(domain));
+        UNIMPLEMENTED_MSG("Unimplemented domain={}", domain);
         return 0;
     }
 }
@@ -198,7 +198,7 @@ int TranslateType(Type type) {
     case Type::DGRAM:
         return SOCK_DGRAM;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented type={}", static_cast<int>(type));
+        UNIMPLEMENTED_MSG("Unimplemented type={}", type);
         return 0;
     }
 }
@@ -210,7 +210,7 @@ int TranslateProtocol(Protocol protocol) {
     case Protocol::UDP:
         return IPPROTO_UDP;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented protocol={}", static_cast<int>(protocol));
+        UNIMPLEMENTED_MSG("Unimplemented protocol={}", protocol);
         return 0;
     }
 }
@@ -238,45 +238,45 @@ SockAddrIn TranslateToSockAddrIn(sockaddr input_) {
     return result;
 }
 
-u16 TranslatePollEvents(u16 events) {
-    u16 result = 0;
+short TranslatePollEvents(PollEvents events) {
+    short result = 0;
 
-    if (events & POLL_IN) {
-        events &= ~POLL_IN;
+    if (True(events & PollEvents::In)) {
+        events &= ~PollEvents::In;
         result |= POLLIN;
     }
-    if (events & POLL_PRI) {
-        events &= ~POLL_PRI;
+    if (True(events & PollEvents::Pri)) {
+        events &= ~PollEvents::Pri;
 #ifdef _WIN32
         LOG_WARNING(Service, "Winsock doesn't support POLLPRI");
 #else
-        result |= POLL_PRI;
+        result |= POLLPRI;
 #endif
     }
-    if (events & POLL_OUT) {
-        events &= ~POLL_OUT;
+    if (True(events & PollEvents::Out)) {
+        events &= ~PollEvents::Out;
         result |= POLLOUT;
     }
 
-    UNIMPLEMENTED_IF_MSG(events != 0, "Unhandled guest events=0x{:x}", events);
+    UNIMPLEMENTED_IF_MSG((u16)events != 0, "Unhandled guest events=0x{:x}", (u16)events);
 
     return result;
 }
 
-u16 TranslatePollRevents(u16 revents) {
-    u16 result = 0;
-    const auto translate = [&result, &revents](int host, unsigned guest) {
-        if (revents & host) {
-            revents &= ~host;
+PollEvents TranslatePollRevents(short revents) {
+    PollEvents result{};
+    const auto translate = [&result, &revents](short host, PollEvents guest) {
+        if ((revents & host) != 0) {
+            revents &= static_cast<short>(~host);
             result |= guest;
         }
     };
 
-    translate(POLLIN, POLL_IN);
-    translate(POLLPRI, POLL_PRI);
-    translate(POLLOUT, POLL_OUT);
-    translate(POLLERR, POLL_ERR);
-    translate(POLLHUP, POLL_HUP);
+    translate(POLLIN, PollEvents::In);
+    translate(POLLPRI, PollEvents::Pri);
+    translate(POLLOUT, PollEvents::Out);
+    translate(POLLERR, PollEvents::Err);
+    translate(POLLHUP, PollEvents::Hup);
 
     UNIMPLEMENTED_IF_MSG(revents != 0, "Unhandled host revents=0x{:x}", revents);
 
@@ -408,7 +408,7 @@ std::pair<Socket::AcceptResult, Errno> Socket::Accept() {
 
 Errno Socket::Connect(SockAddrIn addr_in) {
     const sockaddr host_addr_in = TranslateFromSockAddrIn(addr_in);
-    if (connect(fd, &host_addr_in, sizeof(host_addr_in)) != INVALID_SOCKET) {
+    if (connect(fd, &host_addr_in, sizeof(host_addr_in)) != SOCKET_ERROR) {
         return Errno::SUCCESS;
     }
 
@@ -482,7 +482,7 @@ Errno Socket::Shutdown(ShutdownHow how) {
         host_how = SD_BOTH;
         break;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented flag how={}", static_cast<int>(how));
+        UNIMPLEMENTED_MSG("Unimplemented flag how={}", how);
         return Errno::SUCCESS;
     }
     if (shutdown(fd, host_how) != SOCKET_ERROR) {
@@ -503,10 +503,10 @@ std::pair<s32, Errno> Socket::Recv(int flags, std::vector<u8>& message) {
     ASSERT(flags == 0);
     ASSERT(message.size() < static_cast<size_t>(std::numeric_limits<int>::max()));
 
-    const int result =
+    const auto result =
         recv(fd, reinterpret_cast<char*>(message.data()), static_cast<int>(message.size()), 0);
     if (result != SOCKET_ERROR) {
-        return {result, Errno::SUCCESS};
+        return {static_cast<s32>(result), Errno::SUCCESS};
     }
 
     switch (const int ec = LastError()) {
@@ -531,14 +531,14 @@ std::pair<s32, Errno> Socket::RecvFrom(int flags, std::vector<u8>& message, Sock
     socklen_t* const p_addrlen = addr ? &addrlen : nullptr;
     sockaddr* const p_addr_in = addr ? &addr_in : nullptr;
 
-    const int result = recvfrom(fd, reinterpret_cast<char*>(message.data()),
-                                static_cast<int>(message.size()), 0, p_addr_in, p_addrlen);
+    const auto result = recvfrom(fd, reinterpret_cast<char*>(message.data()),
+                                 static_cast<int>(message.size()), 0, p_addr_in, p_addrlen);
     if (result != SOCKET_ERROR) {
         if (addr) {
             ASSERT(addrlen == sizeof(addr_in));
             *addr = TranslateToSockAddrIn(addr_in);
         }
-        return {result, Errno::SUCCESS};
+        return {static_cast<s32>(result), Errno::SUCCESS};
     }
 
     switch (const int ec = LastError()) {
@@ -558,10 +558,10 @@ std::pair<s32, Errno> Socket::Send(const std::vector<u8>& message, int flags) {
     ASSERT(message.size() < static_cast<size_t>(std::numeric_limits<int>::max()));
     ASSERT(flags == 0);
 
-    const int result = send(fd, reinterpret_cast<const char*>(message.data()),
-                            static_cast<int>(message.size()), 0);
+    const auto result = send(fd, reinterpret_cast<const char*>(message.data()),
+                             static_cast<int>(message.size()), 0);
     if (result != SOCKET_ERROR) {
-        return {result, Errno::SUCCESS};
+        return {static_cast<s32>(result), Errno::SUCCESS};
     }
 
     const int ec = LastError();
@@ -591,10 +591,10 @@ std::pair<s32, Errno> Socket::SendTo(u32 flags, const std::vector<u8>& message,
         to = &host_addr_in;
     }
 
-    const int result = sendto(fd, reinterpret_cast<const char*>(message.data()),
-                              static_cast<int>(message.size()), 0, to, tolen);
+    const auto result = sendto(fd, reinterpret_cast<const char*>(message.data()),
+                               static_cast<int>(message.size()), 0, to, tolen);
     if (result != SOCKET_ERROR) {
-        return {result, Errno::SUCCESS};
+        return {static_cast<s32>(result), Errno::SUCCESS};
     }
 
     const int ec = LastError();

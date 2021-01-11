@@ -6,7 +6,7 @@
 
 namespace Service::AM {
 
-IdleSys::IdleSys() : ServiceFramework{"idle:sys"} {
+IdleSys::IdleSys(Core::System& system_) : ServiceFramework{system_, "idle:sys"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "GetAutoPowerDownEvent"},

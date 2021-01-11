@@ -160,8 +160,9 @@ private:
 
 class IHardwareOpusDecoderManager final : public ServiceFramework<IHardwareOpusDecoderManager> {
 public:
-    explicit IHardwareOpusDecoderManager(OpusDecoderState decoder_state)
-        : ServiceFramework("IHardwareOpusDecoderManager"), decoder_state{std::move(decoder_state)} {
+    explicit IHardwareOpusDecoderManager(Core::System& system_, OpusDecoderState decoder_state)
+        : ServiceFramework{system_, "IHardwareOpusDecoderManager"}, decoder_state{
+                                                                        std::move(decoder_state)} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IHardwareOpusDecoderManager::DecodeInterleavedOld, "DecodeInterleavedOld"},
@@ -287,10 +288,10 @@ void HwOpus::OpenOpusDecoder(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<IHardwareOpusDecoderManager>(
-        OpusDecoderState{std::move(decoder), sample_rate, channel_count});
+        system, OpusDecoderState{std::move(decoder), sample_rate, channel_count});
 }
 
-HwOpus::HwOpus() : ServiceFramework("hwopus") {
+HwOpus::HwOpus(Core::System& system_) : ServiceFramework{system_, "hwopus"} {
     static const FunctionInfo functions[] = {
         {0, &HwOpus::OpenOpusDecoder, "OpenOpusDecoder"},
         {1, &HwOpus::GetWorkBufferSize, "GetWorkBufferSize"},

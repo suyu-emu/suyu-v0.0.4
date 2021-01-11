@@ -25,8 +25,8 @@ ConfigureAudio::ConfigureAudio(QWidget* parent)
     connect(ui->output_sink_combo_box, qOverload<int>(&QComboBox::currentIndexChanged), this,
             &ConfigureAudio::UpdateAudioDevices);
 
-    ui->volume_label->setVisible(Settings::configuring_global);
-    ui->volume_combo_box->setVisible(!Settings::configuring_global);
+    ui->volume_label->setVisible(Settings::IsConfiguringGlobal());
+    ui->volume_combo_box->setVisible(!Settings::IsConfiguringGlobal());
 
     SetupPerGameUI();
 
@@ -51,7 +51,7 @@ void ConfigureAudio::SetConfiguration() {
 
     ui->toggle_audio_stretching->setChecked(Settings::values.enable_audio_stretching.GetValue());
 
-    if (!Settings::configuring_global) {
+    if (!Settings::IsConfiguringGlobal()) {
         if (Settings::values.volume.UsingGlobal()) {
             ui->volume_combo_box->setCurrentIndex(0);
             ui->volume_slider->setEnabled(false);
@@ -99,7 +99,7 @@ void ConfigureAudio::SetVolumeIndicatorText(int percentage) {
 }
 
 void ConfigureAudio::ApplyConfiguration() {
-    if (Settings::configuring_global) {
+    if (Settings::IsConfiguringGlobal()) {
         Settings::values.sink_id =
             ui->output_sink_combo_box->itemText(ui->output_sink_combo_box->currentIndex())
                 .toStdString();
@@ -165,7 +165,7 @@ void ConfigureAudio::RetranslateUI() {
 }
 
 void ConfigureAudio::SetupPerGameUI() {
-    if (Settings::configuring_global) {
+    if (Settings::IsConfiguringGlobal()) {
         ui->volume_slider->setEnabled(Settings::values.volume.UsingGlobal());
         ui->toggle_audio_stretching->setEnabled(
             Settings::values.enable_audio_stretching.UsingGlobal());

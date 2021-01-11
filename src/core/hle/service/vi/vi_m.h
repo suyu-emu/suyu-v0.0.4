@@ -6,6 +6,10 @@
 
 #include "core/hle/service/service.h"
 
+namespace Core {
+class System;
+}
+
 namespace Kernel {
 class HLERequestContext;
 }
@@ -18,13 +22,13 @@ namespace Service::VI {
 
 class VI_M final : public ServiceFramework<VI_M> {
 public:
-    explicit VI_M(std::shared_ptr<NVFlinger::NVFlinger> nv_flinger);
+    explicit VI_M(Core::System& system_, NVFlinger::NVFlinger& nv_flinger_);
     ~VI_M() override;
 
 private:
     void GetDisplayService(Kernel::HLERequestContext& ctx);
 
-    std::shared_ptr<NVFlinger::NVFlinger> nv_flinger;
+    NVFlinger::NVFlinger& nv_flinger;
 };
 
 } // namespace Service::VI

@@ -27,42 +27,14 @@
 
 namespace Service::NS {
 
-enum class FontArchives : u64 {
-    Extension = 0x0100000000000810,
-    Standard = 0x0100000000000811,
-    Korean = 0x0100000000000812,
-    ChineseTraditional = 0x0100000000000813,
-    ChineseSimple = 0x0100000000000814,
-};
-
 struct FontRegion {
     u32 offset;
     u32 size;
 };
 
-constexpr std::array<std::pair<FontArchives, const char*>, 7> SHARED_FONTS{
-    std::make_pair(FontArchives::Standard, "nintendo_udsg-r_std_003.bfttf"),
-    std::make_pair(FontArchives::ChineseSimple, "nintendo_udsg-r_org_zh-cn_003.bfttf"),
-    std::make_pair(FontArchives::ChineseSimple, "nintendo_udsg-r_ext_zh-cn_003.bfttf"),
-    std::make_pair(FontArchives::ChineseTraditional, "nintendo_udjxh-db_zh-tw_003.bfttf"),
-    std::make_pair(FontArchives::Korean, "nintendo_udsg-r_ko_003.bfttf"),
-    std::make_pair(FontArchives::Extension, "nintendo_ext_003.bfttf"),
-    std::make_pair(FontArchives::Extension, "nintendo_ext2_003.bfttf"),
-};
-
-constexpr std::array<const char*, 7> SHARED_FONTS_TTF{
-    "FontStandard.ttf",
-    "FontChineseSimplified.ttf",
-    "FontExtendedChineseSimplified.ttf",
-    "FontChineseTraditional.ttf",
-    "FontKorean.ttf",
-    "FontNintendoExtended.ttf",
-    "FontNintendoExtended2.ttf",
-};
-
 // The below data is specific to shared font data dumped from Switch on f/w 2.2
 // Virtual address and offsets/sizes likely will vary by dump
-constexpr VAddr SHARED_FONT_MEM_VADDR{0x00000009d3016000ULL};
+[[maybe_unused]] constexpr VAddr SHARED_FONT_MEM_VADDR{0x00000009d3016000ULL};
 constexpr u32 EXPECTED_RESULT{0x7f9a0218}; // What we expect the decrypted bfttf first 4 bytes to be
 constexpr u32 EXPECTED_MAGIC{0x36f81a1e};  // What we expect the encrypted bfttf first 4 bytes to be
 constexpr u64 SHARED_FONT_MEM_SIZE{0x1100000};
@@ -88,6 +60,18 @@ static void DecryptSharedFont(const std::vector<u32>& input, Kernel::PhysicalMem
     std::memcpy(output.data() + offset, transformed_font.data(),
                 transformed_font.size() * sizeof(u32));
     offset += transformed_font.size() * sizeof(u32);
+}
+
+void DecryptSharedFontToTTF(const std::vector<u32>& input, std::vector<u8>& output) {
+    ASSERT_MSG(input[0] == EXPECTED_MAGIC, "Failed to derive key, unexpected magic number");
+
+    const u32 KEY = input[0] ^ EXPECTED_RESULT; // Derive key using an inverse xor
+    std::vector<u32> transformed_font(input.size());
+    // TODO(ogniK): Figure out a better way to do this
+    std::transform(input.begin(), input.end(), transformed_font.begin(),
+                   [&KEY](u32 font_data) { return Common::swap32(font_data ^ KEY); });
+    transformed_font[1] = Common::swap32(transformed_font[1]) ^ KEY; // "re-encrypt" the size
+    std::memcpy(output.data(), transformed_font.data() + 2, transformed_font.size() * sizeof(u32));
 }
 
 void EncryptSharedFont(const std::vector<u32>& input, std::vector<u8>& output,
@@ -151,8 +135,8 @@ struct PL_U::Impl {
     std::vector<FontRegion> shared_font_regions;
 };
 
-PL_U::PL_U(Core::System& system)
-    : ServiceFramework("pl:u"), impl{std::make_unique<Impl>()}, system(system) {
+PL_U::PL_U(Core::System& system_)
+    : ServiceFramework{system_, "pl:u"}, impl{std::make_unique<Impl>()} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &PL_U::RequestLoad, "RequestLoad"},
@@ -192,21 +176,18 @@ PL_U::PL_U(Core::System& system)
         }
 
         if (!romfs) {
-            LOG_ERROR(Service_NS, "Failed to find or synthesize {:016X}! Skipping",
-                      static_cast<u64>(font.first));
+            LOG_ERROR(Service_NS, "Failed to find or synthesize {:016X}! Skipping", font.first);
             continue;
         }
 
         const auto extracted_romfs = FileSys::ExtractRomFS(romfs);
         if (!extracted_romfs) {
-            LOG_ERROR(Service_NS, "Failed to extract RomFS for {:016X}! Skipping",
-                      static_cast<u64>(font.first));
+            LOG_ERROR(Service_NS, "Failed to extract RomFS for {:016X}! Skipping", font.first);
             continue;
         }
         const auto font_fp = extracted_romfs->GetFile(font.second);
         if (!font_fp) {
-            LOG_ERROR(Service_NS, "{:016X} has no file \"{}\"! Skipping",
-                      static_cast<u64>(font.first), font.second);
+            LOG_ERROR(Service_NS, "{:016X} has no file \"{}\"! Skipping", font.first, font.second);
             continue;
         }
         std::vector<u32> font_data_u32(font_fp->GetSize() / sizeof(u32));

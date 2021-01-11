@@ -6,15 +6,15 @@
 #include <chrono>
 
 #include "core/settings.h"
-#include "video_core/renderer_vulkan/vk_device.h"
 #include "video_core/renderer_vulkan/vk_master_semaphore.h"
-#include "video_core/renderer_vulkan/wrapper.h"
+#include "video_core/vulkan_common/vulkan_device.h"
+#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
 
 using namespace std::chrono_literals;
 
-MasterSemaphore::MasterSemaphore(const VKDevice& device) {
+MasterSemaphore::MasterSemaphore(const Device& device) {
     static constexpr VkSemaphoreTypeCreateInfoKHR semaphore_type_ci{
         .sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO_KHR,
         .pNext = nullptr,

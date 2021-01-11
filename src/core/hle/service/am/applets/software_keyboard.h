@@ -80,6 +80,7 @@ private:
     bool complete = false;
     bool is_inline = false;
     std::vector<u8> final_data;
+    Core::System& system;
 };
 
 } // namespace Service::AM::Applets

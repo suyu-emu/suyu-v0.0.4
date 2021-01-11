@@ -17,9 +17,6 @@ public:
     explicit EmuWindow_SDL2_Hide();
     ~EmuWindow_SDL2_Hide();
 
-    /// Polls window events
-    void PollEvents() override;
-
     /// Whether the screen is being shown or not.
     bool IsShown() const override;
 

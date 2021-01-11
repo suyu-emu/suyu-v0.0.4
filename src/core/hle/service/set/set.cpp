@@ -188,7 +188,7 @@ void SET::GetKeyCodeMap2(Kernel::HLERequestContext& ctx) {
     GetKeyCodeMapImpl(ctx);
 }
 
-SET::SET() : ServiceFramework("set") {
+SET::SET(Core::System& system_) : ServiceFramework{system_, "set"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &SET::GetLanguageCode, "GetLanguageCode"},
@@ -202,6 +202,7 @@ SET::SET() : ServiceFramework("set") {
         {8, &SET::GetQuestFlag, "GetQuestFlag"},
         {9, &SET::GetKeyCodeMap2, "GetKeyCodeMap2"},
         {10, nullptr, "GetFirmwareVersionForDebug"},
+        {11, nullptr, "GetDeviceNickName"},
     };
     // clang-format on
 

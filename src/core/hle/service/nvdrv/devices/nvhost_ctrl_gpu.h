@@ -16,32 +16,13 @@ public:
     explicit nvhost_ctrl_gpu(Core::System& system);
     ~nvhost_ctrl_gpu() override;
 
-    u32 ioctl(Ioctl command, const std::vector<u8>& input, const std::vector<u8>& input2,
-              std::vector<u8>& output, std::vector<u8>& output2, IoctlCtrl& ctrl,
-              IoctlVersion version) override;
+    NvResult Ioctl1(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) override;
+    NvResult Ioctl2(Ioctl command, const std::vector<u8>& input,
+                    const std::vector<u8>& inline_input, std::vector<u8>& output) override;
+    NvResult Ioctl3(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
+                    std::vector<u8>& inline_output) override;
 
 private:
-    enum class IoctlCommand : u32_le {
-        IocGetCharacteristicsCommand = 0xC0B04705,
-        IocGetTPCMasksCommand = 0xC0184706,
-        IocGetActiveSlotMaskCommand = 0x80084714,
-        IocZcullGetCtxSizeCommand = 0x80044701,
-        IocZcullGetInfo = 0x80284702,
-        IocZbcSetTable = 0x402C4703,
-        IocZbcQueryTable = 0xC0344704,
-        IocFlushL2 = 0x40084707,
-        IocInvalICache = 0x4008470D,
-        IocSetMmudebugMode = 0x4008470E,
-        IocSetSmDebugMode = 0x4010470F,
-        IocWaitForPause = 0xC0084710,
-        IocGetTcpExceptionEnStatus = 0x80084711,
-        IocNumVsms = 0x80084712,
-        IocVsmsMapping = 0xC0044713,
-        IocGetErrorChannelUserData = 0xC008471B,
-        IocGetGpuTime = 0xC010471C,
-        IocGetCpuTimeCorrelationInfo = 0xC108471D,
-    };
-
     struct IoctlGpuCharacteristics {
         u32_le arch;                       // 0x120 (NVGPU_GPU_ARCH_GM200)
         u32_le impl;                       // 0xB (NVGPU_GPU_IMPL_GM20B)
@@ -159,17 +140,21 @@ private:
     };
     static_assert(sizeof(IoctlGetGpuTime) == 0x10, "IoctlGetGpuTime is incorrect size");
 
-    u32 GetCharacteristics(const std::vector<u8>& input, std::vector<u8>& output,
-                           std::vector<u8>& output2, IoctlVersion version);
-    u32 GetTPCMasks(const std::vector<u8>& input, std::vector<u8>& output, std::vector<u8>& output2,
-                    IoctlVersion version);
-    u32 GetActiveSlotMask(const std::vector<u8>& input, std::vector<u8>& output);
-    u32 ZCullGetCtxSize(const std::vector<u8>& input, std::vector<u8>& output);
-    u32 ZCullGetInfo(const std::vector<u8>& input, std::vector<u8>& output);
-    u32 ZBCSetTable(const std::vector<u8>& input, std::vector<u8>& output);
-    u32 ZBCQueryTable(const std::vector<u8>& input, std::vector<u8>& output);
-    u32 FlushL2(const std::vector<u8>& input, std::vector<u8>& output);
-    u32 GetGpuTime(const std::vector<u8>& input, std::vector<u8>& output);
+    NvResult GetCharacteristics(const std::vector<u8>& input, std::vector<u8>& output);
+    NvResult GetCharacteristics(const std::vector<u8>& input, std::vector<u8>& output,
+                                std::vector<u8>& inline_output);
+
+    NvResult GetTPCMasks(const std::vector<u8>& input, std::vector<u8>& output);
+    NvResult GetTPCMasks(const std::vector<u8>& input, std::vector<u8>& output,
+                         std::vector<u8>& inline_output);
+
+    NvResult GetActiveSlotMask(const std::vector<u8>& input, std::vector<u8>& output);
+    NvResult ZCullGetCtxSize(const std::vector<u8>& input, std::vector<u8>& output);
+    NvResult ZCullGetInfo(const std::vector<u8>& input, std::vector<u8>& output);
+    NvResult ZBCSetTable(const std::vector<u8>& input, std::vector<u8>& output);
+    NvResult ZBCQueryTable(const std::vector<u8>& input, std::vector<u8>& output);
+    NvResult FlushL2(const std::vector<u8>& input, std::vector<u8>& output);
+    NvResult GetGpuTime(const std::vector<u8>& input, std::vector<u8>& output);
 };
 
 } // namespace Service::Nvidia::Devices

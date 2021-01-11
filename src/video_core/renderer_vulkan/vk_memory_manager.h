@@ -5,15 +5,16 @@
 #pragma once
 
 #include <memory>
+#include <span>
 #include <utility>
 #include <vector>
 #include "common/common_types.h"
-#include "video_core/renderer_vulkan/wrapper.h"
+#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
 
+class Device;
 class MemoryMap;
-class VKDevice;
 class VKMemoryAllocation;
 class VKMemoryCommitImpl;
 
@@ -21,7 +22,7 @@ using VKMemoryCommit = std::unique_ptr<VKMemoryCommitImpl>;
 
 class VKMemoryManager final {
 public:
-    explicit VKMemoryManager(const VKDevice& device);
+    explicit VKMemoryManager(const Device& device_);
     VKMemoryManager(const VKMemoryManager&) = delete;
     ~VKMemoryManager();
 
@@ -48,7 +49,7 @@ private:
     VKMemoryCommit TryAllocCommit(const VkMemoryRequirements& requirements,
                                   VkMemoryPropertyFlags wanted_properties);
 
-    const VKDevice& device;                                       ///< Device handler.
+    const Device& device;                                         ///< Device handler.
     const VkPhysicalDeviceMemoryProperties properties;            ///< Physical device properties.
     std::vector<std::unique_ptr<VKMemoryAllocation>> allocations; ///< Current allocations.
 };
@@ -58,8 +59,8 @@ class VKMemoryCommitImpl final {
     friend MemoryMap;
 
 public:
-    explicit VKMemoryCommitImpl(const VKDevice& device, VKMemoryAllocation* allocation,
-                                const vk::DeviceMemory& memory, u64 begin, u64 end);
+    explicit VKMemoryCommitImpl(const Device& device_, VKMemoryAllocation* allocation_,
+                                const vk::DeviceMemory& memory_, u64 begin_, u64 end_);
     ~VKMemoryCommitImpl();
 
     /// Maps a memory region and returns a pointer to it.
@@ -84,7 +85,7 @@ private:
     /// Unmaps memory.
     void Unmap() const;
 
-    const VKDevice& device;           ///< Vulkan device.
+    const Device& device;             ///< Vulkan device.
     const vk::DeviceMemory& memory;   ///< Vulkan device memory handler.
     std::pair<u64, u64> interval{};   ///< Interval where the commit exists.
     VKMemoryAllocation* allocation{}; ///< Pointer to the large memory allocation.
@@ -93,8 +94,8 @@ private:
 /// Holds ownership of a memory map.
 class MemoryMap final {
 public:
-    explicit MemoryMap(const VKMemoryCommitImpl* commit, u8* address)
-        : commit{commit}, address{address} {}
+    explicit MemoryMap(const VKMemoryCommitImpl* commit_, std::span<u8> span_)
+        : commit{commit_}, span{span_} {}
 
     ~MemoryMap() {
         if (commit) {
@@ -108,19 +109,24 @@ public:
         commit = nullptr;
     }
 
+    /// Returns a span to the memory map.
+    [[nodiscard]] std::span<u8> Span() const noexcept {
+        return span;
+    }
+
     /// Returns the address of the memory map.
-    u8* GetAddress() const {
-        return address;
+    [[nodiscard]] u8* Address() const noexcept {
+        return span.data();
     }
 
     /// Returns the address of the memory map;
-    operator u8*() const {
-        return address;
+    [[nodiscard]] operator u8*() const noexcept {
+        return span.data();
     }
 
 private:
     const VKMemoryCommitImpl* commit{}; ///< Mapped memory commit.
-    u8* address{};                      ///< Address to the mapped memory.
+    std::span<u8> span;                 ///< Address to the mapped memory.
 };
 
 } // namespace Vulkan

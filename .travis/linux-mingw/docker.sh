@@ -4,16 +4,8 @@ cd /yuzu
 # override Travis CI unreasonable ccache size
 echo 'max_size = 3.0G' > "$HOME/.ccache/ccache.conf"
 
-# Dirty hack to trick unicorn makefile into believing we are in a MINGW system
-mv /bin/uname /bin/uname1 && echo -e '#!/bin/sh\necho MINGW64' >> /bin/uname
-chmod +x /bin/uname
-
-# Dirty hack to trick unicorn makefile into believing we have cmd
-echo '' >> /bin/cmd
-chmod +x /bin/cmd
-
 mkdir build && cd build
-cmake .. -G Ninja -DCMAKE_TOOLCHAIN_FILE="$(pwd)/../CMakeModules/MinGWCross.cmake" -DUSE_CCACHE=ON -DYUZU_USE_BUNDLED_UNICORN=ON -DENABLE_COMPATIBILITY_LIST_DOWNLOAD=ON -DCMAKE_BUILD_TYPE=Release
+cmake .. -G Ninja -DCMAKE_TOOLCHAIN_FILE="$(pwd)/../CMakeModules/MinGWCross.cmake" -DUSE_CCACHE=ON -DENABLE_COMPATIBILITY_LIST_DOWNLOAD=ON -DCMAKE_BUILD_TYPE=Release
 ninja
 
 # Clean up the dirty hacks

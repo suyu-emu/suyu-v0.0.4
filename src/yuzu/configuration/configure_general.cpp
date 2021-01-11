@@ -19,7 +19,7 @@ ConfigureGeneral::ConfigureGeneral(QWidget* parent)
 
     SetConfiguration();
 
-    if (Settings::configuring_global) {
+    if (Settings::IsConfiguringGlobal()) {
         connect(ui->toggle_frame_limit, &QCheckBox::clicked, ui->frame_limit,
                 [this]() { ui->frame_limit->setEnabled(ui->toggle_frame_limit->isChecked()); });
     }
@@ -41,7 +41,7 @@ void ConfigureGeneral::SetConfiguration() {
     ui->toggle_frame_limit->setChecked(Settings::values.use_frame_limit.GetValue());
     ui->frame_limit->setValue(Settings::values.frame_limit.GetValue());
 
-    if (Settings::configuring_global) {
+    if (Settings::IsConfiguringGlobal()) {
         ui->frame_limit->setEnabled(Settings::values.use_frame_limit.GetValue());
     } else {
         ui->frame_limit->setEnabled(Settings::values.use_frame_limit.GetValue() &&
@@ -50,7 +50,7 @@ void ConfigureGeneral::SetConfiguration() {
 }
 
 void ConfigureGeneral::ApplyConfiguration() {
-    if (Settings::configuring_global) {
+    if (Settings::IsConfiguringGlobal()) {
         UISettings::values.confirm_before_closing = ui->toggle_check_exit->isChecked();
         UISettings::values.select_user_on_boot = ui->toggle_user_on_boot->isChecked();
         UISettings::values.pause_when_in_background = ui->toggle_background_pause->isChecked();
@@ -93,7 +93,7 @@ void ConfigureGeneral::RetranslateUI() {
 }
 
 void ConfigureGeneral::SetupPerGameUI() {
-    if (Settings::configuring_global) {
+    if (Settings::IsConfiguringGlobal()) {
         ui->toggle_frame_limit->setEnabled(Settings::values.use_frame_limit.UsingGlobal());
         ui->frame_limit->setEnabled(Settings::values.frame_limit.UsingGlobal());
 

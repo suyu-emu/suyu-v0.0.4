@@ -131,7 +131,7 @@ public:
     ~GRenderWindow() override;
 
     // EmuWindow implementation.
-    void PollEvents() override;
+    void OnFrameDisplayed() override;
     bool IsShown() const override;
     std::unique_ptr<Core::Frontend::GraphicsContext> CreateSharedContext() const override;
 
@@ -162,9 +162,17 @@ public:
     /// Destroy the previous run's child_widget which should also destroy the child_window
     void ReleaseRenderTarget();
 
+    bool IsLoadingComplete() const;
+
     void CaptureScreenshot(u32 res_scale, const QString& screenshot_path);
 
     std::pair<u32, u32> ScaleTouch(const QPointF& pos) const;
+
+    /**
+     * Instructs the window to re-launch the application using the specified program_index.
+     * @param program_index Specifies the index within the application of the program to launch.
+     */
+    void ExecuteProgram(std::size_t program_index);
 
 public slots:
     void OnEmulationStarting(EmuThread* emu_thread);
@@ -175,6 +183,8 @@ signals:
     /// Emitted when the window is closed
     void Closed();
     void FirstFrameDisplayed();
+    void ExecuteProgramSignal(std::size_t program_index);
+    void MouseActivity();
 
 private:
     void TouchBeginEvent(const QTouchEvent* event);
@@ -207,4 +217,5 @@ private:
 
 protected:
     void showEvent(QShowEvent* event) override;
+    bool eventFilter(QObject* object, QEvent* event) override;
 };

@@ -12,7 +12,6 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/core_timing.h"
-#include "core/core_timing_util.h"
 #include "core/settings.h"
 
 namespace AudioCore {
@@ -32,10 +31,10 @@ u32 Stream::GetNumChannels() const {
     return {};
 }
 
-Stream::Stream(Core::Timing::CoreTiming& core_timing, u32 sample_rate, Format format,
-               ReleaseCallback&& release_callback, SinkStream& sink_stream, std::string&& name_)
-    : sample_rate{sample_rate}, format{format}, release_callback{std::move(release_callback)},
-      sink_stream{sink_stream}, core_timing{core_timing}, name{std::move(name_)} {
+Stream::Stream(Core::Timing::CoreTiming& core_timing_, u32 sample_rate_, Format format_,
+               ReleaseCallback&& release_callback_, SinkStream& sink_stream_, std::string&& name_)
+    : sample_rate{sample_rate_}, format{format_}, release_callback{std::move(release_callback_)},
+      sink_stream{sink_stream_}, core_timing{core_timing_}, name{std::move(name_)} {
     release_event =
         Core::Timing::CreateEvent(name, [this](std::uintptr_t, std::chrono::nanoseconds ns_late) {
             ReleaseActiveBuffer(ns_late);
@@ -123,7 +122,7 @@ bool Stream::QueueBuffer(BufferPtr&& buffer) {
     return false;
 }
 
-bool Stream::ContainsBuffer(Buffer::Tag tag) const {
+bool Stream::ContainsBuffer([[maybe_unused]] Buffer::Tag tag) const {
     UNIMPLEMENTED();
     return {};
 }
@@ -131,7 +130,25 @@ bool Stream::ContainsBuffer(Buffer::Tag tag) const {
 std::vector<Buffer::Tag> Stream::GetTagsAndReleaseBuffers(std::size_t max_count) {
     std::vector<Buffer::Tag> tags;
     for (std::size_t count = 0; count < max_count && !released_buffers.empty(); ++count) {
-        tags.push_back(released_buffers.front()->GetTag());
+        if (released_buffers.front()) {
+            tags.push_back(released_buffers.front()->GetTag());
+        } else {
+            ASSERT_MSG(false, "Invalid tag in released_buffers!");
+        }
+        released_buffers.pop();
+    }
+    return tags;
+}
+
+std::vector<Buffer::Tag> Stream::GetTagsAndReleaseBuffers() {
+    std::vector<Buffer::Tag> tags;
+    tags.reserve(released_buffers.size());
+    while (!released_buffers.empty()) {
+        if (released_buffers.front()) {
+            tags.push_back(released_buffers.front()->GetTag());
+        } else {
+            ASSERT_MSG(false, "Invalid tag in released_buffers!");
+        }
         released_buffers.pop();
     }
     return tags;

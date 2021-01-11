@@ -25,7 +25,7 @@ using Tegra::Shader::OpCode;
 namespace {
 
 void DeduceTextureHandlerSize(VideoCore::GuestDriverProfile& gpu_driver,
-                              const std::list<Sampler>& used_samplers) {
+                              const std::list<SamplerEntry>& used_samplers) {
     if (gpu_driver.IsTextureHandlerSizeKnown() || used_samplers.size() <= 1) {
         return;
     }
@@ -43,9 +43,9 @@ void DeduceTextureHandlerSize(VideoCore::GuestDriverProfile& gpu_driver,
     }
 }
 
-std::optional<u32> TryDeduceSamplerSize(const Sampler& sampler_to_deduce,
+std::optional<u32> TryDeduceSamplerSize(const SamplerEntry& sampler_to_deduce,
                                         VideoCore::GuestDriverProfile& gpu_driver,
-                                        const std::list<Sampler>& used_samplers) {
+                                        const std::list<SamplerEntry>& used_samplers) {
     const u32 base_offset = sampler_to_deduce.offset;
     u32 max_offset{std::numeric_limits<u32>::max()};
     for (const auto& sampler : used_samplers) {
@@ -66,7 +66,7 @@ std::optional<u32> TryDeduceSamplerSize(const Sampler& sampler_to_deduce,
 
 class ASTDecoder {
 public:
-    ASTDecoder(ShaderIR& ir) : ir(ir) {}
+    explicit ASTDecoder(ShaderIR& ir_) : ir(ir_) {}
 
     void operator()(ASTProgram& ast) {
         ASTNode current = ast.nodes.GetFirst();
@@ -153,8 +153,8 @@ void ShaderIR::Decode() {
         const auto& blocks = shader_info.blocks;
         NodeBlock current_block;
         u32 current_label = static_cast<u32>(exit_branch);
-        for (auto& block : blocks) {
-            if (shader_info.labels.count(block.start) != 0) {
+        for (const auto& block : blocks) {
+            if (shader_info.labels.contains(block.start)) {
                 insert_block(current_block, current_label);
                 current_block.clear();
                 current_label = block.start;

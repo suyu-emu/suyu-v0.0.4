@@ -28,7 +28,7 @@ SurfaceTarget SurfaceTargetFromTextureType(Tegra::Texture::TextureType texture_t
     case Tegra::Texture::TextureType::Texture2DArray:
         return SurfaceTarget::Texture2DArray;
     default:
-        LOG_CRITICAL(HW_GPU, "Unimplemented texture_type={}", static_cast<u32>(texture_type));
+        LOG_CRITICAL(HW_GPU, "Unimplemented texture_type={}", texture_type);
         UNREACHABLE();
         return SurfaceTarget::Texture2D;
     }
@@ -47,7 +47,7 @@ bool SurfaceTargetIsLayered(SurfaceTarget target) {
     case SurfaceTarget::TextureCubeArray:
         return true;
     default:
-        LOG_CRITICAL(HW_GPU, "Unimplemented surface_target={}", static_cast<u32>(target));
+        LOG_CRITICAL(HW_GPU, "Unimplemented surface_target={}", target);
         UNREACHABLE();
         return false;
     }
@@ -66,7 +66,7 @@ bool SurfaceTargetIsArray(SurfaceTarget target) {
     case SurfaceTarget::TextureCubeArray:
         return true;
     default:
-        LOG_CRITICAL(HW_GPU, "Unimplemented surface_target={}", static_cast<u32>(target));
+        LOG_CRITICAL(HW_GPU, "Unimplemented surface_target={}", target);
         UNREACHABLE();
         return false;
     }
@@ -85,7 +85,7 @@ PixelFormat PixelFormatFromDepthFormat(Tegra::DepthFormat format) {
     case Tegra::DepthFormat::D32_FLOAT_S8X24_UINT:
         return PixelFormat::D32_FLOAT_S8_UINT;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented format={}", static_cast<u32>(format));
+        UNIMPLEMENTED_MSG("Unimplemented format={}", format);
         return PixelFormat::S8_UINT_D24_UNORM;
     }
 }
@@ -183,7 +183,7 @@ PixelFormat PixelFormatFromRenderTargetFormat(Tegra::RenderTargetFormat format) 
     case Tegra::RenderTargetFormat::R8_UINT:
         return PixelFormat::R8_UINT;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented format={}", static_cast<int>(format));
+        UNIMPLEMENTED_MSG("Unimplemented format={}", format);
         return PixelFormat::A8B8G8R8_UNORM;
     }
 }
@@ -197,7 +197,7 @@ PixelFormat PixelFormatFromGPUPixelFormat(Tegra::FramebufferConfig::PixelFormat 
     case Tegra::FramebufferConfig::PixelFormat::B8G8R8A8_UNORM:
         return PixelFormat::B8G8R8A8_UNORM;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented format={}", static_cast<u32>(format));
+        UNIMPLEMENTED_MSG("Unimplemented format={}", format);
         return PixelFormat::A8B8G8R8_UNORM;
     }
 }
@@ -280,7 +280,7 @@ bool IsPixelFormatSRGB(PixelFormat format) {
 }
 
 std::pair<u32, u32> GetASTCBlockSize(PixelFormat format) {
-    return {GetDefaultBlockWidth(format), GetDefaultBlockHeight(format)};
+    return {DefaultBlockWidth(format), DefaultBlockHeight(format)};
 }
 
 } // namespace VideoCore::Surface

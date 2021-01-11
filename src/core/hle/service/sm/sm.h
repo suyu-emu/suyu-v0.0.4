@@ -16,6 +16,10 @@
 #include "core/hle/result.h"
 #include "core/hle/service/service.h"
 
+namespace Core {
+class System;
+}
+
 namespace Kernel {
 class ClientPort;
 class ClientSession;
@@ -31,7 +35,7 @@ class Controller;
 /// Interface to "sm:" service
 class SM final : public ServiceFramework<SM> {
 public:
-    explicit SM(std::shared_ptr<ServiceManager> service_manager, Kernel::KernelCore& kernel);
+    explicit SM(std::shared_ptr<ServiceManager> service_manager_, Core::System& system_);
     ~SM() override;
 
 private:
@@ -46,7 +50,7 @@ private:
 
 class ServiceManager {
 public:
-    static void InstallInterfaces(std::shared_ptr<ServiceManager> self, Kernel::KernelCore& kernel);
+    static void InstallInterfaces(std::shared_ptr<ServiceManager> self, Core::System& system);
 
     explicit ServiceManager(Kernel::KernelCore& kernel_);
     ~ServiceManager();

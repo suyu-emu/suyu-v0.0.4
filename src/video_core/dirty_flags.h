@@ -16,7 +16,10 @@ namespace VideoCommon::Dirty {
 enum : u8 {
     NullEntry = 0,
 
+    Descriptors,
+
     RenderTargets,
+    RenderTargetControl,
     ColorBuffer0,
     ColorBuffer1,
     ColorBuffer2,

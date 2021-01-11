@@ -135,6 +135,7 @@ enum class ResultStatus : u16 {
     ErrorINITooManyKIPs,
 };
 
+std::string GetResultStatusString(ResultStatus status);
 std::ostream& operator<<(std::ostream& os, ResultStatus status);
 
 /// Interface for loading an application
@@ -290,9 +291,14 @@ protected:
 
 /**
  * Identifies a bootable file and return a suitable loader
- * @param file The bootable file
- * @return the best loader for this file
+ *
+ * @param system The system context.
+ * @param file   The bootable file.
+ * @param program_index Specifies the index within the container of the program to launch.
+ *
+ * @return the best loader for this file.
  */
-std::unique_ptr<AppLoader> GetLoader(FileSys::VirtualFile file);
+std::unique_ptr<AppLoader> GetLoader(Core::System& system, FileSys::VirtualFile file,
+                                     std::size_t program_index = 0);
 
 } // namespace Loader

@@ -14,10 +14,10 @@
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/romfs_factory.h"
 #include "core/file_sys/vfs_offset.h"
-#include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/code_set.h"
 #include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/process.h"
+#include "core/hle/kernel/thread.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/nro.h"
 #include "core/loader/nso.h"
@@ -127,7 +127,7 @@ FileType AppLoader_NRO::IdentifyType(const FileSys::VirtualFile& file) {
 }
 
 static constexpr u32 PageAlignSize(u32 size) {
-    return (size + Core::Memory::PAGE_MASK) & ~Core::Memory::PAGE_MASK;
+    return static_cast<u32>((size + Core::Memory::PAGE_MASK) & ~Core::Memory::PAGE_MASK);
 }
 
 static bool LoadNroImpl(Kernel::Process& process, const std::vector<u8>& data,
@@ -196,10 +196,6 @@ static bool LoadNroImpl(Kernel::Process& process, const std::vector<u8>& data,
     // Load codeset for current process
     codeset.memory = std::move(program_image);
     process.LoadModule(std::move(codeset), process.PageTable().GetCodeRegionStart());
-
-    // Register module with GDBStub
-    GDBStub::RegisterModule(name, process.PageTable().GetCodeRegionStart(),
-                            process.PageTable().GetCodeRegionEnd());
 
     return true;
 }

@@ -96,6 +96,8 @@ struct FixedPipelineState {
         BitField<6, 14, u32> offset;
         BitField<20, 3, u32> type;
         BitField<23, 6, u32> size;
+        // Not really an element of a vertex attribute, but it can be packed here
+        BitField<29, 1, u32> binding_index_enabled;
 
         constexpr Maxwell::VertexAttribute::Type Type() const noexcept {
             return static_cast<Maxwell::VertexAttribute::Type>(type.Value());
@@ -130,12 +132,6 @@ struct FixedPipelineState {
         }
     };
 
-    union VertexBinding {
-        u16 raw;
-        BitField<0, 12, u16> stride;
-        BitField<12, 1, u16> enabled;
-    };
-
     struct DynamicState {
         union {
             u32 raw1;
@@ -150,11 +146,11 @@ struct FixedPipelineState {
         };
         union {
             u32 raw2;
-            BitField<0, 4, u32> topology;
-            BitField<4, 2, u32> cull_face;
-            BitField<6, 1, u32> cull_enable;
+            BitField<0, 2, u32> cull_face;
+            BitField<2, 1, u32> cull_enable;
         };
-        std::array<VertexBinding, Maxwell::NumVertexArrays> vertex_bindings;
+        // Vertex stride is a 12 bits value, we have 4 bits to spare per element
+        std::array<u16, Maxwell::NumVertexArrays> vertex_strides;
 
         void Fill(const Maxwell& regs);
 
@@ -169,14 +165,10 @@ struct FixedPipelineState {
         Maxwell::FrontFace FrontFace() const noexcept {
             return UnpackFrontFace(front_face.Value());
         }
-
-        constexpr Maxwell::PrimitiveTopology Topology() const noexcept {
-            return static_cast<Maxwell::PrimitiveTopology>(topology.Value());
-        }
     };
 
     union {
-        u32 raw;
+        u32 raw1;
         BitField<0, 1, u32> no_extended_dynamic_state;
         BitField<2, 1, u32> primitive_restart_enable;
         BitField<3, 1, u32> depth_bias_enable;
@@ -190,7 +182,16 @@ struct FixedPipelineState {
         BitField<18, 1, u32> logic_op_enable;
         BitField<19, 4, u32> logic_op;
         BitField<23, 1, u32> rasterize_enable;
+        BitField<24, 4, Maxwell::PrimitiveTopology> topology;
+        BitField<28, 4, Tegra::Texture::MsaaMode> msaa_mode;
     };
+    union {
+        u32 raw2;
+        BitField<0, 3, u32> alpha_test_func;
+        BitField<3, 1, u32> early_z;
+    };
+
+    u32 alpha_test_ref;
     u32 point_size;
     std::array<u32, Maxwell::NumVertexArrays> binding_divisors;
     std::array<VertexAttribute, Maxwell::NumVertexAttributes> attributes;

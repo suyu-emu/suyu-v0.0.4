@@ -8,8 +8,8 @@
 
 namespace Service::VI {
 
-VI_S::VI_S(std::shared_ptr<NVFlinger::NVFlinger> nv_flinger)
-    : ServiceFramework{"vi:s"}, nv_flinger{std::move(nv_flinger)} {
+VI_S::VI_S(Core::System& system_, NVFlinger::NVFlinger& nv_flinger_)
+    : ServiceFramework{system_, "vi:s"}, nv_flinger{nv_flinger_} {
     static const FunctionInfo functions[] = {
         {1, &VI_S::GetDisplayService, "GetDisplayService"},
         {3, nullptr, "GetDisplayServiceWithProxyNameExchange"},
@@ -22,7 +22,7 @@ VI_S::~VI_S() = default;
 void VI_S::GetDisplayService(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_VI, "called");
 
-    detail::GetDisplayServiceImpl(ctx, nv_flinger, Permission::System);
+    detail::GetDisplayServiceImpl(ctx, system, nv_flinger, Permission::System);
 }
 
 } // namespace Service::VI

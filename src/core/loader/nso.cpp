@@ -14,10 +14,10 @@
 #include "common/swap.h"
 #include "core/core.h"
 #include "core/file_sys/patch_manager.h"
-#include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/code_set.h"
 #include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/process.h"
+#include "core/hle/kernel/thread.h"
 #include "core/loader/nso.h"
 #include "core/memory.h"
 #include "core/settings.h"
@@ -47,7 +47,7 @@ std::vector<u8> DecompressSegment(const std::vector<u8>& compressed_data,
 }
 
 constexpr u32 PageAlignSize(u32 size) {
-    return (size + Core::Memory::PAGE_MASK) & ~Core::Memory::PAGE_MASK;
+    return static_cast<u32>((size + Core::Memory::PAGE_MASK) & ~Core::Memory::PAGE_MASK);
 }
 } // Anonymous namespace
 
@@ -149,7 +149,7 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process, Core::S
     // Apply cheats if they exist and the program has a valid title ID
     if (pm) {
         system.SetCurrentProcessBuildID(nso_header.build_id);
-        const auto cheats = pm->CreateCheatList(system, nso_header.build_id);
+        const auto cheats = pm->CreateCheatList(nso_header.build_id);
         if (!cheats.empty()) {
             system.RegisterCheatList(cheats, nso_header.build_id, load_base, image_size);
         }
@@ -158,9 +158,6 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process, Core::S
     // Load codeset for current process
     codeset.memory = std::move(program_image);
     process.LoadModule(std::move(codeset), load_base);
-
-    // Register module with GDBStub
-    GDBStub::RegisterModule(file.GetName(), load_base, load_base);
 
     return load_base + image_size;
 }

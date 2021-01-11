@@ -12,8 +12,9 @@ class Reporter;
 }
 
 namespace FileSys {
+class ContentProvider;
 class FileSystemBackend;
-}
+} // namespace FileSys
 
 namespace Service::FileSystem {
 
@@ -32,7 +33,7 @@ enum class LogMode : u32 {
 
 class FSP_SRV final : public ServiceFramework<FSP_SRV> {
 public:
-    explicit FSP_SRV(FileSystemController& fsc, const Core::Reporter& reporter);
+    explicit FSP_SRV(Core::System& system_);
     ~FSP_SRV() override;
 
 private:
@@ -48,6 +49,7 @@ private:
     void OpenDataStorageByCurrentProcess(Kernel::HLERequestContext& ctx);
     void OpenDataStorageByDataId(Kernel::HLERequestContext& ctx);
     void OpenPatchDataStorageByCurrentProcess(Kernel::HLERequestContext& ctx);
+    void OpenDataStorageWithProgramIndex(Kernel::HLERequestContext& ctx);
     void SetGlobalAccessLogMode(Kernel::HLERequestContext& ctx);
     void GetGlobalAccessLogMode(Kernel::HLERequestContext& ctx);
     void OutputAccessLogToSdCard(Kernel::HLERequestContext& ctx);
@@ -55,6 +57,7 @@ private:
     void OpenMultiCommitManager(Kernel::HLERequestContext& ctx);
 
     FileSystemController& fsc;
+    const FileSys::ContentProvider& content_provider;
 
     FileSys::VirtualFile romfs;
     u64 current_process_id = 0;

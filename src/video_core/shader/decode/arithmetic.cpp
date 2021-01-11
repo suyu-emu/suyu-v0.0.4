@@ -110,8 +110,7 @@ u32 ShaderIR::DecodeArithmetic(NodeBlock& bb, u32 pc) {
             case SubOp::Sqrt:
                 return Operation(OperationCode::FSqrt, PRECISE, op_a);
             default:
-                UNIMPLEMENTED_MSG("Unhandled MUFU sub op={0:x}",
-                                  static_cast<unsigned>(instr.sub_op.Value()));
+                UNIMPLEMENTED_MSG("Unhandled MUFU sub op={0:x}", instr.sub_op.Value());
                 return Immediate(0);
             }
         }();
@@ -137,7 +136,8 @@ u32 ShaderIR::DecodeArithmetic(NodeBlock& bb, u32 pc) {
         break;
     }
     case OpCode::Id::FCMP_RR:
-    case OpCode::Id::FCMP_RC: {
+    case OpCode::Id::FCMP_RC:
+    case OpCode::Id::FCMP_IMMR: {
         UNIMPLEMENTED_IF(instr.fcmp.ftz == 0);
         Node op_c = GetRegister(instr.gpr39);
         Node comp = GetPredicateComparisonFloat(instr.fcmp.cond, std::move(op_c), Immediate(0.0f));

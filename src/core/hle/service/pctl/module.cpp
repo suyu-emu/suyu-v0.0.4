@@ -11,7 +11,8 @@ namespace Service::PCTL {
 
 class IParentalControlService final : public ServiceFramework<IParentalControlService> {
 public:
-    IParentalControlService() : ServiceFramework("IParentalControlService") {
+    explicit IParentalControlService(Core::System& system_)
+        : ServiceFramework{system_, "IParentalControlService"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {1, &IParentalControlService::Initialize, "Initialize"},
@@ -137,7 +138,7 @@ void Module::Interface::CreateService(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<IParentalControlService>();
+    rb.PushIpcInterface<IParentalControlService>(system);
 }
 
 void Module::Interface::CreateServiceWithoutInitialize(Kernel::HLERequestContext& ctx) {
@@ -145,20 +146,20 @@ void Module::Interface::CreateServiceWithoutInitialize(Kernel::HLERequestContext
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<IParentalControlService>();
+    rb.PushIpcInterface<IParentalControlService>(system);
 }
 
-Module::Interface::Interface(std::shared_ptr<Module> module, const char* name)
-    : ServiceFramework(name), module(std::move(module)) {}
+Module::Interface::Interface(Core::System& system_, std::shared_ptr<Module> module_, const char* name)
+    : ServiceFramework{system_, name}, module{std::move(module_)} {}
 
 Module::Interface::~Interface() = default;
 
-void InstallInterfaces(SM::ServiceManager& service_manager) {
+void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system) {
     auto module = std::make_shared<Module>();
-    std::make_shared<PCTL>(module, "pctl")->InstallAsService(service_manager);
-    std::make_shared<PCTL>(module, "pctl:a")->InstallAsService(service_manager);
-    std::make_shared<PCTL>(module, "pctl:r")->InstallAsService(service_manager);
-    std::make_shared<PCTL>(module, "pctl:s")->InstallAsService(service_manager);
+    std::make_shared<PCTL>(system, module, "pctl")->InstallAsService(service_manager);
+    std::make_shared<PCTL>(system, module, "pctl:a")->InstallAsService(service_manager);
+    std::make_shared<PCTL>(system, module, "pctl:r")->InstallAsService(service_manager);
+    std::make_shared<PCTL>(system, module, "pctl:s")->InstallAsService(service_manager);
 }
 
 } // namespace Service::PCTL

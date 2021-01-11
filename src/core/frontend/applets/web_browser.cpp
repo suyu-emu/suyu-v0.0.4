@@ -11,14 +11,22 @@ WebBrowserApplet::~WebBrowserApplet() = default;
 
 DefaultWebBrowserApplet::~DefaultWebBrowserApplet() = default;
 
-void DefaultWebBrowserApplet::OpenPageLocal(std::string_view filename,
-                                            std::function<void()> unpack_romfs_callback,
-                                            std::function<void()> finished_callback) {
-    LOG_INFO(Service_AM,
-             "(STUBBED) called - No suitable web browser implementation found to open website page "
-             "at '{}'!",
-             filename);
-    finished_callback();
+void DefaultWebBrowserApplet::OpenLocalWebPage(
+    std::string_view local_url, std::function<void()> extract_romfs_callback,
+    std::function<void(Service::AM::Applets::WebExitReason, std::string)> callback) const {
+    LOG_WARNING(Service_AM, "(STUBBED) called, backend requested to open local web page at {}",
+                local_url);
+
+    callback(Service::AM::Applets::WebExitReason::WindowClosed, "http://localhost/");
+}
+
+void DefaultWebBrowserApplet::OpenExternalWebPage(
+    std::string_view external_url,
+    std::function<void(Service::AM::Applets::WebExitReason, std::string)> callback) const {
+    LOG_WARNING(Service_AM, "(STUBBED) called, backend requested to open external web page at {}",
+                external_url);
+
+    callback(Service::AM::Applets::WebExitReason::WindowClosed, "http://localhost/");
 }
 
 } // namespace Core::Frontend

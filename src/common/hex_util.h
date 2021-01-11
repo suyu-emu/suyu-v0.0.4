@@ -16,14 +16,14 @@ namespace Common {
 
 [[nodiscard]] constexpr u8 ToHexNibble(char c) {
     if (c >= 65 && c <= 70) {
-        return c - 55;
+        return static_cast<u8>(c - 55);
     }
 
     if (c >= 97 && c <= 102) {
-        return c - 87;
+        return static_cast<u8>(c - 87);
     }
 
-    return c - 48;
+    return static_cast<u8>(c - 48);
 }
 
 [[nodiscard]] std::vector<u8> HexStringToVector(std::string_view str, bool little_endian);
@@ -33,11 +33,11 @@ template <std::size_t Size, bool le = false>
     std::array<u8, Size> out{};
     if constexpr (le) {
         for (std::size_t i = 2 * Size - 2; i <= 2 * Size; i -= 2) {
-            out[i / 2] = (ToHexNibble(str[i]) << 4) | ToHexNibble(str[i + 1]);
+            out[i / 2] = static_cast<u8>((ToHexNibble(str[i]) << 4) | ToHexNibble(str[i + 1]));
         }
     } else {
         for (std::size_t i = 0; i < 2 * Size; i += 2) {
-            out[i / 2] = (ToHexNibble(str[i]) << 4) | ToHexNibble(str[i + 1]);
+            out[i / 2] = static_cast<u8>((ToHexNibble(str[i]) << 4) | ToHexNibble(str[i + 1]));
         }
     }
     return out;

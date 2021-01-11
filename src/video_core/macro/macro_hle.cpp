@@ -85,7 +85,7 @@ constexpr std::array<std::pair<u64, HLEFunction>, 3> hle_funcs{{
     {0x0217920100488FF7, &HLE_0217920100488FF7},
 }};
 
-HLEMacro::HLEMacro(Engines::Maxwell3D& maxwell3d) : maxwell3d(maxwell3d) {}
+HLEMacro::HLEMacro(Engines::Maxwell3D& maxwell3d_) : maxwell3d{maxwell3d_} {}
 HLEMacro::~HLEMacro() = default;
 
 std::optional<std::unique_ptr<CachedMacro>> HLEMacro::GetHLEProgram(u64 hash) const {
@@ -99,8 +99,8 @@ std::optional<std::unique_ptr<CachedMacro>> HLEMacro::GetHLEProgram(u64 hash) co
 
 HLEMacroImpl::~HLEMacroImpl() = default;
 
-HLEMacroImpl::HLEMacroImpl(Engines::Maxwell3D& maxwell3d, HLEFunction func)
-    : maxwell3d(maxwell3d), func(func) {}
+HLEMacroImpl::HLEMacroImpl(Engines::Maxwell3D& maxwell3d_, HLEFunction func_)
+    : maxwell3d{maxwell3d_}, func{func_} {}
 
 void HLEMacroImpl::Execute(const std::vector<u32>& parameters, u32 method) {
     func(maxwell3d, parameters);

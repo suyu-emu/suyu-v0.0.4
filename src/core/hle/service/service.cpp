@@ -51,6 +51,7 @@
 #include "core/hle/service/ns/ns.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
 #include "core/hle/service/nvflinger/nvflinger.h"
+#include "core/hle/service/olsc/olsc.h"
 #include "core/hle/service/pcie/pcie.h"
 #include "core/hle/service/pctl/module.h"
 #include "core/hle/service/pcv/pcv.h"
@@ -72,13 +73,36 @@
 
 namespace Service {
 
-ServiceFrameworkBase::ServiceFrameworkBase(const char* service_name, u32 max_sessions,
-                                           InvokerFn* handler_invoker)
-    : service_name(service_name), max_sessions(max_sessions), handler_invoker(handler_invoker) {}
+/**
+ * Creates a function string for logging, complete with the name (or header code, depending
+ * on what's passed in) the port name, and all the cmd_buff arguments.
+ */
+[[maybe_unused]] static std::string MakeFunctionString(std::string_view name,
+                                                       std::string_view port_name,
+                                                       const u32* cmd_buff) {
+    // Number of params == bits 0-5 + bits 6-11
+    int num_params = (cmd_buff[0] & 0x3F) + ((cmd_buff[0] >> 6) & 0x3F);
 
-ServiceFrameworkBase::~ServiceFrameworkBase() = default;
+    std::string function_string = fmt::format("function '{}': port={}", name, port_name);
+    for (int i = 1; i <= num_params; ++i) {
+        function_string += fmt::format(", cmd_buff[{}]=0x{:X}", i, cmd_buff[i]);
+    }
+    return function_string;
+}
+
+ServiceFrameworkBase::ServiceFrameworkBase(Core::System& system_, const char* service_name_,
+                                           u32 max_sessions_, InvokerFn* handler_invoker_)
+    : system{system_}, service_name{service_name_}, max_sessions{max_sessions_},
+      handler_invoker{handler_invoker_} {}
+
+ServiceFrameworkBase::~ServiceFrameworkBase() {
+    // Wait for other threads to release access before destroying
+    const auto guard = LockService();
+}
 
 void ServiceFrameworkBase::InstallAsService(SM::ServiceManager& service_manager) {
+    const auto guard = LockService();
+
     ASSERT(!port_installed);
 
     auto port = service_manager.RegisterService(service_name, max_sessions).Unwrap();
@@ -87,6 +111,8 @@ void ServiceFrameworkBase::InstallAsService(SM::ServiceManager& service_manager)
 }
 
 void ServiceFrameworkBase::InstallAsNamedPort(Kernel::KernelCore& kernel) {
+    const auto guard = LockService();
+
     ASSERT(!port_installed);
 
     auto [server_port, client_port] =
@@ -94,17 +120,6 @@ void ServiceFrameworkBase::InstallAsNamedPort(Kernel::KernelCore& kernel) {
     server_port->SetHleHandler(shared_from_this());
     kernel.AddNamedPort(service_name, std::move(client_port));
     port_installed = true;
-}
-
-std::shared_ptr<Kernel::ClientPort> ServiceFrameworkBase::CreatePort(Kernel::KernelCore& kernel) {
-    ASSERT(!port_installed);
-
-    auto [server_port, client_port] =
-        Kernel::ServerPort::CreatePortPair(kernel, max_sessions, service_name);
-    auto port = MakeResult(std::move(server_port)).Unwrap();
-    port->SetHleHandler(shared_from_this());
-    port_installed = true;
-    return client_port;
 }
 
 void ServiceFrameworkBase::RegisterHandlersBase(const FunctionInfoBase* functions, std::size_t n) {
@@ -128,8 +143,8 @@ void ServiceFrameworkBase::ReportUnimplementedFunction(Kernel::HLERequestContext
     }
     buf.push_back('}');
 
-    Core::System::GetInstance().GetReporter().SaveUnimplementedFunctionReport(
-        ctx, ctx.GetCommand(), function_name, service_name);
+    system.GetReporter().SaveUnimplementedFunctionReport(ctx, ctx.GetCommand(), function_name,
+                                                         service_name);
     UNIMPLEMENTED_MSG("Unknown / unimplemented {}", fmt::to_string(buf));
 }
 
@@ -145,6 +160,8 @@ void ServiceFrameworkBase::InvokeRequest(Kernel::HLERequestContext& ctx) {
 }
 
 ResultCode ServiceFrameworkBase::HandleSyncRequest(Kernel::HLERequestContext& context) {
+    const auto guard = LockService();
+
     switch (context.GetCommandType()) {
     case IPC::CommandType::Close: {
         IPC::ResponseBuilder rb{context, 2};
@@ -153,7 +170,7 @@ ResultCode ServiceFrameworkBase::HandleSyncRequest(Kernel::HLERequestContext& co
     }
     case IPC::CommandType::ControlWithContext:
     case IPC::CommandType::Control: {
-        Core::System::GetInstance().ServiceManager().InvokeControlRequest(context);
+        system.ServiceManager().InvokeControlRequest(context);
         break;
     }
     case IPC::CommandType::RequestWithContext:
@@ -162,79 +179,82 @@ ResultCode ServiceFrameworkBase::HandleSyncRequest(Kernel::HLERequestContext& co
         break;
     }
     default:
-        UNIMPLEMENTED_MSG("command_type={}", static_cast<int>(context.GetCommandType()));
+        UNIMPLEMENTED_MSG("command_type={}", context.GetCommandType());
     }
 
-    context.WriteToOutgoingCommandBuffer(context.GetThread());
+    // If emulation was shutdown, we are closing service threads, do not write the response back to
+    // memory that may be shutting down as well.
+    if (system.IsPoweredOn()) {
+        context.WriteToOutgoingCommandBuffer(context.GetThread());
+    }
 
     return RESULT_SUCCESS;
 }
 
-/// Initialize ServiceManager
-void Init(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system) {
+/// Initialize Services
+Services::Services(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system)
+    : nv_flinger{std::make_unique<NVFlinger::NVFlinger>(system)} {
+
     // NVFlinger needs to be accessed by several services like Vi and AppletOE so we instantiate it
     // here and pass it into the respective InstallInterfaces functions.
-    auto nv_flinger = std::make_shared<NVFlinger::NVFlinger>(system);
+
     system.GetFileSystemController().CreateFactories(*system.GetFilesystem(), false);
 
-    SM::ServiceManager::InstallInterfaces(sm, system.Kernel());
+    SM::ServiceManager::InstallInterfaces(sm, system);
 
     Account::InstallInterfaces(system);
-    AM::InstallInterfaces(*sm, nv_flinger, system);
+    AM::InstallInterfaces(*sm, *nv_flinger, system);
     AOC::InstallInterfaces(*sm, system);
     APM::InstallInterfaces(system);
     Audio::InstallInterfaces(*sm, system);
     BCAT::InstallInterfaces(system);
-    BPC::InstallInterfaces(*sm);
+    BPC::InstallInterfaces(*sm, system);
     BtDrv::InstallInterfaces(*sm, system);
     BTM::InstallInterfaces(*sm, system);
-    Capture::InstallInterfaces(*sm);
-    ERPT::InstallInterfaces(*sm);
-    ES::InstallInterfaces(*sm);
-    EUPLD::InstallInterfaces(*sm);
+    Capture::InstallInterfaces(*sm, system);
+    ERPT::InstallInterfaces(*sm, system);
+    ES::InstallInterfaces(*sm, system);
+    EUPLD::InstallInterfaces(*sm, system);
     Fatal::InstallInterfaces(*sm, system);
-    FGM::InstallInterfaces(*sm);
+    FGM::InstallInterfaces(*sm, system);
     FileSystem::InstallInterfaces(system);
     Friend::InstallInterfaces(*sm, system);
     Glue::InstallInterfaces(system);
-    GRC::InstallInterfaces(*sm);
+    GRC::InstallInterfaces(*sm, system);
     HID::InstallInterfaces(*sm, system);
-    LBL::InstallInterfaces(*sm);
-    LDN::InstallInterfaces(*sm);
+    LBL::InstallInterfaces(*sm, system);
+    LDN::InstallInterfaces(*sm, system);
     LDR::InstallInterfaces(*sm, system);
     LM::InstallInterfaces(system);
-    Migration::InstallInterfaces(*sm);
-    Mii::InstallInterfaces(*sm);
-    MM::InstallInterfaces(*sm);
-    NCM::InstallInterfaces(*sm);
-    NFC::InstallInterfaces(*sm);
+    Migration::InstallInterfaces(*sm, system);
+    Mii::InstallInterfaces(*sm, system);
+    MM::InstallInterfaces(*sm, system);
+    NCM::InstallInterfaces(*sm, system);
+    NFC::InstallInterfaces(*sm, system);
     NFP::InstallInterfaces(*sm, system);
     NIFM::InstallInterfaces(*sm, system);
     NIM::InstallInterfaces(*sm, system);
-    NPNS::InstallInterfaces(*sm);
+    NPNS::InstallInterfaces(*sm, system);
     NS::InstallInterfaces(*sm, system);
     Nvidia::InstallInterfaces(*sm, *nv_flinger, system);
-    PCIe::InstallInterfaces(*sm);
-    PCTL::InstallInterfaces(*sm);
-    PCV::InstallInterfaces(*sm);
+    OLSC::InstallInterfaces(*sm, system);
+    PCIe::InstallInterfaces(*sm, system);
+    PCTL::InstallInterfaces(*sm, system);
+    PCV::InstallInterfaces(*sm, system);
     PlayReport::InstallInterfaces(*sm, system);
     PM::InstallInterfaces(system);
-    PSC::InstallInterfaces(*sm);
-    PSM::InstallInterfaces(*sm);
-    Set::InstallInterfaces(*sm);
+    PSC::InstallInterfaces(*sm, system);
+    PSM::InstallInterfaces(*sm, system);
+    Set::InstallInterfaces(*sm, system);
     Sockets::InstallInterfaces(*sm, system);
-    SPL::InstallInterfaces(*sm);
-    SSL::InstallInterfaces(*sm);
+    SPL::InstallInterfaces(*sm, system);
+    SSL::InstallInterfaces(*sm, system);
     Time::InstallInterfaces(system);
-    USB::InstallInterfaces(*sm);
-    VI::InstallInterfaces(*sm, nv_flinger);
-    WLAN::InstallInterfaces(*sm);
-
-    LOG_DEBUG(Service, "initialized OK");
+    USB::InstallInterfaces(*sm, system);
+    VI::InstallInterfaces(*sm, system, *nv_flinger);
+    WLAN::InstallInterfaces(*sm, system);
 }
 
-/// Shutdown ServiceManager
-void Shutdown() {
-    LOG_DEBUG(Service, "shutdown OK");
-}
+Services::~Services() = default;
+
 } // namespace Service

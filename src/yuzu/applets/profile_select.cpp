@@ -114,6 +114,15 @@ QtProfileSelectionDialog::QtProfileSelectionDialog(QWidget* parent)
 
 QtProfileSelectionDialog::~QtProfileSelectionDialog() = default;
 
+int QtProfileSelectionDialog::exec() {
+    // Skip profile selection when there's only one.
+    if (profile_manager->GetUserCount() == 1) {
+        user_index = 0;
+        return QDialog::Accepted;
+    }
+    return QDialog::exec();
+}
+
 void QtProfileSelectionDialog::accept() {
     QDialog::accept();
 }
@@ -141,8 +150,8 @@ QtProfileSelector::QtProfileSelector(GMainWindow& parent) {
 QtProfileSelector::~QtProfileSelector() = default;
 
 void QtProfileSelector::SelectProfile(
-    std::function<void(std::optional<Common::UUID>)> callback) const {
-    this->callback = std::move(callback);
+    std::function<void(std::optional<Common::UUID>)> callback_) const {
+    callback = std::move(callback_);
     emit MainWindowSelectProfile();
 }
 

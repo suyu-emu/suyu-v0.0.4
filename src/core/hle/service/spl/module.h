@@ -7,13 +7,18 @@
 #include <random>
 #include "core/hle/service/service.h"
 
+namespace Core {
+class System;
+}
+
 namespace Service::SPL {
 
 class Module final {
 public:
     class Interface : public ServiceFramework<Interface> {
     public:
-        explicit Interface(std::shared_ptr<Module> module, const char* name);
+        explicit Interface(Core::System& system_, std::shared_ptr<Module> module_,
+                           const char* name);
         ~Interface() override;
 
         void GetRandomBytes(Kernel::HLERequestContext& ctx);
@@ -27,6 +32,6 @@ public:
 };
 
 /// Registers all SPL services with the specified service manager.
-void InstallInterfaces(SM::ServiceManager& service_manager);
+void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system);
 
 } // namespace Service::SPL

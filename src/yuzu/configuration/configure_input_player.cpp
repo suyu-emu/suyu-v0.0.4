@@ -18,12 +18,16 @@
 #include "core/hle/service/sm/sm.h"
 #include "input_common/gcadapter/gc_poller.h"
 #include "input_common/main.h"
+#include "input_common/mouse/mouse_poller.h"
 #include "input_common/udp/udp.h"
 #include "ui_configure_input_player.h"
 #include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configure_input_player.h"
+#include "yuzu/configuration/configure_vibration.h"
+#include "yuzu/configuration/input_profiles.h"
+#include "yuzu/util/limitable_input_dialog.h"
 
-constexpr std::size_t HANDHELD_INDEX = 8;
+using namespace Service::HID;
 
 const std::array<std::string, ConfigureInputPlayer::ANALOG_SUB_BUTTONS_NUM>
     ConfigureInputPlayer::analog_sub_buttons{{
@@ -35,6 +39,8 @@ const std::array<std::string, ConfigureInputPlayer::ANALOG_SUB_BUTTONS_NUM>
 
 namespace {
 
+constexpr std::size_t HANDHELD_INDEX = 8;
+
 void UpdateController(Settings::ControllerType controller_type, std::size_t npad_index,
                       bool connected) {
     Core::System& system{Core::System::GetInstance()};
@@ -43,46 +49,10 @@ void UpdateController(Settings::ControllerType controller_type, std::size_t npad
     }
     Service::SM::ServiceManager& sm = system.ServiceManager();
 
-    auto& npad =
-        sm.GetService<Service::HID::Hid>("hid")
-            ->GetAppletResource()
-            ->GetController<Service::HID::Controller_NPad>(Service::HID::HidController::NPad);
+    auto& npad = sm.GetService<Hid>("hid")->GetAppletResource()->GetController<Controller_NPad>(
+        HidController::NPad);
 
     npad.UpdateControllerAt(npad.MapSettingsTypeToNPad(controller_type), npad_index, connected);
-}
-
-/// Maps the controller type combobox index to Controller Type enum
-constexpr Settings::ControllerType GetControllerTypeFromIndex(int index) {
-    switch (index) {
-    case 0:
-    default:
-        return Settings::ControllerType::ProController;
-    case 1:
-        return Settings::ControllerType::DualJoyconDetached;
-    case 2:
-        return Settings::ControllerType::LeftJoycon;
-    case 3:
-        return Settings::ControllerType::RightJoycon;
-    case 4:
-        return Settings::ControllerType::Handheld;
-    }
-}
-
-/// Maps the Controller Type enum to controller type combobox index
-constexpr int GetIndexFromControllerType(Settings::ControllerType type) {
-    switch (type) {
-    case Settings::ControllerType::ProController:
-    default:
-        return 0;
-    case Settings::ControllerType::DualJoyconDetached:
-        return 1;
-    case Settings::ControllerType::LeftJoycon:
-        return 2;
-    case Settings::ControllerType::RightJoycon:
-        return 3;
-    case Settings::ControllerType::Handheld:
-        return 4;
-    }
 }
 
 QString GetKeyName(int key_code) {
@@ -182,6 +152,14 @@ QString ButtonToText(const Common::ParamPackage& param) {
         return {};
     }
 
+    if (param.Get("engine", "") == "mouse") {
+        if (param.Has("button")) {
+            const QString button_str = QString::number(int(param.Get("button", 0)));
+            return QObject::tr("Click %1").arg(button_str);
+        }
+        return GetKeyName(param.Get("code", 0));
+    }
+
     return QObject::tr("[unknown]");
 }
 
@@ -194,41 +172,31 @@ QString AnalogToText(const Common::ParamPackage& param, const std::string& dir) 
         return ButtonToText(Common::ParamPackage{param.Get(dir, "")});
     }
 
-    if (param.Get("engine", "") == "sdl") {
+    const auto engine_str = param.Get("engine", "");
+    const QString axis_x_str = QString::fromStdString(param.Get("axis_x", ""));
+    const QString axis_y_str = QString::fromStdString(param.Get("axis_y", ""));
+    const bool invert_x = param.Get("invert_x", "+") == "-";
+    const bool invert_y = param.Get("invert_y", "+") == "-";
+    if (engine_str == "sdl" || engine_str == "gcpad" || engine_str == "mouse") {
         if (dir == "modifier") {
             return QObject::tr("[unused]");
         }
 
-        if (dir == "left" || dir == "right") {
-            const QString axis_x_str = QString::fromStdString(param.Get("axis_x", ""));
-
-            return QObject::tr("Axis %1").arg(axis_x_str);
+        if (dir == "left") {
+            const QString invert_x_str = QString::fromStdString(invert_x ? "+" : "-");
+            return QObject::tr("Axis %1%2").arg(axis_x_str, invert_x_str);
         }
-
-        if (dir == "up" || dir == "down") {
-            const QString axis_y_str = QString::fromStdString(param.Get("axis_y", ""));
-
-            return QObject::tr("Axis %1").arg(axis_y_str);
+        if (dir == "right") {
+            const QString invert_x_str = QString::fromStdString(invert_x ? "-" : "+");
+            return QObject::tr("Axis %1%2").arg(axis_x_str, invert_x_str);
         }
-
-        return {};
-    }
-
-    if (param.Get("engine", "") == "gcpad") {
-        if (dir == "modifier") {
-            return QObject::tr("[unused]");
+        if (dir == "up") {
+            const QString invert_y_str = QString::fromStdString(invert_y ? "-" : "+");
+            return QObject::tr("Axis %1%2").arg(axis_y_str, invert_y_str);
         }
-
-        if (dir == "left" || dir == "right") {
-            const QString axis_x_str = QString::fromStdString(param.Get("axis_x", ""));
-
-            return QObject::tr("GC Axis %1").arg(axis_x_str);
-        }
-
-        if (dir == "up" || dir == "down") {
-            const QString axis_y_str = QString::fromStdString(param.Get("axis_y", ""));
-
-            return QObject::tr("GC Axis %1").arg(axis_y_str);
+        if (dir == "down") {
+            const QString invert_y_str = QString::fromStdString(invert_y ? "+" : "-");
+            return QObject::tr("Axis %1%2").arg(axis_y_str, invert_y_str);
         }
 
         return {};
@@ -240,10 +208,11 @@ QString AnalogToText(const Common::ParamPackage& param, const std::string& dir) 
 ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_index,
                                            QWidget* bottom_row,
                                            InputCommon::InputSubsystem* input_subsystem_,
-                                           bool debug)
+                                           InputProfiles* profiles_, bool debug)
     : QWidget(parent), ui(std::make_unique<Ui::ConfigureInputPlayer>()), player_index(player_index),
-      debug(debug), input_subsystem{input_subsystem_}, timeout_timer(std::make_unique<QTimer>()),
-      poll_timer(std::make_unique<QTimer>()), bottom_row(bottom_row) {
+      debug(debug), input_subsystem{input_subsystem_}, profiles(profiles_),
+      timeout_timer(std::make_unique<QTimer>()), poll_timer(std::make_unique<QTimer>()),
+      bottom_row(bottom_row) {
     ui->setupUi(this);
 
     setFocusPolicy(Qt::ClickFocus);
@@ -254,11 +223,6 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
         ui->buttonZL,       ui->buttonZR,     ui->buttonPlus,      ui->buttonMinus,
         ui->buttonDpadLeft, ui->buttonDpadUp, ui->buttonDpadRight, ui->buttonDpadDown,
         ui->buttonSL,       ui->buttonSR,     ui->buttonHome,      ui->buttonScreenshot,
-    };
-
-    mod_buttons = {
-        ui->buttonLStickMod,
-        ui->buttonRStickMod,
     };
 
     analog_map_buttons = {{
@@ -284,6 +248,7 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
     analog_map_deadzone_label = {ui->labelLStickDeadzone, ui->labelRStickDeadzone};
     analog_map_deadzone_slider = {ui->sliderLStickDeadzone, ui->sliderRStickDeadzone};
     analog_map_modifier_groupbox = {ui->buttonLStickModGroup, ui->buttonRStickModGroup};
+    analog_map_modifier_button = {ui->buttonLStickMod, ui->buttonRStickMod};
     analog_map_modifier_label = {ui->labelLStickModifierRange, ui->labelRStickModifierRange};
     analog_map_modifier_slider = {ui->sliderLStickModifierRange, ui->sliderRStickModifierRange};
     analog_map_range_groupbox = {ui->buttonLStickRangeGroup, ui->buttonRStickRangeGroup};
@@ -370,6 +335,18 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
             }
 
             connect(analog_button, &QPushButton::clicked, [=, this] {
+                if (!map_analog_stick_accepted) {
+                    map_analog_stick_accepted =
+                        QMessageBox::information(
+                            this, tr("Map Analog Stick"),
+                            tr("After pressing OK, first move your joystick horizontally, and then "
+                               "vertically.\nTo invert the axes, first move your joystick "
+                               "vertically, and then horizontally."),
+                            QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Ok;
+                    if (!map_analog_stick_accepted) {
+                        return;
+                    }
+                }
                 HandleClick(
                     analog_map_buttons[analog_id][sub_button_id],
                     [=, this](const Common::ParamPackage& params) {
@@ -388,26 +365,51 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                             analogs_param[analog_id].Clear();
                             analog_map_buttons[analog_id][sub_button_id]->setText(tr("[not set]"));
                         });
+                        context_menu.addAction(tr("Invert axis"), [&] {
+                            if (sub_button_id == 2 || sub_button_id == 3) {
+                                const bool invert_value =
+                                    analogs_param[analog_id].Get("invert_x", "+") == "-";
+                                const std::string invert_str = invert_value ? "+" : "-";
+                                analogs_param[analog_id].Set("invert_x", invert_str);
+                            }
+                            if (sub_button_id == 0 || sub_button_id == 1) {
+                                const bool invert_value =
+                                    analogs_param[analog_id].Get("invert_y", "+") == "-";
+                                const std::string invert_str = invert_value ? "+" : "-";
+                                analogs_param[analog_id].Set("invert_y", invert_str);
+                            }
+                            for (int sub_button_id = 0; sub_button_id < ANALOG_SUB_BUTTONS_NUM;
+                                 ++sub_button_id) {
+                                analog_map_buttons[analog_id][sub_button_id]->setText(AnalogToText(
+                                    analogs_param[analog_id], analog_sub_buttons[sub_button_id]));
+                            }
+                        });
                         context_menu.exec(analog_map_buttons[analog_id][sub_button_id]->mapToGlobal(
                             menu_location));
                     });
         }
 
         // Handle clicks for the modifier buttons as well.
-        ConfigureButtonClick(mod_buttons[analog_id], &stick_mod_param[analog_id],
-                             Config::default_stick_mod[analog_id],
-                             InputCommon::Polling::DeviceType::Button);
+        connect(analog_map_modifier_button[analog_id], &QPushButton::clicked, [=, this] {
+            HandleClick(
+                analog_map_modifier_button[analog_id],
+                [=, this](const Common::ParamPackage& params) {
+                    analogs_param[analog_id].Set("modifier", params.Serialize());
+                },
+                InputCommon::Polling::DeviceType::Button);
+        });
 
-        mod_buttons[analog_id]->setContextMenuPolicy(Qt::CustomContextMenu);
+        analog_map_modifier_button[analog_id]->setContextMenuPolicy(Qt::CustomContextMenu);
 
-        connect(mod_buttons[analog_id], &QPushButton::customContextMenuRequested,
+        connect(analog_map_modifier_button[analog_id], &QPushButton::customContextMenuRequested,
                 [=, this](const QPoint& menu_location) {
                     QMenu context_menu;
                     context_menu.addAction(tr("Clear"), [&] {
-                        stick_mod_param[analog_id].Clear();
-                        mod_buttons[analog_id]->setText(tr("[not set]"));
+                        analogs_param[analog_id].Set("modifier", "");
+                        analog_map_modifier_button[analog_id]->setText(tr("[not set]"));
                     });
-                    context_menu.exec(mod_buttons[analog_id]->mapToGlobal(menu_location));
+                    context_menu.exec(
+                        analog_map_modifier_button[analog_id]->mapToGlobal(menu_location));
                 });
 
         connect(analog_map_range_spinbox[analog_id], qOverload<int>(&QSpinBox::valueChanged),
@@ -434,18 +436,7 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
     connect(ui->groupConnectedController, &QGroupBox::toggled,
             [this](bool checked) { emit Connected(checked); });
 
-    // Set up controller type. Only Player 1 can choose Handheld.
-    ui->comboControllerType->clear();
-
-    QStringList controller_types = {
-        tr("Pro Controller"),
-        tr("Dual Joycons"),
-        tr("Left Joycon"),
-        tr("Right Joycon"),
-    };
-
     if (player_index == 0) {
-        controller_types.append(tr("Handheld"));
         connect(ui->comboControllerType, qOverload<int>(&QComboBox::currentIndexChanged),
                 [this](int index) {
                     emit HandheldStateChanged(GetControllerTypeFromIndex(index) ==
@@ -453,17 +444,17 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                 });
     }
 
+    if (debug || player_index == 9) {
+        ui->groupConnectedController->setCheckable(false);
+    }
+
     // The Debug Controller can only choose the Pro Controller.
     if (debug) {
         ui->buttonScreenshot->setEnabled(false);
         ui->buttonHome->setEnabled(false);
-        ui->groupConnectedController->setCheckable(false);
-        QStringList debug_controller_types = {
-            tr("Pro Controller"),
-        };
-        ui->comboControllerType->addItems(debug_controller_types);
+        ui->comboControllerType->addItem(tr("Pro Controller"));
     } else {
-        ui->comboControllerType->addItems(controller_types);
+        SetConnectableControllers();
     }
 
     UpdateControllerIcon();
@@ -475,11 +466,12 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
         UpdateMotionButtons();
     });
 
-    connect(ui->comboDevices, qOverload<int>(&QComboBox::currentIndexChanged), this,
+    connect(ui->comboDevices, qOverload<int>(&QComboBox::activated), this,
             &ConfigureInputPlayer::UpdateMappingWithDefaults);
 
+    ui->comboDevices->setCurrentIndex(-1);
+
     ui->buttonRefreshDevices->setIcon(QIcon::fromTheme(QStringLiteral("view-refresh")));
-    UpdateInputDevices();
     connect(ui->buttonRefreshDevices, &QPushButton::clicked,
             [this] { emit RefreshInputDevices(); });
 
@@ -490,14 +482,14 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
         Common::ParamPackage params;
         if (input_subsystem->GetGCButtons()->IsPolling()) {
             params = input_subsystem->GetGCButtons()->GetNextInput();
-            if (params.Has("engine")) {
+            if (params.Has("engine") && IsInputAcceptable(params)) {
                 SetPollingResult(params, false);
                 return;
             }
         }
         if (input_subsystem->GetGCAnalogs()->IsPolling()) {
             params = input_subsystem->GetGCAnalogs()->GetNextInput();
-            if (params.Has("engine")) {
+            if (params.Has("engine") && IsInputAcceptable(params)) {
                 SetPollingResult(params, false);
                 return;
             }
@@ -509,14 +501,53 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                 return;
             }
         }
+        if (input_subsystem->GetMouseButtons()->IsPolling()) {
+            params = input_subsystem->GetMouseButtons()->GetNextInput();
+            if (params.Has("engine") && IsInputAcceptable(params)) {
+                SetPollingResult(params, false);
+                return;
+            }
+        }
+        if (input_subsystem->GetMouseAnalogs()->IsPolling()) {
+            params = input_subsystem->GetMouseAnalogs()->GetNextInput();
+            if (params.Has("engine") && IsInputAcceptable(params)) {
+                SetPollingResult(params, false);
+                return;
+            }
+        }
+        if (input_subsystem->GetMouseMotions()->IsPolling()) {
+            params = input_subsystem->GetMouseMotions()->GetNextInput();
+            if (params.Has("engine") && IsInputAcceptable(params)) {
+                SetPollingResult(params, false);
+                return;
+            }
+        }
+        if (input_subsystem->GetMouseTouch()->IsPolling()) {
+            params = input_subsystem->GetMouseTouch()->GetNextInput();
+            if (params.Has("engine") && IsInputAcceptable(params)) {
+                SetPollingResult(params, false);
+                return;
+            }
+        }
         for (auto& poller : device_pollers) {
             params = poller->GetNextInput();
-            if (params.Has("engine")) {
+            if (params.Has("engine") && IsInputAcceptable(params)) {
                 SetPollingResult(params, false);
                 return;
             }
         }
     });
+
+    UpdateInputProfiles();
+
+    connect(ui->buttonProfilesNew, &QPushButton::clicked, this,
+            &ConfigureInputPlayer::CreateProfile);
+    connect(ui->buttonProfilesDelete, &QPushButton::clicked, this,
+            &ConfigureInputPlayer::DeleteProfile);
+    connect(ui->comboProfiles, qOverload<int>(&QComboBox::activated), this,
+            &ConfigureInputPlayer::LoadProfile);
+    connect(ui->buttonProfilesSave, &QPushButton::clicked, this,
+            &ConfigureInputPlayer::SaveProfile);
 
     LoadConfiguration();
 
@@ -527,7 +558,7 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
 ConfigureInputPlayer::~ConfigureInputPlayer() = default;
 
 void ConfigureInputPlayer::ApplyConfiguration() {
-    auto& player = Settings::values.players[player_index];
+    auto& player = Settings::values.players.GetValue()[player_index];
     auto& buttons = debug ? Settings::values.debug_pad_buttons : player.buttons;
     auto& analogs = debug ? Settings::values.debug_pad_analogs : player.analogs;
 
@@ -541,33 +572,71 @@ void ConfigureInputPlayer::ApplyConfiguration() {
     }
 
     auto& motions = player.motions;
+
     std::transform(motions_param.begin(), motions_param.end(), motions.begin(),
                    [](const Common::ParamPackage& param) { return param.Serialize(); });
+}
 
-    player.controller_type =
-        static_cast<Settings::ControllerType>(ui->comboControllerType->currentIndex());
-    player.connected = ui->groupConnectedController->isChecked();
+void ConfigureInputPlayer::TryConnectSelectedController() {
+    auto& player = Settings::values.players.GetValue()[player_index];
 
-    // Player 2-8
-    if (player_index != 0) {
-        UpdateController(player.controller_type, player_index, player.connected);
+    const auto controller_type =
+        GetControllerTypeFromIndex(ui->comboControllerType->currentIndex());
+    const auto player_connected = ui->groupConnectedController->isChecked() &&
+                                  controller_type != Settings::ControllerType::Handheld;
+
+    if (player.controller_type == controller_type && player.connected == player_connected) {
+        // Set vibration devices in the event that the input device has changed.
+        ConfigureVibration::SetVibrationDevices(player_index);
         return;
     }
 
-    // Player 1 and Handheld
-    auto& handheld = Settings::values.players[HANDHELD_INDEX];
-    // If Handheld is selected, copy all the settings from Player 1 to Handheld.
-    if (player.controller_type == Settings::ControllerType::Handheld) {
-        handheld = player;
-        handheld.connected = ui->groupConnectedController->isChecked();
-        player.connected = false; // Disconnect Player 1
-    } else {
-        player.connected = ui->groupConnectedController->isChecked();
-        handheld.connected = false; // Disconnect Handheld
+    player.controller_type = controller_type;
+    player.connected = player_connected;
+
+    ConfigureVibration::SetVibrationDevices(player_index);
+
+    // Connect/Disconnect Handheld depending on Player 1's controller configuration.
+    if (player_index == 0) {
+        auto& handheld = Settings::values.players.GetValue()[HANDHELD_INDEX];
+        if (controller_type == Settings::ControllerType::Handheld) {
+            handheld = player;
+        }
+        handheld.connected = ui->groupConnectedController->isChecked() &&
+                             controller_type == Settings::ControllerType::Handheld;
+        UpdateController(Settings::ControllerType::Handheld, HANDHELD_INDEX, handheld.connected);
     }
 
-    UpdateController(player.controller_type, player_index, player.connected);
-    UpdateController(Settings::ControllerType::Handheld, HANDHELD_INDEX, handheld.connected);
+    if (!player.connected) {
+        return;
+    }
+
+    UpdateController(controller_type, player_index, player_connected);
+}
+
+void ConfigureInputPlayer::TryDisconnectSelectedController() {
+    const auto& player = Settings::values.players.GetValue()[player_index];
+
+    const auto controller_type =
+        GetControllerTypeFromIndex(ui->comboControllerType->currentIndex());
+    const auto player_connected = ui->groupConnectedController->isChecked() &&
+                                  controller_type != Settings::ControllerType::Handheld;
+
+    // Do not do anything if the controller configuration has not changed.
+    if (player.controller_type == controller_type && player.connected == player_connected) {
+        return;
+    }
+
+    // Disconnect the controller first.
+    UpdateController(controller_type, player_index, false);
+}
+
+void ConfigureInputPlayer::showEvent(QShowEvent* event) {
+    if (bottom_row == nullptr) {
+        return;
+    }
+    QWidget::showEvent(event);
+    ui->main->addWidget(bottom_row);
 }
 
 void ConfigureInputPlayer::changeEvent(QEvent* event) {
@@ -584,7 +653,7 @@ void ConfigureInputPlayer::RetranslateUI() {
 }
 
 void ConfigureInputPlayer::LoadConfiguration() {
-    auto& player = Settings::values.players[player_index];
+    auto& player = Settings::values.players.GetValue()[player_index];
     if (debug) {
         std::transform(Settings::values.debug_pad_buttons.begin(),
                        Settings::values.debug_pad_buttons.end(), buttons_param.begin(),
@@ -602,52 +671,84 @@ void ConfigureInputPlayer::LoadConfiguration() {
     }
 
     UpdateUI();
+    UpdateInputDeviceCombobox();
 
     if (debug) {
         return;
     }
 
-    ui->comboControllerType->setCurrentIndex(static_cast<int>(player.controller_type));
+    ui->comboControllerType->setCurrentIndex(GetIndexFromControllerType(player.controller_type));
     ui->groupConnectedController->setChecked(
         player.connected ||
-        (player_index == 0 && Settings::values.players[HANDHELD_INDEX].connected));
+        (player_index == 0 && Settings::values.players.GetValue()[HANDHELD_INDEX].connected));
 }
 
-void ConfigureInputPlayer::UpdateInputDevices() {
-    input_devices = input_subsystem->GetInputDevices();
-    ui->comboDevices->clear();
-    for (auto device : input_devices) {
-        ui->comboDevices->addItem(QString::fromStdString(device.Get("display", "Unknown")), {});
+void ConfigureInputPlayer::ConnectPlayer(bool connected) {
+    ui->groupConnectedController->setChecked(connected);
+}
+
+void ConfigureInputPlayer::UpdateInputDeviceCombobox() {
+    // Skip input device persistence if "Input Devices" is set to "Any".
+    if (ui->comboDevices->currentIndex() == 0) {
+        UpdateInputDevices();
+        return;
+    }
+
+    // Find the first button that isn't empty.
+    const auto button_param =
+        std::find_if(buttons_param.begin(), buttons_param.end(),
+                     [](const Common::ParamPackage param) { return param.Has("engine"); });
+    const bool buttons_empty = button_param == buttons_param.end();
+
+    const auto current_engine = button_param->Get("engine", "");
+    const auto current_guid = button_param->Get("guid", "");
+    const auto current_port = button_param->Get("port", "");
+
+    const bool is_keyboard_mouse = current_engine == "keyboard" || current_engine == "mouse";
+
+    UpdateInputDevices();
+
+    if (buttons_empty) {
+        return;
+    }
+
+    const bool all_one_device =
+        std::all_of(buttons_param.begin(), buttons_param.end(),
+                    [current_engine, current_guid, current_port,
+                     is_keyboard_mouse](const Common::ParamPackage param) {
+                        if (is_keyboard_mouse) {
+                            return !param.Has("engine") || param.Get("engine", "") == "keyboard" ||
+                                   param.Get("engine", "") == "mouse";
+                        }
+                        return !param.Has("engine") || (param.Get("engine", "") == current_engine &&
+                                                        param.Get("guid", "") == current_guid &&
+                                                        param.Get("port", "") == current_port);
+                    });
+
+    if (all_one_device) {
+        if (is_keyboard_mouse) {
+            ui->comboDevices->setCurrentIndex(1);
+            return;
+        }
+        const auto devices_it = std::find_if(
+            input_devices.begin(), input_devices.end(),
+            [current_engine, current_guid, current_port](const Common::ParamPackage param) {
+                return param.Get("class", "") == current_engine &&
+                       param.Get("guid", "") == current_guid &&
+                       param.Get("port", "") == current_port;
+            });
+        const int device_index =
+            devices_it != input_devices.end()
+                ? static_cast<int>(std::distance(input_devices.begin(), devices_it))
+                : 0;
+        ui->comboDevices->setCurrentIndex(device_index);
+    } else {
+        ui->comboDevices->setCurrentIndex(0);
     }
 }
 
 void ConfigureInputPlayer::RestoreDefaults() {
-    // Reset Buttons
-    for (int button_id = 0; button_id < Settings::NativeButton::NumButtons; ++button_id) {
-        buttons_param[button_id] = Common::ParamPackage{
-            InputCommon::GenerateKeyboardParam(Config::default_buttons[button_id])};
-    }
-
-    // Reset Analogs and Modifier Buttons
-    for (int analog_id = 0; analog_id < Settings::NativeAnalog::NumAnalogs; ++analog_id) {
-        for (int sub_button_id = 0; sub_button_id < ANALOG_SUB_BUTTONS_NUM; ++sub_button_id) {
-            Common::ParamPackage params{InputCommon::GenerateKeyboardParam(
-                Config::default_analogs[analog_id][sub_button_id])};
-            SetAnalogParam(params, analogs_param[analog_id], analog_sub_buttons[sub_button_id]);
-        }
-
-        stick_mod_param[analog_id] = Common::ParamPackage(
-            InputCommon::GenerateKeyboardParam(Config::default_stick_mod[analog_id]));
-    }
-
-    for (int motion_id = 0; motion_id < Settings::NativeMotion::NumMotions; ++motion_id) {
-        motions_param[motion_id] = Common::ParamPackage{
-            InputCommon::GenerateKeyboardParam(Config::default_motions[motion_id])};
-    }
-
-    UpdateUI();
-    UpdateInputDevices();
-    ui->comboControllerType->setCurrentIndex(0);
+    UpdateMappingWithDefaults();
 }
 
 void ConfigureInputPlayer::ClearAll() {
@@ -669,8 +770,6 @@ void ConfigureInputPlayer::ClearAll() {
 
             analogs_param[analog_id].Clear();
         }
-
-        stick_mod_param[analog_id].Clear();
     }
 
     for (int motion_id = 0; motion_id < Settings::NativeMotion::NumMotions; ++motion_id) {
@@ -707,7 +806,8 @@ void ConfigureInputPlayer::UpdateUI() {
                 AnalogToText(analogs_param[analog_id], analog_sub_buttons[sub_button_id]));
         }
 
-        mod_buttons[analog_id]->setText(ButtonToText(stick_mod_param[analog_id]));
+        analog_map_modifier_button[analog_id]->setText(
+            ButtonToText(Common::ParamPackage{analogs_param[analog_id].Get("modifier", "")}));
 
         const auto deadzone_label = analog_map_deadzone_label[analog_id];
         const auto deadzone_slider = analog_map_deadzone_slider[analog_id];
@@ -719,8 +819,9 @@ void ConfigureInputPlayer::UpdateUI() {
 
         int slider_value;
         auto& param = analogs_param[analog_id];
-        const bool is_controller =
-            param.Get("engine", "") == "sdl" || param.Get("engine", "") == "gcpad";
+        const bool is_controller = param.Get("engine", "") == "sdl" ||
+                                   param.Get("engine", "") == "gcpad" ||
+                                   param.Get("engine", "") == "mouse";
 
         if (is_controller) {
             if (!param.Has("deadzone")) {
@@ -751,117 +852,88 @@ void ConfigureInputPlayer::UpdateUI() {
     }
 }
 
-void ConfigureInputPlayer::UpdateMappingWithDefaults() {
-    if (ui->comboDevices->currentIndex() < 2) {
-        return;
-    }
-    const auto& device = input_devices[ui->comboDevices->currentIndex()];
-    auto button_mapping = input_subsystem->GetButtonMappingForDevice(device);
-    auto analog_mapping = input_subsystem->GetAnalogMappingForDevice(device);
-    for (std::size_t i = 0; i < buttons_param.size(); ++i) {
-        buttons_param[i] = button_mapping[static_cast<Settings::NativeButton::Values>(i)];
-    }
-    for (std::size_t i = 0; i < analogs_param.size(); ++i) {
-        analogs_param[i] = analog_mapping[static_cast<Settings::NativeAnalog::Values>(i)];
-    }
+void ConfigureInputPlayer::SetConnectableControllers() {
+    const auto add_controllers = [this](bool enable_all,
+                                        Controller_NPad::NpadStyleSet npad_style_set = {}) {
+        index_controller_type_pairs.clear();
+        ui->comboControllerType->clear();
 
-    UpdateUI();
-}
-
-void ConfigureInputPlayer::HandleClick(
-    QPushButton* button, std::function<void(const Common::ParamPackage&)> new_input_setter,
-    InputCommon::Polling::DeviceType type) {
-    if (button == ui->buttonMotionLeft || button == ui->buttonMotionRight) {
-        button->setText(tr("Shake!"));
-    } else {
-        button->setText(tr("[waiting]"));
-    }
-    button->setFocus();
-
-    // The first two input devices are always Any and Keyboard/Mouse. If the user filtered to a
-    // controller, then they don't want keyboard/mouse input
-    want_keyboard_mouse = ui->comboDevices->currentIndex() < 2;
-
-    input_setter = new_input_setter;
-
-    device_pollers = input_subsystem->GetPollers(type);
-
-    for (auto& poller : device_pollers) {
-        poller->Start();
-    }
-
-    QWidget::grabMouse();
-    QWidget::grabKeyboard();
-
-    if (type == InputCommon::Polling::DeviceType::Button) {
-        input_subsystem->GetGCButtons()->BeginConfiguration();
-    } else {
-        input_subsystem->GetGCAnalogs()->BeginConfiguration();
-    }
-
-    if (type == InputCommon::Polling::DeviceType::Motion) {
-        input_subsystem->GetUDPMotions()->BeginConfiguration();
-    }
-
-    timeout_timer->start(2500); // Cancel after 2.5 seconds
-    poll_timer->start(50);      // Check for new inputs every 50ms
-}
-
-void ConfigureInputPlayer::SetPollingResult(const Common::ParamPackage& params, bool abort) {
-    timeout_timer->stop();
-    poll_timer->stop();
-    for (auto& poller : device_pollers) {
-        poller->Stop();
-    }
-
-    QWidget::releaseMouse();
-    QWidget::releaseKeyboard();
-
-    input_subsystem->GetGCButtons()->EndConfiguration();
-    input_subsystem->GetGCAnalogs()->EndConfiguration();
-
-    input_subsystem->GetUDPMotions()->EndConfiguration();
-
-    if (!abort) {
-        (*input_setter)(params);
-    }
-
-    UpdateUI();
-    input_setter = std::nullopt;
-}
-
-void ConfigureInputPlayer::mousePressEvent(QMouseEvent* event) {
-    if (!input_setter || !event) {
-        return;
-    }
-
-    if (want_keyboard_mouse) {
-        SetPollingResult(Common::ParamPackage{InputCommon::GenerateKeyboardParam(event->button())},
-                         false);
-    } else {
-        // We don't want any mouse buttons, so don't stop polling
-        return;
-    }
-
-    SetPollingResult({}, true);
-}
-
-void ConfigureInputPlayer::keyPressEvent(QKeyEvent* event) {
-    if (!input_setter || !event) {
-        return;
-    }
-
-    if (event->key() != Qt::Key_Escape) {
-        if (want_keyboard_mouse) {
-            SetPollingResult(Common::ParamPackage{InputCommon::GenerateKeyboardParam(event->key())},
-                             false);
-        } else {
-            // Escape key wasn't pressed and we don't want any keyboard keys, so don't stop polling
-            return;
+        if (enable_all || npad_style_set.pro_controller == 1) {
+            index_controller_type_pairs.emplace_back(ui->comboControllerType->count(),
+                                                     Settings::ControllerType::ProController);
+            ui->comboControllerType->addItem(tr("Pro Controller"));
         }
+
+        if (enable_all || npad_style_set.joycon_dual == 1) {
+            index_controller_type_pairs.emplace_back(ui->comboControllerType->count(),
+                                                     Settings::ControllerType::DualJoyconDetached);
+            ui->comboControllerType->addItem(tr("Dual Joycons"));
+        }
+
+        if (enable_all || npad_style_set.joycon_left == 1) {
+            index_controller_type_pairs.emplace_back(ui->comboControllerType->count(),
+                                                     Settings::ControllerType::LeftJoycon);
+            ui->comboControllerType->addItem(tr("Left Joycon"));
+        }
+
+        if (enable_all || npad_style_set.joycon_right == 1) {
+            index_controller_type_pairs.emplace_back(ui->comboControllerType->count(),
+                                                     Settings::ControllerType::RightJoycon);
+            ui->comboControllerType->addItem(tr("Right Joycon"));
+        }
+
+        if (player_index == 0 && (enable_all || npad_style_set.handheld == 1)) {
+            index_controller_type_pairs.emplace_back(ui->comboControllerType->count(),
+                                                     Settings::ControllerType::Handheld);
+            ui->comboControllerType->addItem(tr("Handheld"));
+        }
+    };
+
+    Core::System& system{Core::System::GetInstance()};
+
+    if (!system.IsPoweredOn()) {
+        add_controllers(true);
+        return;
     }
 
-    SetPollingResult({}, true);
+    Service::SM::ServiceManager& sm = system.ServiceManager();
+
+    auto& npad = sm.GetService<Hid>("hid")->GetAppletResource()->GetController<Controller_NPad>(
+        HidController::NPad);
+
+    add_controllers(false, npad.GetSupportedStyleSet());
+}
+
+Settings::ControllerType ConfigureInputPlayer::GetControllerTypeFromIndex(int index) const {
+    const auto it =
+        std::find_if(index_controller_type_pairs.begin(), index_controller_type_pairs.end(),
+                     [index](const auto& pair) { return pair.first == index; });
+
+    if (it == index_controller_type_pairs.end()) {
+        return Settings::ControllerType::ProController;
+    }
+
+    return it->second;
+}
+
+int ConfigureInputPlayer::GetIndexFromControllerType(Settings::ControllerType type) const {
+    const auto it =
+        std::find_if(index_controller_type_pairs.begin(), index_controller_type_pairs.end(),
+                     [type](const auto& pair) { return pair.second == type; });
+
+    if (it == index_controller_type_pairs.end()) {
+        return -1;
+    }
+
+    return it->first;
+}
+
+void ConfigureInputPlayer::UpdateInputDevices() {
+    input_devices = input_subsystem->GetInputDevices();
+    ui->comboDevices->clear();
+    for (auto device : input_devices) {
+        ui->comboDevices->addItem(QString::fromStdString(device.Get("display", "Unknown")), {});
+    }
 }
 
 void ConfigureInputPlayer::UpdateControllerIcon() {
@@ -884,7 +956,7 @@ void ConfigureInputPlayer::UpdateControllerIcon() {
         }
     }();
 
-    const QString theme = [this] {
+    const QString theme = [] {
         if (QIcon::themeName().contains(QStringLiteral("dark"))) {
             return QStringLiteral("_dark");
         } else if (QIcon::themeName().contains(QStringLiteral("midnight"))) {
@@ -985,14 +1057,267 @@ void ConfigureInputPlayer::UpdateMotionButtons() {
     }
 }
 
-void ConfigureInputPlayer::showEvent(QShowEvent* event) {
-    if (bottom_row == nullptr) {
+void ConfigureInputPlayer::UpdateMappingWithDefaults() {
+    if (ui->comboDevices->currentIndex() == 0) {
         return;
     }
-    QWidget::showEvent(event);
-    ui->main->addWidget(bottom_row);
+
+    if (ui->comboDevices->currentIndex() == 1) {
+        // Reset keyboard bindings
+        for (int button_id = 0; button_id < Settings::NativeButton::NumButtons; ++button_id) {
+            buttons_param[button_id] = Common::ParamPackage{
+                InputCommon::GenerateKeyboardParam(Config::default_buttons[button_id])};
+        }
+        for (int analog_id = 0; analog_id < Settings::NativeAnalog::NumAnalogs; ++analog_id) {
+            for (int sub_button_id = 0; sub_button_id < ANALOG_SUB_BUTTONS_NUM; ++sub_button_id) {
+                Common::ParamPackage params{InputCommon::GenerateKeyboardParam(
+                    Config::default_analogs[analog_id][sub_button_id])};
+                SetAnalogParam(params, analogs_param[analog_id], analog_sub_buttons[sub_button_id]);
+            }
+
+            analogs_param[analog_id].Set("modifier", InputCommon::GenerateKeyboardParam(
+                                                         Config::default_stick_mod[analog_id]));
+        }
+
+        for (int motion_id = 0; motion_id < Settings::NativeMotion::NumMotions; ++motion_id) {
+            motions_param[motion_id] = Common::ParamPackage{
+                InputCommon::GenerateKeyboardParam(Config::default_motions[motion_id])};
+        }
+
+        UpdateUI();
+        return;
+    }
+
+    // Reset controller bindings
+    const auto& device = input_devices[ui->comboDevices->currentIndex()];
+    auto button_mapping = input_subsystem->GetButtonMappingForDevice(device);
+    auto analog_mapping = input_subsystem->GetAnalogMappingForDevice(device);
+    for (std::size_t i = 0; i < buttons_param.size(); ++i) {
+        buttons_param[i] = button_mapping[static_cast<Settings::NativeButton::Values>(i)];
+    }
+    for (std::size_t i = 0; i < analogs_param.size(); ++i) {
+        analogs_param[i] = analog_mapping[static_cast<Settings::NativeAnalog::Values>(i)];
+    }
+
+    UpdateUI();
 }
 
-void ConfigureInputPlayer::ConnectPlayer(bool connected) {
-    ui->groupConnectedController->setChecked(connected);
+void ConfigureInputPlayer::HandleClick(
+    QPushButton* button, std::function<void(const Common::ParamPackage&)> new_input_setter,
+    InputCommon::Polling::DeviceType type) {
+    if (button == ui->buttonMotionLeft || button == ui->buttonMotionRight) {
+        button->setText(tr("Shake!"));
+    } else {
+        button->setText(tr("[waiting]"));
+    }
+    button->setFocus();
+
+    // The first two input devices are always Any and Keyboard/Mouse. If the user filtered to a
+    // controller, then they don't want keyboard/mouse input
+    want_keyboard_mouse = ui->comboDevices->currentIndex() < 2;
+
+    input_setter = new_input_setter;
+
+    device_pollers = input_subsystem->GetPollers(type);
+
+    for (auto& poller : device_pollers) {
+        poller->Start();
+    }
+
+    QWidget::grabMouse();
+    QWidget::grabKeyboard();
+
+    if (type == InputCommon::Polling::DeviceType::Button) {
+        input_subsystem->GetGCButtons()->BeginConfiguration();
+    } else {
+        input_subsystem->GetGCAnalogs()->BeginConfiguration();
+    }
+
+    if (type == InputCommon::Polling::DeviceType::Motion) {
+        input_subsystem->GetUDPMotions()->BeginConfiguration();
+    }
+
+    if (type == InputCommon::Polling::DeviceType::Button) {
+        input_subsystem->GetMouseButtons()->BeginConfiguration();
+    } else if (type == InputCommon::Polling::DeviceType::AnalogPreferred) {
+        input_subsystem->GetMouseAnalogs()->BeginConfiguration();
+    } else if (type == InputCommon::Polling::DeviceType::Motion) {
+        input_subsystem->GetMouseMotions()->BeginConfiguration();
+    } else {
+        input_subsystem->GetMouseTouch()->BeginConfiguration();
+    }
+
+    timeout_timer->start(2500); // Cancel after 2.5 seconds
+    poll_timer->start(50);      // Check for new inputs every 50ms
+}
+
+void ConfigureInputPlayer::SetPollingResult(const Common::ParamPackage& params, bool abort) {
+    timeout_timer->stop();
+    poll_timer->stop();
+    for (auto& poller : device_pollers) {
+        poller->Stop();
+    }
+
+    QWidget::releaseMouse();
+    QWidget::releaseKeyboard();
+
+    input_subsystem->GetGCButtons()->EndConfiguration();
+    input_subsystem->GetGCAnalogs()->EndConfiguration();
+
+    input_subsystem->GetUDPMotions()->EndConfiguration();
+
+    input_subsystem->GetMouseButtons()->EndConfiguration();
+    input_subsystem->GetMouseAnalogs()->EndConfiguration();
+    input_subsystem->GetMouseMotions()->EndConfiguration();
+    input_subsystem->GetMouseTouch()->EndConfiguration();
+
+    if (!abort) {
+        (*input_setter)(params);
+    }
+
+    UpdateUI();
+    UpdateInputDeviceCombobox();
+
+    input_setter = std::nullopt;
+}
+
+bool ConfigureInputPlayer::IsInputAcceptable(const Common::ParamPackage& params) const {
+    if (ui->comboDevices->currentIndex() == 0) {
+        return true;
+    }
+
+    // Keyboard/Mouse
+    if (ui->comboDevices->currentIndex() == 1) {
+        return params.Get("engine", "") == "keyboard" || params.Get("engine", "") == "mouse";
+    }
+
+    const auto current_input_device = input_devices[ui->comboDevices->currentIndex()];
+    return params.Get("engine", "") == current_input_device.Get("class", "") &&
+           params.Get("guid", "") == current_input_device.Get("guid", "") &&
+           params.Get("port", "") == current_input_device.Get("port", "");
+}
+
+void ConfigureInputPlayer::mousePressEvent(QMouseEvent* event) {
+    if (!input_setter || !event) {
+        return;
+    }
+
+    input_subsystem->GetMouse()->PressButton(0, 0, event->button());
+}
+
+void ConfigureInputPlayer::keyPressEvent(QKeyEvent* event) {
+    if (!input_setter || !event) {
+        return;
+    }
+
+    if (event->key() != Qt::Key_Escape) {
+        if (want_keyboard_mouse) {
+            SetPollingResult(Common::ParamPackage{InputCommon::GenerateKeyboardParam(event->key())},
+                             false);
+        } else {
+            // Escape key wasn't pressed and we don't want any keyboard keys, so don't stop polling
+            return;
+        }
+    }
+
+    SetPollingResult({}, true);
+}
+
+void ConfigureInputPlayer::CreateProfile() {
+    const auto profile_name =
+        LimitableInputDialog::GetText(this, tr("New Profile"), tr("Enter a profile name:"), 1, 20);
+
+    if (profile_name.isEmpty()) {
+        return;
+    }
+
+    if (!InputProfiles::IsProfileNameValid(profile_name.toStdString())) {
+        QMessageBox::critical(this, tr("Create Input Profile"),
+                              tr("The given profile name is not valid!"));
+        return;
+    }
+
+    ApplyConfiguration();
+
+    if (!profiles->CreateProfile(profile_name.toStdString(), player_index)) {
+        QMessageBox::critical(this, tr("Create Input Profile"),
+                              tr("Failed to create the input profile \"%1\"").arg(profile_name));
+        UpdateInputProfiles();
+        emit RefreshInputProfiles(player_index);
+        return;
+    }
+
+    emit RefreshInputProfiles(player_index);
+
+    ui->comboProfiles->addItem(profile_name);
+    ui->comboProfiles->setCurrentIndex(ui->comboProfiles->count() - 1);
+}
+
+void ConfigureInputPlayer::DeleteProfile() {
+    const QString profile_name = ui->comboProfiles->itemText(ui->comboProfiles->currentIndex());
+
+    if (profile_name.isEmpty()) {
+        return;
+    }
+
+    if (!profiles->DeleteProfile(profile_name.toStdString())) {
+        QMessageBox::critical(this, tr("Delete Input Profile"),
+                              tr("Failed to delete the input profile \"%1\"").arg(profile_name));
+        UpdateInputProfiles();
+        emit RefreshInputProfiles(player_index);
+        return;
+    }
+
+    emit RefreshInputProfiles(player_index);
+
+    ui->comboProfiles->removeItem(ui->comboProfiles->currentIndex());
+    ui->comboProfiles->setCurrentIndex(-1);
+}
+
+void ConfigureInputPlayer::LoadProfile() {
+    const QString profile_name = ui->comboProfiles->itemText(ui->comboProfiles->currentIndex());
+
+    if (profile_name.isEmpty()) {
+        return;
+    }
+
+    ApplyConfiguration();
+
+    if (!profiles->LoadProfile(profile_name.toStdString(), player_index)) {
+        QMessageBox::critical(this, tr("Load Input Profile"),
+                              tr("Failed to load the input profile \"%1\"").arg(profile_name));
+        UpdateInputProfiles();
+        emit RefreshInputProfiles(player_index);
+        return;
+    }
+
+    LoadConfiguration();
+}
+
+void ConfigureInputPlayer::SaveProfile() {
+    const QString profile_name = ui->comboProfiles->itemText(ui->comboProfiles->currentIndex());
+
+    if (profile_name.isEmpty()) {
+        return;
+    }
+
+    ApplyConfiguration();
+
+    if (!profiles->SaveProfile(profile_name.toStdString(), player_index)) {
+        QMessageBox::critical(this, tr("Save Input Profile"),
+                              tr("Failed to save the input profile \"%1\"").arg(profile_name));
+        UpdateInputProfiles();
+        emit RefreshInputProfiles(player_index);
+        return;
+    }
+}
+
+void ConfigureInputPlayer::UpdateInputProfiles() {
+    ui->comboProfiles->clear();
+
+    for (const auto& profile_name : profiles->GetInputProfileNames()) {
+        ui->comboProfiles->addItem(QString::fromStdString(profile_name));
+    }
+
+    ui->comboProfiles->setCurrentIndex(-1);
 }

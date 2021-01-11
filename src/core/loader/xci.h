@@ -9,14 +9,15 @@
 #include "core/file_sys/vfs.h"
 #include "core/loader/loader.h"
 
-namespace Core {
-class System;
-}
-
 namespace FileSys {
+class ContentProvider;
 class NACP;
 class XCI;
 } // namespace FileSys
+
+namespace Service::FileSystem {
+class FileSystemController;
+}
 
 namespace Loader {
 
@@ -25,12 +26,15 @@ class AppLoader_NCA;
 /// Loads an XCI file
 class AppLoader_XCI final : public AppLoader {
 public:
-    explicit AppLoader_XCI(FileSys::VirtualFile file);
+    explicit AppLoader_XCI(FileSys::VirtualFile file,
+                           const Service::FileSystem::FileSystemController& fsc,
+                           const FileSys::ContentProvider& content_provider,
+                           std::size_t program_index);
     ~AppLoader_XCI() override;
 
     /**
      * Returns the type of the file
-     * @param file std::shared_ptr<VfsFile> open file
+     * @param file open file
      * @return FileType found, or FileType::Error if this loader doesn't know it
      */
     static FileType IdentifyType(const FileSys::VirtualFile& file);

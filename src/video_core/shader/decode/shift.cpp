@@ -125,7 +125,7 @@ u32 ShaderIR::DecodeShift(NodeBlock& bb, u32 pc) {
     case OpCode::Id::SHF_LEFT_IMM: {
         UNIMPLEMENTED_IF(instr.generates_cc);
         UNIMPLEMENTED_IF_MSG(instr.shf.xmode != ShfXmode::None, "xmode={}",
-                             static_cast<int>(instr.shf.xmode.Value()));
+                             instr.shf.xmode.Value());
 
         if (instr.is_b_imm) {
             op_b = Immediate(static_cast<u32>(instr.shf.immediate));

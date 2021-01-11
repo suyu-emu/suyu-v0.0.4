@@ -15,7 +15,7 @@ namespace Service::LBL {
 
 class LBL final : public ServiceFramework<LBL> {
 public:
-    explicit LBL() : ServiceFramework{"lbl"} {
+    explicit LBL(Core::System& system_) : ServiceFramework{system_, "lbl"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "SaveCurrentSetting"},
@@ -84,8 +84,8 @@ private:
     bool vr_mode_enabled = false;
 };
 
-void InstallInterfaces(SM::ServiceManager& sm) {
-    std::make_shared<LBL>()->InstallAsService(sm);
+void InstallInterfaces(SM::ServiceManager& sm, Core::System& system) {
+    std::make_shared<LBL>(system)->InstallAsService(sm);
 }
 
 } // namespace Service::LBL

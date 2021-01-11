@@ -232,7 +232,7 @@ public:
 
     void Swap(IOFile& other) noexcept;
 
-    [[nodiscard]] bool Open(const std::string& filename, const char openmode[], int flags = 0);
+    bool Open(const std::string& filename, const char openmode[], int flags = 0);
     bool Close();
 
     template <typename T>

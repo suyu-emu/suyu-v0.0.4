@@ -39,8 +39,8 @@ using Operation = const OperationNode&;
 constexpr std::array INTERNAL_FLAG_NAMES = {"ZERO", "SIGN", "CARRY", "OVERFLOW"};
 
 char Swizzle(std::size_t component) {
-    ASSERT(component < 4);
-    return component["xyzw"];
+    static constexpr std::string_view SWIZZLE{"xyzw"};
+    return SWIZZLE.at(component);
 }
 
 constexpr bool IsGenericAttribute(Attribute::Index index) {
@@ -71,7 +71,7 @@ std::string_view GetInputFlags(PixelImap attribute) {
     case PixelImap::Unused:
         break;
     }
-    UNIMPLEMENTED_MSG("Unknown attribute usage index={}", static_cast<int>(attribute));
+    UNIMPLEMENTED_MSG("Unknown attribute usage index={}", attribute);
     return {};
 }
 
@@ -123,7 +123,7 @@ std::string_view PrimitiveDescription(Tegra::Engines::Maxwell3D::Regs::Primitive
     case Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology::TriangleStripAdjacency:
         return "TRIANGLES_ADJACENCY";
     default:
-        UNIMPLEMENTED_MSG("topology={}", static_cast<int>(topology));
+        UNIMPLEMENTED_MSG("topology={}", topology);
         return "POINTS";
     }
 }
@@ -137,7 +137,7 @@ std::string_view TopologyName(Tegra::Shader::OutputTopology topology) {
     case Tegra::Shader::OutputTopology::TriangleStrip:
         return "TRIANGLE_STRIP";
     default:
-        UNIMPLEMENTED_MSG("Unknown output topology: {}", static_cast<u32>(topology));
+        UNIMPLEMENTED_MSG("Unknown output topology: {}", topology);
         return "points";
     }
 }
@@ -187,8 +187,8 @@ std::string TextureType(const MetaTexture& meta) {
 
 class ARBDecompiler final {
 public:
-    explicit ARBDecompiler(const Device& device, const ShaderIR& ir, const Registry& registry,
-                           ShaderType stage, std::string_view identifier);
+    explicit ARBDecompiler(const Device& device_, const ShaderIR& ir_, const Registry& registry_,
+                           ShaderType stage_, std::string_view identifier);
 
     std::string Code() const {
         return shader_source;
@@ -224,7 +224,7 @@ private:
 
     std::string Visit(const Node& node);
 
-    std::pair<std::string, std::size_t> BuildCoords(Operation);
+    std::tuple<std::string, std::string, std::size_t> BuildCoords(Operation);
     std::string BuildAoffi(Operation);
     std::string GlobalMemoryPointer(const GmemNode& gmem);
     void Exit();
@@ -376,9 +376,11 @@ private:
         std::string temporary = AllocTemporary();
         std::string address;
         std::string_view opname;
+        bool robust = false;
         if (const auto gmem = std::get_if<GmemNode>(&*operation[0])) {
             address = GlobalMemoryPointer(*gmem);
             opname = "ATOM";
+            robust = true;
         } else if (const auto smem = std::get_if<SmemNode>(&*operation[0])) {
             address = fmt::format("shared_mem[{}]", Visit(smem->GetAddress()));
             opname = "ATOMS";
@@ -386,7 +388,15 @@ private:
             UNREACHABLE();
             return "{0, 0, 0, 0}";
         }
+        if (robust) {
+            AddLine("IF NE.x;");
+        }
         AddLine("{}.{}.{} {}, {}, {};", opname, op, type, temporary, Visit(operation[1]), address);
+        if (robust) {
+            AddLine("ELSE;");
+            AddLine("MOV.S {}, 0;", temporary);
+            AddLine("ENDIF;");
+        }
         return temporary;
     }
 
@@ -792,9 +802,9 @@ private:
     };
 };
 
-ARBDecompiler::ARBDecompiler(const Device& device, const ShaderIR& ir, const Registry& registry,
-                             ShaderType stage, std::string_view identifier)
-    : device{device}, ir{ir}, registry{registry}, stage{stage} {
+ARBDecompiler::ARBDecompiler(const Device& device_, const ShaderIR& ir_, const Registry& registry_,
+                             ShaderType stage_, std::string_view identifier)
+    : device{device_}, ir{ir_}, registry{registry_}, stage{stage_} {
     DefineGlobalMemory();
 
     AddLine("TEMP RC;");
@@ -980,10 +990,9 @@ void ARBDecompiler::DeclareLocalMemory() {
 }
 
 void ARBDecompiler::DeclareGlobalMemory() {
-    const std::size_t num_entries = ir.GetGlobalMemory().size();
+    const size_t num_entries = ir.GetGlobalMemory().size();
     if (num_entries > 0) {
-        const std::size_t num_vectors = Common::AlignUp(num_entries, 2) / 2;
-        AddLine("PARAM c[{}] = {{ program.local[0..{}] }};", num_vectors, num_vectors - 1);
+        AddLine("PARAM c[{}] = {{ program.local[0..{}] }};", num_entries, num_entries - 1);
     }
 }
 
@@ -1125,44 +1134,44 @@ void ARBDecompiler::VisitAST(const ASTNode& node) {
         for (ASTNode current = ast->nodes.GetFirst(); current; current = current->GetNext()) {
             VisitAST(current);
         }
-    } else if (const auto ast = std::get_if<ASTIfThen>(&*node->GetInnerData())) {
-        const std::string condition = VisitExpression(ast->condition);
+    } else if (const auto if_then = std::get_if<ASTIfThen>(&*node->GetInnerData())) {
+        const std::string condition = VisitExpression(if_then->condition);
         ResetTemporaries();
 
         AddLine("MOVC.U RC.x, {};", condition);
         AddLine("IF NE.x;");
-        for (ASTNode current = ast->nodes.GetFirst(); current; current = current->GetNext()) {
+        for (ASTNode current = if_then->nodes.GetFirst(); current; current = current->GetNext()) {
             VisitAST(current);
         }
         AddLine("ENDIF;");
-    } else if (const auto ast = std::get_if<ASTIfElse>(&*node->GetInnerData())) {
+    } else if (const auto if_else = std::get_if<ASTIfElse>(&*node->GetInnerData())) {
         AddLine("ELSE;");
-        for (ASTNode current = ast->nodes.GetFirst(); current; current = current->GetNext()) {
+        for (ASTNode current = if_else->nodes.GetFirst(); current; current = current->GetNext()) {
             VisitAST(current);
         }
-    } else if (const auto ast = std::get_if<ASTBlockDecoded>(&*node->GetInnerData())) {
-        VisitBlock(ast->nodes);
-    } else if (const auto ast = std::get_if<ASTVarSet>(&*node->GetInnerData())) {
-        AddLine("MOV.U F{}, {};", ast->index, VisitExpression(ast->condition));
+    } else if (const auto decoded = std::get_if<ASTBlockDecoded>(&*node->GetInnerData())) {
+        VisitBlock(decoded->nodes);
+    } else if (const auto var_set = std::get_if<ASTVarSet>(&*node->GetInnerData())) {
+        AddLine("MOV.U F{}, {};", var_set->index, VisitExpression(var_set->condition));
         ResetTemporaries();
-    } else if (const auto ast = std::get_if<ASTDoWhile>(&*node->GetInnerData())) {
-        const std::string condition = VisitExpression(ast->condition);
+    } else if (const auto do_while = std::get_if<ASTDoWhile>(&*node->GetInnerData())) {
+        const std::string condition = VisitExpression(do_while->condition);
         ResetTemporaries();
         AddLine("REP;");
-        for (ASTNode current = ast->nodes.GetFirst(); current; current = current->GetNext()) {
+        for (ASTNode current = do_while->nodes.GetFirst(); current; current = current->GetNext()) {
             VisitAST(current);
         }
         AddLine("MOVC.U RC.x, {};", condition);
         AddLine("BRK (NE.x);");
         AddLine("ENDREP;");
-    } else if (const auto ast = std::get_if<ASTReturn>(&*node->GetInnerData())) {
-        const bool is_true = ExprIsTrue(ast->condition);
+    } else if (const auto ast_return = std::get_if<ASTReturn>(&*node->GetInnerData())) {
+        const bool is_true = ExprIsTrue(ast_return->condition);
         if (!is_true) {
-            AddLine("MOVC.U RC.x, {};", VisitExpression(ast->condition));
+            AddLine("MOVC.U RC.x, {};", VisitExpression(ast_return->condition));
             AddLine("IF NE.x;");
             ResetTemporaries();
         }
-        if (ast->kills) {
+        if (ast_return->kills) {
             AddLine("KIL TR;");
         } else {
             Exit();
@@ -1170,11 +1179,11 @@ void ARBDecompiler::VisitAST(const ASTNode& node) {
         if (!is_true) {
             AddLine("ENDIF;");
         }
-    } else if (const auto ast = std::get_if<ASTBreak>(&*node->GetInnerData())) {
-        if (ExprIsTrue(ast->condition)) {
+    } else if (const auto ast_break = std::get_if<ASTBreak>(&*node->GetInnerData())) {
+        if (ExprIsTrue(ast_break->condition)) {
             AddLine("BRK;");
         } else {
-            AddLine("MOVC.U RC.x, {};", VisitExpression(ast->condition));
+            AddLine("MOVC.U RC.x, {};", VisitExpression(ast_break->condition));
             AddLine("BRK (NE.x);");
             ResetTemporaries();
         }
@@ -1342,7 +1351,7 @@ std::string ARBDecompiler::Visit(const Node& node) {
                                        GetGenericAttributeIndex(index), swizzle);
                 }
             }
-            UNIMPLEMENTED_MSG("Unimplemented input attribute={}", static_cast<int>(index));
+            UNIMPLEMENTED_MSG("Unimplemented input attribute={}", index);
             break;
         }
         return "{0, 0, 0, 0}.x";
@@ -1363,7 +1372,8 @@ std::string ARBDecompiler::Visit(const Node& node) {
 
     if (const auto gmem = std::get_if<GmemNode>(&*node)) {
         std::string temporary = AllocTemporary();
-        AddLine("LOAD.U32 {}, {};", temporary, GlobalMemoryPointer(*gmem));
+        AddLine("MOV {}, 0;", temporary);
+        AddLine("LOAD.U32 {} (NE.x), {};", temporary, GlobalMemoryPointer(*gmem));
         return temporary;
     }
 
@@ -1406,12 +1416,12 @@ std::string ARBDecompiler::Visit(const Node& node) {
     return {};
 }
 
-std::pair<std::string, std::size_t> ARBDecompiler::BuildCoords(Operation operation) {
+std::tuple<std::string, std::string, std::size_t> ARBDecompiler::BuildCoords(Operation operation) {
     const auto& meta = std::get<MetaTexture>(operation.GetMeta());
     UNIMPLEMENTED_IF(meta.sampler.is_indexed);
-    UNIMPLEMENTED_IF(meta.sampler.is_shadow && meta.sampler.is_array &&
-                     meta.sampler.type == Tegra::Shader::TextureType::TextureCube);
 
+    const bool is_extended = meta.sampler.is_shadow && meta.sampler.is_array &&
+                             meta.sampler.type == Tegra::Shader::TextureType::TextureCube;
     const std::size_t count = operation.GetOperandsCount();
     std::string temporary = AllocVectorTemporary();
     std::size_t i = 0;
@@ -1419,12 +1429,21 @@ std::pair<std::string, std::size_t> ARBDecompiler::BuildCoords(Operation operati
         AddLine("MOV.F {}.{}, {};", temporary, Swizzle(i), Visit(operation[i]));
     }
     if (meta.sampler.is_array) {
-        AddLine("I2F.S {}.{}, {};", temporary, Swizzle(i++), Visit(meta.array));
+        AddLine("I2F.S {}.{}, {};", temporary, Swizzle(i), Visit(meta.array));
+        ++i;
     }
     if (meta.sampler.is_shadow) {
-        AddLine("MOV.F {}.{}, {};", temporary, Swizzle(i++), Visit(meta.depth_compare));
+        std::string compare = Visit(meta.depth_compare);
+        if (is_extended) {
+            ASSERT(i == 4);
+            std::string extra_coord = AllocVectorTemporary();
+            AddLine("MOV.F {}.x, {};", extra_coord, compare);
+            return {fmt::format("{}, {}", temporary, extra_coord), extra_coord, 0};
+        }
+        AddLine("MOV.F {}.{}, {};", temporary, Swizzle(i), compare);
+        ++i;
     }
-    return {std::move(temporary), i};
+    return {temporary, temporary, i};
 }
 
 std::string ARBDecompiler::BuildAoffi(Operation operation) {
@@ -1441,18 +1460,21 @@ std::string ARBDecompiler::BuildAoffi(Operation operation) {
 }
 
 std::string ARBDecompiler::GlobalMemoryPointer(const GmemNode& gmem) {
+    // Read a bindless SSBO, return its address and set CC accordingly
+    // address = c[binding].xy
+    // length  = c[binding].z
     const u32 binding = global_memory_names.at(gmem.GetDescriptor());
-    const char result_swizzle = binding % 2 == 0 ? 'x' : 'y';
 
     const std::string pointer = AllocLongVectorTemporary();
     std::string temporary = AllocTemporary();
 
-    const u32 local_index = binding / 2;
-    AddLine("PK64.U {}, c[{}];", pointer, local_index);
+    AddLine("PK64.U {}, c[{}];", pointer, binding);
     AddLine("SUB.U {}, {}, {};", temporary, Visit(gmem.GetRealAddress()),
             Visit(gmem.GetBaseAddress()));
     AddLine("CVT.U64.U32 {}.z, {};", pointer, temporary);
-    AddLine("ADD.U64 {}.x, {}.{}, {}.z;", pointer, pointer, result_swizzle, pointer);
+    AddLine("ADD.U64 {}.x, {}.x, {}.z;", pointer, pointer, pointer);
+    // Compare offset to length and set CC
+    AddLine("SLT.U.CC RC.x, {}, c[{}].z;", temporary, binding);
     return fmt::format("{}.x", pointer);
 }
 
@@ -1463,9 +1485,7 @@ void ARBDecompiler::Exit() {
     }
 
     const auto safe_get_register = [this](u32 reg) -> std::string {
-        // TODO(Rodrigo): Replace with contains once C++20 releases
-        const auto& used_registers = ir.GetRegisters();
-        if (used_registers.find(reg) != used_registers.end()) {
+        if (ir.GetRegisters().contains(reg)) {
             return fmt::format("R{}.x", reg);
         }
         return "{0, 0, 0, 0}.x";
@@ -1552,7 +1572,9 @@ std::string ARBDecompiler::Assign(Operation operation) {
         ResetTemporaries();
         return {};
     } else if (const auto gmem = std::get_if<GmemNode>(&*dest)) {
+        AddLine("IF NE.x;");
         AddLine("STORE.U32 {}, {};", Visit(src), GlobalMemoryPointer(*gmem));
+        AddLine("ENDIF;");
         ResetTemporaries();
         return {};
     } else {
@@ -1844,7 +1866,7 @@ std::string ARBDecompiler::LogicalAddCarry(Operation operation) {
 std::string ARBDecompiler::Texture(Operation operation) {
     const auto& meta = std::get<MetaTexture>(operation.GetMeta());
     const u32 sampler_id = device.GetBaseBindings(stage).sampler + meta.sampler.index;
-    const auto [temporary, swizzle] = BuildCoords(operation);
+    const auto [coords, temporary, swizzle] = BuildCoords(operation);
 
     std::string_view opcode = "TEX";
     std::string extra;
@@ -1873,7 +1895,7 @@ std::string ARBDecompiler::Texture(Operation operation) {
         }
     }
 
-    AddLine("{}.F {}, {},{} texture[{}], {}{};", opcode, temporary, temporary, extra, sampler_id,
+    AddLine("{}.F {}, {},{} texture[{}], {}{};", opcode, temporary, coords, extra, sampler_id,
             TextureType(meta), BuildAoffi(operation));
     AddLine("MOV.U {}.x, {}.{};", temporary, temporary, Swizzle(meta.element));
     return fmt::format("{}.x", temporary);
@@ -1882,7 +1904,7 @@ std::string ARBDecompiler::Texture(Operation operation) {
 std::string ARBDecompiler::TextureGather(Operation operation) {
     const auto& meta = std::get<MetaTexture>(operation.GetMeta());
     const u32 sampler_id = device.GetBaseBindings(stage).sampler + meta.sampler.index;
-    const auto [temporary, swizzle] = BuildCoords(operation);
+    const auto [coords, temporary, swizzle] = BuildCoords(operation);
 
     std::string comp;
     if (!meta.sampler.is_shadow) {
@@ -1892,7 +1914,7 @@ std::string ARBDecompiler::TextureGather(Operation operation) {
 
     AddLine("TXG.F {}, {}, texture[{}]{}, {}{};", temporary, temporary, sampler_id, comp,
             TextureType(meta), BuildAoffi(operation));
-    AddLine("MOV.U {}.x, {}.{};", temporary, temporary, Swizzle(meta.element));
+    AddLine("MOV.U {}.x, {}.{};", temporary, coords, Swizzle(meta.element));
     return fmt::format("{}.x", temporary);
 }
 
@@ -1930,13 +1952,13 @@ std::string ARBDecompiler::TextureQueryLod(Operation operation) {
 std::string ARBDecompiler::TexelFetch(Operation operation) {
     const auto& meta = std::get<MetaTexture>(operation.GetMeta());
     const u32 sampler_id = device.GetBaseBindings(stage).sampler + meta.sampler.index;
-    const auto [temporary, swizzle] = BuildCoords(operation);
+    const auto [coords, temporary, swizzle] = BuildCoords(operation);
 
     if (!meta.sampler.is_buffer) {
         ASSERT(swizzle < 4);
         AddLine("MOV.F {}.w, {};", temporary, Visit(meta.lod));
     }
-    AddLine("TXF.F {}, {}, texture[{}], {}{};", temporary, temporary, sampler_id, TextureType(meta),
+    AddLine("TXF.F {}, {}, texture[{}], {}{};", temporary, coords, sampler_id, TextureType(meta),
             BuildAoffi(operation));
     AddLine("MOV.U {}.x, {}.{};", temporary, temporary, Swizzle(meta.element));
     return fmt::format("{}.x", temporary);
@@ -1947,7 +1969,7 @@ std::string ARBDecompiler::TextureGradient(Operation operation) {
     const u32 sampler_id = device.GetBaseBindings(stage).sampler + meta.sampler.index;
     const std::string ddx = AllocVectorTemporary();
     const std::string ddy = AllocVectorTemporary();
-    const std::string coord = BuildCoords(operation).first;
+    const std::string coord = std::get<1>(BuildCoords(operation));
 
     const std::size_t num_components = meta.derivates.size() / 2;
     for (std::size_t index = 0; index < num_components; ++index) {

@@ -11,6 +11,7 @@
 #include "video_core/gpu.h"
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
+#include "video_core/renderer_base.h"
 
 namespace Tegra {
 
@@ -44,13 +45,22 @@ GPUVAddr MemoryManager::MapAllocate(VAddr cpu_addr, std::size_t size, std::size_
     return Map(cpu_addr, *FindFreeRange(size, align), size);
 }
 
+GPUVAddr MemoryManager::MapAllocate32(VAddr cpu_addr, std::size_t size) {
+    const std::optional<GPUVAddr> gpu_addr = FindFreeRange(size, 1, true);
+    ASSERT(gpu_addr);
+    return Map(cpu_addr, *gpu_addr, size);
+}
+
 void MemoryManager::Unmap(GPUVAddr gpu_addr, std::size_t size) {
     if (!size) {
         return;
     }
 
     // Flush and invalidate through the GPU interface, to be asynchronous if possible.
-    system.GPU().FlushAndInvalidateRegion(*GpuToCpuAddress(gpu_addr), size);
+    const std::optional<VAddr> cpu_addr = GpuToCpuAddress(gpu_addr);
+    ASSERT(cpu_addr);
+
+    rasterizer->UnmapMemory(*cpu_addr, size);
 
     UpdateRange(gpu_addr, PageEntry::State::Unmapped, size);
 }
@@ -108,7 +118,8 @@ void MemoryManager::SetPageEntry(GPUVAddr gpu_addr, PageEntry page_entry, std::s
     page_table[PageEntryIndex(gpu_addr)] = page_entry;
 }
 
-std::optional<GPUVAddr> MemoryManager::FindFreeRange(std::size_t size, std::size_t align) const {
+std::optional<GPUVAddr> MemoryManager::FindFreeRange(std::size_t size, std::size_t align,
+                                                     bool start_32bit_address) const {
     if (!align) {
         align = page_size;
     } else {
@@ -116,7 +127,7 @@ std::optional<GPUVAddr> MemoryManager::FindFreeRange(std::size_t size, std::size
     }
 
     u64 available_size{};
-    GPUVAddr gpu_addr{address_space_start};
+    GPUVAddr gpu_addr{start_32bit_address ? address_space_start_low : address_space_start};
     while (gpu_addr + available_size < address_space_size) {
         if (GetPageEntry(gpu_addr + available_size).IsUnmapped()) {
             available_size += page_size;

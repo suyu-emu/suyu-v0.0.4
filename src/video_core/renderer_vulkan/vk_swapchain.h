@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "common/common_types.h"
-#include "video_core/renderer_vulkan/wrapper.h"
+#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Layout {
 struct FramebufferLayout;
@@ -15,12 +15,12 @@ struct FramebufferLayout;
 
 namespace Vulkan {
 
-class VKDevice;
+class Device;
 class VKScheduler;
 
 class VKSwapchain {
 public:
-    explicit VKSwapchain(VkSurfaceKHR surface, const VKDevice& device, VKScheduler& scheduler);
+    explicit VKSwapchain(VkSurfaceKHR surface, const Device& device, VKScheduler& scheduler);
     ~VKSwapchain();
 
     /// Creates (or recreates) the swapchain with a given size.
@@ -73,7 +73,7 @@ private:
     void Destroy();
 
     const VkSurfaceKHR surface;
-    const VKDevice& device;
+    const Device& device;
     VKScheduler& scheduler;
 
     vk::SwapchainKHR swapchain;

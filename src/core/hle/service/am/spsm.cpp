@@ -6,7 +6,7 @@
 
 namespace Service::AM {
 
-SPSM::SPSM() : ServiceFramework{"spsm"} {
+SPSM::SPSM(Core::System& system_) : ServiceFramework{system_, "spsm"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "GetState"},

@@ -52,8 +52,8 @@ public:
 template <typename T>
 class Field : public FieldInterface {
 public:
-    Field(FieldType type, std::string name, T value)
-        : name(std::move(name)), type(type), value(std::move(value)) {}
+    Field(FieldType type_, std::string name_, T value_)
+        : name(std::move(name_)), type(type_), value(std::move(value_)) {}
 
     Field(const Field&) = default;
     Field& operator=(const Field&) = default;

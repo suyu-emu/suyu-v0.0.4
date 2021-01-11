@@ -12,7 +12,7 @@
 #include "common/common_types.h"
 #include "video_core/query_cache.h"
 #include "video_core/renderer_vulkan/vk_resource_pool.h"
-#include "video_core/renderer_vulkan/wrapper.h"
+#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace VideoCore {
 class RasterizerInterface;
@@ -21,8 +21,8 @@ class RasterizerInterface;
 namespace Vulkan {
 
 class CachedQuery;
+class Device;
 class HostCounter;
-class VKDevice;
 class VKQueryCache;
 class VKScheduler;
 
@@ -30,7 +30,7 @@ using CounterStream = VideoCommon::CounterStreamBase<VKQueryCache, HostCounter>;
 
 class QueryPool final : public ResourcePool {
 public:
-    explicit QueryPool(const VKDevice& device, VKScheduler& scheduler, VideoCore::QueryType type);
+    explicit QueryPool(const Device& device, VKScheduler& scheduler, VideoCore::QueryType type);
     ~QueryPool() override;
 
     std::pair<VkQueryPool, u32> Commit();
@@ -43,7 +43,7 @@ protected:
 private:
     static constexpr std::size_t GROW_STEP = 512;
 
-    const VKDevice& device;
+    const Device& device;
     const VideoCore::QueryType type;
 
     std::vector<vk::QueryPool> pools;
@@ -53,33 +53,33 @@ private:
 class VKQueryCache final
     : public VideoCommon::QueryCacheBase<VKQueryCache, CachedQuery, CounterStream, HostCounter> {
 public:
-    explicit VKQueryCache(VideoCore::RasterizerInterface& rasterizer,
-                          Tegra::Engines::Maxwell3D& maxwell3d, Tegra::MemoryManager& gpu_memory,
-                          const VKDevice& device, VKScheduler& scheduler);
+    explicit VKQueryCache(VideoCore::RasterizerInterface& rasterizer_,
+                          Tegra::Engines::Maxwell3D& maxwell3d_, Tegra::MemoryManager& gpu_memory_,
+                          const Device& device_, VKScheduler& scheduler_);
     ~VKQueryCache();
 
     std::pair<VkQueryPool, u32> AllocateQuery(VideoCore::QueryType type);
 
     void Reserve(VideoCore::QueryType type, std::pair<VkQueryPool, u32> query);
 
-    const VKDevice& Device() const noexcept {
+    const Device& GetDevice() const noexcept {
         return device;
     }
 
-    VKScheduler& Scheduler() const noexcept {
+    VKScheduler& GetScheduler() const noexcept {
         return scheduler;
     }
 
 private:
-    const VKDevice& device;
+    const Device& device;
     VKScheduler& scheduler;
     std::array<QueryPool, VideoCore::NumQueryTypes> query_pools;
 };
 
 class HostCounter final : public VideoCommon::HostCounterBase<VKQueryCache, HostCounter> {
 public:
-    explicit HostCounter(VKQueryCache& cache, std::shared_ptr<HostCounter> dependency,
-                         VideoCore::QueryType type);
+    explicit HostCounter(VKQueryCache& cache_, std::shared_ptr<HostCounter> dependency_,
+                         VideoCore::QueryType type_);
     ~HostCounter();
 
     void EndQuery();
@@ -95,8 +95,8 @@ private:
 
 class CachedQuery : public VideoCommon::CachedQueryBase<HostCounter> {
 public:
-    explicit CachedQuery(VKQueryCache&, VideoCore::QueryType, VAddr cpu_addr, u8* host_ptr)
-        : VideoCommon::CachedQueryBase<HostCounter>{cpu_addr, host_ptr} {}
+    explicit CachedQuery(VKQueryCache&, VideoCore::QueryType, VAddr cpu_addr_, u8* host_ptr_)
+        : CachedQueryBase{cpu_addr_, host_ptr_} {}
 };
 
 } // namespace Vulkan

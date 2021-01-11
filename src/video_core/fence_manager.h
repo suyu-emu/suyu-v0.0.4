@@ -9,6 +9,7 @@
 
 #include "common/common_types.h"
 #include "core/core.h"
+#include "video_core/delayed_destruction_ring.h"
 #include "video_core/gpu.h"
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
@@ -17,11 +18,11 @@ namespace VideoCommon {
 
 class FenceBase {
 public:
-    FenceBase(u32 payload, bool is_stubbed)
-        : address{}, payload{payload}, is_semaphore{false}, is_stubbed{is_stubbed} {}
+    explicit FenceBase(u32 payload_, bool is_stubbed_)
+        : address{}, payload{payload_}, is_semaphore{false}, is_stubbed{is_stubbed_} {}
 
-    FenceBase(GPUVAddr address, u32 payload, bool is_stubbed)
-        : address{address}, payload{payload}, is_semaphore{true}, is_stubbed{is_stubbed} {}
+    explicit FenceBase(GPUVAddr address_, u32 payload_, bool is_stubbed_)
+        : address{address_}, payload{payload_}, is_semaphore{true}, is_stubbed{is_stubbed_} {}
 
     GPUVAddr GetAddress() const {
         return address;
@@ -47,6 +48,11 @@ protected:
 template <typename TFence, typename TTextureCache, typename TTBufferCache, typename TQueryCache>
 class FenceManager {
 public:
+    /// Notify the fence manager about a new frame
+    void TickFrame() {
+        delayed_destruction_ring.Tick();
+    }
+
     void SignalSemaphore(GPUVAddr addr, u32 value) {
         TryReleasePendingFences();
         const bool should_flush = ShouldFlush();
@@ -86,7 +92,7 @@ public:
             } else {
                 gpu.IncrementSyncPoint(current_fence->GetPayload());
             }
-            fences.pop();
+            PopFence();
         }
     }
 
@@ -132,7 +138,7 @@ private:
             } else {
                 gpu.IncrementSyncPoint(current_fence->GetPayload());
             }
-            fences.pop();
+            PopFence();
         }
     }
 
@@ -158,7 +164,14 @@ private:
         query_cache.CommitAsyncFlushes();
     }
 
+    void PopFence() {
+        delayed_destruction_ring.Push(std::move(fences.front()));
+        fences.pop();
+    }
+
     std::queue<TFence> fences;
+
+    DelayedDestructionRing<TFence, 6> delayed_destruction_ring;
 };
 
 } // namespace VideoCommon

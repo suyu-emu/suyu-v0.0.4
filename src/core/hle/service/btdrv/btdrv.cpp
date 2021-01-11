@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "common/logging/log.h"
+#include "core/core.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/kernel/kernel.h"
@@ -16,7 +17,7 @@ namespace Service::BtDrv {
 
 class Bt final : public ServiceFramework<Bt> {
 public:
-    explicit Bt(Core::System& system) : ServiceFramework{"bt"} {
+    explicit Bt(Core::System& system_) : ServiceFramework{system_, "bt"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "LeClientReadCharacteristic"},
@@ -51,7 +52,7 @@ private:
 
 class BtDrv final : public ServiceFramework<BtDrv> {
 public:
-    explicit BtDrv() : ServiceFramework{"btdrv"} {
+    explicit BtDrv(Core::System& system_) : ServiceFramework{system_, "btdrv"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "InitializeBluetoothDriver"},
@@ -165,7 +166,7 @@ public:
 };
 
 void InstallInterfaces(SM::ServiceManager& sm, Core::System& system) {
-    std::make_shared<BtDrv>()->InstallAsService(sm);
+    std::make_shared<BtDrv>(system)->InstallAsService(sm);
     std::make_shared<Bt>(system)->InstallAsService(sm);
 }
 

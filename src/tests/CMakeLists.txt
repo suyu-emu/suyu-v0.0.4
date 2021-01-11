@@ -2,11 +2,8 @@ add_executable(tests
     common/bit_field.cpp
     common/bit_utils.cpp
     common/fibers.cpp
-    common/multi_level_queue.cpp
     common/param_package.cpp
     common/ring_buffer.cpp
-    core/arm/arm_test_common.cpp
-    core/arm/arm_test_common.h
     core/core_timing.cpp
     tests.cpp
 )

@@ -6,25 +6,25 @@
 
 #include "video_core/renderer_vulkan/vk_compute_pipeline.h"
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
-#include "video_core/renderer_vulkan/vk_device.h"
 #include "video_core/renderer_vulkan/vk_pipeline_cache.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_shader_decompiler.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
-#include "video_core/renderer_vulkan/wrapper.h"
+#include "video_core/vulkan_common/vulkan_device.h"
+#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
 
-VKComputePipeline::VKComputePipeline(const VKDevice& device, VKScheduler& scheduler,
-                                     VKDescriptorPool& descriptor_pool,
-                                     VKUpdateDescriptorQueue& update_descriptor_queue,
-                                     const SPIRVShader& shader)
-    : device{device}, scheduler{scheduler}, entries{shader.entries},
+VKComputePipeline::VKComputePipeline(const Device& device_, VKScheduler& scheduler_,
+                                     VKDescriptorPool& descriptor_pool_,
+                                     VKUpdateDescriptorQueue& update_descriptor_queue_,
+                                     const SPIRVShader& shader_)
+    : device{device_}, scheduler{scheduler_}, entries{shader_.entries},
       descriptor_set_layout{CreateDescriptorSetLayout()},
-      descriptor_allocator{descriptor_pool, *descriptor_set_layout},
-      update_descriptor_queue{update_descriptor_queue}, layout{CreatePipelineLayout()},
+      descriptor_allocator{descriptor_pool_, *descriptor_set_layout},
+      update_descriptor_queue{update_descriptor_queue_}, layout{CreatePipelineLayout()},
       descriptor_template{CreateDescriptorUpdateTemplate()},
-      shader_module{CreateShaderModule(shader.code)}, pipeline{CreatePipeline()} {}
+      shader_module{CreateShaderModule(shader_.code)}, pipeline{CreatePipeline()} {}
 
 VKComputePipeline::~VKComputePipeline() = default;
 

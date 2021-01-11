@@ -265,7 +265,7 @@ ResultCode PageTable::InitializeForProcess(FileSys::ProgramAddressSpaceType as_t
     physical_memory_usage = 0;
     memory_pool = pool;
 
-    page_table_impl.Resize(address_space_width, PageBits, true);
+    page_table_impl.Resize(address_space_width, PageBits);
 
     return InitializeMemoryLayout(start, end);
 }
@@ -670,6 +670,11 @@ ResultCode PageTable::SetCodeMemoryPermission(VAddr addr, std::size_t size, Memo
         return RESULT_SUCCESS;
     }
 
+    if ((prev_perm & MemoryPermission::Execute) != (perm & MemoryPermission::Execute)) {
+        // Memory execution state is changing, invalidate CPU cache range
+        system.InvalidateCpuInstructionCacheRange(addr, size);
+    }
+
     const std::size_t num_pages{size / PageSize};
     const OperationType operation{(perm & MemoryPermission::Execute) != MemoryPermission::None
                                       ? OperationType::ChangePermissionsAndRefresh
@@ -1002,8 +1007,8 @@ constexpr VAddr PageTable::GetRegionAddress(MemoryState state) const {
     case MemoryState::Shared:
     case MemoryState::AliasCode:
     case MemoryState::AliasCodeData:
-    case MemoryState::Transfered:
-    case MemoryState::SharedTransfered:
+    case MemoryState::Transferred:
+    case MemoryState::SharedTransferred:
     case MemoryState::SharedCode:
     case MemoryState::GeneratedCode:
     case MemoryState::CodeOut:
@@ -1037,8 +1042,8 @@ constexpr std::size_t PageTable::GetRegionSize(MemoryState state) const {
     case MemoryState::Shared:
     case MemoryState::AliasCode:
     case MemoryState::AliasCodeData:
-    case MemoryState::Transfered:
-    case MemoryState::SharedTransfered:
+    case MemoryState::Transferred:
+    case MemoryState::SharedTransferred:
     case MemoryState::SharedCode:
     case MemoryState::GeneratedCode:
     case MemoryState::CodeOut:
@@ -1075,8 +1080,8 @@ constexpr bool PageTable::CanContain(VAddr addr, std::size_t size, MemoryState s
     case MemoryState::AliasCodeData:
     case MemoryState::Stack:
     case MemoryState::ThreadLocal:
-    case MemoryState::Transfered:
-    case MemoryState::SharedTransfered:
+    case MemoryState::Transferred:
+    case MemoryState::SharedTransferred:
     case MemoryState::SharedCode:
     case MemoryState::GeneratedCode:
     case MemoryState::CodeOut:

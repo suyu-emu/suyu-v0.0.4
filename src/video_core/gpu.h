@@ -13,14 +13,17 @@
 #include "common/common_types.h"
 #include "core/hle/service/nvdrv/nvdata.h"
 #include "core/hle/service/nvflinger/buffer_queue.h"
+#include "video_core/cdma_pusher.h"
 #include "video_core/dma_pusher.h"
+#include "video_core/framebuffer_config.h"
+#include "video_core/gpu_thread.h"
 
 using CacheAddr = std::uintptr_t;
-inline CacheAddr ToCacheAddr(const void* host_ptr) {
+[[nodiscard]] inline CacheAddr ToCacheAddr(const void* host_ptr) {
     return reinterpret_cast<CacheAddr>(host_ptr);
 }
 
-inline u8* FromCacheAddr(CacheAddr cache_addr) {
+[[nodiscard]] inline u8* FromCacheAddr(CacheAddr cache_addr) {
     return reinterpret_cast<u8*>(cache_addr);
 }
 
@@ -100,28 +103,6 @@ enum class DepthFormat : u32 {
 struct CommandListHeader;
 class DebugContext;
 
-/**
- * Struct describing framebuffer configuration
- */
-struct FramebufferConfig {
-    enum class PixelFormat : u32 {
-        A8B8G8R8_UNORM = 1,
-        RGB565_UNORM = 4,
-        B8G8R8A8_UNORM = 5,
-    };
-
-    VAddr address;
-    u32 offset;
-    u32 width;
-    u32 height;
-    u32 stride;
-    PixelFormat pixel_format;
-
-    using TransformFlags = Service::NVFlinger::BufferQueue::BufferTransformFlags;
-    TransformFlags transform_flags;
-    Common::Rectangle<int> crop_rect;
-};
-
 namespace Engines {
 class Fermi2D;
 class Maxwell3D;
@@ -140,7 +121,7 @@ enum class EngineID {
 
 class MemoryManager;
 
-class GPU {
+class GPU final {
 public:
     struct MethodCall {
         u32 method{};
@@ -148,17 +129,17 @@ public:
         u32 subchannel{};
         u32 method_count{};
 
-        bool IsLastCall() const {
+        explicit MethodCall(u32 method_, u32 argument_, u32 subchannel_ = 0, u32 method_count_ = 0)
+            : method(method_), argument(argument_), subchannel(subchannel_),
+              method_count(method_count_) {}
+
+        [[nodiscard]] bool IsLastCall() const {
             return method_count <= 1;
         }
-
-        MethodCall(u32 method, u32 argument, u32 subchannel = 0, u32 method_count = 0)
-            : method(method), argument(argument), subchannel(subchannel),
-              method_count(method_count) {}
     };
 
-    explicit GPU(Core::System& system, bool is_async);
-    virtual ~GPU();
+    explicit GPU(Core::System& system_, bool is_async_, bool use_nvdec_);
+    ~GPU();
 
     /// Binds a renderer to the GPU.
     void BindRenderer(std::unique_ptr<VideoCore::RendererBase> renderer);
@@ -175,13 +156,13 @@ public:
     /// Synchronizes CPU writes with Host GPU memory.
     void SyncGuestHost();
     /// Signal the ending of command list.
-    virtual void OnCommandListEnd();
+    void OnCommandListEnd();
 
     /// Request a host GPU memory flush from the CPU.
-    u64 RequestFlush(VAddr addr, std::size_t size);
+    [[nodiscard]] u64 RequestFlush(VAddr addr, std::size_t size);
 
     /// Obtains current flush request fence id.
-    u64 CurrentFlushRequestFence() const {
+    [[nodiscard]] u64 CurrentFlushRequestFence() const {
         return current_flush_fence.load(std::memory_order_relaxed);
     }
 
@@ -189,68 +170,100 @@ public:
     void TickWork();
 
     /// Returns a reference to the Maxwell3D GPU engine.
-    Engines::Maxwell3D& Maxwell3D();
+    [[nodiscard]] Engines::Maxwell3D& Maxwell3D();
 
     /// Returns a const reference to the Maxwell3D GPU engine.
-    const Engines::Maxwell3D& Maxwell3D() const;
+    [[nodiscard]] const Engines::Maxwell3D& Maxwell3D() const;
 
     /// Returns a reference to the KeplerCompute GPU engine.
-    Engines::KeplerCompute& KeplerCompute();
+    [[nodiscard]] Engines::KeplerCompute& KeplerCompute();
 
     /// Returns a reference to the KeplerCompute GPU engine.
-    const Engines::KeplerCompute& KeplerCompute() const;
+    [[nodiscard]] const Engines::KeplerCompute& KeplerCompute() const;
 
     /// Returns a reference to the GPU memory manager.
-    Tegra::MemoryManager& MemoryManager();
+    [[nodiscard]] Tegra::MemoryManager& MemoryManager();
 
     /// Returns a const reference to the GPU memory manager.
-    const Tegra::MemoryManager& MemoryManager() const;
+    [[nodiscard]] const Tegra::MemoryManager& MemoryManager() const;
 
     /// Returns a reference to the GPU DMA pusher.
-    Tegra::DmaPusher& DmaPusher();
+    [[nodiscard]] Tegra::DmaPusher& DmaPusher();
 
-    VideoCore::RendererBase& Renderer() {
+    /// Returns a const reference to the GPU DMA pusher.
+    [[nodiscard]] const Tegra::DmaPusher& DmaPusher() const;
+
+    /// Returns a reference to the GPU CDMA pusher.
+    [[nodiscard]] Tegra::CDmaPusher& CDmaPusher();
+
+    /// Returns a const reference to the GPU CDMA pusher.
+    [[nodiscard]] const Tegra::CDmaPusher& CDmaPusher() const;
+
+    /// Returns a reference to the underlying renderer.
+    [[nodiscard]] VideoCore::RendererBase& Renderer() {
         return *renderer;
     }
 
-    const VideoCore::RendererBase& Renderer() const {
+    /// Returns a const reference to the underlying renderer.
+    [[nodiscard]] const VideoCore::RendererBase& Renderer() const {
         return *renderer;
     }
 
-    VideoCore::ShaderNotify& ShaderNotify() {
+    /// Returns a reference to the shader notifier.
+    [[nodiscard]] VideoCore::ShaderNotify& ShaderNotify() {
         return *shader_notify;
     }
 
-    const VideoCore::ShaderNotify& ShaderNotify() const {
+    /// Returns a const reference to the shader notifier.
+    [[nodiscard]] const VideoCore::ShaderNotify& ShaderNotify() const {
         return *shader_notify;
     }
 
     // Waits for the GPU to finish working
-    virtual void WaitIdle() const = 0;
+    void WaitIdle() const;
 
     /// Allows the CPU/NvFlinger to wait on the GPU before presenting a frame.
     void WaitFence(u32 syncpoint_id, u32 value);
 
     void IncrementSyncPoint(u32 syncpoint_id);
 
-    u32 GetSyncpointValue(u32 syncpoint_id) const;
+    [[nodiscard]] u32 GetSyncpointValue(u32 syncpoint_id) const;
 
     void RegisterSyncptInterrupt(u32 syncpoint_id, u32 value);
 
-    bool CancelSyncptInterrupt(u32 syncpoint_id, u32 value);
+    [[nodiscard]] bool CancelSyncptInterrupt(u32 syncpoint_id, u32 value);
 
-    u64 GetTicks() const;
+    [[nodiscard]] u64 GetTicks() const;
 
-    std::unique_lock<std::mutex> LockSync() {
+    [[nodiscard]] std::unique_lock<std::mutex> LockSync() {
         return std::unique_lock{sync_mutex};
     }
 
-    bool IsAsync() const {
+    [[nodiscard]] bool IsAsync() const {
         return is_async;
     }
 
-    /// Returns a const reference to the GPU DMA pusher.
-    const Tegra::DmaPusher& DmaPusher() const;
+    [[nodiscard]] bool UseNvdec() const {
+        return use_nvdec;
+    }
+
+    enum class FenceOperation : u32 {
+        Acquire = 0,
+        Increment = 1,
+    };
+
+    union FenceAction {
+        u32 raw;
+        BitField<0, 1, FenceOperation> op;
+        BitField<8, 24, u32> syncpoint_id;
+
+        [[nodiscard]] static CommandHeader Build(FenceOperation op, u32 syncpoint_id) {
+            FenceAction result{};
+            result.op.Assign(op);
+            result.syncpoint_id.Assign(syncpoint_id);
+            return {result.raw};
+        }
+    };
 
     struct Regs {
         static constexpr size_t NUM_REGS = 0x40;
@@ -262,7 +275,7 @@ public:
                     u32 address_high;
                     u32 address_low;
 
-                    GPUVAddr SemaphoreAddress() const {
+                    [[nodiscard]] GPUVAddr SemaphoreAddress() const {
                         return static_cast<GPUVAddr>((static_cast<GPUVAddr>(address_high) << 32) |
                                                      address_low);
                     }
@@ -280,10 +293,7 @@ public:
                 u32 semaphore_acquire;
                 u32 semaphore_release;
                 u32 fence_value;
-                union {
-                    BitField<4, 4, u32> operation;
-                    BitField<8, 8, u32> id;
-                } fence_action;
+                FenceAction fence_action;
                 INSERT_UNION_PADDING_WORDS(0xE2);
 
                 // Puller state
@@ -300,34 +310,39 @@ public:
     /// Performs any additional setup necessary in order to begin GPU emulation.
     /// This can be used to launch any necessary threads and register any necessary
     /// core timing events.
-    virtual void Start() = 0;
+    void Start();
 
     /// Obtain the CPU Context
-    virtual void ObtainContext() = 0;
+    void ObtainContext();
 
     /// Release the CPU Context
-    virtual void ReleaseContext() = 0;
+    void ReleaseContext();
 
     /// Push GPU command entries to be processed
-    virtual void PushGPUEntries(Tegra::CommandList&& entries) = 0;
+    void PushGPUEntries(Tegra::CommandList&& entries);
+
+    /// Push GPU command buffer entries to be processed
+    void PushCommandBuffer(Tegra::ChCommandHeaderList& entries);
 
     /// Swap buffers (render frame)
-    virtual void SwapBuffers(const Tegra::FramebufferConfig* framebuffer) = 0;
+    void SwapBuffers(const Tegra::FramebufferConfig* framebuffer);
 
     /// Notify rasterizer that any caches of the specified region should be flushed to Switch memory
-    virtual void FlushRegion(VAddr addr, u64 size) = 0;
+    void FlushRegion(VAddr addr, u64 size);
 
     /// Notify rasterizer that any caches of the specified region should be invalidated
-    virtual void InvalidateRegion(VAddr addr, u64 size) = 0;
+    void InvalidateRegion(VAddr addr, u64 size);
 
     /// Notify rasterizer that any caches of the specified region should be flushed and invalidated
-    virtual void FlushAndInvalidateRegion(VAddr addr, u64 size) = 0;
+    void FlushAndInvalidateRegion(VAddr addr, u64 size);
 
 protected:
-    virtual void TriggerCpuInterrupt(u32 syncpoint_id, u32 value) const = 0;
+    void TriggerCpuInterrupt(u32 syncpoint_id, u32 value) const;
 
 private:
     void ProcessBindMethod(const MethodCall& method_call);
+    void ProcessFenceActionMethod();
+    void ProcessWaitForInterruptMethod();
     void ProcessSemaphoreTriggerMethod();
     void ProcessSemaphoreRelease();
     void ProcessSemaphoreAcquire();
@@ -343,13 +358,15 @@ private:
                                u32 methods_pending);
 
     /// Determines where the method should be executed.
-    bool ExecuteMethodOnEngine(u32 method);
+    [[nodiscard]] bool ExecuteMethodOnEngine(u32 method);
 
 protected:
     Core::System& system;
     std::unique_ptr<Tegra::MemoryManager> memory_manager;
     std::unique_ptr<Tegra::DmaPusher> dma_pusher;
+    std::unique_ptr<Tegra::CDmaPusher> cdma_pusher;
     std::unique_ptr<VideoCore::RendererBase> renderer;
+    const bool use_nvdec;
 
 private:
     /// Mapping of command subchannels to their bound engine ids
@@ -372,12 +389,13 @@ private:
     std::array<std::list<u32>, Service::Nvidia::MaxSyncPoints> syncpt_interrupts;
 
     std::mutex sync_mutex;
+    std::mutex device_mutex;
 
     std::condition_variable sync_cv;
 
     struct FlushRequest {
-        FlushRequest(u64 fence, VAddr addr, std::size_t size)
-            : fence{fence}, addr{addr}, size{size} {}
+        explicit FlushRequest(u64 fence_, VAddr addr_, std::size_t size_)
+            : fence{fence_}, addr{addr_}, size{size_} {}
         u64 fence;
         VAddr addr;
         std::size_t size;
@@ -389,6 +407,9 @@ private:
     std::mutex flush_request_mutex;
 
     const bool is_async;
+
+    VideoCommon::GPUThread::ThreadManager gpu_thread;
+    std::unique_ptr<Core::Frontend::GraphicsContext> cpu_context;
 };
 
 #define ASSERT_REG_POSITION(field_name, position)                                                  \

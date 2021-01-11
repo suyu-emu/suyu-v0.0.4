@@ -15,45 +15,59 @@
 
 namespace Service::Nvidia::Devices {
 
-nvhost_ctrl::nvhost_ctrl(Core::System& system, EventInterface& events_interface)
-    : nvdevice(system), events_interface{events_interface} {}
+nvhost_ctrl::nvhost_ctrl(Core::System& system, EventInterface& events_interface,
+                         SyncpointManager& syncpoint_manager)
+    : nvdevice(system), events_interface{events_interface}, syncpoint_manager{syncpoint_manager} {}
 nvhost_ctrl::~nvhost_ctrl() = default;
 
-u32 nvhost_ctrl::ioctl(Ioctl command, const std::vector<u8>& input, const std::vector<u8>& input2,
-                       std::vector<u8>& output, std::vector<u8>& output2, IoctlCtrl& ctrl,
-                       IoctlVersion version) {
-    LOG_DEBUG(Service_NVDRV, "called, command=0x{:08X}, input_size=0x{:X}, output_size=0x{:X}",
-              command.raw, input.size(), output.size());
-
-    switch (static_cast<IoctlCommand>(command.raw)) {
-    case IoctlCommand::IocGetConfigCommand:
-        return NvOsGetConfigU32(input, output);
-    case IoctlCommand::IocCtrlEventWaitCommand:
-        return IocCtrlEventWait(input, output, false, ctrl);
-    case IoctlCommand::IocCtrlEventWaitAsyncCommand:
-        return IocCtrlEventWait(input, output, true, ctrl);
-    case IoctlCommand::IocCtrlEventRegisterCommand:
-        return IocCtrlEventRegister(input, output);
-    case IoctlCommand::IocCtrlEventUnregisterCommand:
-        return IocCtrlEventUnregister(input, output);
-    case IoctlCommand::IocCtrlEventSignalCommand:
-        return IocCtrlEventSignal(input, output);
+NvResult nvhost_ctrl::Ioctl1(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) {
+    switch (command.group) {
+    case 0x0:
+        switch (command.cmd) {
+        case 0x1b:
+            return NvOsGetConfigU32(input, output);
+        case 0x1c:
+            return IocCtrlClearEventWait(input, output);
+        case 0x1d:
+            return IocCtrlEventWait(input, output, false);
+        case 0x1e:
+            return IocCtrlEventWait(input, output, true);
+        case 0x1f:
+            return IocCtrlEventRegister(input, output);
+        case 0x20:
+            return IocCtrlEventUnregister(input, output);
+        }
+        break;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented ioctl");
-        return 0;
+        break;
     }
+
+    UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
+    return NvResult::NotImplemented;
 }
 
-u32 nvhost_ctrl::NvOsGetConfigU32(const std::vector<u8>& input, std::vector<u8>& output) {
+NvResult nvhost_ctrl::Ioctl2(Ioctl command, const std::vector<u8>& input,
+                             const std::vector<u8>& inline_input, std::vector<u8>& output) {
+    UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
+    return NvResult::NotImplemented;
+}
+
+NvResult nvhost_ctrl::Ioctl3(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
+                             std::vector<u8>& inline_outpu) {
+    UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
+    return NvResult::NotImplemented;
+}
+
+NvResult nvhost_ctrl::NvOsGetConfigU32(const std::vector<u8>& input, std::vector<u8>& output) {
     IocGetConfigParams params{};
     std::memcpy(&params, input.data(), sizeof(params));
     LOG_TRACE(Service_NVDRV, "called, setting={}!{}", params.domain_str.data(),
               params.param_str.data());
-    return 0x30006; // Returns error on production mode
+    return NvResult::ConfigVarNotFound; // Returns error on production mode
 }
 
-u32 nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>& output,
-                                  bool is_async, IoctlCtrl& ctrl) {
+NvResult nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>& output,
+                                       bool is_async) {
     IocCtrlEventWaitParams params{};
     std::memcpy(&params, input.data(), sizeof(params));
     LOG_DEBUG(Service_NVDRV, "syncpt_id={}, threshold={}, timeout={}, is_async={}",
@@ -70,19 +84,33 @@ u32 nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>&
         return NvResult::BadParameter;
     }
 
+    if (syncpoint_manager.IsSyncpointExpired(params.syncpt_id, params.threshold)) {
+        params.value = syncpoint_manager.GetSyncpointMin(params.syncpt_id);
+        std::memcpy(output.data(), &params, sizeof(params));
+        return NvResult::Success;
+    }
+
+    if (const auto new_value = syncpoint_manager.RefreshSyncpoint(params.syncpt_id);
+        syncpoint_manager.IsSyncpointExpired(params.syncpt_id, params.threshold)) {
+        params.value = new_value;
+        std::memcpy(output.data(), &params, sizeof(params));
+        return NvResult::Success;
+    }
+
     auto event = events_interface.events[event_id];
     auto& gpu = system.GPU();
+
     // This is mostly to take into account unimplemented features. As synced
     // gpu is always synced.
     if (!gpu.IsAsync()) {
-        event.writable->Signal();
+        event.event.writable->Signal();
         return NvResult::Success;
     }
     auto lock = gpu.LockSync();
-    const u32 current_syncpoint_value = gpu.GetSyncpointValue(params.syncpt_id);
+    const u32 current_syncpoint_value = event.fence.value;
     const s32 diff = current_syncpoint_value - params.threshold;
     if (diff >= 0) {
-        event.writable->Signal();
+        event.event.writable->Signal();
         params.value = current_syncpoint_value;
         std::memcpy(output.data(), &params, sizeof(params));
         return NvResult::Success;
@@ -109,14 +137,8 @@ u32 nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>&
             params.value = ((params.syncpt_id & 0xfff) << 16) | 0x10000000;
         }
         params.value |= event_id;
-        event.writable->Clear();
+        event.event.writable->Clear();
         gpu.RegisterSyncptInterrupt(params.syncpt_id, target_value);
-        if (!is_async && ctrl.fresh_call) {
-            ctrl.must_delay = true;
-            ctrl.timeout = params.timeout;
-            ctrl.event_id = event_id;
-            return NvResult::Timeout;
-        }
         std::memcpy(output.data(), &params, sizeof(params));
         return NvResult::Timeout;
     }
@@ -124,7 +146,7 @@ u32 nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>&
     return NvResult::BadParameter;
 }
 
-u32 nvhost_ctrl::IocCtrlEventRegister(const std::vector<u8>& input, std::vector<u8>& output) {
+NvResult nvhost_ctrl::IocCtrlEventRegister(const std::vector<u8>& input, std::vector<u8>& output) {
     IocCtrlEventRegisterParams params{};
     std::memcpy(&params, input.data(), sizeof(params));
     const u32 event_id = params.user_event_id & 0x00FF;
@@ -139,7 +161,8 @@ u32 nvhost_ctrl::IocCtrlEventRegister(const std::vector<u8>& input, std::vector<
     return NvResult::Success;
 }
 
-u32 nvhost_ctrl::IocCtrlEventUnregister(const std::vector<u8>& input, std::vector<u8>& output) {
+NvResult nvhost_ctrl::IocCtrlEventUnregister(const std::vector<u8>& input,
+                                             std::vector<u8>& output) {
     IocCtrlEventUnregisterParams params{};
     std::memcpy(&params, input.data(), sizeof(params));
     const u32 event_id = params.user_event_id & 0x00FF;
@@ -154,24 +177,22 @@ u32 nvhost_ctrl::IocCtrlEventUnregister(const std::vector<u8>& input, std::vecto
     return NvResult::Success;
 }
 
-u32 nvhost_ctrl::IocCtrlEventSignal(const std::vector<u8>& input, std::vector<u8>& output) {
+NvResult nvhost_ctrl::IocCtrlClearEventWait(const std::vector<u8>& input, std::vector<u8>& output) {
     IocCtrlEventSignalParams params{};
     std::memcpy(&params, input.data(), sizeof(params));
-    // TODO(Blinkhawk): This is normally called when an NvEvents timeout on WaitSynchronization
-    // It is believed from RE to cancel the GPU Event. However, better research is required
-    u32 event_id = params.user_event_id & 0x00FF;
-    LOG_WARNING(Service_NVDRV, "(STUBBED) called, user_event_id: {:X}", event_id);
+
+    u32 event_id = params.event_id & 0x00FF;
+    LOG_WARNING(Service_NVDRV, "cleared event wait on, event_id: {:X}", event_id);
+
     if (event_id >= MaxNvEvents) {
         return NvResult::BadParameter;
     }
     if (events_interface.status[event_id] == EventState::Waiting) {
-        auto& gpu = system.GPU();
-        if (gpu.CancelSyncptInterrupt(events_interface.assigned_syncpt[event_id],
-                                      events_interface.assigned_value[event_id])) {
-            events_interface.LiberateEvent(event_id);
-            events_interface.events[event_id].writable->Signal();
-        }
+        events_interface.LiberateEvent(event_id);
     }
+
+    syncpoint_manager.RefreshSyncpoint(events_interface.events[event_id].fence.id);
+
     return NvResult::Success;
 }
 

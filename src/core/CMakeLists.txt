@@ -1,9 +1,3 @@
-if (YUZU_ENABLE_BOXCAT)
-    set(BCAT_BOXCAT_ADDITIONAL_SOURCES hle/service/bcat/backend/boxcat.cpp hle/service/bcat/backend/boxcat.h)
-else()
-    set(BCAT_BOXCAT_ADDITIONAL_SOURCES)
-endif()
-
 add_library(core STATIC
     arm/arm_interface.h
     arm/arm_interface.cpp
@@ -19,8 +13,6 @@ add_library(core STATIC
     arm/dynarmic/arm_exclusive_monitor.h
     arm/exclusive_monitor.cpp
     arm/exclusive_monitor.h
-    arm/unicorn/arm_unicorn.cpp
-    arm/unicorn/arm_unicorn.h
     constants.cpp
     constants.h
     core.cpp
@@ -49,6 +41,7 @@ add_library(core STATIC
     file_sys/bis_factory.h
     file_sys/card_image.cpp
     file_sys/card_image.h
+    file_sys/common_funcs.h
     file_sys/content_archive.cpp
     file_sys/content_archive.h
     file_sys/control_metadata.cpp
@@ -142,9 +135,9 @@ add_library(core STATIC
     frontend/emu_window.h
     frontend/framebuffer_layout.cpp
     frontend/framebuffer_layout.h
+    frontend/input_interpreter.cpp
+    frontend/input_interpreter.h
     frontend/input.h
-    gdbstub/gdbstub.cpp
-    gdbstub/gdbstub.h
     hardware_interrupt_manager.cpp
     hardware_interrupt_manager.h
     hle/ipc.h
@@ -158,10 +151,19 @@ add_library(core STATIC
     hle/kernel/code_set.cpp
     hle/kernel/code_set.h
     hle/kernel/errors.h
+    hle/kernel/global_scheduler_context.cpp
+    hle/kernel/global_scheduler_context.h
     hle/kernel/handle_table.cpp
     hle/kernel/handle_table.h
     hle/kernel/hle_ipc.cpp
     hle/kernel/hle_ipc.h
+    hle/kernel/k_affinity_mask.h
+    hle/kernel/k_priority_queue.h
+    hle/kernel/k_scheduler.cpp
+    hle/kernel/k_scheduler.h
+    hle/kernel/k_scheduler_lock.h
+    hle/kernel/k_scoped_lock.h
+    hle/kernel/k_scoped_scheduler_lock_and_sleep.h
     hle/kernel/kernel.cpp
     hle/kernel/kernel.h
     hle/kernel/memory/address_space_info.cpp
@@ -196,12 +198,12 @@ add_library(core STATIC
     hle/kernel/readable_event.h
     hle/kernel/resource_limit.cpp
     hle/kernel/resource_limit.h
-    hle/kernel/scheduler.cpp
-    hle/kernel/scheduler.h
     hle/kernel/server_port.cpp
     hle/kernel/server_port.h
     hle/kernel/server_session.cpp
     hle/kernel/server_session.h
+    hle/kernel/service_thread.cpp
+    hle/kernel/service_thread.h
     hle/kernel/session.cpp
     hle/kernel/session.h
     hle/kernel/shared_memory.cpp
@@ -303,7 +305,6 @@ add_library(core STATIC
     hle/service/audio/hwopus.h
     hle/service/bcat/backend/backend.cpp
     hle/service/bcat/backend/backend.h
-    ${BCAT_BOXCAT_ADDITIONAL_SOURCES}
     hle/service/bcat/bcat.cpp
     hle/service/bcat/bcat.h
     hle/service/bcat/module.cpp
@@ -446,6 +447,8 @@ add_library(core STATIC
     hle/service/nvdrv/devices/nvhost_gpu.h
     hle/service/nvdrv/devices/nvhost_nvdec.cpp
     hle/service/nvdrv/devices/nvhost_nvdec.h
+    hle/service/nvdrv/devices/nvhost_nvdec_common.cpp
+    hle/service/nvdrv/devices/nvhost_nvdec_common.h
     hle/service/nvdrv/devices/nvhost_nvjpg.cpp
     hle/service/nvdrv/devices/nvhost_nvjpg.h
     hle/service/nvdrv/devices/nvhost_vic.cpp
@@ -459,10 +462,14 @@ add_library(core STATIC
     hle/service/nvdrv/nvdrv.h
     hle/service/nvdrv/nvmemp.cpp
     hle/service/nvdrv/nvmemp.h
+    hle/service/nvdrv/syncpoint_manager.cpp
+    hle/service/nvdrv/syncpoint_manager.h
     hle/service/nvflinger/buffer_queue.cpp
     hle/service/nvflinger/buffer_queue.h
     hle/service/nvflinger/nvflinger.cpp
     hle/service/nvflinger/nvflinger.h
+    hle/service/olsc/olsc.cpp
+    hle/service/olsc/olsc.h
     hle/service/pcie/pcie.cpp
     hle/service/pcie/pcie.h
     hle/service/pctl/module.cpp
@@ -495,7 +502,6 @@ add_library(core STATIC
     hle/service/sm/controller.h
     hle/service/sm/sm.cpp
     hle/service/sm/sm.h
-    hle/service/sockets/blocking_worker.h
     hle/service/sockets/bsd.cpp
     hle/service/sockets/bsd.h
     hle/service/sockets/ethc.cpp
@@ -608,6 +614,13 @@ add_library(core STATIC
     tools/freezer.h
 )
 
+if (YUZU_ENABLE_BOXCAT)
+    target_sources(core PRIVATE
+        hle/service/bcat/backend/boxcat.cpp
+        hle/service/bcat/backend/boxcat.h
+    )
+endif()
+
 if (MSVC)
     target_compile_options(core PRIVATE
         # 'expression' : signed/unsigned mismatch
@@ -622,13 +635,29 @@ if (MSVC)
         /we4267
         # 'context' : truncation from 'type1' to 'type2'
         /we4305
+        # 'function' : not all control paths return a value
+        /we4715
+    )
+else()
+    target_compile_options(core PRIVATE
+        -Werror=conversion
+        -Werror=ignored-qualifiers
+        -Werror=implicit-fallthrough
+        -Werror=reorder
+        -Werror=sign-compare
+        -Werror=unused-variable
+
+        $<$<CXX_COMPILER_ID:GNU>:-Werror=unused-but-set-parameter>
+        $<$<CXX_COMPILER_ID:GNU>:-Werror=unused-but-set-variable>
+
+        -Wno-sign-conversion
     )
 endif()
 
 create_target_directory_groups(core)
 
 target_link_libraries(core PUBLIC common PRIVATE audio_core video_core)
-target_link_libraries(core PUBLIC Boost::boost PRIVATE fmt::fmt nlohmann_json::nlohmann_json mbedtls opus unicorn zip)
+target_link_libraries(core PUBLIC Boost::boost PRIVATE fmt::fmt nlohmann_json::nlohmann_json mbedtls opus zip)
 
 if (YUZU_ENABLE_BOXCAT)
     target_compile_definitions(core PRIVATE -DYUZU_ENABLE_BOXCAT)

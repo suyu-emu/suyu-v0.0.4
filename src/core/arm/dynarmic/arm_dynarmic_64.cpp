@@ -6,6 +6,7 @@
 #include <memory>
 #include <dynarmic/A64/a64.h>
 #include <dynarmic/A64/config.h>
+#include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/page_table.h"
 #include "core/arm/cpu_interrupt_handler.h"
@@ -13,11 +14,9 @@
 #include "core/arm/dynarmic/arm_exclusive_monitor.h"
 #include "core/core.h"
 #include "core/core_timing.h"
-#include "core/core_timing_util.h"
-#include "core/gdbstub/gdbstub.h"
 #include "core/hardware_properties.h"
+#include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/svc.h"
 #include "core/memory.h"
 #include "core/settings.h"
@@ -82,16 +81,9 @@ public:
     }
 
     void InterpreterFallback(u64 pc, std::size_t num_instructions) override {
-        LOG_INFO(Core_ARM, "Unicorn fallback @ 0x{:X} for {} instructions (instr = {:08X})", pc,
-                 num_instructions, MemoryReadCode(pc));
-
-        ARM_Interface::ThreadContext64 ctx;
-        parent.SaveContext(ctx);
-        parent.inner_unicorn.LoadContext(ctx);
-        parent.inner_unicorn.ExecuteInstructions(num_instructions);
-        parent.inner_unicorn.SaveContext(ctx);
-        parent.LoadContext(ctx);
-        num_interpreted_instructions += num_instructions;
+        LOG_ERROR(Core_ARM,
+                  "Unimplemented instruction @ 0x{:X} for {} instructions (instr = {:08X})", pc,
+                  num_instructions, MemoryReadCode(pc));
     }
 
     void ExceptionRaised(u64 pc, Dynarmic::A64::Exception exception) override {
@@ -103,16 +95,6 @@ public:
         case Dynarmic::A64::Exception::Yield:
             return;
         case Dynarmic::A64::Exception::Breakpoint:
-            if (GDBStub::IsServerEnabled()) {
-                parent.jit->HaltExecution();
-                parent.SetPC(pc);
-                Kernel::Thread* const thread = parent.system.CurrentScheduler().GetCurrentThread();
-                parent.SaveContext(thread->GetContext64());
-                GDBStub::Break();
-                GDBStub::SendTrap(thread, 5);
-                return;
-            }
-            [[fallthrough]];
         default:
             ASSERT_MSG(false, "ExceptionRaised(exception = {}, pc = {:08X}, code = {:08X})",
                        static_cast<std::size_t>(exception), pc, MemoryReadCode(pc));
@@ -127,18 +109,17 @@ public:
         if (parent.uses_wall_clock) {
             return;
         }
+
         // Divide the number of ticks by the amount of CPU cores. TODO(Subv): This yields only a
         // rough approximation of the amount of executed ticks in the system, it may be thrown off
         // if not all cores are doing a similar amount of work. Instead of doing this, we should
         // device a way so that timing is consistent across all cores without increasing the ticks 4
         // times.
-        u64 amortized_ticks =
-            (ticks - num_interpreted_instructions) / Core::Hardware::NUM_CPU_CORES;
+        u64 amortized_ticks = ticks / Core::Hardware::NUM_CPU_CORES;
         // Always execute at least one tick.
         amortized_ticks = std::max<u64>(amortized_ticks, 1);
 
         parent.system.CoreTiming().AddTicks(amortized_ticks);
-        num_interpreted_instructions = 0;
     }
 
     u64 GetTicksRemaining() override {
@@ -156,7 +137,6 @@ public:
     }
 
     ARM_Dynarmic_64& parent;
-    std::size_t num_interpreted_instructions = 0;
     u64 tpidrro_el0 = 0;
     u64 tpidr_el0 = 0;
     static constexpr u64 minimum_run_cycles = 1000U;
@@ -172,6 +152,7 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable& 
     // Memory
     config.page_table = reinterpret_cast<void**>(page_table.pointers.data());
     config.page_table_address_space_bits = address_space_bits;
+    config.page_table_pointer_mask_bits = Common::PageTable::ATTRIBUTE_BITS;
     config.silently_mirror_page_table = false;
     config.absolute_offset_page_table = true;
     config.detect_misaligned_access_via_page_table = 16 | 32 | 64 | 128;
@@ -231,6 +212,9 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable& 
         if (Settings::values.cpuopt_unsafe_reduce_fp_error) {
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_ReducedErrorFP;
         }
+        if (Settings::values.cpuopt_unsafe_inaccurate_nan) {
+            config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_InaccurateNaN;
+        }
     }
 
     return std::make_shared<Dynarmic::A64::Jit>(config);
@@ -238,6 +222,10 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable& 
 
 void ARM_Dynarmic_64::Run() {
     jit->Run();
+}
+
+void ARM_Dynarmic_64::ExceptionalExit() {
+    jit->ExceptionalExit();
 }
 
 void ARM_Dynarmic_64::Step() {
@@ -248,12 +236,8 @@ ARM_Dynarmic_64::ARM_Dynarmic_64(System& system, CPUInterrupts& interrupt_handle
                                  bool uses_wall_clock, ExclusiveMonitor& exclusive_monitor,
                                  std::size_t core_index)
     : ARM_Interface{system, interrupt_handlers, uses_wall_clock},
-      cb(std::make_unique<DynarmicCallbacks64>(*this)), inner_unicorn{system, interrupt_handlers,
-                                                                      uses_wall_clock,
-                                                                      ARM_Unicorn::Arch::AArch64,
-                                                                      core_index},
-      core_index{core_index}, exclusive_monitor{
-                                  dynamic_cast<DynarmicExclusiveMonitor&>(exclusive_monitor)} {}
+      cb(std::make_unique<DynarmicCallbacks64>(*this)), core_index{core_index},
+      exclusive_monitor{dynamic_cast<DynarmicExclusiveMonitor&>(exclusive_monitor)} {}
 
 ARM_Dynarmic_64::~ARM_Dynarmic_64() = default;
 
@@ -342,7 +326,17 @@ void ARM_Dynarmic_64::ClearInstructionCache() {
     jit->ClearCache();
 }
 
+void ARM_Dynarmic_64::InvalidateCacheRange(VAddr addr, std::size_t size) {
+    if (!jit) {
+        return;
+    }
+    jit->InvalidateCacheRange(addr, size);
+}
+
 void ARM_Dynarmic_64::ClearExclusiveState() {
+    if (!jit) {
+        return;
+    }
     jit->ClearExclusiveState();
 }
 

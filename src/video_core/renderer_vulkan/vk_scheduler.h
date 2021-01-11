@@ -12,21 +12,22 @@
 #include <utility>
 #include "common/common_types.h"
 #include "common/threadsafe_queue.h"
-#include "video_core/renderer_vulkan/wrapper.h"
+#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
 
 class CommandPool;
+class Device;
+class Framebuffer;
 class MasterSemaphore;
 class StateTracker;
-class VKDevice;
 class VKQueryCache;
 
 /// The scheduler abstracts command buffer and fence management with an interface that's able to do
 /// OpenGL-like operations on Vulkan command buffers.
 class VKScheduler {
 public:
-    explicit VKScheduler(const VKDevice& device, StateTracker& state_tracker);
+    explicit VKScheduler(const Device& device, StateTracker& state_tracker);
     ~VKScheduler();
 
     /// Returns the current command buffer tick.
@@ -52,8 +53,7 @@ public:
     void DispatchWork();
 
     /// Requests to begin a renderpass.
-    void RequestRenderpass(VkRenderPass renderpass, VkFramebuffer framebuffer,
-                           VkExtent2D render_area);
+    void RequestRenderpass(const Framebuffer* framebuffer);
 
     /// Requests the current executino context to be able to execute operations only allowed outside
     /// of a renderpass.
@@ -61,6 +61,9 @@ public:
 
     /// Binds a pipeline to the current execution context.
     void BindGraphicsPipeline(VkPipeline pipeline);
+
+    /// Invalidates current command buffer state except for render passes
+    void InvalidateState();
 
     /// Assigns the query cache.
     void SetQueryCache(VKQueryCache& query_cache_) {
@@ -104,7 +107,7 @@ private:
     template <typename T>
     class TypedCommand final : public Command {
     public:
-        explicit TypedCommand(T&& command) : command{std::move(command)} {}
+        explicit TypedCommand(T&& command_) : command{std::move(command_)} {}
         ~TypedCommand() override = default;
 
         TypedCommand(TypedCommand&&) = delete;
@@ -170,15 +173,13 @@ private:
 
     void AllocateNewContext();
 
-    void InvalidateState();
-
     void EndPendingOperations();
 
     void EndRenderPass();
 
     void AcquireNewChunk();
 
-    const VKDevice& device;
+    const Device& device;
     StateTracker& state_tracker;
 
     std::unique_ptr<MasterSemaphore> master_semaphore;
@@ -192,6 +193,11 @@ private:
     std::thread worker_thread;
 
     State state;
+
+    u32 num_renderpass_images = 0;
+    std::array<VkImage, 9> renderpass_images{};
+    std::array<VkImageSubresourceRange, 9> renderpass_image_ranges{};
+
     Common::SPSCQueue<std::unique_ptr<CommandChunk>> chunk_queue;
     Common::SPSCQueue<std::unique_ptr<CommandChunk>> chunk_reserve;
     std::mutex mutex;

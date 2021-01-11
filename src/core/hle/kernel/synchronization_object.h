@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <memory>
 #include <vector>
 
@@ -56,7 +57,7 @@ public:
     void ClearWaitingThreads();
 
 protected:
-    bool is_signaled{}; // Tells if this sync object is signalled;
+    std::atomic_bool is_signaled{}; // Tells if this sync object is signaled
 
 private:
     /// Threads waiting for this object to become available

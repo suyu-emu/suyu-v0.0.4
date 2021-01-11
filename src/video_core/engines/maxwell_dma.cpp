@@ -16,8 +16,10 @@ namespace Tegra::Engines {
 
 using namespace Texture;
 
-MaxwellDMA::MaxwellDMA(Core::System& system, MemoryManager& memory_manager)
-    : system{system}, memory_manager{memory_manager} {}
+MaxwellDMA::MaxwellDMA(Core::System& system_, MemoryManager& memory_manager_)
+    : system{system_}, memory_manager{memory_manager_} {}
+
+MaxwellDMA::~MaxwellDMA() = default;
 
 void MaxwellDMA::CallMethod(u32 method, u32 method_argument, bool is_last_call) {
     ASSERT_MSG(method < NUM_REGS, "Invalid MaxwellDMA register");
@@ -94,6 +96,7 @@ void MaxwellDMA::CopyPitchToPitch() {
 }
 
 void MaxwellDMA::CopyBlockLinearToPitch() {
+    UNIMPLEMENTED_IF(regs.src_params.block_size.width != 0);
     UNIMPLEMENTED_IF(regs.src_params.block_size.depth != 0);
     UNIMPLEMENTED_IF(regs.src_params.layer != 0);
 
@@ -114,8 +117,6 @@ void MaxwellDMA::CopyBlockLinearToPitch() {
     const u32 block_depth = src_params.block_size.depth;
     const size_t src_size =
         CalculateSize(true, bytes_per_pixel, width, height, depth, block_height, block_depth);
-    const size_t src_layer_size =
-        CalculateSize(true, bytes_per_pixel, width, height, 1, block_height, block_depth);
 
     if (read_buffer.size() < src_size) {
         read_buffer.resize(src_size);
@@ -135,6 +136,8 @@ void MaxwellDMA::CopyBlockLinearToPitch() {
 }
 
 void MaxwellDMA::CopyPitchToBlockLinear() {
+    UNIMPLEMENTED_IF_MSG(regs.dst_params.block_size.width != 0, "Block width is not one");
+
     const auto& dst_params = regs.dst_params;
     const u32 bytes_per_pixel = regs.pitch_in / regs.line_length_in;
     const u32 width = dst_params.width;

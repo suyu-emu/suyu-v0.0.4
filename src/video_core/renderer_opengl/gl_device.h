@@ -36,11 +36,11 @@ public:
         return GetBaseBindings(static_cast<std::size_t>(shader_type));
     }
 
-    std::size_t GetUniformBufferAlignment() const {
+    size_t GetUniformBufferAlignment() const {
         return uniform_buffer_alignment;
     }
 
-    std::size_t GetShaderStorageBufferAlignment() const {
+    size_t GetShaderStorageBufferAlignment() const {
         return shader_storage_alignment;
     }
 
@@ -96,12 +96,20 @@ public:
         return has_precise_bug;
     }
 
+    bool HasBrokenTextureViewFormats() const {
+        return has_broken_texture_view_formats;
+    }
+
     bool HasFastBufferSubData() const {
         return has_fast_buffer_sub_data;
     }
 
     bool HasNvViewportArray2() const {
         return has_nv_viewport_array2;
+    }
+
+    bool HasDebuggingToolAttached() const {
+        return has_debugging_tool_attached;
     }
 
     bool UseAssemblyShaders() const {
@@ -118,8 +126,8 @@ private:
 
     std::array<u32, Tegra::Engines::MaxShaderTypes> max_uniform_buffers{};
     std::array<BaseBindings, Tegra::Engines::MaxShaderTypes> base_bindings{};
-    std::size_t uniform_buffer_alignment{};
-    std::size_t shader_storage_alignment{};
+    size_t uniform_buffer_alignment{};
+    size_t shader_storage_alignment{};
     u32 max_vertex_attributes{};
     u32 max_varyings{};
     u32 max_compute_shared_memory_size{};
@@ -133,8 +141,10 @@ private:
     bool has_variable_aoffi{};
     bool has_component_indexing_bug{};
     bool has_precise_bug{};
+    bool has_broken_texture_view_formats{};
     bool has_fast_buffer_sub_data{};
     bool has_nv_viewport_array2{};
+    bool has_debugging_tool_attached{};
     bool use_assembly_shaders{};
     bool use_asynchronous_shaders{};
 };

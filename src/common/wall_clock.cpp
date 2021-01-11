@@ -15,10 +15,10 @@ namespace Common {
 using base_timer = std::chrono::steady_clock;
 using base_time_point = std::chrono::time_point<base_timer>;
 
-class StandardWallClock : public WallClock {
+class StandardWallClock final : public WallClock {
 public:
-    StandardWallClock(u64 emulated_cpu_frequency, u64 emulated_clock_frequency)
-        : WallClock(emulated_cpu_frequency, emulated_clock_frequency, false) {
+    explicit StandardWallClock(u64 emulated_cpu_frequency_, u64 emulated_clock_frequency_)
+        : WallClock(emulated_cpu_frequency_, emulated_clock_frequency_, false) {
         start_time = base_timer::now();
     }
 
@@ -53,7 +53,7 @@ public:
         return Common::Divide128On32(temporary, 1000000000).first;
     }
 
-    void Pause(bool is_paused) override {
+    void Pause([[maybe_unused]] bool is_paused) override {
         // Do nothing in this clock type.
     }
 

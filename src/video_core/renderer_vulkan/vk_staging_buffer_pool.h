@@ -10,11 +10,11 @@
 #include "common/common_types.h"
 
 #include "video_core/renderer_vulkan/vk_memory_manager.h"
-#include "video_core/renderer_vulkan/wrapper.h"
+#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
 
-class VKDevice;
+class Device;
 class VKScheduler;
 
 struct VKBuffer final {
@@ -24,7 +24,7 @@ struct VKBuffer final {
 
 class VKStagingBufferPool final {
 public:
-    explicit VKStagingBufferPool(const VKDevice& device, VKMemoryManager& memory_manager,
+    explicit VKStagingBufferPool(const Device& device, VKMemoryManager& memory_manager,
                                  VKScheduler& scheduler);
     ~VKStagingBufferPool();
 
@@ -58,7 +58,7 @@ private:
 
     u64 ReleaseLevel(StagingBuffersCache& cache, std::size_t log2);
 
-    const VKDevice& device;
+    const Device& device;
     VKMemoryManager& memory_manager;
     VKScheduler& scheduler;
 

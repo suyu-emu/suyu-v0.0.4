@@ -5,9 +5,11 @@
 #pragma once
 
 #include <cstddef>
+#include <mutex>
 #include <string>
 #include <boost/container/flat_map.hpp>
 #include "common/common_types.h"
+#include "common/spin_lock.h"
 #include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/kernel/object.h"
 
@@ -29,7 +31,11 @@ namespace Service {
 
 namespace FileSystem {
 class FileSystemController;
-} // namespace FileSystem
+}
+
+namespace NVFlinger {
+class NVFlinger;
+}
 
 namespace SM {
 class ServiceManager;
@@ -64,17 +70,23 @@ public:
     void InstallAsService(SM::ServiceManager& service_manager);
     /// Creates a port pair and registers it on the kernel's global port registry.
     void InstallAsNamedPort(Kernel::KernelCore& kernel);
-    /// Creates and returns an unregistered port for the service.
-    std::shared_ptr<Kernel::ClientPort> CreatePort(Kernel::KernelCore& kernel);
-
+    /// Invokes a service request routine.
     void InvokeRequest(Kernel::HLERequestContext& ctx);
-
+    /// Handles a synchronization request for the service.
     ResultCode HandleSyncRequest(Kernel::HLERequestContext& context) override;
 
 protected:
     /// Member-function pointer type of SyncRequest handlers.
     template <typename Self>
     using HandlerFnP = void (Self::*)(Kernel::HLERequestContext&);
+
+    /// Used to gain exclusive access to the service members, e.g. from CoreTiming thread.
+    [[nodiscard]] std::scoped_lock<Common::SpinLock> LockService() {
+        return std::scoped_lock{lock_service};
+    }
+
+    /// System context that the service operates under.
+    Core::System& system;
 
 private:
     template <typename T>
@@ -89,7 +101,8 @@ private:
     using InvokerFn = void(ServiceFrameworkBase* object, HandlerFnP<ServiceFrameworkBase> member,
                            Kernel::HLERequestContext& ctx);
 
-    ServiceFrameworkBase(const char* service_name, u32 max_sessions, InvokerFn* handler_invoker);
+    explicit ServiceFrameworkBase(Core::System& system_, const char* service_name_,
+                                  u32 max_sessions_, InvokerFn* handler_invoker_);
     ~ServiceFrameworkBase() override;
 
     void RegisterHandlersBase(const FunctionInfoBase* functions, std::size_t n);
@@ -107,6 +120,9 @@ private:
     /// Function used to safely up-cast pointers to the derived class before invoking a handler.
     InvokerFn* handler_invoker;
     boost::container::flat_map<u32, FunctionInfoBase> handlers;
+
+    /// Used to gain exclusive access to the service members, e.g. from CoreTiming thread.
+    Common::SpinLock lock_service;
 };
 
 /**
@@ -147,11 +163,15 @@ protected:
 
     /**
      * Initializes the handler with no functions installed.
-     * @param max_sessions Maximum number of sessions that can be
-     * connected to this service at the same time.
+     *
+     * @param system_       The system context to construct this service under.
+     * @param service_name_ Name of the service.
+     * @param max_sessions_ Maximum number of sessions that can be
+     *                      connected to this service at the same time.
      */
-    explicit ServiceFramework(const char* service_name, u32 max_sessions = DefaultMaxSessions)
-        : ServiceFrameworkBase(service_name, max_sessions, Invoker) {}
+    explicit ServiceFramework(Core::System& system_, const char* service_name_,
+                              u32 max_sessions_ = DefaultMaxSessions)
+        : ServiceFrameworkBase(system_, service_name_, max_sessions_, Invoker) {}
 
     /// Registers handlers in the service.
     template <std::size_t N>
@@ -181,10 +201,17 @@ private:
     }
 };
 
-/// Initialize ServiceManager
-void Init(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system);
+/**
+ * The purpose of this class is to own any objects that need to be shared across the other service
+ * implementations. Will be torn down when the global system instance is shutdown.
+ */
+class Services final {
+public:
+    explicit Services(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system);
+    ~Services();
 
-/// Shutdown ServiceManager
-void Shutdown();
+private:
+    std::unique_ptr<NVFlinger::NVFlinger> nv_flinger;
+};
 
 } // namespace Service

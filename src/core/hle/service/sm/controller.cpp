@@ -48,7 +48,7 @@ void Controller::QueryPointerBufferSize(Kernel::HLERequestContext& ctx) {
 }
 
 // https://switchbrew.org/wiki/IPC_Marshalling
-Controller::Controller() : ServiceFramework("IpcController") {
+Controller::Controller(Core::System& system_) : ServiceFramework{system_, "IpcController"} {
     static const FunctionInfo functions[] = {
         {0, &Controller::ConvertCurrentObjectToDomain, "ConvertCurrentObjectToDomain"},
         {1, nullptr, "CopyFromCurrentDomain"},

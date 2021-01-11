@@ -7,11 +7,11 @@
 #include <utility>
 #include <vector>
 
-#include "video_core/renderer_vulkan/vk_device.h"
 #include "video_core/renderer_vulkan/vk_query_cache.h"
 #include "video_core/renderer_vulkan/vk_resource_pool.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
-#include "video_core/renderer_vulkan/wrapper.h"
+#include "video_core/vulkan_common/vulkan_device.h"
+#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
 
@@ -27,7 +27,7 @@ constexpr VkQueryType GetTarget(QueryType type) {
 
 } // Anonymous namespace
 
-QueryPool::QueryPool(const VKDevice& device_, VKScheduler& scheduler, QueryType type_)
+QueryPool::QueryPool(const Device& device_, VKScheduler& scheduler, QueryType type_)
     : ResourcePool{scheduler.GetMasterSemaphore(), GROW_STEP}, device{device_}, type{type_} {}
 
 QueryPool::~QueryPool() = default;
@@ -66,15 +66,13 @@ void QueryPool::Reserve(std::pair<VkQueryPool, u32> query) {
     usage[pool_index * GROW_STEP + static_cast<std::ptrdiff_t>(query.second)] = false;
 }
 
-VKQueryCache::VKQueryCache(VideoCore::RasterizerInterface& rasterizer,
-                           Tegra::Engines::Maxwell3D& maxwell3d, Tegra::MemoryManager& gpu_memory,
-                           const VKDevice& device, VKScheduler& scheduler)
-    : VideoCommon::QueryCacheBase<VKQueryCache, CachedQuery, CounterStream,
-                                  HostCounter>{rasterizer, maxwell3d, gpu_memory},
-      device{device}, scheduler{scheduler}, query_pools{
-                                                QueryPool{device, scheduler,
-                                                          QueryType::SamplesPassed},
-                                            } {}
+VKQueryCache::VKQueryCache(VideoCore::RasterizerInterface& rasterizer_,
+                           Tegra::Engines::Maxwell3D& maxwell3d_, Tegra::MemoryManager& gpu_memory_,
+                           const Device& device_, VKScheduler& scheduler_)
+    : QueryCacheBase{rasterizer_, maxwell3d_, gpu_memory_}, device{device_}, scheduler{scheduler_},
+      query_pools{
+          QueryPool{device_, scheduler_, QueryType::SamplesPassed},
+      } {}
 
 VKQueryCache::~VKQueryCache() {
     // TODO(Rodrigo): This is a hack to destroy all HostCounter instances before the base class
@@ -95,12 +93,12 @@ void VKQueryCache::Reserve(QueryType type, std::pair<VkQueryPool, u32> query) {
     query_pools[static_cast<std::size_t>(type)].Reserve(query);
 }
 
-HostCounter::HostCounter(VKQueryCache& cache, std::shared_ptr<HostCounter> dependency,
-                         QueryType type)
-    : VideoCommon::HostCounterBase<VKQueryCache, HostCounter>{std::move(dependency)}, cache{cache},
-      type{type}, query{cache.AllocateQuery(type)}, tick{cache.Scheduler().CurrentTick()} {
-    const vk::Device* logical = &cache.Device().GetLogical();
-    cache.Scheduler().Record([logical, query = query](vk::CommandBuffer cmdbuf) {
+HostCounter::HostCounter(VKQueryCache& cache_, std::shared_ptr<HostCounter> dependency_,
+                         QueryType type_)
+    : HostCounterBase{std::move(dependency_)}, cache{cache_}, type{type_},
+      query{cache_.AllocateQuery(type_)}, tick{cache_.GetScheduler().CurrentTick()} {
+    const vk::Device* logical = &cache.GetDevice().GetLogical();
+    cache.GetScheduler().Record([logical, query = query](vk::CommandBuffer cmdbuf) {
         logical->ResetQueryPoolEXT(query.first, query.second, 1);
         cmdbuf.BeginQuery(query.first, query.second, VK_QUERY_CONTROL_PRECISE_BIT);
     });
@@ -111,26 +109,28 @@ HostCounter::~HostCounter() {
 }
 
 void HostCounter::EndQuery() {
-    cache.Scheduler().Record(
+    cache.GetScheduler().Record(
         [query = query](vk::CommandBuffer cmdbuf) { cmdbuf.EndQuery(query.first, query.second); });
 }
 
 u64 HostCounter::BlockingQuery() const {
-    if (tick >= cache.Scheduler().CurrentTick()) {
-        cache.Scheduler().Flush();
+    if (tick >= cache.GetScheduler().CurrentTick()) {
+        cache.GetScheduler().Flush();
     }
+
     u64 data;
-    const VkResult result = cache.Device().GetLogical().GetQueryResults(
+    const VkResult query_result = cache.GetDevice().GetLogical().GetQueryResults(
         query.first, query.second, 1, sizeof(data), &data, sizeof(data),
         VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
-    switch (result) {
+
+    switch (query_result) {
     case VK_SUCCESS:
         return data;
     case VK_ERROR_DEVICE_LOST:
-        cache.Device().ReportLoss();
+        cache.GetDevice().ReportLoss();
         [[fallthrough]];
     default:
-        throw vk::Exception(result);
+        throw vk::Exception(query_result);
     }
 }
 

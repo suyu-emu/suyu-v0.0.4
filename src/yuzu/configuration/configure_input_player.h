@@ -9,6 +9,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include <QWidget>
 
@@ -25,6 +26,8 @@ class QSpinBox;
 class QString;
 class QTimer;
 class QWidget;
+
+class InputProfiles;
 
 namespace InputCommon {
 class InputSubsystem;
@@ -45,23 +48,38 @@ class ConfigureInputPlayer : public QWidget {
 public:
     explicit ConfigureInputPlayer(QWidget* parent, std::size_t player_index, QWidget* bottom_row,
                                   InputCommon::InputSubsystem* input_subsystem_,
-                                  bool debug = false);
+                                  InputProfiles* profiles_, bool debug = false);
     ~ConfigureInputPlayer() override;
 
     /// Save all button configurations to settings file.
     void ApplyConfiguration();
 
+    /**
+     * Attempts to connect the currently selected controller in the HID backend.
+     * This function will not do anything if it is not connected in the frontend.
+     */
+    void TryConnectSelectedController();
+
+    /**
+     * Attempts to disconnect the currently selected controller in the HID backend.
+     * This function will not do anything if the configuration has not changed.
+     */
+    void TryDisconnectSelectedController();
+
+    /// Set the connection state checkbox (used to sync state).
+    void ConnectPlayer(bool connected);
+
     /// Update the input devices combobox.
-    void UpdateInputDevices();
+    void UpdateInputDeviceCombobox();
+
+    /// Updates the list of controller profiles.
+    void UpdateInputProfiles();
 
     /// Restore all buttons to their default values.
     void RestoreDefaults();
 
     /// Clear all input configuration.
     void ClearAll();
-
-    /// Set the connection state checkbox (used to sync state).
-    void ConnectPlayer(bool connected);
 
 signals:
     /// Emitted when this controller is connected by the user.
@@ -70,6 +88,12 @@ signals:
     void HandheldStateChanged(bool is_handheld);
     /// Emitted when the input devices combobox is being refreshed.
     void RefreshInputDevices();
+    /**
+     * Emitted when the input profiles combobox is being refreshed.
+     * The player_index represents the current player's index, and the profile combobox
+     * will not be updated for this index as they are already updated by other mechanisms.
+     */
+    void RefreshInputProfiles(std::size_t player_index);
 
 protected:
     void showEvent(QShowEvent* event) override;
@@ -89,6 +113,9 @@ private:
     /// Finish polling and configure input using the input_setter.
     void SetPollingResult(const Common::ParamPackage& params, bool abort);
 
+    /// Checks whether a given input can be accepted.
+    bool IsInputAcceptable(const Common::ParamPackage& params) const;
+
     /// Handle mouse button press events.
     void mousePressEvent(QMouseEvent* event) override;
 
@@ -98,8 +125,17 @@ private:
     /// Update UI to reflect current configuration.
     void UpdateUI();
 
-    /// Update the controller selection combobox
-    void UpdateControllerCombobox();
+    /// Sets the available controllers.
+    void SetConnectableControllers();
+
+    /// Gets the Controller Type for a given controller combobox index.
+    Settings::ControllerType GetControllerTypeFromIndex(int index) const;
+
+    /// Gets the controller combobox index for a given Controller Type.
+    int GetIndexFromControllerType(Settings::ControllerType type) const;
+
+    /// Update the available input devices.
+    void UpdateInputDevices();
 
     /// Update the current controller icon.
     void UpdateControllerIcon();
@@ -113,6 +149,18 @@ private:
     /// Gets the default controller mapping for this device and auto configures the input to match.
     void UpdateMappingWithDefaults();
 
+    /// Creates a controller profile.
+    void CreateProfile();
+
+    /// Deletes the selected controller profile.
+    void DeleteProfile();
+
+    /// Loads the selected controller profile.
+    void LoadProfile();
+
+    /// Saves the current controller configuration into a selected controller profile.
+    void SaveProfile();
+
     std::unique_ptr<Ui::ConfigureInputPlayer> ui;
 
     std::size_t player_index;
@@ -120,8 +168,13 @@ private:
 
     InputCommon::InputSubsystem* input_subsystem;
 
+    InputProfiles* profiles;
+
     std::unique_ptr<QTimer> timeout_timer;
     std::unique_ptr<QTimer> poll_timer;
+
+    /// Stores a pair of "Connected Controllers" combobox index and Controller Type enum.
+    std::vector<std::pair<int, Settings::ControllerType>> index_controller_type_pairs;
 
     static constexpr int PLAYER_COUNT = 8;
     std::array<QCheckBox*, PLAYER_COUNT> player_connected_checkbox;
@@ -131,26 +184,25 @@ private:
 
     std::array<Common::ParamPackage, Settings::NativeButton::NumButtons> buttons_param;
     std::array<Common::ParamPackage, Settings::NativeAnalog::NumAnalogs> analogs_param;
-    std::array<Common::ParamPackage, Settings::NativeAnalog::NumAnalogs> stick_mod_param;
     std::array<Common::ParamPackage, Settings::NativeMotion::NumMotions> motions_param;
 
     static constexpr int ANALOG_SUB_BUTTONS_NUM = 4;
 
     /// Each button input is represented by a QPushButton.
     std::array<QPushButton*, Settings::NativeButton::NumButtons> button_map;
-    /// Each motion input is represented by a QPushButton.
-    std::array<QPushButton*, Settings::NativeMotion::NumMotions> motion_map;
-    /// Extra buttons for the modifiers.
-    std::array<QPushButton*, Settings::NativeAnalog::NumAnalogs> mod_buttons;
 
     /// A group of four QPushButtons represent one analog input. The buttons each represent up,
     /// down, left, right, respectively.
     std::array<std::array<QPushButton*, ANALOG_SUB_BUTTONS_NUM>, Settings::NativeAnalog::NumAnalogs>
         analog_map_buttons;
 
+    /// Each motion input is represented by a QPushButton.
+    std::array<QPushButton*, Settings::NativeMotion::NumMotions> motion_map;
+
     std::array<QLabel*, Settings::NativeAnalog::NumAnalogs> analog_map_deadzone_label;
     std::array<QSlider*, Settings::NativeAnalog::NumAnalogs> analog_map_deadzone_slider;
     std::array<QGroupBox*, Settings::NativeAnalog::NumAnalogs> analog_map_modifier_groupbox;
+    std::array<QPushButton*, Settings::NativeAnalog::NumAnalogs> analog_map_modifier_button;
     std::array<QLabel*, Settings::NativeAnalog::NumAnalogs> analog_map_modifier_label;
     std::array<QSlider*, Settings::NativeAnalog::NumAnalogs> analog_map_modifier_slider;
     std::array<QGroupBox*, Settings::NativeAnalog::NumAnalogs> analog_map_range_groupbox;
@@ -160,12 +212,15 @@ private:
 
     std::vector<std::unique_ptr<InputCommon::Polling::DevicePoller>> device_pollers;
 
+    /// A flag to indicate that the "Map Analog Stick" pop-up has been shown and accepted once.
+    bool map_analog_stick_accepted{};
+
     /// A flag to indicate if keyboard keys are okay when configuring an input. If this is false,
     /// keyboard events are ignored.
-    bool want_keyboard_mouse = false;
+    bool want_keyboard_mouse{};
 
     /// List of physical devices users can map with. If a SDL backed device is selected, then you
-    /// can usue this device to get a default mapping.
+    /// can use this device to get a default mapping.
     std::vector<Common::ParamPackage> input_devices;
 
     /// Bottom row is where console wide settings are held, and its "owned" by the parent

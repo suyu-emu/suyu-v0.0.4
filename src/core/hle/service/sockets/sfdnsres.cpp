@@ -7,25 +7,7 @@
 
 namespace Service::Sockets {
 
-void SFDNSRES::GetAddrInfoRequest(Kernel::HLERequestContext& ctx) {
-    struct Parameters {
-        u8 use_nsd_resolve;
-        u32 unknown;
-        u64 process_id;
-    };
-
-    IPC::RequestParser rp{ctx};
-    const auto parameters = rp.PopRaw<Parameters>();
-
-    LOG_WARNING(Service,
-                "(STUBBED) called. use_nsd_resolve={}, unknown=0x{:08X}, process_id=0x{:016X}",
-                parameters.use_nsd_resolve, parameters.unknown, parameters.process_id);
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
-}
-
-SFDNSRES::SFDNSRES() : ServiceFramework("sfdnsres") {
+SFDNSRES::SFDNSRES(Core::System& system_) : ServiceFramework{system_, "sfdnsres"} {
     static const FunctionInfo functions[] = {
         {0, nullptr, "SetDnsAddressesPrivate"},
         {1, nullptr, "GetDnsAddressPrivate"},
@@ -48,5 +30,23 @@ SFDNSRES::SFDNSRES() : ServiceFramework("sfdnsres") {
 }
 
 SFDNSRES::~SFDNSRES() = default;
+
+void SFDNSRES::GetAddrInfoRequest(Kernel::HLERequestContext& ctx) {
+    struct Parameters {
+        u8 use_nsd_resolve;
+        u32 unknown;
+        u64 process_id;
+    };
+
+    IPC::RequestParser rp{ctx};
+    const auto parameters = rp.PopRaw<Parameters>();
+
+    LOG_WARNING(Service,
+                "(STUBBED) called. use_nsd_resolve={}, unknown=0x{:08X}, process_id=0x{:016X}",
+                parameters.use_nsd_resolve, parameters.unknown, parameters.process_id);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
 
 } // namespace Service::Sockets

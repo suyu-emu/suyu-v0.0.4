@@ -19,8 +19,8 @@ namespace VideoCore {
 class GuestDriverProfile {
 public:
     explicit GuestDriverProfile() = default;
-    explicit GuestDriverProfile(std::optional<u32> texture_handler_size)
-        : texture_handler_size{texture_handler_size} {}
+    explicit GuestDriverProfile(std::optional<u32> texture_handler_size_)
+        : texture_handler_size{texture_handler_size_} {}
 
     void DeduceTextureHandlerSize(std::vector<u32> bound_offsets);
 

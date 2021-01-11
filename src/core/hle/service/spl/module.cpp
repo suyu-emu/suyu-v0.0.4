@@ -17,8 +17,9 @@
 
 namespace Service::SPL {
 
-Module::Interface::Interface(std::shared_ptr<Module> module, const char* name)
-    : ServiceFramework(name), module(std::move(module)),
+Module::Interface::Interface(Core::System& system_, std::shared_ptr<Module> module_,
+                             const char* name)
+    : ServiceFramework{system_, name}, module{std::move(module_)},
       rng(Settings::values.rng_seed.GetValue().value_or(std::time(nullptr))) {}
 
 Module::Interface::~Interface() = default;
@@ -38,10 +39,10 @@ void Module::Interface::GetRandomBytes(Kernel::HLERequestContext& ctx) {
     rb.Push(RESULT_SUCCESS);
 }
 
-void InstallInterfaces(SM::ServiceManager& service_manager) {
+void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system) {
     auto module = std::make_shared<Module>();
-    std::make_shared<CSRNG>(module)->InstallAsService(service_manager);
-    std::make_shared<SPL>(module)->InstallAsService(service_manager);
+    std::make_shared<CSRNG>(system, module)->InstallAsService(service_manager);
+    std::make_shared<SPL>(system, module)->InstallAsService(service_manager);
 }
 
 } // namespace Service::SPL

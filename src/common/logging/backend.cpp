@@ -23,6 +23,7 @@
 #include "common/logging/text_formatter.h"
 #include "common/string_util.h"
 #include "common/threadsafe_queue.h"
+#include "core/settings.h"
 
 namespace Log {
 
@@ -152,10 +153,19 @@ FileBackend::FileBackend(const std::string& filename)
 void FileBackend::Write(const Entry& entry) {
     // prevent logs from going over the maximum size (in case its spamming and the user doesn't
     // know)
-    constexpr std::size_t MAX_BYTES_WRITTEN = 50 * 1024L * 1024L;
-    if (!file.IsOpen() || bytes_written > MAX_BYTES_WRITTEN) {
+    constexpr std::size_t MAX_BYTES_WRITTEN = 100 * 1024 * 1024;
+    constexpr std::size_t MAX_BYTES_WRITTEN_EXTENDED = 1024 * 1024 * 1024;
+
+    if (!file.IsOpen()) {
         return;
     }
+
+    if (Settings::values.extended_logging && bytes_written > MAX_BYTES_WRITTEN_EXTENDED) {
+        return;
+    } else if (!Settings::values.extended_logging && bytes_written > MAX_BYTES_WRITTEN) {
+        return;
+    }
+
     bytes_written += file.WriteString(FormatLogMessage(entry).append(1, '\n'));
     if (entry.log_level >= Level::Error) {
         file.Flush();
@@ -222,6 +232,7 @@ void DebuggerBackend::Write(const Entry& entry) {
     SUB(Service, NPNS)                                                                             \
     SUB(Service, NS)                                                                               \
     SUB(Service, NVDRV)                                                                            \
+    SUB(Service, OLSC)                                                                             \
     SUB(Service, PCIE)                                                                             \
     SUB(Service, PCTL)                                                                             \
     SUB(Service, PCV)                                                                              \
@@ -274,7 +285,6 @@ const char* GetLogClassName(Class log_class) {
     case Class::Count:
         break;
     }
-    UNREACHABLE();
     return "Invalid";
 }
 
@@ -293,7 +303,6 @@ const char* GetLevelName(Level log_level) {
         break;
     }
 #undef LVL
-    UNREACHABLE();
     return "Invalid";
 }
 

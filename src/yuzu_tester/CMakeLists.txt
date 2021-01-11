@@ -28,7 +28,5 @@ endif()
 
 if (MSVC)
     include(CopyYuzuSDLDeps)
-    include(CopyYuzuUnicornDeps)
     copy_yuzu_SDL_deps(yuzu-tester)
-    copy_yuzu_unicorn_deps(yuzu-tester)
 endif()

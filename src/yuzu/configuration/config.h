@@ -16,11 +16,23 @@ class QSettings;
 
 class Config {
 public:
-    explicit Config(const std::string& config_loc = "qt-config.ini", bool is_global = true);
+    enum class ConfigType {
+        GlobalConfig,
+        PerGameConfig,
+        InputProfile,
+    };
+
+    explicit Config(const std::string& config_name = "qt-config",
+                    ConfigType config_type = ConfigType::GlobalConfig);
     ~Config();
 
     void Reload();
     void Save();
+
+    void ReadControlPlayerValue(std::size_t player_index);
+    void SaveControlPlayerValue(std::size_t player_index);
+
+    const std::string& GetConfigFilePath() const;
 
     static const std::array<int, Settings::NativeButton::NumButtons> default_buttons;
     static const std::array<int, Settings::NativeMotion::NumMotions> default_motions;
@@ -33,8 +45,10 @@ public:
     static const std::array<UISettings::Shortcut, 16> default_hotkeys;
 
 private:
+    void Initialize(const std::string& config_name);
+
     void ReadValues();
-    void ReadPlayerValues();
+    void ReadPlayerValue(std::size_t player_index);
     void ReadDebugValues();
     void ReadKeyboardValues();
     void ReadMouseValues();
@@ -62,7 +76,7 @@ private:
     void ReadWebServiceValues();
 
     void SaveValues();
-    void SavePlayerValues();
+    void SavePlayerValue(std::size_t player_index);
     void SaveDebugValues();
     void SaveMouseValues();
     void SaveTouchscreenValues();
@@ -111,9 +125,9 @@ private:
     void WriteSettingGlobal(const QString& name, const QVariant& value, bool use_global,
                             const QVariant& default_value);
 
+    ConfigType type;
     std::unique_ptr<QSettings> qt_config;
     std::string qt_config_loc;
-
     bool global;
 };
 

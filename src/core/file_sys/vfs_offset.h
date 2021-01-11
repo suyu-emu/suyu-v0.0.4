@@ -17,14 +17,14 @@ namespace FileSys {
 // the size of this wrapper.
 class OffsetVfsFile : public VfsFile {
 public:
-    OffsetVfsFile(std::shared_ptr<VfsFile> file, std::size_t size, std::size_t offset = 0,
+    OffsetVfsFile(VirtualFile file, std::size_t size, std::size_t offset = 0,
                   std::string new_name = "", VirtualDir new_parent = nullptr);
     ~OffsetVfsFile() override;
 
     std::string GetName() const override;
     std::size_t GetSize() const override;
     bool Resize(std::size_t new_size) override;
-    std::shared_ptr<VfsDirectory> GetContainingDirectory() const override;
+    VirtualDir GetContainingDirectory() const override;
     bool IsWritable() const override;
     bool IsReadable() const override;
     std::size_t Read(u8* data, std::size_t length, std::size_t offset) const override;
@@ -42,7 +42,7 @@ public:
 private:
     std::size_t TrimToFit(std::size_t r_size, std::size_t r_offset) const;
 
-    std::shared_ptr<VfsFile> file;
+    VirtualFile file;
     std::size_t offset;
     std::size_t size;
     std::string name;

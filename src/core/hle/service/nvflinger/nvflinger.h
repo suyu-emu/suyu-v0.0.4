@@ -75,10 +75,7 @@ public:
     [[nodiscard]] std::shared_ptr<Kernel::ReadableEvent> FindVsyncEvent(u64 display_id) const;
 
     /// Obtains a buffer queue identified by the ID.
-    [[nodiscard]] BufferQueue& FindBufferQueue(u32 id);
-
-    /// Obtains a buffer queue identified by the ID.
-    [[nodiscard]] const BufferQueue& FindBufferQueue(u32 id) const;
+    [[nodiscard]] BufferQueue* FindBufferQueue(u32 id);
 
     /// Performs a composition request to the emulated nvidia GPU and triggers the vsync events when
     /// finished.
@@ -86,11 +83,11 @@ public:
 
     [[nodiscard]] s64 GetNextTicks() const;
 
+private:
     [[nodiscard]] std::unique_lock<std::mutex> Lock() const {
         return std::unique_lock{*guard};
     }
 
-private:
     /// Finds the display identified by the specified ID.
     [[nodiscard]] VI::Display* FindDisplay(u64 display_id);
 
@@ -110,7 +107,7 @@ private:
     std::shared_ptr<Nvidia::Module> nvdrv;
 
     std::vector<VI::Display> displays;
-    std::vector<BufferQueue> buffer_queues;
+    std::vector<std::unique_ptr<BufferQueue>> buffer_queues;
 
     /// Id to use for the next layer that is created, this counter is shared among all displays.
     u64 next_layer_id = 1;

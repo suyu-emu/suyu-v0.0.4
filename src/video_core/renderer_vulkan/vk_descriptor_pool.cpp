@@ -6,10 +6,10 @@
 
 #include "common/common_types.h"
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
-#include "video_core/renderer_vulkan/vk_device.h"
 #include "video_core/renderer_vulkan/vk_resource_pool.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
-#include "video_core/renderer_vulkan/wrapper.h"
+#include "video_core/vulkan_common/vulkan_device.h"
+#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
 
@@ -32,7 +32,7 @@ void DescriptorAllocator::Allocate(std::size_t begin, std::size_t end) {
     descriptors_allocations.push_back(descriptor_pool.AllocateDescriptors(layout, end - begin));
 }
 
-VKDescriptorPool::VKDescriptorPool(const VKDevice& device_, VKScheduler& scheduler)
+VKDescriptorPool::VKDescriptorPool(const Device& device_, VKScheduler& scheduler)
     : device{device_}, master_semaphore{scheduler.GetMasterSemaphore()}, active_pool{
                                                                              AllocateNewPool()} {}
 

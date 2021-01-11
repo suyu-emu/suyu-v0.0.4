@@ -143,6 +143,7 @@ u64 GetSignatureTypeDataSize(SignatureType type) {
         return 0x3C;
     }
     UNREACHABLE();
+    return 0;
 }
 
 u64 GetSignatureTypePaddingSize(SignatureType type) {
@@ -157,6 +158,7 @@ u64 GetSignatureTypePaddingSize(SignatureType type) {
         return 0x40;
     }
     UNREACHABLE();
+    return 0;
 }
 
 SignatureType Ticket::GetSignatureType() const {
@@ -169,8 +171,7 @@ SignatureType Ticket::GetSignatureType() const {
     if (const auto* ticket = std::get_if<ECDSATicket>(&data)) {
         return ticket->sig_type;
     }
-
-    UNREACHABLE();
+    throw std::bad_variant_access{};
 }
 
 TicketData& Ticket::GetData() {
@@ -183,8 +184,7 @@ TicketData& Ticket::GetData() {
     if (auto* ticket = std::get_if<ECDSATicket>(&data)) {
         return ticket->data;
     }
-
-    UNREACHABLE();
+    throw std::bad_variant_access{};
 }
 
 const TicketData& Ticket::GetData() const {
@@ -197,8 +197,7 @@ const TicketData& Ticket::GetData() const {
     if (const auto* ticket = std::get_if<ECDSATicket>(&data)) {
         return ticket->data;
     }
-
-    UNREACHABLE();
+    throw std::bad_variant_access{};
 }
 
 u64 Ticket::GetSize() const {
@@ -411,7 +410,7 @@ Loader::ResultStatus DeriveSDKeys(std::array<Key256, 2>& sd_keys, KeyManager& ke
     // Combine sources and seed
     for (auto& source : sd_key_sources) {
         for (std::size_t i = 0; i < source.size(); ++i) {
-            source[i] ^= sd_seed[i & 0xF];
+            source[i] = static_cast<u8>(source[i] ^ sd_seed[i & 0xF]);
         }
     }
 

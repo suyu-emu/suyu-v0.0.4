@@ -22,18 +22,19 @@ namespace OpenGL {
 class Device;
 class OGLStreamBuffer;
 class RasterizerOpenGL;
+class StateTracker;
 
 class Buffer : public VideoCommon::BufferBlock {
 public:
-    explicit Buffer(const Device& device, VAddr cpu_addr, std::size_t size);
+    explicit Buffer(const Device& device_, VAddr cpu_addr_, std::size_t size_);
     ~Buffer();
 
-    void Upload(std::size_t offset, std::size_t size, const u8* data);
+    void Upload(std::size_t offset, std::size_t data_size, const u8* data);
 
-    void Download(std::size_t offset, std::size_t size, u8* data);
+    void Download(std::size_t offset, std::size_t data_size, u8* data);
 
     void CopyFrom(const Buffer& src, std::size_t src_offset, std::size_t dst_offset,
-                  std::size_t size);
+                  std::size_t copy_size);
 
     GLuint Handle() const noexcept {
         return gl_buffer.handle;
@@ -54,7 +55,8 @@ class OGLBufferCache final : public GenericBufferCache {
 public:
     explicit OGLBufferCache(VideoCore::RasterizerInterface& rasterizer,
                             Tegra::MemoryManager& gpu_memory, Core::Memory::Memory& cpu_memory,
-                            const Device& device, std::size_t stream_size);
+                            const Device& device, OGLStreamBuffer& stream_buffer,
+                            StateTracker& state_tracker);
     ~OGLBufferCache();
 
     BufferInfo GetEmptyBuffer(std::size_t) override;

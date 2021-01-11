@@ -28,19 +28,18 @@ public:
     struct InParams {
         u64_le address{};
         u64_le size{};
-        ServerMemoryPoolInfo::State state{};
+        State state{};
         INSERT_PADDING_WORDS(3);
     };
-    static_assert(sizeof(ServerMemoryPoolInfo::InParams) == 0x20, "InParams are an invalid size");
+    static_assert(sizeof(InParams) == 0x20, "InParams are an invalid size");
 
     struct OutParams {
-        ServerMemoryPoolInfo::State state{};
+        State state{};
         INSERT_PADDING_WORDS(3);
     };
-    static_assert(sizeof(ServerMemoryPoolInfo::OutParams) == 0x10, "OutParams are an invalid size");
+    static_assert(sizeof(OutParams) == 0x10, "OutParams are an invalid size");
 
-    bool Update(const ServerMemoryPoolInfo::InParams& in_params,
-                ServerMemoryPoolInfo::OutParams& out_params);
+    bool Update(const InParams& in_params, OutParams& out_params);
 
 private:
     // There's another entry here which is the DSP address, however since we're not talking to the

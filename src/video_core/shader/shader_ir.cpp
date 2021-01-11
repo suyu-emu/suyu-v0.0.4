@@ -25,9 +25,10 @@ using Tegra::Shader::PredCondition;
 using Tegra::Shader::PredOperation;
 using Tegra::Shader::Register;
 
-ShaderIR::ShaderIR(const ProgramCode& program_code, u32 main_offset, CompilerSettings settings,
-                   Registry& registry)
-    : program_code{program_code}, main_offset{main_offset}, settings{settings}, registry{registry} {
+ShaderIR::ShaderIR(const ProgramCode& program_code_, u32 main_offset_, CompilerSettings settings_,
+                   Registry& registry_)
+    : program_code{program_code_}, main_offset{main_offset_}, settings{settings_}, registry{
+                                                                                       registry_} {
     Decode();
     PostDecode();
 }
@@ -170,7 +171,7 @@ Node ShaderIR::ConvertIntegerSize(Node value, Register::Size size, bool is_signe
         // Default - do nothing
         return value;
     default:
-        UNREACHABLE_MSG("Unimplemented conversion size: {}", static_cast<u32>(size));
+        UNREACHABLE_MSG("Unimplemented conversion size: {}", size);
         return value;
     }
 }
@@ -335,15 +336,15 @@ OperationCode ShaderIR::GetPredicateCombiner(PredOperation operation) {
     return operation_table[index];
 }
 
-Node ShaderIR::GetConditionCode(Tegra::Shader::ConditionCode cc) const {
+Node ShaderIR::GetConditionCode(ConditionCode cc) const {
     switch (cc) {
-    case Tegra::Shader::ConditionCode::NEU:
+    case ConditionCode::NEU:
         return GetInternalFlag(InternalFlag::Zero, true);
-    case Tegra::Shader::ConditionCode::FCSM_TR:
+    case ConditionCode::FCSM_TR:
         UNIMPLEMENTED_MSG("EXIT.FCSM_TR is not implemented");
         return MakeNode<PredicateNode>(Pred::NeverExecute, false);
     default:
-        UNIMPLEMENTED_MSG("Unimplemented condition code: {}", static_cast<u32>(cc));
+        UNIMPLEMENTED_MSG("Unimplemented condition code: {}", cc);
         return MakeNode<PredicateNode>(Pred::NeverExecute, false);
     }
 }
@@ -496,8 +497,8 @@ void ShaderIR::MarkAttributeUsage(Attribute::Index index, u64 element) {
 }
 
 std::size_t ShaderIR::DeclareAmend(Node new_amend) {
-    const std::size_t id = amend_code.size();
-    amend_code.push_back(new_amend);
+    const auto id = amend_code.size();
+    amend_code.push_back(std::move(new_amend));
     return id;
 }
 

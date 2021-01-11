@@ -20,8 +20,9 @@
 
 namespace Service::Fatal {
 
-Module::Interface::Interface(std::shared_ptr<Module> module, Core::System& system, const char* name)
-    : ServiceFramework(name), module(std::move(module)), system(system) {}
+Module::Interface::Interface(std::shared_ptr<Module> module_, Core::System& system_,
+                             const char* name)
+    : ServiceFramework{system_, name}, module{std::move(module_)} {}
 
 Module::Interface::~Interface() = default;
 
@@ -110,8 +111,9 @@ static void GenerateErrorReport(Core::System& system, ResultCode error_code,
 
 static void ThrowFatalError(Core::System& system, ResultCode error_code, FatalType fatal_type,
                             const FatalInfo& info) {
-    LOG_ERROR(Service_Fatal, "Threw fatal error type {} with error code 0x{:X}",
-              static_cast<u32>(fatal_type), error_code.raw);
+    LOG_ERROR(Service_Fatal, "Threw fatal error type {} with error code 0x{:X}", fatal_type,
+              error_code.raw);
+
     switch (fatal_type) {
     case FatalType::ErrorReportAndScreen:
         GenerateErrorReport(system, error_code, info);

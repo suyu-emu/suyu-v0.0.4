@@ -20,14 +20,14 @@ struct Rectangle {
 
     constexpr Rectangle() = default;
 
-    constexpr Rectangle(T left, T top, T right, T bottom)
-        : left(left), top(top), right(right), bottom(bottom) {}
+    constexpr Rectangle(T left_, T top_, T right_, T bottom_)
+        : left(left_), top(top_), right(right_), bottom(bottom_) {}
 
     [[nodiscard]] T GetWidth() const {
         if constexpr (std::is_floating_point_v<T>) {
             return std::abs(right - left);
         } else {
-            return std::abs(static_cast<std::make_signed_t<T>>(right - left));
+            return static_cast<T>(std::abs(static_cast<std::make_signed_t<T>>(right - left)));
         }
     }
 
@@ -35,7 +35,7 @@ struct Rectangle {
         if constexpr (std::is_floating_point_v<T>) {
             return std::abs(bottom - top);
         } else {
-            return std::abs(static_cast<std::make_signed_t<T>>(bottom - top));
+            return static_cast<T>(std::abs(static_cast<std::make_signed_t<T>>(bottom - top)));
         }
     }
 

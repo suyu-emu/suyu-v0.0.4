@@ -5,6 +5,7 @@
 #include <queue>
 #include "common/logging/log.h"
 #include "common/uuid.h"
+#include "core/core.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/writable_event.h"
@@ -16,7 +17,7 @@ namespace Service::Friend {
 
 class IFriendService final : public ServiceFramework<IFriendService> {
 public:
-    IFriendService() : ServiceFramework("IFriendService") {
+    explicit IFriendService(Core::System& system_) : ServiceFramework{system_, "IFriendService"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "GetCompletionEvent"},
@@ -170,8 +171,8 @@ private:
 
 class INotificationService final : public ServiceFramework<INotificationService> {
 public:
-    INotificationService(Common::UUID uuid, Core::System& system)
-        : ServiceFramework("INotificationService"), uuid(uuid) {
+    explicit INotificationService(Common::UUID uuid_, Core::System& system_)
+        : ServiceFramework{system_, "INotificationService"}, uuid{uuid_} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &INotificationService::GetEvent, "GetEvent"},
@@ -228,8 +229,7 @@ private:
             break;
         default:
             // HOS seems not have an error case for an unknown notification
-            LOG_WARNING(Service_ACC, "Unknown notification {:08X}",
-                        static_cast<u32>(notification.notification_type));
+            LOG_WARNING(Service_ACC, "Unknown notification {:08X}", notification.notification_type);
             break;
         }
 
@@ -266,7 +266,7 @@ private:
 void Module::Interface::CreateFriendService(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<IFriendService>();
+    rb.PushIpcInterface<IFriendService>(system);
     LOG_DEBUG(Service_ACC, "called");
 }
 
@@ -281,8 +281,9 @@ void Module::Interface::CreateNotificationService(Kernel::HLERequestContext& ctx
     rb.PushIpcInterface<INotificationService>(uuid, system);
 }
 
-Module::Interface::Interface(std::shared_ptr<Module> module, Core::System& system, const char* name)
-    : ServiceFramework(name), module(std::move(module)), system(system) {}
+Module::Interface::Interface(std::shared_ptr<Module> module_, Core::System& system_,
+                             const char* name)
+    : ServiceFramework{system_, name}, module{std::move(module_)} {}
 
 Module::Interface::~Interface() = default;
 

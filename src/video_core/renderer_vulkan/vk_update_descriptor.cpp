@@ -7,15 +7,15 @@
 
 #include "common/assert.h"
 #include "common/logging/log.h"
-#include "video_core/renderer_vulkan/vk_device.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
-#include "video_core/renderer_vulkan/wrapper.h"
+#include "video_core/vulkan_common/vulkan_device.h"
+#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
 
-VKUpdateDescriptorQueue::VKUpdateDescriptorQueue(const VKDevice& device, VKScheduler& scheduler)
-    : device{device}, scheduler{scheduler} {}
+VKUpdateDescriptorQueue::VKUpdateDescriptorQueue(const Device& device_, VKScheduler& scheduler_)
+    : device{device_}, scheduler{scheduler_} {}
 
 VKUpdateDescriptorQueue::~VKUpdateDescriptorQueue() = default;
 

@@ -17,11 +17,12 @@
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/hle_ipc.h"
+#include "core/hle/kernel/k_scheduler.h"
+#include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/readable_event.h"
-#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/server_session.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/time_manager.h"
@@ -43,44 +44,6 @@ void SessionRequestHandler::ClientDisconnected(
     const std::shared_ptr<ServerSession>& server_session) {
     server_session->SetHleHandler(nullptr);
     boost::range::remove_erase(connected_sessions, server_session);
-}
-
-std::shared_ptr<WritableEvent> HLERequestContext::SleepClientThread(
-    const std::string& reason, u64 timeout, WakeupCallback&& callback,
-    std::shared_ptr<WritableEvent> writable_event) {
-    // Put the client thread to sleep until the wait event is signaled or the timeout expires.
-
-    if (!writable_event) {
-        // Create event if not provided
-        const auto pair = WritableEvent::CreateEventPair(kernel, "HLE Pause Event: " + reason);
-        writable_event = pair.writable;
-    }
-
-    {
-        Handle event_handle = InvalidHandle;
-        SchedulerLockAndSleep lock(kernel, event_handle, thread.get(), timeout);
-        thread->SetHLECallback(
-            [context = *this, callback](std::shared_ptr<Thread> thread) mutable -> bool {
-                ThreadWakeupReason reason = thread->GetSignalingResult() == RESULT_TIMEOUT
-                                                ? ThreadWakeupReason::Timeout
-                                                : ThreadWakeupReason::Signal;
-                callback(thread, context, reason);
-                context.WriteToOutgoingCommandBuffer(*thread);
-                return true;
-            });
-        const auto readable_event{writable_event->GetReadableEvent()};
-        writable_event->Clear();
-        thread->SetHLESyncObject(readable_event.get());
-        thread->SetStatus(ThreadStatus::WaitHLEEvent);
-        thread->SetSynchronizationResults(nullptr, RESULT_TIMEOUT);
-        readable_event->AddWaitingThread(thread);
-        lock.Release();
-        thread->SetHLETimeEvent(event_handle);
-    }
-
-    is_thread_waiting = true;
-
-    return writable_event;
 }
 
 HLERequestContext::HLERequestContext(KernelCore& kernel, Core::Memory::Memory& memory,

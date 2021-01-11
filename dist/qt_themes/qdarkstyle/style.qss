@@ -99,10 +99,17 @@ QGroupBox::indicator:unchecked:disabled {
 }
 
 QRadioButton {
-    spacing: 5px;
-    outline: none;
     color: #eff0f1;
+    spacing: 3px;
+    padding: 0px;
+    border: none;
+    outline: none;
     margin-bottom: 2px;
+}
+
+QGroupBox QRadioButton {
+    padding-left: 0px;
+    padding-right: 7px;
 }
 
 QRadioButton:disabled {
@@ -522,13 +529,12 @@ QToolButton#qt_toolbar_ext_button {
 
 QPushButton {
     color: #eff0f1;
-    border-width: 1px;
-    border-color: #54575B;
-    border-style: solid;
-    padding: 6px 4px;
+    border: 1px solid #54575B;
     border-radius: 2px;
+    padding: 5px 0px 5px 0px;
     outline: none;
     min-width: 100px;
+    min-height: 13px;
     background-color: #232629;
 }
 
@@ -553,8 +559,9 @@ QComboBox {
     selection-background-color: #3daee9;
     border: 1px solid #54575B;
     border-radius: 2px;
-    padding: 4px 6px;
-    min-width: 75px;
+    padding: 0px 4px 0px 4px;
+    min-width: 60px;
+    min-height: 23px;
     background-color: #232629;
 }
 
@@ -608,26 +615,26 @@ QComboBox::down-arrow:focus {
 }
 
 QAbstractSpinBox {
-    padding: 4px 6px;
     border: 1px solid #54575B;
     background-color: #232629;
     color: #eff0f1;
     border-radius: 2px;
-    min-width: 75px;
+    min-width: 52px;
+    min-height: 23px;
 }
 
 QAbstractSpinBox:up-button {
     background-color: transparent;
     subcontrol-origin: border;
     subcontrol-position: center right;
-    left: -6px;
+    left: -2px;
 }
 
 QAbstractSpinBox:down-button {
     background-color: transparent;
     subcontrol-origin: border;
     subcontrol-position: center left;
-    right: -6px;
+    right: -2px;
 }
 
 QAbstractSpinBox::up-arrow,
@@ -1277,41 +1284,33 @@ QPushButton#RendererStatusBarButton:!checked {
 }
 
 QPushButton#buttonRefreshDevices {
-    min-width: 24px;
-    min-height: 24px;
-    max-width: 24px;
-    max-height: 24px;
+    min-width: 23px;
+    min-height: 23px;
+    max-width: 23px;
+    max-height: 23px;
     padding: 0px 0px;
 }
 
 QSpinBox#spinboxLStickRange,
-QSpinBox#spinboxRStickRange {
-    padding: 4px 0px 5px 0px;
-    min-width: 63px;
+QSpinBox#spinboxRStickRange,
+QSpinBox#vibrationSpinPlayer1,
+QSpinBox#vibrationSpinPlayer2,
+QSpinBox#vibrationSpinPlayer3,
+QSpinBox#vibrationSpinPlayer4,
+QSpinBox#vibrationSpinPlayer5,
+QSpinBox#vibrationSpinPlayer6,
+QSpinBox#vibrationSpinPlayer7,
+QSpinBox#vibrationSpinPlayer8 {
+    min-width: 68px;
 }
 
-QSpinBox#vibrationSpin {
-    padding: 4px 0px 5px 0px;
-    min-width: 63px;
-}
-
-QSpinBox#spinboxLStickRange:up-button,
-QSpinBox#spinboxRStickRange:up-button,
-QSpinBox#vibrationSpin:up-button {
-    left: -2px;
-}
-
-QSpinBox#spinboxLStickRange:down-button,
-QSpinBox#spinboxRStickRange:down-button,
-QSpinBox#vibrationSpin:down-button {
-    right: -1px;
-}
-
+QDialog#ConfigureVibration QGroupBox::indicator,
 QGroupBox#motionGroup::indicator,
 QGroupBox#vibrationGroup::indicator {
     margin-left: 0px;
 }
 
+QDialog#ConfigureVibration QGroupBox::title,
 QGroupBox#motionGroup::title,
 QGroupBox#vibrationGroup::title {
     spacing: 2px;
@@ -1340,16 +1339,7 @@ QWidget#middleControllerApplet {
 
 QWidget#topPerGameInput QComboBox,
 QWidget#middleControllerApplet QComboBox {
-    width: 119px;
-}
-
-QRadioButton#radioDocked {
-    margin-left: -3px;
-}
-
-
-QRadioButton#radioUndocked {
-    margin-right: 5px;
+    width: 120px;
 }
 
 QWidget#connectedControllers {

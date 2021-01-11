@@ -10,6 +10,7 @@
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
 #include "core/frontend/emu_window.h"
+#include "core/hardware_interrupt_manager.h"
 #include "core/memory.h"
 #include "core/settings.h"
 #include "video_core/engines/fermi_2d.h"
@@ -27,15 +28,17 @@ namespace Tegra {
 
 MICROPROFILE_DEFINE(GPU_wait, "GPU", "Wait for the GPU", MP_RGB(128, 128, 192));
 
-GPU::GPU(Core::System& system_, bool is_async_)
+GPU::GPU(Core::System& system_, bool is_async_, bool use_nvdec_)
     : system{system_}, memory_manager{std::make_unique<Tegra::MemoryManager>(system)},
       dma_pusher{std::make_unique<Tegra::DmaPusher>(system, *this)},
+      cdma_pusher{std::make_unique<Tegra::CDmaPusher>(*this)}, use_nvdec{use_nvdec_},
       maxwell_3d{std::make_unique<Engines::Maxwell3D>(system, *memory_manager)},
       fermi_2d{std::make_unique<Engines::Fermi2D>()},
       kepler_compute{std::make_unique<Engines::KeplerCompute>(system, *memory_manager)},
       maxwell_dma{std::make_unique<Engines::MaxwellDMA>(system, *memory_manager)},
       kepler_memory{std::make_unique<Engines::KeplerMemory>(system, *memory_manager)},
-      shader_notify{std::make_unique<VideoCore::ShaderNotify>()}, is_async{is_async_} {}
+      shader_notify{std::make_unique<VideoCore::ShaderNotify>()}, is_async{is_async_},
+      gpu_thread{system_, is_async_} {}
 
 GPU::~GPU() = default;
 
@@ -77,8 +80,16 @@ DmaPusher& GPU::DmaPusher() {
     return *dma_pusher;
 }
 
+Tegra::CDmaPusher& GPU::CDmaPusher() {
+    return *cdma_pusher;
+}
+
 const DmaPusher& GPU::DmaPusher() const {
     return *dma_pusher;
+}
+
+const Tegra::CDmaPusher& GPU::CDmaPusher() const {
+    return *cdma_pusher;
 }
 
 void GPU::WaitFence(u32 syncpoint_id, u32 value) {
@@ -86,22 +97,29 @@ void GPU::WaitFence(u32 syncpoint_id, u32 value) {
     if (!is_async) {
         return;
     }
+    if (syncpoint_id == UINT32_MAX) {
+        // TODO: Research what this does.
+        LOG_ERROR(HW_GPU, "Waiting for syncpoint -1 not implemented");
+        return;
+    }
     MICROPROFILE_SCOPE(GPU_wait);
     std::unique_lock lock{sync_mutex};
-    sync_cv.wait(lock, [=, this] { return syncpoints[syncpoint_id].load() >= value; });
+    sync_cv.wait(lock, [=, this] { return syncpoints.at(syncpoint_id).load() >= value; });
 }
 
 void GPU::IncrementSyncPoint(const u32 syncpoint_id) {
-    syncpoints[syncpoint_id]++;
+    auto& syncpoint = syncpoints.at(syncpoint_id);
+    syncpoint++;
     std::lock_guard lock{sync_mutex};
     sync_cv.notify_all();
-    if (!syncpt_interrupts[syncpoint_id].empty()) {
-        u32 value = syncpoints[syncpoint_id].load();
-        auto it = syncpt_interrupts[syncpoint_id].begin();
-        while (it != syncpt_interrupts[syncpoint_id].end()) {
+    auto& interrupt = syncpt_interrupts.at(syncpoint_id);
+    if (!interrupt.empty()) {
+        u32 value = syncpoint.load();
+        auto it = interrupt.begin();
+        while (it != interrupt.end()) {
             if (value >= *it) {
                 TriggerCpuInterrupt(syncpoint_id, *it);
-                it = syncpt_interrupts[syncpoint_id].erase(it);
+                it = interrupt.erase(it);
                 continue;
             }
             it++;
@@ -110,22 +128,22 @@ void GPU::IncrementSyncPoint(const u32 syncpoint_id) {
 }
 
 u32 GPU::GetSyncpointValue(const u32 syncpoint_id) const {
-    return syncpoints[syncpoint_id].load();
+    return syncpoints.at(syncpoint_id).load();
 }
 
 void GPU::RegisterSyncptInterrupt(const u32 syncpoint_id, const u32 value) {
-    auto& interrupt = syncpt_interrupts[syncpoint_id];
+    auto& interrupt = syncpt_interrupts.at(syncpoint_id);
     bool contains = std::any_of(interrupt.begin(), interrupt.end(),
                                 [value](u32 in_value) { return in_value == value; });
     if (contains) {
         return;
     }
-    syncpt_interrupts[syncpoint_id].emplace_back(value);
+    interrupt.emplace_back(value);
 }
 
 bool GPU::CancelSyncptInterrupt(const u32 syncpoint_id, const u32 value) {
     std::lock_guard lock{sync_mutex};
-    auto& interrupt = syncpt_interrupts[syncpoint_id];
+    auto& interrupt = syncpt_interrupts.at(syncpoint_id);
     const auto iter =
         std::find_if(interrupt.begin(), interrupt.end(),
                      [value](u32 interrupt_value) { return value == interrupt_value; });
@@ -182,34 +200,6 @@ void GPU::SyncGuestHost() {
     renderer->Rasterizer().SyncGuestHost();
 }
 
-void GPU::OnCommandListEnd() {
-    renderer->Rasterizer().ReleaseFences();
-}
-// Note that, traditionally, methods are treated as 4-byte addressable locations, and hence
-// their numbers are written down multiplied by 4 in Docs. Here we are not multiply by 4.
-// So the values you see in docs might be multiplied by 4.
-enum class BufferMethods {
-    BindObject = 0x0,
-    Nop = 0x2,
-    SemaphoreAddressHigh = 0x4,
-    SemaphoreAddressLow = 0x5,
-    SemaphoreSequence = 0x6,
-    SemaphoreTrigger = 0x7,
-    NotifyIntr = 0x8,
-    WrcacheFlush = 0x9,
-    Unk28 = 0xA,
-    UnkCacheFlush = 0xB,
-    RefCnt = 0x14,
-    SemaphoreAcquire = 0x1A,
-    SemaphoreRelease = 0x1B,
-    FenceValue = 0x1C,
-    FenceAction = 0x1D,
-    Unk78 = 0x1E,
-    Unk7c = 0x1F,
-    Yield = 0x20,
-    NonPullerMethods = 0x40,
-};
-
 enum class GpuSemaphoreOperation {
     AcquireEqual = 0x1,
     WriteLong = 0x2,
@@ -240,8 +230,12 @@ void GPU::CallMultiMethod(u32 method, u32 subchannel, const u32* base_start, u32
         CallEngineMultiMethod(method, subchannel, base_start, amount, methods_pending);
     } else {
         for (std::size_t i = 0; i < amount; i++) {
-            CallPullerMethod(
-                {method, base_start[i], subchannel, methods_pending - static_cast<u32>(i)});
+            CallPullerMethod(MethodCall{
+                method,
+                base_start[i],
+                subchannel,
+                methods_pending - static_cast<u32>(i),
+            });
         }
     }
 }
@@ -268,7 +262,12 @@ void GPU::CallPullerMethod(const MethodCall& method_call) {
     case BufferMethods::UnkCacheFlush:
     case BufferMethods::WrcacheFlush:
     case BufferMethods::FenceValue:
+        break;
     case BufferMethods::FenceAction:
+        ProcessFenceActionMethod();
+        break;
+    case BufferMethods::WaitForInterrupt:
+        ProcessWaitForInterruptMethod();
         break;
     case BufferMethods::SemaphoreTrigger: {
         ProcessSemaphoreTriggerMethod();
@@ -298,8 +297,7 @@ void GPU::CallPullerMethod(const MethodCall& method_call) {
         break;
     }
     default:
-        LOG_ERROR(HW_GPU, "Special puller engine method {:X} not implemented",
-                  static_cast<u32>(method));
+        LOG_ERROR(HW_GPU, "Special puller engine method {:X} not implemented", method);
         break;
     }
 }
@@ -378,8 +376,26 @@ void GPU::ProcessBindMethod(const MethodCall& method_call) {
         dma_pusher->BindSubchannel(kepler_memory.get(), method_call.subchannel);
         break;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented engine {:04X}", static_cast<u32>(engine_id));
+        UNIMPLEMENTED_MSG("Unimplemented engine {:04X}", engine_id);
     }
+}
+
+void GPU::ProcessFenceActionMethod() {
+    switch (regs.fence_action.op) {
+    case FenceOperation::Acquire:
+        WaitFence(regs.fence_action.syncpoint_id, regs.fence_value);
+        break;
+    case FenceOperation::Increment:
+        IncrementSyncPoint(regs.fence_action.syncpoint_id);
+        break;
+    default:
+        UNIMPLEMENTED_MSG("Unimplemented operation {}", regs.fence_action.op.Value());
+    }
+}
+
+void GPU::ProcessWaitForInterruptMethod() {
+    // TODO(bunnei) ImplementMe
+    LOG_WARNING(HW_GPU, "(STUBBED) called");
 }
 
 void GPU::ProcessSemaphoreTriggerMethod() {
@@ -440,6 +456,77 @@ void GPU::ProcessSemaphoreAcquire() {
         // TODO(kemathe73) figure out how to do the acquire_timeout
         regs.acquire_mode = false;
         regs.acquire_source = false;
+    }
+}
+
+void GPU::Start() {
+    gpu_thread.StartThread(*renderer, renderer->Context(), *dma_pusher, *cdma_pusher);
+    cpu_context = renderer->GetRenderWindow().CreateSharedContext();
+    cpu_context->MakeCurrent();
+}
+
+void GPU::ObtainContext() {
+    cpu_context->MakeCurrent();
+}
+
+void GPU::ReleaseContext() {
+    cpu_context->DoneCurrent();
+}
+
+void GPU::PushGPUEntries(Tegra::CommandList&& entries) {
+    gpu_thread.SubmitList(std::move(entries));
+}
+
+void GPU::PushCommandBuffer(Tegra::ChCommandHeaderList& entries) {
+    if (!use_nvdec) {
+        return;
+    }
+    // This condition fires when a video stream ends, clear all intermediary data
+    if (entries[0].raw == 0xDEADB33F) {
+        cdma_pusher.reset();
+        return;
+    }
+    if (!cdma_pusher) {
+        cdma_pusher = std::make_unique<Tegra::CDmaPusher>(*this);
+    }
+
+    // SubmitCommandBuffer would make the nvdec operations async, this is not currently working
+    // TODO(ameerj): RE proper async nvdec operation
+    // gpu_thread.SubmitCommandBuffer(std::move(entries));
+
+    cdma_pusher->Push(std::move(entries));
+    cdma_pusher->DispatchCalls();
+}
+
+void GPU::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
+    gpu_thread.SwapBuffers(framebuffer);
+}
+
+void GPU::FlushRegion(VAddr addr, u64 size) {
+    gpu_thread.FlushRegion(addr, size);
+}
+
+void GPU::InvalidateRegion(VAddr addr, u64 size) {
+    gpu_thread.InvalidateRegion(addr, size);
+}
+
+void GPU::FlushAndInvalidateRegion(VAddr addr, u64 size) {
+    gpu_thread.FlushAndInvalidateRegion(addr, size);
+}
+
+void GPU::TriggerCpuInterrupt(const u32 syncpoint_id, const u32 value) const {
+    auto& interrupt_manager = system.InterruptManager();
+    interrupt_manager.GPUInterruptSyncpt(syncpoint_id, value);
+}
+
+void GPU::WaitIdle() const {
+    gpu_thread.WaitIdle();
+}
+
+void GPU::OnCommandListEnd() {
+    if (is_async) {
+        // This command only applies to asynchronous GPU mode
+        gpu_thread.OnCommandListEnd();
     }
 }
 

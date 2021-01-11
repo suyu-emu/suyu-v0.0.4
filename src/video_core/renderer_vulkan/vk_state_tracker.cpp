@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <iterator>
 
@@ -14,7 +15,7 @@
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
 
 #define OFF(field_name) MAXWELL3D_REG_INDEX(field_name)
-#define NUM(field_name) (sizeof(Maxwell3D::Regs::field_name) / sizeof(u32))
+#define NUM(field_name) (sizeof(Maxwell3D::Regs::field_name) / (sizeof(u32)))
 
 namespace Vulkan {
 
@@ -29,21 +30,15 @@ using Table = Maxwell3D::DirtyState::Table;
 using Flags = Maxwell3D::DirtyState::Flags;
 
 Flags MakeInvalidationFlags() {
+    static constexpr std::array INVALIDATION_FLAGS{
+        Viewports,         Scissors,  DepthBias,         BlendConstants,    DepthBounds,
+        StencilProperties, CullMode,  DepthBoundsEnable, DepthTestEnable,   DepthWriteEnable,
+        DepthCompareOp,    FrontFace, StencilOp,         StencilTestEnable,
+    };
     Flags flags{};
-    flags[Viewports] = true;
-    flags[Scissors] = true;
-    flags[DepthBias] = true;
-    flags[BlendConstants] = true;
-    flags[DepthBounds] = true;
-    flags[StencilProperties] = true;
-    flags[CullMode] = true;
-    flags[DepthBoundsEnable] = true;
-    flags[DepthTestEnable] = true;
-    flags[DepthWriteEnable] = true;
-    flags[DepthCompareOp] = true;
-    flags[FrontFace] = true;
-    flags[StencilOp] = true;
-    flags[StencilTestEnable] = true;
+    for (const int flag : INVALIDATION_FLAGS) {
+        flags[flag] = true;
+    }
     return flags;
 }
 

@@ -21,15 +21,10 @@
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/swap.h"
-#include "core/hle/kernel/object.h"
 #include "core/hle/result.h"
 
 namespace Core::Timing {
 class CoreTiming;
-}
-
-namespace Kernel {
-class WritableEvent;
 }
 
 namespace Core::Memory {
@@ -37,37 +32,30 @@ class Memory;
 }
 
 namespace AudioCore {
-using DSPStateHolder = std::array<VoiceState*, 6>;
+using DSPStateHolder = std::array<VoiceState*, AudioCommon::MAX_CHANNEL_COUNT>;
 
 class AudioOut;
-
-struct RendererInfo {
-    u64_le elasped_frame_count{};
-    INSERT_PADDING_WORDS(2);
-};
-static_assert(sizeof(RendererInfo) == 0x10, "RendererInfo is an invalid size");
 
 class AudioRenderer {
 public:
     AudioRenderer(Core::Timing::CoreTiming& core_timing, Core::Memory::Memory& memory_,
                   AudioCommon::AudioRendererParameter params,
-                  std::shared_ptr<Kernel::WritableEvent> buffer_event, std::size_t instance_number);
+                  Stream::ReleaseCallback&& release_callback, std::size_t instance_number);
     ~AudioRenderer();
 
-    ResultCode UpdateAudioRenderer(const std::vector<u8>& input_params,
-                                   std::vector<u8>& output_params);
+    [[nodiscard]] ResultCode UpdateAudioRenderer(const std::vector<u8>& input_params,
+                                                 std::vector<u8>& output_params);
     void QueueMixedBuffer(Buffer::Tag tag);
     void ReleaseAndQueueBuffers();
-    u32 GetSampleRate() const;
-    u32 GetSampleCount() const;
-    u32 GetMixBufferCount() const;
-    Stream::State GetStreamState() const;
+    [[nodiscard]] u32 GetSampleRate() const;
+    [[nodiscard]] u32 GetSampleCount() const;
+    [[nodiscard]] u32 GetMixBufferCount() const;
+    [[nodiscard]] Stream::State GetStreamState() const;
 
 private:
     BehaviorInfo behavior_info{};
 
     AudioCommon::AudioRendererParameter worker_params;
-    std::shared_ptr<Kernel::WritableEvent> buffer_event;
     std::vector<ServerMemoryPoolInfo> memory_pool_info;
     VoiceContext voice_context;
     EffectContext effect_context;
@@ -80,7 +68,6 @@ private:
     Core::Memory::Memory& memory;
     CommandGenerator command_generator;
     std::size_t elapsed_frame_count{};
-    std::vector<s32> temp_mix_buffer{};
 };
 
 } // namespace AudioCore

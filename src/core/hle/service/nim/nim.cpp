@@ -17,7 +17,8 @@ namespace Service::NIM {
 
 class IShopServiceAsync final : public ServiceFramework<IShopServiceAsync> {
 public:
-    IShopServiceAsync() : ServiceFramework("IShopServiceAsync") {
+    explicit IShopServiceAsync(Core::System& system_)
+        : ServiceFramework{system_, "IShopServiceAsync"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "Cancel"},
@@ -35,7 +36,8 @@ public:
 
 class IShopServiceAccessor final : public ServiceFramework<IShopServiceAccessor> {
 public:
-    IShopServiceAccessor() : ServiceFramework("IShopServiceAccessor") {
+    explicit IShopServiceAccessor(Core::System& system_)
+        : ServiceFramework{system_, "IShopServiceAccessor"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IShopServiceAccessor::CreateAsyncInterface, "CreateAsyncInterface"},
@@ -50,13 +52,14 @@ private:
         LOG_WARNING(Service_NIM, "(STUBBED) called");
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IShopServiceAsync>();
+        rb.PushIpcInterface<IShopServiceAsync>(system);
     }
 };
 
 class IShopServiceAccessServer final : public ServiceFramework<IShopServiceAccessServer> {
 public:
-    IShopServiceAccessServer() : ServiceFramework("IShopServiceAccessServer") {
+    explicit IShopServiceAccessServer(Core::System& system_)
+        : ServiceFramework{system_, "IShopServiceAccessServer"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IShopServiceAccessServer::CreateAccessorInterface, "CreateAccessorInterface"},
@@ -71,13 +74,13 @@ private:
         LOG_WARNING(Service_NIM, "(STUBBED) called");
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IShopServiceAccessor>();
+        rb.PushIpcInterface<IShopServiceAccessor>(system);
     }
 };
 
 class NIM final : public ServiceFramework<NIM> {
 public:
-    explicit NIM() : ServiceFramework{"nim"} {
+    explicit NIM(Core::System& system_) : ServiceFramework{system_, "nim"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "CreateSystemUpdateTask"},
@@ -207,14 +210,14 @@ public:
 
 class NIM_ECA final : public ServiceFramework<NIM_ECA> {
 public:
-    explicit NIM_ECA() : ServiceFramework{"nim:eca"} {
+    explicit NIM_ECA(Core::System& system_) : ServiceFramework{system_, "nim:eca"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &NIM_ECA::CreateServerInterface, "CreateServerInterface"},
             {1, nullptr, "RefreshDebugAvailability"},
             {2, nullptr, "ClearDebugResponse"},
             {3, nullptr, "RegisterDebugResponse"},
-            {4, nullptr, "IsLargeResourceAvailable"},
+            {4, &NIM_ECA::IsLargeResourceAvailable, "IsLargeResourceAvailable"},
         };
         // clang-format on
 
@@ -226,13 +229,25 @@ private:
         LOG_WARNING(Service_NIM, "(STUBBED) called");
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IShopServiceAccessServer>();
+        rb.PushIpcInterface<IShopServiceAccessServer>(system);
+    }
+
+    void IsLargeResourceAvailable(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+
+        const auto unknown{rp.Pop<u64>()};
+
+        LOG_INFO(Service_NIM, "(STUBBED) called, unknown={}", unknown);
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push(false);
     }
 };
 
 class NIM_SHP final : public ServiceFramework<NIM_SHP> {
 public:
-    explicit NIM_SHP() : ServiceFramework{"nim:shp"} {
+    explicit NIM_SHP(Core::System& system_) : ServiceFramework{system_, "nim:shp"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "RequestDeviceAuthenticationToken"},
@@ -272,8 +287,8 @@ public:
 class IEnsureNetworkClockAvailabilityService final
     : public ServiceFramework<IEnsureNetworkClockAvailabilityService> {
 public:
-    explicit IEnsureNetworkClockAvailabilityService(Core::System& system)
-        : ServiceFramework("IEnsureNetworkClockAvailabilityService") {
+    explicit IEnsureNetworkClockAvailabilityService(Core::System& system_)
+        : ServiceFramework{system_, "IEnsureNetworkClockAvailabilityService"} {
         static const FunctionInfo functions[] = {
             {0, &IEnsureNetworkClockAvailabilityService::StartTask, "StartTask"},
             {1, &IEnsureNetworkClockAvailabilityService::GetFinishNotificationEvent,
@@ -345,7 +360,7 @@ private:
 
 class NTC final : public ServiceFramework<NTC> {
 public:
-    explicit NTC(Core::System& system) : ServiceFramework{"ntc"}, system(system) {
+    explicit NTC(Core::System& system_) : ServiceFramework{system_, "ntc"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &NTC::OpenEnsureNetworkClockAvailabilityService, "OpenEnsureNetworkClockAvailabilityService"},
@@ -380,13 +395,12 @@ private:
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
-    Core::System& system;
 };
 
 void InstallInterfaces(SM::ServiceManager& sm, Core::System& system) {
-    std::make_shared<NIM>()->InstallAsService(sm);
-    std::make_shared<NIM_ECA>()->InstallAsService(sm);
-    std::make_shared<NIM_SHP>()->InstallAsService(sm);
+    std::make_shared<NIM>(system)->InstallAsService(sm);
+    std::make_shared<NIM_ECA>(system)->InstallAsService(sm);
+    std::make_shared<NIM_SHP>(system)->InstallAsService(sm);
     std::make_shared<NTC>(system)->InstallAsService(sm);
 }
 

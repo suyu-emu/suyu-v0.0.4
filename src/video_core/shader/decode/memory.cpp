@@ -47,7 +47,7 @@ OperationCode GetAtomOperation(AtomicOp op) {
     case AtomicOp::Exch:
         return OperationCode::AtomicIExchange;
     default:
-        UNIMPLEMENTED_MSG("op={}", static_cast<int>(op));
+        UNIMPLEMENTED_MSG("op={}", op);
         return OperationCode::AtomicIAdd;
     }
 }
@@ -83,7 +83,7 @@ u32 GetMemorySize(Tegra::Shader::UniformType uniform_type) {
     case Tegra::Shader::UniformType::UnsignedQuad:
         return 128;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented size={}!", static_cast<u32>(uniform_type));
+        UNIMPLEMENTED_MSG("Unimplemented size={}!", uniform_type);
         return 32;
     }
 }
@@ -175,12 +175,12 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
             break;
         }
         default:
-            UNIMPLEMENTED_MSG("Unhandled type: {}", static_cast<unsigned>(instr.ld_c.type.Value()));
+            UNIMPLEMENTED_MSG("Unhandled type: {}", instr.ld_c.type.Value());
         }
         break;
     }
     case OpCode::Id::LD_L:
-        LOG_DEBUG(HW_GPU, "LD_L cache management mode: {}", static_cast<u64>(instr.ld_l.unknown));
+        LOG_DEBUG(HW_GPU, "LD_L cache management mode: {}", instr.ld_l.unknown);
         [[fallthrough]];
     case OpCode::Id::LD_S: {
         const auto GetAddress = [&](s32 offset) {
@@ -224,7 +224,7 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         }
         default:
             UNIMPLEMENTED_MSG("{} Unhandled type: {}", opcode->get().GetName(),
-                              static_cast<u32>(instr.ldst_sl.type.Value()));
+                              instr.ldst_sl.type.Value());
         }
         break;
     }
@@ -306,8 +306,7 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         break;
     }
     case OpCode::Id::ST_L:
-        LOG_DEBUG(HW_GPU, "ST_L cache management mode: {}",
-                  static_cast<u64>(instr.st_l.cache_management.Value()));
+        LOG_DEBUG(HW_GPU, "ST_L cache management mode: {}", instr.st_l.cache_management.Value());
         [[fallthrough]];
     case OpCode::Id::ST_S: {
         const auto GetAddress = [&](s32 offset) {
@@ -340,7 +339,7 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         }
         default:
             UNIMPLEMENTED_MSG("{} unhandled type: {}", opcode->get().GetName(),
-                              static_cast<u32>(instr.ldst_sl.type.Value()));
+                              instr.ldst_sl.type.Value());
         }
         break;
     }
@@ -387,7 +386,7 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
     }
     case OpCode::Id::RED: {
         UNIMPLEMENTED_IF_MSG(instr.red.type != GlobalAtomicType::U32, "type={}",
-                             static_cast<int>(instr.red.type.Value()));
+                             instr.red.type.Value());
         const auto [real_address, base_address, descriptor] =
             TrackGlobalMemory(bb, instr, true, true);
         if (!real_address || !base_address) {
@@ -403,12 +402,12 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         UNIMPLEMENTED_IF_MSG(instr.atom.operation == AtomicOp::Inc ||
                                  instr.atom.operation == AtomicOp::Dec ||
                                  instr.atom.operation == AtomicOp::SafeAdd,
-                             "operation={}", static_cast<int>(instr.atom.operation.Value()));
+                             "operation={}", instr.atom.operation.Value());
         UNIMPLEMENTED_IF_MSG(instr.atom.type == GlobalAtomicType::S64 ||
                                  instr.atom.type == GlobalAtomicType::U64 ||
                                  instr.atom.type == GlobalAtomicType::F16x2_FTZ_RN ||
                                  instr.atom.type == GlobalAtomicType::F32_FTZ_RN,
-                             "type={}", static_cast<int>(instr.atom.type.Value()));
+                             "type={}", instr.atom.type.Value());
 
         const auto [real_address, base_address, descriptor] =
             TrackGlobalMemory(bb, instr, true, true);
@@ -428,10 +427,10 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
     case OpCode::Id::ATOMS: {
         UNIMPLEMENTED_IF_MSG(instr.atoms.operation == AtomicOp::Inc ||
                                  instr.atoms.operation == AtomicOp::Dec,
-                             "operation={}", static_cast<int>(instr.atoms.operation.Value()));
+                             "operation={}", instr.atoms.operation.Value());
         UNIMPLEMENTED_IF_MSG(instr.atoms.type == AtomicType::S64 ||
                                  instr.atoms.type == AtomicType::U64,
-                             "type={}", static_cast<int>(instr.atoms.type.Value()));
+                             "type={}", instr.atoms.type.Value());
         const bool is_signed =
             instr.atoms.type == AtomicType::S32 || instr.atoms.type == AtomicType::S64;
         const s32 offset = instr.atoms.GetImmediateOffset();

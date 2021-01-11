@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <thread>
 
 #include "common/assert.h"
 #include "common/string_util.h"
@@ -13,20 +14,25 @@
 #include "core/hle/service/sm/sm.h"
 #include "ui_controller.h"
 #include "yuzu/applets/controller.h"
-#include "yuzu/configuration/configure_input_dialog.h"
+#include "yuzu/configuration/configure_input.h"
+#include "yuzu/configuration/configure_input_profile_dialog.h"
+#include "yuzu/configuration/configure_vibration.h"
+#include "yuzu/configuration/input_profiles.h"
 #include "yuzu/main.h"
 
 namespace {
 
-constexpr std::array<std::array<bool, 4>, 8> led_patterns = {{
-    {1, 0, 0, 0},
-    {1, 1, 0, 0},
-    {1, 1, 1, 0},
-    {1, 1, 1, 1},
-    {1, 0, 0, 1},
-    {1, 0, 1, 0},
-    {1, 0, 1, 1},
-    {0, 1, 1, 0},
+constexpr std::size_t HANDHELD_INDEX = 8;
+
+constexpr std::array<std::array<bool, 4>, 8> led_patterns{{
+    {true, false, false, false},
+    {true, true, false, false},
+    {true, true, true, false},
+    {true, true, true, true},
+    {true, false, false, true},
+    {true, false, true, false},
+    {true, false, true, true},
+    {false, true, true, false},
 }};
 
 void UpdateController(Settings::ControllerType controller_type, std::size_t npad_index,
@@ -66,47 +72,14 @@ bool IsControllerCompatible(Settings::ControllerType controller_type,
     }
 }
 
-/// Maps the controller type combobox index to Controller Type enum
-constexpr Settings::ControllerType GetControllerTypeFromIndex(int index) {
-    switch (index) {
-    case 0:
-    default:
-        return Settings::ControllerType::ProController;
-    case 1:
-        return Settings::ControllerType::DualJoyconDetached;
-    case 2:
-        return Settings::ControllerType::LeftJoycon;
-    case 3:
-        return Settings::ControllerType::RightJoycon;
-    case 4:
-        return Settings::ControllerType::Handheld;
-    }
-}
-
-/// Maps the Controller Type enum to controller type combobox index
-constexpr int GetIndexFromControllerType(Settings::ControllerType type) {
-    switch (type) {
-    case Settings::ControllerType::ProController:
-    default:
-        return 0;
-    case Settings::ControllerType::DualJoyconDetached:
-        return 1;
-    case Settings::ControllerType::LeftJoycon:
-        return 2;
-    case Settings::ControllerType::RightJoycon:
-        return 3;
-    case Settings::ControllerType::Handheld:
-        return 4;
-    }
-}
-
 } // namespace
 
 QtControllerSelectorDialog::QtControllerSelectorDialog(
     QWidget* parent, Core::Frontend::ControllerParameters parameters_,
     InputCommon::InputSubsystem* input_subsystem_)
     : QDialog(parent), ui(std::make_unique<Ui::QtControllerSelectorDialog>()),
-      parameters(std::move(parameters_)), input_subsystem(input_subsystem_) {
+      parameters(std::move(parameters_)), input_subsystem{input_subsystem_},
+      input_profiles(std::make_unique<InputProfiles>()) {
     ui->setupUi(this);
 
     player_widgets = {
@@ -177,6 +150,11 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
     // This avoids unintentionally changing the states of elements while loading them in.
     SetSupportedControllers();
     DisableUnsupportedPlayers();
+
+    for (std::size_t player_index = 0; player_index < NUM_PLAYERS; ++player_index) {
+        SetEmulatedControllers(player_index);
+    }
+
     LoadConfiguration();
 
     for (std::size_t i = 0; i < NUM_PLAYERS; ++i) {
@@ -216,18 +194,28 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
 
         if (i == 0) {
             connect(emulated_controllers[i], qOverload<int>(&QComboBox::currentIndexChanged),
-                    [this](int index) {
-                        UpdateDockedState(GetControllerTypeFromIndex(index) ==
+                    [this, i](int index) {
+                        UpdateDockedState(GetControllerTypeFromIndex(index, i) ==
                                           Settings::ControllerType::Handheld);
                     });
         }
     }
 
+    connect(ui->vibrationButton, &QPushButton::clicked, this,
+            &QtControllerSelectorDialog::CallConfigureVibrationDialog);
+
     connect(ui->inputConfigButton, &QPushButton::clicked, this,
-            &QtControllerSelectorDialog::CallConfigureInputDialog);
+            &QtControllerSelectorDialog::CallConfigureInputProfileDialog);
 
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this,
             &QtControllerSelectorDialog::ApplyConfiguration);
+
+    // Enhancement: Check if the parameters have already been met before disconnecting controllers.
+    // If all the parameters are met AND only allows a single player,
+    // stop the constructor here as we do not need to continue.
+    if (CheckIfParametersMet() && parameters.enable_single_mode) {
+        return;
+    }
 
     // If keep_controllers_connected is false, forcefully disconnect all controllers
     if (!parameters.keep_controllers_connected) {
@@ -236,58 +224,66 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
         }
     }
 
-    CheckIfParametersMet();
-
     resize(0, 0);
 }
 
 QtControllerSelectorDialog::~QtControllerSelectorDialog() = default;
 
-void QtControllerSelectorDialog::ApplyConfiguration() {
-    // Update the controller state once more, just to be sure they are properly applied.
-    for (std::size_t index = 0; index < NUM_PLAYERS; ++index) {
-        UpdateControllerState(index);
+int QtControllerSelectorDialog::exec() {
+    if (parameters_met && parameters.enable_single_mode) {
+        return QDialog::Accepted;
     }
+    return QDialog::exec();
+}
 
-    const bool pre_docked_mode = Settings::values.use_docked_mode;
-    Settings::values.use_docked_mode = ui->radioDocked->isChecked();
-    OnDockedModeChanged(pre_docked_mode, Settings::values.use_docked_mode);
+void QtControllerSelectorDialog::ApplyConfiguration() {
+    const bool pre_docked_mode = Settings::values.use_docked_mode.GetValue();
+    Settings::values.use_docked_mode.SetValue(ui->radioDocked->isChecked());
+    OnDockedModeChanged(pre_docked_mode, Settings::values.use_docked_mode.GetValue());
 
-    Settings::values.vibration_enabled = ui->vibrationGroup->isChecked();
+    Settings::values.vibration_enabled.SetValue(ui->vibrationGroup->isChecked());
+    Settings::values.motion_enabled.SetValue(ui->motionGroup->isChecked());
 }
 
 void QtControllerSelectorDialog::LoadConfiguration() {
     for (std::size_t index = 0; index < NUM_PLAYERS; ++index) {
-        const auto connected = Settings::values.players[index].connected ||
-                               (index == 0 && Settings::values.players[8].connected);
+        const auto connected =
+            Settings::values.players.GetValue()[index].connected ||
+            (index == 0 && Settings::values.players.GetValue()[HANDHELD_INDEX].connected);
         player_groupboxes[index]->setChecked(connected);
         connected_controller_checkboxes[index]->setChecked(connected);
-        emulated_controllers[index]->setCurrentIndex(
-            GetIndexFromControllerType(Settings::values.players[index].controller_type));
+        emulated_controllers[index]->setCurrentIndex(GetIndexFromControllerType(
+            Settings::values.players.GetValue()[index].controller_type, index));
     }
 
-    UpdateDockedState(Settings::values.players[8].connected);
+    UpdateDockedState(Settings::values.players.GetValue()[HANDHELD_INDEX].connected);
 
-    ui->vibrationGroup->setChecked(Settings::values.vibration_enabled);
+    ui->vibrationGroup->setChecked(Settings::values.vibration_enabled.GetValue());
+    ui->motionGroup->setChecked(Settings::values.motion_enabled.GetValue());
 }
 
-void QtControllerSelectorDialog::CallConfigureInputDialog() {
-    const auto max_supported_players = parameters.enable_single_mode ? 1 : parameters.max_players;
+void QtControllerSelectorDialog::CallConfigureVibrationDialog() {
+    ConfigureVibration dialog(this);
 
-    ConfigureInputDialog dialog(this, max_supported_players, input_subsystem);
+    dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
+                          Qt::WindowSystemMenuHint);
+    dialog.setWindowModality(Qt::WindowModal);
+
+    if (dialog.exec() == QDialog::Accepted) {
+        dialog.ApplyConfiguration();
+    }
+}
+
+void QtControllerSelectorDialog::CallConfigureInputProfileDialog() {
+    ConfigureInputProfileDialog dialog(this, input_subsystem, input_profiles.get());
 
     dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
                           Qt::WindowSystemMenuHint);
     dialog.setWindowModality(Qt::WindowModal);
     dialog.exec();
-
-    dialog.ApplyConfiguration();
-
-    LoadConfiguration();
-    CheckIfParametersMet();
 }
 
-void QtControllerSelectorDialog::CheckIfParametersMet() {
+bool QtControllerSelectorDialog::CheckIfParametersMet() {
     // Here, we check and validate the current configuration against all applicable parameters.
     const auto num_connected_players = static_cast<int>(
         std::count_if(player_groupboxes.begin(), player_groupboxes.end(),
@@ -301,7 +297,7 @@ void QtControllerSelectorDialog::CheckIfParametersMet() {
         num_connected_players > max_supported_players) {
         parameters_met = false;
         ui->buttonBox->setEnabled(parameters_met);
-        return;
+        return parameters_met;
     }
 
     // Next, check against all connected controllers.
@@ -313,7 +309,7 @@ void QtControllerSelectorDialog::CheckIfParametersMet() {
             }
 
             const auto compatible = IsControllerCompatible(
-                GetControllerTypeFromIndex(emulated_controllers[index]->currentIndex()),
+                GetControllerTypeFromIndex(emulated_controllers[index]->currentIndex(), index),
                 parameters);
 
             // If any controller is found to be incompatible, return false early.
@@ -326,18 +322,13 @@ void QtControllerSelectorDialog::CheckIfParametersMet() {
         return true;
     }();
 
-    if (!all_controllers_compatible) {
-        parameters_met = false;
-        ui->buttonBox->setEnabled(parameters_met);
-        return;
-    }
-
-    parameters_met = true;
+    parameters_met = all_controllers_compatible;
     ui->buttonBox->setEnabled(parameters_met);
+    return parameters_met;
 }
 
 void QtControllerSelectorDialog::SetSupportedControllers() {
-    const QString theme = [this] {
+    const QString theme = [] {
         if (QIcon::themeName().contains(QStringLiteral("dark"))) {
             return QStringLiteral("_dark");
         } else if (QIcon::themeName().contains(QStringLiteral("midnight"))) {
@@ -402,6 +393,63 @@ void QtControllerSelectorDialog::SetSupportedControllers() {
     }
 }
 
+void QtControllerSelectorDialog::SetEmulatedControllers(std::size_t player_index) {
+    auto& pairs = index_controller_type_pairs[player_index];
+
+    pairs.clear();
+    emulated_controllers[player_index]->clear();
+
+    pairs.emplace_back(emulated_controllers[player_index]->count(),
+                       Settings::ControllerType::ProController);
+    emulated_controllers[player_index]->addItem(tr("Pro Controller"));
+
+    pairs.emplace_back(emulated_controllers[player_index]->count(),
+                       Settings::ControllerType::DualJoyconDetached);
+    emulated_controllers[player_index]->addItem(tr("Dual Joycons"));
+
+    pairs.emplace_back(emulated_controllers[player_index]->count(),
+                       Settings::ControllerType::LeftJoycon);
+    emulated_controllers[player_index]->addItem(tr("Left Joycon"));
+
+    pairs.emplace_back(emulated_controllers[player_index]->count(),
+                       Settings::ControllerType::RightJoycon);
+    emulated_controllers[player_index]->addItem(tr("Right Joycon"));
+
+    if (player_index == 0) {
+        pairs.emplace_back(emulated_controllers[player_index]->count(),
+                           Settings::ControllerType::Handheld);
+        emulated_controllers[player_index]->addItem(tr("Handheld"));
+    }
+}
+
+Settings::ControllerType QtControllerSelectorDialog::GetControllerTypeFromIndex(
+    int index, std::size_t player_index) const {
+    const auto& pairs = index_controller_type_pairs[player_index];
+
+    const auto it = std::find_if(pairs.begin(), pairs.end(),
+                                 [index](const auto& pair) { return pair.first == index; });
+
+    if (it == pairs.end()) {
+        return Settings::ControllerType::ProController;
+    }
+
+    return it->second;
+}
+
+int QtControllerSelectorDialog::GetIndexFromControllerType(Settings::ControllerType type,
+                                                           std::size_t player_index) const {
+    const auto& pairs = index_controller_type_pairs[player_index];
+
+    const auto it = std::find_if(pairs.begin(), pairs.end(),
+                                 [type](const auto& pair) { return pair.second == type; });
+
+    if (it == pairs.end()) {
+        return 0;
+    }
+
+    return it->first;
+}
+
 void QtControllerSelectorDialog::UpdateControllerIcon(std::size_t player_index) {
     if (!player_groupboxes[player_index]->isChecked()) {
         connected_controller_icons[player_index]->setStyleSheet(QString{});
@@ -410,7 +458,8 @@ void QtControllerSelectorDialog::UpdateControllerIcon(std::size_t player_index) 
     }
 
     const QString stylesheet = [this, player_index] {
-        switch (GetControllerTypeFromIndex(emulated_controllers[player_index]->currentIndex())) {
+        switch (GetControllerTypeFromIndex(emulated_controllers[player_index]->currentIndex(),
+                                           player_index)) {
         case Settings::ControllerType::ProController:
             return QStringLiteral("image: url(:/controller/applet_pro_controller%0); ");
         case Settings::ControllerType::DualJoyconDetached:
@@ -426,7 +475,13 @@ void QtControllerSelectorDialog::UpdateControllerIcon(std::size_t player_index) 
         }
     }();
 
-    const QString theme = [this] {
+    if (stylesheet.isEmpty()) {
+        connected_controller_icons[player_index]->setStyleSheet(QString{});
+        player_labels[player_index]->show();
+        return;
+    }
+
+    const QString theme = [] {
         if (QIcon::themeName().contains(QStringLiteral("dark"))) {
             return QStringLiteral("_dark");
         } else if (QIcon::themeName().contains(QStringLiteral("midnight"))) {
@@ -441,38 +496,54 @@ void QtControllerSelectorDialog::UpdateControllerIcon(std::size_t player_index) 
 }
 
 void QtControllerSelectorDialog::UpdateControllerState(std::size_t player_index) {
-    auto& player = Settings::values.players[player_index];
+    auto& player = Settings::values.players.GetValue()[player_index];
 
-    player.controller_type =
-        GetControllerTypeFromIndex(emulated_controllers[player_index]->currentIndex());
-    player.connected = player_groupboxes[player_index]->isChecked();
+    const auto controller_type = GetControllerTypeFromIndex(
+        emulated_controllers[player_index]->currentIndex(), player_index);
+    const auto player_connected = player_groupboxes[player_index]->isChecked() &&
+                                  controller_type != Settings::ControllerType::Handheld;
 
-    // Player 2-8
-    if (player_index != 0) {
-        UpdateController(player.controller_type, player_index, player.connected);
+    if (player.controller_type == controller_type && player.connected == player_connected) {
+        // Set vibration devices in the event that the input device has changed.
+        ConfigureVibration::SetVibrationDevices(player_index);
         return;
     }
 
-    // Player 1 and Handheld
-    auto& handheld = Settings::values.players[8];
-    // If Handheld is selected, copy all the settings from Player 1 to Handheld.
-    if (player.controller_type == Settings::ControllerType::Handheld) {
-        handheld = player;
-        handheld.connected = player_groupboxes[player_index]->isChecked();
-        player.connected = false; // Disconnect Player 1
-    } else {
-        player.connected = player_groupboxes[player_index]->isChecked();
-        handheld.connected = false; // Disconnect Handheld
+    // Disconnect the controller first.
+    UpdateController(controller_type, player_index, false);
+
+    player.controller_type = controller_type;
+    player.connected = player_connected;
+
+    ConfigureVibration::SetVibrationDevices(player_index);
+
+    // Handheld
+    if (player_index == 0) {
+        auto& handheld = Settings::values.players.GetValue()[HANDHELD_INDEX];
+        if (controller_type == Settings::ControllerType::Handheld) {
+            handheld = player;
+        }
+        handheld.connected = player_groupboxes[player_index]->isChecked() &&
+                             controller_type == Settings::ControllerType::Handheld;
+        UpdateController(Settings::ControllerType::Handheld, 8, handheld.connected);
     }
 
-    UpdateController(player.controller_type, player_index, player.connected);
-    UpdateController(Settings::ControllerType::Handheld, 8, handheld.connected);
+    if (!player.connected) {
+        return;
+    }
+
+    // This emulates a delay between disconnecting and reconnecting controllers as some games
+    // do not respond to a change in controller type if it was instantaneous.
+    using namespace std::chrono_literals;
+    std::this_thread::sleep_for(60ms);
+
+    UpdateController(controller_type, player_index, player_connected);
 }
 
 void QtControllerSelectorDialog::UpdateLEDPattern(std::size_t player_index) {
     if (!player_groupboxes[player_index]->isChecked() ||
-        GetControllerTypeFromIndex(emulated_controllers[player_index]->currentIndex()) ==
-            Settings::ControllerType::Handheld) {
+        GetControllerTypeFromIndex(emulated_controllers[player_index]->currentIndex(),
+                                   player_index) == Settings::ControllerType::Handheld) {
         led_patterns_boxes[player_index][0]->setChecked(false);
         led_patterns_boxes[player_index][1]->setChecked(false);
         led_patterns_boxes[player_index][2]->setChecked(false);
@@ -520,8 +591,8 @@ void QtControllerSelectorDialog::UpdateDockedState(bool is_handheld) {
     ui->radioDocked->setEnabled(!is_handheld);
     ui->radioUndocked->setEnabled(!is_handheld);
 
-    ui->radioDocked->setChecked(Settings::values.use_docked_mode);
-    ui->radioUndocked->setChecked(!Settings::values.use_docked_mode);
+    ui->radioDocked->setChecked(Settings::values.use_docked_mode.GetValue());
+    ui->radioUndocked->setChecked(!Settings::values.use_docked_mode.GetValue());
 
     // Also force into undocked mode if the controller type is handheld.
     if (is_handheld) {
@@ -564,8 +635,8 @@ void QtControllerSelectorDialog::DisableUnsupportedPlayers() {
 
     for (std::size_t index = max_supported_players; index < NUM_PLAYERS; ++index) {
         // Disconnect any unsupported players here and disable or hide them if applicable.
-        Settings::values.players[index].connected = false;
-        UpdateController(Settings::values.players[index].controller_type, index, false);
+        Settings::values.players.GetValue()[index].connected = false;
+        UpdateController(Settings::values.players.GetValue()[index].controller_type, index, false);
         // Hide the player widgets when max_supported_controllers is less than or equal to 4.
         if (max_supported_players <= 4) {
             player_widgets[index]->hide();
@@ -589,13 +660,13 @@ QtControllerSelector::QtControllerSelector(GMainWindow& parent) {
 QtControllerSelector::~QtControllerSelector() = default;
 
 void QtControllerSelector::ReconfigureControllers(
-    std::function<void()> callback, Core::Frontend::ControllerParameters parameters) const {
-    this->callback = std::move(callback);
+    std::function<void()> callback_, const Core::Frontend::ControllerParameters& parameters) const {
+    callback = std::move(callback_);
     emit MainWindowReconfigureControllers(parameters);
 }
 
 void QtControllerSelector::MainWindowReconfigureFinished() {
     // Acquire the HLE mutex
-    std::lock_guard<std::recursive_mutex> lock(HLE::g_hle_lock);
+    std::lock_guard lock(HLE::g_hle_lock);
     callback();
 }

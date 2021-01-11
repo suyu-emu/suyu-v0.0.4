@@ -10,6 +10,7 @@
 #include <QMessageBox>
 #include <QPainter>
 #include <QScreen>
+#include <QString>
 #include <QStringList>
 #include <QWindow>
 
@@ -18,7 +19,7 @@
 #include <QOpenGLContext>
 #endif
 
-#if !defined(WIN32) && HAS_VULKAN
+#if !defined(WIN32)
 #include <qpa/qplatformnativeinterface.h>
 #endif
 
@@ -34,7 +35,7 @@
 #include "core/settings.h"
 #include "input_common/keyboard.h"
 #include "input_common/main.h"
-#include "input_common/motion_emu.h"
+#include "input_common/mouse/mouse_input.h"
 #include "video_core/renderer_base.h"
 #include "video_core/video_core.h"
 #include "yuzu/bootmanager.h"
@@ -240,14 +241,12 @@ private:
     std::unique_ptr<Core::Frontend::GraphicsContext> context;
 };
 
-#ifdef HAS_VULKAN
 class VulkanRenderWidget : public RenderWidget {
 public:
     explicit VulkanRenderWidget(GRenderWindow* parent) : RenderWidget(parent) {
         windowHandle()->setSurfaceType(QWindow::VulkanSurface);
     }
 };
-#endif
 
 static Core::Frontend::WindowSystemType GetWindowSystemType() {
     // Determine WSI type based on Qt platform.
@@ -267,7 +266,6 @@ static Core::Frontend::EmuWindow::WindowSystemInfo GetWindowSystemInfo(QWindow* 
     Core::Frontend::EmuWindow::WindowSystemInfo wsi;
     wsi.type = GetWindowSystemType();
 
-#ifdef HAS_VULKAN
     // Our Win32 Qt external doesn't have the private API.
 #if defined(WIN32) || defined(__APPLE__)
     wsi.render_surface = window ? reinterpret_cast<void*>(window->winId()) : nullptr;
@@ -280,7 +278,6 @@ static Core::Frontend::EmuWindow::WindowSystemInfo GetWindowSystemInfo(QWindow* 
         wsi.render_surface = window ? reinterpret_cast<void*>(window->winId()) : nullptr;
 #endif
     wsi.render_surface_scale = window ? static_cast<float>(window->devicePixelRatio()) : 1.0f;
-#endif
 
     return wsi;
 }
@@ -301,13 +298,19 @@ GRenderWindow::GRenderWindow(GMainWindow* parent, EmuThread* emu_thread_,
     this->setMouseTracking(true);
 
     connect(this, &GRenderWindow::FirstFrameDisplayed, parent, &GMainWindow::OnLoadComplete);
+    connect(this, &GRenderWindow::ExecuteProgramSignal, parent, &GMainWindow::OnExecuteProgram,
+            Qt::QueuedConnection);
+}
+
+void GRenderWindow::ExecuteProgram(std::size_t program_index) {
+    emit ExecuteProgramSignal(program_index);
 }
 
 GRenderWindow::~GRenderWindow() {
     input_subsystem->Shutdown();
 }
 
-void GRenderWindow::PollEvents() {
+void GRenderWindow::OnFrameDisplayed() {
     if (!first_frame) {
         first_frame = true;
         emit FirstFrameDisplayed();
@@ -381,44 +384,46 @@ void GRenderWindow::keyReleaseEvent(QKeyEvent* event) {
 }
 
 void GRenderWindow::mousePressEvent(QMouseEvent* event) {
-    // touch input is handled in TouchBeginEvent
-    if (event->source() == Qt::MouseEventSynthesizedBySystem) {
-        return;
-    }
-
-    auto pos = event->pos();
-    if (event->button() == Qt::LeftButton) {
-        const auto [x, y] = ScaleTouch(pos);
-        this->TouchPressed(x, y);
-    } else if (event->button() == Qt::RightButton) {
-        input_subsystem->GetMotionEmu()->BeginTilt(pos.x(), pos.y());
-    }
-    QWidget::mousePressEvent(event);
-}
-
-void GRenderWindow::mouseMoveEvent(QMouseEvent* event) {
-    // touch input is handled in TouchUpdateEvent
+    // Touch input is handled in TouchBeginEvent
     if (event->source() == Qt::MouseEventSynthesizedBySystem) {
         return;
     }
 
     auto pos = event->pos();
     const auto [x, y] = ScaleTouch(pos);
-    this->TouchMoved(x, y);
-    input_subsystem->GetMotionEmu()->Tilt(pos.x(), pos.y());
-    QWidget::mouseMoveEvent(event);
+    input_subsystem->GetMouse()->PressButton(x, y, event->button());
+
+    if (event->button() == Qt::LeftButton) {
+        this->TouchPressed(x, y);
+    }
+
+    emit MouseActivity();
 }
 
-void GRenderWindow::mouseReleaseEvent(QMouseEvent* event) {
-    // touch input is handled in TouchEndEvent
+void GRenderWindow::mouseMoveEvent(QMouseEvent* event) {
+    // Touch input is handled in TouchUpdateEvent
     if (event->source() == Qt::MouseEventSynthesizedBySystem) {
         return;
     }
 
+    auto pos = event->pos();
+    const auto [x, y] = ScaleTouch(pos);
+    input_subsystem->GetMouse()->MouseMove(x, y);
+    this->TouchMoved(x, y);
+
+    emit MouseActivity();
+}
+
+void GRenderWindow::mouseReleaseEvent(QMouseEvent* event) {
+    // Touch input is handled in TouchEndEvent
+    if (event->source() == Qt::MouseEventSynthesizedBySystem) {
+        return;
+    }
+
+    input_subsystem->GetMouse()->ReleaseButton(event->button());
+
     if (event->button() == Qt::LeftButton) {
         this->TouchReleased();
-    } else if (event->button() == Qt::RightButton) {
-        input_subsystem->GetMotionEmu()->EndTilt();
     }
 }
 
@@ -560,6 +565,10 @@ void GRenderWindow::CaptureScreenshot(u32 res_scale, const QString& screenshot_p
         layout);
 }
 
+bool GRenderWindow::IsLoadingComplete() const {
+    return first_frame;
+}
+
 void GRenderWindow::OnMinimalClientAreaChangeRequest(std::pair<u32, u32> minimal_size) {
     setMinimumSize(minimal_size.first, minimal_size.second);
 }
@@ -585,37 +594,45 @@ bool GRenderWindow::InitializeOpenGL() {
 }
 
 bool GRenderWindow::InitializeVulkan() {
-#ifdef HAS_VULKAN
     auto child = new VulkanRenderWidget(this);
     child_widget = child;
     child_widget->windowHandle()->create();
     main_context = std::make_unique<DummyContext>();
 
     return true;
-#else
-    QMessageBox::critical(this, tr("Vulkan not available!"),
-                          tr("yuzu has not been compiled with Vulkan support."));
-    return false;
-#endif
 }
 
 bool GRenderWindow::LoadOpenGL() {
     auto context = CreateSharedContext();
     auto scope = context->Acquire();
     if (!gladLoadGL()) {
-        QMessageBox::critical(this, tr("Error while initializing OpenGL 4.3!"),
-                              tr("Your GPU may not support OpenGL 4.3, or you do not have the "
-                                 "latest graphics driver."));
+        QMessageBox::warning(
+            this, tr("Error while initializing OpenGL!"),
+            tr("Your GPU may not support OpenGL, or you do not have the latest graphics driver."));
+        return false;
+    }
+
+    const QString renderer =
+        QString::fromUtf8(reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
+
+    if (!GLAD_GL_VERSION_4_3) {
+        LOG_ERROR(Frontend, "GPU does not support OpenGL 4.3: {}", renderer.toStdString());
+        QMessageBox::warning(this, tr("Error while initializing OpenGL 4.3!"),
+                             tr("Your GPU may not support OpenGL 4.3, or you do not have the "
+                                "latest graphics driver.<br><br>GL Renderer:<br>%1")
+                                 .arg(renderer));
         return false;
     }
 
     QStringList unsupported_gl_extensions = GetUnsupportedGLExtensions();
     if (!unsupported_gl_extensions.empty()) {
-        QMessageBox::critical(
+        QMessageBox::warning(
             this, tr("Error while initializing OpenGL!"),
             tr("Your GPU may not support one or more required OpenGL extensions. Please ensure you "
-               "have the latest graphics driver.<br><br>Unsupported extensions:<br>") +
-                unsupported_gl_extensions.join(QStringLiteral("<br>")));
+               "have the latest graphics driver.<br><br>GL Renderer:<br>%1<br><br>Unsupported "
+               "extensions:<br>%2")
+                .arg(renderer)
+                .arg(unsupported_gl_extensions.join(QStringLiteral("<br>"))));
         return false;
     }
     return true;
@@ -645,8 +662,13 @@ QStringList GRenderWindow::GetUnsupportedGLExtensions() const {
     if (!GLAD_GL_ARB_depth_buffer_float)
         unsupported_ext.append(QStringLiteral("ARB_depth_buffer_float"));
 
-    for (const QString& ext : unsupported_ext)
-        LOG_CRITICAL(Frontend, "Unsupported GL extension: {}", ext.toStdString());
+    if (!unsupported_ext.empty()) {
+        LOG_ERROR(Frontend, "GPU does not support all required extensions: {}",
+                  glGetString(GL_RENDERER));
+    }
+    for (const QString& ext : unsupported_ext) {
+        LOG_ERROR(Frontend, "Unsupported GL extension: {}", ext.toStdString());
+    }
 
     return unsupported_ext;
 }
@@ -665,4 +687,11 @@ void GRenderWindow::showEvent(QShowEvent* event) {
     // windowHandle() is not initialized until the Window is shown, so we connect it here.
     connect(windowHandle(), &QWindow::screenChanged, this, &GRenderWindow::OnFramebufferSizeChanged,
             Qt::UniqueConnection);
+}
+
+bool GRenderWindow::eventFilter(QObject* object, QEvent* event) {
+    if (event->type() == QEvent::HoverMove) {
+        emit MouseActivity();
+    }
+    return false;
 }

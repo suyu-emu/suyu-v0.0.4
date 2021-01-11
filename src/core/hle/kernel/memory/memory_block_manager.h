@@ -57,8 +57,8 @@ public:
 private:
     void MergeAdjacent(iterator it, iterator& next_it);
 
-    const VAddr start_addr;
-    const VAddr end_addr;
+    [[maybe_unused]] const VAddr start_addr;
+    [[maybe_unused]] const VAddr end_addr;
 
     MemoryBlockTree memory_block_tree;
 };

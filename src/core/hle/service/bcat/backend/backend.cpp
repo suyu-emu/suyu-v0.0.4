@@ -84,7 +84,7 @@ void ProgressServiceBackend::FinishDownload(ResultCode result) {
 
 void ProgressServiceBackend::SignalUpdate() const {
     if (need_hle_lock) {
-        std::lock_guard<std::recursive_mutex> lock(HLE::g_hle_lock);
+        std::lock_guard lock(HLE::g_hle_lock);
         event.writable->Signal();
     } else {
         event.writable->Signal();

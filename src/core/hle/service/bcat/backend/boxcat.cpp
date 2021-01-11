@@ -196,7 +196,9 @@ private:
                                     const std::string& content_type_name) {
         if (client == nullptr) {
             client = std::make_unique<httplib::SSLClient>(BOXCAT_HOSTNAME, PORT);
-            client->set_timeout_sec(timeout_seconds);
+            client->set_connection_timeout(timeout_seconds);
+            client->set_read_timeout(timeout_seconds);
+            client->set_write_timeout(timeout_seconds);
         }
 
         httplib::Headers headers{
@@ -255,7 +257,7 @@ private:
         return out;
     }
 
-    std::unique_ptr<httplib::Client> client;
+    std::unique_ptr<httplib::SSLClient> client;
     std::string path;
     u64 title_id;
     u64 build_id;
@@ -443,12 +445,24 @@ std::optional<std::vector<u8>> Boxcat::GetLaunchParameter(TitleIDVersion title) 
 Boxcat::StatusResult Boxcat::GetStatus(std::optional<std::string>& global,
                                        std::map<std::string, EventStatus>& games) {
     httplib::SSLClient client{BOXCAT_HOSTNAME, static_cast<int>(PORT)};
-    client.set_timeout_sec(static_cast<int>(TIMEOUT_SECONDS));
+    client.set_connection_timeout(static_cast<int>(TIMEOUT_SECONDS));
+    client.set_read_timeout(static_cast<int>(TIMEOUT_SECONDS));
+    client.set_write_timeout(static_cast<int>(TIMEOUT_SECONDS));
 
     httplib::Headers headers{
         {std::string("Game-Assets-API-Version"), std::string(BOXCAT_API_VERSION)},
         {std::string("Boxcat-Client-Type"), std::string(BOXCAT_CLIENT_TYPE)},
     };
+
+    if (!client.is_valid()) {
+        LOG_ERROR(Service_BCAT, "Client is invalid, going offline!");
+        return StatusResult::Offline;
+    }
+
+    if (!client.is_socket_open()) {
+        LOG_ERROR(Service_BCAT, "Failed to open socket, going offline!");
+        return StatusResult::Offline;
+    }
 
     const auto response = client.Get(BOXCAT_PATHNAME_EVENTS, headers);
     if (response == nullptr)
@@ -469,7 +483,7 @@ Boxcat::StatusResult Boxcat::GetStatus(std::optional<std::string>& global,
             global = json["global"].get<std::string>();
 
         if (json["games"].is_array()) {
-            for (const auto object : json["games"]) {
+            for (const auto& object : json["games"]) {
                 if (object.is_object() && object.find("name") != object.end()) {
                     EventStatus detail{};
                     if (object["header"].is_string()) {

@@ -35,13 +35,14 @@ class SlabHeap;
 
 class AddressArbiter;
 class ClientPort;
-class GlobalScheduler;
+class GlobalSchedulerContext;
 class HandleTable;
 class PhysicalCore;
 class Process;
 class ResourceLimit;
-class Scheduler;
+class KScheduler;
 class SharedMemory;
+class ServiceThread;
 class Synchronization;
 class Thread;
 class TimeManager;
@@ -74,6 +75,9 @@ public:
     /// Resets the kernel to a clean slate for use.
     void Initialize();
 
+    /// Initializes the CPU cores.
+    void InitializeCores();
+
     /// Clears all resources in use by the kernel instance.
     void Shutdown();
 
@@ -99,16 +103,16 @@ public:
     const std::vector<std::shared_ptr<Process>>& GetProcessList() const;
 
     /// Gets the sole instance of the global scheduler
-    Kernel::GlobalScheduler& GlobalScheduler();
+    Kernel::GlobalSchedulerContext& GlobalSchedulerContext();
 
     /// Gets the sole instance of the global scheduler
-    const Kernel::GlobalScheduler& GlobalScheduler() const;
+    const Kernel::GlobalSchedulerContext& GlobalSchedulerContext() const;
 
     /// Gets the sole instance of the Scheduler assoviated with cpu core 'id'
-    Kernel::Scheduler& Scheduler(std::size_t id);
+    Kernel::KScheduler& Scheduler(std::size_t id);
 
     /// Gets the sole instance of the Scheduler assoviated with cpu core 'id'
-    const Kernel::Scheduler& Scheduler(std::size_t id) const;
+    const Kernel::KScheduler& Scheduler(std::size_t id) const;
 
     /// Gets the an instance of the respective physical CPU core.
     Kernel::PhysicalCore& PhysicalCore(std::size_t id);
@@ -117,10 +121,7 @@ public:
     const Kernel::PhysicalCore& PhysicalCore(std::size_t id) const;
 
     /// Gets the sole instance of the Scheduler at the current running core.
-    Kernel::Scheduler& CurrentScheduler();
-
-    /// Gets the sole instance of the Scheduler at the current running core.
-    const Kernel::Scheduler& CurrentScheduler() const;
+    Kernel::KScheduler* CurrentScheduler();
 
     /// Gets the an instance of the current physical CPU core.
     Kernel::PhysicalCore& CurrentPhysicalCore();
@@ -152,6 +153,8 @@ public:
     const std::array<Core::CPUInterruptHandler, Core::Hardware::NUM_CPU_CORES>& Interrupts() const;
 
     void InvalidateAllInstructionCaches();
+
+    void InvalidateCpuInstructionCacheRange(VAddr addr, std::size_t size);
 
     /// Adds a port to the named port table
     void AddNamedPort(std::string name, std::shared_ptr<ClientPort> port);
@@ -224,6 +227,22 @@ public:
     void EnterSVCProfile();
 
     void ExitSVCProfile();
+
+    /**
+     * Creates an HLE service thread, which are used to execute service routines asynchronously.
+     * While these are allocated per ServerSession, these need to be owned and managed outside of
+     * ServerSession to avoid a circular dependency.
+     * @param name String name for the ServerSession creating this thread, used for debug purposes.
+     * @returns The a weak pointer newly created service thread.
+     */
+    std::weak_ptr<Kernel::ServiceThread> CreateServiceThread(const std::string& name);
+
+    /**
+     * Releases a HLE service thread, instructing KernelCore to free it. This should be called when
+     * the ServerSession associated with the thread is destroyed.
+     * @param service_thread Service thread to release.
+     */
+    void ReleaseServiceThread(std::weak_ptr<Kernel::ServiceThread> service_thread);
 
 private:
     friend class Object;

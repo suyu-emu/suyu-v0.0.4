@@ -43,6 +43,10 @@ std::vector<Buffer::Tag> AudioOut::GetTagsAndReleaseBuffers(StreamPtr stream,
     return stream->GetTagsAndReleaseBuffers(max_count);
 }
 
+std::vector<Buffer::Tag> AudioOut::GetTagsAndReleaseBuffers(StreamPtr stream) {
+    return stream->GetTagsAndReleaseBuffers();
+}
+
 void AudioOut::StartStream(StreamPtr stream) {
     stream->Play();
 }

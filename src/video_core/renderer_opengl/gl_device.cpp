@@ -5,9 +5,11 @@
 #include <algorithm>
 #include <array>
 #include <cstddef>
+#include <cstdlib>
 #include <cstring>
 #include <limits>
 #include <optional>
+#include <span>
 #include <vector>
 
 #include <glad/glad.h>
@@ -27,27 +29,29 @@ constexpr u32 ReservedUniformBlocks = 1;
 
 constexpr u32 NumStages = 5;
 
-constexpr std::array LimitUBOs = {
+constexpr std::array LIMIT_UBOS = {
     GL_MAX_VERTEX_UNIFORM_BLOCKS,          GL_MAX_TESS_CONTROL_UNIFORM_BLOCKS,
     GL_MAX_TESS_EVALUATION_UNIFORM_BLOCKS, GL_MAX_GEOMETRY_UNIFORM_BLOCKS,
-    GL_MAX_FRAGMENT_UNIFORM_BLOCKS,        GL_MAX_COMPUTE_UNIFORM_BLOCKS};
-
-constexpr std::array LimitSSBOs = {
+    GL_MAX_FRAGMENT_UNIFORM_BLOCKS,        GL_MAX_COMPUTE_UNIFORM_BLOCKS,
+};
+constexpr std::array LIMIT_SSBOS = {
     GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS,          GL_MAX_TESS_CONTROL_SHADER_STORAGE_BLOCKS,
     GL_MAX_TESS_EVALUATION_SHADER_STORAGE_BLOCKS, GL_MAX_GEOMETRY_SHADER_STORAGE_BLOCKS,
-    GL_MAX_FRAGMENT_SHADER_STORAGE_BLOCKS,        GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS};
-
-constexpr std::array LimitSamplers = {GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS,
-                                      GL_MAX_TESS_CONTROL_TEXTURE_IMAGE_UNITS,
-                                      GL_MAX_TESS_EVALUATION_TEXTURE_IMAGE_UNITS,
-                                      GL_MAX_GEOMETRY_TEXTURE_IMAGE_UNITS,
-                                      GL_MAX_TEXTURE_IMAGE_UNITS,
-                                      GL_MAX_COMPUTE_TEXTURE_IMAGE_UNITS};
-
-constexpr std::array LimitImages = {
+    GL_MAX_FRAGMENT_SHADER_STORAGE_BLOCKS,        GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS,
+};
+constexpr std::array LIMIT_SAMPLERS = {
+    GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS,
+    GL_MAX_TESS_CONTROL_TEXTURE_IMAGE_UNITS,
+    GL_MAX_TESS_EVALUATION_TEXTURE_IMAGE_UNITS,
+    GL_MAX_GEOMETRY_TEXTURE_IMAGE_UNITS,
+    GL_MAX_TEXTURE_IMAGE_UNITS,
+    GL_MAX_COMPUTE_TEXTURE_IMAGE_UNITS,
+};
+constexpr std::array LIMIT_IMAGES = {
     GL_MAX_VERTEX_IMAGE_UNIFORMS,          GL_MAX_TESS_CONTROL_IMAGE_UNIFORMS,
     GL_MAX_TESS_EVALUATION_IMAGE_UNIFORMS, GL_MAX_GEOMETRY_IMAGE_UNIFORMS,
-    GL_MAX_FRAGMENT_IMAGE_UNIFORMS,        GL_MAX_COMPUTE_IMAGE_UNIFORMS};
+    GL_MAX_FRAGMENT_IMAGE_UNIFORMS,        GL_MAX_COMPUTE_IMAGE_UNIFORMS,
+};
 
 template <typename T>
 T GetInteger(GLenum pname) {
@@ -76,8 +80,8 @@ std::vector<std::string_view> GetExtensions() {
     return extensions;
 }
 
-bool HasExtension(const std::vector<std::string_view>& images, std::string_view extension) {
-    return std::find(images.begin(), images.end(), extension) != images.end();
+bool HasExtension(std::span<const std::string_view> extensions, std::string_view extension) {
+    return std::ranges::find(extensions, extension) != extensions.end();
 }
 
 u32 Extract(u32& base, u32& num, u32 amount, std::optional<GLenum> limit = {}) {
@@ -91,8 +95,8 @@ u32 Extract(u32& base, u32& num, u32 amount, std::optional<GLenum> limit = {}) {
 
 std::array<u32, Tegra::Engines::MaxShaderTypes> BuildMaxUniformBuffers() noexcept {
     std::array<u32, Tegra::Engines::MaxShaderTypes> max;
-    std::transform(LimitUBOs.begin(), LimitUBOs.end(), max.begin(),
-                   [](GLenum pname) { return GetInteger<u32>(pname); });
+    std::ranges::transform(LIMIT_UBOS, max.begin(),
+                           [](GLenum pname) { return GetInteger<u32>(pname); });
     return max;
 }
 
@@ -115,9 +119,10 @@ std::array<Device::BaseBindings, Tegra::Engines::MaxShaderTypes> BuildBaseBindin
     for (std::size_t i = 0; i < NumStages; ++i) {
         const std::size_t stage = stage_swizzle[i];
         bindings[stage] = {
-            Extract(base_ubo, num_ubos, total_ubos / NumStages, LimitUBOs[stage]),
-            Extract(base_ssbo, num_ssbos, total_ssbos / NumStages, LimitSSBOs[stage]),
-            Extract(base_samplers, num_samplers, total_samplers / NumStages, LimitSamplers[stage])};
+            Extract(base_ubo, num_ubos, total_ubos / NumStages, LIMIT_UBOS[stage]),
+            Extract(base_ssbo, num_ssbos, total_ssbos / NumStages, LIMIT_SSBOS[stage]),
+            Extract(base_samplers, num_samplers, total_samplers / NumStages,
+                    LIMIT_SAMPLERS[stage])};
     }
 
     u32 num_images = GetInteger<u32>(GL_MAX_IMAGE_UNITS);
@@ -130,7 +135,7 @@ std::array<Device::BaseBindings, Tegra::Engines::MaxShaderTypes> BuildBaseBindin
 
     // Reserve at least 4 image bindings on the fragment stage.
     bindings[4].image =
-        Extract(base_images, num_images, std::max(4U, num_images / NumStages), LimitImages[4]);
+        Extract(base_images, num_images, std::max(4U, num_images / NumStages), LIMIT_IMAGES[4]);
 
     // This is guaranteed to be at least 1.
     const u32 total_extracted_images = num_images / (NumStages - 1);
@@ -142,7 +147,7 @@ std::array<Device::BaseBindings, Tegra::Engines::MaxShaderTypes> BuildBaseBindin
             continue;
         }
         bindings[stage].image =
-            Extract(base_images, num_images, total_extracted_images, LimitImages[stage]);
+            Extract(base_images, num_images, total_extracted_images, LIMIT_IMAGES[stage]);
     }
 
     // Compute doesn't care about any of this.
@@ -188,17 +193,22 @@ bool IsASTCSupported() {
     return true;
 }
 
+[[nodiscard]] bool IsDebugToolAttached(std::span<const std::string_view> extensions) {
+    const bool nsight = std::getenv("NVTX_INJECTION64_PATH") || std::getenv("NSIGHT_LAUNCHED");
+    return nsight || HasExtension(extensions, "GL_EXT_debug_tool");
+}
+
 } // Anonymous namespace
 
 Device::Device()
     : max_uniform_buffers{BuildMaxUniformBuffers()}, base_bindings{BuildBaseBindings()} {
     const std::string_view vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
-    const std::string_view renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
     const std::string_view version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
     const std::vector extensions = GetExtensions();
 
     const bool is_nvidia = vendor == "NVIDIA Corporation";
     const bool is_amd = vendor == "ATI Technologies Inc.";
+    const bool is_intel = vendor == "Intel";
 
     bool disable_fast_buffer_sub_data = false;
     if (is_nvidia && version == "4.6.0 NVIDIA 443.24") {
@@ -207,9 +217,8 @@ Device::Device()
             "Beta driver 443.24 is known to have issues. There might be performance issues.");
         disable_fast_buffer_sub_data = true;
     }
-
-    uniform_buffer_alignment = GetInteger<std::size_t>(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT);
-    shader_storage_alignment = GetInteger<std::size_t>(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT);
+    uniform_buffer_alignment = GetInteger<size_t>(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT);
+    shader_storage_alignment = GetInteger<size_t>(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT);
     max_vertex_attributes = GetInteger<u32>(GL_MAX_VERTEX_ATTRIBS);
     max_varyings = GetInteger<u32>(GL_MAX_VARYING_VECTORS);
     max_compute_shared_memory_size = GetInteger<u32>(GL_MAX_COMPUTE_SHARED_MEMORY_SIZE);
@@ -223,8 +232,10 @@ Device::Device()
     has_variable_aoffi = TestVariableAoffi();
     has_component_indexing_bug = is_amd;
     has_precise_bug = TestPreciseBug();
+    has_broken_texture_view_formats = is_amd || is_intel;
     has_nv_viewport_array2 = GLAD_GL_NV_viewport_array2;
     has_vertex_buffer_unified_memory = GLAD_GL_NV_vertex_buffer_unified_memory;
+    has_debugging_tool_attached = IsDebugToolAttached(extensions);
 
     // At the moment of writing this, only Nvidia's driver optimizes BufferSubData on exclusive
     // uniform buffers as "push constants"
@@ -239,6 +250,8 @@ Device::Device()
     LOG_INFO(Render_OpenGL, "Renderer_VariableAOFFI: {}", has_variable_aoffi);
     LOG_INFO(Render_OpenGL, "Renderer_ComponentIndexingBug: {}", has_component_indexing_bug);
     LOG_INFO(Render_OpenGL, "Renderer_PreciseBug: {}", has_precise_bug);
+    LOG_INFO(Render_OpenGL, "Renderer_BrokenTextureViewFormats: {}",
+             has_broken_texture_view_formats);
 
     if (Settings::values.use_assembly_shaders.GetValue() && !use_assembly_shaders) {
         LOG_ERROR(Render_OpenGL, "Assembly shaders enabled but not supported");

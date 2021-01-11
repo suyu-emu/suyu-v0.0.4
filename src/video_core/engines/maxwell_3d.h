@@ -438,16 +438,6 @@ public:
             DecrWrapOGL = 0x8508,
         };
 
-        enum class MemoryLayout : u32 {
-            Linear = 0,
-            BlockLinear = 1,
-        };
-
-        enum class InvMemoryLayout : u32 {
-            BlockLinear = 0,
-            Linear = 1,
-        };
-
         enum class CounterReset : u32 {
             SampleCnt = 0x01,
             Unk02 = 0x02,
@@ -589,21 +579,31 @@ public:
             NegativeW = 7,
         };
 
+        enum class SamplerIndex : u32 {
+            Independently = 0,
+            ViaHeaderIndex = 1,
+        };
+
+        struct TileMode {
+            union {
+                BitField<0, 4, u32> block_width;
+                BitField<4, 4, u32> block_height;
+                BitField<8, 4, u32> block_depth;
+                BitField<12, 1, u32> is_pitch_linear;
+                BitField<16, 1, u32> is_3d;
+            };
+        };
+        static_assert(sizeof(TileMode) == 4);
+
         struct RenderTargetConfig {
             u32 address_high;
             u32 address_low;
             u32 width;
             u32 height;
             Tegra::RenderTargetFormat format;
+            TileMode tile_mode;
             union {
-                BitField<0, 3, u32> block_width;
-                BitField<4, 3, u32> block_height;
-                BitField<8, 3, u32> block_depth;
-                BitField<12, 1, InvMemoryLayout> type;
-                BitField<16, 1, u32> is_3d;
-            } memory_layout;
-            union {
-                BitField<0, 16, u32> layers;
+                BitField<0, 16, u32> depth;
                 BitField<16, 1, u32> volume;
             };
             u32 layer_stride;
@@ -755,7 +755,11 @@ public:
 
                 u32 data_upload;
 
-                INSERT_UNION_PADDING_WORDS(0x44);
+                INSERT_UNION_PADDING_WORDS(0x16);
+
+                u32 force_early_fragment_tests;
+
+                INSERT_UNION_PADDING_WORDS(0x2D);
 
                 struct {
                     union {
@@ -828,7 +832,11 @@ public:
 
                 u32 patch_vertices;
 
-                INSERT_UNION_PADDING_WORDS(0xC);
+                INSERT_UNION_PADDING_WORDS(0x4);
+
+                u32 fragment_barrier;
+
+                INSERT_UNION_PADDING_WORDS(0x7);
 
                 std::array<ScissorTest, NumViewports> scissor_test;
 
@@ -838,7 +846,15 @@ public:
                 u32 stencil_back_mask;
                 u32 stencil_back_func_mask;
 
-                INSERT_UNION_PADDING_WORDS(0xC);
+                INSERT_UNION_PADDING_WORDS(0x5);
+
+                u32 invalidate_texture_data_cache;
+
+                INSERT_UNION_PADDING_WORDS(0x1);
+
+                u32 tiled_cache_barrier;
+
+                INSERT_UNION_PADDING_WORDS(0x4);
 
                 u32 color_mask_common;
 
@@ -862,12 +878,7 @@ public:
                     u32 address_high;
                     u32 address_low;
                     Tegra::DepthFormat format;
-                    union {
-                        BitField<0, 4, u32> block_width;
-                        BitField<4, 4, u32> block_height;
-                        BitField<8, 4, u32> block_depth;
-                        BitField<20, 1, InvMemoryLayout> type;
-                    } memory_layout;
+                    TileMode tile_mode;
                     u32 layer_stride;
 
                     GPUVAddr Address() const {
@@ -876,7 +887,18 @@ public:
                     }
                 } zeta;
 
-                INSERT_UNION_PADDING_WORDS(0x41);
+                struct {
+                    union {
+                        BitField<0, 16, u32> x;
+                        BitField<16, 16, u32> width;
+                    };
+                    union {
+                        BitField<0, 16, u32> y;
+                        BitField<16, 16, u32> height;
+                    };
+                } render_area;
+
+                INSERT_UNION_PADDING_WORDS(0x3F);
 
                 union {
                     BitField<0, 4, u32> stencil;
@@ -917,7 +939,7 @@ public:
                         BitField<25, 3, u32> map_7;
                     };
 
-                    u32 GetMap(std::size_t index) const {
+                    u32 Map(std::size_t index) const {
                         const std::array<u32, NumRenderTargets> maps{map_0, map_1, map_2, map_3,
                                                                      map_4, map_5, map_6, map_7};
                         ASSERT(index < maps.size());
@@ -930,11 +952,13 @@ public:
                 u32 zeta_width;
                 u32 zeta_height;
                 union {
-                    BitField<0, 16, u32> zeta_layers;
+                    BitField<0, 16, u32> zeta_depth;
                     BitField<16, 1, u32> zeta_volume;
                 };
 
-                INSERT_UNION_PADDING_WORDS(0x26);
+                SamplerIndex sampler_index;
+
+                INSERT_UNION_PADDING_WORDS(0x25);
 
                 u32 depth_test_enable;
 
@@ -960,6 +984,7 @@ public:
                     float b;
                     float a;
                 } blend_color;
+
                 INSERT_UNION_PADDING_WORDS(0x4);
 
                 struct {
@@ -997,7 +1022,12 @@ public:
                 float line_width_smooth;
                 float line_width_aliased;
 
-                INSERT_UNION_PADDING_WORDS(0x1F);
+                INSERT_UNION_PADDING_WORDS(0x1B);
+
+                u32 invalidate_sampler_cache_no_wfi;
+                u32 invalidate_texture_header_cache_no_wfi;
+
+                INSERT_UNION_PADDING_WORDS(0x2);
 
                 u32 vb_element_base;
                 u32 vb_base_instance;
@@ -1041,13 +1071,13 @@ public:
                 } condition;
 
                 struct {
-                    u32 tsc_address_high;
-                    u32 tsc_address_low;
-                    u32 tsc_limit;
+                    u32 address_high;
+                    u32 address_low;
+                    u32 limit;
 
-                    GPUVAddr TSCAddress() const {
-                        return static_cast<GPUVAddr>(
-                            (static_cast<GPUVAddr>(tsc_address_high) << 32) | tsc_address_low);
+                    GPUVAddr Address() const {
+                        return static_cast<GPUVAddr>((static_cast<GPUVAddr>(address_high) << 32) |
+                                                     address_low);
                     }
                 } tsc;
 
@@ -1058,13 +1088,13 @@ public:
                 u32 line_smooth_enable;
 
                 struct {
-                    u32 tic_address_high;
-                    u32 tic_address_low;
-                    u32 tic_limit;
+                    u32 address_high;
+                    u32 address_low;
+                    u32 limit;
 
-                    GPUVAddr TICAddress() const {
-                        return static_cast<GPUVAddr>(
-                            (static_cast<GPUVAddr>(tic_address_high) << 32) | tic_address_low);
+                    GPUVAddr Address() const {
+                        return static_cast<GPUVAddr>((static_cast<GPUVAddr>(address_high) << 32) |
+                                                     address_low);
                     }
                 } tic;
 
@@ -1393,12 +1423,6 @@ public:
 
     void FlushMMEInlineDraw();
 
-    /// Given a texture handle, returns the TSC and TIC entries.
-    Texture::FullTextureInfo GetTextureInfo(Texture::TextureHandle tex_handle) const;
-
-    /// Returns the texture information for a specific texture in a specific shader stage.
-    Texture::FullTextureInfo GetStageTexture(ShaderType stage, std::size_t offset) const;
-
     u32 AccessConstBuffer32(ShaderType stage, u64 const_buffer, u64 offset) const override;
 
     SamplerDescriptor AccessBoundSampler(ShaderType stage, u64 offset) const override;
@@ -1461,38 +1485,13 @@ public:
 private:
     void InitializeRegisterDefaults();
 
-    Core::System& system;
-    MemoryManager& memory_manager;
+    void ProcessMacro(u32 method, const u32* base_start, u32 amount, bool is_last_call);
 
-    VideoCore::RasterizerInterface* rasterizer = nullptr;
+    u32 ProcessShadowRam(u32 method, u32 argument);
 
-    /// Start offsets of each macro in macro_memory
-    std::array<u32, 0x80> macro_positions = {};
+    void ProcessDirtyRegisters(u32 method, u32 argument);
 
-    std::array<bool, Regs::NUM_REGS> mme_inline{};
-
-    /// Macro method that is currently being executed / being fed parameters.
-    u32 executing_macro = 0;
-    /// Parameters that have been submitted to the macro call so far.
-    std::vector<u32> macro_params;
-
-    /// Interpreter for the macro codes uploaded to the GPU.
-    std::unique_ptr<MacroEngine> macro_engine;
-
-    static constexpr u32 null_cb_data = 0xFFFFFFFF;
-    struct {
-        std::array<std::array<u32, 0x4000>, 16> buffer;
-        u32 current{null_cb_data};
-        u32 id{null_cb_data};
-        u32 start_pos{};
-        u32 counter{};
-    } cb_data_state;
-
-    Upload::State upload_state;
-
-    bool execute_on{true};
-
-    std::array<u8, Regs::NUM_REGS> dirty_pointers{};
+    void ProcessMethodCall(u32 method, u32 argument, u32 nonshadow_argument, bool is_last_call);
 
     /// Retrieves information about a specific TIC entry from the TIC buffer.
     Texture::TICEntry GetTICEntry(u32 tic_index) const;
@@ -1502,8 +1501,8 @@ private:
 
     /**
      * Call a macro on this engine.
+     *
      * @param method Method to call
-     * @param num_parameters Number of arguments
      * @param parameters Arguments to the method call
      */
     void CallMacroMethod(u32 method, const std::vector<u32>& parameters);
@@ -1552,6 +1551,38 @@ private:
 
     /// Returns a query's value or an empty object if the value will be deferred through a cache.
     std::optional<u64> GetQueryResult();
+
+    Core::System& system;
+    MemoryManager& memory_manager;
+
+    VideoCore::RasterizerInterface* rasterizer = nullptr;
+
+    /// Start offsets of each macro in macro_memory
+    std::array<u32, 0x80> macro_positions{};
+
+    std::array<bool, Regs::NUM_REGS> mme_inline{};
+
+    /// Macro method that is currently being executed / being fed parameters.
+    u32 executing_macro = 0;
+    /// Parameters that have been submitted to the macro call so far.
+    std::vector<u32> macro_params;
+
+    /// Interpreter for the macro codes uploaded to the GPU.
+    std::unique_ptr<MacroEngine> macro_engine;
+
+    static constexpr u32 null_cb_data = 0xFFFFFFFF;
+    struct CBDataState {
+        std::array<std::array<u32, 0x4000>, 16> buffer;
+        u32 current{null_cb_data};
+        u32 id{null_cb_data};
+        u32 start_pos{};
+        u32 counter{};
+    };
+    CBDataState cb_data_state;
+
+    Upload::State upload_state;
+
+    bool execute_on{true};
 };
 
 #define ASSERT_REG_POSITION(field_name, position)                                                  \
@@ -1564,6 +1595,7 @@ ASSERT_REG_POSITION(shadow_ram_control, 0x49);
 ASSERT_REG_POSITION(upload, 0x60);
 ASSERT_REG_POSITION(exec_upload, 0x6C);
 ASSERT_REG_POSITION(data_upload, 0x6D);
+ASSERT_REG_POSITION(force_early_fragment_tests, 0x84);
 ASSERT_REG_POSITION(sync_info, 0xB2);
 ASSERT_REG_POSITION(tess_mode, 0xC8);
 ASSERT_REG_POSITION(tess_level_outer, 0xC9);
@@ -1586,10 +1618,13 @@ ASSERT_REG_POSITION(polygon_offset_point_enable, 0x370);
 ASSERT_REG_POSITION(polygon_offset_line_enable, 0x371);
 ASSERT_REG_POSITION(polygon_offset_fill_enable, 0x372);
 ASSERT_REG_POSITION(patch_vertices, 0x373);
+ASSERT_REG_POSITION(fragment_barrier, 0x378);
 ASSERT_REG_POSITION(scissor_test, 0x380);
 ASSERT_REG_POSITION(stencil_back_func_ref, 0x3D5);
 ASSERT_REG_POSITION(stencil_back_mask, 0x3D6);
 ASSERT_REG_POSITION(stencil_back_func_mask, 0x3D7);
+ASSERT_REG_POSITION(invalidate_texture_data_cache, 0x3DD);
+ASSERT_REG_POSITION(tiled_cache_barrier, 0x3DF);
 ASSERT_REG_POSITION(color_mask_common, 0x3E4);
 ASSERT_REG_POSITION(depth_bounds, 0x3E7);
 ASSERT_REG_POSITION(rt_separate_frag_data, 0x3EB);
@@ -1597,6 +1632,7 @@ ASSERT_REG_POSITION(multisample_raster_enable, 0x3ED);
 ASSERT_REG_POSITION(multisample_raster_samples, 0x3EE);
 ASSERT_REG_POSITION(multisample_sample_mask, 0x3EF);
 ASSERT_REG_POSITION(zeta, 0x3F8);
+ASSERT_REG_POSITION(render_area, 0x3FD);
 ASSERT_REG_POSITION(clear_flags, 0x43E);
 ASSERT_REG_POSITION(fill_rectangle, 0x44F);
 ASSERT_REG_POSITION(vertex_attrib_format, 0x458);
@@ -1605,7 +1641,8 @@ ASSERT_REG_POSITION(multisample_coverage_to_color, 0x47E);
 ASSERT_REG_POSITION(rt_control, 0x487);
 ASSERT_REG_POSITION(zeta_width, 0x48a);
 ASSERT_REG_POSITION(zeta_height, 0x48b);
-ASSERT_REG_POSITION(zeta_layers, 0x48c);
+ASSERT_REG_POSITION(zeta_depth, 0x48c);
+ASSERT_REG_POSITION(sampler_index, 0x48D);
 ASSERT_REG_POSITION(depth_test_enable, 0x4B3);
 ASSERT_REG_POSITION(independent_blend_enable, 0x4B9);
 ASSERT_REG_POSITION(depth_write_enabled, 0x4BA);
@@ -1629,6 +1666,8 @@ ASSERT_REG_POSITION(frag_color_clamp, 0x4EA);
 ASSERT_REG_POSITION(screen_y_control, 0x4EB);
 ASSERT_REG_POSITION(line_width_smooth, 0x4EC);
 ASSERT_REG_POSITION(line_width_aliased, 0x4ED);
+ASSERT_REG_POSITION(invalidate_sampler_cache_no_wfi, 0x509);
+ASSERT_REG_POSITION(invalidate_texture_header_cache_no_wfi, 0x50A);
 ASSERT_REG_POSITION(vb_element_base, 0x50D);
 ASSERT_REG_POSITION(vb_base_instance, 0x50E);
 ASSERT_REG_POSITION(clip_distance_enabled, 0x544);

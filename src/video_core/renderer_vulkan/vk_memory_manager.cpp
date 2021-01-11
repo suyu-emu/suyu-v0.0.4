@@ -11,9 +11,9 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
-#include "video_core/renderer_vulkan/vk_device.h"
 #include "video_core/renderer_vulkan/vk_memory_manager.h"
-#include "video_core/renderer_vulkan/wrapper.h"
+#include "video_core/vulkan_common/vulkan_device.h"
+#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
 
@@ -29,10 +29,10 @@ u64 GetAllocationChunkSize(u64 required_size) {
 
 class VKMemoryAllocation final {
 public:
-    explicit VKMemoryAllocation(const VKDevice& device, vk::DeviceMemory memory,
-                                VkMemoryPropertyFlags properties, u64 allocation_size, u32 type)
-        : device{device}, memory{std::move(memory)}, properties{properties},
-          allocation_size{allocation_size}, shifted_type{ShiftType(type)} {}
+    explicit VKMemoryAllocation(const Device& device_, vk::DeviceMemory memory_,
+                                VkMemoryPropertyFlags properties_, u64 allocation_size_, u32 type_)
+        : device{device_}, memory{std::move(memory_)}, properties{properties_},
+          allocation_size{allocation_size_}, shifted_type{ShiftType(type_)} {}
 
     VKMemoryCommit Commit(VkDeviceSize commit_size, VkDeviceSize alignment) {
         auto found = TryFindFreeSection(free_iterator, allocation_size,
@@ -104,7 +104,7 @@ private:
         return std::nullopt;
     }
 
-    const VKDevice& device;                 ///< Vulkan device.
+    const Device& device;                   ///< Vulkan device.
     const vk::DeviceMemory memory;          ///< Vulkan memory allocation handler.
     const VkMemoryPropertyFlags properties; ///< Vulkan properties.
     const u64 allocation_size;              ///< Size of this allocation.
@@ -117,8 +117,8 @@ private:
     std::vector<const VKMemoryCommitImpl*> commits;
 };
 
-VKMemoryManager::VKMemoryManager(const VKDevice& device)
-    : device{device}, properties{device.GetPhysical().GetMemoryProperties()} {}
+VKMemoryManager::VKMemoryManager(const Device& device_)
+    : device{device_}, properties{device_.GetPhysical().GetMemoryProperties()} {}
 
 VKMemoryManager::~VKMemoryManager() = default;
 
@@ -207,16 +207,16 @@ VKMemoryCommit VKMemoryManager::TryAllocCommit(const VkMemoryRequirements& requi
     return {};
 }
 
-VKMemoryCommitImpl::VKMemoryCommitImpl(const VKDevice& device, VKMemoryAllocation* allocation,
-                                       const vk::DeviceMemory& memory, u64 begin, u64 end)
-    : device{device}, memory{memory}, interval{begin, end}, allocation{allocation} {}
+VKMemoryCommitImpl::VKMemoryCommitImpl(const Device& device_, VKMemoryAllocation* allocation_,
+                                       const vk::DeviceMemory& memory_, u64 begin_, u64 end_)
+    : device{device_}, memory{memory_}, interval{begin_, end_}, allocation{allocation_} {}
 
 VKMemoryCommitImpl::~VKMemoryCommitImpl() {
     allocation->Free(this);
 }
 
 MemoryMap VKMemoryCommitImpl::Map(u64 size, u64 offset_) const {
-    return MemoryMap{this, memory.Map(interval.first + offset_, size)};
+    return MemoryMap(this, std::span<u8>(memory.Map(interval.first + offset_, size), size));
 }
 
 void VKMemoryCommitImpl::Unmap() const {

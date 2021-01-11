@@ -12,17 +12,16 @@
 #include "common/fiber.h"
 #include "common/logging/log.h"
 #include "common/thread_queue_list.h"
-#include "core/arm/arm_interface.h"
-#include "core/arm/unicorn/arm_unicorn.h"
 #include "core/core.h"
 #include "core/cpu_manager.h"
 #include "core/hardware_properties.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/k_scheduler.h"
+#include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/time_manager.h"
 #include "core/hle/result.h"
@@ -52,7 +51,7 @@ Thread::~Thread() = default;
 
 void Thread::Stop() {
     {
-        SchedulerLock lock(kernel);
+        KScopedSchedulerLock lock(kernel);
         SetStatus(ThreadStatus::Dead);
         Signal();
         kernel.GlobalHandleTable().Close(global_handle);
@@ -63,14 +62,13 @@ void Thread::Stop() {
             // Mark the TLS slot in the thread's page as free.
             owner_process->FreeTLSRegion(tls_address);
         }
-        arm_interface.reset();
         has_exited = true;
     }
     global_handle = 0;
 }
 
 void Thread::ResumeFromWait() {
-    SchedulerLock lock(kernel);
+    KScopedSchedulerLock lock(kernel);
     switch (status) {
     case ThreadStatus::Paused:
     case ThreadStatus::WaitSynch:
@@ -91,10 +89,6 @@ void Thread::ResumeFromWait() {
         // before actually resuming. We can ignore subsequent wakeups if the thread status has
         // already been set to ThreadStatus::Ready.
         return;
-
-    case ThreadStatus::Running:
-        DEBUG_ASSERT_MSG(false, "Thread with object id {} has already resumed.", GetObjectId());
-        return;
     case ThreadStatus::Dead:
         // This should never happen, as threads must complete before being stopped.
         DEBUG_ASSERT_MSG(false, "Thread with object id {} cannot be resumed because it's DEAD.",
@@ -106,19 +100,18 @@ void Thread::ResumeFromWait() {
 }
 
 void Thread::OnWakeUp() {
-    SchedulerLock lock(kernel);
-
+    KScopedSchedulerLock lock(kernel);
     SetStatus(ThreadStatus::Ready);
 }
 
 ResultCode Thread::Start() {
-    SchedulerLock lock(kernel);
+    KScopedSchedulerLock lock(kernel);
     SetStatus(ThreadStatus::Ready);
     return RESULT_SUCCESS;
 }
 
 void Thread::CancelWait() {
-    SchedulerLock lock(kernel);
+    KScopedSchedulerLock lock(kernel);
     if (GetSchedulingStatus() != ThreadSchedStatus::Paused || !is_waiting_on_sync) {
         is_sync_cancelled = true;
         return;
@@ -193,12 +186,14 @@ ResultVal<std::shared_ptr<Thread>> Thread::Create(Core::System& system, ThreadTy
     thread->status = ThreadStatus::Dormant;
     thread->entry_point = entry_point;
     thread->stack_top = stack_top;
+    thread->disable_count = 1;
     thread->tpidr_el0 = 0;
     thread->nominal_priority = thread->current_priority = priority;
-    thread->last_running_ticks = 0;
+    thread->schedule_count = -1;
+    thread->last_scheduled_tick = 0;
     thread->processor_id = processor_id;
     thread->ideal_core = processor_id;
-    thread->affinity_mask = 1ULL << processor_id;
+    thread->affinity_mask.SetAffinity(processor_id, true);
     thread->wait_objects = nullptr;
     thread->mutex_wait_address = 0;
     thread->condvar_wait_address = 0;
@@ -208,7 +203,7 @@ ResultVal<std::shared_ptr<Thread>> Thread::Create(Core::System& system, ThreadTy
     thread->owner_process = owner_process;
     thread->type = type_flags;
     if ((type_flags & THREADTYPE_IDLE) == 0) {
-        auto& scheduler = kernel.GlobalScheduler();
+        auto& scheduler = kernel.GlobalSchedulerContext();
         scheduler.AddThread(thread);
     }
     if (owner_process) {
@@ -217,33 +212,10 @@ ResultVal<std::shared_ptr<Thread>> Thread::Create(Core::System& system, ThreadTy
     } else {
         thread->tls_address = 0;
     }
+
     // TODO(peachum): move to ScheduleThread() when scheduler is added so selected core is used
     // to initialize the context
-    thread->arm_interface.reset();
     if ((type_flags & THREADTYPE_HLE) == 0) {
-#ifdef ARCHITECTURE_x86_64
-        if (owner_process && !owner_process->Is64BitProcess()) {
-            thread->arm_interface = std::make_unique<Core::ARM_Dynarmic_32>(
-                system, kernel.Interrupts(), kernel.IsMulticore(), kernel.GetExclusiveMonitor(),
-                processor_id);
-        } else {
-            thread->arm_interface = std::make_unique<Core::ARM_Dynarmic_64>(
-                system, kernel.Interrupts(), kernel.IsMulticore(), kernel.GetExclusiveMonitor(),
-                processor_id);
-        }
-
-#else
-        if (owner_process && !owner_process->Is64BitProcess()) {
-            thread->arm_interface = std::make_shared<Core::ARM_Unicorn>(
-                system, kernel.Interrupts(), kernel.IsMulticore(), ARM_Unicorn::Arch::AArch32,
-                processor_id);
-        } else {
-            thread->arm_interface = std::make_shared<Core::ARM_Unicorn>(
-                system, kernel.Interrupts(), kernel.IsMulticore(), ARM_Unicorn::Arch::AArch64,
-                processor_id);
-        }
-        LOG_WARNING(Core, "CPU JIT requested, but Dynarmic not available");
-#endif
         ResetThreadContext32(thread->context_32, static_cast<u32>(stack_top),
                              static_cast<u32>(entry_point), static_cast<u32>(arg));
         ResetThreadContext64(thread->context_64, stack_top, entry_point, arg);
@@ -255,7 +227,7 @@ ResultVal<std::shared_ptr<Thread>> Thread::Create(Core::System& system, ThreadTy
 }
 
 void Thread::SetPriority(u32 priority) {
-    SchedulerLock lock(kernel);
+    KScopedSchedulerLock lock(kernel);
     ASSERT_MSG(priority <= THREADPRIO_LOWEST && priority >= THREADPRIO_HIGHEST,
                "Invalid priority value.");
     nominal_priority = priority;
@@ -279,14 +251,6 @@ VAddr Thread::GetCommandBufferAddress() const {
     return GetTLSAddress() + command_header_offset;
 }
 
-Core::ARM_Interface& Thread::ArmInterface() {
-    return *arm_interface;
-}
-
-const Core::ARM_Interface& Thread::ArmInterface() const {
-    return *arm_interface;
-}
-
 void Thread::SetStatus(ThreadStatus new_status) {
     if (new_status == status) {
         return;
@@ -294,7 +258,6 @@ void Thread::SetStatus(ThreadStatus new_status) {
 
     switch (new_status) {
     case ThreadStatus::Ready:
-    case ThreadStatus::Running:
         SetSchedulingStatus(ThreadSchedStatus::Runnable);
         break;
     case ThreadStatus::Dormant:
@@ -401,7 +364,7 @@ bool Thread::InvokeHLECallback(std::shared_ptr<Thread> thread) {
 }
 
 ResultCode Thread::SetActivity(ThreadActivity value) {
-    SchedulerLock lock(kernel);
+    KScopedSchedulerLock lock(kernel);
 
     auto sched_status = GetSchedulingStatus();
 
@@ -430,7 +393,7 @@ ResultCode Thread::SetActivity(ThreadActivity value) {
 ResultCode Thread::Sleep(s64 nanoseconds) {
     Handle event_handle{};
     {
-        SchedulerLockAndSleep lock(kernel, event_handle, this, nanoseconds);
+        KScopedSchedulerLockAndSleep lock(kernel, event_handle, this, nanoseconds);
         SetStatus(ThreadStatus::WaitSleep);
     }
 
@@ -441,39 +404,12 @@ ResultCode Thread::Sleep(s64 nanoseconds) {
     return RESULT_SUCCESS;
 }
 
-std::pair<ResultCode, bool> Thread::YieldSimple() {
-    bool is_redundant = false;
-    {
-        SchedulerLock lock(kernel);
-        is_redundant = kernel.GlobalScheduler().YieldThread(this);
-    }
-    return {RESULT_SUCCESS, is_redundant};
-}
-
-std::pair<ResultCode, bool> Thread::YieldAndBalanceLoad() {
-    bool is_redundant = false;
-    {
-        SchedulerLock lock(kernel);
-        is_redundant = kernel.GlobalScheduler().YieldThreadAndBalanceLoad(this);
-    }
-    return {RESULT_SUCCESS, is_redundant};
-}
-
-std::pair<ResultCode, bool> Thread::YieldAndWaitForLoadBalancing() {
-    bool is_redundant = false;
-    {
-        SchedulerLock lock(kernel);
-        is_redundant = kernel.GlobalScheduler().YieldThreadAndWaitForLoadBalancing(this);
-    }
-    return {RESULT_SUCCESS, is_redundant};
-}
-
 void Thread::AddSchedulingFlag(ThreadSchedFlags flag) {
     const u32 old_state = scheduling_state;
     pausing_state |= static_cast<u32>(flag);
     const u32 base_scheduling = static_cast<u32>(GetSchedulingStatus());
     scheduling_state = base_scheduling | pausing_state;
-    kernel.GlobalScheduler().AdjustSchedulingOnStatus(this, old_state);
+    KScheduler::OnThreadStateChanged(kernel, this, old_state);
 }
 
 void Thread::RemoveSchedulingFlag(ThreadSchedFlags flag) {
@@ -481,23 +417,24 @@ void Thread::RemoveSchedulingFlag(ThreadSchedFlags flag) {
     pausing_state &= ~static_cast<u32>(flag);
     const u32 base_scheduling = static_cast<u32>(GetSchedulingStatus());
     scheduling_state = base_scheduling | pausing_state;
-    kernel.GlobalScheduler().AdjustSchedulingOnStatus(this, old_state);
+    KScheduler::OnThreadStateChanged(kernel, this, old_state);
 }
 
 void Thread::SetSchedulingStatus(ThreadSchedStatus new_status) {
     const u32 old_state = scheduling_state;
     scheduling_state = (scheduling_state & static_cast<u32>(ThreadSchedMasks::HighMask)) |
                        static_cast<u32>(new_status);
-    kernel.GlobalScheduler().AdjustSchedulingOnStatus(this, old_state);
+    KScheduler::OnThreadStateChanged(kernel, this, old_state);
 }
 
 void Thread::SetCurrentPriority(u32 new_priority) {
     const u32 old_priority = std::exchange(current_priority, new_priority);
-    kernel.GlobalScheduler().AdjustSchedulingOnPriority(this, old_priority);
+    KScheduler::OnThreadPriorityChanged(kernel, this, kernel.CurrentScheduler()->GetCurrentThread(),
+                                        old_priority);
 }
 
 ResultCode Thread::SetCoreAndAffinityMask(s32 new_core, u64 new_affinity_mask) {
-    SchedulerLock lock(kernel);
+    KScopedSchedulerLock lock(kernel);
     const auto HighestSetCore = [](u64 mask, u32 max_cores) {
         for (s32 core = static_cast<s32>(max_cores - 1); core >= 0; core--) {
             if (((mask >> core) & 1) != 0) {
@@ -518,20 +455,21 @@ ResultCode Thread::SetCoreAndAffinityMask(s32 new_core, u64 new_affinity_mask) {
     }
     if (use_override) {
         ideal_core_override = new_core;
-        affinity_mask_override = new_affinity_mask;
     } else {
-        const u64 old_affinity_mask = std::exchange(affinity_mask, new_affinity_mask);
+        const auto old_affinity_mask = affinity_mask;
+        affinity_mask.SetAffinityMask(new_affinity_mask);
         ideal_core = new_core;
-        if (old_affinity_mask != new_affinity_mask) {
+        if (old_affinity_mask.GetAffinityMask() != new_affinity_mask) {
             const s32 old_core = processor_id;
-            if (processor_id >= 0 && ((affinity_mask >> processor_id) & 1) == 0) {
+            if (processor_id >= 0 && !affinity_mask.GetAffinity(processor_id)) {
                 if (static_cast<s32>(ideal_core) < 0) {
-                    processor_id = HighestSetCore(affinity_mask, Core::Hardware::NUM_CPU_CORES);
+                    processor_id = HighestSetCore(affinity_mask.GetAffinityMask(),
+                                                  Core::Hardware::NUM_CPU_CORES);
                 } else {
                     processor_id = ideal_core;
                 }
             }
-            kernel.GlobalScheduler().AdjustSchedulingOnAffinity(this, old_affinity_mask, old_core);
+            KScheduler::OnThreadAffinityMaskChanged(kernel, this, old_affinity_mask, old_core);
         }
     }
     return RESULT_SUCCESS;

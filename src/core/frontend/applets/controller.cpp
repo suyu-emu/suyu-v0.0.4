@@ -4,7 +4,6 @@
 
 #include "common/assert.h"
 #include "common/logging/log.h"
-#include "core/core.h"
 #include "core/frontend/applets/controller.h"
 #include "core/hle/service/hid/controllers/npad.h"
 #include "core/hle/service/hid/hid.h"
@@ -14,32 +13,33 @@ namespace Core::Frontend {
 
 ControllerApplet::~ControllerApplet() = default;
 
+DefaultControllerApplet::DefaultControllerApplet(Service::SM::ServiceManager& service_manager_)
+    : service_manager{service_manager_} {}
+
 DefaultControllerApplet::~DefaultControllerApplet() = default;
 
 void DefaultControllerApplet::ReconfigureControllers(std::function<void()> callback,
-                                                     ControllerParameters parameters) const {
+                                                     const ControllerParameters& parameters) const {
     LOG_INFO(Service_HID, "called, deducing the best configuration based on the given parameters!");
 
     auto& npad =
-        Core::System::GetInstance()
-            .ServiceManager()
-            .GetService<Service::HID::Hid>("hid")
+        service_manager.GetService<Service::HID::Hid>("hid")
             ->GetAppletResource()
             ->GetController<Service::HID::Controller_NPad>(Service::HID::HidController::NPad);
 
-    auto& players = Settings::values.players;
+    auto& players = Settings::values.players.GetValue();
 
     const std::size_t min_supported_players =
         parameters.enable_single_mode ? 1 : parameters.min_players;
 
     // Disconnect Handheld first.
-    npad.DisconnectNPadAtIndex(8);
+    npad.DisconnectNpadAtIndex(8);
 
     // Deduce the best configuration based on the input parameters.
     for (std::size_t index = 0; index < players.size() - 2; ++index) {
         // First, disconnect all controllers regardless of the value of keep_controllers_connected.
         // This makes it easy to connect the desired controllers.
-        npad.DisconnectNPadAtIndex(index);
+        npad.DisconnectNpadAtIndex(index);
 
         // Only connect the minimum number of required players.
         if (index >= min_supported_players) {
@@ -66,7 +66,7 @@ void DefaultControllerApplet::ReconfigureControllers(std::function<void()> callb
                     npad.MapSettingsTypeToNPad(Settings::ControllerType::RightJoycon), index);
             }
         } else if (index == 0 && parameters.enable_single_mode && parameters.allow_handheld &&
-                   !Settings::values.use_docked_mode) {
+                   !Settings::values.use_docked_mode.GetValue()) {
             // We should *never* reach here under any normal circumstances.
             npad.AddNewControllerAt(npad.MapSettingsTypeToNPad(Settings::ControllerType::Handheld),
                                     index);

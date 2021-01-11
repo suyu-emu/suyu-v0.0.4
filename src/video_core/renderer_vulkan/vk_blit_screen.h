@@ -7,7 +7,7 @@
 #include <memory>
 
 #include "video_core/renderer_vulkan/vk_memory_manager.h"
-#include "video_core/renderer_vulkan/wrapper.h"
+#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Core {
 class System;
@@ -33,9 +33,8 @@ namespace Vulkan {
 
 struct ScreenInfo;
 
+class Device;
 class RasterizerVulkan;
-class VKDevice;
-class VKImage;
 class VKScheduler;
 class VKSwapchain;
 
@@ -43,7 +42,7 @@ class VKBlitScreen final {
 public:
     explicit VKBlitScreen(Core::Memory::Memory& cpu_memory,
                           Core::Frontend::EmuWindow& render_window,
-                          VideoCore::RasterizerInterface& rasterizer, const VKDevice& device,
+                          VideoCore::RasterizerInterface& rasterizer, const Device& device,
                           VKMemoryManager& memory_manager, VKSwapchain& swapchain,
                           VKScheduler& scheduler, const VKScreenInfo& screen_info);
     ~VKBlitScreen();
@@ -86,7 +85,7 @@ private:
     Core::Memory::Memory& cpu_memory;
     Core::Frontend::EmuWindow& render_window;
     VideoCore::RasterizerInterface& rasterizer;
-    const VKDevice& device;
+    const Device& device;
     VKMemoryManager& memory_manager;
     VKSwapchain& swapchain;
     VKScheduler& scheduler;
@@ -110,7 +109,8 @@ private:
     std::vector<u64> resource_ticks;
 
     std::vector<vk::Semaphore> semaphores;
-    std::vector<std::unique_ptr<VKImage>> raw_images;
+    std::vector<vk::Image> raw_images;
+    std::vector<vk::ImageView> raw_image_views;
     std::vector<VKMemoryCommit> raw_buffer_commits;
     u32 raw_width = 0;
     u32 raw_height = 0;

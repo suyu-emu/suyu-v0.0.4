@@ -27,7 +27,7 @@ OperationCode GetOperationCode(VoteOperation vote_op) {
     case VoteOperation::Eq:
         return OperationCode::VoteEqual;
     default:
-        UNREACHABLE_MSG("Invalid vote operation={}", static_cast<u64>(vote_op));
+        UNREACHABLE_MSG("Invalid vote operation={}", vote_op);
         return OperationCode::VoteAll;
     }
 }

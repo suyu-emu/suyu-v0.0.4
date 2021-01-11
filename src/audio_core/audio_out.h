@@ -31,6 +31,9 @@ public:
     /// Returns a vector of recently released buffers specified by tag for the specified stream
     std::vector<Buffer::Tag> GetTagsAndReleaseBuffers(StreamPtr stream, std::size_t max_count);
 
+    /// Returns a vector of all recently released buffers specified by tag for the specified stream
+    std::vector<Buffer::Tag> GetTagsAndReleaseBuffers(StreamPtr stream);
+
     /// Starts an audio stream for playback
     void StartStream(StreamPtr stream);
 

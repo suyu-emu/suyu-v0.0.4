@@ -17,9 +17,9 @@ namespace FileSys {
 template <std::size_t size>
 class ArrayVfsFile : public VfsFile {
 public:
-    explicit ArrayVfsFile(const std::array<u8, size>& data, std::string name = "",
-                          VirtualDir parent = nullptr)
-        : data(data), name(std::move(name)), parent(std::move(parent)) {}
+    explicit ArrayVfsFile(const std::array<u8, size>& data_, std::string name_ = "",
+                          VirtualDir parent_ = nullptr)
+        : data(data_), name(std::move(name_)), parent(std::move(parent_)) {}
 
     std::string GetName() const override {
         return name;
@@ -33,7 +33,7 @@ public:
         return false;
     }
 
-    std::shared_ptr<VfsDirectory> GetContainingDirectory() const override {
+    VirtualDir GetContainingDirectory() const override {
         return parent;
     }
 
@@ -51,12 +51,12 @@ public:
         return read;
     }
 
-    std::size_t Write(const u8* data, std::size_t length, std::size_t offset) override {
+    std::size_t Write(const u8* data_, std::size_t length, std::size_t offset) override {
         return 0;
     }
 
-    bool Rename(std::string_view name) override {
-        this->name = name;
+    bool Rename(std::string_view new_name) override {
+        name = new_name;
         return true;
     }
 
@@ -82,7 +82,7 @@ public:
     std::string GetName() const override;
     std::size_t GetSize() const override;
     bool Resize(std::size_t new_size) override;
-    std::shared_ptr<VfsDirectory> GetContainingDirectory() const override;
+    VirtualDir GetContainingDirectory() const override;
     bool IsWritable() const override;
     bool IsReadable() const override;
     std::size_t Read(u8* data, std::size_t length, std::size_t offset) const override;
@@ -106,17 +106,17 @@ public:
                                 VirtualDir parent = nullptr);
     ~VectorVfsDirectory() override;
 
-    std::vector<std::shared_ptr<VfsFile>> GetFiles() const override;
-    std::vector<std::shared_ptr<VfsDirectory>> GetSubdirectories() const override;
+    std::vector<VirtualFile> GetFiles() const override;
+    std::vector<VirtualDir> GetSubdirectories() const override;
     bool IsWritable() const override;
     bool IsReadable() const override;
     std::string GetName() const override;
-    std::shared_ptr<VfsDirectory> GetParentDirectory() const override;
+    VirtualDir GetParentDirectory() const override;
     bool DeleteSubdirectory(std::string_view name) override;
     bool DeleteFile(std::string_view name) override;
     bool Rename(std::string_view name) override;
-    std::shared_ptr<VfsDirectory> CreateSubdirectory(std::string_view name) override;
-    std::shared_ptr<VfsFile> CreateFile(std::string_view name) override;
+    VirtualDir CreateSubdirectory(std::string_view name) override;
+    VirtualFile CreateFile(std::string_view name) override;
 
     virtual void AddFile(VirtualFile file);
     virtual void AddDirectory(VirtualDir dir);

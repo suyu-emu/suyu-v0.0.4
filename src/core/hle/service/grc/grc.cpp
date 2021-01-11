@@ -12,7 +12,7 @@ namespace Service::GRC {
 
 class GRC final : public ServiceFramework<GRC> {
 public:
-    explicit GRC() : ServiceFramework{"grc:c"} {
+    explicit GRC(Core::System& system) : ServiceFramework{system, "grc:c"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {1, nullptr, "OpenContinuousRecorder"},
@@ -27,8 +27,8 @@ public:
     }
 };
 
-void InstallInterfaces(SM::ServiceManager& sm) {
-    std::make_shared<GRC>()->InstallAsService(sm);
+void InstallInterfaces(SM::ServiceManager& sm, Core::System& system) {
+    std::make_shared<GRC>(system)->InstallAsService(sm);
 }
 
 } // namespace Service::GRC

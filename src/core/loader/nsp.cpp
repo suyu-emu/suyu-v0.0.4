@@ -21,26 +21,34 @@
 
 namespace Loader {
 
-AppLoader_NSP::AppLoader_NSP(FileSys::VirtualFile file)
-    : AppLoader(file), nsp(std::make_unique<FileSys::NSP>(file)),
+AppLoader_NSP::AppLoader_NSP(FileSys::VirtualFile file,
+                             const Service::FileSystem::FileSystemController& fsc,
+                             const FileSys::ContentProvider& content_provider,
+                             std::size_t program_index)
+    : AppLoader(file), nsp(std::make_unique<FileSys::NSP>(file, program_index)),
       title_id(nsp->GetProgramTitleID()) {
 
-    if (nsp->GetStatus() != ResultStatus::Success)
+    if (nsp->GetStatus() != ResultStatus::Success) {
         return;
+    }
 
     if (nsp->IsExtractedType()) {
         secondary_loader = std::make_unique<AppLoader_DeconstructedRomDirectory>(nsp->GetExeFS());
     } else {
         const auto control_nca =
             nsp->GetNCA(nsp->GetProgramTitleID(), FileSys::ContentRecordType::Control);
-        if (control_nca == nullptr || control_nca->GetStatus() != ResultStatus::Success)
+        if (control_nca == nullptr || control_nca->GetStatus() != ResultStatus::Success) {
             return;
+        }
 
-        std::tie(nacp_file, icon_file) =
-            FileSys::PatchManager(nsp->GetProgramTitleID()).ParseControlNCA(*control_nca);
+        std::tie(nacp_file, icon_file) = [this, &content_provider, &control_nca, &fsc] {
+            const FileSys::PatchManager pm{nsp->GetProgramTitleID(), fsc, content_provider};
+            return pm.ParseControlNCA(*control_nca);
+        }();
 
-        if (title_id == 0)
+        if (title_id == 0) {
             return;
+        }
 
         secondary_loader = std::make_unique<AppLoader_NCA>(
             nsp->GetNCAFile(title_id, FileSys::ContentRecordType::Program));

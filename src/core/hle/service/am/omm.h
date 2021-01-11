@@ -6,11 +6,15 @@
 
 #include "core/hle/service/service.h"
 
+namespace Core {
+class System;
+}
+
 namespace Service::AM {
 
 class OMM final : public ServiceFramework<OMM> {
 public:
-    explicit OMM();
+    explicit OMM(Core::System& system_);
     ~OMM() override;
 };
 

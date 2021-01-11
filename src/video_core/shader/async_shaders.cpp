@@ -13,21 +13,22 @@
 
 namespace VideoCommon::Shader {
 
-AsyncShaders::AsyncShaders(Core::Frontend::EmuWindow& emu_window) : emu_window(emu_window) {}
+AsyncShaders::AsyncShaders(Core::Frontend::EmuWindow& emu_window_) : emu_window(emu_window_) {}
 
 AsyncShaders::~AsyncShaders() {
     KillWorkers();
 }
 
 void AsyncShaders::AllocateWorkers() {
-    // Max worker threads we should allow
-    constexpr u32 MAX_THREADS = 4;
-    // Deduce how many threads we can use
-    const u32 threads_used = std::thread::hardware_concurrency() / 4;
-    // Always allow at least 1 thread regardless of our settings
-    const auto max_worker_count = std::max(1U, threads_used);
-    // Don't use more than MAX_THREADS
-    const auto num_workers = std::min(max_worker_count, MAX_THREADS);
+    // Use at least one thread
+    u32 num_workers = 1;
+
+    // Deduce how many more threads we can use
+    const u32 thread_count = std::thread::hardware_concurrency();
+    if (thread_count >= 8) {
+        // Increase async workers by 1 for every 2 threads >= 8
+        num_workers += 1 + (thread_count - 8) / 2;
+    }
 
     // If we already have workers queued, ignore
     if (num_workers == worker_threads.size()) {
@@ -42,8 +43,8 @@ void AsyncShaders::AllocateWorkers() {
     // Create workers
     for (std::size_t i = 0; i < num_workers; i++) {
         context_list.push_back(emu_window.CreateSharedContext());
-        worker_threads.push_back(
-            std::thread(&AsyncShaders::ShaderCompilerThread, this, context_list[i].get()));
+        worker_threads.emplace_back(&AsyncShaders::ShaderCompilerThread, this,
+                                    context_list[i].get());
     }
 }
 
@@ -105,8 +106,7 @@ std::vector<AsyncShaders::Result> AsyncShaders::GetCompletedWork() {
     std::vector<Result> results;
     {
         std::unique_lock lock{completed_mutex};
-        results.assign(std::make_move_iterator(finished_work.begin()),
-                       std::make_move_iterator(finished_work.end()));
+        results = std::move(finished_work);
         finished_work.clear();
     }
     return results;
@@ -115,11 +115,10 @@ std::vector<AsyncShaders::Result> AsyncShaders::GetCompletedWork() {
 void AsyncShaders::QueueOpenGLShader(const OpenGL::Device& device,
                                      Tegra::Engines::ShaderType shader_type, u64 uid,
                                      std::vector<u64> code, std::vector<u64> code_b,
-                                     u32 main_offset,
-                                     VideoCommon::Shader::CompilerSettings compiler_settings,
-                                     const VideoCommon::Shader::Registry& registry,
-                                     VAddr cpu_addr) {
-    WorkerParams params{
+                                     u32 main_offset, CompilerSettings compiler_settings,
+                                     const Registry& registry, VAddr cpu_addr) {
+    std::unique_lock lock(queue_mutex);
+    pending_queue.push({
         .backend = device.UseAssemblyShaders() ? Backend::GLASM : Backend::OpenGL,
         .device = &device,
         .shader_type = shader_type,
@@ -130,35 +129,30 @@ void AsyncShaders::QueueOpenGLShader(const OpenGL::Device& device,
         .compiler_settings = compiler_settings,
         .registry = registry,
         .cpu_address = cpu_addr,
-    };
-    std::unique_lock lock(queue_mutex);
-    pending_queue.push(std::move(params));
+    });
     cv.notify_one();
 }
 
 void AsyncShaders::QueueVulkanShader(Vulkan::VKPipelineCache* pp_cache,
-                                     const Vulkan::VKDevice& device, Vulkan::VKScheduler& scheduler,
+                                     const Vulkan::Device& device, Vulkan::VKScheduler& scheduler,
                                      Vulkan::VKDescriptorPool& descriptor_pool,
                                      Vulkan::VKUpdateDescriptorQueue& update_descriptor_queue,
-                                     Vulkan::VKRenderPassCache& renderpass_cache,
                                      std::vector<VkDescriptorSetLayoutBinding> bindings,
                                      Vulkan::SPIRVProgram program,
-                                     Vulkan::GraphicsPipelineCacheKey key) {
-    WorkerParams params{
+                                     Vulkan::GraphicsPipelineCacheKey key, u32 num_color_buffers) {
+    std::unique_lock lock(queue_mutex);
+    pending_queue.push({
         .backend = Backend::Vulkan,
         .pp_cache = pp_cache,
         .vk_device = &device,
         .scheduler = &scheduler,
         .descriptor_pool = &descriptor_pool,
         .update_descriptor_queue = &update_descriptor_queue,
-        .renderpass_cache = &renderpass_cache,
-        .bindings = bindings,
-        .program = program,
+        .bindings = std::move(bindings),
+        .program = std::move(program),
         .key = key,
-    };
-
-    std::unique_lock lock(queue_mutex);
-    pending_queue.push(std::move(params));
+        .num_color_buffers = num_color_buffers,
+    });
     cv.notify_one();
 }
 
@@ -210,8 +204,8 @@ void AsyncShaders::ShaderCompilerThread(Core::Frontend::GraphicsContext* context
         } else if (work.backend == Backend::Vulkan) {
             auto pipeline = std::make_unique<Vulkan::VKGraphicsPipeline>(
                 *work.vk_device, *work.scheduler, *work.descriptor_pool,
-                *work.update_descriptor_queue, *work.renderpass_cache, work.key, work.bindings,
-                work.program);
+                *work.update_descriptor_queue, work.key, work.bindings, work.program,
+                work.num_color_buffers);
 
             work.pp_cache->EmplacePipeline(std::move(pipeline));
         }

@@ -102,7 +102,9 @@ add_library(common STATIC
     atomic_ops.h
     detached_tasks.cpp
     detached_tasks.h
+    bit_cast.h
     bit_field.h
+    bit_set.h
     bit_util.h
     cityhash.cpp
     cityhash.h
@@ -111,6 +113,7 @@ add_library(common STATIC
     common_paths.h
     common_types.h
     concepts.h
+    div_ceil.h
     dynamic_library.cpp
     dynamic_library.h
     fiber.cpp
@@ -132,13 +135,10 @@ add_library(common STATIC
     math_util.h
     memory_detect.cpp
     memory_detect.h
-    memory_hook.cpp
-    memory_hook.h
     microprofile.cpp
     microprofile.h
     microprofileui.h
     misc.cpp
-    multi_level_queue.h
     page_table.cpp
     page_table.h
     param_package.cpp
@@ -150,6 +150,8 @@ add_library(common STATIC
     scope_exit.h
     spin_lock.cpp
     spin_lock.h
+    stream.cpp
+    stream.h
     string_util.cpp
     string_util.h
     swap.h
@@ -158,6 +160,8 @@ add_library(common STATIC
     thread.cpp
     thread.h
     thread_queue_list.h
+    thread_worker.cpp
+    thread_worker.h
     threadsafe_queue.h
     time_zone.cpp
     time_zone.h
@@ -188,8 +192,28 @@ if(ARCHITECTURE_x86_64)
     )
 endif()
 
+if (MSVC)
+  target_compile_definitions(common PRIVATE
+    # The standard library doesn't provide any replacement for codecvt yet
+    # so we can disable this deprecation warning for the time being.
+    _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
+  )
+  target_compile_options(common PRIVATE
+    /W4
+    /WX
+  )
+else()
+  target_compile_options(common PRIVATE
+    -Werror
+  )
+endif()
+
 create_target_directory_groups(common)
-find_package(Boost 1.71 COMPONENTS context headers REQUIRED)
 
 target_link_libraries(common PUBLIC ${Boost_LIBRARIES} fmt::fmt microprofile)
-target_link_libraries(common PRIVATE lz4::lz4 zstd::zstd xbyak)
+target_link_libraries(common PRIVATE lz4::lz4 xbyak)
+if (MSVC)
+  target_link_libraries(common PRIVATE zstd::zstd)
+else()
+  target_link_libraries(common PRIVATE zstd)
+endif()

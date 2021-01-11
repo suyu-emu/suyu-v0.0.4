@@ -14,9 +14,9 @@
 #include "core/hle/kernel/client_session.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/hle_ipc.h"
+#include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/server_session.h"
 #include "core/hle/kernel/session.h"
 #include "core/hle/kernel/thread.h"
@@ -25,19 +25,19 @@
 namespace Kernel {
 
 ServerSession::ServerSession(KernelCore& kernel) : SynchronizationObject{kernel} {}
-ServerSession::~ServerSession() = default;
+
+ServerSession::~ServerSession() {
+    kernel.ReleaseServiceThread(service_thread);
+}
 
 ResultVal<std::shared_ptr<ServerSession>> ServerSession::Create(KernelCore& kernel,
                                                                 std::shared_ptr<Session> parent,
                                                                 std::string name) {
     std::shared_ptr<ServerSession> session{std::make_shared<ServerSession>(kernel)};
 
-    session->request_event =
-        Core::Timing::CreateEvent(name, [session](std::uintptr_t, std::chrono::nanoseconds) {
-            session->CompleteSyncRequest();
-        });
     session->name = std::move(name);
     session->parent = std::move(parent);
+    session->service_thread = kernel.CreateServiceThread(session->name);
 
     return MakeResult(std::move(session));
 }
@@ -130,8 +130,7 @@ ResultCode ServerSession::HandleDomainSyncRequest(Kernel::HLERequestContext& con
     }
     }
 
-    LOG_CRITICAL(IPC, "Unknown domain command={}",
-                 static_cast<int>(domain_message_header.command.Value()));
+    LOG_CRITICAL(IPC, "Unknown domain command={}", domain_message_header.command.Value());
     ASSERT(false);
     return RESULT_SUCCESS;
 }
@@ -143,16 +142,16 @@ ResultCode ServerSession::QueueSyncRequest(std::shared_ptr<Thread> thread,
         std::make_shared<HLERequestContext>(kernel, memory, SharedFrom(this), std::move(thread));
 
     context->PopulateFromIncomingCommandBuffer(kernel.CurrentProcess()->GetHandleTable(), cmd_buf);
-    request_queue.Push(std::move(context));
+
+    if (auto strong_ptr = service_thread.lock()) {
+        strong_ptr->QueueSyncRequest(*this, std::move(context));
+        return RESULT_SUCCESS;
+    }
 
     return RESULT_SUCCESS;
 }
 
-ResultCode ServerSession::CompleteSyncRequest() {
-    ASSERT(!request_queue.Empty());
-
-    auto& context = *request_queue.Front();
-
+ResultCode ServerSession::CompleteSyncRequest(HLERequestContext& context) {
     ResultCode result = RESULT_SUCCESS;
     // If the session has been converted to a domain, handle the domain request
     if (IsDomain() && context.HasDomainMessageHeader()) {
@@ -171,14 +170,12 @@ ResultCode ServerSession::CompleteSyncRequest() {
 
     // Some service requests require the thread to block
     {
-        SchedulerLock lock(kernel);
+        KScopedSchedulerLock lock(kernel);
         if (!context.IsThreadWaiting()) {
             context.GetThread().ResumeFromWait();
             context.GetThread().SetSynchronizationResults(nullptr, result);
         }
     }
-
-    request_queue.Pop();
 
     return result;
 }
@@ -186,10 +183,7 @@ ResultCode ServerSession::CompleteSyncRequest() {
 ResultCode ServerSession::HandleSyncRequest(std::shared_ptr<Thread> thread,
                                             Core::Memory::Memory& memory,
                                             Core::Timing::CoreTiming& core_timing) {
-    const ResultCode result = QueueSyncRequest(std::move(thread), memory);
-    const auto delay = std::chrono::nanoseconds{kernel.IsMulticore() ? 0 : 20000};
-    core_timing.ScheduleEvent(delay, request_event, {});
-    return result;
+    return QueueSyncRequest(std::move(thread), memory);
 }
 
 } // namespace Kernel

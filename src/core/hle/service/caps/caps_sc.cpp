@@ -6,7 +6,7 @@
 
 namespace Service::Capture {
 
-CAPS_SC::CAPS_SC() : ServiceFramework("caps:sc") {
+CAPS_SC::CAPS_SC(Core::System& system_) : ServiceFramework{system_, "caps:sc"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {1, nullptr, "CaptureRawImage"},

@@ -57,15 +57,15 @@ bool BehaviorInfo::IsLongSizePreDelaySupported() const {
     return AudioCommon::IsRevisionSupported(3, user_revision);
 }
 
-bool BehaviorInfo::IsAudioRenererProcessingTimeLimit80PercentSupported() const {
+bool BehaviorInfo::IsAudioRendererProcessingTimeLimit80PercentSupported() const {
     return AudioCommon::IsRevisionSupported(5, user_revision);
 }
 
-bool BehaviorInfo::IsAudioRenererProcessingTimeLimit75PercentSupported() const {
+bool BehaviorInfo::IsAudioRendererProcessingTimeLimit75PercentSupported() const {
     return AudioCommon::IsRevisionSupported(4, user_revision);
 }
 
-bool BehaviorInfo::IsAudioRenererProcessingTimeLimit70PercentSupported() const {
+bool BehaviorInfo::IsAudioRendererProcessingTimeLimit70PercentSupported() const {
     return AudioCommon::IsRevisionSupported(1, user_revision);
 }
 

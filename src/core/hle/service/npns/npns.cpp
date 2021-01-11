@@ -12,7 +12,7 @@ namespace Service::NPNS {
 
 class NPNS_S final : public ServiceFramework<NPNS_S> {
 public:
-    explicit NPNS_S() : ServiceFramework{"npns:s"} {
+    explicit NPNS_S(Core::System& system_) : ServiceFramework{system_, "npns:s"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {1, nullptr, "ListenAll"},
@@ -62,7 +62,7 @@ public:
 
 class NPNS_U final : public ServiceFramework<NPNS_U> {
 public:
-    explicit NPNS_U() : ServiceFramework{"npns:u"} {
+    explicit NPNS_U(Core::System& system_) : ServiceFramework{system_, "npns:u"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {1, nullptr, "ListenAll"},
@@ -91,9 +91,9 @@ public:
     }
 };
 
-void InstallInterfaces(SM::ServiceManager& sm) {
-    std::make_shared<NPNS_S>()->InstallAsService(sm);
-    std::make_shared<NPNS_U>()->InstallAsService(sm);
+void InstallInterfaces(SM::ServiceManager& sm, Core::System& system) {
+    std::make_shared<NPNS_S>(system)->InstallAsService(sm);
+    std::make_shared<NPNS_U>(system)->InstallAsService(sm);
 }
 
 } // namespace Service::NPNS

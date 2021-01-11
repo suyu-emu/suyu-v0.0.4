@@ -79,7 +79,7 @@ ResultCode VfsDirectoryServiceWrapper::DeleteFile(const std::string& path_) cons
     }
 
     auto dir = GetDirectoryRelativeWrapped(backing, Common::FS::GetParentPath(path));
-    if (dir->GetFile(Common::FS::GetFilename(path)) == nullptr) {
+    if (dir == nullptr || dir->GetFile(Common::FS::GetFilename(path)) == nullptr) {
         return FileSys::ERROR_PATH_NOT_FOUND;
     }
     if (!dir->DeleteFile(Common::FS::GetFilename(path))) {
@@ -93,8 +93,9 @@ ResultCode VfsDirectoryServiceWrapper::DeleteFile(const std::string& path_) cons
 ResultCode VfsDirectoryServiceWrapper::CreateDirectory(const std::string& path_) const {
     std::string path(Common::FS::SanitizePath(path_));
     auto dir = GetDirectoryRelativeWrapped(backing, Common::FS::GetParentPath(path));
-    if (dir == nullptr && Common::FS::GetFilename(Common::FS::GetParentPath(path)).empty())
+    if (dir == nullptr || Common::FS::GetFilename(Common::FS::GetParentPath(path)).empty()) {
         dir = backing;
+    }
     auto new_dir = dir->CreateSubdirectory(Common::FS::GetFilename(path));
     if (new_dir == nullptr) {
         // TODO(DarkLordZach): Find a better error code for this
@@ -297,10 +298,35 @@ ResultVal<FileSys::VirtualFile> FileSystemController::OpenRomFSCurrentProcess() 
     return romfs_factory->OpenCurrentProcess(system.CurrentProcess()->GetTitleID());
 }
 
+ResultVal<FileSys::VirtualFile> FileSystemController::OpenPatchedRomFS(
+    u64 title_id, FileSys::ContentRecordType type) const {
+    LOG_TRACE(Service_FS, "Opening patched RomFS for title_id={:016X}", title_id);
+
+    if (romfs_factory == nullptr) {
+        // TODO: Find a better error code for this
+        return RESULT_UNKNOWN;
+    }
+
+    return romfs_factory->OpenPatchedRomFS(title_id, type);
+}
+
+ResultVal<FileSys::VirtualFile> FileSystemController::OpenPatchedRomFSWithProgramIndex(
+    u64 title_id, u8 program_index, FileSys::ContentRecordType type) const {
+    LOG_TRACE(Service_FS, "Opening patched RomFS for title_id={:016X}, program_index={}", title_id,
+              program_index);
+
+    if (romfs_factory == nullptr) {
+        // TODO: Find a better error code for this
+        return RESULT_UNKNOWN;
+    }
+
+    return romfs_factory->OpenPatchedRomFSWithProgramIndex(title_id, program_index, type);
+}
+
 ResultVal<FileSys::VirtualFile> FileSystemController::OpenRomFS(
     u64 title_id, FileSys::StorageId storage_id, FileSys::ContentRecordType type) const {
     LOG_TRACE(Service_FS, "Opening RomFS for title_id={:016X}, storage_id={:02X}, type={:02X}",
-              title_id, static_cast<u8>(storage_id), static_cast<u8>(type));
+              title_id, storage_id, type);
 
     if (romfs_factory == nullptr) {
         // TODO(bunnei): Find a better error code for this
@@ -312,8 +338,8 @@ ResultVal<FileSys::VirtualFile> FileSystemController::OpenRomFS(
 
 ResultVal<FileSys::VirtualDir> FileSystemController::CreateSaveData(
     FileSys::SaveDataSpaceId space, const FileSys::SaveDataAttribute& save_struct) const {
-    LOG_TRACE(Service_FS, "Creating Save Data for space_id={:01X}, save_struct={}",
-              static_cast<u8>(space), save_struct.DebugInfo());
+    LOG_TRACE(Service_FS, "Creating Save Data for space_id={:01X}, save_struct={}", space,
+              save_struct.DebugInfo());
 
     if (save_data_factory == nullptr) {
         return FileSys::ERROR_ENTITY_NOT_FOUND;
@@ -324,8 +350,8 @@ ResultVal<FileSys::VirtualDir> FileSystemController::CreateSaveData(
 
 ResultVal<FileSys::VirtualDir> FileSystemController::OpenSaveData(
     FileSys::SaveDataSpaceId space, const FileSys::SaveDataAttribute& attribute) const {
-    LOG_TRACE(Service_FS, "Opening Save Data for space_id={:01X}, save_struct={}",
-              static_cast<u8>(space), attribute.DebugInfo());
+    LOG_TRACE(Service_FS, "Opening Save Data for space_id={:01X}, save_struct={}", space,
+              attribute.DebugInfo());
 
     if (save_data_factory == nullptr) {
         return FileSys::ERROR_ENTITY_NOT_FOUND;
@@ -336,7 +362,7 @@ ResultVal<FileSys::VirtualDir> FileSystemController::OpenSaveData(
 
 ResultVal<FileSys::VirtualDir> FileSystemController::OpenSaveDataSpace(
     FileSys::SaveDataSpaceId space) const {
-    LOG_TRACE(Service_FS, "Opening Save Data Space for space_id={:01X}", static_cast<u8>(space));
+    LOG_TRACE(Service_FS, "Opening Save Data Space for space_id={:01X}", space);
 
     if (save_data_factory == nullptr) {
         return FileSys::ERROR_ENTITY_NOT_FOUND;
@@ -357,7 +383,7 @@ ResultVal<FileSys::VirtualDir> FileSystemController::OpenSDMC() const {
 
 ResultVal<FileSys::VirtualDir> FileSystemController::OpenBISPartition(
     FileSys::BisPartitionId id) const {
-    LOG_TRACE(Service_FS, "Opening BIS Partition with id={:08X}", static_cast<u32>(id));
+    LOG_TRACE(Service_FS, "Opening BIS Partition with id={:08X}", id);
 
     if (bis_factory == nullptr) {
         return FileSys::ERROR_ENTITY_NOT_FOUND;
@@ -373,7 +399,7 @@ ResultVal<FileSys::VirtualDir> FileSystemController::OpenBISPartition(
 
 ResultVal<FileSys::VirtualFile> FileSystemController::OpenBISPartitionStorage(
     FileSys::BisPartitionId id) const {
-    LOG_TRACE(Service_FS, "Opening BIS Partition Storage with id={:08X}", static_cast<u32>(id));
+    LOG_TRACE(Service_FS, "Opening BIS Partition Storage with id={:08X}", id);
 
     if (bis_factory == nullptr) {
         return FileSys::ERROR_ENTITY_NOT_FOUND;
@@ -454,7 +480,9 @@ FileSys::SaveDataSize FileSystemController::ReadSaveDataSize(FileSys::SaveDataTy
         const auto res = system.GetAppLoader().ReadControlData(nacp);
 
         if (res != Loader::ResultStatus::Success) {
-            FileSys::PatchManager pm{system.CurrentProcess()->GetTitleID()};
+            const FileSys::PatchManager pm{system.CurrentProcess()->GetTitleID(),
+                                           system.GetFileSystemController(),
+                                           system.GetContentProvider()};
             const auto metadata = pm.GetControlMetadata();
             const auto& nacp_unique = metadata.first;
 
@@ -714,7 +742,8 @@ void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool ove
     }
 
     if (save_data_factory == nullptr) {
-        save_data_factory = std::make_unique<FileSys::SaveDataFactory>(std::move(nand_directory));
+        save_data_factory =
+            std::make_unique<FileSys::SaveDataFactory>(system, std::move(nand_directory));
     }
 
     if (sdmc_factory == nullptr) {
@@ -725,10 +754,9 @@ void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool ove
 }
 
 void InstallInterfaces(Core::System& system) {
-    std::make_shared<FSP_LDR>()->InstallAsService(system.ServiceManager());
-    std::make_shared<FSP_PR>()->InstallAsService(system.ServiceManager());
-    std::make_shared<FSP_SRV>(system.GetFileSystemController(), system.GetReporter())
-        ->InstallAsService(system.ServiceManager());
+    std::make_shared<FSP_LDR>(system)->InstallAsService(system.ServiceManager());
+    std::make_shared<FSP_PR>(system)->InstallAsService(system.ServiceManager());
+    std::make_shared<FSP_SRV>(system)->InstallAsService(system.ServiceManager());
 }
 
 } // namespace Service::FileSystem

@@ -7,13 +7,9 @@
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/settings.h"
-#include "video_core/gpu_asynch.h"
-#include "video_core/gpu_synch.h"
 #include "video_core/renderer_base.h"
 #include "video_core/renderer_opengl/renderer_opengl.h"
-#ifdef HAS_VULKAN
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
-#endif
 #include "video_core/video_core.h"
 
 namespace {
@@ -28,11 +24,9 @@ std::unique_ptr<VideoCore::RendererBase> CreateRenderer(
     case Settings::RendererBackend::OpenGL:
         return std::make_unique<OpenGL::RendererOpenGL>(telemetry_session, emu_window, cpu_memory,
                                                         gpu, std::move(context));
-#ifdef HAS_VULKAN
     case Settings::RendererBackend::Vulkan:
         return std::make_unique<Vulkan::RendererVulkan>(telemetry_session, emu_window, cpu_memory,
                                                         gpu, std::move(context));
-#endif
     default:
         return nullptr;
     }
@@ -43,12 +37,9 @@ std::unique_ptr<VideoCore::RendererBase> CreateRenderer(
 namespace VideoCore {
 
 std::unique_ptr<Tegra::GPU> CreateGPU(Core::Frontend::EmuWindow& emu_window, Core::System& system) {
-    std::unique_ptr<Tegra::GPU> gpu;
-    if (Settings::values.use_asynchronous_gpu_emulation.GetValue()) {
-        gpu = std::make_unique<VideoCommon::GPUAsynch>(system);
-    } else {
-        gpu = std::make_unique<VideoCommon::GPUSynch>(system);
-    }
+    const bool use_nvdec = Settings::values.use_nvdec_emulation.GetValue();
+    std::unique_ptr<Tegra::GPU> gpu = std::make_unique<Tegra::GPU>(
+        system, Settings::values.use_asynchronous_gpu_emulation.GetValue(), use_nvdec);
 
     auto context = emu_window.CreateSharedContext();
     const auto scope = context->Acquire();

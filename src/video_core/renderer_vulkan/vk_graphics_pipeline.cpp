@@ -12,13 +12,12 @@
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
 #include "video_core/renderer_vulkan/maxwell_to_vk.h"
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
-#include "video_core/renderer_vulkan/vk_device.h"
 #include "video_core/renderer_vulkan/vk_graphics_pipeline.h"
 #include "video_core/renderer_vulkan/vk_pipeline_cache.h"
-#include "video_core/renderer_vulkan/vk_renderpass_cache.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
-#include "video_core/renderer_vulkan/wrapper.h"
+#include "video_core/vulkan_common/vulkan_device.h"
+#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
 
@@ -69,23 +68,45 @@ VkViewportSwizzleNV UnpackViewportSwizzle(u16 swizzle) {
     };
 }
 
+VkSampleCountFlagBits ConvertMsaaMode(Tegra::Texture::MsaaMode msaa_mode) {
+    switch (msaa_mode) {
+    case Tegra::Texture::MsaaMode::Msaa1x1:
+        return VK_SAMPLE_COUNT_1_BIT;
+    case Tegra::Texture::MsaaMode::Msaa2x1:
+    case Tegra::Texture::MsaaMode::Msaa2x1_D3D:
+        return VK_SAMPLE_COUNT_2_BIT;
+    case Tegra::Texture::MsaaMode::Msaa2x2:
+    case Tegra::Texture::MsaaMode::Msaa2x2_VC4:
+    case Tegra::Texture::MsaaMode::Msaa2x2_VC12:
+        return VK_SAMPLE_COUNT_4_BIT;
+    case Tegra::Texture::MsaaMode::Msaa4x2:
+    case Tegra::Texture::MsaaMode::Msaa4x2_D3D:
+    case Tegra::Texture::MsaaMode::Msaa4x2_VC8:
+    case Tegra::Texture::MsaaMode::Msaa4x2_VC24:
+        return VK_SAMPLE_COUNT_8_BIT;
+    case Tegra::Texture::MsaaMode::Msaa4x4:
+        return VK_SAMPLE_COUNT_16_BIT;
+    default:
+        UNREACHABLE_MSG("Invalid msaa_mode={}", static_cast<int>(msaa_mode));
+        return VK_SAMPLE_COUNT_1_BIT;
+    }
+}
+
 } // Anonymous namespace
 
-VKGraphicsPipeline::VKGraphicsPipeline(const VKDevice& device, VKScheduler& scheduler,
-                                       VKDescriptorPool& descriptor_pool,
-                                       VKUpdateDescriptorQueue& update_descriptor_queue,
-                                       VKRenderPassCache& renderpass_cache,
+VKGraphicsPipeline::VKGraphicsPipeline(const Device& device_, VKScheduler& scheduler_,
+                                       VKDescriptorPool& descriptor_pool_,
+                                       VKUpdateDescriptorQueue& update_descriptor_queue_,
                                        const GraphicsPipelineCacheKey& key,
                                        vk::Span<VkDescriptorSetLayoutBinding> bindings,
-                                       const SPIRVProgram& program)
-    : device{device}, scheduler{scheduler}, cache_key{key}, hash{cache_key.Hash()},
+                                       const SPIRVProgram& program, u32 num_color_buffers)
+    : device{device_}, scheduler{scheduler_}, cache_key{key}, hash{cache_key.Hash()},
       descriptor_set_layout{CreateDescriptorSetLayout(bindings)},
-      descriptor_allocator{descriptor_pool, *descriptor_set_layout},
-      update_descriptor_queue{update_descriptor_queue}, layout{CreatePipelineLayout()},
-      descriptor_template{CreateDescriptorUpdateTemplate(program)}, modules{CreateShaderModules(
-                                                                        program)},
-      renderpass{renderpass_cache.GetRenderPass(cache_key.renderpass_params)},
-      pipeline{CreatePipeline(cache_key.renderpass_params, program)} {}
+      descriptor_allocator{descriptor_pool_, *descriptor_set_layout},
+      update_descriptor_queue{update_descriptor_queue_}, layout{CreatePipelineLayout()},
+      descriptor_template{CreateDescriptorUpdateTemplate(program)},
+      modules(CreateShaderModules(program)),
+      pipeline(CreatePipeline(program, cache_key.renderpass, num_color_buffers)) {}
 
 VKGraphicsPipeline::~VKGraphicsPipeline() = default;
 
@@ -159,10 +180,11 @@ std::vector<vk::ShaderModule> VKGraphicsPipeline::CreateShaderModules(
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
+        .codeSize = 0,
     };
 
-    std::vector<vk::ShaderModule> modules;
-    modules.reserve(Maxwell::MaxShaderStage);
+    std::vector<vk::ShaderModule> shader_modules;
+    shader_modules.reserve(Maxwell::MaxShaderStage);
     for (std::size_t i = 0; i < Maxwell::MaxShaderStage; ++i) {
         const auto& stage = program[i];
         if (!stage) {
@@ -173,13 +195,14 @@ std::vector<vk::ShaderModule> VKGraphicsPipeline::CreateShaderModules(
 
         ci.codeSize = stage->code.size() * sizeof(u32);
         ci.pCode = stage->code.data();
-        modules.push_back(device.GetLogical().CreateShaderModule(ci));
+        shader_modules.push_back(device.GetLogical().CreateShaderModule(ci));
     }
-    return modules;
+    return shader_modules;
 }
 
-vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpass_params,
-                                                const SPIRVProgram& program) const {
+vk::Pipeline VKGraphicsPipeline::CreatePipeline(const SPIRVProgram& program,
+                                                VkRenderPass renderpass,
+                                                u32 num_color_buffers) const {
     const auto& state = cache_key.fixed_state;
     const auto& viewport_swizzles = state.viewport_swizzles;
 
@@ -189,11 +212,7 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
         // state is ignored
         dynamic.raw1 = 0;
         dynamic.raw2 = 0;
-        for (FixedPipelineState::VertexBinding& binding : dynamic.vertex_bindings) {
-            // Enable all vertex bindings
-            binding.raw = 0;
-            binding.enabled.Assign(1);
-        }
+        dynamic.vertex_strides.fill(0);
     } else {
         dynamic = state.dynamic_state;
     }
@@ -201,19 +220,16 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
     std::vector<VkVertexInputBindingDescription> vertex_bindings;
     std::vector<VkVertexInputBindingDivisorDescriptionEXT> vertex_binding_divisors;
     for (std::size_t index = 0; index < Maxwell::NumVertexArrays; ++index) {
-        const auto& binding = dynamic.vertex_bindings[index];
-        if (!binding.enabled) {
+        if (state.attributes[index].binding_index_enabled == 0) {
             continue;
         }
         const bool instanced = state.binding_divisors[index] != 0;
         const auto rate = instanced ? VK_VERTEX_INPUT_RATE_INSTANCE : VK_VERTEX_INPUT_RATE_VERTEX;
-
         vertex_bindings.push_back({
             .binding = static_cast<u32>(index),
-            .stride = binding.stride,
+            .stride = dynamic.vertex_strides[index],
             .inputRate = rate,
         });
-
         if (instanced) {
             vertex_binding_divisors.push_back({
                 .binding = static_cast<u32>(index),
@@ -229,7 +245,7 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
         if (!attribute.enabled) {
             continue;
         }
-        if (input_attributes.find(static_cast<u32>(index)) == input_attributes.end()) {
+        if (!input_attributes.contains(static_cast<u32>(index))) {
             // Skip attributes not used by the vertex shaders.
             continue;
         }
@@ -261,12 +277,12 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
         vertex_input_ci.pNext = &input_divisor_ci;
     }
 
-    const auto input_assembly_topology = MaxwellToVK::PrimitiveTopology(device, dynamic.Topology());
+    const auto input_assembly_topology = MaxwellToVK::PrimitiveTopology(device, state.topology);
     const VkPipelineInputAssemblyStateCreateInfo input_assembly_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .topology = MaxwellToVK::PrimitiveTopology(device, dynamic.Topology()),
+        .topology = MaxwellToVK::PrimitiveTopology(device, state.topology),
         .primitiveRestartEnable = state.primitive_restart_enable != 0 &&
                                   SupportsPrimitiveRestart(input_assembly_topology),
     };
@@ -289,8 +305,7 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
     };
 
     std::array<VkViewportSwizzleNV, Maxwell::NumViewports> swizzles;
-    std::transform(viewport_swizzles.begin(), viewport_swizzles.end(), swizzles.begin(),
-                   UnpackViewportSwizzle);
+    std::ranges::transform(viewport_swizzles, swizzles.begin(), UnpackViewportSwizzle);
     VkPipelineViewportSwizzleStateCreateInfoNV swizzle_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_SWIZZLE_STATE_CREATE_INFO_NV,
         .pNext = nullptr,
@@ -325,7 +340,7 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
         .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
+        .rasterizationSamples = ConvertMsaaMode(state.msaa_mode),
         .sampleShadingEnable = VK_FALSE,
         .minSampleShading = 0.0f,
         .pSampleMask = nullptr,
@@ -351,8 +366,7 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
     };
 
     std::array<VkPipelineColorBlendAttachmentState, Maxwell::NumRenderTargets> cb_attachments;
-    const auto num_attachments = static_cast<std::size_t>(renderpass_params.num_color_attachments);
-    for (std::size_t index = 0; index < num_attachments; ++index) {
+    for (std::size_t index = 0; index < num_color_buffers; ++index) {
         static constexpr std::array COMPONENT_TABLE{
             VK_COLOR_COMPONENT_R_BIT,
             VK_COLOR_COMPONENT_G_BIT,
@@ -386,8 +400,9 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
         .flags = 0,
         .logicOpEnable = VK_FALSE,
         .logicOp = VK_LOGIC_OP_COPY,
-        .attachmentCount = static_cast<u32>(num_attachments),
+        .attachmentCount = num_color_buffers,
         .pAttachments = cb_attachments.data(),
+        .blendConstants = {},
     };
 
     std::vector dynamic_states{
@@ -400,7 +415,6 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
         static constexpr std::array extended{
             VK_DYNAMIC_STATE_CULL_MODE_EXT,
             VK_DYNAMIC_STATE_FRONT_FACE_EXT,
-            VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY_EXT,
             VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT,
             VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE_EXT,
             VK_DYNAMIC_STATE_DEPTH_WRITE_ENABLE_EXT,
@@ -446,8 +460,7 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
             stage_ci.pNext = &subgroup_size_ci;
         }
     }
-
-    const VkGraphicsPipelineCreateInfo ci{
+    return device.GetLogical().CreateGraphicsPipeline(VkGraphicsPipelineCreateInfo{
         .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -467,8 +480,7 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
         .subpass = 0,
         .basePipelineHandle = nullptr,
         .basePipelineIndex = 0,
-    };
-    return device.GetLogical().CreateGraphicsPipeline(ci);
+    });
 }
 
 } // namespace Vulkan

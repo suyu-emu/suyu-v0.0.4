@@ -216,16 +216,6 @@ Drag points to change position, or double-click table cells to edit values.</str
    <signal>rejected()</signal>
    <receiver>ConfigureTouchFromButton</receiver>
    <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>249</x>
-     <y>428</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>249</x>
-     <y>224</y>
-    </hint>
-   </hints>
   </connection>
  </connections>
 </ui>

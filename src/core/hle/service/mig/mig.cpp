@@ -12,7 +12,7 @@ namespace Service::Migration {
 
 class MIG_USR final : public ServiceFramework<MIG_USR> {
 public:
-    explicit MIG_USR() : ServiceFramework{"mig:usr"} {
+    explicit MIG_USR(Core::System& system_) : ServiceFramework{system_, "mig:usr"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {10, nullptr, "TryGetLastMigrationInfo"},
@@ -33,8 +33,8 @@ public:
     }
 };
 
-void InstallInterfaces(SM::ServiceManager& sm) {
-    std::make_shared<MIG_USR>()->InstallAsService(sm);
+void InstallInterfaces(SM::ServiceManager& sm, Core::System& system) {
+    std::make_shared<MIG_USR>(system)->InstallAsService(sm);
 }
 
 } // namespace Service::Migration

@@ -5,6 +5,7 @@
 #include <QHash>
 #include <QListWidgetItem>
 #include <QSignalBlocker>
+#include "core/core.h"
 #include "core/settings.h"
 #include "ui_configure.h"
 #include "yuzu/configuration/config.h"
@@ -15,7 +16,7 @@
 ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry,
                                  InputCommon::InputSubsystem* input_subsystem)
     : QDialog(parent), ui(new Ui::ConfigureDialog), registry(registry) {
-    Settings::configuring_global = true;
+    Settings::SetConfiguringGlobal(true);
 
     ui->setupUi(this);
     ui->hotkeysTab->Populate(registry);
@@ -54,7 +55,7 @@ void ConfigureDialog::ApplyConfiguration() {
     ui->debugTab->ApplyConfiguration();
     ui->webTab->ApplyConfiguration();
     ui->serviceTab->ApplyConfiguration();
-    Settings::Apply();
+    Settings::Apply(Core::System::GetInstance());
     Settings::LogSettings();
 }
 

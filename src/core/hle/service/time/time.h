@@ -16,11 +16,12 @@ namespace Service::Time {
 
 class Module final {
 public:
-    Module(Core::System& system) : time_manager{system} {}
+    Module() = default;
 
     class Interface : public ServiceFramework<Interface> {
     public:
-        explicit Interface(std::shared_ptr<Module> module, Core::System& system, const char* name);
+        explicit Interface(std::shared_ptr<Module> module_, Core::System& system_,
+                           const char* name);
         ~Interface() override;
 
         void GetStandardUserSystemClock(Kernel::HLERequestContext& ctx);
@@ -44,15 +45,7 @@ public:
 
     protected:
         std::shared_ptr<Module> module;
-        Core::System& system;
     };
-
-    TimeManager& GetTimeManager() {
-        return time_manager;
-    }
-
-private:
-    TimeManager time_manager;
 };
 
 /// Registers all Time services with the specified service manager.

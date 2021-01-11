@@ -12,10 +12,11 @@ namespace Service::AM {
 
 class IApplicationProxy final : public ServiceFramework<IApplicationProxy> {
 public:
-    explicit IApplicationProxy(std::shared_ptr<NVFlinger::NVFlinger> nvflinger,
-                               std::shared_ptr<AppletMessageQueue> msg_queue, Core::System& system)
-        : ServiceFramework("IApplicationProxy"), nvflinger(std::move(nvflinger)),
-          msg_queue(std::move(msg_queue)), system(system) {
+    explicit IApplicationProxy(NVFlinger::NVFlinger& nvflinger_,
+                               std::shared_ptr<AppletMessageQueue> msg_queue_,
+                               Core::System& system_)
+        : ServiceFramework{system_, "IApplicationProxy"}, nvflinger{nvflinger_},
+          msg_queue{std::move(msg_queue_)} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IApplicationProxy::GetCommonStateGetter, "GetCommonStateGetter"},
@@ -39,7 +40,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IAudioController>();
+        rb.PushIpcInterface<IAudioController>(system);
     }
 
     void GetDisplayController(Kernel::HLERequestContext& ctx) {
@@ -47,7 +48,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IDisplayController>();
+        rb.PushIpcInterface<IDisplayController>(system);
     }
 
     void GetDebugFunctions(Kernel::HLERequestContext& ctx) {
@@ -55,7 +56,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IDebugFunctions>();
+        rb.PushIpcInterface<IDebugFunctions>(system);
     }
 
     void GetWindowController(Kernel::HLERequestContext& ctx) {
@@ -98,9 +99,8 @@ private:
         rb.PushIpcInterface<IApplicationFunctions>(system);
     }
 
-    std::shared_ptr<NVFlinger::NVFlinger> nvflinger;
+    NVFlinger::NVFlinger& nvflinger;
     std::shared_ptr<AppletMessageQueue> msg_queue;
-    Core::System& system;
 };
 
 void AppletOE::OpenApplicationProxy(Kernel::HLERequestContext& ctx) {
@@ -111,10 +111,10 @@ void AppletOE::OpenApplicationProxy(Kernel::HLERequestContext& ctx) {
     rb.PushIpcInterface<IApplicationProxy>(nvflinger, msg_queue, system);
 }
 
-AppletOE::AppletOE(std::shared_ptr<NVFlinger::NVFlinger> nvflinger,
-                   std::shared_ptr<AppletMessageQueue> msg_queue, Core::System& system)
-    : ServiceFramework("appletOE"), nvflinger(std::move(nvflinger)),
-      msg_queue(std::move(msg_queue)), system(system) {
+AppletOE::AppletOE(NVFlinger::NVFlinger& nvflinger_, std::shared_ptr<AppletMessageQueue> msg_queue_,
+                   Core::System& system_)
+    : ServiceFramework{system_, "appletOE"}, nvflinger{nvflinger_}, msg_queue{
+                                                                        std::move(msg_queue_)} {
     static const FunctionInfo functions[] = {
         {0, &AppletOE::OpenApplicationProxy, "OpenApplicationProxy"},
     };

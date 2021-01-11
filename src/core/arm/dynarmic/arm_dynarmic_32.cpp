@@ -7,6 +7,7 @@
 #include <dynarmic/A32/a32.h>
 #include <dynarmic/A32/config.h>
 #include <dynarmic/A32/context.h>
+#include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/page_table.h"
 #include "core/arm/cpu_interrupt_handler.h"
@@ -70,15 +71,8 @@ public:
     }
 
     void ExceptionRaised(u32 pc, Dynarmic::A32::Exception exception) override {
-        switch (exception) {
-        case Dynarmic::A32::Exception::UndefinedInstruction:
-        case Dynarmic::A32::Exception::UnpredictableInstruction:
-            break;
-        case Dynarmic::A32::Exception::Breakpoint:
-            break;
-        }
         LOG_CRITICAL(Core_ARM, "ExceptionRaised(exception = {}, pc = {:08X}, code = {:08X})",
-                     static_cast<std::size_t>(exception), pc, MemoryReadCode(pc));
+                     exception, pc, MemoryReadCode(pc));
         UNIMPLEMENTED();
     }
 
@@ -132,6 +126,7 @@ std::shared_ptr<Dynarmic::A32::Jit> ARM_Dynarmic_32::MakeJit(Common::PageTable& 
     config.page_table = reinterpret_cast<std::array<std::uint8_t*, NUM_PAGE_TABLE_ENTRIES>*>(
         page_table.pointers.data());
     config.absolute_offset_page_table = true;
+    config.page_table_pointer_mask_bits = Common::PageTable::ATTRIBUTE_BITS;
     config.detect_misaligned_access_via_page_table = 16 | 32 | 64 | 128;
     config.only_detect_misalignment_via_page_table_on_page_boundary = true;
 
@@ -179,6 +174,9 @@ std::shared_ptr<Dynarmic::A32::Jit> ARM_Dynarmic_32::MakeJit(Common::PageTable& 
         if (Settings::values.cpuopt_unsafe_reduce_fp_error) {
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_ReducedErrorFP;
         }
+        if (Settings::values.cpuopt_unsafe_inaccurate_nan) {
+            config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_InaccurateNaN;
+        }
     }
 
     return std::make_unique<Dynarmic::A32::Jit>(config);
@@ -186,6 +184,10 @@ std::shared_ptr<Dynarmic::A32::Jit> ARM_Dynarmic_32::MakeJit(Common::PageTable& 
 
 void ARM_Dynarmic_32::Run() {
     jit->Run();
+}
+
+void ARM_Dynarmic_32::ExceptionalExit() {
+    jit->ExceptionalExit();
 }
 
 void ARM_Dynarmic_32::Step() {
@@ -281,7 +283,17 @@ void ARM_Dynarmic_32::ClearInstructionCache() {
     jit->ClearCache();
 }
 
+void ARM_Dynarmic_32::InvalidateCacheRange(VAddr addr, std::size_t size) {
+    if (!jit) {
+        return;
+    }
+    jit->InvalidateCacheRange(static_cast<u32>(addr), size);
+}
+
 void ARM_Dynarmic_32::ClearExclusiveState() {
+    if (!jit) {
+        return;
+    }
     jit->ClearExclusiveState();
 }
 

@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "common/logging/log.h"
+#include "core/core.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/hle_ipc.h"
@@ -32,8 +33,8 @@ std::optional<u64> GetTitleIDForProcessID(const Core::System& system, u64 proces
 }
 } // Anonymous namespace
 
-ARP_R::ARP_R(const Core::System& system, const ARPManager& manager)
-    : ServiceFramework{"arp:r"}, system(system), manager(manager) {
+ARP_R::ARP_R(Core::System& system_, const ARPManager& manager_)
+    : ServiceFramework{system_, "arp:r"}, manager{manager_} {
     // clang-format off
         static const FunctionInfo functions[] = {
             {0, &ARP_R::GetApplicationLaunchProperty, "GetApplicationLaunchProperty"},
@@ -151,8 +152,9 @@ class IRegistrar final : public ServiceFramework<IRegistrar> {
 
 public:
     explicit IRegistrar(
+        Core::System& system_,
         std::function<ResultCode(u64, ApplicationLaunchProperty, std::vector<u8>)> issuer)
-        : ServiceFramework{"IRegistrar"}, issue_process_id(std::move(issuer)) {
+        : ServiceFramework{system_, "IRegistrar"}, issue_process_id{std::move(issuer)} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IRegistrar::Issue, "Issue"},
@@ -236,8 +238,8 @@ private:
     std::vector<u8> control;
 };
 
-ARP_W::ARP_W(const Core::System& system, ARPManager& manager)
-    : ServiceFramework{"arp:w"}, system(system), manager(manager) {
+ARP_W::ARP_W(Core::System& system_, ARPManager& manager_)
+    : ServiceFramework{system_, "arp:w"}, manager{manager_} {
     // clang-format off
         static const FunctionInfo functions[] = {
             {0, &ARP_W::AcquireRegistrar, "AcquireRegistrar"},
@@ -254,7 +256,7 @@ void ARP_W::AcquireRegistrar(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_ARP, "called");
 
     registrar = std::make_shared<IRegistrar>(
-        [this](u64 process_id, ApplicationLaunchProperty launch, std::vector<u8> control) {
+        system, [this](u64 process_id, ApplicationLaunchProperty launch, std::vector<u8> control) {
             const auto res = GetTitleIDForProcessID(system, process_id);
             if (!res.has_value()) {
                 return ERR_NOT_REGISTERED;

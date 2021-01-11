@@ -5,7 +5,6 @@
 #include <cstring>
 #include "core/file_sys/kernel_executable.h"
 #include "core/file_sys/program_metadata.h"
-#include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/code_set.h"
 #include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/process.h"
@@ -16,7 +15,7 @@ namespace Loader {
 
 namespace {
 constexpr u32 PageAlignSize(u32 size) {
-    return (size + Core::Memory::PAGE_MASK) & ~Core::Memory::PAGE_MASK;
+    return static_cast<u32>((size + Core::Memory::PAGE_MASK) & ~Core::Memory::PAGE_MASK);
 }
 } // Anonymous namespace
 
@@ -90,8 +89,6 @@ AppLoader::LoadResult AppLoader_KIP::Load(Kernel::Process& process,
 
     program_image.resize(PageAlignSize(kip->GetBSSOffset()) + kip->GetBSSSize());
     codeset.DataSegment().size += kip->GetBSSSize();
-
-    GDBStub::RegisterModule(kip->GetName(), base_address, base_address + program_image.size());
 
     codeset.memory = std::move(program_image);
     process.LoadModule(std::move(codeset), base_address);

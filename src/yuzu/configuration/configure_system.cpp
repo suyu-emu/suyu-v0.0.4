@@ -12,6 +12,7 @@
 #include "common/assert.h"
 #include "common/file_util.h"
 #include "core/core.h"
+#include "core/hle/service/time/time.h"
 #include "core/settings.h"
 #include "ui_configure_system.h"
 #include "yuzu/configuration/configuration_shared.h"
@@ -36,8 +37,8 @@ ConfigureSystem::ConfigureSystem(QWidget* parent) : QWidget(parent), ui(new Ui::
         }
     });
 
-    ui->label_console_id->setVisible(Settings::configuring_global);
-    ui->button_regenerate_console_id->setVisible(Settings::configuring_global);
+    ui->label_console_id->setVisible(Settings::IsConfiguringGlobal());
+    ui->button_regenerate_console_id->setVisible(Settings::IsConfiguringGlobal());
 
     SetupPerGameUI();
 
@@ -77,7 +78,7 @@ void ConfigureSystem::SetConfiguration() {
                                     Settings::values.rng_seed.UsingGlobal());
     ui->custom_rtc_edit->setDateTime(QDateTime::fromSecsSinceEpoch(rtc_time.count()));
 
-    if (Settings::configuring_global) {
+    if (Settings::IsConfiguringGlobal()) {
         ui->combo_language->setCurrentIndex(Settings::values.language_index.GetValue());
         ui->combo_region->setCurrentIndex(Settings::values.region_index.GetValue());
         ui->combo_time_zone->setCurrentIndex(Settings::values.time_zone_index.GetValue());
@@ -104,11 +105,29 @@ void ConfigureSystem::SetConfiguration() {
 void ConfigureSystem::ReadSystemSettings() {}
 
 void ConfigureSystem::ApplyConfiguration() {
+    auto& system = Core::System::GetInstance();
+
+    // Allow setting custom RTC even if system is powered on,
+    // to allow in-game time to be fast forwarded
+    if (Settings::values.custom_rtc.UsingGlobal()) {
+        if (ui->custom_rtc_checkbox->isChecked()) {
+            Settings::values.custom_rtc.SetValue(
+                std::chrono::seconds(ui->custom_rtc_edit->dateTime().toSecsSinceEpoch()));
+            if (system.IsPoweredOn()) {
+                const s64 posix_time{Settings::values.custom_rtc.GetValue()->count() +
+                                     Service::Time::TimeManager::GetExternalTimeZoneOffset()};
+                system.GetTimeManager().UpdateLocalSystemClockTime(posix_time);
+            }
+        } else {
+            Settings::values.custom_rtc.SetValue(std::nullopt);
+        }
+    }
+
     if (!enabled) {
         return;
     }
 
-    if (Settings::configuring_global) {
+    if (Settings::IsConfiguringGlobal()) {
         // Guard if during game and set to game-specific value
         if (Settings::values.language_index.UsingGlobal()) {
             Settings::values.language_index.SetValue(ui->combo_language->currentIndex());
@@ -129,15 +148,6 @@ void ConfigureSystem::ApplyConfiguration() {
                     ui->rng_seed_edit->text().toULongLong(nullptr, 16));
             } else {
                 Settings::values.rng_seed.SetValue(std::nullopt);
-            }
-        }
-
-        if (Settings::values.custom_rtc.UsingGlobal()) {
-            if (ui->custom_rtc_checkbox->isChecked()) {
-                Settings::values.custom_rtc.SetValue(
-                    std::chrono::seconds(ui->custom_rtc_edit->dateTime().toSecsSinceEpoch()));
-            } else {
-                Settings::values.custom_rtc.SetValue(std::nullopt);
             }
         }
     } else {
@@ -189,7 +199,7 @@ void ConfigureSystem::ApplyConfiguration() {
         }
     }
 
-    Settings::Apply();
+    Settings::Apply(system);
 }
 
 void ConfigureSystem::RefreshConsoleID() {
@@ -210,7 +220,7 @@ void ConfigureSystem::RefreshConsoleID() {
 }
 
 void ConfigureSystem::SetupPerGameUI() {
-    if (Settings::configuring_global) {
+    if (Settings::IsConfiguringGlobal()) {
         ui->combo_language->setEnabled(Settings::values.language_index.UsingGlobal());
         ui->combo_region->setEnabled(Settings::values.region_index.UsingGlobal());
         ui->combo_time_zone->setEnabled(Settings::values.time_zone_index.UsingGlobal());

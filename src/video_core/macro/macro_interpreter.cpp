@@ -11,29 +11,29 @@
 MICROPROFILE_DEFINE(MacroInterp, "GPU", "Execute macro interpreter", MP_RGB(128, 128, 192));
 
 namespace Tegra {
-MacroInterpreter::MacroInterpreter(Engines::Maxwell3D& maxwell3d)
-    : MacroEngine::MacroEngine(maxwell3d), maxwell3d(maxwell3d) {}
+MacroInterpreter::MacroInterpreter(Engines::Maxwell3D& maxwell3d_)
+    : MacroEngine{maxwell3d_}, maxwell3d{maxwell3d_} {}
 
 std::unique_ptr<CachedMacro> MacroInterpreter::Compile(const std::vector<u32>& code) {
     return std::make_unique<MacroInterpreterImpl>(maxwell3d, code);
 }
 
-MacroInterpreterImpl::MacroInterpreterImpl(Engines::Maxwell3D& maxwell3d,
-                                           const std::vector<u32>& code)
-    : maxwell3d(maxwell3d), code(code) {}
+MacroInterpreterImpl::MacroInterpreterImpl(Engines::Maxwell3D& maxwell3d_,
+                                           const std::vector<u32>& code_)
+    : maxwell3d{maxwell3d_}, code{code_} {}
 
-void MacroInterpreterImpl::Execute(const std::vector<u32>& parameters, u32 method) {
+void MacroInterpreterImpl::Execute(const std::vector<u32>& params, u32 method) {
     MICROPROFILE_SCOPE(MacroInterp);
     Reset();
 
-    registers[1] = parameters[0];
-    num_parameters = parameters.size();
+    registers[1] = params[0];
+    num_parameters = params.size();
 
     if (num_parameters > parameters_capacity) {
         parameters_capacity = num_parameters;
-        this->parameters = std::make_unique<u32[]>(num_parameters);
+        parameters = std::make_unique<u32[]>(num_parameters);
     }
-    std::memcpy(this->parameters.get(), parameters.data(), num_parameters * sizeof(u32));
+    std::memcpy(parameters.get(), params.data(), num_parameters * sizeof(u32));
 
     // Execute the code until we hit an exit condition.
     bool keep_executing = true;
@@ -133,8 +133,7 @@ bool MacroInterpreterImpl::Step(bool is_delay_slot) {
         break;
     }
     default:
-        UNIMPLEMENTED_MSG("Unimplemented macro operation {}",
-                          static_cast<u32>(opcode.operation.Value()));
+        UNIMPLEMENTED_MSG("Unimplemented macro operation {}", opcode.operation.Value());
     }
 
     // An instruction with the Exit flag will not actually
@@ -182,7 +181,7 @@ u32 MacroInterpreterImpl::GetALUResult(Macro::ALUOperation operation, u32 src_a,
         return ~(src_a & src_b);
 
     default:
-        UNIMPLEMENTED_MSG("Unimplemented ALU operation {}", static_cast<u32>(operation));
+        UNIMPLEMENTED_MSG("Unimplemented ALU operation {}", operation);
         return 0;
     }
 }
@@ -230,7 +229,7 @@ void MacroInterpreterImpl::ProcessResult(Macro::ResultOperation operation, u32 r
         Send((result >> 12) & 0b111111);
         break;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented result operation {}", static_cast<u32>(operation));
+        UNIMPLEMENTED_MSG("Unimplemented result operation {}", operation);
     }
 }
 

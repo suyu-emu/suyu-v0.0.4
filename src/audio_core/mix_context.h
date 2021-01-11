@@ -62,17 +62,17 @@ public:
     ServerMixInfo();
     ~ServerMixInfo();
 
-    const ServerMixInfo::InParams& GetInParams() const;
-    ServerMixInfo::InParams& GetInParams();
+    [[nodiscard]] const ServerMixInfo::InParams& GetInParams() const;
+    [[nodiscard]] ServerMixInfo::InParams& GetInParams();
 
     bool Update(EdgeMatrix& edge_matrix, const MixInfo::InParams& mix_in,
                 BehaviorInfo& behavior_info, SplitterContext& splitter_context,
                 EffectContext& effect_context);
-    bool HasAnyConnection() const;
+    [[nodiscard]] bool HasAnyConnection() const;
     void Cleanup();
     void SetEffectCount(std::size_t count);
     void ResetEffectProcessingOrder();
-    s32 GetEffectOrder(std::size_t i) const;
+    [[nodiscard]] s32 GetEffectOrder(std::size_t i) const;
 
 private:
     std::vector<s32> effect_processing_order;
@@ -91,15 +91,15 @@ public:
     void SortInfo();
     bool TsortInfo(SplitterContext& splitter_context);
 
-    std::size_t GetCount() const;
-    ServerMixInfo& GetInfo(std::size_t i);
-    const ServerMixInfo& GetInfo(std::size_t i) const;
-    ServerMixInfo& GetSortedInfo(std::size_t i);
-    const ServerMixInfo& GetSortedInfo(std::size_t i) const;
-    ServerMixInfo& GetFinalMixInfo();
-    const ServerMixInfo& GetFinalMixInfo() const;
-    EdgeMatrix& GetEdgeMatrix();
-    const EdgeMatrix& GetEdgeMatrix() const;
+    [[nodiscard]] std::size_t GetCount() const;
+    [[nodiscard]] ServerMixInfo& GetInfo(std::size_t i);
+    [[nodiscard]] const ServerMixInfo& GetInfo(std::size_t i) const;
+    [[nodiscard]] ServerMixInfo& GetSortedInfo(std::size_t i);
+    [[nodiscard]] const ServerMixInfo& GetSortedInfo(std::size_t i) const;
+    [[nodiscard]] ServerMixInfo& GetFinalMixInfo();
+    [[nodiscard]] const ServerMixInfo& GetFinalMixInfo() const;
+    [[nodiscard]] EdgeMatrix& GetEdgeMatrix();
+    [[nodiscard]] const EdgeMatrix& GetEdgeMatrix() const;
 
 private:
     void CalcMixBufferOffset();

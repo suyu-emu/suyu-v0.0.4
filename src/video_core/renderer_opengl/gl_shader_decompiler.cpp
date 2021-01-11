@@ -38,11 +38,9 @@ using Tegra::Shader::IpaSampleMode;
 using Tegra::Shader::PixelImap;
 using Tegra::Shader::Register;
 using Tegra::Shader::TextureType;
-using VideoCommon::Shader::BuildTransformFeedback;
-using VideoCommon::Shader::Registry;
 
-using namespace std::string_literals;
 using namespace VideoCommon::Shader;
+using namespace std::string_literals;
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 using Operation = const OperationNode&;
@@ -131,7 +129,7 @@ private:
 
 class Expression final {
 public:
-    Expression(std::string code, Type type) : code{std::move(code)}, type{type} {
+    Expression(std::string code_, Type type_) : code{std::move(code_)}, type{type_} {
         ASSERT(type != Type::Void);
     }
     Expression() : type{Type::Void} {}
@@ -148,8 +146,8 @@ public:
         ASSERT(type == Type::Void);
     }
 
-    std::string As(Type type) const {
-        switch (type) {
+    std::string As(Type type_) const {
+        switch (type_) {
         case Type::Bool:
             return AsBool();
         case Type::Bool2:
@@ -316,7 +314,7 @@ std::pair<const char*, u32> GetPrimitiveDescription(Maxwell::PrimitiveTopology t
     case Maxwell::PrimitiveTopology::TriangleStripAdjacency:
         return {"triangles_adjacency", 6};
     default:
-        UNIMPLEMENTED_MSG("topology={}", static_cast<int>(topology));
+        UNIMPLEMENTED_MSG("topology={}", topology);
         return {"points", 1};
     }
 }
@@ -342,7 +340,7 @@ std::string GetTopologyName(Tegra::Shader::OutputTopology topology) {
     case Tegra::Shader::OutputTopology::TriangleStrip:
         return "triangle_strip";
     default:
-        UNIMPLEMENTED_MSG("Unknown output topology: {}", static_cast<u32>(topology));
+        UNIMPLEMENTED_MSG("Unknown output topology: {}", topology);
         return "points";
     }
 }
@@ -418,11 +416,12 @@ struct GenericVaryingDescription {
 
 class GLSLDecompiler final {
 public:
-    explicit GLSLDecompiler(const Device& device, const ShaderIR& ir, const Registry& registry,
-                            ShaderType stage, std::string_view identifier, std::string_view suffix)
-        : device{device}, ir{ir}, registry{registry}, stage{stage}, identifier{identifier},
-          suffix{suffix}, header{ir.GetHeader()}, use_unified_uniforms{
-                                                      UseUnifiedUniforms(device, ir, stage)} {
+    explicit GLSLDecompiler(const Device& device_, const ShaderIR& ir_, const Registry& registry_,
+                            ShaderType stage_, std::string_view identifier_,
+                            std::string_view suffix_)
+        : device{device_}, ir{ir_}, registry{registry_}, stage{stage_}, identifier{identifier_},
+          suffix{suffix_}, header{ir.GetHeader()}, use_unified_uniforms{
+                                                       UseUnifiedUniforms(device_, ir_, stage_)} {
         if (stage != ShaderType::Compute) {
             transform_feedback = BuildTransformFeedback(registry.GetGraphicsInfo());
         }
@@ -744,7 +743,7 @@ private:
         case PixelImap::Unused:
             break;
         }
-        UNIMPLEMENTED_MSG("Unknown attribute usage index={}", static_cast<int>(attribute));
+        UNIMPLEMENTED_MSG("Unknown attribute usage index={}", attribute);
         return {};
     }
 
@@ -777,16 +776,16 @@ private:
             name = "gs_" + name + "[]";
         }
 
-        std::string suffix;
+        std::string suffix_;
         if (stage == ShaderType::Fragment) {
             const auto input_mode{header.ps.GetPixelImap(location)};
             if (input_mode == PixelImap::Unused) {
                 return;
             }
-            suffix = GetInputFlags(input_mode);
+            suffix_ = GetInputFlags(input_mode);
         }
 
-        code.AddLine("layout (location = {}) {} in vec4 {};", location, suffix, name);
+        code.AddLine("layout (location = {}) {} in vec4 {};", location, suffix_, name);
     }
 
     void DeclareOutputAttributes() {
@@ -877,7 +876,7 @@ private:
         }
 
         u32 binding = device.GetBaseBindings(stage).uniform_buffer;
-        for (const auto [index, info] : ir.GetConstantBuffers()) {
+        for (const auto& [index, info] : ir.GetConstantBuffers()) {
             const u32 num_elements = Common::AlignUp(info.GetSize(), 4) / 4;
             const u32 size = info.IsIndirect() ? MAX_CONSTBUFFER_ELEMENTS : num_elements;
             code.AddLine("layout (std140, binding = {}) uniform {} {{", binding++,
@@ -1251,7 +1250,7 @@ private:
             }
             break;
         }
-        UNIMPLEMENTED_MSG("Unhandled input attribute: {}", static_cast<u32>(attribute));
+        UNIMPLEMENTED_MSG("Unhandled input attribute: {}", attribute);
         return {"0", Type::Int};
     }
 
@@ -1331,7 +1330,7 @@ private:
                                      GetSwizzle(element)),
                          Type::Float}};
             }
-            UNIMPLEMENTED_MSG("Unhandled output attribute: {}", static_cast<u32>(attribute));
+            UNIMPLEMENTED_MSG("Unhandled output attribute: {}", attribute);
             return std::nullopt;
         }
     }
@@ -2056,15 +2055,19 @@ private:
     }
 
     Expression Texture(Operation operation) {
-        const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
-        ASSERT(meta);
-
-        std::string expr = GenerateTexture(
-            operation, "", {TextureOffset{}, TextureArgument{Type::Float, meta->bias}});
-        if (meta->sampler.is_shadow) {
-            expr = "vec4(" + expr + ')';
+        const auto meta = std::get<MetaTexture>(operation.GetMeta());
+        const bool separate_dc = meta.sampler.type == TextureType::TextureCube &&
+                                 meta.sampler.is_array && meta.sampler.is_shadow;
+        // TODO: Replace this with an array and make GenerateTexture use C++20 std::span
+        const std::vector<TextureIR> extras{
+            TextureOffset{},
+            TextureArgument{Type::Float, meta.bias},
+        };
+        std::string expr = GenerateTexture(operation, "", extras, separate_dc);
+        if (meta.sampler.is_shadow) {
+            expr = fmt::format("vec4({})", expr);
         }
-        return {expr + GetSwizzle(meta->element), Type::Float};
+        return {expr + GetSwizzle(meta.element), Type::Float};
     }
 
     Expression TextureLod(Operation operation) {
@@ -2096,13 +2099,13 @@ private:
         const auto type = meta.sampler.is_shadow ? Type::Float : Type::Int;
         const bool separate_dc = meta.sampler.is_shadow;
 
-        std::vector<TextureIR> ir;
+        std::vector<TextureIR> ir_;
         if (meta.sampler.is_shadow) {
-            ir = {TextureOffset{}};
+            ir_ = {TextureOffset{}};
         } else {
-            ir = {TextureOffset{}, TextureArgument{type, meta.component}};
+            ir_ = {TextureOffset{}, TextureArgument{type, meta.component}};
         }
-        return {GenerateTexture(operation, "Gather", ir, separate_dc) + GetSwizzle(meta.element),
+        return {GenerateTexture(operation, "Gather", ir_, separate_dc) + GetSwizzle(meta.element),
                 Type::Float};
     }
 
@@ -2748,11 +2751,11 @@ private:
         }
     }
 
-    std::string GetSampler(const Sampler& sampler) const {
+    std::string GetSampler(const SamplerEntry& sampler) const {
         return AppendSuffix(sampler.index, "sampler");
     }
 
-    std::string GetImage(const Image& image) const {
+    std::string GetImage(const ImageEntry& image) const {
         return AppendSuffix(image.index, "image");
     }
 
@@ -2797,7 +2800,7 @@ std::string GetFlowVariable(u32 index) {
 
 class ExprDecompiler {
 public:
-    explicit ExprDecompiler(GLSLDecompiler& decomp) : decomp{decomp} {}
+    explicit ExprDecompiler(GLSLDecompiler& decomp_) : decomp{decomp_} {}
 
     void operator()(const ExprAnd& expr) {
         inner += '(';
@@ -2852,7 +2855,7 @@ private:
 
 class ASTDecompiler {
 public:
-    explicit ASTDecompiler(GLSLDecompiler& decomp) : decomp{decomp} {}
+    explicit ASTDecompiler(GLSLDecompiler& decomp_) : decomp{decomp_} {}
 
     void operator()(const ASTProgram& ast) {
         ASTNode current = ast.nodes.GetFirst();

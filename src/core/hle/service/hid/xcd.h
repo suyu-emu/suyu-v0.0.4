@@ -6,11 +6,15 @@
 
 #include "core/hle/service/service.h"
 
+namespace Core {
+class System;
+}
+
 namespace Service::HID {
 
 class XCD_SYS final : public ServiceFramework<XCD_SYS> {
 public:
-    explicit XCD_SYS();
+    explicit XCD_SYS(Core::System& system_);
     ~XCD_SYS() override;
 };
 

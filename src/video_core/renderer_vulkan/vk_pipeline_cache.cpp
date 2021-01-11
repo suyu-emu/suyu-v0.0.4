@@ -7,6 +7,8 @@
 #include <memory>
 #include <vector>
 
+#include "common/bit_cast.h"
+#include "common/cityhash.h"
 #include "common/microprofile.h"
 #include "core/core.h"
 #include "core/memory.h"
@@ -17,18 +19,17 @@
 #include "video_core/renderer_vulkan/maxwell_to_vk.h"
 #include "video_core/renderer_vulkan/vk_compute_pipeline.h"
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
-#include "video_core/renderer_vulkan/vk_device.h"
 #include "video_core/renderer_vulkan/vk_graphics_pipeline.h"
 #include "video_core/renderer_vulkan/vk_pipeline_cache.h"
 #include "video_core/renderer_vulkan/vk_rasterizer.h"
-#include "video_core/renderer_vulkan/vk_renderpass_cache.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
-#include "video_core/renderer_vulkan/wrapper.h"
 #include "video_core/shader/compiler_settings.h"
 #include "video_core/shader/memory_util.h"
 #include "video_core/shader_cache.h"
 #include "video_core/shader_notify.h"
+#include "video_core/vulkan_common/vulkan_device.h"
+#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
 
@@ -51,7 +52,9 @@ constexpr VkDescriptorType STORAGE_TEXEL_BUFFER = VK_DESCRIPTOR_TYPE_STORAGE_TEX
 constexpr VkDescriptorType STORAGE_IMAGE = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
 
 constexpr VideoCommon::Shader::CompilerSettings compiler_settings{
-    VideoCommon::Shader::CompileDepth::FullDecompile};
+    .depth = VideoCommon::Shader::CompileDepth::FullDecompile,
+    .disable_else_derivation = true,
+};
 
 constexpr std::size_t GetStageFromProgram(std::size_t program) {
     return program == 0 ? 0 : program - 1;
@@ -74,7 +77,7 @@ ShaderType GetShaderType(Maxwell::ShaderProgram program) {
     case Maxwell::ShaderProgram::Fragment:
         return ShaderType::Fragment;
     default:
-        UNIMPLEMENTED_MSG("program={}", static_cast<u32>(program));
+        UNIMPLEMENTED_MSG("program={}", program);
         return ShaderType::Vertex;
     }
 }
@@ -135,26 +138,24 @@ bool ComputePipelineCacheKey::operator==(const ComputePipelineCacheKey& rhs) con
     return std::memcmp(&rhs, this, sizeof *this) == 0;
 }
 
-Shader::Shader(Tegra::Engines::ConstBufferEngineInterface& engine, Tegra::Engines::ShaderType stage,
-               GPUVAddr gpu_addr_, VAddr cpu_addr, VideoCommon::Shader::ProgramCode program_code_,
-               u32 main_offset)
-    : gpu_addr(gpu_addr_), program_code(std::move(program_code_)), registry(stage, engine),
-      shader_ir(program_code, main_offset, compiler_settings, registry),
+Shader::Shader(Tegra::Engines::ConstBufferEngineInterface& engine_, ShaderType stage_,
+               GPUVAddr gpu_addr_, VAddr cpu_addr_, ProgramCode program_code_, u32 main_offset_)
+    : gpu_addr(gpu_addr_), program_code(std::move(program_code_)), registry(stage_, engine_),
+      shader_ir(program_code, main_offset_, compiler_settings, registry),
       entries(GenerateShaderEntries(shader_ir)) {}
 
 Shader::~Shader() = default;
 
-VKPipelineCache::VKPipelineCache(RasterizerVulkan& rasterizer, Tegra::GPU& gpu_,
+VKPipelineCache::VKPipelineCache(RasterizerVulkan& rasterizer_, Tegra::GPU& gpu_,
                                  Tegra::Engines::Maxwell3D& maxwell3d_,
                                  Tegra::Engines::KeplerCompute& kepler_compute_,
-                                 Tegra::MemoryManager& gpu_memory_, const VKDevice& device_,
+                                 Tegra::MemoryManager& gpu_memory_, const Device& device_,
                                  VKScheduler& scheduler_, VKDescriptorPool& descriptor_pool_,
-                                 VKUpdateDescriptorQueue& update_descriptor_queue_,
-                                 VKRenderPassCache& renderpass_cache_)
-    : VideoCommon::ShaderCache<Shader>{rasterizer}, gpu{gpu_}, maxwell3d{maxwell3d_},
+                                 VKUpdateDescriptorQueue& update_descriptor_queue_)
+    : VideoCommon::ShaderCache<Shader>{rasterizer_}, gpu{gpu_}, maxwell3d{maxwell3d_},
       kepler_compute{kepler_compute_}, gpu_memory{gpu_memory_}, device{device_},
-      scheduler{scheduler_}, descriptor_pool{descriptor_pool_},
-      update_descriptor_queue{update_descriptor_queue_}, renderpass_cache{renderpass_cache_} {}
+      scheduler{scheduler_}, descriptor_pool{descriptor_pool_}, update_descriptor_queue{
+                                                                    update_descriptor_queue_} {}
 
 VKPipelineCache::~VKPipelineCache() = default;
 
@@ -199,7 +200,8 @@ std::array<Shader*, Maxwell::MaxShaderProgram> VKPipelineCache::GetShaders() {
 }
 
 VKGraphicsPipeline* VKPipelineCache::GetGraphicsPipeline(
-    const GraphicsPipelineCacheKey& key, VideoCommon::Shader::AsyncShaders& async_shaders) {
+    const GraphicsPipelineCacheKey& key, u32 num_color_buffers,
+    VideoCommon::Shader::AsyncShaders& async_shaders) {
     MICROPROFILE_SCOPE(Vulkan_PipelineCache);
 
     if (last_graphics_pipeline && last_graphics_key == key) {
@@ -215,8 +217,8 @@ VKGraphicsPipeline* VKPipelineCache::GetGraphicsPipeline(
             LOG_INFO(Render_Vulkan, "Compile 0x{:016X}", key.Hash());
             const auto [program, bindings] = DecompileShaders(key.fixed_state);
             async_shaders.QueueVulkanShader(this, device, scheduler, descriptor_pool,
-                                            update_descriptor_queue, renderpass_cache, bindings,
-                                            program, key);
+                                            update_descriptor_queue, bindings, program, key,
+                                            num_color_buffers);
         }
         last_graphics_pipeline = pair->second.get();
         return last_graphics_pipeline;
@@ -229,8 +231,8 @@ VKGraphicsPipeline* VKPipelineCache::GetGraphicsPipeline(
         LOG_INFO(Render_Vulkan, "Compile 0x{:016X}", key.Hash());
         const auto [program, bindings] = DecompileShaders(key.fixed_state);
         entry = std::make_unique<VKGraphicsPipeline>(device, scheduler, descriptor_pool,
-                                                     update_descriptor_queue, renderpass_cache, key,
-                                                     bindings, program);
+                                                     update_descriptor_queue, key, bindings,
+                                                     program, num_color_buffers);
         gpu.ShaderNotify().MarkShaderComplete();
     }
     last_graphics_pipeline = entry.get();
@@ -331,8 +333,7 @@ void VKPipelineCache::OnShaderRemoval(Shader* shader) {
 std::pair<SPIRVProgram, std::vector<VkDescriptorSetLayoutBinding>>
 VKPipelineCache::DecompileShaders(const FixedPipelineState& fixed_state) {
     Specialization specialization;
-    if (fixed_state.dynamic_state.Topology() == Maxwell::PrimitiveTopology::Points ||
-        device.IsExtExtendedDynamicStateSupported()) {
+    if (fixed_state.topology == Maxwell::PrimitiveTopology::Points) {
         float point_size;
         std::memcpy(&point_size, &fixed_state.point_size, sizeof(float));
         specialization.point_size = point_size;
@@ -344,6 +345,12 @@ VKPipelineCache::DecompileShaders(const FixedPipelineState& fixed_state) {
         specialization.attribute_types[i] = attribute.Type();
     }
     specialization.ndc_minus_one_to_one = fixed_state.ndc_minus_one_to_one;
+    specialization.early_fragment_tests = fixed_state.early_z;
+
+    // Alpha test
+    specialization.alpha_test_func =
+        FixedPipelineState::UnpackComparisonOp(fixed_state.alpha_test_func.Value());
+    specialization.alpha_test_ref = Common::BitCast<float>(fixed_state.alpha_test_ref);
 
     SPIRVProgram program;
     std::vector<VkDescriptorSetLayoutBinding> bindings;

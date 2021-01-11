@@ -119,7 +119,7 @@ union ResultCode {
     BitField<0, 9, ErrorModule> module;
     BitField<9, 13, u32> description;
 
-    constexpr explicit ResultCode(u32 raw) : raw(raw) {}
+    constexpr explicit ResultCode(u32 raw_) : raw(raw_) {}
 
     constexpr ResultCode(ErrorModule module_, u32 description_)
         : raw(module.FormatValue(module_) | description.FormatValue(description_)) {}

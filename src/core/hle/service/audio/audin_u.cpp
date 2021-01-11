@@ -11,7 +11,7 @@ namespace Service::Audio {
 
 class IAudioIn final : public ServiceFramework<IAudioIn> {
 public:
-    IAudioIn() : ServiceFramework("IAudioIn") {
+    explicit IAudioIn(Core::System& system_) : ServiceFramework{system_, "IAudioIn"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "GetAudioInState"},
@@ -36,7 +36,7 @@ public:
     }
 };
 
-AudInU::AudInU() : ServiceFramework("audin:u") {
+AudInU::AudInU(Core::System& system_) : ServiceFramework{system_, "audin:u"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &AudInU::ListAudioIns, "ListAudioIns"},
@@ -96,7 +96,7 @@ void AudInU::OpenInOutImpl(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 6, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushRaw<AudInOutParams>(params);
-    rb.PushIpcInterface<IAudioIn>();
+    rb.PushIpcInterface<IAudioIn>(system);
 }
 
 void AudInU::OpenAudioIn(Kernel::HLERequestContext& ctx) {

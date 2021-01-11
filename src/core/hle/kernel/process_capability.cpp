@@ -199,7 +199,7 @@ ResultCode ProcessCapabilities::ParseSingleFlagCapability(u32& set_flags, u32& s
         break;
     }
 
-    LOG_ERROR(Kernel, "Invalid capability type! type={}", static_cast<u32>(type));
+    LOG_ERROR(Kernel, "Invalid capability type! type={}", type);
     return ERR_INVALID_CAPABILITY_DESCRIPTOR;
 }
 

@@ -50,9 +50,6 @@ public:
     /// Waits on an address with a particular arbitration type.
     ResultCode WaitForAddress(VAddr address, ArbitrationType type, s32 value, s64 timeout_ns);
 
-    /// Removes a thread from the container and resets its address arbiter adress to 0
-    void HandleWakeupThread(std::shared_ptr<Thread> thread);
-
 private:
     /// Signals an address being waited on.
     ResultCode SignalToAddressOnly(VAddr address, s32 num_to_wake);

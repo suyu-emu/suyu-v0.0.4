@@ -82,7 +82,7 @@ struct NCAHeader {
 };
 static_assert(sizeof(NCAHeader) == 0x400, "NCAHeader has incorrect size.");
 
-inline bool IsDirectoryExeFS(const std::shared_ptr<VfsDirectory>& pfs) {
+inline bool IsDirectoryExeFS(const VirtualDir& pfs) {
     // According to switchbrew, an exefs must only contain these two files:
     return pfs->GetFile("main") != nullptr && pfs->GetFile("main.npdm") != nullptr;
 }
@@ -104,10 +104,10 @@ public:
 
     Loader::ResultStatus GetStatus() const;
 
-    std::vector<std::shared_ptr<VfsFile>> GetFiles() const override;
-    std::vector<std::shared_ptr<VfsDirectory>> GetSubdirectories() const override;
+    std::vector<VirtualFile> GetFiles() const override;
+    std::vector<VirtualDir> GetSubdirectories() const override;
     std::string GetName() const override;
-    std::shared_ptr<VfsDirectory> GetParentDirectory() const override;
+    VirtualDir GetParentDirectory() const override;
 
     NCAContentType GetType() const;
     u64 GetTitleId() const;

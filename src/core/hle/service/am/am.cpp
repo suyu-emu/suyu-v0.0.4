@@ -64,7 +64,7 @@ struct LaunchParameterAccountPreselectedUser {
 static_assert(sizeof(LaunchParameterAccountPreselectedUser) == 0x88);
 
 IWindowController::IWindowController(Core::System& system_)
-    : ServiceFramework("IWindowController"), system{system_} {
+    : ServiceFramework{system_, "IWindowController"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "CreateWindow"},
@@ -99,7 +99,8 @@ void IWindowController::AcquireForegroundRights(Kernel::HLERequestContext& ctx) 
     rb.Push(RESULT_SUCCESS);
 }
 
-IAudioController::IAudioController() : ServiceFramework("IAudioController") {
+IAudioController::IAudioController(Core::System& system_)
+    : ServiceFramework{system_, "IAudioController"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &IAudioController::SetExpectedMasterVolume, "SetExpectedMasterVolume"},
@@ -180,7 +181,8 @@ void IAudioController::SetTransparentAudioRate(Kernel::HLERequestContext& ctx) {
     rb.Push(RESULT_SUCCESS);
 }
 
-IDisplayController::IDisplayController() : ServiceFramework("IDisplayController") {
+IDisplayController::IDisplayController(Core::System& system_)
+    : ServiceFramework{system_, "IDisplayController"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "GetLastForegroundCaptureImage"},
@@ -219,7 +221,8 @@ IDisplayController::IDisplayController() : ServiceFramework("IDisplayController"
 
 IDisplayController::~IDisplayController() = default;
 
-IDebugFunctions::IDebugFunctions() : ServiceFramework{"IDebugFunctions"} {
+IDebugFunctions::IDebugFunctions(Core::System& system_)
+    : ServiceFramework{system_, "IDebugFunctions"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "NotifyMessageToHomeMenuForDebug"},
@@ -246,9 +249,8 @@ IDebugFunctions::IDebugFunctions() : ServiceFramework{"IDebugFunctions"} {
 
 IDebugFunctions::~IDebugFunctions() = default;
 
-ISelfController::ISelfController(Core::System& system,
-                                 std::shared_ptr<NVFlinger::NVFlinger> nvflinger)
-    : ServiceFramework("ISelfController"), system(system), nvflinger(std::move(nvflinger)) {
+ISelfController::ISelfController(Core::System& system_, NVFlinger::NVFlinger& nvflinger_)
+    : ServiceFramework{system_, "ISelfController"}, nvflinger{nvflinger_} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &ISelfController::Exit, "Exit"},
@@ -458,8 +460,8 @@ void ISelfController::CreateManagedDisplayLayer(Kernel::HLERequestContext& ctx) 
 
     // TODO(Subv): Find out how AM determines the display to use, for now just
     // create the layer in the Default display.
-    const auto display_id = nvflinger->OpenDisplay("Default");
-    const auto layer_id = nvflinger->CreateLayer(*display_id);
+    const auto display_id = nvflinger.OpenDisplay("Default");
+    const auto layer_id = nvflinger.CreateLayer(*display_id);
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(RESULT_SUCCESS);
@@ -476,8 +478,8 @@ void ISelfController::CreateManagedDisplaySeparableLayer(Kernel::HLERequestConte
     // Outputting 1 layer id instead of the expected 2 has not been observed to cause any adverse
     // side effects.
     // TODO: Support multiple layers
-    const auto display_id = nvflinger->OpenDisplay("Default");
-    const auto layer_id = nvflinger->CreateLayer(*display_id);
+    const auto display_id = nvflinger.OpenDisplay("Default");
+    const auto layer_id = nvflinger.CreateLayer(*display_id);
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(RESULT_SUCCESS);
@@ -558,14 +560,14 @@ void ISelfController::GetAccumulatedSuspendedTickChangedEvent(Kernel::HLERequest
 
 AppletMessageQueue::AppletMessageQueue(Kernel::KernelCore& kernel) {
     on_new_message =
-        Kernel::WritableEvent::CreateEventPair(kernel, "AMMessageQueue:OnMessageRecieved");
+        Kernel::WritableEvent::CreateEventPair(kernel, "AMMessageQueue:OnMessageReceived");
     on_operation_mode_changed =
         Kernel::WritableEvent::CreateEventPair(kernel, "AMMessageQueue:OperationModeChanged");
 }
 
 AppletMessageQueue::~AppletMessageQueue() = default;
 
-const std::shared_ptr<Kernel::ReadableEvent>& AppletMessageQueue::GetMesssageRecieveEvent() const {
+const std::shared_ptr<Kernel::ReadableEvent>& AppletMessageQueue::GetMessageReceiveEvent() const {
     return on_new_message.readable;
 }
 
@@ -606,9 +608,9 @@ void AppletMessageQueue::RequestExit() {
     PushMessage(AppletMessage::ExitRequested);
 }
 
-ICommonStateGetter::ICommonStateGetter(Core::System& system,
-                                       std::shared_ptr<AppletMessageQueue> msg_queue)
-    : ServiceFramework("ICommonStateGetter"), system(system), msg_queue(std::move(msg_queue)) {
+ICommonStateGetter::ICommonStateGetter(Core::System& system_,
+                                       std::shared_ptr<AppletMessageQueue> msg_queue_)
+    : ServiceFramework{system_, "ICommonStateGetter"}, msg_queue{std::move(msg_queue_)} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &ICommonStateGetter::GetEventHandle, "GetEventHandle"},
@@ -673,7 +675,7 @@ void ICommonStateGetter::GetEventHandle(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushCopyObjects(msg_queue->GetMesssageRecieveEvent());
+    rb.PushCopyObjects(msg_queue->GetMessageReceiveEvent());
 }
 
 void ICommonStateGetter::ReceiveMessage(Kernel::HLERequestContext& ctx) {
@@ -751,7 +753,7 @@ void ICommonStateGetter::GetDefaultDisplayResolution(Kernel::HLERequestContext& 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(RESULT_SUCCESS);
 
-    if (Settings::values.use_docked_mode) {
+    if (Settings::values.use_docked_mode.GetValue()) {
         rb.Push(static_cast<u32>(Service::VI::DisplayResolution::DockedWidth) *
                 static_cast<u32>(Settings::values.resolution_factor.GetValue()));
         rb.Push(static_cast<u32>(Service::VI::DisplayResolution::DockedHeight) *
@@ -796,8 +798,9 @@ private:
     std::vector<u8> buffer;
 };
 
-IStorage::IStorage(std::vector<u8>&& buffer)
-    : ServiceFramework("IStorage"), impl{std::make_shared<StorageDataImpl>(std::move(buffer))} {
+IStorage::IStorage(Core::System& system_, std::vector<u8>&& buffer)
+    : ServiceFramework{system_, "IStorage"}, impl{std::make_shared<StorageDataImpl>(
+                                                 std::move(buffer))} {
     Register();
 }
 
@@ -820,11 +823,11 @@ void IStorage::Open(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
 
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<IStorageAccessor>(*this);
+    rb.PushIpcInterface<IStorageAccessor>(system, *this);
 }
 
 void ICommonStateGetter::GetOperationMode(Kernel::HLERequestContext& ctx) {
-    const bool use_docked_mode{Settings::values.use_docked_mode};
+    const bool use_docked_mode{Settings::values.use_docked_mode.GetValue()};
     LOG_DEBUG(Service_AM, "called, use_docked_mode={}", use_docked_mode);
 
     IPC::ResponseBuilder rb{ctx, 3};
@@ -842,8 +845,8 @@ void ICommonStateGetter::GetPerformanceMode(Kernel::HLERequestContext& ctx) {
 
 class ILibraryAppletAccessor final : public ServiceFramework<ILibraryAppletAccessor> {
 public:
-    explicit ILibraryAppletAccessor(std::shared_ptr<Applets::Applet> applet)
-        : ServiceFramework("ILibraryAppletAccessor"), applet(std::move(applet)) {
+    explicit ILibraryAppletAccessor(Core::System& system_, std::shared_ptr<Applets::Applet> applet_)
+        : ServiceFramework{system_, "ILibraryAppletAccessor"}, applet{std::move(applet_)} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &ILibraryAppletAccessor::GetAppletStateChangedEvent, "GetAppletStateChangedEvent"},
@@ -998,8 +1001,8 @@ private:
     std::shared_ptr<Applets::Applet> applet;
 };
 
-IStorageAccessor::IStorageAccessor(IStorage& storage)
-    : ServiceFramework("IStorageAccessor"), backing(storage) {
+IStorageAccessor::IStorageAccessor(Core::System& system_, IStorage& backing_)
+    : ServiceFramework{system_, "IStorageAccessor"}, backing{backing_} {
     // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IStorageAccessor::GetSize, "GetSize"},
@@ -1070,7 +1073,7 @@ void IStorageAccessor::Read(Kernel::HLERequestContext& ctx) {
 }
 
 ILibraryAppletCreator::ILibraryAppletCreator(Core::System& system_)
-    : ServiceFramework("ILibraryAppletCreator"), system{system_} {
+    : ServiceFramework{system_, "ILibraryAppletCreator"} {
     static const FunctionInfo functions[] = {
         {0, &ILibraryAppletCreator::CreateLibraryApplet, "CreateLibraryApplet"},
         {1, nullptr, "TerminateAllLibraryApplets"},
@@ -1089,14 +1092,14 @@ void ILibraryAppletCreator::CreateLibraryApplet(Kernel::HLERequestContext& ctx) 
     const auto applet_id = rp.PopRaw<Applets::AppletId>();
     const auto applet_mode = rp.PopRaw<u32>();
 
-    LOG_DEBUG(Service_AM, "called with applet_id={:08X}, applet_mode={:08X}",
-              static_cast<u32>(applet_id), applet_mode);
+    LOG_DEBUG(Service_AM, "called with applet_id={:08X}, applet_mode={:08X}", applet_id,
+              applet_mode);
 
     const auto& applet_manager{system.GetAppletManager()};
     const auto applet = applet_manager.GetApplet(applet_id);
 
     if (applet == nullptr) {
-        LOG_ERROR(Service_AM, "Applet doesn't exist! applet_id={}", static_cast<u32>(applet_id));
+        LOG_ERROR(Service_AM, "Applet doesn't exist! applet_id={}", applet_id);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_UNKNOWN);
@@ -1106,7 +1109,7 @@ void ILibraryAppletCreator::CreateLibraryApplet(Kernel::HLERequestContext& ctx) 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
 
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<AM::ILibraryAppletAccessor>(applet);
+    rb.PushIpcInterface<ILibraryAppletAccessor>(system, applet);
 }
 
 void ILibraryAppletCreator::CreateStorage(Kernel::HLERequestContext& ctx) {
@@ -1118,7 +1121,7 @@ void ILibraryAppletCreator::CreateStorage(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<AM::IStorage>(std::move(buffer));
+    rb.PushIpcInterface<IStorage>(system, std::move(buffer));
 }
 
 void ILibraryAppletCreator::CreateTransferMemoryStorage(Kernel::HLERequestContext& ctx) {
@@ -1145,11 +1148,11 @@ void ILibraryAppletCreator::CreateTransferMemoryStorage(Kernel::HLERequestContex
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<IStorage>(std::move(memory));
+    rb.PushIpcInterface<IStorage>(system, std::move(memory));
 }
 
 IApplicationFunctions::IApplicationFunctions(Core::System& system_)
-    : ServiceFramework("IApplicationFunctions"), system{system_} {
+    : ServiceFramework{system_, "IApplicationFunctions"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {1, &IApplicationFunctions::PopLaunchParameter, "PopLaunchParameter"},
@@ -1189,9 +1192,9 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_)
         {102, &IApplicationFunctions::SetApplicationCopyrightVisibility, "SetApplicationCopyrightVisibility"},
         {110, &IApplicationFunctions::QueryApplicationPlayStatistics, "QueryApplicationPlayStatistics"},
         {111, &IApplicationFunctions::QueryApplicationPlayStatisticsByUid, "QueryApplicationPlayStatisticsByUid"},
-        {120, nullptr, "ExecuteProgram"},
-        {121, nullptr, "ClearUserChannel"},
-        {122, nullptr, "UnpopToUserChannel"},
+        {120, &IApplicationFunctions::ExecuteProgram, "ExecuteProgram"},
+        {121, &IApplicationFunctions::ClearUserChannel, "ClearUserChannel"},
+        {122, &IApplicationFunctions::UnpopToUserChannel, "UnpopToUserChannel"},
         {123, &IApplicationFunctions::GetPreviousProgramIndex, "GetPreviousProgramIndex"},
         {124, nullptr, "EnableApplicationAllThreadDumpOnCrash"},
         {130, &IApplicationFunctions::GetGpuErrorDetectedSystemEvent, "GetGpuErrorDetectedSystemEvent"},
@@ -1201,6 +1204,8 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_)
         {151, nullptr, "TryPopFromNotificationStorageChannel"},
         {160, nullptr, "GetHealthWarningDisappearedSystemEvent"},
         {170, nullptr, "SetHdcpAuthenticationActivated"},
+        {180, nullptr, "GetLaunchRequiredVersion"},
+        {181, nullptr, "UpgradeLaunchRequiredVersion"},
         {500, nullptr, "StartContinuousRecordingFlushForDebug"},
         {1000, nullptr, "CreateMovieMaker"},
         {1001, nullptr, "PrepareForJit"},
@@ -1285,7 +1290,7 @@ void IApplicationFunctions::PopLaunchParameter(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto kind = rp.PopEnum<LaunchParameterKind>();
 
-    LOG_DEBUG(Service_AM, "called, kind={:08X}", static_cast<u8>(kind));
+    LOG_DEBUG(Service_AM, "called, kind={:08X}", kind);
 
     if (kind == LaunchParameterKind::ApplicationSpecific && !launch_popped_application_specific) {
         const auto backend = BCAT::CreateBackendFromSettings(system, [this](u64 tid) {
@@ -1299,7 +1304,7 @@ void IApplicationFunctions::PopLaunchParameter(Kernel::HLERequestContext& ctx) {
         if (data.has_value()) {
             IPC::ResponseBuilder rb{ctx, 2, 0, 1};
             rb.Push(RESULT_SUCCESS);
-            rb.PushIpcInterface<IStorage>(std::move(*data));
+            rb.PushIpcInterface<IStorage>(system, std::move(*data));
             launch_popped_application_specific = true;
             return;
         }
@@ -1322,7 +1327,7 @@ void IApplicationFunctions::PopLaunchParameter(Kernel::HLERequestContext& ctx) {
         std::vector<u8> buffer(sizeof(LaunchParameterAccountPreselectedUser));
         std::memcpy(buffer.data(), &params, buffer.size());
 
-        rb.PushIpcInterface<IStorage>(std::move(buffer));
+        rb.PushIpcInterface<IStorage>(system, std::move(buffer));
         launch_popped_account_preselect = true;
         return;
     }
@@ -1379,13 +1384,16 @@ void IApplicationFunctions::GetDisplayVersion(Kernel::HLERequestContext& ctx) {
     const auto res = [this] {
         const auto title_id = system.CurrentProcess()->GetTitleID();
 
-        FileSys::PatchManager pm{title_id};
+        const FileSys::PatchManager pm{title_id, system.GetFileSystemController(),
+                                       system.GetContentProvider()};
         auto res = pm.GetControlMetadata();
         if (res.first != nullptr) {
             return res;
         }
 
-        FileSys::PatchManager pm_update{FileSys::GetUpdateTitleID(title_id)};
+        const FileSys::PatchManager pm_update{FileSys::GetUpdateTitleID(title_id),
+                                              system.GetFileSystemController(),
+                                              system.GetContentProvider()};
         return pm_update.GetControlMetadata();
     }();
 
@@ -1413,13 +1421,16 @@ void IApplicationFunctions::GetDesiredLanguage(Kernel::HLERequestContext& ctx) {
     const auto res = [this] {
         const auto title_id = system.CurrentProcess()->GetTitleID();
 
-        FileSys::PatchManager pm{title_id};
+        const FileSys::PatchManager pm{title_id, system.GetFileSystemController(),
+                                       system.GetContentProvider()};
         auto res = pm.GetControlMetadata();
         if (res.first != nullptr) {
             return res;
         }
 
-        FileSys::PatchManager pm_update{FileSys::GetUpdateTitleID(title_id)};
+        const FileSys::PatchManager pm_update{FileSys::GetUpdateTitleID(title_id),
+                                              system.GetFileSystemController(),
+                                              system.GetContentProvider()};
         return pm_update.GetControlMetadata();
     }();
 
@@ -1526,8 +1537,8 @@ void IApplicationFunctions::GetSaveDataSize(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto [type, user_id] = rp.PopRaw<Parameters>();
 
-    LOG_DEBUG(Service_AM, "called with type={:02X}, user_id={:016X}{:016X}", static_cast<u8>(type),
-              user_id[1], user_id[0]);
+    LOG_DEBUG(Service_AM, "called with type={:02X}, user_id={:016X}{:016X}", type, user_id[1],
+              user_id[0]);
 
     const auto size = system.GetFileSystemController().ReadSaveDataSize(
         type, system.CurrentProcess()->GetTitleID(), user_id);
@@ -1554,6 +1565,34 @@ void IApplicationFunctions::QueryApplicationPlayStatisticsByUid(Kernel::HLEReque
     rb.Push<u32>(0);
 }
 
+void IApplicationFunctions::ExecuteProgram(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::RequestParser rp{ctx};
+    [[maybe_unused]] const auto unk_1 = rp.Pop<u32>();
+    [[maybe_unused]] const auto unk_2 = rp.Pop<u32>();
+    const auto program_index = rp.Pop<u64>();
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+
+    system.ExecuteProgram(program_index);
+}
+
+void IApplicationFunctions::ClearUserChannel(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void IApplicationFunctions::UnpopToUserChannel(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
 void IApplicationFunctions::GetPreviousProgramIndex(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
@@ -1578,22 +1617,22 @@ void IApplicationFunctions::GetFriendInvitationStorageChannelEvent(Kernel::HLERe
     rb.PushCopyObjects(friend_invitation_storage_channel_event.readable);
 }
 
-void InstallInterfaces(SM::ServiceManager& service_manager,
-                       std::shared_ptr<NVFlinger::NVFlinger> nvflinger, Core::System& system) {
+void InstallInterfaces(SM::ServiceManager& service_manager, NVFlinger::NVFlinger& nvflinger,
+                       Core::System& system) {
     auto message_queue = std::make_shared<AppletMessageQueue>(system.Kernel());
     // Needed on game boot
     message_queue->PushMessage(AppletMessageQueue::AppletMessage::FocusStateChanged);
 
     std::make_shared<AppletAE>(nvflinger, message_queue, system)->InstallAsService(service_manager);
     std::make_shared<AppletOE>(nvflinger, message_queue, system)->InstallAsService(service_manager);
-    std::make_shared<IdleSys>()->InstallAsService(service_manager);
-    std::make_shared<OMM>()->InstallAsService(service_manager);
-    std::make_shared<SPSM>()->InstallAsService(service_manager);
-    std::make_shared<TCAP>()->InstallAsService(service_manager);
+    std::make_shared<IdleSys>(system)->InstallAsService(service_manager);
+    std::make_shared<OMM>(system)->InstallAsService(service_manager);
+    std::make_shared<SPSM>(system)->InstallAsService(service_manager);
+    std::make_shared<TCAP>(system)->InstallAsService(service_manager);
 }
 
-IHomeMenuFunctions::IHomeMenuFunctions(Kernel::KernelCore& kernel)
-    : ServiceFramework("IHomeMenuFunctions"), kernel(kernel) {
+IHomeMenuFunctions::IHomeMenuFunctions(Core::System& system_)
+    : ServiceFramework{system_, "IHomeMenuFunctions"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {10, &IHomeMenuFunctions::RequestToGetForeground, "RequestToGetForeground"},
@@ -1612,7 +1651,7 @@ IHomeMenuFunctions::IHomeMenuFunctions(Kernel::KernelCore& kernel)
     RegisterHandlers(functions);
 
     pop_from_general_channel_event = Kernel::WritableEvent::CreateEventPair(
-        kernel, "IHomeMenuFunctions:PopFromGeneralChannelEvent");
+        system.Kernel(), "IHomeMenuFunctions:PopFromGeneralChannelEvent");
 }
 
 IHomeMenuFunctions::~IHomeMenuFunctions() = default;
@@ -1632,7 +1671,8 @@ void IHomeMenuFunctions::GetPopFromGeneralChannelEvent(Kernel::HLERequestContext
     rb.PushCopyObjects(pop_from_general_channel_event.readable);
 }
 
-IGlobalStateController::IGlobalStateController() : ServiceFramework("IGlobalStateController") {
+IGlobalStateController::IGlobalStateController(Core::System& system_)
+    : ServiceFramework{system_, "IGlobalStateController"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "RequestToEnterSleep"},
@@ -1655,7 +1695,8 @@ IGlobalStateController::IGlobalStateController() : ServiceFramework("IGlobalStat
 
 IGlobalStateController::~IGlobalStateController() = default;
 
-IApplicationCreator::IApplicationCreator() : ServiceFramework("IApplicationCreator") {
+IApplicationCreator::IApplicationCreator(Core::System& system_)
+    : ServiceFramework{system_, "IApplicationCreator"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "CreateApplication"},
@@ -1670,8 +1711,8 @@ IApplicationCreator::IApplicationCreator() : ServiceFramework("IApplicationCreat
 
 IApplicationCreator::~IApplicationCreator() = default;
 
-IProcessWindingController::IProcessWindingController()
-    : ServiceFramework("IProcessWindingController") {
+IProcessWindingController::IProcessWindingController(Core::System& system_)
+    : ServiceFramework{system_, "IProcessWindingController"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "GetLaunchReason"},

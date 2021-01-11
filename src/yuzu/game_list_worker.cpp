@@ -235,12 +235,11 @@ GameListWorker::~GameListWorker() = default;
 void GameListWorker::AddTitlesToGameList(GameListDir* parent_dir) {
     using namespace FileSys;
 
-    const auto& cache =
-        dynamic_cast<ContentProviderUnion&>(Core::System::GetInstance().GetContentProvider());
+    auto& system = Core::System::GetInstance();
+    const auto& cache = dynamic_cast<ContentProviderUnion&>(system.GetContentProvider());
 
-    std::vector<std::pair<ContentProviderUnionSlot, ContentProviderEntry>> installed_games;
-    installed_games = cache.ListEntriesFilterOrigin(std::nullopt, TitleType::Application,
-                                                    ContentRecordType::Program);
+    auto installed_games = cache.ListEntriesFilterOrigin(std::nullopt, TitleType::Application,
+                                                         ContentRecordType::Program);
 
     if (parent_dir->type() == static_cast<int>(GameListItemType::SdmcDir)) {
         installed_games = cache.ListEntriesFilterOrigin(
@@ -254,23 +253,27 @@ void GameListWorker::AddTitlesToGameList(GameListDir* parent_dir) {
     }
 
     for (const auto& [slot, game] : installed_games) {
-        if (slot == ContentProviderUnionSlot::FrontendManual)
+        if (slot == ContentProviderUnionSlot::FrontendManual) {
             continue;
+        }
 
         const auto file = cache.GetEntryUnparsed(game.title_id, game.type);
-        std::unique_ptr<Loader::AppLoader> loader = Loader::GetLoader(file);
-        if (!loader)
+        std::unique_ptr<Loader::AppLoader> loader = Loader::GetLoader(system, file);
+        if (!loader) {
             continue;
+        }
 
         std::vector<u8> icon;
         std::string name;
         u64 program_id = 0;
         loader->ReadProgramId(program_id);
 
-        const PatchManager patch{program_id};
+        const PatchManager patch{program_id, system.GetFileSystemController(),
+                                 system.GetContentProvider()};
         const auto control = cache.GetEntry(game.title_id, ContentRecordType::Control);
-        if (control != nullptr)
+        if (control != nullptr) {
             GetMetadataFromControlNCA(patch, *control, icon, name);
+        }
 
         emit EntryReady(MakeGameListEntry(file->GetFullPath(), name, icon, *loader, program_id,
                                           compatibility_list, patch),
@@ -280,9 +283,11 @@ void GameListWorker::AddTitlesToGameList(GameListDir* parent_dir) {
 
 void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_path,
                                     unsigned int recursion, GameListDir* parent_dir) {
-    const auto callback = [this, target, recursion,
-                           parent_dir](u64* num_entries_out, const std::string& directory,
-                                       const std::string& virtual_name) -> bool {
+    auto& system = Core::System::GetInstance();
+
+    const auto callback = [this, target, recursion, parent_dir,
+                           &system](u64* num_entries_out, const std::string& directory,
+                                    const std::string& virtual_name) -> bool {
         if (stop_processing) {
             // Breaks the callback loop.
             return false;
@@ -293,7 +298,7 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
         if (!is_dir &&
             (HasSupportedFileExtension(physical_name) || IsExtractedNCAMain(physical_name))) {
             const auto file = vfs->OpenFile(physical_name, FileSys::Mode::Read);
-            auto loader = Loader::GetLoader(file);
+            auto loader = Loader::GetLoader(system, file);
             if (!loader) {
                 return true;
             }
@@ -331,7 +336,8 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
                 std::string name = " ";
                 [[maybe_unused]] const auto res3 = loader->ReadTitle(name);
 
-                const FileSys::PatchManager patch{program_id};
+                const FileSys::PatchManager patch{program_id, system.GetFileSystemController(),
+                                                  system.GetContentProvider()};
 
                 emit EntryReady(MakeGameListEntry(physical_name, name, icon, *loader, program_id,
                                                   compatibility_list, patch),

@@ -87,7 +87,7 @@ ResultCode Decode64BitError(u64 error) {
 } // Anonymous namespace
 
 Error::Error(Core::System& system_, const Core::Frontend::ErrorApplet& frontend_)
-    : Applet{system_.Kernel()}, frontend(frontend_), system{system_} {}
+    : Applet{system_.Kernel()}, frontend{frontend_}, system{system_} {}
 
 Error::~Error() = default;
 
@@ -125,7 +125,7 @@ void Error::Initialize() {
         error_code = Decode64BitError(args->error_record.error_code_64);
         break;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented LibAppletError mode={:02X}!", static_cast<u8>(mode));
+        UNIMPLEMENTED_MSG("Unimplemented LibAppletError mode={:02X}!", mode);
     }
 }
 
@@ -179,14 +179,14 @@ void Error::Execute() {
             error_code, std::chrono::seconds{args->error_record.posix_time}, callback);
         break;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented LibAppletError mode={:02X}!", static_cast<u8>(mode));
+        UNIMPLEMENTED_MSG("Unimplemented LibAppletError mode={:02X}!", mode);
         DisplayCompleted();
     }
 }
 
 void Error::DisplayCompleted() {
     complete = true;
-    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(std::vector<u8>{}));
+    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::vector<u8>{}));
     broker.SignalStateChanged();
 }
 

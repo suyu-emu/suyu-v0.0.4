@@ -27,7 +27,7 @@ Errno Translate(Network::Errno value) {
     case Network::Errno::NOTCONN:
         return Errno::NOTCONN;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented errno={}", static_cast<int>(value));
+        UNIMPLEMENTED_MSG("Unimplemented errno={}", value);
         return Errno::SUCCESS;
     }
 }
@@ -41,7 +41,7 @@ Network::Domain Translate(Domain domain) {
     case Domain::INET:
         return Network::Domain::INET;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented domain={}", static_cast<int>(domain));
+        UNIMPLEMENTED_MSG("Unimplemented domain={}", domain);
         return {};
     }
 }
@@ -51,7 +51,7 @@ Domain Translate(Network::Domain domain) {
     case Network::Domain::INET:
         return Domain::INET;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented domain={}", static_cast<int>(domain));
+        UNIMPLEMENTED_MSG("Unimplemented domain={}", domain);
         return {};
     }
 }
@@ -63,7 +63,8 @@ Network::Type Translate(Type type) {
     case Type::DGRAM:
         return Network::Type::DGRAM;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented type={}", static_cast<int>(type));
+        UNIMPLEMENTED_MSG("Unimplemented type={}", type);
+        return Network::Type{};
     }
 }
 
@@ -84,47 +85,47 @@ Network::Protocol Translate(Type type, Protocol protocol) {
     case Protocol::UDP:
         return Network::Protocol::UDP;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented protocol={}", static_cast<int>(protocol));
+        UNIMPLEMENTED_MSG("Unimplemented protocol={}", protocol);
         return Network::Protocol::TCP;
     }
 }
 
-u16 TranslatePollEventsToHost(u16 flags) {
-    u16 result = 0;
-    const auto translate = [&result, &flags](u16 from, u16 to) {
-        if ((flags & from) != 0) {
+Network::PollEvents TranslatePollEventsToHost(PollEvents flags) {
+    Network::PollEvents result{};
+    const auto translate = [&result, &flags](PollEvents from, Network::PollEvents to) {
+        if (True(flags & from)) {
             flags &= ~from;
             result |= to;
         }
     };
-    translate(POLL_IN, Network::POLL_IN);
-    translate(POLL_PRI, Network::POLL_PRI);
-    translate(POLL_OUT, Network::POLL_OUT);
-    translate(POLL_ERR, Network::POLL_ERR);
-    translate(POLL_HUP, Network::POLL_HUP);
-    translate(POLL_NVAL, Network::POLL_NVAL);
+    translate(PollEvents::In, Network::PollEvents::In);
+    translate(PollEvents::Pri, Network::PollEvents::Pri);
+    translate(PollEvents::Out, Network::PollEvents::Out);
+    translate(PollEvents::Err, Network::PollEvents::Err);
+    translate(PollEvents::Hup, Network::PollEvents::Hup);
+    translate(PollEvents::Nval, Network::PollEvents::Nval);
 
-    UNIMPLEMENTED_IF_MSG(flags != 0, "Unimplemented flags={}", flags);
+    UNIMPLEMENTED_IF_MSG((u16)flags != 0, "Unimplemented flags={}", (u16)flags);
     return result;
 }
 
-u16 TranslatePollEventsToGuest(u16 flags) {
-    u16 result = 0;
-    const auto translate = [&result, &flags](u16 from, u16 to) {
-        if ((flags & from) != 0) {
+PollEvents TranslatePollEventsToGuest(Network::PollEvents flags) {
+    PollEvents result{};
+    const auto translate = [&result, &flags](Network::PollEvents from, PollEvents to) {
+        if (True(flags & from)) {
             flags &= ~from;
             result |= to;
         }
     };
 
-    translate(Network::POLL_IN, POLL_IN);
-    translate(Network::POLL_PRI, POLL_PRI);
-    translate(Network::POLL_OUT, POLL_OUT);
-    translate(Network::POLL_ERR, POLL_ERR);
-    translate(Network::POLL_HUP, POLL_HUP);
-    translate(Network::POLL_NVAL, POLL_NVAL);
+    translate(Network::PollEvents::In, PollEvents::In);
+    translate(Network::PollEvents::Pri, PollEvents::Pri);
+    translate(Network::PollEvents::Out, PollEvents::Out);
+    translate(Network::PollEvents::Err, PollEvents::Err);
+    translate(Network::PollEvents::Hup, PollEvents::Hup);
+    translate(Network::PollEvents::Nval, PollEvents::Nval);
 
-    UNIMPLEMENTED_IF_MSG(flags != 0, "Unimplemented flags={}", flags);
+    UNIMPLEMENTED_IF_MSG((u16)flags != 0, "Unimplemented flags={}", (u16)flags);
     return result;
 }
 
@@ -157,7 +158,7 @@ Network::ShutdownHow Translate(ShutdownHow how) {
     case ShutdownHow::RDWR:
         return Network::ShutdownHow::RDWR;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented how={}", static_cast<int>(how));
+        UNIMPLEMENTED_MSG("Unimplemented how={}", how);
         return {};
     }
 }

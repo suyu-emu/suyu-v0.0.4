@@ -102,8 +102,8 @@ public:
         float render_surface_scale = 1.0f;
     };
 
-    /// Polls window events
-    virtual void PollEvents() = 0;
+    /// Called from GPU thread when a frame is displayed.
+    virtual void OnFrameDisplayed() {}
 
     /**
      * Returns a GraphicsContext that the frontend provides to be used for rendering.

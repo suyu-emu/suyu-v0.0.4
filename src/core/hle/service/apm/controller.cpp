@@ -48,8 +48,7 @@ void Controller::SetPerformanceConfiguration(PerformanceMode mode,
                                    [config](const auto& entry) { return entry.first == config; });
 
     if (iter == config_to_speed.cend()) {
-        LOG_ERROR(Service_APM, "Invalid performance configuration value provided: {}",
-                  static_cast<u32>(config));
+        LOG_ERROR(Service_APM, "Invalid performance configuration value provided: {}", config);
         return;
     }
 
@@ -69,7 +68,8 @@ void Controller::SetFromCpuBoostMode(CpuBoostMode mode) {
 }
 
 PerformanceMode Controller::GetCurrentPerformanceMode() const {
-    return Settings::values.use_docked_mode ? PerformanceMode::Docked : PerformanceMode::Handheld;
+    return Settings::values.use_docked_mode.GetValue() ? PerformanceMode::Docked
+                                                       : PerformanceMode::Handheld;
 }
 
 PerformanceConfiguration Controller::GetCurrentPerformanceConfiguration(PerformanceMode mode) {
