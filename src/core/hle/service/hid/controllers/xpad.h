@@ -31,13 +31,13 @@ public:
 private:
     struct Attributes {
         union {
-            s32_le raw{};
-            BitField<0, 1, u32> IsConnected;
-            BitField<1, 1, u32> IsWired;
-            BitField<2, 1, u32> IsLeftConnected;
-            BitField<3, 1, u32> IsLeftWired;
-            BitField<4, 1, u32> IsRightConnected;
-            BitField<5, 1, u32> IsRightWired;
+            u32_le raw{};
+            BitField<0, 1, u32> is_connected;
+            BitField<1, 1, u32> is_wired;
+            BitField<2, 1, u32> is_left_connected;
+            BitField<3, 1, u32> is_left_wired;
+            BitField<4, 1, u32> is_right_connected;
+            BitField<5, 1, u32> is_right_wired;
         };
     };
     static_assert(sizeof(Attributes) == 4, "Attributes is an invalid size");

@@ -33,7 +33,7 @@ public:
 private:
     struct Buttons {
         union {
-            s32_le raw{};
+            u32_le raw{};
             BitField<0, 1, u32> left;
             BitField<1, 1, u32> right;
             BitField<2, 1, u32> middle;
@@ -45,7 +45,7 @@ private:
 
     struct Attributes {
         union {
-            s32_le raw{};
+            u32_le raw{};
             BitField<0, 1, u32> transferable;
             BitField<1, 1, u32> is_connected;
         };

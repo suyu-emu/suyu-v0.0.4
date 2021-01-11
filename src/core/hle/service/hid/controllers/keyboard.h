@@ -34,7 +34,7 @@ public:
 private:
     struct Modifiers {
         union {
-            s32_le raw{};
+            u32_le raw{};
             BitField<0, 1, u32> control;
             BitField<1, 1, u32> shift;
             BitField<2, 1, u32> left_alt;
@@ -43,7 +43,7 @@ private:
             BitField<8, 1, u32> caps_lock;
             BitField<9, 1, u32> scroll_lock;
             BitField<10, 1, u32> num_lock;
-            BitField<11, 1, u32> katana;
+            BitField<11, 1, u32> katakana;
             BitField<12, 1, u32> hiragana;
         };
     };

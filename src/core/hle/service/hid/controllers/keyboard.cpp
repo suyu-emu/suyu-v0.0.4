@@ -56,7 +56,7 @@ void Controller_Keyboard::OnUpdate(const Core::Timing::CoreTiming& core_timing, 
         cur_entry.modifier.caps_lock.Assign(keyboard_mods[CapsLock]->GetStatus());
         cur_entry.modifier.scroll_lock.Assign(keyboard_mods[ScrollLock]->GetStatus());
         cur_entry.modifier.num_lock.Assign(keyboard_mods[NumLock]->GetStatus());
-        cur_entry.modifier.katana.Assign(0);
+        cur_entry.modifier.katakana.Assign(0);
         cur_entry.modifier.hiragana.Assign(0);
     }
     std::memcpy(data + SHARED_MEMORY_OFFSET, &shared_memory, sizeof(SharedMemory));

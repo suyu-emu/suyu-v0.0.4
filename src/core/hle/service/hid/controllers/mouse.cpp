@@ -35,6 +35,7 @@ void Controller_Mouse::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8*
 
     cur_entry.sampling_number = last_entry.sampling_number + 1;
     cur_entry.sampling_number2 = cur_entry.sampling_number;
+
     cur_entry.attribute.raw = 0;
     if (Settings::values.mouse_enabled) {
         const auto [px, py, sx, sy] = mouse_device->GetStatus();

@@ -326,12 +326,12 @@ private:
     struct ConnectionState {
         union {
             u32_le raw{};
-            BitField<0, 1, u32> IsConnected;
-            BitField<1, 1, u32> IsWired;
-            BitField<2, 1, u32> IsLeftJoyConnected;
-            BitField<3, 1, u32> IsLeftJoyWired;
-            BitField<4, 1, u32> IsRightJoyConnected;
-            BitField<5, 1, u32> IsRightJoyWired;
+            BitField<0, 1, u32> is_connected;
+            BitField<1, 1, u32> is_wired;
+            BitField<2, 1, u32> is_left_connected;
+            BitField<3, 1, u32> is_left_wired;
+            BitField<4, 1, u32> is_right_connected;
+            BitField<5, 1, u32> is_right_wired;
         };
     };
     static_assert(sizeof(ConnectionState) == 4, "ConnectionState is an invalid size");
@@ -360,8 +360,8 @@ private:
     struct SixAxisAttributes {
         union {
             u32_le raw{};
-            BitField<0, 1, u32> IsConnected;
-            BitField<1, 1, u32> IsInterpolated;
+            BitField<0, 1, u32> is_connected;
+            BitField<1, 1, u32> is_interpolated;
         };
     };
     static_assert(sizeof(SixAxisAttributes) == 4, "SixAxisAttributes is an invalid size");
@@ -394,8 +394,8 @@ private:
             BitField<3, 1, s64> is_powered_joy_dual;
             BitField<4, 1, s64> is_powered_joy_left;
             BitField<5, 1, s64> is_powered_joy_right;
-            BitField<9, 1, s64> is_system_unsuported_button;
-            BitField<10, 1, s64> is_system_ext_unsuported_button;
+            BitField<9, 1, s64> is_system_unsupported_button;
+            BitField<10, 1, s64> is_system_ext_unsupported_button;
             BitField<11, 1, s64> is_vertical;
             BitField<12, 1, s64> is_horizontal;
             BitField<13, 1, s64> use_plus;
@@ -443,6 +443,38 @@ private:
         std::array<Common::Vec3f, 3> orientation;
     };
 
+    struct NfcXcdHandle {
+        INSERT_PADDING_BYTES(0x60);
+    };
+
+    struct AppletFooterUiAttributes {
+        INSERT_PADDING_BYTES(0x4);
+    };
+
+    enum class AppletFooterUiType : u8 {
+        None = 0,
+        HandheldNone = 1,
+        HandheldJoyConLeftOnly = 1,
+        HandheldJoyConRightOnly = 3,
+        HandheldJoyConLeftJoyConRight = 4,
+        JoyDual = 5,
+        JoyDualLeftOnly = 6,
+        JoyDualRightOnly = 7,
+        JoyLeftHorizontal = 8,
+        JoyLeftVertical = 9,
+        JoyRightHorizontal = 10,
+        JoyRightVertical = 11,
+        SwitchProController = 12,
+        CompatibleProController = 13,
+        CompatibleJoyCon = 14,
+        LarkHvc1 = 15,
+        LarkHvc2 = 16,
+        LarkNesLeft = 17,
+        LarkNesRight = 18,
+        Lucia = 19,
+        Verification = 20,
+    };
+
     struct NPadEntry {
         NpadStyleSet style_set;
         NpadAssignments assignment_mode;
@@ -469,8 +501,11 @@ private:
         u32 battery_level_dual;
         u32 battery_level_left;
         u32 battery_level_right;
-        INSERT_PADDING_BYTES(0x5c);
-        INSERT_PADDING_BYTES(0xdf8);
+        AppletFooterUiAttributes footer_attributes;
+        AppletFooterUiType footer_type;
+        // nfc_states needs to be checked switchbrew does not match with HW
+        NfcXcdHandle nfc_states;
+        INSERT_PADDING_BYTES(0xdef);
     };
     static_assert(sizeof(NPadEntry) == 0x5000, "NPadEntry is an invalid size");
 
@@ -506,7 +541,6 @@ private:
     std::vector<u32> supported_npad_id_types{};
     NpadHoldType hold_type{NpadHoldType::Vertical};
     NpadHandheldActivationMode handheld_activation_mode{NpadHandheldActivationMode::Dual};
-    // NpadCommunicationMode is unknown, default value is 1
     NpadCommunicationMode communication_mode{NpadCommunicationMode::Default};
     // Each controller should have their own styleset changed event
     std::array<Kernel::EventPair, 10> styleset_changed_events;
