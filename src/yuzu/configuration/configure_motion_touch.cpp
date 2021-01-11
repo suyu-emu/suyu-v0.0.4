@@ -185,8 +185,9 @@ void ConfigureMotionTouch::ConnectEvents() {
 }
 
 void ConfigureMotionTouch::OnUDPAddServer() {
-    QRegExp re(tr(R"re(^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4]"
-                  "[0-9]|[01]?[0-9][0-9]?)$)re")); // a valid ip address
+    // Validator for IP address
+    QRegExp re(QStringLiteral(
+        R"re(^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$)re"));
     bool ok;
     QString port_text = ui->udp_port->text();
     QString server_text = ui->udp_server->text();
