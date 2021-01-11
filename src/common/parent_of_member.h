@@ -10,21 +10,23 @@
 #include "common/common_types.h"
 
 namespace Common {
-
+namespace detail {
 template <typename T, size_t Size, size_t Align>
-struct TypedStorage {
+struct TypedStorageImpl {
     std::aligned_storage_t<Size, Align> storage_;
 };
-
-#define TYPED_STORAGE(...) TypedStorage<__VA_ARGS__, sizeof(__VA_ARGS__), alignof(__VA_ARGS__)>
+} // namespace detail
 
 template <typename T>
-static constexpr T* GetPointer(TYPED_STORAGE(T) & ts) {
+using TypedStorage = detail::TypedStorageImpl<T, sizeof(T), alignof(T)>;
+
+template <typename T>
+static constexpr T* GetPointer(TypedStorage<T>& ts) {
     return static_cast<T*>(static_cast<void*>(std::addressof(ts.storage_)));
 }
 
 template <typename T>
-static constexpr const T* GetPointer(const TYPED_STORAGE(T) & ts) {
+static constexpr const T* GetPointer(const TypedStorage<T>& ts) {
     return static_cast<const T*>(static_cast<const void*>(std::addressof(ts.storage_)));
 }
 
@@ -72,7 +74,7 @@ struct OffsetOfCalculator {
     union Union {
         char c{};
         UnionHolder first_union;
-        TYPED_STORAGE(ParentType) parent;
+        TypedStorage<ParentType> parent;
 
         constexpr Union() : c() {}
     };
