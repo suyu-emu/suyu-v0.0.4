@@ -7,7 +7,7 @@
 #include <memory>
 #include <string>
 
-#include "core/hle/kernel/synchronization_object.h"
+#include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/result.h"
 
 union ResultCode;
@@ -26,7 +26,7 @@ class KernelCore;
 class Session;
 class Thread;
 
-class ClientSession final : public SynchronizationObject {
+class ClientSession final : public KSynchronizationObject {
 public:
     explicit ClientSession(KernelCore& kernel);
     ~ClientSession() override;
@@ -48,10 +48,6 @@ public:
 
     ResultCode SendSyncRequest(std::shared_ptr<Thread> thread, Core::Memory::Memory& memory,
                                Core::Timing::CoreTiming& core_timing);
-
-    bool ShouldWait(const Thread* thread) const override;
-
-    void Acquire(Thread* thread) override;
 
     bool IsSignaled() const override;
 

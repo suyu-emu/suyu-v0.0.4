@@ -55,7 +55,7 @@ void SetupMainThread(Core::System& system, Process& owner_process, u32 priority,
     // Threads by default are dormant, wake up the main thread so it runs when the scheduler fires
     {
         KScopedSchedulerLock lock{kernel};
-        thread->SetStatus(ThreadStatus::Ready);
+        thread->SetState(ThreadState::Runnable);
     }
 }
 } // Anonymous namespace
@@ -160,48 +160,6 @@ u64 Process::GetTotalPhysicalMemoryUsed() const {
 
 u64 Process::GetTotalPhysicalMemoryUsedWithoutSystemResource() const {
     return GetTotalPhysicalMemoryUsed() - GetSystemResourceUsage();
-}
-
-void Process::InsertConditionVariableThread(std::shared_ptr<Thread> thread) {
-    VAddr cond_var_addr = thread->GetCondVarWaitAddress();
-    std::list<std::shared_ptr<Thread>>& thread_list = cond_var_threads[cond_var_addr];
-    auto it = thread_list.begin();
-    while (it != thread_list.end()) {
-        const std::shared_ptr<Thread> current_thread = *it;
-        if (current_thread->GetPriority() > thread->GetPriority()) {
-            thread_list.insert(it, thread);
-            return;
-        }
-        ++it;
-    }
-    thread_list.push_back(thread);
-}
-
-void Process::RemoveConditionVariableThread(std::shared_ptr<Thread> thread) {
-    VAddr cond_var_addr = thread->GetCondVarWaitAddress();
-    std::list<std::shared_ptr<Thread>>& thread_list = cond_var_threads[cond_var_addr];
-    auto it = thread_list.begin();
-    while (it != thread_list.end()) {
-        const std::shared_ptr<Thread> current_thread = *it;
-        if (current_thread.get() == thread.get()) {
-            thread_list.erase(it);
-            return;
-        }
-        ++it;
-    }
-}
-
-std::vector<std::shared_ptr<Thread>> Process::GetConditionVariableThreads(
-    const VAddr cond_var_addr) {
-    std::vector<std::shared_ptr<Thread>> result{};
-    std::list<std::shared_ptr<Thread>>& thread_list = cond_var_threads[cond_var_addr];
-    auto it = thread_list.begin();
-    while (it != thread_list.end()) {
-        std::shared_ptr<Thread> current_thread = *it;
-        result.push_back(current_thread);
-        ++it;
-    }
-    return result;
 }
 
 void Process::RegisterThread(const Thread* thread) {
@@ -318,7 +276,7 @@ void Process::PrepareForTermination() {
                 continue;
 
             // TODO(Subv): When are the other running/ready threads terminated?
-            ASSERT_MSG(thread->GetStatus() == ThreadStatus::WaitSynch,
+            ASSERT_MSG(thread->GetState() == ThreadState::Waiting,
                        "Exiting processes with non-waiting threads is currently unimplemented");
 
             thread->Stop();
@@ -406,20 +364,17 @@ void Process::LoadModule(CodeSet code_set, VAddr base_addr) {
     ReprotectSegment(code_set.DataSegment(), Memory::MemoryPermission::ReadAndWrite);
 }
 
+bool Process::IsSignaled() const {
+    ASSERT(kernel.GlobalSchedulerContext().IsLocked());
+    return is_signaled;
+}
+
 Process::Process(Core::System& system)
-    : SynchronizationObject{system.Kernel()}, page_table{std::make_unique<Memory::PageTable>(
-                                                  system)},
-      handle_table{system.Kernel()}, address_arbiter{system}, mutex{system}, system{system} {}
+    : KSynchronizationObject{system.Kernel()},
+      page_table{std::make_unique<Memory::PageTable>(system)}, handle_table{system.Kernel()},
+      address_arbiter{system}, condition_var{system}, system{system} {}
 
 Process::~Process() = default;
-
-void Process::Acquire(Thread* thread) {
-    ASSERT_MSG(!ShouldWait(thread), "Object unavailable!");
-}
-
-bool Process::ShouldWait(const Thread* thread) const {
-    return !is_signaled;
-}
 
 void Process::ChangeStatus(ProcessStatus new_status) {
     if (status == new_status) {
@@ -428,7 +383,7 @@ void Process::ChangeStatus(ProcessStatus new_status) {
 
     status = new_status;
     is_signaled = true;
-    Signal();
+    NotifyAvailable();
 }
 
 ResultCode Process::AllocateMainThreadStack(std::size_t stack_size) {

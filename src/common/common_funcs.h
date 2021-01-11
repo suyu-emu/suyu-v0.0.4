@@ -93,6 +93,14 @@ __declspec(dllimport) void __stdcall DebugBreak(void);
         return static_cast<T>(key) == 0;                                                           \
     }
 
+/// Evaluates a boolean expression, and returns a result unless that expression is true.
+#define R_UNLESS(expr, res)                                                                        \
+    {                                                                                              \
+        if (!(expr)) {                                                                             \
+            return res;                                                                            \
+        }                                                                                          \
+    }
+
 namespace Common {
 
 [[nodiscard]] constexpr u32 MakeMagic(char a, char b, char c, char d) {

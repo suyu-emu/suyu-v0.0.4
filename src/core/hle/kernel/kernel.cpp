@@ -38,7 +38,6 @@
 #include "core/hle/kernel/resource_limit.h"
 #include "core/hle/kernel/service_thread.h"
 #include "core/hle/kernel/shared_memory.h"
-#include "core/hle/kernel/synchronization.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/time_manager.h"
 #include "core/hle/lock.h"
@@ -51,8 +50,7 @@ namespace Kernel {
 
 struct KernelCore::Impl {
     explicit Impl(Core::System& system, KernelCore& kernel)
-        : synchronization{system}, time_manager{system}, global_handle_table{kernel}, system{
-                                                                                          system} {}
+        : time_manager{system}, global_handle_table{kernel}, system{system} {}
 
     void SetMulticore(bool is_multicore) {
         this->is_multicore = is_multicore;
@@ -307,7 +305,6 @@ struct KernelCore::Impl {
     std::vector<std::shared_ptr<Process>> process_list;
     Process* current_process = nullptr;
     std::unique_ptr<Kernel::GlobalSchedulerContext> global_scheduler_context;
-    Kernel::Synchronization synchronization;
     Kernel::TimeManager time_manager;
 
     std::shared_ptr<ResourceLimit> system_resource_limit;
@@ -461,14 +458,6 @@ const std::array<Core::CPUInterruptHandler, Core::Hardware::NUM_CPU_CORES>& Kern
     return impl->interrupts;
 }
 
-Kernel::Synchronization& KernelCore::Synchronization() {
-    return impl->synchronization;
-}
-
-const Kernel::Synchronization& KernelCore::Synchronization() const {
-    return impl->synchronization;
-}
-
 Kernel::TimeManager& KernelCore::TimeManager() {
     return impl->time_manager;
 }
@@ -613,9 +602,11 @@ void KernelCore::Suspend(bool in_suspention) {
     const bool should_suspend = exception_exited || in_suspention;
     {
         KScopedSchedulerLock lock(*this);
-        ThreadStatus status = should_suspend ? ThreadStatus::Ready : ThreadStatus::WaitSleep;
+        const auto state = should_suspend ? ThreadState::Runnable : ThreadState::Waiting;
         for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
-            impl->suspend_threads[i]->SetStatus(status);
+            impl->suspend_threads[i]->SetState(state);
+            impl->suspend_threads[i]->SetWaitReasonForDebugging(
+                ThreadWaitReasonForDebugging::Suspended);
         }
     }
 }

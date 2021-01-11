@@ -38,6 +38,10 @@ void NVFlinger::SplitVSync() {
     system.RegisterHostThread();
     std::string name = "yuzu:VSyncThread";
     MicroProfileOnThreadCreate(name.c_str());
+
+    // Cleanup
+    SCOPE_EXIT({ MicroProfileOnThreadExit(); });
+
     Common::SetCurrentThreadName(name.c_str());
     Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
     s64 delay = 0;

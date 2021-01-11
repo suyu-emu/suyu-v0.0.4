@@ -12,7 +12,7 @@
 
 namespace Kernel {
 
-ClientSession::ClientSession(KernelCore& kernel) : SynchronizationObject{kernel} {}
+ClientSession::ClientSession(KernelCore& kernel) : KSynchronizationObject{kernel} {}
 
 ClientSession::~ClientSession() {
     // This destructor will be called automatically when the last ClientSession handle is closed by
@@ -20,15 +20,6 @@ ClientSession::~ClientSession() {
     if (parent->Server()) {
         parent->Server()->ClientDisconnected();
     }
-}
-
-bool ClientSession::ShouldWait(const Thread* thread) const {
-    UNIMPLEMENTED();
-    return {};
-}
-
-void ClientSession::Acquire(Thread* thread) {
-    UNIMPLEMENTED();
 }
 
 bool ClientSession::IsSignaled() const {

@@ -50,6 +50,11 @@ public:
     }
     virtual HandleType GetHandleType() const = 0;
 
+    void Close() {
+        // TODO(bunnei): This is a placeholder to decrement the reference count, which we will use
+        // when we implement KAutoObject instead of using shared_ptr.
+    }
+
     /**
      * Check if a thread can wait on the object
      * @return True if a thread can wait on the object, otherwise false

@@ -19,7 +19,7 @@ class KernelCore;
 template <typename SchedulerType>
 class KAbstractSchedulerLock {
 public:
-    explicit KAbstractSchedulerLock(KernelCore& kernel) : kernel{kernel} {}
+    explicit KAbstractSchedulerLock(KernelCore& kernel_) : kernel{kernel_} {}
 
     bool IsLockedByCurrentThread() const {
         return this->owner_thread == kernel.GetCurrentEmuThreadID();

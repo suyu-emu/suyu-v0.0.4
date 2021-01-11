@@ -190,12 +190,6 @@ private:
     void GetDeviceState(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_NFP, "called");
 
-        auto nfc_event = nfp_interface.GetNFCEvent();
-        if (!nfc_event->ShouldWait(&ctx.GetThread()) && !has_attached_handle) {
-            device_state = DeviceState::TagFound;
-            nfc_event->Clear();
-        }
-
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u32>(static_cast<u32>(device_state));

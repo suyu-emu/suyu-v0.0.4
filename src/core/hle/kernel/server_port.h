@@ -9,8 +9,8 @@
 #include <utility>
 #include <vector>
 #include "common/common_types.h"
+#include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/kernel/object.h"
-#include "core/hle/kernel/synchronization_object.h"
 #include "core/hle/result.h"
 
 namespace Kernel {
@@ -20,7 +20,7 @@ class KernelCore;
 class ServerSession;
 class SessionRequestHandler;
 
-class ServerPort final : public SynchronizationObject {
+class ServerPort final : public KSynchronizationObject {
 public:
     explicit ServerPort(KernelCore& kernel);
     ~ServerPort() override;
@@ -78,9 +78,6 @@ public:
     /// Appends a ServerSession to the collection of ServerSessions
     /// waiting to be accepted by this port.
     void AppendPendingSession(std::shared_ptr<ServerSession> pending_session);
-
-    bool ShouldWait(const Thread* thread) const override;
-    void Acquire(Thread* thread) override;
 
     bool IsSignaled() const override;
 

@@ -11,11 +11,11 @@
 #include <unordered_map>
 #include <vector>
 #include "common/common_types.h"
-#include "core/hle/kernel/address_arbiter.h"
 #include "core/hle/kernel/handle_table.h"
-#include "core/hle/kernel/mutex.h"
+#include "core/hle/kernel/k_address_arbiter.h"
+#include "core/hle/kernel/k_condition_variable.h"
+#include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/kernel/process_capability.h"
-#include "core/hle/kernel/synchronization_object.h"
 #include "core/hle/result.h"
 
 namespace Core {
@@ -63,7 +63,7 @@ enum class ProcessStatus {
     DebugBreak,
 };
 
-class Process final : public SynchronizationObject {
+class Process final : public KSynchronizationObject {
 public:
     explicit Process(Core::System& system);
     ~Process() override;
@@ -123,24 +123,30 @@ public:
         return handle_table;
     }
 
-    /// Gets a reference to the process' address arbiter.
-    AddressArbiter& GetAddressArbiter() {
-        return address_arbiter;
+    ResultCode SignalToAddress(VAddr address) {
+        return condition_var.SignalToAddress(address);
     }
 
-    /// Gets a const reference to the process' address arbiter.
-    const AddressArbiter& GetAddressArbiter() const {
-        return address_arbiter;
+    ResultCode WaitForAddress(Handle handle, VAddr address, u32 tag) {
+        return condition_var.WaitForAddress(handle, address, tag);
     }
 
-    /// Gets a reference to the process' mutex lock.
-    Mutex& GetMutex() {
-        return mutex;
+    void SignalConditionVariable(u64 cv_key, int32_t count) {
+        return condition_var.Signal(cv_key, count);
     }
 
-    /// Gets a const reference to the process' mutex lock
-    const Mutex& GetMutex() const {
-        return mutex;
+    ResultCode WaitConditionVariable(VAddr address, u64 cv_key, u32 tag, s64 ns) {
+        return condition_var.Wait(address, cv_key, tag, ns);
+    }
+
+    ResultCode SignalAddressArbiter(VAddr address, Svc::SignalType signal_type, s32 value,
+                                    s32 count) {
+        return address_arbiter.SignalToAddress(address, signal_type, value, count);
+    }
+
+    ResultCode WaitAddressArbiter(VAddr address, Svc::ArbitrationType arb_type, s32 value,
+                                  s64 timeout) {
+        return address_arbiter.WaitForAddress(address, arb_type, value, timeout);
     }
 
     /// Gets the address to the process' dedicated TLS region.
@@ -250,15 +256,6 @@ public:
         return thread_list;
     }
 
-    /// Insert a thread into the condition variable wait container
-    void InsertConditionVariableThread(std::shared_ptr<Thread> thread);
-
-    /// Remove a thread from the condition variable wait container
-    void RemoveConditionVariableThread(std::shared_ptr<Thread> thread);
-
-    /// Obtain all condition variable threads waiting for some address
-    std::vector<std::shared_ptr<Thread>> GetConditionVariableThreads(VAddr cond_var_addr);
-
     /// Registers a thread as being created under this process,
     /// adding it to this process' thread list.
     void RegisterThread(const Thread* thread);
@@ -304,6 +301,8 @@ public:
 
     void LoadModule(CodeSet code_set, VAddr base_addr);
 
+    bool IsSignaled() const override;
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Thread-local storage management
 
@@ -314,12 +313,6 @@ public:
     void FreeTLSRegion(VAddr tls_address);
 
 private:
-    /// Checks if the specified thread should wait until this process is available.
-    bool ShouldWait(const Thread* thread) const override;
-
-    /// Acquires/locks this process for the specified thread if it's available.
-    void Acquire(Thread* thread) override;
-
     /// Changes the process status. If the status is different
     /// from the current process status, then this will trigger
     /// a process signal.
@@ -373,12 +366,12 @@ private:
     HandleTable handle_table;
 
     /// Per-process address arbiter.
-    AddressArbiter address_arbiter;
+    KAddressArbiter address_arbiter;
 
     /// The per-process mutex lock instance used for handling various
     /// forms of services, such as lock arbitration, and condition
     /// variable related facilities.
-    Mutex mutex;
+    KConditionVariable condition_var;
 
     /// Address indicating the location of the process' dedicated TLS region.
     VAddr tls_region_address = 0;
@@ -388,9 +381,6 @@ private:
 
     /// List of threads that are running with this process as their owner.
     std::list<const Thread*> thread_list;
-
-    /// List of threads waiting for a condition variable
-    std::unordered_map<VAddr, std::list<std::shared_ptr<Thread>>> cond_var_threads;
 
     /// Address of the top of the main thread's stack
     VAddr main_thread_stack_top{};
@@ -409,6 +399,8 @@ private:
 
     /// Schedule count of this process
     s64 schedule_count{};
+
+    bool is_signaled{};
 
     /// System context
     Core::System& system;
