@@ -274,7 +274,7 @@ gamecard_path =
 
 [System]
 # Whether the system is docked
-# 1: Yes, 0 (default): No
+# 1 (default): Yes, 0: No
 use_docked_mode =
 
 # Allow the use of NFC in games
