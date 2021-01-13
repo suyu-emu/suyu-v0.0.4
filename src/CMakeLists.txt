@@ -67,8 +67,10 @@ else()
         -Werror=implicit-fallthrough
         -Werror=missing-declarations
         -Werror=reorder
+        -Werror=switch
         -Werror=uninitialized
         -Werror=unused-result
+        -Werror=unused-variable
         -Wextra
         -Wmissing-declarations
         -Wno-attributes
