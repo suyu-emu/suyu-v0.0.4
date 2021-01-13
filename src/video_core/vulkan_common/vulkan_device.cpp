@@ -604,7 +604,6 @@ void Device::CheckSuitability() const {
         std::make_pair(features.occlusionQueryPrecise, "occlusionQueryPrecise"),
         std::make_pair(features.fragmentStoresAndAtomics, "fragmentStoresAndAtomics"),
         std::make_pair(features.shaderImageGatherExtended, "shaderImageGatherExtended"),
-        std::make_pair(features.shaderStorageImageMultisample, "shaderStorageImageMultisample"),
         std::make_pair(features.shaderStorageImageWriteWithoutFormat,
                        "shaderStorageImageWriteWithoutFormat"),
     };
