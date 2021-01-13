@@ -71,6 +71,8 @@ add_executable(yuzu
     configuration/configure_input_player.cpp
     configuration/configure_input_player.h
     configuration/configure_input_player.ui
+    configuration/configure_input_player_widget.cpp
+    configuration/configure_input_player_widget.h
     configuration/configure_input_profile_dialog.cpp
     configuration/configure_input_profile_dialog.h
     configuration/configure_input_profile_dialog.ui

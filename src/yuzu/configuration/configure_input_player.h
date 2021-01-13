@@ -106,7 +106,7 @@ private:
     void LoadConfiguration();
 
     /// Called when the button was pressed.
-    void HandleClick(QPushButton* button,
+    void HandleClick(QPushButton* button, std::size_t button_id,
                      std::function<void(const Common::ParamPackage&)> new_input_setter,
                      InputCommon::Polling::DeviceType type);
 
