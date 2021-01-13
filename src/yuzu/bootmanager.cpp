@@ -290,8 +290,8 @@ GRenderWindow::GRenderWindow(GMainWindow* parent, EmuThread* emu_thread_,
                             QString::fromUtf8(Common::g_scm_branch),
                             QString::fromUtf8(Common::g_scm_desc)));
     setAttribute(Qt::WA_AcceptTouchEvents);
-    auto layout = new QHBoxLayout(this);
-    layout->setMargin(0);
+    auto* layout = new QHBoxLayout(this);
+    layout->setContentsMargins(0, 0, 0, 0);
     setLayout(layout);
     input_subsystem->Initialize();
 
