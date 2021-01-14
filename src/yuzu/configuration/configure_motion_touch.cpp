@@ -328,14 +328,13 @@ void ConfigureMotionTouch::ApplyConfiguration() {
     std::string touch_engine = ui->touch_provider->currentData().toString().toStdString();
 
     Common::ParamPackage touch_param{};
-    touch_param.Set("engine", std::move(touch_engine));
-
     if (touch_engine == "cemuhookudp") {
         touch_param.Set("min_x", min_x);
         touch_param.Set("min_y", min_y);
         touch_param.Set("max_x", max_x);
         touch_param.Set("max_y", max_y);
     }
+    touch_param.Set("engine", std::move(touch_engine));
 
     Settings::values.touch_device = touch_param.Serialize();
     Settings::values.use_touch_from_button = ui->touch_from_button_checkbox->isChecked();
