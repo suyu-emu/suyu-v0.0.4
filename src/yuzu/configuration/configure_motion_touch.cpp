@@ -112,7 +112,6 @@ ConfigureMotionTouch::~ConfigureMotionTouch() = default;
 void ConfigureMotionTouch::SetConfiguration() {
     const Common::ParamPackage motion_param(Settings::values.motion_device);
     const Common::ParamPackage touch_param(Settings::values.touch_device);
-    const std::string motion_engine = motion_param.Get("engine", "motion_emu");
     const std::string touch_engine = touch_param.Get("engine", "emu_window");
 
     ui->touch_provider->setCurrentIndex(
