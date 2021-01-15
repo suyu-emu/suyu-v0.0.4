@@ -643,9 +643,7 @@ else()
         -Werror=conversion
         -Werror=ignored-qualifiers
         -Werror=implicit-fallthrough
-        -Werror=reorder
         -Werror=sign-compare
-        -Werror=unused-variable
 
         $<$<CXX_COMPILER_ID:GNU>:-Werror=unused-but-set-parameter>
         $<$<CXX_COMPILER_ID:GNU>:-Werror=unused-but-set-variable>
