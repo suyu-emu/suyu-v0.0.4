@@ -197,7 +197,7 @@ struct IntegerEncodedValue {
     };
 };
 using IntegerEncodedVector = boost::container::static_vector<
-    IntegerEncodedValue, 64,
+    IntegerEncodedValue, 256,
     boost::container::static_vector_options<
         boost::container::inplace_alignment<alignof(IntegerEncodedValue)>,
         boost::container::throw_on_overflow<false>>::type>;
