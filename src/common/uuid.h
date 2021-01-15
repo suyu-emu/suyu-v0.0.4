@@ -14,8 +14,8 @@ constexpr u128 INVALID_UUID{{0, 0}};
 
 struct UUID {
     // UUIDs which are 0 are considered invalid!
-    u128 uuid = INVALID_UUID;
-    constexpr UUID() = default;
+    u128 uuid;
+    UUID() = default;
     constexpr explicit UUID(const u128& id) : uuid{id} {}
     constexpr explicit UUID(const u64 lo, const u64 hi) : uuid{{lo, hi}} {}
 

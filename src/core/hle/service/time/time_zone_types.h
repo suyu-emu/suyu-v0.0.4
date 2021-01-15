@@ -45,23 +45,23 @@ static_assert(sizeof(TimeZoneRule) == 0x4000, "TimeZoneRule is incorrect size");
 
 /// https://switchbrew.org/wiki/Glue_services#CalendarAdditionalInfo
 struct CalendarAdditionalInfo {
-    u32 day_of_week{};
-    u32 day_of_year{};
+    u32 day_of_week;
+    u32 day_of_year;
     std::array<char, 8> timezone_name;
-    u32 is_dst{};
-    s32 gmt_offset{};
+    u32 is_dst;
+    s32 gmt_offset;
 };
 static_assert(sizeof(CalendarAdditionalInfo) == 0x18, "CalendarAdditionalInfo is incorrect size");
 
 /// https://switchbrew.org/wiki/Glue_services#CalendarTime
 struct CalendarTime {
-    s16 year{};
-    s8 month{};
-    s8 day{};
-    s8 hour{};
-    s8 minute{};
-    s8 second{};
-    INSERT_PADDING_BYTES(1);
+    s16 year;
+    s8 month;
+    s8 day;
+    s8 hour;
+    s8 minute;
+    s8 second;
+    INSERT_PADDING_BYTES_NOINIT(1);
 };
 static_assert(sizeof(CalendarTime) == 0x8, "CalendarTime is incorrect size");
 

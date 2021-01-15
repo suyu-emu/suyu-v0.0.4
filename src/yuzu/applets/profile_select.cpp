@@ -93,7 +93,7 @@ QtProfileSelectionDialog::QtProfileSelectionDialog(QWidget* parent)
 
     const auto& profiles = profile_manager->GetAllUsers();
     for (const auto& user : profiles) {
-        Service::Account::ProfileBase profile;
+        Service::Account::ProfileBase profile{};
         if (!profile_manager->GetProfileBase(user, profile))
             continue;
 

@@ -29,7 +29,7 @@ constexpr int DefaultSampleRate{48000};
 struct AudoutParams {
     s32_le sample_rate;
     u16_le channel_count;
-    INSERT_PADDING_BYTES(2);
+    INSERT_PADDING_BYTES_NOINIT(2);
 };
 static_assert(sizeof(AudoutParams) == 0x8, "AudoutParams is an invalid size");
 

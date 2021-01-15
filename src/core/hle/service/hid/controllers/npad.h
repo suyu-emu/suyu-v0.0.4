@@ -97,10 +97,10 @@ public:
     };
 
     struct DeviceHandle {
-        NpadType npad_type{};
-        u8 npad_id{};
-        DeviceIndex device_index{};
-        INSERT_PADDING_BYTES(1);
+        NpadType npad_type;
+        u8 npad_id;
+        DeviceIndex device_index;
+        INSERT_PADDING_BYTES_NOINIT(1);
     };
     static_assert(sizeof(DeviceHandle) == 4, "DeviceHandle is an invalid size");
 
@@ -120,12 +120,19 @@ public:
     static_assert(sizeof(NpadStyleSet) == 4, "NpadStyleSet is an invalid size");
 
     struct VibrationValue {
-        f32 amp_low{0.0f};
-        f32 freq_low{160.0f};
-        f32 amp_high{0.0f};
-        f32 freq_high{320.0f};
+        f32 amp_low;
+        f32 freq_low;
+        f32 amp_high;
+        f32 freq_high;
     };
     static_assert(sizeof(VibrationValue) == 0x10, "Vibration is an invalid size");
+
+    static constexpr VibrationValue DEFAULT_VIBRATION_VALUE{
+        .amp_low = 0.0f,
+        .freq_low = 160.0f,
+        .amp_high = 0.0f,
+        .freq_high = 320.0f,
+    };
 
     struct LedPattern {
         explicit LedPattern(u64 light1, u64 light2, u64 light3, u64 light4) {

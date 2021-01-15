@@ -86,28 +86,28 @@ struct BehaviorFlags {
 static_assert(sizeof(BehaviorFlags) == 0x4, "BehaviorFlags is an invalid size");
 
 struct ADPCMContext {
-    u16 header{};
-    s16 yn1{};
-    s16 yn2{};
+    u16 header;
+    s16 yn1;
+    s16 yn2;
 };
 static_assert(sizeof(ADPCMContext) == 0x6, "ADPCMContext is an invalid size");
 
 struct VoiceState {
-    s64 played_sample_count{};
-    s32 offset{};
-    s32 wave_buffer_index{};
-    std::array<bool, AudioCommon::MAX_WAVE_BUFFERS> is_wave_buffer_valid{};
-    s32 wave_buffer_consumed{};
-    std::array<s32, AudioCommon::MAX_SAMPLE_HISTORY> sample_history{};
-    s32 fraction{};
-    VAddr context_address{};
-    Codec::ADPCM_Coeff coeff{};
-    ADPCMContext context{};
-    std::array<s64, 2> biquad_filter_state{};
-    std::array<s32, AudioCommon::MAX_MIX_BUFFERS> previous_samples{};
-    u32 external_context_size{};
-    bool is_external_context_used{};
-    bool voice_dropped{};
+    s64 played_sample_count;
+    s32 offset;
+    s32 wave_buffer_index;
+    std::array<bool, AudioCommon::MAX_WAVE_BUFFERS> is_wave_buffer_valid;
+    s32 wave_buffer_consumed;
+    std::array<s32, AudioCommon::MAX_SAMPLE_HISTORY> sample_history;
+    s32 fraction;
+    VAddr context_address;
+    Codec::ADPCM_Coeff coeff;
+    ADPCMContext context;
+    std::array<s64, 2> biquad_filter_state;
+    std::array<s32, AudioCommon::MAX_MIX_BUFFERS> previous_samples;
+    u32 external_context_size;
+    bool is_external_context_used;
+    bool voice_dropped;
 };
 
 class VoiceChannelResource {

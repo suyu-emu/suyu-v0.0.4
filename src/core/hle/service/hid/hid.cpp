@@ -401,9 +401,9 @@ void Hid::SendKeyboardLockKeyEvent(Kernel::HLERequestContext& ctx) {
 void Hid::ActivateXpad(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        u32 basic_xpad_id{};
-        INSERT_PADDING_WORDS(1);
-        u64 applet_resource_user_id{};
+        u32 basic_xpad_id;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
     };
 
     const auto parameters{rp.PopRaw<Parameters>()};
@@ -431,9 +431,9 @@ void Hid::GetXpadIDs(Kernel::HLERequestContext& ctx) {
 void Hid::ActivateSixAxisSensor(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        Controller_NPad::DeviceHandle sixaxis_handle{};
-        INSERT_PADDING_WORDS(1);
-        u64 applet_resource_user_id{};
+        Controller_NPad::DeviceHandle sixaxis_handle;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
     };
 
     const auto parameters{rp.PopRaw<Parameters>()};
@@ -452,9 +452,9 @@ void Hid::ActivateSixAxisSensor(Kernel::HLERequestContext& ctx) {
 void Hid::DeactivateSixAxisSensor(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        Controller_NPad::DeviceHandle sixaxis_handle{};
-        INSERT_PADDING_WORDS(1);
-        u64 applet_resource_user_id{};
+        Controller_NPad::DeviceHandle sixaxis_handle;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
     };
 
     const auto parameters{rp.PopRaw<Parameters>()};
@@ -473,9 +473,9 @@ void Hid::DeactivateSixAxisSensor(Kernel::HLERequestContext& ctx) {
 void Hid::StartSixAxisSensor(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        Controller_NPad::DeviceHandle sixaxis_handle{};
-        INSERT_PADDING_WORDS(1);
-        u64 applet_resource_user_id{};
+        Controller_NPad::DeviceHandle sixaxis_handle;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
     };
 
     const auto parameters{rp.PopRaw<Parameters>()};
@@ -494,9 +494,9 @@ void Hid::StartSixAxisSensor(Kernel::HLERequestContext& ctx) {
 void Hid::StopSixAxisSensor(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        Controller_NPad::DeviceHandle sixaxis_handle{};
-        INSERT_PADDING_WORDS(1);
-        u64 applet_resource_user_id{};
+        Controller_NPad::DeviceHandle sixaxis_handle;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
     };
 
     const auto parameters{rp.PopRaw<Parameters>()};
@@ -515,10 +515,10 @@ void Hid::StopSixAxisSensor(Kernel::HLERequestContext& ctx) {
 void Hid::EnableSixAxisSensorFusion(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        bool enable_sixaxis_sensor_fusion{};
-        INSERT_PADDING_BYTES(3);
-        Controller_NPad::DeviceHandle sixaxis_handle{};
-        u64 applet_resource_user_id{};
+        bool enable_sixaxis_sensor_fusion;
+        INSERT_PADDING_BYTES_NOINIT(3);
+        Controller_NPad::DeviceHandle sixaxis_handle;
+        u64 applet_resource_user_id;
     };
 
     const auto parameters{rp.PopRaw<Parameters>()};
@@ -556,9 +556,9 @@ void Hid::SetGyroscopeZeroDriftMode(Kernel::HLERequestContext& ctx) {
 void Hid::GetGyroscopeZeroDriftMode(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        Controller_NPad::DeviceHandle sixaxis_handle{};
-        INSERT_PADDING_WORDS(1);
-        u64 applet_resource_user_id{};
+        Controller_NPad::DeviceHandle sixaxis_handle;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
     };
 
     const auto parameters{rp.PopRaw<Parameters>()};
@@ -577,9 +577,9 @@ void Hid::GetGyroscopeZeroDriftMode(Kernel::HLERequestContext& ctx) {
 void Hid::ResetGyroscopeZeroDriftMode(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        Controller_NPad::DeviceHandle sixaxis_handle{};
-        INSERT_PADDING_WORDS(1);
-        u64 applet_resource_user_id{};
+        Controller_NPad::DeviceHandle sixaxis_handle;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
     };
 
     const auto parameters{rp.PopRaw<Parameters>()};
@@ -599,9 +599,9 @@ void Hid::ResetGyroscopeZeroDriftMode(Kernel::HLERequestContext& ctx) {
 void Hid::IsSixAxisSensorAtRest(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        Controller_NPad::DeviceHandle sixaxis_handle{};
-        INSERT_PADDING_WORDS(1);
-        u64 applet_resource_user_id{};
+        Controller_NPad::DeviceHandle sixaxis_handle;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
     };
 
     const auto parameters{rp.PopRaw<Parameters>()};
@@ -620,9 +620,9 @@ void Hid::IsSixAxisSensorAtRest(Kernel::HLERequestContext& ctx) {
 void Hid::ActivateGesture(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        u32 unknown{};
-        INSERT_PADDING_WORDS(1);
-        u64 applet_resource_user_id{};
+        u32 unknown;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
     };
 
     const auto parameters{rp.PopRaw<Parameters>()};
@@ -702,10 +702,10 @@ void Hid::DeactivateNpad(Kernel::HLERequestContext& ctx) {
 void Hid::AcquireNpadStyleSetUpdateEventHandle(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        u32 npad_id{};
-        INSERT_PADDING_WORDS(1);
-        u64 applet_resource_user_id{};
-        u64 unknown{};
+        u32 npad_id;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
+        u64 unknown;
     };
 
     const auto parameters{rp.PopRaw<Parameters>()};
@@ -722,9 +722,9 @@ void Hid::AcquireNpadStyleSetUpdateEventHandle(Kernel::HLERequestContext& ctx) {
 void Hid::DisconnectNpad(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        u32 npad_id{};
-        INSERT_PADDING_WORDS(1);
-        u64 applet_resource_user_id{};
+        u32 npad_id;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
     };
 
     const auto parameters{rp.PopRaw<Parameters>()};
@@ -756,9 +756,9 @@ void Hid::ActivateNpadWithRevision(Kernel::HLERequestContext& ctx) {
     // Should have no effect with how our npad sets up the data
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        u32 unknown{};
-        INSERT_PADDING_WORDS(1);
-        u64 applet_resource_user_id{};
+        u32 unknown;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
     };
 
     const auto parameters{rp.PopRaw<Parameters>()};
@@ -800,9 +800,9 @@ void Hid::GetNpadJoyHoldType(Kernel::HLERequestContext& ctx) {
 void Hid::SetNpadJoyAssignmentModeSingleByDefault(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        u32 npad_id{};
-        INSERT_PADDING_WORDS(1);
-        u64 applet_resource_user_id{};
+        u32 npad_id;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
     };
 
     const auto parameters{rp.PopRaw<Parameters>()};
@@ -821,10 +821,10 @@ void Hid::SetNpadJoyAssignmentModeSingle(Kernel::HLERequestContext& ctx) {
     // TODO: Check the differences between this and SetNpadJoyAssignmentModeSingleByDefault
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        u32 npad_id{};
-        INSERT_PADDING_WORDS(1);
-        u64 applet_resource_user_id{};
-        u64 npad_joy_device_type{};
+        u32 npad_id;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
+        u64 npad_joy_device_type;
     };
 
     const auto parameters{rp.PopRaw<Parameters>()};
@@ -844,9 +844,9 @@ void Hid::SetNpadJoyAssignmentModeSingle(Kernel::HLERequestContext& ctx) {
 void Hid::SetNpadJoyAssignmentModeDual(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        u32 npad_id{};
-        INSERT_PADDING_WORDS(1);
-        u64 applet_resource_user_id{};
+        u32 npad_id;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
     };
 
     const auto parameters{rp.PopRaw<Parameters>()};
@@ -952,9 +952,9 @@ void Hid::SwapNpadAssignment(Kernel::HLERequestContext& ctx) {
 void Hid::IsUnintendedHomeButtonInputProtectionEnabled(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        u32 npad_id{};
-        INSERT_PADDING_WORDS(1);
-        u64 applet_resource_user_id{};
+        u32 npad_id;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
     };
 
     const auto parameters{rp.PopRaw<Parameters>()};
@@ -971,10 +971,10 @@ void Hid::IsUnintendedHomeButtonInputProtectionEnabled(Kernel::HLERequestContext
 void Hid::EnableUnintendedHomeButtonInputProtection(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        bool unintended_home_button_input_protection{};
-        INSERT_PADDING_BYTES(3);
-        u32 npad_id{};
-        u64 applet_resource_user_id{};
+        bool unintended_home_button_input_protection;
+        INSERT_PADDING_BYTES_NOINIT(3);
+        u32 npad_id;
+        u64 applet_resource_user_id;
     };
 
     const auto parameters{rp.PopRaw<Parameters>()};
@@ -1026,10 +1026,10 @@ void Hid::GetVibrationDeviceInfo(Kernel::HLERequestContext& ctx) {
 void Hid::SendVibrationValue(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        Controller_NPad::DeviceHandle vibration_device_handle{};
-        Controller_NPad::VibrationValue vibration_value{};
-        INSERT_PADDING_WORDS(1);
-        u64 applet_resource_user_id{};
+        Controller_NPad::DeviceHandle vibration_device_handle;
+        Controller_NPad::VibrationValue vibration_value;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
     };
 
     const auto parameters{rp.PopRaw<Parameters>()};
@@ -1050,9 +1050,9 @@ void Hid::SendVibrationValue(Kernel::HLERequestContext& ctx) {
 void Hid::GetActualVibrationValue(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        Controller_NPad::DeviceHandle vibration_device_handle{};
-        INSERT_PADDING_WORDS(1);
-        u64 applet_resource_user_id{};
+        Controller_NPad::DeviceHandle vibration_device_handle;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
     };
 
     const auto parameters{rp.PopRaw<Parameters>()};
@@ -1147,9 +1147,9 @@ void Hid::EndPermitVibrationSession(Kernel::HLERequestContext& ctx) {
 void Hid::IsVibrationDeviceMounted(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        Controller_NPad::DeviceHandle vibration_device_handle{};
-        INSERT_PADDING_WORDS(1);
-        u64 applet_resource_user_id{};
+        Controller_NPad::DeviceHandle vibration_device_handle;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
     };
 
     const auto parameters{rp.PopRaw<Parameters>()};
@@ -1180,9 +1180,9 @@ void Hid::ActivateConsoleSixAxisSensor(Kernel::HLERequestContext& ctx) {
 void Hid::StartConsoleSixAxisSensor(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        Controller_NPad::DeviceHandle sixaxis_handle{};
-        INSERT_PADDING_WORDS(1);
-        u64 applet_resource_user_id{};
+        Controller_NPad::DeviceHandle sixaxis_handle;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
     };
 
     const auto parameters{rp.PopRaw<Parameters>()};
@@ -1200,9 +1200,9 @@ void Hid::StartConsoleSixAxisSensor(Kernel::HLERequestContext& ctx) {
 void Hid::StopConsoleSixAxisSensor(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     struct Parameters {
-        Controller_NPad::DeviceHandle sixaxis_handle{};
-        INSERT_PADDING_WORDS(1);
-        u64 applet_resource_user_id{};
+        Controller_NPad::DeviceHandle sixaxis_handle;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
     };
 
     const auto parameters{rp.PopRaw<Parameters>()};

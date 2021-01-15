@@ -58,7 +58,7 @@ struct SaveDataAttribute {
     SaveDataType type;
     SaveDataRank rank;
     u16 index;
-    INSERT_PADDING_BYTES(4);
+    INSERT_PADDING_BYTES_NOINIT(4);
     u64 zero_1;
     u64 zero_2;
     u64 zero_3;
@@ -72,7 +72,7 @@ struct SaveDataExtraData {
     u64 owner_id;
     s64 timestamp;
     SaveDataFlags flags;
-    INSERT_PADDING_BYTES(4);
+    INSERT_PADDING_BYTES_NOINIT(4);
     s64 available_size;
     s64 journal_size;
     s64 commit_id;
