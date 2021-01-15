@@ -5,6 +5,8 @@
 // This file references various implementation details from Atmosphere, an open-source firmware for
 // the Nintendo Switch. Copyright 2018-2020 Atmosphere-NX.
 
+#include <bit>
+
 #include "common/assert.h"
 #include "common/bit_util.h"
 #include "common/fiber.h"
@@ -31,12 +33,12 @@ static void IncrementScheduledCount(Kernel::Thread* thread) {
 
 void KScheduler::RescheduleCores(KernelCore& kernel, u64 cores_pending_reschedule,
                                  Core::EmuThreadHandle global_thread) {
-    u32 current_core = global_thread.host_handle;
+    const u32 current_core = global_thread.host_handle;
     bool must_context_switch = global_thread.guest_handle != InvalidHandle &&
                                (current_core < Core::Hardware::NUM_CPU_CORES);
 
     while (cores_pending_reschedule != 0) {
-        u32 core = Common::CountTrailingZeroes64(cores_pending_reschedule);
+        const auto core = static_cast<u32>(std::countr_zero(cores_pending_reschedule));
         ASSERT(core < Core::Hardware::NUM_CPU_CORES);
         if (!must_context_switch || core != current_core) {
             auto& phys_core = kernel.PhysicalCore(core);
@@ -109,7 +111,7 @@ u64 KScheduler::UpdateHighestPriorityThreadsImpl(KernelCore& kernel) {
 
     // Idle cores are bad. We're going to try to migrate threads to each idle core in turn.
     while (idle_cores != 0) {
-        u32 core_id = Common::CountTrailingZeroes64(idle_cores);
+        const auto core_id = static_cast<u32>(std::countr_zero(idle_cores));
         if (Thread* suggested = priority_queue.GetSuggestedFront(core_id); suggested != nullptr) {
             s32 migration_candidates[Core::Hardware::NUM_CPU_CORES];
             size_t num_candidates = 0;

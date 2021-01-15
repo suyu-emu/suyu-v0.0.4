@@ -8,11 +8,11 @@
 #pragma once
 
 #include <array>
+#include <bit>
 #include <vector>
 
 #include "common/alignment.h"
 #include "common/assert.h"
-#include "common/bit_util.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "core/hle/kernel/memory/memory_types.h"
@@ -105,7 +105,7 @@ private:
                         ASSERT(depth == 0);
                         return -1;
                     }
-                    offset = offset * 64 + Common::CountTrailingZeroes64(v);
+                    offset = offset * 64 + static_cast<u32>(std::countr_zero(v));
                     ++depth;
                 } while (depth < static_cast<s32>(used_depths));
 

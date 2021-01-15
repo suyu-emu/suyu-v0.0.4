@@ -18,10 +18,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+#include <bit>
 #include "command_classes/host1x.h"
 #include "command_classes/nvdec.h"
 #include "command_classes/vic.h"
-#include "common/bit_util.h"
 #include "video_core/cdma_pusher.h"
 #include "video_core/command_classes/nvdec_common.h"
 #include "video_core/engines/maxwell_3d.h"
@@ -56,7 +56,7 @@ void CDmaPusher::Step() {
 
     for (const u32 value : values) {
         if (mask != 0) {
-            const u32 lbs = Common::CountTrailingZeroes32(mask);
+            const auto lbs = static_cast<u32>(std::countr_zero(mask));
             mask &= ~(1U << lbs);
             ExecuteCommand(static_cast<u32>(offset + lbs), value);
             continue;

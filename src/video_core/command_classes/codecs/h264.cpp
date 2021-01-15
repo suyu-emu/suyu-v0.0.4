@@ -19,7 +19,7 @@
 //
 
 #include <array>
-#include "common/bit_util.h"
+#include <bit>
 #include "video_core/command_classes/codecs/h264.h"
 #include "video_core/gpu.h"
 #include "video_core/memory_manager.h"
@@ -266,7 +266,7 @@ void H264BitWriter::WriteExpGolombCodedInt(s32 value) {
 }
 
 void H264BitWriter::WriteExpGolombCodedUInt(u32 value) {
-    const s32 size = 32 - Common::CountLeadingZeroes32(static_cast<s32>(value + 1));
+    const s32 size = 32 - std::countl_zero(value + 1);
     WriteBits(1, size);
 
     value -= (1U << (size - 1)) - 1;
