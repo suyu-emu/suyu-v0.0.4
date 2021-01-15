@@ -171,30 +171,30 @@ public:
         static constexpr std::size_t NUM_REGS = 0x258;
         struct {
             u32 object;
-            INSERT_UNION_PADDING_WORDS(0x3F);
+            INSERT_PADDING_WORDS_NOINIT(0x3F);
             u32 no_operation;
             NotifyType notify;
-            INSERT_UNION_PADDING_WORDS(0x2);
+            INSERT_PADDING_WORDS_NOINIT(0x2);
             u32 wait_for_idle;
-            INSERT_UNION_PADDING_WORDS(0xB);
+            INSERT_PADDING_WORDS_NOINIT(0xB);
             u32 pm_trigger;
-            INSERT_UNION_PADDING_WORDS(0xF);
+            INSERT_PADDING_WORDS_NOINIT(0xF);
             u32 context_dma_notify;
             u32 dst_context_dma;
             u32 src_context_dma;
             u32 semaphore_context_dma;
-            INSERT_UNION_PADDING_WORDS(0x1C);
+            INSERT_PADDING_WORDS_NOINIT(0x1C);
             Surface dst;
             CpuIndexWrap pixels_from_cpu_index_wrap;
             u32 kind2d_check_enable;
             Surface src;
             SectorPromotion pixels_from_memory_sector_promotion;
-            INSERT_UNION_PADDING_WORDS(0x1);
+            INSERT_PADDING_WORDS_NOINIT(0x1);
             NumTpcs num_tpcs;
             u32 render_enable_addr_upper;
             u32 render_enable_addr_lower;
             RenderEnableMode render_enable_mode;
-            INSERT_UNION_PADDING_WORDS(0x4);
+            INSERT_PADDING_WORDS_NOINIT(0x4);
             u32 clip_x0;
             u32 clip_y0;
             u32 clip_width;
@@ -212,7 +212,7 @@ public:
                 BitField<8, 6, u32> y;
             } pattern_offset;
             BitField<0, 2, PatternSelect> pattern_select;
-            INSERT_UNION_PADDING_WORDS(0xC);
+            INSERT_PADDING_WORDS_NOINIT(0xC);
             struct {
                 BitField<0, 3, MonochromePatternColorFormat> color_format;
                 BitField<0, 1, MonochromePatternFormat> format;
@@ -227,15 +227,15 @@ public:
                 std::array<u32, 0x20> X1R5G5B5;
                 std::array<u32, 0x10> Y8;
             } color_pattern;
-            INSERT_UNION_PADDING_WORDS(0x10);
+            INSERT_PADDING_WORDS_NOINIT(0x10);
             struct {
                 u32 prim_mode;
                 u32 prim_color_format;
                 u32 prim_color;
                 u32 line_tie_break_bits;
-                INSERT_UNION_PADDING_WORDS(0x14);
+                INSERT_PADDING_WORDS_NOINIT(0x14);
                 u32 prim_point_xy;
-                INSERT_UNION_PADDING_WORDS(0x7);
+                INSERT_PADDING_WORDS_NOINIT(0x7);
                 std::array<Point, 0x40> prim_point;
             } render_solid;
             struct {
@@ -247,7 +247,7 @@ public:
                 u32 color0;
                 u32 color1;
                 u32 mono_opacity;
-                INSERT_UNION_PADDING_WORDS(0x6);
+                INSERT_PADDING_WORDS_NOINIT(0x6);
                 u32 src_width;
                 u32 src_height;
                 u32 dx_du_frac;
@@ -260,9 +260,9 @@ public:
                 u32 dst_y0_int;
                 u32 data;
             } pixels_from_cpu;
-            INSERT_UNION_PADDING_WORDS(0x3);
+            INSERT_PADDING_WORDS_NOINIT(0x3);
             u32 big_endian_control;
-            INSERT_UNION_PADDING_WORDS(0x3);
+            INSERT_PADDING_WORDS_NOINIT(0x3);
             struct {
                 BitField<0, 3, u32> block_shape;
                 BitField<0, 5, u32> corral_size;
@@ -271,7 +271,7 @@ public:
                     BitField<0, 1, Origin> origin;
                     BitField<4, 1, Filter> filter;
                 } sample_mode;
-                INSERT_UNION_PADDING_WORDS(0x8);
+                INSERT_PADDING_WORDS_NOINIT(0x8);
                 s32 dst_x0;
                 s32 dst_y0;
                 s32 dst_width;

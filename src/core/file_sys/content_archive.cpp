@@ -43,17 +43,17 @@ static_assert(sizeof(IVFCLevel) == 0x18, "IVFCLevel has incorrect size.");
 struct IVFCHeader {
     u32_le magic;
     u32_le magic_number;
-    INSERT_UNION_PADDING_BYTES(8);
+    INSERT_PADDING_BYTES_NOINIT(8);
     std::array<IVFCLevel, 6> levels;
-    INSERT_UNION_PADDING_BYTES(64);
+    INSERT_PADDING_BYTES_NOINIT(64);
 };
 static_assert(sizeof(IVFCHeader) == 0xE0, "IVFCHeader has incorrect size.");
 
 struct NCASectionHeaderBlock {
-    INSERT_UNION_PADDING_BYTES(3);
+    INSERT_PADDING_BYTES_NOINIT(3);
     NCASectionFilesystemType filesystem_type;
     NCASectionCryptoType crypto_type;
-    INSERT_UNION_PADDING_BYTES(3);
+    INSERT_PADDING_BYTES_NOINIT(3);
 };
 static_assert(sizeof(NCASectionHeaderBlock) == 0x8, "NCASectionHeaderBlock has incorrect size.");
 
@@ -61,7 +61,7 @@ struct NCASectionRaw {
     NCASectionHeaderBlock header;
     std::array<u8, 0x138> block_data;
     std::array<u8, 0x8> section_ctr;
-    INSERT_UNION_PADDING_BYTES(0xB8);
+    INSERT_PADDING_BYTES_NOINIT(0xB8);
 };
 static_assert(sizeof(NCASectionRaw) == 0x200, "NCASectionRaw has incorrect size.");
 
@@ -69,19 +69,19 @@ struct PFS0Superblock {
     NCASectionHeaderBlock header_block;
     std::array<u8, 0x20> hash;
     u32_le size;
-    INSERT_UNION_PADDING_BYTES(4);
+    INSERT_PADDING_BYTES_NOINIT(4);
     u64_le hash_table_offset;
     u64_le hash_table_size;
     u64_le pfs0_header_offset;
     u64_le pfs0_size;
-    INSERT_UNION_PADDING_BYTES(0x1B0);
+    INSERT_PADDING_BYTES_NOINIT(0x1B0);
 };
 static_assert(sizeof(PFS0Superblock) == 0x200, "PFS0Superblock has incorrect size.");
 
 struct RomFSSuperblock {
     NCASectionHeaderBlock header_block;
     IVFCHeader ivfc;
-    INSERT_UNION_PADDING_BYTES(0x118);
+    INSERT_PADDING_BYTES_NOINIT(0x118);
 };
 static_assert(sizeof(RomFSSuperblock) == 0x200, "RomFSSuperblock has incorrect size.");
 
@@ -89,19 +89,19 @@ struct BKTRHeader {
     u64_le offset;
     u64_le size;
     u32_le magic;
-    INSERT_UNION_PADDING_BYTES(0x4);
+    INSERT_PADDING_BYTES_NOINIT(0x4);
     u32_le number_entries;
-    INSERT_UNION_PADDING_BYTES(0x4);
+    INSERT_PADDING_BYTES_NOINIT(0x4);
 };
 static_assert(sizeof(BKTRHeader) == 0x20, "BKTRHeader has incorrect size.");
 
 struct BKTRSuperblock {
     NCASectionHeaderBlock header_block;
     IVFCHeader ivfc;
-    INSERT_UNION_PADDING_BYTES(0x18);
+    INSERT_PADDING_BYTES_NOINIT(0x18);
     BKTRHeader relocation;
     BKTRHeader subsection;
-    INSERT_UNION_PADDING_BYTES(0xC0);
+    INSERT_PADDING_BYTES_NOINIT(0xC0);
 };
 static_assert(sizeof(BKTRSuperblock) == 0x200, "BKTRSuperblock has incorrect size.");
 

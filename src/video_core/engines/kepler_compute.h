@@ -55,7 +55,7 @@ public:
 
         union {
             struct {
-                INSERT_UNION_PADDING_WORDS(0x60);
+                INSERT_PADDING_WORDS_NOINIT(0x60);
 
                 Upload::Registers upload;
 
@@ -67,7 +67,7 @@ public:
 
                 u32 data_upload;
 
-                INSERT_UNION_PADDING_WORDS(0x3F);
+                INSERT_PADDING_WORDS_NOINIT(0x3F);
 
                 struct {
                     u32 address;
@@ -76,11 +76,11 @@ public:
                     }
                 } launch_desc_loc;
 
-                INSERT_UNION_PADDING_WORDS(0x1);
+                INSERT_PADDING_WORDS_NOINIT(0x1);
 
                 u32 launch;
 
-                INSERT_UNION_PADDING_WORDS(0x4A7);
+                INSERT_PADDING_WORDS_NOINIT(0x4A7);
 
                 struct {
                     u32 address_high;
@@ -92,7 +92,7 @@ public:
                     }
                 } tsc;
 
-                INSERT_UNION_PADDING_WORDS(0x3);
+                INSERT_PADDING_WORDS_NOINIT(0x3);
 
                 struct {
                     u32 address_high;
@@ -104,7 +104,7 @@ public:
                     }
                 } tic;
 
-                INSERT_UNION_PADDING_WORDS(0x22);
+                INSERT_PADDING_WORDS_NOINIT(0x22);
 
                 struct {
                     u32 address_high;
@@ -115,11 +115,11 @@ public:
                     }
                 } code_loc;
 
-                INSERT_UNION_PADDING_WORDS(0x3FE);
+                INSERT_PADDING_WORDS_NOINIT(0x3FE);
 
                 u32 tex_cb_index;
 
-                INSERT_UNION_PADDING_WORDS(0x374);
+                INSERT_PADDING_WORDS_NOINIT(0x374);
             };
             std::array<u32, NUM_REGS> reg_array;
         };
