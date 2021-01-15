@@ -256,7 +256,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         .shaderTessellationAndGeometryPointSize = false,
         .shaderImageGatherExtended = true,
         .shaderStorageImageExtendedFormats = false,
-        .shaderStorageImageMultisample = true,
+        .shaderStorageImageMultisample = is_shader_storage_image_multisample,
         .shaderStorageImageReadWithoutFormat = is_formatless_image_load_supported,
         .shaderStorageImageWriteWithoutFormat = true,
         .shaderUniformBufferArrayDynamicIndexing = false,
@@ -803,6 +803,7 @@ void Device::SetupFamilies(VkSurfaceKHR surface) {
 void Device::SetupFeatures() {
     const auto supported_features{physical.GetFeatures()};
     is_formatless_image_load_supported = supported_features.shaderStorageImageReadWithoutFormat;
+    is_shader_storage_image_multisample = supported_features.shaderStorageImageMultisample;
     is_blit_depth_stencil_supported = TestDepthStencilBlits();
     is_optimal_astc_supported = IsOptimalAstcSupported(supported_features);
 }
