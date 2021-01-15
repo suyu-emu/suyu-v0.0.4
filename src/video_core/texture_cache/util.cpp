@@ -279,7 +279,7 @@ template <u32 GOB_EXTENT>
     const bool is_small = IsSmallerThanGobSize(blocks, gob, info.block.depth);
     const u32 alignment = is_small ? 0 : info.tile_width_spacing;
     return Extent2D{
-        .width = Common::AlignBits(gobs.width, alignment),
+        .width = Common::AlignUpLog2(gobs.width, alignment),
         .height = gobs.height,
     };
 }
@@ -352,7 +352,7 @@ template <u32 GOB_EXTENT>
     // https://github.com/Ryujinx/Ryujinx/blob/1c9aba6de1520aea5480c032e0ff5664ac1bb36f/Ryujinx.Graphics.Texture/SizeCalculator.cs#L134
     if (tile_width_spacing > 0) {
         const u32 alignment_log2 = GOB_SIZE_SHIFT + tile_width_spacing + block.height + block.depth;
-        return Common::AlignBits(size_bytes, alignment_log2);
+        return Common::AlignUpLog2(size_bytes, alignment_log2);
     }
     const u32 aligned_height = Common::AlignUp(size.height, tile_size_y);
     while (block.height != 0 && aligned_height <= (1U << (block.height - 1)) * GOB_SIZE_Y) {
@@ -528,9 +528,9 @@ template <u32 GOB_EXTENT>
     const u32 alignment = StrideAlignment(num_tiles, info.block, bpp_log2, info.tile_width_spacing);
     const Extent3D mip_block = AdjustMipBlockSize(num_tiles, info.block, 0);
     return Extent3D{
-        .width = Common::AlignBits(num_tiles.width, alignment),
-        .height = Common::AlignBits(num_tiles.height, GOB_SIZE_Y_SHIFT + mip_block.height),
-        .depth = Common::AlignBits(num_tiles.depth, GOB_SIZE_Z_SHIFT + mip_block.depth),
+        .width = Common::AlignUpLog2(num_tiles.width, alignment),
+        .height = Common::AlignUpLog2(num_tiles.height, GOB_SIZE_Y_SHIFT + mip_block.height),
+        .depth = Common::AlignUpLog2(num_tiles.depth, GOB_SIZE_Z_SHIFT + mip_block.depth),
     };
 }
 

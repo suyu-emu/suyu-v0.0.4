@@ -17,15 +17,14 @@ template <typename T>
 }
 
 template <typename T>
-[[nodiscard]] constexpr T AlignDown(T value, std::size_t size) {
-    static_assert(std::is_unsigned_v<T>, "T must be an unsigned value.");
-    return static_cast<T>(value - value % size);
+requires std::is_unsigned_v<T>[[nodiscard]] constexpr T AlignUpLog2(T value, size_t align_log2) {
+    return static_cast<T>((value + ((1ULL << align_log2) - 1)) >> align_log2 << align_log2);
 }
 
 template <typename T>
-[[nodiscard]] constexpr T AlignBits(T value, std::size_t align) {
+[[nodiscard]] constexpr T AlignDown(T value, std::size_t size) {
     static_assert(std::is_unsigned_v<T>, "T must be an unsigned value.");
-    return static_cast<T>((value + ((1ULL << align) - 1)) >> align << align);
+    return static_cast<T>(value - value % size);
 }
 
 template <typename T>
