@@ -27,7 +27,7 @@ BlockLinearSwizzle2DParams MakeBlockLinearSwizzle2DParams(const SwizzleParameter
     const Extent3D num_tiles = swizzle.num_tiles;
     const u32 bytes_per_block = BytesPerBlock(info.format);
     const u32 stride_alignment = CalculateLevelStrideAlignment(info, swizzle.level);
-    const u32 stride = Common::AlignBits(num_tiles.width, stride_alignment) * bytes_per_block;
+    const u32 stride = Common::AlignUpLog2(num_tiles.width, stride_alignment) * bytes_per_block;
     const u32 gobs_in_x = Common::DivCeilLog2(stride, GOB_SIZE_X_SHIFT);
     return BlockLinearSwizzle2DParams{
         .origin{0, 0, 0},
@@ -47,7 +47,7 @@ BlockLinearSwizzle3DParams MakeBlockLinearSwizzle3DParams(const SwizzleParameter
     const Extent3D num_tiles = swizzle.num_tiles;
     const u32 bytes_per_block = BytesPerBlock(info.format);
     const u32 stride_alignment = CalculateLevelStrideAlignment(info, swizzle.level);
-    const u32 stride = Common::AlignBits(num_tiles.width, stride_alignment) * bytes_per_block;
+    const u32 stride = Common::AlignUpLog2(num_tiles.width, stride_alignment) * bytes_per_block;
 
     const u32 gobs_in_x = (stride + GOB_SIZE_X - 1) >> GOB_SIZE_X_SHIFT;
     const u32 block_size = gobs_in_x << (GOB_SIZE_SHIFT + block.height + block.depth);
