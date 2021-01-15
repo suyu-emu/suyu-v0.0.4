@@ -314,6 +314,7 @@ else()
         -Werror=shadow
         -Werror=switch
         -Werror=type-limits
+        -Werror=unused-function
         -Werror=unused-variable
 
         $<$<CXX_COMPILER_ID:GNU>:-Werror=class-memaccess>
