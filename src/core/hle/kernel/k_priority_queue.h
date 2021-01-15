@@ -8,11 +8,11 @@
 #pragma once
 
 #include <array>
+#include <bit>
 #include <concepts>
 
 #include "common/assert.h"
 #include "common/bit_set.h"
-#include "common/bit_util.h"
 #include "common/common_types.h"
 #include "common/concepts.h"
 
@@ -268,7 +268,7 @@ private:
     }
 
     constexpr s32 GetNextCore(u64& affinity) {
-        const s32 core = Common::CountTrailingZeroes64(affinity);
+        const s32 core = std::countr_zero(affinity);
         ClearAffinityBit(affinity, core);
         return core;
     }

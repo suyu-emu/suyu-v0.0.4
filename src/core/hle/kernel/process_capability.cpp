@@ -2,6 +2,8 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <bit>
+
 #include "common/bit_util.h"
 #include "common/logging/log.h"
 #include "core/hle/kernel/errors.h"
@@ -60,7 +62,7 @@ constexpr CapabilityType GetCapabilityType(u32 value) {
 
 u32 GetFlagBitOffset(CapabilityType type) {
     const auto value = static_cast<u32>(type);
-    return static_cast<u32>(Common::BitSize<u32>() - Common::CountLeadingZeroes32(value));
+    return static_cast<u32>(Common::BitSize<u32>() - static_cast<u32>(std::countl_zero(value)));
 }
 
 } // Anonymous namespace

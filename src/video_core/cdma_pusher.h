@@ -126,7 +126,7 @@ private:
 
     s32 count{};
     s32 offset{};
-    s32 mask{};
+    u32 mask{};
     bool incrementing{};
 
     // Queue of command lists to be processed
