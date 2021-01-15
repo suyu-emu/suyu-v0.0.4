@@ -69,6 +69,7 @@ else()
         -Werror=reorder
         -Werror=switch
         -Werror=uninitialized
+        -Werror=unused-function
         -Werror=unused-result
         -Werror=unused-variable
         -Wextra
