@@ -108,7 +108,6 @@ add_library(common STATIC
     bit_util.h
     cityhash.cpp
     cityhash.h
-    color.h
     common_funcs.h
     common_paths.h
     common_types.h
