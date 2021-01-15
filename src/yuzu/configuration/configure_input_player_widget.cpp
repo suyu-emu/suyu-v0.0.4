@@ -250,9 +250,9 @@ void PlayerControlPreview::DrawLeftController(QPainter& p, const QPointF center)
 
     // D-pad constants
     const QPointF dpad_center = center + QPoint(9, 14);
-    const int dpad_distance = 23;
-    const int dpad_radius = 11;
-    const float dpad_arrow_size = 1.2f;
+    constexpr int dpad_distance = 23;
+    constexpr int dpad_radius = 11;
+    constexpr float dpad_arrow_size = 1.2f;
 
     // D-pad buttons
     p.setPen(colors.outline);
@@ -344,8 +344,9 @@ void PlayerControlPreview::DrawRightController(QPainter& p, const QPointF center
 
     // Face buttons constants
     const QPointF face_center = center + QPoint(-9, -73);
-    const int face_distance = 23;
-    const int face_radius = 11;
+    constexpr int face_distance = 23;
+    constexpr int face_radius = 11;
+    constexpr float text_size = 1.1f;
 
     // Face buttons
     p.setPen(colors.outline);
@@ -356,11 +357,12 @@ void PlayerControlPreview::DrawRightController(QPainter& p, const QPointF center
     DrawCircleButton(p, face_center + QPoint(-face_distance, 0), button_values[Y], face_radius);
 
     // Face buttons text
-    p.setPen(colors.font);
-    DrawText(p, face_center + QPoint(face_distance, 0), 10, QStringLiteral("A"));
-    DrawText(p, face_center + QPoint(0, face_distance), 10, QStringLiteral("B"));
-    DrawText(p, face_center + QPoint(0, -face_distance), 10, QStringLiteral("X"));
-    DrawText(p, face_center + QPoint(-face_distance + 1, 1), 10, QStringLiteral("Y"));
+    p.setPen(colors.transparent);
+    p.setBrush(colors.font);
+    DrawSymbol(p, face_center + QPoint(face_distance, 0), Symbol::A, text_size);
+    DrawSymbol(p, face_center + QPoint(0, face_distance), Symbol::B, text_size);
+    DrawSymbol(p, face_center + QPoint(0, -face_distance), Symbol::X, text_size);
+    DrawSymbol(p, face_center + QPoint(-face_distance, 1), Symbol::Y, text_size);
 
     // SR and SL buttons
     p.setPen(colors.outline);
@@ -385,7 +387,9 @@ void PlayerControlPreview::DrawRightController(QPainter& p, const QPointF center
     DrawCircleButton(p, center + QPoint(-26, 66), button_values[Home], 12);
     button_color = colors.button;
     DrawCircleButton(p, center + QPoint(-26, 66), button_values[Home], 9);
-    DrawHouseIcon(p, center + QPoint(-26, 66), 5);
+    p.setPen(colors.transparent);
+    p.setBrush(colors.font2);
+    DrawSymbol(p, center + QPoint(-26, 66), Symbol::House, 5);
 }
 
 void PlayerControlPreview::DrawDualController(QPainter& p, const QPointF center) {
@@ -457,9 +461,9 @@ void PlayerControlPreview::DrawDualController(QPainter& p, const QPointF center)
 
     // Face buttons constants
     const QPointF face_center = center + QPoint(65, -65);
-    const int face_distance = 20;
-    const int face_radius = 10;
-    const int text_size = 10;
+    constexpr int face_distance = 20;
+    constexpr int face_radius = 10;
+    constexpr float text_size = 1.0f;
 
     // Face buttons
     p.setPen(colors.outline);
@@ -470,17 +474,18 @@ void PlayerControlPreview::DrawDualController(QPainter& p, const QPointF center)
     DrawCircleButton(p, face_center + QPoint(-face_distance, 0), button_values[Y], face_radius);
 
     // Face buttons text
-    p.setPen(colors.font);
-    DrawText(p, face_center + QPoint(face_distance, 0), text_size, QStringLiteral("A"));
-    DrawText(p, face_center + QPoint(0, face_distance), text_size, QStringLiteral("B"));
-    DrawText(p, face_center + QPoint(0, -face_distance), text_size, QStringLiteral("X"));
-    DrawText(p, face_center + QPointF(-face_distance + 0.5f, 1), text_size, QStringLiteral("Y"));
+    p.setPen(colors.transparent);
+    p.setBrush(colors.font);
+    DrawSymbol(p, face_center + QPoint(face_distance, 0), Symbol::A, text_size);
+    DrawSymbol(p, face_center + QPoint(0, face_distance), Symbol::B, text_size);
+    DrawSymbol(p, face_center + QPoint(0, -face_distance), Symbol::X, text_size);
+    DrawSymbol(p, face_center + QPoint(-face_distance, 1), Symbol::Y, text_size);
 
     // D-pad constants
     const QPointF dpad_center = center + QPoint(-65, 12);
-    const int dpad_distance = 20;
-    const int dpad_radius = 10;
-    const float dpad_arrow_size = 1.1f;
+    constexpr int dpad_distance = 20;
+    constexpr int dpad_radius = 10;
+    constexpr float dpad_arrow_size = 1.1f;
 
     // D-pad buttons
     p.setPen(colors.outline);
@@ -516,7 +521,9 @@ void PlayerControlPreview::DrawDualController(QPainter& p, const QPointF center)
     DrawCircleButton(p, center + QPoint(50, 60), button_values[Home], 11);
     button_color = colors.button;
     DrawCircleButton(p, center + QPoint(50, 60), button_values[Home], 8.5f);
-    DrawHouseIcon(p, center + QPoint(50, 60), 4.2f);
+    p.setPen(colors.transparent);
+    p.setBrush(colors.font2);
+    DrawSymbol(p, center + QPoint(50, 60), Symbol::House, 4.2f);
 }
 
 void PlayerControlPreview::DrawHandheldController(QPainter& p, const QPointF center) {
@@ -539,9 +546,9 @@ void PlayerControlPreview::DrawHandheldController(QPainter& p, const QPointF cen
 
     // Face buttons constants
     const QPointF face_center = center + QPoint(171, -41);
-    const int face_distance = 12;
-    const int face_radius = 6;
-    const float text_size = 5.5f;
+    constexpr int face_distance = 12;
+    constexpr int face_radius = 6;
+    constexpr float text_size = 0.6f;
 
     // Face buttons
     p.setPen(colors.outline);
@@ -552,17 +559,18 @@ void PlayerControlPreview::DrawHandheldController(QPainter& p, const QPointF cen
     DrawCircleButton(p, face_center + QPoint(-face_distance, 0), button_values[Y], face_radius);
 
     // Face buttons text
-    p.setPen(colors.font);
-    DrawText(p, face_center + QPointF(face_distance + 0.2f, 0), text_size, QStringLiteral("A"));
-    DrawText(p, face_center + QPoint(0, face_distance), text_size, QStringLiteral("B"));
-    DrawText(p, face_center + QPoint(0, -face_distance), text_size, QStringLiteral("X"));
-    DrawText(p, face_center + QPointF(-face_distance + 0.2f, 0), text_size, QStringLiteral("Y"));
+    p.setPen(colors.transparent);
+    p.setBrush(colors.font);
+    DrawSymbol(p, face_center + QPoint(face_distance, 0), Symbol::A, text_size);
+    DrawSymbol(p, face_center + QPoint(0, face_distance), Symbol::B, text_size);
+    DrawSymbol(p, face_center + QPoint(0, -face_distance), Symbol::X, text_size);
+    DrawSymbol(p, face_center + QPoint(-face_distance, 1), Symbol::Y, text_size);
 
     // D-pad constants
     const QPointF dpad_center = center + QPoint(-171, 8);
-    const int dpad_distance = 12;
-    const int dpad_radius = 6;
-    const float dpad_arrow_size = 0.68f;
+    constexpr int dpad_distance = 12;
+    constexpr int dpad_radius = 6;
+    constexpr float dpad_arrow_size = 0.68f;
 
     // D-pad buttons
     p.setPen(colors.outline);
@@ -582,11 +590,12 @@ void PlayerControlPreview::DrawHandheldController(QPainter& p, const QPointF cen
 
     // ZL and ZR buttons
     p.setPen(colors.outline);
-    DrawCircleButton(p, center + QPoint(-175, -120), button_values[ZL], 15);
-    DrawCircleButton(p, center + QPoint(175, -120), button_values[ZR], 15);
-    p.setPen(colors.font);
-    DrawText(p, center + QPoint(-175, -120), 9, QStringLiteral("ZL"));
-    DrawText(p, center + QPoint(175, -120), 9, QStringLiteral("ZR"));
+    DrawTriggerButton(p, center + QPoint(-210, -130), Direction::Left, button_values[ZL]);
+    DrawTriggerButton(p, center + QPoint(210, -130), Direction::Right, button_values[ZR]);
+    p.setPen(colors.transparent);
+    p.setBrush(colors.font);
+    DrawSymbol(p, center + QPoint(-210, -130), Symbol::ZL, 1.5f);
+    DrawSymbol(p, center + QPoint(210, -130), Symbol::ZR, 1.5f);
 
     // Minus and Plus button
     p.setPen(colors.outline);
@@ -607,7 +616,9 @@ void PlayerControlPreview::DrawHandheldController(QPainter& p, const QPointF cen
     DrawCircleButton(p, center + QPoint(161, 37), button_values[Home], 7);
     button_color = colors.button;
     DrawCircleButton(p, center + QPoint(161, 37), button_values[Home], 5);
-    DrawHouseIcon(p, center + QPoint(161, 37), 2.75f);
+    p.setPen(colors.transparent);
+    p.setBrush(colors.font2);
+    DrawSymbol(p, center + QPoint(161, 37), Symbol::House, 2.75f);
 }
 
 void PlayerControlPreview::DrawProController(QPainter& p, const QPointF center) {
@@ -630,9 +641,9 @@ void PlayerControlPreview::DrawProController(QPainter& p, const QPointF center) 
 
     // Face buttons constants
     const QPointF face_center = center + QPoint(105, -56);
-    const int face_distance = 31;
-    const int face_radius = 15;
-    const int text_size = 13;
+    constexpr int face_distance = 31;
+    constexpr int face_radius = 15;
+    constexpr float text_size = 1.5f;
 
     // Face buttons
     p.setPen(colors.outline);
@@ -643,11 +654,12 @@ void PlayerControlPreview::DrawProController(QPainter& p, const QPointF center) 
     DrawCircleButton(p, face_center + QPoint(-face_distance, 0), button_values[Y], face_radius);
 
     // Face buttons text
-    p.setPen(colors.font);
-    DrawText(p, face_center + QPoint(face_distance, 0), text_size, QStringLiteral("A"));
-    DrawText(p, face_center + QPoint(0, face_distance), text_size, QStringLiteral("B"));
-    DrawText(p, face_center + QPoint(0, -face_distance), text_size, QStringLiteral("X"));
-    DrawText(p, face_center + QPoint(-face_distance, 1), text_size, QStringLiteral("Y"));
+    p.setPen(colors.transparent);
+    p.setBrush(colors.font);
+    DrawSymbol(p, face_center + QPoint(face_distance, 0), Symbol::A, text_size);
+    DrawSymbol(p, face_center + QPoint(0, face_distance), Symbol::B, text_size);
+    DrawSymbol(p, face_center + QPoint(0, -face_distance), Symbol::X, text_size);
+    DrawSymbol(p, face_center + QPoint(-face_distance, 1), Symbol::Y, text_size);
 
     // D-pad buttons
     const QPointF dpad_postion = center + QPoint(-61, 0);
@@ -655,23 +667,28 @@ void PlayerControlPreview::DrawProController(QPainter& p, const QPointF center) 
     DrawArrowButton(p, dpad_postion, Direction::Left, button_values[DLeft]);
     DrawArrowButton(p, dpad_postion, Direction::Right, button_values[DRight]);
     DrawArrowButton(p, dpad_postion, Direction::Down, button_values[DDown]);
+    DrawArrowButtonOutline(p, dpad_postion);
 
     // ZL and ZR buttons
     p.setPen(colors.outline);
-    DrawCircleButton(p, center + QPoint(-175, -120), button_values[ZL], 15);
-    DrawCircleButton(p, center + QPoint(175, -120), button_values[ZR], 15);
-    p.setPen(colors.font);
-    DrawText(p, center + QPoint(-175, -120), 9, QStringLiteral("ZL"));
-    DrawText(p, center + QPoint(175, -120), 9, QStringLiteral("ZR"));
+    DrawTriggerButton(p, center + QPoint(-210, -130), Direction::Left, button_values[ZL]);
+    DrawTriggerButton(p, center + QPoint(210, -130), Direction::Right, button_values[ZR]);
+    p.setPen(colors.transparent);
+    p.setBrush(colors.font);
+    DrawSymbol(p, center + QPoint(-210, -130), Symbol::ZL, 1.5f);
+    DrawSymbol(p, center + QPoint(210, -130), Symbol::ZR, 1.5f);
 
     // Minus and Plus buttons
     p.setPen(colors.outline);
     DrawCircleButton(p, center + QPoint(-50, -86), button_values[Minus], 9);
-    DrawCircleButton(p, center + QPoint(49, -86), button_values[Plus], 9);
+    DrawCircleButton(p, center + QPoint(50, -86), button_values[Plus], 9);
+
+    // Minus and Plus symbols
     p.setPen(colors.font2);
     p.setBrush(colors.font2);
-    DrawRectangle(p, center + QPoint(-50, -86), 8, 2);
-    DrawText(p, center + QPointF(49.5f, -86), 12, QStringLiteral("+"));
+    DrawRectangle(p, center + QPoint(-50, -86), 9, 1.5f);
+    DrawRectangle(p, center + QPoint(50, -86), 9, 1.5f);
+    DrawRectangle(p, center + QPoint(50, -86), 1.5f, 9);
 
     // Screenshot button
     p.setPen(colors.outline);
@@ -683,21 +700,96 @@ void PlayerControlPreview::DrawProController(QPainter& p, const QPointF center) 
     // Home Button
     p.setPen(colors.outline);
     button_color = colors.slider_button;
-    DrawCircleButton(p, center + QPoint(29, -56), button_values[Home], 9);
+    DrawCircleButton(p, center + QPoint(29, -56), button_values[Home], 10.0f);
     button_color = colors.button;
     DrawCircleButton(p, center + QPoint(29, -56), button_values[Home], 7.1f);
-    DrawHouseIcon(p, center + QPoint(29, -56), 3.9f);
+    p.setPen(colors.transparent);
+    p.setBrush(colors.font2);
+    DrawSymbol(p, center + QPoint(29, -56), Symbol::House, 3.9f);
 }
+
+constexpr std::array<float, 13 * 2> symbol_a = {
+    -1.085f, -5.2f,   1.085f, -5.2f,   5.085f, 5.0f,    2.785f,  5.0f,  1.785f,
+    2.65f,   -1.785f, 2.65f,  -2.785f, 5.0f,   -5.085f, 5.0f,    -1.4f, 1.0f,
+    0.0f,    -2.8f,   1.4f,   1.0f,    -1.4f,  1.0f,    -5.085f, 5.0f,
+};
+constexpr std::array<float, 134 * 2> symbol_b = {
+    -4.0f, 0.0f,  -4.0f, 0.0f,  -4.0f, -0.1f, -3.8f, -5.1f, 1.8f,  -5.0f, 2.3f,  -4.9f, 2.6f,
+    -4.8f, 2.8f,  -4.7f, 2.9f,  -4.6f, 3.1f,  -4.5f, 3.2f,  -4.4f, 3.4f,  -4.3f, 3.4f,  -4.2f,
+    3.5f,  -4.1f, 3.7f,  -4.0f, 3.7f,  -3.9f, 3.8f,  -3.8f, 3.8f,  -3.7f, 3.9f,  -3.6f, 3.9f,
+    -3.5f, 4.0f,  -3.4f, 4.0f,  -3.3f, 4.1f,  -3.1f, 4.1f,  -3.0f, 4.0f,  -2.0f, 4.0f,  -1.9f,
+    3.9f,  -1.7f, 3.9f,  -1.6f, 3.8f,  -1.5f, 3.8f,  -1.4f, 3.7f,  -1.3f, 3.7f,  -1.2f, 3.6f,
+    -1.1f, 3.6f,  -1.0f, 3.5f,  -0.9f, 3.3f,  -0.8f, 3.3f,  -0.7f, 3.2f,  -0.6f, 3.0f,  -0.5f,
+    2.9f,  -0.4f, 2.7f,  -0.3f, 2.9f,  -0.2f, 3.2f,  -0.1f, 3.3f,  0.0f,  3.5f,  0.1f,  3.6f,
+    0.2f,  3.8f,  0.3f,  3.9f,  0.4f,  4.0f,  0.6f,  4.1f,  0.7f,  4.3f,  0.8f,  4.3f,  0.9f,
+    4.4f,  1.0f,  4.4f,  1.1f,  4.5f,  1.3f,  4.5f,  1.4f,  4.6f,  1.6f,  4.6f,  1.7f,  4.5f,
+    2.8f,  4.5f,  2.9f,  4.4f,  3.1f,  4.4f,  3.2f,  4.3f,  3.4f,  4.3f,  3.5f,  4.2f,  3.6f,
+    4.2f,  3.7f,  4.1f,  3.8f,  4.1f,  3.9f,  4.0f,  4.0f,  3.9f,  4.2f,  3.8f,  4.3f,  3.6f,
+    4.4f,  3.6f,  4.5f,  3.4f,  4.6f,  3.3f,  4.7f,  3.1f,  4.8f,  2.8f,  4.9f,  2.6f,  5.0f,
+    2.1f,  5.1f,  -4.0f, 5.0f,  -4.0f, 4.9f,
+
+    -4.0f, 0.0f,  1.1f,  3.4f,  1.1f,  3.4f,  1.5f,  3.3f,  1.8f,  3.2f,  2.0f,  3.1f,  2.1f,
+    3.0f,  2.3f,  2.9f,  2.3f,  2.8f,  2.4f,  2.7f,  2.4f,  2.6f,  2.5f,  2.3f,  2.5f,  2.2f,
+    2.4f,  1.7f,  2.4f,  1.6f,  2.3f,  1.4f,  2.3f,  1.3f,  2.2f,  1.2f,  2.2f,  1.1f,  2.1f,
+    1.0f,  1.9f,  0.9f,  1.6f,  0.8f,  1.4f,  0.7f,  -1.9f, 0.6f,  -1.9f, 0.7f,  -1.8f, 3.4f,
+    1.1f,  3.4f,  -4.0f, 0.0f,
+
+    0.3f,  -1.1f, 0.3f,  -1.1f, 1.3f,  -1.2f, 1.5f,  -1.3f, 1.8f,  -1.4f, 1.8f,  -1.5f, 1.9f,
+    -1.6f, 2.0f,  -1.8f, 2.0f,  -1.9f, 2.1f,  -2.0f, 2.1f,  -2.1f, 2.0f,  -2.7f, 2.0f,  -2.8f,
+    1.9f,  -2.9f, 1.9f,  -3.0f, 1.8f,  -3.1f, 1.6f,  -3.2f, 1.6f,  -3.3f, 1.3f,  -3.4f, -1.9f,
+    -3.3f, -1.9f, -3.2f, -1.8f, -1.0f, 0.2f,  -1.1f, 0.3f,  -1.1f, -4.0f, 0.0f,
+};
+
+constexpr std::array<float, 9 * 2> symbol_y = {
+    -4.79f, -4.9f, -2.44f, -4.9f, 0.0f,  -0.9f,  2.44f, -4.9f,  4.79f,
+    -4.9f,  1.05f, 1.0f,   1.05f, 5.31f, -1.05f, 5.31f, -1.05f, 1.0f,
+
+};
+
+constexpr std::array<float, 12 * 2> symbol_x = {
+    -4.4f, -5.0f, -2.0f, -5.0f, 0.0f, -1.7f, 2.0f,  -5.0f, 4.4f,  -5.0f, 1.2f,  0.0f,
+    4.4f,  5.0f,  2.0f,  5.0f,  0.0f, 1.7f,  -2.0f, 5.0f,  -4.4f, 5.0f,  -1.2f, 0.0f,
+
+};
+
+constexpr std::array<float, 18 * 2> symbol_zl = {
+    -2.6f, -2.13f, -5.6f, -2.13f, -5.6f, -3.23f, -0.8f, -3.23f, -0.8f, -2.13f, -4.4f, 2.12f,
+    -0.7f, 2.12f,  -0.7f, 3.22f,  -6.0f, 3.22f,  -6.0f, 2.12f,  2.4f,  -3.23f, 2.4f,  2.1f,
+    5.43f, 2.1f,   5.43f, 3.22f,  0.98f, 3.22f,  0.98f, -3.23f, 2.4f,  -3.23f, -6.0f, 2.12f,
+};
+
+constexpr std::array<float, 110 * 2> symbol_zr = {
+    -2.6f, -2.13f, -5.6f, -2.13f, -5.6f, -3.23f, -0.8f, -3.23f, -0.8f, -2.13f, -4.4f, 2.12f, -0.7f,
+    2.12f, -0.7f,  3.22f, -6.0f,  3.22f, -6.0f,  2.12f,
+
+    1.0f,  0.0f,   1.0f,  -0.1f,  1.1f,  -3.3f,  4.3f,  -3.2f,  5.1f,  -3.1f,  5.4f,  -3.0f, 5.6f,
+    -2.9f, 5.7f,   -2.8f, 5.9f,   -2.7f, 5.9f,   -2.6f, 6.0f,   -2.5f, 6.1f,   -2.3f, 6.2f,  -2.2f,
+    6.2f,  -2.1f,  6.3f,  -2.0f,  6.3f,  -1.9f,  6.2f,  -0.8f,  6.2f,  -0.7f,  6.1f,  -0.6f, 6.1f,
+    -0.5f, 6.0f,   -0.4f, 6.0f,   -0.3f, 5.9f,   -0.2f, 5.7f,   -0.1f, 5.7f,   0.0f,  5.6f,  0.1f,
+    5.4f,  0.2f,   5.1f,  0.3f,   4.7f,  0.4f,   4.7f,  0.5f,   4.9f,  0.6f,   5.0f,  0.7f,  5.2f,
+    0.8f,  5.2f,   0.9f,  5.3f,   1.0f,  5.5f,   1.1f,  5.5f,   1.2f,  5.6f,   1.3f,  5.7f,  1.5f,
+    5.8f,  1.6f,   5.9f,  1.8f,   6.0f,  1.9f,   6.1f,  2.1f,   6.2f,  2.2f,   6.2f,  2.3f,  6.3f,
+    2.4f,  6.4f,   2.6f,  6.5f,   2.7f,  6.6f,   2.9f,  6.7f,   3.0f,  6.7f,   3.1f,  6.8f,  3.2f,
+    6.8f,  3.3f,   5.3f,  3.2f,   5.2f,  3.1f,   5.2f,  3.0f,   5.1f,  2.9f,   5.0f,  2.7f,  4.9f,
+    2.6f,  4.8f,   2.4f,  4.7f,   2.3f,  4.6f,   2.1f,  4.5f,   2.0f,  4.4f,   1.8f,  4.3f,  1.7f,
+    4.1f,  1.4f,   4.0f,  1.3f,   3.9f,  1.1f,   3.8f,  1.0f,   3.6f,  0.9f,   3.6f,  0.8f,  3.5f,
+    0.7f,  3.3f,   0.6f,  2.9f,   0.5f,  2.3f,   0.6f,  2.3f,   0.7f,  2.2f,   3.3f,  1.0f,  3.2f,
+    1.0f,  3.1f,   1.0f,  0.0f,
+
+    4.2f,  -0.5f,  4.2f,  -0.5f,  4.4f,  -0.6f,  4.7f,  -0.7f,  4.8f,  -0.8f,  4.9f,  -1.0f, 5.0f,
+    -1.1f, 5.0f,   -1.2f, 4.9f,   -1.7f, 4.9f,   -1.8f, 4.8f,   -1.9f, 4.8f,   -2.0f, 4.6f,  -2.1f,
+    4.3f,  -2.2f,  2.3f,  -2.1f,  2.3f,  -2.0f,  2.4f,  -0.5f,  4.2f,  -0.5f,  1.0f,  0.0f,  -6.0f,
+    2.12f,
+};
 
 constexpr std::array<float, 12 * 2> house = {
     -1.3f, 0.0f,  -0.93f, 0.0f, -0.93f, 1.15f, 0.93f,  1.15f, 0.93f, 0.0f, 1.3f,  0.0f,
     0.0f,  -1.2f, -1.3f,  0.0f, -0.43f, 0.0f,  -0.43f, .73f,  0.43f, .73f, 0.43f, 0.0f,
 };
 
-constexpr std::array<float, 15 * 2> up_arrow_button = {
-    -8.6f, -30.0f, -9.0f, -29.8f, -9.3f, -29.5f, -9.5f, -29.1f, -9.5f, -28.7f,
-    -9.1f, -9.1f,  -8.8f, -8.8f,  0.3f,  -0.3f,  0.6f,  -0.6f,  9.4f,  -9.8f,
-    9.4f,  -10.2f, 8.9f,  -29.8f, 8.5f,  -30.0f, 8.1f,  -30.1f, 7.7f,  -30.1f,
+constexpr std::array<float, 11 * 2> up_arrow_button = {
+    9.1f,   -9.1f, 9.1f,   -30.0f, 8.1f,   -30.1f, 7.7f,   -30.1f, -8.6f, -30.0f, -9.0f,
+    -29.8f, -9.3f, -29.5f, -9.5f,  -29.1f, -9.1f,  -28.7f, -9.1f,  -9.1f, 0.0f,   0.6f,
 };
 
 constexpr std::array<float, 3 * 2> up_arrow_symbol = {
@@ -708,6 +800,20 @@ constexpr std::array<float, 13 * 2> up_arrow = {
     9.4f,   -9.8f,  9.4f,   -10.2f, 8.9f,   -29.8f, 8.5f,   -30.0f, 8.1f,
     -30.1f, 7.7f,   -30.1f, -8.6f,  -30.0f, -9.0f,  -29.8f, -9.3f,  -29.5f,
     -9.5f,  -29.1f, -9.5f,  -28.7f, -9.1f,  -9.1f,  -8.8f,  -8.8f,
+};
+
+constexpr std::array<float, 64 * 2> trigger_button = {
+    5.5f,   -12.6f, 5.8f,   -12.6f, 6.7f,   -12.5f, 8.1f,   -12.3f, 8.6f,   -12.2f, 9.2f,   -12.0f,
+    9.5f,   -11.9f, 9.9f,   -11.8f, 10.6f,  -11.5f, 11.0f,  -11.3f, 11.2f,  -11.2f, 11.4f,  -11.1f,
+    11.8f,  -10.9f, 12.0f,  -10.8f, 12.2f,  -10.7f, 12.4f,  -10.5f, 12.6f,  -10.4f, 12.8f,  -10.3f,
+    13.6f,  -9.7f,  13.8f,  -9.6f,  13.9f,  -9.4f,  14.1f,  -9.3f,  14.8f,  -8.6f,  15.0f,  -8.5f,
+    15.1f,  -8.3f,  15.6f,  -7.8f,  15.7f,  -7.6f,  16.1f,  -7.0f,  16.3f,  -6.8f,  16.4f,  -6.6f,
+    16.5f,  -6.4f,  16.8f,  -6.0f,  16.9f,  -5.8f,  17.0f,  -5.6f,  17.1f,  -5.4f,  17.2f,  -5.2f,
+    17.3f,  -5.0f,  17.4f,  -4.8f,  17.5f,  -4.6f,  17.6f,  -4.4f,  17.7f,  -4.1f,  17.8f,  -3.9f,
+    17.9f,  -3.5f,  18.0f,  -3.3f,  18.1f,  -3.0f,  18.2f,  -2.6f,  18.2f,  -2.3f,  18.3f,  -2.1f,
+    18.3f,  -1.9f,  18.4f,  -1.4f,  18.5f,  -1.2f,  18.6f,  -0.3f,  18.6f,  0.0f,   18.3f,  13.9f,
+    -17.0f, 13.8f,  -17.0f, 13.6f,  -16.4f, -11.4f, -16.3f, -11.6f, -16.1f, -11.8f, -15.7f, -12.0f,
+    -15.5f, -12.1f, -15.1f, -12.3f, -14.6f, -12.4f, -13.4f, -12.5f,
 };
 
 constexpr std::array<float, 36 * 2> pro_left_trigger = {
@@ -1660,9 +1766,29 @@ void PlayerControlPreview::DrawCircleButton(QPainter& p, const QPointF center, b
     }
     p.drawEllipse(center, button_size, button_size);
 }
+
+void PlayerControlPreview::DrawArrowButtonOutline(QPainter& p, const QPointF center) {
+    const std::size_t arrow_points = up_arrow_button.size() / 2;
+    std::array<QPointF, (arrow_points - 1) * 4> arrow_button_outline;
+
+    for (std::size_t point = 0; point < arrow_points - 1; ++point) {
+        arrow_button_outline[point] =
+            center + QPointF(up_arrow_button[point * 2], up_arrow_button[point * 2 + 1]);
+        arrow_button_outline[(arrow_points - 1) * 2 - point - 1] =
+            center + QPointF(up_arrow_button[point * 2 + 1], up_arrow_button[point * 2]);
+        arrow_button_outline[(arrow_points - 1) * 2 + point] =
+            center + QPointF(-up_arrow_button[point * 2], -up_arrow_button[point * 2 + 1]);
+        arrow_button_outline[(arrow_points - 1) * 4 - point - 1] =
+            center + QPointF(-up_arrow_button[point * 2 + 1], -up_arrow_button[point * 2]);
+    }
+    // Draw arrow button outline
+    p.setPen(colors.outline);
+    p.setBrush(colors.transparent);
+    DrawPolygon(p, arrow_button_outline);
+}
+
 void PlayerControlPreview::DrawArrowButton(QPainter& p, const QPointF center,
                                            const Direction direction, bool pressed) {
-
     std::array<QPointF, up_arrow_button.size() / 2> arrow_button;
     QPoint offset;
 
@@ -1671,23 +1797,70 @@ void PlayerControlPreview::DrawArrowButton(QPainter& p, const QPointF center,
         case Direction::Up:
             arrow_button[point] =
                 center + QPointF(up_arrow_button[point * 2], up_arrow_button[point * 2 + 1]);
-            offset = QPoint(0, -20);
             break;
         case Direction::Left:
             arrow_button[point] =
                 center + QPointF(up_arrow_button[point * 2 + 1], up_arrow_button[point * 2]);
-            offset = QPoint(-20, 0);
             break;
         case Direction::Right:
             arrow_button[point] =
                 center + QPointF(-up_arrow_button[point * 2 + 1], up_arrow_button[point * 2]);
-            offset = QPoint(20, 0);
             break;
         case Direction::Down:
             arrow_button[point] =
                 center + QPointF(up_arrow_button[point * 2], -up_arrow_button[point * 2 + 1]);
-            offset = QPoint(0, 20);
             break;
+        case Direction::None:
+            break;
+        }
+    }
+
+    // Draw arrow button
+    p.setPen(pressed ? colors.highlight : colors.button);
+    p.setBrush(pressed ? colors.highlight : colors.button);
+    DrawPolygon(p, arrow_button);
+
+    switch (direction) {
+    case Direction::Up:
+        offset = QPoint(0, -20);
+        break;
+    case Direction::Left:
+        offset = QPoint(-20, 0);
+        break;
+    case Direction::Right:
+        offset = QPoint(20, 0);
+        break;
+    case Direction::Down:
+        offset = QPoint(0, 20);
+        break;
+    case Direction::None:
+        offset = QPoint(0, 0);
+        break;
+    }
+
+    // Draw arrow icon
+    p.setPen(colors.font2);
+    p.setBrush(colors.font2);
+    DrawArrow(p, center + offset, direction, 1.0f);
+}
+
+void PlayerControlPreview::DrawTriggerButton(QPainter& p, const QPointF center,
+                                             const Direction direction, bool pressed) {
+    std::array<QPointF, trigger_button.size() / 2> qtrigger_button;
+    QPoint offset;
+
+    for (std::size_t point = 0; point < trigger_button.size() / 2; ++point) {
+        switch (direction) {
+        case Direction::Left:
+            qtrigger_button[point] =
+                center + QPointF(-trigger_button[point * 2], trigger_button[point * 2 + 1]);
+            break;
+        case Direction::Right:
+            qtrigger_button[point] =
+                center + QPointF(trigger_button[point * 2], trigger_button[point * 2 + 1]);
+            break;
+        case Direction::Up:
+        case Direction::Down:
         case Direction::None:
             break;
         }
@@ -1696,25 +1869,69 @@ void PlayerControlPreview::DrawArrowButton(QPainter& p, const QPointF center,
     // Draw arrow button
     p.setPen(colors.outline);
     p.setBrush(pressed ? colors.highlight : colors.button);
-    DrawPolygon(p, arrow_button);
-
-    // Draw arrow icon
-    p.setPen(colors.font2);
-    p.setBrush(colors.font2);
-    DrawArrow(p, center + offset, direction, 1.0f);
+    DrawPolygon(p, qtrigger_button);
 }
 
-void PlayerControlPreview::DrawHouseIcon(QPainter& p, const QPointF center, float icon_size) {
+void PlayerControlPreview::DrawSymbol(QPainter& p, const QPointF center, Symbol symbol,
+                                      float icon_size) {
     std::array<QPointF, house.size() / 2> house_icon;
-
-    for (std::size_t point = 0; point < house.size() / 2; ++point) {
-        house_icon[point] = center + QPointF(house[point * 2] * icon_size,
-                                             (house[point * 2 + 1] - 0.025f) * icon_size);
+    std::array<QPointF, symbol_a.size() / 2> a_icon;
+    std::array<QPointF, symbol_b.size() / 2> b_icon;
+    std::array<QPointF, symbol_x.size() / 2> x_icon;
+    std::array<QPointF, symbol_y.size() / 2> y_icon;
+    std::array<QPointF, symbol_zl.size() / 2> zl_icon;
+    std::array<QPointF, symbol_zr.size() / 2> zr_icon;
+    switch (symbol) {
+    case Symbol::House:
+        for (std::size_t point = 0; point < house.size() / 2; ++point) {
+            house_icon[point] = center + QPointF(house[point * 2] * icon_size,
+                                                 (house[point * 2 + 1] - 0.025f) * icon_size);
+        }
+        p.drawPolygon(house_icon.data(), static_cast<int>(house_icon.size()));
+        break;
+    case Symbol::A:
+        for (std::size_t point = 0; point < symbol_a.size() / 2; ++point) {
+            a_icon[point] = center + QPointF(symbol_a[point * 2] * icon_size,
+                                             symbol_a[point * 2 + 1] * icon_size);
+        }
+        p.drawPolygon(a_icon.data(), static_cast<int>(a_icon.size()));
+        break;
+    case Symbol::B:
+        for (std::size_t point = 0; point < symbol_b.size() / 2; ++point) {
+            b_icon[point] = center + QPointF(symbol_b[point * 2] * icon_size,
+                                             symbol_b[point * 2 + 1] * icon_size);
+        }
+        p.drawPolygon(b_icon.data(), static_cast<int>(b_icon.size()));
+        break;
+    case Symbol::X:
+        for (std::size_t point = 0; point < symbol_x.size() / 2; ++point) {
+            x_icon[point] = center + QPointF(symbol_x[point * 2] * icon_size,
+                                             symbol_x[point * 2 + 1] * icon_size);
+        }
+        p.drawPolygon(x_icon.data(), static_cast<int>(x_icon.size()));
+        break;
+    case Symbol::Y:
+        for (std::size_t point = 0; point < symbol_y.size() / 2; ++point) {
+            y_icon[point] = center + QPointF(symbol_y[point * 2] * icon_size,
+                                             (symbol_y[point * 2 + 1] - 1.0f) * icon_size);
+        }
+        p.drawPolygon(y_icon.data(), static_cast<int>(y_icon.size()));
+        break;
+    case Symbol::ZL:
+        for (std::size_t point = 0; point < symbol_zl.size() / 2; ++point) {
+            zl_icon[point] = center + QPointF(symbol_zl[point * 2] * icon_size,
+                                              symbol_zl[point * 2 + 1] * icon_size);
+        }
+        p.drawPolygon(zl_icon.data(), static_cast<int>(zl_icon.size()));
+        break;
+    case Symbol::ZR:
+        for (std::size_t point = 0; point < symbol_zr.size() / 2; ++point) {
+            zr_icon[point] = center + QPointF(symbol_zr[point * 2] * icon_size,
+                                              symbol_zr[point * 2 + 1] * icon_size);
+        }
+        p.drawPolygon(zr_icon.data(), static_cast<int>(zr_icon.size()));
+        break;
     }
-
-    p.setPen(colors.transparent);
-    p.setBrush(colors.font2);
-    p.drawPolygon(house_icon.data(), static_cast<int>(house_icon.size()));
 }
 
 void PlayerControlPreview::DrawArrow(QPainter& p, const QPointF center, const Direction direction,

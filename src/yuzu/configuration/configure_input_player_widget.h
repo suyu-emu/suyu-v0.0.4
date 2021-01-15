@@ -43,6 +43,16 @@ private:
         Left,
     };
 
+    enum class Symbol {
+        House,
+        A,
+        B,
+        X,
+        Y,
+        ZL,
+        ZR,
+    };
+
     struct AxisValue {
         QPointF value{};
         QPointF raw_value{};
@@ -120,10 +130,12 @@ private:
                          Direction direction = Direction::None, float radius = 2);
     void DrawMinusButton(QPainter& p, QPointF center, bool pressed, int button_size);
     void DrawPlusButton(QPainter& p, QPointF center, bool pressed, int button_size);
+    void DrawArrowButtonOutline(QPainter& p, const QPointF center);
     void DrawArrowButton(QPainter& p, QPointF center, Direction direction, bool pressed);
+    void DrawTriggerButton(QPainter& p, QPointF center, Direction direction, bool pressed);
 
     // Draw icon functions
-    void DrawHouseIcon(QPainter& p, QPointF center, float icon_size);
+    void DrawSymbol(QPainter& p, QPointF center, Symbol symbol, float icon_size);
     void DrawArrow(QPainter& p, QPointF center, Direction direction, float size);
 
     // Draw primitive types
