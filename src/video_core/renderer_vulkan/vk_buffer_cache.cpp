@@ -34,10 +34,6 @@ constexpr VkAccessFlags UPLOAD_ACCESS_BARRIERS =
 constexpr VkAccessFlags TRANSFORM_FEEDBACK_WRITE_ACCESS =
     VK_ACCESS_TRANSFORM_FEEDBACK_WRITE_BIT_EXT | VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_WRITE_BIT_EXT;
 
-std::unique_ptr<VKStreamBuffer> CreateStreamBuffer(const Device& device, VKScheduler& scheduler) {
-    return std::make_unique<VKStreamBuffer>(device, scheduler);
-}
-
 } // Anonymous namespace
 
 Buffer::Buffer(const Device& device_, VKMemoryManager& memory_manager, VKScheduler& scheduler_,
