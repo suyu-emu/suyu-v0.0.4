@@ -645,6 +645,7 @@ else()
         -Werror=implicit-fallthrough
         -Werror=sign-compare
 
+        $<$<CXX_COMPILER_ID:GNU>:-Werror=class-memaccess>
         $<$<CXX_COMPILER_ID:GNU>:-Werror=unused-but-set-parameter>
         $<$<CXX_COMPILER_ID:GNU>:-Werror=unused-but-set-variable>
 
