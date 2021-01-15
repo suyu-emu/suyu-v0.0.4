@@ -536,7 +536,7 @@ public:
             Equation equation_a;
             Factor factor_source_a;
             Factor factor_dest_a;
-            INSERT_UNION_PADDING_WORDS(1);
+            INSERT_PADDING_WORDS_NOINIT(1);
         };
 
         enum class TessellationPrimitive : u32 {
@@ -608,7 +608,7 @@ public:
             };
             u32 layer_stride;
             u32 base_layer;
-            INSERT_UNION_PADDING_WORDS(7);
+            INSERT_PADDING_WORDS_NOINIT(7);
 
             GPUVAddr Address() const {
                 return static_cast<GPUVAddr>((static_cast<GPUVAddr>(address_high) << 32) |
@@ -640,7 +640,7 @@ public:
                 BitField<8, 3, ViewportSwizzle> z;
                 BitField<12, 3, ViewportSwizzle> w;
             } swizzle;
-            INSERT_UNION_PADDING_WORDS(1);
+            INSERT_PADDING_WORDS_NOINIT(1);
 
             Common::Rectangle<f32> GetRect() const {
                 return {
@@ -700,7 +700,7 @@ public:
             u32 address_low;
             s32 buffer_size;
             s32 buffer_offset;
-            INSERT_UNION_PADDING_WORDS(3);
+            INSERT_PADDING_WORDS_NOINIT(3);
 
             GPUVAddr Address() const {
                 return static_cast<GPUVAddr>((static_cast<GPUVAddr>(address_high) << 32) |
@@ -713,7 +713,7 @@ public:
             u32 stream;
             u32 varying_count;
             u32 stride;
-            INSERT_UNION_PADDING_WORDS(1);
+            INSERT_PADDING_WORDS_NOINIT(1);
         };
         static_assert(sizeof(TransformFeedbackLayout) == 16);
 
@@ -731,7 +731,7 @@ public:
 
         union {
             struct {
-                INSERT_UNION_PADDING_WORDS(0x44);
+                INSERT_PADDING_WORDS_NOINIT(0x44);
 
                 u32 wait_for_idle;
 
@@ -744,7 +744,7 @@ public:
 
                 ShadowRamControl shadow_ram_control;
 
-                INSERT_UNION_PADDING_WORDS(0x16);
+                INSERT_PADDING_WORDS_NOINIT(0x16);
 
                 Upload::Registers upload;
                 struct {
@@ -755,11 +755,11 @@ public:
 
                 u32 data_upload;
 
-                INSERT_UNION_PADDING_WORDS(0x16);
+                INSERT_PADDING_WORDS_NOINIT(0x16);
 
                 u32 force_early_fragment_tests;
 
-                INSERT_UNION_PADDING_WORDS(0x2D);
+                INSERT_PADDING_WORDS_NOINIT(0x2D);
 
                 struct {
                     union {
@@ -769,7 +769,7 @@ public:
                     };
                 } sync_info;
 
-                INSERT_UNION_PADDING_WORDS(0x15);
+                INSERT_PADDING_WORDS_NOINIT(0x15);
 
                 union {
                     BitField<0, 2, TessellationPrimitive> prim;
@@ -781,21 +781,21 @@ public:
                 std::array<f32, 4> tess_level_outer;
                 std::array<f32, 2> tess_level_inner;
 
-                INSERT_UNION_PADDING_WORDS(0x10);
+                INSERT_PADDING_WORDS_NOINIT(0x10);
 
                 u32 rasterize_enable;
 
                 std::array<TransformFeedbackBinding, NumTransformFeedbackBuffers> tfb_bindings;
 
-                INSERT_UNION_PADDING_WORDS(0xC0);
+                INSERT_PADDING_WORDS_NOINIT(0xC0);
 
                 std::array<TransformFeedbackLayout, NumTransformFeedbackBuffers> tfb_layouts;
 
-                INSERT_UNION_PADDING_WORDS(0x1);
+                INSERT_PADDING_WORDS_NOINIT(0x1);
 
                 u32 tfb_enabled;
 
-                INSERT_UNION_PADDING_WORDS(0x2E);
+                INSERT_PADDING_WORDS_NOINIT(0x2E);
 
                 std::array<RenderTargetConfig, NumRenderTargets> rt;
 
@@ -803,7 +803,7 @@ public:
 
                 std::array<ViewPort, NumViewports> viewports;
 
-                INSERT_UNION_PADDING_WORDS(0x1D);
+                INSERT_PADDING_WORDS_NOINIT(0x1D);
 
                 struct {
                     u32 first;
@@ -815,16 +815,16 @@ public:
                 float clear_color[4];
                 float clear_depth;
 
-                INSERT_UNION_PADDING_WORDS(0x3);
+                INSERT_PADDING_WORDS_NOINIT(0x3);
 
                 s32 clear_stencil;
 
-                INSERT_UNION_PADDING_WORDS(0x2);
+                INSERT_PADDING_WORDS_NOINIT(0x2);
 
                 PolygonMode polygon_mode_front;
                 PolygonMode polygon_mode_back;
 
-                INSERT_UNION_PADDING_WORDS(0x3);
+                INSERT_PADDING_WORDS_NOINIT(0x3);
 
                 u32 polygon_offset_point_enable;
                 u32 polygon_offset_line_enable;
@@ -832,47 +832,47 @@ public:
 
                 u32 patch_vertices;
 
-                INSERT_UNION_PADDING_WORDS(0x4);
+                INSERT_PADDING_WORDS_NOINIT(0x4);
 
                 u32 fragment_barrier;
 
-                INSERT_UNION_PADDING_WORDS(0x7);
+                INSERT_PADDING_WORDS_NOINIT(0x7);
 
                 std::array<ScissorTest, NumViewports> scissor_test;
 
-                INSERT_UNION_PADDING_WORDS(0x15);
+                INSERT_PADDING_WORDS_NOINIT(0x15);
 
                 s32 stencil_back_func_ref;
                 u32 stencil_back_mask;
                 u32 stencil_back_func_mask;
 
-                INSERT_UNION_PADDING_WORDS(0x5);
+                INSERT_PADDING_WORDS_NOINIT(0x5);
 
                 u32 invalidate_texture_data_cache;
 
-                INSERT_UNION_PADDING_WORDS(0x1);
+                INSERT_PADDING_WORDS_NOINIT(0x1);
 
                 u32 tiled_cache_barrier;
 
-                INSERT_UNION_PADDING_WORDS(0x4);
+                INSERT_PADDING_WORDS_NOINIT(0x4);
 
                 u32 color_mask_common;
 
-                INSERT_UNION_PADDING_WORDS(0x2);
+                INSERT_PADDING_WORDS_NOINIT(0x2);
 
                 f32 depth_bounds[2];
 
-                INSERT_UNION_PADDING_WORDS(0x2);
+                INSERT_PADDING_WORDS_NOINIT(0x2);
 
                 u32 rt_separate_frag_data;
 
-                INSERT_UNION_PADDING_WORDS(0x1);
+                INSERT_PADDING_WORDS_NOINIT(0x1);
 
                 u32 multisample_raster_enable;
                 u32 multisample_raster_samples;
                 std::array<u32, 4> multisample_sample_mask;
 
-                INSERT_UNION_PADDING_WORDS(0x5);
+                INSERT_PADDING_WORDS_NOINIT(0x5);
 
                 struct {
                     u32 address_high;
@@ -898,7 +898,7 @@ public:
                     };
                 } render_area;
 
-                INSERT_UNION_PADDING_WORDS(0x3F);
+                INSERT_PADDING_WORDS_NOINIT(0x3F);
 
                 union {
                     BitField<0, 4, u32> stencil;
@@ -907,24 +907,24 @@ public:
                     BitField<12, 4, u32> viewport;
                 } clear_flags;
 
-                INSERT_UNION_PADDING_WORDS(0x10);
+                INSERT_PADDING_WORDS_NOINIT(0x10);
 
                 u32 fill_rectangle;
 
-                INSERT_UNION_PADDING_WORDS(0x8);
+                INSERT_PADDING_WORDS_NOINIT(0x8);
 
                 std::array<VertexAttribute, NumVertexAttributes> vertex_attrib_format;
 
                 std::array<MsaaSampleLocation, 4> multisample_sample_locations;
 
-                INSERT_UNION_PADDING_WORDS(0x2);
+                INSERT_PADDING_WORDS_NOINIT(0x2);
 
                 union {
                     BitField<0, 1, u32> enable;
                     BitField<4, 3, u32> target;
                 } multisample_coverage_to_color;
 
-                INSERT_UNION_PADDING_WORDS(0x8);
+                INSERT_PADDING_WORDS_NOINIT(0x8);
 
                 struct {
                     union {
@@ -947,7 +947,7 @@ public:
                     }
                 } rt_control;
 
-                INSERT_UNION_PADDING_WORDS(0x2);
+                INSERT_PADDING_WORDS_NOINIT(0x2);
 
                 u32 zeta_width;
                 u32 zeta_height;
@@ -958,11 +958,11 @@ public:
 
                 SamplerIndex sampler_index;
 
-                INSERT_UNION_PADDING_WORDS(0x25);
+                INSERT_PADDING_WORDS_NOINIT(0x25);
 
                 u32 depth_test_enable;
 
-                INSERT_UNION_PADDING_WORDS(0x5);
+                INSERT_PADDING_WORDS_NOINIT(0x5);
 
                 u32 independent_blend_enable;
 
@@ -970,7 +970,7 @@ public:
 
                 u32 alpha_test_enabled;
 
-                INSERT_UNION_PADDING_WORDS(0x6);
+                INSERT_PADDING_WORDS_NOINIT(0x6);
 
                 u32 d3d_cull_mode;
 
@@ -985,7 +985,7 @@ public:
                     float a;
                 } blend_color;
 
-                INSERT_UNION_PADDING_WORDS(0x4);
+                INSERT_PADDING_WORDS_NOINIT(0x4);
 
                 struct {
                     u32 separate_alpha;
@@ -994,7 +994,7 @@ public:
                     Blend::Factor factor_dest_rgb;
                     Blend::Equation equation_a;
                     Blend::Factor factor_source_a;
-                    INSERT_UNION_PADDING_WORDS(1);
+                    INSERT_PADDING_WORDS_NOINIT(1);
                     Blend::Factor factor_dest_a;
 
                     u32 enable_common;
@@ -1010,7 +1010,7 @@ public:
                 u32 stencil_front_func_mask;
                 u32 stencil_front_mask;
 
-                INSERT_UNION_PADDING_WORDS(0x2);
+                INSERT_PADDING_WORDS_NOINIT(0x2);
 
                 u32 frag_color_clamp;
 
@@ -1022,17 +1022,17 @@ public:
                 float line_width_smooth;
                 float line_width_aliased;
 
-                INSERT_UNION_PADDING_WORDS(0x1B);
+                INSERT_PADDING_WORDS_NOINIT(0x1B);
 
                 u32 invalidate_sampler_cache_no_wfi;
                 u32 invalidate_texture_header_cache_no_wfi;
 
-                INSERT_UNION_PADDING_WORDS(0x2);
+                INSERT_PADDING_WORDS_NOINIT(0x2);
 
                 u32 vb_element_base;
                 u32 vb_base_instance;
 
-                INSERT_UNION_PADDING_WORDS(0x35);
+                INSERT_PADDING_WORDS_NOINIT(0x35);
 
                 u32 clip_distance_enabled;
 
@@ -1040,11 +1040,11 @@ public:
 
                 float point_size;
 
-                INSERT_UNION_PADDING_WORDS(0x1);
+                INSERT_PADDING_WORDS_NOINIT(0x1);
 
                 u32 point_sprite_enable;
 
-                INSERT_UNION_PADDING_WORDS(0x3);
+                INSERT_PADDING_WORDS_NOINIT(0x3);
 
                 CounterReset counter_reset;
 
@@ -1057,7 +1057,7 @@ public:
                     BitField<4, 1, u32> alpha_to_one;
                 } multisample_control;
 
-                INSERT_UNION_PADDING_WORDS(0x4);
+                INSERT_PADDING_WORDS_NOINIT(0x4);
 
                 struct {
                     u32 address_high;
@@ -1081,7 +1081,7 @@ public:
                     }
                 } tsc;
 
-                INSERT_UNION_PADDING_WORDS(0x1);
+                INSERT_PADDING_WORDS_NOINIT(0x1);
 
                 float polygon_offset_factor;
 
@@ -1098,7 +1098,7 @@ public:
                     }
                 } tic;
 
-                INSERT_UNION_PADDING_WORDS(0x5);
+                INSERT_PADDING_WORDS_NOINIT(0x5);
 
                 u32 stencil_two_side_enable;
                 StencilOp stencil_back_op_fail;
@@ -1106,17 +1106,17 @@ public:
                 StencilOp stencil_back_op_zpass;
                 ComparisonOp stencil_back_func_func;
 
-                INSERT_UNION_PADDING_WORDS(0x4);
+                INSERT_PADDING_WORDS_NOINIT(0x4);
 
                 u32 framebuffer_srgb;
 
                 float polygon_offset_units;
 
-                INSERT_UNION_PADDING_WORDS(0x4);
+                INSERT_PADDING_WORDS_NOINIT(0x4);
 
                 Tegra::Texture::MsaaMode multisample_mode;
 
-                INSERT_UNION_PADDING_WORDS(0xC);
+                INSERT_PADDING_WORDS_NOINIT(0xC);
 
                 union {
                     BitField<2, 1, u32> coord_origin;
@@ -1132,7 +1132,7 @@ public:
                             (static_cast<GPUVAddr>(code_address_high) << 32) | code_address_low);
                     }
                 } code_address;
-                INSERT_UNION_PADDING_WORDS(1);
+                INSERT_PADDING_WORDS_NOINIT(1);
 
                 struct {
                     u32 vertex_end_gl;
@@ -1144,14 +1144,14 @@ public:
                     };
                 } draw;
 
-                INSERT_UNION_PADDING_WORDS(0xA);
+                INSERT_PADDING_WORDS_NOINIT(0xA);
 
                 struct {
                     u32 enabled;
                     u32 index;
                 } primitive_restart;
 
-                INSERT_UNION_PADDING_WORDS(0x5F);
+                INSERT_PADDING_WORDS_NOINIT(0x5F);
 
                 struct {
                     u32 start_addr_high;
@@ -1192,9 +1192,9 @@ public:
                     }
                 } index_array;
 
-                INSERT_UNION_PADDING_WORDS(0x7);
+                INSERT_PADDING_WORDS_NOINIT(0x7);
 
-                INSERT_UNION_PADDING_WORDS(0x1F);
+                INSERT_PADDING_WORDS_NOINIT(0x1F);
 
                 float polygon_offset_clamp;
 
@@ -1208,14 +1208,14 @@ public:
                     }
                 } instanced_arrays;
 
-                INSERT_UNION_PADDING_WORDS(0x4);
+                INSERT_PADDING_WORDS_NOINIT(0x4);
 
                 union {
                     BitField<0, 1, u32> enable;
                     BitField<4, 8, u32> unk4;
                 } vp_point_size;
 
-                INSERT_UNION_PADDING_WORDS(1);
+                INSERT_PADDING_WORDS_NOINIT(1);
 
                 u32 cull_test_enabled;
                 FrontFace front_face;
@@ -1223,11 +1223,11 @@ public:
 
                 u32 pixel_center_integer;
 
-                INSERT_UNION_PADDING_WORDS(0x1);
+                INSERT_PADDING_WORDS_NOINIT(0x1);
 
                 u32 viewport_transform_enabled;
 
-                INSERT_UNION_PADDING_WORDS(0x3);
+                INSERT_PADDING_WORDS_NOINIT(0x3);
 
                 union {
                     BitField<0, 1, u32> depth_range_0_1;
@@ -1236,18 +1236,18 @@ public:
                     BitField<11, 1, u32> depth_clamp_disabled;
                 } view_volume_clip_control;
 
-                INSERT_UNION_PADDING_WORDS(0x1F);
+                INSERT_PADDING_WORDS_NOINIT(0x1F);
 
                 u32 depth_bounds_enable;
 
-                INSERT_UNION_PADDING_WORDS(1);
+                INSERT_PADDING_WORDS_NOINIT(1);
 
                 struct {
                     u32 enable;
                     LogicOperation operation;
                 } logic_op;
 
-                INSERT_UNION_PADDING_WORDS(0x1);
+                INSERT_PADDING_WORDS_NOINIT(0x1);
 
                 union {
                     u32 raw;
@@ -1260,9 +1260,9 @@ public:
                     BitField<6, 4, u32> RT;
                     BitField<10, 11, u32> layer;
                 } clear_buffers;
-                INSERT_UNION_PADDING_WORDS(0xB);
+                INSERT_PADDING_WORDS_NOINIT(0xB);
                 std::array<ColorMask, NumRenderTargets> color_mask;
-                INSERT_UNION_PADDING_WORDS(0x38);
+                INSERT_PADDING_WORDS_NOINIT(0x38);
 
                 struct {
                     u32 query_address_high;
@@ -1284,7 +1284,7 @@ public:
                     }
                 } query;
 
-                INSERT_UNION_PADDING_WORDS(0x3C);
+                INSERT_PADDING_WORDS_NOINIT(0x3C);
 
                 struct {
                     union {
@@ -1325,10 +1325,10 @@ public:
                         BitField<4, 4, ShaderProgram> program;
                     };
                     u32 offset;
-                    INSERT_UNION_PADDING_WORDS(14);
+                    INSERT_PADDING_WORDS_NOINIT(14);
                 } shader_config[MaxShaderProgram];
 
-                INSERT_UNION_PADDING_WORDS(0x60);
+                INSERT_PADDING_WORDS_NOINIT(0x60);
 
                 u32 firmware[0x20];
 
@@ -1345,7 +1345,7 @@ public:
                     }
                 } const_buffer;
 
-                INSERT_UNION_PADDING_WORDS(0x10);
+                INSERT_PADDING_WORDS_NOINIT(0x10);
 
                 struct {
                     union {
@@ -1353,18 +1353,18 @@ public:
                         BitField<0, 1, u32> valid;
                         BitField<4, 5, u32> index;
                     };
-                    INSERT_UNION_PADDING_WORDS(7);
+                    INSERT_PADDING_WORDS_NOINIT(7);
                 } cb_bind[MaxShaderStage];
 
-                INSERT_UNION_PADDING_WORDS(0x56);
+                INSERT_PADDING_WORDS_NOINIT(0x56);
 
                 u32 tex_cb_index;
 
-                INSERT_UNION_PADDING_WORDS(0x7D);
+                INSERT_PADDING_WORDS_NOINIT(0x7D);
 
                 std::array<std::array<u8, 128>, NumTransformFeedbackBuffers> tfb_varying_locs;
 
-                INSERT_UNION_PADDING_WORDS(0x298);
+                INSERT_PADDING_WORDS_NOINIT(0x298);
 
                 struct {
                     /// Compressed address of a buffer that holds information about bound SSBOs.
@@ -1376,14 +1376,14 @@ public:
                     }
                 } ssbo_info;
 
-                INSERT_UNION_PADDING_WORDS(0x11);
+                INSERT_PADDING_WORDS_NOINIT(0x11);
 
                 struct {
                     u32 address[MaxShaderStage];
                     u32 size[MaxShaderStage];
                 } tex_info_buffers;
 
-                INSERT_UNION_PADDING_WORDS(0xCC);
+                INSERT_PADDING_WORDS_NOINIT(0xCC);
             };
             std::array<u32, NUM_REGS> reg_array;
         };

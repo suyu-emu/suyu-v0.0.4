@@ -68,10 +68,10 @@ struct Header {
 
     union {
         struct {
-            INSERT_UNION_PADDING_BYTES(3);  // ImapSystemValuesA
-            INSERT_UNION_PADDING_BYTES(1);  // ImapSystemValuesB
-            INSERT_UNION_PADDING_BYTES(16); // ImapGenericVector[32]
-            INSERT_UNION_PADDING_BYTES(2);  // ImapColor
+            INSERT_PADDING_BYTES_NOINIT(3);  // ImapSystemValuesA
+            INSERT_PADDING_BYTES_NOINIT(1);  // ImapSystemValuesB
+            INSERT_PADDING_BYTES_NOINIT(16); // ImapGenericVector[32]
+            INSERT_PADDING_BYTES_NOINIT(2);  // ImapColor
             union {
                 BitField<0, 8, u16> clip_distances;
                 BitField<8, 1, u16> point_sprite_s;
@@ -82,20 +82,20 @@ struct Header {
                 BitField<14, 1, u16> instance_id;
                 BitField<15, 1, u16> vertex_id;
             };
-            INSERT_UNION_PADDING_BYTES(5);  // ImapFixedFncTexture[10]
-            INSERT_UNION_PADDING_BYTES(1);  // ImapReserved
-            INSERT_UNION_PADDING_BYTES(3);  // OmapSystemValuesA
-            INSERT_UNION_PADDING_BYTES(1);  // OmapSystemValuesB
-            INSERT_UNION_PADDING_BYTES(16); // OmapGenericVector[32]
-            INSERT_UNION_PADDING_BYTES(2);  // OmapColor
-            INSERT_UNION_PADDING_BYTES(2);  // OmapSystemValuesC
-            INSERT_UNION_PADDING_BYTES(5);  // OmapFixedFncTexture[10]
-            INSERT_UNION_PADDING_BYTES(1);  // OmapReserved
+            INSERT_PADDING_BYTES_NOINIT(5);  // ImapFixedFncTexture[10]
+            INSERT_PADDING_BYTES_NOINIT(1);  // ImapReserved
+            INSERT_PADDING_BYTES_NOINIT(3);  // OmapSystemValuesA
+            INSERT_PADDING_BYTES_NOINIT(1);  // OmapSystemValuesB
+            INSERT_PADDING_BYTES_NOINIT(16); // OmapGenericVector[32]
+            INSERT_PADDING_BYTES_NOINIT(2);  // OmapColor
+            INSERT_PADDING_BYTES_NOINIT(2);  // OmapSystemValuesC
+            INSERT_PADDING_BYTES_NOINIT(5);  // OmapFixedFncTexture[10]
+            INSERT_PADDING_BYTES_NOINIT(1);  // OmapReserved
         } vtg;
 
         struct {
-            INSERT_UNION_PADDING_BYTES(3); // ImapSystemValuesA
-            INSERT_UNION_PADDING_BYTES(1); // ImapSystemValuesB
+            INSERT_PADDING_BYTES_NOINIT(3); // ImapSystemValuesA
+            INSERT_PADDING_BYTES_NOINIT(1); // ImapSystemValuesB
 
             union {
                 BitField<0, 2, PixelImap> x;
@@ -105,10 +105,10 @@ struct Header {
                 u8 raw;
             } imap_generic_vector[32];
 
-            INSERT_UNION_PADDING_BYTES(2);  // ImapColor
-            INSERT_UNION_PADDING_BYTES(2);  // ImapSystemValuesC
-            INSERT_UNION_PADDING_BYTES(10); // ImapFixedFncTexture[10]
-            INSERT_UNION_PADDING_BYTES(2);  // ImapReserved
+            INSERT_PADDING_BYTES_NOINIT(2);  // ImapColor
+            INSERT_PADDING_BYTES_NOINIT(2);  // ImapSystemValuesC
+            INSERT_PADDING_BYTES_NOINIT(10); // ImapFixedFncTexture[10]
+            INSERT_PADDING_BYTES_NOINIT(2);  // ImapReserved
 
             struct {
                 u32 target;

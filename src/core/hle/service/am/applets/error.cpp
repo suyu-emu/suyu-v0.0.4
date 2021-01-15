@@ -20,9 +20,9 @@ namespace Service::AM::Applets {
 struct ShowError {
     u8 mode;
     bool jump;
-    INSERT_UNION_PADDING_BYTES(4);
+    INSERT_PADDING_BYTES_NOINIT(4);
     bool use_64bit_error_code;
-    INSERT_UNION_PADDING_BYTES(1);
+    INSERT_PADDING_BYTES_NOINIT(1);
     u64 error_code_64;
     u32 error_code_32;
 };
@@ -32,7 +32,7 @@ static_assert(sizeof(ShowError) == 0x14, "ShowError has incorrect size.");
 struct ShowErrorRecord {
     u8 mode;
     bool jump;
-    INSERT_UNION_PADDING_BYTES(6);
+    INSERT_PADDING_BYTES_NOINIT(6);
     u64 error_code_64;
     u64 posix_time;
 };
@@ -41,7 +41,7 @@ static_assert(sizeof(ShowErrorRecord) == 0x18, "ShowErrorRecord has incorrect si
 struct SystemErrorArg {
     u8 mode;
     bool jump;
-    INSERT_UNION_PADDING_BYTES(6);
+    INSERT_PADDING_BYTES_NOINIT(6);
     u64 error_code_64;
     std::array<char, 8> language_code;
     std::array<char, 0x800> main_text;
@@ -52,7 +52,7 @@ static_assert(sizeof(SystemErrorArg) == 0x1018, "SystemErrorArg has incorrect si
 struct ApplicationErrorArg {
     u8 mode;
     bool jump;
-    INSERT_UNION_PADDING_BYTES(6);
+    INSERT_PADDING_BYTES_NOINIT(6);
     u32 error_code;
     std::array<char, 8> language_code;
     std::array<char, 0x800> main_text;

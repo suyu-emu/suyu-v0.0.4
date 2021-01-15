@@ -40,17 +40,17 @@ public:
         SinkSampleFormat sample_format;
         std::array<u8, AudioCommon::MAX_CHANNEL_COUNT> input;
         bool in_use;
-        INSERT_UNION_PADDING_BYTES(5);
+        INSERT_PADDING_BYTES_NOINIT(5);
     };
     static_assert(sizeof(CircularBufferIn) == 0x28,
                   "SinkInfo::CircularBufferIn is in invalid size");
 
     struct DeviceIn {
         std::array<u8, 255> device_name;
-        INSERT_UNION_PADDING_BYTES(1);
+        INSERT_PADDING_BYTES_NOINIT(1);
         s32_le input_count;
         std::array<u8, AudioCommon::MAX_CHANNEL_COUNT> input;
-        INSERT_UNION_PADDING_BYTES(1);
+        INSERT_PADDING_BYTES_NOINIT(1);
         bool down_matrix_enabled;
         DownmixCoefficients down_matrix_coef;
     };

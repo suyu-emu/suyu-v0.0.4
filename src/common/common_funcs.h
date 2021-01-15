@@ -24,10 +24,10 @@
 #define INSERT_PADDING_WORDS(num_words)                                                            \
     std::array<u32, num_words> CONCAT2(pad, __LINE__) {}
 
-/// These are similar to the INSERT_PADDING_* macros, but are needed for padding unions. This is
-/// because unions can only be initialized by one member.
-#define INSERT_UNION_PADDING_BYTES(num_bytes) std::array<u8, num_bytes> CONCAT2(pad, __LINE__)
-#define INSERT_UNION_PADDING_WORDS(num_words) std::array<u32, num_words> CONCAT2(pad, __LINE__)
+/// These are similar to the INSERT_PADDING_* macros but do not zero-initialize the contents.
+/// This keeps the structure trivial to construct.
+#define INSERT_PADDING_BYTES_NOINIT(num_bytes) std::array<u8, num_bytes> CONCAT2(pad, __LINE__)
+#define INSERT_PADDING_WORDS_NOINIT(num_words) std::array<u32, num_words> CONCAT2(pad, __LINE__)
 
 #ifndef _MSC_VER
 
