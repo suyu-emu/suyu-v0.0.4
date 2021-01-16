@@ -10,6 +10,7 @@
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "common/common_types.h"
+#include "common/div_ceil.h"
 #include "video_core/host_shaders/vulkan_quad_indexed_comp_spv.h"
 #include "video_core/host_shaders/vulkan_uint8_comp_spv.h"
 #include "video_core/renderer_vulkan/vk_compute_pass.h"
@@ -148,38 +149,33 @@ Uint8Pass::Uint8Pass(const Device& device, VKScheduler& scheduler_,
 
 Uint8Pass::~Uint8Pass() = default;
 
-std::pair<VkBuffer, u32> Uint8Pass::Assemble(u32 num_vertices, VkBuffer src_buffer,
-                                             u32 src_offset) {
+std::pair<VkBuffer, VkDeviceSize> Uint8Pass::Assemble(u32 num_vertices, VkBuffer src_buffer,
+                                                      u32 src_offset) {
     const u32 staging_size = static_cast<u32>(num_vertices * sizeof(u16));
     const auto staging = staging_buffer_pool.Request(staging_size, MemoryUsage::DeviceLocal);
 
     update_descriptor_queue.Acquire();
     update_descriptor_queue.AddBuffer(src_buffer, src_offset, num_vertices);
-    update_descriptor_queue.AddBuffer(staging.buffer, 0, staging_size);
+    update_descriptor_queue.AddBuffer(staging.buffer, staging.offset, staging_size);
     const VkDescriptorSet set = CommitDescriptorSet(update_descriptor_queue);
 
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([layout = *layout, pipeline = *pipeline, buffer = staging.buffer, set,
                       num_vertices](vk::CommandBuffer cmdbuf) {
-        constexpr u32 dispatch_size = 1024;
+        static constexpr u32 DISPATCH_SIZE = 1024;
+        static constexpr VkMemoryBarrier WRITE_BARRIER{
+            .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT,
+        };
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
         cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, layout, 0, set, {});
-        cmdbuf.Dispatch(Common::AlignUp(num_vertices, dispatch_size) / dispatch_size, 1, 1);
-
-        VkBufferMemoryBarrier barrier;
-        barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-        barrier.pNext = nullptr;
-        barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-        barrier.dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
-        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.buffer = buffer;
-        barrier.offset = 0;
-        barrier.size = static_cast<VkDeviceSize>(num_vertices * sizeof(u16));
+        cmdbuf.Dispatch(Common::DivCeil(num_vertices, DISPATCH_SIZE), 1, 1);
         cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                               VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, {}, barrier, {});
+                               VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, WRITE_BARRIER);
     });
-    return {staging.buffer, 0};
+    return {staging.buffer, staging.offset};
 }
 
 QuadIndexedPass::QuadIndexedPass(const Device& device_, VKScheduler& scheduler_,
@@ -194,7 +190,7 @@ QuadIndexedPass::QuadIndexedPass(const Device& device_, VKScheduler& scheduler_,
 
 QuadIndexedPass::~QuadIndexedPass() = default;
 
-std::pair<VkBuffer, u32> QuadIndexedPass::Assemble(
+std::pair<VkBuffer, VkDeviceSize> QuadIndexedPass::Assemble(
     Tegra::Engines::Maxwell3D::Regs::IndexFormat index_format, u32 num_vertices, u32 base_vertex,
     VkBuffer src_buffer, u32 src_offset) {
     const u32 index_shift = [index_format] {
@@ -217,34 +213,29 @@ std::pair<VkBuffer, u32> QuadIndexedPass::Assemble(
 
     update_descriptor_queue.Acquire();
     update_descriptor_queue.AddBuffer(src_buffer, src_offset, input_size);
-    update_descriptor_queue.AddBuffer(staging.buffer, 0, staging_size);
+    update_descriptor_queue.AddBuffer(staging.buffer, staging.offset, staging_size);
     const VkDescriptorSet set = CommitDescriptorSet(update_descriptor_queue);
 
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([layout = *layout, pipeline = *pipeline, buffer = staging.buffer, set,
                       num_tri_vertices, base_vertex, index_shift](vk::CommandBuffer cmdbuf) {
-        static constexpr u32 dispatch_size = 1024;
+        static constexpr u32 DISPATCH_SIZE = 1024;
+        static constexpr VkMemoryBarrier WRITE_BARRIER{
+            .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT,
+        };
         const std::array push_constants = {base_vertex, index_shift};
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
         cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, layout, 0, set, {});
         cmdbuf.PushConstants(layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(push_constants),
                              &push_constants);
-        cmdbuf.Dispatch(Common::AlignUp(num_tri_vertices, dispatch_size) / dispatch_size, 1, 1);
-
-        VkBufferMemoryBarrier barrier;
-        barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-        barrier.pNext = nullptr;
-        barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-        barrier.dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
-        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.buffer = buffer;
-        barrier.offset = 0;
-        barrier.size = static_cast<VkDeviceSize>(num_tri_vertices * sizeof(u32));
+        cmdbuf.Dispatch(Common::DivCeil(num_tri_vertices, DISPATCH_SIZE), 1, 1);
         cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                               VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, {}, barrier, {});
+                               VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, WRITE_BARRIER);
     });
-    return {staging.buffer, 0};
+    return {staging.buffer, staging.offset};
 }
 
 } // namespace Vulkan

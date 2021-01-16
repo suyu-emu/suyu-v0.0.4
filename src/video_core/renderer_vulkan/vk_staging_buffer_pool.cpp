@@ -8,6 +8,7 @@
 
 #include <fmt/format.h>
 
+#include "common/alignment.h"
 #include "common/assert.h"
 #include "common/bit_util.h"
 #include "common/common_types.h"
@@ -17,14 +18,117 @@
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
+namespace {
+// Maximum potential alignment of a Vulkan buffer
+constexpr VkDeviceSize MAX_ALIGNMENT = 256;
+// Maximum size to put elements in the stream buffer
+constexpr VkDeviceSize MAX_STREAM_BUFFER_REQUEST_SIZE = 8 * 1024 * 1024;
+// Stream buffer size in bytes
+constexpr VkDeviceSize STREAM_BUFFER_SIZE = 128 * 1024 * 1024;
+constexpr VkDeviceSize REGION_SIZE = STREAM_BUFFER_SIZE / StagingBufferPool::NUM_SYNCS;
+
+constexpr VkMemoryPropertyFlags HOST_FLAGS =
+    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+constexpr VkMemoryPropertyFlags STREAM_FLAGS = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | HOST_FLAGS;
+
+bool IsStreamHeap(VkMemoryHeap heap) noexcept {
+    return STREAM_BUFFER_SIZE < (heap.size * 2) / 3;
+}
+
+std::optional<u32> FindMemoryTypeIndex(const VkPhysicalDeviceMemoryProperties& props, u32 type_mask,
+                                       VkMemoryPropertyFlags flags) noexcept {
+    for (u32 type_index = 0; type_index < props.memoryTypeCount; ++type_index) {
+        if (((type_mask >> type_index) & 1) == 0) {
+            // Memory type is incompatible
+            continue;
+        }
+        const VkMemoryType& memory_type = props.memoryTypes[type_index];
+        if ((memory_type.propertyFlags & flags) != flags) {
+            // Memory type doesn't have the flags we want
+            continue;
+        }
+        if (!IsStreamHeap(props.memoryHeaps[memory_type.heapIndex])) {
+            // Memory heap is not suitable for streaming
+            continue;
+        }
+        // Success!
+        return type_index;
+    }
+    return std::nullopt;
+}
+
+u32 FindMemoryTypeIndex(const VkPhysicalDeviceMemoryProperties& props, u32 type_mask) {
+    // Try to find a DEVICE_LOCAL_BIT type, Nvidia and AMD have a dedicated heap for this
+    std::optional<u32> type = FindMemoryTypeIndex(props, type_mask, STREAM_FLAGS);
+    if (type) {
+        return *type;
+    }
+    // Otherwise try without the DEVICE_LOCAL_BIT
+    type = FindMemoryTypeIndex(props, type_mask, HOST_FLAGS);
+    if (type) {
+        return *type;
+    }
+    // This should never happen, and in case it does, signal it as an out of memory situation
+    throw vk::Exception(VK_ERROR_OUT_OF_DEVICE_MEMORY);
+}
+
+size_t Region(size_t iterator) noexcept {
+    return iterator / REGION_SIZE;
+}
+} // Anonymous namespace
 
 StagingBufferPool::StagingBufferPool(const Device& device_, MemoryAllocator& memory_allocator_,
                                      VKScheduler& scheduler_)
-    : device{device_}, memory_allocator{memory_allocator_}, scheduler{scheduler_} {}
+    : device{device_}, memory_allocator{memory_allocator_}, scheduler{scheduler_} {
+    const vk::Device& dev = device.GetLogical();
+    stream_buffer = dev.CreateBuffer(VkBufferCreateInfo{
+        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .size = STREAM_BUFFER_SIZE,
+        .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        .queueFamilyIndexCount = 0,
+        .pQueueFamilyIndices = nullptr,
+    });
+    if (device.HasDebuggingToolAttached()) {
+        stream_buffer.SetObjectNameEXT("Stream Buffer");
+    }
+    VkMemoryDedicatedRequirements dedicated_reqs{
+        .sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS,
+        .pNext = nullptr,
+        .prefersDedicatedAllocation = VK_FALSE,
+        .requiresDedicatedAllocation = VK_FALSE,
+    };
+    const auto requirements = dev.GetBufferMemoryRequirements(*stream_buffer, &dedicated_reqs);
+    const bool make_dedicated = dedicated_reqs.prefersDedicatedAllocation == VK_TRUE ||
+                                dedicated_reqs.requiresDedicatedAllocation == VK_TRUE;
+    const VkMemoryDedicatedAllocateInfo dedicated_info{
+        .sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO,
+        .pNext = nullptr,
+        .image = nullptr,
+        .buffer = *stream_buffer,
+    };
+    const auto memory_properties = device.GetPhysical().GetMemoryProperties();
+    stream_memory = dev.AllocateMemory(VkMemoryAllocateInfo{
+        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+        .pNext = make_dedicated ? &dedicated_info : nullptr,
+        .allocationSize = requirements.size,
+        .memoryTypeIndex = FindMemoryTypeIndex(memory_properties, requirements.memoryTypeBits),
+    });
+    if (device.HasDebuggingToolAttached()) {
+        stream_memory.SetObjectNameEXT("Stream Buffer Memory");
+    }
+    stream_buffer.BindMemory(*stream_memory, 0);
+    stream_pointer = stream_memory.Map(0, STREAM_BUFFER_SIZE);
+}
 
 StagingBufferPool::~StagingBufferPool() = default;
 
 StagingBufferRef StagingBufferPool::Request(size_t size, MemoryUsage usage) {
+    if (usage == MemoryUsage::Upload && size <= MAX_STREAM_BUFFER_REQUEST_SIZE) {
+        return GetStreamBuffer(size);
+    }
     if (const std::optional<StagingBufferRef> ref = TryGetReservedBuffer(size, usage)) {
         return *ref;
     }
@@ -37,6 +141,42 @@ void StagingBufferPool::TickFrame() {
     ReleaseCache(MemoryUsage::DeviceLocal);
     ReleaseCache(MemoryUsage::Upload);
     ReleaseCache(MemoryUsage::Download);
+}
+
+StagingBufferRef StagingBufferPool::GetStreamBuffer(size_t size) {
+    for (size_t region = Region(used_iterator), region_end = Region(iterator); region < region_end;
+         ++region) {
+        sync_ticks[region] = scheduler.CurrentTick();
+    }
+    used_iterator = iterator;
+
+    for (size_t region = Region(free_iterator) + 1,
+                region_end = std::min(Region(iterator + size) + 1, NUM_SYNCS);
+         region < region_end; ++region) {
+        scheduler.Wait(sync_ticks[region]);
+    }
+    if (iterator + size > free_iterator) {
+        free_iterator = iterator + size;
+    }
+    if (iterator + size > STREAM_BUFFER_SIZE) {
+        for (size_t region = Region(used_iterator); region < NUM_SYNCS; ++region) {
+            sync_ticks[region] = scheduler.CurrentTick();
+        }
+        used_iterator = 0;
+        iterator = 0;
+        free_iterator = size;
+
+        for (size_t region = 0, region_end = Region(size); region <= region_end; ++region) {
+            scheduler.Wait(sync_ticks[region]);
+        }
+    }
+    const size_t offset = iterator;
+    iterator = Common::AlignUp(iterator + size, MAX_ALIGNMENT);
+    return StagingBufferRef{
+        .buffer = *stream_buffer,
+        .offset = static_cast<VkDeviceSize>(offset),
+        .mapped_span = std::span<u8>(stream_pointer + offset, size),
+    };
 }
 
 std::optional<StagingBufferRef> StagingBufferPool::TryGetReservedBuffer(size_t size,

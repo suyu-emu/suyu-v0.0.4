@@ -818,11 +818,10 @@ Image::Image(TextureCacheRuntime& runtime, const ImageInfo& info_, GPUVAddr gpu_
     }
 }
 
-void Image::UploadMemory(const StagingBufferRef& map, size_t buffer_offset,
-                         std::span<const BufferImageCopy> copies) {
+void Image::UploadMemory(const StagingBufferRef& map, std::span<const BufferImageCopy> copies) {
     // TODO: Move this to another API
     scheduler->RequestOutsideRenderPassOperationContext();
-    std::vector vk_copies = TransformBufferImageCopies(copies, buffer_offset, aspect_mask);
+    std::vector vk_copies = TransformBufferImageCopies(copies, map.offset, aspect_mask);
     const VkBuffer src_buffer = map.buffer;
     const VkImage vk_image = *image;
     const VkImageAspectFlags vk_aspect_mask = aspect_mask;
@@ -833,11 +832,11 @@ void Image::UploadMemory(const StagingBufferRef& map, size_t buffer_offset,
     });
 }
 
-void Image::UploadMemory(const StagingBufferRef& map, size_t buffer_offset,
+void Image::UploadMemory(const StagingBufferRef& map,
                          std::span<const VideoCommon::BufferCopy> copies) {
     // TODO: Move this to another API
     scheduler->RequestOutsideRenderPassOperationContext();
-    std::vector vk_copies = TransformBufferCopies(copies, buffer_offset);
+    std::vector vk_copies = TransformBufferCopies(copies, map.offset);
     const VkBuffer src_buffer = map.buffer;
     const VkBuffer dst_buffer = *buffer;
     scheduler->Record([src_buffer, dst_buffer, vk_copies](vk::CommandBuffer cmdbuf) {
@@ -846,9 +845,8 @@ void Image::UploadMemory(const StagingBufferRef& map, size_t buffer_offset,
     });
 }
 
-void Image::DownloadMemory(const StagingBufferRef& map, size_t buffer_offset,
-                           std::span<const BufferImageCopy> copies) {
-    std::vector vk_copies = TransformBufferImageCopies(copies, buffer_offset, aspect_mask);
+void Image::DownloadMemory(const StagingBufferRef& map, std::span<const BufferImageCopy> copies) {
+    std::vector vk_copies = TransformBufferImageCopies(copies, map.offset, aspect_mask);
     scheduler->Record([buffer = map.buffer, image = *image, aspect_mask = aspect_mask,
                        vk_copies](vk::CommandBuffer cmdbuf) {
         const VkImageMemoryBarrier read_barrier{

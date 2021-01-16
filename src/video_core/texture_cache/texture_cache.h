@@ -212,7 +212,7 @@ private:
 
     /// Upload data from guest to an image
     template <typename StagingBuffer>
-    void UploadImageContents(Image& image, StagingBuffer& staging_buffer, size_t buffer_offset);
+    void UploadImageContents(Image& image, StagingBuffer& staging_buffer);
 
     /// Find or create an image view from a guest descriptor
     [[nodiscard]] ImageViewId FindImageView(const TICEntry& config);
@@ -592,7 +592,7 @@ void TextureCache<P>::DownloadMemory(VAddr cpu_addr, size_t size) {
         Image& image = slot_images[image_id];
         auto map = runtime.DownloadStagingBuffer(image.unswizzled_size_bytes);
         const auto copies = FullDownloadCopies(image.info);
-        image.DownloadMemory(map, 0, copies);
+        image.DownloadMemory(map, copies);
         runtime.Finish();
         SwizzleImage(gpu_memory, image.gpu_addr, image.info, copies, map.mapped_span);
     }
@@ -750,24 +750,24 @@ void TextureCache<P>::PopAsyncFlushes() {
         total_size_bytes += slot_images[image_id].unswizzled_size_bytes;
     }
     auto download_map = runtime.DownloadStagingBuffer(total_size_bytes);
-    size_t buffer_offset = 0;
+    const size_t original_offset = download_map.offset;
     for (const ImageId image_id : download_ids) {
         Image& image = slot_images[image_id];
         const auto copies = FullDownloadCopies(image.info);
-        image.DownloadMemory(download_map, buffer_offset, copies);
-        buffer_offset += image.unswizzled_size_bytes;
+        image.DownloadMemory(download_map, copies);
+        download_map.offset += image.unswizzled_size_bytes;
     }
     // Wait for downloads to finish
     runtime.Finish();
 
-    buffer_offset = 0;
-    const std::span<u8> download_span = download_map.mapped_span;
+    download_map.offset = original_offset;
+    std::span<u8> download_span = download_map.mapped_span;
     for (const ImageId image_id : download_ids) {
         const ImageBase& image = slot_images[image_id];
         const auto copies = FullDownloadCopies(image.info);
-        const std::span<u8> image_download_span = download_span.subspan(buffer_offset);
-        SwizzleImage(gpu_memory, image.gpu_addr, image.info, copies, image_download_span);
-        buffer_offset += image.unswizzled_size_bytes;
+        SwizzleImage(gpu_memory, image.gpu_addr, image.info, copies, download_span);
+        download_map.offset += image.unswizzled_size_bytes;
+        download_span = download_span.subspan(image.unswizzled_size_bytes);
     }
     committed_downloads.pop();
 }
@@ -798,32 +798,32 @@ void TextureCache<P>::RefreshContents(Image& image) {
         LOG_WARNING(HW_GPU, "MSAA image uploads are not implemented");
         return;
     }
-    auto map = runtime.UploadStagingBuffer(MapSizeBytes(image));
-    UploadImageContents(image, map, 0);
+    auto staging = runtime.UploadStagingBuffer(MapSizeBytes(image));
+    UploadImageContents(image, staging);
     runtime.InsertUploadMemoryBarrier();
 }
 
 template <class P>
-template <typename MapBuffer>
-void TextureCache<P>::UploadImageContents(Image& image, MapBuffer& map, size_t buffer_offset) {
-    const std::span<u8> mapped_span = map.mapped_span.subspan(buffer_offset);
+template <typename StagingBuffer>
+void TextureCache<P>::UploadImageContents(Image& image, StagingBuffer& staging) {
+    const std::span<u8> mapped_span = staging.mapped_span;
     const GPUVAddr gpu_addr = image.gpu_addr;
 
     if (True(image.flags & ImageFlagBits::AcceleratedUpload)) {
         gpu_memory.ReadBlockUnsafe(gpu_addr, mapped_span.data(), mapped_span.size_bytes());
         const auto uploads = FullUploadSwizzles(image.info);
-        runtime.AccelerateImageUpload(image, map, buffer_offset, uploads);
+        runtime.AccelerateImageUpload(image, staging, uploads);
     } else if (True(image.flags & ImageFlagBits::Converted)) {
         std::vector<u8> unswizzled_data(image.unswizzled_size_bytes);
         auto copies = UnswizzleImage(gpu_memory, gpu_addr, image.info, unswizzled_data);
         ConvertImage(unswizzled_data, image.info, mapped_span, copies);
-        image.UploadMemory(map, buffer_offset, copies);
+        image.UploadMemory(staging, copies);
     } else if (image.info.type == ImageType::Buffer) {
         const std::array copies{UploadBufferCopy(gpu_memory, gpu_addr, image, mapped_span)};
-        image.UploadMemory(map, buffer_offset, copies);
+        image.UploadMemory(staging, copies);
     } else {
         const auto copies = UnswizzleImage(gpu_memory, gpu_addr, image.info, mapped_span);
-        image.UploadMemory(map, buffer_offset, copies);
+        image.UploadMemory(staging, copies);
     }
 }
 

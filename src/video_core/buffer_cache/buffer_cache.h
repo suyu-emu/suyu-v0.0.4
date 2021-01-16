@@ -239,8 +239,7 @@ private:
     void ImmediateUploadMemory(Buffer& buffer, u64 largest_copy,
                                std::span<const BufferCopy> copies);
 
-    void MappedUploadMemory(Buffer& buffer, u64 total_size_bytes,
-                            std::span<const BufferCopy> copies);
+    void MappedUploadMemory(Buffer& buffer, u64 total_size_bytes, std::span<BufferCopy> copies);
 
     void DeleteBuffer(BufferId buffer_id);
 
@@ -362,11 +361,17 @@ void BufferCache<P>::DownloadMemory(VAddr cpu_addr, u64 size) {
             auto download_staging = runtime.DownloadStagingBuffer(total_size_bytes);
             const u8* const mapped_memory = download_staging.mapped_span.data();
             const std::span<BufferCopy> copies_span(copies.data(), copies.data() + copies.size());
+            for (BufferCopy& copy : copies) {
+                // Modify copies to have the staging offset in mind
+                copy.dst_offset += download_staging.offset;
+            }
             runtime.CopyBuffer(download_staging.buffer, buffer, copies_span);
             runtime.Finish();
             for (const BufferCopy& copy : copies) {
                 const VAddr copy_cpu_addr = buffer.CpuAddr() + copy.src_offset;
-                const u8* copy_mapped_memory = mapped_memory + copy.dst_offset;
+                // Undo the modified offset
+                const u64 dst_offset = copy.dst_offset - download_staging.offset;
+                const u8* copy_mapped_memory = mapped_memory + dst_offset;
                 cpu_memory.WriteBlockUnsafe(copy_cpu_addr, copy_mapped_memory, copy.size);
             }
         } else {
@@ -554,7 +559,9 @@ void BufferCache<P>::PopAsyncFlushes() {
     }
     if constexpr (USE_MEMORY_MAPS) {
         auto download_staging = runtime.DownloadStagingBuffer(total_size_bytes);
-        for (const auto [copy, buffer_id] : downloads) {
+        for (auto& [copy, buffer_id] : downloads) {
+            // Have in mind the staging buffer offset for the copy
+            copy.dst_offset += download_staging.offset;
             const std::array copies{copy};
             runtime.CopyBuffer(download_staging.buffer, slot_buffers[buffer_id], copies);
         }
@@ -562,7 +569,9 @@ void BufferCache<P>::PopAsyncFlushes() {
         for (const auto [copy, buffer_id] : downloads) {
             const Buffer& buffer = slot_buffers[buffer_id];
             const VAddr cpu_addr = buffer.CpuAddr() + copy.src_offset;
-            const u8* read_mapped_memory = download_staging.mapped_span.data() + copy.dst_offset;
+            // Undo the modified offset
+            const u64 dst_offset = copy.dst_offset - download_staging.offset;
+            const u8* read_mapped_memory = download_staging.mapped_span.data() + dst_offset;
             cpu_memory.WriteBlockUnsafe(cpu_addr, read_mapped_memory, copy.size);
         }
     } else {
@@ -1117,13 +1126,16 @@ void BufferCache<P>::ImmediateUploadMemory(Buffer& buffer, u64 largest_copy,
 
 template <class P>
 void BufferCache<P>::MappedUploadMemory(Buffer& buffer, u64 total_size_bytes,
-                                        std::span<const BufferCopy> copies) {
+                                        std::span<BufferCopy> copies) {
     auto upload_staging = runtime.UploadStagingBuffer(total_size_bytes);
     const std::span<u8> staging_pointer = upload_staging.mapped_span;
-    for (const BufferCopy& copy : copies) {
-        const VAddr cpu_addr = buffer.CpuAddr() + copy.dst_offset;
+    for (BufferCopy& copy : copies) {
         u8* const src_pointer = staging_pointer.data() + copy.src_offset;
+        const VAddr cpu_addr = buffer.CpuAddr() + copy.dst_offset;
         cpu_memory.ReadBlockUnsafe(cpu_addr, src_pointer, copy.size);
+
+        // Apply the staging offset
+        copy.src_offset += upload_staging.offset;
     }
     runtime.CopyBuffer(buffer, upload_staging.buffer, copies);
 }

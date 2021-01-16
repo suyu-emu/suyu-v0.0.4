@@ -63,7 +63,7 @@ UtilShaders::UtilShaders(ProgramManager& program_manager_)
 
 UtilShaders::~UtilShaders() = default;
 
-void UtilShaders::BlockLinearUpload2D(Image& image, const ImageBufferMap& map, size_t buffer_offset,
+void UtilShaders::BlockLinearUpload2D(Image& image, const ImageBufferMap& map,
                                       std::span<const SwizzleParameters> swizzles) {
     static constexpr Extent3D WORKGROUP_SIZE{32, 32, 1};
     static constexpr GLuint BINDING_SWIZZLE_BUFFER = 0;
@@ -71,13 +71,13 @@ void UtilShaders::BlockLinearUpload2D(Image& image, const ImageBufferMap& map, s
     static constexpr GLuint BINDING_OUTPUT_IMAGE = 0;
 
     program_manager.BindHostCompute(block_linear_unswizzle_2d_program.handle);
-    glFlushMappedNamedBufferRange(map.buffer, buffer_offset, image.guest_size_bytes);
+    glFlushMappedNamedBufferRange(map.buffer, map.offset, image.guest_size_bytes);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BINDING_SWIZZLE_BUFFER, swizzle_table_buffer.handle);
 
     const GLenum store_format = StoreFormat(BytesPerBlock(image.info.format));
     for (const SwizzleParameters& swizzle : swizzles) {
         const Extent3D num_tiles = swizzle.num_tiles;
-        const size_t input_offset = swizzle.buffer_offset + buffer_offset;
+        const size_t input_offset = swizzle.buffer_offset + map.offset;
 
         const u32 num_dispatches_x = Common::DivCeil(num_tiles.width, WORKGROUP_SIZE.width);
         const u32 num_dispatches_y = Common::DivCeil(num_tiles.height, WORKGROUP_SIZE.height);
@@ -100,7 +100,7 @@ void UtilShaders::BlockLinearUpload2D(Image& image, const ImageBufferMap& map, s
     program_manager.RestoreGuestCompute();
 }
 
-void UtilShaders::BlockLinearUpload3D(Image& image, const ImageBufferMap& map, size_t buffer_offset,
+void UtilShaders::BlockLinearUpload3D(Image& image, const ImageBufferMap& map,
                                       std::span<const SwizzleParameters> swizzles) {
     static constexpr Extent3D WORKGROUP_SIZE{16, 8, 8};
 
@@ -108,14 +108,14 @@ void UtilShaders::BlockLinearUpload3D(Image& image, const ImageBufferMap& map, s
     static constexpr GLuint BINDING_INPUT_BUFFER = 1;
     static constexpr GLuint BINDING_OUTPUT_IMAGE = 0;
 
-    glFlushMappedNamedBufferRange(map.buffer, buffer_offset, image.guest_size_bytes);
+    glFlushMappedNamedBufferRange(map.buffer, map.offset, image.guest_size_bytes);
     program_manager.BindHostCompute(block_linear_unswizzle_3d_program.handle);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BINDING_SWIZZLE_BUFFER, swizzle_table_buffer.handle);
 
     const GLenum store_format = StoreFormat(BytesPerBlock(image.info.format));
     for (const SwizzleParameters& swizzle : swizzles) {
         const Extent3D num_tiles = swizzle.num_tiles;
-        const size_t input_offset = swizzle.buffer_offset + buffer_offset;
+        const size_t input_offset = swizzle.buffer_offset + map.offset;
 
         const u32 num_dispatches_x = Common::DivCeil(num_tiles.width, WORKGROUP_SIZE.width);
         const u32 num_dispatches_y = Common::DivCeil(num_tiles.height, WORKGROUP_SIZE.height);
@@ -141,7 +141,7 @@ void UtilShaders::BlockLinearUpload3D(Image& image, const ImageBufferMap& map, s
     program_manager.RestoreGuestCompute();
 }
 
-void UtilShaders::PitchUpload(Image& image, const ImageBufferMap& map, size_t buffer_offset,
+void UtilShaders::PitchUpload(Image& image, const ImageBufferMap& map,
                               std::span<const SwizzleParameters> swizzles) {
     static constexpr Extent3D WORKGROUP_SIZE{32, 32, 1};
     static constexpr GLuint BINDING_INPUT_BUFFER = 0;
@@ -159,7 +159,7 @@ void UtilShaders::PitchUpload(Image& image, const ImageBufferMap& map, size_t bu
                          "Non-power of two images are not implemented");
 
     program_manager.BindHostCompute(pitch_unswizzle_program.handle);
-    glFlushMappedNamedBufferRange(map.buffer, buffer_offset, image.guest_size_bytes);
+    glFlushMappedNamedBufferRange(map.buffer, map.offset, image.guest_size_bytes);
     glUniform2ui(LOC_ORIGIN, 0, 0);
     glUniform2i(LOC_DESTINATION, 0, 0);
     glUniform1ui(LOC_BYTES_PER_BLOCK, bytes_per_block);
@@ -167,7 +167,7 @@ void UtilShaders::PitchUpload(Image& image, const ImageBufferMap& map, size_t bu
     glBindImageTexture(BINDING_OUTPUT_IMAGE, image.Handle(), 0, GL_FALSE, 0, GL_WRITE_ONLY, format);
     for (const SwizzleParameters& swizzle : swizzles) {
         const Extent3D num_tiles = swizzle.num_tiles;
-        const size_t input_offset = swizzle.buffer_offset + buffer_offset;
+        const size_t input_offset = swizzle.buffer_offset + map.offset;
 
         const u32 num_dispatches_x = Common::DivCeil(num_tiles.width, WORKGROUP_SIZE.width);
         const u32 num_dispatches_y = Common::DivCeil(num_tiles.height, WORKGROUP_SIZE.height);

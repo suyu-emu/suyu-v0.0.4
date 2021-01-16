@@ -50,7 +50,8 @@ public:
 
     /// Assemble uint8 indices into an uint16 index buffer
     /// Returns a pair with the staging buffer, and the offset where the assembled data is
-    std::pair<VkBuffer, u32> Assemble(u32 num_vertices, VkBuffer src_buffer, u32 src_offset);
+    std::pair<VkBuffer, VkDeviceSize> Assemble(u32 num_vertices, VkBuffer src_buffer,
+                                               u32 src_offset);
 
 private:
     VKScheduler& scheduler;
@@ -66,9 +67,9 @@ public:
                              VKUpdateDescriptorQueue& update_descriptor_queue_);
     ~QuadIndexedPass();
 
-    std::pair<VkBuffer, u32> Assemble(Tegra::Engines::Maxwell3D::Regs::IndexFormat index_format,
-                                      u32 num_vertices, u32 base_vertex, VkBuffer src_buffer,
-                                      u32 src_offset);
+    std::pair<VkBuffer, VkDeviceSize> Assemble(
+        Tegra::Engines::Maxwell3D::Regs::IndexFormat index_format, u32 num_vertices,
+        u32 base_vertex, VkBuffer src_buffer, u32 src_offset);
 
 private:
     VKScheduler& scheduler;

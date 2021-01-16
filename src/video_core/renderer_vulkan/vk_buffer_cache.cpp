@@ -138,17 +138,18 @@ void BufferCacheRuntime::CopyBuffer(VkBuffer dst_buffer, VkBuffer src_buffer,
 void BufferCacheRuntime::BindIndexBuffer(PrimitiveTopology topology, IndexFormat index_format,
                                          u32 base_vertex, u32 num_indices, VkBuffer buffer,
                                          u32 offset, [[maybe_unused]] u32 size) {
-    VkIndexType index_type = MaxwellToVK::IndexFormat(index_format);
+    VkIndexType vk_index_type = MaxwellToVK::IndexFormat(index_format);
+    VkDeviceSize vk_offset = offset;
     if (topology == PrimitiveTopology::Quads) {
-        index_type = VK_INDEX_TYPE_UINT32;
-        std::tie(buffer, offset) =
+        vk_index_type = VK_INDEX_TYPE_UINT32;
+        std::tie(buffer, vk_offset) =
             quad_index_pass.Assemble(index_format, num_indices, base_vertex, buffer, offset);
-    } else if (index_type == VK_INDEX_TYPE_UINT8_EXT && !device.IsExtIndexTypeUint8Supported()) {
-        index_type = VK_INDEX_TYPE_UINT16;
-        std::tie(buffer, offset) = uint8_pass.Assemble(num_indices, buffer, offset);
+    } else if (vk_index_type == VK_INDEX_TYPE_UINT8_EXT && !device.IsExtIndexTypeUint8Supported()) {
+        vk_index_type = VK_INDEX_TYPE_UINT16;
+        std::tie(buffer, vk_offset) = uint8_pass.Assemble(num_indices, buffer, offset);
     }
-    scheduler.Record([buffer, offset, index_type](vk::CommandBuffer cmdbuf) {
-        cmdbuf.BindIndexBuffer(buffer, offset, index_type);
+    scheduler.Record([buffer, vk_offset, vk_index_type](vk::CommandBuffer cmdbuf) {
+        cmdbuf.BindIndexBuffer(buffer, vk_offset, vk_index_type);
     });
 }
 
@@ -251,10 +252,10 @@ void BufferCacheRuntime::ReserveQuadArrayLUT(u32 num_indices, bool wait_for_idle
         }
     }
     scheduler.RequestOutsideRenderPassOperationContext();
-    scheduler.Record([src_buffer = staging.buffer, dst_buffer = *quad_array_lut,
-                      size_bytes](vk::CommandBuffer cmdbuf) {
+    scheduler.Record([src_buffer = staging.buffer, src_offset = staging.offset,
+                      dst_buffer = *quad_array_lut, size_bytes](vk::CommandBuffer cmdbuf) {
         const VkBufferCopy copy{
-            .srcOffset = 0,
+            .srcOffset = src_offset,
             .dstOffset = 0,
             .size = size_bytes,
         };

@@ -82,7 +82,7 @@ struct TextureCacheRuntime {
         return false;
     }
 
-    void AccelerateImageUpload(Image&, const StagingBufferRef&, size_t,
+    void AccelerateImageUpload(Image&, const StagingBufferRef&,
                                std::span<const VideoCommon::SwizzleParameters>) {
         UNREACHABLE();
     }
@@ -100,13 +100,12 @@ public:
     explicit Image(TextureCacheRuntime&, const VideoCommon::ImageInfo& info, GPUVAddr gpu_addr,
                    VAddr cpu_addr);
 
-    void UploadMemory(const StagingBufferRef& map, size_t buffer_offset,
+    void UploadMemory(const StagingBufferRef& map,
                       std::span<const VideoCommon::BufferImageCopy> copies);
 
-    void UploadMemory(const StagingBufferRef& map, size_t buffer_offset,
-                      std::span<const VideoCommon::BufferCopy> copies);
+    void UploadMemory(const StagingBufferRef& map, std::span<const VideoCommon::BufferCopy> copies);
 
-    void DownloadMemory(const StagingBufferRef& map, size_t buffer_offset,
+    void DownloadMemory(const StagingBufferRef& map,
                         std::span<const VideoCommon::BufferImageCopy> copies);
 
     [[nodiscard]] VkImage Handle() const noexcept {

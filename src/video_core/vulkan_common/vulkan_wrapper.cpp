@@ -168,7 +168,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkFreeCommandBuffers);
     X(vkFreeDescriptorSets);
     X(vkFreeMemory);
-    X(vkGetBufferMemoryRequirements);
+    X(vkGetBufferMemoryRequirements2);
     X(vkGetDeviceQueue);
     X(vkGetEventStatus);
     X(vkGetFenceStatus);
@@ -786,10 +786,20 @@ DeviceMemory Device::AllocateMemory(const VkMemoryAllocateInfo& ai) const {
     return DeviceMemory(memory, handle, *dld);
 }
 
-VkMemoryRequirements Device::GetBufferMemoryRequirements(VkBuffer buffer) const noexcept {
-    VkMemoryRequirements requirements;
-    dld->vkGetBufferMemoryRequirements(handle, buffer, &requirements);
-    return requirements;
+VkMemoryRequirements Device::GetBufferMemoryRequirements(VkBuffer buffer,
+                                                         void* pnext) const noexcept {
+    const VkBufferMemoryRequirementsInfo2 info{
+        .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2,
+        .pNext = nullptr,
+        .buffer = buffer,
+    };
+    VkMemoryRequirements2 requirements{
+        .sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2,
+        .pNext = pnext,
+        .memoryRequirements{},
+    };
+    dld->vkGetBufferMemoryRequirements2(handle, &info, &requirements);
+    return requirements.memoryRequirements;
 }
 
 VkMemoryRequirements Device::GetImageMemoryRequirements(VkImage image) const noexcept {

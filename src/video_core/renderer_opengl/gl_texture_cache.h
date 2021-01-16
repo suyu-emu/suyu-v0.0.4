@@ -35,6 +35,7 @@ struct ImageBufferMap {
     ~ImageBufferMap();
 
     std::span<u8> mapped_span;
+    size_t offset = 0;
     OGLSync* sync;
     GLuint buffer;
 };
@@ -78,7 +79,7 @@ public:
                          Tegra::Engines::Fermi2D::Filter filter,
                          Tegra::Engines::Fermi2D::Operation operation);
 
-    void AccelerateImageUpload(Image& image, const ImageBufferMap& map, size_t buffer_offset,
+    void AccelerateImageUpload(Image& image, const ImageBufferMap& map,
                                std::span<const VideoCommon::SwizzleParameters> swizzles);
 
     void InsertUploadMemoryBarrier();
@@ -137,14 +138,12 @@ public:
     explicit Image(TextureCacheRuntime&, const VideoCommon::ImageInfo& info, GPUVAddr gpu_addr,
                    VAddr cpu_addr);
 
-    void UploadMemory(const ImageBufferMap& map, size_t buffer_offset,
+    void UploadMemory(const ImageBufferMap& map,
                       std::span<const VideoCommon::BufferImageCopy> copies);
 
-    void UploadMemory(const ImageBufferMap& map, size_t buffer_offset,
-                      std::span<const VideoCommon::BufferCopy> copies);
+    void UploadMemory(const ImageBufferMap& map, std::span<const VideoCommon::BufferCopy> copies);
 
-    void DownloadMemory(ImageBufferMap& map, size_t buffer_offset,
-                        std::span<const VideoCommon::BufferImageCopy> copies);
+    void DownloadMemory(ImageBufferMap& map, std::span<const VideoCommon::BufferImageCopy> copies);
 
     GLuint Handle() const noexcept {
         return texture.handle;
