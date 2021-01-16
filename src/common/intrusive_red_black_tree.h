@@ -16,17 +16,30 @@ class IntrusiveRedBlackTreeImpl;
 }
 
 struct IntrusiveRedBlackTreeNode {
+public:
+    using EntryType = RBEntry<IntrusiveRedBlackTreeNode>;
+
+    constexpr IntrusiveRedBlackTreeNode() = default;
+
+    void SetEntry(const EntryType& new_entry) {
+        entry = new_entry;
+    }
+
+    [[nodiscard]] EntryType& GetEntry() {
+        return entry;
+    }
+
+    [[nodiscard]] const EntryType& GetEntry() const {
+        return entry;
+    }
 
 private:
-    RB_ENTRY(IntrusiveRedBlackTreeNode) entry{};
+    EntryType entry{};
 
     friend class impl::IntrusiveRedBlackTreeImpl;
 
     template <class, class, class>
     friend class IntrusiveRedBlackTree;
-
-public:
-    constexpr IntrusiveRedBlackTreeNode() = default;
 };
 
 template <class T, class Traits, class Comparator>
@@ -35,17 +48,12 @@ class IntrusiveRedBlackTree;
 namespace impl {
 
 class IntrusiveRedBlackTreeImpl {
-
 private:
     template <class, class, class>
     friend class ::Common::IntrusiveRedBlackTree;
 
-private:
-    RB_HEAD(IntrusiveRedBlackTreeRoot, IntrusiveRedBlackTreeNode);
-    using RootType = IntrusiveRedBlackTreeRoot;
-
-private:
-    IntrusiveRedBlackTreeRoot root;
+    using RootType = RBHead<IntrusiveRedBlackTreeNode>;
+    RootType root;
 
 public:
     template <bool Const>
@@ -121,57 +129,45 @@ public:
         }
     };
 
-protected:
-    // Generate static implementations for non-comparison operations for IntrusiveRedBlackTreeRoot.
-    RB_GENERATE_WITHOUT_COMPARE_STATIC(IntrusiveRedBlackTreeRoot, IntrusiveRedBlackTreeNode, entry);
-
 private:
     // Define accessors using RB_* functions.
-    constexpr void InitializeImpl() {
-        RB_INIT(&this->root);
-    }
-
     bool EmptyImpl() const {
-        return RB_EMPTY(&this->root);
+        return root.IsEmpty();
     }
 
     IntrusiveRedBlackTreeNode* GetMinImpl() const {
-        return RB_MIN(IntrusiveRedBlackTreeRoot,
-                      const_cast<IntrusiveRedBlackTreeRoot*>(&this->root));
+        return RB_MIN(const_cast<RootType*>(&root));
     }
 
     IntrusiveRedBlackTreeNode* GetMaxImpl() const {
-        return RB_MAX(IntrusiveRedBlackTreeRoot,
-                      const_cast<IntrusiveRedBlackTreeRoot*>(&this->root));
+        return RB_MAX(const_cast<RootType*>(&root));
     }
 
     IntrusiveRedBlackTreeNode* RemoveImpl(IntrusiveRedBlackTreeNode* node) {
-        return RB_REMOVE(IntrusiveRedBlackTreeRoot, &this->root, node);
+        return RB_REMOVE(&root, node);
     }
 
 public:
     static IntrusiveRedBlackTreeNode* GetNext(IntrusiveRedBlackTreeNode* node) {
-        return RB_NEXT(IntrusiveRedBlackTreeRoot, nullptr, node);
+        return RB_NEXT(node);
     }
 
     static IntrusiveRedBlackTreeNode* GetPrev(IntrusiveRedBlackTreeNode* node) {
-        return RB_PREV(IntrusiveRedBlackTreeRoot, nullptr, node);
+        return RB_PREV(node);
     }
 
-    static IntrusiveRedBlackTreeNode const* GetNext(const IntrusiveRedBlackTreeNode* node) {
+    static const IntrusiveRedBlackTreeNode* GetNext(const IntrusiveRedBlackTreeNode* node) {
         return static_cast<const IntrusiveRedBlackTreeNode*>(
             GetNext(const_cast<IntrusiveRedBlackTreeNode*>(node)));
     }
 
-    static IntrusiveRedBlackTreeNode const* GetPrev(const IntrusiveRedBlackTreeNode* node) {
+    static const IntrusiveRedBlackTreeNode* GetPrev(const IntrusiveRedBlackTreeNode* node) {
         return static_cast<const IntrusiveRedBlackTreeNode*>(
             GetPrev(const_cast<IntrusiveRedBlackTreeNode*>(node)));
     }
 
 public:
-    constexpr IntrusiveRedBlackTreeImpl() : root() {
-        this->InitializeImpl();
-    }
+    constexpr IntrusiveRedBlackTreeImpl() {}
 
     // Iterator accessors.
     iterator begin() {
@@ -269,8 +265,6 @@ private:
     ImplType impl{};
 
 public:
-    struct IntrusiveRedBlackTreeRootWithCompare : ImplType::IntrusiveRedBlackTreeRoot {};
-
     template <bool Const>
     class Iterator;
 
@@ -363,11 +357,6 @@ public:
     };
 
 private:
-    // Generate static implementations for comparison operations for IntrusiveRedBlackTreeRoot.
-    RB_GENERATE_WITH_COMPARE_STATIC(IntrusiveRedBlackTreeRootWithCompare, IntrusiveRedBlackTreeNode,
-                                    entry, CompareImpl, LightCompareImpl);
-
-private:
     static int CompareImpl(const IntrusiveRedBlackTreeNode* lhs,
                            const IntrusiveRedBlackTreeNode* rhs) {
         return Comparator::Compare(*Traits::GetParent(lhs), *Traits::GetParent(rhs));
@@ -379,41 +368,27 @@ private:
 
     // Define accessors using RB_* functions.
     IntrusiveRedBlackTreeNode* InsertImpl(IntrusiveRedBlackTreeNode* node) {
-        return RB_INSERT(IntrusiveRedBlackTreeRootWithCompare,
-                         static_cast<IntrusiveRedBlackTreeRootWithCompare*>(&this->impl.root),
-                         node);
+        return RB_INSERT(&impl.root, node, CompareImpl);
     }
 
     IntrusiveRedBlackTreeNode* FindImpl(const IntrusiveRedBlackTreeNode* node) const {
-        return RB_FIND(
-            IntrusiveRedBlackTreeRootWithCompare,
-            const_cast<IntrusiveRedBlackTreeRootWithCompare*>(
-                static_cast<const IntrusiveRedBlackTreeRootWithCompare*>(&this->impl.root)),
-            const_cast<IntrusiveRedBlackTreeNode*>(node));
+        return RB_FIND(const_cast<ImplType::RootType*>(&impl.root),
+                       const_cast<IntrusiveRedBlackTreeNode*>(node), CompareImpl);
     }
 
     IntrusiveRedBlackTreeNode* NFindImpl(const IntrusiveRedBlackTreeNode* node) const {
-        return RB_NFIND(
-            IntrusiveRedBlackTreeRootWithCompare,
-            const_cast<IntrusiveRedBlackTreeRootWithCompare*>(
-                static_cast<const IntrusiveRedBlackTreeRootWithCompare*>(&this->impl.root)),
-            const_cast<IntrusiveRedBlackTreeNode*>(node));
+        return RB_NFIND(const_cast<ImplType::RootType*>(&impl.root),
+                        const_cast<IntrusiveRedBlackTreeNode*>(node), CompareImpl);
     }
 
     IntrusiveRedBlackTreeNode* FindLightImpl(const_light_pointer lelm) const {
-        return RB_FIND_LIGHT(
-            IntrusiveRedBlackTreeRootWithCompare,
-            const_cast<IntrusiveRedBlackTreeRootWithCompare*>(
-                static_cast<const IntrusiveRedBlackTreeRootWithCompare*>(&this->impl.root)),
-            static_cast<const void*>(lelm));
+        return RB_FIND_LIGHT(const_cast<ImplType::RootType*>(&impl.root),
+                             static_cast<const void*>(lelm), LightCompareImpl);
     }
 
     IntrusiveRedBlackTreeNode* NFindLightImpl(const_light_pointer lelm) const {
-        return RB_NFIND_LIGHT(
-            IntrusiveRedBlackTreeRootWithCompare,
-            const_cast<IntrusiveRedBlackTreeRootWithCompare*>(
-                static_cast<const IntrusiveRedBlackTreeRootWithCompare*>(&this->impl.root)),
-            static_cast<const void*>(lelm));
+        return RB_NFIND_LIGHT(const_cast<ImplType::RootType*>(&impl.root),
+                              static_cast<const void*>(lelm), LightCompareImpl);
     }
 
 public:
