@@ -100,12 +100,12 @@ public:
     /**
      * Checks whether any of the buttons in the parameter list is pressed once.
      *
-     * @tparam HIDButton The buttons to check.
+     * @tparam T The buttons to check.
      *
      * @returns True when at least one of the buttons is pressed once.
      */
     template <HIDButton... T>
-    [[nodiscard]] bool IsAnyButtonPressedOnce() {
+    [[nodiscard]] bool IsAnyButtonPressedOnce() const {
         return (IsButtonPressedOnce(T) || ...);
     }
 
@@ -121,12 +121,12 @@ public:
     /**
      * Checks whether any of the buttons in the parameter list is held down.
      *
-     * @tparam HIDButton The buttons to check.
+     * @tparam T The buttons to check.
      *
      * @returns True when at least one of the buttons is held down.
      */
     template <HIDButton... T>
-    [[nodiscard]] bool IsAnyButtonHeld() {
+    [[nodiscard]] bool IsAnyButtonHeld() const {
         return (IsButtonHeld(T) || ...);
     }
 
