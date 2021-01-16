@@ -5,6 +5,7 @@ add_executable(tests
     common/ring_buffer.cpp
     core/core_timing.cpp
     tests.cpp
+    video_core/buffer_base.cpp
 )
 
 create_target_directory_groups(tests)
