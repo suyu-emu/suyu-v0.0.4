@@ -35,7 +35,15 @@ struct FormatInfo {
     bool storage;
 };
 
-FormatInfo SurfaceFormat(const Device& device, FormatType format_type, PixelFormat pixel_format);
+/**
+ * Returns format properties supported in the host
+ * @param device       Host device
+ * @param format_type  Type of image the buffer will use
+ * @param with_srgb    True when the format can be sRGB when converted to another format (ASTC)
+ * @param pixel_format Guest pixel format to describe
+ */
+[[nodiscard]] FormatInfo SurfaceFormat(const Device& device, FormatType format_type, bool with_srgb,
+                                       PixelFormat pixel_format);
 
 VkShaderStageFlagBits ShaderStage(Tegra::Engines::ShaderType stage);
 

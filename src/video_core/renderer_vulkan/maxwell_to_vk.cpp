@@ -110,8 +110,8 @@ VkCompareOp DepthCompareFunction(Tegra::Texture::DepthCompareFunc depth_compare_
 } // namespace Sampler
 
 namespace {
-
-enum : u32 { Attachable = 1, Storage = 2 };
+constexpr u32 Attachable = 1 << 0;
+constexpr u32 Storage = 1 << 1;
 
 struct FormatTuple {
     VkFormat format; ///< Vulkan format
@@ -222,22 +222,27 @@ constexpr bool IsZetaFormat(PixelFormat pixel_format) {
 
 } // Anonymous namespace
 
-FormatInfo SurfaceFormat(const Device& device, FormatType format_type, PixelFormat pixel_format) {
-    ASSERT(static_cast<std::size_t>(pixel_format) < std::size(tex_format_tuples));
-
-    auto tuple = tex_format_tuples[static_cast<std::size_t>(pixel_format)];
+FormatInfo SurfaceFormat(const Device& device, FormatType format_type, bool with_srgb,
+                         PixelFormat pixel_format) {
+    ASSERT(static_cast<size_t>(pixel_format) < std::size(tex_format_tuples));
+    FormatTuple tuple = tex_format_tuples[static_cast<size_t>(pixel_format)];
     if (tuple.format == VK_FORMAT_UNDEFINED) {
         UNIMPLEMENTED_MSG("Unimplemented texture format with pixel format={}", pixel_format);
-        return {VK_FORMAT_A8B8G8R8_UNORM_PACK32, true, true};
+        return FormatInfo{VK_FORMAT_A8B8G8R8_UNORM_PACK32, true, true};
     }
 
     // Use A8B8G8R8_UNORM on hardware that doesn't support ASTC natively
     if (!device.IsOptimalAstcSupported() && VideoCore::Surface::IsPixelFormatASTC(pixel_format)) {
-        const bool is_srgb = VideoCore::Surface::IsPixelFormatSRGB(pixel_format);
-        tuple.format = is_srgb ? VK_FORMAT_A8B8G8R8_SRGB_PACK32 : VK_FORMAT_A8B8G8R8_UNORM_PACK32;
+        const bool is_srgb = with_srgb && VideoCore::Surface::IsPixelFormatSRGB(pixel_format);
+        if (is_srgb) {
+            tuple.format = VK_FORMAT_A8B8G8R8_SRGB_PACK32;
+        } else {
+            tuple.format = VK_FORMAT_A8B8G8R8_UNORM_PACK32;
+            tuple.usage |= Storage;
+        }
     }
-    const bool attachable = tuple.usage & Attachable;
-    const bool storage = tuple.usage & Storage;
+    const bool attachable = (tuple.usage & Attachable) != 0;
+    const bool storage = (tuple.usage & Storage) != 0;
 
     VkFormatFeatureFlags usage{};
     switch (format_type) {
