@@ -18,23 +18,19 @@
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
-
 namespace {
-
 namespace Alternatives {
-
-constexpr std::array Depth24UnormS8_UINT{
+constexpr std::array DEPTH24_UNORM_STENCIL8_UINT{
     VK_FORMAT_D32_SFLOAT_S8_UINT,
     VK_FORMAT_D16_UNORM_S8_UINT,
-    VkFormat{},
+    VK_FORMAT_UNDEFINED,
 };
 
-constexpr std::array Depth16UnormS8_UINT{
+constexpr std::array DEPTH16_UNORM_STENCIL8_UINT{
     VK_FORMAT_D24_UNORM_S8_UINT,
     VK_FORMAT_D32_SFLOAT_S8_UINT,
-    VkFormat{},
+    VK_FORMAT_UNDEFINED,
 };
-
 } // namespace Alternatives
 
 constexpr std::array REQUIRED_EXTENSIONS{
@@ -63,9 +59,9 @@ void SetNext(void**& next, T& data) {
 constexpr const VkFormat* GetFormatAlternatives(VkFormat format) {
     switch (format) {
     case VK_FORMAT_D24_UNORM_S8_UINT:
-        return Alternatives::Depth24UnormS8_UINT.data();
+        return Alternatives::DEPTH24_UNORM_STENCIL8_UINT.data();
     case VK_FORMAT_D16_UNORM_S8_UINT:
-        return Alternatives::Depth16UnormS8_UINT.data();
+        return Alternatives::DEPTH16_UNORM_STENCIL8_UINT.data();
     default:
         return nullptr;
     }
