@@ -227,10 +227,10 @@ public:
 
 private:
     /// Checks if the physical device is suitable.
-    void CheckSuitability() const;
+    void CheckSuitability(bool requires_swapchain) const;
 
     /// Loads extensions into a vector and stores available ones in this object.
-    std::vector<const char*> LoadExtensions();
+    std::vector<const char*> LoadExtensions(bool requires_surface);
 
     /// Sets up queue families.
     void SetupFamilies(VkSurfaceKHR surface);

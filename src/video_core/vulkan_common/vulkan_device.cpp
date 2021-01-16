@@ -34,7 +34,6 @@ constexpr std::array DEPTH16_UNORM_STENCIL8_UINT{
 } // namespace Alternatives
 
 constexpr std::array REQUIRED_EXTENSIONS{
-    VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     VK_KHR_MAINTENANCE1_EXTENSION_NAME,
     VK_KHR_STORAGE_BUFFER_STORAGE_CLASS_EXTENSION_NAME,
     VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME,
@@ -536,16 +535,18 @@ bool Device::IsFormatSupported(VkFormat wanted_format, VkFormatFeatureFlags want
     return (supported_usage & wanted_usage) == wanted_usage;
 }
 
-void Device::CheckSuitability() const {
+void Device::CheckSuitability(bool requires_swapchain) const {
     std::bitset<REQUIRED_EXTENSIONS.size()> available_extensions;
+    bool has_swapchain = false;
     for (const VkExtensionProperties& property : physical.EnumerateDeviceExtensionProperties()) {
-        for (std::size_t i = 0; i < REQUIRED_EXTENSIONS.size(); ++i) {
+        const std::string_view name{property.extensionName};
+        for (size_t i = 0; i < REQUIRED_EXTENSIONS.size(); ++i) {
             if (available_extensions[i]) {
                 continue;
             }
-            const std::string_view name{property.extensionName};
             available_extensions[i] = name == REQUIRED_EXTENSIONS[i];
         }
+        has_swapchain = has_swapchain || name == VK_KHR_SWAPCHAIN_EXTENSION_NAME;
     }
     for (size_t i = 0; i < REQUIRED_EXTENSIONS.size(); ++i) {
         if (available_extensions[i]) {
@@ -554,6 +555,11 @@ void Device::CheckSuitability() const {
         LOG_ERROR(Render_Vulkan, "Missing required extension: {}", REQUIRED_EXTENSIONS[i]);
         throw vk::Exception(VK_ERROR_EXTENSION_NOT_PRESENT);
     }
+    if (requires_swapchain && !has_swapchain) {
+        LOG_ERROR(Render_Vulkan, "Missing required extension: VK_KHR_swapchain");
+        throw vk::Exception(VK_ERROR_EXTENSION_NOT_PRESENT);
+    }
+
     struct LimitTuple {
         u32 minimum;
         u32 value;
@@ -601,10 +607,13 @@ void Device::CheckSuitability() const {
     }
 }
 
-std::vector<const char*> Device::LoadExtensions() {
+std::vector<const char*> Device::LoadExtensions(bool requires_surface) {
     std::vector<const char*> extensions;
-    extensions.reserve(7 + REQUIRED_EXTENSIONS.size());
+    extensions.reserve(8 + REQUIRED_EXTENSIONS.size());
     extensions.insert(extensions.begin(), REQUIRED_EXTENSIONS.begin(), REQUIRED_EXTENSIONS.end());
+    if (requires_surface) {
+        extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+    }
 
     bool has_khr_shader_float16_int8{};
     bool has_ext_subgroup_size_control{};
