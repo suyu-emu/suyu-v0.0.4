@@ -185,7 +185,7 @@ struct InstanceDispatch {
 };
 
 /// Table holding Vulkan device function pointers.
-struct DeviceDispatch : public InstanceDispatch {
+struct DeviceDispatch : InstanceDispatch {
     PFN_vkAcquireNextImageKHR vkAcquireNextImageKHR{};
     PFN_vkAllocateCommandBuffers vkAllocateCommandBuffers{};
     PFN_vkAllocateDescriptorSets vkAllocateDescriptorSets{};
@@ -288,6 +288,10 @@ struct DeviceDispatch : public InstanceDispatch {
     PFN_vkGetEventStatus vkGetEventStatus{};
     PFN_vkGetFenceStatus vkGetFenceStatus{};
     PFN_vkGetImageMemoryRequirements vkGetImageMemoryRequirements{};
+    PFN_vkGetMemoryFdKHR vkGetMemoryFdKHR{};
+#ifdef _WIN32
+    PFN_vkGetMemoryWin32HandleKHR vkGetMemoryWin32HandleKHR{};
+#endif
     PFN_vkGetQueryPoolResults vkGetQueryPoolResults{};
     PFN_vkGetSemaphoreCounterValueKHR vkGetSemaphoreCounterValueKHR{};
     PFN_vkMapMemory vkMapMemory{};
@@ -673,6 +677,12 @@ class DeviceMemory : public Handle<VkDeviceMemory, VkDevice, DeviceDispatch> {
     using Handle<VkDeviceMemory, VkDevice, DeviceDispatch>::Handle;
 
 public:
+    int GetMemoryFdKHR() const;
+
+#ifdef _WIN32
+    HANDLE GetMemoryWin32HandleKHR() const;
+#endif
+
     /// Set object name.
     void SetObjectNameEXT(const char* name) const;
 

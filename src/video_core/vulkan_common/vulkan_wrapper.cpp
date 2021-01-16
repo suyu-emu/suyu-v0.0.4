@@ -173,6 +173,10 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkGetEventStatus);
     X(vkGetFenceStatus);
     X(vkGetImageMemoryRequirements);
+    X(vkGetMemoryFdKHR);
+#ifdef _WIN32
+    X(vkGetMemoryWin32HandleKHR);
+#endif
     X(vkGetQueryPoolResults);
     X(vkGetSemaphoreCounterValueKHR);
     X(vkMapMemory);
@@ -504,6 +508,32 @@ void Image::SetObjectNameEXT(const char* name) const {
 void ImageView::SetObjectNameEXT(const char* name) const {
     SetObjectName(dld, owner, handle, VK_OBJECT_TYPE_IMAGE_VIEW, name);
 }
+
+int DeviceMemory::GetMemoryFdKHR() const {
+    const VkMemoryGetFdInfoKHR get_fd_info{
+        .sType = VK_STRUCTURE_TYPE_MEMORY_GET_FD_INFO_KHR,
+        .pNext = nullptr,
+        .memory = handle,
+        .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT_KHR,
+    };
+    int fd;
+    Check(dld->vkGetMemoryFdKHR(owner, &get_fd_info, &fd));
+    return fd;
+}
+
+#ifdef _WIN32
+HANDLE DeviceMemory::GetMemoryWin32HandleKHR() const {
+    const VkMemoryGetWin32HandleInfoKHR get_win32_handle_info{
+        .sType = VK_STRUCTURE_TYPE_MEMORY_GET_WIN32_HANDLE_INFO_KHR,
+        .pNext = nullptr,
+        .memory = handle,
+        .handleType = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT_KHR,
+    };
+    HANDLE win32_handle;
+    Check(dld->vkGetMemoryWin32HandleKHR(owner, &get_win32_handle_info, &win32_handle));
+    return win32_handle;
+}
+#endif
 
 void DeviceMemory::SetObjectNameEXT(const char* name) const {
     SetObjectName(dld, owner, handle, VK_OBJECT_TYPE_DEVICE_MEMORY, name);
