@@ -10,18 +10,16 @@
 
 namespace OpenGL {
 
-static constexpr u32 EmulationUniformBlockBinding = 0;
-
-class Device final {
+class Device {
 public:
-    struct BaseBindings final {
+    struct BaseBindings {
         u32 uniform_buffer{};
         u32 shader_storage_buffer{};
         u32 sampler{};
         u32 image{};
     };
 
-    explicit Device();
+    explicit Device(bool has_vulkan_instance);
     explicit Device(std::nullptr_t);
 
     u32 GetMaxUniformBuffers(Tegra::Engines::ShaderType shader_type) const noexcept {

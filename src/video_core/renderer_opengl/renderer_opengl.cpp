@@ -27,11 +27,14 @@
 #include "video_core/renderer_opengl/gl_shader_manager.h"
 #include "video_core/renderer_opengl/renderer_opengl.h"
 #include "video_core/textures/decoders.h"
+#include "video_core/vulkan_common/vulkan_debug_callback.h"
+#include "video_core/vulkan_common/vulkan_device.h"
+#include "video_core/vulkan_common/vulkan_instance.h"
+#include "video_core/vulkan_common/vulkan_library.h"
+#include "video_core/vulkan_common/vulkan_memory_allocator.h"
 
 namespace OpenGL {
-
 namespace {
-
 constexpr GLint PositionLocation = 0;
 constexpr GLint TexCoordLocation = 1;
 constexpr GLint ModelViewMatrixLocation = 0;
@@ -125,25 +128,98 @@ void APIENTRY DebugHandler(GLenum source, GLenum type, GLuint id, GLenum severit
     }
 }
 
+Vulkan::vk::PhysicalDevice FindPhysicalDevice(Vulkan::vk::Instance& instance) {
+    using namespace Vulkan;
+    using UUID = std::array<GLubyte, GL_UUID_SIZE_EXT>;
+
+    GLint num_device_uuids;
+    glGetIntegerv(GL_NUM_DEVICE_UUIDS_EXT, &num_device_uuids);
+    std::vector<UUID> device_uuids(num_device_uuids);
+    for (GLint index = 0; index < num_device_uuids; ++index) {
+        glGetUnsignedBytei_vEXT(GL_DEVICE_UUID_EXT, 0, device_uuids[index].data());
+    }
+    UUID driver_uuid;
+    glGetUnsignedBytevEXT(GL_DRIVER_UUID_EXT, driver_uuid.data());
+
+    for (const VkPhysicalDevice raw_physical_device : instance.EnumeratePhysicalDevices()) {
+        VkPhysicalDeviceIDProperties device_id_properties{};
+        device_id_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES;
+
+        VkPhysicalDeviceProperties2KHR properties{
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR,
+            .pNext = &device_id_properties,
+            .properties{},
+        };
+        vk::PhysicalDevice physical_device(raw_physical_device, instance.Dispatch());
+        physical_device.GetProperties2KHR(properties);
+        if (!std::ranges::equal(device_id_properties.driverUUID, driver_uuid)) {
+            continue;
+        }
+        const auto it =
+            std::ranges::find_if(device_uuids, [&device_id_properties, driver_uuid](UUID uuid) {
+                return std::ranges::equal(device_id_properties.deviceUUID, uuid);
+            });
+        if (it != device_uuids.end()) {
+            return physical_device;
+        }
+    }
+    throw vk::Exception(VK_ERROR_INCOMPATIBLE_DRIVER);
+}
 } // Anonymous namespace
+
+struct VulkanObjects {
+    static std::unique_ptr<VulkanObjects> TryCreate() {
+        if (!GLAD_GL_EXT_memory_object) {
+            // Interop is not present
+            return nullptr;
+        }
+        const std::string_view vendor{reinterpret_cast<const char*>(glGetString(GL_VENDOR))};
+        if (vendor == "ATI Technologies Inc.") {
+            // Avoid using GL_EXT_memory_object on AMD, as it makes the GL driver crash
+            return nullptr;
+        }
+        if (!Settings::values.use_assembly_shaders.GetValue()) {
+            // We only need interop when assembly shaders are enabled
+            return nullptr;
+        }
+#ifdef __linux__
+        LOG_WARNING(Render_OpenGL, "Interop doesn't work on Linux at the moment");
+        return nullptr;
+#endif
+        try {
+            return std::make_unique<VulkanObjects>();
+        } catch (const Vulkan::vk::Exception& exception) {
+            LOG_ERROR(Render_OpenGL, "Failed to initialize Vulkan objects with error: {}",
+                      exception.what());
+            return nullptr;
+        }
+    }
+
+    Common::DynamicLibrary library{Vulkan::OpenLibrary()};
+    Vulkan::vk::InstanceDispatch dld;
+    Vulkan::vk::Instance instance{Vulkan::CreateInstance(library, dld, VK_API_VERSION_1_1)};
+    Vulkan::Device device{*instance, FindPhysicalDevice(instance), nullptr, dld};
+    Vulkan::MemoryAllocator memory_allocator{device, true};
+};
 
 RendererOpenGL::RendererOpenGL(Core::TelemetrySession& telemetry_session_,
                                Core::Frontend::EmuWindow& emu_window_,
                                Core::Memory::Memory& cpu_memory_, Tegra::GPU& gpu_,
                                std::unique_ptr<Core::Frontend::GraphicsContext> context_)
     : RendererBase{emu_window_, std::move(context_)}, telemetry_session{telemetry_session_},
-      emu_window{emu_window_}, cpu_memory{cpu_memory_}, gpu{gpu_}, program_manager{device},
-      rasterizer{emu_window, gpu, cpu_memory, device, screen_info, program_manager, state_tracker} {
+      emu_window{emu_window_}, cpu_memory{cpu_memory_}, gpu{gpu_},
+      vulkan_objects{VulkanObjects::TryCreate()}, device{vulkan_objects != nullptr},
+      state_tracker{gpu}, program_manager{device},
+      rasterizer(emu_window, gpu, cpu_memory, device,
+                 vulkan_objects ? &vulkan_objects->device : nullptr,
+                 vulkan_objects ? &vulkan_objects->memory_allocator : nullptr, screen_info,
+                 program_manager, state_tracker) {
     if (Settings::values.renderer_debug && GLAD_GL_KHR_debug) {
         glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         glDebugMessageCallback(DebugHandler, nullptr);
     }
     AddTelemetryFields();
-
-    if (!GLAD_GL_VERSION_4_6) {
-        throw std::runtime_error{"OpenGL 4.3 is not available"};
-    }
     InitOpenGLObjects();
 }
 
@@ -280,6 +356,7 @@ void RendererOpenGL::InitOpenGLObjects() {
     // Enable unified vertex attributes and query vertex buffer address when the driver supports it
     if (device.HasVertexBufferUnifiedMemory()) {
         glEnableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
+        glEnableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
 
         glMakeNamedBufferResidentNV(vertex_buffer.handle, GL_READ_ONLY);
         glGetNamedBufferParameterui64vNV(vertex_buffer.handle, GL_BUFFER_GPU_ADDRESS_NV,
@@ -412,6 +489,7 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
 
     program_manager.BindHostPipeline(pipeline.handle);
 
+    state_tracker.ClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
     glEnable(GL_CULL_FACE);
     if (screen_info.display_srgb) {
         glEnable(GL_FRAMEBUFFER_SRGB);
@@ -430,7 +508,6 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     glCullFace(GL_BACK);
     glFrontFace(GL_CW);
     glColorMaski(0, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
     glViewportIndexedf(0, 0.0f, 0.0f, static_cast<GLfloat>(layout.width),
                        static_cast<GLfloat>(layout.height));
     glDepthRangeIndexed(0, 0.0, 0.0);

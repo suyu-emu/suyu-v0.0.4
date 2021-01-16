@@ -58,12 +58,11 @@ private:
     vk::InstanceDispatch dld;
 
     vk::Instance instance;
-
+    vk::DebugUtilsMessenger debug_callback;
     vk::SurfaceKHR surface;
 
     VKScreenInfo screen_info;
 
-    vk::DebugUtilsMessenger debug_callback;
     Device device;
     MemoryAllocator memory_allocator;
     StateTracker state_tracker;

@@ -148,8 +148,8 @@ VkSemaphore VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer, bool
     SetUniformData(data, framebuffer);
     SetVertexData(data, framebuffer);
 
-    const std::span<u8> map = buffer_commit.Map();
-    std::memcpy(map.data(), &data, sizeof(data));
+    const std::span<u8> mapped_span = buffer_commit.Map();
+    std::memcpy(mapped_span.data(), &data, sizeof(data));
 
     if (!use_accelerated) {
         const u64 image_offset = GetRawImageOffset(framebuffer, image_index);
@@ -162,8 +162,8 @@ VkSemaphore VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer, bool
         constexpr u32 block_height_log2 = 4;
         const u32 bytes_per_pixel = GetBytesPerPixel(framebuffer);
         Tegra::Texture::UnswizzleTexture(
-            map.subspan(image_offset, size_bytes), std::span(host_ptr, size_bytes), bytes_per_pixel,
-            framebuffer.width, framebuffer.height, 1, block_height_log2, 0);
+            mapped_span.subspan(image_offset, size_bytes), std::span(host_ptr, size_bytes),
+            bytes_per_pixel, framebuffer.width, framebuffer.height, 1, block_height_log2, 0);
 
         const VkBufferImageCopy copy{
             .bufferOffset = image_offset,
@@ -263,7 +263,6 @@ VkSemaphore VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer, bool
         cmdbuf.Draw(4, 1, 0, 0);
         cmdbuf.EndRenderPass();
     });
-
     return *semaphores[image_index];
 }
 

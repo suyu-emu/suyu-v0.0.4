@@ -31,23 +31,12 @@ using VideoCommon::NUM_RT;
 using VideoCommon::Offset2D;
 using VideoCommon::RenderTargets;
 
-class ImageBufferMap {
-public:
-    explicit ImageBufferMap(GLuint handle, u8* map, size_t size, OGLSync* sync);
+struct ImageBufferMap {
     ~ImageBufferMap();
 
-    GLuint Handle() const noexcept {
-        return handle;
-    }
-
-    std::span<u8> Span() const noexcept {
-        return span;
-    }
-
-private:
-    std::span<u8> span;
+    std::span<u8> mapped_span;
     OGLSync* sync;
-    GLuint handle;
+    GLuint buffer;
 };
 
 struct FormatProperties {
@@ -69,9 +58,9 @@ public:
 
     void Finish();
 
-    ImageBufferMap MapUploadBuffer(size_t size);
+    ImageBufferMap UploadStagingBuffer(size_t size);
 
-    ImageBufferMap MapDownloadBuffer(size_t size);
+    ImageBufferMap DownloadStagingBuffer(size_t size);
 
     void CopyImage(Image& dst, Image& src, std::span<const VideoCommon::ImageCopy> copies);
 

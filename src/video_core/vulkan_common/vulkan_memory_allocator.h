@@ -78,7 +78,7 @@ public:
      *
      * @throw vk::Exception on failure
      */
-    explicit MemoryAllocator(const Device& device_, bool export_allocations_ = false);
+    explicit MemoryAllocator(const Device& device_, bool export_allocations_);
     ~MemoryAllocator();
 
     MemoryAllocator& operator=(const MemoryAllocator&) = delete;

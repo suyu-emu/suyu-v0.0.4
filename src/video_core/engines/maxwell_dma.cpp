@@ -60,9 +60,6 @@ void MaxwellDMA::Launch() {
         return;
     }
 
-    // All copies here update the main memory, so mark all rasterizer states as invalid.
-    system.GPU().Maxwell3D().OnMemoryWrite();
-
     if (is_src_pitch && is_dst_pitch) {
         CopyPitchToPitch();
     } else {

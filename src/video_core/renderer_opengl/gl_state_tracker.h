@@ -28,10 +28,6 @@ enum : u8 {
     VertexFormat0,
     VertexFormat31 = VertexFormat0 + 31,
 
-    VertexBuffers,
-    VertexBuffer0,
-    VertexBuffer31 = VertexBuffer0 + 31,
-
     VertexInstances,
     VertexInstance0,
     VertexInstance31 = VertexInstance0 + 31,
@@ -92,8 +88,6 @@ class StateTracker {
 public:
     explicit StateTracker(Tegra::GPU& gpu);
 
-    void InvalidateStreamBuffer();
-
     void BindIndexBuffer(GLuint new_index_buffer) {
         if (index_buffer == new_index_buffer) {
             return;
@@ -110,13 +104,32 @@ public:
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
     }
 
+    void ClipControl(GLenum new_origin, GLenum new_depth) {
+        if (new_origin == origin && new_depth == depth) {
+            return;
+        }
+        origin = new_origin;
+        depth = new_depth;
+        glClipControl(origin, depth);
+    }
+
+    void SetYNegate(bool new_y_negate) {
+        if (new_y_negate == y_negate) {
+            return;
+        }
+        // Y_NEGATE is mapped to gl_FrontMaterial.ambient.a
+        y_negate = new_y_negate;
+        const std::array ambient{0.0f, 0.0f, 0.0f, y_negate ? -1.0f : 1.0f};
+        glMaterialfv(GL_FRONT, GL_AMBIENT, ambient.data());
+    }
+
     void NotifyScreenDrawVertexArray() {
         flags[OpenGL::Dirty::VertexFormats] = true;
         flags[OpenGL::Dirty::VertexFormat0 + 0] = true;
         flags[OpenGL::Dirty::VertexFormat0 + 1] = true;
 
-        flags[OpenGL::Dirty::VertexBuffers] = true;
-        flags[OpenGL::Dirty::VertexBuffer0] = true;
+        flags[VideoCommon::Dirty::VertexBuffers] = true;
+        flags[VideoCommon::Dirty::VertexBuffer0] = true;
 
         flags[OpenGL::Dirty::VertexInstances] = true;
         flags[OpenGL::Dirty::VertexInstance0 + 0] = true;
@@ -202,6 +215,9 @@ private:
 
     GLuint framebuffer = 0;
     GLuint index_buffer = 0;
+    GLenum origin = GL_LOWER_LEFT;
+    GLenum depth = GL_NEGATIVE_ONE_TO_ONE;
+    bool y_negate = false;
 };
 
 } // namespace OpenGL

@@ -1,70 +1,64 @@
-// Copyright 2018 Citra Emulator Project
+// Copyright 2021 yuzu Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <tuple>
-#include <vector>
+#include <array>
+#include <memory>
+#include <span>
+
+#include <glad/glad.h>
 
 #include "common/alignment.h"
 #include "common/assert.h"
-#include "common/microprofile.h"
-#include "video_core/renderer_opengl/gl_device.h"
-#include "video_core/renderer_opengl/gl_state_tracker.h"
 #include "video_core/renderer_opengl/gl_stream_buffer.h"
-
-MICROPROFILE_DEFINE(OpenGL_StreamBuffer, "OpenGL", "Stream Buffer Orphaning",
-                    MP_RGB(128, 128, 192));
 
 namespace OpenGL {
 
-OGLStreamBuffer::OGLStreamBuffer(const Device& device, StateTracker& state_tracker_)
-    : state_tracker{state_tracker_} {
-    gl_buffer.Create();
-
-    static constexpr GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT;
-    glNamedBufferStorage(gl_buffer.handle, BUFFER_SIZE, nullptr, flags);
-    mapped_ptr = static_cast<u8*>(
-        glMapNamedBufferRange(gl_buffer.handle, 0, BUFFER_SIZE, flags | GL_MAP_FLUSH_EXPLICIT_BIT));
-
-    if (device.UseAssemblyShaders() || device.HasVertexBufferUnifiedMemory()) {
-        glMakeNamedBufferResidentNV(gl_buffer.handle, GL_READ_ONLY);
-        glGetNamedBufferParameterui64vNV(gl_buffer.handle, GL_BUFFER_GPU_ADDRESS_NV, &gpu_address);
+StreamBuffer::StreamBuffer() {
+    static constexpr GLenum flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+    buffer.Create();
+    glObjectLabel(GL_BUFFER, buffer.handle, -1, "Stream Buffer");
+    glNamedBufferStorage(buffer.handle, STREAM_BUFFER_SIZE, nullptr, flags);
+    mapped_pointer =
+        static_cast<u8*>(glMapNamedBufferRange(buffer.handle, 0, STREAM_BUFFER_SIZE, flags));
+    for (OGLSync& sync : fences) {
+        sync.Create();
     }
 }
 
-OGLStreamBuffer::~OGLStreamBuffer() {
-    glUnmapNamedBuffer(gl_buffer.handle);
-    gl_buffer.Release();
-}
-
-std::pair<u8*, GLintptr> OGLStreamBuffer::Map(GLsizeiptr size, GLintptr alignment) {
-    ASSERT(size <= BUFFER_SIZE);
-    ASSERT(alignment <= BUFFER_SIZE);
-    mapped_size = size;
-
-    if (alignment > 0) {
-        buffer_pos = Common::AlignUp<std::size_t>(buffer_pos, alignment);
+std::pair<std::span<u8>, size_t> StreamBuffer::Request(size_t size) noexcept {
+    ASSERT(size < REGION_SIZE);
+    for (size_t region = Region(used_iterator), region_end = Region(iterator); region < region_end;
+         ++region) {
+        fences[region].Create();
     }
+    used_iterator = iterator;
 
-    if (buffer_pos + size > BUFFER_SIZE) {
-        MICROPROFILE_SCOPE(OpenGL_StreamBuffer);
-        glInvalidateBufferData(gl_buffer.handle);
-        state_tracker.InvalidateStreamBuffer();
-
-        buffer_pos = 0;
+    for (size_t region = Region(free_iterator) + 1,
+                region_end = std::min(Region(iterator + size) + 1, NUM_SYNCS);
+         region < region_end; ++region) {
+        glClientWaitSync(fences[region].handle, 0, GL_TIMEOUT_IGNORED);
+        fences[region].Release();
     }
-
-    return std::make_pair(mapped_ptr + buffer_pos, buffer_pos);
-}
-
-void OGLStreamBuffer::Unmap(GLsizeiptr size) {
-    ASSERT(size <= mapped_size);
-
-    if (size > 0) {
-        glFlushMappedNamedBufferRange(gl_buffer.handle, buffer_pos, size);
+    if (iterator + size > free_iterator) {
+        free_iterator = iterator + size;
     }
+    if (iterator + size > STREAM_BUFFER_SIZE) {
+        for (size_t region = Region(used_iterator); region < NUM_SYNCS; ++region) {
+            fences[region].Create();
+        }
+        used_iterator = 0;
+        iterator = 0;
+        free_iterator = size;
 
-    buffer_pos += size;
+        for (size_t region = 0, region_end = Region(size); region <= region_end; ++region) {
+            glClientWaitSync(fences[region].handle, 0, GL_TIMEOUT_IGNORED);
+            fences[region].Release();
+        }
+    }
+    const size_t offset = iterator;
+    iterator = Common::AlignUp(iterator + size, MAX_ALIGNMENT);
+    return {std::span(mapped_pointer + offset, size), offset};
 }
 
 } // namespace OpenGL

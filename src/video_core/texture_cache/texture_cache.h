@@ -103,9 +103,6 @@ public:
     /// Notify the cache that a new frame has been queued
     void TickFrame();
 
-    /// Return an unique mutually exclusive lock for the cache
-    [[nodiscard]] std::unique_lock<std::mutex> AcquireLock();
-
     /// Return a constant reference to the given image view id
     [[nodiscard]] const ImageView& GetImageView(ImageViewId id) const noexcept;
 
@@ -179,6 +176,8 @@ public:
     /// Return true when a CPU region is modified from the GPU
     [[nodiscard]] bool IsRegionGpuModified(VAddr addr, size_t size);
 
+    std::mutex mutex;
+
 private:
     /// Iterate over all page indices in a range
     template <typename Func>
@@ -212,8 +211,8 @@ private:
     void RefreshContents(Image& image);
 
     /// Upload data from guest to an image
-    template <typename MapBuffer>
-    void UploadImageContents(Image& image, MapBuffer& map, size_t buffer_offset);
+    template <typename StagingBuffer>
+    void UploadImageContents(Image& image, StagingBuffer& staging_buffer, size_t buffer_offset);
 
     /// Find or create an image view from a guest descriptor
     [[nodiscard]] ImageViewId FindImageView(const TICEntry& config);
@@ -325,8 +324,6 @@ private:
 
     RenderTargets render_targets;
 
-    std::mutex mutex;
-
     std::unordered_map<TICEntry, ImageViewId> image_views;
     std::unordered_map<TSCEntry, SamplerId> samplers;
     std::unordered_map<RenderTargets, FramebufferId> framebuffers;
@@ -383,11 +380,6 @@ void TextureCache<P>::TickFrame() {
     sentenced_framebuffers.Tick();
     sentenced_image_view.Tick();
     ++frame_tick;
-}
-
-template <class P>
-std::unique_lock<std::mutex> TextureCache<P>::AcquireLock() {
-    return std::unique_lock{mutex};
 }
 
 template <class P>
@@ -598,11 +590,11 @@ void TextureCache<P>::DownloadMemory(VAddr cpu_addr, size_t size) {
     });
     for (const ImageId image_id : images) {
         Image& image = slot_images[image_id];
-        auto map = runtime.MapDownloadBuffer(image.unswizzled_size_bytes);
+        auto map = runtime.DownloadStagingBuffer(image.unswizzled_size_bytes);
         const auto copies = FullDownloadCopies(image.info);
         image.DownloadMemory(map, 0, copies);
         runtime.Finish();
-        SwizzleImage(gpu_memory, image.gpu_addr, image.info, copies, map.Span());
+        SwizzleImage(gpu_memory, image.gpu_addr, image.info, copies, map.mapped_span);
     }
 }
 
@@ -757,7 +749,7 @@ void TextureCache<P>::PopAsyncFlushes() {
     for (const ImageId image_id : download_ids) {
         total_size_bytes += slot_images[image_id].unswizzled_size_bytes;
     }
-    auto download_map = runtime.MapDownloadBuffer(total_size_bytes);
+    auto download_map = runtime.DownloadStagingBuffer(total_size_bytes);
     size_t buffer_offset = 0;
     for (const ImageId image_id : download_ids) {
         Image& image = slot_images[image_id];
@@ -769,7 +761,7 @@ void TextureCache<P>::PopAsyncFlushes() {
     runtime.Finish();
 
     buffer_offset = 0;
-    const std::span<u8> download_span = download_map.Span();
+    const std::span<u8> download_span = download_map.mapped_span;
     for (const ImageId image_id : download_ids) {
         const ImageBase& image = slot_images[image_id];
         const auto copies = FullDownloadCopies(image.info);
@@ -806,7 +798,7 @@ void TextureCache<P>::RefreshContents(Image& image) {
         LOG_WARNING(HW_GPU, "MSAA image uploads are not implemented");
         return;
     }
-    auto map = runtime.MapUploadBuffer(MapSizeBytes(image));
+    auto map = runtime.UploadStagingBuffer(MapSizeBytes(image));
     UploadImageContents(image, map, 0);
     runtime.InsertUploadMemoryBarrier();
 }
@@ -814,7 +806,7 @@ void TextureCache<P>::RefreshContents(Image& image) {
 template <class P>
 template <typename MapBuffer>
 void TextureCache<P>::UploadImageContents(Image& image, MapBuffer& map, size_t buffer_offset) {
-    const std::span<u8> mapped_span = map.Span().subspan(buffer_offset);
+    const std::span<u8> mapped_span = map.mapped_span.subspan(buffer_offset);
     const GPUVAddr gpu_addr = image.gpu_addr;
 
     if (True(image.flags & ImageFlagBits::AcceleratedUpload)) {

@@ -38,6 +38,8 @@ class GPU;
 
 namespace OpenGL {
 
+struct VulkanObjects;
+
 /// Structure used for storing information about the textures for the Switch screen
 struct TextureInfo {
     OGLTexture resource;
@@ -99,8 +101,11 @@ private:
     Core::Memory::Memory& cpu_memory;
     Tegra::GPU& gpu;
 
-    const Device device;
-    StateTracker state_tracker{gpu};
+    std::unique_ptr<VulkanObjects> vulkan_objects;
+    Device device;
+    StateTracker state_tracker;
+    ProgramManager program_manager;
+    RasterizerOpenGL rasterizer;
 
     // OpenGL object IDs
     OGLSampler present_sampler;
@@ -115,11 +120,6 @@ private:
 
     /// Display information for Switch screen
     ScreenInfo screen_info;
-
-    /// Global dummy shader pipeline
-    ProgramManager program_manager;
-
-    RasterizerOpenGL rasterizer;
 
     /// OpenGL framebuffer data
     std::vector<u8> gl_framebuffer_data;

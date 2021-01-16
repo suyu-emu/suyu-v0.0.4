@@ -398,9 +398,6 @@ void AttachTexture(GLuint fbo, GLenum attachment, const ImageView* image_view) {
 
 } // Anonymous namespace
 
-ImageBufferMap::ImageBufferMap(GLuint handle_, u8* map, size_t size, OGLSync* sync_)
-    : span(map, size), sync{sync_}, handle{handle_} {}
-
 ImageBufferMap::~ImageBufferMap() {
     if (sync) {
         sync->Create();
@@ -487,11 +484,11 @@ void TextureCacheRuntime::Finish() {
     glFinish();
 }
 
-ImageBufferMap TextureCacheRuntime::MapUploadBuffer(size_t size) {
+ImageBufferMap TextureCacheRuntime::UploadStagingBuffer(size_t size) {
     return upload_buffers.RequestMap(size, true);
 }
 
-ImageBufferMap TextureCacheRuntime::MapDownloadBuffer(size_t size) {
+ImageBufferMap TextureCacheRuntime::DownloadStagingBuffer(size_t size) {
     return download_buffers.RequestMap(size, false);
 }
 
@@ -596,7 +593,11 @@ ImageBufferMap TextureCacheRuntime::StagingBuffers::RequestMap(size_t requested_
                                                                bool insert_fence) {
     const size_t index = RequestBuffer(requested_size);
     OGLSync* const sync = insert_fence ? &syncs[index] : nullptr;
-    return ImageBufferMap(buffers[index].handle, maps[index], requested_size, sync);
+    return ImageBufferMap{
+        .mapped_span = std::span(maps[index], requested_size),
+        .sync = sync,
+        .buffer = buffers[index].handle,
+    };
 }
 
 size_t TextureCacheRuntime::StagingBuffers::RequestBuffer(size_t requested_size) {
@@ -711,7 +712,7 @@ Image::Image(TextureCacheRuntime& runtime, const VideoCommon::ImageInfo& info_, 
 
 void Image::UploadMemory(const ImageBufferMap& map, size_t buffer_offset,
                          std::span<const VideoCommon::BufferImageCopy> copies) {
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, map.Handle());
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, map.buffer);
     glFlushMappedBufferRange(GL_PIXEL_UNPACK_BUFFER, buffer_offset, unswizzled_size_bytes);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -735,7 +736,7 @@ void Image::UploadMemory(const ImageBufferMap& map, size_t buffer_offset,
 void Image::UploadMemory(const ImageBufferMap& map, size_t buffer_offset,
                          std::span<const VideoCommon::BufferCopy> copies) {
     for (const VideoCommon::BufferCopy& copy : copies) {
-        glCopyNamedBufferSubData(map.Handle(), buffer.handle, copy.src_offset + buffer_offset,
+        glCopyNamedBufferSubData(map.buffer, buffer.handle, copy.src_offset + buffer_offset,
                                  copy.dst_offset, copy.size);
     }
 }
@@ -744,7 +745,7 @@ void Image::DownloadMemory(ImageBufferMap& map, size_t buffer_offset,
                            std::span<const VideoCommon::BufferImageCopy> copies) {
     glMemoryBarrier(GL_PIXEL_BUFFER_BARRIER_BIT); // TODO: Move this to its own API
 
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, map.Handle());
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, map.buffer);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
     u32 current_row_length = std::numeric_limits<u32>::max();

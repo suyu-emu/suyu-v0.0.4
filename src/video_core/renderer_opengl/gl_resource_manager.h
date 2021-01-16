@@ -234,9 +234,6 @@ public:
     /// Deletes the internal OpenGL resource
     void Release();
 
-    // Converts the buffer into a stream copy buffer with a fixed size
-    void MakeStreamCopy(std::size_t buffer_size);
-
     GLuint handle = 0;
 };
 

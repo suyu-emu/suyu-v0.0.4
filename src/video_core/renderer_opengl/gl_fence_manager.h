@@ -32,14 +32,13 @@ private:
 };
 
 using Fence = std::shared_ptr<GLInnerFence>;
-using GenericFenceManager =
-    VideoCommon::FenceManager<Fence, TextureCache, OGLBufferCache, QueryCache>;
+using GenericFenceManager = VideoCommon::FenceManager<Fence, TextureCache, BufferCache, QueryCache>;
 
 class FenceManagerOpenGL final : public GenericFenceManager {
 public:
-    explicit FenceManagerOpenGL(VideoCore::RasterizerInterface& rasterizer_, Tegra::GPU& gpu_,
-                                TextureCache& texture_cache_, OGLBufferCache& buffer_cache_,
-                                QueryCache& query_cache_);
+    explicit FenceManagerOpenGL(VideoCore::RasterizerInterface& rasterizer, Tegra::GPU& gpu,
+                                TextureCache& texture_cache, BufferCache& buffer_cache,
+                                QueryCache& query_cache);
 
 protected:
     Fence CreateFence(u32 value, bool is_stubbed) override;

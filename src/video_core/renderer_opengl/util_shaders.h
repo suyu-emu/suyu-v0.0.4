@@ -15,8 +15,9 @@
 namespace OpenGL {
 
 class Image;
-class ImageBufferMap;
 class ProgramManager;
+
+struct ImageBufferMap;
 
 class UtilShaders {
 public:

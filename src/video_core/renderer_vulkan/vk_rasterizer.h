@@ -18,14 +18,12 @@
 #include "video_core/renderer_vulkan/blit_image.h"
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
 #include "video_core/renderer_vulkan/vk_buffer_cache.h"
-#include "video_core/renderer_vulkan/vk_compute_pass.h"
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
 #include "video_core/renderer_vulkan/vk_fence_manager.h"
 #include "video_core/renderer_vulkan/vk_pipeline_cache.h"
 #include "video_core/renderer_vulkan/vk_query_cache.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
-#include "video_core/renderer_vulkan/vk_stream_buffer.h"
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
 #include "video_core/shader/async_shaders.h"
@@ -49,7 +47,6 @@ namespace Vulkan {
 struct VKScreenInfo;
 
 class StateTracker;
-class BufferBindings;
 
 class RasterizerVulkan final : public VideoCore::RasterizerAccelerated {
 public:
@@ -65,6 +62,7 @@ public:
     void DispatchCompute(GPUVAddr code_addr) override;
     void ResetCounter(VideoCore::QueryType type) override;
     void Query(GPUVAddr gpu_addr, VideoCore::QueryType type, std::optional<u64> timestamp) override;
+    void BindGraphicsUniformBuffer(size_t stage, u32 index, GPUVAddr gpu_addr, u32 size) override;
     void FlushAll() override;
     void FlushRegion(VAddr addr, u64 size) override;
     bool MustFlushRegion(VAddr addr, u64 size) override;
@@ -107,40 +105,17 @@ private:
 
     static constexpr VkDeviceSize DEFAULT_BUFFER_SIZE = 4 * sizeof(float);
 
-    struct DrawParameters {
-        void Draw(vk::CommandBuffer cmdbuf) const;
-
-        u32 base_instance = 0;
-        u32 num_instances = 0;
-        u32 base_vertex = 0;
-        u32 num_vertices = 0;
-        bool is_indexed = 0;
-    };
-
     void FlushWork();
 
-    /// Setups geometry buffers and state.
-    DrawParameters SetupGeometry(FixedPipelineState& fixed_state, BufferBindings& buffer_bindings,
-                                 bool is_indexed, bool is_instanced);
-
     /// Setup descriptors in the graphics pipeline.
-    void SetupShaderDescriptors(const std::array<Shader*, Maxwell::MaxShaderProgram>& shaders);
+    void SetupShaderDescriptors(const std::array<Shader*, Maxwell::MaxShaderProgram>& shaders,
+                                bool is_indexed);
 
     void UpdateDynamicStates();
 
     void BeginTransformFeedback();
 
     void EndTransformFeedback();
-
-    void SetupVertexArrays(BufferBindings& buffer_bindings);
-
-    void SetupIndexBuffer(BufferBindings& buffer_bindings, DrawParameters& params, bool is_indexed);
-
-    /// Setup constant buffers in the graphics pipeline.
-    void SetupGraphicsConstBuffers(const ShaderEntries& entries, std::size_t stage);
-
-    /// Setup global buffers in the graphics pipeline.
-    void SetupGraphicsGlobalBuffers(const ShaderEntries& entries, std::size_t stage);
 
     /// Setup uniform texels in the graphics pipeline.
     void SetupGraphicsUniformTexels(const ShaderEntries& entries, std::size_t stage);
@@ -154,12 +129,6 @@ private:
     /// Setup images in the graphics pipeline.
     void SetupGraphicsImages(const ShaderEntries& entries, std::size_t stage);
 
-    /// Setup constant buffers in the compute pipeline.
-    void SetupComputeConstBuffers(const ShaderEntries& entries);
-
-    /// Setup global buffers in the compute pipeline.
-    void SetupComputeGlobalBuffers(const ShaderEntries& entries);
-
     /// Setup texel buffers in the compute pipeline.
     void SetupComputeUniformTexels(const ShaderEntries& entries);
 
@@ -171,11 +140,6 @@ private:
 
     /// Setup images in the compute pipeline.
     void SetupComputeImages(const ShaderEntries& entries);
-
-    void SetupConstBuffer(const ConstBufferEntry& entry,
-                          const Tegra::Engines::ConstBufferInfo& buffer);
-
-    void SetupGlobalBuffer(const GlobalBufferEntry& entry, GPUVAddr address);
 
     void UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& regs);
     void UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs);
@@ -193,19 +157,6 @@ private:
     void UpdateStencilOp(Tegra::Engines::Maxwell3D::Regs& regs);
     void UpdateStencilTestEnable(Tegra::Engines::Maxwell3D::Regs& regs);
 
-    size_t CalculateGraphicsStreamBufferSize(bool is_indexed) const;
-
-    size_t CalculateComputeStreamBufferSize() const;
-
-    size_t CalculateVertexArraysSize() const;
-
-    size_t CalculateIndexBufferSize() const;
-
-    size_t CalculateConstBufferSize(const ConstBufferEntry& entry,
-                                    const Tegra::Engines::ConstBufferInfo& buffer) const;
-
-    VkBuffer DefaultBuffer();
-
     Tegra::GPU& gpu;
     Tegra::MemoryManager& gpu_memory;
     Tegra::Engines::Maxwell3D& maxwell3d;
@@ -217,24 +168,19 @@ private:
     StateTracker& state_tracker;
     VKScheduler& scheduler;
 
-    VKStreamBuffer stream_buffer;
     StagingBufferPool staging_pool;
     VKDescriptorPool descriptor_pool;
     VKUpdateDescriptorQueue update_descriptor_queue;
     BlitImageHelper blit_image;
-    QuadArrayPass quad_array_pass;
-    QuadIndexedPass quad_indexed_pass;
-    Uint8Pass uint8_pass;
 
     TextureCacheRuntime texture_cache_runtime;
     TextureCache texture_cache;
+    BufferCacheRuntime buffer_cache_runtime;
+    BufferCache buffer_cache;
     VKPipelineCache pipeline_cache;
-    VKBufferCache buffer_cache;
     VKQueryCache query_cache;
     VKFenceManager fence_manager;
 
-    vk::Buffer default_buffer;
-    MemoryCommit default_buffer_commit;
     vk::Event wfi_event;
     VideoCommon::Shader::AsyncShaders async_shaders;
 

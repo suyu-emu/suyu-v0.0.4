@@ -76,6 +76,7 @@ u32 ShaderIR::DecodeOther(NodeBlock& bb, u32 pc) {
             case SystemVariable::InvocationId:
                 return Operation(OperationCode::InvocationId);
             case SystemVariable::Ydirection:
+                uses_y_negate = true;
                 return Operation(OperationCode::YNegate);
             case SystemVariable::InvocationInfo:
                 LOG_WARNING(HW_GPU, "S2R instruction with InvocationInfo is incomplete");

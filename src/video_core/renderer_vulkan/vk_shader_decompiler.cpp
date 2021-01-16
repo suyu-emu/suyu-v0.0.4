@@ -3127,6 +3127,9 @@ ShaderEntries GenerateShaderEntries(const VideoCommon::Shader::ShaderIR& ir) {
             entries.attributes.insert(GetGenericAttributeLocation(attribute));
         }
     }
+    for (const auto& buffer : entries.const_buffers) {
+        entries.enabled_uniform_buffers |= 1U << buffer.GetIndex();
+    }
     entries.clip_distances = ir.GetClipDistances();
     entries.shader_length = ir.GetLength();
     entries.uses_warps = ir.UsesWarps();
