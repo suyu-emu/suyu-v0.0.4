@@ -409,24 +409,24 @@ void RasterizerVulkan::DrawParameters::Draw(vk::CommandBuffer cmdbuf) const {
 RasterizerVulkan::RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
                                    Tegra::MemoryManager& gpu_memory_,
                                    Core::Memory::Memory& cpu_memory_, VKScreenInfo& screen_info_,
-                                   const Device& device_, VKMemoryManager& memory_manager_,
+                                   const Device& device_, MemoryAllocator& memory_allocator_,
                                    StateTracker& state_tracker_, VKScheduler& scheduler_)
     : RasterizerAccelerated{cpu_memory_}, gpu{gpu_},
       gpu_memory{gpu_memory_}, maxwell3d{gpu.Maxwell3D()}, kepler_compute{gpu.KeplerCompute()},
-      screen_info{screen_info_}, device{device_}, memory_manager{memory_manager_},
+      screen_info{screen_info_}, device{device_}, memory_allocator{memory_allocator_},
       state_tracker{state_tracker_}, scheduler{scheduler_}, stream_buffer(device, scheduler),
-      staging_pool(device, memory_manager, scheduler), descriptor_pool(device, scheduler),
+      staging_pool(device, memory_allocator, scheduler), descriptor_pool(device, scheduler),
       update_descriptor_queue(device, scheduler),
       blit_image(device, scheduler, state_tracker, descriptor_pool),
       quad_array_pass(device, scheduler, descriptor_pool, staging_pool, update_descriptor_queue),
       quad_indexed_pass(device, scheduler, descriptor_pool, staging_pool, update_descriptor_queue),
       uint8_pass(device, scheduler, descriptor_pool, staging_pool, update_descriptor_queue),
-      texture_cache_runtime{device, scheduler, memory_manager, staging_pool, blit_image},
+      texture_cache_runtime{device, scheduler, memory_allocator, staging_pool, blit_image},
       texture_cache(texture_cache_runtime, *this, maxwell3d, kepler_compute, gpu_memory),
       pipeline_cache(*this, gpu, maxwell3d, kepler_compute, gpu_memory, device, scheduler,
                      descriptor_pool, update_descriptor_queue),
-      buffer_cache(*this, gpu_memory, cpu_memory_, device, memory_manager, scheduler, stream_buffer,
-                   staging_pool),
+      buffer_cache(*this, gpu_memory, cpu_memory_, device, memory_allocator, scheduler,
+                   stream_buffer, staging_pool),
       query_cache{*this, maxwell3d, gpu_memory, device, scheduler},
       fence_manager(*this, gpu, gpu_memory, texture_cache, buffer_cache, query_cache, scheduler),
       wfi_event(device.GetLogical().CreateEvent()), async_shaders(emu_window_) {
@@ -1445,7 +1445,7 @@ VkBuffer RasterizerVulkan::DefaultBuffer() {
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
     });
-    default_buffer_commit = memory_manager.Commit(default_buffer, false);
+    default_buffer_commit = memory_allocator.Commit(default_buffer, MemoryUsage::DeviceLocal);
 
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([buffer = *default_buffer](vk::CommandBuffer cmdbuf) {

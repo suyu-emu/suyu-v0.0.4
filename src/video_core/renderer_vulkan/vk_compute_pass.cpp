@@ -164,7 +164,7 @@ VkDescriptorSet VKComputePass::CommitDescriptorSet(
 
 QuadArrayPass::QuadArrayPass(const Device& device_, VKScheduler& scheduler_,
                              VKDescriptorPool& descriptor_pool_,
-                             VKStagingBufferPool& staging_buffer_pool_,
+                             StagingBufferPool& staging_buffer_pool_,
                              VKUpdateDescriptorQueue& update_descriptor_queue_)
     : VKComputePass(device_, descriptor_pool_, BuildQuadArrayPassDescriptorSetLayoutBinding(),
                     BuildQuadArrayPassDescriptorUpdateTemplateEntry(),
@@ -177,18 +177,18 @@ QuadArrayPass::~QuadArrayPass() = default;
 std::pair<VkBuffer, VkDeviceSize> QuadArrayPass::Assemble(u32 num_vertices, u32 first) {
     const u32 num_triangle_vertices = (num_vertices / 4) * 6;
     const std::size_t staging_size = num_triangle_vertices * sizeof(u32);
-    auto& buffer = staging_buffer_pool.GetUnusedBuffer(staging_size, false);
+    const auto staging_ref = staging_buffer_pool.Request(staging_size, MemoryUsage::DeviceLocal);
 
     update_descriptor_queue.Acquire();
-    update_descriptor_queue.AddBuffer(*buffer.handle, 0, staging_size);
+    update_descriptor_queue.AddBuffer(staging_ref.buffer, 0, staging_size);
     const VkDescriptorSet set = CommitDescriptorSet(update_descriptor_queue);
 
     scheduler.RequestOutsideRenderPassOperationContext();
 
     ASSERT(num_vertices % 4 == 0);
     const u32 num_quads = num_vertices / 4;
-    scheduler.Record([layout = *layout, pipeline = *pipeline, buffer = *buffer.handle, num_quads,
-                      first, set](vk::CommandBuffer cmdbuf) {
+    scheduler.Record([layout = *layout, pipeline = *pipeline, buffer = staging_ref.buffer,
+                      num_quads, first, set](vk::CommandBuffer cmdbuf) {
         constexpr u32 dispatch_size = 1024;
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
         cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, layout, 0, set, {});
@@ -208,11 +208,11 @@ std::pair<VkBuffer, VkDeviceSize> QuadArrayPass::Assemble(u32 num_vertices, u32 
         cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
                                VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, {}, {barrier}, {});
     });
-    return {*buffer.handle, 0};
+    return {staging_ref.buffer, 0};
 }
 
 Uint8Pass::Uint8Pass(const Device& device, VKScheduler& scheduler_,
-                     VKDescriptorPool& descriptor_pool, VKStagingBufferPool& staging_buffer_pool_,
+                     VKDescriptorPool& descriptor_pool, StagingBufferPool& staging_buffer_pool_,
                      VKUpdateDescriptorQueue& update_descriptor_queue_)
     : VKComputePass(device, descriptor_pool, BuildInputOutputDescriptorSetBindings(),
                     BuildInputOutputDescriptorUpdateTemplate(), {}, VULKAN_UINT8_COMP_SPV),
@@ -224,15 +224,15 @@ Uint8Pass::~Uint8Pass() = default;
 std::pair<VkBuffer, u64> Uint8Pass::Assemble(u32 num_vertices, VkBuffer src_buffer,
                                              u64 src_offset) {
     const u32 staging_size = static_cast<u32>(num_vertices * sizeof(u16));
-    auto& buffer = staging_buffer_pool.GetUnusedBuffer(staging_size, false);
+    const auto staging_ref = staging_buffer_pool.Request(staging_size, MemoryUsage::DeviceLocal);
 
     update_descriptor_queue.Acquire();
     update_descriptor_queue.AddBuffer(src_buffer, src_offset, num_vertices);
-    update_descriptor_queue.AddBuffer(*buffer.handle, 0, staging_size);
+    update_descriptor_queue.AddBuffer(staging_ref.buffer, 0, staging_size);
     const VkDescriptorSet set = CommitDescriptorSet(update_descriptor_queue);
 
     scheduler.RequestOutsideRenderPassOperationContext();
-    scheduler.Record([layout = *layout, pipeline = *pipeline, buffer = *buffer.handle, set,
+    scheduler.Record([layout = *layout, pipeline = *pipeline, buffer = staging_ref.buffer, set,
                       num_vertices](vk::CommandBuffer cmdbuf) {
         constexpr u32 dispatch_size = 1024;
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
@@ -252,12 +252,12 @@ std::pair<VkBuffer, u64> Uint8Pass::Assemble(u32 num_vertices, VkBuffer src_buff
         cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
                                VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, {}, barrier, {});
     });
-    return {*buffer.handle, 0};
+    return {staging_ref.buffer, 0};
 }
 
 QuadIndexedPass::QuadIndexedPass(const Device& device_, VKScheduler& scheduler_,
                                  VKDescriptorPool& descriptor_pool_,
-                                 VKStagingBufferPool& staging_buffer_pool_,
+                                 StagingBufferPool& staging_buffer_pool_,
                                  VKUpdateDescriptorQueue& update_descriptor_queue_)
     : VKComputePass(device_, descriptor_pool_, BuildInputOutputDescriptorSetBindings(),
                     BuildInputOutputDescriptorUpdateTemplate(),
@@ -286,15 +286,15 @@ std::pair<VkBuffer, u64> QuadIndexedPass::Assemble(
     const u32 num_tri_vertices = (num_vertices / 4) * 6;
 
     const std::size_t staging_size = num_tri_vertices * sizeof(u32);
-    auto& buffer = staging_buffer_pool.GetUnusedBuffer(staging_size, false);
+    const auto staging_ref = staging_buffer_pool.Request(staging_size, MemoryUsage::DeviceLocal);
 
     update_descriptor_queue.Acquire();
     update_descriptor_queue.AddBuffer(src_buffer, src_offset, input_size);
-    update_descriptor_queue.AddBuffer(*buffer.handle, 0, staging_size);
+    update_descriptor_queue.AddBuffer(staging_ref.buffer, 0, staging_size);
     const VkDescriptorSet set = CommitDescriptorSet(update_descriptor_queue);
 
     scheduler.RequestOutsideRenderPassOperationContext();
-    scheduler.Record([layout = *layout, pipeline = *pipeline, buffer = *buffer.handle, set,
+    scheduler.Record([layout = *layout, pipeline = *pipeline, buffer = staging_ref.buffer, set,
                       num_tri_vertices, base_vertex, index_shift](vk::CommandBuffer cmdbuf) {
         static constexpr u32 dispatch_size = 1024;
         const std::array push_constants = {base_vertex, index_shift};
@@ -317,7 +317,7 @@ std::pair<VkBuffer, u64> QuadIndexedPass::Assemble(
         cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
                                VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, {}, barrier, {});
     });
-    return {*buffer.handle, 0};
+    return {staging_ref.buffer, 0};
 }
 
 } // namespace Vulkan

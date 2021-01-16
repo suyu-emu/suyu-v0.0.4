@@ -16,8 +16,8 @@
 namespace Vulkan {
 
 class Device;
+class StagingBufferPool;
 class VKScheduler;
-class VKStagingBufferPool;
 class VKUpdateDescriptorQueue;
 
 class VKComputePass {
@@ -45,7 +45,7 @@ class QuadArrayPass final : public VKComputePass {
 public:
     explicit QuadArrayPass(const Device& device_, VKScheduler& scheduler_,
                            VKDescriptorPool& descriptor_pool_,
-                           VKStagingBufferPool& staging_buffer_pool_,
+                           StagingBufferPool& staging_buffer_pool_,
                            VKUpdateDescriptorQueue& update_descriptor_queue_);
     ~QuadArrayPass();
 
@@ -53,15 +53,14 @@ public:
 
 private:
     VKScheduler& scheduler;
-    VKStagingBufferPool& staging_buffer_pool;
+    StagingBufferPool& staging_buffer_pool;
     VKUpdateDescriptorQueue& update_descriptor_queue;
 };
 
 class Uint8Pass final : public VKComputePass {
 public:
     explicit Uint8Pass(const Device& device_, VKScheduler& scheduler_,
-                       VKDescriptorPool& descriptor_pool_,
-                       VKStagingBufferPool& staging_buffer_pool_,
+                       VKDescriptorPool& descriptor_pool_, StagingBufferPool& staging_buffer_pool_,
                        VKUpdateDescriptorQueue& update_descriptor_queue_);
     ~Uint8Pass();
 
@@ -69,7 +68,7 @@ public:
 
 private:
     VKScheduler& scheduler;
-    VKStagingBufferPool& staging_buffer_pool;
+    StagingBufferPool& staging_buffer_pool;
     VKUpdateDescriptorQueue& update_descriptor_queue;
 };
 
@@ -77,7 +76,7 @@ class QuadIndexedPass final : public VKComputePass {
 public:
     explicit QuadIndexedPass(const Device& device_, VKScheduler& scheduler_,
                              VKDescriptorPool& descriptor_pool_,
-                             VKStagingBufferPool& staging_buffer_pool_,
+                             StagingBufferPool& staging_buffer_pool_,
                              VKUpdateDescriptorQueue& update_descriptor_queue_);
     ~QuadIndexedPass();
 
@@ -87,7 +86,7 @@ public:
 
 private:
     VKScheduler& scheduler;
-    VKStagingBufferPool& staging_buffer_pool;
+    StagingBufferPool& staging_buffer_pool;
     VKUpdateDescriptorQueue& update_descriptor_queue;
 };
 

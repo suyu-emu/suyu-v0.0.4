@@ -6,7 +6,7 @@
 
 #include <memory>
 
-#include "video_core/renderer_vulkan/vk_memory_manager.h"
+#include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Core {
@@ -43,7 +43,7 @@ public:
     explicit VKBlitScreen(Core::Memory::Memory& cpu_memory,
                           Core::Frontend::EmuWindow& render_window,
                           VideoCore::RasterizerInterface& rasterizer, const Device& device,
-                          VKMemoryManager& memory_manager, VKSwapchain& swapchain,
+                          MemoryAllocator& memory_allocator, VKSwapchain& swapchain,
                           VKScheduler& scheduler, const VKScreenInfo& screen_info);
     ~VKBlitScreen();
 
@@ -86,7 +86,7 @@ private:
     Core::Frontend::EmuWindow& render_window;
     VideoCore::RasterizerInterface& rasterizer;
     const Device& device;
-    VKMemoryManager& memory_manager;
+    MemoryAllocator& memory_allocator;
     VKSwapchain& swapchain;
     VKScheduler& scheduler;
     const std::size_t image_count;
@@ -104,14 +104,14 @@ private:
     vk::Sampler sampler;
 
     vk::Buffer buffer;
-    VKMemoryCommit buffer_commit;
+    MemoryCommit buffer_commit;
 
     std::vector<u64> resource_ticks;
 
     std::vector<vk::Semaphore> semaphores;
     std::vector<vk::Image> raw_images;
     std::vector<vk::ImageView> raw_image_views;
-    std::vector<VKMemoryCommit> raw_buffer_commits;
+    std::vector<MemoryCommit> raw_buffer_commits;
     u32 raw_width = 0;
     u32 raw_height = 0;
 };

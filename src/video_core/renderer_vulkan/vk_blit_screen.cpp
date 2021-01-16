@@ -22,13 +22,13 @@
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
 #include "video_core/renderer_vulkan/vk_blit_screen.h"
 #include "video_core/renderer_vulkan/vk_master_semaphore.h"
-#include "video_core/renderer_vulkan/vk_memory_manager.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_shader_util.h"
 #include "video_core/renderer_vulkan/vk_swapchain.h"
 #include "video_core/surface.h"
 #include "video_core/textures/decoders.h"
 #include "video_core/vulkan_common/vulkan_device.h"
+#include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
@@ -115,10 +115,10 @@ struct VKBlitScreen::BufferData {
 VKBlitScreen::VKBlitScreen(Core::Memory::Memory& cpu_memory_,
                            Core::Frontend::EmuWindow& render_window_,
                            VideoCore::RasterizerInterface& rasterizer_, const Device& device_,
-                           VKMemoryManager& memory_manager_, VKSwapchain& swapchain_,
+                           MemoryAllocator& memory_allocator_, VKSwapchain& swapchain_,
                            VKScheduler& scheduler_, const VKScreenInfo& screen_info_)
     : cpu_memory{cpu_memory_}, render_window{render_window_}, rasterizer{rasterizer_},
-      device{device_}, memory_manager{memory_manager_}, swapchain{swapchain_},
+      device{device_}, memory_allocator{memory_allocator_}, swapchain{swapchain_},
       scheduler{scheduler_}, image_count{swapchain.GetImageCount()}, screen_info{screen_info_} {
     resource_ticks.resize(image_count);
 
@@ -150,8 +150,8 @@ VkSemaphore VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer, bool
     SetUniformData(data, framebuffer);
     SetVertexData(data, framebuffer);
 
-    auto map = buffer_commit->Map();
-    std::memcpy(map.Address(), &data, sizeof(data));
+    const std::span<u8> map = buffer_commit.Map();
+    std::memcpy(map.data(), &data, sizeof(data));
 
     if (!use_accelerated) {
         const u64 image_offset = GetRawImageOffset(framebuffer, image_index);
@@ -165,8 +165,8 @@ VkSemaphore VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer, bool
         constexpr u32 block_height_log2 = 4;
         const u32 bytes_per_pixel = GetBytesPerPixel(framebuffer);
         Tegra::Texture::UnswizzleTexture(
-            std::span(map.Address() + image_offset, size_bytes), std::span(host_ptr, size_bytes),
-            bytes_per_pixel, framebuffer.width, framebuffer.height, 1, block_height_log2, 0);
+            map.subspan(image_offset, size_bytes), std::span(host_ptr, size_bytes), bytes_per_pixel,
+            framebuffer.width, framebuffer.height, 1, block_height_log2, 0);
 
         const VkBufferImageCopy copy{
             .bufferOffset = image_offset,
@@ -224,8 +224,6 @@ VkSemaphore VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer, bool
                                        VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, write_barrier);
             });
     }
-    map.Release();
-
     scheduler.Record([renderpass = *renderpass, framebuffer = *framebuffers[image_index],
                       descriptor_set = descriptor_sets[image_index], buffer = *buffer,
                       size = swapchain.GetSize(), pipeline = *pipeline,
@@ -642,7 +640,7 @@ void VKBlitScreen::ReleaseRawImages() {
     raw_images.clear();
     raw_buffer_commits.clear();
     buffer.reset();
-    buffer_commit.reset();
+    buffer_commit = MemoryCommit{};
 }
 
 void VKBlitScreen::CreateStagingBuffer(const Tegra::FramebufferConfig& framebuffer) {
@@ -659,7 +657,7 @@ void VKBlitScreen::CreateStagingBuffer(const Tegra::FramebufferConfig& framebuff
     };
 
     buffer = device.GetLogical().CreateBuffer(ci);
-    buffer_commit = memory_manager.Commit(buffer, true);
+    buffer_commit = memory_allocator.Commit(buffer, MemoryUsage::Upload);
 }
 
 void VKBlitScreen::CreateRawImages(const Tegra::FramebufferConfig& framebuffer) {
@@ -690,7 +688,7 @@ void VKBlitScreen::CreateRawImages(const Tegra::FramebufferConfig& framebuffer) 
             .pQueueFamilyIndices = nullptr,
             .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
         });
-        raw_buffer_commits[i] = memory_manager.Commit(raw_images[i], false);
+        raw_buffer_commits[i] = memory_allocator.Commit(raw_images[i], MemoryUsage::DeviceLocal);
         raw_image_views[i] = device.GetLogical().CreateImageView(VkImageViewCreateInfo{
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .pNext = nullptr,

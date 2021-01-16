@@ -3,10 +3,12 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
+#include <fmt/format.h>
+
+#include "common/assert.h"
 #include "common/bit_util.h"
 #include "common/common_types.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
@@ -16,45 +18,51 @@
 
 namespace Vulkan {
 
-VKStagingBufferPool::StagingBuffer::StagingBuffer(std::unique_ptr<VKBuffer> buffer_)
-    : buffer{std::move(buffer_)} {}
+StagingBufferPool::StagingBufferPool(const Device& device_, MemoryAllocator& memory_allocator_,
+                                     VKScheduler& scheduler_)
+    : device{device_}, memory_allocator{memory_allocator_}, scheduler{scheduler_} {}
 
-VKStagingBufferPool::VKStagingBufferPool(const Device& device_, VKMemoryManager& memory_manager_,
-                                         VKScheduler& scheduler_)
-    : device{device_}, memory_manager{memory_manager_}, scheduler{scheduler_} {}
+StagingBufferPool::~StagingBufferPool() = default;
 
-VKStagingBufferPool::~VKStagingBufferPool() = default;
-
-VKBuffer& VKStagingBufferPool::GetUnusedBuffer(std::size_t size, bool host_visible) {
-    if (const auto buffer = TryGetReservedBuffer(size, host_visible)) {
-        return *buffer;
+StagingBufferRef StagingBufferPool::Request(size_t size, MemoryUsage usage) {
+    if (const std::optional<StagingBufferRef> ref = TryGetReservedBuffer(size, usage)) {
+        return *ref;
     }
-    return CreateStagingBuffer(size, host_visible);
+    return CreateStagingBuffer(size, usage);
 }
 
-void VKStagingBufferPool::TickFrame() {
-    current_delete_level = (current_delete_level + 1) % NumLevels;
+void StagingBufferPool::TickFrame() {
+    current_delete_level = (current_delete_level + 1) % NUM_LEVELS;
 
-    ReleaseCache(true);
-    ReleaseCache(false);
+    ReleaseCache(MemoryUsage::DeviceLocal);
+    ReleaseCache(MemoryUsage::Upload);
+    ReleaseCache(MemoryUsage::Download);
 }
 
-VKBuffer* VKStagingBufferPool::TryGetReservedBuffer(std::size_t size, bool host_visible) {
-    for (StagingBuffer& entry : GetCache(host_visible)[Common::Log2Ceil64(size)].entries) {
-        if (!scheduler.IsFree(entry.tick)) {
-            continue;
+std::optional<StagingBufferRef> StagingBufferPool::TryGetReservedBuffer(size_t size,
+                                                                        MemoryUsage usage) {
+    StagingBuffers& cache_level = GetCache(usage)[Common::Log2Ceil64(size)];
+
+    const auto is_free = [this](const StagingBuffer& entry) {
+        return scheduler.IsFree(entry.tick);
+    };
+    auto& entries = cache_level.entries;
+    const auto hint_it = entries.begin() + cache_level.iterate_index;
+    auto it = std::find_if(entries.begin() + cache_level.iterate_index, entries.end(), is_free);
+    if (it == entries.end()) {
+        it = std::find_if(entries.begin(), hint_it, is_free);
+        if (it == hint_it) {
+            return std::nullopt;
         }
-        entry.tick = scheduler.CurrentTick();
-        return &*entry.buffer;
     }
-    return nullptr;
+    cache_level.iterate_index = std::distance(entries.begin(), it) + 1;
+    it->tick = scheduler.CurrentTick();
+    return it->Ref();
 }
 
-VKBuffer& VKStagingBufferPool::CreateStagingBuffer(std::size_t size, bool host_visible) {
+StagingBufferRef StagingBufferPool::CreateStagingBuffer(size_t size, MemoryUsage usage) {
     const u32 log2 = Common::Log2Ceil64(size);
-
-    auto buffer = std::make_unique<VKBuffer>();
-    buffer->handle = device.GetLogical().CreateBuffer({
+    vk::Buffer buffer = device.GetLogical().CreateBuffer({
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -66,49 +74,63 @@ VKBuffer& VKStagingBufferPool::CreateStagingBuffer(std::size_t size, bool host_v
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
     });
-    buffer->commit = memory_manager.Commit(buffer->handle, host_visible);
+    if (device.HasDebuggingToolAttached()) {
+        ++buffer_index;
+        buffer.SetObjectNameEXT(fmt::format("Staging Buffer {}", buffer_index).c_str());
+    }
+    MemoryCommit commit = memory_allocator.Commit(buffer, usage);
+    const std::span<u8> mapped_span = IsHostVisible(usage) ? commit.Map() : std::span<u8>{};
 
-    std::vector<StagingBuffer>& entries = GetCache(host_visible)[log2].entries;
-    StagingBuffer& entry = entries.emplace_back(std::move(buffer));
-    entry.tick = scheduler.CurrentTick();
-    return *entry.buffer;
+    StagingBuffer& entry = GetCache(usage)[log2].entries.emplace_back(StagingBuffer{
+        .buffer = std::move(buffer),
+        .commit = std::move(commit),
+        .mapped_span = mapped_span,
+        .tick = scheduler.CurrentTick(),
+    });
+    return entry.Ref();
 }
 
-VKStagingBufferPool::StagingBuffersCache& VKStagingBufferPool::GetCache(bool host_visible) {
-    return host_visible ? host_staging_buffers : device_staging_buffers;
-}
-
-void VKStagingBufferPool::ReleaseCache(bool host_visible) {
-    auto& cache = GetCache(host_visible);
-    const u64 size = ReleaseLevel(cache, current_delete_level);
-    if (size == 0) {
-        return;
+StagingBufferPool::StagingBuffersCache& StagingBufferPool::GetCache(MemoryUsage usage) {
+    switch (usage) {
+    case MemoryUsage::DeviceLocal:
+        return device_local_cache;
+    case MemoryUsage::Upload:
+        return upload_cache;
+    case MemoryUsage::Download:
+        return download_cache;
+    default:
+        UNREACHABLE_MSG("Invalid memory usage={}", usage);
+        return upload_cache;
     }
 }
 
-u64 VKStagingBufferPool::ReleaseLevel(StagingBuffersCache& cache, std::size_t log2) {
-    static constexpr std::size_t deletions_per_tick = 16;
+void StagingBufferPool::ReleaseCache(MemoryUsage usage) {
+    ReleaseLevel(GetCache(usage), current_delete_level);
+}
 
+void StagingBufferPool::ReleaseLevel(StagingBuffersCache& cache, size_t log2) {
+    constexpr size_t deletions_per_tick = 16;
     auto& staging = cache[log2];
     auto& entries = staging.entries;
-    const std::size_t old_size = entries.size();
+    const size_t old_size = entries.size();
 
     const auto is_deleteable = [this](const StagingBuffer& entry) {
         return scheduler.IsFree(entry.tick);
     };
-    const std::size_t begin_offset = staging.delete_index;
-    const std::size_t end_offset = std::min(begin_offset + deletions_per_tick, old_size);
-    const auto begin = std::begin(entries) + begin_offset;
-    const auto end = std::begin(entries) + end_offset;
+    const size_t begin_offset = staging.delete_index;
+    const size_t end_offset = std::min(begin_offset + deletions_per_tick, old_size);
+    const auto begin = entries.begin() + begin_offset;
+    const auto end = entries.begin() + end_offset;
     entries.erase(std::remove_if(begin, end, is_deleteable), end);
 
-    const std::size_t new_size = entries.size();
+    const size_t new_size = entries.size();
     staging.delete_index += deletions_per_tick;
     if (staging.delete_index >= new_size) {
         staging.delete_index = 0;
     }
-
-    return (1ULL << log2) * (old_size - new_size);
+    if (staging.iterate_index > new_size) {
+        staging.iterate_index = 0;
+    }
 }
 
 } // namespace Vulkan

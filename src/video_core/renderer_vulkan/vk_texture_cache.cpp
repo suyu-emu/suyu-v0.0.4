@@ -10,12 +10,12 @@
 #include "video_core/engines/fermi_2d.h"
 #include "video_core/renderer_vulkan/blit_image.h"
 #include "video_core/renderer_vulkan/maxwell_to_vk.h"
-#include "video_core/renderer_vulkan/vk_memory_manager.h"
 #include "video_core/renderer_vulkan/vk_rasterizer.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/vulkan_common/vulkan_device.h"
+#include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
@@ -554,10 +554,18 @@ void TextureCacheRuntime::Finish() {
 }
 
 ImageBufferMap TextureCacheRuntime::MapUploadBuffer(size_t size) {
-    const auto& buffer = staging_buffer_pool.GetUnusedBuffer(size, true);
-    return ImageBufferMap{
-        .handle = *buffer.handle,
-        .map = buffer.commit->Map(size),
+    const auto staging_ref = staging_buffer_pool.Request(size, MemoryUsage::Upload);
+    return {
+        .handle = staging_ref.buffer,
+        .span = staging_ref.mapped_span,
+    };
+}
+
+ImageBufferMap TextureCacheRuntime::MapDownloadBuffer(size_t size) {
+    const auto staging_ref = staging_buffer_pool.Request(size, MemoryUsage::Download);
+    return {
+        .handle = staging_ref.buffer,
+        .span = staging_ref.mapped_span,
     };
 }
 
@@ -788,9 +796,9 @@ Image::Image(TextureCacheRuntime& runtime, const ImageInfo& info_, GPUVAddr gpu_
       image(MakeImage(runtime.device, info)), buffer(MakeBuffer(runtime.device, info)),
       aspect_mask(ImageAspectMask(info.format)) {
     if (image) {
-        commit = runtime.memory_manager.Commit(image, false);
+        commit = runtime.memory_allocator.Commit(image, MemoryUsage::DeviceLocal);
     } else {
-        commit = runtime.memory_manager.Commit(buffer, false);
+        commit = runtime.memory_allocator.Commit(buffer, MemoryUsage::DeviceLocal);
     }
     if (IsPixelFormatASTC(info.format) && !runtime.device.IsOptimalAstcSupported()) {
         flags |= VideoCommon::ImageFlagBits::Converted;

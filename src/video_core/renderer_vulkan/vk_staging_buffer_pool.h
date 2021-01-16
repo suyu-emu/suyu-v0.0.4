@@ -9,7 +9,7 @@
 
 #include "common/common_types.h"
 
-#include "video_core/renderer_vulkan/vk_memory_manager.h"
+#include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
@@ -17,55 +17,65 @@ namespace Vulkan {
 class Device;
 class VKScheduler;
 
-struct VKBuffer final {
-    vk::Buffer handle;
-    VKMemoryCommit commit;
+struct StagingBufferRef {
+    VkBuffer buffer;
+    std::span<u8> mapped_span;
 };
 
-class VKStagingBufferPool final {
+class StagingBufferPool {
 public:
-    explicit VKStagingBufferPool(const Device& device, VKMemoryManager& memory_manager,
-                                 VKScheduler& scheduler);
-    ~VKStagingBufferPool();
+    explicit StagingBufferPool(const Device& device, MemoryAllocator& memory_allocator,
+                               VKScheduler& scheduler);
+    ~StagingBufferPool();
 
-    VKBuffer& GetUnusedBuffer(std::size_t size, bool host_visible);
+    StagingBufferRef Request(size_t size, MemoryUsage usage);
 
     void TickFrame();
 
 private:
-    struct StagingBuffer final {
-        explicit StagingBuffer(std::unique_ptr<VKBuffer> buffer);
-
-        std::unique_ptr<VKBuffer> buffer;
+    struct StagingBuffer {
+        vk::Buffer buffer;
+        MemoryCommit commit;
+        std::span<u8> mapped_span;
         u64 tick = 0;
+
+        StagingBufferRef Ref() const noexcept {
+            return {
+                .buffer = *buffer,
+                .mapped_span = mapped_span,
+            };
+        }
     };
 
-    struct StagingBuffers final {
+    struct StagingBuffers {
         std::vector<StagingBuffer> entries;
-        std::size_t delete_index = 0;
+        size_t delete_index = 0;
+        size_t iterate_index = 0;
     };
 
-    static constexpr std::size_t NumLevels = sizeof(std::size_t) * CHAR_BIT;
-    using StagingBuffersCache = std::array<StagingBuffers, NumLevels>;
+    static constexpr size_t NUM_LEVELS = sizeof(size_t) * CHAR_BIT;
+    using StagingBuffersCache = std::array<StagingBuffers, NUM_LEVELS>;
 
-    VKBuffer* TryGetReservedBuffer(std::size_t size, bool host_visible);
+    std::optional<StagingBufferRef> TryGetReservedBuffer(size_t size, MemoryUsage usage);
 
-    VKBuffer& CreateStagingBuffer(std::size_t size, bool host_visible);
+    StagingBufferRef CreateStagingBuffer(size_t size, MemoryUsage usage);
 
-    StagingBuffersCache& GetCache(bool host_visible);
+    StagingBuffersCache& GetCache(MemoryUsage usage);
 
-    void ReleaseCache(bool host_visible);
+    void ReleaseCache(MemoryUsage usage);
 
-    u64 ReleaseLevel(StagingBuffersCache& cache, std::size_t log2);
+    void ReleaseLevel(StagingBuffersCache& cache, size_t log2);
 
     const Device& device;
-    VKMemoryManager& memory_manager;
+    MemoryAllocator& memory_allocator;
     VKScheduler& scheduler;
 
-    StagingBuffersCache host_staging_buffers;
-    StagingBuffersCache device_staging_buffers;
+    StagingBuffersCache device_local_cache;
+    StagingBuffersCache upload_cache;
+    StagingBuffersCache download_cache;
 
-    std::size_t current_delete_level = 0;
+    size_t current_delete_level = 0;
+    u64 buffer_index = 0;
 };
 
 } // namespace Vulkan

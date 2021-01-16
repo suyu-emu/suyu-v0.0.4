@@ -23,7 +23,6 @@
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
 #include "video_core/renderer_vulkan/vk_blit_screen.h"
 #include "video_core/renderer_vulkan/vk_master_semaphore.h"
-#include "video_core/renderer_vulkan/vk_memory_manager.h"
 #include "video_core/renderer_vulkan/vk_rasterizer.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
@@ -32,6 +31,7 @@
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_instance.h"
 #include "video_core/vulkan_common/vulkan_library.h"
+#include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_surface.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
@@ -137,7 +137,7 @@ bool RendererVulkan::Init() try {
     InitializeDevice();
     Report();
 
-    memory_manager = std::make_unique<VKMemoryManager>(*device);
+    memory_allocator = std::make_unique<MemoryAllocator>(*device);
 
     state_tracker = std::make_unique<StateTracker>(gpu);
 
@@ -149,11 +149,11 @@ bool RendererVulkan::Init() try {
 
     rasterizer = std::make_unique<RasterizerVulkan>(render_window, gpu, gpu.MemoryManager(),
                                                     cpu_memory, screen_info, *device,
-                                                    *memory_manager, *state_tracker, *scheduler);
+                                                    *memory_allocator, *state_tracker, *scheduler);
 
     blit_screen =
         std::make_unique<VKBlitScreen>(cpu_memory, render_window, *rasterizer, *device,
-                                       *memory_manager, *swapchain, *scheduler, screen_info);
+                                       *memory_allocator, *swapchain, *scheduler, screen_info);
     return true;
 
 } catch (const vk::Exception& exception) {
@@ -172,7 +172,7 @@ void RendererVulkan::ShutDown() {
     blit_screen.reset();
     scheduler.reset();
     swapchain.reset();
-    memory_manager.reset();
+    memory_allocator.reset();
     device.reset();
 }
 
