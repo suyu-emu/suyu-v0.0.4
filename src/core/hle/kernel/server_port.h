@@ -81,6 +81,8 @@ public:
 
     bool IsSignaled() const override;
 
+    void Finalize() override {}
+
 private:
     /// ServerSessions waiting to be accepted by the port
     std::vector<std::shared_ptr<ServerSession>> pending_sessions;

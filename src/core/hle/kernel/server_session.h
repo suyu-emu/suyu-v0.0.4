@@ -126,6 +126,8 @@ public:
 
     bool IsSignaled() const override;
 
+    void Finalize() override {}
+
 private:
     /// Queues a sync request from the emulated application.
     ResultCode QueueSyncRequest(std::shared_ptr<KThread> thread, Core::Memory::Memory& memory);

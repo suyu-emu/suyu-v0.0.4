@@ -85,6 +85,8 @@ public:
      */
     ResultCode SetLimitValue(ResourceType resource, s64 value);
 
+    void Finalize() override {}
+
 private:
     // TODO(Subv): Increment resource limit current values in their respective Kernel::T::Create
     // functions

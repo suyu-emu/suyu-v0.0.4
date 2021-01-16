@@ -51,6 +51,8 @@ public:
 
     bool IsSignaled() const override;
 
+    void Finalize() override {}
+
 private:
     static ResultVal<std::shared_ptr<ClientSession>> Create(KernelCore& kernel,
                                                             std::shared_ptr<Session> parent,

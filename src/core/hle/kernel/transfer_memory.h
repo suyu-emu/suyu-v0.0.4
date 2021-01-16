@@ -72,6 +72,8 @@ public:
     /// is closed.
     ResultCode Reset();
 
+    void Finalize() override {}
+
 private:
     /// The base address for the memory managed by this instance.
     VAddr base_address{};

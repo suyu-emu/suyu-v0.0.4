@@ -308,6 +308,8 @@ public:
 
     bool IsSignaled() const override;
 
+    void Finalize() override {}
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Thread-local storage management
 

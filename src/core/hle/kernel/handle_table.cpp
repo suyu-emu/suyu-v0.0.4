@@ -89,6 +89,10 @@ ResultCode HandleTable::Close(Handle handle) {
 
     const u16 slot = GetSlot(handle);
 
+    if (objects[slot].use_count() == 1) {
+        objects[slot]->Finalize();
+    }
+
     objects[slot] = nullptr;
 
     generations[slot] = next_free_slot;

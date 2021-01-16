@@ -71,6 +71,8 @@ public:
         return device_memory.GetPointer(physical_address + offset);
     }
 
+    void Finalize() override {}
+
 private:
     Core::DeviceMemory& device_memory;
     Process* owner_process{};

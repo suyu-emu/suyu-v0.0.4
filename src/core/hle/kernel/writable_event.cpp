@@ -38,8 +38,4 @@ void WritableEvent::Clear() {
     readable->Clear();
 }
 
-bool WritableEvent::IsSignaled() const {
-    return readable->IsSignaled();
-}
-
 } // namespace Kernel

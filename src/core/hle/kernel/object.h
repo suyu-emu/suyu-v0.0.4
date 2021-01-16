@@ -61,6 +61,8 @@ public:
      */
     bool IsWaitable() const;
 
+    virtual void Finalize() = 0;
+
 protected:
     /// The kernel instance this object was created under.
     KernelCore& kernel;

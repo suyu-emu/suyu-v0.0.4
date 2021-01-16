@@ -136,7 +136,7 @@ ResultCode KSynchronizationObject::Wait(KernelCore& kernel, s32* out_index,
 
 KSynchronizationObject::KSynchronizationObject(KernelCore& kernel) : Object{kernel} {}
 
-KSynchronizationObject ::~KSynchronizationObject() = default;
+KSynchronizationObject::~KSynchronizationObject() = default;
 
 void KSynchronizationObject::NotifyAvailable(ResultCode result) {
     KScopedSchedulerLock lock(kernel);

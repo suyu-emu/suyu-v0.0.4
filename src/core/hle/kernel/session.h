@@ -39,6 +39,8 @@ public:
 
     bool IsSignaled() const override;
 
+    void Finalize() override {}
+
     std::shared_ptr<ClientSession> Client() {
         if (auto result{client.lock()}) {
             return result;
