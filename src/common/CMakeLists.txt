@@ -98,7 +98,6 @@ add_library(common STATIC
     algorithm.h
     alignment.h
     assert.h
-    atomic_ops.cpp
     atomic_ops.h
     detached_tasks.cpp
     detached_tasks.h

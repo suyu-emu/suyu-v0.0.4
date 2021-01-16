@@ -6,7 +6,6 @@
 
 #include <optional>
 
-#include "common/spin_lock.h"
 #include "common/wall_clock.h"
 
 namespace Common {
@@ -32,14 +31,28 @@ public:
 private:
     u64 GetRTSC();
 
+    union alignas(16) TimePoint {
+        TimePoint() : pack{} {}
+        u128 pack{};
+        struct Inner {
+            u64 last_measure{};
+            u64 accumulated_ticks{};
+        } inner;
+    };
+
     /// value used to reduce the native clocks accuracy as some apss rely on
     /// undefined behavior where the level of accuracy in the clock shouldn't
     /// be higher.
     static constexpr u64 inaccuracy_mask = ~(UINT64_C(0x400) - 1);
 
-    SpinLock rtsc_serialize{};
-    u64 last_measure{};
-    u64 accumulated_ticks{};
+    TimePoint time_point;
+    // factors
+    u64 clock_rtsc_factor{};
+    u64 cpu_rtsc_factor{};
+    u64 ns_rtsc_factor{};
+    u64 us_rtsc_factor{};
+    u64 ms_rtsc_factor{};
+
     u64 rtsc_frequency;
 };
 } // namespace X64
