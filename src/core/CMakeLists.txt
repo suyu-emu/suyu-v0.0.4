@@ -170,6 +170,7 @@ add_library(core STATIC
     hle/kernel/k_synchronization_object.h
     hle/kernel/k_thread.cpp
     hle/kernel/k_thread.h
+    hle/kernel/k_thread_queue.h
     hle/kernel/kernel.cpp
     hle/kernel/kernel.h
     hle/kernel/memory/address_space_info.cpp
