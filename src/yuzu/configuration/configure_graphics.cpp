@@ -2,6 +2,9 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+// Include this early to include Vulkan headers how we want to
+#include "video_core/vulkan_common/vulkan_wrapper.h"
+
 #include <QColorDialog>
 #include <QComboBox>
 #include <QVulkanInstance>

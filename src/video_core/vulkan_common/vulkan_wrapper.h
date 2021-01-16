@@ -15,7 +15,18 @@
 #include <vector>
 
 #define VK_NO_PROTOTYPES
+#ifdef _WIN32
+#define VK_USE_PLATFORM_WIN32_KHR
+#endif
 #include <vulkan/vulkan.h>
+
+// Sanitize macros
+#ifdef CreateEvent
+#undef CreateEvent
+#endif
+#ifdef CreateSemaphore
+#undef CreateSemaphore
+#endif
 
 #include "common/common_types.h"
 
