@@ -67,6 +67,27 @@ public:
     void PollInput();
 
     /**
+     * Checks whether the button is pressed.
+     *
+     * @param button The button to check.
+     *
+     * @returns True when the button is pressed.
+     */
+    [[nodiscard]] bool IsButtonPressed(HIDButton button) const;
+
+    /**
+     * Checks whether any of the buttons in the parameter list is pressed.
+     *
+     * @tparam HIDButton The buttons to check.
+     *
+     * @returns True when at least one of the buttons is pressed.
+     */
+    template <HIDButton... T>
+    [[nodiscard]] bool IsAnyButtonPressed() {
+        return (IsButtonPressed(T) || ...);
+    }
+
+    /**
      * The specified button is considered to be pressed once
      * if it is currently pressed and not pressed previously.
      *
