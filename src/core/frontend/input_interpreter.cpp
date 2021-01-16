@@ -25,6 +25,10 @@ void InputInterpreter::PollInput() {
     button_states[current_index] = button_state;
 }
 
+bool InputInterpreter::IsButtonPressed(HIDButton button) const {
+    return (button_states[current_index] & (1U << static_cast<u8>(button))) != 0;
+}
+
 bool InputInterpreter::IsButtonPressedOnce(HIDButton button) const {
     const bool current_press =
         (button_states[current_index] & (1U << static_cast<u8>(button))) != 0;
