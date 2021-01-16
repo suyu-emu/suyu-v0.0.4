@@ -1057,6 +1057,12 @@ public:
 
     void PipelineBarrier(VkPipelineStageFlags src_stage_mask, VkPipelineStageFlags dst_stage_mask,
                          VkDependencyFlags dependency_flags,
+                         const VkMemoryBarrier& memory_barrier) const noexcept {
+        PipelineBarrier(src_stage_mask, dst_stage_mask, dependency_flags, memory_barrier, {}, {});
+    }
+
+    void PipelineBarrier(VkPipelineStageFlags src_stage_mask, VkPipelineStageFlags dst_stage_mask,
+                         VkDependencyFlags dependency_flags,
                          const VkBufferMemoryBarrier& buffer_barrier) const noexcept {
         PipelineBarrier(src_stage_mask, dst_stage_mask, dependency_flags, {}, buffer_barrier, {});
     }
