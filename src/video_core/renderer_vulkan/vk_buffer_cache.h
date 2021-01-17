@@ -69,6 +69,13 @@ public:
 
     void BindTransformFeedbackBuffer(u32 index, VkBuffer buffer, u32 offset, u32 size);
 
+    std::span<u8> BindMappedUniformBuffer([[maybe_unused]] size_t stage,
+                                          [[maybe_unused]] u32 binding_index, u32 size) {
+        const StagingBufferRef ref = staging_pool.Request(size, MemoryUsage::Upload);
+        BindBuffer(ref.buffer, static_cast<u32>(ref.offset), size);
+        return ref.mapped_span;
+    }
+
     void BindUniformBuffer(VkBuffer buffer, u32 offset, u32 size) {
         BindBuffer(buffer, offset, size);
     }

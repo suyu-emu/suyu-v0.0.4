@@ -660,24 +660,25 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
     const VAddr cpu_addr = binding.cpu_addr;
     const u32 size = binding.size;
     Buffer& buffer = slot_buffers[binding.buffer_id];
-    if constexpr (IS_OPENGL) {
-        if (size <= SKIP_CACHE_SIZE && !buffer.IsRegionGpuModified(cpu_addr, size)) {
+    if (size <= SKIP_CACHE_SIZE && !buffer.IsRegionGpuModified(cpu_addr, size)) {
+        if constexpr (IS_OPENGL) {
             if (runtime.HasFastBufferSubData()) {
                 // Fast path for Nvidia
                 if (!HasFastUniformBufferBound(stage, binding_index)) {
                     // We only have to bind when the currently bound buffer is not the fast version
-                    fast_bound_uniform_buffers[stage] |= 1U << binding_index;
                     runtime.BindFastUniformBuffer(stage, binding_index, size);
                 }
                 const auto span = ImmediateBufferWithData(cpu_addr, size);
                 runtime.PushFastUniformBuffer(stage, binding_index, span);
-            } else {
-                // Stream buffer path to avoid stalling on non-Nvidia drivers
-                const auto span = runtime.BindMappedUniformBuffer(stage, binding_index, size);
-                cpu_memory.ReadBlockUnsafe(cpu_addr, span.data(), size);
+                return;
             }
-            return;
         }
+        fast_bound_uniform_buffers[stage] |= 1U << binding_index;
+
+        // Stream buffer path to avoid stalling on non-Nvidia drivers or Vulkan
+        const std::span<u8> span = runtime.BindMappedUniformBuffer(stage, binding_index, size);
+        cpu_memory.ReadBlockUnsafe(cpu_addr, span.data(), size);
+        return;
     }
     // Classic cached path
     SynchronizeBuffer(buffer, cpu_addr, size);
