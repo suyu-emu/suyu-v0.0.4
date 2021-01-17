@@ -73,19 +73,19 @@ struct TimeSpanType {
 static_assert(sizeof(TimeSpanType) == 8, "TimeSpanType is incorrect size");
 
 struct ClockSnapshot {
-    SystemClockContext user_context{};
-    SystemClockContext network_context{};
-    s64 user_time{};
-    s64 network_time{};
-    TimeZone::CalendarTime user_calendar_time{};
-    TimeZone::CalendarTime network_calendar_time{};
-    TimeZone::CalendarAdditionalInfo user_calendar_additional_time{};
-    TimeZone::CalendarAdditionalInfo network_calendar_additional_time{};
-    SteadyClockTimePoint steady_clock_time_point{};
-    TimeZone::LocationName location_name{};
-    u8 is_automatic_correction_enabled{};
-    u8 type{};
-    INSERT_PADDING_BYTES(0x2);
+    SystemClockContext user_context;
+    SystemClockContext network_context;
+    s64 user_time;
+    s64 network_time;
+    TimeZone::CalendarTime user_calendar_time;
+    TimeZone::CalendarTime network_calendar_time;
+    TimeZone::CalendarAdditionalInfo user_calendar_additional_time;
+    TimeZone::CalendarAdditionalInfo network_calendar_additional_time;
+    SteadyClockTimePoint steady_clock_time_point;
+    TimeZone::LocationName location_name;
+    u8 is_automatic_correction_enabled;
+    u8 type;
+    INSERT_PADDING_BYTES_NOINIT(0x2);
 
     static ResultCode GetCurrentTime(s64& current_time,
                                      const SteadyClockTimePoint& steady_clock_time_point,

@@ -534,7 +534,7 @@ private:
         rb.Push(RESULT_SUCCESS);
     }
 
-    Common::UUID user_id;
+    Common::UUID user_id{Common::INVALID_UUID};
 };
 
 // 6.0.0+

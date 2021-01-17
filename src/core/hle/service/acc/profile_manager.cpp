@@ -227,17 +227,17 @@ void ProfileManager::CloseUser(UUID uuid) {
 
 /// Gets all valid user ids on the system
 UserIDArray ProfileManager::GetAllUsers() const {
-    UserIDArray output;
-    std::transform(profiles.begin(), profiles.end(), output.begin(),
-                   [](const ProfileInfo& p) { return p.user_uuid; });
+    UserIDArray output{};
+    std::ranges::transform(profiles, output.begin(),
+                           [](const ProfileInfo& p) { return p.user_uuid; });
     return output;
 }
 
 /// Get all the open users on the system and zero out the rest of the data. This is specifically
 /// needed for GetOpenUsers and we need to ensure the rest of the output buffer is zero'd out
 UserIDArray ProfileManager::GetOpenUsers() const {
-    UserIDArray output;
-    std::transform(profiles.begin(), profiles.end(), output.begin(), [](const ProfileInfo& p) {
+    UserIDArray output{};
+    std::ranges::transform(profiles, output.begin(), [](const ProfileInfo& p) {
         if (p.is_open)
             return p.user_uuid;
         return UUID{Common::INVALID_UUID};

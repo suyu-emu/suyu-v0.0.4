@@ -100,6 +100,7 @@ MiiInfo ConvertStoreDataToInfo(const MiiStoreData& data) {
         .mole_scale = static_cast<u8>(bf.mole_scale.Value()),
         .mole_x = static_cast<u8>(bf.mole_x.Value()),
         .mole_y = static_cast<u8>(bf.mole_y.Value()),
+        .padding = 0,
     };
 }
 

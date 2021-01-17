@@ -146,7 +146,7 @@ static_assert(sizeof(BufferDescriptorC) == 8, "BufferDescriptorC size is incorre
 
 struct DataPayloadHeader {
     u32_le magic;
-    INSERT_PADDING_WORDS(1);
+    INSERT_PADDING_WORDS_NOINIT(1);
 };
 static_assert(sizeof(DataPayloadHeader) == 8, "DataPayloadHeader size is incorrect");
 
@@ -174,7 +174,7 @@ struct DomainMessageHeader {
             INSERT_PADDING_WORDS_NOINIT(2);
         };
 
-        std::array<u32, 4> raw{};
+        std::array<u32, 4> raw;
     };
 };
 static_assert(sizeof(DomainMessageHeader) == 16, "DomainMessageHeader size is incorrect");

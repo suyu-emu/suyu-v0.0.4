@@ -40,7 +40,7 @@ QString GetImagePath(Common::UUID uuid) {
 }
 
 QString GetAccountUsername(const Service::Account::ProfileManager& manager, Common::UUID uuid) {
-    Service::Account::ProfileBase profile;
+    Service::Account::ProfileBase profile{};
     if (!manager.GetProfileBase(uuid, profile)) {
         return {};
     }
@@ -147,7 +147,7 @@ void ConfigureProfileManager::SetConfiguration() {
 void ConfigureProfileManager::PopulateUserList() {
     const auto& profiles = profile_manager->GetAllUsers();
     for (const auto& user : profiles) {
-        Service::Account::ProfileBase profile;
+        Service::Account::ProfileBase profile{};
         if (!profile_manager->GetProfileBase(user, profile))
             continue;
 
@@ -212,7 +212,7 @@ void ConfigureProfileManager::RenameUser() {
     const auto uuid = profile_manager->GetUser(user);
     ASSERT(uuid);
 
-    Service::Account::ProfileBase profile;
+    Service::Account::ProfileBase profile{};
     if (!profile_manager->GetProfileBase(*uuid, profile))
         return;
 
