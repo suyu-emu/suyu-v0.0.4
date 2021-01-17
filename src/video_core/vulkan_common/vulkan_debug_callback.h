@@ -2,6 +2,8 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#pragma once
+
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
