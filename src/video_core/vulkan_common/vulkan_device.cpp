@@ -207,7 +207,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
         .pNext = nullptr,
         .features{
-            .robustBufferAccess = false,
+            .robustBufferAccess = true,
             .fullDrawIndexUint32 = false,
             .imageCubeArray = true,
             .independentBlend = true,
@@ -581,6 +581,7 @@ void Device::CheckSuitability(bool requires_swapchain) const {
     }
     const VkPhysicalDeviceFeatures features{physical.GetFeatures()};
     const std::array feature_report{
+        std::make_pair(features.robustBufferAccess, "robustBufferAccess"),
         std::make_pair(features.vertexPipelineStoresAndAtomics, "vertexPipelineStoresAndAtomics"),
         std::make_pair(features.robustBufferAccess, "robustBufferAccess"),
         std::make_pair(features.imageCubeArray, "imageCubeArray"),
