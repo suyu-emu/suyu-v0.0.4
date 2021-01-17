@@ -74,11 +74,10 @@ public:
     MemoryAllocator(const MemoryAllocator&) = delete;
 
     /**
-     * Commits a memory with the specified requeriments.
+     * Commits a memory with the specified requirements.
      *
      * @param requirements Requirements returned from a Vulkan call.
-     * @param host_visible Signals the allocator that it *must* use host visible and coherent
-     *                     memory. When passing false, it will try to allocate device local memory.
+     * @param usage        Indicates how the memory will be used.
      *
      * @returns A memory commit.
      */

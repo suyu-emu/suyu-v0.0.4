@@ -446,7 +446,7 @@ private:
      * @param offset Offset in bytes from the start of the buffer
      * @param size   Size in bytes of the region to query for modifications
      *
-     * @tparam True to query GPU modified pages, false for CPU pages
+     * @tparam gpu True to query GPU modified pages, false for CPU pages
      */
     template <bool gpu>
     [[nodiscard]] std::pair<u64, u64> ModifiedRegion(u64 offset, u64 size) const noexcept {
