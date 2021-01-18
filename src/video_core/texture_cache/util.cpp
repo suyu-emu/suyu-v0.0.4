@@ -679,7 +679,7 @@ u32 CalculateLayerSize(const ImageInfo& info) noexcept {
 }
 
 std::array<u32, MAX_MIP_LEVELS> CalculateMipLevelOffsets(const ImageInfo& info) noexcept {
-    ASSERT(info.resources.levels <= MAX_MIP_LEVELS);
+    ASSERT(info.resources.levels <= static_cast<s32>(MAX_MIP_LEVELS));
     const LevelInfo level_info = MakeLevelInfo(info);
     std::array<u32, MAX_MIP_LEVELS> offsets{};
     u32 offset = 0;
