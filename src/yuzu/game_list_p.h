@@ -230,7 +230,7 @@ public:
         setData(type(), TypeRole);
 
         UISettings::GameDir* game_dir = &directory;
-        setData(QVariant::fromValue(game_dir), GameDirRole);
+        setData(QVariant(UISettings::values.game_dirs.indexOf(directory)), GameDirRole);
 
         const int icon_size = std::min(static_cast<int>(UISettings::values.icon_size), 64);
         switch (dir_type) {
