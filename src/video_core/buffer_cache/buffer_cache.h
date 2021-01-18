@@ -71,6 +71,12 @@ class BufferCache {
 
     struct Empty {};
 
+    struct OverlapResult {
+        std::vector<BufferId> ids;
+        VAddr begin;
+        VAddr end;
+    };
+
     struct Binding {
         VAddr cpu_addr{};
         u32 size{};
@@ -219,6 +225,10 @@ private:
     void MarkWrittenBuffer(BufferId buffer_id, VAddr cpu_addr, u32 size);
 
     [[nodiscard]] BufferId FindBuffer(VAddr cpu_addr, u32 size);
+
+    [[nodiscard]] OverlapResult ResolveOverlaps(VAddr cpu_addr, u32 wanted_size);
+
+    void JoinOverlap(BufferId new_buffer_id, BufferId overlap_id);
 
     [[nodiscard]] BufferId CreateBuffer(VAddr cpu_addr, u32 wanted_size);
 
@@ -988,12 +998,12 @@ BufferId BufferCache<P>::FindBuffer(VAddr cpu_addr, u32 size) {
 }
 
 template <class P>
-BufferId BufferCache<P>::CreateBuffer(VAddr cpu_addr, u32 wanted_size) {
+typename BufferCache<P>::OverlapResult BufferCache<P>::ResolveOverlaps(VAddr cpu_addr,
+                                                                       u32 wanted_size) {
     std::vector<BufferId> overlap_ids;
-    VAddr cpu_addr_begin = cpu_addr;
-    VAddr cpu_addr_end = cpu_addr + wanted_size;
-    for (; cpu_addr >> PAGE_BITS < Common::DivCeil(cpu_addr_end, PAGE_SIZE);
-         cpu_addr += PAGE_SIZE) {
+    VAddr begin = cpu_addr;
+    VAddr end = cpu_addr + wanted_size;
+    for (; cpu_addr >> PAGE_BITS < Common::DivCeil(end, PAGE_SIZE); cpu_addr += PAGE_SIZE) {
         const BufferId overlap_id = page_table[cpu_addr >> PAGE_BITS];
         if (!overlap_id) {
             continue;
@@ -1005,35 +1015,48 @@ BufferId BufferCache<P>::CreateBuffer(VAddr cpu_addr, u32 wanted_size) {
         overlap.Pick();
         overlap_ids.push_back(overlap_id);
         const VAddr overlap_cpu_addr = overlap.CpuAddr();
-        if (overlap_cpu_addr < cpu_addr_begin) {
-            cpu_addr = cpu_addr_begin = overlap_cpu_addr;
+        if (overlap_cpu_addr < begin) {
+            cpu_addr = begin = overlap_cpu_addr;
         }
-        cpu_addr_end = std::max(cpu_addr_end, overlap_cpu_addr + overlap.SizeBytes());
+        end = std::max(end, overlap_cpu_addr + overlap.SizeBytes());
     }
-    const u32 size = static_cast<u32>(cpu_addr_end - cpu_addr_begin);
-    const BufferId new_buffer_id = slot_buffers.insert(runtime, rasterizer, cpu_addr_begin, size);
+    return OverlapResult{
+        .ids = std::move(overlap_ids),
+        .begin = begin,
+        .end = end,
+    };
+}
+
+template <class P>
+void BufferCache<P>::JoinOverlap(BufferId new_buffer_id, BufferId overlap_id) {
     Buffer& new_buffer = slot_buffers[new_buffer_id];
+    Buffer& overlap = slot_buffers[overlap_id];
 
-    for (const BufferId overlap_id : overlap_ids) {
-        Buffer& overlap = slot_buffers[overlap_id];
-        overlap.Unpick();
-
-        std::vector<BufferCopy> copies;
-        const size_t dst_base_offset = overlap.CpuAddr() - new_buffer.CpuAddr();
-        overlap.ForEachDownloadRange([&](u64 begin, u64 range_size) {
-            copies.push_back(BufferCopy{
-                .src_offset = begin,
-                .dst_offset = dst_base_offset + begin,
-                .size = range_size,
-            });
-            new_buffer.UnmarkRegionAsCpuModified(begin, range_size);
-            new_buffer.MarkRegionAsGpuModified(begin, range_size);
+    std::vector<BufferCopy> copies;
+    const size_t dst_base_offset = overlap.CpuAddr() - new_buffer.CpuAddr();
+    overlap.ForEachDownloadRange([&](u64 begin, u64 range_size) {
+        copies.push_back(BufferCopy{
+            .src_offset = begin,
+            .dst_offset = dst_base_offset + begin,
+            .size = range_size,
         });
-        if (!copies.empty()) {
-            runtime.CopyBuffer(slot_buffers[new_buffer_id], overlap, copies);
-        }
-        ReplaceBufferDownloads(overlap_id, new_buffer_id);
-        DeleteBuffer(overlap_id);
+        new_buffer.UnmarkRegionAsCpuModified(begin, range_size);
+        new_buffer.MarkRegionAsGpuModified(begin, range_size);
+    });
+    if (!copies.empty()) {
+        runtime.CopyBuffer(slot_buffers[new_buffer_id], overlap, copies);
+    }
+    ReplaceBufferDownloads(overlap_id, new_buffer_id);
+    DeleteBuffer(overlap_id);
+}
+
+template <class P>
+BufferId BufferCache<P>::CreateBuffer(VAddr cpu_addr, u32 wanted_size) {
+    const OverlapResult overlap = ResolveOverlaps(cpu_addr, wanted_size);
+    const u32 size = static_cast<u32>(overlap.end - overlap.begin);
+    const BufferId new_buffer_id = slot_buffers.insert(runtime, rasterizer, overlap.begin, size);
+    for (const BufferId overlap_id : overlap.ids) {
+        JoinOverlap(new_buffer_id, overlap_id);
     }
     Register(new_buffer_id);
     return new_buffer_id;
