@@ -892,7 +892,7 @@ void Controller_NPad::UpdateControllerAt(NPadControllerType controller, std::siz
         return;
     }
 
-    if (controller == NPadControllerType::Handheld) {
+    if (controller == NPadControllerType::Handheld && npad_index == HANDHELD_INDEX) {
         Settings::values.players.GetValue()[HANDHELD_INDEX].controller_type =
             MapNPadToSettingsType(controller);
         Settings::values.players.GetValue()[HANDHELD_INDEX].connected = true;
