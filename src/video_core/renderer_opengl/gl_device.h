@@ -19,7 +19,7 @@ public:
         u32 image{};
     };
 
-    explicit Device(bool has_vulkan_instance);
+    explicit Device();
     explicit Device(std::nullptr_t);
 
     u32 GetMaxUniformBuffers(Tegra::Engines::ShaderType shader_type) const noexcept {

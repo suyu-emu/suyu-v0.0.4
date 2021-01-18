@@ -46,11 +46,6 @@ namespace Tegra {
 class MemoryManager;
 }
 
-namespace Vulkan {
-class Device;
-class MemoryAllocator;
-} // namespace Vulkan
-
 namespace OpenGL {
 
 struct ScreenInfo;
@@ -67,8 +62,6 @@ class RasterizerOpenGL : public VideoCore::RasterizerAccelerated {
 public:
     explicit RasterizerOpenGL(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
                               Core::Memory::Memory& cpu_memory_, const Device& device_,
-                              const Vulkan::Device* vulkan_device,
-                              Vulkan::MemoryAllocator* vulkan_memory_allocator,
                               ScreenInfo& screen_info_, ProgramManager& program_manager_,
                               StateTracker& state_tracker_);
     ~RasterizerOpenGL() override;

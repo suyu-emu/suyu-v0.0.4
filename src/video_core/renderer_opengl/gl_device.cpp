@@ -197,7 +197,7 @@ bool IsASTCSupported() {
 }
 } // Anonymous namespace
 
-Device::Device(bool has_vulkan_instance) {
+Device::Device() {
     if (!GLAD_GL_VERSION_4_6) {
         LOG_ERROR(Render_OpenGL, "OpenGL 4.6 is not available");
         throw std::runtime_error{"Insufficient version"};
@@ -246,8 +246,7 @@ Device::Device(bool has_vulkan_instance) {
 
     use_assembly_shaders = Settings::values.use_assembly_shaders.GetValue() &&
                            GLAD_GL_NV_gpu_program5 && GLAD_GL_NV_compute_program5 &&
-                           GLAD_GL_NV_transform_feedback && GLAD_GL_NV_transform_feedback2 &&
-                           has_vulkan_instance;
+                           GLAD_GL_NV_transform_feedback && GLAD_GL_NV_transform_feedback2;
 
     use_asynchronous_shaders = Settings::values.use_asynchronous_shaders.GetValue();
     use_driver_cache = is_nvidia;

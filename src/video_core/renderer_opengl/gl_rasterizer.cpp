@@ -167,8 +167,6 @@ ImageViewType ImageViewTypeFromEntry(const ImageEntry& entry) {
 
 RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
                                    Core::Memory::Memory& cpu_memory_, const Device& device_,
-                                   const Vulkan::Device* vulkan_device,
-                                   Vulkan::MemoryAllocator* vulkan_memory_allocator,
                                    ScreenInfo& screen_info_, ProgramManager& program_manager_,
                                    StateTracker& state_tracker_)
     : RasterizerAccelerated(cpu_memory_), gpu(gpu_), maxwell3d(gpu.Maxwell3D()),
@@ -176,7 +174,7 @@ RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& emu_window_, Tegra
       screen_info(screen_info_), program_manager(program_manager_), state_tracker(state_tracker_),
       texture_cache_runtime(device, program_manager, state_tracker),
       texture_cache(texture_cache_runtime, *this, maxwell3d, kepler_compute, gpu_memory),
-      buffer_cache_runtime(device, vulkan_device, vulkan_memory_allocator),
+      buffer_cache_runtime(device),
       buffer_cache(*this, maxwell3d, kepler_compute, gpu_memory, cpu_memory_, buffer_cache_runtime),
       shader_cache(*this, emu_window_, gpu, maxwell3d, kepler_compute, gpu_memory, device),
       query_cache(*this, maxwell3d, gpu_memory),

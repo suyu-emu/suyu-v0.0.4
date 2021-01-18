@@ -15,13 +15,6 @@
 #include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_stream_buffer.h"
-#include "video_core/vulkan_common/vulkan_device.h"
-#include "video_core/vulkan_common/vulkan_memory_allocator.h"
-
-namespace Vulkan {
-class Device;
-class MemoryAllocator;
-} // namespace Vulkan
 
 namespace OpenGL {
 
@@ -59,8 +52,7 @@ class BufferCacheRuntime {
 public:
     static constexpr u8 INVALID_BINDING = std::numeric_limits<u8>::max();
 
-    explicit BufferCacheRuntime(const Device& device_, const Vulkan::Device* vulkan_device_,
-                                Vulkan::MemoryAllocator* vulkan_memory_allocator_);
+    explicit BufferCacheRuntime(const Device& device_);
 
     void CopyBuffer(Buffer& dst_buffer, Buffer& src_buffer,
                     std::span<const VideoCommon::BufferCopy> copies);
@@ -132,8 +124,6 @@ private:
     };
 
     const Device& device;
-    const Vulkan::Device* vulkan_device;
-    Vulkan::MemoryAllocator* vulkan_memory_allocator;
 
     bool has_fast_buffer_sub_data = false;
     bool use_assembly_shaders = false;

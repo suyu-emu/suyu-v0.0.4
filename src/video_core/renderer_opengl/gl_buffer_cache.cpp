@@ -7,10 +7,6 @@
 #include "video_core/buffer_cache/buffer_cache.h"
 #include "video_core/renderer_opengl/gl_buffer_cache.h"
 #include "video_core/renderer_opengl/gl_device.h"
-#include "video_core/vulkan_common/vulkan_device.h"
-#include "video_core/vulkan_common/vulkan_instance.h"
-#include "video_core/vulkan_common/vulkan_library.h"
-#include "video_core/vulkan_common/vulkan_memory_allocator.h"
 
 namespace OpenGL {
 namespace {
@@ -66,11 +62,8 @@ void Buffer::MakeResident(GLenum access) noexcept {
     glMakeNamedBufferResidentNV(buffer.handle, access);
 }
 
-BufferCacheRuntime::BufferCacheRuntime(const Device& device_, const Vulkan::Device* vulkan_device_,
-                                       Vulkan::MemoryAllocator* vulkan_memory_allocator_)
-    : device{device_}, vulkan_device{vulkan_device_},
-      vulkan_memory_allocator{vulkan_memory_allocator_},
-      has_fast_buffer_sub_data{device.HasFastBufferSubData()},
+BufferCacheRuntime::BufferCacheRuntime(const Device& device_)
+    : device{device_}, has_fast_buffer_sub_data{device.HasFastBufferSubData()},
       use_assembly_shaders{device.UseAssemblyShaders()},
       has_unified_vertex_buffers{device.HasVertexBufferUnifiedMemory()},
       stream_buffer{has_fast_buffer_sub_data ? std::nullopt : std::make_optional<StreamBuffer>()} {
