@@ -91,7 +91,7 @@ class BufferCache {
     };
 
 public:
-    static constexpr size_t SKIP_CACHE_SIZE = 4096;
+    static constexpr u32 SKIP_CACHE_SIZE = 4096;
 
     explicit BufferCache(VideoCore::RasterizerInterface& rasterizer_,
                          Tegra::Engines::Maxwell3D& maxwell3d_,
@@ -671,7 +671,7 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
     const VAddr cpu_addr = binding.cpu_addr;
     const u32 size = binding.size;
     Buffer& buffer = slot_buffers[binding.buffer_id];
-    if (size <= runtime.SkipCacheSize() && !buffer.IsRegionGpuModified(cpu_addr, size)) {
+    if (size <= SKIP_CACHE_SIZE && !buffer.IsRegionGpuModified(cpu_addr, size)) {
         if constexpr (IS_OPENGL) {
             if (runtime.HasFastBufferSubData()) {
                 // Fast path for Nvidia

@@ -36,13 +36,8 @@ Buffer::Buffer(BufferCacheRuntime& runtime, VideoCore::RasterizerInterface& rast
     buffer.Create();
     const std::string name = fmt::format("Buffer 0x{:x}", CpuAddr());
     glObjectLabel(GL_BUFFER, buffer.handle, static_cast<GLsizei>(name.size()), name.data());
-    if (runtime.device.UseAssemblyShaders()) {
-        CreateMemoryObjects(runtime);
-        glNamedBufferStorageMemEXT(buffer.handle, SizeBytes(), memory_commit.ExportOpenGLHandle(),
-                                   memory_commit.Offset());
-    } else {
-        glNamedBufferData(buffer.handle, SizeBytes(), nullptr, GL_DYNAMIC_DRAW);
-    }
+    glNamedBufferData(buffer.handle, SizeBytes(), nullptr, GL_DYNAMIC_DRAW);
+
     if (runtime.has_unified_vertex_buffers) {
         glGetNamedBufferParameterui64vNV(buffer.handle, GL_BUFFER_GPU_ADDRESS_NV, &address);
     }
@@ -71,60 +66,32 @@ void Buffer::MakeResident(GLenum access) noexcept {
     glMakeNamedBufferResidentNV(buffer.handle, access);
 }
 
-GLuint Buffer::SubBuffer(u32 offset) {
-    if (offset == 0) {
-        return buffer.handle;
-    }
-    for (const auto& [sub_buffer, sub_offset] : subs) {
-        if (sub_offset == offset) {
-            return sub_buffer.handle;
-        }
-    }
-    OGLBuffer sub_buffer;
-    sub_buffer.Create();
-    glNamedBufferStorageMemEXT(sub_buffer.handle, SizeBytes() - offset,
-                               memory_commit.ExportOpenGLHandle(), memory_commit.Offset() + offset);
-    return subs.emplace_back(std::move(sub_buffer), offset).first.handle;
-}
-
-void Buffer::CreateMemoryObjects(BufferCacheRuntime& runtime) {
-    auto& allocator = runtime.vulkan_memory_allocator;
-    auto& device = runtime.vulkan_device->GetLogical();
-    auto vulkan_buffer = device.CreateBuffer(VkBufferCreateInfo{
-        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .size = SizeBytes(),
-        .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
-                 VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT |
-                 VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT |
-                 VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT |
-                 VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-        .queueFamilyIndexCount = 0,
-        .pQueueFamilyIndices = nullptr,
-    });
-    const VkMemoryRequirements requirements = device.GetBufferMemoryRequirements(*vulkan_buffer);
-    memory_commit = allocator->Commit(requirements, Vulkan::MemoryUsage::DeviceLocal);
-}
-
 BufferCacheRuntime::BufferCacheRuntime(const Device& device_, const Vulkan::Device* vulkan_device_,
                                        Vulkan::MemoryAllocator* vulkan_memory_allocator_)
     : device{device_}, vulkan_device{vulkan_device_},
       vulkan_memory_allocator{vulkan_memory_allocator_},
-      stream_buffer{device.HasFastBufferSubData() ? std::nullopt
-                                                  : std::make_optional<StreamBuffer>()} {
+      has_fast_buffer_sub_data{device.HasFastBufferSubData()},
+      use_assembly_shaders{device.UseAssemblyShaders()},
+      has_unified_vertex_buffers{device.HasVertexBufferUnifiedMemory()},
+      stream_buffer{has_fast_buffer_sub_data ? std::nullopt : std::make_optional<StreamBuffer>()} {
     GLint gl_max_attributes;
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &gl_max_attributes);
     max_attributes = static_cast<u32>(gl_max_attributes);
-    use_assembly_shaders = device.UseAssemblyShaders();
-    has_unified_vertex_buffers = device.HasVertexBufferUnifiedMemory();
-
     for (auto& stage_uniforms : fast_uniforms) {
         for (OGLBuffer& buffer : stage_uniforms) {
             buffer.Create();
             glNamedBufferData(buffer.handle, BufferCache::SKIP_CACHE_SIZE, nullptr, GL_STREAM_DRAW);
         }
+    }
+    for (auto& stage_uniforms : copy_uniforms) {
+        for (OGLBuffer& buffer : stage_uniforms) {
+            buffer.Create();
+            glNamedBufferData(buffer.handle, 0x10'000, nullptr, GL_STREAM_COPY);
+        }
+    }
+    for (OGLBuffer& buffer : copy_compute_uniforms) {
+        buffer.Create();
+        glNamedBufferData(buffer.handle, 0x10'000, nullptr, GL_STREAM_COPY);
     }
 }
 
@@ -167,8 +134,14 @@ void BufferCacheRuntime::BindVertexBuffer(u32 index, Buffer& buffer, u32 offset,
 void BufferCacheRuntime::BindUniformBuffer(size_t stage, u32 binding_index, Buffer& buffer,
                                            u32 offset, u32 size) {
     if (use_assembly_shaders) {
-        const GLuint sub_buffer = buffer.SubBuffer(offset);
-        glBindBufferRangeNV(PABO_LUT[stage], binding_index, sub_buffer, 0,
+        GLuint handle;
+        if (offset != 0) {
+            handle = copy_uniforms[stage][binding_index].handle;
+            glCopyNamedBufferSubData(buffer.Handle(), handle, offset, 0, size);
+        } else {
+            handle = buffer.Handle();
+        }
+        glBindBufferRangeNV(PABO_LUT[stage], binding_index, handle, 0,
                             static_cast<GLsizeiptr>(size));
     } else {
         const GLuint base_binding = device.GetBaseBindings(stage).uniform_buffer;
@@ -181,8 +154,15 @@ void BufferCacheRuntime::BindUniformBuffer(size_t stage, u32 binding_index, Buff
 void BufferCacheRuntime::BindComputeUniformBuffer(u32 binding_index, Buffer& buffer, u32 offset,
                                                   u32 size) {
     if (use_assembly_shaders) {
-        glBindBufferRangeNV(GL_COMPUTE_PROGRAM_PARAMETER_BUFFER_NV, binding_index,
-                            buffer.SubBuffer(offset), 0, static_cast<GLsizeiptr>(size));
+        GLuint handle;
+        if (offset != 0) {
+            handle = copy_compute_uniforms[binding_index].handle;
+            glCopyNamedBufferSubData(buffer.Handle(), handle, offset, 0, size);
+        } else {
+            handle = buffer.Handle();
+        }
+        glBindBufferRangeNV(GL_COMPUTE_PROGRAM_PARAMETER_BUFFER_NV, binding_index, handle, 0,
+                            static_cast<GLsizeiptr>(size));
     } else {
         glBindBufferRange(GL_UNIFORM_BUFFER, binding_index, buffer.Handle(),
                           static_cast<GLintptr>(offset), static_cast<GLsizeiptr>(size));
