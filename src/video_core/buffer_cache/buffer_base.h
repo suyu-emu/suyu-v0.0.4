@@ -251,6 +251,16 @@ public:
         flags &= ~BufferFlagBits::Picked;
     }
 
+    /// Increases the likeliness of this being a stream buffer
+    void IncreaseStreamScore(int score) noexcept {
+        stream_score += score;
+    }
+
+    /// Returns the likeliness of this being a stream buffer
+    [[nodiscard]] int StreamScore() const noexcept {
+        return stream_score;
+    }
+
     /// Returns true when vaddr -> vaddr+size is fully contained in the buffer
     [[nodiscard]] bool IsInBounds(VAddr addr, u64 size) const noexcept {
         return addr >= cpu_addr && addr + size <= cpu_addr + SizeBytes();
@@ -574,6 +584,7 @@ private:
     VAddr cpu_addr = 0;
     Words words;
     BufferFlagBits flags{};
+    int stream_score = 0;
 };
 
 } // namespace VideoCommon

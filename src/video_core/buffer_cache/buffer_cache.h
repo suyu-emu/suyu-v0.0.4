@@ -75,6 +75,7 @@ class BufferCache {
         std::vector<BufferId> ids;
         VAddr begin;
         VAddr end;
+        bool has_stream_leap = false;
     };
 
     struct Binding {
@@ -228,7 +229,7 @@ private:
 
     [[nodiscard]] OverlapResult ResolveOverlaps(VAddr cpu_addr, u32 wanted_size);
 
-    void JoinOverlap(BufferId new_buffer_id, BufferId overlap_id);
+    void JoinOverlap(BufferId new_buffer_id, BufferId overlap_id, bool accumulate_stream_score);
 
     [[nodiscard]] BufferId CreateBuffer(VAddr cpu_addr, u32 wanted_size);
 
@@ -670,7 +671,7 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
     const VAddr cpu_addr = binding.cpu_addr;
     const u32 size = binding.size;
     Buffer& buffer = slot_buffers[binding.buffer_id];
-    if (size <= SKIP_CACHE_SIZE && !buffer.IsRegionGpuModified(cpu_addr, size)) {
+    if (size <= runtime.SkipCacheSize() && !buffer.IsRegionGpuModified(cpu_addr, size)) {
         if constexpr (IS_OPENGL) {
             if (runtime.HasFastBufferSubData()) {
                 // Fast path for Nvidia
@@ -1000,9 +1001,12 @@ BufferId BufferCache<P>::FindBuffer(VAddr cpu_addr, u32 size) {
 template <class P>
 typename BufferCache<P>::OverlapResult BufferCache<P>::ResolveOverlaps(VAddr cpu_addr,
                                                                        u32 wanted_size) {
+    static constexpr int STREAM_LEAP_THRESHOLD = 16;
     std::vector<BufferId> overlap_ids;
     VAddr begin = cpu_addr;
     VAddr end = cpu_addr + wanted_size;
+    int stream_score = 0;
+    bool has_stream_leap = false;
     for (; cpu_addr >> PAGE_BITS < Common::DivCeil(end, PAGE_SIZE); cpu_addr += PAGE_SIZE) {
         const BufferId overlap_id = page_table[cpu_addr >> PAGE_BITS];
         if (!overlap_id) {
@@ -1012,26 +1016,38 @@ typename BufferCache<P>::OverlapResult BufferCache<P>::ResolveOverlaps(VAddr cpu
         if (overlap.IsPicked()) {
             continue;
         }
-        overlap.Pick();
         overlap_ids.push_back(overlap_id);
+        overlap.Pick();
         const VAddr overlap_cpu_addr = overlap.CpuAddr();
         if (overlap_cpu_addr < begin) {
             cpu_addr = begin = overlap_cpu_addr;
         }
         end = std::max(end, overlap_cpu_addr + overlap.SizeBytes());
+
+        stream_score += overlap.StreamScore();
+        if (stream_score > STREAM_LEAP_THRESHOLD && !has_stream_leap) {
+            // When this memory region has been joined a bunch of times, we assume it's being used
+            // as a stream buffer. Increase the size to skip constantly recreating buffers.
+            has_stream_leap = true;
+            end += PAGE_SIZE * 256;
+        }
     }
     return OverlapResult{
         .ids = std::move(overlap_ids),
         .begin = begin,
         .end = end,
+        .has_stream_leap = has_stream_leap,
     };
 }
 
 template <class P>
-void BufferCache<P>::JoinOverlap(BufferId new_buffer_id, BufferId overlap_id) {
+void BufferCache<P>::JoinOverlap(BufferId new_buffer_id, BufferId overlap_id,
+                                 bool accumulate_stream_score) {
     Buffer& new_buffer = slot_buffers[new_buffer_id];
     Buffer& overlap = slot_buffers[overlap_id];
-
+    if (accumulate_stream_score) {
+        new_buffer.IncreaseStreamScore(overlap.StreamScore() + 1);
+    }
     std::vector<BufferCopy> copies;
     const size_t dst_base_offset = overlap.CpuAddr() - new_buffer.CpuAddr();
     overlap.ForEachDownloadRange([&](u64 begin, u64 range_size) {
@@ -1056,7 +1072,7 @@ BufferId BufferCache<P>::CreateBuffer(VAddr cpu_addr, u32 wanted_size) {
     const u32 size = static_cast<u32>(overlap.end - overlap.begin);
     const BufferId new_buffer_id = slot_buffers.insert(runtime, rasterizer, overlap.begin, size);
     for (const BufferId overlap_id : overlap.ids) {
-        JoinOverlap(new_buffer_id, overlap_id);
+        JoinOverlap(new_buffer_id, overlap_id, !overlap.has_stream_leap);
     }
     Register(new_buffer_id);
     return new_buffer_id;
