@@ -4,8 +4,7 @@
 
 #pragma once
 
-#include <variant>
-#include <boost/container/static_vector.hpp>
+#include <array>
 
 #include "common/common_types.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
@@ -16,13 +15,15 @@ class Device;
 class VKScheduler;
 
 struct DescriptorUpdateEntry {
+    struct Empty {};
+
+    DescriptorUpdateEntry() = default;
     DescriptorUpdateEntry(VkDescriptorImageInfo image_) : image{image_} {}
-
     DescriptorUpdateEntry(VkDescriptorBufferInfo buffer_) : buffer{buffer_} {}
-
     DescriptorUpdateEntry(VkBufferView texel_buffer_) : texel_buffer{texel_buffer_} {}
 
     union {
+        Empty empty{};
         VkDescriptorImageInfo image;
         VkDescriptorBufferInfo buffer;
         VkBufferView texel_buffer;
@@ -41,39 +42,40 @@ public:
     void Send(VkDescriptorUpdateTemplateKHR update_template, VkDescriptorSet set);
 
     void AddSampledImage(VkImageView image_view, VkSampler sampler) {
-        payload.emplace_back(VkDescriptorImageInfo{
+        *(payload_cursor++) = VkDescriptorImageInfo{
             .sampler = sampler,
             .imageView = image_view,
             .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
-        });
+        };
     }
 
     void AddImage(VkImageView image_view) {
-        payload.emplace_back(VkDescriptorImageInfo{
+        *(payload_cursor++) = VkDescriptorImageInfo{
             .sampler = VK_NULL_HANDLE,
             .imageView = image_view,
             .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
-        });
+        };
     }
 
-    void AddBuffer(VkBuffer buffer, u64 offset, size_t size) {
-        payload.emplace_back(VkDescriptorBufferInfo{
+    void AddBuffer(VkBuffer buffer, VkDeviceSize offset, VkDeviceSize size) {
+        *(payload_cursor++) = VkDescriptorBufferInfo{
             .buffer = buffer,
             .offset = offset,
             .range = size,
-        });
+        };
     }
 
     void AddTexelBuffer(VkBufferView texel_buffer) {
-        payload.emplace_back(texel_buffer);
+        *(payload_cursor++) = texel_buffer;
     }
 
 private:
     const Device& device;
     VKScheduler& scheduler;
 
+    DescriptorUpdateEntry* payload_cursor = nullptr;
     const DescriptorUpdateEntry* upload_start = nullptr;
-    boost::container::static_vector<DescriptorUpdateEntry, 0x10000> payload;
+    std::array<DescriptorUpdateEntry, 0x10000> payload;
 };
 
 } // namespace Vulkan

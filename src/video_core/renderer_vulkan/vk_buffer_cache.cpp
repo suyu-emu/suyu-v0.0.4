@@ -201,10 +201,6 @@ void BufferCacheRuntime::BindTransformFeedbackBuffer(u32 index, VkBuffer buffer,
     });
 }
 
-void BufferCacheRuntime::BindBuffer(VkBuffer buffer, u32 offset, u32 size) {
-    update_descriptor_queue.AddBuffer(buffer, offset, size);
-}
-
 void BufferCacheRuntime::ReserveQuadArrayLUT(u32 num_indices, bool wait_for_idle) {
     if (num_indices <= current_num_indices) {
         return;
