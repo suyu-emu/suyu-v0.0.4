@@ -20,6 +20,7 @@
 #include "video_core/renderer_vulkan/vk_buffer_cache.h"
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
 #include "video_core/renderer_vulkan/vk_fence_manager.h"
+#include "video_core/renderer_vulkan/vk_graphics_pipeline.h"
 #include "video_core/renderer_vulkan/vk_pipeline_cache.h"
 #include "video_core/renderer_vulkan/vk_query_cache.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
@@ -172,6 +173,8 @@ private:
     VKDescriptorPool descriptor_pool;
     VKUpdateDescriptorQueue update_descriptor_queue;
     BlitImageHelper blit_image;
+
+    GraphicsPipelineCacheKey graphics_key;
 
     TextureCacheRuntime texture_cache_runtime;
     TextureCache texture_cache;

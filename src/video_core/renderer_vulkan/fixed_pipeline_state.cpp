@@ -12,14 +12,15 @@
 #include "common/cityhash.h"
 #include "common/common_types.h"
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
+#include "video_core/renderer_vulkan/vk_state_tracker.h"
 
 namespace Vulkan {
 
 namespace {
 
-constexpr std::size_t POINT = 0;
-constexpr std::size_t LINE = 1;
-constexpr std::size_t POLYGON = 2;
+constexpr size_t POINT = 0;
+constexpr size_t LINE = 1;
+constexpr size_t POLYGON = 2;
 constexpr std::array POLYGON_OFFSET_ENABLE_LUT = {
     POINT,   // Points
     LINE,    // Lines
@@ -40,10 +41,14 @@ constexpr std::array POLYGON_OFFSET_ENABLE_LUT = {
 
 } // Anonymous namespace
 
-void FixedPipelineState::Fill(const Maxwell& regs, bool has_extended_dynamic_state) {
-    const std::array enabled_lut = {regs.polygon_offset_point_enable,
-                                    regs.polygon_offset_line_enable,
-                                    regs.polygon_offset_fill_enable};
+void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d,
+                                 bool has_extended_dynamic_state) {
+    const Maxwell& regs = maxwell3d.regs;
+    const std::array enabled_lut{
+        regs.polygon_offset_point_enable,
+        regs.polygon_offset_line_enable,
+        regs.polygon_offset_fill_enable,
+    };
     const u32 topology_index = static_cast<u32>(regs.draw.topology.Value());
 
     raw1 = 0;
@@ -64,45 +69,53 @@ void FixedPipelineState::Fill(const Maxwell& regs, bool has_extended_dynamic_sta
 
     raw2 = 0;
     const auto test_func =
-        regs.alpha_test_enabled == 1 ? regs.alpha_test_func : Maxwell::ComparisonOp::Always;
+        regs.alpha_test_enabled != 0 ? regs.alpha_test_func : Maxwell::ComparisonOp::Always;
     alpha_test_func.Assign(PackComparisonOp(test_func));
     early_z.Assign(regs.force_early_fragment_tests != 0 ? 1 : 0);
 
     alpha_test_ref = Common::BitCast<u32>(regs.alpha_test_ref);
     point_size = Common::BitCast<u32>(regs.point_size);
 
-    for (std::size_t index = 0; index < Maxwell::NumVertexArrays; ++index) {
-        binding_divisors[index] =
-            regs.instanced_arrays.IsInstancingEnabled(index) ? regs.vertex_array[index].divisor : 0;
+    if (maxwell3d.dirty.flags[Dirty::InstanceDivisors]) {
+        maxwell3d.dirty.flags[Dirty::InstanceDivisors] = false;
+        for (size_t index = 0; index < Maxwell::NumVertexArrays; ++index) {
+            const bool is_enabled = regs.instanced_arrays.IsInstancingEnabled(index);
+            binding_divisors[index] = is_enabled ? regs.vertex_array[index].divisor : 0;
+        }
     }
-
-    for (size_t index = 0; index < Maxwell::NumVertexAttributes; ++index) {
-        const auto& input = regs.vertex_attrib_format[index];
-        auto& attribute = attributes[index];
-        attribute.raw = 0;
-        attribute.enabled.Assign(input.IsConstant() ? 0 : 1);
-        attribute.buffer.Assign(input.buffer);
-        attribute.offset.Assign(input.offset);
-        attribute.type.Assign(static_cast<u32>(input.type.Value()));
-        attribute.size.Assign(static_cast<u32>(input.size.Value()));
-        attribute.binding_index_enabled.Assign(regs.vertex_array[index].IsEnabled() ? 1 : 0);
+    if (maxwell3d.dirty.flags[Dirty::VertexAttributes]) {
+        maxwell3d.dirty.flags[Dirty::VertexAttributes] = false;
+        for (size_t index = 0; index < Maxwell::NumVertexAttributes; ++index) {
+            const auto& input = regs.vertex_attrib_format[index];
+            auto& attribute = attributes[index];
+            attribute.raw = 0;
+            attribute.enabled.Assign(input.IsConstant() ? 0 : 1);
+            attribute.buffer.Assign(input.buffer);
+            attribute.offset.Assign(input.offset);
+            attribute.type.Assign(static_cast<u32>(input.type.Value()));
+            attribute.size.Assign(static_cast<u32>(input.size.Value()));
+        }
     }
-
-    for (std::size_t index = 0; index < std::size(attachments); ++index) {
-        attachments[index].Fill(regs, index);
+    if (maxwell3d.dirty.flags[Dirty::Blending]) {
+        maxwell3d.dirty.flags[Dirty::Blending] = false;
+        for (size_t index = 0; index < attachments.size(); ++index) {
+            attachments[index].Refresh(regs, index);
+        }
     }
-
-    const auto& transform = regs.viewport_transform;
-    std::transform(transform.begin(), transform.end(), viewport_swizzles.begin(),
-                   [](const auto& viewport) { return static_cast<u16>(viewport.swizzle.raw); });
-
+    if (maxwell3d.dirty.flags[Dirty::ViewportSwizzles]) {
+        maxwell3d.dirty.flags[Dirty::ViewportSwizzles] = false;
+        const auto& transform = regs.viewport_transform;
+        std::ranges::transform(transform, viewport_swizzles.begin(), [](const auto& viewport) {
+            return static_cast<u16>(viewport.swizzle.raw);
+        });
+    }
     if (!has_extended_dynamic_state) {
         no_extended_dynamic_state.Assign(1);
-        dynamic_state.Fill(regs);
+        dynamic_state.Refresh(regs);
     }
 }
 
-void FixedPipelineState::BlendingAttachment::Fill(const Maxwell& regs, std::size_t index) {
+void FixedPipelineState::BlendingAttachment::Refresh(const Maxwell& regs, size_t index) {
     const auto& mask = regs.color_mask[regs.color_mask_common ? 0 : index];
 
     raw = 0;
@@ -141,7 +154,7 @@ void FixedPipelineState::BlendingAttachment::Fill(const Maxwell& regs, std::size
     enable.Assign(1);
 }
 
-void FixedPipelineState::DynamicState::Fill(const Maxwell& regs) {
+void FixedPipelineState::DynamicState::Refresh(const Maxwell& regs) {
     u32 packed_front_face = PackFrontFace(regs.front_face);
     if (regs.screen_y_control.triangle_rast_flip != 0) {
         // Flip front face
@@ -178,9 +191,9 @@ void FixedPipelineState::DynamicState::Fill(const Maxwell& regs) {
     });
 }
 
-std::size_t FixedPipelineState::Hash() const noexcept {
+size_t FixedPipelineState::Hash() const noexcept {
     const u64 hash = Common::CityHash64(reinterpret_cast<const char*>(this), Size());
-    return static_cast<std::size_t>(hash);
+    return static_cast<size_t>(hash);
 }
 
 bool FixedPipelineState::operator==(const FixedPipelineState& rhs) const noexcept {

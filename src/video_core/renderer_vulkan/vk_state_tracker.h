@@ -35,6 +35,11 @@ enum : u8 {
     StencilOp,
     StencilTestEnable,
 
+    Blending,
+    InstanceDivisors,
+    VertexAttributes,
+    ViewportSwizzles,
+
     Last
 };
 static_assert(Last <= std::numeric_limits<u8>::max());

@@ -267,8 +267,7 @@ void RasterizerVulkan::Draw(bool is_indexed, bool is_instanced) {
 
     query_cache.UpdateCounters();
 
-    GraphicsPipelineCacheKey key;
-    key.fixed_state.Fill(maxwell3d.regs, device.IsExtExtendedDynamicStateSupported());
+    graphics_key.fixed_state.Refresh(maxwell3d, device.IsExtExtendedDynamicStateSupported());
 
     std::scoped_lock lock{buffer_cache.mutex, texture_cache.mutex};
 
@@ -276,14 +275,16 @@ void RasterizerVulkan::Draw(bool is_indexed, bool is_instanced) {
     texture_cache.UpdateRenderTargets(false);
 
     const auto shaders = pipeline_cache.GetShaders();
-    key.shaders = GetShaderAddresses(shaders);
+    graphics_key.shaders = GetShaderAddresses(shaders);
+
+    graphics_key.shaders = GetShaderAddresses(shaders);
     SetupShaderDescriptors(shaders, is_indexed);
 
     const Framebuffer* const framebuffer = texture_cache.GetFramebuffer();
-    key.renderpass = framebuffer->RenderPass();
+    graphics_key.renderpass = framebuffer->RenderPass();
 
-    auto* const pipeline =
-        pipeline_cache.GetGraphicsPipeline(key, framebuffer->NumColorBuffers(), async_shaders);
+    VKGraphicsPipeline* const pipeline = pipeline_cache.GetGraphicsPipeline(
+        graphics_key, framebuffer->NumColorBuffers(), async_shaders);
     if (pipeline == nullptr || pipeline->GetHandle() == VK_NULL_HANDLE) {
         // Async graphics pipeline was not ready.
         return;
