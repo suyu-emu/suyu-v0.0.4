@@ -32,8 +32,14 @@
 
 namespace Service::Account {
 
-constexpr ResultCode ERR_INVALID_BUFFER_SIZE{ErrorModule::Account, 30};
+constexpr ResultCode ERR_INVALID_USER_ID{ErrorModule::Account, 20};
+constexpr ResultCode ERR_INVALID_APPLICATION_ID{ErrorModule::Account, 22};
+constexpr ResultCode ERR_INVALID_BUFFER{ErrorModule::Account, 30};
+constexpr ResultCode ERR_INVALID_BUFFER_SIZE{ErrorModule::Account, 31};
 constexpr ResultCode ERR_FAILED_SAVE_DATA{ErrorModule::Account, 100};
+
+// Thumbnails are hard coded to be at least this size
+constexpr std::size_t THUMBNAIL_SIZE = 0x24000;
 
 static std::string GetImagePath(Common::UUID uuid) {
     return Common::FS::GetUserPath(Common::FS::UserPath::NANDDir) +
@@ -369,7 +375,7 @@ protected:
         if (user_data.size() < sizeof(ProfileData)) {
             LOG_ERROR(Service_ACC, "ProfileData buffer too small!");
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ERR_INVALID_BUFFER_SIZE);
+            rb.Push(ERR_INVALID_BUFFER);
             return;
         }
 
@@ -402,7 +408,7 @@ protected:
         if (user_data.size() < sizeof(ProfileData)) {
             LOG_ERROR(Service_ACC, "ProfileData buffer too small!");
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ERR_INVALID_BUFFER_SIZE);
+            rb.Push(ERR_INVALID_BUFFER);
             return;
         }
 
@@ -808,6 +814,55 @@ void Module::Interface::ListOpenContextStoredUsers(Kernel::HLERequestContext& ct
     // TODO(ogniK): Handle open contexts
     ctx.WriteBuffer(profile_manager->GetOpenUsers());
     IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void Module::Interface::StoreSaveDataThumbnailApplication(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto uuid = rp.PopRaw<Common::UUID>();
+
+    LOG_WARNING(Service_ACC, "(STUBBED) called, uuid={}", uuid.Format());
+
+    // TODO(ogniK): Check if application ID is zero on acc initialize. As we don't have a reliable
+    // way of confirming things like the TID, we're going to assume a non zero value for the time
+    // being.
+    constexpr u64 tid{1};
+    StoreSaveDataThumbnail(ctx, uuid, tid);
+}
+
+void Module::Interface::StoreSaveDataThumbnailSystem(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto uuid = rp.PopRaw<Common::UUID>();
+    const auto tid = rp.Pop<u64_le>();
+
+    LOG_WARNING(Service_ACC, "(STUBBED) called, uuid={}, tid={:016X}", uuid.Format(), tid);
+    StoreSaveDataThumbnail(ctx, uuid, tid);
+}
+
+void Module::Interface::StoreSaveDataThumbnail(Kernel::HLERequestContext& ctx,
+                                               const Common::UUID& uuid, const u64 tid) {
+    IPC::ResponseBuilder rb{ctx, 2};
+
+    if (tid == 0) {
+        LOG_ERROR(Service_ACC, "TitleID is not valid!");
+        rb.Push(ERR_INVALID_APPLICATION_ID);
+        return;
+    }
+
+    if (!uuid) {
+        LOG_ERROR(Service_ACC, "User ID is not valid!");
+        rb.Push(ERR_INVALID_USER_ID);
+        return;
+    }
+    const auto thumbnail_size = ctx.GetReadBufferSize();
+    if (thumbnail_size != THUMBNAIL_SIZE) {
+        LOG_ERROR(Service_ACC, "Buffer size is empty! size={:X} expecting {:X}", thumbnail_size,
+                  THUMBNAIL_SIZE);
+        rb.Push(ERR_INVALID_BUFFER_SIZE);
+        return;
+    }
+
+    // TODO(ogniK): Construct save data thumbnail
     rb.Push(RESULT_SUCCESS);
 }
 

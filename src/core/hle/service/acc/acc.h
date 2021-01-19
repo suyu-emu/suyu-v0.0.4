@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "common/uuid.h"
 #include "core/hle/service/glue/manager.h"
 #include "core/hle/service/service.h"
 
@@ -36,9 +37,13 @@ public:
         void ListQualifiedUsers(Kernel::HLERequestContext& ctx);
         void LoadOpenContext(Kernel::HLERequestContext& ctx);
         void ListOpenContextStoredUsers(Kernel::HLERequestContext& ctx);
+        void StoreSaveDataThumbnailApplication(Kernel::HLERequestContext& ctx);
+        void StoreSaveDataThumbnailSystem(Kernel::HLERequestContext& ctx);
 
     private:
         ResultCode InitializeApplicationInfoBase();
+        void StoreSaveDataThumbnail(Kernel::HLERequestContext& ctx, const Common::UUID& uuid,
+                                    const u64 tid);
 
         enum class ApplicationType : u32_le {
             GameCard = 0,

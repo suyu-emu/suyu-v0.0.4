@@ -29,7 +29,7 @@ ACC_SU::ACC_SU(std::shared_ptr<Module> module, std::shared_ptr<ProfileManager> p
         {104, nullptr, "GetProfileUpdateNotifier"},
         {105, nullptr, "CheckNetworkServiceAvailabilityAsync"}, // 4.0.0+
         {106, nullptr, "GetProfileSyncNotifier"}, // 9.0.0+
-        {110, nullptr, "StoreSaveDataThumbnail"},
+        {110, &ACC_SU::StoreSaveDataThumbnailSystem, "StoreSaveDataThumbnail"},
         {111, nullptr, "ClearSaveDataThumbnail"},
         {112, nullptr, "LoadSaveDataThumbnail"},
         {113, nullptr, "GetSaveDataThumbnailExistence"}, // 5.0.0+
