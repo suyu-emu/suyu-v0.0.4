@@ -136,6 +136,23 @@ std::shared_ptr<ResourceLimit> Process::GetResourceLimit() const {
     return resource_limit;
 }
 
+void Process::IncrementThreadCount() {
+    ASSERT(num_threads >= 0);
+    ++num_created_threads;
+
+    if (const auto count = ++num_threads; count > peak_num_threads) {
+        peak_num_threads = count;
+    }
+}
+
+void Process::DecrementThreadCount() {
+    ASSERT(num_threads > 0);
+
+    if (const auto count = --num_threads; count == 0) {
+        UNIMPLEMENTED_MSG("Process termination is not implemented!");
+    }
+}
+
 u64 Process::GetTotalPhysicalMemoryAvailable() const {
     const u64 capacity{resource_limit->GetCurrentResourceValue(ResourceType::PhysicalMemory) +
                        page_table->GetTotalHeapSize() + GetSystemResourceSize() + image_size +
@@ -159,6 +176,61 @@ u64 Process::GetTotalPhysicalMemoryUsed() const {
 
 u64 Process::GetTotalPhysicalMemoryUsedWithoutSystemResource() const {
     return GetTotalPhysicalMemoryUsed() - GetSystemResourceUsage();
+}
+
+bool Process::ReleaseUserException(KThread* thread) {
+    KScopedSchedulerLock sl{kernel};
+
+    if (exception_thread == thread) {
+        exception_thread = nullptr;
+
+        // Remove waiter thread.
+        s32 num_waiters{};
+        KThread* next = thread->RemoveWaiterByKey(
+            std::addressof(num_waiters),
+            reinterpret_cast<uintptr_t>(std::addressof(exception_thread)));
+        if (next != nullptr) {
+            if (next->GetState() == ThreadState::Waiting) {
+                next->SetState(ThreadState::Runnable);
+            } else {
+                KScheduler::SetSchedulerUpdateNeeded(kernel);
+            }
+        }
+
+        return true;
+    } else {
+        return false;
+    }
+}
+
+void Process::PinCurrentThread() {
+    ASSERT(kernel.GlobalSchedulerContext().IsLocked());
+
+    // Get the current thread.
+    const s32 core_id = GetCurrentCoreId(kernel);
+    KThread* cur_thread = GetCurrentThreadPointer(kernel);
+
+    // Pin it.
+    PinThread(core_id, cur_thread);
+    cur_thread->Pin();
+
+    // An update is needed.
+    KScheduler::SetSchedulerUpdateNeeded(kernel);
+}
+
+void Process::UnpinCurrentThread() {
+    ASSERT(kernel.GlobalSchedulerContext().IsLocked());
+
+    // Get the current thread.
+    const s32 core_id = GetCurrentCoreId(kernel);
+    KThread* cur_thread = GetCurrentThreadPointer(kernel);
+
+    // Unpin it.
+    cur_thread->Unpin();
+    UnpinThread(core_id, cur_thread);
+
+    // An update is needed.
+    KScheduler::SetSchedulerUpdateNeeded(kernel);
 }
 
 void Process::RegisterThread(const KThread* thread) {
@@ -278,7 +350,7 @@ void Process::PrepareForTermination() {
             ASSERT_MSG(thread->GetState() == ThreadState::Waiting,
                        "Exiting processes with non-waiting threads is currently unimplemented");
 
-            thread->Stop();
+            thread->Exit();
         }
     };
 

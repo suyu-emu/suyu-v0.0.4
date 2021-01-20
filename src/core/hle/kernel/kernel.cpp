@@ -117,14 +117,14 @@ struct KernelCore::Impl {
     void InitializePhysicalCores() {
         exclusive_monitor =
             Core::MakeExclusiveMonitor(system.Memory(), Core::Hardware::NUM_CPU_CORES);
-        for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
+        for (s32 i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
             schedulers[i] = std::make_unique<Kernel::KScheduler>(system, i);
             cores.emplace_back(i, system, *schedulers[i], interrupts);
         }
     }
 
     void InitializeSchedulers() {
-        for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
+        for (s32 i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
             cores[i].Scheduler().Initialize();
         }
     }
@@ -169,9 +169,9 @@ struct KernelCore::Impl {
             std::string name = "Suspend Thread Id:" + std::to_string(i);
             std::function<void(void*)> init_func = Core::CpuManager::GetSuspendThreadStartFunc();
             void* init_func_parameter = system.GetCpuManager().GetStartFuncParamater();
-            auto thread_res = KThread::Create(system, ThreadType::Kernel, std::move(name), 0, 0, 0,
-                                              static_cast<u32>(i), 0, nullptr, std::move(init_func),
-                                              init_func_parameter);
+            auto thread_res = KThread::Create(system, ThreadType::HighPriority, std::move(name), 0,
+                                              0, 0, static_cast<u32>(i), 0, nullptr,
+                                              std::move(init_func), init_func_parameter);
 
             suspend_threads[i] = std::move(thread_res).Unwrap();
         }

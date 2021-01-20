@@ -235,12 +235,8 @@ QString WaitTreeThread::GetText() const {
     QString status;
     switch (thread.GetState()) {
     case Kernel::ThreadState::Runnable:
-        if (!thread.IsPaused()) {
-            if (thread.WasRunning()) {
-                status = tr("running");
-            } else {
-                status = tr("ready");
-            }
+        if (!thread.IsSuspended()) {
+            status = tr("runnable");
         } else {
             status = tr("paused");
         }
@@ -295,12 +291,8 @@ QColor WaitTreeThread::GetColor() const {
     const auto& thread = static_cast<const Kernel::KThread&>(object);
     switch (thread.GetState()) {
     case Kernel::ThreadState::Runnable:
-        if (!thread.IsPaused()) {
-            if (thread.WasRunning()) {
-                return QColor(WaitTreeColors[0][color_index]);
-            } else {
-                return QColor(WaitTreeColors[1][color_index]);
-            }
+        if (!thread.IsSuspended()) {
+            return QColor(WaitTreeColors[0][color_index]);
         } else {
             return QColor(WaitTreeColors[2][color_index]);
         }
@@ -334,18 +326,18 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeThread::GetChildren() const {
     const auto& thread = static_cast<const Kernel::KThread&>(object);
 
     QString processor;
-    switch (thread.GetProcessorID()) {
+    switch (thread.GetActiveCore()) {
     case Kernel::Svc::IdealCoreUseProcessValue:
         processor = tr("ideal");
         break;
     default:
-        processor = tr("core %1").arg(thread.GetProcessorID());
+        processor = tr("core %1").arg(thread.GetActiveCore());
         break;
     }
 
     list.push_back(std::make_unique<WaitTreeText>(tr("processor = %1").arg(processor)));
-    list.push_back(
-        std::make_unique<WaitTreeText>(tr("ideal core = %1").arg(thread.GetIdealCore())));
+    list.push_back(std::make_unique<WaitTreeText>(
+        tr("ideal core = %1").arg(thread.GetIdealCoreForDebugging())));
     list.push_back(std::make_unique<WaitTreeText>(
         tr("affinity mask = %1").arg(thread.GetAffinityMask().GetAffinityMask())));
     list.push_back(std::make_unique<WaitTreeText>(tr("thread id = %1").arg(thread.GetThreadID())));

@@ -33,15 +33,14 @@ class KThread;
 
 class KScheduler final {
 public:
-    explicit KScheduler(Core::System& system, std::size_t core_id);
+    explicit KScheduler(Core::System& system, s32 core_id);
     ~KScheduler();
 
     /// Reschedules to the next available thread (call after current thread is suspended)
     void RescheduleCurrentCore();
 
     /// Reschedules cores pending reschedule, to be called on EnableScheduling.
-    static void RescheduleCores(KernelCore& kernel, u64 cores_pending_reschedule,
-                                Core::EmuThreadHandle global_thread);
+    static void RescheduleCores(KernelCore& kernel, u64 cores_pending_reschedule);
 
     /// The next two are for SingleCore Only.
     /// Unload current thread before preempting core.
@@ -52,6 +51,11 @@ public:
 
     /// Gets the current running thread
     [[nodiscard]] KThread* GetCurrentThread() const;
+
+    /// Returns true if the scheduler is idle
+    [[nodiscard]] bool IsIdle() const {
+        return GetCurrentThread() == idle_thread;
+    }
 
     /// Gets the timestamp for the last context switch in ticks.
     [[nodiscard]] u64 GetLastContextSwitchTicks() const;
@@ -79,7 +83,7 @@ public:
      *
      * @note This operation can be redundant and no scheduling is changed if marked as so.
      */
-    void YieldWithoutCoreMigration();
+    static void YieldWithoutCoreMigration(KernelCore& kernel);
 
     /**
      * Takes a thread and moves it to the back of the it's priority list.
@@ -88,7 +92,7 @@ public:
      *
      * @note This operation can be redundant and no scheduling is changed if marked as so.
      */
-    void YieldWithCoreMigration();
+    static void YieldWithCoreMigration(KernelCore& kernel);
 
     /**
      * Takes a thread and moves it out of the scheduling queue.
@@ -97,7 +101,9 @@ public:
      *
      * @note This operation can be redundant and no scheduling is changed if marked as so.
      */
-    void YieldToAnyThread();
+    static void YieldToAnyThread(KernelCore& kernel);
+
+    static void ClearPreviousThread(KernelCore& kernel, KThread* thread);
 
     /// Notify the scheduler a thread's status has changed.
     static void OnThreadStateChanged(KernelCore& kernel, KThread* thread, ThreadState old_state);
@@ -114,8 +120,7 @@ public:
     static void SetSchedulerUpdateNeeded(KernelCore& kernel);
     static void ClearSchedulerUpdateNeeded(KernelCore& kernel);
     static void DisableScheduling(KernelCore& kernel);
-    static void EnableScheduling(KernelCore& kernel, u64 cores_needing_scheduling,
-                                 Core::EmuThreadHandle global_thread);
+    static void EnableScheduling(KernelCore& kernel, u64 cores_needing_scheduling);
     [[nodiscard]] static u64 UpdateHighestPriorityThreads(KernelCore& kernel);
 
 private:
@@ -168,6 +173,7 @@ private:
     static void OnSwitch(void* this_scheduler);
     void SwitchToCurrent();
 
+    KThread* prev_thread{};
     KThread* current_thread{};
     KThread* idle_thread{};
 
@@ -186,7 +192,7 @@ private:
 
     Core::System& system;
     u64 last_context_switch_time{};
-    const std::size_t core_id;
+    const s32 core_id;
 
     Common::SpinLock guard{};
 };

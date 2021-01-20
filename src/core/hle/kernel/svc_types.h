@@ -77,6 +77,12 @@ enum class ArbitrationType : u32 {
     WaitIfEqual = 2,
 };
 
+enum class YieldType : s64 {
+    WithoutCoreMigration = 0,
+    WithCoreMigration = -1,
+    ToAnyThread = -2,
+};
+
 enum class ThreadActivity : u32 {
     Runnable = 0,
     Paused = 1,

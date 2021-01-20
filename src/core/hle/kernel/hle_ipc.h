@@ -126,9 +126,6 @@ public:
         return server_session;
     }
 
-    using WakeupCallback = std::function<void(
-        std::shared_ptr<KThread> thread, HLERequestContext& context, ThreadWakeupReason reason)>;
-
     /// Populates this context with data from the requesting process/thread.
     ResultCode PopulateFromIncomingCommandBuffer(const HandleTable& handle_table,
                                                  u32_le* src_cmdbuf);
