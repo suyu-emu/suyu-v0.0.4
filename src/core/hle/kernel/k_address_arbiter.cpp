@@ -232,10 +232,9 @@ ResultCode KAddressArbiter::SignalAndModifyByWaitingCountIfEqual(VAddr addr, s32
 ResultCode KAddressArbiter::WaitIfLessThan(VAddr addr, s32 value, bool decrement, s64 timeout) {
     // Prepare to wait.
     KThread* cur_thread = kernel.CurrentScheduler()->GetCurrentThread();
-    Handle timer = InvalidHandle;
 
     {
-        KScopedSchedulerLockAndSleep slp(kernel, timer, cur_thread, timeout);
+        KScopedSchedulerLockAndSleep slp{kernel, cur_thread, timeout};
 
         // Check that the thread isn't terminating.
         if (cur_thread->IsTerminationRequested()) {
@@ -280,10 +279,7 @@ ResultCode KAddressArbiter::WaitIfLessThan(VAddr addr, s32 value, bool decrement
     }
 
     // Cancel the timer wait.
-    if (timer != InvalidHandle) {
-        auto& time_manager = kernel.TimeManager();
-        time_manager.UnscheduleTimeEvent(timer);
-    }
+    kernel.TimeManager().UnscheduleTimeEvent(cur_thread);
 
     // Remove from the address arbiter.
     {
@@ -303,10 +299,9 @@ ResultCode KAddressArbiter::WaitIfLessThan(VAddr addr, s32 value, bool decrement
 ResultCode KAddressArbiter::WaitIfEqual(VAddr addr, s32 value, s64 timeout) {
     // Prepare to wait.
     KThread* cur_thread = kernel.CurrentScheduler()->GetCurrentThread();
-    Handle timer = InvalidHandle;
 
     {
-        KScopedSchedulerLockAndSleep slp(kernel, timer, cur_thread, timeout);
+        KScopedSchedulerLockAndSleep slp{kernel, cur_thread, timeout};
 
         // Check that the thread isn't terminating.
         if (cur_thread->IsTerminationRequested()) {
@@ -344,10 +339,7 @@ ResultCode KAddressArbiter::WaitIfEqual(VAddr addr, s32 value, s64 timeout) {
     }
 
     // Cancel the timer wait.
-    if (timer != InvalidHandle) {
-        auto& time_manager = kernel.TimeManager();
-        time_manager.UnscheduleTimeEvent(timer);
-    }
+    kernel.TimeManager().UnscheduleTimeEvent(cur_thread);
 
     // Remove from the address arbiter.
     {

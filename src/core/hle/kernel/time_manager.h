@@ -31,18 +31,14 @@ public:
     explicit TimeManager(Core::System& system);
 
     /// Schedule a time event on `timetask` thread that will expire in 'nanoseconds'
-    /// returns a non-invalid handle in `event_handle` if correctly scheduled
-    void ScheduleTimeEvent(Handle& event_handle, KThread* timetask, s64 nanoseconds);
+    void ScheduleTimeEvent(KThread* time_task, s64 nanoseconds);
 
     /// Unschedule an existing time event
-    void UnscheduleTimeEvent(Handle event_handle);
-
-    void CancelTimeEvent(KThread* time_task);
+    void UnscheduleTimeEvent(KThread* thread);
 
 private:
     Core::System& system;
     std::shared_ptr<Core::Timing::EventType> time_manager_event_type;
-    std::unordered_map<Handle, bool> cancelled_events;
     std::mutex mutex;
 };
 

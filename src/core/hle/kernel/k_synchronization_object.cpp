@@ -21,11 +21,10 @@ ResultCode KSynchronizationObject::Wait(KernelCore& kernel, s32* out_index,
 
     // Prepare for wait.
     KThread* thread = kernel.CurrentScheduler()->GetCurrentThread();
-    Handle timer = InvalidHandle;
 
     {
         // Setup the scheduling lock and sleep.
-        KScopedSchedulerLockAndSleep slp(kernel, timer, thread, timeout);
+        KScopedSchedulerLockAndSleep slp{kernel, thread, timeout};
 
         // Check if any of the objects are already signaled.
         for (auto i = 0; i < num_objects; ++i) {
@@ -90,10 +89,7 @@ ResultCode KSynchronizationObject::Wait(KernelCore& kernel, s32* out_index,
     thread->SetWaitObjectsForDebugging({});
 
     // Cancel the timer as needed.
-    if (timer != InvalidHandle) {
-        auto& time_manager = kernel.TimeManager();
-        time_manager.UnscheduleTimeEvent(timer);
-    }
+    kernel.TimeManager().UnscheduleTimeEvent(thread);
 
     // Get the wait result.
     ResultCode wait_result{RESULT_SUCCESS};

@@ -21,47 +21,27 @@ TimeManager::TimeManager(Core::System& system_) : system{system_} {
             std::shared_ptr<KThread> thread;
             {
                 std::lock_guard lock{mutex};
-                const auto proper_handle = static_cast<Handle>(thread_handle);
-                if (cancelled_events[proper_handle]) {
-                    return;
-                }
-                thread = system.Kernel().RetrieveThreadFromGlobalHandleTable(proper_handle);
+                thread = SharedFrom<KThread>(reinterpret_cast<KThread*>(thread_handle));
             }
-
-            if (thread) {
-                // Thread can be null if process has exited
-                thread->Wakeup();
-            }
+            thread->Wakeup();
         });
 }
 
-void TimeManager::ScheduleTimeEvent(Handle& event_handle, KThread* timetask, s64 nanoseconds) {
+void TimeManager::ScheduleTimeEvent(KThread* thread, s64 nanoseconds) {
     std::lock_guard lock{mutex};
-    event_handle = timetask->GetGlobalHandle();
     if (nanoseconds > 0) {
-        ASSERT(timetask);
-        ASSERT(timetask->GetState() != ThreadState::Runnable);
+        ASSERT(thread);
+        ASSERT(thread->GetState() != ThreadState::Runnable);
         system.CoreTiming().ScheduleEvent(std::chrono::nanoseconds{nanoseconds},
-                                          time_manager_event_type, event_handle);
-    } else {
-        event_handle = InvalidHandle;
+                                          time_manager_event_type,
+                                          reinterpret_cast<uintptr_t>(thread));
     }
-    cancelled_events[event_handle] = false;
 }
 
-void TimeManager::UnscheduleTimeEvent(Handle event_handle) {
+void TimeManager::UnscheduleTimeEvent(KThread* thread) {
     std::lock_guard lock{mutex};
-    if (event_handle == InvalidHandle) {
-        return;
-    }
-    system.CoreTiming().UnscheduleEvent(time_manager_event_type, event_handle);
-    cancelled_events[event_handle] = true;
-}
-
-void TimeManager::CancelTimeEvent(KThread* time_task) {
-    std::lock_guard lock{mutex};
-    const Handle event_handle = time_task->GetGlobalHandle();
-    UnscheduleTimeEvent(event_handle);
+    system.CoreTiming().UnscheduleEvent(time_manager_event_type,
+                                        reinterpret_cast<uintptr_t>(thread));
 }
 
 } // namespace Kernel

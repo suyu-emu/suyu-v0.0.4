@@ -258,10 +258,9 @@ void KConditionVariable::Signal(u64 cv_key, s32 count) {
 ResultCode KConditionVariable::Wait(VAddr addr, u64 key, u32 value, s64 timeout) {
     // Prepare to wait.
     KThread* cur_thread = kernel.CurrentScheduler()->GetCurrentThread();
-    Handle timer = InvalidHandle;
 
     {
-        KScopedSchedulerLockAndSleep slp(kernel, timer, cur_thread, timeout);
+        KScopedSchedulerLockAndSleep slp{kernel, cur_thread, timeout};
 
         // Set the synced object.
         cur_thread->SetSyncedObject(nullptr, Svc::ResultTimedOut);
@@ -322,10 +321,7 @@ ResultCode KConditionVariable::Wait(VAddr addr, u64 key, u32 value, s64 timeout)
     }
 
     // Cancel the timer wait.
-    if (timer != InvalidHandle) {
-        auto& time_manager = kernel.TimeManager();
-        time_manager.UnscheduleTimeEvent(timer);
-    }
+    kernel.TimeManager().UnscheduleTimeEvent(cur_thread);
 
     // Remove from the condition variable.
     {
