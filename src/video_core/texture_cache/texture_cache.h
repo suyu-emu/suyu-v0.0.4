@@ -353,6 +353,7 @@ private:
 
     u64 modification_tick = 0;
     u64 frame_tick = 0;
+    typename SlotVector<Image>::Iterator deletion_iterator;
 };
 
 template <class P>
@@ -373,10 +374,41 @@ TextureCache<P>::TextureCache(Runtime& runtime_, VideoCore::RasterizerInterface&
     // This way the null resource becomes a compile time constant
     void(slot_image_views.insert(runtime, NullImageParams{}));
     void(slot_samplers.insert(runtime, sampler_descriptor));
+
+    deletion_iterator = slot_images.begin();
 }
 
 template <class P>
 void TextureCache<P>::TickFrame() {
+    static constexpr u64 ticks_to_destroy = 120;
+    int num_iterations = 32;
+    for (; num_iterations > 0; --num_iterations) {
+        if (deletion_iterator == slot_images.end()) {
+            deletion_iterator = slot_images.begin();
+            if (deletion_iterator == slot_images.end()) {
+                break;
+            }
+        }
+        const auto [image_id, image] = *deletion_iterator;
+        if (image->frame_tick + ticks_to_destroy < frame_tick) {
+            if (image->IsSafeDownload() &&
+                std::ranges::none_of(image->aliased_images, [&](const AliasedImage& alias) {
+                    return slot_images[alias.id].modification_tick > image->modification_tick;
+                })) {
+                auto map = runtime.DownloadStagingBuffer(image->unswizzled_size_bytes);
+                const auto copies = FullDownloadCopies(image->info);
+                image->DownloadMemory(map, copies);
+                runtime.Finish();
+                SwizzleImage(gpu_memory, image->gpu_addr, image->info, copies, map.mapped_span);
+            }
+            if (True(image->flags & ImageFlagBits::Tracked)) {
+                UntrackImage(*image);
+            }
+            UnregisterImage(image_id);
+            DeleteImage(image_id);
+        }
+        ++deletion_iterator;
+    }
     // Tick sentenced resources in this order to ensure they are destroyed in the right order
     sentenced_images.Tick();
     sentenced_framebuffers.Tick();
@@ -568,17 +600,7 @@ template <class P>
 void TextureCache<P>::DownloadMemory(VAddr cpu_addr, size_t size) {
     std::vector<ImageId> images;
     ForEachImageInRegion(cpu_addr, size, [this, &images](ImageId image_id, ImageBase& image) {
-        // Skip images that were not modified from the GPU
-        if (False(image.flags & ImageFlagBits::GpuModified)) {
-            return;
-        }
-        // Skip images that .are. modified from the CPU
-        // We don't want to write sensitive data from the guest
-        if (True(image.flags & ImageFlagBits::CpuModified)) {
-            return;
-        }
-        if (image.info.num_samples > 1) {
-            LOG_WARNING(HW_GPU, "MSAA image downloads are not implemented");
+        if (!image.IsSafeDownload()) {
             return;
         }
         image.flags &= ~ImageFlagBits::GpuModified;

@@ -44,6 +44,8 @@ struct ImageBase {
 
     void InsertView(const ImageViewInfo& view_info, ImageViewId image_view_id);
 
+    [[nodiscard]] bool IsSafeDownload() const noexcept;
+
     [[nodiscard]] bool Overlaps(VAddr overlap_cpu_addr, size_t overlap_size) const noexcept {
         const VAddr overlap_end = overlap_cpu_addr + overlap_size;
         return cpu_addr < overlap_end && overlap_cpu_addr < cpu_addr_end;
