@@ -112,6 +112,9 @@ __declspec(dllimport) void __stdcall DebugBreak(void);
         }                                                                                          \
     }
 
+/// Evaluates a boolean expression, and succeeds if that expression is true.
+#define R_SUCCEED_IF(expr) R_UNLESS(!(expr), RESULT_SUCCESS)
+
 namespace Common {
 
 [[nodiscard]] constexpr u32 MakeMagic(char a, char b, char c, char d) {
