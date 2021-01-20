@@ -120,6 +120,10 @@ public:
         return use_asynchronous_shaders;
     }
 
+    bool UseDriverCache() const {
+        return use_driver_cache;
+    }
+
 private:
     static bool TestVariableAoffi();
     static bool TestPreciseBug();
@@ -147,6 +151,7 @@ private:
     bool has_debugging_tool_attached{};
     bool use_assembly_shaders{};
     bool use_asynchronous_shaders{};
+    bool use_driver_cache{};
 };
 
 } // namespace OpenGL

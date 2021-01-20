@@ -17,6 +17,7 @@
 #include "common/logging/filter.h"
 #include "common/logging/log.h"
 #include "common/microprofile.h"
+#include "common/nvidia_flags.h"
 #include "common/scm_rev.h"
 #include "common/scope_exit.h"
 #include "common/string_util.h"
@@ -151,6 +152,8 @@ int main(int argc, char** argv) {
 
     MicroProfileOnThreadCreate("EmuThread");
     SCOPE_EXIT({ MicroProfileShutdown(); });
+
+    Common::ConfigureNvidiaEnvironmentFlags();
 
     if (filepath.empty()) {
         LOG_CRITICAL(Frontend, "Failed to load ROM: No ROM specified");
