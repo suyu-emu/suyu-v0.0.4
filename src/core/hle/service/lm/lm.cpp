@@ -286,7 +286,7 @@ private:
         }
     }
 
-    std::string DestinationToString(LogDestination destination) {
+    static std::string DestinationToString(LogDestination destination) {
         if (True(destination & LogDestination::All)) {
             return "TargetManager | Uart | UartSleep";
         }
