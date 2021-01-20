@@ -9,6 +9,12 @@
 
 namespace Kernel {
 
+static KThread* ToThread(uintptr_t thread_) {
+    ASSERT((thread_ & EmuThreadHandleReserved) == 0);
+    ASSERT((thread_ & 1) == 0);
+    return reinterpret_cast<KThread*>(thread_);
+}
+
 void KLightLock::Lock() {
     const uintptr_t cur_thread = reinterpret_cast<uintptr_t>(GetCurrentThreadPointer(kernel));
     const uintptr_t cur_thread_tag = (cur_thread | 1);
@@ -42,7 +48,7 @@ void KLightLock::Unlock() {
 }
 
 void KLightLock::LockSlowPath(uintptr_t _owner, uintptr_t _cur_thread) {
-    KThread* cur_thread = reinterpret_cast<KThread*>(_cur_thread);
+    KThread* cur_thread = ToThread(_cur_thread);
 
     // Pend the current thread waiting on the owner thread.
     {
@@ -54,7 +60,7 @@ void KLightLock::LockSlowPath(uintptr_t _owner, uintptr_t _cur_thread) {
         }
 
         // Add the current thread as a waiter on the owner.
-        KThread* owner_thread = reinterpret_cast<KThread*>(_owner & ~1ul);
+        KThread* owner_thread = ToThread(_owner & ~1ul);
         cur_thread->SetAddressKey(reinterpret_cast<uintptr_t>(std::addressof(tag)));
         owner_thread->AddWaiter(cur_thread);
 
@@ -82,7 +88,7 @@ void KLightLock::LockSlowPath(uintptr_t _owner, uintptr_t _cur_thread) {
 }
 
 void KLightLock::UnlockSlowPath(uintptr_t _cur_thread) {
-    KThread* owner_thread = reinterpret_cast<KThread*>(_cur_thread);
+    KThread* owner_thread = ToThread(_cur_thread);
 
     // Unlock.
     {

@@ -237,20 +237,13 @@ struct KernelCore::Impl {
         is_phantom_mode_for_singlecore = value;
     }
 
-    [[nodiscard]] Core::EmuThreadHandle GetCurrentEmuThreadID() {
-        Core::EmuThreadHandle result = Core::EmuThreadHandle::InvalidHandle();
-        result.host_handle = GetCurrentHostThreadID();
-        if (result.host_handle >= Core::Hardware::NUM_CPU_CORES) {
-            return result;
+    [[nodiscard]] EmuThreadHandle GetCurrentEmuThreadID() {
+        const auto thread_id = GetCurrentHostThreadID();
+        if (thread_id >= Core::Hardware::NUM_CPU_CORES) {
+            // Reserved value for HLE threads
+            return EmuThreadHandleReserved + (static_cast<u64>(thread_id) << 1);
         }
-        const Kernel::KScheduler& sched = cores[result.host_handle].Scheduler();
-        const Kernel::KThread* current = sched.GetCurrentThread();
-        if (current != nullptr && !IsPhantomModeForSingleCore()) {
-            result.guest_handle = current->GetGlobalHandle();
-        } else {
-            result.guest_handle = InvalidHandle;
-        }
-        return result;
+        return reinterpret_cast<uintptr_t>(schedulers[thread_id].get());
     }
 
     void InitializeMemoryLayout() {
@@ -555,7 +548,7 @@ u32 KernelCore::GetCurrentHostThreadID() const {
     return impl->GetCurrentHostThreadID();
 }
 
-Core::EmuThreadHandle KernelCore::GetCurrentEmuThreadID() const {
+EmuThreadHandle KernelCore::GetCurrentEmuThreadID() const {
     return impl->GetCurrentEmuThreadID();
 }
 

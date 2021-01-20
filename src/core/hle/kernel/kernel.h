@@ -46,6 +46,10 @@ class Synchronization;
 class KThread;
 class TimeManager;
 
+using EmuThreadHandle = uintptr_t;
+constexpr EmuThreadHandle EmuThreadHandleInvalid{};
+constexpr EmuThreadHandle EmuThreadHandleReserved{1ULL << 63};
+
 /// Represents a single instance of the kernel.
 class KernelCore {
 private:
@@ -162,7 +166,7 @@ public:
     bool IsValidNamedPort(NamedPortTable::const_iterator port) const;
 
     /// Gets the current host_thread/guest_thread handle.
-    Core::EmuThreadHandle GetCurrentEmuThreadID() const;
+    EmuThreadHandle GetCurrentEmuThreadID() const;
 
     /// Gets the current host_thread handle.
     u32 GetCurrentHostThreadID() const;

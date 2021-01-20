@@ -37,7 +37,7 @@ public:
 
             // For debug, ensure that our state is valid.
             ASSERT(this->lock_count == 0);
-            ASSERT(this->owner_thread == Core::EmuThreadHandle::InvalidHandle());
+            ASSERT(this->owner_thread == EmuThreadHandleInvalid);
 
             // Increment count, take ownership.
             this->lock_count = 1;
@@ -54,14 +54,13 @@ public:
             // We're no longer going to hold the lock. Take note of what cores need scheduling.
             const u64 cores_needing_scheduling =
                 SchedulerType::UpdateHighestPriorityThreads(kernel);
-            Core::EmuThreadHandle leaving_thread = owner_thread;
 
             // Note that we no longer hold the lock, and unlock the spinlock.
-            this->owner_thread = Core::EmuThreadHandle::InvalidHandle();
+            this->owner_thread = EmuThreadHandleInvalid;
             this->spin_lock.unlock();
 
             // Enable scheduling, and perform a rescheduling operation.
-            SchedulerType::EnableScheduling(kernel, cores_needing_scheduling, leaving_thread);
+            SchedulerType::EnableScheduling(kernel, cores_needing_scheduling);
         }
     }
 
@@ -69,7 +68,7 @@ private:
     KernelCore& kernel;
     Common::SpinLock spin_lock{};
     s32 lock_count{};
-    Core::EmuThreadHandle owner_thread{Core::EmuThreadHandle::InvalidHandle()};
+    EmuThreadHandle owner_thread{EmuThreadHandleInvalid};
 };
 
 } // namespace Kernel
