@@ -39,7 +39,7 @@ struct LogPacketHeaderEntry {
 namespace std {
 template <>
 struct hash<Service::LM::LogPacketHeaderEntry> {
-    std::size_t operator()(const Service::LM::LogPacketHeaderEntry& k) const {
+    std::size_t operator()(const Service::LM::LogPacketHeaderEntry& k) const noexcept {
         std::size_t seed{};
         boost::hash_combine(seed, k.pid);
         boost::hash_combine(seed, k.tid);
