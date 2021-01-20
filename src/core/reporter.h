@@ -72,9 +72,6 @@ public:
     void SaveFilesystemAccessReport(Service::FileSystem::LogMode log_mode,
                                     std::string log_message) const;
 
-    // Used by lm services
-    void SaveLogReport(u32 destination, std::vector<Service::LM::LogMessage> messages) const;
-
     // Can be used anywhere to generate a backtrace and general info report at any point during
     // execution. Not intended to be used for anything other than debugging or testing.
     void SaveUserReport() const;

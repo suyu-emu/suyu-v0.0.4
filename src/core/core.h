@@ -62,10 +62,6 @@ namespace Glue {
 class ARPManager;
 }
 
-namespace LM {
-class Manager;
-} // namespace LM
-
 namespace SM {
 class ServiceManager;
 } // namespace SM
@@ -350,9 +346,6 @@ public:
 
     [[nodiscard]] Service::APM::Controller& GetAPMController();
     [[nodiscard]] const Service::APM::Controller& GetAPMController() const;
-
-    [[nodiscard]] Service::LM::Manager& GetLogManager();
-    [[nodiscard]] const Service::LM::Manager& GetLogManager() const;
 
     [[nodiscard]] Service::Time::TimeManager& GetTimeManager();
     [[nodiscard]] const Service::Time::TimeManager& GetTimeManager() const;
