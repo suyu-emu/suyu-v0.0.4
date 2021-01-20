@@ -233,7 +233,7 @@ struct RandomMiiData4 {
     Age age{};
     Race race{};
     u32 values_count{};
-    std::array<u8, 0xbc> values{};
+    std::array<u32, 47> values{};
 };
 static_assert(sizeof(RandomMiiData4) == 0xcc, "RandomMiiData4 has incorrect size.");
 
@@ -241,14 +241,14 @@ struct RandomMiiData3 {
     u32 arg_1;
     u32 arg_2;
     u32 values_count;
-    std::array<u8, 0xbc> values{};
+    std::array<u32, 47> values{};
 };
 static_assert(sizeof(RandomMiiData3) == 0xc8, "RandomMiiData3 has incorrect size.");
 
 struct RandomMiiData2 {
     u32 arg_1;
     u32 values_count;
-    std::array<u8, 0xbc> values{};
+    std::array<u32, 47> values{};
 };
 static_assert(sizeof(RandomMiiData2) == 0xc4, "RandomMiiData2 has incorrect size.");
 
