@@ -339,6 +339,9 @@ uint Select2DPartition(uint seed, uint x, uint y, uint partition_count, bool sma
 }
 
 uint ReadBit() {
+    if (current_index >= local_buff.length()) {
+        return 0;
+    }
     uint bit = bitfieldExtract(local_buff[current_index], bitsread, 1);
     bitsread++;
     total_bitsread++;
@@ -1170,12 +1173,17 @@ void DecompressBlock(ivec3 coord, uint block_index) {
         plane_selector_bits = 2;
     }
     remaining_bits -= plane_selector_bits;
+    if (remaining_bits > 128) {
+        // Bad data, more remaining bits than 4 bytes
+        // return early
+        return;
+    }
     // Read color data...
     uint color_data_bits = remaining_bits;
     while (remaining_bits > 0) {
-        uint nb = min(remaining_bits, 8);
+        int nb = int(min(remaining_bits, 8U));
         uint b = StreamBits(nb);
-        color_endpoint_data[ced_pointer] = uint(bitfieldExtract(b, 0, 8));
+        color_endpoint_data[ced_pointer] = uint(bitfieldExtract(b, 0, nb));
         ced_pointer++;
         remaining_bits -= nb;
     }
