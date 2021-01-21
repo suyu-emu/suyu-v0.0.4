@@ -54,7 +54,7 @@ public:
 
     /// Returns true if the scheduler is idle
     [[nodiscard]] bool IsIdle() const {
-        return GetCurrentThread() == idle_thread.get();
+        return GetCurrentThread() == idle_thread;
     }
 
     /// Gets the timestamp for the last context switch in ticks.
@@ -176,7 +176,7 @@ private:
     KThread* prev_thread{};
     std::atomic<KThread*> current_thread{};
 
-    std::shared_ptr<KThread> idle_thread;
+    KThread* idle_thread;
 
     std::shared_ptr<Common::Fiber> switch_fiber{};
 

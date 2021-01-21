@@ -165,8 +165,8 @@ public:
     /// Determines whether or not the given port is a valid named port.
     bool IsValidNamedPort(NamedPortTable::const_iterator port) const;
 
-    /// Gets the current host_thread/guest_thread handle.
-    EmuThreadHandle GetCurrentEmuThreadID() const;
+    /// Gets the current host_thread/guest_thread pointer.
+    KThread* GetCurrentEmuThread() const;
 
     /// Gets the current host_thread handle.
     u32 GetCurrentHostThreadID() const;

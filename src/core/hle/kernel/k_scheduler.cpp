@@ -623,7 +623,7 @@ KThread* KScheduler::GetCurrentThread() const {
     if (auto result = current_thread.load(); result) {
         return result;
     }
-    return idle_thread.get();
+    return idle_thread;
 }
 
 u64 KScheduler::GetLastContextSwitchTicks() const {
@@ -708,7 +708,7 @@ void KScheduler::ScheduleImpl() {
 
     // We never want to schedule a null thread, so use the idle thread if we don't have a next.
     if (next_thread == nullptr) {
-        next_thread = idle_thread.get();
+        next_thread = idle_thread;
     }
 
     // If we're not actually switching thread, there's nothing to do.
@@ -803,7 +803,7 @@ void KScheduler::Initialize() {
     auto thread_res = KThread::Create(system, ThreadType::Main, name, 0,
                                       KThread::IdleThreadPriority, 0, static_cast<u32>(core_id), 0,
                                       nullptr, std::move(init_func), init_func_parameter);
-    idle_thread = thread_res.Unwrap();
+    idle_thread = thread_res.Unwrap().get();
 }
 
 KScopedSchedulerLock::KScopedSchedulerLock(KernelCore& kernel)

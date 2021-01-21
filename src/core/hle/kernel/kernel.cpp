@@ -57,9 +57,10 @@ struct KernelCore::Impl {
     }
 
     void Initialize(KernelCore& kernel) {
+        global_scheduler_context = std::make_unique<Kernel::GlobalSchedulerContext>(kernel);
+
         RegisterHostThread();
 
-        global_scheduler_context = std::make_unique<Kernel::GlobalSchedulerContext>(kernel);
         service_thread_manager =
             std::make_unique<Common::ThreadWorker>(1, "yuzu:ServiceThreadManager");
         is_phantom_mode_for_singlecore = false;
@@ -206,6 +207,18 @@ struct KernelCore::Impl {
         return host_thread_id;
     }
 
+    // Gets the dummy KThread for the caller, allocating a new one if this is the first time
+    KThread* GetHostDummyThread() {
+        const thread_local auto thread =
+            KThread::Create(
+                system, ThreadType::Main,
+                std::string{"DummyThread:" + GetHostThreadId()}, 0, KThread::DefaultThreadPriority,
+                0, static_cast<u32>(3), 0, nullptr,
+                []([[maybe_unused]] void* arg) { UNREACHABLE(); }, nullptr)
+                .Unwrap();
+        return thread.get();
+    }
+
     /// Registers a CPU core thread by allocating a host thread ID for it
     void RegisterCoreThread(std::size_t core_id) {
         ASSERT(core_id < Core::Hardware::NUM_CPU_CORES);
@@ -218,6 +231,7 @@ struct KernelCore::Impl {
     /// Registers a new host thread by allocating a host thread ID for it
     void RegisterHostThread() {
         [[maybe_unused]] const auto this_id = GetHostThreadId();
+        [[maybe_unused]] const auto dummy_thread = GetHostDummyThread();
     }
 
     [[nodiscard]] u32 GetCurrentHostThreadID() {
@@ -237,13 +251,12 @@ struct KernelCore::Impl {
         is_phantom_mode_for_singlecore = value;
     }
 
-    [[nodiscard]] EmuThreadHandle GetCurrentEmuThreadID() {
+    KThread* GetCurrentEmuThread() {
         const auto thread_id = GetCurrentHostThreadID();
         if (thread_id >= Core::Hardware::NUM_CPU_CORES) {
-            // Reserved value for HLE threads
-            return EmuThreadHandleReserved + (static_cast<u64>(thread_id) << 1);
+            return GetHostDummyThread();
         }
-        return reinterpret_cast<uintptr_t>(schedulers[thread_id].get());
+        return schedulers[thread_id]->GetCurrentThread();
     }
 
     void InitializeMemoryLayout() {
@@ -548,8 +561,8 @@ u32 KernelCore::GetCurrentHostThreadID() const {
     return impl->GetCurrentHostThreadID();
 }
 
-EmuThreadHandle KernelCore::GetCurrentEmuThreadID() const {
-    return impl->GetCurrentEmuThreadID();
+KThread* KernelCore::GetCurrentEmuThread() const {
+    return impl->GetCurrentEmuThread();
 }
 
 Memory::MemoryManager& KernelCore::MemoryManager() {
