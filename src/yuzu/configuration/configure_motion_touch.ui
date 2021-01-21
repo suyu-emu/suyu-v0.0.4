@@ -68,23 +68,9 @@
       <item>
        <layout class="QHBoxLayout">
         <item>
-         <widget class="QLabel" name="touch_provider_label">
-          <property name="text">
-           <string>Touch Provider:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="touch_provider"/>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QHBoxLayout">
-        <item>
          <widget class="QLabel" name="touch_calibration_label">
           <property name="text">
-           <string>Calibration:</string>
+           <string>UDP Calibration:</string>
           </property>
          </widget>
         </item>

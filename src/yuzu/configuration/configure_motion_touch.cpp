@@ -81,19 +81,11 @@ void CalibrationConfigurationDialog::UpdateButtonText(const QString& text) {
     cancel_button->setText(text);
 }
 
-constexpr std::array<std::pair<const char*, const char*>, 2> TouchProviders = {{
-    {"emu_window", QT_TRANSLATE_NOOP("ConfigureMotionTouch", "Emulator Window")},
-    {"cemuhookudp", QT_TRANSLATE_NOOP("ConfigureMotionTouch", "CemuhookUDP")},
-}};
-
 ConfigureMotionTouch::ConfigureMotionTouch(QWidget* parent,
                                            InputCommon::InputSubsystem* input_subsystem_)
     : QDialog(parent), input_subsystem{input_subsystem_},
       ui(std::make_unique<Ui::ConfigureMotionTouch>()) {
     ui->setupUi(this);
-    for (const auto& [provider, name] : TouchProviders) {
-        ui->touch_provider->addItem(tr(name), QString::fromUtf8(provider));
-    }
 
     ui->udp_learn_more->setOpenExternalLinks(true);
     ui->udp_learn_more->setText(
@@ -112,10 +104,7 @@ ConfigureMotionTouch::~ConfigureMotionTouch() = default;
 void ConfigureMotionTouch::SetConfiguration() {
     const Common::ParamPackage motion_param(Settings::values.motion_device);
     const Common::ParamPackage touch_param(Settings::values.touch_device);
-    const std::string touch_engine = touch_param.Get("engine", "emu_window");
 
-    ui->touch_provider->setCurrentIndex(
-        ui->touch_provider->findData(QString::fromStdString(touch_engine)));
     ui->touch_from_button_checkbox->setChecked(Settings::values.use_touch_from_button);
     touch_from_button_maps = Settings::values.touch_from_button_maps;
     for (const auto& touch_map : touch_from_button_maps) {
@@ -148,30 +137,21 @@ void ConfigureMotionTouch::SetConfiguration() {
 }
 
 void ConfigureMotionTouch::UpdateUiDisplay() {
-    const QString touch_engine = ui->touch_provider->currentData().toString();
     const QString cemuhook_udp = QStringLiteral("cemuhookudp");
 
     ui->motion_sensitivity_label->setVisible(true);
     ui->motion_sensitivity->setVisible(true);
 
-    if (touch_engine == cemuhook_udp) {
-        ui->touch_calibration->setVisible(true);
-        ui->touch_calibration_config->setVisible(true);
-        ui->touch_calibration_label->setVisible(true);
-        ui->touch_calibration->setText(
-            QStringLiteral("(%1, %2) - (%3, %4)").arg(min_x).arg(min_y).arg(max_x).arg(max_y));
-    } else {
-        ui->touch_calibration->setVisible(false);
-        ui->touch_calibration_config->setVisible(false);
-        ui->touch_calibration_label->setVisible(false);
-    }
+    ui->touch_calibration->setVisible(true);
+    ui->touch_calibration_config->setVisible(true);
+    ui->touch_calibration_label->setVisible(true);
+    ui->touch_calibration->setText(
+        QStringLiteral("(%1, %2) - (%3, %4)").arg(min_x).arg(min_y).arg(max_x).arg(max_y));
 
     ui->udp_config_group_box->setVisible(true);
 }
 
 void ConfigureMotionTouch::ConnectEvents() {
-    connect(ui->touch_provider, qOverload<int>(&QComboBox::currentIndexChanged), this,
-            [this](int index) { UpdateUiDisplay(); });
     connect(ui->udp_test, &QPushButton::clicked, this, &ConfigureMotionTouch::OnCemuhookUDPTest);
     connect(ui->udp_add, &QPushButton::clicked, this, &ConfigureMotionTouch::OnUDPAddServer);
     connect(ui->udp_remove, &QPushButton::clicked, this, &ConfigureMotionTouch::OnUDPDeleteServer);
@@ -327,16 +307,11 @@ void ConfigureMotionTouch::ApplyConfiguration() {
         return;
     }
 
-    std::string touch_engine = ui->touch_provider->currentData().toString().toStdString();
-
     Common::ParamPackage touch_param{};
-    if (touch_engine == "cemuhookudp") {
-        touch_param.Set("min_x", min_x);
-        touch_param.Set("min_y", min_y);
-        touch_param.Set("max_x", max_x);
-        touch_param.Set("max_y", max_y);
-    }
-    touch_param.Set("engine", std::move(touch_engine));
+    touch_param.Set("min_x", min_x);
+    touch_param.Set("min_y", min_y);
+    touch_param.Set("max_x", max_x);
+    touch_param.Set("max_y", max_y);
 
     Settings::values.touch_device = touch_param.Serialize();
     Settings::values.use_touch_from_button = ui->touch_from_button_checkbox->isChecked();

@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cstring>
 #include "common/common_types.h"
 #include "core/core_timing.h"
@@ -16,7 +17,13 @@ constexpr std::size_t SHARED_MEMORY_OFFSET = 0x400;
 Controller_Touchscreen::Controller_Touchscreen(Core::System& system) : ControllerBase(system) {}
 Controller_Touchscreen::~Controller_Touchscreen() = default;
 
-void Controller_Touchscreen::OnInit() {}
+void Controller_Touchscreen::OnInit() {
+    for (std::size_t id = 0; id < MAX_FINGERS; ++id) {
+        mouse_finger_id[id] = MAX_FINGERS;
+        keyboard_finger_id[id] = MAX_FINGERS;
+        udp_finger_id[id] = MAX_FINGERS;
+    }
+}
 
 void Controller_Touchscreen::OnRelease() {}
 
@@ -40,38 +47,106 @@ void Controller_Touchscreen::OnUpdate(const Core::Timing::CoreTiming& core_timin
     cur_entry.sampling_number = last_entry.sampling_number + 1;
     cur_entry.sampling_number2 = cur_entry.sampling_number;
 
-    bool pressed = false;
-    float x, y;
-    std::tie(x, y, pressed) = touch_device->GetStatus();
-    auto& touch_entry = cur_entry.states[0];
-    touch_entry.attribute.raw = 0;
-    if (!pressed && touch_btn_device) {
-        std::tie(x, y, pressed) = touch_btn_device->GetStatus();
-    }
-    if (pressed && Settings::values.touchscreen.enabled) {
-        touch_entry.x = static_cast<u16>(x * Layout::ScreenUndocked::Width);
-        touch_entry.y = static_cast<u16>(y * Layout::ScreenUndocked::Height);
-        touch_entry.diameter_x = Settings::values.touchscreen.diameter_x;
-        touch_entry.diameter_y = Settings::values.touchscreen.diameter_y;
-        touch_entry.rotation_angle = Settings::values.touchscreen.rotation_angle;
-        const u64 tick = core_timing.GetCPUTicks();
-        touch_entry.delta_time = tick - last_touch;
-        last_touch = tick;
-        touch_entry.finger = Settings::values.touchscreen.finger;
-        cur_entry.entry_count = 1;
-    } else {
-        cur_entry.entry_count = 0;
+    const Input::TouchStatus& mouse_status = touch_mouse_device->GetStatus();
+    const Input::TouchStatus& udp_status = touch_udp_device->GetStatus();
+    for (std::size_t id = 0; id < mouse_status.size(); ++id) {
+        mouse_finger_id[id] = UpdateTouchInputEvent(mouse_status[id], mouse_finger_id[id]);
+        udp_finger_id[id] = UpdateTouchInputEvent(udp_status[id], udp_finger_id[id]);
     }
 
+    if (Settings::values.use_touch_from_button) {
+        const Input::TouchStatus& keyboard_status = touch_btn_device->GetStatus();
+        for (std::size_t id = 0; id < mouse_status.size(); ++id) {
+            keyboard_finger_id[id] =
+                UpdateTouchInputEvent(keyboard_status[id], keyboard_finger_id[id]);
+        }
+    }
+
+    std::array<Finger, 16> active_fingers;
+    const auto end_iter = std::copy_if(fingers.begin(), fingers.end(), active_fingers.begin(),
+                                       [](const auto& finger) { return finger.pressed; });
+    const auto active_fingers_count =
+        static_cast<std::size_t>(std::distance(active_fingers.begin(), end_iter));
+
+    const u64 tick = core_timing.GetCPUTicks();
+    cur_entry.entry_count = static_cast<s32_le>(active_fingers_count);
+    for (std::size_t id = 0; id < MAX_FINGERS; ++id) {
+        auto& touch_entry = cur_entry.states[id];
+        if (id < active_fingers_count) {
+            touch_entry.x = static_cast<u16>(active_fingers[id].x * Layout::ScreenUndocked::Width);
+            touch_entry.y = static_cast<u16>(active_fingers[id].y * Layout::ScreenUndocked::Height);
+            touch_entry.diameter_x = Settings::values.touchscreen.diameter_x;
+            touch_entry.diameter_y = Settings::values.touchscreen.diameter_y;
+            touch_entry.rotation_angle = Settings::values.touchscreen.rotation_angle;
+            touch_entry.delta_time = tick - active_fingers[id].last_touch;
+            fingers[active_fingers[id].id].last_touch = tick;
+            touch_entry.finger = active_fingers[id].id;
+            touch_entry.attribute.raw = active_fingers[id].attribute.raw;
+        } else {
+            // Clear touch entry
+            touch_entry.attribute.raw = 0;
+            touch_entry.x = 0;
+            touch_entry.y = 0;
+            touch_entry.diameter_x = 0;
+            touch_entry.diameter_y = 0;
+            touch_entry.rotation_angle = 0;
+            touch_entry.delta_time = 0;
+            touch_entry.finger = 0;
+        }
+    }
     std::memcpy(data + SHARED_MEMORY_OFFSET, &shared_memory, sizeof(TouchScreenSharedMemory));
 }
 
 void Controller_Touchscreen::OnLoadInputDevices() {
-    touch_device = Input::CreateDevice<Input::TouchDevice>(Settings::values.touchscreen.device);
-    if (Settings::values.use_touch_from_button) {
-        touch_btn_device = Input::CreateDevice<Input::TouchDevice>("engine:touch_from_button");
-    } else {
-        touch_btn_device.reset();
-    }
+    touch_mouse_device = Input::CreateDevice<Input::TouchDevice>("engine:emu_window");
+    touch_udp_device = Input::CreateDevice<Input::TouchDevice>("engine:cemuhookudp");
+    touch_btn_device = Input::CreateDevice<Input::TouchDevice>("engine:touch_from_button");
 }
+
+std::optional<std::size_t> Controller_Touchscreen::GetUnusedFingerID() const {
+    std::size_t first_free_id = 0;
+    while (first_free_id < MAX_FINGERS) {
+        if (!fingers[first_free_id].pressed) {
+            return first_free_id;
+        } else {
+            first_free_id++;
+        }
+    }
+    return std::nullopt;
+}
+
+std::size_t Controller_Touchscreen::UpdateTouchInputEvent(
+    const std::tuple<float, float, bool>& touch_input, std::size_t finger_id) {
+    const auto& [x, y, pressed] = touch_input;
+    if (pressed) {
+        Attributes attribute{};
+        if (finger_id == MAX_FINGERS) {
+            const auto first_free_id = GetUnusedFingerID();
+            if (!first_free_id) {
+                // Invalid finger id do nothing
+                return MAX_FINGERS;
+            }
+            finger_id = first_free_id.value();
+            fingers[finger_id].pressed = true;
+            fingers[finger_id].id = static_cast<u32_le>(finger_id);
+            attribute.start_touch.Assign(1);
+        }
+        fingers[finger_id].x = x;
+        fingers[finger_id].y = y;
+        fingers[finger_id].attribute = attribute;
+        return finger_id;
+    }
+
+    if (finger_id != MAX_FINGERS) {
+        if (!fingers[finger_id].attribute.end_touch) {
+            fingers[finger_id].attribute.end_touch.Assign(1);
+            fingers[finger_id].attribute.start_touch.Assign(0);
+            return finger_id;
+        }
+        fingers[finger_id].pressed = false;
+    }
+
+    return MAX_FINGERS;
+}
+
 } // namespace Service::HID

@@ -163,10 +163,11 @@ using MotionStatus = std::tuple<Common::Vec3<float>, Common::Vec3<float>, Common
 using MotionDevice = InputDevice<MotionStatus>;
 
 /**
- * A touch status is an object that returns a tuple of two floats and a bool. The floats are
- * x and y coordinates in the range 0.0 - 1.0, and the bool indicates whether it is pressed.
+ * A touch status is an object that returns an array of 16 tuple elements of two floats and a bool.
+ * The floats are x and y coordinates in the range 0.0 - 1.0, and the bool indicates whether it is
+ * pressed.
  */
-using TouchStatus = std::tuple<float, float, bool>;
+using TouchStatus = std::array<std::tuple<float, float, bool>, 16>;
 
 /**
  * A touch device is an input device that returns a touch status object

@@ -30,6 +30,18 @@ public:
     void OnLoadInputDevices() override;
 
 private:
+    static constexpr std::size_t MAX_FINGERS = 16;
+
+    // Returns an unused finger id, if there is no fingers available std::nullopt will be returned
+    std::optional<std::size_t> GetUnusedFingerID() const;
+
+    // If the touch is new it tries to assing a new finger id, if there is no fingers avaliable no
+    // changes will be made. Updates the coordinates if the finger id it's already set. If the touch
+    // ends delays the output by one frame to set the end_touch flag before finally freeing the
+    // finger id
+    std::size_t UpdateTouchInputEvent(const std::tuple<float, float, bool>& touch_input,
+                                      std::size_t finger_id);
+
     struct Attributes {
         union {
             u32 raw{};
@@ -55,7 +67,7 @@ private:
         s64_le sampling_number;
         s64_le sampling_number2;
         s32_le entry_count;
-        std::array<TouchState, 16> states;
+        std::array<TouchState, MAX_FINGERS> states;
     };
     static_assert(sizeof(TouchScreenEntry) == 0x298, "TouchScreenEntry is an invalid size");
 
@@ -66,9 +78,23 @@ private:
     };
     static_assert(sizeof(TouchScreenSharedMemory) == 0x3000,
                   "TouchScreenSharedMemory is an invalid size");
+
+    struct Finger {
+        u64_le last_touch{};
+        float x{};
+        float y{};
+        u32_le id{};
+        bool pressed{};
+        Attributes attribute;
+    };
+
     TouchScreenSharedMemory shared_memory{};
-    std::unique_ptr<Input::TouchDevice> touch_device;
+    std::unique_ptr<Input::TouchDevice> touch_mouse_device;
+    std::unique_ptr<Input::TouchDevice> touch_udp_device;
     std::unique_ptr<Input::TouchDevice> touch_btn_device;
-    s64_le last_touch{};
+    std::array<std::size_t, MAX_FINGERS> mouse_finger_id;
+    std::array<std::size_t, MAX_FINGERS> keyboard_finger_id;
+    std::array<std::size_t, MAX_FINGERS> udp_finger_id;
+    std::array<Finger, MAX_FINGERS> fingers;
 };
 } // namespace Service::HID

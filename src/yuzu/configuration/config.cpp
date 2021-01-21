@@ -464,13 +464,7 @@ void Config::ReadMouseValues() {
 void Config::ReadTouchscreenValues() {
     Settings::values.touchscreen.enabled =
         ReadSetting(QStringLiteral("touchscreen_enabled"), true).toBool();
-    Settings::values.touchscreen.device =
-        ReadSetting(QStringLiteral("touchscreen_device"), QStringLiteral("engine:emu_window"))
-            .toString()
-            .toStdString();
 
-    Settings::values.touchscreen.finger =
-        ReadSetting(QStringLiteral("touchscreen_finger"), 0).toUInt();
     Settings::values.touchscreen.rotation_angle =
         ReadSetting(QStringLiteral("touchscreen_angle"), 0).toUInt();
     Settings::values.touchscreen.diameter_x =
@@ -563,7 +557,8 @@ void Config::ReadMotionTouchValues() {
             .toString()
             .toStdString();
     Settings::values.touch_device =
-        ReadSetting(QStringLiteral("touch_device"), QStringLiteral("engine:emu_window"))
+        ReadSetting(QStringLiteral("touch_device"),
+                    QStringLiteral("min_x:100,min_y:50,max_x:1800,max_y:850"))
             .toString()
             .toStdString();
     Settings::values.use_touch_from_button =
@@ -1088,10 +1083,7 @@ void Config::SaveTouchscreenValues() {
     const auto& touchscreen = Settings::values.touchscreen;
 
     WriteSetting(QStringLiteral("touchscreen_enabled"), touchscreen.enabled, true);
-    WriteSetting(QStringLiteral("touchscreen_device"), QString::fromStdString(touchscreen.device),
-                 QStringLiteral("engine:emu_window"));
 
-    WriteSetting(QStringLiteral("touchscreen_finger"), touchscreen.finger, 0);
     WriteSetting(QStringLiteral("touchscreen_angle"), touchscreen.rotation_angle, 0);
     WriteSetting(QStringLiteral("touchscreen_diameter_x"), touchscreen.diameter_x, 15);
     WriteSetting(QStringLiteral("touchscreen_diameter_y"), touchscreen.diameter_y, 15);

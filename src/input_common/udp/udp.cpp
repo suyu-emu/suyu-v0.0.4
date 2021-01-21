@@ -78,8 +78,8 @@ public:
     explicit UDPTouch(std::string ip_, u16 port_, u16 pad_, CemuhookUDP::Client* client_)
         : ip(std::move(ip_)), port(port_), pad(pad_), client(client_) {}
 
-    std::tuple<float, float, bool> GetStatus() const override {
-        return client->GetPadState(ip, port, pad).touch_status;
+    Input::TouchStatus GetStatus() const override {
+        return client->GetTouchState();
     }
 
 private:
@@ -105,34 +105,6 @@ std::unique_ptr<Input::TouchDevice> UDPTouchFactory::Create(const Common::ParamP
     const auto pad = static_cast<u16>(params.Get("pad_index", 0));
 
     return std::make_unique<UDPTouch>(std::move(ip), port, pad, client.get());
-}
-
-void UDPTouchFactory::BeginConfiguration() {
-    polling = true;
-    client->BeginConfiguration();
-}
-
-void UDPTouchFactory::EndConfiguration() {
-    polling = false;
-    client->EndConfiguration();
-}
-
-Common::ParamPackage UDPTouchFactory::GetNextInput() {
-    Common::ParamPackage params;
-    CemuhookUDP::UDPPadStatus pad;
-    auto& queue = client->GetPadQueue();
-    while (queue.Pop(pad)) {
-        if (pad.touch == CemuhookUDP::PadTouch::Undefined) {
-            continue;
-        }
-        params.Set("engine", "cemuhookudp");
-        params.Set("ip", pad.host);
-        params.Set("port", static_cast<u16>(pad.port));
-        params.Set("pad_index", static_cast<u16>(pad.pad_index));
-        params.Set("touch", static_cast<u16>(pad.touch));
-        return params;
-    }
-    return params;
 }
 
 } // namespace InputCommon
