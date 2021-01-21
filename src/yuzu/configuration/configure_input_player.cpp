@@ -575,6 +575,16 @@ void ConfigureInputPlayer::ApplyConfiguration() {
 
     std::transform(motions_param.begin(), motions_param.end(), motions.begin(),
                    [](const Common::ParamPackage& param) { return param.Serialize(); });
+
+    // Apply configuration for handheld
+    if (player_index == 0) {
+        auto& handheld = Settings::values.players.GetValue()[HANDHELD_INDEX];
+        if (player.controller_type == Settings::ControllerType::Handheld) {
+            handheld = player;
+        }
+        handheld.connected = ui->groupConnectedController->isChecked() &&
+                             player.controller_type == Settings::ControllerType::Handheld;
+    }
 }
 
 void ConfigureInputPlayer::TryConnectSelectedController() {

@@ -1005,7 +1005,8 @@ void Config::SavePlayerValue(std::size_t player_index) {
                  static_cast<u8>(Settings::ControllerType::ProController));
 
     if (!player_prefix.isEmpty()) {
-        WriteSetting(QStringLiteral("%1connected").arg(player_prefix), player.connected, false);
+        WriteSetting(QStringLiteral("%1connected").arg(player_prefix), player.connected,
+                     player_index == 0);
         WriteSetting(QStringLiteral("%1vibration_enabled").arg(player_prefix),
                      player.vibration_enabled, true);
         WriteSetting(QStringLiteral("%1vibration_strength").arg(player_prefix),
