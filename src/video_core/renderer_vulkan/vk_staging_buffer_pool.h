@@ -67,6 +67,8 @@ private:
 
     StagingBufferRef GetStreamBuffer(size_t size);
 
+    StagingBufferRef GetStagingBuffer(size_t size, MemoryUsage usage);
+
     std::optional<StagingBufferRef> TryGetReservedBuffer(size_t size, MemoryUsage usage);
 
     StagingBufferRef CreateStagingBuffer(size_t size, MemoryUsage usage);

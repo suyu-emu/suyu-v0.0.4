@@ -130,10 +130,7 @@ StagingBufferRef StagingBufferPool::Request(size_t size, MemoryUsage usage) {
     if (usage == MemoryUsage::Upload && size <= MAX_STREAM_BUFFER_REQUEST_SIZE) {
         return GetStreamBuffer(size);
     }
-    if (const std::optional<StagingBufferRef> ref = TryGetReservedBuffer(size, usage)) {
-        return *ref;
-    }
-    return CreateStagingBuffer(size, usage);
+    return GetStagingBuffer(size, usage);
 }
 
 void StagingBufferPool::TickFrame() {
@@ -145,17 +142,20 @@ void StagingBufferPool::TickFrame() {
 }
 
 StagingBufferRef StagingBufferPool::GetStreamBuffer(size_t size) {
+    for (size_t region = Region(free_iterator) + 1,
+                region_end = std::min(Region(iterator + size) + 1, NUM_SYNCS);
+         region < region_end; ++region) {
+        // If we'd have to wait, get a staging buffer to avoid waiting
+        if (!scheduler.IsFree(sync_ticks[region])) {
+            return GetStagingBuffer(size, MemoryUsage::Upload);
+        }
+    }
     for (size_t region = Region(used_iterator), region_end = Region(iterator); region < region_end;
          ++region) {
         sync_ticks[region] = scheduler.CurrentTick();
     }
     used_iterator = iterator;
 
-    for (size_t region = Region(free_iterator) + 1,
-                region_end = std::min(Region(iterator + size) + 1, NUM_SYNCS);
-         region < region_end; ++region) {
-        scheduler.Wait(sync_ticks[region]);
-    }
     if (iterator + size > free_iterator) {
         free_iterator = iterator + size;
     }
@@ -178,6 +178,13 @@ StagingBufferRef StagingBufferPool::GetStreamBuffer(size_t size) {
         .offset = static_cast<VkDeviceSize>(offset),
         .mapped_span = std::span<u8>(stream_pointer + offset, size),
     };
+}
+
+StagingBufferRef StagingBufferPool::GetStagingBuffer(size_t size, MemoryUsage usage) {
+    if (const std::optional<StagingBufferRef> ref = TryGetReservedBuffer(size, usage)) {
+        return *ref;
+    }
+    return CreateStagingBuffer(size, usage);
 }
 
 std::optional<StagingBufferRef> StagingBufferPool::TryGetReservedBuffer(size_t size,
