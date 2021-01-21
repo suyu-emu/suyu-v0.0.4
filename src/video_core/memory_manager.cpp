@@ -332,6 +332,10 @@ void MemoryManager::FlushRegion(GPUVAddr gpu_addr, size_t size) const {
 void MemoryManager::CopyBlock(GPUVAddr gpu_dest_addr, GPUVAddr gpu_src_addr, std::size_t size) {
     std::vector<u8> tmp_buffer(size);
     ReadBlock(gpu_src_addr, tmp_buffer.data(), size);
+
+    // The output block must be flushed in case it has data modified from the GPU.
+    // Fixes NPC geometry in Zombie Panic in Wonderland DX
+    FlushRegion(gpu_dest_addr, size);
     WriteBlock(gpu_dest_addr, tmp_buffer.data(), size);
 }
 
