@@ -208,7 +208,6 @@ void CpuManager::SingleCoreRunGuestThread() {
 
 void CpuManager::SingleCoreRunGuestLoop() {
     auto& kernel = system.Kernel();
-    auto* thread = kernel.CurrentScheduler()->GetCurrentThread();
     while (true) {
         auto* physical_core = &kernel.CurrentPhysicalCore();
         system.EnterDynarmicProfile();
