@@ -80,7 +80,7 @@ u64 KScheduler::UpdateHighestPriorityThread(KThread* highest_thread) {
         }
 
         state.highest_priority_thread = highest_thread;
-        state.needs_scheduling = true;
+        state.needs_scheduling.store(true);
         return (1ULL << core_id);
     } else {
         return 0;
@@ -609,7 +609,7 @@ void KScheduler::YieldToAnyThread(KernelCore& kernel) {
 
 KScheduler::KScheduler(Core::System& system, s32 core_id) : system(system), core_id(core_id) {
     switch_fiber = std::make_shared<Common::Fiber>(OnSwitch, this);
-    state.needs_scheduling = true;
+    state.needs_scheduling.store(true);
     state.interrupt_task_thread_runnable = false;
     state.should_count_idle = false;
     state.idle_count = 0;
@@ -620,10 +620,10 @@ KScheduler::KScheduler(Core::System& system, s32 core_id) : system(system), core
 KScheduler::~KScheduler() = default;
 
 KThread* KScheduler::GetCurrentThread() const {
-    if (current_thread) {
-        return current_thread;
+    if (auto result = current_thread.load(); result) {
+        return result;
     }
-    return idle_thread;
+    return idle_thread.get();
 }
 
 u64 KScheduler::GetLastContextSwitchTicks() const {
@@ -638,7 +638,7 @@ void KScheduler::RescheduleCurrentCore() {
         phys_core.ClearInterrupt();
     }
     guard.lock();
-    if (state.needs_scheduling) {
+    if (state.needs_scheduling.load()) {
         Schedule();
     } else {
         guard.unlock();
@@ -695,29 +695,29 @@ void KScheduler::Reload(KThread* thread) {
 
 void KScheduler::SwitchContextStep2() {
     // Load context of new thread
-    Reload(current_thread);
+    Reload(current_thread.load());
 
     RescheduleCurrentCore();
 }
 
 void KScheduler::ScheduleImpl() {
-    KThread* previous_thread = current_thread;
+    KThread* previous_thread = current_thread.load();
     KThread* next_thread = state.highest_priority_thread;
 
     state.needs_scheduling = false;
 
     // We never want to schedule a null thread, so use the idle thread if we don't have a next.
     if (next_thread == nullptr) {
-        next_thread = idle_thread;
+        next_thread = idle_thread.get();
     }
 
     // If we're not actually switching thread, there's nothing to do.
-    if (next_thread == current_thread) {
+    if (next_thread == current_thread.load()) {
         guard.unlock();
         return;
     }
 
-    current_thread = next_thread;
+    current_thread.store(next_thread);
 
     Process* const previous_process = system.Kernel().CurrentProcess();
 
@@ -749,28 +749,29 @@ void KScheduler::SwitchToCurrent() {
     while (true) {
         {
             std::scoped_lock lock{guard};
-            current_thread = state.highest_priority_thread;
-            state.needs_scheduling = false;
+            current_thread.store(state.highest_priority_thread);
+            state.needs_scheduling.store(false);
         }
         const auto is_switch_pending = [this] {
             std::scoped_lock lock{guard};
-            return state.needs_scheduling.load(std::memory_order_relaxed);
+            return state.needs_scheduling.load();
         };
         do {
-            if (current_thread != nullptr) {
-                current_thread->context_guard.lock();
-                if (current_thread->GetRawState() != ThreadState::Runnable) {
-                    current_thread->context_guard.unlock();
+            auto next_thread = current_thread.load();
+            if (next_thread != nullptr) {
+                next_thread->context_guard.lock();
+                if (next_thread->GetRawState() != ThreadState::Runnable) {
+                    next_thread->context_guard.unlock();
                     break;
                 }
-                if (current_thread->GetActiveCore() != core_id) {
-                    current_thread->context_guard.unlock();
+                if (next_thread->GetActiveCore() != core_id) {
+                    next_thread->context_guard.unlock();
                     break;
                 }
             }
             std::shared_ptr<Common::Fiber>* next_context;
-            if (current_thread != nullptr) {
-                next_context = &current_thread->GetHostContext();
+            if (next_thread != nullptr) {
+                next_context = &next_thread->GetHostContext();
             } else {
                 next_context = &idle_thread->GetHostContext();
             }
@@ -802,7 +803,7 @@ void KScheduler::Initialize() {
     auto thread_res = KThread::Create(system, ThreadType::Main, name, 0,
                                       KThread::IdleThreadPriority, 0, static_cast<u32>(core_id), 0,
                                       nullptr, std::move(init_func), init_func_parameter);
-    idle_thread = thread_res.Unwrap().get();
+    idle_thread = thread_res.Unwrap();
 }
 
 KScopedSchedulerLock::KScopedSchedulerLock(KernelCore& kernel)
