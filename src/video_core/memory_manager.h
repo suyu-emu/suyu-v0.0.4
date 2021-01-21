@@ -107,7 +107,6 @@ public:
      */
     void ReadBlockUnsafe(GPUVAddr gpu_src_addr, void* dest_buffer, std::size_t size) const;
     void WriteBlockUnsafe(GPUVAddr gpu_dest_addr, const void* src_buffer, std::size_t size);
-    void CopyBlockUnsafe(GPUVAddr gpu_dest_addr, GPUVAddr gpu_src_addr, std::size_t size);
 
     /**
      * IsGranularRange checks if a gpu region can be simply read with a pointer.
