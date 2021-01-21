@@ -38,7 +38,8 @@ void KScheduler::RescheduleCores(KernelCore& kernel, u64 cores_pending_reschedul
     bool must_context_switch{};
     if (scheduler) {
         current_core = scheduler->core_id;
-        must_context_switch = true;
+        // TODO(bunnei): Should be set to true when we deprecate single core
+        must_context_switch = !kernel.IsPhantomModeForSingleCore();
     }
 
     while (cores_pending_reschedule != 0) {
