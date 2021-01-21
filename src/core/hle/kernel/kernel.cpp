@@ -117,14 +117,14 @@ struct KernelCore::Impl {
     void InitializePhysicalCores() {
         exclusive_monitor =
             Core::MakeExclusiveMonitor(system.Memory(), Core::Hardware::NUM_CPU_CORES);
-        for (s32 i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
+        for (u32 i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
             schedulers[i] = std::make_unique<Kernel::KScheduler>(system, i);
             cores.emplace_back(i, system, *schedulers[i], interrupts);
         }
     }
 
     void InitializeSchedulers() {
-        for (s32 i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
+        for (u32 i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
             cores[i].Scheduler().Initialize();
         }
     }
