@@ -14,6 +14,7 @@
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "common/common_types.h"
+#include "common/div_ceil.h"
 #include "common/logging/log.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/shader_type.h"
@@ -877,7 +878,7 @@ private:
 
         u32 binding = device.GetBaseBindings(stage).uniform_buffer;
         for (const auto& [index, info] : ir.GetConstantBuffers()) {
-            const u32 num_elements = Common::AlignUp(info.GetSize(), 4) / 4;
+            const u32 num_elements = Common::DivCeil(info.GetSize(), 4 * sizeof(u32));
             const u32 size = info.IsIndirect() ? MAX_CONSTBUFFER_ELEMENTS : num_elements;
             code.AddLine("layout (std140, binding = {}) uniform {} {{", binding++,
                          GetConstBufferBlock(index));
