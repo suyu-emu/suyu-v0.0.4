@@ -1334,7 +1334,10 @@ private:
         }
 
         if (const auto comment = std::get_if<CommentNode>(&*node)) {
-            Name(OpUndef(t_void), comment->GetText());
+            if (device.HasDebuggingToolAttached()) {
+                // We should insert comments with OpString instead of using named variables
+                Name(OpUndef(t_int), comment->GetText());
+            }
             return {};
         }
 
