@@ -7,10 +7,6 @@
 #include <climits>
 #include <cstddef>
 
-#ifdef _MSC_VER
-#include <intrin.h>
-#endif
-
 #include "common/common_types.h"
 
 namespace Common {
@@ -21,48 +17,30 @@ template <typename T>
     return sizeof(T) * CHAR_BIT;
 }
 
-#ifdef _MSC_VER
-
-[[nodiscard]] inline u32 MostSignificantBit32(const u32 value) {
-    unsigned long result;
-    _BitScanReverse(&result, value);
-    return static_cast<u32>(result);
+[[nodiscard]] constexpr u32 MostSignificantBit32(const u32 value) {
+    return 31U - static_cast<u32>(std::countl_zero(value));
 }
 
-[[nodiscard]] inline u32 MostSignificantBit64(const u64 value) {
-    unsigned long result;
-    _BitScanReverse64(&result, value);
-    return static_cast<u32>(result);
+[[nodiscard]] constexpr u32 MostSignificantBit64(const u64 value) {
+    return 63U - static_cast<u32>(std::countl_zero(value));
 }
 
-#else
-
-[[nodiscard]] inline u32 MostSignificantBit32(const u32 value) {
-    return 31U - static_cast<u32>(__builtin_clz(value));
-}
-
-[[nodiscard]] inline u32 MostSignificantBit64(const u64 value) {
-    return 63U - static_cast<u32>(__builtin_clzll(value));
-}
-
-#endif
-
-[[nodiscard]] inline u32 Log2Floor32(const u32 value) {
+[[nodiscard]] constexpr u32 Log2Floor32(const u32 value) {
     return MostSignificantBit32(value);
 }
 
-[[nodiscard]] inline u32 Log2Ceil32(const u32 value) {
-    const u32 log2_f = Log2Floor32(value);
-    return log2_f + ((value ^ (1U << log2_f)) != 0U);
-}
-
-[[nodiscard]] inline u32 Log2Floor64(const u64 value) {
+[[nodiscard]] constexpr u32 Log2Floor64(const u64 value) {
     return MostSignificantBit64(value);
 }
 
-[[nodiscard]] inline u32 Log2Ceil64(const u64 value) {
-    const u64 log2_f = static_cast<u64>(Log2Floor64(value));
-    return static_cast<u32>(log2_f + ((value ^ (1ULL << log2_f)) != 0ULL));
+[[nodiscard]] constexpr u32 Log2Ceil32(const u32 value) {
+    const u32 log2_f = Log2Floor32(value);
+    return log2_f + static_cast<u32>((value ^ (1U << log2_f)) != 0U);
+}
+
+[[nodiscard]] constexpr u32 Log2Ceil64(const u64 value) {
+    const u64 log2_f = Log2Floor64(value);
+    return static_cast<u32>(log2_f + static_cast<u64>((value ^ (1ULL << log2_f)) != 0ULL));
 }
 
 } // namespace Common
