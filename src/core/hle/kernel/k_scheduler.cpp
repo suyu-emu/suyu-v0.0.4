@@ -668,6 +668,7 @@ void KScheduler::Unload(KThread* thread) {
         } else {
             prev_thread = nullptr;
         }
+        thread->context_guard.unlock();
     }
 }
 
@@ -700,14 +701,22 @@ void KScheduler::SwitchContextStep2() {
 
 void KScheduler::ScheduleImpl() {
     KThread* previous_thread = current_thread;
-    current_thread = state.highest_priority_thread;
+    KThread* next_thread = state.highest_priority_thread;
 
     state.needs_scheduling = false;
 
-    if (current_thread == previous_thread) {
+    // We never want to schedule a null thread, so use the idle thread if we don't have a next.
+    if (next_thread == nullptr) {
+        next_thread = idle_thread;
+    }
+
+    // If we're not actually switching thread, there's nothing to do.
+    if (next_thread == current_thread) {
         guard.unlock();
         return;
     }
+
+    current_thread = next_thread;
 
     Process* const previous_process = system.Kernel().CurrentProcess();
 
@@ -748,10 +757,13 @@ void KScheduler::SwitchToCurrent() {
         };
         do {
             if (current_thread != nullptr) {
+                current_thread->context_guard.lock();
                 if (current_thread->GetRawState() != ThreadState::Runnable) {
+                    current_thread->context_guard.unlock();
                     break;
                 }
-                if (static_cast<u32>(current_thread->GetActiveCore()) != core_id) {
+                if (current_thread->GetActiveCore() != core_id) {
+                    current_thread->context_guard.unlock();
                     break;
                 }
             }

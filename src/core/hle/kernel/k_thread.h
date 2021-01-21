@@ -712,6 +712,7 @@ private:
     s8 priority_inheritance_count{};
     bool resource_limit_release_hint{};
     StackParameters stack_parameters{};
+    Common::SpinLock context_guard{};
 
     // For emulation
     std::shared_ptr<Common::Fiber> host_context{};
