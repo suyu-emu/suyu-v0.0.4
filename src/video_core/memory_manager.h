@@ -131,6 +131,8 @@ private:
     void TryLockPage(PageEntry page_entry, std::size_t size);
     void TryUnlockPage(PageEntry page_entry, std::size_t size);
 
+    void FlushRegion(GPUVAddr gpu_addr, size_t size) const;
+
     [[nodiscard]] static constexpr std::size_t PageEntryIndex(GPUVAddr gpu_addr) {
         return (gpu_addr >> page_bits) & page_table_mask;
     }
