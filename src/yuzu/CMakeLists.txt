@@ -117,6 +117,8 @@ add_executable(yuzu
     configuration/input_profiles.h
     debugger/console.cpp
     debugger/console.h
+    debugger/controller.cpp
+    debugger/controller.h
     debugger/profiler.cpp
     debugger/profiler.h
     debugger/wait_tree.cpp

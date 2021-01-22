@@ -37,6 +37,17 @@ void PlayerControlPreview::SetPlayerInput(std::size_t index, const ButtonParam& 
                    Input::CreateDevice<Input::AnalogDevice>);
     UpdateColors();
 }
+void PlayerControlPreview::SetPlayerInputRaw(std::size_t index, const Settings::ButtonsRaw buttons_,
+                                             Settings::AnalogsRaw analogs_) {
+    player_index = index;
+    std::transform(buttons_.begin() + Settings::NativeButton::BUTTON_HID_BEGIN,
+                   buttons_.begin() + Settings::NativeButton::BUTTON_NS_END, buttons.begin(),
+                   Input::CreateDevice<Input::ButtonDevice>);
+    std::transform(analogs_.begin() + Settings::NativeAnalog::STICK_HID_BEGIN,
+                   analogs_.begin() + Settings::NativeAnalog::STICK_HID_END, sticks.begin(),
+                   Input::CreateDevice<Input::AnalogDevice>);
+    UpdateColors();
+}
 
 PlayerControlPreview::LedPattern PlayerControlPreview::GetColorPattern(std::size_t index,
                                                                        bool player_on) {
@@ -210,9 +221,24 @@ void PlayerControlPreview::DrawLeftController(QPainter& p, const QPointF center)
                              -axis_values[Settings::NativeAnalog::LStick].value.y(), 1.15f,
                              button_values[LStick]);
 
-        // Left trigger
+        // Topview D-pad buttons
         p.setPen(colors.outline);
         button_color = colors.button;
+        DrawRoundButton(p, center + QPoint(-163, -21), button_values[DLeft], 11, 5, Direction::Up);
+        DrawRoundButton(p, center + QPoint(-117, -21), button_values[DRight], 11, 5, Direction::Up);
+
+        // Topview left joystick
+        DrawJoystickSideview(p, center + QPointF(-140.5f, -28),
+                             -axis_values[Settings::NativeAnalog::LStick].value.x() + 15.0f, 1.15f,
+                             button_values[LStick]);
+
+        // Topview minus button
+        p.setPen(colors.outline);
+        button_color = colors.button;
+        DrawRoundButton(p, center + QPoint(-111, -22), button_values[Minus], 8, 4, Direction::Up,
+                        1);
+
+        // Left trigger
         DrawLeftTriggers(p, center, button_values[L]);
         DrawRoundButton(p, center + QPoint(151, -146), button_values[L], 8, 4, Direction::Down);
         DrawLeftZTriggers(p, center, button_values[ZL]);
@@ -234,15 +260,19 @@ void PlayerControlPreview::DrawLeftController(QPainter& p, const QPointF center)
         button_color = colors.slider_button;
         DrawRoundButton(p, center + QPoint(59, 52), button_values[SR], 5, 12, Direction::Left);
         DrawRoundButton(p, center + QPoint(59, -69), button_values[SL], 5, 12, Direction::Left);
-    }
 
-    DrawLeftBody(p, center);
+        DrawLeftBody(p, center);
+
+        // Left trigger top view
+        DrawLeftTriggersTopView(p, center, button_values[L]);
+        DrawLeftZTriggersTopView(p, center, button_values[ZL]);
+    }
 
     { // Draw joysticks
         using namespace Settings::NativeAnalog;
         DrawJoystick(p, center + QPointF(9, -69) + (axis_values[LStick].value * 8), 1.8f,
                      button_values[Settings::NativeButton::LStick]);
-        DrawRawJoystick(p, rect().bottomLeft() + QPointF(45, -45), axis_values[LStick].raw_value,
+        DrawRawJoystick(p, center + QPointF(-140, 100), axis_values[LStick].raw_value,
                         axis_values[LStick].properties);
     }
 
@@ -304,6 +334,24 @@ void PlayerControlPreview::DrawRightController(QPainter& p, const QPointF center
                              axis_values[Settings::NativeAnalog::RStick].value.y() + 10.0f, 1.15f,
                              button_values[Settings::NativeButton::RStick]);
 
+        // Topview face buttons
+        p.setPen(colors.outline);
+        button_color = colors.button;
+        DrawRoundButton(p, center + QPoint(163, -21), button_values[A], 11, 5, Direction::Up);
+        DrawRoundButton(p, center + QPoint(117, -21), button_values[Y], 11, 5, Direction::Up);
+
+        // Topview right joystick
+        DrawJoystickSideview(p, center + QPointF(140, -28),
+                             -axis_values[Settings::NativeAnalog::RStick].value.x() + 15.0f, 1.15f,
+                             button_values[RStick]);
+
+        // Topview plus button
+        p.setPen(colors.outline);
+        button_color = colors.button;
+        DrawRoundButton(p, center + QPoint(111, -22), button_values[Plus], 8, 4, Direction::Up, 1);
+        DrawRoundButton(p, center + QPoint(111, -22), button_values[Plus], 2.66f, 4, Direction::Up,
+                        1);
+
         // Right trigger
         p.setPen(colors.outline);
         button_color = colors.button;
@@ -328,15 +376,19 @@ void PlayerControlPreview::DrawRightController(QPainter& p, const QPointF center
         button_color = colors.slider_button;
         DrawRoundButton(p, center + QPoint(-59, 52), button_values[SL], 5, 11, Direction::Right);
         DrawRoundButton(p, center + QPoint(-59, -69), button_values[SR], 5, 11, Direction::Right);
-    }
 
-    DrawRightBody(p, center);
+        DrawRightBody(p, center);
+
+        // Right trigger top view
+        DrawRightTriggersTopView(p, center, button_values[R]);
+        DrawRightZTriggersTopView(p, center, button_values[ZR]);
+    }
 
     { // Draw joysticks
         using namespace Settings::NativeAnalog;
         DrawJoystick(p, center + QPointF(-9, 11) + (axis_values[RStick].value * 8), 1.8f,
                      button_values[Settings::NativeButton::RStick]);
-        DrawRawJoystick(p, rect().bottomRight() + QPointF(-45, -45), axis_values[RStick].raw_value,
+        DrawRawJoystick(p, center + QPointF(140, 100), axis_values[RStick].raw_value,
                         axis_values[RStick].properties);
     }
 
@@ -536,9 +588,9 @@ void PlayerControlPreview::DrawHandheldController(QPainter& p, const QPointF cen
                      button_values[Settings::NativeButton::LStick]);
         DrawJoystick(p, center + QPointF(171, 8) + (axis_values[RStick].value * 4), 1.0f,
                      button_values[Settings::NativeButton::RStick]);
-        DrawRawJoystick(p, center + QPointF(-45, 0), axis_values[LStick].raw_value,
+        DrawRawJoystick(p, center + QPointF(-50, 0), axis_values[LStick].raw_value,
                         axis_values[LStick].properties);
-        DrawRawJoystick(p, center + QPointF(45, 0), axis_values[RStick].raw_value,
+        DrawRawJoystick(p, center + QPointF(50, 0), axis_values[RStick].raw_value,
                         axis_values[RStick].properties);
     }
 
@@ -546,8 +598,8 @@ void PlayerControlPreview::DrawHandheldController(QPainter& p, const QPointF cen
 
     // Face buttons constants
     const QPointF face_center = center + QPoint(171, -41);
-    constexpr int face_distance = 12;
-    constexpr int face_radius = 6;
+    constexpr float face_distance = 12.8;
+    constexpr float face_radius = 6.4f;
     constexpr float text_size = 0.6f;
 
     // Face buttons
@@ -568,8 +620,8 @@ void PlayerControlPreview::DrawHandheldController(QPainter& p, const QPointF cen
 
     // D-pad constants
     const QPointF dpad_center = center + QPoint(-171, 8);
-    constexpr int dpad_distance = 12;
-    constexpr int dpad_radius = 6;
+    constexpr float dpad_distance = 12.8;
+    constexpr float dpad_radius = 6.4f;
     constexpr float dpad_arrow_size = 0.68f;
 
     // D-pad buttons
@@ -631,10 +683,10 @@ void PlayerControlPreview::DrawProController(QPainter& p, const QPointF center) 
                         button_values[Settings::NativeButton::LStick]);
         DrawProJoystick(p, center + QPointF(51, 0) + (axis_values[RStick].value * 11),
                         button_values[Settings::NativeButton::RStick]);
-        DrawRawJoystick(p, QPointF(center.x(), rect().bottom()) + QPointF(-45, -45),
-                        axis_values[LStick].raw_value, axis_values[LStick].properties);
-        DrawRawJoystick(p, QPointF(center.x(), rect().bottom()) + QPointF(45, -45),
-                        axis_values[RStick].raw_value, axis_values[RStick].properties);
+        DrawRawJoystick(p, center + QPointF(-50, 105), axis_values[LStick].raw_value,
+                        axis_values[LStick].properties);
+        DrawRawJoystick(p, center + QPointF(50, 105), axis_values[RStick].raw_value,
+                        axis_values[RStick].properties);
     }
 
     using namespace Settings::NativeButton;
@@ -985,6 +1037,21 @@ constexpr std::array<float, 40 * 2> handheld_bezel = {
     112.9f,  -62.2f, 112.9f,  62.2f,  -112.9f, 62.2f,  -112.9f, -62.2f, 129.8f,  -76.0f,
 };
 
+constexpr std::array<float, 58 * 2> handheld_buttons = {
+    -82.48f,  -82.95f, -82.53f,  -82.95f, -106.69f, -82.96f, -106.73f, -82.98f, -106.78f, -83.01f,
+    -106.81f, -83.05f, -106.83f, -83.1f,  -106.83f, -83.15f, -106.82f, -83.93f, -106.81f, -83.99f,
+    -106.8f,  -84.04f, -106.78f, -84.08f, -106.76f, -84.13f, -106.73f, -84.18f, -106.7f,  -84.22f,
+    -106.6f,  -84.34f, -106.56f, -84.37f, -106.51f, -84.4f,  -106.47f, -84.42f, -106.42f, -84.45f,
+    -106.37f, -84.47f, -106.32f, -84.48f, -106.17f, -84.5f,  -98.9f,   -84.48f, -98.86f,  -84.45f,
+    -98.83f,  -84.41f, -98.81f,  -84.36f, -98.8f,   -84.31f, -98.8f,   -84.26f, -98.79f,  -84.05f,
+    -90.26f,  -84.1f,  -90.26f,  -84.15f, -90.25f,  -84.36f, -90.23f,  -84.41f, -90.2f,   -84.45f,
+    -90.16f,  -84.48f, -90.11f,  -84.5f,  -82.79f,  -84.49f, -82.74f,  -84.48f, -82.69f,  -84.46f,
+    -82.64f,  -84.45f, -82.59f,  -84.42f, -82.55f,  -84.4f,  -82.5f,   -84.37f, -82.46f,  -84.33f,
+    -82.42f,  -84.3f,  -82.39f,  -84.26f, -82.3f,   -84.13f, -82.28f,  -84.08f, -82.25f,  -83.98f,
+    -82.24f,  -83.93f, -82.23f,  -83.83f, -82.23f,  -83.78f, -82.24f,  -83.1f,  -82.26f,  -83.05f,
+    -82.29f,  -83.01f, -82.33f,  -82.97f, -82.38f,  -82.95f,
+};
+
 constexpr std::array<float, 47 * 2> left_joycon_slider = {
     -23.7f, -118.2f, -23.7f, -117.3f, -23.7f, 96.6f,   -22.8f, 96.6f,  -21.5f, 97.2f,  -21.5f,
     98.1f,  -21.2f,  106.7f, -20.8f,  107.5f, -20.1f,  108.2f, -19.2f, 108.2f, -16.4f, 108.1f,
@@ -1025,6 +1092,28 @@ constexpr std::array<float, 40 * 2> left_joycon_body_trigger = {
     -140.5f, -116.8f, -141.4f, -118.9f, -143.3f, -123.1f, -144.6f, -124.9f, -146.2f, -126.0f,
 };
 
+constexpr std::array<float, 49 * 2> left_joycon_topview = {
+    -184.8, -20.8,  -185.6, -21.1,  -186.4, -21.5,  -187.1, -22.1,  -187.8, -22.6,  -188.4,
+    -23.2,  -189.6, -24.5,  -190.2, -25.2,  -190.7, -25.9,  -191.1, -26.7,  -191.4, -27.5,
+    -191.6, -28.4,  -191.7, -29.2,  -191.7, -30.1,  -191.5, -47.7,  -191.2, -48.5,  -191,
+    -49.4,  -190.7, -50.2,  -190.3, -51,    -190,   -51.8,  -189.6, -52.6,  -189.1, -53.4,
+    -188.6, -54.1,  -187.5, -55.4,  -186.9, -56.1,  -186.2, -56.7,  -185.5, -57.2,  -184,
+    -58.1,  -183.3, -58.5,  -182.5, -58.9,  -181.6, -59.2,  -180.8, -59.5,  -179.9, -59.7,
+    -179.1, -59.9,  -178.2, -60,    -174.7, -60.1,  -168.5, -60.2,  -162.4, -60.3,  -156.2,
+    -60.4,  -149.2, -60.5,  -143,   -60.6,  -136.9, -60.7,  -130.7, -60.8,  -123.7, -60.9,
+    -117.5, -61,    -110.5, -61.1,  -94.4,  -60.4,  -94.4,  -59.5,  -94.4,  -20.6,
+};
+
+constexpr std::array<float, 41 * 2> left_joycon_slider_topview = {
+    -95.1f, -51.5f, -95.0f, -51.5f, -91.2f, -51.6f, -91.2f, -51.7f, -91.1f, -52.4f, -91.1f, -52.6f,
+    -91.0f, -54.1f, -86.3f, -54.0f, -86.0f, -53.9f, -85.9f, -53.8f, -85.6f, -53.4f, -85.5f, -53.2f,
+    -85.5f, -53.1f, -85.4f, -52.9f, -85.4f, -52.8f, -85.3f, -52.4f, -85.3f, -52.3f, -85.4f, -27.2f,
+    -85.4f, -27.1f, -85.5f, -27.0f, -85.5f, -26.9f, -85.6f, -26.7f, -85.6f, -26.6f, -85.7f, -26.5f,
+    -85.9f, -26.4f, -86.0f, -26.3f, -86.4f, -26.0f, -86.5f, -25.9f, -86.7f, -25.8f, -87.1f, -25.7f,
+    -90.4f, -25.8f, -90.7f, -25.9f, -90.8f, -26.0f, -90.9f, -26.3f, -91.0f, -26.4f, -91.0f, -26.5f,
+    -91.1f, -26.7f, -91.1f, -26.9f, -91.2f, -28.9f, -95.2f, -29.1f, -95.2f, -29.2f,
+};
+
 constexpr std::array<float, 42 * 2> left_joycon_sideview_zl = {
     -148.9f, -128.2f, -148.7f, -126.6f, -148.4f, -124.9f, -148.2f, -123.3f, -147.9f, -121.7f,
     -147.7f, -120.1f, -147.4f, -118.5f, -147.2f, -116.9f, -146.9f, -115.3f, -146.4f, -112.1f,
@@ -1052,11 +1141,39 @@ constexpr std::array<float, 72 * 2> left_joystick_sideview = {
     -8.0f,  -9.4f,  -9.6f,  -8.2f,  -10.9f, -6.7f,  -11.9f, -4.9f,  -12.8f, -3.2f,  -13.5f, -3.8f,
 };
 
+constexpr std::array<float, 63 * 2> left_joystick_L_topview = {
+    -186.7f, -43.7f, -186.4f, -43.7f, -110.6f, -43.4f, -110.6f, -43.1f, -110.7f, -34.3f,
+    -110.7f, -34.0f, -110.8f, -33.7f, -111.1f, -32.9f, -111.2f, -32.6f, -111.4f, -32.3f,
+    -111.5f, -32.1f, -111.7f, -31.8f, -111.8f, -31.5f, -112.0f, -31.3f, -112.2f, -31.0f,
+    -112.4f, -30.8f, -112.8f, -30.3f, -113.0f, -30.1f, -114.1f, -29.1f, -114.3f, -28.9f,
+    -114.6f, -28.7f, -114.8f, -28.6f, -115.1f, -28.4f, -115.3f, -28.3f, -115.6f, -28.1f,
+    -115.9f, -28.0f, -116.4f, -27.8f, -116.7f, -27.7f, -117.3f, -27.6f, -117.6f, -27.5f,
+    -182.9f, -27.6f, -183.5f, -27.7f, -183.8f, -27.8f, -184.4f, -27.9f, -184.6f, -28.1f,
+    -184.9f, -28.2f, -185.4f, -28.5f, -185.7f, -28.7f, -185.9f, -28.8f, -186.2f, -29.0f,
+    -186.4f, -29.2f, -187.0f, -29.9f, -187.2f, -30.1f, -187.6f, -30.6f, -187.8f, -30.8f,
+    -187.9f, -31.1f, -188.1f, -31.3f, -188.2f, -31.6f, -188.4f, -31.9f, -188.5f, -32.1f,
+    -188.6f, -32.4f, -188.8f, -33.3f, -188.9f, -33.6f, -188.9f, -33.9f, -188.8f, -39.9f,
+    -188.8f, -40.2f, -188.7f, -41.1f, -188.7f, -41.4f, -188.6f, -41.7f, -188.0f, -43.1f,
+    -187.9f, -43.4f, -187.6f, -43.6f, -187.3f, -43.7f,
+};
+
+constexpr std::array<float, 44 * 2> left_joystick_ZL_topview = {
+    -179.4f, -53.3f, -177.4f, -53.3f, -111.2f, -53.3f, -111.3f, -53.3f, -111.5f, -58.6f,
+    -111.8f, -60.5f, -112.2f, -62.4f, -113.1f, -66.1f, -113.8f, -68.0f, -114.5f, -69.8f,
+    -115.3f, -71.5f, -116.3f, -73.2f, -117.3f, -74.8f, -118.5f, -76.4f, -119.8f, -77.8f,
+    -121.2f, -79.1f, -122.8f, -80.2f, -124.4f, -81.2f, -126.2f, -82.0f, -128.1f, -82.6f,
+    -130.0f, -82.9f, -131.9f, -83.0f, -141.5f, -82.9f, -149.3f, -82.8f, -153.1f, -82.6f,
+    -155.0f, -82.1f, -156.8f, -81.6f, -158.7f, -80.9f, -160.4f, -80.2f, -162.2f, -79.3f,
+    -163.8f, -78.3f, -165.4f, -77.2f, -166.9f, -76.0f, -168.4f, -74.7f, -169.7f, -73.3f,
+    -172.1f, -70.3f, -173.2f, -68.7f, -174.2f, -67.1f, -175.2f, -65.4f, -176.1f, -63.7f,
+    -178.7f, -58.5f, -179.6f, -56.8f, -180.4f, -55.1f, -181.3f, -53.3f,
+};
+
 void PlayerControlPreview::DrawProBody(QPainter& p, const QPointF center) {
     std::array<QPointF, pro_left_handle.size() / 2> qleft_handle;
     std::array<QPointF, pro_left_handle.size() / 2> qright_handle;
     std::array<QPointF, pro_body.size()> qbody;
-    constexpr int radius1 = 30;
+    constexpr int radius1 = 32;
 
     for (std::size_t point = 0; point < pro_left_handle.size() / 2; ++point) {
         qleft_handle[point] =
@@ -1101,6 +1218,7 @@ void PlayerControlPreview::DrawHandheldBody(QPainter& p, const QPointF center) {
     std::array<QPointF, handheld_bezel.size() / 2> qhandheld_bezel;
     std::array<QPointF, bezel_inline_size> qhandheld_bezel_inline;
     std::array<QPointF, bezel_outline_end> qhandheld_bezel_outline;
+    std::array<QPointF, handheld_buttons.size() / 2> qhandheld_buttons;
 
     for (std::size_t point = 0; point < left_joycon_body.size() / 2; ++point) {
         left_joycon[point] =
@@ -1129,6 +1247,10 @@ void PlayerControlPreview::DrawHandheldBody(QPainter& p, const QPointF center) {
             center + QPointF(handheld_bezel[(point + bezel_inline_start) * 2],
                              handheld_bezel[(point + bezel_inline_start) * 2 + 1]);
     }
+    for (std::size_t point = 0; point < handheld_buttons.size() / 2; ++point) {
+        qhandheld_buttons[point] =
+            center + QPointF(handheld_buttons[point * 2], handheld_buttons[point * 2 + 1]);
+    }
 
     // Draw left joycon
     p.setPen(colors.outline);
@@ -1139,6 +1261,11 @@ void PlayerControlPreview::DrawHandheldBody(QPainter& p, const QPointF center) {
     p.setPen(colors.outline);
     p.setBrush(colors.right);
     DrawPolygon(p, right_joycon);
+
+    // Draw Handheld buttons
+    p.setPen(colors.outline);
+    p.setBrush(colors.button);
+    DrawPolygon(p, qhandheld_buttons);
 
     // Draw handheld body
     p.setPen(colors.transparent);
@@ -1196,13 +1323,13 @@ void PlayerControlPreview::DrawDualBody(QPainter& p, const QPointF center) {
                              left_joycon_body_trigger[point * 2 + 1] + 2);
     }
 
-    // right joycon boddy
+    // right joycon body
     p.setPen(colors.outline);
     p.setBrush(colors.right);
     DrawPolygon(p, right_joycon);
     DrawPolygon(p, qright_joycon_trigger);
 
-    // Left joycon boddy
+    // Left joycon body
     p.setPen(colors.outline);
     p.setBrush(colors.left);
     DrawPolygon(p, left_joycon);
@@ -1309,6 +1436,8 @@ void PlayerControlPreview::DrawLeftBody(QPainter& p, const QPointF center) {
     std::array<QPointF, left_joycon_sideview.size() / 2> qleft_joycon_sideview;
     std::array<QPointF, left_joycon_body_trigger.size() / 2> qleft_joycon_trigger;
     std::array<QPointF, left_joycon_slider.size() / 2> qleft_joycon_slider;
+    std::array<QPointF, left_joycon_slider_topview.size() / 2> qleft_joycon_slider_topview;
+    std::array<QPointF, left_joycon_topview.size() / 2> qleft_joycon_topview;
     constexpr float size = 1.78f;
     constexpr float size2 = 1.1115f;
     constexpr float offset = 312.39f;
@@ -1333,12 +1462,34 @@ void PlayerControlPreview::DrawLeftBody(QPainter& p, const QPointF center) {
             center + QPointF(left_joycon_body_trigger[point * 2] * size2 + offset2,
                              left_joycon_body_trigger[point * 2 + 1] * size2 + 2);
     }
+    for (std::size_t point = 0; point < left_joycon_topview.size() / 2; ++point) {
+        qleft_joycon_topview[point] =
+            center + QPointF(left_joycon_topview[point * 2], left_joycon_topview[point * 2 + 1]);
+    }
+    for (std::size_t point = 0; point < left_joycon_slider_topview.size() / 2; ++point) {
+        qleft_joycon_slider_topview[point] =
+            center + QPointF(left_joycon_slider_topview[point * 2],
+                             left_joycon_slider_topview[point * 2 + 1]);
+    }
 
-    // Joycon boddy
+    // Joycon body
     p.setPen(colors.outline);
     p.setBrush(colors.left);
     DrawPolygon(p, left_joycon);
     DrawPolygon(p, qleft_joycon_trigger);
+
+    // Slider release button top view
+    p.setBrush(colors.button);
+    DrawRoundRectangle(p, center + QPoint(-107, -62), 14, 12, 2);
+
+    // Joycon slider top view
+    p.setBrush(colors.slider);
+    DrawPolygon(p, qleft_joycon_slider_topview);
+    p.drawLine(center + QPointF(-91.1f, -51.7f), center + QPointF(-91.1f, -26.5f));
+
+    // Joycon body top view
+    p.setBrush(colors.left);
+    DrawPolygon(p, qleft_joycon_topview);
 
     // Slider release button
     p.setBrush(colors.button);
@@ -1381,6 +1532,8 @@ void PlayerControlPreview::DrawRightBody(QPainter& p, const QPointF center) {
     std::array<QPointF, left_joycon_sideview.size() / 2> qright_joycon_sideview;
     std::array<QPointF, left_joycon_body_trigger.size() / 2> qright_joycon_trigger;
     std::array<QPointF, left_joycon_slider.size() / 2> qright_joycon_slider;
+    std::array<QPointF, left_joycon_slider_topview.size() / 2> qright_joycon_slider_topview;
+    std::array<QPointF, left_joycon_topview.size() / 2> qright_joycon_topview;
     constexpr float size = 1.78f;
     constexpr float size2 = 1.1115f;
     constexpr float offset = 312.39f;
@@ -1405,12 +1558,34 @@ void PlayerControlPreview::DrawRightBody(QPainter& p, const QPointF center) {
         qright_joycon_slider[point] = center + QPointF(-left_joycon_slider[point * 2] * size2 - 81,
                                                        left_joycon_slider[point * 2 + 1] * size2);
     }
+    for (std::size_t point = 0; point < left_joycon_topview.size() / 2; ++point) {
+        qright_joycon_topview[point] =
+            center + QPointF(-left_joycon_topview[point * 2], left_joycon_topview[point * 2 + 1]);
+    }
+    for (std::size_t point = 0; point < left_joycon_slider_topview.size() / 2; ++point) {
+        qright_joycon_slider_topview[point] =
+            center + QPointF(-left_joycon_slider_topview[point * 2],
+                             left_joycon_slider_topview[point * 2 + 1]);
+    }
 
-    // Joycon boddy
+    // Joycon body
     p.setPen(colors.outline);
     p.setBrush(colors.left);
     DrawPolygon(p, right_joycon);
     DrawPolygon(p, qright_joycon_trigger);
+
+    // Slider release button top view
+    p.setBrush(colors.button);
+    DrawRoundRectangle(p, center + QPoint(107, -62), 14, 12, 2);
+
+    // Joycon slider top view
+    p.setBrush(colors.slider);
+    DrawPolygon(p, qright_joycon_slider_topview);
+    p.drawLine(center + QPointF(91.1f, -51.7f), center + QPointF(91.1f, -26.5f));
+
+    // Joycon body top view
+    p.setBrush(colors.left);
+    DrawPolygon(p, qright_joycon_topview);
 
     // Slider release button
     p.setBrush(colors.button);
@@ -1591,6 +1766,48 @@ void PlayerControlPreview::DrawLeftZTriggers(QPainter& p, const QPointF center, 
               44 * 16);
 }
 
+void PlayerControlPreview::DrawLeftTriggersTopView(QPainter& p, const QPointF center,
+                                                   bool left_pressed) {
+    std::array<QPointF, left_joystick_L_topview.size() / 2> qleft_trigger;
+
+    for (std::size_t point = 0; point < left_joystick_L_topview.size() / 2; ++point) {
+        qleft_trigger[point] = center + QPointF(left_joystick_L_topview[point * 2],
+                                                left_joystick_L_topview[point * 2 + 1]);
+    }
+
+    p.setPen(colors.outline);
+    p.setBrush(left_pressed ? colors.highlight : colors.button);
+    DrawPolygon(p, qleft_trigger);
+
+    // Draw ZL text
+    p.setPen(colors.transparent);
+    p.setBrush(colors.font2);
+    DrawSymbol(p, center + QPointF(-143, -36), Symbol::ZL, 1.0f);
+
+    // Delete Z character
+    p.setBrush(left_pressed ? colors.highlight : colors.button);
+    DrawRectangle(p, center + QPointF(-146, -36), 6, 10);
+}
+
+void PlayerControlPreview::DrawLeftZTriggersTopView(QPainter& p, const QPointF center,
+                                                    bool left_pressed) {
+    std::array<QPointF, left_joystick_ZL_topview.size() / 2> qleft_trigger;
+
+    for (std::size_t point = 0; point < left_joystick_ZL_topview.size() / 2; ++point) {
+        qleft_trigger[point] = center + QPointF(left_joystick_ZL_topview[point * 2],
+                                                left_joystick_ZL_topview[point * 2 + 1]);
+    }
+
+    p.setPen(colors.outline);
+    p.setBrush(left_pressed ? colors.highlight : colors.button);
+    DrawPolygon(p, qleft_trigger);
+
+    // Draw ZL text
+    p.setPen(colors.transparent);
+    p.setBrush(colors.font2);
+    DrawSymbol(p, center + QPointF(-140, -68), Symbol::ZL, 1.0f);
+}
+
 void PlayerControlPreview::DrawRightTriggers(QPainter& p, const QPointF center,
                                              bool right_pressed) {
     std::array<QPointF, left_joycon_trigger.size() / 2> qright_trigger;
@@ -1626,6 +1843,48 @@ void PlayerControlPreview::DrawRightZTriggers(QPainter& p, const QPointF center,
     DrawPolygon(p, qright_trigger);
     p.drawArc(center.x() - 236, center.y() + (right_pressed ? -203.5f : -204.0f), 77, 77, 271 * 16,
               44 * 16);
+}
+
+void PlayerControlPreview::DrawRightTriggersTopView(QPainter& p, const QPointF center,
+                                                    bool right_pressed) {
+    std::array<QPointF, left_joystick_L_topview.size() / 2> qright_trigger;
+
+    for (std::size_t point = 0; point < left_joystick_L_topview.size() / 2; ++point) {
+        qright_trigger[point] = center + QPointF(-left_joystick_L_topview[point * 2],
+                                                 left_joystick_L_topview[point * 2 + 1]);
+    }
+
+    p.setPen(colors.outline);
+    p.setBrush(right_pressed ? colors.highlight : colors.button);
+    DrawPolygon(p, qright_trigger);
+
+    // Draw ZR text
+    p.setPen(colors.transparent);
+    p.setBrush(colors.font2);
+    DrawSymbol(p, center + QPointF(137, -36), Symbol::ZR, 1.0f);
+
+    // Delete Z character
+    p.setBrush(right_pressed ? colors.highlight : colors.button);
+    DrawRectangle(p, center + QPointF(134, -36), 6, 10);
+}
+
+void PlayerControlPreview::DrawRightZTriggersTopView(QPainter& p, const QPointF center,
+                                                     bool right_pressed) {
+    std::array<QPointF, left_joystick_ZL_topview.size() / 2> qright_trigger;
+
+    for (std::size_t point = 0; point < left_joystick_ZL_topview.size() / 2; ++point) {
+        qright_trigger[point] = center + QPointF(-left_joystick_ZL_topview[point * 2],
+                                                 left_joystick_ZL_topview[point * 2 + 1]);
+    }
+
+    p.setPen(colors.outline);
+    p.setBrush(right_pressed ? colors.highlight : colors.button);
+    DrawPolygon(p, qright_trigger);
+
+    // Draw ZR text
+    p.setPen(colors.transparent);
+    p.setBrush(colors.font2);
+    DrawSymbol(p, center + QPointF(140, -68), Symbol::ZR, 1.0f);
 }
 
 void PlayerControlPreview::DrawJoystick(QPainter& p, const QPointF center, float size,
@@ -1688,12 +1947,9 @@ void PlayerControlPreview::DrawRawJoystick(QPainter& p, const QPointF center, co
     const float range = size * properties.range;
     const float deadzone = size * properties.deadzone;
 
-    // Outer box
+    // Max range zone circle
     p.setPen(colors.outline);
     p.setBrush(colors.transparent);
-    p.drawRect(center.x() - size, center.y() - size, size * 2, size * 2);
-
-    // Max range zone circle
     QPen pen = p.pen();
     pen.setStyle(Qt::DotLine);
     p.setPen(pen);
@@ -1725,7 +1981,7 @@ void PlayerControlPreview::DrawRoundButton(QPainter& p, QPointF center, bool pre
             center.setY(center.y() + 1);
             break;
         case Direction::Up:
-            center.setY(center.y() + 1);
+            center.setY(center.y() - 1);
             break;
         case Direction::None:
             break;
@@ -1759,7 +2015,7 @@ void PlayerControlPreview::DrawPlusButton(QPainter& p, const QPointF center, boo
 }
 
 void PlayerControlPreview::DrawCircleButton(QPainter& p, const QPointF center, bool pressed,
-                                            int button_size) {
+                                            float button_size) {
     p.setBrush(button_color);
     if (pressed) {
         p.setBrush(colors.highlight);

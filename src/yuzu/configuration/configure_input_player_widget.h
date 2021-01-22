@@ -25,6 +25,8 @@ public:
 
     void SetPlayerInput(std::size_t index, const ButtonParam& buttons_param,
                         const AnalogParam& analogs_param);
+    void SetPlayerInputRaw(std::size_t index, const Settings::ButtonsRaw buttons_,
+                           Settings::AnalogsRaw analogs_);
     void SetConnectedStatus(bool checked);
     void SetControllerType(Settings::ControllerType type);
     void BeginMappingButton(std::size_t button_id);
@@ -114,8 +116,12 @@ private:
     void DrawDualZTriggers(QPainter& p, QPointF center, bool left_pressed, bool right_pressed);
     void DrawLeftTriggers(QPainter& p, QPointF center, bool left_pressed);
     void DrawLeftZTriggers(QPainter& p, QPointF center, bool left_pressed);
+    void DrawLeftTriggersTopView(QPainter& p, QPointF center, bool left_pressed);
+    void DrawLeftZTriggersTopView(QPainter& p, QPointF center, bool left_pressed);
     void DrawRightTriggers(QPainter& p, QPointF center, bool right_pressed);
     void DrawRightZTriggers(QPainter& p, QPointF center, bool right_pressed);
+    void DrawRightTriggersTopView(QPainter& p, QPointF center, bool right_pressed);
+    void DrawRightZTriggersTopView(QPainter& p, QPointF center, bool right_pressed);
 
     // Draw joystick functions
     void DrawJoystick(QPainter& p, QPointF center, float size, bool pressed);
@@ -125,7 +131,7 @@ private:
     void DrawProJoystick(QPainter& p, QPointF center, bool pressed);
 
     // Draw button functions
-    void DrawCircleButton(QPainter& p, QPointF center, bool pressed, int button_size);
+    void DrawCircleButton(QPainter& p, QPointF center, bool pressed, float button_size);
     void DrawRoundButton(QPainter& p, QPointF center, bool pressed, float width, float height,
                          Direction direction = Direction::None, float radius = 2);
     void DrawMinusButton(QPainter& p, QPointF center, bool pressed, int button_size);
