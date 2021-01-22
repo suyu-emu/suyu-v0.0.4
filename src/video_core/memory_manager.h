@@ -157,6 +157,8 @@ private:
 
     using MapRange = std::pair<GPUVAddr, size_t>;
     std::vector<MapRange> map_ranges;
+
+    std::vector<std::pair<VAddr, std::size_t>> cache_invalidate_queue;
 };
 
 } // namespace Tegra
