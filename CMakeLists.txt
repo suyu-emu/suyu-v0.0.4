@@ -261,7 +261,7 @@ if(ENABLE_SDL2)
     find_package(SDL2)
     if (NOT SDL2_FOUND)
         # otherwise add this to the list of libraries to install
-        list(APPEND CONAN_REQUIRED_LIBS "sdl2/2.0.12@bincrafters/stable")
+        list(APPEND CONAN_REQUIRED_LIBS "sdl2/2.0.14@bincrafters/stable")
     endif()
 endif()
 
