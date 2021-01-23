@@ -1243,9 +1243,15 @@ typename BufferCache<P>::Binding BufferCache<P>::StorageBufferBinding(GPUVAddr s
     if (!cpu_addr || size == 0) {
         return NULL_BINDING;
     }
+    // HACK(Rodrigo): This is the number of bytes bound in host beyond the guest API's range.
+    // It exists due to some games like Astral Chain operate out of bounds.
+    // Binding the whole map range would be technically correct, but games have large maps that make
+    // this approach unaffordable for now.
+    static constexpr u32 arbitrary_extra_bytes = 0xc000;
+    const u32 bytes_to_map_end = static_cast<u32>(gpu_memory.BytesToMapEnd(gpu_addr));
     const Binding binding{
         .cpu_addr = *cpu_addr,
-        .size = size,
+        .size = std::min(size + arbitrary_extra_bytes, bytes_to_map_end),
         .buffer_id = BufferId{},
     };
     return binding;
