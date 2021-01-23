@@ -90,6 +90,8 @@ private:
 
     void ReserveQuadArrayLUT(u32 num_indices, bool wait_for_idle);
 
+    void ReserveNullIndexBuffer();
+
     const Device& device;
     MemoryAllocator& memory_allocator;
     VKScheduler& scheduler;
@@ -100,6 +102,9 @@ private:
     MemoryCommit quad_array_lut_commit;
     VkIndexType quad_array_lut_index_type{};
     u32 current_num_indices = 0;
+
+    vk::Buffer null_index_buffer;
+    MemoryCommit null_index_buffer_commit;
 
     Uint8Pass uint8_pass;
     QuadIndexedPass quad_index_pass;

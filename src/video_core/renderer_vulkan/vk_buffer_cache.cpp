@@ -140,16 +140,22 @@ void BufferCacheRuntime::BindIndexBuffer(PrimitiveTopology topology, IndexFormat
                                          u32 offset, [[maybe_unused]] u32 size) {
     VkIndexType vk_index_type = MaxwellToVK::IndexFormat(index_format);
     VkDeviceSize vk_offset = offset;
+    VkBuffer vk_buffer = buffer;
     if (topology == PrimitiveTopology::Quads) {
         vk_index_type = VK_INDEX_TYPE_UINT32;
-        std::tie(buffer, vk_offset) =
+        std::tie(vk_buffer, vk_offset) =
             quad_index_pass.Assemble(index_format, num_indices, base_vertex, buffer, offset);
     } else if (vk_index_type == VK_INDEX_TYPE_UINT8_EXT && !device.IsExtIndexTypeUint8Supported()) {
         vk_index_type = VK_INDEX_TYPE_UINT16;
-        std::tie(buffer, vk_offset) = uint8_pass.Assemble(num_indices, buffer, offset);
+        std::tie(vk_buffer, vk_offset) = uint8_pass.Assemble(num_indices, buffer, offset);
     }
-    scheduler.Record([buffer, vk_offset, vk_index_type](vk::CommandBuffer cmdbuf) {
-        cmdbuf.BindIndexBuffer(buffer, vk_offset, vk_index_type);
+    if (vk_buffer == VK_NULL_HANDLE) {
+        // Vulkan doesn't support null index buffers. Replace it with our own null buffer.
+        ReserveNullIndexBuffer();
+        vk_buffer = *null_index_buffer;
+    }
+    scheduler.Record([vk_buffer, vk_offset, vk_index_type](vk::CommandBuffer cmdbuf) {
+        cmdbuf.BindIndexBuffer(vk_buffer, vk_offset, vk_index_type);
     });
 }
 
@@ -273,6 +279,31 @@ void BufferCacheRuntime::ReserveQuadArrayLUT(u32 num_indices, bool wait_for_idle
         cmdbuf.CopyBuffer(src_buffer, dst_buffer, copy);
         cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT,
                                0, write_barrier);
+    });
+}
+
+void BufferCacheRuntime::ReserveNullIndexBuffer() {
+    if (null_index_buffer) {
+        return;
+    }
+    null_index_buffer = device.GetLogical().CreateBuffer(VkBufferCreateInfo{
+        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .size = 4,
+        .usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        .queueFamilyIndexCount = 0,
+        .pQueueFamilyIndices = nullptr,
+    });
+    if (device.HasDebuggingToolAttached()) {
+        null_index_buffer.SetObjectNameEXT("Null index buffer");
+    }
+    null_index_buffer_commit = memory_allocator.Commit(null_index_buffer, MemoryUsage::DeviceLocal);
+
+    scheduler.RequestOutsideRenderPassOperationContext();
+    scheduler.Record([buffer = *null_index_buffer](vk::CommandBuffer cmdbuf) {
+        cmdbuf.FillBuffer(buffer, 0, VK_WHOLE_SIZE, 0);
     });
 }
 
