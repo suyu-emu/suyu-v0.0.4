@@ -346,6 +346,9 @@ private:
     /// Access a bindless image sampler.
     ImageEntry& GetBindlessImage(Tegra::Shader::Register reg, Tegra::Shader::ImageType type);
 
+    /// Recursive Iteration over the OperationNode operands, searching for GprNodes.
+    void SearchOperands(NodeBlock& nb, Node var);
+
     /// Extracts a sequence of bits from a node
     Node BitfieldExtract(Node value, u32 offset, u32 bits);
 
