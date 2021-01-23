@@ -26,7 +26,7 @@ ACC_U0::ACC_U0(std::shared_ptr<Module> module, std::shared_ptr<ProfileManager> p
         {101, &ACC_U0::GetBaasAccountManagerForApplication, "GetBaasAccountManagerForApplication"},
         {102, nullptr, "AuthenticateApplicationAsync"},
         {103, nullptr, "CheckNetworkServiceAvailabilityAsync"}, // 4.0.0+
-        {110, nullptr, "StoreSaveDataThumbnail"},
+        {110, &ACC_U0::StoreSaveDataThumbnailApplication, "StoreSaveDataThumbnail"},
         {111, nullptr, "ClearSaveDataThumbnail"},
         {120, nullptr, "CreateGuestLoginRequest"},
         {130, &ACC_U0::LoadOpenContext, "LoadOpenContext"}, // 5.0.0+
