@@ -12,21 +12,12 @@
 
 #include <fmt/format.h>
 
-#define VK_NO_PROTOTYPES
-#include <vulkan/vulkan.h>
-
-#include <GFSDK_Aftermath.h>
-#include <GFSDK_Aftermath_Defines.h>
-#include <GFSDK_Aftermath_GpuCrashDump.h>
-#include <GFSDK_Aftermath_GpuCrashDumpDecoding.h>
-
 #include "common/common_paths.h"
 #include "common/common_types.h"
 #include "common/file_util.h"
 #include "common/logging/log.h"
 #include "common/scope_exit.h"
-
-#include "video_core/renderer_vulkan/nsight_aftermath_tracker.h"
+#include "video_core/vulkan_common/nsight_aftermath_tracker.h"
 
 namespace Vulkan {
 
@@ -53,7 +44,7 @@ NsightAftermathTracker::NsightAftermathTracker() {
         !dl.GetSymbol("GFSDK_Aftermath_GpuCrashDump_GetJSON",
                       &GFSDK_Aftermath_GpuCrashDump_GetJSON)) {
         LOG_ERROR(Render_Vulkan, "Failed to load Nsight Aftermath function pointers");
-        return false;
+        return;
     }
     dump_dir = Common::FS::GetUserPath(Common::FS::UserPath::LogDir) + "gpucrash";
 
