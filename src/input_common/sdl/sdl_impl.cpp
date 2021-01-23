@@ -81,10 +81,14 @@ public:
     }
 
     bool RumblePlay(u16 amp_low, u16 amp_high) {
+        constexpr u32 rumble_max_duration_ms = 1000;
+
         if (sdl_controller) {
-            return SDL_GameControllerRumble(sdl_controller.get(), amp_low, amp_high, 0) == 0;
+            return SDL_GameControllerRumble(sdl_controller.get(), amp_low, amp_high,
+                                            rumble_max_duration_ms) == 0;
         } else if (sdl_joystick) {
-            return SDL_JoystickRumble(sdl_joystick.get(), amp_low, amp_high, 0) == 0;
+            return SDL_JoystickRumble(sdl_joystick.get(), amp_low, amp_high,
+                                      rumble_max_duration_ms) == 0;
         }
 
         return false;
