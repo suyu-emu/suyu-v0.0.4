@@ -162,9 +162,11 @@ private:
         if (length == 0) {
             return std::nullopt;
         }
-        std::string output(length, '\0');
-        std::memcpy(output.data(), data.data() + offset, length);
-        offset += length;
+        const auto length_to_read = std::min(length, data.size() - offset);
+
+        std::string output(length_to_read, '\0');
+        std::memcpy(output.data(), data.data() + offset, length_to_read);
+        offset += length_to_read;
         return output;
     }
 
