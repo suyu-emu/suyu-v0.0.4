@@ -67,6 +67,8 @@ private:
 
     StagingBufferRef GetStreamBuffer(size_t size);
 
+    bool AreRegionsActive(size_t region_begin, size_t region_end) const;
+
     StagingBufferRef GetStagingBuffer(size_t size, MemoryUsage usage);
 
     std::optional<StagingBufferRef> TryGetReservedBuffer(size_t size, MemoryUsage usage);

@@ -142,33 +142,27 @@ void StagingBufferPool::TickFrame() {
 }
 
 StagingBufferRef StagingBufferPool::GetStreamBuffer(size_t size) {
-    for (size_t region = Region(free_iterator) + 1,
-                region_end = std::min(Region(iterator + size) + 1, NUM_SYNCS);
-         region < region_end; ++region) {
-        // If we'd have to wait, get a staging buffer to avoid waiting
-        if (!scheduler.IsFree(sync_ticks[region])) {
-            return GetStagingBuffer(size, MemoryUsage::Upload);
-        }
+    if (AreRegionsActive(Region(free_iterator) + 1,
+                         std::min(Region(iterator + size) + 1, NUM_SYNCS))) {
+        // Avoid waiting for the previous usages to be free
+        return GetStagingBuffer(size, MemoryUsage::Upload);
     }
-    for (size_t region = Region(used_iterator), region_end = Region(iterator); region < region_end;
-         ++region) {
-        sync_ticks[region] = scheduler.CurrentTick();
-    }
+    const u64 current_tick = scheduler.CurrentTick();
+    std::fill(sync_ticks.begin() + Region(used_iterator), sync_ticks.begin() + Region(iterator),
+              current_tick);
     used_iterator = iterator;
+    free_iterator = std::max(free_iterator, iterator + size);
 
-    if (iterator + size > free_iterator) {
-        free_iterator = iterator + size;
-    }
     if (iterator + size > STREAM_BUFFER_SIZE) {
-        for (size_t region = Region(used_iterator); region < NUM_SYNCS; ++region) {
-            sync_ticks[region] = scheduler.CurrentTick();
-        }
+        std::fill(sync_ticks.begin() + Region(used_iterator), sync_ticks.begin() + NUM_SYNCS,
+                  current_tick);
         used_iterator = 0;
         iterator = 0;
         free_iterator = size;
 
-        for (size_t region = 0, region_end = Region(size); region <= region_end; ++region) {
-            scheduler.Wait(sync_ticks[region]);
+        if (AreRegionsActive(0, Region(size) + 1)) {
+            // Avoid waiting for the previous usages to be free
+            return GetStagingBuffer(size, MemoryUsage::Upload);
         }
     }
     const size_t offset = iterator;
@@ -179,6 +173,11 @@ StagingBufferRef StagingBufferPool::GetStreamBuffer(size_t size) {
         .mapped_span = std::span<u8>(stream_pointer + offset, size),
     };
 }
+
+bool StagingBufferPool::AreRegionsActive(size_t region_begin, size_t region_end) const {
+    return std::any_of(sync_ticks.begin() + region_begin, sync_ticks.begin() + region_end,
+                       [this](u64 sync_tick) { return !scheduler.IsFree(sync_tick); });
+};
 
 StagingBufferRef StagingBufferPool::GetStagingBuffer(size_t size, MemoryUsage usage) {
     if (const std::optional<StagingBufferRef> ref = TryGetReservedBuffer(size, usage)) {
