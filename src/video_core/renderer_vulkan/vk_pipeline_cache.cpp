@@ -355,14 +355,12 @@ VKPipelineCache::DecompileShaders(const FixedPipelineState& fixed_state) {
     SPIRVProgram program;
     std::vector<VkDescriptorSetLayoutBinding> bindings;
 
-    for (std::size_t index = 0; index < Maxwell::MaxShaderProgram; ++index) {
+    for (std::size_t index = 1; index < Maxwell::MaxShaderProgram; ++index) {
         const auto program_enum = static_cast<Maxwell::ShaderProgram>(index);
-
         // Skip stages that are not enabled
         if (!maxwell3d.regs.IsShaderConfigEnabled(index)) {
             continue;
         }
-
         const GPUVAddr gpu_addr = GetShaderAddress(maxwell3d, program_enum);
         const std::optional<VAddr> cpu_addr = gpu_memory.GpuToCpuAddress(gpu_addr);
         Shader* const shader = cpu_addr ? TryGet(*cpu_addr) : null_shader.get();
@@ -372,12 +370,8 @@ VKPipelineCache::DecompileShaders(const FixedPipelineState& fixed_state) {
         const auto& entries = shader->GetEntries();
         program[stage] = {
             Decompile(device, shader->GetIR(), program_type, shader->GetRegistry(), specialization),
-            entries};
-
-        if (program_enum == Maxwell::ShaderProgram::VertexA) {
-            // VertexB was combined with VertexA, so we skip the VertexB iteration
-            ++index;
-        }
+            entries,
+        };
 
         const u32 old_binding = specialization.base_binding;
         specialization.base_binding =
