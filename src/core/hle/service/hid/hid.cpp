@@ -209,9 +209,9 @@ Hid::Hid(Core::System& system_) : ServiceFramework{system_, "hid"} {
         {67, &Hid::StopSixAxisSensor, "StopSixAxisSensor"},
         {68, nullptr, "IsSixAxisSensorFusionEnabled"},
         {69, &Hid::EnableSixAxisSensorFusion, "EnableSixAxisSensorFusion"},
-        {70, nullptr, "SetSixAxisSensorFusionParameters"},
-        {71, nullptr, "GetSixAxisSensorFusionParameters"},
-        {72, nullptr, "ResetSixAxisSensorFusionParameters"},
+        {70, &Hid::SetSixAxisSensorFusionParameters, "SetSixAxisSensorFusionParameters"},
+        {71, &Hid::GetSixAxisSensorFusionParameters, "GetSixAxisSensorFusionParameters"},
+        {72, &Hid::ResetSixAxisSensorFusionParameters, "ResetSixAxisSensorFusionParameters"},
         {73, nullptr, "SetAccelerometerParameters"},
         {74, nullptr, "GetAccelerometerParameters"},
         {75, nullptr, "ResetAccelerometerParameters"},
@@ -529,6 +529,81 @@ void Hid::EnableSixAxisSensorFusion(Kernel::HLERequestContext& ctx) {
                 parameters.enable_sixaxis_sensor_fusion, parameters.sixaxis_handle.npad_type,
                 parameters.sixaxis_handle.npad_id, parameters.sixaxis_handle.device_index,
                 parameters.applet_resource_user_id);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void Hid::SetSixAxisSensorFusionParameters(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    struct Parameters {
+        Controller_NPad::DeviceHandle sixaxis_handle;
+        f32 parameter1;
+        f32 parameter2;
+        u64 applet_resource_user_id;
+    };
+
+    const auto parameters{rp.PopRaw<Parameters>()};
+
+    applet_resource->GetController<Controller_NPad>(HidController::NPad)
+        .SetSixAxisFusionParameters(parameters.sixaxis_handle, parameters.parameter1,
+                                    parameters.parameter2);
+
+    LOG_WARNING(Service_HID,
+                "(STUBBED) called, float1={}, float2={}, npad_type={}, npad_id={}, "
+                "device_index={}, applet_resource_user_id={}",
+                parameters.parameter1, parameters.parameter2, parameters.sixaxis_handle.npad_type,
+                parameters.sixaxis_handle.npad_id, parameters.sixaxis_handle.device_index,
+                parameters.applet_resource_user_id);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void Hid::GetSixAxisSensorFusionParameters(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    struct Parameters {
+        Controller_NPad::DeviceHandle sixaxis_handle;
+        u64 applet_resource_user_id;
+    };
+
+    f32 parameter1 = 0;
+    f32 parameter2 = 0;
+    const auto parameters{rp.PopRaw<Parameters>()};
+
+    std::tie(parameter1, parameter2) =
+        applet_resource->GetController<Controller_NPad>(HidController::NPad)
+            .GetSixAxisFusionParameters(parameters.sixaxis_handle);
+
+    LOG_WARNING(Service_HID,
+                "(STUBBED) called, npad_type={}, npad_id={}, "
+                "device_index={}, applet_resource_user_id={}",
+                parameters.sixaxis_handle.npad_type, parameters.sixaxis_handle.npad_id,
+                parameters.sixaxis_handle.device_index, parameters.applet_resource_user_id);
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(RESULT_SUCCESS);
+    rb.Push(parameter1);
+    rb.Push(parameter2);
+}
+
+void Hid::ResetSixAxisSensorFusionParameters(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    struct Parameters {
+        Controller_NPad::DeviceHandle sixaxis_handle;
+        u64 applet_resource_user_id;
+    };
+
+    const auto parameters{rp.PopRaw<Parameters>()};
+
+    applet_resource->GetController<Controller_NPad>(HidController::NPad)
+        .ResetSixAxisFusionParameters(parameters.sixaxis_handle);
+
+    LOG_WARNING(Service_HID,
+                "(STUBBED) called, npad_type={}, npad_id={}, "
+                "device_index={}, applet_resource_user_id={}",
+                parameters.sixaxis_handle.npad_type, parameters.sixaxis_handle.npad_id,
+                parameters.sixaxis_handle.device_index, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);

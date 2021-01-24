@@ -202,6 +202,9 @@ public:
     GyroscopeZeroDriftMode GetGyroscopeZeroDriftMode() const;
     bool IsSixAxisSensorAtRest() const;
     void SetSixAxisEnabled(bool six_axis_status);
+    void SetSixAxisFusionParameters(const DeviceHandle& handle, f32 parameter1, f32 parameter2);
+    std::pair<f32, f32> GetSixAxisFusionParameters(const DeviceHandle& handle);
+    void ResetSixAxisFusionParameters(const DeviceHandle& handle);
     LedPattern GetLedPattern(u32 npad_id);
     bool IsUnintendedHomeButtonInputProtectionEnabled(u32 npad_id) const;
     void SetUnintendedHomeButtonInputProtectionEnabled(bool is_protection_enabled, u32 npad_id);
@@ -458,6 +461,8 @@ private:
     std::array<bool, 10> unintended_home_button_input_protection{};
     GyroscopeZeroDriftMode gyroscope_zero_drift_mode{GyroscopeZeroDriftMode::Standard};
     bool sixaxis_sensors_enabled{true};
+    f32 sixaxis_fusion_parameter1{};
+    f32 sixaxis_fusion_parameter2{};
     bool sixaxis_at_rest{true};
     std::array<ControllerPad, 10> npad_pad_states{};
     bool is_in_lr_assignment_mode{false};
