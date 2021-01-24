@@ -308,8 +308,10 @@ if (MSVC)
     )
 else()
     target_compile_options(video_core PRIVATE
+        -Werror=array-bounds
         -Werror=conversion
         -Wno-error=sign-conversion
+        -Werror=missing-field-initializers
         -Werror=pessimizing-move
         -Werror=redundant-move
         -Werror=shadow
