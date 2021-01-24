@@ -253,8 +253,8 @@ private:
         if (line_number && *line_number != 0) {
             output_log += fmt::format("Line: {}\n", *line_number);
         }
-        output_log += fmt::format("ProcessID: {}\n", entry.pid);
-        output_log += fmt::format("ThreadID: {}\n", entry.tid);
+        output_log += fmt::format("ProcessID: {:X}\n", entry.pid);
+        output_log += fmt::format("ThreadID: {:X}\n", entry.tid);
 
         if (text_log) {
             output_log += fmt::format("Log Text: {}\n", *text_log);
