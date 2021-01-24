@@ -55,7 +55,7 @@ VkBlendFactor BlendFactor(Maxwell::Blend::Factor factor);
 
 VkFrontFace FrontFace(Maxwell::FrontFace front_face);
 
-VkCullModeFlags CullFace(Maxwell::CullFace cull_face);
+VkCullModeFlagBits CullFace(Maxwell::CullFace cull_face);
 
 VkComponentSwizzle SwizzleSource(Tegra::Texture::SwizzleSource swizzle);
 
