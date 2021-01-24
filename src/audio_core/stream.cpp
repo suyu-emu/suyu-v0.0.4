@@ -51,6 +51,14 @@ void Stream::Stop() {
     UNIMPLEMENTED();
 }
 
+bool Stream::Flush() {
+    const bool had_buffers = !queued_buffers.empty();
+    while (!queued_buffers.empty()) {
+        queued_buffers.pop();
+    }
+    return had_buffers;
+}
+
 void Stream::SetVolume(float volume) {
     game_volume = volume;
 }
