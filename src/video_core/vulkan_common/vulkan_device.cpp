@@ -84,21 +84,6 @@ VkFormatFeatureFlags GetFormatFeatures(VkFormatProperties properties, FormatType
     }
 }
 
-[[nodiscard]] bool IsRDNA(std::string_view device_name, VkDriverIdKHR driver_id) {
-    static constexpr std::array RDNA_DEVICES{
-        "5700",
-        "5600",
-        "5500",
-        "5300",
-    };
-    if (driver_id != VK_DRIVER_ID_AMD_PROPRIETARY_KHR) {
-        return false;
-    }
-    return std::any_of(RDNA_DEVICES.begin(), RDNA_DEVICES.end(), [device_name](const char* name) {
-        return device_name.find(name) != std::string_view::npos;
-    });
-}
-
 std::unordered_map<VkFormat, VkFormatProperties> GetFormatProperties(vk::PhysicalDevice physical) {
     static constexpr std::array formats{
         VK_FORMAT_A8B8G8R8_UNORM_PACK32,
@@ -434,14 +419,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         LOG_WARNING(
             Render_Vulkan,
             "Blacklisting RADV for VK_EXT_extended_dynamic state, likely due to a bug in yuzu");
-        ext_extended_dynamic_state = false;
-    }
-    if (ext_extended_dynamic_state && IsRDNA(properties.deviceName, driver_id)) {
-        // AMD's proprietary driver supports VK_EXT_extended_dynamic_state but on RDNA devices it
-        // seems to cause stability issues
-        LOG_WARNING(
-            Render_Vulkan,
-            "Blacklisting AMD proprietary on RDNA devices from VK_EXT_extended_dynamic_state");
         ext_extended_dynamic_state = false;
     }
 
