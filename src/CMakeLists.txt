@@ -64,8 +64,10 @@ if (MSVC)
 else()
     add_compile_options(
         -Wall
+        -Werror=array-bounds
         -Werror=implicit-fallthrough
         -Werror=missing-declarations
+        -Werror=missing-field-initializers
         -Werror=reorder
         -Werror=switch
         -Werror=uninitialized
