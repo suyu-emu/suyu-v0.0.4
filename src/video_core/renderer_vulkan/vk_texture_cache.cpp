@@ -95,20 +95,12 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     }
 }
 
-[[nodiscard]] VkImageCreateInfo MakeImageCreateInfo(const Device& device, const ImageInfo& info) {
-    const auto format_info = MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, info.format);
-    VkImageCreateFlags flags = VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
-    if (info.type == ImageType::e2D && info.resources.layers >= 6 &&
-        info.size.width == info.size.height) {
-        flags |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
-    }
-    if (info.type == ImageType::e3D) {
-        flags |= VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;
-    }
+[[nodiscard]] VkImageUsageFlags ImageUsageFlags(const MaxwellToVK::FormatInfo& info,
+                                                PixelFormat format) {
     VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
                               VK_IMAGE_USAGE_SAMPLED_BIT;
-    if (format_info.attachable) {
-        switch (VideoCore::Surface::GetFormatType(info.format)) {
+    if (info.attachable) {
+        switch (VideoCore::Surface::GetFormatType(format)) {
         case VideoCore::Surface::SurfaceType::ColorTexture:
             usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
             break;
@@ -120,8 +112,32 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
             UNREACHABLE_MSG("Invalid surface type");
         }
     }
-    if (format_info.storage) {
+    if (info.storage) {
         usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+    }
+    return usage;
+}
+
+/// Returns the preferred format for a VkImage
+[[nodiscard]] PixelFormat StorageFormat(PixelFormat format) {
+    switch (format) {
+    case PixelFormat::A8B8G8R8_SRGB:
+        return PixelFormat::A8B8G8R8_UNORM;
+    default:
+        return format;
+    }
+}
+
+[[nodiscard]] VkImageCreateInfo MakeImageCreateInfo(const Device& device, const ImageInfo& info) {
+    const PixelFormat format = StorageFormat(info.format);
+    const auto format_info = MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, false, format);
+    VkImageCreateFlags flags = VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
+    if (info.type == ImageType::e2D && info.resources.layers >= 6 &&
+        info.size.width == info.size.height) {
+        flags |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+    }
+    if (info.type == ImageType::e3D) {
+        flags |= VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;
     }
     const auto [samples_x, samples_y] = VideoCommon::SamplesLog2(info.num_samples);
     return VkImageCreateInfo{
@@ -130,17 +146,16 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
         .flags = flags,
         .imageType = ConvertImageType(info.type),
         .format = format_info.format,
-        .extent =
-            {
-                .width = info.size.width >> samples_x,
-                .height = info.size.height >> samples_y,
-                .depth = info.size.depth,
-            },
+        .extent{
+            .width = info.size.width >> samples_x,
+            .height = info.size.height >> samples_y,
+            .depth = info.size.depth,
+        },
         .mipLevels = static_cast<u32>(info.resources.levels),
         .arrayLayers = static_cast<u32>(info.resources.layers),
         .samples = ConvertSampleCount(info.num_samples),
         .tiling = VK_IMAGE_TILING_OPTIMAL,
-        .usage = usage,
+        .usage = ImageUsageFlags(format_info, format),
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
@@ -209,10 +224,11 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
 
 [[nodiscard]] VkAttachmentDescription AttachmentDescription(const Device& device,
                                                             const ImageView* image_view) {
-    const auto pixel_format = image_view->format;
+    using MaxwellToVK::SurfaceFormat;
+    const PixelFormat pixel_format = image_view->format;
     return VkAttachmentDescription{
         .flags = VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT,
-        .format = MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, pixel_format).format,
+        .format = SurfaceFormat(device, FormatType::Optimal, true, pixel_format).format,
         .samples = image_view->Samples(),
         .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
         .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -868,11 +884,16 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
             std::ranges::transform(swizzle, swizzle.begin(), ConvertGreenRed);
         }
     }
-    const VkFormat vk_format =
-        MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, format).format;
+    const auto format_info = MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format);
+    const VkFormat vk_format = format_info.format;
+    const VkImageViewUsageCreateInfo image_view_usage{
+        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO,
+        .pNext = nullptr,
+        .usage = ImageUsageFlags(format_info, format),
+    };
     const VkImageViewCreateInfo create_info{
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-        .pNext = nullptr,
+        .pNext = &image_view_usage,
         .flags = 0,
         .image = image.Handle(),
         .viewType = VkImageViewType{},
@@ -962,7 +983,7 @@ vk::ImageView ImageView::MakeDepthStencilView(VkImageAspectFlags aspect_mask) {
         .flags = 0,
         .image = image_handle,
         .viewType = ImageViewType(type),
-        .format = MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, format).format,
+        .format = MaxwellToVK::SurfaceFormat(*device, FormatType::Optimal, true, format).format,
         .components{
             .r = VK_COMPONENT_SWIZZLE_IDENTITY,
             .g = VK_COMPONENT_SWIZZLE_IDENTITY,
