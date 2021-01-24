@@ -190,11 +190,15 @@ void ConfigureInput::ApplyConfiguration() {
     // This emulates a delay between disconnecting and reconnecting controllers as some games
     // do not respond to a change in controller type if it was instantaneous.
     using namespace std::chrono_literals;
-    std::this_thread::sleep_for(60ms);
+    std::this_thread::sleep_for(150ms);
 
     for (auto* controller : player_controllers) {
         controller->TryConnectSelectedController();
     }
+
+    // This emulates a delay between disconnecting and reconnecting controllers as some games
+    // do not respond to a change in controller type if it was instantaneous.
+    std::this_thread::sleep_for(150ms);
 
     advanced->ApplyConfiguration();
 
