@@ -55,7 +55,7 @@ foreach(FILENAME IN ITEMS ${SHADER_FILES})
             OUTPUT
                 ${SPIRV_HEADER_FILE}
             COMMAND
-                ${GLSLANGVALIDATOR} -V ${GLSL_FLAGS} --variable-name ${SPIRV_VARIABLE_NAME} -o ${SPIRV_HEADER_FILE} ${SOURCE_FILE}
+                ${GLSLANGVALIDATOR} -V --quiet ${GLSL_FLAGS} --variable-name ${SPIRV_VARIABLE_NAME} -o ${SPIRV_HEADER_FILE} ${SOURCE_FILE}
             MAIN_DEPENDENCY
                 ${SOURCE_FILE}
         )
