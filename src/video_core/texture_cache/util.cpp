@@ -1193,25 +1193,35 @@ u32 MapSizeBytes(const ImageBase& image) {
     }
 }
 
-using P = PixelFormat;
+static_assert(CalculateLevelSize(LevelInfo{{1920, 1080, 1}, {0, 2, 0}, {1, 1}, 2, 0}, 0) ==
+              0x7f8000);
+static_assert(CalculateLevelSize(LevelInfo{{32, 32, 1}, {0, 0, 4}, {1, 1}, 4, 0}, 0) == 0x4000);
 
-static_assert(CalculateLevelSize(LevelInfo{{1920, 1080}, {0, 2, 0}, {1, 1}, 2, 0}, 0) == 0x7f8000);
-static_assert(CalculateLevelSize(LevelInfo{{32, 32}, {0, 0, 4}, {1, 1}, 4, 0}, 0) == 0x4000);
+static_assert(CalculateLevelOffset(PixelFormat::R8_SINT, {1920, 1080, 1}, {0, 2, 0}, 1, 0, 7) ==
+              0x2afc00);
+static_assert(CalculateLevelOffset(PixelFormat::ASTC_2D_12X12_UNORM, {8192, 4096, 1}, {0, 2, 0}, 1,
+                                   0, 12) == 0x50d200);
 
-static_assert(CalculateLevelOffset(P::R8_SINT, {1920, 1080}, {0, 2}, 1, 0, 7) == 0x2afc00);
-static_assert(CalculateLevelOffset(P::ASTC_2D_12X12_UNORM, {8192, 4096}, {0, 2}, 1, 0, 12) ==
-              0x50d200);
-
-static_assert(CalculateLevelOffset(P::A8B8G8R8_UNORM, {1024, 1024}, {0, 4}, 1, 0, 0) == 0);
-static_assert(CalculateLevelOffset(P::A8B8G8R8_UNORM, {1024, 1024}, {0, 4}, 1, 0, 1) == 0x400000);
-static_assert(CalculateLevelOffset(P::A8B8G8R8_UNORM, {1024, 1024}, {0, 4}, 1, 0, 2) == 0x500000);
-static_assert(CalculateLevelOffset(P::A8B8G8R8_UNORM, {1024, 1024}, {0, 4}, 1, 0, 3) == 0x540000);
-static_assert(CalculateLevelOffset(P::A8B8G8R8_UNORM, {1024, 1024}, {0, 4}, 1, 0, 4) == 0x550000);
-static_assert(CalculateLevelOffset(P::A8B8G8R8_UNORM, {1024, 1024}, {0, 4}, 1, 0, 5) == 0x554000);
-static_assert(CalculateLevelOffset(P::A8B8G8R8_UNORM, {1024, 1024}, {0, 4}, 1, 0, 6) == 0x555000);
-static_assert(CalculateLevelOffset(P::A8B8G8R8_UNORM, {1024, 1024}, {0, 4}, 1, 0, 7) == 0x555400);
-static_assert(CalculateLevelOffset(P::A8B8G8R8_UNORM, {1024, 1024}, {0, 4}, 1, 0, 8) == 0x555600);
-static_assert(CalculateLevelOffset(P::A8B8G8R8_UNORM, {1024, 1024}, {0, 4}, 1, 0, 9) == 0x555800);
+static_assert(CalculateLevelOffset(PixelFormat::A8B8G8R8_UNORM, {1024, 1024, 1}, {0, 4, 0}, 1, 0,
+                                   0) == 0);
+static_assert(CalculateLevelOffset(PixelFormat::A8B8G8R8_UNORM, {1024, 1024, 1}, {0, 4, 0}, 1, 0,
+                                   1) == 0x400000);
+static_assert(CalculateLevelOffset(PixelFormat::A8B8G8R8_UNORM, {1024, 1024, 1}, {0, 4, 0}, 1, 0,
+                                   2) == 0x500000);
+static_assert(CalculateLevelOffset(PixelFormat::A8B8G8R8_UNORM, {1024, 1024, 1}, {0, 4, 0}, 1, 0,
+                                   3) == 0x540000);
+static_assert(CalculateLevelOffset(PixelFormat::A8B8G8R8_UNORM, {1024, 1024, 1}, {0, 4, 0}, 1, 0,
+                                   4) == 0x550000);
+static_assert(CalculateLevelOffset(PixelFormat::A8B8G8R8_UNORM, {1024, 1024, 1}, {0, 4, 0}, 1, 0,
+                                   5) == 0x554000);
+static_assert(CalculateLevelOffset(PixelFormat::A8B8G8R8_UNORM, {1024, 1024, 1}, {0, 4, 0}, 1, 0,
+                                   6) == 0x555000);
+static_assert(CalculateLevelOffset(PixelFormat::A8B8G8R8_UNORM, {1024, 1024, 1}, {0, 4, 0}, 1, 0,
+                                   7) == 0x555400);
+static_assert(CalculateLevelOffset(PixelFormat::A8B8G8R8_UNORM, {1024, 1024, 1}, {0, 4, 0}, 1, 0,
+                                   8) == 0x555600);
+static_assert(CalculateLevelOffset(PixelFormat::A8B8G8R8_UNORM, {1024, 1024, 1}, {0, 4, 0}, 1, 0,
+                                   9) == 0x555800);
 
 constexpr u32 ValidateLayerSize(PixelFormat format, u32 width, u32 height, u32 block_height,
                                 u32 tile_width_spacing, u32 level) {
@@ -1221,13 +1231,14 @@ constexpr u32 ValidateLayerSize(PixelFormat format, u32 width, u32 height, u32 b
     return AlignLayerSize(offset, size, block, DefaultBlockHeight(format), tile_width_spacing);
 }
 
-static_assert(ValidateLayerSize(P::ASTC_2D_12X12_UNORM, 8192, 4096, 2, 0, 12) == 0x50d800);
-static_assert(ValidateLayerSize(P::A8B8G8R8_UNORM, 1024, 1024, 2, 0, 10) == 0x556000);
-static_assert(ValidateLayerSize(P::BC3_UNORM, 128, 128, 2, 0, 8) == 0x6000);
+static_assert(ValidateLayerSize(PixelFormat::ASTC_2D_12X12_UNORM, 8192, 4096, 2, 0, 12) ==
+              0x50d800);
+static_assert(ValidateLayerSize(PixelFormat::A8B8G8R8_UNORM, 1024, 1024, 2, 0, 10) == 0x556000);
+static_assert(ValidateLayerSize(PixelFormat::BC3_UNORM, 128, 128, 2, 0, 8) == 0x6000);
 
-static_assert(ValidateLayerSize(P::A8B8G8R8_UNORM, 518, 572, 4, 3, 1) == 0x190000,
+static_assert(ValidateLayerSize(PixelFormat::A8B8G8R8_UNORM, 518, 572, 4, 3, 1) == 0x190000,
               "Tile width spacing is not working");
-static_assert(ValidateLayerSize(P::BC5_UNORM, 1024, 1024, 3, 4, 11) == 0x160000,
+static_assert(ValidateLayerSize(PixelFormat::BC5_UNORM, 1024, 1024, 3, 4, 11) == 0x160000,
               "Compressed tile width spacing is not working");
 
 } // namespace VideoCommon

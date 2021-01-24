@@ -181,6 +181,7 @@ std::vector<vk::ShaderModule> VKGraphicsPipeline::CreateShaderModules(
         .pNext = nullptr,
         .flags = 0,
         .codeSize = 0,
+        .pCode = nullptr,
     };
 
     std::vector<vk::ShaderModule> shader_modules;

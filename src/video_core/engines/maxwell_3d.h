@@ -1337,7 +1337,7 @@ public:
                     u32 cb_address_high;
                     u32 cb_address_low;
                     u32 cb_pos;
-                    u32 cb_data[NumCBData];
+                    std::array<u32, NumCBData> cb_data;
 
                     GPUVAddr BufferAddress() const {
                         return static_cast<GPUVAddr>(

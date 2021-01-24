@@ -676,7 +676,7 @@ VkFrontFace FrontFace(Maxwell::FrontFace front_face) {
     return {};
 }
 
-VkCullModeFlags CullFace(Maxwell::CullFace cull_face) {
+VkCullModeFlagBits CullFace(Maxwell::CullFace cull_face) {
     switch (cull_face) {
     case Maxwell::CullFace::Front:
         return VK_CULL_MODE_FRONT_BIT;
