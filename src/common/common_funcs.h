@@ -52,8 +52,12 @@ __declspec(dllimport) void __stdcall DebugBreak(void);
 // Generic function to get last error message.
 // Call directly after the command or use the error num.
 // This function might change the error code.
-// Defined in Misc.cpp.
+// Defined in misc.cpp.
 [[nodiscard]] std::string GetLastErrorMsg();
+
+// Like GetLastErrorMsg(), but passing an explicit error code.
+// Defined in misc.cpp.
+[[nodiscard]] std::string NativeErrorToString(int e);
 
 #define DECLARE_ENUM_FLAG_OPERATORS(type)                                                          \
     [[nodiscard]] constexpr type operator|(type a, type b) noexcept {                              \

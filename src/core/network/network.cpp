@@ -7,6 +7,7 @@
 #include <limits>
 #include <utility>
 #include <vector>
+#include "common/common_funcs.h"
 
 #ifdef _WIN32
 #define _WINSOCK_DEPRECATED_NO_WARNINGS // gethostname
@@ -90,13 +91,34 @@ LINGER MakeLinger(bool enable, u32 linger_value) {
     return value;
 }
 
-int LastError() {
-    return WSAGetLastError();
-}
-
 bool EnableNonBlock(SOCKET fd, bool enable) {
     u_long value = enable ? 1 : 0;
     return ioctlsocket(fd, FIONBIO, &value) != SOCKET_ERROR;
+}
+
+Errno TranslateNativeError(int e) {
+    switch (e) {
+    case WSAEBADF:
+        return Errno::BADF;
+    case WSAEINVAL:
+        return Errno::INVAL;
+    case WSAEMFILE:
+        return Errno::MFILE;
+    case WSAENOTCONN:
+        return Errno::NOTCONN;
+    case WSAEWOULDBLOCK:
+        return Errno::AGAIN;
+    case WSAECONNREFUSED:
+        return Errno::CONNREFUSED;
+    case WSAEHOSTUNREACH:
+        return Errno::HOSTUNREACH;
+    case WSAENETDOWN:
+        return Errno::NETDOWN;
+    case WSAENETUNREACH:
+        return Errno::NETUNREACH;
+    default:
+        return Errno::OTHER;
+    }
 }
 
 #elif YUZU_UNIX // ^ _WIN32 v YUZU_UNIX
@@ -107,9 +129,6 @@ using ULONG = u64;
 
 constexpr SOCKET INVALID_SOCKET = -1;
 constexpr SOCKET SOCKET_ERROR = -1;
-
-constexpr int WSAEWOULDBLOCK = EAGAIN;
-constexpr int WSAENOTCONN = ENOTCONN;
 
 constexpr int SD_RECEIVE = SHUT_RD;
 constexpr int SD_SEND = SHUT_WR;
@@ -162,10 +181,6 @@ linger MakeLinger(bool enable, u32 linger_value) {
     return value;
 }
 
-int LastError() {
-    return errno;
-}
-
 bool EnableNonBlock(int fd, bool enable) {
     int flags = fcntl(fd, F_GETFD);
     if (flags == -1) {
@@ -179,7 +194,42 @@ bool EnableNonBlock(int fd, bool enable) {
     return fcntl(fd, F_SETFD, flags) == 0;
 }
 
+Errno TranslateNativeError(int e) {
+    switch (e) {
+    case EBADF:
+        return Errno::BADF;
+    case EINVAL:
+        return Errno::INVAL;
+    case EMFILE:
+        return Errno::MFILE;
+    case ENOTCONN:
+        return Errno::NOTCONN;
+    case EAGAIN:
+        return Errno::AGAIN;
+    case ECONNREFUSED:
+        return Errno::CONNREFUSED;
+    case EHOSTUNREACH:
+        return Errno::HOSTUNREACH;
+    case ENETDOWN:
+        return Errno::NETDOWN;
+    case ENETUNREACH:
+        return Errno::NETUNREACH;
+    default:
+        return Errno::OTHER;
+    }
+}
+
 #endif
+
+Errno GetAndLogLastError() {
+#ifdef _WIN32
+    int e = WSAGetLastError();
+#else
+    int e = errno;
+#endif
+    LOG_ERROR(Network, "Socket operation error: {}", NativeErrorToString(e));
+    return TranslateNativeError(e);
+}
 
 int TranslateDomain(Domain domain) {
     switch (domain) {
@@ -290,9 +340,7 @@ Errno SetSockOpt(SOCKET fd, int option, T value) {
     if (result != SOCKET_ERROR) {
         return Errno::SUCCESS;
     }
-    const int ec = LastError();
-    UNREACHABLE_MSG("Unhandled host socket error={}", ec);
-    return Errno::SUCCESS;
+    return GetAndLogLastError();
 }
 
 } // Anonymous namespace
@@ -308,14 +356,12 @@ NetworkInstance::~NetworkInstance() {
 std::pair<IPv4Address, Errno> GetHostIPv4Address() {
     std::array<char, 256> name{};
     if (gethostname(name.data(), static_cast<int>(name.size()) - 1) == SOCKET_ERROR) {
-        UNIMPLEMENTED_MSG("Unhandled gethostname error");
-        return {IPv4Address{}, Errno::SUCCESS};
+        return {IPv4Address{}, GetAndLogLastError()};
     }
 
     hostent* const ent = gethostbyname(name.data());
     if (!ent) {
-        UNIMPLEMENTED_MSG("Unhandled gethostbyname error");
-        return {IPv4Address{}, Errno::SUCCESS};
+        return {IPv4Address{}, GetAndLogLastError()};
     }
     if (ent->h_addr_list == nullptr) {
         UNIMPLEMENTED_MSG("No addr provided in hostent->h_addr_list");
@@ -359,9 +405,7 @@ std::pair<s32, Errno> Poll(std::vector<PollFD>& pollfds, s32 timeout) {
 
     ASSERT(result == SOCKET_ERROR);
 
-    const int ec = LastError();
-    UNREACHABLE_MSG("Unhandled host socket error={}", ec);
-    return {-1, Errno::SUCCESS};
+    return {-1, GetAndLogLastError()};
 }
 
 Socket::~Socket() {
@@ -380,9 +424,7 @@ Errno Socket::Initialize(Domain domain, Type type, Protocol protocol) {
         return Errno::SUCCESS;
     }
 
-    const int ec = LastError();
-    UNREACHABLE_MSG("Unhandled host socket error={}", ec);
-    return Errno::SUCCESS;
+    return GetAndLogLastError();
 }
 
 std::pair<Socket::AcceptResult, Errno> Socket::Accept() {
@@ -391,9 +433,7 @@ std::pair<Socket::AcceptResult, Errno> Socket::Accept() {
     const SOCKET new_socket = accept(fd, &addr, &addrlen);
 
     if (new_socket == INVALID_SOCKET) {
-        const int ec = LastError();
-        UNREACHABLE_MSG("Unhandled host socket error={}", ec);
-        return {AcceptResult{}, Errno::SUCCESS};
+        return {AcceptResult{}, GetAndLogLastError()};
     }
 
     AcceptResult result;
@@ -412,23 +452,14 @@ Errno Socket::Connect(SockAddrIn addr_in) {
         return Errno::SUCCESS;
     }
 
-    switch (const int ec = LastError()) {
-    case WSAEWOULDBLOCK:
-        LOG_DEBUG(Service, "EAGAIN generated");
-        return Errno::AGAIN;
-    default:
-        UNREACHABLE_MSG("Unhandled host socket error={}", ec);
-        return Errno::SUCCESS;
-    }
+    return GetAndLogLastError();
 }
 
 std::pair<SockAddrIn, Errno> Socket::GetPeerName() {
     sockaddr addr;
     socklen_t addrlen = sizeof(addr);
     if (getpeername(fd, &addr, &addrlen) == SOCKET_ERROR) {
-        const int ec = LastError();
-        UNREACHABLE_MSG("Unhandled host socket error={}", ec);
-        return {SockAddrIn{}, Errno::SUCCESS};
+        return {SockAddrIn{}, GetAndLogLastError()};
     }
 
     ASSERT(addrlen == sizeof(sockaddr_in));
@@ -439,9 +470,7 @@ std::pair<SockAddrIn, Errno> Socket::GetSockName() {
     sockaddr addr;
     socklen_t addrlen = sizeof(addr);
     if (getsockname(fd, &addr, &addrlen) == SOCKET_ERROR) {
-        const int ec = LastError();
-        UNREACHABLE_MSG("Unhandled host socket error={}", ec);
-        return {SockAddrIn{}, Errno::SUCCESS};
+        return {SockAddrIn{}, GetAndLogLastError()};
     }
 
     ASSERT(addrlen == sizeof(sockaddr_in));
@@ -454,9 +483,7 @@ Errno Socket::Bind(SockAddrIn addr) {
         return Errno::SUCCESS;
     }
 
-    const int ec = LastError();
-    UNREACHABLE_MSG("Unhandled host socket error={}", ec);
-    return Errno::SUCCESS;
+    return GetAndLogLastError();
 }
 
 Errno Socket::Listen(s32 backlog) {
@@ -464,9 +491,7 @@ Errno Socket::Listen(s32 backlog) {
         return Errno::SUCCESS;
     }
 
-    const int ec = LastError();
-    UNREACHABLE_MSG("Unhandled host socket error={}", ec);
-    return Errno::SUCCESS;
+    return GetAndLogLastError();
 }
 
 Errno Socket::Shutdown(ShutdownHow how) {
@@ -489,14 +514,7 @@ Errno Socket::Shutdown(ShutdownHow how) {
         return Errno::SUCCESS;
     }
 
-    switch (const int ec = LastError()) {
-    case WSAENOTCONN:
-        LOG_ERROR(Service, "ENOTCONN generated");
-        return Errno::NOTCONN;
-    default:
-        UNREACHABLE_MSG("Unhandled host socket error={}", ec);
-        return Errno::SUCCESS;
-    }
+    return GetAndLogLastError();
 }
 
 std::pair<s32, Errno> Socket::Recv(int flags, std::vector<u8>& message) {
@@ -509,17 +527,7 @@ std::pair<s32, Errno> Socket::Recv(int flags, std::vector<u8>& message) {
         return {static_cast<s32>(result), Errno::SUCCESS};
     }
 
-    switch (const int ec = LastError()) {
-    case WSAEWOULDBLOCK:
-        LOG_DEBUG(Service, "EAGAIN generated");
-        return {-1, Errno::AGAIN};
-    case WSAENOTCONN:
-        LOG_ERROR(Service, "ENOTCONN generated");
-        return {-1, Errno::NOTCONN};
-    default:
-        UNREACHABLE_MSG("Unhandled host socket error={}", ec);
-        return {0, Errno::SUCCESS};
-    }
+    return {-1, GetAndLogLastError()};
 }
 
 std::pair<s32, Errno> Socket::RecvFrom(int flags, std::vector<u8>& message, SockAddrIn* addr) {
@@ -541,17 +549,7 @@ std::pair<s32, Errno> Socket::RecvFrom(int flags, std::vector<u8>& message, Sock
         return {static_cast<s32>(result), Errno::SUCCESS};
     }
 
-    switch (const int ec = LastError()) {
-    case WSAEWOULDBLOCK:
-        LOG_DEBUG(Service, "EAGAIN generated");
-        return {-1, Errno::AGAIN};
-    case WSAENOTCONN:
-        LOG_ERROR(Service, "ENOTCONN generated");
-        return {-1, Errno::NOTCONN};
-    default:
-        UNREACHABLE_MSG("Unhandled host socket error={}", ec);
-        return {-1, Errno::SUCCESS};
-    }
+    return {-1, GetAndLogLastError()};
 }
 
 std::pair<s32, Errno> Socket::Send(const std::vector<u8>& message, int flags) {
@@ -564,18 +562,7 @@ std::pair<s32, Errno> Socket::Send(const std::vector<u8>& message, int flags) {
         return {static_cast<s32>(result), Errno::SUCCESS};
     }
 
-    const int ec = LastError();
-    switch (ec) {
-    case WSAEWOULDBLOCK:
-        LOG_DEBUG(Service, "EAGAIN generated");
-        return {-1, Errno::AGAIN};
-    case WSAENOTCONN:
-        LOG_ERROR(Service, "ENOTCONN generated");
-        return {-1, Errno::NOTCONN};
-    default:
-        UNREACHABLE_MSG("Unhandled host socket error={}", ec);
-        return {-1, Errno::SUCCESS};
-    }
+    return {-1, GetAndLogLastError()};
 }
 
 std::pair<s32, Errno> Socket::SendTo(u32 flags, const std::vector<u8>& message,
@@ -597,9 +584,7 @@ std::pair<s32, Errno> Socket::SendTo(u32 flags, const std::vector<u8>& message,
         return {static_cast<s32>(result), Errno::SUCCESS};
     }
 
-    const int ec = LastError();
-    UNREACHABLE_MSG("Unhandled host socket error={}", ec);
-    return {-1, Errno::SUCCESS};
+    return {-1, GetAndLogLastError()};
 }
 
 Errno Socket::Close() {
@@ -642,9 +627,7 @@ Errno Socket::SetNonBlock(bool enable) {
     if (EnableNonBlock(fd, enable)) {
         return Errno::SUCCESS;
     }
-    const int ec = LastError();
-    UNREACHABLE_MSG("Unhandled host socket error={}", ec);
-    return Errno::SUCCESS;
+    return GetAndLogLastError();
 }
 
 bool Socket::IsOpened() const {
