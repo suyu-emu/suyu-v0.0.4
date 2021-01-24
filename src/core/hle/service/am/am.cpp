@@ -856,7 +856,7 @@ public:
             {25, nullptr, "Terminate"},
             {30, &ILibraryAppletAccessor::GetResult, "GetResult"},
             {50, nullptr, "SetOutOfFocusApplicationSuspendingEnabled"},
-            {60, nullptr, "PresetLibraryAppletGpuTimeSliceZero"},
+            {60, &ILibraryAppletAccessor::PresetLibraryAppletGpuTimeSliceZero, "PresetLibraryAppletGpuTimeSliceZero"},
             {100, &ILibraryAppletAccessor::PushInData, "PushInData"},
             {101, &ILibraryAppletAccessor::PopOutData, "PopOutData"},
             {102, nullptr, "PushExtraStorage"},
@@ -898,6 +898,13 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(applet->GetStatus());
+    }
+
+    void PresetLibraryAppletGpuTimeSliceZero(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_AM, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
     }
 
     void Start(Kernel::HLERequestContext& ctx) {
