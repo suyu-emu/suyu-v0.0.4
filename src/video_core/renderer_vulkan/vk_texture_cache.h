@@ -72,7 +72,7 @@ struct TextureCacheRuntime {
     MemoryAllocator& memory_allocator;
     StagingBufferPool& staging_buffer_pool;
     BlitImageHelper& blit_image_helper;
-    std::unordered_map<RenderPassKey, vk::RenderPass> renderpass_cache;
+    std::unordered_map<RenderPassKey, vk::RenderPass> renderpass_cache{};
 
     void Finish();
 
