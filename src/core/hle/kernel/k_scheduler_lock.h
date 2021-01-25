@@ -23,11 +23,11 @@ public:
     explicit KAbstractSchedulerLock(KernelCore& kernel_) : kernel{kernel_} {}
 
     bool IsLockedByCurrentThread() const {
-        return this->owner_thread == GetCurrentThreadPointer(kernel);
+        return owner_thread == GetCurrentThreadPointer(kernel);
     }
 
     void Lock() {
-        if (this->IsLockedByCurrentThread()) {
+        if (IsLockedByCurrentThread()) {
             // If we already own the lock, we can just increment the count.
             ASSERT(lock_count > 0);
             lock_count++;
@@ -47,7 +47,7 @@ public:
     }
 
     void Unlock() {
-        ASSERT(this->IsLockedByCurrentThread());
+        ASSERT(IsLockedByCurrentThread());
         ASSERT(lock_count > 0);
 
         // Release an instance of the lock.
