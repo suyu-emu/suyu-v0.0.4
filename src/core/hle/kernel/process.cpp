@@ -138,7 +138,7 @@ std::shared_ptr<ResourceLimit> Process::GetResourceLimit() const {
 
 void Process::IncrementThreadCount() {
     ASSERT(num_threads >= 0);
-    ++num_created_threads;
+    num_created_threads++;
 
     if (const auto count = ++num_threads; count > peak_num_threads) {
         peak_num_threads = count;
@@ -443,7 +443,7 @@ bool Process::IsSignaled() const {
 Process::Process(Core::System& system)
     : KSynchronizationObject{system.Kernel()},
       page_table{std::make_unique<Memory::PageTable>(system)}, handle_table{system.Kernel()},
-      address_arbiter{system}, condition_var{system}, system{system} {}
+      address_arbiter{system}, condition_var{system}, state_lock{system.Kernel()}, system{system} {}
 
 Process::~Process() = default;
 

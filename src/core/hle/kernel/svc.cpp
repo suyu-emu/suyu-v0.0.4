@@ -1450,11 +1450,14 @@ static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr e
              Svc::ResultInvalidPriority);
     R_UNLESS(process.CheckThreadPriority(priority), Svc::ResultInvalidPriority);
 
-    ASSERT(kernel.CurrentProcess()->GetResourceLimit()->Reserve(ResourceType::Threads, 1));
+    ASSERT(process.GetResourceLimit()->Reserve(ResourceType::Threads, 1));
 
-    CASCADE_RESULT(std::shared_ptr<KThread> thread,
-                   KThread::Create(system, ThreadType::User, "", entry_point, priority, arg,
-                                   core_id, stack_bottom, &process));
+    std::shared_ptr<KThread> thread;
+    {
+        KScopedLightLock lk{process.GetStateLock()};
+        CASCADE_RESULT(thread, KThread::Create(system, ThreadType::User, "", entry_point, priority,
+                                               arg, core_id, stack_bottom, &process));
+    }
 
     const auto new_thread_handle = process.GetHandleTable().Create(thread);
     if (new_thread_handle.Failed()) {

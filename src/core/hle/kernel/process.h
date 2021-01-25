@@ -348,6 +348,10 @@ public:
     void PinCurrentThread();
     void UnpinCurrentThread();
 
+    KLightLock& GetStateLock() {
+        return state_lock;
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Thread-local storage management
 
@@ -471,6 +475,8 @@ private:
     std::array<KThread*, Core::Hardware::NUM_CPU_CORES> pinned_threads{};
 
     KThread* exception_thread{};
+
+    KLightLock state_lock;
 
     /// System context
     Core::System& system;
