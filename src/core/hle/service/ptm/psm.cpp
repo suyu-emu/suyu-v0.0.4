@@ -117,7 +117,7 @@ private:
 
 class PSM final : public ServiceFramework<PSM> {
 public:
-    explicit PSM(Core::System& system_) : ServiceFramework{system_, "psm"}, system(system_) {
+    explicit PSM(Core::System& system_) : ServiceFramework{system_, "psm"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &PSM::GetBatteryChargePercentage, "GetBatteryChargePercentage"},
@@ -181,7 +181,6 @@ private:
 
     u32 battery_charge_percentage{100}; // 100%
     ChargerType charger_type{ChargerType::RegularCharger};
-    Core::System& system;
 };
 
 void InstallInterfaces(SM::ServiceManager& sm, Core::System& system) {
