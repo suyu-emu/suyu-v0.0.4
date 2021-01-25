@@ -314,17 +314,29 @@ void MemoryManager::WriteBlockUnsafe(GPUVAddr gpu_dest_addr, const void* src_buf
     }
 }
 
+void MemoryManager::FlushRegion(GPUVAddr gpu_addr, size_t size) const {
+    size_t remaining_size{size};
+    size_t page_index{gpu_addr >> page_bits};
+    size_t page_offset{gpu_addr & page_mask};
+    while (remaining_size > 0) {
+        const size_t num_bytes{std::min(page_size - page_offset, remaining_size)};
+        if (const auto page_addr{GpuToCpuAddress(page_index << page_bits)}; page_addr) {
+            rasterizer->FlushRegion(*page_addr + page_offset, num_bytes);
+        }
+        ++page_index;
+        page_offset = 0;
+        remaining_size -= num_bytes;
+    }
+}
+
 void MemoryManager::CopyBlock(GPUVAddr gpu_dest_addr, GPUVAddr gpu_src_addr, std::size_t size) {
     std::vector<u8> tmp_buffer(size);
     ReadBlock(gpu_src_addr, tmp_buffer.data(), size);
-    WriteBlock(gpu_dest_addr, tmp_buffer.data(), size);
-}
 
-void MemoryManager::CopyBlockUnsafe(GPUVAddr gpu_dest_addr, GPUVAddr gpu_src_addr,
-                                    std::size_t size) {
-    std::vector<u8> tmp_buffer(size);
-    ReadBlockUnsafe(gpu_src_addr, tmp_buffer.data(), size);
-    WriteBlockUnsafe(gpu_dest_addr, tmp_buffer.data(), size);
+    // The output block must be flushed in case it has data modified from the GPU.
+    // Fixes NPC geometry in Zombie Panic in Wonderland DX
+    FlushRegion(gpu_dest_addr, size);
+    WriteBlock(gpu_dest_addr, tmp_buffer.data(), size);
 }
 
 bool MemoryManager::IsGranularRange(GPUVAddr gpu_addr, std::size_t size) const {
