@@ -388,54 +388,9 @@ void ShaderIR::SetInternalFlagsFromInteger(NodeBlock& bb, Node value, bool sets_
     if (!sets_cc) {
         return;
     }
-    switch (value->index()) {
-    case 0: // Operation Node
-        SearchOperands(bb, value);
-        break;
-    case 2: // General Purpose Node
-        if (const auto* gpr = std::get_if<GprNode>(value.get())) {
-            LOG_DEBUG(HW_GPU, "GprNode: index={}", gpr->GetIndex());
-            Node zerop = Operation(OperationCode::LogicalIEqual, std::move(value),
-                                   Immediate(gpr->GetIndex()));
-            SetInternalFlag(bb, InternalFlag::Zero, std::move(zerop));
-        }
-        break;
-
-    default:
-        Node zerop = Operation(OperationCode::LogicalIEqual, std::move(value), Immediate(0));
-        SetInternalFlag(bb, InternalFlag::Zero, std::move(zerop));
-        LOG_WARNING(HW_GPU, "Node Type: {}", value->index());
-        break;
-    }
-}
-
-void ShaderIR::SearchOperands(NodeBlock& nb, Node var) {
-    const auto* op = std::get_if<OperationNode>(var.get());
-    if (op == nullptr) {
-        return;
-    }
-
-    if (op->GetOperandsCount() == 0) {
-        return;
-    }
-
-    for (auto& operand : op->GetOperands()) {
-        switch (operand->index()) {
-        case 0: // Operation Node
-            return SearchOperands(nb, operand);
-        case 2: // General Purpose Node
-            if (const auto* gpr = std::get_if<GprNode>(operand.get())) {
-                LOG_DEBUG(HW_GPU, "Child GprNode: index={}", gpr->GetIndex());
-                Node zerop = Operation(OperationCode::LogicalIEqual, std::move(operand),
-                                       Immediate(gpr->GetIndex()));
-                SetInternalFlag(nb, InternalFlag::Zero, std::move(zerop));
-            }
-            break;
-        default:
-            LOG_WARNING(HW_GPU, "Child Node Type: {}", operand->index());
-            break;
-        }
-    }
+    Node zerop = Operation(OperationCode::LogicalIEqual, std::move(value), Immediate(0));
+    SetInternalFlag(bb, InternalFlag::Zero, std::move(zerop));
+    LOG_WARNING(HW_GPU, "Condition codes implementation is incomplete");
 }
 
 Node ShaderIR::BitfieldExtract(Node value, u32 offset, u32 bits) {
