@@ -534,6 +534,10 @@ public:
         return wait_reason_for_debugging;
     }
 
+    [[nodiscard]] ThreadType GetThreadTypeForDebugging() const {
+        return thread_type_for_debugging;
+    }
+
     void SetWaitObjectsForDebugging(const std::span<KSynchronizationObject*>& objects) {
         wait_objects_for_debugging.clear();
         wait_objects_for_debugging.reserve(objects.size());
@@ -721,6 +725,7 @@ private:
     std::vector<KSynchronizationObject*> wait_objects_for_debugging;
     VAddr mutex_wait_address_for_debugging{};
     ThreadWaitReasonForDebugging wait_reason_for_debugging{};
+    ThreadType thread_type_for_debugging{};
     std::string name;
 
 public:

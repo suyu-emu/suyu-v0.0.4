@@ -101,11 +101,12 @@ ResultCode KThread::Initialize(KThreadFunction func, uintptr_t arg, VAddr user_s
         UNREACHABLE_MSG("KThread::Initialize: Unknown ThreadType {}", static_cast<u32>(type));
         break;
     }
+    thread_type_for_debugging = type;
 
     // Set the ideal core ID and affinity mask.
     virtual_ideal_core_id = virt_core;
     physical_ideal_core_id = phys_core;
-    virtual_affinity_mask = (static_cast<u64>(1) << virt_core);
+    virtual_affinity_mask = 1ULL << virt_core;
     physical_affinity_mask.SetAffinity(phys_core, true);
 
     // Set the thread state.
@@ -353,7 +354,7 @@ void KThread::Unpin() {
     // Enable core migration.
     ASSERT(num_core_migration_disables == 1);
     {
-        --num_core_migration_disables;
+        num_core_migration_disables--;
 
         // Restore our original state.
         const KAffinityMask old_mask = physical_affinity_mask;
@@ -494,8 +495,8 @@ ResultCode KThread::SetCoreMask(s32 core_id, u64 v_affinity_mask) {
 
     // Update the pinned waiter list.
     {
-        bool retry_update = false;
-        bool thread_is_pinned = false;
+        bool retry_update{};
+        bool thread_is_pinned{};
         do {
             // Lock the scheduler.
             KScopedSchedulerLock sl{kernel};
@@ -507,7 +508,7 @@ ResultCode KThread::SetCoreMask(s32 core_id, u64 v_affinity_mask) {
             retry_update = false;
 
             // Check if the thread is currently running.
-            bool thread_is_current = false;
+            bool thread_is_current{};
             s32 thread_core;
             for (thread_core = 0; thread_core < static_cast<s32>(Core::Hardware::NUM_CPU_CORES);
                  ++thread_core) {
@@ -683,8 +684,8 @@ ResultCode KThread::SetActivity(Svc::ThreadActivity activity) {
 
     // If the thread is now paused, update the pinned waiter list.
     if (activity == Svc::ThreadActivity::Paused) {
-        bool thread_is_pinned = false;
-        bool thread_is_current;
+        bool thread_is_pinned{};
+        bool thread_is_current{};
         do {
             // Lock the scheduler.
             KScopedSchedulerLock sl{kernel};

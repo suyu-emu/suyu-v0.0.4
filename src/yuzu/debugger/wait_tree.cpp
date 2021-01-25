@@ -93,8 +93,10 @@ std::vector<std::unique_ptr<WaitTreeThread>> WaitTreeItem::MakeThreadItemList() 
     std::size_t row = 0;
     auto add_threads = [&](const std::vector<std::shared_ptr<Kernel::KThread>>& threads) {
         for (std::size_t i = 0; i < threads.size(); ++i) {
-            item_list.push_back(std::make_unique<WaitTreeThread>(*threads[i]));
-            item_list.back()->row = row;
+            if (threads[i]->GetThreadTypeForDebugging() == Kernel::ThreadType::User) {
+                item_list.push_back(std::make_unique<WaitTreeThread>(*threads[i]));
+                item_list.back()->row = row;
+            }
             ++row;
         }
     };
@@ -147,6 +149,10 @@ QString WaitTreeCallstack::GetText() const {
 
 std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeCallstack::GetChildren() const {
     std::vector<std::unique_ptr<WaitTreeItem>> list;
+
+    if (thread.GetThreadTypeForDebugging() != Kernel::ThreadType::User) {
+        return list;
+    }
 
     if (thread.GetOwnerProcess() == nullptr || !thread.GetOwnerProcess()->Is64BitProcess()) {
         return list;
