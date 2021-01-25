@@ -97,6 +97,9 @@ __declspec(dllimport) void __stdcall DebugBreak(void);
 #define R_UNLESS(expr, res)                                                                        \
     {                                                                                              \
         if (!(expr)) {                                                                             \
+            if (res.IsError()) {                                                                   \
+                LOG_CRITICAL(Kernel, "Failed with error {}", res.raw);                             \
+            }                                                                                      \
             return res;                                                                            \
         }                                                                                          \
     }
