@@ -327,8 +327,8 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const SPIRVProgram& program,
         .rasterizerDiscardEnable =
             static_cast<VkBool32>(state.rasterize_enable == 0 ? VK_TRUE : VK_FALSE),
         .polygonMode = VK_POLYGON_MODE_FILL,
-        .cullMode =
-            dynamic.cull_enable ? MaxwellToVK::CullFace(dynamic.CullFace()) : VK_CULL_MODE_NONE,
+        .cullMode = static_cast<VkCullModeFlags>(
+            dynamic.cull_enable ? MaxwellToVK::CullFace(dynamic.CullFace()) : VK_CULL_MODE_NONE),
         .frontFace = MaxwellToVK::FrontFace(dynamic.FrontFace()),
         .depthBiasEnable = state.depth_bias_enable,
         .depthBiasConstantFactor = 0.0f,
