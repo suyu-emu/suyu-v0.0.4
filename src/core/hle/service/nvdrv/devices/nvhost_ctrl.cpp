@@ -155,7 +155,13 @@ NvResult nvhost_ctrl::IocCtrlEventRegister(const std::vector<u8>& input, std::ve
         return NvResult::BadParameter;
     }
     if (events_interface.registered[event_id]) {
-        return NvResult::BadParameter;
+        const auto event_state = events_interface.status[event_id];
+        if (event_state != EventState::Free) {
+            LOG_WARNING(Service_NVDRV, "Event already registered! Unregistering previous event");
+            events_interface.UnregisterEvent(event_id);
+        } else {
+            return NvResult::BadParameter;
+        }
     }
     events_interface.RegisterEvent(event_id);
     return NvResult::Success;
