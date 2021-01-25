@@ -211,9 +211,8 @@ struct KernelCore::Impl {
     KThread* GetHostDummyThread() {
         const thread_local auto thread =
             KThread::Create(
-                system, ThreadType::Main,
-                std::string{"DummyThread:" + GetHostThreadId()}, 0, KThread::DefaultThreadPriority,
-                0, static_cast<u32>(3), 0, nullptr,
+                system, ThreadType::Main, fmt::format("DummyThread:{}", GetHostThreadId()), 0,
+                KThread::DefaultThreadPriority, 0, static_cast<u32>(3), 0, nullptr,
                 []([[maybe_unused]] void* arg) { UNREACHABLE(); }, nullptr)
                 .Unwrap();
         return thread.get();
