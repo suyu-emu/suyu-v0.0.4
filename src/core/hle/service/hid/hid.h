@@ -97,6 +97,9 @@ private:
     void StartSixAxisSensor(Kernel::HLERequestContext& ctx);
     void StopSixAxisSensor(Kernel::HLERequestContext& ctx);
     void EnableSixAxisSensorFusion(Kernel::HLERequestContext& ctx);
+    void SetSixAxisSensorFusionParameters(Kernel::HLERequestContext& ctx);
+    void GetSixAxisSensorFusionParameters(Kernel::HLERequestContext& ctx);
+    void ResetSixAxisSensorFusionParameters(Kernel::HLERequestContext& ctx);
     void SetGyroscopeZeroDriftMode(Kernel::HLERequestContext& ctx);
     void GetGyroscopeZeroDriftMode(Kernel::HLERequestContext& ctx);
     void ResetGyroscopeZeroDriftMode(Kernel::HLERequestContext& ctx);
