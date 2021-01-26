@@ -21,7 +21,7 @@ namespace {
 
 constexpr ResultCode ERROR_CANNOT_FIND_ENTRY{ErrorModule::Mii, 4};
 
-constexpr std::size_t DefaultMiiCount{sizeof(RawData::DefaultMii) / sizeof(DefaultMii)};
+constexpr std::size_t DefaultMiiCount{RawData::DefaultMii.size()};
 
 constexpr MiiStoreData::Name DefaultMiiName{u'y', u'u', u'z', u'u'};
 constexpr std::array<u8, 8> HairColorLookup{8, 1, 2, 3, 4, 5, 6, 7};
@@ -141,13 +141,6 @@ T GetRandomValue(T max) {
     return GetRandomValue<T>({}, max);
 }
 
-template <typename T>
-T GetArrayValue(const u8* data, std::size_t index) {
-    T result{};
-    std::memcpy(&result, &data[index * sizeof(T)], sizeof(T));
-    return result;
-}
-
 MiiStoreData BuildRandomStoreData(Age age, Gender gender, Race race, const Common::UUID& user_id) {
     MiiStoreBitFields bf{};
 
@@ -193,32 +186,20 @@ MiiStoreData BuildRandomStoreData(Age age, Gender gender, Race race, const Commo
     const std::size_t index{3 * static_cast<std::size_t>(age) +
                             9 * static_cast<std::size_t>(gender) + static_cast<std::size_t>(race)};
 
-    const auto faceline_type_info{
-        GetArrayValue<RandomMiiData4>(&RawData::RandomMiiFaceline[0], index)};
-    const auto faceline_color_info{GetArrayValue<RandomMiiData3>(
-        RawData::RandomMiiFacelineColor.data(),
+    const auto faceline_type_info{RawData::RandomMiiFaceline.at(index)};
+    const auto faceline_color_info{RawData::RandomMiiFacelineColor.at(
         3 * static_cast<std::size_t>(gender) + static_cast<std::size_t>(race))};
-    const auto faceline_wrinkle_info{
-        GetArrayValue<RandomMiiData4>(RawData::RandomMiiFacelineWrinkle.data(), index)};
-    const auto faceline_makeup_info{
-        GetArrayValue<RandomMiiData4>(RawData::RandomMiiFacelineMakeup.data(), index)};
-    const auto hair_type_info{
-        GetArrayValue<RandomMiiData4>(RawData::RandomMiiHairType.data(), index)};
-    const auto hair_color_info{GetArrayValue<RandomMiiData3>(RawData::RandomMiiHairColor.data(),
-                                                             3 * static_cast<std::size_t>(race) +
-                                                                 static_cast<std::size_t>(age))};
-    const auto eye_type_info{
-        GetArrayValue<RandomMiiData4>(RawData::RandomMiiEyeType.data(), index)};
-    const auto eye_color_info{GetArrayValue<RandomMiiData2>(RawData::RandomMiiEyeColor.data(),
-                                                            static_cast<std::size_t>(race))};
-    const auto eyebrow_type_info{
-        GetArrayValue<RandomMiiData4>(RawData::RandomMiiEyebrowType.data(), index)};
-    const auto nose_type_info{
-        GetArrayValue<RandomMiiData4>(RawData::RandomMiiNoseType.data(), index)};
-    const auto mouth_type_info{
-        GetArrayValue<RandomMiiData4>(RawData::RandomMiiMouthType.data(), index)};
-    const auto glasses_type_info{GetArrayValue<RandomMiiData2>(RawData::RandomMiiGlassType.data(),
-                                                               static_cast<std::size_t>(age))};
+    const auto faceline_wrinkle_info{RawData::RandomMiiFacelineWrinkle.at(index)};
+    const auto faceline_makeup_info{RawData::RandomMiiFacelineMakeup.at(index)};
+    const auto hair_type_info{RawData::RandomMiiHairType.at(index)};
+    const auto hair_color_info{RawData::RandomMiiHairColor.at(3 * static_cast<std::size_t>(race) +
+                                                              static_cast<std::size_t>(age))};
+    const auto eye_type_info{RawData::RandomMiiEyeType.at(index)};
+    const auto eye_color_info{RawData::RandomMiiEyeColor.at(static_cast<std::size_t>(race))};
+    const auto eyebrow_type_info{RawData::RandomMiiEyebrowType.at(index)};
+    const auto nose_type_info{RawData::RandomMiiNoseType.at(index)};
+    const auto mouth_type_info{RawData::RandomMiiMouthType.at(index)};
+    const auto glasses_type_info{RawData::RandomMiiGlassType.at(static_cast<std::size_t>(age))};
 
     bf.faceline_type.Assign(
         faceline_type_info.values[GetRandomValue<std::size_t>(faceline_type_info.values_count)]);
@@ -455,8 +436,7 @@ MiiInfo MiiManager::BuildRandom(Age age, Gender gender, Race race) {
 }
 
 MiiInfo MiiManager::BuildDefault(std::size_t index) {
-    return ConvertStoreDataToInfo(BuildDefaultStoreData(
-        GetArrayValue<DefaultMii>(RawData::DefaultMii.data(), index), user_id));
+    return ConvertStoreDataToInfo(BuildDefaultStoreData(RawData::DefaultMii.at(index), user_id));
 }
 
 ResultVal<std::vector<MiiInfoElement>> MiiManager::GetDefault(SourceFlag source_flag) {
