@@ -50,11 +50,11 @@ public:
             {1046, nullptr, "DisableFeaturesForReset"},
             {1047, nullptr, "NotifyApplicationDownloadStarted"},
             {1048, nullptr, "NotifyNetworkProfileCreated"},
-            {1061, nullptr, "ConfirmStereoVisionRestrictionConfigurable"},
-            {1062, nullptr, "GetStereoVisionRestriction"},
-            {1063, nullptr, "SetStereoVisionRestriction"},
-            {1064, nullptr, "ResetConfirmedStereoVisionPermission"},
-            {1065, nullptr, "IsStereoVisionPermitted"},
+            {1061, &IParentalControlService::ConfirmStereoVisionRestrictionConfigurable, "ConfirmStereoVisionRestrictionConfigurable"},
+            {1062, &IParentalControlService::GetStereoVisionRestriction, "GetStereoVisionRestriction"},
+            {1063, &IParentalControlService::SetStereoVisionRestriction, "SetStereoVisionRestriction"},
+            {1064, &IParentalControlService::ResetConfirmedStereoVisionPermission, "ResetConfirmedStereoVisionPermission"},
+            {1065, &IParentalControlService::IsStereoVisionPermitted, "IsStereoVisionPermitted"},
             {1201, nullptr, "UnlockRestrictionTemporarily"},
             {1202, nullptr, "UnlockSystemSettingsRestriction"},
             {1203, nullptr, "SetPinCode"},
@@ -114,6 +114,7 @@ public:
             {2015, nullptr, "FinishSynchronizeParentalControlSettingsWithLastUpdated"},
             {2016, nullptr, "RequestUpdateExemptionListAsync"},
         };
+        // clang-format on
         RegisterHandlers(functions);
     }
 
@@ -131,6 +132,49 @@ private:
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
+
+    void ConfirmStereoVisionRestrictionConfigurable(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_PCTL, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
+
+    void IsStereoVisionPermitted(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_PCTL, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push(true);
+    }
+
+    void SetStereoVisionRestriction(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto can_use = rp.Pop<bool>();
+        LOG_WARNING(Service_PCTL, "(STUBBED) called, can_use={}", can_use);
+
+        can_use_stereo_vision = can_use;
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
+
+    void GetStereoVisionRestriction(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_PCTL, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push(can_use_stereo_vision);
+    }
+
+    void ResetConfirmedStereoVisionPermission(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_PCTL, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
+
+    bool can_use_stereo_vision = true;
 };
 
 void Module::Interface::CreateService(Kernel::HLERequestContext& ctx) {
@@ -149,7 +193,8 @@ void Module::Interface::CreateServiceWithoutInitialize(Kernel::HLERequestContext
     rb.PushIpcInterface<IParentalControlService>(system);
 }
 
-Module::Interface::Interface(Core::System& system_, std::shared_ptr<Module> module_, const char* name)
+Module::Interface::Interface(Core::System& system_, std::shared_ptr<Module> module_,
+                             const char* name)
     : ServiceFramework{system_, name}, module{std::move(module_)} {}
 
 Module::Interface::~Interface() = default;

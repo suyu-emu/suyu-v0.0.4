@@ -635,7 +635,7 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system_,
         {50, &ICommonStateGetter::IsVrModeEnabled, "IsVrModeEnabled"},
         {51, &ICommonStateGetter::SetVrModeEnabled, "SetVrModeEnabled"},
         {52, &ICommonStateGetter::SetLcdBacklighOffEnabled, "SetLcdBacklighOffEnabled"},
-        {53, nullptr, "BeginVrModeEx"},
+        {53, &ICommonStateGetter::BeginVrModeEx, "BeginVrModeEx"},
         {54, &ICommonStateGetter::EndVrModeEx, "EndVrModeEx"},
         {55, nullptr, "IsInControllerFirmwareUpdateSection"},
         {60, &ICommonStateGetter::GetDefaultDisplayResolution, "GetDefaultDisplayResolution"},
@@ -727,6 +727,13 @@ void ICommonStateGetter::SetLcdBacklighOffEnabled(Kernel::HLERequestContext& ctx
 
     LOG_WARNING(Service_AM, "(STUBBED) called. is_lcd_backlight_off_enabled={}",
                 is_lcd_backlight_off_enabled);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void ICommonStateGetter::BeginVrModeEx(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
