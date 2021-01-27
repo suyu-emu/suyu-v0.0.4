@@ -202,9 +202,9 @@ public:
     GyroscopeZeroDriftMode GetGyroscopeZeroDriftMode() const;
     bool IsSixAxisSensorAtRest() const;
     void SetSixAxisEnabled(bool six_axis_status);
-    void SetSixAxisFusionParameters(const DeviceHandle& handle, f32 parameter1, f32 parameter2);
-    std::pair<f32, f32> GetSixAxisFusionParameters(const DeviceHandle& handle);
-    void ResetSixAxisFusionParameters(const DeviceHandle& handle);
+    void SetSixAxisFusionParameters(f32 parameter1, f32 parameter2);
+    std::pair<f32, f32> GetSixAxisFusionParameters();
+    void ResetSixAxisFusionParameters();
     LedPattern GetLedPattern(u32 npad_id);
     bool IsUnintendedHomeButtonInputProtectionEnabled(u32 npad_id) const;
     void SetUnintendedHomeButtonInputProtectionEnabled(bool is_protection_enabled, u32 npad_id);

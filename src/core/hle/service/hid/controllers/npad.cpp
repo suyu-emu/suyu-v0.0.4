@@ -946,20 +946,19 @@ void Controller_NPad::SetSixAxisEnabled(bool six_axis_status) {
     sixaxis_sensors_enabled = six_axis_status;
 }
 
-void Controller_NPad::SetSixAxisFusionParameters(const DeviceHandle& handle, f32 parameter1,
-                                                 f32 parameter2) {
+void Controller_NPad::SetSixAxisFusionParameters(f32 parameter1, f32 parameter2) {
     sixaxis_fusion_parameter1 = parameter1;
     sixaxis_fusion_parameter2 = parameter2;
 }
 
-std::pair<f32, f32> Controller_NPad::GetSixAxisFusionParameters(const DeviceHandle& handle) {
+std::pair<f32, f32> Controller_NPad::GetSixAxisFusionParameters() {
     return {
         sixaxis_fusion_parameter1,
         sixaxis_fusion_parameter2,
     };
 }
 
-void Controller_NPad::ResetSixAxisFusionParameters(const DeviceHandle& handle) {
+void Controller_NPad::ResetSixAxisFusionParameters() {
     sixaxis_fusion_parameter1 = 0.0f;
     sixaxis_fusion_parameter2 = 0.0f;
 }

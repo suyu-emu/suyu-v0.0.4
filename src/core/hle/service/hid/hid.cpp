@@ -546,8 +546,7 @@ void Hid::SetSixAxisSensorFusionParameters(Kernel::HLERequestContext& ctx) {
     const auto parameters{rp.PopRaw<Parameters>()};
 
     applet_resource->GetController<Controller_NPad>(HidController::NPad)
-        .SetSixAxisFusionParameters(parameters.sixaxis_handle, parameters.parameter1,
-                                    parameters.parameter2);
+        .SetSixAxisFusionParameters(parameters.parameter1, parameters.parameter2);
 
     LOG_WARNING(Service_HID,
                 "(STUBBED) called, float1={}, float2={}, npad_type={}, npad_id={}, "
@@ -573,7 +572,7 @@ void Hid::GetSixAxisSensorFusionParameters(Kernel::HLERequestContext& ctx) {
 
     std::tie(parameter1, parameter2) =
         applet_resource->GetController<Controller_NPad>(HidController::NPad)
-            .GetSixAxisFusionParameters(parameters.sixaxis_handle);
+            .GetSixAxisFusionParameters();
 
     LOG_WARNING(Service_HID,
                 "(STUBBED) called, npad_type={}, npad_id={}, "
@@ -597,7 +596,7 @@ void Hid::ResetSixAxisSensorFusionParameters(Kernel::HLERequestContext& ctx) {
     const auto parameters{rp.PopRaw<Parameters>()};
 
     applet_resource->GetController<Controller_NPad>(HidController::NPad)
-        .ResetSixAxisFusionParameters(parameters.sixaxis_handle);
+        .ResetSixAxisFusionParameters();
 
     LOG_WARNING(Service_HID,
                 "(STUBBED) called, npad_type={}, npad_id={}, "
