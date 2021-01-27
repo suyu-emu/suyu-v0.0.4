@@ -159,6 +159,10 @@ std::unordered_set<GLenum> GetSupportedFormats() {
 
 ProgramSharedPtr BuildShader(const Device& device, ShaderType shader_type, u64 unique_identifier,
                              const ShaderIR& ir, const Registry& registry, bool hint_retrievable) {
+    if (device.UseDriverCache()) {
+        // Ignore hint retrievable if we are using the driver cache
+        hint_retrievable = false;
+    }
     const std::string shader_id = MakeShaderID(unique_identifier, shader_type);
     LOG_INFO(Render_OpenGL, "{}", shader_id);
 
@@ -336,7 +340,7 @@ void ShaderCacheOpenGL::LoadDiskCache(u64 title_id, const std::atomic_bool& stop
     }
 
     std::vector<ShaderDiskCachePrecompiled> gl_cache;
-    if (!device.UseAssemblyShaders()) {
+    if (!device.UseAssemblyShaders() && !device.UseDriverCache()) {
         // Only load precompiled cache when we are not using assembly shaders
         gl_cache = disk_cache.LoadPrecompiled();
     }
@@ -356,8 +360,7 @@ void ShaderCacheOpenGL::LoadDiskCache(u64 title_id, const std::atomic_bool& stop
     std::atomic_bool gl_cache_failed = false;
 
     const auto find_precompiled = [&gl_cache](u64 id) {
-        return std::find_if(gl_cache.begin(), gl_cache.end(),
-                            [id](const auto& entry) { return entry.unique_identifier == id; });
+        return std::ranges::find(gl_cache, id, &ShaderDiskCachePrecompiled::unique_identifier);
     };
 
     const auto worker = [&](Core::Frontend::GraphicsContext* context, std::size_t begin,
@@ -432,8 +435,8 @@ void ShaderCacheOpenGL::LoadDiskCache(u64 title_id, const std::atomic_bool& stop
         return;
     }
 
-    if (device.UseAssemblyShaders()) {
-        // Don't store precompiled binaries for assembly shaders.
+    if (device.UseAssemblyShaders() || device.UseDriverCache()) {
+        // Don't store precompiled binaries for assembly shaders or when using the driver cache
         return;
     }
 

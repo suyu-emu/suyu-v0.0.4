@@ -16,6 +16,7 @@
 #include "applets/profile_select.h"
 #include "applets/software_keyboard.h"
 #include "applets/web_browser.h"
+#include "common/nvidia_flags.h"
 #include "configuration/configure_input.h"
 #include "configuration/configure_per_game.h"
 #include "configuration/configure_vibration.h"
@@ -3022,6 +3023,8 @@ int main(int argc, char* argv[]) {
     Common::DetachedTasks detached_tasks;
     MicroProfileOnThreadCreate("Frontend");
     SCOPE_EXIT({ MicroProfileShutdown(); });
+
+    Common::ConfigureNvidiaEnvironmentFlags();
 
     // Init settings params
     QCoreApplication::setOrganizationName(QStringLiteral("yuzu team"));
