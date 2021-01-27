@@ -421,6 +421,11 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             "Blacklisting RADV for VK_EXT_extended_dynamic state, likely due to a bug in yuzu");
         ext_extended_dynamic_state = false;
     }
+    if (is_float16_supported && driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS) {
+        // Intel's compiler crashes when using fp16 on Astral Chain, disable it for the time being.
+        LOG_WARNING(Render_Vulkan, "Blacklisting Intel proprietary from float16 math");
+        is_float16_supported = false;
+    }
 
     graphics_queue = logical.GetQueue(graphics_family);
     present_queue = logical.GetQueue(present_family);
