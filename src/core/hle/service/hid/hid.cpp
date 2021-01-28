@@ -520,6 +520,7 @@ void Hid::EnableSixAxisSensorFusion(Kernel::HLERequestContext& ctx) {
         Controller_NPad::DeviceHandle sixaxis_handle;
         u64 applet_resource_user_id;
     };
+    static_assert(sizeof(Parameters) == 0x10, "Parameters has incorrect size.");
 
     const auto parameters{rp.PopRaw<Parameters>()};
 
@@ -542,19 +543,19 @@ void Hid::SetSixAxisSensorFusionParameters(Kernel::HLERequestContext& ctx) {
         f32 parameter2;
         u64 applet_resource_user_id;
     };
+    static_assert(sizeof(Parameters) == 0x18, "Parameters has incorrect size.");
 
     const auto parameters{rp.PopRaw<Parameters>()};
 
     applet_resource->GetController<Controller_NPad>(HidController::NPad)
-        .SetSixAxisFusionParameters(parameters.sixaxis_handle, parameters.parameter1,
-                                    parameters.parameter2);
+        .SetSixAxisFusionParameters(parameters.parameter1, parameters.parameter2);
 
     LOG_WARNING(Service_HID,
-                "(STUBBED) called, float1={}, float2={}, npad_type={}, npad_id={}, "
-                "device_index={}, applet_resource_user_id={}",
-                parameters.parameter1, parameters.parameter2, parameters.sixaxis_handle.npad_type,
-                parameters.sixaxis_handle.npad_id, parameters.sixaxis_handle.device_index,
-                parameters.applet_resource_user_id);
+                "(STUBBED) called, npad_type={}, npad_id={}, device_index={}, parameter1={}, "
+                "parameter2={}, applet_resource_user_id={}",
+                parameters.sixaxis_handle.npad_type, parameters.sixaxis_handle.npad_id,
+                parameters.sixaxis_handle.device_index, parameters.parameter1,
+                parameters.parameter2, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
@@ -566,6 +567,7 @@ void Hid::GetSixAxisSensorFusionParameters(Kernel::HLERequestContext& ctx) {
         Controller_NPad::DeviceHandle sixaxis_handle;
         u64 applet_resource_user_id;
     };
+    static_assert(sizeof(Parameters) == 0x10, "Parameters has incorrect size.");
 
     f32 parameter1 = 0;
     f32 parameter2 = 0;
@@ -573,13 +575,13 @@ void Hid::GetSixAxisSensorFusionParameters(Kernel::HLERequestContext& ctx) {
 
     std::tie(parameter1, parameter2) =
         applet_resource->GetController<Controller_NPad>(HidController::NPad)
-            .GetSixAxisFusionParameters(parameters.sixaxis_handle);
+            .GetSixAxisFusionParameters();
 
-    LOG_WARNING(Service_HID,
-                "(STUBBED) called, npad_type={}, npad_id={}, "
-                "device_index={}, applet_resource_user_id={}",
-                parameters.sixaxis_handle.npad_type, parameters.sixaxis_handle.npad_id,
-                parameters.sixaxis_handle.device_index, parameters.applet_resource_user_id);
+    LOG_WARNING(
+        Service_HID,
+        "(STUBBED) called, npad_type={}, npad_id={}, device_index={}, applet_resource_user_id={}",
+        parameters.sixaxis_handle.npad_type, parameters.sixaxis_handle.npad_id,
+        parameters.sixaxis_handle.device_index, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(RESULT_SUCCESS);
@@ -593,17 +595,18 @@ void Hid::ResetSixAxisSensorFusionParameters(Kernel::HLERequestContext& ctx) {
         Controller_NPad::DeviceHandle sixaxis_handle;
         u64 applet_resource_user_id;
     };
+    static_assert(sizeof(Parameters) == 0x10, "Parameters has incorrect size.");
 
     const auto parameters{rp.PopRaw<Parameters>()};
 
     applet_resource->GetController<Controller_NPad>(HidController::NPad)
-        .ResetSixAxisFusionParameters(parameters.sixaxis_handle);
+        .ResetSixAxisFusionParameters();
 
-    LOG_WARNING(Service_HID,
-                "(STUBBED) called, npad_type={}, npad_id={}, "
-                "device_index={}, applet_resource_user_id={}",
-                parameters.sixaxis_handle.npad_type, parameters.sixaxis_handle.npad_id,
-                parameters.sixaxis_handle.device_index, parameters.applet_resource_user_id);
+    LOG_WARNING(
+        Service_HID,
+        "(STUBBED) called, npad_type={}, npad_id={}, device_index={}, applet_resource_user_id={}",
+        parameters.sixaxis_handle.npad_type, parameters.sixaxis_handle.npad_id,
+        parameters.sixaxis_handle.device_index, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
