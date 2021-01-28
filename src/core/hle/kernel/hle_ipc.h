@@ -207,6 +207,12 @@ public:
     /// Helper function to get the size of the output buffer
     std::size_t GetWriteBufferSize(std::size_t buffer_index = 0) const;
 
+    /// Helper function to test whether the input buffer at buffer_index can be read
+    bool CanReadBuffer(std::size_t buffer_index = 0) const;
+
+    /// Helper function to test whether the output buffer at buffer_index can be written
+    bool CanWriteBuffer(std::size_t buffer_index = 0) const;
+
     template <typename T>
     std::shared_ptr<T> GetCopyObject(std::size_t index) {
         return DynamicObjectCast<T>(copy_objects.at(index));
