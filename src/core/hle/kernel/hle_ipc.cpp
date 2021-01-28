@@ -338,6 +338,28 @@ std::size_t HLERequestContext::GetWriteBufferSize(std::size_t buffer_index) cons
     return 0;
 }
 
+bool HLERequestContext::CanReadBuffer(std::size_t buffer_index) const {
+    const bool is_buffer_a{BufferDescriptorA().size() > buffer_index &&
+                           BufferDescriptorA()[buffer_index].Size()};
+
+    if (is_buffer_a) {
+        return BufferDescriptorA().size() > buffer_index;
+    } else {
+        return BufferDescriptorX().size() > buffer_index;
+    }
+}
+
+bool HLERequestContext::CanWriteBuffer(std::size_t buffer_index) const {
+    const bool is_buffer_b{BufferDescriptorB().size() > buffer_index &&
+                           BufferDescriptorB()[buffer_index].Size()};
+
+    if (is_buffer_b) {
+        return BufferDescriptorB().size() > buffer_index;
+    } else {
+        return BufferDescriptorC().size() > buffer_index;
+    }
+}
+
 std::string HLERequestContext::Description() const {
     if (!command_header) {
         return "No command header available";
