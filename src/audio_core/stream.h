@@ -56,6 +56,9 @@ public:
     /// Queues a buffer into the audio stream, returns true on success
     bool QueueBuffer(BufferPtr&& buffer);
 
+    /// Flush audio buffers
+    bool Flush();
+
     /// Returns true if the audio stream contains a buffer with the specified tag
     [[nodiscard]] bool ContainsBuffer(Buffer::Tag tag) const;
 
