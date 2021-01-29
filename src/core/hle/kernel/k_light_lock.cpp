@@ -54,7 +54,7 @@ void KLightLock::LockSlowPath(uintptr_t _owner, uintptr_t _cur_thread) {
         }
 
         // Add the current thread as a waiter on the owner.
-        KThread* owner_thread = reinterpret_cast<KThread*>(_owner & ~1ul);
+        KThread* owner_thread = reinterpret_cast<KThread*>(_owner & ~1ULL);
         cur_thread->SetAddressKey(reinterpret_cast<uintptr_t>(std::addressof(tag)));
         owner_thread->AddWaiter(cur_thread);
 
@@ -67,7 +67,6 @@ void KLightLock::LockSlowPath(uintptr_t _owner, uintptr_t _cur_thread) {
 
         if (owner_thread->IsSuspended()) {
             owner_thread->ContinueIfHasKernelWaiters();
-            KScheduler::SetSchedulerUpdateNeeded(kernel);
         }
     }
 
@@ -77,6 +76,7 @@ void KLightLock::LockSlowPath(uintptr_t _owner, uintptr_t _cur_thread) {
         KThread* owner_thread = cur_thread->GetLockOwner();
         if (owner_thread) {
             owner_thread->RemoveWaiter(cur_thread);
+            KScheduler::SetSchedulerUpdateNeeded(kernel);
         }
     }
 }
@@ -124,7 +124,7 @@ void KLightLock::UnlockSlowPath(uintptr_t _cur_thread) {
 }
 
 bool KLightLock::IsLockedByCurrentThread() const {
-    return (tag | 0x1ul) == (reinterpret_cast<uintptr_t>(GetCurrentThreadPointer(kernel)) | 0x1ul);
+    return (tag | 1ULL) == (reinterpret_cast<uintptr_t>(GetCurrentThreadPointer(kernel)) | 1ULL);
 }
 
 } // namespace Kernel
