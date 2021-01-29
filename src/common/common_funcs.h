@@ -98,7 +98,7 @@ __declspec(dllimport) void __stdcall DebugBreak(void);
     {                                                                                              \
         if (!(expr)) {                                                                             \
             if (res.IsError()) {                                                                   \
-                LOG_CRITICAL(Kernel, "Failed with error {}", res.raw);                             \
+                LOG_ERROR(Kernel, "Failed with result: {}", res.raw);                              \
             }                                                                                      \
             return res;                                                                            \
         }                                                                                          \
