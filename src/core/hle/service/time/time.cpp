@@ -121,7 +121,7 @@ private:
 };
 
 ResultCode Module::Interface::GetClockSnapshotFromSystemClockContextInternal(
-    Kernel::Thread* thread, Clock::SystemClockContext user_context,
+    Kernel::KThread* thread, Clock::SystemClockContext user_context,
     Clock::SystemClockContext network_context, u8 type, Clock::ClockSnapshot& clock_snapshot) {
 
     auto& time_manager{system.GetTimeManager()};

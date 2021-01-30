@@ -43,8 +43,12 @@ class KScheduler;
 class SharedMemory;
 class ServiceThread;
 class Synchronization;
-class Thread;
+class KThread;
 class TimeManager;
+
+using EmuThreadHandle = uintptr_t;
+constexpr EmuThreadHandle EmuThreadHandleInvalid{};
+constexpr EmuThreadHandle EmuThreadHandleReserved{1ULL << 63};
 
 /// Represents a single instance of the kernel.
 class KernelCore {
@@ -84,7 +88,7 @@ public:
     std::shared_ptr<ResourceLimit> GetSystemResourceLimit() const;
 
     /// Retrieves a shared pointer to a Thread instance within the thread wakeup handle table.
-    std::shared_ptr<Thread> RetrieveThreadFromGlobalHandleTable(Handle handle) const;
+    std::shared_ptr<KThread> RetrieveThreadFromGlobalHandleTable(Handle handle) const;
 
     /// Adds the given shared pointer to an internal list of active processes.
     void AppendNewProcess(std::shared_ptr<Process> process);
@@ -161,8 +165,8 @@ public:
     /// Determines whether or not the given port is a valid named port.
     bool IsValidNamedPort(NamedPortTable::const_iterator port) const;
 
-    /// Gets the current host_thread/guest_thread handle.
-    Core::EmuThreadHandle GetCurrentEmuThreadID() const;
+    /// Gets the current host_thread/guest_thread pointer.
+    KThread* GetCurrentEmuThread() const;
 
     /// Gets the current host_thread handle.
     u32 GetCurrentHostThreadID() const;
@@ -237,10 +241,14 @@ public:
      */
     void ReleaseServiceThread(std::weak_ptr<Kernel::ServiceThread> service_thread);
 
+    /// Workaround for single-core mode when preempting threads while idle.
+    bool IsPhantomModeForSingleCore() const;
+    void SetIsPhantomModeForSingleCore(bool value);
+
 private:
     friend class Object;
     friend class Process;
-    friend class Thread;
+    friend class KThread;
 
     /// Creates a new object ID, incrementing the internal object ID counter.
     u32 CreateNewObjectID();

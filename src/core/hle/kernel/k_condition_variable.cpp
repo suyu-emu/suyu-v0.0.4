@@ -10,11 +10,11 @@
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
 #include "core/hle/kernel/k_synchronization_object.h"
+#include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/svc_common.h"
 #include "core/hle/kernel/svc_results.h"
-#include "core/hle/kernel/thread.h"
 #include "core/memory.h"
 
 namespace Kernel {
@@ -66,7 +66,7 @@ KConditionVariable::KConditionVariable(Core::System& system_)
 KConditionVariable::~KConditionVariable() = default;
 
 ResultCode KConditionVariable::SignalToAddress(VAddr addr) {
-    Thread* owner_thread = kernel.CurrentScheduler()->GetCurrentThread();
+    KThread* owner_thread = kernel.CurrentScheduler()->GetCurrentThread();
 
     // Signal the address.
     {
@@ -74,7 +74,7 @@ ResultCode KConditionVariable::SignalToAddress(VAddr addr) {
 
         // Remove waiter thread.
         s32 num_waiters{};
-        Thread* next_owner_thread =
+        KThread* next_owner_thread =
             owner_thread->RemoveWaiterByKey(std::addressof(num_waiters), addr);
 
         // Determine the next tag.
@@ -103,11 +103,11 @@ ResultCode KConditionVariable::SignalToAddress(VAddr addr) {
 }
 
 ResultCode KConditionVariable::WaitForAddress(Handle handle, VAddr addr, u32 value) {
-    Thread* cur_thread = kernel.CurrentScheduler()->GetCurrentThread();
+    KThread* cur_thread = kernel.CurrentScheduler()->GetCurrentThread();
 
     // Wait for the address.
     {
-        std::shared_ptr<Thread> owner_thread;
+        std::shared_ptr<KThread> owner_thread;
         ASSERT(!owner_thread);
         {
             KScopedSchedulerLock sl(kernel);
@@ -126,7 +126,7 @@ ResultCode KConditionVariable::WaitForAddress(Handle handle, VAddr addr, u32 val
                 R_UNLESS(test_tag == (handle | Svc::HandleWaitMask), RESULT_SUCCESS);
 
                 // Get the lock owner thread.
-                owner_thread = kernel.CurrentProcess()->GetHandleTable().Get<Thread>(handle);
+                owner_thread = kernel.CurrentProcess()->GetHandleTable().Get<KThread>(handle);
                 R_UNLESS(owner_thread, Svc::ResultInvalidHandle);
 
                 // Update the lock.
@@ -143,7 +143,7 @@ ResultCode KConditionVariable::WaitForAddress(Handle handle, VAddr addr, u32 val
     // Remove the thread as a waiter from the lock owner.
     {
         KScopedSchedulerLock sl(kernel);
-        Thread* owner_thread = cur_thread->GetLockOwner();
+        KThread* owner_thread = cur_thread->GetLockOwner();
         if (owner_thread != nullptr) {
             owner_thread->RemoveWaiter(cur_thread);
         }
@@ -154,7 +154,7 @@ ResultCode KConditionVariable::WaitForAddress(Handle handle, VAddr addr, u32 val
     return cur_thread->GetWaitResult(std::addressof(dummy));
 }
 
-Thread* KConditionVariable::SignalImpl(Thread* thread) {
+KThread* KConditionVariable::SignalImpl(KThread* thread) {
     // Check pre-conditions.
     ASSERT(kernel.GlobalSchedulerContext().IsLocked());
 
@@ -174,7 +174,7 @@ Thread* KConditionVariable::SignalImpl(Thread* thread) {
         }
     }
 
-    Thread* thread_to_close = nullptr;
+    KThread* thread_to_close = nullptr;
     if (can_access) {
         if (prev_tag == InvalidHandle) {
             // If nobody held the lock previously, we're all good.
@@ -182,7 +182,7 @@ Thread* KConditionVariable::SignalImpl(Thread* thread) {
             thread->Wakeup();
         } else {
             // Get the previous owner.
-            auto owner_thread = kernel.CurrentProcess()->GetHandleTable().Get<Thread>(
+            auto owner_thread = kernel.CurrentProcess()->GetHandleTable().Get<KThread>(
                 prev_tag & ~Svc::HandleWaitMask);
 
             if (owner_thread) {
@@ -210,8 +210,8 @@ void KConditionVariable::Signal(u64 cv_key, s32 count) {
 
     // TODO(bunnei): This should just be Thread once we implement KAutoObject instead of using
     // std::shared_ptr.
-    std::vector<std::shared_ptr<Thread>> thread_list;
-    std::array<Thread*, MaxThreads> thread_array;
+    std::vector<std::shared_ptr<KThread>> thread_list;
+    std::array<KThread*, MaxThreads> thread_array;
     s32 num_to_close{};
 
     // Perform signaling.
@@ -222,9 +222,9 @@ void KConditionVariable::Signal(u64 cv_key, s32 count) {
         auto it = thread_tree.nfind_light({cv_key, -1});
         while ((it != thread_tree.end()) && (count <= 0 || num_waiters < count) &&
                (it->GetConditionVariableKey() == cv_key)) {
-            Thread* target_thread = std::addressof(*it);
+            KThread* target_thread = std::addressof(*it);
 
-            if (Thread* thread = SignalImpl(target_thread); thread != nullptr) {
+            if (KThread* thread = SignalImpl(target_thread); thread != nullptr) {
                 if (num_to_close < MaxThreads) {
                     thread_array[num_to_close++] = thread;
                 } else {
@@ -257,11 +257,10 @@ void KConditionVariable::Signal(u64 cv_key, s32 count) {
 
 ResultCode KConditionVariable::Wait(VAddr addr, u64 key, u32 value, s64 timeout) {
     // Prepare to wait.
-    Thread* cur_thread = kernel.CurrentScheduler()->GetCurrentThread();
-    Handle timer = InvalidHandle;
+    KThread* cur_thread = kernel.CurrentScheduler()->GetCurrentThread();
 
     {
-        KScopedSchedulerLockAndSleep slp(kernel, timer, cur_thread, timeout);
+        KScopedSchedulerLockAndSleep slp{kernel, cur_thread, timeout};
 
         // Set the synced object.
         cur_thread->SetSyncedObject(nullptr, Svc::ResultTimedOut);
@@ -276,7 +275,7 @@ ResultCode KConditionVariable::Wait(VAddr addr, u64 key, u32 value, s64 timeout)
         {
             // Remove waiter thread.
             s32 num_waiters{};
-            Thread* next_owner_thread =
+            KThread* next_owner_thread =
                 cur_thread->RemoveWaiterByKey(std::addressof(num_waiters), addr);
 
             // Update for the next owner thread.
@@ -322,16 +321,13 @@ ResultCode KConditionVariable::Wait(VAddr addr, u64 key, u32 value, s64 timeout)
     }
 
     // Cancel the timer wait.
-    if (timer != InvalidHandle) {
-        auto& time_manager = kernel.TimeManager();
-        time_manager.UnscheduleTimeEvent(timer);
-    }
+    kernel.TimeManager().UnscheduleTimeEvent(cur_thread);
 
     // Remove from the condition variable.
     {
         KScopedSchedulerLock sl(kernel);
 
-        if (Thread* owner = cur_thread->GetLockOwner(); owner != nullptr) {
+        if (KThread* owner = cur_thread->GetLockOwner(); owner != nullptr) {
             owner->RemoveWaiter(cur_thread);
         }
 

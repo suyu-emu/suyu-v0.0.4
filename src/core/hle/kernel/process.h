@@ -30,7 +30,7 @@ namespace Kernel {
 
 class KernelCore;
 class ResourceLimit;
-class Thread;
+class KThread;
 class TLSPage;
 
 struct CodeSet;
@@ -173,8 +173,13 @@ public:
     std::shared_ptr<ResourceLimit> GetResourceLimit() const;
 
     /// Gets the ideal CPU core ID for this process
-    u8 GetIdealCore() const {
+    u8 GetIdealCoreId() const {
         return ideal_core;
+    }
+
+    /// Checks if the specified thread priority is valid.
+    bool CheckThreadPriority(s32 prio) const {
+        return ((1ULL << prio) & GetPriorityMask()) != 0;
     }
 
     /// Gets the bitmask of allowed cores that this process' threads can run on.
@@ -212,6 +217,14 @@ public:
         return is_64bit_process;
     }
 
+    [[nodiscard]] bool IsSuspended() const {
+        return is_suspended;
+    }
+
+    void SetSuspended(bool suspended) {
+        is_suspended = suspended;
+    }
+
     /// Gets the total running time of the process instance in ticks.
     u64 GetCPUTimeTicks() const {
         return total_process_running_time_ticks;
@@ -230,6 +243,33 @@ public:
     /// Increments the process schedule count, used for thread yielding.
     void IncrementScheduledCount() {
         ++schedule_count;
+    }
+
+    void IncrementThreadCount();
+    void DecrementThreadCount();
+
+    void SetRunningThread(s32 core, KThread* thread, u64 idle_count) {
+        running_threads[core] = thread;
+        running_thread_idle_counts[core] = idle_count;
+    }
+
+    void ClearRunningThread(KThread* thread) {
+        for (size_t i = 0; i < running_threads.size(); ++i) {
+            if (running_threads[i] == thread) {
+                running_threads[i] = nullptr;
+            }
+        }
+    }
+
+    [[nodiscard]] KThread* GetRunningThread(s32 core) const {
+        return running_threads[core];
+    }
+
+    bool ReleaseUserException(KThread* thread);
+
+    [[nodiscard]] KThread* GetPinnedThread(s32 core_id) const {
+        ASSERT(0 <= core_id && core_id < static_cast<s32>(Core::Hardware::NUM_CPU_CORES));
+        return pinned_threads[core_id];
     }
 
     /// Gets 8 bytes of random data for svcGetInfo RandomEntropy
@@ -252,17 +292,17 @@ public:
     u64 GetTotalPhysicalMemoryUsedWithoutSystemResource() const;
 
     /// Gets the list of all threads created with this process as their owner.
-    const std::list<const Thread*>& GetThreadList() const {
+    const std::list<const KThread*>& GetThreadList() const {
         return thread_list;
     }
 
     /// Registers a thread as being created under this process,
     /// adding it to this process' thread list.
-    void RegisterThread(const Thread* thread);
+    void RegisterThread(const KThread* thread);
 
     /// Unregisters a thread from this process, removing it
     /// from this process' thread list.
-    void UnregisterThread(const Thread* thread);
+    void UnregisterThread(const KThread* thread);
 
     /// Clears the signaled state of the process if and only if it's signaled.
     ///
@@ -303,6 +343,15 @@ public:
 
     bool IsSignaled() const override;
 
+    void Finalize() override {}
+
+    void PinCurrentThread();
+    void UnpinCurrentThread();
+
+    KLightLock& GetStateLock() {
+        return state_lock;
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Thread-local storage management
 
@@ -313,6 +362,20 @@ public:
     void FreeTLSRegion(VAddr tls_address);
 
 private:
+    void PinThread(s32 core_id, KThread* thread) {
+        ASSERT(0 <= core_id && core_id < static_cast<s32>(Core::Hardware::NUM_CPU_CORES));
+        ASSERT(thread != nullptr);
+        ASSERT(pinned_threads[core_id] == nullptr);
+        pinned_threads[core_id] = thread;
+    }
+
+    void UnpinThread(s32 core_id, KThread* thread) {
+        ASSERT(0 <= core_id && core_id < static_cast<s32>(Core::Hardware::NUM_CPU_CORES));
+        ASSERT(thread != nullptr);
+        ASSERT(pinned_threads[core_id] == thread);
+        pinned_threads[core_id] = nullptr;
+    }
+
     /// Changes the process status. If the status is different
     /// from the current process status, then this will trigger
     /// a process signal.
@@ -380,7 +443,7 @@ private:
     std::array<u64, RANDOM_ENTROPY_SIZE> random_entropy{};
 
     /// List of threads that are running with this process as their owner.
-    std::list<const Thread*> thread_list;
+    std::list<const KThread*> thread_list;
 
     /// Address of the top of the main thread's stack
     VAddr main_thread_stack_top{};
@@ -401,6 +464,19 @@ private:
     s64 schedule_count{};
 
     bool is_signaled{};
+    bool is_suspended{};
+
+    std::atomic<s32> num_created_threads{};
+    std::atomic<u16> num_threads{};
+    u16 peak_num_threads{};
+
+    std::array<KThread*, Core::Hardware::NUM_CPU_CORES> running_threads{};
+    std::array<u64, Core::Hardware::NUM_CPU_CORES> running_thread_idle_counts{};
+    std::array<KThread*, Core::Hardware::NUM_CPU_CORES> pinned_threads{};
+
+    KThread* exception_thread{};
+
+    KLightLock state_lock;
 
     /// System context
     Core::System& system;

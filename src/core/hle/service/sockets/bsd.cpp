@@ -13,7 +13,7 @@
 #include "common/microprofile.h"
 #include "common/thread.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/thread.h"
+#include "core/hle/kernel/k_thread.h"
 #include "core/hle/service/sockets/bsd.h"
 #include "core/hle/service/sockets/sockets_translate.h"
 #include "core/network/network.h"

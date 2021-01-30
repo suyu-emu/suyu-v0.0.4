@@ -15,11 +15,11 @@
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/kernel/k_scheduler.h"
+#include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/server_session.h"
 #include "core/hle/kernel/session.h"
-#include "core/hle/kernel/thread.h"
 #include "core/memory.h"
 
 namespace Kernel {
@@ -116,7 +116,7 @@ ResultCode ServerSession::HandleDomainSyncRequest(Kernel::HLERequestContext& con
     return RESULT_SUCCESS;
 }
 
-ResultCode ServerSession::QueueSyncRequest(std::shared_ptr<Thread> thread,
+ResultCode ServerSession::QueueSyncRequest(std::shared_ptr<KThread> thread,
                                            Core::Memory::Memory& memory) {
     u32* cmd_buf{reinterpret_cast<u32*>(memory.GetPointer(thread->GetTLSAddress()))};
     auto context =
@@ -154,14 +154,14 @@ ResultCode ServerSession::CompleteSyncRequest(HLERequestContext& context) {
         KScopedSchedulerLock lock(kernel);
         if (!context.IsThreadWaiting()) {
             context.GetThread().Wakeup();
-            context.GetThread().SetSynchronizationResults(nullptr, result);
+            context.GetThread().SetSyncedObject(nullptr, result);
         }
     }
 
     return result;
 }
 
-ResultCode ServerSession::HandleSyncRequest(std::shared_ptr<Thread> thread,
+ResultCode ServerSession::HandleSyncRequest(std::shared_ptr<KThread> thread,
                                             Core::Memory::Memory& memory,
                                             Core::Timing::CoreTiming& core_timing) {
     return QueueSyncRequest(std::move(thread), memory);

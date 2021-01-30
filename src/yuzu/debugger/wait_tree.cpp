@@ -15,10 +15,11 @@
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_synchronization_object.h"
+#include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/svc_common.h"
-#include "core/hle/kernel/thread.h"
+#include "core/hle/kernel/svc_types.h"
 #include "core/memory.h"
 
 namespace {
@@ -90,9 +91,9 @@ std::size_t WaitTreeItem::Row() const {
 std::vector<std::unique_ptr<WaitTreeThread>> WaitTreeItem::MakeThreadItemList() {
     std::vector<std::unique_ptr<WaitTreeThread>> item_list;
     std::size_t row = 0;
-    auto add_threads = [&](const std::vector<std::shared_ptr<Kernel::Thread>>& threads) {
+    auto add_threads = [&](const std::vector<std::shared_ptr<Kernel::KThread>>& threads) {
         for (std::size_t i = 0; i < threads.size(); ++i) {
-            if (!threads[i]->IsHLEThread()) {
+            if (threads[i]->GetThreadTypeForDebugging() == Kernel::ThreadType::User) {
                 item_list.push_back(std::make_unique<WaitTreeThread>(*threads[i]));
                 item_list.back()->row = row;
             }
@@ -117,7 +118,7 @@ WaitTreeMutexInfo::WaitTreeMutexInfo(VAddr mutex_address, const Kernel::HandleTa
     : mutex_address(mutex_address) {
     mutex_value = Core::System::GetInstance().Memory().Read32(mutex_address);
     owner_handle = static_cast<Kernel::Handle>(mutex_value & Kernel::Svc::HandleWaitMask);
-    owner = handle_table.Get<Kernel::Thread>(owner_handle);
+    owner = handle_table.Get<Kernel::KThread>(owner_handle);
 }
 
 WaitTreeMutexInfo::~WaitTreeMutexInfo() = default;
@@ -139,7 +140,7 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeMutexInfo::GetChildren() cons
     return list;
 }
 
-WaitTreeCallstack::WaitTreeCallstack(const Kernel::Thread& thread) : thread(thread) {}
+WaitTreeCallstack::WaitTreeCallstack(const Kernel::KThread& thread) : thread(thread) {}
 WaitTreeCallstack::~WaitTreeCallstack() = default;
 
 QString WaitTreeCallstack::GetText() const {
@@ -149,7 +150,7 @@ QString WaitTreeCallstack::GetText() const {
 std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeCallstack::GetChildren() const {
     std::vector<std::unique_ptr<WaitTreeItem>> list;
 
-    if (thread.IsHLEThread()) {
+    if (thread.GetThreadTypeForDebugging() != Kernel::ThreadType::User) {
         return list;
     }
 
@@ -194,7 +195,7 @@ std::unique_ptr<WaitTreeSynchronizationObject> WaitTreeSynchronizationObject::ma
     case Kernel::HandleType::ReadableEvent:
         return std::make_unique<WaitTreeEvent>(static_cast<const Kernel::ReadableEvent&>(object));
     case Kernel::HandleType::Thread:
-        return std::make_unique<WaitTreeThread>(static_cast<const Kernel::Thread&>(object));
+        return std::make_unique<WaitTreeThread>(static_cast<const Kernel::KThread&>(object));
     default:
         return std::make_unique<WaitTreeSynchronizationObject>(object);
     }
@@ -231,21 +232,17 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeObjectList::GetChildren() con
     return list;
 }
 
-WaitTreeThread::WaitTreeThread(const Kernel::Thread& thread)
+WaitTreeThread::WaitTreeThread(const Kernel::KThread& thread)
     : WaitTreeSynchronizationObject(thread) {}
 WaitTreeThread::~WaitTreeThread() = default;
 
 QString WaitTreeThread::GetText() const {
-    const auto& thread = static_cast<const Kernel::Thread&>(object);
+    const auto& thread = static_cast<const Kernel::KThread&>(object);
     QString status;
     switch (thread.GetState()) {
     case Kernel::ThreadState::Runnable:
-        if (!thread.IsPaused()) {
-            if (thread.WasRunning()) {
-                status = tr("running");
-            } else {
-                status = tr("ready");
-            }
+        if (!thread.IsSuspended()) {
+            status = tr("runnable");
         } else {
             status = tr("paused");
         }
@@ -297,15 +294,11 @@ QString WaitTreeThread::GetText() const {
 QColor WaitTreeThread::GetColor() const {
     const std::size_t color_index = IsDarkTheme() ? 1 : 0;
 
-    const auto& thread = static_cast<const Kernel::Thread&>(object);
+    const auto& thread = static_cast<const Kernel::KThread&>(object);
     switch (thread.GetState()) {
     case Kernel::ThreadState::Runnable:
-        if (!thread.IsPaused()) {
-            if (thread.WasRunning()) {
-                return QColor(WaitTreeColors[0][color_index]);
-            } else {
-                return QColor(WaitTreeColors[1][color_index]);
-            }
+        if (!thread.IsSuspended()) {
+            return QColor(WaitTreeColors[0][color_index]);
         } else {
             return QColor(WaitTreeColors[2][color_index]);
         }
@@ -336,27 +329,21 @@ QColor WaitTreeThread::GetColor() const {
 std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeThread::GetChildren() const {
     std::vector<std::unique_ptr<WaitTreeItem>> list(WaitTreeSynchronizationObject::GetChildren());
 
-    const auto& thread = static_cast<const Kernel::Thread&>(object);
+    const auto& thread = static_cast<const Kernel::KThread&>(object);
 
     QString processor;
-    switch (thread.GetProcessorID()) {
-    case Kernel::ThreadProcessorId::THREADPROCESSORID_IDEAL:
+    switch (thread.GetActiveCore()) {
+    case Kernel::Svc::IdealCoreUseProcessValue:
         processor = tr("ideal");
         break;
-    case Kernel::ThreadProcessorId::THREADPROCESSORID_0:
-    case Kernel::ThreadProcessorId::THREADPROCESSORID_1:
-    case Kernel::ThreadProcessorId::THREADPROCESSORID_2:
-    case Kernel::ThreadProcessorId::THREADPROCESSORID_3:
-        processor = tr("core %1").arg(thread.GetProcessorID());
-        break;
     default:
-        processor = tr("Unknown processor %1").arg(thread.GetProcessorID());
+        processor = tr("core %1").arg(thread.GetActiveCore());
         break;
     }
 
     list.push_back(std::make_unique<WaitTreeText>(tr("processor = %1").arg(processor)));
-    list.push_back(
-        std::make_unique<WaitTreeText>(tr("ideal core = %1").arg(thread.GetIdealCore())));
+    list.push_back(std::make_unique<WaitTreeText>(
+        tr("ideal core = %1").arg(thread.GetIdealCoreForDebugging())));
     list.push_back(std::make_unique<WaitTreeText>(
         tr("affinity mask = %1").arg(thread.GetAffinityMask().GetAffinityMask())));
     list.push_back(std::make_unique<WaitTreeText>(tr("thread id = %1").arg(thread.GetThreadID())));
@@ -390,7 +377,7 @@ WaitTreeEvent::WaitTreeEvent(const Kernel::ReadableEvent& object)
     : WaitTreeSynchronizationObject(object) {}
 WaitTreeEvent::~WaitTreeEvent() = default;
 
-WaitTreeThreadList::WaitTreeThreadList(const std::vector<Kernel::Thread*>& list)
+WaitTreeThreadList::WaitTreeThreadList(const std::vector<Kernel::KThread*>& list)
     : thread_list(list) {}
 WaitTreeThreadList::~WaitTreeThreadList() = default;
 

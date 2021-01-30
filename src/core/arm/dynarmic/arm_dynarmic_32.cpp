@@ -255,6 +255,9 @@ void ARM_Dynarmic_32::ChangeProcessorID(std::size_t new_core_id) {
 }
 
 void ARM_Dynarmic_32::SaveContext(ThreadContext32& ctx) {
+    if (!jit) {
+        return;
+    }
     Dynarmic::A32::Context context;
     jit->SaveContext(context);
     ctx.cpu_registers = context.Regs();
@@ -264,6 +267,9 @@ void ARM_Dynarmic_32::SaveContext(ThreadContext32& ctx) {
 }
 
 void ARM_Dynarmic_32::LoadContext(const ThreadContext32& ctx) {
+    if (!jit) {
+        return;
+    }
     Dynarmic::A32::Context context;
     context.Regs() = ctx.cpu_registers;
     context.ExtRegs() = ctx.extension_registers;

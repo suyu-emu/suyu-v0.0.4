@@ -29,7 +29,7 @@ class HLERequestContext;
 class KernelCore;
 class Session;
 class SessionRequestHandler;
-class Thread;
+class KThread;
 
 /**
  * Kernel object representing the server endpoint of an IPC session. Sessions are the basic CTR-OS
@@ -95,7 +95,7 @@ public:
      *
      * @returns ResultCode from the operation.
      */
-    ResultCode HandleSyncRequest(std::shared_ptr<Thread> thread, Core::Memory::Memory& memory,
+    ResultCode HandleSyncRequest(std::shared_ptr<KThread> thread, Core::Memory::Memory& memory,
                                  Core::Timing::CoreTiming& core_timing);
 
     /// Called when a client disconnection occurs.
@@ -126,9 +126,11 @@ public:
 
     bool IsSignaled() const override;
 
+    void Finalize() override {}
+
 private:
     /// Queues a sync request from the emulated application.
-    ResultCode QueueSyncRequest(std::shared_ptr<Thread> thread, Core::Memory::Memory& memory);
+    ResultCode QueueSyncRequest(std::shared_ptr<KThread> thread, Core::Memory::Memory& memory);
 
     /// Completes a sync request from the emulated application.
     ResultCode CompleteSyncRequest(HLERequestContext& context);
@@ -149,12 +151,12 @@ private:
     /// List of threads that are pending a response after a sync request. This list is processed in
     /// a LIFO manner, thus, the last request will be dispatched first.
     /// TODO(Subv): Verify if this is indeed processed in LIFO using a hardware test.
-    std::vector<std::shared_ptr<Thread>> pending_requesting_threads;
+    std::vector<std::shared_ptr<KThread>> pending_requesting_threads;
 
     /// Thread whose request is currently being handled. A request is considered "handled" when a
     /// response is sent via svcReplyAndReceive.
     /// TODO(Subv): Find a better name for this.
-    std::shared_ptr<Thread> currently_handling;
+    std::shared_ptr<KThread> currently_handling;
 
     /// When set to True, converts the session to a domain at the end of the command
     bool convert_to_domain{};

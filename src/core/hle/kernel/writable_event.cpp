@@ -4,10 +4,10 @@
 
 #include <algorithm>
 #include "common/assert.h"
+#include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/readable_event.h"
-#include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/writable_event.h"
 
 namespace Kernel {
@@ -36,10 +36,6 @@ void WritableEvent::Signal() {
 
 void WritableEvent::Clear() {
     readable->Clear();
-}
-
-bool WritableEvent::IsSignaled() const {
-    return readable->IsSignaled();
 }
 
 } // namespace Kernel

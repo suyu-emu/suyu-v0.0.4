@@ -16,13 +16,13 @@
 #include "core/hle/kernel/code_set.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/k_scheduler.h"
+#include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/memory/memory_block_manager.h"
 #include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/memory/slab_heap.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/resource_limit.h"
-#include "core/hle/kernel/thread.h"
 #include "core/hle/lock.h"
 #include "core/memory.h"
 #include "core/settings.h"
@@ -38,11 +38,10 @@ namespace {
  */
 void SetupMainThread(Core::System& system, Process& owner_process, u32 priority, VAddr stack_top) {
     const VAddr entry_point = owner_process.PageTable().GetCodeRegionStart();
-    ThreadType type = THREADTYPE_USER;
-    auto thread_res = Thread::Create(system, type, "main", entry_point, priority, 0,
-                                     owner_process.GetIdealCore(), stack_top, &owner_process);
+    auto thread_res = KThread::Create(system, ThreadType::User, "main", entry_point, priority, 0,
+                                      owner_process.GetIdealCoreId(), stack_top, &owner_process);
 
-    std::shared_ptr<Thread> thread = std::move(thread_res).Unwrap();
+    std::shared_ptr<KThread> thread = std::move(thread_res).Unwrap();
 
     // Register 1 must be a handle to the main thread
     const Handle thread_handle = owner_process.GetHandleTable().Create(thread).Unwrap();
@@ -137,6 +136,23 @@ std::shared_ptr<ResourceLimit> Process::GetResourceLimit() const {
     return resource_limit;
 }
 
+void Process::IncrementThreadCount() {
+    ASSERT(num_threads >= 0);
+    num_created_threads++;
+
+    if (const auto count = ++num_threads; count > peak_num_threads) {
+        peak_num_threads = count;
+    }
+}
+
+void Process::DecrementThreadCount() {
+    ASSERT(num_threads > 0);
+
+    if (const auto count = --num_threads; count == 0) {
+        UNIMPLEMENTED_MSG("Process termination is not implemented!");
+    }
+}
+
 u64 Process::GetTotalPhysicalMemoryAvailable() const {
     const u64 capacity{resource_limit->GetCurrentResourceValue(ResourceType::PhysicalMemory) +
                        page_table->GetTotalHeapSize() + GetSystemResourceSize() + image_size +
@@ -162,11 +178,66 @@ u64 Process::GetTotalPhysicalMemoryUsedWithoutSystemResource() const {
     return GetTotalPhysicalMemoryUsed() - GetSystemResourceUsage();
 }
 
-void Process::RegisterThread(const Thread* thread) {
+bool Process::ReleaseUserException(KThread* thread) {
+    KScopedSchedulerLock sl{kernel};
+
+    if (exception_thread == thread) {
+        exception_thread = nullptr;
+
+        // Remove waiter thread.
+        s32 num_waiters{};
+        KThread* next = thread->RemoveWaiterByKey(
+            std::addressof(num_waiters),
+            reinterpret_cast<uintptr_t>(std::addressof(exception_thread)));
+        if (next != nullptr) {
+            if (next->GetState() == ThreadState::Waiting) {
+                next->SetState(ThreadState::Runnable);
+            } else {
+                KScheduler::SetSchedulerUpdateNeeded(kernel);
+            }
+        }
+
+        return true;
+    } else {
+        return false;
+    }
+}
+
+void Process::PinCurrentThread() {
+    ASSERT(kernel.GlobalSchedulerContext().IsLocked());
+
+    // Get the current thread.
+    const s32 core_id = GetCurrentCoreId(kernel);
+    KThread* cur_thread = GetCurrentThreadPointer(kernel);
+
+    // Pin it.
+    PinThread(core_id, cur_thread);
+    cur_thread->Pin();
+
+    // An update is needed.
+    KScheduler::SetSchedulerUpdateNeeded(kernel);
+}
+
+void Process::UnpinCurrentThread() {
+    ASSERT(kernel.GlobalSchedulerContext().IsLocked());
+
+    // Get the current thread.
+    const s32 core_id = GetCurrentCoreId(kernel);
+    KThread* cur_thread = GetCurrentThreadPointer(kernel);
+
+    // Unpin it.
+    cur_thread->Unpin();
+    UnpinThread(core_id, cur_thread);
+
+    // An update is needed.
+    KScheduler::SetSchedulerUpdateNeeded(kernel);
+}
+
+void Process::RegisterThread(const KThread* thread) {
     thread_list.push_back(thread);
 }
 
-void Process::UnregisterThread(const Thread* thread) {
+void Process::UnregisterThread(const KThread* thread) {
     thread_list.remove(thread);
 }
 
@@ -267,7 +338,7 @@ void Process::Run(s32 main_thread_priority, u64 stack_size) {
 void Process::PrepareForTermination() {
     ChangeStatus(ProcessStatus::Exiting);
 
-    const auto stop_threads = [this](const std::vector<std::shared_ptr<Thread>>& thread_list) {
+    const auto stop_threads = [this](const std::vector<std::shared_ptr<KThread>>& thread_list) {
         for (auto& thread : thread_list) {
             if (thread->GetOwnerProcess() != this)
                 continue;
@@ -279,7 +350,7 @@ void Process::PrepareForTermination() {
             ASSERT_MSG(thread->GetState() == ThreadState::Waiting,
                        "Exiting processes with non-waiting threads is currently unimplemented");
 
-            thread->Stop();
+            thread->Exit();
         }
     };
 
@@ -372,7 +443,7 @@ bool Process::IsSignaled() const {
 Process::Process(Core::System& system)
     : KSynchronizationObject{system.Kernel()},
       page_table{std::make_unique<Memory::PageTable>(system)}, handle_table{system.Kernel()},
-      address_arbiter{system}, condition_var{system}, system{system} {}
+      address_arbiter{system}, condition_var{system}, state_lock{system.Kernel()}, system{system} {}
 
 Process::~Process() = default;
 

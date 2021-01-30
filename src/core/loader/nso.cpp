@@ -15,9 +15,9 @@
 #include "core/core.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/hle/kernel/code_set.h"
+#include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/thread.h"
 #include "core/loader/nso.h"
 #include "core/memory.h"
 #include "core/settings.h"
@@ -179,8 +179,8 @@ AppLoader_NSO::LoadResult AppLoader_NSO::Load(Kernel::Process& process, Core::Sy
     LOG_DEBUG(Loader, "loaded module {} @ 0x{:X}", file->GetName(), base_address);
 
     is_loaded = true;
-    return {ResultStatus::Success,
-            LoadParameters{Kernel::THREADPRIO_DEFAULT, Core::Memory::DEFAULT_STACK_SIZE}};
+    return {ResultStatus::Success, LoadParameters{Kernel::KThread::DefaultThreadPriority,
+                                                  Core::Memory::DEFAULT_STACK_SIZE}};
 }
 
 ResultStatus AppLoader_NSO::ReadNSOModules(Modules& modules) {

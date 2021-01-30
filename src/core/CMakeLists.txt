@@ -160,6 +160,8 @@ add_library(core STATIC
     hle/kernel/k_affinity_mask.h
     hle/kernel/k_condition_variable.cpp
     hle/kernel/k_condition_variable.h
+    hle/kernel/k_light_lock.cpp
+    hle/kernel/k_light_lock.h
     hle/kernel/k_priority_queue.h
     hle/kernel/k_scheduler.cpp
     hle/kernel/k_scheduler.h
@@ -168,6 +170,9 @@ add_library(core STATIC
     hle/kernel/k_scoped_scheduler_lock_and_sleep.h
     hle/kernel/k_synchronization_object.cpp
     hle/kernel/k_synchronization_object.h
+    hle/kernel/k_thread.cpp
+    hle/kernel/k_thread.h
+    hle/kernel/k_thread_queue.h
     hle/kernel/kernel.cpp
     hle/kernel/kernel.h
     hle/kernel/memory/address_space_info.cpp
@@ -216,8 +221,6 @@ add_library(core STATIC
     hle/kernel/svc_results.h
     hle/kernel/svc_types.h
     hle/kernel/svc_wrap.h
-    hle/kernel/thread.cpp
-    hle/kernel/thread.h
     hle/kernel/time_manager.cpp
     hle/kernel/time_manager.h
     hle/kernel/transfer_memory.cpp

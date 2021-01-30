@@ -9,9 +9,9 @@
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_scheduler.h"
+#include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/thread.h"
 
 namespace Kernel {
 namespace {
@@ -88,6 +88,10 @@ ResultCode HandleTable::Close(Handle handle) {
     }
 
     const u16 slot = GetSlot(handle);
+
+    if (objects[slot].use_count() == 1) {
+        objects[slot]->Finalize();
+    }
 
     objects[slot] = nullptr;
 

@@ -9,27 +9,24 @@
 
 #include "common/common_types.h"
 #include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/time_manager.h"
 
 namespace Kernel {
 
 class KScopedSchedulerLockAndSleep {
 public:
-    explicit KScopedSchedulerLockAndSleep(KernelCore& kernel, Handle& event_handle, Thread* t,
-                                          s64 timeout)
-        : kernel(kernel), event_handle(event_handle), thread(t), timeout_tick(timeout) {
-        event_handle = InvalidHandle;
-
+    explicit KScopedSchedulerLockAndSleep(KernelCore& kernel, KThread* t, s64 timeout)
+        : kernel(kernel), thread(t), timeout_tick(timeout) {
         // Lock the scheduler.
         kernel.GlobalSchedulerContext().scheduler_lock.Lock();
     }
 
     ~KScopedSchedulerLockAndSleep() {
         // Register the sleep.
-        if (this->timeout_tick > 0) {
-            kernel.TimeManager().ScheduleTimeEvent(event_handle, this->thread, this->timeout_tick);
+        if (timeout_tick > 0) {
+            kernel.TimeManager().ScheduleTimeEvent(thread, timeout_tick);
         }
 
         // Unlock the scheduler.
@@ -37,13 +34,12 @@ public:
     }
 
     void CancelSleep() {
-        this->timeout_tick = 0;
+        timeout_tick = 0;
     }
 
 private:
     KernelCore& kernel;
-    Handle& event_handle;
-    Thread* thread{};
+    KThread* thread{};
     s64 timeout_tick{};
 };
 

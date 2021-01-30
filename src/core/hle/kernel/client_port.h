@@ -51,6 +51,8 @@ public:
      */
     void ConnectionClosed();
 
+    void Finalize() override {}
+
 private:
     std::shared_ptr<ServerPort> server_port; ///< ServerPort associated with this client port.
     u32 max_sessions = 0;    ///< Maximum number of simultaneous sessions the port can have

@@ -7,9 +7,9 @@
 #include "core/hle/kernel/k_address_arbiter.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
+#include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/svc_results.h"
-#include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/time_manager.h"
 #include "core/memory.h"
 
@@ -96,7 +96,7 @@ ResultCode KAddressArbiter::Signal(VAddr addr, s32 count) {
         auto it = thread_tree.nfind_light({addr, -1});
         while ((it != thread_tree.end()) && (count <= 0 || num_waiters < count) &&
                (it->GetAddressArbiterKey() == addr)) {
-            Thread* target_thread = std::addressof(*it);
+            KThread* target_thread = std::addressof(*it);
             target_thread->SetSyncedObject(nullptr, RESULT_SUCCESS);
 
             ASSERT(target_thread->IsWaitingForAddressArbiter());
@@ -125,7 +125,7 @@ ResultCode KAddressArbiter::SignalAndIncrementIfEqual(VAddr addr, s32 value, s32
         auto it = thread_tree.nfind_light({addr, -1});
         while ((it != thread_tree.end()) && (count <= 0 || num_waiters < count) &&
                (it->GetAddressArbiterKey() == addr)) {
-            Thread* target_thread = std::addressof(*it);
+            KThread* target_thread = std::addressof(*it);
             target_thread->SetSyncedObject(nullptr, RESULT_SUCCESS);
 
             ASSERT(target_thread->IsWaitingForAddressArbiter());
@@ -215,7 +215,7 @@ ResultCode KAddressArbiter::SignalAndModifyByWaitingCountIfEqual(VAddr addr, s32
 
         while ((it != thread_tree.end()) && (count <= 0 || num_waiters < count) &&
                (it->GetAddressArbiterKey() == addr)) {
-            Thread* target_thread = std::addressof(*it);
+            KThread* target_thread = std::addressof(*it);
             target_thread->SetSyncedObject(nullptr, RESULT_SUCCESS);
 
             ASSERT(target_thread->IsWaitingForAddressArbiter());
@@ -231,11 +231,10 @@ ResultCode KAddressArbiter::SignalAndModifyByWaitingCountIfEqual(VAddr addr, s32
 
 ResultCode KAddressArbiter::WaitIfLessThan(VAddr addr, s32 value, bool decrement, s64 timeout) {
     // Prepare to wait.
-    Thread* cur_thread = kernel.CurrentScheduler()->GetCurrentThread();
-    Handle timer = InvalidHandle;
+    KThread* cur_thread = kernel.CurrentScheduler()->GetCurrentThread();
 
     {
-        KScopedSchedulerLockAndSleep slp(kernel, timer, cur_thread, timeout);
+        KScopedSchedulerLockAndSleep slp{kernel, cur_thread, timeout};
 
         // Check that the thread isn't terminating.
         if (cur_thread->IsTerminationRequested()) {
@@ -280,10 +279,7 @@ ResultCode KAddressArbiter::WaitIfLessThan(VAddr addr, s32 value, bool decrement
     }
 
     // Cancel the timer wait.
-    if (timer != InvalidHandle) {
-        auto& time_manager = kernel.TimeManager();
-        time_manager.UnscheduleTimeEvent(timer);
-    }
+    kernel.TimeManager().UnscheduleTimeEvent(cur_thread);
 
     // Remove from the address arbiter.
     {
@@ -302,11 +298,10 @@ ResultCode KAddressArbiter::WaitIfLessThan(VAddr addr, s32 value, bool decrement
 
 ResultCode KAddressArbiter::WaitIfEqual(VAddr addr, s32 value, s64 timeout) {
     // Prepare to wait.
-    Thread* cur_thread = kernel.CurrentScheduler()->GetCurrentThread();
-    Handle timer = InvalidHandle;
+    KThread* cur_thread = kernel.CurrentScheduler()->GetCurrentThread();
 
     {
-        KScopedSchedulerLockAndSleep slp(kernel, timer, cur_thread, timeout);
+        KScopedSchedulerLockAndSleep slp{kernel, cur_thread, timeout};
 
         // Check that the thread isn't terminating.
         if (cur_thread->IsTerminationRequested()) {
@@ -344,10 +339,7 @@ ResultCode KAddressArbiter::WaitIfEqual(VAddr addr, s32 value, s64 timeout) {
     }
 
     // Cancel the timer wait.
-    if (timer != InvalidHandle) {
-        auto& time_manager = kernel.TimeManager();
-        time_manager.UnscheduleTimeEvent(timer);
-    }
+    kernel.TimeManager().UnscheduleTimeEvent(cur_thread);
 
     // Remove from the address arbiter.
     {

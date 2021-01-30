@@ -17,12 +17,12 @@ GlobalSchedulerContext::GlobalSchedulerContext(KernelCore& kernel)
 
 GlobalSchedulerContext::~GlobalSchedulerContext() = default;
 
-void GlobalSchedulerContext::AddThread(std::shared_ptr<Thread> thread) {
+void GlobalSchedulerContext::AddThread(std::shared_ptr<KThread> thread) {
     std::scoped_lock lock{global_list_guard};
     thread_list.push_back(std::move(thread));
 }
 
-void GlobalSchedulerContext::RemoveThread(std::shared_ptr<Thread> thread) {
+void GlobalSchedulerContext::RemoveThread(std::shared_ptr<KThread> thread) {
     std::scoped_lock lock{global_list_guard};
     thread_list.erase(std::remove(thread_list.begin(), thread_list.end(), thread),
                       thread_list.end());
