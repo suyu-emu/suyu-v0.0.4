@@ -98,12 +98,12 @@ bool KResourceLimit::Reserve(LimitableResource which, s64 value, s64 timeout) {
         return false;
     }
 
-    /* Loop until we reserve or run out of time. */
+    // Loop until we reserve or run out of time.
     while (true) {
         ASSERT(current_values[index] <= limit_values[index]);
         ASSERT(current_hints[index] <= current_values[index]);
 
-        /* If we would overflow, don't allow to succeed. */
+        // If we would overflow, don't allow to succeed.
         if (current_values[index] + value <= current_values[index]) {
             break;
         }
