@@ -414,27 +414,6 @@ void GMainWindow::ProfileSelectorSelectProfile() {
     emit ProfileSelectorFinishedSelection(uuid);
 }
 
-void GMainWindow::SoftwareKeyboardGetText(
-    const Core::Frontend::SoftwareKeyboardParameters& parameters) {
-    QtSoftwareKeyboardDialog dialog(this, parameters);
-    dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint |
-                          Qt::WindowTitleHint | Qt::WindowSystemMenuHint |
-                          Qt::WindowCloseButtonHint);
-    dialog.setWindowModality(Qt::WindowModal);
-
-    if (dialog.exec() == QDialog::Rejected) {
-        emit SoftwareKeyboardFinishedText(std::nullopt);
-        return;
-    }
-
-    emit SoftwareKeyboardFinishedText(dialog.GetText());
-}
-
-void GMainWindow::SoftwareKeyboardInvokeCheckDialog(std::u16string error_message) {
-    QMessageBox::warning(this, tr("Text Check Failed"), QString::fromStdU16String(error_message));
-    emit SoftwareKeyboardFinishedCheckDialog();
-}
-
 void GMainWindow::WebBrowserOpenWebPage(std::string_view main_url, std::string_view additional_args,
                                         bool is_local) {
 #ifdef YUZU_USE_QT_WEB_ENGINE
@@ -2188,8 +2167,6 @@ void GMainWindow::OnStartGame() {
     emu_thread->SetRunning(true);
 
     qRegisterMetaType<Core::Frontend::ControllerParameters>("Core::Frontend::ControllerParameters");
-    qRegisterMetaType<Core::Frontend::SoftwareKeyboardParameters>(
-        "Core::Frontend::SoftwareKeyboardParameters");
     qRegisterMetaType<Core::System::ResultStatus>("Core::System::ResultStatus");
     qRegisterMetaType<std::string>("std::string");
     qRegisterMetaType<std::optional<std::u16string>>("std::optional<std::u16string>");
