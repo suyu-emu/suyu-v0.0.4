@@ -26,6 +26,7 @@
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_address_arbiter.h"
 #include "core/hle/kernel/k_condition_variable.h"
+#include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
 #include "core/hle/kernel/k_synchronization_object.h"
@@ -37,7 +38,6 @@
 #include "core/hle/kernel/physical_core.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/readable_event.h"
-#include "core/hle/kernel/resource_limit.h"
 #include "core/hle/kernel/shared_memory.h"
 #include "core/hle/kernel/svc.h"
 #include "core/hle/kernel/svc_results.h"
@@ -141,7 +141,7 @@ enum class ResourceLimitValueType {
 ResultVal<s64> RetrieveResourceLimitValue(Core::System& system, Handle resource_limit,
                                           u32 resource_type, ResourceLimitValueType value_type) {
     std::lock_guard lock{HLE::g_hle_lock};
-    const auto type = static_cast<ResourceType>(resource_type);
+    const auto type = static_cast<LimitableResource>(resource_type);
     if (!IsValidResourceType(type)) {
         LOG_ERROR(Kernel_SVC, "Invalid resource limit type: '{}'", resource_type);
         return ERR_INVALID_ENUM_VALUE;
@@ -151,7 +151,7 @@ ResultVal<s64> RetrieveResourceLimitValue(Core::System& system, Handle resource_
     ASSERT(current_process != nullptr);
 
     const auto resource_limit_object =
-        current_process->GetHandleTable().Get<ResourceLimit>(resource_limit);
+        current_process->GetHandleTable().Get<KResourceLimit>(resource_limit);
     if (!resource_limit_object) {
         LOG_ERROR(Kernel_SVC, "Handle to non-existent resource limit instance used. Handle={:08X}",
                   resource_limit);
@@ -159,10 +159,10 @@ ResultVal<s64> RetrieveResourceLimitValue(Core::System& system, Handle resource_
     }
 
     if (value_type == ResourceLimitValueType::CurrentValue) {
-        return MakeResult(resource_limit_object->GetCurrentResourceValue(type));
+        return MakeResult(resource_limit_object->GetCurrentValue(type));
     }
 
-    return MakeResult(resource_limit_object->GetMaxResourceValue(type));
+    return MakeResult(resource_limit_object->GetLimitValue(type));
 }
 } // Anonymous namespace
 
@@ -312,7 +312,8 @@ static ResultCode ConnectToNamedPort(Core::System& system, Handle* out_handle,
         return ERR_NOT_FOUND;
     }
 
-    ASSERT(kernel.CurrentProcess()->GetResourceLimit()->Reserve(ResourceType::Sessions, 1));
+    ASSERT(kernel.CurrentProcess()->GetResourceLimit()->Reserve(LimitableResource::SessionCountMax,
+                                                                1));
 
     auto client_port = it->second;
 
@@ -1450,7 +1451,10 @@ static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr e
              Svc::ResultInvalidPriority);
     R_UNLESS(process.CheckThreadPriority(priority), Svc::ResultInvalidPriority);
 
-    ASSERT(process.GetResourceLimit()->Reserve(ResourceType::Threads, 1));
+    ASSERT(process.GetResourceLimit()->Reserve(
+        LimitableResource::ThreadCountMax, 1,
+        system.CoreTiming().GetClockTicks() +
+            Core::Timing::msToCycles(std::chrono::milliseconds{100})));
 
     std::shared_ptr<KThread> thread;
     {
@@ -1972,7 +1976,7 @@ static ResultCode CreateResourceLimit(Core::System& system, Handle* out_handle) 
     LOG_DEBUG(Kernel_SVC, "called");
 
     auto& kernel = system.Kernel();
-    auto resource_limit = ResourceLimit::Create(kernel);
+    auto resource_limit = std::make_shared<KResourceLimit>(kernel, system);
 
     auto* const current_process = kernel.CurrentProcess();
     ASSERT(current_process != nullptr);
@@ -2019,7 +2023,7 @@ static ResultCode SetResourceLimitLimitValue(Core::System& system, Handle resour
     LOG_DEBUG(Kernel_SVC, "called. Handle={:08X}, Resource type={}, Value={}", resource_limit,
               resource_type, value);
 
-    const auto type = static_cast<ResourceType>(resource_type);
+    const auto type = static_cast<LimitableResource>(resource_type);
     if (!IsValidResourceType(type)) {
         LOG_ERROR(Kernel_SVC, "Invalid resource limit type: '{}'", resource_type);
         return ERR_INVALID_ENUM_VALUE;
@@ -2029,7 +2033,7 @@ static ResultCode SetResourceLimitLimitValue(Core::System& system, Handle resour
     ASSERT(current_process != nullptr);
 
     auto resource_limit_object =
-        current_process->GetHandleTable().Get<ResourceLimit>(resource_limit);
+        current_process->GetHandleTable().Get<KResourceLimit>(resource_limit);
     if (!resource_limit_object) {
         LOG_ERROR(Kernel_SVC, "Handle to non-existent resource limit instance used. Handle={:08X}",
                   resource_limit);
@@ -2041,8 +2045,8 @@ static ResultCode SetResourceLimitLimitValue(Core::System& system, Handle resour
         LOG_ERROR(
             Kernel_SVC,
             "Attempted to lower resource limit ({}) for category '{}' below its current value ({})",
-            resource_limit_object->GetMaxResourceValue(type), resource_type,
-            resource_limit_object->GetCurrentResourceValue(type));
+            resource_limit_object->GetLimitValue(type), resource_type,
+            resource_limit_object->GetCurrentValue(type));
         return set_result;
     }
 

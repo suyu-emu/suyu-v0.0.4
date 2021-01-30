@@ -7,6 +7,7 @@
 #include "common/scope_exit.h"
 #include "core/core.h"
 #include "core/hle/kernel/errors.h"
+#include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/memory/address_space_info.h"
 #include "core/hle/kernel/memory/memory_block.h"
@@ -15,7 +16,6 @@
 #include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/memory/system_control.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/resource_limit.h"
 #include "core/memory.h"
 
 namespace Kernel::Memory {
@@ -413,8 +413,8 @@ ResultCode PageTable::MapPhysicalMemory(VAddr addr, std::size_t size) {
     const std::size_t remaining_size{size - mapped_size};
     const std::size_t remaining_pages{remaining_size / PageSize};
 
-    if (process->GetResourceLimit() &&
-        !process->GetResourceLimit()->Reserve(ResourceType::PhysicalMemory, remaining_size)) {
+    if (process->GetResourceLimit() && !process->GetResourceLimit()->Reserve(
+                                           LimitableResource::PhysicalMemoryMax, remaining_size)) {
         return ERR_RESOURCE_LIMIT_EXCEEDED;
     }
 
@@ -422,7 +422,8 @@ ResultCode PageTable::MapPhysicalMemory(VAddr addr, std::size_t size) {
     {
         auto block_guard = detail::ScopeExit([&] {
             system.Kernel().MemoryManager().Free(page_linked_list, remaining_pages, memory_pool);
-            process->GetResourceLimit()->Release(ResourceType::PhysicalMemory, remaining_size);
+            process->GetResourceLimit()->Release(LimitableResource::PhysicalMemoryMax,
+                                                 remaining_size);
         });
 
         CASCADE_CODE(system.Kernel().MemoryManager().Allocate(page_linked_list, remaining_pages,
@@ -474,7 +475,7 @@ ResultCode PageTable::UnmapPhysicalMemory(VAddr addr, std::size_t size) {
     CASCADE_CODE(UnmapMemory(addr, size));
 
     auto process{system.Kernel().CurrentProcess()};
-    process->GetResourceLimit()->Release(ResourceType::PhysicalMemory, mapped_size);
+    process->GetResourceLimit()->Release(LimitableResource::PhysicalMemoryMax, mapped_size);
     physical_memory_usage -= mapped_size;
 
     return RESULT_SUCCESS;
@@ -783,7 +784,7 @@ ResultVal<VAddr> PageTable::SetHeapSize(std::size_t size) {
 
         auto process{system.Kernel().CurrentProcess()};
         if (process->GetResourceLimit() && delta != 0 &&
-            !process->GetResourceLimit()->Reserve(ResourceType::PhysicalMemory, delta)) {
+            !process->GetResourceLimit()->Reserve(LimitableResource::PhysicalMemoryMax, delta)) {
             return ERR_RESOURCE_LIMIT_EXCEEDED;
         }
 
