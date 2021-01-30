@@ -26,7 +26,7 @@ struct EventType;
 } // namespace Core::Timing
 
 namespace Kernel {
-class ReadableEvent;
+class KReadableEvent;
 class WritableEvent;
 } // namespace Kernel
 
@@ -72,7 +72,7 @@ public:
     /// Gets the vsync event for the specified display.
     ///
     /// If an invalid display ID is provided, then nullptr is returned.
-    [[nodiscard]] std::shared_ptr<Kernel::ReadableEvent> FindVsyncEvent(u64 display_id) const;
+    [[nodiscard]] std::shared_ptr<Kernel::KReadableEvent> FindVsyncEvent(u64 display_id) const;
 
     /// Obtains a buffer queue identified by the ID.
     [[nodiscard]] BufferQueue* FindBufferQueue(u32 id);

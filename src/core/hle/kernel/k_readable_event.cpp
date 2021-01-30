@@ -6,18 +6,18 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/hle/kernel/errors.h"
+#include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/object.h"
-#include "core/hle/kernel/readable_event.h"
 
 namespace Kernel {
 
-ReadableEvent::ReadableEvent(KernelCore& kernel) : KSynchronizationObject{kernel} {}
-ReadableEvent::~ReadableEvent() = default;
+KReadableEvent::KReadableEvent(KernelCore& kernel) : KSynchronizationObject{kernel} {}
+KReadableEvent::~KReadableEvent() = default;
 
-void ReadableEvent::Signal() {
+void KReadableEvent::Signal() {
     if (is_signaled) {
         return;
     }
@@ -26,17 +26,17 @@ void ReadableEvent::Signal() {
     NotifyAvailable();
 }
 
-bool ReadableEvent::IsSignaled() const {
+bool KReadableEvent::IsSignaled() const {
     ASSERT(kernel.GlobalSchedulerContext().IsLocked());
 
     return is_signaled;
 }
 
-void ReadableEvent::Clear() {
+void KReadableEvent::Clear() {
     is_signaled = false;
 }
 
-ResultCode ReadableEvent::Reset() {
+ResultCode KReadableEvent::Reset() {
     KScopedSchedulerLock lock(kernel);
     if (!is_signaled) {
         LOG_TRACE(Kernel, "Handle is not signaled! object_id={}, object_type={}, object_name={}",

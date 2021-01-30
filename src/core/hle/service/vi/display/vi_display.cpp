@@ -9,7 +9,7 @@
 
 #include "common/assert.h"
 #include "core/core.h"
-#include "core/hle/kernel/readable_event.h"
+#include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/service/vi/display/vi_display.h"
 #include "core/hle/service/vi/layer/vi_layer.h"
 
@@ -31,7 +31,7 @@ const Layer& Display::GetLayer(std::size_t index) const {
     return *layers.at(index);
 }
 
-std::shared_ptr<Kernel::ReadableEvent> Display::GetVSyncEvent() const {
+std::shared_ptr<Kernel::KReadableEvent> Display::GetVSyncEvent() const {
     return vsync_event.readable;
 }
 

@@ -14,11 +14,11 @@ namespace Kernel {
 class KernelCore;
 class WritableEvent;
 
-class ReadableEvent final : public KSynchronizationObject {
+class KReadableEvent final : public KSynchronizationObject {
     friend class WritableEvent;
 
 public:
-    ~ReadableEvent() override;
+    ~KReadableEvent() override;
 
     std::string GetTypeName() const override {
         return "ReadableEvent";
@@ -50,7 +50,7 @@ public:
     void Finalize() override {}
 
 private:
-    explicit ReadableEvent(KernelCore& kernel);
+    explicit KReadableEvent(KernelCore& kernel);
 
     bool is_signaled{};
     std::string name; ///< Name of event (optional)

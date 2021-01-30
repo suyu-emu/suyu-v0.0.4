@@ -26,6 +26,7 @@
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_address_arbiter.h"
 #include "core/hle/kernel/k_condition_variable.h"
+#include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
@@ -37,7 +38,6 @@
 #include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/physical_core.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/shared_memory.h"
 #include "core/hle/kernel/svc.h"
 #include "core/hle/kernel/svc_results.h"
@@ -1727,7 +1727,7 @@ static ResultCode ResetSignal(Core::System& system, Handle handle) {
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
 
-    auto event = handle_table.Get<ReadableEvent>(handle);
+    auto event = handle_table.Get<KReadableEvent>(handle);
     if (event) {
         return event->Reset();
     }
@@ -1909,7 +1909,7 @@ static ResultCode ClearEvent(Core::System& system, Handle handle) {
         return RESULT_SUCCESS;
     }
 
-    auto readable_event = handle_table.Get<ReadableEvent>(handle);
+    auto readable_event = handle_table.Get<KReadableEvent>(handle);
     if (readable_event) {
         readable_event->Clear();
         return RESULT_SUCCESS;

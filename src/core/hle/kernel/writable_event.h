@@ -1,4 +1,4 @@
-// Copyright 2014 Citra Emulator Project
+// Copyright 2021 yuzu Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
@@ -11,11 +11,11 @@
 namespace Kernel {
 
 class KernelCore;
-class ReadableEvent;
+class KReadableEvent;
 class WritableEvent;
 
 struct EventPair {
-    std::shared_ptr<ReadableEvent> readable;
+    std::shared_ptr<KReadableEvent> readable;
     std::shared_ptr<WritableEvent> writable;
 };
 
@@ -42,7 +42,7 @@ public:
         return HANDLE_TYPE;
     }
 
-    std::shared_ptr<ReadableEvent> GetReadableEvent() const;
+    std::shared_ptr<KReadableEvent> GetReadableEvent() const;
 
     void Signal();
     void Clear();
@@ -52,7 +52,7 @@ public:
 private:
     explicit WritableEvent(KernelCore& kernel);
 
-    std::shared_ptr<ReadableEvent> readable;
+    std::shared_ptr<KReadableEvent> readable;
 
     std::string name; ///< Name of event (optional)
 };

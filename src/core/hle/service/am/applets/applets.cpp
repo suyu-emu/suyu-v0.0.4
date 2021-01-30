@@ -11,7 +11,7 @@
 #include "core/frontend/applets/profile_select.h"
 #include "core/frontend/applets/software_keyboard.h"
 #include "core/frontend/applets/web_browser.h"
-#include "core/hle/kernel/readable_event.h"
+#include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/server_session.h"
 #include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/am/am.h"
@@ -112,15 +112,15 @@ void AppletDataBroker::SignalStateChanged() const {
     state_changed_event.writable->Signal();
 }
 
-std::shared_ptr<Kernel::ReadableEvent> AppletDataBroker::GetNormalDataEvent() const {
+std::shared_ptr<Kernel::KReadableEvent> AppletDataBroker::GetNormalDataEvent() const {
     return pop_out_data_event.readable;
 }
 
-std::shared_ptr<Kernel::ReadableEvent> AppletDataBroker::GetInteractiveDataEvent() const {
+std::shared_ptr<Kernel::KReadableEvent> AppletDataBroker::GetInteractiveDataEvent() const {
     return pop_interactive_out_data_event.readable;
 }
 
-std::shared_ptr<Kernel::ReadableEvent> AppletDataBroker::GetStateChangedEvent() const {
+std::shared_ptr<Kernel::KReadableEvent> AppletDataBroker::GetStateChangedEvent() const {
     return state_changed_event.readable;
 }
 

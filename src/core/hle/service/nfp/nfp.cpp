@@ -8,9 +8,9 @@
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
+#include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/writable_event.h"
 #include "core/hle/lock.h"
 #include "core/hle/service/nfp/nfp.h"
@@ -340,7 +340,7 @@ bool Module::Interface::LoadAmiibo(const std::vector<u8>& buffer) {
     return true;
 }
 
-const std::shared_ptr<Kernel::ReadableEvent>& Module::Interface::GetNFCEvent() const {
+const std::shared_ptr<Kernel::KReadableEvent>& Module::Interface::GetNFCEvent() const {
     return nfc_tag_load.readable;
 }
 

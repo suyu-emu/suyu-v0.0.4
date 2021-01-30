@@ -13,9 +13,9 @@
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/savedata_factory.h"
 #include "core/hle/ipc_helpers.h"
+#include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/transfer_memory.h"
 #include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/acc/profile_manager.h"
@@ -567,11 +567,11 @@ AppletMessageQueue::AppletMessageQueue(Kernel::KernelCore& kernel) {
 
 AppletMessageQueue::~AppletMessageQueue() = default;
 
-const std::shared_ptr<Kernel::ReadableEvent>& AppletMessageQueue::GetMessageReceiveEvent() const {
+const std::shared_ptr<Kernel::KReadableEvent>& AppletMessageQueue::GetMessageReceiveEvent() const {
     return on_new_message.readable;
 }
 
-const std::shared_ptr<Kernel::ReadableEvent>& AppletMessageQueue::GetOperationModeChangedEvent()
+const std::shared_ptr<Kernel::KReadableEvent>& AppletMessageQueue::GetOperationModeChangedEvent()
     const {
     return on_operation_mode_changed.readable;
 }

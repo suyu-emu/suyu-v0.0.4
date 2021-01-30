@@ -115,7 +115,7 @@ public:
 
     std::shared_ptr<Kernel::WritableEvent> GetWritableBufferWaitEvent() const;
 
-    std::shared_ptr<Kernel::ReadableEvent> GetBufferWaitEvent() const;
+    std::shared_ptr<Kernel::KReadableEvent> GetBufferWaitEvent() const;
 
 private:
     BufferQueue(const BufferQueue&) = delete;

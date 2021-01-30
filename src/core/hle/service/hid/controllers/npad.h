@@ -187,7 +187,7 @@ public:
 
     bool IsVibrationDeviceMounted(const DeviceHandle& vibration_device_handle) const;
 
-    std::shared_ptr<Kernel::ReadableEvent> GetStyleSetChangedEvent(u32 npad_id) const;
+    std::shared_ptr<Kernel::KReadableEvent> GetStyleSetChangedEvent(u32 npad_id) const;
     void SignalStyleSetChangedEvent(u32 npad_id) const;
 
     // Adds a new controller at an index.

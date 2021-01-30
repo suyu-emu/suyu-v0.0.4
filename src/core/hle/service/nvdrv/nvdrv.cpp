@@ -7,7 +7,7 @@
 #include <fmt/format.h>
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/readable_event.h"
+#include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/nvdrv/devices/nvdevice.h"
 #include "core/hle/service/nvdrv/devices/nvdisp_disp0.h"
@@ -171,7 +171,7 @@ void Module::SignalSyncpt(const u32 syncpoint_id, const u32 value) {
     }
 }
 
-std::shared_ptr<Kernel::ReadableEvent> Module::GetEvent(const u32 event_id) const {
+std::shared_ptr<Kernel::KReadableEvent> Module::GetEvent(const u32 event_id) const {
     return events_interface.events[event_id].event.readable;
 }
 

@@ -11,7 +11,7 @@
 
 #include "common/common_types.h"
 #include "core/file_sys/vfs_types.h"
-#include "core/hle/kernel/readable_event.h"
+#include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/writable_event.h"
 #include "core/hle/result.h"
 
@@ -98,7 +98,7 @@ public:
 private:
     explicit ProgressServiceBackend(Kernel::KernelCore& kernel, std::string_view event_name);
 
-    std::shared_ptr<Kernel::ReadableEvent> GetEvent() const;
+    std::shared_ptr<Kernel::KReadableEvent> GetEvent() const;
     DeliveryCacheProgressImpl& GetImpl();
 
     void SignalUpdate() const;

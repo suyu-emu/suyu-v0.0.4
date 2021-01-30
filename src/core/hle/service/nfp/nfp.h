@@ -6,7 +6,7 @@
 
 #include <array>
 #include <vector>
-#include "core/hle/kernel/readable_event.h"
+#include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/service.h"
 
@@ -35,7 +35,7 @@ public:
 
         void CreateUserInterface(Kernel::HLERequestContext& ctx);
         bool LoadAmiibo(const std::vector<u8>& buffer);
-        const std::shared_ptr<Kernel::ReadableEvent>& GetNFCEvent() const;
+        const std::shared_ptr<Kernel::KReadableEvent>& GetNFCEvent() const;
         const AmiiboFile& GetAmiiboBuffer() const;
 
     private:

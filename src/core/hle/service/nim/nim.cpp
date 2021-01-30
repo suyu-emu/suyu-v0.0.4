@@ -6,8 +6,8 @@
 #include <ctime>
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
+#include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/nim/nim.h"
 #include "core/hle/service/service.h"

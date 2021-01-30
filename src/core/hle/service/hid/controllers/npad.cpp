@@ -12,8 +12,8 @@
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/frontend/input.h"
+#include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/hid/controllers/npad.h"
 #include "core/settings.h"
@@ -872,7 +872,8 @@ bool Controller_NPad::IsVibrationDeviceMounted(const DeviceHandle& vibration_dev
     return vibration_devices_mounted[npad_index][device_index];
 }
 
-std::shared_ptr<Kernel::ReadableEvent> Controller_NPad::GetStyleSetChangedEvent(u32 npad_id) const {
+std::shared_ptr<Kernel::KReadableEvent> Controller_NPad::GetStyleSetChangedEvent(
+    u32 npad_id) const {
     const auto& styleset_event = styleset_changed_events[NPadIdToIndex(npad_id)];
     return styleset_event.readable;
 }

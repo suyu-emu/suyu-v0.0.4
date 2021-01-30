@@ -16,7 +16,7 @@ ProgressServiceBackend::ProgressServiceBackend(Kernel::KernelCore& kernel,
         kernel, std::string("ProgressServiceBackend:UpdateEvent:").append(event_name));
 }
 
-std::shared_ptr<Kernel::ReadableEvent> ProgressServiceBackend::GetEvent() const {
+std::shared_ptr<Kernel::KReadableEvent> ProgressServiceBackend::GetEvent() const {
     return event.readable;
 }
 

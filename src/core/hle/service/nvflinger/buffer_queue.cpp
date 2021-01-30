@@ -7,8 +7,8 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/core.h"
+#include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/nvflinger/buffer_queue.h"
 
@@ -192,7 +192,7 @@ std::shared_ptr<Kernel::WritableEvent> BufferQueue::GetWritableBufferWaitEvent()
     return buffer_wait_event.writable;
 }
 
-std::shared_ptr<Kernel::ReadableEvent> BufferQueue::GetBufferWaitEvent() const {
+std::shared_ptr<Kernel::KReadableEvent> BufferQueue::GetBufferWaitEvent() const {
     return buffer_wait_event.readable;
 }
 

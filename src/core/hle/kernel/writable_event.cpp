@@ -4,10 +4,10 @@
 
 #include <algorithm>
 #include "common/assert.h"
+#include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/object.h"
-#include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/writable_event.h"
 
 namespace Kernel {
@@ -17,7 +17,7 @@ WritableEvent::~WritableEvent() = default;
 
 EventPair WritableEvent::CreateEventPair(KernelCore& kernel, std::string name) {
     std::shared_ptr<WritableEvent> writable_event(new WritableEvent(kernel));
-    std::shared_ptr<ReadableEvent> readable_event(new ReadableEvent(kernel));
+    std::shared_ptr<KReadableEvent> readable_event(new KReadableEvent(kernel));
 
     writable_event->name = name + ":Writable";
     writable_event->readable = readable_event;
@@ -26,7 +26,7 @@ EventPair WritableEvent::CreateEventPair(KernelCore& kernel, std::string name) {
     return {std::move(readable_event), std::move(writable_event)};
 }
 
-std::shared_ptr<ReadableEvent> WritableEvent::GetReadableEvent() const {
+std::shared_ptr<KReadableEvent> WritableEvent::GetReadableEvent() const {
     return readable;
 }
 
