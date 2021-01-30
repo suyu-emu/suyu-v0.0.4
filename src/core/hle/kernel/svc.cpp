@@ -1451,10 +1451,9 @@ static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr e
              Svc::ResultInvalidPriority);
     R_UNLESS(process.CheckThreadPriority(priority), Svc::ResultInvalidPriority);
 
-    ASSERT(process.GetResourceLimit()->Reserve(
-        LimitableResource::ThreadCountMax, 1,
-        system.CoreTiming().GetClockTicks() +
-            Core::Timing::msToCycles(std::chrono::milliseconds{100})));
+    ASSERT(process.GetResourceLimit()->Reserve(LimitableResource::ThreadCountMax, 1,
+                                               system.CoreTiming().GetGlobalTimeNs().count() +
+                                                   100000000));
 
     std::shared_ptr<KThread> thread;
     {

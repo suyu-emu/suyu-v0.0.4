@@ -154,7 +154,7 @@ void Process::DecrementThreadCount() {
 }
 
 u64 Process::GetTotalPhysicalMemoryAvailable() const {
-    const u64 capacity{resource_limit->GetCurrentValue(LimitableResource::PhysicalMemoryMax) +
+    const u64 capacity{resource_limit->GetFreeValue(LimitableResource::PhysicalMemoryMax) +
                        page_table->GetTotalHeapSize() + GetSystemResourceSize() + image_size +
                        main_thread_stack_size};
 

@@ -14,8 +14,7 @@
 
 namespace Kernel {
 namespace {
-static const s64 DefaultTimeout =
-    Core::Timing::msToCycles(std::chrono::milliseconds{10000}); // 10 seconds
+constexpr s64 DefaultTimeout = 10000000000; // 10 seconds
 }
 
 KResourceLimit::KResourceLimit(KernelCore& kernel, Core::System& system)
@@ -86,7 +85,7 @@ ResultCode KResourceLimit::SetLimitValue(LimitableResource which, s64 value) {
 }
 
 bool KResourceLimit::Reserve(LimitableResource which, s64 value) {
-    return Reserve(which, value, system.CoreTiming().GetClockTicks() + DefaultTimeout);
+    return Reserve(which, value, system.CoreTiming().GetGlobalTimeNs().count() + DefaultTimeout);
 }
 
 bool KResourceLimit::Reserve(LimitableResource which, s64 value, s64 timeout) {
@@ -117,7 +116,7 @@ bool KResourceLimit::Reserve(LimitableResource which, s64 value, s64 timeout) {
         }
 
         if (current_hints[index] + value <= limit_values[index] &&
-            (timeout < 0 || system.CoreTiming().GetClockTicks() < static_cast<u64>(timeout))) {
+            (timeout < 0 || system.CoreTiming().GetGlobalTimeNs().count() < timeout)) {
             waiter_count++;
             cond_var.Wait(&m_lock, timeout);
             waiter_count--;
