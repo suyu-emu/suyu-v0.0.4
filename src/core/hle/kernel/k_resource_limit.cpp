@@ -38,7 +38,7 @@ s64 KResourceLimit::GetCurrentValue(LimitableResource which) const {
     const auto index = static_cast<std::size_t>(which);
     s64 value{};
     {
-        KScopedLightLock lk{m_lock};
+        KScopedLightLock lk{lock};
         value = current_values[index];
         ASSERT(value >= 0);
         ASSERT(current_values[index] <= limit_values[index]);
