@@ -71,7 +71,7 @@ private:
     std::array<s64, static_cast<std::size_t>(LimitableResource::Count)> current_values{};
     std::array<s64, static_cast<std::size_t>(LimitableResource::Count)> current_hints{};
     std::array<s64, static_cast<std::size_t>(LimitableResource::Count)> peak_values{};
-    mutable KLightLock m_lock;
+    mutable KLightLock lock;
     s32 waiter_count{};
     KLightConditionVariable cond_var;
     KernelCore& kernel;

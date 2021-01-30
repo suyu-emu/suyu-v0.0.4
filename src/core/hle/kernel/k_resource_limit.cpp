@@ -18,14 +18,14 @@ constexpr s64 DefaultTimeout = 10000000000; // 10 seconds
 }
 
 KResourceLimit::KResourceLimit(KernelCore& kernel, Core::System& system)
-    : Object{kernel}, m_lock{kernel}, cond_var{kernel}, kernel{kernel}, system(system) {}
+    : Object{kernel}, lock{kernel}, cond_var{kernel}, kernel{kernel}, system(system) {}
 KResourceLimit::~KResourceLimit() = default;
 
 s64 KResourceLimit::GetLimitValue(LimitableResource which) const {
     const auto index = static_cast<std::size_t>(which);
     s64 value{};
     {
-        KScopedLightLock lk{m_lock};
+        KScopedLightLock lk{lock};
         value = limit_values[index];
         ASSERT(value >= 0);
         ASSERT(current_values[index] <= limit_values[index]);
@@ -51,7 +51,7 @@ s64 KResourceLimit::GetPeakValue(LimitableResource which) const {
     const auto index = static_cast<std::size_t>(which);
     s64 value{};
     {
-        KScopedLightLock lk{m_lock};
+        KScopedLightLock lk{lock};
         value = peak_values[index];
         ASSERT(value >= 0);
         ASSERT(current_values[index] <= limit_values[index]);
@@ -64,7 +64,7 @@ s64 KResourceLimit::GetFreeValue(LimitableResource which) const {
     const auto index = static_cast<std::size_t>(which);
     s64 value{};
     {
-        KScopedLightLock lk(m_lock);
+        KScopedLightLock lk(lock);
         ASSERT(current_values[index] >= 0);
         ASSERT(current_values[index] <= limit_values[index]);
         ASSERT(current_hints[index] <= current_values[index]);
@@ -76,7 +76,7 @@ s64 KResourceLimit::GetFreeValue(LimitableResource which) const {
 
 ResultCode KResourceLimit::SetLimitValue(LimitableResource which, s64 value) {
     const auto index = static_cast<std::size_t>(which);
-    KScopedLightLock lk(m_lock);
+    KScopedLightLock lk(lock);
     R_UNLESS(current_values[index] <= value, Svc::ResultInvalidState);
 
     limit_values[index] = value;
@@ -91,7 +91,7 @@ bool KResourceLimit::Reserve(LimitableResource which, s64 value) {
 bool KResourceLimit::Reserve(LimitableResource which, s64 value, s64 timeout) {
     ASSERT(value >= 0);
     const auto index = static_cast<std::size_t>(which);
-    KScopedLightLock lk(m_lock);
+    KScopedLightLock lk(lock);
 
     ASSERT(current_hints[index] <= current_values[index]);
     if (current_hints[index] >= limit_values[index]) {
@@ -118,7 +118,7 @@ bool KResourceLimit::Reserve(LimitableResource which, s64 value, s64 timeout) {
         if (current_hints[index] + value <= limit_values[index] &&
             (timeout < 0 || system.CoreTiming().GetGlobalTimeNs().count() < timeout)) {
             waiter_count++;
-            cond_var.Wait(&m_lock, timeout);
+            cond_var.Wait(&lock, timeout);
             waiter_count--;
         } else {
             break;
@@ -137,7 +137,7 @@ void KResourceLimit::Release(LimitableResource which, s64 value, s64 hint) {
     ASSERT(hint >= 0);
 
     const auto index = static_cast<std::size_t>(which);
-    KScopedLightLock lk(m_lock);
+    KScopedLightLock lk(lock);
     ASSERT(current_values[index] <= limit_values[index]);
     ASSERT(current_hints[index] <= current_values[index]);
     ASSERT(value <= current_values[index]);
