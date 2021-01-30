@@ -579,11 +579,11 @@ void ConfigureInputPlayer::ApplyConfiguration() {
     // Apply configuration for handheld
     if (player_index == 0) {
         auto& handheld = Settings::values.players.GetValue()[HANDHELD_INDEX];
+        const auto handheld_connected = handheld.connected;
         if (player.controller_type == Settings::ControllerType::Handheld) {
             handheld = player;
         }
-        handheld.connected = ui->groupConnectedController->isChecked() &&
-                             player.controller_type == Settings::ControllerType::Handheld;
+        handheld.connected = handheld_connected;
     }
 }
 
@@ -594,6 +594,18 @@ void ConfigureInputPlayer::TryConnectSelectedController() {
         GetControllerTypeFromIndex(ui->comboControllerType->currentIndex());
     const auto player_connected = ui->groupConnectedController->isChecked() &&
                                   controller_type != Settings::ControllerType::Handheld;
+
+    // Connect Handheld depending on Player 1's controller configuration.
+    if (player_index == 0 && controller_type == Settings::ControllerType::Handheld) {
+        auto& handheld = Settings::values.players.GetValue()[HANDHELD_INDEX];
+        const auto handheld_connected = ui->groupConnectedController->isChecked() &&
+                                        controller_type == Settings::ControllerType::Handheld;
+        // Connect only if handheld is going from disconnected to connected
+        if (!handheld.connected && handheld_connected) {
+            UpdateController(controller_type, HANDHELD_INDEX, true);
+        }
+        handheld.connected = handheld_connected;
+    }
 
     if (player.controller_type == controller_type && player.connected == player_connected) {
         // Set vibration devices in the event that the input device has changed.
@@ -606,22 +618,11 @@ void ConfigureInputPlayer::TryConnectSelectedController() {
 
     ConfigureVibration::SetVibrationDevices(player_index);
 
-    // Connect/Disconnect Handheld depending on Player 1's controller configuration.
-    if (player_index == 0) {
-        auto& handheld = Settings::values.players.GetValue()[HANDHELD_INDEX];
-        if (controller_type == Settings::ControllerType::Handheld) {
-            handheld = player;
-        }
-        handheld.connected = ui->groupConnectedController->isChecked() &&
-                             controller_type == Settings::ControllerType::Handheld;
-        UpdateController(Settings::ControllerType::Handheld, HANDHELD_INDEX, handheld.connected);
-    }
-
     if (!player.connected) {
         return;
     }
 
-    UpdateController(controller_type, player_index, player_connected);
+    UpdateController(controller_type, player_index, true);
 }
 
 void ConfigureInputPlayer::TryDisconnectSelectedController() {
@@ -632,8 +633,25 @@ void ConfigureInputPlayer::TryDisconnectSelectedController() {
     const auto player_connected = ui->groupConnectedController->isChecked() &&
                                   controller_type != Settings::ControllerType::Handheld;
 
+    // Disconnect Handheld depending on Player 1's controller configuration.
+    if (player_index == 0 && player.controller_type == Settings::ControllerType::Handheld) {
+        const auto& handheld = Settings::values.players.GetValue()[HANDHELD_INDEX];
+        const auto handheld_connected = ui->groupConnectedController->isChecked() &&
+                                        controller_type == Settings::ControllerType::Handheld;
+        // Disconnect only if handheld is going from connected to disconnected
+        if (handheld.connected && !handheld_connected) {
+            UpdateController(controller_type, HANDHELD_INDEX, false);
+        }
+        return;
+    }
+
     // Do not do anything if the controller configuration has not changed.
     if (player.controller_type == controller_type && player.connected == player_connected) {
+        return;
+    }
+
+    // Do not disconnect if the controller is already disconnected
+    if (!player.connected) {
         return;
     }
 
