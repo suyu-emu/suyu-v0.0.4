@@ -85,6 +85,9 @@ public:
     [[nodiscard]] u8* GetPointer(GPUVAddr addr);
     [[nodiscard]] const u8* GetPointer(GPUVAddr addr) const;
 
+    /// Returns the number of bytes until the end of the memory map containing the given GPU address
+    [[nodiscard]] size_t BytesToMapEnd(GPUVAddr gpu_addr) const noexcept;
+
     /**
      * ReadBlock and WriteBlock are full read and write operations over virtual
      * GPU Memory. It's important to use these when GPU memory may not be continuous
@@ -151,6 +154,9 @@ private:
     VideoCore::RasterizerInterface* rasterizer = nullptr;
 
     std::vector<PageEntry> page_table;
+
+    using MapRange = std::pair<GPUVAddr, size_t>;
+    std::vector<MapRange> map_ranges;
 };
 
 } // namespace Tegra
