@@ -15,8 +15,8 @@
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/kernel/k_readable_event.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/audio/audout_u.h"
 #include "core/hle/service/audio/errors.h"
 #include "core/memory.h"
@@ -67,7 +67,7 @@ public:
 
         // This is the event handle used to check if the audio buffer was released
         buffer_event =
-            Kernel::WritableEvent::CreateEventPair(system.Kernel(), "IAudioOutBufferReleased");
+            Kernel::KWritableEvent::CreateEventPair(system.Kernel(), "IAudioOutBufferReleased");
 
         stream = audio_core.OpenStream(system.CoreTiming(), audio_params.sample_rate,
                                        audio_params.channel_count, std::move(unique_name), [this] {

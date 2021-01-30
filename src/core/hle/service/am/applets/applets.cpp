@@ -12,8 +12,8 @@
 #include "core/frontend/applets/software_keyboard.h"
 #include "core/frontend/applets/web_browser.h"
 #include "core/hle/kernel/k_readable_event.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/server_session.h"
-#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applets/applets.h"
 #include "core/hle/service/am/applets/controller.h"
@@ -27,10 +27,10 @@ namespace Service::AM::Applets {
 
 AppletDataBroker::AppletDataBroker(Kernel::KernelCore& kernel) {
     state_changed_event =
-        Kernel::WritableEvent::CreateEventPair(kernel, "ILibraryAppletAccessor:StateChangedEvent");
+        Kernel::KWritableEvent::CreateEventPair(kernel, "ILibraryAppletAccessor:StateChangedEvent");
     pop_out_data_event =
-        Kernel::WritableEvent::CreateEventPair(kernel, "ILibraryAppletAccessor:PopDataOutEvent");
-    pop_interactive_out_data_event = Kernel::WritableEvent::CreateEventPair(
+        Kernel::KWritableEvent::CreateEventPair(kernel, "ILibraryAppletAccessor:PopDataOutEvent");
+    pop_interactive_out_data_event = Kernel::KWritableEvent::CreateEventPair(
         kernel, "ILibraryAppletAccessor:PopInteractiveDataOutEvent");
 }
 

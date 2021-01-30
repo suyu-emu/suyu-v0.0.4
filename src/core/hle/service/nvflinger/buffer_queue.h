@@ -13,8 +13,8 @@
 #include "common/common_funcs.h"
 #include "common/math_util.h"
 #include "common/swap.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/object.h"
-#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/nvdrv/nvdata.h"
 
 namespace Kernel {
@@ -113,7 +113,7 @@ public:
         return is_connect;
     }
 
-    std::shared_ptr<Kernel::WritableEvent> GetWritableBufferWaitEvent() const;
+    std::shared_ptr<Kernel::KWritableEvent> GetWritableBufferWaitEvent() const;
 
     std::shared_ptr<Kernel::KReadableEvent> GetBufferWaitEvent() const;
 

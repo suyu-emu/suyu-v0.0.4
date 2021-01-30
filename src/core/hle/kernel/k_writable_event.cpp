@@ -6,17 +6,17 @@
 #include "common/assert.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/k_thread.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/object.h"
-#include "core/hle/kernel/writable_event.h"
 
 namespace Kernel {
 
-WritableEvent::WritableEvent(KernelCore& kernel) : Object{kernel} {}
-WritableEvent::~WritableEvent() = default;
+KWritableEvent::KWritableEvent(KernelCore& kernel) : Object{kernel} {}
+KWritableEvent::~KWritableEvent() = default;
 
-EventPair WritableEvent::CreateEventPair(KernelCore& kernel, std::string name) {
-    std::shared_ptr<WritableEvent> writable_event(new WritableEvent(kernel));
+EventPair KWritableEvent::CreateEventPair(KernelCore& kernel, std::string name) {
+    std::shared_ptr<KWritableEvent> writable_event(new KWritableEvent(kernel));
     std::shared_ptr<KReadableEvent> readable_event(new KReadableEvent(kernel));
 
     writable_event->name = name + ":Writable";
@@ -26,15 +26,15 @@ EventPair WritableEvent::CreateEventPair(KernelCore& kernel, std::string name) {
     return {std::move(readable_event), std::move(writable_event)};
 }
 
-std::shared_ptr<KReadableEvent> WritableEvent::GetReadableEvent() const {
+std::shared_ptr<KReadableEvent> KWritableEvent::GetReadableEvent() const {
     return readable;
 }
 
-void WritableEvent::Signal() {
+void KWritableEvent::Signal() {
     readable->Signal();
 }
 
-void WritableEvent::Clear() {
+void KWritableEvent::Clear() {
     readable->Clear();
 }
 

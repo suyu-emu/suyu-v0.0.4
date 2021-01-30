@@ -12,10 +12,10 @@ union ResultCode;
 namespace Kernel {
 
 class KernelCore;
-class WritableEvent;
+class KWritableEvent;
 
 class KReadableEvent final : public KSynchronizationObject {
-    friend class WritableEvent;
+    friend class KWritableEvent;
 
 public:
     ~KReadableEvent() override;

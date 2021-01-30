@@ -9,8 +9,8 @@
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/kernel/k_readable_event.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/btm/btm.h"
 #include "core/hle/service/service.h"
 
@@ -58,12 +58,12 @@ public:
         RegisterHandlers(functions);
 
         auto& kernel = system.Kernel();
-        scan_event = Kernel::WritableEvent::CreateEventPair(kernel, "IBtmUserCore:ScanEvent");
+        scan_event = Kernel::KWritableEvent::CreateEventPair(kernel, "IBtmUserCore:ScanEvent");
         connection_event =
-            Kernel::WritableEvent::CreateEventPair(kernel, "IBtmUserCore:ConnectionEvent");
+            Kernel::KWritableEvent::CreateEventPair(kernel, "IBtmUserCore:ConnectionEvent");
         service_discovery =
-            Kernel::WritableEvent::CreateEventPair(kernel, "IBtmUserCore:Discovery");
-        config_event = Kernel::WritableEvent::CreateEventPair(kernel, "IBtmUserCore:ConfigEvent");
+            Kernel::KWritableEvent::CreateEventPair(kernel, "IBtmUserCore:Discovery");
+        config_event = Kernel::KWritableEvent::CreateEventPair(kernel, "IBtmUserCore:ConfigEvent");
     }
 
 private:

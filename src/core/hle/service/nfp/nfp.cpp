@@ -10,8 +10,8 @@
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/k_thread.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/writable_event.h"
 #include "core/hle/lock.h"
 #include "core/hle/service/nfp/nfp.h"
 #include "core/hle/service/nfp/nfp_user.h"
@@ -25,7 +25,7 @@ Module::Interface::Interface(std::shared_ptr<Module> module_, Core::System& syst
                              const char* name)
     : ServiceFramework{system_, name}, module{std::move(module_)} {
     auto& kernel = system.Kernel();
-    nfc_tag_load = Kernel::WritableEvent::CreateEventPair(kernel, "IUser:NFCTagDetected");
+    nfc_tag_load = Kernel::KWritableEvent::CreateEventPair(kernel, "IUser:NFCTagDetected");
 }
 
 Module::Interface::~Interface() = default;
@@ -64,9 +64,9 @@ public:
         RegisterHandlers(functions);
 
         auto& kernel = system.Kernel();
-        deactivate_event = Kernel::WritableEvent::CreateEventPair(kernel, "IUser:DeactivateEvent");
+        deactivate_event = Kernel::KWritableEvent::CreateEventPair(kernel, "IUser:DeactivateEvent");
         availability_change_event =
-            Kernel::WritableEvent::CreateEventPair(kernel, "IUser:AvailabilityChangeEvent");
+            Kernel::KWritableEvent::CreateEventPair(kernel, "IUser:AvailabilityChangeEvent");
     }
 
 private:

@@ -5,8 +5,8 @@
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/k_readable_event.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/nifm/nifm.h"
 #include "core/hle/service/service.h"
 #include "core/network/network.h"
@@ -158,8 +158,8 @@ public:
         RegisterHandlers(functions);
 
         auto& kernel = system.Kernel();
-        event1 = Kernel::WritableEvent::CreateEventPair(kernel, "IRequest:Event1");
-        event2 = Kernel::WritableEvent::CreateEventPair(kernel, "IRequest:Event2");
+        event1 = Kernel::KWritableEvent::CreateEventPair(kernel, "IRequest:Event1");
+        event2 = Kernel::KWritableEvent::CreateEventPair(kernel, "IRequest:Event2");
     }
 
 private:

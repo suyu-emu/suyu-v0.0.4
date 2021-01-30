@@ -11,7 +11,7 @@ class System;
 }
 
 namespace Kernel {
-class WritableEvent;
+class KWritableEvent;
 }
 
 namespace Service::AOC {

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "core/hle/kernel/writable_event.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/service/time/clock_types.h"
 #include "core/hle/service/time/system_clock_core.h"
 

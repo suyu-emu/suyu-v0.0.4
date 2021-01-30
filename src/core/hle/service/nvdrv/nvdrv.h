@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <vector>
 #include "common/common_types.h"
-#include "core/hle/kernel/writable_event.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/service/nvdrv/nvdata.h"
 #include "core/hle/service/nvdrv/syncpoint_manager.h"
 #include "core/hle/service/service.h"
@@ -134,7 +134,7 @@ public:
 
     std::shared_ptr<Kernel::KReadableEvent> GetEvent(u32 event_id) const;
 
-    std::shared_ptr<Kernel::WritableEvent> GetEventWriteable(u32 event_id) const;
+    std::shared_ptr<Kernel::KWritableEvent> GetEventWriteable(u32 event_id) const;
 
 private:
     /// Manages syncpoints on the host

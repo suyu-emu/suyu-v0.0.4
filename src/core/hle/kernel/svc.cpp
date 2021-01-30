@@ -32,6 +32,7 @@
 #include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
 #include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/kernel/k_thread.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/memory/memory_block.h"
 #include "core/hle/kernel/memory/memory_layout.h"
@@ -45,7 +46,6 @@
 #include "core/hle/kernel/svc_wrap.h"
 #include "core/hle/kernel/time_manager.h"
 #include "core/hle/kernel/transfer_memory.h"
-#include "core/hle/kernel/writable_event.h"
 #include "core/hle/lock.h"
 #include "core/hle/result.h"
 #include "core/hle/service/service.h"
@@ -1871,7 +1871,7 @@ static ResultCode CreateEvent(Core::System& system, Handle* write_handle, Handle
 
     auto& kernel = system.Kernel();
     const auto [readable_event, writable_event] =
-        WritableEvent::CreateEventPair(kernel, "CreateEvent");
+        KWritableEvent::CreateEventPair(kernel, "CreateEvent");
 
     HandleTable& handle_table = kernel.CurrentProcess()->GetHandleTable();
 
@@ -1903,7 +1903,7 @@ static ResultCode ClearEvent(Core::System& system, Handle handle) {
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
 
-    auto writable_event = handle_table.Get<WritableEvent>(handle);
+    auto writable_event = handle_table.Get<KWritableEvent>(handle);
     if (writable_event) {
         writable_event->Clear();
         return RESULT_SUCCESS;
@@ -1927,7 +1927,7 @@ static ResultCode SignalEvent(Core::System& system, Handle handle) {
     LOG_DEBUG(Kernel_SVC, "called. Handle=0x{:08X}", handle);
 
     HandleTable& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    auto writable_event = handle_table.Get<WritableEvent>(handle);
+    auto writable_event = handle_table.Get<KWritableEvent>(handle);
 
     if (!writable_event) {
         LOG_ERROR(Kernel_SVC, "Non-existent writable event handle used (0x{:08X})", handle);

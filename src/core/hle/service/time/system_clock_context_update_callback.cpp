@@ -2,7 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include "core/hle/kernel/writable_event.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/service/time/errors.h"
 #include "core/hle/service/time/system_clock_context_update_callback.h"
 
@@ -21,7 +21,7 @@ bool SystemClockContextUpdateCallback::NeedUpdate(const SystemClockContext& valu
 }
 
 void SystemClockContextUpdateCallback::RegisterOperationEvent(
-    std::shared_ptr<Kernel::WritableEvent>&& writable_event) {
+    std::shared_ptr<Kernel::KWritableEvent>&& writable_event) {
     operation_event_list.emplace_back(std::move(writable_event));
 }
 

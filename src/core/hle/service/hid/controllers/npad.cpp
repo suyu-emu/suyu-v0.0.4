@@ -13,8 +13,8 @@
 #include "core/core_timing.h"
 #include "core/frontend/input.h"
 #include "core/hle/kernel/k_readable_event.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/hid/controllers/npad.h"
 #include "core/settings.h"
 
@@ -233,7 +233,7 @@ void Controller_NPad::InitNewlyAddedController(std::size_t controller_idx) {
 void Controller_NPad::OnInit() {
     auto& kernel = system.Kernel();
     for (std::size_t i = 0; i < styleset_changed_events.size(); ++i) {
-        styleset_changed_events[i] = Kernel::WritableEvent::CreateEventPair(
+        styleset_changed_events[i] = Kernel::KWritableEvent::CreateEventPair(
             kernel, fmt::format("npad:NpadStyleSetChanged_{}", i));
     }
 

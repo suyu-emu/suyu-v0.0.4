@@ -8,15 +8,15 @@
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/hle/kernel/k_readable_event.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/nvflinger/buffer_queue.h"
 
 namespace Service::NVFlinger {
 
 BufferQueue::BufferQueue(Kernel::KernelCore& kernel, u32 id, u64 layer_id)
     : id(id), layer_id(layer_id) {
-    buffer_wait_event = Kernel::WritableEvent::CreateEventPair(kernel, "BufferQueue NativeHandle");
+    buffer_wait_event = Kernel::KWritableEvent::CreateEventPair(kernel, "BufferQueue NativeHandle");
 }
 
 BufferQueue::~BufferQueue() = default;
@@ -188,7 +188,7 @@ u32 BufferQueue::Query(QueryType type) {
     return 0;
 }
 
-std::shared_ptr<Kernel::WritableEvent> BufferQueue::GetWritableBufferWaitEvent() const {
+std::shared_ptr<Kernel::KWritableEvent> BufferQueue::GetWritableBufferWaitEvent() const {
     return buffer_wait_event.writable;
 }
 

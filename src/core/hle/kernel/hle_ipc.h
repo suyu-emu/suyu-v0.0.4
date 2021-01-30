@@ -42,7 +42,7 @@ class Process;
 class ServerSession;
 class KThread;
 class KReadableEvent;
-class WritableEvent;
+class KWritableEvent;
 
 enum class ThreadWakeupReason;
 

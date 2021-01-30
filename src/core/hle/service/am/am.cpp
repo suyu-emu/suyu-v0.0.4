@@ -14,10 +14,10 @@
 #include "core/file_sys/savedata_factory.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/k_readable_event.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/transfer_memory.h"
-#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applet_ae.h"
@@ -304,14 +304,14 @@ ISelfController::ISelfController(Core::System& system_, NVFlinger::NVFlinger& nv
 
     auto& kernel = system.Kernel();
     launchable_event =
-        Kernel::WritableEvent::CreateEventPair(kernel, "ISelfController:LaunchableEvent");
+        Kernel::KWritableEvent::CreateEventPair(kernel, "ISelfController:LaunchableEvent");
 
     // This event is created by AM on the first time GetAccumulatedSuspendedTickChangedEvent() is
     // called. Yuzu can just create it unconditionally, since it doesn't need to support multiple
     // ISelfControllers. The event is signaled on creation, and on transition from suspended -> not
     // suspended if the event has previously been created by a call to
     // GetAccumulatedSuspendedTickChangedEvent.
-    accumulated_suspended_tick_changed_event = Kernel::WritableEvent::CreateEventPair(
+    accumulated_suspended_tick_changed_event = Kernel::KWritableEvent::CreateEventPair(
         kernel, "ISelfController:AccumulatedSuspendedTickChangedEvent");
     accumulated_suspended_tick_changed_event.writable->Signal();
 }
@@ -560,9 +560,9 @@ void ISelfController::GetAccumulatedSuspendedTickChangedEvent(Kernel::HLERequest
 
 AppletMessageQueue::AppletMessageQueue(Kernel::KernelCore& kernel) {
     on_new_message =
-        Kernel::WritableEvent::CreateEventPair(kernel, "AMMessageQueue:OnMessageReceived");
+        Kernel::KWritableEvent::CreateEventPair(kernel, "AMMessageQueue:OnMessageReceived");
     on_operation_mode_changed =
-        Kernel::WritableEvent::CreateEventPair(kernel, "AMMessageQueue:OperationModeChanged");
+        Kernel::KWritableEvent::CreateEventPair(kernel, "AMMessageQueue:OperationModeChanged");
 }
 
 AppletMessageQueue::~AppletMessageQueue() = default;
@@ -1229,10 +1229,10 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_)
     RegisterHandlers(functions);
 
     auto& kernel = system.Kernel();
-    gpu_error_detected_event = Kernel::WritableEvent::CreateEventPair(
+    gpu_error_detected_event = Kernel::KWritableEvent::CreateEventPair(
         kernel, "IApplicationFunctions:GpuErrorDetectedSystemEvent");
 
-    friend_invitation_storage_channel_event = Kernel::WritableEvent::CreateEventPair(
+    friend_invitation_storage_channel_event = Kernel::KWritableEvent::CreateEventPair(
         kernel, "IApplicationFunctions:FriendInvitationStorageChannelEvent");
 
     health_warning_disappeared_system_event = Kernel::WritableEvent::CreateEventPair(
@@ -1693,7 +1693,7 @@ IHomeMenuFunctions::IHomeMenuFunctions(Core::System& system_)
 
     RegisterHandlers(functions);
 
-    pop_from_general_channel_event = Kernel::WritableEvent::CreateEventPair(
+    pop_from_general_channel_event = Kernel::KWritableEvent::CreateEventPair(
         system.Kernel(), "IHomeMenuFunctions:PopFromGeneralChannelEvent");
 }
 

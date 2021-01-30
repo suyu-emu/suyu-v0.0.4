@@ -9,8 +9,8 @@
 #include "common/bit_field.h"
 #include "common/common_types.h"
 #include "core/frontend/input.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/object.h"
-#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/hid/controllers/controller_base.h"
 #include "core/settings.h"
 

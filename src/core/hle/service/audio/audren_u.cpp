@@ -17,8 +17,8 @@
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/kernel/k_readable_event.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/audio/audren_u.h"
 #include "core/hle/service/audio/errors.h"
 
@@ -48,7 +48,7 @@ public:
         RegisterHandlers(functions);
 
         system_event =
-            Kernel::WritableEvent::CreateEventPair(system.Kernel(), "IAudioRenderer:SystemEvent");
+            Kernel::KWritableEvent::CreateEventPair(system.Kernel(), "IAudioRenderer:SystemEvent");
         renderer = std::make_unique<AudioCore::AudioRenderer>(
             system.CoreTiming(), system.Memory(), audren_params,
             [this]() {
@@ -188,15 +188,15 @@ public:
 
         auto& kernel = system.Kernel();
         buffer_event =
-            Kernel::WritableEvent::CreateEventPair(kernel, "IAudioOutBufferReleasedEvent");
+            Kernel::KWritableEvent::CreateEventPair(kernel, "IAudioOutBufferReleasedEvent");
 
         // Should be similar to audio_output_device_switch_event
-        audio_input_device_switch_event = Kernel::WritableEvent::CreateEventPair(
+        audio_input_device_switch_event = Kernel::KWritableEvent::CreateEventPair(
             kernel, "IAudioDevice:AudioInputDeviceSwitchedEvent");
 
         // Should only be signalled when an audio output device has been changed, example: speaker
         // to headset
-        audio_output_device_switch_event = Kernel::WritableEvent::CreateEventPair(
+        audio_output_device_switch_event = Kernel::KWritableEvent::CreateEventPair(
             kernel, "IAudioDevice:AudioOutputDeviceSwitchedEvent");
     }
 

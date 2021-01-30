@@ -8,7 +8,7 @@
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/k_readable_event.h"
-#include "core/hle/kernel/writable_event.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/service/friend/errors.h"
 #include "core/hle/service/friend/friend.h"
 #include "core/hle/service/friend/interface.h"
@@ -183,7 +183,7 @@ public:
 
         RegisterHandlers(functions);
 
-        notification_event = Kernel::WritableEvent::CreateEventPair(
+        notification_event = Kernel::KWritableEvent::CreateEventPair(
             system.Kernel(), "INotificationService:NotifyEvent");
     }
 

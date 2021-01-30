@@ -12,16 +12,16 @@ namespace Kernel {
 
 class KernelCore;
 class KReadableEvent;
-class WritableEvent;
+class KWritableEvent;
 
 struct EventPair {
     std::shared_ptr<KReadableEvent> readable;
-    std::shared_ptr<WritableEvent> writable;
+    std::shared_ptr<KWritableEvent> writable;
 };
 
-class WritableEvent final : public Object {
+class KWritableEvent final : public Object {
 public:
-    ~WritableEvent() override;
+    ~KWritableEvent() override;
 
     /**
      * Creates an event
@@ -50,7 +50,7 @@ public:
     void Finalize() override {}
 
 private:
-    explicit WritableEvent(KernelCore& kernel);
+    explicit KWritableEvent(KernelCore& kernel);
 
     std::shared_ptr<KReadableEvent> readable;
 

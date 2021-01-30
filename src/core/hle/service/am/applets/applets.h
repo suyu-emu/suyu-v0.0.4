@@ -7,8 +7,8 @@
 #include <memory>
 #include <queue>
 #include "common/swap.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/object.h"
-#include "core/hle/kernel/writable_event.h"
 
 union ResultCode;
 

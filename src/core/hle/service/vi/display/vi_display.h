@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "common/common_types.h"
-#include "core/hle/kernel/writable_event.h"
+#include "core/hle/kernel/k_writable_event.h"
 
 namespace Service::NVFlinger {
 class BufferQueue;

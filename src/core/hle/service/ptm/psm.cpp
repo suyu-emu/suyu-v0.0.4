@@ -8,8 +8,8 @@
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/k_readable_event.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/ptm/psm.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/sm/sm.h"
@@ -31,7 +31,7 @@ public:
 
         RegisterHandlers(functions);
 
-        state_change_event = Kernel::WritableEvent::CreateEventPair(
+        state_change_event = Kernel::KWritableEvent::CreateEventPair(
             system_.Kernel(), "IPsmSession::state_change_event");
     }
 

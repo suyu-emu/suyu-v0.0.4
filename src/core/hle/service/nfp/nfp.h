@@ -7,7 +7,7 @@
 #include <array>
 #include <vector>
 #include "core/hle/kernel/k_readable_event.h"
-#include "core/hle/kernel/writable_event.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/service/service.h"
 
 namespace Service::NFP {

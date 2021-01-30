@@ -18,7 +18,7 @@ namespace Service::VI {
 Display::Display(u64 id, std::string name, Core::System& system) : id{id}, name{std::move(name)} {
     auto& kernel = system.Kernel();
     vsync_event =
-        Kernel::WritableEvent::CreateEventPair(kernel, fmt::format("Display VSync Event {}", id));
+        Kernel::KWritableEvent::CreateEventPair(kernel, fmt::format("Display VSync Event {}", id));
 }
 
 Display::~Display() = default;

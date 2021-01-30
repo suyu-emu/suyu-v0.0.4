@@ -178,6 +178,8 @@ add_library(core STATIC
     hle/kernel/k_thread.cpp
     hle/kernel/k_thread.h
     hle/kernel/k_thread_queue.h
+    hle/kernel/k_writable_event.cpp
+    hle/kernel/k_writable_event.h
     hle/kernel/kernel.cpp
     hle/kernel/kernel.h
     hle/kernel/memory/address_space_info.cpp
@@ -226,8 +228,6 @@ add_library(core STATIC
     hle/kernel/time_manager.h
     hle/kernel/transfer_memory.cpp
     hle/kernel/transfer_memory.h
-    hle/kernel/writable_event.cpp
-    hle/kernel/writable_event.h
     hle/lock.cpp
     hle/lock.h
     hle/result.h

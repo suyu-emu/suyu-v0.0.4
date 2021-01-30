@@ -27,7 +27,7 @@ struct EventType;
 
 namespace Kernel {
 class KReadableEvent;
-class WritableEvent;
+class KWritableEvent;
 } // namespace Kernel
 
 namespace Service::Nvidia {

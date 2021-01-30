@@ -7,8 +7,8 @@
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/kernel/k_readable_event.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/btdrv/btdrv.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/sm/sm.h"
@@ -35,7 +35,7 @@ public:
         RegisterHandlers(functions);
 
         auto& kernel = system.Kernel();
-        register_event = Kernel::WritableEvent::CreateEventPair(kernel, "BT:RegisterEvent");
+        register_event = Kernel::KWritableEvent::CreateEventPair(kernel, "BT:RegisterEvent");
     }
 
 private:

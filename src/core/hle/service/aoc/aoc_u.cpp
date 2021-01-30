@@ -15,9 +15,9 @@
 #include "core/file_sys/registered_cache.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/k_readable_event.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/aoc/aoc_u.h"
 #include "core/loader/loader.h"
 #include "core/settings.h"
@@ -62,7 +62,7 @@ public:
 
         RegisterHandlers(functions);
 
-        purchased_event = Kernel::WritableEvent::CreateEventPair(
+        purchased_event = Kernel::KWritableEvent::CreateEventPair(
             system.Kernel(), "IPurchaseEventManager:PurchasedEvent");
     }
 
@@ -125,7 +125,7 @@ AOC_U::AOC_U(Core::System& system_)
 
     auto& kernel = system.Kernel();
     aoc_change_event =
-        Kernel::WritableEvent::CreateEventPair(kernel, "GetAddOnContentListChanged:Event");
+        Kernel::KWritableEvent::CreateEventPair(kernel, "GetAddOnContentListChanged:Event");
 }
 
 AOC_U::~AOC_U() = default;
