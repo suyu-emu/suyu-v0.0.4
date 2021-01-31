@@ -160,6 +160,8 @@ add_library(core STATIC
     hle/kernel/k_affinity_mask.h
     hle/kernel/k_condition_variable.cpp
     hle/kernel/k_condition_variable.h
+    hle/kernel/k_event.cpp
+    hle/kernel/k_event.h
     hle/kernel/k_light_condition_variable.h
     hle/kernel/k_light_lock.cpp
     hle/kernel/k_light_lock.h
