@@ -211,7 +211,7 @@ ResultCode KAddressArbiter::SignalAndModifyByWaitingCountIfEqual(VAddr addr, s32
         }
 
         R_UNLESS(succeeded, Svc::ResultInvalidCurrentMemory);
-        R_UNLESS(user_value == value, Svc::ResultInvalidState);
+        R_UNLESS_NOLOG(user_value == value, Svc::ResultInvalidState);
 
         while ((it != thread_tree.end()) && (count <= 0 || num_waiters < count) &&
                (it->GetAddressArbiterKey() == addr)) {
