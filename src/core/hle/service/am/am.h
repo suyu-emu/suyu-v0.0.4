@@ -288,6 +288,7 @@ private:
     void GetPreviousProgramIndex(Kernel::HLERequestContext& ctx);
     void GetGpuErrorDetectedSystemEvent(Kernel::HLERequestContext& ctx);
     void GetFriendInvitationStorageChannelEvent(Kernel::HLERequestContext& ctx);
+    void TryPopFromFriendInvitationStorageChannel(Kernel::HLERequestContext& ctx);
 
     bool launch_popped_application_specific = false;
     bool launch_popped_account_preselect = false;
