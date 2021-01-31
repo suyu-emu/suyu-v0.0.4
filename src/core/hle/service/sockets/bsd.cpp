@@ -421,11 +421,11 @@ void BSD::Close(Kernel::HLERequestContext& ctx) {
 }
 
 void BSD::EventFd(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service, "(STUBBED) called");
     IPC::RequestParser rp{ctx};
-    const s32 fd = rp.Pop<s32>();
+    const u64 initval = rp.Pop<u64>();
+    const u32 flags = rp.Pop<u32>();
 
-    LOG_DEBUG(Service, "called. fd={}", fd);
+    LOG_WARNING(Service, "(STUBBED) called. initval={}, flags={}", initval, flags);
 
     BuildErrnoResponse(ctx, Errno::SUCCESS);
 }
