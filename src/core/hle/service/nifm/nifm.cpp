@@ -21,6 +21,93 @@ enum class RequestState : u32 {
     Connected = 3,
 };
 
+struct IpAddressSetting {
+    bool is_automatic{};
+    Network::IPv4Address current_address{};
+    Network::IPv4Address subnet_mask{};
+    Network::IPv4Address gateway{};
+};
+static_assert(sizeof(IpAddressSetting) == 0xD, "IpAddressSetting has incorrect size.");
+
+struct DnsSetting {
+    bool is_automatic{};
+    Network::IPv4Address primary_dns{};
+    Network::IPv4Address secondary_dns{};
+};
+static_assert(sizeof(DnsSetting) == 0x9, "DnsSetting has incorrect size.");
+
+struct ProxySetting {
+    bool enabled{};
+    INSERT_PADDING_BYTES(1);
+    u16 port{};
+    std::array<char, 0x64> proxy_server{};
+    bool automatic_auth_enabled{};
+    std::array<char, 0x20> user{};
+    std::array<char, 0x20> password{};
+    INSERT_PADDING_BYTES(1);
+};
+static_assert(sizeof(ProxySetting) == 0xAA, "ProxySetting has incorrect size.");
+
+struct IpSettingData {
+    IpAddressSetting ip_address_setting{};
+    DnsSetting dns_setting{};
+    ProxySetting proxy_setting{};
+    u16 mtu{};
+};
+static_assert(sizeof(IpSettingData) == 0xC2, "IpSettingData has incorrect size.");
+
+struct SfWirelessSettingData {
+    u8 ssid_length{};
+    std::array<char, 0x20> ssid{};
+    u8 unknown_1{};
+    u8 unknown_2{};
+    u8 unknown_3{};
+    std::array<char, 0x41> passphrase{};
+};
+static_assert(sizeof(SfWirelessSettingData) == 0x65, "SfWirelessSettingData has incorrect size.");
+
+struct NifmWirelessSettingData {
+    u8 ssid_length{};
+    std::array<char, 0x21> ssid{};
+    u8 unknown_1{};
+    INSERT_PADDING_BYTES(1);
+    u32 unknown_2{};
+    u32 unknown_3{};
+    std::array<char, 0x41> passphrase{};
+    INSERT_PADDING_BYTES(3);
+};
+static_assert(sizeof(NifmWirelessSettingData) == 0x70,
+              "NifmWirelessSettingData has incorrect size.");
+
+#pragma pack(push, 1)
+struct SfNetworkProfileData {
+    IpSettingData ip_setting_data{};
+    u128 uuid{};
+    std::array<char, 0x40> network_name{};
+    u8 unknown_1{};
+    u8 unknown_2{};
+    u8 unknown_3{};
+    u8 unknown_4{};
+    SfWirelessSettingData wireless_setting_data{};
+    INSERT_PADDING_BYTES(1);
+};
+static_assert(sizeof(SfNetworkProfileData) == 0x17C, "SfNetworkProfileData has incorrect size.");
+
+struct NifmNetworkProfileData {
+    u128 uuid{};
+    std::array<char, 0x40> network_name{};
+    u32 unknown_1{};
+    u32 unknown_2{};
+    u8 unknown_3{};
+    u8 unknown_4{};
+    INSERT_PADDING_BYTES(2);
+    NifmWirelessSettingData wireless_setting_data{};
+    IpSettingData ip_setting_data{};
+};
+static_assert(sizeof(NifmNetworkProfileData) == 0x18E,
+              "NifmNetworkProfileData has incorrect size.");
+#pragma pack(pop)
+
 class IScanRequest final : public ServiceFramework<IScanRequest> {
 public:
     explicit IScanRequest(Core::System& system_) : ServiceFramework{system_, "IScanRequest"} {
