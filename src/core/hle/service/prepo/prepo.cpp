@@ -26,7 +26,7 @@ public:
             {10104, &PlayReport::SaveReport<Core::Reporter::PlayReportType::New>, "SaveReport"},
             {10105, &PlayReport::SaveReportWithUser<Core::Reporter::PlayReportType::New>, "SaveReportWithUser"},
             {10200, &PlayReport::RequestImmediateTransmission, "RequestImmediateTransmission"},
-            {10300, nullptr, "GetTransmissionStatus"},
+            {10300, &PlayReport::GetTransmissionStatus, "GetTransmissionStatus"},
             {10400, &PlayReport::GetSystemSessionId, "GetSystemSessionId"},
             {20100, &PlayReport::SaveSystemReport, "SaveSystemReport"},
             {20101, &PlayReport::SaveSystemReportWithUser, "SaveSystemReportWithUser"},
@@ -113,6 +113,16 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
+    }
+
+    void GetTransmissionStatus(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_PREPO, "(STUBBED) called");
+
+        constexpr s32 status = 0;
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push(status);
     }
 
     void GetSystemSessionId(Kernel::HLERequestContext& ctx) {
