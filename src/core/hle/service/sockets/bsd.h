@@ -136,6 +136,7 @@ private:
     void SendTo(Kernel::HLERequestContext& ctx);
     void Write(Kernel::HLERequestContext& ctx);
     void Close(Kernel::HLERequestContext& ctx);
+    void EventFd(Kernel::HLERequestContext& ctx);
 
     template <typename Work>
     void ExecuteWork(Kernel::HLERequestContext& ctx, Work work);

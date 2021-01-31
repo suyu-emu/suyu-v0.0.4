@@ -416,6 +416,16 @@ void BSD::Close(Kernel::HLERequestContext& ctx) {
     BuildErrnoResponse(ctx, CloseImpl(fd));
 }
 
+void BSD::EventFd(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service, "(STUBBED) called");
+    IPC::RequestParser rp{ctx};
+    const s32 fd = rp.Pop<s32>();
+
+    LOG_DEBUG(Service, "called. fd={}", fd);
+
+    BuildErrnoResponse(ctx, Errno::SUCCESS);
+}
+
 template <typename Work>
 void BSD::ExecuteWork(Kernel::HLERequestContext& ctx, Work work) {
     work.Execute(this);
@@ -841,7 +851,7 @@ BSD::BSD(Core::System& system_, const char* name) : ServiceFramework{system_, na
         {28, nullptr, "GetResourceStatistics"},
         {29, nullptr, "RecvMMsg"},
         {30, nullptr, "SendMMsg"},
-        {31, nullptr, "EventFd"},
+        {31, &BSD::EventFd, "EventFd"},
         {32, nullptr, "RegisterResourceStatisticsName"},
         {33, nullptr, "Initialize2"},
     };
