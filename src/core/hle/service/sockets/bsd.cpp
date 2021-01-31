@@ -263,11 +263,15 @@ void BSD::GetSockOpt(Kernel::HLERequestContext& ctx) {
 
     LOG_WARNING(Service, "(STUBBED) called. fd={} level={} optname=0x{:x}", fd, level, optname);
 
+    std::vector<u8> optval(ctx.GetWriteBufferSize());
+
+    ctx.WriteBuffer(optval);
+
     IPC::ResponseBuilder rb{ctx, 5};
     rb.Push(RESULT_SUCCESS);
     rb.Push<s32>(-1);
     rb.PushEnum(Errno::NOTCONN);
-    rb.Push<u32>(0);
+    rb.Push<u32>(static_cast<u32>(optval.size()));
 }
 
 void BSD::Listen(Kernel::HLERequestContext& ctx) {
