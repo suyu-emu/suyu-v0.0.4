@@ -104,6 +104,14 @@ __declspec(dllimport) void __stdcall DebugBreak(void);
         }                                                                                          \
     }
 
+/// Evaluates a boolean expression, and returns a result unless that expression is true.
+#define R_UNLESS_NOLOG(expr, res)                                                                  \
+    {                                                                                              \
+        if (!(expr)) {                                                                             \
+            return res;                                                                            \
+        }                                                                                          \
+    }
+
 #define R_SUCCEEDED(res) (res.IsSuccess())
 
 /// Evaluates an expression that returns a result, and returns the result if it would fail.
