@@ -25,7 +25,7 @@ public:
             {10103, &PlayReport::SaveReportWithUser<Core::Reporter::PlayReportType::Old2>, "SaveReportWithUserOld2"},
             {10104, &PlayReport::SaveReport<Core::Reporter::PlayReportType::New>, "SaveReport"},
             {10105, &PlayReport::SaveReportWithUser<Core::Reporter::PlayReportType::New>, "SaveReportWithUser"},
-            {10200, nullptr, "RequestImmediateTransmission"},
+            {10200, &PlayReport::RequestImmediateTransmission, "RequestImmediateTransmission"},
             {10300, nullptr, "GetTransmissionStatus"},
             {10400, &PlayReport::GetSystemSessionId, "GetSystemSessionId"},
             {20100, &PlayReport::SaveSystemReport, "SaveSystemReport"},
@@ -103,6 +103,13 @@ private:
         const auto& reporter{system.GetReporter()};
         reporter.SavePlayReport(Type, system.CurrentProcess()->GetTitleID(), {data1, data2},
                                 process_id, user_id);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
+
+    void RequestImmediateTransmission(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_PREPO, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
