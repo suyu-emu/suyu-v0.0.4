@@ -266,6 +266,46 @@ private:
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IRequest>(system);
     }
+    void GetCurrentNetworkProfile(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_NIFM, "(STUBBED) called");
+
+        const SfNetworkProfileData network_profile_data{
+            .ip_setting_data{
+                .ip_address_setting{
+                    .is_automatic{true},
+                    .current_address{192, 168, 1, 100},
+                    .subnet_mask{255, 255, 255, 0},
+                    .gateway{192, 168, 1, 1},
+                },
+                .dns_setting{
+                    .is_automatic{true},
+                    .primary_dns{1, 1, 1, 1},
+                    .secondary_dns{1, 0, 0, 1},
+                },
+                .proxy_setting{
+                    .enabled{false},
+                    .port{},
+                    .proxy_server{},
+                    .automatic_auth_enabled{},
+                    .user{},
+                    .password{},
+                },
+                .mtu{1500},
+            },
+            .uuid{0xdeadbeef, 0xdeadbeef},
+            .network_name{"yuzu Network"},
+            .wireless_setting_data{
+                .ssid_length{12},
+                .ssid{"yuzu Network"},
+                .passphrase{"yuzupassword"},
+            },
+        };
+
+        ctx.WriteBuffer(network_profile_data);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
     void RemoveNetworkProfile(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
 
@@ -335,7 +375,7 @@ IGeneralService::IGeneralService(Core::System& system_)
         {1, &IGeneralService::GetClientId, "GetClientId"},
         {2, &IGeneralService::CreateScanRequest, "CreateScanRequest"},
         {4, &IGeneralService::CreateRequest, "CreateRequest"},
-        {5, nullptr, "GetCurrentNetworkProfile"},
+        {5, &IGeneralService::GetCurrentNetworkProfile, "GetCurrentNetworkProfile"},
         {6, nullptr, "EnumerateNetworkInterfaces"},
         {7, nullptr, "EnumerateNetworkProfiles"},
         {8, nullptr, "GetNetworkProfile"},
