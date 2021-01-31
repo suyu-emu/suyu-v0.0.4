@@ -9,7 +9,10 @@
 #include <vector>
 
 #include "common/common_types.h"
-#include "core/hle/kernel/k_writable_event.h"
+
+namespace Kernel {
+class KEvent;
+}
 
 namespace Service::NVFlinger {
 class BufferQueue;
@@ -99,7 +102,7 @@ private:
     std::string name;
 
     std::vector<std::shared_ptr<Layer>> layers;
-    Kernel::EventPair vsync_event;
+    std::shared_ptr<Kernel::KEvent> vsync_event;
 };
 
 } // namespace Service::VI

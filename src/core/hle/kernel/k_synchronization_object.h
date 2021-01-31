@@ -33,6 +33,7 @@ public:
 
 protected:
     explicit KSynchronizationObject(KernelCore& kernel);
+    explicit KSynchronizationObject(KernelCore& kernel, std::string&& name);
     virtual ~KSynchronizationObject();
 
     void NotifyAvailable(ResultCode result);

@@ -7,14 +7,18 @@
 #include <memory>
 #include <unordered_map>
 #include <vector>
+
 #include "common/common_types.h"
-#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/service/nvdrv/nvdata.h"
 #include "core/hle/service/nvdrv/syncpoint_manager.h"
 #include "core/hle/service/service.h"
 
 namespace Core {
 class System;
+}
+
+namespace Kernel {
+class KEvent;
 }
 
 namespace Service::NVFlinger {
@@ -31,7 +35,7 @@ class nvdevice;
 
 /// Represents an Nvidia event
 struct NvEvent {
-    Kernel::EventPair event;
+    std::shared_ptr<Kernel::KEvent> event;
     Fence fence{};
 };
 

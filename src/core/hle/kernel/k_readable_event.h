@@ -1,4 +1,4 @@
-// Copyright 2014 Citra Emulator Project
+// Copyright 2021 yuzu emulator team
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
@@ -6,25 +6,20 @@
 
 #include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/kernel/object.h"
-
-union ResultCode;
+#include "core/hle/result.h"
 
 namespace Kernel {
 
 class KernelCore;
-class KWritableEvent;
+class KEvent;
 
 class KReadableEvent final : public KSynchronizationObject {
-    friend class KWritableEvent;
-
 public:
+    explicit KReadableEvent(KernelCore& kernel, std::string&& name);
     ~KReadableEvent() override;
 
     std::string GetTypeName() const override {
-        return "ReadableEvent";
-    }
-    std::string GetName() const override {
-        return name;
+        return "KReadableEvent";
     }
 
     static constexpr HandleType HANDLE_TYPE = HandleType::ReadableEvent;
@@ -32,28 +27,25 @@ public:
         return HANDLE_TYPE;
     }
 
-    /// Unconditionally clears the readable event's state.
-    void Clear();
+    KEvent* GetParent() const {
+        return parent;
+    }
 
-    /// Clears the readable event's state if and only if it
-    /// has already been signaled.
-    ///
-    /// @pre The event must be in a signaled state. If this event
-    ///      is in an unsignaled state and this function is called,
-    ///      then ERR_INVALID_STATE will be returned.
-    ResultCode Reset();
-
-    void Signal();
+    void Initialize(KEvent* parent_) {
+        is_signaled = false;
+        parent = parent_;
+    }
 
     bool IsSignaled() const override;
-
     void Finalize() override {}
 
-private:
-    explicit KReadableEvent(KernelCore& kernel);
+    ResultCode Signal();
+    ResultCode Clear();
+    ResultCode Reset();
 
+private:
     bool is_signaled{};
-    std::string name; ///< Name of event (optional)
+    KEvent* parent{};
 };
 
 } // namespace Kernel

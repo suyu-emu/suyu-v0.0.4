@@ -132,6 +132,9 @@ ResultCode KSynchronizationObject::Wait(KernelCore& kernel, s32* out_index,
 
 KSynchronizationObject::KSynchronizationObject(KernelCore& kernel) : Object{kernel} {}
 
+KSynchronizationObject::KSynchronizationObject(KernelCore& kernel, std::string&& name)
+    : Object{kernel, std::move(name)} {}
+
 KSynchronizationObject::~KSynchronizationObject() = default;
 
 void KSynchronizationObject::NotifyAvailable(ResultCode result) {

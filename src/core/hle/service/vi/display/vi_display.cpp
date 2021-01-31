@@ -9,7 +9,9 @@
 
 #include "common/assert.h"
 #include "core/core.h"
+#include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_readable_event.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/service/vi/display/vi_display.h"
 #include "core/hle/service/vi/layer/vi_layer.h"
 
@@ -17,8 +19,8 @@ namespace Service::VI {
 
 Display::Display(u64 id, std::string name, Core::System& system) : id{id}, name{std::move(name)} {
     auto& kernel = system.Kernel();
-    vsync_event =
-        Kernel::KWritableEvent::CreateEventPair(kernel, fmt::format("Display VSync Event {}", id));
+    vsync_event = Kernel::KEvent::Create(kernel, fmt::format("Display VSync Event {}", id));
+    vsync_event->Initialize();
 }
 
 Display::~Display() = default;
@@ -32,11 +34,11 @@ const Layer& Display::GetLayer(std::size_t index) const {
 }
 
 std::shared_ptr<Kernel::KReadableEvent> Display::GetVSyncEvent() const {
-    return vsync_event.readable;
+    return vsync_event->GetReadableEvent();
 }
 
 void Display::SignalVSyncEvent() {
-    vsync_event.writable->Signal();
+    vsync_event->GetWritableEvent()->Signal();
 }
 
 void Display::CreateLayer(u64 id, NVFlinger::BufferQueue& buffer_queue) {

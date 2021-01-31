@@ -4,37 +4,21 @@
 
 #pragma once
 
-#include <memory>
-
 #include "core/hle/kernel/object.h"
+#include "core/hle/result.h"
 
 namespace Kernel {
 
 class KernelCore;
-class KReadableEvent;
-class KWritableEvent;
-
-struct EventPair {
-    std::shared_ptr<KReadableEvent> readable;
-    std::shared_ptr<KWritableEvent> writable;
-};
+class KEvent;
 
 class KWritableEvent final : public Object {
 public:
+    explicit KWritableEvent(KernelCore& kernel, std::string&& name);
     ~KWritableEvent() override;
 
-    /**
-     * Creates an event
-     * @param kernel The kernel instance to create this event under.
-     * @param name Optional name of event
-     */
-    static EventPair CreateEventPair(KernelCore& kernel, std::string name = "Unknown");
-
     std::string GetTypeName() const override {
-        return "WritableEvent";
-    }
-    std::string GetName() const override {
-        return name;
+        return "KWritableEvent";
     }
 
     static constexpr HandleType HANDLE_TYPE = HandleType::WritableEvent;
@@ -42,19 +26,19 @@ public:
         return HANDLE_TYPE;
     }
 
-    std::shared_ptr<KReadableEvent> GetReadableEvent() const;
-
-    void Signal();
-    void Clear();
+    void Initialize(KEvent* parent_);
 
     void Finalize() override {}
 
+    ResultCode Signal();
+    ResultCode Clear();
+
+    KEvent* GetParent() const {
+        return parent;
+    }
+
 private:
-    explicit KWritableEvent(KernelCore& kernel);
-
-    std::shared_ptr<KReadableEvent> readable;
-
-    std::string name; ///< Name of event (optional)
+    KEvent* parent{};
 };
 
 } // namespace Kernel

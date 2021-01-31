@@ -26,6 +26,7 @@
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_address_arbiter.h"
 #include "core/hle/kernel/k_condition_variable.h"
+#include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scheduler.h"
@@ -1870,18 +1871,18 @@ static ResultCode CreateEvent(Core::System& system, Handle* write_handle, Handle
     LOG_DEBUG(Kernel_SVC, "called");
 
     auto& kernel = system.Kernel();
-    const auto [readable_event, writable_event] =
-        KWritableEvent::CreateEventPair(kernel, "CreateEvent");
+    const auto event = KEvent::Create(kernel, "CreateEvent");
+    event->Initialize();
 
     HandleTable& handle_table = kernel.CurrentProcess()->GetHandleTable();
 
-    const auto write_create_result = handle_table.Create(writable_event);
+    const auto write_create_result = handle_table.Create(event->GetWritableEvent());
     if (write_create_result.Failed()) {
         return write_create_result.Code();
     }
     *write_handle = *write_create_result;
 
-    const auto read_create_result = handle_table.Create(readable_event);
+    const auto read_create_result = handle_table.Create(event->GetReadableEvent());
     if (read_create_result.Failed()) {
         handle_table.Close(*write_create_result);
         return read_create_result.Code();
