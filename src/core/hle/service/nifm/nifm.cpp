@@ -337,6 +337,34 @@ private:
         rb.PushIpcInterface<INetworkProfile>(system);
         rb.PushRaw<u128>(uuid);
     }
+    void GetCurrentIpConfigInfo(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_NIFM, "(STUBBED) called");
+
+        struct IpConfigInfo {
+            IpAddressSetting ip_address_setting;
+            DnsSetting dns_setting;
+        };
+        static_assert(sizeof(IpConfigInfo) == sizeof(IpAddressSetting) + sizeof(DnsSetting),
+                      "IpConfigInfo has incorrect size.");
+
+        const IpConfigInfo ip_config_info{
+            .ip_address_setting{
+                .is_automatic{true},
+                .current_address{192, 168, 1, 100},
+                .subnet_mask{255, 255, 255, 0},
+                .gateway{192, 168, 1, 1},
+            },
+            .dns_setting{
+                .is_automatic{true},
+                .primary_dns{1, 1, 1, 1},
+                .secondary_dns{1, 0, 0, 1},
+            },
+        };
+
+        IPC::ResponseBuilder rb{ctx, 2 + sizeof(IpConfigInfo) / sizeof(u32)};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushRaw<IpConfigInfo>(ip_config_info);
+    }
     void IsWirelessCommunicationEnabled(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
 
@@ -385,7 +413,7 @@ IGeneralService::IGeneralService(Core::System& system_)
         {12, &IGeneralService::GetCurrentIpAddress, "GetCurrentIpAddress"},
         {13, nullptr, "GetCurrentAccessPointOld"},
         {14, &IGeneralService::CreateTemporaryNetworkProfile, "CreateTemporaryNetworkProfile"},
-        {15, nullptr, "GetCurrentIpConfigInfo"},
+        {15, &IGeneralService::GetCurrentIpConfigInfo, "GetCurrentIpConfigInfo"},
         {16, nullptr, "SetWirelessCommunicationEnabled"},
         {17, &IGeneralService::IsWirelessCommunicationEnabled, "IsWirelessCommunicationEnabled"},
         {18, nullptr, "GetInternetConnectionStatus"},
