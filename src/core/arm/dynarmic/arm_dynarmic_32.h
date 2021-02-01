@@ -50,6 +50,10 @@ public:
     u64 GetTPIDR_EL0() const override;
     void ChangeProcessorID(std::size_t new_core_id) override;
 
+    bool IsInThumbMode() const {
+        return (GetPSTATE() & 0x20) != 0;
+    }
+
     void SaveContext(ThreadContext32& ctx) override;
     void SaveContext(ThreadContext64& ctx) override {}
     void LoadContext(const ThreadContext32& ctx) override;
