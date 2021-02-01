@@ -71,8 +71,9 @@ public:
     }
 
     void ExceptionRaised(u32 pc, Dynarmic::A32::Exception exception) override {
-        LOG_CRITICAL(Core_ARM, "ExceptionRaised(exception = {}, pc = {:08X}, code = {:08X})",
-                     exception, pc, MemoryReadCode(pc));
+        LOG_CRITICAL(Core_ARM,
+                     "ExceptionRaised(exception = {}, pc = {:08X}, code = {:08X}, thumb = {})",
+                     exception, pc, MemoryReadCode(pc), parent.IsInThumbMode());
         UNIMPLEMENTED();
     }
 
