@@ -1192,7 +1192,7 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_)
         {40, &IApplicationFunctions::NotifyRunning, "NotifyRunning"},
         {50, &IApplicationFunctions::GetPseudoDeviceId, "GetPseudoDeviceId"},
         {60, nullptr, "SetMediaPlaybackStateForApplication"},
-        {65, nullptr, "IsGamePlayRecordingSupported"},
+        {65, &IApplicationFunctions::IsGamePlayRecordingSupported, "IsGamePlayRecordingSupported"},
         {66, &IApplicationFunctions::InitializeGamePlayRecording, "InitializeGamePlayRecording"},
         {67, &IApplicationFunctions::SetGamePlayRecordingState, "SetGamePlayRecordingState"},
         {68, nullptr, "RequestFlushGamePlayingMovieForDebug"},
@@ -1478,6 +1478,16 @@ void IApplicationFunctions::GetDesiredLanguage(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(RESULT_SUCCESS);
     rb.Push(*res_code);
+}
+
+void IApplicationFunctions::IsGamePlayRecordingSupported(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    constexpr bool gameplay_recording_supported = false;
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(RESULT_SUCCESS);
+    rb.Push(gameplay_recording_supported);
 }
 
 void IApplicationFunctions::InitializeGamePlayRecording(Kernel::HLERequestContext& ctx) {

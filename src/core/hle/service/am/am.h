@@ -266,6 +266,7 @@ private:
     void SetTerminateResult(Kernel::HLERequestContext& ctx);
     void GetDisplayVersion(Kernel::HLERequestContext& ctx);
     void GetDesiredLanguage(Kernel::HLERequestContext& ctx);
+    void IsGamePlayRecordingSupported(Kernel::HLERequestContext& ctx);
     void InitializeGamePlayRecording(Kernel::HLERequestContext& ctx);
     void SetGamePlayRecordingState(Kernel::HLERequestContext& ctx);
     void NotifyRunning(Kernel::HLERequestContext& ctx);
