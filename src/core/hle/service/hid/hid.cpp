@@ -126,14 +126,23 @@ void IAppletResource::UpdateControllers(std::uintptr_t user_data,
         controller->OnUpdate(core_timing, shared_mem->GetPointer(), SHARED_MEMORY_SIZE);
     }
 
+    // If ns_late is higher than the update rate ignore the delay
+    if (ns_late > motion_update_ns) {
+        ns_late = {};
+    }
+
     core_timing.ScheduleEvent(pad_update_ns - ns_late, pad_update_event);
 }
 
 void IAppletResource::UpdateMotion(std::uintptr_t user_data, std::chrono::nanoseconds ns_late) {
     auto& core_timing = system.CoreTiming();
 
-    for (const auto& controller : controllers) {
-        controller->OnMotionUpdate(core_timing, shared_mem->GetPointer(), SHARED_MEMORY_SIZE);
+    controllers[static_cast<size_t>(HidController::NPad)]->OnMotionUpdate(
+        core_timing, shared_mem->GetPointer(), SHARED_MEMORY_SIZE);
+
+    // If ns_late is higher than the update rate ignore the delay
+    if (ns_late > motion_update_ns) {
+        ns_late = {};
     }
 
     core_timing.ScheduleEvent(motion_update_ns - ns_late, motion_update_event);
