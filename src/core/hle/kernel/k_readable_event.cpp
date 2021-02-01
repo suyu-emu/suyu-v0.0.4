@@ -49,7 +49,6 @@ ResultCode KReadableEvent::Reset() {
     R_UNLESS_NOLOG(is_signaled, Svc::ResultInvalidState);
 
     is_signaled = false;
-
     return RESULT_SUCCESS;
 }
 

@@ -11,6 +11,7 @@ namespace Kernel::Svc {
 constexpr ResultCode ResultNoSynchronizationObject{ErrorModule::Kernel, 57};
 constexpr ResultCode ResultTerminationRequested{ErrorModule::Kernel, 59};
 constexpr ResultCode ResultInvalidAddress{ErrorModule::Kernel, 102};
+constexpr ResultCode ResultOutOfResource{ErrorModule::Kernel, 103};
 constexpr ResultCode ResultInvalidCurrentMemory{ErrorModule::Kernel, 106};
 constexpr ResultCode ResultInvalidPriority{ErrorModule::Kernel, 112};
 constexpr ResultCode ResultInvalidCoreId{ErrorModule::Kernel, 113};
