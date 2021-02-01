@@ -128,7 +128,11 @@ private:
     void GetAppletInfo(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
 
-        IPC::ResponseBuilder rb{ctx, 8};
+        std::vector<u8> out_buffer(ctx.GetWriteBufferSize());
+
+        ctx.WriteBuffer(out_buffer);
+
+        IPC::ResponseBuilder rb{ctx, 5};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u32>(0);
         rb.Push<u32>(0);
