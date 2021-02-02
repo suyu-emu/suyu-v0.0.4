@@ -116,8 +116,8 @@ ConfigureProfileManager ::ConfigureProfileManager(QWidget* parent)
     scene = new QGraphicsScene;
     ui->current_user_icon->setScene(scene);
 
-    SetConfiguration();
     RetranslateUI();
+    SetConfiguration();
 }
 
 ConfigureProfileManager::~ConfigureProfileManager() = default;
