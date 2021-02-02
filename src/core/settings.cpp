@@ -70,6 +70,9 @@ void LogSettings() {
     log_setting("Audio_EnableAudioStretching", values.enable_audio_stretching.GetValue());
     log_setting("Audio_OutputDevice", values.audio_device_id);
     log_setting("DataStorage_UseVirtualSd", values.use_virtual_sd);
+    log_setting("DataStorage_CacheDir", Common::FS::GetUserPath(Common::FS::UserPath::CacheDir));
+    log_setting("DataStorage_ConfigDir", Common::FS::GetUserPath(Common::FS::UserPath::ConfigDir));
+    log_setting("DataStorage_LoadDir", Common::FS::GetUserPath(Common::FS::UserPath::LoadDir));
     log_setting("DataStorage_NandDir", Common::FS::GetUserPath(Common::FS::UserPath::NANDDir));
     log_setting("DataStorage_SdmcDir", Common::FS::GetUserPath(Common::FS::UserPath::SDMCDir));
     log_setting("Debugging_ProgramArgs", values.program_args);
