@@ -37,7 +37,7 @@ constexpr bool IsValidResourceType(LimitableResource type) {
 
 class KResourceLimit final : public Object {
 public:
-    KResourceLimit(KernelCore& kernel, Core::System& system);
+    explicit KResourceLimit(KernelCore& kernel, Core::System& system);
     ~KResourceLimit();
 
     s64 GetLimitValue(LimitableResource which) const;
@@ -67,10 +67,11 @@ public:
     virtual void Finalize() override {}
 
 private:
-    std::array<s64, static_cast<std::size_t>(LimitableResource::Count)> limit_values{};
-    std::array<s64, static_cast<std::size_t>(LimitableResource::Count)> current_values{};
-    std::array<s64, static_cast<std::size_t>(LimitableResource::Count)> current_hints{};
-    std::array<s64, static_cast<std::size_t>(LimitableResource::Count)> peak_values{};
+    using ResourceArray = std::array<s64, static_cast<std::size_t>(LimitableResource::Count)>;
+    ResourceArray limit_values{};
+    ResourceArray current_values{};
+    ResourceArray current_hints{};
+    ResourceArray peak_values{};
     mutable KLightLock lock;
     s32 waiter_count{};
     KLightConditionVariable cond_var;

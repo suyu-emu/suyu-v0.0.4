@@ -13,9 +13,7 @@
 #include "core/hle/kernel/svc_results.h"
 
 namespace Kernel {
-namespace {
 constexpr s64 DefaultTimeout = 10000000000; // 10 seconds
-}
 
 KResourceLimit::KResourceLimit(KernelCore& kernel, Core::System& system)
     : Object{kernel}, lock{kernel}, cond_var{kernel}, kernel{kernel}, system(system) {}

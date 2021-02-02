@@ -17,44 +17,41 @@ namespace Kernel {
 class KernelCore;
 
 class KLightConditionVariable {
-private:
-    KThreadQueue m_thread_queue;
-
 public:
-    KLightConditionVariable(KernelCore& kernel) : m_thread_queue(kernel), kernel(kernel) {}
+    explicit KLightConditionVariable(KernelCore& kernel) : thread_queue(kernel), kernel(kernel) {}
 
-    void Wait(KLightLock* lock, s64 timeout = -1ll) {
+    void Wait(KLightLock* lock, s64 timeout = -1) {
         WaitImpl(lock, timeout);
         lock->Lock();
     }
 
     void Broadcast() {
         KScopedSchedulerLock lk{kernel};
-        while (m_thread_queue.WakeupFrontThread() != nullptr) {
-            /* We want to signal all threads, and so should continue waking up until there's nothing
-             * to wake. */
+        while (thread_queue.WakeupFrontThread() != nullptr) {
+            // We want to signal all threads, and so should continue waking up until there's nothing
+            // to wake.
         }
     }
 
 private:
     void WaitImpl(KLightLock* lock, s64 timeout) {
         KThread* owner = GetCurrentThreadPointer(kernel);
-        // KHardwareTimer* timer;
 
-        /* Sleep the thread. */
+        // Sleep the thread.
         {
             KScopedSchedulerLockAndSleep lk(kernel, owner, timeout);
             lock->Unlock();
 
-            if (!m_thread_queue.SleepThread(owner)) {
+            if (!thread_queue.SleepThread(owner)) {
                 lk.CancelSleep();
                 return;
             }
         }
 
-        /* Cancel the task that the sleep setup. */
+        // Cancel the task that the sleep setup.
         kernel.TimeManager().UnscheduleTimeEvent(owner);
     }
     KernelCore& kernel;
+    KThreadQueue thread_queue;
 };
 } // namespace Kernel
