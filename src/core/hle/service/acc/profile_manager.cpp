@@ -41,12 +41,18 @@ constexpr char ACC_SAVE_AVATORS_BASE_PATH[] = "/system/save/8000000000000010/su/
 ProfileManager::ProfileManager() {
     ParseUserSaveFile();
 
-    if (user_count == 0)
+    // Create an user if none are present
+    if (user_count == 0) {
         CreateNewUser(UUID::Generate(), "yuzu");
+    }
 
     auto current = std::clamp<int>(Settings::values.current_user, 0, MAX_USERS - 1);
-    if (UserExistsIndex(current))
+
+    // If user index don't exist. Load the first user and change the active user
+    if (!UserExistsIndex(current)) {
         current = 0;
+        Settings::values.current_user = 0;
+    }
 
     OpenUser(*GetUser(current));
 }
