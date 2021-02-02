@@ -51,7 +51,7 @@ private:
         // Cancel the task that the sleep setup.
         kernel.TimeManager().UnscheduleTimeEvent(owner);
     }
-    KernelCore& kernel;
     KThreadQueue thread_queue;
+    KernelCore& kernel;
 };
 } // namespace Kernel
