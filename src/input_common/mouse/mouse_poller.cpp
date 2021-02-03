@@ -106,6 +106,16 @@ public:
         return {0.0f, 0.0f};
     }
 
+    std::tuple<float, float> GetRawStatus() const override {
+        const float x = GetAxis(axis_x);
+        const float y = GetAxis(axis_y);
+        return {x, y};
+    }
+
+    Input::AnalogProperties GetAnalogProperties() const override {
+        return {deadzone, range, 0.5f};
+    }
+
 private:
     const u32 button;
     const u32 axis_x;
