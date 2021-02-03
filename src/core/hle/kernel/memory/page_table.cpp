@@ -413,8 +413,8 @@ ResultCode PageTable::MapPhysicalMemory(VAddr addr, std::size_t size) {
     const std::size_t remaining_size{size - mapped_size};
     const std::size_t remaining_pages{remaining_size / PageSize};
 
-    if (process->GetResourceLimit() && !process->GetResourceLimit()->Reserve(
-                                           LimitableResource::PhysicalMemoryMax, remaining_size)) {
+    if (process->GetResourceLimit() &&
+        !process->GetResourceLimit()->Reserve(LimitableResource::PhysicalMemory, remaining_size)) {
         return ERR_RESOURCE_LIMIT_EXCEEDED;
     }
 
@@ -422,8 +422,7 @@ ResultCode PageTable::MapPhysicalMemory(VAddr addr, std::size_t size) {
     {
         auto block_guard = detail::ScopeExit([&] {
             system.Kernel().MemoryManager().Free(page_linked_list, remaining_pages, memory_pool);
-            process->GetResourceLimit()->Release(LimitableResource::PhysicalMemoryMax,
-                                                 remaining_size);
+            process->GetResourceLimit()->Release(LimitableResource::PhysicalMemory, remaining_size);
         });
 
         CASCADE_CODE(system.Kernel().MemoryManager().Allocate(page_linked_list, remaining_pages,
@@ -475,7 +474,7 @@ ResultCode PageTable::UnmapPhysicalMemory(VAddr addr, std::size_t size) {
     CASCADE_CODE(UnmapMemory(addr, size));
 
     auto process{system.Kernel().CurrentProcess()};
-    process->GetResourceLimit()->Release(LimitableResource::PhysicalMemoryMax, mapped_size);
+    process->GetResourceLimit()->Release(LimitableResource::PhysicalMemory, mapped_size);
     physical_memory_usage -= mapped_size;
 
     return RESULT_SUCCESS;
@@ -784,7 +783,7 @@ ResultVal<VAddr> PageTable::SetHeapSize(std::size_t size) {
 
         auto process{system.Kernel().CurrentProcess()};
         if (process->GetResourceLimit() && delta != 0 &&
-            !process->GetResourceLimit()->Reserve(LimitableResource::PhysicalMemoryMax, delta)) {
+            !process->GetResourceLimit()->Reserve(LimitableResource::PhysicalMemory, delta)) {
             return ERR_RESOURCE_LIMIT_EXCEEDED;
         }
 

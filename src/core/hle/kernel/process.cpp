@@ -154,7 +154,7 @@ void Process::DecrementThreadCount() {
 }
 
 u64 Process::GetTotalPhysicalMemoryAvailable() const {
-    const u64 capacity{resource_limit->GetFreeValue(LimitableResource::PhysicalMemoryMax) +
+    const u64 capacity{resource_limit->GetFreeValue(LimitableResource::PhysicalMemory) +
                        page_table->GetTotalHeapSize() + GetSystemResourceSize() + image_size +
                        main_thread_stack_size};
 
@@ -308,13 +308,13 @@ ResultCode Process::LoadFromMetadata(const FileSys::ProgramMetadata& metadata,
 
     // Set initial resource limits
     resource_limit->SetLimitValue(
-        LimitableResource::PhysicalMemoryMax,
+        LimitableResource::PhysicalMemory,
         kernel.MemoryManager().GetSize(Memory::MemoryManager::Pool::Application));
-    resource_limit->SetLimitValue(LimitableResource::ThreadCountMax, 608);
-    resource_limit->SetLimitValue(LimitableResource::EventCountMax, 700);
-    resource_limit->SetLimitValue(LimitableResource::TransferMemoryCountMax, 128);
-    resource_limit->SetLimitValue(LimitableResource::SessionCountMax, 894);
-    ASSERT(resource_limit->Reserve(LimitableResource::PhysicalMemoryMax, code_size));
+    resource_limit->SetLimitValue(LimitableResource::Threads, 608);
+    resource_limit->SetLimitValue(LimitableResource::Events, 700);
+    resource_limit->SetLimitValue(LimitableResource::TransferMemory, 128);
+    resource_limit->SetLimitValue(LimitableResource::Sessions, 894);
+    ASSERT(resource_limit->Reserve(LimitableResource::PhysicalMemory, code_size));
 
     // Create TLS region
     tls_region_address = CreateTLSRegion();
@@ -331,8 +331,8 @@ void Process::Run(s32 main_thread_priority, u64 stack_size) {
     ChangeStatus(ProcessStatus::Running);
 
     SetupMainThread(system, *this, main_thread_priority, main_thread_stack_top);
-    resource_limit->Reserve(LimitableResource::ThreadCountMax, 1);
-    resource_limit->Reserve(LimitableResource::PhysicalMemoryMax, main_thread_stack_size);
+    resource_limit->Reserve(LimitableResource::Threads, 1);
+    resource_limit->Reserve(LimitableResource::PhysicalMemory, main_thread_stack_size);
 }
 
 void Process::PrepareForTermination() {

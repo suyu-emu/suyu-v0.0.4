@@ -135,19 +135,15 @@ struct KernelCore::Impl {
         system_resource_limit = std::make_shared<KResourceLimit>(kernel, system);
 
         // If setting the default system values fails, then something seriously wrong has occurred.
-        ASSERT(
-            system_resource_limit->SetLimitValue(LimitableResource::PhysicalMemoryMax, 0x100000000)
-                .IsSuccess());
-        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::ThreadCountMax, 800)
+        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::PhysicalMemory, 0x100000000)
                    .IsSuccess());
-        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::EventCountMax, 700)
+        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::Threads, 800).IsSuccess());
+        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::Events, 700).IsSuccess());
+        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::TransferMemory, 200)
                    .IsSuccess());
-        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::TransferMemoryCountMax, 200)
-                   .IsSuccess());
-        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::SessionCountMax, 900)
-                   .IsSuccess());
+        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::Sessions, 900).IsSuccess());
 
-        if (!system_resource_limit->Reserve(LimitableResource::PhysicalMemoryMax, 0x60000)) {
+        if (!system_resource_limit->Reserve(LimitableResource::PhysicalMemory, 0x60000)) {
             UNREACHABLE();
         }
     }

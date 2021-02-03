@@ -247,7 +247,7 @@ void KThread::Finalize() {
     // Decrement the parent process's thread count.
     if (parent != nullptr) {
         parent->DecrementThreadCount();
-        parent->GetResourceLimit()->Release(LimitableResource::ThreadCountMax, 1);
+        parent->GetResourceLimit()->Release(LimitableResource::Threads, 1);
     }
 }
 

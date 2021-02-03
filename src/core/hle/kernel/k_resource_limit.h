@@ -22,11 +22,11 @@ class System;
 namespace Kernel {
 class KernelCore;
 enum class LimitableResource : u32 {
-    PhysicalMemoryMax = 0,
-    ThreadCountMax = 1,
-    EventCountMax = 2,
-    TransferMemoryCountMax = 3,
-    SessionCountMax = 4,
+    PhysicalMemory = 0,
+    Threads = 1,
+    Events = 2,
+    TransferMemory = 3,
+    Sessions = 4,
 
     Count,
 };

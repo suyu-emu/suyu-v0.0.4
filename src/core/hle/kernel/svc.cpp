@@ -312,8 +312,7 @@ static ResultCode ConnectToNamedPort(Core::System& system, Handle* out_handle,
         return ERR_NOT_FOUND;
     }
 
-    ASSERT(kernel.CurrentProcess()->GetResourceLimit()->Reserve(LimitableResource::SessionCountMax,
-                                                                1));
+    ASSERT(kernel.CurrentProcess()->GetResourceLimit()->Reserve(LimitableResource::Sessions, 1));
 
     auto client_port = it->second;
 
@@ -1451,9 +1450,8 @@ static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr e
              Svc::ResultInvalidPriority);
     R_UNLESS(process.CheckThreadPriority(priority), Svc::ResultInvalidPriority);
 
-    ASSERT(process.GetResourceLimit()->Reserve(LimitableResource::ThreadCountMax, 1,
-                                               system.CoreTiming().GetGlobalTimeNs().count() +
-                                                   100000000));
+    ASSERT(process.GetResourceLimit()->Reserve(
+        LimitableResource::Threads, 1, system.CoreTiming().GetGlobalTimeNs().count() + 100000000));
 
     std::shared_ptr<KThread> thread;
     {
