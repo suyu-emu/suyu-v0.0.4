@@ -580,9 +580,7 @@ void ConfigureInputPlayer::ApplyConfiguration() {
     if (player_index == 0) {
         auto& handheld = Settings::values.players.GetValue()[HANDHELD_INDEX];
         const auto handheld_connected = handheld.connected;
-        if (player.controller_type == Settings::ControllerType::Handheld) {
-            handheld = player;
-        }
+        handheld = player;
         handheld.connected = handheld_connected;
     }
 }
@@ -596,7 +594,7 @@ void ConfigureInputPlayer::TryConnectSelectedController() {
                                   controller_type != Settings::ControllerType::Handheld;
 
     // Connect Handheld depending on Player 1's controller configuration.
-    if (player_index == 0 && controller_type == Settings::ControllerType::Handheld) {
+    if (player_index == 0) {
         auto& handheld = Settings::values.players.GetValue()[HANDHELD_INDEX];
         const auto handheld_connected = ui->groupConnectedController->isChecked() &&
                                         controller_type == Settings::ControllerType::Handheld;
