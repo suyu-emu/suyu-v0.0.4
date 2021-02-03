@@ -181,12 +181,13 @@ struct Values {
     std::string motion_device;
     std::string udp_input_servers;
 
-    bool emulate_analog_keyboard;
-
+    bool mouse_panning;
+    float mouse_panning_sensitivity;
     bool mouse_enabled;
     std::string mouse_device;
     MouseButtonsRaw mouse_buttons;
 
+    bool emulate_analog_keyboard;
     bool keyboard_enabled;
     KeyboardKeysRaw keyboard_keys;
     KeyboardModsRaw keyboard_mods;

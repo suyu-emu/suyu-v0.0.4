@@ -220,7 +220,7 @@ const std::array<int, Settings::NativeKeyboard::NumKeyboardMods> Config::default
 // This must be in alphabetical order according to action name as it must have the same order as
 // UISetting::values.shortcuts, which is alphabetically ordered.
 // clang-format off
-const std::array<UISettings::Shortcut, 16> Config::default_hotkeys{{
+const std::array<UISettings::Shortcut, 17> Config::default_hotkeys{{
     {QStringLiteral("Capture Screenshot"),       QStringLiteral("Main Window"), {QStringLiteral("Ctrl+P"), Qt::WidgetWithChildrenShortcut}},
     {QStringLiteral("Change Docked Mode"),       QStringLiteral("Main Window"), {QStringLiteral("F10"), Qt::ApplicationShortcut}},
     {QStringLiteral("Continue/Pause Emulation"), QStringLiteral("Main Window"), {QStringLiteral("F4"), Qt::WindowShortcut}},
@@ -235,6 +235,7 @@ const std::array<UISettings::Shortcut, 16> Config::default_hotkeys{{
     {QStringLiteral("Restart Emulation"),        QStringLiteral("Main Window"), {QStringLiteral("F6"), Qt::WindowShortcut}},
     {QStringLiteral("Stop Emulation"),           QStringLiteral("Main Window"), {QStringLiteral("F5"), Qt::WindowShortcut}},
     {QStringLiteral("Toggle Filter Bar"),        QStringLiteral("Main Window"), {QStringLiteral("Ctrl+F"), Qt::WindowShortcut}},
+    {QStringLiteral("Toggle Mouse Panning"),     QStringLiteral("Main Window"), {QStringLiteral("F9"), Qt::ApplicationShortcut}},
     {QStringLiteral("Toggle Speed Limit"),       QStringLiteral("Main Window"), {QStringLiteral("Ctrl+Z"), Qt::ApplicationShortcut}},
     {QStringLiteral("Toggle Status Bar"),        QStringLiteral("Main Window"), {QStringLiteral("Ctrl+S"), Qt::WindowShortcut}},
 }};
@@ -507,6 +508,9 @@ void Config::ReadControlValues() {
 
     Settings::values.emulate_analog_keyboard =
         ReadSetting(QStringLiteral("emulate_analog_keyboard"), false).toBool();
+    Settings::values.mouse_panning = ReadSetting(QStringLiteral("mouse_panning"), false).toBool();
+    Settings::values.mouse_panning_sensitivity =
+        ReadSetting(QStringLiteral("mouse_panning_sensitivity"), 1).toFloat();
 
     ReadSettingGlobal(Settings::values.use_docked_mode, QStringLiteral("use_docked_mode"), true);
     ReadSettingGlobal(Settings::values.vibration_enabled, QStringLiteral("vibration_enabled"),
@@ -1184,7 +1188,9 @@ void Config::SaveControlValues() {
     WriteSetting(QStringLiteral("keyboard_enabled"), Settings::values.keyboard_enabled, false);
     WriteSetting(QStringLiteral("emulate_analog_keyboard"),
                  Settings::values.emulate_analog_keyboard, false);
-
+    WriteSetting(QStringLiteral("mouse_panning"), Settings::values.mouse_panning, false);
+    WriteSetting(QStringLiteral("mouse_panning_sensitivity"),
+                 Settings::values.mouse_panning_sensitivity, 1.0f);
     qt_config->endGroup();
 }
 

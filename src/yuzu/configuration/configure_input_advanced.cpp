@@ -122,6 +122,9 @@ void ConfigureInputAdvanced::ApplyConfiguration() {
     Settings::values.mouse_enabled = ui->mouse_enabled->isChecked();
     Settings::values.keyboard_enabled = ui->keyboard_enabled->isChecked();
     Settings::values.emulate_analog_keyboard = ui->emulate_analog_keyboard->isChecked();
+    Settings::values.mouse_panning = ui->mouse_panning->isChecked();
+    Settings::values.mouse_panning_sensitivity =
+        static_cast<float>(ui->mouse_panning_sensitivity->value());
     Settings::values.touchscreen.enabled = ui->touchscreen_enabled->isChecked();
 }
 
@@ -149,6 +152,8 @@ void ConfigureInputAdvanced::LoadConfiguration() {
     ui->mouse_enabled->setChecked(Settings::values.mouse_enabled);
     ui->keyboard_enabled->setChecked(Settings::values.keyboard_enabled);
     ui->emulate_analog_keyboard->setChecked(Settings::values.emulate_analog_keyboard);
+    ui->mouse_panning->setChecked(Settings::values.mouse_panning);
+    ui->mouse_panning_sensitivity->setValue(Settings::values.mouse_panning_sensitivity);
     ui->touchscreen_enabled->setChecked(Settings::values.touchscreen.enabled);
 
     UpdateUIEnabled();
