@@ -11,10 +11,10 @@
 PlayerControlPreview::PlayerControlPreview(QWidget* parent) : QFrame(parent) {
     UpdateColors();
     QTimer* timer = new QTimer(this);
-    connect(timer, &QTimer::timeout, this, QOverload<>::of(&PlayerControlPreview::update));
+    connect(timer, &QTimer::timeout, this, QOverload<>::of(&PlayerControlPreview::UpdateInput));
 
-    // refresh at 40hz
-    timer->start(25);
+    // refresh at 60hz
+    timer->start(16);
 }
 
 PlayerControlPreview::~PlayerControlPreview() = default;
@@ -155,12 +155,8 @@ void PlayerControlPreview::UpdateColors() {
     // colors.right = QColor(Settings::values.players.GetValue()[player_index].body_color_right);
 }
 
-void PlayerControlPreview::paintEvent(QPaintEvent* event) {
-    QFrame::paintEvent(event);
-    QPainter p(this);
-    p.setRenderHint(QPainter::Antialiasing);
-    const QPointF center = rect().center();
-
+void PlayerControlPreview::UpdateInput() {
+    bool input_changed = false;
     const auto& button_state = buttons;
     for (std::size_t index = 0; index < button_values.size(); ++index) {
         bool value = false;
@@ -169,7 +165,10 @@ void PlayerControlPreview::paintEvent(QPaintEvent* event) {
         }
         bool blink = mapping_active && index == button_mapping_index;
         if (analog_mapping_index == Settings::NativeAnalog::NUM_STICKS_HID) {
-            blink &= blink_counter > 12;
+            blink &= blink_counter > 25;
+        }
+        if (button_values[index] != value || blink) {
+            input_changed = true;
         }
         button_values[index] = value || blink;
     }
@@ -178,17 +177,42 @@ void PlayerControlPreview::paintEvent(QPaintEvent* event) {
     for (std::size_t index = 0; index < axis_values.size(); ++index) {
         const auto [stick_x_f, stick_y_f] = analog_state[index]->GetStatus();
         const auto [stick_x_rf, stick_y_rf] = analog_state[index]->GetRawStatus();
+
+        if (static_cast<int>(stick_x_rf * 45) !=
+                static_cast<int>(axis_values[index].raw_value.x() * 45) ||
+            static_cast<int>(-stick_y_rf * 45) !=
+                static_cast<int>(axis_values[index].raw_value.y() * 45)) {
+            input_changed = true;
+        }
+
         axis_values[index].properties = analog_state[index]->GetAnalogProperties();
         axis_values[index].value = QPointF(stick_x_f, -stick_y_f);
         axis_values[index].raw_value = QPointF(stick_x_rf, -stick_y_rf);
 
         const bool blink_analog = mapping_active && index == analog_mapping_index;
         if (blink_analog) {
+            input_changed = true;
             axis_values[index].value =
-                QPointF(blink_counter < 12 ? -blink_counter / 12.0f : 0,
-                        blink_counter > 12 ? -(blink_counter - 12) / 12.0f : 0);
+                QPointF(blink_counter < 25 ? -blink_counter / 25.0f : 0,
+                        blink_counter > 25 ? -(blink_counter - 25) / 25.0f : 0);
         }
     }
+
+    if (input_changed) {
+        update();
+    }
+
+    if (mapping_active) {
+        blink_counter = (blink_counter + 1) % 50;
+    }
+}
+
+void PlayerControlPreview::paintEvent(QPaintEvent* event) {
+    QFrame::paintEvent(event);
+    QPainter p(this);
+    p.setRenderHint(QPainter::Antialiasing);
+    const QPointF center = rect().center();
+
     switch (controller_type) {
     case Settings::ControllerType::Handheld:
         DrawHandheldController(p, center);
@@ -206,9 +230,6 @@ void PlayerControlPreview::paintEvent(QPaintEvent* event) {
     default:
         DrawProController(p, center);
         break;
-    }
-    if (mapping_active) {
-        blink_counter = (blink_counter + 1) % 24;
     }
 }
 

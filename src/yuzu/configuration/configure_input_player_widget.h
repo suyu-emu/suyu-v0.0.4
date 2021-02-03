@@ -32,6 +32,7 @@ public:
     void BeginMappingButton(std::size_t button_id);
     void BeginMappingAnalog(std::size_t button_id);
     void EndMapping();
+    void UpdateInput();
 
 protected:
     void paintEvent(QPaintEvent* event) override;
