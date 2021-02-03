@@ -15,6 +15,7 @@
 #include "core/file_sys/program_metadata.h"
 #include "core/hle/kernel/code_set.h"
 #include "core/hle/kernel/errors.h"
+#include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
@@ -22,7 +23,6 @@
 #include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/memory/slab_heap.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/resource_limit.h"
 #include "core/hle/lock.h"
 #include "core/memory.h"
 #include "core/settings.h"
@@ -116,7 +116,7 @@ std::shared_ptr<Process> Process::Create(Core::System& system, std::string name,
 
     std::shared_ptr<Process> process = std::make_shared<Process>(system);
     process->name = std::move(name);
-    process->resource_limit = ResourceLimit::Create(kernel);
+    process->resource_limit = std::make_shared<KResourceLimit>(kernel, system);
     process->status = ProcessStatus::Created;
     process->program_id = 0;
     process->process_id = type == ProcessType::KernelInternal ? kernel.CreateNewKernelProcessID()
@@ -132,7 +132,7 @@ std::shared_ptr<Process> Process::Create(Core::System& system, std::string name,
     return process;
 }
 
-std::shared_ptr<ResourceLimit> Process::GetResourceLimit() const {
+std::shared_ptr<KResourceLimit> Process::GetResourceLimit() const {
     return resource_limit;
 }
 
@@ -154,7 +154,7 @@ void Process::DecrementThreadCount() {
 }
 
 u64 Process::GetTotalPhysicalMemoryAvailable() const {
-    const u64 capacity{resource_limit->GetCurrentResourceValue(ResourceType::PhysicalMemory) +
+    const u64 capacity{resource_limit->GetFreeValue(LimitableResource::PhysicalMemory) +
                        page_table->GetTotalHeapSize() + GetSystemResourceSize() + image_size +
                        main_thread_stack_size};
 
@@ -308,13 +308,13 @@ ResultCode Process::LoadFromMetadata(const FileSys::ProgramMetadata& metadata,
 
     // Set initial resource limits
     resource_limit->SetLimitValue(
-        ResourceType::PhysicalMemory,
+        LimitableResource::PhysicalMemory,
         kernel.MemoryManager().GetSize(Memory::MemoryManager::Pool::Application));
-    resource_limit->SetLimitValue(ResourceType::Threads, 608);
-    resource_limit->SetLimitValue(ResourceType::Events, 700);
-    resource_limit->SetLimitValue(ResourceType::TransferMemory, 128);
-    resource_limit->SetLimitValue(ResourceType::Sessions, 894);
-    ASSERT(resource_limit->Reserve(ResourceType::PhysicalMemory, code_size));
+    resource_limit->SetLimitValue(LimitableResource::Threads, 608);
+    resource_limit->SetLimitValue(LimitableResource::Events, 700);
+    resource_limit->SetLimitValue(LimitableResource::TransferMemory, 128);
+    resource_limit->SetLimitValue(LimitableResource::Sessions, 894);
+    ASSERT(resource_limit->Reserve(LimitableResource::PhysicalMemory, code_size));
 
     // Create TLS region
     tls_region_address = CreateTLSRegion();
@@ -331,8 +331,8 @@ void Process::Run(s32 main_thread_priority, u64 stack_size) {
     ChangeStatus(ProcessStatus::Running);
 
     SetupMainThread(system, *this, main_thread_priority, main_thread_stack_top);
-    resource_limit->Reserve(ResourceType::Threads, 1);
-    resource_limit->Reserve(ResourceType::PhysicalMemory, main_thread_stack_size);
+    resource_limit->Reserve(LimitableResource::Threads, 1);
+    resource_limit->Reserve(LimitableResource::PhysicalMemory, main_thread_stack_size);
 }
 
 void Process::PrepareForTermination() {

@@ -21,6 +21,7 @@
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_condition_variable.h"
+#include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
 #include "core/hle/kernel/k_thread.h"
@@ -29,7 +30,6 @@
 #include "core/hle/kernel/memory/memory_layout.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/resource_limit.h"
 #include "core/hle/kernel/svc_results.h"
 #include "core/hle/kernel/time_manager.h"
 #include "core/hle/result.h"
@@ -247,7 +247,7 @@ void KThread::Finalize() {
     // Decrement the parent process's thread count.
     if (parent != nullptr) {
         parent->DecrementThreadCount();
-        parent->GetResourceLimit()->Release(ResourceType::Threads, 1);
+        parent->GetResourceLimit()->Release(LimitableResource::Threads, 1);
     }
 }
 

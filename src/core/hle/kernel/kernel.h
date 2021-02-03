@@ -38,7 +38,7 @@ class GlobalSchedulerContext;
 class HandleTable;
 class PhysicalCore;
 class Process;
-class ResourceLimit;
+class KResourceLimit;
 class KScheduler;
 class SharedMemory;
 class ServiceThread;
@@ -85,7 +85,7 @@ public:
     void Shutdown();
 
     /// Retrieves a shared pointer to the system resource limit instance.
-    std::shared_ptr<ResourceLimit> GetSystemResourceLimit() const;
+    std::shared_ptr<KResourceLimit> GetSystemResourceLimit() const;
 
     /// Retrieves a shared pointer to a Thread instance within the thread wakeup handle table.
     std::shared_ptr<KThread> RetrieveThreadFromGlobalHandleTable(Handle handle) const;

@@ -28,6 +28,7 @@
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
@@ -36,7 +37,6 @@
 #include "core/hle/kernel/memory/slab_heap.h"
 #include "core/hle/kernel/physical_core.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/resource_limit.h"
 #include "core/hle/kernel/service_thread.h"
 #include "core/hle/kernel/shared_memory.h"
 #include "core/hle/kernel/time_manager.h"
@@ -66,7 +66,7 @@ struct KernelCore::Impl {
         is_phantom_mode_for_singlecore = false;
 
         InitializePhysicalCores();
-        InitializeSystemResourceLimit(kernel);
+        InitializeSystemResourceLimit(kernel, system);
         InitializeMemoryLayout();
         InitializePreemption(kernel);
         InitializeSchedulers();
@@ -131,19 +131,19 @@ struct KernelCore::Impl {
     }
 
     // Creates the default system resource limit
-    void InitializeSystemResourceLimit(KernelCore& kernel) {
-        system_resource_limit = ResourceLimit::Create(kernel);
+    void InitializeSystemResourceLimit(KernelCore& kernel, Core::System& system) {
+        system_resource_limit = std::make_shared<KResourceLimit>(kernel, system);
 
         // If setting the default system values fails, then something seriously wrong has occurred.
-        ASSERT(system_resource_limit->SetLimitValue(ResourceType::PhysicalMemory, 0x100000000)
+        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::PhysicalMemory, 0x100000000)
                    .IsSuccess());
-        ASSERT(system_resource_limit->SetLimitValue(ResourceType::Threads, 800).IsSuccess());
-        ASSERT(system_resource_limit->SetLimitValue(ResourceType::Events, 700).IsSuccess());
-        ASSERT(system_resource_limit->SetLimitValue(ResourceType::TransferMemory, 200).IsSuccess());
-        ASSERT(system_resource_limit->SetLimitValue(ResourceType::Sessions, 900).IsSuccess());
+        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::Threads, 800).IsSuccess());
+        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::Events, 700).IsSuccess());
+        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::TransferMemory, 200)
+                   .IsSuccess());
+        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::Sessions, 900).IsSuccess());
 
-        if (!system_resource_limit->Reserve(ResourceType::PhysicalMemory, 0) ||
-            !system_resource_limit->Reserve(ResourceType::PhysicalMemory, 0x60000)) {
+        if (!system_resource_limit->Reserve(LimitableResource::PhysicalMemory, 0x60000)) {
             UNREACHABLE();
         }
     }
@@ -320,7 +320,7 @@ struct KernelCore::Impl {
     std::unique_ptr<Kernel::GlobalSchedulerContext> global_scheduler_context;
     Kernel::TimeManager time_manager;
 
-    std::shared_ptr<ResourceLimit> system_resource_limit;
+    std::shared_ptr<KResourceLimit> system_resource_limit;
 
     std::shared_ptr<Core::Timing::EventType> preemption_event;
 
@@ -390,7 +390,7 @@ void KernelCore::Shutdown() {
     impl->Shutdown();
 }
 
-std::shared_ptr<ResourceLimit> KernelCore::GetSystemResourceLimit() const {
+std::shared_ptr<KResourceLimit> KernelCore::GetSystemResourceLimit() const {
     return impl->system_resource_limit;
 }
 

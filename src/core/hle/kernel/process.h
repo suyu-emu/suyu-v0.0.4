@@ -29,7 +29,7 @@ class ProgramMetadata;
 namespace Kernel {
 
 class KernelCore;
-class ResourceLimit;
+class KResourceLimit;
 class KThread;
 class TLSPage;
 
@@ -170,7 +170,7 @@ public:
     }
 
     /// Gets the resource limit descriptor for this process
-    std::shared_ptr<ResourceLimit> GetResourceLimit() const;
+    std::shared_ptr<KResourceLimit> GetResourceLimit() const;
 
     /// Gets the ideal CPU core ID for this process
     u8 GetIdealCoreId() const {
@@ -402,7 +402,7 @@ private:
     u32 system_resource_size = 0;
 
     /// Resource limit descriptor for this process
-    std::shared_ptr<ResourceLimit> resource_limit;
+    std::shared_ptr<KResourceLimit> resource_limit;
 
     /// The ideal CPU core for this process, threads are scheduled on this core by default.
     u8 ideal_core = 0;

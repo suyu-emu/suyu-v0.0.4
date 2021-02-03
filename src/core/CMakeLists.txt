@@ -160,9 +160,12 @@ add_library(core STATIC
     hle/kernel/k_affinity_mask.h
     hle/kernel/k_condition_variable.cpp
     hle/kernel/k_condition_variable.h
+    hle/kernel/k_light_condition_variable.h
     hle/kernel/k_light_lock.cpp
     hle/kernel/k_light_lock.h
     hle/kernel/k_priority_queue.h
+    hle/kernel/k_resource_limit.cpp
+    hle/kernel/k_resource_limit.h
     hle/kernel/k_scheduler.cpp
     hle/kernel/k_scheduler.h
     hle/kernel/k_scheduler_lock.h
@@ -203,8 +206,6 @@ add_library(core STATIC
     hle/kernel/process_capability.h
     hle/kernel/readable_event.cpp
     hle/kernel/readable_event.h
-    hle/kernel/resource_limit.cpp
-    hle/kernel/resource_limit.h
     hle/kernel/server_port.cpp
     hle/kernel/server_port.h
     hle/kernel/server_session.cpp
