@@ -9,6 +9,7 @@
 class QAction;
 class QHideEvent;
 class QShowEvent;
+class PlayerControlPreview;
 
 class ControllerDialog : public QWidget {
     Q_OBJECT
@@ -18,6 +19,7 @@ public:
 
     /// Returns a QAction that can be used to toggle visibility of this dialog.
     QAction* toggleViewAction();
+    void refreshConfiguration();
 
 protected:
     void showEvent(QShowEvent* ev) override;
@@ -25,4 +27,5 @@ protected:
 
 private:
     QAction* toggle_view_action = nullptr;
+    PlayerControlPreview* widget;
 };

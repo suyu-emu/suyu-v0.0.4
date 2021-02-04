@@ -314,7 +314,7 @@ private:
     ProfilerWidget* profilerWidget;
     MicroProfileDialog* microProfileDialog;
     WaitTreeWidget* waitTreeWidget;
-    ControllerDialog* controllerDialog;
+    ControllerDialog* controller_dialog;
 
     QAction* actions_recent_files[max_recent_files_item];
 

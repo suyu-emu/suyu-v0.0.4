@@ -18,12 +18,8 @@ ControllerDialog::ControllerDialog(QWidget* parent) : QWidget(parent, Qt::Dialog
     setWindowFlags((windowFlags() & ~Qt::WindowContextHelpButtonHint) |
                    Qt::WindowMaximizeButtonHint);
 
-    PlayerControlPreview* widget = new PlayerControlPreview(this);
-    const auto& players = Settings::values.players.GetValue();
-    constexpr std::size_t player = 0;
-    widget->SetPlayerInputRaw(player, players[player].buttons, players[player].analogs);
-    widget->SetConnectedStatus(players[player].connected);
-    widget->SetControllerType(players[player].controller_type);
+    widget = new PlayerControlPreview(this);
+    refreshConfiguration();
     QLayout* layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(widget);
@@ -34,6 +30,14 @@ ControllerDialog::ControllerDialog(QWidget* parent) : QWidget(parent, Qt::Dialog
     setFocusProxy(widget);
     widget->setFocusPolicy(Qt::StrongFocus);
     widget->setFocus();
+}
+
+void ControllerDialog::refreshConfiguration() {
+    const auto& players = Settings::values.players.GetValue();
+    constexpr std::size_t player = 0;
+    widget->SetPlayerInputRaw(player, players[player].buttons, players[player].analogs);
+    widget->SetConnectedStatus(players[player].connected);
+    widget->SetControllerType(players[player].controller_type);
 }
 
 QAction* ControllerDialog::toggleViewAction() {
