@@ -383,11 +383,14 @@ void CommandGenerator::GenerateI3dl2ReverbEffectCommand(s32 mix_buffer_offset, E
     const auto channel_count = params.channel_count;
     for (s32 i = 0; i < channel_count; i++) {
         // TODO(ogniK): Actually implement reverb
+        /*
         if (params.input[i] != params.output[i]) {
             const auto* input = GetMixBuffer(mix_buffer_offset + params.input[i]);
             auto* output = GetMixBuffer(mix_buffer_offset + params.output[i]);
             ApplyMix<1>(output, input, 32768, worker_params.sample_count);
-        }
+        }*/
+        auto* output = GetMixBuffer(mix_buffer_offset + params.output[i]);
+        std::memset(output, 0, worker_params.sample_count * sizeof(s32));
     }
 }
 
