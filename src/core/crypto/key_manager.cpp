@@ -568,6 +568,11 @@ KeyManager::KeyManager() {
     // Initialize keys
     const std::string hactool_keys_dir = Common::FS::GetHactoolConfigurationPath();
     const std::string yuzu_keys_dir = Common::FS::GetUserPath(Common::FS::UserPath::KeysDir);
+
+    if (!Common::FS::Exists(yuzu_keys_dir)) {
+        Common::FS::CreateDir(yuzu_keys_dir);
+    }
+
     if (Settings::values.use_dev_keys) {
         dev_mode = true;
         AttemptLoadKeyFile(yuzu_keys_dir, hactool_keys_dir, "dev.keys", false);
