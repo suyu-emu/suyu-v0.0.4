@@ -24,11 +24,11 @@ template <typename T>
 concept KPriorityQueueAffinityMask = !std::is_reference_v<T> && requires(T & t) {
     { t.GetAffinityMask() }
     ->Common::ConvertibleTo<u64>;
-    {t.SetAffinityMask(std::declval<u64>())};
+    {t.SetAffinityMask(0)};
 
-    { t.GetAffinity(std::declval<int32_t>()) }
+    { t.GetAffinity(0) }
     ->std::same_as<bool>;
-    {t.SetAffinity(std::declval<int32_t>(), std::declval<bool>())};
+    {t.SetAffinity(0, false)};
     {t.SetAll()};
 };
 
@@ -42,11 +42,11 @@ concept KPriorityQueueMember = !std::is_reference_v<T> && requires(T & t) {
     ->std::same_as<T*>;
     { (typename T::QueueEntry()).GetPrev() }
     ->std::same_as<T*>;
-    { t.GetPriorityQueueEntry(std::declval<s32>()) }
+    { t.GetPriorityQueueEntry(0) }
     ->std::same_as<typename T::QueueEntry&>;
 
     {t.GetAffinityMask()};
-    { typename std::remove_cvref<decltype(t.GetAffinityMask())>::type() }
+    { std::remove_cvref_t<decltype(t.GetAffinityMask())>() }
     ->KPriorityQueueAffinityMask;
 
     { t.GetActiveCore() }
