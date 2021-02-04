@@ -65,13 +65,18 @@ static void DecryptSharedFont(const std::vector<u32>& input, Kernel::PhysicalMem
 void DecryptSharedFontToTTF(const std::vector<u32>& input, std::vector<u8>& output) {
     ASSERT_MSG(input[0] == EXPECTED_MAGIC, "Failed to derive key, unexpected magic number");
 
+    if (input.size() < 2) {
+        LOG_ERROR(Service_NS, "Input font is empty");
+        return;
+    }
+
     const u32 KEY = input[0] ^ EXPECTED_RESULT; // Derive key using an inverse xor
     std::vector<u32> transformed_font(input.size());
     // TODO(ogniK): Figure out a better way to do this
     std::transform(input.begin(), input.end(), transformed_font.begin(),
                    [&KEY](u32 font_data) { return Common::swap32(font_data ^ KEY); });
-    transformed_font[1] = Common::swap32(transformed_font[1]) ^ KEY; // "re-encrypt" the size
-    std::memcpy(output.data(), transformed_font.data() + 2, transformed_font.size() * sizeof(u32));
+    std::memcpy(output.data(), transformed_font.data() + 2,
+                (transformed_font.size() - 2) * sizeof(u32));
 }
 
 void EncryptSharedFont(const std::vector<u32>& input, std::vector<u8>& output,
