@@ -368,7 +368,10 @@ static ResultCode GetThreadId(Core::System& system, u64* out_thread_id, Handle t
     // Get the thread from its handle.
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
     const std::shared_ptr<KThread> thread = handle_table.Get<KThread>(thread_handle);
-    R_UNLESS(thread, Svc::ResultInvalidHandle);
+    if (!thread) {
+        LOG_ERROR(Kernel_SVC, "Invalid thread handle provided (handle={:08X})", thread_handle);
+        return ResultInvalidHandle;
+    }
 
     // Get the thread's id.
     *out_thread_id = thread->GetThreadID();
@@ -478,7 +481,10 @@ static ResultCode CancelSynchronization(Core::System& system, Handle thread_hand
     // Get the thread from its handle.
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
     std::shared_ptr<KThread> thread = handle_table.Get<KThread>(thread_handle);
-    R_UNLESS(thread, Svc::ResultInvalidHandle);
+    if (!thread) {
+        LOG_ERROR(Kernel_SVC, "Invalid thread handle provided (handle={:08X})", thread_handle);
+        return ResultInvalidHandle;
+    }
 
     // Cancel the thread's wait.
     thread->WaitCancel();
@@ -496,8 +502,15 @@ static ResultCode ArbitrateLock(Core::System& system, Handle thread_handle, VAdd
               thread_handle, address, tag);
 
     // Validate the input address.
-    R_UNLESS(!Memory::IsKernelAddress(address), Svc::ResultInvalidCurrentMemory);
-    R_UNLESS(Common::IsAligned(address, sizeof(u32)), Svc::ResultInvalidAddress);
+    if (Memory::IsKernelAddress(address)) {
+        LOG_ERROR(Kernel_SVC, "Attempting to arbitrate a lock on a kernel address (address={:08X})",
+                  address);
+        return ResultInvalidCurrentMemory;
+    }
+    if (!Common::IsAligned(address, sizeof(u32))) {
+        LOG_ERROR(Kernel_SVC, "Input address must be 4 byte aligned (address: {:08X})", address);
+        return ResultInvalidAddress;
+    }
 
     return system.Kernel().CurrentProcess()->WaitForAddress(thread_handle, address, tag);
 }
@@ -512,8 +525,16 @@ static ResultCode ArbitrateUnlock(Core::System& system, VAddr address) {
     LOG_TRACE(Kernel_SVC, "called address=0x{:X}", address);
 
     // Validate the input address.
-    R_UNLESS(!Memory::IsKernelAddress(address), Svc::ResultInvalidCurrentMemory);
-    R_UNLESS(Common::IsAligned(address, sizeof(u32)), Svc::ResultInvalidAddress);
+    if (Memory::IsKernelAddress(address)) {
+        LOG_ERROR(Kernel_SVC,
+                  "Attempting to arbitrate an unlock on a kernel address (address={:08X})",
+                  address);
+        return ResultInvalidCurrentMemory;
+    }
+    if (!Common::IsAligned(address, sizeof(u32))) {
+        LOG_ERROR(Kernel_SVC, "Input address must be 4 byte aligned (address: {:08X})", address);
+        return ResultInvalidAddress;
+    }
 
     return system.Kernel().CurrentProcess()->SignalToAddress(address);
 }
@@ -1025,37 +1046,47 @@ static ResultCode UnmapPhysicalMemory32(Core::System& system, u32 addr, u32 size
     return UnmapPhysicalMemory(system, addr, size);
 }
 
-constexpr bool IsValidThreadActivity(Svc::ThreadActivity thread_activity) {
-    switch (thread_activity) {
-    case Svc::ThreadActivity::Runnable:
-    case Svc::ThreadActivity::Paused:
-        return true;
-    default:
-        return false;
-    }
-}
-
 /// Sets the thread activity
 static ResultCode SetThreadActivity(Core::System& system, Handle thread_handle,
-                                    Svc::ThreadActivity thread_activity) {
+                                    ThreadActivity thread_activity) {
     LOG_DEBUG(Kernel_SVC, "called, handle=0x{:08X}, activity=0x{:08X}", thread_handle,
               thread_activity);
 
     // Validate the activity.
-    R_UNLESS(IsValidThreadActivity(thread_activity), Svc::ResultInvalidEnumValue);
+    constexpr auto IsValidThreadActivity = [](ThreadActivity activity) {
+        return activity == ThreadActivity::Runnable || activity == ThreadActivity::Paused;
+    };
+    if (!IsValidThreadActivity(thread_activity)) {
+        LOG_ERROR(Kernel_SVC, "Invalid thread activity value provided (activity={})",
+                  thread_activity);
+        return ResultInvalidEnumValue;
+    }
 
     // Get the thread from its handle.
     auto& kernel = system.Kernel();
     const auto& handle_table = kernel.CurrentProcess()->GetHandleTable();
     const std::shared_ptr<KThread> thread = handle_table.Get<KThread>(thread_handle);
-    R_UNLESS(thread, Svc::ResultInvalidHandle);
+    if (!thread) {
+        LOG_ERROR(Kernel_SVC, "Invalid thread handle provided (handle={:08X})", thread_handle);
+        return ResultInvalidHandle;
+    }
 
     // Check that the activity is being set on a non-current thread for the current process.
-    R_UNLESS(thread->GetOwnerProcess() == kernel.CurrentProcess(), Svc::ResultInvalidHandle);
-    R_UNLESS(thread.get() != GetCurrentThreadPointer(kernel), Svc::ResultBusy);
+    if (thread->GetOwnerProcess() != kernel.CurrentProcess()) {
+        LOG_ERROR(Kernel_SVC, "Invalid owning process for the created thread.");
+        return ResultInvalidHandle;
+    }
+    if (thread.get() == GetCurrentThreadPointer(kernel)) {
+        LOG_ERROR(Kernel_SVC, "Thread is busy");
+        return ResultBusy;
+    }
 
     // Set the activity.
-    R_TRY(thread->SetActivity(thread_activity));
+    const auto set_result = thread->SetActivity(thread_activity);
+    if (set_result.IsError()) {
+        LOG_ERROR(Kernel_SVC, "Failed to set thread activity.");
+        return set_result;
+    }
 
     return RESULT_SUCCESS;
 }
@@ -1074,16 +1105,29 @@ static ResultCode GetThreadContext(Core::System& system, VAddr out_context, Hand
     const auto* current_process = system.Kernel().CurrentProcess();
     const std::shared_ptr<KThread> thread =
         current_process->GetHandleTable().Get<KThread>(thread_handle);
-    R_UNLESS(thread, Svc::ResultInvalidHandle);
+    if (!thread) {
+        LOG_ERROR(Kernel_SVC, "Invalid thread handle provided (handle={})", thread_handle);
+        return ResultInvalidHandle;
+    }
 
     // Require the handle be to a non-current thread in the current process.
-    R_UNLESS(thread->GetOwnerProcess() == current_process, Svc::ResultInvalidHandle);
-    R_UNLESS(thread.get() != system.Kernel().CurrentScheduler()->GetCurrentThread(),
-             Svc::ResultBusy);
+    if (thread->GetOwnerProcess() != current_process) {
+        LOG_ERROR(Kernel_SVC, "Thread owning process is not the current process.");
+        return ResultInvalidHandle;
+    }
+    if (thread.get() == system.Kernel().CurrentScheduler()->GetCurrentThread()) {
+        LOG_ERROR(Kernel_SVC, "Current thread is busy.");
+        return ResultBusy;
+    }
 
     // Get the thread context.
     std::vector<u8> context;
-    R_TRY(thread->GetThreadContext3(context));
+    const auto context_result = thread->GetThreadContext3(context);
+    if (context_result.IsError()) {
+        LOG_ERROR(Kernel_SVC, "Unable to successfully retrieve thread context (result: {})",
+                  context_result.raw);
+        return context_result;
+    }
 
     // Copy the thread context to user space.
     system.Memory().WriteBlock(out_context, context.data(), context.size());
@@ -1102,7 +1146,10 @@ static ResultCode GetThreadPriority(Core::System& system, u32* out_priority, Han
     // Get the thread from its handle.
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
     const std::shared_ptr<KThread> thread = handle_table.Get<KThread>(handle);
-    R_UNLESS(thread, Svc::ResultInvalidHandle);
+    if (!thread) {
+        LOG_ERROR(Kernel_SVC, "Invalid thread handle provided (handle={:08X})", handle);
+        return ResultInvalidHandle;
+    }
 
     // Get the thread's priority.
     *out_priority = thread->GetPriority();
@@ -1118,13 +1165,18 @@ static ResultCode SetThreadPriority(Core::System& system, Handle handle, u32 pri
     LOG_TRACE(Kernel_SVC, "called");
 
     // Validate the priority.
-    R_UNLESS(Svc::HighestThreadPriority <= priority && priority <= Svc::LowestThreadPriority,
-             Svc::ResultInvalidPriority);
+    if (HighestThreadPriority > priority || priority > LowestThreadPriority) {
+        LOG_ERROR(Kernel_SVC, "Invalid thread priority specified (priority={})", priority);
+        return ResultInvalidPriority;
+    }
 
     // Get the thread from its handle.
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
     const std::shared_ptr<KThread> thread = handle_table.Get<KThread>(handle);
-    R_UNLESS(thread, Svc::ResultInvalidHandle);
+    if (!thread) {
+        LOG_ERROR(Kernel_SVC, "Invalid handle provided (handle={:08X})", handle);
+        return ResultInvalidHandle;
+    }
 
     // Set the thread priority.
     thread->SetBasePriority(priority);
@@ -1440,17 +1492,28 @@ static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr e
     // Adjust core id, if it's the default magic.
     auto& kernel = system.Kernel();
     auto& process = *kernel.CurrentProcess();
-    if (core_id == Svc::IdealCoreUseProcessValue) {
+    if (core_id == IdealCoreUseProcessValue) {
         core_id = process.GetIdealCoreId();
     }
 
     // Validate arguments.
-    R_UNLESS(IsValidCoreId(core_id), Svc::ResultInvalidCoreId);
-    R_UNLESS(((1ULL << core_id) & process.GetCoreMask()) != 0, Svc::ResultInvalidCoreId);
+    if (!IsValidCoreId(core_id)) {
+        LOG_ERROR(Kernel_SVC, "Invalid Core ID specified (id={})", core_id);
+        return ResultInvalidCoreId;
+    }
+    if (((1ULL << core_id) & process.GetCoreMask()) == 0) {
+        LOG_ERROR(Kernel_SVC, "Core ID doesn't fall within allowable cores (id={})", core_id);
+        return ResultInvalidCoreId;
+    }
 
-    R_UNLESS(Svc::HighestThreadPriority <= priority && priority <= Svc::LowestThreadPriority,
-             Svc::ResultInvalidPriority);
-    R_UNLESS(process.CheckThreadPriority(priority), Svc::ResultInvalidPriority);
+    if (HighestThreadPriority > priority || priority > LowestThreadPriority) {
+        LOG_ERROR(Kernel_SVC, "Invalid priority specified (priority={})", priority);
+        return ResultInvalidPriority;
+    }
+    if (!process.CheckThreadPriority(priority)) {
+        LOG_ERROR(Kernel_SVC, "Invalid allowable thread priority (priority={})", priority);
+        return ResultInvalidPriority;
+    }
 
     ASSERT(process.GetResourceLimit()->Reserve(
         LimitableResource::Threads, 1, system.CoreTiming().GetGlobalTimeNs().count() + 100000000));
@@ -1489,10 +1552,19 @@ static ResultCode StartThread(Core::System& system, Handle thread_handle) {
     // Get the thread from its handle.
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
     const std::shared_ptr<KThread> thread = handle_table.Get<KThread>(thread_handle);
-    R_UNLESS(thread, Svc::ResultInvalidHandle);
+    if (!thread) {
+        LOG_ERROR(Kernel_SVC, "Invalid thread handle provided (handle={:08X})", thread_handle);
+        return ResultInvalidHandle;
+    }
 
     // Try to start the thread.
-    R_TRY(thread->Run());
+    const auto run_result = thread->Run();
+    if (run_result.IsError()) {
+        LOG_ERROR(Kernel_SVC,
+                  "Unable to successfuly start thread (thread handle={:08X}, result={})",
+                  thread_handle, run_result.raw);
+        return run_result;
+    }
 
     return RESULT_SUCCESS;
 }
@@ -1553,8 +1625,14 @@ static ResultCode WaitProcessWideKeyAtomic(Core::System& system, VAddr address, 
               cv_key, tag, timeout_ns);
 
     // Validate input.
-    R_UNLESS(!Memory::IsKernelAddress(address), Svc::ResultInvalidCurrentMemory);
-    R_UNLESS(Common::IsAligned(address, sizeof(int32_t)), Svc::ResultInvalidAddress);
+    if (Memory::IsKernelAddress(address)) {
+        LOG_ERROR(Kernel_SVC, "Attempted to wait on kernel address (address={:08X})", address);
+        return ResultInvalidCurrentMemory;
+    }
+    if (!Common::IsAligned(address, sizeof(s32))) {
+        LOG_ERROR(Kernel_SVC, "Address must be 4 byte aligned (address={:08X})", address);
+        return ResultInvalidAddress;
+    }
 
     // Convert timeout from nanoseconds to ticks.
     s64 timeout{};
@@ -1629,9 +1707,18 @@ static ResultCode WaitForAddress(Core::System& system, VAddr address, Svc::Arbit
               address, arb_type, value, timeout_ns);
 
     // Validate input.
-    R_UNLESS(!Memory::IsKernelAddress(address), Svc::ResultInvalidCurrentMemory);
-    R_UNLESS(Common::IsAligned(address, sizeof(int32_t)), Svc::ResultInvalidAddress);
-    R_UNLESS(IsValidArbitrationType(arb_type), Svc::ResultInvalidEnumValue);
+    if (Memory::IsKernelAddress(address)) {
+        LOG_ERROR(Kernel_SVC, "Attempting to wait on kernel address (address={:08X})", address);
+        return ResultInvalidCurrentMemory;
+    }
+    if (!Common::IsAligned(address, sizeof(s32))) {
+        LOG_ERROR(Kernel_SVC, "Wait address must be 4 byte aligned (address={:08X})", address);
+        return ResultInvalidAddress;
+    }
+    if (!IsValidArbitrationType(arb_type)) {
+        LOG_ERROR(Kernel_SVC, "Invalid arbitration type specified (type={})", arb_type);
+        return ResultInvalidEnumValue;
+    }
 
     // Convert timeout from nanoseconds to ticks.
     s64 timeout{};
@@ -1665,9 +1752,18 @@ static ResultCode SignalToAddress(Core::System& system, VAddr address, Svc::Sign
               address, signal_type, value, count);
 
     // Validate input.
-    R_UNLESS(!Memory::IsKernelAddress(address), Svc::ResultInvalidCurrentMemory);
-    R_UNLESS(Common::IsAligned(address, sizeof(s32)), Svc::ResultInvalidAddress);
-    R_UNLESS(IsValidSignalType(signal_type), Svc::ResultInvalidEnumValue);
+    if (Memory::IsKernelAddress(address)) {
+        LOG_ERROR(Kernel_SVC, "Attempting to signal to a kernel address (address={:08X})", address);
+        return ResultInvalidCurrentMemory;
+    }
+    if (!Common::IsAligned(address, sizeof(s32))) {
+        LOG_ERROR(Kernel_SVC, "Signaled address must be 4 byte aligned (address={:08X})", address);
+        return ResultInvalidAddress;
+    }
+    if (!IsValidSignalType(signal_type)) {
+        LOG_ERROR(Kernel_SVC, "Invalid signal type specified (type={})", signal_type);
+        return ResultInvalidEnumValue;
+    }
 
     return system.Kernel().CurrentProcess()->SignalAddressArbiter(address, signal_type, value,
                                                                   count);
@@ -1815,10 +1911,17 @@ static ResultCode GetThreadCoreMask(Core::System& system, Handle thread_handle, 
     // Get the thread from its handle.
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
     const std::shared_ptr<KThread> thread = handle_table.Get<KThread>(thread_handle);
-    R_UNLESS(thread, Svc::ResultInvalidHandle);
+    if (!thread) {
+        LOG_ERROR(Kernel_SVC, "Invalid thread handle specified (handle={:08X})", thread_handle);
+        return ResultInvalidHandle;
+    }
 
     // Get the core mask.
-    R_TRY(thread->GetCoreMask(out_core_id, out_affinity_mask));
+    const auto result = thread->GetCoreMask(out_core_id, out_affinity_mask);
+    if (result.IsError()) {
+        LOG_ERROR(Kernel_SVC, "Unable to successfully retrieve core mask (result={})", result.raw);
+        return result;
+    }
 
     return RESULT_SUCCESS;
 }
@@ -1846,26 +1949,46 @@ static ResultCode SetThreadCoreMask(Core::System& system, Handle thread_handle, 
     } else {
         // Validate the affinity mask.
         const u64 process_core_mask = current_process.GetCoreMask();
-        R_UNLESS((affinity_mask | process_core_mask) == process_core_mask,
-                 Svc::ResultInvalidCoreId);
-        R_UNLESS(affinity_mask != 0, Svc::ResultInvalidCombination);
+        if ((affinity_mask | process_core_mask) != process_core_mask) {
+            LOG_ERROR(Kernel_SVC,
+                      "Affinity mask does match the process core mask (affinity mask={:016X}, core "
+                      "mask={:016X})",
+                      affinity_mask, process_core_mask);
+            return ResultInvalidCoreId;
+        }
+        if (affinity_mask == 0) {
+            LOG_ERROR(Kernel_SVC, "Affinity mask is zero.");
+            return ResultInvalidCombination;
+        }
 
         // Validate the core id.
         if (IsValidCoreId(core_id)) {
-            R_UNLESS(((1ULL << core_id) & affinity_mask) != 0, Svc::ResultInvalidCombination);
+            if (((1ULL << core_id) & affinity_mask) == 0) {
+                LOG_ERROR(Kernel_SVC, "Invalid core ID (ID={})", core_id);
+                return ResultInvalidCombination;
+            }
         } else {
-            R_UNLESS(core_id == Svc::IdealCoreNoUpdate || core_id == Svc::IdealCoreDontCare,
-                     Svc::ResultInvalidCoreId);
+            if (core_id != IdealCoreNoUpdate && core_id != IdealCoreDontCare) {
+                LOG_ERROR(Kernel_SVC, "Invalid core ID (ID={})", core_id);
+                return ResultInvalidCoreId;
+            }
         }
     }
 
     // Get the thread from its handle.
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
     const std::shared_ptr<KThread> thread = handle_table.Get<KThread>(thread_handle);
-    R_UNLESS(thread, Svc::ResultInvalidHandle);
+    if (!thread) {
+        LOG_ERROR(Kernel_SVC, "Invalid thread handle (handle={:08X})", thread_handle);
+        return ResultInvalidHandle;
+    }
 
     // Set the core mask.
-    R_TRY(thread->SetCoreMask(core_id, affinity_mask));
+    const auto set_result = thread->SetCoreMask(core_id, affinity_mask);
+    if (set_result.IsError()) {
+        LOG_ERROR(Kernel_SVC, "Unable to successfully set core mask (result={})", set_result.raw);
+        return set_result;
+    }
 
     return RESULT_SUCCESS;
 }
@@ -1884,7 +2007,10 @@ static ResultCode SignalEvent(Core::System& system, Handle event_handle) {
 
     // Get the writable event.
     auto writable_event = handle_table.Get<KWritableEvent>(event_handle);
-    R_UNLESS(writable_event, Svc::ResultInvalidHandle);
+    if (!writable_event) {
+        LOG_ERROR(Kernel_SVC, "Invalid event handle provided (handle={:08X})", event_handle);
+        return ResultInvalidHandle;
+    }
 
     return writable_event->Signal();
 }
@@ -1933,7 +2059,10 @@ static ResultCode CreateEvent(Core::System& system, Handle* out_write, Handle* o
 
     // Create a new event.
     const auto event = KEvent::Create(kernel, "CreateEvent");
-    R_UNLESS(event != nullptr, Svc::ResultOutOfResource);
+    if (!event) {
+        LOG_ERROR(Kernel_SVC, "Unable to create new events. Event creation limit reached.");
+        return ResultOutOfResource;
+    }
 
     // Initialize the event.
     event->Initialize();
