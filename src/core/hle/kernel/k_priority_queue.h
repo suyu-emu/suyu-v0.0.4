@@ -58,8 +58,8 @@ concept KPriorityQueueMember = !std::is_reference_v<T> && requires(T & t) {
 template <typename Member, size_t NumCores_, int LowestPriority, int HighestPriority>
 requires KPriorityQueueMember<Member> class KPriorityQueue {
 public:
-    using AffinityMaskType = typename std::remove_cv_t<
-        typename std::remove_reference<decltype(std::declval<Member>().GetAffinityMask())>::type>;
+    using AffinityMaskType = std::remove_cv_t<
+        std::remove_reference_t<decltype(std::declval<Member>().GetAffinityMask())>>;
 
     static_assert(LowestPriority >= 0);
     static_assert(HighestPriority >= 0);
