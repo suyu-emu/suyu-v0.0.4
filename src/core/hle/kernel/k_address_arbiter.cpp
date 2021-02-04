@@ -120,7 +120,7 @@ ResultCode KAddressArbiter::SignalAndIncrementIfEqual(VAddr addr, s32 value, s32
         s32 user_value{};
         R_UNLESS(UpdateIfEqual(system, std::addressof(user_value), addr, value, value + 1),
                  Svc::ResultInvalidCurrentMemory);
-        R_UNLESS(user_value == value, Svc::ResultInvalidState);
+        R_UNLESS_NOLOG(user_value == value, Svc::ResultInvalidState);
 
         auto it = thread_tree.nfind_light({addr, -1});
         while ((it != thread_tree.end()) && (count <= 0 || num_waiters < count) &&
