@@ -118,7 +118,7 @@ ResultCode KAddressArbiter::SignalAndIncrementIfEqual(VAddr addr, s32 value, s32
 
         // Check the userspace value.
         s32 user_value{};
-        R_UNLESS(UpdateIfEqual(system, std::addressof(user_value), addr, value, value + 1),
+        R_UNLESS(UpdateIfEqual(system, &user_value, addr, value, value + 1),
                  Svc::ResultInvalidCurrentMemory);
 
         if (user_value != value) {
@@ -181,9 +181,9 @@ ResultCode KAddressArbiter::SignalAndModifyByWaitingCountIfEqual(VAddr addr, s32
         s32 user_value{};
         bool succeeded{};
         if (value != new_value) {
-            succeeded = UpdateIfEqual(system, std::addressof(user_value), addr, value, new_value);
+            succeeded = UpdateIfEqual(system, &user_value, addr, value, new_value);
         } else {
-            succeeded = ReadFromUser(system, std::addressof(user_value), addr);
+            succeeded = ReadFromUser(system, &user_value, addr);
         }
 
         R_UNLESS(succeeded, Svc::ResultInvalidCurrentMemory);
@@ -228,9 +228,9 @@ ResultCode KAddressArbiter::WaitIfLessThan(VAddr addr, s32 value, bool decrement
         s32 user_value{};
         bool succeeded{};
         if (decrement) {
-            succeeded = DecrementIfLessThan(system, std::addressof(user_value), addr, value);
+            succeeded = DecrementIfLessThan(system, &user_value, addr, value);
         } else {
-            succeeded = ReadFromUser(system, std::addressof(user_value), addr);
+            succeeded = ReadFromUser(system, &user_value, addr);
         }
 
         if (!succeeded) {
@@ -251,7 +251,7 @@ ResultCode KAddressArbiter::WaitIfLessThan(VAddr addr, s32 value, bool decrement
         }
 
         // Set the arbiter.
-        cur_thread->SetAddressArbiter(std::addressof(thread_tree), addr);
+        cur_thread->SetAddressArbiter(&thread_tree, addr);
         thread_tree.insert(*cur_thread);
         cur_thread->SetState(ThreadState::Waiting);
         cur_thread->SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::Arbitration);
@@ -272,7 +272,7 @@ ResultCode KAddressArbiter::WaitIfLessThan(VAddr addr, s32 value, bool decrement
 
     // Get the result.
     KSynchronizationObject* dummy{};
-    return cur_thread->GetWaitResult(std::addressof(dummy));
+    return cur_thread->GetWaitResult(&dummy);
 }
 
 ResultCode KAddressArbiter::WaitIfEqual(VAddr addr, s32 value, s64 timeout) {
@@ -293,7 +293,7 @@ ResultCode KAddressArbiter::WaitIfEqual(VAddr addr, s32 value, s64 timeout) {
 
         // Read the value from userspace.
         s32 user_value{};
-        if (!ReadFromUser(system, std::addressof(user_value), addr)) {
+        if (!ReadFromUser(system, &user_value, addr)) {
             slp.CancelSleep();
             return Svc::ResultInvalidCurrentMemory;
         }
@@ -311,7 +311,7 @@ ResultCode KAddressArbiter::WaitIfEqual(VAddr addr, s32 value, s64 timeout) {
         }
 
         // Set the arbiter.
-        cur_thread->SetAddressArbiter(std::addressof(thread_tree), addr);
+        cur_thread->SetAddressArbiter(&thread_tree, addr);
         thread_tree.insert(*cur_thread);
         cur_thread->SetState(ThreadState::Waiting);
         cur_thread->SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::Arbitration);
@@ -332,7 +332,7 @@ ResultCode KAddressArbiter::WaitIfEqual(VAddr addr, s32 value, s64 timeout) {
 
     // Get the result.
     KSynchronizationObject* dummy{};
-    return cur_thread->GetWaitResult(std::addressof(dummy));
+    return cur_thread->GetWaitResult(&dummy);
 }
 
 } // namespace Kernel
