@@ -118,9 +118,10 @@ ResultCode KAddressArbiter::SignalAndIncrementIfEqual(VAddr addr, s32 value, s32
 
         // Check the userspace value.
         s32 user_value{};
-        R_UNLESS(UpdateIfEqual(system, &user_value, addr, value, value + 1),
-                 Svc::ResultInvalidCurrentMemory);
-
+        if (!UpdateIfEqual(system, &user_value, addr, value, value + 1)) {
+            LOG_ERROR(Kernel, "Invalid current memory!");
+            return Svc::ResultInvalidCurrentMemory;
+        }
         if (user_value != value) {
             return Svc::ResultInvalidState;
         }
@@ -186,8 +187,10 @@ ResultCode KAddressArbiter::SignalAndModifyByWaitingCountIfEqual(VAddr addr, s32
             succeeded = ReadFromUser(system, &user_value, addr);
         }
 
-        R_UNLESS(succeeded, Svc::ResultInvalidCurrentMemory);
-
+        if (!succeeded) {
+            LOG_ERROR(Kernel, "Invalid current memory!");
+            return Svc::ResultInvalidCurrentMemory;
+        }
         if (user_value != value) {
             return Svc::ResultInvalidState;
         }
