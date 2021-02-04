@@ -55,7 +55,7 @@ concept KPriorityQueueMember = !std::is_reference_v<T> && requires(T & t) {
     ->Common::ConvertibleTo<s32>;
 };
 
-template <typename Member, size_t _NumCores, int LowestPriority, int HighestPriority>
+template <typename Member, size_t NumCores_, int LowestPriority, int HighestPriority>
 requires KPriorityQueueMember<Member> class KPriorityQueue {
 public:
     using AffinityMaskType = typename std::remove_cv_t<
@@ -65,7 +65,7 @@ public:
     static_assert(HighestPriority >= 0);
     static_assert(LowestPriority >= HighestPriority);
     static constexpr size_t NumPriority = LowestPriority - HighestPriority + 1;
-    static constexpr size_t NumCores = _NumCores;
+    static constexpr size_t NumCores = NumCores_;
 
     static constexpr bool IsValidCore(s32 core) {
         return 0 <= core && core < static_cast<s32>(NumCores);
