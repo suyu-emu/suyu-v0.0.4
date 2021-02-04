@@ -27,7 +27,7 @@ public:
     }
 
     [[nodiscard]] constexpr bool GetAffinity(s32 core) const {
-        return this->mask & GetCoreBit(core);
+        return (this->mask & GetCoreBit(core)) != 0;
     }
 
     constexpr void SetAffinity(s32 core, bool set) {
