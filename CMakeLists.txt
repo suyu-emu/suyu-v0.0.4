@@ -391,45 +391,45 @@ if (YUZU_USE_BUNDLED_FFMPEG)
         # Build FFmpeg from externals
         message(STATUS "Using FFmpeg from externals")
 
-        set(FFMPEG_PREFIX ${PROJECT_SOURCE_DIR}/externals/ffmpeg)
-        set(FFMPEG_BUILD_DIR ${PROJECT_BINARY_DIR}/externals/ffmpeg)
-        set(FFMPEG_MAKEFILE ${FFMPEG_BUILD_DIR}/Makefile)
-        make_directory(${FFMPEG_BUILD_DIR})
+        set(FFmpeg_PREFIX ${PROJECT_SOURCE_DIR}/externals/ffmpeg)
+        set(FFmpeg_BUILD_DIR ${PROJECT_BINARY_DIR}/externals/ffmpeg)
+        set(FFmpeg_MAKEFILE ${FFmpeg_BUILD_DIR}/Makefile)
+        make_directory(${FFmpeg_BUILD_DIR})
 
         # Read version string from external
-        file(READ ${FFMPEG_PREFIX}/RELEASE FFMPEG_VERSION)
-        set(FFMPEG_FOUND NO)
-        if (NOT FFMPEG_VERSION STREQUAL "")
-            set(FFMPEG_FOUND YES)
+        file(READ ${FFmpeg_PREFIX}/RELEASE FFmpeg_VERSION)
+        set(FFmpeg_FOUND NO)
+        if (NOT FFmpeg_VERSION STREQUAL "")
+            set(FFmpeg_FOUND YES)
         endif()
 
-        set(FFMPEG_COMPONENTS
+        set(FFmpeg_COMPONENTS
             avcodec
             avutil
             swscale)
 
-        foreach(COMPONENT ${FFMPEG_COMPONENTS})
-            set(FFMPEG_${COMPONENT}_PREFIX "${FFMPEG_BUILD_DIR}/lib${COMPONENT}")
-            set(FFMPEG_${COMPONENT}_LIB_NAME "lib${COMPONENT}.a")
-            set(FFMPEG_${COMPONENT}_LIBRARY "${FFMPEG_${COMPONENT}_PREFIX}/${FFMPEG_${COMPONENT}_LIB_NAME}")
+        foreach(COMPONENT ${FFmpeg_COMPONENTS})
+            set(FFmpeg_${COMPONENT}_PREFIX "${FFmpeg_BUILD_DIR}/lib${COMPONENT}")
+            set(FFmpeg_${COMPONENT}_LIB_NAME "lib${COMPONENT}.a")
+            set(FFmpeg_${COMPONENT}_LIBRARY "${FFmpeg_${COMPONENT}_PREFIX}/${FFmpeg_${COMPONENT}_LIB_NAME}")
 
-            set(FFMPEG_LIBRARIES
-                ${FFMPEG_LIBRARIES}
-                ${FFMPEG_${COMPONENT}_LIBRARY}
+            set(FFmpeg_LIBRARIES
+                ${FFmpeg_LIBRARIES}
+                ${FFmpeg_${COMPONENT}_LIBRARY}
                 CACHE PATH "Paths to FFmpeg libraries" FORCE)
         endforeach()
 
-        set(FFMPEG_INCLUDE_DIR
-            ${FFMPEG_PREFIX}
+        set(FFmpeg_INCLUDE_DIR
+            ${FFmpeg_PREFIX}
             CACHE PATH "Path to FFmpeg headers" FORCE)
 
         # `configure` parameters builds only exactly what yuzu needs from FFmpeg
         # `--disable-{vaapi,vdpau}` is needed to avoid linking issues
         add_custom_command(
             OUTPUT
-                ${FFMPEG_MAKEFILE}
+                ${FFmpeg_MAKEFILE}
             COMMAND
-                /bin/bash ${FFMPEG_PREFIX}/configure
+                /bin/bash ${FFmpeg_PREFIX}/configure
                     --disable-avdevice
                     --disable-avfilter
                     --disable-avformat
@@ -445,25 +445,25 @@ if (YUZU_USE_BUNDLED_FFMPEG)
                     --enable-decoder=h264
                     --enable-decoder=vp9
             WORKING_DIRECTORY
-                ${FFMPEG_BUILD_DIR}
+                ${FFmpeg_BUILD_DIR}
         )
 
         add_custom_command(
             OUTPUT
-                ${FFMPEG_LIBRARIES}
+                ${FFmpeg_LIBRARIES}
             COMMAND
                 make
             WORKING_DIRECTORY
-                ${FFMPEG_BUILD_DIR}
+                ${FFmpeg_BUILD_DIR}
         )
 
         # ALL makes this custom target build every time
         # but it won't actually build if the DEPENDS parameter is up to date
-        add_custom_target(ffmpeg-build ALL DEPENDS ${FFMPEG_LIBRARIES})
-        add_custom_target(ffmpeg-configure ALL DEPENDS ${FFMPEG_MAKEFILE})
+        add_custom_target(ffmpeg-build ALL DEPENDS ${FFmpeg_LIBRARIES})
+        add_custom_target(ffmpeg-configure ALL DEPENDS ${FFmpeg_MAKEFILE})
 
-        if (FFMPEG_FOUND)
-            message(STATUS "Found FFmpeg version ${FFMPEG_VERSION}")
+        if (FFmpeg_FOUND)
+            message(STATUS "Found FFmpeg version ${FFmpeg_VERSION}")
 
             add_dependencies(ffmpeg-build ffmpeg-configure)
         else()
@@ -471,22 +471,26 @@ if (YUZU_USE_BUNDLED_FFMPEG)
         endif()
     else() # WIN32
         # Use yuzu FFmpeg binaries
-        set(FFMPEG_EXT_NAME "ffmpeg-4.2.1")
-        set(FFMPEG_PATH "${CMAKE_BINARY_DIR}/externals/${FFMPEG_EXT_NAME}")
-        download_bundled_external("ffmpeg/" ${FFMPEG_EXT_NAME} "")
-        set(FFMPEG_FOUND YES)
-        set(FFMPEG_INCLUDE_DIR "${FFMPEG_PATH}/include" CACHE PATH "Path to FFmpeg headers" FORCE)
-        set(FFMPEG_LIBRARY_DIR "${FFMPEG_PATH}/bin" CACHE PATH "Path to FFmpeg library directory" FORCE)
-        set(FFMPEG_DLL_DIR "${FFMPEG_PATH}/bin" CACHE PATH "Path to FFmpeg dll's" FORCE)
-        set(FFMPEG_LIBRARIES
-            ${FFMPEG_LIBRARY_DIR}/swscale.lib
-            ${FFMPEG_LIBRARY_DIR}/avcodec.lib
-            ${FFMPEG_LIBRARY_DIR}/avutil.lib
+        set(FFmpeg_EXT_NAME "ffmpeg-4.2.1")
+        set(FFmpeg_PATH "${CMAKE_BINARY_DIR}/externals/${FFmpeg_EXT_NAME}")
+        download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "")
+        set(FFmpeg_FOUND YES)
+        set(FFmpeg_INCLUDE_DIR "${FFmpeg_PATH}/include" CACHE PATH "Path to FFmpeg headers" FORCE)
+        set(FFmpeg_LIBRARY_DIR "${FFmpeg_PATH}/bin" CACHE PATH "Path to FFmpeg library directory" FORCE)
+        set(FFmpeg_DLL_DIR "${FFmpeg_PATH}/bin" CACHE PATH "Path to FFmpeg dll's" FORCE)
+        set(FFmpeg_LIBRARIES
+            ${FFmpeg_LIBRARY_DIR}/swscale.lib
+            ${FFmpeg_LIBRARY_DIR}/avcodec.lib
+            ${FFmpeg_LIBRARY_DIR}/avutil.lib
             CACHE PATH "Paths to FFmpeg libraries" FORCE)
     endif()
 else()
     # Use system installed FFmpeg
-    find_package(FFmpeg REQUIRED VERSION 4.0)
+    find_package(FFmpeg REQUIRED)
+
+    if (NOT FFmpeg_FOUND)
+        message(FATAL_ERROR "FFmpeg not found")
+    endif()
 endif()
 
 # Prefer the -pthread flag on Linux.

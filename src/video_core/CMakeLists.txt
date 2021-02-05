@@ -277,8 +277,8 @@ if (YUZU_USE_BUNDLED_FFMPEG AND NOT WIN32)
     add_dependencies(video_core ffmpeg-build)
 endif()
 
-target_include_directories(video_core PRIVATE ${FFMPEG_INCLUDE_DIR})
-target_link_libraries(video_core PRIVATE ${FFMPEG_LIBRARIES})
+target_include_directories(video_core PRIVATE ${FFmpeg_INCLUDE_DIR})
+target_link_libraries(video_core PRIVATE ${FFmpeg_LIBRARIES})
 
 add_dependencies(video_core host_shaders)
 target_include_directories(video_core PRIVATE ${HOST_SHADERS_INCLUDE})
