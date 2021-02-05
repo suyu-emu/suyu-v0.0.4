@@ -13,7 +13,7 @@
 #include "video_core/memory_manager.h"
 
 extern "C" {
-#include "libavutil/opt.h"
+#include <libavutil/opt.h>
 }
 
 namespace Tegra {
