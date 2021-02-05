@@ -16,6 +16,7 @@
 #include "core/hle/kernel/code_set.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scheduler.h"
+#include "core/hle/kernel/k_scoped_resource_reservation.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/memory/memory_block_manager.h"
@@ -116,6 +117,9 @@ std::shared_ptr<Process> Process::Create(Core::System& system, std::string name,
 
     std::shared_ptr<Process> process = std::make_shared<Process>(system);
     process->name = std::move(name);
+
+    // TODO: This is inaccurate
+    // The process should hold a reference to the kernel-wide resource limit.
     process->resource_limit = std::make_shared<KResourceLimit>(kernel, system);
     process->status = ProcessStatus::Created;
     process->program_id = 0;
@@ -154,6 +158,9 @@ void Process::DecrementThreadCount() {
 }
 
 u64 Process::GetTotalPhysicalMemoryAvailable() const {
+    // TODO: This is expected to always return the application memory pool size after accurately
+    // reserving kernel resources. The current workaround uses a process-local resource limit of
+    // application memory pool size, which is inaccurate.
     const u64 capacity{resource_limit->GetFreeValue(LimitableResource::PhysicalMemory) +
                        page_table->GetTotalHeapSize() + GetSystemResourceSize() + image_size +
                        main_thread_stack_size};
@@ -263,6 +270,17 @@ ResultCode Process::LoadFromMetadata(const FileSys::ProgramMetadata& metadata,
     system_resource_size = metadata.GetSystemResourceSize();
     image_size = code_size;
 
+    // Set initial resource limits
+    resource_limit->SetLimitValue(
+        LimitableResource::PhysicalMemory,
+        kernel.MemoryManager().GetSize(Memory::MemoryManager::Pool::Application));
+    KScopedResourceReservation memory_reservation(resource_limit, LimitableResource::PhysicalMemory,
+                                                  code_size + system_resource_size);
+    if (!memory_reservation.Succeeded()) {
+        LOG_ERROR(Kernel, "Could not reserve process memory requirements of size {:X} bytes",
+                  code_size + system_resource_size);
+        return ERR_RESOURCE_LIMIT_EXCEEDED;
+    }
     // Initialize proces address space
     if (const ResultCode result{
             page_table->InitializeForProcess(metadata.GetAddressSpaceType(), false, 0x8000000,
@@ -304,24 +322,22 @@ ResultCode Process::LoadFromMetadata(const FileSys::ProgramMetadata& metadata,
         UNREACHABLE();
     }
 
-    // Set initial resource limits
-    resource_limit->SetLimitValue(
-        LimitableResource::PhysicalMemory,
-        kernel.MemoryManager().GetSize(Memory::MemoryManager::Pool::Application));
     resource_limit->SetLimitValue(LimitableResource::Threads, 608);
     resource_limit->SetLimitValue(LimitableResource::Events, 700);
     resource_limit->SetLimitValue(LimitableResource::TransferMemory, 128);
     resource_limit->SetLimitValue(LimitableResource::Sessions, 894);
-    ASSERT(resource_limit->Reserve(LimitableResource::PhysicalMemory, code_size));
 
     // Create TLS region
     tls_region_address = CreateTLSRegion();
+    memory_reservation.Commit();
 
     return handle_table.SetSize(capabilities.GetHandleTableSize());
 }
 
 void Process::Run(s32 main_thread_priority, u64 stack_size) {
     AllocateMainThreadStack(stack_size);
+    resource_limit->Reserve(LimitableResource::Threads, 1);
+    resource_limit->Reserve(LimitableResource::PhysicalMemory, main_thread_stack_size);
 
     const std::size_t heap_capacity{memory_usage_capacity - main_thread_stack_size - image_size};
     ASSERT(!page_table->SetHeapCapacity(heap_capacity).IsError());
@@ -329,8 +345,6 @@ void Process::Run(s32 main_thread_priority, u64 stack_size) {
     ChangeStatus(ProcessStatus::Running);
 
     SetupMainThread(system, *this, main_thread_priority, main_thread_stack_top);
-    resource_limit->Reserve(LimitableResource::Threads, 1);
-    resource_limit->Reserve(LimitableResource::PhysicalMemory, main_thread_stack_size);
 }
 
 void Process::PrepareForTermination() {
@@ -356,6 +370,11 @@ void Process::PrepareForTermination() {
 
     FreeTLSRegion(tls_region_address);
     tls_region_address = 0;
+
+    if (resource_limit) {
+        resource_limit->Release(LimitableResource::PhysicalMemory,
+                                main_thread_stack_size + image_size);
+    }
 
     ChangeStatus(ProcessStatus::Exited);
 }

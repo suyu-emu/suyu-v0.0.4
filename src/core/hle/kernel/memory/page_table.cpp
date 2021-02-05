@@ -6,7 +6,7 @@
 #include "common/assert.h"
 #include "common/scope_exit.h"
 #include "core/core.h"
-#include "core/hle/kernel/k_resource_limit.h"
+#include "core/hle/kernel/k_scoped_resource_reservation.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/memory/address_space_info.h"
 #include "core/hle/kernel/memory/memory_block.h"
@@ -409,27 +409,25 @@ ResultCode PageTable::MapPhysicalMemory(VAddr addr, std::size_t size) {
         return RESULT_SUCCESS;
     }
 
-    auto process{system.Kernel().CurrentProcess()};
     const std::size_t remaining_size{size - mapped_size};
     const std::size_t remaining_pages{remaining_size / PageSize};
 
-    if (process->GetResourceLimit() &&
-        !process->GetResourceLimit()->Reserve(LimitableResource::PhysicalMemory, remaining_size)) {
+    // Reserve the memory from the process resource limit.
+    KScopedResourceReservation memory_reservation(
+        system.Kernel().CurrentProcess()->GetResourceLimit(), LimitableResource::PhysicalMemory,
+        remaining_size);
+    if (!memory_reservation.Succeeded()) {
+        LOG_ERROR(Kernel, "Could not reserve remaining {:X} bytes", remaining_size);
         return ResultResourceLimitedExceeded;
     }
 
     PageLinkedList page_linked_list;
-    {
-        auto block_guard = detail::ScopeExit([&] {
-            system.Kernel().MemoryManager().Free(page_linked_list, remaining_pages, memory_pool);
-            process->GetResourceLimit()->Release(LimitableResource::PhysicalMemory, remaining_size);
-        });
 
-        CASCADE_CODE(system.Kernel().MemoryManager().Allocate(page_linked_list, remaining_pages,
-                                                              memory_pool));
+    CASCADE_CODE(
+        system.Kernel().MemoryManager().Allocate(page_linked_list, remaining_pages, memory_pool));
 
-        block_guard.Cancel();
-    }
+    // We succeeded, so commit the memory reservation.
+    memory_reservation.Commit();
 
     MapPhysicalMemory(page_linked_list, addr, end_addr);
 
@@ -781,9 +779,13 @@ ResultVal<VAddr> PageTable::SetHeapSize(std::size_t size) {
 
         const u64 delta{size - previous_heap_size};
 
-        auto process{system.Kernel().CurrentProcess()};
-        if (process->GetResourceLimit() && delta != 0 &&
-            !process->GetResourceLimit()->Reserve(LimitableResource::PhysicalMemory, delta)) {
+        // Reserve memory for the heap extension.
+        KScopedResourceReservation memory_reservation(
+            system.Kernel().CurrentProcess()->GetResourceLimit(), LimitableResource::PhysicalMemory,
+            delta);
+
+        if (!memory_reservation.Succeeded()) {
+            LOG_ERROR(Kernel, "Could not reserve heap extension of size {:X} bytes", delta);
             return ResultResourceLimitedExceeded;
         }
 
@@ -799,6 +801,9 @@ ResultVal<VAddr> PageTable::SetHeapSize(std::size_t size) {
 
         CASCADE_CODE(
             Operate(current_heap_addr, num_pages, page_linked_list, OperationType::MapGroup));
+
+        // Succeeded in allocation, commit the resource reservation
+        memory_reservation.Commit();
 
         block_manager->Update(current_heap_addr, num_pages, MemoryState::Normal,
                               MemoryPermission::ReadAndWrite);
