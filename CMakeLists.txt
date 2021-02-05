@@ -18,6 +18,8 @@ CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" ON "EN
 
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 
+option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled yuzu" ON)
+
 option(YUZU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet implementation" OFF)
 
 option(YUZU_ENABLE_BOXCAT "Enable the Boxcat service, a yuzu high-level implementation of BCAT" ON)
@@ -384,17 +386,107 @@ if (NOT LIBUSB_FOUND)
     set(LIBUSB_LIBRARIES usb)
 endif()
 
-# Use system installed ffmpeg.
-if (NOT MSVC)
-    find_package(FFmpeg REQUIRED)
+if (YUZU_USE_BUNDLED_FFMPEG)
+    if (NOT WIN32)
+        # Build FFmpeg from externals
+        message(STATUS "Using FFmpeg from externals")
+
+        set(FFMPEG_PREFIX ${PROJECT_SOURCE_DIR}/externals/ffmpeg)
+        set(FFMPEG_BUILD_DIR ${PROJECT_BINARY_DIR}/externals/ffmpeg)
+        set(FFMPEG_MAKEFILE ${FFMPEG_BUILD_DIR}/Makefile)
+        make_directory(${FFMPEG_BUILD_DIR})
+
+        # Read version string from external
+        file(READ ${FFMPEG_PREFIX}/RELEASE FFMPEG_VERSION)
+        set(FFMPEG_FOUND NO)
+        if (NOT FFMPEG_VERSION STREQUAL "")
+            set(FFMPEG_FOUND YES)
+        endif()
+
+        set(FFMPEG_COMPONENTS
+            avcodec
+            avutil
+            swscale)
+
+        foreach(COMPONENT ${FFMPEG_COMPONENTS})
+            set(FFMPEG_${COMPONENT}_PREFIX "${FFMPEG_BUILD_DIR}/lib${COMPONENT}")
+            set(FFMPEG_${COMPONENT}_LIB_NAME "lib${COMPONENT}.a")
+            set(FFMPEG_${COMPONENT}_LIBRARY "${FFMPEG_${COMPONENT}_PREFIX}/${FFMPEG_${COMPONENT}_LIB_NAME}")
+
+            set(FFMPEG_LIBRARIES
+                ${FFMPEG_LIBRARIES}
+                ${FFMPEG_${COMPONENT}_LIBRARY}
+                CACHE PATH "Paths to FFmpeg libraries" FORCE)
+        endforeach()
+
+        set(FFMPEG_INCLUDE_DIR
+            ${FFMPEG_PREFIX}
+            CACHE PATH "Path to FFmpeg headers" FORCE)
+
+        # `configure` parameters builds only exactly what yuzu needs from FFmpeg
+        # `--disable-{vaapi,vdpau}` is needed to avoid linking issues
+        add_custom_command(
+            OUTPUT
+                ${FFMPEG_MAKEFILE}
+            COMMAND
+                /bin/bash ${FFMPEG_PREFIX}/configure
+                    --disable-avdevice
+                    --disable-avfilter
+                    --disable-avformat
+                    --disable-doc
+                    --disable-everything
+                    --disable-ffmpeg
+                    --disable-ffprobe
+                    --disable-network
+                    --disable-postproc
+                    --disable-swresample
+                    --disable-vaapi
+                    --disable-vdpau
+                    --enable-decoder=h264
+                    --enable-decoder=vp9
+            WORKING_DIRECTORY
+                ${FFMPEG_BUILD_DIR}
+        )
+
+        add_custom_command(
+            OUTPUT
+                ${FFMPEG_LIBRARIES}
+            COMMAND
+                make
+            WORKING_DIRECTORY
+                ${FFMPEG_BUILD_DIR}
+        )
+
+        # ALL makes this custom target build every time
+        # but it won't actually build if the DEPENDS parameter is up to date
+        add_custom_target(ffmpeg-build ALL DEPENDS ${FFMPEG_LIBRARIES})
+        add_custom_target(ffmpeg-configure ALL DEPENDS ${FFMPEG_MAKEFILE})
+
+        if (FFMPEG_FOUND)
+            message(STATUS "Found FFmpeg version ${FFMPEG_VERSION}")
+
+            add_dependencies(ffmpeg-build ffmpeg-configure)
+        else()
+            message(FATAL_ERROR "FFmpeg not found")
+        endif()
+    else() # WIN32
+        # Use yuzu FFmpeg binaries
+        set(FFMPEG_EXT_NAME "ffmpeg-4.2.1")
+        set(FFMPEG_PATH "${CMAKE_BINARY_DIR}/externals/${FFMPEG_EXT_NAME}")
+        download_bundled_external("ffmpeg/" ${FFMPEG_EXT_NAME} "")
+        set(FFMPEG_FOUND YES)
+        set(FFMPEG_INCLUDE_DIR "${FFMPEG_PATH}/include" CACHE PATH "Path to FFmpeg headers" FORCE)
+        set(FFMPEG_LIBRARY_DIR "${FFMPEG_PATH}/bin" CACHE PATH "Path to FFmpeg library directory" FORCE)
+        set(FFMPEG_DLL_DIR "${FFMPEG_PATH}/bin" CACHE PATH "Path to FFmpeg dll's" FORCE)
+        set(FFMPEG_LIBRARIES
+            ${FFMPEG_LIBRARY_DIR}/swscale.lib
+            ${FFMPEG_LIBRARY_DIR}/avcodec.lib
+            ${FFMPEG_LIBRARY_DIR}/avutil.lib
+            CACHE PATH "Paths to FFmpeg libraries" FORCE)
+    endif()
 else()
-    set(FFMPEG_EXT_NAME "ffmpeg-4.2.1")
-    set(FFMPEG_PATH "${CMAKE_BINARY_DIR}/externals/${FFMPEG_EXT_NAME}")
-    download_bundled_external("ffmpeg/" ${FFMPEG_EXT_NAME} "")
-    set(FFMPEG_FOUND YES)
-    set(FFMPEG_INCLUDE_DIR "${FFMPEG_PATH}/include" CACHE PATH "Path to FFmpeg headers" FORCE)
-    set(FFMPEG_LIBRARY_DIR "${FFMPEG_PATH}/bin" CACHE PATH "Path to FFmpeg library" FORCE)
-    set(FFMPEG_DLL_DIR "${FFMPEG_PATH}/bin" CACHE PATH "Path to FFmpeg dll's" FORCE)
+    # Use system installed FFmpeg
+    find_package(FFmpeg REQUIRED VERSION 4.0)
 endif()
 
 # Prefer the -pthread flag on Linux.
