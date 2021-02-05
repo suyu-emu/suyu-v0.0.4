@@ -37,3 +37,6 @@
 [submodule "opus"]
 	path = externals/opus/opus
 	url = https://github.com/xiph/opus.git
+[submodule "externals/ffmpeg"]
+	path = externals/ffmpeg
+	url = https://git.ffmpeg.org/ffmpeg.git
