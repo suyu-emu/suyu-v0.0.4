@@ -391,6 +391,10 @@ if (YUZU_USE_BUNDLED_FFMPEG)
         # Build FFmpeg from externals
         message(STATUS "Using FFmpeg from externals")
 
+        # FFmpeg has source that requires one of nasm or yasm to assemble it.
+        # REQUIRED throws an error if not found here during configuration rather than during compilation.
+        find_program(ASSEMBLER NAMES nasm yasm REQUIRED)
+
         set(FFmpeg_PREFIX ${PROJECT_SOURCE_DIR}/externals/ffmpeg)
         set(FFmpeg_BUILD_DIR ${PROJECT_BINARY_DIR}/externals/ffmpeg)
         set(FFmpeg_MAKEFILE ${FFmpeg_BUILD_DIR}/Makefile)
@@ -448,11 +452,19 @@ if (YUZU_USE_BUNDLED_FFMPEG)
                 ${FFmpeg_BUILD_DIR}
         )
 
+        # Workaround for Ubuntu 18.04's older version of make not being able to call make as a child
+        # with context of the jobserver. Also helps ninja users.
+        execute_process(
+            COMMAND
+                nproc
+            OUTPUT_VARIABLE
+                SYSTEM_THREADS)
+
         add_custom_command(
             OUTPUT
                 ${FFmpeg_LIBRARIES}
             COMMAND
-                make
+                make -j${SYSTEM_THREADS}
             WORKING_DIRECTORY
                 ${FFmpeg_BUILD_DIR}
         )
