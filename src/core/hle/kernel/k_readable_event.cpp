@@ -46,7 +46,9 @@ ResultCode KReadableEvent::Clear() {
 ResultCode KReadableEvent::Reset() {
     KScopedSchedulerLock lk{kernel};
 
-    R_UNLESS_NOLOG(is_signaled, Svc::ResultInvalidState);
+    if (!is_signaled) {
+        return Svc::ResultInvalidState;
+    }
 
     is_signaled = false;
     return RESULT_SUCCESS;
