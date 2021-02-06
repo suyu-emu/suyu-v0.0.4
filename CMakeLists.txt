@@ -18,7 +18,7 @@ CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" ON "EN
 
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 
-option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled yuzu" ON)
+CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled yuzu" ON "WIN32" OFF)
 
 option(YUZU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet implementation" OFF)
 
@@ -386,6 +386,32 @@ if (NOT LIBUSB_FOUND)
     set(LIBUSB_LIBRARIES usb)
 endif()
 
+# List of all FFmpeg components required
+set(FFmpeg_COMPONENTS
+    avcodec
+    avutil
+    swscale)
+
+if (NOT YUZU_USE_BUNDLED_FFMPEG)
+    # Use system installed FFmpeg
+    find_package(FFmpeg REQUIRED COMPONENTS ${FFmpeg_COMPONENTS})
+
+    if (FFmpeg_FOUND)
+        # Overwrite aggregate defines from FFmpeg module to avoid over-linking libraries.
+        # Prevents shipping too many libraries with the AppImage.
+        set(FFmpeg_LIBRARIES "")
+        set(FFmpeg_INCLUDE_DIR "")
+
+        foreach(COMPONENT ${FFmpeg_COMPONENTS})
+            set(FFmpeg_LIBRARIES ${FFmpeg_LIBRARIES} ${FFmpeg_LIBRARY_${COMPONENT}} CACHE PATH "Paths to FFmpeg libraries" FORCE)
+            set(FFmpeg_INCLUDE_DIR ${FFmpeg_INCLUDE_DIR} ${FFmpeg_INCLUDE_${COMPONENT}} CACHE PATH "Path to FFmpeg headers" FORCE)
+        endforeach()
+    else()
+        message(WARNING "FFmpeg not found, falling back to externals")
+        set(YUZU_USE_BUNDLED_FFMPEG ON)
+    endif()
+endif()
+
 if (YUZU_USE_BUNDLED_FFMPEG)
     if (NOT WIN32)
         # Build FFmpeg from externals
@@ -406,11 +432,6 @@ if (YUZU_USE_BUNDLED_FFMPEG)
         if (NOT FFmpeg_VERSION STREQUAL "")
             set(FFmpeg_FOUND YES)
         endif()
-
-        set(FFmpeg_COMPONENTS
-            avcodec
-            avutil
-            swscale)
 
         foreach(COMPONENT ${FFmpeg_COMPONENTS})
             set(FFmpeg_${COMPONENT}_PREFIX "${FFmpeg_BUILD_DIR}/lib${COMPONENT}")
@@ -496,14 +517,9 @@ if (YUZU_USE_BUNDLED_FFMPEG)
             ${FFmpeg_LIBRARY_DIR}/avutil.lib
             CACHE PATH "Paths to FFmpeg libraries" FORCE)
     endif()
-else()
-    # Use system installed FFmpeg
-    find_package(FFmpeg REQUIRED)
-
-    if (NOT FFmpeg_FOUND)
-        message(FATAL_ERROR "FFmpeg not found")
-    endif()
 endif()
+
+unset(FFmpeg_COMPONENTS)
 
 # Prefer the -pthread flag on Linux.
 set(THREADS_PREFER_PTHREAD_FLAG ON)

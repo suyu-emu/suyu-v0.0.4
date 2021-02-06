@@ -22,19 +22,24 @@
 #
 # <component> can be one of:
 #   avcodec
-#   avdevice # Disabled
-#   avfilter # Disabled
-#   avformat # Disabled
+#   avdevice
+#   avfilter
+#   avformat
 #   avutil
-#   postproc # Disabled
-#   swresample # Disabled
+#   postproc
+#   swresample
 #   swscale
 #
 
 set(_FFmpeg_ALL_COMPONENTS
-  avcodec
-  avutil
-  swscale
+    avcodec
+    avdevice
+    avfilter
+    avformat
+    avutil
+    postproc
+    swresample
+    swscale
 )
 
 set(_FFmpeg_DEPS_avcodec avutil)
