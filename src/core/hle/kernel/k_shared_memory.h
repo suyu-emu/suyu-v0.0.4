@@ -19,12 +19,12 @@ namespace Kernel {
 
 class KernelCore;
 
-class SharedMemory final : public Object {
+class KSharedMemory final : public Object {
 public:
-    explicit SharedMemory(KernelCore& kernel, Core::DeviceMemory& device_memory);
-    ~SharedMemory() override;
+    explicit KSharedMemory(KernelCore& kernel, Core::DeviceMemory& device_memory);
+    ~KSharedMemory() override;
 
-    static std::shared_ptr<SharedMemory> Create(
+    static std::shared_ptr<KSharedMemory> Create(
         KernelCore& kernel, Core::DeviceMemory& device_memory, Process* owner_process,
         Memory::PageLinkedList&& page_list, Memory::MemoryPermission owner_permission,
         Memory::MemoryPermission user_permission, PAddr physical_address, std::size_t size,

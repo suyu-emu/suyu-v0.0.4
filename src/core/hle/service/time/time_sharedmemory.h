@@ -6,8 +6,8 @@
 
 #include "common/common_types.h"
 #include "common/uuid.h"
+#include "core/hle/kernel/k_shared_memory.h"
 #include "core/hle/kernel/k_thread.h"
-#include "core/hle/kernel/shared_memory.h"
 #include "core/hle/service/time/clock_types.h"
 
 namespace Service::Time {
@@ -18,7 +18,7 @@ public:
     ~SharedMemory();
 
     // Return the shared memory handle
-    std::shared_ptr<Kernel::SharedMemory> GetSharedMemoryHolder() const;
+    std::shared_ptr<Kernel::KSharedMemory> GetSharedMemoryHolder() const;
 
     // TODO(ogniK): We have to properly simulate memory barriers, how are we going to do this?
     template <typename T, std::size_t Offset>
@@ -63,7 +63,7 @@ public:
     void SetAutomaticCorrectionEnabled(bool is_enabled);
 
 private:
-    std::shared_ptr<Kernel::SharedMemory> shared_memory_holder;
+    std::shared_ptr<Kernel::KSharedMemory> shared_memory_holder;
     Core::System& system;
     Format shared_memory_format{};
 };

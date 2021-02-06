@@ -5,20 +5,20 @@
 #include "common/assert.h"
 #include "core/core.h"
 #include "core/hle/kernel/k_scoped_resource_reservation.h"
+#include "core/hle/kernel/k_shared_memory.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/memory/page_table.h"
-#include "core/hle/kernel/shared_memory.h"
 
 namespace Kernel {
 
-SharedMemory::SharedMemory(KernelCore& kernel, Core::DeviceMemory& device_memory)
+KSharedMemory::KSharedMemory(KernelCore& kernel, Core::DeviceMemory& device_memory)
     : Object{kernel}, device_memory{device_memory} {}
 
-SharedMemory::~SharedMemory() {
+KSharedMemory::~KSharedMemory() {
     kernel.GetSystemResourceLimit()->Release(LimitableResource::PhysicalMemory, size);
 }
 
-std::shared_ptr<SharedMemory> SharedMemory::Create(
+std::shared_ptr<KSharedMemory> KSharedMemory::Create(
     KernelCore& kernel, Core::DeviceMemory& device_memory, Process* owner_process,
     Memory::PageLinkedList&& page_list, Memory::MemoryPermission owner_permission,
     Memory::MemoryPermission user_permission, PAddr physical_address, std::size_t size,
@@ -29,8 +29,8 @@ std::shared_ptr<SharedMemory> SharedMemory::Create(
                                                   size);
     ASSERT(memory_reservation.Succeeded());
 
-    std::shared_ptr<SharedMemory> shared_memory{
-        std::make_shared<SharedMemory>(kernel, device_memory)};
+    std::shared_ptr<KSharedMemory> shared_memory{
+        std::make_shared<KSharedMemory>(kernel, device_memory)};
 
     shared_memory->owner_process = owner_process;
     shared_memory->page_list = std::move(page_list);
@@ -44,8 +44,8 @@ std::shared_ptr<SharedMemory> SharedMemory::Create(
     return shared_memory;
 }
 
-ResultCode SharedMemory::Map(Process& target_process, VAddr address, std::size_t size,
-                             Memory::MemoryPermission permissions) {
+ResultCode KSharedMemory::Map(Process& target_process, VAddr address, std::size_t size,
+                              Memory::MemoryPermission permissions) {
     const u64 page_count{(size + Memory::PageSize - 1) / Memory::PageSize};
 
     if (page_list.GetNumPages() != page_count) {

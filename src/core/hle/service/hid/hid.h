@@ -14,7 +14,7 @@ struct EventType;
 }
 
 namespace Kernel {
-class SharedMemory;
+class KSharedMemory;
 }
 
 namespace Service::SM {
@@ -69,7 +69,7 @@ private:
     void UpdateControllers(std::uintptr_t user_data, std::chrono::nanoseconds ns_late);
     void UpdateMotion(std::uintptr_t user_data, std::chrono::nanoseconds ns_late);
 
-    std::shared_ptr<Kernel::SharedMemory> shared_mem;
+    std::shared_ptr<Kernel::KSharedMemory> shared_mem;
 
     std::shared_ptr<Core::Timing::EventType> pad_update_event;
     std::shared_ptr<Core::Timing::EventType> motion_update_event;

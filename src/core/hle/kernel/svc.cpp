@@ -32,6 +32,7 @@
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_scoped_resource_reservation.h"
 #include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
+#include "core/hle/kernel/k_shared_memory.h"
 #include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/k_writable_event.h"
@@ -41,7 +42,6 @@
 #include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/physical_core.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/shared_memory.h"
 #include "core/hle/kernel/svc.h"
 #include "core/hle/kernel/svc_results.h"
 #include "core/hle/kernel/svc_types.h"
@@ -1267,7 +1267,7 @@ static ResultCode MapSharedMemory(Core::System& system, Handle shared_memory_han
         return ResultInvalidMemoryRange;
     }
 
-    auto shared_memory{current_process->GetHandleTable().Get<SharedMemory>(shared_memory_handle)};
+    auto shared_memory{current_process->GetHandleTable().Get<KSharedMemory>(shared_memory_handle)};
     if (!shared_memory) {
         LOG_ERROR(Kernel_SVC, "Shared memory does not exist, shared_memory_handle=0x{:08X}",
                   shared_memory_handle);

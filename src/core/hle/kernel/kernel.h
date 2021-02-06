@@ -40,7 +40,7 @@ class PhysicalCore;
 class Process;
 class KResourceLimit;
 class KScheduler;
-class SharedMemory;
+class KSharedMemory;
 class ServiceThread;
 class Synchronization;
 class KThread;
@@ -190,28 +190,28 @@ public:
     const Memory::SlabHeap<Memory::Page>& GetUserSlabHeapPages() const;
 
     /// Gets the shared memory object for HID services.
-    Kernel::SharedMemory& GetHidSharedMem();
+    Kernel::KSharedMemory& GetHidSharedMem();
 
     /// Gets the shared memory object for HID services.
-    const Kernel::SharedMemory& GetHidSharedMem() const;
+    const Kernel::KSharedMemory& GetHidSharedMem() const;
 
     /// Gets the shared memory object for font services.
-    Kernel::SharedMemory& GetFontSharedMem();
+    Kernel::KSharedMemory& GetFontSharedMem();
 
     /// Gets the shared memory object for font services.
-    const Kernel::SharedMemory& GetFontSharedMem() const;
+    const Kernel::KSharedMemory& GetFontSharedMem() const;
 
     /// Gets the shared memory object for IRS services.
-    Kernel::SharedMemory& GetIrsSharedMem();
+    Kernel::KSharedMemory& GetIrsSharedMem();
 
     /// Gets the shared memory object for IRS services.
-    const Kernel::SharedMemory& GetIrsSharedMem() const;
+    const Kernel::KSharedMemory& GetIrsSharedMem() const;
 
     /// Gets the shared memory object for Time services.
-    Kernel::SharedMemory& GetTimeSharedMem();
+    Kernel::KSharedMemory& GetTimeSharedMem();
 
     /// Gets the shared memory object for Time services.
-    const Kernel::SharedMemory& GetTimeSharedMem() const;
+    const Kernel::KSharedMemory& GetTimeSharedMem() const;
 
     /// Suspend/unsuspend the OS.
     void Suspend(bool in_suspention);

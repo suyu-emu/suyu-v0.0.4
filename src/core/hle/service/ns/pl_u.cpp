@@ -19,9 +19,9 @@
 #include "core/file_sys/romfs.h"
 #include "core/file_sys/system_archive/system_archive.h"
 #include "core/hle/ipc_helpers.h"
+#include "core/hle/kernel/k_shared_memory.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/physical_memory.h"
-#include "core/hle/kernel/shared_memory.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/ns/pl_u.h"
 
@@ -131,7 +131,7 @@ struct PL_U::Impl {
     }
 
     /// Handle to shared memory region designated for a shared font
-    std::shared_ptr<Kernel::SharedMemory> shared_font_mem;
+    std::shared_ptr<Kernel::KSharedMemory> shared_font_mem;
 
     /// Backing memory for the shared font data
     std::shared_ptr<Kernel::PhysicalMemory> shared_font;

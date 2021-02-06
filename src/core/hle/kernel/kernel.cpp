@@ -29,6 +29,7 @@
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scheduler.h"
+#include "core/hle/kernel/k_shared_memory.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/memory/memory_layout.h"
@@ -37,7 +38,6 @@
 #include "core/hle/kernel/physical_core.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/service_thread.h"
-#include "core/hle/kernel/shared_memory.h"
 #include "core/hle/kernel/svc_results.h"
 #include "core/hle/kernel/time_manager.h"
 #include "core/hle/lock.h"
@@ -288,19 +288,19 @@ struct KernelCore::Impl {
                                           layout.System().StartAddress(),
                                           layout.System().EndAddress());
 
-        hid_shared_mem = Kernel::SharedMemory::Create(
+        hid_shared_mem = Kernel::KSharedMemory::Create(
             system.Kernel(), system.DeviceMemory(), nullptr,
             {hid_addr, hid_size / Memory::PageSize}, Memory::MemoryPermission::None,
             Memory::MemoryPermission::Read, hid_addr, hid_size, "HID:SharedMemory");
-        font_shared_mem = Kernel::SharedMemory::Create(
+        font_shared_mem = Kernel::KSharedMemory::Create(
             system.Kernel(), system.DeviceMemory(), nullptr,
             {font_pa, font_size / Memory::PageSize}, Memory::MemoryPermission::None,
             Memory::MemoryPermission::Read, font_pa, font_size, "Font:SharedMemory");
-        irs_shared_mem = Kernel::SharedMemory::Create(
+        irs_shared_mem = Kernel::KSharedMemory::Create(
             system.Kernel(), system.DeviceMemory(), nullptr,
             {irs_addr, irs_size / Memory::PageSize}, Memory::MemoryPermission::None,
             Memory::MemoryPermission::Read, irs_addr, irs_size, "IRS:SharedMemory");
-        time_shared_mem = Kernel::SharedMemory::Create(
+        time_shared_mem = Kernel::KSharedMemory::Create(
             system.Kernel(), system.DeviceMemory(), nullptr,
             {time_addr, time_size / Memory::PageSize}, Memory::MemoryPermission::None,
             Memory::MemoryPermission::Read, time_addr, time_size, "Time:SharedMemory");
@@ -352,10 +352,10 @@ struct KernelCore::Impl {
     std::unique_ptr<Memory::SlabHeap<Memory::Page>> user_slab_heap_pages;
 
     // Shared memory for services
-    std::shared_ptr<Kernel::SharedMemory> hid_shared_mem;
-    std::shared_ptr<Kernel::SharedMemory> font_shared_mem;
-    std::shared_ptr<Kernel::SharedMemory> irs_shared_mem;
-    std::shared_ptr<Kernel::SharedMemory> time_shared_mem;
+    std::shared_ptr<Kernel::KSharedMemory> hid_shared_mem;
+    std::shared_ptr<Kernel::KSharedMemory> font_shared_mem;
+    std::shared_ptr<Kernel::KSharedMemory> irs_shared_mem;
+    std::shared_ptr<Kernel::KSharedMemory> time_shared_mem;
 
     // Threads used for services
     std::unordered_set<std::shared_ptr<Kernel::ServiceThread>> service_threads;
@@ -589,35 +589,35 @@ const Memory::SlabHeap<Memory::Page>& KernelCore::GetUserSlabHeapPages() const {
     return *impl->user_slab_heap_pages;
 }
 
-Kernel::SharedMemory& KernelCore::GetHidSharedMem() {
+Kernel::KSharedMemory& KernelCore::GetHidSharedMem() {
     return *impl->hid_shared_mem;
 }
 
-const Kernel::SharedMemory& KernelCore::GetHidSharedMem() const {
+const Kernel::KSharedMemory& KernelCore::GetHidSharedMem() const {
     return *impl->hid_shared_mem;
 }
 
-Kernel::SharedMemory& KernelCore::GetFontSharedMem() {
+Kernel::KSharedMemory& KernelCore::GetFontSharedMem() {
     return *impl->font_shared_mem;
 }
 
-const Kernel::SharedMemory& KernelCore::GetFontSharedMem() const {
+const Kernel::KSharedMemory& KernelCore::GetFontSharedMem() const {
     return *impl->font_shared_mem;
 }
 
-Kernel::SharedMemory& KernelCore::GetIrsSharedMem() {
+Kernel::KSharedMemory& KernelCore::GetIrsSharedMem() {
     return *impl->irs_shared_mem;
 }
 
-const Kernel::SharedMemory& KernelCore::GetIrsSharedMem() const {
+const Kernel::KSharedMemory& KernelCore::GetIrsSharedMem() const {
     return *impl->irs_shared_mem;
 }
 
-Kernel::SharedMemory& KernelCore::GetTimeSharedMem() {
+Kernel::KSharedMemory& KernelCore::GetTimeSharedMem() {
     return *impl->time_shared_mem;
 }
 
-const Kernel::SharedMemory& KernelCore::GetTimeSharedMem() const {
+const Kernel::KSharedMemory& KernelCore::GetTimeSharedMem() const {
     return *impl->time_shared_mem;
 }
 

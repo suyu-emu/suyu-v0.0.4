@@ -175,6 +175,8 @@ add_library(core STATIC
     hle/kernel/k_scoped_lock.h
     hle/kernel/k_scoped_resource_reservation.h
     hle/kernel/k_scoped_scheduler_lock_and_sleep.h
+    hle/kernel/k_shared_memory.cpp
+    hle/kernel/k_shared_memory.h
     hle/kernel/k_synchronization_object.cpp
     hle/kernel/k_synchronization_object.h
     hle/kernel/k_thread.cpp
@@ -218,8 +220,6 @@ add_library(core STATIC
     hle/kernel/service_thread.h
     hle/kernel/session.cpp
     hle/kernel/session.h
-    hle/kernel/shared_memory.cpp
-    hle/kernel/shared_memory.h
     hle/kernel/svc.cpp
     hle/kernel/svc.h
     hle/kernel/svc_common.h
