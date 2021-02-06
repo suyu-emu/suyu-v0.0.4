@@ -24,11 +24,11 @@ template <typename T>
 concept KPriorityQueueAffinityMask = !std::is_reference_v<T> && requires(T & t) {
     { t.GetAffinityMask() }
     ->Common::ConvertibleTo<u64>;
-    {t.SetAffinityMask(std::declval<u64>())};
+    {t.SetAffinityMask(0)};
 
-    { t.GetAffinity(std::declval<int32_t>()) }
+    { t.GetAffinity(0) }
     ->std::same_as<bool>;
-    {t.SetAffinity(std::declval<int32_t>(), std::declval<bool>())};
+    {t.SetAffinity(0, false)};
     {t.SetAll()};
 };
 
@@ -42,11 +42,11 @@ concept KPriorityQueueMember = !std::is_reference_v<T> && requires(T & t) {
     ->std::same_as<T*>;
     { (typename T::QueueEntry()).GetPrev() }
     ->std::same_as<T*>;
-    { t.GetPriorityQueueEntry(std::declval<s32>()) }
+    { t.GetPriorityQueueEntry(0) }
     ->std::same_as<typename T::QueueEntry&>;
 
     {t.GetAffinityMask()};
-    { typename std::remove_cvref<decltype(t.GetAffinityMask())>::type() }
+    { std::remove_cvref_t<decltype(t.GetAffinityMask())>() }
     ->KPriorityQueueAffinityMask;
 
     { t.GetActiveCore() }
@@ -55,17 +55,17 @@ concept KPriorityQueueMember = !std::is_reference_v<T> && requires(T & t) {
     ->Common::ConvertibleTo<s32>;
 };
 
-template <typename Member, size_t _NumCores, int LowestPriority, int HighestPriority>
+template <typename Member, size_t NumCores_, int LowestPriority, int HighestPriority>
 requires KPriorityQueueMember<Member> class KPriorityQueue {
 public:
-    using AffinityMaskType = typename std::remove_cv_t<
-        typename std::remove_reference<decltype(std::declval<Member>().GetAffinityMask())>::type>;
+    using AffinityMaskType = std::remove_cv_t<
+        std::remove_reference_t<decltype(std::declval<Member>().GetAffinityMask())>>;
 
     static_assert(LowestPriority >= 0);
     static_assert(HighestPriority >= 0);
     static_assert(LowestPriority >= HighestPriority);
     static constexpr size_t NumPriority = LowestPriority - HighestPriority + 1;
-    static constexpr size_t NumCores = _NumCores;
+    static constexpr size_t NumCores = NumCores_;
 
     static constexpr bool IsValidCore(s32 core) {
         return 0 <= core && core < static_cast<s32>(NumCores);
