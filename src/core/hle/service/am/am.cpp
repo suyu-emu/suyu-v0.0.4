@@ -1135,13 +1135,13 @@ ILibraryAppletCreator::~ILibraryAppletCreator() = default;
 void ILibraryAppletCreator::CreateLibraryApplet(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto applet_id = rp.PopRaw<Applets::AppletId>();
-    const auto applet_mode = rp.PopRaw<u32>();
+    const auto applet_mode = rp.PopRaw<Applets::LibraryAppletMode>();
 
     LOG_DEBUG(Service_AM, "called with applet_id={:08X}, applet_mode={:08X}", applet_id,
               applet_mode);
 
     const auto& applet_manager{system.GetAppletManager()};
-    const auto applet = applet_manager.GetApplet(applet_id);
+    const auto applet = applet_manager.GetApplet(applet_id, applet_mode);
 
     if (applet == nullptr) {
         LOG_ERROR(Service_AM, "Applet doesn't exist! applet_id={}", applet_id);
