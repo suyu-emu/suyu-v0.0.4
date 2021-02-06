@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include "common/bit_field.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/swap.h"
@@ -31,12 +32,28 @@ public:
     void OnLoadInputDevices() override;
 
 private:
+    struct Modifiers {
+        union {
+            u32_le raw{};
+            BitField<0, 1, u32> control;
+            BitField<1, 1, u32> shift;
+            BitField<2, 1, u32> left_alt;
+            BitField<3, 1, u32> right_alt;
+            BitField<4, 1, u32> gui;
+            BitField<8, 1, u32> caps_lock;
+            BitField<9, 1, u32> scroll_lock;
+            BitField<10, 1, u32> num_lock;
+            BitField<11, 1, u32> katakana;
+            BitField<12, 1, u32> hiragana;
+        };
+    };
+    static_assert(sizeof(Modifiers) == 0x4, "Modifiers is an invalid size");
+
     struct KeyboardState {
         s64_le sampling_number;
         s64_le sampling_number2;
 
-        s32_le modifier;
-        s32_le attribute;
+        Modifiers modifier;
         std::array<u8, 32> key;
     };
     static_assert(sizeof(KeyboardState) == 0x38, "KeyboardState is an invalid size");

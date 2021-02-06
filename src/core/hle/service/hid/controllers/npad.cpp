@@ -157,76 +157,83 @@ void Controller_NPad::InitNewlyAddedController(std::size_t controller_idx) {
         styleset_changed_events[controller_idx]->GetWritableEvent()->Signal();
         return;
     }
-    controller.joy_styles.raw = 0; // Zero out
+    controller.style_set.raw = 0; // Zero out
     controller.device_type.raw = 0;
-    controller.properties.raw = 0;
+    controller.system_properties.raw = 0;
     switch (controller_type) {
     case NPadControllerType::None:
         UNREACHABLE();
         break;
     case NPadControllerType::ProController:
-        controller.joy_styles.pro_controller.Assign(1);
-        controller.device_type.pro_controller.Assign(1);
-        controller.properties.is_vertical.Assign(1);
-        controller.properties.use_plus.Assign(1);
-        controller.properties.use_minus.Assign(1);
-        controller.pad_assignment = NpadAssignments::Single;
+        controller.style_set.fullkey.Assign(1);
+        controller.device_type.fullkey.Assign(1);
+        controller.system_properties.is_vertical.Assign(1);
+        controller.system_properties.use_plus.Assign(1);
+        controller.system_properties.use_minus.Assign(1);
+        controller.assignment_mode = NpadAssignments::Single;
+        controller.footer_type = AppletFooterUiType::SwitchProController;
         break;
     case NPadControllerType::Handheld:
-        controller.joy_styles.handheld.Assign(1);
-        controller.device_type.handheld.Assign(1);
-        controller.properties.is_vertical.Assign(1);
-        controller.properties.use_plus.Assign(1);
-        controller.properties.use_minus.Assign(1);
-        controller.pad_assignment = NpadAssignments::Dual;
+        controller.style_set.handheld.Assign(1);
+        controller.device_type.handheld_left.Assign(1);
+        controller.device_type.handheld_right.Assign(1);
+        controller.system_properties.is_vertical.Assign(1);
+        controller.system_properties.use_plus.Assign(1);
+        controller.system_properties.use_minus.Assign(1);
+        controller.assignment_mode = NpadAssignments::Dual;
+        controller.footer_type = AppletFooterUiType::HandheldJoyConLeftJoyConRight;
         break;
     case NPadControllerType::JoyDual:
-        controller.joy_styles.joycon_dual.Assign(1);
+        controller.style_set.joycon_dual.Assign(1);
         controller.device_type.joycon_left.Assign(1);
         controller.device_type.joycon_right.Assign(1);
-        controller.properties.is_vertical.Assign(1);
-        controller.properties.use_plus.Assign(1);
-        controller.properties.use_minus.Assign(1);
-        controller.pad_assignment = NpadAssignments::Dual;
+        controller.system_properties.is_vertical.Assign(1);
+        controller.system_properties.use_plus.Assign(1);
+        controller.system_properties.use_minus.Assign(1);
+        controller.assignment_mode = NpadAssignments::Dual;
+        controller.footer_type = AppletFooterUiType::JoyDual;
         break;
     case NPadControllerType::JoyLeft:
-        controller.joy_styles.joycon_left.Assign(1);
+        controller.style_set.joycon_left.Assign(1);
         controller.device_type.joycon_left.Assign(1);
-        controller.properties.is_horizontal.Assign(1);
-        controller.properties.use_minus.Assign(1);
-        controller.pad_assignment = NpadAssignments::Single;
+        controller.system_properties.is_horizontal.Assign(1);
+        controller.system_properties.use_minus.Assign(1);
+        controller.assignment_mode = NpadAssignments::Single;
+        controller.footer_type = AppletFooterUiType::JoyLeftHorizontal;
         break;
     case NPadControllerType::JoyRight:
-        controller.joy_styles.joycon_right.Assign(1);
+        controller.style_set.joycon_right.Assign(1);
         controller.device_type.joycon_right.Assign(1);
-        controller.properties.is_horizontal.Assign(1);
-        controller.properties.use_plus.Assign(1);
-        controller.pad_assignment = NpadAssignments::Single;
+        controller.system_properties.is_horizontal.Assign(1);
+        controller.system_properties.use_plus.Assign(1);
+        controller.assignment_mode = NpadAssignments::Single;
+        controller.footer_type = AppletFooterUiType::JoyRightHorizontal;
         break;
     case NPadControllerType::Pokeball:
-        controller.joy_styles.pokeball.Assign(1);
-        controller.device_type.pokeball.Assign(1);
-        controller.pad_assignment = NpadAssignments::Single;
+        controller.style_set.palma.Assign(1);
+        controller.device_type.palma.Assign(1);
+        controller.assignment_mode = NpadAssignments::Single;
         break;
     }
 
-    controller.single_color_error = ColorReadError::ReadOk;
-    controller.single_color.body_color = 0;
-    controller.single_color.button_color = 0;
+    controller.fullkey_color.attribute = ColorAttributes::Ok;
+    controller.fullkey_color.fullkey.body = 0;
+    controller.fullkey_color.fullkey.button = 0;
 
-    controller.dual_color_error = ColorReadError::ReadOk;
-    controller.left_color.body_color =
+    controller.joycon_color.attribute = ColorAttributes::Ok;
+    controller.joycon_color.left.body =
         Settings::values.players.GetValue()[controller_idx].body_color_left;
-    controller.left_color.button_color =
+    controller.joycon_color.left.button =
         Settings::values.players.GetValue()[controller_idx].button_color_left;
-    controller.right_color.body_color =
+    controller.joycon_color.right.body =
         Settings::values.players.GetValue()[controller_idx].body_color_right;
-    controller.right_color.button_color =
+    controller.joycon_color.right.button =
         Settings::values.players.GetValue()[controller_idx].button_color_right;
 
-    controller.battery_level[0] = BATTERY_FULL;
-    controller.battery_level[1] = BATTERY_FULL;
-    controller.battery_level[2] = BATTERY_FULL;
+    // TODO: Investigate when we should report all batery types
+    controller.battery_level_dual = BATTERY_FULL;
+    controller.battery_level_left = BATTERY_FULL;
+    controller.battery_level_right = BATTERY_FULL;
 
     SignalStyleSetChangedEvent(IndexToNPad(controller_idx));
 }
@@ -251,8 +258,8 @@ void Controller_NPad::OnInit() {
         style.joycon_left.Assign(1);
         style.joycon_right.Assign(1);
         style.joycon_dual.Assign(1);
-        style.pro_controller.Assign(1);
-        style.pokeball.Assign(1);
+        style.fullkey.Assign(1);
+        style.palma.Assign(1);
     }
 
     std::transform(Settings::values.players.GetValue().begin(),
@@ -406,13 +413,10 @@ void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* 
     }
     for (std::size_t i = 0; i < shared_memory_entries.size(); ++i) {
         auto& npad = shared_memory_entries[i];
-        const std::array<NPadGeneric*, 7> controller_npads{&npad.main_controller_states,
-                                                           &npad.handheld_states,
-                                                           &npad.dual_states,
-                                                           &npad.left_joy_states,
-                                                           &npad.right_joy_states,
-                                                           &npad.pokeball_states,
-                                                           &npad.libnx};
+        const std::array<NPadGeneric*, 7> controller_npads{
+            &npad.fullkey_states,   &npad.handheld_states,  &npad.joy_dual_states,
+            &npad.joy_left_states,  &npad.joy_right_states, &npad.palma_states,
+            &npad.system_ext_states};
 
         for (auto* main_controller : controller_npads) {
             main_controller->common.entry_count = 16;
@@ -442,19 +446,19 @@ void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* 
         auto& pad_state = npad_pad_states[npad_index];
 
         auto& main_controller =
-            npad.main_controller_states.npad[npad.main_controller_states.common.last_entry_index];
+            npad.fullkey_states.npad[npad.fullkey_states.common.last_entry_index];
         auto& handheld_entry =
             npad.handheld_states.npad[npad.handheld_states.common.last_entry_index];
-        auto& dual_entry = npad.dual_states.npad[npad.dual_states.common.last_entry_index];
-        auto& left_entry = npad.left_joy_states.npad[npad.left_joy_states.common.last_entry_index];
+        auto& dual_entry = npad.joy_dual_states.npad[npad.joy_dual_states.common.last_entry_index];
+        auto& left_entry = npad.joy_left_states.npad[npad.joy_left_states.common.last_entry_index];
         auto& right_entry =
-            npad.right_joy_states.npad[npad.right_joy_states.common.last_entry_index];
-        auto& pokeball_entry =
-            npad.pokeball_states.npad[npad.pokeball_states.common.last_entry_index];
-        auto& libnx_entry = npad.libnx.npad[npad.libnx.common.last_entry_index];
+            npad.joy_right_states.npad[npad.joy_right_states.common.last_entry_index];
+        auto& pokeball_entry = npad.palma_states.npad[npad.palma_states.common.last_entry_index];
+        auto& libnx_entry =
+            npad.system_ext_states.npad[npad.system_ext_states.common.last_entry_index];
 
         libnx_entry.connection_status.raw = 0;
-        libnx_entry.connection_status.IsConnected.Assign(1);
+        libnx_entry.connection_status.is_connected.Assign(1);
 
         switch (controller_type) {
         case NPadControllerType::None:
@@ -462,67 +466,67 @@ void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* 
             break;
         case NPadControllerType::ProController:
             main_controller.connection_status.raw = 0;
-            main_controller.connection_status.IsConnected.Assign(1);
-            main_controller.connection_status.IsWired.Assign(1);
+            main_controller.connection_status.is_connected.Assign(1);
+            main_controller.connection_status.is_wired.Assign(1);
             main_controller.pad.pad_states.raw = pad_state.pad_states.raw;
             main_controller.pad.l_stick = pad_state.l_stick;
             main_controller.pad.r_stick = pad_state.r_stick;
 
-            libnx_entry.connection_status.IsWired.Assign(1);
+            libnx_entry.connection_status.is_wired.Assign(1);
             break;
         case NPadControllerType::Handheld:
             handheld_entry.connection_status.raw = 0;
-            handheld_entry.connection_status.IsConnected.Assign(1);
-            handheld_entry.connection_status.IsWired.Assign(1);
-            handheld_entry.connection_status.IsLeftJoyConnected.Assign(1);
-            handheld_entry.connection_status.IsRightJoyConnected.Assign(1);
-            handheld_entry.connection_status.IsLeftJoyWired.Assign(1);
-            handheld_entry.connection_status.IsRightJoyWired.Assign(1);
+            handheld_entry.connection_status.is_connected.Assign(1);
+            handheld_entry.connection_status.is_wired.Assign(1);
+            handheld_entry.connection_status.is_left_connected.Assign(1);
+            handheld_entry.connection_status.is_right_connected.Assign(1);
+            handheld_entry.connection_status.is_left_wired.Assign(1);
+            handheld_entry.connection_status.is_right_wired.Assign(1);
             handheld_entry.pad.pad_states.raw = pad_state.pad_states.raw;
             handheld_entry.pad.l_stick = pad_state.l_stick;
             handheld_entry.pad.r_stick = pad_state.r_stick;
 
-            libnx_entry.connection_status.IsWired.Assign(1);
-            libnx_entry.connection_status.IsLeftJoyConnected.Assign(1);
-            libnx_entry.connection_status.IsRightJoyConnected.Assign(1);
-            libnx_entry.connection_status.IsLeftJoyWired.Assign(1);
-            libnx_entry.connection_status.IsRightJoyWired.Assign(1);
+            libnx_entry.connection_status.is_wired.Assign(1);
+            libnx_entry.connection_status.is_left_connected.Assign(1);
+            libnx_entry.connection_status.is_right_connected.Assign(1);
+            libnx_entry.connection_status.is_left_wired.Assign(1);
+            libnx_entry.connection_status.is_right_wired.Assign(1);
             break;
         case NPadControllerType::JoyDual:
             dual_entry.connection_status.raw = 0;
-            dual_entry.connection_status.IsConnected.Assign(1);
-            dual_entry.connection_status.IsLeftJoyConnected.Assign(1);
-            dual_entry.connection_status.IsRightJoyConnected.Assign(1);
+            dual_entry.connection_status.is_connected.Assign(1);
+            dual_entry.connection_status.is_left_connected.Assign(1);
+            dual_entry.connection_status.is_right_connected.Assign(1);
             dual_entry.pad.pad_states.raw = pad_state.pad_states.raw;
             dual_entry.pad.l_stick = pad_state.l_stick;
             dual_entry.pad.r_stick = pad_state.r_stick;
 
-            libnx_entry.connection_status.IsLeftJoyConnected.Assign(1);
-            libnx_entry.connection_status.IsRightJoyConnected.Assign(1);
+            libnx_entry.connection_status.is_left_connected.Assign(1);
+            libnx_entry.connection_status.is_right_connected.Assign(1);
             break;
         case NPadControllerType::JoyLeft:
             left_entry.connection_status.raw = 0;
-            left_entry.connection_status.IsConnected.Assign(1);
-            left_entry.connection_status.IsLeftJoyConnected.Assign(1);
+            left_entry.connection_status.is_connected.Assign(1);
+            left_entry.connection_status.is_left_connected.Assign(1);
             left_entry.pad.pad_states.raw = pad_state.pad_states.raw;
             left_entry.pad.l_stick = pad_state.l_stick;
             left_entry.pad.r_stick = pad_state.r_stick;
 
-            libnx_entry.connection_status.IsLeftJoyConnected.Assign(1);
+            libnx_entry.connection_status.is_left_connected.Assign(1);
             break;
         case NPadControllerType::JoyRight:
             right_entry.connection_status.raw = 0;
-            right_entry.connection_status.IsConnected.Assign(1);
-            right_entry.connection_status.IsRightJoyConnected.Assign(1);
+            right_entry.connection_status.is_connected.Assign(1);
+            right_entry.connection_status.is_right_connected.Assign(1);
             right_entry.pad.pad_states.raw = pad_state.pad_states.raw;
             right_entry.pad.l_stick = pad_state.l_stick;
             right_entry.pad.r_stick = pad_state.r_stick;
 
-            libnx_entry.connection_status.IsRightJoyConnected.Assign(1);
+            libnx_entry.connection_status.is_right_connected.Assign(1);
             break;
         case NPadControllerType::Pokeball:
             pokeball_entry.connection_status.raw = 0;
-            pokeball_entry.connection_status.IsConnected.Assign(1);
+            pokeball_entry.connection_status.is_connected.Assign(1);
             pokeball_entry.pad.pad_states.raw = pad_state.pad_states.raw;
             pokeball_entry.pad.l_stick = pad_state.l_stick;
             pokeball_entry.pad.r_stick = pad_state.r_stick;
@@ -556,7 +560,7 @@ void Controller_NPad::OnMotionUpdate(const Core::Timing::CoreTiming& core_timing
         }
 
         const std::array<SixAxisGeneric*, 6> controller_sixaxes{
-            &npad.sixaxis_full,       &npad.sixaxis_handheld, &npad.sixaxis_dual_left,
+            &npad.sixaxis_fullkey,    &npad.sixaxis_handheld, &npad.sixaxis_dual_left,
             &npad.sixaxis_dual_right, &npad.sixaxis_left,     &npad.sixaxis_right,
         };
 
@@ -594,7 +598,7 @@ void Controller_NPad::OnMotionUpdate(const Core::Timing::CoreTiming& core_timing
         }
 
         auto& full_sixaxis_entry =
-            npad.sixaxis_full.sixaxis[npad.sixaxis_full.common.last_entry_index];
+            npad.sixaxis_fullkey.sixaxis[npad.sixaxis_fullkey.common.last_entry_index];
         auto& handheld_sixaxis_entry =
             npad.sixaxis_handheld.sixaxis[npad.sixaxis_handheld.common.last_entry_index];
         auto& dual_left_sixaxis_entry =
@@ -611,7 +615,9 @@ void Controller_NPad::OnMotionUpdate(const Core::Timing::CoreTiming& core_timing
             UNREACHABLE();
             break;
         case NPadControllerType::ProController:
+            full_sixaxis_entry.attribute.raw = 0;
             if (sixaxis_sensors_enabled && motions[i][0]) {
+                full_sixaxis_entry.attribute.is_connected.Assign(1);
                 full_sixaxis_entry.accel = motion_devices[0].accel;
                 full_sixaxis_entry.gyro = motion_devices[0].gyro;
                 full_sixaxis_entry.rotation = motion_devices[0].rotation;
@@ -619,7 +625,9 @@ void Controller_NPad::OnMotionUpdate(const Core::Timing::CoreTiming& core_timing
             }
             break;
         case NPadControllerType::Handheld:
+            handheld_sixaxis_entry.attribute.raw = 0;
             if (sixaxis_sensors_enabled && motions[i][0]) {
+                handheld_sixaxis_entry.attribute.is_connected.Assign(1);
                 handheld_sixaxis_entry.accel = motion_devices[0].accel;
                 handheld_sixaxis_entry.gyro = motion_devices[0].gyro;
                 handheld_sixaxis_entry.rotation = motion_devices[0].rotation;
@@ -627,8 +635,11 @@ void Controller_NPad::OnMotionUpdate(const Core::Timing::CoreTiming& core_timing
             }
             break;
         case NPadControllerType::JoyDual:
+            dual_left_sixaxis_entry.attribute.raw = 0;
+            dual_right_sixaxis_entry.attribute.raw = 0;
             if (sixaxis_sensors_enabled && motions[i][0]) {
                 // Set motion for the left joycon
+                dual_left_sixaxis_entry.attribute.is_connected.Assign(1);
                 dual_left_sixaxis_entry.accel = motion_devices[0].accel;
                 dual_left_sixaxis_entry.gyro = motion_devices[0].gyro;
                 dual_left_sixaxis_entry.rotation = motion_devices[0].rotation;
@@ -636,6 +647,7 @@ void Controller_NPad::OnMotionUpdate(const Core::Timing::CoreTiming& core_timing
             }
             if (sixaxis_sensors_enabled && motions[i][1]) {
                 // Set motion for the right joycon
+                dual_right_sixaxis_entry.attribute.is_connected.Assign(1);
                 dual_right_sixaxis_entry.accel = motion_devices[1].accel;
                 dual_right_sixaxis_entry.gyro = motion_devices[1].gyro;
                 dual_right_sixaxis_entry.rotation = motion_devices[1].rotation;
@@ -643,7 +655,9 @@ void Controller_NPad::OnMotionUpdate(const Core::Timing::CoreTiming& core_timing
             }
             break;
         case NPadControllerType::JoyLeft:
+            left_sixaxis_entry.attribute.raw = 0;
             if (sixaxis_sensors_enabled && motions[i][0]) {
+                left_sixaxis_entry.attribute.is_connected.Assign(1);
                 left_sixaxis_entry.accel = motion_devices[0].accel;
                 left_sixaxis_entry.gyro = motion_devices[0].gyro;
                 left_sixaxis_entry.rotation = motion_devices[0].rotation;
@@ -651,7 +665,9 @@ void Controller_NPad::OnMotionUpdate(const Core::Timing::CoreTiming& core_timing
             }
             break;
         case NPadControllerType::JoyRight:
+            right_sixaxis_entry.attribute.raw = 0;
             if (sixaxis_sensors_enabled && motions[i][1]) {
+                right_sixaxis_entry.attribute.is_connected.Assign(1);
                 right_sixaxis_entry.accel = motion_devices[1].accel;
                 right_sixaxis_entry.gyro = motion_devices[1].gyro;
                 right_sixaxis_entry.rotation = motion_devices[1].rotation;
@@ -717,8 +733,8 @@ Controller_NPad::NpadCommunicationMode Controller_NPad::GetNpadCommunicationMode
 void Controller_NPad::SetNpadMode(u32 npad_id, NpadAssignments assignment_mode) {
     const std::size_t npad_index = NPadIdToIndex(npad_id);
     ASSERT(npad_index < shared_memory_entries.size());
-    if (shared_memory_entries[npad_index].pad_assignment != assignment_mode) {
-        shared_memory_entries[npad_index].pad_assignment = assignment_mode;
+    if (shared_memory_entries[npad_index].assignment_mode != assignment_mode) {
+        shared_memory_entries[npad_index].assignment_mode = assignment_mode;
     }
 }
 
@@ -926,9 +942,17 @@ void Controller_NPad::DisconnectNpadAtIndex(std::size_t npad_index) {
     connected_controllers[npad_index].is_connected = false;
 
     auto& controller = shared_memory_entries[npad_index];
-    controller.joy_styles.raw = 0; // Zero out
+    controller.style_set.raw = 0; // Zero out
     controller.device_type.raw = 0;
-    controller.properties.raw = 0;
+    controller.system_properties.raw = 0;
+    controller.button_properties.raw = 0;
+    controller.battery_level_dual = 0;
+    controller.battery_level_left = 0;
+    controller.battery_level_right = 0;
+    controller.fullkey_color = {};
+    controller.joycon_color = {};
+    controller.assignment_mode = NpadAssignments::Dual;
+    controller.footer_type = AppletFooterUiType::None;
 
     SignalStyleSetChangedEvent(IndexToNPad(npad_index));
 }
@@ -1104,7 +1128,7 @@ bool Controller_NPad::IsControllerSupported(NPadControllerType controller) const
                     [](u32 npad_id) { return npad_id <= MAX_NPAD_ID; })) {
         switch (controller) {
         case NPadControllerType::ProController:
-            return style.pro_controller;
+            return style.fullkey;
         case NPadControllerType::JoyDual:
             return style.joycon_dual;
         case NPadControllerType::JoyLeft:
@@ -1112,7 +1136,7 @@ bool Controller_NPad::IsControllerSupported(NPadControllerType controller) const
         case NPadControllerType::JoyRight:
             return style.joycon_right;
         case NPadControllerType::Pokeball:
-            return style.pokeball;
+            return style.palma;
         default:
             return false;
         }

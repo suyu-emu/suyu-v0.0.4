@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include "common/bit_field.h"
 #include "common/common_types.h"
 #include "common/swap.h"
 #include "core/frontend/input.h"
@@ -30,6 +31,27 @@ public:
     void OnLoadInputDevices() override;
 
 private:
+    struct Buttons {
+        union {
+            u32_le raw{};
+            BitField<0, 1, u32> left;
+            BitField<1, 1, u32> right;
+            BitField<2, 1, u32> middle;
+            BitField<3, 1, u32> forward;
+            BitField<4, 1, u32> back;
+        };
+    };
+    static_assert(sizeof(Buttons) == 0x4, "Buttons is an invalid size");
+
+    struct Attributes {
+        union {
+            u32_le raw{};
+            BitField<0, 1, u32> transferable;
+            BitField<1, 1, u32> is_connected;
+        };
+    };
+    static_assert(sizeof(Attributes) == 0x4, "Attributes is an invalid size");
+
     struct MouseState {
         s64_le sampling_number;
         s64_le sampling_number2;
@@ -39,8 +61,8 @@ private:
         s32_le delta_y;
         s32_le mouse_wheel_x;
         s32_le mouse_wheel_y;
-        s32_le button;
-        s32_le attribute;
+        Buttons button;
+        Attributes attribute;
     };
     static_assert(sizeof(MouseState) == 0x30, "MouseState is an invalid size");
 

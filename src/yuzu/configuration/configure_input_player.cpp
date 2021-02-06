@@ -884,7 +884,7 @@ void ConfigureInputPlayer::SetConnectableControllers() {
         index_controller_type_pairs.clear();
         ui->comboControllerType->clear();
 
-        if (enable_all || npad_style_set.pro_controller == 1) {
+        if (enable_all || npad_style_set.fullkey == 1) {
             index_controller_type_pairs.emplace_back(ui->comboControllerType->count(),
                                                      Settings::ControllerType::ProController);
             ui->comboControllerType->addItem(tr("Pro Controller"));

@@ -36,6 +36,7 @@ void Controller_Mouse::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8*
     cur_entry.sampling_number = last_entry.sampling_number + 1;
     cur_entry.sampling_number2 = cur_entry.sampling_number;
 
+    cur_entry.attribute.raw = 0;
     if (Settings::values.mouse_enabled) {
         const auto [px, py, sx, sy] = mouse_device->GetStatus();
         const auto x = static_cast<s32>(px * Layout::ScreenUndocked::Width);
@@ -46,10 +47,14 @@ void Controller_Mouse::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8*
         cur_entry.delta_y = y - last_entry.y;
         cur_entry.mouse_wheel_x = sx;
         cur_entry.mouse_wheel_y = sy;
+        cur_entry.attribute.is_connected.Assign(1);
 
-        for (std::size_t i = 0; i < mouse_button_devices.size(); ++i) {
-            cur_entry.button |= (mouse_button_devices[i]->GetStatus() << i);
-        }
+        using namespace Settings::NativeMouseButton;
+        cur_entry.button.left.Assign(mouse_button_devices[Left]->GetStatus());
+        cur_entry.button.right.Assign(mouse_button_devices[Right]->GetStatus());
+        cur_entry.button.middle.Assign(mouse_button_devices[Middle]->GetStatus());
+        cur_entry.button.forward.Assign(mouse_button_devices[Forward]->GetStatus());
+        cur_entry.button.back.Assign(mouse_button_devices[Back]->GetStatus());
     }
 
     std::memcpy(data + SHARED_MEMORY_OFFSET, &shared_memory, sizeof(SharedMemory));

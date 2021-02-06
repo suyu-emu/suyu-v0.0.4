@@ -29,12 +29,14 @@ enum class HidController : std::size_t {
     Mouse,
     Keyboard,
     XPad,
-    Unknown1,
-    Unknown2,
-    Unknown3,
-    SixAxisSensor,
+    HomeButton,
+    SleepButton,
+    CaptureButton,
+    InputDetector,
+    UniquePad,
     NPad,
     Gesture,
+    ConsoleSixAxisSensor,
 
     MaxControllers,
 };

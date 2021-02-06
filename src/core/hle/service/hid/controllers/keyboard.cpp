@@ -39,16 +39,25 @@ void Controller_Keyboard::OnUpdate(const Core::Timing::CoreTiming& core_timing, 
     cur_entry.sampling_number2 = cur_entry.sampling_number;
 
     cur_entry.key.fill(0);
-    cur_entry.modifier = 0;
     if (Settings::values.keyboard_enabled) {
         for (std::size_t i = 0; i < keyboard_keys.size(); ++i) {
             auto& entry = cur_entry.key[i / KEYS_PER_BYTE];
             entry = static_cast<u8>(entry | (keyboard_keys[i]->GetStatus() << (i % KEYS_PER_BYTE)));
         }
 
-        for (std::size_t i = 0; i < keyboard_mods.size(); ++i) {
-            cur_entry.modifier |= (keyboard_mods[i]->GetStatus() << i);
-        }
+        using namespace Settings::NativeKeyboard;
+
+        // TODO: Assign the correct key to all modifiers
+        cur_entry.modifier.control.Assign(keyboard_mods[LeftControl]->GetStatus());
+        cur_entry.modifier.shift.Assign(keyboard_mods[LeftShift]->GetStatus());
+        cur_entry.modifier.left_alt.Assign(keyboard_mods[LeftAlt]->GetStatus());
+        cur_entry.modifier.right_alt.Assign(keyboard_mods[RightAlt]->GetStatus());
+        cur_entry.modifier.gui.Assign(0);
+        cur_entry.modifier.caps_lock.Assign(keyboard_mods[CapsLock]->GetStatus());
+        cur_entry.modifier.scroll_lock.Assign(keyboard_mods[ScrollLock]->GetStatus());
+        cur_entry.modifier.num_lock.Assign(keyboard_mods[NumLock]->GetStatus());
+        cur_entry.modifier.katakana.Assign(0);
+        cur_entry.modifier.hiragana.Assign(0);
     }
     std::memcpy(data + SHARED_MEMORY_OFFSET, &shared_memory, sizeof(SharedMemory));
 }
