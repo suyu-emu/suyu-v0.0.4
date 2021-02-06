@@ -19,15 +19,14 @@ namespace Common {
 /// SPSC ring buffer
 /// @tparam T            Element type
 /// @tparam capacity     Number of slots in ring buffer
-/// @tparam granularity  Slot size in terms of number of elements
-template <typename T, std::size_t capacity, std::size_t granularity = 1>
+template <typename T, std::size_t capacity>
 class RingBuffer {
-    /// A "slot" is made of `granularity` elements of `T`.
-    static constexpr std::size_t slot_size = granularity * sizeof(T);
+    /// A "slot" is made of a single `T`.
+    static constexpr std::size_t slot_size = sizeof(T);
     // T must be safely memcpy-able and have a trivial default constructor.
     static_assert(std::is_trivial_v<T>);
     // Ensure capacity is sensible.
-    static_assert(capacity < std::numeric_limits<std::size_t>::max() / 2 / granularity);
+    static_assert(capacity < std::numeric_limits<std::size_t>::max() / 2);
     static_assert((capacity & (capacity - 1)) == 0, "capacity must be a power of two");
     // Ensure lock-free.
     static_assert(std::atomic_size_t::is_always_lock_free);
@@ -47,7 +46,7 @@ public:
         const std::size_t second_copy = push_count - first_copy;
 
         const char* in = static_cast<const char*>(new_slots);
-        std::memcpy(m_data.data() + pos * granularity, in, first_copy * slot_size);
+        std::memcpy(m_data.data() + pos, in, first_copy * slot_size);
         in += first_copy * slot_size;
         std::memcpy(m_data.data(), in, second_copy * slot_size);
 
@@ -74,7 +73,7 @@ public:
         const std::size_t second_copy = pop_count - first_copy;
 
         char* out = static_cast<char*>(output);
-        std::memcpy(out, m_data.data() + pos * granularity, first_copy * slot_size);
+        std::memcpy(out, m_data.data() + pos, first_copy * slot_size);
         out += first_copy * slot_size;
         std::memcpy(out, m_data.data(), second_copy * slot_size);
 
@@ -84,9 +83,9 @@ public:
     }
 
     std::vector<T> Pop(std::size_t max_slots = ~std::size_t(0)) {
-        std::vector<T> out(std::min(max_slots, capacity) * granularity);
-        const std::size_t count = Pop(out.data(), out.size() / granularity);
-        out.resize(count * granularity);
+        std::vector<T> out(std::min(max_slots, capacity));
+        const std::size_t count = Pop(out.data(), out.size());
+        out.resize(count);
         return out;
     }
 
@@ -113,7 +112,7 @@ private:
     alignas(128) std::atomic_size_t m_write_index{0};
 #endif
 
-    std::array<T, granularity * capacity> m_data;
+    std::array<T, capacity> m_data;
 };
 
 } // namespace Common

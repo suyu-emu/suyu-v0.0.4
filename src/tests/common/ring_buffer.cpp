@@ -14,7 +14,7 @@
 namespace Common {
 
 TEST_CASE("RingBuffer: Basic Tests", "[common]") {
-    RingBuffer<char, 4, 1> buf;
+    RingBuffer<char, 4> buf;
 
     // Pushing values into a ring buffer with space should succeed.
     for (std::size_t i = 0; i < 4; i++) {
@@ -77,7 +77,7 @@ TEST_CASE("RingBuffer: Basic Tests", "[common]") {
 }
 
 TEST_CASE("RingBuffer: Threaded Test", "[common]") {
-    RingBuffer<char, 4, 2> buf;
+    RingBuffer<char, 8> buf;
     const char seed = 42;
     const std::size_t count = 1000000;
     std::size_t full = 0;
@@ -92,8 +92,8 @@ TEST_CASE("RingBuffer: Threaded Test", "[common]") {
         std::array<char, 2> value = {seed, seed};
         std::size_t i = 0;
         while (i < count) {
-            if (const std::size_t c = buf.Push(&value[0], 1); c > 0) {
-                REQUIRE(c == 1U);
+            if (const std::size_t c = buf.Push(&value[0], 2); c > 0) {
+                REQUIRE(c == 2U);
                 i++;
                 next_value(value);
             } else {
@@ -107,7 +107,7 @@ TEST_CASE("RingBuffer: Threaded Test", "[common]") {
         std::array<char, 2> value = {seed, seed};
         std::size_t i = 0;
         while (i < count) {
-            if (const std::vector<char> v = buf.Pop(1); v.size() > 0) {
+            if (const std::vector<char> v = buf.Pop(2); v.size() > 0) {
                 REQUIRE(v.size() == 2U);
                 REQUIRE(v[0] == value[0]);
                 REQUIRE(v[1] == value[1]);
