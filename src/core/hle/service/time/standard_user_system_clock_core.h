@@ -4,12 +4,15 @@
 
 #pragma once
 
-#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/time/clock_types.h"
 #include "core/hle/service/time/system_clock_core.h"
 
 namespace Core {
 class System;
+}
+
+namespace Kernel {
+class KEvent;
 }
 
 namespace Service::Time::Clock {
@@ -51,7 +54,7 @@ private:
     StandardNetworkSystemClockCore& network_system_clock_core;
     bool auto_correction_enabled{};
     SteadyClockTimePoint auto_correction_time;
-    Kernel::EventPair auto_correction_event;
+    std::shared_ptr<Kernel::KEvent> auto_correction_event;
 };
 
 } // namespace Service::Time::Clock

@@ -10,9 +10,13 @@
 #include "common/common_types.h"
 #include "core/frontend/input.h"
 #include "core/hle/kernel/object.h"
-#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/hid/controllers/controller_base.h"
 #include "core/settings.h"
+
+namespace Kernel {
+class KEvent;
+class KReadableEvent;
+} // namespace Kernel
 
 namespace Service::HID {
 
@@ -187,7 +191,7 @@ public:
 
     bool IsVibrationDeviceMounted(const DeviceHandle& vibration_device_handle) const;
 
-    std::shared_ptr<Kernel::ReadableEvent> GetStyleSetChangedEvent(u32 npad_id) const;
+    std::shared_ptr<Kernel::KReadableEvent> GetStyleSetChangedEvent(u32 npad_id) const;
     void SignalStyleSetChangedEvent(u32 npad_id) const;
 
     // Adds a new controller at an index.
@@ -452,7 +456,7 @@ private:
     // NpadCommunicationMode is unknown, default value is 1
     NpadCommunicationMode communication_mode{NpadCommunicationMode::Unknown1};
     // Each controller should have their own styleset changed event
-    std::array<Kernel::EventPair, 10> styleset_changed_events;
+    std::array<std::shared_ptr<Kernel::KEvent>, 10> styleset_changed_events;
     std::array<std::array<std::chrono::steady_clock::time_point, 2>, 10> last_vibration_timepoints;
     std::array<std::array<VibrationValue, 2>, 10> latest_vibration_values{};
     bool permit_vibration_session_enabled{false};

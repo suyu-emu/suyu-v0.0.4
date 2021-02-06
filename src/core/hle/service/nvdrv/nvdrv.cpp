@@ -7,8 +7,9 @@
 #include <fmt/format.h>
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/readable_event.h"
-#include "core/hle/kernel/writable_event.h"
+#include "core/hle/kernel/k_event.h"
+#include "core/hle/kernel/k_readable_event.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/service/nvdrv/devices/nvdevice.h"
 #include "core/hle/service/nvdrv/devices/nvdisp_disp0.h"
 #include "core/hle/service/nvdrv/devices/nvhost_as_gpu.h"
@@ -42,7 +43,8 @@ Module::Module(Core::System& system) : syncpoint_manager{system.GPU()} {
     auto& kernel = system.Kernel();
     for (u32 i = 0; i < MaxNvEvents; i++) {
         std::string event_label = fmt::format("NVDRV::NvEvent_{}", i);
-        events_interface.events[i] = {Kernel::WritableEvent::CreateEventPair(kernel, event_label)};
+        events_interface.events[i] = {Kernel::KEvent::Create(kernel, std::move(event_label))};
+        events_interface.events[i].event->Initialize();
         events_interface.status[i] = EventState::Free;
         events_interface.registered[i] = false;
     }
@@ -166,17 +168,17 @@ void Module::SignalSyncpt(const u32 syncpoint_id, const u32 value) {
         if (events_interface.assigned_syncpt[i] == syncpoint_id &&
             events_interface.assigned_value[i] == value) {
             events_interface.LiberateEvent(i);
-            events_interface.events[i].event.writable->Signal();
+            events_interface.events[i].event->GetWritableEvent()->Signal();
         }
     }
 }
 
-std::shared_ptr<Kernel::ReadableEvent> Module::GetEvent(const u32 event_id) const {
-    return events_interface.events[event_id].event.readable;
+std::shared_ptr<Kernel::KReadableEvent> Module::GetEvent(const u32 event_id) const {
+    return events_interface.events[event_id].event->GetReadableEvent();
 }
 
-std::shared_ptr<Kernel::WritableEvent> Module::GetEventWriteable(const u32 event_id) const {
-    return events_interface.events[event_id].event.writable;
+std::shared_ptr<Kernel::KWritableEvent> Module::GetEventWriteable(const u32 event_id) const {
+    return events_interface.events[event_id].event->GetWritableEvent();
 }
 
 } // namespace Service::Nvidia

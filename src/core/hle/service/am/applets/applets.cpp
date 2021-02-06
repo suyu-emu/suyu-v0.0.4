@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cstring>
+
 #include "common/assert.h"
 #include "core/core.h"
 #include "core/frontend/applets/controller.h"
@@ -11,9 +12,10 @@
 #include "core/frontend/applets/profile_select.h"
 #include "core/frontend/applets/software_keyboard.h"
 #include "core/frontend/applets/web_browser.h"
-#include "core/hle/kernel/readable_event.h"
+#include "core/hle/kernel/k_event.h"
+#include "core/hle/kernel/k_readable_event.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/server_session.h"
-#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applets/applets.h"
 #include "core/hle/service/am/applets/controller.h"
@@ -27,11 +29,13 @@ namespace Service::AM::Applets {
 
 AppletDataBroker::AppletDataBroker(Kernel::KernelCore& kernel) {
     state_changed_event =
-        Kernel::WritableEvent::CreateEventPair(kernel, "ILibraryAppletAccessor:StateChangedEvent");
-    pop_out_data_event =
-        Kernel::WritableEvent::CreateEventPair(kernel, "ILibraryAppletAccessor:PopDataOutEvent");
-    pop_interactive_out_data_event = Kernel::WritableEvent::CreateEventPair(
-        kernel, "ILibraryAppletAccessor:PopInteractiveDataOutEvent");
+        Kernel::KEvent::Create(kernel, "ILibraryAppletAccessor:StateChangedEvent");
+    state_changed_event->Initialize();
+    pop_out_data_event = Kernel::KEvent::Create(kernel, "ILibraryAppletAccessor:PopDataOutEvent");
+    pop_out_data_event->Initialize();
+    pop_interactive_out_data_event =
+        Kernel::KEvent::Create(kernel, "ILibraryAppletAccessor:PopInteractiveDataOutEvent");
+    pop_interactive_out_data_event->Initialize();
 }
 
 AppletDataBroker::~AppletDataBroker() = default;
@@ -58,7 +62,7 @@ std::shared_ptr<IStorage> AppletDataBroker::PopNormalDataToGame() {
 
     auto out = std::move(out_channel.front());
     out_channel.pop_front();
-    pop_out_data_event.writable->Clear();
+    pop_out_data_event->GetWritableEvent()->Clear();
     return out;
 }
 
@@ -77,7 +81,7 @@ std::shared_ptr<IStorage> AppletDataBroker::PopInteractiveDataToGame() {
 
     auto out = std::move(out_interactive_channel.front());
     out_interactive_channel.pop_front();
-    pop_interactive_out_data_event.writable->Clear();
+    pop_interactive_out_data_event->GetWritableEvent()->Clear();
     return out;
 }
 
@@ -96,7 +100,7 @@ void AppletDataBroker::PushNormalDataFromGame(std::shared_ptr<IStorage>&& storag
 
 void AppletDataBroker::PushNormalDataFromApplet(std::shared_ptr<IStorage>&& storage) {
     out_channel.emplace_back(std::move(storage));
-    pop_out_data_event.writable->Signal();
+    pop_out_data_event->GetWritableEvent()->Signal();
 }
 
 void AppletDataBroker::PushInteractiveDataFromGame(std::shared_ptr<IStorage>&& storage) {
@@ -105,23 +109,23 @@ void AppletDataBroker::PushInteractiveDataFromGame(std::shared_ptr<IStorage>&& s
 
 void AppletDataBroker::PushInteractiveDataFromApplet(std::shared_ptr<IStorage>&& storage) {
     out_interactive_channel.emplace_back(std::move(storage));
-    pop_interactive_out_data_event.writable->Signal();
+    pop_interactive_out_data_event->GetWritableEvent()->Signal();
 }
 
 void AppletDataBroker::SignalStateChanged() const {
-    state_changed_event.writable->Signal();
+    state_changed_event->GetWritableEvent()->Signal();
 }
 
-std::shared_ptr<Kernel::ReadableEvent> AppletDataBroker::GetNormalDataEvent() const {
-    return pop_out_data_event.readable;
+std::shared_ptr<Kernel::KReadableEvent> AppletDataBroker::GetNormalDataEvent() const {
+    return pop_out_data_event->GetReadableEvent();
 }
 
-std::shared_ptr<Kernel::ReadableEvent> AppletDataBroker::GetInteractiveDataEvent() const {
-    return pop_interactive_out_data_event.readable;
+std::shared_ptr<Kernel::KReadableEvent> AppletDataBroker::GetInteractiveDataEvent() const {
+    return pop_interactive_out_data_event->GetReadableEvent();
 }
 
-std::shared_ptr<Kernel::ReadableEvent> AppletDataBroker::GetStateChangedEvent() const {
-    return state_changed_event.readable;
+std::shared_ptr<Kernel::KReadableEvent> AppletDataBroker::GetStateChangedEvent() const {
+    return state_changed_event->GetReadableEvent();
 }
 
 Applet::Applet(Kernel::KernelCore& kernel_) : broker{kernel_} {}

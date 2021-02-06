@@ -18,9 +18,9 @@ class EmuThread;
 
 namespace Kernel {
 class HandleTable;
+class KReadableEvent;
 class KSynchronizationObject;
 class KThread;
-class ReadableEvent;
 } // namespace Kernel
 
 class WaitTreeThread;
@@ -142,7 +142,7 @@ public:
 class WaitTreeEvent : public WaitTreeSynchronizationObject {
     Q_OBJECT
 public:
-    explicit WaitTreeEvent(const Kernel::ReadableEvent& object);
+    explicit WaitTreeEvent(const Kernel::KReadableEvent& object);
     ~WaitTreeEvent() override;
 };
 

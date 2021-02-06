@@ -6,9 +6,9 @@
 
 #include <memory>
 #include <queue>
+
 #include "common/swap.h"
 #include "core/hle/kernel/object.h"
-#include "core/hle/kernel/writable_event.h"
 
 union ResultCode;
 
@@ -29,7 +29,9 @@ class WebBrowserApplet;
 
 namespace Kernel {
 class KernelCore;
-}
+class KEvent;
+class KReadableEvent;
+} // namespace Kernel
 
 namespace Service::AM {
 
@@ -87,9 +89,9 @@ public:
 
     void SignalStateChanged() const;
 
-    std::shared_ptr<Kernel::ReadableEvent> GetNormalDataEvent() const;
-    std::shared_ptr<Kernel::ReadableEvent> GetInteractiveDataEvent() const;
-    std::shared_ptr<Kernel::ReadableEvent> GetStateChangedEvent() const;
+    std::shared_ptr<Kernel::KReadableEvent> GetNormalDataEvent() const;
+    std::shared_ptr<Kernel::KReadableEvent> GetInteractiveDataEvent() const;
+    std::shared_ptr<Kernel::KReadableEvent> GetStateChangedEvent() const;
 
 private:
     // Queues are named from applet's perspective
@@ -106,13 +108,13 @@ private:
     // PopInteractiveDataToGame and PushInteractiveDataFromApplet
     std::deque<std::shared_ptr<IStorage>> out_interactive_channel;
 
-    Kernel::EventPair state_changed_event;
+    std::shared_ptr<Kernel::KEvent> state_changed_event;
 
     // Signaled on PushNormalDataFromApplet
-    Kernel::EventPair pop_out_data_event;
+    std::shared_ptr<Kernel::KEvent> pop_out_data_event;
 
     // Signaled on PushInteractiveDataFromApplet
-    Kernel::EventPair pop_interactive_out_data_event;
+    std::shared_ptr<Kernel::KEvent> pop_interactive_out_data_event;
 };
 
 class Applet {

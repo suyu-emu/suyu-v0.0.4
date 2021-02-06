@@ -160,10 +160,14 @@ add_library(core STATIC
     hle/kernel/k_affinity_mask.h
     hle/kernel/k_condition_variable.cpp
     hle/kernel/k_condition_variable.h
+    hle/kernel/k_event.cpp
+    hle/kernel/k_event.h
     hle/kernel/k_light_condition_variable.h
     hle/kernel/k_light_lock.cpp
     hle/kernel/k_light_lock.h
     hle/kernel/k_priority_queue.h
+    hle/kernel/k_readable_event.cpp
+    hle/kernel/k_readable_event.h
     hle/kernel/k_resource_limit.cpp
     hle/kernel/k_resource_limit.h
     hle/kernel/k_scheduler.cpp
@@ -176,6 +180,8 @@ add_library(core STATIC
     hle/kernel/k_thread.cpp
     hle/kernel/k_thread.h
     hle/kernel/k_thread_queue.h
+    hle/kernel/k_writable_event.cpp
+    hle/kernel/k_writable_event.h
     hle/kernel/kernel.cpp
     hle/kernel/kernel.h
     hle/kernel/memory/address_space_info.cpp
@@ -204,8 +210,6 @@ add_library(core STATIC
     hle/kernel/process.h
     hle/kernel/process_capability.cpp
     hle/kernel/process_capability.h
-    hle/kernel/readable_event.cpp
-    hle/kernel/readable_event.h
     hle/kernel/server_port.cpp
     hle/kernel/server_port.h
     hle/kernel/server_session.cpp
@@ -226,8 +230,6 @@ add_library(core STATIC
     hle/kernel/time_manager.h
     hle/kernel/transfer_memory.cpp
     hle/kernel/transfer_memory.h
-    hle/kernel/writable_event.cpp
-    hle/kernel/writable_event.h
     hle/lock.cpp
     hle/lock.h
     hle/result.h

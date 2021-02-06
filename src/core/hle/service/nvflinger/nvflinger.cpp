@@ -14,8 +14,8 @@
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
 #include "core/hardware_properties.h"
+#include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/readable_event.h"
 #include "core/hle/service/nvdrv/devices/nvdisp_disp0.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
 #include "core/hle/service/nvflinger/buffer_queue.h"
@@ -165,7 +165,7 @@ std::optional<u32> NVFlinger::FindBufferQueueId(u64 display_id, u64 layer_id) co
     return layer->GetBufferQueue().GetId();
 }
 
-std::shared_ptr<Kernel::ReadableEvent> NVFlinger::FindVsyncEvent(u64 display_id) const {
+std::shared_ptr<Kernel::KReadableEvent> NVFlinger::FindVsyncEvent(u64 display_id) const {
     const auto guard = Lock();
     auto* const display = FindDisplay(display_id);
 

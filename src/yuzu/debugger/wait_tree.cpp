@@ -13,11 +13,11 @@
 #include "core/arm/arm_interface.h"
 #include "core/core.h"
 #include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/svc_common.h"
 #include "core/hle/kernel/svc_types.h"
 #include "core/memory.h"
@@ -193,7 +193,7 @@ std::unique_ptr<WaitTreeSynchronizationObject> WaitTreeSynchronizationObject::ma
     const Kernel::KSynchronizationObject& object) {
     switch (object.GetHandleType()) {
     case Kernel::HandleType::ReadableEvent:
-        return std::make_unique<WaitTreeEvent>(static_cast<const Kernel::ReadableEvent&>(object));
+        return std::make_unique<WaitTreeEvent>(static_cast<const Kernel::KReadableEvent&>(object));
     case Kernel::HandleType::Thread:
         return std::make_unique<WaitTreeThread>(static_cast<const Kernel::KThread&>(object));
     default:
@@ -373,7 +373,7 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeThread::GetChildren() const {
     return list;
 }
 
-WaitTreeEvent::WaitTreeEvent(const Kernel::ReadableEvent& object)
+WaitTreeEvent::WaitTreeEvent(const Kernel::KReadableEvent& object)
     : WaitTreeSynchronizationObject(object) {}
 WaitTreeEvent::~WaitTreeEvent() = default;
 

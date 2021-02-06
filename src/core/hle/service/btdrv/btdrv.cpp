@@ -6,9 +6,9 @@
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/hle_ipc.h"
+#include "core/hle/kernel/k_event.h"
+#include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/readable_event.h"
-#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/btdrv/btdrv.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/sm/sm.h"
@@ -35,7 +35,8 @@ public:
         RegisterHandlers(functions);
 
         auto& kernel = system.Kernel();
-        register_event = Kernel::WritableEvent::CreateEventPair(kernel, "BT:RegisterEvent");
+        register_event = Kernel::KEvent::Create(kernel, "BT:RegisterEvent");
+        register_event->Initialize();
     }
 
 private:
@@ -44,10 +45,10 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(register_event.readable);
+        rb.PushCopyObjects(register_event->GetReadableEvent());
     }
 
-    Kernel::EventPair register_event;
+    std::shared_ptr<Kernel::KEvent> register_event;
 };
 
 class BtDrv final : public ServiceFramework<BtDrv> {

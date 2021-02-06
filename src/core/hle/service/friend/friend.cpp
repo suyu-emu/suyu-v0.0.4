@@ -7,8 +7,9 @@
 #include "common/uuid.h"
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/readable_event.h"
-#include "core/hle/kernel/writable_event.h"
+#include "core/hle/kernel/k_event.h"
+#include "core/hle/kernel/k_readable_event.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/service/friend/errors.h"
 #include "core/hle/service/friend/friend.h"
 #include "core/hle/service/friend/interface.h"
@@ -183,8 +184,9 @@ public:
 
         RegisterHandlers(functions);
 
-        notification_event = Kernel::WritableEvent::CreateEventPair(
-            system.Kernel(), "INotificationService:NotifyEvent");
+        notification_event =
+            Kernel::KEvent::Create(system.Kernel(), "INotificationService:NotifyEvent");
+        notification_event->Initialize();
     }
 
 private:
@@ -193,7 +195,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(notification_event.readable);
+        rb.PushCopyObjects(notification_event->GetReadableEvent());
     }
 
     void Clear(Kernel::HLERequestContext& ctx) {
@@ -258,7 +260,7 @@ private:
     };
 
     Common::UUID uuid{Common::INVALID_UUID};
-    Kernel::EventPair notification_event;
+    std::shared_ptr<Kernel::KEvent> notification_event;
     std::queue<SizedNotificationInfo> notifications;
     States states{};
 };

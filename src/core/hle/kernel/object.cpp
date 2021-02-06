@@ -8,7 +8,10 @@
 
 namespace Kernel {
 
-Object::Object(KernelCore& kernel) : kernel{kernel}, object_id{kernel.CreateNewObjectID()} {}
+Object::Object(KernelCore& kernel_)
+    : kernel{kernel_}, object_id{kernel_.CreateNewObjectID()}, name{"[UNKNOWN KERNEL OBJECT]"} {}
+Object::Object(KernelCore& kernel_, std::string&& name_)
+    : kernel{kernel_}, object_id{kernel_.CreateNewObjectID()}, name{std::move(name_)} {}
 Object::~Object() = default;
 
 bool Object::IsWaitable() const {
@@ -21,6 +24,7 @@ bool Object::IsWaitable() const {
         return true;
 
     case HandleType::Unknown:
+    case HandleType::Event:
     case HandleType::WritableEvent:
     case HandleType::SharedMemory:
     case HandleType::TransferMemory:

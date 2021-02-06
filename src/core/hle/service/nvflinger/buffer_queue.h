@@ -14,12 +14,14 @@
 #include "common/math_util.h"
 #include "common/swap.h"
 #include "core/hle/kernel/object.h"
-#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/nvdrv/nvdata.h"
 
 namespace Kernel {
 class KernelCore;
-}
+class KEvent;
+class KReadableEvent;
+class KWritableEvent;
+} // namespace Kernel
 
 namespace Service::NVFlinger {
 
@@ -113,9 +115,9 @@ public:
         return is_connect;
     }
 
-    std::shared_ptr<Kernel::WritableEvent> GetWritableBufferWaitEvent() const;
+    std::shared_ptr<Kernel::KWritableEvent> GetWritableBufferWaitEvent() const;
 
-    std::shared_ptr<Kernel::ReadableEvent> GetBufferWaitEvent() const;
+    std::shared_ptr<Kernel::KReadableEvent> GetBufferWaitEvent() const;
 
 private:
     BufferQueue(const BufferQueue&) = delete;
@@ -127,7 +129,7 @@ private:
     std::list<u32> free_buffers;
     std::array<Buffer, buffer_slots> buffers;
     std::list<u32> queue_sequence;
-    Kernel::EventPair buffer_wait_event;
+    std::shared_ptr<Kernel::KEvent> buffer_wait_event;
 
     std::mutex free_buffers_mutex;
     std::condition_variable free_buffers_condition;

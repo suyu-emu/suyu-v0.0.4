@@ -312,7 +312,7 @@ public:
     /// @pre The process must be in a signaled state. If this is called on a
     ///      process instance that is not signaled, ERR_INVALID_STATE will be
     ///      returned.
-    ResultCode ClearSignalState();
+    ResultCode Reset();
 
     /**
      * Loads process-specifics configuration info with metadata provided

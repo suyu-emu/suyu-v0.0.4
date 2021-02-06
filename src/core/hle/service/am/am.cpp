@@ -13,11 +13,12 @@
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/savedata_factory.h"
 #include "core/hle/ipc_helpers.h"
+#include "core/hle/kernel/k_event.h"
+#include "core/hle/kernel/k_readable_event.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/transfer_memory.h"
-#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applet_ae.h"
@@ -303,17 +304,18 @@ ISelfController::ISelfController(Core::System& system_, NVFlinger::NVFlinger& nv
     RegisterHandlers(functions);
 
     auto& kernel = system.Kernel();
-    launchable_event =
-        Kernel::WritableEvent::CreateEventPair(kernel, "ISelfController:LaunchableEvent");
+    launchable_event = Kernel::KEvent::Create(kernel, "ISelfController:LaunchableEvent");
+    launchable_event->Initialize();
 
     // This event is created by AM on the first time GetAccumulatedSuspendedTickChangedEvent() is
     // called. Yuzu can just create it unconditionally, since it doesn't need to support multiple
     // ISelfControllers. The event is signaled on creation, and on transition from suspended -> not
     // suspended if the event has previously been created by a call to
     // GetAccumulatedSuspendedTickChangedEvent.
-    accumulated_suspended_tick_changed_event = Kernel::WritableEvent::CreateEventPair(
-        kernel, "ISelfController:AccumulatedSuspendedTickChangedEvent");
-    accumulated_suspended_tick_changed_event.writable->Signal();
+    accumulated_suspended_tick_changed_event =
+        Kernel::KEvent::Create(kernel, "ISelfController:AccumulatedSuspendedTickChangedEvent");
+    accumulated_suspended_tick_changed_event->Initialize();
+    accumulated_suspended_tick_changed_event->GetWritableEvent()->Signal();
 }
 
 ISelfController::~ISelfController() = default;
@@ -372,11 +374,11 @@ void ISelfController::LeaveFatalSection(Kernel::HLERequestContext& ctx) {
 void ISelfController::GetLibraryAppletLaunchableEvent(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
-    launchable_event.writable->Signal();
+    launchable_event->GetWritableEvent()->Signal();
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushCopyObjects(launchable_event.readable);
+    rb.PushCopyObjects(launchable_event->GetReadableEvent());
 }
 
 void ISelfController::SetScreenShotPermission(Kernel::HLERequestContext& ctx) {
@@ -555,41 +557,42 @@ void ISelfController::GetAccumulatedSuspendedTickChangedEvent(Kernel::HLERequest
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushCopyObjects(accumulated_suspended_tick_changed_event.readable);
+    rb.PushCopyObjects(accumulated_suspended_tick_changed_event->GetReadableEvent());
 }
 
 AppletMessageQueue::AppletMessageQueue(Kernel::KernelCore& kernel) {
-    on_new_message =
-        Kernel::WritableEvent::CreateEventPair(kernel, "AMMessageQueue:OnMessageReceived");
+    on_new_message = Kernel::KEvent::Create(kernel, "AMMessageQueue:OnMessageReceived");
+    on_new_message->Initialize();
     on_operation_mode_changed =
-        Kernel::WritableEvent::CreateEventPair(kernel, "AMMessageQueue:OperationModeChanged");
+        Kernel::KEvent::Create(kernel, "AMMessageQueue:OperationModeChanged");
+    on_operation_mode_changed->Initialize();
 }
 
 AppletMessageQueue::~AppletMessageQueue() = default;
 
-const std::shared_ptr<Kernel::ReadableEvent>& AppletMessageQueue::GetMessageReceiveEvent() const {
-    return on_new_message.readable;
+const std::shared_ptr<Kernel::KReadableEvent>& AppletMessageQueue::GetMessageReceiveEvent() const {
+    return on_new_message->GetReadableEvent();
 }
 
-const std::shared_ptr<Kernel::ReadableEvent>& AppletMessageQueue::GetOperationModeChangedEvent()
+const std::shared_ptr<Kernel::KReadableEvent>& AppletMessageQueue::GetOperationModeChangedEvent()
     const {
-    return on_operation_mode_changed.readable;
+    return on_operation_mode_changed->GetReadableEvent();
 }
 
 void AppletMessageQueue::PushMessage(AppletMessage msg) {
     messages.push(msg);
-    on_new_message.writable->Signal();
+    on_new_message->GetWritableEvent()->Signal();
 }
 
 AppletMessageQueue::AppletMessage AppletMessageQueue::PopMessage() {
     if (messages.empty()) {
-        on_new_message.writable->Clear();
+        on_new_message->GetWritableEvent()->Clear();
         return AppletMessage::NoMessage;
     }
     auto msg = messages.front();
     messages.pop();
     if (messages.empty()) {
-        on_new_message.writable->Clear();
+        on_new_message->GetWritableEvent()->Clear();
     }
     return msg;
 }
@@ -601,7 +604,7 @@ std::size_t AppletMessageQueue::GetMessageCount() const {
 void AppletMessageQueue::OperationModeChanged() {
     PushMessage(AppletMessage::OperationModeChanged);
     PushMessage(AppletMessage::PerformanceModeChanged);
-    on_operation_mode_changed.writable->Signal();
+    on_operation_mode_changed->GetWritableEvent()->Signal();
 }
 
 void AppletMessageQueue::RequestExit() {
@@ -1229,14 +1232,15 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_)
     RegisterHandlers(functions);
 
     auto& kernel = system.Kernel();
-    gpu_error_detected_event = Kernel::WritableEvent::CreateEventPair(
-        kernel, "IApplicationFunctions:GpuErrorDetectedSystemEvent");
-
-    friend_invitation_storage_channel_event = Kernel::WritableEvent::CreateEventPair(
-        kernel, "IApplicationFunctions:FriendInvitationStorageChannelEvent");
-
-    health_warning_disappeared_system_event = Kernel::WritableEvent::CreateEventPair(
-        kernel, "IApplicationFunctions:HealthWarningDisappearedSystemEvent");
+    gpu_error_detected_event =
+        Kernel::KEvent::Create(kernel, "IApplicationFunctions:GpuErrorDetectedSystemEvent");
+    gpu_error_detected_event->Initialize();
+    friend_invitation_storage_channel_event =
+        Kernel::KEvent::Create(kernel, "IApplicationFunctions:FriendInvitationStorageChannelEvent");
+    friend_invitation_storage_channel_event->Initialize();
+    health_warning_disappeared_system_event =
+        Kernel::KEvent::Create(kernel, "IApplicationFunctions:HealthWarningDisappearedSystemEvent");
+    health_warning_disappeared_system_event->Initialize();
 }
 
 IApplicationFunctions::~IApplicationFunctions() = default;
@@ -1633,7 +1637,7 @@ void IApplicationFunctions::GetGpuErrorDetectedSystemEvent(Kernel::HLERequestCon
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushCopyObjects(gpu_error_detected_event.readable);
+    rb.PushCopyObjects(gpu_error_detected_event->GetReadableEvent());
 }
 
 void IApplicationFunctions::GetFriendInvitationStorageChannelEvent(Kernel::HLERequestContext& ctx) {
@@ -1641,7 +1645,7 @@ void IApplicationFunctions::GetFriendInvitationStorageChannelEvent(Kernel::HLERe
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushCopyObjects(friend_invitation_storage_channel_event.readable);
+    rb.PushCopyObjects(friend_invitation_storage_channel_event->GetReadableEvent());
 }
 
 void IApplicationFunctions::TryPopFromFriendInvitationStorageChannel(
@@ -1657,7 +1661,7 @@ void IApplicationFunctions::GetHealthWarningDisappearedSystemEvent(Kernel::HLERe
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushCopyObjects(health_warning_disappeared_system_event.readable);
+    rb.PushCopyObjects(health_warning_disappeared_system_event->GetReadableEvent());
 }
 
 void InstallInterfaces(SM::ServiceManager& service_manager, NVFlinger::NVFlinger& nvflinger,
@@ -1693,8 +1697,9 @@ IHomeMenuFunctions::IHomeMenuFunctions(Core::System& system_)
 
     RegisterHandlers(functions);
 
-    pop_from_general_channel_event = Kernel::WritableEvent::CreateEventPair(
-        system.Kernel(), "IHomeMenuFunctions:PopFromGeneralChannelEvent");
+    pop_from_general_channel_event =
+        Kernel::KEvent::Create(system.Kernel(), "IHomeMenuFunctions:PopFromGeneralChannelEvent");
+    pop_from_general_channel_event->Initialize();
 }
 
 IHomeMenuFunctions::~IHomeMenuFunctions() = default;
@@ -1711,7 +1716,7 @@ void IHomeMenuFunctions::GetPopFromGeneralChannelEvent(Kernel::HLERequestContext
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushCopyObjects(pop_from_general_channel_event.readable);
+    rb.PushCopyObjects(pop_from_general_channel_event->GetReadableEvent());
 }
 
 IGlobalStateController::IGlobalStateController(Core::System& system_)

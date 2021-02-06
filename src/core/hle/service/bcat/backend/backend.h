@@ -11,8 +11,6 @@
 
 #include "common/common_types.h"
 #include "core/file_sys/vfs_types.h"
-#include "core/hle/kernel/readable_event.h"
-#include "core/hle/kernel/writable_event.h"
 #include "core/hle/result.h"
 
 namespace Core {
@@ -21,7 +19,9 @@ class System;
 
 namespace Kernel {
 class KernelCore;
-}
+class KEvent;
+class KReadableEvent;
+} // namespace Kernel
 
 namespace Service::BCAT {
 
@@ -98,13 +98,13 @@ public:
 private:
     explicit ProgressServiceBackend(Kernel::KernelCore& kernel, std::string_view event_name);
 
-    std::shared_ptr<Kernel::ReadableEvent> GetEvent() const;
+    std::shared_ptr<Kernel::KReadableEvent> GetEvent() const;
     DeliveryCacheProgressImpl& GetImpl();
 
     void SignalUpdate() const;
 
     DeliveryCacheProgressImpl impl{};
-    Kernel::EventPair event;
+    std::shared_ptr<Kernel::KEvent> event;
     bool need_hle_lock = false;
 };
 

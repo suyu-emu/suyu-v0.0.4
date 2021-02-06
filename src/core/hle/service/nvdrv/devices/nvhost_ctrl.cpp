@@ -8,8 +8,8 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/core.h"
-#include "core/hle/kernel/readable_event.h"
-#include "core/hle/kernel/writable_event.h"
+#include "core/hle/kernel/k_event.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/service/nvdrv/devices/nvhost_ctrl.h"
 #include "video_core/gpu.h"
 
@@ -103,14 +103,14 @@ NvResult nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector
     // This is mostly to take into account unimplemented features. As synced
     // gpu is always synced.
     if (!gpu.IsAsync()) {
-        event.event.writable->Signal();
+        event.event->GetWritableEvent()->Signal();
         return NvResult::Success;
     }
     auto lock = gpu.LockSync();
     const u32 current_syncpoint_value = event.fence.value;
     const s32 diff = current_syncpoint_value - params.threshold;
     if (diff >= 0) {
-        event.event.writable->Signal();
+        event.event->GetWritableEvent()->Signal();
         params.value = current_syncpoint_value;
         std::memcpy(output.data(), &params, sizeof(params));
         return NvResult::Success;
@@ -137,7 +137,7 @@ NvResult nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector
             params.value = ((params.syncpt_id & 0xfff) << 16) | 0x10000000;
         }
         params.value |= event_id;
-        event.event.writable->Clear();
+        event.event->GetWritableEvent()->Clear();
         gpu.RegisterSyncptInterrupt(params.syncpt_id, target_value);
         std::memcpy(output.data(), &params, sizeof(params));
         return NvResult::Timeout;

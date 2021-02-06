@@ -9,7 +9,7 @@
 #include "core/hle/service/service.h"
 
 namespace Kernel {
-class WritableEvent;
+class KWritableEvent;
 }
 
 namespace Service::Nvidia {

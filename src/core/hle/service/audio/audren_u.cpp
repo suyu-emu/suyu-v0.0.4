@@ -16,9 +16,10 @@
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/hle_ipc.h"
+#include "core/hle/kernel/k_event.h"
+#include "core/hle/kernel/k_readable_event.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/readable_event.h"
-#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/audio/audren_u.h"
 #include "core/hle/service/audio/errors.h"
 
@@ -47,13 +48,13 @@ public:
         // clang-format on
         RegisterHandlers(functions);
 
-        system_event =
-            Kernel::WritableEvent::CreateEventPair(system.Kernel(), "IAudioRenderer:SystemEvent");
+        system_event = Kernel::KEvent::Create(system.Kernel(), "IAudioRenderer:SystemEvent");
+        system_event->Initialize();
         renderer = std::make_unique<AudioCore::AudioRenderer>(
             system.CoreTiming(), system.Memory(), audren_params,
             [this]() {
                 const auto guard = LockService();
-                system_event.writable->Signal();
+                system_event->GetWritableEvent()->Signal();
             },
             instance_number);
     }
@@ -126,7 +127,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(system_event.readable);
+        rb.PushCopyObjects(system_event->GetReadableEvent());
     }
 
     void SetRenderingTimeLimit(Kernel::HLERequestContext& ctx) {
@@ -160,7 +161,7 @@ private:
         rb.Push(ERR_NOT_SUPPORTED);
     }
 
-    Kernel::EventPair system_event;
+    std::shared_ptr<Kernel::KEvent> system_event;
     std::unique_ptr<AudioCore::AudioRenderer> renderer;
     u32 rendering_time_limit_percent = 100;
 };
@@ -187,17 +188,19 @@ public:
         RegisterHandlers(functions);
 
         auto& kernel = system.Kernel();
-        buffer_event =
-            Kernel::WritableEvent::CreateEventPair(kernel, "IAudioOutBufferReleasedEvent");
+        buffer_event = Kernel::KEvent::Create(kernel, "IAudioOutBufferReleasedEvent");
+        buffer_event->Initialize();
 
         // Should be similar to audio_output_device_switch_event
-        audio_input_device_switch_event = Kernel::WritableEvent::CreateEventPair(
-            kernel, "IAudioDevice:AudioInputDeviceSwitchedEvent");
+        audio_input_device_switch_event =
+            Kernel::KEvent::Create(kernel, "IAudioDevice:AudioInputDeviceSwitchedEvent");
+        audio_input_device_switch_event->Initialize();
 
         // Should only be signalled when an audio output device has been changed, example: speaker
         // to headset
-        audio_output_device_switch_event = Kernel::WritableEvent::CreateEventPair(
-            kernel, "IAudioDevice:AudioOutputDeviceSwitchedEvent");
+        audio_output_device_switch_event =
+            Kernel::KEvent::Create(kernel, "IAudioDevice:AudioOutputDeviceSwitchedEvent");
+        audio_output_device_switch_event->Initialize();
     }
 
 private:
@@ -286,11 +289,11 @@ private:
     void QueryAudioDeviceSystemEvent(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_Audio, "(STUBBED) called");
 
-        buffer_event.writable->Signal();
+        buffer_event->GetWritableEvent()->Signal();
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(buffer_event.readable);
+        rb.PushCopyObjects(buffer_event->GetReadableEvent());
     }
 
     void GetActiveChannelCount(Kernel::HLERequestContext& ctx) {
@@ -307,7 +310,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(audio_input_device_switch_event.readable);
+        rb.PushCopyObjects(audio_input_device_switch_event->GetReadableEvent());
     }
 
     void QueryAudioDeviceOutputEvent(Kernel::HLERequestContext& ctx) {
@@ -315,13 +318,13 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(audio_output_device_switch_event.readable);
+        rb.PushCopyObjects(audio_output_device_switch_event->GetReadableEvent());
     }
 
     u32_le revision = 0;
-    Kernel::EventPair buffer_event;
-    Kernel::EventPair audio_input_device_switch_event;
-    Kernel::EventPair audio_output_device_switch_event;
+    std::shared_ptr<Kernel::KEvent> buffer_event;
+    std::shared_ptr<Kernel::KEvent> audio_input_device_switch_event;
+    std::shared_ptr<Kernel::KEvent> audio_output_device_switch_event;
 
 }; // namespace Audio
 

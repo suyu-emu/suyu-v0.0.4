@@ -23,6 +23,7 @@
 #include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/memory/slab_heap.h"
 #include "core/hle/kernel/process.h"
+#include "core/hle/kernel/svc_results.h"
 #include "core/hle/lock.h"
 #include "core/memory.h"
 #include "core/settings.h"
@@ -241,18 +242,16 @@ void Process::UnregisterThread(const KThread* thread) {
     thread_list.remove(thread);
 }
 
-ResultCode Process::ClearSignalState() {
-    KScopedSchedulerLock lock(system.Kernel());
-    if (status == ProcessStatus::Exited) {
-        LOG_ERROR(Kernel, "called on a terminated process instance.");
-        return ERR_INVALID_STATE;
-    }
+ResultCode Process::Reset() {
+    // Lock the process and the scheduler.
+    KScopedLightLock lk(state_lock);
+    KScopedSchedulerLock sl{kernel};
 
-    if (!is_signaled) {
-        LOG_ERROR(Kernel, "called on a process instance that isn't signaled.");
-        return ERR_INVALID_STATE;
-    }
+    // Validate that we're in a state that we can reset.
+    R_UNLESS(status != ProcessStatus::Exited, Svc::ResultInvalidState);
+    R_UNLESS(is_signaled, Svc::ResultInvalidState);
 
+    // Clear signaled.
     is_signaled = false;
     return RESULT_SUCCESS;
 }

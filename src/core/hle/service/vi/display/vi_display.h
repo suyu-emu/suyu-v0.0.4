@@ -9,7 +9,10 @@
 #include <vector>
 
 #include "common/common_types.h"
-#include "core/hle/kernel/writable_event.h"
+
+namespace Kernel {
+class KEvent;
+}
 
 namespace Service::NVFlinger {
 class BufferQueue;
@@ -58,7 +61,7 @@ public:
     const Layer& GetLayer(std::size_t index) const;
 
     /// Gets the readable vsync event.
-    std::shared_ptr<Kernel::ReadableEvent> GetVSyncEvent() const;
+    std::shared_ptr<Kernel::KReadableEvent> GetVSyncEvent() const;
 
     /// Signals the internal vsync event.
     void SignalVSyncEvent();
@@ -99,7 +102,7 @@ private:
     std::string name;
 
     std::vector<std::shared_ptr<Layer>> layers;
-    Kernel::EventPair vsync_event;
+    std::shared_ptr<Kernel::KEvent> vsync_event;
 };
 
 } // namespace Service::VI

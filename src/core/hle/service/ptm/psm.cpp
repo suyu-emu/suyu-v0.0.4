@@ -7,9 +7,10 @@
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
+#include "core/hle/kernel/k_event.h"
+#include "core/hle/kernel/k_readable_event.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/readable_event.h"
-#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/ptm/psm.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/sm/sm.h"
@@ -31,27 +32,28 @@ public:
 
         RegisterHandlers(functions);
 
-        state_change_event = Kernel::WritableEvent::CreateEventPair(
-            system_.Kernel(), "IPsmSession::state_change_event");
+        state_change_event =
+            Kernel::KEvent::Create(system_.Kernel(), "IPsmSession::state_change_event");
+        state_change_event->Initialize();
     }
 
     ~IPsmSession() override = default;
 
     void SignalChargerTypeChanged() {
         if (should_signal && should_signal_charger_type) {
-            state_change_event.writable->Signal();
+            state_change_event->GetWritableEvent()->Signal();
         }
     }
 
     void SignalPowerSupplyChanged() {
         if (should_signal && should_signal_power_supply) {
-            state_change_event.writable->Signal();
+            state_change_event->GetWritableEvent()->Signal();
         }
     }
 
     void SignalBatteryVoltageStateChanged() {
         if (should_signal && should_signal_battery_voltage) {
-            state_change_event.writable->Signal();
+            state_change_event->GetWritableEvent()->Signal();
         }
     }
 
@@ -63,7 +65,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(state_change_event.readable);
+        rb.PushCopyObjects(state_change_event->GetReadableEvent());
     }
 
     void UnbindStateChangeEvent(Kernel::HLERequestContext& ctx) {
@@ -112,7 +114,7 @@ private:
     bool should_signal_power_supply{};
     bool should_signal_battery_voltage{};
     bool should_signal{};
-    Kernel::EventPair state_change_event;
+    std::shared_ptr<Kernel::KEvent> state_change_event;
 };
 
 class PSM final : public ServiceFramework<PSM> {

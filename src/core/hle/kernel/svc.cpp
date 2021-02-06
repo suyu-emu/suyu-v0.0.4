@@ -14,6 +14,7 @@
 #include "common/fiber.h"
 #include "common/logging/log.h"
 #include "common/microprofile.h"
+#include "common/scope_exit.h"
 #include "common/string_util.h"
 #include "core/arm/exclusive_monitor.h"
 #include "core/core.h"
@@ -26,18 +27,20 @@
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_address_arbiter.h"
 #include "core/hle/kernel/k_condition_variable.h"
+#include "core/hle/kernel/k_event.h"
+#include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
 #include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/kernel/k_thread.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/memory/memory_block.h"
 #include "core/hle/kernel/memory/memory_layout.h"
 #include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/physical_core.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/shared_memory.h"
 #include "core/hle/kernel/svc.h"
 #include "core/hle/kernel/svc_results.h"
@@ -45,7 +48,6 @@
 #include "core/hle/kernel/svc_wrap.h"
 #include "core/hle/kernel/time_manager.h"
 #include "core/hle/kernel/transfer_memory.h"
-#include "core/hle/kernel/writable_event.h"
 #include "core/hle/lock.h"
 #include "core/hle/result.h"
 #include "core/hle/service/service.h"
@@ -1725,20 +1727,28 @@ static ResultCode CloseHandle32(Core::System& system, Handle handle) {
 static ResultCode ResetSignal(Core::System& system, Handle handle) {
     LOG_DEBUG(Kernel_SVC, "called handle 0x{:08X}", handle);
 
+    // Get the current handle table.
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
 
-    auto event = handle_table.Get<ReadableEvent>(handle);
-    if (event) {
-        return event->Reset();
+    // Try to reset as readable event.
+    {
+        auto readable_event = handle_table.Get<KReadableEvent>(handle);
+        if (readable_event) {
+            return readable_event->Reset();
+        }
     }
 
-    auto process = handle_table.Get<Process>(handle);
-    if (process) {
-        return process->ClearSignalState();
+    // Try to reset as process.
+    {
+        auto process = handle_table.Get<Process>(handle);
+        if (process) {
+            return process->Reset();
+        }
     }
 
-    LOG_ERROR(Kernel_SVC, "Invalid handle (0x{:08X})", handle);
-    return ERR_INVALID_HANDLE;
+    LOG_ERROR(Kernel_SVC, "invalid handle (0x{:08X})", handle);
+
+    return Svc::ResultInvalidHandle;
 }
 
 static ResultCode ResetSignal32(Core::System& system, Handle handle) {
@@ -1866,80 +1876,92 @@ static ResultCode SetThreadCoreMask32(Core::System& system, Handle thread_handle
     return SetThreadCoreMask(system, thread_handle, core_id, affinity_mask);
 }
 
-static ResultCode CreateEvent(Core::System& system, Handle* write_handle, Handle* read_handle) {
+static ResultCode SignalEvent(Core::System& system, Handle event_handle) {
+    LOG_DEBUG(Kernel_SVC, "called, event_handle=0x{:08X}", event_handle);
+
+    // Get the current handle table.
+    const HandleTable& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
+
+    // Get the writable event.
+    auto writable_event = handle_table.Get<KWritableEvent>(event_handle);
+    R_UNLESS(writable_event, Svc::ResultInvalidHandle);
+
+    return writable_event->Signal();
+}
+
+static ResultCode SignalEvent32(Core::System& system, Handle event_handle) {
+    return SignalEvent(system, event_handle);
+}
+
+static ResultCode ClearEvent(Core::System& system, Handle event_handle) {
+    LOG_TRACE(Kernel_SVC, "called, event_handle=0x{:08X}", event_handle);
+
+    // Get the current handle table.
+    const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
+
+    // Try to clear the writable event.
+    {
+        auto writable_event = handle_table.Get<KWritableEvent>(event_handle);
+        if (writable_event) {
+            return writable_event->Clear();
+        }
+    }
+
+    // Try to clear the readable event.
+    {
+        auto readable_event = handle_table.Get<KReadableEvent>(event_handle);
+        if (readable_event) {
+            return readable_event->Clear();
+        }
+    }
+
+    LOG_ERROR(Kernel_SVC, "Event handle does not exist, event_handle=0x{:08X}", event_handle);
+
+    return Svc::ResultInvalidHandle;
+}
+
+static ResultCode ClearEvent32(Core::System& system, Handle event_handle) {
+    return ClearEvent(system, event_handle);
+}
+
+static ResultCode CreateEvent(Core::System& system, Handle* out_write, Handle* out_read) {
     LOG_DEBUG(Kernel_SVC, "called");
 
+    // Get the kernel reference and handle table.
     auto& kernel = system.Kernel();
-    const auto [readable_event, writable_event] =
-        WritableEvent::CreateEventPair(kernel, "CreateEvent");
-
     HandleTable& handle_table = kernel.CurrentProcess()->GetHandleTable();
 
-    const auto write_create_result = handle_table.Create(writable_event);
+    // Create a new event.
+    const auto event = KEvent::Create(kernel, "CreateEvent");
+    R_UNLESS(event != nullptr, Svc::ResultOutOfResource);
+
+    // Initialize the event.
+    event->Initialize();
+
+    // Add the writable event to the handle table.
+    const auto write_create_result = handle_table.Create(event->GetWritableEvent());
     if (write_create_result.Failed()) {
         return write_create_result.Code();
     }
-    *write_handle = *write_create_result;
+    *out_write = *write_create_result;
 
-    const auto read_create_result = handle_table.Create(readable_event);
+    // Add the writable event to the handle table.
+    auto handle_guard = SCOPE_GUARD({ handle_table.Close(*write_create_result); });
+
+    // Add the readable event to the handle table.
+    const auto read_create_result = handle_table.Create(event->GetReadableEvent());
     if (read_create_result.Failed()) {
-        handle_table.Close(*write_create_result);
         return read_create_result.Code();
     }
-    *read_handle = *read_create_result;
+    *out_read = *read_create_result;
 
-    LOG_DEBUG(Kernel_SVC,
-              "successful. Writable event handle=0x{:08X}, Readable event handle=0x{:08X}",
-              *write_create_result, *read_create_result);
+    // We succeeded.
+    handle_guard.Cancel();
     return RESULT_SUCCESS;
 }
 
-static ResultCode CreateEvent32(Core::System& system, Handle* write_handle, Handle* read_handle) {
-    return CreateEvent(system, write_handle, read_handle);
-}
-
-static ResultCode ClearEvent(Core::System& system, Handle handle) {
-    LOG_TRACE(Kernel_SVC, "called, event=0x{:08X}", handle);
-
-    const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-
-    auto writable_event = handle_table.Get<WritableEvent>(handle);
-    if (writable_event) {
-        writable_event->Clear();
-        return RESULT_SUCCESS;
-    }
-
-    auto readable_event = handle_table.Get<ReadableEvent>(handle);
-    if (readable_event) {
-        readable_event->Clear();
-        return RESULT_SUCCESS;
-    }
-
-    LOG_ERROR(Kernel_SVC, "Event handle does not exist, handle=0x{:08X}", handle);
-    return ERR_INVALID_HANDLE;
-}
-
-static ResultCode ClearEvent32(Core::System& system, Handle handle) {
-    return ClearEvent(system, handle);
-}
-
-static ResultCode SignalEvent(Core::System& system, Handle handle) {
-    LOG_DEBUG(Kernel_SVC, "called. Handle=0x{:08X}", handle);
-
-    HandleTable& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    auto writable_event = handle_table.Get<WritableEvent>(handle);
-
-    if (!writable_event) {
-        LOG_ERROR(Kernel_SVC, "Non-existent writable event handle used (0x{:08X})", handle);
-        return ERR_INVALID_HANDLE;
-    }
-
-    writable_event->Signal();
-    return RESULT_SUCCESS;
-}
-
-static ResultCode SignalEvent32(Core::System& system, Handle handle) {
-    return SignalEvent(system, handle);
+static ResultCode CreateEvent32(Core::System& system, Handle* out_write, Handle* out_read) {
+    return CreateEvent(system, out_write, out_read);
 }
 
 static ResultCode GetProcessInfo(Core::System& system, u64* out, Handle process_handle, u32 type) {

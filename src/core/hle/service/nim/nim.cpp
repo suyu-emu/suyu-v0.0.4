@@ -6,9 +6,10 @@
 #include <ctime>
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
+#include "core/hle/kernel/k_event.h"
+#include "core/hle/kernel/k_readable_event.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/readable_event.h"
-#include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/nim/nim.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/sm/sm.h"
@@ -301,17 +302,18 @@ public:
         RegisterHandlers(functions);
 
         auto& kernel = system.Kernel();
-        finished_event = Kernel::WritableEvent::CreateEventPair(
-            kernel, "IEnsureNetworkClockAvailabilityService:FinishEvent");
+        finished_event =
+            Kernel::KEvent::Create(kernel, "IEnsureNetworkClockAvailabilityService:FinishEvent");
+        finished_event->Initialize();
     }
 
 private:
-    Kernel::EventPair finished_event;
+    std::shared_ptr<Kernel::KEvent> finished_event;
 
     void StartTask(Kernel::HLERequestContext& ctx) {
         // No need to connect to the internet, just finish the task straight away.
         LOG_DEBUG(Service_NIM, "called");
-        finished_event.writable->Signal();
+        finished_event->GetWritableEvent()->Signal();
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
@@ -321,7 +323,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(finished_event.readable);
+        rb.PushCopyObjects(finished_event->GetReadableEvent());
     }
 
     void GetResult(Kernel::HLERequestContext& ctx) {
@@ -333,7 +335,7 @@ private:
 
     void Cancel(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_NIM, "called");
-        finished_event.writable->Clear();
+        finished_event->GetWritableEvent()->Clear();
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }

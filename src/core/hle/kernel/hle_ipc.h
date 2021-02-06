@@ -41,8 +41,8 @@ class KernelCore;
 class Process;
 class ServerSession;
 class KThread;
-class ReadableEvent;
-class WritableEvent;
+class KReadableEvent;
+class KWritableEvent;
 
 enum class ThreadWakeupReason;
 

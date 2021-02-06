@@ -49,3 +49,9 @@ ScopeExitHelper<Func> ScopeExit(Func&& func) {
  * \endcode
  */
 #define SCOPE_EXIT(body) auto CONCAT2(scope_exit_helper_, __LINE__) = detail::ScopeExit([&]() body)
+
+/**
+ * This macro is similar to SCOPE_EXIT, except the object is caller managed. This is intended to be
+ * used when the caller might want to cancel the ScopeExit.
+ */
+#define SCOPE_GUARD(body) detail::ScopeExit([&]() body)

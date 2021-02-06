@@ -18,6 +18,7 @@ using Handle = u32;
 
 enum class HandleType : u32 {
     Unknown,
+    Event,
     WritableEvent,
     ReadableEvent,
     SharedMemory,
@@ -34,7 +35,8 @@ enum class HandleType : u32 {
 
 class Object : NonCopyable, public std::enable_shared_from_this<Object> {
 public:
-    explicit Object(KernelCore& kernel);
+    explicit Object(KernelCore& kernel_);
+    explicit Object(KernelCore& kernel_, std::string&& name_);
     virtual ~Object();
 
     /// Returns a unique identifier for the object. For debugging purposes only.
@@ -46,7 +48,7 @@ public:
         return "[BAD KERNEL OBJECT TYPE]";
     }
     virtual std::string GetName() const {
-        return "[UNKNOWN KERNEL OBJECT]";
+        return name;
     }
     virtual HandleType GetHandleType() const = 0;
 
@@ -69,6 +71,7 @@ protected:
 
 private:
     std::atomic<u32> object_id{0};
+    std::string name;
 };
 
 template <typename T>
