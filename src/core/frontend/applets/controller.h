@@ -31,6 +31,7 @@ struct ControllerParameters {
     bool allow_dual_joycons{};
     bool allow_left_joycon{};
     bool allow_right_joycon{};
+    bool allow_gamecube_controller{};
 };
 
 class ControllerApplet {
