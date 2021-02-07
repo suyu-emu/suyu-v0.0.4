@@ -126,7 +126,7 @@ public:
     /// Create the original context that should be shared from
     explicit OpenGLSharedContext(QSurface* surface) : surface(surface) {
         QSurfaceFormat format;
-        format.setVersion(4, 3);
+        format.setVersion(4, 6);
         format.setProfile(QSurfaceFormat::CompatibilityProfile);
         format.setOption(QSurfaceFormat::FormatOption::DeprecatedFunctions);
         if (Settings::values.renderer_debug) {
@@ -651,10 +651,10 @@ bool GRenderWindow::LoadOpenGL() {
     const QString renderer =
         QString::fromUtf8(reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
 
-    if (!GLAD_GL_VERSION_4_3) {
-        LOG_ERROR(Frontend, "GPU does not support OpenGL 4.3: {}", renderer.toStdString());
-        QMessageBox::warning(this, tr("Error while initializing OpenGL 4.3!"),
-                             tr("Your GPU may not support OpenGL 4.3, or you do not have the "
+    if (!GLAD_GL_VERSION_4_6) {
+        LOG_ERROR(Frontend, "GPU does not support OpenGL 4.6: {}", renderer.toStdString());
+        QMessageBox::warning(this, tr("Error while initializing OpenGL 4.6!"),
+                             tr("Your GPU may not support OpenGL 4.6, or you do not have the "
                                 "latest graphics driver.<br><br>GL Renderer:<br>%1")
                                  .arg(renderer));
         return false;
@@ -677,26 +677,13 @@ bool GRenderWindow::LoadOpenGL() {
 QStringList GRenderWindow::GetUnsupportedGLExtensions() const {
     QStringList unsupported_ext;
 
-    if (!GLAD_GL_ARB_buffer_storage)
-        unsupported_ext.append(QStringLiteral("ARB_buffer_storage"));
-    if (!GLAD_GL_ARB_direct_state_access)
-        unsupported_ext.append(QStringLiteral("ARB_direct_state_access"));
-    if (!GLAD_GL_ARB_vertex_type_10f_11f_11f_rev)
-        unsupported_ext.append(QStringLiteral("ARB_vertex_type_10f_11f_11f_rev"));
-    if (!GLAD_GL_ARB_texture_mirror_clamp_to_edge)
-        unsupported_ext.append(QStringLiteral("ARB_texture_mirror_clamp_to_edge"));
-    if (!GLAD_GL_ARB_multi_bind)
-        unsupported_ext.append(QStringLiteral("ARB_multi_bind"));
-    if (!GLAD_GL_ARB_clip_control)
-        unsupported_ext.append(QStringLiteral("ARB_clip_control"));
-
     // Extensions required to support some texture formats.
-    if (!GLAD_GL_EXT_texture_compression_s3tc)
+    if (!GLAD_GL_EXT_texture_compression_s3tc) {
         unsupported_ext.append(QStringLiteral("EXT_texture_compression_s3tc"));
-    if (!GLAD_GL_ARB_texture_compression_rgtc)
+    }
+    if (!GLAD_GL_ARB_texture_compression_rgtc) {
         unsupported_ext.append(QStringLiteral("ARB_texture_compression_rgtc"));
-    if (!GLAD_GL_ARB_depth_buffer_float)
-        unsupported_ext.append(QStringLiteral("ARB_depth_buffer_float"));
+    }
 
     if (!unsupported_ext.empty()) {
         LOG_ERROR(Frontend, "GPU does not support all required extensions: {}",
