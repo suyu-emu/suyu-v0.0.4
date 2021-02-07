@@ -143,17 +143,19 @@ private:
         rb.Push(RESULT_SUCCESS);
     }
 
-    u32 ReadLeb128(const std::vector<u8>& data, std::size_t& offset) {
-        u32 result{};
+    u64 ReadLeb128(const std::vector<u8>& data, std::size_t& offset) {
+        u64 result{};
         u32 shift{};
-        do {
-            result |= (data[offset] & 0x7f) << shift;
+
+        for (std::size_t i = 0; i < sizeof(u64); i++) {
+            const auto v = data[offset];
+            result |= (static_cast<u64>(v & 0x7f) << shift);
             shift += 7;
             offset++;
-            if (offset >= data.size()) {
+            if (offset >= data.size() || ((v & 0x80) == 0)) {
                 break;
             }
-        } while ((data[offset] & 0x80) != 0);
+        }
         return result;
     }
 
@@ -262,7 +264,7 @@ private:
 
         switch (entry.severity) {
         case LogSeverity::Trace:
-            LOG_DEBUG(Service_LM, "LogManager DEBUG ({}):\n{}", DestinationToString(destination),
+            LOG_DEBUG(Service_LM, "LogManager TRACE ({}):\n{}", DestinationToString(destination),
                       output_log);
             break;
         case LogSeverity::Info:
