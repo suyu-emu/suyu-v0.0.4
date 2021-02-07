@@ -52,6 +52,9 @@ private:
         B,
         X,
         Y,
+        L,
+        R,
+        C,
         SL,
         ZL,
         ZR,
@@ -104,6 +107,7 @@ private:
     void DrawLeftController(QPainter& p, QPointF center);
     void DrawRightController(QPainter& p, QPointF center);
     void DrawProController(QPainter& p, QPointF center);
+    void DrawGCController(QPainter& p, QPointF center);
 
     // Draw body functions
     void DrawHandheldBody(QPainter& p, QPointF center);
@@ -111,9 +115,11 @@ private:
     void DrawLeftBody(QPainter& p, QPointF center);
     void DrawRightBody(QPainter& p, QPointF center);
     void DrawProBody(QPainter& p, QPointF center);
+    void DrawGCBody(QPainter& p, QPointF center);
 
     // Draw triggers functions
     void DrawProTriggers(QPainter& p, QPointF center, bool left_pressed, bool right_pressed);
+    void DrawGCTriggers(QPainter& p, QPointF center, bool left_pressed, bool right_pressed);
     void DrawHandheldTriggers(QPainter& p, QPointF center, bool left_pressed, bool right_pressed);
     void DrawDualTriggers(QPainter& p, QPointF center, bool left_pressed, bool right_pressed);
     void DrawDualTriggersTopView(QPainter& p, QPointF center, bool left_pressed,
@@ -135,6 +141,7 @@ private:
     void DrawRawJoystick(QPainter& p, QPointF center, const QPointF value,
                          const Input::AnalogProperties properties);
     void DrawProJoystick(QPainter& p, QPointF center, bool pressed);
+    void DrawGCJoystick(QPainter& p, QPointF center, bool pressed);
 
     // Draw button functions
     void DrawCircleButton(QPainter& p, QPointF center, bool pressed, float button_size);
@@ -142,8 +149,12 @@ private:
                          Direction direction = Direction::None, float radius = 2);
     void DrawMinusButton(QPainter& p, QPointF center, bool pressed, int button_size);
     void DrawPlusButton(QPainter& p, QPointF center, bool pressed, int button_size);
-    void DrawArrowButtonOutline(QPainter& p, const QPointF center);
-    void DrawArrowButton(QPainter& p, QPointF center, Direction direction, bool pressed);
+    void DrawGCButtonX(QPainter& p, QPointF center, bool pressed);
+    void DrawGCButtonY(QPainter& p, QPointF center, bool pressed);
+    void DrawGCButtonZ(QPainter& p, QPointF center, bool pressed);
+    void DrawArrowButtonOutline(QPainter& p, const QPointF center, float size = 1.0f);
+    void DrawArrowButton(QPainter& p, QPointF center, Direction direction, bool pressed,
+                         float size = 1.0f);
     void DrawTriggerButton(QPainter& p, QPointF center, Direction direction, bool pressed);
 
     // Draw icon functions

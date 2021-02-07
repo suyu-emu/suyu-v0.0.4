@@ -289,7 +289,8 @@ void PlayerControlPreview::DrawLeftController(QPainter& p, const QPointF center)
         DrawLeftZTriggersTopView(p, center, button_values[ZL]);
     }
 
-    { // Draw joysticks
+    {
+        // Draw joysticks
         using namespace Settings::NativeAnalog;
         DrawJoystick(p, center + QPointF(9, -69) + (axis_values[LStick].value * 8), 1.8f,
                      button_values[Settings::NativeButton::LStick]);
@@ -403,7 +404,8 @@ void PlayerControlPreview::DrawRightController(QPainter& p, const QPointF center
         DrawRightZTriggersTopView(p, center, button_values[ZR]);
     }
 
-    { // Draw joysticks
+    {
+        // Draw joysticks
         using namespace Settings::NativeAnalog;
         DrawJoystick(p, center + QPointF(-9, 11) + (axis_values[RStick].value * 8), 1.8f,
                      button_values[Settings::NativeButton::RStick]);
@@ -512,7 +514,8 @@ void PlayerControlPreview::DrawDualController(QPainter& p, const QPointF center)
         DrawDualZTriggersTopView(p, center, button_values[ZL], button_values[ZR]);
     }
 
-    { // Draw joysticks
+    {
+        // Draw joysticks
         using namespace Settings::NativeAnalog;
         DrawJoystick(p, center + QPointF(-65, -65) + (axis_values[LStick].value * 7), 1.62f,
                      button_values[Settings::NativeButton::LStick]);
@@ -597,7 +600,8 @@ void PlayerControlPreview::DrawHandheldController(QPainter& p, const QPointF cen
     DrawHandheldTriggers(p, center, button_values[Settings::NativeButton::L],
                          button_values[Settings::NativeButton::R]);
     DrawHandheldBody(p, center);
-    { // Draw joysticks
+    {
+        // Draw joysticks
         using namespace Settings::NativeAnalog;
         DrawJoystick(p, center + QPointF(-171, -41) + (axis_values[LStick].value * 4), 1.0f,
                      button_values[Settings::NativeButton::LStick]);
@@ -692,7 +696,8 @@ void PlayerControlPreview::DrawProController(QPainter& p, const QPointF center) 
     DrawProTriggers(p, center, button_values[Settings::NativeButton::L],
                     button_values[Settings::NativeButton::R]);
     DrawProBody(p, center);
-    { // Draw joysticks
+    {
+        // Draw joysticks
         using namespace Settings::NativeAnalog;
         DrawProJoystick(p, center + QPointF(-111, -55) + (axis_values[LStick].value * 11),
                         button_values[Settings::NativeButton::LStick]);
@@ -775,6 +780,63 @@ void PlayerControlPreview::DrawProController(QPainter& p, const QPointF center) 
     DrawSymbol(p, center + QPoint(29, -56), Symbol::House, 3.9f);
 }
 
+void PlayerControlPreview::DrawGCController(QPainter& p, const QPointF center) {
+    DrawGCTriggers(p, center, button_values[Settings::NativeButton::ZL],
+                   button_values[Settings::NativeButton::ZR]);
+    DrawGCButtonZ(p, center, button_values[Settings::NativeButton::R]);
+    DrawGCBody(p, center);
+    {
+        // Draw joysticks
+        using namespace Settings::NativeAnalog;
+        DrawGCJoystick(p, center + QPointF(-111, -44) + (axis_values[LStick].value * 10), false);
+        button_color = colors.button2;
+        DrawCircleButton(p, center + QPointF(61, 37) + (axis_values[RStick].value * 9.5f), false,
+                         15);
+        p.setPen(colors.transparent);
+        p.setBrush(colors.font);
+        DrawSymbol(p, center + QPointF(61, 37) + (axis_values[RStick].value * 9.5f), Symbol::C,
+                   1.0f);
+        DrawRawJoystick(p, center + QPointF(-198, -125), axis_values[LStick].raw_value,
+                        axis_values[LStick].properties);
+        DrawRawJoystick(p, center + QPointF(198, -125), axis_values[RStick].raw_value,
+                        axis_values[RStick].properties);
+    }
+
+    using namespace Settings::NativeButton;
+
+    // Face buttons constants
+    constexpr float text_size = 1.1f;
+
+    // Face buttons
+    p.setPen(colors.outline);
+    button_color = colors.button;
+    DrawCircleButton(p, center + QPoint(111, -44), button_values[A], 21);
+    DrawCircleButton(p, center + QPoint(70, -23), button_values[B], 13);
+    DrawGCButtonX(p, center, button_values[Settings::NativeButton::X]);
+    DrawGCButtonY(p, center, button_values[Settings::NativeButton::Y]);
+
+    // Face buttons text
+    p.setPen(colors.transparent);
+    p.setBrush(colors.font);
+    DrawSymbol(p, center + QPoint(111, -44), Symbol::A, 1.5f);
+    DrawSymbol(p, center + QPoint(70, -23), Symbol::B, text_size);
+    DrawSymbol(p, center + QPoint(151, -53), Symbol::X, text_size);
+    DrawSymbol(p, center + QPoint(100, -83), Symbol::Y, text_size);
+
+    // D-pad buttons
+    const QPointF dpad_postion = center + QPoint(-61, 37);
+    const float dpad_size = 0.8f;
+    DrawArrowButton(p, dpad_postion, Direction::Up, button_values[DUp], dpad_size);
+    DrawArrowButton(p, dpad_postion, Direction::Left, button_values[DLeft], dpad_size);
+    DrawArrowButton(p, dpad_postion, Direction::Right, button_values[DRight], dpad_size);
+    DrawArrowButton(p, dpad_postion, Direction::Down, button_values[DDown], dpad_size);
+    DrawArrowButtonOutline(p, dpad_postion, dpad_size);
+
+    // Minus and Plus buttons
+    p.setPen(colors.outline);
+    DrawCircleButton(p, center + QPoint(0, -44), button_values[Plus], 8);
+}
+
 constexpr std::array<float, 13 * 2> symbol_a = {
     -1.085f, -5.2f,   1.085f, -5.2f,   5.085f, 5.0f,    2.785f,  5.0f,  1.785f,
     2.65f,   -1.785f, 2.65f,  -2.785f, 5.0f,   -5.085f, 5.0f,    -1.4f, 1.0f,
@@ -817,6 +879,29 @@ constexpr std::array<float, 12 * 2> symbol_x = {
     -4.4f, -5.0f, -2.0f, -5.0f, 0.0f, -1.7f, 2.0f,  -5.0f, 4.4f,  -5.0f, 1.2f,  0.0f,
     4.4f,  5.0f,  2.0f,  5.0f,  0.0f, 1.7f,  -2.0f, 5.0f,  -4.4f, 5.0f,  -1.2f, 0.0f,
 
+};
+
+constexpr std::array<float, 7 * 2> symbol_l = {
+    2.4f, -3.23f, 2.4f, 2.1f, 5.43f, 2.1f, 5.43f, 3.22f, 0.98f, 3.22f, 0.98f, -3.23f, 2.4f, -3.23f,
+};
+
+constexpr std::array<float, 98 * 2> symbol_r = {
+    1.0f, 0.0f,  1.0f, -0.1f, 1.1f, -3.3f, 4.3f, -3.2f, 5.1f, -3.1f, 5.4f, -3.0f, 5.6f, -2.9f,
+    5.7f, -2.8f, 5.9f, -2.7f, 5.9f, -2.6f, 6.0f, -2.5f, 6.1f, -2.3f, 6.2f, -2.2f, 6.2f, -2.1f,
+    6.3f, -2.0f, 6.3f, -1.9f, 6.2f, -0.8f, 6.2f, -0.7f, 6.1f, -0.6f, 6.1f, -0.5f, 6.0f, -0.4f,
+    6.0f, -0.3f, 5.9f, -0.2f, 5.7f, -0.1f, 5.7f, 0.0f,  5.6f, 0.1f,  5.4f, 0.2f,  5.1f, 0.3f,
+    4.7f, 0.4f,  4.7f, 0.5f,  4.9f, 0.6f,  5.0f, 0.7f,  5.2f, 0.8f,  5.2f, 0.9f,  5.3f, 1.0f,
+    5.5f, 1.1f,  5.5f, 1.2f,  5.6f, 1.3f,  5.7f, 1.5f,  5.8f, 1.6f,  5.9f, 1.8f,  6.0f, 1.9f,
+    6.1f, 2.1f,  6.2f, 2.2f,  6.2f, 2.3f,  6.3f, 2.4f,  6.4f, 2.6f,  6.5f, 2.7f,  6.6f, 2.9f,
+    6.7f, 3.0f,  6.7f, 3.1f,  6.8f, 3.2f,  6.8f, 3.3f,  5.3f, 3.2f,  5.2f, 3.1f,  5.2f, 3.0f,
+    5.1f, 2.9f,  5.0f, 2.7f,  4.9f, 2.6f,  4.8f, 2.4f,  4.7f, 2.3f,  4.6f, 2.1f,  4.5f, 2.0f,
+    4.4f, 1.8f,  4.3f, 1.7f,  4.1f, 1.4f,  4.0f, 1.3f,  3.9f, 1.1f,  3.8f, 1.0f,  3.6f, 0.9f,
+    3.6f, 0.8f,  3.5f, 0.7f,  3.3f, 0.6f,  2.9f, 0.5f,  2.3f, 0.6f,  2.3f, 0.7f,  2.2f, 3.3f,
+    1.0f, 3.2f,  1.0f, 3.1f,  1.0f, 0.0f,
+
+    4.2f, -0.5f, 4.4f, -0.6f, 4.7f, -0.7f, 4.8f, -0.8f, 4.9f, -1.0f, 5.0f, -1.1f, 5.0f, -1.2f,
+    4.9f, -1.7f, 4.9f, -1.8f, 4.8f, -1.9f, 4.8f, -2.0f, 4.6f, -2.1f, 4.3f, -2.2f, 2.3f, -2.1f,
+    2.3f, -2.0f, 2.4f, -0.5f, 4.2f, -0.5f, 1.0f, 0.0f,
 };
 
 constexpr std::array<float, 18 * 2> symbol_zl = {
@@ -893,6 +978,14 @@ constexpr std::array<float, 148 * 2> symbol_sr = {
     2.2f,   4.3f,   2.1f,   2.3f,   2.0f,   2.3f,   0.5f,   2.4f,   0.5f,   4.2f,   -0.0f,  1.0f,
     -3.09f, -2.34f,
 
+};
+
+constexpr std::array<float, 30 * 2> symbol_c = {
+    2.86f,  7.57f,  0.99f,  7.94f,  -0.91f, 7.87f,  -2.73f, 7.31f,  -4.23f, 6.14f,  -5.2f,  4.51f,
+    -5.65f, 2.66f,  -5.68f, 0.75f,  -5.31f, -1.12f, -4.43f, -2.81f, -3.01f, -4.08f, -1.24f, -4.78f,
+    0.66f,  -4.94f, 2.54f,  -4.67f, 4.33f,  -4.0f,  4.63f,  -2.27f, 3.37f,  -2.7f,  1.6f,   -3.4f,
+    -0.3f,  -3.5f,  -2.09f, -2.87f, -3.34f, -1.45f, -3.91f, 0.37f,  -3.95f, 2.27f,  -3.49f, 4.12f,
+    -2.37f, 5.64f,  -0.65f, 6.44f,  1.25f,  6.47f,  3.06f,  5.89f,  4.63f,  4.92f,  4.63f,  6.83f,
 };
 
 constexpr std::array<float, 12 * 2> house = {
@@ -1028,6 +1121,132 @@ constexpr std::array<float, 245 * 2> pro_body = {
     -85.5f,  57.5f,   -84.1f,  57.4f,   -83.4f,  57.3f,   -82.6f,  57.3f,   -81.9f,  57.2f,
     -81.2f,  57.2f,   -80.5f,  57.1f,   -79.8f,  57.1f,   -78.4f,  57.0f,   -77.7f,  57.0f,
     -75.5f,  56.9f,   -74.8f,  56.9f,   -71.9f,  56.8f,   -71.2f,  56.8f,   0.0f,    56.8f,
+};
+
+constexpr std::array<float, 199 * 2> gc_body = {
+    0.0f,     -138.03f, -4.91f,   -138.01f, -8.02f,   -137.94f, -11.14f,  -137.82f, -14.25f,
+    -137.67f, -17.37f,  -137.48f, -20.48f,  -137.25f, -23.59f,  -137.0f,  -26.69f,  -136.72f,
+    -29.8f,   -136.41f, -32.9f,   -136.07f, -35.99f,  -135.71f, -39.09f,  -135.32f, -42.18f,
+    -134.91f, -45.27f,  -134.48f, -48.35f,  -134.03f, -51.43f,  -133.55f, -54.51f,  -133.05f,
+    -57.59f,  -132.52f, -60.66f,  -131.98f, -63.72f,  -131.41f, -66.78f,  -130.81f, -69.84f,
+    -130.2f,  -72.89f,  -129.56f, -75.94f,  -128.89f, -78.98f,  -128.21f, -82.02f,  -127.49f,
+    -85.05f,  -126.75f, -88.07f,  -125.99f, -91.09f,  -125.19f, -94.1f,   -124.37f, -97.1f,
+    -123.52f, -100.09f, -122.64f, -103.07f, -121.72f, -106.04f, -120.77f, -109.0f,  -119.79f,
+    -111.95f, -118.77f, -114.88f, -117.71f, -117.8f,  -116.61f, -120.7f,  -115.46f, -123.58f,
+    -114.27f, -126.44f, -113.03f, -129.27f, -111.73f, -132.08f, -110.38f, -134.86f, -108.96f,
+    -137.6f,  -107.47f, -140.3f,  -105.91f, -142.95f, -104.27f, -145.55f, -102.54f, -148.07f,
+    -100.71f, -150.51f, -98.77f,  -152.86f, -96.71f,  -155.09f, -94.54f,  -157.23f, -92.27f,
+    -159.26f, -89.9f,   -161.2f,  -87.46f,  -163.04f, -84.94f,  -164.78f, -82.35f,  -166.42f,
+    -79.7f,   -167.97f, -77.0f,   -169.43f, -74.24f,  -170.8f,  -71.44f,  -172.09f, -68.6f,
+    -173.29f, -65.72f,  -174.41f, -62.81f,  -175.45f, -59.87f,  -176.42f, -56.91f,  -177.31f,
+    -53.92f,  -178.14f, -50.91f,  -178.9f,  -47.89f,  -179.6f,  -44.85f,  -180.24f, -41.8f,
+    -180.82f, -38.73f,  -181.34f, -35.66f,  -181.8f,  -32.57f,  -182.21f, -29.48f,  -182.57f,
+    -26.38f,  -182.88f, -23.28f,  -183.15f, -20.17f,  -183.36f, -17.06f,  -183.54f, -13.95f,
+    -183.71f, -10.84f,  -184.0f,  -7.73f,   -184.23f, -4.62f,   -184.44f, -1.51f,   -184.62f,
+    1.6f,     -184.79f, 4.72f,    -184.95f, 7.83f,    -185.11f, 10.95f,   -185.25f, 14.06f,
+    -185.38f, 17.18f,   -185.51f, 20.29f,   -185.63f, 23.41f,   -185.74f, 26.53f,   -185.85f,
+    29.64f,   -185.95f, 32.76f,   -186.04f, 35.88f,   -186.12f, 39.0f,    -186.19f, 42.11f,
+    -186.26f, 45.23f,   -186.32f, 48.35f,   -186.37f, 51.47f,   -186.41f, 54.59f,   -186.44f,
+    57.7f,    -186.46f, 60.82f,   -186.46f, 63.94f,   -186.44f, 70.18f,   -186.41f, 73.3f,
+    -186.36f, 76.42f,   -186.3f,  79.53f,   -186.22f, 82.65f,   -186.12f, 85.77f,   -185.99f,
+    88.88f,   -185.84f, 92.0f,    -185.66f, 95.11f,   -185.44f, 98.22f,   -185.17f, 101.33f,
+    -184.85f, 104.43f,  -184.46f, 107.53f,  -183.97f, 110.61f,  -183.37f, 113.67f,  -182.65f,
+    116.7f,   -181.77f, 119.69f,  -180.71f, 122.62f,  -179.43f, 125.47f,  -177.89f, 128.18f,
+    -176.05f, 130.69f,  -173.88f, 132.92f,  -171.36f, 134.75f,  -168.55f, 136.1f,   -165.55f,
+    136.93f,  -162.45f, 137.29f,  -156.23f, 137.03f,  -153.18f, 136.41f,  -150.46f, 134.9f,
+    -148.14f, 132.83f,  -146.14f, 130.43f,  -144.39f, 127.85f,  -142.83f, 125.16f,  -141.41f,
+    122.38f,  -140.11f, 119.54f,  -138.9f,  116.67f,  -137.77f, 113.76f,  -136.7f,  110.84f,
+    -135.68f, 107.89f,  -134.71f, 104.93f,  -133.77f, 101.95f,  -132.86f, 98.97f,   -131.97f,
+    95.98f,   -131.09f, 92.99f,   -130.23f, 89.99f,   -129.36f, 86.99f,   -128.49f, 84.0f,
+    -127.63f, 81.0f,    -126.76f, 78.01f,   -125.9f,  75.01f,   -124.17f, 69.02f,   -123.31f,
+    66.02f,   -121.59f, 60.03f,   -120.72f, 57.03f,   -119.86f, 54.03f,   -118.13f, 48.04f,
+    -117.27f, 45.04f,   -115.55f, 39.05f,   -114.68f, 36.05f,   -113.82f, 33.05f,   -112.96f,
+    30.06f,   -110.4f,  28.29f,   -107.81f, 26.55f,   -105.23f, 24.8f,    -97.48f,  19.55f,
+    -94.9f,   17.81f,   -92.32f,  16.06f,   -87.15f,  12.56f,   -84.57f,  10.81f,   -81.99f,
+    9.07f,    -79.4f,   7.32f,    -76.82f,  5.57f,    -69.07f,  0.33f,    -66.49f,  -1.42f,
+    -58.74f,  -6.66f,   -56.16f,  -8.41f,   -48.4f,   -13.64f,  -45.72f,  -15.22f,  -42.93f,
+    -16.62f,  -40.07f,  -17.86f,  -37.15f,  -18.96f,  -34.19f,  -19.94f,  -31.19f,  -20.79f,
+    -28.16f,  -21.55f,  -25.12f,  -22.21f,  -22.05f,  -22.79f,  -18.97f,  -23.28f,  -15.88f,
+    -23.7f,   -12.78f,  -24.05f,  -9.68f,   -24.33f,  -6.57f,   -24.55f,  -3.45f,   -24.69f,
+    0.0f,     -24.69f,
+};
+
+constexpr std::array<float, 99 * 2> gc_left_body = {
+    -74.59f,  -97.22f,  -70.17f,  -94.19f,  -65.95f,  -90.89f,  -62.06f,  -87.21f,  -58.58f,
+    -83.14f,  -55.58f,  -78.7f,   -53.08f,  -73.97f,  -51.05f,  -69.01f,  -49.46f,  -63.89f,
+    -48.24f,  -58.67f,  -47.36f,  -53.39f,  -46.59f,  -48.09f,  -45.7f,   -42.8f,   -44.69f,
+    -37.54f,  -43.54f,  -32.31f,  -42.25f,  -27.11f,  -40.8f,   -21.95f,  -39.19f,  -16.84f,
+    -37.38f,  -11.8f,   -35.34f,  -6.84f,   -33.04f,  -2.0f,    -30.39f,  2.65f,    -27.26f,
+    7.0f,     -23.84f,  11.11f,   -21.19f,  15.76f,   -19.18f,  20.73f,   -17.73f,  25.88f,
+    -16.82f,  31.16f,   -16.46f,  36.5f,    -16.7f,   41.85f,   -17.63f,  47.13f,   -19.31f,
+    52.21f,   -21.8f,   56.95f,   -24.91f,  61.3f,    -28.41f,  65.36f,   -32.28f,  69.06f,
+    -36.51f,  72.35f,   -41.09f,  75.13f,   -45.97f,  77.32f,   -51.1f,   78.86f,   -56.39f,
+    79.7f,    -61.74f,  79.84f,   -67.07f,  79.3f,    -72.3f,   78.15f,   -77.39f,  76.48f,
+    -82.29f,  74.31f,   -86.76f,  71.37f,   -90.7f,   67.75f,   -94.16f,  63.66f,   -97.27f,
+    59.3f,    -100.21f, 54.81f,   -103.09f, 50.3f,    -106.03f, 45.82f,   -109.11f, 41.44f,
+    -112.37f, 37.19f,   -115.85f, 33.11f,   -119.54f, 29.22f,   -123.45f, 25.56f,   -127.55f,
+    22.11f,   -131.77f, 18.81f,   -136.04f, 15.57f,   -140.34f, 12.37f,   -144.62f, 9.15f,
+    -148.86f, 5.88f,    -153.03f, 2.51f,    -157.05f, -1.03f,   -160.83f, -4.83f,   -164.12f,
+    -9.05f,   -166.71f, -13.73f,  -168.91f, -18.62f,  -170.77f, -23.64f,  -172.3f,  -28.78f,
+    -173.49f, -34.0f,   -174.3f,  -39.3f,   -174.72f, -44.64f,  -174.72f, -49.99f,  -174.28f,
+    -55.33f,  -173.37f, -60.61f,  -172.0f,  -65.79f,  -170.17f, -70.82f,  -167.79f, -75.62f,
+    -164.84f, -80.09f,  -161.43f, -84.22f,  -157.67f, -88.03f,  -153.63f, -91.55f,  -149.37f,
+    -94.81f,  -144.94f, -97.82f,  -140.37f, -100.61f, -135.65f, -103.16f, -130.73f, -105.26f,
+    -125.62f, -106.86f, -120.37f, -107.95f, -115.05f, -108.56f, -109.7f,  -108.69f, -104.35f,
+    -108.36f, -99.05f,  -107.6f,  -93.82f,  -106.41f, -88.72f,  -104.79f, -83.78f,  -102.7f,
+};
+
+constexpr std::array<float, 47 * 2> left_gc_trigger = {
+    -99.69f,  -125.04f, -101.81f, -126.51f, -104.02f, -127.85f, -106.3f,  -129.06f, -108.65f,
+    -130.12f, -111.08f, -130.99f, -113.58f, -131.62f, -116.14f, -131.97f, -121.26f, -131.55f,
+    -123.74f, -130.84f, -126.17f, -129.95f, -128.53f, -128.9f,  -130.82f, -127.71f, -133.03f,
+    -126.38f, -135.15f, -124.92f, -137.18f, -123.32f, -139.11f, -121.6f,  -140.91f, -119.75f,
+    -142.55f, -117.77f, -144.0f,  -115.63f, -145.18f, -113.34f, -146.17f, -110.95f, -147.05f,
+    -108.53f, -147.87f, -106.08f, -148.64f, -103.61f, -149.37f, -101.14f, -149.16f, -100.12f,
+    -147.12f, -101.71f, -144.99f, -103.16f, -142.8f,  -104.53f, -140.57f, -105.83f, -138.31f,
+    -107.08f, -136.02f, -108.27f, -133.71f, -109.42f, -131.38f, -110.53f, -129.04f, -111.61f,
+    -126.68f, -112.66f, -124.31f, -113.68f, -121.92f, -114.67f, -119.53f, -115.64f, -117.13f,
+    -116.58f, -114.72f, -117.51f, -112.3f,  -118.41f, -109.87f, -119.29f, -107.44f, -120.16f,
+    -105.0f,  -121.0f,  -100.11f, -122.65f,
+};
+
+constexpr std::array<float, 50 * 2> gc_button_x = {
+    142.1f,  -50.67f, 142.44f, -48.65f, 142.69f, -46.62f, 142.8f,  -44.57f, 143.0f,  -42.54f,
+    143.56f, -40.57f, 144.42f, -38.71f, 145.59f, -37.04f, 147.08f, -35.64f, 148.86f, -34.65f,
+    150.84f, -34.11f, 152.88f, -34.03f, 154.89f, -34.38f, 156.79f, -35.14f, 158.49f, -36.28f,
+    159.92f, -37.74f, 161.04f, -39.45f, 161.85f, -41.33f, 162.4f,  -43.3f,  162.72f, -45.32f,
+    162.85f, -47.37f, 162.82f, -49.41f, 162.67f, -51.46f, 162.39f, -53.48f, 162.0f,  -55.5f,
+    161.51f, -57.48f, 160.9f,  -59.44f, 160.17f, -61.35f, 159.25f, -63.18f, 158.19f, -64.93f,
+    157.01f, -66.61f, 155.72f, -68.2f,  154.31f, -69.68f, 152.78f, -71.04f, 151.09f, -72.2f,
+    149.23f, -73.04f, 147.22f, -73.36f, 145.19f, -73.11f, 143.26f, -72.42f, 141.51f, -71.37f,
+    140.0f,  -69.99f, 138.82f, -68.32f, 138.13f, -66.4f,  138.09f, -64.36f, 138.39f, -62.34f,
+    139.05f, -60.41f, 139.91f, -58.55f, 140.62f, -56.63f, 141.21f, -54.67f, 141.67f, -52.67f,
+};
+
+constexpr std::array<float, 50 * 2> gc_button_y = {
+    104.02f, -75.23f, 106.01f, -75.74f, 108.01f, -76.15f, 110.04f, -76.42f, 112.05f, -76.78f,
+    113.97f, -77.49f, 115.76f, -78.49f, 117.33f, -79.79f, 118.6f,  -81.39f, 119.46f, -83.25f,
+    119.84f, -85.26f, 119.76f, -87.3f,  119.24f, -89.28f, 118.33f, -91.11f, 117.06f, -92.71f,
+    115.49f, -94.02f, 113.7f,  -95.01f, 111.77f, -95.67f, 109.76f, -96.05f, 107.71f, -96.21f,
+    105.67f, -96.18f, 103.63f, -95.99f, 101.61f, -95.67f, 99.61f,  -95.24f, 97.63f,  -94.69f,
+    95.69f,  -94.04f, 93.79f,  -93.28f, 91.94f,  -92.4f,  90.19f,  -91.34f, 88.53f,  -90.14f,
+    86.95f,  -88.84f, 85.47f,  -87.42f, 84.1f,   -85.9f,  82.87f,  -84.26f, 81.85f,  -82.49f,
+    81.15f,  -80.57f, 81.0f,   -78.54f, 81.41f,  -76.54f, 82.24f,  -74.67f, 83.43f,  -73.01f,
+    84.92f,  -71.61f, 86.68f,  -70.57f, 88.65f,  -70.03f, 90.69f,  -70.15f, 92.68f,  -70.61f,
+    94.56f,  -71.42f, 96.34f,  -72.43f, 98.2f,   -73.29f, 100.11f, -74.03f, 102.06f, -74.65f,
+};
+
+constexpr std::array<float, 47 * 2> gc_button_z = {
+    95.74f,  -126.41f, 98.34f,  -126.38f, 100.94f, -126.24f, 103.53f, -126.01f, 106.11f, -125.7f,
+    108.69f, -125.32f, 111.25f, -124.87f, 113.8f,  -124.34f, 116.33f, -123.73f, 118.84f, -123.05f,
+    121.33f, -122.3f,  123.79f, -121.47f, 126.23f, -120.56f, 128.64f, -119.58f, 131.02f, -118.51f,
+    133.35f, -117.37f, 135.65f, -116.14f, 137.9f,  -114.84f, 140.1f,  -113.46f, 142.25f, -111.99f,
+    144.35f, -110.45f, 146.38f, -108.82f, 148.35f, -107.13f, 150.25f, -105.35f, 151.89f, -103.38f,
+    151.43f, -100.86f, 149.15f, -100.15f, 146.73f, -101.06f, 144.36f, -102.12f, 141.98f, -103.18f,
+    139.6f,  -104.23f, 137.22f, -105.29f, 134.85f, -106.35f, 132.47f, -107.41f, 127.72f, -109.53f,
+    125.34f, -110.58f, 122.96f, -111.64f, 120.59f, -112.7f,  118.21f, -113.76f, 113.46f, -115.88f,
+    111.08f, -116.93f, 108.7f,  -117.99f, 106.33f, -119.05f, 103.95f, -120.11f, 99.2f,   -122.23f,
+    96.82f,  -123.29f, 94.44f,  -124.34f,
 };
 
 constexpr std::array<float, 84 * 2> left_joycon_body = {
@@ -1266,6 +1485,57 @@ void PlayerControlPreview::DrawProBody(QPainter& p, const QPointF center) {
     p.setBrush(colors.transparent);
     p.drawEllipse(center + QPoint(-111, -55), radius1, radius1);
     p.drawEllipse(center + QPoint(51, 0), radius1, radius1);
+}
+
+void PlayerControlPreview::DrawGCBody(QPainter& p, const QPointF center) {
+    std::array<QPointF, gc_left_body.size() / 2> qleft_handle;
+    std::array<QPointF, gc_left_body.size() / 2> qright_handle;
+    std::array<QPointF, gc_body.size()> qbody;
+    std::array<QPointF, 8> left_hex;
+    std::array<QPointF, 8> right_hex;
+    constexpr float angle = 2 * 3.1415f / 8;
+
+    for (std::size_t point = 0; point < gc_left_body.size() / 2; ++point) {
+        qleft_handle[point] =
+            center + QPointF(gc_left_body[point * 2], gc_left_body[point * 2 + 1]);
+        qright_handle[point] =
+            center + QPointF(-gc_left_body[point * 2], gc_left_body[point * 2 + 1]);
+    }
+    for (std::size_t point = 0; point < gc_body.size() / 2; ++point) {
+        qbody[point] = center + QPointF(gc_body[point * 2], gc_body[point * 2 + 1]);
+        qbody[gc_body.size() - 1 - point] =
+            center + QPointF(-gc_body[point * 2], gc_body[point * 2 + 1]);
+    }
+    for (std::size_t point = 0; point < 8; ++point) {
+        left_hex[point] =
+            center + QPointF(34 * std::cos(point * angle) - 111, 34 * std::sin(point * angle) - 44);
+        right_hex[point] =
+            center + QPointF(26 * std::cos(point * angle) + 61, 26 * std::sin(point * angle) + 37);
+    }
+
+    // Draw body
+    p.setPen(colors.outline);
+    p.setBrush(colors.primary);
+    DrawPolygon(p, qbody);
+
+    // Draw left handle body
+    p.setBrush(colors.left);
+    DrawPolygon(p, qleft_handle);
+
+    // Draw right handle body
+    p.setBrush(colors.right);
+    DrawPolygon(p, qright_handle);
+
+    DrawText(p, center + QPoint(0, -58), 4.7f, tr("START/PAUSE"));
+
+    // Draw right joystick body
+    p.setBrush(colors.button);
+    DrawCircle(p, center + QPointF(61, 37), 23.5f);
+
+    // Draw joystick details
+    p.setBrush(colors.transparent);
+    DrawPolygon(p, left_hex);
+    DrawPolygon(p, right_hex);
 }
 
 void PlayerControlPreview::DrawHandheldBody(QPainter& p, const QPointF center) {
@@ -1663,6 +1933,40 @@ void PlayerControlPreview::DrawProTriggers(QPainter& p, const QPointF center, bo
     DrawPolygon(p, qright_trigger);
 }
 
+void PlayerControlPreview::DrawGCTriggers(QPainter& p, const QPointF center, bool left_pressed,
+                                          bool right_pressed) {
+    std::array<QPointF, left_gc_trigger.size() / 2> qleft_trigger;
+    std::array<QPointF, left_gc_trigger.size() / 2> qright_trigger;
+
+    for (std::size_t point = 0; point < left_gc_trigger.size() / 2; ++point) {
+        qleft_trigger[point] =
+            center + QPointF(left_gc_trigger[point * 2],
+                             left_gc_trigger[point * 2 + 1] + (left_pressed ? 10 : 0));
+        qright_trigger[point] =
+            center + QPointF(-left_gc_trigger[point * 2],
+                             left_gc_trigger[point * 2 + 1] + (right_pressed ? 10 : 0));
+    }
+
+    // Left trigger
+    p.setPen(colors.outline);
+    p.setBrush(left_pressed ? colors.highlight : colors.button);
+    DrawPolygon(p, qleft_trigger);
+
+    // Right trigger
+    p.setBrush(right_pressed ? colors.highlight : colors.button);
+    DrawPolygon(p, qright_trigger);
+
+    // Draw L text
+    p.setPen(colors.transparent);
+    p.setBrush(colors.font);
+    DrawSymbol(p, center + QPointF(-132, -119 + (left_pressed ? 10 : 0)), Symbol::L, 1.7f);
+
+    // Draw R text
+    p.setPen(colors.transparent);
+    p.setBrush(colors.font);
+    DrawSymbol(p, center + QPointF(121.5f, -119 + (right_pressed ? 10 : 0)), Symbol::R, 1.7f);
+}
+
 void PlayerControlPreview::DrawHandheldTriggers(QPainter& p, const QPointF center,
                                                 bool left_pressed, bool right_pressed) {
     std::array<QPointF, left_joycon_trigger.size() / 2> qleft_trigger;
@@ -1734,23 +2038,15 @@ void PlayerControlPreview::DrawDualTriggersTopView(QPainter& p, const QPointF ce
     p.setBrush(right_pressed ? colors.highlight : colors.button);
     DrawPolygon(p, qright_trigger);
 
-    // Draw ZL text
+    // Draw L text
     p.setPen(colors.transparent);
     p.setBrush(colors.font2);
-    DrawSymbol(p, center + QPointF(-183, -84), Symbol::ZL, 1.0f);
+    DrawSymbol(p, center + QPointF(-183, -84), Symbol::L, 1.0f);
 
-    // Delete Z character
-    p.setBrush(left_pressed ? colors.highlight : colors.button);
-    DrawRectangle(p, center + QPointF(-186, -84), 6, 10);
-
-    // Draw ZR text
+    // Draw R text
     p.setPen(colors.transparent);
     p.setBrush(colors.font2);
-    DrawSymbol(p, center + QPointF(177, -84), Symbol::ZR, 1.0f);
-
-    // Delete Z character
-    p.setBrush(right_pressed ? colors.highlight : colors.button);
-    DrawRectangle(p, center + QPointF(174, -84), 6, 10);
+    DrawSymbol(p, center + QPointF(177, -84), Symbol::R, 1.0f);
 }
 
 void PlayerControlPreview::DrawDualZTriggersTopView(QPainter& p, const QPointF center,
@@ -1834,14 +2130,10 @@ void PlayerControlPreview::DrawLeftTriggersTopView(QPainter& p, const QPointF ce
     p.setBrush(left_pressed ? colors.highlight : colors.button);
     DrawPolygon(p, qleft_trigger);
 
-    // Draw ZL text
+    // Draw L text
     p.setPen(colors.transparent);
     p.setBrush(colors.font2);
-    DrawSymbol(p, center + QPointF(-143, -36), Symbol::ZL, 1.0f);
-
-    // Delete Z character
-    p.setBrush(left_pressed ? colors.highlight : colors.button);
-    DrawRectangle(p, center + QPointF(-146, -36), 6, 10);
+    DrawSymbol(p, center + QPointF(-143, -36), Symbol::L, 1.0f);
 }
 
 void PlayerControlPreview::DrawLeftZTriggersTopView(QPainter& p, const QPointF center,
@@ -1913,14 +2205,10 @@ void PlayerControlPreview::DrawRightTriggersTopView(QPainter& p, const QPointF c
     p.setBrush(right_pressed ? colors.highlight : colors.button);
     DrawPolygon(p, qright_trigger);
 
-    // Draw ZR text
+    // Draw R text
     p.setPen(colors.transparent);
     p.setBrush(colors.font2);
-    DrawSymbol(p, center + QPointF(137, -36), Symbol::ZR, 1.0f);
-
-    // Delete Z character
-    p.setBrush(right_pressed ? colors.highlight : colors.button);
-    DrawRectangle(p, center + QPointF(134, -36), 6, 10);
+    DrawSymbol(p, center + QPointF(137, -36), Symbol::R, 1.0f);
 }
 
 void PlayerControlPreview::DrawRightZTriggersTopView(QPainter& p, const QPointF center,
@@ -1996,6 +2284,20 @@ void PlayerControlPreview::DrawProJoystick(QPainter& p, const QPointF center, bo
     DrawCircle(p, center, 17.0f);
 }
 
+void PlayerControlPreview::DrawGCJoystick(QPainter& p, const QPointF center, bool pressed) {
+    // Outer circle
+    p.setPen(colors.outline);
+    p.setBrush(pressed ? colors.highlight : colors.button);
+    DrawCircle(p, center, 26.0f);
+
+    // Inner circle
+    p.setBrush(pressed ? colors.highlight2 : colors.button2);
+    DrawCircle(p, center, 19.0f);
+    p.setBrush(colors.transparent);
+    DrawCircle(p, center, 13.5f);
+    DrawCircle(p, center, 7.5f);
+}
+
 void PlayerControlPreview::DrawRawJoystick(QPainter& p, const QPointF center, const QPointF value,
                                            const Input::AnalogProperties properties) {
     constexpr float size = 45.0f;
@@ -2069,6 +2371,43 @@ void PlayerControlPreview::DrawPlusButton(QPainter& p, const QPointF center, boo
     DrawRectangle(p, center, button_size / 3.0f, button_size);
 }
 
+void PlayerControlPreview::DrawGCButtonX(QPainter& p, const QPointF center, bool pressed) {
+    std::array<QPointF, gc_button_x.size() / 2> button_x;
+
+    for (std::size_t point = 0; point < gc_button_x.size() / 2; ++point) {
+        button_x[point] = center + QPointF(gc_button_x[point * 2], gc_button_x[point * 2 + 1]);
+    }
+
+    p.setPen(colors.outline);
+    p.setBrush(pressed ? colors.highlight : colors.button);
+    DrawPolygon(p, button_x);
+}
+
+void PlayerControlPreview::DrawGCButtonY(QPainter& p, const QPointF center, bool pressed) {
+    std::array<QPointF, gc_button_y.size() / 2> button_x;
+
+    for (std::size_t point = 0; point < gc_button_y.size() / 2; ++point) {
+        button_x[point] = center + QPointF(gc_button_y[point * 2], gc_button_y[point * 2 + 1]);
+    }
+
+    p.setPen(colors.outline);
+    p.setBrush(pressed ? colors.highlight : colors.button);
+    DrawPolygon(p, button_x);
+}
+
+void PlayerControlPreview::DrawGCButtonZ(QPainter& p, const QPointF center, bool pressed) {
+    std::array<QPointF, gc_button_z.size() / 2> button_x;
+
+    for (std::size_t point = 0; point < gc_button_z.size() / 2; ++point) {
+        button_x[point] = center + QPointF(gc_button_z[point * 2],
+                                           gc_button_z[point * 2 + 1] + (pressed ? 1 : 0));
+    }
+
+    p.setPen(colors.outline);
+    p.setBrush(pressed ? colors.highlight : colors.button2);
+    DrawPolygon(p, button_x);
+}
+
 void PlayerControlPreview::DrawCircleButton(QPainter& p, const QPointF center, bool pressed,
                                             float button_size) {
     p.setBrush(button_color);
@@ -2078,19 +2417,22 @@ void PlayerControlPreview::DrawCircleButton(QPainter& p, const QPointF center, b
     p.drawEllipse(center, button_size, button_size);
 }
 
-void PlayerControlPreview::DrawArrowButtonOutline(QPainter& p, const QPointF center) {
+void PlayerControlPreview::DrawArrowButtonOutline(QPainter& p, const QPointF center, float size) {
     const std::size_t arrow_points = up_arrow_button.size() / 2;
     std::array<QPointF, (arrow_points - 1) * 4> arrow_button_outline;
 
     for (std::size_t point = 0; point < arrow_points - 1; ++point) {
-        arrow_button_outline[point] =
-            center + QPointF(up_arrow_button[point * 2], up_arrow_button[point * 2 + 1]);
+        arrow_button_outline[point] = center + QPointF(up_arrow_button[point * 2] * size,
+                                                       up_arrow_button[point * 2 + 1] * size);
         arrow_button_outline[(arrow_points - 1) * 2 - point - 1] =
-            center + QPointF(up_arrow_button[point * 2 + 1], up_arrow_button[point * 2]);
+            center +
+            QPointF(up_arrow_button[point * 2 + 1] * size, up_arrow_button[point * 2] * size);
         arrow_button_outline[(arrow_points - 1) * 2 + point] =
-            center + QPointF(-up_arrow_button[point * 2], -up_arrow_button[point * 2 + 1]);
+            center +
+            QPointF(-up_arrow_button[point * 2] * size, -up_arrow_button[point * 2 + 1] * size);
         arrow_button_outline[(arrow_points - 1) * 4 - point - 1] =
-            center + QPointF(-up_arrow_button[point * 2 + 1], -up_arrow_button[point * 2]);
+            center +
+            QPointF(-up_arrow_button[point * 2 + 1] * size, -up_arrow_button[point * 2] * size);
     }
     // Draw arrow button outline
     p.setPen(colors.outline);
@@ -2099,27 +2441,27 @@ void PlayerControlPreview::DrawArrowButtonOutline(QPainter& p, const QPointF cen
 }
 
 void PlayerControlPreview::DrawArrowButton(QPainter& p, const QPointF center,
-                                           const Direction direction, bool pressed) {
+                                           const Direction direction, bool pressed, float size) {
     std::array<QPointF, up_arrow_button.size() / 2> arrow_button;
     QPoint offset;
 
     for (std::size_t point = 0; point < up_arrow_button.size() / 2; ++point) {
         switch (direction) {
         case Direction::Up:
-            arrow_button[point] =
-                center + QPointF(up_arrow_button[point * 2], up_arrow_button[point * 2 + 1]);
+            arrow_button[point] = center + QPointF(up_arrow_button[point * 2] * size,
+                                                   up_arrow_button[point * 2 + 1] * size);
             break;
         case Direction::Left:
-            arrow_button[point] =
-                center + QPointF(up_arrow_button[point * 2 + 1], up_arrow_button[point * 2]);
+            arrow_button[point] = center + QPointF(up_arrow_button[point * 2 + 1] * size,
+                                                   up_arrow_button[point * 2] * size);
             break;
         case Direction::Right:
-            arrow_button[point] =
-                center + QPointF(-up_arrow_button[point * 2 + 1], up_arrow_button[point * 2]);
+            arrow_button[point] = center + QPointF(-up_arrow_button[point * 2 + 1] * size,
+                                                   up_arrow_button[point * 2] * size);
             break;
         case Direction::Down:
-            arrow_button[point] =
-                center + QPointF(up_arrow_button[point * 2], -up_arrow_button[point * 2 + 1]);
+            arrow_button[point] = center + QPointF(up_arrow_button[point * 2] * size,
+                                                   -up_arrow_button[point * 2 + 1] * size);
             break;
         case Direction::None:
             break;
@@ -2133,16 +2475,16 @@ void PlayerControlPreview::DrawArrowButton(QPainter& p, const QPointF center,
 
     switch (direction) {
     case Direction::Up:
-        offset = QPoint(0, -20);
+        offset = QPoint(0, -20 * size);
         break;
     case Direction::Left:
-        offset = QPoint(-20, 0);
+        offset = QPoint(-20 * size, 0);
         break;
     case Direction::Right:
-        offset = QPoint(20, 0);
+        offset = QPoint(20 * size, 0);
         break;
     case Direction::Down:
-        offset = QPoint(0, 20);
+        offset = QPoint(0, 20 * size);
         break;
     case Direction::None:
         offset = QPoint(0, 0);
@@ -2152,7 +2494,7 @@ void PlayerControlPreview::DrawArrowButton(QPainter& p, const QPointF center,
     // Draw arrow icon
     p.setPen(colors.font2);
     p.setBrush(colors.font2);
-    DrawArrow(p, center + offset, direction, 1.0f);
+    DrawArrow(p, center + offset, direction, size);
 }
 
 void PlayerControlPreview::DrawTriggerButton(QPainter& p, const QPointF center,
@@ -2190,6 +2532,9 @@ void PlayerControlPreview::DrawSymbol(QPainter& p, const QPointF center, Symbol 
     std::array<QPointF, symbol_b.size() / 2> b_icon;
     std::array<QPointF, symbol_x.size() / 2> x_icon;
     std::array<QPointF, symbol_y.size() / 2> y_icon;
+    std::array<QPointF, symbol_l.size() / 2> l_icon;
+    std::array<QPointF, symbol_r.size() / 2> r_icon;
+    std::array<QPointF, symbol_c.size() / 2> c_icon;
     std::array<QPointF, symbol_zl.size() / 2> zl_icon;
     std::array<QPointF, symbol_sl.size() / 2> sl_icon;
     std::array<QPointF, symbol_zr.size() / 2> zr_icon;
@@ -2229,6 +2574,27 @@ void PlayerControlPreview::DrawSymbol(QPainter& p, const QPointF center, Symbol 
                                              (symbol_y[point * 2 + 1] - 1.0f) * icon_size);
         }
         p.drawPolygon(y_icon.data(), static_cast<int>(y_icon.size()));
+        break;
+    case Symbol::L:
+        for (std::size_t point = 0; point < symbol_l.size() / 2; ++point) {
+            l_icon[point] = center + QPointF(symbol_l[point * 2] * icon_size,
+                                             (symbol_l[point * 2 + 1] - 1.0f) * icon_size);
+        }
+        p.drawPolygon(l_icon.data(), static_cast<int>(l_icon.size()));
+        break;
+    case Symbol::R:
+        for (std::size_t point = 0; point < symbol_r.size() / 2; ++point) {
+            r_icon[point] = center + QPointF(symbol_r[point * 2] * icon_size,
+                                             (symbol_r[point * 2 + 1] - 1.0f) * icon_size);
+        }
+        p.drawPolygon(r_icon.data(), static_cast<int>(r_icon.size()));
+        break;
+    case Symbol::C:
+        for (std::size_t point = 0; point < symbol_c.size() / 2; ++point) {
+            c_icon[point] = center + QPointF(symbol_c[point * 2] * icon_size,
+                                             (symbol_c[point * 2 + 1] - 1.0f) * icon_size);
+        }
+        p.drawPolygon(c_icon.data(), static_cast<int>(c_icon.size()));
         break;
     case Symbol::ZL:
         for (std::size_t point = 0; point < symbol_zl.size() / 2; ++point) {
@@ -2316,7 +2682,7 @@ void PlayerControlPreview::DrawText(QPainter& p, const QPointF center, float tex
                                     const QString& text) {
     SetTextFont(p, text_size);
     const QFontMetrics fm(p.font());
-    const QPointF offset = {fm.width(text) / 2.0f, -text_size / 2.0f};
+    const QPointF offset = {fm.horizontalAdvance(text) / 2.0f, -text_size / 2.0f};
     p.drawText(center - offset, text);
 }
 
