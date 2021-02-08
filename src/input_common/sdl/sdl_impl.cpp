@@ -377,6 +377,16 @@ public:
         return {};
     }
 
+    std::tuple<float, float> GetRawStatus() const override {
+        const float x = joystick->GetAxis(axis_x, range);
+        const float y = joystick->GetAxis(axis_y, range);
+        return {x, -y};
+    }
+
+    Input::AnalogProperties GetAnalogProperties() const override {
+        return {deadzone, range, 0.5f};
+    }
+
     bool GetAnalogDirectionStatus(Input::AnalogDirection direction) const override {
         const auto [x, y] = GetStatus();
         const float directional_deadzone = 0.5f;

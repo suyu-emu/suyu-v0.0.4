@@ -1,26 +1,5 @@
 <RCC>
   <qresource prefix="controller">
-    <file alias="dual_joycon">dual_joycon.png</file>
-    <file alias="dual_joycon_dark">dual_joycon_dark.png</file>
-    <file alias="dual_joycon_midnight">dual_joycon_midnight.png</file>
-    <file alias="handheld">handheld.png</file>
-    <file alias="handheld_dark">handheld_dark.png</file>
-    <file alias="handheld_midnight">handheld_midnight.png</file>
-    <file alias="pro_controller">pro_controller.png</file>
-    <file alias="pro_controller_dark">pro_controller_dark.png</file>
-    <file alias="pro_controller_midnight">pro_controller_midnight.png</file>
-    <file alias="single_joycon_left">single_joycon_left.png</file>
-    <file alias="single_joycon_left_dark">single_joycon_left_dark.png</file>
-    <file alias="single_joycon_left_midnight">single_joycon_left_midnight.png</file>
-    <file alias="single_joycon_right">single_joycon_right.png</file>
-    <file alias="single_joycon_right_dark">single_joycon_right_dark.png</file>
-    <file alias="single_joycon_right_midnight">single_joycon_right_midnight.png</file>
-    <file alias="single_joycon_left_vertical">single_joycon_left_vertical.png</file>
-    <file alias="single_joycon_left_vertical_dark">single_joycon_left_vertical_dark.png</file>
-    <file alias="single_joycon_left_vertical_midnight">single_joycon_left_vertical_midnight.png</file>
-    <file alias="single_joycon_right_vertical">single_joycon_right_vertical.png</file>
-    <file alias="single_joycon_right_vertical_dark">single_joycon_right_vertical_dark.png</file>
-    <file alias="single_joycon_right_vertical_midnight">single_joycon_right_vertical_midnight.png</file>
     <file alias="applet_dual_joycon">applet_dual_joycon.png</file>
     <file alias="applet_dual_joycon_dark">applet_dual_joycon_dark.png</file>	
     <file alias="applet_dual_joycon_midnight">applet_dual_joycon_midnight.png</file>	

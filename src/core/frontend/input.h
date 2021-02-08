@@ -21,6 +21,11 @@ enum class AnalogDirection : u8 {
     UP,
     DOWN,
 };
+struct AnalogProperties {
+    float deadzone;
+    float range;
+    float threshold;
+};
 
 /// An abstract class template for an input device (a button, an analog input, etc.).
 template <typename StatusType>
@@ -28,6 +33,12 @@ class InputDevice {
 public:
     virtual ~InputDevice() = default;
     virtual StatusType GetStatus() const {
+        return {};
+    }
+    virtual StatusType GetRawStatus() const {
+        return GetStatus();
+    }
+    virtual AnalogProperties GetAnalogProperties() const {
         return {};
     }
     virtual bool GetAnalogDirectionStatus([[maybe_unused]] AnalogDirection direction) const {

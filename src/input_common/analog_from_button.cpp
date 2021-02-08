@@ -139,6 +139,10 @@ public:
                                static_cast<float>(y) * coef * (x == 0 ? 1.0f : SQRT_HALF));
     }
 
+    Input::AnalogProperties GetAnalogProperties() const override {
+        return {modifier_scale, 1.0f, 0.5f};
+    }
+
     bool GetAnalogDirectionStatus(Input::AnalogDirection direction) const override {
         switch (direction) {
         case Input::AnalogDirection::RIGHT:

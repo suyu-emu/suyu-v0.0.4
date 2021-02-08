@@ -1964,39 +1964,39 @@
              </item>
             </layout>
            </item>
-           <item>
-            <widget class="QFrame" name="controllerFrame">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="font">
-              <font>
-               <weight>75</weight>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">image: url(:/controller/pro);</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_4">
-              <property name="leftMargin">
-               <number>0</number>
-              </property>
-              <property name="topMargin">
-               <number>0</number>
-              </property>
-              <property name="rightMargin">
-               <number>0</number>
-              </property>
-              <property name="bottomMargin">
-               <number>0</number>
-              </property>
-             </layout>
-            </widget>
-           </item>
+            <item>
+              <widget class="PlayerControlPreview" name="controllerFrame">
+                <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                  </sizepolicy>
+                </property>
+                <property name="font">
+                  <font>
+                    <weight>75</weight>
+                    <bold>true</bold>
+                  </font>
+                </property>
+                <property name="styleSheet">
+                  <string notr="true">image: url(:/controller/pro);</string>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_4">
+                  <property name="leftMargin">
+                    <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                    <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                    <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                    <number>0</number>
+                  </property>
+                </layout>
+              </widget>
+            </item>
            <item>
             <layout class="QHBoxLayout" name="miscButtons">
              <property name="spacing">
@@ -3087,6 +3087,14 @@
    </item>
   </layout>
  </widget>
+  <customwidgets>
+    <customwidget>
+      <class>PlayerControlPreview</class>
+      <extends>QFrame</extends>
+      <header>yuzu/configuration/configure_input_player_widget.h</header>
+      <container>1</container>
+    </customwidget>
+  </customwidgets>
  <resources>
   <include location="../../../dist/icons/controller/controller.qrc"/>
  </resources>

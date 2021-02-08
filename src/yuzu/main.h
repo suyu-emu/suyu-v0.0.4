@@ -27,6 +27,7 @@ class GRenderWindow;
 class LoadingScreen;
 class MicroProfileDialog;
 class ProfilerWidget;
+class ControllerDialog;
 class QLabel;
 class QPushButton;
 class QProgressDialog;
@@ -313,6 +314,7 @@ private:
     ProfilerWidget* profilerWidget;
     MicroProfileDialog* microProfileDialog;
     WaitTreeWidget* waitTreeWidget;
+    ControllerDialog* controller_dialog;
 
     QAction* actions_recent_files[max_recent_files_item];
 

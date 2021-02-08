@@ -109,6 +109,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configure_dialog.h"
 #include "yuzu/debugger/console.h"
+#include "yuzu/debugger/controller.h"
 #include "yuzu/debugger/profiler.h"
 #include "yuzu/debugger/wait_tree.h"
 #include "yuzu/discord.h"
@@ -688,6 +689,11 @@ void GMainWindow::InitializeDebugWidgets() {
     addDockWidget(Qt::LeftDockWidgetArea, waitTreeWidget);
     waitTreeWidget->hide();
     debug_menu->addAction(waitTreeWidget->toggleViewAction());
+
+    controller_dialog = new ControllerDialog(this);
+    controller_dialog->hide();
+    debug_menu->addAction(controller_dialog->toggleViewAction());
+
     connect(this, &GMainWindow::EmulationStarting, waitTreeWidget,
             &WaitTreeWidget::OnEmulationStarting);
     connect(this, &GMainWindow::EmulationStopping, waitTreeWidget,
@@ -2336,6 +2342,7 @@ void GMainWindow::OnConfigure() {
     }
 
     configure_dialog.ApplyConfiguration();
+    controller_dialog->refreshConfiguration();
     InitializeHotkeys();
     if (UISettings::values.theme != old_theme) {
         UpdateUITheme();
