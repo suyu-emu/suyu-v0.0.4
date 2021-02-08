@@ -506,7 +506,7 @@ bool RendererOpenGL::Init() {
 
     AddTelemetryFields();
 
-    if (!GLAD_GL_VERSION_4_3) {
+    if (!GLAD_GL_VERSION_4_6) {
         return false;
     }
 
