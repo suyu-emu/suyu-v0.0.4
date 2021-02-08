@@ -110,6 +110,7 @@ void IAppletResource::DeactivateController(HidController controller) {
 
 IAppletResource ::~IAppletResource() {
     system.CoreTiming().UnscheduleEvent(pad_update_event, 0);
+    system.CoreTiming().UnscheduleEvent(motion_update_event, 0);
 }
 
 void IAppletResource::GetSharedMemoryHandle(Kernel::HLERequestContext& ctx) {

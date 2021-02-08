@@ -111,7 +111,14 @@ void Stream::PlayNextBuffer(std::chrono::nanoseconds ns_late) {
 
     sink_stream.EnqueueSamples(GetNumChannels(), active_buffer->GetSamples());
 
-    core_timing.ScheduleEvent(GetBufferReleaseNS(*active_buffer) - ns_late, release_event, {});
+    const auto buffer_release_ns = GetBufferReleaseNS(*active_buffer);
+
+    // If ns_late is higher than the update rate ignore the delay
+    if (ns_late > buffer_release_ns) {
+        ns_late = {};
+    }
+
+    core_timing.ScheduleEvent(buffer_release_ns - ns_late, release_event, {});
 }
 
 void Stream::ReleaseActiveBuffer(std::chrono::nanoseconds ns_late) {
