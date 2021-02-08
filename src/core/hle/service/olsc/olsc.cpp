@@ -17,7 +17,7 @@ public:
         static const FunctionInfo functions[] = {
             {0, &OLSC::Initialize, "Initialize"},
             {10, nullptr, "VerifySaveDataBackupLicenseAsync"},
-            {13, nullptr, "GetSaveDataBackupSetting"},
+            {13, &OLSC::GetSaveDataBackupSetting, "GetSaveDataBackupSetting"},
             {14, &OLSC::SetSaveDataBackupSettingEnabled, "SetSaveDataBackupSettingEnabled"},
             {15, nullptr, "SetCustomData"},
             {16, nullptr, "DeleteSaveDataBackupSetting"},
@@ -50,6 +50,17 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
+    }
+
+    void GetSaveDataBackupSetting(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_OLSC, "(STUBBED) called");
+
+        // backup_setting is set to 0 since real value is unknown
+        constexpr u64 backup_setting = 0;
+
+        IPC::ResponseBuilder rb{ctx, 4};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push(backup_setting);
     }
 
     void SetSaveDataBackupSettingEnabled(Kernel::HLERequestContext& ctx) {
