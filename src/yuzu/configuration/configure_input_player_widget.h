@@ -25,7 +25,7 @@ public:
 
     void SetPlayerInput(std::size_t index, const ButtonParam& buttons_param,
                         const AnalogParam& analogs_param);
-    void SetPlayerInputRaw(std::size_t index, const Settings::ButtonsRaw buttons_,
+    void SetPlayerInputRaw(std::size_t index, const Settings::ButtonsRaw& buttons_,
                            Settings::AnalogsRaw analogs_);
     void SetConnectedStatus(bool checked);
     void SetControllerType(Settings::ControllerType type);
@@ -138,8 +138,8 @@ private:
     // Draw joystick functions
     void DrawJoystick(QPainter& p, QPointF center, float size, bool pressed);
     void DrawJoystickSideview(QPainter& p, QPointF center, float angle, float size, bool pressed);
-    void DrawRawJoystick(QPainter& p, QPointF center, const QPointF value,
-                         const Input::AnalogProperties properties);
+    void DrawRawJoystick(QPainter& p, QPointF center, QPointF value,
+                         const Input::AnalogProperties& properties);
     void DrawProJoystick(QPainter& p, QPointF center, QPointF offset, float scalar, bool pressed);
     void DrawGCJoystick(QPainter& p, QPointF center, bool pressed);
 

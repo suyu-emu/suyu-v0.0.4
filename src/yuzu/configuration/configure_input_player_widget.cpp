@@ -37,7 +37,8 @@ void PlayerControlPreview::SetPlayerInput(std::size_t index, const ButtonParam& 
                    Input::CreateDevice<Input::AnalogDevice>);
     UpdateColors();
 }
-void PlayerControlPreview::SetPlayerInputRaw(std::size_t index, const Settings::ButtonsRaw buttons_,
+void PlayerControlPreview::SetPlayerInputRaw(std::size_t index,
+                                             const Settings::ButtonsRaw& buttons_,
                                              Settings::AnalogsRaw analogs_) {
     player_index = index;
     std::transform(buttons_.begin() + Settings::NativeButton::BUTTON_HID_BEGIN,
@@ -2323,7 +2324,7 @@ void PlayerControlPreview::DrawGCJoystick(QPainter& p, const QPointF center, boo
 }
 
 void PlayerControlPreview::DrawRawJoystick(QPainter& p, const QPointF center, const QPointF value,
-                                           const Input::AnalogProperties properties) {
+                                           const Input::AnalogProperties& properties) {
     constexpr float size = 45.0f;
     const float range = size * properties.range;
     const float deadzone = size * properties.deadzone;
