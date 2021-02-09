@@ -84,8 +84,8 @@ public:
 
 private:
     const std::string ip;
-    const u16 port;
-    const u16 pad;
+    [[maybe_unused]] const u16 port;
+    [[maybe_unused]] const u16 pad;
     CemuhookUDP::Client* client;
     mutable std::mutex mutex;
 };
