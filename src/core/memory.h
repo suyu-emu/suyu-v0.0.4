@@ -116,6 +116,11 @@ public:
      */
     u8* GetPointer(VAddr vaddr);
 
+    template <typename T>
+    T* GetPointer(VAddr vaddr) {
+        return reinterpret_cast<T*>(GetPointer(vaddr));
+    }
+
     /**
      * Gets a pointer to the given address.
      *
@@ -125,6 +130,11 @@ public:
      *          If the address is not valid, nullptr will be returned.
      */
     const u8* GetPointer(VAddr vaddr) const;
+
+    template <typename T>
+    const T* GetPointer(VAddr vaddr) const {
+        return reinterpret_cast<T*>(GetPointer(vaddr));
+    }
 
     /**
      * Reads an 8-bit unsigned value from the current process' address space
