@@ -140,7 +140,7 @@ private:
     void DrawJoystickSideview(QPainter& p, QPointF center, float angle, float size, bool pressed);
     void DrawRawJoystick(QPainter& p, QPointF center, const QPointF value,
                          const Input::AnalogProperties properties);
-    void DrawProJoystick(QPainter& p, QPointF center, bool pressed);
+    void DrawProJoystick(QPainter& p, QPointF center, QPointF offset, float scalar, bool pressed);
     void DrawGCJoystick(QPainter& p, QPointF center, bool pressed);
 
     // Draw button functions
