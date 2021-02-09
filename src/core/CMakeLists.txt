@@ -177,6 +177,8 @@ add_library(core STATIC
     hle/kernel/k_scoped_scheduler_lock_and_sleep.h
     hle/kernel/k_shared_memory.cpp
     hle/kernel/k_shared_memory.h
+    hle/kernel/k_spin_lock.cpp
+    hle/kernel/k_spin_lock.h
     hle/kernel/k_synchronization_object.cpp
     hle/kernel/k_synchronization_object.h
     hle/kernel/k_thread.cpp
