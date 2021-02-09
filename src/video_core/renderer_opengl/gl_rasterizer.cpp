@@ -67,9 +67,6 @@ constexpr size_t TOTAL_CONST_BUFFER_BYTES =
 constexpr size_t NUM_SUPPORTED_VERTEX_ATTRIBUTES = 16;
 constexpr size_t NUM_SUPPORTED_VERTEX_BINDINGS = 16;
 
-constexpr size_t MAX_TEXTURES = 192;
-constexpr size_t MAX_IMAGES = 48;
-
 struct TextureHandle {
     constexpr TextureHandle(u32 data, bool via_header_index) {
         const Tegra::Texture::TextureHandle handle{data};
