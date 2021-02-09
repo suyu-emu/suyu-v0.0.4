@@ -1,100 +1,187 @@
-# - Try to find ffmpeg libraries (libavcodec, libavformat and libavutil)
-# Once done this will define
+# FindFFmpeg
+# ----------
 #
-# FFMPEG_FOUND - system has ffmpeg or libav
-# FFMPEG_INCLUDE_DIR - the ffmpeg include directory
-# FFMPEG_LIBRARIES - Link these to use ffmpeg
-# FFMPEG_LIBAVCODEC
-# FFMPEG_LIBAVFORMAT
-# FFMPEG_LIBAVUTIL
+# Copyright 2019 Citra Emulator Project
+# Licensed under GPLv2 or any later version
 #
-# Copyright (c) 2008 Andreas Schneider <mail@cynapses.org>
-# Modified for other libraries by Lasse Kärkkäinen <tronic>
-# Modified for Hedgewars by Stepik777
-# Modified for FFmpeg-example Tuukka Pasanen 2018
-# Modified for yuzu toastUnlimted 2020
+# Find the native FFmpeg includes and libraries
 #
-# Redistribution and use is allowed according to the terms of the New
-# BSD license.
+# This module defines the following variables:
+#
+#  FFmpeg_INCLUDE_<component>: where to find <component>.h
+#  FFmpeg_LIBRARY_<component>: where to find the <component> library
+#  FFmpeg_INCLUDE_DIR: aggregate all the include paths
+#  FFmpeg_LIBRARIES: aggregate all the paths to the libraries
+#  FFmpeg_FOUND: True if all components have been found
+#
+# This module defines the following targets, which are prefered over variables:
+#
+#  FFmpeg::<component>: Target to use <component> directly, with include path,
+#    library and dependencies set up. If you are using a static build, you are
+#    responsible for adding any external dependencies (such as zlib, bzlib...).
+#
+# <component> can be one of:
+#   avcodec
+#   avdevice
+#   avfilter
+#   avformat
+#   avutil
+#   postproc
+#   swresample
+#   swscale
 #
 
-include(FindPackageHandleStandardArgs)
-
-find_package_handle_standard_args(FFMPEG
-  FOUND_VAR FFMPEG_FOUND
-  REQUIRED_VARS
-      FFMPEG_LIBRARY
-      FFMPEG_INCLUDE_DIR
-  VERSION_VAR FFMPEG_VERSION
+set(_FFmpeg_ALL_COMPONENTS
+    avcodec
+    avdevice
+    avfilter
+    avformat
+    avutil
+    postproc
+    swresample
+    swscale
 )
 
-if(FFMPEG_LIBRARIES AND FFMPEG_INCLUDE_DIR)
-  # in cache already
-  set(FFMPEG_FOUND TRUE)
-else()
-  # use pkg-config to get the directories and then use these values
-  # in the FIND_PATH() and FIND_LIBRARY() calls
-  find_package(PkgConfig)
-  if(PKG_CONFIG_FOUND)
-    pkg_check_modules(_FFMPEG_AVCODEC libavcodec)
-    pkg_check_modules(_FFMPEG_AVUTIL libavutil)
-    pkg_check_modules(_FFMPEG_SWSCALE libswscale)
+set(_FFmpeg_DEPS_avcodec avutil)
+set(_FFmpeg_DEPS_avdevice avcodec avformat avutil)
+set(_FFmpeg_DEPS_avfilter avutil)
+set(_FFmpeg_DEPS_avformat avcodec avutil)
+set(_FFmpeg_DEPS_postproc avutil)
+set(_FFmpeg_DEPS_swresample avutil)
+set(_FFmpeg_DEPS_swscale avutil)
+
+function(find_ffmpeg LIBNAME)
+  if(DEFINED ENV{FFMPEG_DIR})
+    set(FFMPEG_DIR $ENV{FFMPEG_DIR})
   endif()
 
-  find_path(FFMPEG_AVCODEC_INCLUDE_DIR
-    NAMES libavcodec/avcodec.h
-    PATHS ${_FFMPEG_AVCODEC_INCLUDE_DIRS}
-      /usr/include
-      /usr/local/include
-      /opt/local/include
-      /sw/include
-    PATH_SUFFIXES ffmpeg libav)
-
-  find_library(FFMPEG_LIBAVCODEC
-    NAMES avcodec
-    PATHS ${_FFMPEG_AVCODEC_LIBRARY_DIRS}
-      /usr/lib
-      /usr/local/lib
-      /opt/local/lib
-      /sw/lib)
-
-  find_library(FFMPEG_LIBAVUTIL
-    NAMES avutil
-    PATHS ${_FFMPEG_AVUTIL_LIBRARY_DIRS}
-      /usr/lib
-      /usr/local/lib
-      /opt/local/lib
-      /sw/lib)
-
-  find_library(FFMPEG_LIBSWSCALE
-    NAMES swscale
-    PATHS ${_FFMPEG_SWSCALE_LIBRARY_DIRS}
-      /usr/lib
-      /usr/local/lib
-      /opt/local/lib
-      /sw/lib)
-
-  if(FFMPEG_LIBAVCODEC AND FFMPEG_LIBAVUTIL AND FFMPEG_LIBSWSCALE)
-    set(FFMPEG_FOUND TRUE)
-  endif()
-
-  if(FFMPEG_FOUND)
-    set(FFMPEG_INCLUDE_DIR ${FFMPEG_AVCODEC_INCLUDE_DIR})
-    set(FFMPEG_LIBRARIES
-      ${FFMPEG_LIBAVCODEC}
-      ${FFMPEG_LIBAVUTIL}
-      ${FFMPEG_LIBSWSCALE})
-  endif()
-
-  if(FFMPEG_FOUND)
-    if(NOT FFMPEG_FIND_QUIETLY)
-      message(STATUS
-      "Found FFMPEG or Libav: ${FFMPEG_LIBRARIES}, ${FFMPEG_INCLUDE_DIR}")
-    endif()
+  if(FFMPEG_DIR)
+    list(APPEND INCLUDE_PATHS
+      ${FFMPEG_DIR}
+      ${FFMPEG_DIR}/ffmpeg
+      ${FFMPEG_DIR}/lib${LIBNAME}
+      ${FFMPEG_DIR}/include/lib${LIBNAME}
+      ${FFMPEG_DIR}/include/ffmpeg
+      ${FFMPEG_DIR}/include
+      NO_DEFAULT_PATH
+      NO_CMAKE_FIND_ROOT_PATH
+    )
+    list(APPEND LIB_PATHS
+      ${FFMPEG_DIR}
+      ${FFMPEG_DIR}/lib
+      ${FFMPEG_DIR}/lib${LIBNAME}
+      NO_DEFAULT_PATH
+      NO_CMAKE_FIND_ROOT_PATH
+    )
   else()
-    if(FFMPEG_FIND_REQUIRED)
-      message(FATAL_ERROR
-      "Could not find libavcodec or libavutil or libswscale")
+    list(APPEND INCLUDE_PATHS
+      /usr/local/include/ffmpeg
+      /usr/local/include/lib${LIBNAME}
+      /usr/include/ffmpeg
+      /usr/include/lib${LIBNAME}
+      /usr/include/ffmpeg/lib${LIBNAME}
+    )
+
+    list(APPEND LIB_PATHS
+      /usr/local/lib
+      /usr/lib
+    )
+  endif()
+
+  find_path(FFmpeg_INCLUDE_${LIBNAME} lib${LIBNAME}/${LIBNAME}.h
+    HINTS ${INCLUDE_PATHS}
+  )
+
+  find_library(FFmpeg_LIBRARY_${LIBNAME} ${LIBNAME}
+    HINTS ${LIB_PATHS}
+  )
+
+  if(NOT FFMPEG_DIR AND (NOT FFmpeg_LIBRARY_${LIBNAME} OR NOT FFmpeg_INCLUDE_${LIBNAME}))
+    # Didn't find it in the usual paths, try pkg-config
+    find_package(PkgConfig QUIET)
+    pkg_check_modules(FFmpeg_PKGCONFIG_${LIBNAME} QUIET lib${LIBNAME})
+
+    find_path(FFmpeg_INCLUDE_${LIBNAME} lib${LIBNAME}/${LIBNAME}.h
+      ${FFmpeg_PKGCONFIG_${LIBNAME}_INCLUDE_DIRS}
+    )
+
+    find_library(FFmpeg_LIBRARY_${LIBNAME} ${LIBNAME}
+      ${FFmpeg_PKGCONFIG_${LIBNAME}_LIBRARY_DIRS}
+    )
+  endif()
+
+  if(FFmpeg_INCLUDE_${LIBNAME} AND FFmpeg_LIBRARY_${LIBNAME})
+    set(FFmpeg_INCLUDE_${LIBNAME} "${FFmpeg_INCLUDE_${LIBNAME}}" PARENT_SCOPE)
+    set(FFmpeg_LIBRARY_${LIBNAME} "${FFmpeg_LIBRARY_${LIBNAME}}" PARENT_SCOPE)
+
+    # Extract FFmpeg version from version.h
+    foreach(v MAJOR MINOR MICRO)
+      set(FFmpeg_${LIBNAME}_VERSION_${v} 0)
+    endforeach()
+    string(TOUPPER ${LIBNAME} LIBNAME_UPPER)
+    file(STRINGS "${FFmpeg_INCLUDE_${LIBNAME}}/lib${LIBNAME}/version.h" _FFmpeg_VERSION_H_CONTENTS REGEX "#define LIB${LIBNAME_UPPER}_VERSION_(MAJOR|MINOR|MICRO) ")
+    set(_FFmpeg_VERSION_REGEX "([0-9]+)")
+    foreach(v MAJOR MINOR MICRO)
+      if("${_FFmpeg_VERSION_H_CONTENTS}" MATCHES "#define LIB${LIBNAME_UPPER}_VERSION_${v}[\\t ]+${_FFmpeg_VERSION_REGEX}")
+        set(FFmpeg_${LIBNAME}_VERSION_${v} "${CMAKE_MATCH_1}")
+      endif()
+    endforeach()
+    set(FFmpeg_${LIBNAME}_VERSION "${FFmpeg_${LIBNAME}_VERSION_MAJOR}.${FFmpeg_${LIBNAME}_VERSION_MINOR}.${FFmpeg_${LIBNAME}_VERSION_MICRO}")
+    set(FFmpeg_${c}_VERSION "${FFmpeg_${LIBNAME}_VERSION}" PARENT_SCOPE)
+    unset(_FFmpeg_VERSION_REGEX)
+    unset(_FFmpeg_VERSION_H_CONTENTS)
+
+    set(FFmpeg_${c}_FOUND TRUE PARENT_SCOPE)
+    if(NOT FFmpeg_FIND_QUIETLY)
+      message("--  Found ${LIBNAME}: ${FFmpeg_INCLUDE_${LIBNAME}} ${FFmpeg_LIBRARY_${LIBNAME}} (version: ${FFmpeg_${LIBNAME}_VERSION})")
     endif()
   endif()
+endfunction()
+
+foreach(c ${_FFmpeg_ALL_COMPONENTS})
+  find_ffmpeg(${c})
+endforeach()
+
+foreach(c ${_FFmpeg_ALL_COMPONENTS})
+  if(FFmpeg_${c}_FOUND)
+    list(APPEND FFmpeg_INCLUDE_DIR ${FFmpeg_INCLUDE_${c}})
+    list(APPEND FFmpeg_LIBRARIES ${FFmpeg_LIBRARY_${c}})
+
+    add_library(FFmpeg::${c} IMPORTED UNKNOWN)
+    set_target_properties(FFmpeg::${c} PROPERTIES
+      IMPORTED_LOCATION ${FFmpeg_LIBRARY_${c}}
+      INTERFACE_INCLUDE_DIRECTORIES ${FFmpeg_INCLUDE_${c}}
+    )
+    if(_FFmpeg_DEPS_${c})
+      set(deps)
+      foreach(dep ${_FFmpeg_DEPS_${c}})
+        list(APPEND deps FFmpeg::${dep})
+      endforeach()
+
+      set_target_properties(FFmpeg::${c} PROPERTIES
+        INTERFACE_LINK_LIBRARIES "${deps}"
+      )
+      unset(deps)
+    endif()
+  endif()
+endforeach()
+
+if(FFmpeg_INCLUDE_DIR)
+  list(REMOVE_DUPLICATES FFmpeg_INCLUDE_DIR)
 endif()
+
+foreach(c ${FFmpeg_FIND_COMPONENTS})
+  list(APPEND _FFmpeg_REQUIRED_VARS FFmpeg_INCLUDE_${c} FFmpeg_LIBRARY_${c})
+endforeach()
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(FFmpeg
+  REQUIRED_VARS ${_FFmpeg_REQUIRED_VARS}
+  HANDLE_COMPONENTS
+)
+
+foreach(c ${_FFmpeg_ALL_COMPONENTS})
+  unset(_FFmpeg_DEPS_${c})
+endforeach()
+unset(_FFmpeg_ALL_COMPONENTS)
+unset(_FFmpeg_REQUIRED_VARS)

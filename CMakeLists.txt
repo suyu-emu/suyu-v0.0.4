@@ -18,6 +18,8 @@ CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" ON "EN
 
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 
+CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled yuzu" ON "WIN32" OFF)
+
 option(YUZU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet implementation" OFF)
 
 option(YUZU_ENABLE_BOXCAT "Enable the Boxcat service, a yuzu high-level implementation of BCAT" ON)
@@ -384,18 +386,140 @@ if (NOT LIBUSB_FOUND)
     set(LIBUSB_LIBRARIES usb)
 endif()
 
-# Use system installed ffmpeg.
-if (NOT MSVC)
-    find_package(FFmpeg REQUIRED)
-else()
-    set(FFMPEG_EXT_NAME "ffmpeg-4.2.1")
-    set(FFMPEG_PATH "${CMAKE_BINARY_DIR}/externals/${FFMPEG_EXT_NAME}")
-    download_bundled_external("ffmpeg/" ${FFMPEG_EXT_NAME} "")
-    set(FFMPEG_FOUND YES)
-    set(FFMPEG_INCLUDE_DIR "${FFMPEG_PATH}/include" CACHE PATH "Path to FFmpeg headers" FORCE)
-    set(FFMPEG_LIBRARY_DIR "${FFMPEG_PATH}/bin" CACHE PATH "Path to FFmpeg library" FORCE)
-    set(FFMPEG_DLL_DIR "${FFMPEG_PATH}/bin" CACHE PATH "Path to FFmpeg dll's" FORCE)
+# List of all FFmpeg components required
+set(FFmpeg_COMPONENTS
+    avcodec
+    avutil
+    swscale)
+
+if (NOT YUZU_USE_BUNDLED_FFMPEG)
+    # Use system installed FFmpeg
+    find_package(FFmpeg REQUIRED COMPONENTS ${FFmpeg_COMPONENTS})
+
+    if (FFmpeg_FOUND)
+        # Overwrite aggregate defines from FFmpeg module to avoid over-linking libraries.
+        # Prevents shipping too many libraries with the AppImage.
+        set(FFmpeg_LIBRARIES "")
+        set(FFmpeg_INCLUDE_DIR "")
+
+        foreach(COMPONENT ${FFmpeg_COMPONENTS})
+            set(FFmpeg_LIBRARIES ${FFmpeg_LIBRARIES} ${FFmpeg_LIBRARY_${COMPONENT}} CACHE PATH "Paths to FFmpeg libraries" FORCE)
+            set(FFmpeg_INCLUDE_DIR ${FFmpeg_INCLUDE_DIR} ${FFmpeg_INCLUDE_${COMPONENT}} CACHE PATH "Path to FFmpeg headers" FORCE)
+        endforeach()
+    else()
+        message(WARNING "FFmpeg not found, falling back to externals")
+        set(YUZU_USE_BUNDLED_FFMPEG ON)
+    endif()
 endif()
+
+if (YUZU_USE_BUNDLED_FFMPEG)
+    if (NOT WIN32)
+        # Build FFmpeg from externals
+        message(STATUS "Using FFmpeg from externals")
+
+        # FFmpeg has source that requires one of nasm or yasm to assemble it.
+        # REQUIRED throws an error if not found here during configuration rather than during compilation.
+        find_program(ASSEMBLER NAMES nasm yasm REQUIRED)
+
+        set(FFmpeg_PREFIX ${PROJECT_SOURCE_DIR}/externals/ffmpeg)
+        set(FFmpeg_BUILD_DIR ${PROJECT_BINARY_DIR}/externals/ffmpeg)
+        set(FFmpeg_MAKEFILE ${FFmpeg_BUILD_DIR}/Makefile)
+        make_directory(${FFmpeg_BUILD_DIR})
+
+        # Read version string from external
+        file(READ ${FFmpeg_PREFIX}/RELEASE FFmpeg_VERSION)
+        set(FFmpeg_FOUND NO)
+        if (NOT FFmpeg_VERSION STREQUAL "")
+            set(FFmpeg_FOUND YES)
+        endif()
+
+        foreach(COMPONENT ${FFmpeg_COMPONENTS})
+            set(FFmpeg_${COMPONENT}_PREFIX "${FFmpeg_BUILD_DIR}/lib${COMPONENT}")
+            set(FFmpeg_${COMPONENT}_LIB_NAME "lib${COMPONENT}.a")
+            set(FFmpeg_${COMPONENT}_LIBRARY "${FFmpeg_${COMPONENT}_PREFIX}/${FFmpeg_${COMPONENT}_LIB_NAME}")
+
+            set(FFmpeg_LIBRARIES
+                ${FFmpeg_LIBRARIES}
+                ${FFmpeg_${COMPONENT}_LIBRARY}
+                CACHE PATH "Paths to FFmpeg libraries" FORCE)
+        endforeach()
+
+        set(FFmpeg_INCLUDE_DIR
+            ${FFmpeg_PREFIX}
+            CACHE PATH "Path to FFmpeg headers" FORCE)
+
+        # `configure` parameters builds only exactly what yuzu needs from FFmpeg
+        # `--disable-{vaapi,vdpau}` is needed to avoid linking issues
+        add_custom_command(
+            OUTPUT
+                ${FFmpeg_MAKEFILE}
+            COMMAND
+                /bin/bash ${FFmpeg_PREFIX}/configure
+                    --disable-avdevice
+                    --disable-avfilter
+                    --disable-avformat
+                    --disable-doc
+                    --disable-everything
+                    --disable-ffmpeg
+                    --disable-ffprobe
+                    --disable-network
+                    --disable-postproc
+                    --disable-swresample
+                    --disable-vaapi
+                    --disable-vdpau
+                    --enable-decoder=h264
+                    --enable-decoder=vp9
+            WORKING_DIRECTORY
+                ${FFmpeg_BUILD_DIR}
+        )
+
+        # Workaround for Ubuntu 18.04's older version of make not being able to call make as a child
+        # with context of the jobserver. Also helps ninja users.
+        execute_process(
+            COMMAND
+                nproc
+            OUTPUT_VARIABLE
+                SYSTEM_THREADS)
+
+        add_custom_command(
+            OUTPUT
+                ${FFmpeg_LIBRARIES}
+            COMMAND
+                make -j${SYSTEM_THREADS}
+            WORKING_DIRECTORY
+                ${FFmpeg_BUILD_DIR}
+        )
+
+        # ALL makes this custom target build every time
+        # but it won't actually build if the DEPENDS parameter is up to date
+        add_custom_target(ffmpeg-build ALL DEPENDS ${FFmpeg_LIBRARIES})
+        add_custom_target(ffmpeg-configure ALL DEPENDS ${FFmpeg_MAKEFILE})
+
+        if (FFmpeg_FOUND)
+            message(STATUS "Found FFmpeg version ${FFmpeg_VERSION}")
+
+            add_dependencies(ffmpeg-build ffmpeg-configure)
+        else()
+            message(FATAL_ERROR "FFmpeg not found")
+        endif()
+    else() # WIN32
+        # Use yuzu FFmpeg binaries
+        set(FFmpeg_EXT_NAME "ffmpeg-4.3.1")
+        set(FFmpeg_PATH "${CMAKE_BINARY_DIR}/externals/${FFmpeg_EXT_NAME}")
+        download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "")
+        set(FFmpeg_FOUND YES)
+        set(FFmpeg_INCLUDE_DIR "${FFmpeg_PATH}/include" CACHE PATH "Path to FFmpeg headers" FORCE)
+        set(FFmpeg_LIBRARY_DIR "${FFmpeg_PATH}/bin" CACHE PATH "Path to FFmpeg library directory" FORCE)
+        set(FFmpeg_DLL_DIR "${FFmpeg_PATH}/bin" CACHE PATH "Path to FFmpeg dll's" FORCE)
+        set(FFmpeg_LIBRARIES
+            ${FFmpeg_LIBRARY_DIR}/swscale.lib
+            ${FFmpeg_LIBRARY_DIR}/avcodec.lib
+            ${FFmpeg_LIBRARY_DIR}/avutil.lib
+            CACHE PATH "Paths to FFmpeg libraries" FORCE)
+    endif()
+endif()
+
+unset(FFmpeg_COMPONENTS)
 
 # Prefer the -pthread flag on Linux.
 set(THREADS_PREFER_PTHREAD_FLAG ON)

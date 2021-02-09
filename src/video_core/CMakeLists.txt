@@ -271,13 +271,12 @@ create_target_directory_groups(video_core)
 target_link_libraries(video_core PUBLIC common core)
 target_link_libraries(video_core PRIVATE glad xbyak)
 
-if (MSVC)
-    target_include_directories(video_core PRIVATE ${FFMPEG_INCLUDE_DIR})
-    target_link_libraries(video_core PUBLIC ${FFMPEG_LIBRARY_DIR}/swscale.lib ${FFMPEG_LIBRARY_DIR}/avcodec.lib ${FFMPEG_LIBRARY_DIR}/avutil.lib)
-else()
-    target_include_directories(video_core PRIVATE ${FFMPEG_INCLUDE_DIR})
-    target_link_libraries(video_core PRIVATE ${FFMPEG_LIBRARIES})
+if (YUZU_USE_BUNDLED_FFMPEG AND NOT WIN32)
+    add_dependencies(video_core ffmpeg-build)
 endif()
+
+target_include_directories(video_core PRIVATE ${FFmpeg_INCLUDE_DIR})
+target_link_libraries(video_core PRIVATE ${FFmpeg_LIBRARIES})
 
 add_dependencies(video_core host_shaders)
 target_include_directories(video_core PRIVATE ${HOST_SHADERS_INCLUDE})
