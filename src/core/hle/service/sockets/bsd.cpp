@@ -453,7 +453,8 @@ std::pair<s32, Errno> BSD::SocketImpl(Domain domain, Type type, Protocol protoco
         return {-1, Errno::MFILE};
     }
 
-    FileDescriptor& descriptor = file_descriptors[fd].emplace();
+    file_descriptors[fd] = FileDescriptor{};
+    FileDescriptor& descriptor = *file_descriptors[fd];
     // ENONMEM might be thrown here
 
     LOG_INFO(Service, "New socket fd={}", fd);
@@ -548,7 +549,8 @@ std::pair<s32, Errno> BSD::AcceptImpl(s32 fd, std::vector<u8>& write_buffer) {
         return {-1, Translate(bsd_errno)};
     }
 
-    FileDescriptor& new_descriptor = file_descriptors[new_fd].emplace();
+    file_descriptors[new_fd] = FileDescriptor{};
+    FileDescriptor& new_descriptor = *file_descriptors[new_fd];
     new_descriptor.socket = std::move(result.socket);
     new_descriptor.is_connection_based = descriptor.is_connection_based;
 
