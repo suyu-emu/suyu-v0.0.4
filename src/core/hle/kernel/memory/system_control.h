@@ -9,5 +9,6 @@
 namespace Kernel::Memory::SystemControl {
 
 u64 GenerateRandomRange(u64 min, u64 max);
+u64 GenerateRandomU64();
 
 } // namespace Kernel::Memory::SystemControl

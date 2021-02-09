@@ -25,16 +25,17 @@ u64 GenerateUniformRange(u64 min, u64 max, F f) {
     }
 }
 
-u64 GenerateRandomU64ForInit() {
+} // Anonymous namespace
+
+u64 GenerateRandomU64() {
     static std::random_device device;
     static std::mt19937 gen(device());
     static std::uniform_int_distribution<u64> distribution(1, std::numeric_limits<u64>::max());
     return distribution(gen);
 }
-} // Anonymous namespace
 
 u64 GenerateRandomRange(u64 min, u64 max) {
-    return GenerateUniformRange(min, max, GenerateRandomU64ForInit);
+    return GenerateUniformRange(min, max, GenerateRandomU64);
 }
 
 } // namespace Kernel::Memory::SystemControl
