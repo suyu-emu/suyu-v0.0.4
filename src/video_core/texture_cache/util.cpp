@@ -169,40 +169,6 @@ template <u32 GOB_EXTENT>
     return Common::DivCeil(AdjustMipSize(size, level), block_size);
 }
 
-[[nodiscard]] constexpr u32 LayerSize(const TICEntry& config, PixelFormat format) {
-    return config.Width() * config.Height() * BytesPerBlock(format);
-}
-
-[[nodiscard]] constexpr bool HasTwoDimsPerLayer(TextureType type) {
-    switch (type) {
-    case TextureType::Texture2D:
-    case TextureType::Texture2DArray:
-    case TextureType::Texture2DNoMipmap:
-    case TextureType::Texture3D:
-    case TextureType::TextureCubeArray:
-    case TextureType::TextureCubemap:
-        return true;
-    case TextureType::Texture1D:
-    case TextureType::Texture1DArray:
-    case TextureType::Texture1DBuffer:
-        return false;
-    }
-    return false;
-}
-
-[[nodiscard]] constexpr bool HasTwoDimsPerLayer(ImageType type) {
-    switch (type) {
-    case ImageType::e2D:
-    case ImageType::e3D:
-    case ImageType::Linear:
-        return true;
-    case ImageType::e1D:
-    case ImageType::Buffer:
-        return false;
-    }
-    UNREACHABLE_MSG("Invalid image type={}", static_cast<int>(type));
-}
-
 [[nodiscard]] constexpr std::pair<int, int> Samples(int num_samples) {
     switch (num_samples) {
     case 1:
