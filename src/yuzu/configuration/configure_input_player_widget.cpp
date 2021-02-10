@@ -1002,12 +1002,6 @@ constexpr std::array<float, 3 * 2> up_arrow_symbol = {
     0.0f, -3.0f, -3.0f, 2.0f, 3.0f, 2.0f,
 };
 
-constexpr std::array<float, 13 * 2> up_arrow = {
-    9.4f,   -9.8f,  9.4f,   -10.2f, 8.9f,   -29.8f, 8.5f,   -30.0f, 8.1f,
-    -30.1f, 7.7f,   -30.1f, -8.6f,  -30.0f, -9.0f,  -29.8f, -9.3f,  -29.5f,
-    -9.5f,  -29.1f, -9.5f,  -28.7f, -9.1f,  -9.1f,  -8.8f,  -8.8f,
-};
-
 constexpr std::array<float, 64 * 2> trigger_button = {
     5.5f,   -12.6f, 5.8f,   -12.6f, 6.7f,   -12.5f, 8.1f,   -12.3f, 8.6f,   -12.2f, 9.2f,   -12.0f,
     9.5f,   -11.9f, 9.9f,   -11.8f, 10.6f,  -11.5f, 11.0f,  -11.3f, 11.2f,  -11.2f, 11.4f,  -11.1f,
@@ -2524,7 +2518,6 @@ void PlayerControlPreview::DrawArrowButton(QPainter& p, const QPointF center,
 void PlayerControlPreview::DrawTriggerButton(QPainter& p, const QPointF center,
                                              const Direction direction, bool pressed) {
     std::array<QPointF, trigger_button.size() / 2> qtrigger_button;
-    QPoint offset;
 
     for (std::size_t point = 0; point < trigger_button.size() / 2; ++point) {
         switch (direction) {
