@@ -504,7 +504,7 @@ if (YUZU_USE_BUNDLED_FFMPEG)
         endif()
     else() # WIN32
         # Use yuzu FFmpeg binaries
-        set(FFmpeg_EXT_NAME "ffmpeg-4.2.1")
+        set(FFmpeg_EXT_NAME "ffmpeg-4.3.1")
         set(FFmpeg_PATH "${CMAKE_BINARY_DIR}/externals/${FFmpeg_EXT_NAME}")
         download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "")
         set(FFmpeg_FOUND YES)
