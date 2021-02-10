@@ -144,6 +144,10 @@ Client::~Client() {
     Reset();
 }
 
+Client::ClientData::ClientData() = default;
+
+Client::ClientData::~ClientData() = default;
+
 std::vector<Common::ParamPackage> Client::GetInputDevices() const {
     std::vector<Common::ParamPackage> devices;
     for (std::size_t client = 0; client < clients.size(); client++) {

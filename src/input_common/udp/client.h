@@ -98,6 +98,9 @@ public:
 
 private:
     struct ClientData {
+        ClientData();
+        ~ClientData();
+
         std::string host{"127.0.0.1"};
         u16 port{26760};
         std::size_t pad_index{};
