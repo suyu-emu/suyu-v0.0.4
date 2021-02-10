@@ -653,6 +653,8 @@ else()
         $<$<CXX_COMPILER_ID:GNU>:-Werror=unused-but-set-parameter>
         $<$<CXX_COMPILER_ID:GNU>:-Werror=unused-but-set-variable>
 
+        $<$<CXX_COMPILER_ID:Clang>:-fsized-deallocation>
+
         -Wno-sign-conversion
     )
 endif()
