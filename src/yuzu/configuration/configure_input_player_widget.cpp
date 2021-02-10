@@ -37,7 +37,8 @@ void PlayerControlPreview::SetPlayerInput(std::size_t index, const ButtonParam& 
                    Input::CreateDevice<Input::AnalogDevice>);
     UpdateColors();
 }
-void PlayerControlPreview::SetPlayerInputRaw(std::size_t index, const Settings::ButtonsRaw buttons_,
+void PlayerControlPreview::SetPlayerInputRaw(std::size_t index,
+                                             const Settings::ButtonsRaw& buttons_,
                                              Settings::AnalogsRaw analogs_) {
     player_index = index;
     std::transform(buttons_.begin() + Settings::NativeButton::BUTTON_HID_BEGIN,
@@ -517,14 +518,15 @@ void PlayerControlPreview::DrawDualController(QPainter& p, const QPointF center)
     {
         // Draw joysticks
         using namespace Settings::NativeAnalog;
-        DrawJoystick(p, center + QPointF(-65, -65) + (axis_values[LStick].value * 7), 1.62f,
-                     button_values[Settings::NativeButton::LStick]);
-        DrawJoystick(p, center + QPointF(65, 12) + (axis_values[RStick].value * 7), 1.62f,
-                     button_values[Settings::NativeButton::RStick]);
-        DrawRawJoystick(p, center + QPointF(-180, 90), axis_values[LStick].raw_value,
-                        axis_values[LStick].properties);
-        DrawRawJoystick(p, center + QPointF(180, 90), axis_values[RStick].raw_value,
-                        axis_values[RStick].properties);
+        const auto& l_stick = axis_values[LStick];
+        const auto l_button = button_values[Settings::NativeButton::LStick];
+        const auto& r_stick = axis_values[RStick];
+        const auto r_button = button_values[Settings::NativeButton::RStick];
+
+        DrawJoystick(p, center + QPointF(-65, -65) + (l_stick.value * 7), 1.62f, l_button);
+        DrawJoystick(p, center + QPointF(65, 12) + (r_stick.value * 7), 1.62f, r_button);
+        DrawRawJoystick(p, center + QPointF(-180, 90), l_stick.raw_value, l_stick.properties);
+        DrawRawJoystick(p, center + QPointF(180, 90), r_stick.raw_value, r_stick.properties);
     }
 
     using namespace Settings::NativeButton;
@@ -603,14 +605,15 @@ void PlayerControlPreview::DrawHandheldController(QPainter& p, const QPointF cen
     {
         // Draw joysticks
         using namespace Settings::NativeAnalog;
-        DrawJoystick(p, center + QPointF(-171, -41) + (axis_values[LStick].value * 4), 1.0f,
-                     button_values[Settings::NativeButton::LStick]);
-        DrawJoystick(p, center + QPointF(171, 8) + (axis_values[RStick].value * 4), 1.0f,
-                     button_values[Settings::NativeButton::RStick]);
-        DrawRawJoystick(p, center + QPointF(-50, 0), axis_values[LStick].raw_value,
-                        axis_values[LStick].properties);
-        DrawRawJoystick(p, center + QPointF(50, 0), axis_values[RStick].raw_value,
-                        axis_values[RStick].properties);
+        const auto& l_stick = axis_values[LStick];
+        const auto l_button = button_values[Settings::NativeButton::LStick];
+        const auto& r_stick = axis_values[RStick];
+        const auto r_button = button_values[Settings::NativeButton::RStick];
+
+        DrawJoystick(p, center + QPointF(-171, -41) + (l_stick.value * 4), 1.0f, l_button);
+        DrawJoystick(p, center + QPointF(171, 8) + (r_stick.value * 4), 1.0f, r_button);
+        DrawRawJoystick(p, center + QPointF(-50, 0), l_stick.raw_value, l_stick.properties);
+        DrawRawJoystick(p, center + QPointF(50, 0), r_stick.raw_value, r_stick.properties);
     }
 
     using namespace Settings::NativeButton;
@@ -1451,15 +1454,18 @@ void PlayerControlPreview::DrawProBody(QPainter& p, const QPointF center) {
     constexpr int radius1 = 32;
 
     for (std::size_t point = 0; point < pro_left_handle.size() / 2; ++point) {
-        qleft_handle[point] =
-            center + QPointF(pro_left_handle[point * 2], pro_left_handle[point * 2 + 1]);
-        qright_handle[point] =
-            center + QPointF(-pro_left_handle[point * 2], pro_left_handle[point * 2 + 1]);
+        const float left_x = pro_left_handle[point * 2 + 0];
+        const float left_y = pro_left_handle[point * 2 + 1];
+
+        qleft_handle[point] = center + QPointF(left_x, left_y);
+        qright_handle[point] = center + QPointF(-left_x, left_y);
     }
     for (std::size_t point = 0; point < pro_body.size() / 2; ++point) {
-        qbody[point] = center + QPointF(pro_body[point * 2], pro_body[point * 2 + 1]);
-        qbody[pro_body.size() - 1 - point] =
-            center + QPointF(-pro_body[point * 2], pro_body[point * 2 + 1]);
+        const float body_x = pro_body[point * 2 + 0];
+        const float body_y = pro_body[point * 2 + 1];
+
+        qbody[point] = center + QPointF(body_x, body_y);
+        qbody[pro_body.size() - 1 - point] = center + QPointF(-body_x, body_y);
     }
 
     // Draw left handle body
@@ -1490,21 +1496,25 @@ void PlayerControlPreview::DrawGCBody(QPainter& p, const QPointF center) {
     constexpr float angle = 2 * 3.1415f / 8;
 
     for (std::size_t point = 0; point < gc_left_body.size() / 2; ++point) {
-        qleft_handle[point] =
-            center + QPointF(gc_left_body[point * 2], gc_left_body[point * 2 + 1]);
-        qright_handle[point] =
-            center + QPointF(-gc_left_body[point * 2], gc_left_body[point * 2 + 1]);
+        const float body_x = gc_left_body[point * 2 + 0];
+        const float body_y = gc_left_body[point * 2 + 1];
+
+        qleft_handle[point] = center + QPointF(body_x, body_y);
+        qright_handle[point] = center + QPointF(-body_x, body_y);
     }
     for (std::size_t point = 0; point < gc_body.size() / 2; ++point) {
-        qbody[point] = center + QPointF(gc_body[point * 2], gc_body[point * 2 + 1]);
-        qbody[gc_body.size() - 1 - point] =
-            center + QPointF(-gc_body[point * 2], gc_body[point * 2 + 1]);
+        const float body_x = gc_body[point * 2 + 0];
+        const float body_y = gc_body[point * 2 + 1];
+
+        qbody[point] = center + QPointF(body_x, body_y);
+        qbody[gc_body.size() - 1 - point] = center + QPointF(-body_x, body_y);
     }
     for (std::size_t point = 0; point < 8; ++point) {
-        left_hex[point] =
-            center + QPointF(34 * std::cos(point * angle) - 111, 34 * std::sin(point * angle) - 44);
-        right_hex[point] =
-            center + QPointF(26 * std::cos(point * angle) + 61, 26 * std::sin(point * angle) + 37);
+        const float point_cos = std::cos(point * angle);
+        const float point_sin = std::sin(point * angle);
+
+        left_hex[point] = center + QPointF(34 * point_cos - 111, 34 * point_sin - 44);
+        right_hex[point] = center + QPointF(26 * point_cos + 61, 26 * point_sin + 37);
     }
 
     // Draw body
@@ -1625,32 +1635,36 @@ void PlayerControlPreview::DrawDualBody(QPainter& p, const QPointF center) {
     constexpr float offset = 209.3f;
 
     for (std::size_t point = 0; point < left_joycon_body.size() / 2; ++point) {
-        left_joycon[point] = center + QPointF(left_joycon_body[point * 2] * size + offset,
-                                              left_joycon_body[point * 2 + 1] * size - 1);
-        right_joycon[point] = center + QPointF(-left_joycon_body[point * 2] * size - offset,
-                                               left_joycon_body[point * 2 + 1] * size - 1);
+        const float body_x = left_joycon_body[point * 2 + 0];
+        const float body_y = left_joycon_body[point * 2 + 1];
+
+        left_joycon[point] = center + QPointF(body_x * size + offset, body_y * size - 1);
+        right_joycon[point] = center + QPointF(-body_x * size - offset, body_y * size - 1);
     }
     for (std::size_t point = 0; point < left_joycon_slider.size() / 2; ++point) {
-        qleft_joycon_slider[point] =
-            center + QPointF(left_joycon_slider[point * 2], left_joycon_slider[point * 2 + 1]);
-        qright_joycon_slider[point] =
-            center + QPointF(-left_joycon_slider[point * 2], left_joycon_slider[point * 2 + 1]);
+        const float slider_x = left_joycon_slider[point * 2 + 0];
+        const float slider_y = left_joycon_slider[point * 2 + 1];
+
+        qleft_joycon_slider[point] = center + QPointF(slider_x, slider_y);
+        qright_joycon_slider[point] = center + QPointF(-slider_x, slider_y);
     }
     for (std::size_t point = 0; point < left_joycon_topview.size() / 2; ++point) {
+        const float top_view_x = left_joycon_topview[point * 2 + 0];
+        const float top_view_y = left_joycon_topview[point * 2 + 1];
+
         qleft_joycon_topview[point] =
-            center + QPointF(left_joycon_topview[point * 2] * size2 - 52,
-                             left_joycon_topview[point * 2 + 1] * size2 - 52);
+            center + QPointF(top_view_x * size2 - 52, top_view_y * size2 - 52);
         qright_joycon_topview[point] =
-            center + QPointF(-left_joycon_topview[point * 2] * size2 + 52,
-                             left_joycon_topview[point * 2 + 1] * size2 - 52);
+            center + QPointF(-top_view_x * size2 + 52, top_view_y * size2 - 52);
     }
     for (std::size_t point = 0; point < left_joycon_slider_topview.size() / 2; ++point) {
+        const float top_view_x = left_joycon_slider_topview[point * 2 + 0];
+        const float top_view_y = left_joycon_slider_topview[point * 2 + 1];
+
         qleft_joycon_slider_topview[point] =
-            center + QPointF(left_joycon_slider_topview[point * 2] * size2 - 52,
-                             left_joycon_slider_topview[point * 2 + 1] * size2 - 52);
+            center + QPointF(top_view_x * size2 - 52, top_view_y * size2 - 52);
         qright_joycon_slider_topview[point] =
-            center + QPointF(-left_joycon_slider_topview[point * 2] * size2 + 52,
-                             left_joycon_slider_topview[point * 2 + 1] * size2 - 52);
+            center + QPointF(-top_view_x * size2 + 52, top_view_y * size2 - 52);
     }
 
     // right joycon body
@@ -1899,18 +1913,19 @@ void PlayerControlPreview::DrawProTriggers(QPainter& p, const QPointF center, bo
     std::array<QPointF, pro_body_top.size()> qbody_top;
 
     for (std::size_t point = 0; point < pro_left_trigger.size() / 2; ++point) {
-        qleft_trigger[point] =
-            center + QPointF(pro_left_trigger[point * 2],
-                             pro_left_trigger[point * 2 + 1] + (left_pressed ? 2 : 0));
-        qright_trigger[point] =
-            center + QPointF(-pro_left_trigger[point * 2],
-                             pro_left_trigger[point * 2 + 1] + (right_pressed ? 2 : 0));
+        const float trigger_x = pro_left_trigger[point * 2 + 0];
+        const float trigger_y = pro_left_trigger[point * 2 + 1];
+
+        qleft_trigger[point] = center + QPointF(trigger_x, trigger_y + (left_pressed ? 2 : 0));
+        qright_trigger[point] = center + QPointF(-trigger_x, trigger_y + (right_pressed ? 2 : 0));
     }
 
     for (std::size_t point = 0; point < pro_body_top.size() / 2; ++point) {
-        qbody_top[pro_body_top.size() - 1 - point] =
-            center + QPointF(-pro_body_top[point * 2], pro_body_top[point * 2 + 1]);
-        qbody_top[point] = center + QPointF(pro_body_top[point * 2], pro_body_top[point * 2 + 1]);
+        const float top_x = pro_body_top[point * 2 + 0];
+        const float top_y = pro_body_top[point * 2 + 1];
+
+        qbody_top[pro_body_top.size() - 1 - point] = center + QPointF(-top_x, top_y);
+        qbody_top[point] = center + QPointF(top_x, top_y);
     }
 
     // Pro body detail
@@ -1933,12 +1948,11 @@ void PlayerControlPreview::DrawGCTriggers(QPainter& p, const QPointF center, boo
     std::array<QPointF, left_gc_trigger.size() / 2> qright_trigger;
 
     for (std::size_t point = 0; point < left_gc_trigger.size() / 2; ++point) {
-        qleft_trigger[point] =
-            center + QPointF(left_gc_trigger[point * 2],
-                             left_gc_trigger[point * 2 + 1] + (left_pressed ? 10 : 0));
-        qright_trigger[point] =
-            center + QPointF(-left_gc_trigger[point * 2],
-                             left_gc_trigger[point * 2 + 1] + (right_pressed ? 10 : 0));
+        const float trigger_x = left_gc_trigger[point * 2 + 0];
+        const float trigger_y = left_gc_trigger[point * 2 + 1];
+
+        qleft_trigger[point] = center + QPointF(trigger_x, trigger_y + (left_pressed ? 10 : 0));
+        qright_trigger[point] = center + QPointF(-trigger_x, trigger_y + (right_pressed ? 10 : 0));
     }
 
     // Left trigger
@@ -1967,12 +1981,13 @@ void PlayerControlPreview::DrawHandheldTriggers(QPainter& p, const QPointF cente
     std::array<QPointF, left_joycon_trigger.size() / 2> qright_trigger;
 
     for (std::size_t point = 0; point < left_joycon_trigger.size() / 2; ++point) {
+        const float left_trigger_x = left_joycon_trigger[point * 2 + 0];
+        const float left_trigger_y = left_joycon_trigger[point * 2 + 1];
+
         qleft_trigger[point] =
-            center + QPointF(left_joycon_trigger[point * 2],
-                             left_joycon_trigger[point * 2 + 1] + (left_pressed ? 0.5f : 0));
+            center + QPointF(left_trigger_x, left_trigger_y + (left_pressed ? 0.5f : 0));
         qright_trigger[point] =
-            center + QPointF(-left_joycon_trigger[point * 2],
-                             left_joycon_trigger[point * 2 + 1] + (right_pressed ? 0.5f : 0));
+            center + QPointF(-left_trigger_x, left_trigger_y + (right_pressed ? 0.5f : 0));
     }
 
     // Left trigger
@@ -1992,12 +2007,14 @@ void PlayerControlPreview::DrawDualTriggers(QPainter& p, const QPointF center, b
     constexpr float size = 1.62f;
     constexpr float offset = 210.6f;
     for (std::size_t point = 0; point < left_joycon_trigger.size() / 2; ++point) {
-        qleft_trigger[point] =
-            center + QPointF(left_joycon_trigger[point * 2] * size + offset,
-                             left_joycon_trigger[point * 2 + 1] * size + (left_pressed ? 0.5f : 0));
-        qright_trigger[point] = center + QPointF(-left_joycon_trigger[point * 2] * size - offset,
-                                                 left_joycon_trigger[point * 2 + 1] * size +
-                                                     (right_pressed ? 0.5f : 0));
+        const float left_trigger_x = left_joycon_trigger[point * 2 + 0];
+        const float left_trigger_y = left_joycon_trigger[point * 2 + 1];
+
+        qleft_trigger[point] = center + QPointF(left_trigger_x * size + offset,
+                                                left_trigger_y * size + (left_pressed ? 0.5f : 0));
+        qright_trigger[point] =
+            center + QPointF(-left_trigger_x * size - offset,
+                             left_trigger_y * size + (right_pressed ? 0.5f : 0));
     }
 
     // Left trigger
@@ -2017,13 +2034,16 @@ void PlayerControlPreview::DrawDualTriggersTopView(QPainter& p, const QPointF ce
     constexpr float size = 0.9f;
 
     for (std::size_t point = 0; point < left_joystick_L_topview.size() / 2; ++point) {
-        qleft_trigger[point] = center + QPointF(left_joystick_L_topview[point * 2] * size - 50,
-                                                left_joystick_L_topview[point * 2 + 1] * size - 52);
+        const float top_view_x = left_joystick_L_topview[point * 2 + 0];
+        const float top_view_y = left_joystick_L_topview[point * 2 + 1];
+
+        qleft_trigger[point] = center + QPointF(top_view_x * size - 50, top_view_y * size - 52);
     }
     for (std::size_t point = 0; point < left_joystick_L_topview.size() / 2; ++point) {
-        qright_trigger[point] =
-            center + QPointF(-left_joystick_L_topview[point * 2] * size + 50,
-                             left_joystick_L_topview[point * 2 + 1] * size - 52);
+        const float top_view_x = left_joystick_L_topview[point * 2 + 0];
+        const float top_view_y = left_joystick_L_topview[point * 2 + 1];
+
+        qright_trigger[point] = center + QPointF(-top_view_x * size + 50, top_view_y * size - 52);
     }
 
     p.setPen(colors.outline);
@@ -2317,7 +2337,7 @@ void PlayerControlPreview::DrawGCJoystick(QPainter& p, const QPointF center, boo
 }
 
 void PlayerControlPreview::DrawRawJoystick(QPainter& p, const QPointF center, const QPointF value,
-                                           const Input::AnalogProperties properties) {
+                                           const Input::AnalogProperties& properties) {
     constexpr float size = 45.0f;
     const float range = size * properties.range;
     const float deadzone = size * properties.deadzone;
@@ -2440,17 +2460,16 @@ void PlayerControlPreview::DrawArrowButtonOutline(QPainter& p, const QPointF cen
     std::array<QPointF, (arrow_points - 1) * 4> arrow_button_outline;
 
     for (std::size_t point = 0; point < arrow_points - 1; ++point) {
-        arrow_button_outline[point] = center + QPointF(up_arrow_button[point * 2] * size,
-                                                       up_arrow_button[point * 2 + 1] * size);
+        const float up_arrow_x = up_arrow_button[point * 2 + 0];
+        const float up_arrow_y = up_arrow_button[point * 2 + 1];
+
+        arrow_button_outline[point] = center + QPointF(up_arrow_x * size, up_arrow_y * size);
         arrow_button_outline[(arrow_points - 1) * 2 - point - 1] =
-            center +
-            QPointF(up_arrow_button[point * 2 + 1] * size, up_arrow_button[point * 2] * size);
+            center + QPointF(up_arrow_y * size, up_arrow_x * size);
         arrow_button_outline[(arrow_points - 1) * 2 + point] =
-            center +
-            QPointF(-up_arrow_button[point * 2] * size, -up_arrow_button[point * 2 + 1] * size);
+            center + QPointF(-up_arrow_x * size, -up_arrow_y * size);
         arrow_button_outline[(arrow_points - 1) * 4 - point - 1] =
-            center +
-            QPointF(-up_arrow_button[point * 2 + 1] * size, -up_arrow_button[point * 2] * size);
+            center + QPointF(-up_arrow_y * size, -up_arrow_x * size);
     }
     // Draw arrow button outline
     p.setPen(colors.outline);
@@ -2464,22 +2483,21 @@ void PlayerControlPreview::DrawArrowButton(QPainter& p, const QPointF center,
     QPoint offset;
 
     for (std::size_t point = 0; point < up_arrow_button.size() / 2; ++point) {
+        const float up_arrow_x = up_arrow_button[point * 2 + 0];
+        const float up_arrow_y = up_arrow_button[point * 2 + 1];
+
         switch (direction) {
         case Direction::Up:
-            arrow_button[point] = center + QPointF(up_arrow_button[point * 2] * size,
-                                                   up_arrow_button[point * 2 + 1] * size);
+            arrow_button[point] = center + QPointF(up_arrow_x * size, up_arrow_y * size);
             break;
         case Direction::Left:
-            arrow_button[point] = center + QPointF(up_arrow_button[point * 2 + 1] * size,
-                                                   up_arrow_button[point * 2] * size);
+            arrow_button[point] = center + QPointF(up_arrow_y * size, up_arrow_x * size);
             break;
         case Direction::Right:
-            arrow_button[point] = center + QPointF(-up_arrow_button[point * 2 + 1] * size,
-                                                   up_arrow_button[point * 2] * size);
+            arrow_button[point] = center + QPointF(-up_arrow_y * size, up_arrow_x * size);
             break;
         case Direction::Down:
-            arrow_button[point] = center + QPointF(up_arrow_button[point * 2] * size,
-                                                   -up_arrow_button[point * 2 + 1] * size);
+            arrow_button[point] = center + QPointF(up_arrow_x * size, -up_arrow_y * size);
             break;
         case Direction::None:
             break;
@@ -2520,14 +2538,15 @@ void PlayerControlPreview::DrawTriggerButton(QPainter& p, const QPointF center,
     std::array<QPointF, trigger_button.size() / 2> qtrigger_button;
 
     for (std::size_t point = 0; point < trigger_button.size() / 2; ++point) {
+        const float trigger_button_x = trigger_button[point * 2 + 0];
+        const float trigger_button_y = trigger_button[point * 2 + 1];
+
         switch (direction) {
         case Direction::Left:
-            qtrigger_button[point] =
-                center + QPointF(-trigger_button[point * 2], trigger_button[point * 2 + 1]);
+            qtrigger_button[point] = center + QPointF(-trigger_button_x, trigger_button_y);
             break;
         case Direction::Right:
-            qtrigger_button[point] =
-                center + QPointF(trigger_button[point * 2], trigger_button[point * 2 + 1]);
+            qtrigger_button[point] = center + QPointF(trigger_button_x, trigger_button_y);
             break;
         case Direction::Up:
         case Direction::Down:
@@ -2650,22 +2669,21 @@ void PlayerControlPreview::DrawArrow(QPainter& p, const QPointF center, const Di
     std::array<QPointF, up_arrow_symbol.size() / 2> arrow_symbol;
 
     for (std::size_t point = 0; point < up_arrow_symbol.size() / 2; ++point) {
+        const float up_arrow_x = up_arrow_symbol[point * 2 + 0];
+        const float up_arrow_y = up_arrow_symbol[point * 2 + 1];
+
         switch (direction) {
         case Direction::Up:
-            arrow_symbol[point] = center + QPointF(up_arrow_symbol[point * 2] * size,
-                                                   up_arrow_symbol[point * 2 + 1] * size);
+            arrow_symbol[point] = center + QPointF(up_arrow_x * size, up_arrow_y * size);
             break;
         case Direction::Left:
-            arrow_symbol[point] = center + QPointF(up_arrow_symbol[point * 2 + 1] * size,
-                                                   up_arrow_symbol[point * 2] * size);
+            arrow_symbol[point] = center + QPointF(up_arrow_y * size, up_arrow_x * size);
             break;
         case Direction::Right:
-            arrow_symbol[point] = center + QPointF(-up_arrow_symbol[point * 2 + 1] * size,
-                                                   up_arrow_symbol[point * 2] * size);
+            arrow_symbol[point] = center + QPointF(-up_arrow_y * size, up_arrow_x * size);
             break;
         case Direction::Down:
-            arrow_symbol[point] = center + QPointF(up_arrow_symbol[point * 2] * size,
-                                                   -up_arrow_symbol[point * 2 + 1] * size);
+            arrow_symbol[point] = center + QPointF(up_arrow_x * size, -up_arrow_y * size);
             break;
         case Direction::None:
             break;
