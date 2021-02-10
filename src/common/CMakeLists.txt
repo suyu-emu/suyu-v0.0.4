@@ -206,6 +206,8 @@ if (MSVC)
 else()
   target_compile_options(common PRIVATE
     -Werror
+
+    $<$<CXX_COMPILER_ID:Clang>:-fsized-deallocation>
   )
 endif()
 
