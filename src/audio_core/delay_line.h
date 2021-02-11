@@ -9,7 +9,7 @@ public:
     DelayLineBase();
     ~DelayLineBase();
 
-    void Initialize(s32 _max_delay, float* src_buffer);
+    void Initialize(s32 max_delay_, float* src_buffer);
     void SetDelay(s32 new_delay);
     s32 GetDelay() const;
     s32 GetMaxDelay() const;

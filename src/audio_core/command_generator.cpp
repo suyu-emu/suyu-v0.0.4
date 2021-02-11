@@ -91,11 +91,11 @@ float Pow10(float x) {
 }
 
 float SinD(float degrees) {
-    return std::sinf(degrees * static_cast<float>(std::numbers::pi) / 180.0f);
+    return std::sin(degrees * std::numbers::pi_v<float> / 180.0f);
 }
 
 float CosD(float degrees) {
-    return std::cosf(degrees * static_cast<float>(std::numbers::pi) / 180.0f);
+    return std::cos(degrees * std::numbers::pi_v<float> / 180.0f);
 }
 
 float ToFloat(s32 sample) {

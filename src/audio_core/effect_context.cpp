@@ -126,10 +126,10 @@ void EffectI3dl2Reverb::Update(EffectInfo::InParams& in_params) {
         params.status = ParameterStatus::Initialized;
         skipped = in_params.buffer_address == 0 || in_params.buffer_size == 0;
         if (!skipped) {
-            auto& work_buffer = GetWorkBuffer();
+            auto& cur_work_buffer = GetWorkBuffer();
             // Has two buffers internally
-            work_buffer.resize(in_params.buffer_size * 2);
-            std::fill(work_buffer.begin(), work_buffer.end(), 0);
+            cur_work_buffer.resize(in_params.buffer_size * 2);
+            std::fill(cur_work_buffer.begin(), cur_work_buffer.end(), 0);
         }
     }
 }
