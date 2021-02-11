@@ -8,6 +8,7 @@
 #include <memory>
 #include <vector>
 #include "audio_core/common.h"
+#include "audio_core/delay_line.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/swap.h"
@@ -194,6 +195,8 @@ public:
     [[nodiscard]] bool IsEnabled() const;
     [[nodiscard]] s32 GetMixID() const;
     [[nodiscard]] s32 GetProcessingOrder() const;
+    [[nodiscard]] std::vector<u8>& GetWorkBuffer();
+    [[nodiscard]] const std::vector<u8>& GetWorkBuffer() const;
 
 protected:
     UsageState usage{UsageState::Invalid};
@@ -201,6 +204,7 @@ protected:
     s32 mix_id{};
     s32 processing_order{};
     bool enabled = false;
+    std::vector<u8> work_buffer{};
 };
 
 template <typename T>
@@ -212,7 +216,7 @@ public:
         return internal_params;
     }
 
-    const I3dl2ReverbParams& GetParams() const {
+    const T& GetParams() const {
         return internal_params;
     }
 
@@ -229,6 +233,27 @@ public:
     void UpdateForCommandGeneration() override;
 };
 
+struct I3dl2ReverbState {
+    f32 lowpass_0{};
+    f32 lowpass_1{};
+    f32 lowpass_2{};
+
+    DelayLineBase early_delay_line{};
+    std::array<u32, AudioCommon::I3DL2REVERB_TAPS> early_tap_steps{};
+    f32 early_gain{};
+    f32 late_gain{};
+
+    u32 early_to_late_taps{};
+    std::array<DelayLineBase, AudioCommon::I3DL2REVERB_DELAY_LINE_COUNT> fdn_delay_line{};
+    std::array<DelayLineAllPass, AudioCommon::I3DL2REVERB_DELAY_LINE_COUNT> decay_delay_line0{};
+    std::array<DelayLineAllPass, AudioCommon::I3DL2REVERB_DELAY_LINE_COUNT> decay_delay_line1{};
+    f32 last_reverb_echo{};
+    DelayLineBase center_delay_line{};
+    std::array<std::array<f32, AudioCommon::I3DL2REVERB_DELAY_LINE_COUNT>, 3> lpf_coefficients{};
+    std::array<f32, AudioCommon::I3DL2REVERB_DELAY_LINE_COUNT> shelf_filter{};
+    f32 dry_gain{};
+};
+
 class EffectI3dl2Reverb : public EffectGeneric<I3dl2ReverbParams> {
 public:
     explicit EffectI3dl2Reverb();
@@ -237,8 +262,12 @@ public:
     void Update(EffectInfo::InParams& in_params) override;
     void UpdateForCommandGeneration() override;
 
+    I3dl2ReverbState& GetState();
+    const I3dl2ReverbState& GetState() const;
+
 private:
     bool skipped = false;
+    I3dl2ReverbState state{};
 };
 
 class EffectBiquadFilter : public EffectGeneric<BiquadFilterParams> {

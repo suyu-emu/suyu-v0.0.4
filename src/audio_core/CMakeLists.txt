@@ -15,6 +15,8 @@ add_library(audio_core STATIC
     command_generator.cpp
     command_generator.h
     common.h
+    delay_line.cpp
+    delay_line.h
     effect_context.cpp
     effect_context.h
     info_updater.cpp
