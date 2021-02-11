@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "common/threadsafe_queue.h"
+#include "core/settings.h"
 #include "input_common/mouse/mouse_input.h"
 #include "input_common/mouse/mouse_poller.h"
 
@@ -71,7 +72,7 @@ public:
         std::lock_guard lock{mutex};
         const auto axis_value =
             static_cast<float>(mouse_input->GetMouseState(button).axis.at(axis));
-        return axis_value / (100.0f * range);
+        return axis_value * Settings::values.mouse_panning_sensitivity / (100.0f * range);
     }
 
     std::pair<float, float> GetAnalog(u32 analog_axis_x, u32 analog_axis_y) const {

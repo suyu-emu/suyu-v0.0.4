@@ -405,11 +405,16 @@ void GRenderWindow::mouseMoveEvent(QMouseEvent* event) {
     if (event->source() == Qt::MouseEventSynthesizedBySystem) {
         return;
     }
-
     auto pos = event->pos();
     const auto [x, y] = ScaleTouch(pos);
-    input_subsystem->GetMouse()->MouseMove(x, y);
+    const int center_x = width() / 2;
+    const int center_y = height() / 2;
+    input_subsystem->GetMouse()->MouseMove(x, y, center_x, center_y);
     this->TouchMoved(x, y, 0);
+
+    if (Settings::values.mouse_panning) {
+        QCursor::setPos(mapToGlobal({center_x, center_y}));
+    }
 
     emit MouseActivity();
 }
@@ -714,6 +719,11 @@ void GRenderWindow::showEvent(QShowEvent* event) {
 
 bool GRenderWindow::eventFilter(QObject* object, QEvent* event) {
     if (event->type() == QEvent::HoverMove) {
+        if (Settings::values.mouse_panning) {
+            auto* hover_event = static_cast<QMouseEvent*>(event);
+            mouseMoveEvent(hover_event);
+            return false;
+        }
         emit MouseActivity();
     }
     return false;

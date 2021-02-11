@@ -850,6 +850,16 @@ void GMainWindow::InitializeHotkeys() {
     connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Mute Audio"), this),
             &QShortcut::activated, this,
             [] { Settings::values.audio_muted = !Settings::values.audio_muted; });
+
+    connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Toggle Mouse Panning"), this),
+            &QShortcut::activated, this, [&] {
+                Settings::values.mouse_panning = !Settings::values.mouse_panning;
+                if (UISettings::values.hide_mouse || Settings::values.mouse_panning) {
+                    mouse_hide_timer.start();
+                    render_window->installEventFilter(render_window);
+                    render_window->setAttribute(Qt::WA_Hover, true);
+                }
+            });
 }
 
 void GMainWindow::SetDefaultUIGeometry() {
@@ -1197,7 +1207,7 @@ void GMainWindow::BootGame(const QString& filename, std::size_t program_index) {
     multicore_status_button->setDisabled(true);
     renderer_status_button->setDisabled(true);
 
-    if (UISettings::values.hide_mouse) {
+    if (UISettings::values.hide_mouse || Settings::values.mouse_panning) {
         mouse_hide_timer.start();
         render_window->installEventFilter(render_window);
         render_window->setAttribute(Qt::WA_Hover, true);
@@ -2359,7 +2369,7 @@ void GMainWindow::OnConfigure() {
 
     config->Save();
 
-    if (UISettings::values.hide_mouse && emulation_running) {
+    if ((UISettings::values.hide_mouse || Settings::values.mouse_panning) && emulation_running) {
         render_window->installEventFilter(render_window);
         render_window->setAttribute(Qt::WA_Hover, true);
         mouse_hide_timer.start();
@@ -2600,7 +2610,8 @@ void GMainWindow::UpdateUISettings() {
 }
 
 void GMainWindow::HideMouseCursor() {
-    if (emu_thread == nullptr || UISettings::values.hide_mouse == false) {
+    if (emu_thread == nullptr ||
+        (!UISettings::values.hide_mouse && !Settings::values.mouse_panning)) {
         mouse_hide_timer.stop();
         ShowMouseCursor();
         return;
@@ -2610,13 +2621,16 @@ void GMainWindow::HideMouseCursor() {
 
 void GMainWindow::ShowMouseCursor() {
     render_window->unsetCursor();
-    if (emu_thread != nullptr && UISettings::values.hide_mouse) {
+    if (emu_thread != nullptr &&
+        (UISettings::values.hide_mouse || Settings::values.mouse_panning)) {
         mouse_hide_timer.start();
     }
 }
 
 void GMainWindow::OnMouseActivity() {
-    ShowMouseCursor();
+    if (!Settings::values.mouse_panning) {
+        ShowMouseCursor();
+    }
 }
 
 void GMainWindow::OnCoreError(Core::System::ResultStatus result, std::string details) {

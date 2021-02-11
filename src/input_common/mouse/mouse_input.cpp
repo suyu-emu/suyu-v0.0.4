@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "core/settings.h"
 #include "input_common/mouse/mouse_input.h"
 
 namespace MouseInput {
@@ -36,6 +37,9 @@ void Mouse::UpdateThread() {
         if (configuring) {
             UpdateYuzuSettings();
         }
+        if (mouse_panning_timout++ > 8) {
+            StopPanning();
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(update_time));
     }
 }
@@ -65,8 +69,34 @@ void Mouse::PressButton(int x, int y, int button_) {
     mouse_info[button_index].data.pressed = true;
 }
 
-void Mouse::MouseMove(int x, int y) {
+void Mouse::StopPanning() {
     for (MouseInfo& info : mouse_info) {
+        if (Settings::values.mouse_panning) {
+            info.data.axis = {};
+            info.tilt_speed = 0;
+            info.last_mouse_change = {};
+        }
+    }
+}
+
+void Mouse::MouseMove(int x, int y, int center_x, int center_y) {
+    for (MouseInfo& info : mouse_info) {
+        if (Settings::values.mouse_panning) {
+            const auto mouse_change = Common::MakeVec(x, y) - Common::MakeVec(center_x, center_y);
+            mouse_panning_timout = 0;
+
+            if (mouse_change.y == 0 && mouse_change.x == 0) {
+                continue;
+            }
+
+            info.last_mouse_change = (info.last_mouse_change * 0.8f) + (mouse_change * 0.2f);
+            info.data.axis = {static_cast<int>(16 * info.last_mouse_change.x),
+                              static_cast<int>(16 * -info.last_mouse_change.y)};
+            info.tilt_direction = info.last_mouse_change;
+            info.tilt_speed = info.tilt_direction.Normalize() * info.sensitivity;
+            continue;
+        }
+
         if (info.data.pressed) {
             const auto mouse_move = Common::MakeVec(x, y) - info.mouse_origin;
             const auto mouse_change = Common::MakeVec(x, y) - info.last_mouse_position;

@@ -57,8 +57,10 @@ public:
      * Signals that mouse has moved.
      * @param x the x-coordinate of the cursor
      * @param y the y-coordinate of the cursor
+     * @param center_x the x-coordinate of the middle of the screen
+     * @param center_y the y-coordinate of the middle of the screen
      */
-    void MouseMove(int x, int y);
+    void MouseMove(int x, int y, int center_x, int center_y);
 
     /**
      * Signals that a motion sensor tilt has ended.
@@ -74,11 +76,13 @@ public:
 private:
     void UpdateThread();
     void UpdateYuzuSettings();
+    void StopPanning();
 
     struct MouseInfo {
         InputCommon::MotionInput motion{0.0f, 0.0f, 0.0f};
         Common::Vec2<int> mouse_origin;
         Common::Vec2<int> last_mouse_position;
+        Common::Vec2<float> last_mouse_change;
         bool is_tilting = false;
         float sensitivity{0.120f};
 
@@ -94,5 +98,6 @@ private:
     Common::SPSCQueue<MouseStatus> mouse_queue;
     bool configuring{false};
     bool update_thread_running{true};
+    int mouse_panning_timout{};
 };
 } // namespace MouseInput
