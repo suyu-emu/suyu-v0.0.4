@@ -35,8 +35,8 @@ public:
     DelayLineAllPass();
     ~DelayLineAllPass();
 
-    void Initialize(u32 delay, float _coeffcient, f32* src_buffer);
-    void SetCoefficient(float _coeffcient);
+    void Initialize(u32 delay, float coeffcient_, f32* src_buffer);
+    void SetCoefficient(float coeffcient_);
     f32 Tick(f32 sample);
     void Reset();
 

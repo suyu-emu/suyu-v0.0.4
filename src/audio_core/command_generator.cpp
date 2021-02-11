@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <cmath>
 #include <numbers>
 #include "audio_core/algorithm/interpolate.h"
 #include "audio_core/command_generator.h"
@@ -127,7 +128,7 @@ constexpr std::array<std::size_t, 20> REVERB_TAP_INDEX_6CH{4, 0, 0, 1, 1, 1, 1, 
                                                            1, 1, 1, 0, 0, 0, 0, 3, 3, 3};
 
 template <std::size_t CHANNEL_COUNT>
-void ApplyReverbGeneric(const I3dl2ReverbParams& info, I3dl2ReverbState& state,
+void ApplyReverbGeneric(I3dl2ReverbState& state,
                         const std::array<const s32*, AudioCommon::MAX_CHANNEL_COUNT>& input,
                         const std::array<s32*, AudioCommon::MAX_CHANNEL_COUNT>& output,
                         s32 sample_count) {
@@ -567,16 +568,16 @@ void CommandGenerator::GenerateI3dl2ReverbEffectCommand(s32 mix_buffer_offset, E
     if (enabled) {
         switch (channel_count) {
         case 1:
-            ApplyReverbGeneric<1>(params, state, input, output, worker_params.sample_count);
+            ApplyReverbGeneric<1>(state, input, output, worker_params.sample_count);
             break;
         case 2:
-            ApplyReverbGeneric<2>(params, state, input, output, worker_params.sample_count);
+            ApplyReverbGeneric<2>(state, input, output, worker_params.sample_count);
             break;
         case 4:
-            ApplyReverbGeneric<4>(params, state, input, output, worker_params.sample_count);
+            ApplyReverbGeneric<4>(state, input, output, worker_params.sample_count);
             break;
         case 6:
-            ApplyReverbGeneric<6>(params, state, input, output, worker_params.sample_count);
+            ApplyReverbGeneric<6>(state, input, output, worker_params.sample_count);
             break;
         }
     } else {
@@ -794,8 +795,8 @@ void CommandGenerator::UpdateI3dl2Reverb(I3dl2ReverbParams& info, I3dl2ReverbSta
         state.lowpass_1 = 0.0f;
     } else {
         const auto a = 1.0f - hf_gain;
-        const auto b =
-            2.0f * (1.0f - hf_gain * CosD(256.0f * info.hf_reference / info.sample_rate));
+        const auto b = 2.0f * (1.0f - hf_gain * CosD(256.0f * info.hf_reference /
+                                                     static_cast<f32>(info.sample_rate)));
         const auto c = std::sqrt(b * b - 4.0f * a * a);
 
         state.lowpass_1 = (b - c) / (2.0f * a);
@@ -815,10 +816,11 @@ void CommandGenerator::UpdateI3dl2Reverb(I3dl2ReverbParams& info, I3dl2ReverbSta
                                          state.decay_delay_line0[i].GetDelay() +
                                          state.decay_delay_line1[i].GetDelay();
 
-        float a = (-60.0f * delay_sample_counts) / (info.decay_time * info.sample_rate);
+        float a = (-60.0f * static_cast<f32>(delay_sample_counts)) /
+                  (info.decay_time * static_cast<f32>(info.sample_rate));
         float b = a / info.hf_decay_ratio;
-        float c = CosD(128.0f * 0.5f * info.hf_reference / info.sample_rate) /
-                  SinD(128.0f * 0.5f * info.hf_reference / info.sample_rate);
+        float c = CosD(128.0f * 0.5f * info.hf_reference / static_cast<f32>(info.sample_rate)) /
+                  SinD(128.0f * 0.5f * info.hf_reference / static_cast<f32>(info.sample_rate));
         float d = Pow10((b - a) / 40.0f);
         float e = Pow10((b + a) / 40.0f) * 0.7071f;
 

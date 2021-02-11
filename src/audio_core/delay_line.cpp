@@ -1,15 +1,16 @@
+#include <cstring>
 #include "audio_core/delay_line.h"
 
 namespace AudioCore {
 DelayLineBase::DelayLineBase() = default;
 DelayLineBase::~DelayLineBase() = default;
 
-void DelayLineBase::Initialize(s32 _max_delay, float* src_buffer) {
+void DelayLineBase::Initialize(s32 max_delay_, float* src_buffer) {
     buffer = src_buffer;
-    buffer_end = buffer + _max_delay;
-    max_delay = _max_delay;
+    buffer_end = buffer + max_delay_;
+    max_delay = max_delay_;
     output = buffer;
-    SetDelay(_max_delay);
+    SetDelay(max_delay_);
     Clear();
 }
 
@@ -30,7 +31,7 @@ s32 DelayLineBase::GetMaxDelay() const {
 }
 
 f32 DelayLineBase::TapOut(s32 last_sample) {
-    float* ptr = input - (last_sample + 1);
+    const float* ptr = input - (last_sample + 1);
     if (ptr < buffer) {
         ptr += (max_delay + 1);
     }
@@ -81,13 +82,13 @@ void DelayLineBase::Reset() {
 DelayLineAllPass::DelayLineAllPass() = default;
 DelayLineAllPass::~DelayLineAllPass() = default;
 
-void DelayLineAllPass::Initialize(u32 delay, float _coeffcient, f32* src_buffer) {
-    DelayLineBase::Initialize(delay, src_buffer);
-    SetCoefficient(_coeffcient);
+void DelayLineAllPass::Initialize(u32 delay_, float coeffcient_, f32* src_buffer) {
+    DelayLineBase::Initialize(delay_, src_buffer);
+    SetCoefficient(coeffcient_);
 }
 
-void DelayLineAllPass::SetCoefficient(float _coeffcient) {
-    coefficient = _coeffcient;
+void DelayLineAllPass::SetCoefficient(float coeffcient_) {
+    coefficient = coeffcient_;
 }
 
 f32 DelayLineAllPass::Tick(f32 sample) {
