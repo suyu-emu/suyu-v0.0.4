@@ -121,6 +121,10 @@ void SoftwareKeyboard::ExecuteInteractive() {
         std::memcpy(&request, data.data(), sizeof(Request));
 
         switch (request) {
+        case Request::Finalize:
+            complete = true;
+            broker.SignalStateChanged();
+            break;
         case Request::Calc: {
             broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::vector<u8>{1}));
             broker.SignalStateChanged();
