@@ -211,7 +211,8 @@ void Controller::Execute() {
     case ControllerSupportMode::ShowControllerFirmwareUpdate:
         UNIMPLEMENTED_MSG("ControllerSupportMode={} is not implemented",
                           controller_private_arg.mode);
-        [[fallthrough]];
+        ConfigurationComplete();
+        break;
     default: {
         ConfigurationComplete();
         break;

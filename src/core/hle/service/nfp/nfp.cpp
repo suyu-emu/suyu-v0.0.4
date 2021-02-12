@@ -215,7 +215,7 @@ private:
         const auto& amiibo = nfp_interface.GetAmiiboBuffer();
         const TagInfo tag_info{
             .uuid = amiibo.uuid,
-            .uuid_length = static_cast<u8>(tag_info.uuid.size()),
+            .uuid_length = static_cast<u8>(amiibo.uuid.size()),
             .padding_1 = {},
             .protocol = 1, // TODO(ogniK): Figure out actual values
             .tag_type = 2,
