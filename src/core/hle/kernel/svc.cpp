@@ -23,7 +23,6 @@
 #include "core/cpu_manager.h"
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/client_session.h"
-#include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_address_arbiter.h"
 #include "core/hle/kernel/k_condition_variable.h"
@@ -71,49 +70,49 @@ ResultCode MapUnmapMemorySanityChecks(const Memory::PageTable& manager, VAddr ds
                                       VAddr src_addr, u64 size) {
     if (!Common::Is4KBAligned(dst_addr)) {
         LOG_ERROR(Kernel_SVC, "Destination address is not aligned to 4KB, 0x{:016X}", dst_addr);
-        return ERR_INVALID_ADDRESS;
+        return ResultInvalidAddress;
     }
 
     if (!Common::Is4KBAligned(src_addr)) {
         LOG_ERROR(Kernel_SVC, "Source address is not aligned to 4KB, 0x{:016X}", src_addr);
-        return ERR_INVALID_SIZE;
+        return ResultInvalidSize;
     }
 
     if (size == 0) {
         LOG_ERROR(Kernel_SVC, "Size is 0");
-        return ERR_INVALID_SIZE;
+        return ResultInvalidSize;
     }
 
     if (!Common::Is4KBAligned(size)) {
         LOG_ERROR(Kernel_SVC, "Size is not aligned to 4KB, 0x{:016X}", size);
-        return ERR_INVALID_SIZE;
+        return ResultInvalidSize;
     }
 
     if (!IsValidAddressRange(dst_addr, size)) {
         LOG_ERROR(Kernel_SVC,
                   "Destination is not a valid address range, addr=0x{:016X}, size=0x{:016X}",
                   dst_addr, size);
-        return ERR_INVALID_ADDRESS_STATE;
+        return ResultInvalidCurrentMemory;
     }
 
     if (!IsValidAddressRange(src_addr, size)) {
         LOG_ERROR(Kernel_SVC, "Source is not a valid address range, addr=0x{:016X}, size=0x{:016X}",
                   src_addr, size);
-        return ERR_INVALID_ADDRESS_STATE;
+        return ResultInvalidCurrentMemory;
     }
 
     if (!manager.IsInsideAddressSpace(src_addr, size)) {
         LOG_ERROR(Kernel_SVC,
                   "Source is not within the address space, addr=0x{:016X}, size=0x{:016X}",
                   src_addr, size);
-        return ERR_INVALID_ADDRESS_STATE;
+        return ResultInvalidCurrentMemory;
     }
 
     if (manager.IsOutsideStackRegion(dst_addr, size)) {
         LOG_ERROR(Kernel_SVC,
                   "Destination is not within the stack region, addr=0x{:016X}, size=0x{:016X}",
                   dst_addr, size);
-        return ERR_INVALID_MEMORY_RANGE;
+        return ResultInvalidMemoryRange;
     }
 
     if (manager.IsInsideHeapRegion(dst_addr, size)) {
@@ -121,7 +120,7 @@ ResultCode MapUnmapMemorySanityChecks(const Memory::PageTable& manager, VAddr ds
                   "Destination does not fit within the heap region, addr=0x{:016X}, "
                   "size=0x{:016X}",
                   dst_addr, size);
-        return ERR_INVALID_MEMORY_RANGE;
+        return ResultInvalidMemoryRange;
     }
 
     if (manager.IsInsideAliasRegion(dst_addr, size)) {
@@ -129,7 +128,7 @@ ResultCode MapUnmapMemorySanityChecks(const Memory::PageTable& manager, VAddr ds
                   "Destination does not fit within the map region, addr=0x{:016X}, "
                   "size=0x{:016X}",
                   dst_addr, size);
-        return ERR_INVALID_MEMORY_RANGE;
+        return ResultInvalidMemoryRange;
     }
 
     return RESULT_SUCCESS;
@@ -146,7 +145,7 @@ ResultVal<s64> RetrieveResourceLimitValue(Core::System& system, Handle resource_
     const auto type = static_cast<LimitableResource>(resource_type);
     if (!IsValidResourceType(type)) {
         LOG_ERROR(Kernel_SVC, "Invalid resource limit type: '{}'", resource_type);
-        return ERR_INVALID_ENUM_VALUE;
+        return ResultInvalidEnumValue;
     }
 
     const auto* const current_process = system.Kernel().CurrentProcess();
@@ -157,7 +156,7 @@ ResultVal<s64> RetrieveResourceLimitValue(Core::System& system, Handle resource_
     if (!resource_limit_object) {
         LOG_ERROR(Kernel_SVC, "Handle to non-existent resource limit instance used. Handle={:08X}",
                   resource_limit);
-        return ERR_INVALID_HANDLE;
+        return ResultInvalidHandle;
     }
 
     if (value_type == ResourceLimitValueType::CurrentValue) {
@@ -177,12 +176,12 @@ static ResultCode SetHeapSize(Core::System& system, VAddr* heap_addr, u64 heap_s
     if ((heap_size % 0x200000) != 0) {
         LOG_ERROR(Kernel_SVC, "The heap size is not a multiple of 2MB, heap_size=0x{:016X}",
                   heap_size);
-        return ERR_INVALID_SIZE;
+        return ResultInvalidSize;
     }
 
     if (heap_size >= 0x200000000) {
         LOG_ERROR(Kernel_SVC, "The heap size is not less than 8GB, heap_size=0x{:016X}", heap_size);
-        return ERR_INVALID_SIZE;
+        return ResultInvalidSize;
     }
 
     auto& page_table{system.Kernel().CurrentProcess()->PageTable()};
@@ -208,19 +207,19 @@ static ResultCode SetMemoryAttribute(Core::System& system, VAddr address, u64 si
 
     if (!Common::Is4KBAligned(address)) {
         LOG_ERROR(Kernel_SVC, "Address not page aligned (0x{:016X})", address);
-        return ERR_INVALID_ADDRESS;
+        return ResultInvalidAddress;
     }
 
     if (size == 0 || !Common::Is4KBAligned(size)) {
         LOG_ERROR(Kernel_SVC, "Invalid size (0x{:X}). Size must be non-zero and page aligned.",
                   size);
-        return ERR_INVALID_ADDRESS;
+        return ResultInvalidAddress;
     }
 
     if (!IsValidAddressRange(address, size)) {
         LOG_ERROR(Kernel_SVC, "Address range overflowed (Address: 0x{:016X}, Size: 0x{:016X})",
                   address, size);
-        return ERR_INVALID_ADDRESS_STATE;
+        return ResultInvalidCurrentMemory;
     }
 
     const auto attributes{static_cast<Memory::MemoryAttribute>(mask | attribute)};
@@ -229,7 +228,7 @@ static ResultCode SetMemoryAttribute(Core::System& system, VAddr address, u64 si
         LOG_ERROR(Kernel_SVC,
                   "Memory attribute doesn't match the given mask (Attribute: 0x{:X}, Mask: {:X}",
                   attribute, mask);
-        return ERR_INVALID_COMBINATION;
+        return ResultInvalidCombination;
     }
 
     auto& page_table{system.Kernel().CurrentProcess()->PageTable()};
@@ -293,7 +292,7 @@ static ResultCode ConnectToNamedPort(Core::System& system, Handle* out_handle,
         LOG_ERROR(Kernel_SVC,
                   "Port Name Address is not a valid virtual address, port_name_address=0x{:016X}",
                   port_name_address);
-        return ERR_NOT_FOUND;
+        return ResultNotFound;
     }
 
     static constexpr std::size_t PortNameMaxLength = 11;
@@ -302,7 +301,7 @@ static ResultCode ConnectToNamedPort(Core::System& system, Handle* out_handle,
     if (port_name.size() > PortNameMaxLength) {
         LOG_ERROR(Kernel_SVC, "Port name is too long, expected {} but got {}", PortNameMaxLength,
                   port_name.size());
-        return ERR_OUT_OF_RANGE;
+        return ResultOutOfRange;
     }
 
     LOG_TRACE(Kernel_SVC, "called port_name={}", port_name);
@@ -311,7 +310,7 @@ static ResultCode ConnectToNamedPort(Core::System& system, Handle* out_handle,
     const auto it = kernel.FindNamedPort(port_name);
     if (!kernel.IsValidNamedPort(it)) {
         LOG_WARNING(Kernel_SVC, "tried to connect to unknown port: {}", port_name);
-        return ERR_NOT_FOUND;
+        return ResultNotFound;
     }
 
     ASSERT(kernel.CurrentProcess()->GetResourceLimit()->Reserve(LimitableResource::Sessions, 1));
@@ -340,7 +339,7 @@ static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
     std::shared_ptr<ClientSession> session = handle_table.Get<ClientSession>(handle);
     if (!session) {
         LOG_ERROR(Kernel_SVC, "called with invalid handle=0x{:08X}", handle);
-        return ERR_INVALID_HANDLE;
+        return ResultInvalidHandle;
     }
 
     LOG_TRACE(Kernel_SVC, "called handle=0x{:08X}({})", handle, session->GetName());
@@ -405,7 +404,7 @@ static ResultCode GetProcessId(Core::System& system, u64* process_id, Handle han
         const Process* const owner_process = thread->GetOwnerProcess();
         if (!owner_process) {
             LOG_ERROR(Kernel_SVC, "Non-existent owning process encountered.");
-            return ERR_INVALID_HANDLE;
+            return ResultInvalidHandle;
         }
 
         *process_id = owner_process->GetProcessID();
@@ -415,7 +414,7 @@ static ResultCode GetProcessId(Core::System& system, u64* process_id, Handle han
     // NOTE: This should also handle debug objects before returning.
 
     LOG_ERROR(Kernel_SVC, "Handle does not exist, handle=0x{:08X}", handle);
-    return ERR_INVALID_HANDLE;
+    return ResultInvalidHandle;
 }
 
 static ResultCode GetProcessId32(Core::System& system, u32* process_id_low, u32* process_id_high,
@@ -438,7 +437,7 @@ static ResultCode WaitSynchronization(Core::System& system, s32* index, VAddr ha
         LOG_ERROR(Kernel_SVC,
                   "Handle address is not a valid virtual address, handle_address=0x{:016X}",
                   handles_address);
-        return ERR_INVALID_POINTER;
+        return ResultInvalidPointer;
     }
 
     static constexpr u64 MaxHandles = 0x40;
@@ -446,7 +445,7 @@ static ResultCode WaitSynchronization(Core::System& system, s32* index, VAddr ha
     if (handle_count > MaxHandles) {
         LOG_ERROR(Kernel_SVC, "Handle count specified is too large, expected {} but got {}",
                   MaxHandles, handle_count);
-        return ERR_OUT_OF_RANGE;
+        return ResultOutOfRange;
     }
 
     auto& kernel = system.Kernel();
@@ -459,7 +458,7 @@ static ResultCode WaitSynchronization(Core::System& system, s32* index, VAddr ha
 
         if (object == nullptr) {
             LOG_ERROR(Kernel_SVC, "Object is a nullptr");
-            return ERR_INVALID_HANDLE;
+            return ResultInvalidHandle;
         }
 
         objects[i] = object.get();
@@ -481,6 +480,7 @@ static ResultCode CancelSynchronization(Core::System& system, Handle thread_hand
     // Get the thread from its handle.
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
     std::shared_ptr<KThread> thread = handle_table.Get<KThread>(thread_handle);
+
     if (!thread) {
         LOG_ERROR(Kernel_SVC, "Invalid thread handle provided (handle={:08X})", thread_handle);
         return ResultInvalidHandle;
@@ -525,6 +525,7 @@ static ResultCode ArbitrateUnlock(Core::System& system, VAddr address) {
     LOG_TRACE(Kernel_SVC, "called address=0x{:X}", address);
 
     // Validate the input address.
+
     if (Memory::IsKernelAddress(address)) {
         LOG_ERROR(Kernel_SVC,
                   "Attempting to arbitrate an unlock on a kernel address (address={:08X})",
@@ -735,7 +736,7 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
         if (info_sub_id != 0) {
             LOG_ERROR(Kernel_SVC, "Info sub id is non zero! info_id={}, info_sub_id={}", info_id,
                       info_sub_id);
-            return ERR_INVALID_ENUM_VALUE;
+            return ResultInvalidEnumValue;
         }
 
         const auto& current_process_handle_table =
@@ -744,7 +745,7 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
         if (!process) {
             LOG_ERROR(Kernel_SVC, "Process is not valid! info_id={}, info_sub_id={}, handle={:08X}",
                       info_id, info_sub_id, handle);
-            return ERR_INVALID_HANDLE;
+            return ResultInvalidHandle;
         }
 
         switch (info_id_type) {
@@ -826,7 +827,7 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
         }
 
         LOG_ERROR(Kernel_SVC, "Unimplemented svcGetInfo id=0x{:016X}", info_id);
-        return ERR_INVALID_ENUM_VALUE;
+        return ResultInvalidEnumValue;
     }
 
     case GetInfoType::IsCurrentProcessBeingDebugged:
@@ -836,13 +837,13 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
     case GetInfoType::RegisterResourceLimit: {
         if (handle != 0) {
             LOG_ERROR(Kernel, "Handle is non zero! handle={:08X}", handle);
-            return ERR_INVALID_HANDLE;
+            return ResultInvalidHandle;
         }
 
         if (info_sub_id != 0) {
             LOG_ERROR(Kernel, "Info sub id is non zero! info_id={}, info_sub_id={}", info_id,
                       info_sub_id);
-            return ERR_INVALID_COMBINATION;
+            return ResultInvalidCombination;
         }
 
         Process* const current_process = system.Kernel().CurrentProcess();
@@ -867,13 +868,13 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
         if (handle != 0) {
             LOG_ERROR(Kernel_SVC, "Process Handle is non zero, expected 0 result but got {:016X}",
                       handle);
-            return ERR_INVALID_HANDLE;
+            return ResultInvalidHandle;
         }
 
         if (info_sub_id >= Process::RANDOM_ENTROPY_SIZE) {
             LOG_ERROR(Kernel_SVC, "Entropy size is out of range, expected {} but got {}",
                       Process::RANDOM_ENTROPY_SIZE, info_sub_id);
-            return ERR_INVALID_COMBINATION;
+            return ResultInvalidCombination;
         }
 
         *result = system.Kernel().CurrentProcess()->GetRandomEntropy(info_sub_id);
@@ -890,7 +891,7 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
         if (info_sub_id != 0xFFFFFFFFFFFFFFFF && info_sub_id >= num_cpus) {
             LOG_ERROR(Kernel_SVC, "Core count is out of range, expected {} but got {}", num_cpus,
                       info_sub_id);
-            return ERR_INVALID_COMBINATION;
+            return ResultInvalidCombination;
         }
 
         const auto thread = system.Kernel().CurrentProcess()->GetHandleTable().Get<KThread>(
@@ -898,7 +899,7 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
         if (!thread) {
             LOG_ERROR(Kernel_SVC, "Thread handle does not exist, handle=0x{:08X}",
                       static_cast<Handle>(handle));
-            return ERR_INVALID_HANDLE;
+            return ResultInvalidHandle;
         }
 
         const auto& core_timing = system.CoreTiming();
@@ -922,7 +923,7 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
 
     default:
         LOG_ERROR(Kernel_SVC, "Unimplemented svcGetInfo id=0x{:016X}", info_id);
-        return ERR_INVALID_ENUM_VALUE;
+        return ResultInvalidEnumValue;
     }
 }
 
@@ -945,22 +946,22 @@ static ResultCode MapPhysicalMemory(Core::System& system, VAddr addr, u64 size) 
 
     if (!Common::Is4KBAligned(addr)) {
         LOG_ERROR(Kernel_SVC, "Address is not aligned to 4KB, 0x{:016X}", addr);
-        return ERR_INVALID_ADDRESS;
+        return ResultInvalidAddress;
     }
 
     if (!Common::Is4KBAligned(size)) {
         LOG_ERROR(Kernel_SVC, "Size is not aligned to 4KB, 0x{:X}", size);
-        return ERR_INVALID_SIZE;
+        return ResultInvalidSize;
     }
 
     if (size == 0) {
         LOG_ERROR(Kernel_SVC, "Size is zero");
-        return ERR_INVALID_SIZE;
+        return ResultInvalidSize;
     }
 
     if (!(addr < addr + size)) {
         LOG_ERROR(Kernel_SVC, "Size causes 64-bit overflow of address");
-        return ERR_INVALID_MEMORY_RANGE;
+        return ResultInvalidMemoryRange;
     }
 
     Process* const current_process{system.Kernel().CurrentProcess()};
@@ -968,21 +969,21 @@ static ResultCode MapPhysicalMemory(Core::System& system, VAddr addr, u64 size) 
 
     if (current_process->GetSystemResourceSize() == 0) {
         LOG_ERROR(Kernel_SVC, "System Resource Size is zero");
-        return ERR_INVALID_STATE;
+        return ResultInvalidState;
     }
 
     if (!page_table.IsInsideAddressSpace(addr, size)) {
         LOG_ERROR(Kernel_SVC,
                   "Address is not within the address space, addr=0x{:016X}, size=0x{:016X}", addr,
                   size);
-        return ERR_INVALID_MEMORY_RANGE;
+        return ResultInvalidMemoryRange;
     }
 
     if (page_table.IsOutsideAliasRegion(addr, size)) {
         LOG_ERROR(Kernel_SVC,
                   "Address is not within the alias region, addr=0x{:016X}, size=0x{:016X}", addr,
                   size);
-        return ERR_INVALID_MEMORY_RANGE;
+        return ResultInvalidMemoryRange;
     }
 
     return page_table.MapPhysicalMemory(addr, size);
@@ -999,22 +1000,22 @@ static ResultCode UnmapPhysicalMemory(Core::System& system, VAddr addr, u64 size
 
     if (!Common::Is4KBAligned(addr)) {
         LOG_ERROR(Kernel_SVC, "Address is not aligned to 4KB, 0x{:016X}", addr);
-        return ERR_INVALID_ADDRESS;
+        return ResultInvalidAddress;
     }
 
     if (!Common::Is4KBAligned(size)) {
         LOG_ERROR(Kernel_SVC, "Size is not aligned to 4KB, 0x{:X}", size);
-        return ERR_INVALID_SIZE;
+        return ResultInvalidSize;
     }
 
     if (size == 0) {
         LOG_ERROR(Kernel_SVC, "Size is zero");
-        return ERR_INVALID_SIZE;
+        return ResultInvalidSize;
     }
 
     if (!(addr < addr + size)) {
         LOG_ERROR(Kernel_SVC, "Size causes 64-bit overflow of address");
-        return ERR_INVALID_MEMORY_RANGE;
+        return ResultInvalidMemoryRange;
     }
 
     Process* const current_process{system.Kernel().CurrentProcess()};
@@ -1022,21 +1023,21 @@ static ResultCode UnmapPhysicalMemory(Core::System& system, VAddr addr, u64 size
 
     if (current_process->GetSystemResourceSize() == 0) {
         LOG_ERROR(Kernel_SVC, "System Resource Size is zero");
-        return ERR_INVALID_STATE;
+        return ResultInvalidState;
     }
 
     if (!page_table.IsInsideAddressSpace(addr, size)) {
         LOG_ERROR(Kernel_SVC,
                   "Address is not within the address space, addr=0x{:016X}, size=0x{:016X}", addr,
                   size);
-        return ERR_INVALID_MEMORY_RANGE;
+        return ResultInvalidMemoryRange;
     }
 
     if (page_table.IsOutsideAliasRegion(addr, size)) {
         LOG_ERROR(Kernel_SVC,
                   "Address is not within the alias region, addr=0x{:016X}, size=0x{:016X}", addr,
                   size);
-        return ERR_INVALID_MEMORY_RANGE;
+        return ResultInvalidMemoryRange;
     }
 
     return page_table.UnmapPhysicalMemory(addr, size);
@@ -1206,23 +1207,23 @@ static ResultCode MapSharedMemory(Core::System& system, Handle shared_memory_han
 
     if (!Common::Is4KBAligned(addr)) {
         LOG_ERROR(Kernel_SVC, "Address is not aligned to 4KB, addr=0x{:016X}", addr);
-        return ERR_INVALID_ADDRESS;
+        return ResultInvalidAddress;
     }
 
     if (size == 0) {
         LOG_ERROR(Kernel_SVC, "Size is 0");
-        return ERR_INVALID_SIZE;
+        return ResultInvalidSize;
     }
 
     if (!Common::Is4KBAligned(size)) {
         LOG_ERROR(Kernel_SVC, "Size is not aligned to 4KB, size=0x{:016X}", size);
-        return ERR_INVALID_SIZE;
+        return ResultInvalidSize;
     }
 
     if (!IsValidAddressRange(addr, size)) {
         LOG_ERROR(Kernel_SVC, "Region is not a valid address range, addr=0x{:016X}, size=0x{:016X}",
                   addr, size);
-        return ERR_INVALID_ADDRESS_STATE;
+        return ResultInvalidCurrentMemory;
     }
 
     const auto permission_type = static_cast<Memory::MemoryPermission>(permissions);
@@ -1230,7 +1231,7 @@ static ResultCode MapSharedMemory(Core::System& system, Handle shared_memory_han
         Memory::MemoryPermission::ReadAndWrite) {
         LOG_ERROR(Kernel_SVC, "Expected Read or ReadWrite permission but got permissions=0x{:08X}",
                   permissions);
-        return ERR_INVALID_MEMORY_PERMISSIONS;
+        return ResultInvalidMemoryPermissions;
     }
 
     auto* const current_process{system.Kernel().CurrentProcess()};
@@ -1241,7 +1242,7 @@ static ResultCode MapSharedMemory(Core::System& system, Handle shared_memory_han
                   "Addr does not fit within the valid region, addr=0x{:016X}, "
                   "size=0x{:016X}",
                   addr, size);
-        return ERR_INVALID_MEMORY_RANGE;
+        return ResultInvalidMemoryRange;
     }
 
     if (page_table.IsInsideHeapRegion(addr, size)) {
@@ -1249,7 +1250,7 @@ static ResultCode MapSharedMemory(Core::System& system, Handle shared_memory_han
                   "Addr does not fit within the heap region, addr=0x{:016X}, "
                   "size=0x{:016X}",
                   addr, size);
-        return ERR_INVALID_MEMORY_RANGE;
+        return ResultInvalidMemoryRange;
     }
 
     if (page_table.IsInsideAliasRegion(addr, size)) {
@@ -1257,14 +1258,14 @@ static ResultCode MapSharedMemory(Core::System& system, Handle shared_memory_han
                   "Address does not fit within the map region, addr=0x{:016X}, "
                   "size=0x{:016X}",
                   addr, size);
-        return ERR_INVALID_MEMORY_RANGE;
+        return ResultInvalidMemoryRange;
     }
 
     auto shared_memory{current_process->GetHandleTable().Get<SharedMemory>(shared_memory_handle)};
     if (!shared_memory) {
         LOG_ERROR(Kernel_SVC, "Shared memory does not exist, shared_memory_handle=0x{:08X}",
                   shared_memory_handle);
-        return ERR_INVALID_HANDLE;
+        return ResultInvalidHandle;
     }
 
     return shared_memory->Map(*current_process, addr, size, permission_type);
@@ -1285,7 +1286,7 @@ static ResultCode QueryProcessMemory(Core::System& system, VAddr memory_info_add
     if (!process) {
         LOG_ERROR(Kernel_SVC, "Process handle does not exist, process_handle=0x{:08X}",
                   process_handle);
-        return ERR_INVALID_HANDLE;
+        return ResultInvalidHandle;
     }
 
     auto& memory{system.Memory()};
@@ -1332,18 +1333,18 @@ static ResultCode MapProcessCodeMemory(Core::System& system, Handle process_hand
     if (!Common::Is4KBAligned(src_address)) {
         LOG_ERROR(Kernel_SVC, "src_address is not page-aligned (src_address=0x{:016X}).",
                   src_address);
-        return ERR_INVALID_ADDRESS;
+        return ResultInvalidAddress;
     }
 
     if (!Common::Is4KBAligned(dst_address)) {
         LOG_ERROR(Kernel_SVC, "dst_address is not page-aligned (dst_address=0x{:016X}).",
                   dst_address);
-        return ERR_INVALID_ADDRESS;
+        return ResultInvalidAddress;
     }
 
     if (size == 0 || !Common::Is4KBAligned(size)) {
         LOG_ERROR(Kernel_SVC, "Size is zero or not page-aligned (size=0x{:016X})", size);
-        return ERR_INVALID_SIZE;
+        return ResultInvalidSize;
     }
 
     if (!IsValidAddressRange(dst_address, size)) {
@@ -1351,7 +1352,7 @@ static ResultCode MapProcessCodeMemory(Core::System& system, Handle process_hand
                   "Destination address range overflows the address space (dst_address=0x{:016X}, "
                   "size=0x{:016X}).",
                   dst_address, size);
-        return ERR_INVALID_ADDRESS_STATE;
+        return ResultInvalidCurrentMemory;
     }
 
     if (!IsValidAddressRange(src_address, size)) {
@@ -1359,7 +1360,7 @@ static ResultCode MapProcessCodeMemory(Core::System& system, Handle process_hand
                   "Source address range overflows the address space (src_address=0x{:016X}, "
                   "size=0x{:016X}).",
                   src_address, size);
-        return ERR_INVALID_ADDRESS_STATE;
+        return ResultInvalidCurrentMemory;
     }
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
@@ -1367,7 +1368,7 @@ static ResultCode MapProcessCodeMemory(Core::System& system, Handle process_hand
     if (!process) {
         LOG_ERROR(Kernel_SVC, "Invalid process handle specified (handle=0x{:08X}).",
                   process_handle);
-        return ERR_INVALID_HANDLE;
+        return ResultInvalidHandle;
     }
 
     auto& page_table = process->PageTable();
@@ -1376,7 +1377,7 @@ static ResultCode MapProcessCodeMemory(Core::System& system, Handle process_hand
                   "Source address range is not within the address space (src_address=0x{:016X}, "
                   "size=0x{:016X}).",
                   src_address, size);
-        return ERR_INVALID_ADDRESS_STATE;
+        return ResultInvalidCurrentMemory;
     }
 
     if (!page_table.IsInsideASLRRegion(dst_address, size)) {
@@ -1384,7 +1385,7 @@ static ResultCode MapProcessCodeMemory(Core::System& system, Handle process_hand
                   "Destination address range is not within the ASLR region (dst_address=0x{:016X}, "
                   "size=0x{:016X}).",
                   dst_address, size);
-        return ERR_INVALID_MEMORY_RANGE;
+        return ResultInvalidMemoryRange;
     }
 
     return page_table.MapProcessCodeMemory(dst_address, src_address, size);
@@ -1400,18 +1401,18 @@ static ResultCode UnmapProcessCodeMemory(Core::System& system, Handle process_ha
     if (!Common::Is4KBAligned(dst_address)) {
         LOG_ERROR(Kernel_SVC, "dst_address is not page-aligned (dst_address=0x{:016X}).",
                   dst_address);
-        return ERR_INVALID_ADDRESS;
+        return ResultInvalidAddress;
     }
 
     if (!Common::Is4KBAligned(src_address)) {
         LOG_ERROR(Kernel_SVC, "src_address is not page-aligned (src_address=0x{:016X}).",
                   src_address);
-        return ERR_INVALID_ADDRESS;
+        return ResultInvalidAddress;
     }
 
     if (size == 0 || Common::Is4KBAligned(size)) {
         LOG_ERROR(Kernel_SVC, "Size is zero or not page-aligned (size=0x{:016X}).", size);
-        return ERR_INVALID_SIZE;
+        return ResultInvalidSize;
     }
 
     if (!IsValidAddressRange(dst_address, size)) {
@@ -1419,7 +1420,7 @@ static ResultCode UnmapProcessCodeMemory(Core::System& system, Handle process_ha
                   "Destination address range overflows the address space (dst_address=0x{:016X}, "
                   "size=0x{:016X}).",
                   dst_address, size);
-        return ERR_INVALID_ADDRESS_STATE;
+        return ResultInvalidCurrentMemory;
     }
 
     if (!IsValidAddressRange(src_address, size)) {
@@ -1427,7 +1428,7 @@ static ResultCode UnmapProcessCodeMemory(Core::System& system, Handle process_ha
                   "Source address range overflows the address space (src_address=0x{:016X}, "
                   "size=0x{:016X}).",
                   src_address, size);
-        return ERR_INVALID_ADDRESS_STATE;
+        return ResultInvalidCurrentMemory;
     }
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
@@ -1435,7 +1436,7 @@ static ResultCode UnmapProcessCodeMemory(Core::System& system, Handle process_ha
     if (!process) {
         LOG_ERROR(Kernel_SVC, "Invalid process handle specified (handle=0x{:08X}).",
                   process_handle);
-        return ERR_INVALID_HANDLE;
+        return ResultInvalidHandle;
     }
 
     auto& page_table = process->PageTable();
@@ -1444,7 +1445,7 @@ static ResultCode UnmapProcessCodeMemory(Core::System& system, Handle process_ha
                   "Source address range is not within the address space (src_address=0x{:016X}, "
                   "size=0x{:016X}).",
                   src_address, size);
-        return ERR_INVALID_ADDRESS_STATE;
+        return ResultInvalidCurrentMemory;
     }
 
     if (!page_table.IsInsideASLRRegion(dst_address, size)) {
@@ -1452,7 +1453,7 @@ static ResultCode UnmapProcessCodeMemory(Core::System& system, Handle process_ha
                   "Destination address range is not within the ASLR region (dst_address=0x{:016X}, "
                   "size=0x{:016X}).",
                   dst_address, size);
-        return ERR_INVALID_MEMORY_RANGE;
+        return ResultInvalidMemoryRange;
     }
 
     return page_table.UnmapProcessCodeMemory(dst_address, src_address, size);
@@ -1844,7 +1845,7 @@ static ResultCode ResetSignal(Core::System& system, Handle handle) {
 
     LOG_ERROR(Kernel_SVC, "invalid handle (0x{:08X})", handle);
 
-    return Svc::ResultInvalidHandle;
+    return ResultInvalidHandle;
 }
 
 static ResultCode ResetSignal32(Core::System& system, Handle handle) {
@@ -1860,18 +1861,18 @@ static ResultCode CreateTransferMemory(Core::System& system, Handle* handle, VAd
 
     if (!Common::Is4KBAligned(addr)) {
         LOG_ERROR(Kernel_SVC, "Address ({:016X}) is not page aligned!", addr);
-        return ERR_INVALID_ADDRESS;
+        return ResultInvalidAddress;
     }
 
     if (!Common::Is4KBAligned(size) || size == 0) {
         LOG_ERROR(Kernel_SVC, "Size ({:016X}) is not page aligned or equal to zero!", size);
-        return ERR_INVALID_ADDRESS;
+        return ResultInvalidAddress;
     }
 
     if (!IsValidAddressRange(addr, size)) {
         LOG_ERROR(Kernel_SVC, "Address and size cause overflow! (address={:016X}, size={:016X})",
                   addr, size);
-        return ERR_INVALID_ADDRESS_STATE;
+        return ResultInvalidCurrentMemory;
     }
 
     const auto perms{static_cast<Memory::MemoryPermission>(permissions)};
@@ -1879,7 +1880,7 @@ static ResultCode CreateTransferMemory(Core::System& system, Handle* handle, VAd
         perms == Memory::MemoryPermission::Write) {
         LOG_ERROR(Kernel_SVC, "Invalid memory permissions for transfer memory! (perms={:08X})",
                   permissions);
-        return ERR_INVALID_MEMORY_PERMISSIONS;
+        return ResultInvalidMemoryPermissions;
     }
 
     auto& kernel = system.Kernel();
@@ -1989,7 +1990,6 @@ static ResultCode SetThreadCoreMask(Core::System& system, Handle thread_handle, 
         LOG_ERROR(Kernel_SVC, "Unable to successfully set core mask (result={})", set_result.raw);
         return set_result;
     }
-
     return RESULT_SUCCESS;
 }
 
@@ -2043,7 +2043,7 @@ static ResultCode ClearEvent(Core::System& system, Handle event_handle) {
 
     LOG_ERROR(Kernel_SVC, "Event handle does not exist, event_handle=0x{:08X}", event_handle);
 
-    return Svc::ResultInvalidHandle;
+    return ResultInvalidHandle;
 }
 
 static ResultCode ClearEvent32(Core::System& system, Handle event_handle) {
@@ -2106,13 +2106,13 @@ static ResultCode GetProcessInfo(Core::System& system, u64* out, Handle process_
     if (!process) {
         LOG_ERROR(Kernel_SVC, "Process handle does not exist, process_handle=0x{:08X}",
                   process_handle);
-        return ERR_INVALID_HANDLE;
+        return ResultInvalidHandle;
     }
 
     const auto info_type = static_cast<InfoType>(type);
     if (info_type != InfoType::Status) {
         LOG_ERROR(Kernel_SVC, "Expected info_type to be Status but got {} instead", type);
-        return ERR_INVALID_ENUM_VALUE;
+        return ResultInvalidEnumValue;
     }
 
     *out = static_cast<u64>(process->GetStatus());
@@ -2174,7 +2174,7 @@ static ResultCode SetResourceLimitLimitValue(Core::System& system, Handle resour
     const auto type = static_cast<LimitableResource>(resource_type);
     if (!IsValidResourceType(type)) {
         LOG_ERROR(Kernel_SVC, "Invalid resource limit type: '{}'", resource_type);
-        return ERR_INVALID_ENUM_VALUE;
+        return ResultInvalidEnumValue;
     }
 
     auto* const current_process = system.Kernel().CurrentProcess();
@@ -2185,16 +2185,16 @@ static ResultCode SetResourceLimitLimitValue(Core::System& system, Handle resour
     if (!resource_limit_object) {
         LOG_ERROR(Kernel_SVC, "Handle to non-existent resource limit instance used. Handle={:08X}",
                   resource_limit);
-        return ERR_INVALID_HANDLE;
+        return ResultInvalidHandle;
     }
 
     const auto set_result = resource_limit_object->SetLimitValue(type, static_cast<s64>(value));
     if (set_result.IsError()) {
-        LOG_ERROR(
-            Kernel_SVC,
-            "Attempted to lower resource limit ({}) for category '{}' below its current value ({})",
-            resource_limit_object->GetLimitValue(type), resource_type,
-            resource_limit_object->GetCurrentValue(type));
+        LOG_ERROR(Kernel_SVC,
+                  "Attempted to lower resource limit ({}) for category '{}' below its current "
+                  "value ({})",
+                  resource_limit_object->GetLimitValue(type), resource_type,
+                  resource_limit_object->GetCurrentValue(type));
         return set_result;
     }
 
@@ -2211,7 +2211,7 @@ static ResultCode GetProcessList(Core::System& system, u32* out_num_processes,
         LOG_ERROR(Kernel_SVC,
                   "Supplied size outside [0, 0x0FFFFFFF] range. out_process_ids_size={}",
                   out_process_ids_size);
-        return ERR_OUT_OF_RANGE;
+        return ResultOutOfRange;
     }
 
     const auto& kernel = system.Kernel();
@@ -2221,7 +2221,7 @@ static ResultCode GetProcessList(Core::System& system, u32* out_num_processes,
                                         out_process_ids, total_copy_size)) {
         LOG_ERROR(Kernel_SVC, "Address range outside address space. begin=0x{:016X}, end=0x{:016X}",
                   out_process_ids, out_process_ids + total_copy_size);
-        return ERR_INVALID_ADDRESS_STATE;
+        return ResultInvalidCurrentMemory;
     }
 
     auto& memory = system.Memory();
@@ -2250,7 +2250,7 @@ static ResultCode GetThreadList(Core::System& system, u32* out_num_threads, VAdd
     if ((out_thread_ids_size & 0xF0000000) != 0) {
         LOG_ERROR(Kernel_SVC, "Supplied size outside [0, 0x0FFFFFFF] range. size={}",
                   out_thread_ids_size);
-        return ERR_OUT_OF_RANGE;
+        return ResultOutOfRange;
     }
 
     const auto* const current_process = system.Kernel().CurrentProcess();
@@ -2260,7 +2260,7 @@ static ResultCode GetThreadList(Core::System& system, u32* out_num_threads, VAdd
         !current_process->PageTable().IsInsideAddressSpace(out_thread_ids, total_copy_size)) {
         LOG_ERROR(Kernel_SVC, "Address range outside address space. begin=0x{:016X}, end=0x{:016X}",
                   out_thread_ids, out_thread_ids + total_copy_size);
-        return ERR_INVALID_ADDRESS_STATE;
+        return ResultInvalidCurrentMemory;
     }
 
     auto& memory = system.Memory();

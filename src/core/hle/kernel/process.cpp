@@ -14,7 +14,6 @@
 #include "core/device_memory.h"
 #include "core/file_sys/program_metadata.h"
 #include "core/hle/kernel/code_set.h"
-#include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_thread.h"
@@ -248,8 +247,8 @@ ResultCode Process::Reset() {
     KScopedSchedulerLock sl{kernel};
 
     // Validate that we're in a state that we can reset.
-    R_UNLESS(status != ProcessStatus::Exited, Svc::ResultInvalidState);
-    R_UNLESS(is_signaled, Svc::ResultInvalidState);
+    R_UNLESS(status != ProcessStatus::Exited, ResultInvalidState);
+    R_UNLESS(is_signaled, ResultInvalidState);
 
     // Clear signaled.
     is_signaled = false;

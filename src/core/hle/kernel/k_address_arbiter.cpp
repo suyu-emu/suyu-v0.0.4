@@ -120,10 +120,10 @@ ResultCode KAddressArbiter::SignalAndIncrementIfEqual(VAddr addr, s32 value, s32
         s32 user_value{};
         if (!UpdateIfEqual(system, &user_value, addr, value, value + 1)) {
             LOG_ERROR(Kernel, "Invalid current memory!");
-            return Svc::ResultInvalidCurrentMemory;
+            return ResultInvalidCurrentMemory;
         }
         if (user_value != value) {
-            return Svc::ResultInvalidState;
+            return ResultInvalidState;
         }
 
         auto it = thread_tree.nfind_light({addr, -1});
@@ -189,10 +189,10 @@ ResultCode KAddressArbiter::SignalAndModifyByWaitingCountIfEqual(VAddr addr, s32
 
         if (!succeeded) {
             LOG_ERROR(Kernel, "Invalid current memory!");
-            return Svc::ResultInvalidCurrentMemory;
+            return ResultInvalidCurrentMemory;
         }
         if (user_value != value) {
-            return Svc::ResultInvalidState;
+            return ResultInvalidState;
         }
 
         while ((it != thread_tree.end()) && (count <= 0 || num_waiters < count) &&
@@ -221,11 +221,11 @@ ResultCode KAddressArbiter::WaitIfLessThan(VAddr addr, s32 value, bool decrement
         // Check that the thread isn't terminating.
         if (cur_thread->IsTerminationRequested()) {
             slp.CancelSleep();
-            return Svc::ResultTerminationRequested;
+            return ResultTerminationRequested;
         }
 
         // Set the synced object.
-        cur_thread->SetSyncedObject(nullptr, Svc::ResultTimedOut);
+        cur_thread->SetSyncedObject(nullptr, ResultTimedOut);
 
         // Read the value from userspace.
         s32 user_value{};
@@ -238,19 +238,19 @@ ResultCode KAddressArbiter::WaitIfLessThan(VAddr addr, s32 value, bool decrement
 
         if (!succeeded) {
             slp.CancelSleep();
-            return Svc::ResultInvalidCurrentMemory;
+            return ResultInvalidCurrentMemory;
         }
 
         // Check that the value is less than the specified one.
         if (user_value >= value) {
             slp.CancelSleep();
-            return Svc::ResultInvalidState;
+            return ResultInvalidState;
         }
 
         // Check that the timeout is non-zero.
         if (timeout == 0) {
             slp.CancelSleep();
-            return Svc::ResultTimedOut;
+            return ResultTimedOut;
         }
 
         // Set the arbiter.
@@ -288,29 +288,29 @@ ResultCode KAddressArbiter::WaitIfEqual(VAddr addr, s32 value, s64 timeout) {
         // Check that the thread isn't terminating.
         if (cur_thread->IsTerminationRequested()) {
             slp.CancelSleep();
-            return Svc::ResultTerminationRequested;
+            return ResultTerminationRequested;
         }
 
         // Set the synced object.
-        cur_thread->SetSyncedObject(nullptr, Svc::ResultTimedOut);
+        cur_thread->SetSyncedObject(nullptr, ResultTimedOut);
 
         // Read the value from userspace.
         s32 user_value{};
         if (!ReadFromUser(system, &user_value, addr)) {
             slp.CancelSleep();
-            return Svc::ResultInvalidCurrentMemory;
+            return ResultInvalidCurrentMemory;
         }
 
         // Check that the value is equal.
         if (value != user_value) {
             slp.CancelSleep();
-            return Svc::ResultInvalidState;
+            return ResultInvalidState;
         }
 
         // Check that the timeout is non-zero.
         if (timeout == 0) {
             slp.CancelSleep();
-            return Svc::ResultTimedOut;
+            return ResultTimedOut;
         }
 
         // Set the arbiter.

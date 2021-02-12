@@ -18,7 +18,6 @@
 #include "core/core.h"
 #include "core/cpu_manager.h"
 #include "core/hardware_properties.h"
-#include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_condition_variable.h"
 #include "core/hle/kernel/k_resource_limit.h"
@@ -127,7 +126,7 @@ ResultCode KThread::Initialize(KThreadFunction func, uintptr_t arg, VAddr user_s
 
     // Set core ID and wait result.
     core_id = phys_core;
-    wait_result = Svc::ResultNoSynchronizationObject;
+    wait_result = ResultNoSynchronizationObject;
 
     // Set priorities.
     priority = prio;
@@ -238,7 +237,7 @@ void KThread::Finalize() {
         while (it != waiter_list.end()) {
             // The thread shouldn't be a kernel waiter.
             it->SetLockOwner(nullptr);
-            it->SetSyncedObject(nullptr, Svc::ResultInvalidState);
+            it->SetSyncedObject(nullptr, ResultInvalidState);
             it->Wakeup();
             it = waiter_list.erase(it);
         }
@@ -447,7 +446,7 @@ ResultCode KThread::SetCoreMask(s32 core_id, u64 v_affinity_mask) {
         // If the core id is no-update magic, preserve the ideal core id.
         if (core_id == Svc::IdealCoreNoUpdate) {
             core_id = virtual_ideal_core_id;
-            R_UNLESS(((1ULL << core_id) & v_affinity_mask) != 0, Svc::ResultInvalidCombination);
+            R_UNLESS(((1ULL << core_id) & v_affinity_mask) != 0, ResultInvalidCombination);
         }
 
         // Set the virtual core/affinity mask.
@@ -526,7 +525,7 @@ ResultCode KThread::SetCoreMask(s32 core_id, u64 v_affinity_mask) {
                 if (GetStackParameters().is_pinned) {
                     // Verify that the current thread isn't terminating.
                     R_UNLESS(!GetCurrentThread(kernel).IsTerminationRequested(),
-                             Svc::ResultTerminationRequested);
+                             ResultTerminationRequested);
 
                     // Note that the thread was pinned.
                     thread_is_pinned = true;
@@ -604,7 +603,7 @@ void KThread::WaitCancel() {
             sleeping_queue->WakeupThread(this);
             wait_cancelled = true;
         } else {
-            SetSyncedObject(nullptr, Svc::ResultCancelled);
+            SetSyncedObject(nullptr, ResultCancelled);
             SetState(ThreadState::Runnable);
             wait_cancelled = false;
         }
@@ -663,12 +662,12 @@ ResultCode KThread::SetActivity(Svc::ThreadActivity activity) {
         // Verify our state.
         const auto cur_state = GetState();
         R_UNLESS((cur_state == ThreadState::Waiting || cur_state == ThreadState::Runnable),
-                 Svc::ResultInvalidState);
+                 ResultInvalidState);
 
         // Either pause or resume.
         if (activity == Svc::ThreadActivity::Paused) {
             // Verify that we're not suspended.
-            R_UNLESS(!IsSuspendRequested(SuspendType::Thread), Svc::ResultInvalidState);
+            R_UNLESS(!IsSuspendRequested(SuspendType::Thread), ResultInvalidState);
 
             // Suspend.
             RequestSuspend(SuspendType::Thread);
@@ -676,7 +675,7 @@ ResultCode KThread::SetActivity(Svc::ThreadActivity activity) {
             ASSERT(activity == Svc::ThreadActivity::Runnable);
 
             // Verify that we're suspended.
-            R_UNLESS(IsSuspendRequested(SuspendType::Thread), Svc::ResultInvalidState);
+            R_UNLESS(IsSuspendRequested(SuspendType::Thread), ResultInvalidState);
 
             // Resume.
             Resume(SuspendType::Thread);
@@ -698,7 +697,7 @@ ResultCode KThread::SetActivity(Svc::ThreadActivity activity) {
             if (GetStackParameters().is_pinned) {
                 // Verify that the current thread isn't terminating.
                 R_UNLESS(!GetCurrentThread(kernel).IsTerminationRequested(),
-                         Svc::ResultTerminationRequested);
+                         ResultTerminationRequested);
 
                 // Note that the thread was pinned and not current.
                 thread_is_pinned = true;
@@ -745,7 +744,7 @@ ResultCode KThread::GetThreadContext3(std::vector<u8>& out) {
         KScopedSchedulerLock sl{kernel};
 
         // Verify that we're suspended.
-        R_UNLESS(IsSuspendRequested(SuspendType::Thread), Svc::ResultInvalidState);
+        R_UNLESS(IsSuspendRequested(SuspendType::Thread), ResultInvalidState);
 
         // If we're not terminating, get the thread's user context.
         if (!IsTerminationRequested()) {
@@ -905,12 +904,11 @@ ResultCode KThread::Run() {
         KScopedSchedulerLock lk{kernel};
 
         // If either this thread or the current thread are requesting termination, note it.
-        R_UNLESS(!IsTerminationRequested(), Svc::ResultTerminationRequested);
-        R_UNLESS(!GetCurrentThread(kernel).IsTerminationRequested(),
-                 Svc::ResultTerminationRequested);
+        R_UNLESS(!IsTerminationRequested(), ResultTerminationRequested);
+        R_UNLESS(!GetCurrentThread(kernel).IsTerminationRequested(), ResultTerminationRequested);
 
         // Ensure our thread state is correct.
-        R_UNLESS(GetState() == ThreadState::Initialized, Svc::ResultInvalidState);
+        R_UNLESS(GetState() == ThreadState::Initialized, ResultInvalidState);
 
         // If the current thread has been asked to suspend, suspend it and retry.
         if (GetCurrentThread(kernel).IsSuspended()) {
@@ -962,7 +960,7 @@ ResultCode KThread::Sleep(s64 timeout) {
         // Check if the thread should terminate.
         if (IsTerminationRequested()) {
             slp.CancelSleep();
-            return Svc::ResultTerminationRequested;
+            return ResultTerminationRequested;
         }
 
         // Mark the thread as waiting.

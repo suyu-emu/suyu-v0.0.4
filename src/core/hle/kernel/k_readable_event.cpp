@@ -6,7 +6,6 @@
 #include "common/assert.h"
 #include "common/common_funcs.h"
 #include "common/logging/log.h"
-#include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_thread.h"
@@ -47,7 +46,7 @@ ResultCode KReadableEvent::Reset() {
     KScopedSchedulerLock lk{kernel};
 
     if (!is_signaled) {
-        return Svc::ResultInvalidState;
+        return ResultInvalidState;
     }
 
     is_signaled = false;

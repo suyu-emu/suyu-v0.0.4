@@ -92,10 +92,10 @@ ResultCode KConditionVariable::SignalToAddress(VAddr addr) {
         // Write the value to userspace.
         if (!WriteToUser(system, addr, std::addressof(next_value))) {
             if (next_owner_thread) {
-                next_owner_thread->SetSyncedObject(nullptr, Svc::ResultInvalidCurrentMemory);
+                next_owner_thread->SetSyncedObject(nullptr, ResultInvalidCurrentMemory);
             }
 
-            return Svc::ResultInvalidCurrentMemory;
+            return ResultInvalidCurrentMemory;
         }
     }
 
@@ -114,20 +114,20 @@ ResultCode KConditionVariable::WaitForAddress(Handle handle, VAddr addr, u32 val
             cur_thread->SetSyncedObject(nullptr, RESULT_SUCCESS);
 
             // Check if the thread should terminate.
-            R_UNLESS(!cur_thread->IsTerminationRequested(), Svc::ResultTerminationRequested);
+            R_UNLESS(!cur_thread->IsTerminationRequested(), ResultTerminationRequested);
 
             {
                 // Read the tag from userspace.
                 u32 test_tag{};
                 R_UNLESS(ReadFromUser(system, std::addressof(test_tag), addr),
-                         Svc::ResultInvalidCurrentMemory);
+                         ResultInvalidCurrentMemory);
 
                 // If the tag isn't the handle (with wait mask), we're done.
                 R_UNLESS(test_tag == (handle | Svc::HandleWaitMask), RESULT_SUCCESS);
 
                 // Get the lock owner thread.
                 owner_thread = kernel.CurrentProcess()->GetHandleTable().Get<KThread>(handle);
-                R_UNLESS(owner_thread, Svc::ResultInvalidHandle);
+                R_UNLESS(owner_thread, ResultInvalidHandle);
 
                 // Update the lock.
                 cur_thread->SetAddressKey(addr, value);
@@ -191,13 +191,13 @@ KThread* KConditionVariable::SignalImpl(KThread* thread) {
                 thread_to_close = owner_thread.get();
             } else {
                 // The lock was tagged with a thread that doesn't exist.
-                thread->SetSyncedObject(nullptr, Svc::ResultInvalidState);
+                thread->SetSyncedObject(nullptr, ResultInvalidState);
                 thread->Wakeup();
             }
         }
     } else {
         // If the address wasn't accessible, note so.
-        thread->SetSyncedObject(nullptr, Svc::ResultInvalidCurrentMemory);
+        thread->SetSyncedObject(nullptr, ResultInvalidCurrentMemory);
         thread->Wakeup();
     }
 
@@ -263,12 +263,12 @@ ResultCode KConditionVariable::Wait(VAddr addr, u64 key, u32 value, s64 timeout)
         KScopedSchedulerLockAndSleep slp{kernel, cur_thread, timeout};
 
         // Set the synced object.
-        cur_thread->SetSyncedObject(nullptr, Svc::ResultTimedOut);
+        cur_thread->SetSyncedObject(nullptr, ResultTimedOut);
 
         // Check that the thread isn't terminating.
         if (cur_thread->IsTerminationRequested()) {
             slp.CancelSleep();
-            return Svc::ResultTerminationRequested;
+            return ResultTerminationRequested;
         }
 
         // Update the value and process for the next owner.
@@ -302,7 +302,7 @@ ResultCode KConditionVariable::Wait(VAddr addr, u64 key, u32 value, s64 timeout)
             // Write the value to userspace.
             if (!WriteToUser(system, addr, std::addressof(next_value))) {
                 slp.CancelSleep();
-                return Svc::ResultInvalidCurrentMemory;
+                return ResultInvalidCurrentMemory;
             }
         }
 

@@ -40,20 +40,20 @@ ResultCode KSynchronizationObject::Wait(KernelCore& kernel, s32* out_index,
         // Check if the timeout is zero.
         if (timeout == 0) {
             slp.CancelSleep();
-            return Svc::ResultTimedOut;
+            return ResultTimedOut;
         }
 
         // Check if the thread should terminate.
         if (thread->IsTerminationRequested()) {
             slp.CancelSleep();
-            return Svc::ResultTerminationRequested;
+            return ResultTerminationRequested;
         }
 
         // Check if waiting was canceled.
         if (thread->IsWaitCancelled()) {
             slp.CancelSleep();
             thread->ClearWaitCancelled();
-            return Svc::ResultCancelled;
+            return ResultCancelled;
         }
 
         // Add the waiters.
@@ -75,7 +75,7 @@ ResultCode KSynchronizationObject::Wait(KernelCore& kernel, s32* out_index,
 
         // Mark the thread as waiting.
         thread->SetCancellable();
-        thread->SetSyncedObject(nullptr, Svc::ResultTimedOut);
+        thread->SetSyncedObject(nullptr, ResultTimedOut);
         thread->SetState(ThreadState::Waiting);
         thread->SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::Synchronization);
     }

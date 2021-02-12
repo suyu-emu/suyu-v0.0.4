@@ -6,12 +6,12 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/core.h"
-#include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
+#include "core/hle/kernel/svc_results.h"
 
 namespace Kernel {
 namespace {
@@ -33,7 +33,7 @@ HandleTable::~HandleTable() = default;
 ResultCode HandleTable::SetSize(s32 handle_table_size) {
     if (static_cast<u32>(handle_table_size) > MAX_COUNT) {
         LOG_ERROR(Kernel, "Handle table size {} is greater than {}", handle_table_size, MAX_COUNT);
-        return ERR_OUT_OF_MEMORY;
+        return ResultOutOfMemory;
     }
 
     // Values less than or equal to zero indicate to use the maximum allowable
@@ -53,7 +53,7 @@ ResultVal<Handle> HandleTable::Create(std::shared_ptr<Object> obj) {
     const u16 slot = next_free_slot;
     if (slot >= table_size) {
         LOG_ERROR(Kernel, "Unable to allocate Handle, too many slots in use.");
-        return ERR_HANDLE_TABLE_FULL;
+        return ResultHandleTableFull;
     }
     next_free_slot = generations[slot];
 
@@ -76,7 +76,7 @@ ResultVal<Handle> HandleTable::Duplicate(Handle handle) {
     std::shared_ptr<Object> object = GetGeneric(handle);
     if (object == nullptr) {
         LOG_ERROR(Kernel, "Tried to duplicate invalid handle: {:08X}", handle);
-        return ERR_INVALID_HANDLE;
+        return ResultInvalidHandle;
     }
     return Create(std::move(object));
 }
@@ -84,7 +84,7 @@ ResultVal<Handle> HandleTable::Duplicate(Handle handle) {
 ResultCode HandleTable::Close(Handle handle) {
     if (!IsValid(handle)) {
         LOG_ERROR(Kernel, "Handle is not valid! handle={:08X}", handle);
-        return ERR_INVALID_HANDLE;
+        return ResultInvalidHandle;
     }
 
     const u16 slot = GetSlot(handle);

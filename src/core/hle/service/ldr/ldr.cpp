@@ -11,10 +11,10 @@
 #include "common/scope_exit.h"
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/memory/system_control.h"
 #include "core/hle/kernel/process.h"
+#include "core/hle/kernel/svc_results.h"
 #include "core/hle/service/ldr/ldr.h"
 #include "core/hle/service/service.h"
 #include "core/loader/nro.h"
@@ -330,7 +330,7 @@ public:
             const VAddr addr{GetRandomMapRegion(page_table, size)};
             const ResultCode result{page_table.MapProcessCodeMemory(addr, baseAddress, size)};
 
-            if (result == Kernel::ERR_INVALID_ADDRESS_STATE) {
+            if (result == Kernel::ResultInvalidCurrentMemory) {
                 continue;
             }
 
@@ -361,7 +361,7 @@ public:
                 const ResultCode result{
                     page_table.MapProcessCodeMemory(addr + nro_size, bss_addr, bss_size)};
 
-                if (result == Kernel::ERR_INVALID_ADDRESS_STATE) {
+                if (result == Kernel::ResultInvalidCurrentMemory) {
                     continue;
                 }
 

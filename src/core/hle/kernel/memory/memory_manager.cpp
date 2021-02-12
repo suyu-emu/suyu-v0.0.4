@@ -8,9 +8,9 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/scope_exit.h"
-#include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/memory/memory_manager.h"
 #include "core/hle/kernel/memory/page_linked_list.h"
+#include "core/hle/kernel/svc_results.h"
 
 namespace Kernel::Memory {
 
@@ -95,7 +95,7 @@ ResultCode MemoryManager::Allocate(PageLinkedList& page_list, std::size_t num_pa
     // Choose a heap based on our page size request
     const s32 heap_index{PageHeap::GetBlockIndex(num_pages)};
     if (heap_index < 0) {
-        return ERR_OUT_OF_MEMORY;
+        return ResultOutOfMemory;
     }
 
     // TODO (bunnei): Support multiple managers
@@ -140,7 +140,7 @@ ResultCode MemoryManager::Allocate(PageLinkedList& page_list, std::size_t num_pa
 
     // Only succeed if we allocated as many pages as we wanted
     if (num_pages) {
-        return ERR_OUT_OF_MEMORY;
+        return ResultOutOfMemory;
     }
 
     // We succeeded!

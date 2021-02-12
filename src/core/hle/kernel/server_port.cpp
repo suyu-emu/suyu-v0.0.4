@@ -5,11 +5,11 @@
 #include <tuple>
 #include "common/assert.h"
 #include "core/hle/kernel/client_port.h"
-#include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/server_port.h"
 #include "core/hle/kernel/server_session.h"
+#include "core/hle/kernel/svc_results.h"
 
 namespace Kernel {
 
@@ -18,7 +18,7 @@ ServerPort::~ServerPort() = default;
 
 ResultVal<std::shared_ptr<ServerSession>> ServerPort::Accept() {
     if (pending_sessions.empty()) {
-        return ERR_NOT_FOUND;
+        return ResultNotFound;
     }
 
     auto session = std::move(pending_sessions.back());

@@ -6,10 +6,10 @@
 
 #include "common/bit_util.h"
 #include "common/logging/log.h"
-#include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/process_capability.h"
+#include "core/hle/kernel/svc_results.h"
 
 namespace Kernel {
 namespace {
@@ -123,13 +123,13 @@ ResultCode ProcessCapabilities::ParseCapabilities(const u32* capabilities,
             // If there's only one, then there's a problem.
             if (i >= num_capabilities) {
                 LOG_ERROR(Kernel, "Invalid combination! i={}", i);
-                return ERR_INVALID_COMBINATION;
+                return ResultInvalidCombination;
             }
 
             const auto size_flags = capabilities[i];
             if (GetCapabilityType(size_flags) != CapabilityType::MapPhysical) {
                 LOG_ERROR(Kernel, "Invalid capability type! size_flags={}", size_flags);
-                return ERR_INVALID_COMBINATION;
+                return ResultInvalidCombination;
             }
 
             const auto result = HandleMapPhysicalFlags(descriptor, size_flags, page_table);
@@ -159,7 +159,7 @@ ResultCode ProcessCapabilities::ParseSingleFlagCapability(u32& set_flags, u32& s
     const auto type = GetCapabilityType(flag);
 
     if (type == CapabilityType::Unset) {
-        return ERR_INVALID_CAPABILITY_DESCRIPTOR;
+        return ResultInvalidCapabilityDescriptor;
     }
 
     // Bail early on ignorable entries, as one would expect,
@@ -176,7 +176,7 @@ ResultCode ProcessCapabilities::ParseSingleFlagCapability(u32& set_flags, u32& s
         LOG_ERROR(Kernel,
                   "Attempted to initialize flags that may only be initialized once. set_flags={}",
                   set_flags);
-        return ERR_INVALID_COMBINATION;
+        return ResultInvalidCombination;
     }
     set_flags |= set_flag;
 
@@ -202,7 +202,7 @@ ResultCode ProcessCapabilities::ParseSingleFlagCapability(u32& set_flags, u32& s
     }
 
     LOG_ERROR(Kernel, "Invalid capability type! type={}", type);
-    return ERR_INVALID_CAPABILITY_DESCRIPTOR;
+    return ResultInvalidCapabilityDescriptor;
 }
 
 void ProcessCapabilities::Clear() {
@@ -225,7 +225,7 @@ ResultCode ProcessCapabilities::HandlePriorityCoreNumFlags(u32 flags) {
     if (priority_mask != 0 || core_mask != 0) {
         LOG_ERROR(Kernel, "Core or priority mask are not zero! priority_mask={}, core_mask={}",
                   priority_mask, core_mask);
-        return ERR_INVALID_CAPABILITY_DESCRIPTOR;
+        return ResultInvalidCapabilityDescriptor;
     }
 
     const u32 core_num_min = (flags >> 16) & 0xFF;
@@ -233,7 +233,7 @@ ResultCode ProcessCapabilities::HandlePriorityCoreNumFlags(u32 flags) {
     if (core_num_min > core_num_max) {
         LOG_ERROR(Kernel, "Core min is greater than core max! core_num_min={}, core_num_max={}",
                   core_num_min, core_num_max);
-        return ERR_INVALID_COMBINATION;
+        return ResultInvalidCombination;
     }
 
     const u32 priority_min = (flags >> 10) & 0x3F;
@@ -242,13 +242,13 @@ ResultCode ProcessCapabilities::HandlePriorityCoreNumFlags(u32 flags) {
         LOG_ERROR(Kernel,
                   "Priority min is greater than priority max! priority_min={}, priority_max={}",
                   core_num_min, priority_max);
-        return ERR_INVALID_COMBINATION;
+        return ResultInvalidCombination;
     }
 
     // The switch only has 4 usable cores.
     if (core_num_max >= 4) {
         LOG_ERROR(Kernel, "Invalid max cores specified! core_num_max={}", core_num_max);
-        return ERR_INVALID_PROCESSOR_ID;
+        return ResultInvalidCoreId;
     }
 
     const auto make_mask = [](u64 min, u64 max) {
@@ -269,7 +269,7 @@ ResultCode ProcessCapabilities::HandleSyscallFlags(u32& set_svc_bits, u32 flags)
 
     // If we've already set this svc before, bail.
     if ((set_svc_bits & svc_bit) != 0) {
-        return ERR_INVALID_COMBINATION;
+        return ResultInvalidCombination;
     }
     set_svc_bits |= svc_bit;
 
@@ -283,7 +283,7 @@ ResultCode ProcessCapabilities::HandleSyscallFlags(u32& set_svc_bits, u32 flags)
 
         if (svc_number >= svc_capabilities.size()) {
             LOG_ERROR(Kernel, "Process svc capability is out of range! svc_number={}", svc_number);
-            return ERR_OUT_OF_RANGE;
+            return ResultOutOfRange;
         }
 
         svc_capabilities[svc_number] = true;
@@ -321,7 +321,7 @@ ResultCode ProcessCapabilities::HandleInterruptFlags(u32 flags) {
         if (interrupt >= interrupt_capabilities.size()) {
             LOG_ERROR(Kernel, "Process interrupt capability is out of range! svc_number={}",
                       interrupt);
-            return ERR_OUT_OF_RANGE;
+            return ResultOutOfRange;
         }
 
         interrupt_capabilities[interrupt] = true;
@@ -334,7 +334,7 @@ ResultCode ProcessCapabilities::HandleProgramTypeFlags(u32 flags) {
     const u32 reserved = flags >> 17;
     if (reserved != 0) {
         LOG_ERROR(Kernel, "Reserved value is non-zero! reserved={}", reserved);
-        return ERR_RESERVED_VALUE;
+        return ResultReservedValue;
     }
 
     program_type = static_cast<ProgramType>((flags >> 14) & 0b111);
@@ -354,7 +354,7 @@ ResultCode ProcessCapabilities::HandleKernelVersionFlags(u32 flags) {
         LOG_ERROR(Kernel,
                   "Kernel version is non zero or flags are too small! major_version={}, flags={}",
                   major_version, flags);
-        return ERR_INVALID_CAPABILITY_DESCRIPTOR;
+        return ResultInvalidCapabilityDescriptor;
     }
 
     kernel_version = flags;
@@ -365,7 +365,7 @@ ResultCode ProcessCapabilities::HandleHandleTableFlags(u32 flags) {
     const u32 reserved = flags >> 26;
     if (reserved != 0) {
         LOG_ERROR(Kernel, "Reserved value is non-zero! reserved={}", reserved);
-        return ERR_RESERVED_VALUE;
+        return ResultReservedValue;
     }
 
     handle_table_size = static_cast<s32>((flags >> 16) & 0x3FF);
@@ -376,7 +376,7 @@ ResultCode ProcessCapabilities::HandleDebugFlags(u32 flags) {
     const u32 reserved = flags >> 19;
     if (reserved != 0) {
         LOG_ERROR(Kernel, "Reserved value is non-zero! reserved={}", reserved);
-        return ERR_RESERVED_VALUE;
+        return ResultReservedValue;
     }
 
     is_debuggable = (flags & 0x20000) != 0;
