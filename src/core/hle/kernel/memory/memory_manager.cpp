@@ -21,7 +21,7 @@ std::size_t MemoryManager::Impl::Initialize(Pool new_pool, u64 start_address, u6
     const auto ref_count_size{(size / PageSize) * sizeof(u16)};
     const auto optimize_map_size{(Common::AlignUp((size / PageSize), 64) / 64) * sizeof(u64)};
     const auto manager_size{Common::AlignUp(optimize_map_size + ref_count_size, PageSize)};
-    const auto page_heap_size{PageHeap::CalculateMetadataOverheadSize(size)};
+    const auto page_heap_size{PageHeap::CalculateManagementOverheadSize(size)};
     const auto total_metadata_size{manager_size + page_heap_size};
     ASSERT(manager_size <= total_metadata_size);
     ASSERT(Common::IsAligned(total_metadata_size, PageSize));
@@ -63,7 +63,7 @@ VAddr MemoryManager::AllocateContinuous(std::size_t num_pages, std::size_t align
     // Loop, trying to iterate from each block
     // TODO (bunnei): Support multiple managers
     Impl& chosen_manager{managers[pool_index]};
-    VAddr allocated_block{chosen_manager.AllocateBlock(heap_index)};
+    VAddr allocated_block{chosen_manager.AllocateBlock(heap_index, false)};
 
     // If we failed to allocate, quit now
     if (!allocated_block) {
@@ -116,7 +116,7 @@ ResultCode MemoryManager::Allocate(PageLinkedList& page_list, std::size_t num_pa
 
         while (num_pages >= pages_per_alloc) {
             // Allocate a block
-            VAddr allocated_block{chosen_manager.AllocateBlock(index)};
+            VAddr allocated_block{chosen_manager.AllocateBlock(index, false)};
             if (!allocated_block) {
                 break;
             }

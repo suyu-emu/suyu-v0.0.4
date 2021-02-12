@@ -67,8 +67,8 @@ private:
 
         std::size_t Initialize(Pool new_pool, u64 start_address, u64 end_address);
 
-        VAddr AllocateBlock(s32 index) {
-            return heap.AllocateBlock(index);
+        VAddr AllocateBlock(s32 index, bool random) {
+            return heap.AllocateBlock(index, random);
         }
 
         void Free(VAddr addr, std::size_t num_pages) {

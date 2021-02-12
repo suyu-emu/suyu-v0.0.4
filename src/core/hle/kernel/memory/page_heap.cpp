@@ -32,11 +32,11 @@ void PageHeap::Initialize(VAddr address, std::size_t size, std::size_t metadata_
     }
 }
 
-VAddr PageHeap::AllocateBlock(s32 index) {
+VAddr PageHeap::AllocateBlock(s32 index, bool random) {
     const std::size_t needed_size{blocks[index].GetSize()};
 
     for (s32 i{index}; i < static_cast<s32>(MemoryBlockPageShifts.size()); i++) {
-        if (const VAddr addr{blocks[i].PopBlock()}; addr) {
+        if (const VAddr addr{blocks[i].PopBlock(random)}; addr) {
             if (const std::size_t allocated_size{blocks[i].GetSize()};
                 allocated_size > needed_size) {
                 Free(addr + needed_size, (allocated_size - needed_size) / PageSize);
@@ -104,13 +104,13 @@ void PageHeap::Free(VAddr addr, std::size_t num_pages) {
     }
 }
 
-std::size_t PageHeap::CalculateMetadataOverheadSize(std::size_t region_size) {
+std::size_t PageHeap::CalculateManagementOverheadSize(std::size_t region_size) {
     std::size_t overhead_size = 0;
     for (std::size_t i = 0; i < MemoryBlockPageShifts.size(); i++) {
         const std::size_t cur_block_shift{MemoryBlockPageShifts[i]};
         const std::size_t next_block_shift{
             (i != MemoryBlockPageShifts.size() - 1) ? MemoryBlockPageShifts[i + 1] : 0};
-        overhead_size += PageHeap::Block::CalculateMetadataOverheadSize(
+        overhead_size += PageHeap::Block::CalculateManagementOverheadSize(
             region_size, cur_block_shift, next_block_shift);
     }
     return Common::AlignUp(overhead_size, PageSize);

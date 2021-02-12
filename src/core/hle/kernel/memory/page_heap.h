@@ -15,6 +15,7 @@
 #include "common/assert.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
+#include "core/hle/kernel/k_page_bitmap.h"
 #include "core/hle/kernel/memory/memory_types.h"
 
 namespace Kernel::Memory {
@@ -57,189 +58,14 @@ private:
 
     class Block final : NonCopyable {
     private:
-        class Bitmap final : NonCopyable {
-        public:
-            static constexpr std::size_t MaxDepth{4};
-
-        private:
-            std::array<u64*, MaxDepth> bit_storages{};
-            std::size_t num_bits{};
-            std::size_t used_depths{};
-
-        public:
-            constexpr Bitmap() = default;
-
-            constexpr std::size_t GetNumBits() const {
-                return num_bits;
-            }
-            constexpr s32 GetHighestDepthIndex() const {
-                return static_cast<s32>(used_depths) - 1;
-            }
-
-            constexpr u64* Initialize(u64* storage, std::size_t size) {
-                //* Initially, everything is un-set
-                num_bits = 0;
-
-                // Calculate the needed bitmap depth
-                used_depths = static_cast<std::size_t>(GetRequiredDepth(size));
-                ASSERT(used_depths <= MaxDepth);
-
-                // Set the bitmap pointers
-                for (s32 depth{GetHighestDepthIndex()}; depth >= 0; depth--) {
-                    bit_storages[depth] = storage;
-                    size = Common::AlignUp(size, 64) / 64;
-                    storage += size;
-                }
-
-                return storage;
-            }
-
-            s64 FindFreeBlock() const {
-                uintptr_t offset{};
-                s32 depth{};
-
-                do {
-                    const u64 v{bit_storages[depth][offset]};
-                    if (v == 0) {
-                        // Non-zero depth indicates that a previous level had a free block
-                        ASSERT(depth == 0);
-                        return -1;
-                    }
-                    offset = offset * 64 + static_cast<u32>(std::countr_zero(v));
-                    ++depth;
-                } while (depth < static_cast<s32>(used_depths));
-
-                return static_cast<s64>(offset);
-            }
-
-            constexpr void SetBit(std::size_t offset) {
-                SetBit(GetHighestDepthIndex(), offset);
-                num_bits++;
-            }
-
-            constexpr void ClearBit(std::size_t offset) {
-                ClearBit(GetHighestDepthIndex(), offset);
-                num_bits--;
-            }
-
-            constexpr bool ClearRange(std::size_t offset, std::size_t count) {
-                const s32 depth{GetHighestDepthIndex()};
-                const auto bit_ind{offset / 64};
-                u64* bits{bit_storages[depth]};
-                if (count < 64) {
-                    const auto shift{offset % 64};
-                    ASSERT(shift + count <= 64);
-                    // Check that all the bits are set
-                    const u64 mask{((1ULL << count) - 1) << shift};
-                    u64 v{bits[bit_ind]};
-                    if ((v & mask) != mask) {
-                        return false;
-                    }
-
-                    // Clear the bits
-                    v &= ~mask;
-                    bits[bit_ind] = v;
-                    if (v == 0) {
-                        ClearBit(depth - 1, bit_ind);
-                    }
-                } else {
-                    ASSERT(offset % 64 == 0);
-                    ASSERT(count % 64 == 0);
-                    // Check that all the bits are set
-                    std::size_t remaining{count};
-                    std::size_t i = 0;
-                    do {
-                        if (bits[bit_ind + i++] != ~u64(0)) {
-                            return false;
-                        }
-                        remaining -= 64;
-                    } while (remaining > 0);
-
-                    // Clear the bits
-                    remaining = count;
-                    i = 0;
-                    do {
-                        bits[bit_ind + i] = 0;
-                        ClearBit(depth - 1, bit_ind + i);
-                        i++;
-                        remaining -= 64;
-                    } while (remaining > 0);
-                }
-
-                num_bits -= count;
-                return true;
-            }
-
-        private:
-            constexpr void SetBit(s32 depth, std::size_t offset) {
-                while (depth >= 0) {
-                    const auto ind{offset / 64};
-                    const auto which{offset % 64};
-                    const u64 mask{1ULL << which};
-
-                    u64* bit{std::addressof(bit_storages[depth][ind])};
-                    const u64 v{*bit};
-                    ASSERT((v & mask) == 0);
-                    *bit = v | mask;
-                    if (v) {
-                        break;
-                    }
-                    offset = ind;
-                    depth--;
-                }
-            }
-
-            constexpr void ClearBit(s32 depth, std::size_t offset) {
-                while (depth >= 0) {
-                    const auto ind{offset / 64};
-                    const auto which{offset % 64};
-                    const u64 mask{1ULL << which};
-
-                    u64* bit{std::addressof(bit_storages[depth][ind])};
-                    u64 v{*bit};
-                    ASSERT((v & mask) != 0);
-                    v &= ~mask;
-                    *bit = v;
-                    if (v) {
-                        break;
-                    }
-                    offset = ind;
-                    depth--;
-                }
-            }
-
-        private:
-            static constexpr s32 GetRequiredDepth(std::size_t region_size) {
-                s32 depth = 0;
-                while (true) {
-                    region_size /= 64;
-                    depth++;
-                    if (region_size == 0) {
-                        return depth;
-                    }
-                }
-            }
-
-        public:
-            static constexpr std::size_t CalculateMetadataOverheadSize(std::size_t region_size) {
-                std::size_t overhead_bits = 0;
-                for (s32 depth{GetRequiredDepth(region_size) - 1}; depth >= 0; depth--) {
-                    region_size = Common::AlignUp(region_size, 64) / 64;
-                    overhead_bits += region_size;
-                }
-                return overhead_bits * sizeof(u64);
-            }
-        };
-
-    private:
-        Bitmap bitmap;
+        KPageBitmap bitmap;
         VAddr heap_address{};
         uintptr_t end_offset{};
         std::size_t block_shift{};
         std::size_t next_block_shift{};
 
     public:
-        constexpr Block() = default;
+        Block() = default;
 
         constexpr std::size_t GetShift() const {
             return block_shift;
@@ -260,8 +86,8 @@ private:
             return GetNumFreeBlocks() * GetNumPages();
         }
 
-        constexpr u64* Initialize(VAddr addr, std::size_t size, std::size_t bs, std::size_t nbs,
-                                  u64* bit_storage) {
+        u64* Initialize(VAddr addr, std::size_t size, std::size_t bs, std::size_t nbs,
+                        u64* bit_storage) {
             // Set shifts
             block_shift = bs;
             next_block_shift = nbs;
@@ -278,7 +104,7 @@ private:
             return bitmap.Initialize(bit_storage, end_offset);
         }
 
-        constexpr VAddr PushBlock(VAddr address) {
+        VAddr PushBlock(VAddr address) {
             // Set the bit for the free block
             std::size_t offset{(address - heap_address) >> GetShift()};
             bitmap.SetBit(offset);
@@ -296,9 +122,9 @@ private:
             return 0;
         }
 
-        VAddr PopBlock() {
+        VAddr PopBlock(bool random) {
             // Find a free block
-            const s64 soffset{bitmap.FindFreeBlock()};
+            const s64 soffset{bitmap.FindFreeBlock(random)};
             if (soffset < 0) {
                 return 0;
             }
@@ -310,13 +136,13 @@ private:
         }
 
     public:
-        static constexpr std::size_t CalculateMetadataOverheadSize(std::size_t region_size,
-                                                                   std::size_t cur_block_shift,
-                                                                   std::size_t next_block_shift) {
+        static constexpr std::size_t CalculateManagementOverheadSize(std::size_t region_size,
+                                                                     std::size_t cur_block_shift,
+                                                                     std::size_t next_block_shift) {
             const auto cur_block_size{(1ULL << cur_block_shift)};
             const auto next_block_size{(1ULL << next_block_shift)};
             const auto align{(next_block_shift != 0) ? next_block_size : cur_block_size};
-            return Bitmap::CalculateMetadataOverheadSize(
+            return KPageBitmap::CalculateManagementOverheadSize(
                 (align * 2 + Common::AlignUp(region_size, align)) / cur_block_size);
         }
     };
@@ -338,14 +164,14 @@ public:
     }
 
     void Initialize(VAddr heap_address, std::size_t heap_size, std::size_t metadata_size);
-    VAddr AllocateBlock(s32 index);
+    VAddr AllocateBlock(s32 index, bool random);
     void Free(VAddr addr, std::size_t num_pages);
 
     void UpdateUsedSize() {
         used_size = heap_size - (GetNumFreePages() * PageSize);
     }
 
-    static std::size_t CalculateMetadataOverheadSize(std::size_t region_size);
+    static std::size_t CalculateManagementOverheadSize(std::size_t region_size);
 
 private:
     constexpr std::size_t GetNumFreePages() const {
