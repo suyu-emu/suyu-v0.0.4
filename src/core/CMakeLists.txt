@@ -164,6 +164,7 @@ add_library(core STATIC
     hle/kernel/k_light_condition_variable.h
     hle/kernel/k_light_lock.cpp
     hle/kernel/k_light_lock.h
+    hle/kernel/k_page_bitmap.h
     hle/kernel/k_priority_queue.h
     hle/kernel/k_readable_event.cpp
     hle/kernel/k_readable_event.h
