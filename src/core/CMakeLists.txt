@@ -182,6 +182,8 @@ add_library(core STATIC
     hle/kernel/k_spin_lock.h
     hle/kernel/k_synchronization_object.cpp
     hle/kernel/k_synchronization_object.h
+    hle/kernel/k_system_control.cpp
+    hle/kernel/k_system_control.h
     hle/kernel/k_thread.cpp
     hle/kernel/k_thread.h
     hle/kernel/k_thread_queue.h
@@ -204,8 +206,6 @@ add_library(core STATIC
     hle/kernel/memory/page_table.cpp
     hle/kernel/memory/page_table.h
     hle/kernel/memory/slab_heap.h
-    hle/kernel/memory/system_control.cpp
-    hle/kernel/memory/system_control.h
     hle/kernel/object.cpp
     hle/kernel/object.h
     hle/kernel/physical_core.cpp

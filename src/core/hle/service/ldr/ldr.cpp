@@ -11,8 +11,8 @@
 #include "common/scope_exit.h"
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
+#include "core/hle/kernel/k_system_control.h"
 #include "core/hle/kernel/memory/page_table.h"
-#include "core/hle/kernel/memory/system_control.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/svc_results.h"
 #include "core/hle/service/ldr/ldr.h"
@@ -315,7 +315,7 @@ public:
                                     Kernel::Memory::PageBits};
         do {
             addr = page_table.GetAliasCodeRegionStart() +
-                   (Kernel::Memory::SystemControl::GenerateRandomRange(0, end_pages)
+                   (Kernel::KSystemControl::GenerateRandomRange(0, end_pages)
                     << Kernel::Memory::PageBits);
         } while (!page_table.IsInsideAddressSpace(addr, size) ||
                  page_table.IsInsideHeapRegion(addr, size) ||

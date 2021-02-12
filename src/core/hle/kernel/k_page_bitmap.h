@@ -12,7 +12,7 @@
 #include "common/bit_util.h"
 #include "common/common_types.h"
 #include "common/tiny_mt.h"
-#include "core/hle/kernel/memory/system_control.h"
+#include "core/hle/kernel/k_system_control.h"
 
 namespace Kernel {
 
@@ -43,7 +43,7 @@ private:
 
     public:
         RandomBitGenerator() {
-            rng.Initialize(static_cast<u32>(Memory::SystemControl::GenerateRandomU64()));
+            rng.Initialize(static_cast<u32>(KSystemControl::GenerateRandomU64()));
         }
 
         std::size_t SelectRandomBit(u64 bitmap) {

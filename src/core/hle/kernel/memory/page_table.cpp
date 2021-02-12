@@ -6,14 +6,15 @@
 #include "common/assert.h"
 #include "common/scope_exit.h"
 #include "core/core.h"
+#include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scoped_resource_reservation.h"
+#include "core/hle/kernel/k_system_control.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/memory/address_space_info.h"
 #include "core/hle/kernel/memory/memory_block.h"
 #include "core/hle/kernel/memory/memory_block_manager.h"
 #include "core/hle/kernel/memory/page_linked_list.h"
 #include "core/hle/kernel/memory/page_table.h"
-#include "core/hle/kernel/memory/system_control.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/svc_results.h"
 #include "core/memory.h"
@@ -149,13 +150,13 @@ ResultCode PageTable::InitializeForProcess(FileSys::ProgramAddressSpaceType as_t
     // Determine random placements for each region
     std::size_t alias_rnd{}, heap_rnd{}, stack_rnd{}, kmap_rnd{};
     if (enable_aslr) {
-        alias_rnd = SystemControl::GenerateRandomRange(0, remaining_size / RegionAlignment) *
+        alias_rnd = KSystemControl::GenerateRandomRange(0, remaining_size / RegionAlignment) *
                     RegionAlignment;
-        heap_rnd = SystemControl::GenerateRandomRange(0, remaining_size / RegionAlignment) *
+        heap_rnd = KSystemControl::GenerateRandomRange(0, remaining_size / RegionAlignment) *
                    RegionAlignment;
-        stack_rnd = SystemControl::GenerateRandomRange(0, remaining_size / RegionAlignment) *
+        stack_rnd = KSystemControl::GenerateRandomRange(0, remaining_size / RegionAlignment) *
                     RegionAlignment;
-        kmap_rnd = SystemControl::GenerateRandomRange(0, remaining_size / RegionAlignment) *
+        kmap_rnd = KSystemControl::GenerateRandomRange(0, remaining_size / RegionAlignment) *
                    RegionAlignment;
     }
 
