@@ -6,7 +6,9 @@
 
 #include <array>
 #include <mutex>
+#include <tuple>
 
+#include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "core/hle/kernel/memory/page_heap.h"
 #include "core/hle/result.h"
@@ -44,14 +46,35 @@ public:
     }
 
     void InitializeManager(Pool pool, u64 start_address, u64 end_address);
-    VAddr AllocateContinuous(std::size_t num_pages, std::size_t align_pages, Pool pool,
-                             Direction dir = Direction::FromFront);
+
+    VAddr AllocateAndOpenContinuous(size_t num_pages, size_t align_pages, u32 option);
     ResultCode Allocate(PageLinkedList& page_list, std::size_t num_pages, Pool pool,
                         Direction dir = Direction::FromFront);
     ResultCode Free(PageLinkedList& page_list, std::size_t num_pages, Pool pool,
                     Direction dir = Direction::FromFront);
 
     static constexpr std::size_t MaxManagerCount = 10;
+
+public:
+    static constexpr u32 EncodeOption(Pool pool, Direction dir) {
+        return (static_cast<u32>(pool) << static_cast<u32>(Pool::Shift)) |
+               (static_cast<u32>(dir) << static_cast<u32>(Direction::Shift));
+    }
+
+    static constexpr Pool GetPool(u32 option) {
+        return static_cast<Pool>((static_cast<u32>(option) & static_cast<u32>(Pool::Mask)) >>
+                                 static_cast<u32>(Pool::Shift));
+    }
+
+    static constexpr Direction GetDirection(u32 option) {
+        return static_cast<Direction>(
+            (static_cast<u32>(option) & static_cast<u32>(Direction::Mask)) >>
+            static_cast<u32>(Direction::Shift));
+    }
+
+    static constexpr std::tuple<Pool, Direction> DecodeOption(u32 option) {
+        return std::make_tuple(GetPool(option), GetDirection(option));
+    }
 
 private:
     class Impl final : NonCopyable {

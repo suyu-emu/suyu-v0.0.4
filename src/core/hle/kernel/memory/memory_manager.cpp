@@ -46,14 +46,15 @@ void MemoryManager::InitializeManager(Pool pool, u64 start_address, u64 end_addr
     managers[static_cast<std::size_t>(pool)].Initialize(pool, start_address, end_address);
 }
 
-VAddr MemoryManager::AllocateContinuous(std::size_t num_pages, std::size_t align_pages, Pool pool,
-                                        Direction dir) {
+VAddr MemoryManager::AllocateAndOpenContinuous(std::size_t num_pages, std::size_t align_pages,
+                                               u32 option) {
     // Early return if we're allocating no pages
     if (num_pages == 0) {
         return {};
     }
 
     // Lock the pool that we're allocating from
+    const auto [pool, dir] = DecodeOption(option);
     const auto pool_index{static_cast<std::size_t>(pool)};
     std::lock_guard lock{pool_locks[pool_index]};
 
