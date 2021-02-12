@@ -2,20 +2,17 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-// This file references various implementation details from Atmosphere, an open-source firmware for
-// the Nintendo Switch. Copyright 2018-2020 Atmosphere-NX.
-
 #pragma once
 
 #include "common/common_types.h"
 
-namespace Kernel::Memory {
+namespace Kernel {
 
-struct AddressSpaceInfo final {
+struct KAddressSpaceInfo final {
     enum class Type : u32 {
-        Is32Bit = 0,
-        Small64Bit = 1,
-        Large64Bit = 2,
+        MapSmall = 0,
+        MapLarge = 1,
+        Map39Bit = 2,
         Heap = 3,
         Stack = 4,
         Alias = 5,
@@ -31,4 +28,4 @@ struct AddressSpaceInfo final {
     const Type type{};
 };
 
-} // namespace Kernel::Memory
+} // namespace Kernel

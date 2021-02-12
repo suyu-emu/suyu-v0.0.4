@@ -156,6 +156,8 @@ add_library(core STATIC
     hle/kernel/hle_ipc.h
     hle/kernel/k_address_arbiter.cpp
     hle/kernel/k_address_arbiter.h
+    hle/kernel/k_address_space_info.cpp
+    hle/kernel/k_address_space_info.h
     hle/kernel/k_affinity_mask.h
     hle/kernel/k_condition_variable.cpp
     hle/kernel/k_condition_variable.h
@@ -191,8 +193,6 @@ add_library(core STATIC
     hle/kernel/k_writable_event.h
     hle/kernel/kernel.cpp
     hle/kernel/kernel.h
-    hle/kernel/memory/address_space_info.cpp
-    hle/kernel/memory/address_space_info.h
     hle/kernel/memory/memory_block.h
     hle/kernel/memory/memory_block_manager.cpp
     hle/kernel/memory/memory_block_manager.h

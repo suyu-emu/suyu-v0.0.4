@@ -6,11 +6,11 @@
 #include "common/assert.h"
 #include "common/scope_exit.h"
 #include "core/core.h"
+#include "core/hle/kernel/k_address_space_info.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scoped_resource_reservation.h"
 #include "core/hle/kernel/k_system_control.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/memory/address_space_info.h"
 #include "core/hle/kernel/memory/memory_block.h"
 #include "core/hle/kernel/memory/memory_block_manager.h"
 #include "core/hle/kernel/memory/page_linked_list.h"
@@ -64,19 +64,19 @@ ResultCode PageTable::InitializeForProcess(FileSys::ProgramAddressSpaceType as_t
                                            bool enable_aslr, VAddr code_addr, std::size_t code_size,
                                            Memory::MemoryManager::Pool pool) {
 
-    const auto GetSpaceStart = [this](AddressSpaceInfo::Type type) {
-        return AddressSpaceInfo::GetAddressSpaceStart(address_space_width, type);
+    const auto GetSpaceStart = [this](KAddressSpaceInfo::Type type) {
+        return KAddressSpaceInfo::GetAddressSpaceStart(address_space_width, type);
     };
-    const auto GetSpaceSize = [this](AddressSpaceInfo::Type type) {
-        return AddressSpaceInfo::GetAddressSpaceSize(address_space_width, type);
+    const auto GetSpaceSize = [this](KAddressSpaceInfo::Type type) {
+        return KAddressSpaceInfo::GetAddressSpaceSize(address_space_width, type);
     };
 
     //  Set our width and heap/alias sizes
     address_space_width = GetAddressSpaceWidthFromType(as_type);
     const VAddr start = 0;
     const VAddr end{1ULL << address_space_width};
-    std::size_t alias_region_size{GetSpaceSize(AddressSpaceInfo::Type::Alias)};
-    std::size_t heap_region_size{GetSpaceSize(AddressSpaceInfo::Type::Heap)};
+    std::size_t alias_region_size{GetSpaceSize(KAddressSpaceInfo::Type::Alias)};
+    std::size_t heap_region_size{GetSpaceSize(KAddressSpaceInfo::Type::Heap)};
 
     ASSERT(start <= code_addr);
     ASSERT(code_addr < code_addr + code_size);
@@ -96,12 +96,12 @@ ResultCode PageTable::InitializeForProcess(FileSys::ProgramAddressSpaceType as_t
     std::size_t kernel_map_region_size{};
 
     if (address_space_width == 39) {
-        alias_region_size = GetSpaceSize(AddressSpaceInfo::Type::Alias);
-        heap_region_size = GetSpaceSize(AddressSpaceInfo::Type::Heap);
-        stack_region_size = GetSpaceSize(AddressSpaceInfo::Type::Stack);
-        kernel_map_region_size = GetSpaceSize(AddressSpaceInfo::Type::Is32Bit);
-        code_region_start = GetSpaceStart(AddressSpaceInfo::Type::Large64Bit);
-        code_region_end = code_region_start + GetSpaceSize(AddressSpaceInfo::Type::Large64Bit);
+        alias_region_size = GetSpaceSize(KAddressSpaceInfo::Type::Alias);
+        heap_region_size = GetSpaceSize(KAddressSpaceInfo::Type::Heap);
+        stack_region_size = GetSpaceSize(KAddressSpaceInfo::Type::Stack);
+        kernel_map_region_size = GetSpaceSize(KAddressSpaceInfo::Type::MapSmall);
+        code_region_start = GetSpaceStart(KAddressSpaceInfo::Type::Map39Bit);
+        code_region_end = code_region_start + GetSpaceSize(KAddressSpaceInfo::Type::Map39Bit);
         alias_code_region_start = code_region_start;
         alias_code_region_end = code_region_end;
         process_code_start = Common::AlignDown(code_addr, RegionAlignment);
@@ -109,12 +109,12 @@ ResultCode PageTable::InitializeForProcess(FileSys::ProgramAddressSpaceType as_t
     } else {
         stack_region_size = 0;
         kernel_map_region_size = 0;
-        code_region_start = GetSpaceStart(AddressSpaceInfo::Type::Is32Bit);
-        code_region_end = code_region_start + GetSpaceSize(AddressSpaceInfo::Type::Is32Bit);
+        code_region_start = GetSpaceStart(KAddressSpaceInfo::Type::MapSmall);
+        code_region_end = code_region_start + GetSpaceSize(KAddressSpaceInfo::Type::MapSmall);
         stack_region_start = code_region_start;
         alias_code_region_start = code_region_start;
-        alias_code_region_end = GetSpaceStart(AddressSpaceInfo::Type::Small64Bit) +
-                                GetSpaceSize(AddressSpaceInfo::Type::Small64Bit);
+        alias_code_region_end = GetSpaceStart(KAddressSpaceInfo::Type::MapLarge) +
+                                GetSpaceSize(KAddressSpaceInfo::Type::MapLarge);
         stack_region_end = code_region_end;
         kernel_map_region_start = code_region_start;
         kernel_map_region_end = code_region_end;
