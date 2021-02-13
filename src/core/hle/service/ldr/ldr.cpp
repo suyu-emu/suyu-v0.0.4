@@ -289,10 +289,10 @@ public:
 
     bool ValidateRegionForMap(Kernel::Memory::PageTable& page_table, VAddr start,
                               std::size_t size) const {
-        constexpr std::size_t padding_size{4 * Kernel::Memory::PageSize};
+        constexpr std::size_t padding_size{4 * Kernel::PageSize};
         const auto start_info{page_table.QueryInfo(start - 1)};
 
-        if (start_info.state != Kernel::Memory::MemoryState::Free) {
+        if (start_info.state != Kernel::KMemoryState::Free) {
             return {};
         }
 
@@ -302,7 +302,7 @@ public:
 
         const auto end_info{page_table.QueryInfo(start + size)};
 
-        if (end_info.state != Kernel::Memory::MemoryState::Free) {
+        if (end_info.state != Kernel::KMemoryState::Free) {
             return {};
         }
 
@@ -312,11 +312,10 @@ public:
     VAddr GetRandomMapRegion(const Kernel::Memory::PageTable& page_table, std::size_t size) const {
         VAddr addr{};
         const std::size_t end_pages{(page_table.GetAliasCodeRegionSize() - size) >>
-                                    Kernel::Memory::PageBits};
+                                    Kernel::PageBits};
         do {
             addr = page_table.GetAliasCodeRegionStart() +
-                   (Kernel::KSystemControl::GenerateRandomRange(0, end_pages)
-                    << Kernel::Memory::PageBits);
+                   (Kernel::KSystemControl::GenerateRandomRange(0, end_pages) << Kernel::PageBits);
         } while (!page_table.IsInsideAddressSpace(addr, size) ||
                  page_table.IsInsideHeapRegion(addr, size) ||
                  page_table.IsInsideAliasRegion(addr, size));
@@ -387,7 +386,7 @@ public:
         const VAddr data_start{start + nro_header.segment_headers[DATA_INDEX].memory_offset};
         const VAddr bss_start{data_start + nro_header.segment_headers[DATA_INDEX].memory_size};
         const VAddr bss_end_addr{
-            Common::AlignUp(bss_start + nro_header.bss_size, Kernel::Memory::PageSize)};
+            Common::AlignUp(bss_start + nro_header.bss_size, Kernel::PageSize)};
 
         auto CopyCode{[&](VAddr src_addr, VAddr dst_addr, u64 size) {
             std::vector<u8> source_data(size);
@@ -402,12 +401,12 @@ public:
                  nro_header.segment_headers[DATA_INDEX].memory_size);
 
         CASCADE_CODE(process->PageTable().SetCodeMemoryPermission(
-            text_start, ro_start - text_start, Kernel::Memory::MemoryPermission::ReadAndExecute));
-        CASCADE_CODE(process->PageTable().SetCodeMemoryPermission(
-            ro_start, data_start - ro_start, Kernel::Memory::MemoryPermission::Read));
+            text_start, ro_start - text_start, Kernel::KMemoryPermission::ReadAndExecute));
+        CASCADE_CODE(process->PageTable().SetCodeMemoryPermission(ro_start, data_start - ro_start,
+                                                                  Kernel::KMemoryPermission::Read));
 
         return process->PageTable().SetCodeMemoryPermission(
-            data_start, bss_end_addr - data_start, Kernel::Memory::MemoryPermission::ReadAndWrite);
+            data_start, bss_end_addr - data_start, Kernel::KMemoryPermission::ReadAndWrite);
     }
 
     void LoadNro(Kernel::HLERequestContext& ctx) {

@@ -14,14 +14,14 @@
 #include "core/device_memory.h"
 #include "core/file_sys/program_metadata.h"
 #include "core/hle/kernel/code_set.h"
+#include "core/hle/kernel/k_memory_block_manager.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_scoped_resource_reservation.h"
+#include "core/hle/kernel/k_slab_heap.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/memory/memory_block_manager.h"
 #include "core/hle/kernel/memory/page_table.h"
-#include "core/hle/kernel/memory/slab_heap.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/svc_results.h"
 #include "core/hle/lock.h"
@@ -291,9 +291,9 @@ ResultCode Process::LoadFromMetadata(const FileSys::ProgramMetadata& metadata,
     }
 
     // Map process code region
-    if (const ResultCode result{page_table->MapProcessCode(
-            page_table->GetCodeRegionStart(), code_size / Memory::PageSize,
-            Memory::MemoryState::Code, Memory::MemoryPermission::None)};
+    if (const ResultCode result{page_table->MapProcessCode(page_table->GetCodeRegionStart(),
+                                                           code_size / PageSize, KMemoryState::Code,
+                                                           KMemoryPermission::None)};
         result.IsError()) {
         return result;
     }
@@ -400,22 +400,22 @@ VAddr Process::CreateTLSRegion() {
         return *tls_page_iter->ReserveSlot();
     }
 
-    Memory::Page* const tls_page_ptr{kernel.GetUserSlabHeapPages().Allocate()};
+    Page* const tls_page_ptr{kernel.GetUserSlabHeapPages().Allocate()};
     ASSERT(tls_page_ptr);
 
     const VAddr start{page_table->GetKernelMapRegionStart()};
     const VAddr size{page_table->GetKernelMapRegionEnd() - start};
     const PAddr tls_map_addr{system.DeviceMemory().GetPhysicalAddr(tls_page_ptr)};
-    const VAddr tls_page_addr{
-        page_table
-            ->AllocateAndMapMemory(1, Memory::PageSize, true, start, size / Memory::PageSize,
-                                   Memory::MemoryState::ThreadLocal,
-                                   Memory::MemoryPermission::ReadAndWrite, tls_map_addr)
-            .ValueOr(0)};
+    const VAddr tls_page_addr{page_table
+                                  ->AllocateAndMapMemory(1, PageSize, true, start, size / PageSize,
+                                                         KMemoryState::ThreadLocal,
+                                                         KMemoryPermission::ReadAndWrite,
+                                                         tls_map_addr)
+                                  .ValueOr(0)};
 
     ASSERT(tls_page_addr);
 
-    std::memset(tls_page_ptr, 0, Memory::PageSize);
+    std::memset(tls_page_ptr, 0, PageSize);
     tls_pages.emplace_back(tls_page_addr);
 
     const auto reserve_result{tls_pages.back().ReserveSlot()};
@@ -442,15 +442,15 @@ void Process::FreeTLSRegion(VAddr tls_address) {
 void Process::LoadModule(CodeSet code_set, VAddr base_addr) {
     std::lock_guard lock{HLE::g_hle_lock};
     const auto ReprotectSegment = [&](const CodeSet::Segment& segment,
-                                      Memory::MemoryPermission permission) {
+                                      KMemoryPermission permission) {
         page_table->SetCodeMemoryPermission(segment.addr + base_addr, segment.size, permission);
     };
 
     system.Memory().WriteBlock(*this, base_addr, code_set.memory.data(), code_set.memory.size());
 
-    ReprotectSegment(code_set.CodeSegment(), Memory::MemoryPermission::ReadAndExecute);
-    ReprotectSegment(code_set.RODataSegment(), Memory::MemoryPermission::Read);
-    ReprotectSegment(code_set.DataSegment(), Memory::MemoryPermission::ReadAndWrite);
+    ReprotectSegment(code_set.CodeSegment(), KMemoryPermission::ReadAndExecute);
+    ReprotectSegment(code_set.RODataSegment(), KMemoryPermission::Read);
+    ReprotectSegment(code_set.DataSegment(), KMemoryPermission::ReadAndWrite);
 }
 
 bool Process::IsSignaled() const {
@@ -479,16 +479,15 @@ ResultCode Process::AllocateMainThreadStack(std::size_t stack_size) {
     ASSERT(stack_size);
 
     // The kernel always ensures that the given stack size is page aligned.
-    main_thread_stack_size = Common::AlignUp(stack_size, Memory::PageSize);
+    main_thread_stack_size = Common::AlignUp(stack_size, PageSize);
 
     const VAddr start{page_table->GetStackRegionStart()};
     const std::size_t size{page_table->GetStackRegionEnd() - start};
 
     CASCADE_RESULT(main_thread_stack_top,
                    page_table->AllocateAndMapMemory(
-                       main_thread_stack_size / Memory::PageSize, Memory::PageSize, false, start,
-                       size / Memory::PageSize, Memory::MemoryState::Stack,
-                       Memory::MemoryPermission::ReadAndWrite));
+                       main_thread_stack_size / PageSize, PageSize, false, start, size / PageSize,
+                       KMemoryState::Stack, KMemoryPermission::ReadAndWrite));
 
     main_thread_stack_top += main_thread_stack_size;
 

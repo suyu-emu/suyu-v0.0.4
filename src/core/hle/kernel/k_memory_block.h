@@ -2,20 +2,17 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-// This file references various implementation details from Atmosphere, an open-source firmware for
-// the Nintendo Switch. Copyright 2018-2020 Atmosphere-NX.
-
 #pragma once
 
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "common/common_types.h"
-#include "core/hle/kernel/memory/memory_types.h"
+#include "core/hle/kernel/memory_types.h"
 #include "core/hle/kernel/svc_types.h"
 
-namespace Kernel::Memory {
+namespace Kernel {
 
-enum class MemoryState : u32 {
+enum class KMemoryState : u32 {
     None = 0,
     Mask = 0xFF,
     All = ~None,
@@ -97,31 +94,31 @@ enum class MemoryState : u32 {
                     FlagReferenceCounted | FlagCanDebug,
     CodeOut = static_cast<u32>(Svc::MemoryState::CodeOut) | FlagMapped | FlagReferenceCounted,
 };
-DECLARE_ENUM_FLAG_OPERATORS(MemoryState);
+DECLARE_ENUM_FLAG_OPERATORS(KMemoryState);
 
-static_assert(static_cast<u32>(MemoryState::Free) == 0x00000000);
-static_assert(static_cast<u32>(MemoryState::Io) == 0x00002001);
-static_assert(static_cast<u32>(MemoryState::Static) == 0x00042002);
-static_assert(static_cast<u32>(MemoryState::Code) == 0x00DC7E03);
-static_assert(static_cast<u32>(MemoryState::CodeData) == 0x03FEBD04);
-static_assert(static_cast<u32>(MemoryState::Normal) == 0x037EBD05);
-static_assert(static_cast<u32>(MemoryState::Shared) == 0x00402006);
-static_assert(static_cast<u32>(MemoryState::AliasCode) == 0x00DD7E08);
-static_assert(static_cast<u32>(MemoryState::AliasCodeData) == 0x03FFBD09);
-static_assert(static_cast<u32>(MemoryState::Ipc) == 0x005C3C0A);
-static_assert(static_cast<u32>(MemoryState::Stack) == 0x005C3C0B);
-static_assert(static_cast<u32>(MemoryState::ThreadLocal) == 0x0040200C);
-static_assert(static_cast<u32>(MemoryState::Transferred) == 0x015C3C0D);
-static_assert(static_cast<u32>(MemoryState::SharedTransferred) == 0x005C380E);
-static_assert(static_cast<u32>(MemoryState::SharedCode) == 0x0040380F);
-static_assert(static_cast<u32>(MemoryState::Inaccessible) == 0x00000010);
-static_assert(static_cast<u32>(MemoryState::NonSecureIpc) == 0x005C3811);
-static_assert(static_cast<u32>(MemoryState::NonDeviceIpc) == 0x004C2812);
-static_assert(static_cast<u32>(MemoryState::Kernel) == 0x00002013);
-static_assert(static_cast<u32>(MemoryState::GeneratedCode) == 0x00402214);
-static_assert(static_cast<u32>(MemoryState::CodeOut) == 0x00402015);
+static_assert(static_cast<u32>(KMemoryState::Free) == 0x00000000);
+static_assert(static_cast<u32>(KMemoryState::Io) == 0x00002001);
+static_assert(static_cast<u32>(KMemoryState::Static) == 0x00042002);
+static_assert(static_cast<u32>(KMemoryState::Code) == 0x00DC7E03);
+static_assert(static_cast<u32>(KMemoryState::CodeData) == 0x03FEBD04);
+static_assert(static_cast<u32>(KMemoryState::Normal) == 0x037EBD05);
+static_assert(static_cast<u32>(KMemoryState::Shared) == 0x00402006);
+static_assert(static_cast<u32>(KMemoryState::AliasCode) == 0x00DD7E08);
+static_assert(static_cast<u32>(KMemoryState::AliasCodeData) == 0x03FFBD09);
+static_assert(static_cast<u32>(KMemoryState::Ipc) == 0x005C3C0A);
+static_assert(static_cast<u32>(KMemoryState::Stack) == 0x005C3C0B);
+static_assert(static_cast<u32>(KMemoryState::ThreadLocal) == 0x0040200C);
+static_assert(static_cast<u32>(KMemoryState::Transferred) == 0x015C3C0D);
+static_assert(static_cast<u32>(KMemoryState::SharedTransferred) == 0x005C380E);
+static_assert(static_cast<u32>(KMemoryState::SharedCode) == 0x0040380F);
+static_assert(static_cast<u32>(KMemoryState::Inaccessible) == 0x00000010);
+static_assert(static_cast<u32>(KMemoryState::NonSecureIpc) == 0x005C3811);
+static_assert(static_cast<u32>(KMemoryState::NonDeviceIpc) == 0x004C2812);
+static_assert(static_cast<u32>(KMemoryState::Kernel) == 0x00002013);
+static_assert(static_cast<u32>(KMemoryState::GeneratedCode) == 0x00402214);
+static_assert(static_cast<u32>(KMemoryState::CodeOut) == 0x00402015);
 
-enum class MemoryPermission : u8 {
+enum class KMemoryPermission : u8 {
     None = 0,
     Mask = static_cast<u8>(~None),
 
@@ -135,9 +132,9 @@ enum class MemoryPermission : u8 {
     UserMask = static_cast<u8>(Svc::MemoryPermission::Read | Svc::MemoryPermission::Write |
                                Svc::MemoryPermission::Execute),
 };
-DECLARE_ENUM_FLAG_OPERATORS(MemoryPermission);
+DECLARE_ENUM_FLAG_OPERATORS(KMemoryPermission);
 
-enum class MemoryAttribute : u8 {
+enum class KMemoryAttribute : u8 {
     None = 0x00,
     Mask = 0x7F,
     All = Mask,
@@ -152,18 +149,18 @@ enum class MemoryAttribute : u8 {
     LockedAndIpcLocked = Locked | IpcLocked,
     DeviceSharedAndUncached = DeviceShared | Uncached
 };
-DECLARE_ENUM_FLAG_OPERATORS(MemoryAttribute);
+DECLARE_ENUM_FLAG_OPERATORS(KMemoryAttribute);
 
-static_assert((static_cast<u8>(MemoryAttribute::Mask) &
-               static_cast<u8>(MemoryAttribute::DontCareMask)) == 0);
+static_assert((static_cast<u8>(KMemoryAttribute::Mask) &
+               static_cast<u8>(KMemoryAttribute::DontCareMask)) == 0);
 
-struct MemoryInfo {
+struct KMemoryInfo {
     VAddr addr{};
     std::size_t size{};
-    MemoryState state{};
-    MemoryPermission perm{};
-    MemoryAttribute attribute{};
-    MemoryPermission original_perm{};
+    KMemoryState state{};
+    KMemoryPermission perm{};
+    KMemoryAttribute attribute{};
+    KMemoryPermission original_perm{};
     u16 ipc_lock_count{};
     u16 device_use_count{};
 
@@ -171,9 +168,9 @@ struct MemoryInfo {
         return {
             addr,
             size,
-            static_cast<Svc::MemoryState>(state & MemoryState::Mask),
-            static_cast<Svc::MemoryAttribute>(attribute & MemoryAttribute::Mask),
-            static_cast<Svc::MemoryPermission>(perm & MemoryPermission::UserMask),
+            static_cast<Svc::MemoryState>(state & KMemoryState::Mask),
+            static_cast<Svc::MemoryAttribute>(attribute & KMemoryAttribute::Mask),
+            static_cast<Svc::MemoryPermission>(perm & KMemoryPermission::UserMask),
             ipc_lock_count,
             device_use_count,
         };
@@ -196,21 +193,21 @@ struct MemoryInfo {
     }
 };
 
-class MemoryBlock final {
-    friend class MemoryBlockManager;
+class KMemoryBlock final {
+    friend class KMemoryBlockManager;
 
 private:
     VAddr addr{};
     std::size_t num_pages{};
-    MemoryState state{MemoryState::None};
+    KMemoryState state{KMemoryState::None};
     u16 ipc_lock_count{};
     u16 device_use_count{};
-    MemoryPermission perm{MemoryPermission::None};
-    MemoryPermission original_perm{MemoryPermission::None};
-    MemoryAttribute attribute{MemoryAttribute::None};
+    KMemoryPermission perm{KMemoryPermission::None};
+    KMemoryPermission original_perm{KMemoryPermission::None};
+    KMemoryAttribute attribute{KMemoryAttribute::None};
 
 public:
-    static constexpr int Compare(const MemoryBlock& lhs, const MemoryBlock& rhs) {
+    static constexpr int Compare(const KMemoryBlock& lhs, const KMemoryBlock& rhs) {
         if (lhs.GetAddress() < rhs.GetAddress()) {
             return -1;
         } else if (lhs.GetAddress() <= rhs.GetLastAddress()) {
@@ -221,9 +218,9 @@ public:
     }
 
 public:
-    constexpr MemoryBlock() = default;
-    constexpr MemoryBlock(VAddr addr_, std::size_t num_pages_, MemoryState state_,
-                          MemoryPermission perm_, MemoryAttribute attribute_)
+    constexpr KMemoryBlock() = default;
+    constexpr KMemoryBlock(VAddr addr_, std::size_t num_pages_, KMemoryState state_,
+                           KMemoryPermission perm_, KMemoryAttribute attribute_)
         : addr{addr_}, num_pages(num_pages_), state{state_}, perm{perm_}, attribute{attribute_} {}
 
     constexpr VAddr GetAddress() const {
@@ -246,40 +243,40 @@ public:
         return GetEndAddress() - 1;
     }
 
-    constexpr MemoryInfo GetMemoryInfo() const {
+    constexpr KMemoryInfo GetMemoryInfo() const {
         return {
             GetAddress(), GetSize(),     state,          perm,
             attribute,    original_perm, ipc_lock_count, device_use_count,
         };
     }
 
-    void ShareToDevice(MemoryPermission /*new_perm*/) {
-        ASSERT((attribute & MemoryAttribute::DeviceShared) == MemoryAttribute::DeviceShared ||
+    void ShareToDevice(KMemoryPermission /*new_perm*/) {
+        ASSERT((attribute & KMemoryAttribute::DeviceShared) == KMemoryAttribute::DeviceShared ||
                device_use_count == 0);
-        attribute |= MemoryAttribute::DeviceShared;
+        attribute |= KMemoryAttribute::DeviceShared;
         const u16 new_use_count{++device_use_count};
         ASSERT(new_use_count > 0);
     }
 
-    void UnshareToDevice(MemoryPermission /*new_perm*/) {
-        ASSERT((attribute & MemoryAttribute::DeviceShared) == MemoryAttribute::DeviceShared);
+    void UnshareToDevice(KMemoryPermission /*new_perm*/) {
+        ASSERT((attribute & KMemoryAttribute::DeviceShared) == KMemoryAttribute::DeviceShared);
         const u16 prev_use_count{device_use_count--};
         ASSERT(prev_use_count > 0);
         if (prev_use_count == 1) {
-            attribute &= ~MemoryAttribute::DeviceShared;
+            attribute &= ~KMemoryAttribute::DeviceShared;
         }
     }
 
 private:
-    constexpr bool HasProperties(MemoryState s, MemoryPermission p, MemoryAttribute a) const {
-        constexpr MemoryAttribute AttributeIgnoreMask{MemoryAttribute::DontCareMask |
-                                                      MemoryAttribute::IpcLocked |
-                                                      MemoryAttribute::DeviceShared};
+    constexpr bool HasProperties(KMemoryState s, KMemoryPermission p, KMemoryAttribute a) const {
+        constexpr KMemoryAttribute AttributeIgnoreMask{KMemoryAttribute::DontCareMask |
+                                                       KMemoryAttribute::IpcLocked |
+                                                       KMemoryAttribute::DeviceShared};
         return state == s && perm == p &&
                (attribute | AttributeIgnoreMask) == (a | AttributeIgnoreMask);
     }
 
-    constexpr bool HasSameProperties(const MemoryBlock& rhs) const {
+    constexpr bool HasSameProperties(const KMemoryBlock& rhs) const {
         return state == rhs.state && perm == rhs.perm && original_perm == rhs.original_perm &&
                attribute == rhs.attribute && ipc_lock_count == rhs.ipc_lock_count &&
                device_use_count == rhs.device_use_count;
@@ -296,25 +293,25 @@ private:
         num_pages += count;
     }
 
-    constexpr void Update(MemoryState new_state, MemoryPermission new_perm,
-                          MemoryAttribute new_attribute) {
-        ASSERT(original_perm == MemoryPermission::None);
-        ASSERT((attribute & MemoryAttribute::IpcLocked) == MemoryAttribute::None);
+    constexpr void Update(KMemoryState new_state, KMemoryPermission new_perm,
+                          KMemoryAttribute new_attribute) {
+        ASSERT(original_perm == KMemoryPermission::None);
+        ASSERT((attribute & KMemoryAttribute::IpcLocked) == KMemoryAttribute::None);
 
         state = new_state;
         perm = new_perm;
 
-        attribute = static_cast<MemoryAttribute>(
+        attribute = static_cast<KMemoryAttribute>(
             new_attribute |
-            (attribute & (MemoryAttribute::IpcLocked | MemoryAttribute::DeviceShared)));
+            (attribute & (KMemoryAttribute::IpcLocked | KMemoryAttribute::DeviceShared)));
     }
 
-    constexpr MemoryBlock Split(VAddr split_addr) {
+    constexpr KMemoryBlock Split(VAddr split_addr) {
         ASSERT(GetAddress() < split_addr);
         ASSERT(Contains(split_addr));
         ASSERT(Common::IsAligned(split_addr, PageSize));
 
-        MemoryBlock block;
+        KMemoryBlock block;
         block.addr = addr;
         block.num_pages = (split_addr - GetAddress()) / PageSize;
         block.state = state;
@@ -330,6 +327,6 @@ private:
         return block;
     }
 };
-static_assert(std::is_trivially_destructible<MemoryBlock>::value);
+static_assert(std::is_trivially_destructible<KMemoryBlock>::value);
 
-} // namespace Kernel::Memory
+} // namespace Kernel

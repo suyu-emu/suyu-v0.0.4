@@ -11,7 +11,7 @@
 #include <vector>
 #include "core/arm/cpu_interrupt_handler.h"
 #include "core/hardware_properties.h"
-#include "core/hle/kernel/memory/memory_types.h"
+#include "core/hle/kernel/memory_types.h"
 #include "core/hle/kernel/object.h"
 
 namespace Core {
@@ -186,10 +186,10 @@ public:
     const Memory::MemoryManager& MemoryManager() const;
 
     /// Gets the slab heap allocated for user space pages.
-    KSlabHeap<Memory::Page>& GetUserSlabHeapPages();
+    KSlabHeap<Page>& GetUserSlabHeapPages();
 
     /// Gets the slab heap allocated for user space pages.
-    const KSlabHeap<Memory::Page>& GetUserSlabHeapPages() const;
+    const KSlabHeap<Page>& GetUserSlabHeapPages() const;
 
     /// Gets the shared memory object for HID services.
     Kernel::KSharedMemory& GetHidSharedMem();

@@ -289,24 +289,24 @@ struct KernelCore::Impl {
                                           layout.System().EndAddress());
 
         hid_shared_mem = Kernel::KSharedMemory::Create(
-            system.Kernel(), system.DeviceMemory(), nullptr,
-            {hid_addr, hid_size / Memory::PageSize}, Memory::MemoryPermission::None,
-            Memory::MemoryPermission::Read, hid_addr, hid_size, "HID:SharedMemory");
+            system.Kernel(), system.DeviceMemory(), nullptr, {hid_addr, hid_size / PageSize},
+            KMemoryPermission::None, KMemoryPermission::Read, hid_addr, hid_size,
+            "HID:SharedMemory");
         font_shared_mem = Kernel::KSharedMemory::Create(
-            system.Kernel(), system.DeviceMemory(), nullptr,
-            {font_pa, font_size / Memory::PageSize}, Memory::MemoryPermission::None,
-            Memory::MemoryPermission::Read, font_pa, font_size, "Font:SharedMemory");
+            system.Kernel(), system.DeviceMemory(), nullptr, {font_pa, font_size / PageSize},
+            KMemoryPermission::None, KMemoryPermission::Read, font_pa, font_size,
+            "Font:SharedMemory");
         irs_shared_mem = Kernel::KSharedMemory::Create(
-            system.Kernel(), system.DeviceMemory(), nullptr,
-            {irs_addr, irs_size / Memory::PageSize}, Memory::MemoryPermission::None,
-            Memory::MemoryPermission::Read, irs_addr, irs_size, "IRS:SharedMemory");
+            system.Kernel(), system.DeviceMemory(), nullptr, {irs_addr, irs_size / PageSize},
+            KMemoryPermission::None, KMemoryPermission::Read, irs_addr, irs_size,
+            "IRS:SharedMemory");
         time_shared_mem = Kernel::KSharedMemory::Create(
-            system.Kernel(), system.DeviceMemory(), nullptr,
-            {time_addr, time_size / Memory::PageSize}, Memory::MemoryPermission::None,
-            Memory::MemoryPermission::Read, time_addr, time_size, "Time:SharedMemory");
+            system.Kernel(), system.DeviceMemory(), nullptr, {time_addr, time_size / PageSize},
+            KMemoryPermission::None, KMemoryPermission::Read, time_addr, time_size,
+            "Time:SharedMemory");
 
         // Allocate slab heaps
-        user_slab_heap_pages = std::make_unique<KSlabHeap<Memory::Page>>();
+        user_slab_heap_pages = std::make_unique<KSlabHeap<Page>>();
 
         constexpr u64 user_slab_heap_size{0x1ef000};
         // Reserve slab heaps
@@ -349,7 +349,7 @@ struct KernelCore::Impl {
 
     // Kernel memory management
     std::unique_ptr<Memory::MemoryManager> memory_manager;
-    std::unique_ptr<KSlabHeap<Memory::Page>> user_slab_heap_pages;
+    std::unique_ptr<KSlabHeap<Page>> user_slab_heap_pages;
 
     // Shared memory for services
     std::shared_ptr<Kernel::KSharedMemory> hid_shared_mem;
@@ -581,11 +581,11 @@ const Memory::MemoryManager& KernelCore::MemoryManager() const {
     return *impl->memory_manager;
 }
 
-KSlabHeap<Memory::Page>& KernelCore::GetUserSlabHeapPages() {
+KSlabHeap<Page>& KernelCore::GetUserSlabHeapPages() {
     return *impl->user_slab_heap_pages;
 }
 
-const KSlabHeap<Memory::Page>& KernelCore::GetUserSlabHeapPages() const {
+const KSlabHeap<Page>& KernelCore::GetUserSlabHeapPages() const {
     return *impl->user_slab_heap_pages;
 }
 

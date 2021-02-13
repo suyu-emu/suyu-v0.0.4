@@ -24,7 +24,7 @@ TransferMemory::~TransferMemory() {
 std::shared_ptr<TransferMemory> TransferMemory::Create(KernelCore& kernel,
                                                        Core::Memory::Memory& memory,
                                                        VAddr base_address, std::size_t size,
-                                                       Memory::MemoryPermission permissions) {
+                                                       KMemoryPermission permissions) {
     std::shared_ptr<TransferMemory> transfer_memory{
         std::make_shared<TransferMemory>(kernel, memory)};
 

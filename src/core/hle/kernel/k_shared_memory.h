@@ -9,7 +9,7 @@
 
 #include "common/common_types.h"
 #include "core/device_memory.h"
-#include "core/hle/kernel/memory/memory_block.h"
+#include "core/hle/kernel/k_memory_block.h"
 #include "core/hle/kernel/memory/page_linked_list.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/process.h"
@@ -26,8 +26,8 @@ public:
 
     static std::shared_ptr<KSharedMemory> Create(
         KernelCore& kernel, Core::DeviceMemory& device_memory, Process* owner_process,
-        Memory::PageLinkedList&& page_list, Memory::MemoryPermission owner_permission,
-        Memory::MemoryPermission user_permission, PAddr physical_address, std::size_t size,
+        Memory::PageLinkedList&& page_list, KMemoryPermission owner_permission,
+        KMemoryPermission user_permission, PAddr physical_address, std::size_t size,
         std::string name);
 
     std::string GetTypeName() const override {
@@ -51,7 +51,7 @@ public:
      * @param permissions Memory block map permissions (specified by SVC field)
      */
     ResultCode Map(Process& target_process, VAddr address, std::size_t size,
-                   Memory::MemoryPermission permissions);
+                   KMemoryPermission permissions);
 
     /**
      * Gets a pointer to the shared memory block
@@ -77,8 +77,8 @@ private:
     Core::DeviceMemory& device_memory;
     Process* owner_process{};
     Memory::PageLinkedList page_list;
-    Memory::MemoryPermission owner_permission{};
-    Memory::MemoryPermission user_permission{};
+    KMemoryPermission owner_permission{};
+    KMemoryPermission user_permission{};
     PAddr physical_address{};
     std::size_t size{};
     std::string name;

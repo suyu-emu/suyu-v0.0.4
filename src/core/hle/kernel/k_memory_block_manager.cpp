@@ -2,19 +2,19 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include "core/hle/kernel/memory/memory_block_manager.h"
-#include "core/hle/kernel/memory/memory_types.h"
+#include "core/hle/kernel/k_memory_block_manager.h"
+#include "core/hle/kernel/memory_types.h"
 
-namespace Kernel::Memory {
+namespace Kernel {
 
-MemoryBlockManager::MemoryBlockManager(VAddr start_addr, VAddr end_addr)
+KMemoryBlockManager::KMemoryBlockManager(VAddr start_addr, VAddr end_addr)
     : start_addr{start_addr}, end_addr{end_addr} {
     const u64 num_pages{(end_addr - start_addr) / PageSize};
-    memory_block_tree.emplace_back(start_addr, num_pages, MemoryState::Free, MemoryPermission::None,
-                                   MemoryAttribute::None);
+    memory_block_tree.emplace_back(start_addr, num_pages, KMemoryState::Free,
+                                   KMemoryPermission::None, KMemoryAttribute::None);
 }
 
-MemoryBlockManager::iterator MemoryBlockManager::FindIterator(VAddr addr) {
+KMemoryBlockManager::iterator KMemoryBlockManager::FindIterator(VAddr addr) {
     auto node{memory_block_tree.begin()};
     while (node != end()) {
         const VAddr end_addr{node->GetNumPages() * PageSize + node->GetAddress()};
@@ -26,9 +26,9 @@ MemoryBlockManager::iterator MemoryBlockManager::FindIterator(VAddr addr) {
     return end();
 }
 
-VAddr MemoryBlockManager::FindFreeArea(VAddr region_start, std::size_t region_num_pages,
-                                       std::size_t num_pages, std::size_t align, std::size_t offset,
-                                       std::size_t guard_pages) {
+VAddr KMemoryBlockManager::FindFreeArea(VAddr region_start, std::size_t region_num_pages,
+                                        std::size_t num_pages, std::size_t align,
+                                        std::size_t offset, std::size_t guard_pages) {
     if (num_pages == 0) {
         return {};
     }
@@ -41,7 +41,7 @@ VAddr MemoryBlockManager::FindFreeArea(VAddr region_start, std::size_t region_nu
             break;
         }
 
-        if (info.state != MemoryState::Free) {
+        if (info.state != KMemoryState::Free) {
             continue;
         }
 
@@ -63,17 +63,17 @@ VAddr MemoryBlockManager::FindFreeArea(VAddr region_start, std::size_t region_nu
     return {};
 }
 
-void MemoryBlockManager::Update(VAddr addr, std::size_t num_pages, MemoryState prev_state,
-                                MemoryPermission prev_perm, MemoryAttribute prev_attribute,
-                                MemoryState state, MemoryPermission perm,
-                                MemoryAttribute attribute) {
+void KMemoryBlockManager::Update(VAddr addr, std::size_t num_pages, KMemoryState prev_state,
+                                 KMemoryPermission prev_perm, KMemoryAttribute prev_attribute,
+                                 KMemoryState state, KMemoryPermission perm,
+                                 KMemoryAttribute attribute) {
     const VAddr end_addr{addr + num_pages * PageSize};
     iterator node{memory_block_tree.begin()};
 
-    prev_attribute |= MemoryAttribute::IpcAndDeviceMapped;
+    prev_attribute |= KMemoryAttribute::IpcAndDeviceMapped;
 
     while (node != memory_block_tree.end()) {
-        MemoryBlock* block{&(*node)};
+        KMemoryBlock* block{&(*node)};
         iterator next_node{std::next(node)};
         const VAddr cur_addr{block->GetAddress()};
         const VAddr cur_end_addr{block->GetNumPages() * PageSize + cur_addr};
@@ -106,13 +106,13 @@ void MemoryBlockManager::Update(VAddr addr, std::size_t num_pages, MemoryState p
     }
 }
 
-void MemoryBlockManager::Update(VAddr addr, std::size_t num_pages, MemoryState state,
-                                MemoryPermission perm, MemoryAttribute attribute) {
+void KMemoryBlockManager::Update(VAddr addr, std::size_t num_pages, KMemoryState state,
+                                 KMemoryPermission perm, KMemoryAttribute attribute) {
     const VAddr end_addr{addr + num_pages * PageSize};
     iterator node{memory_block_tree.begin()};
 
     while (node != memory_block_tree.end()) {
-        MemoryBlock* block{&(*node)};
+        KMemoryBlock* block{&(*node)};
         iterator next_node{std::next(node)};
         const VAddr cur_addr{block->GetAddress()};
         const VAddr cur_end_addr{block->GetNumPages() * PageSize + cur_addr};
@@ -141,13 +141,13 @@ void MemoryBlockManager::Update(VAddr addr, std::size_t num_pages, MemoryState s
     }
 }
 
-void MemoryBlockManager::UpdateLock(VAddr addr, std::size_t num_pages, LockFunc&& lock_func,
-                                    MemoryPermission perm) {
+void KMemoryBlockManager::UpdateLock(VAddr addr, std::size_t num_pages, LockFunc&& lock_func,
+                                     KMemoryPermission perm) {
     const VAddr end_addr{addr + num_pages * PageSize};
     iterator node{memory_block_tree.begin()};
 
     while (node != memory_block_tree.end()) {
-        MemoryBlock* block{&(*node)};
+        KMemoryBlock* block{&(*node)};
         iterator next_node{std::next(node)};
         const VAddr cur_addr{block->GetAddress()};
         const VAddr cur_end_addr{block->GetNumPages() * PageSize + cur_addr};
@@ -176,9 +176,9 @@ void MemoryBlockManager::UpdateLock(VAddr addr, std::size_t num_pages, LockFunc&
     }
 }
 
-void MemoryBlockManager::IterateForRange(VAddr start, VAddr end, IterateFunc&& func) {
+void KMemoryBlockManager::IterateForRange(VAddr start, VAddr end, IterateFunc&& func) {
     const_iterator it{FindIterator(start)};
-    MemoryInfo info{};
+    KMemoryInfo info{};
     do {
         info = it->GetMemoryInfo();
         func(info);
@@ -186,8 +186,8 @@ void MemoryBlockManager::IterateForRange(VAddr start, VAddr end, IterateFunc&& f
     } while (info.addr + info.size - 1 < end - 1 && it != cend());
 }
 
-void MemoryBlockManager::MergeAdjacent(iterator it, iterator& next_it) {
-    MemoryBlock* block{&(*it)};
+void KMemoryBlockManager::MergeAdjacent(iterator it, iterator& next_it) {
+    KMemoryBlock* block{&(*it)};
 
     auto EraseIt = [&](const iterator it_to_erase) {
         if (next_it == it_to_erase) {
@@ -197,7 +197,7 @@ void MemoryBlockManager::MergeAdjacent(iterator it, iterator& next_it) {
     };
 
     if (it != memory_block_tree.begin()) {
-        MemoryBlock* prev{&(*std::prev(it))};
+        KMemoryBlock* prev{&(*std::prev(it))};
 
         if (block->HasSameProperties(*prev)) {
             const iterator prev_it{std::prev(it)};
@@ -211,7 +211,7 @@ void MemoryBlockManager::MergeAdjacent(iterator it, iterator& next_it) {
     }
 
     if (it != cend()) {
-        const MemoryBlock* const next{&(*std::next(it))};
+        const KMemoryBlock* const next{&(*std::next(it))};
 
         if (block->HasSameProperties(*next)) {
             block->Add(next->GetNumPages());
@@ -220,4 +220,4 @@ void MemoryBlockManager::MergeAdjacent(iterator it, iterator& next_it) {
     }
 }
 
-} // namespace Kernel::Memory
+} // namespace Kernel

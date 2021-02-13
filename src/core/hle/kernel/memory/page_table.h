@@ -10,7 +10,7 @@
 #include "common/common_types.h"
 #include "common/page_table.h"
 #include "core/file_sys/program_metadata.h"
-#include "core/hle/kernel/memory/memory_block.h"
+#include "core/hle/kernel/k_memory_block.h"
 #include "core/hle/kernel/memory/memory_manager.h"
 #include "core/hle/result.h"
 
@@ -18,9 +18,11 @@ namespace Core {
 class System;
 }
 
-namespace Kernel::Memory {
+namespace Kernel {
+class KMemoryBlockManager;
+}
 
-class MemoryBlockManager;
+namespace Kernel::Memory {
 
 class PageTable final : NonCopyable {
 public:
@@ -29,8 +31,8 @@ public:
     ResultCode InitializeForProcess(FileSys::ProgramAddressSpaceType as_type, bool enable_aslr,
                                     VAddr code_addr, std::size_t code_size,
                                     Memory::MemoryManager::Pool pool);
-    ResultCode MapProcessCode(VAddr addr, std::size_t pages_count, MemoryState state,
-                              MemoryPermission perm);
+    ResultCode MapProcessCode(VAddr addr, std::size_t pages_count, KMemoryState state,
+                              KMemoryPermission perm);
     ResultCode MapProcessCodeMemory(VAddr dst_addr, VAddr src_addr, std::size_t size);
     ResultCode UnmapProcessCodeMemory(VAddr dst_addr, VAddr src_addr, std::size_t size);
     ResultCode MapPhysicalMemory(VAddr addr, std::size_t size);
@@ -38,20 +40,20 @@ public:
     ResultCode UnmapMemory(VAddr addr, std::size_t size);
     ResultCode Map(VAddr dst_addr, VAddr src_addr, std::size_t size);
     ResultCode Unmap(VAddr dst_addr, VAddr src_addr, std::size_t size);
-    ResultCode MapPages(VAddr addr, PageLinkedList& page_linked_list, MemoryState state,
-                        MemoryPermission perm);
-    ResultCode SetCodeMemoryPermission(VAddr addr, std::size_t size, MemoryPermission perm);
-    MemoryInfo QueryInfo(VAddr addr);
-    ResultCode ReserveTransferMemory(VAddr addr, std::size_t size, MemoryPermission perm);
+    ResultCode MapPages(VAddr addr, PageLinkedList& page_linked_list, KMemoryState state,
+                        KMemoryPermission perm);
+    ResultCode SetCodeMemoryPermission(VAddr addr, std::size_t size, KMemoryPermission perm);
+    KMemoryInfo QueryInfo(VAddr addr);
+    ResultCode ReserveTransferMemory(VAddr addr, std::size_t size, KMemoryPermission perm);
     ResultCode ResetTransferMemory(VAddr addr, std::size_t size);
-    ResultCode SetMemoryAttribute(VAddr addr, std::size_t size, MemoryAttribute mask,
-                                  MemoryAttribute value);
+    ResultCode SetMemoryAttribute(VAddr addr, std::size_t size, KMemoryAttribute mask,
+                                  KMemoryAttribute value);
     ResultCode SetHeapCapacity(std::size_t new_heap_capacity);
     ResultVal<VAddr> SetHeapSize(std::size_t size);
     ResultVal<VAddr> AllocateAndMapMemory(std::size_t needed_num_pages, std::size_t align,
                                           bool is_map_only, VAddr region_start,
-                                          std::size_t region_num_pages, MemoryState state,
-                                          MemoryPermission perm, PAddr map_addr = 0);
+                                          std::size_t region_num_pages, KMemoryState state,
+                                          KMemoryPermission perm, PAddr map_addr = 0);
     ResultCode LockForDeviceAddressSpace(VAddr addr, std::size_t size);
     ResultCode UnlockForDeviceAddressSpace(VAddr addr, std::size_t size);
 
@@ -72,47 +74,48 @@ private:
         ChangePermissionsAndRefresh,
     };
 
-    static constexpr MemoryAttribute DefaultMemoryIgnoreAttr =
-        MemoryAttribute::DontCareMask | MemoryAttribute::IpcLocked | MemoryAttribute::DeviceShared;
+    static constexpr KMemoryAttribute DefaultMemoryIgnoreAttr = KMemoryAttribute::DontCareMask |
+                                                                KMemoryAttribute::IpcLocked |
+                                                                KMemoryAttribute::DeviceShared;
 
     ResultCode InitializeMemoryLayout(VAddr start, VAddr end);
-    ResultCode MapPages(VAddr addr, const PageLinkedList& page_linked_list, MemoryPermission perm);
+    ResultCode MapPages(VAddr addr, const PageLinkedList& page_linked_list, KMemoryPermission perm);
     void MapPhysicalMemory(PageLinkedList& page_linked_list, VAddr start, VAddr end);
     bool IsRegionMapped(VAddr address, u64 size);
     bool IsRegionContiguous(VAddr addr, u64 size) const;
     void AddRegionToPages(VAddr start, std::size_t num_pages, PageLinkedList& page_linked_list);
-    MemoryInfo QueryInfoImpl(VAddr addr);
+    KMemoryInfo QueryInfoImpl(VAddr addr);
     VAddr AllocateVirtualMemory(VAddr start, std::size_t region_num_pages, u64 needed_num_pages,
                                 std::size_t align);
     ResultCode Operate(VAddr addr, std::size_t num_pages, const PageLinkedList& page_group,
                        OperationType operation);
-    ResultCode Operate(VAddr addr, std::size_t num_pages, MemoryPermission perm,
+    ResultCode Operate(VAddr addr, std::size_t num_pages, KMemoryPermission perm,
                        OperationType operation, PAddr map_addr = 0);
-    constexpr VAddr GetRegionAddress(MemoryState state) const;
-    constexpr std::size_t GetRegionSize(MemoryState state) const;
-    constexpr bool CanContain(VAddr addr, std::size_t size, MemoryState state) const;
+    constexpr VAddr GetRegionAddress(KMemoryState state) const;
+    constexpr std::size_t GetRegionSize(KMemoryState state) const;
+    constexpr bool CanContain(VAddr addr, std::size_t size, KMemoryState state) const;
 
-    constexpr ResultCode CheckMemoryState(const MemoryInfo& info, MemoryState state_mask,
-                                          MemoryState state, MemoryPermission perm_mask,
-                                          MemoryPermission perm, MemoryAttribute attr_mask,
-                                          MemoryAttribute attr) const;
-    ResultCode CheckMemoryState(MemoryState* out_state, MemoryPermission* out_perm,
-                                MemoryAttribute* out_attr, VAddr addr, std::size_t size,
-                                MemoryState state_mask, MemoryState state,
-                                MemoryPermission perm_mask, MemoryPermission perm,
-                                MemoryAttribute attr_mask, MemoryAttribute attr,
-                                MemoryAttribute ignore_attr = DefaultMemoryIgnoreAttr);
-    ResultCode CheckMemoryState(VAddr addr, std::size_t size, MemoryState state_mask,
-                                MemoryState state, MemoryPermission perm_mask,
-                                MemoryPermission perm, MemoryAttribute attr_mask,
-                                MemoryAttribute attr,
-                                MemoryAttribute ignore_attr = DefaultMemoryIgnoreAttr) {
+    constexpr ResultCode CheckMemoryState(const KMemoryInfo& info, KMemoryState state_mask,
+                                          KMemoryState state, KMemoryPermission perm_mask,
+                                          KMemoryPermission perm, KMemoryAttribute attr_mask,
+                                          KMemoryAttribute attr) const;
+    ResultCode CheckMemoryState(KMemoryState* out_state, KMemoryPermission* out_perm,
+                                KMemoryAttribute* out_attr, VAddr addr, std::size_t size,
+                                KMemoryState state_mask, KMemoryState state,
+                                KMemoryPermission perm_mask, KMemoryPermission perm,
+                                KMemoryAttribute attr_mask, KMemoryAttribute attr,
+                                KMemoryAttribute ignore_attr = DefaultMemoryIgnoreAttr);
+    ResultCode CheckMemoryState(VAddr addr, std::size_t size, KMemoryState state_mask,
+                                KMemoryState state, KMemoryPermission perm_mask,
+                                KMemoryPermission perm, KMemoryAttribute attr_mask,
+                                KMemoryAttribute attr,
+                                KMemoryAttribute ignore_attr = DefaultMemoryIgnoreAttr) {
         return CheckMemoryState(nullptr, nullptr, nullptr, addr, size, state_mask, state, perm_mask,
                                 perm, attr_mask, attr, ignore_attr);
     }
 
     std::recursive_mutex page_table_lock;
-    std::unique_ptr<MemoryBlockManager> block_manager;
+    std::unique_ptr<KMemoryBlockManager> block_manager;
 
 public:
     constexpr VAddr GetAddressSpaceStart() const {
@@ -212,7 +215,7 @@ public:
         return !IsOutsideASLRRegion(address, size);
     }
     constexpr PAddr GetPhysicalAddr(VAddr addr) {
-        return page_table_impl.backing_addr[addr >> Memory::PageBits] + addr;
+        return page_table_impl.backing_addr[addr >> PageBits] + addr;
     }
 
 private:
