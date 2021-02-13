@@ -274,7 +274,7 @@ ResultCode Process::LoadFromMetadata(const FileSys::ProgramMetadata& metadata,
     // Set initial resource limits
     resource_limit->SetLimitValue(
         LimitableResource::PhysicalMemory,
-        kernel.MemoryManager().GetSize(Memory::MemoryManager::Pool::Application));
+        kernel.MemoryManager().GetSize(KMemoryManager::Pool::Application));
     KScopedResourceReservation memory_reservation(resource_limit, LimitableResource::PhysicalMemory,
                                                   code_size + system_resource_size);
     if (!memory_reservation.Succeeded()) {
@@ -285,7 +285,7 @@ ResultCode Process::LoadFromMetadata(const FileSys::ProgramMetadata& metadata,
     // Initialize proces address space
     if (const ResultCode result{
             page_table->InitializeForProcess(metadata.GetAddressSpaceType(), false, 0x8000000,
-                                             code_size, Memory::MemoryManager::Pool::Application)};
+                                             code_size, KMemoryManager::Pool::Application)};
         result.IsError()) {
         return result;
     }
@@ -322,6 +322,11 @@ ResultCode Process::LoadFromMetadata(const FileSys::ProgramMetadata& metadata,
     default:
         UNREACHABLE();
     }
+
+    // Set initial resource limits
+    resource_limit->SetLimitValue(
+        LimitableResource::PhysicalMemory,
+        kernel.MemoryManager().GetSize(KMemoryManager::Pool::Application));
 
     resource_limit->SetLimitValue(LimitableResource::Threads, 608);
     resource_limit->SetLimitValue(LimitableResource::Events, 700);

@@ -8,20 +8,20 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/scope_exit.h"
+#include "core/hle/kernel/k_memory_manager.h"
 #include "core/hle/kernel/k_page_linked_list.h"
-#include "core/hle/kernel/memory/memory_manager.h"
 #include "core/hle/kernel/svc_results.h"
 
-namespace Kernel::Memory {
+namespace Kernel {
 
-std::size_t MemoryManager::Impl::Initialize(Pool new_pool, u64 start_address, u64 end_address) {
+std::size_t KMemoryManager::Impl::Initialize(Pool new_pool, u64 start_address, u64 end_address) {
     const auto size{end_address - start_address};
 
     // Calculate metadata sizes
     const auto ref_count_size{(size / PageSize) * sizeof(u16)};
     const auto optimize_map_size{(Common::AlignUp((size / PageSize), 64) / 64) * sizeof(u64)};
     const auto manager_size{Common::AlignUp(optimize_map_size + ref_count_size, PageSize)};
-    const auto page_heap_size{PageHeap::CalculateManagementOverheadSize(size)};
+    const auto page_heap_size{Memory::PageHeap::CalculateManagementOverheadSize(size)};
     const auto total_metadata_size{manager_size + page_heap_size};
     ASSERT(manager_size <= total_metadata_size);
     ASSERT(Common::IsAligned(total_metadata_size, PageSize));
@@ -41,13 +41,13 @@ std::size_t MemoryManager::Impl::Initialize(Pool new_pool, u64 start_address, u6
     return total_metadata_size;
 }
 
-void MemoryManager::InitializeManager(Pool pool, u64 start_address, u64 end_address) {
+void KMemoryManager::InitializeManager(Pool pool, u64 start_address, u64 end_address) {
     ASSERT(pool < Pool::Count);
     managers[static_cast<std::size_t>(pool)].Initialize(pool, start_address, end_address);
 }
 
-VAddr MemoryManager::AllocateAndOpenContinuous(std::size_t num_pages, std::size_t align_pages,
-                                               u32 option) {
+VAddr KMemoryManager::AllocateAndOpenContinuous(std::size_t num_pages, std::size_t align_pages,
+                                                u32 option) {
     // Early return if we're allocating no pages
     if (num_pages == 0) {
         return {};
@@ -59,7 +59,7 @@ VAddr MemoryManager::AllocateAndOpenContinuous(std::size_t num_pages, std::size_
     std::lock_guard lock{pool_locks[pool_index]};
 
     // Choose a heap based on our page size request
-    const s32 heap_index{PageHeap::GetAlignedBlockIndex(num_pages, align_pages)};
+    const s32 heap_index{Memory::PageHeap::GetAlignedBlockIndex(num_pages, align_pages)};
 
     // Loop, trying to iterate from each block
     // TODO (bunnei): Support multiple managers
@@ -72,7 +72,7 @@ VAddr MemoryManager::AllocateAndOpenContinuous(std::size_t num_pages, std::size_
     }
 
     // If we allocated more than we need, free some
-    const auto allocated_pages{PageHeap::GetBlockNumPages(heap_index)};
+    const auto allocated_pages{Memory::PageHeap::GetBlockNumPages(heap_index)};
     if (allocated_pages > num_pages) {
         chosen_manager.Free(allocated_block + num_pages * PageSize, allocated_pages - num_pages);
     }
@@ -80,8 +80,8 @@ VAddr MemoryManager::AllocateAndOpenContinuous(std::size_t num_pages, std::size_
     return allocated_block;
 }
 
-ResultCode MemoryManager::Allocate(KPageLinkedList& page_list, std::size_t num_pages, Pool pool,
-                                   Direction dir) {
+ResultCode KMemoryManager::Allocate(KPageLinkedList& page_list, std::size_t num_pages, Pool pool,
+                                    Direction dir) {
     ASSERT(page_list.GetNumPages() == 0);
 
     // Early return if we're allocating no pages
@@ -94,7 +94,7 @@ ResultCode MemoryManager::Allocate(KPageLinkedList& page_list, std::size_t num_p
     std::lock_guard lock{pool_locks[pool_index]};
 
     // Choose a heap based on our page size request
-    const s32 heap_index{PageHeap::GetBlockIndex(num_pages)};
+    const s32 heap_index{Memory::PageHeap::GetBlockIndex(num_pages)};
     if (heap_index < 0) {
         return ResultOutOfMemory;
     }
@@ -113,7 +113,7 @@ ResultCode MemoryManager::Allocate(KPageLinkedList& page_list, std::size_t num_p
 
     // Keep allocating until we've allocated all our pages
     for (s32 index{heap_index}; index >= 0 && num_pages > 0; index--) {
-        const auto pages_per_alloc{PageHeap::GetBlockNumPages(index)};
+        const auto pages_per_alloc{Memory::PageHeap::GetBlockNumPages(index)};
 
         while (num_pages >= pages_per_alloc) {
             // Allocate a block
@@ -149,8 +149,8 @@ ResultCode MemoryManager::Allocate(KPageLinkedList& page_list, std::size_t num_p
     return RESULT_SUCCESS;
 }
 
-ResultCode MemoryManager::Free(KPageLinkedList& page_list, std::size_t num_pages, Pool pool,
-                               Direction dir) {
+ResultCode KMemoryManager::Free(KPageLinkedList& page_list, std::size_t num_pages, Pool pool,
+                                Direction dir) {
     // Early return if we're freeing no pages
     if (!num_pages) {
         return RESULT_SUCCESS;
@@ -173,4 +173,4 @@ ResultCode MemoryManager::Free(KPageLinkedList& page_list, std::size_t num_pages
     return RESULT_SUCCESS;
 }
 
-} // namespace Kernel::Memory
+} // namespace Kernel

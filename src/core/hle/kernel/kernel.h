@@ -27,22 +27,18 @@ struct EventType;
 
 namespace Kernel {
 
-namespace Memory {
-class MemoryManager;
-
-} // namespace Memory
-
 class ClientPort;
 class GlobalSchedulerContext;
 class HandleTable;
-class PhysicalCore;
-class Process;
+class KMemoryManager;
 class KResourceLimit;
 class KScheduler;
 class KSharedMemory;
+class KThread;
+class PhysicalCore;
+class Process;
 class ServiceThread;
 class Synchronization;
-class KThread;
 class TimeManager;
 
 template <typename T>
@@ -180,10 +176,10 @@ public:
     void RegisterHostThread();
 
     /// Gets the virtual memory manager for the kernel.
-    Memory::MemoryManager& MemoryManager();
+    KMemoryManager& MemoryManager();
 
     /// Gets the virtual memory manager for the kernel.
-    const Memory::MemoryManager& MemoryManager() const;
+    const KMemoryManager& MemoryManager() const;
 
     /// Gets the slab heap allocated for user space pages.
     KSlabHeap<Page>& GetUserSlabHeapPages();

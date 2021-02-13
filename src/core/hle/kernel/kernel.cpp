@@ -28,13 +28,13 @@
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_memory_layout.h"
+#include "core/hle/kernel/k_memory_manager.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_shared_memory.h"
 #include "core/hle/kernel/k_slab_heap.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/memory/memory_manager.h"
 #include "core/hle/kernel/physical_core.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/service_thread.h"
@@ -277,14 +277,14 @@ struct KernelCore::Impl {
         constexpr PAddr time_addr{layout.System().StartAddress() + hid_size + font_size + irs_size};
 
         // Initialize memory manager
-        memory_manager = std::make_unique<Memory::MemoryManager>();
-        memory_manager->InitializeManager(Memory::MemoryManager::Pool::Application,
+        memory_manager = std::make_unique<KMemoryManager>();
+        memory_manager->InitializeManager(KMemoryManager::Pool::Application,
                                           layout.Application().StartAddress(),
                                           layout.Application().EndAddress());
-        memory_manager->InitializeManager(Memory::MemoryManager::Pool::Applet,
+        memory_manager->InitializeManager(KMemoryManager::Pool::Applet,
                                           layout.Applet().StartAddress(),
                                           layout.Applet().EndAddress());
-        memory_manager->InitializeManager(Memory::MemoryManager::Pool::System,
+        memory_manager->InitializeManager(KMemoryManager::Pool::System,
                                           layout.System().StartAddress(),
                                           layout.System().EndAddress());
 
@@ -348,7 +348,7 @@ struct KernelCore::Impl {
     std::atomic<u32> next_host_thread_id{Core::Hardware::NUM_CPU_CORES};
 
     // Kernel memory management
-    std::unique_ptr<Memory::MemoryManager> memory_manager;
+    std::unique_ptr<KMemoryManager> memory_manager;
     std::unique_ptr<KSlabHeap<Page>> user_slab_heap_pages;
 
     // Shared memory for services
@@ -573,11 +573,11 @@ KThread* KernelCore::GetCurrentEmuThread() const {
     return impl->GetCurrentEmuThread();
 }
 
-Memory::MemoryManager& KernelCore::MemoryManager() {
+KMemoryManager& KernelCore::MemoryManager() {
     return *impl->memory_manager;
 }
 
-const Memory::MemoryManager& KernelCore::MemoryManager() const {
+const KMemoryManager& KernelCore::MemoryManager() const {
     return *impl->memory_manager;
 }
 

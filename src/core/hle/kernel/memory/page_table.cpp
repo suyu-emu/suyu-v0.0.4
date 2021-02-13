@@ -62,7 +62,7 @@ PageTable::PageTable(Core::System& system) : system{system} {}
 
 ResultCode PageTable::InitializeForProcess(FileSys::ProgramAddressSpaceType as_type,
                                            bool enable_aslr, VAddr code_addr, std::size_t code_size,
-                                           Memory::MemoryManager::Pool pool) {
+                                           KMemoryManager::Pool pool) {
 
     const auto GetSpaceStart = [this](KAddressSpaceInfo::Type type) {
         return KAddressSpaceInfo::GetAddressSpaceStart(address_space_width, type);

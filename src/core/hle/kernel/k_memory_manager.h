@@ -17,9 +17,9 @@ namespace Kernel {
 class KPageLinkedList;
 }
 
-namespace Kernel::Memory {
+namespace Kernel {
 
-class MemoryManager final : NonCopyable {
+class KMemoryManager final : NonCopyable {
 public:
     enum class Pool : u32 {
         Application = 0,
@@ -41,7 +41,7 @@ public:
         Mask = (0xF << Shift),
     };
 
-    MemoryManager() = default;
+    KMemoryManager() = default;
 
     constexpr std::size_t GetSize(Pool pool) const {
         return managers[static_cast<std::size_t>(pool)].GetSize();
@@ -84,7 +84,7 @@ private:
         using RefCount = u16;
 
     private:
-        PageHeap heap;
+        Memory::PageHeap heap;
         Pool pool{};
 
     public:
@@ -118,4 +118,4 @@ private:
     std::array<Impl, MaxManagerCount> managers;
 };
 
-} // namespace Kernel::Memory
+} // namespace Kernel

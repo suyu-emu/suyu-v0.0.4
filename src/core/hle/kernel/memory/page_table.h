@@ -11,7 +11,7 @@
 #include "common/page_table.h"
 #include "core/file_sys/program_metadata.h"
 #include "core/hle/kernel/k_memory_block.h"
-#include "core/hle/kernel/memory/memory_manager.h"
+#include "core/hle/kernel/k_memory_manager.h"
 #include "core/hle/result.h"
 
 namespace Core {
@@ -30,7 +30,7 @@ public:
 
     ResultCode InitializeForProcess(FileSys::ProgramAddressSpaceType as_type, bool enable_aslr,
                                     VAddr code_addr, std::size_t code_size,
-                                    Memory::MemoryManager::Pool pool);
+                                    KMemoryManager::Pool pool);
     ResultCode MapProcessCode(VAddr addr, std::size_t pages_count, KMemoryState state,
                               KMemoryPermission perm);
     ResultCode MapProcessCodeMemory(VAddr dst_addr, VAddr src_addr, std::size_t size);
@@ -271,7 +271,7 @@ private:
     bool is_kernel{};
     bool is_aslr_enabled{};
 
-    MemoryManager::Pool memory_pool{MemoryManager::Pool::Application};
+    KMemoryManager::Pool memory_pool{KMemoryManager::Pool::Application};
 
     Common::PageTable page_table_impl;
 
