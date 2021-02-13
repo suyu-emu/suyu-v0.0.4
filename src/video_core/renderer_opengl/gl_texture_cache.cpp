@@ -763,6 +763,37 @@ void Image::DownloadMemory(ImageBufferMap& map,
     }
 }
 
+GLuint Image::StorageHandle() noexcept {
+    switch (info.format) {
+    case PixelFormat::A8B8G8R8_SRGB:
+    case PixelFormat::B8G8R8A8_SRGB:
+    case PixelFormat::BC1_RGBA_SRGB:
+    case PixelFormat::BC2_SRGB:
+    case PixelFormat::BC3_SRGB:
+    case PixelFormat::BC7_SRGB:
+    case PixelFormat::ASTC_2D_4X4_SRGB:
+    case PixelFormat::ASTC_2D_8X8_SRGB:
+    case PixelFormat::ASTC_2D_8X5_SRGB:
+    case PixelFormat::ASTC_2D_5X4_SRGB:
+    case PixelFormat::ASTC_2D_5X5_SRGB:
+    case PixelFormat::ASTC_2D_10X8_SRGB:
+    case PixelFormat::ASTC_2D_6X6_SRGB:
+    case PixelFormat::ASTC_2D_10X10_SRGB:
+    case PixelFormat::ASTC_2D_12X12_SRGB:
+    case PixelFormat::ASTC_2D_8X6_SRGB:
+    case PixelFormat::ASTC_2D_6X5_SRGB:
+        if (store_view.handle != 0) {
+            return store_view.handle;
+        }
+        store_view.Create();
+        glTextureView(store_view.handle, ImageTarget(info), texture.handle, GL_RGBA8, 0,
+                      info.resources.levels, 0, info.resources.layers);
+        return store_view.handle;
+    default:
+        return texture.handle;
+    }
+}
+
 void Image::CopyBufferToImage(const VideoCommon::BufferImageCopy& copy, size_t buffer_offset) {
     // Compressed formats don't have a pixel format or type
     const bool is_compressed = gl_format == GL_NONE;
