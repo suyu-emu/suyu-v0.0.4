@@ -46,6 +46,7 @@ constexpr std::array REQUIRED_EXTENSIONS{
     VK_EXT_VERTEX_ATTRIBUTE_DIVISOR_EXTENSION_NAME,
     VK_EXT_SHADER_SUBGROUP_BALLOT_EXTENSION_NAME,
     VK_EXT_SHADER_SUBGROUP_VOTE_EXTENSION_NAME,
+    VK_EXT_ROBUSTNESS_2_EXTENSION_NAME,
     VK_EXT_HOST_QUERY_RESET_EXTENSION_NAME,
 #ifdef _WIN32
     VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME,
@@ -379,20 +380,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         LOG_INFO(Render_Vulkan, "Device doesn't support extended dynamic state");
     }
 
-    VkPhysicalDeviceRobustness2FeaturesEXT robustness2;
-    if (ext_robustness2) {
-        robustness2 = {
-            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT,
-            .pNext = nullptr,
-            .robustBufferAccess2 = true,
-            .robustImageAccess2 = true,
-            .nullDescriptor = true,
-        };
-        SetNext(next, robustness2);
-    } else {
-        LOG_INFO(Render_Vulkan, "Device doesn't support robustness2");
-    }
-
     if (!ext_depth_range_unrestricted) {
         LOG_INFO(Render_Vulkan, "Device doesn't support depth range unrestricted");
     }
@@ -579,7 +566,16 @@ void Device::CheckSuitability(bool requires_swapchain) const {
             throw vk::Exception(VK_ERROR_FEATURE_NOT_PRESENT);
         }
     }
-    const VkPhysicalDeviceFeatures features{physical.GetFeatures()};
+    VkPhysicalDeviceRobustness2FeaturesEXT robustness2{};
+    robustness2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT;
+
+    VkPhysicalDeviceFeatures2 features2{};
+    features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    features2.pNext = &robustness2;
+
+    physical.GetFeatures2KHR(features2);
+
+    const VkPhysicalDeviceFeatures& features{features2.features};
     const std::array feature_report{
         std::make_pair(features.robustBufferAccess, "robustBufferAccess"),
         std::make_pair(features.vertexPipelineStoresAndAtomics, "vertexPipelineStoresAndAtomics"),
@@ -598,6 +594,9 @@ void Device::CheckSuitability(bool requires_swapchain) const {
         std::make_pair(features.shaderImageGatherExtended, "shaderImageGatherExtended"),
         std::make_pair(features.shaderStorageImageWriteWithoutFormat,
                        "shaderStorageImageWriteWithoutFormat"),
+        std::make_pair(robustness2.robustBufferAccess2, "robustBufferAccess2"),
+        std::make_pair(robustness2.robustImageAccess2, "robustImageAccess2"),
+        std::make_pair(robustness2.nullDescriptor, "nullDescriptor"),
     };
     for (const auto& [is_supported, name] : feature_report) {
         if (is_supported) {
@@ -621,7 +620,6 @@ std::vector<const char*> Device::LoadExtensions(bool requires_surface) {
     bool has_ext_transform_feedback{};
     bool has_ext_custom_border_color{};
     bool has_ext_extended_dynamic_state{};
-    bool has_ext_robustness2{};
     for (const VkExtensionProperties& extension : physical.EnumerateDeviceExtensionProperties()) {
         const auto test = [&](std::optional<std::reference_wrapper<bool>> status, const char* name,
                               bool push) {
@@ -649,14 +647,12 @@ std::vector<const char*> Device::LoadExtensions(bool requires_surface) {
         test(has_ext_transform_feedback, VK_EXT_TRANSFORM_FEEDBACK_EXTENSION_NAME, false);
         test(has_ext_custom_border_color, VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME, false);
         test(has_ext_extended_dynamic_state, VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME, false);
-        test(has_ext_robustness2, VK_EXT_ROBUSTNESS_2_EXTENSION_NAME, false);
         test(has_ext_subgroup_size_control, VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME, false);
         if (Settings::values.renderer_debug) {
             test(nv_device_diagnostics_config, VK_NV_DEVICE_DIAGNOSTICS_CONFIG_EXTENSION_NAME,
                  true);
         }
     }
-
     VkPhysicalDeviceFeatures2KHR features;
     features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2_KHR;
 
@@ -673,7 +669,6 @@ std::vector<const char*> Device::LoadExtensions(bool requires_surface) {
         is_float16_supported = float16_int8_features.shaderFloat16;
         extensions.push_back(VK_KHR_SHADER_FLOAT16_INT8_EXTENSION_NAME);
     }
-
     if (has_ext_subgroup_size_control) {
         VkPhysicalDeviceSubgroupSizeControlFeaturesEXT subgroup_features;
         subgroup_features.sType =
@@ -700,7 +695,6 @@ std::vector<const char*> Device::LoadExtensions(bool requires_surface) {
     } else {
         is_warp_potentially_bigger = true;
     }
-
     if (has_ext_transform_feedback) {
         VkPhysicalDeviceTransformFeedbackFeaturesEXT tfb_features;
         tfb_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_FEATURES_EXT;
@@ -722,7 +716,6 @@ std::vector<const char*> Device::LoadExtensions(bool requires_surface) {
             ext_transform_feedback = true;
         }
     }
-
     if (has_ext_custom_border_color) {
         VkPhysicalDeviceCustomBorderColorFeaturesEXT border_features;
         border_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_FEATURES_EXT;
@@ -735,7 +728,6 @@ std::vector<const char*> Device::LoadExtensions(bool requires_surface) {
             ext_custom_border_color = true;
         }
     }
-
     if (has_ext_extended_dynamic_state) {
         VkPhysicalDeviceExtendedDynamicStateFeaturesEXT dynamic_state;
         dynamic_state.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT;
@@ -748,20 +740,6 @@ std::vector<const char*> Device::LoadExtensions(bool requires_surface) {
             ext_extended_dynamic_state = true;
         }
     }
-
-    if (has_ext_robustness2) {
-        VkPhysicalDeviceRobustness2FeaturesEXT robustness2;
-        robustness2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT;
-        robustness2.pNext = nullptr;
-        features.pNext = &robustness2;
-        physical.GetFeatures2KHR(features);
-        if (robustness2.nullDescriptor && robustness2.robustBufferAccess2 &&
-            robustness2.robustImageAccess2) {
-            extensions.push_back(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
-            ext_robustness2 = true;
-        }
-    }
-
     return extensions;
 }
 
