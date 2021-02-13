@@ -39,17 +39,15 @@ layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 BEGIN_PUSH_CONSTANTS
 UNIFORM(0) uvec2 num_image_blocks;
 UNIFORM(1) uvec2 block_dims;
-UNIFORM(2) uint layer;
 
-UNIFORM(3) uvec3 origin;
-UNIFORM(4) ivec3 destination;
-UNIFORM(5) uint bytes_per_block_log2;
-UNIFORM(6) uint layer_stride;
-UNIFORM(7) uint block_size;
-UNIFORM(8) uint x_shift;
-UNIFORM(9) uint block_height;
-UNIFORM(10) uint block_height_mask;
-
+UNIFORM(2) uvec3 origin;
+UNIFORM(3) ivec3 destination;
+UNIFORM(4) uint bytes_per_block_log2;
+UNIFORM(5) uint layer_stride;
+UNIFORM(6) uint block_size;
+UNIFORM(7) uint x_shift;
+UNIFORM(8) uint block_height;
+UNIFORM(9) uint block_height_mask;
 END_PUSH_CONSTANTS
 
 uint current_index = 0;
@@ -82,7 +80,7 @@ layout(binding = BINDING_SWIZZLE_BUFFER, std430) readonly buffer SwizzleTable {
     uint swizzle_table[];
 };
 
-layout(binding = BINDING_INPUT_BUFFER, std430) buffer InputBufferU32 {
+layout(binding = BINDING_INPUT_BUFFER, std430) readonly buffer InputBufferU32 {
     uint astc_data[];
 };
 
@@ -104,7 +102,7 @@ layout(binding = BINDING_BYTE_TO_16_BUFFER, std430) readonly buffer REPLICATE_BY
     uint REPLICATE_BYTE_TO_16_TABLE[];
 };
 
-layout(binding = BINDING_OUTPUT_IMAGE, rgba8) uniform writeonly image2D dest_image;
+layout(binding = BINDING_OUTPUT_IMAGE, rgba8) uniform writeonly image2DArray dest_image;
 
 const uint GOB_SIZE_X = 64;
 const uint GOB_SIZE_Y = 8;
@@ -1086,10 +1084,9 @@ TexelWeightParams DecodeBlockInfo(uint block_index) {
 void FillError(ivec3 coord) {
     for (uint j = 0; j < block_dims.y; j++) {
         for (uint i = 0; i < block_dims.x; i++) {
-            imageStore(dest_image, coord.xy + ivec2(i, j), vec4(1.0, 1.0, 0.0, 1.0));
+            imageStore(dest_image, coord + ivec3(i, j, 0), vec4(1.0, 1.0, 0.0, 1.0));
         }
     }
-    return;
 }
 
 void FillVoidExtentLDR(ivec3 coord, uint block_index) {
@@ -1107,7 +1104,7 @@ void FillVoidExtentLDR(ivec3 coord, uint block_index) {
     float b = float(b_u) / 65535.0f;
     for (uint j = 0; j < block_dims.y; j++) {
         for (uint i = 0; i < block_dims.x; i++) {
-            imageStore(dest_image, coord.xy + ivec2(i, j), vec4(r, g, b, a));
+            imageStore(dest_image, coord + ivec3(i, j, 0), vec4(r, g, b, a));
         }
     }
 }
@@ -1264,7 +1261,7 @@ void DecompressBlock(ivec3 coord, uint block_index) {
             }
             vec4 Cf = vec4((C0 * (uvec4(64) - weight_vec) + C1 * weight_vec + uvec4(32)) >> 6);
             p = (Cf / 65535.0);
-            imageStore(dest_image, coord.xy + ivec2(i, j), p.gbar);
+            imageStore(dest_image, coord + ivec3(i, j, 0), p.gbar);
         }
     }
 }
@@ -1279,7 +1276,7 @@ void main() {
     const uint block_y = pos.y >> GOB_SIZE_Y_SHIFT;
 
     uint offset = 0;
-    offset += layer * layer_stride;
+    offset += pos.z * layer_stride;
     offset += (block_y >> block_height) * block_size;
     offset += (block_y & block_height_mask) << GOB_SIZE_SHIFT;
     offset += (pos.x >> GOB_SIZE_X_SHIFT) << x_shift;
@@ -1287,7 +1284,7 @@ void main() {
 
     const ivec3 coord = ivec3(gl_GlobalInvocationID * uvec3(block_dims, 1.0));
     uint block_index =
-        layer * num_image_blocks.x * num_image_blocks.y + pos.y * num_image_blocks.x + pos.x;
+        pos.z * num_image_blocks.x * num_image_blocks.y + pos.y * num_image_blocks.x + pos.x;
     current_index = 0;
     bitsread = 0;
     for (int i = 0; i < 16; i++) {

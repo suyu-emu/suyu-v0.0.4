@@ -121,12 +121,17 @@ public:
         return *buffer;
     }
 
-    [[nodiscard]] VkImageCreateFlags AspectMask() const noexcept {
+    [[nodiscard]] VkImageAspectFlags AspectMask() const noexcept {
         return aspect_mask;
     }
 
-    [[nodiscard]] VkImageView StorageImageView() const noexcept {
-        return *storage_image_view;
+    [[nodiscard]] VkImageView StorageImageView(s32 level) const noexcept {
+        return *storage_image_views[level];
+    }
+
+    /// Returns true when the image is already initialized and mark it as initialized
+    [[nodiscard]] bool ExchangeInitialization() noexcept {
+        return std::exchange(initialized, true);
     }
 
 private:
@@ -135,7 +140,7 @@ private:
     vk::Buffer buffer;
     MemoryCommit commit;
     vk::ImageView image_view;
-    vk::ImageView storage_image_view;
+    std::vector<vk::ImageView> storage_image_views;
     VkImageAspectFlags aspect_mask = 0;
     bool initialized = false;
 };

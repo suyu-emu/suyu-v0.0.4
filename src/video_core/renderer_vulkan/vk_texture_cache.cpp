@@ -823,27 +823,31 @@ Image::Image(TextureCacheRuntime& runtime, const ImageInfo& info_, GPUVAddr gpu_
         .usage = VK_IMAGE_USAGE_STORAGE_BIT,
     };
     if (IsPixelFormatASTC(info.format) && !runtime.device.IsOptimalAstcSupported()) {
-        storage_image_view = runtime.device.GetLogical().CreateImageView(VkImageViewCreateInfo{
-            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-            .pNext = &storage_image_view_usage_create_info,
-            .flags = 0,
-            .image = *image,
-            .viewType = VK_IMAGE_VIEW_TYPE_2D,
-            .format = VK_FORMAT_A8B8G8R8_UNORM_PACK32,
-            .components{
-                .r = VK_COMPONENT_SWIZZLE_IDENTITY,
-                .g = VK_COMPONENT_SWIZZLE_IDENTITY,
-                .b = VK_COMPONENT_SWIZZLE_IDENTITY,
-                .a = VK_COMPONENT_SWIZZLE_IDENTITY,
-            },
-            .subresourceRange{
-                .aspectMask = aspect_mask,
-                .baseMipLevel = 0,
-                .levelCount = VK_REMAINING_MIP_LEVELS,
-                .baseArrayLayer = 0,
-                .layerCount = VK_REMAINING_ARRAY_LAYERS,
-            },
-        });
+        const auto& device = runtime.device.GetLogical();
+        storage_image_views.reserve(info.resources.levels);
+        for (s32 level = 0; level < info.resources.levels; ++level) {
+            storage_image_views.push_back(device.CreateImageView(VkImageViewCreateInfo{
+                .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+                .pNext = &storage_image_view_usage_create_info,
+                .flags = 0,
+                .image = *image,
+                .viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY,
+                .format = VK_FORMAT_A8B8G8R8_UNORM_PACK32,
+                .components{
+                    .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                    .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                    .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                    .a = VK_COMPONENT_SWIZZLE_IDENTITY,
+                },
+                .subresourceRange{
+                    .aspectMask = aspect_mask,
+                    .baseMipLevel = static_cast<u32>(level),
+                    .levelCount = 1,
+                    .baseArrayLayer = 0,
+                    .layerCount = VK_REMAINING_ARRAY_LAYERS,
+                },
+            }));
+        }
     }
 }
 
