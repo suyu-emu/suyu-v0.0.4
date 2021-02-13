@@ -14,6 +14,7 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/div_ceil.h"
+#include "video_core/host_shaders/astc_decoder_comp.h"
 #include "video_core/host_shaders/block_linear_unswizzle_2d_comp.h"
 #include "video_core/host_shaders/block_linear_unswizzle_3d_comp.h"
 #include "video_core/host_shaders/opengl_copy_bc4_comp.h"
@@ -62,17 +63,12 @@ size_t NumPixelsInCopy(const VideoCommon::ImageCopy& copy) {
 } // Anonymous namespace
 
 UtilShaders::UtilShaders(ProgramManager& program_manager_)
-    : program_manager{program_manager_},
+    : program_manager{program_manager_}, astc_decoder_program(MakeProgram(ASTC_DECODER_COMP)),
       block_linear_unswizzle_2d_program(MakeProgram(BLOCK_LINEAR_UNSWIZZLE_2D_COMP)),
       block_linear_unswizzle_3d_program(MakeProgram(BLOCK_LINEAR_UNSWIZZLE_3D_COMP)),
       pitch_unswizzle_program(MakeProgram(PITCH_UNSWIZZLE_COMP)),
       copy_bgra_program(MakeProgram(OPENGL_COPY_BGRA_COMP)),
       copy_bc4_program(MakeProgram(OPENGL_COPY_BC4_COMP)) {
-    // TODO: Load shader string as a header
-    std::string astc_path = "astc_decoder.comp";
-    std::ifstream t(astc_path);
-    std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
-    astc_decoder_program = MakeProgram(str);
     MakeBuffers();
 }
 

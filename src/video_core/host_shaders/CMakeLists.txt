@@ -1,4 +1,5 @@
 set(SHADER_FILES
+    astc_decoder.comp
     block_linear_unswizzle_2d.comp
     block_linear_unswizzle_3d.comp
     convert_depth_to_float.frag
