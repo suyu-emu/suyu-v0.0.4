@@ -2490,6 +2490,11 @@ void GMainWindow::OnCaptureScreenshot() {
                            .arg(title_id, 16, 16, QLatin1Char{'0'})
                            .arg(date);
 
+    if (!Common::FS::CreateDir(screenshot_path.toStdString())) {
+        OnStartGame();
+        return;
+    }
+
 #ifdef _WIN32
     if (UISettings::values.enable_screenshot_save_as) {
         filename = QFileDialog::getSaveFileName(this, tr("Capture Screenshot"), filename,
