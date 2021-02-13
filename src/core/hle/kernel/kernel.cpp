@@ -27,12 +27,12 @@
 #include "core/hardware_properties.h"
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/k_memory_layout.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_shared_memory.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/memory/memory_layout.h"
 #include "core/hle/kernel/memory/memory_manager.h"
 #include "core/hle/kernel/memory/slab_heap.h"
 #include "core/hle/kernel/physical_core.h"
@@ -266,7 +266,7 @@ struct KernelCore::Impl {
 
     void InitializeMemoryLayout() {
         // Initialize memory layout
-        constexpr Memory::MemoryLayout layout{Memory::MemoryLayout::GetDefaultLayout()};
+        constexpr KMemoryLayout layout{KMemoryLayout::GetDefaultLayout()};
         constexpr std::size_t hid_size{0x40000};
         constexpr std::size_t font_size{0x1100000};
         constexpr std::size_t irs_size{0x8000};

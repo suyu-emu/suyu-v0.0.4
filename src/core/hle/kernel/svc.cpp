@@ -27,6 +27,7 @@
 #include "core/hle/kernel/k_address_arbiter.h"
 #include "core/hle/kernel/k_condition_variable.h"
 #include "core/hle/kernel/k_event.h"
+#include "core/hle/kernel/k_memory_layout.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scheduler.h"
@@ -38,7 +39,6 @@
 #include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/memory/memory_block.h"
-#include "core/hle/kernel/memory/memory_layout.h"
 #include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/physical_core.h"
 #include "core/hle/kernel/process.h"
@@ -508,7 +508,7 @@ static ResultCode ArbitrateLock(Core::System& system, Handle thread_handle, VAdd
               thread_handle, address, tag);
 
     // Validate the input address.
-    if (Memory::IsKernelAddress(address)) {
+    if (IsKernelAddress(address)) {
         LOG_ERROR(Kernel_SVC, "Attempting to arbitrate a lock on a kernel address (address={:08X})",
                   address);
         return ResultInvalidCurrentMemory;
@@ -531,8 +531,7 @@ static ResultCode ArbitrateUnlock(Core::System& system, VAddr address) {
     LOG_TRACE(Kernel_SVC, "called address=0x{:X}", address);
 
     // Validate the input address.
-
-    if (Memory::IsKernelAddress(address)) {
+    if (IsKernelAddress(address)) {
         LOG_ERROR(Kernel_SVC,
                   "Attempting to arbitrate an unlock on a kernel address (address={:08X})",
                   address);
@@ -1638,7 +1637,7 @@ static ResultCode WaitProcessWideKeyAtomic(Core::System& system, VAddr address, 
               cv_key, tag, timeout_ns);
 
     // Validate input.
-    if (Memory::IsKernelAddress(address)) {
+    if (IsKernelAddress(address)) {
         LOG_ERROR(Kernel_SVC, "Attempted to wait on kernel address (address={:08X})", address);
         return ResultInvalidCurrentMemory;
     }
@@ -1720,7 +1719,7 @@ static ResultCode WaitForAddress(Core::System& system, VAddr address, Svc::Arbit
               address, arb_type, value, timeout_ns);
 
     // Validate input.
-    if (Memory::IsKernelAddress(address)) {
+    if (IsKernelAddress(address)) {
         LOG_ERROR(Kernel_SVC, "Attempting to wait on kernel address (address={:08X})", address);
         return ResultInvalidCurrentMemory;
     }
@@ -1765,7 +1764,7 @@ static ResultCode SignalToAddress(Core::System& system, VAddr address, Svc::Sign
               address, signal_type, value, count);
 
     // Validate input.
-    if (Memory::IsKernelAddress(address)) {
+    if (IsKernelAddress(address)) {
         LOG_ERROR(Kernel_SVC, "Attempting to signal to a kernel address (address={:08X})", address);
         return ResultInvalidCurrentMemory;
     }

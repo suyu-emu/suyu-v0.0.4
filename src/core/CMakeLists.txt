@@ -166,6 +166,7 @@ add_library(core STATIC
     hle/kernel/k_light_condition_variable.h
     hle/kernel/k_light_lock.cpp
     hle/kernel/k_light_lock.h
+    hle/kernel/k_memory_layout.h
     hle/kernel/k_page_bitmap.h
     hle/kernel/k_priority_queue.h
     hle/kernel/k_readable_event.cpp
@@ -196,7 +197,6 @@ add_library(core STATIC
     hle/kernel/memory/memory_block.h
     hle/kernel/memory/memory_block_manager.cpp
     hle/kernel/memory/memory_block_manager.h
-    hle/kernel/memory/memory_layout.h
     hle/kernel/memory/memory_manager.cpp
     hle/kernel/memory/memory_manager.h
     hle/kernel/memory/memory_types.h
