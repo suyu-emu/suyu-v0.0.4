@@ -11,7 +11,12 @@
 #include "common/common_types.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
+#include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
+
+namespace VideoCommon {
+struct SwizzleParameters;
+}
 
 namespace Vulkan {
 
@@ -19,6 +24,8 @@ class Device;
 class StagingBufferPool;
 class VKScheduler;
 class VKUpdateDescriptorQueue;
+class Image;
+struct StagingBufferRef;
 
 class VKComputePass {
 public:
@@ -75,6 +82,31 @@ private:
     VKScheduler& scheduler;
     StagingBufferPool& staging_buffer_pool;
     VKUpdateDescriptorQueue& update_descriptor_queue;
+};
+
+class ASTCDecoderPass final : public VKComputePass {
+public:
+    explicit ASTCDecoderPass(const Device& device_, VKScheduler& scheduler_,
+                             VKDescriptorPool& descriptor_pool_,
+                             StagingBufferPool& staging_buffer_pool_,
+                             VKUpdateDescriptorQueue& update_descriptor_queue_,
+                             MemoryAllocator& memory_allocator_);
+    ~ASTCDecoderPass();
+
+    void Assemble(Image& image, const StagingBufferRef& map,
+                  std::span<const VideoCommon::SwizzleParameters> swizzles);
+
+private:
+    void MakeDataBuffer();
+
+    const Device& device;
+    VKScheduler& scheduler;
+    StagingBufferPool& staging_buffer_pool;
+    VKUpdateDescriptorQueue& update_descriptor_queue;
+    MemoryAllocator& memory_allocator;
+
+    vk::Buffer data_buffer;
+    MemoryCommit data_buffer_commit;
 };
 
 } // namespace Vulkan

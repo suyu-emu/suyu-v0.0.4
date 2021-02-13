@@ -173,6 +173,7 @@ private:
     VKDescriptorPool descriptor_pool;
     VKUpdateDescriptorQueue update_descriptor_queue;
     BlitImageHelper blit_image;
+    ASTCDecoderPass astc_decoder_pass;
 
     GraphicsPipelineCacheKey graphics_key;
 

@@ -16,7 +16,7 @@
 #define BINDING_7_TO_8_BUFFER 4
 #define BINDING_8_TO_8_BUFFER 5
 #define BINDING_BYTE_TO_16_BUFFER 6
-#define BINDING_OUTPUT_IMAGE 3
+#define BINDING_OUTPUT_IMAGE 7
 
 #else // ^^^ Vulkan ^^^ // vvv OpenGL vvv
 
@@ -85,7 +85,26 @@ layout(binding = BINDING_SWIZZLE_BUFFER, std430) readonly buffer SwizzleTable {
 layout(binding = BINDING_INPUT_BUFFER, std430) buffer InputBufferU32 {
     uint astc_data[];
 };
-layout(binding = BINDING_OUTPUT_IMAGE) uniform writeonly image2D dest_image;
+
+// ASTC Encodings data
+layout(binding = BINDING_ENC_BUFFER, std430) readonly buffer EncodingsValues {
+    EncodingData encoding_values[];
+};
+// ASTC Precompiled tables
+layout(binding = BINDING_6_TO_8_BUFFER, std430) readonly buffer REPLICATE_6_BIT_TO_8 {
+    uint REPLICATE_6_BIT_TO_8_TABLE[];
+};
+layout(binding = BINDING_7_TO_8_BUFFER, std430) readonly buffer REPLICATE_7_BIT_TO_8 {
+    uint REPLICATE_7_BIT_TO_8_TABLE[];
+};
+layout(binding = BINDING_8_TO_8_BUFFER, std430) readonly buffer REPLICATE_8_BIT_TO_8 {
+    uint REPLICATE_8_BIT_TO_8_TABLE[];
+};
+layout(binding = BINDING_BYTE_TO_16_BUFFER, std430) readonly buffer REPLICATE_BYTE_TO_16 {
+    uint REPLICATE_BYTE_TO_16_TABLE[];
+};
+
+layout(binding = BINDING_OUTPUT_IMAGE, rgba8) uniform writeonly image2D dest_image;
 
 const uint GOB_SIZE_X = 64;
 const uint GOB_SIZE_Y = 8;
@@ -109,23 +128,6 @@ uint ReadTexel(uint offset) {
     return bitfieldExtract(astc_data[offset / 4], int((offset * 8) & 24), 8);
 }
 
-// ASTC Encodings data
-layout(binding = BINDING_ENC_BUFFER, std430) readonly buffer EncodingsValues {
-    EncodingData encoding_values[256];
-};
-// ASTC Precompiled tables
-layout(binding = BINDING_6_TO_8_BUFFER, std430) readonly buffer REPLICATE_6_BIT_TO_8 {
-    uint REPLICATE_6_BIT_TO_8_TABLE[];
-};
-layout(binding = BINDING_7_TO_8_BUFFER, std430) readonly buffer REPLICATE_7_BIT_TO_8 {
-    uint REPLICATE_7_BIT_TO_8_TABLE[];
-};
-layout(binding = BINDING_8_TO_8_BUFFER, std430) readonly buffer REPLICATE_8_BIT_TO_8 {
-    uint REPLICATE_8_BIT_TO_8_TABLE[];
-};
-layout(binding = BINDING_BYTE_TO_16_BUFFER, std430) readonly buffer REPLICATE_BYTE_TO_16 {
-    uint REPLICATE_BYTE_TO_16_TABLE[];
-};
 
 const int BLOCK_SIZE_IN_BYTES = 16;
 
@@ -1275,8 +1277,7 @@ void main() {
     offset += (pos.x >> GOB_SIZE_X_SHIFT) << x_shift;
     offset += swizzle;
 
-    const ivec3 invocation_destination = ivec3(gl_GlobalInvocationID + destination);
-    const ivec3 coord = ivec3(invocation_destination * uvec3(block_dims, 1.0));
+    const ivec3 coord = ivec3(gl_GlobalInvocationID * uvec3(block_dims, 1.0));
     uint block_index =
         layer * num_image_blocks.x * num_image_blocks.y + pos.y * num_image_blocks.x + pos.x;
     current_index = 0;
