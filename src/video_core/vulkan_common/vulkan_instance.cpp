@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <future>
 #include <optional>
 #include <span>
 #include <utility>
@@ -140,7 +141,10 @@ vk::Instance CreateInstance(const Common::DynamicLibrary& library, vk::InstanceD
                   VK_VERSION_MAJOR(required_version), VK_VERSION_MINOR(required_version));
         throw vk::Exception(VK_ERROR_INCOMPATIBLE_DRIVER);
     }
-    vk::Instance instance = vk::Instance::Create(required_version, layers, extensions, dld);
+    vk::Instance instance =
+        std::async([&] {
+            return vk::Instance::Create(required_version, layers, extensions, dld);
+        }).get();
     if (!vk::Load(*instance, dld)) {
         LOG_ERROR(Render_Vulkan, "Failed to load Vulkan instance function pointers");
         throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);

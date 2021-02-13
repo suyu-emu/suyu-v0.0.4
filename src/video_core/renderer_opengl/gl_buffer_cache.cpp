@@ -2,98 +2,208 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <memory>
+#include <span>
 
-#include <glad/glad.h>
-
-#include "common/assert.h"
-#include "common/microprofile.h"
 #include "video_core/buffer_cache/buffer_cache.h"
-#include "video_core/engines/maxwell_3d.h"
-#include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_opengl/gl_buffer_cache.h"
 #include "video_core/renderer_opengl/gl_device.h"
-#include "video_core/renderer_opengl/gl_rasterizer.h"
-#include "video_core/renderer_opengl/gl_resource_manager.h"
 
 namespace OpenGL {
+namespace {
+struct BindlessSSBO {
+    GLuint64EXT address;
+    GLsizei length;
+    GLsizei padding;
+};
+static_assert(sizeof(BindlessSSBO) == sizeof(GLuint) * 4);
 
-using Maxwell = Tegra::Engines::Maxwell3D::Regs;
+constexpr std::array PROGRAM_LUT{
+    GL_VERTEX_PROGRAM_NV,   GL_TESS_CONTROL_PROGRAM_NV, GL_TESS_EVALUATION_PROGRAM_NV,
+    GL_GEOMETRY_PROGRAM_NV, GL_FRAGMENT_PROGRAM_NV,
+};
+} // Anonymous namespace
 
-MICROPROFILE_DEFINE(OpenGL_Buffer_Download, "OpenGL", "Buffer Download", MP_RGB(192, 192, 128));
+Buffer::Buffer(BufferCacheRuntime&, VideoCommon::NullBufferParams null_params)
+    : VideoCommon::BufferBase<VideoCore::RasterizerInterface>(null_params) {}
 
-Buffer::Buffer(const Device& device_, VAddr cpu_addr_, std::size_t size_)
-    : BufferBlock{cpu_addr_, size_} {
-    gl_buffer.Create();
-    glNamedBufferData(gl_buffer.handle, static_cast<GLsizeiptr>(size_), nullptr, GL_DYNAMIC_DRAW);
-    if (device_.UseAssemblyShaders() || device_.HasVertexBufferUnifiedMemory()) {
-        glMakeNamedBufferResidentNV(gl_buffer.handle, GL_READ_WRITE);
-        glGetNamedBufferParameterui64vNV(gl_buffer.handle, GL_BUFFER_GPU_ADDRESS_NV, &gpu_address);
+Buffer::Buffer(BufferCacheRuntime& runtime, VideoCore::RasterizerInterface& rasterizer_,
+               VAddr cpu_addr_, u64 size_bytes_)
+    : VideoCommon::BufferBase<VideoCore::RasterizerInterface>(rasterizer_, cpu_addr_, size_bytes_) {
+    buffer.Create();
+    const std::string name = fmt::format("Buffer 0x{:x}", CpuAddr());
+    glObjectLabel(GL_BUFFER, buffer.handle, static_cast<GLsizei>(name.size()), name.data());
+    glNamedBufferData(buffer.handle, SizeBytes(), nullptr, GL_DYNAMIC_DRAW);
+
+    if (runtime.has_unified_vertex_buffers) {
+        glGetNamedBufferParameterui64vNV(buffer.handle, GL_BUFFER_GPU_ADDRESS_NV, &address);
     }
 }
 
-Buffer::~Buffer() = default;
-
-void Buffer::Upload(std::size_t offset, std::size_t data_size, const u8* data) {
-    glNamedBufferSubData(Handle(), static_cast<GLintptr>(offset),
-                         static_cast<GLsizeiptr>(data_size), data);
+void Buffer::ImmediateUpload(size_t offset, std::span<const u8> data) noexcept {
+    glNamedBufferSubData(buffer.handle, static_cast<GLintptr>(offset),
+                         static_cast<GLsizeiptr>(data.size_bytes()), data.data());
 }
 
-void Buffer::Download(std::size_t offset, std::size_t data_size, u8* data) {
-    MICROPROFILE_SCOPE(OpenGL_Buffer_Download);
-    const GLsizeiptr gl_size = static_cast<GLsizeiptr>(data_size);
-    const GLintptr gl_offset = static_cast<GLintptr>(offset);
-    if (read_buffer.handle == 0) {
-        read_buffer.Create();
-        glNamedBufferData(read_buffer.handle, static_cast<GLsizeiptr>(Size()), nullptr,
-                          GL_STREAM_READ);
-    }
-    glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
-    glCopyNamedBufferSubData(gl_buffer.handle, read_buffer.handle, gl_offset, gl_offset, gl_size);
-    glGetNamedBufferSubData(read_buffer.handle, gl_offset, gl_size, data);
+void Buffer::ImmediateDownload(size_t offset, std::span<u8> data) noexcept {
+    glGetNamedBufferSubData(buffer.handle, static_cast<GLintptr>(offset),
+                            static_cast<GLsizeiptr>(data.size_bytes()), data.data());
 }
 
-void Buffer::CopyFrom(const Buffer& src, std::size_t src_offset, std::size_t dst_offset,
-                      std::size_t copy_size) {
-    glCopyNamedBufferSubData(src.Handle(), Handle(), static_cast<GLintptr>(src_offset),
-                             static_cast<GLintptr>(dst_offset), static_cast<GLsizeiptr>(copy_size));
-}
-
-OGLBufferCache::OGLBufferCache(VideoCore::RasterizerInterface& rasterizer_,
-                               Tegra::MemoryManager& gpu_memory_, Core::Memory::Memory& cpu_memory_,
-                               const Device& device_, OGLStreamBuffer& stream_buffer_,
-                               StateTracker& state_tracker)
-    : GenericBufferCache{rasterizer_, gpu_memory_, cpu_memory_, stream_buffer_}, device{device_} {
-    if (!device.HasFastBufferSubData()) {
+void Buffer::MakeResident(GLenum access) noexcept {
+    // Abuse GLenum's order to exit early
+    // GL_NONE (default) < GL_READ_ONLY < GL_READ_WRITE
+    if (access <= current_residency_access || buffer.handle == 0) {
         return;
     }
+    if (std::exchange(current_residency_access, access) != GL_NONE) {
+        // If the buffer is already resident, remove its residency before promoting it
+        glMakeNamedBufferNonResidentNV(buffer.handle);
+    }
+    glMakeNamedBufferResidentNV(buffer.handle, access);
+}
 
-    static constexpr GLsizeiptr size = static_cast<GLsizeiptr>(Maxwell::MaxConstBufferSize);
-    glCreateBuffers(static_cast<GLsizei>(std::size(cbufs)), std::data(cbufs));
-    for (const GLuint cbuf : cbufs) {
-        glNamedBufferData(cbuf, size, nullptr, GL_STREAM_DRAW);
+BufferCacheRuntime::BufferCacheRuntime(const Device& device_)
+    : device{device_}, has_fast_buffer_sub_data{device.HasFastBufferSubData()},
+      use_assembly_shaders{device.UseAssemblyShaders()},
+      has_unified_vertex_buffers{device.HasVertexBufferUnifiedMemory()},
+      stream_buffer{has_fast_buffer_sub_data ? std::nullopt : std::make_optional<StreamBuffer>()} {
+    GLint gl_max_attributes;
+    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &gl_max_attributes);
+    max_attributes = static_cast<u32>(gl_max_attributes);
+    for (auto& stage_uniforms : fast_uniforms) {
+        for (OGLBuffer& buffer : stage_uniforms) {
+            buffer.Create();
+            glNamedBufferData(buffer.handle, BufferCache::SKIP_CACHE_SIZE, nullptr, GL_STREAM_DRAW);
+        }
+    }
+    for (auto& stage_uniforms : copy_uniforms) {
+        for (OGLBuffer& buffer : stage_uniforms) {
+            buffer.Create();
+            glNamedBufferData(buffer.handle, 0x10'000, nullptr, GL_STREAM_COPY);
+        }
+    }
+    for (OGLBuffer& buffer : copy_compute_uniforms) {
+        buffer.Create();
+        glNamedBufferData(buffer.handle, 0x10'000, nullptr, GL_STREAM_COPY);
     }
 }
 
-OGLBufferCache::~OGLBufferCache() {
-    glDeleteBuffers(static_cast<GLsizei>(std::size(cbufs)), std::data(cbufs));
+void BufferCacheRuntime::CopyBuffer(Buffer& dst_buffer, Buffer& src_buffer,
+                                    std::span<const VideoCommon::BufferCopy> copies) {
+    for (const VideoCommon::BufferCopy& copy : copies) {
+        glCopyNamedBufferSubData(
+            src_buffer.Handle(), dst_buffer.Handle(), static_cast<GLintptr>(copy.src_offset),
+            static_cast<GLintptr>(copy.dst_offset), static_cast<GLsizeiptr>(copy.size));
+    }
 }
 
-std::shared_ptr<Buffer> OGLBufferCache::CreateBlock(VAddr cpu_addr, std::size_t size) {
-    return std::make_shared<Buffer>(device, cpu_addr, size);
+void BufferCacheRuntime::BindIndexBuffer(Buffer& buffer, u32 offset, u32 size) {
+    if (has_unified_vertex_buffers) {
+        buffer.MakeResident(GL_READ_ONLY);
+        glBufferAddressRangeNV(GL_ELEMENT_ARRAY_ADDRESS_NV, 0, buffer.HostGpuAddr() + offset,
+                               static_cast<GLsizeiptr>(size));
+    } else {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.Handle());
+        index_buffer_offset = offset;
+    }
 }
 
-OGLBufferCache::BufferInfo OGLBufferCache::GetEmptyBuffer(std::size_t) {
-    return {0, 0, 0};
+void BufferCacheRuntime::BindVertexBuffer(u32 index, Buffer& buffer, u32 offset, u32 size,
+                                          u32 stride) {
+    if (index >= max_attributes) {
+        return;
+    }
+    if (has_unified_vertex_buffers) {
+        buffer.MakeResident(GL_READ_ONLY);
+        glBindVertexBuffer(index, 0, 0, static_cast<GLsizei>(stride));
+        glBufferAddressRangeNV(GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV, index,
+                               buffer.HostGpuAddr() + offset, static_cast<GLsizeiptr>(size));
+    } else {
+        glBindVertexBuffer(index, buffer.Handle(), static_cast<GLintptr>(offset),
+                           static_cast<GLsizei>(stride));
+    }
 }
 
-OGLBufferCache::BufferInfo OGLBufferCache::ConstBufferUpload(const void* raw_pointer,
-                                                             std::size_t size) {
-    DEBUG_ASSERT(cbuf_cursor < std::size(cbufs));
-    const GLuint cbuf = cbufs[cbuf_cursor++];
+void BufferCacheRuntime::BindUniformBuffer(size_t stage, u32 binding_index, Buffer& buffer,
+                                           u32 offset, u32 size) {
+    if (use_assembly_shaders) {
+        GLuint handle;
+        if (offset != 0) {
+            handle = copy_uniforms[stage][binding_index].handle;
+            glCopyNamedBufferSubData(buffer.Handle(), handle, offset, 0, size);
+        } else {
+            handle = buffer.Handle();
+        }
+        glBindBufferRangeNV(PABO_LUT[stage], binding_index, handle, 0,
+                            static_cast<GLsizeiptr>(size));
+    } else {
+        const GLuint base_binding = device.GetBaseBindings(stage).uniform_buffer;
+        const GLuint binding = base_binding + binding_index;
+        glBindBufferRange(GL_UNIFORM_BUFFER, binding, buffer.Handle(),
+                          static_cast<GLintptr>(offset), static_cast<GLsizeiptr>(size));
+    }
+}
 
-    glNamedBufferSubData(cbuf, 0, static_cast<GLsizeiptr>(size), raw_pointer);
-    return {cbuf, 0, 0};
+void BufferCacheRuntime::BindComputeUniformBuffer(u32 binding_index, Buffer& buffer, u32 offset,
+                                                  u32 size) {
+    if (use_assembly_shaders) {
+        GLuint handle;
+        if (offset != 0) {
+            handle = copy_compute_uniforms[binding_index].handle;
+            glCopyNamedBufferSubData(buffer.Handle(), handle, offset, 0, size);
+        } else {
+            handle = buffer.Handle();
+        }
+        glBindBufferRangeNV(GL_COMPUTE_PROGRAM_PARAMETER_BUFFER_NV, binding_index, handle, 0,
+                            static_cast<GLsizeiptr>(size));
+    } else {
+        glBindBufferRange(GL_UNIFORM_BUFFER, binding_index, buffer.Handle(),
+                          static_cast<GLintptr>(offset), static_cast<GLsizeiptr>(size));
+    }
+}
+
+void BufferCacheRuntime::BindStorageBuffer(size_t stage, u32 binding_index, Buffer& buffer,
+                                           u32 offset, u32 size, bool is_written) {
+    if (use_assembly_shaders) {
+        const BindlessSSBO ssbo{
+            .address = buffer.HostGpuAddr() + offset,
+            .length = static_cast<GLsizei>(size),
+            .padding = 0,
+        };
+        buffer.MakeResident(is_written ? GL_READ_WRITE : GL_READ_ONLY);
+        glProgramLocalParametersI4uivNV(PROGRAM_LUT[stage], binding_index, 1,
+                                        reinterpret_cast<const GLuint*>(&ssbo));
+    } else {
+        const GLuint base_binding = device.GetBaseBindings(stage).shader_storage_buffer;
+        const GLuint binding = base_binding + binding_index;
+        glBindBufferRange(GL_SHADER_STORAGE_BUFFER, binding, buffer.Handle(),
+                          static_cast<GLintptr>(offset), static_cast<GLsizeiptr>(size));
+    }
+}
+
+void BufferCacheRuntime::BindComputeStorageBuffer(u32 binding_index, Buffer& buffer, u32 offset,
+                                                  u32 size, bool is_written) {
+    if (use_assembly_shaders) {
+        const BindlessSSBO ssbo{
+            .address = buffer.HostGpuAddr() + offset,
+            .length = static_cast<GLsizei>(size),
+            .padding = 0,
+        };
+        buffer.MakeResident(is_written ? GL_READ_WRITE : GL_READ_ONLY);
+        glProgramLocalParametersI4uivNV(GL_COMPUTE_PROGRAM_NV, binding_index, 1,
+                                        reinterpret_cast<const GLuint*>(&ssbo));
+    } else if (size == 0) {
+        glBindBufferRange(GL_SHADER_STORAGE_BUFFER, binding_index, 0, 0, 0);
+    } else {
+        glBindBufferRange(GL_SHADER_STORAGE_BUFFER, binding_index, buffer.Handle(),
+                          static_cast<GLintptr>(offset), static_cast<GLsizeiptr>(size));
+    }
+}
+
+void BufferCacheRuntime::BindTransformFeedbackBuffer(u32 index, Buffer& buffer, u32 offset,
+                                                     u32 size) {
+    glBindBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, index, buffer.Handle(),
+                      static_cast<GLintptr>(offset), static_cast<GLsizeiptr>(size));
 }
 
 } // namespace OpenGL

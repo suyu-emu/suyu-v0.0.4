@@ -10,7 +10,7 @@
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "common/common_types.h"
-#include "video_core/host_shaders/vulkan_quad_array_comp_spv.h"
+#include "common/div_ceil.h"
 #include "video_core/host_shaders/vulkan_quad_indexed_comp_spv.h"
 #include "video_core/host_shaders/vulkan_uint8_comp_spv.h"
 #include "video_core/renderer_vulkan/vk_compute_pass.h"
@@ -22,30 +22,7 @@
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
-
 namespace {
-
-VkDescriptorSetLayoutBinding BuildQuadArrayPassDescriptorSetLayoutBinding() {
-    return {
-        .binding = 0,
-        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-        .descriptorCount = 1,
-        .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-        .pImmutableSamplers = nullptr,
-    };
-}
-
-VkDescriptorUpdateTemplateEntryKHR BuildQuadArrayPassDescriptorUpdateTemplateEntry() {
-    return {
-        .dstBinding = 0,
-        .dstArrayElement = 0,
-        .descriptorCount = 1,
-        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-        .offset = 0,
-        .stride = sizeof(DescriptorUpdateEntry),
-    };
-}
-
 VkPushConstantRange BuildComputePushConstantRange(std::size_t size) {
     return {
         .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
@@ -162,55 +139,6 @@ VkDescriptorSet VKComputePass::CommitDescriptorSet(
     return set;
 }
 
-QuadArrayPass::QuadArrayPass(const Device& device_, VKScheduler& scheduler_,
-                             VKDescriptorPool& descriptor_pool_,
-                             StagingBufferPool& staging_buffer_pool_,
-                             VKUpdateDescriptorQueue& update_descriptor_queue_)
-    : VKComputePass(device_, descriptor_pool_, BuildQuadArrayPassDescriptorSetLayoutBinding(),
-                    BuildQuadArrayPassDescriptorUpdateTemplateEntry(),
-                    BuildComputePushConstantRange(sizeof(u32)), VULKAN_QUAD_ARRAY_COMP_SPV),
-      scheduler{scheduler_}, staging_buffer_pool{staging_buffer_pool_},
-      update_descriptor_queue{update_descriptor_queue_} {}
-
-QuadArrayPass::~QuadArrayPass() = default;
-
-std::pair<VkBuffer, VkDeviceSize> QuadArrayPass::Assemble(u32 num_vertices, u32 first) {
-    const u32 num_triangle_vertices = (num_vertices / 4) * 6;
-    const std::size_t staging_size = num_triangle_vertices * sizeof(u32);
-    const auto staging_ref = staging_buffer_pool.Request(staging_size, MemoryUsage::DeviceLocal);
-
-    update_descriptor_queue.Acquire();
-    update_descriptor_queue.AddBuffer(staging_ref.buffer, 0, staging_size);
-    const VkDescriptorSet set = CommitDescriptorSet(update_descriptor_queue);
-
-    scheduler.RequestOutsideRenderPassOperationContext();
-
-    ASSERT(num_vertices % 4 == 0);
-    const u32 num_quads = num_vertices / 4;
-    scheduler.Record([layout = *layout, pipeline = *pipeline, buffer = staging_ref.buffer,
-                      num_quads, first, set](vk::CommandBuffer cmdbuf) {
-        constexpr u32 dispatch_size = 1024;
-        cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
-        cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, layout, 0, set, {});
-        cmdbuf.PushConstants(layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(first), &first);
-        cmdbuf.Dispatch(Common::AlignUp(num_quads, dispatch_size) / dispatch_size, 1, 1);
-
-        VkBufferMemoryBarrier barrier;
-        barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-        barrier.pNext = nullptr;
-        barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-        barrier.dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
-        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.buffer = buffer;
-        barrier.offset = 0;
-        barrier.size = static_cast<VkDeviceSize>(num_quads) * 6 * sizeof(u32);
-        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                               VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, {}, {barrier}, {});
-    });
-    return {staging_ref.buffer, 0};
-}
-
 Uint8Pass::Uint8Pass(const Device& device, VKScheduler& scheduler_,
                      VKDescriptorPool& descriptor_pool, StagingBufferPool& staging_buffer_pool_,
                      VKUpdateDescriptorQueue& update_descriptor_queue_)
@@ -221,38 +149,33 @@ Uint8Pass::Uint8Pass(const Device& device, VKScheduler& scheduler_,
 
 Uint8Pass::~Uint8Pass() = default;
 
-std::pair<VkBuffer, u64> Uint8Pass::Assemble(u32 num_vertices, VkBuffer src_buffer,
-                                             u64 src_offset) {
+std::pair<VkBuffer, VkDeviceSize> Uint8Pass::Assemble(u32 num_vertices, VkBuffer src_buffer,
+                                                      u32 src_offset) {
     const u32 staging_size = static_cast<u32>(num_vertices * sizeof(u16));
-    const auto staging_ref = staging_buffer_pool.Request(staging_size, MemoryUsage::DeviceLocal);
+    const auto staging = staging_buffer_pool.Request(staging_size, MemoryUsage::DeviceLocal);
 
     update_descriptor_queue.Acquire();
     update_descriptor_queue.AddBuffer(src_buffer, src_offset, num_vertices);
-    update_descriptor_queue.AddBuffer(staging_ref.buffer, 0, staging_size);
+    update_descriptor_queue.AddBuffer(staging.buffer, staging.offset, staging_size);
     const VkDescriptorSet set = CommitDescriptorSet(update_descriptor_queue);
 
     scheduler.RequestOutsideRenderPassOperationContext();
-    scheduler.Record([layout = *layout, pipeline = *pipeline, buffer = staging_ref.buffer, set,
+    scheduler.Record([layout = *layout, pipeline = *pipeline, buffer = staging.buffer, set,
                       num_vertices](vk::CommandBuffer cmdbuf) {
-        constexpr u32 dispatch_size = 1024;
+        static constexpr u32 DISPATCH_SIZE = 1024;
+        static constexpr VkMemoryBarrier WRITE_BARRIER{
+            .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT,
+        };
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
         cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, layout, 0, set, {});
-        cmdbuf.Dispatch(Common::AlignUp(num_vertices, dispatch_size) / dispatch_size, 1, 1);
-
-        VkBufferMemoryBarrier barrier;
-        barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-        barrier.pNext = nullptr;
-        barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-        barrier.dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
-        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.buffer = buffer;
-        barrier.offset = 0;
-        barrier.size = static_cast<VkDeviceSize>(num_vertices * sizeof(u16));
+        cmdbuf.Dispatch(Common::DivCeil(num_vertices, DISPATCH_SIZE), 1, 1);
         cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                               VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, {}, barrier, {});
+                               VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, WRITE_BARRIER);
     });
-    return {staging_ref.buffer, 0};
+    return {staging.buffer, staging.offset};
 }
 
 QuadIndexedPass::QuadIndexedPass(const Device& device_, VKScheduler& scheduler_,
@@ -267,9 +190,9 @@ QuadIndexedPass::QuadIndexedPass(const Device& device_, VKScheduler& scheduler_,
 
 QuadIndexedPass::~QuadIndexedPass() = default;
 
-std::pair<VkBuffer, u64> QuadIndexedPass::Assemble(
+std::pair<VkBuffer, VkDeviceSize> QuadIndexedPass::Assemble(
     Tegra::Engines::Maxwell3D::Regs::IndexFormat index_format, u32 num_vertices, u32 base_vertex,
-    VkBuffer src_buffer, u64 src_offset) {
+    VkBuffer src_buffer, u32 src_offset) {
     const u32 index_shift = [index_format] {
         switch (index_format) {
         case Tegra::Engines::Maxwell3D::Regs::IndexFormat::UnsignedByte:
@@ -286,38 +209,33 @@ std::pair<VkBuffer, u64> QuadIndexedPass::Assemble(
     const u32 num_tri_vertices = (num_vertices / 4) * 6;
 
     const std::size_t staging_size = num_tri_vertices * sizeof(u32);
-    const auto staging_ref = staging_buffer_pool.Request(staging_size, MemoryUsage::DeviceLocal);
+    const auto staging = staging_buffer_pool.Request(staging_size, MemoryUsage::DeviceLocal);
 
     update_descriptor_queue.Acquire();
     update_descriptor_queue.AddBuffer(src_buffer, src_offset, input_size);
-    update_descriptor_queue.AddBuffer(staging_ref.buffer, 0, staging_size);
+    update_descriptor_queue.AddBuffer(staging.buffer, staging.offset, staging_size);
     const VkDescriptorSet set = CommitDescriptorSet(update_descriptor_queue);
 
     scheduler.RequestOutsideRenderPassOperationContext();
-    scheduler.Record([layout = *layout, pipeline = *pipeline, buffer = staging_ref.buffer, set,
+    scheduler.Record([layout = *layout, pipeline = *pipeline, buffer = staging.buffer, set,
                       num_tri_vertices, base_vertex, index_shift](vk::CommandBuffer cmdbuf) {
-        static constexpr u32 dispatch_size = 1024;
+        static constexpr u32 DISPATCH_SIZE = 1024;
+        static constexpr VkMemoryBarrier WRITE_BARRIER{
+            .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT,
+        };
         const std::array push_constants = {base_vertex, index_shift};
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
         cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, layout, 0, set, {});
         cmdbuf.PushConstants(layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(push_constants),
                              &push_constants);
-        cmdbuf.Dispatch(Common::AlignUp(num_tri_vertices, dispatch_size) / dispatch_size, 1, 1);
-
-        VkBufferMemoryBarrier barrier;
-        barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-        barrier.pNext = nullptr;
-        barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-        barrier.dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
-        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.buffer = buffer;
-        barrier.offset = 0;
-        barrier.size = static_cast<VkDeviceSize>(num_tri_vertices * sizeof(u32));
+        cmdbuf.Dispatch(Common::DivCeil(num_tri_vertices, DISPATCH_SIZE), 1, 1);
         cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                               VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, {}, barrier, {});
+                               VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, WRITE_BARRIER);
     });
-    return {staging_ref.buffer, 0};
+    return {staging.buffer, staging.offset};
 }
 
 } // namespace Vulkan

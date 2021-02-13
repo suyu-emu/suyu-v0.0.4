@@ -143,22 +143,26 @@ private:
     }
 
     bool ShouldWait() const {
+        std::scoped_lock lock{buffer_cache.mutex, texture_cache.mutex};
         return texture_cache.ShouldWaitAsyncFlushes() || buffer_cache.ShouldWaitAsyncFlushes() ||
                query_cache.ShouldWaitAsyncFlushes();
     }
 
     bool ShouldFlush() const {
+        std::scoped_lock lock{buffer_cache.mutex, texture_cache.mutex};
         return texture_cache.HasUncommittedFlushes() || buffer_cache.HasUncommittedFlushes() ||
                query_cache.HasUncommittedFlushes();
     }
 
     void PopAsyncFlushes() {
+        std::scoped_lock lock{buffer_cache.mutex, texture_cache.mutex};
         texture_cache.PopAsyncFlushes();
         buffer_cache.PopAsyncFlushes();
         query_cache.PopAsyncFlushes();
     }
 
     void CommitAsyncFlushes() {
+        std::scoped_lock lock{buffer_cache.mutex, texture_cache.mutex};
         texture_cache.CommitAsyncFlushes();
         buffer_cache.CommitAsyncFlushes();
         query_cache.CommitAsyncFlushes();

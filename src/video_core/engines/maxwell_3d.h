@@ -55,7 +55,7 @@ public:
     ~Maxwell3D();
 
     /// Binds a rasterizer to this engine.
-    void BindRasterizer(VideoCore::RasterizerInterface& rasterizer);
+    void BindRasterizer(VideoCore::RasterizerInterface* rasterizer);
 
     /// Register structure of the Maxwell3D engine.
     /// TODO(Subv): This structure will need to be made bigger as more registers are discovered.
@@ -1314,8 +1314,7 @@ public:
 
                     GPUVAddr LimitAddress() const {
                         return static_cast<GPUVAddr>((static_cast<GPUVAddr>(limit_high) << 32) |
-                                                     limit_low) +
-                               1;
+                                                     limit_low);
                     }
                 } vertex_array_limit[NumVertexArrays];
 
@@ -1403,6 +1402,7 @@ public:
         };
 
         std::array<ShaderStageInfo, Regs::MaxShaderStage> shader_stages;
+
         u32 current_instance = 0; ///< Current instance to be used to simulate instanced rendering.
     };
 
@@ -1452,11 +1452,6 @@ public:
         return *rasterizer;
     }
 
-    /// Notify a memory write has happened.
-    void OnMemoryWrite() {
-        dirty.flags |= dirty.on_write_stores;
-    }
-
     enum class MMEDrawMode : u32 {
         Undefined,
         Array,
@@ -1478,7 +1473,6 @@ public:
         using Tables = std::array<Table, 2>;
 
         Flags flags;
-        Flags on_write_stores;
         Tables tables{};
     } dirty;
 
@@ -1541,7 +1535,7 @@ private:
     void FinishCBData();
 
     /// Handles a write to the CB_BIND register.
-    void ProcessCBBind(std::size_t stage_index);
+    void ProcessCBBind(size_t stage_index);
 
     /// Handles a write to the VERTEX_END_GL register, triggering a draw.
     void DrawArrays();

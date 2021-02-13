@@ -64,7 +64,7 @@ using TextureIR = std::variant<TextureOffset, TextureDerivates, TextureArgument>
 constexpr u32 MAX_CONSTBUFFER_SCALARS = static_cast<u32>(Maxwell::MaxConstBufferSize) / sizeof(u32);
 constexpr u32 MAX_CONSTBUFFER_ELEMENTS = MAX_CONSTBUFFER_SCALARS / sizeof(u32);
 
-constexpr std::string_view CommonDeclarations = R"(#define ftoi floatBitsToInt
+constexpr std::string_view COMMON_DECLARATIONS = R"(#define ftoi floatBitsToInt
 #define ftou floatBitsToUint
 #define itof intBitsToFloat
 #define utof uintBitsToFloat
@@ -77,10 +77,6 @@ bvec2 HalfFloatNanComparison(bvec2 comparison, vec2 pair1, vec2 pair2) {{
 
 const float fswzadd_modifiers_a[] = float[4](-1.0f,  1.0f, -1.0f,  0.0f );
 const float fswzadd_modifiers_b[] = float[4](-1.0f, -1.0f,  1.0f, -1.0f );
-
-layout (std140, binding = {}) uniform vs_config {{
-    float y_direction;
-}};
 )";
 
 class ShaderWriter final {
@@ -402,13 +398,6 @@ std::string FlowStackTopName(MetaStackClass stack) {
     return fmt::format("{}_flow_stack_top", GetFlowStackPrefix(stack));
 }
 
-bool UseUnifiedUniforms(const Device& device, const ShaderIR& ir, ShaderType stage) {
-    const u32 num_ubos = static_cast<u32>(ir.GetConstantBuffers().size());
-    // We waste one UBO for emulation
-    const u32 num_available_ubos = device.GetMaxUniformBuffers(stage) - 1;
-    return num_ubos > num_available_ubos;
-}
-
 struct GenericVaryingDescription {
     std::string name;
     u8 first_element = 0;
@@ -420,9 +409,8 @@ public:
     explicit GLSLDecompiler(const Device& device_, const ShaderIR& ir_, const Registry& registry_,
                             ShaderType stage_, std::string_view identifier_,
                             std::string_view suffix_)
-        : device{device_}, ir{ir_}, registry{registry_}, stage{stage_}, identifier{identifier_},
-          suffix{suffix_}, header{ir.GetHeader()}, use_unified_uniforms{
-                                                       UseUnifiedUniforms(device_, ir_, stage_)} {
+        : device{device_}, ir{ir_}, registry{registry_}, stage{stage_},
+          identifier{identifier_}, suffix{suffix_}, header{ir.GetHeader()} {
         if (stage != ShaderType::Compute) {
             transform_feedback = BuildTransformFeedback(registry.GetGraphicsInfo());
         }
@@ -516,7 +504,8 @@ private:
         if (!identifier.empty()) {
             code.AddLine("// {}", identifier);
         }
-        code.AddLine("#version 440 {}", ir.UsesLegacyVaryings() ? "compatibility" : "core");
+        const bool use_compatibility = ir.UsesLegacyVaryings() || ir.UsesYNegate();
+        code.AddLine("#version 440 {}", use_compatibility ? "compatibility" : "core");
         code.AddLine("#extension GL_ARB_separate_shader_objects : enable");
         if (device.HasShaderBallot()) {
             code.AddLine("#extension GL_ARB_shader_ballot : require");
@@ -542,7 +531,7 @@ private:
 
         code.AddNewLine();
 
-        code.AddLine(CommonDeclarations, EmulationUniformBlockBinding);
+        code.AddLine(COMMON_DECLARATIONS);
     }
 
     void DeclareVertex() {
@@ -865,17 +854,6 @@ private:
     }
 
     void DeclareConstantBuffers() {
-        if (use_unified_uniforms) {
-            const u32 binding = device.GetBaseBindings(stage).shader_storage_buffer +
-                                static_cast<u32>(ir.GetGlobalMemory().size());
-            code.AddLine("layout (std430, binding = {}) readonly buffer UnifiedUniforms {{",
-                         binding);
-            code.AddLine("    uint cbufs[];");
-            code.AddLine("}};");
-            code.AddNewLine();
-            return;
-        }
-
         u32 binding = device.GetBaseBindings(stage).uniform_buffer;
         for (const auto& [index, info] : ir.GetConstantBuffers()) {
             const u32 num_elements = Common::DivCeil(info.GetSize(), 4 * sizeof(u32));
@@ -1081,29 +1059,17 @@ private:
 
         if (const auto cbuf = std::get_if<CbufNode>(&*node)) {
             const Node offset = cbuf->GetOffset();
-            const u32 base_unified_offset = cbuf->GetIndex() * MAX_CONSTBUFFER_SCALARS;
 
             if (const auto immediate = std::get_if<ImmediateNode>(&*offset)) {
                 // Direct access
                 const u32 offset_imm = immediate->GetValue();
                 ASSERT_MSG(offset_imm % 4 == 0, "Unaligned cbuf direct access");
-                if (use_unified_uniforms) {
-                    return {fmt::format("cbufs[{}]", base_unified_offset + offset_imm / 4),
-                            Type::Uint};
-                } else {
-                    return {fmt::format("{}[{}][{}]", GetConstBuffer(cbuf->GetIndex()),
-                                        offset_imm / (4 * 4), (offset_imm / 4) % 4),
-                            Type::Uint};
-                }
-            }
-
-            // Indirect access
-            if (use_unified_uniforms) {
-                return {fmt::format("cbufs[{} + ({} >> 2)]", base_unified_offset,
-                                    Visit(offset).AsUint()),
+                return {fmt::format("{}[{}][{}]", GetConstBuffer(cbuf->GetIndex()),
+                                    offset_imm / (4 * 4), (offset_imm / 4) % 4),
                         Type::Uint};
             }
 
+            // Indirect access
             const std::string final_offset = code.GenerateTemporary();
             code.AddLine("uint {} = {} >> 2;", final_offset, Visit(offset).AsUint());
 
@@ -2293,7 +2259,6 @@ private:
                 }
             }
         }
-
         if (header.ps.omap.depth) {
             // The depth output is always 2 registers after the last color output, and current_reg
             // already contains one past the last color register.
@@ -2337,7 +2302,8 @@ private:
     }
 
     Expression YNegate(Operation operation) {
-        return {"y_direction", Type::Float};
+        // Y_NEGATE is mapped to this uniform value
+        return {"gl_FrontMaterial.ambient.a", Type::Float};
     }
 
     template <u32 element>
@@ -2787,7 +2753,6 @@ private:
     const std::string_view identifier;
     const std::string_view suffix;
     const Header header;
-    const bool use_unified_uniforms;
     std::unordered_map<u8, VaryingTFB> transform_feedback;
 
     ShaderWriter code;
@@ -3003,8 +2968,10 @@ ShaderEntries MakeEntries(const Device& device, const ShaderIR& ir, ShaderType s
     for (std::size_t i = 0; i < std::size(clip_distances); ++i) {
         entries.clip_distances = (clip_distances[i] ? 1U : 0U) << i;
     }
+    for (const auto& buffer : entries.const_buffers) {
+        entries.enabled_uniform_buffers |= 1U << buffer.GetIndex();
+    }
     entries.shader_length = ir.GetLength();
-    entries.use_unified_uniforms = UseUnifiedUniforms(device, ir, stage);
     return entries;
 }
 

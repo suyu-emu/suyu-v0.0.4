@@ -80,17 +80,50 @@ std::string BuildCommaSeparatedExtensions(std::vector<std::string> available_ext
     return separated_extensions;
 }
 
+Device CreateDevice(const vk::Instance& instance, const vk::InstanceDispatch& dld,
+                    VkSurfaceKHR surface) {
+    const std::vector<VkPhysicalDevice> devices = instance.EnumeratePhysicalDevices();
+    const s32 device_index = Settings::values.vulkan_device.GetValue();
+    if (device_index < 0 || device_index >= static_cast<s32>(devices.size())) {
+        LOG_ERROR(Render_Vulkan, "Invalid device index {}!", device_index);
+        throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
+    }
+    const vk::PhysicalDevice physical_device(devices[device_index], dld);
+    return Device(*instance, physical_device, surface, dld);
+}
 } // Anonymous namespace
 
 RendererVulkan::RendererVulkan(Core::TelemetrySession& telemetry_session_,
                                Core::Frontend::EmuWindow& emu_window,
                                Core::Memory::Memory& cpu_memory_, Tegra::GPU& gpu_,
-                               std::unique_ptr<Core::Frontend::GraphicsContext> context_)
-    : RendererBase{emu_window, std::move(context_)}, telemetry_session{telemetry_session_},
-      cpu_memory{cpu_memory_}, gpu{gpu_} {}
+                               std::unique_ptr<Core::Frontend::GraphicsContext> context_) try
+    : RendererBase(emu_window, std::move(context_)),
+      telemetry_session(telemetry_session_),
+      cpu_memory(cpu_memory_),
+      gpu(gpu_),
+      library(OpenLibrary()),
+      instance(CreateInstance(library, dld, VK_API_VERSION_1_1, render_window.GetWindowInfo().type,
+                              true, Settings::values.renderer_debug)),
+      debug_callback(Settings::values.renderer_debug ? CreateDebugCallback(instance) : nullptr),
+      surface(CreateSurface(instance, render_window)),
+      device(CreateDevice(instance, dld, *surface)),
+      memory_allocator(device, false),
+      state_tracker(gpu),
+      scheduler(device, state_tracker),
+      swapchain(*surface, device, scheduler, render_window.GetFramebufferLayout().width,
+                render_window.GetFramebufferLayout().height, false),
+      blit_screen(cpu_memory, render_window, device, memory_allocator, swapchain, scheduler,
+                  screen_info),
+      rasterizer(render_window, gpu, gpu.MemoryManager(), cpu_memory, screen_info, device,
+                 memory_allocator, state_tracker, scheduler) {
+    Report();
+} catch (const vk::Exception& exception) {
+    LOG_ERROR(Render_Vulkan, "Vulkan initialization failed with error: {}", exception.what());
+    throw std::runtime_error{fmt::format("Vulkan initialization error {}", exception.what())};
+}
 
 RendererVulkan::~RendererVulkan() {
-    ShutDown();
+    void(device.GetLogical().WaitIdle());
 }
 
 void RendererVulkan::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
@@ -101,101 +134,38 @@ void RendererVulkan::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
     if (layout.width > 0 && layout.height > 0 && render_window.IsShown()) {
         const VAddr framebuffer_addr = framebuffer->address + framebuffer->offset;
         const bool use_accelerated =
-            rasterizer->AccelerateDisplay(*framebuffer, framebuffer_addr, framebuffer->stride);
+            rasterizer.AccelerateDisplay(*framebuffer, framebuffer_addr, framebuffer->stride);
         const bool is_srgb = use_accelerated && screen_info.is_srgb;
-        if (swapchain->HasFramebufferChanged(layout) || swapchain->GetSrgbState() != is_srgb) {
-            swapchain->Create(layout.width, layout.height, is_srgb);
-            blit_screen->Recreate();
+        if (swapchain.HasFramebufferChanged(layout) || swapchain.GetSrgbState() != is_srgb) {
+            swapchain.Create(layout.width, layout.height, is_srgb);
+            blit_screen.Recreate();
         }
 
-        scheduler->WaitWorker();
+        scheduler.WaitWorker();
 
-        swapchain->AcquireNextImage();
-        const VkSemaphore render_semaphore = blit_screen->Draw(*framebuffer, use_accelerated);
+        swapchain.AcquireNextImage();
+        const VkSemaphore render_semaphore = blit_screen.Draw(*framebuffer, use_accelerated);
 
-        scheduler->Flush(render_semaphore);
+        scheduler.Flush(render_semaphore);
 
-        if (swapchain->Present(render_semaphore)) {
-            blit_screen->Recreate();
+        if (swapchain.Present(render_semaphore)) {
+            blit_screen.Recreate();
         }
-
-        rasterizer->TickFrame();
+        rasterizer.TickFrame();
     }
 
     render_window.OnFrameDisplayed();
 }
 
-bool RendererVulkan::Init() try {
-    library = OpenLibrary();
-    instance = CreateInstance(library, dld, VK_API_VERSION_1_1, render_window.GetWindowInfo().type,
-                              true, Settings::values.renderer_debug);
-    if (Settings::values.renderer_debug) {
-        debug_callback = CreateDebugCallback(instance);
-    }
-    surface = CreateSurface(instance, render_window);
-
-    InitializeDevice();
-    Report();
-
-    memory_allocator = std::make_unique<MemoryAllocator>(*device);
-
-    state_tracker = std::make_unique<StateTracker>(gpu);
-
-    scheduler = std::make_unique<VKScheduler>(*device, *state_tracker);
-
-    const auto& framebuffer = render_window.GetFramebufferLayout();
-    swapchain = std::make_unique<VKSwapchain>(*surface, *device, *scheduler);
-    swapchain->Create(framebuffer.width, framebuffer.height, false);
-
-    rasterizer = std::make_unique<RasterizerVulkan>(render_window, gpu, gpu.MemoryManager(),
-                                                    cpu_memory, screen_info, *device,
-                                                    *memory_allocator, *state_tracker, *scheduler);
-
-    blit_screen =
-        std::make_unique<VKBlitScreen>(cpu_memory, render_window, *rasterizer, *device,
-                                       *memory_allocator, *swapchain, *scheduler, screen_info);
-    return true;
-
-} catch (const vk::Exception& exception) {
-    LOG_ERROR(Render_Vulkan, "Vulkan initialization failed with error: {}", exception.what());
-    return false;
-}
-
-void RendererVulkan::ShutDown() {
-    if (!device) {
-        return;
-    }
-    if (const auto& dev = device->GetLogical()) {
-        dev.WaitIdle();
-    }
-    rasterizer.reset();
-    blit_screen.reset();
-    scheduler.reset();
-    swapchain.reset();
-    memory_allocator.reset();
-    device.reset();
-}
-
-void RendererVulkan::InitializeDevice() {
-    const std::vector<VkPhysicalDevice> devices = instance.EnumeratePhysicalDevices();
-    const s32 device_index = Settings::values.vulkan_device.GetValue();
-    if (device_index < 0 || device_index >= static_cast<s32>(devices.size())) {
-        LOG_ERROR(Render_Vulkan, "Invalid device index {}!", device_index);
-        throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
-    }
-    const vk::PhysicalDevice physical_device(devices[static_cast<size_t>(device_index)], dld);
-    device = std::make_unique<Device>(*instance, physical_device, *surface, dld);
-}
-
 void RendererVulkan::Report() const {
-    const std::string vendor_name{device->GetVendorName()};
-    const std::string model_name{device->GetModelName()};
-    const std::string driver_version = GetDriverVersion(*device);
+    const std::string vendor_name{device.GetVendorName()};
+    const std::string model_name{device.GetModelName()};
+    const std::string driver_version = GetDriverVersion(device);
     const std::string driver_name = fmt::format("{} {}", vendor_name, driver_version);
 
-    const std::string api_version = GetReadableVersion(device->ApiVersion());
+    const std::string api_version = GetReadableVersion(device.ApiVersion());
 
-    const std::string extensions = BuildCommaSeparatedExtensions(device->GetAvailableExtensions());
+    const std::string extensions = BuildCommaSeparatedExtensions(device.GetAvailableExtensions());
 
     LOG_INFO(Render_Vulkan, "Driver: {}", driver_name);
     LOG_INFO(Render_Vulkan, "Device: {}", model_name);
@@ -207,23 +177,6 @@ void RendererVulkan::Report() const {
     telemetry_session.AddField(field, "GPU_Vulkan_Driver", driver_name);
     telemetry_session.AddField(field, "GPU_Vulkan_Version", api_version);
     telemetry_session.AddField(field, "GPU_Vulkan_Extensions", extensions);
-}
-
-std::vector<std::string> RendererVulkan::EnumerateDevices() try {
-    vk::InstanceDispatch dld;
-    const Common::DynamicLibrary library = OpenLibrary();
-    const vk::Instance instance = CreateInstance(library, dld, VK_API_VERSION_1_0);
-    const std::vector<VkPhysicalDevice> physical_devices = instance.EnumeratePhysicalDevices();
-    std::vector<std::string> names;
-    names.reserve(physical_devices.size());
-    for (const VkPhysicalDevice device : physical_devices) {
-        names.push_back(vk::PhysicalDevice(device, dld).GetProperties().deviceName);
-    }
-    return names;
-
-} catch (const vk::Exception& exception) {
-    LOG_ERROR(Render_Vulkan, "Failed to enumerate devices with error: {}", exception.what());
-    return {};
 }
 
 } // namespace Vulkan

@@ -7,6 +7,8 @@
 #include <optional>
 #include <vector>
 
+#include <glad/glad.h>
+
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "common/common_types.h"
@@ -55,10 +57,24 @@ struct Range {
 
 class MemoryAllocation {
 public:
-    explicit MemoryAllocation(const Device& device_, vk::DeviceMemory memory_,
-                              VkMemoryPropertyFlags properties, u64 allocation_size_, u32 type)
-        : device{device_}, memory{std::move(memory_)}, allocation_size{allocation_size_},
-          property_flags{properties}, shifted_memory_type{1U << type} {}
+    explicit MemoryAllocation(vk::DeviceMemory memory_, VkMemoryPropertyFlags properties,
+                              u64 allocation_size_, u32 type)
+        : memory{std::move(memory_)}, allocation_size{allocation_size_}, property_flags{properties},
+          shifted_memory_type{1U << type} {}
+
+#if defined(_WIN32) || defined(__linux__)
+    ~MemoryAllocation() {
+        if (owning_opengl_handle != 0) {
+            glDeleteMemoryObjectsEXT(1, &owning_opengl_handle);
+        }
+    }
+#endif
+
+    MemoryAllocation& operator=(const MemoryAllocation&) = delete;
+    MemoryAllocation(const MemoryAllocation&) = delete;
+
+    MemoryAllocation& operator=(MemoryAllocation&&) = delete;
+    MemoryAllocation(MemoryAllocation&&) = delete;
 
     [[nodiscard]] std::optional<MemoryCommit> Commit(VkDeviceSize size, VkDeviceSize alignment) {
         const std::optional<u64> alloc = FindFreeRegion(size, alignment);
@@ -87,6 +103,31 @@ public:
         }
         return memory_mapped_span;
     }
+
+#ifdef _WIN32
+    [[nodiscard]] u32 ExportOpenGLHandle() {
+        if (!owning_opengl_handle) {
+            glCreateMemoryObjectsEXT(1, &owning_opengl_handle);
+            glImportMemoryWin32HandleEXT(owning_opengl_handle, allocation_size,
+                                         GL_HANDLE_TYPE_OPAQUE_WIN32_EXT,
+                                         memory.GetMemoryWin32HandleKHR());
+        }
+        return owning_opengl_handle;
+    }
+#elif __linux__
+    [[nodiscard]] u32 ExportOpenGLHandle() {
+        if (!owning_opengl_handle) {
+            glCreateMemoryObjectsEXT(1, &owning_opengl_handle);
+            glImportMemoryFdEXT(owning_opengl_handle, allocation_size, GL_HANDLE_TYPE_OPAQUE_FD_EXT,
+                                memory.GetMemoryFdKHR());
+        }
+        return owning_opengl_handle;
+    }
+#else
+    [[nodiscard]] u32 ExportOpenGLHandle() {
+        return 0;
+    }
+#endif
 
     /// Returns whether this allocation is compatible with the arguments.
     [[nodiscard]] bool IsCompatible(VkMemoryPropertyFlags flags, u32 type_mask) const {
@@ -118,13 +159,15 @@ private:
         return candidate;
     }
 
-    const Device& device;                       ///< Vulkan device.
     const vk::DeviceMemory memory;              ///< Vulkan memory allocation handler.
     const u64 allocation_size;                  ///< Size of this allocation.
     const VkMemoryPropertyFlags property_flags; ///< Vulkan memory property flags.
     const u32 shifted_memory_type;              ///< Shifted Vulkan memory type.
     std::vector<Range> commits;                 ///< All commit ranges done from this allocation.
     std::span<u8> memory_mapped_span; ///< Memory mapped span. Empty if not queried before.
+#if defined(_WIN32) || defined(__linux__)
+    u32 owning_opengl_handle{}; ///< Owning OpenGL memory object handle.
+#endif
 };
 
 MemoryCommit::MemoryCommit(MemoryAllocation* allocation_, VkDeviceMemory memory_, u64 begin_,
@@ -156,14 +199,19 @@ std::span<u8> MemoryCommit::Map() {
     return span;
 }
 
+u32 MemoryCommit::ExportOpenGLHandle() const {
+    return allocation->ExportOpenGLHandle();
+}
+
 void MemoryCommit::Release() {
     if (allocation) {
         allocation->Free(begin);
     }
 }
 
-MemoryAllocator::MemoryAllocator(const Device& device_)
-    : device{device_}, properties{device_.GetPhysical().GetMemoryProperties()} {}
+MemoryAllocator::MemoryAllocator(const Device& device_, bool export_allocations_)
+    : device{device_}, properties{device_.GetPhysical().GetMemoryProperties()},
+      export_allocations{export_allocations_} {}
 
 MemoryAllocator::~MemoryAllocator() = default;
 
@@ -196,14 +244,24 @@ MemoryCommit MemoryAllocator::Commit(const vk::Image& image, MemoryUsage usage) 
 
 void MemoryAllocator::AllocMemory(VkMemoryPropertyFlags flags, u32 type_mask, u64 size) {
     const u32 type = FindType(flags, type_mask).value();
+    const VkExportMemoryAllocateInfo export_allocate_info{
+        .sType = VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO,
+        .pNext = nullptr,
+#ifdef _WIN32
+        .handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT,
+#elif __linux__
+        .handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
+#else
+        .handleTypes = 0,
+#endif
+    };
     vk::DeviceMemory memory = device.GetLogical().AllocateMemory({
         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-        .pNext = nullptr,
+        .pNext = export_allocations ? &export_allocate_info : nullptr,
         .allocationSize = size,
         .memoryTypeIndex = type,
     });
-    allocations.push_back(
-        std::make_unique<MemoryAllocation>(device, std::move(memory), flags, size, type));
+    allocations.push_back(std::make_unique<MemoryAllocation>(std::move(memory), flags, size, type));
 }
 
 std::optional<MemoryCommit> MemoryAllocator::TryCommit(const VkMemoryRequirements& requirements,

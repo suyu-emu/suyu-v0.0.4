@@ -19,6 +19,7 @@ namespace VideoCommon {
 
 enum class BufferFlagBits {
     Picked = 1 << 0,
+    CachedWrites = 1 << 1,
 };
 DECLARE_ENUM_FLAG_OPERATORS(BufferFlagBits)
 
@@ -40,7 +41,7 @@ class BufferBase {
     static constexpr u64 BYTES_PER_WORD = PAGES_PER_WORD * BYTES_PER_PAGE;
 
     /// Vector tracking modified pages tightly packed with small vector optimization
-    union WrittenWords {
+    union WordsArray {
         /// Returns the pointer to the words state
         [[nodiscard]] const u64* Pointer(bool is_short) const noexcept {
             return is_short ? &stack : heap;
@@ -55,49 +56,59 @@ class BufferBase {
         u64* heap;     ///< Not-small buffers pointer to the storage
     };
 
-    struct GpuCpuWords {
-        explicit GpuCpuWords() = default;
-        explicit GpuCpuWords(u64 size_bytes_) : size_bytes{size_bytes_} {
+    struct Words {
+        explicit Words() = default;
+        explicit Words(u64 size_bytes_) : size_bytes{size_bytes_} {
             if (IsShort()) {
                 cpu.stack = ~u64{0};
                 gpu.stack = 0;
+                cached_cpu.stack = 0;
+                untracked.stack = ~u64{0};
             } else {
                 // Share allocation between CPU and GPU pages and set their default values
                 const size_t num_words = NumWords();
-                u64* const alloc = new u64[num_words * 2];
+                u64* const alloc = new u64[num_words * 4];
                 cpu.heap = alloc;
                 gpu.heap = alloc + num_words;
+                cached_cpu.heap = alloc + num_words * 2;
+                untracked.heap = alloc + num_words * 3;
                 std::fill_n(cpu.heap, num_words, ~u64{0});
                 std::fill_n(gpu.heap, num_words, 0);
+                std::fill_n(cached_cpu.heap, num_words, 0);
+                std::fill_n(untracked.heap, num_words, ~u64{0});
             }
             // Clean up tailing bits
-            const u64 last_local_page =
-                Common::DivCeil(size_bytes % BYTES_PER_WORD, BYTES_PER_PAGE);
+            const u64 last_word_size = size_bytes % BYTES_PER_WORD;
+            const u64 last_local_page = Common::DivCeil(last_word_size, BYTES_PER_PAGE);
             const u64 shift = (PAGES_PER_WORD - last_local_page) % PAGES_PER_WORD;
-            u64& last_word = cpu.Pointer(IsShort())[NumWords() - 1];
-            last_word = (last_word << shift) >> shift;
+            const u64 last_word = (~u64{0} << shift) >> shift;
+            cpu.Pointer(IsShort())[NumWords() - 1] = last_word;
+            untracked.Pointer(IsShort())[NumWords() - 1] = last_word;
         }
 
-        ~GpuCpuWords() {
+        ~Words() {
             Release();
         }
 
-        GpuCpuWords& operator=(GpuCpuWords&& rhs) noexcept {
+        Words& operator=(Words&& rhs) noexcept {
             Release();
             size_bytes = rhs.size_bytes;
             cpu = rhs.cpu;
             gpu = rhs.gpu;
+            cached_cpu = rhs.cached_cpu;
+            untracked = rhs.untracked;
             rhs.cpu.heap = nullptr;
             return *this;
         }
 
-        GpuCpuWords(GpuCpuWords&& rhs) noexcept
-            : size_bytes{rhs.size_bytes}, cpu{rhs.cpu}, gpu{rhs.gpu} {
+        Words(Words&& rhs) noexcept
+            : size_bytes{rhs.size_bytes}, cpu{rhs.cpu}, gpu{rhs.gpu},
+              cached_cpu{rhs.cached_cpu}, untracked{rhs.untracked} {
             rhs.cpu.heap = nullptr;
         }
 
-        GpuCpuWords& operator=(const GpuCpuWords&) = delete;
-        GpuCpuWords(const GpuCpuWords&) = delete;
+        Words& operator=(const Words&) = delete;
+        Words(const Words&) = delete;
 
         /// Returns true when the buffer fits in the small vector optimization
         [[nodiscard]] bool IsShort() const noexcept {
@@ -118,8 +129,17 @@ class BufferBase {
         }
 
         u64 size_bytes = 0;
-        WrittenWords cpu;
-        WrittenWords gpu;
+        WordsArray cpu;
+        WordsArray gpu;
+        WordsArray cached_cpu;
+        WordsArray untracked;
+    };
+
+    enum class Type {
+        CPU,
+        GPU,
+        CachedCPU,
+        Untracked,
     };
 
 public:
@@ -132,68 +152,93 @@ public:
     BufferBase& operator=(const BufferBase&) = delete;
     BufferBase(const BufferBase&) = delete;
 
+    BufferBase& operator=(BufferBase&&) = default;
+    BufferBase(BufferBase&&) = default;
+
     /// Returns the inclusive CPU modified range in a begin end pair
     [[nodiscard]] std::pair<u64, u64> ModifiedCpuRegion(VAddr query_cpu_addr,
                                                         u64 query_size) const noexcept {
         const u64 offset = query_cpu_addr - cpu_addr;
-        return ModifiedRegion<false>(offset, query_size);
+        return ModifiedRegion<Type::CPU>(offset, query_size);
     }
 
     /// Returns the inclusive GPU modified range in a begin end pair
     [[nodiscard]] std::pair<u64, u64> ModifiedGpuRegion(VAddr query_cpu_addr,
                                                         u64 query_size) const noexcept {
         const u64 offset = query_cpu_addr - cpu_addr;
-        return ModifiedRegion<true>(offset, query_size);
+        return ModifiedRegion<Type::GPU>(offset, query_size);
     }
 
     /// Returns true if a region has been modified from the CPU
     [[nodiscard]] bool IsRegionCpuModified(VAddr query_cpu_addr, u64 query_size) const noexcept {
         const u64 offset = query_cpu_addr - cpu_addr;
-        return IsRegionModified<false>(offset, query_size);
+        return IsRegionModified<Type::CPU>(offset, query_size);
     }
 
     /// Returns true if a region has been modified from the GPU
     [[nodiscard]] bool IsRegionGpuModified(VAddr query_cpu_addr, u64 query_size) const noexcept {
         const u64 offset = query_cpu_addr - cpu_addr;
-        return IsRegionModified<true>(offset, query_size);
+        return IsRegionModified<Type::GPU>(offset, query_size);
     }
 
     /// Mark region as CPU modified, notifying the rasterizer about this change
     void MarkRegionAsCpuModified(VAddr dirty_cpu_addr, u64 size) {
-        ChangeRegionState<true, true>(words.cpu, dirty_cpu_addr, size);
+        ChangeRegionState<Type::CPU, true>(dirty_cpu_addr, size);
     }
 
     /// Unmark region as CPU modified, notifying the rasterizer about this change
     void UnmarkRegionAsCpuModified(VAddr dirty_cpu_addr, u64 size) {
-        ChangeRegionState<false, true>(words.cpu, dirty_cpu_addr, size);
+        ChangeRegionState<Type::CPU, false>(dirty_cpu_addr, size);
     }
 
     /// Mark region as modified from the host GPU
     void MarkRegionAsGpuModified(VAddr dirty_cpu_addr, u64 size) noexcept {
-        ChangeRegionState<true, false>(words.gpu, dirty_cpu_addr, size);
+        ChangeRegionState<Type::GPU, true>(dirty_cpu_addr, size);
     }
 
     /// Unmark region as modified from the host GPU
     void UnmarkRegionAsGpuModified(VAddr dirty_cpu_addr, u64 size) noexcept {
-        ChangeRegionState<false, false>(words.gpu, dirty_cpu_addr, size);
+        ChangeRegionState<Type::GPU, false>(dirty_cpu_addr, size);
+    }
+
+    /// Mark region as modified from the CPU
+    /// but don't mark it as modified until FlusHCachedWrites is called.
+    void CachedCpuWrite(VAddr dirty_cpu_addr, u64 size) {
+        flags |= BufferFlagBits::CachedWrites;
+        ChangeRegionState<Type::CachedCPU, true>(dirty_cpu_addr, size);
+    }
+
+    /// Flushes cached CPU writes, and notify the rasterizer about the deltas
+    void FlushCachedWrites() noexcept {
+        flags &= ~BufferFlagBits::CachedWrites;
+        const u64 num_words = NumWords();
+        const u64* const cached_words = Array<Type::CachedCPU>();
+        u64* const untracked_words = Array<Type::Untracked>();
+        u64* const cpu_words = Array<Type::CPU>();
+        for (u64 word_index = 0; word_index < num_words; ++word_index) {
+            const u64 cached_bits = cached_words[word_index];
+            NotifyRasterizer<false>(word_index, untracked_words[word_index], cached_bits);
+            untracked_words[word_index] |= cached_bits;
+            cpu_words[word_index] |= cached_bits;
+        }
     }
 
     /// Call 'func' for each CPU modified range and unmark those pages as CPU modified
     template <typename Func>
     void ForEachUploadRange(VAddr query_cpu_range, u64 size, Func&& func) {
-        ForEachModifiedRange<false, true>(query_cpu_range, size, func);
+        ForEachModifiedRange<Type::CPU>(query_cpu_range, size, func);
     }
 
     /// Call 'func' for each GPU modified range and unmark those pages as GPU modified
     template <typename Func>
     void ForEachDownloadRange(VAddr query_cpu_range, u64 size, Func&& func) {
-        ForEachModifiedRange<true, false>(query_cpu_range, size, func);
+        ForEachModifiedRange<Type::GPU>(query_cpu_range, size, func);
     }
 
     /// Call 'func' for each GPU modified range and unmark those pages as GPU modified
     template <typename Func>
     void ForEachDownloadRange(Func&& func) {
-        ForEachModifiedRange<true, false>(cpu_addr, SizeBytes(), func);
+        ForEachModifiedRange<Type::GPU>(cpu_addr, SizeBytes(), func);
     }
 
     /// Mark buffer as picked
@@ -206,6 +251,16 @@ public:
         flags &= ~BufferFlagBits::Picked;
     }
 
+    /// Increases the likeliness of this being a stream buffer
+    void IncreaseStreamScore(int score) noexcept {
+        stream_score += score;
+    }
+
+    /// Returns the likeliness of this being a stream buffer
+    [[nodiscard]] int StreamScore() const noexcept {
+        return stream_score;
+    }
+
     /// Returns true when vaddr -> vaddr+size is fully contained in the buffer
     [[nodiscard]] bool IsInBounds(VAddr addr, u64 size) const noexcept {
         return addr >= cpu_addr && addr + size <= cpu_addr + SizeBytes();
@@ -214,6 +269,11 @@ public:
     /// Returns true if the buffer has been marked as picked
     [[nodiscard]] bool IsPicked() const noexcept {
         return True(flags & BufferFlagBits::Picked);
+    }
+
+    /// Returns true when the buffer has pending cached writes
+    [[nodiscard]] bool HasCachedWrites() const noexcept {
+        return True(flags & BufferFlagBits::CachedWrites);
     }
 
     /// Returns the base CPU address of the buffer
@@ -233,26 +293,48 @@ public:
     }
 
 private:
+    template <Type type>
+    u64* Array() noexcept {
+        if constexpr (type == Type::CPU) {
+            return words.cpu.Pointer(IsShort());
+        } else if constexpr (type == Type::GPU) {
+            return words.gpu.Pointer(IsShort());
+        } else if constexpr (type == Type::CachedCPU) {
+            return words.cached_cpu.Pointer(IsShort());
+        } else if constexpr (type == Type::Untracked) {
+            return words.untracked.Pointer(IsShort());
+        }
+    }
+
+    template <Type type>
+    const u64* Array() const noexcept {
+        if constexpr (type == Type::CPU) {
+            return words.cpu.Pointer(IsShort());
+        } else if constexpr (type == Type::GPU) {
+            return words.gpu.Pointer(IsShort());
+        } else if constexpr (type == Type::CachedCPU) {
+            return words.cached_cpu.Pointer(IsShort());
+        } else if constexpr (type == Type::Untracked) {
+            return words.untracked.Pointer(IsShort());
+        }
+    }
+
     /**
      * Change the state of a range of pages
      *
-     * @param written_words Pages to be marked or unmarked as modified
      * @param dirty_addr    Base address to mark or unmark as modified
      * @param size          Size in bytes to mark or unmark as modified
-     *
-     * @tparam enable            True when the bits will be set to one, false for zero
-     * @tparam notify_rasterizer True when the rasterizer has to be notified about the changes
      */
-    template <bool enable, bool notify_rasterizer>
-    void ChangeRegionState(WrittenWords& written_words, u64 dirty_addr,
-                           s64 size) noexcept(!notify_rasterizer) {
+    template <Type type, bool enable>
+    void ChangeRegionState(u64 dirty_addr, s64 size) noexcept(type == Type::GPU) {
         const s64 difference = dirty_addr - cpu_addr;
         const u64 offset = std::max<s64>(difference, 0);
         size += std::min<s64>(difference, 0);
         if (offset >= SizeBytes() || size < 0) {
             return;
         }
-        u64* const state_words = written_words.Pointer(IsShort());
+        u64* const untracked_words = Array<Type::Untracked>();
+        u64* const state_words = Array<type>();
         const u64 offset_end = std::min(offset + size, SizeBytes());
         const u64 begin_page_index = offset / BYTES_PER_PAGE;
         const u64 begin_word_index = begin_page_index / PAGES_PER_WORD;
@@ -268,13 +350,19 @@ private:
             u64 bits = ~u64{0};
             bits = (bits >> right_offset) << right_offset;
             bits = (bits << left_offset) >> left_offset;
-            if constexpr (notify_rasterizer) {
-                NotifyRasterizer<!enable>(word_index, state_words[word_index], bits);
+            if constexpr (type == Type::CPU || type == Type::CachedCPU) {
+                NotifyRasterizer<!enable>(word_index, untracked_words[word_index], bits);
             }
             if constexpr (enable) {
                 state_words[word_index] |= bits;
+                if constexpr (type == Type::CPU || type == Type::CachedCPU) {
+                    untracked_words[word_index] |= bits;
+                }
             } else {
                 state_words[word_index] &= ~bits;
+                if constexpr (type == Type::CPU || type == Type::CachedCPU) {
+                    untracked_words[word_index] &= ~bits;
+                }
             }
             page_index = 0;
             ++word_index;
@@ -291,7 +379,7 @@ private:
      * @tparam add_to_rasterizer True when the rasterizer should start tracking the new pages
      */
     template <bool add_to_rasterizer>
-    void NotifyRasterizer(u64 word_index, u64 current_bits, u64 new_bits) {
+    void NotifyRasterizer(u64 word_index, u64 current_bits, u64 new_bits) const {
         u64 changed_bits = (add_to_rasterizer ? current_bits : ~current_bits) & new_bits;
         VAddr addr = cpu_addr + word_index * BYTES_PER_WORD;
         while (changed_bits != 0) {
@@ -315,21 +403,20 @@ private:
      * @param query_cpu_range Base CPU address to loop over
      * @param size            Size in bytes of the CPU range to loop over
      * @param func            Function to call for each turned off region
-     *
-     * @tparam gpu               True for host GPU pages, false for CPU pages
-     * @tparam notify_rasterizer True when the rasterizer should be notified about state changes
      */
-    template <bool gpu, bool notify_rasterizer, typename Func>
+    template <Type type, typename Func>
     void ForEachModifiedRange(VAddr query_cpu_range, s64 size, Func&& func) {
+        static_assert(type != Type::Untracked);
+
         const s64 difference = query_cpu_range - cpu_addr;
         const u64 query_begin = std::max<s64>(difference, 0);
         size += std::min<s64>(difference, 0);
         if (query_begin >= SizeBytes() || size < 0) {
             return;
         }
-        const u64* const cpu_words = words.cpu.Pointer(IsShort());
+        u64* const untracked_words = Array<Type::Untracked>();
+        u64* const state_words = Array<type>();
         const u64 query_end = query_begin + std::min(static_cast<u64>(size), SizeBytes());
-        u64* const state_words = (gpu ? words.gpu : words.cpu).Pointer(IsShort());
         u64* const words_begin = state_words + query_begin / BYTES_PER_WORD;
         u64* const words_end = state_words + Common::DivCeil(query_end, BYTES_PER_WORD);
 
@@ -345,7 +432,8 @@ private:
         const u64 word_index_end = std::distance(state_words, last_modified_word);
 
         const unsigned local_page_begin = std::countr_zero(*first_modified_word);
-        const unsigned local_page_end = PAGES_PER_WORD - std::countl_zero(last_modified_word[-1]);
+        const unsigned local_page_end =
+            static_cast<unsigned>(PAGES_PER_WORD) - std::countl_zero(last_modified_word[-1]);
         const u64 word_page_begin = word_index_begin * PAGES_PER_WORD;
         const u64 word_page_end = (word_index_end - 1) * PAGES_PER_WORD;
         const u64 query_page_begin = query_begin / BYTES_PER_PAGE;
@@ -371,11 +459,13 @@ private:
             const u64 current_word = state_words[word_index] & bits;
             state_words[word_index] &= ~bits;
 
-            // Exclude CPU modified pages when visiting GPU pages
-            const u64 word = current_word & ~(gpu ? cpu_words[word_index] : 0);
-            if constexpr (notify_rasterizer) {
-                NotifyRasterizer<true>(word_index, word, ~u64{0});
+            if constexpr (type == Type::CPU) {
+                const u64 current_bits = untracked_words[word_index] & bits;
+                untracked_words[word_index] &= ~bits;
+                NotifyRasterizer<true>(word_index, current_bits, ~u64{0});
             }
+            // Exclude CPU modified pages when visiting GPU pages
+            const u64 word = current_word & ~(type == Type::GPU ? untracked_words[word_index] : 0);
             u64 page = page_begin;
             page_begin = 0;
 
@@ -416,17 +506,20 @@ private:
      * @param offset Offset in bytes from the start of the buffer
      * @param size   Size in bytes of the region to query for modifications
      */
-    template <bool gpu>
+    template <Type type>
     [[nodiscard]] bool IsRegionModified(u64 offset, u64 size) const noexcept {
-        const u64* const cpu_words = words.cpu.Pointer(IsShort());
-        const u64* const state_words = (gpu ? words.gpu : words.cpu).Pointer(IsShort());
+        static_assert(type != Type::Untracked);
+
+        const u64* const untracked_words = Array<Type::Untracked>();
+        const u64* const state_words = Array<type>();
         const u64 num_query_words = size / BYTES_PER_WORD + 1;
         const u64 word_begin = offset / BYTES_PER_WORD;
         const u64 word_end = std::min(word_begin + num_query_words, NumWords());
         const u64 page_limit = Common::DivCeil(offset + size, BYTES_PER_PAGE);
         u64 page_index = (offset / BYTES_PER_PAGE) % PAGES_PER_WORD;
         for (u64 word_index = word_begin; word_index < word_end; ++word_index, page_index = 0) {
-            const u64 word = state_words[word_index] & ~(gpu ? cpu_words[word_index] : 0);
+            const u64 off_word = type == Type::GPU ? untracked_words[word_index] : 0;
+            const u64 word = state_words[word_index] & ~off_word;
             if (word == 0) {
                 continue;
             }
@@ -445,13 +538,13 @@ private:
      *
      * @param offset Offset in bytes from the start of the buffer
      * @param size   Size in bytes of the region to query for modifications
-     *
-     * @tparam gpu True to query GPU modified pages, false for CPU pages
      */
-    template <bool gpu>
+    template <Type type>
     [[nodiscard]] std::pair<u64, u64> ModifiedRegion(u64 offset, u64 size) const noexcept {
-        const u64* const cpu_words = words.cpu.Pointer(IsShort());
-        const u64* const state_words = (gpu ? words.gpu : words.cpu).Pointer(IsShort());
+        static_assert(type != Type::Untracked);
+
+        const u64* const untracked_words = Array<Type::Untracked>();
+        const u64* const state_words = Array<type>();
         const u64 num_query_words = size / BYTES_PER_WORD + 1;
         const u64 word_begin = offset / BYTES_PER_WORD;
         const u64 word_end = std::min(word_begin + num_query_words, NumWords());
@@ -460,7 +553,8 @@ private:
         u64 begin = std::numeric_limits<u64>::max();
         u64 end = 0;
         for (u64 word_index = word_begin; word_index < word_end; ++word_index) {
-            const u64 word = state_words[word_index] & ~(gpu ? cpu_words[word_index] : 0);
+            const u64 off_word = type == Type::GPU ? untracked_words[word_index] : 0;
+            const u64 word = state_words[word_index] & ~off_word;
             if (word == 0) {
                 continue;
             }
@@ -488,8 +582,9 @@ private:
 
     RasterizerInterface* rasterizer = nullptr;
     VAddr cpu_addr = 0;
-    GpuCpuWords words;
+    Words words;
     BufferFlagBits flags{};
+    int stream_score = 0;
 };
 
 } // namespace VideoCommon

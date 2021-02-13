@@ -471,3 +471,79 @@ TEST_CASE("BufferBase: Unaligned page region query") {
     REQUIRE(buffer.IsRegionCpuModified(c + 4000, 1000));
     REQUIRE(buffer.IsRegionCpuModified(c + 4000, 1));
 }
+
+TEST_CASE("BufferBase: Cached write") {
+    RasterizerInterface rasterizer;
+    BufferBase buffer(rasterizer, c, WORD);
+    buffer.UnmarkRegionAsCpuModified(c, WORD);
+    buffer.CachedCpuWrite(c + PAGE, PAGE);
+    REQUIRE(!buffer.IsRegionCpuModified(c + PAGE, PAGE));
+    buffer.FlushCachedWrites();
+    REQUIRE(buffer.IsRegionCpuModified(c + PAGE, PAGE));
+    buffer.MarkRegionAsCpuModified(c, WORD);
+    REQUIRE(rasterizer.Count() == 0);
+}
+
+TEST_CASE("BufferBase: Multiple cached write") {
+    RasterizerInterface rasterizer;
+    BufferBase buffer(rasterizer, c, WORD);
+    buffer.UnmarkRegionAsCpuModified(c, WORD);
+    buffer.CachedCpuWrite(c + PAGE, PAGE);
+    buffer.CachedCpuWrite(c + PAGE * 3, PAGE);
+    REQUIRE(!buffer.IsRegionCpuModified(c + PAGE, PAGE));
+    REQUIRE(!buffer.IsRegionCpuModified(c + PAGE * 3, PAGE));
+    buffer.FlushCachedWrites();
+    REQUIRE(buffer.IsRegionCpuModified(c + PAGE, PAGE));
+    REQUIRE(buffer.IsRegionCpuModified(c + PAGE * 3, PAGE));
+    buffer.MarkRegionAsCpuModified(c, WORD);
+    REQUIRE(rasterizer.Count() == 0);
+}
+
+TEST_CASE("BufferBase: Cached write unmarked") {
+    RasterizerInterface rasterizer;
+    BufferBase buffer(rasterizer, c, WORD);
+    buffer.UnmarkRegionAsCpuModified(c, WORD);
+    buffer.CachedCpuWrite(c + PAGE, PAGE);
+    buffer.UnmarkRegionAsCpuModified(c + PAGE, PAGE);
+    REQUIRE(!buffer.IsRegionCpuModified(c + PAGE, PAGE));
+    buffer.FlushCachedWrites();
+    REQUIRE(buffer.IsRegionCpuModified(c + PAGE, PAGE));
+    buffer.MarkRegionAsCpuModified(c, WORD);
+    REQUIRE(rasterizer.Count() == 0);
+}
+
+TEST_CASE("BufferBase: Cached write iterated") {
+    RasterizerInterface rasterizer;
+    BufferBase buffer(rasterizer, c, WORD);
+    buffer.UnmarkRegionAsCpuModified(c, WORD);
+    buffer.CachedCpuWrite(c + PAGE, PAGE);
+    int num = 0;
+    buffer.ForEachUploadRange(c, WORD, [&](u64 offset, u64 size) { ++num; });
+    REQUIRE(num == 0);
+    REQUIRE(!buffer.IsRegionCpuModified(c + PAGE, PAGE));
+    buffer.FlushCachedWrites();
+    REQUIRE(buffer.IsRegionCpuModified(c + PAGE, PAGE));
+    buffer.MarkRegionAsCpuModified(c, WORD);
+    REQUIRE(rasterizer.Count() == 0);
+}
+
+TEST_CASE("BufferBase: Cached write downloads") {
+    RasterizerInterface rasterizer;
+    BufferBase buffer(rasterizer, c, WORD);
+    buffer.UnmarkRegionAsCpuModified(c, WORD);
+    REQUIRE(rasterizer.Count() == 64);
+    buffer.CachedCpuWrite(c + PAGE, PAGE);
+    REQUIRE(rasterizer.Count() == 63);
+    buffer.MarkRegionAsGpuModified(c + PAGE, PAGE);
+    int num = 0;
+    buffer.ForEachDownloadRange(c, WORD, [&](u64 offset, u64 size) { ++num; });
+    buffer.ForEachUploadRange(c, WORD, [&](u64 offset, u64 size) { ++num; });
+    REQUIRE(num == 0);
+    REQUIRE(!buffer.IsRegionCpuModified(c + PAGE, PAGE));
+    REQUIRE(!buffer.IsRegionGpuModified(c + PAGE, PAGE));
+    buffer.FlushCachedWrites();
+    REQUIRE(buffer.IsRegionCpuModified(c + PAGE, PAGE));
+    REQUIRE(!buffer.IsRegionGpuModified(c + PAGE, PAGE));
+    buffer.MarkRegionAsCpuModified(c, WORD);
+    REQUIRE(rasterizer.Count() == 0);
+}

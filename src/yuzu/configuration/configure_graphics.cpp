@@ -2,6 +2,9 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+// Include this early to include Vulkan headers how we want to
+#include "video_core/vulkan_common/vulkan_wrapper.h"
+
 #include <QColorDialog>
 #include <QComboBox>
 #include <QVulkanInstance>
@@ -11,7 +14,8 @@
 #include "core/core.h"
 #include "core/settings.h"
 #include "ui_configure_graphics.h"
-#include "video_core/renderer_vulkan/renderer_vulkan.h"
+#include "video_core/vulkan_common/vulkan_instance.h"
+#include "video_core/vulkan_common/vulkan_library.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_graphics.h"
 
@@ -212,11 +216,23 @@ void ConfigureGraphics::UpdateDeviceComboBox() {
     ui->device->setEnabled(enabled && !Core::System::GetInstance().IsPoweredOn());
 }
 
-void ConfigureGraphics::RetrieveVulkanDevices() {
+void ConfigureGraphics::RetrieveVulkanDevices() try {
+    using namespace Vulkan;
+
+    vk::InstanceDispatch dld;
+    const Common::DynamicLibrary library = OpenLibrary();
+    const vk::Instance instance = CreateInstance(library, dld, VK_API_VERSION_1_0);
+    const std::vector<VkPhysicalDevice> physical_devices = instance.EnumeratePhysicalDevices();
+
     vulkan_devices.clear();
-    for (const auto& name : Vulkan::RendererVulkan::EnumerateDevices()) {
+    vulkan_devices.reserve(physical_devices.size());
+    for (const VkPhysicalDevice device : physical_devices) {
+        const char* const name = vk::PhysicalDevice(device, dld).GetProperties().deviceName;
         vulkan_devices.push_back(QString::fromStdString(name));
     }
+
+} catch (const Vulkan::vk::Exception& exception) {
+    LOG_ERROR(Frontend, "Failed to enumerate devices with error: {}", exception.what());
 }
 
 Settings::RendererBackend ConfigureGraphics::GetCurrentGraphicsBackend() const {

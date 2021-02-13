@@ -39,24 +39,7 @@ private:
     u32 index{};
 };
 
-class GlobalBufferEntry {
-public:
-    constexpr explicit GlobalBufferEntry(u32 cbuf_index_, u32 cbuf_offset_, bool is_written_)
-        : cbuf_index{cbuf_index_}, cbuf_offset{cbuf_offset_}, is_written{is_written_} {}
-
-    constexpr u32 GetCbufIndex() const {
-        return cbuf_index;
-    }
-
-    constexpr u32 GetCbufOffset() const {
-        return cbuf_offset;
-    }
-
-    constexpr bool IsWritten() const {
-        return is_written;
-    }
-
-private:
+struct GlobalBufferEntry {
     u32 cbuf_index{};
     u32 cbuf_offset{};
     bool is_written{};
@@ -78,6 +61,7 @@ struct ShaderEntries {
     std::set<u32> attributes;
     std::array<bool, Maxwell::NumClipDistances> clip_distances{};
     std::size_t shader_length{};
+    u32 enabled_uniform_buffers{};
     bool uses_warps{};
 };
 

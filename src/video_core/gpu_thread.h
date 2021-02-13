@@ -27,6 +27,7 @@ class System;
 } // namespace Core
 
 namespace VideoCore {
+class RasterizerInterface;
 class RendererBase;
 } // namespace VideoCore
 
@@ -151,11 +152,12 @@ private:
     /// Pushes a command to be executed by the GPU thread
     u64 PushCommand(CommandData&& command_data);
 
-    SynchState state;
     Core::System& system;
-    std::thread thread;
-    std::thread::id thread_id;
     const bool is_async;
+    VideoCore::RasterizerInterface* rasterizer = nullptr;
+
+    SynchState state;
+    std::thread thread;
 };
 
 } // namespace VideoCommon::GPUThread

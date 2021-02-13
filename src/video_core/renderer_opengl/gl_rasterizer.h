@@ -30,7 +30,6 @@
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
 #include "video_core/renderer_opengl/gl_state_tracker.h"
-#include "video_core/renderer_opengl/gl_stream_buffer.h"
 #include "video_core/renderer_opengl/gl_texture_cache.h"
 #include "video_core/shader/async_shaders.h"
 #include "video_core/textures/texture.h"
@@ -72,6 +71,7 @@ public:
     void DispatchCompute(GPUVAddr code_addr) override;
     void ResetCounter(VideoCore::QueryType type) override;
     void Query(GPUVAddr gpu_addr, VideoCore::QueryType type, std::optional<u64> timestamp) override;
+    void BindGraphicsUniformBuffer(size_t stage, u32 index, GPUVAddr gpu_addr, u32 size) override;
     void FlushAll() override;
     void FlushRegion(VAddr addr, u64 size) override;
     bool MustFlushRegion(VAddr addr, u64 size) override;
@@ -119,27 +119,6 @@ private:
     void BindTextures(const ShaderEntries& entries, GLuint base_texture, GLuint base_image,
                       size_t& image_view_index, size_t& texture_index, size_t& image_index);
 
-    /// Configures the current constbuffers to use for the draw command.
-    void SetupDrawConstBuffers(std::size_t stage_index, Shader* shader);
-
-    /// Configures the current constbuffers to use for the kernel invocation.
-    void SetupComputeConstBuffers(Shader* kernel);
-
-    /// Configures a constant buffer.
-    void SetupConstBuffer(GLenum stage, u32 binding, const Tegra::Engines::ConstBufferInfo& buffer,
-                          const ConstBufferEntry& entry, bool use_unified,
-                          std::size_t unified_offset);
-
-    /// Configures the current global memory entries to use for the draw command.
-    void SetupDrawGlobalMemory(std::size_t stage_index, Shader* shader);
-
-    /// Configures the current global memory entries to use for the kernel invocation.
-    void SetupComputeGlobalMemory(Shader* kernel);
-
-    /// Configures a global memory buffer.
-    void SetupGlobalMemory(u32 binding, const GlobalMemoryEntry& entry, GPUVAddr gpu_addr,
-                           size_t size, BindlessSSBO* ssbo);
-
     /// Configures the current textures to use for the draw command.
     void SetupDrawTextures(const Shader* shader, size_t stage_index);
 
@@ -151,6 +130,9 @@ private:
 
     /// Configures images in a compute shader.
     void SetupComputeImages(const Shader* shader);
+
+    /// Syncs state to match guest's
+    void SyncState();
 
     /// Syncs the viewport and depth range to match the guest state
     void SyncViewport();
@@ -215,6 +197,12 @@ private:
     /// Syncs the framebuffer sRGB state to match the guest state
     void SyncFramebufferSRGB();
 
+    /// Syncs vertex formats to match the guest state
+    void SyncVertexFormats();
+
+    /// Syncs vertex instances to match the guest state
+    void SyncVertexInstances();
+
     /// Syncs transform feedback state to match guest state
     /// @note Only valid on assembly shaders
     void SyncTransformFeedback();
@@ -225,19 +213,7 @@ private:
     /// End a transform feedback
     void EndTransformFeedback();
 
-    std::size_t CalculateVertexArraysSize() const;
-
-    std::size_t CalculateIndexBufferSize() const;
-
-    /// Updates the current vertex format
-    void SetupVertexFormat();
-
-    void SetupVertexBuffer();
-    void SetupVertexInstances();
-
-    GLintptr SetupIndexBuffer();
-
-    void SetupShaders();
+    void SetupShaders(bool is_indexed);
 
     Tegra::GPU& gpu;
     Tegra::Engines::Maxwell3D& maxwell3d;
@@ -249,12 +225,12 @@ private:
     ProgramManager& program_manager;
     StateTracker& state_tracker;
 
-    OGLStreamBuffer stream_buffer;
     TextureCacheRuntime texture_cache_runtime;
     TextureCache texture_cache;
+    BufferCacheRuntime buffer_cache_runtime;
+    BufferCache buffer_cache;
     ShaderCacheOpenGL shader_cache;
     QueryCache query_cache;
-    OGLBufferCache buffer_cache;
     FenceManagerOpenGL fence_manager;
 
     VideoCommon::Shader::AsyncShaders async_shaders;
@@ -262,20 +238,8 @@ private:
     boost::container::static_vector<u32, MAX_IMAGE_VIEWS> image_view_indices;
     std::array<ImageViewId, MAX_IMAGE_VIEWS> image_view_ids;
     boost::container::static_vector<GLuint, MAX_TEXTURES> sampler_handles;
-    std::array<GLuint, MAX_TEXTURES> texture_handles;
-    std::array<GLuint, MAX_IMAGES> image_handles;
-
-    std::array<OGLBuffer, Tegra::Engines::Maxwell3D::Regs::NumTransformFeedbackBuffers>
-        transform_feedback_buffers;
-    std::bitset<Tegra::Engines::Maxwell3D::Regs::NumTransformFeedbackBuffers>
-        enabled_transform_feedback_buffers;
-
-    static constexpr std::size_t NUM_CONSTANT_BUFFERS =
-        Tegra::Engines::Maxwell3D::Regs::MaxConstBuffers *
-        Tegra::Engines::Maxwell3D::Regs::MaxShaderProgram;
-    std::array<GLuint, NUM_CONSTANT_BUFFERS> staging_cbufs{};
-    std::size_t current_cbuf = 0;
-    OGLBuffer unified_uniform_buffer;
+    std::array<GLuint, MAX_TEXTURES> texture_handles{};
+    std::array<GLuint, MAX_IMAGES> image_handles{};
 
     /// Number of commands queued to the OpenGL driver. Resetted on flush.
     std::size_t num_queued_commands = 0;

@@ -19,11 +19,14 @@ class VKScheduler;
 
 struct StagingBufferRef {
     VkBuffer buffer;
+    VkDeviceSize offset;
     std::span<u8> mapped_span;
 };
 
 class StagingBufferPool {
 public:
+    static constexpr size_t NUM_SYNCS = 16;
+
     explicit StagingBufferPool(const Device& device, MemoryAllocator& memory_allocator,
                                VKScheduler& scheduler);
     ~StagingBufferPool();
@@ -33,6 +36,11 @@ public:
     void TickFrame();
 
 private:
+    struct StreamBufferCommit {
+        size_t upper_bound;
+        u64 tick;
+    };
+
     struct StagingBuffer {
         vk::Buffer buffer;
         MemoryCommit commit;
@@ -42,6 +50,7 @@ private:
         StagingBufferRef Ref() const noexcept {
             return {
                 .buffer = *buffer,
+                .offset = 0,
                 .mapped_span = mapped_span,
             };
         }
@@ -56,6 +65,12 @@ private:
     static constexpr size_t NUM_LEVELS = sizeof(size_t) * CHAR_BIT;
     using StagingBuffersCache = std::array<StagingBuffers, NUM_LEVELS>;
 
+    StagingBufferRef GetStreamBuffer(size_t size);
+
+    bool AreRegionsActive(size_t region_begin, size_t region_end) const;
+
+    StagingBufferRef GetStagingBuffer(size_t size, MemoryUsage usage);
+
     std::optional<StagingBufferRef> TryGetReservedBuffer(size_t size, MemoryUsage usage);
 
     StagingBufferRef CreateStagingBuffer(size_t size, MemoryUsage usage);
@@ -69,6 +84,15 @@ private:
     const Device& device;
     MemoryAllocator& memory_allocator;
     VKScheduler& scheduler;
+
+    vk::Buffer stream_buffer;
+    vk::DeviceMemory stream_memory;
+    u8* stream_pointer = nullptr;
+
+    size_t iterator = 0;
+    size_t used_iterator = 0;
+    size_t free_iterator = 0;
+    std::array<u64, NUM_SYNCS> sync_ticks{};
 
     StagingBuffersCache device_local_cache;
     StagingBuffersCache upload_cache;

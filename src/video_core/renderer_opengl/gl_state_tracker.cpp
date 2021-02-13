@@ -36,16 +36,10 @@ void SetupDirtyColorMasks(Tables& tables) {
     FillBlock(tables[1], OFF(color_mask), NUM(color_mask), ColorMasks);
 }
 
-void SetupDirtyVertexArrays(Tables& tables) {
-    static constexpr std::size_t num_array = 3;
+void SetupDirtyVertexInstances(Tables& tables) {
     static constexpr std::size_t instance_base_offset = 3;
     for (std::size_t i = 0; i < Regs::NumVertexArrays; ++i) {
         const std::size_t array_offset = OFF(vertex_array) + i * NUM(vertex_array[0]);
-        const std::size_t limit_offset = OFF(vertex_array_limit) + i * NUM(vertex_array_limit[0]);
-
-        FillBlock(tables, array_offset, num_array, VertexBuffer0 + i, VertexBuffers);
-        FillBlock(tables, limit_offset, NUM(vertex_array_limit), VertexBuffer0 + i, VertexBuffers);
-
         const std::size_t instance_array_offset = array_offset + instance_base_offset;
         tables[0][instance_array_offset] = static_cast<u8>(VertexInstance0 + i);
         tables[1][instance_array_offset] = VertexInstances;
@@ -217,11 +211,11 @@ void SetupDirtyMisc(Tables& tables) {
 StateTracker::StateTracker(Tegra::GPU& gpu) : flags{gpu.Maxwell3D().dirty.flags} {
     auto& dirty = gpu.Maxwell3D().dirty;
     auto& tables = dirty.tables;
-    SetupDirtyRenderTargets(tables);
+    SetupDirtyFlags(tables);
     SetupDirtyColorMasks(tables);
     SetupDirtyViewports(tables);
     SetupDirtyScissors(tables);
-    SetupDirtyVertexArrays(tables);
+    SetupDirtyVertexInstances(tables);
     SetupDirtyVertexFormat(tables);
     SetupDirtyShaders(tables);
     SetupDirtyPolygonModes(tables);
@@ -241,19 +235,6 @@ StateTracker::StateTracker(Tegra::GPU& gpu) : flags{gpu.Maxwell3D().dirty.flags}
     SetupDirtyClipControl(tables);
     SetupDirtyDepthClampEnabled(tables);
     SetupDirtyMisc(tables);
-
-    auto& store = dirty.on_write_stores;
-    store[VertexBuffers] = true;
-    for (std::size_t i = 0; i < Regs::NumVertexArrays; ++i) {
-        store[VertexBuffer0 + i] = true;
-    }
-}
-
-void StateTracker::InvalidateStreamBuffer() {
-    flags[Dirty::VertexBuffers] = true;
-    for (int index = Dirty::VertexBuffer0; index <= Dirty::VertexBuffer31; ++index) {
-        flags[index] = true;
-    }
 }
 
 } // namespace OpenGL

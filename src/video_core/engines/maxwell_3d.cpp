@@ -30,8 +30,8 @@ Maxwell3D::Maxwell3D(Core::System& system_, MemoryManager& memory_manager_)
 
 Maxwell3D::~Maxwell3D() = default;
 
-void Maxwell3D::BindRasterizer(VideoCore::RasterizerInterface& rasterizer_) {
-    rasterizer = &rasterizer_;
+void Maxwell3D::BindRasterizer(VideoCore::RasterizerInterface* rasterizer_) {
+    rasterizer = rasterizer_;
 }
 
 void Maxwell3D::InitializeRegisterDefaults() {
@@ -223,7 +223,6 @@ void Maxwell3D::ProcessMethodCall(u32 method, u32 argument, u32 nonshadow_argume
     case MAXWELL3D_REG_INDEX(data_upload):
         upload_state.ProcessData(argument, is_last_call);
         if (is_last_call) {
-            OnMemoryWrite();
         }
         return;
     case MAXWELL3D_REG_INDEX(fragment_barrier):
@@ -570,17 +569,18 @@ std::optional<u64> Maxwell3D::GetQueryResult() {
     }
 }
 
-void Maxwell3D::ProcessCBBind(std::size_t stage_index) {
+void Maxwell3D::ProcessCBBind(size_t stage_index) {
     // Bind the buffer currently in CB_ADDRESS to the specified index in the desired shader stage.
-    auto& shader = state.shader_stages[stage_index];
-    auto& bind_data = regs.cb_bind[stage_index];
-
-    ASSERT(bind_data.index < Regs::MaxConstBuffers);
-    auto& buffer = shader.const_buffers[bind_data.index];
-
+    const auto& bind_data = regs.cb_bind[stage_index];
+    auto& buffer = state.shader_stages[stage_index].const_buffers[bind_data.index];
     buffer.enabled = bind_data.valid.Value() != 0;
     buffer.address = regs.const_buffer.BufferAddress();
     buffer.size = regs.const_buffer.cb_size;
+
+    const bool is_enabled = bind_data.valid.Value() != 0;
+    const GPUVAddr gpu_addr = is_enabled ? regs.const_buffer.BufferAddress() : 0;
+    const u32 size = is_enabled ? regs.const_buffer.cb_size : 0;
+    rasterizer->BindGraphicsUniformBuffer(stage_index, bind_data.index, gpu_addr, size);
 }
 
 void Maxwell3D::ProcessCBData(u32 value) {
@@ -635,7 +635,6 @@ void Maxwell3D::FinishCBData() {
 
     const u32 id = cb_data_state.id;
     memory_manager.WriteBlock(address, cb_data_state.buffer[id].data(), size);
-    OnMemoryWrite();
 
     cb_data_state.id = null_cb_data;
     cb_data_state.current = null_cb_data;

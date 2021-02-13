@@ -388,7 +388,7 @@ void Config::ReadValues() {
         static_cast<u16>(sdl2_config->GetInteger("Renderer", "frame_limit", 100)));
     Settings::values.use_disk_shader_cache.SetValue(
         sdl2_config->GetBoolean("Renderer", "use_disk_shader_cache", false));
-    const int gpu_accuracy_level = sdl2_config->GetInteger("Renderer", "gpu_accuracy", 0);
+    const int gpu_accuracy_level = sdl2_config->GetInteger("Renderer", "gpu_accuracy", 1);
     Settings::values.gpu_accuracy.SetValue(static_cast<Settings::GPUAccuracy>(gpu_accuracy_level));
     Settings::values.use_asynchronous_gpu_emulation.SetValue(
         sdl2_config->GetBoolean("Renderer", "use_asynchronous_gpu_emulation", true));

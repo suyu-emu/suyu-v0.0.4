@@ -215,7 +215,7 @@ int main(int argc, char** argv) {
     // Core is loaded, start the GPU (makes the GPU contexts current to this thread)
     system.GPU().Start();
 
-    system.Renderer().Rasterizer().LoadDiskResources(
+    system.Renderer().ReadRasterizer()->LoadDiskResources(
         system.CurrentProcess()->GetTitleID(), false,
         [](VideoCore::LoadCallbackStage, size_t value, size_t total) {});
 

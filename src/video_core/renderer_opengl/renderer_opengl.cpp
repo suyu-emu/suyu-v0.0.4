@@ -29,9 +29,7 @@
 #include "video_core/textures/decoders.h"
 
 namespace OpenGL {
-
 namespace {
-
 constexpr GLint PositionLocation = 0;
 constexpr GLint TexCoordLocation = 1;
 constexpr GLint ModelViewMatrixLocation = 0;
@@ -124,7 +122,6 @@ void APIENTRY DebugHandler(GLenum source, GLenum type, GLuint id, GLenum severit
         break;
     }
 }
-
 } // Anonymous namespace
 
 RendererOpenGL::RendererOpenGL(Core::TelemetrySession& telemetry_session_,
@@ -132,7 +129,17 @@ RendererOpenGL::RendererOpenGL(Core::TelemetrySession& telemetry_session_,
                                Core::Memory::Memory& cpu_memory_, Tegra::GPU& gpu_,
                                std::unique_ptr<Core::Frontend::GraphicsContext> context_)
     : RendererBase{emu_window_, std::move(context_)}, telemetry_session{telemetry_session_},
-      emu_window{emu_window_}, cpu_memory{cpu_memory_}, gpu{gpu_}, program_manager{device} {}
+      emu_window{emu_window_}, cpu_memory{cpu_memory_}, gpu{gpu_}, state_tracker{gpu},
+      program_manager{device},
+      rasterizer(emu_window, gpu, cpu_memory, device, screen_info, program_manager, state_tracker) {
+    if (Settings::values.renderer_debug && GLAD_GL_KHR_debug) {
+        glEnable(GL_DEBUG_OUTPUT);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        glDebugMessageCallback(DebugHandler, nullptr);
+    }
+    AddTelemetryFields();
+    InitOpenGLObjects();
+}
 
 RendererOpenGL::~RendererOpenGL() = default;
 
@@ -148,7 +155,7 @@ void RendererOpenGL::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
 
     ++m_current_frame;
 
-    rasterizer->TickFrame();
+    rasterizer.TickFrame();
 
     context->SwapBuffers();
     render_window.OnFrameDisplayed();
@@ -179,7 +186,7 @@ void RendererOpenGL::LoadFBToScreenInfo(const Tegra::FramebufferConfig& framebuf
     framebuffer_crop_rect = framebuffer.crop_rect;
 
     const VAddr framebuffer_addr{framebuffer.address + framebuffer.offset};
-    if (rasterizer->AccelerateDisplay(framebuffer, framebuffer_addr, framebuffer.stride)) {
+    if (rasterizer.AccelerateDisplay(framebuffer, framebuffer_addr, framebuffer.stride)) {
         return;
     }
 
@@ -267,6 +274,7 @@ void RendererOpenGL::InitOpenGLObjects() {
     // Enable unified vertex attributes and query vertex buffer address when the driver supports it
     if (device.HasVertexBufferUnifiedMemory()) {
         glEnableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
+        glEnableClientState(GL_ELEMENT_ARRAY_UNIFIED_NV);
 
         glMakeNamedBufferResidentNV(vertex_buffer.handle, GL_READ_ONLY);
         glGetNamedBufferParameterui64vNV(vertex_buffer.handle, GL_BUFFER_GPU_ADDRESS_NV,
@@ -287,14 +295,6 @@ void RendererOpenGL::AddTelemetryFields() {
     telemetry_session.AddField(user_system, "GPU_Vendor", std::string(gpu_vendor));
     telemetry_session.AddField(user_system, "GPU_Model", std::string(gpu_model));
     telemetry_session.AddField(user_system, "GPU_OpenGL_Version", std::string(gl_version));
-}
-
-void RendererOpenGL::CreateRasterizer() {
-    if (rasterizer) {
-        return;
-    }
-    rasterizer = std::make_unique<RasterizerOpenGL>(emu_window, gpu, cpu_memory, device,
-                                                    screen_info, program_manager, state_tracker);
 }
 
 void RendererOpenGL::ConfigureFramebufferTexture(TextureInfo& texture,
@@ -407,6 +407,7 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
 
     program_manager.BindHostPipeline(pipeline.handle);
 
+    state_tracker.ClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
     glEnable(GL_CULL_FACE);
     if (screen_info.display_srgb) {
         glEnable(GL_FRAMEBUFFER_SRGB);
@@ -425,7 +426,6 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     glCullFace(GL_BACK);
     glFrontFace(GL_CW);
     glColorMaski(0, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
     glViewportIndexedf(0, 0.0f, 0.0f, static_cast<GLfloat>(layout.width),
                        static_cast<GLfloat>(layout.height));
     glDepthRangeIndexed(0, 0.0, 0.0);
@@ -496,26 +496,5 @@ void RendererOpenGL::RenderScreenshot() {
     renderer_settings.screenshot_complete_callback();
     renderer_settings.screenshot_requested = false;
 }
-
-bool RendererOpenGL::Init() {
-    if (Settings::values.renderer_debug && GLAD_GL_KHR_debug) {
-        glEnable(GL_DEBUG_OUTPUT);
-        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-        glDebugMessageCallback(DebugHandler, nullptr);
-    }
-
-    AddTelemetryFields();
-
-    if (!GLAD_GL_VERSION_4_6) {
-        return false;
-    }
-
-    InitOpenGLObjects();
-    CreateRasterizer();
-
-    return true;
-}
-
-void RendererOpenGL::ShutDown() {}
 
 } // namespace OpenGL

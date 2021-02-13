@@ -7,6 +7,7 @@
 #include <compare>
 #include <span>
 
+#include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
 #include "video_core/texture_cache/texture_cache.h"
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
@@ -53,19 +54,6 @@ struct hash<Vulkan::RenderPassKey> {
 
 namespace Vulkan {
 
-struct ImageBufferMap {
-    [[nodiscard]] VkBuffer Handle() const noexcept {
-        return handle;
-    }
-
-    [[nodiscard]] std::span<u8> Span() const noexcept {
-        return span;
-    }
-
-    VkBuffer handle;
-    std::span<u8> span;
-};
-
 struct TextureCacheRuntime {
     const Device& device;
     VKScheduler& scheduler;
@@ -76,9 +64,9 @@ struct TextureCacheRuntime {
 
     void Finish();
 
-    [[nodiscard]] ImageBufferMap MapUploadBuffer(size_t size);
+    [[nodiscard]] StagingBufferRef UploadStagingBuffer(size_t size);
 
-    [[nodiscard]] ImageBufferMap MapDownloadBuffer(size_t size);
+    [[nodiscard]] StagingBufferRef DownloadStagingBuffer(size_t size);
 
     void BlitImage(Framebuffer* dst_framebuffer, ImageView& dst, ImageView& src,
                    const std::array<Offset2D, 2>& dst_region,
@@ -94,7 +82,7 @@ struct TextureCacheRuntime {
         return false;
     }
 
-    void AccelerateImageUpload(Image&, const ImageBufferMap&, size_t,
+    void AccelerateImageUpload(Image&, const StagingBufferRef&,
                                std::span<const VideoCommon::SwizzleParameters>) {
         UNREACHABLE();
     }
@@ -112,13 +100,12 @@ public:
     explicit Image(TextureCacheRuntime&, const VideoCommon::ImageInfo& info, GPUVAddr gpu_addr,
                    VAddr cpu_addr);
 
-    void UploadMemory(const ImageBufferMap& map, size_t buffer_offset,
+    void UploadMemory(const StagingBufferRef& map,
                       std::span<const VideoCommon::BufferImageCopy> copies);
 
-    void UploadMemory(const ImageBufferMap& map, size_t buffer_offset,
-                      std::span<const VideoCommon::BufferCopy> copies);
+    void UploadMemory(const StagingBufferRef& map, std::span<const VideoCommon::BufferCopy> copies);
 
-    void DownloadMemory(const ImageBufferMap& map, size_t buffer_offset,
+    void DownloadMemory(const StagingBufferRef& map,
                         std::span<const VideoCommon::BufferImageCopy> copies);
 
     [[nodiscard]] VkImage Handle() const noexcept {

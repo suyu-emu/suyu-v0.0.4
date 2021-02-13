@@ -18,7 +18,6 @@
 #include "video_core/gpu.h"
 #include "video_core/host_shaders/vulkan_present_frag_spv.h"
 #include "video_core/host_shaders/vulkan_present_vert_spv.h"
-#include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
 #include "video_core/renderer_vulkan/vk_blit_screen.h"
 #include "video_core/renderer_vulkan/vk_master_semaphore.h"
@@ -113,13 +112,12 @@ struct VKBlitScreen::BufferData {
 };
 
 VKBlitScreen::VKBlitScreen(Core::Memory::Memory& cpu_memory_,
-                           Core::Frontend::EmuWindow& render_window_,
-                           VideoCore::RasterizerInterface& rasterizer_, const Device& device_,
+                           Core::Frontend::EmuWindow& render_window_, const Device& device_,
                            MemoryAllocator& memory_allocator_, VKSwapchain& swapchain_,
                            VKScheduler& scheduler_, const VKScreenInfo& screen_info_)
-    : cpu_memory{cpu_memory_}, render_window{render_window_}, rasterizer{rasterizer_},
-      device{device_}, memory_allocator{memory_allocator_}, swapchain{swapchain_},
-      scheduler{scheduler_}, image_count{swapchain.GetImageCount()}, screen_info{screen_info_} {
+    : cpu_memory{cpu_memory_}, render_window{render_window_}, device{device_},
+      memory_allocator{memory_allocator_}, swapchain{swapchain_}, scheduler{scheduler_},
+      image_count{swapchain.GetImageCount()}, screen_info{screen_info_} {
     resource_ticks.resize(image_count);
 
     CreateStaticResources();
@@ -150,8 +148,8 @@ VkSemaphore VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer, bool
     SetUniformData(data, framebuffer);
     SetVertexData(data, framebuffer);
 
-    const std::span<u8> map = buffer_commit.Map();
-    std::memcpy(map.data(), &data, sizeof(data));
+    const std::span<u8> mapped_span = buffer_commit.Map();
+    std::memcpy(mapped_span.data(), &data, sizeof(data));
 
     if (!use_accelerated) {
         const u64 image_offset = GetRawImageOffset(framebuffer, image_index);
@@ -159,14 +157,13 @@ VkSemaphore VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer, bool
         const VAddr framebuffer_addr = framebuffer.address + framebuffer.offset;
         const u8* const host_ptr = cpu_memory.GetPointer(framebuffer_addr);
         const size_t size_bytes = GetSizeInBytes(framebuffer);
-        rasterizer.FlushRegion(ToCacheAddr(host_ptr), size_bytes);
 
         // TODO(Rodrigo): Read this from HLE
         constexpr u32 block_height_log2 = 4;
         const u32 bytes_per_pixel = GetBytesPerPixel(framebuffer);
         Tegra::Texture::UnswizzleTexture(
-            map.subspan(image_offset, size_bytes), std::span(host_ptr, size_bytes), bytes_per_pixel,
-            framebuffer.width, framebuffer.height, 1, block_height_log2, 0);
+            mapped_span.subspan(image_offset, size_bytes), std::span(host_ptr, size_bytes),
+            bytes_per_pixel, framebuffer.width, framebuffer.height, 1, block_height_log2, 0);
 
         const VkBufferImageCopy copy{
             .bufferOffset = image_offset,
@@ -266,7 +263,6 @@ VkSemaphore VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer, bool
         cmdbuf.Draw(4, 1, 0, 0);
         cmdbuf.EndRenderPass();
     });
-
     return *semaphores[image_index];
 }
 

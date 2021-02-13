@@ -72,7 +72,7 @@ public:
     ~MemoryManager();
 
     /// Binds a renderer to the memory manager.
-    void BindRasterizer(VideoCore::RasterizerInterface& rasterizer);
+    void BindRasterizer(VideoCore::RasterizerInterface* rasterizer);
 
     [[nodiscard]] std::optional<VAddr> GpuToCpuAddress(GPUVAddr addr) const;
 
@@ -157,6 +157,8 @@ private:
 
     using MapRange = std::pair<GPUVAddr, size_t>;
     std::vector<MapRange> map_ranges;
+
+    std::vector<std::pair<VAddr, std::size_t>> cache_invalidate_queue;
 };
 
 } // namespace Tegra

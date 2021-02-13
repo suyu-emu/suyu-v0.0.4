@@ -21,9 +21,7 @@
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 
 namespace OpenGL {
-
 namespace {
-
 // One uniform block is reserved for emulation purposes
 constexpr u32 ReservedUniformBlocks = 1;
 
@@ -197,11 +195,13 @@ bool IsASTCSupported() {
     const bool nsight = std::getenv("NVTX_INJECTION64_PATH") || std::getenv("NSIGHT_LAUNCHED");
     return nsight || HasExtension(extensions, "GL_EXT_debug_tool");
 }
-
 } // Anonymous namespace
 
-Device::Device()
-    : max_uniform_buffers{BuildMaxUniformBuffers()}, base_bindings{BuildBaseBindings()} {
+Device::Device() {
+    if (!GLAD_GL_VERSION_4_6) {
+        LOG_ERROR(Render_OpenGL, "OpenGL 4.6 is not available");
+        throw std::runtime_error{"Insufficient version"};
+    }
     const std::string_view vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
     const std::string_view version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
     const std::vector extensions = GetExtensions();
@@ -217,6 +217,9 @@ Device::Device()
             "Beta driver 443.24 is known to have issues. There might be performance issues.");
         disable_fast_buffer_sub_data = true;
     }
+
+    max_uniform_buffers = BuildMaxUniformBuffers();
+    base_bindings = BuildBaseBindings();
     uniform_buffer_alignment = GetInteger<size_t>(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT);
     shader_storage_alignment = GetInteger<size_t>(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT);
     max_vertex_attributes = GetInteger<u32>(GL_MAX_VERTEX_ATTRIBS);

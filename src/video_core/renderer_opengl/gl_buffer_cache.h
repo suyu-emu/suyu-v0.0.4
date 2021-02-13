@@ -5,79 +5,157 @@
 #pragma once
 
 #include <array>
-#include <memory>
+#include <span>
 
+#include "common/alignment.h"
 #include "common/common_types.h"
+#include "common/dynamic_library.h"
 #include "video_core/buffer_cache/buffer_cache.h"
-#include "video_core/engines/maxwell_3d.h"
+#include "video_core/rasterizer_interface.h"
+#include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_stream_buffer.h"
 
-namespace Core {
-class System;
-}
-
 namespace OpenGL {
 
-class Device;
-class OGLStreamBuffer;
-class RasterizerOpenGL;
-class StateTracker;
+class BufferCacheRuntime;
 
-class Buffer : public VideoCommon::BufferBlock {
+class Buffer : public VideoCommon::BufferBase<VideoCore::RasterizerInterface> {
 public:
-    explicit Buffer(const Device& device_, VAddr cpu_addr_, std::size_t size_);
-    ~Buffer();
+    explicit Buffer(BufferCacheRuntime&, VideoCore::RasterizerInterface& rasterizer, VAddr cpu_addr,
+                    u64 size_bytes);
+    explicit Buffer(BufferCacheRuntime&, VideoCommon::NullBufferParams);
 
-    void Upload(std::size_t offset, std::size_t data_size, const u8* data);
+    void ImmediateUpload(size_t offset, std::span<const u8> data) noexcept;
 
-    void Download(std::size_t offset, std::size_t data_size, u8* data);
+    void ImmediateDownload(size_t offset, std::span<u8> data) noexcept;
 
-    void CopyFrom(const Buffer& src, std::size_t src_offset, std::size_t dst_offset,
-                  std::size_t copy_size);
+    void MakeResident(GLenum access) noexcept;
 
-    GLuint Handle() const noexcept {
-        return gl_buffer.handle;
+    [[nodiscard]] GLuint64EXT HostGpuAddr() const noexcept {
+        return address;
     }
 
-    u64 Address() const noexcept {
-        return gpu_address;
+    [[nodiscard]] GLuint Handle() const noexcept {
+        return buffer.handle;
     }
 
 private:
-    OGLBuffer gl_buffer;
-    OGLBuffer read_buffer;
-    u64 gpu_address = 0;
+    GLuint64EXT address = 0;
+    OGLBuffer buffer;
+    GLenum current_residency_access = GL_NONE;
 };
 
-using GenericBufferCache = VideoCommon::BufferCache<Buffer, GLuint, OGLStreamBuffer>;
-class OGLBufferCache final : public GenericBufferCache {
+class BufferCacheRuntime {
+    friend Buffer;
+
 public:
-    explicit OGLBufferCache(VideoCore::RasterizerInterface& rasterizer,
-                            Tegra::MemoryManager& gpu_memory, Core::Memory::Memory& cpu_memory,
-                            const Device& device, OGLStreamBuffer& stream_buffer,
-                            StateTracker& state_tracker);
-    ~OGLBufferCache();
+    static constexpr u8 INVALID_BINDING = std::numeric_limits<u8>::max();
 
-    BufferInfo GetEmptyBuffer(std::size_t) override;
+    explicit BufferCacheRuntime(const Device& device_);
 
-    void Acquire() noexcept {
-        cbuf_cursor = 0;
+    void CopyBuffer(Buffer& dst_buffer, Buffer& src_buffer,
+                    std::span<const VideoCommon::BufferCopy> copies);
+
+    void BindIndexBuffer(Buffer& buffer, u32 offset, u32 size);
+
+    void BindVertexBuffer(u32 index, Buffer& buffer, u32 offset, u32 size, u32 stride);
+
+    void BindUniformBuffer(size_t stage, u32 binding_index, Buffer& buffer, u32 offset, u32 size);
+
+    void BindComputeUniformBuffer(u32 binding_index, Buffer& buffer, u32 offset, u32 size);
+
+    void BindStorageBuffer(size_t stage, u32 binding_index, Buffer& buffer, u32 offset, u32 size,
+                           bool is_written);
+
+    void BindComputeStorageBuffer(u32 binding_index, Buffer& buffer, u32 offset, u32 size,
+                                  bool is_written);
+
+    void BindTransformFeedbackBuffer(u32 index, Buffer& buffer, u32 offset, u32 size);
+
+    void BindFastUniformBuffer(size_t stage, u32 binding_index, u32 size) {
+        if (use_assembly_shaders) {
+            const GLuint handle = fast_uniforms[stage][binding_index].handle;
+            const GLsizeiptr gl_size = static_cast<GLsizeiptr>(size);
+            glBindBufferRangeNV(PABO_LUT[stage], binding_index, handle, 0, gl_size);
+        } else {
+            const GLuint base_binding = device.GetBaseBindings(stage).uniform_buffer;
+            const GLuint binding = base_binding + binding_index;
+            glBindBufferRange(GL_UNIFORM_BUFFER, binding,
+                              fast_uniforms[stage][binding_index].handle, 0,
+                              static_cast<GLsizeiptr>(size));
+        }
     }
 
-protected:
-    std::shared_ptr<Buffer> CreateBlock(VAddr cpu_addr, std::size_t size) override;
+    void PushFastUniformBuffer(size_t stage, u32 binding_index, std::span<const u8> data) {
+        if (use_assembly_shaders) {
+            glProgramBufferParametersIuivNV(
+                PABO_LUT[stage], binding_index, 0,
+                static_cast<GLsizei>(data.size_bytes() / sizeof(GLuint)),
+                reinterpret_cast<const GLuint*>(data.data()));
+        } else {
+            glNamedBufferSubData(fast_uniforms[stage][binding_index].handle, 0,
+                                 static_cast<GLsizeiptr>(data.size_bytes()), data.data());
+        }
+    }
 
-    BufferInfo ConstBufferUpload(const void* raw_pointer, std::size_t size) override;
+    std::span<u8> BindMappedUniformBuffer(size_t stage, u32 binding_index, u32 size) noexcept {
+        const auto [mapped_span, offset] = stream_buffer->Request(static_cast<size_t>(size));
+        const GLuint base_binding = device.GetBaseBindings(stage).uniform_buffer;
+        const GLuint binding = base_binding + binding_index;
+        glBindBufferRange(GL_UNIFORM_BUFFER, binding, stream_buffer->Handle(),
+                          static_cast<GLintptr>(offset), static_cast<GLsizeiptr>(size));
+        return mapped_span;
+    }
+
+    [[nodiscard]] const GLvoid* IndexOffset() const noexcept {
+        return reinterpret_cast<const GLvoid*>(static_cast<uintptr_t>(index_buffer_offset));
+    }
+
+    [[nodiscard]] bool HasFastBufferSubData() const noexcept {
+        return has_fast_buffer_sub_data;
+    }
 
 private:
-    static constexpr std::size_t NUM_CBUFS = Tegra::Engines::Maxwell3D::Regs::MaxConstBuffers *
-                                             Tegra::Engines::Maxwell3D::Regs::MaxShaderProgram;
+    static constexpr std::array PABO_LUT{
+        GL_VERTEX_PROGRAM_PARAMETER_BUFFER_NV,          GL_TESS_CONTROL_PROGRAM_PARAMETER_BUFFER_NV,
+        GL_TESS_EVALUATION_PROGRAM_PARAMETER_BUFFER_NV, GL_GEOMETRY_PROGRAM_PARAMETER_BUFFER_NV,
+        GL_FRAGMENT_PROGRAM_PARAMETER_BUFFER_NV,
+    };
 
     const Device& device;
 
-    std::size_t cbuf_cursor = 0;
-    std::array<GLuint, NUM_CBUFS> cbufs{};
+    bool has_fast_buffer_sub_data = false;
+    bool use_assembly_shaders = false;
+    bool has_unified_vertex_buffers = false;
+
+    u32 max_attributes = 0;
+
+    std::optional<StreamBuffer> stream_buffer;
+
+    std::array<std::array<OGLBuffer, VideoCommon::NUM_GRAPHICS_UNIFORM_BUFFERS>,
+               VideoCommon::NUM_STAGES>
+        fast_uniforms;
+    std::array<std::array<OGLBuffer, VideoCommon::NUM_GRAPHICS_UNIFORM_BUFFERS>,
+               VideoCommon::NUM_STAGES>
+        copy_uniforms;
+    std::array<OGLBuffer, VideoCommon::NUM_COMPUTE_UNIFORM_BUFFERS> copy_compute_uniforms;
+
+    u32 index_buffer_offset = 0;
 };
+
+struct BufferCacheParams {
+    using Runtime = OpenGL::BufferCacheRuntime;
+    using Buffer = OpenGL::Buffer;
+
+    static constexpr bool IS_OPENGL = true;
+    static constexpr bool HAS_PERSISTENT_UNIFORM_BUFFER_BINDINGS = true;
+    static constexpr bool HAS_FULL_INDEX_AND_PRIMITIVE_SUPPORT = true;
+    static constexpr bool NEEDS_BIND_UNIFORM_INDEX = true;
+    static constexpr bool NEEDS_BIND_STORAGE_INDEX = true;
+    static constexpr bool USE_MEMORY_MAPS = false;
+};
+
+using BufferCache = VideoCommon::BufferCache<BufferCacheParams>;
 
 } // namespace OpenGL

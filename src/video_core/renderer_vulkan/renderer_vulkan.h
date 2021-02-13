@@ -9,8 +9,14 @@
 #include <vector>
 
 #include "common/dynamic_library.h"
-
 #include "video_core/renderer_base.h"
+#include "video_core/renderer_vulkan/vk_blit_screen.h"
+#include "video_core/renderer_vulkan/vk_rasterizer.h"
+#include "video_core/renderer_vulkan/vk_scheduler.h"
+#include "video_core/renderer_vulkan/vk_state_tracker.h"
+#include "video_core/renderer_vulkan/vk_swapchain.h"
+#include "video_core/vulkan_common/vulkan_device.h"
+#include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Core {
@@ -27,20 +33,6 @@ class GPU;
 
 namespace Vulkan {
 
-class Device;
-class StateTracker;
-class MemoryAllocator;
-class VKBlitScreen;
-class VKSwapchain;
-class VKScheduler;
-
-struct VKScreenInfo {
-    VkImageView image_view{};
-    u32 width{};
-    u32 height{};
-    bool is_srgb{};
-};
-
 class RendererVulkan final : public VideoCore::RendererBase {
 public:
     explicit RendererVulkan(Core::TelemetrySession& telemtry_session,
@@ -49,15 +41,13 @@ public:
                             std::unique_ptr<Core::Frontend::GraphicsContext> context_);
     ~RendererVulkan() override;
 
-    bool Init() override;
-    void ShutDown() override;
     void SwapBuffers(const Tegra::FramebufferConfig* framebuffer) override;
 
-    static std::vector<std::string> EnumerateDevices();
+    VideoCore::RasterizerInterface* ReadRasterizer() override {
+        return &rasterizer;
+    }
 
 private:
-    void InitializeDevice();
-
     void Report() const;
 
     Core::TelemetrySession& telemetry_session;
@@ -68,18 +58,18 @@ private:
     vk::InstanceDispatch dld;
 
     vk::Instance instance;
-
+    vk::DebugUtilsMessenger debug_callback;
     vk::SurfaceKHR surface;
 
     VKScreenInfo screen_info;
 
-    vk::DebugUtilsMessenger debug_callback;
-    std::unique_ptr<Device> device;
-    std::unique_ptr<MemoryAllocator> memory_allocator;
-    std::unique_ptr<StateTracker> state_tracker;
-    std::unique_ptr<VKScheduler> scheduler;
-    std::unique_ptr<VKSwapchain> swapchain;
-    std::unique_ptr<VKBlitScreen> blit_screen;
+    Device device;
+    MemoryAllocator memory_allocator;
+    StateTracker state_tracker;
+    VKScheduler scheduler;
+    VKSwapchain swapchain;
+    VKBlitScreen blit_screen;
+    RasterizerVulkan rasterizer;
 };
 
 } // namespace Vulkan

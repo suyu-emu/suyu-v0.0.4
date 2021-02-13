@@ -30,6 +30,12 @@ enum : u8 {
     ColorBuffer7,
     ZetaBuffer,
 
+    VertexBuffers,
+    VertexBuffer0,
+    VertexBuffer31 = VertexBuffer0 + 31,
+
+    IndexBuffer,
+
     LastCommonEntry,
 };
 
@@ -47,6 +53,6 @@ void FillBlock(Tegra::Engines::Maxwell3D::DirtyState::Tables& tables, std::size_
     FillBlock(tables[1], begin, num, index_b);
 }
 
-void SetupDirtyRenderTargets(Tegra::Engines::Maxwell3D::DirtyState::Tables& tables);
+void SetupDirtyFlags(Tegra::Engines::Maxwell3D::DirtyState::Tables& tables);
 
 } // namespace VideoCommon::Dirty

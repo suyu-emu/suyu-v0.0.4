@@ -531,13 +531,9 @@ VkCompareOp ComparisonOp(Maxwell::ComparisonOp comparison) {
     return {};
 }
 
-VkIndexType IndexFormat(const Device& device, Maxwell::IndexFormat index_format) {
+VkIndexType IndexFormat(Maxwell::IndexFormat index_format) {
     switch (index_format) {
     case Maxwell::IndexFormat::UnsignedByte:
-        if (!device.IsExtIndexTypeUint8Supported()) {
-            UNIMPLEMENTED_MSG("Native uint8 indices are not supported on this device");
-            return VK_INDEX_TYPE_UINT16;
-        }
         return VK_INDEX_TYPE_UINT8_EXT;
     case Maxwell::IndexFormat::UnsignedShort:
         return VK_INDEX_TYPE_UINT16;

@@ -15,7 +15,18 @@
 #include <vector>
 
 #define VK_NO_PROTOTYPES
+#ifdef _WIN32
+#define VK_USE_PLATFORM_WIN32_KHR
+#endif
 #include <vulkan/vulkan.h>
+
+// Sanitize macros
+#ifdef CreateEvent
+#undef CreateEvent
+#endif
+#ifdef CreateSemaphore
+#undef CreateSemaphore
+#endif
 
 #include "common/common_types.h"
 
@@ -174,7 +185,7 @@ struct InstanceDispatch {
 };
 
 /// Table holding Vulkan device function pointers.
-struct DeviceDispatch : public InstanceDispatch {
+struct DeviceDispatch : InstanceDispatch {
     PFN_vkAcquireNextImageKHR vkAcquireNextImageKHR{};
     PFN_vkAllocateCommandBuffers vkAllocateCommandBuffers{};
     PFN_vkAllocateDescriptorSets vkAllocateDescriptorSets{};
@@ -272,11 +283,15 @@ struct DeviceDispatch : public InstanceDispatch {
     PFN_vkFreeCommandBuffers vkFreeCommandBuffers{};
     PFN_vkFreeDescriptorSets vkFreeDescriptorSets{};
     PFN_vkFreeMemory vkFreeMemory{};
-    PFN_vkGetBufferMemoryRequirements vkGetBufferMemoryRequirements{};
+    PFN_vkGetBufferMemoryRequirements2 vkGetBufferMemoryRequirements2{};
     PFN_vkGetDeviceQueue vkGetDeviceQueue{};
     PFN_vkGetEventStatus vkGetEventStatus{};
     PFN_vkGetFenceStatus vkGetFenceStatus{};
     PFN_vkGetImageMemoryRequirements vkGetImageMemoryRequirements{};
+    PFN_vkGetMemoryFdKHR vkGetMemoryFdKHR{};
+#ifdef _WIN32
+    PFN_vkGetMemoryWin32HandleKHR vkGetMemoryWin32HandleKHR{};
+#endif
     PFN_vkGetQueryPoolResults vkGetQueryPoolResults{};
     PFN_vkGetSemaphoreCounterValueKHR vkGetSemaphoreCounterValueKHR{};
     PFN_vkMapMemory vkMapMemory{};
@@ -343,6 +358,9 @@ public:
 
     /// Construct an empty handle.
     Handle() = default;
+
+    /// Construct an empty handle.
+    Handle(std::nullptr_t) {}
 
     /// Copying Vulkan objects is not supported and will never be.
     Handle(const Handle&) = delete;
@@ -659,6 +677,12 @@ class DeviceMemory : public Handle<VkDeviceMemory, VkDevice, DeviceDispatch> {
     using Handle<VkDeviceMemory, VkDevice, DeviceDispatch>::Handle;
 
 public:
+    int GetMemoryFdKHR() const;
+
+#ifdef _WIN32
+    HANDLE GetMemoryWin32HandleKHR() const;
+#endif
+
     /// Set object name.
     void SetObjectNameEXT(const char* name) const;
 
@@ -847,7 +871,8 @@ public:
 
     DeviceMemory AllocateMemory(const VkMemoryAllocateInfo& ai) const;
 
-    VkMemoryRequirements GetBufferMemoryRequirements(VkBuffer buffer) const noexcept;
+    VkMemoryRequirements GetBufferMemoryRequirements(VkBuffer buffer,
+                                                     void* pnext = nullptr) const noexcept;
 
     VkMemoryRequirements GetImageMemoryRequirements(VkImage image) const noexcept;
 
@@ -1029,6 +1054,12 @@ public:
     void PipelineBarrier(VkPipelineStageFlags src_stage_mask, VkPipelineStageFlags dst_stage_mask,
                          VkDependencyFlags dependency_flags = 0) const noexcept {
         PipelineBarrier(src_stage_mask, dst_stage_mask, dependency_flags, {}, {}, {});
+    }
+
+    void PipelineBarrier(VkPipelineStageFlags src_stage_mask, VkPipelineStageFlags dst_stage_mask,
+                         VkDependencyFlags dependency_flags,
+                         const VkMemoryBarrier& memory_barrier) const noexcept {
+        PipelineBarrier(src_stage_mask, dst_stage_mask, dependency_flags, memory_barrier, {}, {});
     }
 
     void PipelineBarrier(VkPipelineStageFlags src_stage_mask, VkPipelineStageFlags dst_stage_mask,

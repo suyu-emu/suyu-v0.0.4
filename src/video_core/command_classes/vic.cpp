@@ -110,12 +110,10 @@ void Vic::Execute() {
                                            converted_frame_buffer.get(), block_height, 0, 0);
 
             gpu.MemoryManager().WriteBlock(output_surface_luma_address, swizzled_data.data(), size);
-            gpu.Maxwell3D().OnMemoryWrite();
         } else {
             // send pitch linear frame
             gpu.MemoryManager().WriteBlock(output_surface_luma_address, converted_frame_buf_addr,
                                            linear_size);
-            gpu.Maxwell3D().OnMemoryWrite();
         }
         break;
     }
@@ -163,7 +161,6 @@ void Vic::Execute() {
         }
         gpu.MemoryManager().WriteBlock(output_surface_chroma_u_address, chroma_buffer.data(),
                                        chroma_buffer.size());
-        gpu.Maxwell3D().OnMemoryWrite();
         break;
     }
     default:

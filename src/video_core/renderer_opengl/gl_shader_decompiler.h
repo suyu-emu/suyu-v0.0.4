@@ -55,7 +55,7 @@ struct ShaderEntries {
     std::vector<ImageEntry> images;
     std::size_t shader_length{};
     u32 clip_distances{};
-    bool use_unified_uniforms{};
+    u32 enabled_uniform_buffers{};
 };
 
 ShaderEntries MakeEntries(const Device& device, const VideoCommon::Shader::ShaderIR& ir,

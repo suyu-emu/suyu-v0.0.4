@@ -30,14 +30,17 @@ using Table = Maxwell3D::DirtyState::Table;
 using Flags = Maxwell3D::DirtyState::Flags;
 
 Flags MakeInvalidationFlags() {
-    static constexpr std::array INVALIDATION_FLAGS{
+    static constexpr int INVALIDATION_FLAGS[]{
         Viewports,         Scissors,  DepthBias,         BlendConstants,    DepthBounds,
         StencilProperties, CullMode,  DepthBoundsEnable, DepthTestEnable,   DepthWriteEnable,
-        DepthCompareOp,    FrontFace, StencilOp,         StencilTestEnable,
+        DepthCompareOp,    FrontFace, StencilOp,         StencilTestEnable, VertexBuffers,
     };
     Flags flags{};
     for (const int flag : INVALIDATION_FLAGS) {
         flags[flag] = true;
+    }
+    for (int index = VertexBuffer0; index <= VertexBuffer31; ++index) {
+        flags[index] = true;
     }
     return flags;
 }
@@ -130,7 +133,7 @@ void SetupDirtyStencilTestEnable(Tables& tables) {
 StateTracker::StateTracker(Tegra::GPU& gpu)
     : flags{gpu.Maxwell3D().dirty.flags}, invalidation_flags{MakeInvalidationFlags()} {
     auto& tables = gpu.Maxwell3D().dirty.tables;
-    SetupDirtyRenderTargets(tables);
+    SetupDirtyFlags(tables);
     SetupDirtyViewports(tables);
     SetupDirtyScissors(tables);
     SetupDirtyDepthBias(tables);

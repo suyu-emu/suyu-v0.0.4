@@ -53,7 +53,7 @@ VkFormat VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttrib
 
 VkCompareOp ComparisonOp(Maxwell::ComparisonOp comparison);
 
-VkIndexType IndexFormat(const Device& device, Maxwell::IndexFormat index_format);
+VkIndexType IndexFormat(Maxwell::IndexFormat index_format);
 
 VkStencilOp StencilOp(Maxwell::StencilOp stencil_op);
 

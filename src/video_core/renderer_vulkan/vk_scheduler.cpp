@@ -52,18 +52,6 @@ VKScheduler::~VKScheduler() {
     worker_thread.join();
 }
 
-u64 VKScheduler::CurrentTick() const noexcept {
-    return master_semaphore->CurrentTick();
-}
-
-bool VKScheduler::IsFree(u64 tick) const noexcept {
-    return master_semaphore->IsFree(tick);
-}
-
-void VKScheduler::Wait(u64 tick) {
-    master_semaphore->Wait(tick);
-}
-
 void VKScheduler::Flush(VkSemaphore semaphore) {
     SubmitExecution(semaphore);
     AllocateNewContext();
@@ -269,7 +257,7 @@ void VKScheduler::EndRenderPass() {
         cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
                                    VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
                                    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                               VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, 0, nullptr, nullptr,
+                               VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, nullptr, nullptr,
                                vk::Span(barriers.data(), num_images));
     });
     state.renderpass = nullptr;

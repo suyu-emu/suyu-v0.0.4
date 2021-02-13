@@ -7,6 +7,7 @@
 #include <atomic>
 #include <functional>
 #include <optional>
+#include <span>
 #include "common/common_types.h"
 #include "video_core/engines/fermi_2d.h"
 #include "video_core/gpu.h"
@@ -48,6 +49,10 @@ public:
 
     /// Records a GPU query and caches it
     virtual void Query(GPUVAddr gpu_addr, QueryType type, std::optional<u64> timestamp) = 0;
+
+    /// Signal an uniform buffer binding
+    virtual void BindGraphicsUniformBuffer(size_t stage, u32 index, GPUVAddr gpu_addr,
+                                           u32 size) = 0;
 
     /// Signal a GPU based semaphore as a fence
     virtual void SignalSemaphore(GPUVAddr addr, u32 value) = 0;

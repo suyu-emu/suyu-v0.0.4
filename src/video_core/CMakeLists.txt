@@ -2,10 +2,8 @@ add_subdirectory(host_shaders)
 
 add_library(video_core STATIC
     buffer_cache/buffer_base.h
-    buffer_cache/buffer_block.h
+    buffer_cache/buffer_cache.cpp
     buffer_cache/buffer_cache.h
-    buffer_cache/map_interval.cpp
-    buffer_cache/map_interval.h
     cdma_pusher.cpp
     cdma_pusher.h
     command_classes/codecs/codec.cpp
@@ -152,8 +150,6 @@ add_library(video_core STATIC
     renderer_vulkan/vk_staging_buffer_pool.h
     renderer_vulkan/vk_state_tracker.cpp
     renderer_vulkan/vk_state_tracker.h
-    renderer_vulkan/vk_stream_buffer.cpp
-    renderer_vulkan/vk_stream_buffer.h
     renderer_vulkan/vk_swapchain.cpp
     renderer_vulkan/vk_swapchain.h
     renderer_vulkan/vk_texture_cache.cpp

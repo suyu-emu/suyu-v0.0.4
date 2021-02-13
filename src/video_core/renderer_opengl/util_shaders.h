@@ -15,21 +15,22 @@
 namespace OpenGL {
 
 class Image;
-class ImageBufferMap;
 class ProgramManager;
+
+struct ImageBufferMap;
 
 class UtilShaders {
 public:
     explicit UtilShaders(ProgramManager& program_manager);
     ~UtilShaders();
 
-    void BlockLinearUpload2D(Image& image, const ImageBufferMap& map, size_t buffer_offset,
+    void BlockLinearUpload2D(Image& image, const ImageBufferMap& map,
                              std::span<const VideoCommon::SwizzleParameters> swizzles);
 
-    void BlockLinearUpload3D(Image& image, const ImageBufferMap& map, size_t buffer_offset,
+    void BlockLinearUpload3D(Image& image, const ImageBufferMap& map,
                              std::span<const VideoCommon::SwizzleParameters> swizzles);
 
-    void PitchUpload(Image& image, const ImageBufferMap& map, size_t buffer_offset,
+    void PitchUpload(Image& image, const ImageBufferMap& map,
                      std::span<const VideoCommon::SwizzleParameters> swizzles);
 
     void CopyBC4(Image& dst_image, Image& src_image,

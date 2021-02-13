@@ -366,6 +366,7 @@ protected:
     std::unique_ptr<Tegra::DmaPusher> dma_pusher;
     std::unique_ptr<Tegra::CDmaPusher> cdma_pusher;
     std::unique_ptr<VideoCore::RendererBase> renderer;
+    VideoCore::RasterizerInterface* rasterizer = nullptr;
     const bool use_nvdec;
 
 private:

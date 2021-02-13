@@ -21,8 +21,8 @@ KeplerCompute::KeplerCompute(Core::System& system_, MemoryManager& memory_manage
 
 KeplerCompute::~KeplerCompute() = default;
 
-void KeplerCompute::BindRasterizer(VideoCore::RasterizerInterface& rasterizer_) {
-    rasterizer = &rasterizer_;
+void KeplerCompute::BindRasterizer(VideoCore::RasterizerInterface* rasterizer_) {
+    rasterizer = rasterizer_;
 }
 
 void KeplerCompute::CallMethod(u32 method, u32 method_argument, bool is_last_call) {
@@ -39,7 +39,6 @@ void KeplerCompute::CallMethod(u32 method, u32 method_argument, bool is_last_cal
     case KEPLER_COMPUTE_REG_INDEX(data_upload): {
         upload_state.ProcessData(method_argument, is_last_call);
         if (is_last_call) {
-            system.GPU().Maxwell3D().OnMemoryWrite();
         }
         break;
     }

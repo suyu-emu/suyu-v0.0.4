@@ -9,16 +9,7 @@
 #include <shared_mutex>
 #include <thread>
 
-// This header includes both Vulkan and OpenGL headers, this has to be fixed
-// Unfortunately, including OpenGL will include Windows.h that defines macros that can cause issues.
-// Forcefully include glad early and undefine macros
 #include <glad/glad.h>
-#ifdef CreateEvent
-#undef CreateEvent
-#endif
-#ifdef CreateSemaphore
-#undef CreateSemaphore
-#endif
 
 #include "common/common_types.h"
 #include "video_core/renderer_opengl/gl_device.h"

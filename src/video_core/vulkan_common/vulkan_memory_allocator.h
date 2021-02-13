@@ -43,6 +43,9 @@ public:
     /// It will map the backing allocation if it hasn't been mapped before.
     std::span<u8> Map();
 
+    /// Returns an non-owning OpenGL handle, creating one if it doesn't exist.
+    u32 ExportOpenGLHandle() const;
+
     /// Returns the Vulkan memory handler.
     VkDeviceMemory Memory() const {
         return memory;
@@ -67,7 +70,15 @@ private:
 /// Allocates and releases memory allocations on demand.
 class MemoryAllocator {
 public:
-    explicit MemoryAllocator(const Device& device_);
+    /**
+     * Construct memory allocator
+     *
+     * @param device_             Device to allocate from
+     * @param export_allocations_ True when allocations have to be exported
+     *
+     * @throw vk::Exception on failure
+     */
+    explicit MemoryAllocator(const Device& device_, bool export_allocations_);
     ~MemoryAllocator();
 
     MemoryAllocator& operator=(const MemoryAllocator&) = delete;
@@ -106,8 +117,9 @@ private:
     /// Returns index to the fastest memory type compatible with the passed requirements.
     std::optional<u32> FindType(VkMemoryPropertyFlags flags, u32 type_mask) const;
 
-    const Device& device;                                       ///< Device handle.
-    const VkPhysicalDeviceMemoryProperties properties;          ///< Physical device properties.
+    const Device& device;                              ///< Device handle.
+    const VkPhysicalDeviceMemoryProperties properties; ///< Physical device properties.
+    const bool export_allocations; ///< True when memory allocations have to be exported.
     std::vector<std::unique_ptr<MemoryAllocation>> allocations; ///< Current allocations.
 };
 

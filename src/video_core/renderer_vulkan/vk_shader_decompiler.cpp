@@ -3106,7 +3106,11 @@ ShaderEntries GenerateShaderEntries(const VideoCommon::Shader::ShaderIR& ir) {
         entries.const_buffers.emplace_back(cbuf.second, cbuf.first);
     }
     for (const auto& [base, usage] : ir.GetGlobalMemory()) {
-        entries.global_buffers.emplace_back(base.cbuf_index, base.cbuf_offset, usage.is_written);
+        entries.global_buffers.emplace_back(GlobalBufferEntry{
+            .cbuf_index = base.cbuf_index,
+            .cbuf_offset = base.cbuf_offset,
+            .is_written = usage.is_written,
+        });
     }
     for (const auto& sampler : ir.GetSamplers()) {
         if (sampler.is_buffer) {
@@ -3126,6 +3130,9 @@ ShaderEntries GenerateShaderEntries(const VideoCommon::Shader::ShaderIR& ir) {
         if (IsGenericAttribute(attribute)) {
             entries.attributes.insert(GetGenericAttributeLocation(attribute));
         }
+    }
+    for (const auto& buffer : entries.const_buffers) {
+        entries.enabled_uniform_buffers |= 1U << buffer.GetIndex();
     }
     entries.clip_distances = ir.GetClipDistances();
     entries.shader_length = ir.GetLength();

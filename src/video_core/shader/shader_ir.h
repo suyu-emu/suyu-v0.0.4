@@ -139,6 +139,10 @@ public:
         return uses_legacy_varyings;
     }
 
+    bool UsesYNegate() const {
+        return uses_y_negate;
+    }
+
     bool UsesWarps() const {
         return uses_warps;
     }
@@ -465,6 +469,7 @@ private:
     bool uses_instance_id{};
     bool uses_vertex_id{};
     bool uses_legacy_varyings{};
+    bool uses_y_negate{};
     bool uses_warps{};
     bool uses_indexed_samplers{};
 

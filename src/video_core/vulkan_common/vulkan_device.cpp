@@ -18,27 +18,22 @@
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
-
 namespace {
-
 namespace Alternatives {
-
-constexpr std::array Depth24UnormS8_UINT{
+constexpr std::array DEPTH24_UNORM_STENCIL8_UINT{
     VK_FORMAT_D32_SFLOAT_S8_UINT,
     VK_FORMAT_D16_UNORM_S8_UINT,
-    VkFormat{},
+    VK_FORMAT_UNDEFINED,
 };
 
-constexpr std::array Depth16UnormS8_UINT{
+constexpr std::array DEPTH16_UNORM_STENCIL8_UINT{
     VK_FORMAT_D24_UNORM_S8_UINT,
     VK_FORMAT_D32_SFLOAT_S8_UINT,
-    VkFormat{},
+    VK_FORMAT_UNDEFINED,
 };
-
 } // namespace Alternatives
 
 constexpr std::array REQUIRED_EXTENSIONS{
-    VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     VK_KHR_MAINTENANCE1_EXTENSION_NAME,
     VK_KHR_STORAGE_BUFFER_STORAGE_CLASS_EXTENSION_NAME,
     VK_KHR_SHADER_DRAW_PARAMETERS_EXTENSION_NAME,
@@ -52,6 +47,12 @@ constexpr std::array REQUIRED_EXTENSIONS{
     VK_EXT_SHADER_SUBGROUP_BALLOT_EXTENSION_NAME,
     VK_EXT_SHADER_SUBGROUP_VOTE_EXTENSION_NAME,
     VK_EXT_HOST_QUERY_RESET_EXTENSION_NAME,
+#ifdef _WIN32
+    VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME,
+#endif
+#ifdef __linux__
+    VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME,
+#endif
 };
 
 template <typename T>
@@ -63,9 +64,9 @@ void SetNext(void**& next, T& data) {
 constexpr const VkFormat* GetFormatAlternatives(VkFormat format) {
     switch (format) {
     case VK_FORMAT_D24_UNORM_S8_UINT:
-        return Alternatives::Depth24UnormS8_UINT.data();
+        return Alternatives::DEPTH24_UNORM_STENCIL8_UINT.data();
     case VK_FORMAT_D16_UNORM_S8_UINT:
-        return Alternatives::Depth16UnormS8_UINT.data();
+        return Alternatives::DEPTH16_UNORM_STENCIL8_UINT.data();
     default:
         return nullptr;
     }
@@ -195,78 +196,77 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
                const vk::InstanceDispatch& dld_)
     : instance{instance_}, dld{dld_}, physical{physical_}, properties{physical.GetProperties()},
       format_properties{GetFormatProperties(physical)} {
-    CheckSuitability();
+    CheckSuitability(surface != nullptr);
     SetupFamilies(surface);
     SetupFeatures();
 
     const auto queue_cis = GetDeviceQueueCreateInfos();
-    const std::vector extensions = LoadExtensions();
+    const std::vector extensions = LoadExtensions(surface != nullptr);
 
     VkPhysicalDeviceFeatures2 features2{
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
         .pNext = nullptr,
-        .features{},
+        .features{
+            .robustBufferAccess = true,
+            .fullDrawIndexUint32 = false,
+            .imageCubeArray = true,
+            .independentBlend = true,
+            .geometryShader = true,
+            .tessellationShader = true,
+            .sampleRateShading = false,
+            .dualSrcBlend = false,
+            .logicOp = false,
+            .multiDrawIndirect = false,
+            .drawIndirectFirstInstance = false,
+            .depthClamp = true,
+            .depthBiasClamp = true,
+            .fillModeNonSolid = false,
+            .depthBounds = false,
+            .wideLines = false,
+            .largePoints = true,
+            .alphaToOne = false,
+            .multiViewport = true,
+            .samplerAnisotropy = true,
+            .textureCompressionETC2 = false,
+            .textureCompressionASTC_LDR = is_optimal_astc_supported,
+            .textureCompressionBC = false,
+            .occlusionQueryPrecise = true,
+            .pipelineStatisticsQuery = false,
+            .vertexPipelineStoresAndAtomics = true,
+            .fragmentStoresAndAtomics = true,
+            .shaderTessellationAndGeometryPointSize = false,
+            .shaderImageGatherExtended = true,
+            .shaderStorageImageExtendedFormats = false,
+            .shaderStorageImageMultisample = is_shader_storage_image_multisample,
+            .shaderStorageImageReadWithoutFormat = is_formatless_image_load_supported,
+            .shaderStorageImageWriteWithoutFormat = true,
+            .shaderUniformBufferArrayDynamicIndexing = false,
+            .shaderSampledImageArrayDynamicIndexing = false,
+            .shaderStorageBufferArrayDynamicIndexing = false,
+            .shaderStorageImageArrayDynamicIndexing = false,
+            .shaderClipDistance = false,
+            .shaderCullDistance = false,
+            .shaderFloat64 = false,
+            .shaderInt64 = false,
+            .shaderInt16 = false,
+            .shaderResourceResidency = false,
+            .shaderResourceMinLod = false,
+            .sparseBinding = false,
+            .sparseResidencyBuffer = false,
+            .sparseResidencyImage2D = false,
+            .sparseResidencyImage3D = false,
+            .sparseResidency2Samples = false,
+            .sparseResidency4Samples = false,
+            .sparseResidency8Samples = false,
+            .sparseResidency16Samples = false,
+            .sparseResidencyAliased = false,
+            .variableMultisampleRate = false,
+            .inheritedQueries = false,
+        },
     };
     const void* first_next = &features2;
     void** next = &features2.pNext;
 
-    features2.features = {
-        .robustBufferAccess = false,
-        .fullDrawIndexUint32 = false,
-        .imageCubeArray = true,
-        .independentBlend = true,
-        .geometryShader = true,
-        .tessellationShader = true,
-        .sampleRateShading = false,
-        .dualSrcBlend = false,
-        .logicOp = false,
-        .multiDrawIndirect = false,
-        .drawIndirectFirstInstance = false,
-        .depthClamp = true,
-        .depthBiasClamp = true,
-        .fillModeNonSolid = false,
-        .depthBounds = false,
-        .wideLines = false,
-        .largePoints = true,
-        .alphaToOne = false,
-        .multiViewport = true,
-        .samplerAnisotropy = true,
-        .textureCompressionETC2 = false,
-        .textureCompressionASTC_LDR = is_optimal_astc_supported,
-        .textureCompressionBC = false,
-        .occlusionQueryPrecise = true,
-        .pipelineStatisticsQuery = false,
-        .vertexPipelineStoresAndAtomics = true,
-        .fragmentStoresAndAtomics = true,
-        .shaderTessellationAndGeometryPointSize = false,
-        .shaderImageGatherExtended = true,
-        .shaderStorageImageExtendedFormats = false,
-        .shaderStorageImageMultisample = is_shader_storage_image_multisample,
-        .shaderStorageImageReadWithoutFormat = is_formatless_image_load_supported,
-        .shaderStorageImageWriteWithoutFormat = true,
-        .shaderUniformBufferArrayDynamicIndexing = false,
-        .shaderSampledImageArrayDynamicIndexing = false,
-        .shaderStorageBufferArrayDynamicIndexing = false,
-        .shaderStorageImageArrayDynamicIndexing = false,
-        .shaderClipDistance = false,
-        .shaderCullDistance = false,
-        .shaderFloat64 = false,
-        .shaderInt64 = false,
-        .shaderInt16 = false,
-        .shaderResourceResidency = false,
-        .shaderResourceMinLod = false,
-        .sparseBinding = false,
-        .sparseResidencyBuffer = false,
-        .sparseResidencyImage2D = false,
-        .sparseResidencyImage3D = false,
-        .sparseResidency2Samples = false,
-        .sparseResidency4Samples = false,
-        .sparseResidency8Samples = false,
-        .sparseResidency16Samples = false,
-        .sparseResidencyAliased = false,
-        .variableMultisampleRate = false,
-        .inheritedQueries = false,
-    };
     VkPhysicalDeviceTimelineSemaphoreFeaturesKHR timeline_semaphore{
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES_KHR,
         .pNext = nullptr,
@@ -384,7 +384,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         robustness2 = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT,
             .pNext = nullptr,
-            .robustBufferAccess2 = false,
+            .robustBufferAccess2 = true,
             .robustImageAccess2 = true,
             .nullDescriptor = true,
         };
@@ -535,16 +535,18 @@ bool Device::IsFormatSupported(VkFormat wanted_format, VkFormatFeatureFlags want
     return (supported_usage & wanted_usage) == wanted_usage;
 }
 
-void Device::CheckSuitability() const {
+void Device::CheckSuitability(bool requires_swapchain) const {
     std::bitset<REQUIRED_EXTENSIONS.size()> available_extensions;
+    bool has_swapchain = false;
     for (const VkExtensionProperties& property : physical.EnumerateDeviceExtensionProperties()) {
-        for (std::size_t i = 0; i < REQUIRED_EXTENSIONS.size(); ++i) {
+        const std::string_view name{property.extensionName};
+        for (size_t i = 0; i < REQUIRED_EXTENSIONS.size(); ++i) {
             if (available_extensions[i]) {
                 continue;
             }
-            const std::string_view name{property.extensionName};
             available_extensions[i] = name == REQUIRED_EXTENSIONS[i];
         }
+        has_swapchain = has_swapchain || name == VK_KHR_SWAPCHAIN_EXTENSION_NAME;
     }
     for (size_t i = 0; i < REQUIRED_EXTENSIONS.size(); ++i) {
         if (available_extensions[i]) {
@@ -553,6 +555,11 @@ void Device::CheckSuitability() const {
         LOG_ERROR(Render_Vulkan, "Missing required extension: {}", REQUIRED_EXTENSIONS[i]);
         throw vk::Exception(VK_ERROR_EXTENSION_NOT_PRESENT);
     }
+    if (requires_swapchain && !has_swapchain) {
+        LOG_ERROR(Render_Vulkan, "Missing required extension: VK_KHR_swapchain");
+        throw vk::Exception(VK_ERROR_EXTENSION_NOT_PRESENT);
+    }
+
     struct LimitTuple {
         u32 minimum;
         u32 value;
@@ -574,7 +581,9 @@ void Device::CheckSuitability() const {
     }
     const VkPhysicalDeviceFeatures features{physical.GetFeatures()};
     const std::array feature_report{
+        std::make_pair(features.robustBufferAccess, "robustBufferAccess"),
         std::make_pair(features.vertexPipelineStoresAndAtomics, "vertexPipelineStoresAndAtomics"),
+        std::make_pair(features.robustBufferAccess, "robustBufferAccess"),
         std::make_pair(features.imageCubeArray, "imageCubeArray"),
         std::make_pair(features.independentBlend, "independentBlend"),
         std::make_pair(features.depthClamp, "depthClamp"),
@@ -599,10 +608,13 @@ void Device::CheckSuitability() const {
     }
 }
 
-std::vector<const char*> Device::LoadExtensions() {
+std::vector<const char*> Device::LoadExtensions(bool requires_surface) {
     std::vector<const char*> extensions;
-    extensions.reserve(7 + REQUIRED_EXTENSIONS.size());
+    extensions.reserve(8 + REQUIRED_EXTENSIONS.size());
     extensions.insert(extensions.begin(), REQUIRED_EXTENSIONS.begin(), REQUIRED_EXTENSIONS.end());
+    if (requires_surface) {
+        extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+    }
 
     bool has_khr_shader_float16_int8{};
     bool has_ext_subgroup_size_control{};
@@ -743,7 +755,8 @@ std::vector<const char*> Device::LoadExtensions() {
         robustness2.pNext = nullptr;
         features.pNext = &robustness2;
         physical.GetFeatures2KHR(features);
-        if (robustness2.nullDescriptor && robustness2.robustImageAccess2) {
+        if (robustness2.nullDescriptor && robustness2.robustBufferAccess2 &&
+            robustness2.robustImageAccess2) {
             extensions.push_back(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
             ext_robustness2 = true;
         }

@@ -31,23 +31,13 @@ using VideoCommon::NUM_RT;
 using VideoCommon::Offset2D;
 using VideoCommon::RenderTargets;
 
-class ImageBufferMap {
-public:
-    explicit ImageBufferMap(GLuint handle, u8* map, size_t size, OGLSync* sync);
+struct ImageBufferMap {
     ~ImageBufferMap();
 
-    GLuint Handle() const noexcept {
-        return handle;
-    }
-
-    std::span<u8> Span() const noexcept {
-        return span;
-    }
-
-private:
-    std::span<u8> span;
+    std::span<u8> mapped_span;
+    size_t offset = 0;
     OGLSync* sync;
-    GLuint handle;
+    GLuint buffer;
 };
 
 struct FormatProperties {
@@ -69,9 +59,9 @@ public:
 
     void Finish();
 
-    ImageBufferMap MapUploadBuffer(size_t size);
+    ImageBufferMap UploadStagingBuffer(size_t size);
 
-    ImageBufferMap MapDownloadBuffer(size_t size);
+    ImageBufferMap DownloadStagingBuffer(size_t size);
 
     void CopyImage(Image& dst, Image& src, std::span<const VideoCommon::ImageCopy> copies);
 
@@ -89,7 +79,7 @@ public:
                          Tegra::Engines::Fermi2D::Filter filter,
                          Tegra::Engines::Fermi2D::Operation operation);
 
-    void AccelerateImageUpload(Image& image, const ImageBufferMap& map, size_t buffer_offset,
+    void AccelerateImageUpload(Image& image, const ImageBufferMap& map,
                                std::span<const VideoCommon::SwizzleParameters> swizzles);
 
     void InsertUploadMemoryBarrier();
@@ -148,14 +138,12 @@ public:
     explicit Image(TextureCacheRuntime&, const VideoCommon::ImageInfo& info, GPUVAddr gpu_addr,
                    VAddr cpu_addr);
 
-    void UploadMemory(const ImageBufferMap& map, size_t buffer_offset,
+    void UploadMemory(const ImageBufferMap& map,
                       std::span<const VideoCommon::BufferImageCopy> copies);
 
-    void UploadMemory(const ImageBufferMap& map, size_t buffer_offset,
-                      std::span<const VideoCommon::BufferCopy> copies);
+    void UploadMemory(const ImageBufferMap& map, std::span<const VideoCommon::BufferCopy> copies);
 
-    void DownloadMemory(ImageBufferMap& map, size_t buffer_offset,
-                        std::span<const VideoCommon::BufferImageCopy> copies);
+    void DownloadMemory(ImageBufferMap& map, std::span<const VideoCommon::BufferImageCopy> copies);
 
     GLuint Handle() const noexcept {
         return texture.handle;

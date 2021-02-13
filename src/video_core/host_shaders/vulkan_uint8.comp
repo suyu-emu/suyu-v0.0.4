@@ -16,9 +16,16 @@ layout (std430, set = 0, binding = 1) writeonly buffer OutputBuffer {
     uint16_t output_indexes[];
 };
 
+uint AssembleIndex(uint id) {
+    // Most primitive restart indices are 0xFF
+    // Hardcode this to 0xFF for now
+    uint index = uint(input_indexes[id]);
+    return index == 0xFF ? 0xFFFF : index;
+}
+
 void main() {
     uint id = gl_GlobalInvocationID.x;
     if (id < input_indexes.length()) {
-        output_indexes[id] = uint16_t(input_indexes[id]);
+        output_indexes[id] = uint16_t(AssembleIndex(id));
     }
 }

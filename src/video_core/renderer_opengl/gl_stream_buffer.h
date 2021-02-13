@@ -1,9 +1,12 @@
-// Copyright 2018 Citra Emulator Project
+// Copyright 2021 yuzu Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
 #pragma once
 
+#include <array>
+#include <memory>
+#include <span>
 #include <utility>
 
 #include <glad/glad.h>
@@ -13,48 +16,35 @@
 
 namespace OpenGL {
 
-class Device;
-class StateTracker;
+class StreamBuffer {
+    static constexpr size_t STREAM_BUFFER_SIZE = 64 * 1024 * 1024;
+    static constexpr size_t NUM_SYNCS = 16;
+    static constexpr size_t REGION_SIZE = STREAM_BUFFER_SIZE / NUM_SYNCS;
+    static constexpr size_t MAX_ALIGNMENT = 256;
+    static_assert(STREAM_BUFFER_SIZE % MAX_ALIGNMENT == 0);
+    static_assert(STREAM_BUFFER_SIZE % NUM_SYNCS == 0);
+    static_assert(REGION_SIZE % MAX_ALIGNMENT == 0);
 
-class OGLStreamBuffer : private NonCopyable {
 public:
-    explicit OGLStreamBuffer(const Device& device, StateTracker& state_tracker_);
-    ~OGLStreamBuffer();
+    explicit StreamBuffer();
 
-    /*
-     * Allocates a linear chunk of memory in the GPU buffer with at least "size" bytes
-     * and the optional alignment requirement.
-     * If the buffer is full, the whole buffer is reallocated which invalidates old chunks.
-     * The return values are the pointer to the new chunk, and the offset within the buffer.
-     * The actual used size must be specified on unmapping the chunk.
-     */
-    std::pair<u8*, GLintptr> Map(GLsizeiptr size, GLintptr alignment = 0);
+    [[nodiscard]] std::pair<std::span<u8>, size_t> Request(size_t size) noexcept;
 
-    void Unmap(GLsizeiptr size);
-
-    GLuint Handle() const {
-        return gl_buffer.handle;
-    }
-
-    u64 Address() const {
-        return gpu_address;
-    }
-
-    GLsizeiptr Size() const noexcept {
-        return BUFFER_SIZE;
+    [[nodiscard]] GLuint Handle() const noexcept {
+        return buffer.handle;
     }
 
 private:
-    static constexpr GLsizeiptr BUFFER_SIZE = 256 * 1024 * 1024;
+    [[nodiscard]] static size_t Region(size_t offset) noexcept {
+        return offset / REGION_SIZE;
+    }
 
-    StateTracker& state_tracker;
-
-    OGLBuffer gl_buffer;
-
-    GLuint64EXT gpu_address = 0;
-    GLintptr buffer_pos = 0;
-    GLsizeiptr mapped_size = 0;
-    u8* mapped_ptr = nullptr;
+    size_t iterator = 0;
+    size_t used_iterator = 0;
+    size_t free_iterator = 0;
+    u8* mapped_pointer = nullptr;
+    OGLBuffer buffer;
+    std::array<OGLSync, NUM_SYNCS> fences;
 };
 
 } // namespace OpenGL
