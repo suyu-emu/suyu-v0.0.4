@@ -2,14 +2,11 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-// This file references various implementation details from Atmosphere, an open-source firmware for
-// the Nintendo Switch. Copyright 2018-2020 Atmosphere-NX.
-
 #pragma once
 
 #include "common/assert.h"
-#include "common/spin_lock.h"
 #include "core/hardware_properties.h"
+#include "core/hle/kernel/k_spin_lock.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
 
@@ -34,7 +31,7 @@ public:
         } else {
             // Otherwise, we want to disable scheduling and acquire the spinlock.
             SchedulerType::DisableScheduling(kernel);
-            spin_lock.lock();
+            spin_lock.Lock();
 
             // For debug, ensure that our state is valid.
             ASSERT(lock_count == 0);
@@ -58,7 +55,7 @@ public:
 
             // Note that we no longer hold the lock, and unlock the spinlock.
             owner_thread = nullptr;
-            spin_lock.unlock();
+            spin_lock.Unlock();
 
             // Enable scheduling, and perform a rescheduling operation.
             SchedulerType::EnableScheduling(kernel, cores_needing_scheduling);
@@ -67,7 +64,7 @@ public:
 
 private:
     KernelCore& kernel;
-    Common::SpinLock spin_lock{};
+    KAlignedSpinLock spin_lock{};
     s32 lock_count{};
     KThread* owner_thread{};
 };

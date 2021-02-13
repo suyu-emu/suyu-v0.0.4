@@ -14,10 +14,10 @@
 
 #include "common/common_types.h"
 #include "common/intrusive_red_black_tree.h"
-#include "common/spin_lock.h"
 #include "core/arm/arm_interface.h"
 #include "core/hle/kernel/k_affinity_mask.h"
 #include "core/hle/kernel/k_light_lock.h"
+#include "core/hle/kernel/k_spin_lock.h"
 #include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/svc_common.h"
@@ -732,7 +732,7 @@ private:
     s8 priority_inheritance_count{};
     bool resource_limit_release_hint{};
     StackParameters stack_parameters{};
-    Common::SpinLock context_guard{};
+    KSpinLock context_guard{};
 
     // For emulation
     std::shared_ptr<Common::Fiber> host_context{};
