@@ -275,22 +275,22 @@ struct KernelCore::Impl {
         constexpr std::size_t font_size{0x1100000};
         constexpr std::size_t irs_size{0x8000};
         constexpr std::size_t time_size{0x1000};
-        constexpr PAddr hid_addr{layout.System().StartAddress()};
-        constexpr PAddr font_pa{layout.System().StartAddress() + hid_size};
-        constexpr PAddr irs_addr{layout.System().StartAddress() + hid_size + font_size};
-        constexpr PAddr time_addr{layout.System().StartAddress() + hid_size + font_size + irs_size};
+        constexpr PAddr hid_addr{layout.System().GetAddress()};
+        constexpr PAddr font_pa{layout.System().GetAddress() + hid_size};
+        constexpr PAddr irs_addr{layout.System().GetAddress() + hid_size + font_size};
+        constexpr PAddr time_addr{layout.System().GetAddress() + hid_size + font_size + irs_size};
 
         // Initialize memory manager
         memory_manager = std::make_unique<KMemoryManager>();
         memory_manager->InitializeManager(KMemoryManager::Pool::Application,
-                                          layout.Application().StartAddress(),
-                                          layout.Application().EndAddress());
+                                          layout.Application().GetAddress(),
+                                          layout.Application().GetLastAddress());
         memory_manager->InitializeManager(KMemoryManager::Pool::Applet,
-                                          layout.Applet().StartAddress(),
-                                          layout.Applet().EndAddress());
+                                          layout.Applet().GetAddress(),
+                                          layout.Applet().GetLastAddress());
         memory_manager->InitializeManager(KMemoryManager::Pool::System,
-                                          layout.System().StartAddress(),
-                                          layout.System().EndAddress());
+                                          layout.System().GetAddress(),
+                                          layout.System().GetLastAddress());
 
         hid_shared_mem = Kernel::KSharedMemory::Create(
             system.Kernel(), system.DeviceMemory(), nullptr, {hid_addr, hid_size / PageSize},

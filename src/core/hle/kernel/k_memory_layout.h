@@ -6,6 +6,7 @@
 
 #include "common/common_types.h"
 #include "core/device_memory.h"
+#include "core/hle/kernel/k_memory_region.h"
 
 namespace Kernel {
 
@@ -26,27 +27,6 @@ constexpr bool IsKernelAddressKey(VAddr key) {
 constexpr bool IsKernelAddress(VAddr address) {
     return KernelVirtualAddressSpaceBase <= address && address < KernelVirtualAddressSpaceEnd;
 }
-
-class KMemoryRegion final {
-    friend class KMemoryLayout;
-
-public:
-    constexpr PAddr StartAddress() const {
-        return start_address;
-    }
-
-    constexpr PAddr EndAddress() const {
-        return end_address;
-    }
-
-private:
-    constexpr KMemoryRegion() = default;
-    constexpr KMemoryRegion(PAddr start_address, PAddr end_address)
-        : start_address{start_address}, end_address{end_address} {}
-
-    const PAddr start_address{};
-    const PAddr end_address{};
-};
 
 class KMemoryLayout final {
 public:
