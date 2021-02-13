@@ -4,23 +4,10 @@
 
 #pragma once
 
-#include <array>
 #include <glad/glad.h>
-#include "common/common_types.h"
-#include "common/logging/log.h"
 #include "video_core/engines/maxwell_3d.h"
 
-namespace OpenGL {
-
-using GLvec2 = std::array<GLfloat, 2>;
-using GLvec3 = std::array<GLfloat, 3>;
-using GLvec4 = std::array<GLfloat, 4>;
-
-using GLuvec2 = std::array<GLuint, 2>;
-using GLuvec3 = std::array<GLuint, 3>;
-using GLuvec4 = std::array<GLuint, 4>;
-
-namespace MaxwellToGL {
+namespace OpenGL::MaxwellToGL {
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
@@ -317,26 +304,6 @@ inline GLenum BlendFunc(Maxwell::Blend::Factor factor) {
     return GL_ZERO;
 }
 
-inline GLenum SwizzleSource(Tegra::Texture::SwizzleSource source) {
-    switch (source) {
-    case Tegra::Texture::SwizzleSource::Zero:
-        return GL_ZERO;
-    case Tegra::Texture::SwizzleSource::R:
-        return GL_RED;
-    case Tegra::Texture::SwizzleSource::G:
-        return GL_GREEN;
-    case Tegra::Texture::SwizzleSource::B:
-        return GL_BLUE;
-    case Tegra::Texture::SwizzleSource::A:
-        return GL_ALPHA;
-    case Tegra::Texture::SwizzleSource::OneInt:
-    case Tegra::Texture::SwizzleSource::OneFloat:
-        return GL_ONE;
-    }
-    UNIMPLEMENTED_MSG("Unimplemented swizzle source={}", source);
-    return GL_ZERO;
-}
-
 inline GLenum ComparisonOp(Maxwell::ComparisonOp comparison) {
     switch (comparison) {
     case Maxwell::ComparisonOp::Never:
@@ -493,5 +460,4 @@ inline GLenum ViewportSwizzle(Maxwell::ViewportSwizzle swizzle) {
     return GL_VIEWPORT_SWIZZLE_POSITIVE_X_NV + static_cast<GLenum>(swizzle);
 }
 
-} // namespace MaxwellToGL
-} // namespace OpenGL
+} // namespace OpenGL::MaxwellToGL
