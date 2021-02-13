@@ -40,7 +40,7 @@ std::pair<std::span<u8>, size_t> StreamBuffer::Request(size_t size) noexcept {
         glClientWaitSync(fences[region].handle, 0, GL_TIMEOUT_IGNORED);
         fences[region].Release();
     }
-    if (iterator + size > free_iterator) {
+    if (iterator + size >= free_iterator) {
         free_iterator = iterator + size;
     }
     if (iterator + size > STREAM_BUFFER_SIZE) {

@@ -153,7 +153,7 @@ StagingBufferRef StagingBufferPool::GetStreamBuffer(size_t size) {
     used_iterator = iterator;
     free_iterator = std::max(free_iterator, iterator + size);
 
-    if (iterator + size > STREAM_BUFFER_SIZE) {
+    if (iterator + size >= STREAM_BUFFER_SIZE) {
         std::fill(sync_ticks.begin() + Region(used_iterator), sync_ticks.begin() + NUM_SYNCS,
                   current_tick);
         used_iterator = 0;
@@ -175,8 +175,9 @@ StagingBufferRef StagingBufferPool::GetStreamBuffer(size_t size) {
 }
 
 bool StagingBufferPool::AreRegionsActive(size_t region_begin, size_t region_end) const {
+    const u64 gpu_tick = scheduler.GetMasterSemaphore().KnownGpuTick();
     return std::any_of(sync_ticks.begin() + region_begin, sync_ticks.begin() + region_end,
-                       [this](u64 sync_tick) { return !scheduler.IsFree(sync_tick); });
+                       [gpu_tick](u64 sync_tick) { return gpu_tick < sync_tick; });
 };
 
 StagingBufferRef StagingBufferPool::GetStagingBuffer(size_t size, MemoryUsage usage) {
