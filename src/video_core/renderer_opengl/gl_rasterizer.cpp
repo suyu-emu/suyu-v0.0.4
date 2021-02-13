@@ -38,6 +38,7 @@
 namespace OpenGL {
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
+using GLvec4 = std::array<GLfloat, 4>;
 
 using Tegra::Engines::ShaderType;
 using VideoCore::Surface::PixelFormat;
