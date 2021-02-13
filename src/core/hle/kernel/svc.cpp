@@ -30,6 +30,7 @@
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scheduler.h"
+#include "core/hle/kernel/k_scoped_resource_reservation.h"
 #include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
 #include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/kernel/k_thread.h"
@@ -137,6 +138,7 @@ ResultCode MapUnmapMemorySanityChecks(const Memory::PageTable& manager, VAddr ds
 enum class ResourceLimitValueType {
     CurrentValue,
     LimitValue,
+    PeakValue,
 };
 
 ResultVal<s64> RetrieveResourceLimitValue(Core::System& system, Handle resource_limit,
@@ -159,11 +161,17 @@ ResultVal<s64> RetrieveResourceLimitValue(Core::System& system, Handle resource_
         return ResultInvalidHandle;
     }
 
-    if (value_type == ResourceLimitValueType::CurrentValue) {
+    switch (value_type) {
+    case ResourceLimitValueType::CurrentValue:
         return MakeResult(resource_limit_object->GetCurrentValue(type));
+    case ResourceLimitValueType::LimitValue:
+        return MakeResult(resource_limit_object->GetLimitValue(type));
+    case ResourceLimitValueType::PeakValue:
+        return MakeResult(resource_limit_object->GetPeakValue(type));
+    default:
+        LOG_ERROR(Kernel_SVC, "Invalid resource value_type: '{}'", value_type);
+        return ResultInvalidEnumValue;
     }
-
-    return MakeResult(resource_limit_object->GetLimitValue(type));
 }
 } // Anonymous namespace
 
@@ -312,8 +320,6 @@ static ResultCode ConnectToNamedPort(Core::System& system, Handle* out_handle,
         LOG_WARNING(Kernel_SVC, "tried to connect to unknown port: {}", port_name);
         return ResultNotFound;
     }
-
-    ASSERT(kernel.CurrentProcess()->GetResourceLimit()->Reserve(LimitableResource::Sessions, 1));
 
     auto client_port = it->second;
 
@@ -1516,8 +1522,13 @@ static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr e
         return ResultInvalidPriority;
     }
 
-    ASSERT(process.GetResourceLimit()->Reserve(
-        LimitableResource::Threads, 1, system.CoreTiming().GetGlobalTimeNs().count() + 100000000));
+    KScopedResourceReservation thread_reservation(
+        kernel.CurrentProcess(), LimitableResource::Threads, 1,
+        system.CoreTiming().GetGlobalTimeNs().count() + 100000000);
+    if (!thread_reservation.Succeeded()) {
+        LOG_ERROR(Kernel_SVC, "Could not reserve a new thread");
+        return ResultResourceLimitedExceeded;
+    }
 
     std::shared_ptr<KThread> thread;
     {
@@ -1537,6 +1548,7 @@ static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr e
     // Set the thread name for debugging purposes.
     thread->SetName(
         fmt::format("thread[entry_point={:X}, handle={:X}]", entry_point, *new_thread_handle));
+    thread_reservation.Commit();
 
     return RESULT_SUCCESS;
 }
@@ -1884,6 +1896,13 @@ static ResultCode CreateTransferMemory(Core::System& system, Handle* handle, VAd
     }
 
     auto& kernel = system.Kernel();
+    // Reserve a new transfer memory from the process resource limit.
+    KScopedResourceReservation trmem_reservation(kernel.CurrentProcess(),
+                                                 LimitableResource::TransferMemory);
+    if (!trmem_reservation.Succeeded()) {
+        LOG_ERROR(Kernel_SVC, "Could not reserve a new transfer memory");
+        return ResultResourceLimitedExceeded;
+    }
     auto transfer_mem_handle = TransferMemory::Create(kernel, system.Memory(), addr, size, perms);
 
     if (const auto reserve_result{transfer_mem_handle->Reserve()}; reserve_result.IsError()) {
@@ -1895,6 +1914,7 @@ static ResultCode CreateTransferMemory(Core::System& system, Handle* handle, VAd
     if (result.Failed()) {
         return result.Code();
     }
+    trmem_reservation.Commit();
 
     *handle = *result;
     return RESULT_SUCCESS;
@@ -2002,8 +2022,17 @@ static ResultCode SetThreadCoreMask32(Core::System& system, Handle thread_handle
 static ResultCode SignalEvent(Core::System& system, Handle event_handle) {
     LOG_DEBUG(Kernel_SVC, "called, event_handle=0x{:08X}", event_handle);
 
+    auto& kernel = system.Kernel();
     // Get the current handle table.
-    const HandleTable& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
+    const HandleTable& handle_table = kernel.CurrentProcess()->GetHandleTable();
+
+    // Reserve a new event from the process resource limit.
+    KScopedResourceReservation event_reservation(kernel.CurrentProcess(),
+                                                 LimitableResource::Events);
+    if (!event_reservation.Succeeded()) {
+        LOG_ERROR(Kernel, "Could not reserve a new event");
+        return ResultResourceLimitedExceeded;
+    }
 
     // Get the writable event.
     auto writable_event = handle_table.Get<KWritableEvent>(event_handle);
@@ -2011,6 +2040,9 @@ static ResultCode SignalEvent(Core::System& system, Handle event_handle) {
         LOG_ERROR(Kernel_SVC, "Invalid event handle provided (handle={:08X})", event_handle);
         return ResultInvalidHandle;
     }
+
+    // Commit the successfuly reservation.
+    event_reservation.Commit();
 
     return writable_event->Signal();
 }
