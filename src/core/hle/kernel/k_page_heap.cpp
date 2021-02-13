@@ -2,16 +2,13 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-// This file references various implementation details from Atmosphere, an open-source firmware for
-// the Nintendo Switch. Copyright 2018-2020 Atmosphere-NX.
-
 #include "core/core.h"
-#include "core/hle/kernel/memory/page_heap.h"
+#include "core/hle/kernel/k_page_heap.h"
 #include "core/memory.h"
 
-namespace Kernel::Memory {
+namespace Kernel {
 
-void PageHeap::Initialize(VAddr address, std::size_t size, std::size_t metadata_size) {
+void KPageHeap::Initialize(VAddr address, std::size_t size, std::size_t metadata_size) {
     // Check our assumptions
     ASSERT(Common::IsAligned((address), PageSize));
     ASSERT(Common::IsAligned(size, PageSize));
@@ -32,7 +29,7 @@ void PageHeap::Initialize(VAddr address, std::size_t size, std::size_t metadata_
     }
 }
 
-VAddr PageHeap::AllocateBlock(s32 index, bool random) {
+VAddr KPageHeap::AllocateBlock(s32 index, bool random) {
     const std::size_t needed_size{blocks[index].GetSize()};
 
     for (s32 i{index}; i < static_cast<s32>(MemoryBlockPageShifts.size()); i++) {
@@ -48,13 +45,13 @@ VAddr PageHeap::AllocateBlock(s32 index, bool random) {
     return 0;
 }
 
-void PageHeap::FreeBlock(VAddr block, s32 index) {
+void KPageHeap::FreeBlock(VAddr block, s32 index) {
     do {
         block = blocks[index++].PushBlock(block);
     } while (block != 0);
 }
 
-void PageHeap::Free(VAddr addr, std::size_t num_pages) {
+void KPageHeap::Free(VAddr addr, std::size_t num_pages) {
     // Freeing no pages is a no-op
     if (num_pages == 0) {
         return;
@@ -104,16 +101,16 @@ void PageHeap::Free(VAddr addr, std::size_t num_pages) {
     }
 }
 
-std::size_t PageHeap::CalculateManagementOverheadSize(std::size_t region_size) {
+std::size_t KPageHeap::CalculateManagementOverheadSize(std::size_t region_size) {
     std::size_t overhead_size = 0;
     for (std::size_t i = 0; i < MemoryBlockPageShifts.size(); i++) {
         const std::size_t cur_block_shift{MemoryBlockPageShifts[i]};
         const std::size_t next_block_shift{
             (i != MemoryBlockPageShifts.size() - 1) ? MemoryBlockPageShifts[i + 1] : 0};
-        overhead_size += PageHeap::Block::CalculateManagementOverheadSize(
+        overhead_size += KPageHeap::Block::CalculateManagementOverheadSize(
             region_size, cur_block_shift, next_block_shift);
     }
     return Common::AlignUp(overhead_size, PageSize);
 }
 
-} // namespace Kernel::Memory
+} // namespace Kernel

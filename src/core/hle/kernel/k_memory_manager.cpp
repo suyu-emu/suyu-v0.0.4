@@ -21,7 +21,7 @@ std::size_t KMemoryManager::Impl::Initialize(Pool new_pool, u64 start_address, u
     const auto ref_count_size{(size / PageSize) * sizeof(u16)};
     const auto optimize_map_size{(Common::AlignUp((size / PageSize), 64) / 64) * sizeof(u64)};
     const auto manager_size{Common::AlignUp(optimize_map_size + ref_count_size, PageSize)};
-    const auto page_heap_size{Memory::PageHeap::CalculateManagementOverheadSize(size)};
+    const auto page_heap_size{KPageHeap::CalculateManagementOverheadSize(size)};
     const auto total_metadata_size{manager_size + page_heap_size};
     ASSERT(manager_size <= total_metadata_size);
     ASSERT(Common::IsAligned(total_metadata_size, PageSize));
@@ -59,7 +59,7 @@ VAddr KMemoryManager::AllocateAndOpenContinuous(std::size_t num_pages, std::size
     std::lock_guard lock{pool_locks[pool_index]};
 
     // Choose a heap based on our page size request
-    const s32 heap_index{Memory::PageHeap::GetAlignedBlockIndex(num_pages, align_pages)};
+    const s32 heap_index{KPageHeap::GetAlignedBlockIndex(num_pages, align_pages)};
 
     // Loop, trying to iterate from each block
     // TODO (bunnei): Support multiple managers
@@ -72,7 +72,7 @@ VAddr KMemoryManager::AllocateAndOpenContinuous(std::size_t num_pages, std::size
     }
 
     // If we allocated more than we need, free some
-    const auto allocated_pages{Memory::PageHeap::GetBlockNumPages(heap_index)};
+    const auto allocated_pages{KPageHeap::GetBlockNumPages(heap_index)};
     if (allocated_pages > num_pages) {
         chosen_manager.Free(allocated_block + num_pages * PageSize, allocated_pages - num_pages);
     }
@@ -94,7 +94,7 @@ ResultCode KMemoryManager::Allocate(KPageLinkedList& page_list, std::size_t num_
     std::lock_guard lock{pool_locks[pool_index]};
 
     // Choose a heap based on our page size request
-    const s32 heap_index{Memory::PageHeap::GetBlockIndex(num_pages)};
+    const s32 heap_index{KPageHeap::GetBlockIndex(num_pages)};
     if (heap_index < 0) {
         return ResultOutOfMemory;
     }
@@ -113,7 +113,7 @@ ResultCode KMemoryManager::Allocate(KPageLinkedList& page_list, std::size_t num_
 
     // Keep allocating until we've allocated all our pages
     for (s32 index{heap_index}; index >= 0 && num_pages > 0; index--) {
-        const auto pages_per_alloc{Memory::PageHeap::GetBlockNumPages(index)};
+        const auto pages_per_alloc{KPageHeap::GetBlockNumPages(index)};
 
         while (num_pages >= pages_per_alloc) {
             // Allocate a block

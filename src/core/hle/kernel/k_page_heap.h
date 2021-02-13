@@ -2,9 +2,6 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-// This file references various implementation details from Atmosphere, an open-source firmware for
-// the Nintendo Switch. Copyright 2018-2020 Atmosphere-NX.
-
 #pragma once
 
 #include <array>
@@ -18,9 +15,9 @@
 #include "core/hle/kernel/k_page_bitmap.h"
 #include "core/hle/kernel/memory_types.h"
 
-namespace Kernel::Memory {
+namespace Kernel {
 
-class PageHeap final : NonCopyable {
+class KPageHeap final : NonCopyable {
 public:
     static constexpr s32 GetAlignedBlockIndex(std::size_t num_pages, std::size_t align_pages) {
         const auto target_pages{std::max(num_pages, align_pages)};
@@ -148,7 +145,7 @@ private:
     };
 
 public:
-    PageHeap() = default;
+    KPageHeap() = default;
 
     constexpr VAddr GetAddress() const {
         return heap_address;
@@ -193,4 +190,4 @@ private:
     std::vector<u64> metadata;
 };
 
-} // namespace Kernel::Memory
+} // namespace Kernel

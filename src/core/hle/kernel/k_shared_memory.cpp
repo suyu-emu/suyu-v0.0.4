@@ -4,10 +4,10 @@
 
 #include "common/assert.h"
 #include "core/core.h"
+#include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/k_scoped_resource_reservation.h"
 #include "core/hle/kernel/k_shared_memory.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/memory/page_table.h"
 
 namespace Kernel {
 
@@ -21,8 +21,7 @@ KSharedMemory::~KSharedMemory() {
 std::shared_ptr<KSharedMemory> KSharedMemory::Create(
     KernelCore& kernel, Core::DeviceMemory& device_memory, Process* owner_process,
     KPageLinkedList&& page_list, KMemoryPermission owner_permission,
-    KMemoryPermission user_permission, PAddr physical_address, std::size_t size,
-    std::string name) {
+    KMemoryPermission user_permission, PAddr physical_address, std::size_t size, std::string name) {
 
     const auto resource_limit = kernel.GetSystemResourceLimit();
     KScopedResourceReservation memory_reservation(resource_limit, LimitableResource::PhysicalMemory,

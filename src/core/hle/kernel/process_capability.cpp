@@ -7,7 +7,7 @@
 #include "common/bit_util.h"
 #include "common/logging/log.h"
 #include "core/hle/kernel/handle_table.h"
-#include "core/hle/kernel/memory/page_table.h"
+#include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/process_capability.h"
 #include "core/hle/kernel/svc_results.h"
 
@@ -69,7 +69,7 @@ u32 GetFlagBitOffset(CapabilityType type) {
 
 ResultCode ProcessCapabilities::InitializeForKernelProcess(const u32* capabilities,
                                                            std::size_t num_capabilities,
-                                                           Memory::PageTable& page_table) {
+                                                           KPageTable& page_table) {
     Clear();
 
     // Allow all cores and priorities.
@@ -82,7 +82,7 @@ ResultCode ProcessCapabilities::InitializeForKernelProcess(const u32* capabiliti
 
 ResultCode ProcessCapabilities::InitializeForUserProcess(const u32* capabilities,
                                                          std::size_t num_capabilities,
-                                                         Memory::PageTable& page_table) {
+                                                         KPageTable& page_table) {
     Clear();
 
     return ParseCapabilities(capabilities, num_capabilities, page_table);
@@ -108,7 +108,7 @@ void ProcessCapabilities::InitializeForMetadatalessProcess() {
 
 ResultCode ProcessCapabilities::ParseCapabilities(const u32* capabilities,
                                                   std::size_t num_capabilities,
-                                                  Memory::PageTable& page_table) {
+                                                  KPageTable& page_table) {
     u32 set_flags = 0;
     u32 set_svc_bits = 0;
 
@@ -155,7 +155,7 @@ ResultCode ProcessCapabilities::ParseCapabilities(const u32* capabilities,
 }
 
 ResultCode ProcessCapabilities::ParseSingleFlagCapability(u32& set_flags, u32& set_svc_bits,
-                                                          u32 flag, Memory::PageTable& page_table) {
+                                                          u32 flag, KPageTable& page_table) {
     const auto type = GetCapabilityType(flag);
 
     if (type == CapabilityType::Unset) {
@@ -293,12 +293,12 @@ ResultCode ProcessCapabilities::HandleSyscallFlags(u32& set_svc_bits, u32 flags)
 }
 
 ResultCode ProcessCapabilities::HandleMapPhysicalFlags(u32 flags, u32 size_flags,
-                                                       Memory::PageTable& page_table) {
+                                                       KPageTable& page_table) {
     // TODO(Lioncache): Implement once the memory manager can handle this.
     return RESULT_SUCCESS;
 }
 
-ResultCode ProcessCapabilities::HandleMapIOFlags(u32 flags, Memory::PageTable& page_table) {
+ResultCode ProcessCapabilities::HandleMapIOFlags(u32 flags, KPageTable& page_table) {
     // TODO(Lioncache): Implement once the memory manager can handle this.
     return RESULT_SUCCESS;
 }

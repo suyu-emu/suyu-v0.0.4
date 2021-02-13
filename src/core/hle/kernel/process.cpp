@@ -15,13 +15,13 @@
 #include "core/file_sys/program_metadata.h"
 #include "core/hle/kernel/code_set.h"
 #include "core/hle/kernel/k_memory_block_manager.h"
+#include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_scoped_resource_reservation.h"
 #include "core/hle/kernel/k_slab_heap.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/svc_results.h"
 #include "core/hle/lock.h"
@@ -464,9 +464,9 @@ bool Process::IsSignaled() const {
 }
 
 Process::Process(Core::System& system)
-    : KSynchronizationObject{system.Kernel()},
-      page_table{std::make_unique<Memory::PageTable>(system)}, handle_table{system.Kernel()},
-      address_arbiter{system}, condition_var{system}, state_lock{system.Kernel()}, system{system} {}
+    : KSynchronizationObject{system.Kernel()}, page_table{std::make_unique<KPageTable>(system)},
+      handle_table{system.Kernel()}, address_arbiter{system}, condition_var{system},
+      state_lock{system.Kernel()}, system{system} {}
 
 Process::~Process() = default;
 

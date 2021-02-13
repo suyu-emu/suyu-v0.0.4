@@ -16,7 +16,7 @@
 #include "core/arm/arm_interface.h"
 #include "core/core.h"
 #include "core/device_memory.h"
-#include "core/hle/kernel/memory/page_table.h"
+#include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/physical_memory.h"
 #include "core/hle/kernel/process.h"
 #include "core/memory.h"

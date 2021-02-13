@@ -29,15 +29,12 @@ class ProgramMetadata;
 namespace Kernel {
 
 class KernelCore;
+class KPageTable;
 class KResourceLimit;
 class KThread;
 class TLSPage;
 
 struct CodeSet;
-
-namespace Memory {
-class PageTable;
-}
 
 enum class MemoryRegion : u16 {
     APPLICATION = 1,
@@ -104,12 +101,12 @@ public:
     }
 
     /// Gets a reference to the process' page table.
-    Memory::PageTable& PageTable() {
+    KPageTable& PageTable() {
         return *page_table;
     }
 
     /// Gets const a reference to the process' page table.
-    const Memory::PageTable& PageTable() const {
+    const KPageTable& PageTable() const {
         return *page_table;
     }
 
@@ -385,7 +382,7 @@ private:
     ResultCode AllocateMainThreadStack(std::size_t stack_size);
 
     /// Memory manager for this process
-    std::unique_ptr<Memory::PageTable> page_table;
+    std::unique_ptr<KPageTable> page_table;
 
     /// Current status of the process
     ProcessStatus status{};

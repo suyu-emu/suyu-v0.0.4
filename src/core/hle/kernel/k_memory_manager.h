@@ -10,14 +10,12 @@
 
 #include "common/common_funcs.h"
 #include "common/common_types.h"
-#include "core/hle/kernel/memory/page_heap.h"
+#include "core/hle/kernel/k_page_heap.h"
 #include "core/hle/result.h"
 
 namespace Kernel {
-class KPageLinkedList;
-}
 
-namespace Kernel {
+class KPageLinkedList;
 
 class KMemoryManager final : NonCopyable {
 public:
@@ -84,7 +82,7 @@ private:
         using RefCount = u16;
 
     private:
-        Memory::PageHeap heap;
+        KPageHeap heap;
         Pool pool{};
 
     public:

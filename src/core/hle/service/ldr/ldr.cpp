@@ -11,8 +11,8 @@
 #include "common/scope_exit.h"
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
+#include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/k_system_control.h"
-#include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/svc_results.h"
 #include "core/hle/service/ldr/ldr.h"
@@ -287,8 +287,7 @@ public:
         rb.Push(RESULT_SUCCESS);
     }
 
-    bool ValidateRegionForMap(Kernel::Memory::PageTable& page_table, VAddr start,
-                              std::size_t size) const {
+    bool ValidateRegionForMap(Kernel::KPageTable& page_table, VAddr start, std::size_t size) const {
         constexpr std::size_t padding_size{4 * Kernel::PageSize};
         const auto start_info{page_table.QueryInfo(start - 1)};
 
@@ -309,7 +308,7 @@ public:
         return (start + size + padding_size) <= (end_info.GetAddress() + end_info.GetSize());
     }
 
-    VAddr GetRandomMapRegion(const Kernel::Memory::PageTable& page_table, std::size_t size) const {
+    VAddr GetRandomMapRegion(const Kernel::KPageTable& page_table, std::size_t size) const {
         VAddr addr{};
         const std::size_t end_pages{(page_table.GetAliasCodeRegionSize() - size) >>
                                     Kernel::PageBits};

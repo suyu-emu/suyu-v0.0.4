@@ -29,6 +29,7 @@
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_memory_block.h"
 #include "core/hle/kernel/k_memory_layout.h"
+#include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scheduler.h"
@@ -39,7 +40,6 @@
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/physical_core.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/svc.h"
@@ -67,8 +67,8 @@ constexpr bool IsValidAddressRange(VAddr address, u64 size) {
 // Helper function that performs the common sanity checks for svcMapMemory
 // and svcUnmapMemory. This is doable, as both functions perform their sanitizing
 // in the same order.
-ResultCode MapUnmapMemorySanityChecks(const Memory::PageTable& manager, VAddr dst_addr,
-                                      VAddr src_addr, u64 size) {
+ResultCode MapUnmapMemorySanityChecks(const KPageTable& manager, VAddr dst_addr, VAddr src_addr,
+                                      u64 size) {
     if (!Common::Is4KBAligned(dst_addr)) {
         LOG_ERROR(Kernel_SVC, "Destination address is not aligned to 4KB, 0x{:016X}", dst_addr);
         return ResultInvalidAddress;

@@ -12,9 +12,7 @@ union ResultCode;
 
 namespace Kernel {
 
-namespace Memory {
-class PageTable;
-}
+class KPageTable;
 
 /// The possible types of programs that may be indicated
 /// by the program type capability descriptor.
@@ -90,7 +88,7 @@ public:
     ///          otherwise, an error code upon failure.
     ///
     ResultCode InitializeForKernelProcess(const u32* capabilities, std::size_t num_capabilities,
-                                          Memory::PageTable& page_table);
+                                          KPageTable& page_table);
 
     /// Initializes this process capabilities instance for a userland process.
     ///
@@ -103,7 +101,7 @@ public:
     ///          otherwise, an error code upon failure.
     ///
     ResultCode InitializeForUserProcess(const u32* capabilities, std::size_t num_capabilities,
-                                        Memory::PageTable& page_table);
+                                        KPageTable& page_table);
 
     /// Initializes this process capabilities instance for a process that does not
     /// have any metadata to parse.
@@ -189,7 +187,7 @@ private:
     /// @return RESULT_SUCCESS if no errors occur, otherwise an error code.
     ///
     ResultCode ParseCapabilities(const u32* capabilities, std::size_t num_capabilities,
-                                 Memory::PageTable& page_table);
+                                 KPageTable& page_table);
 
     /// Attempts to parse a capability descriptor that is only represented by a
     /// single flag set.
@@ -204,7 +202,7 @@ private:
     /// @return RESULT_SUCCESS if no errors occurred, otherwise an error code.
     ///
     ResultCode ParseSingleFlagCapability(u32& set_flags, u32& set_svc_bits, u32 flag,
-                                         Memory::PageTable& page_table);
+                                         KPageTable& page_table);
 
     /// Clears the internal state of this process capability instance. Necessary,
     /// to have a sane starting point due to us allowing running executables without
@@ -228,10 +226,10 @@ private:
     ResultCode HandleSyscallFlags(u32& set_svc_bits, u32 flags);
 
     /// Handles flags related to mapping physical memory pages.
-    ResultCode HandleMapPhysicalFlags(u32 flags, u32 size_flags, Memory::PageTable& page_table);
+    ResultCode HandleMapPhysicalFlags(u32 flags, u32 size_flags, KPageTable& page_table);
 
     /// Handles flags related to mapping IO pages.
-    ResultCode HandleMapIOFlags(u32 flags, Memory::PageTable& page_table);
+    ResultCode HandleMapIOFlags(u32 flags, KPageTable& page_table);
 
     /// Handles flags related to the interrupt capability flags.
     ResultCode HandleInterruptFlags(u32 flags);

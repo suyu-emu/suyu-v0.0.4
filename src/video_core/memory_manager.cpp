@@ -6,7 +6,7 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/core.h"
-#include "core/hle/kernel/memory/page_table.h"
+#include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/process.h"
 #include "core/memory.h"
 #include "video_core/gpu.h"

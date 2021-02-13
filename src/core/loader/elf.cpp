@@ -10,7 +10,7 @@
 #include "common/file_util.h"
 #include "common/logging/log.h"
 #include "core/hle/kernel/code_set.h"
-#include "core/hle/kernel/memory/page_table.h"
+#include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/process.h"
 #include "core/loader/elf.h"
 #include "core/memory.h"

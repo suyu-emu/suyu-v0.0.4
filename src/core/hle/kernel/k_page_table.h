@@ -19,14 +19,12 @@ class System;
 }
 
 namespace Kernel {
+
 class KMemoryBlockManager;
-}
 
-namespace Kernel::Memory {
-
-class PageTable final : NonCopyable {
+class KPageTable final : NonCopyable {
 public:
-    explicit PageTable(Core::System& system);
+    explicit KPageTable(Core::System& system);
 
     ResultCode InitializeForProcess(FileSys::ProgramAddressSpaceType as_type, bool enable_aslr,
                                     VAddr code_addr, std::size_t code_size,
@@ -278,4 +276,4 @@ private:
     Core::System& system;
 };
 
-} // namespace Kernel::Memory
+} // namespace Kernel
