@@ -93,7 +93,7 @@ void UtilShaders::BlockLinearUpload2D(Image& image, const ImageBufferMap& map,
         glUniform1ui(7, params.block_height_mask);
         glBindBufferRange(GL_SHADER_STORAGE_BUFFER, BINDING_INPUT_BUFFER, map.buffer, input_offset,
                           image.guest_size_bytes - swizzle.buffer_offset);
-        glBindImageTexture(BINDING_OUTPUT_IMAGE, image.Handle(), swizzle.level, GL_TRUE, 0,
+        glBindImageTexture(BINDING_OUTPUT_IMAGE, image.StorageHandle(), swizzle.level, GL_TRUE, 0,
                            GL_WRITE_ONLY, store_format);
         glDispatchCompute(num_dispatches_x, num_dispatches_y, image.info.resources.layers);
     }
@@ -134,7 +134,7 @@ void UtilShaders::BlockLinearUpload3D(Image& image, const ImageBufferMap& map,
         glUniform1ui(9, params.block_depth_mask);
         glBindBufferRange(GL_SHADER_STORAGE_BUFFER, BINDING_INPUT_BUFFER, map.buffer, input_offset,
                           image.guest_size_bytes - swizzle.buffer_offset);
-        glBindImageTexture(BINDING_OUTPUT_IMAGE, image.Handle(), swizzle.level, GL_TRUE, 0,
+        glBindImageTexture(BINDING_OUTPUT_IMAGE, image.StorageHandle(), swizzle.level, GL_TRUE, 0,
                            GL_WRITE_ONLY, store_format);
         glDispatchCompute(num_dispatches_x, num_dispatches_y, num_dispatches_z);
     }
@@ -164,7 +164,8 @@ void UtilShaders::PitchUpload(Image& image, const ImageBufferMap& map,
     glUniform2i(LOC_DESTINATION, 0, 0);
     glUniform1ui(LOC_BYTES_PER_BLOCK, bytes_per_block);
     glUniform1ui(LOC_PITCH, pitch);
-    glBindImageTexture(BINDING_OUTPUT_IMAGE, image.Handle(), 0, GL_FALSE, 0, GL_WRITE_ONLY, format);
+    glBindImageTexture(BINDING_OUTPUT_IMAGE, image.StorageHandle(), 0, GL_FALSE, 0, GL_WRITE_ONLY,
+                       format);
     for (const SwizzleParameters& swizzle : swizzles) {
         const Extent3D num_tiles = swizzle.num_tiles;
         const size_t input_offset = swizzle.buffer_offset + map.offset;
@@ -195,9 +196,9 @@ void UtilShaders::CopyBC4(Image& dst_image, Image& src_image, std::span<const Im
 
         glUniform3ui(LOC_SRC_OFFSET, copy.src_offset.x, copy.src_offset.y, copy.src_offset.z);
         glUniform3ui(LOC_DST_OFFSET, copy.dst_offset.x, copy.dst_offset.y, copy.dst_offset.z);
-        glBindImageTexture(BINDING_INPUT_IMAGE, src_image.Handle(), copy.src_subresource.base_level,
-                           GL_FALSE, 0, GL_READ_ONLY, GL_RG32UI);
-        glBindImageTexture(BINDING_OUTPUT_IMAGE, dst_image.Handle(),
+        glBindImageTexture(BINDING_INPUT_IMAGE, src_image.StorageHandle(),
+                           copy.src_subresource.base_level, GL_FALSE, 0, GL_READ_ONLY, GL_RG32UI);
+        glBindImageTexture(BINDING_OUTPUT_IMAGE, dst_image.StorageHandle(),
                            copy.dst_subresource.base_level, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8UI);
         glDispatchCompute(copy.extent.width, copy.extent.height, copy.extent.depth);
     }

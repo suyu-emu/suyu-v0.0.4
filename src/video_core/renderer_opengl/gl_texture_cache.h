@@ -145,6 +145,8 @@ public:
 
     void DownloadMemory(ImageBufferMap& map, std::span<const VideoCommon::BufferImageCopy> copies);
 
+    GLuint StorageHandle() noexcept;
+
     GLuint Handle() const noexcept {
         return texture.handle;
     }
@@ -155,8 +157,8 @@ private:
     void CopyImageToBuffer(const VideoCommon::BufferImageCopy& copy, size_t buffer_offset);
 
     OGLTexture texture;
-    OGLTextureView store_view;
     OGLBuffer buffer;
+    OGLTextureView store_view;
     GLenum gl_internal_format = GL_NONE;
     GLenum gl_format = GL_NONE;
     GLenum gl_type = GL_NONE;
