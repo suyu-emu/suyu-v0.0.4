@@ -3106,7 +3106,11 @@ ShaderEntries GenerateShaderEntries(const VideoCommon::Shader::ShaderIR& ir) {
         entries.const_buffers.emplace_back(cbuf.second, cbuf.first);
     }
     for (const auto& [base, usage] : ir.GetGlobalMemory()) {
-        entries.global_buffers.emplace_back(base.cbuf_index, base.cbuf_offset, usage.is_written);
+        entries.global_buffers.emplace_back(GlobalBufferEntry{
+            .cbuf_index = base.cbuf_index,
+            .cbuf_offset = base.cbuf_offset,
+            .is_written = usage.is_written,
+        });
     }
     for (const auto& sampler : ir.GetSamplers()) {
         if (sampler.is_buffer) {

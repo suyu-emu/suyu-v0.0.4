@@ -51,14 +51,7 @@ MICROPROFILE_DEFINE(OpenGL_CacheManagement, "OpenGL", "Cache Management", MP_RGB
 
 namespace {
 
-constexpr size_t NUM_CONST_BUFFERS_PER_STAGE = 18;
-constexpr size_t NUM_CONST_BUFFERS_BYTES_PER_STAGE =
-    NUM_CONST_BUFFERS_PER_STAGE * Maxwell::MaxConstBufferSize;
-constexpr size_t TOTAL_CONST_BUFFER_BYTES =
-    NUM_CONST_BUFFERS_BYTES_PER_STAGE * Maxwell::MaxShaderStage;
-
 constexpr size_t NUM_SUPPORTED_VERTEX_ATTRIBUTES = 16;
-constexpr size_t NUM_SUPPORTED_VERTEX_BINDINGS = 16;
 
 struct TextureHandle {
     constexpr TextureHandle(u32 data, bool via_header_index) {
