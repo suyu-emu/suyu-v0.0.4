@@ -307,7 +307,8 @@ void ApplySwizzle(GLuint handle, PixelFormat format, std::array<SwizzleSource, 4
 
 [[nodiscard]] bool CanBeAccelerated(const TextureCacheRuntime& runtime,
                                     const VideoCommon::ImageInfo& info) {
-    // Disable accelerated uploads for now as they don't implement swizzled uploads
+    return (!runtime.HasNativeASTC() && IsPixelFormatASTC(info.format));
+    // Disable other accelerated uploads for now as they don't implement swizzled uploads
     return false;
     switch (info.type) {
     case ImageType::e2D:
@@ -567,6 +568,9 @@ void TextureCacheRuntime::BlitFramebuffer(Framebuffer* dst, Framebuffer* src,
 
 void TextureCacheRuntime::AccelerateImageUpload(Image& image, const ImageBufferMap& map,
                                                 std::span<const SwizzleParameters> swizzles) {
+    if (IsPixelFormatASTC(image.info.format)) {
+        return util_shaders.ASTCDecode(image, map, swizzles);
+    }
     switch (image.info.type) {
     case ImageType::e2D:
         return util_shaders.BlockLinearUpload2D(image, map, swizzles);
@@ -597,6 +601,10 @@ FormatProperties TextureCacheRuntime::FormatInfo(ImageType type, GLenum internal
         UNREACHABLE();
         return FormatProperties{};
     }
+}
+
+bool TextureCacheRuntime::HasNativeASTC() const noexcept {
+    return device.HasASTC();
 }
 
 TextureCacheRuntime::StagingBuffers::StagingBuffers(GLenum storage_flags_, GLenum map_flags_)

@@ -40,6 +40,11 @@ public:
     explicit UtilShaders(ProgramManager& program_manager);
     ~UtilShaders();
 
+    void MakeBuffers();
+
+    void ASTCDecode(Image& image, const ImageBufferMap& map,
+                    std::span<const VideoCommon::SwizzleParameters> swizzles);
+
     void BlockLinearUpload2D(Image& image, const ImageBufferMap& map,
                              std::span<const VideoCommon::SwizzleParameters> swizzles);
 
@@ -59,7 +64,13 @@ private:
     ProgramManager& program_manager;
 
     OGLBuffer swizzle_table_buffer;
+    OGLBuffer astc_encodings_buffer;
+    OGLBuffer replicate_6_to_8_buffer;
+    OGLBuffer replicate_7_to_8_buffer;
+    OGLBuffer replicate_8_to_8_buffer;
+    OGLBuffer replicate_byte_to_16_buffer;
 
+    OGLProgram astc_decoder_program;
     OGLProgram block_linear_unswizzle_2d_program;
     OGLProgram block_linear_unswizzle_3d_program;
     OGLProgram pitch_unswizzle_program;
