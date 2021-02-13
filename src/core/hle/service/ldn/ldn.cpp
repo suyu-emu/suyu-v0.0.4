@@ -6,6 +6,7 @@
 
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/result.h"
+#include "core/hle/service/ldn/errors.h"
 #include "core/hle/service/ldn/ldn.h"
 #include "core/hle/service/sm/sm.h"
 
@@ -140,10 +141,11 @@ public:
 
     void Initialize2(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_LDN, "(STUBBED) called");
-        // Result success seem make this services start network and continue.
-        // If we just pass result error then it will stop and maybe try again and again.
+
+        // Return the disabled error to indicate that LDN is currently unavailable, otherwise games
+        // will continue to try to make a connection.
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_UNKNOWN);
+        rb.Push(ERROR_DISABLED);
     }
 };
 
