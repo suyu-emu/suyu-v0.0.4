@@ -29,8 +29,7 @@ namespace Kernel {
 
 namespace Memory {
 class MemoryManager;
-template <typename T>
-class SlabHeap;
+
 } // namespace Memory
 
 class ClientPort;
@@ -45,6 +44,9 @@ class ServiceThread;
 class Synchronization;
 class KThread;
 class TimeManager;
+
+template <typename T>
+class KSlabHeap;
 
 using EmuThreadHandle = uintptr_t;
 constexpr EmuThreadHandle EmuThreadHandleInvalid{};
@@ -184,10 +186,10 @@ public:
     const Memory::MemoryManager& MemoryManager() const;
 
     /// Gets the slab heap allocated for user space pages.
-    Memory::SlabHeap<Memory::Page>& GetUserSlabHeapPages();
+    KSlabHeap<Memory::Page>& GetUserSlabHeapPages();
 
     /// Gets the slab heap allocated for user space pages.
-    const Memory::SlabHeap<Memory::Page>& GetUserSlabHeapPages() const;
+    const KSlabHeap<Memory::Page>& GetUserSlabHeapPages() const;
 
     /// Gets the shared memory object for HID services.
     Kernel::KSharedMemory& GetHidSharedMem();

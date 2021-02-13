@@ -31,10 +31,10 @@
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_shared_memory.h"
+#include "core/hle/kernel/k_slab_heap.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/memory/memory_manager.h"
-#include "core/hle/kernel/memory/slab_heap.h"
 #include "core/hle/kernel/physical_core.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/service_thread.h"
@@ -306,7 +306,7 @@ struct KernelCore::Impl {
             Memory::MemoryPermission::Read, time_addr, time_size, "Time:SharedMemory");
 
         // Allocate slab heaps
-        user_slab_heap_pages = std::make_unique<Memory::SlabHeap<Memory::Page>>();
+        user_slab_heap_pages = std::make_unique<KSlabHeap<Memory::Page>>();
 
         constexpr u64 user_slab_heap_size{0x1ef000};
         // Reserve slab heaps
@@ -349,7 +349,7 @@ struct KernelCore::Impl {
 
     // Kernel memory management
     std::unique_ptr<Memory::MemoryManager> memory_manager;
-    std::unique_ptr<Memory::SlabHeap<Memory::Page>> user_slab_heap_pages;
+    std::unique_ptr<KSlabHeap<Memory::Page>> user_slab_heap_pages;
 
     // Shared memory for services
     std::shared_ptr<Kernel::KSharedMemory> hid_shared_mem;
@@ -581,11 +581,11 @@ const Memory::MemoryManager& KernelCore::MemoryManager() const {
     return *impl->memory_manager;
 }
 
-Memory::SlabHeap<Memory::Page>& KernelCore::GetUserSlabHeapPages() {
+KSlabHeap<Memory::Page>& KernelCore::GetUserSlabHeapPages() {
     return *impl->user_slab_heap_pages;
 }
 
-const Memory::SlabHeap<Memory::Page>& KernelCore::GetUserSlabHeapPages() const {
+const KSlabHeap<Memory::Page>& KernelCore::GetUserSlabHeapPages() const {
     return *impl->user_slab_heap_pages;
 }
 
