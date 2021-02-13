@@ -40,7 +40,7 @@ public:
     ResultCode UnmapMemory(VAddr addr, std::size_t size);
     ResultCode Map(VAddr dst_addr, VAddr src_addr, std::size_t size);
     ResultCode Unmap(VAddr dst_addr, VAddr src_addr, std::size_t size);
-    ResultCode MapPages(VAddr addr, PageLinkedList& page_linked_list, KMemoryState state,
+    ResultCode MapPages(VAddr addr, KPageLinkedList& page_linked_list, KMemoryState state,
                         KMemoryPermission perm);
     ResultCode SetCodeMemoryPermission(VAddr addr, std::size_t size, KMemoryPermission perm);
     KMemoryInfo QueryInfo(VAddr addr);
@@ -79,15 +79,16 @@ private:
                                                                 KMemoryAttribute::DeviceShared;
 
     ResultCode InitializeMemoryLayout(VAddr start, VAddr end);
-    ResultCode MapPages(VAddr addr, const PageLinkedList& page_linked_list, KMemoryPermission perm);
-    void MapPhysicalMemory(PageLinkedList& page_linked_list, VAddr start, VAddr end);
+    ResultCode MapPages(VAddr addr, const KPageLinkedList& page_linked_list,
+                        KMemoryPermission perm);
+    void MapPhysicalMemory(KPageLinkedList& page_linked_list, VAddr start, VAddr end);
     bool IsRegionMapped(VAddr address, u64 size);
     bool IsRegionContiguous(VAddr addr, u64 size) const;
-    void AddRegionToPages(VAddr start, std::size_t num_pages, PageLinkedList& page_linked_list);
+    void AddRegionToPages(VAddr start, std::size_t num_pages, KPageLinkedList& page_linked_list);
     KMemoryInfo QueryInfoImpl(VAddr addr);
     VAddr AllocateVirtualMemory(VAddr start, std::size_t region_num_pages, u64 needed_num_pages,
                                 std::size_t align);
-    ResultCode Operate(VAddr addr, std::size_t num_pages, const PageLinkedList& page_group,
+    ResultCode Operate(VAddr addr, std::size_t num_pages, const KPageLinkedList& page_group,
                        OperationType operation);
     ResultCode Operate(VAddr addr, std::size_t num_pages, KMemoryPermission perm,
                        OperationType operation, PAddr map_addr = 0);

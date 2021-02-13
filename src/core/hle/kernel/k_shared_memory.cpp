@@ -20,7 +20,7 @@ KSharedMemory::~KSharedMemory() {
 
 std::shared_ptr<KSharedMemory> KSharedMemory::Create(
     KernelCore& kernel, Core::DeviceMemory& device_memory, Process* owner_process,
-    Memory::PageLinkedList&& page_list, KMemoryPermission owner_permission,
+    KPageLinkedList&& page_list, KMemoryPermission owner_permission,
     KMemoryPermission user_permission, PAddr physical_address, std::size_t size,
     std::string name) {
 

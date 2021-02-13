@@ -171,6 +171,7 @@ add_library(core STATIC
     hle/kernel/k_memory_block_manager.h
     hle/kernel/k_memory_layout.h
     hle/kernel/k_page_bitmap.h
+    hle/kernel/k_page_linked_list.h
     hle/kernel/k_priority_queue.h
     hle/kernel/k_readable_event.cpp
     hle/kernel/k_readable_event.h
@@ -201,7 +202,6 @@ add_library(core STATIC
     hle/kernel/memory_types.h
     hle/kernel/memory/memory_manager.cpp
     hle/kernel/memory/memory_manager.h
-    hle/kernel/memory/page_linked_list.h
     hle/kernel/memory/page_heap.cpp
     hle/kernel/memory/page_heap.h
     hle/kernel/memory/page_table.cpp

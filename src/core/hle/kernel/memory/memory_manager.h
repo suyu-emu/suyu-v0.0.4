@@ -13,9 +13,11 @@
 #include "core/hle/kernel/memory/page_heap.h"
 #include "core/hle/result.h"
 
-namespace Kernel::Memory {
+namespace Kernel {
+class KPageLinkedList;
+}
 
-class PageLinkedList;
+namespace Kernel::Memory {
 
 class MemoryManager final : NonCopyable {
 public:
@@ -48,9 +50,9 @@ public:
     void InitializeManager(Pool pool, u64 start_address, u64 end_address);
 
     VAddr AllocateAndOpenContinuous(size_t num_pages, size_t align_pages, u32 option);
-    ResultCode Allocate(PageLinkedList& page_list, std::size_t num_pages, Pool pool,
+    ResultCode Allocate(KPageLinkedList& page_list, std::size_t num_pages, Pool pool,
                         Direction dir = Direction::FromFront);
-    ResultCode Free(PageLinkedList& page_list, std::size_t num_pages, Pool pool,
+    ResultCode Free(KPageLinkedList& page_list, std::size_t num_pages, Pool pool,
                     Direction dir = Direction::FromFront);
 
     static constexpr std::size_t MaxManagerCount = 10;

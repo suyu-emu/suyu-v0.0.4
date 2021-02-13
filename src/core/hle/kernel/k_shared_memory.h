@@ -10,7 +10,7 @@
 #include "common/common_types.h"
 #include "core/device_memory.h"
 #include "core/hle/kernel/k_memory_block.h"
-#include "core/hle/kernel/memory/page_linked_list.h"
+#include "core/hle/kernel/k_page_linked_list.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/result.h"
@@ -26,7 +26,7 @@ public:
 
     static std::shared_ptr<KSharedMemory> Create(
         KernelCore& kernel, Core::DeviceMemory& device_memory, Process* owner_process,
-        Memory::PageLinkedList&& page_list, KMemoryPermission owner_permission,
+        KPageLinkedList&& page_list, KMemoryPermission owner_permission,
         KMemoryPermission user_permission, PAddr physical_address, std::size_t size,
         std::string name);
 
@@ -76,7 +76,7 @@ public:
 private:
     Core::DeviceMemory& device_memory;
     Process* owner_process{};
-    Memory::PageLinkedList page_list;
+    KPageLinkedList page_list;
     KMemoryPermission owner_permission{};
     KMemoryPermission user_permission{};
     PAddr physical_address{};

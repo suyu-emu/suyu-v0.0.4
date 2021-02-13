@@ -8,8 +8,8 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/scope_exit.h"
+#include "core/hle/kernel/k_page_linked_list.h"
 #include "core/hle/kernel/memory/memory_manager.h"
-#include "core/hle/kernel/memory/page_linked_list.h"
 #include "core/hle/kernel/svc_results.h"
 
 namespace Kernel::Memory {
@@ -80,7 +80,7 @@ VAddr MemoryManager::AllocateAndOpenContinuous(std::size_t num_pages, std::size_
     return allocated_block;
 }
 
-ResultCode MemoryManager::Allocate(PageLinkedList& page_list, std::size_t num_pages, Pool pool,
+ResultCode MemoryManager::Allocate(KPageLinkedList& page_list, std::size_t num_pages, Pool pool,
                                    Direction dir) {
     ASSERT(page_list.GetNumPages() == 0);
 
@@ -149,7 +149,7 @@ ResultCode MemoryManager::Allocate(PageLinkedList& page_list, std::size_t num_pa
     return RESULT_SUCCESS;
 }
 
-ResultCode MemoryManager::Free(PageLinkedList& page_list, std::size_t num_pages, Pool pool,
+ResultCode MemoryManager::Free(KPageLinkedList& page_list, std::size_t num_pages, Pool pool,
                                Direction dir) {
     // Early return if we're freeing no pages
     if (!num_pages) {

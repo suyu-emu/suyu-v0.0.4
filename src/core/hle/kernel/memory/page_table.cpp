@@ -9,11 +9,11 @@
 #include "core/hle/kernel/k_address_space_info.h"
 #include "core/hle/kernel/k_memory_block.h"
 #include "core/hle/kernel/k_memory_block_manager.h"
+#include "core/hle/kernel/k_page_linked_list.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scoped_resource_reservation.h"
 #include "core/hle/kernel/k_system_control.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/memory/page_linked_list.h"
 #include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/svc_results.h"
@@ -285,7 +285,7 @@ ResultCode PageTable::MapProcessCode(VAddr addr, std::size_t num_pages, KMemoryS
         return ResultInvalidCurrentMemory;
     }
 
-    PageLinkedList page_linked_list;
+    KPageLinkedList page_linked_list;
     CASCADE_CODE(
         system.Kernel().MemoryManager().Allocate(page_linked_list, num_pages, memory_pool));
     CASCADE_CODE(Operate(addr, num_pages, page_linked_list, OperationType::MapGroup));
@@ -311,7 +311,7 @@ ResultCode PageTable::MapProcessCodeMemory(VAddr dst_addr, VAddr src_addr, std::
         return ResultInvalidCurrentMemory;
     }
 
-    PageLinkedList page_linked_list;
+    KPageLinkedList page_linked_list;
     AddRegionToPages(src_addr, num_pages, page_linked_list);
 
     {
@@ -363,7 +363,7 @@ ResultCode PageTable::UnmapProcessCodeMemory(VAddr dst_addr, VAddr src_addr, std
     return RESULT_SUCCESS;
 }
 
-void PageTable::MapPhysicalMemory(PageLinkedList& page_linked_list, VAddr start, VAddr end) {
+void PageTable::MapPhysicalMemory(KPageLinkedList& page_linked_list, VAddr start, VAddr end) {
     auto node{page_linked_list.Nodes().begin()};
     PAddr map_addr{node->GetAddress()};
     std::size_t src_num_pages{node->GetNumPages()};
@@ -423,7 +423,7 @@ ResultCode PageTable::MapPhysicalMemory(VAddr addr, std::size_t size) {
         return ResultResourceLimitedExceeded;
     }
 
-    PageLinkedList page_linked_list;
+    KPageLinkedList page_linked_list;
 
     CASCADE_CODE(
         system.Kernel().MemoryManager().Allocate(page_linked_list, remaining_pages, memory_pool));
@@ -485,7 +485,7 @@ ResultCode PageTable::UnmapMemory(VAddr addr, std::size_t size) {
 
     const VAddr end_addr{addr + size};
     ResultCode result{RESULT_SUCCESS};
-    PageLinkedList page_linked_list;
+    KPageLinkedList page_linked_list;
 
     // Unmap each region within the range
     block_manager->IterateForRange(addr, end_addr, [&](const KMemoryInfo& info) {
@@ -529,7 +529,7 @@ ResultCode PageTable::Map(VAddr dst_addr, VAddr src_addr, std::size_t size) {
         return ResultInvalidCurrentMemory;
     }
 
-    PageLinkedList page_linked_list;
+    KPageLinkedList page_linked_list;
     const std::size_t num_pages{size / PageSize};
 
     AddRegionToPages(src_addr, num_pages, page_linked_list);
@@ -570,8 +570,8 @@ ResultCode PageTable::Unmap(VAddr dst_addr, VAddr src_addr, std::size_t size) {
                                   KMemoryPermission::None, KMemoryAttribute::Mask,
                                   KMemoryAttribute::None, KMemoryAttribute::IpcAndDeviceMapped));
 
-    PageLinkedList src_pages;
-    PageLinkedList dst_pages;
+    KPageLinkedList src_pages;
+    KPageLinkedList dst_pages;
     const std::size_t num_pages{size / PageSize};
 
     AddRegionToPages(src_addr, num_pages, src_pages);
@@ -597,7 +597,7 @@ ResultCode PageTable::Unmap(VAddr dst_addr, VAddr src_addr, std::size_t size) {
     return RESULT_SUCCESS;
 }
 
-ResultCode PageTable::MapPages(VAddr addr, const PageLinkedList& page_linked_list,
+ResultCode PageTable::MapPages(VAddr addr, const KPageLinkedList& page_linked_list,
                                KMemoryPermission perm) {
     VAddr cur_addr{addr};
 
@@ -619,7 +619,7 @@ ResultCode PageTable::MapPages(VAddr addr, const PageLinkedList& page_linked_lis
     return RESULT_SUCCESS;
 }
 
-ResultCode PageTable::MapPages(VAddr addr, PageLinkedList& page_linked_list, KMemoryState state,
+ResultCode PageTable::MapPages(VAddr addr, KPageLinkedList& page_linked_list, KMemoryState state,
                                KMemoryPermission perm) {
     std::lock_guard lock{page_table_lock};
 
@@ -793,7 +793,7 @@ ResultVal<VAddr> PageTable::SetHeapSize(std::size_t size) {
             return ResultResourceLimitedExceeded;
         }
 
-        PageLinkedList page_linked_list;
+        KPageLinkedList page_linked_list;
         const std::size_t num_pages{delta / PageSize};
 
         CASCADE_CODE(
@@ -841,7 +841,7 @@ ResultVal<VAddr> PageTable::AllocateAndMapMemory(std::size_t needed_num_pages, s
     if (is_map_only) {
         CASCADE_CODE(Operate(addr, needed_num_pages, perm, OperationType::Map, map_addr));
     } else {
-        PageLinkedList page_group;
+        KPageLinkedList page_group;
         CASCADE_CODE(
             system.Kernel().MemoryManager().Allocate(page_group, needed_num_pages, memory_pool));
         CASCADE_CODE(Operate(addr, needed_num_pages, page_group, OperationType::MapGroup));
@@ -924,7 +924,7 @@ bool PageTable::IsRegionContiguous(VAddr addr, u64 size) const {
 }
 
 void PageTable::AddRegionToPages(VAddr start, std::size_t num_pages,
-                                 PageLinkedList& page_linked_list) {
+                                 KPageLinkedList& page_linked_list) {
     VAddr addr{start};
     while (addr < start + (num_pages * PageSize)) {
         const PAddr paddr{GetPhysicalAddr(addr)};
@@ -945,7 +945,7 @@ VAddr PageTable::AllocateVirtualMemory(VAddr start, std::size_t region_num_pages
                                        IsKernel() ? 1 : 4);
 }
 
-ResultCode PageTable::Operate(VAddr addr, std::size_t num_pages, const PageLinkedList& page_group,
+ResultCode PageTable::Operate(VAddr addr, std::size_t num_pages, const KPageLinkedList& page_group,
                               OperationType operation) {
     std::lock_guard lock{page_table_lock};
 
