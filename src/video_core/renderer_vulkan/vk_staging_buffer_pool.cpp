@@ -153,7 +153,7 @@ StagingBufferRef StagingBufferPool::GetStreamBuffer(size_t size) {
     used_iterator = iterator;
     free_iterator = std::max(free_iterator, iterator + size);
 
-    if (iterator + size > STREAM_BUFFER_SIZE) {
+    if (iterator + size >= STREAM_BUFFER_SIZE) {
         std::fill(sync_ticks.begin() + Region(used_iterator), sync_ticks.begin() + NUM_SYNCS,
                   current_tick);
         used_iterator = 0;
