@@ -1047,20 +1047,21 @@ void IStorageAccessor::Write(Kernel::HLERequestContext& ctx) {
 
     const u64 offset{rp.Pop<u64>()};
     const std::vector<u8> data{ctx.ReadBuffer()};
+    const std::size_t size{std::min(data.size(), backing.GetSize() - offset)};
 
-    LOG_DEBUG(Service_AM, "called, offset={}, size={}", offset, data.size());
+    LOG_DEBUG(Service_AM, "called, offset={}, size={}", offset, size);
 
-    if (data.size() > backing.GetSize() - offset) {
+    if (offset > backing.GetSize()) {
         LOG_ERROR(Service_AM,
                   "offset is out of bounds, backing_buffer_sz={}, data_size={}, offset={}",
-                  backing.GetSize(), data.size(), offset);
+                  backing.GetSize(), size, offset);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ERR_SIZE_OUT_OF_BOUNDS);
         return;
     }
 
-    std::memcpy(backing.GetData().data() + offset, data.data(), data.size());
+    std::memcpy(backing.GetData().data() + offset, data.data(), size);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
@@ -1070,11 +1071,11 @@ void IStorageAccessor::Read(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
 
     const u64 offset{rp.Pop<u64>()};
-    const std::size_t size{ctx.GetWriteBufferSize()};
+    const std::size_t size{std::min(ctx.GetWriteBufferSize(), backing.GetSize() - offset)};
 
     LOG_DEBUG(Service_AM, "called, offset={}, size={}", offset, size);
 
-    if (size > backing.GetSize() - offset) {
+    if (offset > backing.GetSize()) {
         LOG_ERROR(Service_AM, "offset is out of bounds, backing_buffer_sz={}, size={}, offset={}",
                   backing.GetSize(), size, offset);
 
