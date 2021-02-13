@@ -7,15 +7,26 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/intrusive_red_black_tree.h"
+#include "core/hle/kernel/k_memory_region_type.h"
 
 namespace Kernel {
 
 class KMemoryRegion final : public Common::IntrusiveRedBlackTreeBaseNode<KMemoryRegion>,
                             NonCopyable {
-    friend class KMemoryLayout;
     friend class KMemoryRegionTree;
 
 public:
+    constexpr KMemoryRegion() = default;
+    constexpr KMemoryRegion(u64 address_, u64 last_address_)
+        : address{address_}, last_address{last_address_} {}
+    constexpr KMemoryRegion(u64 address_, u64 last_address_, u64 pair_address_, u32 attributes_,
+                            u32 type_id_)
+        : address(address_), last_address(last_address_), pair_address(pair_address_),
+          attributes(attributes_), type_id(type_id_) {}
+    constexpr KMemoryRegion(u64 address_, u64 last_address_, u32 attributes_, u32 type_id_)
+        : KMemoryRegion(address_, last_address_, std::numeric_limits<uintptr_t>::max(), attributes_,
+                        type_id_) {}
+
     static constexpr int Compare(const KMemoryRegion& lhs, const KMemoryRegion& rhs) {
         if (lhs.GetAddress() < rhs.GetAddress()) {
             return -1;
@@ -68,9 +79,9 @@ public:
         return (this->GetType() | type) == this->GetType();
     }
 
-    // constexpr bool HasTypeAttribute(KMemoryRegionAttr attr) const {
-    //    return (this->GetType() | attr) == this->GetType();
-    //}
+    constexpr bool HasTypeAttribute(KMemoryRegionAttr attr) const {
+        return (this->GetType() | static_cast<u32>(attr)) == this->GetType();
+    }
 
     constexpr bool CanDerive(u32 type) const {
         return (this->GetType() | type) == type;
@@ -80,22 +91,11 @@ public:
         pair_address = a;
     }
 
-    // constexpr void SetTypeAttribute(KMemoryRegionAttr attr) {
-    //    type_id |= attr;
-    //}
+    constexpr void SetTypeAttribute(KMemoryRegionAttr attr) {
+        type_id |= static_cast<u32>(attr);
+    }
 
 private:
-    constexpr KMemoryRegion() = default;
-    constexpr KMemoryRegion(u64 address_, u64 last_address_)
-        : address{address_}, last_address{last_address_} {}
-    constexpr KMemoryRegion(u64 address_, u64 last_address_, u64 pair_address_, u32 attributes_,
-                            u32 type_id_)
-        : address(address_), last_address(last_address_), pair_address(pair_address_),
-          attributes(attributes_), type_id(type_id_) {}
-    constexpr KMemoryRegion(u64 address_, u64 last_address_, u32 attributes_, u32 type_id_)
-        : KMemoryRegion(address_, last_address_, std::numeric_limits<uintptr_t>::max(), attributes_,
-                        type_id_) {}
-
     const u64 address{};
     const u64 last_address{};
     u64 pair_address{};
