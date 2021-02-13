@@ -24,6 +24,11 @@ public:
         return current_tick;
     }
 
+    /// Returns the last known GPU tick.
+    [[nodiscard]] u64 KnownGpuTick() const noexcept {
+        return gpu_tick;
+    }
+
     /// Returns the timeline semaphore handle.
     [[nodiscard]] VkSemaphore Handle() const noexcept {
         return *semaphore;
