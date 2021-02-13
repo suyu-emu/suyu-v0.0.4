@@ -141,11 +141,17 @@ struct KernelCore::Impl {
         ASSERT(system_resource_limit->SetLimitValue(LimitableResource::Events, 700).IsSuccess());
         ASSERT(system_resource_limit->SetLimitValue(LimitableResource::TransferMemory, 200)
                    .IsSuccess());
-        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::Sessions, 900).IsSuccess());
+        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::Sessions, 933).IsSuccess());
 
-        if (!system_resource_limit->Reserve(LimitableResource::PhysicalMemory, 0x60000)) {
+        // Derived from recent software updates. The kernel reserves 27MB
+        constexpr u64 kernel_size{0x1b00000};
+        if (!system_resource_limit->Reserve(LimitableResource::PhysicalMemory, kernel_size)) {
             UNREACHABLE();
         }
+        // Reserve secure applet memory, introduced in firmware 5.0.0
+        constexpr u64 secure_applet_memory_size{0x400000};
+        ASSERT(system_resource_limit->Reserve(LimitableResource::PhysicalMemory,
+                                              secure_applet_memory_size));
     }
 
     void InitializePreemption(KernelCore& kernel) {
@@ -302,8 +308,11 @@ struct KernelCore::Impl {
         // Allocate slab heaps
         user_slab_heap_pages = std::make_unique<Memory::SlabHeap<Memory::Page>>();
 
+        constexpr u64 user_slab_heap_size{0x1ef000};
+        // Reserve slab heaps
+        ASSERT(
+            system_resource_limit->Reserve(LimitableResource::PhysicalMemory, user_slab_heap_size));
         // Initialize slab heaps
-        constexpr u64 user_slab_heap_size{0x3de000};
         user_slab_heap_pages->Initialize(
             system.DeviceMemory().GetPointer(Core::DramMemoryMap::SlabHeapBase),
             user_slab_heap_size);

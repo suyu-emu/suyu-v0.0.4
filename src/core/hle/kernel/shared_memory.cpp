@@ -14,7 +14,9 @@ namespace Kernel {
 SharedMemory::SharedMemory(KernelCore& kernel, Core::DeviceMemory& device_memory)
     : Object{kernel}, device_memory{device_memory} {}
 
-SharedMemory::~SharedMemory() = default;
+SharedMemory::~SharedMemory() {
+    kernel.GetSystemResourceLimit()->Release(LimitableResource::PhysicalMemory, size);
+}
 
 std::shared_ptr<SharedMemory> SharedMemory::Create(
     KernelCore& kernel, Core::DeviceMemory& device_memory, Process* owner_process,

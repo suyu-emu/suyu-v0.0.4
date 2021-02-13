@@ -138,6 +138,7 @@ ResultCode MapUnmapMemorySanityChecks(const Memory::PageTable& manager, VAddr ds
 enum class ResourceLimitValueType {
     CurrentValue,
     LimitValue,
+    PeakValue,
 };
 
 ResultVal<s64> RetrieveResourceLimitValue(Core::System& system, Handle resource_limit,
@@ -160,11 +161,17 @@ ResultVal<s64> RetrieveResourceLimitValue(Core::System& system, Handle resource_
         return ResultInvalidHandle;
     }
 
-    if (value_type == ResourceLimitValueType::CurrentValue) {
+    switch (value_type) {
+    case ResourceLimitValueType::CurrentValue:
         return MakeResult(resource_limit_object->GetCurrentValue(type));
+    case ResourceLimitValueType::LimitValue:
+        return MakeResult(resource_limit_object->GetLimitValue(type));
+    case ResourceLimitValueType::PeakValue:
+        return MakeResult(resource_limit_object->GetPeakValue(type));
+    default:
+        LOG_ERROR(Kernel_SVC, "Invalid resource value_type: '{}'", value_type);
+        return ResultInvalidEnumValue;
     }
-
-    return MakeResult(resource_limit_object->GetLimitValue(type));
 }
 } // Anonymous namespace
 
@@ -313,8 +320,6 @@ static ResultCode ConnectToNamedPort(Core::System& system, Handle* out_handle,
         LOG_WARNING(Kernel_SVC, "tried to connect to unknown port: {}", port_name);
         return ResultNotFound;
     }
-
-    ASSERT(kernel.CurrentProcess()->GetResourceLimit()->Reserve(LimitableResource::Sessions, 1));
 
     auto client_port = it->second;
 
@@ -1522,7 +1527,7 @@ static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr e
         system.CoreTiming().GetGlobalTimeNs().count() + 100000000);
     if (!thread_reservation.Succeeded()) {
         LOG_ERROR(Kernel_SVC, "Could not reserve a new thread");
-        return ERR_RESOURCE_LIMIT_EXCEEDED;
+        return ResultResourceLimitedExceeded;
     }
 
     std::shared_ptr<KThread> thread;
@@ -1896,7 +1901,7 @@ static ResultCode CreateTransferMemory(Core::System& system, Handle* handle, VAd
                                                  LimitableResource::TransferMemory);
     if (!trmem_reservation.Succeeded()) {
         LOG_ERROR(Kernel_SVC, "Could not reserve a new transfer memory");
-        return ERR_RESOURCE_LIMIT_EXCEEDED;
+        return ResultResourceLimitedExceeded;
     }
     auto transfer_mem_handle = TransferMemory::Create(kernel, system.Memory(), addr, size, perms);
 
@@ -2026,7 +2031,7 @@ static ResultCode SignalEvent(Core::System& system, Handle event_handle) {
                                                  LimitableResource::Events);
     if (!event_reservation.Succeeded()) {
         LOG_ERROR(Kernel, "Could not reserve a new event");
-        return ERR_RESOURCE_LIMIT_EXCEEDED;
+        return ResultResourceLimitedExceeded;
     }
 
     // Get the writable event.

@@ -39,6 +39,7 @@ namespace {
  */
 void SetupMainThread(Core::System& system, Process& owner_process, u32 priority, VAddr stack_top) {
     const VAddr entry_point = owner_process.PageTable().GetCodeRegionStart();
+    ASSERT(owner_process.GetResourceLimit()->Reserve(LimitableResource::Threads, 1));
     auto thread_res = KThread::Create(system, ThreadType::User, "main", entry_point, priority, 0,
                                       owner_process.GetIdealCoreId(), stack_top, &owner_process);
 
@@ -279,7 +280,7 @@ ResultCode Process::LoadFromMetadata(const FileSys::ProgramMetadata& metadata,
     if (!memory_reservation.Succeeded()) {
         LOG_ERROR(Kernel, "Could not reserve process memory requirements of size {:X} bytes",
                   code_size + system_resource_size);
-        return ERR_RESOURCE_LIMIT_EXCEEDED;
+        return ResultResourceLimitedExceeded;
     }
     // Initialize proces address space
     if (const ResultCode result{

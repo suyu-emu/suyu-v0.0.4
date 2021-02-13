@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/process.h"
@@ -17,6 +18,7 @@ TransferMemory::TransferMemory(KernelCore& kernel, Core::Memory::Memory& memory)
 TransferMemory::~TransferMemory() {
     // Release memory region when transfer memory is destroyed
     Reset();
+    owner_process->GetResourceLimit()->Release(LimitableResource::TransferMemory, 1);
 }
 
 std::shared_ptr<TransferMemory> TransferMemory::Create(KernelCore& kernel,
