@@ -2770,7 +2770,7 @@ void GMainWindow::OnReinitializeKeys(ReinitializeKeyBehavior behavior) {
                     .arg(errors));
         }
 
-        QProgressDialog prog;
+        QProgressDialog prog(this);
         prog.setRange(0, 0);
         prog.setLabelText(tr("Deriving keys...\nThis may take up to a minute depending \non your "
                              "system's performance."));
@@ -2952,7 +2952,7 @@ void GMainWindow::filterBarSetChecked(bool state) {
 }
 
 void GMainWindow::UpdateUITheme() {
-    const QString default_icons = QStringLiteral(":/icons/default");
+    const QString default_icons = QStringLiteral("default");
     const QString& current_theme = UISettings::values.theme;
     const bool is_default_theme = current_theme == QString::fromUtf8(UISettings::themes[0].second);
     QStringList theme_paths(default_theme_paths);
@@ -2968,7 +2968,6 @@ void GMainWindow::UpdateUITheme() {
             qApp->setStyleSheet({});
             setStyleSheet({});
         }
-        theme_paths.append(default_icons);
         QIcon::setThemeName(default_icons);
     } else {
         const QString theme_uri(QLatin1Char{':'} + current_theme + QStringLiteral("/style.qss"));
@@ -2980,10 +2979,7 @@ void GMainWindow::UpdateUITheme() {
         } else {
             LOG_ERROR(Frontend, "Unable to set style, stylesheet file not found");
         }
-
-        const QString theme_name = QStringLiteral(":/icons/") + current_theme;
-        theme_paths.append({default_icons, theme_name});
-        QIcon::setThemeName(theme_name);
+        QIcon::setThemeName(current_theme);
     }
 
     QIcon::setThemeSearchPaths(theme_paths);

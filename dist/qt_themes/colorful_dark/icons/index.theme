@@ -1,7 +1,7 @@
 [Icon Theme]
 Name=colorful_dark
 Comment=Colorful theme (Dark style)
-Inherits=default
+Inherits=colorful
 Directories=16x16
  
 [16x16]

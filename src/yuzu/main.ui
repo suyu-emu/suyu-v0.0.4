@@ -14,8 +14,8 @@
    <string>yuzu</string>
   </property>
   <property name="windowIcon">
-   <iconset>
-    <normaloff>../dist/yuzu.ico</normaloff>../dist/yuzu.ico</iconset>
+   <iconset resource="yuzu.qrc">
+    <normaloff>:/img/yuzu.ico</normaloff>:/img/yuzu.ico</iconset>
   </property>
   <property name="tabShape">
    <enum>QTabWidget::Rounded</enum>
@@ -303,6 +303,8 @@
    </property>
   </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="yuzu.qrc"/>
+ </resources>
  <connections/>
 </ui>

@@ -12,6 +12,7 @@
 #include "input_common/mouse/mouse_input.h"
 #include "input_common/sdl/sdl.h"
 #include "yuzu_cmd/emu_window/emu_window_sdl2.h"
+#include "yuzu_cmd/yuzu_icon.h"
 
 EmuWindow_SDL2::EmuWindow_SDL2(InputCommon::InputSubsystem* input_subsystem_)
     : input_subsystem{input_subsystem_} {
@@ -192,6 +193,22 @@ void EmuWindow_SDL2::WaitEvent() {
         SDL_SetWindowTitle(render_window, title.c_str());
         last_time = current_time;
     }
+}
+
+void EmuWindow_SDL2::SetWindowIcon() {
+    SDL_RWops* const yuzu_icon_stream = SDL_RWFromConstMem((void*)yuzu_icon, yuzu_icon_size);
+    if (yuzu_icon_stream == nullptr) {
+        LOG_WARNING(Frontend, "Failed to create yuzu icon stream.");
+        return;
+    }
+    SDL_Surface* const window_icon = SDL_LoadBMP_RW(yuzu_icon_stream, 1);
+    if (window_icon == nullptr) {
+        LOG_WARNING(Frontend, "Failed to read BMP from stream.");
+        return;
+    }
+    // The icon is attached to the window pointer
+    SDL_SetWindowIcon(render_window, window_icon);
+    SDL_FreeSurface(window_icon);
 }
 
 void EmuWindow_SDL2::OnMinimalClientAreaChangeRequest(std::pair<unsigned, unsigned> minimal_size) {

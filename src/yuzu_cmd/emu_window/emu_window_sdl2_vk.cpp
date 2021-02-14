@@ -35,6 +35,8 @@ EmuWindow_SDL2_VK::EmuWindow_SDL2_VK(InputCommon::InputSubsystem* input_subsyste
         std::exit(EXIT_FAILURE);
     }
 
+    SetWindowIcon();
+
     switch (wm.subsystem) {
 #ifdef SDL_VIDEO_DRIVER_WINDOWS
     case SDL_SYSWM_TYPE::SDL_SYSWM_WINDOWS:

@@ -64,6 +64,7 @@ void AsyncShaders::FreeWorkers() {
 
 void AsyncShaders::KillWorkers() {
     is_thread_exiting.store(true);
+    cv.notify_all();
     for (auto& thread : worker_threads) {
         thread.detach();
     }
