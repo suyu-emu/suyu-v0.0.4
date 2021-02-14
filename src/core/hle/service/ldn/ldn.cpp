@@ -104,7 +104,7 @@ public:
         : ServiceFramework{system_, "IUserLocalCommunicationService"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "GetState"},
+            {0, &IUserLocalCommunicationService::GetState, "GetState"},
             {1, nullptr, "GetNetworkInfo"},
             {2, nullptr, "GetIpv4Address"},
             {3, nullptr, "GetDisconnectReason"},
@@ -139,14 +139,38 @@ public:
         RegisterHandlers(functions);
     }
 
-    void Initialize2(Kernel::HLERequestContext& ctx) {
+    void GetState(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_LDN, "(STUBBED) called");
 
-        // Return the disabled error to indicate that LDN is currently unavailable, otherwise games
-        // will continue to try to make a connection.
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ERROR_DISABLED);
+        IPC::ResponseBuilder rb{ctx, 3};
+
+        // Indicate a network error, as we do not actually emulate LDN
+        rb.Push(static_cast<u32>(State::Error));
+
+        rb.Push(RESULT_SUCCESS);
     }
+
+    void Initialize2(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_LDN, "called");
+
+        is_initialized = true;
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
+
+private:
+    enum class State {
+        None,
+        Initialized,
+        AccessPointOpened,
+        AccessPointCreated,
+        StationOpened,
+        StationConnected,
+        Error,
+    };
+
+    bool is_initialized{};
 };
 
 class LDNS final : public ServiceFramework<LDNS> {
