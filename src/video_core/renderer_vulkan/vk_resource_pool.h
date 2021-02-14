@@ -36,7 +36,7 @@ private:
 
     MasterSemaphore& master_semaphore;
     size_t grow_step = 0;     ///< Number of new resources created after an overflow
-    size_t free_iterator = 0; ///< Hint to where the next free resources is likely to be found
+    size_t hint_iterator = 0; ///< Hint to where the next free resources is likely to be found
     std::vector<u64> ticks;   ///< Ticks for each resource
 };
 
