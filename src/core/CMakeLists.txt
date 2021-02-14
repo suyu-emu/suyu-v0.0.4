@@ -400,6 +400,7 @@ add_library(core STATIC
     hle/service/hid/controllers/xpad.h
     hle/service/lbl/lbl.cpp
     hle/service/lbl/lbl.h
+    hle/service/ldn/errors.h
     hle/service/ldn/ldn.cpp
     hle/service/ldn/ldn.h
     hle/service/ldr/ldr.cpp

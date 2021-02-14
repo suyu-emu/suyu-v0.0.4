@@ -6,6 +6,7 @@
 
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/result.h"
+#include "core/hle/service/ldn/errors.h"
 #include "core/hle/service/ldn/ldn.h"
 #include "core/hle/service/sm/sm.h"
 
@@ -103,7 +104,7 @@ public:
         : ServiceFramework{system_, "IUserLocalCommunicationService"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "GetState"},
+            {0, &IUserLocalCommunicationService::GetState, "GetState"},
             {1, nullptr, "GetNetworkInfo"},
             {2, nullptr, "GetIpv4Address"},
             {3, nullptr, "GetDisconnectReason"},
@@ -138,13 +139,38 @@ public:
         RegisterHandlers(functions);
     }
 
-    void Initialize2(Kernel::HLERequestContext& ctx) {
+    void GetState(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_LDN, "(STUBBED) called");
-        // Result success seem make this services start network and continue.
-        // If we just pass result error then it will stop and maybe try again and again.
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_UNKNOWN);
+
+        IPC::ResponseBuilder rb{ctx, 3};
+
+        // Indicate a network error, as we do not actually emulate LDN
+        rb.Push(static_cast<u32>(State::Error));
+
+        rb.Push(RESULT_SUCCESS);
     }
+
+    void Initialize2(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_LDN, "called");
+
+        is_initialized = true;
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
+
+private:
+    enum class State {
+        None,
+        Initialized,
+        AccessPointOpened,
+        AccessPointCreated,
+        StationOpened,
+        StationConnected,
+        Error,
+    };
+
+    bool is_initialized{};
 };
 
 class LDNS final : public ServiceFramework<LDNS> {
