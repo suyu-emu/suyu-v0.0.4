@@ -90,6 +90,14 @@ s32 EffectBase::GetProcessingOrder() const {
     return processing_order;
 }
 
+std::vector<u8>& EffectBase::GetWorkBuffer() {
+    return work_buffer;
+}
+
+const std::vector<u8>& EffectBase::GetWorkBuffer() const {
+    return work_buffer;
+}
+
 EffectI3dl2Reverb::EffectI3dl2Reverb() : EffectGeneric(EffectType::I3dl2Reverb) {}
 EffectI3dl2Reverb::~EffectI3dl2Reverb() = default;
 
@@ -117,6 +125,12 @@ void EffectI3dl2Reverb::Update(EffectInfo::InParams& in_params) {
         usage = UsageState::Initialized;
         params.status = ParameterStatus::Initialized;
         skipped = in_params.buffer_address == 0 || in_params.buffer_size == 0;
+        if (!skipped) {
+            auto& cur_work_buffer = GetWorkBuffer();
+            // Has two buffers internally
+            cur_work_buffer.resize(in_params.buffer_size * 2);
+            std::fill(cur_work_buffer.begin(), cur_work_buffer.end(), 0);
+        }
     }
 }
 
@@ -127,6 +141,14 @@ void EffectI3dl2Reverb::UpdateForCommandGeneration() {
         usage = UsageState::Stopped;
     }
     GetParams().status = ParameterStatus::Updated;
+}
+
+I3dl2ReverbState& EffectI3dl2Reverb::GetState() {
+    return state;
+}
+
+const I3dl2ReverbState& EffectI3dl2Reverb::GetState() const {
+    return state;
 }
 
 EffectBiquadFilter::EffectBiquadFilter() : EffectGeneric(EffectType::BiquadFilter) {}

@@ -2,6 +2,8 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <cmath>
+#include <numbers>
 #include "audio_core/algorithm/interpolate.h"
 #include "audio_core/command_generator.h"
 #include "audio_core/effect_context.h"
@@ -13,6 +15,20 @@ namespace AudioCore {
 namespace {
 constexpr std::size_t MIX_BUFFER_SIZE = 0x3f00;
 constexpr std::size_t SCALED_MIX_BUFFER_SIZE = MIX_BUFFER_SIZE << 15ULL;
+using DelayLineTimes = std::array<f32, AudioCommon::I3DL2REVERB_DELAY_LINE_COUNT>;
+
+constexpr DelayLineTimes FDN_MIN_DELAY_LINE_TIMES{5.0f, 6.0f, 13.0f, 14.0f};
+constexpr DelayLineTimes FDN_MAX_DELAY_LINE_TIMES{45.704f, 82.782f, 149.94f, 271.58f};
+constexpr DelayLineTimes DECAY0_MAX_DELAY_LINE_TIMES{17.0f, 13.0f, 9.0f, 7.0f};
+constexpr DelayLineTimes DECAY1_MAX_DELAY_LINE_TIMES{19.0f, 11.0f, 10.0f, 6.0f};
+constexpr std::array<f32, AudioCommon::I3DL2REVERB_TAPS> EARLY_TAP_TIMES{
+    0.017136f, 0.059154f, 0.161733f, 0.390186f, 0.425262f, 0.455411f, 0.689737f,
+    0.745910f, 0.833844f, 0.859502f, 0.000000f, 0.075024f, 0.168788f, 0.299901f,
+    0.337443f, 0.371903f, 0.599011f, 0.716741f, 0.817859f, 0.851664f};
+constexpr std::array<f32, AudioCommon::I3DL2REVERB_TAPS> EARLY_GAIN{
+    0.67096f, 0.61027f, 1.0f,     0.35680f, 0.68361f, 0.65978f, 0.51939f,
+    0.24712f, 0.45945f, 0.45021f, 0.64196f, 0.54879f, 0.92925f, 0.38270f,
+    0.72867f, 0.69794f, 0.5464f,  0.24563f, 0.45214f, 0.44042f};
 
 template <std::size_t N>
 void ApplyMix(s32* output, const s32* input, s32 gain, s32 sample_count) {
@@ -62,6 +78,154 @@ s32 ApplyMixDepop(s32* output, s32 first_sample, s32 delta, s32 sample_count) {
         return final_sample;
     } else {
         return -final_sample;
+    }
+}
+
+float Pow10(float x) {
+    if (x >= 0.0f) {
+        return 1.0f;
+    } else if (x <= -5.3f) {
+        return 0.0f;
+    }
+    return std::pow(10.0f, x);
+}
+
+float SinD(float degrees) {
+    return std::sin(degrees * std::numbers::pi_v<float> / 180.0f);
+}
+
+float CosD(float degrees) {
+    return std::cos(degrees * std::numbers::pi_v<float> / 180.0f);
+}
+
+float ToFloat(s32 sample) {
+    return static_cast<float>(sample) / 65536.f;
+}
+
+s32 ToS32(float sample) {
+    constexpr auto min = -8388608.0f;
+    constexpr auto max = 8388607.f;
+    float rescaled_sample = sample * 65536.0f;
+    if (rescaled_sample < min) {
+        rescaled_sample = min;
+    }
+    if (rescaled_sample > max) {
+        rescaled_sample = max;
+    }
+    return static_cast<s32>(rescaled_sample);
+}
+
+constexpr std::array<std::size_t, 20> REVERB_TAP_INDEX_1CH{0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                                           0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+constexpr std::array<std::size_t, 20> REVERB_TAP_INDEX_2CH{0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
+                                                           1, 1, 1, 0, 0, 0, 0, 1, 1, 1};
+
+constexpr std::array<std::size_t, 20> REVERB_TAP_INDEX_4CH{0, 0, 0, 1, 1, 1, 1, 2, 2, 2,
+                                                           1, 1, 1, 0, 0, 0, 0, 3, 3, 3};
+
+constexpr std::array<std::size_t, 20> REVERB_TAP_INDEX_6CH{4, 0, 0, 1, 1, 1, 1, 2, 2, 2,
+                                                           1, 1, 1, 0, 0, 0, 0, 3, 3, 3};
+
+template <std::size_t CHANNEL_COUNT>
+void ApplyReverbGeneric(I3dl2ReverbState& state,
+                        const std::array<const s32*, AudioCommon::MAX_CHANNEL_COUNT>& input,
+                        const std::array<s32*, AudioCommon::MAX_CHANNEL_COUNT>& output,
+                        s32 sample_count) {
+
+    auto GetTapLookup = []() {
+        if constexpr (CHANNEL_COUNT == 1) {
+            return REVERB_TAP_INDEX_1CH;
+        } else if constexpr (CHANNEL_COUNT == 2) {
+            return REVERB_TAP_INDEX_2CH;
+        } else if constexpr (CHANNEL_COUNT == 4) {
+            return REVERB_TAP_INDEX_4CH;
+        } else if constexpr (CHANNEL_COUNT == 6) {
+            return REVERB_TAP_INDEX_6CH;
+        }
+    };
+
+    const auto& tap_index_lut = GetTapLookup();
+    for (s32 sample = 0; sample < sample_count; sample++) {
+        std::array<f32, CHANNEL_COUNT> out_samples{};
+        std::array<f32, AudioCommon::I3DL2REVERB_DELAY_LINE_COUNT> fsamp{};
+        std::array<f32, AudioCommon::I3DL2REVERB_DELAY_LINE_COUNT> mixed{};
+        std::array<f32, AudioCommon::I3DL2REVERB_DELAY_LINE_COUNT> osamp{};
+
+        // Mix everything into a single sample
+        s32 temp_mixed_sample = 0;
+        for (std::size_t i = 0; i < CHANNEL_COUNT; i++) {
+            temp_mixed_sample += input[i][sample];
+        }
+        const auto current_sample = ToFloat(temp_mixed_sample);
+        const auto early_tap = state.early_delay_line.TapOut(state.early_to_late_taps);
+
+        for (std::size_t i = 0; i < AudioCommon::I3DL2REVERB_TAPS; i++) {
+            const auto tapped_samp =
+                state.early_delay_line.TapOut(state.early_tap_steps[i]) * EARLY_GAIN[i];
+            out_samples[tap_index_lut[i]] += tapped_samp;
+
+            if constexpr (CHANNEL_COUNT == 6) {
+                // handle lfe
+                out_samples[5] += tapped_samp;
+            }
+        }
+
+        state.lowpass_0 = current_sample * state.lowpass_2 + state.lowpass_0 * state.lowpass_1;
+        state.early_delay_line.Tick(state.lowpass_0);
+
+        for (std::size_t i = 0; i < CHANNEL_COUNT; i++) {
+            out_samples[i] *= state.early_gain;
+        }
+
+        // Two channel seems to apply a latet gain, we require to save this
+        f32 filter{};
+        for (std::size_t i = 0; i < AudioCommon::I3DL2REVERB_DELAY_LINE_COUNT; i++) {
+            filter = state.fdn_delay_line[i].GetOutputSample();
+            const auto computed = filter * state.lpf_coefficients[0][i] + state.shelf_filter[i];
+            state.shelf_filter[i] =
+                filter * state.lpf_coefficients[1][i] + computed * state.lpf_coefficients[2][i];
+            fsamp[i] = computed;
+        }
+
+        // Mixing matrix
+        mixed[0] = fsamp[1] + fsamp[2];
+        mixed[1] = -fsamp[0] - fsamp[3];
+        mixed[2] = fsamp[0] - fsamp[3];
+        mixed[3] = fsamp[1] - fsamp[2];
+
+        if constexpr (CHANNEL_COUNT == 2) {
+            for (auto& mix : mixed) {
+                mix *= (filter * state.late_gain);
+            }
+        }
+
+        for (std::size_t i = 0; i < AudioCommon::I3DL2REVERB_DELAY_LINE_COUNT; i++) {
+            const auto late = early_tap * state.late_gain;
+            osamp[i] = state.decay_delay_line0[i].Tick(late + mixed[i]);
+            osamp[i] = state.decay_delay_line1[i].Tick(osamp[i]);
+            state.fdn_delay_line[i].Tick(osamp[i]);
+        }
+
+        if constexpr (CHANNEL_COUNT == 1) {
+            output[0][sample] = ToS32(state.dry_gain * ToFloat(input[0][sample]) +
+                                      (out_samples[0] + osamp[0] + osamp[1]));
+        } else if constexpr (CHANNEL_COUNT == 2 || CHANNEL_COUNT == 4) {
+            for (std::size_t i = 0; i < CHANNEL_COUNT; i++) {
+                output[i][sample] =
+                    ToS32(state.dry_gain * ToFloat(input[i][sample]) + (out_samples[i] + osamp[i]));
+            }
+        } else if constexpr (CHANNEL_COUNT == 6) {
+            const auto temp_center = state.center_delay_line.Tick(0.5f * (osamp[2] - osamp[3]));
+            for (std::size_t i = 0; i < 4; i++) {
+                output[i][sample] =
+                    ToS32(state.dry_gain * ToFloat(input[i][sample]) + (out_samples[i] + osamp[i]));
+            }
+            output[4][sample] =
+                ToS32(state.dry_gain * ToFloat(input[4][sample]) + (out_samples[4] + temp_center));
+            output[5][sample] =
+                ToS32(state.dry_gain * ToFloat(input[5][sample]) + (out_samples[5] + osamp[3]));
+        }
     }
 }
 
@@ -271,11 +435,10 @@ void CommandGenerator::GenerateBiquadFilterCommandForVoice(ServerVoiceInfo& voic
         }
 
         // Generate biquad filter
-        //        GenerateBiquadFilterCommand(mix_buffer_count, biquad_filter,
-        //        dsp_state.biquad_filter_state,
-        //                                    mix_buffer_count + channel, mix_buffer_count +
-        //                                    channel, worker_params.sample_count,
-        //                                    voice_info.GetInParams().node_id);
+        // GenerateBiquadFilterCommand(mix_buffer_count, biquad_filter,
+        // dsp_state.biquad_filter_state,
+        //                            mix_buffer_count + channel, mix_buffer_count + channel,
+        //                            worker_params.sample_count, voice_info.GetInParams().node_id);
     }
 }
 
@@ -376,21 +539,54 @@ void CommandGenerator::GenerateEffectCommand(ServerMixInfo& mix_info) {
 
 void CommandGenerator::GenerateI3dl2ReverbEffectCommand(s32 mix_buffer_offset, EffectBase* info,
                                                         bool enabled) {
-    if (!enabled) {
+    auto* reverb = dynamic_cast<EffectI3dl2Reverb*>(info);
+    const auto& params = reverb->GetParams();
+    auto& state = reverb->GetState();
+    const auto channel_count = params.channel_count;
+
+    if (channel_count != 1 && channel_count != 2 && channel_count != 4 && channel_count != 6) {
         return;
     }
-    const auto& params = dynamic_cast<EffectI3dl2Reverb*>(info)->GetParams();
-    const auto channel_count = params.channel_count;
+
+    std::array<const s32*, AudioCommon::MAX_CHANNEL_COUNT> input{};
+    std::array<s32*, AudioCommon::MAX_CHANNEL_COUNT> output{};
+
+    const auto status = params.status;
     for (s32 i = 0; i < channel_count; i++) {
-        // TODO(ogniK): Actually implement reverb
-        /*
-        if (params.input[i] != params.output[i]) {
-            const auto* input = GetMixBuffer(mix_buffer_offset + params.input[i]);
-            auto* output = GetMixBuffer(mix_buffer_offset + params.output[i]);
-            ApplyMix<1>(output, input, 32768, worker_params.sample_count);
-        }*/
-        auto* output = GetMixBuffer(mix_buffer_offset + params.output[i]);
-        std::memset(output, 0, worker_params.sample_count * sizeof(s32));
+        input[i] = GetMixBuffer(mix_buffer_offset + params.input[i]);
+        output[i] = GetMixBuffer(mix_buffer_offset + params.output[i]);
+    }
+
+    if (enabled) {
+        if (status == ParameterStatus::Initialized) {
+            InitializeI3dl2Reverb(reverb->GetParams(), state, info->GetWorkBuffer());
+        } else if (status == ParameterStatus::Updating) {
+            UpdateI3dl2Reverb(reverb->GetParams(), state, false);
+        }
+    }
+
+    if (enabled) {
+        switch (channel_count) {
+        case 1:
+            ApplyReverbGeneric<1>(state, input, output, worker_params.sample_count);
+            break;
+        case 2:
+            ApplyReverbGeneric<2>(state, input, output, worker_params.sample_count);
+            break;
+        case 4:
+            ApplyReverbGeneric<4>(state, input, output, worker_params.sample_count);
+            break;
+        case 6:
+            ApplyReverbGeneric<6>(state, input, output, worker_params.sample_count);
+            break;
+        }
+    } else {
+        for (s32 i = 0; i < channel_count; i++) {
+            // Only copy if the buffer input and output do not match!
+            if ((mix_buffer_offset + params.input[i]) != (mix_buffer_offset + params.output[i])) {
+                std::memcpy(output[i], input[i], worker_params.sample_count * sizeof(s32));
+            }
+        }
     }
 }
 
@@ -526,6 +722,133 @@ s32 CommandGenerator::ReadAuxBuffer(AuxInfoDSP& recv_info, VAddr recv_buffer, u3
         recv_info.read_offset = (recv_info.read_offset + read_count) % max_samples;
     }
     return sample_count;
+}
+
+void CommandGenerator::InitializeI3dl2Reverb(I3dl2ReverbParams& info, I3dl2ReverbState& state,
+                                             std::vector<u8>& work_buffer) {
+    // Reset state
+    state.lowpass_0 = 0.0f;
+    state.lowpass_1 = 0.0f;
+    state.lowpass_2 = 0.0f;
+
+    state.early_delay_line.Reset();
+    state.early_tap_steps.fill(0);
+    state.early_gain = 0.0f;
+    state.late_gain = 0.0f;
+    state.early_to_late_taps = 0;
+    for (std::size_t i = 0; i < AudioCommon::I3DL2REVERB_DELAY_LINE_COUNT; i++) {
+        state.fdn_delay_line[i].Reset();
+        state.decay_delay_line0[i].Reset();
+        state.decay_delay_line1[i].Reset();
+    }
+    state.last_reverb_echo = 0.0f;
+    state.center_delay_line.Reset();
+    for (auto& coef : state.lpf_coefficients) {
+        coef.fill(0.0f);
+    }
+    state.shelf_filter.fill(0.0f);
+    state.dry_gain = 0.0f;
+
+    const auto sample_rate = info.sample_rate / 1000;
+    f32* work_buffer_ptr = reinterpret_cast<f32*>(work_buffer.data());
+
+    s32 delay_samples{};
+    for (std::size_t i = 0; i < AudioCommon::I3DL2REVERB_DELAY_LINE_COUNT; i++) {
+        delay_samples =
+            AudioCommon::CalculateDelaySamples(sample_rate, FDN_MAX_DELAY_LINE_TIMES[i]);
+        state.fdn_delay_line[i].Initialize(delay_samples, work_buffer_ptr);
+        work_buffer_ptr += delay_samples + 1;
+
+        delay_samples =
+            AudioCommon::CalculateDelaySamples(sample_rate, DECAY0_MAX_DELAY_LINE_TIMES[i]);
+        state.decay_delay_line0[i].Initialize(delay_samples, 0.0f, work_buffer_ptr);
+        work_buffer_ptr += delay_samples + 1;
+
+        delay_samples =
+            AudioCommon::CalculateDelaySamples(sample_rate, DECAY1_MAX_DELAY_LINE_TIMES[i]);
+        state.decay_delay_line1[i].Initialize(delay_samples, 0.0f, work_buffer_ptr);
+        work_buffer_ptr += delay_samples + 1;
+    }
+    delay_samples = AudioCommon::CalculateDelaySamples(sample_rate, 5.0f);
+    state.center_delay_line.Initialize(delay_samples, work_buffer_ptr);
+    work_buffer_ptr += delay_samples + 1;
+
+    delay_samples = AudioCommon::CalculateDelaySamples(sample_rate, 400.0f);
+    state.early_delay_line.Initialize(delay_samples, work_buffer_ptr);
+
+    UpdateI3dl2Reverb(info, state, true);
+}
+
+void CommandGenerator::UpdateI3dl2Reverb(I3dl2ReverbParams& info, I3dl2ReverbState& state,
+                                         bool should_clear) {
+
+    state.dry_gain = info.dry_gain;
+    state.shelf_filter.fill(0.0f);
+    state.lowpass_0 = 0.0f;
+    state.early_gain = Pow10(std::min(info.room + info.reflection, 5000.0f) / 2000.0f);
+    state.late_gain = Pow10(std::min(info.room + info.reverb, 5000.0f) / 2000.0f);
+
+    const auto sample_rate = info.sample_rate / 1000;
+    const f32 hf_gain = Pow10(info.room_hf / 2000.0f);
+    if (hf_gain >= 1.0f) {
+        state.lowpass_2 = 1.0f;
+        state.lowpass_1 = 0.0f;
+    } else {
+        const auto a = 1.0f - hf_gain;
+        const auto b = 2.0f * (1.0f - hf_gain * CosD(256.0f * info.hf_reference /
+                                                     static_cast<f32>(info.sample_rate)));
+        const auto c = std::sqrt(b * b - 4.0f * a * a);
+
+        state.lowpass_1 = (b - c) / (2.0f * a);
+        state.lowpass_2 = 1.0f - state.lowpass_1;
+    }
+    state.early_to_late_taps = AudioCommon::CalculateDelaySamples(
+        sample_rate, 1000.0f * (info.reflection_delay + info.reverb_delay));
+
+    state.last_reverb_echo = 0.6f * info.diffusion * 0.01f;
+    for (std::size_t i = 0; i < AudioCommon::I3DL2REVERB_DELAY_LINE_COUNT; i++) {
+        const auto length =
+            FDN_MIN_DELAY_LINE_TIMES[i] +
+            (info.density / 100.0f) * (FDN_MAX_DELAY_LINE_TIMES[i] - FDN_MIN_DELAY_LINE_TIMES[i]);
+        state.fdn_delay_line[i].SetDelay(AudioCommon::CalculateDelaySamples(sample_rate, length));
+
+        const auto delay_sample_counts = state.fdn_delay_line[i].GetDelay() +
+                                         state.decay_delay_line0[i].GetDelay() +
+                                         state.decay_delay_line1[i].GetDelay();
+
+        float a = (-60.0f * static_cast<f32>(delay_sample_counts)) /
+                  (info.decay_time * static_cast<f32>(info.sample_rate));
+        float b = a / info.hf_decay_ratio;
+        float c = CosD(128.0f * 0.5f * info.hf_reference / static_cast<f32>(info.sample_rate)) /
+                  SinD(128.0f * 0.5f * info.hf_reference / static_cast<f32>(info.sample_rate));
+        float d = Pow10((b - a) / 40.0f);
+        float e = Pow10((b + a) / 40.0f) * 0.7071f;
+
+        state.lpf_coefficients[0][i] = e * ((d * c) + 1.0f) / (c + d);
+        state.lpf_coefficients[1][i] = e * (1.0f - (d * c)) / (c + d);
+        state.lpf_coefficients[2][i] = (c - d) / (c + d);
+
+        state.decay_delay_line0[i].SetCoefficient(state.last_reverb_echo);
+        state.decay_delay_line1[i].SetCoefficient(-0.9f * state.last_reverb_echo);
+    }
+
+    if (should_clear) {
+        for (std::size_t i = 0; i < AudioCommon::I3DL2REVERB_DELAY_LINE_COUNT; i++) {
+            state.fdn_delay_line[i].Clear();
+            state.decay_delay_line0[i].Clear();
+            state.decay_delay_line1[i].Clear();
+        }
+        state.early_delay_line.Clear();
+        state.center_delay_line.Clear();
+    }
+
+    const auto max_early_delay = state.early_delay_line.GetMaxDelay();
+    const auto reflection_time = 1000.0f * (0.0098f * info.reverb_delay + 0.02f);
+    for (std::size_t tap = 0; tap < AudioCommon::I3DL2REVERB_TAPS; tap++) {
+        const auto length = AudioCommon::CalculateDelaySamples(
+            sample_rate, 1000.0f * info.reflection_delay + reflection_time * EARLY_TAP_TIMES[tap]);
+        state.early_tap_steps[tap] = std::min(length, max_early_delay);
+    }
 }
 
 void CommandGenerator::GenerateVolumeRampCommand(float last_volume, float current_volume,

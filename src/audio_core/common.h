@@ -33,6 +33,29 @@ constexpr std::size_t TEMP_MIX_BASE_SIZE = 0x3f00; // TODO(ogniK): Work out this
 // and our const ends up being 0x3f04, the 4 bytes are most
 // likely the sample history
 constexpr std::size_t TOTAL_TEMP_MIX_SIZE = TEMP_MIX_BASE_SIZE + AudioCommon::MAX_SAMPLE_HISTORY;
+constexpr f32 I3DL2REVERB_MAX_LEVEL = 5000.0f;
+constexpr f32 I3DL2REVERB_MIN_REFLECTION_DURATION = 0.02f;
+constexpr std::size_t I3DL2REVERB_TAPS = 20;
+constexpr std::size_t I3DL2REVERB_DELAY_LINE_COUNT = 4;
+using Fractional = s32;
+
+template <typename T>
+constexpr Fractional ToFractional(T x) {
+    return static_cast<Fractional>(x * static_cast<T>(0x4000));
+}
+
+constexpr Fractional MultiplyFractional(Fractional lhs, Fractional rhs) {
+    return static_cast<Fractional>(static_cast<s64>(lhs) * rhs >> 14);
+}
+
+constexpr s32 FractionalToFixed(Fractional x) {
+    const auto s = x & (1 << 13);
+    return static_cast<s32>(x >> 14) + s;
+}
+
+constexpr s32 CalculateDelaySamples(s32 sample_rate_khz, float time) {
+    return FractionalToFixed(MultiplyFractional(ToFractional(sample_rate_khz), ToFractional(time)));
+}
 
 static constexpr u32 VersionFromRevision(u32_le rev) {
     // "REV7" -> 7

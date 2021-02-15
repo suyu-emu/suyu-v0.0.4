@@ -21,6 +21,8 @@ class ServerMixInfo;
 class EffectContext;
 class EffectBase;
 struct AuxInfoDSP;
+struct I3dl2ReverbParams;
+struct I3dl2ReverbState;
 using MixVolumeBuffer = std::array<float, AudioCommon::MAX_MIX_BUFFERS>;
 
 class CommandGenerator {
@@ -80,6 +82,9 @@ private:
     s32 ReadAuxBuffer(AuxInfoDSP& recv_info, VAddr recv_buffer, u32 max_samples, s32* out_data,
                       u32 sample_count, u32 read_offset, u32 read_count);
 
+    void InitializeI3dl2Reverb(I3dl2ReverbParams& info, I3dl2ReverbState& state,
+                               std::vector<u8>& work_buffer);
+    void UpdateI3dl2Reverb(I3dl2ReverbParams& info, I3dl2ReverbState& state, bool should_clear);
     // DSP Code
     s32 DecodePcm16(ServerVoiceInfo& voice_info, VoiceState& dsp_state, s32 sample_count,
                     s32 channel, std::size_t mix_offset);
