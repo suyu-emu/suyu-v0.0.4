@@ -42,7 +42,7 @@ void ControllerDialog::refreshConfiguration() {
 
 QAction* ControllerDialog::toggleViewAction() {
     if (toggle_view_action == nullptr) {
-        toggle_view_action = new QAction(windowTitle(), this);
+        toggle_view_action = new QAction(tr("&Controller P1"), this);
         toggle_view_action->setCheckable(true);
         toggle_view_action->setChecked(isVisible());
         connect(toggle_view_action, &QAction::toggled, this, &ControllerDialog::setVisible);
