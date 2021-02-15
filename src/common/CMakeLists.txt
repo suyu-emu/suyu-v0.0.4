@@ -168,7 +168,6 @@ add_library(common STATIC
     time_zone.cpp
     time_zone.h
     tree.h
-    uint128.cpp
     uint128.h
     uuid.cpp
     uuid.h

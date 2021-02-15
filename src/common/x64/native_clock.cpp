@@ -8,67 +8,9 @@
 #include <mutex>
 #include <thread>
 
-#ifdef _MSC_VER
-#include <intrin.h>
-
-#pragma intrinsic(__umulh)
-#pragma intrinsic(_udiv128)
-#else
-#include <x86intrin.h>
-#endif
-
 #include "common/atomic_ops.h"
 #include "common/uint128.h"
 #include "common/x64/native_clock.h"
-
-namespace {
-
-[[nodiscard]] u64 GetFixedPoint64Factor(u64 numerator, u64 divisor) {
-#ifdef __SIZEOF_INT128__
-    const auto base = static_cast<unsigned __int128>(numerator) << 64ULL;
-    return static_cast<u64>(base / divisor);
-#elif defined(_M_X64) || defined(_M_ARM64)
-    std::array<u64, 2> r = {0, numerator};
-    u64 remainder;
-#if _MSC_VER < 1923
-    return udiv128(r[1], r[0], divisor, &remainder);
-#else
-    return _udiv128(r[1], r[0], divisor, &remainder);
-#endif
-#else
-    // This one is bit more inaccurate.
-    return MultiplyAndDivide64(std::numeric_limits<u64>::max(), numerator, divisor);
-#endif
-}
-
-[[nodiscard]] u64 MultiplyHigh(u64 a, u64 b) {
-#ifdef __SIZEOF_INT128__
-    return (static_cast<unsigned __int128>(a) * static_cast<unsigned __int128>(b)) >> 64;
-#elif defined(_M_X64) || defined(_M_ARM64)
-    return __umulh(a, b); // MSVC
-#else
-    // Generic fallback
-    const u64 a_lo = u32(a);
-    const u64 a_hi = a >> 32;
-    const u64 b_lo = u32(b);
-    const u64 b_hi = b >> 32;
-
-    const u64 a_x_b_hi = a_hi * b_hi;
-    const u64 a_x_b_mid = a_hi * b_lo;
-    const u64 b_x_a_mid = b_hi * a_lo;
-    const u64 a_x_b_lo = a_lo * b_lo;
-
-    const u64 carry_bit = (static_cast<u64>(static_cast<u32>(a_x_b_mid)) +
-                           static_cast<u64>(static_cast<u32>(b_x_a_mid)) + (a_x_b_lo >> 32)) >>
-                          32;
-
-    const u64 multhi = a_x_b_hi + (a_x_b_mid >> 32) + (b_x_a_mid >> 32) + carry_bit;
-
-    return multhi;
-#endif
-}
-
-} // namespace
 
 namespace Common {
 
