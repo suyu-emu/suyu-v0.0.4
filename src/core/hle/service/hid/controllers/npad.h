@@ -51,6 +51,7 @@ public:
         JoyDual,
         JoyLeft,
         JoyRight,
+        GameCube,
         Pokeball,
     };
 
@@ -60,6 +61,7 @@ public:
         JoyconDual = 5,
         JoyconLeft = 6,
         JoyconRight = 7,
+        GameCube = 8,
         Pokeball = 9,
         MaxNpadType = 10,
     };
@@ -389,6 +391,25 @@ private:
     };
     static_assert(sizeof(SixAxisGeneric) == 0x708, "SixAxisGeneric is an invalid size");
 
+    struct TriggerState {
+        s64_le timestamp{};
+        s64_le timestamp2{};
+        s32_le l_analog{};
+        s32_le r_analog{};
+    };
+    static_assert(sizeof(TriggerState) == 0x18, "TriggerState is an invalid size");
+
+    struct TriggerGeneric {
+        INSERT_PADDING_BYTES(0x4);
+        s64_le timestamp;
+        INSERT_PADDING_BYTES(0x4);
+        s64_le total_entry_count;
+        s64_le last_entry_index;
+        s64_le entry_count;
+        std::array<TriggerState, 17> trigger{};
+    };
+    static_assert(sizeof(TriggerGeneric) == 0x1C8, "TriggerGeneric is an invalid size");
+
     struct NPadSystemProperties {
         union {
             s64_le raw{};
@@ -509,7 +530,9 @@ private:
         AppletFooterUiType footer_type;
         // nfc_states needs to be checked switchbrew does not match with HW
         NfcXcdHandle nfc_states;
-        INSERT_PADDING_BYTES(0xdef);
+        INSERT_PADDING_BYTES(0x8); // Mutex
+        TriggerGeneric gc_trigger_states;
+        INSERT_PADDING_BYTES(0xc1f);
     };
     static_assert(sizeof(NPadEntry) == 0x5000, "NPadEntry is an invalid size");
 
@@ -560,6 +583,7 @@ private:
     f32 sixaxis_fusion_parameter2{};
     bool sixaxis_at_rest{true};
     std::array<ControllerPad, 10> npad_pad_states{};
+    std::array<TriggerState, 10> npad_trigger_states{};
     bool is_in_lr_assignment_mode{false};
     Core::System& system;
 };

@@ -227,6 +227,9 @@ void PlayerControlPreview::paintEvent(QPaintEvent* event) {
     case Settings::ControllerType::RightJoycon:
         DrawRightController(p, center);
         break;
+    case Settings::ControllerType::GameCube:
+        DrawGCController(p, center);
+        break;
     case Settings::ControllerType::ProController:
     default:
         DrawProController(p, center);

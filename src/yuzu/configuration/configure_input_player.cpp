@@ -467,10 +467,14 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
 
     UpdateControllerIcon();
     UpdateControllerAvailableButtons();
+    UpdateControllerEnabledButtons();
+    UpdateControllerButtonNames();
     UpdateMotionButtons();
     connect(ui->comboControllerType, qOverload<int>(&QComboBox::currentIndexChanged), [this](int) {
         UpdateControllerIcon();
         UpdateControllerAvailableButtons();
+        UpdateControllerEnabledButtons();
+        UpdateControllerButtonNames();
         UpdateMotionButtons();
     });
 
@@ -558,9 +562,6 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
             &ConfigureInputPlayer::SaveProfile);
 
     LoadConfiguration();
-
-    // TODO(wwylele): enable this when we actually emulate it
-    ui->buttonHome->setEnabled(false);
     ui->controllerFrame->SetPlayerInput(player_index, buttons_param, analogs_param);
     ui->controllerFrame->SetConnectedStatus(ui->groupConnectedController->isChecked());
 }
@@ -924,6 +925,12 @@ void ConfigureInputPlayer::SetConnectableControllers() {
                                                      Settings::ControllerType::Handheld);
             ui->comboControllerType->addItem(tr("Handheld"));
         }
+
+        if (enable_all || npad_style_set.gamecube == 1) {
+            index_controller_type_pairs.emplace_back(ui->comboControllerType->count(),
+                                                     Settings::ControllerType::GameCube);
+            ui->comboControllerType->addItem(tr("GameCube Controller"));
+        }
     };
 
     Core::System& system{Core::System::GetInstance()};
@@ -1014,7 +1021,7 @@ void ConfigureInputPlayer::UpdateControllerAvailableButtons() {
 
     // List of all the widgets that will be hidden by any of the following layouts that need
     // "unhidden" after the controller type changes
-    const std::array<QWidget*, 9> layout_show = {
+    const std::array<QWidget*, 11> layout_show = {
         ui->buttonShoulderButtonsSLSR,
         ui->horizontalSpacerShoulderButtonsWidget,
         ui->horizontalSpacerShoulderButtonsWidget2,
@@ -1024,6 +1031,8 @@ void ConfigureInputPlayer::UpdateControllerAvailableButtons() {
         ui->buttonShoulderButtonsRight,
         ui->buttonMiscButtonsPlusHome,
         ui->bottomRight,
+        ui->buttonMiscButtonsMinusGroup,
+        ui->buttonMiscButtonsScreenshotGroup,
     };
 
     for (auto* widget : layout_show) {
@@ -1056,10 +1065,64 @@ void ConfigureInputPlayer::UpdateControllerAvailableButtons() {
             ui->bottomLeft,
         };
         break;
+    case Settings::ControllerType::GameCube:
+        layout_hidden = {
+            ui->buttonShoulderButtonsSLSR,
+            ui->horizontalSpacerShoulderButtonsWidget2,
+            ui->buttonMiscButtonsMinusGroup,
+            ui->buttonMiscButtonsScreenshotGroup,
+        };
+        break;
     }
 
     for (auto* widget : layout_hidden) {
         widget->hide();
+    }
+}
+
+void ConfigureInputPlayer::UpdateControllerEnabledButtons() {
+    auto layout = GetControllerTypeFromIndex(ui->comboControllerType->currentIndex());
+    if (debug) {
+        layout = Settings::ControllerType::ProController;
+    }
+
+    // List of all the widgets that will be disabled by any of the following layouts that need
+    // "enabled" after the controller type changes
+    const std::array<QWidget*, 4> layout_enable = {
+        ui->buttonHome,
+        ui->buttonLStickPressedGroup,
+        ui->groupRStickPressed,
+        ui->buttonShoulderButtonsButtonLGroup,
+    };
+
+    for (auto* widget : layout_enable) {
+        widget->setEnabled(true);
+    }
+
+    std::vector<QWidget*> layout_disable;
+    switch (layout) {
+    case Settings::ControllerType::ProController:
+    case Settings::ControllerType::DualJoyconDetached:
+    case Settings::ControllerType::Handheld:
+    case Settings::ControllerType::LeftJoycon:
+    case Settings::ControllerType::RightJoycon:
+        // TODO(wwylele): enable this when we actually emulate it
+        layout_disable = {
+            ui->buttonHome,
+        };
+        break;
+    case Settings::ControllerType::GameCube:
+        layout_disable = {
+            ui->buttonHome,
+            ui->buttonLStickPressedGroup,
+            ui->groupRStickPressed,
+            ui->buttonShoulderButtonsButtonLGroup,
+        };
+        break;
+    }
+
+    for (auto* widget : layout_disable) {
+        widget->setEnabled(false);
     }
 }
 
@@ -1085,11 +1148,46 @@ void ConfigureInputPlayer::UpdateMotionButtons() {
         ui->buttonMotionLeftGroup->hide();
         ui->buttonMotionRightGroup->show();
         break;
+    case Settings::ControllerType::GameCube:
+        // Hide both "Motion 1/2".
+        ui->buttonMotionLeftGroup->hide();
+        ui->buttonMotionRightGroup->hide();
+        break;
     case Settings::ControllerType::DualJoyconDetached:
     default:
         // Show both "Motion 1/2".
         ui->buttonMotionLeftGroup->show();
         ui->buttonMotionRightGroup->show();
+        break;
+    }
+}
+
+void ConfigureInputPlayer::UpdateControllerButtonNames() {
+    auto layout = GetControllerTypeFromIndex(ui->comboControllerType->currentIndex());
+    if (debug) {
+        layout = Settings::ControllerType::ProController;
+    }
+
+    switch (layout) {
+    case Settings::ControllerType::ProController:
+    case Settings::ControllerType::DualJoyconDetached:
+    case Settings::ControllerType::Handheld:
+    case Settings::ControllerType::LeftJoycon:
+    case Settings::ControllerType::RightJoycon:
+        ui->buttonMiscButtonsPlusGroup->setTitle(tr("Plus"));
+        ui->buttonShoulderButtonsButtonZLGroup->setTitle(tr("ZL"));
+        ui->buttonShoulderButtonsZRGroup->setTitle(tr("ZR"));
+        ui->buttonShoulderButtonsRGroup->setTitle(tr("R"));
+        ui->LStick->setTitle(tr("Left Stick"));
+        ui->RStick->setTitle(tr("Right Stick"));
+        break;
+    case Settings::ControllerType::GameCube:
+        ui->buttonMiscButtonsPlusGroup->setTitle(tr("Start / Pause"));
+        ui->buttonShoulderButtonsButtonZLGroup->setTitle(tr("L"));
+        ui->buttonShoulderButtonsZRGroup->setTitle(tr("R"));
+        ui->buttonShoulderButtonsRGroup->setTitle(tr("Z"));
+        ui->LStick->setTitle(tr("Control Stick"));
+        ui->RStick->setTitle(tr("C-Stick"));
         break;
     }
 }
