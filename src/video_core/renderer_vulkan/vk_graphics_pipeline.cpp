@@ -221,9 +221,6 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const SPIRVProgram& program,
     std::vector<VkVertexInputBindingDescription> vertex_bindings;
     std::vector<VkVertexInputBindingDivisorDescriptionEXT> vertex_binding_divisors;
     for (std::size_t index = 0; index < Maxwell::NumVertexArrays; ++index) {
-        if (state.attributes[index].binding_index_enabled == 0) {
-            continue;
-        }
         const bool instanced = state.binding_divisors[index] != 0;
         const auto rate = instanced ? VK_VERTEX_INPUT_RATE_INSTANCE : VK_VERTEX_INPUT_RATE_VERTEX;
         vertex_bindings.push_back({
