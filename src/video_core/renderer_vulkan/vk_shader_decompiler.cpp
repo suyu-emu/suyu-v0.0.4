@@ -1849,7 +1849,7 @@ private:
         const Id coords = GetCoordinates(operation, Type::Float);
 
         spv::ImageOperandsMask mask = spv::ImageOperandsMask::MaskNone;
-        std::vector<Id> operands{};
+        std::vector<Id> operands;
         Id texture{};
 
         if (!meta.aoffi.empty()) {
@@ -1938,7 +1938,7 @@ private:
         const Id coords = GetCoordinates(operation, Type::Int);
 
         spv::ImageOperandsMask mask = spv::ImageOperandsMask::MaskNone;
-        std::vector<Id> operands{};
+        std::vector<Id> operands;
         Id fetch;
 
         if (meta.lod && !meta.sampler.is_buffer) {

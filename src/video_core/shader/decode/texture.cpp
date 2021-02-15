@@ -829,7 +829,7 @@ Node4 ShaderIR::GetTldsCode(Instruction instr, TextureType texture_type, bool is
     // When lod is used always is in gpr20
     const Node lod = lod_enabled ? GetRegister(instr.gpr20) : Immediate(0);
 
-    std::vector<Node> aoffi{};
+    std::vector<Node> aoffi;
     if (aoffi_enabled) {
         aoffi = GetAoffiCoordinates(GetRegister(instr.gpr20), type_coord_count, false);
     }
