@@ -33,11 +33,16 @@ void Mouse::UpdateThread() {
             info.motion.UpdateOrientation(update_time * 1000);
             info.tilt_speed = 0;
             info.data.motion = info.motion.GetMotion();
+            if (Settings::values.mouse_panning) {
+                info.last_mouse_change *= 0.96f;
+                info.data.axis = {static_cast<int>(16 * info.last_mouse_change.x),
+                                  static_cast<int>(16 * -info.last_mouse_change.y)};
+            }
         }
         if (configuring) {
             UpdateYuzuSettings();
         }
-        if (mouse_panning_timout++ > 8) {
+        if (mouse_panning_timout++ > 20) {
             StopPanning();
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(update_time));
@@ -82,16 +87,27 @@ void Mouse::StopPanning() {
 void Mouse::MouseMove(int x, int y, int center_x, int center_y) {
     for (MouseInfo& info : mouse_info) {
         if (Settings::values.mouse_panning) {
-            const auto mouse_change = Common::MakeVec(x, y) - Common::MakeVec(center_x, center_y);
+            auto mouse_change =
+                (Common::MakeVec(x, y) - Common::MakeVec(center_x, center_y)).Cast<float>();
             mouse_panning_timout = 0;
 
             if (mouse_change.y == 0 && mouse_change.x == 0) {
                 continue;
             }
+            const auto mouse_change_length = mouse_change.Length();
+            if (mouse_change_length < 3.0f) {
+                mouse_change /= mouse_change_length / 3.0f;
+            }
 
-            info.last_mouse_change = (info.last_mouse_change * 0.8f) + (mouse_change * 0.2f);
-            info.data.axis = {static_cast<int>(16 * info.last_mouse_change.x),
-                              static_cast<int>(16 * -info.last_mouse_change.y)};
+            info.last_mouse_change = (info.last_mouse_change * 0.91f) + (mouse_change * 0.09f);
+
+            const auto last_mouse_change_length = info.last_mouse_change.Length();
+            if (last_mouse_change_length > 8.0f) {
+                info.last_mouse_change /= last_mouse_change_length / 8.0f;
+            } else if (last_mouse_change_length < 1.0f) {
+                info.last_mouse_change = mouse_change / mouse_change.Length();
+            }
+
             info.tilt_direction = info.last_mouse_change;
             info.tilt_speed = info.tilt_direction.Normalize() * info.sensitivity;
             continue;
