@@ -277,7 +277,6 @@ void RasterizerVulkan::Draw(bool is_indexed, bool is_instanced) {
     const auto shaders = pipeline_cache.GetShaders();
     graphics_key.shaders = GetShaderAddresses(shaders);
 
-    graphics_key.shaders = GetShaderAddresses(shaders);
     SetupShaderDescriptors(shaders, is_indexed);
 
     const Framebuffer* const framebuffer = texture_cache.GetFramebuffer();
