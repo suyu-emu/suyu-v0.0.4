@@ -273,8 +273,8 @@ Hid::Hid(Core::System& system_) : ServiceFramework{system_, "hid"} {
         {204, &Hid::PermitVibration, "PermitVibration"},
         {205, &Hid::IsVibrationPermitted, "IsVibrationPermitted"},
         {206, &Hid::SendVibrationValues, "SendVibrationValues"},
-        {207, nullptr, "SendVibrationGcErmCommand"},
-        {208, nullptr, "GetActualVibrationGcErmCommand"},
+        {207, &Hid::SendVibrationGcErmCommand, "SendVibrationGcErmCommand"},
+        {208, &Hid::GetActualVibrationGcErmCommand, "GetActualVibrationGcErmCommand"},
         {209, &Hid::BeginPermitVibrationSession, "BeginPermitVibrationSession"},
         {210, &Hid::EndPermitVibrationSession, "EndPermitVibrationSession"},
         {211, &Hid::IsVibrationDeviceMounted, "IsVibrationDeviceMounted"},
@@ -1093,7 +1093,22 @@ void Hid::GetVibrationDeviceInfo(Kernel::HLERequestContext& ctx) {
 
     VibrationDeviceInfo vibration_device_info;
 
-    vibration_device_info.type = VibrationDeviceType::LinearResonantActuator;
+    switch (vibration_device_handle.npad_type) {
+    case Controller_NPad::NpadType::ProController:
+    case Controller_NPad::NpadType::Handheld:
+    case Controller_NPad::NpadType::JoyconDual:
+    case Controller_NPad::NpadType::JoyconLeft:
+    case Controller_NPad::NpadType::JoyconRight:
+    default:
+        vibration_device_info.type = VibrationDeviceType::LinearResonantActuator;
+        break;
+    case Controller_NPad::NpadType::GameCube:
+        vibration_device_info.type = VibrationDeviceType::GcErm;
+        break;
+    case Controller_NPad::NpadType::Pokeball:
+        vibration_device_info.type = VibrationDeviceType::Unknown;
+        break;
+    }
 
     switch (vibration_device_handle.device_index) {
     case Controller_NPad::DeviceIndex::Left:
@@ -1213,6 +1228,108 @@ void Hid::SendVibrationValues(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
+}
+
+void Hid::SendVibrationGcErmCommand(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    struct Parameters {
+        Controller_NPad::DeviceHandle vibration_device_handle;
+        u64 applet_resource_user_id;
+        VibrationGcErmCommand gc_erm_command;
+    };
+    static_assert(sizeof(Parameters) == 0x18, "Parameters has incorrect size.");
+
+    const auto parameters{rp.PopRaw<Parameters>()};
+
+    /**
+     * Note: This uses yuzu-specific behavior such that the StopHard command produces
+     * vibrations where freq_low == 0.0f and freq_high == 0.0f, as defined below,
+     * in order to differentiate between Stop and StopHard commands.
+     * This is done to reuse the controller vibration functions made for regular controllers.
+     */
+    const auto vibration_value = [parameters] {
+        switch (parameters.gc_erm_command) {
+        case VibrationGcErmCommand::Stop:
+            return Controller_NPad::VibrationValue{
+                .amp_low = 0.0f,
+                .freq_low = 160.0f,
+                .amp_high = 0.0f,
+                .freq_high = 320.0f,
+            };
+        case VibrationGcErmCommand::Start:
+            return Controller_NPad::VibrationValue{
+                .amp_low = 1.0f,
+                .freq_low = 160.0f,
+                .amp_high = 1.0f,
+                .freq_high = 320.0f,
+            };
+        case VibrationGcErmCommand::StopHard:
+            return Controller_NPad::VibrationValue{
+                .amp_low = 0.0f,
+                .freq_low = 0.0f,
+                .amp_high = 0.0f,
+                .freq_high = 0.0f,
+            };
+        default:
+            return Controller_NPad::DEFAULT_VIBRATION_VALUE;
+        }
+    }();
+
+    applet_resource->GetController<Controller_NPad>(HidController::NPad)
+        .VibrateController(parameters.vibration_device_handle, vibration_value);
+
+    LOG_DEBUG(Service_HID,
+              "called, npad_type={}, npad_id={}, device_index={}, applet_resource_user_id={}, "
+              "gc_erm_command={}",
+              parameters.vibration_device_handle.npad_type,
+              parameters.vibration_device_handle.npad_id,
+              parameters.vibration_device_handle.device_index, parameters.applet_resource_user_id,
+              parameters.gc_erm_command);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void Hid::GetActualVibrationGcErmCommand(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    struct Parameters {
+        Controller_NPad::DeviceHandle vibration_device_handle;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
+    };
+
+    const auto parameters{rp.PopRaw<Parameters>()};
+
+    const auto last_vibration = applet_resource->GetController<Controller_NPad>(HidController::NPad)
+                                    .GetLastVibration(parameters.vibration_device_handle);
+
+    const auto gc_erm_command = [last_vibration] {
+        if (last_vibration.amp_low != 0.0f || last_vibration.amp_high != 0.0f) {
+            return VibrationGcErmCommand::Start;
+        }
+
+        /**
+         * Note: This uses yuzu-specific behavior such that the StopHard command produces
+         * vibrations where freq_low == 0.0f and freq_high == 0.0f, as defined in the HID function
+         * SendVibrationGcErmCommand, in order to differentiate between Stop and StopHard commands.
+         * This is done to reuse the controller vibration functions made for regular controllers.
+         */
+        if (last_vibration.freq_low == 0.0f && last_vibration.freq_high == 0.0f) {
+            return VibrationGcErmCommand::StopHard;
+        }
+
+        return VibrationGcErmCommand::Stop;
+    }();
+
+    LOG_DEBUG(Service_HID,
+              "called, npad_type={}, npad_id={}, device_index={}, applet_resource_user_id={}",
+              parameters.vibration_device_handle.npad_type,
+              parameters.vibration_device_handle.npad_id,
+              parameters.vibration_device_handle.device_index, parameters.applet_resource_user_id);
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushEnum(gc_erm_command);
 }
 
 void Hid::BeginPermitVibrationSession(Kernel::HLERequestContext& ctx) {
