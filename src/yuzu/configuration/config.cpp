@@ -614,12 +614,6 @@ void Config::ReadDataStorageValues() {
                                 QString::fromStdString(FS::GetUserPath(FS::UserPath::DumpDir)))
                         .toString()
                         .toStdString());
-    FS::GetUserPath(FS::UserPath::CacheDir,
-                    qt_config
-                        ->value(QStringLiteral("cache_directory"),
-                                QString::fromStdString(FS::GetUserPath(FS::UserPath::CacheDir)))
-                        .toString()
-                        .toStdString());
     Settings::values.gamecard_inserted =
         ReadSetting(QStringLiteral("gamecard_inserted"), false).toBool();
     Settings::values.gamecard_current_game =
@@ -1218,9 +1212,6 @@ void Config::SaveDataStorageValues() {
     WriteSetting(QStringLiteral("dump_directory"),
                  QString::fromStdString(FS::GetUserPath(FS::UserPath::DumpDir)),
                  QString::fromStdString(FS::GetUserPath(FS::UserPath::DumpDir)));
-    WriteSetting(QStringLiteral("cache_directory"),
-                 QString::fromStdString(FS::GetUserPath(FS::UserPath::CacheDir)),
-                 QString::fromStdString(FS::GetUserPath(FS::UserPath::CacheDir)));
     WriteSetting(QStringLiteral("gamecard_inserted"), Settings::values.gamecard_inserted, false);
     WriteSetting(QStringLiteral("gamecard_current_game"), Settings::values.gamecard_current_game,
                  false);

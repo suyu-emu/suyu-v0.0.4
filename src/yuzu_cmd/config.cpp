@@ -329,9 +329,6 @@ void Config::ReadValues() {
     FS::GetUserPath(
         FS::UserPath::DumpDir,
         sdl2_config->Get("Data Storage", "dump_directory", FS::GetUserPath(FS::UserPath::DumpDir)));
-    FS::GetUserPath(FS::UserPath::CacheDir,
-                    sdl2_config->Get("Data Storage", "cache_directory",
-                                     FS::GetUserPath(FS::UserPath::CacheDir)));
     Settings::values.gamecard_inserted =
         sdl2_config->GetBoolean("Data Storage", "gamecard_inserted", false);
     Settings::values.gamecard_current_game =

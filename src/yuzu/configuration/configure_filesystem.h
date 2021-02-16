@@ -32,7 +32,6 @@ private:
         Gamecard,
         Dump,
         Load,
-        Cache,
     };
 
     void SetDirectory(DirectoryTarget target, QLineEdit* edit);
