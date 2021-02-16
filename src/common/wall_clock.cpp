@@ -2,6 +2,8 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <cstdint>
+
 #include "common/uint128.h"
 #include "common/wall_clock.h"
 
@@ -18,7 +20,9 @@ using base_time_point = std::chrono::time_point<base_timer>;
 class StandardWallClock final : public WallClock {
 public:
     explicit StandardWallClock(u64 emulated_cpu_frequency_, u64 emulated_clock_frequency_)
-        : WallClock(emulated_cpu_frequency_, emulated_clock_frequency_, false) {
+        : WallClock(emulated_cpu_frequency_, emulated_clock_frequency_, false),
+          emulated_clock_factor{GetFixedPoint64Factor(emulated_clock_frequency, 1000000000)},
+          emulated_cpu_factor{GetFixedPoint64Factor(emulated_cpu_frequency, 1000000000)} {
         start_time = base_timer::now();
     }
 
@@ -41,16 +45,11 @@ public:
     }
 
     u64 GetClockCycles() override {
-        std::chrono::nanoseconds time_now = GetTimeNS();
-        const u128 temporary =
-            Common::Multiply64Into128(time_now.count(), emulated_clock_frequency);
-        return Common::Divide128On32(temporary, 1000000000).first;
+        return MultiplyHigh(GetTimeNS().count(), emulated_clock_factor);
     }
 
     u64 GetCPUCycles() override {
-        std::chrono::nanoseconds time_now = GetTimeNS();
-        const u128 temporary = Common::Multiply64Into128(time_now.count(), emulated_cpu_frequency);
-        return Common::Divide128On32(temporary, 1000000000).first;
+        return MultiplyHigh(GetTimeNS().count(), emulated_cpu_factor);
     }
 
     void Pause([[maybe_unused]] bool is_paused) override {
@@ -59,6 +58,8 @@ public:
 
 private:
     base_time_point start_time;
+    const u64 emulated_clock_factor;
+    const u64 emulated_cpu_factor;
 };
 
 #ifdef ARCHITECTURE_x86_64
