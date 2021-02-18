@@ -44,8 +44,10 @@ Codec::~Codec() {
 }
 
 void Codec::SetTargetCodec(NvdecCommon::VideoCodec codec) {
-    LOG_INFO(Service_NVDRV, "NVDEC video codec initialized to {}", codec);
-    current_codec = codec;
+    if (current_codec != codec) {
+        LOG_INFO(Service_NVDRV, "NVDEC video codec initialized to {}", static_cast<u32>(codec));
+        current_codec = codec;
+    }
 }
 
 void Codec::StateWrite(u32 offset, u64 arguments) {
@@ -55,7 +57,6 @@ void Codec::StateWrite(u32 offset, u64 arguments) {
 
 void Codec::Decode() {
     bool is_first_frame = false;
-
     if (!initialized) {
         if (current_codec == NvdecCommon::VideoCodec::H264) {
             av_codec = avcodec_find_decoder(AV_CODEC_ID_H264);

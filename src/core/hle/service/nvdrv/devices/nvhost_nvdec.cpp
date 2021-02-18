@@ -34,8 +34,7 @@ NvResult nvhost_nvdec::Ioctl1(Ioctl command, const std::vector<u8>& input,
         case 0xa: {
             if (command.length == 0x1c) {
                 LOG_INFO(Service_NVDRV, "NVDEC video stream ended");
-                Tegra::ChCommandHeaderList cmdlist(1);
-                cmdlist[0] = Tegra::ChCommandHeader{0xDEADB33F};
+                Tegra::ChCommandHeaderList cmdlist{{0xDEADB33F}};
                 system.GPU().PushCommandBuffer(cmdlist);
             }
             return UnmapBuffer(input, output);

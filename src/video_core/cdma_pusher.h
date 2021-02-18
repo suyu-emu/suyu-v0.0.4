@@ -5,9 +5,7 @@
 #pragma once
 
 #include <memory>
-#include <unordered_map>
 #include <vector>
-#include <queue>
 
 #include "common/bit_field.h"
 #include "common/common_types.h"
@@ -16,9 +14,9 @@
 namespace Tegra {
 
 class GPU;
+class Host1x;
 class Nvdec;
 class Vic;
-class Host1x;
 
 enum class ChSubmissionMode : u32 {
     SetClass = 0,
@@ -48,16 +46,10 @@ enum class ChClassId : u32 {
     NvDec = 0xf0
 };
 
-enum class ChMethod : u32 {
-    Empty = 0,
-    SetMethod = 0x10,
-    SetData = 0x11,
-};
-
 union ChCommandHeader {
     u32 raw;
     BitField<0, 16, u32> value;
-    BitField<16, 12, ChMethod> method_offset;
+    BitField<16, 12, u32> method_offset;
     BitField<28, 4, ChSubmissionMode> submission_mode;
 };
 static_assert(sizeof(ChCommandHeader) == sizeof(u32), "ChCommand header is an invalid size");
@@ -99,21 +91,15 @@ public:
     explicit CDmaPusher(GPU& gpu_);
     ~CDmaPusher();
 
-    /// Push NVDEC command buffer entries into queue
-    void Push(ChCommandHeaderList&& entries);
+    /// Process the command entry
+    void ProcessEntries(ChCommandHeaderList&& entries);
 
-    /// Process queued command buffer entries
-    void DispatchCalls();
-
-    /// Process one queue element
-    void Step();
-
+private:
     /// Invoke command class devices to execute the command based on the current state
     void ExecuteCommand(u32 state_offset, u32 data);
 
-private:
     /// Write arguments value to the ThiRegisters member at the specified offset
-    void ThiStateWrite(ThiRegisters& state, u32 state_offset, const std::vector<u32>& arguments);
+    void ThiStateWrite(ThiRegisters& state, u32 offset, u32 argument);
 
     GPU& gpu;
     std::shared_ptr<Tegra::Nvdec> nvdec_processor;
@@ -124,13 +110,10 @@ private:
     ThiRegisters vic_thi_state{};
     ThiRegisters nvdec_thi_state{};
 
-    s32 count{};
-    s32 offset{};
+    u32 count{};
+    u32 offset{};
     u32 mask{};
     bool incrementing{};
-
-    // Queue of command lists to be processed
-    std::queue<ChCommandHeaderList> cdma_queue;
 };
 
 } // namespace Tegra

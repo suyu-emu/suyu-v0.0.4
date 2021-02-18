@@ -18,18 +18,14 @@ extern "C" {
 namespace Tegra {
 
 Vic::Vic(GPU& gpu_, std::shared_ptr<Nvdec> nvdec_processor_)
-    : gpu(gpu_), nvdec_processor(std::move(nvdec_processor_)) {}
+    : gpu(gpu_),
+      nvdec_processor(std::move(nvdec_processor_)), converted_frame_buffer{nullptr, av_free} {}
+
 Vic::~Vic() = default;
 
-void Vic::VicStateWrite(u32 offset, u32 arguments) {
-    u8* const state_offset = reinterpret_cast<u8*>(&vic_state) + offset * sizeof(u32);
-    std::memcpy(state_offset, &arguments, sizeof(u32));
-}
-
-void Vic::ProcessMethod(Method method, const std::vector<u32>& arguments) {
-    LOG_DEBUG(HW_GPU, "Vic method 0x{:X}", method);
-    VicStateWrite(static_cast<u32>(method), arguments[0]);
-    const u64 arg = static_cast<u64>(arguments[0]) << 8;
+void Vic::ProcessMethod(Method method, u32 argument) {
+    LOG_DEBUG(HW_GPU, "Vic method 0x{:X}", static_cast<u32>(method));
+    const u64 arg = static_cast<u64>(argument) << 8;
     switch (method) {
     case Method::Execute:
         Execute();
@@ -53,8 +49,7 @@ void Vic::ProcessMethod(Method method, const std::vector<u32>& arguments) {
 
 void Vic::Execute() {
     if (output_surface_luma_address == 0) {
-        LOG_ERROR(Service_NVDRV, "VIC Luma address not set. Received 0x{:X}",
-                  vic_state.output_surface.luma_offset);
+        LOG_ERROR(Service_NVDRV, "VIC Luma address not set.");
         return;
     }
     const VicConfig config{gpu.MemoryManager().Read<u64>(config_struct_address + 0x20)};
@@ -89,8 +84,10 @@ void Vic::Execute() {
         // Get Converted frame
         const std::size_t linear_size = frame->width * frame->height * 4;
 
-        using AVMallocPtr = std::unique_ptr<u8, decltype(&av_free)>;
-        AVMallocPtr converted_frame_buffer{static_cast<u8*>(av_malloc(linear_size)), av_free};
+        // Only allocate frame_buffer once per stream, as the size is not expected to change
+        if (!converted_frame_buffer) {
+            converted_frame_buffer = AVMallocPtr{static_cast<u8*>(av_malloc(linear_size)), av_free};
+        }
 
         const int converted_stride{frame->width * 4};
         u8* const converted_frame_buf_addr{converted_frame_buffer.get()};
@@ -104,12 +101,12 @@ void Vic::Execute() {
             const u32 block_height = static_cast<u32>(config.block_linear_height_log2);
             const auto size = Tegra::Texture::CalculateSize(true, 4, frame->width, frame->height, 1,
                                                             block_height, 0);
-            std::vector<u8> swizzled_data(size);
+            luma_buffer.resize(size);
             Tegra::Texture::SwizzleSubrect(frame->width, frame->height, frame->width * 4,
-                                           frame->width, 4, swizzled_data.data(),
+                                           frame->width, 4, luma_buffer.data(),
                                            converted_frame_buffer.get(), block_height, 0, 0);
 
-            gpu.MemoryManager().WriteBlock(output_surface_luma_address, swizzled_data.data(), size);
+            gpu.MemoryManager().WriteBlock(output_surface_luma_address, luma_buffer.data(), size);
         } else {
             // send pitch linear frame
             gpu.MemoryManager().WriteBlock(output_surface_luma_address, converted_frame_buf_addr,
@@ -132,15 +129,15 @@ void Vic::Execute() {
         const auto stride = frame->linesize[0];
         const auto half_stride = frame->linesize[1];
 
-        std::vector<u8> luma_buffer(aligned_width * surface_height);
-        std::vector<u8> chroma_buffer(aligned_width * half_height);
+        luma_buffer.resize(aligned_width * surface_height);
+        chroma_buffer.resize(aligned_width * half_height);
 
         // Populate luma buffer
         for (std::size_t y = 0; y < surface_height - 1; ++y) {
-            std::size_t src = y * stride;
-            std::size_t dst = y * aligned_width;
+            const std::size_t src = y * stride;
+            const std::size_t dst = y * aligned_width;
 
-            std::size_t size = surface_width;
+            const std::size_t size = surface_width;
 
             for (std::size_t offset = 0; offset < size; ++offset) {
                 luma_buffer[dst + offset] = luma_ptr[src + offset];
@@ -151,8 +148,8 @@ void Vic::Execute() {
 
         // Populate chroma buffer from both channels with interleaving.
         for (std::size_t y = 0; y < half_height; ++y) {
-            std::size_t src = y * half_stride;
-            std::size_t dst = y * aligned_width;
+            const std::size_t src = y * half_stride;
+            const std::size_t dst = y * aligned_width;
 
             for (std::size_t x = 0; x < half_width; ++x) {
                 chroma_buffer[dst + x * 2] = chroma_b_ptr[src + x];
