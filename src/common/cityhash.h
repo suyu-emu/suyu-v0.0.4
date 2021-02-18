@@ -61,50 +61,38 @@
 
 #pragma once
 
-#include <cstddef>
-#include <cstdint>
-#include <utility>
+#include "common/common_types.h"
 
 namespace Common {
 
-using uint128 = std::pair<uint64_t, uint64_t>;
-
-[[nodiscard]] inline uint64_t Uint128Low64(const uint128& x) {
-    return x.first;
-}
-[[nodiscard]] inline uint64_t Uint128High64(const uint128& x) {
-    return x.second;
-}
-
 // Hash function for a byte array.
-[[nodiscard]] uint64_t CityHash64(const char* buf, std::size_t len);
+[[nodiscard]] u64 CityHash64(const char* buf, size_t len);
 
 // Hash function for a byte array.  For convenience, a 64-bit seed is also
 // hashed into the result.
-[[nodiscard]] uint64_t CityHash64WithSeed(const char* buf, std::size_t len, uint64_t seed);
+[[nodiscard]] u64 CityHash64WithSeed(const char* buf, size_t len, u64 seed);
 
 // Hash function for a byte array.  For convenience, two seeds are also
 // hashed into the result.
-[[nodiscard]] uint64_t CityHash64WithSeeds(const char* buf, std::size_t len, uint64_t seed0,
-                                           uint64_t seed1);
+[[nodiscard]] u64 CityHash64WithSeeds(const char* buf, size_t len, u64 seed0, u64 seed1);
 
 // Hash function for a byte array.
-[[nodiscard]] uint128 CityHash128(const char* s, std::size_t len);
+[[nodiscard]] u128 CityHash128(const char* s, size_t len);
 
 // Hash function for a byte array.  For convenience, a 128-bit seed is also
 // hashed into the result.
-[[nodiscard]] uint128 CityHash128WithSeed(const char* s, std::size_t len, uint128 seed);
+[[nodiscard]] u128 CityHash128WithSeed(const char* s, size_t len, u128 seed);
 
 // Hash 128 input bits down to 64 bits of output.
 // This is intended to be a reasonably good hash function.
-[[nodiscard]] inline uint64_t Hash128to64(const uint128& x) {
+[[nodiscard]] inline u64 Hash128to64(const u128& x) {
     // Murmur-inspired hashing.
-    const uint64_t kMul = 0x9ddfea08eb382d69ULL;
-    uint64_t a = (Uint128Low64(x) ^ Uint128High64(x)) * kMul;
+    const u64 mul = 0x9ddfea08eb382d69ULL;
+    u64 a = (x[0] ^ x[1]) * mul;
     a ^= (a >> 47);
-    uint64_t b = (Uint128High64(x) ^ a) * kMul;
+    u64 b = (x[1] ^ a) * mul;
     b ^= (b >> 47);
-    b *= kMul;
+    b *= mul;
     return b;
 }
 
