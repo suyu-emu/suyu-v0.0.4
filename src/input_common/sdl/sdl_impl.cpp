@@ -717,13 +717,6 @@ SDLState::SDLState() {
     if (SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1") == SDL_FALSE) {
         LOG_ERROR(Input, "Failed to set hint for background events with: {}", SDL_GetError());
     }
-// these hints are only defined on sdl2.0.9 or higher
-#if SDL_VERSION_ATLEAST(2, 0, 9)
-#if !SDL_VERSION_ATLEAST(2, 0, 12)
-    // There are also hints to toggle the individual drivers if needed.
-    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI, "0");
-#endif
-#endif
 
     SDL_AddEventWatch(&SDLEventWatcher, this);
 
