@@ -173,4 +173,16 @@ ResultCode KMemoryManager::Free(KPageLinkedList& page_list, std::size_t num_page
     return RESULT_SUCCESS;
 }
 
+std::size_t KMemoryManager::Impl::CalculateManagementOverheadSize(std::size_t region_size) {
+    const std::size_t ref_count_size = (region_size / PageSize) * sizeof(u16);
+    const std::size_t optimize_map_size =
+        (Common::AlignUp((region_size / PageSize), Common::BitSize<u64>()) /
+         Common::BitSize<u64>()) *
+        sizeof(u64);
+    const std::size_t manager_meta_size =
+        Common::AlignUp(optimize_map_size + ref_count_size, PageSize);
+    const std::size_t page_heap_size = KPageHeap::CalculateManagementOverheadSize(region_size);
+    return manager_meta_size + page_heap_size;
+}
+
 } // namespace Kernel
