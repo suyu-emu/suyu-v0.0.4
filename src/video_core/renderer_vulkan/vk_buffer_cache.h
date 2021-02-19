@@ -8,6 +8,7 @@
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_vulkan/vk_compute_pass.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
+#include "video_core/renderer_vulkan/vk_update_descriptor.h"
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
@@ -16,7 +17,6 @@ namespace Vulkan {
 class Device;
 class VKDescriptorPool;
 class VKScheduler;
-class VKUpdateDescriptorQueue;
 
 class BufferCacheRuntime;
 
@@ -86,7 +86,9 @@ public:
     }
 
 private:
-    void BindBuffer(VkBuffer buffer, u32 offset, u32 size);
+    void BindBuffer(VkBuffer buffer, u32 offset, u32 size) {
+        update_descriptor_queue.AddBuffer(buffer, offset, size);
+    }
 
     void ReserveQuadArrayLUT(u32 num_indices, bool wait_for_idle);
 
