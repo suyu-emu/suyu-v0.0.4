@@ -29,6 +29,10 @@ public:
 
         Shift = 4,
         Mask = (0xF << Shift),
+
+        // Aliases.
+        Unsafe = Application,
+        Secure = System,
     };
 
     enum class Direction : u32 {
