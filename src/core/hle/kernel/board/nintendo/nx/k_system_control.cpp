@@ -6,7 +6,11 @@
 
 #include "core/hle/kernel/k_system_control.h"
 
-namespace Kernel {
+namespace Kernel::Board::Nintendo::Nx {
+
+bool KSystemControl::Init::ShouldIncreaseThreadResourceLimit() {
+    return true;
+}
 
 namespace {
 template <typename F>
@@ -39,4 +43,4 @@ u64 KSystemControl::GenerateRandomRange(u64 min, u64 max) {
     return GenerateUniformRange(min, max, GenerateRandomU64);
 }
 
-} // namespace Kernel
+} // namespace Kernel::Board::Nintendo::Nx

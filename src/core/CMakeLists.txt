@@ -141,6 +141,8 @@ add_library(core STATIC
     hardware_interrupt_manager.h
     hle/ipc.h
     hle/ipc_helpers.h
+    hle/kernel/board/nintendo/nx/k_system_control.cpp
+    hle/kernel/board/nintendo/nx/k_system_control.h
     hle/kernel/client_port.cpp
     hle/kernel/client_port.h
     hle/kernel/client_session.cpp
@@ -198,7 +200,6 @@ add_library(core STATIC
     hle/kernel/k_spin_lock.h
     hle/kernel/k_synchronization_object.cpp
     hle/kernel/k_synchronization_object.h
-    hle/kernel/k_system_control.cpp
     hle/kernel/k_system_control.h
     hle/kernel/k_thread.cpp
     hle/kernel/k_thread.h
