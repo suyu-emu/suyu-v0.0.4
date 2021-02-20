@@ -98,4 +98,24 @@ namespace Common {
 #endif
 }
 
+// This function divides a u128 by a u32 value and produces two u64 values:
+// the result of division and the remainder
+[[nodiscard]] static inline std::pair<u64, u64> Divide128On32(u128 dividend, u32 divisor) {
+    u64 remainder = dividend[0] % divisor;
+    u64 accum = dividend[0] / divisor;
+    if (dividend[1] == 0)
+        return {accum, remainder};
+    // We ignore dividend[1] / divisor as that overflows
+    const u64 first_segment = (dividend[1] % divisor) << 32;
+    accum += (first_segment / divisor) << 32;
+    const u64 second_segment = (first_segment % divisor) << 32;
+    accum += (second_segment / divisor);
+    remainder += second_segment % divisor;
+    if (remainder >= divisor) {
+        accum++;
+        remainder -= divisor;
+    }
+    return {accum, remainder};
+}
+
 } // namespace Common
