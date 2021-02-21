@@ -308,6 +308,9 @@ struct System::Impl {
         // Close all CPU/threading state
         cpu_manager.Shutdown();
 
+        // Release the Time Manager's resources
+        time_manager.Shutdown();
+
         // Shutdown kernel and core timing
         core_timing.Shutdown();
         kernel.Shutdown();

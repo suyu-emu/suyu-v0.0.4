@@ -101,8 +101,6 @@ struct KernelCore::Impl {
 
         current_process = nullptr;
 
-        system_resource_limit = nullptr;
-
         global_handle_table.Clear();
 
         preemption_event = nullptr;
@@ -110,6 +108,13 @@ struct KernelCore::Impl {
         named_ports.clear();
 
         exclusive_monitor.reset();
+
+        hid_shared_mem = nullptr;
+        font_shared_mem = nullptr;
+        irs_shared_mem = nullptr;
+        time_shared_mem = nullptr;
+
+        system_resource_limit = nullptr;
 
         // Next host thead ID to use, 0-3 IDs represent core threads, >3 represent others
         next_host_thread_id = Core::Hardware::NUM_CPU_CORES;

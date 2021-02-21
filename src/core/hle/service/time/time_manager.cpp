@@ -279,6 +279,10 @@ const SharedMemory& TimeManager::GetSharedMemory() const {
     return impl->shared_memory;
 }
 
+void TimeManager::Shutdown() {
+    impl.reset();
+}
+
 void TimeManager::UpdateLocalSystemClockTime(s64 posix_time) {
     impl->UpdateLocalSystemClockTime(system, posix_time);
 }
