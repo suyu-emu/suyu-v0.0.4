@@ -335,6 +335,10 @@ void ShaderCacheOpenGL::LoadDiskCache(u64 title_id, const std::atomic_bool& stop
                                       const VideoCore::DiskResourceLoadCallback& callback) {
     disk_cache.BindTitleID(title_id);
     const std::optional transferable = disk_cache.LoadTransferable();
+
+    LOG_INFO(Render_OpenGL, "Total Shader Count: {}",
+             transferable.has_value() ? transferable->size() : 0);
+
     if (!transferable) {
         return;
     }
