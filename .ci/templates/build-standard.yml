@@ -12,6 +12,9 @@ jobs:
       windows:
         BuildSuffix: 'windows-mingw'
         ScriptFolder: 'windows'
+      clang:
+        BuildSuffix: 'clang'
+        ScriptFolder: 'clang'
       linux:
         BuildSuffix: 'linux'
         ScriptFolder: 'linux'
