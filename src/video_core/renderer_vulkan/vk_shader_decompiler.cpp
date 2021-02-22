@@ -1845,13 +1845,21 @@ private:
 
     Expression TextureGather(Operation operation) {
         const auto& meta = std::get<MetaTexture>(operation.GetMeta());
-        UNIMPLEMENTED_IF(!meta.aoffi.empty());
 
         const Id coords = GetCoordinates(operation, Type::Float);
+
+        spv::ImageOperandsMask mask = spv::ImageOperandsMask::MaskNone;
+        std::vector<Id> operands;
         Id texture{};
+
+        if (!meta.aoffi.empty()) {
+            mask = mask | spv::ImageOperandsMask::Offset;
+            operands.push_back(GetOffsetCoordinates(operation));
+        }
+
         if (meta.sampler.is_shadow) {
             texture = OpImageDrefGather(t_float4, GetTextureSampler(operation), coords,
-                                        AsFloat(Visit(meta.depth_compare)));
+                                        AsFloat(Visit(meta.depth_compare)), mask, operands);
         } else {
             u32 component_value = 0;
             if (meta.component) {
@@ -1860,7 +1868,7 @@ private:
                 component_value = component->GetValue();
             }
             texture = OpImageGather(t_float4, GetTextureSampler(operation), coords,
-                                    Constant(t_uint, component_value));
+                                    Constant(t_uint, component_value), mask, operands);
         }
         return GetTextureElement(operation, texture, Type::Float);
     }
@@ -1928,13 +1936,22 @@ private:
 
         const Id image = GetTextureImage(operation);
         const Id coords = GetCoordinates(operation, Type::Int);
+
+        spv::ImageOperandsMask mask = spv::ImageOperandsMask::MaskNone;
+        std::vector<Id> operands;
         Id fetch;
+
         if (meta.lod && !meta.sampler.is_buffer) {
-            fetch = OpImageFetch(t_float4, image, coords, spv::ImageOperandsMask::Lod,
-                                 AsInt(Visit(meta.lod)));
-        } else {
-            fetch = OpImageFetch(t_float4, image, coords);
+            mask = mask | spv::ImageOperandsMask::Lod;
+            operands.push_back(AsInt(Visit(meta.lod)));
         }
+
+        if (!meta.aoffi.empty()) {
+            mask = mask | spv::ImageOperandsMask::Offset;
+            operands.push_back(GetOffsetCoordinates(operation));
+        }
+
+        fetch = OpImageFetch(t_float4, image, coords, mask, operands);
         return GetTextureElement(operation, fetch, Type::Float);
     }
 

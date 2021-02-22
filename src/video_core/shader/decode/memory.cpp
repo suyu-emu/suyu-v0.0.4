@@ -330,6 +330,7 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         case StoreType::Bits32:
             (this->*set_memory)(bb, GetAddress(0), GetRegister(instr.gpr0));
             break;
+        case StoreType::Unsigned16:
         case StoreType::Signed16: {
             Node address = GetAddress(0);
             Node memory = (this->*get_memory)(address);

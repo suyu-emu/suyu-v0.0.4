@@ -806,6 +806,7 @@ Node4 ShaderIR::GetTldsCode(Instruction instr, TextureType texture_type, bool is
 
     const std::size_t type_coord_count = GetCoordCount(texture_type);
     const bool lod_enabled = instr.tlds.GetTextureProcessMode() == TextureProcessMode::LL;
+    const bool aoffi_enabled = instr.tlds.UsesMiscMode(TextureMiscMode::AOFFI);
 
     // If enabled arrays index is always stored in the gpr8 field
     const u64 array_register = instr.gpr8.Value();
@@ -820,17 +821,23 @@ Node4 ShaderIR::GetTldsCode(Instruction instr, TextureType texture_type, bool is
     std::vector<Node> coords;
     for (std::size_t i = 0; i < type_coord_count; ++i) {
         const bool last = (i == (type_coord_count - 1)) && (type_coord_count > 1);
-        coords.push_back(GetRegister(last ? last_coord_register : coord_register + i));
+        coords.push_back(
+            GetRegister(last && !aoffi_enabled ? last_coord_register : coord_register + i));
     }
 
     const Node array = is_array ? GetRegister(array_register) : nullptr;
     // When lod is used always is in gpr20
     const Node lod = lod_enabled ? GetRegister(instr.gpr20) : Immediate(0);
 
+    std::vector<Node> aoffi;
+    if (aoffi_enabled) {
+        aoffi = GetAoffiCoordinates(GetRegister(instr.gpr20), type_coord_count, false);
+    }
+
     Node4 values;
     for (u32 element = 0; element < values.size(); ++element) {
         auto coords_copy = coords;
-        MetaTexture meta{*sampler, array, {}, {}, {}, {}, {}, lod, {}, element, {}};
+        MetaTexture meta{*sampler, array, {}, aoffi, {}, {}, {}, lod, {}, element, {}};
         values[element] = Operation(OperationCode::TexelFetch, meta, std::move(coords_copy));
     }
     return values;
