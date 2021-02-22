@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <mutex>
 #include "video_core/shader_notify.h"
 
 using namespace std::chrono_literals;
