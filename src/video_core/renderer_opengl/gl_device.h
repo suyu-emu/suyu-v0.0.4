@@ -122,6 +122,10 @@ public:
         return use_driver_cache;
     }
 
+    bool HasDepthBufferFloat() const {
+        return has_depth_buffer_float;
+    }
+
 private:
     static bool TestVariableAoffi();
     static bool TestPreciseBug();
@@ -150,6 +154,7 @@ private:
     bool use_assembly_shaders{};
     bool use_asynchronous_shaders{};
     bool use_driver_cache{};
+    bool has_depth_buffer_float{};
 };
 
 } // namespace OpenGL

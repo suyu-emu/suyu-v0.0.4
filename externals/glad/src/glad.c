@@ -1044,6 +1044,7 @@ PFNGLDEPTHMASKPROC glad_glDepthMask = NULL;
 PFNGLDEPTHRANGEPROC glad_glDepthRange = NULL;
 PFNGLDEPTHRANGEARRAYVPROC glad_glDepthRangeArrayv = NULL;
 PFNGLDEPTHRANGEINDEXEDPROC glad_glDepthRangeIndexed = NULL;
+PFNGLDEPTHRANGEINDEXEDDNVPROC glad_glDepthRangeIndexeddNV = NULL;
 PFNGLDEPTHRANGEFPROC glad_glDepthRangef = NULL;
 PFNGLDETACHSHADERPROC glad_glDetachShader = NULL;
 PFNGLDISABLEPROC glad_glDisable = NULL;
@@ -7971,6 +7972,7 @@ static void load_GL_NV_depth_buffer_float(GLADloadproc load) {
 	glad_glDepthRangedNV = (PFNGLDEPTHRANGEDNVPROC)load("glDepthRangedNV");
 	glad_glClearDepthdNV = (PFNGLCLEARDEPTHDNVPROC)load("glClearDepthdNV");
 	glad_glDepthBoundsdNV = (PFNGLDEPTHBOUNDSDNVPROC)load("glDepthBoundsdNV");
+	glad_glDepthRangeIndexeddNV = (PFNGLDEPTHRANGEINDEXEDDNVPROC)load("glDepthRangeIndexeddNV");
 }
 static void load_GL_NV_draw_texture(GLADloadproc load) {
 	if(!GLAD_GL_NV_draw_texture) return;
