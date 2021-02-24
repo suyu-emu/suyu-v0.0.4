@@ -21,6 +21,7 @@
 #include "input_common/mouse/mouse_poller.h"
 #include "input_common/udp/udp.h"
 #include "ui_configure_input_player.h"
+#include "yuzu/bootmanager.h"
 #include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configure_input_player.h"
 #include "yuzu/configuration/configure_input_player_widget.h"
@@ -1345,7 +1346,8 @@ void ConfigureInputPlayer::mousePressEvent(QMouseEvent* event) {
         return;
     }
 
-    input_subsystem->GetMouse()->PressButton(0, 0, event->button());
+    const auto button = GRenderWindow::QtButtonToMouseButton(event->button());
+    input_subsystem->GetMouse()->PressButton(0, 0, button);
 }
 
 void ConfigureInputPlayer::keyPressEvent(QKeyEvent* event) {

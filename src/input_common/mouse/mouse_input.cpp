@@ -59,7 +59,7 @@ void Mouse::UpdateYuzuSettings() {
     });
 }
 
-void Mouse::PressButton(int x, int y, int button_) {
+void Mouse::PressButton(int x, int y, MouseButton button_) {
     const auto button_index = static_cast<std::size_t>(button_);
     if (button_index >= mouse_info.size()) {
         return;
@@ -67,7 +67,7 @@ void Mouse::PressButton(int x, int y, int button_) {
 
     const auto button = 1U << button_index;
     buttons |= static_cast<u16>(button);
-    last_button = static_cast<MouseButton>(button_index);
+    last_button = button_;
 
     mouse_info[button_index].mouse_origin = Common::MakeVec(x, y);
     mouse_info[button_index].last_mouse_position = Common::MakeVec(x, y);
@@ -129,7 +129,7 @@ void Mouse::MouseMove(int x, int y, int center_x, int center_y) {
     }
 }
 
-void Mouse::ReleaseButton(int button_) {
+void Mouse::ReleaseButton(MouseButton button_) {
     const auto button_index = static_cast<std::size_t>(button_);
     if (button_index >= mouse_info.size()) {
         return;
@@ -152,6 +152,11 @@ void Mouse::BeginConfiguration() {
 
 void Mouse::EndConfiguration() {
     buttons = 0;
+    for (MouseInfo& info : mouse_info) {
+        info.tilt_speed = 0;
+        info.data.pressed = false;
+        info.data.axis = {0, 0};
+    }
     last_button = MouseButton::Undefined;
     mouse_queue.Clear();
     configuring = false;
