@@ -508,7 +508,7 @@ public:
             {1, &IManagerForApplication::GetAccountId, "GetAccountId"},
             {2, nullptr, "EnsureIdTokenCacheAsync"},
             {3, nullptr, "LoadIdTokenCache"},
-            {130, nullptr, "GetNintendoAccountUserResourceCacheForApplication"},
+            {130, &IManagerForApplication::GetNintendoAccountUserResourceCacheForApplication, "GetNintendoAccountUserResourceCacheForApplication"},
             {150, nullptr, "CreateAuthorizationRequest"},
             {160, &IManagerForApplication::StoreOpenContext, "StoreOpenContext"},
             {170, nullptr, "LoadNetworkServiceLicenseKindAsync"},
@@ -528,6 +528,22 @@ private:
 
     void GetAccountId(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_ACC, "called");
+
+        IPC::ResponseBuilder rb{ctx, 4};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushRaw<u64>(user_id.GetNintendoID());
+    }
+
+    void GetNintendoAccountUserResourceCacheForApplication(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_ACC, "(STUBBED) called");
+
+        std::vector<u8> nas_user_base_for_application(0x68);
+        ctx.WriteBuffer(nas_user_base_for_application, 0);
+
+        if (ctx.CanWriteBuffer(1)) {
+            std::vector<u8> unknown_out_buffer(ctx.GetWriteBufferSize(1));
+            ctx.WriteBuffer(unknown_out_buffer, 1);
+        }
 
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
