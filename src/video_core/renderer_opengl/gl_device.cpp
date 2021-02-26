@@ -239,6 +239,7 @@ Device::Device() {
     has_nv_viewport_array2 = GLAD_GL_NV_viewport_array2;
     has_vertex_buffer_unified_memory = GLAD_GL_NV_vertex_buffer_unified_memory;
     has_debugging_tool_attached = IsDebugToolAttached(extensions);
+    has_depth_buffer_float = HasExtension(extensions, "GL_NV_depth_buffer_float");
 
     // At the moment of writing this, only Nvidia's driver optimizes BufferSubData on exclusive
     // uniform buffers as "push constants"
@@ -275,6 +276,7 @@ Device::Device(std::nullptr_t) {
     has_image_load_formatted = true;
     has_texture_shadow_lod = true;
     has_variable_aoffi = true;
+    has_depth_buffer_float = true;
 }
 
 bool Device::TestVariableAoffi() {

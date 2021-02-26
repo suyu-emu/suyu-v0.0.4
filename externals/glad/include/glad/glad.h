@@ -5156,6 +5156,9 @@ GLAPI PFNGLDEPTHRANGEARRAYVPROC glad_glDepthRangeArrayv;
 typedef void (APIENTRYP PFNGLDEPTHRANGEINDEXEDPROC)(GLuint index, GLdouble n, GLdouble f);
 GLAPI PFNGLDEPTHRANGEINDEXEDPROC glad_glDepthRangeIndexed;
 #define glDepthRangeIndexed glad_glDepthRangeIndexed
+typedef void (APIENTRYP PFNGLDEPTHRANGEINDEXEDDNVPROC)(GLuint index, GLdouble n, GLdouble f);
+GLAPI PFNGLDEPTHRANGEINDEXEDDNVPROC glad_glDepthRangeIndexeddNV;
+#define glDepthRangeIndexeddNV glad_glDepthRangeIndexeddNV
 typedef void (APIENTRYP PFNGLGETFLOATI_VPROC)(GLenum target, GLuint index, GLfloat *data);
 GLAPI PFNGLGETFLOATI_VPROC glad_glGetFloati_v;
 #define glGetFloati_v glad_glGetFloati_v
