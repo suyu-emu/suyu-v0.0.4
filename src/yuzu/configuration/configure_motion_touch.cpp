@@ -24,7 +24,7 @@
 
 CalibrationConfigurationDialog::CalibrationConfigurationDialog(QWidget* parent,
                                                                const std::string& host, u16 port,
-                                                               u8 pad_index, u16 client_id)
+                                                               u8 pad_index)
     : QDialog(parent) {
     layout = new QVBoxLayout;
     status_label = new QLabel(tr("Communicating with the server..."));
@@ -41,7 +41,7 @@ CalibrationConfigurationDialog::CalibrationConfigurationDialog(QWidget* parent,
 
     using namespace InputCommon::CemuhookUDP;
     job = std::make_unique<CalibrationConfigurationJob>(
-        host, port, pad_index, client_id,
+        host, port, pad_index,
         [this](CalibrationConfigurationJob::Status status) {
             QString text;
             switch (status) {
@@ -218,7 +218,6 @@ void ConfigureMotionTouch::OnCemuhookUDPTest() {
     udp_test_in_progress = true;
     InputCommon::CemuhookUDP::TestCommunication(
         ui->udp_server->text().toStdString(), static_cast<u16>(ui->udp_port->text().toInt()), 0,
-        24872,
         [this] {
             LOG_INFO(Frontend, "UDP input test success");
             QMetaObject::invokeMethod(this, "ShowUDPTestResult", Q_ARG(bool, true));
@@ -233,8 +232,7 @@ void ConfigureMotionTouch::OnConfigureTouchCalibration() {
     ui->touch_calibration_config->setEnabled(false);
     ui->touch_calibration_config->setText(tr("Configuring"));
     CalibrationConfigurationDialog dialog(this, ui->udp_server->text().toStdString(),
-                                          static_cast<u16>(ui->udp_port->text().toUInt()), 0,
-                                          24872);
+                                          static_cast<u16>(ui->udp_port->text().toUInt()), 0);
     dialog.exec();
     if (dialog.completed) {
         min_x = dialog.min_x;

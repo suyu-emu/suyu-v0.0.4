@@ -126,7 +126,7 @@ private:
     void OnPortInfo(Response::PortInfo);
     void OnPadData(Response::PadData, std::size_t client);
     void StartCommunication(std::size_t client, const std::string& host, u16 port,
-                            std::size_t pad_index, u32 client_id);
+                            std::size_t pad_index);
     void UpdateYuzuSettings(std::size_t client, const Common::Vec3<float>& acc,
                             const Common::Vec3<float>& gyro);
 
@@ -165,7 +165,7 @@ public:
      * @param data_callback Called when calibration data is ready
      */
     explicit CalibrationConfigurationJob(const std::string& host, u16 port, std::size_t pad_index,
-                                         u32 client_id, std::function<void(Status)> status_callback,
+                                         std::function<void(Status)> status_callback,
                                          std::function<void(u16, u16, u16, u16)> data_callback);
     ~CalibrationConfigurationJob();
     void Stop();
@@ -174,7 +174,7 @@ private:
     Common::Event complete_event;
 };
 
-void TestCommunication(const std::string& host, u16 port, std::size_t pad_index, u32 client_id,
+void TestCommunication(const std::string& host, u16 port, std::size_t pad_index,
                        const std::function<void()>& success_callback,
                        const std::function<void()>& failure_callback);
 
