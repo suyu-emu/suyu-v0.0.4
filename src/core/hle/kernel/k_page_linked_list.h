@@ -8,12 +8,12 @@
 
 #include "common/assert.h"
 #include "common/common_types.h"
-#include "core/hle/kernel/memory/memory_types.h"
+#include "core/hle/kernel/memory_types.h"
 #include "core/hle/result.h"
 
-namespace Kernel::Memory {
+namespace Kernel {
 
-class PageLinkedList final {
+class KPageLinkedList final {
 public:
     class Node final {
     public:
@@ -33,8 +33,8 @@ public:
     };
 
 public:
-    PageLinkedList() = default;
-    PageLinkedList(u64 address, u64 num_pages) {
+    KPageLinkedList() = default;
+    KPageLinkedList(u64 address, u64 num_pages) {
         ASSERT(AddBlock(address, num_pages).IsSuccess());
     }
 
@@ -54,7 +54,7 @@ public:
         return num_pages;
     }
 
-    bool IsEqual(PageLinkedList& other) const {
+    bool IsEqual(KPageLinkedList& other) const {
         auto this_node = nodes.begin();
         auto other_node = other.nodes.begin();
         while (this_node != nodes.end() && other_node != other.nodes.end()) {
@@ -89,4 +89,4 @@ private:
     std::list<Node> nodes;
 };
 
-} // namespace Kernel::Memory
+} // namespace Kernel

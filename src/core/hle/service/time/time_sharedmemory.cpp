@@ -22,7 +22,7 @@ SharedMemory::SharedMemory(Core::System& system) : system(system) {
 
 SharedMemory::~SharedMemory() = default;
 
-std::shared_ptr<Kernel::SharedMemory> SharedMemory::GetSharedMemoryHolder() const {
+std::shared_ptr<Kernel::KSharedMemory> SharedMemory::GetSharedMemoryHolder() const {
     return shared_memory_holder;
 }
 

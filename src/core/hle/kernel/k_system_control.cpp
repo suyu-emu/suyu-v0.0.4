@@ -1,12 +1,13 @@
-// Copyright 2020 yuzu Emulator Project
+// Copyright 2021 yuzu Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
 #include <random>
 
-#include "core/hle/kernel/memory/system_control.h"
+#include "core/hle/kernel/k_system_control.h"
 
-namespace Kernel::Memory::SystemControl {
+namespace Kernel {
+
 namespace {
 template <typename F>
 u64 GenerateUniformRange(u64 min, u64 max, F f) {
@@ -25,16 +26,17 @@ u64 GenerateUniformRange(u64 min, u64 max, F f) {
     }
 }
 
-u64 GenerateRandomU64ForInit() {
+} // Anonymous namespace
+
+u64 KSystemControl::GenerateRandomU64() {
     static std::random_device device;
     static std::mt19937 gen(device());
     static std::uniform_int_distribution<u64> distribution(1, std::numeric_limits<u64>::max());
     return distribution(gen);
 }
-} // Anonymous namespace
 
-u64 GenerateRandomRange(u64 min, u64 max) {
-    return GenerateUniformRange(min, max, GenerateRandomU64ForInit);
+u64 KSystemControl::GenerateRandomRange(u64 min, u64 max) {
+    return GenerateUniformRange(min, max, GenerateRandomU64);
 }
 
-} // namespace Kernel::Memory::SystemControl
+} // namespace Kernel

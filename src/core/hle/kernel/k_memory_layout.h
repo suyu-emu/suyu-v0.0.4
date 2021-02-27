@@ -7,7 +7,7 @@
 #include "common/common_types.h"
 #include "core/device_memory.h"
 
-namespace Kernel::Memory {
+namespace Kernel {
 
 constexpr std::size_t KernelAslrAlignment = 2 * 1024 * 1024;
 constexpr std::size_t KernelVirtualAddressSpaceWidth = 1ULL << 39;
@@ -27,8 +27,8 @@ constexpr bool IsKernelAddress(VAddr address) {
     return KernelVirtualAddressSpaceBase <= address && address < KernelVirtualAddressSpaceEnd;
 }
 
-class MemoryRegion final {
-    friend class MemoryLayout;
+class KMemoryRegion final {
+    friend class KMemoryLayout;
 
 public:
     constexpr PAddr StartAddress() const {
@@ -40,29 +40,29 @@ public:
     }
 
 private:
-    constexpr MemoryRegion() = default;
-    constexpr MemoryRegion(PAddr start_address, PAddr end_address)
+    constexpr KMemoryRegion() = default;
+    constexpr KMemoryRegion(PAddr start_address, PAddr end_address)
         : start_address{start_address}, end_address{end_address} {}
 
     const PAddr start_address{};
     const PAddr end_address{};
 };
 
-class MemoryLayout final {
+class KMemoryLayout final {
 public:
-    constexpr const MemoryRegion& Application() const {
+    constexpr const KMemoryRegion& Application() const {
         return application;
     }
 
-    constexpr const MemoryRegion& Applet() const {
+    constexpr const KMemoryRegion& Applet() const {
         return applet;
     }
 
-    constexpr const MemoryRegion& System() const {
+    constexpr const KMemoryRegion& System() const {
         return system;
     }
 
-    static constexpr MemoryLayout GetDefaultLayout() {
+    static constexpr KMemoryLayout GetDefaultLayout() {
         constexpr std::size_t application_size{0xcd500000};
         constexpr std::size_t applet_size{0x1fb00000};
         constexpr PAddr application_start_address{Core::DramMemoryMap::End - application_size};
@@ -76,15 +76,15 @@ public:
     }
 
 private:
-    constexpr MemoryLayout(PAddr application_start_address, std::size_t application_size,
-                           PAddr applet_start_address, std::size_t applet_size,
-                           PAddr system_start_address, std::size_t system_size)
+    constexpr KMemoryLayout(PAddr application_start_address, std::size_t application_size,
+                            PAddr applet_start_address, std::size_t applet_size,
+                            PAddr system_start_address, std::size_t system_size)
         : application{application_start_address, application_size},
           applet{applet_start_address, applet_size}, system{system_start_address, system_size} {}
 
-    const MemoryRegion application;
-    const MemoryRegion applet;
-    const MemoryRegion system;
+    const KMemoryRegion application;
+    const KMemoryRegion applet;
+    const KMemoryRegion system;
 };
 
-} // namespace Kernel::Memory
+} // namespace Kernel

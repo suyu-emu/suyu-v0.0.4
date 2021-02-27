@@ -42,6 +42,11 @@ requires std::is_integral_v<T>[[nodiscard]] constexpr bool IsAligned(T value, si
     return (value & mask) == 0;
 }
 
+template <typename T, typename U>
+requires std::is_integral_v<T>[[nodiscard]] constexpr T DivideUp(T x, U y) {
+    return (x + (y - 1)) / y;
+}
+
 template <typename T, size_t Align = 16>
 class AlignmentAllocator {
 public:

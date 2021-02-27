@@ -6,16 +6,18 @@
 
 #include <array>
 #include <mutex>
+#include <tuple>
 
+#include "common/common_funcs.h"
 #include "common/common_types.h"
-#include "core/hle/kernel/memory/page_heap.h"
+#include "core/hle/kernel/k_page_heap.h"
 #include "core/hle/result.h"
 
-namespace Kernel::Memory {
+namespace Kernel {
 
-class PageLinkedList;
+class KPageLinkedList;
 
-class MemoryManager final : NonCopyable {
+class KMemoryManager final : NonCopyable {
 public:
     enum class Pool : u32 {
         Application = 0,
@@ -37,21 +39,42 @@ public:
         Mask = (0xF << Shift),
     };
 
-    MemoryManager() = default;
+    KMemoryManager() = default;
 
     constexpr std::size_t GetSize(Pool pool) const {
         return managers[static_cast<std::size_t>(pool)].GetSize();
     }
 
     void InitializeManager(Pool pool, u64 start_address, u64 end_address);
-    VAddr AllocateContinuous(std::size_t num_pages, std::size_t align_pages, Pool pool,
-                             Direction dir = Direction::FromFront);
-    ResultCode Allocate(PageLinkedList& page_list, std::size_t num_pages, Pool pool,
+
+    VAddr AllocateAndOpenContinuous(size_t num_pages, size_t align_pages, u32 option);
+    ResultCode Allocate(KPageLinkedList& page_list, std::size_t num_pages, Pool pool,
                         Direction dir = Direction::FromFront);
-    ResultCode Free(PageLinkedList& page_list, std::size_t num_pages, Pool pool,
+    ResultCode Free(KPageLinkedList& page_list, std::size_t num_pages, Pool pool,
                     Direction dir = Direction::FromFront);
 
     static constexpr std::size_t MaxManagerCount = 10;
+
+public:
+    static constexpr u32 EncodeOption(Pool pool, Direction dir) {
+        return (static_cast<u32>(pool) << static_cast<u32>(Pool::Shift)) |
+               (static_cast<u32>(dir) << static_cast<u32>(Direction::Shift));
+    }
+
+    static constexpr Pool GetPool(u32 option) {
+        return static_cast<Pool>((static_cast<u32>(option) & static_cast<u32>(Pool::Mask)) >>
+                                 static_cast<u32>(Pool::Shift));
+    }
+
+    static constexpr Direction GetDirection(u32 option) {
+        return static_cast<Direction>(
+            (static_cast<u32>(option) & static_cast<u32>(Direction::Mask)) >>
+            static_cast<u32>(Direction::Shift));
+    }
+
+    static constexpr std::tuple<Pool, Direction> DecodeOption(u32 option) {
+        return std::make_tuple(GetPool(option), GetDirection(option));
+    }
 
 private:
     class Impl final : NonCopyable {
@@ -59,7 +82,7 @@ private:
         using RefCount = u16;
 
     private:
-        PageHeap heap;
+        KPageHeap heap;
         Pool pool{};
 
     public:
@@ -67,8 +90,8 @@ private:
 
         std::size_t Initialize(Pool new_pool, u64 start_address, u64 end_address);
 
-        VAddr AllocateBlock(s32 index) {
-            return heap.AllocateBlock(index);
+        VAddr AllocateBlock(s32 index, bool random) {
+            return heap.AllocateBlock(index, random);
         }
 
         void Free(VAddr addr, std::size_t num_pages) {
@@ -93,4 +116,4 @@ private:
     std::array<Impl, MaxManagerCount> managers;
 };
 
-} // namespace Kernel::Memory
+} // namespace Kernel

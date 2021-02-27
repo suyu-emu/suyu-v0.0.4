@@ -4,33 +4,32 @@
 
 #include "common/assert.h"
 #include "core/core.h"
+#include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/k_scoped_resource_reservation.h"
+#include "core/hle/kernel/k_shared_memory.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/memory/page_table.h"
-#include "core/hle/kernel/shared_memory.h"
 
 namespace Kernel {
 
-SharedMemory::SharedMemory(KernelCore& kernel, Core::DeviceMemory& device_memory)
+KSharedMemory::KSharedMemory(KernelCore& kernel, Core::DeviceMemory& device_memory)
     : Object{kernel}, device_memory{device_memory} {}
 
-SharedMemory::~SharedMemory() {
+KSharedMemory::~KSharedMemory() {
     kernel.GetSystemResourceLimit()->Release(LimitableResource::PhysicalMemory, size);
 }
 
-std::shared_ptr<SharedMemory> SharedMemory::Create(
+std::shared_ptr<KSharedMemory> KSharedMemory::Create(
     KernelCore& kernel, Core::DeviceMemory& device_memory, Process* owner_process,
-    Memory::PageLinkedList&& page_list, Memory::MemoryPermission owner_permission,
-    Memory::MemoryPermission user_permission, PAddr physical_address, std::size_t size,
-    std::string name) {
+    KPageLinkedList&& page_list, KMemoryPermission owner_permission,
+    KMemoryPermission user_permission, PAddr physical_address, std::size_t size, std::string name) {
 
     const auto resource_limit = kernel.GetSystemResourceLimit();
     KScopedResourceReservation memory_reservation(resource_limit, LimitableResource::PhysicalMemory,
                                                   size);
     ASSERT(memory_reservation.Succeeded());
 
-    std::shared_ptr<SharedMemory> shared_memory{
-        std::make_shared<SharedMemory>(kernel, device_memory)};
+    std::shared_ptr<KSharedMemory> shared_memory{
+        std::make_shared<KSharedMemory>(kernel, device_memory)};
 
     shared_memory->owner_process = owner_process;
     shared_memory->page_list = std::move(page_list);
@@ -44,22 +43,22 @@ std::shared_ptr<SharedMemory> SharedMemory::Create(
     return shared_memory;
 }
 
-ResultCode SharedMemory::Map(Process& target_process, VAddr address, std::size_t size,
-                             Memory::MemoryPermission permissions) {
-    const u64 page_count{(size + Memory::PageSize - 1) / Memory::PageSize};
+ResultCode KSharedMemory::Map(Process& target_process, VAddr address, std::size_t size,
+                              KMemoryPermission permissions) {
+    const u64 page_count{(size + PageSize - 1) / PageSize};
 
     if (page_list.GetNumPages() != page_count) {
         UNIMPLEMENTED_MSG("Page count does not match");
     }
 
-    const Memory::MemoryPermission expected =
+    const KMemoryPermission expected =
         &target_process == owner_process ? owner_permission : user_permission;
 
     if (permissions != expected) {
         UNIMPLEMENTED_MSG("Permission does not match");
     }
 
-    return target_process.PageTable().MapPages(address, page_list, Memory::MemoryState::Shared,
+    return target_process.PageTable().MapPages(address, page_list, KMemoryState::Shared,
                                                permissions);
 }
 

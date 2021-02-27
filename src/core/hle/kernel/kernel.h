@@ -11,7 +11,7 @@
 #include <vector>
 #include "core/arm/cpu_interrupt_handler.h"
 #include "core/hardware_properties.h"
-#include "core/hle/kernel/memory/memory_types.h"
+#include "core/hle/kernel/memory_types.h"
 #include "core/hle/kernel/object.h"
 
 namespace Core {
@@ -27,24 +27,22 @@ struct EventType;
 
 namespace Kernel {
 
-namespace Memory {
-class MemoryManager;
-template <typename T>
-class SlabHeap;
-} // namespace Memory
-
 class ClientPort;
 class GlobalSchedulerContext;
 class HandleTable;
-class PhysicalCore;
-class Process;
+class KMemoryManager;
 class KResourceLimit;
 class KScheduler;
-class SharedMemory;
+class KSharedMemory;
+class KThread;
+class PhysicalCore;
+class Process;
 class ServiceThread;
 class Synchronization;
-class KThread;
 class TimeManager;
+
+template <typename T>
+class KSlabHeap;
 
 using EmuThreadHandle = uintptr_t;
 constexpr EmuThreadHandle EmuThreadHandleInvalid{};
@@ -178,40 +176,40 @@ public:
     void RegisterHostThread();
 
     /// Gets the virtual memory manager for the kernel.
-    Memory::MemoryManager& MemoryManager();
+    KMemoryManager& MemoryManager();
 
     /// Gets the virtual memory manager for the kernel.
-    const Memory::MemoryManager& MemoryManager() const;
+    const KMemoryManager& MemoryManager() const;
 
     /// Gets the slab heap allocated for user space pages.
-    Memory::SlabHeap<Memory::Page>& GetUserSlabHeapPages();
+    KSlabHeap<Page>& GetUserSlabHeapPages();
 
     /// Gets the slab heap allocated for user space pages.
-    const Memory::SlabHeap<Memory::Page>& GetUserSlabHeapPages() const;
+    const KSlabHeap<Page>& GetUserSlabHeapPages() const;
 
     /// Gets the shared memory object for HID services.
-    Kernel::SharedMemory& GetHidSharedMem();
+    Kernel::KSharedMemory& GetHidSharedMem();
 
     /// Gets the shared memory object for HID services.
-    const Kernel::SharedMemory& GetHidSharedMem() const;
+    const Kernel::KSharedMemory& GetHidSharedMem() const;
 
     /// Gets the shared memory object for font services.
-    Kernel::SharedMemory& GetFontSharedMem();
+    Kernel::KSharedMemory& GetFontSharedMem();
 
     /// Gets the shared memory object for font services.
-    const Kernel::SharedMemory& GetFontSharedMem() const;
+    const Kernel::KSharedMemory& GetFontSharedMem() const;
 
     /// Gets the shared memory object for IRS services.
-    Kernel::SharedMemory& GetIrsSharedMem();
+    Kernel::KSharedMemory& GetIrsSharedMem();
 
     /// Gets the shared memory object for IRS services.
-    const Kernel::SharedMemory& GetIrsSharedMem() const;
+    const Kernel::KSharedMemory& GetIrsSharedMem() const;
 
     /// Gets the shared memory object for Time services.
-    Kernel::SharedMemory& GetTimeSharedMem();
+    Kernel::KSharedMemory& GetTimeSharedMem();
 
     /// Gets the shared memory object for Time services.
-    const Kernel::SharedMemory& GetTimeSharedMem() const;
+    const Kernel::KSharedMemory& GetTimeSharedMem() const;
 
     /// Suspend/unsuspend the OS.
     void Suspend(bool in_suspention);

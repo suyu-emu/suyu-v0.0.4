@@ -8,18 +8,18 @@
 #include <list>
 
 #include "common/common_types.h"
-#include "core/hle/kernel/memory/memory_block.h"
+#include "core/hle/kernel/k_memory_block.h"
 
-namespace Kernel::Memory {
+namespace Kernel {
 
-class MemoryBlockManager final {
+class KMemoryBlockManager final {
 public:
-    using MemoryBlockTree = std::list<MemoryBlock>;
+    using MemoryBlockTree = std::list<KMemoryBlock>;
     using iterator = MemoryBlockTree::iterator;
     using const_iterator = MemoryBlockTree::const_iterator;
 
 public:
-    MemoryBlockManager(VAddr start_addr, VAddr end_addr);
+    KMemoryBlockManager(VAddr start_addr, VAddr end_addr);
 
     iterator end() {
         return memory_block_tree.end();
@@ -36,21 +36,22 @@ public:
     VAddr FindFreeArea(VAddr region_start, std::size_t region_num_pages, std::size_t num_pages,
                        std::size_t align, std::size_t offset, std::size_t guard_pages);
 
-    void Update(VAddr addr, std::size_t num_pages, MemoryState prev_state,
-                MemoryPermission prev_perm, MemoryAttribute prev_attribute, MemoryState state,
-                MemoryPermission perm, MemoryAttribute attribute);
+    void Update(VAddr addr, std::size_t num_pages, KMemoryState prev_state,
+                KMemoryPermission prev_perm, KMemoryAttribute prev_attribute, KMemoryState state,
+                KMemoryPermission perm, KMemoryAttribute attribute);
 
-    void Update(VAddr addr, std::size_t num_pages, MemoryState state,
-                MemoryPermission perm = MemoryPermission::None,
-                MemoryAttribute attribute = MemoryAttribute::None);
+    void Update(VAddr addr, std::size_t num_pages, KMemoryState state,
+                KMemoryPermission perm = KMemoryPermission::None,
+                KMemoryAttribute attribute = KMemoryAttribute::None);
 
-    using LockFunc = std::function<void(iterator, MemoryPermission)>;
-    void UpdateLock(VAddr addr, std::size_t num_pages, LockFunc&& lock_func, MemoryPermission perm);
+    using LockFunc = std::function<void(iterator, KMemoryPermission)>;
+    void UpdateLock(VAddr addr, std::size_t num_pages, LockFunc&& lock_func,
+                    KMemoryPermission perm);
 
-    using IterateFunc = std::function<void(const MemoryInfo&)>;
+    using IterateFunc = std::function<void(const KMemoryInfo&)>;
     void IterateForRange(VAddr start, VAddr end, IterateFunc&& func);
 
-    MemoryBlock& FindBlock(VAddr addr) {
+    KMemoryBlock& FindBlock(VAddr addr) {
         return *FindIterator(addr);
     }
 
@@ -63,4 +64,4 @@ private:
     MemoryBlockTree memory_block_tree;
 };
 
-} // namespace Kernel::Memory
+} // namespace Kernel

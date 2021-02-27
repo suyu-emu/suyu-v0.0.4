@@ -2,9 +2,9 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/transfer_memory.h"
 #include "core/hle/result.h"
@@ -24,7 +24,7 @@ TransferMemory::~TransferMemory() {
 std::shared_ptr<TransferMemory> TransferMemory::Create(KernelCore& kernel,
                                                        Core::Memory::Memory& memory,
                                                        VAddr base_address, std::size_t size,
-                                                       Memory::MemoryPermission permissions) {
+                                                       KMemoryPermission permissions) {
     std::shared_ptr<TransferMemory> transfer_memory{
         std::make_shared<TransferMemory>(kernel, memory)};
 

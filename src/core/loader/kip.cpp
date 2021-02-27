@@ -6,7 +6,7 @@
 #include "core/file_sys/kernel_executable.h"
 #include "core/file_sys/program_metadata.h"
 #include "core/hle/kernel/code_set.h"
-#include "core/hle/kernel/memory/page_table.h"
+#include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/process.h"
 #include "core/loader/kip.h"
 #include "core/memory.h"

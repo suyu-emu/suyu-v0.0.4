@@ -20,13 +20,13 @@
 #include "core/hardware_properties.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_condition_variable.h"
+#include "core/hle/kernel/k_memory_layout.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/k_thread_queue.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/memory/memory_layout.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/svc_results.h"
@@ -782,7 +782,7 @@ void KThread::AddWaiterImpl(KThread* thread) {
     }
 
     // Keep track of how many kernel waiters we have.
-    if (Memory::IsKernelAddressKey(thread->GetAddressKey())) {
+    if (IsKernelAddressKey(thread->GetAddressKey())) {
         ASSERT((num_kernel_waiters++) >= 0);
     }
 
@@ -795,7 +795,7 @@ void KThread::RemoveWaiterImpl(KThread* thread) {
     ASSERT(kernel.GlobalSchedulerContext().IsLocked());
 
     // Keep track of how many kernel waiters we have.
-    if (Memory::IsKernelAddressKey(thread->GetAddressKey())) {
+    if (IsKernelAddressKey(thread->GetAddressKey())) {
         ASSERT((num_kernel_waiters--) > 0);
     }
 
@@ -870,7 +870,7 @@ KThread* KThread::RemoveWaiterByKey(s32* out_num_waiters, VAddr key) {
             KThread* thread = std::addressof(*it);
 
             // Keep track of how many kernel waiters we have.
-            if (Memory::IsKernelAddressKey(thread->GetAddressKey())) {
+            if (IsKernelAddressKey(thread->GetAddressKey())) {
                 ASSERT((num_kernel_waiters--) > 0);
             }
             it = waiter_list.erase(it);

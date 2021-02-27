@@ -2,9 +2,6 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-// This file references various implementation details from Atmosphere, an open-source firmware for
-// the Nintendo Switch. Copyright 2018-2020 Atmosphere-NX.
-
 #pragma once
 
 #include <atomic>
@@ -12,17 +9,17 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 
-namespace Kernel::Memory {
+namespace Kernel {
 
 namespace impl {
 
-class SlabHeapImpl final : NonCopyable {
+class KSlabHeapImpl final : NonCopyable {
 public:
     struct Node {
         Node* next{};
     };
 
-    constexpr SlabHeapImpl() = default;
+    constexpr KSlabHeapImpl() = default;
 
     void Initialize(std::size_t size) {
         ASSERT(head == nullptr);
@@ -65,9 +62,9 @@ private:
 
 } // namespace impl
 
-class SlabHeapBase : NonCopyable {
+class KSlabHeapBase : NonCopyable {
 public:
-    constexpr SlabHeapBase() = default;
+    constexpr KSlabHeapBase() = default;
 
     constexpr bool Contains(uintptr_t addr) const {
         return start <= addr && addr < end;
@@ -126,7 +123,7 @@ public:
     }
 
 private:
-    using Impl = impl::SlabHeapImpl;
+    using Impl = impl::KSlabHeapImpl;
 
     Impl impl;
     uintptr_t peak{};
@@ -135,9 +132,9 @@ private:
 };
 
 template <typename T>
-class SlabHeap final : public SlabHeapBase {
+class KSlabHeap final : public KSlabHeapBase {
 public:
-    constexpr SlabHeap() : SlabHeapBase() {}
+    constexpr KSlabHeap() : KSlabHeapBase() {}
 
     void Initialize(void* memory, std::size_t memory_size) {
         InitializeImpl(sizeof(T), memory, memory_size);
@@ -160,4 +157,4 @@ public:
     }
 };
 
-} // namespace Kernel::Memory
+} // namespace Kernel

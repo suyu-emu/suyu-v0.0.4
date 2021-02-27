@@ -6,7 +6,7 @@
 
 #include <memory>
 
-#include "core/hle/kernel/memory/memory_block.h"
+#include "core/hle/kernel/k_memory_block.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/physical_memory.h"
 
@@ -36,7 +36,7 @@ public:
 
     static std::shared_ptr<TransferMemory> Create(KernelCore& kernel, Core::Memory::Memory& memory,
                                                   VAddr base_address, std::size_t size,
-                                                  Memory::MemoryPermission permissions);
+                                                  KMemoryPermission permissions);
 
     TransferMemory(const TransferMemory&) = delete;
     TransferMemory& operator=(const TransferMemory&) = delete;
@@ -82,7 +82,7 @@ private:
     std::size_t size{};
 
     /// The memory permissions that are applied to this instance.
-    Memory::MemoryPermission owner_permissions{};
+    KMemoryPermission owner_permissions{};
 
     /// The process that this transfer memory instance was created under.
     Process* owner_process{};

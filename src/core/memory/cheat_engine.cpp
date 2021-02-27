@@ -10,7 +10,7 @@
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
 #include "core/hardware_properties.h"
-#include "core/hle/kernel/memory/page_table.h"
+#include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/service/hid/controllers/npad.h"
 #include "core/hle/service/hid/hid.h"
