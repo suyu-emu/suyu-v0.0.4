@@ -67,16 +67,15 @@ void TestControl1::DoWork() {
         value++;
     }
     results[id] = value;
-    Fiber::YieldTo(work_fibers[id], thread_fibers[id]);
+    Fiber::YieldTo(work_fibers[id].get(), thread_fibers[id].get());
 }
 
 void TestControl1::ExecuteThread(u32 id) {
     thread_ids.Register(id);
-    auto thread_fiber = Fiber::ThreadToFiber();
-    thread_fibers[id] = thread_fiber;
+    thread_fibers[id] = Fiber::ThreadToFiber();
     work_fibers[id] = std::make_shared<Fiber>(std::function<void(void*)>{WorkControl1}, this);
     items[id] = rand() % 256;
-    Fiber::YieldTo(thread_fibers[id], work_fibers[id]);
+    Fiber::YieldTo(thread_fibers[id].get(), work_fibers[id].get());
     thread_fibers[id]->Exit();
 }
 
@@ -117,11 +116,11 @@ public:
         for (u32 i = 0; i < 12000; i++) {
             value1 += i;
         }
-        Fiber::YieldTo(fiber1, fiber3);
+        Fiber::YieldTo(fiber1.get(), fiber3.get());
         const u32 id = thread_ids.Get();
         assert1 = id == 1;
         value2 += 5000;
-        Fiber::YieldTo(fiber1, thread_fibers[id]);
+        Fiber::YieldTo(fiber1.get(), thread_fibers[id].get());
     }
 
     void DoWork2() {
@@ -129,7 +128,7 @@ public:
             ;
         value2 = 2000;
         trap = false;
-        Fiber::YieldTo(fiber2, fiber1);
+        Fiber::YieldTo(fiber2.get(), fiber1.get());
         assert3 = false;
     }
 
@@ -137,19 +136,19 @@ public:
         const u32 id = thread_ids.Get();
         assert2 = id == 0;
         value1 += 1000;
-        Fiber::YieldTo(fiber3, thread_fibers[id]);
+        Fiber::YieldTo(fiber3.get(), thread_fibers[id].get());
     }
 
     void ExecuteThread(u32 id);
 
     void CallFiber1() {
         const u32 id = thread_ids.Get();
-        Fiber::YieldTo(thread_fibers[id], fiber1);
+        Fiber::YieldTo(thread_fibers[id].get(), fiber1.get());
     }
 
     void CallFiber2() {
         const u32 id = thread_ids.Get();
-        Fiber::YieldTo(thread_fibers[id], fiber2);
+        Fiber::YieldTo(thread_fibers[id].get(), fiber2.get());
     }
 
     void Exit();
@@ -185,8 +184,7 @@ static void WorkControl2_3(void* control) {
 
 void TestControl2::ExecuteThread(u32 id) {
     thread_ids.Register(id);
-    auto thread_fiber = Fiber::ThreadToFiber();
-    thread_fibers[id] = thread_fiber;
+    thread_fibers[id] = Fiber::ThreadToFiber();
 }
 
 void TestControl2::Exit() {
@@ -241,23 +239,23 @@ public:
 
     void DoWork1() {
         value1 += 1;
-        Fiber::YieldTo(fiber1, fiber2);
+        Fiber::YieldTo(fiber1.get(), fiber2.get());
         const u32 id = thread_ids.Get();
         value3 += 1;
-        Fiber::YieldTo(fiber1, thread_fibers[id]);
+        Fiber::YieldTo(fiber1.get(), thread_fibers[id].get());
     }
 
     void DoWork2() {
         value2 += 1;
         const u32 id = thread_ids.Get();
-        Fiber::YieldTo(fiber2, thread_fibers[id]);
+        Fiber::YieldTo(fiber2.get(), thread_fibers[id].get());
     }
 
     void ExecuteThread(u32 id);
 
     void CallFiber1() {
         const u32 id = thread_ids.Get();
-        Fiber::YieldTo(thread_fibers[id], fiber1);
+        Fiber::YieldTo(thread_fibers[id].get(), fiber1.get());
     }
 
     void Exit();
@@ -266,7 +264,7 @@ public:
     u32 value2{};
     u32 value3{};
     ThreadIds thread_ids;
-    std::vector<std::shared_ptr<Common::Fiber>> thread_fibers;
+    std::vector<std::unique_ptr<Common::Fiber>> thread_fibers;
     std::shared_ptr<Common::Fiber> fiber1;
     std::shared_ptr<Common::Fiber> fiber2;
 };
@@ -283,8 +281,7 @@ static void WorkControl3_2(void* control) {
 
 void TestControl3::ExecuteThread(u32 id) {
     thread_ids.Register(id);
-    auto thread_fiber = Fiber::ThreadToFiber();
-    thread_fibers[id] = thread_fiber;
+    thread_fibers[id] = Fiber::ThreadToFiber();
 }
 
 void TestControl3::Exit() {
@@ -332,7 +329,7 @@ public:
 
     void Execute() {
         thread_fiber = Fiber::ThreadToFiber();
-        Fiber::YieldTo(thread_fiber, fiber1);
+        Fiber::YieldTo(thread_fiber.get(), fiber1.get());
         thread_fiber->Exit();
     }
 
@@ -340,7 +337,7 @@ public:
         fiber1->SetRewindPoint(std::function<void(void*)>{WorkControl4}, this);
         if (rewinded) {
             goal_reached = true;
-            Fiber::YieldTo(fiber1, thread_fiber);
+            Fiber::YieldTo(fiber1.get(), thread_fiber.get());
         }
         rewinded = true;
         fiber1->Rewind();

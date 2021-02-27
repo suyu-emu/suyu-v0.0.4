@@ -41,8 +41,8 @@ public:
 
     /// Yields control from Fiber 'from' to Fiber 'to'
     /// Fiber 'from' must be the currently running fiber.
-    static void YieldTo(std::shared_ptr<Fiber> from, std::shared_ptr<Fiber> to);
-    [[nodiscard]] static std::shared_ptr<Fiber> ThreadToFiber();
+    static void YieldTo(Fiber* from, Fiber* to);
+    [[nodiscard]] static std::unique_ptr<Fiber> ThreadToFiber();
 
     void SetRewindPoint(std::function<void(void*)>&& rewind_func, void* rewind_param);
 

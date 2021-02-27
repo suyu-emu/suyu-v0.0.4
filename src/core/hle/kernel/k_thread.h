@@ -293,7 +293,13 @@ public:
         return thread_context_64;
     }
 
-    [[nodiscard]] std::shared_ptr<Common::Fiber>& GetHostContext();
+    [[nodiscard]] Common::Fiber* GetHostContext() {
+        return host_context.get();
+    }
+
+    [[nodiscard]] const Common::Fiber* GetHostContext() const {
+        return host_context.get();
+    }
 
     [[nodiscard]] ThreadState GetState() const {
         return thread_state & ThreadState::Mask;
@@ -719,7 +725,7 @@ private:
     Common::SpinLock context_guard{};
 
     // For emulation
-    std::shared_ptr<Common::Fiber> host_context{};
+    std::unique_ptr<Common::Fiber> host_context{};
 
     // For debugging
     std::vector<KSynchronizationObject*> wait_objects_for_debugging;

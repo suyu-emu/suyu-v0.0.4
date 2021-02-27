@@ -2626,8 +2626,7 @@ void Call(Core::System& system, u32 immediate) {
     kernel.ExitSVCProfile();
 
     if (!thread->IsCallingSvc()) {
-        auto* host_context = thread->GetHostContext().get();
-        host_context->Rewind();
+        thread->GetHostContext()->Rewind();
     }
 
     system.EnterDynarmicProfile();

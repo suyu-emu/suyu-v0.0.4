@@ -111,7 +111,7 @@ void CpuManager::MultiCoreRunGuestThread() {
     auto& kernel = system.Kernel();
     kernel.CurrentScheduler()->OnThreadStart();
     auto* thread = kernel.CurrentScheduler()->GetCurrentThread();
-    auto& host_context = thread->GetHostContext();
+    auto host_context = thread->GetHostContext();
     host_context->SetRewindPoint(GuestRewindFunction, this);
     MultiCoreRunGuestLoop();
 }
@@ -148,7 +148,8 @@ void CpuManager::MultiCoreRunSuspendThread() {
         auto core = kernel.GetCurrentHostThreadID();
         auto& scheduler = *kernel.CurrentScheduler();
         Kernel::KThread* current_thread = scheduler.GetCurrentThread();
-        Common::Fiber::YieldTo(current_thread->GetHostContext(), core_data[core].host_context);
+        Common::Fiber::YieldTo(current_thread->GetHostContext(),
+                               core_data[core].host_context.get());
         ASSERT(scheduler.ContextSwitchPending());
         ASSERT(core == kernel.GetCurrentHostThreadID());
         scheduler.RescheduleCurrentCore();
@@ -201,7 +202,7 @@ void CpuManager::SingleCoreRunGuestThread() {
     auto& kernel = system.Kernel();
     kernel.CurrentScheduler()->OnThreadStart();
     auto* thread = kernel.CurrentScheduler()->GetCurrentThread();
-    auto& host_context = thread->GetHostContext();
+    auto host_context = thread->GetHostContext();
     host_context->SetRewindPoint(GuestRewindFunction, this);
     SingleCoreRunGuestLoop();
 }
@@ -245,7 +246,7 @@ void CpuManager::SingleCoreRunSuspendThread() {
         auto core = kernel.GetCurrentHostThreadID();
         auto& scheduler = *kernel.CurrentScheduler();
         Kernel::KThread* current_thread = scheduler.GetCurrentThread();
-        Common::Fiber::YieldTo(current_thread->GetHostContext(), core_data[0].host_context);
+        Common::Fiber::YieldTo(current_thread->GetHostContext(), core_data[0].host_context.get());
         ASSERT(scheduler.ContextSwitchPending());
         ASSERT(core == kernel.GetCurrentHostThreadID());
         scheduler.RescheduleCurrentCore();
@@ -363,7 +364,7 @@ void CpuManager::RunThread(std::size_t core) {
 
         auto current_thread = system.Kernel().CurrentScheduler()->GetCurrentThread();
         data.is_running = true;
-        Common::Fiber::YieldTo(data.host_context, current_thread->GetHostContext());
+        Common::Fiber::YieldTo(data.host_context.get(), current_thread->GetHostContext());
         data.is_running = false;
         data.is_paused = true;
         data.exit_barrier->Wait();
