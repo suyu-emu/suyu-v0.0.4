@@ -156,7 +156,7 @@ public:
         is_initialized = true;
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ERROR_DISABLED);
     }
 
 private:
