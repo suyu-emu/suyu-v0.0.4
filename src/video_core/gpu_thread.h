@@ -43,14 +43,6 @@ struct SubmitListCommand final {
     Tegra::CommandList entries;
 };
 
-/// Command to signal to the GPU thread that a cdma command list is ready for processing
-struct SubmitChCommandEntries final {
-    explicit SubmitChCommandEntries(Tegra::ChCommandHeaderList&& entries_)
-        : entries{std::move(entries_)} {}
-
-    Tegra::ChCommandHeaderList entries;
-};
-
 /// Command to signal to the GPU thread that a swap buffers is pending
 struct SwapBuffersCommand final {
     explicit SwapBuffersCommand(std::optional<const Tegra::FramebufferConfig> framebuffer_)
@@ -91,9 +83,9 @@ struct OnCommandListEndCommand final {};
 struct GPUTickCommand final {};
 
 using CommandData =
-    std::variant<EndProcessingCommand, SubmitListCommand, SubmitChCommandEntries,
-                 SwapBuffersCommand, FlushRegionCommand, InvalidateRegionCommand,
-                 FlushAndInvalidateRegionCommand, OnCommandListEndCommand, GPUTickCommand>;
+    std::variant<EndProcessingCommand, SubmitListCommand, SwapBuffersCommand, FlushRegionCommand,
+                 InvalidateRegionCommand, FlushAndInvalidateRegionCommand, OnCommandListEndCommand,
+                 GPUTickCommand>;
 
 struct CommandDataContainer {
     CommandDataContainer() = default;
@@ -123,13 +115,10 @@ public:
 
     /// Creates and starts the GPU thread.
     void StartThread(VideoCore::RendererBase& renderer, Core::Frontend::GraphicsContext& context,
-                     Tegra::DmaPusher& dma_pusher, Tegra::CDmaPusher& cdma_pusher);
+                     Tegra::DmaPusher& dma_pusher);
 
     /// Push GPU command entries to be processed
     void SubmitList(Tegra::CommandList&& entries);
-
-    /// Push GPU CDMA command buffer entries to be processed
-    void SubmitCommandBuffer(Tegra::ChCommandHeaderList&& entries);
 
     /// Swap buffers (render frame)
     void SwapBuffers(const Tegra::FramebufferConfig* framebuffer);
