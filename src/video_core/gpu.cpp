@@ -459,7 +459,7 @@ void GPU::ProcessSemaphoreAcquire() {
 }
 
 void GPU::Start() {
-    gpu_thread.StartThread(*renderer, renderer->Context(), *dma_pusher, *cdma_pusher);
+    gpu_thread.StartThread(*renderer, renderer->Context(), *dma_pusher);
     cpu_context = renderer->GetRenderWindow().CreateSharedContext();
     cpu_context->MakeCurrent();
 }
