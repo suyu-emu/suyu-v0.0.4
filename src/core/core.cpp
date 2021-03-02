@@ -299,28 +299,17 @@ struct System::Impl {
             gpu_core->WaitIdle();
         }
 
-        // Shutdown emulation session
         services.reset();
         service_manager.reset();
         cheat_engine.reset();
         telemetry_session.reset();
-
-        // Close all CPU/threading state
         cpu_manager.Shutdown();
-
-        // Release the Time Manager's resources
         time_manager.Shutdown();
-
-        // Shutdown kernel and core timing
         core_timing.Shutdown();
-        kernel.Shutdown();
-
-        // Close app loader
         app_loader.reset();
         gpu_core.reset();
         perf_stats.reset();
-
-        // Clear all applets
+        kernel.Shutdown();
         applet_manager.ClearAll();
 
         LOG_DEBUG(Core, "Shutdown OK");
