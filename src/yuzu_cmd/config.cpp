@@ -457,7 +457,7 @@ void Config::ReadValues() {
     Settings::values.yuzu_token = sdl2_config->Get("WebService", "yuzu_token", "");
 
     // Services
-    Settings::values.bcat_backend = sdl2_config->Get("Services", "bcat_backend", "null");
+    Settings::values.bcat_backend = sdl2_config->Get("Services", "bcat_backend", "none");
     Settings::values.bcat_boxcat_local =
         sdl2_config->GetBoolean("Services", "bcat_boxcat_local", false);
 }
