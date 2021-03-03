@@ -7,6 +7,7 @@
 #include <array>
 #include <utility>
 
+#include "common/common_funcs.h"
 #include "common/common_types.h"
 
 namespace Network {
@@ -21,6 +22,11 @@ enum class Errno {
     MFILE,
     NOTCONN,
     AGAIN,
+    CONNREFUSED,
+    HOSTUNREACH,
+    NETDOWN,
+    NETUNREACH,
+    OTHER,
 };
 
 /// Address families
