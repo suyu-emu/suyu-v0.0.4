@@ -4,9 +4,8 @@
 
 #pragma once
 
-#include <mutex>
-
-#include <boost/icl/interval_map.hpp>
+#include <array>
+#include <atomic>
 
 #include "common/common_types.h"
 #include "video_core/rasterizer_interface.h"
@@ -26,10 +25,24 @@ public:
     void UpdatePagesCachedCount(VAddr addr, u64 size, int delta) override;
 
 private:
-    using CachedPageMap = boost::icl::interval_map<u64, int>;
-    CachedPageMap cached_pages;
-    std::mutex pages_mutex;
+    class CacheEntry final {
+    public:
+        CacheEntry() = default;
 
+        std::atomic_uint8_t& Count(std::size_t page) {
+            return values[page & 7];
+        }
+
+        const std::atomic_uint8_t& Count(std::size_t page) const {
+            return values[page & 7];
+        }
+
+    private:
+        std::array<std::atomic_uint8_t, 8> values{};
+    };
+    static_assert(sizeof(CacheEntry) == 8, "CacheEntry should be 8 bytes!");
+
+    std::array<CacheEntry, 0x800000> cached_pages;
     Core::Memory::Memory& cpu_memory;
 };
 
