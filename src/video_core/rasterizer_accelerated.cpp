@@ -20,10 +20,10 @@ void RasterizerAccelerated::UpdatePagesCachedCount(VAddr addr, u64 size, int del
     for (auto page = addr >> Core::Memory::PAGE_BITS; page != page_end; ++page) {
         auto& count = cached_pages.at(page >> 3).Count(page);
 
-        if (delta < 0) {
-            ASSERT_MSG(count > 0, "Count may underflow!");
-        } else if (delta > 0) {
+        if (delta > 0) {
             ASSERT_MSG(count < UINT8_MAX, "Count may overflow!");
+        } else if (delta < 0) {
+            ASSERT_MSG(count > 0, "Count may underflow!");
         } else {
             ASSERT_MSG(true, "Delta must be non-zero!");
         }
