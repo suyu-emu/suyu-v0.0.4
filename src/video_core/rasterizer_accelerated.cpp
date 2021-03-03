@@ -20,9 +20,15 @@ void RasterizerAccelerated::UpdatePagesCachedCount(VAddr addr, u64 size, int del
     for (auto page = addr >> Core::Memory::PAGE_BITS; page != page_end; ++page) {
         auto& count = cached_pages.at(page >> 3).Count(page);
 
-        ASSERT_MSG(count < UINT8_MAX, "Count may exceed UINT8_MAX!");
+        if (delta < 0) {
+            ASSERT_MSG(count > 0, "Count may underflow!");
+        } else if (delta > 0) {
+            ASSERT_MSG(count < UINT8_MAX, "Count may overflow!");
+        } else {
+            ASSERT_MSG(true, "Delta must be non-zero!");
+        }
 
-        count += delta;
+        count += static_cast<s8>(delta);
 
         // Assume delta is either -1 or 1
         if (count == 0) {
@@ -31,8 +37,6 @@ void RasterizerAccelerated::UpdatePagesCachedCount(VAddr addr, u64 size, int del
         } else if (count == 1 && delta > 0) {
             cpu_memory.RasterizerMarkRegionCached(page << Core::Memory::PAGE_BITS,
                                                   Core::Memory::PAGE_SIZE, true);
-        } else {
-            ASSERT(count >= 0);
         }
     }
 }
