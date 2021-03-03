@@ -30,7 +30,7 @@ class CalibrationConfigurationDialog : public QDialog {
     Q_OBJECT
 public:
     explicit CalibrationConfigurationDialog(QWidget* parent, const std::string& host, u16 port,
-                                            u8 pad_index, u16 client_id);
+                                            u8 pad_index);
     ~CalibrationConfigurationDialog() override;
 
 private:

@@ -5,6 +5,7 @@
 #include <chrono>
 #include <cstring>
 #include <functional>
+#include <random>
 #include <thread>
 #include <boost/asio.hpp>
 #include "common/logging/log.h"
@@ -26,10 +27,10 @@ class Socket {
 public:
     using clock = std::chrono::system_clock;
 
-    explicit Socket(const std::string& host, u16 port, std::size_t pad_index_, u32 client_id_,
+    explicit Socket(const std::string& host, u16 port, std::size_t pad_index_,
                     SocketCallback callback_)
         : callback(std::move(callback_)), timer(io_service),
-          socket(io_service, udp::endpoint(udp::v4(), 0)), client_id(client_id_),
+          socket(io_service, udp::endpoint(udp::v4(), 0)), client_id(GenerateRandomClientId()),
           pad_index(pad_index_) {
         boost::system::error_code ec{};
         auto ipv4 = boost::asio::ip::make_address_v4(host, ec);
@@ -63,6 +64,11 @@ public:
     }
 
 private:
+    u32 GenerateRandomClientId() const {
+        std::random_device device;
+        return device();
+    }
+
     void HandleReceive(const boost::system::error_code&, std::size_t bytes_transferred) {
         if (auto type = Response::Validate(receive_buffer.data(), bytes_transferred)) {
             switch (*type) {
@@ -115,7 +121,7 @@ private:
     boost::asio::basic_waitable_timer<clock> timer;
     udp::socket socket;
 
-    u32 client_id{};
+    const u32 client_id;
     std::size_t pad_index{};
 
     static constexpr std::size_t PORT_INFO_SIZE = sizeof(Message<Request::PortInfo>);
@@ -203,7 +209,7 @@ void Client::ReloadSockets() {
                 LOG_ERROR(Input, "Duplicated UDP servers found");
                 continue;
             }
-            StartCommunication(client++, udp_input_address, udp_input_port, pad, 24872);
+            StartCommunication(client++, udp_input_address, udp_input_port, pad);
         }
     }
 }
@@ -277,7 +283,7 @@ void Client::OnPadData(Response::PadData data, std::size_t client) {
 }
 
 void Client::StartCommunication(std::size_t client, const std::string& host, u16 port,
-                                std::size_t pad_index, u32 client_id) {
+                                std::size_t pad_index) {
     SocketCallback callback{[this](Response::Version version) { OnVersion(version); },
                             [this](Response::PortInfo info) { OnPortInfo(info); },
                             [this, client](Response::PadData data) { OnPadData(data, client); }};
@@ -287,7 +293,7 @@ void Client::StartCommunication(std::size_t client, const std::string& host, u16
     clients[client].port = port;
     clients[client].pad_index = pad_index;
     clients[client].active = 0;
-    clients[client].socket = std::make_unique<Socket>(host, port, pad_index, client_id, callback);
+    clients[client].socket = std::make_unique<Socket>(host, port, pad_index, callback);
     clients[client].thread = std::thread{SocketLoop, clients[client].socket.get()};
     // Set motion parameters
     // SetGyroThreshold value should be dependent on GyroscopeZeroDriftMode
@@ -416,7 +422,7 @@ const Common::SPSCQueue<UDPPadStatus>& Client::GetPadQueue() const {
     return pad_queue;
 }
 
-void TestCommunication(const std::string& host, u16 port, std::size_t pad_index, u32 client_id,
+void TestCommunication(const std::string& host, u16 port, std::size_t pad_index,
                        const std::function<void()>& success_callback,
                        const std::function<void()>& failure_callback) {
     std::thread([=] {
@@ -426,7 +432,7 @@ void TestCommunication(const std::string& host, u16 port, std::size_t pad_index,
             .port_info = [](Response::PortInfo) {},
             .pad_data = [&](Response::PadData) { success_event.Set(); },
         };
-        Socket socket{host, port, pad_index, client_id, std::move(callback)};
+        Socket socket{host, port, pad_index, std::move(callback)};
         std::thread worker_thread{SocketLoop, &socket};
         const bool result = success_event.WaitFor(std::chrono::seconds(5));
         socket.Stop();
@@ -440,7 +446,7 @@ void TestCommunication(const std::string& host, u16 port, std::size_t pad_index,
 }
 
 CalibrationConfigurationJob::CalibrationConfigurationJob(
-    const std::string& host, u16 port, std::size_t pad_index, u32 client_id,
+    const std::string& host, u16 port, std::size_t pad_index,
     std::function<void(Status)> status_callback,
     std::function<void(u16, u16, u16, u16)> data_callback) {
 
@@ -485,7 +491,7 @@ CalibrationConfigurationJob::CalibrationConfigurationJob(
                                         complete_event.Set();
                                     }
                                 }};
-        Socket socket{host, port, pad_index, client_id, std::move(callback)};
+        Socket socket{host, port, pad_index, std::move(callback)};
         std::thread worker_thread{SocketLoop, &socket};
         complete_event.Wait();
         socket.Stop();
