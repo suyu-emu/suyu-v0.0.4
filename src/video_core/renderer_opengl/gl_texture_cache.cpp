@@ -96,7 +96,7 @@ constexpr std::array<FormatTuple, MaxPixelFormat> FORMAT_TABLE = {{
     {GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT},                          // BC6H_UFLOAT
     {GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT},                            // BC6H_SFLOAT
     {GL_COMPRESSED_RGBA_ASTC_4x4_KHR},                                // ASTC_2D_4X4_UNORM
-    {GL_RGBA8, GL_BGRA, GL_UNSIGNED_BYTE},                            // B8G8R8A8_UNORM
+    {GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE},                            // B8G8R8A8_UNORM
     {GL_RGBA32F, GL_RGBA, GL_FLOAT},                                  // R32G32B32A32_FLOAT
     {GL_RGBA32I, GL_RGBA_INTEGER, GL_INT},                            // R32G32B32A32_SINT
     {GL_RG32F, GL_RG, GL_FLOAT},                                      // R32G32_FLOAT
@@ -125,7 +125,7 @@ constexpr std::array<FormatTuple, MaxPixelFormat> FORMAT_TABLE = {{
     {GL_COMPRESSED_RGBA_ASTC_8x8_KHR},                                // ASTC_2D_8X8_UNORM
     {GL_COMPRESSED_RGBA_ASTC_8x5_KHR},                                // ASTC_2D_8X5_UNORM
     {GL_COMPRESSED_RGBA_ASTC_5x4_KHR},                                // ASTC_2D_5X4_UNORM
-    {GL_SRGB8_ALPHA8, GL_BGRA, GL_UNSIGNED_BYTE},                     // B8G8R8A8_UNORM
+    {GL_SRGB8_ALPHA8, GL_RGBA, GL_UNSIGNED_BYTE},                     // B8G8R8A8_SRGB
     {GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT},                         // BC1_RGBA_SRGB
     {GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT},                         // BC2_SRGB
     {GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT},                         // BC3_SRGB
@@ -396,6 +396,17 @@ void AttachTexture(GLuint fbo, GLenum attachment, const ImageView* image_view) {
     }
 }
 
+[[nodiscard]] bool IsPixelFormatBGR(PixelFormat format) {
+    switch (format) {
+    case PixelFormat::B5G6R5_UNORM:
+    case PixelFormat::B8G8R8A8_UNORM:
+    case PixelFormat::B8G8R8A8_SRGB:
+        return true;
+    default:
+        return false;
+    }
+}
+
 } // Anonymous namespace
 
 ImageBufferMap::~ImageBufferMap() {
@@ -512,6 +523,9 @@ bool TextureCacheRuntime::CanImageBeCopied(const Image& dst, const Image& src) {
     if (dst.info.type == ImageType::e3D && dst.info.format == PixelFormat::BC4_UNORM) {
         return false;
     }
+    if (IsPixelFormatBGR(dst.info.format) || IsPixelFormatBGR(src.info.format)) {
+        return false;
+    }
     return true;
 }
 
@@ -520,6 +534,8 @@ void TextureCacheRuntime::EmulateCopyImage(Image& dst, Image& src,
     if (dst.info.type == ImageType::e3D && dst.info.format == PixelFormat::BC4_UNORM) {
         ASSERT(src.info.type == ImageType::e3D);
         util_shaders.CopyBC4(dst, src, copies);
+    } else if (IsPixelFormatBGR(dst.info.format) || IsPixelFormatBGR(src.info.format)) {
+        util_shaders.CopyBGR(dst, src, copies);
     } else {
         UNREACHABLE();
     }
