@@ -120,9 +120,10 @@ void AddImageAlias(ImageBase& lhs, ImageBase& rhs, ImageId lhs_id, ImageId rhs_i
     if (lhs.info.type == ImageType::Linear) {
         base = SubresourceBase{.level = 0, .layer = 0};
     } else {
-        // We are passing relaxed formats as an option, having broken views or not won't matter
+        // We are passing relaxed formats as an option, having broken views/bgr or not won't matter
         static constexpr bool broken_views = false;
-        base = FindSubresource(rhs.info, lhs, rhs.gpu_addr, OPTIONS, broken_views);
+        static constexpr bool native_bgr = true;
+        base = FindSubresource(rhs.info, lhs, rhs.gpu_addr, OPTIONS, broken_views, native_bgr);
     }
     if (!base) {
         LOG_ERROR(HW_GPU, "Image alias should have been flipped");

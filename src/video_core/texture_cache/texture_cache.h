@@ -876,6 +876,7 @@ ImageId TextureCache<P>::FindImage(const ImageInfo& info, GPUVAddr gpu_addr,
         return ImageId{};
     }
     const bool broken_views = runtime.HasBrokenTextureViewFormats();
+    const bool native_bgr = runtime.HasNativeBgr();
     ImageId image_id;
     const auto lambda = [&](ImageId existing_image_id, ImageBase& existing_image) {
         if (info.type == ImageType::Linear || existing_image.info.type == ImageType::Linear) {
@@ -885,11 +886,12 @@ ImageId TextureCache<P>::FindImage(const ImageInfo& info, GPUVAddr gpu_addr,
             if (existing_image.gpu_addr == gpu_addr && existing.type == info.type &&
                 existing.pitch == info.pitch &&
                 IsPitchLinearSameSize(existing, info, strict_size) &&
-                IsViewCompatible(existing.format, info.format, broken_views)) {
+                IsViewCompatible(existing.format, info.format, broken_views, native_bgr)) {
                 image_id = existing_image_id;
                 return true;
             }
-        } else if (IsSubresource(info, existing_image, gpu_addr, options, broken_views)) {
+        } else if (IsSubresource(info, existing_image, gpu_addr, options, broken_views,
+                                 native_bgr)) {
             image_id = existing_image_id;
             return true;
         }
@@ -920,6 +922,7 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
     ImageInfo new_info = info;
     const size_t size_bytes = CalculateGuestSizeInBytes(new_info);
     const bool broken_views = runtime.HasBrokenTextureViewFormats();
+    const bool native_bgr = runtime.HasNativeBgr();
     std::vector<ImageId> overlap_ids;
     std::vector<ImageId> left_aliased_ids;
     std::vector<ImageId> right_aliased_ids;
@@ -935,8 +938,8 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
             return;
         }
         static constexpr bool strict_size = true;
-        const std::optional<OverlapResult> solution =
-            ResolveOverlap(new_info, gpu_addr, cpu_addr, overlap, strict_size, broken_views);
+        const std::optional<OverlapResult> solution = ResolveOverlap(
+            new_info, gpu_addr, cpu_addr, overlap, strict_size, broken_views, native_bgr);
         if (solution) {
             gpu_addr = solution->gpu_addr;
             cpu_addr = solution->cpu_addr;
@@ -946,10 +949,10 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
         }
         static constexpr auto options = RelaxedOptions::Size | RelaxedOptions::Format;
         const ImageBase new_image_base(new_info, gpu_addr, cpu_addr);
-        if (IsSubresource(new_info, overlap, gpu_addr, options, broken_views)) {
+        if (IsSubresource(new_info, overlap, gpu_addr, options, broken_views, native_bgr)) {
             left_aliased_ids.push_back(overlap_id);
         } else if (IsSubresource(overlap.info, new_image_base, overlap.gpu_addr, options,
-                                 broken_views)) {
+                                 broken_views, native_bgr)) {
             right_aliased_ids.push_back(overlap_id);
         }
     });
