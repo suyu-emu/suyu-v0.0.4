@@ -181,9 +181,9 @@ struct KernelCore::Impl {
             std::string name = "Suspend Thread Id:" + std::to_string(i);
             std::function<void(void*)> init_func = Core::CpuManager::GetSuspendThreadStartFunc();
             void* init_func_parameter = system.GetCpuManager().GetStartFuncParamater();
-            auto thread_res = KThread::Create(system, ThreadType::HighPriority, std::move(name), 0,
-                                              0, 0, static_cast<u32>(i), 0, nullptr,
-                                              std::move(init_func), init_func_parameter);
+            auto thread_res = KThread::CreateThread(
+                system, ThreadType::HighPriority, std::move(name), 0, 0, 0, static_cast<u32>(i), 0,
+                nullptr, std::move(init_func), init_func_parameter);
 
             suspend_threads[i] = std::move(thread_res).Unwrap();
         }
@@ -221,10 +221,9 @@ struct KernelCore::Impl {
     // Gets the dummy KThread for the caller, allocating a new one if this is the first time
     KThread* GetHostDummyThread() {
         const thread_local auto thread =
-            KThread::Create(
+            KThread::CreateThread(
                 system, ThreadType::Main, fmt::format("DummyThread:{}", GetHostThreadId()), 0,
-                KThread::DefaultThreadPriority, 0, static_cast<u32>(3), 0, nullptr,
-                []([[maybe_unused]] void* arg) { UNREACHABLE(); }, nullptr)
+                KThread::DefaultThreadPriority, 0, static_cast<u32>(3), 0, nullptr)
                 .Unwrap();
         return thread.get();
     }

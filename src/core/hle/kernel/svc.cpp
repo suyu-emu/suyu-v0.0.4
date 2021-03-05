@@ -1532,8 +1532,9 @@ static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr e
     std::shared_ptr<KThread> thread;
     {
         KScopedLightLock lk{process.GetStateLock()};
-        CASCADE_RESULT(thread, KThread::Create(system, ThreadType::User, "", entry_point, priority,
-                                               arg, core_id, stack_bottom, &process));
+        CASCADE_RESULT(thread,
+                       KThread::CreateUserThread(system, ThreadType::User, "", entry_point,
+                                                 priority, arg, core_id, stack_bottom, &process));
     }
 
     const auto new_thread_handle = process.GetHandleTable().Create(thread);

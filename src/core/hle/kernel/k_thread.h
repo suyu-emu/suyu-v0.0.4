@@ -116,7 +116,7 @@ public:
     using WaiterList = boost::intrusive::list<KThread>;
 
     /**
-     * Creates and returns a new thread. The new thread is immediately scheduled
+     * Creates and returns a new thread.
      * @param system The instance of the whole system
      * @param name The friendly name desired for the thread
      * @param entry_point The address at which the thread should start execution
@@ -127,12 +127,12 @@ public:
      * @param owner_process The parent process for the thread, if null, it's a kernel thread
      * @return A shared pointer to the newly created thread
      */
-    [[nodiscard]] static ResultVal<std::shared_ptr<KThread>> Create(
+    [[nodiscard]] static ResultVal<std::shared_ptr<KThread>> CreateThread(
         Core::System& system, ThreadType type_flags, std::string name, VAddr entry_point,
         u32 priority, u64 arg, s32 processor_id, VAddr stack_top, Process* owner_process);
 
     /**
-     * Creates and returns a new thread. The new thread is immediately scheduled
+     * Creates and returns a new thread, with a specified entry point.
      * @param system The instance of the whole system
      * @param name The friendly name desired for the thread
      * @param entry_point The address at which the thread should start execution
@@ -145,10 +145,26 @@ public:
      * @param thread_start_parameter The parameter which will passed to host context on init
      * @return A shared pointer to the newly created thread
      */
-    [[nodiscard]] static ResultVal<std::shared_ptr<KThread>> Create(
+    [[nodiscard]] static ResultVal<std::shared_ptr<KThread>> CreateThread(
         Core::System& system, ThreadType type_flags, std::string name, VAddr entry_point,
         u32 priority, u64 arg, s32 processor_id, VAddr stack_top, Process* owner_process,
         std::function<void(void*)>&& thread_start_func, void* thread_start_parameter);
+
+    /**
+     * Creates and returns a new thread for the emulated "user" process.
+     * @param system The instance of the whole system
+     * @param name The friendly name desired for the thread
+     * @param entry_point The address at which the thread should start execution
+     * @param priority The thread's priority
+     * @param arg User data to pass to the thread
+     * @param processor_id The ID(s) of the processors on which the thread is desired to be run
+     * @param stack_top The address of the thread's stack top
+     * @param owner_process The parent process for the thread, if null, it's a kernel thread
+     * @return A shared pointer to the newly created thread
+     */
+    [[nodiscard]] static ResultVal<std::shared_ptr<KThread>> CreateUserThread(
+        Core::System& system, ThreadType type_flags, std::string name, VAddr entry_point,
+        u32 priority, u64 arg, s32 processor_id, VAddr stack_top, Process* owner_process);
 
     [[nodiscard]] std::string GetName() const override {
         return name;
