@@ -27,7 +27,7 @@
     url = https://github.com/ReinUsesLisp/sirit
 [submodule "mbedtls"]
     path = externals/mbedtls
-    url = https://github.com/DarkLordZach/mbedtls
+    url = https://github.com/yuzu-emu/mbedtls
 [submodule "libzip"]
     path = externals/libzip/libzip
     url = https://github.com/nih-at/libzip.git
