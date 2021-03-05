@@ -68,12 +68,12 @@ public:
 
     void OnThreadStart();
 
-    [[nodiscard]] std::shared_ptr<Common::Fiber>& ControlContext() {
-        return switch_fiber;
+    [[nodiscard]] Common::Fiber* ControlContext() {
+        return switch_fiber.get();
     }
 
-    [[nodiscard]] const std::shared_ptr<Common::Fiber>& ControlContext() const {
-        return switch_fiber;
+    [[nodiscard]] const Common::Fiber* ControlContext() const {
+        return switch_fiber.get();
     }
 
     [[nodiscard]] u64 UpdateHighestPriorityThread(KThread* highest_thread);
@@ -178,7 +178,7 @@ private:
 
     KThread* idle_thread;
 
-    std::shared_ptr<Common::Fiber> switch_fiber{};
+    std::unique_ptr<Common::Fiber> switch_fiber{};
 
     struct SchedulingState {
         std::atomic<bool> needs_scheduling;

@@ -608,7 +608,7 @@ void KScheduler::YieldToAnyThread(KernelCore& kernel) {
 }
 
 KScheduler::KScheduler(Core::System& system, s32 core_id) : system(system), core_id(core_id) {
-    switch_fiber = std::make_shared<Common::Fiber>(OnSwitch, this);
+    switch_fiber = std::make_unique<Common::Fiber>(OnSwitch, this);
     state.needs_scheduling.store(true);
     state.interrupt_task_thread_runnable = false;
     state.should_count_idle = false;
@@ -726,15 +726,15 @@ void KScheduler::ScheduleImpl() {
     // Save context for previous thread
     Unload(previous_thread);
 
-    std::shared_ptr<Common::Fiber>* old_context;
+    Common::Fiber* old_context;
     if (previous_thread != nullptr) {
-        old_context = &previous_thread->GetHostContext();
+        old_context = previous_thread->GetHostContext();
     } else {
-        old_context = &idle_thread->GetHostContext();
+        old_context = idle_thread->GetHostContext();
     }
     guard.unlock();
 
-    Common::Fiber::YieldTo(*old_context, switch_fiber);
+    Common::Fiber::YieldTo(old_context, switch_fiber.get());
     /// When a thread wakes up, the scheduler may have changed to other in another core.
     auto& next_scheduler = *system.Kernel().CurrentScheduler();
     next_scheduler.SwitchContextStep2();
@@ -769,13 +769,13 @@ void KScheduler::SwitchToCurrent() {
                     break;
                 }
             }
-            std::shared_ptr<Common::Fiber>* next_context;
+            Common::Fiber* next_context;
             if (next_thread != nullptr) {
-                next_context = &next_thread->GetHostContext();
+                next_context = next_thread->GetHostContext();
             } else {
-                next_context = &idle_thread->GetHostContext();
+                next_context = idle_thread->GetHostContext();
             }
-            Common::Fiber::YieldTo(switch_fiber, *next_context);
+            Common::Fiber::YieldTo(switch_fiber.get(), next_context);
         } while (!is_switch_pending());
     }
 }
