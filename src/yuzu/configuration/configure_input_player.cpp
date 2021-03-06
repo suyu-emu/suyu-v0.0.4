@@ -302,6 +302,11 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                         buttons_param[button_id].Clear();
                         button_map[button_id]->setText(tr("[not set]"));
                     });
+                    context_menu.addAction(tr("Toggle button"), [&] {
+                        const bool toggle_value = !buttons_param[button_id].Get("toggle", false);
+                        buttons_param[button_id].Set("toggle", toggle_value);
+                        button_map[button_id]->setText(ButtonToText(buttons_param[button_id]));
+                    });
                     context_menu.exec(button_map[button_id]->mapToGlobal(menu_location));
                     ui->controllerFrame->SetPlayerInput(player_index, buttons_param, analogs_param);
                 });
