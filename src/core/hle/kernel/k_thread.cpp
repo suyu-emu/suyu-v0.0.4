@@ -991,6 +991,10 @@ void KThread::SetState(ThreadState state) {
     }
 }
 
+std::shared_ptr<Common::Fiber>& KThread::GetHostContext() {
+    return host_context;
+}
+
 ResultVal<std::shared_ptr<KThread>> KThread::Create(Core::System& system, ThreadType type_flags,
                                                     std::string name, VAddr entry_point,
                                                     u32 priority, u64 arg, s32 processor_id,
@@ -1024,7 +1028,7 @@ ResultVal<std::shared_ptr<KThread>> KThread::Create(Core::System& system, Thread
     scheduler.AddThread(thread);
 
     thread->host_context =
-        std::make_unique<Common::Fiber>(std::move(thread_start_func), thread_start_parameter);
+        std::make_shared<Common::Fiber>(std::move(thread_start_func), thread_start_parameter);
 
     return MakeResult<std::shared_ptr<KThread>>(std::move(thread));
 }

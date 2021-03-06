@@ -24,7 +24,7 @@ struct Fiber::FiberImpl {
     std::function<void(void*)> rewind_point;
     void* rewind_parameter{};
     void* start_parameter{};
-    Fiber* previous_fiber;
+    std::shared_ptr<Fiber> previous_fiber;
     bool is_thread_fiber{};
     bool released{};
 
@@ -47,7 +47,7 @@ void Fiber::Start(boost::context::detail::transfer_t& transfer) {
     ASSERT(impl->previous_fiber != nullptr);
     impl->previous_fiber->impl->context = transfer.fctx;
     impl->previous_fiber->impl->guard.unlock();
-    impl->previous_fiber = nullptr;
+    impl->previous_fiber.reset();
     impl->entry_point(impl->start_parameter);
     UNREACHABLE();
 }
@@ -116,20 +116,20 @@ void Fiber::Rewind() {
     boost::context::detail::jump_fcontext(impl->rewind_context, this);
 }
 
-void Fiber::YieldTo(Fiber* from, Fiber* to) {
+void Fiber::YieldTo(std::shared_ptr<Fiber> from, std::shared_ptr<Fiber> to) {
     ASSERT_MSG(from != nullptr, "Yielding fiber is null!");
     ASSERT_MSG(to != nullptr, "Next fiber is null!");
     to->impl->guard.lock();
     to->impl->previous_fiber = from;
-    auto transfer = boost::context::detail::jump_fcontext(to->impl->context, to);
+    auto transfer = boost::context::detail::jump_fcontext(to->impl->context, to.get());
     ASSERT(from->impl->previous_fiber != nullptr);
     from->impl->previous_fiber->impl->context = transfer.fctx;
     from->impl->previous_fiber->impl->guard.unlock();
-    from->impl->previous_fiber = nullptr;
+    from->impl->previous_fiber.reset();
 }
 
-std::unique_ptr<Fiber> Fiber::ThreadToFiber() {
-    std::unique_ptr<Fiber> fiber = std::unique_ptr<Fiber>{new Fiber()};
+std::shared_ptr<Fiber> Fiber::ThreadToFiber() {
+    std::shared_ptr<Fiber> fiber = std::shared_ptr<Fiber>{new Fiber()};
     fiber->impl->guard.lock();
     fiber->impl->is_thread_fiber = true;
     return fiber;

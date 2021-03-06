@@ -83,7 +83,7 @@ private:
     void RunThread(std::size_t core);
 
     struct CoreData {
-        std::unique_ptr<Common::Fiber> host_context;
+        std::shared_ptr<Common::Fiber> host_context;
         std::unique_ptr<Common::Event> enter_barrier;
         std::unique_ptr<Common::Event> exit_barrier;
         std::atomic<bool> is_running;
