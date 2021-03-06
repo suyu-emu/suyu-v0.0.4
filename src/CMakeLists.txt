@@ -27,6 +27,7 @@ if (MSVC)
     # /Zo                 - Enhanced debug info for optimized builds
     # /permissive-        - Enables stricter C++ standards conformance checks
     # /EHsc               - C++-only exception handling semantics
+    # /utf-8              - Set source and execution character sets to UTF-8
     # /volatile:iso       - Use strict standards-compliant volatile semantics.
     # /Zc:externConstexpr - Allow extern constexpr variables to have external linkage, like the standard mandates
     # /Zc:inline          - Let codegen omit inline functions in object files
@@ -38,6 +39,7 @@ if (MSVC)
         /permissive-
         /EHsc
         /std:c++latest
+        /utf-8
         /volatile:iso
         /Zc:externConstexpr
         /Zc:inline
