@@ -158,7 +158,8 @@ QString ButtonToText(const Common::ParamPackage& param) {
     if (param.Get("engine", "") == "mouse") {
         if (param.Has("button")) {
             const QString button_str = QString::number(int(param.Get("button", 0)));
-            return QObject::tr("Click %1").arg(button_str);
+            const QString toggle = QString::fromStdString(param.Get("toggle", false) ? "~" : "");
+            return QObject::tr("%1Click %2").arg(toggle, button_str);
         }
         return GetKeyName(param.Get("code", 0));
     }

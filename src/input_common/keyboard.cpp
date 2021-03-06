@@ -19,16 +19,18 @@ public:
 
     bool GetStatus() const override {
         if (toggle) {
-            return toggled_status.load();
+            return toggled_status.load(std::memory_order_relaxed);
         }
         return status.load();
     }
 
     void ToggleButton() {
-        if (!lock) {
-            lock = true;
-            toggled_status.store(!toggled_status.load());
+        if (lock) {
+            return;
         }
+        lock = true;
+        const bool old_toggle_status = toggled_status.load();
+        toggled_status.store(!old_toggle_status);
     }
 
     void UnlockButton() {
@@ -41,7 +43,7 @@ private:
     std::shared_ptr<KeyButtonList> key_button_list;
     std::atomic<bool> status{false};
     std::atomic<bool> toggled_status{false};
-    bool lock = {};
+    bool lock{false};
     const bool toggle;
 };
 
