@@ -116,16 +116,14 @@ void Fiber::Rewind() {
     boost::context::detail::jump_fcontext(impl->rewind_context, this);
 }
 
-void Fiber::YieldTo(std::weak_ptr<Fiber> weak_from, std::shared_ptr<Fiber> to) {
-    ASSERT_MSG(to != nullptr, "Next fiber is null!");
+void Fiber::YieldTo(std::weak_ptr<Fiber> weak_from, Fiber& to) {
+    to.impl->guard.lock();
+    to.impl->previous_fiber = weak_from.lock();
 
-    to->impl->guard.lock();
-    to->impl->previous_fiber = weak_from.lock();
-
-    auto transfer = boost::context::detail::jump_fcontext(to->impl->context, to.get());
+    auto transfer = boost::context::detail::jump_fcontext(to.impl->context, &to);
 
     // "from" might no longer be valid if the thread was killed
-    if (auto from = weak_from.lock(); from != nullptr) {
+    if (auto from = weak_from.lock()) {
         ASSERT(from->impl->previous_fiber != nullptr);
         from->impl->previous_fiber->impl->context = transfer.fctx;
         from->impl->previous_fiber->impl->guard.unlock();
