@@ -18,10 +18,12 @@ namespace MouseInput {
 
 enum class MouseButton {
     Left,
-    Wheel,
     Right,
-    Forward,
+    Wheel,
     Backward,
+    Forward,
+    Task,
+    Extra,
     Undefined,
 };
 
@@ -51,7 +53,7 @@ public:
      * @param y the y-coordinate of the cursor
      * @param button_ the button pressed
      */
-    void PressButton(int x, int y, int button_);
+    void PressButton(int x, int y, MouseButton button_);
 
     /**
      * Signals that mouse has moved.
@@ -65,7 +67,7 @@ public:
     /**
      * Signals that a motion sensor tilt has ended.
      */
-    void ReleaseButton(int button_);
+    void ReleaseButton(MouseButton button_);
 
     [[nodiscard]] Common::SPSCQueue<MouseStatus>& GetMouseQueue();
     [[nodiscard]] const Common::SPSCQueue<MouseStatus>& GetMouseQueue() const;
@@ -94,7 +96,7 @@ private:
     u16 buttons{};
     std::thread update_thread;
     MouseButton last_button{MouseButton::Undefined};
-    std::array<MouseInfo, 5> mouse_info;
+    std::array<MouseInfo, 7> mouse_info;
     Common::SPSCQueue<MouseStatus> mouse_queue;
     bool configuring{false};
     bool update_thread_running{true};

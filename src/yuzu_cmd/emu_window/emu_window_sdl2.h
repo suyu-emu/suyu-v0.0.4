@@ -18,6 +18,10 @@ namespace InputCommon {
 class InputSubsystem;
 }
 
+namespace MouseInput {
+enum class MouseButton;
+}
+
 class EmuWindow_SDL2 : public Core::Frontend::EmuWindow {
 public:
     explicit EmuWindow_SDL2(InputCommon::InputSubsystem* input_subsystem);
@@ -41,6 +45,9 @@ protected:
 
     /// Called by WaitEvent when the mouse moves.
     void OnMouseMotion(s32 x, s32 y);
+
+    /// Converts a SDL mouse button into MouseInput mouse button
+    MouseInput::MouseButton SDLButtonToMouseButton(u32 button) const;
 
     /// Called by WaitEvent when a mouse button is pressed or released
     void OnMouseButton(u32 button, u8 state, s32 x, s32 y);

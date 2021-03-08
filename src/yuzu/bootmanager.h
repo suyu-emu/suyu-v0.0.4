@@ -28,6 +28,10 @@ namespace InputCommon {
 class InputSubsystem;
 }
 
+namespace MouseInput {
+enum class MouseButton;
+}
+
 namespace VideoCore {
 enum class LoadCallbackStage;
 }
@@ -148,6 +152,9 @@ public:
 
     void keyPressEvent(QKeyEvent* event) override;
     void keyReleaseEvent(QKeyEvent* event) override;
+
+    /// Converts a Qt mouse button into MouseInput mouse button
+    static MouseInput::MouseButton QtButtonToMouseButton(Qt::MouseButton button);
 
     void mousePressEvent(QMouseEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;

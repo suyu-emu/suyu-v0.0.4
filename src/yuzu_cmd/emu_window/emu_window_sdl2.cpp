@@ -35,18 +35,36 @@ void EmuWindow_SDL2::OnMouseMotion(s32 x, s32 y) {
     input_subsystem->GetMouse()->MouseMove(x, y, 0, 0);
 }
 
+MouseInput::MouseButton EmuWindow_SDL2::SDLButtonToMouseButton(u32 button) const {
+    switch (button) {
+    case SDL_BUTTON_LEFT:
+        return MouseInput::MouseButton::Left;
+    case SDL_BUTTON_RIGHT:
+        return MouseInput::MouseButton::Right;
+    case SDL_BUTTON_MIDDLE:
+        return MouseInput::MouseButton::Wheel;
+    case SDL_BUTTON_X1:
+        return MouseInput::MouseButton::Backward;
+    case SDL_BUTTON_X2:
+        return MouseInput::MouseButton::Forward;
+    default:
+        return MouseInput::MouseButton::Undefined;
+    }
+}
+
 void EmuWindow_SDL2::OnMouseButton(u32 button, u8 state, s32 x, s32 y) {
+    const auto mouse_button = SDLButtonToMouseButton(button);
     if (button == SDL_BUTTON_LEFT) {
         if (state == SDL_PRESSED) {
             TouchPressed((unsigned)std::max(x, 0), (unsigned)std::max(y, 0), 0);
         } else {
             TouchReleased(0);
         }
-    } else if (button == SDL_BUTTON_RIGHT) {
+    } else {
         if (state == SDL_PRESSED) {
-            input_subsystem->GetMouse()->PressButton(x, y, button);
+            input_subsystem->GetMouse()->PressButton(x, y, mouse_button);
         } else {
-            input_subsystem->GetMouse()->ReleaseButton(button);
+            input_subsystem->GetMouse()->ReleaseButton(mouse_button);
         }
     }
 }
