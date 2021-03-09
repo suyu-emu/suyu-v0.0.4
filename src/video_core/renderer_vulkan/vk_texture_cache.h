@@ -93,6 +93,11 @@ struct TextureCacheRuntime {
         // No known Vulkan driver has broken image views
         return false;
     }
+
+    bool HasNativeBgr() const noexcept {
+        // All known Vulkan drivers can natively handle BGR textures
+        return true;
+    }
 };
 
 class Image : public VideoCommon::ImageBase {

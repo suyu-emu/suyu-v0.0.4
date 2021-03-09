@@ -86,6 +86,11 @@ public:
 
     FormatProperties FormatInfo(VideoCommon::ImageType type, GLenum internal_format) const;
 
+    bool HasNativeBgr() const noexcept {
+        // OpenGL does not have native support for the BGR internal format
+        return false;
+    }
+
     bool HasBrokenTextureViewFormats() const noexcept {
         return has_broken_texture_view_formats;
     }
