@@ -9,6 +9,7 @@
 #include <deque>
 #include <memory>
 #include <mutex>
+#include <numeric>
 #include <span>
 #include <unordered_map>
 #include <vector>
@@ -91,7 +92,7 @@ class BufferCache {
     };
 
 public:
-    static constexpr u32 SKIP_CACHE_SIZE = 4096;
+    static constexpr u32 DEFAULT_SKIP_CACHE_SIZE = 4096;
 
     explicit BufferCache(VideoCore::RasterizerInterface& rasterizer_,
                          Tegra::Engines::Maxwell3D& maxwell3d_,
@@ -240,9 +241,9 @@ private:
     template <bool insert>
     void ChangeRegister(BufferId buffer_id);
 
-    void SynchronizeBuffer(Buffer& buffer, VAddr cpu_addr, u32 size);
+    bool SynchronizeBuffer(Buffer& buffer, VAddr cpu_addr, u32 size);
 
-    void SynchronizeBufferImpl(Buffer& buffer, VAddr cpu_addr, u32 size);
+    bool SynchronizeBufferImpl(Buffer& buffer, VAddr cpu_addr, u32 size);
 
     void UploadMemory(Buffer& buffer, u64 total_size_bytes, u64 largest_copy,
                       std::span<BufferCopy> copies);
@@ -297,6 +298,11 @@ private:
 
     std::array<u32, NUM_STAGES> fast_bound_uniform_buffers{};
 
+    std::array<u32, 16> uniform_cache_hits{};
+    std::array<u32, 16> uniform_cache_shots{};
+
+    u32 uniform_buffer_skip_cache_size = DEFAULT_SKIP_CACHE_SIZE;
+
     bool has_deleted_buffers = false;
 
     std::conditional_t<HAS_PERSISTENT_UNIFORM_BUFFER_BINDINGS, std::array<u32, NUM_STAGES>, Empty>
@@ -328,6 +334,19 @@ BufferCache<P>::BufferCache(VideoCore::RasterizerInterface& rasterizer_,
 
 template <class P>
 void BufferCache<P>::TickFrame() {
+    // Calculate hits and shots and move hit bits to the right
+    const u32 hits = std::reduce(uniform_cache_hits.begin(), uniform_cache_hits.end());
+    const u32 shots = std::reduce(uniform_cache_shots.begin(), uniform_cache_shots.end());
+    std::copy_n(uniform_cache_hits.begin(), uniform_cache_hits.size() - 1,
+                uniform_cache_hits.begin() + 1);
+    std::copy_n(uniform_cache_shots.begin(), uniform_cache_shots.size() - 1,
+                uniform_cache_shots.begin() + 1);
+    uniform_cache_hits[0] = 0;
+    uniform_cache_shots[0] = 0;
+
+    const bool skip_preferred = hits * 256 < shots * 251;
+    uniform_buffer_skip_cache_size = skip_preferred ? DEFAULT_SKIP_CACHE_SIZE : 0;
+
     delayed_destruction_ring.Tick();
 }
 
@@ -671,7 +690,7 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
     const VAddr cpu_addr = binding.cpu_addr;
     const u32 size = binding.size;
     Buffer& buffer = slot_buffers[binding.buffer_id];
-    if (size <= SKIP_CACHE_SIZE && !buffer.IsRegionGpuModified(cpu_addr, size)) {
+    if (size <= uniform_buffer_skip_cache_size && !buffer.IsRegionGpuModified(cpu_addr, size)) {
         if constexpr (IS_OPENGL) {
             if (runtime.HasFastBufferSubData()) {
                 // Fast path for Nvidia
@@ -692,7 +711,12 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
         return;
     }
     // Classic cached path
-    SynchronizeBuffer(buffer, cpu_addr, size);
+    const bool sync_cached = SynchronizeBuffer(buffer, cpu_addr, size);
+    if (sync_cached) {
+        ++uniform_cache_hits[0];
+    }
+    ++uniform_cache_shots[0];
+
     if (!needs_bind && !HasFastUniformBufferBound(stage, binding_index)) {
         // Skip binding if it's not needed and if the bound buffer is not the fast version
         // This exists to avoid instances where the fast buffer is bound and a GPU write happens
@@ -1106,15 +1130,15 @@ void BufferCache<P>::ChangeRegister(BufferId buffer_id) {
 }
 
 template <class P>
-void BufferCache<P>::SynchronizeBuffer(Buffer& buffer, VAddr cpu_addr, u32 size) {
+bool BufferCache<P>::SynchronizeBuffer(Buffer& buffer, VAddr cpu_addr, u32 size) {
     if (buffer.CpuAddr() == 0) {
-        return;
+        return true;
     }
-    SynchronizeBufferImpl(buffer, cpu_addr, size);
+    return SynchronizeBufferImpl(buffer, cpu_addr, size);
 }
 
 template <class P>
-void BufferCache<P>::SynchronizeBufferImpl(Buffer& buffer, VAddr cpu_addr, u32 size) {
+bool BufferCache<P>::SynchronizeBufferImpl(Buffer& buffer, VAddr cpu_addr, u32 size) {
     boost::container::small_vector<BufferCopy, 4> copies;
     u64 total_size_bytes = 0;
     u64 largest_copy = 0;
@@ -1128,10 +1152,11 @@ void BufferCache<P>::SynchronizeBufferImpl(Buffer& buffer, VAddr cpu_addr, u32 s
         largest_copy = std::max(largest_copy, range_size);
     });
     if (total_size_bytes == 0) {
-        return;
+        return true;
     }
     const std::span<BufferCopy> copies_span(copies.data(), copies.size());
     UploadMemory(buffer, total_size_bytes, largest_copy, copies_span);
+    return false;
 }
 
 template <class P>

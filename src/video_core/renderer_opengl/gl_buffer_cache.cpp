@@ -73,7 +73,8 @@ BufferCacheRuntime::BufferCacheRuntime(const Device& device_)
     for (auto& stage_uniforms : fast_uniforms) {
         for (OGLBuffer& buffer : stage_uniforms) {
             buffer.Create();
-            glNamedBufferData(buffer.handle, BufferCache::SKIP_CACHE_SIZE, nullptr, GL_STREAM_DRAW);
+            glNamedBufferData(buffer.handle, BufferCache::DEFAULT_SKIP_CACHE_SIZE, nullptr,
+                              GL_STREAM_DRAW);
         }
     }
     for (auto& stage_uniforms : copy_uniforms) {
