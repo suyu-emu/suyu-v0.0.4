@@ -14,16 +14,25 @@ namespace InputCommon {
 
 class MouseButton final : public Input::ButtonDevice {
 public:
-    explicit MouseButton(u32 button_, const MouseInput::Mouse* mouse_input_)
-        : button(button_), mouse_input(mouse_input_) {}
+    explicit MouseButton(u32 button_, bool toggle_, MouseInput::Mouse* mouse_input_)
+        : button(button_), toggle(toggle_), mouse_input(mouse_input_) {}
 
     bool GetStatus() const override {
-        return mouse_input->GetMouseState(button).pressed;
+        const bool button_state = mouse_input->GetMouseState(button).pressed;
+        if (!toggle) {
+            return button_state;
+        }
+
+        if (button_state) {
+            return mouse_input->ToggleButton(button);
+        }
+        return mouse_input->UnlockButton(button);
     }
 
 private:
     const u32 button;
-    const MouseInput::Mouse* mouse_input;
+    const bool toggle;
+    MouseInput::Mouse* mouse_input;
 };
 
 MouseButtonFactory::MouseButtonFactory(std::shared_ptr<MouseInput::Mouse> mouse_input_)
@@ -32,8 +41,9 @@ MouseButtonFactory::MouseButtonFactory(std::shared_ptr<MouseInput::Mouse> mouse_
 std::unique_ptr<Input::ButtonDevice> MouseButtonFactory::Create(
     const Common::ParamPackage& params) {
     const auto button_id = params.Get("button", 0);
+    const auto toggle = params.Get("toggle", false);
 
-    return std::make_unique<MouseButton>(button_id, mouse_input.get());
+    return std::make_unique<MouseButton>(button_id, toggle, mouse_input.get());
 }
 
 Common::ParamPackage MouseButtonFactory::GetNextInput() const {

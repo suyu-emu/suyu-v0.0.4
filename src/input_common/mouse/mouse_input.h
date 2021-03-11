@@ -69,6 +69,9 @@ public:
      */
     void ReleaseButton(MouseButton button_);
 
+    [[nodiscard]] bool ToggleButton(std::size_t button_);
+    [[nodiscard]] bool UnlockButton(std::size_t button_);
+
     [[nodiscard]] Common::SPSCQueue<MouseStatus>& GetMouseQueue();
     [[nodiscard]] const Common::SPSCQueue<MouseStatus>& GetMouseQueue() const;
 
@@ -94,6 +97,8 @@ private:
     };
 
     u16 buttons{};
+    u16 toggle_buttons{};
+    u16 lock_buttons{};
     std::thread update_thread;
     MouseButton last_button{MouseButton::Undefined};
     std::array<MouseInfo, 7> mouse_info;

@@ -376,11 +376,15 @@ void GRenderWindow::closeEvent(QCloseEvent* event) {
 }
 
 void GRenderWindow::keyPressEvent(QKeyEvent* event) {
-    input_subsystem->GetKeyboard()->PressKey(event->key());
+    if (!event->isAutoRepeat()) {
+        input_subsystem->GetKeyboard()->PressKey(event->key());
+    }
 }
 
 void GRenderWindow::keyReleaseEvent(QKeyEvent* event) {
-    input_subsystem->GetKeyboard()->ReleaseKey(event->key());
+    if (!event->isAutoRepeat()) {
+        input_subsystem->GetKeyboard()->ReleaseKey(event->key());
+    }
 }
 
 MouseInput::MouseButton GRenderWindow::QtButtonToMouseButton(Qt::MouseButton button) {

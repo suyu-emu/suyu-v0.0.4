@@ -105,7 +105,9 @@ QString ButtonToText(const Common::ParamPackage& param) {
     }
 
     if (param.Get("engine", "") == "keyboard") {
-        return GetKeyName(param.Get("code", 0));
+        const QString button_str = GetKeyName(param.Get("code", 0));
+        const QString toggle = QString::fromStdString(param.Get("toggle", false) ? "~" : "");
+        return QObject::tr("%1%2").arg(toggle, button_str);
     }
 
     if (param.Get("engine", "") == "gcpad") {
@@ -157,7 +159,8 @@ QString ButtonToText(const Common::ParamPackage& param) {
     if (param.Get("engine", "") == "mouse") {
         if (param.Has("button")) {
             const QString button_str = QString::number(int(param.Get("button", 0)));
-            return QObject::tr("Click %1").arg(button_str);
+            const QString toggle = QString::fromStdString(param.Get("toggle", false) ? "~" : "");
+            return QObject::tr("%1Click %2").arg(toggle, button_str);
         }
         return GetKeyName(param.Get("code", 0));
     }
@@ -301,6 +304,11 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                         buttons_param[button_id].Clear();
                         button_map[button_id]->setText(tr("[not set]"));
                     });
+                    context_menu.addAction(tr("Toggle button"), [&] {
+                        const bool toggle_value = !buttons_param[button_id].Get("toggle", false);
+                        buttons_param[button_id].Set("toggle", toggle_value);
+                        button_map[button_id]->setText(ButtonToText(buttons_param[button_id]));
+                    });
                     context_menu.exec(button_map[button_id]->mapToGlobal(menu_location));
                     ui->controllerFrame->SetPlayerInput(player_index, buttons_param, analogs_param);
                 });
@@ -412,6 +420,15 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                     context_menu.addAction(tr("Clear"), [&] {
                         analogs_param[analog_id].Set("modifier", "");
                         analog_map_modifier_button[analog_id]->setText(tr("[not set]"));
+                    });
+                    context_menu.addAction(tr("Toggle button"), [&] {
+                        Common::ParamPackage modifier_param =
+                            Common::ParamPackage{analogs_param[analog_id].Get("modifier", "")};
+                        const bool toggle_value = !modifier_param.Get("toggle", false);
+                        modifier_param.Set("toggle", toggle_value);
+                        analogs_param[analog_id].Set("modifier", modifier_param.Serialize());
+                        analog_map_modifier_button[analog_id]->setText(
+                            ButtonToText(modifier_param));
                     });
                     context_menu.exec(
                         analog_map_modifier_button[analog_id]->mapToGlobal(menu_location));
