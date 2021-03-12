@@ -1125,7 +1125,7 @@ ILibraryAppletCreator::ILibraryAppletCreator(Core::System& system_)
         {2, nullptr, "AreAnyLibraryAppletsLeft"},
         {10, &ILibraryAppletCreator::CreateStorage, "CreateStorage"},
         {11, &ILibraryAppletCreator::CreateTransferMemoryStorage, "CreateTransferMemoryStorage"},
-        {12, nullptr, "CreateHandleStorage"},
+        {12, &ILibraryAppletCreator::CreateHandleStorage, "CreateHandleStorage"},
     };
     RegisterHandlers(functions);
 }
@@ -1134,6 +1134,7 @@ ILibraryAppletCreator::~ILibraryAppletCreator() = default;
 
 void ILibraryAppletCreator::CreateLibraryApplet(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
+
     const auto applet_id = rp.PopRaw<Applets::AppletId>();
     const auto applet_mode = rp.PopRaw<Applets::LibraryAppletMode>();
 
@@ -1159,8 +1160,17 @@ void ILibraryAppletCreator::CreateLibraryApplet(Kernel::HLERequestContext& ctx) 
 
 void ILibraryAppletCreator::CreateStorage(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    const u64 size{rp.Pop<u64>()};
+
+    const s64 size{rp.Pop<s64>()};
+
     LOG_DEBUG(Service_AM, "called, size={}", size);
+
+    if (size <= 0) {
+        LOG_ERROR(Service_AM, "size is less than or equal to 0");
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_UNKNOWN);
+        return;
+    }
 
     std::vector<u8> buffer(size);
 
@@ -1170,18 +1180,65 @@ void ILibraryAppletCreator::CreateStorage(Kernel::HLERequestContext& ctx) {
 }
 
 void ILibraryAppletCreator::CreateTransferMemoryStorage(Kernel::HLERequestContext& ctx) {
-    LOG_DEBUG(Service_AM, "called");
-
     IPC::RequestParser rp{ctx};
 
-    rp.SetCurrentOffset(3);
-    const auto handle{rp.Pop<Kernel::Handle>()};
+    struct Parameters {
+        u8 permissions;
+        s64 size;
+    };
+
+    const auto parameters{rp.PopRaw<Parameters>()};
+    const auto handle{ctx.GetCopyHandle(0)};
+
+    LOG_DEBUG(Service_AM, "called, permissions={}, size={}, handle={:08X}", parameters.permissions,
+              parameters.size, handle);
+
+    if (parameters.size <= 0) {
+        LOG_ERROR(Service_AM, "size is less than or equal to 0");
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_UNKNOWN);
+        return;
+    }
 
     auto transfer_mem =
         system.CurrentProcess()->GetHandleTable().Get<Kernel::TransferMemory>(handle);
 
     if (transfer_mem == nullptr) {
-        LOG_ERROR(Service_AM, "shared_mem is a nullpr for handle={:08X}", handle);
+        LOG_ERROR(Service_AM, "transfer_mem is a nullptr for handle={:08X}", handle);
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_UNKNOWN);
+        return;
+    }
+
+    const u8* const mem_begin = transfer_mem->GetPointer();
+    const u8* const mem_end = mem_begin + transfer_mem->GetSize();
+    std::vector<u8> memory{mem_begin, mem_end};
+
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushIpcInterface<IStorage>(system, std::move(memory));
+}
+
+void ILibraryAppletCreator::CreateHandleStorage(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+
+    const s64 size{rp.Pop<s64>()};
+    const auto handle{ctx.GetCopyHandle(0)};
+
+    LOG_DEBUG(Service_AM, "called, size={}, handle={:08X}", size, handle);
+
+    if (size <= 0) {
+        LOG_ERROR(Service_AM, "size is less than or equal to 0");
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_UNKNOWN);
+        return;
+    }
+
+    auto transfer_mem =
+        system.CurrentProcess()->GetHandleTable().Get<Kernel::TransferMemory>(handle);
+
+    if (transfer_mem == nullptr) {
+        LOG_ERROR(Service_AM, "transfer_mem is a nullptr for handle={:08X}", handle);
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_UNKNOWN);
         return;
