@@ -60,6 +60,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include <QPushButton>
 #include <QShortcut>
 #include <QStatusBar>
+#include <QString>
 #include <QSysInfo>
 #include <QUrl>
 #include <QtConcurrent/QtConcurrent>
@@ -3059,6 +3060,14 @@ int main(int argc, char* argv[]) {
     // the user folder in the Qt Frontend, we need to cd into that working directory
     const std::string bin_path = Common::FS::GetBundleDirectory() + DIR_SEP + "..";
     chdir(bin_path.c_str());
+#endif
+
+#ifdef __linux__
+    // Set the DISPLAY variable in order to open web browsers
+    // TODO (lat9nq): Find a better solution for AppImages to start external applications
+    if (QString::fromLocal8Bit(qgetenv("DISPLAY")).isEmpty()) {
+        qputenv("DISPLAY", ":0");
+    }
 #endif
 
     // Enables the core to make the qt created contexts current on std::threads
