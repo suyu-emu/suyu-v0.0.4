@@ -222,6 +222,7 @@ struct Values {
     bool quest_flag;
     bool disable_macro_jit;
     bool extended_logging;
+    bool use_auto_stub;
 
     // Miscellaneous
     std::string log_filter;
