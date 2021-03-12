@@ -971,7 +971,7 @@ private:
 
         auto storage = applet->GetBroker().PopNormalDataToGame();
         if (storage == nullptr) {
-            LOG_ERROR(Service_AM,
+            LOG_DEBUG(Service_AM,
                       "storage is a nullptr. There is no data in the current normal channel");
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(ERR_NO_DATA_IN_CHANNEL);
@@ -1002,7 +1002,7 @@ private:
 
         auto storage = applet->GetBroker().PopInteractiveDataToGame();
         if (storage == nullptr) {
-            LOG_ERROR(Service_AM,
+            LOG_DEBUG(Service_AM,
                       "storage is a nullptr. There is no data in the current interactive channel");
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(ERR_NO_DATA_IN_CHANNEL);
