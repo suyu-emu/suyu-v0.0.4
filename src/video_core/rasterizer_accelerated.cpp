@@ -28,7 +28,8 @@ void RasterizerAccelerated::UpdatePagesCachedCount(VAddr addr, u64 size, int del
             ASSERT_MSG(true, "Delta must be non-zero!");
         }
 
-        count += static_cast<s8>(delta);
+        // Adds or subtracts 1, as count is a unsigned 8-bit value
+        count += static_cast<u8>(delta);
 
         // Assume delta is either -1 or 1
         if (count == 0) {
