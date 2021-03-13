@@ -341,12 +341,18 @@ void Module::Interface::CalculateStandardUserSystemClockDifferenceByUser(
 void Module::Interface::CalculateSpanBetween(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called");
 
-    IPC::RequestParser rp{ctx};
-    const auto snapshot_a = rp.PopRaw<Clock::ClockSnapshot>();
-    const auto snapshot_b = rp.PopRaw<Clock::ClockSnapshot>();
+    Clock::ClockSnapshot snapshot_a;
+    Clock::ClockSnapshot snapshot_b;
+
+    const auto snapshot_a_data = ctx.ReadBuffer(0);
+    const auto snapshot_b_data = ctx.ReadBuffer(1);
+
+    std::memcpy(&snapshot_a, snapshot_a_data.data(), sizeof(Clock::ClockSnapshot));
+    std::memcpy(&snapshot_b, snapshot_b_data.data(), sizeof(Clock::ClockSnapshot));
 
     Clock::TimeSpanType time_span_type{};
     s64 span{};
+
     if (const ResultCode result{snapshot_a.steady_clock_time_point.GetSpanBetween(
             snapshot_b.steady_clock_time_point, span)};
         result != RESULT_SUCCESS) {
