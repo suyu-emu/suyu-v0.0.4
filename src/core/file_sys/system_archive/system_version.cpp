@@ -14,15 +14,15 @@ namespace SystemVersionData {
 
 constexpr u8 VERSION_MAJOR = 11;
 constexpr u8 VERSION_MINOR = 0;
-constexpr u8 VERSION_MICRO = 0;
+constexpr u8 VERSION_MICRO = 1;
 
-constexpr u8 REVISION_MAJOR = 5;
+constexpr u8 REVISION_MAJOR = 1;
 constexpr u8 REVISION_MINOR = 0;
 
 constexpr char PLATFORM_STRING[] = "NX";
-constexpr char VERSION_HASH[] = "34197eba8810e2edd5e9dfcfbde7b340882e856d";
-constexpr char DISPLAY_VERSION[] = "11.0.0";
-constexpr char DISPLAY_TITLE[] = "NintendoSDK Firmware for NX 11.0.0-5.0";
+constexpr char VERSION_HASH[] = "69103fcb2004dace877094c2f8c29e6113be5dbf";
+constexpr char DISPLAY_VERSION[] = "11.0.1";
+constexpr char DISPLAY_TITLE[] = "NintendoSDK Firmware for NX 11.0.1-1.0";
 
 } // namespace SystemVersionData
 
