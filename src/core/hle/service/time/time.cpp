@@ -140,6 +140,8 @@ ResultCode Module::Interface::GetClockSnapshotFromSystemClockContextInternal(
 
     const auto current_time_point{
         time_manager.GetStandardSteadyClockCore().GetCurrentTimePoint(system)};
+    clock_snapshot.steady_clock_time_point = current_time_point;
+
     if (const ResultCode result{Clock::ClockSnapshot::GetCurrentTime(
             clock_snapshot.user_time, current_time_point, clock_snapshot.user_context)};
         result != RESULT_SUCCESS) {
