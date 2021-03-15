@@ -14,7 +14,7 @@ namespace NgWord1Data {
 constexpr std::size_t NUMBER_WORD_TXT_FILES = 0x10;
 
 // Should this archive replacement mysteriously not work on a future game, consider updating.
-constexpr std::array<u8, 4> VERSION_DAT{0x0, 0x0, 0x0, 0x19}; // 5.1.0 System Version
+constexpr std::array<u8, 4> VERSION_DAT{0x0, 0x0, 0x0, 0x20}; // 11.0.1 System Version
 
 constexpr std::array<u8, 30> WORD_TXT{
     0xFE, 0xFF, 0x00, 0x5E, 0x00, 0x76, 0x00, 0x65, 0x00, 0x72, 0x00, 0x79, 0x00, 0x62, 0x00,
@@ -43,7 +43,7 @@ namespace NgWord2Data {
 constexpr std::size_t NUMBER_AC_NX_FILES = 0x10;
 
 // Should this archive replacement mysteriously not work on a future game, consider updating.
-constexpr std::array<u8, 4> VERSION_DAT{0x0, 0x0, 0x0, 0x15}; // 5.1.0 System Version
+constexpr std::array<u8, 4> VERSION_DAT{0x0, 0x0, 0x0, 0x1A}; // 11.0.1 System Version
 
 constexpr std::array<u8, 0x2C> AC_NX_DATA{
     0x1F, 0x8B, 0x08, 0x08, 0xD5, 0x2C, 0x09, 0x5C, 0x04, 0x00, 0x61, 0x63, 0x72, 0x61, 0x77,
