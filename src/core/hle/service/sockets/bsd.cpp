@@ -42,7 +42,9 @@ void BSD::PollWork::Execute(BSD* bsd) {
 }
 
 void BSD::PollWork::Response(Kernel::HLERequestContext& ctx) {
-    ctx.WriteBuffer(write_buffer);
+    if (write_buffer.size() > 0) {
+        ctx.WriteBuffer(write_buffer);
+    }
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(RESULT_SUCCESS);
@@ -55,7 +57,9 @@ void BSD::AcceptWork::Execute(BSD* bsd) {
 }
 
 void BSD::AcceptWork::Response(Kernel::HLERequestContext& ctx) {
-    ctx.WriteBuffer(write_buffer);
+    if (write_buffer.size() > 0) {
+        ctx.WriteBuffer(write_buffer);
+    }
 
     IPC::ResponseBuilder rb{ctx, 5};
     rb.Push(RESULT_SUCCESS);
