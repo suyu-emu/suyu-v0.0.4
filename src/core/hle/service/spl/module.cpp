@@ -43,6 +43,11 @@ void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system
     auto module = std::make_shared<Module>();
     std::make_shared<CSRNG>(system, module)->InstallAsService(service_manager);
     std::make_shared<SPL>(system, module)->InstallAsService(service_manager);
+    std::make_shared<SPL_MIG>(system, module)->InstallAsService(service_manager);
+    std::make_shared<SPL_FS>(system, module)->InstallAsService(service_manager);
+    std::make_shared<SPL_SSL>(system, module)->InstallAsService(service_manager);
+    std::make_shared<SPL_ES>(system, module)->InstallAsService(service_manager);
+    std::make_shared<SPL_MANU>(system, module)->InstallAsService(service_manager);
 }
 
 } // namespace Service::SPL
