@@ -143,6 +143,7 @@ add_library(core STATIC
     hle/ipc_helpers.h
     hle/kernel/board/nintendo/nx/k_system_control.cpp
     hle/kernel/board/nintendo/nx/k_system_control.h
+    hle/kernel/board/nintendo/nx/secure_monitor.h
     hle/kernel/client_port.cpp
     hle/kernel/client_port.h
     hle/kernel/client_session.cpp
