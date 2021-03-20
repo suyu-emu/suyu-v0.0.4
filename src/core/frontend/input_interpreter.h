@@ -66,6 +66,9 @@ public:
     /// Gets a button state from HID and inserts it into the array of button states.
     void PollInput();
 
+    /// Resets all the button states to their defaults.
+    void ResetButtonStates();
+
     /**
      * Checks whether the button is pressed.
      *
