@@ -172,6 +172,8 @@ add_library(core STATIC
     hle/kernel/k_memory_block.h
     hle/kernel/k_memory_block_manager.cpp
     hle/kernel/k_memory_block_manager.h
+    hle/kernel/k_memory_layout.cpp
+    hle/kernel/k_memory_layout.board.nintendo_nx.cpp
     hle/kernel/k_memory_layout.h
     hle/kernel/k_memory_manager.cpp
     hle/kernel/k_memory_manager.h
