@@ -12,7 +12,13 @@ class KSystemControl {
 public:
     class Init {
     public:
+        // Initialization.
+        static std::size_t GetIntendedMemorySize();
+        static PAddr GetKernelPhysicalBaseAddress(u64 base_address);
         static bool ShouldIncreaseThreadResourceLimit();
+        static std::size_t GetApplicationPoolSize();
+        static std::size_t GetAppletPoolSize();
+        static std::size_t GetMinimumNonSecureSystemPoolSize();
     };
 
     static u64 GenerateRandomRange(u64 min, u64 max);
