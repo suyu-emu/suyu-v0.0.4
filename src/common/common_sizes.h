@@ -4,12 +4,18 @@
 
 #pragma once
 
+#include <limits>
+
 #include "common/common_types.h"
 
 enum : u64 {
+    Size_1_KB = 0x400ULL,
+    Size_64_KB = 64ULL * Size_1_KB,
+    Size_128_KB = 128ULL * Size_1_KB,
     Size_1_MB = 0x100000ULL,
     Size_2_MB = 2ULL * Size_1_MB,
     Size_4_MB = 4ULL * Size_1_MB,
+    Size_5_MB = 5ULL * Size_1_MB,
     Size_14_MB = 14ULL * Size_1_MB,
     Size_32_MB = 32ULL * Size_1_MB,
     Size_33_MB = 33ULL * Size_1_MB,
@@ -29,5 +35,5 @@ enum : u64 {
     Size_8_GB = 8ULL * Size_1_GB,
     Size_64_GB = 64ULL * Size_1_GB,
     Size_512_GB = 512ULL * Size_1_GB,
-    Invalid = std::numeric_limits<u64>::max(),
+    Size_Invalid = std::numeric_limits<u64>::max(),
 };
