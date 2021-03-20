@@ -1217,6 +1217,32 @@ private:
         }
     }
 
+    void GetIndirectLayerImageMap(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto width = rp.Pop<s64>();
+        const auto height = rp.Pop<s64>();
+        const auto indirect_layer_consumer_handle = rp.Pop<u64>();
+        const auto applet_resource_user_id = rp.Pop<u64>();
+
+        LOG_WARNING(Service_VI,
+                    "(STUBBED) called, width={}, height={}, indirect_layer_consumer_handle={}, "
+                    "applet_resource_user_id={}",
+                    width, height, indirect_layer_consumer_handle, applet_resource_user_id);
+
+        std::vector<u8> out_buffer(0x46);
+        ctx.WriteBuffer(out_buffer);
+
+        // TODO: Figure out what these are
+
+        constexpr s64 unknown_result_1 = 0;
+        constexpr s64 unknown_result_2 = 0;
+
+        IPC::ResponseBuilder rb{ctx, 6};
+        rb.Push(unknown_result_1);
+        rb.Push(unknown_result_2);
+        rb.Push(RESULT_SUCCESS);
+    }
+
     void GetIndirectLayerImageRequiredMemoryInfo(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto width = rp.Pop<u64>();
@@ -1276,7 +1302,7 @@ IApplicationDisplayService::IApplicationDisplayService(Core::System& system_,
         {2031, &IApplicationDisplayService::DestroyStrayLayer, "DestroyStrayLayer"},
         {2101, &IApplicationDisplayService::SetLayerScalingMode, "SetLayerScalingMode"},
         {2102, &IApplicationDisplayService::ConvertScalingMode, "ConvertScalingMode"},
-        {2450, nullptr, "GetIndirectLayerImageMap"},
+        {2450, &IApplicationDisplayService::GetIndirectLayerImageMap, "GetIndirectLayerImageMap"},
         {2451, nullptr, "GetIndirectLayerImageCropMap"},
         {2460, &IApplicationDisplayService::GetIndirectLayerImageRequiredMemoryInfo,
          "GetIndirectLayerImageRequiredMemoryInfo"},
