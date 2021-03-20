@@ -204,6 +204,7 @@ add_library(core STATIC
     hle/kernel/k_thread.cpp
     hle/kernel/k_thread.h
     hle/kernel/k_thread_queue.h
+    hle/kernel/k_trace.h
     hle/kernel/k_writable_event.cpp
     hle/kernel/k_writable_event.h
     hle/kernel/kernel.cpp
