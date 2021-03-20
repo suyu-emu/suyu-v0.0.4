@@ -101,6 +101,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "core/perf_stats.h"
 #include "core/telemetry_session.h"
 #include "input_common/main.h"
+#include "util/overlay_dialog.h"
 #include "video_core/gpu.h"
 #include "video_core/shader_notify.h"
 #include "yuzu/about_dialog.h"
@@ -2266,7 +2267,10 @@ void GMainWindow::OnExecuteProgram(std::size_t program_index) {
 }
 
 void GMainWindow::ErrorDisplayDisplayError(QString body) {
-    QMessageBox::critical(this, tr("Error Display"), body);
+    OverlayDialog dialog(render_window, Core::System::GetInstance(), body, QString{}, tr("OK"),
+                         Qt::AlignLeft | Qt::AlignVCenter);
+    dialog.exec();
+
     emit ErrorDisplayFinished();
 }
 

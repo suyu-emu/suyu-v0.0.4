@@ -143,6 +143,9 @@ add_executable(yuzu
     uisettings.h
     util/limitable_input_dialog.cpp
     util/limitable_input_dialog.h
+    util/overlay_dialog.cpp
+    util/overlay_dialog.h
+    util/overlay_dialog.ui
     util/sequence_dialog/sequence_dialog.cpp
     util/sequence_dialog/sequence_dialog.h
     util/url_request_interceptor.cpp
