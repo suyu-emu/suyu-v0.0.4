@@ -5,24 +5,12 @@
 #include <array>
 
 #include "common/assert.h"
+#include "common/common_sizes.h"
 #include "core/hle/kernel/k_address_space_info.h"
 
 namespace Kernel {
 
 namespace {
-
-enum : u64 {
-    Size_1_MB = 0x100000ULL,
-    Size_2_MB = 2ULL * Size_1_MB,
-    Size_128_MB = 128ULL * Size_1_MB,
-    Size_1_GB = 0x40000000ULL,
-    Size_2_GB = 2ULL * Size_1_GB,
-    Size_4_GB = 4ULL * Size_1_GB,
-    Size_6_GB = 6ULL * Size_1_GB,
-    Size_64_GB = 64ULL * Size_1_GB,
-    Size_512_GB = 512ULL * Size_1_GB,
-    Invalid = std::numeric_limits<u64>::max(),
-};
 
 // clang-format off
 constexpr std::array<KAddressSpaceInfo, 13> AddressSpaceInfos{{
