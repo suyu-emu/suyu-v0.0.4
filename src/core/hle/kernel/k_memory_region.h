@@ -24,7 +24,7 @@ public:
         : address(address_), last_address(last_address_), pair_address(pair_address_),
           attributes(attributes_), type_id(type_id_) {}
     constexpr KMemoryRegion(u64 address_, u64 last_address_, u32 attributes_, u32 type_id_)
-        : KMemoryRegion(address_, last_address_, std::numeric_limits<uintptr_t>::max(), attributes_,
+        : KMemoryRegion(address_, last_address_, std::numeric_limits<u64>::max(), attributes_,
                         type_id_) {}
 
     static constexpr int Compare(const KMemoryRegion& lhs, const KMemoryRegion& rhs) {
@@ -37,6 +37,16 @@ public:
         }
     }
 
+private:
+    constexpr void Reset(u64 a, u64 la, u64 p, u32 r, u32 t) {
+        address = a;
+        pair_address = p;
+        last_address = la;
+        attributes = r;
+        type_id = t;
+    }
+
+public:
     constexpr u64 GetAddress() const {
         return address;
     }
@@ -50,11 +60,11 @@ public:
     }
 
     constexpr u64 GetEndAddress() const {
-        return GetLastAddress() + 1;
+        return this->GetLastAddress() + 1;
     }
 
-    constexpr std::size_t GetSize() const {
-        return GetEndAddress() - GetAddress();
+    constexpr size_t GetSize() const {
+        return this->GetEndAddress() - this->GetAddress();
     }
 
     constexpr u32 GetAttributes() const {
@@ -70,7 +80,7 @@ public:
         type_id = type;
     }
 
-    constexpr bool Contains(uintptr_t address) const {
+    constexpr bool Contains(u64 address) const {
         ASSERT(this->GetEndAddress() != 0);
         return this->GetAddress() <= address && address <= this->GetLastAddress();
     }
@@ -80,7 +90,7 @@ public:
     }
 
     constexpr bool HasTypeAttribute(KMemoryRegionAttr attr) const {
-        return (this->GetType() | static_cast<u32>(attr)) == this->GetType();
+        return (this->GetType() | attr) == this->GetType();
     }
 
     constexpr bool CanDerive(u32 type) const {
@@ -92,12 +102,12 @@ public:
     }
 
     constexpr void SetTypeAttribute(KMemoryRegionAttr attr) {
-        type_id |= static_cast<u32>(attr);
+        type_id |= attr;
     }
 
 private:
-    const u64 address{};
-    const u64 last_address{};
+    u64 address{};
+    u64 last_address{};
     u64 pair_address{};
     u32 attributes{};
     u32 type_id{};
@@ -166,9 +176,9 @@ public:
         }
     }
 
-    const KMemoryRegion* FindByType(u32 type_id) const {
+    const KMemoryRegion* FindByType(KMemoryRegionType type_id) const {
         for (auto it = this->cbegin(); it != this->cend(); ++it) {
-            if (it->GetType() == type_id) {
+            if (it->GetType() == static_cast<u32>(type_id)) {
                 return std::addressof(*it);
             }
         }
@@ -184,7 +194,7 @@ public:
         return nullptr;
     }
 
-    const KMemoryRegion* FindFirstDerived(u32 type_id) const {
+    const KMemoryRegion* FindFirstDerived(KMemoryRegionType type_id) const {
         for (auto it = this->cbegin(); it != this->cend(); it++) {
             if (it->IsDerivedFrom(type_id)) {
                 return std::addressof(*it);
@@ -193,7 +203,7 @@ public:
         return nullptr;
     }
 
-    const KMemoryRegion* FindLastDerived(u32 type_id) const {
+    const KMemoryRegion* FindLastDerived(KMemoryRegionType type_id) const {
         const KMemoryRegion* region = nullptr;
         for (auto it = this->begin(); it != this->end(); it++) {
             if (it->IsDerivedFrom(type_id)) {
@@ -203,7 +213,7 @@ public:
         return region;
     }
 
-    DerivedRegionExtents GetDerivedRegionExtents(u32 type_id) const {
+    DerivedRegionExtents GetDerivedRegionExtents(KMemoryRegionType type_id) const {
         DerivedRegionExtents extents;
 
         ASSERT(extents.first_region == nullptr);
@@ -222,6 +232,10 @@ public:
         ASSERT(extents.last_region != nullptr);
 
         return extents;
+    }
+
+    DerivedRegionExtents GetDerivedRegionExtents(KMemoryRegionAttr type_id) const {
+        return GetDerivedRegionExtents(static_cast<KMemoryRegionType>(type_id));
     }
 
 public:

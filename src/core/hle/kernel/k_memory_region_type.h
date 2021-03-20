@@ -8,17 +8,20 @@
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 
+#define ARCH_ARM64
+#define BOARD_NINTENDO_NX
+
 namespace Kernel {
 
-enum class KMemoryRegionType : u32 {};
+enum KMemoryRegionType : u32 {};
 
-enum class KMemoryRegionAttr : typename std::underlying_type<KMemoryRegionType>::type {
-    CarveoutProtected = 0x04000000,
-    DidKernelMap = 0x08000000,
-    ShouldKernelMap = 0x10000000,
-    UserReadOnly = 0x20000000,
-    NoUserMap = 0x40000000,
-    LinearMapped = 0x80000000,
+enum KMemoryRegionAttr : typename std::underlying_type<KMemoryRegionType>::type {
+    KMemoryRegionAttr_CarveoutProtected = 0x04000000,
+    KMemoryRegionAttr_DidKernelMap = 0x08000000,
+    KMemoryRegionAttr_ShouldKernelMap = 0x10000000,
+    KMemoryRegionAttr_UserReadOnly = 0x20000000,
+    KMemoryRegionAttr_NoUserMap = 0x40000000,
+    KMemoryRegionAttr_LinearMapped = 0x80000000,
 };
 DECLARE_ENUM_FLAG_OPERATORS(KMemoryRegionAttr);
 
@@ -150,17 +153,15 @@ static_assert(KMemoryRegionType_Dram.GetValue() == 0x2);
 
 constexpr auto KMemoryRegionType_DramKernelBase =
     KMemoryRegionType_Dram.DeriveSparse(0, 3, 0)
-        .SetAttribute(KMemoryRegionAttr::NoUserMap)
-        .SetAttribute(KMemoryRegionAttr::CarveoutProtected);
+        .SetAttribute(KMemoryRegionAttr_NoUserMap)
+        .SetAttribute(KMemoryRegionAttr_CarveoutProtected);
 constexpr auto KMemoryRegionType_DramReservedBase = KMemoryRegionType_Dram.DeriveSparse(0, 3, 1);
 constexpr auto KMemoryRegionType_DramHeapBase =
-    KMemoryRegionType_Dram.DeriveSparse(0, 3, 2).SetAttribute(KMemoryRegionAttr::LinearMapped);
-static_assert(static_cast<KMemoryRegionAttr>(KMemoryRegionType_DramKernelBase.GetValue()) ==
-              (static_cast<KMemoryRegionAttr>(0xE) | KMemoryRegionAttr::CarveoutProtected |
-               KMemoryRegionAttr::NoUserMap));
+    KMemoryRegionType_Dram.DeriveSparse(0, 3, 2).SetAttribute(KMemoryRegionAttr_LinearMapped);
+static_assert(KMemoryRegionType_DramKernelBase.GetValue() ==
+              (0xE | KMemoryRegionAttr_CarveoutProtected | KMemoryRegionAttr_NoUserMap));
 static_assert(KMemoryRegionType_DramReservedBase.GetValue() == (0x16));
-static_assert(static_cast<KMemoryRegionAttr>(KMemoryRegionType_DramHeapBase.GetValue()) ==
-              (static_cast<KMemoryRegionAttr>(0x26) | KMemoryRegionAttr::LinearMapped));
+static_assert(KMemoryRegionType_DramHeapBase.GetValue() == (0x26 | KMemoryRegionAttr_LinearMapped));
 
 constexpr auto KMemoryRegionType_DramKernelCode =
     KMemoryRegionType_DramKernelBase.DeriveSparse(0, 4, 0);
@@ -168,78 +169,69 @@ constexpr auto KMemoryRegionType_DramKernelSlab =
     KMemoryRegionType_DramKernelBase.DeriveSparse(0, 4, 1);
 constexpr auto KMemoryRegionType_DramKernelPtHeap =
     KMemoryRegionType_DramKernelBase.DeriveSparse(0, 4, 2).SetAttribute(
-        KMemoryRegionAttr::LinearMapped);
+        KMemoryRegionAttr_LinearMapped);
 constexpr auto KMemoryRegionType_DramKernelInitPt =
     KMemoryRegionType_DramKernelBase.DeriveSparse(0, 4, 3).SetAttribute(
-        KMemoryRegionAttr::LinearMapped);
-static_assert(static_cast<KMemoryRegionAttr>(KMemoryRegionType_DramKernelCode.GetValue()) ==
-              (static_cast<KMemoryRegionAttr>(0xCE) | KMemoryRegionAttr::CarveoutProtected |
-               KMemoryRegionAttr::NoUserMap));
-static_assert(static_cast<KMemoryRegionAttr>(KMemoryRegionType_DramKernelSlab.GetValue()) ==
-              (static_cast<KMemoryRegionAttr>(0x14E) | KMemoryRegionAttr::CarveoutProtected |
-               KMemoryRegionAttr::NoUserMap));
-static_assert(static_cast<KMemoryRegionAttr>(KMemoryRegionType_DramKernelPtHeap.GetValue()) ==
-              (static_cast<KMemoryRegionAttr>(0x24E) | KMemoryRegionAttr::CarveoutProtected |
-               KMemoryRegionAttr::NoUserMap | KMemoryRegionAttr::LinearMapped));
-static_assert(static_cast<KMemoryRegionAttr>(KMemoryRegionType_DramKernelInitPt.GetValue()) ==
-              (static_cast<KMemoryRegionAttr>(0x44E) | KMemoryRegionAttr::CarveoutProtected |
-               KMemoryRegionAttr::NoUserMap | KMemoryRegionAttr::LinearMapped));
+        KMemoryRegionAttr_LinearMapped);
+static_assert(KMemoryRegionType_DramKernelCode.GetValue() ==
+              (0xCE | KMemoryRegionAttr_CarveoutProtected | KMemoryRegionAttr_NoUserMap));
+static_assert(KMemoryRegionType_DramKernelSlab.GetValue() ==
+              (0x14E | KMemoryRegionAttr_CarveoutProtected | KMemoryRegionAttr_NoUserMap));
+static_assert(KMemoryRegionType_DramKernelPtHeap.GetValue() ==
+              (0x24E | KMemoryRegionAttr_CarveoutProtected | KMemoryRegionAttr_NoUserMap |
+               KMemoryRegionAttr_LinearMapped));
+static_assert(KMemoryRegionType_DramKernelInitPt.GetValue() ==
+              (0x44E | KMemoryRegionAttr_CarveoutProtected | KMemoryRegionAttr_NoUserMap |
+               KMemoryRegionAttr_LinearMapped));
 
 constexpr auto KMemoryRegionType_DramReservedEarly =
-    KMemoryRegionType_DramReservedBase.DeriveAttribute(KMemoryRegionAttr::NoUserMap);
-static_assert(static_cast<KMemoryRegionAttr>(KMemoryRegionType_DramReservedEarly.GetValue()) ==
-              (static_cast<KMemoryRegionAttr>(0x16) | KMemoryRegionAttr::NoUserMap));
+    KMemoryRegionType_DramReservedBase.DeriveAttribute(KMemoryRegionAttr_NoUserMap);
+static_assert(KMemoryRegionType_DramReservedEarly.GetValue() ==
+              (0x16 | KMemoryRegionAttr_NoUserMap));
 
 constexpr auto KMemoryRegionType_KernelTraceBuffer =
     KMemoryRegionType_DramReservedBase.DeriveSparse(0, 3, 0)
-        .SetAttribute(KMemoryRegionAttr::LinearMapped)
-        .SetAttribute(KMemoryRegionAttr::UserReadOnly);
+        .SetAttribute(KMemoryRegionAttr_LinearMapped)
+        .SetAttribute(KMemoryRegionAttr_UserReadOnly);
 constexpr auto KMemoryRegionType_OnMemoryBootImage =
     KMemoryRegionType_DramReservedBase.DeriveSparse(0, 3, 1);
 constexpr auto KMemoryRegionType_DTB = KMemoryRegionType_DramReservedBase.DeriveSparse(0, 3, 2);
-static_assert(static_cast<KMemoryRegionAttr>(KMemoryRegionType_KernelTraceBuffer.GetValue()) ==
-              (static_cast<KMemoryRegionAttr>(0xD6) | KMemoryRegionAttr::LinearMapped |
-               KMemoryRegionAttr::UserReadOnly));
+static_assert(KMemoryRegionType_KernelTraceBuffer.GetValue() ==
+              (0xD6 | KMemoryRegionAttr_LinearMapped | KMemoryRegionAttr_UserReadOnly));
 static_assert(KMemoryRegionType_OnMemoryBootImage.GetValue() == 0x156);
 static_assert(KMemoryRegionType_DTB.GetValue() == 0x256);
 
 constexpr auto KMemoryRegionType_DramPoolPartition =
-    KMemoryRegionType_DramHeapBase.DeriveAttribute(KMemoryRegionAttr::NoUserMap);
-static_assert(static_cast<KMemoryRegionAttr>(KMemoryRegionType_DramPoolPartition.GetValue()) ==
-              (static_cast<KMemoryRegionAttr>(0x26) | KMemoryRegionAttr::LinearMapped |
-               KMemoryRegionAttr::NoUserMap));
+    KMemoryRegionType_DramHeapBase.DeriveAttribute(KMemoryRegionAttr_NoUserMap);
+static_assert(KMemoryRegionType_DramPoolPartition.GetValue() ==
+              (0x26 | KMemoryRegionAttr_LinearMapped | KMemoryRegionAttr_NoUserMap));
 
 constexpr auto KMemoryRegionType_DramPoolManagement =
     KMemoryRegionType_DramPoolPartition.DeriveTransition(0, 2).DeriveTransition().SetAttribute(
-        KMemoryRegionAttr::CarveoutProtected);
+        KMemoryRegionAttr_CarveoutProtected);
 constexpr auto KMemoryRegionType_DramUserPool =
     KMemoryRegionType_DramPoolPartition.DeriveTransition(1, 2).DeriveTransition();
-static_assert(static_cast<KMemoryRegionAttr>(KMemoryRegionType_DramPoolManagement.GetValue()) ==
-              (static_cast<KMemoryRegionAttr>(0x166) | KMemoryRegionAttr::LinearMapped |
-               KMemoryRegionAttr::NoUserMap | KMemoryRegionAttr::CarveoutProtected));
-static_assert(static_cast<KMemoryRegionAttr>(KMemoryRegionType_DramUserPool.GetValue()) ==
-              (static_cast<KMemoryRegionAttr>(0x1A6) | KMemoryRegionAttr::LinearMapped |
-               KMemoryRegionAttr::NoUserMap));
+static_assert(KMemoryRegionType_DramPoolManagement.GetValue() ==
+              (0x166 | KMemoryRegionAttr_LinearMapped | KMemoryRegionAttr_NoUserMap |
+               KMemoryRegionAttr_CarveoutProtected));
+static_assert(KMemoryRegionType_DramUserPool.GetValue() ==
+              (0x1A6 | KMemoryRegionAttr_LinearMapped | KMemoryRegionAttr_NoUserMap));
 
 constexpr auto KMemoryRegionType_DramApplicationPool = KMemoryRegionType_DramUserPool.Derive(4, 0);
 constexpr auto KMemoryRegionType_DramAppletPool = KMemoryRegionType_DramUserPool.Derive(4, 1);
 constexpr auto KMemoryRegionType_DramSystemNonSecurePool =
     KMemoryRegionType_DramUserPool.Derive(4, 2);
 constexpr auto KMemoryRegionType_DramSystemPool =
-    KMemoryRegionType_DramUserPool.Derive(4, 3).SetAttribute(KMemoryRegionAttr::CarveoutProtected);
-static_assert(static_cast<KMemoryRegionAttr>(KMemoryRegionType_DramApplicationPool.GetValue()) ==
-              (static_cast<KMemoryRegionAttr>(0x7A6) | KMemoryRegionAttr::LinearMapped |
-               KMemoryRegionAttr::NoUserMap));
-static_assert(static_cast<KMemoryRegionAttr>(KMemoryRegionType_DramAppletPool.GetValue()) ==
-              (static_cast<KMemoryRegionAttr>(0xBA6) | KMemoryRegionAttr::LinearMapped |
-               KMemoryRegionAttr::NoUserMap));
-static_assert(
-    static_cast<KMemoryRegionAttr>(KMemoryRegionType_DramSystemNonSecurePool.GetValue()) ==
-    (static_cast<KMemoryRegionAttr>(0xDA6) | KMemoryRegionAttr::LinearMapped |
-     KMemoryRegionAttr::NoUserMap));
-static_assert(static_cast<KMemoryRegionAttr>(KMemoryRegionType_DramSystemPool.GetValue()) ==
-              (static_cast<KMemoryRegionAttr>(0x13A6) | KMemoryRegionAttr::LinearMapped |
-               KMemoryRegionAttr::NoUserMap | KMemoryRegionAttr::CarveoutProtected));
+    KMemoryRegionType_DramUserPool.Derive(4, 3).SetAttribute(KMemoryRegionAttr_CarveoutProtected);
+static_assert(KMemoryRegionType_DramApplicationPool.GetValue() ==
+              (0x7A6 | KMemoryRegionAttr_LinearMapped | KMemoryRegionAttr_NoUserMap));
+static_assert(KMemoryRegionType_DramAppletPool.GetValue() ==
+              (0xBA6 | KMemoryRegionAttr_LinearMapped | KMemoryRegionAttr_NoUserMap));
+static_assert(KMemoryRegionType_DramSystemNonSecurePool.GetValue() ==
+              (0xDA6 | KMemoryRegionAttr_LinearMapped | KMemoryRegionAttr_NoUserMap));
+static_assert(KMemoryRegionType_DramSystemPool.GetValue() ==
+              (0x13A6 | KMemoryRegionAttr_LinearMapped | KMemoryRegionAttr_NoUserMap |
+               KMemoryRegionAttr_CarveoutProtected));
 
 constexpr auto KMemoryRegionType_VirtualDramHeapBase = KMemoryRegionType_Dram.DeriveSparse(1, 3, 0);
 constexpr auto KMemoryRegionType_VirtualDramKernelPtHeap =
@@ -284,18 +276,18 @@ constexpr auto KMemoryRegionType_BoardDeviceBase =
 static_assert(KMemoryRegionType_ArchDeviceBase.GetValue() == 0x5);
 static_assert(KMemoryRegionType_BoardDeviceBase.GetValue() == 0x5);
 
-#if defined(ATMOSPHERE_ARCH_ARM64)
-#include <mesosphere/arch/arm64/kern_k_memory_region_device_types.inc>
-#elif defined(ATMOSPHERE_ARCH_ARM)
-#include <mesosphere/arch/arm/kern_k_memory_region_device_types.inc>
+#if defined(ARCH_ARM64)
+#include "core/hle/kernel/arch/arm64/k_memory_region_device_types.inc"
+#elif defined(ARCH_ARM)
+#error "Unimplemented""
 #else
 // Default to no architecture devices.
 constexpr auto NumArchitectureDeviceRegions = 0;
 #endif
 static_assert(NumArchitectureDeviceRegions >= 0);
 
-#if defined(ATMOSPHERE_BOARD_NINTENDO_NX)
-#include <mesosphere/board/nintendo/nx/kern_k_memory_region_device_types.inc>
+#if defined(BOARD_NINTENDO_NX)
+#include "core/hle/kernel/board/nintendo/nx/k_memory_region_device_types.inc"
 #else
 // Default to no board devices.
 constexpr auto NumBoardDeviceRegions = 0;
