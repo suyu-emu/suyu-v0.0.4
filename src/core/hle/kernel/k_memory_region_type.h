@@ -279,7 +279,7 @@ static_assert(KMemoryRegionType_BoardDeviceBase.GetValue() == 0x5);
 #if defined(ARCH_ARM64)
 #include "core/hle/kernel/arch/arm64/k_memory_region_device_types.inc"
 #elif defined(ARCH_ARM)
-#error "Unimplemented""
+#error "Unimplemented"
 #else
 // Default to no architecture devices.
 constexpr auto NumArchitectureDeviceRegions = 0;
