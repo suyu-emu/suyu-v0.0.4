@@ -11,6 +11,8 @@
 
 namespace Kernel {
 
+class KMemoryRegionAllocator;
+
 class KMemoryRegion final : public Common::IntrusiveRedBlackTreeBaseNode<KMemoryRegion>,
                             NonCopyable {
     friend class KMemoryRegionTree;
@@ -155,9 +157,10 @@ public:
 
 private:
     TreeType m_tree{};
+    KMemoryRegionAllocator& memory_region_allocator;
 
 public:
-    constexpr KMemoryRegionTree() = default;
+    KMemoryRegionTree(KMemoryRegionAllocator& memory_region_allocator_);
 
 public:
     KMemoryRegion* FindModifiable(u64 address) {
@@ -318,6 +321,31 @@ public:
 
     iterator nfind(const_reference ref) const {
         return m_tree.nfind(ref);
+    }
+};
+
+class KMemoryRegionAllocator final : NonCopyable {
+public:
+    static constexpr size_t MaxMemoryRegions = 200;
+
+private:
+    std::array<KMemoryRegion, MaxMemoryRegions> region_heap{};
+    size_t num_regions{};
+
+public:
+    constexpr KMemoryRegionAllocator() = default;
+
+public:
+    template <typename... Args>
+    KMemoryRegion* Allocate(Args&&... args) {
+        // Ensure we stay within the bounds of our heap.
+        ASSERT(this->num_regions < MaxMemoryRegions);
+
+        // Create the new region.
+        KMemoryRegion* region = std::addressof(this->region_heap[this->num_regions++]);
+        new (region) KMemoryRegion(std::forward<Args>(args)...);
+
+        return region;
     }
 };
 

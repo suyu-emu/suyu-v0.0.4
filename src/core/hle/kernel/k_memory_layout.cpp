@@ -2,6 +2,8 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <array>
+
 #include "common/alignment.h"
 #include "core/hle/kernel/k_memory_layout.h"
 #include "core/hle/kernel/k_system_control.h"
@@ -10,42 +12,18 @@ namespace Kernel {
 
 namespace {
 
-class KMemoryRegionAllocator final : NonCopyable {
-public:
-    static constexpr size_t MaxMemoryRegions = 200;
-
-private:
-    KMemoryRegion region_heap[MaxMemoryRegions]{};
-    size_t num_regions{};
-
-public:
-    constexpr KMemoryRegionAllocator() = default;
-
-public:
-    template <typename... Args>
-    KMemoryRegion* Allocate(Args&&... args) {
-        // Ensure we stay within the bounds of our heap.
-        ASSERT(this->num_regions < MaxMemoryRegions);
-
-        // Create the new region.
-        KMemoryRegion* region = std::addressof(this->region_heap[this->num_regions++]);
-        new (region) KMemoryRegion(std::forward<Args>(args)...);
-
-        return region;
-    }
-};
-
-KMemoryRegionAllocator g_memory_region_allocator;
-
 template <typename... Args>
-KMemoryRegion* AllocateRegion(Args&&... args) {
-    return g_memory_region_allocator.Allocate(std::forward<Args>(args)...);
+KMemoryRegion* AllocateRegion(KMemoryRegionAllocator& memory_region_allocator, Args&&... args) {
+    return memory_region_allocator.Allocate(std::forward<Args>(args)...);
 }
 
 } // namespace
 
+KMemoryRegionTree::KMemoryRegionTree(KMemoryRegionAllocator& memory_region_allocator_)
+    : memory_region_allocator{memory_region_allocator_} {}
+
 void KMemoryRegionTree::InsertDirectly(u64 address, u64 last_address, u32 attr, u32 type_id) {
-    this->insert(*AllocateRegion(address, last_address, attr, type_id));
+    this->insert(*AllocateRegion(memory_region_allocator, address, last_address, attr, type_id));
 }
 
 bool KMemoryRegionTree::Insert(u64 address, size_t size, u32 type_id, u32 new_attr, u32 old_attr) {
@@ -92,7 +70,8 @@ bool KMemoryRegionTree::Insert(u64 address, size_t size, u32 type_id, u32 new_at
         const u64 new_pair = (old_pair != std::numeric_limits<u64>::max())
                                  ? old_pair + (address - old_address)
                                  : old_pair;
-        this->insert(*AllocateRegion(address, inserted_region_last, new_pair, new_attr, type_id));
+        this->insert(*AllocateRegion(memory_region_allocator, address, inserted_region_last,
+                                     new_pair, new_attr, type_id));
     }
 
     // If we need to insert a region after the region, do so.
@@ -100,8 +79,8 @@ bool KMemoryRegionTree::Insert(u64 address, size_t size, u32 type_id, u32 new_at
         const u64 after_pair = (old_pair != std::numeric_limits<u64>::max())
                                    ? old_pair + (inserted_region_end - old_address)
                                    : old_pair;
-        this->insert(
-            *AllocateRegion(inserted_region_end, old_last, after_pair, old_attr, old_type));
+        this->insert(*AllocateRegion(memory_region_allocator, inserted_region_end, old_last,
+                                     after_pair, old_attr, old_type));
     }
 
     return true;
@@ -146,6 +125,10 @@ VAddr KMemoryRegionTree::GetRandomAlignedRegion(size_t size, size_t alignment, u
         return candidate;
     }
 }
+
+KMemoryLayout::KMemoryLayout()
+    : virtual_tree{memory_region_allocator}, physical_tree{memory_region_allocator},
+      virtual_linear_tree{memory_region_allocator}, physical_linear_tree{memory_region_allocator} {}
 
 void KMemoryLayout::InitializeLinearMemoryRegionTrees(PAddr aligned_linear_phys_start,
                                                       VAddr linear_virtual_start) {

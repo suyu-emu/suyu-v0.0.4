@@ -73,7 +73,7 @@ constexpr bool IsKernelAddress(VAddr address) {
 
 class KMemoryLayout final {
 public:
-    KMemoryLayout() = default;
+    KMemoryLayout();
 
     KMemoryRegionTree& GetVirtualMemoryRegionTree() {
         return virtual_tree;
@@ -376,6 +376,7 @@ private:
 private:
     u64 linear_phys_to_virt_diff{};
     u64 linear_virt_to_phys_diff{};
+    KMemoryRegionAllocator memory_region_allocator;
     KMemoryRegionTree virtual_tree;
     KMemoryRegionTree physical_tree;
     KMemoryRegionTree virtual_linear_tree;
