@@ -210,6 +210,12 @@ Device::Device() {
     const bool is_amd = vendor == "ATI Technologies Inc.";
     const bool is_intel = vendor == "Intel";
 
+#ifdef __linux__
+    const bool is_linux = true;
+#else
+    const bool is_linux = false;
+#endif
+
     bool disable_fast_buffer_sub_data = false;
     if (is_nvidia && version == "4.6.0 NVIDIA 443.24") {
         LOG_WARNING(
@@ -249,7 +255,9 @@ Device::Device() {
                            GLAD_GL_NV_gpu_program5 && GLAD_GL_NV_compute_program5 &&
                            GLAD_GL_NV_transform_feedback && GLAD_GL_NV_transform_feedback2;
 
-    use_asynchronous_shaders = Settings::values.use_asynchronous_shaders.GetValue();
+    // Blocks AMD and Intel OpenGL drivers on Windows from using asynchronous shader compilation.
+    use_asynchronous_shaders = Settings::values.use_asynchronous_shaders.GetValue() &&
+                               !(is_amd || (is_intel && !is_linux));
     use_driver_cache = is_nvidia;
 
     LOG_INFO(Render_OpenGL, "Renderer_VariableAOFFI: {}", has_variable_aoffi);
@@ -260,6 +268,10 @@ Device::Device() {
 
     if (Settings::values.use_assembly_shaders.GetValue() && !use_assembly_shaders) {
         LOG_ERROR(Render_OpenGL, "Assembly shaders enabled but not supported");
+    }
+
+    if (Settings::values.use_asynchronous_shaders.GetValue() && !use_asynchronous_shaders) {
+        LOG_WARNING(Render_OpenGL, "Asynchronous shader compilation enabled but not supported");
     }
 }
 
