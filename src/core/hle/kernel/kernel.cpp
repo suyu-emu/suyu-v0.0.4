@@ -492,7 +492,6 @@ struct KernelCore::Impl {
                 } else if (cur_phys_addr + cur_size == region.GetAddress()) {
                     cur_size += region.GetSize();
                 } else {
-                    const VAddr cur_virt_addr = cur_phys_addr + linear_region_phys_to_virt_diff;
                     cur_phys_addr = region.GetAddress();
                     cur_size = region.GetSize();
                 }
