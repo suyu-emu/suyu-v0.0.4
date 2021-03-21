@@ -13,9 +13,7 @@
 
 namespace Kernel {
 
-enum KMemoryRegionType : u32 {};
-
-enum KMemoryRegionAttr : typename std::underlying_type<KMemoryRegionType>::type {
+enum KMemoryRegionType : u32 {
     KMemoryRegionAttr_CarveoutProtected = 0x04000000,
     KMemoryRegionAttr_DidKernelMap = 0x08000000,
     KMemoryRegionAttr_ShouldKernelMap = 0x10000000,
@@ -23,7 +21,7 @@ enum KMemoryRegionAttr : typename std::underlying_type<KMemoryRegionType>::type 
     KMemoryRegionAttr_NoUserMap = 0x40000000,
     KMemoryRegionAttr_LinearMapped = 0x80000000,
 };
-DECLARE_ENUM_FLAG_OPERATORS(KMemoryRegionAttr);
+DECLARE_ENUM_FLAG_OPERATORS(KMemoryRegionType);
 
 namespace impl {
 
@@ -82,8 +80,8 @@ public:
         return *this;
     }
 
-    constexpr KMemoryRegionTypeValue& SetAttribute(KMemoryRegionAttr attr) {
-        m_value |= static_cast<u32>(attr);
+    constexpr KMemoryRegionTypeValue& SetAttribute(u32 attr) {
+        m_value |= attr;
         return *this;
     }
 
@@ -95,9 +93,9 @@ public:
         return new_type;
     }
 
-    constexpr KMemoryRegionTypeValue DeriveAttribute(KMemoryRegionAttr attr) const {
+    constexpr KMemoryRegionTypeValue DeriveAttribute(u32 attr) const {
         KMemoryRegionTypeValue new_type = *this;
-        new_type.m_value |= static_cast<u32>(attr);
+        new_type.m_value |= attr;
         return new_type;
     }
 

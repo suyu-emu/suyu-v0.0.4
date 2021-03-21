@@ -91,7 +91,7 @@ public:
         return (this->GetType() | type) == this->GetType();
     }
 
-    constexpr bool HasTypeAttribute(KMemoryRegionAttr attr) const {
+    constexpr bool HasTypeAttribute(u32 attr) const {
         return (this->GetType() | attr) == this->GetType();
     }
 
@@ -103,7 +103,7 @@ public:
         pair_address = a;
     }
 
-    constexpr void SetTypeAttribute(KMemoryRegionAttr attr) {
+    constexpr void SetTypeAttribute(u32 attr) {
         type_id |= attr;
     }
 
@@ -237,7 +237,7 @@ public:
         return extents;
     }
 
-    DerivedRegionExtents GetDerivedRegionExtents(KMemoryRegionAttr type_id) const {
+    DerivedRegionExtents GetDerivedRegionExtents(u32 type_id) const {
         return GetDerivedRegionExtents(static_cast<KMemoryRegionType>(type_id));
     }
 
