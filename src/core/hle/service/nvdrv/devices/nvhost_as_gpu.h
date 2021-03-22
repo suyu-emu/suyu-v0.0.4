@@ -16,6 +16,9 @@
 
 namespace Service::Nvidia::Devices {
 
+constexpr u32 DEFAULT_BIG_PAGE_SIZE = 1 << 16;
+constexpr u32 DEFAULT_SMALL_PAGE_SIZE = 1 << 12;
+
 class nvmap;
 
 enum class AddressSpaceFlags : u32 {
@@ -76,16 +79,16 @@ private:
         bool is_allocated{};
     };
 
-    struct IoctlInitalizeEx {
-        u32_le big_page_size{}; // depends on GPU's available_big_page_sizes; 0=default
-        s32_le as_fd{};         // ignored; passes 0
-        u32_le flags{};         // passes 0
-        u32_le reserved{};      // ignored; passes 0
-        u64_le unk0{};
-        u64_le unk1{};
-        u64_le unk2{};
+    struct IoctlAllocAsEx {
+        u32_le flags{}; // usually passes 1
+        s32_le as_fd{}; // ignored; passes 0
+        u32_le big_page_size{};
+        u32_le reserved{}; // ignored; passes 0
+        u64_le va_range_start{};
+        u64_le va_range_end{};
+        u64_le va_range_split{};
     };
-    static_assert(sizeof(IoctlInitalizeEx) == 40, "IoctlInitalizeEx is incorrect size");
+    static_assert(sizeof(IoctlAllocAsEx) == 40, "IoctlAllocAsEx is incorrect size");
 
     struct IoctlAllocSpace {
         u32_le pages{};
@@ -149,14 +152,16 @@ private:
         u64_le buf_addr{}; // (contained output user ptr on linux, ignored)
         u32_le buf_size{}; // forced to 2*sizeof(struct va_region)
         u32_le reserved{};
-        IoctlVaRegion regions[2]{};
+        IoctlVaRegion small{};
+        IoctlVaRegion big{};
     };
     static_assert(sizeof(IoctlGetVaRegions) == 16 + sizeof(IoctlVaRegion) * 2,
                   "IoctlGetVaRegions is incorrect size");
 
     s32 channel{};
+    u32 big_page_size{DEFAULT_BIG_PAGE_SIZE};
 
-    NvResult InitalizeEx(const std::vector<u8>& input, std::vector<u8>& output);
+    NvResult AllocAsEx(const std::vector<u8>& input, std::vector<u8>& output);
     NvResult AllocateSpace(const std::vector<u8>& input, std::vector<u8>& output);
     NvResult Remap(const std::vector<u8>& input, std::vector<u8>& output);
     NvResult MapBufferEx(const std::vector<u8>& input, std::vector<u8>& output);
