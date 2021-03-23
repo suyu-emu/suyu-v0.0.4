@@ -210,7 +210,7 @@ Device::Device() {
     const bool is_amd = vendor == "ATI Technologies Inc.";
     const bool is_intel = vendor == "Intel";
 
-#ifdef __linux__
+#ifdef __unix__
     const bool is_linux = true;
 #else
     const bool is_linux = false;
