@@ -160,7 +160,7 @@ private:
     KMemoryRegionAllocator& memory_region_allocator;
 
 public:
-    KMemoryRegionTree(KMemoryRegionAllocator& memory_region_allocator_);
+    explicit KMemoryRegionTree(KMemoryRegionAllocator& memory_region_allocator_);
 
 public:
     KMemoryRegion* FindModifiable(u64 address) {
@@ -328,14 +328,8 @@ class KMemoryRegionAllocator final : NonCopyable {
 public:
     static constexpr size_t MaxMemoryRegions = 200;
 
-private:
-    std::array<KMemoryRegion, MaxMemoryRegions> region_heap{};
-    size_t num_regions{};
-
-public:
     constexpr KMemoryRegionAllocator() = default;
 
-public:
     template <typename... Args>
     KMemoryRegion* Allocate(Args&&... args) {
         // Ensure we stay within the bounds of our heap.
@@ -347,6 +341,10 @@ public:
 
         return region;
     }
+
+private:
+    std::array<KMemoryRegion, MaxMemoryRegions> region_heap{};
+    size_t num_regions{};
 };
 
 } // namespace Kernel
