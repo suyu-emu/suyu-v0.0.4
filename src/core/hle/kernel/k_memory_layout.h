@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <utility>
+
 #include "common/alignment.h"
 #include "common/common_sizes.h"
 #include "common/common_types.h"
@@ -208,7 +210,7 @@ public:
                               static_cast<KMemoryRegionType>(KMemoryRegionAttr_LinearMapped));
     }
 
-    std::tuple<size_t, size_t> GetTotalAndKernelMemorySizes() const {
+    std::pair<size_t, size_t> GetTotalAndKernelMemorySizes() const {
         size_t total_size = 0, kernel_size = 0;
         for (const auto& region : GetPhysicalMemoryRegionTree()) {
             if (region.IsDerivedFrom(KMemoryRegionType_Dram)) {
@@ -218,7 +220,7 @@ public:
                 }
             }
         }
-        return std::make_tuple(total_size, kernel_size);
+        return std::make_pair(total_size, kernel_size);
     }
 
     void InitializeLinearMemoryRegionTrees(PAddr aligned_linear_phys_start,
