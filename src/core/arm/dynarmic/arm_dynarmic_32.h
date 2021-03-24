@@ -68,8 +68,7 @@ public:
                           std::size_t new_address_space_size_in_bits) override;
 
 private:
-    std::shared_ptr<Dynarmic::A32::Jit> MakeJit(Common::PageTable& page_table,
-                                                std::size_t address_space_bits) const;
+    std::shared_ptr<Dynarmic::A32::Jit> MakeJit(Common::PageTable* page_table) const;
 
     using JitCacheKey = std::pair<Common::PageTable*, std::size_t>;
     using JitCacheType =
@@ -80,10 +79,10 @@ private:
 
     std::unique_ptr<DynarmicCallbacks32> cb;
     JitCacheType jit_cache;
-    std::shared_ptr<Dynarmic::A32::Jit> jit;
     std::shared_ptr<DynarmicCP15> cp15;
     std::size_t core_index;
     DynarmicExclusiveMonitor& exclusive_monitor;
+    std::shared_ptr<Dynarmic::A32::Jit> jit;
 };
 
 } // namespace Core
