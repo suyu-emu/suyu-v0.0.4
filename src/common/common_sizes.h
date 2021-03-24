@@ -8,6 +8,8 @@
 
 #include "common/common_types.h"
 
+namespace Common {
+
 enum : u64 {
     Size_1_KB = 0x400ULL,
     Size_64_KB = 64ULL * Size_1_KB,
@@ -37,3 +39,5 @@ enum : u64 {
     Size_512_GB = 512ULL * Size_1_GB,
     Size_Invalid = std::numeric_limits<u64>::max(),
 };
+
+} // namespace Common

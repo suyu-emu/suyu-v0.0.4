@@ -14,24 +14,25 @@ namespace {
 
 // clang-format off
 constexpr std::array<KAddressSpaceInfo, 13> AddressSpaceInfos{{
-   { .bit_width = 32, .address = Size_2_MB   , .size = Size_1_GB   - Size_2_MB  , .type = KAddressSpaceInfo::Type::MapSmall, },
-   { .bit_width = 32, .address = Size_1_GB   , .size = Size_4_GB   - Size_1_GB  , .type = KAddressSpaceInfo::Type::MapLarge, },
-   { .bit_width = 32, .address = Size_Invalid, .size = Size_1_GB                , .type = KAddressSpaceInfo::Type::Heap,     },
-   { .bit_width = 32, .address = Size_Invalid, .size = Size_1_GB                , .type = KAddressSpaceInfo::Type::Alias,    },
-   { .bit_width = 36, .address = Size_128_MB , .size = Size_2_GB   - Size_128_MB, .type = KAddressSpaceInfo::Type::MapSmall, },
-   { .bit_width = 36, .address = Size_2_GB   , .size = Size_64_GB  - Size_2_GB  , .type = KAddressSpaceInfo::Type::MapLarge, },
-   { .bit_width = 36, .address = Size_Invalid, .size = Size_6_GB                , .type = KAddressSpaceInfo::Type::Heap,     },
-   { .bit_width = 36, .address = Size_Invalid, .size = Size_6_GB                , .type = KAddressSpaceInfo::Type::Alias,    },
-   { .bit_width = 39, .address = Size_128_MB , .size = Size_512_GB - Size_128_MB, .type = KAddressSpaceInfo::Type::Map39Bit, },
-   { .bit_width = 39, .address = Size_Invalid, .size = Size_64_GB               , .type = KAddressSpaceInfo::Type::MapSmall  },
-   { .bit_width = 39, .address = Size_Invalid, .size = Size_6_GB                , .type = KAddressSpaceInfo::Type::Heap,     },
-   { .bit_width = 39, .address = Size_Invalid, .size = Size_64_GB               , .type = KAddressSpaceInfo::Type::Alias,    },
-   { .bit_width = 39, .address = Size_Invalid, .size = Size_2_GB                , .type = KAddressSpaceInfo::Type::Stack,    },
+   { .bit_width = 32, .address = Common::Size_2_MB   , .size = Common::Size_1_GB   - Common::Size_2_MB  , .type = KAddressSpaceInfo::Type::MapSmall, },
+   { .bit_width = 32, .address = Common::Size_1_GB   , .size = Common::Size_4_GB   - Common::Size_1_GB  , .type = KAddressSpaceInfo::Type::MapLarge, },
+   { .bit_width = 32, .address = Common::Size_Invalid, .size = Common::Size_1_GB                        , .type = KAddressSpaceInfo::Type::Alias,    },
+   { .bit_width = 32, .address = Common::Size_Invalid, .size = Common::Size_1_GB                        , .type = KAddressSpaceInfo::Type::Heap,     },
+   { .bit_width = 36, .address = Common::Size_128_MB , .size = Common::Size_2_GB   - Common::Size_128_MB, .type = KAddressSpaceInfo::Type::MapSmall, },
+   { .bit_width = 36, .address = Common::Size_2_GB   , .size = Common::Size_64_GB  - Common::Size_2_GB  , .type = KAddressSpaceInfo::Type::MapLarge, },
+   { .bit_width = 36, .address = Common::Size_Invalid, .size = Common::Size_6_GB                        , .type = KAddressSpaceInfo::Type::Heap,     },
+   { .bit_width = 36, .address = Common::Size_Invalid, .size = Common::Size_6_GB                        , .type = KAddressSpaceInfo::Type::Alias,    },
+   { .bit_width = 39, .address = Common::Size_128_MB , .size = Common::Size_512_GB - Common::Size_128_MB, .type = KAddressSpaceInfo::Type::Map39Bit, },
+   { .bit_width = 39, .address = Common::Size_Invalid, .size = Common::Size_64_GB                       , .type = KAddressSpaceInfo::Type::MapSmall  },
+   { .bit_width = 39, .address = Common::Size_Invalid, .size = Common::Size_6_GB                        , .type = KAddressSpaceInfo::Type::Heap,     },
+   { .bit_width = 39, .address = Common::Size_Invalid, .size = Common::Size_64_GB                       , .type = KAddressSpaceInfo::Type::Alias,    },
+   { .bit_width = 39, .address = Common::Size_Invalid, .size = Common::Size_2_GB                        , .type = KAddressSpaceInfo::Type::Stack,    },
 }};
 // clang-format on
 
 constexpr bool IsAllowedIndexForAddress(std::size_t index) {
-    return index < AddressSpaceInfos.size() && AddressSpaceInfos[index].address != Size_Invalid;
+    return index < AddressSpaceInfos.size() &&
+           AddressSpaceInfos[index].address != Common::Size_Invalid;
 }
 
 using IndexArray =

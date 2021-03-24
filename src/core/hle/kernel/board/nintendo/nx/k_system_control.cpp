@@ -57,11 +57,11 @@ size_t KSystemControl::Init::GetIntendedMemorySize() {
     switch (GetMemorySizeForInit()) {
     case Smc::MemorySize_4GB:
     default: // All invalid modes should go to 4GB.
-        return Size_4_GB;
+        return Common::Size_4_GB;
     case Smc::MemorySize_6GB:
-        return Size_6_GB;
+        return Common::Size_6_GB;
     case Smc::MemorySize_8GB:
-        return Size_8_GB;
+        return Common::Size_8_GB;
     }
 }
 
@@ -79,17 +79,17 @@ std::size_t KSystemControl::Init::GetApplicationPoolSize() {
         switch (GetMemoryArrangeForInit()) {
         case Smc::MemoryArrangement_4GB:
         default:
-            return Size_3285_MB;
+            return Common::Size_3285_MB;
         case Smc::MemoryArrangement_4GBForAppletDev:
-            return Size_2048_MB;
+            return Common::Size_2048_MB;
         case Smc::MemoryArrangement_4GBForSystemDev:
-            return Size_3285_MB;
+            return Common::Size_3285_MB;
         case Smc::MemoryArrangement_6GB:
-            return Size_4916_MB;
+            return Common::Size_4916_MB;
         case Smc::MemoryArrangement_6GBForAppletDev:
-            return Size_3285_MB;
+            return Common::Size_3285_MB;
         case Smc::MemoryArrangement_8GB:
-            return Size_4916_MB;
+            return Common::Size_4916_MB;
         }
     }();
 
@@ -103,22 +103,22 @@ size_t KSystemControl::Init::GetAppletPoolSize() {
         switch (GetMemoryArrangeForInit()) {
         case Smc::MemoryArrangement_4GB:
         default:
-            return Size_507_MB;
+            return Common::Size_507_MB;
         case Smc::MemoryArrangement_4GBForAppletDev:
-            return Size_1554_MB;
+            return Common::Size_1554_MB;
         case Smc::MemoryArrangement_4GBForSystemDev:
-            return Size_448_MB;
+            return Common::Size_448_MB;
         case Smc::MemoryArrangement_6GB:
-            return Size_562_MB;
+            return Common::Size_562_MB;
         case Smc::MemoryArrangement_6GBForAppletDev:
-            return Size_2193_MB;
+            return Common::Size_2193_MB;
         case Smc::MemoryArrangement_8GB:
-            return Size_2193_MB;
+            return Common::Size_2193_MB;
         }
     }();
 
     // Return (possibly) adjusted size.
-    constexpr size_t ExtraSystemMemoryForAtmosphere = Size_33_MB;
+    constexpr size_t ExtraSystemMemoryForAtmosphere = Common::Size_33_MB;
     return base_pool_size - ExtraSystemMemoryForAtmosphere - KTraceBufferSize;
 }
 
