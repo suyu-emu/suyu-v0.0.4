@@ -13,13 +13,13 @@ namespace Kernel::Board::Nintendo::Nx {
 
 namespace impl {
 
-constexpr inline const std::size_t RequiredNonSecureSystemMemorySizeVi = 0x2238 * 4 * 1024;
-constexpr inline const std::size_t RequiredNonSecureSystemMemorySizeNvservices = 0x710 * 4 * 1024;
-constexpr inline const std::size_t RequiredNonSecureSystemMemorySizeMisc = 0x80 * 4 * 1024;
+constexpr const std::size_t RequiredNonSecureSystemMemorySizeVi = 0x2238 * 4 * 1024;
+constexpr const std::size_t RequiredNonSecureSystemMemorySizeNvservices = 0x710 * 4 * 1024;
+constexpr const std::size_t RequiredNonSecureSystemMemorySizeMisc = 0x80 * 4 * 1024;
 
 } // namespace impl
 
-constexpr inline const std::size_t RequiredNonSecureSystemMemorySize =
+constexpr const std::size_t RequiredNonSecureSystemMemorySize =
     impl::RequiredNonSecureSystemMemorySizeVi + impl::RequiredNonSecureSystemMemorySizeNvservices +
     impl::RequiredNonSecureSystemMemorySizeMisc;
 
