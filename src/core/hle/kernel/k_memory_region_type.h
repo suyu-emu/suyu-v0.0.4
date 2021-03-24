@@ -41,20 +41,9 @@ constexpr size_t BitsForDeriveDense(size_t n) {
 }
 
 class KMemoryRegionTypeValue {
-private:
-    using ValueType = typename std::underlying_type<KMemoryRegionType>::type;
-
-private:
-    ValueType m_value{};
-    size_t m_next_bit{};
-    bool m_finalized{};
-    bool m_sparse_only{};
-    bool m_dense_only{};
-
-private:
-    constexpr KMemoryRegionTypeValue(ValueType v) : m_value(v) {}
-
 public:
+    using ValueType = std::underlying_type_t<KMemoryRegionType>;
+
     constexpr KMemoryRegionTypeValue() = default;
 
     constexpr operator KMemoryRegionType() const {
@@ -139,6 +128,16 @@ public:
     constexpr bool IsAncestorOf(ValueType v) const {
         return (m_value | v) == v;
     }
+
+private:
+    constexpr KMemoryRegionTypeValue(ValueType v) : m_value(v) {}
+
+private:
+    ValueType m_value{};
+    size_t m_next_bit{};
+    bool m_finalized{};
+    bool m_sparse_only{};
+    bool m_dense_only{};
 };
 
 } // namespace impl
