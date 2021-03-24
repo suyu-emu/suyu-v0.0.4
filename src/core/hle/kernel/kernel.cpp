@@ -269,9 +269,7 @@ struct KernelCore::Impl {
         return schedulers[thread_id]->GetCurrentThread();
     }
 
-    void InitializeMemoryLayout() {
-        KMemoryLayout memory_layout;
-
+    void DeriveInitialMemoryLayout(KMemoryLayout& memory_layout) {
         // Insert the root region for the virtual memory tree, from which all other regions will
         // derive.
         memory_layout.GetVirtualMemoryRegionTree().InsertDirectly(
@@ -531,6 +529,12 @@ struct KernelCore::Impl {
         // Cache all linear regions in their own trees for faster access, later.
         memory_layout.InitializeLinearMemoryRegionTrees(aligned_linear_phys_start,
                                                         linear_region_start);
+    }
+
+    void InitializeMemoryLayout() {
+        // Derive the initial memory layout from the emulated board
+        KMemoryLayout memory_layout;
+        DeriveInitialMemoryLayout(memory_layout);
 
         const auto system_pool = memory_layout.GetKernelSystemPoolRegionPhysicalExtents();
         const auto applet_pool = memory_layout.GetKernelAppletPoolRegionPhysicalExtents();
