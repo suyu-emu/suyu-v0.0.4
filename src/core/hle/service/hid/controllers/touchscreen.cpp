@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstring>
 #include "common/common_types.h"
+#include "common/logging/log.h"
 #include "core/core_timing.h"
 #include "core/frontend/emu_window.h"
 #include "core/frontend/input.h"
@@ -118,6 +119,10 @@ std::optional<std::size_t> Controller_Touchscreen::GetUnusedFingerID() const {
 std::size_t Controller_Touchscreen::UpdateTouchInputEvent(
     const std::tuple<float, float, bool>& touch_input, std::size_t finger_id) {
     const auto& [x, y, pressed] = touch_input;
+    if (finger_id > MAX_FINGERS) {
+        LOG_ERROR(Service_HID, "Invalid finger id {}", finger_id);
+        return MAX_FINGERS;
+    }
     if (pressed) {
         Attributes attribute{};
         if (finger_id == MAX_FINGERS) {

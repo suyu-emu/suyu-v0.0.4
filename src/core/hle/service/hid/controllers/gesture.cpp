@@ -4,6 +4,7 @@
 
 #include <cstring>
 #include "common/common_types.h"
+#include "common/logging/log.h"
 #include "core/core_timing.h"
 #include "core/frontend/emu_window.h"
 #include "core/hle/service/hid/controllers/gesture.h"
@@ -19,9 +20,9 @@ Controller_Gesture::~Controller_Gesture() = default;
 
 void Controller_Gesture::OnInit() {
     for (std::size_t id = 0; id < MAX_FINGERS; ++id) {
-        mouse_finger_id[id] = MAX_FINGERS;
-        keyboard_finger_id[id] = MAX_FINGERS;
-        udp_finger_id[id] = MAX_FINGERS;
+        mouse_finger_id[id] = MAX_POINTS;
+        keyboard_finger_id[id] = MAX_POINTS;
+        udp_finger_id[id] = MAX_POINTS;
     }
 }
 
@@ -142,6 +143,10 @@ std::optional<std::size_t> Controller_Gesture::GetUnusedFingerID() const {
 std::size_t Controller_Gesture::UpdateTouchInputEvent(
     const std::tuple<float, float, bool>& touch_input, std::size_t finger_id) {
     const auto& [x, y, pressed] = touch_input;
+    if (finger_id > MAX_POINTS) {
+        LOG_ERROR(Service_HID, "Invalid finger id {}", finger_id);
+        return MAX_POINTS;
+    }
     if (pressed) {
         if (finger_id == MAX_POINTS) {
             const auto first_free_id = GetUnusedFingerID();
