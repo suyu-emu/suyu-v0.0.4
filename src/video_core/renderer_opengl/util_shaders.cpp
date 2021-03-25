@@ -2,11 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <bit>
-#include <fstream>
 #include <span>
-#include <streambuf>
-#include <string>
 #include <string_view>
 
 #include <glad/glad.h>
@@ -24,7 +20,6 @@
 #include "video_core/renderer_opengl/gl_shader_manager.h"
 #include "video_core/renderer_opengl/gl_texture_cache.h"
 #include "video_core/renderer_opengl/util_shaders.h"
-#include "video_core/surface.h"
 #include "video_core/texture_cache/accelerated_swizzle.h"
 #include "video_core/texture_cache/types.h"
 #include "video_core/texture_cache/util.h"
@@ -36,6 +31,7 @@ namespace OpenGL {
 using namespace HostShaders;
 using namespace Tegra::Texture::ASTC;
 
+using VideoCommon::Extent2D;
 using VideoCommon::Extent3D;
 using VideoCommon::ImageCopy;
 using VideoCommon::ImageType;
@@ -69,32 +65,14 @@ UtilShaders::UtilShaders(ProgramManager& program_manager_)
       pitch_unswizzle_program(MakeProgram(PITCH_UNSWIZZLE_COMP)),
       copy_bgra_program(MakeProgram(OPENGL_COPY_BGRA_COMP)),
       copy_bc4_program(MakeProgram(OPENGL_COPY_BC4_COMP)) {
-    MakeBuffers();
+    const auto swizzle_table = Tegra::Texture::MakeSwizzleTable();
+    swizzle_table_buffer.Create();
+    astc_buffer.Create();
+    glNamedBufferStorage(swizzle_table_buffer.handle, sizeof(swizzle_table), &swizzle_table, 0);
+    glNamedBufferStorage(astc_buffer.handle, sizeof(ASTC_BUFFER_DATA), &ASTC_BUFFER_DATA, 0);
 }
 
 UtilShaders::~UtilShaders() = default;
-
-void UtilShaders::MakeBuffers() {
-    const auto swizzle_table = Tegra::Texture::MakeSwizzleTable();
-    swizzle_table_buffer.Create();
-    glNamedBufferStorage(swizzle_table_buffer.handle, sizeof(swizzle_table), &swizzle_table, 0);
-
-    astc_encodings_buffer.Create();
-    glNamedBufferStorage(astc_encodings_buffer.handle, sizeof(EncodingsValues), &EncodingsValues,
-                         0);
-    replicate_6_to_8_buffer.Create();
-    glNamedBufferStorage(replicate_6_to_8_buffer.handle, sizeof(REPLICATE_6_BIT_TO_8_TABLE),
-                         &REPLICATE_6_BIT_TO_8_TABLE, 0);
-    replicate_7_to_8_buffer.Create();
-    glNamedBufferStorage(replicate_7_to_8_buffer.handle, sizeof(REPLICATE_7_BIT_TO_8_TABLE),
-                         &REPLICATE_7_BIT_TO_8_TABLE, 0);
-    replicate_8_to_8_buffer.Create();
-    glNamedBufferStorage(replicate_8_to_8_buffer.handle, sizeof(REPLICATE_8_BIT_TO_8_TABLE),
-                         &REPLICATE_8_BIT_TO_8_TABLE, 0);
-    replicate_byte_to_16_buffer.Create();
-    glNamedBufferStorage(replicate_byte_to_16_buffer.handle, sizeof(REPLICATE_BYTE_TO_16_TABLE),
-                         &REPLICATE_BYTE_TO_16_TABLE, 0);
-}
 
 void UtilShaders::ASTCDecode(Image& image, const ImageBufferMap& map,
                              std::span<const VideoCommon::SwizzleParameters> swizzles) {
@@ -108,47 +86,51 @@ void UtilShaders::ASTCDecode(Image& image, const ImageBufferMap& map,
     static constexpr GLuint BINDING_BYTE_TO_16_BUFFER = 6;
 
     static constexpr GLuint BINDING_OUTPUT_IMAGE = 0;
-    static constexpr GLuint LOC_NUM_IMAGE_BLOCKS = 0;
-    static constexpr GLuint LOC_BLOCK_DIMS = 1;
 
-    const Extent3D tile_size = {
-        VideoCore::Surface::DefaultBlockWidth(image.info.format),
-        VideoCore::Surface::DefaultBlockHeight(image.info.format),
+    const Extent2D tile_size{
+        .width = VideoCore::Surface::DefaultBlockWidth(image.info.format),
+        .height = VideoCore::Surface::DefaultBlockHeight(image.info.format),
     };
     program_manager.BindHostCompute(astc_decoder_program.handle);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BINDING_SWIZZLE_BUFFER, swizzle_table_buffer.handle);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BINDING_ENC_BUFFER, astc_encodings_buffer.handle);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BINDING_6_TO_8_BUFFER,
-                     replicate_6_to_8_buffer.handle);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BINDING_7_TO_8_BUFFER,
-                     replicate_7_to_8_buffer.handle);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BINDING_8_TO_8_BUFFER,
-                     replicate_8_to_8_buffer.handle);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BINDING_BYTE_TO_16_BUFFER,
-                     replicate_byte_to_16_buffer.handle);
+    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, BINDING_ENC_BUFFER, astc_buffer.handle,
+                      offsetof(AstcBufferData, encoding_values),
+                      sizeof(AstcBufferData::encoding_values));
+    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, BINDING_6_TO_8_BUFFER, astc_buffer.handle,
+                      offsetof(AstcBufferData, replicate_6_to_8),
+                      sizeof(AstcBufferData::replicate_6_to_8));
+    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, BINDING_7_TO_8_BUFFER, astc_buffer.handle,
+                      offsetof(AstcBufferData, replicate_7_to_8),
+                      sizeof(AstcBufferData::replicate_7_to_8));
+    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, BINDING_8_TO_8_BUFFER, astc_buffer.handle,
+                      offsetof(AstcBufferData, replicate_8_to_8),
+                      sizeof(AstcBufferData::replicate_8_to_8));
+    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, BINDING_BYTE_TO_16_BUFFER, astc_buffer.handle,
+                      offsetof(AstcBufferData, replicate_byte_to_16),
+                      sizeof(AstcBufferData::replicate_byte_to_16));
 
     glFlushMappedNamedBufferRange(map.buffer, map.offset, image.guest_size_bytes);
-    glUniform2ui(LOC_BLOCK_DIMS, tile_size.width, tile_size.height);
+    glUniform2ui(1, tile_size.width, tile_size.height);
+    // Ensure buffer data is valid before dispatching
+    glFlush();
     for (const SwizzleParameters& swizzle : swizzles) {
+        const size_t input_offset = swizzle.buffer_offset + map.offset;
+        const u32 num_dispatches_x = Common::DivCeil(swizzle.num_tiles.width, 32U);
+        const u32 num_dispatches_y = Common::DivCeil(swizzle.num_tiles.height, 32U);
+
+        const auto params = MakeBlockLinearSwizzle2DParams(swizzle, image.info);
+        ASSERT(params.origin == (std::array<u32, 3>{0, 0, 0}));
+        ASSERT(params.destination == (std::array<s32, 3>{0, 0, 0}));
+
+        glUniform1ui(2, params.bytes_per_block_log2);
+        glUniform1ui(3, params.layer_stride);
+        glUniform1ui(4, params.block_size);
+        glUniform1ui(5, params.x_shift);
+        glUniform1ui(6, params.block_height);
+        glUniform1ui(7, params.block_height_mask);
+
         glBindImageTexture(BINDING_OUTPUT_IMAGE, image.StorageHandle(), swizzle.level, GL_TRUE, 0,
                            GL_WRITE_ONLY, GL_RGBA8);
-        const size_t input_offset = swizzle.buffer_offset + map.offset;
-        const auto num_dispatches_x = Common::DivCeil(swizzle.num_tiles.width, 32U);
-        const auto num_dispatches_y = Common::DivCeil(swizzle.num_tiles.height, 32U);
-
-        glUniform2ui(LOC_NUM_IMAGE_BLOCKS, swizzle.num_tiles.width, swizzle.num_tiles.height);
-
-        // To unswizzle the ASTC data
-        const auto params = MakeBlockLinearSwizzle2DParams(swizzle, image.info);
-        glUniform3uiv(2, 1, params.origin.data());
-        glUniform3iv(3, 1, params.destination.data());
-        glUniform1ui(4, params.bytes_per_block_log2);
-        glUniform1ui(5, params.layer_stride);
-        glUniform1ui(6, params.block_size);
-        glUniform1ui(7, params.x_shift);
-        glUniform1ui(8, params.block_height);
-        glUniform1ui(9, params.block_height_mask);
-
         // ASTC texture data
         glBindBufferRange(GL_SHADER_STORAGE_BUFFER, BINDING_INPUT_BUFFER, map.buffer, input_offset,
                           image.guest_size_bytes - swizzle.buffer_offset);
