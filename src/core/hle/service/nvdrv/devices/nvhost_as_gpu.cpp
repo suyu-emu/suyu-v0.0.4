@@ -39,7 +39,7 @@ NvResult nvhost_as_gpu::Ioctl1(Ioctl command, const std::vector<u8>& input,
         case 0x8:
             return GetVARegions(input, output);
         case 0x9:
-            return InitalizeEx(input, output);
+            return AllocAsEx(input, output);
         case 0x14:
             return Remap(input, output);
         default:
@@ -78,11 +78,16 @@ NvResult nvhost_as_gpu::Ioctl3(Ioctl command, const std::vector<u8>& input, std:
     return NvResult::NotImplemented;
 }
 
-NvResult nvhost_as_gpu::InitalizeEx(const std::vector<u8>& input, std::vector<u8>& output) {
-    IoctlInitalizeEx params{};
+NvResult nvhost_as_gpu::AllocAsEx(const std::vector<u8>& input, std::vector<u8>& output) {
+    IoctlAllocAsEx params{};
     std::memcpy(&params, input.data(), input.size());
 
     LOG_WARNING(Service_NVDRV, "(STUBBED) called, big_page_size=0x{:X}", params.big_page_size);
+    if (params.big_page_size == 0) {
+        params.big_page_size = DEFAULT_BIG_PAGE_SIZE;
+    }
+
+    big_page_size = params.big_page_size;
 
     return NvResult::Success;
 }
@@ -276,13 +281,18 @@ NvResult nvhost_as_gpu::GetVARegions(const std::vector<u8>& input, std::vector<u
                 params.buf_size);
 
     params.buf_size = 0x30;
-    params.regions[0].offset = 0x04000000;
-    params.regions[0].page_size = 0x1000;
-    params.regions[0].pages = 0x3fbfff;
 
-    params.regions[1].offset = 0x04000000;
-    params.regions[1].page_size = 0x10000;
-    params.regions[1].pages = 0x1bffff;
+    params.small = IoctlVaRegion{
+        .offset = 0x04000000,
+        .page_size = DEFAULT_SMALL_PAGE_SIZE,
+        .pages = 0x3fbfff,
+    };
+
+    params.big = IoctlVaRegion{
+        .offset = 0x04000000,
+        .page_size = big_page_size,
+        .pages = 0x1bffff,
+    };
 
     // TODO(ogniK): This probably can stay stubbed but should add support way way later
 
@@ -299,18 +309,25 @@ NvResult nvhost_as_gpu::GetVARegions(const std::vector<u8>& input, std::vector<u
                 params.buf_size);
 
     params.buf_size = 0x30;
-    params.regions[0].offset = 0x04000000;
-    params.regions[0].page_size = 0x1000;
-    params.regions[0].pages = 0x3fbfff;
 
-    params.regions[1].offset = 0x04000000;
-    params.regions[1].page_size = 0x10000;
-    params.regions[1].pages = 0x1bffff;
+    params.small = IoctlVaRegion{
+        .offset = 0x04000000,
+        .page_size = 0x1000,
+        .pages = 0x3fbfff,
+    };
+
+    params.big = IoctlVaRegion{
+        .offset = 0x04000000,
+        .page_size = big_page_size,
+        .pages = 0x1bffff,
+    };
 
     // TODO(ogniK): This probably can stay stubbed but should add support way way later
 
     std::memcpy(output.data(), &params, output.size());
-    std::memcpy(inline_output.data(), &params.regions, inline_output.size());
+    std::memcpy(inline_output.data(), &params.small, sizeof(IoctlVaRegion));
+    std::memcpy(inline_output.data() + sizeof(IoctlVaRegion), &params.big, sizeof(IoctlVaRegion));
+
     return NvResult::Success;
 }
 
