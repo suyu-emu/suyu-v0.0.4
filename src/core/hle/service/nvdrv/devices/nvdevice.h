@@ -31,7 +31,7 @@ public:
      * @param output A buffer where the output data will be written to.
      * @returns The result code of the ioctl.
      */
-    virtual NvResult Ioctl1(Ioctl command, const std::vector<u8>& input,
+    virtual NvResult Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
                             std::vector<u8>& output) = 0;
 
     /**
@@ -42,7 +42,7 @@ public:
      * @param output A buffer where the output data will be written to.
      * @returns The result code of the ioctl.
      */
-    virtual NvResult Ioctl2(Ioctl command, const std::vector<u8>& input,
+    virtual NvResult Ioctl2(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
                             const std::vector<u8>& inline_input, std::vector<u8>& output) = 0;
 
     /**
@@ -53,8 +53,20 @@ public:
      * @param inline_output A buffer where the inlined output data will be written to.
      * @returns The result code of the ioctl.
      */
-    virtual NvResult Ioctl3(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
-                            std::vector<u8>& inline_output) = 0;
+    virtual NvResult Ioctl3(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
+                            std::vector<u8>& output, std::vector<u8>& inline_output) = 0;
+
+    /**
+     * Called once a device is openned
+     * @param fd The device fd
+     */
+    virtual void OnOpen(DeviceFD fd) = 0;
+
+    /**
+     * Called once a device is closed
+     * @param fd The device fd
+     */
+    virtual void OnClose(DeviceFD fd) = 0;
 
 protected:
     Core::System& system;
