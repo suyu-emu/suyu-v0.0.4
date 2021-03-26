@@ -2266,9 +2266,9 @@ void GMainWindow::OnExecuteProgram(std::size_t program_index) {
     BootGame(last_filename_booted, program_index);
 }
 
-void GMainWindow::ErrorDisplayDisplayError(QString body) {
-    OverlayDialog dialog(render_window, Core::System::GetInstance(), body, QString{}, tr("OK"),
-                         Qt::AlignLeft | Qt::AlignVCenter);
+void GMainWindow::ErrorDisplayDisplayError(QString error_code, QString error_text) {
+    OverlayDialog dialog(render_window, Core::System::GetInstance(), error_code, error_text,
+                         QString{}, tr("OK"), Qt::AlignLeft | Qt::AlignVCenter);
     dialog.exec();
 
     emit ErrorDisplayFinished();

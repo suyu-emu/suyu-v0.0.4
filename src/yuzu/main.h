@@ -143,7 +143,7 @@ public slots:
     void OnExecuteProgram(std::size_t program_index);
     void ControllerSelectorReconfigureControllers(
         const Core::Frontend::ControllerParameters& parameters);
-    void ErrorDisplayDisplayError(QString body);
+    void ErrorDisplayDisplayError(QString error_code, QString error_text);
     void ProfileSelectorSelectProfile();
     void WebBrowserOpenWebPage(std::string_view main_url, std::string_view additional_args,
                                bool is_local);
