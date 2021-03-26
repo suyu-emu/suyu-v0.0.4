@@ -227,6 +227,8 @@ GMainWindow::GMainWindow()
     SetDiscordEnabled(UISettings::values.enable_discord_presence);
     discord_rpc->Update();
 
+    RegisterMetaTypes();
+
     InitializeWidgets();
     InitializeDebugWidgets();
     InitializeRecentFileMenuActions();
@@ -373,6 +375,55 @@ GMainWindow::~GMainWindow() {
     // will get automatically deleted otherwise
     if (render_window->parent() == nullptr)
         delete render_window;
+}
+
+void GMainWindow::RegisterMetaTypes() {
+    // Register integral and floating point types
+    qRegisterMetaType<u8>("u8");
+    qRegisterMetaType<u16>("u16");
+    qRegisterMetaType<u32>("u32");
+    qRegisterMetaType<u64>("u64");
+    qRegisterMetaType<u128>("u128");
+    qRegisterMetaType<s8>("s8");
+    qRegisterMetaType<s16>("s16");
+    qRegisterMetaType<s32>("s32");
+    qRegisterMetaType<s64>("s64");
+    qRegisterMetaType<f32>("f32");
+    qRegisterMetaType<f64>("f64");
+
+    // Register string types
+    qRegisterMetaType<std::string>("std::string");
+    qRegisterMetaType<std::wstring>("std::wstring");
+    qRegisterMetaType<std::u8string>("std::u8string");
+    qRegisterMetaType<std::u16string>("std::u16string");
+    qRegisterMetaType<std::u32string>("std::u32string");
+    qRegisterMetaType<std::string_view>("std::string_view");
+    qRegisterMetaType<std::wstring_view>("std::wstring_view");
+    qRegisterMetaType<std::u8string_view>("std::u8string_view");
+    qRegisterMetaType<std::u16string_view>("std::u16string_view");
+    qRegisterMetaType<std::u32string_view>("std::u32string_view");
+
+    // Register applet types
+
+    // Controller Applet
+    qRegisterMetaType<Core::Frontend::ControllerParameters>("Core::Frontend::ControllerParameters");
+
+    // Software Keyboard Applet
+    qRegisterMetaType<Core::Frontend::KeyboardInitializeParameters>(
+        "Core::Frontend::KeyboardInitializeParameters");
+    qRegisterMetaType<Core::Frontend::InlineAppearParameters>(
+        "Core::Frontend::InlineAppearParameters");
+    qRegisterMetaType<Core::Frontend::InlineTextParameters>("Core::Frontend::InlineTextParameters");
+    qRegisterMetaType<Service::AM::Applets::SwkbdResult>("Service::AM::Applets::SwkbdResult");
+    qRegisterMetaType<Service::AM::Applets::SwkbdTextCheckResult>(
+        "Service::AM::Applets::SwkbdTextCheckResult");
+    qRegisterMetaType<Service::AM::Applets::SwkbdReplyType>("Service::AM::Applets::SwkbdReplyType");
+
+    // Web Browser Applet
+    qRegisterMetaType<Service::AM::Applets::WebExitReason>("Service::AM::Applets::WebExitReason");
+
+    // Register loader types
+    qRegisterMetaType<Core::System::ResultStatus>("Core::System::ResultStatus");
 }
 
 void GMainWindow::ControllerSelectorReconfigureControllers(
@@ -2165,13 +2216,6 @@ void GMainWindow::OnStartGame() {
     PreventOSSleep();
 
     emu_thread->SetRunning(true);
-
-    qRegisterMetaType<Core::Frontend::ControllerParameters>("Core::Frontend::ControllerParameters");
-    qRegisterMetaType<Core::System::ResultStatus>("Core::System::ResultStatus");
-    qRegisterMetaType<std::string>("std::string");
-    qRegisterMetaType<std::optional<std::u16string>>("std::optional<std::u16string>");
-    qRegisterMetaType<std::string_view>("std::string_view");
-    qRegisterMetaType<Service::AM::Applets::WebExitReason>("Service::AM::Applets::WebExitReason");
 
     connect(emu_thread.get(), &EmuThread::ErrorThrown, this, &GMainWindow::OnCoreError);
 

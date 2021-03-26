@@ -37,9 +37,13 @@ enum class GameListRemoveTarget;
 enum class InstalledEntryType;
 class GameListPlaceholder;
 
+class QtSoftwareKeyboardDialog;
+
 namespace Core::Frontend {
 struct ControllerParameters;
-struct SoftwareKeyboardParameters;
+struct InlineAppearParameters;
+struct InlineTextParameters;
+struct KeyboardInitializeParameters;
 } // namespace Core::Frontend
 
 namespace DiscordRPC {
@@ -57,8 +61,11 @@ class InputSubsystem;
 }
 
 namespace Service::AM::Applets {
+enum class SwkbdResult : u32;
+enum class SwkbdTextCheckResult : u32;
+enum class SwkbdReplyType : u32;
 enum class WebExitReason : u32;
-}
+} // namespace Service::AM::Applets
 
 enum class EmulatedDirectoryTarget {
     NAND,
@@ -143,6 +150,8 @@ public slots:
     void OnAppFocusStateChanged(Qt::ApplicationState state);
 
 private:
+    void RegisterMetaTypes();
+
     void InitializeWidgets();
     void InitializeDebugWidgets();
     void InitializeRecentFileMenuActions();
@@ -328,6 +337,9 @@ private:
 
     // Disables the web applet for the rest of the emulated session
     bool disable_web_applet{};
+
+    // Applets
+    QtSoftwareKeyboardDialog* software_keyboard = nullptr;
 
 protected:
     void dropEvent(QDropEvent* event) override;
