@@ -3,16 +3,30 @@
 // Refer to the license.txt file included.
 
 #include "common/logging/log.h"
+#include "core/core.h"
+#include "core/file_sys/control_metadata.h"
+#include "core/file_sys/patch_manager.h"
 #include "core/hle/ipc_helpers.h"
+#include "core/hle/kernel/process.h"
 #include "core/hle/service/pctl/module.h"
 #include "core/hle/service/pctl/pctl.h"
 
 namespace Service::PCTL {
 
+namespace Error {
+
+constexpr ResultCode ResultNoFreeCommunication{ErrorModule::PCTL, 101};
+constexpr ResultCode ResultStereoVisionRestricted{ErrorModule::PCTL, 104};
+constexpr ResultCode ResultNoCapatability{ErrorModule::PCTL, 131};
+constexpr ResultCode ResultNoRestrictionEnabled{ErrorModule::PCTL, 181};
+
+} // namespace Error
+
 class IParentalControlService final : public ServiceFramework<IParentalControlService> {
 public:
-    explicit IParentalControlService(Core::System& system_)
-        : ServiceFramework{system_, "IParentalControlService"} {
+    explicit IParentalControlService(Core::System& system_, Capability capability)
+        : ServiceFramework{system_, "IParentalControlService"}, system(system_),
+          capability(capability) {
         // clang-format off
         static const FunctionInfo functions[] = {
             {1, &IParentalControlService::Initialize, "Initialize"},
@@ -28,13 +42,13 @@ public:
             {1010, nullptr, "IsRestrictedSystemSettingsEntered"},
             {1011, nullptr, "RevertRestrictedSystemSettingsEntered"},
             {1012, nullptr, "GetRestrictedFeatures"},
-            {1013, nullptr, "ConfirmStereoVisionPermission"},
+            {1013, &IParentalControlService::ConfirmStereoVisionPermission, "ConfirmStereoVisionPermission"},
             {1014, nullptr, "ConfirmPlayableApplicationVideoOld"},
             {1015, nullptr, "ConfirmPlayableApplicationVideo"},
             {1016, nullptr, "ConfirmShowNewsPermission"},
             {1017, nullptr, "EndFreeCommunication"},
-            {1018, nullptr, "IsFreeCommunicationAvailable"},
-            {1031, nullptr, "IsRestrictionEnabled"},
+            {1018, &IParentalControlService::IsFreeCommunicationAvailable, "IsFreeCommunicationAvailable"},
+            {1031, &IParentalControlService::IsRestrictionEnabled, "IsRestrictionEnabled"},
             {1032, nullptr, "GetSafetyLevel"},
             {1033, nullptr, "SetSafetyLevel"},
             {1034, nullptr, "GetSafetyLevelSettings"},
@@ -119,62 +133,234 @@ public:
     }
 
 private:
-    void Initialize(Kernel::HLERequestContext& ctx) {
-        LOG_WARNING(Service_PCTL, "(STUBBED) called");
+    bool CheckFreeCommunicationPermissionImpl() {
+        if (states.temporary_unlocked) {
+            return true;
+        }
+        if ((states.application_info.parental_control_flag & 1) == 0) {
+            return true;
+        }
+        if (pin_code[0] == '\0') {
+            return true;
+        }
+        if (!settings.is_free_communication_default_on) {
+            return true;
+        }
+        // TODO(ogniK): Check for blacklisted/exempted applications
+        return true;
+    }
 
-        IPC::ResponseBuilder rb{ctx, 2, 0, 0};
+    bool ConfirmStereoVisionPermissionImpl() {
+        if (states.temporary_unlocked) {
+            return true;
+        }
+        if (pin_code[0] == '\0') {
+            return true;
+        }
+        if (!settings.is_stero_vision_restricted) {
+            return false;
+        }
+        return true;
+    }
+
+    void SetStereoVisionRestrictionImpl(bool is_restricted) {
+        if (settings.disabled) {
+            return;
+        }
+
+        if (pin_code[0] == '\0') {
+            return;
+        }
+        settings.is_stero_vision_restricted = is_restricted;
+    }
+
+    void Initialize(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_PCTL, "called");
+        IPC::ResponseBuilder rb{ctx, 2};
+
+        if (False(capability & (Capability::Application | Capability::System))) {
+            LOG_ERROR(Service_PCTL, "Invalid capability! capability={:X}",
+                      static_cast<s32>(capability));
+            return;
+        }
+
+        // TODO(ogniK): Recovery
+
+        const auto tid = system.CurrentProcess()->GetTitleID();
+        if (tid != 0) {
+            const FileSys::PatchManager pm{tid, system.GetFileSystemController(),
+                                           system.GetContentProvider()};
+            const auto control = pm.GetControlMetadata();
+            if (control.first) {
+                states.tid_from_event = 0;
+                states.launch_time_valid = false;
+                states.is_suspended = false;
+                states.free_communication = false;
+                states.stereo_vision = false;
+                states.application_info = ApplicationInfo{
+                    .tid = tid,
+                    .age_rating = control.first->GetRatingAge(),
+                    .parental_control_flag = control.first->GetParentalControlFlag(),
+                    .capability = capability,
+                };
+
+                if (False(capability & (Capability::System | Capability::Recovery))) {
+                    // TODO(ogniK): Signal application launch event
+                }
+            }
+        }
+
         rb.Push(RESULT_SUCCESS);
     }
 
     void CheckFreeCommunicationPermission(Kernel::HLERequestContext& ctx) {
-        LOG_WARNING(Service_PCTL, "(STUBBED) called");
+        LOG_DEBUG(Service_PCTL, "called");
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        if (!CheckFreeCommunicationPermissionImpl()) {
+            rb.Push(Error::ResultNoFreeCommunication);
+        } else {
+            rb.Push(RESULT_SUCCESS);
+        }
+
+        states.free_communication = true;
+    }
+
+    void ConfirmStereoVisionPermission(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_PCTL, "called");
+        states.stereo_vision = true;
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
 
-    void ConfirmStereoVisionRestrictionConfigurable(Kernel::HLERequestContext& ctx) {
+    void IsFreeCommunicationAvailable(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_PCTL, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2};
+        if (!CheckFreeCommunicationPermissionImpl()) {
+            rb.Push(Error::ResultNoFreeCommunication);
+        } else {
+            rb.Push(RESULT_SUCCESS);
+        }
+    }
+
+    void IsRestrictionEnabled(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_PCTL, "called");
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        if (False(capability & (Capability::Status | Capability::Recovery))) {
+            LOG_ERROR(Service_PCTL, "Application does not have Status or Recovery capabilities!");
+            rb.Push(Error::ResultNoCapatability);
+            rb.Push(false);
+            return;
+        }
+
+        rb.Push(pin_code[0] != '\0');
+    }
+
+    void ConfirmStereoVisionRestrictionConfigurable(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_PCTL, "called");
+
+        IPC::ResponseBuilder rb{ctx, 2};
+
+        if (False(capability & Capability::SteroVision)) {
+            LOG_ERROR(Service_PCTL, "Application does not have SteroVision capability!");
+            rb.Push(Error::ResultNoCapatability);
+            return;
+        }
+
+        if (pin_code[0] == '\0') {
+            rb.Push(Error::ResultNoRestrictionEnabled);
+            return;
+        }
+
         rb.Push(RESULT_SUCCESS);
     }
 
     void IsStereoVisionPermitted(Kernel::HLERequestContext& ctx) {
-        LOG_WARNING(Service_PCTL, "(STUBBED) called");
+        LOG_DEBUG(Service_PCTL, "called");
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
-        rb.Push(true);
+        if (!ConfirmStereoVisionPermissionImpl()) {
+            rb.Push(Error::ResultStereoVisionRestricted);
+            rb.Push(false);
+        } else {
+            rb.Push(RESULT_SUCCESS);
+            rb.Push(true);
+        }
     }
 
     void SetStereoVisionRestriction(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto can_use = rp.Pop<bool>();
-        LOG_WARNING(Service_PCTL, "(STUBBED) called, can_use={}", can_use);
-
-        can_use_stereo_vision = can_use;
+        LOG_DEBUG(Service_PCTL, "called, can_use={}", can_use);
 
         IPC::ResponseBuilder rb{ctx, 2};
+        if (False(capability & Capability::SteroVision)) {
+            LOG_ERROR(Service_PCTL, "Application does not have SteroVision capability!");
+            rb.Push(Error::ResultNoCapatability);
+            return;
+        }
+
+        SetStereoVisionRestrictionImpl(can_use);
         rb.Push(RESULT_SUCCESS);
     }
 
     void GetStereoVisionRestriction(Kernel::HLERequestContext& ctx) {
-        LOG_WARNING(Service_PCTL, "(STUBBED) called");
+        LOG_DEBUG(Service_PCTL, "called");
 
         IPC::ResponseBuilder rb{ctx, 3};
+        if (False(capability & Capability::SteroVision)) {
+            LOG_ERROR(Service_PCTL, "Application does not have SteroVision capability!");
+            rb.Push(Error::ResultNoCapatability);
+            rb.Push(false);
+            return;
+        }
+
         rb.Push(RESULT_SUCCESS);
-        rb.Push(can_use_stereo_vision);
+        rb.Push(settings.is_stero_vision_restricted);
     }
 
     void ResetConfirmedStereoVisionPermission(Kernel::HLERequestContext& ctx) {
-        LOG_WARNING(Service_PCTL, "(STUBBED) called");
+        LOG_DEBUG(Service_PCTL, "called");
+
+        states.stereo_vision = false;
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
 
+    struct ApplicationInfo {
+        u64 tid{};
+        std::array<u8, 32> age_rating{};
+        u32 parental_control_flag{};
+        Capability capability{};
+    };
+
+    struct States {
+        u64 current_tid{};
+        ApplicationInfo application_info{};
+        u64 tid_from_event{};
+        bool launch_time_valid{};
+        bool is_suspended{};
+        bool temporary_unlocked{};
+        bool free_communication{};
+        bool stereo_vision{};
+    };
+
+    struct ParentalControlSettings {
+        bool is_stero_vision_restricted{};
+        bool is_free_communication_default_on{};
+        bool disabled{};
+    };
+
+    States states{};
+    ParentalControlSettings settings{};
+    std::array<char, 8> pin_code{};
     bool can_use_stereo_vision = true;
+    Core::System& system;
+    Capability capability{};
 };
 
 void Module::Interface::CreateService(Kernel::HLERequestContext& ctx) {
@@ -182,7 +368,9 @@ void Module::Interface::CreateService(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<IParentalControlService>(system);
+    // TODO(ogniK): Get TID from process
+
+    rb.PushIpcInterface<IParentalControlService>(system, capability);
 }
 
 void Module::Interface::CreateServiceWithoutInitialize(Kernel::HLERequestContext& ctx) {
@@ -190,21 +378,28 @@ void Module::Interface::CreateServiceWithoutInitialize(Kernel::HLERequestContext
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<IParentalControlService>(system);
+    rb.PushIpcInterface<IParentalControlService>(system, capability);
 }
 
 Module::Interface::Interface(Core::System& system_, std::shared_ptr<Module> module_,
-                             const char* name)
-    : ServiceFramework{system_, name}, module{std::move(module_)} {}
+                             const char* name, Capability capability)
+    : ServiceFramework{system_, name}, module{std::move(module_)}, capability(capability) {}
 
 Module::Interface::~Interface() = default;
 
 void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system) {
     auto module = std::make_shared<Module>();
-    std::make_shared<PCTL>(system, module, "pctl")->InstallAsService(service_manager);
-    std::make_shared<PCTL>(system, module, "pctl:a")->InstallAsService(service_manager);
-    std::make_shared<PCTL>(system, module, "pctl:r")->InstallAsService(service_manager);
-    std::make_shared<PCTL>(system, module, "pctl:s")->InstallAsService(service_manager);
+    std::make_shared<PCTL>(system, module, "pctl",
+                           Capability::Application | Capability::SnsPost | Capability::Status |
+                               Capability::SteroVision)
+        ->InstallAsService(service_manager);
+    // TODO(ogniK): Implement remaining capabilities
+    std::make_shared<PCTL>(system, module, "pctl:a", Capability::None)
+        ->InstallAsService(service_manager);
+    std::make_shared<PCTL>(system, module, "pctl:r", Capability::None)
+        ->InstallAsService(service_manager);
+    std::make_shared<PCTL>(system, module, "pctl:s", Capability::None)
+        ->InstallAsService(service_manager);
 }
 
 } // namespace Service::PCTL
