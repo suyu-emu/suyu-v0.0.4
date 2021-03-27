@@ -466,6 +466,114 @@ void GMainWindow::ProfileSelectorSelectProfile() {
     emit ProfileSelectorFinishedSelection(uuid);
 }
 
+void GMainWindow::SoftwareKeyboardInitialize(
+    bool is_inline, Core::Frontend::KeyboardInitializeParameters initialize_parameters) {
+    if (software_keyboard) {
+        LOG_ERROR(Frontend, "The software keyboard is already initialized!");
+        return;
+    }
+
+    software_keyboard = new QtSoftwareKeyboardDialog(render_window, Core::System::GetInstance(),
+                                                     is_inline, std::move(initialize_parameters));
+
+    if (is_inline) {
+        connect(
+            software_keyboard, &QtSoftwareKeyboardDialog::SubmitInlineText, this,
+            [this](Service::AM::Applets::SwkbdReplyType reply_type, std::u16string submitted_text,
+                   s32 cursor_position) {
+                emit SoftwareKeyboardSubmitInlineText(reply_type, submitted_text, cursor_position);
+            },
+            Qt::QueuedConnection);
+    } else {
+        connect(
+            software_keyboard, &QtSoftwareKeyboardDialog::SubmitNormalText, this,
+            [this](Service::AM::Applets::SwkbdResult result, std::u16string submitted_text) {
+                emit SoftwareKeyboardSubmitNormalText(result, submitted_text);
+            },
+            Qt::QueuedConnection);
+    }
+}
+
+void GMainWindow::SoftwareKeyboardShowNormal() {
+    if (!software_keyboard) {
+        LOG_ERROR(Frontend, "The software keyboard is not initialized!");
+        return;
+    }
+
+    const auto& layout = render_window->GetFramebufferLayout();
+
+    const auto x = layout.screen.left;
+    const auto y = layout.screen.top;
+    const auto w = layout.screen.GetWidth();
+    const auto h = layout.screen.GetHeight();
+
+    software_keyboard->ShowNormalKeyboard(render_window->mapToGlobal(QPoint(x, y)), QSize(w, h));
+}
+
+void GMainWindow::SoftwareKeyboardShowTextCheck(
+    Service::AM::Applets::SwkbdTextCheckResult text_check_result,
+    std::u16string text_check_message) {
+    if (!software_keyboard) {
+        LOG_ERROR(Frontend, "The software keyboard is not initialized!");
+        return;
+    }
+
+    software_keyboard->ShowTextCheckDialog(text_check_result, text_check_message);
+}
+
+void GMainWindow::SoftwareKeyboardShowInline(
+    Core::Frontend::InlineAppearParameters appear_parameters) {
+    if (!software_keyboard) {
+        LOG_ERROR(Frontend, "The software keyboard is not initialized!");
+        return;
+    }
+
+    const auto& layout = render_window->GetFramebufferLayout();
+
+    const auto x =
+        static_cast<int>(layout.screen.left + (0.5f * layout.screen.GetWidth() *
+                                               ((2.0f * appear_parameters.key_top_translate_x) +
+                                                (1.0f - appear_parameters.key_top_scale_x))));
+    const auto y =
+        static_cast<int>(layout.screen.top + (layout.screen.GetHeight() *
+                                              ((2.0f * appear_parameters.key_top_translate_y) +
+                                               (1.0f - appear_parameters.key_top_scale_y))));
+    const auto w = static_cast<int>(layout.screen.GetWidth() * appear_parameters.key_top_scale_x);
+    const auto h = static_cast<int>(layout.screen.GetHeight() * appear_parameters.key_top_scale_y);
+
+    software_keyboard->ShowInlineKeyboard(std::move(appear_parameters),
+                                          render_window->mapToGlobal(QPoint(x, y)), QSize(w, h));
+}
+
+void GMainWindow::SoftwareKeyboardHideInline() {
+    if (!software_keyboard) {
+        LOG_ERROR(Frontend, "The software keyboard is not initialized!");
+        return;
+    }
+
+    software_keyboard->HideInlineKeyboard();
+}
+
+void GMainWindow::SoftwareKeyboardInlineTextChanged(
+    Core::Frontend::InlineTextParameters text_parameters) {
+    if (!software_keyboard) {
+        LOG_ERROR(Frontend, "The software keyboard is not initialized!");
+        return;
+    }
+
+    software_keyboard->InlineTextChanged(std::move(text_parameters));
+}
+
+void GMainWindow::SoftwareKeyboardExit() {
+    if (!software_keyboard) {
+        return;
+    }
+
+    software_keyboard->ExitKeyboard();
+
+    software_keyboard = nullptr;
+}
+
 void GMainWindow::WebBrowserOpenWebPage(std::string_view main_url, std::string_view additional_args,
                                         bool is_local) {
 #ifdef YUZU_USE_QT_WEB_ENGINE
@@ -1008,6 +1116,10 @@ void GMainWindow::ConnectWidgetEvents() {
             &GRenderWindow::OnEmulationStarting);
     connect(this, &GMainWindow::EmulationStopping, render_window,
             &GRenderWindow::OnEmulationStopping);
+
+    // Software Keyboard Applet
+    connect(this, &GMainWindow::EmulationStarting, this, &GMainWindow::SoftwareKeyboardExit);
+    connect(this, &GMainWindow::EmulationStopping, this, &GMainWindow::SoftwareKeyboardExit);
 
     connect(&status_bar_update_timer, &QTimer::timeout, this, &GMainWindow::UpdateStatusBar);
 }
