@@ -133,7 +133,7 @@ private:
     void GetBlockedUserListIds(Kernel::HLERequestContext& ctx) {
         // This is safe to stub, as there should be no adverse consequences from reporting no
         // blocked users.
-        LOG_WARNING(Service_ACC, "(STUBBED) called");
+        LOG_WARNING(Service_Friend, "(STUBBED) called");
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
         rb.Push<u32>(0); // Indicates there are no blocked users
@@ -141,14 +141,14 @@ private:
 
     void DeclareCloseOnlinePlaySession(Kernel::HLERequestContext& ctx) {
         // Stub used by Splatoon 2
-        LOG_WARNING(Service_ACC, "(STUBBED) called");
+        LOG_WARNING(Service_Friend, "(STUBBED) called");
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
 
     void UpdateUserPresence(Kernel::HLERequestContext& ctx) {
         // Stub used by Retro City Rampage
-        LOG_WARNING(Service_ACC, "(STUBBED) called");
+        LOG_WARNING(Service_Friend, "(STUBBED) called");
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
@@ -159,7 +159,7 @@ private:
         const auto uuid = rp.PopRaw<Common::UUID>();
         [[maybe_unused]] const auto filter = rp.PopRaw<SizedFriendFilter>();
         const auto pid = rp.Pop<u64>();
-        LOG_WARNING(Service_ACC, "(STUBBED) called, offset={}, uuid={}, pid={}", friend_offset,
+        LOG_WARNING(Service_Friend, "(STUBBED) called, offset={}, uuid={}, pid={}", friend_offset,
                     uuid.Format(), pid);
 
         IPC::ResponseBuilder rb{ctx, 3};
@@ -191,7 +191,7 @@ public:
 
 private:
     void GetEvent(Kernel::HLERequestContext& ctx) {
-        LOG_DEBUG(Service_ACC, "called");
+        LOG_DEBUG(Service_Friend, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
@@ -199,7 +199,7 @@ private:
     }
 
     void Clear(Kernel::HLERequestContext& ctx) {
-        LOG_DEBUG(Service_ACC, "called");
+        LOG_DEBUG(Service_Friend, "called");
         while (!notifications.empty()) {
             notifications.pop();
         }
@@ -210,10 +210,10 @@ private:
     }
 
     void Pop(Kernel::HLERequestContext& ctx) {
-        LOG_DEBUG(Service_ACC, "called");
+        LOG_DEBUG(Service_Friend, "called");
 
         if (notifications.empty()) {
-            LOG_ERROR(Service_ACC, "No notifications in queue!");
+            LOG_ERROR(Service_Friend, "No notifications in queue!");
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(ERR_NO_NOTIFICATIONS);
             return;
@@ -231,7 +231,8 @@ private:
             break;
         default:
             // HOS seems not have an error case for an unknown notification
-            LOG_WARNING(Service_ACC, "Unknown notification {:08X}", notification.notification_type);
+            LOG_WARNING(Service_Friend, "Unknown notification {:08X}",
+                        notification.notification_type);
             break;
         }
 
@@ -269,14 +270,14 @@ void Module::Interface::CreateFriendService(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushIpcInterface<IFriendService>(system);
-    LOG_DEBUG(Service_ACC, "called");
+    LOG_DEBUG(Service_Friend, "called");
 }
 
 void Module::Interface::CreateNotificationService(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     auto uuid = rp.PopRaw<Common::UUID>();
 
-    LOG_DEBUG(Service_ACC, "called, uuid={}", uuid.Format());
+    LOG_DEBUG(Service_Friend, "called, uuid={}", uuid.Format());
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
