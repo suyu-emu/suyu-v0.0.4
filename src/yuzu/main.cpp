@@ -320,6 +320,34 @@ GMainWindow::GMainWindow()
             continue;
         }
 
+        // Launch game with a specific user
+        if (args[i] == QStringLiteral("-u")) {
+            if (i >= args.size() - 1) {
+                continue;
+            }
+
+            if (args[i + 1].startsWith(QChar::fromLatin1('-'))) {
+                continue;
+            }
+
+            bool argument_ok;
+            const std::size_t selected_user = args[++i].toUInt(&argument_ok);
+
+            if (!argument_ok) {
+                LOG_ERROR(Frontend, "Invalid user argument");
+                continue;
+            }
+
+            const Service::Account::ProfileManager manager;
+            if (!manager.UserExistsIndex(selected_user)) {
+                LOG_ERROR(Frontend, "Selected user doesn't exist");
+                continue;
+            }
+
+            Settings::values.current_user = selected_user;
+            continue;
+        }
+
         // Launch game at path
         if (args[i] == QStringLiteral("-g")) {
             if (i >= args.size() - 1) {
