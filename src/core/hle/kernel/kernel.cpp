@@ -68,9 +68,9 @@ struct KernelCore::Impl {
         InitializePhysicalCores();
         InitializeSystemResourceLimit(kernel, system);
         InitializeMemoryLayout();
-        InitializePreemption(kernel);
         InitializeSchedulers();
         InitializeSuspendThreads();
+        InitializePreemption(kernel);
     }
 
     void InitializeCores() {
