@@ -51,7 +51,7 @@ constexpr std::array REQUIRED_EXTENSIONS{
 #ifdef _WIN32
     VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME,
 #endif
-#ifdef __linux__
+#ifdef __unix__
     VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME,
 #endif
 };

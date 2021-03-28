@@ -62,7 +62,7 @@ public:
         : memory{std::move(memory_)}, allocation_size{allocation_size_}, property_flags{properties},
           shifted_memory_type{1U << type} {}
 
-#if defined(_WIN32) || defined(__linux__)
+#if defined(_WIN32) || defined(__unix__)
     ~MemoryAllocation() {
         if (owning_opengl_handle != 0) {
             glDeleteMemoryObjectsEXT(1, &owning_opengl_handle);
@@ -114,7 +114,7 @@ public:
         }
         return owning_opengl_handle;
     }
-#elif __linux__
+#elif __unix__
     [[nodiscard]] u32 ExportOpenGLHandle() {
         if (!owning_opengl_handle) {
             glCreateMemoryObjectsEXT(1, &owning_opengl_handle);
@@ -165,7 +165,7 @@ private:
     const u32 shifted_memory_type;              ///< Shifted Vulkan memory type.
     std::vector<Range> commits;                 ///< All commit ranges done from this allocation.
     std::span<u8> memory_mapped_span; ///< Memory mapped span. Empty if not queried before.
-#if defined(_WIN32) || defined(__linux__)
+#if defined(_WIN32) || defined(__unix__)
     u32 owning_opengl_handle{}; ///< Owning OpenGL memory object handle.
 #endif
 };
@@ -249,7 +249,7 @@ void MemoryAllocator::AllocMemory(VkMemoryPropertyFlags flags, u32 type_mask, u6
         .pNext = nullptr,
 #ifdef _WIN32
         .handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT,
-#elif __linux__
+#elif __unix__
         .handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
 #else
         .handleTypes = 0,
