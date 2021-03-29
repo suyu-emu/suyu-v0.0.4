@@ -89,6 +89,8 @@ DeviceFD Module::Open(const std::string& device_name) {
     auto device = devices[device_name];
     const DeviceFD fd = next_fd++;
 
+    device->OnOpen(fd);
+
     open_files[fd] = std::move(device);
 
     return fd;
@@ -108,7 +110,7 @@ NvResult Module::Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input
         return NvResult::NotImplemented;
     }
 
-    return itr->second->Ioctl1(command, input, output);
+    return itr->second->Ioctl1(fd, command, input, output);
 }
 
 NvResult Module::Ioctl2(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
@@ -125,7 +127,7 @@ NvResult Module::Ioctl2(DeviceFD fd, Ioctl command, const std::vector<u8>& input
         return NvResult::NotImplemented;
     }
 
-    return itr->second->Ioctl2(command, input, inline_input, output);
+    return itr->second->Ioctl2(fd, command, input, inline_input, output);
 }
 
 NvResult Module::Ioctl3(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
@@ -142,7 +144,7 @@ NvResult Module::Ioctl3(DeviceFD fd, Ioctl command, const std::vector<u8>& input
         return NvResult::NotImplemented;
     }
 
-    return itr->second->Ioctl3(command, input, output, inline_output);
+    return itr->second->Ioctl3(fd, command, input, output, inline_output);
 }
 
 NvResult Module::Close(DeviceFD fd) {
@@ -157,6 +159,8 @@ NvResult Module::Close(DeviceFD fd) {
         LOG_ERROR(Service_NVDRV, "Could not find DeviceFD={}!", fd);
         return NvResult::NotImplemented;
     }
+
+    itr->second->OnClose(fd);
 
     open_files.erase(itr);
 

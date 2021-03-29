@@ -16,7 +16,7 @@ nvhost_nvdec::nvhost_nvdec(Core::System& system, std::shared_ptr<nvmap> nvmap_de
     : nvhost_nvdec_common(system, std::move(nvmap_dev), syncpoint_manager) {}
 nvhost_nvdec::~nvhost_nvdec() = default;
 
-NvResult nvhost_nvdec::Ioctl1(Ioctl command, const std::vector<u8>& input,
+NvResult nvhost_nvdec::Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
                               std::vector<u8>& output) {
     switch (command.group) {
     case 0x0:
@@ -57,16 +57,19 @@ NvResult nvhost_nvdec::Ioctl1(Ioctl command, const std::vector<u8>& input,
     return NvResult::NotImplemented;
 }
 
-NvResult nvhost_nvdec::Ioctl2(Ioctl command, const std::vector<u8>& input,
+NvResult nvhost_nvdec::Ioctl2(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
                               const std::vector<u8>& inline_input, std::vector<u8>& output) {
     UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
     return NvResult::NotImplemented;
 }
 
-NvResult nvhost_nvdec::Ioctl3(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
-                              std::vector<u8>& inline_output) {
+NvResult nvhost_nvdec::Ioctl3(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
+                              std::vector<u8>& output, std::vector<u8>& inline_output) {
     UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
     return NvResult::NotImplemented;
 }
+
+void nvhost_nvdec::OnOpen(DeviceFD fd) {}
+void nvhost_nvdec::OnClose(DeviceFD fd) {}
 
 } // namespace Service::Nvidia::Devices
