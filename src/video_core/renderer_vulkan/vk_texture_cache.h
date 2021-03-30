@@ -20,6 +20,7 @@ using VideoCommon::Offset2D;
 using VideoCommon::RenderTargets;
 using VideoCore::Surface::PixelFormat;
 
+class ASTCDecoderPass;
 class BlitImageHelper;
 class Device;
 class Image;
@@ -60,6 +61,7 @@ struct TextureCacheRuntime {
     MemoryAllocator& memory_allocator;
     StagingBufferPool& staging_buffer_pool;
     BlitImageHelper& blit_image_helper;
+    ASTCDecoderPass& astc_decoder_pass;
     std::unordered_map<RenderPassKey, vk::RenderPass> renderpass_cache{};
 
     void Finish();
@@ -83,9 +85,7 @@ struct TextureCacheRuntime {
     }
 
     void AccelerateImageUpload(Image&, const StagingBufferRef&,
-                               std::span<const VideoCommon::SwizzleParameters>) {
-        UNREACHABLE();
-    }
+                               std::span<const VideoCommon::SwizzleParameters>);
 
     void InsertUploadMemoryBarrier() {}
 
@@ -121,8 +121,17 @@ public:
         return *buffer;
     }
 
-    [[nodiscard]] VkImageCreateFlags AspectMask() const noexcept {
+    [[nodiscard]] VkImageAspectFlags AspectMask() const noexcept {
         return aspect_mask;
+    }
+
+    [[nodiscard]] VkImageView StorageImageView(s32 level) const noexcept {
+        return *storage_image_views[level];
+    }
+
+    /// Returns true when the image is already initialized and mark it as initialized
+    [[nodiscard]] bool ExchangeInitialization() noexcept {
+        return std::exchange(initialized, true);
     }
 
 private:
@@ -130,6 +139,8 @@ private:
     vk::Image image;
     vk::Buffer buffer;
     MemoryCommit commit;
+    vk::ImageView image_view;
+    std::vector<vk::ImageView> storage_image_views;
     VkImageAspectFlags aspect_mask = 0;
     bool initialized = false;
 };

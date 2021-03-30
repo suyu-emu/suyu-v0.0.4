@@ -13,8 +13,8 @@
 namespace VideoCommon::Accelerated {
 
 struct BlockLinearSwizzle2DParams {
-    std::array<u32, 3> origin;
-    std::array<s32, 3> destination;
+    alignas(16) std::array<u32, 3> origin;
+    alignas(16) std::array<s32, 3> destination;
     u32 bytes_per_block_log2;
     u32 layer_stride;
     u32 block_size;

@@ -17,26 +17,7 @@
 #include "video_core/textures/texture.h"
 
 namespace Tegra::Texture {
-
 namespace {
-/**
- * This table represents the internal swizzle of a gob, in format 16 bytes x 2 sector packing.
- * Calculates the offset of an (x, y) position within a swizzled texture.
- * Taken from the Tegra X1 Technical Reference Manual. pages 1187-1188
- */
-constexpr SwizzleTable MakeSwizzleTableConst() {
-    SwizzleTable table{};
-    for (u32 y = 0; y < table.size(); ++y) {
-        for (u32 x = 0; x < table[0].size(); ++x) {
-            table[y][x] = ((x % 64) / 32) * 256 + ((y % 8) / 2) * 64 + ((x % 32) / 16) * 32 +
-                          (y % 2) * 16 + (x % 16);
-        }
-    }
-    return table;
-}
-
-constexpr SwizzleTable SWIZZLE_TABLE = MakeSwizzleTableConst();
-
 template <bool TO_LINEAR>
 void Swizzle(std::span<u8> output, std::span<const u8> input, u32 bytes_per_pixel, u32 width,
              u32 height, u32 depth, u32 block_height, u32 block_depth, u32 stride_alignment) {
@@ -90,10 +71,6 @@ void Swizzle(std::span<u8> output, std::span<const u8> input, u32 bytes_per_pixe
     }
 }
 } // Anonymous namespace
-
-SwizzleTable MakeSwizzleTable() {
-    return SWIZZLE_TABLE;
-}
 
 void UnswizzleTexture(std::span<u8> output, std::span<const u8> input, u32 bytes_per_pixel,
                       u32 width, u32 height, u32 depth, u32 block_height, u32 block_depth,
