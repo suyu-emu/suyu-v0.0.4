@@ -295,7 +295,7 @@ ISelfController::ISelfController(Core::System& system_, NVFlinger::NVFlinger& nv
         {80, nullptr, "SetWirelessPriorityMode"},
         {90, &ISelfController::GetAccumulatedSuspendedTickValue, "GetAccumulatedSuspendedTickValue"},
         {91, &ISelfController::GetAccumulatedSuspendedTickChangedEvent, "GetAccumulatedSuspendedTickChangedEvent"},
-        {100, nullptr, "SetAlbumImageTakenNotificationEnabled"},
+        {100, &ISelfController::SetAlbumImageTakenNotificationEnabled, "SetAlbumImageTakenNotificationEnabled"},
         {110, nullptr, "SetApplicationAlbumUserData"},
         {1000, nullptr, "GetDebugStorageChannel"},
     };
@@ -558,6 +558,21 @@ void ISelfController::GetAccumulatedSuspendedTickChangedEvent(Kernel::HLERequest
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushCopyObjects(accumulated_suspended_tick_changed_event->GetReadableEvent());
+}
+
+void ISelfController::SetAlbumImageTakenNotificationEnabled(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+
+    // This service call sets an internal flag whether a notification is shown when an image is
+    // captured. Currently we do not support capturing images via the capture button, so this can be
+    // stubbed for now.
+    const bool album_image_taken_notification_enabled = rp.Pop<bool>();
+
+    LOG_WARNING(Service_AM, "(STUBBED) called. album_image_taken_notification_enabled={}",
+                album_image_taken_notification_enabled);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
 }
 
 AppletMessageQueue::AppletMessageQueue(Kernel::KernelCore& kernel) {
