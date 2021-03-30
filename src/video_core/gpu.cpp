@@ -480,11 +480,7 @@ void GPU::PushCommandBuffer(Tegra::ChCommandHeaderList& entries) {
     if (!use_nvdec) {
         return;
     }
-    // This condition fires when a video stream ends, clear all intermediary data
-    if (entries[0].raw == 0xDEADB33F) {
-        cdma_pusher.reset();
-        return;
-    }
+
     if (!cdma_pusher) {
         cdma_pusher = std::make_unique<Tegra::CDmaPusher>(*this);
     }
@@ -494,6 +490,13 @@ void GPU::PushCommandBuffer(Tegra::ChCommandHeaderList& entries) {
     // gpu_thread.SubmitCommandBuffer(std::move(entries));
 
     cdma_pusher->ProcessEntries(std::move(entries));
+}
+
+void GPU::ClearCommandBuffer() {
+    // This condition fires when a video stream ends, clear all intermediary data
+    if (cdma_pusher) {
+        cdma_pusher.reset();
+    }
 }
 
 void GPU::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
