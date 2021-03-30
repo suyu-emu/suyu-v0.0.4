@@ -29,8 +29,7 @@ class ConfigureMotionTouch;
 class CalibrationConfigurationDialog : public QDialog {
     Q_OBJECT
 public:
-    explicit CalibrationConfigurationDialog(QWidget* parent, const std::string& host, u16 port,
-                                            u8 pad_index);
+    explicit CalibrationConfigurationDialog(QWidget* parent, const std::string& host, u16 port);
     ~CalibrationConfigurationDialog() override;
 
 private:
