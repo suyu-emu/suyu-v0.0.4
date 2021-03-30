@@ -13,13 +13,13 @@ class System;
 
 namespace Service::PCTL {
 
-enum class Capability : s32 {
-    None = 0x0,
+enum class Capability : u32 {
+    None = 0,
     Application = 1 << 0,
     SnsPost = 1 << 1,
     Recovery = 1 << 6,
     Status = 1 << 8,
-    SteroVision = 1 << 9,
+    StereoVision = 1 << 9,
     System = 1 << 15,
 };
 DECLARE_ENUM_FLAG_OPERATORS(Capability);

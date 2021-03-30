@@ -17,7 +17,7 @@ namespace Error {
 
 constexpr ResultCode ResultNoFreeCommunication{ErrorModule::PCTL, 101};
 constexpr ResultCode ResultStereoVisionRestricted{ErrorModule::PCTL, 104};
-constexpr ResultCode ResultNoCapatability{ErrorModule::PCTL, 131};
+constexpr ResultCode ResultNoCapability{ErrorModule::PCTL, 131};
 constexpr ResultCode ResultNoRestrictionEnabled{ErrorModule::PCTL, 181};
 
 } // namespace Error
@@ -133,7 +133,7 @@ public:
     }
 
 private:
-    bool CheckFreeCommunicationPermissionImpl() {
+    bool CheckFreeCommunicationPermissionImpl() const {
         if (states.temporary_unlocked) {
             return true;
         }
@@ -146,11 +146,13 @@ private:
         if (!settings.is_free_communication_default_on) {
             return true;
         }
-        // TODO(ogniK): Check for blacklisted/exempted applications
+        // TODO(ogniK): Check for blacklisted/exempted applications. Return false can happen here
+        // but as we don't have multiproceses support yet, we can just assume our application is
+        // valid for the time being
         return true;
     }
 
-    bool ConfirmStereoVisionPermissionImpl() {
+    bool ConfirmStereoVisionPermissionImpl() const {
         if (states.temporary_unlocked) {
             return true;
         }
@@ -179,12 +181,11 @@ private:
         IPC::ResponseBuilder rb{ctx, 2};
 
         if (False(capability & (Capability::Application | Capability::System))) {
-            LOG_ERROR(Service_PCTL, "Invalid capability! capability={:X}",
-                      static_cast<s32>(capability));
+            LOG_ERROR(Service_PCTL, "Invalid capability! capability={:X}", capability);
             return;
         }
 
-        // TODO(ogniK): Recovery
+        // TODO(ogniK): Recovery flag initialization for pctl:r
 
         const auto tid = system.CurrentProcess()->GetTitleID();
         if (tid != 0) {
@@ -251,7 +252,7 @@ private:
         IPC::ResponseBuilder rb{ctx, 3};
         if (False(capability & (Capability::Status | Capability::Recovery))) {
             LOG_ERROR(Service_PCTL, "Application does not have Status or Recovery capabilities!");
-            rb.Push(Error::ResultNoCapatability);
+            rb.Push(Error::ResultNoCapability);
             rb.Push(false);
             return;
         }
@@ -264,9 +265,9 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2};
 
-        if (False(capability & Capability::SteroVision)) {
-            LOG_ERROR(Service_PCTL, "Application does not have SteroVision capability!");
-            rb.Push(Error::ResultNoCapatability);
+        if (False(capability & Capability::StereoVision)) {
+            LOG_ERROR(Service_PCTL, "Application does not have StereoVision capability!");
+            rb.Push(Error::ResultNoCapability);
             return;
         }
 
@@ -297,9 +298,9 @@ private:
         LOG_DEBUG(Service_PCTL, "called, can_use={}", can_use);
 
         IPC::ResponseBuilder rb{ctx, 2};
-        if (False(capability & Capability::SteroVision)) {
-            LOG_ERROR(Service_PCTL, "Application does not have SteroVision capability!");
-            rb.Push(Error::ResultNoCapatability);
+        if (False(capability & Capability::StereoVision)) {
+            LOG_ERROR(Service_PCTL, "Application does not have StereoVision capability!");
+            rb.Push(Error::ResultNoCapability);
             return;
         }
 
@@ -311,9 +312,9 @@ private:
         LOG_DEBUG(Service_PCTL, "called");
 
         IPC::ResponseBuilder rb{ctx, 3};
-        if (False(capability & Capability::SteroVision)) {
-            LOG_ERROR(Service_PCTL, "Application does not have SteroVision capability!");
-            rb.Push(Error::ResultNoCapatability);
+        if (False(capability & Capability::StereoVision)) {
+            LOG_ERROR(Service_PCTL, "Application does not have StereoVision capability!");
+            rb.Push(Error::ResultNoCapability);
             rb.Push(false);
             return;
         }
@@ -391,7 +392,7 @@ void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system
     auto module = std::make_shared<Module>();
     std::make_shared<PCTL>(system, module, "pctl",
                            Capability::Application | Capability::SnsPost | Capability::Status |
-                               Capability::SteroVision)
+                               Capability::StereoVision)
         ->InstallAsService(service_manager);
     // TODO(ogniK): Implement remaining capabilities
     std::make_shared<PCTL>(system, module, "pctl:a", Capability::None)
