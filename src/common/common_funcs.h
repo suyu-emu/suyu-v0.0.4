@@ -108,6 +108,14 @@ __declspec(dllimport) void __stdcall DebugBreak(void);
         }                                                                                          \
     }
 
+#define NON_COPYABLE(cls)                                                                          \
+    cls(const cls&) = delete;                                                                      \
+    cls& operator=(const cls&) = delete
+
+#define NON_MOVEABLE(cls)                                                                          \
+    cls(cls&&) = delete;                                                                           \
+    cls& operator=(cls&&) = delete
+
 #define R_SUCCEEDED(res) (res.IsSuccess())
 
 /// Evaluates an expression that returns a result, and returns the result if it would fail.
