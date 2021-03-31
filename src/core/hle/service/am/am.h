@@ -146,6 +146,7 @@ private:
     void IsAutoSleepDisabled(Kernel::HLERequestContext& ctx);
     void GetAccumulatedSuspendedTickValue(Kernel::HLERequestContext& ctx);
     void GetAccumulatedSuspendedTickChangedEvent(Kernel::HLERequestContext& ctx);
+    void SetAlbumImageTakenNotificationEnabled(Kernel::HLERequestContext& ctx);
 
     enum class ScreenshotPermission : u32 {
         Inherit = 0,
