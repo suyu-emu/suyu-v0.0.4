@@ -161,6 +161,8 @@ add_library(core STATIC
     hle/kernel/k_address_arbiter.h
     hle/kernel/k_address_space_info.cpp
     hle/kernel/k_address_space_info.h
+    hle/kernel/k_auto_object.cpp
+    hle/kernel/k_auto_object.h
     hle/kernel/k_affinity_mask.h
     hle/kernel/k_condition_variable.cpp
     hle/kernel/k_condition_variable.h
