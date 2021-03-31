@@ -509,7 +509,11 @@ private:
 
 private:
     static constexpr TypedStorage<Derived> DerivedStorage = {};
+
+#ifndef _MSC_VER
+    // TODO(bunnei): Enable on MSVC once this can be const evaluated by the compiler
     static_assert(GetParent(GetNode(GetPointer(DerivedStorage))) == GetPointer(DerivedStorage));
+#endif
 };
 
 template <auto T, class Derived = impl::GetParentType<T>>
