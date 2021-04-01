@@ -234,6 +234,7 @@ add_library(core STATIC
     hle/kernel/service_thread.h
     hle/kernel/session.cpp
     hle/kernel/session.h
+    hle/kernel/slab_helpers.h
     hle/kernel/svc.cpp
     hle/kernel/svc.h
     hle/kernel/svc_common.h
