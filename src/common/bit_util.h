@@ -44,4 +44,6 @@ template <typename T>
     return static_cast<u32>(log2_f + static_cast<u64>((value ^ (1ULL << log2_f)) != 0ULL));
 }
 
+#define BIT(n) (1U << (n))
+
 } // namespace Common
