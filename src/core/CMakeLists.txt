@@ -173,6 +173,7 @@ add_library(core STATIC
     hle/kernel/k_light_condition_variable.h
     hle/kernel/k_light_lock.cpp
     hle/kernel/k_light_lock.h
+    hle/kernel/k_linked_list.h
     hle/kernel/k_memory_block.h
     hle/kernel/k_memory_block_manager.cpp
     hle/kernel/k_memory_block_manager.h
