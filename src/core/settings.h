@@ -139,6 +139,7 @@ struct Values {
     Setting<int> vulkan_device;
 
     Setting<u16> resolution_factor{1};
+    Setting<int> fullscreen_mode;
     Setting<int> aspect_ratio;
     Setting<int> max_anisotropy;
     Setting<bool> use_frame_limit;

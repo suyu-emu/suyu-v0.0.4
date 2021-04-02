@@ -105,8 +105,47 @@
          </widget>
         </item>
         <item>
+         <widget class="QWidget" name="fullscreen_mode_layout" native="true">
+          <layout class="QHBoxLayout" name="horizontalLayout_1">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="fullscreen_mode_label">
+             <property name="text">
+              <string>Fullscreen Mode:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="fullscreen_mode_combobox">
+             <item>
+              <property name="text">
+               <string>Borderless Windowed</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Exclusive Fullscreen</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
          <widget class="QWidget" name="aspect_ratio_layout" native="true">
-          <layout class="QHBoxLayout" name="horizontalLayout_6">
+          <layout class="QHBoxLayout" name="horizontalLayout_2">
            <property name="leftMargin">
             <number>0</number>
            </property>

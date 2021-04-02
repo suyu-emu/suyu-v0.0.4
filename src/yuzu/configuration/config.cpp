@@ -770,6 +770,7 @@ void Config::ReadRendererValues() {
     ReadSettingGlobal(Settings::values.renderer_backend, QStringLiteral("backend"), 0);
     ReadSettingGlobal(Settings::values.renderer_debug, QStringLiteral("debug"), false);
     ReadSettingGlobal(Settings::values.vulkan_device, QStringLiteral("vulkan_device"), 0);
+    ReadSettingGlobal(Settings::values.fullscreen_mode, QStringLiteral("fullscreen_mode"), 0);
     ReadSettingGlobal(Settings::values.aspect_ratio, QStringLiteral("aspect_ratio"), 0);
     ReadSettingGlobal(Settings::values.max_anisotropy, QStringLiteral("max_anisotropy"), 0);
     ReadSettingGlobal(Settings::values.use_frame_limit, QStringLiteral("use_frame_limit"), true);
@@ -1333,6 +1334,7 @@ void Config::SaveRendererValues() {
                        Settings::values.renderer_backend.UsingGlobal(), 0);
     WriteSetting(QStringLiteral("debug"), Settings::values.renderer_debug, false);
     WriteSettingGlobal(QStringLiteral("vulkan_device"), Settings::values.vulkan_device, 0);
+    WriteSettingGlobal(QStringLiteral("fullscreen_mode"), Settings::values.fullscreen_mode, 0);
     WriteSettingGlobal(QStringLiteral("aspect_ratio"), Settings::values.aspect_ratio, 0);
     WriteSettingGlobal(QStringLiteral("max_anisotropy"), Settings::values.max_anisotropy, 0);
     WriteSettingGlobal(QStringLiteral("use_frame_limit"), Settings::values.use_frame_limit, true);
