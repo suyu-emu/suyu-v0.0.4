@@ -64,8 +64,8 @@ endif()
 add_subdirectory(sirit)
 
 # libzip
-find_package(Libzip 1.5)
-if (NOT LIBZIP_FOUND)
+find_package(libzip 1.5)
+if (NOT libzip_FOUND)
     message(STATUS "libzip 1.5 or newer not found, falling back to externals")
     add_subdirectory(libzip EXCLUDE_FROM_ALL)
 endif()
