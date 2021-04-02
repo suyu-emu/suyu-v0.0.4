@@ -97,6 +97,7 @@ add_custom_command(OUTPUT scm_rev.cpp
 add_library(common STATIC
     algorithm.h
     alignment.h
+    assert.cpp
     assert.h
     atomic_ops.h
     detached_tasks.cpp
