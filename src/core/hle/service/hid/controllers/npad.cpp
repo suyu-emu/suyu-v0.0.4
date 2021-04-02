@@ -413,10 +413,14 @@ void Controller_NPad::RequestPadStateUpdate(u32 npad_id) {
         lstick_entry.y = static_cast<s32>(stick_l_y_f * HID_JOYSTICK_MAX);
     }
 
-    if (controller_type == NPadControllerType::JoyLeft ||
-        controller_type == NPadControllerType::JoyRight) {
+    if (controller_type == NPadControllerType::JoyLeft) {
         pad_state.left_sl.Assign(button_state[SL - BUTTON_HID_BEGIN]->GetStatus());
         pad_state.left_sr.Assign(button_state[SR - BUTTON_HID_BEGIN]->GetStatus());
+    }
+
+    if (controller_type == NPadControllerType::JoyRight) {
+        pad_state.right_sl.Assign(button_state[SL - BUTTON_HID_BEGIN]->GetStatus());
+        pad_state.right_sr.Assign(button_state[SR - BUTTON_HID_BEGIN]->GetStatus());
     }
 
     if (controller_type == NPadControllerType::GameCube) {
