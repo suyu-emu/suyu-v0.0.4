@@ -166,9 +166,9 @@ struct System::Impl {
         cpu_manager.SetAsyncGpu(is_async_gpu);
         core_timing.SetMulticore(is_multicore);
 
-        core_timing.Initialize([&system]() { system.RegisterHostThread(); });
         kernel.Initialize();
         cpu_manager.Initialize();
+        core_timing.Initialize([&system]() { system.RegisterHostThread(); });
 
         const auto current_time = std::chrono::duration_cast<std::chrono::seconds>(
             std::chrono::system_clock::now().time_since_epoch());
