@@ -1150,12 +1150,9 @@ static ResultCode GetThreadPriority(Core::System& system, u32* out_priority, Han
     LOG_TRACE(Kernel_SVC, "called");
 
     // Get the thread from its handle.
-    const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    const std::shared_ptr<KThread> thread = handle_table.Get<KThread>(handle);
-    if (!thread) {
-        LOG_ERROR(Kernel_SVC, "Invalid thread handle provided (handle={:08X})", handle);
-        return ResultInvalidHandle;
-    }
+    KScopedAutoObject thread =
+        system.Kernel().CurrentProcess()->GetHandleTable().GetObject<KThread>(handle);
+    R_UNLESS(thread.IsNotNull(), ResultInvalidHandle);
 
     // Get the thread's priority.
     *out_priority = thread->GetPriority();
@@ -1552,7 +1549,7 @@ static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr e
     thread_reservation.Commit();
 
     // Register the new thread.
-    KThread::Register(thread);
+    KThread::Register(kernel, thread);
 
     // Add the thread to the handle table.
     R_TRY(process.GetHandleTable().Add(out_handle, thread));
@@ -1570,21 +1567,15 @@ static ResultCode StartThread(Core::System& system, Handle thread_handle) {
     LOG_DEBUG(Kernel_SVC, "called thread=0x{:08X}", thread_handle);
 
     // Get the thread from its handle.
-    const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    const std::shared_ptr<KThread> thread = handle_table.Get<KThread>(thread_handle);
-    if (!thread) {
-        LOG_ERROR(Kernel_SVC, "Invalid thread handle provided (handle={:08X})", thread_handle);
-        return ResultInvalidHandle;
-    }
+    KScopedAutoObject thread =
+        system.Kernel().CurrentProcess()->GetHandleTable().GetObject<KThread>(thread_handle);
+    R_UNLESS(thread.IsNotNull(), ResultInvalidHandle);
 
     // Try to start the thread.
-    const auto run_result = thread->Run();
-    if (run_result.IsError()) {
-        LOG_ERROR(Kernel_SVC,
-                  "Unable to successfuly start thread (thread handle={:08X}, result={})",
-                  thread_handle, run_result.raw);
-        return run_result;
-    }
+    R_TRY(thread->Run());
+
+    // If we succeeded, persist a reference to the thread.
+    thread->Open();
 
     return RESULT_SUCCESS;
 }
@@ -1598,7 +1589,7 @@ static void ExitThread(Core::System& system) {
     LOG_DEBUG(Kernel_SVC, "called, pc=0x{:08X}", system.CurrentArmInterface().GetPC());
 
     auto* const current_thread = system.Kernel().CurrentScheduler()->GetCurrentThread();
-    system.GlobalSchedulerContext().RemoveThread(SharedFrom(current_thread));
+    system.GlobalSchedulerContext().RemoveThread(current_thread);
     current_thread->Exit();
 }
 
