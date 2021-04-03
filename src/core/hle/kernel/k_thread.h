@@ -20,6 +20,7 @@
 #include "core/hle/kernel/k_spin_lock.h"
 #include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/kernel/object.h"
+#include "core/hle/kernel/slab_helpers.h"
 #include "core/hle/kernel/svc_common.h"
 #include "core/hle/kernel/svc_types.h"
 #include "core/hle/result.h"
@@ -99,7 +100,11 @@ enum class ThreadWaitReasonForDebugging : u32 {
 [[nodiscard]] KThread& GetCurrentThread(KernelCore& kernel);
 [[nodiscard]] s32 GetCurrentCoreId(KernelCore& kernel);
 
-class KThread final : public KSynchronizationObject, public boost::intrusive::list_base_hook<> {
+class KThread final : public KAutoObjectWithSlabHeapAndContainer<KThread, KSynchronizationObject>,
+                      public boost::intrusive::list_base_hook<> {
+    KERNEL_AUTOOBJECT_TRAITS(KThread, KSynchronizationObject);
+
+private:
     friend class KScheduler;
     friend class Process;
 
@@ -114,57 +119,6 @@ public:
     using ThreadContext32 = Core::ARM_Interface::ThreadContext32;
     using ThreadContext64 = Core::ARM_Interface::ThreadContext64;
     using WaiterList = boost::intrusive::list<KThread>;
-
-    /**
-     * Creates and returns a new thread.
-     * @param system The instance of the whole system
-     * @param name The friendly name desired for the thread
-     * @param entry_point The address at which the thread should start execution
-     * @param priority The thread's priority
-     * @param arg User data to pass to the thread
-     * @param processor_id The ID(s) of the processors on which the thread is desired to be run
-     * @param stack_top The address of the thread's stack top
-     * @param owner_process The parent process for the thread, if null, it's a kernel thread
-     * @return A shared pointer to the newly created thread
-     */
-    [[nodiscard]] static ResultVal<std::shared_ptr<KThread>> CreateThread(
-        Core::System& system, ThreadType type_flags, std::string name, VAddr entry_point,
-        u32 priority, u64 arg, s32 processor_id, VAddr stack_top, Process* owner_process);
-
-    /**
-     * Creates and returns a new thread, with a specified entry point.
-     * @param system The instance of the whole system
-     * @param name The friendly name desired for the thread
-     * @param entry_point The address at which the thread should start execution
-     * @param priority The thread's priority
-     * @param arg User data to pass to the thread
-     * @param processor_id The ID(s) of the processors on which the thread is desired to be run
-     * @param stack_top The address of the thread's stack top
-     * @param owner_process The parent process for the thread, if null, it's a kernel thread
-     * @param thread_start_func The function where the host context will start.
-     * @param thread_start_parameter The parameter which will passed to host context on init
-     * @return A shared pointer to the newly created thread
-     */
-    [[nodiscard]] static ResultVal<std::shared_ptr<KThread>> CreateThread(
-        Core::System& system, ThreadType type_flags, std::string name, VAddr entry_point,
-        u32 priority, u64 arg, s32 processor_id, VAddr stack_top, Process* owner_process,
-        std::function<void(void*)>&& thread_start_func, void* thread_start_parameter);
-
-    /**
-     * Creates and returns a new thread for the emulated "user" process.
-     * @param system The instance of the whole system
-     * @param name The friendly name desired for the thread
-     * @param entry_point The address at which the thread should start execution
-     * @param priority The thread's priority
-     * @param arg User data to pass to the thread
-     * @param processor_id The ID(s) of the processors on which the thread is desired to be run
-     * @param stack_top The address of the thread's stack top
-     * @param owner_process The parent process for the thread, if null, it's a kernel thread
-     * @return A shared pointer to the newly created thread
-     */
-    [[nodiscard]] static ResultVal<std::shared_ptr<KThread>> CreateUserThread(
-        Core::System& system, ThreadType type_flags, std::string name, VAddr entry_point,
-        u32 priority, u64 arg, s32 processor_id, VAddr stack_top, Process* owner_process);
 
     [[nodiscard]] std::string GetName() const override {
         return name;
@@ -256,10 +210,6 @@ public:
     void Continue();
 
     void Suspend();
-
-    void Finalize() override;
-
-    bool IsSignaled() const override;
 
     void SetSyncedObject(KSynchronizationObject* obj, ResultCode wait_res) {
         synced_object = obj;
@@ -422,6 +372,40 @@ public:
         return termination_requested || GetRawState() == ThreadState::Terminated;
     }
 
+    [[nodiscard]] virtual u64 GetId() const override final {
+        return this->GetThreadID();
+    }
+
+    [[nodiscard]] virtual bool IsInitialized() const override {
+        return initialized;
+    }
+
+    [[nodiscard]] virtual uintptr_t GetPostDestroyArgument() const override {
+        return reinterpret_cast<uintptr_t>(parent) | (resource_limit_release_hint ? 1 : 0);
+    }
+
+    virtual void Finalize() override;
+
+    [[nodiscard]] virtual bool IsSignaled() const override;
+
+    static void PostDestroy(uintptr_t arg);
+
+    [[nodiscard]] static ResultCode InitializeDummyThread(KThread* thread);
+
+    [[nodiscard]] static ResultCode InitializeIdleThread(Core::System& system, KThread* thread,
+                                                         s32 virt_core);
+
+    [[nodiscard]] static ResultCode InitializeHighPriorityThread(Core::System& system,
+                                                                 KThread* thread,
+                                                                 KThreadFunction func,
+                                                                 uintptr_t arg, s32 virt_core);
+
+    [[nodiscard]] static ResultCode InitializeUserThread(Core::System& system, KThread* thread,
+                                                         KThreadFunction func, uintptr_t arg,
+                                                         VAddr user_stack_top, s32 prio,
+                                                         s32 virt_core, Process* owner);
+
+public:
     struct StackParameters {
         u8 svc_permission[0x10];
         std::atomic<u8> dpc_flags;
@@ -675,7 +659,9 @@ private:
 
     [[nodiscard]] static ResultCode InitializeThread(KThread* thread, KThreadFunction func,
                                                      uintptr_t arg, VAddr user_stack_top, s32 prio,
-                                                     s32 core, Process* owner, ThreadType type);
+                                                     s32 core, Process* owner, ThreadType type,
+                                                     std::function<void(void*)>&& init_func,
+                                                     void* init_func_parameter);
 
     static void RestorePriority(KernelCore& kernel, KThread* thread);
 

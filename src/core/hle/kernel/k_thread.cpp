@@ -62,7 +62,7 @@ static void ResetThreadContext64(Core::ARM_Interface::ThreadContext64& context, 
 namespace Kernel {
 
 KThread::KThread(KernelCore& kernel)
-    : KSynchronizationObject{kernel}, activity_pause_lock{kernel} {}
+    : KAutoObjectWithSlabHeapAndContainer{kernel}, activity_pause_lock{kernel} {}
 KThread::~KThread() = default;
 
 ResultCode KThread::Initialize(KThreadFunction func, uintptr_t arg, VAddr user_stack_top, s32 prio,
@@ -177,6 +177,7 @@ ResultCode KThread::Initialize(KThreadFunction func, uintptr_t arg, VAddr user_s
     // Set parent, if relevant.
     if (owner != nullptr) {
         parent = owner;
+        parent->Open();
         parent->IncrementThreadCount();
     }
 
@@ -210,11 +211,53 @@ ResultCode KThread::Initialize(KThreadFunction func, uintptr_t arg, VAddr user_s
 
 ResultCode KThread::InitializeThread(KThread* thread, KThreadFunction func, uintptr_t arg,
                                      VAddr user_stack_top, s32 prio, s32 core, Process* owner,
-                                     ThreadType type) {
+                                     ThreadType type, std::function<void(void*)>&& init_func,
+                                     void* init_func_parameter) {
     // Initialize the thread.
     R_TRY(thread->Initialize(func, arg, user_stack_top, prio, core, owner, type));
 
+    // Initialize host context.
+    thread->host_context =
+        std::make_shared<Common::Fiber>(std::move(init_func), init_func_parameter);
+
     return RESULT_SUCCESS;
+}
+
+ResultCode KThread::InitializeDummyThread(KThread* thread) {
+    return thread->Initialize({}, {}, {}, DefaultThreadPriority, 3, {}, ThreadType::Main);
+}
+
+ResultCode KThread::InitializeIdleThread(Core::System& system, KThread* thread, s32 virt_core) {
+    return InitializeThread(thread, {}, {}, {}, IdleThreadPriority, virt_core, {}, ThreadType::Main,
+                            Core::CpuManager::GetIdleThreadStartFunc(),
+                            system.GetCpuManager().GetStartFuncParamater());
+}
+
+ResultCode KThread::InitializeHighPriorityThread(Core::System& system, KThread* thread,
+                                                 KThreadFunction func, uintptr_t arg,
+                                                 s32 virt_core) {
+    return InitializeThread(thread, func, arg, {}, {}, virt_core, nullptr, ThreadType::HighPriority,
+                            Core::CpuManager::GetSuspendThreadStartFunc(),
+                            system.GetCpuManager().GetStartFuncParamater());
+}
+
+ResultCode KThread::InitializeUserThread(Core::System& system, KThread* thread,
+                                         KThreadFunction func, uintptr_t arg, VAddr user_stack_top,
+                                         s32 prio, s32 virt_core, Process* owner) {
+    system.Kernel().GlobalSchedulerContext().AddThread(thread);
+    return InitializeThread(thread, func, arg, user_stack_top, prio, virt_core, owner,
+                            ThreadType::User, Core::CpuManager::GetGuestThreadStartFunc(),
+                            system.GetCpuManager().GetStartFuncParamater());
+}
+
+void KThread::PostDestroy(uintptr_t arg) {
+    Process* owner = reinterpret_cast<Process*>(arg & ~1ULL);
+    const bool resource_limit_release_hint = (arg & 1);
+    const s64 hint_value = (resource_limit_release_hint ? 0 : 1);
+    if (owner != nullptr) {
+        owner->GetResourceLimit()->Release(Kernel::LimitableResource::Threads, 1, hint_value);
+        owner->Close();
+    }
 }
 
 void KThread::Finalize() {
@@ -294,6 +337,9 @@ void KThread::StartTermination() {
 
     // Register terminated dpc flag.
     RegisterDpc(DpcFlag::Terminated);
+
+    // Close the thread.
+    this->Close();
 }
 
 void KThread::Pin() {
@@ -993,56 +1039,6 @@ void KThread::SetState(ThreadState state) {
 
 std::shared_ptr<Common::Fiber>& KThread::GetHostContext() {
     return host_context;
-}
-
-ResultVal<std::shared_ptr<KThread>> KThread::CreateThread(Core::System& system,
-                                                          ThreadType type_flags, std::string name,
-                                                          VAddr entry_point, u32 priority, u64 arg,
-                                                          s32 processor_id, VAddr stack_top,
-                                                          Process* owner_process) {
-    auto& kernel = system.Kernel();
-
-    std::shared_ptr<KThread> thread = std::make_shared<KThread>(kernel);
-
-    if (const auto result =
-            thread->InitializeThread(thread.get(), entry_point, arg, stack_top, priority,
-                                     processor_id, owner_process, type_flags);
-        result.IsError()) {
-        return result;
-    }
-
-    thread->name = name;
-
-    auto& scheduler = kernel.GlobalSchedulerContext();
-    scheduler.AddThread(thread);
-
-    return MakeResult<std::shared_ptr<KThread>>(std::move(thread));
-}
-
-ResultVal<std::shared_ptr<KThread>> KThread::CreateThread(
-    Core::System& system, ThreadType type_flags, std::string name, VAddr entry_point, u32 priority,
-    u64 arg, s32 processor_id, VAddr stack_top, Process* owner_process,
-    std::function<void(void*)>&& thread_start_func, void* thread_start_parameter) {
-    auto thread_result = CreateThread(system, type_flags, name, entry_point, priority, arg,
-                                      processor_id, stack_top, owner_process);
-
-    if (thread_result.Succeeded()) {
-        (*thread_result)->host_context =
-            std::make_shared<Common::Fiber>(std::move(thread_start_func), thread_start_parameter);
-    }
-
-    return thread_result;
-}
-
-ResultVal<std::shared_ptr<KThread>> KThread::CreateUserThread(
-    Core::System& system, ThreadType type_flags, std::string name, VAddr entry_point, u32 priority,
-    u64 arg, s32 processor_id, VAddr stack_top, Process* owner_process) {
-    std::function<void(void*)> init_func = Core::CpuManager::GetGuestThreadStartFunc();
-
-    void* init_func_parameter = system.GetCpuManager().GetStartFuncParamater();
-
-    return CreateThread(system, type_flags, name, entry_point, priority, arg, processor_id,
-                        stack_top, owner_process, std::move(init_func), init_func_parameter);
 }
 
 KThread* GetCurrentThreadPointer(KernelCore& kernel) {
