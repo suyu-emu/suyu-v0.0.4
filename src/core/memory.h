@@ -59,6 +59,11 @@ public:
     Memory& operator=(Memory&&) = default;
 
     /**
+     * Resets the state of the Memory system.
+     */
+    void Reset();
+
+    /**
      * Changes the currently active page table to that of the given process instance.
      *
      * @param process The process to use the page table of.
@@ -115,6 +120,15 @@ public:
      *          If the address is not valid, nullptr will be returned.
      */
     u8* GetPointer(VAddr vaddr);
+
+    /**
+     * Gets a pointer to the start of a kernel heap allocated memory region. Will allocate one if it
+     * does not already exist.
+     *
+     * @param start_vaddr Start virtual address for the memory region.
+     * @param size Size of the memory region.
+     */
+    u8* GetKernelBuffer(VAddr start_vaddr, size_t size);
 
     template <typename T>
     T* GetPointer(VAddr vaddr) {
@@ -524,6 +538,8 @@ public:
     void RasterizerMarkRegionCached(VAddr vaddr, u64 size, bool cached);
 
 private:
+    Core::System& system;
+
     struct Impl;
     std::unique_ptr<Impl> impl;
 };

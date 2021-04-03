@@ -311,6 +311,7 @@ struct System::Impl {
         gpu_core.reset();
         perf_stats.reset();
         kernel.Shutdown();
+        memory.Reset();
         applet_manager.ClearAll();
 
         LOG_DEBUG(Core, "Shutdown OK");

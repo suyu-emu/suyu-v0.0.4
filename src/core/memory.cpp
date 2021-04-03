@@ -82,6 +82,22 @@ struct Memory::Impl {
         return nullptr;
     }
 
+    u8* GetKernelBuffer(VAddr start_vaddr, size_t size) {
+        // TODO(bunnei): This is just a workaround until we have kernel memory layout mapped &
+        // managed. Until then, we use this to allocate and access kernel memory regions.
+
+        auto search = kernel_memory_regions.find(start_vaddr);
+        if (search != kernel_memory_regions.end()) {
+            return search->second.get();
+        }
+
+        std::unique_ptr<u8[]> new_memory_region{new u8[size]};
+        u8* raw_ptr = new_memory_region.get();
+        kernel_memory_regions[start_vaddr] = std::move(new_memory_region);
+
+        return raw_ptr;
+    }
+
     u8 Read8(const VAddr addr) {
         return Read<u8>(addr);
     }
@@ -711,11 +727,19 @@ struct Memory::Impl {
     }
 
     Common::PageTable* current_page_table = nullptr;
+    std::unordered_map<VAddr, std::unique_ptr<u8[]>> kernel_memory_regions;
     Core::System& system;
 };
 
-Memory::Memory(Core::System& system) : impl{std::make_unique<Impl>(system)} {}
+Memory::Memory(Core::System& system_) : system{system_} {
+    Reset();
+}
+
 Memory::~Memory() = default;
+
+void Memory::Reset() {
+    impl = std::make_unique<Impl>(system);
+}
 
 void Memory::SetCurrentPageTable(Kernel::Process& process, u32 core_id) {
     impl->SetCurrentPageTable(process, core_id);
@@ -739,6 +763,10 @@ bool Memory::IsValidVirtualAddress(const VAddr vaddr) const {
 
 u8* Memory::GetPointer(VAddr vaddr) {
     return impl->GetPointer(vaddr);
+}
+
+u8* Memory::GetKernelBuffer(VAddr start_vaddr, size_t size) {
+    return impl->GetKernelBuffer(start_vaddr, size);
 }
 
 const u8* Memory::GetPointer(VAddr vaddr) const {
