@@ -46,7 +46,7 @@ public:
         return HANDLE_TYPE;
     }
 
-    ResultCode SendSyncRequest(std::shared_ptr<KThread> thread, Core::Memory::Memory& memory,
+    ResultCode SendSyncRequest(KThread* thread, Core::Memory::Memory& memory,
                                Core::Timing::CoreTiming& core_timing);
 
     bool IsSignaled() const override;

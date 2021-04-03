@@ -46,11 +46,11 @@ void SessionRequestHandler::ClientDisconnected(
     boost::range::remove_erase(connected_sessions, server_session);
 }
 
-HLERequestContext::HLERequestContext(KernelCore& kernel, Core::Memory::Memory& memory,
-                                     std::shared_ptr<ServerSession> server_session,
-                                     std::shared_ptr<KThread> thread)
-    : server_session(std::move(server_session)),
-      thread(std::move(thread)), kernel{kernel}, memory{memory} {
+HLERequestContext::HLERequestContext(KernelCore& kernel_, Core::Memory::Memory& memory_,
+                                     std::shared_ptr<ServerSession> server_session_,
+                                     KThread* thread_)
+    : server_session(std::move(server_session_)),
+      thread(thread_), kernel{kernel_}, memory{memory_} {
     cmd_buf[0] = 0;
 }
 

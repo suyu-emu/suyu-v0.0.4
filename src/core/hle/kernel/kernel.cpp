@@ -60,8 +60,6 @@ struct KernelCore::Impl {
     void Initialize(KernelCore& kernel) {
         global_scheduler_context = std::make_unique<Kernel::GlobalSchedulerContext>(kernel);
 
-        RegisterHostThread();
-
         service_thread_manager =
             std::make_unique<Common::ThreadWorker>(1, "yuzu:ServiceThreadManager");
         is_phantom_mode_for_singlecore = false;
@@ -77,6 +75,8 @@ struct KernelCore::Impl {
         InitializeSchedulers();
         InitializeSuspendThreads();
         InitializePreemption(kernel);
+
+        RegisterHostThread();
     }
 
     void InitializeCores() {

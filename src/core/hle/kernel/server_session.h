@@ -95,7 +95,7 @@ public:
      *
      * @returns ResultCode from the operation.
      */
-    ResultCode HandleSyncRequest(std::shared_ptr<KThread> thread, Core::Memory::Memory& memory,
+    ResultCode HandleSyncRequest(KThread* thread, Core::Memory::Memory& memory,
                                  Core::Timing::CoreTiming& core_timing);
 
     /// Called when a client disconnection occurs.
@@ -130,7 +130,7 @@ public:
 
 private:
     /// Queues a sync request from the emulated application.
-    ResultCode QueueSyncRequest(std::shared_ptr<KThread> thread, Core::Memory::Memory& memory);
+    ResultCode QueueSyncRequest(KThread* thread, Core::Memory::Memory& memory);
 
     /// Completes a sync request from the emulated application.
     ResultCode CompleteSyncRequest(HLERequestContext& context);
@@ -147,16 +147,6 @@ private:
 
     /// This is the list of domain request handlers (after conversion to a domain)
     std::vector<std::shared_ptr<SessionRequestHandler>> domain_request_handlers;
-
-    /// List of threads that are pending a response after a sync request. This list is processed in
-    /// a LIFO manner, thus, the last request will be dispatched first.
-    /// TODO(Subv): Verify if this is indeed processed in LIFO using a hardware test.
-    std::vector<std::shared_ptr<KThread>> pending_requesting_threads;
-
-    /// Thread whose request is currently being handled. A request is considered "handled" when a
-    /// response is sent via svcReplyAndReceive.
-    /// TODO(Subv): Find a better name for this.
-    std::shared_ptr<KThread> currently_handling;
 
     /// When set to True, converts the session to a domain at the end of the command
     bool convert_to_domain{};

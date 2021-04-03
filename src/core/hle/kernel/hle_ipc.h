@@ -109,8 +109,7 @@ protected:
 class HLERequestContext {
 public:
     explicit HLERequestContext(KernelCore& kernel, Core::Memory::Memory& memory,
-                               std::shared_ptr<ServerSession> session,
-                               std::shared_ptr<KThread> thread);
+                               std::shared_ptr<ServerSession> session, KThread* thread);
     ~HLERequestContext();
 
     /// Returns a pointer to the IPC command buffer for this request.
@@ -276,10 +275,6 @@ public:
         return *thread;
     }
 
-    const KThread& GetThread() const {
-        return *thread;
-    }
-
     bool IsThreadWaiting() const {
         return is_thread_waiting;
     }
@@ -291,7 +286,8 @@ private:
 
     std::array<u32, IPC::COMMAND_BUFFER_LENGTH> cmd_buf;
     std::shared_ptr<Kernel::ServerSession> server_session;
-    std::shared_ptr<KThread> thread;
+    KThread* thread;
+
     // TODO(yuriks): Check common usage of this and optimize size accordingly
     boost::container::small_vector<Handle, 8> move_handles;
     boost::container::small_vector<Handle, 8> copy_handles;

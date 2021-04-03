@@ -38,13 +38,13 @@ public:
     ~GlobalSchedulerContext();
 
     /// Adds a new thread to the scheduler
-    void AddThread(std::shared_ptr<KThread> thread);
+    void AddThread(KThread* thread);
 
     /// Removes a thread from the scheduler
-    void RemoveThread(std::shared_ptr<KThread> thread);
+    void RemoveThread(KThread* thread);
 
     /// Returns a list of all threads managed by the scheduler
-    [[nodiscard]] const std::vector<std::shared_ptr<KThread>>& GetThreadList() const {
+    [[nodiscard]] const std::vector<KThread*>& GetThreadList() const {
         return thread_list;
     }
 
@@ -79,7 +79,7 @@ private:
     LockType scheduler_lock;
 
     /// Lists all thread ids that aren't deleted/etc.
-    std::vector<std::shared_ptr<KThread>> thread_list;
+    std::vector<KThread*> thread_list;
     Common::SpinLock global_list_guard{};
 };
 

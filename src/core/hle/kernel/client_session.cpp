@@ -38,8 +38,7 @@ ResultVal<std::shared_ptr<ClientSession>> ClientSession::Create(KernelCore& kern
     return MakeResult(std::move(client_session));
 }
 
-ResultCode ClientSession::SendSyncRequest(std::shared_ptr<KThread> thread,
-                                          Core::Memory::Memory& memory,
+ResultCode ClientSession::SendSyncRequest(KThread* thread, Core::Memory::Memory& memory,
                                           Core::Timing::CoreTiming& core_timing) {
     // Keep ServerSession alive until we're done working with it.
     if (!parent->Server()) {

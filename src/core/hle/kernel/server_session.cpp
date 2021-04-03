@@ -44,12 +44,7 @@ ResultVal<std::shared_ptr<ServerSession>> ServerSession::Create(KernelCore& kern
 
 bool ServerSession::IsSignaled() const {
     // Closed sessions should never wait, an error will be returned from svcReplyAndReceive.
-    if (!parent->Client()) {
-        return true;
-    }
-
-    // Wait if we have no pending requests, or if we're currently handling a request.
-    return !pending_requesting_threads.empty() && currently_handling == nullptr;
+    return !parent->Client();
 }
 
 void ServerSession::ClientDisconnected() {
@@ -62,11 +57,6 @@ void ServerSession::ClientDisconnected() {
         // invalidated (set to null).
         handler->ClientDisconnected(SharedFrom(this));
     }
-
-    // Clean up the list of client threads with pending requests, they are unneeded now that the
-    // client endpoint is closed.
-    pending_requesting_threads.clear();
-    currently_handling = nullptr;
 }
 
 void ServerSession::AppendDomainRequestHandler(std::shared_ptr<SessionRequestHandler> handler) {
@@ -116,11 +106,9 @@ ResultCode ServerSession::HandleDomainSyncRequest(Kernel::HLERequestContext& con
     return RESULT_SUCCESS;
 }
 
-ResultCode ServerSession::QueueSyncRequest(std::shared_ptr<KThread> thread,
-                                           Core::Memory::Memory& memory) {
+ResultCode ServerSession::QueueSyncRequest(KThread* thread, Core::Memory::Memory& memory) {
     u32* cmd_buf{reinterpret_cast<u32*>(memory.GetPointer(thread->GetTLSAddress()))};
-    auto context =
-        std::make_shared<HLERequestContext>(kernel, memory, SharedFrom(this), std::move(thread));
+    auto context = std::make_shared<HLERequestContext>(kernel, memory, SharedFrom(this), thread);
 
     context->PopulateFromIncomingCommandBuffer(kernel.CurrentProcess()->GetHandleTable(), cmd_buf);
 
@@ -161,10 +149,9 @@ ResultCode ServerSession::CompleteSyncRequest(HLERequestContext& context) {
     return result;
 }
 
-ResultCode ServerSession::HandleSyncRequest(std::shared_ptr<KThread> thread,
-                                            Core::Memory::Memory& memory,
+ResultCode ServerSession::HandleSyncRequest(KThread* thread, Core::Memory::Memory& memory,
                                             Core::Timing::CoreTiming& core_timing) {
-    return QueueSyncRequest(std::move(thread), memory);
+    return QueueSyncRequest(thread, memory);
 }
 
 } // namespace Kernel
