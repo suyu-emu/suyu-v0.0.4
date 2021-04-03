@@ -1521,6 +1521,7 @@ static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr e
         return ResultInvalidPriority;
     }
 
+    // Reserve a new thread from the process resource limit (waiting up to 100ms).
     KScopedResourceReservation thread_reservation(
         kernel.CurrentProcess(), LimitableResource::Threads, 1,
         system.CoreTiming().GetGlobalTimeNs().count() + 100000000);
@@ -1529,26 +1530,32 @@ static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr e
         return ResultResourceLimitedExceeded;
     }
 
-    std::shared_ptr<KThread> thread;
+    // Create the thread.
+    KThread* thread = KThread::CreateWithKernel(kernel);
+    if (!thread) {
+        LOG_ERROR(Kernel_SVC, "Unable to create new threads. Thread creation limit reached.");
+        return ResultOutOfResource;
+    }
+    SCOPE_EXIT({ thread->Close(); });
+
+    // Initialize the thread.
     {
         KScopedLightLock lk{process.GetStateLock()};
-        CASCADE_RESULT(thread,
-                       KThread::CreateUserThread(system, ThreadType::User, "", entry_point,
-                                                 priority, arg, core_id, stack_bottom, &process));
+        R_TRY(KThread::InitializeUserThread(system, thread, entry_point, arg, stack_bottom,
+                                            priority, core_id, &process));
     }
-
-    const auto new_thread_handle = process.GetHandleTable().Create(thread);
-    if (new_thread_handle.Failed()) {
-        LOG_ERROR(Kernel_SVC, "Failed to create handle with error=0x{:X}",
-                  new_thread_handle.Code().raw);
-        return new_thread_handle.Code();
-    }
-    *out_handle = *new_thread_handle;
 
     // Set the thread name for debugging purposes.
-    thread->SetName(
-        fmt::format("thread[entry_point={:X}, handle={:X}]", entry_point, *new_thread_handle));
+    thread->SetName(fmt::format("thread[entry_point={:X}, handle={:X}]", entry_point, *out_handle));
+
+    // Commit the thread reservation.
     thread_reservation.Commit();
+
+    // Register the new thread.
+    KThread::Register(thread);
+
+    // Add the thread to the handle table.
+    R_TRY(process.GetHandleTable().Add(out_handle, thread));
 
     return RESULT_SUCCESS;
 }
