@@ -177,6 +177,10 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable* 
     // Timing
     config.wall_clock_cntpct = uses_wall_clock;
 
+    // Code cache size
+    config.code_cache_size = 512 * 1024 * 1024;
+    config.far_code_offset = 256 * 1024 * 1024;
+
     // Safe optimizations
     if (Settings::values.cpu_accuracy == Settings::CPUAccuracy::DebugMode) {
         if (!Settings::values.cpuopt_page_tables) {
