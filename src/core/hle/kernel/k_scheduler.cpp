@@ -623,7 +623,7 @@ KThread* KScheduler::GetCurrentThread() const {
     if (auto result = current_thread.load(); result) {
         return result;
     }
-    return idle_thread;
+    return idle_thread.get();
 }
 
 u64 KScheduler::GetLastContextSwitchTicks() const {
@@ -708,7 +708,7 @@ void KScheduler::ScheduleImpl() {
 
     // We never want to schedule a null thread, so use the idle thread if we don't have a next.
     if (next_thread == nullptr) {
-        next_thread = idle_thread;
+        next_thread = idle_thread.get();
     }
 
     // If we're not actually switching thread, there's nothing to do.
@@ -769,7 +769,7 @@ void KScheduler::SwitchToCurrent() {
                     break;
                 }
             }
-            auto thread = next_thread ? next_thread : idle_thread;
+            auto thread = next_thread ? next_thread : idle_thread.get();
             Common::Fiber::YieldTo(switch_fiber, *thread->GetHostContext());
         } while (!is_switch_pending());
     }
@@ -792,13 +792,9 @@ void KScheduler::UpdateLastContextSwitchTime(KThread* thread, Process* process) 
 }
 
 void KScheduler::Initialize() {
-    std::string name = "Idle Thread Id:" + std::to_string(core_id);
-    std::function<void(void*)> init_func = Core::CpuManager::GetIdleThreadStartFunc();
-    void* init_func_parameter = system.GetCpuManager().GetStartFuncParamater();
-    auto thread_res = KThread::CreateThread(
-        system, ThreadType::Main, name, 0, KThread::IdleThreadPriority, 0,
-        static_cast<u32>(core_id), 0, nullptr, std::move(init_func), init_func_parameter);
-    idle_thread = thread_res.Unwrap().get();
+    idle_thread = std::make_unique<KThread>(system.Kernel());
+    ASSERT(KThread::InitializeIdleThread(system, idle_thread.get(), core_id).IsSuccess());
+    idle_thread->SetName(fmt::format("IdleThread:{}", core_id));
 }
 
 KScopedSchedulerLock::KScopedSchedulerLock(KernelCore& kernel)
