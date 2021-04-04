@@ -11,24 +11,26 @@
 #include "core/device_memory.h"
 #include "core/hle/kernel/k_memory_block.h"
 #include "core/hle/kernel/k_page_linked_list.h"
-#include "core/hle/kernel/object.h"
 #include "core/hle/kernel/process.h"
+#include "core/hle/kernel/slab_helpers.h"
 #include "core/hle/result.h"
 
 namespace Kernel {
 
 class KernelCore;
 
-class KSharedMemory final : public Object {
+class KSharedMemory final
+    : public KAutoObjectWithSlabHeapAndContainer<KSharedMemory, KAutoObjectWithList> {
+    KERNEL_AUTOOBJECT_TRAITS(KSharedMemory, KAutoObject);
+
 public:
-    explicit KSharedMemory(KernelCore& kernel, Core::DeviceMemory& device_memory);
+    explicit KSharedMemory(KernelCore& kernel);
     ~KSharedMemory() override;
 
-    static std::shared_ptr<KSharedMemory> Create(
-        KernelCore& kernel, Core::DeviceMemory& device_memory, Process* owner_process,
-        KPageLinkedList&& page_list, KMemoryPermission owner_permission,
-        KMemoryPermission user_permission, PAddr physical_address, std::size_t size,
-        std::string name);
+    ResultCode Initialize(KernelCore& kernel_, Core::DeviceMemory& device_memory_,
+                          Process* owner_process_, KPageLinkedList&& page_list_,
+                          KMemoryPermission owner_permission_, KMemoryPermission user_permission_,
+                          PAddr physical_address_, std::size_t size_, std::string name_);
 
     std::string GetTypeName() const override {
         return "SharedMemory";
@@ -59,7 +61,7 @@ public:
      * @return A pointer to the shared memory block from the specified offset
      */
     u8* GetPointer(std::size_t offset = 0) {
-        return device_memory.GetPointer(physical_address + offset);
+        return device_memory->GetPointer(physical_address + offset);
     }
 
     /**
@@ -68,20 +70,26 @@ public:
      * @return A pointer to the shared memory block from the specified offset
      */
     const u8* GetPointer(std::size_t offset = 0) const {
-        return device_memory.GetPointer(physical_address + offset);
+        return device_memory->GetPointer(physical_address + offset);
     }
 
-    void Finalize() override {}
+    virtual void Finalize() override;
+
+    virtual bool IsInitialized() const override {
+        return is_initialized;
+    }
+    static void PostDestroy([[maybe_unused]] uintptr_t arg) {}
 
 private:
-    Core::DeviceMemory& device_memory;
+    Core::DeviceMemory* device_memory;
     Process* owner_process{};
     KPageLinkedList page_list;
     KMemoryPermission owner_permission{};
     KMemoryPermission user_permission{};
     PAddr physical_address{};
     std::size_t size{};
-    std::string name;
+    std::shared_ptr<KResourceLimit> resource_limit;
+    bool is_initialized{};
 };
 
 } // namespace Kernel

@@ -225,12 +225,12 @@ ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(KThread& thread) {
         // for specific values in each of these descriptors.
         for (auto& object : copy_objects) {
             ASSERT(object != nullptr);
-            dst_cmdbuf[current_offset++] = handle_table.Create(SharedFrom(object)).Unwrap();
+            dst_cmdbuf[current_offset++] = handle_table.Create(object).Unwrap();
         }
 
         for (auto& object : move_objects) {
             ASSERT(object != nullptr);
-            dst_cmdbuf[current_offset++] = handle_table.Create(SharedFrom(object)).Unwrap();
+            dst_cmdbuf[current_offset++] = handle_table.Create(object).Unwrap();
         }
     }
 

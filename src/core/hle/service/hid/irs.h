@@ -11,10 +11,6 @@ namespace Core {
 class System;
 }
 
-namespace Kernel {
-class KSharedMemory;
-}
-
 namespace Service::HID {
 
 class IRS final : public ServiceFramework<IRS> {
@@ -42,7 +38,6 @@ private:
     void StopImageProcessorAsync(Kernel::HLERequestContext& ctx);
     void ActivateIrsensorWithFunctionLevel(Kernel::HLERequestContext& ctx);
 
-    std::shared_ptr<Kernel::KSharedMemory> shared_mem;
     const u32 device_handle{0xABCD};
 };
 

@@ -328,7 +328,7 @@ static ResultCode ConnectToNamedPort(Core::System& system, Handle* out_handle,
 
     // Return the client session
     auto& handle_table = kernel.CurrentProcess()->GetHandleTable();
-    CASCADE_RESULT(*out_handle, handle_table.Create(client_session));
+    CASCADE_RESULT(*out_handle, handle_table.Create(client_session.get()));
     return RESULT_SUCCESS;
 }
 
@@ -836,7 +836,7 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
             return RESULT_SUCCESS;
         }
 
-        const auto table_result = handle_table.Create(resource_limit);
+        const auto table_result = handle_table.Create(resource_limit.get());
         if (table_result.Failed()) {
             return table_result.Code();
         }
@@ -1168,12 +1168,9 @@ static ResultCode MapSharedMemory(Core::System& system, Handle shared_memory_han
         return ResultInvalidMemoryRange;
     }
 
-    auto shared_memory{current_process->GetHandleTable().Get<KSharedMemory>(shared_memory_handle)};
-    if (!shared_memory) {
-        LOG_ERROR(Kernel_SVC, "Shared memory does not exist, shared_memory_handle=0x{:08X}",
-                  shared_memory_handle);
-        return ResultInvalidHandle;
-    }
+    auto shared_memory{
+        current_process->GetHandleTable().GetObject<KSharedMemory>(shared_memory_handle)};
+    R_UNLESS(shared_memory.IsNotNull(), ResultInvalidHandle);
 
     return shared_memory->Map(*current_process, addr, size,
                               static_cast<KMemoryPermission>(permission_type));
@@ -1817,7 +1814,7 @@ static ResultCode CreateTransferMemory(Core::System& system, Handle* handle, VAd
     }
 
     auto& handle_table = kernel.CurrentProcess()->GetHandleTable();
-    const auto result{handle_table.Create(std::move(transfer_mem_handle))};
+    const auto result{handle_table.Create(transfer_mem_handle.get())};
     if (result.Failed()) {
         return result.Code();
     }
@@ -1966,7 +1963,7 @@ static ResultCode CreateEvent(Core::System& system, Handle* out_write, Handle* o
     event->Initialize();
 
     // Add the writable event to the handle table.
-    const auto write_create_result = handle_table.Create(event->GetWritableEvent());
+    const auto write_create_result = handle_table.Create(event->GetWritableEvent().get());
     if (write_create_result.Failed()) {
         return write_create_result.Code();
     }
@@ -1976,7 +1973,7 @@ static ResultCode CreateEvent(Core::System& system, Handle* out_write, Handle* o
     auto handle_guard = SCOPE_GUARD({ handle_table.Remove(*write_create_result); });
 
     // Add the readable event to the handle table.
-    const auto read_create_result = handle_table.Create(SharedFrom(event->GetReadableEvent()));
+    const auto read_create_result = handle_table.Create(event->GetReadableEvent());
     if (read_create_result.Failed()) {
         return read_create_result.Code();
     }
@@ -2027,7 +2024,7 @@ static ResultCode CreateResourceLimit(Core::System& system, Handle* out_handle) 
     auto* const current_process = kernel.CurrentProcess();
     ASSERT(current_process != nullptr);
 
-    const auto handle = current_process->GetHandleTable().Create(std::move(resource_limit));
+    const auto handle = current_process->GetHandleTable().Create(resource_limit.get());
     if (handle.Failed()) {
         return handle.Code();
     }

@@ -11,36 +11,53 @@
 
 namespace Kernel {
 
-KSharedMemory::KSharedMemory(KernelCore& kernel, Core::DeviceMemory& device_memory)
-    : Object{kernel}, device_memory{device_memory} {}
+KSharedMemory::KSharedMemory(KernelCore& kernel) : KAutoObjectWithSlabHeapAndContainer{kernel} {}
 
 KSharedMemory::~KSharedMemory() {
     kernel.GetSystemResourceLimit()->Release(LimitableResource::PhysicalMemory, size);
 }
 
-std::shared_ptr<KSharedMemory> KSharedMemory::Create(
-    KernelCore& kernel, Core::DeviceMemory& device_memory, Process* owner_process,
-    KPageLinkedList&& page_list, KMemoryPermission owner_permission,
-    KMemoryPermission user_permission, PAddr physical_address, std::size_t size, std::string name) {
+ResultCode KSharedMemory::Initialize(KernelCore& kernel_, Core::DeviceMemory& device_memory_,
+                                     Process* owner_process_, KPageLinkedList&& page_list_,
+                                     KMemoryPermission owner_permission_,
+                                     KMemoryPermission user_permission_, PAddr physical_address_,
+                                     std::size_t size_, std::string name_) {
 
-    const auto resource_limit = kernel.GetSystemResourceLimit();
+    resource_limit = kernel_.GetSystemResourceLimit();
     KScopedResourceReservation memory_reservation(resource_limit, LimitableResource::PhysicalMemory,
-                                                  size);
+                                                  size_);
     ASSERT(memory_reservation.Succeeded());
 
-    std::shared_ptr<KSharedMemory> shared_memory{
-        std::make_shared<KSharedMemory>(kernel, device_memory)};
-
-    shared_memory->owner_process = owner_process;
-    shared_memory->page_list = std::move(page_list);
-    shared_memory->owner_permission = owner_permission;
-    shared_memory->user_permission = user_permission;
-    shared_memory->physical_address = physical_address;
-    shared_memory->size = size;
-    shared_memory->name = name;
+    owner_process = owner_process_;
+    device_memory = &device_memory_;
+    page_list = std::move(page_list_);
+    owner_permission = owner_permission_;
+    user_permission = user_permission_;
+    physical_address = physical_address_;
+    size = size_;
+    name = name_;
+    is_initialized = true;
 
     memory_reservation.Commit();
-    return shared_memory;
+
+    return RESULT_SUCCESS;
+}
+
+void KSharedMemory::Finalize() {
+    ///* Get the number of pages. */
+    // const size_t num_pages = m_page_group.GetNumPages();
+    // const size_t size = num_pages * PageSize;
+
+    ///* Close and finalize the page group. */
+    // m_page_group.Close();
+    // m_page_group.Finalize();
+
+    // Release the memory reservation.
+    resource_limit->Release(LimitableResource::PhysicalMemory, size);
+    resource_limit->Close();
+
+    // Perform inherited finalization.
+    KAutoObjectWithSlabHeapAndContainer<KSharedMemory, KAutoObjectWithList>::Finalize();
 }
 
 ResultCode KSharedMemory::Map(Process& target_process, VAddr address, std::size_t size,

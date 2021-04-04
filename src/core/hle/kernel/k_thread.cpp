@@ -291,6 +291,9 @@ void KThread::Finalize() {
         parent->DecrementThreadCount();
         parent->GetResourceLimit()->Release(LimitableResource::Threads, 1);
     }
+
+    // Perform inherited finalization.
+    KAutoObjectWithSlabHeapAndContainer<KThread, KSynchronizationObject>::Finalize();
 }
 
 bool KThread::IsSignaled() const {

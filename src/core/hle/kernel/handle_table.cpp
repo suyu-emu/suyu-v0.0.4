@@ -47,8 +47,20 @@ ResultCode HandleTable::SetSize(s32 handle_table_size) {
     return RESULT_SUCCESS;
 }
 
-ResultVal<Handle> HandleTable::Create(std::shared_ptr<Object> obj) {
+ResultVal<Handle> HandleTable::Create(Object* obj) {
     DEBUG_ASSERT(obj != nullptr);
+
+    switch (obj->GetHandleType()) {
+    case HandleType::SharedMemory:
+    case HandleType::Thread:
+    case HandleType::Process: {
+        Handle handle{};
+        Add(&handle, reinterpret_cast<KAutoObject*>(obj), {});
+        return MakeResult<Handle>(handle);
+    }
+    default:
+        break;
+    }
 
     const u16 slot = next_free_slot;
     if (slot >= table_size) {
@@ -66,7 +78,7 @@ ResultVal<Handle> HandleTable::Create(std::shared_ptr<Object> obj) {
     }
 
     generations[slot] = generation;
-    objects[slot] = std::move(obj);
+    objects[slot] = std::move(SharedFrom(obj));
 
     Handle handle = generation | (slot << 15);
     return MakeResult<Handle>(handle);
@@ -100,12 +112,12 @@ ResultCode HandleTable::Add(Handle* out_handle, KAutoObject* obj, u16 type) {
 }
 
 ResultVal<Handle> HandleTable::Duplicate(Handle handle) {
-    std::shared_ptr<Object> object = SharedFrom(GetGeneric(handle));
+    auto object = GetGeneric(handle);
     if (object == nullptr) {
         LOG_ERROR(Kernel, "Tried to duplicate invalid handle: {:08X}", handle);
         return ResultInvalidHandle;
     }
-    return Create(std::move(object));
+    return Create(object);
 }
 
 bool HandleTable::Remove(Handle handle) {

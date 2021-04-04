@@ -575,22 +575,27 @@ struct KernelCore::Impl {
         const PAddr irs_phys_addr{system_pool.GetAddress() + hid_size + font_size};
         const PAddr time_phys_addr{system_pool.GetAddress() + hid_size + font_size + irs_size};
 
-        hid_shared_mem = Kernel::KSharedMemory::Create(
-            system.Kernel(), system.DeviceMemory(), nullptr, {hid_phys_addr, hid_size / PageSize},
-            KMemoryPermission::None, KMemoryPermission::Read, hid_phys_addr, hid_size,
-            "HID:SharedMemory");
-        font_shared_mem = Kernel::KSharedMemory::Create(
-            system.Kernel(), system.DeviceMemory(), nullptr, {font_phys_addr, font_size / PageSize},
-            KMemoryPermission::None, KMemoryPermission::Read, font_phys_addr, font_size,
-            "Font:SharedMemory");
-        irs_shared_mem = Kernel::KSharedMemory::Create(
-            system.Kernel(), system.DeviceMemory(), nullptr, {irs_phys_addr, irs_size / PageSize},
-            KMemoryPermission::None, KMemoryPermission::Read, irs_phys_addr, irs_size,
-            "IRS:SharedMemory");
-        time_shared_mem = Kernel::KSharedMemory::Create(
-            system.Kernel(), system.DeviceMemory(), nullptr, {time_phys_addr, time_size / PageSize},
-            KMemoryPermission::None, KMemoryPermission::Read, time_phys_addr, time_size,
-            "Time:SharedMemory");
+        hid_shared_mem = std::make_unique<KSharedMemory>(system.Kernel());
+        font_shared_mem = std::make_unique<KSharedMemory>(system.Kernel());
+        irs_shared_mem = std::make_unique<KSharedMemory>(system.Kernel());
+        time_shared_mem = std::make_unique<KSharedMemory>(system.Kernel());
+
+        hid_shared_mem->Initialize(system.Kernel(), system.DeviceMemory(), nullptr,
+                                   {hid_phys_addr, hid_size / PageSize}, KMemoryPermission::None,
+                                   KMemoryPermission::Read, hid_phys_addr, hid_size,
+                                   "HID:SharedMemory");
+        font_shared_mem->Initialize(system.Kernel(), system.DeviceMemory(), nullptr,
+                                    {font_phys_addr, font_size / PageSize}, KMemoryPermission::None,
+                                    KMemoryPermission::Read, font_phys_addr, font_size,
+                                    "Font:SharedMemory");
+        irs_shared_mem->Initialize(system.Kernel(), system.DeviceMemory(), nullptr,
+                                   {irs_phys_addr, irs_size / PageSize}, KMemoryPermission::None,
+                                   KMemoryPermission::Read, irs_phys_addr, irs_size,
+                                   "IRS:SharedMemory");
+        time_shared_mem->Initialize(system.Kernel(), system.DeviceMemory(), nullptr,
+                                    {time_phys_addr, time_size / PageSize}, KMemoryPermission::None,
+                                    KMemoryPermission::Read, time_phys_addr, time_size,
+                                    "Time:SharedMemory");
     }
 
     void InitializePageSlab() {
@@ -644,10 +649,10 @@ struct KernelCore::Impl {
     std::unique_ptr<KSlabHeap<Page>> user_slab_heap_pages;
 
     // Shared memory for services
-    std::shared_ptr<Kernel::KSharedMemory> hid_shared_mem;
-    std::shared_ptr<Kernel::KSharedMemory> font_shared_mem;
-    std::shared_ptr<Kernel::KSharedMemory> irs_shared_mem;
-    std::shared_ptr<Kernel::KSharedMemory> time_shared_mem;
+    std::unique_ptr<Kernel::KSharedMemory> hid_shared_mem;
+    std::unique_ptr<Kernel::KSharedMemory> font_shared_mem;
+    std::unique_ptr<Kernel::KSharedMemory> irs_shared_mem;
+    std::unique_ptr<Kernel::KSharedMemory> time_shared_mem;
 
     // Threads used for services
     std::unordered_set<std::shared_ptr<Kernel::ServiceThread>> service_threads;

@@ -74,7 +74,7 @@ public:
      * @return The created Handle or one of the following errors:
      *           - `ERR_HANDLE_TABLE_FULL`: the maximum number of handles has been exceeded.
      */
-    ResultVal<Handle> Create(std::shared_ptr<Object> obj);
+    ResultVal<Handle> Create(Object* obj);
 
     /**
      * Returns a new handle that points to the same object as the passed in handle.
