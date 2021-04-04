@@ -227,7 +227,7 @@ void ConfigureGraphics::RetrieveVulkanDevices() try {
     vulkan_devices.clear();
     vulkan_devices.reserve(physical_devices.size());
     for (const VkPhysicalDevice device : physical_devices) {
-        const char* const name = vk::PhysicalDevice(device, dld).GetProperties().deviceName;
+        const std::string name = vk::PhysicalDevice(device, dld).GetProperties().deviceName;
         vulkan_devices.push_back(QString::fromStdString(name));
     }
 
