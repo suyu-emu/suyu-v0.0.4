@@ -91,7 +91,7 @@ std::size_t WaitTreeItem::Row() const {
 std::vector<std::unique_ptr<WaitTreeThread>> WaitTreeItem::MakeThreadItemList() {
     std::vector<std::unique_ptr<WaitTreeThread>> item_list;
     std::size_t row = 0;
-    auto add_threads = [&](const std::vector<std::shared_ptr<Kernel::KThread>>& threads) {
+    auto add_threads = [&](const std::vector<Kernel::KThread*>& threads) {
         for (std::size_t i = 0; i < threads.size(); ++i) {
             if (threads[i]->GetThreadTypeForDebugging() == Kernel::ThreadType::User) {
                 item_list.push_back(std::make_unique<WaitTreeThread>(*threads[i]));
@@ -183,10 +183,12 @@ bool WaitTreeExpandableItem::IsExpandable() const {
 }
 
 QString WaitTreeSynchronizationObject::GetText() const {
-    return tr("[%1]%2 %3")
-        .arg(object.GetObjectId())
-        .arg(QString::fromStdString(object.GetTypeName()),
-             QString::fromStdString(object.GetName()));
+    // return tr("[%1]%2 %3")
+    //    .arg(object.GetObjectId())
+    //    .arg(QString::fromStdString(object.GetTypeName()),
+    //         QString::fromStdString(object.GetName()));
+
+    return tr("UNIMPLEMENTED");
 }
 
 std::unique_ptr<WaitTreeSynchronizationObject> WaitTreeSynchronizationObject::make(

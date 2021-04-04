@@ -28,6 +28,7 @@
 #include "core/hardware_properties.h"
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/init/init_slab_setup.h"
 #include "core/hle/kernel/k_memory_layout.h"
 #include "core/hle/kernel/k_memory_manager.h"
 #include "core/hle/kernel/k_resource_limit.h"
@@ -51,7 +52,8 @@ namespace Kernel {
 
 struct KernelCore::Impl {
     explicit Impl(Core::System& system, KernelCore& kernel)
-        : time_manager{system}, global_handle_table{kernel}, system{system} {}
+        : time_manager{system}, global_handle_table{kernel},
+          object_list_container{kernel}, system{system} {}
 
     void SetMulticore(bool is_multicore) {
         this->is_multicore = is_multicore;
@@ -69,9 +71,12 @@ struct KernelCore::Impl {
         // Derive the initial memory layout from the emulated board
         KMemoryLayout memory_layout;
         DeriveInitialMemoryLayout(memory_layout);
+        Init::InitializeSlabHeaps(system, memory_layout);
+
+        // Initialize kernel memory and resources.
         InitializeMemoryLayout(memory_layout);
         InitializeSystemResourceLimit(kernel, system.CoreTiming(), memory_layout);
-        InitializeSlabHeaps();
+        InitializePageSlab();
         InitializeSchedulers();
         InitializeSuspendThreads();
         InitializePreemption(kernel);
@@ -99,7 +104,7 @@ struct KernelCore::Impl {
 
         for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
             if (suspend_threads[i]) {
-                suspend_threads[i].reset();
+                suspend_threads[i]->Close();
             }
         }
 
@@ -189,15 +194,12 @@ struct KernelCore::Impl {
     }
 
     void InitializeSuspendThreads() {
-        for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
-            std::string name = "Suspend Thread Id:" + std::to_string(i);
-            std::function<void(void*)> init_func = Core::CpuManager::GetSuspendThreadStartFunc();
-            void* init_func_parameter = system.GetCpuManager().GetStartFuncParamater();
-            auto thread_res = KThread::CreateThread(
-                system, ThreadType::HighPriority, std::move(name), 0, 0, 0, static_cast<u32>(i), 0,
-                nullptr, std::move(init_func), init_func_parameter);
-
-            suspend_threads[i] = std::move(thread_res).Unwrap();
+        for (s32 core_id = 0; core_id < Core::Hardware::NUM_CPU_CORES; core_id++) {
+            suspend_threads[core_id] = KThread::CreateWithKernel(system.Kernel());
+            ASSERT(KThread::InitializeHighPriorityThread(system, suspend_threads[core_id], {}, {},
+                                                         core_id)
+                       .IsSuccess());
+            suspend_threads[core_id]->SetName(fmt::format("SuspendThread:{}", core_id));
         }
     }
 
@@ -232,12 +234,15 @@ struct KernelCore::Impl {
 
     // Gets the dummy KThread for the caller, allocating a new one if this is the first time
     KThread* GetHostDummyThread() {
-        const thread_local auto thread =
-            KThread::CreateThread(
-                system, ThreadType::Main, fmt::format("DummyThread:{}", GetHostThreadId()), 0,
-                KThread::DefaultThreadPriority, 0, static_cast<u32>(3), 0, nullptr)
-                .Unwrap();
-        return thread.get();
+        auto make_thread = [this]() {
+            KThread* thread = KThread::CreateWithKernel(system.Kernel());
+            ASSERT(KThread::InitializeDummyThread(thread).IsSuccess());
+            thread->SetName(fmt::format("DummyThread:{}", GetHostThreadId()));
+            return thread;
+        };
+
+        thread_local auto thread = make_thread();
+        return thread;
     }
 
     /// Registers a CPU core thread by allocating a host thread ID for it
@@ -371,7 +376,8 @@ struct KernelCore::Impl {
         const size_t resource_region_size = memory_layout.GetResourceRegionSizeForInit();
 
         // Determine the size of the slab region.
-        const size_t slab_region_size = Common::AlignUp(KernelSlabHeapSize, PageSize);
+        const size_t slab_region_size =
+            Common::AlignUp(Init::CalculateTotalSlabHeapSize(), PageSize);
         ASSERT(slab_region_size <= resource_region_size);
 
         // Setup the slab region.
@@ -587,7 +593,7 @@ struct KernelCore::Impl {
             "Time:SharedMemory");
     }
 
-    void InitializeSlabHeaps() {
+    void InitializePageSlab() {
         // Allocate slab heaps
         user_slab_heap_pages = std::make_unique<KSlabHeap<Page>>();
 
@@ -596,7 +602,7 @@ struct KernelCore::Impl {
         // Reserve slab heaps
         ASSERT(
             system_resource_limit->Reserve(LimitableResource::PhysicalMemory, user_slab_heap_size));
-        // Initialize slab heaps
+        // Initialize slab heap
         user_slab_heap_pages->Initialize(
             system.DeviceMemory().GetPointer(Core::DramMemoryMap::SlabHeapBase),
             user_slab_heap_size);
@@ -620,6 +626,8 @@ struct KernelCore::Impl {
     // This is the kernel's handle table or supervisor handle table which
     // stores all the objects in place.
     HandleTable global_handle_table;
+
+    KAutoObjectWithListContainer object_list_container;
 
     /// Map of named ports managed by the kernel, which can be retrieved using
     /// the ConnectToPort SVC.
@@ -648,7 +656,7 @@ struct KernelCore::Impl {
     // the release of itself
     std::unique_ptr<Common::ThreadWorker> service_thread_manager;
 
-    std::array<std::shared_ptr<KThread>, Core::Hardware::NUM_CPU_CORES> suspend_threads{};
+    std::array<KThread*, Core::Hardware::NUM_CPU_CORES> suspend_threads{};
     std::array<Core::CPUInterruptHandler, Core::Hardware::NUM_CPU_CORES> interrupts{};
     std::array<std::unique_ptr<Kernel::KScheduler>, Core::Hardware::NUM_CPU_CORES> schedulers{};
 
@@ -687,8 +695,8 @@ std::shared_ptr<KResourceLimit> KernelCore::GetSystemResourceLimit() const {
     return impl->system_resource_limit;
 }
 
-std::shared_ptr<KThread> KernelCore::RetrieveThreadFromGlobalHandleTable(Handle handle) const {
-    return impl->global_handle_table.Get<KThread>(handle);
+KScopedAutoObject<KThread> KernelCore::RetrieveThreadFromGlobalHandleTable(Handle handle) const {
+    return impl->global_handle_table.GetObject<KThread>(handle);
 }
 
 void KernelCore::AppendNewProcess(std::shared_ptr<Process> process) {
@@ -779,6 +787,14 @@ Core::ExclusiveMonitor& KernelCore::GetExclusiveMonitor() {
 
 const Core::ExclusiveMonitor& KernelCore::GetExclusiveMonitor() const {
     return *impl->exclusive_monitor;
+}
+
+KAutoObjectWithListContainer& KernelCore::ObjectListContainer() {
+    return impl->object_list_container;
+}
+
+const KAutoObjectWithListContainer& KernelCore::ObjectListContainer() const {
+    return impl->object_list_container;
 }
 
 void KernelCore::InvalidateAllInstructionCaches() {
@@ -958,6 +974,14 @@ bool KernelCore::IsPhantomModeForSingleCore() const {
 
 void KernelCore::SetIsPhantomModeForSingleCore(bool value) {
     impl->SetIsPhantomModeForSingleCore(value);
+}
+
+Core::System& KernelCore::System() {
+    return impl->system;
+}
+
+const Core::System& KernelCore::System() const {
+    return impl->system;
 }
 
 } // namespace Kernel

@@ -148,6 +148,14 @@ public:
         return obj;
     }
 
+    T* AllocateWithKernel(KernelCore& kernel) {
+        T* obj = static_cast<T*>(AllocateImpl());
+        if (obj != nullptr) {
+            new (obj) T(kernel);
+        }
+        return obj;
+    }
+
     void Free(T* obj) {
         FreeImpl(obj);
     }

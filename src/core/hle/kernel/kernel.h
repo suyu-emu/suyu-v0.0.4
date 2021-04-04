@@ -13,6 +13,7 @@
 #include "core/hardware_properties.h"
 #include "core/hle/kernel/memory_types.h"
 #include "core/hle/kernel/object.h"
+#include "core/hle/kernel/k_auto_object.h"
 
 namespace Core {
 class CPUInterruptHandler;
@@ -30,6 +31,7 @@ namespace Kernel {
 class ClientPort;
 class GlobalSchedulerContext;
 class HandleTable;
+class KAutoObjectWithListContainer;
 class KMemoryManager;
 class KResourceLimit;
 class KScheduler;
@@ -86,7 +88,7 @@ public:
     std::shared_ptr<KResourceLimit> GetSystemResourceLimit() const;
 
     /// Retrieves a shared pointer to a Thread instance within the thread wakeup handle table.
-    std::shared_ptr<KThread> RetrieveThreadFromGlobalHandleTable(Handle handle) const;
+    KScopedAutoObject<KThread> RetrieveThreadFromGlobalHandleTable(Handle handle) const;
 
     /// Adds the given shared pointer to an internal list of active processes.
     void AppendNewProcess(std::shared_ptr<Process> process);
@@ -142,6 +144,10 @@ public:
     Core::ExclusiveMonitor& GetExclusiveMonitor();
 
     const Core::ExclusiveMonitor& GetExclusiveMonitor() const;
+
+    KAutoObjectWithListContainer& ObjectListContainer();
+
+    const KAutoObjectWithListContainer& ObjectListContainer() const;
 
     std::array<Core::CPUInterruptHandler, Core::Hardware::NUM_CPU_CORES>& Interrupts();
 
@@ -242,6 +248,9 @@ public:
     /// Workaround for single-core mode when preempting threads while idle.
     bool IsPhantomModeForSingleCore() const;
     void SetIsPhantomModeForSingleCore(bool value);
+
+    Core::System& System();
+    const Core::System& System() const;
 
 private:
     friend class Object;

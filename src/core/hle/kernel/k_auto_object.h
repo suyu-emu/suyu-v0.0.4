@@ -11,9 +11,11 @@
 #include "common/common_types.h"
 #include "common/intrusive_red_black_tree.h"
 #include "core/hle/kernel/k_class_token.h"
+#include "core/hle/kernel/object.h"
 
 namespace Kernel {
 
+class KernelCore;
 class Process;
 
 #define KERNEL_AUTOOBJECT_TRAITS(CLASS, BASE_CLASS)                                                \
@@ -46,7 +48,7 @@ public:                                                                         
                                                                                                    \
 private:
 
-class KAutoObject {
+class KAutoObject : public Object {
 protected:
     class TypeObj {
     private:
@@ -84,11 +86,14 @@ private:
 private:
     std::atomic<u32> m_ref_count;
 
+protected:
+    KernelCore& kernel;
+
 public:
     static KAutoObject* Create(KAutoObject* ptr);
 
 public:
-    constexpr explicit KAutoObject() : m_ref_count(0) {}
+    explicit KAutoObject(KernelCore& kernel_) : Object{kernel_}, m_ref_count(0), kernel(kernel_) {}
     virtual ~KAutoObject() {}
 
     // Destroy is responsible for destroying the auto object's resources when ref_count hits zero.
@@ -97,9 +102,7 @@ public:
     }
 
     // Finalize is responsible for cleaning up resource, but does not destroy the object.
-    virtual void Finalize() {
-        UNIMPLEMENTED();
-    }
+    virtual void Finalize() {}
 
     virtual Process* GetOwner() const {
         return nullptr;
@@ -179,7 +182,12 @@ private:
 private:
     Common::IntrusiveRedBlackTreeNode list_node;
 
+protected:
+    KernelCore& kernel;
+
 public:
+    explicit KAutoObjectWithList(KernelCore& kernel_) : KAutoObject(kernel_), kernel(kernel_) {}
+
     static int Compare(const KAutoObjectWithList& lhs, const KAutoObjectWithList& rhs) {
         const u64 lid = lhs.GetId();
         const u64 rid = rhs.GetId();
@@ -208,7 +216,7 @@ private:
     friend class KScopedAutoObject;
 
 private:
-    T* m_obj;
+    T* m_obj{};
 
 private:
     constexpr void Swap(KScopedAutoObject& rhs) {
@@ -216,8 +224,8 @@ private:
     }
 
 public:
-    constexpr KScopedAutoObject() : m_obj(nullptr) { // ...
-    }
+    constexpr KScopedAutoObject() = default;
+
     constexpr KScopedAutoObject(T* o) : m_obj(o) {
         if (m_obj != nullptr) {
             m_obj->Open();
@@ -270,6 +278,10 @@ public:
     }
 
     constexpr T* GetPointerUnsafe() {
+        return m_obj;
+    }
+
+    constexpr T* GetPointerUnsafe() const {
         return m_obj;
     }
 

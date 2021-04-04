@@ -40,14 +40,15 @@ namespace {
 void SetupMainThread(Core::System& system, Process& owner_process, u32 priority, VAddr stack_top) {
     const VAddr entry_point = owner_process.PageTable().GetCodeRegionStart();
     ASSERT(owner_process.GetResourceLimit()->Reserve(LimitableResource::Threads, 1));
-    auto thread_res =
-        KThread::CreateUserThread(system, ThreadType::User, "main", entry_point, priority, 0,
-                                  owner_process.GetIdealCoreId(), stack_top, &owner_process);
 
-    std::shared_ptr<KThread> thread = std::move(thread_res).Unwrap();
+    KThread* thread = KThread::CreateWithKernel(system.Kernel());
+    ASSERT(KThread::InitializeUserThread(system, thread, entry_point, 0, stack_top, priority,
+                                         owner_process.GetIdealCoreId(), &owner_process)
+               .IsSuccess());
 
     // Register 1 must be a handle to the main thread
-    const Handle thread_handle = owner_process.GetHandleTable().Create(thread).Unwrap();
+    Handle thread_handle{};
+    owner_process.GetHandleTable().Add(&thread_handle, thread);
     thread->GetContext32().cpu_registers[0] = 0;
     thread->GetContext64().cpu_registers[0] = 0;
     thread->GetContext32().cpu_registers[1] = thread_handle;
@@ -337,12 +338,12 @@ void Process::Run(s32 main_thread_priority, u64 stack_size) {
 void Process::PrepareForTermination() {
     ChangeStatus(ProcessStatus::Exiting);
 
-    const auto stop_threads = [this](const std::vector<std::shared_ptr<KThread>>& thread_list) {
+    const auto stop_threads = [this](const std::vector<KThread*>& thread_list) {
         for (auto& thread : thread_list) {
             if (thread->GetOwnerProcess() != this)
                 continue;
 
-            if (thread.get() == kernel.CurrentScheduler()->GetCurrentThread())
+            if (thread == kernel.CurrentScheduler()->GetCurrentThread())
                 continue;
 
             // TODO(Subv): When are the other running/ready threads terminated?

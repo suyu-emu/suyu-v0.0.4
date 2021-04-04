@@ -9,6 +9,8 @@
 #include <memory>
 
 #include "common/common_types.h"
+#include "core/hle/kernel/k_auto_object.h"
+#include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/result.h"
 
@@ -87,7 +89,7 @@ public:
      * @return `RESULT_SUCCESS` or one of the following errors:
      *           - `ERR_INVALID_HANDLE`: an invalid handle was passed in.
      */
-    ResultCode Close(Handle handle);
+    bool Remove(Handle handle);
 
     /// Checks if a handle is valid and points to an existing object.
     bool IsValid(Handle handle) const;
@@ -108,12 +110,48 @@ public:
         return DynamicObjectCast<T>(GetGeneric(handle));
     }
 
+    template <typename T = KAutoObject>
+    KScopedAutoObject<T> GetObject(Handle handle) const {
+        if (handle == CurrentThread) {
+            return kernel.CurrentScheduler()->GetCurrentThread()->DynamicCast<T*>();
+        } else if (handle == CurrentProcess) {
+            return kernel.CurrentProcess()->DynamicCast<T*>();
+        }
+
+        if (!IsValid(handle)) {
+            return nullptr;
+        }
+
+        auto* obj = objects_new[static_cast<u16>(handle >> 15)];
+        return obj->DynamicCast<T*>();
+    }
+
+    template <typename T = KAutoObject>
+    KScopedAutoObject<T> GetObjectWithoutPseudoHandle(Handle handle) const {
+        if (!IsValid(handle)) {
+            return nullptr;
+        }
+        auto* obj = objects_new[static_cast<u16>(handle >> 15)];
+        return obj->DynamicCast<T*>();
+    }
+
     /// Closes all handles held in this table.
     void Clear();
+
+    // NEW IMPL
+
+    template <typename T>
+    ResultCode Add(Handle* out_handle, T* obj) {
+        static_assert(std::is_base_of<KAutoObject, T>::value);
+        return this->Add(out_handle, obj, obj->GetTypeObj().GetClassToken());
+    }
+
+    ResultCode Add(Handle* out_handle, KAutoObject* obj, u16 type);
 
 private:
     /// Stores the Object referenced by the handle or null if the slot is empty.
     std::array<std::shared_ptr<Object>, MAX_COUNT> objects;
+    std::array<KAutoObject*, MAX_COUNT> objects_new{};
 
     /**
      * The value of `next_generation` when the handle was created, used to check for validity. For

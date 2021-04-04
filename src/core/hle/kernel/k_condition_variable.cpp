@@ -7,6 +7,7 @@
 #include "core/arm/exclusive_monitor.h"
 #include "core/core.h"
 #include "core/hle/kernel/k_condition_variable.h"
+#include "core/hle/kernel/k_linked_list.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
 #include "core/hle/kernel/k_synchronization_object.h"
@@ -107,8 +108,8 @@ ResultCode KConditionVariable::WaitForAddress(Handle handle, VAddr addr, u32 val
 
     // Wait for the address.
     {
-        std::shared_ptr<KThread> owner_thread;
-        ASSERT(!owner_thread);
+        KScopedAutoObject<KThread> owner_thread;
+        ASSERT(owner_thread.IsNull());
         {
             KScopedSchedulerLock sl(kernel);
             cur_thread->SetSyncedObject(nullptr, RESULT_SUCCESS);
@@ -126,8 +127,10 @@ ResultCode KConditionVariable::WaitForAddress(Handle handle, VAddr addr, u32 val
                 R_UNLESS(test_tag == (handle | Svc::HandleWaitMask), RESULT_SUCCESS);
 
                 // Get the lock owner thread.
-                owner_thread = kernel.CurrentProcess()->GetHandleTable().Get<KThread>(handle);
-                R_UNLESS(owner_thread, ResultInvalidHandle);
+                owner_thread =
+                    kernel.CurrentProcess()->GetHandleTable().GetObjectWithoutPseudoHandle<KThread>(
+                        handle);
+                R_UNLESS(owner_thread.IsNotNull(), ResultInvalidHandle);
 
                 // Update the lock.
                 cur_thread->SetAddressKey(addr, value);
@@ -137,7 +140,7 @@ ResultCode KConditionVariable::WaitForAddress(Handle handle, VAddr addr, u32 val
                 cur_thread->SetMutexWaitAddressForDebugging(addr);
             }
         }
-        ASSERT(owner_thread);
+        ASSERT(owner_thread.IsNotNull());
     }
 
     // Remove the thread as a waiter from the lock owner.
@@ -182,13 +185,16 @@ KThread* KConditionVariable::SignalImpl(KThread* thread) {
             thread->Wakeup();
         } else {
             // Get the previous owner.
-            auto owner_thread = kernel.CurrentProcess()->GetHandleTable().Get<KThread>(
-                prev_tag & ~Svc::HandleWaitMask);
+            KThread* owner_thread =
+                kernel.CurrentProcess()->GetHandleTable()
+                    .GetObjectWithoutPseudoHandle<KThread>(
+                        static_cast<Handle>(prev_tag & ~Svc::HandleWaitMask))
+                    .ReleasePointerUnsafe();
 
             if (owner_thread) {
                 // Add the thread as a waiter on the owner.
                 owner_thread->AddWaiter(thread);
-                thread_to_close = owner_thread.get();
+                thread_to_close = owner_thread;
             } else {
                 // The lock was tagged with a thread that doesn't exist.
                 thread->SetSyncedObject(nullptr, ResultInvalidState);
@@ -208,9 +214,7 @@ void KConditionVariable::Signal(u64 cv_key, s32 count) {
     // Prepare for signaling.
     constexpr int MaxThreads = 16;
 
-    // TODO(bunnei): This should just be Thread once we implement KAutoObject instead of using
-    // std::shared_ptr.
-    std::vector<std::shared_ptr<KThread>> thread_list;
+    KLinkedList<KThread> thread_list;
     std::array<KThread*, MaxThreads> thread_array;
     s32 num_to_close{};
 
@@ -228,7 +232,7 @@ void KConditionVariable::Signal(u64 cv_key, s32 count) {
                 if (num_to_close < MaxThreads) {
                     thread_array[num_to_close++] = thread;
                 } else {
-                    thread_list.push_back(SharedFrom(thread));
+                    thread_list.push_back(*thread);
                 }
             }
 
@@ -251,7 +255,7 @@ void KConditionVariable::Signal(u64 cv_key, s32 count) {
 
     // Close threads in the list.
     for (auto it = thread_list.begin(); it != thread_list.end(); it = thread_list.erase(it)) {
-        (*it)->Close();
+        (*it).Close();
     }
 }
 

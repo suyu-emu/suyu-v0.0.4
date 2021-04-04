@@ -72,6 +72,33 @@ ResultVal<Handle> HandleTable::Create(std::shared_ptr<Object> obj) {
     return MakeResult<Handle>(handle);
 }
 
+ResultCode HandleTable::Add(Handle* out_handle, KAutoObject* obj, u16 type) {
+    ASSERT(obj != nullptr);
+
+    const u16 slot = next_free_slot;
+    if (slot >= table_size) {
+        LOG_ERROR(Kernel, "Unable to allocate Handle, too many slots in use.");
+        return ResultHandleTableFull;
+    }
+    next_free_slot = generations[slot];
+
+    const u16 generation = next_generation++;
+
+    // Overflow count so it fits in the 15 bits dedicated to the generation in the handle.
+    // Horizon OS uses zero to represent an invalid handle, so skip to 1.
+    if (next_generation >= (1 << 15)) {
+        next_generation = 1;
+    }
+
+    generations[slot] = generation;
+    objects_new[slot] = obj;
+    obj->Open();
+
+    *out_handle = generation | (slot << 15);
+
+    return RESULT_SUCCESS;
+}
+
 ResultVal<Handle> HandleTable::Duplicate(Handle handle) {
     std::shared_ptr<Object> object = GetGeneric(handle);
     if (object == nullptr) {
@@ -81,30 +108,36 @@ ResultVal<Handle> HandleTable::Duplicate(Handle handle) {
     return Create(std::move(object));
 }
 
-ResultCode HandleTable::Close(Handle handle) {
+bool HandleTable::Remove(Handle handle) {
     if (!IsValid(handle)) {
         LOG_ERROR(Kernel, "Handle is not valid! handle={:08X}", handle);
-        return ResultInvalidHandle;
+        return {};
     }
 
     const u16 slot = GetSlot(handle);
 
-    if (objects[slot].use_count() == 1) {
-        objects[slot]->Finalize();
+    if (objects[slot]) {
+        objects[slot]->Close();
+    }
+
+    if (objects_new[slot]) {
+        objects_new[slot]->Close();
     }
 
     objects[slot] = nullptr;
+    objects_new[slot] = nullptr;
 
     generations[slot] = next_free_slot;
     next_free_slot = slot;
-    return RESULT_SUCCESS;
+
+    return true;
 }
 
 bool HandleTable::IsValid(Handle handle) const {
     const std::size_t slot = GetSlot(handle);
     const u16 generation = GetGeneration(handle);
-
-    return slot < table_size && objects[slot] != nullptr && generations[slot] == generation;
+    const bool is_object_valid = (objects[slot] != nullptr) || (objects_new[slot] != nullptr);
+    return slot < table_size && is_object_valid && generations[slot] == generation;
 }
 
 std::shared_ptr<Object> HandleTable::GetGeneric(Handle handle) const {
@@ -124,6 +157,7 @@ void HandleTable::Clear() {
     for (u16 i = 0; i < table_size; ++i) {
         generations[i] = static_cast<u16>(i + 1);
         objects[i] = nullptr;
+        objects_new[i] = nullptr;
     }
     next_free_slot = 0;
 }

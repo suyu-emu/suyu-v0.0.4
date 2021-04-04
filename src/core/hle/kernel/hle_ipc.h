@@ -291,8 +291,8 @@ private:
     // TODO(yuriks): Check common usage of this and optimize size accordingly
     boost::container::small_vector<Handle, 8> move_handles;
     boost::container::small_vector<Handle, 8> copy_handles;
-    boost::container::small_vector<std::shared_ptr<Object>, 8> move_objects;
-    boost::container::small_vector<std::shared_ptr<Object>, 8> copy_objects;
+    boost::container::small_vector<Object*, 8> move_objects;
+    boost::container::small_vector<Object*, 8> copy_objects;
     boost::container::small_vector<std::shared_ptr<SessionRequestHandler>, 8> domain_objects;
 
     std::optional<IPC::CommandHeader> command_header;

@@ -14,6 +14,7 @@
 #include "core/hle/kernel/k_auto_object_container.h"
 #include "core/hle/kernel/k_light_lock.h"
 #include "core/hle/kernel/k_slab_heap.h"
+#include "core/hle/kernel/kernel.h"
 
 namespace Kernel {
 
@@ -66,11 +67,15 @@ class KAutoObjectWithSlabHeapAndContainer : public Base {
 
 private:
     static inline KSlabHeap<Derived> s_slab_heap;
-    static inline KAutoObjectWithListContainer s_container;
+    KernelCore& m_kernel;
 
 private:
     static Derived* Allocate() {
         return s_slab_heap.Allocate();
+    }
+
+    static Derived* AllocateWithKernel(KernelCore& kernel) {
+        return s_slab_heap.AllocateWithKernel(kernel);
     }
 
     static void Free(Derived* obj) {
@@ -80,19 +85,20 @@ private:
 public:
     class ListAccessor : public KAutoObjectWithListContainer::ListAccessor {
     public:
-        ListAccessor() : KAutoObjectWithListContainer::ListAccessor(s_container) {}
+        ListAccessor()
+            : KAutoObjectWithListContainer::ListAccessor(m_kernel.ObjectListContainer()) {}
         ~ListAccessor() = default;
     };
 
 public:
-    constexpr KAutoObjectWithSlabHeapAndContainer() : Base() {}
+    KAutoObjectWithSlabHeapAndContainer(KernelCore& kernel) : Base(kernel), m_kernel(kernel) {}
     virtual ~KAutoObjectWithSlabHeapAndContainer() {}
 
     virtual void Destroy() override {
         const bool is_initialized = this->IsInitialized();
         uintptr_t arg = 0;
         if (is_initialized) {
-            s_container.Unregister(this);
+            m_kernel.ObjectListContainer().Unregister(this);
             arg = this->GetPostDestroyArgument();
             this->Finalize();
         }
@@ -114,21 +120,29 @@ public:
     }
 
 public:
-    static void InitializeSlabHeap(void* memory, size_t memory_size) {
+    static void InitializeSlabHeap(KernelCore& kernel, void* memory, size_t memory_size) {
         s_slab_heap.Initialize(memory, memory_size);
-        s_container.Initialize();
+        kernel.ObjectListContainer().Initialize();
     }
 
     static Derived* Create() {
         Derived* obj = Allocate();
-        if (AMS_LIKELY(obj != nullptr)) {
+        if (obj != nullptr) {
             KAutoObject::Create(obj);
         }
         return obj;
     }
 
-    static void Register(Derived* obj) {
-        return s_container.Register(obj);
+    static Derived* CreateWithKernel(KernelCore& kernel) {
+        Derived* obj = AllocateWithKernel(kernel);
+        if (obj != nullptr) {
+            KAutoObject::Create(obj);
+        }
+        return obj;
+    }
+
+    static void Register(KernelCore& kernel, Derived* obj) {
+        return kernel.ObjectListContainer().Register(obj);
     }
 
     static size_t GetObjectSize() {
