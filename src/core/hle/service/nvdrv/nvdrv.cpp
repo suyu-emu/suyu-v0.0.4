@@ -42,9 +42,8 @@ void InstallInterfaces(SM::ServiceManager& service_manager, NVFlinger::NVFlinger
 Module::Module(Core::System& system) : syncpoint_manager{system.GPU()} {
     auto& kernel = system.Kernel();
     for (u32 i = 0; i < MaxNvEvents; i++) {
-        std::string event_label = fmt::format("NVDRV::NvEvent_{}", i);
-        events_interface.events[i] = {Kernel::KEvent::Create(kernel, std::move(event_label))};
-        events_interface.events[i].event->Initialize();
+        events_interface.events[i].event = std::make_unique<Kernel::KEvent>(kernel);
+        events_interface.events[i].event->Initialize(fmt::format("NVDRV::NvEvent_{}", i));
         events_interface.status[i] = EventState::Free;
         events_interface.registered[i] = false;
     }
@@ -64,7 +63,12 @@ Module::Module(Core::System& system) : syncpoint_manager{system.GPU()} {
         std::make_shared<Devices::nvhost_vic>(system, nvmap_dev, syncpoint_manager);
 }
 
-Module::~Module() = default;
+Module::~Module() {
+    for (u32 i = 0; i < MaxNvEvents; i++) {
+        events_interface.events[i].event->Close();
+        events_interface.events[i].event = nullptr;
+    }
+}
 
 NvResult Module::VerifyFD(DeviceFD fd) const {
     if (fd < 0) {

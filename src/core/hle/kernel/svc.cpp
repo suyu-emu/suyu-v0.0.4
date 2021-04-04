@@ -1953,14 +1953,11 @@ static ResultCode CreateEvent(Core::System& system, Handle* out_write, Handle* o
     HandleTable& handle_table = kernel.CurrentProcess()->GetHandleTable();
 
     // Create a new event.
-    const auto event = KEvent::Create(kernel, "CreateEvent");
-    if (!event) {
-        LOG_ERROR(Kernel_SVC, "Unable to create new events. Event creation limit reached.");
-        return ResultOutOfResource;
-    }
+    KEvent* event = KEvent::CreateWithKernel(kernel);
+    R_UNLESS(event != nullptr, ResultOutOfResource);
 
     // Initialize the event.
-    event->Initialize();
+    event->Initialize("CreateEvent");
 
     // Add the writable event to the handle table.
     const auto write_create_result = handle_table.Create(event->GetWritableEvent().get());

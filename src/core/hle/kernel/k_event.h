@@ -4,24 +4,34 @@
 
 #pragma once
 
-#include "core/hle/kernel/object.h"
+#include "core/hle/kernel/slab_helpers.h"
 
 namespace Kernel {
 
 class KernelCore;
 class KReadableEvent;
 class KWritableEvent;
+class Process;
 
-class KEvent final : public Object {
+class KEvent final : public KAutoObjectWithSlabHeapAndContainer<KEvent, KAutoObjectWithList> {
+    KERNEL_AUTOOBJECT_TRAITS(KEvent, KAutoObject);
+
 public:
-    explicit KEvent(KernelCore& kernel, std::string&& name);
+    explicit KEvent(KernelCore& kernel);
     ~KEvent() override;
 
-    static std::shared_ptr<KEvent> Create(KernelCore& kernel, std::string&& name);
+    void Initialize(std::string&& name);
 
-    void Initialize();
+    virtual void Finalize() override;
 
-    void Finalize() override {}
+    virtual bool IsInitialized() const override {
+        return initialized;
+    }
+    virtual uintptr_t GetPostDestroyArgument() const override {
+        return reinterpret_cast<uintptr_t>(owner);
+    }
+
+    static void PostDestroy(uintptr_t arg);
 
     std::string GetTypeName() const override {
         return "KEvent";
@@ -51,6 +61,7 @@ public:
 private:
     std::shared_ptr<KReadableEvent> readable_event;
     std::shared_ptr<KWritableEvent> writable_event;
+    Process* owner{};
     bool initialized{};
 };
 

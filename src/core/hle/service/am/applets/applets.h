@@ -8,6 +8,7 @@
 #include <queue>
 
 #include "common/swap.h"
+#include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/object.h"
 
 union ResultCode;
@@ -119,13 +120,13 @@ private:
     // PopInteractiveDataToGame and PushInteractiveDataFromApplet
     std::deque<std::shared_ptr<IStorage>> out_interactive_channel;
 
-    std::shared_ptr<Kernel::KEvent> state_changed_event;
+    Kernel::KEvent state_changed_event;
 
     // Signaled on PushNormalDataFromApplet
-    std::shared_ptr<Kernel::KEvent> pop_out_data_event;
+    Kernel::KEvent pop_out_data_event;
 
     // Signaled on PushInteractiveDataFromApplet
-    std::shared_ptr<Kernel::KEvent> pop_interactive_out_data_event;
+    Kernel::KEvent pop_interactive_out_data_event;
 };
 
 class Applet {

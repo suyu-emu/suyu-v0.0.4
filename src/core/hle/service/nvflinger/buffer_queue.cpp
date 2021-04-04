@@ -7,7 +7,6 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/core.h"
-#include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/service/nvflinger/buffer_queue.h"
@@ -15,9 +14,8 @@
 namespace Service::NVFlinger {
 
 BufferQueue::BufferQueue(Kernel::KernelCore& kernel, u32 id, u64 layer_id)
-    : id(id), layer_id(layer_id) {
-    buffer_wait_event = Kernel::KEvent::Create(kernel, "BufferQueue:WaitEvent");
-    buffer_wait_event->Initialize();
+    : id(id), layer_id(layer_id), buffer_wait_event{kernel} {
+    buffer_wait_event.Initialize("BufferQueue:WaitEvent");
 }
 
 BufferQueue::~BufferQueue() = default;
@@ -42,7 +40,7 @@ void BufferQueue::SetPreallocatedBuffer(u32 slot, const IGBPBuffer& igbp_buffer)
         .multi_fence = {},
     };
 
-    buffer_wait_event->GetWritableEvent()->Signal();
+    buffer_wait_event.GetWritableEvent()->Signal();
 }
 
 std::optional<std::pair<u32, Service::Nvidia::MultiFence*>> BufferQueue::DequeueBuffer(u32 width,
@@ -120,7 +118,7 @@ void BufferQueue::CancelBuffer(u32 slot, const Service::Nvidia::MultiFence& mult
     }
     free_buffers_condition.notify_one();
 
-    buffer_wait_event->GetWritableEvent()->Signal();
+    buffer_wait_event.GetWritableEvent()->Signal();
 }
 
 std::optional<std::reference_wrapper<const BufferQueue::Buffer>> BufferQueue::AcquireBuffer() {
@@ -155,7 +153,7 @@ void BufferQueue::ReleaseBuffer(u32 slot) {
     }
     free_buffers_condition.notify_one();
 
-    buffer_wait_event->GetWritableEvent()->Signal();
+    buffer_wait_event.GetWritableEvent()->Signal();
 }
 
 void BufferQueue::Connect() {
@@ -170,7 +168,7 @@ void BufferQueue::Disconnect() {
         std::unique_lock lock{queue_sequence_mutex};
         queue_sequence.clear();
     }
-    buffer_wait_event->GetWritableEvent()->Signal();
+    buffer_wait_event.GetWritableEvent()->Signal();
     is_connect = false;
     free_buffers_condition.notify_one();
 }
@@ -190,11 +188,11 @@ u32 BufferQueue::Query(QueryType type) {
 }
 
 std::shared_ptr<Kernel::KWritableEvent> BufferQueue::GetWritableBufferWaitEvent() const {
-    return buffer_wait_event->GetWritableEvent();
+    return buffer_wait_event.GetWritableEvent();
 }
 
 std::shared_ptr<Kernel::KReadableEvent> BufferQueue::GetBufferWaitEvent() const {
-    return SharedFrom(buffer_wait_event->GetReadableEvent());
+    return buffer_wait_event.GetReadableEvent();
 }
 
 } // namespace Service::NVFlinger

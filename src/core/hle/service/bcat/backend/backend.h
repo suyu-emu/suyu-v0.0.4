@@ -11,6 +11,7 @@
 
 #include "common/common_types.h"
 #include "core/file_sys/vfs_types.h"
+#include "core/hle/kernel/k_event.h"
 #include "core/hle/result.h"
 
 namespace Core {
@@ -104,7 +105,7 @@ private:
     void SignalUpdate() const;
 
     DeliveryCacheProgressImpl impl{};
-    std::shared_ptr<Kernel::KEvent> event;
+    Kernel::KEvent update_event;
     bool need_hle_lock = false;
 };
 

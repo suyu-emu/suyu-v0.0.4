@@ -573,7 +573,7 @@ private:
     NpadHandheldActivationMode handheld_activation_mode{NpadHandheldActivationMode::Dual};
     NpadCommunicationMode communication_mode{NpadCommunicationMode::Default};
     // Each controller should have their own styleset changed event
-    std::array<std::shared_ptr<Kernel::KEvent>, 10> styleset_changed_events;
+    std::array<std::unique_ptr<Kernel::KEvent>, 10> styleset_changed_events;
     std::array<std::array<std::chrono::steady_clock::time_point, 2>, 10> last_vibration_timepoints;
     std::array<std::array<VibrationValue, 2>, 10> latest_vibration_values{};
     bool permit_vibration_session_enabled{false};

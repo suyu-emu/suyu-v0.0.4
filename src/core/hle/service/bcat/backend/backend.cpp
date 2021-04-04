@@ -5,7 +5,6 @@
 #include "common/hex_util.h"
 #include "common/logging/log.h"
 #include "core/core.h"
-#include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/lock.h"
@@ -14,14 +13,13 @@
 namespace Service::BCAT {
 
 ProgressServiceBackend::ProgressServiceBackend(Kernel::KernelCore& kernel,
-                                               std::string_view event_name) {
-    event = Kernel::KEvent::Create(kernel,
-                                   "ProgressServiceBackend:UpdateEvent:" + std::string(event_name));
-    event->Initialize();
+                                               std::string_view event_name)
+    : update_event{kernel} {
+    update_event.Initialize("ProgressServiceBackend:UpdateEvent:" + std::string(event_name));
 }
 
 std::shared_ptr<Kernel::KReadableEvent> ProgressServiceBackend::GetEvent() const {
-    return SharedFrom(event->GetReadableEvent());
+    return update_event.GetReadableEvent();
 }
 
 DeliveryCacheProgressImpl& ProgressServiceBackend::GetImpl() {
@@ -89,9 +87,9 @@ void ProgressServiceBackend::FinishDownload(ResultCode result) {
 void ProgressServiceBackend::SignalUpdate() const {
     if (need_hle_lock) {
         std::lock_guard lock(HLE::g_hle_lock);
-        event->GetWritableEvent()->Signal();
+        update_event.GetWritableEvent()->Signal();
     } else {
-        event->GetWritableEvent()->Signal();
+        update_event.GetWritableEvent()->Signal();
     }
 }
 

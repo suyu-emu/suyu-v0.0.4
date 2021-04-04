@@ -17,7 +17,8 @@ namespace Service::BtDrv {
 
 class Bt final : public ServiceFramework<Bt> {
 public:
-    explicit Bt(Core::System& system_) : ServiceFramework{system_, "bt"} {
+    explicit Bt(Core::System& system_)
+        : ServiceFramework{system_, "bt"}, register_event{system.Kernel()} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "LeClientReadCharacteristic"},
@@ -34,9 +35,7 @@ public:
         // clang-format on
         RegisterHandlers(functions);
 
-        auto& kernel = system.Kernel();
-        register_event = Kernel::KEvent::Create(kernel, "BT:RegisterEvent");
-        register_event->Initialize();
+        register_event.Initialize("BT:RegisterEvent");
     }
 
 private:
@@ -45,10 +44,10 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(register_event->GetReadableEvent());
+        rb.PushCopyObjects(register_event.GetReadableEvent());
     }
 
-    std::shared_ptr<Kernel::KEvent> register_event;
+    Kernel::KEvent register_event;
 };
 
 class BtDrv final : public ServiceFramework<BtDrv> {

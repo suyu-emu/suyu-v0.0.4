@@ -102,7 +102,7 @@ NvResult nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector
         return NvResult::Success;
     }
 
-    auto event = events_interface.events[event_id];
+    auto& event = events_interface.events[event_id];
     auto& gpu = system.GPU();
 
     // This is mostly to take into account unimplemented features. As synced

@@ -13,6 +13,7 @@
 #include "common/common_funcs.h"
 #include "common/math_util.h"
 #include "common/swap.h"
+#include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/service/nvdrv/nvdata.h"
@@ -130,7 +131,7 @@ private:
     std::list<u32> free_buffers;
     std::array<Buffer, buffer_slots> buffers;
     std::list<u32> queue_sequence;
-    std::shared_ptr<Kernel::KEvent> buffer_wait_event;
+    Kernel::KEvent buffer_wait_event;
 
     std::mutex free_buffers_mutex;
     std::condition_variable free_buffers_condition;

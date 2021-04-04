@@ -53,6 +53,7 @@ ResultVal<Handle> HandleTable::Create(Object* obj) {
     switch (obj->GetHandleType()) {
     case HandleType::SharedMemory:
     case HandleType::Thread:
+    case HandleType::Event:
     case HandleType::Process: {
         Handle handle{};
         Add(&handle, reinterpret_cast<KAutoObject*>(obj), {});

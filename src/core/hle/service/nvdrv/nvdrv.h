@@ -35,7 +35,7 @@ class nvdevice;
 
 /// Represents an Nvidia event
 struct NvEvent {
-    std::shared_ptr<Kernel::KEvent> event;
+    std::unique_ptr<Kernel::KEvent> event;
     Fence fence{};
 };
 

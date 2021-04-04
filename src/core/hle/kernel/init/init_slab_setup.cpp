@@ -9,6 +9,7 @@
 #include "core/core.h"
 #include "core/hardware_properties.h"
 #include "core/hle/kernel/init/init_slab_setup.h"
+#include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_memory_layout.h"
 #include "core/hle/kernel/k_memory_manager.h"
 #include "core/hle/kernel/k_shared_memory.h"
@@ -25,6 +26,7 @@ namespace Kernel::Init {
 #define FOREACH_SLAB_TYPE(HANDLER, ...)                                                            \
     HANDLER(Process, (SLAB_COUNT(Process)), ##__VA_ARGS__)                                         \
     HANDLER(KThread, (SLAB_COUNT(KThread)), ##__VA_ARGS__)                                         \
+    HANDLER(KEvent, (SLAB_COUNT(KEvent)), ##__VA_ARGS__)                                           \
     HANDLER(KSharedMemory, (SLAB_COUNT(KSharedMemory)), ##__VA_ARGS__)
 
 namespace {

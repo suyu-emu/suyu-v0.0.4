@@ -71,6 +71,8 @@ protected:
 
 private:
     std::atomic<u32> object_id{0};
+
+protected:
     std::string name;
 };
 
