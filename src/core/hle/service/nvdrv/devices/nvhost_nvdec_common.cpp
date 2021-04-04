@@ -23,17 +23,22 @@ namespace {
 template <typename T>
 std::size_t SpliceVectors(const std::vector<u8>& input, std::vector<T>& dst, std::size_t count,
                           std::size_t offset) {
-    std::memcpy(dst.data(), input.data() + offset, count * sizeof(T));
-    offset += count * sizeof(T);
-    return offset;
+    if (!dst.empty()) {
+        std::memcpy(dst.data(), input.data() + offset, count * sizeof(T));
+    }
+    return 0;
 }
 
 // Write vectors will write data to the output buffer
 template <typename T>
 std::size_t WriteVectors(std::vector<u8>& dst, const std::vector<T>& src, std::size_t offset) {
-    std::memcpy(dst.data() + offset, src.data(), src.size() * sizeof(T));
-    offset += src.size() * sizeof(T);
-    return offset;
+    if (src.empty()) {
+        return 0;
+    } else {
+        std::memcpy(dst.data() + offset, src.data(), src.size() * sizeof(T));
+        offset += src.size() * sizeof(T);
+        return offset;
+    }
 }
 } // Anonymous namespace
 
