@@ -2,8 +2,9 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <cstring> // for std::memcpy
+#include <algorithm> // for std::copy
 #include <numeric>
+#include "common/assert.h"
 #include "video_core/command_classes/codecs/vp9.h"
 #include "video_core/gpu.h"
 #include "video_core/memory_manager.h"
@@ -362,7 +363,8 @@ Vp9PictureInfo VP9::GetVp9PictureInfo(const NvdecCommon::NvdecRegisters& state) 
     // surface_luma_offset[0:3] contains the address of the reference frame offsets in the following
     // order: last, golden, altref, current. It may be worthwhile to track the updates done here
     // to avoid buffering frame data needed for reference frame updating in the header composition.
-    std::memcpy(vp9_info.frame_offsets.data(), state.surface_luma_offset.data(), 4 * sizeof(u64));
+    std::copy(state.surface_luma_offset.begin(), state.surface_luma_offset.begin() + 4,
+              vp9_info.frame_offsets.begin());
 
     return vp9_info;
 }
@@ -821,11 +823,11 @@ const std::vector<u8>& VP9::ComposeFrameHeader(const NvdecCommon::NvdecRegisters
 
     // Write headers and frame to buffer
     frame.resize(uncompressed_header.size() + compressed_header.size() + bitstream.size());
-    std::memcpy(frame.data(), uncompressed_header.data(), uncompressed_header.size());
-    std::memcpy(frame.data() + uncompressed_header.size(), compressed_header.data(),
-                compressed_header.size());
-    std::memcpy(frame.data() + uncompressed_header.size() + compressed_header.size(),
-                bitstream.data(), bitstream.size());
+    std::copy(uncompressed_header.begin(), uncompressed_header.end(), frame.begin());
+    std::copy(compressed_header.begin(), compressed_header.end(),
+              frame.begin() + uncompressed_header.size());
+    std::copy(bitstream.begin(), bitstream.end(),
+              frame.begin() + uncompressed_header.size() + compressed_header.size());
 
     // keep track of frame number
     current_frame_number++;
