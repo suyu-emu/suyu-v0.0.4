@@ -233,8 +233,11 @@ struct System::Impl {
         }
 
         telemetry_session->AddInitialInfo(*app_loader, fs_controller, *content_provider);
-        auto main_process =
-            Kernel::Process::Create(system, "main", Kernel::Process::ProcessType::Userland);
+        auto main_process = Kernel::Process::CreateWithKernel(system.Kernel());
+        ASSERT(Kernel::Process::Initialize(main_process, system, "main",
+                                           Kernel::Process::ProcessType::Userland)
+                   .IsSuccess());
+        main_process->Open();
         const auto [load_result, load_parameters] = app_loader->Load(*main_process, system);
         if (load_result != Loader::ResultStatus::Success) {
             LOG_CRITICAL(Core, "Failed to load ROM (Error {})!", load_result);
@@ -244,7 +247,7 @@ struct System::Impl {
                                              static_cast<u32>(load_result));
         }
         AddGlueRegistrationForProcess(*app_loader, *main_process);
-        kernel.MakeCurrentProcess(main_process.get());
+        kernel.MakeCurrentProcess(main_process);
         kernel.InitializeCores();
 
         // Initialize cheat engine

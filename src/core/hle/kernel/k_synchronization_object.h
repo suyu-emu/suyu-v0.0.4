@@ -53,10 +53,9 @@ private:
 
 // Specialization of DynamicObjectCast for KSynchronizationObjects
 template <>
-inline std::shared_ptr<KSynchronizationObject> DynamicObjectCast<KSynchronizationObject>(
-    std::shared_ptr<Object> object) {
+inline KSynchronizationObject* DynamicObjectCast<KSynchronizationObject>(Object* object) {
     if (object != nullptr && object->IsWaitable()) {
-        return std::static_pointer_cast<KSynchronizationObject>(object);
+        return reinterpret_cast<KSynchronizationObject*>(object);
     }
     return nullptr;
 }

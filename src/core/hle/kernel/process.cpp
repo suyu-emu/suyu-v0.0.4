@@ -49,6 +49,8 @@ void SetupMainThread(Core::System& system, Process& owner_process, u32 priority,
     // Register 1 must be a handle to the main thread
     Handle thread_handle{};
     owner_process.GetHandleTable().Add(&thread_handle, thread);
+
+    thread->SetName("main");
     thread->GetContext32().cpu_registers[0] = 0;
     thread->GetContext64().cpu_registers[0] = 0;
     thread->GetContext32().cpu_registers[1] = thread_handle;
@@ -115,10 +117,10 @@ private:
     std::bitset<num_slot_entries> is_slot_used;
 };
 
-std::shared_ptr<Process> Process::Create(Core::System& system, std::string name, ProcessType type) {
+ResultCode Process::Initialize(Process* process, Core::System& system, std::string name,
+                               ProcessType type) {
     auto& kernel = system.Kernel();
 
-    std::shared_ptr<Process> process = std::make_shared<Process>(system);
     process->name = std::move(name);
 
     process->resource_limit = kernel.GetSystemResourceLimit();
@@ -127,6 +129,7 @@ std::shared_ptr<Process> Process::Create(Core::System& system, std::string name,
     process->process_id = type == ProcessType::KernelInternal ? kernel.CreateNewKernelProcessID()
                                                               : kernel.CreateNewUserProcessID();
     process->capabilities.InitializeForMetadatalessProcess();
+    process->is_initialized = true;
 
     std::mt19937 rng(Settings::values.rng_seed.GetValue().value_or(std::time(nullptr)));
     std::uniform_int_distribution<u64> distribution;
@@ -134,7 +137,8 @@ std::shared_ptr<Process> Process::Create(Core::System& system, std::string name,
                   [&] { return distribution(rng); });
 
     kernel.AppendNewProcess(process);
-    return process;
+
+    return RESULT_SUCCESS;
 }
 
 std::shared_ptr<KResourceLimit> Process::GetResourceLimit() const {
@@ -332,7 +336,7 @@ void Process::Run(s32 main_thread_priority, u64 stack_size) {
 
     ChangeStatus(ProcessStatus::Running);
 
-    SetupMainThread(system, *this, main_thread_priority, main_thread_stack_top);
+    SetupMainThread(kernel.System(), *this, main_thread_priority, main_thread_stack_top);
 }
 
 void Process::PrepareForTermination() {
@@ -354,7 +358,7 @@ void Process::PrepareForTermination() {
         }
     };
 
-    stop_threads(system.GlobalSchedulerContext().GetThreadList());
+    stop_threads(kernel.System().GlobalSchedulerContext().GetThreadList());
 
     FreeTLSRegion(tls_region_address);
     tls_region_address = 0;
@@ -381,7 +385,7 @@ static auto FindTLSPageWithAvailableSlots(std::vector<TLSPage>& tls_pages) {
 }
 
 VAddr Process::CreateTLSRegion() {
-    KScopedSchedulerLock lock(system.Kernel());
+    KScopedSchedulerLock lock(kernel);
     if (auto tls_page_iter{FindTLSPageWithAvailableSlots(tls_pages)};
         tls_page_iter != tls_pages.cend()) {
         return *tls_page_iter->ReserveSlot();
@@ -392,7 +396,7 @@ VAddr Process::CreateTLSRegion() {
 
     const VAddr start{page_table->GetKernelMapRegionStart()};
     const VAddr size{page_table->GetKernelMapRegionEnd() - start};
-    const PAddr tls_map_addr{system.DeviceMemory().GetPhysicalAddr(tls_page_ptr)};
+    const PAddr tls_map_addr{kernel.System().DeviceMemory().GetPhysicalAddr(tls_page_ptr)};
     const VAddr tls_page_addr{page_table
                                   ->AllocateAndMapMemory(1, PageSize, true, start, size / PageSize,
                                                          KMemoryState::ThreadLocal,
@@ -412,7 +416,7 @@ VAddr Process::CreateTLSRegion() {
 }
 
 void Process::FreeTLSRegion(VAddr tls_address) {
-    KScopedSchedulerLock lock(system.Kernel());
+    KScopedSchedulerLock lock(kernel);
     const VAddr aligned_address = Common::AlignDown(tls_address, Core::Memory::PAGE_SIZE);
     auto iter =
         std::find_if(tls_pages.begin(), tls_pages.end(), [aligned_address](const auto& page) {
@@ -433,7 +437,8 @@ void Process::LoadModule(CodeSet code_set, VAddr base_addr) {
         page_table->SetCodeMemoryPermission(segment.addr + base_addr, segment.size, permission);
     };
 
-    system.Memory().WriteBlock(*this, base_addr, code_set.memory.data(), code_set.memory.size());
+    kernel.System().Memory().WriteBlock(*this, base_addr, code_set.memory.data(),
+                                        code_set.memory.size());
 
     ReprotectSegment(code_set.CodeSegment(), KMemoryPermission::ReadAndExecute);
     ReprotectSegment(code_set.RODataSegment(), KMemoryPermission::Read);
@@ -445,10 +450,10 @@ bool Process::IsSignaled() const {
     return is_signaled;
 }
 
-Process::Process(Core::System& system)
-    : KSynchronizationObject{system.Kernel()}, page_table{std::make_unique<KPageTable>(system)},
-      handle_table{system.Kernel()}, address_arbiter{system}, condition_var{system},
-      state_lock{system.Kernel()}, system{system} {}
+Process::Process(KernelCore& kernel)
+    : KAutoObjectWithSlabHeapAndContainer{kernel},
+      page_table{std::make_unique<KPageTable>(kernel.System())}, handle_table{kernel},
+      address_arbiter{kernel.System()}, condition_var{kernel.System()}, state_lock{kernel} {}
 
 Process::~Process() = default;
 

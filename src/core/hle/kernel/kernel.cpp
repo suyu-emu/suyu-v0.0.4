@@ -614,7 +614,7 @@ struct KernelCore::Impl {
     std::atomic<u64> next_thread_id{1};
 
     // Lists all processes that exist in the current session.
-    std::vector<std::shared_ptr<Process>> process_list;
+    std::vector<Process*> process_list;
     Process* current_process = nullptr;
     std::unique_ptr<Kernel::GlobalSchedulerContext> global_scheduler_context;
     Kernel::TimeManager time_manager;
@@ -699,8 +699,8 @@ KScopedAutoObject<KThread> KernelCore::RetrieveThreadFromGlobalHandleTable(Handl
     return impl->global_handle_table.GetObject<KThread>(handle);
 }
 
-void KernelCore::AppendNewProcess(std::shared_ptr<Process> process) {
-    impl->process_list.push_back(std::move(process));
+void KernelCore::AppendNewProcess(Process* process) {
+    impl->process_list.push_back(process);
 }
 
 void KernelCore::MakeCurrentProcess(Process* process) {
@@ -715,7 +715,7 @@ const Process* KernelCore::CurrentProcess() const {
     return impl->current_process;
 }
 
-const std::vector<std::shared_ptr<Process>>& KernelCore::GetProcessList() const {
+const std::vector<Process*>& KernelCore::GetProcessList() const {
     return impl->process_list;
 }
 

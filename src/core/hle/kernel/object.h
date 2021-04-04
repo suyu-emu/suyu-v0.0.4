@@ -86,9 +86,9 @@ std::shared_ptr<T> SharedFrom(T* raw) {
  * @return Derived pointer to the object, or `nullptr` if `object` isn't of type T.
  */
 template <typename T>
-inline std::shared_ptr<T> DynamicObjectCast(std::shared_ptr<Object> object) {
+inline T* DynamicObjectCast(Object* object) {
     if (object != nullptr && object->GetHandleType() == T::HANDLE_TYPE) {
-        return std::static_pointer_cast<T>(object);
+        return reinterpret_cast<T*>(object);
     }
     return nullptr;
 }

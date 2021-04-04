@@ -100,7 +100,7 @@ ResultCode HandleTable::Add(Handle* out_handle, KAutoObject* obj, u16 type) {
 }
 
 ResultVal<Handle> HandleTable::Duplicate(Handle handle) {
-    std::shared_ptr<Object> object = GetGeneric(handle);
+    std::shared_ptr<Object> object = SharedFrom(GetGeneric(handle));
     if (object == nullptr) {
         LOG_ERROR(Kernel, "Tried to duplicate invalid handle: {:08X}", handle);
         return ResultInvalidHandle;
@@ -140,17 +140,17 @@ bool HandleTable::IsValid(Handle handle) const {
     return slot < table_size && is_object_valid && generations[slot] == generation;
 }
 
-std::shared_ptr<Object> HandleTable::GetGeneric(Handle handle) const {
+Object* HandleTable::GetGeneric(Handle handle) const {
     if (handle == CurrentThread) {
-        return SharedFrom(kernel.CurrentScheduler()->GetCurrentThread());
+        return (kernel.CurrentScheduler()->GetCurrentThread());
     } else if (handle == CurrentProcess) {
-        return SharedFrom(kernel.CurrentProcess());
+        return (kernel.CurrentProcess());
     }
 
     if (!IsValid(handle)) {
         return nullptr;
     }
-    return objects[GetSlot(handle)];
+    return objects[GetSlot(handle)].get();
 }
 
 void HandleTable::Clear() {

@@ -98,7 +98,7 @@ public:
      * Looks up a handle.
      * @return Pointer to the looked-up object, or `nullptr` if the handle is not valid.
      */
-    std::shared_ptr<Object> GetGeneric(Handle handle) const;
+    Object* GetGeneric(Handle handle) const;
 
     /**
      * Looks up a handle while verifying its type.
@@ -106,7 +106,7 @@ public:
      *         type differs from the requested one.
      */
     template <class T>
-    std::shared_ptr<T> Get(Handle handle) const {
+    T* Get(Handle handle) const {
         return DynamicObjectCast<T>(GetGeneric(handle));
     }
 

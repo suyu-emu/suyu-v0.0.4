@@ -15,7 +15,7 @@ class KMemoryLayout;
 namespace Kernel::Init {
 
 struct KSlabResourceCounts {
-    size_t num_KProcess;
+    size_t num_Process;
     size_t num_KThread;
     size_t num_KEvent;
     size_t num_KInterruptEvent;

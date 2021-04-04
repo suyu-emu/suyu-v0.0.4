@@ -13,9 +13,11 @@
 #include "common/common_types.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_address_arbiter.h"
+#include "core/hle/kernel/k_auto_object.h"
 #include "core/hle/kernel/k_condition_variable.h"
 #include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/kernel/process_capability.h"
+#include "core/hle/kernel/slab_helpers.h"
 #include "core/hle/result.h"
 
 namespace Core {
@@ -60,9 +62,11 @@ enum class ProcessStatus {
     DebugBreak,
 };
 
-class Process final : public KSynchronizationObject {
+class Process final : public KAutoObjectWithSlabHeapAndContainer<Process, KSynchronizationObject> {
+    KERNEL_AUTOOBJECT_TRAITS(Process, KSynchronizationObject);
+
 public:
-    explicit Process(Core::System& system);
+    explicit Process(KernelCore& kernel);
     ~Process() override;
 
     enum : u64 {
@@ -85,8 +89,8 @@ public:
 
     static constexpr std::size_t RANDOM_ENTROPY_SIZE = 4;
 
-    static std::shared_ptr<Process> Create(Core::System& system, std::string name,
-                                           ProcessType type);
+    static ResultCode Initialize(Process* process, Core::System& system, std::string name,
+                                 ProcessType type);
 
     std::string GetTypeName() const override {
         return "Process";
@@ -338,9 +342,21 @@ public:
 
     void LoadModule(CodeSet code_set, VAddr base_addr);
 
-    bool IsSignaled() const override;
+    virtual bool IsInitialized() const override {
+        return is_initialized;
+    }
 
-    void Finalize() override {}
+    static void PostDestroy([[maybe_unused]] uintptr_t arg) {}
+
+    virtual void Finalize() override {
+        UNIMPLEMENTED();
+    }
+
+    virtual u64 GetId() const override final {
+        return GetProcessID();
+    }
+
+    virtual bool IsSignaled() const override;
 
     void PinCurrentThread();
     void UnpinCurrentThread();
@@ -462,6 +478,7 @@ private:
 
     bool is_signaled{};
     bool is_suspended{};
+    bool is_initialized{};
 
     std::atomic<s32> num_created_threads{};
     std::atomic<u16> num_threads{};
@@ -474,9 +491,6 @@ private:
     KThread* exception_thread{};
 
     KLightLock state_lock;
-
-    /// System context
-    Core::System& system;
 };
 
 } // namespace Kernel

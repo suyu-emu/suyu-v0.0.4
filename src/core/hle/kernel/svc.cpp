@@ -342,7 +342,7 @@ static ResultCode ConnectToNamedPort32(Core::System& system, Handle* out_handle,
 static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
     auto& kernel = system.Kernel();
     const auto& handle_table = kernel.CurrentProcess()->GetHandleTable();
-    std::shared_ptr<ClientSession> session = handle_table.Get<ClientSession>(handle);
+    auto session = handle_table.Get<ClientSession>(handle);
     if (!session) {
         LOG_ERROR(Kernel_SVC, "called with invalid handle=0x{:08X}", handle);
         return ResultInvalidHandle;
@@ -437,7 +437,7 @@ static ResultCode WaitSynchronization(Core::System& system, s32* index, VAddr ha
         {
             auto object = handle_table.Get<KSynchronizationObject>(handle);
             if (object) {
-                objects[i] = object.get();
+                objects[i] = object;
                 succeeded = true;
             }
         }
@@ -1190,7 +1190,7 @@ static ResultCode QueryProcessMemory(Core::System& system, VAddr memory_info_add
     std::lock_guard lock{HLE::g_hle_lock};
     LOG_TRACE(Kernel_SVC, "called process=0x{:08X} address={:X}", process_handle, address);
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    std::shared_ptr<Process> process = handle_table.Get<Process>(process_handle);
+    auto process = handle_table.Get<Process>(process_handle);
     if (!process) {
         LOG_ERROR(Kernel_SVC, "Process handle does not exist, process_handle=0x{:08X}",
                   process_handle);

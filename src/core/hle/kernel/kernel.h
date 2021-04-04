@@ -91,7 +91,7 @@ public:
     KScopedAutoObject<KThread> RetrieveThreadFromGlobalHandleTable(Handle handle) const;
 
     /// Adds the given shared pointer to an internal list of active processes.
-    void AppendNewProcess(std::shared_ptr<Process> process);
+    void AppendNewProcess(Process* process);
 
     /// Makes the given process the new current process.
     void MakeCurrentProcess(Process* process);
@@ -103,7 +103,7 @@ public:
     const Process* CurrentProcess() const;
 
     /// Retrieves the list of processes.
-    const std::vector<std::shared_ptr<Process>>& GetProcessList() const;
+    const std::vector<Process*>& GetProcessList() const;
 
     /// Gets the sole instance of the global scheduler
     Kernel::GlobalSchedulerContext& GlobalSchedulerContext();

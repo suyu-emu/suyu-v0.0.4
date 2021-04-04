@@ -118,7 +118,7 @@ WaitTreeMutexInfo::WaitTreeMutexInfo(VAddr mutex_address, const Kernel::HandleTa
     : mutex_address(mutex_address) {
     mutex_value = Core::System::GetInstance().Memory().Read32(mutex_address);
     owner_handle = static_cast<Kernel::Handle>(mutex_value & Kernel::Svc::HandleWaitMask);
-    owner = handle_table.Get<Kernel::KThread>(owner_handle);
+    owner = SharedFrom(handle_table.Get<Kernel::KThread>(owner_handle));
 }
 
 WaitTreeMutexInfo::~WaitTreeMutexInfo() = default;
