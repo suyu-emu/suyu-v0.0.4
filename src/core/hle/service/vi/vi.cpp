@@ -674,7 +674,7 @@ private:
         // TODO(Subv): Find out what this actually is.
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(buffer_queue.GetBufferWaitEvent());
+        rb.PushCopyObjects(buffer_queue.GetBufferWaitEvent().get());
     }
 
     NVFlinger::NVFlinger& nv_flinger;
@@ -1209,7 +1209,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(vsync_event);
+        rb.PushCopyObjects(vsync_event.get());
     }
 
     void ConvertScalingMode(Kernel::HLERequestContext& ctx) {

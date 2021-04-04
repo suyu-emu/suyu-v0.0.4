@@ -35,15 +35,17 @@ SessionRequestHandler::SessionRequestHandler() = default;
 
 SessionRequestHandler::~SessionRequestHandler() = default;
 
-void SessionRequestHandler::ClientConnected(std::shared_ptr<ServerSession> server_session) {
+void SessionRequestHandler::ClientConnected(std::shared_ptr<ClientSession> client_session,
+                                            std::shared_ptr<ServerSession> server_session) {
     server_session->SetHleHandler(shared_from_this());
-    connected_sessions.push_back(std::move(server_session));
+    client_sessions.push_back(std::move(client_session));
+    server_sessions.push_back(std::move(server_session));
 }
 
 void SessionRequestHandler::ClientDisconnected(
     const std::shared_ptr<ServerSession>& server_session) {
     server_session->SetHleHandler(nullptr);
-    boost::range::remove_erase(connected_sessions, server_session);
+    boost::range::remove_erase(server_sessions, server_session);
 }
 
 HLERequestContext::HLERequestContext(KernelCore& kernel_, Core::Memory::Memory& memory_,
@@ -223,12 +225,12 @@ ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(KThread& thread) {
         // for specific values in each of these descriptors.
         for (auto& object : copy_objects) {
             ASSERT(object != nullptr);
-            dst_cmdbuf[current_offset++] = handle_table.Create(object).Unwrap();
+            dst_cmdbuf[current_offset++] = handle_table.Create(SharedFrom(object)).Unwrap();
         }
 
         for (auto& object : move_objects) {
             ASSERT(object != nullptr);
-            dst_cmdbuf[current_offset++] = handle_table.Create(object).Unwrap();
+            dst_cmdbuf[current_offset++] = handle_table.Create(SharedFrom(object)).Unwrap();
         }
     }
 

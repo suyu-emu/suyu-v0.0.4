@@ -138,8 +138,8 @@ public:
             context->AddDomainObject(std::move(iface));
         } else {
             auto [client, server] = Kernel::Session::Create(kernel, iface->GetServiceName());
-            context->AddMoveObject(std::move(client));
-            iface->ClientConnected(std::move(server));
+            context->AddMoveObject(client.get());
+            iface->ClientConnected(std::move(client), std::move(server));
         }
     }
 
@@ -215,10 +215,10 @@ public:
     void PushRaw(const T& value);
 
     template <typename... O>
-    void PushMoveObjects(std::shared_ptr<O>... pointers);
+    void PushMoveObjects(O*... pointers);
 
     template <typename... O>
-    void PushCopyObjects(std::shared_ptr<O>... pointers);
+    void PushCopyObjects(O*... pointers);
 
 private:
     u32 normal_params_size{};
@@ -301,7 +301,7 @@ void ResponseBuilder::Push(const First& first_value, const Other&... other_value
 }
 
 template <typename... O>
-inline void ResponseBuilder::PushCopyObjects(std::shared_ptr<O>... pointers) {
+inline void ResponseBuilder::PushCopyObjects(O*... pointers) {
     auto objects = {pointers...};
     for (auto& object : objects) {
         context->AddCopyObject(std::move(object));
@@ -309,7 +309,7 @@ inline void ResponseBuilder::PushCopyObjects(std::shared_ptr<O>... pointers) {
 }
 
 template <typename... O>
-inline void ResponseBuilder::PushMoveObjects(std::shared_ptr<O>... pointers) {
+inline void ResponseBuilder::PushMoveObjects(O*... pointers) {
     auto objects = {pointers...};
     for (auto& object : objects) {
         context->AddMoveObject(std::move(object));
@@ -360,10 +360,10 @@ public:
     T PopRaw();
 
     template <typename T>
-    std::shared_ptr<T> GetMoveObject(std::size_t index);
+    T* GetMoveObject(std::size_t index);
 
     template <typename T>
-    std::shared_ptr<T> GetCopyObject(std::size_t index);
+    T* GetCopyObject(std::size_t index);
 
     template <class T>
     std::shared_ptr<T> PopIpcInterface() {
@@ -470,12 +470,12 @@ void RequestParser::Pop(First& first_value, Other&... other_values) {
 }
 
 template <typename T>
-std::shared_ptr<T> RequestParser::GetMoveObject(std::size_t index) {
+T* RequestParser::GetMoveObject(std::size_t index) {
     return context->GetMoveObject<T>(index);
 }
 
 template <typename T>
-std::shared_ptr<T> RequestParser::GetCopyObject(std::size_t index) {
+T* RequestParser::GetCopyObject(std::size_t index) {
     return context->GetCopyObject<T>(index);
 }
 

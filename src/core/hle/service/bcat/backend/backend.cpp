@@ -21,7 +21,7 @@ ProgressServiceBackend::ProgressServiceBackend(Kernel::KernelCore& kernel,
 }
 
 std::shared_ptr<Kernel::KReadableEvent> ProgressServiceBackend::GetEvent() const {
-    return event->GetReadableEvent();
+    return SharedFrom(event->GetReadableEvent());
 }
 
 DeliveryCacheProgressImpl& ProgressServiceBackend::GetImpl() {

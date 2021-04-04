@@ -588,12 +588,11 @@ AppletMessageQueue::AppletMessageQueue(Kernel::KernelCore& kernel) {
 
 AppletMessageQueue::~AppletMessageQueue() = default;
 
-const std::shared_ptr<Kernel::KReadableEvent>& AppletMessageQueue::GetMessageReceiveEvent() const {
+Kernel::KReadableEvent* AppletMessageQueue::GetMessageReceiveEvent() const {
     return on_new_message->GetReadableEvent();
 }
 
-const std::shared_ptr<Kernel::KReadableEvent>& AppletMessageQueue::GetOperationModeChangedEvent()
-    const {
+Kernel::KReadableEvent* AppletMessageQueue::GetOperationModeChangedEvent() const {
     return on_operation_mode_changed->GetReadableEvent();
 }
 

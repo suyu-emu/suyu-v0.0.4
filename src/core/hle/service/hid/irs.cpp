@@ -62,7 +62,7 @@ void IRS::GetIrsensorSharedMemoryHandle(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushCopyObjects(shared_mem);
+    rb.PushCopyObjects(shared_mem.get());
 }
 
 void IRS::StopImageProcessor(Kernel::HLERequestContext& ctx) {

@@ -142,15 +142,15 @@ void AppletDataBroker::SignalStateChanged() const {
     }
 }
 
-std::shared_ptr<Kernel::KReadableEvent> AppletDataBroker::GetNormalDataEvent() const {
+Kernel::KReadableEvent* AppletDataBroker::GetNormalDataEvent() const {
     return pop_out_data_event->GetReadableEvent();
 }
 
-std::shared_ptr<Kernel::KReadableEvent> AppletDataBroker::GetInteractiveDataEvent() const {
+Kernel::KReadableEvent* AppletDataBroker::GetInteractiveDataEvent() const {
     return pop_interactive_out_data_event->GetReadableEvent();
 }
 
-std::shared_ptr<Kernel::KReadableEvent> AppletDataBroker::GetStateChangedEvent() const {
+Kernel::KReadableEvent* AppletDataBroker::GetStateChangedEvent() const {
     return state_changed_event->GetReadableEvent();
 }
 

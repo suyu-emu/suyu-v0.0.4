@@ -955,8 +955,7 @@ bool Controller_NPad::IsVibrationDeviceMounted(const DeviceHandle& vibration_dev
     return vibration_devices_mounted[npad_index][device_index];
 }
 
-std::shared_ptr<Kernel::KReadableEvent> Controller_NPad::GetStyleSetChangedEvent(
-    u32 npad_id) const {
+Kernel::KReadableEvent* Controller_NPad::GetStyleSetChangedEvent(u32 npad_id) const {
     const auto& styleset_event = styleset_changed_events[NPadIdToIndex(npad_id)];
     return styleset_event->GetReadableEvent();
 }

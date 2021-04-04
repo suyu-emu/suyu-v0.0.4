@@ -1976,7 +1976,7 @@ static ResultCode CreateEvent(Core::System& system, Handle* out_write, Handle* o
     auto handle_guard = SCOPE_GUARD({ handle_table.Remove(*write_create_result); });
 
     // Add the readable event to the handle table.
-    const auto read_create_result = handle_table.Create(event->GetReadableEvent());
+    const auto read_create_result = handle_table.Create(SharedFrom(event->GetReadableEvent()));
     if (read_create_result.Failed()) {
         return read_create_result.Code();
     }

@@ -28,7 +28,7 @@ ResultVal<std::shared_ptr<ClientSession>> ClientPort::Connect() {
     auto [client, server] = Kernel::Session::Create(kernel, name);
 
     if (server_port->HasHLEHandler()) {
-        server_port->GetHLEHandler()->ClientConnected(std::move(server));
+        server_port->GetHLEHandler()->ClientConnected(client, std::move(server));
     } else {
         server_port->AppendPendingSession(std::move(server));
     }

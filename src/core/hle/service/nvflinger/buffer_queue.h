@@ -13,6 +13,7 @@
 #include "common/common_funcs.h"
 #include "common/math_util.h"
 #include "common/swap.h"
+#include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/service/nvdrv/nvdata.h"
 

@@ -343,7 +343,7 @@ bool Module::Interface::LoadAmiibo(const std::vector<u8>& buffer) {
     return true;
 }
 
-const std::shared_ptr<Kernel::KReadableEvent>& Module::Interface::GetNFCEvent() const {
+Kernel::KReadableEvent* Module::Interface::GetNFCEvent() const {
     return nfc_tag_load->GetReadableEvent();
 }
 

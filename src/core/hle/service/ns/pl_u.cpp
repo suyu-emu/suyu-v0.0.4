@@ -267,7 +267,7 @@ void PL_U::GetSharedMemoryNativeHandle(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushCopyObjects(impl->shared_font_mem);
+    rb.PushCopyObjects(impl->shared_font_mem.get());
 }
 
 void PL_U::GetSharedFontInOrderOfPriority(Kernel::HLERequestContext& ctx) {

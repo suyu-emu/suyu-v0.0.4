@@ -30,7 +30,7 @@ void Controller::CloneCurrentObject(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1, IPC::ResponseBuilder::Flags::AlwaysMoveHandles};
     rb.Push(RESULT_SUCCESS);
-    rb.PushMoveObjects(ctx.Session()->GetParent()->Client());
+    rb.PushMoveObjects(ctx.Session()->GetParent()->Client().get());
 }
 
 void Controller::CloneCurrentObjectEx(Kernel::HLERequestContext& ctx) {

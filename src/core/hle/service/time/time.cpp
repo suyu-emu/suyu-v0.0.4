@@ -393,7 +393,7 @@ void Module::Interface::GetSharedMemoryNativeHandle(Kernel::HLERequestContext& c
     LOG_DEBUG(Service_Time, "called");
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushCopyObjects(SharedFrom(&system.Kernel().GetTimeSharedMem()));
+    rb.PushCopyObjects(&system.Kernel().GetTimeSharedMem());
 }
 
 Module::Interface::Interface(std::shared_ptr<Module> module_, Core::System& system_,

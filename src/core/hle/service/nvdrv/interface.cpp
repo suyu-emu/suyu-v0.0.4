@@ -189,7 +189,7 @@ void NVDRV::QueryEvent(Kernel::HLERequestContext& ctx) {
         rb.Push(RESULT_SUCCESS);
         auto event = nvdrv->GetEvent(event_id);
         event->Clear();
-        rb.PushCopyObjects(event);
+        rb.PushCopyObjects(event.get());
         rb.PushEnum(NvResult::Success);
     } else {
         IPC::ResponseBuilder rb{ctx, 3};

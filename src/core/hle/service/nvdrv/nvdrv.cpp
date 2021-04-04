@@ -178,7 +178,7 @@ void Module::SignalSyncpt(const u32 syncpoint_id, const u32 value) {
 }
 
 std::shared_ptr<Kernel::KReadableEvent> Module::GetEvent(const u32 event_id) const {
-    return events_interface.events[event_id].event->GetReadableEvent();
+    return SharedFrom(events_interface.events[event_id].event->GetReadableEvent());
 }
 
 std::shared_ptr<Kernel::KWritableEvent> Module::GetEventWriteable(const u32 event_id) const {

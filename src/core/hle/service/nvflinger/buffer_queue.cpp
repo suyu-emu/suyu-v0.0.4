@@ -194,7 +194,7 @@ std::shared_ptr<Kernel::KWritableEvent> BufferQueue::GetWritableBufferWaitEvent(
 }
 
 std::shared_ptr<Kernel::KReadableEvent> BufferQueue::GetBufferWaitEvent() const {
-    return buffer_wait_event->GetReadableEvent();
+    return SharedFrom(buffer_wait_event->GetReadableEvent());
 }
 
 } // namespace Service::NVFlinger

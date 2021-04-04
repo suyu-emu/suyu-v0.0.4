@@ -97,9 +97,9 @@ public:
 
     void SignalStateChanged() const;
 
-    std::shared_ptr<Kernel::KReadableEvent> GetNormalDataEvent() const;
-    std::shared_ptr<Kernel::KReadableEvent> GetInteractiveDataEvent() const;
-    std::shared_ptr<Kernel::KReadableEvent> GetStateChangedEvent() const;
+    Kernel::KReadableEvent* GetNormalDataEvent() const;
+    Kernel::KReadableEvent* GetInteractiveDataEvent() const;
+    Kernel::KReadableEvent* GetStateChangedEvent() const;
 
 private:
     Core::System& system;

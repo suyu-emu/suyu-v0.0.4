@@ -39,6 +39,7 @@ class HandleTable;
 class HLERequestContext;
 class KernelCore;
 class Process;
+class ClientSession;
 class ServerSession;
 class KThread;
 class KReadableEvent;
@@ -71,7 +72,8 @@ public:
      * associated ServerSession alive for the duration of the connection.
      * @param server_session Owning pointer to the ServerSession associated with the connection.
      */
-    void ClientConnected(std::shared_ptr<ServerSession> server_session);
+    void ClientConnected(
+        std::shared_ptr<ClientSession> client_session, std::shared_ptr<ServerSession> server_session);
 
     /**
      * Signals that a client has just disconnected from this HLE handler and releases the
@@ -84,7 +86,8 @@ protected:
     /// List of sessions that are connected to this handler.
     /// A ServerSession whose server endpoint is an HLE implementation is kept alive by this list
     /// for the duration of the connection.
-    std::vector<std::shared_ptr<ServerSession>> connected_sessions;
+    std::vector<std::shared_ptr<ClientSession>> client_sessions;
+    std::vector<std::shared_ptr<ServerSession>> server_sessions;
 };
 
 /**
@@ -218,21 +221,21 @@ public:
     }
 
     template <typename T>
-    std::shared_ptr<T> GetCopyObject(std::size_t index) {
+    T* GetCopyObject(std::size_t index) {
         return DynamicObjectCast<T>(copy_objects.at(index));
     }
 
     template <typename T>
-    std::shared_ptr<T> GetMoveObject(std::size_t index) {
+    T* GetMoveObject(std::size_t index) {
         return DynamicObjectCast<T>(move_objects.at(index));
     }
 
-    void AddMoveObject(std::shared_ptr<Object> object) {
-        move_objects.emplace_back(std::move(object));
+    void AddMoveObject(Object* object) {
+        move_objects.emplace_back(object);
     }
 
-    void AddCopyObject(std::shared_ptr<Object> object) {
-        copy_objects.emplace_back(std::move(object));
+    void AddCopyObject(Object* object) {
+        copy_objects.emplace_back(object);
     }
 
     void AddDomainObject(std::shared_ptr<SessionRequestHandler> object) {

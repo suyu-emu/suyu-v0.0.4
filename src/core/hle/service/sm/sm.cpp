@@ -134,7 +134,7 @@ void SM::GetService(Kernel::HLERequestContext& ctx) {
 
     const auto& server_port = client_port.Unwrap()->GetServerPort();
     if (server_port->GetHLEHandler()) {
-        server_port->GetHLEHandler()->ClientConnected(server);
+        server_port->GetHLEHandler()->ClientConnected(client, server);
     } else {
         server_port->AppendPendingSession(server);
     }
@@ -142,7 +142,7 @@ void SM::GetService(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_SM, "called service={} -> session={}", name, client->GetObjectId());
     IPC::ResponseBuilder rb{ctx, 2, 0, 1, IPC::ResponseBuilder::Flags::AlwaysMoveHandles};
     rb.Push(RESULT_SUCCESS);
-    rb.PushMoveObjects(std::move(client));
+    rb.PushMoveObjects(client.get());
 }
 
 void SM::RegisterService(Kernel::HLERequestContext& ctx) {
@@ -170,7 +170,9 @@ void SM::RegisterService(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1, IPC::ResponseBuilder::Flags::AlwaysMoveHandles};
     rb.Push(handle.Code());
-    rb.PushMoveObjects(std::move(handle).Unwrap());
+
+    auto server_port = handle.Unwrap();
+    rb.PushMoveObjects(server_port.get());
 }
 
 void SM::UnregisterService(Kernel::HLERequestContext& ctx) {

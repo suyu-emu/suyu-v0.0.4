@@ -34,7 +34,7 @@ const Layer& Display::GetLayer(std::size_t index) const {
 }
 
 std::shared_ptr<Kernel::KReadableEvent> Display::GetVSyncEvent() const {
-    return vsync_event->GetReadableEvent();
+    return SharedFrom(vsync_event->GetReadableEvent());
 }
 
 void Display::SignalVSyncEvent() {

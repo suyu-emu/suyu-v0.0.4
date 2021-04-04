@@ -32,8 +32,8 @@ public:
         return HANDLE_TYPE;
     }
 
-    std::shared_ptr<KReadableEvent>& GetReadableEvent() {
-        return readable_event;
+    KReadableEvent* GetReadableEvent() {
+        return readable_event.get();
     }
 
     std::shared_ptr<KWritableEvent>& GetWritableEvent() {
