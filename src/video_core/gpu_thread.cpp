@@ -29,8 +29,7 @@ static void RunThread(Core::System& system, VideoCore::RendererBase& renderer,
     system.RegisterHostThread();
 
     // Wait for first GPU command before acquiring the window context
-    while (state.queue.Empty())
-        ;
+    state.queue.Wait();
 
     // If emulation was stopped during disk shader loading, abort before trying to acquire context
     if (!state.is_running) {

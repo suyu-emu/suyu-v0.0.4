@@ -83,11 +83,15 @@ public:
         return true;
     }
 
-    T PopWait() {
+    void Wait() {
         if (Empty()) {
             std::unique_lock lock{cv_mutex};
             cv.wait(lock, [this]() { return !Empty(); });
         }
+    }
+
+    T PopWait() {
+        Wait();
         T t;
         Pop(t);
         return t;
@@ -154,6 +158,10 @@ public:
 
     bool Pop(T& t) {
         return spsc_queue.Pop(t);
+    }
+
+    void Wait() {
+        spsc_queue.Wait();
     }
 
     T PopWait() {
