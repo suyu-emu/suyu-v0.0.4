@@ -68,7 +68,7 @@ enum class ProgramType {
 class ProcessCapabilities {
 public:
     using InterruptCapabilities = std::bitset<1024>;
-    using SyscallCapabilities = std::bitset<128>;
+    using SyscallCapabilities = std::bitset<192>;
 
     ProcessCapabilities() = default;
     ProcessCapabilities(const ProcessCapabilities&) = delete;
