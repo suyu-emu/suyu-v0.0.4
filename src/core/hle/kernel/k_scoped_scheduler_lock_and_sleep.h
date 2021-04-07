@@ -15,7 +15,7 @@
 
 namespace Kernel {
 
-class KScopedSchedulerLockAndSleep {
+class [[nodiscard]] KScopedSchedulerLockAndSleep {
 public:
     explicit KScopedSchedulerLockAndSleep(KernelCore& kernel, KThread* t, s64 timeout)
         : kernel(kernel), thread(t), timeout_tick(timeout) {
