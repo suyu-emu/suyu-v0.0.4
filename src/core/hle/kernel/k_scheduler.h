@@ -198,7 +198,7 @@ private:
     Common::SpinLock guard{};
 };
 
-class KScopedSchedulerLock : KScopedLock<GlobalSchedulerContext::LockType> {
+class [[nodiscard]] KScopedSchedulerLock : KScopedLock<GlobalSchedulerContext::LockType> {
 public:
     explicit KScopedSchedulerLock(KernelCore& kernel);
     ~KScopedSchedulerLock();
