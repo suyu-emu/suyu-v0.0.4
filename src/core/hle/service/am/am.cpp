@@ -1705,9 +1705,12 @@ IHomeMenuFunctions::IHomeMenuFunctions(Core::System& system_)
         {21, &IHomeMenuFunctions::GetPopFromGeneralChannelEvent, "GetPopFromGeneralChannelEvent"},
         {30, nullptr, "GetHomeButtonWriterLockAccessor"},
         {31, nullptr, "GetWriterLockAccessorEx"},
+        {40, nullptr, "IsSleepEnabled"},
+        {41, nullptr, "IsRebootEnabled"},
         {100, nullptr, "PopRequestLaunchApplicationForDebug"},
         {110, nullptr, "IsForceTerminateApplicationDisabledForDebug"},
         {200, nullptr, "LaunchDevMenu"},
+        {1000, nullptr, "SetLastApplicationExitReason"},
     };
     // clang-format on
 
