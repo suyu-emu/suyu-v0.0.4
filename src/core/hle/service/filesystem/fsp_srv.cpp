@@ -708,7 +708,10 @@ FSP_SRV::FSP_SRV(Core::System& system_)
         {84, nullptr, "ListApplicationAccessibleSaveDataOwnerId"},
         {85, nullptr, "OpenSaveDataTransferManagerForSaveDataRepair"},
         {86, nullptr, "OpenSaveDataMover"},
+        {87, nullptr, "OpenSaveDataTransferManagerForRepair"},
         {100, nullptr, "OpenImageDirectoryFileSystem"},
+        {101, nullptr, "OpenBaseFileSystem"},
+        {102, nullptr, "FormatBaseFileSystem"},
         {110, nullptr, "OpenContentStorageFileSystem"},
         {120, nullptr, "OpenCloudBackupWorkStorageFileSystem"},
         {130, nullptr, "OpenCustomStorageFileSystem"},
@@ -764,10 +767,12 @@ FSP_SRV::FSP_SRV(Core::System& system_)
         {1008, nullptr, "OpenRegisteredUpdatePartition"},
         {1009, nullptr, "GetAndClearMemoryReportInfo"},
         {1010, nullptr, "SetDataStorageRedirectTarget"},
-        {1011, &FSP_SRV::GetAccessLogVersionInfo, "GetAccessLogVersionInfo"},
+        {1011, &FSP_SRV::GetProgramIndexForAccessLog, "GetProgramIndexForAccessLog"},
         {1012, nullptr, "GetFsStackUsage"},
         {1013, nullptr, "UnsetSaveDataRootPath"},
         {1014, nullptr, "OutputMultiProgramTagAccessLog"},
+        {1016, nullptr, "FlushAccessLogOnSdCard"},
+        {1017, nullptr, "OutputApplicationInfoAccessLog"},
         {1100, nullptr, "OverrideSaveDataTransferTokenSignVerificationKey"},
         {1110, nullptr, "CorruptSaveDataFileSystemBySaveDataSpaceId2"},
         {1200, &FSP_SRV::OpenMultiCommitManager, "OpenMultiCommitManager"},
@@ -1051,7 +1056,7 @@ void FSP_SRV::OutputAccessLogToSdCard(Kernel::HLERequestContext& ctx) {
     rb.Push(RESULT_SUCCESS);
 }
 
-void FSP_SRV::GetAccessLogVersionInfo(Kernel::HLERequestContext& ctx) {
+void FSP_SRV::GetProgramIndexForAccessLog(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_FS, "called");
 
     IPC::ResponseBuilder rb{ctx, 4};
