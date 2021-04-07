@@ -56,11 +56,17 @@ static void RunThread(Core::System& system, VideoCore::RendererBase& renderer,
         } else if (const auto* invalidate = std::get_if<InvalidateRegionCommand>(&next.data)) {
             rasterizer->OnCPUWrite(invalidate->addr, invalidate->size);
         } else if (std::holds_alternative<EndProcessingCommand>(next.data)) {
-            return;
+            ASSERT(state.is_running == false);
         } else {
             UNREACHABLE();
         }
         state.signaled_fence.store(next.fence);
+        if (next.block) {
+            // We have to lock the write_lock to ensure that the condition_variable wait not get a
+            // race between the check and the lock itself.
+            std::lock_guard lk(state.write_lock);
+            state.cv.notify_all();
+        }
     }
 }
 
@@ -105,9 +111,8 @@ void ThreadManager::FlushRegion(VAddr addr, u64 size) {
     case Settings::GPUAccuracy::Extreme: {
         auto& gpu = system.GPU();
         u64 fence = gpu.RequestFlush(addr, size);
-        PushCommand(GPUTickCommand());
-        while (fence > gpu.CurrentFlushRequestFence()) {
-        }
+        PushCommand(GPUTickCommand(), true);
+        ASSERT(fence <= gpu.CurrentFlushRequestFence());
         break;
     }
     default:
@@ -124,18 +129,16 @@ void ThreadManager::FlushAndInvalidateRegion(VAddr addr, u64 size) {
     rasterizer->OnCPUWrite(addr, size);
 }
 
-void ThreadManager::WaitIdle() const {
-    while (state.last_fence > state.signaled_fence.load(std::memory_order_relaxed) &&
-           state.is_running) {
-    }
-}
-
 void ThreadManager::ShutDown() {
     if (!state.is_running) {
         return;
     }
 
-    state.is_running = false;
+    {
+        std::lock_guard lk(state.write_lock);
+        state.is_running = false;
+        state.cv.notify_all();
+    }
 
     if (!thread.joinable()) {
         return;
@@ -150,15 +153,21 @@ void ThreadManager::OnCommandListEnd() {
     PushCommand(OnCommandListEndCommand());
 }
 
-u64 ThreadManager::PushCommand(CommandData&& command_data) {
-    std::unique_lock lk(state.write_lock);
-    const u64 fence{++state.last_fence};
-    state.queue.Push(CommandDataContainer(std::move(command_data), fence));
-
+u64 ThreadManager::PushCommand(CommandData&& command_data, bool block) {
     if (!is_async) {
         // In synchronous GPU mode, block the caller until the command has executed
-        lk.unlock();
-        WaitIdle();
+        block = true;
+    }
+
+    std::unique_lock lk(state.write_lock);
+    const u64 fence{++state.last_fence};
+    state.queue.Push(CommandDataContainer(std::move(command_data), fence, block));
+
+    if (block) {
+        state.cv.wait(lk, [this, fence] {
+            return fence <= state.signaled_fence.load(std::memory_order_relaxed) ||
+                   !state.is_running;
+        });
     }
 
     return fence;

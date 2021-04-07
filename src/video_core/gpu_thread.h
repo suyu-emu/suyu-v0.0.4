@@ -90,11 +90,12 @@ using CommandData =
 struct CommandDataContainer {
     CommandDataContainer() = default;
 
-    explicit CommandDataContainer(CommandData&& data_, u64 next_fence_)
-        : data{std::move(data_)}, fence{next_fence_} {}
+    explicit CommandDataContainer(CommandData&& data_, u64 next_fence_, bool block_)
+        : data{std::move(data_)}, fence{next_fence_}, block(block_) {}
 
     CommandData data;
     u64 fence{};
+    bool block{};
 };
 
 /// Struct used to synchronize the GPU thread
@@ -106,6 +107,7 @@ struct SynchState final {
     CommandQueue queue;
     u64 last_fence{};
     std::atomic<u64> signaled_fence{};
+    std::condition_variable cv;
 };
 
 /// Class used to manage the GPU thread
@@ -140,10 +142,7 @@ public:
 
 private:
     /// Pushes a command to be executed by the GPU thread
-    u64 PushCommand(CommandData&& command_data);
-
-    // Wait until the gpu thread is idle.
-    void WaitIdle() const;
+    u64 PushCommand(CommandData&& command_data, bool block = false);
 
     Core::System& system;
     const bool is_async;
