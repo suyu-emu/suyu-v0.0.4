@@ -281,11 +281,6 @@ ResultCode ProcessCapabilities::HandleSyscallFlags(u32& set_svc_bits, u32 flags)
             continue;
         }
 
-        if (svc_number >= svc_capabilities.size()) {
-            LOG_ERROR(Kernel, "Process svc capability is out of range! svc_number={}", svc_number);
-            return ResultOutOfRange;
-        }
-
         svc_capabilities[svc_number] = true;
     }
 
