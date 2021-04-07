@@ -49,6 +49,8 @@ public:
             {151, nullptr, "GetStateWithHandover"},
             {152, nullptr, "GetStateChangeEventWithHandover"},
             {153, nullptr, "GetDropEventWithHandover"},
+            {154, nullptr, "CreateTokenAsync"},
+            {155, nullptr, "CreateTokenAsyncWithApplicationId"},
             {161, nullptr, "GetRequestChangeStateCancelEvent"},
             {162, nullptr, "RequestChangeStateForceTimedWithCancelEvent"},
             {201, nullptr, "RequestChangeStateForceTimed"},
@@ -84,6 +86,7 @@ public:
             {151, nullptr, "GetStateWithHandover"},
             {152, nullptr, "GetStateChangeEventWithHandover"},
             {153, nullptr, "GetDropEventWithHandover"},
+            {154, nullptr, "CreateTokenAsync"},
         };
         // clang-format on
 
