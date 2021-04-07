@@ -297,6 +297,10 @@ HwOpus::HwOpus(Core::System& system_) : ServiceFramework{system_, "hwopus"} {
         {1, &HwOpus::GetWorkBufferSize, "GetWorkBufferSize"},
         {2, nullptr, "OpenOpusDecoderForMultiStream"},
         {3, nullptr, "GetWorkBufferSizeForMultiStream"},
+        {4, nullptr, "OpenHardwareOpusDecoderEx"},
+        {5, nullptr, "GetWorkBufferSizeEx"},
+        {6, nullptr, "OpenHardwareOpusDecoderForMultiStreamEx"},
+        {7, nullptr, "GetWorkBufferSizeForMultiStreamEx"},
     };
     RegisterHandlers(functions);
 }
