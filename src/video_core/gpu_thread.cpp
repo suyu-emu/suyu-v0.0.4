@@ -68,13 +68,7 @@ ThreadManager::ThreadManager(Core::System& system_, bool is_async_)
     : system{system_}, is_async{is_async_} {}
 
 ThreadManager::~ThreadManager() {
-    if (!thread.joinable()) {
-        return;
-    }
-
-    // Notify GPU thread that a shutdown is pending
-    PushCommand(EndProcessingCommand());
-    thread.join();
+    ShutDown();
 }
 
 void ThreadManager::StartThread(VideoCore::RendererBase& renderer,
@@ -132,8 +126,24 @@ void ThreadManager::FlushAndInvalidateRegion(VAddr addr, u64 size) {
 
 void ThreadManager::WaitIdle() const {
     while (state.last_fence > state.signaled_fence.load(std::memory_order_relaxed) &&
-           system.IsPoweredOn()) {
+           state.is_running) {
     }
+}
+
+void ThreadManager::ShutDown() {
+    if (!state.is_running) {
+        return;
+    }
+
+    state.is_running = false;
+
+    if (!thread.joinable()) {
+        return;
+    }
+
+    // Notify GPU thread that a shutdown is pending
+    PushCommand(EndProcessingCommand());
+    thread.join();
 }
 
 void ThreadManager::OnCommandListEnd() {

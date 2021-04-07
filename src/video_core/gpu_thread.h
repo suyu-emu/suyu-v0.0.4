@@ -132,14 +132,17 @@ public:
     /// Notify rasterizer that any caches of the specified region should be flushed and invalidated
     void FlushAndInvalidateRegion(VAddr addr, u64 size);
 
-    // Wait until the gpu thread is idle.
-    void WaitIdle() const;
+    // Stops the GPU execution and waits for the GPU to finish working
+    void ShutDown();
 
     void OnCommandListEnd();
 
 private:
     /// Pushes a command to be executed by the GPU thread
     u64 PushCommand(CommandData&& command_data);
+
+    // Wait until the gpu thread is idle.
+    void WaitIdle() const;
 
     Core::System& system;
     const bool is_async;
