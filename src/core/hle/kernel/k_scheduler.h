@@ -200,7 +200,7 @@ private:
 
 class [[nodiscard]] KScopedSchedulerLock : KScopedLock<GlobalSchedulerContext::LockType> {
 public:
-    explicit KScopedSchedulerLock(KernelCore& kernel);
+    explicit KScopedSchedulerLock(KernelCore & kernel);
     ~KScopedSchedulerLock();
 };
 
