@@ -231,6 +231,7 @@ IDebugFunctions::IDebugFunctions(Core::System& system_)
         {10, nullptr, "PerformSystemButtonPressing"},
         {20, nullptr, "InvalidateTransitionLayer"},
         {30, nullptr, "RequestLaunchApplicationWithUserAndArgumentForDebug"},
+        {31, nullptr, "RequestLaunchApplicationByApplicationLaunchInfoForDebug"},
         {40, nullptr, "GetAppletResourceUsageInfo"},
         {100, nullptr, "SetCpuBoostModeForApplet"},
         {101, nullptr, "CancelCpuBoostModeForApplet"},
@@ -242,6 +243,7 @@ IDebugFunctions::IDebugFunctions(Core::System& system_)
         {130, nullptr, "FriendInvitationSetApplicationParameter"},
         {131, nullptr, "FriendInvitationClearApplicationParameter"},
         {132, nullptr, "FriendInvitationPushApplicationParameter"},
+        {900, nullptr, "GetGrcProcessLaunchedSystemEvent"},
     };
     // clang-format on
 
