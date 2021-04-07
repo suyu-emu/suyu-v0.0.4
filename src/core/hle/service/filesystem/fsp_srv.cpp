@@ -118,9 +118,13 @@ public:
     explicit IFile(Core::System& system_, FileSys::VirtualFile backend_)
         : ServiceFramework{system_, "IFile"}, backend(std::move(backend_)) {
         static const FunctionInfo functions[] = {
-            {0, &IFile::Read, "Read"},       {1, &IFile::Write, "Write"},
-            {2, &IFile::Flush, "Flush"},     {3, &IFile::SetSize, "SetSize"},
-            {4, &IFile::GetSize, "GetSize"}, {5, nullptr, "OperateRange"},
+            {0, &IFile::Read, "Read"},
+            {1, &IFile::Write, "Write"},
+            {2, &IFile::Flush, "Flush"},
+            {3, &IFile::SetSize, "SetSize"},
+            {4, &IFile::GetSize, "GetSize"},
+            {5, nullptr, "OperateRange"},
+            {6, nullptr, "OperateRangeWithBuffer"},
         };
         RegisterHandlers(functions);
     }
