@@ -299,6 +299,7 @@ ISelfController::ISelfController(Core::System& system_, NVFlinger::NVFlinger& nv
         {91, &ISelfController::GetAccumulatedSuspendedTickChangedEvent, "GetAccumulatedSuspendedTickChangedEvent"},
         {100, &ISelfController::SetAlbumImageTakenNotificationEnabled, "SetAlbumImageTakenNotificationEnabled"},
         {110, nullptr, "SetApplicationAlbumUserData"},
+        {120, nullptr, "SaveCurrentScreenshot"},
         {1000, nullptr, "GetDebugStorageChannel"},
     };
     // clang-format on
