@@ -151,11 +151,13 @@ void ThreadManager::OnCommandListEnd() {
 }
 
 u64 ThreadManager::PushCommand(CommandData&& command_data) {
+    std::unique_lock lk(state.write_lock);
     const u64 fence{++state.last_fence};
     state.queue.Push(CommandDataContainer(std::move(command_data), fence));
 
     if (!is_async) {
         // In synchronous GPU mode, block the caller until the command has executed
+        lk.unlock();
         WaitIdle();
     }
 

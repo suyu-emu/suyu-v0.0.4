@@ -101,7 +101,8 @@ struct CommandDataContainer {
 struct SynchState final {
     std::atomic_bool is_running{true};
 
-    using CommandQueue = Common::MPSCQueue<CommandDataContainer>;
+    using CommandQueue = Common::SPSCQueue<CommandDataContainer>;
+    std::mutex write_lock;
     CommandQueue queue;
     u64 last_fence{};
     std::atomic<u64> signaled_fence{};
