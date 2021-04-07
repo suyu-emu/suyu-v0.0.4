@@ -28,6 +28,8 @@ XCD_SYS::XCD_SYS(Core::System& system_) : ServiceFramework{system_, "xcd:sys"} {
         {20, nullptr, "StartMifareWrite"},
         {101, nullptr, "GetAwakeTriggerReasonForLeftRail"},
         {102, nullptr, "GetAwakeTriggerReasonForRightRail"},
+        {103, nullptr, "GetAwakeTriggerBatteryLevelTransitionForLeftRail"},
+        {104, nullptr, "GetAwakeTriggerBatteryLevelTransitionForRightRail"},
     };
     // clang-format on
 
