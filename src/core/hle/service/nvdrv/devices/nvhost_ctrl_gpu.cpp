@@ -248,7 +248,13 @@ NvResult nvhost_ctrl_gpu::ZBCSetTable(const std::vector<u8>& input, std::vector<
     IoctlZbcSetTable params{};
     std::memcpy(&params, input.data(), input.size());
     // TODO(ogniK): What does this even actually do?
-    std::memcpy(output.data(), &params, output.size());
+
+    // Prevent null pointer being passed as arg 1
+    if (output.empty()) {
+        LOG_WARNING(Service_NVDRV, "Avoiding passing null pointer to memcpy");
+    } else {
+        std::memcpy(output.data(), &params, output.size());
+    }
     return NvResult::Success;
 }
 
