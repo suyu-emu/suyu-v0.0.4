@@ -1754,6 +1754,7 @@ IGlobalStateController::IGlobalStateController(Core::System& system_)
         {13, nullptr, "UpdateDefaultDisplayResolution"},
         {14, nullptr, "ShouldSleepOnBoot"},
         {15, nullptr, "GetHdcpAuthenticationFailedEvent"},
+        {30, nullptr, "OpenCradleFirmwareUpdater"},
     };
     // clang-format on
 
