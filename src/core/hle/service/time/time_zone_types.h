@@ -66,8 +66,8 @@ struct CalendarTime {
 static_assert(sizeof(CalendarTime) == 0x8, "CalendarTime is incorrect size");
 
 struct CalendarInfo {
-    CalendarTime time{};
-    CalendarAdditionalInfo additiona_info{};
+    CalendarTime time;
+    CalendarAdditionalInfo additional_info;
 };
 static_assert(sizeof(CalendarInfo) == 0x20, "CalendarInfo is incorrect size");
 

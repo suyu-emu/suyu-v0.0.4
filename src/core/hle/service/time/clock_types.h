@@ -12,6 +12,12 @@
 
 namespace Service::Time::Clock {
 
+enum class TimeType : u8 {
+    UserSystemClock,
+    NetworkSystemClock,
+    LocalSystemClock,
+};
+
 /// https://switchbrew.org/wiki/Glue_services#SteadyClockTimePoint
 struct SteadyClockTimePoint {
     s64 time_point;
@@ -84,7 +90,7 @@ struct ClockSnapshot {
     SteadyClockTimePoint steady_clock_time_point;
     TimeZone::LocationName location_name;
     u8 is_automatic_correction_enabled;
-    u8 type;
+    TimeType type;
     INSERT_PADDING_BYTES_NOINIT(0x2);
 
     static ResultCode GetCurrentTime(s64& current_time,
