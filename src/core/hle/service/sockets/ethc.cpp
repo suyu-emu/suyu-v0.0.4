@@ -15,6 +15,7 @@ ETHC_C::ETHC_C(Core::System& system_) : ServiceFramework{system_, "ethc:c"} {
         {3, nullptr, "GetMediaList"},
         {4, nullptr, "SetMediaType"},
         {5, nullptr, "GetMediaType"},
+        {6, nullptr, "Unknown6"},
     };
     // clang-format on
 
