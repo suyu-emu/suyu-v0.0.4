@@ -69,15 +69,15 @@ public:
         : ServiceFramework{system_, "IClientEpSession"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "Open"},
+            {0, nullptr, "ReOpen"},
             {1, nullptr, "Close"},
-            {2, nullptr, "Unknown2"},
-            {3, nullptr, "Populate"},
+            {2, nullptr, "GetCompletionEvent"},
+            {3, nullptr, "PopulateRing"},
             {4, nullptr, "PostBufferAsync"},
             {5, nullptr, "GetXferReport"},
             {6, nullptr, "PostBufferMultiAsync"},
-            {7, nullptr, "Unknown7"},
-            {8, nullptr, "Unknown8"},
+            {7, nullptr, "CreateSmmuSpace"},
+            {8, nullptr, "ShareReportRing"},
         };
         // clang-format on
 
@@ -91,7 +91,7 @@ public:
         : ServiceFramework{system_, "IClientIfSession"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "Unknown0"},
+            {0, nullptr, "GetStateChangeEvent"},
             {1, nullptr, "SetInterface"},
             {2, nullptr, "GetInterface"},
             {3, nullptr, "GetAlternateInterface"},
@@ -176,15 +176,15 @@ public:
         : ServiceFramework{system_, "IPdCradleSession"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "VdmUserWrite"},
-            {1, nullptr, "VdmUserRead"},
-            {2, nullptr, "Vdm20Init"},
-            {3, nullptr, "GetFwType"},
-            {4, nullptr, "GetFwRevision"},
-            {5, nullptr, "GetManufacturerId"},
-            {6, nullptr, "GetDeviceId"},
-            {7, nullptr, "Unknown7"},
-            {8, nullptr, "Unknown8"},
+            {0, nullptr, "SetCradleVdo"},
+            {1, nullptr, "GetCradleVdo"},
+            {2, nullptr, "ResetCradleUsbHub"},
+            {3, nullptr, "GetHostPdcFirmwareType"},
+            {4, nullptr, "GetHostPdcFirmwareRevision"},
+            {5, nullptr, "GetHostPdcManufactureId"},
+            {6, nullptr, "GetHostPdcDeviceId"},
+            {7, nullptr, "AwakeCradle"},
+            {8, nullptr, "SleepCradle"},
         };
         // clang-format on
 
@@ -219,12 +219,12 @@ public:
     explicit USB_PM(Core::System& system_) : ServiceFramework{system_, "usb:pm"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "Unknown0"},
-            {1, nullptr, "Unknown1"},
-            {2, nullptr, "Unknown2"},
-            {3, nullptr, "Unknown3"},
-            {4, nullptr, "Unknown4"},
-            {5, nullptr, "Unknown5"},
+            {0, nullptr, "GetPowerEvent"},
+            {1, nullptr, "GetPowerState"},
+            {2, nullptr, "GetDataEvent"},
+            {3, nullptr, "GetDataRole"},
+            {4, nullptr, "SetDiagData"},
+            {5, nullptr, "GetDiagData"},
         };
         // clang-format on
 
