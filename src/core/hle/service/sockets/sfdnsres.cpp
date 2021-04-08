@@ -9,8 +9,8 @@ namespace Service::Sockets {
 
 SFDNSRES::SFDNSRES(Core::System& system_) : ServiceFramework{system_, "sfdnsres"} {
     static const FunctionInfo functions[] = {
-        {0, nullptr, "SetDnsAddressesPrivate"},
-        {1, nullptr, "GetDnsAddressPrivate"},
+        {0, nullptr, "SetDnsAddressesPrivateRequest"},
+        {1, nullptr, "GetDnsAddressPrivateRequest"},
         {2, nullptr, "GetHostByNameRequest"},
         {3, nullptr, "GetHostByAddrRequest"},
         {4, nullptr, "GetHostStringErrorRequest"},
