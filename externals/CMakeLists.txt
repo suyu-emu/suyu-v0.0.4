@@ -97,4 +97,8 @@ if (ENABLE_WEB_SERVICE)
 endif()
 
 # Opus
-add_subdirectory(opus)
+find_package(opus 1.3)
+if (NOT opus_FOUND)
+    message(STATUS "opus 1.3 or newer not found, falling back to externals")
+    add_subdirectory(opus EXCLUDE_FROM_ALL)
+endif()
