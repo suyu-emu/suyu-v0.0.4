@@ -154,6 +154,10 @@ PL_U::PL_U(Core::System& system_)
         {100, nullptr, "RequestApplicationFunctionAuthorization"},
         {101, nullptr, "RequestApplicationFunctionAuthorizationByProcessId"},
         {102, nullptr, "RequestApplicationFunctionAuthorizationByApplicationId"},
+        {103, nullptr, "RefreshApplicationFunctionBlackListDebugRecord"},
+        {104, nullptr, "RequestApplicationFunctionAuthorizationByProgramId"},
+        {105, nullptr, "GetFunctionBlackListSystemVersionToAuthorize"},
+        {106, nullptr, "GetFunctionBlackListVersion"},
         {1000, nullptr, "LoadNgWordDataForPlatformRegionChina"},
         {1001, nullptr, "GetNgWordDataSizeForPlatformRegionChina"},
     };
