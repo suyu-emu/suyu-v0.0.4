@@ -43,6 +43,7 @@ CAPS_U::CAPS_U(Core::System& system_) : ServiceFramework{system_, "caps:u"} {
         {141, nullptr, "GetAlbumFileList2AafeUidAruidDeprecated"},
         {142, &CAPS_U::GetAlbumFileList3AaeAruid, "GetAlbumFileList3AaeAruid"},
         {143, nullptr, "GetAlbumFileList4AaeUidAruid"},
+        {144, nullptr, "GetAllAlbumFileList3AaeAruid"},
         {60002, nullptr, "OpenAccessorSessionForApplication"},
     };
     // clang-format on
