@@ -332,9 +332,9 @@ AudRenU::AudRenU(Core::System& system_) : ServiceFramework{system_, "audren:u"} 
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &AudRenU::OpenAudioRenderer, "OpenAudioRenderer"},
-        {1, &AudRenU::GetAudioRendererWorkBufferSize, "GetAudioRendererWorkBufferSize"},
+        {1, &AudRenU::GetAudioRendererWorkBufferSize, "GetWorkBufferSize"},
         {2, &AudRenU::GetAudioDeviceService, "GetAudioDeviceService"},
-        {3, &AudRenU::OpenAudioRendererAuto, "OpenAudioRendererAuto"},
+        {3, &AudRenU::OpenAudioRendererForManualExecution, "OpenAudioRendererForManualExecution"},
         {4, &AudRenU::GetAudioDeviceServiceWithRevisionInfo, "GetAudioDeviceServiceWithRevisionInfo"},
     };
     // clang-format on
@@ -665,7 +665,7 @@ void AudRenU::GetAudioDeviceService(Kernel::HLERequestContext& ctx) {
     rb.PushIpcInterface<IAudioDevice>(system, Common::MakeMagic('R', 'E', 'V', '1'));
 }
 
-void AudRenU::OpenAudioRendererAuto(Kernel::HLERequestContext& ctx) {
+void AudRenU::OpenAudioRendererForManualExecution(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Audio, "called");
 
     OpenAudioRendererImpl(ctx);
