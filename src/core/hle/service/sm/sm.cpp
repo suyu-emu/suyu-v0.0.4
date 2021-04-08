@@ -190,10 +190,11 @@ SM::SM(std::shared_ptr<ServiceManager> service_manager_, Core::System& system_)
     : ServiceFramework{system_, "sm:", 4},
       service_manager{std::move(service_manager_)}, kernel{system_.Kernel()} {
     static const FunctionInfo functions[] = {
-        {0x00000000, &SM::Initialize, "Initialize"},
-        {0x00000001, &SM::GetService, "GetService"},
-        {0x00000002, &SM::RegisterService, "RegisterService"},
-        {0x00000003, &SM::UnregisterService, "UnregisterService"},
+        {0, &SM::Initialize, "Initialize"},
+        {1, &SM::GetService, "GetService"},
+        {2, &SM::RegisterService, "RegisterService"},
+        {3, &SM::UnregisterService, "UnregisterService"},
+        {4, nullptr, "DetachClient"},
     };
     RegisterHandlers(functions);
 }
