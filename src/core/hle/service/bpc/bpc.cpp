@@ -29,8 +29,8 @@ public:
             {11, nullptr, "CreateWakeupTimerEx"},
             {12, nullptr, "GetLastEnabledWakeupTimerType"},
             {13, nullptr, "CleanAllWakeupTimers"},
-            {14, nullptr, "Unknown"},
-            {15, nullptr, "Unknown2"},
+            {14, nullptr, "GetPowerButton"},
+            {15, nullptr, "SetEnableWakeupTimer"},
         };
         // clang-format on
 
