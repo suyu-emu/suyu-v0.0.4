@@ -321,9 +321,14 @@ void Module::Interface::CalculateStandardUserSystemClockDifferenceByUser(
     Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called");
 
-    IPC::RequestParser rp{ctx};
-    const auto snapshot_a = rp.PopRaw<Clock::ClockSnapshot>();
-    const auto snapshot_b = rp.PopRaw<Clock::ClockSnapshot>();
+    Clock::ClockSnapshot snapshot_a;
+    Clock::ClockSnapshot snapshot_b;
+
+    const auto snapshot_a_data = ctx.ReadBuffer(0);
+    const auto snapshot_b_data = ctx.ReadBuffer(1);
+
+    std::memcpy(&snapshot_a, snapshot_a_data.data(), sizeof(Clock::ClockSnapshot));
+    std::memcpy(&snapshot_b, snapshot_b_data.data(), sizeof(Clock::ClockSnapshot));
 
     auto time_span_type{Clock::TimeSpanType::FromSeconds(snapshot_b.user_context.offset -
                                                          snapshot_a.user_context.offset)};
