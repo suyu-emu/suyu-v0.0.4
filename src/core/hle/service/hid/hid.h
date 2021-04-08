@@ -129,6 +129,7 @@ private:
     void SwapNpadAssignment(Kernel::HLERequestContext& ctx);
     void IsUnintendedHomeButtonInputProtectionEnabled(Kernel::HLERequestContext& ctx);
     void EnableUnintendedHomeButtonInputProtection(Kernel::HLERequestContext& ctx);
+    void SetNpadAnalogStickUseCenterClamp(Kernel::HLERequestContext& ctx);
     void GetVibrationDeviceInfo(Kernel::HLERequestContext& ctx);
     void SendVibrationValue(Kernel::HLERequestContext& ctx);
     void GetActualVibrationValue(Kernel::HLERequestContext& ctx);

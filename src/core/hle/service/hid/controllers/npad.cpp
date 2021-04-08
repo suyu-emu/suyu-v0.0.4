@@ -1138,6 +1138,10 @@ void Controller_NPad::SetUnintendedHomeButtonInputProtectionEnabled(bool is_prot
     unintended_home_button_input_protection[NPadIdToIndex(npad_id)] = is_protection_enabled;
 }
 
+void Controller_NPad::SetAnalogStickUseCenterClamp(bool use_center_clamp) {
+    analog_stick_use_center_clamp = use_center_clamp;
+}
+
 void Controller_NPad::ClearAllConnectedControllers() {
     for (auto& controller : connected_controllers) {
         if (controller.is_connected && controller.type != NPadControllerType::None) {

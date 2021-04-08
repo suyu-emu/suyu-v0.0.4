@@ -263,7 +263,7 @@ Hid::Hid(Core::System& system_) : ServiceFramework{system_, "hid"} {
         {131, &Hid::IsUnintendedHomeButtonInputProtectionEnabled, "IsUnintendedHomeButtonInputProtectionEnabled"},
         {132, &Hid::EnableUnintendedHomeButtonInputProtection, "EnableUnintendedHomeButtonInputProtection"},
         {133, nullptr, "SetNpadJoyAssignmentModeSingleWithDestination"},
-        {134, nullptr, "SetNpadAnalogStickUseCenterClamp"},
+        {134, &Hid::SetNpadAnalogStickUseCenterClamp, "SetNpadAnalogStickUseCenterClamp"},
         {135, nullptr, "SetNpadCaptureButtonAssignment"},
         {136, nullptr, "ClearNpadCaptureButtonAssignment"},
         {200, &Hid::GetVibrationDeviceInfo, "GetVibrationDeviceInfo"},
@@ -1082,6 +1082,27 @@ void Hid::EnableUnintendedHomeButtonInputProtection(Kernel::HLERequestContext& c
                 "applet_resource_user_id={}",
                 parameters.unintended_home_button_input_protection, parameters.npad_id,
                 parameters.applet_resource_user_id);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void Hid::SetNpadAnalogStickUseCenterClamp(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    struct Parameters {
+        bool analog_stick_use_center_clamp;
+        u64 applet_resource_user_id;
+    };
+    static_assert(sizeof(Parameters) == 0x10, "Parameters has incorrect size.");
+
+    const auto parameters{rp.PopRaw<Parameters>()};
+
+    applet_resource->GetController<Controller_NPad>(HidController::NPad)
+        .SetAnalogStickUseCenterClamp(parameters.analog_stick_use_center_clamp);
+
+    LOG_WARNING(Service_HID,
+                "(STUBBED) called, analog_stick_use_center_clamp={}, applet_resource_user_id={}",
+                parameters.analog_stick_use_center_clamp, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
