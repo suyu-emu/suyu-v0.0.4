@@ -9,6 +9,7 @@ namespace Service::Sockets {
 NSD::NSD(Core::System& system_, const char* name) : ServiceFramework{system_, name} {
     // clang-format off
     static const FunctionInfo functions[] = {
+        {5, nullptr, "GetSettingUrl"},
         {10, nullptr, "GetSettingName"},
         {11, nullptr, "GetEnvironmentIdentifier"},
         {12, nullptr, "GetDeviceId"},
