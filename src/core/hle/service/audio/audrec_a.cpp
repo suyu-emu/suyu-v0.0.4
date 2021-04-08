@@ -9,8 +9,8 @@ namespace Service::Audio {
 AudRecA::AudRecA(Core::System& system_) : ServiceFramework{system_, "audrec:a"} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {0, nullptr, "RequestSuspendFinalOutputRecorders"},
-        {1, nullptr, "RequestResumeFinalOutputRecorders"},
+        {0, nullptr, "RequestSuspend"},
+        {1, nullptr, "RequestResume"},
     };
     // clang-format on
 
