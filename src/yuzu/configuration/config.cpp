@@ -641,6 +641,7 @@ void Config::ReadDebuggingValues() {
         ReadSetting(QStringLiteral("disable_macro_jit"), false).toBool();
     Settings::values.extended_logging =
         ReadSetting(QStringLiteral("extended_logging"), false).toBool();
+    Settings::values.use_auto_stub = ReadSetting(QStringLiteral("use_auto_stub"), false).toBool();
 
     qt_config->endGroup();
 }
