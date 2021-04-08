@@ -49,6 +49,7 @@ CAPS_A::CAPS_A(Core::System& system_) : ServiceFramework{system_, "caps:a"} {
         {16, nullptr, "GetAlbumMountResult"},
         {17, nullptr, "GetAlbumUsage16"},
         {18, nullptr, "Unknown18"},
+        {19, nullptr, "Unknown19"},
         {100, nullptr, "GetAlbumFileCountEx0"},
         {101, nullptr, "GetAlbumFileListEx0"},
         {202, nullptr, "SaveEditedScreenShot"},
