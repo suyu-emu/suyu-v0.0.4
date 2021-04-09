@@ -254,6 +254,7 @@ void Controller_NPad::OnInit() {
     auto& kernel = system.Kernel();
     for (std::size_t i = 0; i < styleset_changed_events.size(); ++i) {
         styleset_changed_events[i] = std::make_unique<Kernel::KEvent>(kernel);
+        Kernel::KAutoObject::Create(styleset_changed_events[i].get());
         styleset_changed_events[i]->Initialize(fmt::format("npad:NpadStyleSetChanged_{}", i));
     }
 

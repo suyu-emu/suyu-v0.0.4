@@ -196,6 +196,7 @@ struct KernelCore::Impl {
     void InitializeSuspendThreads() {
         for (s32 core_id = 0; core_id < Core::Hardware::NUM_CPU_CORES; core_id++) {
             suspend_threads[core_id] = std::make_unique<KThread>(system.Kernel());
+            KAutoObject::Create(suspend_threads[core_id].get());
             ASSERT(KThread::InitializeHighPriorityThread(system, suspend_threads[core_id].get(), {},
                                                          {}, core_id)
                        .IsSuccess());
@@ -236,6 +237,7 @@ struct KernelCore::Impl {
     KThread* GetHostDummyThread() {
         auto make_thread = [this]() {
             std::unique_ptr<KThread> thread = std::make_unique<KThread>(system.Kernel());
+            KAutoObject::Create(thread.get());
             ASSERT(KThread::InitializeDummyThread(thread.get()).IsSuccess());
             thread->SetName(fmt::format("DummyThread:{}", GetHostThreadId()));
             return std::move(thread);
@@ -579,6 +581,11 @@ struct KernelCore::Impl {
         font_shared_mem = std::make_unique<KSharedMemory>(system.Kernel());
         irs_shared_mem = std::make_unique<KSharedMemory>(system.Kernel());
         time_shared_mem = std::make_unique<KSharedMemory>(system.Kernel());
+
+        KAutoObject::Create(hid_shared_mem.get());
+        KAutoObject::Create(font_shared_mem.get());
+        KAutoObject::Create(irs_shared_mem.get());
+        KAutoObject::Create(time_shared_mem.get());
 
         hid_shared_mem->Initialize(system.Kernel(), system.DeviceMemory(), nullptr,
                                    {hid_phys_addr, hid_size / PageSize}, KMemoryPermission::None,

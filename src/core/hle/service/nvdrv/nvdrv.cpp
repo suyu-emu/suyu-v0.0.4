@@ -43,6 +43,7 @@ Module::Module(Core::System& system) : syncpoint_manager{system.GPU()} {
     auto& kernel = system.Kernel();
     for (u32 i = 0; i < MaxNvEvents; i++) {
         events_interface.events[i].event = std::make_unique<Kernel::KEvent>(kernel);
+        Kernel::KAutoObject::Create(events_interface.events[i].event.get());
         events_interface.events[i].event->Initialize(fmt::format("NVDRV::NvEvent_{}", i));
         events_interface.status[i] = EventState::Free;
         events_interface.registered[i] = false;

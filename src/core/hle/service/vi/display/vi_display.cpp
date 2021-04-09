@@ -19,6 +19,7 @@ namespace Service::VI {
 
 Display::Display(u64 id, std::string name, Core::System& system)
     : id{id}, name{std::move(name)}, vsync_event{system.Kernel()} {
+    Kernel::KAutoObject::Create(std::addressof(vsync_event));
     vsync_event.Initialize(fmt::format("Display VSync Event {}", id));
 }
 

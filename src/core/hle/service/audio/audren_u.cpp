@@ -49,6 +49,7 @@ public:
         // clang-format on
         RegisterHandlers(functions);
 
+        Kernel::KAutoObject::Create(std::addressof(system_event));
         system_event.Initialize("IAudioRenderer:SystemEvent");
         renderer = std::make_unique<AudioCore::AudioRenderer>(
             system.CoreTiming(), system.Memory(), audren_params,
@@ -189,13 +190,16 @@ public:
         };
         RegisterHandlers(functions);
 
+        Kernel::KAutoObject::Create(std::addressof(buffer_event));
         buffer_event.Initialize("IAudioOutBufferReleasedEvent");
 
         // Should be similar to audio_output_device_switch_event
+        Kernel::KAutoObject::Create(std::addressof(audio_input_device_switch_event));
         audio_input_device_switch_event.Initialize("IAudioDevice:AudioInputDeviceSwitchedEvent");
 
         // Should only be signalled when an audio output device has been changed, example: speaker
         // to headset
+        Kernel::KAutoObject::Create(std::addressof(audio_output_device_switch_event));
         audio_output_device_switch_event.Initialize("IAudioDevice:AudioOutputDeviceSwitchedEvent");
     }
 

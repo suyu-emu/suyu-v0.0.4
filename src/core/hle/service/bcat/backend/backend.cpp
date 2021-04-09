@@ -15,6 +15,7 @@ namespace Service::BCAT {
 ProgressServiceBackend::ProgressServiceBackend(Kernel::KernelCore& kernel,
                                                std::string_view event_name)
     : update_event{kernel} {
+    Kernel::KAutoObject::Create(std::addressof(update_event));
     update_event.Initialize("ProgressServiceBackend:UpdateEvent:" + std::string(event_name));
 }
 

@@ -60,6 +60,11 @@ public:
         // clang-format on
         RegisterHandlers(functions);
 
+        Kernel::KAutoObject::Create(std::addressof(scan_event));
+        Kernel::KAutoObject::Create(std::addressof(connection_event));
+        Kernel::KAutoObject::Create(std::addressof(service_discovery));
+        Kernel::KAutoObject::Create(std::addressof(config_event));
+
         scan_event.Initialize("IBtmUserCore:ScanEvent");
         connection_event.Initialize("IBtmUserCore:ConnectionEvent");
         service_discovery.Initialize("IBtmUserCore:Discovery");

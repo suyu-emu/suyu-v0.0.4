@@ -307,6 +307,8 @@ ISelfController::ISelfController(Core::System& system_, NVFlinger::NVFlinger& nv
 
     RegisterHandlers(functions);
 
+    Kernel::KAutoObject::Create(std::addressof(launchable_event));
+
     launchable_event.Initialize("ISelfController:LaunchableEvent");
 
     // This event is created by AM on the first time GetAccumulatedSuspendedTickChangedEvent() is
@@ -315,6 +317,7 @@ ISelfController::ISelfController(Core::System& system_, NVFlinger::NVFlinger& nv
     // suspended if the event has previously been created by a call to
     // GetAccumulatedSuspendedTickChangedEvent.
 
+    Kernel::KAutoObject::Create(std::addressof(accumulated_suspended_tick_changed_event));
     accumulated_suspended_tick_changed_event.Initialize(
         "ISelfController:AccumulatedSuspendedTickChangedEvent");
     accumulated_suspended_tick_changed_event.GetWritableEvent()->Signal();
@@ -579,6 +582,10 @@ void ISelfController::SetAlbumImageTakenNotificationEnabled(Kernel::HLERequestCo
 
 AppletMessageQueue::AppletMessageQueue(Kernel::KernelCore& kernel)
     : on_new_message{kernel}, on_operation_mode_changed{kernel} {
+
+    Kernel::KAutoObject::Create(std::addressof(on_new_message));
+    Kernel::KAutoObject::Create(std::addressof(on_operation_mode_changed));
+
     on_new_message.Initialize("AMMessageQueue:OnMessageReceived");
     on_operation_mode_changed.Initialize("AMMessageQueue:OperationModeChanged");
 }
@@ -1333,6 +1340,11 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_)
     RegisterHandlers(functions);
 
     auto& kernel = system.Kernel();
+
+    Kernel::KAutoObject::Create(std::addressof(gpu_error_detected_event));
+    Kernel::KAutoObject::Create(std::addressof(friend_invitation_storage_channel_event));
+    Kernel::KAutoObject::Create(std::addressof(health_warning_disappeared_system_event));
+
     gpu_error_detected_event.Initialize("IApplicationFunctions:GpuErrorDetectedSystemEvent");
     friend_invitation_storage_channel_event.Initialize(
         "IApplicationFunctions:FriendInvitationStorageChannelEvent");
@@ -1798,6 +1810,7 @@ IHomeMenuFunctions::IHomeMenuFunctions(Core::System& system_)
 
     RegisterHandlers(functions);
 
+    Kernel::KAutoObject::Create(std::addressof(pop_from_general_channel_event));
     pop_from_general_channel_event.Initialize("IHomeMenuFunctions:PopFromGeneralChannelEvent");
 }
 

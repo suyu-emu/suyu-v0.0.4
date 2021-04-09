@@ -160,6 +160,9 @@ public:
 
         auto& kernel = system.Kernel();
 
+        Kernel::KAutoObject::Create(std::addressof(event1));
+        Kernel::KAutoObject::Create(std::addressof(event2));
+
         event1.Initialize("IRequest:Event1");
         event2.Initialize("IRequest:Event2");
     }

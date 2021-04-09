@@ -32,6 +32,11 @@ namespace Service::AM::Applets {
 AppletDataBroker::AppletDataBroker(Core::System& system_, LibraryAppletMode applet_mode_)
     : system{system_}, applet_mode{applet_mode_}, state_changed_event{system.Kernel()},
       pop_out_data_event{system.Kernel()}, pop_interactive_out_data_event{system.Kernel()} {
+
+    Kernel::KAutoObject::Create(std::addressof(state_changed_event));
+    Kernel::KAutoObject::Create(std::addressof(pop_out_data_event));
+    Kernel::KAutoObject::Create(std::addressof(pop_interactive_out_data_event));
+
     state_changed_event.Initialize("ILibraryAppletAccessor:StateChangedEvent");
     pop_out_data_event.Initialize("ILibraryAppletAccessor:PopDataOutEvent");
     pop_interactive_out_data_event.Initialize("ILibraryAppletAccessor:PopInteractiveDataOutEvent");

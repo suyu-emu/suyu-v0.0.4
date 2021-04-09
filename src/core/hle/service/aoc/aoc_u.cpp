@@ -62,6 +62,7 @@ public:
 
         RegisterHandlers(functions);
 
+        Kernel::KAutoObject::Create(std::addressof(purchased_event));
         purchased_event.Initialize("IPurchaseEventManager:PurchasedEvent");
     }
 
@@ -125,6 +126,7 @@ AOC_U::AOC_U(Core::System& system_)
 
     RegisterHandlers(functions);
 
+    Kernel::KAutoObject::Create(std::addressof(aoc_change_event));
     aoc_change_event.Initialize("GetAddOnContentListChanged:Event");
 }
 

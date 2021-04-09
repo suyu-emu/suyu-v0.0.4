@@ -793,6 +793,7 @@ void KScheduler::UpdateLastContextSwitchTime(KThread* thread, Process* process) 
 
 void KScheduler::Initialize() {
     idle_thread = std::make_unique<KThread>(system.Kernel());
+    KAutoObject::Create(idle_thread.get());
     ASSERT(KThread::InitializeIdleThread(system, idle_thread.get(), core_id).IsSuccess());
     idle_thread->SetName(fmt::format("IdleThread:{}", core_id));
 }

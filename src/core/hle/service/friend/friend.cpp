@@ -197,6 +197,7 @@ public:
 
         RegisterHandlers(functions);
 
+        Kernel::KAutoObject::Create(std::addressof(notification_event));
         notification_event.Initialize("INotificationService:NotifyEvent");
     }
 

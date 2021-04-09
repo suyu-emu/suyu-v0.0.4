@@ -18,6 +18,7 @@ StandardUserSystemClockCore::StandardUserSystemClockCore(
       network_system_clock_core{network_system_clock_core}, auto_correction_enabled{},
       auto_correction_time{SteadyClockTimePoint::GetRandom()}, auto_correction_event{
                                                                    system.Kernel()} {
+    Kernel::KAutoObject::Create(std::addressof(auto_correction_event));
     auto_correction_event.Initialize("StandardUserSystemClockCore:AutoCorrectionEvent");
 }
 

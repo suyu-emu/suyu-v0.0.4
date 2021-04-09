@@ -33,6 +33,7 @@ public:
 
         RegisterHandlers(functions);
 
+        Kernel::KAutoObject::Create(std::addressof(state_change_event));
         state_change_event.Initialize("IPsmSession::state_change_event");
     }
 

@@ -313,6 +313,7 @@ public:
         };
         RegisterHandlers(functions);
 
+        Kernel::KAutoObject::Create(std::addressof(finished_event));
         finished_event.Initialize("IEnsureNetworkClockAvailabilityService:FinishEvent");
     }
 

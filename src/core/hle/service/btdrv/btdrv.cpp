@@ -35,6 +35,7 @@ public:
         // clang-format on
         RegisterHandlers(functions);
 
+        Kernel::KAutoObject::Create(std::addressof(register_event));
         register_event.Initialize("BT:RegisterEvent");
     }
 

@@ -67,6 +67,7 @@ public:
         RegisterHandlers(functions);
 
         // This is the event handle used to check if the audio buffer was released
+        Kernel::KAutoObject::Create(std::addressof(buffer_event));
         buffer_event.Initialize("IAudioOutBufferReleased");
 
         stream = audio_core.OpenStream(system.CoreTiming(), audio_params.sample_rate,
