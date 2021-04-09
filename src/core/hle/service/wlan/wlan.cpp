@@ -46,6 +46,13 @@ public:
             {28, nullptr, "Unknown28"},
             {29, nullptr, "Unknown29"},
             {30, nullptr, "Unknown30"},
+            {31, nullptr, "Unknown31"},
+            {32, nullptr, "Unknown32"},
+            {33, nullptr, "Unknown33"},
+            {34, nullptr, "Unknown34"},
+            {35, nullptr, "Unknown35"},
+            {36, nullptr, "Unknown36"},
+            {37, nullptr, "Unknown37"},
         };
         // clang-format on
 
