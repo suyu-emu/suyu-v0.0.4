@@ -66,6 +66,7 @@ enum class Class : ClassType {
     Service_ARP,       ///< The ARP service
     Service_Audio,     ///< The Audio (Audio control) service
     Service_BCAT,      ///< The BCAT service
+    Service_BGTC,      ///< The BGTC (Background Task Controller) service
     Service_BPC,       ///< The BPC service
     Service_BTDRV,     ///< The Bluetooth driver service
     Service_BTM,       ///< The BTM service

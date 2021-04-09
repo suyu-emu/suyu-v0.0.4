@@ -16,7 +16,7 @@ public:
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "SubmitContext"},
-            {1, nullptr, "CreateReport"},
+            {1, nullptr, "CreateReportV0"},
             {2, nullptr, "SetInitialLaunchSettingsCompletionTime"},
             {3, nullptr, "ClearInitialLaunchSettingsCompletionTime"},
             {4, nullptr, "UpdatePowerOnTime"},
@@ -26,6 +26,11 @@ public:
             {8, nullptr, "ClearApplicationLaunchTime"},
             {9, nullptr, "SubmitAttachment"},
             {10, nullptr, "CreateReportWithAttachments"},
+            {11, nullptr, "CreateReport"},
+            {20, nullptr, "RegisterRunningApplet"},
+            {21, nullptr, "UnregisterRunningApplet"},
+            {22, nullptr, "UpdateAppletSuspendedDuration"},
+            {30, nullptr, "InvalidateForcedShutdownDetection"},
         };
         // clang-format on
 

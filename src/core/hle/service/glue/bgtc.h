@@ -16,6 +16,14 @@ class BGTC_T final : public ServiceFramework<BGTC_T> {
 public:
     explicit BGTC_T(Core::System& system_);
     ~BGTC_T() override;
+
+    void OpenTaskService(Kernel::HLERequestContext& ctx);
+};
+
+class ITaskService final : public ServiceFramework<ITaskService> {
+public:
+    explicit ITaskService(Core::System& system_);
+    ~ITaskService() override;
 };
 
 class BGTC_SC final : public ServiceFramework<BGTC_SC> {

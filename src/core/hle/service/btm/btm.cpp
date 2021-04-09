@@ -223,6 +223,7 @@ public:
             {10, nullptr, "GetGattClientDisconnectionReason"},
             {11, nullptr, "GetBleConnectionParameter"},
             {12, nullptr, "GetBleConnectionParameterRequest"},
+            {13, nullptr, "Unknown13"},
         };
         // clang-format on
 

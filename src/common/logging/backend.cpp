@@ -212,6 +212,7 @@ void DebuggerBackend::Write(const Entry& entry) {
     SUB(Service, ARP)                                                                              \
     SUB(Service, BCAT)                                                                             \
     SUB(Service, BPC)                                                                              \
+    SUB(Service, BGTC)                                                                             \
     SUB(Service, BTDRV)                                                                            \
     SUB(Service, BTM)                                                                              \
     SUB(Service, Capture)                                                                          \

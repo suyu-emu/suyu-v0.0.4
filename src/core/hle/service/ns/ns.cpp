@@ -55,6 +55,7 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {26, nullptr, "BeginInstallApplication"},
         {27, nullptr, "DeleteApplicationRecord"},
         {30, nullptr, "RequestApplicationUpdateInfo"},
+        {31, nullptr, "Unknown31"},
         {32, nullptr, "CancelApplicationDownload"},
         {33, nullptr, "ResumeApplicationDownload"},
         {35, nullptr, "UpdateVersionList"},
@@ -182,6 +183,7 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {913, nullptr, "ListAllApplicationRecord"},
         {914, nullptr, "HideApplicationRecord"},
         {915, nullptr, "ShowApplicationRecord"},
+        {916, nullptr, "IsApplicationAutoDeleteDisabled"},
         {1000, nullptr, "RequestVerifyApplicationDeprecated"},
         {1001, nullptr, "CorruptApplicationForDebug"},
         {1002, nullptr, "RequestVerifyAddOnContentsRights"},
@@ -201,6 +203,8 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {1310, nullptr, "RequestMoveApplicationEntity"},
         {1311, nullptr, "EstimateSizeToMove"},
         {1312, nullptr, "HasMovableEntity"},
+        {1313, nullptr, "CleanupOrphanContents"},
+        {1314, nullptr, "CheckPreconditionSatisfiedToMove"},
         {1400, nullptr, "PrepareShutdown"},
         {1500, nullptr, "FormatSdCard"},
         {1501, nullptr, "NeedsSystemUpdateToFormatSdCard"},
@@ -215,6 +219,7 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {1702, nullptr, "GetApplicationDownloadTaskStatus"},
         {1703, nullptr, "GetApplicationViewDownloadErrorContext"},
         {1704, nullptr, "GetApplicationViewWithPromotionInfo"},
+        {1705, nullptr, "IsPatchAutoDeletableApplication"},
         {1800, nullptr, "IsNotificationSetupCompleted"},
         {1801, nullptr, "GetLastNotificationInfoCount"},
         {1802, nullptr, "ListLastNotificationInfo"},
@@ -269,6 +274,9 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {2351, nullptr, "RequestNoDownloadRightsErrorResolution"},
         {2352, nullptr, "RequestResolveNoDownloadRightsError"},
         {2353, nullptr, "GetApplicationDownloadTaskInfo"},
+        {2354, nullptr, "PrioritizeApplicationBackgroundTask"},
+        {2355, nullptr, "Unknown2355"},
+        {2356, nullptr, "Unknown2356"},
         {2400, nullptr, "GetPromotionInfo"},
         {2401, nullptr, "CountPromotionInfo"},
         {2402, nullptr, "ListPromotionInfo"},
@@ -282,6 +290,21 @@ IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_
         {2515, nullptr, "CleanupAllPlaceHolderAndFragmentsIfNoTask"},
         {2516, nullptr, "EnsureApplicationCertificate"},
         {2800, nullptr, "GetApplicationIdOfPreomia"},
+        {3000, nullptr, "RegisterDeviceLockKey"},
+        {3001, nullptr, "UnregisterDeviceLockKey"},
+        {3002, nullptr, "VerifyDeviceLockKey"},
+        {3003, nullptr, "HideApplicationIcon"},
+        {3004, nullptr, "ShowApplicationIcon"},
+        {3005, nullptr, "HideApplicationTitle"},
+        {3006, nullptr, "ShowApplicationTitle"},
+        {3007, nullptr, "EnableGameCard"},
+        {3008, nullptr, "DisableGameCard"},
+        {3009, nullptr, "EnableLocalContentShare"},
+        {3010, nullptr, "DisableLocalContentShare"},
+        {3011, nullptr, "IsApplicationIconHidden"},
+        {3012, nullptr, "IsApplicationTitleHidden"},
+        {3013, nullptr, "IsGameCardEnabled"},
+        {3014, nullptr, "IsLocalContentShareEnabled"},
         {9999, nullptr, "GetApplicationCertificate"},
     };
     // clang-format on
@@ -441,7 +464,11 @@ IApplicationVersionInterface::IApplicationVersionInterface(Core::System& system_
         {800, nullptr, "RequestVersionList"},
         {801, nullptr, "ListVersionList"},
         {802, nullptr, "RequestVersionListData"},
+        {900, nullptr, "ImportAutoUpdatePolicyJsonForDebug"},
+        {901, nullptr, "ListDefaultAutoUpdatePolicy"},
+        {902, nullptr, "ListAutoUpdatePolicyForSpecificApplication"},
         {1000, nullptr, "PerformAutoUpdate"},
+        {1001, nullptr, "ListAutoUpdateSchedule"},
     };
     // clang-format on
 
@@ -547,6 +574,9 @@ IFactoryResetInterface::~IFactoryResetInterface() = default;
 NS::NS(const char* name, Core::System& system_) : ServiceFramework{system_, name} {
     // clang-format off
     static const FunctionInfo functions[] = {
+        {7988, nullptr, "GetDynamicRightsInterface"},
+        {7989, nullptr, "GetReadOnlyApplicationControlDataInterface"},
+        {7991, nullptr, "GetReadOnlyApplicationRecordInterface"},
         {7992, &NS::PushInterface<IECommerceInterface>, "GetECommerceInterface"},
         {7993, &NS::PushInterface<IApplicationVersionInterface>, "GetApplicationVersionInterface"},
         {7994, &NS::PushInterface<IFactoryResetInterface>, "GetFactoryResetInterface"},
@@ -575,18 +605,22 @@ public:
             {0, nullptr, "LaunchProgram"},
             {1, nullptr, "TerminateProcess"},
             {2, nullptr, "TerminateProgram"},
-            {4, nullptr, "GetShellEventHandle"},
+            {4, nullptr, "GetShellEvent"},
             {5, nullptr, "GetShellEventInfo"},
             {6, nullptr, "TerminateApplication"},
             {7, nullptr, "PrepareLaunchProgramFromHost"},
-            {8, nullptr, "LaunchApplication"},
+            {8, nullptr, "LaunchApplicationFromHost"},
             {9, nullptr, "LaunchApplicationWithStorageIdForDevelop"},
             {10, nullptr, "IsSystemMemoryResourceLimitBoosted"},
             {11, nullptr, "GetRunningApplicationProcessIdForDevelop"},
-            {12, nullptr, "SetCurrentApplicationRightsEnvironmentCanBeActive"},
+            {12, nullptr, "SetCurrentApplicationRightsEnvironmentCanBeActiveForDevelop"},
             {13, nullptr, "CreateApplicationResourceForDevelop"},
             {14, nullptr, "IsPreomiaForDevelop"},
             {15, nullptr, "GetApplicationProgramIdFromHost"},
+            {16, nullptr, "RefreshCachedDebugValues"},
+            {17, nullptr, "PrepareLaunchApplicationFromHost"},
+            {18, nullptr, "GetLaunchEvent"},
+            {19, nullptr, "GetLaunchResult"},
         };
         // clang-format on
 
@@ -699,6 +733,7 @@ void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system
     std::make_shared<NS>("ns:rid", system)->InstallAsService(service_manager);
     std::make_shared<NS>("ns:rt", system)->InstallAsService(service_manager);
     std::make_shared<NS>("ns:web", system)->InstallAsService(service_manager);
+    std::make_shared<NS>("ns:ro", system)->InstallAsService(service_manager);
 
     std::make_shared<NS_DEV>(system)->InstallAsService(service_manager);
     std::make_shared<NS_SU>(system)->InstallAsService(service_manager);
