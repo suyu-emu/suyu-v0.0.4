@@ -296,7 +296,7 @@ struct System::Impl {
         exit_lock = false;
 
         if (gpu_core) {
-            gpu_core->WaitIdle();
+            gpu_core->ShutDown();
         }
 
         services.reset();

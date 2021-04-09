@@ -517,8 +517,8 @@ void GPU::TriggerCpuInterrupt(const u32 syncpoint_id, const u32 value) const {
     interrupt_manager.GPUInterruptSyncpt(syncpoint_id, value);
 }
 
-void GPU::WaitIdle() const {
-    gpu_thread.WaitIdle();
+void GPU::ShutDown() {
+    gpu_thread.ShutDown();
 }
 
 void GPU::OnCommandListEnd() {

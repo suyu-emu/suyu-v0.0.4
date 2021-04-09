@@ -90,21 +90,24 @@ using CommandData =
 struct CommandDataContainer {
     CommandDataContainer() = default;
 
-    explicit CommandDataContainer(CommandData&& data_, u64 next_fence_)
-        : data{std::move(data_)}, fence{next_fence_} {}
+    explicit CommandDataContainer(CommandData&& data_, u64 next_fence_, bool block_)
+        : data{std::move(data_)}, fence{next_fence_}, block(block_) {}
 
     CommandData data;
     u64 fence{};
+    bool block{};
 };
 
 /// Struct used to synchronize the GPU thread
 struct SynchState final {
     std::atomic_bool is_running{true};
 
-    using CommandQueue = Common::MPSCQueue<CommandDataContainer>;
+    using CommandQueue = Common::SPSCQueue<CommandDataContainer>;
+    std::mutex write_lock;
     CommandQueue queue;
     u64 last_fence{};
     std::atomic<u64> signaled_fence{};
+    std::condition_variable cv;
 };
 
 /// Class used to manage the GPU thread
@@ -132,14 +135,14 @@ public:
     /// Notify rasterizer that any caches of the specified region should be flushed and invalidated
     void FlushAndInvalidateRegion(VAddr addr, u64 size);
 
-    // Wait until the gpu thread is idle.
-    void WaitIdle() const;
+    // Stops the GPU execution and waits for the GPU to finish working
+    void ShutDown();
 
     void OnCommandListEnd();
 
 private:
     /// Pushes a command to be executed by the GPU thread
-    u64 PushCommand(CommandData&& command_data);
+    u64 PushCommand(CommandData&& command_data, bool block = false);
 
     Core::System& system;
     const bool is_async;
