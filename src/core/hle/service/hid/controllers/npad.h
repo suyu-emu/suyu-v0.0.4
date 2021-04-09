@@ -219,6 +219,7 @@ public:
     LedPattern GetLedPattern(u32 npad_id);
     bool IsUnintendedHomeButtonInputProtectionEnabled(u32 npad_id) const;
     void SetUnintendedHomeButtonInputProtectionEnabled(bool is_protection_enabled, u32 npad_id);
+    void SetAnalogStickUseCenterClamp(bool use_center_clamp);
     void ClearAllConnectedControllers();
     void DisconnectAllConnectedControllers();
     void ConnectAllDisconnectedControllers();
@@ -577,6 +578,7 @@ private:
     std::array<std::array<bool, 2>, 10> vibration_devices_mounted{};
     std::array<ControllerHolder, 10> connected_controllers{};
     std::array<bool, 10> unintended_home_button_input_protection{};
+    bool analog_stick_use_center_clamp{};
     GyroscopeZeroDriftMode gyroscope_zero_drift_mode{GyroscopeZeroDriftMode::Standard};
     bool sixaxis_sensors_enabled{true};
     f32 sixaxis_fusion_parameter1{};
