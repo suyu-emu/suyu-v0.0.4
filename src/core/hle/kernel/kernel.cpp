@@ -195,9 +195,9 @@ struct KernelCore::Impl {
 
     void InitializeSuspendThreads() {
         for (s32 core_id = 0; core_id < Core::Hardware::NUM_CPU_CORES; core_id++) {
-            suspend_threads[core_id] = KThread::CreateWithKernel(system.Kernel());
-            ASSERT(KThread::InitializeHighPriorityThread(system, suspend_threads[core_id], {}, {},
-                                                         core_id)
+            suspend_threads[core_id] = std::make_unique<KThread>(system.Kernel());
+            ASSERT(KThread::InitializeHighPriorityThread(system, suspend_threads[core_id].get(), {},
+                                                         {}, core_id)
                        .IsSuccess());
             suspend_threads[core_id]->SetName(fmt::format("SuspendThread:{}", core_id));
         }
@@ -235,14 +235,14 @@ struct KernelCore::Impl {
     // Gets the dummy KThread for the caller, allocating a new one if this is the first time
     KThread* GetHostDummyThread() {
         auto make_thread = [this]() {
-            KThread* thread = KThread::CreateWithKernel(system.Kernel());
-            ASSERT(KThread::InitializeDummyThread(thread).IsSuccess());
+            std::unique_ptr<KThread> thread = std::make_unique<KThread>(system.Kernel());
+            ASSERT(KThread::InitializeDummyThread(thread.get()).IsSuccess());
             thread->SetName(fmt::format("DummyThread:{}", GetHostThreadId()));
-            return thread;
+            return std::move(thread);
         };
 
         thread_local auto thread = make_thread();
-        return thread;
+        return thread.get();
     }
 
     /// Registers a CPU core thread by allocating a host thread ID for it
@@ -661,7 +661,7 @@ struct KernelCore::Impl {
     // the release of itself
     std::unique_ptr<Common::ThreadWorker> service_thread_manager;
 
-    std::array<KThread*, Core::Hardware::NUM_CPU_CORES> suspend_threads{};
+    std::array<std::unique_ptr<KThread>, Core::Hardware::NUM_CPU_CORES> suspend_threads;
     std::array<Core::CPUInterruptHandler, Core::Hardware::NUM_CPU_CORES> interrupts{};
     std::array<std::unique_ptr<Kernel::KScheduler>, Core::Hardware::NUM_CPU_CORES> schedulers{};
 
