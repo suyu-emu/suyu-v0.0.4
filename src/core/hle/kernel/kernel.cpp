@@ -143,10 +143,10 @@ struct KernelCore::Impl {
         ASSERT(system_resource_limit->SetLimitValue(LimitableResource::PhysicalMemory, 0x100000000)
                    .IsSuccess());
         ASSERT(system_resource_limit->SetLimitValue(LimitableResource::Threads, 800).IsSuccess());
-        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::Events, 700).IsSuccess());
+        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::Events, 900).IsSuccess());
         ASSERT(system_resource_limit->SetLimitValue(LimitableResource::TransferMemory, 200)
                    .IsSuccess());
-        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::Sessions, 933).IsSuccess());
+        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::Sessions, 1133).IsSuccess());
 
         // Derived from recent software updates. The kernel reserves 27MB
         constexpr u64 kernel_size{0x1b00000};
