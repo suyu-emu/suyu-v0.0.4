@@ -118,9 +118,9 @@ public:
     explicit DebugMonitor(Core::System& system_) : ServiceFramework{system_, "ldr:dmnt"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "AddProcessToDebugLaunchQueue"},
-            {1, nullptr, "ClearDebugLaunchQueue"},
-            {2, nullptr, "GetNsoInfos"},
+            {0, nullptr, "SetProgramArgument"},
+            {1, nullptr, "FlushArguments"},
+            {2, nullptr, "GetProcessModuleInfo"},
         };
         // clang-format on
 
@@ -135,8 +135,8 @@ public:
         static const FunctionInfo functions[] = {
             {0, nullptr, "CreateProcess"},
             {1, nullptr, "GetProgramInfo"},
-            {2, nullptr, "RegisterTitle"},
-            {3, nullptr, "UnregisterTitle"},
+            {2, nullptr, "PinProgram"},
+            {3, nullptr, "UnpinProgram"},
             {4, nullptr, "SetEnabledProgramVerification"},
         };
         // clang-format on
@@ -150,8 +150,8 @@ public:
     explicit Shell(Core::System& system_) : ServiceFramework{system_, "ldr:shel"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "AddProcessToLaunchQueue"},
-            {1, nullptr, "ClearLaunchQueue"},
+            {0, nullptr, "SetProgramArgument"},
+            {1, nullptr, "FlushArguments"},
         };
         // clang-format on
 
@@ -164,19 +164,19 @@ public:
     explicit RelocatableObject(Core::System& system_) : ServiceFramework{system_, "ldr:ro"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, &RelocatableObject::LoadNro, "LoadNro"},
-            {1, &RelocatableObject::UnloadNro, "UnloadNro"},
-            {2, &RelocatableObject::LoadNrr, "LoadNrr"},
-            {3, &RelocatableObject::UnloadNrr, "UnloadNrr"},
+            {0, &RelocatableObject::LoadModule, "LoadModule"},
+            {1, &RelocatableObject::UnloadModule, "UnloadModule"},
+            {2, &RelocatableObject::RegisterModuleInfo, "RegisterModuleInfo"},
+            {3, &RelocatableObject::UnregisterModuleInfo, "UnregisterModuleInfo"},
             {4, &RelocatableObject::Initialize, "Initialize"},
-            {10, nullptr, "LoadNrrEx"},
+            {10, nullptr, "RegisterModuleInfo2"},
         };
         // clang-format on
 
         RegisterHandlers(functions);
     }
 
-    void LoadNrr(Kernel::HLERequestContext& ctx) {
+    void RegisterModuleInfo(Kernel::HLERequestContext& ctx) {
         struct Parameters {
             u64_le process_id;
             u64_le nrr_address;
@@ -273,7 +273,7 @@ public:
         rb.Push(RESULT_SUCCESS);
     }
 
-    void UnloadNrr(Kernel::HLERequestContext& ctx) {
+    void UnregisterModuleInfo(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto pid = rp.Pop<u64>();
         const auto nrr_address = rp.Pop<VAddr>();
@@ -408,7 +408,7 @@ public:
             data_start, bss_end_addr - data_start, Kernel::KMemoryPermission::ReadAndWrite);
     }
 
-    void LoadNro(Kernel::HLERequestContext& ctx) {
+    void LoadModule(Kernel::HLERequestContext& ctx) {
         struct Parameters {
             u64_le process_id;
             u64_le image_address;
@@ -546,7 +546,7 @@ public:
         return RESULT_SUCCESS;
     }
 
-    void UnloadNro(Kernel::HLERequestContext& ctx) {
+    void UnloadModule(Kernel::HLERequestContext& ctx) {
         if (!initialized) {
             LOG_ERROR(Service_LDR, "LDR:RO not initialized before use!");
             IPC::ResponseBuilder rb{ctx, 2};

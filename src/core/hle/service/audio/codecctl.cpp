@@ -8,19 +8,19 @@ namespace Service::Audio {
 
 CodecCtl::CodecCtl(Core::System& system_) : ServiceFramework{system_, "codecctl"} {
     static const FunctionInfo functions[] = {
-        {0, nullptr, "InitializeCodecController"},
-        {1, nullptr, "FinalizeCodecController"},
-        {2, nullptr, "SleepCodecController"},
-        {3, nullptr, "WakeCodecController"},
-        {4, nullptr, "SetCodecVolume"},
-        {5, nullptr, "GetCodecVolumeMax"},
-        {6, nullptr, "GetCodecVolumeMin"},
-        {7, nullptr, "SetCodecActiveTarget"},
-        {8, nullptr, "GetCodecActiveTarget"},
-        {9, nullptr, "BindCodecHeadphoneMicJackInterrupt"},
-        {10, nullptr, "IsCodecHeadphoneMicJackInserted"},
-        {11, nullptr, "ClearCodecHeadphoneMicJackInterrupt"},
-        {12, nullptr, "IsCodecDeviceRequested"},
+        {0, nullptr, "Initialize"},
+        {1, nullptr, "Finalize"},
+        {2, nullptr, "Sleep"},
+        {3, nullptr, "Wake"},
+        {4, nullptr, "SetVolume"},
+        {5, nullptr, "GetVolumeMax"},
+        {6, nullptr, "GetVolumeMin"},
+        {7, nullptr, "SetActiveTarget"},
+        {8, nullptr, "GetActiveTarget"},
+        {9, nullptr, "BindHeadphoneMicJackInterrupt"},
+        {10, nullptr, "IsHeadphoneMicJackInserted"},
+        {11, nullptr, "ClearHeadphoneMicJackInterrupt"},
+        {12, nullptr, "IsRequested"},
     };
     RegisterHandlers(functions);
 }

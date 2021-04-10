@@ -155,10 +155,12 @@ public:
             {30210, nullptr, "SetDeliveryTaskTimer"},
             {30300, nullptr, "RegisterSystemApplicationDeliveryTasks"},
             {90100, nullptr, "EnumerateBackgroundDeliveryTask"},
+            {90101, nullptr, "Unknown90101"},
             {90200, nullptr, "GetDeliveryList"},
             {90201, &IBcatService::ClearDeliveryCacheStorage, "ClearDeliveryCacheStorage"},
             {90202, nullptr, "ClearDeliveryTaskSubscriptionStatus"},
             {90300, nullptr, "GetPushNotificationLog"},
+            {90301, nullptr, "Unknown90301"},
         };
         // clang-format on
         RegisterHandlers(functions);

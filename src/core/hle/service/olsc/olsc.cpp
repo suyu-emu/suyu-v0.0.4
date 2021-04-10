@@ -26,6 +26,7 @@ public:
             {22, nullptr, "DeleteSaveDataBackupAsync"},
             {25, nullptr, "ListDownloadableSaveDataBackupInfoAsync"},
             {26, nullptr, "DownloadSaveDataBackupAsync"},
+            {27, nullptr, "UploadSaveDataBackupAsync"},
             {9010, nullptr, "VerifySaveDataBackupLicenseAsyncForDebug"},
             {9013, nullptr, "GetSaveDataBackupSettingForDebug"},
             {9014, nullptr, "SetSaveDataBackupSettingEnabledForDebug"},

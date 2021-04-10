@@ -49,11 +49,11 @@ public:
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IAudioOut::GetAudioOutState, "GetAudioOutState"},
-            {1, &IAudioOut::StartAudioOut, "StartAudioOut"},
-            {2, &IAudioOut::StopAudioOut, "StopAudioOut"},
+            {1, &IAudioOut::StartAudioOut, "Start"},
+            {2, &IAudioOut::StopAudioOut, "Stop"},
             {3, &IAudioOut::AppendAudioOutBufferImpl, "AppendAudioOutBuffer"},
             {4, &IAudioOut::RegisterBufferEvent, "RegisterBufferEvent"},
-            {5, &IAudioOut::GetReleasedAudioOutBufferImpl, "GetReleasedAudioOutBuffer"},
+            {5, &IAudioOut::GetReleasedAudioOutBufferImpl, "GetReleasedAudioOutBuffers"},
             {6, &IAudioOut::ContainsAudioOutBuffer, "ContainsAudioOutBuffer"},
             {7, &IAudioOut::AppendAudioOutBufferImpl, "AppendAudioOutBufferAuto"},
             {8, &IAudioOut::GetReleasedAudioOutBufferImpl, "GetReleasedAudioOutBufferAuto"},

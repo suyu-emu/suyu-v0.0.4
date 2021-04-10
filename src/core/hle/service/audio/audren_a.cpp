@@ -9,14 +9,14 @@ namespace Service::Audio {
 AudRenA::AudRenA(Core::System& system_) : ServiceFramework{system_, "audren:a"} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {0, nullptr, "RequestSuspendAudioRenderers"},
-        {1, nullptr, "RequestResumeAudioRenderers"},
-        {2, nullptr, "GetAudioRenderersProcessMasterVolume"},
-        {3, nullptr, "SetAudioRenderersProcessMasterVolume"},
+        {0, nullptr, "RequestSuspend"},
+        {1, nullptr, "RequestResume"},
+        {2, nullptr, "GetProcessMasterVolume"},
+        {3, nullptr, "SetProcessMasterVolume"},
         {4, nullptr, "RegisterAppletResourceUserId"},
         {5, nullptr, "UnregisterAppletResourceUserId"},
-        {6, nullptr, "GetAudioRenderersProcessRecordVolume"},
-        {7, nullptr, "SetAudioRenderersProcessRecordVolume"},
+        {6, nullptr, "GetProcessRecordVolume"},
+        {7, nullptr, "SetProcessRecordVolume"},
     };
     // clang-format on
 

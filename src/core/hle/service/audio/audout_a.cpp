@@ -9,12 +9,12 @@ namespace Service::Audio {
 AudOutA::AudOutA(Core::System& system_) : ServiceFramework{system_, "audout:a"} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {0, nullptr, "RequestSuspendAudioOuts"},
-        {1, nullptr, "RequestResumeAudioOuts"},
-        {2, nullptr, "GetAudioOutsProcessMasterVolume"},
-        {3, nullptr, "SetAudioOutsProcessMasterVolume"},
-        {4, nullptr, "GetAudioOutsProcessRecordVolume"},
-        {5, nullptr, "SetAudioOutsProcessRecordVolume"},
+        {0, nullptr, "RequestSuspend"},
+        {1, nullptr, "RequestResume"},
+        {2, nullptr, "GetProcessMasterVolume"},
+        {3, nullptr, "SetProcessMasterVolume"},
+        {4, nullptr, "GetProcessRecordVolume"},
+        {5, nullptr, "SetProcessRecordVolume"},
     };
     // clang-format on
 

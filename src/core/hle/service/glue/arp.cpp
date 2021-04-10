@@ -41,6 +41,12 @@ ARP_R::ARP_R(Core::System& system_, const ARPManager& manager_)
             {1, &ARP_R::GetApplicationLaunchPropertyWithApplicationId, "GetApplicationLaunchPropertyWithApplicationId"},
             {2, &ARP_R::GetApplicationControlProperty, "GetApplicationControlProperty"},
             {3, &ARP_R::GetApplicationControlPropertyWithApplicationId, "GetApplicationControlPropertyWithApplicationId"},
+            {4, nullptr, "GetApplicationInstanceUnregistrationNotifier"},
+            {5, nullptr, "ListApplicationInstanceId"},
+            {6, nullptr, "GetMicroApplicationInstanceId"},
+            {7, nullptr, "GetApplicationCertificate"},
+            {9998, nullptr, "GetPreomiaApplicationLaunchProperty"},
+            {9999, nullptr, "GetPreomiaApplicationControlProperty"},
         };
     // clang-format on
 
@@ -243,7 +249,8 @@ ARP_W::ARP_W(Core::System& system_, ARPManager& manager_)
     // clang-format off
         static const FunctionInfo functions[] = {
             {0, &ARP_W::AcquireRegistrar, "AcquireRegistrar"},
-            {1, &ARP_W::DeleteProperties, "DeleteProperties"},
+            {1, &ARP_W::UnregisterApplicationInstance , "UnregisterApplicationInstance "},
+            {2, nullptr, "AcquireUpdater"},
         };
     // clang-format on
 
@@ -270,7 +277,7 @@ void ARP_W::AcquireRegistrar(Kernel::HLERequestContext& ctx) {
     rb.PushIpcInterface(registrar);
 }
 
-void ARP_W::DeleteProperties(Kernel::HLERequestContext& ctx) {
+void ARP_W::UnregisterApplicationInstance(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto process_id = rp.PopRaw<u64>();
 

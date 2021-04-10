@@ -32,7 +32,7 @@ public:
 
 private:
     void AcquireRegistrar(Kernel::HLERequestContext& ctx);
-    void DeleteProperties(Kernel::HLERequestContext& ctx);
+    void UnregisterApplicationInstance(Kernel::HLERequestContext& ctx);
 
     ARPManager& manager;
     std::shared_ptr<IRegistrar> registrar;
