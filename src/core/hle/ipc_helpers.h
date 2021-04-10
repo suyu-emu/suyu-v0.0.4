@@ -218,7 +218,13 @@ public:
     void PushMoveObjects(O*... pointers);
 
     template <typename... O>
+    void PushMoveObjects(O&... pointers);
+
+    template <typename... O>
     void PushCopyObjects(O*... pointers);
+
+    template <typename... O>
+    void PushCopyObjects(O&... pointers);
 
 private:
     u32 normal_params_size{};
@@ -304,7 +310,15 @@ template <typename... O>
 inline void ResponseBuilder::PushCopyObjects(O*... pointers) {
     auto objects = {pointers...};
     for (auto& object : objects) {
-        context->AddCopyObject(std::move(object));
+        context->AddCopyObject(object);
+    }
+}
+
+template <typename... O>
+inline void ResponseBuilder::PushCopyObjects(O&... pointers) {
+    auto objects = {&pointers...};
+    for (auto& object : objects) {
+        context->AddCopyObject(object);
     }
 }
 
@@ -312,7 +326,15 @@ template <typename... O>
 inline void ResponseBuilder::PushMoveObjects(O*... pointers) {
     auto objects = {pointers...};
     for (auto& object : objects) {
-        context->AddMoveObject(std::move(object));
+        context->AddMoveObject(object);
+    }
+}
+
+template <typename... O>
+inline void ResponseBuilder::PushMoveObjects(O&... pointers) {
+    auto objects = {&pointers...};
+    for (auto& object : objects) {
+        context->AddMoveObject(object);
     }
 }
 
