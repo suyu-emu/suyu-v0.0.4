@@ -260,15 +260,15 @@ public:
     template <typename T>
     KSlabHeap<T>& SlabHeap() {
         if constexpr (std::is_same_v<T, Process>) {
-            return slab_heap_Process;
+            return slab_heap_container->process;
         } else if constexpr (std::is_same_v<T, KThread>) {
-            return slab_heap_KThread;
+            return slab_heap_container->thread;
         } else if constexpr (std::is_same_v<T, KEvent>) {
-            return slab_heap_KEvent;
+            return slab_heap_container->event;
         } else if constexpr (std::is_same_v<T, KSharedMemory>) {
-            return slab_heap_KSharedMemory;
+            return slab_heap_container->shared_memory;
         } else if constexpr (std::is_same_v<T, KLinkedListNode>) {
-            return slab_heap_KLinkedListNode;
+            return slab_heap_container->linked_list_node;
         }
     }
 
@@ -301,11 +301,16 @@ private:
     bool exception_exited{};
 
 private:
-    KSlabHeap<Process> slab_heap_Process;
-    KSlabHeap<KThread> slab_heap_KThread;
-    KSlabHeap<KEvent> slab_heap_KEvent;
-    KSlabHeap<KSharedMemory> slab_heap_KSharedMemory;
-    KSlabHeap<KLinkedListNode> slab_heap_KLinkedListNode;
+    /// Helper to encapsulate all slab heaps in a single heap allocated container
+    struct SlabHeapContainer {
+        KSlabHeap<Process> process;
+        KSlabHeap<KThread> thread;
+        KSlabHeap<KEvent> event;
+        KSlabHeap<KSharedMemory> shared_memory;
+        KSlabHeap<KLinkedListNode> linked_list_node;
+    };
+
+    std::unique_ptr<SlabHeapContainer> slab_heap_container;
 };
 
 } // namespace Kernel

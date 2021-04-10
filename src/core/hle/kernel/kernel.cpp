@@ -692,6 +692,7 @@ void KernelCore::SetMulticore(bool is_multicore) {
 }
 
 void KernelCore::Initialize() {
+    slab_heap_container = std::make_unique<SlabHeapContainer>();
     impl->Initialize(*this);
 }
 
