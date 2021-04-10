@@ -2,19 +2,16 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-// This file references various implementation details from Atmosphere, an open-source firmware for
-// the Nintendo Switch. Copyright 2018-2020 Atmosphere-NX.
-
 #pragma once
 
 #include <atomic>
 
 #include "common/common_types.h"
-#include "common/spin_lock.h"
 #include "core/hle/kernel/global_scheduler_context.h"
 #include "core/hle/kernel/k_priority_queue.h"
 #include "core/hle/kernel/k_scheduler_lock.h"
 #include "core/hle/kernel/k_scoped_lock.h"
+#include "core/hle/kernel/k_spin_lock.h"
 
 namespace Common {
 class Fiber;
@@ -195,7 +192,7 @@ private:
     u64 last_context_switch_time{};
     const s32 core_id;
 
-    Common::SpinLock guard{};
+    KSpinLock guard{};
 };
 
 class [[nodiscard]] KScopedSchedulerLock : KScopedLock<GlobalSchedulerContext::LockType> {

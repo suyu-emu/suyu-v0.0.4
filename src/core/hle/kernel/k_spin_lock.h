@@ -28,6 +28,12 @@ private:
     std::atomic_flag lck = ATOMIC_FLAG_INIT;
 };
 
+// TODO(bunnei): Alias for now, in case we want to implement these accurately in the future.
+using KAlignedSpinLock = KSpinLock;
+using KNotAlignedSpinLock = KSpinLock;
+
 using KScopedSpinLock = KScopedLock<KSpinLock>;
+using KScopedAlignedSpinLock = KScopedLock<KAlignedSpinLock>;
+using KScopedNotAlignedSpinLock = KScopedLock<KNotAlignedSpinLock>;
 
 } // namespace Kernel

@@ -29,6 +29,10 @@ public:
 
         Shift = 4,
         Mask = (0xF << Shift),
+
+        // Aliases.
+        Unsafe = Application,
+        Secure = System,
     };
 
     enum class Direction : u32 {
@@ -56,6 +60,10 @@ public:
     static constexpr std::size_t MaxManagerCount = 10;
 
 public:
+    static std::size_t CalculateManagementOverheadSize(std::size_t region_size) {
+        return Impl::CalculateManagementOverheadSize(region_size);
+    }
+
     static constexpr u32 EncodeOption(Pool pool, Direction dir) {
         return (static_cast<u32>(pool) << static_cast<u32>(Pool::Shift)) |
                (static_cast<u32>(dir) << static_cast<u32>(Direction::Shift));
@@ -84,6 +92,16 @@ private:
     private:
         KPageHeap heap;
         Pool pool{};
+
+    public:
+        static std::size_t CalculateManagementOverheadSize(std::size_t region_size);
+
+        static constexpr std::size_t CalculateOptimizedProcessOverheadSize(
+            std::size_t region_size) {
+            return (Common::AlignUp((region_size / PageSize), Common::BitSize<u64>()) /
+                    Common::BitSize<u64>()) *
+                   sizeof(u64);
+        }
 
     public:
         Impl() = default;

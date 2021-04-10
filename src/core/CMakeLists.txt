@@ -141,6 +141,9 @@ add_library(core STATIC
     hardware_interrupt_manager.h
     hle/ipc.h
     hle/ipc_helpers.h
+    hle/kernel/board/nintendo/nx/k_system_control.cpp
+    hle/kernel/board/nintendo/nx/k_system_control.h
+    hle/kernel/board/nintendo/nx/secure_monitor.h
     hle/kernel/client_port.cpp
     hle/kernel/client_port.h
     hle/kernel/client_session.cpp
@@ -169,9 +172,13 @@ add_library(core STATIC
     hle/kernel/k_memory_block.h
     hle/kernel/k_memory_block_manager.cpp
     hle/kernel/k_memory_block_manager.h
+    hle/kernel/k_memory_layout.cpp
+    hle/kernel/k_memory_layout.board.nintendo_nx.cpp
     hle/kernel/k_memory_layout.h
     hle/kernel/k_memory_manager.cpp
     hle/kernel/k_memory_manager.h
+    hle/kernel/k_memory_region.h
+    hle/kernel/k_memory_region_type.h
     hle/kernel/k_page_bitmap.h
     hle/kernel/k_page_heap.cpp
     hle/kernel/k_page_heap.h
@@ -196,11 +203,11 @@ add_library(core STATIC
     hle/kernel/k_spin_lock.h
     hle/kernel/k_synchronization_object.cpp
     hle/kernel/k_synchronization_object.h
-    hle/kernel/k_system_control.cpp
     hle/kernel/k_system_control.h
     hle/kernel/k_thread.cpp
     hle/kernel/k_thread.h
     hle/kernel/k_thread_queue.h
+    hle/kernel/k_trace.h
     hle/kernel/k_writable_event.cpp
     hle/kernel/k_writable_event.h
     hle/kernel/kernel.cpp
