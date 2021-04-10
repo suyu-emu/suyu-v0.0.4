@@ -74,6 +74,7 @@ struct Values {
     QString game_dir_deprecated;
     bool game_dir_deprecated_deepscan;
     QVector<UISettings::GameDir> game_dirs;
+    QVector<u64> favorited_ids;
     QStringList recent_files;
     QString language;
 

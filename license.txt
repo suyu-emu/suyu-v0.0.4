@@ -358,6 +358,7 @@ chip.png (Colorful, Colorful Dark)          | CC BY-ND 3.0  | https://icons8.com
 folder.png (Colorful, Colorful Dark)        | CC BY-ND 3.0  | https://icons8.com
 plus.png (Colorful, Colorful Dark)          | CC BY-ND 3.0  | https://icons8.com
 sd_card.png (Colorful, Colorful Dark)       | CC BY-ND 3.0  | https://icons8.com
+star.png                                    | CC BY-ND 3.0  | https://icons8.com
 
 Note:
 Some icons are different in different themes, and they are separately listed

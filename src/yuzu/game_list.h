@@ -112,10 +112,15 @@ private:
 
     void RefreshGameDirectory();
 
+    void ToggleFavorite(u64 program_id);
+    void AddFavorite(u64 program_id);
+    void RemoveFavorite(u64 program_id);
+
     void PopupContextMenu(const QPoint& menu_location);
     void AddGamePopup(QMenu& context_menu, u64 program_id, const std::string& path);
     void AddCustomDirPopup(QMenu& context_menu, QModelIndex selected);
     void AddPermDirPopup(QMenu& context_menu, QModelIndex selected);
+    void AddFavoritesPopup(QMenu& context_menu);
 
     std::shared_ptr<FileSys::VfsFilesystem> vfs;
     FileSys::ManualContentProvider* provider;
