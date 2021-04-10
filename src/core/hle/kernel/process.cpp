@@ -41,7 +41,7 @@ void SetupMainThread(Core::System& system, Process& owner_process, u32 priority,
     const VAddr entry_point = owner_process.PageTable().GetCodeRegionStart();
     ASSERT(owner_process.GetResourceLimit()->Reserve(LimitableResource::Threads, 1));
 
-    KThread* thread = KThread::CreateWithKernel(system.Kernel());
+    KThread* thread = KThread::Create(system.Kernel());
     ASSERT(KThread::InitializeUserThread(system, thread, entry_point, 0, stack_top, priority,
                                          owner_process.GetIdealCoreId(), &owner_process)
                .IsSuccess());

@@ -102,15 +102,21 @@ struct KernelCore::Impl {
         next_user_process_id = Process::ProcessIDMin;
         next_thread_id = 1;
 
-        for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
-            if (suspend_threads[i]) {
-                suspend_threads[i]->Close();
+        for (s32 core_id = 0; core_id < Core::Hardware::NUM_CPU_CORES; core_id++) {
+            if (suspend_threads[core_id]) {
+                suspend_threads[core_id]->Close();
+                suspend_threads[core_id] = nullptr;
             }
+
+            schedulers[core_id].reset();
         }
 
         cores.clear();
 
-        current_process = nullptr;
+        if (current_process) {
+            current_process->Close();
+            current_process = nullptr;
+        }
 
         global_handle_table.Clear();
 
@@ -195,10 +201,9 @@ struct KernelCore::Impl {
 
     void InitializeSuspendThreads() {
         for (s32 core_id = 0; core_id < Core::Hardware::NUM_CPU_CORES; core_id++) {
-            suspend_threads[core_id] = std::make_unique<KThread>(system.Kernel());
-            KAutoObject::Create(suspend_threads[core_id].get());
-            ASSERT(KThread::InitializeHighPriorityThread(system, suspend_threads[core_id].get(), {},
-                                                         {}, core_id)
+            suspend_threads[core_id] = KThread::Create(system.Kernel());
+            ASSERT(KThread::InitializeHighPriorityThread(system, suspend_threads[core_id], {}, {},
+                                                         core_id)
                        .IsSuccess());
             suspend_threads[core_id]->SetName(fmt::format("SuspendThread:{}", core_id));
         }
@@ -577,15 +582,10 @@ struct KernelCore::Impl {
         const PAddr irs_phys_addr{system_pool.GetAddress() + hid_size + font_size};
         const PAddr time_phys_addr{system_pool.GetAddress() + hid_size + font_size + irs_size};
 
-        hid_shared_mem = std::make_unique<KSharedMemory>(system.Kernel());
-        font_shared_mem = std::make_unique<KSharedMemory>(system.Kernel());
-        irs_shared_mem = std::make_unique<KSharedMemory>(system.Kernel());
-        time_shared_mem = std::make_unique<KSharedMemory>(system.Kernel());
-
-        KAutoObject::Create(hid_shared_mem.get());
-        KAutoObject::Create(font_shared_mem.get());
-        KAutoObject::Create(irs_shared_mem.get());
-        KAutoObject::Create(time_shared_mem.get());
+        hid_shared_mem = KSharedMemory::Create(system.Kernel());
+        font_shared_mem = KSharedMemory::Create(system.Kernel());
+        irs_shared_mem = KSharedMemory::Create(system.Kernel());
+        time_shared_mem = KSharedMemory::Create(system.Kernel());
 
         hid_shared_mem->Initialize(system.Kernel(), system.DeviceMemory(), nullptr,
                                    {hid_phys_addr, hid_size / PageSize}, KMemoryPermission::None,
@@ -656,10 +656,10 @@ struct KernelCore::Impl {
     std::unique_ptr<KSlabHeap<Page>> user_slab_heap_pages;
 
     // Shared memory for services
-    std::unique_ptr<Kernel::KSharedMemory> hid_shared_mem;
-    std::unique_ptr<Kernel::KSharedMemory> font_shared_mem;
-    std::unique_ptr<Kernel::KSharedMemory> irs_shared_mem;
-    std::unique_ptr<Kernel::KSharedMemory> time_shared_mem;
+    Kernel::KSharedMemory* hid_shared_mem{};
+    Kernel::KSharedMemory* font_shared_mem{};
+    Kernel::KSharedMemory* irs_shared_mem{};
+    Kernel::KSharedMemory* time_shared_mem{};
 
     // Threads used for services
     std::unordered_set<std::shared_ptr<Kernel::ServiceThread>> service_threads;
@@ -668,7 +668,7 @@ struct KernelCore::Impl {
     // the release of itself
     std::unique_ptr<Common::ThreadWorker> service_thread_manager;
 
-    std::array<std::unique_ptr<KThread>, Core::Hardware::NUM_CPU_CORES> suspend_threads;
+    std::array<KThread*, Core::Hardware::NUM_CPU_CORES> suspend_threads;
     std::array<Core::CPUInterruptHandler, Core::Hardware::NUM_CPU_CORES> interrupts{};
     std::array<std::unique_ptr<Kernel::KScheduler>, Core::Hardware::NUM_CPU_CORES> schedulers{};
 
@@ -938,9 +938,9 @@ void KernelCore::Suspend(bool in_suspention) {
     {
         KScopedSchedulerLock lock(*this);
         const auto state = should_suspend ? ThreadState::Runnable : ThreadState::Waiting;
-        for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
-            impl->suspend_threads[i]->SetState(state);
-            impl->suspend_threads[i]->SetWaitReasonForDebugging(
+        for (s32 core_id = 0; core_id < Core::Hardware::NUM_CPU_CORES; core_id++) {
+            impl->suspend_threads[core_id]->SetState(state);
+            impl->suspend_threads[core_id]->SetWaitReasonForDebugging(
                 ThreadWaitReasonForDebugging::Suspended);
         }
     }

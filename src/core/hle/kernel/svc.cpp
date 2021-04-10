@@ -1431,7 +1431,7 @@ static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr e
     }
 
     // Create the thread.
-    KThread* thread = KThread::CreateWithKernel(kernel);
+    KThread* thread = KThread::Create(kernel);
     if (!thread) {
         LOG_ERROR(Kernel_SVC, "Unable to create new threads. Thread creation limit reached.");
         return ResultOutOfResource;
@@ -1953,7 +1953,7 @@ static ResultCode CreateEvent(Core::System& system, Handle* out_write, Handle* o
     HandleTable& handle_table = kernel.CurrentProcess()->GetHandleTable();
 
     // Create a new event.
-    KEvent* event = KEvent::CreateWithKernel(kernel);
+    KEvent* event = KEvent::Create(kernel);
     R_UNLESS(event != nullptr, ResultOutOfResource);
 
     // Initialize the event.

@@ -67,10 +67,6 @@ class KAutoObjectWithSlabHeapAndContainer : public Base {
 
 private:
     static Derived* Allocate(KernelCore& kernel) {
-        return kernel.SlabHeap<Derived>().Allocate();
-    }
-
-    static Derived* AllocateWithKernel(KernelCore& kernel) {
         return kernel.SlabHeap<Derived>().AllocateWithKernel(kernel);
     }
 
@@ -120,16 +116,8 @@ public:
         kernel.ObjectListContainer().Initialize();
     }
 
-    static Derived* Create() {
-        Derived* obj = Allocate();
-        if (obj != nullptr) {
-            KAutoObject::Create(obj);
-        }
-        return obj;
-    }
-
-    static Derived* CreateWithKernel(KernelCore& kernel) {
-        Derived* obj = AllocateWithKernel(kernel);
+    static Derived* Create(KernelCore& kernel) {
+        Derived* obj = Allocate(kernel);
         if (obj != nullptr) {
             KAutoObject::Create(obj);
         }

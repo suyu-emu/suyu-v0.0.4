@@ -233,7 +233,7 @@ struct System::Impl {
         }
 
         telemetry_session->AddInitialInfo(*app_loader, fs_controller, *content_provider);
-        auto main_process = Kernel::Process::CreateWithKernel(system.Kernel());
+        auto main_process = Kernel::Process::Create(system.Kernel());
         ASSERT(Kernel::Process::Initialize(main_process, system, "main",
                                            Kernel::Process::ProcessType::Userland)
                    .IsSuccess());

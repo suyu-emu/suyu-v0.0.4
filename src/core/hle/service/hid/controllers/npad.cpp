@@ -253,8 +253,7 @@ void Controller_NPad::InitNewlyAddedController(std::size_t controller_idx) {
 void Controller_NPad::OnInit() {
     auto& kernel = system.Kernel();
     for (std::size_t i = 0; i < styleset_changed_events.size(); ++i) {
-        styleset_changed_events[i] = std::make_unique<Kernel::KEvent>(kernel);
-        Kernel::KAutoObject::Create(styleset_changed_events[i].get());
+        styleset_changed_events[i] = Kernel::KEvent::Create(kernel);
         styleset_changed_events[i]->Initialize(fmt::format("npad:NpadStyleSetChanged_{}", i));
     }
 
@@ -340,6 +339,11 @@ void Controller_NPad::OnRelease() {
         for (std::size_t device_idx = 0; device_idx < vibrations[npad_idx].size(); ++device_idx) {
             VibrateControllerAtIndex(npad_idx, device_idx, {});
         }
+    }
+
+    for (std::size_t i = 0; i < styleset_changed_events.size(); ++i) {
+        styleset_changed_events[i]->Close();
+        styleset_changed_events[i] = nullptr;
     }
 }
 

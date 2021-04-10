@@ -618,14 +618,17 @@ KScheduler::KScheduler(Core::System& system, s32 core_id) : system(system), core
 }
 
 KScheduler::~KScheduler() {
-    idle_thread->Close();
+    if (idle_thread) {
+        idle_thread->Close();
+        idle_thread = nullptr;
+    }
 }
 
 KThread* KScheduler::GetCurrentThread() const {
     if (auto result = current_thread.load(); result) {
         return result;
     }
-    return idle_thread.get();
+    return idle_thread;
 }
 
 u64 KScheduler::GetLastContextSwitchTicks() const {
@@ -710,7 +713,7 @@ void KScheduler::ScheduleImpl() {
 
     // We never want to schedule a null thread, so use the idle thread if we don't have a next.
     if (next_thread == nullptr) {
-        next_thread = idle_thread.get();
+        next_thread = idle_thread;
     }
 
     // If we're not actually switching thread, there's nothing to do.
@@ -771,7 +774,7 @@ void KScheduler::SwitchToCurrent() {
                     break;
                 }
             }
-            auto thread = next_thread ? next_thread : idle_thread.get();
+            auto thread = next_thread ? next_thread : idle_thread;
             Common::Fiber::YieldTo(switch_fiber, *thread->GetHostContext());
         } while (!is_switch_pending());
     }
@@ -794,9 +797,8 @@ void KScheduler::UpdateLastContextSwitchTime(KThread* thread, Process* process) 
 }
 
 void KScheduler::Initialize() {
-    idle_thread = std::make_unique<KThread>(system.Kernel());
-    KAutoObject::Create(idle_thread.get());
-    ASSERT(KThread::InitializeIdleThread(system, idle_thread.get(), core_id).IsSuccess());
+    idle_thread = KThread::Create(system.Kernel());
+    ASSERT(KThread::InitializeIdleThread(system, idle_thread, core_id).IsSuccess());
     idle_thread->SetName(fmt::format("IdleThread:{}", core_id));
 }
 
