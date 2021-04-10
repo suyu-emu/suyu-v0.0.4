@@ -673,7 +673,7 @@ endif()
 create_target_directory_groups(core)
 
 target_link_libraries(core PUBLIC common PRIVATE audio_core video_core)
-target_link_libraries(core PUBLIC Boost::boost PRIVATE fmt::fmt nlohmann_json::nlohmann_json mbedtls opus zip)
+target_link_libraries(core PUBLIC Boost::boost PRIVATE fmt::fmt nlohmann_json::nlohmann_json mbedtls Opus::Opus zip)
 
 if (YUZU_ENABLE_BOXCAT)
     target_compile_definitions(core PRIVATE -DYUZU_ENABLE_BOXCAT)

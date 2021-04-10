@@ -252,3 +252,5 @@ PRIVATE
     opus/silk/float
     opus/src
 )
+
+add_library(Opus::Opus ALIAS opus)

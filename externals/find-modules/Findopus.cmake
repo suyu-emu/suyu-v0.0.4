@@ -28,7 +28,7 @@ if(opus_FOUND)
 endif()
 
 if(opus_FOUND AND NOT TARGET Opus::Opus)
-  add_library(Opus::Opus UNKNOWN IMPORTED)
+  add_library(Opus::Opus UNKNOWN IMPORTED GLOBAL)
   set_target_properties(Opus::Opus PROPERTIES
     IMPORTED_LOCATION "${opus_LIBRARY}"
     INTERFACE_COMPILE_OPTIONS "${PC_opus_CFLAGS_OTHER}"

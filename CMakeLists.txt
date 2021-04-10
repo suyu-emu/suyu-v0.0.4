@@ -172,6 +172,8 @@ macro(yuzu_find_packages)
         "nlohmann_json     3.8         nlohmann_json/3.8.0"
         "ZLIB              1.2         zlib/1.2.11"
         "zstd              1.4         zstd/1.4.8"
+    # can't use opus until AVX check is fixed: https://github.com/yuzu-emu/yuzu/pull/4068
+        #"opus              1.3         opus/1.3.1"
     )
 
     foreach(PACKAGE ${REQUIRED_LIBS})
