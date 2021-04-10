@@ -108,14 +108,14 @@ NvResult nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector
     // This is mostly to take into account unimplemented features. As synced
     // gpu is always synced.
     if (!gpu.IsAsync()) {
-        event.event->GetWritableEvent()->Signal();
+        event.event->GetWritableEvent().Signal();
         return NvResult::Success;
     }
     auto lock = gpu.LockSync();
     const u32 current_syncpoint_value = event.fence.value;
     const s32 diff = current_syncpoint_value - params.threshold;
     if (diff >= 0) {
-        event.event->GetWritableEvent()->Signal();
+        event.event->GetWritableEvent().Signal();
         params.value = current_syncpoint_value;
         std::memcpy(output.data(), &params, sizeof(params));
         return NvResult::Success;
@@ -142,7 +142,7 @@ NvResult nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector
             params.value = ((params.syncpt_id & 0xfff) << 16) | 0x10000000;
         }
         params.value |= event_id;
-        event.event->GetWritableEvent()->Clear();
+        event.event->GetWritableEvent().Clear();
         gpu.RegisterSyncptInterrupt(params.syncpt_id, target_value);
         std::memcpy(output.data(), &params, sizeof(params));
         return NvResult::Timeout;

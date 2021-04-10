@@ -96,11 +96,11 @@ public:
     void PushInteractiveDataFromGame(std::shared_ptr<IStorage>&& storage);
     void PushInteractiveDataFromApplet(std::shared_ptr<IStorage>&& storage);
 
-    void SignalStateChanged() const;
+    void SignalStateChanged();
 
-    Kernel::KReadableEvent* GetNormalDataEvent() const;
-    Kernel::KReadableEvent* GetInteractiveDataEvent() const;
-    Kernel::KReadableEvent* GetStateChangedEvent() const;
+    Kernel::KReadableEvent& GetNormalDataEvent();
+    Kernel::KReadableEvent& GetInteractiveDataEvent();
+    Kernel::KReadableEvent& GetStateChangedEvent();
 
 private:
     Core::System& system;

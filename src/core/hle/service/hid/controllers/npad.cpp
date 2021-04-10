@@ -159,7 +159,7 @@ void Controller_NPad::InitNewlyAddedController(std::size_t controller_idx) {
     const auto controller_type = connected_controllers[controller_idx].type;
     auto& controller = shared_memory_entries[controller_idx];
     if (controller_type == NPadControllerType::None) {
-        styleset_changed_events[controller_idx]->GetWritableEvent()->Signal();
+        styleset_changed_events[controller_idx]->GetWritableEvent().Signal();
         return;
     }
     controller.style_set.raw = 0; // Zero out
@@ -959,13 +959,12 @@ bool Controller_NPad::IsVibrationDeviceMounted(const DeviceHandle& vibration_dev
     return vibration_devices_mounted[npad_index][device_index];
 }
 
-Kernel::KReadableEvent* Controller_NPad::GetStyleSetChangedEvent(u32 npad_id) const {
-    const auto& styleset_event = styleset_changed_events[NPadIdToIndex(npad_id)];
-    return styleset_event->GetReadableEvent();
+Kernel::KReadableEvent& Controller_NPad::GetStyleSetChangedEvent(u32 npad_id) {
+    return styleset_changed_events[NPadIdToIndex(npad_id)]->GetReadableEvent();
 }
 
 void Controller_NPad::SignalStyleSetChangedEvent(u32 npad_id) const {
-    styleset_changed_events[NPadIdToIndex(npad_id)]->GetWritableEvent()->Signal();
+    styleset_changed_events[NPadIdToIndex(npad_id)]->GetWritableEvent().Signal();
 }
 
 void Controller_NPad::AddNewControllerAt(NPadControllerType controller, std::size_t npad_index) {

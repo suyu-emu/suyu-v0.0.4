@@ -56,8 +56,8 @@ public:
     explicit AppletMessageQueue(Kernel::KernelCore& kernel);
     ~AppletMessageQueue();
 
-    Kernel::KReadableEvent* GetMessageReceiveEvent() const;
-    Kernel::KReadableEvent* GetOperationModeChangedEvent() const;
+    Kernel::KReadableEvent& GetMessageReceiveEvent();
+    Kernel::KReadableEvent& GetOperationModeChangedEvent();
     void PushMessage(AppletMessage msg);
     AppletMessage PopMessage();
     std::size_t GetMessageCount() const;

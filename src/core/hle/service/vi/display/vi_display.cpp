@@ -33,12 +33,12 @@ const Layer& Display::GetLayer(std::size_t index) const {
     return *layers.at(index);
 }
 
-std::shared_ptr<Kernel::KReadableEvent> Display::GetVSyncEvent() const {
+Kernel::KReadableEvent& Display::GetVSyncEvent() {
     return vsync_event.GetReadableEvent();
 }
 
 void Display::SignalVSyncEvent() {
-    vsync_event.GetWritableEvent()->Signal();
+    vsync_event.GetWritableEvent().Signal();
 }
 
 void Display::CreateLayer(u64 layer_id, NVFlinger::BufferQueue& buffer_queue) {

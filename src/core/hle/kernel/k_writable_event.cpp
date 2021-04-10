@@ -8,20 +8,28 @@
 
 namespace Kernel {
 
-KWritableEvent::KWritableEvent(KernelCore& kernel, std::string&& name)
-    : Object{kernel, std::move(name)} {}
+KWritableEvent::KWritableEvent(KernelCore& kernel) : KAutoObjectWithSlabHeapAndContainer{kernel} {}
+
 KWritableEvent::~KWritableEvent() = default;
 
-void KWritableEvent::Initialize(KEvent* parent_) {
+void KWritableEvent::Initialize(KEvent* parent_, std::string&& name_) {
     parent = parent_;
+    name = std::move(name_);
+    parent->GetReadableEvent().Open();
 }
 
 ResultCode KWritableEvent::Signal() {
-    return parent->GetReadableEvent()->Signal();
+    return parent->GetReadableEvent().Signal();
 }
 
 ResultCode KWritableEvent::Clear() {
-    return parent->GetReadableEvent()->Clear();
+    return parent->GetReadableEvent().Clear();
+}
+
+void KWritableEvent::Destroy() {
+    // Close our references.
+    parent->GetReadableEvent().Close();
+    parent->Close();
 }
 
 } // namespace Kernel

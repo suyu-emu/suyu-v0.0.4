@@ -175,7 +175,7 @@ private:
         switch (device_state) {
         case DeviceState::TagFound:
         case DeviceState::TagNearby:
-            deactivate_event.GetWritableEvent()->Signal();
+            deactivate_event.GetWritableEvent().Signal();
             device_state = DeviceState::Initialized;
             break;
         case DeviceState::SearchingForTag:
@@ -318,7 +318,7 @@ private:
     const u32 npad_id{0};       // Player 1 controller
     State state{State::NonInitialized};
     DeviceState device_state{DeviceState::Initialized};
-    const Module::Interface& nfp_interface;
+    Module::Interface& nfp_interface;
     Kernel::KEvent deactivate_event;
     Kernel::KEvent availability_change_event;
 };
@@ -338,12 +338,12 @@ bool Module::Interface::LoadAmiibo(const std::vector<u8>& buffer) {
     }
 
     std::memcpy(&amiibo, buffer.data(), sizeof(amiibo));
-    nfc_tag_load.GetWritableEvent()->Signal();
+    nfc_tag_load.GetWritableEvent().Signal();
     return true;
 }
 
-Kernel::KReadableEvent* Module::Interface::GetNFCEvent() const {
-    return nfc_tag_load.GetReadableEvent().get();
+Kernel::KReadableEvent& Module::Interface::GetNFCEvent() {
+    return nfc_tag_load.GetReadableEvent();
 }
 
 const Module::Interface::AmiiboFile& Module::Interface::GetAmiiboBuffer() const {

@@ -39,7 +39,7 @@ public:
 
         void CreateUserInterface(Kernel::HLERequestContext& ctx);
         bool LoadAmiibo(const std::vector<u8>& buffer);
-        Kernel::KReadableEvent* GetNFCEvent() const;
+        Kernel::KReadableEvent& GetNFCEvent();
         const AmiiboFile& GetAmiiboBuffer() const;
 
     private:

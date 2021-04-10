@@ -176,16 +176,16 @@ void Module::SignalSyncpt(const u32 syncpoint_id, const u32 value) {
         if (events_interface.assigned_syncpt[i] == syncpoint_id &&
             events_interface.assigned_value[i] == value) {
             events_interface.LiberateEvent(i);
-            events_interface.events[i].event->GetWritableEvent()->Signal();
+            events_interface.events[i].event->GetWritableEvent().Signal();
         }
     }
 }
 
-std::shared_ptr<Kernel::KReadableEvent> Module::GetEvent(const u32 event_id) const {
-    return SharedFrom(events_interface.events[event_id].event->GetReadableEvent());
+Kernel::KReadableEvent& Module::GetEvent(const u32 event_id) {
+    return events_interface.events[event_id].event->GetReadableEvent();
 }
 
-std::shared_ptr<Kernel::KWritableEvent> Module::GetEventWriteable(const u32 event_id) const {
+Kernel::KWritableEvent& Module::GetEventWriteable(const u32 event_id) {
     return events_interface.events[event_id].event->GetWritableEvent();
 }
 

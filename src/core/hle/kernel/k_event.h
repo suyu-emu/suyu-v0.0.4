@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "core/hle/kernel/k_readable_event.h"
+#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/slab_helpers.h"
 
 namespace Kernel {
@@ -27,11 +29,26 @@ public:
     virtual bool IsInitialized() const override {
         return initialized;
     }
+
     virtual uintptr_t GetPostDestroyArgument() const override {
         return reinterpret_cast<uintptr_t>(owner);
     }
 
     static void PostDestroy(uintptr_t arg);
+
+    virtual Process* GetOwner() const override {
+        return owner;
+    }
+
+    KReadableEvent& GetReadableEvent() {
+        return readable_event;
+    }
+
+    KWritableEvent& GetWritableEvent() {
+        return writable_event;
+    }
+
+    // DEPRECATED
 
     std::string GetTypeName() const override {
         return "KEvent";
@@ -42,25 +59,9 @@ public:
         return HANDLE_TYPE;
     }
 
-    KReadableEvent* GetReadableEvent() {
-        return readable_event.get();
-    }
-
-    std::shared_ptr<KWritableEvent>& GetWritableEvent() {
-        return writable_event;
-    }
-
-    const std::shared_ptr<KReadableEvent>& GetReadableEvent() const {
-        return readable_event;
-    }
-
-    const std::shared_ptr<KWritableEvent>& GetWritableEvent() const {
-        return writable_event;
-    }
-
 private:
-    std::shared_ptr<KReadableEvent> readable_event;
-    std::shared_ptr<KWritableEvent> writable_event;
+    KReadableEvent readable_event;
+    KWritableEvent writable_event;
     Process* owner{};
     bool initialized{};
 };

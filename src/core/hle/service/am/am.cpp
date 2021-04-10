@@ -320,7 +320,7 @@ ISelfController::ISelfController(Core::System& system_, NVFlinger::NVFlinger& nv
     Kernel::KAutoObject::Create(std::addressof(accumulated_suspended_tick_changed_event));
     accumulated_suspended_tick_changed_event.Initialize(
         "ISelfController:AccumulatedSuspendedTickChangedEvent");
-    accumulated_suspended_tick_changed_event.GetWritableEvent()->Signal();
+    accumulated_suspended_tick_changed_event.GetWritableEvent().Signal();
 }
 
 ISelfController::~ISelfController() = default;
@@ -379,7 +379,7 @@ void ISelfController::LeaveFatalSection(Kernel::HLERequestContext& ctx) {
 void ISelfController::GetLibraryAppletLaunchableEvent(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
-    launchable_event.GetWritableEvent()->Signal();
+    launchable_event.GetWritableEvent().Signal();
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(RESULT_SUCCESS);
@@ -592,28 +592,28 @@ AppletMessageQueue::AppletMessageQueue(Kernel::KernelCore& kernel)
 
 AppletMessageQueue::~AppletMessageQueue() = default;
 
-Kernel::KReadableEvent* AppletMessageQueue::GetMessageReceiveEvent() const {
-    return on_new_message.GetReadableEvent().get();
+Kernel::KReadableEvent& AppletMessageQueue::GetMessageReceiveEvent() {
+    return on_new_message.GetReadableEvent();
 }
 
-Kernel::KReadableEvent* AppletMessageQueue::GetOperationModeChangedEvent() const {
-    return on_operation_mode_changed.GetReadableEvent().get();
+Kernel::KReadableEvent& AppletMessageQueue::GetOperationModeChangedEvent() {
+    return on_operation_mode_changed.GetReadableEvent();
 }
 
 void AppletMessageQueue::PushMessage(AppletMessage msg) {
     messages.push(msg);
-    on_new_message.GetWritableEvent()->Signal();
+    on_new_message.GetWritableEvent().Signal();
 }
 
 AppletMessageQueue::AppletMessage AppletMessageQueue::PopMessage() {
     if (messages.empty()) {
-        on_new_message.GetWritableEvent()->Clear();
+        on_new_message.GetWritableEvent().Clear();
         return AppletMessage::NoMessage;
     }
     auto msg = messages.front();
     messages.pop();
     if (messages.empty()) {
-        on_new_message.GetWritableEvent()->Clear();
+        on_new_message.GetWritableEvent().Clear();
     }
     return msg;
 }
@@ -633,7 +633,7 @@ void AppletMessageQueue::FocusStateChanged() {
 void AppletMessageQueue::OperationModeChanged() {
     PushMessage(AppletMessage::OperationModeChanged);
     PushMessage(AppletMessage::PerformanceModeChanged);
-    on_operation_mode_changed.GetWritableEvent()->Signal();
+    on_operation_mode_changed.GetWritableEvent().Signal();
 }
 
 ICommonStateGetter::ICommonStateGetter(Core::System& system_,
@@ -930,11 +930,9 @@ private:
     void GetAppletStateChangedEvent(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_AM, "called");
 
-        const auto event = applet->GetBroker().GetStateChangedEvent();
-
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(event);
+        rb.PushCopyObjects(applet->GetBroker().GetStateChangedEvent());
     }
 
     void IsCompleted(Kernel::HLERequestContext& ctx) {

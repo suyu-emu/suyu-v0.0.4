@@ -73,7 +73,7 @@ public:
         stream = audio_core.OpenStream(system.CoreTiming(), audio_params.sample_rate,
                                        audio_params.channel_count, std::move(unique_name), [this] {
                                            const auto guard = LockService();
-                                           buffer_event.GetWritableEvent()->Signal();
+                                           buffer_event.GetWritableEvent().Signal();
                                        });
     }
 

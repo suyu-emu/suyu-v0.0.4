@@ -3,14 +3,13 @@
 // Refer to the license.txt file included.
 
 #include "core/hle/kernel/k_event.h"
-#include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/k_resource_limit.h"
-#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/process.h"
 
 namespace Kernel {
 
-KEvent::KEvent(KernelCore& kernel) : KAutoObjectWithSlabHeapAndContainer{kernel} {}
+KEvent::KEvent(KernelCore& kernel)
+    : KAutoObjectWithSlabHeapAndContainer{kernel}, readable_event{kernel}, writable_event{kernel} {}
 
 KEvent::~KEvent() = default;
 
@@ -21,17 +20,13 @@ void KEvent::Initialize(std::string&& name_) {
     // writable events are closed this object will be destroyed.
     Open();
 
-    //// Create our sub events.
-    //KAutoObject::Create(readable_event.get());
-    //KAutoObject::Create(writable_event.get());
-
     // Create our sub events.
-    readable_event = std::make_shared<KReadableEvent>(kernel, name_ + ":Readable");
-    writable_event = std::make_shared<KWritableEvent>(kernel, name_ + ":Writable");
+    KAutoObject::Create(std::addressof(readable_event));
+    KAutoObject::Create(std::addressof(writable_event));
 
     // Initialize our sub sessions.
-    readable_event->Initialize(this);
-    writable_event->Initialize(this);
+    readable_event.Initialize(this, name_ + ":Readable");
+    writable_event.Initialize(this, name_ + ":Writable");
 
     // Set our owner process.
     owner = kernel.CurrentProcess();

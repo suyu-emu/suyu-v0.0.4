@@ -117,9 +117,9 @@ public:
         return is_connect;
     }
 
-    std::shared_ptr<Kernel::KWritableEvent> GetWritableBufferWaitEvent() const;
+    Kernel::KWritableEvent& GetWritableBufferWaitEvent();
 
-    std::shared_ptr<Kernel::KReadableEvent> GetBufferWaitEvent() const;
+    Kernel::KReadableEvent& GetBufferWaitEvent();
 
 private:
     BufferQueue(const BufferQueue&) = delete;

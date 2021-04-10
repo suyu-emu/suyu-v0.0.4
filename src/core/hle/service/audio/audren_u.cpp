@@ -55,7 +55,7 @@ public:
             system.CoreTiming(), system.Memory(), audren_params,
             [this]() {
                 const auto guard = LockService();
-                system_event.GetWritableEvent()->Signal();
+                system_event.GetWritableEvent().Signal();
             },
             instance_number);
     }
@@ -289,7 +289,7 @@ private:
     void QueryAudioDeviceSystemEvent(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_Audio, "(STUBBED) called");
 
-        buffer_event.GetWritableEvent()->Signal();
+        buffer_event.GetWritableEvent().Signal();
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);

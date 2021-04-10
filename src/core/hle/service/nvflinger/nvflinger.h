@@ -73,7 +73,7 @@ public:
     /// Gets the vsync event for the specified display.
     ///
     /// If an invalid display ID is provided, then nullptr is returned.
-    [[nodiscard]] std::shared_ptr<Kernel::KReadableEvent> FindVsyncEvent(u64 display_id);
+    [[nodiscard]] Kernel::KReadableEvent* FindVsyncEvent(u64 display_id);
 
     /// Obtains a buffer queue identified by the ID.
     [[nodiscard]] BufferQueue* FindBufferQueue(u32 id);

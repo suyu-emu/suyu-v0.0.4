@@ -1745,16 +1745,16 @@ static ResultCode ResetSignal(Core::System& system, Handle handle) {
 
     // Try to reset as readable event.
     {
-        auto readable_event = handle_table.Get<KReadableEvent>(handle);
-        if (readable_event) {
+        KScopedAutoObject readable_event = handle_table.GetObject<KReadableEvent>(handle);
+        if (readable_event.IsNotNull()) {
             return readable_event->Reset();
         }
     }
 
     // Try to reset as process.
     {
-        auto process = handle_table.Get<Process>(handle);
-        if (process) {
+        KScopedAutoObject process = handle_table.GetObject<Process>(handle);
+        if (process.IsNotNull()) {
             return process->Reset();
         }
     }
@@ -1885,27 +1885,12 @@ static ResultCode SetThreadCoreMask32(Core::System& system, Handle thread_handle
 static ResultCode SignalEvent(Core::System& system, Handle event_handle) {
     LOG_DEBUG(Kernel_SVC, "called, event_handle=0x{:08X}", event_handle);
 
-    auto& kernel = system.Kernel();
     // Get the current handle table.
-    const HandleTable& handle_table = kernel.CurrentProcess()->GetHandleTable();
-
-    // Reserve a new event from the process resource limit.
-    KScopedResourceReservation event_reservation(kernel.CurrentProcess(),
-                                                 LimitableResource::Events);
-    if (!event_reservation.Succeeded()) {
-        LOG_ERROR(Kernel, "Could not reserve a new event");
-        return ResultResourceLimitedExceeded;
-    }
+    const HandleTable& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
 
     // Get the writable event.
-    auto writable_event = handle_table.Get<KWritableEvent>(event_handle);
-    if (!writable_event) {
-        LOG_ERROR(Kernel_SVC, "Invalid event handle provided (handle={:08X})", event_handle);
-        return ResultInvalidHandle;
-    }
-
-    // Commit the successfuly reservation.
-    event_reservation.Commit();
+    KScopedAutoObject writable_event = handle_table.GetObject<KWritableEvent>(event_handle);
+    R_UNLESS(writable_event.IsNotNull(), ResultInvalidHandle);
 
     return writable_event->Signal();
 }
@@ -1922,16 +1907,16 @@ static ResultCode ClearEvent(Core::System& system, Handle event_handle) {
 
     // Try to clear the writable event.
     {
-        auto writable_event = handle_table.Get<KWritableEvent>(event_handle);
-        if (writable_event) {
+        KScopedAutoObject writable_event = handle_table.GetObject<KWritableEvent>(event_handle);
+        if (writable_event.IsNotNull()) {
             return writable_event->Clear();
         }
     }
 
     // Try to clear the readable event.
     {
-        auto readable_event = handle_table.Get<KReadableEvent>(event_handle);
-        if (readable_event) {
+        KScopedAutoObject readable_event = handle_table.GetObject<KReadableEvent>(event_handle);
+        if (readable_event.IsNotNull()) {
             return readable_event->Clear();
         }
     }
@@ -1950,7 +1935,12 @@ static ResultCode CreateEvent(Core::System& system, Handle* out_write, Handle* o
 
     // Get the kernel reference and handle table.
     auto& kernel = system.Kernel();
-    HandleTable& handle_table = kernel.CurrentProcess()->GetHandleTable();
+    auto& handle_table = kernel.CurrentProcess()->GetHandleTable();
+
+    // Reserve a new event from the process resource limit
+    KScopedResourceReservation event_reservation(kernel.CurrentProcess(),
+                                                 LimitableResource::Events);
+    R_UNLESS(event_reservation.Succeeded(), ResultResourceLimitedExceeded);
 
     // Create a new event.
     KEvent* event = KEvent::Create(kernel);
@@ -1959,22 +1949,26 @@ static ResultCode CreateEvent(Core::System& system, Handle* out_write, Handle* o
     // Initialize the event.
     event->Initialize("CreateEvent");
 
-    // Add the writable event to the handle table.
-    const auto write_create_result = handle_table.Create(event->GetWritableEvent().get());
-    if (write_create_result.Failed()) {
-        return write_create_result.Code();
-    }
-    *out_write = *write_create_result;
+    // Commit the thread reservation.
+    event_reservation.Commit();
+
+    // Ensure that we clean up the event (and its only references are handle table) on function end.
+    SCOPE_EXIT({
+        event->GetWritableEvent().Close();
+        event->GetReadableEvent().Close();
+    });
+
+    // Register the event.
+    KEvent::Register(kernel, event);
 
     // Add the writable event to the handle table.
-    auto handle_guard = SCOPE_GUARD({ handle_table.Remove(*write_create_result); });
+    R_TRY(handle_table.Add(out_write, std::addressof(event->GetWritableEvent())));
+
+    // Add the writable event to the handle table.
+    auto handle_guard = SCOPE_GUARD({ handle_table.Remove(*out_write); });
 
     // Add the readable event to the handle table.
-    const auto read_create_result = handle_table.Create(event->GetReadableEvent());
-    if (read_create_result.Failed()) {
-        return read_create_result.Code();
-    }
-    *out_read = *read_create_result;
+    R_TRY(handle_table.Add(out_read, std::addressof(event->GetReadableEvent())));
 
     // We succeeded.
     handle_guard.Cancel();

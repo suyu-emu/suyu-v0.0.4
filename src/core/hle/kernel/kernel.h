@@ -40,6 +40,7 @@ class KResourceLimit;
 class KScheduler;
 class KSharedMemory;
 class KThread;
+class KWritableEvent;
 class PhysicalCore;
 class Process;
 class ServiceThread;
@@ -269,6 +270,8 @@ public:
             return slab_heap_container->shared_memory;
         } else if constexpr (std::is_same_v<T, KLinkedListNode>) {
             return slab_heap_container->linked_list_node;
+        } else if constexpr (std::is_same_v<T, KWritableEvent>) {
+            return slab_heap_container->writeable_event;
         }
     }
 
@@ -308,6 +311,7 @@ private:
         KSlabHeap<KEvent> event;
         KSlabHeap<KSharedMemory> shared_memory;
         KSlabHeap<KLinkedListNode> linked_list_node;
+        KSlabHeap<KWritableEvent> writeable_event;
     };
 
     std::unique_ptr<SlabHeapContainer> slab_heap_container;
