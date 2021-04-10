@@ -185,11 +185,11 @@ KThread* KConditionVariable::SignalImpl(KThread* thread) {
             thread->Wakeup();
         } else {
             // Get the previous owner.
-            KThread* owner_thread =
-                kernel.CurrentProcess()->GetHandleTable()
-                    .GetObjectWithoutPseudoHandle<KThread>(
-                        static_cast<Handle>(prev_tag & ~Svc::HandleWaitMask))
-                    .ReleasePointerUnsafe();
+            KThread* owner_thread = kernel.CurrentProcess()
+                                        ->GetHandleTable()
+                                        .GetObjectWithoutPseudoHandle<KThread>(
+                                            static_cast<Handle>(prev_tag & ~Svc::HandleWaitMask))
+                                        .ReleasePointerUnsafe();
 
             if (owner_thread) {
                 // Add the thread as a waiter on the owner.
@@ -214,7 +214,7 @@ void KConditionVariable::Signal(u64 cv_key, s32 count) {
     // Prepare for signaling.
     constexpr int MaxThreads = 16;
 
-    KLinkedList<KThread> thread_list;
+    KLinkedList<KThread> thread_list{kernel};
     std::array<KThread*, MaxThreads> thread_array;
     s32 num_to_close{};
 
@@ -254,7 +254,8 @@ void KConditionVariable::Signal(u64 cv_key, s32 count) {
     }
 
     // Close threads in the list.
-    for (auto it = thread_list.begin(); it != thread_list.end(); it = thread_list.erase(it)) {
+    for (auto it = thread_list.begin(); it != thread_list.end();
+         it = thread_list.erase(kernel, it)) {
         (*it).Close();
     }
 }

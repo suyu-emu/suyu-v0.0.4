@@ -21,6 +21,10 @@ void KEvent::Initialize(std::string&& name_) {
     // writable events are closed this object will be destroyed.
     Open();
 
+    //// Create our sub events.
+    //KAutoObject::Create(readable_event.get());
+    //KAutoObject::Create(writable_event.get());
+
     // Create our sub events.
     readable_event = std::make_shared<KReadableEvent>(kernel, name_ + ":Readable");
     writable_event = std::make_shared<KWritableEvent>(kernel, name_ + ":Writable");

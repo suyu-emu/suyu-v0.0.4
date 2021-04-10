@@ -11,6 +11,8 @@
 
 namespace Kernel {
 
+class KernelCore;
+
 class KLinkedListNode : public boost::intrusive::list_base_hook<>,
                         public KSlabAllocated<KLinkedListNode> {
 private:
@@ -118,11 +120,11 @@ public:
     };
 
 public:
-    constexpr KLinkedList() : BaseList() {}
+    constexpr KLinkedList(KernelCore& kernel_) : BaseList(), kernel{kernel_} {}
 
     ~KLinkedList() {
         // Erase all elements.
-        for (auto it = this->begin(); it != this->end(); it = this->erase(it)) {
+        for (auto it = this->begin(); it != this->end(); it = this->erase(kernel, it)) {
         }
 
         // Ensure we succeeded.
@@ -199,7 +201,7 @@ public:
     }
 
     iterator insert(const_iterator pos, reference ref) {
-        KLinkedListNode* node = KLinkedListNode::Allocate();
+        KLinkedListNode* node = KLinkedListNode::Allocate(kernel);
         ASSERT(node != nullptr);
         node->Initialize(std::addressof(ref));
         return iterator(BaseList::insert(pos.m_base_it, *node));
@@ -221,13 +223,16 @@ public:
         this->erase(this->begin());
     }
 
-    iterator erase(const iterator pos) {
+    iterator erase(KernelCore& kernel, const iterator pos) {
         KLinkedListNode* freed_node = std::addressof(*pos.m_base_it);
         iterator ret = iterator(BaseList::erase(pos.m_base_it));
-        KLinkedListNode::Free(freed_node);
+        KLinkedListNode::Free(kernel, freed_node);
 
         return ret;
     }
+
+private:
+    KernelCore& kernel;
 };
 
 } // namespace Kernel

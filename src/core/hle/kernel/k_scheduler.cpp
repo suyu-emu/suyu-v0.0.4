@@ -617,7 +617,9 @@ KScheduler::KScheduler(Core::System& system, s32 core_id) : system(system), core
     state.highest_priority_thread = nullptr;
 }
 
-KScheduler::~KScheduler() = default;
+KScheduler::~KScheduler() {
+    idle_thread->Close();
+}
 
 KThread* KScheduler::GetCurrentThread() const {
     if (auto result = current_thread.load(); result) {

@@ -97,6 +97,7 @@ public:
     void FreeImpl(void* obj) {
         // Don't allow freeing an object that wasn't allocated from this heap
         ASSERT(Contains(reinterpret_cast<uintptr_t>(obj)));
+
         impl.Free(obj);
     }
 

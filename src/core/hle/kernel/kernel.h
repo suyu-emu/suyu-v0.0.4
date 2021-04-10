@@ -11,9 +11,10 @@
 #include <vector>
 #include "core/arm/cpu_interrupt_handler.h"
 #include "core/hardware_properties.h"
+#include "core/hle/kernel/k_auto_object.h"
+#include "core/hle/kernel/k_slab_heap.h"
 #include "core/hle/kernel/memory_types.h"
 #include "core/hle/kernel/object.h"
-#include "core/hle/kernel/k_auto_object.h"
 
 namespace Core {
 class CPUInterruptHandler;
@@ -32,6 +33,8 @@ class ClientPort;
 class GlobalSchedulerContext;
 class HandleTable;
 class KAutoObjectWithListContainer;
+class KEvent;
+class KLinkedListNode;
 class KMemoryManager;
 class KResourceLimit;
 class KScheduler;
@@ -231,9 +234,10 @@ public:
 
     /**
      * Creates an HLE service thread, which are used to execute service routines asynchronously.
-     * While these are allocated per ServerSession, these need to be owned and managed outside of
-     * ServerSession to avoid a circular dependency.
-     * @param name String name for the ServerSession creating this thread, used for debug purposes.
+     * While these are allocated per ServerSession, these need to be owned and managed outside
+     * of ServerSession to avoid a circular dependency.
+     * @param name String name for the ServerSession creating this thread, used for debug
+     * purposes.
      * @returns The a weak pointer newly created service thread.
      */
     std::weak_ptr<Kernel::ServiceThread> CreateServiceThread(const std::string& name);
@@ -251,6 +255,22 @@ public:
 
     Core::System& System();
     const Core::System& System() const;
+
+    /// Gets the slab heap for the specified kernel object type.
+    template <typename T>
+    KSlabHeap<T>& SlabHeap() {
+        if constexpr (std::is_same_v<T, Process>) {
+            return slab_heap_Process;
+        } else if constexpr (std::is_same_v<T, KThread>) {
+            return slab_heap_KThread;
+        } else if constexpr (std::is_same_v<T, KEvent>) {
+            return slab_heap_KEvent;
+        } else if constexpr (std::is_same_v<T, KSharedMemory>) {
+            return slab_heap_KSharedMemory;
+        } else if constexpr (std::is_same_v<T, KLinkedListNode>) {
+            return slab_heap_KLinkedListNode;
+        }
+    }
 
 private:
     friend class Object;
@@ -277,7 +297,15 @@ private:
 
     struct Impl;
     std::unique_ptr<Impl> impl;
+
     bool exception_exited{};
+
+private:
+    KSlabHeap<Process> slab_heap_Process;
+    KSlabHeap<KThread> slab_heap_KThread;
+    KSlabHeap<KEvent> slab_heap_KEvent;
+    KSlabHeap<KSharedMemory> slab_heap_KSharedMemory;
+    KSlabHeap<KLinkedListNode> slab_heap_KLinkedListNode;
 };
 
 } // namespace Kernel
