@@ -38,7 +38,7 @@ public:
             {10600, nullptr, "DeclareOpenOnlinePlaySession"},
             {10601, &IFriendService::DeclareCloseOnlinePlaySession, "DeclareCloseOnlinePlaySession"},
             {10610, &IFriendService::UpdateUserPresence, "UpdateUserPresence"},
-            {10700, nullptr, "GetPlayHistoryRegistrationKey"},
+            {10700, &IFriendService::GetPlayHistoryRegistrationKey, "GetPlayHistoryRegistrationKey"},
             {10701, nullptr, "GetPlayHistoryRegistrationKeyWithNetworkServiceAccountId"},
             {10702, nullptr, "AddPlayHistory"},
             {11000, nullptr, "GetProfileImageUrl"},
@@ -149,6 +149,18 @@ private:
     void UpdateUserPresence(Kernel::HLERequestContext& ctx) {
         // Stub used by Retro City Rampage
         LOG_WARNING(Service_Friend, "(STUBBED) called");
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
+
+    void GetPlayHistoryRegistrationKey(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto local_play = rp.Pop<bool>();
+        const auto uuid = rp.PopRaw<Common::UUID>();
+
+        LOG_WARNING(Service_Friend, "(STUBBED) called local_play={} uuid={}", local_play,
+                    uuid.Format());
+
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
