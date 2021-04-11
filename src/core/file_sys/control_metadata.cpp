@@ -100,6 +100,14 @@ u64 NACP::GetDeviceSaveDataSize() const {
     return raw.device_save_data_size;
 }
 
+u32 NACP::GetParentalControlFlag() const {
+    return raw.parental_control;
+}
+
+const std::array<u8, 0x20>& NACP::GetRatingAge() const {
+    return raw.rating_age;
+}
+
 std::vector<u8> NACP::GetRawBytes() const {
     std::vector<u8> out(sizeof(RawNACP));
     std::memcpy(out.data(), &raw, sizeof(RawNACP));

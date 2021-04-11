@@ -6,8 +6,9 @@
 
 namespace Service::PCTL {
 
-PCTL::PCTL(Core::System& system_, std::shared_ptr<Module> module_, const char* name)
-    : Interface{system_, std::move(module_), name} {
+PCTL::PCTL(Core::System& system_, std::shared_ptr<Module> module_, const char* name,
+           Capability capability)
+    : Interface{system_, std::move(module_), name, capability} {
     static const FunctionInfo functions[] = {
         {0, &PCTL::CreateService, "CreateService"},
         {1, &PCTL::CreateServiceWithoutInitialize, "CreateServiceWithoutInitialize"},
