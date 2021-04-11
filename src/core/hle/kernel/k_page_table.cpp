@@ -420,7 +420,7 @@ ResultCode KPageTable::MapPhysicalMemory(VAddr addr, std::size_t size) {
         remaining_size);
     if (!memory_reservation.Succeeded()) {
         LOG_ERROR(Kernel, "Could not reserve remaining {:X} bytes", remaining_size);
-        return ResultResourceLimitedExceeded;
+        return ResultLimitReached;
     }
 
     KPageLinkedList page_linked_list;
@@ -578,7 +578,7 @@ ResultCode KPageTable::Unmap(VAddr dst_addr, VAddr src_addr, std::size_t size) {
     AddRegionToPages(dst_addr, num_pages, dst_pages);
 
     if (!dst_pages.IsEqual(src_pages)) {
-        return ResultInvalidMemoryRange;
+        return ResultInvalidMemoryRegion;
     }
 
     {
@@ -790,7 +790,7 @@ ResultVal<VAddr> KPageTable::SetHeapSize(std::size_t size) {
 
         if (!memory_reservation.Succeeded()) {
             LOG_ERROR(Kernel, "Could not reserve heap extension of size {:X} bytes", delta);
-            return ResultResourceLimitedExceeded;
+            return ResultLimitReached;
         }
 
         KPageLinkedList page_linked_list;

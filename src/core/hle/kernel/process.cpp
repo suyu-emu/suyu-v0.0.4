@@ -276,7 +276,7 @@ ResultCode Process::LoadFromMetadata(const FileSys::ProgramMetadata& metadata,
     if (!memory_reservation.Succeeded()) {
         LOG_ERROR(Kernel, "Could not reserve process memory requirements of size {:X} bytes",
                   code_size + system_resource_size);
-        return ResultResourceLimitedExceeded;
+        return ResultLimitReached;
     }
     // Initialize proces address space
     if (const ResultCode result{

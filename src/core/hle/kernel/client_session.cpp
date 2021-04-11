@@ -42,7 +42,7 @@ ResultCode ClientSession::SendSyncRequest(KThread* thread, Core::Memory::Memory&
                                           Core::Timing::CoreTiming& core_timing) {
     // Keep ServerSession alive until we're done working with it.
     if (!parent->Server()) {
-        return ResultSessionClosedByRemote;
+        return ResultSessionClosed;
     }
 
     // Signal the server session that new data is available

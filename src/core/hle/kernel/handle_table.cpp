@@ -68,7 +68,7 @@ ResultVal<Handle> HandleTable::Create(Object* obj) {
     const u16 slot = next_free_slot;
     if (slot >= table_size) {
         LOG_ERROR(Kernel, "Unable to allocate Handle, too many slots in use.");
-        return ResultHandleTableFull;
+        return ResultOutOfHandles;
     }
     next_free_slot = generations[slot];
 
@@ -93,7 +93,7 @@ ResultCode HandleTable::Add(Handle* out_handle, KAutoObject* obj, u16 type) {
     const u16 slot = next_free_slot;
     if (slot >= table_size) {
         LOG_ERROR(Kernel, "Unable to allocate Handle, too many slots in use.");
-        return ResultHandleTableFull;
+        return ResultOutOfHandles;
     }
     next_free_slot = generations[slot];
 

@@ -113,7 +113,7 @@ ResultCode MapUnmapMemorySanityChecks(const KPageTable& manager, VAddr dst_addr,
         LOG_ERROR(Kernel_SVC,
                   "Destination is not within the stack region, addr=0x{:016X}, size=0x{:016X}",
                   dst_addr, size);
-        return ResultInvalidMemoryRange;
+        return ResultInvalidMemoryRegion;
     }
 
     if (manager.IsInsideHeapRegion(dst_addr, size)) {
@@ -121,7 +121,7 @@ ResultCode MapUnmapMemorySanityChecks(const KPageTable& manager, VAddr dst_addr,
                   "Destination does not fit within the heap region, addr=0x{:016X}, "
                   "size=0x{:016X}",
                   dst_addr, size);
-        return ResultInvalidMemoryRange;
+        return ResultInvalidMemoryRegion;
     }
 
     if (manager.IsInsideAliasRegion(dst_addr, size)) {
@@ -129,7 +129,7 @@ ResultCode MapUnmapMemorySanityChecks(const KPageTable& manager, VAddr dst_addr,
                   "Destination does not fit within the map region, addr=0x{:016X}, "
                   "size=0x{:016X}",
                   dst_addr, size);
-        return ResultInvalidMemoryRange;
+        return ResultInvalidMemoryRegion;
     }
 
     return RESULT_SUCCESS;
@@ -943,7 +943,7 @@ static ResultCode MapPhysicalMemory(Core::System& system, VAddr addr, u64 size) 
 
     if (!(addr < addr + size)) {
         LOG_ERROR(Kernel_SVC, "Size causes 64-bit overflow of address");
-        return ResultInvalidMemoryRange;
+        return ResultInvalidMemoryRegion;
     }
 
     Process* const current_process{system.Kernel().CurrentProcess()};
@@ -958,14 +958,14 @@ static ResultCode MapPhysicalMemory(Core::System& system, VAddr addr, u64 size) 
         LOG_ERROR(Kernel_SVC,
                   "Address is not within the address space, addr=0x{:016X}, size=0x{:016X}", addr,
                   size);
-        return ResultInvalidMemoryRange;
+        return ResultInvalidMemoryRegion;
     }
 
     if (page_table.IsOutsideAliasRegion(addr, size)) {
         LOG_ERROR(Kernel_SVC,
                   "Address is not within the alias region, addr=0x{:016X}, size=0x{:016X}", addr,
                   size);
-        return ResultInvalidMemoryRange;
+        return ResultInvalidMemoryRegion;
     }
 
     return page_table.MapPhysicalMemory(addr, size);
@@ -997,7 +997,7 @@ static ResultCode UnmapPhysicalMemory(Core::System& system, VAddr addr, u64 size
 
     if (!(addr < addr + size)) {
         LOG_ERROR(Kernel_SVC, "Size causes 64-bit overflow of address");
-        return ResultInvalidMemoryRange;
+        return ResultInvalidMemoryRegion;
     }
 
     Process* const current_process{system.Kernel().CurrentProcess()};
@@ -1012,14 +1012,14 @@ static ResultCode UnmapPhysicalMemory(Core::System& system, VAddr addr, u64 size
         LOG_ERROR(Kernel_SVC,
                   "Address is not within the address space, addr=0x{:016X}, size=0x{:016X}", addr,
                   size);
-        return ResultInvalidMemoryRange;
+        return ResultInvalidMemoryRegion;
     }
 
     if (page_table.IsOutsideAliasRegion(addr, size)) {
         LOG_ERROR(Kernel_SVC,
                   "Address is not within the alias region, addr=0x{:016X}, size=0x{:016X}", addr,
                   size);
-        return ResultInvalidMemoryRange;
+        return ResultInvalidMemoryRegion;
     }
 
     return page_table.UnmapPhysicalMemory(addr, size);
@@ -1138,7 +1138,7 @@ static ResultCode MapSharedMemory(Core::System& system, Handle shared_memory_han
     if ((permission_type | MemoryPermission::Write) != MemoryPermission::ReadWrite) {
         LOG_ERROR(Kernel_SVC, "Expected Read or ReadWrite permission but got permissions=0x{:08X}",
                   permissions);
-        return ResultInvalidMemoryPermissions;
+        return ResultInvalidNewMemoryPermission;
     }
 
     auto* const current_process{system.Kernel().CurrentProcess()};
@@ -1149,7 +1149,7 @@ static ResultCode MapSharedMemory(Core::System& system, Handle shared_memory_han
                   "Addr does not fit within the valid region, addr=0x{:016X}, "
                   "size=0x{:016X}",
                   addr, size);
-        return ResultInvalidMemoryRange;
+        return ResultInvalidMemoryRegion;
     }
 
     if (page_table.IsInsideHeapRegion(addr, size)) {
@@ -1157,7 +1157,7 @@ static ResultCode MapSharedMemory(Core::System& system, Handle shared_memory_han
                   "Addr does not fit within the heap region, addr=0x{:016X}, "
                   "size=0x{:016X}",
                   addr, size);
-        return ResultInvalidMemoryRange;
+        return ResultInvalidMemoryRegion;
     }
 
     if (page_table.IsInsideAliasRegion(addr, size)) {
@@ -1165,7 +1165,7 @@ static ResultCode MapSharedMemory(Core::System& system, Handle shared_memory_han
                   "Address does not fit within the map region, addr=0x{:016X}, "
                   "size=0x{:016X}",
                   addr, size);
-        return ResultInvalidMemoryRange;
+        return ResultInvalidMemoryRegion;
     }
 
     auto shared_memory{
@@ -1290,7 +1290,7 @@ static ResultCode MapProcessCodeMemory(Core::System& system, Handle process_hand
                   "Destination address range is not within the ASLR region (dst_address=0x{:016X}, "
                   "size=0x{:016X}).",
                   dst_address, size);
-        return ResultInvalidMemoryRange;
+        return ResultInvalidMemoryRegion;
     }
 
     return page_table.MapProcessCodeMemory(dst_address, src_address, size);
@@ -1358,7 +1358,7 @@ static ResultCode UnmapProcessCodeMemory(Core::System& system, Handle process_ha
                   "Destination address range is not within the ASLR region (dst_address=0x{:016X}, "
                   "size=0x{:016X}).",
                   dst_address, size);
-        return ResultInvalidMemoryRange;
+        return ResultInvalidMemoryRegion;
     }
 
     return page_table.UnmapProcessCodeMemory(dst_address, src_address, size);
@@ -1427,7 +1427,7 @@ static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr e
         system.CoreTiming().GetGlobalTimeNs().count() + 100000000);
     if (!thread_reservation.Succeeded()) {
         LOG_ERROR(Kernel_SVC, "Could not reserve a new thread");
-        return ResultResourceLimitedExceeded;
+        return ResultLimitReached;
     }
 
     // Create the thread.
@@ -1795,7 +1795,7 @@ static ResultCode CreateTransferMemory(Core::System& system, Handle* handle, VAd
     if (perms > MemoryPermission::ReadWrite || perms == MemoryPermission::Write) {
         LOG_ERROR(Kernel_SVC, "Invalid memory permissions for transfer memory! (perms={:08X})",
                   permissions);
-        return ResultInvalidMemoryPermissions;
+        return ResultInvalidNewMemoryPermission;
     }
 
     auto& kernel = system.Kernel();
@@ -1804,7 +1804,7 @@ static ResultCode CreateTransferMemory(Core::System& system, Handle* handle, VAd
                                                  LimitableResource::TransferMemory);
     if (!trmem_reservation.Succeeded()) {
         LOG_ERROR(Kernel_SVC, "Could not reserve a new transfer memory");
-        return ResultResourceLimitedExceeded;
+        return ResultLimitReached;
     }
     auto transfer_mem_handle = TransferMemory::Create(kernel, system.Memory(), addr, size,
                                                       static_cast<KMemoryPermission>(perms));
@@ -1940,7 +1940,7 @@ static ResultCode CreateEvent(Core::System& system, Handle* out_write, Handle* o
     // Reserve a new event from the process resource limit
     KScopedResourceReservation event_reservation(kernel.CurrentProcess(),
                                                  LimitableResource::Events);
-    R_UNLESS(event_reservation.Succeeded(), ResultResourceLimitedExceeded);
+    R_UNLESS(event_reservation.Succeeded(), ResultLimitReached);
 
     // Create a new event.
     KEvent* event = KEvent::Create(kernel);

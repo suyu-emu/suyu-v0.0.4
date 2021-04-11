@@ -21,7 +21,7 @@ std::shared_ptr<ServerPort> ClientPort::GetServerPort() const {
 
 ResultVal<std::shared_ptr<ClientSession>> ClientPort::Connect() {
     if (active_sessions >= max_sessions) {
-        return ResultMaxConnectionsReached;
+        return ResultOutOfSessions;
     }
     active_sessions++;
 
