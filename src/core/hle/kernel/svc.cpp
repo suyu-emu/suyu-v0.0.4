@@ -390,17 +390,43 @@ static ResultCode GetThreadId32(Core::System& system, u32* out_thread_id_low,
 }
 
 /// Gets the ID of the specified process or a specified thread's owning process.
-static ResultCode GetProcessId(Core::System& system, u64* process_id, Handle handle) {
-    __debugbreak();
+static ResultCode GetProcessId(Core::System& system, u64* out_process_id, Handle handle) {
+    LOG_DEBUG(Kernel_SVC, "called handle=0x{:08X}", handle);
+
+    // Get the object from the handle table.
+    KScopedAutoObject obj =
+        system.Kernel().CurrentProcess()->GetHandleTable().GetObject<KAutoObject>(
+            static_cast<Handle>(handle));
+    R_UNLESS(obj.IsNotNull(), ResultInvalidHandle);
+
+    // Get the process from the object.
+    Process* process = nullptr;
+    if (Process* p = obj->DynamicCast<Process*>(); p != nullptr) {
+        // The object is a process, so we can use it directly.
+        process = p;
+    } else if (KThread* t = obj->DynamicCast<KThread*>(); t != nullptr) {
+        // The object is a thread, so we want to use its parent.
+        process = reinterpret_cast<KThread*>(obj.GetPointerUnsafe())->GetOwnerProcess();
+    } else {
+        // TODO(bunnei): This should also handle debug objects before returning.
+        UNIMPLEMENTED_MSG("Debug objects not implemented");
+    }
+
+    // Make sure the target process exists.
+    R_UNLESS(process != nullptr, ResultInvalidHandle);
+
+    // Get the process id.
+    *out_process_id = process->GetId();
+
     return ResultInvalidHandle;
 }
 
-static ResultCode GetProcessId32(Core::System& system, u32* process_id_low, u32* process_id_high,
-                                 Handle handle) {
-    u64 process_id{};
-    const auto result = GetProcessId(system, &process_id, handle);
-    *process_id_low = static_cast<u32>(process_id);
-    *process_id_high = static_cast<u32>(process_id >> 32);
+static ResultCode GetProcessId32(Core::System& system, u32* out_process_id_low,
+                                 u32* out_process_id_high, Handle handle) {
+    u64 out_process_id{};
+    const auto result = GetProcessId(system, &out_process_id, handle);
+    *out_process_id_low = static_cast<u32>(out_process_id);
+    *out_process_id_high = static_cast<u32>(out_process_id >> 32);
     return result;
 }
 
@@ -468,13 +494,21 @@ static ResultCode WaitSynchronization32(Core::System& system, u32 timeout_low, u
 }
 
 /// Resumes a thread waiting on WaitSynchronization
-static ResultCode CancelSynchronization(Core::System& system, Handle thread_handle) {
-    __debugbreak();
+static ResultCode CancelSynchronization(Core::System& system, Handle handle) {
+    LOG_TRACE(Kernel_SVC, "called handle=0x{:X}", handle);
+
+    // Get the thread from its handle.
+    KScopedAutoObject thread =
+        system.Kernel().CurrentProcess()->GetHandleTable().GetObject<KThread>(
+            static_cast<Handle>(handle));
+
+    // Cancel the thread's wait.
+    thread->WaitCancel();
     return RESULT_SUCCESS;
 }
 
-static ResultCode CancelSynchronization32(Core::System& system, Handle thread_handle) {
-    return CancelSynchronization(system, thread_handle);
+static ResultCode CancelSynchronization32(Core::System& system, Handle handle) {
+    return CancelSynchronization(system, handle);
 }
 
 /// Attempts to locks a mutex
@@ -1032,7 +1066,27 @@ static ResultCode UnmapPhysicalMemory32(Core::System& system, u32 addr, u32 size
 /// Sets the thread activity
 static ResultCode SetThreadActivity(Core::System& system, Handle thread_handle,
                                     ThreadActivity thread_activity) {
-    __debugbreak();
+    LOG_DEBUG(Kernel_SVC, "called, handle=0x{:08X}, activity=0x{:08X}", thread_handle,
+              thread_activity);
+
+    // Validate the activity.
+    constexpr auto IsValidThreadActivity = [](ThreadActivity activity) {
+        return activity == ThreadActivity::Runnable || activity == ThreadActivity::Paused;
+    };
+    R_UNLESS(IsValidThreadActivity(thread_activity), ResultInvalidEnumValue);
+
+    // Get the thread from its handle.
+    KScopedAutoObject thread =
+        system.Kernel().CurrentProcess()->GetHandleTable().GetObject<KThread>(thread_handle);
+    R_UNLESS(thread.IsNotNull(), ResultInvalidHandle);
+
+    // Check that the activity is being set on a non-current thread for the current process.
+    R_UNLESS(thread->GetOwnerProcess() == system.Kernel().CurrentProcess(), ResultInvalidHandle);
+    R_UNLESS(thread.GetPointerUnsafe() != GetCurrentThreadPointer(system.Kernel()), ResultBusy);
+
+    // Set the activity.
+    R_TRY(thread->SetActivity(thread_activity));
+
     return RESULT_SUCCESS;
 }
 
