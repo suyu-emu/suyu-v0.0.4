@@ -82,11 +82,13 @@ void VKSwapchain::Create(u32 width, u32 height, bool srgb) {
     resource_ticks.resize(image_count);
 }
 
-void VKSwapchain::AcquireNextImage() {
-    device.GetLogical().AcquireNextImageKHR(*swapchain, std::numeric_limits<u64>::max(),
-                                            *present_semaphores[frame_index], {}, &image_index);
+bool VKSwapchain::AcquireNextImage() {
+    const VkResult result =
+        device.GetLogical().AcquireNextImageKHR(*swapchain, std::numeric_limits<u64>::max(),
+                                                *present_semaphores[frame_index], {}, &image_index);
 
     scheduler.Wait(resource_ticks[image_index]);
+    return result == VK_SUCCESS || result == VK_SUBOPTIMAL_KHR;
 }
 
 bool VKSwapchain::Present(VkSemaphore render_semaphore) {
