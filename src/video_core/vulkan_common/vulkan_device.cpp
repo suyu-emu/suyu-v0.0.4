@@ -294,6 +294,15 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     };
     SetNext(next, bit8_storage);
 
+    VkPhysicalDeviceRobustness2FeaturesEXT robustness2{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT,
+        .pNext = nullptr,
+        .robustBufferAccess2 = true,
+        .robustImageAccess2 = true,
+        .nullDescriptor = true,
+    };
+    SetNext(next, robustness2);
+
     VkPhysicalDeviceHostQueryResetFeaturesEXT host_query_reset{
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES_EXT,
         .pNext = nullptr,
