@@ -28,7 +28,7 @@ public:
     void Create(u32 width, u32 height, bool srgb);
 
     /// Acquires the next image in the swapchain, waits as needed.
-    void AcquireNextImage();
+    bool AcquireNextImage();
 
     /// Presents the rendered image to the swapchain. Returns true when the swapchains had to be
     /// recreated. Takes responsability for the ownership of fence.

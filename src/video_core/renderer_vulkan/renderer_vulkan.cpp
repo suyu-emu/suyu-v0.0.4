@@ -143,7 +143,10 @@ void RendererVulkan::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
 
         scheduler.WaitWorker();
 
-        swapchain.AcquireNextImage();
+        while (!swapchain.AcquireNextImage()) {
+            swapchain.Create(layout.width, layout.height, is_srgb);
+            blit_screen.Recreate();
+        }
         const VkSemaphore render_semaphore = blit_screen.Draw(*framebuffer, use_accelerated);
 
         scheduler.Flush(render_semaphore);
