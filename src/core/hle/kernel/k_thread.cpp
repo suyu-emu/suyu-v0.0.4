@@ -255,7 +255,7 @@ void KThread::PostDestroy(uintptr_t arg) {
     const bool resource_limit_release_hint = (arg & 1);
     const s64 hint_value = (resource_limit_release_hint ? 0 : 1);
     if (owner != nullptr) {
-        owner->GetResourceLimit()->Release(Kernel::LimitableResource::Threads, 1, hint_value);
+        owner->GetResourceLimit()->Release(LimitableResource::Threads, 1, hint_value);
         owner->Close();
     }
 }
@@ -289,7 +289,6 @@ void KThread::Finalize() {
     // Decrement the parent process's thread count.
     if (parent != nullptr) {
         parent->DecrementThreadCount();
-        parent->GetResourceLimit()->Release(LimitableResource::Threads, 1);
     }
 
     // Perform inherited finalization.
