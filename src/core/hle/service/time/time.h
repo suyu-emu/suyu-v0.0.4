@@ -40,7 +40,7 @@ public:
     private:
         ResultCode GetClockSnapshotFromSystemClockContextInternal(
             Kernel::KThread* thread, Clock::SystemClockContext user_context,
-            Clock::SystemClockContext network_context, u8 type,
+            Clock::SystemClockContext network_context, Clock::TimeType type,
             Clock::ClockSnapshot& cloc_snapshot);
 
     protected:

@@ -122,14 +122,16 @@ private:
 
 ResultCode Module::Interface::GetClockSnapshotFromSystemClockContextInternal(
     Kernel::KThread* thread, Clock::SystemClockContext user_context,
-    Clock::SystemClockContext network_context, u8 type, Clock::ClockSnapshot& clock_snapshot) {
+    Clock::SystemClockContext network_context, Clock::TimeType type,
+    Clock::ClockSnapshot& clock_snapshot) {
 
     auto& time_manager{system.GetTimeManager()};
 
+    clock_snapshot.steady_clock_time_point =
+        time_manager.GetStandardSteadyClockCore().GetCurrentTimePoint(system);
     clock_snapshot.is_automatic_correction_enabled =
         time_manager.GetStandardUserSystemClockCore().IsAutomaticCorrectionEnabled();
-    clock_snapshot.user_context = user_context;
-    clock_snapshot.network_context = network_context;
+    clock_snapshot.type = type;
 
     if (const ResultCode result{
             time_manager.GetTimeZoneContentManager().GetTimeZoneManager().GetDeviceLocationName(
@@ -138,12 +140,11 @@ ResultCode Module::Interface::GetClockSnapshotFromSystemClockContextInternal(
         return result;
     }
 
-    const auto current_time_point{
-        time_manager.GetStandardSteadyClockCore().GetCurrentTimePoint(system)};
-    clock_snapshot.steady_clock_time_point = current_time_point;
+    clock_snapshot.user_context = user_context;
 
     if (const ResultCode result{Clock::ClockSnapshot::GetCurrentTime(
-            clock_snapshot.user_time, current_time_point, clock_snapshot.user_context)};
+            clock_snapshot.user_time, clock_snapshot.steady_clock_time_point,
+            clock_snapshot.user_context)};
         result != RESULT_SUCCESS) {
         return result;
     }
@@ -157,9 +158,12 @@ ResultCode Module::Interface::GetClockSnapshotFromSystemClockContextInternal(
     }
 
     clock_snapshot.user_calendar_time = userCalendarInfo.time;
-    clock_snapshot.user_calendar_additional_time = userCalendarInfo.additiona_info;
+    clock_snapshot.user_calendar_additional_time = userCalendarInfo.additional_info;
 
-    if (Clock::ClockSnapshot::GetCurrentTime(clock_snapshot.network_time, current_time_point,
+    clock_snapshot.network_context = network_context;
+
+    if (Clock::ClockSnapshot::GetCurrentTime(clock_snapshot.network_time,
+                                             clock_snapshot.steady_clock_time_point,
                                              clock_snapshot.network_context) != RESULT_SUCCESS) {
         clock_snapshot.network_time = 0;
     }
@@ -173,8 +177,7 @@ ResultCode Module::Interface::GetClockSnapshotFromSystemClockContextInternal(
     }
 
     clock_snapshot.network_calendar_time = networkCalendarInfo.time;
-    clock_snapshot.network_calendar_additional_time = networkCalendarInfo.additiona_info;
-    clock_snapshot.type = type;
+    clock_snapshot.network_calendar_additional_time = networkCalendarInfo.additional_info;
 
     return RESULT_SUCCESS;
 }
@@ -257,9 +260,10 @@ void Module::Interface::CalculateMonotonicSystemClockBaseTimePoint(Kernel::HLERe
 }
 
 void Module::Interface::GetClockSnapshot(Kernel::HLERequestContext& ctx) {
-    LOG_DEBUG(Service_Time, "called");
     IPC::RequestParser rp{ctx};
-    const auto type{rp.PopRaw<u8>()};
+    const auto type{rp.PopEnum<Clock::TimeType>()};
+
+    LOG_DEBUG(Service_Time, "called, type={}", type);
 
     Clock::SystemClockContext user_context{};
     if (const ResultCode result{
@@ -270,6 +274,7 @@ void Module::Interface::GetClockSnapshot(Kernel::HLERequestContext& ctx) {
         rb.Push(result);
         return;
     }
+
     Clock::SystemClockContext network_context{};
     if (const ResultCode result{
             system.GetTimeManager().GetStandardNetworkSystemClockCore().GetClockContext(
@@ -295,13 +300,15 @@ void Module::Interface::GetClockSnapshot(Kernel::HLERequestContext& ctx) {
 }
 
 void Module::Interface::GetClockSnapshotFromSystemClockContext(Kernel::HLERequestContext& ctx) {
-    LOG_DEBUG(Service_Time, "called");
     IPC::RequestParser rp{ctx};
-    const auto type{rp.PopRaw<u8>()};
+    const auto type{rp.PopEnum<Clock::TimeType>()};
+
     rp.AlignWithPadding();
 
     const Clock::SystemClockContext user_context{rp.PopRaw<Clock::SystemClockContext>()};
     const Clock::SystemClockContext network_context{rp.PopRaw<Clock::SystemClockContext>()};
+
+    LOG_DEBUG(Service_Time, "called, type={}", type);
 
     Clock::ClockSnapshot clock_snapshot{};
     if (const ResultCode result{GetClockSnapshotFromSystemClockContextInternal(

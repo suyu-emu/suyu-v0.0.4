@@ -818,7 +818,7 @@ static ResultCode ToCalendarTimeInternal(const TimeZoneRule& rules, s64 time,
 static ResultCode ToCalendarTimeImpl(const TimeZoneRule& rules, s64 time, CalendarInfo& calendar) {
     CalendarTimeInternal calendar_time{};
     const ResultCode result{
-        ToCalendarTimeInternal(rules, time, calendar_time, calendar.additiona_info)};
+        ToCalendarTimeInternal(rules, time, calendar_time, calendar.additional_info)};
     calendar.time.year = static_cast<s16>(calendar_time.year);
 
     // Internal impl. uses 0-indexed month
