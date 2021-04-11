@@ -981,7 +981,7 @@ void KThread::Exit() {
 
     // Release the thread resource hint from parent.
     if (parent != nullptr) {
-        // TODO(bunnei): Hint that the resource is about to be released.
+        parent->GetResourceLimit()->Release(Kernel::LimitableResource::Threads, 0, 1);
         resource_limit_release_hint = true;
     }
 
