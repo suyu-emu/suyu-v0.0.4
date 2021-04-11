@@ -1100,7 +1100,55 @@ static ResultCode GetThreadContext(Core::System& system, VAddr out_context, Hand
     LOG_DEBUG(Kernel_SVC, "called, out_context=0x{:08X}, thread_handle=0x{:X}", out_context,
               thread_handle);
 
-    __debugbreak();
+    auto& kernel = system.Kernel();
+
+    // Get the thread from its handle.
+    KScopedAutoObject thread =
+        kernel.CurrentProcess()->GetHandleTable().GetObject<KThread>(thread_handle);
+    R_UNLESS(thread.IsNotNull(), ResultInvalidHandle);
+
+    // Require the handle be to a non-current thread in the current process.
+    const auto* current_process = kernel.CurrentProcess();
+    R_UNLESS(current_process == thread->GetOwnerProcess(), ResultInvalidId);
+
+    // Verify that the thread isn't terminated.
+    R_UNLESS(thread->GetState() != ThreadState::Terminated, ResultTerminationRequested);
+
+    /// Check that the thread is not the current one.
+    /// NOTE: Nintendo does not check this, and thus the following loop will deadlock.
+    R_UNLESS(thread.GetPointerUnsafe() != GetCurrentThreadPointer(kernel), ResultInvalidId);
+
+    // Try to get the thread context until the thread isn't current on any core.
+    while (true) {
+        KScopedSchedulerLock sl{kernel};
+
+        // TODO(bunnei): Enforce that thread is suspended for debug here.
+
+        // If the thread's raw state isn't runnable, check if it's current on some core.
+        if (thread->GetRawState() != ThreadState::Runnable) {
+            bool current = false;
+            for (auto i = 0; i < static_cast<s32>(Core::Hardware::NUM_CPU_CORES); ++i) {
+                if (thread.GetPointerUnsafe() == kernel.Scheduler(i).GetCurrentThread()) {
+                    current = true;
+                }
+                break;
+            }
+
+            // If the thread is current, retry until it isn't.
+            if (current) {
+                continue;
+            }
+        }
+
+        // Get the thread context.
+        std::vector<u8> context;
+        R_TRY(thread->GetThreadContext3(context));
+
+        // Copy the thread context to user space.
+        system.Memory().WriteBlock(out_context, context.data(), context.size());
+
+        return RESULT_SUCCESS;
+    }
 
     return RESULT_SUCCESS;
 }
@@ -1885,7 +1933,16 @@ static ResultCode CreateTransferMemory32(Core::System& system, Handle* handle, u
 
 static ResultCode GetThreadCoreMask(Core::System& system, Handle thread_handle, s32* out_core_id,
                                     u64* out_affinity_mask) {
-    __debugbreak();
+    LOG_TRACE(Kernel_SVC, "called, handle=0x{:08X}", thread_handle);
+
+    // Get the thread from its handle.
+    KScopedAutoObject thread =
+        system.Kernel().CurrentProcess()->GetHandleTable().GetObject<KThread>(thread_handle);
+    R_UNLESS(thread.IsNotNull(), ResultInvalidHandle);
+
+    // Get the core mask.
+    R_TRY(thread->GetCoreMask(out_core_id, out_affinity_mask));
+
     return RESULT_SUCCESS;
 }
 
