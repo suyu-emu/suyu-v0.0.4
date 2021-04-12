@@ -208,9 +208,9 @@ public:
 private:
     /// Flushes a memory range to guest memory and removes it from the cache.
     void FlushAndRemoveRegion(VAddr addr, std::size_t size) {
-        const u64 addr_begin = static_cast<u64>(addr);
-        const u64 addr_end = addr_begin + static_cast<u64>(size);
-        const auto in_range = [addr_begin, addr_end](CachedQuery& query) {
+        const u64 addr_begin = addr;
+        const u64 addr_end = addr_begin + size;
+        const auto in_range = [addr_begin, addr_end](const CachedQuery& query) {
             const u64 cache_begin = query.GetCpuAddr();
             const u64 cache_end = cache_begin + query.SizeInBytes();
             return cache_begin < addr_end && addr_begin < cache_end;
@@ -230,8 +230,7 @@ private:
                 rasterizer.UpdatePagesCachedCount(query.GetCpuAddr(), query.SizeInBytes(), -1);
                 query.Flush();
             }
-            contents.erase(std::remove_if(std::begin(contents), std::end(contents), in_range),
-                           std::end(contents));
+            std::erase_if(contents, in_range);
         }
     }
 
