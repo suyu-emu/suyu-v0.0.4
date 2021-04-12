@@ -2295,24 +2295,66 @@ void GMainWindow::ToggleFullscreen() {
 void GMainWindow::ShowFullscreen() {
     if (ui.action_Single_Window_Mode->isChecked()) {
         UISettings::values.geometry = saveGeometry();
+
         ui.menubar->hide();
         statusBar()->hide();
-        showFullScreen();
+
+        if (Settings::values.fullscreen_mode.GetValue() == 1) {
+            showFullScreen();
+            return;
+        }
+
+        hide();
+        setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
+        const auto screen_geometry = QApplication::desktop()->screenGeometry(this);
+        setGeometry(screen_geometry.x(), screen_geometry.y(), screen_geometry.width(),
+                    screen_geometry.height() + 1);
+        raise();
+        showNormal();
     } else {
         UISettings::values.renderwindow_geometry = render_window->saveGeometry();
-        render_window->showFullScreen();
+
+        if (Settings::values.fullscreen_mode.GetValue() == 1) {
+            render_window->showFullScreen();
+            return;
+        }
+
+        render_window->hide();
+        render_window->setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
+        const auto screen_geometry = QApplication::desktop()->screenGeometry(this);
+        render_window->setGeometry(screen_geometry.x(), screen_geometry.y(),
+                                   screen_geometry.width(), screen_geometry.height() + 1);
+        render_window->raise();
+        render_window->showNormal();
     }
 }
 
 void GMainWindow::HideFullscreen() {
     if (ui.action_Single_Window_Mode->isChecked()) {
+        if (Settings::values.fullscreen_mode.GetValue() == 1) {
+            showNormal();
+            restoreGeometry(UISettings::values.geometry);
+        } else {
+            hide();
+            setWindowFlags(windowFlags() & ~Qt::FramelessWindowHint);
+            restoreGeometry(UISettings::values.geometry);
+            raise();
+            show();
+        }
+
         statusBar()->setVisible(ui.action_Show_Status_Bar->isChecked());
         ui.menubar->show();
-        showNormal();
-        restoreGeometry(UISettings::values.geometry);
     } else {
-        render_window->showNormal();
-        render_window->restoreGeometry(UISettings::values.renderwindow_geometry);
+        if (Settings::values.fullscreen_mode.GetValue() == 1) {
+            render_window->showNormal();
+            render_window->restoreGeometry(UISettings::values.renderwindow_geometry);
+        } else {
+            render_window->hide();
+            render_window->setWindowFlags(windowFlags() & ~Qt::FramelessWindowHint);
+            render_window->restoreGeometry(UISettings::values.renderwindow_geometry);
+            render_window->raise();
+            render_window->show();
+        }
     }
 }
 
