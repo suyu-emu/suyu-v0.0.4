@@ -67,8 +67,13 @@ struct KernelCore::Impl {
         is_phantom_mode_for_singlecore = false;
 
         InitializePhysicalCores();
-        InitializeSystemResourceLimit(kernel, system);
-        InitializeMemoryLayout();
+
+        // Derive the initial memory layout from the emulated board
+        KMemoryLayout memory_layout;
+        DeriveInitialMemoryLayout(memory_layout);
+        InitializeMemoryLayout(memory_layout);
+        InitializeSystemResourceLimit(kernel, system, memory_layout);
+        InitializeSlabHeaps();
         InitializeSchedulers();
         InitializeSuspendThreads();
         InitializePreemption(kernel);
@@ -137,27 +142,32 @@ struct KernelCore::Impl {
     }
 
     // Creates the default system resource limit
-    void InitializeSystemResourceLimit(KernelCore& kernel, Core::System& system) {
+    void InitializeSystemResourceLimit(KernelCore& kernel, Core::System& system,
+                                       const KMemoryLayout& memory_layout) {
         system_resource_limit = std::make_shared<KResourceLimit>(kernel, system);
+        const auto [total_size, kernel_size] = memory_layout.GetTotalAndKernelMemorySizes();
 
         // If setting the default system values fails, then something seriously wrong has occurred.
-        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::PhysicalMemory, 0x100000000)
+        ASSERT(system_resource_limit->SetLimitValue(LimitableResource::PhysicalMemory, total_size)
                    .IsSuccess());
         ASSERT(system_resource_limit->SetLimitValue(LimitableResource::Threads, 800).IsSuccess());
         ASSERT(system_resource_limit->SetLimitValue(LimitableResource::Events, 900).IsSuccess());
         ASSERT(system_resource_limit->SetLimitValue(LimitableResource::TransferMemory, 200)
                    .IsSuccess());
         ASSERT(system_resource_limit->SetLimitValue(LimitableResource::Sessions, 1133).IsSuccess());
+        system_resource_limit->Reserve(LimitableResource::PhysicalMemory, kernel_size);
 
-        // Derived from recent software updates. The kernel reserves 27MB
-        constexpr u64 kernel_size{0x1b00000};
-        if (!system_resource_limit->Reserve(LimitableResource::PhysicalMemory, kernel_size)) {
-            UNREACHABLE();
-        }
         // Reserve secure applet memory, introduced in firmware 5.0.0
-        constexpr u64 secure_applet_memory_size{0x400000};
+        constexpr u64 secure_applet_memory_size{Common::Size_4_MB};
         ASSERT(system_resource_limit->Reserve(LimitableResource::PhysicalMemory,
                                               secure_applet_memory_size));
+
+        // This memory seems to be reserved on hardware, but is not reserved/used by yuzu.
+        // Likely Horizon OS reserved memory
+        // TODO(ameerj): Derive the memory rather than hardcode it.
+        constexpr u64 unknown_reserved_memory{0x2f896000};
+        ASSERT(system_resource_limit->Reserve(LimitableResource::PhysicalMemory,
+                                              unknown_reserved_memory));
     }
 
     void InitializePreemption(KernelCore& kernel) {
@@ -531,11 +541,7 @@ struct KernelCore::Impl {
                                                         linear_region_start);
     }
 
-    void InitializeMemoryLayout() {
-        // Derive the initial memory layout from the emulated board
-        KMemoryLayout memory_layout;
-        DeriveInitialMemoryLayout(memory_layout);
-
+    void InitializeMemoryLayout(const KMemoryLayout& memory_layout) {
         const auto system_pool = memory_layout.GetKernelSystemPoolRegionPhysicalExtents();
         const auto applet_pool = memory_layout.GetKernelAppletPoolRegionPhysicalExtents();
         const auto application_pool = memory_layout.GetKernelApplicationPoolRegionPhysicalExtents();
@@ -578,11 +584,14 @@ struct KernelCore::Impl {
             system.Kernel(), system.DeviceMemory(), nullptr, {time_phys_addr, time_size / PageSize},
             KMemoryPermission::None, KMemoryPermission::Read, time_phys_addr, time_size,
             "Time:SharedMemory");
+    }
 
+    void InitializeSlabHeaps() {
         // Allocate slab heaps
         user_slab_heap_pages = std::make_unique<KSlabHeap<Page>>();
 
-        constexpr u64 user_slab_heap_size{0x1ef000};
+        // TODO(ameerj): This should be derived, not hardcoded within the kernel
+        constexpr u64 user_slab_heap_size{0x3de000};
         // Reserve slab heaps
         ASSERT(
             system_resource_limit->Reserve(LimitableResource::PhysicalMemory, user_slab_heap_size));
