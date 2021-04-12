@@ -35,7 +35,7 @@ public:
     }
 
     /// Returns true when a tick has been hit by the GPU.
-    [[nodiscard]] bool IsFree(u64 tick) {
+    [[nodiscard]] bool IsFree(u64 tick) const noexcept {
         return gpu_tick.load(std::memory_order_relaxed) >= tick;
     }
 
