@@ -35,7 +35,7 @@ namespace Tegra::Engines {
 class Fermi2D final : public EngineInterface {
 public:
     explicit Fermi2D();
-    ~Fermi2D();
+    ~Fermi2D() override;
 
     /// Binds a rasterizer to this engine.
     void BindRasterizer(VideoCore::RasterizerInterface* rasterizer);

@@ -188,7 +188,7 @@ public:
     static_assert(sizeof(RemapConst) == 12);
 
     explicit MaxwellDMA(Core::System& system_, MemoryManager& memory_manager_);
-    ~MaxwellDMA();
+    ~MaxwellDMA() override;
 
     /// Write the value to the register identified by method.
     void CallMethod(u32 method, u32 method_argument, bool is_last_call) override;

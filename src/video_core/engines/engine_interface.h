@@ -4,13 +4,14 @@
 
 #pragma once
 
-#include <type_traits>
 #include "common/common_types.h"
 
 namespace Tegra::Engines {
 
 class EngineInterface {
 public:
+    virtual ~EngineInterface() = default;
+
     /// Write the value to the register identified by method.
     virtual void CallMethod(u32 method, u32 method_argument, bool is_last_call) = 0;
 
