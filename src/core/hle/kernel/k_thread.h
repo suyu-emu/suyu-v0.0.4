@@ -402,7 +402,7 @@ public:
         return wait_cancelled;
     }
 
-    [[nodiscard]] void ClearWaitCancelled() {
+    void ClearWaitCancelled() {
         wait_cancelled = false;
     }
 
