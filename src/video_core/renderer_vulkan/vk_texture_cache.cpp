@@ -7,6 +7,8 @@
 #include <span>
 #include <vector>
 
+#include "common/bit_cast.h"
+
 #include "video_core/engines/fermi_2d.h"
 #include "video_core/renderer_vulkan/blit_image.h"
 #include "video_core/renderer_vulkan/maxwell_to_vk.h"
@@ -1062,14 +1064,13 @@ vk::ImageView ImageView::MakeDepthStencilView(VkImageAspectFlags aspect_mask) {
 Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& tsc) {
     const auto& device = runtime.device;
     const bool arbitrary_borders = runtime.device.IsExtCustomBorderColorSupported();
-    const std::array<float, 4> color = tsc.BorderColor();
-    // C++20 bit_cast
-    VkClearColorValue border_color;
-    std::memcpy(&border_color, &color, sizeof(color));
+    const auto color = tsc.BorderColor();
+
     const VkSamplerCustomBorderColorCreateInfoEXT border_ci{
         .sType = VK_STRUCTURE_TYPE_SAMPLER_CUSTOM_BORDER_COLOR_CREATE_INFO_EXT,
         .pNext = nullptr,
-        .customBorderColor = border_color,
+        // TODO: Make use of std::bit_cast once libc++ supports it.
+        .customBorderColor = Common::BitCast<VkClearColorValue>(color),
         .format = VK_FORMAT_UNDEFINED,
     };
     const void* pnext = nullptr;
