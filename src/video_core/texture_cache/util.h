@@ -20,6 +20,8 @@ namespace VideoCommon {
 
 using Tegra::Texture::TICEntry;
 
+using LevelArray = std::array<u32, MAX_MIP_LEVELS>;
+
 struct OverlapResult {
     GPUVAddr gpu_addr;
     VAddr cpu_addr;
@@ -36,8 +38,7 @@ struct OverlapResult {
 
 [[nodiscard]] u32 CalculateLayerSize(const ImageInfo& info) noexcept;
 
-[[nodiscard]] std::array<u32, MAX_MIP_LEVELS> CalculateMipLevelOffsets(
-    const ImageInfo& info) noexcept;
+[[nodiscard]] LevelArray CalculateMipLevelOffsets(const ImageInfo& info) noexcept;
 
 [[nodiscard]] std::vector<u32> CalculateSliceOffsets(const ImageInfo& info);
 
