@@ -268,14 +268,17 @@ template <u32 GOB_EXTENT>
     return num_tiles << shift;
 }
 
-[[nodiscard]] constexpr std::array<u32, MAX_MIP_LEVELS> CalculateLevelSizes(const LevelInfo& info,
-                                                                            u32 num_levels) {
+[[nodiscard]] constexpr LevelArray CalculateLevelSizes(const LevelInfo& info, u32 num_levels) {
     ASSERT(num_levels <= MAX_MIP_LEVELS);
-    std::array<u32, MAX_MIP_LEVELS> sizes{};
+    LevelArray sizes{};
     for (u32 level = 0; level < num_levels; ++level) {
         sizes[level] = CalculateLevelSize(info, level);
     }
     return sizes;
+}
+
+[[nodiscard]] u32 CalculateLevelBytes(const LevelArray& sizes, u32 num_levels) {
+    return std::reduce(sizes.begin(), sizes.begin() + num_levels, 0U);
 }
 
 [[nodiscard]] constexpr LevelInfo MakeLevelInfo(PixelFormat format, Extent3D size, Extent3D block,
@@ -566,10 +569,10 @@ void SwizzleBlockLinearImage(Tegra::MemoryManager& gpu_memory, GPUVAddr gpu_addr
 
     const u32 num_levels = info.resources.levels;
     const std::array sizes = CalculateLevelSizes(level_info, num_levels);
-    size_t guest_offset = std::reduce(sizes.begin(), sizes.begin() + level, 0);
+    size_t guest_offset = CalculateLevelBytes(sizes, level);
     const size_t layer_stride =
-        AlignLayerSize(std::reduce(sizes.begin(), sizes.begin() + num_levels, 0), size,
-                       level_info.block, tile_size.height, info.tile_width_spacing);
+        AlignLayerSize(CalculateLevelBytes(sizes, num_levels), size, level_info.block,
+                       tile_size.height, info.tile_width_spacing);
     const size_t subresource_size = sizes[level];
 
     const auto dst_data = std::make_unique<u8[]>(subresource_size);
@@ -643,10 +646,10 @@ u32 CalculateLayerSize(const ImageInfo& info) noexcept {
                                 info.tile_width_spacing, info.resources.levels);
 }
 
-std::array<u32, MAX_MIP_LEVELS> CalculateMipLevelOffsets(const ImageInfo& info) noexcept {
+LevelArray CalculateMipLevelOffsets(const ImageInfo& info) noexcept {
     ASSERT(info.resources.levels <= static_cast<s32>(MAX_MIP_LEVELS));
     const LevelInfo level_info = MakeLevelInfo(info);
-    std::array<u32, MAX_MIP_LEVELS> offsets{};
+    LevelArray offsets{};
     u32 offset = 0;
     for (s32 level = 0; level < info.resources.levels; ++level) {
         offsets[level] = offset;
@@ -812,7 +815,7 @@ std::vector<BufferImageCopy> UnswizzleImage(Tegra::MemoryManager& gpu_memory, GP
     const Extent2D tile_size = DefaultBlockSize(info.format);
     const std::array level_sizes = CalculateLevelSizes(level_info, num_levels);
     const Extent2D gob = GobSize(bpp_log2, info.block.height, info.tile_width_spacing);
-    const u32 layer_size = std::reduce(level_sizes.begin(), level_sizes.begin() + num_levels, 0);
+    const u32 layer_size = CalculateLevelBytes(level_sizes, num_levels);
     const u32 layer_stride = AlignLayerSize(layer_size, size, level_info.block, tile_size.height,
                                             info.tile_width_spacing);
     size_t guest_offset = 0;
