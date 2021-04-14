@@ -14,11 +14,9 @@
 #include "common/common_types.h"
 #include "core/hle/ipc.h"
 #include "core/hle/kernel/client_port.h"
-#include "core/hle/kernel/client_session.h"
 #include "core/hle/kernel/hle_ipc.h"
+#include "core/hle/kernel/k_session.h"
 #include "core/hle/kernel/object.h"
-#include "core/hle/kernel/server_session.h"
-#include "core/hle/kernel/session.h"
 #include "core/hle/result.h"
 
 namespace IPC {
@@ -137,9 +135,11 @@ public:
         if (context->Session()->IsDomain()) {
             context->AddDomainObject(std::move(iface));
         } else {
-            auto [client, server] = Kernel::Session::Create(kernel, iface->GetServiceName());
-            context->AddMoveObject(client.get());
-            iface->ClientConnected(std::move(client), std::move(server));
+            auto* session = Kernel::KSession::Create(kernel);
+            session->Initialize(iface->GetServiceName());
+
+            context->AddMoveObject(&session->GetClientSession());
+            iface->ClientConnected(session);
         }
     }
 

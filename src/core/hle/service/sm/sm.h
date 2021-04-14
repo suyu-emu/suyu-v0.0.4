@@ -22,7 +22,7 @@ class System;
 
 namespace Kernel {
 class ClientPort;
-class ClientSession;
+class KClientSession;
 class KernelCore;
 class ServerPort;
 class SessionRequestHandler;
@@ -59,7 +59,6 @@ public:
                                                                    u32 max_sessions);
     ResultCode UnregisterService(const std::string& name);
     ResultVal<std::shared_ptr<Kernel::ClientPort>> GetServicePort(const std::string& name);
-    ResultVal<std::shared_ptr<Kernel::ClientSession>> ConnectToService(const std::string& name);
 
     template <Common::DerivedFrom<Kernel::SessionRequestHandler> T>
     std::shared_ptr<T> GetService(const std::string& service_name) const {
@@ -81,7 +80,7 @@ private:
     std::weak_ptr<SM> sm_interface;
     std::unique_ptr<Controller> controller_interface;
 
-    /// Map of registered services, retrieved using GetServicePort or ConnectToService.
+    /// Map of registered services, retrieved using GetServicePort.
     std::unordered_map<std::string, std::shared_ptr<Kernel::ClientPort>> registered_services;
 
     /// Kernel context

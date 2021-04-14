@@ -17,7 +17,7 @@ namespace Kernel {
 
 class ClientPort;
 class KernelCore;
-class ServerSession;
+class KServerSession;
 class SessionRequestHandler;
 
 class ServerPort final : public KSynchronizationObject {
@@ -55,7 +55,7 @@ public:
      * Accepts a pending incoming connection on this port. If there are no pending sessions, will
      * return ERR_NO_PENDING_SESSIONS.
      */
-    ResultVal<std::shared_ptr<ServerSession>> Accept();
+    ResultVal<KServerSession*> Accept();
 
     /// Whether or not this server port has an HLE handler available.
     bool HasHLEHandler() const {
@@ -77,7 +77,7 @@ public:
 
     /// Appends a ServerSession to the collection of ServerSessions
     /// waiting to be accepted by this port.
-    void AppendPendingSession(std::shared_ptr<ServerSession> pending_session);
+    void AppendPendingSession(KServerSession* pending_session);
 
     bool IsSignaled() const override;
 
@@ -85,7 +85,7 @@ public:
 
 private:
     /// ServerSessions waiting to be accepted by the port
-    std::vector<std::shared_ptr<ServerSession>> pending_sessions;
+    std::vector<KServerSession*> pending_sessions;
 
     /// This session's HLE request handler template (optional)
     /// ServerSessions created from this port inherit a reference to this handler.

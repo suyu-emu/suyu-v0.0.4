@@ -22,9 +22,9 @@
 #include "core/core_timing_util.h"
 #include "core/cpu_manager.h"
 #include "core/hle/kernel/client_port.h"
-#include "core/hle/kernel/client_session.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_address_arbiter.h"
+#include "core/hle/kernel/k_client_session.h"
 #include "core/hle/kernel/k_condition_variable.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_memory_block.h"
@@ -323,12 +323,12 @@ static ResultCode ConnectToNamedPort(Core::System& system, Handle* out_handle,
 
     auto client_port = it->second;
 
-    std::shared_ptr<ClientSession> client_session;
+    KClientSession* client_session{};
     CASCADE_RESULT(client_session, client_port->Connect());
 
     // Return the client session
     auto& handle_table = kernel.CurrentProcess()->GetHandleTable();
-    CASCADE_RESULT(*out_handle, handle_table.Create(client_session.get()));
+    CASCADE_RESULT(*out_handle, handle_table.Create(client_session));
     return RESULT_SUCCESS;
 }
 
@@ -340,15 +340,13 @@ static ResultCode ConnectToNamedPort32(Core::System& system, Handle* out_handle,
 
 /// Makes a blocking IPC call to an OS service.
 static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
-    auto& kernel = system.Kernel();
-    const auto& handle_table = kernel.CurrentProcess()->GetHandleTable();
-    auto session = handle_table.Get<ClientSession>(handle);
-    if (!session) {
-        LOG_ERROR(Kernel_SVC, "called with invalid handle=0x{:08X}", handle);
-        return ResultInvalidHandle;
-    }
-
     LOG_TRACE(Kernel_SVC, "called handle=0x{:08X}({})", handle, session->GetName());
+
+    auto& kernel = system.Kernel();
+
+    KScopedAutoObject session =
+        kernel.CurrentProcess()->GetHandleTable().GetObject<KClientSession>(handle);
+    R_UNLESS(session.IsNotNull(), ResultInvalidHandle);
 
     auto thread = kernel.CurrentScheduler()->GetCurrentThread();
     {

@@ -33,11 +33,13 @@ class ClientPort;
 class GlobalSchedulerContext;
 class HandleTable;
 class KAutoObjectWithListContainer;
+class KClientSession;
 class KEvent;
 class KLinkedListNode;
 class KMemoryManager;
 class KResourceLimit;
 class KScheduler;
+class KSession;
 class KSharedMemory;
 class KThread;
 class KWritableEvent;
@@ -272,6 +274,10 @@ public:
             return slab_heap_container->linked_list_node;
         } else if constexpr (std::is_same_v<T, KWritableEvent>) {
             return slab_heap_container->writeable_event;
+        } else if constexpr (std::is_same_v<T, KClientSession>) {
+            return slab_heap_container->client_session;
+        } else if constexpr (std::is_same_v<T, KSession>) {
+            return slab_heap_container->session;
         }
     }
 
@@ -312,6 +318,8 @@ private:
         KSlabHeap<KSharedMemory> shared_memory;
         KSlabHeap<KLinkedListNode> linked_list_node;
         KSlabHeap<KWritableEvent> writeable_event;
+        KSlabHeap<KClientSession> client_session;
+        KSlabHeap<KSession> session;
     };
 
     std::unique_ptr<SlabHeapContainer> slab_heap_container;

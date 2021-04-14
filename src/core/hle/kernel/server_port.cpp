@@ -5,10 +5,10 @@
 #include <tuple>
 #include "common/assert.h"
 #include "core/hle/kernel/client_port.h"
+#include "core/hle/kernel/k_server_session.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/server_port.h"
-#include "core/hle/kernel/server_session.h"
 #include "core/hle/kernel/svc_results.h"
 
 namespace Kernel {
@@ -16,17 +16,17 @@ namespace Kernel {
 ServerPort::ServerPort(KernelCore& kernel) : KSynchronizationObject{kernel} {}
 ServerPort::~ServerPort() = default;
 
-ResultVal<std::shared_ptr<ServerSession>> ServerPort::Accept() {
+ResultVal<KServerSession*> ServerPort::Accept() {
     if (pending_sessions.empty()) {
         return ResultNotFound;
     }
 
-    auto session = std::move(pending_sessions.back());
+    auto* session = pending_sessions.back();
     pending_sessions.pop_back();
-    return MakeResult(std::move(session));
+    return MakeResult(session);
 }
 
-void ServerPort::AppendPendingSession(std::shared_ptr<ServerSession> pending_session) {
+void ServerPort::AppendPendingSession(KServerSession* pending_session) {
     pending_sessions.push_back(std::move(pending_session));
     if (pending_sessions.size() == 1) {
         NotifyAvailable();

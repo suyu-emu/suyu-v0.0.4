@@ -39,10 +39,10 @@ class HandleTable;
 class HLERequestContext;
 class KernelCore;
 class Process;
-class ClientSession;
-class ServerSession;
+class KServerSession;
 class KThread;
 class KReadableEvent;
+class KSession;
 class KWritableEvent;
 
 enum class ThreadWakeupReason;
@@ -72,22 +72,20 @@ public:
      * associated ServerSession alive for the duration of the connection.
      * @param server_session Owning pointer to the ServerSession associated with the connection.
      */
-    void ClientConnected(
-        std::shared_ptr<ClientSession> client_session, std::shared_ptr<ServerSession> server_session);
+    void ClientConnected(KSession* session);
 
     /**
      * Signals that a client has just disconnected from this HLE handler and releases the
      * associated ServerSession.
      * @param server_session ServerSession associated with the connection.
      */
-    void ClientDisconnected(const std::shared_ptr<ServerSession>& server_session);
+    void ClientDisconnected(KSession* session);
 
 protected:
     /// List of sessions that are connected to this handler.
     /// A ServerSession whose server endpoint is an HLE implementation is kept alive by this list
     /// for the duration of the connection.
-    std::vector<std::shared_ptr<ClientSession>> client_sessions;
-    std::vector<std::shared_ptr<ServerSession>> server_sessions;
+    std::vector<KSession*> sessions;
 };
 
 /**
@@ -112,7 +110,7 @@ protected:
 class HLERequestContext {
 public:
     explicit HLERequestContext(KernelCore& kernel, Core::Memory::Memory& memory,
-                               std::shared_ptr<ServerSession> session, KThread* thread);
+                               KServerSession* session, KThread* thread);
     ~HLERequestContext();
 
     /// Returns a pointer to the IPC command buffer for this request.
@@ -124,7 +122,7 @@ public:
      * Returns the session through which this request was made. This can be used as a map key to
      * access per-client data on services.
      */
-    const std::shared_ptr<Kernel::ServerSession>& Session() const {
+    Kernel::KServerSession* Session() {
         return server_session;
     }
 
@@ -288,7 +286,7 @@ private:
     void ParseCommandBuffer(const HandleTable& handle_table, u32_le* src_cmdbuf, bool incoming);
 
     std::array<u32, IPC::COMMAND_BUFFER_LENGTH> cmd_buf;
-    std::shared_ptr<Kernel::ServerSession> server_session;
+    Kernel::KServerSession* server_session{};
     KThread* thread;
 
     // TODO(yuriks): Check common usage of this and optimize size accordingly

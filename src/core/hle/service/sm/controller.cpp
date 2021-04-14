@@ -5,9 +5,9 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/client_session.h"
-#include "core/hle/kernel/server_session.h"
-#include "core/hle/kernel/session.h"
+#include "core/hle/kernel/k_client_session.h"
+#include "core/hle/kernel/k_server_session.h"
+#include "core/hle/kernel/k_session.h"
 #include "core/hle/service/sm/controller.h"
 
 namespace Service::SM {
@@ -30,7 +30,7 @@ void Controller::CloneCurrentObject(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1, IPC::ResponseBuilder::Flags::AlwaysMoveHandles};
     rb.Push(RESULT_SUCCESS);
-    rb.PushMoveObjects(ctx.Session()->GetParent()->Client().get());
+    rb.PushMoveObjects(ctx.Session()->GetParent()->GetClientSession());
 }
 
 void Controller::CloneCurrentObjectEx(Kernel::HLERequestContext& ctx) {

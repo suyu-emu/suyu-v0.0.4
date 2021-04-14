@@ -13,7 +13,7 @@
 
 namespace Kernel {
 
-class ClientSession;
+class KClientSession;
 class KernelCore;
 class ServerPort;
 
@@ -43,7 +43,7 @@ public:
      * waiting on it to awake.
      * @returns ClientSession The client endpoint of the created Session pair, or error code.
      */
-    ResultVal<std::shared_ptr<ClientSession>> Connect();
+    ResultVal<KClientSession*> Connect();
 
     /**
      * Signifies that a previously active connection has been closed,

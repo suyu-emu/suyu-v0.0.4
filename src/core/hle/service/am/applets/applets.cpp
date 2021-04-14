@@ -14,7 +14,6 @@
 #include "core/frontend/applets/web_browser.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/k_writable_event.h"
-#include "core/hle/kernel/server_session.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applet_ae.h"
 #include "core/hle/service/am/applet_oe.h"

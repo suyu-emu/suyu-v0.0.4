@@ -27,55 +27,34 @@ namespace Kernel {
 
 class HLERequestContext;
 class KernelCore;
-class Session;
+class KSession;
 class SessionRequestHandler;
 class KThread;
 
-/**
- * Kernel object representing the server endpoint of an IPC session. Sessions are the basic CTR-OS
- * primitive for communication between different processes, and are used to implement service calls
- * to the various system services.
- *
- * To make a service call, the client must write the command header and parameters to the buffer
- * located at offset 0x80 of the TLS (Thread-Local Storage) area, then execute a SendSyncRequest
- * SVC call with its ClientSession handle. The kernel will read the command header, using it to
- * marshall the parameters to the process at the server endpoint of the session.
- * After the server replies to the request, the response is marshalled back to the caller's
- * TLS buffer and control is transferred back to it.
- */
-class ServerSession final : public KSynchronizationObject {
+class KServerSession final : public KSynchronizationObject {
+    KERNEL_AUTOOBJECT_TRAITS(KServerSession, KSynchronizationObject);
+
     friend class ServiceThread;
 
 public:
-    explicit ServerSession(KernelCore& kernel);
-    ~ServerSession() override;
+    explicit KServerSession(KernelCore& kernel);
+    virtual ~KServerSession() override;
 
-    friend class Session;
+    virtual void Destroy() override;
 
-    static ResultVal<std::shared_ptr<ServerSession>> Create(KernelCore& kernel,
-                                                            std::shared_ptr<Session> parent,
-                                                            std::string name = "Unknown");
+    void Initialize(KSession* parent_, std::string&& name_);
 
-    std::string GetTypeName() const override {
-        return "ServerSession";
+    constexpr KSession* GetParent() {
+        return parent;
     }
 
-    std::string GetName() const override {
-        return name;
+    constexpr const KSession* GetParent() const {
+        return parent;
     }
 
-    static constexpr HandleType HANDLE_TYPE = HandleType::ServerSession;
-    HandleType GetHandleType() const override {
-        return HANDLE_TYPE;
-    }
+    virtual bool IsSignaled() const override;
 
-    Session* GetParent() {
-        return parent.get();
-    }
-
-    const Session* GetParent() const {
-        return parent.get();
-    }
+    void OnClientClosed();
 
     /**
      * Sets the HLE handler for the session. This handler will be called to service IPC requests
@@ -97,9 +76,6 @@ public:
      */
     ResultCode HandleSyncRequest(KThread* thread, Core::Memory::Memory& memory,
                                  Core::Timing::CoreTiming& core_timing);
-
-    /// Called when a client disconnection occurs.
-    void ClientDisconnected();
 
     /// Adds a new domain request handler to the collection of request handlers within
     /// this ServerSession instance.
@@ -124,9 +100,20 @@ public:
         convert_to_domain = true;
     }
 
-    bool IsSignaled() const override;
+    // DEPRECATED
 
-    void Finalize() override {}
+    std::string GetTypeName() const override {
+        return "ServerSession";
+    }
+
+    std::string GetName() const override {
+        return name;
+    }
+
+    static constexpr HandleType HANDLE_TYPE = HandleType::ServerSession;
+    HandleType GetHandleType() const override {
+        return HANDLE_TYPE;
+    }
 
 private:
     /// Queues a sync request from the emulated application.
@@ -138,9 +125,6 @@ private:
     /// Handles a SyncRequest to a domain, forwarding the request to the proper object or closing an
     /// object handle.
     ResultCode HandleDomainSyncRequest(Kernel::HLERequestContext& context);
-
-    /// The parent session, which links to the client endpoint.
-    std::shared_ptr<Session> parent;
 
     /// This session's HLE request handler (applicable when not a domain)
     std::shared_ptr<SessionRequestHandler> hle_handler;
@@ -156,6 +140,9 @@ private:
 
     /// Thread to dispatch service requests
     std::weak_ptr<ServiceThread> service_thread;
+
+    /// KSession that owns this KServerSession
+    KSession* parent{};
 };
 
 } // namespace Kernel

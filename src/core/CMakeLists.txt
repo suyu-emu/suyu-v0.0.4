@@ -146,8 +146,6 @@ add_library(core STATIC
     hle/kernel/board/nintendo/nx/secure_monitor.h
     hle/kernel/client_port.cpp
     hle/kernel/client_port.h
-    hle/kernel/client_session.cpp
-    hle/kernel/client_session.h
     hle/kernel/code_set.cpp
     hle/kernel/code_set.h
     hle/kernel/svc_results.h
@@ -170,6 +168,8 @@ add_library(core STATIC
     hle/kernel/k_affinity_mask.h
     hle/kernel/k_class_token.cpp
     hle/kernel/k_class_token.h
+    hle/kernel/k_client_session.cpp
+    hle/kernel/k_client_session.h
     hle/kernel/k_condition_variable.cpp
     hle/kernel/k_condition_variable.h
     hle/kernel/k_event.cpp
@@ -205,6 +205,10 @@ add_library(core STATIC
     hle/kernel/k_scoped_lock.h
     hle/kernel/k_scoped_resource_reservation.h
     hle/kernel/k_scoped_scheduler_lock_and_sleep.h
+    hle/kernel/k_server_session.cpp
+    hle/kernel/k_server_session.h
+    hle/kernel/k_session.cpp
+    hle/kernel/k_session.h
     hle/kernel/k_shared_memory.cpp
     hle/kernel/k_shared_memory.h
     hle/kernel/k_slab_heap.h
@@ -233,12 +237,8 @@ add_library(core STATIC
     hle/kernel/process_capability.h
     hle/kernel/server_port.cpp
     hle/kernel/server_port.h
-    hle/kernel/server_session.cpp
-    hle/kernel/server_session.h
     hle/kernel/service_thread.cpp
     hle/kernel/service_thread.h
-    hle/kernel/session.cpp
-    hle/kernel/session.h
     hle/kernel/slab_helpers.h
     hle/kernel/svc.cpp
     hle/kernel/svc.h

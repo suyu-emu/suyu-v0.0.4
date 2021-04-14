@@ -21,11 +21,8 @@ class System;
 }
 
 namespace Kernel {
-class ClientPort;
-class ServerPort;
-class ServerSession;
 class HLERequestContext;
-} // namespace Kernel
+}
 
 namespace Service {
 

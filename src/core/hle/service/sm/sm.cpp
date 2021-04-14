@@ -7,7 +7,9 @@
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/client_port.h"
-#include "core/hle/kernel/client_session.h"
+#include "core/hle/kernel/k_client_session.h"
+#include "core/hle/kernel/k_server_session.h"
+#include "core/hle/kernel/k_session.h"
 #include "core/hle/kernel/server_port.h"
 #include "core/hle/result.h"
 #include "core/hle/service/sm/controller.h"
@@ -89,13 +91,6 @@ ResultVal<std::shared_ptr<Kernel::ClientPort>> ServiceManager::GetServicePort(
     return MakeResult(it->second);
 }
 
-ResultVal<std::shared_ptr<Kernel::ClientSession>> ServiceManager::ConnectToService(
-    const std::string& name) {
-
-    CASCADE_RESULT(auto client_port, GetServicePort(name));
-    return client_port->Connect();
-}
-
 SM::~SM() = default;
 
 /**
@@ -130,19 +125,20 @@ void SM::GetService(Kernel::HLERequestContext& ctx) {
         return;
     }
 
-    auto [client, server] = Kernel::Session::Create(kernel, name);
+    auto* session = Kernel::KSession::Create(kernel);
+    session->Initialize(std::move(name));
 
     const auto& server_port = client_port.Unwrap()->GetServerPort();
     if (server_port->GetHLEHandler()) {
-        server_port->GetHLEHandler()->ClientConnected(client, server);
+        server_port->GetHLEHandler()->ClientConnected(session);
     } else {
-        server_port->AppendPendingSession(server);
+        server_port->AppendPendingSession(&session->GetServerSession());
     }
 
-    LOG_DEBUG(Service_SM, "called service={} -> session={}", name, client->GetObjectId());
+    LOG_DEBUG(Service_SM, "called service={} -> session={}", name, session->GetObjectId());
     IPC::ResponseBuilder rb{ctx, 2, 0, 1, IPC::ResponseBuilder::Flags::AlwaysMoveHandles};
     rb.Push(RESULT_SUCCESS);
-    rb.PushMoveObjects(client.get());
+    rb.PushMoveObjects(session->GetClientSession());
 }
 
 void SM::RegisterService(Kernel::HLERequestContext& ctx) {

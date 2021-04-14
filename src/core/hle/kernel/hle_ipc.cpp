@@ -19,12 +19,12 @@
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
+#include "core/hle/kernel/k_server_session.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/server_session.h"
 #include "core/hle/kernel/svc_results.h"
 #include "core/hle/kernel/time_manager.h"
 #include "core/memory.h"
@@ -35,24 +35,19 @@ SessionRequestHandler::SessionRequestHandler() = default;
 
 SessionRequestHandler::~SessionRequestHandler() = default;
 
-void SessionRequestHandler::ClientConnected(std::shared_ptr<ClientSession> client_session,
-                                            std::shared_ptr<ServerSession> server_session) {
-    server_session->SetHleHandler(shared_from_this());
-    client_sessions.push_back(std::move(client_session));
-    server_sessions.push_back(std::move(server_session));
+void SessionRequestHandler::ClientConnected(KSession* session) {
+    session->GetServerSession().SetHleHandler(shared_from_this());
+    sessions.push_back(session);
 }
 
-void SessionRequestHandler::ClientDisconnected(
-    const std::shared_ptr<ServerSession>& server_session) {
-    server_session->SetHleHandler(nullptr);
-    boost::range::remove_erase(server_sessions, server_session);
+void SessionRequestHandler::ClientDisconnected(KSession* session) {
+    session->GetServerSession().SetHleHandler(nullptr);
+    boost::range::remove_erase(sessions, session);
 }
 
 HLERequestContext::HLERequestContext(KernelCore& kernel_, Core::Memory::Memory& memory_,
-                                     std::shared_ptr<ServerSession> server_session_,
-                                     KThread* thread_)
-    : server_session(std::move(server_session_)),
-      thread(thread_), kernel{kernel_}, memory{memory_} {
+                                     KServerSession* server_session_, KThread* thread_)
+    : server_session(server_session_), thread(thread_), kernel{kernel_}, memory{memory_} {
     cmd_buf[0] = 0;
 }
 
