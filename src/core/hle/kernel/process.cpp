@@ -120,9 +120,7 @@ std::shared_ptr<Process> Process::Create(Core::System& system, std::string name,
     std::shared_ptr<Process> process = std::make_shared<Process>(system);
     process->name = std::move(name);
 
-    // TODO: This is inaccurate
-    // The process should hold a reference to the kernel-wide resource limit.
-    process->resource_limit = std::make_shared<KResourceLimit>(kernel, system);
+    process->resource_limit = kernel.GetSystemResourceLimit();
     process->status = ProcessStatus::Created;
     process->program_id = 0;
     process->process_id = type == ProcessType::KernelInternal ? kernel.CreateNewKernelProcessID()
@@ -160,17 +158,13 @@ void Process::DecrementThreadCount() {
 }
 
 u64 Process::GetTotalPhysicalMemoryAvailable() const {
-    // TODO: This is expected to always return the application memory pool size after accurately
-    // reserving kernel resources. The current workaround uses a process-local resource limit of
-    // application memory pool size, which is inaccurate.
     const u64 capacity{resource_limit->GetFreeValue(LimitableResource::PhysicalMemory) +
                        page_table->GetTotalHeapSize() + GetSystemResourceSize() + image_size +
                        main_thread_stack_size};
-
+    ASSERT(capacity == kernel.MemoryManager().GetSize(KMemoryManager::Pool::Application));
     if (capacity < memory_usage_capacity) {
         return capacity;
     }
-
     return memory_usage_capacity;
 }
 
@@ -272,10 +266,6 @@ ResultCode Process::LoadFromMetadata(const FileSys::ProgramMetadata& metadata,
     system_resource_size = metadata.GetSystemResourceSize();
     image_size = code_size;
 
-    // Set initial resource limits
-    resource_limit->SetLimitValue(
-        LimitableResource::PhysicalMemory,
-        kernel.MemoryManager().GetSize(KMemoryManager::Pool::Application));
     KScopedResourceReservation memory_reservation(resource_limit, LimitableResource::PhysicalMemory,
                                                   code_size + system_resource_size);
     if (!memory_reservation.Succeeded()) {
@@ -323,16 +313,6 @@ ResultCode Process::LoadFromMetadata(const FileSys::ProgramMetadata& metadata,
     default:
         UNREACHABLE();
     }
-
-    // Set initial resource limits
-    resource_limit->SetLimitValue(
-        LimitableResource::PhysicalMemory,
-        kernel.MemoryManager().GetSize(KMemoryManager::Pool::Application));
-
-    resource_limit->SetLimitValue(LimitableResource::Threads, 608);
-    resource_limit->SetLimitValue(LimitableResource::Events, 700);
-    resource_limit->SetLimitValue(LimitableResource::TransferMemory, 128);
-    resource_limit->SetLimitValue(LimitableResource::Sessions, 894);
 
     // Create TLS region
     tls_region_address = CreateTLSRegion();
