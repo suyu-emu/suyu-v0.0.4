@@ -223,6 +223,7 @@ struct Values {
     bool quest_flag;
     bool disable_macro_jit;
     bool extended_logging;
+    bool use_debug_asserts;
     bool use_auto_stub;
 
     // Miscellaneous

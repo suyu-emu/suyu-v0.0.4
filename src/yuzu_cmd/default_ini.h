@@ -325,6 +325,12 @@ dump_nso=false
 # Determines whether or not yuzu will report to the game that the emulated console is in Kiosk Mode
 # false: Retail/Normal Mode (default), true: Kiosk Mode
 quest_flag =
+# Determines whether debug asserts should be enabled, which will throw an exception on asserts.
+# false: Disabled (default), true: Enabled
+use_debug_asserts =
+# Determines whether unimplemented HLE service calls should be automatically stubbed.
+# false: Disabled (default), true: Enabled
+use_auto_stub =
 # Enables/Disables the macro JIT compiler
 disable_macro_jit=false
 

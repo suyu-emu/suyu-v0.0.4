@@ -428,6 +428,10 @@ void Config::ReadValues() {
     Settings::values.reporting_services =
         sdl2_config->GetBoolean("Debugging", "reporting_services", false);
     Settings::values.quest_flag = sdl2_config->GetBoolean("Debugging", "quest_flag", false);
+    Settings::values.use_debug_asserts =
+        sdl2_config->GetBoolean("Debugging", "use_debug_asserts", false);
+    Settings::values.use_auto_stub = sdl2_config->GetBoolean("Debugging", "use_auto_stub", false);
+
     Settings::values.disable_macro_jit =
         sdl2_config->GetBoolean("Debugging", "disable_macro_jit", false);
 
