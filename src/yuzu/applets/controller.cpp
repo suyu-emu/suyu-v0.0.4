@@ -16,6 +16,7 @@
 #include "yuzu/applets/controller.h"
 #include "yuzu/configuration/configure_input.h"
 #include "yuzu/configuration/configure_input_profile_dialog.h"
+#include "yuzu/configuration/configure_motion_touch.h"
 #include "yuzu/configuration/configure_vibration.h"
 #include "yuzu/configuration/input_profiles.h"
 #include "yuzu/main.h"
@@ -206,6 +207,9 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
     connect(ui->vibrationButton, &QPushButton::clicked, this,
             &QtControllerSelectorDialog::CallConfigureVibrationDialog);
 
+    connect(ui->motionButton, &QPushButton::clicked, this,
+            &QtControllerSelectorDialog::CallConfigureMotionTouchDialog);
+
     connect(ui->inputConfigButton, &QPushButton::clicked, this,
             &QtControllerSelectorDialog::CallConfigureInputProfileDialog);
 
@@ -266,6 +270,18 @@ void QtControllerSelectorDialog::LoadConfiguration() {
 
 void QtControllerSelectorDialog::CallConfigureVibrationDialog() {
     ConfigureVibration dialog(this);
+
+    dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
+                          Qt::WindowSystemMenuHint);
+    dialog.setWindowModality(Qt::WindowModal);
+
+    if (dialog.exec() == QDialog::Accepted) {
+        dialog.ApplyConfiguration();
+    }
+}
+
+void QtControllerSelectorDialog::CallConfigureMotionTouchDialog() {
+    ConfigureMotionTouch dialog(this, input_subsystem);
 
     dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
                           Qt::WindowSystemMenuHint);

@@ -51,6 +51,9 @@ private:
     // Initializes the "Configure Vibration" Dialog.
     void CallConfigureVibrationDialog();
 
+    // Initializes the "Configure Motion / Touch" Dialog.
+    void CallConfigureMotionTouchDialog();
+
     // Initializes the "Create Input Profile" Dialog.
     void CallConfigureInputProfileDialog();
 
