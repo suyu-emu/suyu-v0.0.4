@@ -22,6 +22,7 @@
 #include "common/file_util.h"
 #include "common/hex_util.h"
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "common/string_util.h"
 #include "core/crypto/aes_util.h"
 #include "core/crypto/key_manager.h"
@@ -32,7 +33,6 @@
 #include "core/file_sys/registered_cache.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/loader.h"
-#include "core/settings.h"
 
 namespace Core::Crypto {
 namespace {

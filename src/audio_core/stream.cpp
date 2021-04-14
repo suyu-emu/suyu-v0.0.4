@@ -11,8 +11,8 @@
 #include "audio_core/stream.h"
 #include "common/assert.h"
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/core_timing.h"
-#include "core/settings.h"
 
 namespace AudioCore {
 

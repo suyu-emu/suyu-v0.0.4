@@ -9,6 +9,7 @@
 #include "common/bit_field.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/frontend/input.h"
@@ -17,7 +18,6 @@
 #include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/service/hid/controllers/npad.h"
-#include "core/settings.h"
 
 namespace Service::HID {
 constexpr s32 HID_JOYSTICK_MAX = 0x7fff;

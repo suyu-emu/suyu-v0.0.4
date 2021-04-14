@@ -6,7 +6,7 @@
 #include <QComboBox>
 #include <QObject>
 #include <QString>
-#include "core/settings.h"
+#include "common/settings.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_per_game.h"
 

@@ -5,8 +5,8 @@
 #include <memory>
 
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/core.h"
-#include "core/settings.h"
 #include "video_core/renderer_base.h"
 #include "video_core/renderer_opengl/renderer_opengl.h"
 #include "video_core/renderer_vulkan/renderer_vulkan.h"

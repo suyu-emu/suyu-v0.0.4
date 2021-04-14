@@ -5,7 +5,7 @@
 #include <algorithm>
 
 #include "common/assert.h"
-#include "core/settings.h"
+#include "common/settings.h"
 #include "video_core/compatible_formats.h"
 #include "video_core/surface.h"
 #include "video_core/texture_cache/formatter.h"

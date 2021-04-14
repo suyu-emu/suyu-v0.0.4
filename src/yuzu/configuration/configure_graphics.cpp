@@ -11,8 +11,8 @@
 
 #include "common/common_types.h"
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/core.h"
-#include "core/settings.h"
 #include "ui_configure_graphics.h"
 #include "video_core/vulkan_common/vulkan_instance.h"
 #include "video_core/vulkan_common/vulkan_library.h"

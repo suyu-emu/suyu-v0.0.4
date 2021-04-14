@@ -5,7 +5,7 @@
 #include "common/assert.h"
 #include "common/common_funcs.h"
 
-#include "core/settings.h"
+#include "common/settings.h"
 
 void assert_handle_failure() {
     if (Settings::values.use_debug_asserts) {

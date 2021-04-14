@@ -10,6 +10,7 @@
 #include "common/file_util.h"
 #include "common/hex_util.h"
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "common/string_util.h"
 #include "core/core.h"
 #include "core/file_sys/common_funcs.h"
@@ -25,7 +26,6 @@
 #include "core/loader/loader.h"
 #include "core/loader/nso.h"
 #include "core/memory/cheat_engine.h"
-#include "core/settings.h"
 
 namespace FileSys {
 namespace {

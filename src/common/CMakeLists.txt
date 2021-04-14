@@ -152,6 +152,10 @@ add_library(common STATIC
     scm_rev.cpp
     scm_rev.h
     scope_exit.h
+    settings.cpp
+    settings.h
+    settings_input.cpp
+    settings_input.h
     spin_lock.cpp
     spin_lock.h
     stream.cpp

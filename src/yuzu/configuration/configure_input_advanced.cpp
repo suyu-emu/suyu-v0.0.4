@@ -3,8 +3,8 @@
 // Refer to the license.txt file included.
 
 #include <QColorDialog>
+#include "common/settings.h"
 #include "core/core.h"
-#include "core/settings.h"
 #include "ui_configure_input_advanced.h"
 #include "yuzu/configuration/configure_input_advanced.h"
 

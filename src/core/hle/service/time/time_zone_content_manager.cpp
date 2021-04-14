@@ -5,6 +5,7 @@
 #include <sstream>
 
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "common/time_zone.h"
 #include "core/core.h"
 #include "core/file_sys/content_archive.h"
@@ -15,7 +16,6 @@
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/time/time_manager.h"
 #include "core/hle/service/time/time_zone_content_manager.h"
-#include "core/settings.h"
 
 namespace Service::Time::TimeZone {
 

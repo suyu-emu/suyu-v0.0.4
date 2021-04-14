@@ -6,6 +6,7 @@
 #include <fmt/format.h>
 #include "common/assert.h"
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "common/string_util.h"
 #include "core/core.h"
 #include "core/hle/ipc.h"
@@ -70,7 +71,6 @@
 #include "core/hle/service/vi/vi.h"
 #include "core/hle/service/wlan/wlan.h"
 #include "core/reporter.h"
-#include "core/settings.h"
 
 namespace Service {
 

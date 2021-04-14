@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "core/settings.h"
+#include "common/settings.h"
 #include "input_common/mouse/mouse_input.h"
 
 namespace MouseInput {

@@ -5,8 +5,8 @@
 #include <mutex>
 #include <utility>
 
+#include "common/settings.h"
 #include "common/threadsafe_queue.h"
-#include "core/settings.h"
 #include "input_common/mouse/mouse_input.h"
 #include "input_common/mouse/mouse_poller.h"
 

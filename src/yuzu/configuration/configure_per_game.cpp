@@ -57,7 +57,7 @@ void ConfigurePerGame::ApplyConfiguration() {
     ui->graphicsAdvancedTab->ApplyConfiguration();
     ui->audioTab->ApplyConfiguration();
 
-    Settings::Apply(Core::System::GetInstance());
+    Core::System::GetInstance().ApplySettings();
     Settings::LogSettings();
 
     game_config->Save();

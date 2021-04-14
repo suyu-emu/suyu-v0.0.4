@@ -2,7 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include "input_common/settings.h"
+#include "common/settings_input.h"
 
 namespace Settings {
 namespace NativeButton {

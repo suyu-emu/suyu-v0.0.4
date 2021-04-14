@@ -7,7 +7,7 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QString>
-#include "core/settings.h"
+#include "common/settings.h"
 
 namespace ConfigurationShared {
 

@@ -7,7 +7,7 @@
 #include <cmath>
 #include <thread>
 #include "common/math_util.h"
-#include "core/settings.h"
+#include "common/settings.h"
 #include "input_common/analog_from_button.h"
 
 namespace InputCommon {

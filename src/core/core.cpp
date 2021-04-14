@@ -9,6 +9,7 @@
 #include "common/file_util.h"
 #include "common/logging/log.h"
 #include "common/microprofile.h"
+#include "common/settings.h"
 #include "common/string_util.h"
 #include "core/arm/exclusive_monitor.h"
 #include "core/core.h"
@@ -36,6 +37,7 @@
 #include "core/hle/service/apm/controller.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/glue/manager.h"
+#include "core/hle/service/hid/hid.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/sm/sm.h"
 #include "core/hle/service/time/time_manager.h"
@@ -45,7 +47,6 @@
 #include "core/network/network.h"
 #include "core/perf_stats.h"
 #include "core/reporter.h"
-#include "core/settings.h"
 #include "core/telemetry_session.h"
 #include "core/tools/freezer.h"
 #include "video_core/renderer_base.h"
@@ -772,6 +773,14 @@ void System::ExecuteProgram(std::size_t program_index) {
     } else {
         LOG_CRITICAL(Core, "execute_program_callback must be initialized by the frontend");
     }
+}
+
+void System::ApplySettings() {
+    if (IsPoweredOn()) {
+        Renderer().RefreshBaseSettings();
+    }
+
+    Service::HID::ReloadInputDevices();
 }
 
 } // namespace Core

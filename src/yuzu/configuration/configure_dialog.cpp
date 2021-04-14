@@ -5,8 +5,8 @@
 #include <QHash>
 #include <QListWidgetItem>
 #include <QSignalBlocker>
+#include "common/settings.h"
 #include "core/core.h"
-#include "core/settings.h"
 #include "ui_configure.h"
 #include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configure_dialog.h"
@@ -55,7 +55,7 @@ void ConfigureDialog::ApplyConfiguration() {
     ui->debugTab->ApplyConfiguration();
     ui->webTab->ApplyConfiguration();
     ui->serviceTab->ApplyConfiguration();
-    Settings::Apply(Core::System::GetInstance());
+    Core::System::GetInstance().ApplySettings();
     Settings::LogSettings();
 }
 

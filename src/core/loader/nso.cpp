@@ -11,6 +11,7 @@
 #include "common/hex_util.h"
 #include "common/logging/log.h"
 #include "common/lz4_compression.h"
+#include "common/settings.h"
 #include "common/swap.h"
 #include "core/core.h"
 #include "core/file_sys/patch_manager.h"
@@ -20,7 +21,6 @@
 #include "core/hle/kernel/process.h"
 #include "core/loader/nso.h"
 #include "core/memory.h"
-#include "core/settings.h"
 
 namespace Loader {
 namespace {

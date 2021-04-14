@@ -6,7 +6,7 @@
 #include <array>
 
 #include "common/cityhash.h"
-#include "core/settings.h"
+#include "common/settings.h"
 #include "video_core/textures/texture.h"
 
 using Tegra::Texture::TICEntry;

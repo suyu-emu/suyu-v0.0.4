@@ -8,7 +8,7 @@
 #include <fmt/format.h>
 
 #include "common/param_package.h"
-#include "core/settings.h"
+#include "common/settings.h"
 #include "ui_configure_vibration.h"
 #include "yuzu/configuration/configure_vibration.h"
 

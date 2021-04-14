@@ -5,7 +5,7 @@
 #include <QAction>
 #include <QLayout>
 #include <QString>
-#include "core/settings.h"
+#include "common/settings.h"
 #include "yuzu/configuration/configure_input_player_widget.h"
 #include "yuzu/debugger/controller.h"
 

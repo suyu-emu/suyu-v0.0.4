@@ -10,6 +10,7 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/page_table.h"
+#include "common/settings.h"
 #include "core/arm/cpu_interrupt_handler.h"
 #include "core/arm/dynarmic/arm_dynarmic_32.h"
 #include "core/arm/dynarmic/arm_dynarmic_cp15.h"
@@ -18,7 +19,6 @@
 #include "core/core_timing.h"
 #include "core/hle/kernel/svc.h"
 #include "core/memory.h"
-#include "core/settings.h"
 
 namespace Core {
 

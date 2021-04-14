@@ -11,8 +11,8 @@
 #include "audio_core/info_updater.h"
 #include "audio_core/voice_context.h"
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/memory.h"
-#include "core/settings.h"
 
 namespace {
 [[nodiscard]] static constexpr s16 ClampToS16(s32 value) {

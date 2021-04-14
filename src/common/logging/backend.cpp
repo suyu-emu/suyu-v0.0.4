@@ -21,9 +21,9 @@
 #include "common/logging/backend.h"
 #include "common/logging/log.h"
 #include "common/logging/text_formatter.h"
+#include "common/settings.h"
 #include "common/string_util.h"
 #include "common/threadsafe_queue.h"
-#include "core/settings.h"
 
 namespace Log {
 

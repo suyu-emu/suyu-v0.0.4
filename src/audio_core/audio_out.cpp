@@ -7,7 +7,7 @@
 #include "audio_core/sink_details.h"
 #include "common/assert.h"
 #include "common/logging/log.h"
-#include "core/settings.h"
+#include "common/settings.h"
 
 namespace AudioCore {
 

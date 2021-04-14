@@ -4,8 +4,8 @@
 
 #include <QGraphicsItem>
 #include <QtConcurrent/QtConcurrent>
+#include "common/settings.h"
 #include "core/hle/service/bcat/backend/boxcat.h"
-#include "core/settings.h"
 #include "ui_configure_service.h"
 #include "yuzu/configuration/configure_service.h"
 

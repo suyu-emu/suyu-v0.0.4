@@ -14,6 +14,7 @@
 #include "common/file_util.h"
 #include "common/hex_util.h"
 #include "common/scm_rev.h"
+#include "common/settings.h"
 #include "core/arm/arm_interface.h"
 #include "core/core.h"
 #include "core/hle/kernel/hle_ipc.h"
@@ -22,7 +23,6 @@
 #include "core/hle/result.h"
 #include "core/memory.h"
 #include "core/reporter.h"
-#include "core/settings.h"
 
 namespace {
 

@@ -8,8 +8,8 @@
 
 #include "audio_core/sink.h"
 #include "audio_core/sink_details.h"
+#include "common/settings.h"
 #include "core/core.h"
-#include "core/settings.h"
 #include "ui_configure_audio.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_audio.h"

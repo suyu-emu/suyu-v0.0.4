@@ -5,8 +5,8 @@
 #include <cmath>
 
 #include "common/assert.h"
+#include "common/settings.h"
 #include "core/frontend/framebuffer_layout.h"
-#include "core/settings.h"
 
 namespace Layout {
 

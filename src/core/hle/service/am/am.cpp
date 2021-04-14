@@ -7,6 +7,7 @@
 #include <cinttypes>
 #include <cstring>
 #include "audio_core/audio_renderer.h"
+#include "common/settings.h"
 #include "core/core.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/patch_manager.h"
@@ -41,7 +42,6 @@
 #include "core/hle/service/set/set.h"
 #include "core/hle/service/sm/sm.h"
 #include "core/hle/service/vi/vi.h"
-#include "core/settings.h"
 
 namespace Service::AM {
 

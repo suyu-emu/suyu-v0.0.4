@@ -10,6 +10,7 @@
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/core.h"
 #include "core/device_memory.h"
 #include "core/file_sys/program_metadata.h"
@@ -26,7 +27,6 @@
 #include "core/hle/kernel/svc_results.h"
 #include "core/hle/lock.h"
 #include "core/memory.h"
-#include "core/settings.h"
 
 namespace Kernel {
 namespace {

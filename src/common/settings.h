@@ -1,4 +1,4 @@
-// Copyright 2014 Citra Emulator Project
+// Copyright 2021 yuzu Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
@@ -11,16 +11,13 @@
 #include <optional>
 #include <string>
 #include <vector>
-#include "common/common_types.h"
-#include "input_common/settings.h"
 
-namespace Core {
-class System;
-}
+#include "common/common_types.h"
+#include "common/settings_input.h"
 
 namespace Settings {
 
-enum class RendererBackend {
+enum class RendererBackend : u32 {
     OpenGL = 0,
     Vulkan = 1,
 };
@@ -31,7 +28,7 @@ enum class GPUAccuracy : u32 {
     Extreme = 2,
 };
 
-enum class CPUAccuracy {
+enum class CPUAccuracy : u32 {
     Accurate = 0,
     Unsafe = 1,
     DebugMode = 2,
@@ -256,7 +253,6 @@ float Volume();
 
 std::string GetTimeZoneString();
 
-void Apply(Core::System& system);
 void LogSettings();
 
 // Restore the global state of all applicable settings in the Values struct

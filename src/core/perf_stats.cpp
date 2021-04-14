@@ -13,8 +13,8 @@
 #include <fmt/format.h>
 #include "common/file_util.h"
 #include "common/math_util.h"
+#include "common/settings.h"
 #include "core/perf_stats.h"
-#include "core/settings.h"
 
 using namespace std::chrono_literals;
 using DoubleSecs = std::chrono::duration<double, std::chrono::seconds::period>;
