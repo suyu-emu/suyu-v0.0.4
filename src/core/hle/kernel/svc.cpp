@@ -2156,7 +2156,7 @@ static ResultCode CreateResourceLimit(Core::System& system, Handle* out_handle) 
     LOG_DEBUG(Kernel_SVC, "called");
 
     auto& kernel = system.Kernel();
-    auto resource_limit = std::make_shared<KResourceLimit>(kernel, system);
+    auto resource_limit = std::make_shared<KResourceLimit>(kernel, system.CoreTiming());
 
     auto* const current_process = kernel.CurrentProcess();
     ASSERT(current_process != nullptr);

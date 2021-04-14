@@ -2,9 +2,6 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-// This file references various implementation details from Atmosphere, an open-source firmware for
-// the Nintendo Switch. Copyright 2018-2020 Atmosphere-NX.
-
 #pragma once
 
 #include <array>
@@ -15,8 +12,8 @@
 
 union ResultCode;
 
-namespace Core {
-class System;
+namespace Core::Timing {
+class CoreTiming;
 }
 
 namespace Kernel {
@@ -37,7 +34,7 @@ constexpr bool IsValidResourceType(LimitableResource type) {
 
 class KResourceLimit final : public Object {
 public:
-    explicit KResourceLimit(KernelCore& kernel, Core::System& system);
+    explicit KResourceLimit(KernelCore& kernel, const Core::Timing::CoreTiming& core_timing_);
     ~KResourceLimit();
 
     s64 GetLimitValue(LimitableResource which) const;
@@ -75,7 +72,6 @@ private:
     mutable KLightLock lock;
     s32 waiter_count{};
     KLightConditionVariable cond_var;
-    KernelCore& kernel;
-    Core::System& system;
+    const Core::Timing::CoreTiming& core_timing;
 };
 } // namespace Kernel

@@ -72,7 +72,7 @@ struct KernelCore::Impl {
         KMemoryLayout memory_layout;
         DeriveInitialMemoryLayout(memory_layout);
         InitializeMemoryLayout(memory_layout);
-        InitializeSystemResourceLimit(kernel, system, memory_layout);
+        InitializeSystemResourceLimit(kernel, system.CoreTiming(), memory_layout);
         InitializeSlabHeaps();
         InitializeSchedulers();
         InitializeSuspendThreads();
@@ -142,9 +142,10 @@ struct KernelCore::Impl {
     }
 
     // Creates the default system resource limit
-    void InitializeSystemResourceLimit(KernelCore& kernel, Core::System& system,
+    void InitializeSystemResourceLimit(KernelCore& kernel,
+                                       const Core::Timing::CoreTiming& core_timing,
                                        const KMemoryLayout& memory_layout) {
-        system_resource_limit = std::make_shared<KResourceLimit>(kernel, system);
+        system_resource_limit = std::make_shared<KResourceLimit>(kernel, core_timing);
         const auto [total_size, kernel_size] = memory_layout.GetTotalAndKernelMemorySizes();
 
         // If setting the default system values fails, then something seriously wrong has occurred.

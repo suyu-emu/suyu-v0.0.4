@@ -2,21 +2,16 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-// This file references various implementation details from Atmosphere, an open-source firmware for
-// the Nintendo Switch. Copyright 2018-2020 Atmosphere-NX.
-
 #include "common/assert.h"
-#include "core/core.h"
 #include "core/core_timing.h"
-#include "core/core_timing_util.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/svc_results.h"
 
 namespace Kernel {
 constexpr s64 DefaultTimeout = 10000000000; // 10 seconds
 
-KResourceLimit::KResourceLimit(KernelCore& kernel, Core::System& system)
-    : Object{kernel}, lock{kernel}, cond_var{kernel}, kernel{kernel}, system(system) {}
+KResourceLimit::KResourceLimit(KernelCore& kernel, const Core::Timing::CoreTiming& core_timing_)
+    : Object{kernel}, lock{kernel}, cond_var{kernel}, core_timing(core_timing_) {}
 KResourceLimit::~KResourceLimit() = default;
 
 s64 KResourceLimit::GetLimitValue(LimitableResource which) const {
@@ -83,7 +78,7 @@ ResultCode KResourceLimit::SetLimitValue(LimitableResource which, s64 value) {
 }
 
 bool KResourceLimit::Reserve(LimitableResource which, s64 value) {
-    return Reserve(which, value, system.CoreTiming().GetGlobalTimeNs().count() + DefaultTimeout);
+    return Reserve(which, value, core_timing.GetGlobalTimeNs().count() + DefaultTimeout);
 }
 
 bool KResourceLimit::Reserve(LimitableResource which, s64 value, s64 timeout) {
@@ -114,7 +109,7 @@ bool KResourceLimit::Reserve(LimitableResource which, s64 value, s64 timeout) {
         }
 
         if (current_hints[index] + value <= limit_values[index] &&
-            (timeout < 0 || system.CoreTiming().GetGlobalTimeNs().count() < timeout)) {
+            (timeout < 0 || core_timing.GetGlobalTimeNs().count() < timeout)) {
             waiter_count++;
             cond_var.Wait(&lock, timeout);
             waiter_count--;
