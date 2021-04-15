@@ -55,9 +55,9 @@ void ConfigureDebug::ApplyConfiguration() {
     Settings::values.disable_macro_jit = ui->disable_macro_jit->isChecked();
     Settings::values.extended_logging = ui->extended_logging->isChecked();
     Debugger::ToggleConsole();
-    Log::Filter filter;
+    Common::Log::Filter filter;
     filter.ParseFilterString(Settings::values.log_filter);
-    Log::SetGlobalFilter(filter);
+    Common::Log::SetGlobalFilter(filter);
 }
 
 void ConfigureDebug::changeEvent(QEvent* event) {

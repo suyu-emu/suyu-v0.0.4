@@ -16,7 +16,7 @@
 #include "common/logging/text_formatter.h"
 #include "common/string_util.h"
 
-namespace Log {
+namespace Common::Log {
 
 std::string FormatLogMessage(const Entry& entry) {
     unsigned int time_seconds = static_cast<unsigned int>(entry.timestamp.count() / 1000000);
@@ -108,4 +108,4 @@ void PrintColoredMessage(const Entry& entry) {
 #undef ESC
 #endif
 }
-} // namespace Log
+} // namespace Common::Log

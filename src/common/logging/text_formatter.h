@@ -7,7 +7,7 @@
 #include <cstddef>
 #include <string>
 
-namespace Log {
+namespace Common::Log {
 
 struct Entry;
 
@@ -17,4 +17,4 @@ std::string FormatLogMessage(const Entry& entry);
 void PrintMessage(const Entry& entry);
 /// Prints the same message as `PrintMessage`, but colored according to the severity level.
 void PrintColoredMessage(const Entry& entry);
-} // namespace Log
+} // namespace Common::Log
