@@ -9,7 +9,7 @@
 #include <string_view>
 #include "common/logging/log.h"
 
-namespace Log {
+namespace Common::Log {
 
 /**
  * Implements a log message filter which allows different log classes to have different minimum
@@ -51,4 +51,4 @@ public:
 private:
     std::array<Level, static_cast<std::size_t>(Class::Count)> class_levels;
 };
-} // namespace Log
+} // namespace Common::Log

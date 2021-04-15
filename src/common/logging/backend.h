@@ -11,7 +11,7 @@
 #include "common/logging/filter.h"
 #include "common/logging/log.h"
 
-namespace Log {
+namespace Common::Log {
 
 class Filter;
 
@@ -135,4 +135,4 @@ const char* GetLevelName(Level log_level);
  * never get the message
  */
 void SetGlobalFilter(const Filter& filter);
-} // namespace Log
+} // namespace Common::Log

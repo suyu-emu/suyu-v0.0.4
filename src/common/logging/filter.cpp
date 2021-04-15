@@ -7,7 +7,7 @@
 #include "common/logging/filter.h"
 #include "common/string_util.h"
 
-namespace Log {
+namespace Common::Log {
 namespace {
 template <typename It>
 Level GetLevelByName(const It begin, const It end) {
@@ -103,4 +103,4 @@ bool Filter::IsDebug() const {
     });
 }
 
-} // namespace Log
+} // namespace Common::Log

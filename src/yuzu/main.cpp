@@ -171,12 +171,14 @@ void GMainWindow::ShowTelemetryCallout() {
 const int GMainWindow::max_recent_files_item;
 
 static void InitializeLogging() {
+    using namespace Common;
+
     Log::Filter log_filter;
     log_filter.ParseFilterString(Settings::values.log_filter);
     Log::SetGlobalFilter(log_filter);
 
-    const std::string& log_dir = Common::FS::GetUserPath(Common::FS::UserPath::LogDir);
-    Common::FS::CreateFullPath(log_dir);
+    const std::string& log_dir = FS::GetUserPath(FS::UserPath::LogDir);
+    FS::CreateFullPath(log_dir);
     Log::AddBackend(std::make_unique<Log::FileBackend>(log_dir + LOG_FILE));
 #ifdef _WIN32
     Log::AddBackend(std::make_unique<Log::DebuggerBackend>());
