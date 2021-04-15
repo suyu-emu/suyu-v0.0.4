@@ -5,7 +5,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QStandardItemModel>
-#include "core/settings.h"
+#include "common/settings.h"
 #include "ui_configure_hotkeys.h"
 #include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configure_hotkeys.h"

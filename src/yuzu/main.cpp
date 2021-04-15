@@ -79,6 +79,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #ifdef ARCHITECTURE_x86_64
 #include "common/x64/cpu_detect.h"
 #endif
+#include "common/settings.h"
 #include "common/telemetry.h"
 #include "core/core.h"
 #include "core/crypto/key_manager.h"
@@ -98,7 +99,6 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "core/hle/service/sm/sm.h"
 #include "core/loader/loader.h"
 #include "core/perf_stats.h"
-#include "core/settings.h"
 #include "core/telemetry_session.h"
 #include "input_common/main.h"
 #include "video_core/gpu.h"
@@ -164,7 +164,7 @@ void GMainWindow::ShowTelemetryCallout() {
            "<br/><br/>Would you like to share your usage data with us?");
     if (QMessageBox::question(this, tr("Telemetry"), telemetry_message) != QMessageBox::Yes) {
         Settings::values.enable_telemetry = false;
-        Settings::Apply(Core::System::GetInstance());
+        Core::System::GetInstance().ApplySettings();
     }
 }
 
@@ -385,7 +385,7 @@ void GMainWindow::ControllerSelectorReconfigureControllers(
     emit ControllerSelectorReconfigureFinished();
 
     // Don't forget to apply settings.
-    Settings::Apply(Core::System::GetInstance());
+    Core::System::GetInstance().ApplySettings();
     config->Save();
 
     UpdateStatusButtons();
@@ -650,7 +650,7 @@ void GMainWindow::InitializeWidgets() {
         Settings::values.use_asynchronous_gpu_emulation.SetValue(
             !Settings::values.use_asynchronous_gpu_emulation.GetValue());
         async_status_button->setChecked(Settings::values.use_asynchronous_gpu_emulation.GetValue());
-        Settings::Apply(Core::System::GetInstance());
+        Core::System::GetInstance().ApplySettings();
     });
     async_status_button->setText(tr("ASYNC"));
     async_status_button->setCheckable(true);
@@ -666,7 +666,7 @@ void GMainWindow::InitializeWidgets() {
         }
         Settings::values.use_multi_core.SetValue(!Settings::values.use_multi_core.GetValue());
         multicore_status_button->setChecked(Settings::values.use_multi_core.GetValue());
-        Settings::Apply(Core::System::GetInstance());
+        Core::System::GetInstance().ApplySettings();
     });
     multicore_status_button->setText(tr("MULTICORE"));
     multicore_status_button->setCheckable(true);
@@ -697,7 +697,7 @@ void GMainWindow::InitializeWidgets() {
             Settings::values.renderer_backend.SetValue(Settings::RendererBackend::OpenGL);
         }
 
-        Settings::Apply(Core::System::GetInstance());
+        Core::System::GetInstance().ApplySettings();
     });
     statusBar()->insertPermanentWidget(0, renderer_status_button);
 

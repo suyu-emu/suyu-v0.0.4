@@ -8,7 +8,7 @@
 #include <vector>
 #include <QString>
 #include <QWidget>
-#include "core/settings.h"
+#include "common/settings.h"
 
 namespace ConfigurationShared {
 enum class CheckState;

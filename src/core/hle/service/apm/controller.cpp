@@ -7,9 +7,9 @@
 #include <utility>
 
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/core_timing.h"
 #include "core/hle/service/apm/controller.h"
-#include "core/settings.h"
 
 namespace Service::APM {
 

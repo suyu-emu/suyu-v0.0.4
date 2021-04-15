@@ -5,7 +5,7 @@
 #include <QIcon>
 #include <QMessageBox>
 #include <QtConcurrent/QtConcurrentRun>
-#include "core/settings.h"
+#include "common/settings.h"
 #include "core/telemetry_session.h"
 #include "ui_configure_web.h"
 #include "yuzu/configuration/configure_web.h"

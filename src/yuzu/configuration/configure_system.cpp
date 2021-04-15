@@ -11,9 +11,9 @@
 #include <QMessageBox>
 #include "common/assert.h"
 #include "common/file_util.h"
+#include "common/settings.h"
 #include "core/core.h"
 #include "core/hle/service/time/time.h"
-#include "core/settings.h"
 #include "ui_configure_system.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_system.h"
@@ -199,7 +199,7 @@ void ConfigureSystem::ApplyConfiguration() {
         }
     }
 
-    Settings::Apply(system);
+    system.ApplySettings();
 }
 
 void ConfigureSystem::RefreshConsoleID() {

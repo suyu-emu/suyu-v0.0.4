@@ -6,9 +6,9 @@
 #include <array>
 #include <chrono>
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/service/set/set.h"
-#include "core/settings.h"
 
 namespace Service::Set {
 namespace {

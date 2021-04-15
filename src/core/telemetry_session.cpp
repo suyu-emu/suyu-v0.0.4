@@ -12,10 +12,10 @@
 #include "common/file_util.h"
 #include "common/logging/log.h"
 
+#include "common/settings.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/loader/loader.h"
-#include "core/settings.h"
 #include "core/telemetry_session.h"
 
 #ifdef ENABLE_WEB_SERVICE

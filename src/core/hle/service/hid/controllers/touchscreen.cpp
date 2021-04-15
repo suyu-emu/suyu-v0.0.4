@@ -6,11 +6,11 @@
 #include <cstring>
 #include "common/common_types.h"
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/core_timing.h"
 #include "core/frontend/emu_window.h"
 #include "core/frontend/input.h"
 #include "core/hle/service/hid/controllers/touchscreen.h"
-#include "core/settings.h"
 
 namespace Service::HID {
 constexpr std::size_t SHARED_MEMORY_OFFSET = 0x400;

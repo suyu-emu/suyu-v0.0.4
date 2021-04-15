@@ -388,6 +388,9 @@ public:
      */
     void ExecuteProgram(std::size_t program_index);
 
+    /// Applies any changes to settings to this core instance.
+    void ApplySettings();
+
 private:
     System();
 

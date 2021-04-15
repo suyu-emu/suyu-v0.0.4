@@ -1,4 +1,4 @@
-// Copyright 2014 Citra Emulator Project
+// Copyright 2021 yuzu Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
@@ -7,10 +7,7 @@
 #include "common/assert.h"
 #include "common/file_util.h"
 #include "common/logging/log.h"
-#include "core/core.h"
-#include "core/hle/service/hid/hid.h"
-#include "core/settings.h"
-#include "video_core/renderer_base.h"
+#include "common/settings.h"
 
 namespace Settings {
 
@@ -30,14 +27,6 @@ std::string GetTimeZoneString() {
     const auto time_zone_index = static_cast<std::size_t>(values.time_zone_index.GetValue());
     ASSERT(time_zone_index < timezones.size());
     return timezones[time_zone_index];
-}
-
-void Apply(Core::System& system) {
-    if (system.IsPoweredOn()) {
-        system.Renderer().RefreshBaseSettings();
-    }
-
-    Service::HID::ReloadInputDevices();
 }
 
 void LogSettings() {

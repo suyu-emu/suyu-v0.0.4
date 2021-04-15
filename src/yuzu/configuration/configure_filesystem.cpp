@@ -6,7 +6,7 @@
 #include <QMessageBox>
 #include "common/common_paths.h"
 #include "common/file_util.h"
-#include "core/settings.h"
+#include "common/settings.h"
 #include "ui_configure_filesystem.h"
 #include "yuzu/configuration/configure_filesystem.h"
 #include "yuzu/uisettings.h"

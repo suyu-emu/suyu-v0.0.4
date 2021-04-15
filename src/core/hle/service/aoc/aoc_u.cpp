@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/core.h"
 #include "core/file_sys/common_funcs.h"
 #include "core/file_sys/content_archive.h"
@@ -21,7 +22,6 @@
 #include "core/hle/kernel/process.h"
 #include "core/hle/service/aoc/aoc_u.h"
 #include "core/loader/loader.h"
-#include "core/settings.h"
 
 namespace Service::AOC {
 

@@ -7,8 +7,8 @@
 #include "common/file_util.h"
 #include "common/logging/backend.h"
 #include "common/logging/filter.h"
+#include "common/settings.h"
 #include "core/core.h"
-#include "core/settings.h"
 #include "ui_configure_debug.h"
 #include "yuzu/configuration/configure_debug.h"
 #include "yuzu/debugger/console.h"
@@ -34,6 +34,7 @@ void ConfigureDebug::SetConfiguration() {
     ui->homebrew_args_edit->setText(QString::fromStdString(Settings::values.program_args));
     ui->reporting_services->setChecked(Settings::values.reporting_services);
     ui->quest_flag->setChecked(Settings::values.quest_flag);
+    ui->use_debug_asserts->setChecked(Settings::values.use_debug_asserts);
     ui->use_auto_stub->setChecked(Settings::values.use_auto_stub);
     ui->enable_graphics_debugging->setEnabled(!Core::System::GetInstance().IsPoweredOn());
     ui->enable_graphics_debugging->setChecked(Settings::values.renderer_debug);
@@ -48,6 +49,7 @@ void ConfigureDebug::ApplyConfiguration() {
     Settings::values.program_args = ui->homebrew_args_edit->text().toStdString();
     Settings::values.reporting_services = ui->reporting_services->isChecked();
     Settings::values.quest_flag = ui->quest_flag->isChecked();
+    Settings::values.use_debug_asserts = ui->use_debug_asserts->isChecked();
     Settings::values.use_auto_stub = ui->use_auto_stub->isChecked();
     Settings::values.renderer_debug = ui->enable_graphics_debugging->isChecked();
     Settings::values.disable_macro_jit = ui->disable_macro_jit->isChecked();

@@ -11,7 +11,7 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/ring_buffer.h"
-#include "core/settings.h"
+#include "common/settings.h"
 
 #ifdef _WIN32
 #include <objbase.h>

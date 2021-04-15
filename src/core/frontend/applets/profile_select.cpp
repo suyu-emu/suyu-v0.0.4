@@ -2,9 +2,9 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include "common/settings.h"
 #include "core/frontend/applets/profile_select.h"
 #include "core/hle/service/acc/profile_manager.h"
-#include "core/settings.h"
 
 namespace Core::Frontend {
 

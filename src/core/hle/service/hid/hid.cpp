@@ -5,6 +5,7 @@
 #include <array>
 #include "common/common_types.h"
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
@@ -23,7 +24,6 @@
 #include "core/hle/service/hid/irs.h"
 #include "core/hle/service/hid/xcd.h"
 #include "core/hle/service/service.h"
-#include "core/settings.h"
 
 #include "core/hle/service/hid/controllers/controller_base.h"
 #include "core/hle/service/hid/controllers/debug_pad.h"

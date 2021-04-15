@@ -8,10 +8,10 @@
 #include <atomic>
 #include "common/bit_field.h"
 #include "common/common_types.h"
+#include "common/settings.h"
 #include "core/frontend/input.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/service/hid/controllers/controller_base.h"
-#include "core/settings.h"
 
 namespace Kernel {
 class KEvent;

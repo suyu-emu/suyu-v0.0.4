@@ -20,6 +20,7 @@
 #include "common/nvidia_flags.h"
 #include "common/scm_rev.h"
 #include "common/scope_exit.h"
+#include "common/settings.h"
 #include "common/string_util.h"
 #include "common/telemetry.h"
 #include "core/core.h"
@@ -29,7 +30,6 @@
 #include "core/hle/kernel/process.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/loader.h"
-#include "core/settings.h"
 #include "core/telemetry_session.h"
 #include "input_common/main.h"
 #include "video_core/renderer_base.h"
@@ -164,7 +164,7 @@ int main(int argc, char** argv) {
     InputCommon::InputSubsystem input_subsystem;
 
     // Apply the command line arguments
-    Settings::Apply(system);
+    system.ApplySettings();
 
     std::unique_ptr<EmuWindow_SDL2> emu_window;
     switch (Settings::values.renderer_backend.GetValue()) {

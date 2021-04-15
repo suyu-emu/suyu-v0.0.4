@@ -186,6 +186,13 @@
        </widget>
       </item>
        <item>
+         <widget class="QCheckBox" name="use_debug_asserts">
+           <property name="text">
+             <string>Enable Debug Asserts</string>
+           </property>
+         </widget>
+       </item>
+       <item>
          <widget class="QCheckBox" name="use_auto_stub">
            <property name="text">
              <string>Enable Auto-Stub</string>

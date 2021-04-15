@@ -16,7 +16,7 @@
 
 #include "common/logging/log.h"
 #include "common/scope_exit.h"
-#include "core/settings.h"
+#include "common/settings.h"
 #include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 

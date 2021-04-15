@@ -641,6 +641,8 @@ void Config::ReadDebuggingValues() {
         ReadSetting(QStringLiteral("disable_macro_jit"), false).toBool();
     Settings::values.extended_logging =
         ReadSetting(QStringLiteral("extended_logging"), false).toBool();
+    Settings::values.use_debug_asserts =
+        ReadSetting(QStringLiteral("use_debug_asserts"), false).toBool();
     Settings::values.use_auto_stub = ReadSetting(QStringLiteral("use_auto_stub"), false).toBool();
 
     qt_config->endGroup();
@@ -1238,6 +1240,7 @@ void Config::SaveDebuggingValues() {
     WriteSetting(QStringLiteral("dump_exefs"), Settings::values.dump_exefs, false);
     WriteSetting(QStringLiteral("dump_nso"), Settings::values.dump_nso, false);
     WriteSetting(QStringLiteral("quest_flag"), Settings::values.quest_flag, false);
+    WriteSetting(QStringLiteral("use_debug_asserts"), Settings::values.use_debug_asserts, false);
     WriteSetting(QStringLiteral("disable_macro_jit"), Settings::values.disable_macro_jit, false);
 
     qt_config->endGroup();
@@ -1599,7 +1602,7 @@ void Config::Reload() {
     ReadValues();
     // To apply default value changes
     SaveValues();
-    Settings::Apply(Core::System::GetInstance());
+    Core::System::GetInstance().ApplySettings();
 }
 
 void Config::Save() {

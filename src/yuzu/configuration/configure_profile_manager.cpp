@@ -13,10 +13,10 @@
 #include <QVBoxLayout>
 #include "common/assert.h"
 #include "common/file_util.h"
+#include "common/settings.h"
 #include "common/string_util.h"
 #include "core/core.h"
 #include "core/hle/service/acc/profile_manager.h"
-#include "core/settings.h"
 #include "ui_configure_profile_manager.h"
 #include "yuzu/configuration/configure_profile_manager.h"
 #include "yuzu/util/limitable_input_dialog.h"
@@ -180,7 +180,7 @@ void ConfigureProfileManager::ApplyConfiguration() {
         return;
     }
 
-    Settings::Apply(Core::System::GetInstance());
+    Core::System::GetInstance().ApplySettings();
 }
 
 void ConfigureProfileManager::SelectUser(const QModelIndex& index) {

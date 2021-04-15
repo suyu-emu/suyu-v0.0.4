@@ -9,11 +9,11 @@
 #include <functional>
 #include <vector>
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/service/spl/csrng.h"
 #include "core/hle/service/spl/module.h"
 #include "core/hle/service/spl/spl.h"
-#include "core/settings.h"
 
 namespace Service::SPL {
 

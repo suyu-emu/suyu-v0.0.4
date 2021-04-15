@@ -9,6 +9,7 @@
 #include "common/hex_util.h"
 #include "common/logging/backend.h"
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/core.h"
 #include "core/file_sys/vfs.h"
 #include "core/file_sys/vfs_libzip.h"
@@ -16,7 +17,6 @@
 #include "core/frontend/applets/error.h"
 #include "core/hle/service/am/applets/applets.h"
 #include "core/hle/service/bcat/backend/boxcat.h"
-#include "core/settings.h"
 
 namespace Service::BCAT {
 namespace {

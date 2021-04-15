@@ -9,7 +9,7 @@
 #include <string>
 #include <QMetaType>
 #include <QVariant>
-#include "core/settings.h"
+#include "common/settings.h"
 #include "yuzu/uisettings.h"
 
 class QSettings;
@@ -131,6 +131,6 @@ private:
     bool global;
 };
 
-// These metatype declarations cannot be in core/settings.h because core is devoid of QT
+// These metatype declarations cannot be in common/settings.h because core is devoid of QT
 Q_DECLARE_METATYPE(Settings::RendererBackend);
 Q_DECLARE_METATYPE(Settings::GPUAccuracy);

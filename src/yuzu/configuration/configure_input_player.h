@@ -14,7 +14,7 @@
 #include <QWidget>
 
 #include "common/param_package.h"
-#include "core/settings.h"
+#include "common/settings.h"
 #include "ui_configure_input.h"
 
 class QCheckBox;

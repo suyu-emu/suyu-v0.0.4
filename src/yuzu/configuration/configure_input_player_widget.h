@@ -7,8 +7,8 @@
 #include <array>
 #include <QFrame>
 #include <QPointer>
+#include "common/settings.h"
 #include "core/frontend/input.h"
-#include "core/settings.h"
 
 class QLabel;
 

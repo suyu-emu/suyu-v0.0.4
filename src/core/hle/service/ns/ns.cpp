@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/core.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/patch_manager.h"
@@ -14,7 +15,6 @@
 #include "core/hle/service/ns/ns.h"
 #include "core/hle/service/ns/pl_u.h"
 #include "core/hle/service/set/set.h"
-#include "core/settings.h"
 
 namespace Service::NS {
 

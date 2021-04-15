@@ -15,6 +15,7 @@
 #include "common/common_funcs.h"
 #include "common/logging/log.h"
 #include "common/math_util.h"
+#include "common/settings.h"
 #include "common/swap.h"
 #include "core/core_timing.h"
 #include "core/hle/ipc_helpers.h"
@@ -30,7 +31,6 @@
 #include "core/hle/service/vi/vi_m.h"
 #include "core/hle/service/vi/vi_s.h"
 #include "core/hle/service/vi/vi_u.h"
-#include "core/settings.h"
 
 namespace Service::VI {
 

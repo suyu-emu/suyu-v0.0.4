@@ -6,7 +6,7 @@
 #include <boost/container_hash/hash.hpp>
 #include "common/assert.h"
 #include "common/logging/log.h"
-#include "core/settings.h"
+#include "common/settings.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/macro/macro.h"
 #include "video_core/macro/macro_hle.h"

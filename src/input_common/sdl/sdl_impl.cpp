@@ -20,11 +20,11 @@
 #include <SDL.h>
 #include "common/logging/log.h"
 #include "common/param_package.h"
+#include "common/settings_input.h"
 #include "common/threadsafe_queue.h"
 #include "core/frontend/input.h"
 #include "input_common/motion_input.h"
 #include "input_common/sdl/sdl_impl.h"
-#include "input_common/settings.h"
 
 namespace InputCommon::SDL {
 

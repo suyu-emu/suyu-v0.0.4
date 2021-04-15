@@ -11,7 +11,7 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/scm_rev.h"
-#include "core/settings.h"
+#include "common/settings.h"
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
 #include "yuzu_cmd/emu_window/emu_window_sdl2_vk.h"
 

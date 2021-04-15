@@ -6,6 +6,7 @@
 
 #include "common/assert.h"
 #include "common/file_util.h"
+#include "common/settings.h"
 #include "core/core.h"
 #include "core/file_sys/bis_factory.h"
 #include "core/file_sys/card_image.h"
@@ -26,7 +27,6 @@
 #include "core/hle/service/filesystem/fsp_pr.h"
 #include "core/hle/service/filesystem/fsp_srv.h"
 #include "core/loader/loader.h"
-#include "core/settings.h"
 
 namespace Service::FileSystem {
 

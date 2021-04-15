@@ -16,8 +16,8 @@
 
 #include "common/logging/log.h"
 #include "common/param_package.h"
+#include "common/settings_input.h"
 #include "input_common/gcadapter/gc_adapter.h"
-#include "input_common/settings.h"
 
 namespace GCAdapter {
 

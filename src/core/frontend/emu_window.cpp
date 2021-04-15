@@ -4,9 +4,9 @@
 
 #include <cmath>
 #include <mutex>
+#include "common/settings.h"
 #include "core/frontend/emu_window.h"
 #include "core/frontend/input.h"
-#include "core/settings.h"
 
 namespace Core::Frontend {
 

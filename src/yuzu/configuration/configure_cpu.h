@@ -6,7 +6,7 @@
 
 #include <memory>
 #include <QWidget>
-#include "core/settings.h"
+#include "common/settings.h"
 
 namespace Ui {
 class ConfigureCpu;

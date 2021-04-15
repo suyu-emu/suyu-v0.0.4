@@ -9,6 +9,7 @@
 #include "common/logging/log.h"
 #include "common/microprofile.h"
 #include "common/scope_exit.h"
+#include "common/settings.h"
 #include "common/thread.h"
 #include "core/core.h"
 #include "core/core_timing.h"
@@ -23,7 +24,6 @@
 #include "core/hle/service/vi/display/vi_display.h"
 #include "core/hle/service/vi/layer/vi_layer.h"
 #include "core/perf_stats.h"
-#include "core/settings.h"
 #include "video_core/renderer_base.h"
 
 namespace Service::NVFlinger {

@@ -14,7 +14,7 @@
 #include <QVBoxLayout>
 
 #include "common/logging/log.h"
-#include "core/settings.h"
+#include "common/settings.h"
 #include "input_common/main.h"
 #include "input_common/udp/client.h"
 #include "input_common/udp/udp.h"

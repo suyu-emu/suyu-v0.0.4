@@ -4,8 +4,8 @@
 
 #include <QCheckBox>
 #include <QSpinBox>
+#include "common/settings.h"
 #include "core/core.h"
-#include "core/settings.h"
 #include "ui_configure_general.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_general.h"

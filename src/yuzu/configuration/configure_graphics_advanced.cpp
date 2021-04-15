@@ -2,8 +2,8 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include "common/settings.h"
 #include "core/core.h"
-#include "core/settings.h"
 #include "ui_configure_graphics_advanced.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_graphics_advanced.h"

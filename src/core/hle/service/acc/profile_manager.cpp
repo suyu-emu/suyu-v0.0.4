@@ -8,8 +8,8 @@
 #include <fmt/format.h>
 
 #include "common/file_util.h"
+#include "common/settings.h"
 #include "core/hle/service/acc/profile_manager.h"
-#include "core/settings.h"
 
 namespace Service::Account {
 

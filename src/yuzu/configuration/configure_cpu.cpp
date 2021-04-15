@@ -7,8 +7,8 @@
 
 #include "common/common_types.h"
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/core.h"
-#include "core/settings.h"
 #include "ui_configure_cpu.h"
 #include "yuzu/configuration/configure_cpu.h"
 
