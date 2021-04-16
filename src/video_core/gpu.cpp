@@ -494,9 +494,8 @@ void GPU::PushCommandBuffer(Tegra::ChCommandHeaderList& entries) {
 
 void GPU::ClearCommandBuffer() {
     // This condition fires when a video stream ends, clear all intermediary data
-    if (cdma_pusher) {
-        cdma_pusher.reset();
-    }
+    cdma_pusher.reset();
+    LOG_INFO(Service_NVDRV, "NVDEC video stream ended");
 }
 
 void GPU::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
