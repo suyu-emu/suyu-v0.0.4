@@ -14,6 +14,7 @@
 #include "input_common/sdl/sdl.h"
 
 union SDL_Event;
+using SDL_GameController = struct _SDL_GameController;
 using SDL_Joystick = struct _SDL_Joystick;
 using SDL_JoystickID = s32;
 
@@ -63,6 +64,9 @@ private:
 
     /// Needs to be called before SDL_QuitSubSystem.
     void CloseJoysticks();
+
+    /// Returns a custom name for specific controllers because the default name is not correct
+    std::string GetControllerName(SDL_GameController* controller) const;
 
     // Set to true if SDL supports game controller subsystem
     bool has_gamecontroller = false;

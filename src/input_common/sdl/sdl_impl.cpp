@@ -761,7 +761,7 @@ std::vector<Common::ParamPackage> SDLState::GetInputDevices() {
         for (const auto& joystick : value) {
             if (auto* const controller = joystick->GetSDLGameController()) {
                 std::string name =
-                    fmt::format("{} {}", SDL_GameControllerName(controller), joystick->GetPort());
+                    fmt::format("{} {}", GetControllerName(controller), joystick->GetPort());
                 devices.emplace_back(Common::ParamPackage{
                     {"class", "sdl"},
                     {"display", std::move(name)},
@@ -780,6 +780,17 @@ std::vector<Common::ParamPackage> SDLState::GetInputDevices() {
         }
     }
     return devices;
+}
+
+std::string SDLState::GetControllerName(SDL_GameController* controller) const {
+    switch (SDL_GameControllerGetType(controller)) {
+    case SDL_CONTROLLER_TYPE_XBOX360:
+        return "XBox 360 Controller";
+    case SDL_CONTROLLER_TYPE_XBOXONE:
+        return "XBox One Controller";
+    default:
+        return SDL_GameControllerName(controller);
+    }
 }
 
 namespace {
@@ -930,16 +941,19 @@ ButtonMapping SDLState::GetButtonMappingForDevice(const Common::ParamPackage& pa
         return {};
     }
 
+    const bool invert =
+        SDL_GameControllerGetType(controller) != SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_PRO;
+
     // This list is missing ZL/ZR since those are not considered buttons in SDL GameController.
     // We will add those afterwards
     // This list also excludes Screenshot since theres not really a mapping for that
     using ButtonBindings =
         std::array<std::pair<Settings::NativeButton::Values, SDL_GameControllerButton>, 17>;
-    static constexpr ButtonBindings switch_to_sdl_button{{
-        {Settings::NativeButton::A, SDL_CONTROLLER_BUTTON_B},
-        {Settings::NativeButton::B, SDL_CONTROLLER_BUTTON_A},
-        {Settings::NativeButton::X, SDL_CONTROLLER_BUTTON_Y},
-        {Settings::NativeButton::Y, SDL_CONTROLLER_BUTTON_X},
+    const ButtonBindings switch_to_sdl_button{{
+        {Settings::NativeButton::A, invert ? SDL_CONTROLLER_BUTTON_B : SDL_CONTROLLER_BUTTON_A},
+        {Settings::NativeButton::B, invert ? SDL_CONTROLLER_BUTTON_A : SDL_CONTROLLER_BUTTON_B},
+        {Settings::NativeButton::X, invert ? SDL_CONTROLLER_BUTTON_Y : SDL_CONTROLLER_BUTTON_X},
+        {Settings::NativeButton::Y, invert ? SDL_CONTROLLER_BUTTON_X : SDL_CONTROLLER_BUTTON_Y},
         {Settings::NativeButton::LStick, SDL_CONTROLLER_BUTTON_LEFTSTICK},
         {Settings::NativeButton::RStick, SDL_CONTROLLER_BUTTON_RIGHTSTICK},
         {Settings::NativeButton::L, SDL_CONTROLLER_BUTTON_LEFTSHOULDER},
