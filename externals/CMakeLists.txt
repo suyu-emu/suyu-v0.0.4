@@ -45,6 +45,12 @@ target_include_directories(microprofile INTERFACE ./microprofile)
 add_library(unicorn-headers INTERFACE)
 target_include_directories(unicorn-headers INTERFACE ./unicorn/include)
 
+# SDL2
+if (NOT SDL2_FOUND)
+    set(SDL2_FOUND YES)
+    add_subdirectory(SDL EXCLUDE_FROM_ALL)
+endif()
+
 # SoundTouch
 add_subdirectory(soundtouch)
 
