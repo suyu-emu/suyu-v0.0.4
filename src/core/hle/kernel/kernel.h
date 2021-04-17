@@ -42,6 +42,7 @@ class KScheduler;
 class KSession;
 class KSharedMemory;
 class KThread;
+class KTransferMemory;
 class KWritableEvent;
 class PhysicalCore;
 class Process;
@@ -278,6 +279,8 @@ public:
             return slab_heap_container->client_session;
         } else if constexpr (std::is_same_v<T, KSession>) {
             return slab_heap_container->session;
+        } else if constexpr (std::is_same_v<T, KTransferMemory>) {
+            return slab_heap_container->transfer_memory;
         }
     }
 
@@ -320,6 +323,7 @@ private:
         KSlabHeap<KWritableEvent> writeable_event;
         KSlabHeap<KClientSession> client_session;
         KSlabHeap<KSession> session;
+        KSlabHeap<KTransferMemory> transfer_memory;
     };
 
     std::unique_ptr<SlabHeapContainer> slab_heap_container;

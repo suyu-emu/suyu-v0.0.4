@@ -221,6 +221,8 @@ add_library(core STATIC
     hle/kernel/k_thread.h
     hle/kernel/k_thread_queue.h
     hle/kernel/k_trace.h
+    hle/kernel/k_transfer_memory.cpp
+    hle/kernel/k_transfer_memory.h
     hle/kernel/k_writable_event.cpp
     hle/kernel/k_writable_event.h
     hle/kernel/kernel.cpp
@@ -247,8 +249,6 @@ add_library(core STATIC
     hle/kernel/svc_wrap.h
     hle/kernel/time_manager.cpp
     hle/kernel/time_manager.h
-    hle/kernel/transfer_memory.cpp
-    hle/kernel/transfer_memory.h
     hle/lock.cpp
     hle/lock.h
     hle/result.h

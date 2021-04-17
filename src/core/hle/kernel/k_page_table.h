@@ -216,8 +216,6 @@ public:
     constexpr PAddr GetPhysicalAddr(VAddr addr) {
         return page_table_impl.backing_addr[addr >> PageBits] + addr;
     }
-
-private:
     constexpr bool Contains(VAddr addr) const {
         return address_space_start <= addr && addr <= address_space_end - 1;
     }
@@ -225,6 +223,8 @@ private:
         return address_space_start <= addr && addr < addr + size &&
                addr + size - 1 <= address_space_end - 1;
     }
+
+private:
     constexpr bool IsKernel() const {
         return is_kernel;
     }

@@ -13,7 +13,7 @@
 
 namespace Kernel {
 class KernelCore;
-class TransferMemory;
+class KTransferMemory;
 } // namespace Kernel
 
 namespace Service::NVFlinger {

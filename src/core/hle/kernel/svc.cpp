@@ -38,6 +38,7 @@
 #include "core/hle/kernel/k_shared_memory.h"
 #include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/kernel/k_thread.h"
+#include "core/hle/kernel/k_transfer_memory.h"
 #include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/physical_core.h"
@@ -47,7 +48,6 @@
 #include "core/hle/kernel/svc_types.h"
 #include "core/hle/kernel/svc_wrap.h"
 #include "core/hle/kernel/time_manager.h"
-#include "core/hle/kernel/transfer_memory.h"
 #include "core/hle/lock.h"
 #include "core/hle/result.h"
 #include "core/hle/service/service.h"
@@ -1868,65 +1868,68 @@ static ResultCode ResetSignal32(Core::System& system, Handle handle) {
     return ResetSignal(system, handle);
 }
 
+static constexpr bool IsValidTransferMemoryPermission(MemoryPermission perm) {
+    switch (perm) {
+    case MemoryPermission::None:
+    case MemoryPermission::Read:
+    case MemoryPermission::ReadWrite:
+        return true;
+    default:
+        return false;
+    }
+}
+
 /// Creates a TransferMemory object
-static ResultCode CreateTransferMemory(Core::System& system, Handle* handle, VAddr addr, u64 size,
-                                       u32 permissions) {
-    std::lock_guard lock{HLE::g_hle_lock};
-    LOG_DEBUG(Kernel_SVC, "called addr=0x{:X}, size=0x{:X}, perms=0x{:08X}", addr, size,
-              permissions);
-
-    if (!Common::Is4KBAligned(addr)) {
-        LOG_ERROR(Kernel_SVC, "Address ({:016X}) is not page aligned!", addr);
-        return ResultInvalidAddress;
-    }
-
-    if (!Common::Is4KBAligned(size) || size == 0) {
-        LOG_ERROR(Kernel_SVC, "Size ({:016X}) is not page aligned or equal to zero!", size);
-        return ResultInvalidAddress;
-    }
-
-    if (!IsValidAddressRange(addr, size)) {
-        LOG_ERROR(Kernel_SVC, "Address and size cause overflow! (address={:016X}, size={:016X})",
-                  addr, size);
-        return ResultInvalidCurrentMemory;
-    }
-
-    const auto perms{static_cast<MemoryPermission>(permissions)};
-    if (perms > MemoryPermission::ReadWrite || perms == MemoryPermission::Write) {
-        LOG_ERROR(Kernel_SVC, "Invalid memory permissions for transfer memory! (perms={:08X})",
-                  permissions);
-        return ResultInvalidNewMemoryPermission;
-    }
-
+static ResultCode CreateTransferMemory(Core::System& system, Handle* out, VAddr address, u64 size,
+                                       MemoryPermission map_perm) {
     auto& kernel = system.Kernel();
+
+    // Validate the size.
+    R_UNLESS(Common::IsAligned(address, PageSize), ResultInvalidAddress);
+    R_UNLESS(Common::IsAligned(size, PageSize), ResultInvalidSize);
+    R_UNLESS(size > 0, ResultInvalidSize);
+    R_UNLESS((address < address + size), ResultInvalidCurrentMemory);
+
+    // Validate the permissions.
+    R_UNLESS(IsValidTransferMemoryPermission(map_perm), ResultInvalidNewMemoryPermission);
+
+    // Get the current process and handle table.
+    auto& process = *kernel.CurrentProcess();
+    auto& handle_table = process.GetHandleTable();
+
     // Reserve a new transfer memory from the process resource limit.
     KScopedResourceReservation trmem_reservation(kernel.CurrentProcess(),
                                                  LimitableResource::TransferMemory);
-    if (!trmem_reservation.Succeeded()) {
-        LOG_ERROR(Kernel_SVC, "Could not reserve a new transfer memory");
-        return ResultLimitReached;
-    }
-    auto transfer_mem_handle = TransferMemory::Create(kernel, system.Memory(), addr, size,
-                                                      static_cast<KMemoryPermission>(perms));
+    R_UNLESS(trmem_reservation.Succeeded(), ResultLimitReached);
 
-    if (const auto reserve_result{transfer_mem_handle->Reserve()}; reserve_result.IsError()) {
-        return reserve_result;
-    }
+    // Create the transfer memory.
+    KTransferMemory* trmem = KTransferMemory::Create(kernel);
+    R_UNLESS(trmem != nullptr, ResultOutOfResource);
 
-    auto& handle_table = kernel.CurrentProcess()->GetHandleTable();
-    const auto result{handle_table.Create(transfer_mem_handle.get())};
-    if (result.Failed()) {
-        return result.Code();
-    }
+    // Ensure the only reference is in the handle table when we're done.
+    SCOPE_EXIT({ trmem->Close(); });
+
+    // Ensure that the region is in range.
+    R_UNLESS(process.PageTable().Contains(address, size), ResultInvalidCurrentMemory);
+
+    // Initialize the transfer memory.
+    R_TRY(trmem->Initialize(address, size, map_perm));
+
+    // Commit the reservation.
     trmem_reservation.Commit();
 
-    *handle = *result;
+    // Register the transfer memory.
+    KTransferMemory::Register(kernel, trmem);
+
+    // Add the transfer memory to the handle table.
+    R_TRY(handle_table.Add(out, trmem));
+
     return RESULT_SUCCESS;
 }
 
-static ResultCode CreateTransferMemory32(Core::System& system, Handle* handle, u32 addr, u32 size,
-                                         u32 permissions) {
-    return CreateTransferMemory(system, handle, addr, size, permissions);
+static ResultCode CreateTransferMemory32(Core::System& system, Handle* out, u32 address, u32 size,
+                                         MemoryPermission map_perm) {
+    return CreateTransferMemory(system, out, address, size, map_perm);
 }
 
 static ResultCode GetThreadCoreMask(Core::System& system, Handle thread_handle, s32* out_core_id,

@@ -59,7 +59,8 @@ ResultVal<Handle> HandleTable::Create(Object* obj) {
     case HandleType::WritableEvent:
     case HandleType::ClientSession:
     case HandleType::ServerSession:
-    case HandleType::Session: {
+    case HandleType::Session:
+    case HandleType::TransferMemory: {
         Handle handle{};
         Add(&handle, reinterpret_cast<KAutoObject*>(obj), {});
         return MakeResult<Handle>(handle);

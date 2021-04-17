@@ -16,10 +16,10 @@
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_readable_event.h"
+#include "core/hle/kernel/k_transfer_memory.h"
 #include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/transfer_memory.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applet_ae.h"
@@ -42,6 +42,7 @@
 #include "core/hle/service/set/set.h"
 #include "core/hle/service/sm/sm.h"
 #include "core/hle/service/vi/vi.h"
+#include "core/memory.h"
 
 namespace Service::AM {
 
@@ -1248,16 +1249,16 @@ void ILibraryAppletCreator::CreateHandleStorage(Kernel::HLERequestContext& ctx) 
     }
 
     auto transfer_mem =
-        system.CurrentProcess()->GetHandleTable().Get<Kernel::TransferMemory>(handle);
+        system.CurrentProcess()->GetHandleTable().GetObject<Kernel::KTransferMemory>(handle);
 
-    if (transfer_mem == nullptr) {
+    if (transfer_mem.IsNull()) {
         LOG_ERROR(Service_AM, "transfer_mem is a nullptr for handle={:08X}", handle);
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_UNKNOWN);
         return;
     }
 
-    const u8* const mem_begin = transfer_mem->GetPointer();
+    const u8* const mem_begin = system.Memory().GetPointer(transfer_mem->GetSourceAddress());
     const u8* const mem_end = mem_begin + transfer_mem->GetSize();
     std::vector<u8> memory{mem_begin, mem_end};
 

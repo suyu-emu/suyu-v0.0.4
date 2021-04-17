@@ -273,11 +273,12 @@ void SvcWrap64(Core::System& system) {
     FuncReturn(system, retval);
 }
 
-template <ResultCode func(Core::System&, u32*, u64, u64, u32)>
+// Used by CreateTransferMemory
+template <ResultCode func(Core::System&, Handle*, u64, u64, Svc::MemoryPermission)>
 void SvcWrap64(Core::System& system) {
     u32 param_1 = 0;
     const u32 retval = func(system, &param_1, Param(system, 1), Param(system, 2),
-                            static_cast<u32>(Param(system, 3)))
+                            static_cast<Svc::MemoryPermission>(Param(system, 3)))
                            .raw;
 
     system.CurrentArmInterface().SetReg(1, param_1);
@@ -586,11 +587,12 @@ void SvcWrap32(Core::System& system) {
 }
 
 // Used by CreateTransferMemory32
-template <ResultCode func(Core::System&, Handle*, u32, u32, u32)>
+template <ResultCode func(Core::System&, Handle*, u32, u32, Svc::MemoryPermission)>
 void SvcWrap32(Core::System& system) {
     Handle handle = 0;
-    const u32 retval =
-        func(system, &handle, Param32(system, 1), Param32(system, 2), Param32(system, 3)).raw;
+    const u32 retval = func(system, &handle, Param32(system, 1), Param32(system, 2),
+                            static_cast<Svc::MemoryPermission>(Param32(system, 3)))
+                           .raw;
     system.CurrentArmInterface().SetReg(1, handle);
     FuncReturn(system, retval);
 }
