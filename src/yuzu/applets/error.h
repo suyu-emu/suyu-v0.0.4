@@ -24,7 +24,7 @@ public:
                              std::function<void()> finished) const override;
 
 signals:
-    void MainWindowDisplayError(QString error) const;
+    void MainWindowDisplayError(QString error_code, QString error_text) const;
 
 private:
     void MainWindowFinishedError();

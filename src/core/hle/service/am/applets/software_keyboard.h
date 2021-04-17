@@ -1,20 +1,14 @@
-// Copyright 2018 yuzu emulator team
+// Copyright 2021 yuzu Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
 #pragma once
 
-#include <array>
-#include <string>
-#include <vector>
-
 #include "common/common_funcs.h"
 #include "common/common_types.h"
-#include "common/swap.h"
-#include "core/hle/service/am/am.h"
+#include "core/hle/result.h"
 #include "core/hle/service/am/applets/applets.h"
-
-union ResultCode;
+#include "core/hle/service/am/applets/software_keyboard_types.h"
 
 namespace Core {
 class System;
@@ -22,45 +16,10 @@ class System;
 
 namespace Service::AM::Applets {
 
-enum class KeysetDisable : u32 {
-    Space = 0x02,
-    Address = 0x04,
-    Percent = 0x08,
-    Slashes = 0x10,
-    Numbers = 0x40,
-    DownloadCode = 0x80,
-};
-
-struct KeyboardConfig {
-    INSERT_PADDING_BYTES(4);
-    std::array<char16_t, 9> submit_text;
-    u16_le left_symbol_key;
-    u16_le right_symbol_key;
-    INSERT_PADDING_BYTES(1);
-    KeysetDisable keyset_disable_bitmask;
-    u32_le initial_cursor_position;
-    std::array<char16_t, 65> header_text;
-    std::array<char16_t, 129> sub_text;
-    std::array<char16_t, 257> guide_text;
-    u32_le length_limit;
-    INSERT_PADDING_BYTES(4);
-    u32_le is_password;
-    INSERT_PADDING_BYTES(5);
-    bool utf_8;
-    bool draw_background;
-    u32_le initial_string_offset;
-    u32_le initial_string_size;
-    u32_le user_dictionary_offset;
-    u32_le user_dictionary_size;
-    bool text_check;
-    u64_le text_check_callback;
-};
-static_assert(sizeof(KeyboardConfig) == 0x3E0, "KeyboardConfig has incorrect size.");
-
 class SoftwareKeyboard final : public Applet {
 public:
-    explicit SoftwareKeyboard(Core::System& system_,
-                              const Core::Frontend::SoftwareKeyboardApplet& frontend_);
+    explicit SoftwareKeyboard(Core::System& system_, LibraryAppletMode applet_mode_,
+                              Core::Frontend::SoftwareKeyboardApplet& frontend_);
     ~SoftwareKeyboard() override;
 
     void Initialize() override;
@@ -70,17 +29,139 @@ public:
     void ExecuteInteractive() override;
     void Execute() override;
 
-    void WriteText(std::optional<std::u16string> text);
+    /**
+     * Submits the input text to the application.
+     * If text checking is enabled, the application will verify the input text.
+     * If use_utf8 is enabled, the input text will be converted to UTF-8 prior to being submitted.
+     * This should only be used by the normal software keyboard.
+     *
+     * @param result SwkbdResult enum
+     * @param submitted_text UTF-16 encoded string
+     */
+    void SubmitTextNormal(SwkbdResult result, std::u16string submitted_text);
+
+    /**
+     * Submits the input text to the application.
+     * If utf8_mode is enabled, the input text will be converted to UTF-8 prior to being submitted.
+     * This should only be used by the inline software keyboard.
+     *
+     * @param reply_type SwkbdReplyType enum
+     * @param submitted_text UTF-16 encoded string
+     * @param cursor_position The current position of the text cursor
+     */
+    void SubmitTextInline(SwkbdReplyType reply_type, std::u16string submitted_text,
+                          s32 cursor_position);
 
 private:
-    const Core::Frontend::SoftwareKeyboardApplet& frontend;
+    /// Initializes the normal software keyboard.
+    void InitializeForeground();
 
-    KeyboardConfig config;
-    std::u16string initial_text;
-    bool complete = false;
-    bool is_inline = false;
-    std::vector<u8> final_data;
+    /// Initializes the inline software keyboard.
+    void InitializeBackground(LibraryAppletMode applet_mode);
+
+    /// Processes the text check sent by the application.
+    void ProcessTextCheck();
+
+    /// Processes the inline software keyboard request command sent by the application.
+    void ProcessInlineKeyboardRequest();
+
+    /// Submits the input text and exits the applet.
+    void SubmitNormalOutputAndExit(SwkbdResult result, std::u16string submitted_text);
+
+    /// Submits the input text for text checking.
+    void SubmitForTextCheck(std::u16string submitted_text);
+
+    /// Sends a reply to the application after processing a request command.
+    void SendReply(SwkbdReplyType reply_type);
+
+    /// Changes the inline keyboard state.
+    void ChangeState(SwkbdState state);
+
+    /**
+     * Signals the frontend to initialize the software keyboard with common parameters.
+     * This initializes either the normal software keyboard or the inline software keyboard
+     * depending on the state of is_background.
+     * Note that this does not cause the keyboard to appear.
+     * Use the respective Show*Keyboard() functions to cause the respective keyboards to appear.
+     */
+    void InitializeFrontendKeyboard();
+
+    /// Signals the frontend to show the normal software keyboard.
+    void ShowNormalKeyboard();
+
+    /// Signals the frontend to show the text check dialog.
+    void ShowTextCheckDialog(SwkbdTextCheckResult text_check_result,
+                             std::u16string text_check_message);
+
+    /// Signals the frontend to show the inline software keyboard.
+    void ShowInlineKeyboard();
+
+    /// Signals the frontend to hide the inline software keyboard.
+    void HideInlineKeyboard();
+
+    /// Signals the frontend that the current inline keyboard text has changed.
+    void InlineTextChanged();
+
+    /// Signals both the frontend and application that the software keyboard is exiting.
+    void ExitKeyboard();
+
+    // Inline Software Keyboard Requests
+
+    void RequestFinalize(const std::vector<u8>& request_data);
+    void RequestSetUserWordInfo(const std::vector<u8>& request_data);
+    void RequestSetCustomizeDic(const std::vector<u8>& request_data);
+    void RequestCalc(const std::vector<u8>& request_data);
+    void RequestSetCustomizedDictionaries(const std::vector<u8>& request_data);
+    void RequestUnsetCustomizedDictionaries(const std::vector<u8>& request_data);
+    void RequestSetChangedStringV2Flag(const std::vector<u8>& request_data);
+    void RequestSetMovedCursorV2Flag(const std::vector<u8>& request_data);
+
+    // Inline Software Keyboard Replies
+
+    void ReplyFinishedInitialize();
+    void ReplyDefault();
+    void ReplyChangedString();
+    void ReplyMovedCursor();
+    void ReplyMovedTab();
+    void ReplyDecidedEnter();
+    void ReplyDecidedCancel();
+    void ReplyChangedStringUtf8();
+    void ReplyMovedCursorUtf8();
+    void ReplyDecidedEnterUtf8();
+    void ReplyUnsetCustomizeDic();
+    void ReplyReleasedUserWordInfo();
+    void ReplyUnsetCustomizedDictionaries();
+    void ReplyChangedStringV2();
+    void ReplyMovedCursorV2();
+    void ReplyChangedStringUtf8V2();
+    void ReplyMovedCursorUtf8V2();
+
+    LibraryAppletMode applet_mode;
+    Core::Frontend::SoftwareKeyboardApplet& frontend;
     Core::System& system;
+
+    SwkbdAppletVersion swkbd_applet_version;
+
+    SwkbdConfigCommon swkbd_config_common;
+    SwkbdConfigOld swkbd_config_old;
+    SwkbdConfigOld2 swkbd_config_old2;
+    SwkbdConfigNew swkbd_config_new;
+    std::u16string initial_text;
+
+    SwkbdState swkbd_state{SwkbdState::NotInitialized};
+    SwkbdInitializeArg swkbd_initialize_arg;
+    SwkbdCalcArg swkbd_calc_arg;
+    bool use_changed_string_v2{false};
+    bool use_moved_cursor_v2{false};
+    bool inline_use_utf8{false};
+    s32 current_cursor_position{};
+
+    std::u16string current_text;
+
+    bool is_background{false};
+
+    bool complete{false};
+    ResultCode status{RESULT_SUCCESS};
 };
 
 } // namespace Service::AM::Applets

@@ -12,7 +12,9 @@ InputInterpreter::InputInterpreter(Core::System& system)
     : npad{system.ServiceManager()
                .GetService<Service::HID::Hid>("hid")
                ->GetAppletResource()
-               ->GetController<Service::HID::Controller_NPad>(Service::HID::HidController::NPad)} {}
+               ->GetController<Service::HID::Controller_NPad>(Service::HID::HidController::NPad)} {
+    ResetButtonStates();
+}
 
 InputInterpreter::~InputInterpreter() = default;
 
@@ -23,6 +25,17 @@ void InputInterpreter::PollInput() {
     current_index = (current_index + 1) % button_states.size();
 
     button_states[current_index] = button_state;
+}
+
+void InputInterpreter::ResetButtonStates() {
+    previous_index = 0;
+    current_index = 0;
+
+    button_states[0] = 0xFFFFFFFF;
+
+    for (std::size_t i = 1; i < button_states.size(); ++i) {
+        button_states[i] = 0;
+    }
 }
 
 bool InputInterpreter::IsButtonPressed(HIDButton button) const {

@@ -45,8 +45,9 @@ static Core::Frontend::ControllerParameters ConvertToFrontendParameters(
     };
 }
 
-Controller::Controller(Core::System& system_, const Core::Frontend::ControllerApplet& frontend_)
-    : Applet{system_.Kernel()}, frontend{frontend_}, system{system_} {}
+Controller::Controller(Core::System& system_, LibraryAppletMode applet_mode_,
+                       const Core::Frontend::ControllerApplet& frontend_)
+    : Applet{system_.Kernel()}, applet_mode{applet_mode_}, frontend{frontend_}, system{system_} {}
 
 Controller::~Controller() = default;
 

@@ -208,8 +208,9 @@ void ExtractSharedFonts(Core::System& system) {
 
 } // namespace
 
-WebBrowser::WebBrowser(Core::System& system_, const Core::Frontend::WebBrowserApplet& frontend_)
-    : Applet{system_.Kernel()}, frontend(frontend_), system{system_} {}
+WebBrowser::WebBrowser(Core::System& system_, LibraryAppletMode applet_mode_,
+                       const Core::Frontend::WebBrowserApplet& frontend_)
+    : Applet{system_.Kernel()}, applet_mode{applet_mode_}, frontend(frontend_), system{system_} {}
 
 WebBrowser::~WebBrowser() = default;
 

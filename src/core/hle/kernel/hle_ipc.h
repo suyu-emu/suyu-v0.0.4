@@ -210,6 +210,14 @@ public:
     /// Helper function to test whether the output buffer at buffer_index can be written
     bool CanWriteBuffer(std::size_t buffer_index = 0) const;
 
+    Handle GetCopyHandle(std::size_t index) const {
+        return copy_handles.at(index);
+    }
+
+    Handle GetMoveHandle(std::size_t index) const {
+        return move_handles.at(index);
+    }
+
     template <typename T>
     std::shared_ptr<T> GetCopyObject(std::size_t index) {
         return DynamicObjectCast<T>(copy_objects.at(index));
@@ -285,6 +293,8 @@ private:
     std::shared_ptr<Kernel::ServerSession> server_session;
     std::shared_ptr<KThread> thread;
     // TODO(yuriks): Check common usage of this and optimize size accordingly
+    boost::container::small_vector<Handle, 8> move_handles;
+    boost::container::small_vector<Handle, 8> copy_handles;
     boost::container::small_vector<std::shared_ptr<Object>, 8> move_objects;
     boost::container::small_vector<std::shared_ptr<Object>, 8> copy_objects;
     boost::container::small_vector<std::shared_ptr<SessionRequestHandler>, 8> domain_objects;

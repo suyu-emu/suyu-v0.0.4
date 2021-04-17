@@ -18,6 +18,7 @@ add_executable(yuzu
     applets/profile_select.h
     applets/software_keyboard.cpp
     applets/software_keyboard.h
+    applets/software_keyboard.ui
     applets/web_browser.cpp
     applets/web_browser.h
     bootmanager.cpp
@@ -143,6 +144,9 @@ add_executable(yuzu
     uisettings.h
     util/limitable_input_dialog.cpp
     util/limitable_input_dialog.h
+    util/overlay_dialog.cpp
+    util/overlay_dialog.h
+    util/overlay_dialog.ui
     util/sequence_dialog/sequence_dialog.cpp
     util/sequence_dialog/sequence_dialog.h
     util/url_request_interceptor.cpp

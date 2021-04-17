@@ -106,7 +106,8 @@ static_assert(sizeof(ControllerSupportResultInfo) == 0xC,
 
 class Controller final : public Applet {
 public:
-    explicit Controller(Core::System& system_, const Core::Frontend::ControllerApplet& frontend_);
+    explicit Controller(Core::System& system_, LibraryAppletMode applet_mode_,
+                        const Core::Frontend::ControllerApplet& frontend_);
     ~Controller() override;
 
     void Initialize() override;
@@ -119,6 +120,7 @@ public:
     void ConfigurationComplete();
 
 private:
+    LibraryAppletMode applet_mode;
     const Core::Frontend::ControllerApplet& frontend;
     Core::System& system;
 
