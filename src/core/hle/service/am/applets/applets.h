@@ -127,7 +127,7 @@ private:
 
 class Applet {
 public:
-    explicit Applet(Kernel::KernelCore& kernel_);
+    explicit Applet(Kernel::KernelCore& kernel_, LibraryAppletMode applet_mode_);
     virtual ~Applet();
 
     virtual void Initialize();
@@ -137,16 +137,20 @@ public:
     virtual void ExecuteInteractive() = 0;
     virtual void Execute() = 0;
 
-    bool IsInitialized() const {
-        return initialized;
-    }
-
     AppletDataBroker& GetBroker() {
         return broker;
     }
 
     const AppletDataBroker& GetBroker() const {
         return broker;
+    }
+
+    LibraryAppletMode GetLibraryAppletMode() const {
+        return applet_mode;
+    }
+
+    bool IsInitialized() const {
+        return initialized;
     }
 
 protected:
@@ -162,6 +166,7 @@ protected:
 
     CommonArguments common_args{};
     AppletDataBroker broker;
+    LibraryAppletMode applet_mode;
     bool initialized = false;
 };
 

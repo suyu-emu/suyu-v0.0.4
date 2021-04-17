@@ -33,7 +33,6 @@ public:
     void AuthFinished(bool is_successful = true);
 
 private:
-    LibraryAppletMode applet_mode;
     Core::Frontend::ParentalControlsApplet& frontend;
     Core::System& system;
     bool complete = false;
@@ -65,7 +64,6 @@ public:
     void ViewFinished();
 
 private:
-    LibraryAppletMode applet_mode;
     const Core::Frontend::PhotoViewerApplet& frontend;
     bool complete = false;
     PhotoViewerAppletMode mode = PhotoViewerAppletMode::CurrentApp;
@@ -86,7 +84,6 @@ public:
 
 private:
     AppletId id;
-    LibraryAppletMode applet_mode;
     Core::System& system;
 };
 

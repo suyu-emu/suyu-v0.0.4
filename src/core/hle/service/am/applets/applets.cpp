@@ -128,7 +128,8 @@ std::shared_ptr<Kernel::KReadableEvent> AppletDataBroker::GetStateChangedEvent()
     return state_changed_event->GetReadableEvent();
 }
 
-Applet::Applet(Kernel::KernelCore& kernel_) : broker{kernel_} {}
+Applet::Applet(Kernel::KernelCore& kernel_, LibraryAppletMode applet_mode_)
+    : broker{kernel_}, applet_mode{applet_mode_} {}
 
 Applet::~Applet() = default;
 

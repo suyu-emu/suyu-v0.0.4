@@ -39,7 +39,7 @@ static void LogCurrentStorage(AppletDataBroker& broker, std::string_view prefix)
 
 Auth::Auth(Core::System& system_, LibraryAppletMode applet_mode_,
            Core::Frontend::ParentalControlsApplet& frontend_)
-    : Applet{system_.Kernel()}, applet_mode{applet_mode_}, frontend{frontend_}, system{system_} {}
+    : Applet{system_.Kernel(), applet_mode_}, frontend{frontend_}, system{system_} {}
 
 Auth::~Auth() = default;
 
@@ -155,7 +155,7 @@ void Auth::AuthFinished(bool is_successful) {
 
 PhotoViewer::PhotoViewer(Core::System& system_, LibraryAppletMode applet_mode_,
                          const Core::Frontend::PhotoViewerApplet& frontend_)
-    : Applet{system_.Kernel()}, applet_mode{applet_mode_}, frontend{frontend_}, system{system_} {}
+    : Applet{system_.Kernel(), applet_mode_}, frontend{frontend_}, system{system_} {}
 
 PhotoViewer::~PhotoViewer() = default;
 
@@ -205,7 +205,7 @@ void PhotoViewer::ViewFinished() {
 }
 
 StubApplet::StubApplet(Core::System& system_, AppletId id_, LibraryAppletMode applet_mode_)
-    : Applet{system_.Kernel()}, id{id_}, applet_mode{applet_mode_}, system{system_} {}
+    : Applet{system_.Kernel(), applet_mode_}, id{id_}, system{system_} {}
 
 StubApplet::~StubApplet() = default;
 
