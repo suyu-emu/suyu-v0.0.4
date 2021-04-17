@@ -17,6 +17,8 @@
 #include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/server_session.h"
 #include "core/hle/service/am/am.h"
+#include "core/hle/service/am/applet_ae.h"
+#include "core/hle/service/am/applet_oe.h"
 #include "core/hle/service/am/applets/applets.h"
 #include "core/hle/service/am/applets/controller.h"
 #include "core/hle/service/am/applets/error.h"
@@ -24,17 +26,20 @@
 #include "core/hle/service/am/applets/profile_select.h"
 #include "core/hle/service/am/applets/software_keyboard.h"
 #include "core/hle/service/am/applets/web_browser.h"
+#include "core/hle/service/sm/sm.h"
 
 namespace Service::AM::Applets {
 
-AppletDataBroker::AppletDataBroker(Kernel::KernelCore& kernel) {
+AppletDataBroker::AppletDataBroker(Core::System& system_, LibraryAppletMode applet_mode_)
+    : system{system_}, applet_mode{applet_mode_} {
     state_changed_event =
-        Kernel::KEvent::Create(kernel, "ILibraryAppletAccessor:StateChangedEvent");
+        Kernel::KEvent::Create(system.Kernel(), "ILibraryAppletAccessor:StateChangedEvent");
     state_changed_event->Initialize();
-    pop_out_data_event = Kernel::KEvent::Create(kernel, "ILibraryAppletAccessor:PopDataOutEvent");
+    pop_out_data_event =
+        Kernel::KEvent::Create(system.Kernel(), "ILibraryAppletAccessor:PopDataOutEvent");
     pop_out_data_event->Initialize();
-    pop_interactive_out_data_event =
-        Kernel::KEvent::Create(kernel, "ILibraryAppletAccessor:PopInteractiveDataOutEvent");
+    pop_interactive_out_data_event = Kernel::KEvent::Create(
+        system.Kernel(), "ILibraryAppletAccessor:PopInteractiveDataOutEvent");
     pop_interactive_out_data_event->Initialize();
 }
 
@@ -114,6 +119,27 @@ void AppletDataBroker::PushInteractiveDataFromApplet(std::shared_ptr<IStorage>&&
 
 void AppletDataBroker::SignalStateChanged() const {
     state_changed_event->GetWritableEvent()->Signal();
+
+    switch (applet_mode) {
+    case LibraryAppletMode::AllForeground:
+    case LibraryAppletMode::AllForegroundInitiallyHidden: {
+        auto applet_oe = system.ServiceManager().GetService<AppletOE>("appletOE");
+        auto applet_ae = system.ServiceManager().GetService<AppletAE>("appletAE");
+
+        if (applet_oe) {
+            applet_oe->GetMessageQueue()->FocusStateChanged();
+            break;
+        }
+
+        if (applet_ae) {
+            applet_ae->GetMessageQueue()->FocusStateChanged();
+            break;
+        }
+        break;
+    }
+    default:
+        break;
+    }
 }
 
 std::shared_ptr<Kernel::KReadableEvent> AppletDataBroker::GetNormalDataEvent() const {
@@ -128,7 +154,8 @@ std::shared_ptr<Kernel::KReadableEvent> AppletDataBroker::GetStateChangedEvent()
     return state_changed_event->GetReadableEvent();
 }
 
-Applet::Applet(Kernel::KernelCore& kernel_) : broker{kernel_} {}
+Applet::Applet(Core::System& system_, LibraryAppletMode applet_mode_)
+    : broker{system_, applet_mode_}, applet_mode{applet_mode_} {}
 
 Applet::~Applet() = default;
 

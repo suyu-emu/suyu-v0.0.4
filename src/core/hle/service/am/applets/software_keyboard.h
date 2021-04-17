@@ -136,7 +136,6 @@ private:
     void ReplyChangedStringUtf8V2();
     void ReplyMovedCursorUtf8V2();
 
-    LibraryAppletMode applet_mode;
     Core::Frontend::SoftwareKeyboardApplet& frontend;
     Core::System& system;
 

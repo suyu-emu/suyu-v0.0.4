@@ -64,7 +64,6 @@ private:
     void ExecuteWifi();
     void ExecuteLobby();
 
-    LibraryAppletMode applet_mode;
     const Core::Frontend::WebBrowserApplet& frontend;
 
     bool complete{false};

@@ -61,8 +61,9 @@ public:
     void PushMessage(AppletMessage msg);
     AppletMessage PopMessage();
     std::size_t GetMessageCount() const;
-    void OperationModeChanged();
     void RequestExit();
+    void FocusStateChanged();
+    void OperationModeChanged();
 
 private:
     std::queue<AppletMessage> messages;

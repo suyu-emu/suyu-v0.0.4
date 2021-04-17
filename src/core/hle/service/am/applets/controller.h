@@ -120,7 +120,6 @@ public:
     void ConfigurationComplete();
 
 private:
-    LibraryAppletMode applet_mode;
     const Core::Frontend::ControllerApplet& frontend;
     Core::System& system;
 

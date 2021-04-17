@@ -44,7 +44,7 @@ void SetReplyBase(std::vector<u8>& reply, SwkbdState state, SwkbdReplyType reply
 
 SoftwareKeyboard::SoftwareKeyboard(Core::System& system_, LibraryAppletMode applet_mode_,
                                    Core::Frontend::SoftwareKeyboardApplet& frontend_)
-    : Applet{system_.Kernel()}, applet_mode{applet_mode_}, frontend{frontend_}, system{system_} {}
+    : Applet{system_, applet_mode_}, frontend{frontend_}, system{system_} {}
 
 SoftwareKeyboard::~SoftwareKeyboard() = default;
 

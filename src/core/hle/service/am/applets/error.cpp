@@ -88,7 +88,7 @@ ResultCode Decode64BitError(u64 error) {
 
 Error::Error(Core::System& system_, LibraryAppletMode applet_mode_,
              const Core::Frontend::ErrorApplet& frontend_)
-    : Applet{system_.Kernel()}, applet_mode{applet_mode_}, frontend{frontend_}, system{system_} {}
+    : Applet{system_, applet_mode_}, frontend{frontend_}, system{system_} {}
 
 Error::~Error() = default;
 

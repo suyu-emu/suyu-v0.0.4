@@ -47,7 +47,6 @@ public:
     void SelectionComplete(std::optional<Common::UUID> uuid);
 
 private:
-    LibraryAppletMode applet_mode;
     const Core::Frontend::ProfileSelectApplet& frontend;
 
     UserSelectionConfig config;

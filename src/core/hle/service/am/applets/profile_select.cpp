@@ -17,7 +17,7 @@ constexpr ResultCode ERR_USER_CANCELLED_SELECTION{ErrorModule::Account, 1};
 
 ProfileSelect::ProfileSelect(Core::System& system_, LibraryAppletMode applet_mode_,
                              const Core::Frontend::ProfileSelectApplet& frontend_)
-    : Applet{system_.Kernel()}, applet_mode{applet_mode_}, frontend{frontend_}, system{system_} {}
+    : Applet{system_, applet_mode_}, frontend{frontend_}, system{system_} {}
 
 ProfileSelect::~ProfileSelect() = default;
 

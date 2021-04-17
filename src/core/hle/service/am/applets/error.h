@@ -41,7 +41,6 @@ public:
 private:
     union ErrorArguments;
 
-    LibraryAppletMode applet_mode;
     const Core::Frontend::ErrorApplet& frontend;
     ResultCode error_code = RESULT_SUCCESS;
     ErrorAppletMode mode = ErrorAppletMode::ShowError;
