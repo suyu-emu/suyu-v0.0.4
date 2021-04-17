@@ -72,7 +72,7 @@ enum class LibraryAppletMode : u32 {
 
 class AppletDataBroker final {
 public:
-    explicit AppletDataBroker(Kernel::KernelCore& kernel_);
+    explicit AppletDataBroker(Core::System& system_, LibraryAppletMode applet_mode_);
     ~AppletDataBroker();
 
     struct RawChannelData {
@@ -102,6 +102,9 @@ public:
     std::shared_ptr<Kernel::KReadableEvent> GetStateChangedEvent() const;
 
 private:
+    Core::System& system;
+    LibraryAppletMode applet_mode;
+
     // Queues are named from applet's perspective
 
     // PopNormalDataToApplet and PushNormalDataFromGame
@@ -127,7 +130,7 @@ private:
 
 class Applet {
 public:
-    explicit Applet(Kernel::KernelCore& kernel_, LibraryAppletMode applet_mode_);
+    explicit Applet(Core::System& system_, LibraryAppletMode applet_mode_);
     virtual ~Applet();
 
     virtual void Initialize();

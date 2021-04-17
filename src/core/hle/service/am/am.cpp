@@ -619,14 +619,18 @@ std::size_t AppletMessageQueue::GetMessageCount() const {
     return messages.size();
 }
 
+void AppletMessageQueue::RequestExit() {
+    PushMessage(AppletMessage::ExitRequested);
+}
+
+void AppletMessageQueue::FocusStateChanged() {
+    PushMessage(AppletMessage::FocusStateChanged);
+}
+
 void AppletMessageQueue::OperationModeChanged() {
     PushMessage(AppletMessage::OperationModeChanged);
     PushMessage(AppletMessage::PerformanceModeChanged);
     on_operation_mode_changed->GetWritableEvent()->Signal();
-}
-
-void AppletMessageQueue::RequestExit() {
-    PushMessage(AppletMessage::ExitRequested);
 }
 
 ICommonStateGetter::ICommonStateGetter(Core::System& system_,
