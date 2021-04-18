@@ -46,8 +46,7 @@ add_library(unicorn-headers INTERFACE)
 target_include_directories(unicorn-headers INTERFACE ./unicorn/include)
 
 # SDL2
-if (NOT SDL2_FOUND)
-    set(SDL2_FOUND YES)
+if (NOT SDL2_FOUND AND ENABLE_SDL2)
     add_subdirectory(SDL EXCLUDE_FROM_ALL)
 endif()
 
