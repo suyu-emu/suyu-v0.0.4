@@ -16,7 +16,15 @@
 #include "yuzu_cmd/emu_window/emu_window_sdl2_vk.h"
 
 // Include these late to avoid polluting everything with Xlib macros
+// Ignore -Wimplicit-fallthrough due to https://github.com/libsdl-org/SDL/issues/4307
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wimplicit-fallthrough"
+#endif
 #include <SDL.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 #include <SDL_syswm.h>
 
 EmuWindow_SDL2_VK::EmuWindow_SDL2_VK(InputCommon::InputSubsystem* input_subsystem)
