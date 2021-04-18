@@ -274,17 +274,19 @@ if (ENABLE_SDL2)
         target_link_libraries(SDL2 INTERFACE "${SDL2_LIBRARY}")
         target_include_directories(SDL2 INTERFACE "${SDL2_INCLUDE_DIR}")
     else()
-        find_package(SDL2 REQUIRED)
+        find_package(SDL2 2.0.12)
 
-        # Some installations don't set SDL2_LIBRARIES
-        if("${SDL2_LIBRARIES}" STREQUAL "")
-            message(WARNING "SDL2_LIBRARIES wasn't set, manually setting to SDL2::SDL2")
-            set(SDL2_LIBRARIES "SDL2::SDL2")
+        if(SDL2_FOUND)
+            # Some installations don't set SDL2_LIBRARIES
+            if("${SDL2_LIBRARIES}" STREQUAL "")
+                message(WARNING "SDL2_LIBRARIES wasn't set, manually setting to SDL2::SDL2")
+                set(SDL2_LIBRARIES "SDL2::SDL2")
+            endif()
+
+            include_directories(SYSTEM ${SDL2_INCLUDE_DIRS})
+            add_library(SDL2 INTERFACE)
+            target_link_libraries(SDL2 INTERFACE "${SDL2_LIBRARIES}")
         endif()
-
-        include_directories(SYSTEM ${SDL2_INCLUDE_DIRS})
-        add_library(SDL2 INTERFACE)
-        target_link_libraries(SDL2 INTERFACE "${SDL2_LIBRARIES}")
     endif()
 else()
     set(SDL2_FOUND NO)

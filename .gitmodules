@@ -40,3 +40,6 @@
 [submodule "ffmpeg"]
 	path = externals/ffmpeg
 	url = https://git.ffmpeg.org/ffmpeg.git
+[submodule "SDL"]
+	path = externals/SDL
+	url = https://github.com/libsdl-org/SDL.git
