@@ -430,65 +430,41 @@ static ResultCode GetProcessId32(Core::System& system, u32* out_process_id_low,
 
 /// Wait for the given handles to synchronize, timeout after the specified nanoseconds
 static ResultCode WaitSynchronization(Core::System& system, s32* index, VAddr handles_address,
-                                      u64 handle_count, s64 nano_seconds) {
-    LOG_TRACE(Kernel_SVC, "called handles_address=0x{:X}, handle_count={}, nano_seconds={}",
-              handles_address, handle_count, nano_seconds);
+                                      u64 num_handles, s64 nano_seconds) {
+    LOG_TRACE(Kernel_SVC, "called handles_address=0x{:X}, num_handles={}, nano_seconds={}",
+              handles_address, num_handles, nano_seconds);
 
-    auto& memory = system.Memory();
-    if (!memory.IsValidVirtualAddress(handles_address)) {
-        LOG_ERROR(Kernel_SVC,
-                  "Handle address is not a valid virtual address, handle_address=0x{:016X}",
-                  handles_address);
-        return ResultInvalidPointer;
-    }
-
-    static constexpr u64 MaxHandles = 0x40;
-
-    if (handle_count > MaxHandles) {
-        LOG_ERROR(Kernel_SVC, "Handle count specified is too large, expected {} but got {}",
-                  MaxHandles, handle_count);
-        return ResultOutOfRange;
-    }
+    // Ensure number of handles is valid.
+    R_UNLESS(0 <= num_handles && num_handles <= ArgumentHandleCountMax, ResultOutOfRange);
 
     auto& kernel = system.Kernel();
-    std::vector<KSynchronizationObject*> objects(handle_count);
+    std::vector<KSynchronizationObject*> objs(num_handles);
     const auto& handle_table = kernel.CurrentProcess()->GetHandleTable();
+    Handle* handles = system.Memory().GetPointer<Handle>(handles_address);
 
-    for (u64 i = 0; i < handle_count; ++i) {
-        const Handle handle = memory.Read32(handles_address + i * sizeof(Handle));
-
-        bool succeeded{};
-        {
-            auto object = handle_table.Get<KSynchronizationObject>(handle);
-            if (object) {
-                objects[i] = object;
-                succeeded = true;
-            }
-        }
-
-        // TODO(bunnei): WORKAROUND WHILE WE HAVE TWO HANDLE TABLES
-        if (!succeeded) {
-            {
-                auto object = handle_table.GetObject<KSynchronizationObject>(handle);
-
-                if (object.IsNull()) {
-                    LOG_ERROR(Kernel_SVC, "Object is a nullptr");
-                    return ResultInvalidHandle;
-                }
-
-                objects[i] = object.GetPointerUnsafe();
-                succeeded = true;
-            }
-        }
+    // Copy user handles.
+    if (num_handles > 0) {
+        // Convert the handles to objects.
+        R_UNLESS(handle_table.GetMultipleObjects<KSynchronizationObject>(objs.data(), handles,
+                                                                         num_handles),
+                 ResultInvalidHandle);
     }
-    return KSynchronizationObject::Wait(kernel, index, objects.data(),
-                                        static_cast<s32>(objects.size()), nano_seconds);
+
+    // Ensure handles are closed when we're done.
+    SCOPE_EXIT({
+        for (u64 i = 0; i < num_handles; ++i) {
+            objs[i]->Close();
+        }
+    });
+
+    return KSynchronizationObject::Wait(kernel, index, objs.data(), static_cast<s32>(objs.size()),
+                                        nano_seconds);
 }
 
 static ResultCode WaitSynchronization32(Core::System& system, u32 timeout_low, u32 handles_address,
-                                        s32 handle_count, u32 timeout_high, s32* index) {
+                                        s32 num_handles, u32 timeout_high, s32* index) {
     const s64 nano_seconds{(static_cast<s64>(timeout_high) << 32) | static_cast<s64>(timeout_low)};
-    return WaitSynchronization(system, index, handles_address, handle_count, nano_seconds);
+    return WaitSynchronization(system, index, handles_address, num_handles, nano_seconds);
 }
 
 /// Resumes a thread waiting on WaitSynchronization

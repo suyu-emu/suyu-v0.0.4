@@ -10,6 +10,7 @@
 
 #include "common/common_types.h"
 #include "core/hle/kernel/k_auto_object.h"
+#include "core/hle/kernel/k_spin_lock.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/result.h"
@@ -111,6 +112,16 @@ public:
     }
 
     template <typename T = KAutoObject>
+    KAutoObject* GetObjectImpl(Handle handle) const {
+        if (!IsValid(handle)) {
+            return nullptr;
+        }
+
+        auto* obj = objects_new[static_cast<u16>(handle >> 15)];
+        return obj->DynamicCast<T*>();
+    }
+
+    template <typename T = KAutoObject>
     KScopedAutoObject<T> GetObject(Handle handle) const {
         if (handle == CurrentThread) {
             return kernel.CurrentScheduler()->GetCurrentThread()->DynamicCast<T*>();
@@ -148,6 +159,48 @@ public:
 
     ResultCode Add(Handle* out_handle, KAutoObject* obj, u16 type);
 
+    template <typename T>
+    bool GetMultipleObjects(T** out, const Handle* handles, size_t num_handles) const {
+        // Try to convert and open all the handles.
+        size_t num_opened;
+        {
+            // Lock the table.
+            KScopedSpinLock lk(lock);
+            for (num_opened = 0; num_opened < num_handles; num_opened++) {
+                // Get the current handle.
+                const auto cur_handle = handles[num_opened];
+
+                // Get the object for the current handle.
+                KAutoObject* cur_object = this->GetObjectImpl(cur_handle);
+                if (cur_object == nullptr) {
+                    break;
+                }
+
+                // Cast the current object to the desired type.
+                T* cur_t = cur_object->DynamicCast<T*>();
+                if (cur_t == nullptr) {
+                    break;
+                }
+
+                // Open a reference to the current object.
+                cur_t->Open();
+                out[num_opened] = cur_t;
+            }
+        }
+
+        // If we converted every object, succeed.
+        if (num_opened == num_handles) {
+            return true;
+        }
+
+        // If we didn't convert entry object, close the ones we opened.
+        for (size_t i = 0; i < num_opened; i++) {
+            out[i]->Close();
+        }
+
+        return false;
+    }
+
 private:
     /// Stores the Object referenced by the handle or null if the slot is empty.
     std::array<std::shared_ptr<Object>, MAX_COUNT> objects;
@@ -174,6 +227,8 @@ private:
 
     /// Head of the free slots linked list.
     u16 next_free_slot = 0;
+
+    mutable KSpinLock lock;
 
     /// Underlying kernel instance that this handle table operates under.
     KernelCore& kernel;
