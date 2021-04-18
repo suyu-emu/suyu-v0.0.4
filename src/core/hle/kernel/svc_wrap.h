@@ -252,11 +252,13 @@ void SvcWrap64(Core::System& system) {
                            .raw);
 }
 
-template <ResultCode func(Core::System&, u64*, u64, u64, u64)>
+// Used by GetInfo
+template <ResultCode func(Core::System&, u64*, u64, Handle, u64)>
 void SvcWrap64(Core::System& system) {
     u64 param_1 = 0;
-    const u32 retval =
-        func(system, &param_1, Param(system, 1), Param(system, 2), Param(system, 3)).raw;
+    const u32 retval = func(system, &param_1, Param(system, 1),
+                            static_cast<Handle>(Param(system, 2)), Param(system, 3))
+                           .raw;
 
     system.CurrentArmInterface().SetReg(1, param_1);
     FuncReturn(system, retval);

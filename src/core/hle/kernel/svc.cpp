@@ -686,7 +686,7 @@ static void OutputDebugString(Core::System& system, VAddr address, u64 len) {
 }
 
 /// Gets system/memory information for the current process
-static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 handle,
+static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, Handle handle,
                           u64 info_sub_id) {
     std::lock_guard lock{HLE::g_hle_lock};
     LOG_TRACE(Kernel_SVC, "called info_id=0x{:X}, info_sub_id=0x{:X}, handle=0x{:08X}", info_id,
@@ -752,10 +752,9 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
             return ResultInvalidEnumValue;
         }
 
-        const auto& current_process_handle_table =
-            system.Kernel().CurrentProcess()->GetHandleTable();
-        const auto process = current_process_handle_table.Get<Process>(static_cast<Handle>(handle));
-        if (!process) {
+        const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
+        KScopedAutoObject process = handle_table.GetObject<Process>(handle);
+        if (process.IsNull()) {
             LOG_ERROR(Kernel_SVC, "Process is not valid! info_id={}, info_sub_id={}, handle={:08X}",
                       info_id, info_sub_id, handle);
             return ResultInvalidHandle;
@@ -1287,8 +1286,8 @@ static ResultCode QueryProcessMemory(Core::System& system, VAddr memory_info_add
     std::lock_guard lock{HLE::g_hle_lock};
     LOG_TRACE(Kernel_SVC, "called process=0x{:08X} address={:X}", process_handle, address);
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    auto process = handle_table.Get<Process>(process_handle);
-    if (!process) {
+    KScopedAutoObject process = handle_table.GetObject<Process>(process_handle);
+    if (process.IsNull()) {
         LOG_ERROR(Kernel_SVC, "Process handle does not exist, process_handle=0x{:08X}",
                   process_handle);
         return ResultInvalidHandle;
@@ -1369,8 +1368,8 @@ static ResultCode MapProcessCodeMemory(Core::System& system, Handle process_hand
     }
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    auto process = handle_table.Get<Process>(process_handle);
-    if (!process) {
+    KScopedAutoObject process = handle_table.GetObject<Process>(process_handle);
+    if (process.IsNull()) {
         LOG_ERROR(Kernel_SVC, "Invalid process handle specified (handle=0x{:08X}).",
                   process_handle);
         return ResultInvalidHandle;
@@ -1437,8 +1436,8 @@ static ResultCode UnmapProcessCodeMemory(Core::System& system, Handle process_ha
     }
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    auto process = handle_table.Get<Process>(process_handle);
-    if (!process) {
+    KScopedAutoObject process = handle_table.GetObject<Process>(process_handle);
+    if (process.IsNull()) {
         LOG_ERROR(Kernel_SVC, "Invalid process handle specified (handle=0x{:08X}).",
                   process_handle);
         return ResultInvalidHandle;
@@ -2100,8 +2099,8 @@ static ResultCode GetProcessInfo(Core::System& system, u64* out, Handle process_
     };
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    const auto process = handle_table.Get<Process>(process_handle);
-    if (!process) {
+    KScopedAutoObject process = handle_table.GetObject<Process>(process_handle);
+    if (process.IsNull()) {
         LOG_ERROR(Kernel_SVC, "Process handle does not exist, process_handle=0x{:08X}",
                   process_handle);
         return ResultInvalidHandle;
