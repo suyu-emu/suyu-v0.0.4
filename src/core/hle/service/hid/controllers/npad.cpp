@@ -147,7 +147,7 @@ bool Controller_NPad::IsDeviceHandleValid(const DeviceHandle& device_handle) {
            device_handle.device_index < DeviceIndex::MaxDeviceIndex;
 }
 
-Controller_NPad::Controller_NPad(Core::System& system) : ControllerBase(system), system(system) {
+Controller_NPad::Controller_NPad(Core::System& system) : ControllerBase(system) {
     latest_vibration_values.fill({DEFAULT_VIBRATION_VALUE, DEFAULT_VIBRATION_VALUE});
 }
 
