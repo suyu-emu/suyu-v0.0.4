@@ -294,9 +294,10 @@ void Module::Interface::GetClockSnapshot(Kernel::HLERequestContext& ctx) {
         return;
     }
 
+    ctx.WriteBuffer(clock_snapshot);
+
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
-    ctx.WriteBuffer(clock_snapshot);
 }
 
 void Module::Interface::GetClockSnapshotFromSystemClockContext(Kernel::HLERequestContext& ctx) {
