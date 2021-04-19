@@ -157,9 +157,9 @@ class IRegistrar final : public ServiceFramework<IRegistrar> {
     friend class ARP_W;
 
 public:
-    explicit IRegistrar(
-        Core::System& system_,
-        std::function<ResultCode(u64, ApplicationLaunchProperty, std::vector<u8>)> issuer)
+    using IssuerFn = std::function<ResultCode(u64, ApplicationLaunchProperty, std::vector<u8>)>;
+
+    explicit IRegistrar(Core::System& system_, IssuerFn&& issuer)
         : ServiceFramework{system_, "IRegistrar"}, issue_process_id{std::move(issuer)} {
         // clang-format off
         static const FunctionInfo functions[] = {
@@ -238,9 +238,9 @@ private:
         rb.Push(RESULT_SUCCESS);
     }
 
-    std::function<ResultCode(u64, ApplicationLaunchProperty, std::vector<u8>)> issue_process_id;
+    IssuerFn issue_process_id;
     bool issued = false;
-    ApplicationLaunchProperty launch;
+    ApplicationLaunchProperty launch{};
     std::vector<u8> control;
 };
 
