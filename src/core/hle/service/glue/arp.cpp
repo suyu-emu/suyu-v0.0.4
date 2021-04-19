@@ -240,7 +240,7 @@ private:
 
     std::function<ResultCode(u64, ApplicationLaunchProperty, std::vector<u8>)> issue_process_id;
     bool issued = false;
-    ApplicationLaunchProperty launch;
+    ApplicationLaunchProperty launch{};
     std::vector<u8> control;
 };
 
