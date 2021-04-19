@@ -303,7 +303,7 @@ void Module::Interface::GetClockSnapshotFromSystemClockContext(Kernel::HLEReques
     IPC::RequestParser rp{ctx};
     const auto type{rp.PopEnum<Clock::TimeType>()};
 
-    rp.AlignWithPadding();
+    rp.Skip(1, false);
 
     const Clock::SystemClockContext user_context{rp.PopRaw<Clock::SystemClockContext>()};
     const Clock::SystemClockContext network_context{rp.PopRaw<Clock::SystemClockContext>()};
@@ -319,9 +319,10 @@ void Module::Interface::GetClockSnapshotFromSystemClockContext(Kernel::HLEReques
         return;
     }
 
+    ctx.WriteBuffer(clock_snapshot);
+
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
-    ctx.WriteBuffer(clock_snapshot);
 }
 
 void Module::Interface::CalculateStandardUserSystemClockDifferenceByUser(
