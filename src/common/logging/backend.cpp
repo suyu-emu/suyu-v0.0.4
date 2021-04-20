@@ -56,10 +56,10 @@ public:
 
     void RemoveBackend(std::string_view backend_name) {
         std::lock_guard lock{writing_mutex};
-        const auto it =
-            std::remove_if(backends.begin(), backends.end(),
-                           [&backend_name](const auto& i) { return backend_name == i->GetName(); });
-        backends.erase(it, backends.end());
+
+        std::erase_if(backends, [&backend_name](const auto& backend) {
+            return backend_name == backend->GetName();
+        });
     }
 
     const Filter& GetGlobalFilter() const {
@@ -148,12 +148,14 @@ void ColorConsoleBackend::Write(const Entry& entry) {
     PrintColoredMessage(entry);
 }
 
-FileBackend::FileBackend(const std::string& filename) : bytes_written(0) {
-    if (FS::Exists(filename + ".old.txt")) {
-        FS::Delete(filename + ".old.txt");
+FileBackend::FileBackend(const std::string& filename) {
+    const auto old_filename = filename + ".old.txt";
+
+    if (FS::Exists(old_filename)) {
+        FS::Delete(old_filename);
     }
     if (FS::Exists(filename)) {
-        FS::Rename(filename, filename + ".old.txt");
+        FS::Rename(filename, old_filename);
     }
 
     // _SH_DENYWR allows read only access to the file for other programs.
