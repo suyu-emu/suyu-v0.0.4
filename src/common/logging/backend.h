@@ -94,8 +94,8 @@ public:
     void Write(const Entry& entry) override;
 
 private:
-    Common::FS::IOFile file;
-    std::size_t bytes_written;
+    FS::IOFile file;
+    std::size_t bytes_written = 0;
 };
 
 /**

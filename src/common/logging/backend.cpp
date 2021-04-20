@@ -148,12 +148,14 @@ void ColorConsoleBackend::Write(const Entry& entry) {
     PrintColoredMessage(entry);
 }
 
-FileBackend::FileBackend(const std::string& filename) : bytes_written(0) {
-    if (FS::Exists(filename + ".old.txt")) {
-        FS::Delete(filename + ".old.txt");
+FileBackend::FileBackend(const std::string& filename) {
+    const auto old_filename = filename + ".old.txt";
+
+    if (FS::Exists(old_filename)) {
+        FS::Delete(old_filename);
     }
     if (FS::Exists(filename)) {
-        FS::Rename(filename, filename + ".old.txt");
+        FS::Rename(filename, old_filename);
     }
 
     // _SH_DENYWR allows read only access to the file for other programs.
