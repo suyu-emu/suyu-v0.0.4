@@ -587,6 +587,5 @@ private:
     std::array<ControllerPad, 10> npad_pad_states{};
     std::array<TriggerState, 10> npad_trigger_states{};
     bool is_in_lr_assignment_mode{false};
-    Core::System& system;
 };
 } // namespace Service::HID
