@@ -62,7 +62,7 @@ else()
     )
 endif()
 
-if(SDL2_FOUND)
+if (ENABLE_SDL2)
     target_sources(input_common PRIVATE
         sdl/sdl_impl.cpp
         sdl/sdl_impl.h

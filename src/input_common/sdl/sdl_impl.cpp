@@ -17,7 +17,17 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+
+// Ignore -Wimplicit-fallthrough due to https://github.com/libsdl-org/SDL/issues/4307
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wimplicit-fallthrough"
+#endif
 #include <SDL.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
+
 #include "common/logging/log.h"
 #include "common/param_package.h"
 #include "common/settings_input.h"

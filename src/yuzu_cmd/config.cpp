@@ -4,7 +4,17 @@
 
 #include <memory>
 #include <sstream>
+
+// Ignore -Wimplicit-fallthrough due to https://github.com/libsdl-org/SDL/issues/4307
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wimplicit-fallthrough"
+#endif
 #include <SDL.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
+
 #include <inih/cpp/INIReader.h>
 #include "common/file_util.h"
 #include "common/logging/log.h"
