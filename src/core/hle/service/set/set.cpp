@@ -104,9 +104,10 @@ void GetKeyCodeMapImpl(Kernel::HLERequestContext& ctx) {
         layout = key_code->second;
     }
 
+    ctx.WriteBuffer(layout);
+
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
-    ctx.WriteBuffer(layout);
 }
 } // Anonymous namespace
 

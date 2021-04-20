@@ -1129,9 +1129,11 @@ private:
         }
 
         NativeWindow native_window{*buffer_queue_id};
+        const auto buffer_size = ctx.WriteBuffer(native_window.Serialize());
+
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
-        rb.Push<u64>(ctx.WriteBuffer(native_window.Serialize()));
+        rb.Push<u64>(buffer_size);
     }
 
     void CloseLayer(Kernel::HLERequestContext& ctx) {
@@ -1173,10 +1175,12 @@ private:
         }
 
         NativeWindow native_window{*buffer_queue_id};
+        const auto buffer_size = ctx.WriteBuffer(native_window.Serialize());
+
         IPC::ResponseBuilder rb{ctx, 6};
         rb.Push(RESULT_SUCCESS);
         rb.Push(*layer_id);
-        rb.Push<u64>(ctx.WriteBuffer(native_window.Serialize()));
+        rb.Push<u64>(buffer_size);
     }
 
     void DestroyStrayLayer(Kernel::HLERequestContext& ctx) {
