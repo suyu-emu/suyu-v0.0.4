@@ -19,7 +19,7 @@ CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" ON "EN
 
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 
-CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled yuzu" ON "WIN32" OFF)
+CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" ON "WIN32" OFF)
 
 option(YUZU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet implementation" OFF)
 
@@ -274,7 +274,7 @@ if (ENABLE_SDL2)
         target_link_libraries(SDL2 INTERFACE "${SDL2_LIBRARY}")
         target_include_directories(SDL2 INTERFACE "${SDL2_INCLUDE_DIR}")
     else()
-        find_package(SDL2 2.0.14)
+        find_package(SDL2 2.0.14 QUIET)
 
         if (SDL2_FOUND)
             # Some installations don't set SDL2_LIBRARIES
@@ -394,7 +394,7 @@ set(FFmpeg_COMPONENTS
 
 if (NOT YUZU_USE_BUNDLED_FFMPEG)
     # Use system installed FFmpeg
-    find_package(FFmpeg REQUIRED COMPONENTS ${FFmpeg_COMPONENTS})
+    find_package(FFmpeg QUIET COMPONENTS ${FFmpeg_COMPONENTS})
 
     if (FFmpeg_FOUND)
         # Overwrite aggregate defines from FFmpeg module to avoid over-linking libraries.
@@ -433,6 +433,7 @@ if (YUZU_USE_BUNDLED_FFMPEG)
             set(FFmpeg_FOUND YES)
         endif()
 
+        unset(FFmpeg_LIBRARIES CACHE)
         foreach(COMPONENT ${FFmpeg_COMPONENTS})
             set(FFmpeg_${COMPONENT}_PREFIX "${FFmpeg_BUILD_DIR}/lib${COMPONENT}")
             set(FFmpeg_${COMPONENT}_LIB_NAME "lib${COMPONENT}.a")
@@ -445,7 +446,7 @@ if (YUZU_USE_BUNDLED_FFMPEG)
         endforeach()
 
         set(FFmpeg_INCLUDE_DIR
-            ${FFmpeg_PREFIX}
+            "${FFmpeg_PREFIX};${FFmpeg_BUILD_DIR}"
             CACHE PATH "Path to FFmpeg headers" FORCE)
 
         # `configure` parameters builds only exactly what yuzu needs from FFmpeg
@@ -492,13 +493,11 @@ if (YUZU_USE_BUNDLED_FFMPEG)
 
         # ALL makes this custom target build every time
         # but it won't actually build if the DEPENDS parameter is up to date
-        add_custom_target(ffmpeg-build ALL DEPENDS ${FFmpeg_LIBRARIES})
         add_custom_target(ffmpeg-configure ALL DEPENDS ${FFmpeg_MAKEFILE})
+        add_custom_target(ffmpeg-build ALL DEPENDS ${FFmpeg_LIBRARIES} ffmpeg-configure)
 
         if (FFmpeg_FOUND)
             message(STATUS "Found FFmpeg version ${FFmpeg_VERSION}")
-
-            add_dependencies(ffmpeg-build ffmpeg-configure)
         else()
             message(FATAL_ERROR "FFmpeg not found")
         endif()
