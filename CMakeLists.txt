@@ -274,7 +274,7 @@ if (ENABLE_SDL2)
         target_link_libraries(SDL2 INTERFACE "${SDL2_LIBRARY}")
         target_include_directories(SDL2 INTERFACE "${SDL2_INCLUDE_DIR}")
     else()
-        find_package(SDL2 2.0.14)
+        find_package(SDL2 2.0.14 QUIET)
 
         if (SDL2_FOUND)
             # Some installations don't set SDL2_LIBRARIES
