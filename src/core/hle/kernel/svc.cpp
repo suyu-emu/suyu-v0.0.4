@@ -153,9 +153,9 @@ ResultVal<s64> RetrieveResourceLimitValue(Core::System& system, Handle resource_
     const auto* const current_process = system.Kernel().CurrentProcess();
     ASSERT(current_process != nullptr);
 
-    const auto resource_limit_object =
-        current_process->GetHandleTable().Get<KResourceLimit>(resource_limit);
-    if (!resource_limit_object) {
+    auto resource_limit_object =
+        current_process->GetHandleTable().GetObject<KResourceLimit>(resource_limit);
+    if (resource_limit_object.IsNull()) {
         LOG_ERROR(Kernel_SVC, "Handle to non-existent resource limit instance used. Handle={:08X}",
                   resource_limit);
         return ResultInvalidHandle;
@@ -843,12 +843,10 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, Handle
             return RESULT_SUCCESS;
         }
 
-        const auto table_result = handle_table.Create(resource_limit.get());
-        if (table_result.Failed()) {
-            return table_result.Code();
-        }
+        Handle handle{};
+        R_TRY(handle_table.Add(&handle, resource_limit));
 
-        *result = *table_result;
+        *result = handle;
         return RESULT_SUCCESS;
     }
 
@@ -2093,83 +2091,86 @@ static ResultCode GetProcessInfo(Core::System& system, u64* out, Handle process_
 }
 
 static ResultCode CreateResourceLimit(Core::System& system, Handle* out_handle) {
-    std::lock_guard lock{HLE::g_hle_lock};
     LOG_DEBUG(Kernel_SVC, "called");
 
+    // Create a new resource limit.
     auto& kernel = system.Kernel();
-    auto resource_limit = std::make_shared<KResourceLimit>(kernel, system.CoreTiming());
+    KResourceLimit* resource_limit = KResourceLimit::Create(kernel);
+    R_UNLESS(resource_limit != nullptr, ResultOutOfResource);
 
-    auto* const current_process = kernel.CurrentProcess();
-    ASSERT(current_process != nullptr);
+    // Ensure we don't leak a reference to the limit.
+    SCOPE_EXIT({ resource_limit->Close(); });
 
-    const auto handle = current_process->GetHandleTable().Create(resource_limit.get());
-    if (handle.Failed()) {
-        return handle.Code();
-    }
+    // Initialize the resource limit.
+    resource_limit->Initialize(&system.CoreTiming());
 
-    *out_handle = *handle;
+    // Register the limit.
+    KResourceLimit::Register(kernel, resource_limit);
+
+    // Add the limit to the handle table.
+    R_TRY(kernel.CurrentProcess()->GetHandleTable().Add(out_handle, resource_limit));
+
     return RESULT_SUCCESS;
 }
 
-static ResultCode GetResourceLimitLimitValue(Core::System& system, u64* out_value,
-                                             Handle resource_limit, u32 resource_type) {
-    LOG_DEBUG(Kernel_SVC, "called. Handle={:08X}, Resource type={}", resource_limit, resource_type);
+static ResultCode GetResourceLimitLimitValue(Core::System& system, u64* out_limit_value,
+                                             Handle resource_limit_handle,
+                                             LimitableResource which) {
+    LOG_DEBUG(Kernel_SVC, "called, resource_limit_handle={:08X}, which={}", resource_limit_handle,
+              which);
 
-    const auto limit_value = RetrieveResourceLimitValue(system, resource_limit, resource_type,
-                                                        ResourceLimitValueType::LimitValue);
-    if (limit_value.Failed()) {
-        return limit_value.Code();
-    }
+    // Validate the resource.
+    R_UNLESS(IsValidResourceType(which), ResultInvalidEnumValue);
 
-    *out_value = static_cast<u64>(*limit_value);
+    // Get the resource limit.
+    auto& kernel = system.Kernel();
+    KScopedAutoObject resource_limit =
+        kernel.CurrentProcess()->GetHandleTable().GetObject<KResourceLimit>(resource_limit_handle);
+    R_UNLESS(resource_limit.IsNotNull(), ResultInvalidHandle);
+
+    // Get the limit value.
+    *out_limit_value = resource_limit->GetLimitValue(which);
+
     return RESULT_SUCCESS;
 }
 
-static ResultCode GetResourceLimitCurrentValue(Core::System& system, u64* out_value,
-                                               Handle resource_limit, u32 resource_type) {
-    LOG_DEBUG(Kernel_SVC, "called. Handle={:08X}, Resource type={}", resource_limit, resource_type);
+static ResultCode GetResourceLimitCurrentValue(Core::System& system, u64* out_current_value,
+                                               Handle resource_limit_handle,
+                                               LimitableResource which) {
+    LOG_DEBUG(Kernel_SVC, "called, resource_limit_handle={:08X}, which={}", resource_limit_handle,
+              which);
 
-    const auto current_value = RetrieveResourceLimitValue(system, resource_limit, resource_type,
-                                                          ResourceLimitValueType::CurrentValue);
-    if (current_value.Failed()) {
-        return current_value.Code();
-    }
+    // Validate the resource.
+    R_UNLESS(IsValidResourceType(which), ResultInvalidEnumValue);
 
-    *out_value = static_cast<u64>(*current_value);
+    // Get the resource limit.
+    auto& kernel = system.Kernel();
+    KScopedAutoObject resource_limit =
+        kernel.CurrentProcess()->GetHandleTable().GetObject<KResourceLimit>(resource_limit_handle);
+    R_UNLESS(resource_limit.IsNotNull(), ResultInvalidHandle);
+
+    // Get the current value.
+    *out_current_value = resource_limit->GetCurrentValue(which);
+
     return RESULT_SUCCESS;
 }
 
-static ResultCode SetResourceLimitLimitValue(Core::System& system, Handle resource_limit,
-                                             u32 resource_type, u64 value) {
-    LOG_DEBUG(Kernel_SVC, "called. Handle={:08X}, Resource type={}, Value={}", resource_limit,
-              resource_type, value);
+static ResultCode SetResourceLimitLimitValue(Core::System& system, Handle resource_limit_handle,
+                                             LimitableResource which, u64 limit_value) {
+    LOG_DEBUG(Kernel_SVC, "called, resource_limit_handle={:08X}, which={}, limit_value={}",
+              resource_limit_handle, which, limit_value);
 
-    const auto type = static_cast<LimitableResource>(resource_type);
-    if (!IsValidResourceType(type)) {
-        LOG_ERROR(Kernel_SVC, "Invalid resource limit type: '{}'", resource_type);
-        return ResultInvalidEnumValue;
-    }
+    // Validate the resource.
+    R_UNLESS(IsValidResourceType(which), ResultInvalidEnumValue);
 
-    auto* const current_process = system.Kernel().CurrentProcess();
-    ASSERT(current_process != nullptr);
+    // Get the resource limit.
+    auto& kernel = system.Kernel();
+    KScopedAutoObject resource_limit =
+        kernel.CurrentProcess()->GetHandleTable().GetObject<KResourceLimit>(resource_limit_handle);
+    R_UNLESS(resource_limit.IsNotNull(), ResultInvalidHandle);
 
-    auto resource_limit_object =
-        current_process->GetHandleTable().Get<KResourceLimit>(resource_limit);
-    if (!resource_limit_object) {
-        LOG_ERROR(Kernel_SVC, "Handle to non-existent resource limit instance used. Handle={:08X}",
-                  resource_limit);
-        return ResultInvalidHandle;
-    }
-
-    const auto set_result = resource_limit_object->SetLimitValue(type, static_cast<s64>(value));
-    if (set_result.IsError()) {
-        LOG_ERROR(Kernel_SVC,
-                  "Attempted to lower resource limit ({}) for category '{}' below its current "
-                  "value ({})",
-                  resource_limit_object->GetLimitValue(type), resource_type,
-                  resource_limit_object->GetCurrentValue(type));
-        return set_result;
-    }
+    // Set the limit value.
+    R_TRY(resource_limit->SetLimitValue(which, limit_value));
 
     return RESULT_SUCCESS;
 }

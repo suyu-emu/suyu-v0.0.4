@@ -74,8 +74,8 @@ struct KernelCore::Impl {
         Init::InitializeSlabHeaps(system, memory_layout);
 
         // Initialize kernel memory and resources.
-        InitializeMemoryLayout(memory_layout);
         InitializeSystemResourceLimit(kernel, system.CoreTiming(), memory_layout);
+        InitializeMemoryLayout(memory_layout);
         InitializePageSlab();
         InitializeSchedulers();
         InitializeSuspendThreads();
@@ -126,11 +126,19 @@ struct KernelCore::Impl {
 
         exclusive_monitor.reset();
 
+        hid_shared_mem->Close();
         hid_shared_mem = nullptr;
+
+        font_shared_mem->Close();
         font_shared_mem = nullptr;
+
+        irs_shared_mem->Close();
         irs_shared_mem = nullptr;
+
+        time_shared_mem->Close();
         time_shared_mem = nullptr;
 
+        system_resource_limit->Close();
         system_resource_limit = nullptr;
 
         // Next host thead ID to use, 0-3 IDs represent core threads, >3 represent others
@@ -156,7 +164,9 @@ struct KernelCore::Impl {
     void InitializeSystemResourceLimit(KernelCore& kernel,
                                        const Core::Timing::CoreTiming& core_timing,
                                        const KMemoryLayout& memory_layout) {
-        system_resource_limit = std::make_shared<KResourceLimit>(kernel, core_timing);
+        system_resource_limit = KResourceLimit::Create(system.Kernel());
+        system_resource_limit->Initialize(&core_timing);
+
         const auto [total_size, kernel_size] = memory_layout.GetTotalAndKernelMemorySizes();
 
         // If setting the default system values fails, then something seriously wrong has occurred.
@@ -627,11 +637,11 @@ struct KernelCore::Impl {
 
     // Lists all processes that exist in the current session.
     std::vector<Process*> process_list;
-    Process* current_process = nullptr;
+    Process* current_process{};
     std::unique_ptr<Kernel::GlobalSchedulerContext> global_scheduler_context;
     Kernel::TimeManager time_manager;
 
-    std::shared_ptr<KResourceLimit> system_resource_limit;
+    KResourceLimit* system_resource_limit{};
 
     std::shared_ptr<Core::Timing::EventType> preemption_event;
 
@@ -704,7 +714,11 @@ void KernelCore::Shutdown() {
     impl->Shutdown();
 }
 
-std::shared_ptr<KResourceLimit> KernelCore::GetSystemResourceLimit() const {
+const KResourceLimit* KernelCore::GetSystemResourceLimit() const {
+    return impl->system_resource_limit;
+}
+
+KResourceLimit* KernelCore::GetSystemResourceLimit() {
     return impl->system_resource_limit;
 }
 

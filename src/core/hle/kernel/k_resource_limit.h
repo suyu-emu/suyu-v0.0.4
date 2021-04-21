@@ -32,10 +32,16 @@ constexpr bool IsValidResourceType(LimitableResource type) {
     return type < LimitableResource::Count;
 }
 
-class KResourceLimit final : public Object {
+class KResourceLimit final
+    : public KAutoObjectWithSlabHeapAndContainer<KResourceLimit, KAutoObjectWithList> {
+    KERNEL_AUTOOBJECT_TRAITS(KResourceLimit, KAutoObject);
+
 public:
-    explicit KResourceLimit(KernelCore& kernel, const Core::Timing::CoreTiming& core_timing_);
-    ~KResourceLimit();
+    explicit KResourceLimit(KernelCore& kernel);
+    virtual ~KResourceLimit();
+
+    void Initialize(const Core::Timing::CoreTiming* core_timing_);
+    virtual void Finalize() override;
 
     s64 GetLimitValue(LimitableResource which) const;
     s64 GetCurrentValue(LimitableResource which) const;
@@ -49,6 +55,10 @@ public:
     void Release(LimitableResource which, s64 value);
     void Release(LimitableResource which, s64 value, s64 hint);
 
+    static void PostDestroy([[maybe_unused]] uintptr_t arg) {}
+
+    // DEPRECATED
+
     std::string GetTypeName() const override {
         return "KResourceLimit";
     }
@@ -61,8 +71,6 @@ public:
         return HANDLE_TYPE;
     }
 
-    virtual void Finalize() override {}
-
 private:
     using ResourceArray = std::array<s64, static_cast<std::size_t>(LimitableResource::Count)>;
     ResourceArray limit_values{};
@@ -72,6 +80,6 @@ private:
     mutable KLightLock lock;
     s32 waiter_count{};
     KLightConditionVariable cond_var;
-    const Core::Timing::CoreTiming& core_timing;
+    const Core::Timing::CoreTiming* core_timing{};
 };
 } // namespace Kernel

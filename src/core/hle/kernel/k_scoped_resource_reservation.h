@@ -15,8 +15,7 @@ namespace Kernel {
 
 class KScopedResourceReservation {
 public:
-    explicit KScopedResourceReservation(std::shared_ptr<KResourceLimit> l, LimitableResource r,
-                                        s64 v, s64 timeout)
+    explicit KScopedResourceReservation(KResourceLimit* l, LimitableResource r, s64 v, s64 timeout)
         : resource_limit(std::move(l)), value(v), resource(r) {
         if (resource_limit && value) {
             success = resource_limit->Reserve(resource, value, timeout);
@@ -25,8 +24,7 @@ public:
         }
     }
 
-    explicit KScopedResourceReservation(std::shared_ptr<KResourceLimit> l, LimitableResource r,
-                                        s64 v = 1)
+    explicit KScopedResourceReservation(KResourceLimit* l, LimitableResource r, s64 v = 1)
         : resource_limit(std::move(l)), value(v), resource(r) {
         if (resource_limit && value) {
             success = resource_limit->Reserve(resource, value);
@@ -58,7 +56,7 @@ public:
     }
 
 private:
-    std::shared_ptr<KResourceLimit> resource_limit;
+    KResourceLimit* resource_limit{};
     s64 value;
     LimitableResource resource;
     bool success;

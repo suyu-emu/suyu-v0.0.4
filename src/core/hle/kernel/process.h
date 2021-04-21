@@ -171,7 +171,7 @@ public:
     }
 
     /// Gets the resource limit descriptor for this process
-    std::shared_ptr<KResourceLimit> GetResourceLimit() const;
+    KResourceLimit* GetResourceLimit() const;
 
     /// Gets the ideal CPU core ID for this process
     u8 GetIdealCoreId() const {
@@ -348,9 +348,7 @@ public:
 
     static void PostDestroy([[maybe_unused]] uintptr_t arg) {}
 
-    virtual void Finalize() override {
-        UNIMPLEMENTED();
-    }
+    virtual void Finalize();
 
     virtual u64 GetId() const override final {
         return GetProcessID();
@@ -415,7 +413,7 @@ private:
     u32 system_resource_size = 0;
 
     /// Resource limit descriptor for this process
-    std::shared_ptr<KResourceLimit> resource_limit;
+    KResourceLimit* resource_limit{};
 
     /// The ideal CPU core for this process, threads are scheduled on this core by default.
     u8 ideal_core = 0;

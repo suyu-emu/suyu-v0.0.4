@@ -138,10 +138,13 @@ ResultCode Process::Initialize(Process* process, Core::System& system, std::stri
 
     kernel.AppendNewProcess(process);
 
+    // Open a reference to the resource limit.
+    process->resource_limit->Open();
+
     return RESULT_SUCCESS;
 }
 
-std::shared_ptr<KResourceLimit> Process::GetResourceLimit() const {
+KResourceLimit* Process::GetResourceLimit() const {
     return resource_limit;
 }
 
@@ -166,7 +169,10 @@ u64 Process::GetTotalPhysicalMemoryAvailable() const {
     const u64 capacity{resource_limit->GetFreeValue(LimitableResource::PhysicalMemory) +
                        page_table->GetTotalHeapSize() + GetSystemResourceSize() + image_size +
                        main_thread_stack_size};
-    ASSERT(capacity == kernel.MemoryManager().GetSize(KMemoryManager::Pool::Application));
+    if (const auto pool_size = kernel.MemoryManager().GetSize(KMemoryManager::Pool::Application);
+        capacity != pool_size) {
+        LOG_WARNING(Kernel, "capacity {} != application pool size {}", capacity, pool_size);
+    }
     if (capacity < memory_usage_capacity) {
         return capacity;
     }
@@ -369,6 +375,16 @@ void Process::PrepareForTermination() {
     }
 
     ChangeStatus(ProcessStatus::Exited);
+}
+
+void Process::Finalize() {
+    // Release memory to the resource limit.
+    if (resource_limit != nullptr) {
+        resource_limit->Close();
+    }
+
+    // Perform inherited finalization.
+    KAutoObjectWithSlabHeapAndContainer<Process, KSynchronizationObject>::Finalize();
 }
 
 /**

@@ -154,15 +154,28 @@ void SvcWrap64(Core::System& system) {
     FuncReturn(system, retval);
 }
 
+// Used by GetResourceLimitLimitValue.
+template <ResultCode func(Core::System&, u64*, Handle, LimitableResource)>
+void SvcWrap64(Core::System& system) {
+    u64 param_1 = 0;
+    const u32 retval = func(system, &param_1, static_cast<Handle>(Param(system, 1)),
+                            static_cast<LimitableResource>(Param(system, 2)))
+                           .raw;
+
+    system.CurrentArmInterface().SetReg(1, param_1);
+    FuncReturn(system, retval);
+}
+
 template <ResultCode func(Core::System&, u32, u64)>
 void SvcWrap64(Core::System& system) {
     FuncReturn(system, func(system, static_cast<u32>(Param(system, 0)), Param(system, 1)).raw);
 }
 
-template <ResultCode func(Core::System&, u32, u32, u64)>
+// Used by SetResourceLimitLimitValue
+template <ResultCode func(Core::System&, Handle, LimitableResource, u64)>
 void SvcWrap64(Core::System& system) {
-    FuncReturn(system, func(system, static_cast<u32>(Param(system, 0)),
-                            static_cast<u32>(Param(system, 1)), Param(system, 2))
+    FuncReturn(system, func(system, static_cast<Handle>(Param(system, 0)),
+                            static_cast<LimitableResource>(Param(system, 1)), Param(system, 2))
                            .raw);
 }
 

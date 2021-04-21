@@ -88,7 +88,7 @@ private:
     KMemoryPermission user_permission{};
     PAddr physical_address{};
     std::size_t size{};
-    std::shared_ptr<KResourceLimit> resource_limit;
+    KResourceLimit* resource_limit{};
     bool is_initialized{};
 };
 

@@ -27,9 +27,7 @@ class KTransferMemory final
 
 public:
     explicit KTransferMemory(KernelCore& kernel);
-    ~KTransferMemory() override;
-
-    static constexpr HandleType HANDLE_TYPE = HandleType::TransferMemory;
+    virtual ~KTransferMemory() override;
 
     ResultCode Initialize(VAddr address_, std::size_t size_, Svc::MemoryPermission owner_perm_);
 
@@ -67,6 +65,7 @@ public:
         return GetTypeName();
     }
 
+    static constexpr HandleType HANDLE_TYPE = HandleType::TransferMemory;
     HandleType GetHandleType() const override {
         return HANDLE_TYPE;
     }

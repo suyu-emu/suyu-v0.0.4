@@ -8,6 +8,7 @@
 #include "core/hle/kernel/k_scoped_resource_reservation.h"
 #include "core/hle/kernel/k_shared_memory.h"
 #include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/svc_results.h"
 
 namespace Kernel {
 
@@ -22,12 +23,7 @@ ResultCode KSharedMemory::Initialize(KernelCore& kernel_, Core::DeviceMemory& de
                                      KMemoryPermission owner_permission_,
                                      KMemoryPermission user_permission_, PAddr physical_address_,
                                      std::size_t size_, std::string name_) {
-
-    resource_limit = kernel_.GetSystemResourceLimit();
-    KScopedResourceReservation memory_reservation(resource_limit, LimitableResource::PhysicalMemory,
-                                                  size_);
-    ASSERT(memory_reservation.Succeeded());
-
+    // Set members.
     owner_process = owner_process_;
     device_memory = &device_memory_;
     page_list = std::move(page_list_);
@@ -36,9 +32,27 @@ ResultCode KSharedMemory::Initialize(KernelCore& kernel_, Core::DeviceMemory& de
     physical_address = physical_address_;
     size = size_;
     name = name_;
+
+    // Get the resource limit.
+    KResourceLimit* reslimit = kernel.GetSystemResourceLimit();
+
+    // Reserve memory for ourselves.
+    KScopedResourceReservation memory_reservation(reslimit, LimitableResource::PhysicalMemory,
+                                                  size_);
+    R_UNLESS(memory_reservation.Succeeded(), ResultLimitReached);
+
+    // Commit our reservation.
+    memory_reservation.Commit();
+
+    // Set our resource limit.
+    resource_limit = reslimit;
+    resource_limit->Open();
+
+    // Mark initialized.
     is_initialized = true;
 
-    memory_reservation.Commit();
+    // Clear all pages in the memory.
+    std::memset(device_memory_.GetPointer(physical_address_), 0, size_);
 
     return RESULT_SUCCESS;
 }

@@ -92,7 +92,10 @@ public:
     void Shutdown();
 
     /// Retrieves a shared pointer to the system resource limit instance.
-    std::shared_ptr<KResourceLimit> GetSystemResourceLimit() const;
+    const KResourceLimit* GetSystemResourceLimit() const;
+
+    /// Retrieves a shared pointer to the system resource limit instance.
+    KResourceLimit* GetSystemResourceLimit();
 
     /// Retrieves a shared pointer to a Thread instance within the thread wakeup handle table.
     KScopedAutoObject<KThread> RetrieveThreadFromGlobalHandleTable(Handle handle) const;
@@ -263,24 +266,26 @@ public:
     /// Gets the slab heap for the specified kernel object type.
     template <typename T>
     KSlabHeap<T>& SlabHeap() {
-        if constexpr (std::is_same_v<T, Process>) {
-            return slab_heap_container->process;
-        } else if constexpr (std::is_same_v<T, KThread>) {
-            return slab_heap_container->thread;
+        if constexpr (std::is_same_v<T, KClientSession>) {
+            return slab_heap_container->client_session;
         } else if constexpr (std::is_same_v<T, KEvent>) {
             return slab_heap_container->event;
-        } else if constexpr (std::is_same_v<T, KSharedMemory>) {
-            return slab_heap_container->shared_memory;
         } else if constexpr (std::is_same_v<T, KLinkedListNode>) {
             return slab_heap_container->linked_list_node;
-        } else if constexpr (std::is_same_v<T, KWritableEvent>) {
-            return slab_heap_container->writeable_event;
-        } else if constexpr (std::is_same_v<T, KClientSession>) {
-            return slab_heap_container->client_session;
+        } else if constexpr (std::is_same_v<T, Process>) {
+            return slab_heap_container->process;
+        } else if constexpr (std::is_same_v<T, KResourceLimit>) {
+            return slab_heap_container->resource_limit;
         } else if constexpr (std::is_same_v<T, KSession>) {
             return slab_heap_container->session;
+        } else if constexpr (std::is_same_v<T, KSharedMemory>) {
+            return slab_heap_container->shared_memory;
+        } else if constexpr (std::is_same_v<T, KThread>) {
+            return slab_heap_container->thread;
         } else if constexpr (std::is_same_v<T, KTransferMemory>) {
             return slab_heap_container->transfer_memory;
+        } else if constexpr (std::is_same_v<T, KWritableEvent>) {
+            return slab_heap_container->writeable_event;
         }
     }
 
@@ -315,15 +320,16 @@ private:
 private:
     /// Helper to encapsulate all slab heaps in a single heap allocated container
     struct SlabHeapContainer {
-        KSlabHeap<Process> process;
-        KSlabHeap<KThread> thread;
-        KSlabHeap<KEvent> event;
-        KSlabHeap<KSharedMemory> shared_memory;
-        KSlabHeap<KLinkedListNode> linked_list_node;
-        KSlabHeap<KWritableEvent> writeable_event;
         KSlabHeap<KClientSession> client_session;
+        KSlabHeap<KEvent> event;
+        KSlabHeap<KLinkedListNode> linked_list_node;
+        KSlabHeap<Process> process;
+        KSlabHeap<KResourceLimit> resource_limit;
         KSlabHeap<KSession> session;
+        KSlabHeap<KSharedMemory> shared_memory;
+        KSlabHeap<KThread> thread;
         KSlabHeap<KTransferMemory> transfer_memory;
+        KSlabHeap<KWritableEvent> writeable_event;
     };
 
     std::unique_ptr<SlabHeapContainer> slab_heap_container;
