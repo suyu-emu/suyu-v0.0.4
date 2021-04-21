@@ -47,50 +47,6 @@ ResultCode HandleTable::SetSize(s32 handle_table_size) {
     return RESULT_SUCCESS;
 }
 
-ResultVal<Handle> HandleTable::Create(Object* obj) {
-    DEBUG_ASSERT(obj != nullptr);
-
-    switch (obj->GetHandleType()) {
-    case HandleType::SharedMemory:
-    case HandleType::Thread:
-    case HandleType::Event:
-    case HandleType::Process:
-    case HandleType::ReadableEvent:
-    case HandleType::WritableEvent:
-    case HandleType::ClientSession:
-    case HandleType::ServerSession:
-    case HandleType::Session:
-    case HandleType::TransferMemory: {
-        Handle handle{};
-        Add(&handle, reinterpret_cast<KAutoObject*>(obj), {});
-        return MakeResult<Handle>(handle);
-    }
-    default:
-        break;
-    }
-
-    const u16 slot = next_free_slot;
-    if (slot >= table_size) {
-        LOG_ERROR(Kernel, "Unable to allocate Handle, too many slots in use.");
-        return ResultOutOfHandles;
-    }
-    next_free_slot = generations[slot];
-
-    const u16 generation = next_generation++;
-
-    // Overflow count so it fits in the 15 bits dedicated to the generation in the handle.
-    // Horizon OS uses zero to represent an invalid handle, so skip to 1.
-    if (next_generation >= (1 << 15)) {
-        next_generation = 1;
-    }
-
-    generations[slot] = generation;
-    objects[slot] = std::move(SharedFrom(obj));
-
-    Handle handle = generation | (slot << 15);
-    return MakeResult<Handle>(handle);
-}
-
 ResultCode HandleTable::Add(Handle* out_handle, KAutoObject* obj, u16 type) {
     ASSERT(obj != nullptr);
 
@@ -110,7 +66,7 @@ ResultCode HandleTable::Add(Handle* out_handle, KAutoObject* obj, u16 type) {
     }
 
     generations[slot] = generation;
-    objects_new[slot] = obj;
+    objects[slot] = obj;
     obj->Open();
 
     *out_handle = generation | (slot << 15);
@@ -119,12 +75,16 @@ ResultCode HandleTable::Add(Handle* out_handle, KAutoObject* obj, u16 type) {
 }
 
 ResultVal<Handle> HandleTable::Duplicate(Handle handle) {
-    auto object = GetGeneric(handle);
-    if (object == nullptr) {
+    auto object = GetObject(handle);
+    if (object.IsNull()) {
         LOG_ERROR(Kernel, "Tried to duplicate invalid handle: {:08X}", handle);
         return ResultInvalidHandle;
     }
-    return Create(object);
+
+    Handle out_handle{};
+    R_TRY(Add(&out_handle, object.GetPointerUnsafe()));
+
+    return MakeResult(out_handle);
 }
 
 bool HandleTable::Remove(Handle handle) {
@@ -139,12 +99,7 @@ bool HandleTable::Remove(Handle handle) {
         objects[slot]->Close();
     }
 
-    if (objects_new[slot]) {
-        objects_new[slot]->Close();
-    }
-
     objects[slot] = nullptr;
-    objects_new[slot] = nullptr;
 
     generations[slot] = next_free_slot;
     next_free_slot = slot;
@@ -155,28 +110,14 @@ bool HandleTable::Remove(Handle handle) {
 bool HandleTable::IsValid(Handle handle) const {
     const std::size_t slot = GetSlot(handle);
     const u16 generation = GetGeneration(handle);
-    const bool is_object_valid = (objects[slot] != nullptr) || (objects_new[slot] != nullptr);
+    const bool is_object_valid = (objects[slot] != nullptr);
     return slot < table_size && is_object_valid && generations[slot] == generation;
-}
-
-Object* HandleTable::GetGeneric(Handle handle) const {
-    if (handle == CurrentThread) {
-        return (kernel.CurrentScheduler()->GetCurrentThread());
-    } else if (handle == CurrentProcess) {
-        return (kernel.CurrentProcess());
-    }
-
-    if (!IsValid(handle)) {
-        return nullptr;
-    }
-    return objects[GetSlot(handle)].get();
 }
 
 void HandleTable::Clear() {
     for (u16 i = 0; i < table_size; ++i) {
         generations[i] = static_cast<u16>(i + 1);
         objects[i] = nullptr;
-        objects_new[i] = nullptr;
     }
     next_free_slot = 0;
 }

@@ -16,7 +16,7 @@
 #include "common/concepts.h"
 #include "common/swap.h"
 #include "core/hle/ipc.h"
-#include "core/hle/kernel/object.h"
+#include "core/hle/kernel/k_auto_object.h"
 
 union ResultCode;
 
@@ -228,11 +228,11 @@ public:
         return DynamicObjectCast<T>(move_objects.at(index));
     }
 
-    void AddMoveObject(Object* object) {
+    void AddMoveObject(KAutoObject* object) {
         move_objects.emplace_back(object);
     }
 
-    void AddCopyObject(Object* object) {
+    void AddCopyObject(KAutoObject* object) {
         copy_objects.emplace_back(object);
     }
 
@@ -292,8 +292,8 @@ private:
     // TODO(yuriks): Check common usage of this and optimize size accordingly
     boost::container::small_vector<Handle, 8> move_handles;
     boost::container::small_vector<Handle, 8> copy_handles;
-    boost::container::small_vector<Object*, 8> move_objects;
-    boost::container::small_vector<Object*, 8> copy_objects;
+    boost::container::small_vector<KAutoObject*, 8> move_objects;
+    boost::container::small_vector<KAutoObject*, 8> copy_objects;
     boost::container::small_vector<std::shared_ptr<SessionRequestHandler>, 8> domain_objects;
 
     std::optional<IPC::CommandHeader> command_header;

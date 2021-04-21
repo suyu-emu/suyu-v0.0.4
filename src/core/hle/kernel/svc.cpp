@@ -328,7 +328,7 @@ static ResultCode ConnectToNamedPort(Core::System& system, Handle* out_handle,
 
     // Return the client session
     auto& handle_table = kernel.CurrentProcess()->GetHandleTable();
-    CASCADE_RESULT(*out_handle, handle_table.Create(client_session));
+    handle_table.Add(out_handle, client_session);
     return RESULT_SUCCESS;
 }
 

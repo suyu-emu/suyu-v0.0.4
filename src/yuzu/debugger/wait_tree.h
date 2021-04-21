@@ -80,10 +80,10 @@ public:
     std::vector<std::unique_ptr<WaitTreeItem>> GetChildren() const override;
 
 private:
-    VAddr mutex_address;
-    u32 mutex_value;
-    Kernel::Handle owner_handle;
-    std::shared_ptr<Kernel::KThread> owner;
+    VAddr mutex_address{};
+    u32 mutex_value{};
+    Kernel::Handle owner_handle{};
+    Kernel::KThread* owner{};
 };
 
 class WaitTreeCallstack : public WaitTreeExpandableItem {

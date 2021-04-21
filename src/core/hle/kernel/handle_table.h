@@ -71,13 +71,6 @@ public:
     ResultCode SetSize(s32 handle_table_size);
 
     /**
-     * Allocates a handle for the given object.
-     * @return The created Handle or one of the following errors:
-     *           - `ERR_HANDLE_TABLE_FULL`: the maximum number of handles has been exceeded.
-     */
-    ResultVal<Handle> Create(Object* obj);
-
-    /**
      * Returns a new handle that points to the same object as the passed in handle.
      * @return The duplicated Handle or one of the following errors:
      *           - `ERR_INVALID_HANDLE`: an invalid handle was passed in.
@@ -95,29 +88,13 @@ public:
     /// Checks if a handle is valid and points to an existing object.
     bool IsValid(Handle handle) const;
 
-    /**
-     * Looks up a handle.
-     * @return Pointer to the looked-up object, or `nullptr` if the handle is not valid.
-     */
-    Object* GetGeneric(Handle handle) const;
-
-    /**
-     * Looks up a handle while verifying its type.
-     * @return Pointer to the looked-up object, or `nullptr` if the handle is not valid or its
-     *         type differs from the requested one.
-     */
-    template <class T>
-    T* Get(Handle handle) const {
-        return DynamicObjectCast<T>(GetGeneric(handle));
-    }
-
     template <typename T = KAutoObject>
     KAutoObject* GetObjectImpl(Handle handle) const {
         if (!IsValid(handle)) {
             return nullptr;
         }
 
-        auto* obj = objects_new[static_cast<u16>(handle >> 15)];
+        auto* obj = objects[static_cast<u16>(handle >> 15)];
         return obj->DynamicCast<T*>();
     }
 
@@ -133,7 +110,7 @@ public:
             return nullptr;
         }
 
-        auto* obj = objects_new[static_cast<u16>(handle >> 15)];
+        auto* obj = objects[static_cast<u16>(handle >> 15)];
         return obj->DynamicCast<T*>();
     }
 
@@ -142,7 +119,7 @@ public:
         if (!IsValid(handle)) {
             return nullptr;
         }
-        auto* obj = objects_new[static_cast<u16>(handle >> 15)];
+        auto* obj = objects[static_cast<u16>(handle >> 15)];
         return obj->DynamicCast<T*>();
     }
 
@@ -203,8 +180,7 @@ public:
 
 private:
     /// Stores the Object referenced by the handle or null if the slot is empty.
-    std::array<std::shared_ptr<Object>, MAX_COUNT> objects;
-    std::array<KAutoObject*, MAX_COUNT> objects_new{};
+    std::array<KAutoObject*, MAX_COUNT> objects{};
 
     /**
      * The value of `next_generation` when the handle was created, used to check for validity. For
