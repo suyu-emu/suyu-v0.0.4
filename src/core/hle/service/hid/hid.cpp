@@ -19,6 +19,7 @@
 #include "core/hle/kernel/k_shared_memory.h"
 #include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/transfer_memory.h"
 #include "core/hle/service/hid/errors.h"
 #include "core/hle/service/hid/hid.h"
 #include "core/hle/service/hid/irs.h"
@@ -1484,7 +1485,43 @@ void Hid::StopSevenSixAxisSensor(Kernel::HLERequestContext& ctx) {
 }
 
 void Hid::InitializeSevenSixAxisSensor(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_HID, "(STUBBED) called");
+    IPC::RequestParser rp{ctx};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+    const auto t_mem_1_size{rp.Pop<u64>()};
+    const auto t_mem_2_size{rp.Pop<u64>()};
+    const auto t_mem_1_handle{ctx.GetCopyHandle(0)};
+    const auto t_mem_2_handle{ctx.GetCopyHandle(1)};
+
+    ASSERT_MSG(t_mem_1_size == 0x1000, "t_mem_1_size is not 0x1000 bytes");
+    ASSERT_MSG(t_mem_2_size == 0x7F000, "t_mem_2_size is not 0x7F000 bytes");
+
+    auto t_mem_1 =
+        system.CurrentProcess()->GetHandleTable().Get<Kernel::TransferMemory>(t_mem_1_handle);
+
+    if (t_mem_1 == nullptr) {
+        LOG_ERROR(Service_HID, "t_mem_1 is a nullptr for handle=0x{:08X}", t_mem_1_handle);
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_UNKNOWN);
+        return;
+    }
+
+    auto t_mem_2 =
+        system.CurrentProcess()->GetHandleTable().Get<Kernel::TransferMemory>(t_mem_2_handle);
+
+    if (t_mem_2 == nullptr) {
+        LOG_ERROR(Service_HID, "t_mem_2 is a nullptr for handle=0x{:08X}", t_mem_2_handle);
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_UNKNOWN);
+        return;
+    }
+
+    ASSERT_MSG(t_mem_1->GetSize() == 0x1000, "t_mem_1 has incorrect size");
+    ASSERT_MSG(t_mem_2->GetSize() == 0x7F000, "t_mem_2 has incorrect size");
+
+    LOG_WARNING(Service_HID,
+                "(STUBBED) called, t_mem_1_handle=0x{:08X}, t_mem_2_handle=0x{:08X}, "
+                "applet_resource_user_id={}",
+                t_mem_1_handle, t_mem_2_handle, applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
