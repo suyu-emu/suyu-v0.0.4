@@ -15,7 +15,7 @@ namespace Kernel {
 
 class KClientSession;
 class KernelCore;
-class ServerPort;
+class KServerPort;
 
 class KClientPort final : public KSynchronizationObject {
     KERNEL_AUTOOBJECT_TRAITS(KClientPort, KSynchronizationObject);
@@ -24,11 +24,11 @@ public:
     explicit KClientPort(KernelCore& kernel);
     virtual ~KClientPort() override;
 
-    friend class ServerPort;
+    friend class KServerPort;
 
     void Initialize(s32 max_sessions_, std::string&& name_);
 
-    std::shared_ptr<ServerPort> GetServerPort() const;
+    KServerPort* GetServerPort() const;
 
     /**
      * Creates a new Session pair, adds the created ServerSession to the associated ServerPort's
@@ -63,10 +63,10 @@ public:
     }
 
 private:
-    std::shared_ptr<ServerPort> server_port; ///< ServerPort associated with this client port.
-    s32 max_sessions = 0; ///< Maximum number of simultaneous sessions the port can have
-    std::atomic<s32> num_sessions = 0; ///< Number of currently open sessions to this port
-    std::string name;                  ///< Name of client port (optional)
+    KServerPort* server_port{};      ///< ServerPort associated with this client port.
+    s32 max_sessions{};              ///< Maximum number of simultaneous sessions the port can have
+    std::atomic<s32> num_sessions{}; ///< Number of currently open sessions to this port
+    std::string name;                ///< Name of client port (optional)
 };
 
 } // namespace Kernel

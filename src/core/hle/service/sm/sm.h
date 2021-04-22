@@ -11,8 +11,8 @@
 
 #include "common/concepts.h"
 #include "core/hle/kernel/k_client_port.h"
+#include "core/hle/kernel/k_server_port.h"
 #include "core/hle/kernel/object.h"
-#include "core/hle/kernel/server_port.h"
 #include "core/hle/result.h"
 #include "core/hle/service/service.h"
 
@@ -24,7 +24,7 @@ namespace Kernel {
 class KClientPort;
 class KClientSession;
 class KernelCore;
-class ServerPort;
+class KServerPort;
 class SessionRequestHandler;
 } // namespace Kernel
 
@@ -55,8 +55,7 @@ public:
     explicit ServiceManager(Kernel::KernelCore& kernel_);
     ~ServiceManager();
 
-    ResultVal<std::shared_ptr<Kernel::ServerPort>> RegisterService(std::string name,
-                                                                   u32 max_sessions);
+    ResultVal<Kernel::KServerPort*> RegisterService(std::string name, u32 max_sessions);
     ResultCode UnregisterService(const std::string& name);
     ResultVal<Kernel::KClientPort*> GetServicePort(const std::string& name);
 

@@ -20,13 +20,17 @@ class KernelCore;
 class KServerSession;
 class SessionRequestHandler;
 
-class ServerPort final : public KSynchronizationObject {
+class KServerPort final : public KSynchronizationObject {
+    KERNEL_AUTOOBJECT_TRAITS(KServerPort, KSynchronizationObject);
+
 public:
-    explicit ServerPort(KernelCore& kernel);
-    ~ServerPort() override;
+    explicit KServerPort(KernelCore& kernel);
+    virtual ~KServerPort() override;
 
     using HLEHandler = std::shared_ptr<SessionRequestHandler>;
-    using PortPair = std::pair<std::shared_ptr<ServerPort>, KClientPort*>;
+    using PortPair = std::pair<KServerPort*, KClientPort*>;
+
+    void Initialize(std::string&& name_);
 
     /**
      * Creates a pair of ServerPort and an associated ClientPort.
@@ -38,18 +42,6 @@ public:
      */
     static PortPair CreatePortPair(KernelCore& kernel, u32 max_sessions,
                                    std::string name = "UnknownPort");
-
-    std::string GetTypeName() const override {
-        return "ServerPort";
-    }
-    std::string GetName() const override {
-        return name;
-    }
-
-    static constexpr HandleType HANDLE_TYPE = HandleType::ServerPort;
-    HandleType GetHandleType() const override {
-        return HANDLE_TYPE;
-    }
 
     /**
      * Accepts a pending incoming connection on this port. If there are no pending sessions, will
@@ -79,9 +71,23 @@ public:
     /// waiting to be accepted by this port.
     void AppendPendingSession(KServerSession* pending_session);
 
-    bool IsSignaled() const override;
+    // Overridden virtual functions.
+    virtual void Destroy() override;
+    virtual bool IsSignaled() const override;
 
-    void Finalize() override {}
+    // DEPRECATED
+
+    std::string GetTypeName() const override {
+        return "ServerPort";
+    }
+    std::string GetName() const override {
+        return name;
+    }
+
+    static constexpr HandleType HANDLE_TYPE = HandleType::ServerPort;
+    HandleType GetHandleType() const override {
+        return HANDLE_TYPE;
+    }
 
 private:
     /// ServerSessions waiting to be accepted by the port

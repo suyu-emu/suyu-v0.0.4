@@ -205,6 +205,8 @@ add_library(core STATIC
     hle/kernel/k_scoped_lock.h
     hle/kernel/k_scoped_resource_reservation.h
     hle/kernel/k_scoped_scheduler_lock_and_sleep.h
+    hle/kernel/k_server_port.cpp
+    hle/kernel/k_server_port.h
     hle/kernel/k_server_session.cpp
     hle/kernel/k_server_session.h
     hle/kernel/k_session.cpp
@@ -237,8 +239,6 @@ add_library(core STATIC
     hle/kernel/process.h
     hle/kernel/process_capability.cpp
     hle/kernel/process_capability.h
-    hle/kernel/server_port.cpp
-    hle/kernel/server_port.h
     hle/kernel/service_thread.cpp
     hle/kernel/service_thread.h
     hle/kernel/slab_helpers.h

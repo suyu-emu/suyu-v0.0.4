@@ -4,9 +4,9 @@
 
 #include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/kernel/k_client_port.h"
+#include "core/hle/kernel/k_server_port.h"
 #include "core/hle/kernel/k_session.h"
 #include "core/hle/kernel/object.h"
-#include "core/hle/kernel/server_port.h"
 #include "core/hle/kernel/svc_results.h"
 
 namespace Kernel {
@@ -19,7 +19,7 @@ void KClientPort::Initialize(s32 max_sessions_, std::string&& name_) {
     name = std::move(name_);
 }
 
-std::shared_ptr<ServerPort> KClientPort::GetServerPort() const {
+KServerPort* KClientPort::GetServerPort() const {
     return server_port;
 }
 

@@ -8,9 +8,9 @@
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/k_client_port.h"
 #include "core/hle/kernel/k_client_session.h"
+#include "core/hle/kernel/k_server_port.h"
 #include "core/hle/kernel/k_server_session.h"
 #include "core/hle/kernel/k_session.h"
-#include "core/hle/kernel/server_port.h"
 #include "core/hle/result.h"
 #include "core/hle/service/sm/controller.h"
 #include "core/hle/service/sm/sm.h"
@@ -49,8 +49,8 @@ void ServiceManager::InstallInterfaces(std::shared_ptr<ServiceManager> self, Cor
     self->controller_interface = std::make_unique<Controller>(system);
 }
 
-ResultVal<std::shared_ptr<Kernel::ServerPort>> ServiceManager::RegisterService(std::string name,
-                                                                               u32 max_sessions) {
+ResultVal<Kernel::KServerPort*> ServiceManager::RegisterService(std::string name,
+                                                                u32 max_sessions) {
 
     CASCADE_CODE(ValidateServiceName(name));
 
@@ -60,12 +60,12 @@ ResultVal<std::shared_ptr<Kernel::ServerPort>> ServiceManager::RegisterService(s
     }
 
     auto [server_port, client_port] =
-        Kernel::ServerPort::CreatePortPair(kernel, max_sessions, name);
+        Kernel::KServerPort::CreatePortPair(kernel, max_sessions, name);
 
     client_port->Open();
 
-    registered_services.emplace(std::move(name), std::move(client_port));
-    return MakeResult(std::move(server_port));
+    registered_services.emplace(std::move(name), client_port);
+    return MakeResult(server_port);
 }
 
 ResultCode ServiceManager::UnregisterService(const std::string& name) {
@@ -172,7 +172,7 @@ void SM::RegisterService(Kernel::HLERequestContext& ctx) {
     rb.Push(handle.Code());
 
     auto server_port = handle.Unwrap();
-    rb.PushMoveObjects(server_port.get());
+    rb.PushMoveObjects(server_port);
 }
 
 void SM::UnregisterService(Kernel::HLERequestContext& ctx) {

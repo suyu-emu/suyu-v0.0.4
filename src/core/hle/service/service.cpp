@@ -12,10 +12,10 @@
 #include "core/hle/ipc.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/k_client_port.h"
+#include "core/hle/kernel/k_server_port.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/server_port.h"
 #include "core/hle/service/acc/acc.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/aoc/aoc_u.h"
@@ -117,7 +117,7 @@ void ServiceFrameworkBase::InstallAsNamedPort(Kernel::KernelCore& kernel) {
     ASSERT(!port_installed);
 
     auto [server_port, client_port] =
-        Kernel::ServerPort::CreatePortPair(kernel, max_sessions, service_name);
+        Kernel::KServerPort::CreatePortPair(kernel, max_sessions, service_name);
     server_port->SetHleHandler(shared_from_this());
     kernel.AddNamedPort(service_name, client_port);
     port_installed = true;
