@@ -8,7 +8,7 @@
 #include <string>
 
 #include "common/common_types.h"
-#include "core/hle/kernel/object.h"
+#include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/result.h"
 
 namespace Kernel {
@@ -17,23 +17,16 @@ class KClientSession;
 class KernelCore;
 class ServerPort;
 
-class ClientPort final : public Object {
+class KClientPort final : public KSynchronizationObject {
+    KERNEL_AUTOOBJECT_TRAITS(KClientPort, KSynchronizationObject);
+
 public:
-    explicit ClientPort(KernelCore& kernel);
-    ~ClientPort() override;
+    explicit KClientPort(KernelCore& kernel);
+    virtual ~KClientPort() override;
 
     friend class ServerPort;
-    std::string GetTypeName() const override {
-        return "ClientPort";
-    }
-    std::string GetName() const override {
-        return name;
-    }
 
-    static constexpr HandleType HANDLE_TYPE = HandleType::ClientPort;
-    HandleType GetHandleType() const override {
-        return HANDLE_TYPE;
-    }
+    void Initialize(s32 max_sessions_, std::string&& name_);
 
     std::shared_ptr<ServerPort> GetServerPort() const;
 
@@ -51,13 +44,29 @@ public:
      */
     void ConnectionClosed();
 
-    void Finalize() override {}
+    // Overridden virtual functions.
+    virtual void Destroy() override;
+    virtual bool IsSignaled() const override;
+
+    // DEPRECATED
+
+    std::string GetTypeName() const override {
+        return "ClientPort";
+    }
+    std::string GetName() const override {
+        return name;
+    }
+
+    static constexpr HandleType HANDLE_TYPE = HandleType::ClientPort;
+    HandleType GetHandleType() const override {
+        return HANDLE_TYPE;
+    }
 
 private:
     std::shared_ptr<ServerPort> server_port; ///< ServerPort associated with this client port.
-    u32 max_sessions = 0;    ///< Maximum number of simultaneous sessions the port can have
-    u32 active_sessions = 0; ///< Number of currently open sessions to this port
-    std::string name;        ///< Name of client port (optional)
+    s32 max_sessions = 0; ///< Maximum number of simultaneous sessions the port can have
+    std::atomic<s32> num_sessions = 0; ///< Number of currently open sessions to this port
+    std::string name;                  ///< Name of client port (optional)
 };
 
 } // namespace Kernel

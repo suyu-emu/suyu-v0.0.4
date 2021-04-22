@@ -144,8 +144,6 @@ add_library(core STATIC
     hle/kernel/board/nintendo/nx/k_system_control.cpp
     hle/kernel/board/nintendo/nx/k_system_control.h
     hle/kernel/board/nintendo/nx/secure_monitor.h
-    hle/kernel/client_port.cpp
-    hle/kernel/client_port.h
     hle/kernel/code_set.cpp
     hle/kernel/code_set.h
     hle/kernel/svc_results.h
@@ -168,6 +166,8 @@ add_library(core STATIC
     hle/kernel/k_affinity_mask.h
     hle/kernel/k_class_token.cpp
     hle/kernel/k_class_token.h
+    hle/kernel/k_client_port.cpp
+    hle/kernel/k_client_port.h
     hle/kernel/k_client_session.cpp
     hle/kernel/k_client_session.h
     hle/kernel/k_condition_variable.cpp

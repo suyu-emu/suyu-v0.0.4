@@ -29,7 +29,7 @@ struct EventType;
 
 namespace Kernel {
 
-class ClientPort;
+class KClientPort;
 class GlobalSchedulerContext;
 class HandleTable;
 class KAutoObjectWithListContainer;
@@ -60,7 +60,7 @@ constexpr EmuThreadHandle EmuThreadHandleReserved{1ULL << 63};
 /// Represents a single instance of the kernel.
 class KernelCore {
 private:
-    using NamedPortTable = std::unordered_map<std::string, std::shared_ptr<ClientPort>>;
+    using NamedPortTable = std::unordered_map<std::string, KClientPort*>;
 
 public:
     /// Constructs an instance of the kernel using the given System
@@ -168,7 +168,7 @@ public:
     void InvalidateCpuInstructionCacheRange(VAddr addr, std::size_t size);
 
     /// Adds a port to the named port table
-    void AddNamedPort(std::string name, std::shared_ptr<ClientPort> port);
+    void AddNamedPort(std::string name, KClientPort* port);
 
     /// Finds a port within the named port table with the given name.
     NamedPortTable::iterator FindNamedPort(const std::string& name);

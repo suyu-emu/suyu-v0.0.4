@@ -27,7 +27,7 @@
 #include "core/file_sys/vfs_concat.h"
 #include "core/file_sys/vfs_real.h"
 #include "core/hardware_interrupt_manager.h"
-#include "core/hle/kernel/client_port.h"
+#include "core/hle/kernel/k_client_port.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"

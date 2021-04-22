@@ -6,7 +6,7 @@
 #include "common/assert.h"
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/client_port.h"
+#include "core/hle/kernel/k_client_port.h"
 #include "core/hle/kernel/k_client_session.h"
 #include "core/hle/kernel/k_server_session.h"
 #include "core/hle/kernel/k_session.h"
@@ -62,6 +62,8 @@ ResultVal<std::shared_ptr<Kernel::ServerPort>> ServiceManager::RegisterService(s
     auto [server_port, client_port] =
         Kernel::ServerPort::CreatePortPair(kernel, max_sessions, name);
 
+    client_port->Open();
+
     registered_services.emplace(std::move(name), std::move(client_port));
     return MakeResult(std::move(server_port));
 }
@@ -74,12 +76,14 @@ ResultCode ServiceManager::UnregisterService(const std::string& name) {
         LOG_ERROR(Service_SM, "Server is not registered! service={}", name);
         return ERR_SERVICE_NOT_REGISTERED;
     }
+
+    iter->second->Close();
+
     registered_services.erase(iter);
     return RESULT_SUCCESS;
 }
 
-ResultVal<std::shared_ptr<Kernel::ClientPort>> ServiceManager::GetServicePort(
-    const std::string& name) {
+ResultVal<Kernel::KClientPort*> ServiceManager::GetServicePort(const std::string& name) {
 
     CASCADE_CODE(ValidateServiceName(name));
     auto it = registered_services.find(name);

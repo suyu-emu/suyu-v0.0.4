@@ -70,7 +70,7 @@ public:
         return server;
     }
 
-    const ClientPort* GetParent() const {
+    const KClientPort* GetParent() const {
         return port;
     }
 
@@ -99,7 +99,7 @@ private:
     KClientSession client;
     std::atomic<std::underlying_type<State>::type> atomic_state{
         static_cast<std::underlying_type<State>::type>(State::Invalid)};
-    ClientPort* port{};
+    KClientPort* port{};
     std::string name;
     Process* process{};
     bool initialized{};

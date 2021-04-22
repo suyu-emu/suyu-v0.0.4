@@ -2,8 +2,8 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/hle_ipc.h"
+#include "core/hle/kernel/k_client_port.h"
 #include "core/hle/kernel/k_session.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/server_port.h"
@@ -11,18 +11,23 @@
 
 namespace Kernel {
 
-ClientPort::ClientPort(KernelCore& kernel) : Object{kernel} {}
-ClientPort::~ClientPort() = default;
+KClientPort::KClientPort(KernelCore& kernel) : KSynchronizationObject{kernel} {}
+KClientPort::~KClientPort() = default;
 
-std::shared_ptr<ServerPort> ClientPort::GetServerPort() const {
+void KClientPort::Initialize(s32 max_sessions_, std::string&& name_) {
+    max_sessions = max_sessions_;
+    name = std::move(name_);
+}
+
+std::shared_ptr<ServerPort> KClientPort::GetServerPort() const {
     return server_port;
 }
 
-ResultVal<KClientSession*> ClientPort::Connect() {
-    if (active_sessions >= max_sessions) {
+ResultVal<KClientSession*> KClientPort::Connect() {
+    if (num_sessions >= max_sessions) {
         return ResultOutOfSessions;
     }
-    active_sessions++;
+    num_sessions++;
 
     auto* session = Kernel::KSession::Create(kernel);
     session->Initialize(name + ":ClientPort");
@@ -36,12 +41,18 @@ ResultVal<KClientSession*> ClientPort::Connect() {
     return MakeResult(std::addressof(session->GetClientSession()));
 }
 
-void ClientPort::ConnectionClosed() {
-    if (active_sessions == 0) {
+void KClientPort::ConnectionClosed() {
+    if (num_sessions == 0) {
         return;
     }
 
-    --active_sessions;
+    --num_sessions;
+}
+
+void KClientPort::Destroy() {}
+
+bool KClientPort::IsSignaled() const {
+    return num_sessions < max_sessions;
 }
 
 } // namespace Kernel

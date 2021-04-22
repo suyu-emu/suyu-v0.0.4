@@ -4,7 +4,7 @@
 
 #include <tuple>
 #include "common/assert.h"
-#include "core/hle/kernel/client_port.h"
+#include "core/hle/kernel/k_client_port.h"
 #include "core/hle/kernel/k_server_session.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/object.h"
@@ -40,15 +40,16 @@ bool ServerPort::IsSignaled() const {
 ServerPort::PortPair ServerPort::CreatePortPair(KernelCore& kernel, u32 max_sessions,
                                                 std::string name) {
     std::shared_ptr<ServerPort> server_port = std::make_shared<ServerPort>(kernel);
-    std::shared_ptr<ClientPort> client_port = std::make_shared<ClientPort>(kernel);
+    KClientPort* client_port = new KClientPort(kernel);
+
+    KAutoObject::Create(client_port);
+
+    client_port->Initialize(max_sessions, name + "_Client");
+    client_port->server_port = server_port;
 
     server_port->name = name + "_Server";
-    client_port->name = name + "_Client";
-    client_port->server_port = server_port;
-    client_port->max_sessions = max_sessions;
-    client_port->active_sessions = 0;
 
-    return std::make_pair(std::move(server_port), std::move(client_port));
+    return std::make_pair(std::move(server_port), client_port);
 }
 
 } // namespace Kernel

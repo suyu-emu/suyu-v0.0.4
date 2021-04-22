@@ -26,9 +26,9 @@
 #include "core/cpu_manager.h"
 #include "core/device_memory.h"
 #include "core/hardware_properties.h"
-#include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/init/init_slab_setup.h"
+#include "core/hle/kernel/k_client_port.h"
 #include "core/hle/kernel/k_memory_layout.h"
 #include "core/hle/kernel/k_memory_manager.h"
 #include "core/hle/kernel/k_resource_limit.h"
@@ -122,6 +122,9 @@ struct KernelCore::Impl {
 
         preemption_event = nullptr;
 
+        for (auto& iter : named_ports) {
+            iter.second->Close();
+        }
         named_ports.clear();
 
         exclusive_monitor.reset();
@@ -843,8 +846,9 @@ void KernelCore::PrepareReschedule(std::size_t id) {
     // TODO: Reimplement, this
 }
 
-void KernelCore::AddNamedPort(std::string name, std::shared_ptr<ClientPort> port) {
-    impl->named_ports.emplace(std::move(name), std::move(port));
+void KernelCore::AddNamedPort(std::string name, KClientPort* port) {
+    port->Open();
+    impl->named_ports.emplace(std::move(name), port);
 }
 
 KernelCore::NamedPortTable::iterator KernelCore::FindNamedPort(const std::string& name) {

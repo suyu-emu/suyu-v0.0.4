@@ -15,7 +15,7 @@
 
 namespace Kernel {
 
-class ClientPort;
+class KClientPort;
 class KernelCore;
 class KServerSession;
 class SessionRequestHandler;
@@ -26,7 +26,7 @@ public:
     ~ServerPort() override;
 
     using HLEHandler = std::shared_ptr<SessionRequestHandler>;
-    using PortPair = std::pair<std::shared_ptr<ServerPort>, std::shared_ptr<ClientPort>>;
+    using PortPair = std::pair<std::shared_ptr<ServerPort>, KClientPort*>;
 
     /**
      * Creates a pair of ServerPort and an associated ClientPort.
