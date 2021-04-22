@@ -26,6 +26,7 @@
 #include "core/hle/service/hid/xcd.h"
 #include "core/hle/service/service.h"
 
+#include "core/hle/service/hid/controllers/console_sixaxis.h"
 #include "core/hle/service/hid/controllers/controller_base.h"
 #include "core/hle/service/hid/controllers/debug_pad.h"
 #include "core/hle/service/hid/controllers/gesture.h"
@@ -67,7 +68,7 @@ IAppletResource::IAppletResource(Core::System& system_)
     MakeController<Controller_Stubbed>(HidController::UniquePad);
     MakeController<Controller_NPad>(HidController::NPad);
     MakeController<Controller_Gesture>(HidController::Gesture);
-    MakeController<Controller_Stubbed>(HidController::ConsoleSixAxisSensor);
+    MakeController<Controller_ConsoleSixAxis>(HidController::ConsoleSixAxisSensor);
 
     // Homebrew doesn't try to activate some controllers, so we activate them by default
     GetController<Controller_NPad>(HidController::NPad).ActivateController();
@@ -78,8 +79,6 @@ IAppletResource::IAppletResource(Core::System& system_)
     GetController<Controller_Stubbed>(HidController::CaptureButton).SetCommonHeaderOffset(0x5000);
     GetController<Controller_Stubbed>(HidController::InputDetector).SetCommonHeaderOffset(0x5200);
     GetController<Controller_Stubbed>(HidController::UniquePad).SetCommonHeaderOffset(0x5A00);
-    GetController<Controller_Stubbed>(HidController::ConsoleSixAxisSensor)
-        .SetCommonHeaderOffset(0x3C200);
 
     // Register update callbacks
     pad_update_event = Core::Timing::CreateEvent(
@@ -1404,8 +1403,9 @@ void Hid::ActivateConsoleSixAxisSensor(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    LOG_WARNING(Service_HID, "(STUBBED) called, applet_resource_user_id={}",
-                applet_resource_user_id);
+    applet_resource->ActivateController(HidController::ConsoleSixAxisSensor);
+
+    LOG_WARNING(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
@@ -1455,8 +1455,9 @@ void Hid::ActivateSevenSixAxisSensor(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    LOG_WARNING(Service_HID, "(STUBBED) called, applet_resource_user_id={}",
-                applet_resource_user_id);
+    applet_resource->ActivateController(HidController::ConsoleSixAxisSensor);
+
+    LOG_WARNING(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
@@ -1518,8 +1519,15 @@ void Hid::InitializeSevenSixAxisSensor(Kernel::HLERequestContext& ctx) {
     ASSERT_MSG(t_mem_1->GetSize() == 0x1000, "t_mem_1 has incorrect size");
     ASSERT_MSG(t_mem_2->GetSize() == 0x7F000, "t_mem_2 has incorrect size");
 
+    // Activate console six axis controller
+    applet_resource->GetController<Controller_ConsoleSixAxis>(HidController::ConsoleSixAxisSensor)
+        .ActivateController();
+
+    applet_resource->GetController<Controller_ConsoleSixAxis>(HidController::ConsoleSixAxisSensor)
+        .SetTransferMemoryPointer(t_mem_1->GetPointer());
+
     LOG_WARNING(Service_HID,
-                "(STUBBED) called, t_mem_1_handle=0x{:08X}, t_mem_2_handle=0x{:08X}, "
+                "called, t_mem_1_handle=0x{:08X}, t_mem_2_handle=0x{:08X}, "
                 "applet_resource_user_id={}",
                 t_mem_1_handle, t_mem_2_handle, applet_resource_user_id);
 
@@ -1542,8 +1550,10 @@ void Hid::ResetSevenSixAxisSensorTimestamp(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    LOG_WARNING(Service_HID, "(STUBBED) called, applet_resource_user_id={}",
-                applet_resource_user_id);
+    applet_resource->GetController<Controller_ConsoleSixAxis>(HidController::ConsoleSixAxisSensor)
+        .ResetTimestamp();
+
+    LOG_WARNING(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);

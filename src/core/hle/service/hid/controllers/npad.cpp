@@ -654,8 +654,8 @@ void Controller_NPad::OnMotionUpdate(const Core::Timing::CoreTiming& core_timing
                 const auto& device = motions[i][e];
                 if (device) {
                     std::tie(motion_devices[e].accel, motion_devices[e].gyro,
-                             motion_devices[e].rotation, motion_devices[e].orientation) =
-                        device->GetStatus();
+                             motion_devices[e].rotation, motion_devices[e].orientation,
+                             motion_devices[e].quaternion) = device->GetStatus();
                     sixaxis_at_rest = sixaxis_at_rest && motion_devices[e].gyro.Length2() < 0.0001f;
                 }
             }

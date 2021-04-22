@@ -36,6 +36,10 @@ std::shared_ptr<TransferMemory> TransferMemory::Create(KernelCore& kernel,
     return transfer_memory;
 }
 
+u8* TransferMemory::GetPointer() {
+    return memory.GetPointer(base_address);
+}
+
 const u8* TransferMemory::GetPointer() const {
     return memory.GetPointer(base_address);
 }
