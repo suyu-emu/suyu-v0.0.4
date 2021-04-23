@@ -46,7 +46,7 @@ struct hash<Service::LM::LogPacketHeaderEntry> {
         boost::hash_combine(seed, k.severity);
         boost::hash_combine(seed, k.verbosity);
         return seed;
-    };
+    }
 };
 } // namespace std
 
