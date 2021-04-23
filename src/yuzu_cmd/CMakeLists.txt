@@ -20,7 +20,6 @@ add_executable(yuzu-cmd
     emu_window/emu_window_sdl2_gl.h
     emu_window/emu_window_sdl2_vk.cpp
     emu_window/emu_window_sdl2_vk.h
-    resource.h
     yuzu.cpp
     yuzu.rc
 )
