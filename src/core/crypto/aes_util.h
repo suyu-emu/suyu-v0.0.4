@@ -5,6 +5,7 @@
 #pragma once
 
 #include <memory>
+#include <span>
 #include <type_traits>
 #include "common/common_types.h"
 #include "core/file_sys/vfs.h"
@@ -33,10 +34,7 @@ public:
     AESCipher(Key key, Mode mode);
     ~AESCipher();
 
-    template <typename ContiguousContainer>
-    void SetIV(const ContiguousContainer& container) {
-        SetIVImpl(std::data(container), std::size(container));
-    }
+    void SetIV(std::span<const u8> data);
 
     template <typename Source, typename Dest>
     void Transcode(const Source* src, std::size_t size, Dest* dest, Op op) const {
@@ -60,8 +58,6 @@ public:
                       std::size_t sector_size, Op op);
 
 private:
-    void SetIVImpl(const u8* data, std::size_t size);
-
     std::unique_ptr<CipherContext> ctx;
 };
 } // namespace Core::Crypto
