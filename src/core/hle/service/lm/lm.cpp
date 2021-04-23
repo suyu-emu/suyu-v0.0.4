@@ -105,7 +105,7 @@ private:
         if (True(header.flags & LogPacketFlags::Head)) {
             std::vector<u8> tmp(data.size() - sizeof(LogPacketHeader));
             std::memcpy(tmp.data(), data.data() + offset, tmp.size());
-            entries[entry] = std::move(tmp);
+            entries.insert_or_assign(entry, std::move(tmp));
         } else {
             const auto entry_iter = entries.find(entry);
 
