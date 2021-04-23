@@ -702,16 +702,12 @@ void Module::Interface::IsUserRegistrationRequestPermitted(Kernel::HLERequestCon
 }
 
 void Module::Interface::InitializeApplicationInfo(Kernel::HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-
     LOG_DEBUG(Service_ACC, "called");
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(InitializeApplicationInfoBase());
 }
 
 void Module::Interface::InitializeApplicationInfoRestricted(Kernel::HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-
     LOG_WARNING(Service_ACC, "(Partial implementation) called");
 
     // TODO(ogniK): We require checking if the user actually owns the title and what not. As of

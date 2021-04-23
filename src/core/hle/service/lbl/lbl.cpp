@@ -79,7 +79,6 @@ private:
     }
 
     void GetCurrentBrightnessSetting(Kernel::HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
         auto brightness = current_brightness;
         if (!std::isfinite(brightness)) {
             LOG_ERROR(Service_LBL, "Brightness is infinite!");
@@ -272,7 +271,6 @@ private:
     }
 
     void GetCurrentBrightnessSettingForVrMode(Kernel::HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
         auto brightness = current_vr_brightness;
         if (!std::isfinite(brightness)) {
             LOG_ERROR(Service_LBL, "Brightness is infinite!");
