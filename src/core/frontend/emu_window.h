@@ -82,7 +82,7 @@ public:
         bool fullscreen = false;
         int res_width = 0;
         int res_height = 0;
-        std::pair<unsigned, unsigned> min_client_area_size;
+        std::pair<u32, u32> min_client_area_size;
     };
 
     /// Data describing host window system information
@@ -119,13 +119,13 @@ public:
      * @param framebuffer_y Framebuffer y-coordinate that was pressed
      * @param id Touch event ID
      */
-    void TouchPressed(unsigned framebuffer_x, unsigned framebuffer_y, std::size_t id);
+    void TouchPressed(u32 framebuffer_x, u32 framebuffer_y, size_t id);
 
     /**
      * Signal that a touch released event has occurred (e.g. mouse click released)
      * @param id Touch event ID
      */
-    void TouchReleased(std::size_t id);
+    void TouchReleased(size_t id);
 
     /**
      * Signal that a touch movement event has occurred (e.g. mouse was moved over the emu window)
@@ -133,7 +133,7 @@ public:
      * @param framebuffer_y Framebuffer y-coordinate
      * @param id Touch event ID
      */
-    void TouchMoved(unsigned framebuffer_x, unsigned framebuffer_y, std::size_t id);
+    void TouchMoved(u32 framebuffer_x, u32 framebuffer_y, size_t id);
 
     /**
      * Returns currently active configuration.
@@ -173,7 +173,7 @@ public:
      * Convenience method to update the current frame layout
      * Read from the current settings to determine which layout to use.
      */
-    void UpdateCurrentFramebufferLayout(unsigned width, unsigned height);
+    void UpdateCurrentFramebufferLayout(u32 width, u32 height);
 
 protected:
     explicit EmuWindow();
@@ -208,7 +208,7 @@ protected:
      * Update internal client area size with the given parameter.
      * @note EmuWindow implementations will usually use this in window resize event handlers.
      */
-    void NotifyClientAreaSizeChanged(const std::pair<unsigned, unsigned>& size) {
+    void NotifyClientAreaSizeChanged(std::pair<u32, u32> size) {
         client_area_width = size.first;
         client_area_height = size.second;
     }
@@ -221,14 +221,19 @@ private:
      * For the request to be honored, EmuWindow implementations will usually reimplement this
      * function.
      */
-    virtual void OnMinimalClientAreaChangeRequest(std::pair<unsigned, unsigned>) {
+    virtual void OnMinimalClientAreaChangeRequest(std::pair<u32, u32>) {
         // By default, ignore this request and do nothing.
     }
 
+    /**
+     * Clip the provided coordinates to be inside the touchscreen area.
+     */
+    std::pair<u32, u32> ClipToTouchScreen(u32 new_x, u32 new_y) const;
+
     Layout::FramebufferLayout framebuffer_layout; ///< Current framebuffer layout
 
-    unsigned client_area_width;  ///< Current client width, should be set by window impl.
-    unsigned client_area_height; ///< Current client height, should be set by window impl.
+    u32 client_area_width;  ///< Current client width, should be set by window impl.
+    u32 client_area_height; ///< Current client height, should be set by window impl.
 
     WindowConfig config;        ///< Internal configuration (changes pending for being applied in
                                 /// ProcessConfigurationChanges)
@@ -236,11 +241,6 @@ private:
 
     class TouchState;
     std::shared_ptr<TouchState> touch_state;
-
-    /**
-     * Clip the provided coordinates to be inside the touchscreen area.
-     */
-    std::tuple<unsigned, unsigned> ClipToTouchScreen(unsigned new_x, unsigned new_y) const;
 };
 
 } // namespace Core::Frontend

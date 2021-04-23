@@ -60,23 +60,23 @@ EmuWindow::~EmuWindow() {
  * @param framebuffer_y Framebuffer y-coordinate to check
  * @return True if the coordinates are within the touchpad, otherwise false
  */
-static bool IsWithinTouchscreen(const Layout::FramebufferLayout& layout, unsigned framebuffer_x,
-                                unsigned framebuffer_y) {
+static bool IsWithinTouchscreen(const Layout::FramebufferLayout& layout, u32 framebuffer_x,
+                                u32 framebuffer_y) {
     return (framebuffer_y >= layout.screen.top && framebuffer_y < layout.screen.bottom &&
             framebuffer_x >= layout.screen.left && framebuffer_x < layout.screen.right);
 }
 
-std::tuple<unsigned, unsigned> EmuWindow::ClipToTouchScreen(unsigned new_x, unsigned new_y) const {
+std::pair<u32, u32> EmuWindow::ClipToTouchScreen(u32 new_x, u32 new_y) const {
     new_x = std::max(new_x, framebuffer_layout.screen.left);
     new_x = std::min(new_x, framebuffer_layout.screen.right - 1);
 
     new_y = std::max(new_y, framebuffer_layout.screen.top);
     new_y = std::min(new_y, framebuffer_layout.screen.bottom - 1);
 
-    return std::make_tuple(new_x, new_y);
+    return std::make_pair(new_x, new_y);
 }
 
-void EmuWindow::TouchPressed(unsigned framebuffer_x, unsigned framebuffer_y, std::size_t id) {
+void EmuWindow::TouchPressed(u32 framebuffer_x, u32 framebuffer_y, size_t id) {
     if (!IsWithinTouchscreen(framebuffer_layout, framebuffer_x, framebuffer_y)) {
         return;
     }
@@ -95,7 +95,7 @@ void EmuWindow::TouchPressed(unsigned framebuffer_x, unsigned framebuffer_y, std
     touch_state->status[id] = std::make_tuple(x, y, true);
 }
 
-void EmuWindow::TouchReleased(std::size_t id) {
+void EmuWindow::TouchReleased(size_t id) {
     if (id >= touch_state->status.size()) {
         return;
     }
@@ -103,20 +103,23 @@ void EmuWindow::TouchReleased(std::size_t id) {
     touch_state->status[id] = std::make_tuple(0.0f, 0.0f, false);
 }
 
-void EmuWindow::TouchMoved(unsigned framebuffer_x, unsigned framebuffer_y, std::size_t id) {
+void EmuWindow::TouchMoved(u32 framebuffer_x, u32 framebuffer_y, size_t id) {
     if (id >= touch_state->status.size()) {
         return;
     }
-    if (!std::get<2>(touch_state->status[id]))
-        return;
 
-    if (!IsWithinTouchscreen(framebuffer_layout, framebuffer_x, framebuffer_y))
+    if (!std::get<2>(touch_state->status[id])) {
+        return;
+    }
+
+    if (!IsWithinTouchscreen(framebuffer_layout, framebuffer_x, framebuffer_y)) {
         std::tie(framebuffer_x, framebuffer_y) = ClipToTouchScreen(framebuffer_x, framebuffer_y);
+    }
 
     TouchPressed(framebuffer_x, framebuffer_y, id);
 }
 
-void EmuWindow::UpdateCurrentFramebufferLayout(unsigned width, unsigned height) {
+void EmuWindow::UpdateCurrentFramebufferLayout(u32 width, u32 height) {
     NotifyFramebufferLayoutChanged(Layout::DefaultFrameLayout(width, height));
 }
 

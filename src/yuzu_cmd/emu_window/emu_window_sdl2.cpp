@@ -238,6 +238,6 @@ void EmuWindow_SDL2::SetWindowIcon() {
     SDL_FreeSurface(window_icon);
 }
 
-void EmuWindow_SDL2::OnMinimalClientAreaChangeRequest(std::pair<unsigned, unsigned> minimal_size) {
+void EmuWindow_SDL2::OnMinimalClientAreaChangeRequest(std::pair<u32, u32> minimal_size) {
     SDL_SetWindowMinimumSize(render_window, minimal_size.first, minimal_size.second);
 }
