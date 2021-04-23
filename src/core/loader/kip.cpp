@@ -68,7 +68,8 @@ AppLoader::LoadResult AppLoader_KIP::Load(Kernel::Process& process,
     FileSys::ProgramMetadata metadata;
     metadata.LoadManual(kip->Is64Bit(), address_space, kip->GetMainThreadPriority(),
                         kip->GetMainThreadCpuCore(), kip->GetMainThreadStackSize(),
-                        kip->GetTitleID(), 0xFFFFFFFFFFFFFFFF, kip->GetKernelCapabilities());
+                        kip->GetTitleID(), 0xFFFFFFFFFFFFFFFF, 0x1FE00000,
+                        kip->GetKernelCapabilities());
 
     const VAddr base_address = process.PageTable().GetCodeRegionStart();
     Kernel::CodeSet codeset;
