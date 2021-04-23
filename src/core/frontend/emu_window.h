@@ -228,7 +228,7 @@ private:
     /**
      * Clip the provided coordinates to be inside the touchscreen area.
      */
-    std::tuple<u32, u32> ClipToTouchScreen(u32 new_x, u32 new_y) const;
+    std::pair<u32, u32> ClipToTouchScreen(u32 new_x, u32 new_y) const;
 
     Layout::FramebufferLayout framebuffer_layout; ///< Current framebuffer layout
 
