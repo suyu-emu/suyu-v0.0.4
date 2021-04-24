@@ -46,7 +46,7 @@ struct hash<Service::LM::LogPacketHeaderEntry> {
         boost::hash_combine(seed, k.severity);
         boost::hash_combine(seed, k.verbosity);
         return seed;
-    };
+    }
 };
 } // namespace std
 
@@ -95,7 +95,7 @@ private:
         std::memcpy(&header, data.data(), sizeof(LogPacketHeader));
         offset += sizeof(LogPacketHeader);
 
-        LogPacketHeaderEntry entry{
+        const LogPacketHeaderEntry entry{
             .pid = header.pid,
             .tid = header.tid,
             .severity = header.severity,
@@ -105,16 +105,17 @@ private:
         if (True(header.flags & LogPacketFlags::Head)) {
             std::vector<u8> tmp(data.size() - sizeof(LogPacketHeader));
             std::memcpy(tmp.data(), data.data() + offset, tmp.size());
-            entries[entry] = std::move(tmp);
+            entries.insert_or_assign(entry, std::move(tmp));
         } else {
+            const auto entry_iter = entries.find(entry);
+
             // Append to existing entry
-            if (!entries.contains(entry)) {
+            if (entry_iter == entries.cend()) {
                 LOG_ERROR(Service_LM, "Log entry does not exist!");
                 return;
             }
-            std::vector<u8> tmp(data.size() - sizeof(LogPacketHeader));
 
-            auto& existing_entry = entries[entry];
+            auto& existing_entry = entry_iter->second;
             const auto base = existing_entry.size();
             existing_entry.resize(base + (data.size() - sizeof(LogPacketHeader)));
             std::memcpy(existing_entry.data() + base, data.data() + offset,
