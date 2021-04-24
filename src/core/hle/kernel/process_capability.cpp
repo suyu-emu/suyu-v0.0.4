@@ -6,7 +6,7 @@
 
 #include "common/bit_util.h"
 #include "common/logging/log.h"
-#include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/k_handle_table.h"
 #include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/process_capability.h"
 #include "core/hle/kernel/svc_results.h"
@@ -99,7 +99,7 @@ void ProcessCapabilities::InitializeForMetadatalessProcess() {
     interrupt_capabilities.set();
 
     // Allow using the maximum possible amount of handles
-    handle_table_size = static_cast<s32>(HandleTable::MAX_COUNT);
+    handle_table_size = static_cast<s32>(KHandleTable::MaxTableSize);
 
     // Allow all debugging capabilities.
     is_debuggable = true;

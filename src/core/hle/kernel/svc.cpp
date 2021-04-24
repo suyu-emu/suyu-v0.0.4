@@ -21,12 +21,12 @@
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
 #include "core/cpu_manager.h"
-#include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_address_arbiter.h"
 #include "core/hle/kernel/k_client_port.h"
 #include "core/hle/kernel/k_client_session.h"
 #include "core/hle/kernel/k_condition_variable.h"
 #include "core/hle/kernel/k_event.h"
+#include "core/hle/kernel/k_handle_table.h"
 #include "core/hle/kernel/k_memory_block.h"
 #include "core/hle/kernel/k_memory_layout.h"
 #include "core/hle/kernel/k_page_table.h"
@@ -839,10 +839,10 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, Handle
         }
 
         KProcess* const current_process = system.Kernel().CurrentProcess();
-        HandleTable& handle_table = current_process->GetHandleTable();
+        KHandleTable& handle_table = current_process->GetHandleTable();
         const auto resource_limit = current_process->GetResourceLimit();
         if (!resource_limit) {
-            *result = KernelHandle::InvalidHandle;
+            *result = Svc::InvalidHandle;
             // Yes, the kernel considers this a successful operation.
             return RESULT_SUCCESS;
         }
@@ -1993,7 +1993,7 @@ static ResultCode SignalEvent(Core::System& system, Handle event_handle) {
     LOG_DEBUG(Kernel_SVC, "called, event_handle=0x{:08X}", event_handle);
 
     // Get the current handle table.
-    const HandleTable& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
+    const KHandleTable& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
 
     // Get the writable event.
     KScopedAutoObject writable_event = handle_table.GetObject<KWritableEvent>(event_handle);

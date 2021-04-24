@@ -14,8 +14,8 @@
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/hle_ipc.h"
+#include "core/hle/kernel/k_handle_table.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/k_scheduler.h"
@@ -50,7 +50,7 @@ HLERequestContext::HLERequestContext(KernelCore& kernel_, Core::Memory::Memory& 
 
 HLERequestContext::~HLERequestContext() = default;
 
-void HLERequestContext::ParseCommandBuffer(const HandleTable& handle_table, u32_le* src_cmdbuf,
+void HLERequestContext::ParseCommandBuffer(const KHandleTable& handle_table, u32_le* src_cmdbuf,
                                            bool incoming) {
     IPC::RequestParser rp(src_cmdbuf);
     command_header = rp.PopRaw<IPC::CommandHeader>();
@@ -163,7 +163,7 @@ void HLERequestContext::ParseCommandBuffer(const HandleTable& handle_table, u32_
     rp.Skip(1, false); // The command is actually an u64, but we don't use the high part.
 }
 
-ResultCode HLERequestContext::PopulateFromIncomingCommandBuffer(const HandleTable& handle_table,
+ResultCode HLERequestContext::PopulateFromIncomingCommandBuffer(const KHandleTable& handle_table,
                                                                 u32_le* src_cmdbuf) {
     ParseCommandBuffer(handle_table, src_cmdbuf, true);
     if (command_header->type == IPC::CommandType::Close) {

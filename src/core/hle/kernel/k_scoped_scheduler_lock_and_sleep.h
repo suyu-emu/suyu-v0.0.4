@@ -8,7 +8,7 @@
 #pragma once
 
 #include "common/common_types.h"
-#include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/k_handle_table.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/time_manager.h"
@@ -17,7 +17,7 @@ namespace Kernel {
 
 class [[nodiscard]] KScopedSchedulerLockAndSleep {
 public:
-    explicit KScopedSchedulerLockAndSleep(KernelCore & kernel, KThread * t, s64 timeout)
+    explicit KScopedSchedulerLockAndSleep(KernelCore& kernel, KThread* t, s64 timeout)
         : kernel(kernel), thread(t), timeout_tick(timeout) {
         // Lock the scheduler.
         kernel.GlobalSchedulerContext().scheduler_lock.Lock();

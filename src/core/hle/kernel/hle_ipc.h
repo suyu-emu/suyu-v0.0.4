@@ -17,6 +17,7 @@
 #include "common/swap.h"
 #include "core/hle/ipc.h"
 #include "core/hle/kernel/k_auto_object.h"
+#include "core/hle/kernel/svc_common.h"
 
 union ResultCode;
 
@@ -35,9 +36,9 @@ class ServiceFrameworkBase;
 namespace Kernel {
 
 class Domain;
-class HandleTable;
 class HLERequestContext;
 class KernelCore;
+class KHandleTable;
 class KProcess;
 class KServerSession;
 class KThread;
@@ -121,7 +122,7 @@ public:
     }
 
     /// Populates this context with data from the requesting process/thread.
-    ResultCode PopulateFromIncomingCommandBuffer(const HandleTable& handle_table,
+    ResultCode PopulateFromIncomingCommandBuffer(const KHandleTable& handle_table,
                                                  u32_le* src_cmdbuf);
 
     /// Writes data from this context back to the requesting process/thread.
@@ -267,7 +268,7 @@ public:
 private:
     friend class IPC::ResponseBuilder;
 
-    void ParseCommandBuffer(const HandleTable& handle_table, u32_le* src_cmdbuf, bool incoming);
+    void ParseCommandBuffer(const KHandleTable& handle_table, u32_le* src_cmdbuf, bool incoming);
 
     std::array<u32, IPC::COMMAND_BUFFER_LENGTH> cmd_buf;
     Kernel::KServerSession* server_session{};

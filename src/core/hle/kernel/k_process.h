@@ -11,10 +11,10 @@
 #include <unordered_map>
 #include <vector>
 #include "common/common_types.h"
-#include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_address_arbiter.h"
 #include "core/hle/kernel/k_auto_object.h"
 #include "core/hle/kernel/k_condition_variable.h"
+#include "core/hle/kernel/k_handle_table.h"
 #include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/kernel/process_capability.h"
 #include "core/hle/kernel/slab_helpers.h"
@@ -104,12 +104,12 @@ public:
     }
 
     /// Gets a reference to the process' handle table.
-    HandleTable& GetHandleTable() {
+    KHandleTable& GetHandleTable() {
         return handle_table;
     }
 
     /// Gets a const reference to the process' handle table.
-    const HandleTable& GetHandleTable() const {
+    const KHandleTable& GetHandleTable() const {
         return handle_table;
     }
 
@@ -429,7 +429,7 @@ private:
     u64 total_process_running_time_ticks = 0;
 
     /// Per-process handle table for storing created object handles in.
-    HandleTable handle_table;
+    KHandleTable handle_table;
 
     /// Per-process address arbiter.
     KAddressArbiter address_arbiter;

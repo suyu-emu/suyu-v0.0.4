@@ -14,11 +14,12 @@
 
 #include "common/common_types.h"
 #include "core/hle/kernel/k_auto_object.h"
+#include "core/hle/kernel/svc_common.h"
 
 class EmuThread;
 
 namespace Kernel {
-class HandleTable;
+class KHandleTable;
 class KReadableEvent;
 class KSynchronizationObject;
 class KThread;
@@ -74,7 +75,7 @@ public:
 class WaitTreeMutexInfo : public WaitTreeExpandableItem {
     Q_OBJECT
 public:
-    explicit WaitTreeMutexInfo(VAddr mutex_address, const Kernel::HandleTable& handle_table);
+    explicit WaitTreeMutexInfo(VAddr mutex_address, const Kernel::KHandleTable& handle_table);
     ~WaitTreeMutexInfo() override;
 
     QString GetText() const override;

@@ -12,8 +12,8 @@
 #include "common/assert.h"
 #include "core/arm/arm_interface.h"
 #include "core/core.h"
-#include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_class_token.h"
+#include "core/hle/kernel/k_handle_table.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/k_scheduler.h"
@@ -115,7 +115,7 @@ QString WaitTreeText::GetText() const {
     return text;
 }
 
-WaitTreeMutexInfo::WaitTreeMutexInfo(VAddr mutex_address, const Kernel::HandleTable& handle_table)
+WaitTreeMutexInfo::WaitTreeMutexInfo(VAddr mutex_address, const Kernel::KHandleTable& handle_table)
     : mutex_address(mutex_address) {
     mutex_value = Core::System::GetInstance().Memory().Read32(mutex_address);
     owner_handle = static_cast<Kernel::Handle>(mutex_value & Kernel::Svc::HandleWaitMask);

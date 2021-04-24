@@ -179,7 +179,7 @@ KThread* KConditionVariable::SignalImpl(KThread* thread) {
 
     KThread* thread_to_close = nullptr;
     if (can_access) {
-        if (prev_tag == InvalidHandle) {
+        if (prev_tag == Svc::InvalidHandle) {
             // If nobody held the lock previously, we're all good.
             thread->SetSyncedObject(nullptr, RESULT_SUCCESS);
             thread->Wakeup();

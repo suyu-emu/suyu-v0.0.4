@@ -354,7 +354,7 @@ ResultCode KProcess::LoadFromMetadata(const FileSys::ProgramMetadata& metadata,
     tls_region_address = CreateTLSRegion();
     memory_reservation.Commit();
 
-    return handle_table.SetSize(capabilities.GetHandleTableSize());
+    return handle_table.Initialize(capabilities.GetHandleTableSize());
 }
 
 void KProcess::Run(s32 main_thread_priority, u64 stack_size) {

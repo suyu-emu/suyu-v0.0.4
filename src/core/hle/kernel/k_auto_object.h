@@ -17,8 +17,6 @@ namespace Kernel {
 class KernelCore;
 class KProcess;
 
-using Handle = u32;
-
 #define KERNEL_AUTOOBJECT_TRAITS(CLASS, BASE_CLASS)                                                \
     NON_COPYABLE(CLASS);                                                                           \
     NON_MOVEABLE(CLASS);                                                                           \

@@ -14,6 +14,7 @@
 #include "core/hle/kernel/k_auto_object.h"
 #include "core/hle/kernel/k_slab_heap.h"
 #include "core/hle/kernel/memory_types.h"
+#include "core/hle/kernel/svc_common.h"
 
 namespace Core {
 class CPUInterruptHandler;
@@ -30,10 +31,10 @@ namespace Kernel {
 
 class KClientPort;
 class GlobalSchedulerContext;
-class HandleTable;
 class KAutoObjectWithListContainer;
 class KClientSession;
 class KEvent;
+class KHandleTable;
 class KLinkedListNode;
 class KMemoryManager;
 class KPort;
@@ -308,10 +309,10 @@ private:
     u64 CreateNewThreadID();
 
     /// Provides a reference to the global handle table.
-    Kernel::HandleTable& GlobalHandleTable();
+    KHandleTable& GlobalHandleTable();
 
     /// Provides a const reference to the global handle table.
-    const Kernel::HandleTable& GlobalHandleTable() const;
+    const KHandleTable& GlobalHandleTable() const;
 
     struct Impl;
     std::unique_ptr<Impl> impl;

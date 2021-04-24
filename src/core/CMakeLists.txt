@@ -149,8 +149,6 @@ add_library(core STATIC
     hle/kernel/svc_results.h
     hle/kernel/global_scheduler_context.cpp
     hle/kernel/global_scheduler_context.h
-    hle/kernel/handle_table.cpp
-    hle/kernel/handle_table.h
     hle/kernel/hle_ipc.cpp
     hle/kernel/hle_ipc.h
     hle/kernel/init/init_slab_setup.cpp
@@ -174,6 +172,8 @@ add_library(core STATIC
     hle/kernel/k_condition_variable.h
     hle/kernel/k_event.cpp
     hle/kernel/k_event.h
+    hle/kernel/k_handle_table.cpp
+    hle/kernel/k_handle_table.h
     hle/kernel/k_light_condition_variable.h
     hle/kernel/k_light_lock.cpp
     hle/kernel/k_light_lock.h

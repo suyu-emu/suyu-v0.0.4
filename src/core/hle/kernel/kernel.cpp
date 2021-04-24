@@ -26,9 +26,9 @@
 #include "core/cpu_manager.h"
 #include "core/device_memory.h"
 #include "core/hardware_properties.h"
-#include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/init/init_slab_setup.h"
 #include "core/hle/kernel/k_client_port.h"
+#include "core/hle/kernel/k_handle_table.h"
 #include "core/hle/kernel/k_memory_layout.h"
 #include "core/hle/kernel/k_memory_manager.h"
 #include "core/hle/kernel/k_process.h"
@@ -52,8 +52,7 @@ namespace Kernel {
 
 struct KernelCore::Impl {
     explicit Impl(Core::System& system, KernelCore& kernel)
-        : time_manager{system}, global_handle_table{kernel},
-          object_list_container{kernel}, system{system} {}
+        : time_manager{system}, object_list_container{kernel}, system{system} {}
 
     void SetMulticore(bool is_multicore) {
         this->is_multicore = is_multicore;
@@ -61,6 +60,7 @@ struct KernelCore::Impl {
 
     void Initialize(KernelCore& kernel) {
         global_scheduler_context = std::make_unique<Kernel::GlobalSchedulerContext>(kernel);
+        global_handle_table = std::make_unique<Kernel::KHandleTable>(kernel);
 
         service_thread_manager =
             std::make_unique<Common::ThreadWorker>(1, "yuzu:ServiceThreadManager");
@@ -118,7 +118,7 @@ struct KernelCore::Impl {
             current_process = nullptr;
         }
 
-        global_handle_table.Clear();
+        global_handle_table.reset();
 
         preemption_event = nullptr;
 
@@ -648,7 +648,7 @@ struct KernelCore::Impl {
 
     // This is the kernel's handle table or supervisor handle table which
     // stores all the objects in place.
-    HandleTable global_handle_table;
+    std::unique_ptr<KHandleTable> global_handle_table;
 
     KAutoObjectWithListContainer object_list_container;
 
@@ -722,7 +722,7 @@ KResourceLimit* KernelCore::GetSystemResourceLimit() {
 }
 
 KScopedAutoObject<KThread> KernelCore::RetrieveThreadFromGlobalHandleTable(Handle handle) const {
-    return impl->global_handle_table.GetObject<KThread>(handle);
+    return impl->global_handle_table->GetObject<KThread>(handle);
 }
 
 void KernelCore::AppendNewProcess(KProcess* process) {
@@ -876,12 +876,12 @@ u64 KernelCore::CreateNewUserProcessID() {
     return impl->next_user_process_id++;
 }
 
-Kernel::HandleTable& KernelCore::GlobalHandleTable() {
-    return impl->global_handle_table;
+KHandleTable& KernelCore::GlobalHandleTable() {
+    return *impl->global_handle_table;
 }
 
-const Kernel::HandleTable& KernelCore::GlobalHandleTable() const {
-    return impl->global_handle_table;
+const KHandleTable& KernelCore::GlobalHandleTable() const {
+    return *impl->global_handle_table;
 }
 
 void KernelCore::RegisterCoreThread(std::size_t core_id) {
