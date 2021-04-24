@@ -129,20 +129,18 @@ struct KernelCore::Impl {
 
         exclusive_monitor.reset();
 
-        hid_shared_mem->Close();
-        hid_shared_mem = nullptr;
-
-        font_shared_mem->Close();
-        font_shared_mem = nullptr;
-
-        irs_shared_mem->Close();
-        irs_shared_mem = nullptr;
-
-        time_shared_mem->Close();
-        time_shared_mem = nullptr;
-
-        system_resource_limit->Close();
-        system_resource_limit = nullptr;
+        // Cleanup persistent kernel objects
+        auto CleanupObject = [](KAutoObject* obj) {
+            if (obj) {
+                obj->Close();
+                obj = nullptr;
+            }
+        };
+        CleanupObject(hid_shared_mem);
+        CleanupObject(font_shared_mem);
+        CleanupObject(irs_shared_mem);
+        CleanupObject(time_shared_mem);
+        CleanupObject(system_resource_limit);
 
         // Next host thead ID to use, 0-3 IDs represent core threads, >3 represent others
         next_host_thread_id = Core::Hardware::NUM_CPU_CORES;
