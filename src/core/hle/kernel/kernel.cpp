@@ -694,9 +694,7 @@ struct KernelCore::Impl {
 };
 
 KernelCore::KernelCore(Core::System& system) : impl{std::make_unique<Impl>(system, *this)} {}
-KernelCore::~KernelCore() {
-    Shutdown();
-}
+KernelCore::~KernelCore() = default;
 
 void KernelCore::SetMulticore(bool is_multicore) {
     impl->SetMulticore(is_multicore);
