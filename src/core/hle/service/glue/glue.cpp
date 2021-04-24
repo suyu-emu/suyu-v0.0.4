@@ -6,6 +6,7 @@
 #include "core/core.h"
 #include "core/hle/service/glue/arp.h"
 #include "core/hle/service/glue/bgtc.h"
+#include "core/hle/service/glue/ectx.h"
 #include "core/hle/service/glue/glue.h"
 
 namespace Service::Glue {
@@ -20,6 +21,9 @@ void InstallInterfaces(Core::System& system) {
     // BackGround Task Controller
     std::make_shared<BGTC_T>(system)->InstallAsService(system.ServiceManager());
     std::make_shared<BGTC_SC>(system)->InstallAsService(system.ServiceManager());
+
+    // Error Context
+    std::make_shared<ECTX_AW>(system)->InstallAsService(system.ServiceManager());
 }
 
 } // namespace Service::Glue
