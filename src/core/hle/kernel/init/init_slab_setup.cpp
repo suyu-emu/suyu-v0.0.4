@@ -12,6 +12,7 @@
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_memory_layout.h"
 #include "core/hle/kernel/k_memory_manager.h"
+#include "core/hle/kernel/k_port.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_session.h"
 #include "core/hle/kernel/k_shared_memory.h"
@@ -30,8 +31,9 @@ namespace Kernel::Init {
     HANDLER(Process, (SLAB_COUNT(Process)), ##__VA_ARGS__)                                         \
     HANDLER(KThread, (SLAB_COUNT(KThread)), ##__VA_ARGS__)                                         \
     HANDLER(KEvent, (SLAB_COUNT(KEvent)), ##__VA_ARGS__)                                           \
-    HANDLER(KTransferMemory, (SLAB_COUNT(KTransferMemory)), ##__VA_ARGS__)                         \
+    HANDLER(KPort, (SLAB_COUNT(KPort)), ##__VA_ARGS__)                                             \
     HANDLER(KSharedMemory, (SLAB_COUNT(KSharedMemory)), ##__VA_ARGS__)                             \
+    HANDLER(KTransferMemory, (SLAB_COUNT(KTransferMemory)), ##__VA_ARGS__)                         \
     HANDLER(KSession, (SLAB_COUNT(KSession)), ##__VA_ARGS__)                                       \
     HANDLER(KResourceLimit, (SLAB_COUNT(KResourceLimit)), ##__VA_ARGS__)
 

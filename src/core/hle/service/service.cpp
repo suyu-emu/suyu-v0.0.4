@@ -116,10 +116,11 @@ void ServiceFrameworkBase::InstallAsNamedPort(Kernel::KernelCore& kernel) {
 
     ASSERT(!port_installed);
 
-    auto [server_port, client_port] =
-        Kernel::KServerPort::CreatePortPair(kernel, max_sessions, service_name);
-    server_port->SetHleHandler(shared_from_this());
-    kernel.AddNamedPort(service_name, client_port);
+    auto* port = Kernel::KPort::Create(kernel);
+    port->Initialize(max_sessions, false, service_name);
+    port->GetServerPort().SetHleHandler(shared_from_this());
+    kernel.AddNamedPort(service_name, &port->GetClientPort());
+
     port_installed = true;
 }
 

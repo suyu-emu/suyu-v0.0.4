@@ -37,6 +37,8 @@ class KClientSession;
 class KEvent;
 class KLinkedListNode;
 class KMemoryManager;
+class KPort;
+class Process;
 class KResourceLimit;
 class KScheduler;
 class KSession;
@@ -45,7 +47,6 @@ class KThread;
 class KTransferMemory;
 class KWritableEvent;
 class PhysicalCore;
-class Process;
 class ServiceThread;
 class Synchronization;
 class TimeManager;
@@ -272,6 +273,8 @@ public:
             return slab_heap_container->event;
         } else if constexpr (std::is_same_v<T, KLinkedListNode>) {
             return slab_heap_container->linked_list_node;
+        } else if constexpr (std::is_same_v<T, KPort>) {
+            return slab_heap_container->port;
         } else if constexpr (std::is_same_v<T, Process>) {
             return slab_heap_container->process;
         } else if constexpr (std::is_same_v<T, KResourceLimit>) {
@@ -323,6 +326,7 @@ private:
         KSlabHeap<KClientSession> client_session;
         KSlabHeap<KEvent> event;
         KSlabHeap<KLinkedListNode> linked_list_node;
+        KSlabHeap<KPort> port;
         KSlabHeap<Process> process;
         KSlabHeap<KResourceLimit> resource_limit;
         KSlabHeap<KSession> session;

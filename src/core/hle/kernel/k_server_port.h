@@ -1,4 +1,4 @@
-// Copyright 2016 Citra Emulator Project
+// Copyright 2021 yuzu emulator team
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
@@ -8,46 +8,33 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include <boost/intrusive/list.hpp>
+
 #include "common/common_types.h"
+#include "core/hle/kernel/k_server_session.h"
 #include "core/hle/kernel/k_synchronization_object.h"
-#include "core/hle/kernel/object.h"
 #include "core/hle/result.h"
 
 namespace Kernel {
 
-class KClientPort;
 class KernelCore;
-class KServerSession;
+class KPort;
 class SessionRequestHandler;
 
 class KServerPort final : public KSynchronizationObject {
     KERNEL_AUTOOBJECT_TRAITS(KServerPort, KSynchronizationObject);
+
+private:
+    using SessionList = boost::intrusive::list<KServerSession>;
 
 public:
     explicit KServerPort(KernelCore& kernel);
     virtual ~KServerPort() override;
 
     using HLEHandler = std::shared_ptr<SessionRequestHandler>;
-    using PortPair = std::pair<KServerPort*, KClientPort*>;
 
-    void Initialize(std::string&& name_);
-
-    /**
-     * Creates a pair of ServerPort and an associated ClientPort.
-     *
-     * @param kernel The kernel instance to create the port pair under.
-     * @param max_sessions Maximum number of sessions to the port
-     * @param name Optional name of the ports
-     * @return The created port tuple
-     */
-    static PortPair CreatePortPair(KernelCore& kernel, u32 max_sessions,
-                                   std::string name = "UnknownPort");
-
-    /**
-     * Accepts a pending incoming connection on this port. If there are no pending sessions, will
-     * return ERR_NO_PENDING_SESSIONS.
-     */
-    ResultVal<KServerSession*> Accept();
+    void Initialize(KPort* parent_, std::string&& name_);
 
     /// Whether or not this server port has an HLE handler available.
     bool HasHLEHandler() const {
@@ -67,9 +54,15 @@ public:
         hle_handler = std::move(hle_handler_);
     }
 
-    /// Appends a ServerSession to the collection of ServerSessions
-    /// waiting to be accepted by this port.
-    void AppendPendingSession(KServerSession* pending_session);
+    void EnqueueSession(KServerSession* pending_session);
+
+    KServerSession* AcceptSession();
+
+    constexpr const KPort* GetParent() const {
+        return parent;
+    }
+
+    bool IsLight() const;
 
     // Overridden virtual functions.
     virtual void Destroy() override;
@@ -90,14 +83,12 @@ public:
     }
 
 private:
-    /// ServerSessions waiting to be accepted by the port
-    std::vector<KServerSession*> pending_sessions;
+    void CleanupSessions();
 
-    /// This session's HLE request handler template (optional)
-    /// ServerSessions created from this port inherit a reference to this handler.
+private:
+    SessionList session_list;
     HLEHandler hle_handler;
-
-    /// Name of the port (optional)
+    KPort* parent{};
     std::string name;
 };
 

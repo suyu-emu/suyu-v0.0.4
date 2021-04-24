@@ -293,9 +293,7 @@ static ResultCode UnmapMemory32(Core::System& system, u32 dst_addr, u32 src_addr
 /// Connect to an OS service given the port name, returns the handle to the port to out
 static ResultCode ConnectToNamedPort(Core::System& system, Handle* out_handle,
                                      VAddr port_name_address) {
-    std::lock_guard lock{HLE::g_hle_lock};
     auto& memory = system.Memory();
-
     if (!memory.IsValidVirtualAddress(port_name_address)) {
         LOG_ERROR(Kernel_SVC,
                   "Port Name Address is not a valid virtual address, port_name_address=0x{:016X}",
@@ -314,21 +312,27 @@ static ResultCode ConnectToNamedPort(Core::System& system, Handle* out_handle,
 
     LOG_TRACE(Kernel_SVC, "called port_name={}", port_name);
 
+    // Get the current handle table.
     auto& kernel = system.Kernel();
+    auto& handle_table = kernel.CurrentProcess()->GetHandleTable();
+
+    // Find the client port.
     const auto it = kernel.FindNamedPort(port_name);
     if (!kernel.IsValidNamedPort(it)) {
         LOG_WARNING(Kernel_SVC, "tried to connect to unknown port: {}", port_name);
         return ResultNotFound;
     }
+    auto port = it->second;
 
-    auto client_port = it->second;
+    // Create a session.
+    KClientSession* session{};
+    R_TRY(port->CreateSession(std::addressof(session)));
 
-    KClientSession* client_session{};
-    CASCADE_RESULT(client_session, client_port->Connect());
+    // Register the session in the table, close the extra reference.
+    handle_table.Add(out_handle, session);
+    session->Close();
 
-    // Return the client session
-    auto& handle_table = kernel.CurrentProcess()->GetHandleTable();
-    handle_table.Add(out_handle, client_session);
+    // We succeeded.
     return RESULT_SUCCESS;
 }
 
@@ -340,13 +344,13 @@ static ResultCode ConnectToNamedPort32(Core::System& system, Handle* out_handle,
 
 /// Makes a blocking IPC call to an OS service.
 static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
-    LOG_TRACE(Kernel_SVC, "called handle=0x{:08X}({})", handle, session->GetName());
 
     auto& kernel = system.Kernel();
 
     KScopedAutoObject session =
         kernel.CurrentProcess()->GetHandleTable().GetObject<KClientSession>(handle);
     R_UNLESS(session.IsNotNull(), ResultInvalidHandle);
+    LOG_TRACE(Kernel_SVC, "called handle=0x{:08X}({})", handle, session->GetName());
 
     auto thread = kernel.CurrentScheduler()->GetCurrentThread();
     {

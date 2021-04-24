@@ -50,7 +50,7 @@ void KServerSession::OnClientClosed() {
     if (handler) {
         // Note that after this returns, this server session's hle_handler is
         // invalidated (set to null).
-        handler->ClientDisconnected(parent);
+        handler->ClientDisconnected(this);
     }
 }
 

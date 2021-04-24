@@ -136,10 +136,10 @@ public:
             context->AddDomainObject(std::move(iface));
         } else {
             auto* session = Kernel::KSession::Create(kernel);
-            session->Initialize(iface->GetServiceName());
+            session->Initialize(nullptr, iface->GetServiceName());
 
             context->AddMoveObject(&session->GetClientSession());
-            iface->ClientConnected(session);
+            iface->ClientConnected(&session->GetServerSession());
         }
     }
 

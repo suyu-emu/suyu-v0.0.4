@@ -28,7 +28,7 @@ public:
     explicit KSession(KernelCore& kernel);
     virtual ~KSession() override;
 
-    void Initialize(std::string&& name_);
+    void Initialize(KClientPort* port_, std::string&& name_);
 
     virtual void Finalize() override;
 

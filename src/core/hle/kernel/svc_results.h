@@ -36,6 +36,7 @@ constexpr ResultCode ResultBusy{ErrorModule::Kernel, 122};
 constexpr ResultCode ResultSessionClosed{ErrorModule::Kernel, 123};
 constexpr ResultCode ResultInvalidState{ErrorModule::Kernel, 125};
 constexpr ResultCode ResultReservedUsed{ErrorModule::Kernel, 126};
+constexpr ResultCode ResultPortClosed{ErrorModule::Kernel, 131};
 constexpr ResultCode ResultLimitReached{ErrorModule::Kernel, 132};
 constexpr ResultCode ResultInvalidId{ErrorModule::Kernel, 519};
 

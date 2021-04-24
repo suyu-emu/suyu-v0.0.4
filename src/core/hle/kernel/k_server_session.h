@@ -9,6 +9,8 @@
 #include <utility>
 #include <vector>
 
+#include <boost/intrusive/list.hpp>
+
 #include "common/threadsafe_queue.h"
 #include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/kernel/service_thread.h"
@@ -31,7 +33,8 @@ class KSession;
 class SessionRequestHandler;
 class KThread;
 
-class KServerSession final : public KSynchronizationObject {
+class KServerSession final : public KSynchronizationObject,
+                             public boost::intrusive::list_base_hook<> {
     KERNEL_AUTOOBJECT_TRAITS(KServerSession, KSynchronizationObject);
 
     friend class ServiceThread;

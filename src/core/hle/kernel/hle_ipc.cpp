@@ -35,14 +35,12 @@ SessionRequestHandler::SessionRequestHandler() = default;
 
 SessionRequestHandler::~SessionRequestHandler() = default;
 
-void SessionRequestHandler::ClientConnected(KSession* session) {
-    session->GetServerSession().SetHleHandler(shared_from_this());
-    sessions.push_back(session);
+void SessionRequestHandler::ClientConnected(KServerSession* session) {
+    session->SetHleHandler(shared_from_this());
 }
 
-void SessionRequestHandler::ClientDisconnected(KSession* session) {
-    session->GetServerSession().SetHleHandler(nullptr);
-    boost::range::remove_erase(sessions, session);
+void SessionRequestHandler::ClientDisconnected(KServerSession* session) {
+    session->SetHleHandler(nullptr);
 }
 
 HLERequestContext::HLERequestContext(KernelCore& kernel_, Core::Memory::Memory& memory_,

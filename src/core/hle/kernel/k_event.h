@@ -20,7 +20,7 @@ class KEvent final : public KAutoObjectWithSlabHeapAndContainer<KEvent, KAutoObj
 
 public:
     explicit KEvent(KernelCore& kernel);
-    ~KEvent() override;
+    virtual ~KEvent();
 
     void Initialize(std::string&& name);
 

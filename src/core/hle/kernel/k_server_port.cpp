@@ -1,10 +1,12 @@
-// Copyright 2016 Citra Emulator Project
+// Copyright 2021 yuzu emulator team
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
 #include <tuple>
 #include "common/assert.h"
 #include "core/hle/kernel/k_client_port.h"
+#include "core/hle/kernel/k_port.h"
+#include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_server_port.h"
 #include "core/hle/kernel/k_server_session.h"
 #include "core/hle/kernel/k_thread.h"
@@ -16,50 +18,88 @@ namespace Kernel {
 KServerPort::KServerPort(KernelCore& kernel) : KSynchronizationObject{kernel} {}
 KServerPort::~KServerPort() = default;
 
-void KServerPort::Initialize(std::string&& name_) {
+void KServerPort::Initialize(KPort* parent_, std::string&& name_) {
     // Set member variables.
+    parent = parent_;
     name = std::move(name_);
 }
 
-ResultVal<KServerSession*> KServerPort::Accept() {
-    if (pending_sessions.empty()) {
-        return ResultNotFound;
-    }
-
-    auto* session = pending_sessions.back();
-    pending_sessions.pop_back();
-    return MakeResult(session);
+bool KServerPort::IsLight() const {
+    return this->GetParent()->IsLight();
 }
 
-void KServerPort::AppendPendingSession(KServerSession* pending_session) {
-    pending_sessions.push_back(std::move(pending_session));
-    if (pending_sessions.size() == 1) {
-        NotifyAvailable();
+void KServerPort::CleanupSessions() {
+    // Ensure our preconditions are met.
+    if (this->IsLight()) {
+        UNIMPLEMENTED();
+    }
+
+    // Cleanup the session list.
+    while (true) {
+        // Get the last session in the list
+        KServerSession* session = nullptr;
+        {
+            KScopedSchedulerLock sl{kernel};
+            if (!session_list.empty()) {
+                session = std::addressof(session_list.front());
+                session_list.pop_front();
+            }
+        }
+
+        // Close the session.
+        if (session != nullptr) {
+            session->Close();
+        } else {
+            break;
+        }
     }
 }
 
-void KServerPort::Destroy() {}
+void KServerPort::Destroy() {
+    // Note with our parent that we're closed.
+    parent->OnServerClosed();
+
+    // Perform necessary cleanup of our session lists.
+    this->CleanupSessions();
+
+    // Close our reference to our parent.
+    parent->Close();
+}
 
 bool KServerPort::IsSignaled() const {
-    return !pending_sessions.empty();
+    if (this->IsLight()) {
+        UNIMPLEMENTED();
+        return false;
+    } else {
+        return !session_list.empty();
+    }
 }
 
-KServerPort::PortPair KServerPort::CreatePortPair(KernelCore& kernel, u32 max_sessions,
-                                                  std::string name) {
-    KServerPort* server_port = new KServerPort(kernel);
-    KClientPort* client_port = new KClientPort(kernel);
+void KServerPort::EnqueueSession(KServerSession* session) {
+    ASSERT(!this->IsLight());
 
-    KAutoObject::Create(server_port);
-    KAutoObject::Create(client_port);
+    KScopedSchedulerLock sl{kernel};
 
-    server_port->Initialize(name + "_Server");
-    client_port->Initialize(max_sessions, name + "_Client");
+    // Add the session to our queue.
+    session_list.push_back(*session);
+    if (session_list.size() == 1) {
+        this->NotifyAvailable();
+    }
+}
 
-    client_port->server_port = server_port;
+KServerSession* KServerPort::AcceptSession() {
+    ASSERT(!this->IsLight());
 
-    server_port->name = name + "_Server";
+    KScopedSchedulerLock sl{kernel};
 
-    return std::make_pair(server_port, client_port);
+    // Return the first session in the list.
+    if (session_list.empty()) {
+        return nullptr;
+    }
+
+    KServerSession* session = std::addressof(session_list.front());
+    session_list.pop_front();
+    return session;
 }
 
 } // namespace Kernel

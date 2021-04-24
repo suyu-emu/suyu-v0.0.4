@@ -194,6 +194,8 @@ add_library(core STATIC
     hle/kernel/k_page_linked_list.h
     hle/kernel/k_page_table.cpp
     hle/kernel/k_page_table.h
+    hle/kernel/k_port.cpp
+    hle/kernel/k_port.h
     hle/kernel/k_priority_queue.h
     hle/kernel/k_readable_event.cpp
     hle/kernel/k_readable_event.h

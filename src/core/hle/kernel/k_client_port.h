@@ -15,7 +15,7 @@ namespace Kernel {
 
 class KClientSession;
 class KernelCore;
-class KServerPort;
+class KPort;
 
 class KClientPort final : public KSynchronizationObject {
     KERNEL_AUTOOBJECT_TRAITS(KClientPort, KSynchronizationObject);
@@ -24,29 +24,32 @@ public:
     explicit KClientPort(KernelCore& kernel);
     virtual ~KClientPort() override;
 
-    friend class KServerPort;
+    void Initialize(KPort* parent_, s32 max_sessions_, std::string&& name_);
+    void OnSessionFinalized();
+    void OnServerClosed();
 
-    void Initialize(s32 max_sessions_, std::string&& name_);
+    constexpr const KPort* GetParent() const {
+        return parent;
+    }
 
-    KServerPort* GetServerPort() const;
+    s32 GetNumSessions() const {
+        return num_sessions;
+    }
+    s32 GetPeakSessions() const {
+        return peak_sessions;
+    }
+    s32 GetMaxSessions() const {
+        return max_sessions;
+    }
 
-    /**
-     * Creates a new Session pair, adds the created ServerSession to the associated ServerPort's
-     * list of pending sessions, and signals the ServerPort, causing any threads
-     * waiting on it to awake.
-     * @returns ClientSession The client endpoint of the created Session pair, or error code.
-     */
-    ResultVal<KClientSession*> Connect();
-
-    /**
-     * Signifies that a previously active connection has been closed,
-     * decreasing the total number of active connections to this port.
-     */
-    void ConnectionClosed();
+    bool IsLight() const;
+    bool IsServerClosed() const;
 
     // Overridden virtual functions.
     virtual void Destroy() override;
     virtual bool IsSignaled() const override;
+
+    ResultCode CreateSession(KClientSession** out);
 
     // DEPRECATED
 
@@ -63,10 +66,11 @@ public:
     }
 
 private:
-    KServerPort* server_port{};      ///< ServerPort associated with this client port.
-    s32 max_sessions{};              ///< Maximum number of simultaneous sessions the port can have
-    std::atomic<s32> num_sessions{}; ///< Number of currently open sessions to this port
-    std::string name;                ///< Name of client port (optional)
+    std::atomic<s32> num_sessions{};
+    std::atomic<s32> peak_sessions{};
+    s32 max_sessions{};
+    KPort* parent{};
+    std::string name;
 };
 
 } // namespace Kernel

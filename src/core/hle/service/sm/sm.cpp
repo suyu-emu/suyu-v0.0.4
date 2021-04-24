@@ -8,6 +8,7 @@
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/k_client_port.h"
 #include "core/hle/kernel/k_client_session.h"
+#include "core/hle/kernel/k_port.h"
 #include "core/hle/kernel/k_server_port.h"
 #include "core/hle/kernel/k_server_session.h"
 #include "core/hle/kernel/k_session.h"
@@ -59,13 +60,12 @@ ResultVal<Kernel::KServerPort*> ServiceManager::RegisterService(std::string name
         return ERR_ALREADY_REGISTERED;
     }
 
-    auto [server_port, client_port] =
-        Kernel::KServerPort::CreatePortPair(kernel, max_sessions, name);
+    auto* port = Kernel::KPort::Create(kernel);
+    port->Initialize(max_sessions, false, name);
 
-    client_port->Open();
+    registered_services.emplace(std::move(name), port);
 
-    registered_services.emplace(std::move(name), client_port);
-    return MakeResult(server_port);
+    return MakeResult(&port->GetServerPort());
 }
 
 ResultCode ServiceManager::UnregisterService(const std::string& name) {
@@ -83,7 +83,7 @@ ResultCode ServiceManager::UnregisterService(const std::string& name) {
     return RESULT_SUCCESS;
 }
 
-ResultVal<Kernel::KClientPort*> ServiceManager::GetServicePort(const std::string& name) {
+ResultVal<Kernel::KPort*> ServiceManager::GetServicePort(const std::string& name) {
 
     CASCADE_CODE(ValidateServiceName(name));
     auto it = registered_services.find(name);
@@ -118,25 +118,26 @@ void SM::GetService(Kernel::HLERequestContext& ctx) {
 
     std::string name(name_buf.begin(), end);
 
-    auto client_port = service_manager->GetServicePort(name);
-    if (client_port.Failed()) {
+    auto result = service_manager->GetServicePort(name);
+    if (result.Failed()) {
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(client_port.Code());
-        LOG_ERROR(Service_SM, "called service={} -> error 0x{:08X}", name, client_port.Code().raw);
+        rb.Push(result.Code());
+        LOG_ERROR(Service_SM, "called service={} -> error 0x{:08X}", name, result.Code().raw);
         if (name.length() == 0)
             return; // LibNX Fix
         UNIMPLEMENTED();
         return;
     }
 
-    auto* session = Kernel::KSession::Create(kernel);
-    session->Initialize(std::move(name));
+    auto* port = result.Unwrap();
 
-    const auto& server_port = client_port.Unwrap()->GetServerPort();
-    if (server_port->GetHLEHandler()) {
-        server_port->GetHLEHandler()->ClientConnected(session);
+    auto* session = Kernel::KSession::Create(kernel);
+    session->Initialize(&port->GetClientPort(), std::move(name));
+
+    if (port->GetServerPort().GetHLEHandler()) {
+        port->GetServerPort().GetHLEHandler()->ClientConnected(&session->GetServerSession());
     } else {
-        server_port->AppendPendingSession(&session->GetServerSession());
+        port->EnqueueSession(&session->GetServerSession());
     }
 
     LOG_DEBUG(Service_SM, "called service={} -> session={}", name, session->GetObjectId());
