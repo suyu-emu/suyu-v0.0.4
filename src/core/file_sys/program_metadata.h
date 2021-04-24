@@ -59,7 +59,8 @@ public:
     /// Load from parameters instead of NPDM file, used for KIP
     void LoadManual(bool is_64_bit, ProgramAddressSpaceType address_space, s32 main_thread_prio,
                     u32 main_thread_core, u32 main_thread_stack_size, u64 title_id,
-                    u64 filesystem_permissions, KernelCapabilityDescriptors capabilities);
+                    u64 filesystem_permissions, u32 system_resource_size,
+                    KernelCapabilityDescriptors capabilities);
 
     bool Is64BitProgram() const;
     ProgramAddressSpaceType GetAddressSpaceType() const;

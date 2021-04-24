@@ -58,7 +58,8 @@ Loader::ResultStatus ProgramMetadata::Load(VirtualFile file) {
     result.LoadManual(
         true /*is_64_bit*/, FileSys::ProgramAddressSpaceType::Is39Bit /*address_space*/,
         0x2c /*main_thread_prio*/, 0 /*main_thread_core*/, 0x00100000 /*main_thread_stack_size*/,
-        {}, 0xFFFFFFFFFFFFFFFF /*filesystem_permissions*/, {} /*capabilities*/);
+        0 /*title_id*/, 0xFFFFFFFFFFFFFFFF /*filesystem_permissions*/,
+        0x1FE00000 /*system_resource_size*/, {} /*capabilities*/);
 
     return result;
 }
@@ -66,7 +67,7 @@ Loader::ResultStatus ProgramMetadata::Load(VirtualFile file) {
 void ProgramMetadata::LoadManual(bool is_64_bit, ProgramAddressSpaceType address_space,
                                  s32 main_thread_prio, u32 main_thread_core,
                                  u32 main_thread_stack_size, u64 title_id,
-                                 u64 filesystem_permissions,
+                                 u64 filesystem_permissions, u32 system_resource_size,
                                  KernelCapabilityDescriptors capabilities) {
     npdm_header.has_64_bit_instructions.Assign(is_64_bit);
     npdm_header.address_space_type.Assign(address_space);
@@ -75,6 +76,7 @@ void ProgramMetadata::LoadManual(bool is_64_bit, ProgramAddressSpaceType address
     npdm_header.main_stack_size = main_thread_stack_size;
     aci_header.title_id = title_id;
     aci_file_access.permissions = filesystem_permissions;
+    npdm_header.system_resource_size = system_resource_size;
     aci_kernel_capabilities = std ::move(capabilities);
 }
 
