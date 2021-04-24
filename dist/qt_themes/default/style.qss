@@ -515,45 +515,35 @@ QDialog#QtSoftwareKeyboardDialog QPushButton#button_backspace_num:pressed {
 QDialog#QtSoftwareKeyboardDialog QPushButton#button_backspace,
 QDialog#QtSoftwareKeyboardDialog QPushButton#button_backspace_shift,
 QDialog#QtSoftwareKeyboardDialog QPushButton#button_backspace_num {
-    background-position: right top;
-    background-repeat: no-repeat;
-    background-origin: content;
-    background-image: url(:/overlay/osk_button_B.png);
+    image: url(:/overlay/osk_button_B.png);
+    image-position: right;
     qproperty-icon: url(:/overlay/osk_button_backspace.png);
     qproperty-iconSize: 36px;
 }
 
 QDialog#QtSoftwareKeyboardDialog QPushButton#button_space,
 QDialog#QtSoftwareKeyboardDialog QPushButton#button_space_shift {
-    background-position: right top;
-    background-repeat: no-repeat;
-    background-origin: content;
-    background-image: url(:/overlay/osk_button_Y.png);
+    image: url(:/overlay/osk_button_Y.png);
+    image-position: right;
 }
 
 QDialog#QtSoftwareKeyboardDialog QPushButton#button_ok,
 QDialog#QtSoftwareKeyboardDialog QPushButton#button_ok_shift,
 QDialog#QtSoftwareKeyboardDialog QPushButton#button_ok_num {
-    background-position: right top;
-    background-repeat: no-repeat;
-    background-origin: content;
-    background-image: url(:/overlay/osk_button_plus.png);
+    image: url(:/overlay/osk_button_plus.png);
+    image-position: right;
 }
 
 QDialog#QtSoftwareKeyboardDialog QPushButton#button_shift {
-    background-position: left top;
-    background-repeat: no-repeat;
-    background-origin: content;
-    background-image: url(:/overlay/osk_button_shift_lock_off.png);
+    image: url(:/overlay/osk_button_shift_lock_off.png);
+    image-position: left;
     qproperty-icon: url(:/overlay/osk_button_shift.png);
     qproperty-iconSize: 36px;
 }
 
 QDialog#QtSoftwareKeyboardDialog QPushButton#button_shift_shift {
-    background-position: left top;
-    background-repeat: no-repeat;
-    background-origin: content;
-    background-image: url(:/overlay/osk_button_shift_lock_off.png);
+    image: url(:/overlay/osk_button_shift_lock_off.png);
+    image-position: left;
     qproperty-icon: url(:/overlay/osk_button_shift_on.png);
     qproperty-iconSize: 36px;
 }
@@ -645,16 +635,16 @@ QDialog#QtSoftwareKeyboardDialog QPushButton#button_return:disabled {
 QDialog#QtSoftwareKeyboardDialog QPushButton#button_ok:disabled,
 QDialog#QtSoftwareKeyboardDialog QPushButton#button_ok_shift:disabled,
 QDialog#QtSoftwareKeyboardDialog QPushButton#button_ok_num:disabled {
-    background-image: url(:/overlay/osk_button_plus_disabled.png);
+    image: url(:/overlay/osk_button_plus_disabled.png);
 }
 
 QDialog#QtSoftwareKeyboardDialog QPushButton#button_backspace:disabled,
 QDialog#QtSoftwareKeyboardDialog QPushButton#button_backspace_shift:disabled,
 QDialog#QtSoftwareKeyboardDialog QPushButton#button_backspace_num:disabled {
-    background-image: url(:/overlay/osk_button_B_disabled.png);
+    image: url(:/overlay/osk_button_B_disabled.png);
 }
 
 QDialog#QtSoftwareKeyboardDialog QPushButton#button_space:disabled,
 QDialog#QtSoftwareKeyboardDialog QPushButton#button_space_shift:disabled {
-    background-image: url(:/overlay/osk_button_Y_disabled.png);
+    image: url(:/overlay/osk_button_Y_disabled.png);
 }
