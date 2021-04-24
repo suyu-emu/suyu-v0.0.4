@@ -44,6 +44,12 @@ public:
     ProgramMetadata();
     ~ProgramMetadata();
 
+    ProgramMetadata(const ProgramMetadata&) = default;
+    ProgramMetadata& operator=(const ProgramMetadata&) = default;
+
+    ProgramMetadata(ProgramMetadata&&) = default;
+    ProgramMetadata& operator=(ProgramMetadata&&) = default;
+
     /// Gets a default ProgramMetadata configuration, should only be used for homebrew formats where
     /// we do not have an NPDM file
     static ProgramMetadata GetDefault();
