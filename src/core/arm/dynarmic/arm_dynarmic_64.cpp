@@ -16,8 +16,8 @@
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/hardware_properties.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_scheduler.h"
-#include "core/hle/kernel/process.h"
 #include "core/hle/kernel/svc.h"
 #include "core/memory.h"
 

@@ -19,7 +19,7 @@ class System;
 
 namespace Kernel {
 class PhysicalMemory;
-class Process;
+class KProcess;
 } // namespace Kernel
 
 namespace Core::Memory {
@@ -68,7 +68,7 @@ public:
      *
      * @param process The process to use the page table of.
      */
-    void SetCurrentPageTable(Kernel::Process& process, u32 core_id);
+    void SetCurrentPageTable(Kernel::KProcess& process, u32 core_id);
 
     /**
      * Maps an allocated buffer onto a region of the emulated process address space.
@@ -99,7 +99,7 @@ public:
      *
      * @returns True if the given virtual address is valid, false otherwise.
      */
-    bool IsValidVirtualAddress(const Kernel::Process& process, VAddr vaddr) const;
+    bool IsValidVirtualAddress(const Kernel::KProcess& process, VAddr vaddr) const;
 
     /**
      * Checks whether or not the supplied address is a valid virtual
@@ -333,7 +333,7 @@ public:
      * @post The range [dest_buffer, size) contains the read bytes from the
      *       process' address space.
      */
-    void ReadBlock(const Kernel::Process& process, VAddr src_addr, void* dest_buffer,
+    void ReadBlock(const Kernel::KProcess& process, VAddr src_addr, void* dest_buffer,
                    std::size_t size);
 
     /**
@@ -354,7 +354,7 @@ public:
      * @post The range [dest_buffer, size) contains the read bytes from the
      *       process' address space.
      */
-    void ReadBlockUnsafe(const Kernel::Process& process, VAddr src_addr, void* dest_buffer,
+    void ReadBlockUnsafe(const Kernel::KProcess& process, VAddr src_addr, void* dest_buffer,
                          std::size_t size);
 
     /**
@@ -414,7 +414,7 @@ public:
      *       and will mark that region as invalidated to caches that the active
      *       graphics backend may be maintaining over the course of execution.
      */
-    void WriteBlock(const Kernel::Process& process, VAddr dest_addr, const void* src_buffer,
+    void WriteBlock(const Kernel::KProcess& process, VAddr dest_addr, const void* src_buffer,
                     std::size_t size);
 
     /**
@@ -434,7 +434,7 @@ public:
      *       will be ignored and an error will be logged.
      *
      */
-    void WriteBlockUnsafe(const Kernel::Process& process, VAddr dest_addr, const void* src_buffer,
+    void WriteBlockUnsafe(const Kernel::KProcess& process, VAddr dest_addr, const void* src_buffer,
                           std::size_t size);
 
     /**
@@ -486,7 +486,7 @@ public:
      * @post The range [dest_addr, size) within the process' address space is
      *       filled with zeroes.
      */
-    void ZeroBlock(const Kernel::Process& process, VAddr dest_addr, std::size_t size);
+    void ZeroBlock(const Kernel::KProcess& process, VAddr dest_addr, std::size_t size);
 
     /**
      * Fills the specified address range within the current process' address space with zeroes.
@@ -511,7 +511,7 @@ public:
      * @post The range [dest_addr, size) within the process' address space contains the
      *       same data within the range [src_addr, size).
      */
-    void CopyBlock(const Kernel::Process& process, VAddr dest_addr, VAddr src_addr,
+    void CopyBlock(const Kernel::KProcess& process, VAddr dest_addr, VAddr src_addr,
                    std::size_t size);
 
     /**

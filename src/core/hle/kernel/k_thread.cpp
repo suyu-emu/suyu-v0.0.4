@@ -21,13 +21,13 @@
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_condition_variable.h"
 #include "core/hle/kernel/k_memory_layout.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/k_thread_queue.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/process.h"
 #include "core/hle/kernel/svc_results.h"
 #include "core/hle/kernel/time_manager.h"
 #include "core/hle/result.h"
@@ -65,7 +65,7 @@ KThread::KThread(KernelCore& kernel)
 KThread::~KThread() = default;
 
 ResultCode KThread::Initialize(KThreadFunction func, uintptr_t arg, VAddr user_stack_top, s32 prio,
-                               s32 virt_core, Process* owner, ThreadType type) {
+                               s32 virt_core, KProcess* owner, ThreadType type) {
     // Assert parameters are valid.
     ASSERT((type == ThreadType::Main) ||
            (Svc::HighestThreadPriority <= prio && prio <= Svc::LowestThreadPriority));
@@ -209,7 +209,7 @@ ResultCode KThread::Initialize(KThreadFunction func, uintptr_t arg, VAddr user_s
 }
 
 ResultCode KThread::InitializeThread(KThread* thread, KThreadFunction func, uintptr_t arg,
-                                     VAddr user_stack_top, s32 prio, s32 core, Process* owner,
+                                     VAddr user_stack_top, s32 prio, s32 core, KProcess* owner,
                                      ThreadType type, std::function<void(void*)>&& init_func,
                                      void* init_func_parameter) {
     // Initialize the thread.
@@ -242,7 +242,7 @@ ResultCode KThread::InitializeHighPriorityThread(Core::System& system, KThread* 
 
 ResultCode KThread::InitializeUserThread(Core::System& system, KThread* thread,
                                          KThreadFunction func, uintptr_t arg, VAddr user_stack_top,
-                                         s32 prio, s32 virt_core, Process* owner) {
+                                         s32 prio, s32 virt_core, KProcess* owner) {
     system.Kernel().GlobalSchedulerContext().AddThread(thread);
     return InitializeThread(thread, func, arg, user_stack_top, prio, virt_core, owner,
                             ThreadType::User, Core::CpuManager::GetGuestThreadStartFunc(),
@@ -250,7 +250,7 @@ ResultCode KThread::InitializeUserThread(Core::System& system, KThread* thread,
 }
 
 void KThread::PostDestroy(uintptr_t arg) {
-    Process* owner = reinterpret_cast<Process*>(arg & ~1ULL);
+    KProcess* owner = reinterpret_cast<KProcess*>(arg & ~1ULL);
     const bool resource_limit_release_hint = (arg & 1);
     const s64 hint_value = (resource_limit_release_hint ? 0 : 1);
     if (owner != nullptr) {

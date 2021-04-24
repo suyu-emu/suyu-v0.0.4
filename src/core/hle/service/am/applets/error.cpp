@@ -9,7 +9,7 @@
 #include "common/string_util.h"
 #include "core/core.h"
 #include "core/frontend/applets/error.h"
-#include "core/hle/kernel/process.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applets/error.h"
 #include "core/reporter.h"

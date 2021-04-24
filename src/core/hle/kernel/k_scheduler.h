@@ -24,7 +24,7 @@ class System;
 namespace Kernel {
 
 class KernelCore;
-class Process;
+class KProcess;
 class SchedulerLock;
 class KThread;
 
@@ -165,7 +165,7 @@ private:
      * most recent tick count retrieved. No special arithmetic is
      * applied to it.
      */
-    void UpdateLastContextSwitchTime(KThread* thread, Process* process);
+    void UpdateLastContextSwitchTime(KThread* thread, KProcess* process);
 
     static void OnSwitch(void* this_scheduler);
     void SwitchToCurrent();
@@ -197,7 +197,7 @@ private:
 
 class [[nodiscard]] KScopedSchedulerLock : KScopedLock<GlobalSchedulerContext::LockType> {
 public:
-    explicit KScopedSchedulerLock(KernelCore & kernel);
+    explicit KScopedSchedulerLock(KernelCore& kernel);
     ~KScopedSchedulerLock();
 };
 

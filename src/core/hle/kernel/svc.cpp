@@ -30,6 +30,7 @@
 #include "core/hle/kernel/k_memory_block.h"
 #include "core/hle/kernel/k_memory_layout.h"
 #include "core/hle/kernel/k_page_table.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scheduler.h"
@@ -42,7 +43,6 @@
 #include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/physical_core.h"
-#include "core/hle/kernel/process.h"
 #include "core/hle/kernel/svc.h"
 #include "core/hle/kernel/svc_results.h"
 #include "core/hle/kernel/svc_types.h"
@@ -402,8 +402,8 @@ static ResultCode GetProcessId(Core::System& system, u64* out_process_id, Handle
     R_UNLESS(obj.IsNotNull(), ResultInvalidHandle);
 
     // Get the process from the object.
-    Process* process = nullptr;
-    if (Process* p = obj->DynamicCast<Process*>(); p != nullptr) {
+    KProcess* process = nullptr;
+    if (KProcess* p = obj->DynamicCast<KProcess*>(); p != nullptr) {
         // The object is a process, so we can use it directly.
         process = p;
     } else if (KThread* t = obj->DynamicCast<KThread*>(); t != nullptr) {
@@ -733,7 +733,7 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, Handle
         }
 
         const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-        KScopedAutoObject process = handle_table.GetObject<Process>(handle);
+        KScopedAutoObject process = handle_table.GetObject<KProcess>(handle);
         if (process.IsNull()) {
             LOG_ERROR(Kernel_SVC, "Process is not valid! info_id={}, info_sub_id={}, handle={:08X}",
                       info_id, info_sub_id, handle);
@@ -838,7 +838,7 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, Handle
             return ResultInvalidCombination;
         }
 
-        Process* const current_process = system.Kernel().CurrentProcess();
+        KProcess* const current_process = system.Kernel().CurrentProcess();
         HandleTable& handle_table = current_process->GetHandleTable();
         const auto resource_limit = current_process->GetResourceLimit();
         if (!resource_limit) {
@@ -861,9 +861,9 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, Handle
             return ResultInvalidHandle;
         }
 
-        if (info_sub_id >= Process::RANDOM_ENTROPY_SIZE) {
+        if (info_sub_id >= KProcess::RANDOM_ENTROPY_SIZE) {
             LOG_ERROR(Kernel_SVC, "Entropy size is out of range, expected {} but got {}",
-                      Process::RANDOM_ENTROPY_SIZE, info_sub_id);
+                      KProcess::RANDOM_ENTROPY_SIZE, info_sub_id);
             return ResultInvalidCombination;
         }
 
@@ -955,7 +955,7 @@ static ResultCode MapPhysicalMemory(Core::System& system, VAddr addr, u64 size) 
         return ResultInvalidMemoryRegion;
     }
 
-    Process* const current_process{system.Kernel().CurrentProcess()};
+    KProcess* const current_process{system.Kernel().CurrentProcess()};
     auto& page_table{current_process->PageTable()};
 
     if (current_process->GetSystemResourceSize() == 0) {
@@ -1009,7 +1009,7 @@ static ResultCode UnmapPhysicalMemory(Core::System& system, VAddr addr, u64 size
         return ResultInvalidMemoryRegion;
     }
 
-    Process* const current_process{system.Kernel().CurrentProcess()};
+    KProcess* const current_process{system.Kernel().CurrentProcess()};
     auto& page_table{current_process->PageTable()};
 
     if (current_process->GetSystemResourceSize() == 0) {
@@ -1153,7 +1153,7 @@ static ResultCode GetThreadPriority32(Core::System& system, u32* out_priority, H
 /// Sets the priority for the specified thread
 static ResultCode SetThreadPriority(Core::System& system, Handle thread_handle, u32 priority) {
     // Get the current process.
-    Process& process = *system.Kernel().CurrentProcess();
+    KProcess& process = *system.Kernel().CurrentProcess();
 
     // Validate the priority.
     R_UNLESS(HighestThreadPriority <= priority && priority <= LowestThreadPriority,
@@ -1264,7 +1264,7 @@ static ResultCode QueryProcessMemory(Core::System& system, VAddr memory_info_add
     std::lock_guard lock{HLE::g_hle_lock};
     LOG_TRACE(Kernel_SVC, "called process=0x{:08X} address={:X}", process_handle, address);
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    KScopedAutoObject process = handle_table.GetObject<Process>(process_handle);
+    KScopedAutoObject process = handle_table.GetObject<KProcess>(process_handle);
     if (process.IsNull()) {
         LOG_ERROR(Kernel_SVC, "Process handle does not exist, process_handle=0x{:08X}",
                   process_handle);
@@ -1346,7 +1346,7 @@ static ResultCode MapProcessCodeMemory(Core::System& system, Handle process_hand
     }
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    KScopedAutoObject process = handle_table.GetObject<Process>(process_handle);
+    KScopedAutoObject process = handle_table.GetObject<KProcess>(process_handle);
     if (process.IsNull()) {
         LOG_ERROR(Kernel_SVC, "Invalid process handle specified (handle=0x{:08X}).",
                   process_handle);
@@ -1414,7 +1414,7 @@ static ResultCode UnmapProcessCodeMemory(Core::System& system, Handle process_ha
     }
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    KScopedAutoObject process = handle_table.GetObject<Process>(process_handle);
+    KScopedAutoObject process = handle_table.GetObject<KProcess>(process_handle);
     if (process.IsNull()) {
         LOG_ERROR(Kernel_SVC, "Invalid process handle specified (handle=0x{:08X}).",
                   process_handle);
@@ -1830,7 +1830,7 @@ static ResultCode ResetSignal(Core::System& system, Handle handle) {
 
     // Try to reset as process.
     {
-        KScopedAutoObject process = handle_table.GetObject<Process>(handle);
+        KScopedAutoObject process = handle_table.GetObject<KProcess>(handle);
         if (process.IsNotNull()) {
             return process->Reset();
         }
@@ -2077,7 +2077,7 @@ static ResultCode GetProcessInfo(Core::System& system, u64* out, Handle process_
     };
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    KScopedAutoObject process = handle_table.GetObject<Process>(process_handle);
+    KScopedAutoObject process = handle_table.GetObject<KProcess>(process_handle);
     if (process.IsNull()) {
         LOG_ERROR(Kernel_SVC, "Process handle does not exist, process_handle=0x{:08X}",
                   process_handle);

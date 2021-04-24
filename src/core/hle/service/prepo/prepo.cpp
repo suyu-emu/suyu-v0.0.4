@@ -6,7 +6,7 @@
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/process.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/prepo/prepo.h"
 #include "core/hle/service/service.h"

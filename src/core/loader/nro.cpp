@@ -17,8 +17,8 @@
 #include "core/file_sys/vfs_offset.h"
 #include "core/hle/kernel/code_set.h"
 #include "core/hle/kernel/k_page_table.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_thread.h"
-#include "core/hle/kernel/process.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/nro.h"
 #include "core/loader/nso.h"
@@ -130,7 +130,7 @@ static constexpr u32 PageAlignSize(u32 size) {
     return static_cast<u32>((size + Core::Memory::PAGE_MASK) & ~Core::Memory::PAGE_MASK);
 }
 
-static bool LoadNroImpl(Kernel::Process& process, const std::vector<u8>& data) {
+static bool LoadNroImpl(Kernel::KProcess& process, const std::vector<u8>& data) {
     if (data.size() < sizeof(NroHeader)) {
         return {};
     }
@@ -199,11 +199,11 @@ static bool LoadNroImpl(Kernel::Process& process, const std::vector<u8>& data) {
     return true;
 }
 
-bool AppLoader_NRO::LoadNro(Kernel::Process& process, const FileSys::VfsFile& nro_file) {
+bool AppLoader_NRO::LoadNro(Kernel::KProcess& process, const FileSys::VfsFile& nro_file) {
     return LoadNroImpl(process, nro_file.ReadAllBytes());
 }
 
-AppLoader_NRO::LoadResult AppLoader_NRO::Load(Kernel::Process& process, Core::System& system) {
+AppLoader_NRO::LoadResult AppLoader_NRO::Load(Kernel::KProcess& process, Core::System& system) {
     if (is_loaded) {
         return {ResultStatus::ErrorAlreadyLoaded, {}};
     }

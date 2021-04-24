@@ -2,10 +2,10 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_transfer_memory.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/process.h"
 
 namespace Kernel {
 
@@ -37,7 +37,7 @@ void KTransferMemory::Finalize() {
 }
 
 void KTransferMemory::PostDestroy(uintptr_t arg) {
-    Process* owner = reinterpret_cast<Process*>(arg);
+    KProcess* owner = reinterpret_cast<KProcess*>(arg);
     owner->GetResourceLimit()->Release(LimitableResource::TransferMemory, 1);
     owner->Close();
 }

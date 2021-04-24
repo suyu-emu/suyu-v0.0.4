@@ -13,8 +13,8 @@
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/romfs_factory.h"
 #include "core/hle/kernel/k_page_table.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/process.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/deconstructed_rom_directory.h"
 #include "core/loader/nso.h"
@@ -88,7 +88,7 @@ FileType AppLoader_DeconstructedRomDirectory::IdentifyType(const FileSys::Virtua
 }
 
 AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirectory::Load(
-    Kernel::Process& process, Core::System& system) {
+    Kernel::KProcess& process, Core::System& system) {
     if (is_loaded) {
         return {ResultStatus::ErrorAlreadyLoaded, {}};
     }

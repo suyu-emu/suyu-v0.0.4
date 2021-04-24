@@ -16,7 +16,7 @@
 namespace Kernel {
 
 class KernelCore;
-class Process;
+class KProcess;
 
 class KAutoObjectWithListContainer {
     NON_COPYABLE(KAutoObjectWithListContainer);
@@ -66,7 +66,7 @@ public:
 
     void Register(KAutoObjectWithList* obj);
     void Unregister(KAutoObjectWithList* obj);
-    size_t GetOwnedCount(Process* owner);
+    size_t GetOwnedCount(KProcess* owner);
 };
 
 } // namespace Kernel

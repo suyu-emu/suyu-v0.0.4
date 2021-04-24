@@ -25,7 +25,7 @@
 #include "core/file_sys/system_archive/system_archive.h"
 #include "core/file_sys/vfs.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/process.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/filesystem/fsp_srv.h"
 #include "core/reporter.h"

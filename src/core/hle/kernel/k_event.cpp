@@ -3,8 +3,8 @@
 // Refer to the license.txt file included.
 
 #include "core/hle/kernel/k_event.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_resource_limit.h"
-#include "core/hle/kernel/process.h"
 
 namespace Kernel {
 
@@ -45,7 +45,7 @@ void KEvent::Finalize() {
 
 void KEvent::PostDestroy(uintptr_t arg) {
     // Release the event count resource the owner process holds.
-    Process* owner = reinterpret_cast<Process*>(arg);
+    KProcess* owner = reinterpret_cast<KProcess*>(arg);
     if (owner) {
         owner->GetResourceLimit()->Release(LimitableResource::Events, 1);
         owner->Close();

@@ -45,7 +45,7 @@ public:
         return IdentifyType(file);
     }
 
-    LoadResult Load(Kernel::Process& process, Core::System& system) override;
+    LoadResult Load(Kernel::KProcess& process, Core::System& system) override;
 
     ResultStatus ReadRomFS(FileSys::VirtualFile& out_file) override;
     u64 ReadRomFSIVFCOffset() const override;

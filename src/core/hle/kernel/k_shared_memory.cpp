@@ -19,7 +19,7 @@ KSharedMemory::~KSharedMemory() {
 }
 
 ResultCode KSharedMemory::Initialize(KernelCore& kernel_, Core::DeviceMemory& device_memory_,
-                                     Process* owner_process_, KPageLinkedList&& page_list_,
+                                     KProcess* owner_process_, KPageLinkedList&& page_list_,
                                      KMemoryPermission owner_permission_,
                                      KMemoryPermission user_permission_, PAddr physical_address_,
                                      std::size_t size_, std::string name_) {
@@ -74,7 +74,7 @@ void KSharedMemory::Finalize() {
     KAutoObjectWithSlabHeapAndContainer<KSharedMemory, KAutoObjectWithList>::Finalize();
 }
 
-ResultCode KSharedMemory::Map(Process& target_process, VAddr address, std::size_t size,
+ResultCode KSharedMemory::Map(KProcess& target_process, VAddr address, std::size_t size,
                               KMemoryPermission permissions) {
     const u64 page_count{(size + PageSize - 1) / PageSize};
 

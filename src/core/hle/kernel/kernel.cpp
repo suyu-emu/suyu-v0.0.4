@@ -31,6 +31,7 @@
 #include "core/hle/kernel/k_client_port.h"
 #include "core/hle/kernel/k_memory_layout.h"
 #include "core/hle/kernel/k_memory_manager.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_shared_memory.h"
@@ -38,7 +39,6 @@
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/physical_core.h"
-#include "core/hle/kernel/process.h"
 #include "core/hle/kernel/service_thread.h"
 #include "core/hle/kernel/svc_results.h"
 #include "core/hle/kernel/time_manager.h"
@@ -98,8 +98,8 @@ struct KernelCore::Impl {
         service_threads.clear();
 
         next_object_id = 0;
-        next_kernel_process_id = Process::InitialKIPIDMin;
-        next_user_process_id = Process::ProcessIDMin;
+        next_kernel_process_id = KProcess::InitialKIPIDMin;
+        next_user_process_id = KProcess::ProcessIDMin;
         next_thread_id = 1;
 
         for (s32 core_id = 0; core_id < Core::Hardware::NUM_CPU_CORES; core_id++) {
@@ -220,7 +220,7 @@ struct KernelCore::Impl {
         }
     }
 
-    void MakeCurrentProcess(Process* process) {
+    void MakeCurrentProcess(KProcess* process) {
         current_process = process;
         if (process == nullptr) {
             return;
@@ -632,13 +632,13 @@ struct KernelCore::Impl {
     }
 
     std::atomic<u32> next_object_id{0};
-    std::atomic<u64> next_kernel_process_id{Process::InitialKIPIDMin};
-    std::atomic<u64> next_user_process_id{Process::ProcessIDMin};
+    std::atomic<u64> next_kernel_process_id{KProcess::InitialKIPIDMin};
+    std::atomic<u64> next_user_process_id{KProcess::ProcessIDMin};
     std::atomic<u64> next_thread_id{1};
 
     // Lists all processes that exist in the current session.
-    std::vector<Process*> process_list;
-    Process* current_process{};
+    std::vector<KProcess*> process_list;
+    KProcess* current_process{};
     std::unique_ptr<Kernel::GlobalSchedulerContext> global_scheduler_context;
     Kernel::TimeManager time_manager;
 
@@ -725,23 +725,23 @@ KScopedAutoObject<KThread> KernelCore::RetrieveThreadFromGlobalHandleTable(Handl
     return impl->global_handle_table.GetObject<KThread>(handle);
 }
 
-void KernelCore::AppendNewProcess(Process* process) {
+void KernelCore::AppendNewProcess(KProcess* process) {
     impl->process_list.push_back(process);
 }
 
-void KernelCore::MakeCurrentProcess(Process* process) {
+void KernelCore::MakeCurrentProcess(KProcess* process) {
     impl->MakeCurrentProcess(process);
 }
 
-Process* KernelCore::CurrentProcess() {
+KProcess* KernelCore::CurrentProcess() {
     return impl->current_process;
 }
 
-const Process* KernelCore::CurrentProcess() const {
+const KProcess* KernelCore::CurrentProcess() const {
     return impl->current_process;
 }
 
-const std::vector<Process*>& KernelCore::GetProcessList() const {
+const std::vector<KProcess*>& KernelCore::GetProcessList() const {
     return impl->process_list;
 }
 

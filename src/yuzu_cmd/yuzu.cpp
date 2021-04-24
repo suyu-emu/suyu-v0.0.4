@@ -27,7 +27,7 @@
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/vfs_real.h"
-#include "core/hle/kernel/process.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/loader.h"
 #include "core/telemetry_session.h"

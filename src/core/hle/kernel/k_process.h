@@ -62,12 +62,13 @@ enum class ProcessStatus {
     DebugBreak,
 };
 
-class Process final : public KAutoObjectWithSlabHeapAndContainer<Process, KSynchronizationObject> {
-    KERNEL_AUTOOBJECT_TRAITS(Process, KSynchronizationObject);
+class KProcess final
+    : public KAutoObjectWithSlabHeapAndContainer<KProcess, KSynchronizationObject> {
+    KERNEL_AUTOOBJECT_TRAITS(KProcess, KSynchronizationObject);
 
 public:
-    explicit Process(KernelCore& kernel);
-    ~Process() override;
+    explicit KProcess(KernelCore& kernel);
+    ~KProcess() override;
 
     enum : u64 {
         /// Lowest allowed process ID for a kernel initial process.
@@ -89,7 +90,7 @@ public:
 
     static constexpr std::size_t RANDOM_ENTROPY_SIZE = 4;
 
-    static ResultCode Initialize(Process* process, Core::System& system, std::string name,
+    static ResultCode Initialize(KProcess* process, Core::System& system, std::string name,
                                  ProcessType type);
 
     /// Gets a reference to the process' page table.

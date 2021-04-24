@@ -197,6 +197,8 @@ add_library(core STATIC
     hle/kernel/k_port.cpp
     hle/kernel/k_port.h
     hle/kernel/k_priority_queue.h
+    hle/kernel/k_process.cpp
+    hle/kernel/k_process.h
     hle/kernel/k_readable_event.cpp
     hle/kernel/k_readable_event.h
     hle/kernel/k_resource_limit.cpp
@@ -235,8 +237,6 @@ add_library(core STATIC
     hle/kernel/physical_core.cpp
     hle/kernel/physical_core.h
     hle/kernel/physical_memory.h
-    hle/kernel/process.cpp
-    hle/kernel/process.h
     hle/kernel/process_capability.cpp
     hle/kernel/process_capability.h
     hle/kernel/service_thread.cpp

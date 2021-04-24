@@ -37,7 +37,7 @@ namespace Kernel {
 
 class GlobalSchedulerContext;
 class KernelCore;
-class Process;
+class KProcess;
 class KScheduler;
 class KThreadQueue;
 
@@ -105,7 +105,7 @@ class KThread final : public KAutoObjectWithSlabHeapAndContainer<KThread, KSynch
 
 private:
     friend class KScheduler;
-    friend class Process;
+    friend class KProcess;
 
 public:
     static constexpr s32 DefaultThreadPriority = 44;
@@ -290,11 +290,11 @@ public:
         current_core_id = core;
     }
 
-    [[nodiscard]] Process* GetOwnerProcess() {
+    [[nodiscard]] KProcess* GetOwnerProcess() {
         return parent;
     }
 
-    [[nodiscard]] const Process* GetOwnerProcess() const {
+    [[nodiscard]] const KProcess* GetOwnerProcess() const {
         return parent;
     }
 
@@ -389,7 +389,7 @@ public:
     [[nodiscard]] static ResultCode InitializeUserThread(Core::System& system, KThread* thread,
                                                          KThreadFunction func, uintptr_t arg,
                                                          VAddr user_stack_top, s32 prio,
-                                                         s32 virt_core, Process* owner);
+                                                         s32 virt_core, KProcess* owner);
 
 public:
     struct StackParameters {
@@ -641,11 +641,11 @@ private:
     void StartTermination();
 
     [[nodiscard]] ResultCode Initialize(KThreadFunction func, uintptr_t arg, VAddr user_stack_top,
-                                        s32 prio, s32 virt_core, Process* owner, ThreadType type);
+                                        s32 prio, s32 virt_core, KProcess* owner, ThreadType type);
 
     [[nodiscard]] static ResultCode InitializeThread(KThread* thread, KThreadFunction func,
                                                      uintptr_t arg, VAddr user_stack_top, s32 prio,
-                                                     s32 core, Process* owner, ThreadType type,
+                                                     s32 core, KProcess* owner, ThreadType type,
                                                      std::function<void(void*)>&& init_func,
                                                      void* init_func_parameter);
 
@@ -669,7 +669,7 @@ private:
     std::atomic<s64> cpu_time{};
     KSynchronizationObject* synced_object{};
     VAddr address_key{};
-    Process* parent{};
+    KProcess* parent{};
     VAddr kernel_stack_top{};
     u32* light_ipc_data{};
     VAddr tls_address{};

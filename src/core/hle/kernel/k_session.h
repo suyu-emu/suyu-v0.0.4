@@ -89,7 +89,7 @@ private:
     std::atomic<std::underlying_type<State>::type> atomic_state{
         static_cast<std::underlying_type<State>::type>(State::Invalid)};
     KClientPort* port{};
-    Process* process{};
+    KProcess* process{};
     bool initialized{};
 };
 

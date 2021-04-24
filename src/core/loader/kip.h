@@ -32,7 +32,7 @@ public:
 
     FileType GetFileType() const override;
 
-    LoadResult Load(Kernel::Process& process, Core::System& system) override;
+    LoadResult Load(Kernel::KProcess& process, Core::System& system) override;
 
 private:
     std::unique_ptr<FileSys::KIP> kip;

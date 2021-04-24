@@ -37,7 +37,7 @@ class KEvent;
 class KLinkedListNode;
 class KMemoryManager;
 class KPort;
-class Process;
+class KProcess;
 class KResourceLimit;
 class KScheduler;
 class KSession;
@@ -101,19 +101,19 @@ public:
     KScopedAutoObject<KThread> RetrieveThreadFromGlobalHandleTable(Handle handle) const;
 
     /// Adds the given shared pointer to an internal list of active processes.
-    void AppendNewProcess(Process* process);
+    void AppendNewProcess(KProcess* process);
 
     /// Makes the given process the new current process.
-    void MakeCurrentProcess(Process* process);
+    void MakeCurrentProcess(KProcess* process);
 
     /// Retrieves a pointer to the current process.
-    Process* CurrentProcess();
+    KProcess* CurrentProcess();
 
     /// Retrieves a const pointer to the current process.
-    const Process* CurrentProcess() const;
+    const KProcess* CurrentProcess() const;
 
     /// Retrieves the list of processes.
-    const std::vector<Process*>& GetProcessList() const;
+    const std::vector<KProcess*>& GetProcessList() const;
 
     /// Gets the sole instance of the global scheduler
     Kernel::GlobalSchedulerContext& GlobalSchedulerContext();
@@ -274,7 +274,7 @@ public:
             return slab_heap_container->linked_list_node;
         } else if constexpr (std::is_same_v<T, KPort>) {
             return slab_heap_container->port;
-        } else if constexpr (std::is_same_v<T, Process>) {
+        } else if constexpr (std::is_same_v<T, KProcess>) {
             return slab_heap_container->process;
         } else if constexpr (std::is_same_v<T, KResourceLimit>) {
             return slab_heap_container->resource_limit;
@@ -292,7 +292,7 @@ public:
     }
 
 private:
-    friend class Process;
+    friend class KProcess;
     friend class KThread;
 
     /// Creates a new object ID, incrementing the internal object ID counter.
@@ -325,7 +325,7 @@ private:
         KSlabHeap<KEvent> event;
         KSlabHeap<KLinkedListNode> linked_list_node;
         KSlabHeap<KPort> port;
-        KSlabHeap<Process> process;
+        KSlabHeap<KProcess> process;
         KSlabHeap<KResourceLimit> resource_limit;
         KSlabHeap<KSession> session;
         KSlabHeap<KSharedMemory> shared_memory;

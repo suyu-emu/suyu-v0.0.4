@@ -19,7 +19,7 @@ class Memory;
 namespace Kernel {
 
 class KernelCore;
-class Process;
+class KProcess;
 
 class KTransferMemory final
     : public KAutoObjectWithSlabHeapAndContainer<KTransferMemory, KAutoObjectWithList> {
@@ -43,7 +43,7 @@ public:
 
     static void PostDestroy(uintptr_t arg);
 
-    Process* GetOwner() const {
+    KProcess* GetOwner() const {
         return owner;
     }
 
@@ -56,7 +56,7 @@ public:
     }
 
 private:
-    Process* owner{};
+    KProcess* owner{};
     VAddr address{};
     Svc::MemoryPermission owner_perm{};
     size_t size{};

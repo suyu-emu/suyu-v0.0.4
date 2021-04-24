@@ -13,6 +13,7 @@
 #include "core/hle/kernel/k_memory_layout.h"
 #include "core/hle/kernel/k_memory_manager.h"
 #include "core/hle/kernel/k_port.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_session.h"
 #include "core/hle/kernel/k_shared_memory.h"
@@ -20,7 +21,6 @@
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/k_transfer_memory.h"
 #include "core/hle/kernel/memory_types.h"
-#include "core/hle/kernel/process.h"
 #include "core/memory.h"
 
 namespace Kernel::Init {
@@ -28,7 +28,7 @@ namespace Kernel::Init {
 #define SLAB_COUNT(CLASS) g_slab_resource_counts.num_##CLASS
 
 #define FOREACH_SLAB_TYPE(HANDLER, ...)                                                            \
-    HANDLER(Process, (SLAB_COUNT(Process)), ##__VA_ARGS__)                                         \
+    HANDLER(KProcess, (SLAB_COUNT(KProcess)), ##__VA_ARGS__)                                       \
     HANDLER(KThread, (SLAB_COUNT(KThread)), ##__VA_ARGS__)                                         \
     HANDLER(KEvent, (SLAB_COUNT(KEvent)), ##__VA_ARGS__)                                           \
     HANDLER(KPort, (SLAB_COUNT(KPort)), ##__VA_ARGS__)                                             \
@@ -48,7 +48,7 @@ enum KSlabType : u32 {
 #undef DEFINE_SLAB_TYPE_ENUM_MEMBER
 
 // Constexpr counts.
-constexpr size_t SlabCountProcess = 80;
+constexpr size_t SlabCountKProcess = 80;
 constexpr size_t SlabCountKThread = 800;
 constexpr size_t SlabCountKEvent = 700;
 constexpr size_t SlabCountKInterruptEvent = 100;
@@ -69,7 +69,7 @@ constexpr size_t SlabCountExtraKThread = 160;
 
 // Global to hold our resource counts.
 KSlabResourceCounts g_slab_resource_counts = {
-    .num_Process = SlabCountProcess,
+    .num_KProcess = SlabCountKProcess,
     .num_KThread = SlabCountKThread,
     .num_KEvent = SlabCountKEvent,
     .num_KInterruptEvent = SlabCountKInterruptEvent,

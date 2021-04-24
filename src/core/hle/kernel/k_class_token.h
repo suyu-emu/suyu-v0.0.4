@@ -97,7 +97,7 @@ public:
         KServerSession,
         KClientPort,
         KClientSession,
-        Process,
+        KProcess,
         KResourceLimit,
         KLightSession,
         KPort,

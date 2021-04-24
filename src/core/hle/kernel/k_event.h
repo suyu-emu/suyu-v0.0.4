@@ -13,7 +13,7 @@ namespace Kernel {
 class KernelCore;
 class KReadableEvent;
 class KWritableEvent;
-class Process;
+class KProcess;
 
 class KEvent final : public KAutoObjectWithSlabHeapAndContainer<KEvent, KAutoObjectWithList> {
     KERNEL_AUTOOBJECT_TRAITS(KEvent, KAutoObject);
@@ -36,7 +36,7 @@ public:
 
     static void PostDestroy(uintptr_t arg);
 
-    virtual Process* GetOwner() const override {
+    virtual KProcess* GetOwner() const override {
         return owner;
     }
 
@@ -51,7 +51,7 @@ public:
 private:
     KReadableEvent readable_event;
     KWritableEvent writable_event;
-    Process* owner{};
+    KProcess* owner{};
     bool initialized{};
 };
 

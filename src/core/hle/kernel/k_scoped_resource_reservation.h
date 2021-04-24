@@ -8,8 +8,8 @@
 #pragma once
 
 #include "common/common_types.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_resource_limit.h"
-#include "core/hle/kernel/process.h"
 
 namespace Kernel {
 
@@ -33,10 +33,10 @@ public:
         }
     }
 
-    explicit KScopedResourceReservation(const Process* p, LimitableResource r, s64 v, s64 t)
+    explicit KScopedResourceReservation(const KProcess* p, LimitableResource r, s64 v, s64 t)
         : KScopedResourceReservation(p->GetResourceLimit(), r, v, t) {}
 
-    explicit KScopedResourceReservation(const Process* p, LimitableResource r, s64 v = 1)
+    explicit KScopedResourceReservation(const KProcess* p, LimitableResource r, s64 v = 1)
         : KScopedResourceReservation(p->GetResourceLimit(), r, v) {}
 
     ~KScopedResourceReservation() noexcept {

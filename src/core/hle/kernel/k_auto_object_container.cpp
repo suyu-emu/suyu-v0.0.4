@@ -18,7 +18,7 @@ void KAutoObjectWithListContainer::Unregister(KAutoObjectWithList* obj) {
     m_object_list.erase(m_object_list.iterator_to(*obj));
 }
 
-size_t KAutoObjectWithListContainer::GetOwnedCount(Process* owner) {
+size_t KAutoObjectWithListContainer::GetOwnedCount(KProcess* owner) {
     KScopedLightLock lk(m_lock);
 
     size_t count = 0;

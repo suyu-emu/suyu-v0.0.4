@@ -38,7 +38,7 @@ class Domain;
 class HandleTable;
 class HLERequestContext;
 class KernelCore;
-class Process;
+class KProcess;
 class KServerSession;
 class KThread;
 class KReadableEvent;

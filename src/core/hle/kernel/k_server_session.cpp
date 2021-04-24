@@ -13,12 +13,12 @@
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/kernel/k_client_port.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_server_session.h"
 #include "core/hle/kernel/k_session.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/process.h"
 #include "core/memory.h"
 
 namespace Kernel {

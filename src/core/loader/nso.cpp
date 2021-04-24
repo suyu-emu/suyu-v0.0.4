@@ -17,8 +17,8 @@
 #include "core/file_sys/patch_manager.h"
 #include "core/hle/kernel/code_set.h"
 #include "core/hle/kernel/k_page_table.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_thread.h"
-#include "core/hle/kernel/process.h"
 #include "core/loader/nso.h"
 #include "core/memory.h"
 
@@ -71,7 +71,7 @@ FileType AppLoader_NSO::IdentifyType(const FileSys::VirtualFile& in_file) {
     return FileType::NSO;
 }
 
-std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process, Core::System& system,
+std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::KProcess& process, Core::System& system,
                                                const FileSys::VfsFile& nso_file, VAddr load_base,
                                                bool should_pass_arguments, bool load_into_process,
                                                std::optional<FileSys::PatchManager> pm) {
@@ -162,7 +162,7 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process, Core::S
     return load_base + image_size;
 }
 
-AppLoader_NSO::LoadResult AppLoader_NSO::Load(Kernel::Process& process, Core::System& system) {
+AppLoader_NSO::LoadResult AppLoader_NSO::Load(Kernel::KProcess& process, Core::System& system) {
     if (is_loaded) {
         return {ResultStatus::ErrorAlreadyLoaded, {}};
     }

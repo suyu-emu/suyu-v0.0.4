@@ -28,11 +28,11 @@
 #include "core/file_sys/vfs_real.h"
 #include "core/hardware_interrupt_manager.h"
 #include "core/hle/kernel/k_client_port.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/physical_core.h"
-#include "core/hle/kernel/process.h"
 #include "core/hle/service/am/applets/applets.h"
 #include "core/hle/service/apm/controller.h"
 #include "core/hle/service/filesystem/filesystem.h"
@@ -233,9 +233,9 @@ struct System::Impl {
         }
 
         telemetry_session->AddInitialInfo(*app_loader, fs_controller, *content_provider);
-        auto main_process = Kernel::Process::Create(system.Kernel());
-        ASSERT(Kernel::Process::Initialize(main_process, system, "main",
-                                           Kernel::Process::ProcessType::Userland)
+        auto main_process = Kernel::KProcess::Create(system.Kernel());
+        ASSERT(Kernel::KProcess::Initialize(main_process, system, "main",
+                                            Kernel::KProcess::ProcessType::Userland)
                    .IsSuccess());
         main_process->Open();
         const auto [load_result, load_parameters] = app_loader->Load(*main_process, system);
@@ -326,7 +326,7 @@ struct System::Impl {
         return app_loader->ReadTitle(out);
     }
 
-    void AddGlueRegistrationForProcess(Loader::AppLoader& loader, Kernel::Process& process) {
+    void AddGlueRegistrationForProcess(Loader::AppLoader& loader, Kernel::KProcess& process) {
         std::vector<u8> nacp_data;
         FileSys::NACP nacp;
         if (loader.ReadControlData(nacp) == Loader::ResultStatus::Success) {
@@ -517,7 +517,7 @@ const Kernel::GlobalSchedulerContext& System::GlobalSchedulerContext() const {
     return impl->kernel.GlobalSchedulerContext();
 }
 
-Kernel::Process* System::CurrentProcess() {
+Kernel::KProcess* System::CurrentProcess() {
     return impl->kernel.CurrentProcess();
 }
 
@@ -529,7 +529,7 @@ const Core::DeviceMemory& System::DeviceMemory() const {
     return *impl->device_memory;
 }
 
-const Kernel::Process* System::CurrentProcess() const {
+const Kernel::KProcess* System::CurrentProcess() const {
     return impl->kernel.CurrentProcess();
 }
 

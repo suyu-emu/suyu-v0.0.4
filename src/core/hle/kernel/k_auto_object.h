@@ -15,7 +15,7 @@
 namespace Kernel {
 
 class KernelCore;
-class Process;
+class KProcess;
 
 using Handle = u32;
 
@@ -106,7 +106,7 @@ public:
     // Finalize is responsible for cleaning up resource, but does not destroy the object.
     virtual void Finalize() {}
 
-    virtual Process* GetOwner() const {
+    virtual KProcess* GetOwner() const {
         return nullptr;
     }
 

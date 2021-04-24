@@ -9,7 +9,7 @@
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/frontend/applets/general_frontend.h"
-#include "core/hle/kernel/process.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/result.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applets/general_backend.h"

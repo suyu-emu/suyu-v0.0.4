@@ -11,11 +11,11 @@
 #include "core/hle/kernel/k_memory_block_manager.h"
 #include "core/hle/kernel/k_page_linked_list.h"
 #include "core/hle/kernel/k_page_table.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scoped_resource_reservation.h"
 #include "core/hle/kernel/k_system_control.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/process.h"
 #include "core/hle/kernel/svc_results.h"
 #include "core/memory.h"
 
