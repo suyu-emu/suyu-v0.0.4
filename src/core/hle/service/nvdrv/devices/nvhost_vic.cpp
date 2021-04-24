@@ -29,13 +29,8 @@ NvResult nvhost_vic::Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& i
             return GetWaitbase(input, output);
         case 0x9:
             return MapBuffer(input, output);
-        case 0xa: {
-            if (command.length == 0x1c) {
-                Tegra::ChCommandHeaderList cmdlist{{0xDEADB33F}};
-                system.GPU().PushCommandBuffer(cmdlist);
-            }
+        case 0xa:
             return UnmapBuffer(input, output);
-        }
         default:
             break;
         }
@@ -69,6 +64,9 @@ NvResult nvhost_vic::Ioctl3(DeviceFD fd, Ioctl command, const std::vector<u8>& i
 }
 
 void nvhost_vic::OnOpen(DeviceFD fd) {}
-void nvhost_vic::OnClose(DeviceFD fd) {}
+
+void nvhost_vic::OnClose(DeviceFD fd) {
+    system.GPU().ClearCdmaInstance();
+}
 
 } // namespace Service::Nvidia::Devices
