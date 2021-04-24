@@ -377,6 +377,8 @@ add_library(core STATIC
     hle/service/glue/arp.h
     hle/service/glue/bgtc.cpp
     hle/service/glue/bgtc.h
+    hle/service/glue/ectx.cpp
+    hle/service/glue/ectx.h
     hle/service/glue/errors.h
     hle/service/glue/glue.cpp
     hle/service/glue/glue.h
