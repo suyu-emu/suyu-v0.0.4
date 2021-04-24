@@ -196,6 +196,7 @@ private:
     void EndVrModeEx(Kernel::HLERequestContext& ctx);
     void GetDefaultDisplayResolution(Kernel::HLERequestContext& ctx);
     void SetCpuBoostMode(Kernel::HLERequestContext& ctx);
+    void SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled(Kernel::HLERequestContext& ctx);
 
     std::shared_ptr<AppletMessageQueue> msg_queue;
     bool vr_mode_state{};
