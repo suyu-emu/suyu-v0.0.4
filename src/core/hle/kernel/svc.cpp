@@ -291,8 +291,7 @@ static ResultCode UnmapMemory32(Core::System& system, u32 dst_addr, u32 src_addr
 }
 
 /// Connect to an OS service given the port name, returns the handle to the port to out
-static ResultCode ConnectToNamedPort(Core::System& system, Handle* out_handle,
-                                     VAddr port_name_address) {
+static ResultCode ConnectToNamedPort(Core::System& system, Handle* out, VAddr port_name_address) {
     auto& memory = system.Memory();
     if (!memory.IsValidVirtualAddress(port_name_address)) {
         LOG_ERROR(Kernel_SVC,
@@ -324,15 +323,21 @@ static ResultCode ConnectToNamedPort(Core::System& system, Handle* out_handle,
     }
     auto port = it->second;
 
+    // Reserve a handle for the port.
+    // NOTE: Nintendo really does write directly to the output handle here.
+    R_TRY(handle_table.Reserve(out));
+    auto handle_guard = SCOPE_GUARD({ handle_table.Unreserve(*out); });
+
     // Create a session.
     KClientSession* session{};
     R_TRY(port->CreateSession(std::addressof(session)));
 
     // Register the session in the table, close the extra reference.
-    handle_table.Add(out_handle, session);
+    handle_table.Register(*out, session);
     session->Close();
 
     // We succeeded.
+    handle_guard.Cancel();
     return RESULT_SUCCESS;
 }
 
