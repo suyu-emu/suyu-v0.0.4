@@ -51,26 +51,11 @@ public:
 
     ResultCode CreateSession(KClientSession** out);
 
-    // DEPRECATED
-
-    std::string GetTypeName() const override {
-        return "ClientPort";
-    }
-    std::string GetName() const override {
-        return name;
-    }
-
-    static constexpr HandleType HANDLE_TYPE = HandleType::ClientPort;
-    HandleType GetHandleType() const override {
-        return HANDLE_TYPE;
-    }
-
 private:
     std::atomic<s32> num_sessions{};
     std::atomic<s32> peak_sessions{};
     s32 max_sessions{};
     KPort* parent{};
-    std::string name;
 };
 
 } // namespace Kernel

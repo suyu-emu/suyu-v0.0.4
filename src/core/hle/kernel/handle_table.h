@@ -12,7 +12,6 @@
 #include "core/hle/kernel/k_auto_object.h"
 #include "core/hle/kernel/k_spin_lock.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/object.h"
 #include "core/hle/result.h"
 
 namespace Kernel {

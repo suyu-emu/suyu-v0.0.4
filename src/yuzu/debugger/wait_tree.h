@@ -11,8 +11,9 @@
 #include <QAbstractItemModel>
 #include <QDockWidget>
 #include <QTreeView>
+
 #include "common/common_types.h"
-#include "core/hle/kernel/object.h"
+#include "core/hle/kernel/k_auto_object.h"
 
 class EmuThread;
 
@@ -149,14 +150,14 @@ public:
 class WaitTreeThreadList : public WaitTreeExpandableItem {
     Q_OBJECT
 public:
-    explicit WaitTreeThreadList(const std::vector<Kernel::KThread*>& list);
+    explicit WaitTreeThreadList(std::vector<Kernel::KThread*>&& list);
     ~WaitTreeThreadList() override;
 
     QString GetText() const override;
     std::vector<std::unique_ptr<WaitTreeItem>> GetChildren() const override;
 
 private:
-    const std::vector<Kernel::KThread*>& thread_list;
+    std::vector<Kernel::KThread*> thread_list;
 };
 
 class WaitTreeModel : public QAbstractItemModel {

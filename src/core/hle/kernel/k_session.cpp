@@ -15,7 +15,7 @@ KSession::KSession(KernelCore& kernel)
     : KAutoObjectWithSlabHeapAndContainer{kernel}, server{kernel}, client{kernel} {}
 KSession::~KSession() = default;
 
-void KSession::Initialize(KClientPort* port_, std::string&& name_) {
+void KSession::Initialize(KClientPort* port_, const std::string& name_) {
     // Increment reference count.
     // Because reference count is one on creation, this will result
     // in a reference count of two. Thus, when both server and client are closed
@@ -32,7 +32,7 @@ void KSession::Initialize(KClientPort* port_, std::string&& name_) {
 
     // Set state and name.
     SetState(State::Normal);
-    name = std::move(name_);
+    name = name_;
 
     // Set our owner process.
     process = kernel.CurrentProcess();

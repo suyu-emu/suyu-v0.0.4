@@ -48,17 +48,6 @@ public:
         return writable_event;
     }
 
-    // DEPRECATED
-
-    std::string GetTypeName() const override {
-        return "KEvent";
-    }
-
-    static constexpr HandleType HANDLE_TYPE = HandleType::Event;
-    HandleType GetHandleType() const override {
-        return HANDLE_TYPE;
-    }
-
 private:
     KReadableEvent readable_event;
     KWritableEvent writable_event;

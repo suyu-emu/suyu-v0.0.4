@@ -8,7 +8,6 @@
 #include "common/common_types.h"
 #include "core/hle/kernel/k_light_condition_variable.h"
 #include "core/hle/kernel/k_light_lock.h"
-#include "core/hle/kernel/object.h"
 
 union ResultCode;
 
@@ -56,20 +55,6 @@ public:
     void Release(LimitableResource which, s64 value, s64 hint);
 
     static void PostDestroy([[maybe_unused]] uintptr_t arg) {}
-
-    // DEPRECATED
-
-    std::string GetTypeName() const override {
-        return "KResourceLimit";
-    }
-    std::string GetName() const override {
-        return GetTypeName();
-    }
-
-    static constexpr HandleType HANDLE_TYPE = HandleType::ResourceLimit;
-    HandleType GetHandleType() const override {
-        return HANDLE_TYPE;
-    }
 
 private:
     using ResourceArray = std::array<s64, static_cast<std::size_t>(LimitableResource::Count)>;

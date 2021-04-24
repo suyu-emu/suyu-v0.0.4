@@ -68,20 +68,6 @@ public:
     virtual void Destroy() override;
     virtual bool IsSignaled() const override;
 
-    // DEPRECATED
-
-    std::string GetTypeName() const override {
-        return "ServerPort";
-    }
-    std::string GetName() const override {
-        return name;
-    }
-
-    static constexpr HandleType HANDLE_TYPE = HandleType::ServerPort;
-    HandleType GetHandleType() const override {
-        return HANDLE_TYPE;
-    }
-
 private:
     void CleanupSessions();
 
@@ -89,7 +75,6 @@ private:
     SessionList session_list;
     HLEHandler hle_handler;
     KPort* parent{};
-    std::string name;
 };
 
 } // namespace Kernel

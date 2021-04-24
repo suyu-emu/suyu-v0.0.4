@@ -16,7 +16,6 @@
 #include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/kernel/k_client_port.h"
 #include "core/hle/kernel/k_session.h"
-#include "core/hle/kernel/object.h"
 #include "core/hle/result.h"
 
 namespace IPC {
@@ -381,12 +380,6 @@ public:
     template <typename T>
     T PopRaw();
 
-    template <typename T>
-    T* GetMoveObject(std::size_t index);
-
-    template <typename T>
-    T* GetCopyObject(std::size_t index);
-
     template <class T>
     std::shared_ptr<T> PopIpcInterface() {
         ASSERT(context->Session()->IsDomain());
@@ -489,16 +482,6 @@ template <typename First, typename... Other>
 void RequestParser::Pop(First& first_value, Other&... other_values) {
     first_value = Pop<First>();
     Pop(other_values...);
-}
-
-template <typename T>
-T* RequestParser::GetMoveObject(std::size_t index) {
-    return context->GetMoveObject<T>(index);
-}
-
-template <typename T>
-T* RequestParser::GetCopyObject(std::size_t index) {
-    return context->GetCopyObject<T>(index);
 }
 
 } // namespace IPC

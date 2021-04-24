@@ -55,21 +55,6 @@ public:
         return is_initialized ? size * PageSize : 0;
     }
 
-    // DEPRECATED
-
-    std::string GetTypeName() const override {
-        return "TransferMemory";
-    }
-
-    std::string GetName() const override {
-        return GetTypeName();
-    }
-
-    static constexpr HandleType HANDLE_TYPE = HandleType::TransferMemory;
-    HandleType GetHandleType() const override {
-        return HANDLE_TYPE;
-    }
-
 private:
     Process* owner{};
     VAddr address{};

@@ -51,22 +51,6 @@ public:
         return server;
     }
 
-    // DEPRECATED
-
-    friend class ServerPort;
-    std::string GetTypeName() const override {
-        return "Port";
-    }
-    std::string GetName() const override {
-        return name;
-    }
-
-    HandleType GetHandleType() const override {
-        return {};
-    }
-
-    void Finalize() override {}
-
 private:
     enum class State : u8 {
         Invalid = 0,
@@ -80,8 +64,6 @@ private:
     KClientPort client;
     State state{State::Invalid};
     bool is_light{};
-
-    std::string name; ///< Name of client port (optional)
 };
 
 } // namespace Kernel

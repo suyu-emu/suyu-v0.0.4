@@ -9,7 +9,6 @@
 
 #include "common/swap.h"
 #include "core/hle/kernel/k_event.h"
-#include "core/hle/kernel/object.h"
 
 union ResultCode;
 

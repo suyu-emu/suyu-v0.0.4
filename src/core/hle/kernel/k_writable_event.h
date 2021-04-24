@@ -5,7 +5,6 @@
 #pragma once
 
 #include "core/hle/kernel/k_auto_object.h"
-#include "core/hle/kernel/object.h"
 #include "core/hle/kernel/slab_helpers.h"
 #include "core/hle/result.h"
 
@@ -32,17 +31,6 @@ public:
 
     constexpr KEvent* GetParent() const {
         return parent;
-    }
-
-    // DEPRECATED
-
-    std::string GetTypeName() const override {
-        return "KWritableEvent";
-    }
-
-    static constexpr HandleType HANDLE_TYPE = HandleType::WritableEvent;
-    HandleType GetHandleType() const override {
-        return HANDLE_TYPE;
     }
 
 private:

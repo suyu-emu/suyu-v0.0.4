@@ -232,8 +232,6 @@ add_library(core STATIC
     hle/kernel/kernel.cpp
     hle/kernel/kernel.h
     hle/kernel/memory_types.h
-    hle/kernel/object.cpp
-    hle/kernel/object.h
     hle/kernel/physical_core.cpp
     hle/kernel/physical_core.h
     hle/kernel/physical_memory.h

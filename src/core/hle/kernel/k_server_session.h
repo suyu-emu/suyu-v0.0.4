@@ -103,21 +103,6 @@ public:
         convert_to_domain = true;
     }
 
-    // DEPRECATED
-
-    std::string GetTypeName() const override {
-        return "ServerSession";
-    }
-
-    std::string GetName() const override {
-        return name;
-    }
-
-    static constexpr HandleType HANDLE_TYPE = HandleType::ServerSession;
-    HandleType GetHandleType() const override {
-        return HANDLE_TYPE;
-    }
-
 private:
     /// Queues a sync request from the emulated application.
     ResultCode QueueSyncRequest(KThread* thread, Core::Memory::Memory& memory);
@@ -137,9 +122,6 @@ private:
 
     /// When set to True, converts the session to a domain at the end of the command
     bool convert_to_domain{};
-
-    /// The name of this session (optional)
-    std::string name;
 
     /// Thread to dispatch service requests
     std::weak_ptr<ServiceThread> service_thread;

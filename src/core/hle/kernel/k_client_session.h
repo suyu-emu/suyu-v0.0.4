@@ -54,27 +54,8 @@ public:
 
     void OnServerClosed();
 
-    // DEPRECATED
-
-    static constexpr HandleType HANDLE_TYPE = HandleType::ClientSession;
-    HandleType GetHandleType() const override {
-        return HANDLE_TYPE;
-    }
-
-    std::string GetTypeName() const override {
-        return "ClientSession";
-    }
-
-    std::string GetName() const override {
-        return name;
-    }
-
 private:
-    /// The parent session, which links to the server endpoint.
     KSession* parent{};
-
-    /// Name of the client session (optional)
-    std::string name;
 };
 
 } // namespace Kernel

@@ -92,18 +92,6 @@ public:
     static ResultCode Initialize(Process* process, Core::System& system, std::string name,
                                  ProcessType type);
 
-    std::string GetTypeName() const override {
-        return "Process";
-    }
-    std::string GetName() const override {
-        return name;
-    }
-
-    static constexpr HandleType HANDLE_TYPE = HandleType::Process;
-    HandleType GetHandleType() const override {
-        return HANDLE_TYPE;
-    }
-
     /// Gets a reference to the process' page table.
     KPageTable& PageTable() {
         return *page_table;
@@ -467,9 +455,6 @@ private:
 
     /// Process total image size
     std::size_t image_size{};
-
-    /// Name of this process
-    std::string name;
 
     /// Schedule count of this process
     s64 schedule_count{};

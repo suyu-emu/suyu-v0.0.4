@@ -6,7 +6,6 @@
 
 #include "core/hle/kernel/k_auto_object.h"
 #include "core/hle/kernel/k_synchronization_object.h"
-#include "core/hle/kernel/object.h"
 #include "core/hle/kernel/slab_helpers.h"
 #include "core/hle/result.h"
 
@@ -38,17 +37,6 @@ public:
     ResultCode Signal();
     ResultCode Clear();
     ResultCode Reset();
-
-    // DEPRECATED
-
-    std::string GetTypeName() const override {
-        return "KReadableEvent";
-    }
-
-    static constexpr HandleType HANDLE_TYPE = HandleType::ReadableEvent;
-    HandleType GetHandleType() const override {
-        return HANDLE_TYPE;
-    }
 
 private:
     bool is_signaled{};

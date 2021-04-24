@@ -19,7 +19,6 @@
 #include "core/hle/kernel/k_light_lock.h"
 #include "core/hle/kernel/k_spin_lock.h"
 #include "core/hle/kernel/k_synchronization_object.h"
-#include "core/hle/kernel/object.h"
 #include "core/hle/kernel/slab_helpers.h"
 #include "core/hle/kernel/svc_common.h"
 #include "core/hle/kernel/svc_types.h"
@@ -120,21 +119,8 @@ public:
     using ThreadContext64 = Core::ARM_Interface::ThreadContext64;
     using WaiterList = boost::intrusive::list<KThread>;
 
-    [[nodiscard]] std::string GetName() const override {
-        return name;
-    }
-
     void SetName(std::string new_name) {
         name = std::move(new_name);
-    }
-
-    [[nodiscard]] std::string GetTypeName() const override {
-        return "Thread";
-    }
-
-    static constexpr HandleType HANDLE_TYPE = HandleType::Thread;
-    [[nodiscard]] HandleType GetHandleType() const override {
-        return HANDLE_TYPE;
     }
 
     /**
@@ -728,7 +714,6 @@ private:
     VAddr mutex_wait_address_for_debugging{};
     ThreadWaitReasonForDebugging wait_reason_for_debugging{};
     ThreadType thread_type_for_debugging{};
-    std::string name;
 
 public:
     using ConditionVariableThreadTreeType = ConditionVariableThreadTree;

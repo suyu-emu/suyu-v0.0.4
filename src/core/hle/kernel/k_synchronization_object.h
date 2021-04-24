@@ -51,13 +51,4 @@ private:
     ThreadListNode* thread_list_tail{};
 };
 
-// Specialization of DynamicObjectCast for KSynchronizationObjects
-template <>
-inline KSynchronizationObject* DynamicObjectCast<KSynchronizationObject>(Object* object) {
-    if (object != nullptr && object->IsWaitable()) {
-        return reinterpret_cast<KSynchronizationObject*>(object);
-    }
-    return nullptr;
-}
-
 } // namespace Kernel

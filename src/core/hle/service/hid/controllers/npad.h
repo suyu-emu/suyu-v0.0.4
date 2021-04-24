@@ -11,7 +11,6 @@
 #include "common/quaternion.h"
 #include "common/settings.h"
 #include "core/frontend/input.h"
-#include "core/hle/kernel/object.h"
 #include "core/hle/service/hid/controllers/controller_base.h"
 
 namespace Kernel {

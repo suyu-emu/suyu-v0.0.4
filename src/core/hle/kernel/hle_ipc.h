@@ -212,16 +212,6 @@ public:
         return move_handles.at(index);
     }
 
-    template <typename T>
-    T* GetCopyObject(std::size_t index) {
-        return DynamicObjectCast<T>(copy_objects.at(index));
-    }
-
-    template <typename T>
-    T* GetMoveObject(std::size_t index) {
-        return DynamicObjectCast<T>(move_objects.at(index));
-    }
-
     void AddMoveObject(KAutoObject* object) {
         move_objects.emplace_back(object);
     }

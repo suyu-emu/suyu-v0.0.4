@@ -14,7 +14,6 @@
 #include "core/hle/kernel/k_auto_object.h"
 #include "core/hle/kernel/k_slab_heap.h"
 #include "core/hle/kernel/memory_types.h"
-#include "core/hle/kernel/object.h"
 
 namespace Core {
 class CPUInterruptHandler;
@@ -293,7 +292,6 @@ public:
     }
 
 private:
-    friend class Object;
     friend class Process;
     friend class KThread;
 

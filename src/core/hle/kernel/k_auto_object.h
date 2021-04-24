@@ -11,12 +11,13 @@
 #include "common/common_types.h"
 #include "common/intrusive_red_black_tree.h"
 #include "core/hle/kernel/k_class_token.h"
-#include "core/hle/kernel/object.h"
 
 namespace Kernel {
 
 class KernelCore;
 class Process;
+
+using Handle = u32;
 
 #define KERNEL_AUTOOBJECT_TRAITS(CLASS, BASE_CLASS)                                                \
     NON_COPYABLE(CLASS);                                                                           \
@@ -48,7 +49,7 @@ public:                                                                         
                                                                                                    \
 private:
 
-class KAutoObject : public Object {
+class KAutoObject {
 protected:
     class TypeObj {
     private:
@@ -84,16 +85,17 @@ private:
     KERNEL_AUTOOBJECT_TRAITS(KAutoObject, KAutoObject);
 
 private:
-    std::atomic<u32> m_ref_count;
+    std::atomic<u32> m_ref_count{};
 
 protected:
     KernelCore& kernel;
+    std::string name;
 
 public:
     static KAutoObject* Create(KAutoObject* ptr);
 
 public:
-    explicit KAutoObject(KernelCore& kernel_) : Object{kernel_}, m_ref_count(0), kernel(kernel_) {}
+    explicit KAutoObject(KernelCore& kernel_) : kernel(kernel_) {}
     virtual ~KAutoObject() {}
 
     // Destroy is responsible for destroying the auto object's resources when ref_count hits zero.
@@ -204,6 +206,10 @@ public:
 public:
     virtual u64 GetId() const {
         return reinterpret_cast<u64>(this);
+    }
+
+    virtual const std::string& GetName() const {
+        return name;
     }
 };
 

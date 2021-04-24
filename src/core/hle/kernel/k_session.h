@@ -28,7 +28,7 @@ public:
     explicit KSession(KernelCore& kernel);
     virtual ~KSession() override;
 
-    void Initialize(KClientPort* port_, std::string&& name_);
+    void Initialize(KClientPort* port_, const std::string& name_);
 
     virtual void Finalize() override;
 
@@ -74,17 +74,6 @@ public:
         return port;
     }
 
-    // DEPRECATED
-
-    std::string GetName() const override {
-        return name;
-    }
-
-    static constexpr HandleType HANDLE_TYPE = HandleType::Session;
-    HandleType GetHandleType() const override {
-        return HANDLE_TYPE;
-    }
-
 private:
     void SetState(State state) {
         atomic_state = static_cast<u8>(state);
@@ -100,7 +89,6 @@ private:
     std::atomic<std::underlying_type<State>::type> atomic_state{
         static_cast<std::underlying_type<State>::type>(State::Invalid)};
     KClientPort* port{};
-    std::string name;
     Process* process{};
     bool initialized{};
 };

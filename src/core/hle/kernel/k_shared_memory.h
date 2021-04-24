@@ -32,19 +32,6 @@ public:
                           KMemoryPermission owner_permission_, KMemoryPermission user_permission_,
                           PAddr physical_address_, std::size_t size_, std::string name_);
 
-    std::string GetTypeName() const override {
-        return "SharedMemory";
-    }
-
-    std::string GetName() const override {
-        return name;
-    }
-
-    static constexpr HandleType HANDLE_TYPE = HandleType::SharedMemory;
-    HandleType GetHandleType() const override {
-        return HANDLE_TYPE;
-    }
-
     /**
      * Maps a shared memory block to an address in the target process' address space
      * @param target_process Process on which to map the memory block

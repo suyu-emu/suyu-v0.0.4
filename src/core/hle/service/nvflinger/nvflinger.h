@@ -15,7 +15,6 @@
 #include <vector>
 
 #include "common/common_types.h"
-#include "core/hle/kernel/object.h"
 
 namespace Common {
 class Event;

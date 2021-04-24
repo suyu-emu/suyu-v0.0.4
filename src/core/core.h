@@ -12,7 +12,6 @@
 
 #include "common/common_types.h"
 #include "core/file_sys/vfs_types.h"
-#include "core/hle/kernel/object.h"
 
 namespace Core::Frontend {
 class EmuWindow;
