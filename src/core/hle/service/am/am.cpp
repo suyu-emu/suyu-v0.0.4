@@ -687,7 +687,7 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system_,
         {501, nullptr, "SuppressDisablingSleepTemporarily"},
         {502, nullptr, "IsSleepEnabled"},
         {503, nullptr, "IsDisablingSleepSuppressed"},
-        {900, nullptr, "SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled"},
+        {900, &ICommonStateGetter::SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled, "SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled"},
     };
     // clang-format on
 
@@ -815,6 +815,14 @@ void ICommonStateGetter::SetCpuBoostMode(Kernel::HLERequestContext& ctx) {
     ASSERT(apm_sys != nullptr);
 
     apm_sys->SetCpuBoostMode(ctx);
+}
+
+void ICommonStateGetter::SetRequestExitToLibraryAppletAtExecuteNextProgramEnabled(
+    Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
 }
 
 IStorageImpl::~IStorageImpl() = default;
