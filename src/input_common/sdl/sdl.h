@@ -37,6 +37,9 @@ public:
     virtual AnalogMapping GetAnalogMappingForDevice(const Common::ParamPackage&) {
         return {};
     }
+    virtual MotionMapping GetMotionMappingForDevice(const Common::ParamPackage&) {
+        return {};
+    }
 };
 
 class NullState : public State {
