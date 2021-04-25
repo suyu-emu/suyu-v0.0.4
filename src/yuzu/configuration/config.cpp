@@ -29,9 +29,10 @@ Config::~Config() {
 }
 
 const std::array<int, Settings::NativeButton::NumButtons> Config::default_buttons = {
-    Qt::Key_A, Qt::Key_S, Qt::Key_Z, Qt::Key_X, Qt::Key_3, Qt::Key_4, Qt::Key_Q,
-    Qt::Key_W, Qt::Key_1, Qt::Key_2, Qt::Key_N, Qt::Key_M, Qt::Key_F, Qt::Key_T,
-    Qt::Key_H, Qt::Key_G, Qt::Key_D, Qt::Key_C, Qt::Key_B, Qt::Key_V,
+    Qt::Key_C,    Qt::Key_X, Qt::Key_V,    Qt::Key_Z,  Qt::Key_F,
+    Qt::Key_G,    Qt::Key_Q, Qt::Key_E,    Qt::Key_R,  Qt::Key_T,
+    Qt::Key_M,    Qt::Key_N, Qt::Key_Left, Qt::Key_Up, Qt::Key_Right,
+    Qt::Key_Down, Qt::Key_Q, Qt::Key_E,    0,          0,
 };
 
 const std::array<int, Settings::NativeMotion::NumMotions> Config::default_motions = {
@@ -41,10 +42,10 @@ const std::array<int, Settings::NativeMotion::NumMotions> Config::default_motion
 
 const std::array<std::array<int, 4>, Settings::NativeAnalog::NumAnalogs> Config::default_analogs{{
     {
-        Qt::Key_Up,
-        Qt::Key_Down,
-        Qt::Key_Left,
-        Qt::Key_Right,
+        Qt::Key_W,
+        Qt::Key_S,
+        Qt::Key_A,
+        Qt::Key_D,
     },
     {
         Qt::Key_I,
@@ -55,8 +56,8 @@ const std::array<std::array<int, 4>, Settings::NativeAnalog::NumAnalogs> Config:
 }};
 
 const std::array<int, 2> Config::default_stick_mod = {
-    Qt::Key_E,
-    Qt::Key_R,
+    Qt::Key_Shift,
+    0,
 };
 
 const std::array<int, Settings::NativeMouseButton::NumMouseButtons> Config::default_mouse_buttons =
