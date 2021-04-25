@@ -417,9 +417,20 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     };
 }
 
-[[nodiscard]] constexpr SwizzleSource ConvertGreenRed(SwizzleSource value) {
+[[nodiscard]] SwizzleSource ConvertGreenRed(SwizzleSource value) {
     switch (value) {
     case SwizzleSource::G:
+        return SwizzleSource::R;
+    default:
+        return value;
+    }
+}
+
+[[nodiscard]] SwizzleSource SwapBlueRed(SwizzleSource value) {
+    switch (value) {
+    case SwizzleSource::R:
+        return SwizzleSource::B;
+    case SwizzleSource::B:
         return SwizzleSource::R;
     default:
         return value;
@@ -541,6 +552,15 @@ void CopyBufferToImage(vk::CommandBuffer cmdbuf, VkBuffer src_buffer, VkImage im
                 .depth = 1,
             },
     };
+}
+
+[[nodiscard]] bool IsFormatFlipped(PixelFormat format) {
+    switch (format) {
+    case PixelFormat::A1B5G5R5_UNORM:
+        return true;
+    default:
+        return false;
+    }
 }
 
 struct RangedBarrierRange {
@@ -948,6 +968,9 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
     };
     if (!info.IsRenderTarget()) {
         swizzle = info.Swizzle();
+        if (IsFormatFlipped(format)) {
+            std::ranges::transform(swizzle, swizzle.begin(), SwapBlueRed);
+        }
         if ((aspect_mask & (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) != 0) {
             std::ranges::transform(swizzle, swizzle.begin(), ConvertGreenRed);
         }
