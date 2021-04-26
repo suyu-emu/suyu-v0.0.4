@@ -43,7 +43,7 @@ public:
         return RESULT_SUCCESS;
     }
 
-    virtual ResultCode Flush(const SystemClockContext& context);
+    virtual ResultCode Flush(const SystemClockContext& clock_context);
 
     void SetUpdateCallbackInstance(std::shared_ptr<SystemClockContextUpdateCallback> callback) {
         system_clock_context_update_callback = std::move(callback);

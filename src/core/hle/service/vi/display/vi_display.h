@@ -68,34 +68,34 @@ public:
 
     /// Creates and adds a layer to this display with the given ID.
     ///
-    /// @param id           The ID to assign to the created layer.
+    /// @param layer_id     The ID to assign to the created layer.
     /// @param buffer_queue The buffer queue for the layer instance to use.
     ///
-    void CreateLayer(u64 id, NVFlinger::BufferQueue& buffer_queue);
+    void CreateLayer(u64 layer_id, NVFlinger::BufferQueue& buffer_queue);
 
     /// Closes and removes a layer from this display with the given ID.
     ///
-    /// @param id           The ID assigned to the layer to close.
+    /// @param layer_id The ID assigned to the layer to close.
     ///
-    void CloseLayer(u64 id);
+    void CloseLayer(u64 layer_id);
 
     /// Attempts to find a layer with the given ID.
     ///
-    /// @param id The layer ID.
+    /// @param layer_id The layer ID.
     ///
     /// @returns If found, the Layer instance with the given ID.
     ///          If not found, then nullptr is returned.
     ///
-    Layer* FindLayer(u64 id);
+    Layer* FindLayer(u64 layer_id);
 
     /// Attempts to find a layer with the given ID.
     ///
-    /// @param id The layer ID.
+    /// @param layer_id The layer ID.
     ///
     /// @returns If found, the Layer instance with the given ID.
     ///          If not found, then nullptr is returned.
     ///
-    const Layer* FindLayer(u64 id) const;
+    const Layer* FindLayer(u64 layer_id) const;
 
 private:
     u64 id;

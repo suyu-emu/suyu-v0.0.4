@@ -72,7 +72,7 @@ NVFlinger::NVFlinger(Core::System& system) : system(system) {
     // Schedule the screen composition events
     composition_event = Core::Timing::CreateEvent(
         "ScreenComposition", [this](std::uintptr_t, std::chrono::nanoseconds ns_late) {
-            const auto guard = Lock();
+            const auto lock_guard = Lock();
             Compose();
 
             const auto ticks = std::chrono::nanoseconds{GetNextTicks()};
@@ -112,7 +112,7 @@ void NVFlinger::SetNVDrvInstance(std::shared_ptr<Nvidia::Module> instance) {
 }
 
 std::optional<u64> NVFlinger::OpenDisplay(std::string_view name) {
-    const auto guard = Lock();
+    const auto lock_guard = Lock();
 
     LOG_DEBUG(Service, "Opening \"{}\" display", name);
 
@@ -131,7 +131,7 @@ std::optional<u64> NVFlinger::OpenDisplay(std::string_view name) {
 }
 
 std::optional<u64> NVFlinger::CreateLayer(u64 display_id) {
-    const auto guard = Lock();
+    const auto lock_guard = Lock();
     auto* const display = FindDisplay(display_id);
 
     if (display == nullptr) {
@@ -147,7 +147,7 @@ std::optional<u64> NVFlinger::CreateLayer(u64 display_id) {
 }
 
 void NVFlinger::CloseLayer(u64 layer_id) {
-    const auto guard = Lock();
+    const auto lock_guard = Lock();
 
     for (auto& display : displays) {
         display.CloseLayer(layer_id);
@@ -155,7 +155,7 @@ void NVFlinger::CloseLayer(u64 layer_id) {
 }
 
 std::optional<u32> NVFlinger::FindBufferQueueId(u64 display_id, u64 layer_id) const {
-    const auto guard = Lock();
+    const auto lock_guard = Lock();
     const auto* const layer = FindLayer(display_id, layer_id);
 
     if (layer == nullptr) {
@@ -166,7 +166,7 @@ std::optional<u32> NVFlinger::FindBufferQueueId(u64 display_id, u64 layer_id) co
 }
 
 std::shared_ptr<Kernel::KReadableEvent> NVFlinger::FindVsyncEvent(u64 display_id) const {
-    const auto guard = Lock();
+    const auto lock_guard = Lock();
     auto* const display = FindDisplay(display_id);
 
     if (display == nullptr) {
@@ -177,7 +177,7 @@ std::shared_ptr<Kernel::KReadableEvent> NVFlinger::FindVsyncEvent(u64 display_id
 }
 
 BufferQueue* NVFlinger::FindBufferQueue(u32 id) {
-    const auto guard = Lock();
+    const auto lock_guard = Lock();
     const auto itr = std::find_if(buffer_queues.begin(), buffer_queues.end(),
                                   [id](const auto& queue) { return queue->GetId() == id; });
 

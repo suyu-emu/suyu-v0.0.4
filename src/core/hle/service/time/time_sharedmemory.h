@@ -56,8 +56,8 @@ public:
     };
     static_assert(sizeof(Format) == 0xd8, "Format is an invalid size");
 
-    void SetupStandardSteadyClock(Core::System& system, const Common::UUID& clock_source_id,
-                                  Clock::TimeSpanType currentTimePoint);
+    void SetupStandardSteadyClock(const Common::UUID& clock_source_id,
+                                  Clock::TimeSpanType current_time_point);
     void UpdateLocalSystemClockContext(const Clock::SystemClockContext& context);
     void UpdateNetworkSystemClockContext(const Clock::SystemClockContext& context);
     void SetAutomaticCorrectionEnabled(bool is_enabled);

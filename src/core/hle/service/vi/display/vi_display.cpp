@@ -41,24 +41,22 @@ void Display::SignalVSyncEvent() {
     vsync_event->GetWritableEvent()->Signal();
 }
 
-void Display::CreateLayer(u64 id, NVFlinger::BufferQueue& buffer_queue) {
+void Display::CreateLayer(u64 layer_id, NVFlinger::BufferQueue& buffer_queue) {
     // TODO(Subv): Support more than 1 layer.
     ASSERT_MSG(layers.empty(), "Only one layer is supported per display at the moment");
 
-    layers.emplace_back(std::make_shared<Layer>(id, buffer_queue));
+    layers.emplace_back(std::make_shared<Layer>(layer_id, buffer_queue));
 }
 
-void Display::CloseLayer(u64 id) {
-    layers.erase(
-        std::remove_if(layers.begin(), layers.end(),
-                       [id](const std::shared_ptr<Layer>& layer) { return layer->GetID() == id; }),
-        layers.end());
+void Display::CloseLayer(u64 layer_id) {
+    std::erase_if(layers, [layer_id](const auto& layer) { return layer->GetID() == layer_id; });
 }
 
-Layer* Display::FindLayer(u64 id) {
+Layer* Display::FindLayer(u64 layer_id) {
     const auto itr =
-        std::find_if(layers.begin(), layers.end(),
-                     [id](const std::shared_ptr<Layer>& layer) { return layer->GetID() == id; });
+        std::find_if(layers.begin(), layers.end(), [layer_id](const std::shared_ptr<Layer>& layer) {
+            return layer->GetID() == layer_id;
+        });
 
     if (itr == layers.end()) {
         return nullptr;
@@ -67,10 +65,11 @@ Layer* Display::FindLayer(u64 id) {
     return itr->get();
 }
 
-const Layer* Display::FindLayer(u64 id) const {
+const Layer* Display::FindLayer(u64 layer_id) const {
     const auto itr =
-        std::find_if(layers.begin(), layers.end(),
-                     [id](const std::shared_ptr<Layer>& layer) { return layer->GetID() == id; });
+        std::find_if(layers.begin(), layers.end(), [layer_id](const std::shared_ptr<Layer>& layer) {
+            return layer->GetID() == layer_id;
+        });
 
     if (itr == layers.end()) {
         return nullptr;

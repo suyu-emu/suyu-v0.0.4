@@ -96,7 +96,7 @@ void Auth::Execute() {
 
     switch (type) {
     case AuthAppletType::ShowParentalAuthentication: {
-        const auto callback = [this](bool successful) { AuthFinished(successful); };
+        const auto callback = [this](bool is_successful) { AuthFinished(is_successful); };
 
         if (arg0 == 1 && arg1 == 0 && arg2 == 1) {
             // ShowAuthenticatorForConfiguration
