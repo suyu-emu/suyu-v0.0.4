@@ -324,8 +324,8 @@ public:
     /// Push GPU command buffer entries to be processed
     void PushCommandBuffer(Tegra::ChCommandHeaderList& entries);
 
-    /// Frees the CDMAPusher to free up resources
-    void ClearCommandBuffer();
+    /// Frees the CDMAPusher instance to free up resources
+    void ClearCdmaInstance();
 
     /// Swap buffers (render frame)
     void SwapBuffers(const Tegra::FramebufferConfig* framebuffer);
