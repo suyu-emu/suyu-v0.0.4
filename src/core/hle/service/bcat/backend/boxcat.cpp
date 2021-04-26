@@ -415,9 +415,9 @@ std::optional<std::vector<u8>> Boxcat::GetLaunchParameter(TitleIDVersion title) 
     if (Settings::values.bcat_boxcat_local) {
         LOG_INFO(Service_BCAT, "Boxcat using local data by override, skipping download.");
     } else {
-        Boxcat::Client client{path, title.title_id, title.build_id};
+        Client launch_client{path, title.title_id, title.build_id};
 
-        const auto res = client.DownloadLaunchParam();
+        const auto res = launch_client.DownloadLaunchParam();
         if (res != DownloadResult::Success) {
             LOG_ERROR(Service_BCAT, "Boxcat synchronization failed with error '{}'!", res);
 

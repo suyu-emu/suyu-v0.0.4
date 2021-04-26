@@ -45,18 +45,18 @@ ResultCode SystemClockCore::SetCurrentTime(Core::System& system, s64 posix_time)
     return Flush(clock_context);
 }
 
-ResultCode SystemClockCore::Flush(const SystemClockContext& context) {
+ResultCode SystemClockCore::Flush(const SystemClockContext& clock_context) {
     if (!system_clock_context_update_callback) {
         return RESULT_SUCCESS;
     }
-    return system_clock_context_update_callback->Update(context);
+    return system_clock_context_update_callback->Update(clock_context);
 }
 
-ResultCode SystemClockCore::SetSystemClockContext(const SystemClockContext& context) {
-    if (const ResultCode result{SetClockContext(context)}; result != RESULT_SUCCESS) {
+ResultCode SystemClockCore::SetSystemClockContext(const SystemClockContext& clock_context) {
+    if (const ResultCode result{SetClockContext(clock_context)}; result != RESULT_SUCCESS) {
         return result;
     }
-    return Flush(context);
+    return Flush(clock_context);
 }
 
 bool SystemClockCore::IsClockSetup(Core::System& system) const {

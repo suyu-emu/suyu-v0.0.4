@@ -174,9 +174,9 @@ private:
     };
 
     std::shared_ptr<IDeliveryCacheProgressService> CreateProgressService(SyncType type) {
-        auto& backend{progress.at(static_cast<std::size_t>(type))};
-        return std::make_shared<IDeliveryCacheProgressService>(system, backend.GetEvent(),
-                                                               backend.GetImpl());
+        auto& progress_backend{GetProgressBackend(type)};
+        return std::make_shared<IDeliveryCacheProgressService>(system, progress_backend.GetEvent(),
+                                                               progress_backend.GetImpl());
     }
 
     void RequestSyncDeliveryCache(Kernel::HLERequestContext& ctx) {
@@ -184,7 +184,7 @@ private:
 
         backend.Synchronize({system.CurrentProcess()->GetTitleID(),
                              GetCurrentBuildID(system.GetCurrentProcessBuildID())},
-                            progress.at(static_cast<std::size_t>(SyncType::Normal)));
+                            GetProgressBackend(SyncType::Normal));
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
@@ -201,8 +201,7 @@ private:
 
         backend.SynchronizeDirectory({system.CurrentProcess()->GetTitleID(),
                                       GetCurrentBuildID(system.GetCurrentProcessBuildID())},
-                                     name,
-                                     progress.at(static_cast<std::size_t>(SyncType::Directory)));
+                                     name, GetProgressBackend(SyncType::Directory));
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
@@ -265,9 +264,16 @@ private:
         rb.Push(RESULT_SUCCESS);
     }
 
-    Backend& backend;
+    ProgressServiceBackend& GetProgressBackend(SyncType type) {
+        return progress.at(static_cast<size_t>(type));
+    }
 
-    std::array<ProgressServiceBackend, static_cast<std::size_t>(SyncType::Count)> progress;
+    const ProgressServiceBackend& GetProgressBackend(SyncType type) const {
+        return progress.at(static_cast<size_t>(type));
+    }
+
+    Backend& backend;
+    std::array<ProgressServiceBackend, static_cast<size_t>(SyncType::Count)> progress;
 };
 
 void Module::Interface::CreateBcatService(Kernel::HLERequestContext& ctx) {

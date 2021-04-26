@@ -39,7 +39,7 @@ public:
     }
 
 protected:
-    ResultCode Flush(const SystemClockContext& context) override;
+    ResultCode Flush(const SystemClockContext&) override;
 
     ResultCode SetClockContext(const SystemClockContext&) override;
 

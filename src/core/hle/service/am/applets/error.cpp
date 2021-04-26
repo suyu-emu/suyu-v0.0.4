@@ -158,11 +158,11 @@ void Error::Execute() {
         break;
     case ErrorAppletMode::ShowSystemError:
     case ErrorAppletMode::ShowApplicationError: {
-        const auto system = mode == ErrorAppletMode::ShowSystemError;
+        const auto is_system = mode == ErrorAppletMode::ShowSystemError;
         const auto& main_text =
-            system ? args->system_error.main_text : args->application_error.main_text;
+            is_system ? args->system_error.main_text : args->application_error.main_text;
         const auto& detail_text =
-            system ? args->system_error.detail_text : args->application_error.detail_text;
+            is_system ? args->system_error.detail_text : args->application_error.detail_text;
 
         const auto main_text_string =
             Common::StringFromFixedZeroTerminatedBuffer(main_text.data(), main_text.size());

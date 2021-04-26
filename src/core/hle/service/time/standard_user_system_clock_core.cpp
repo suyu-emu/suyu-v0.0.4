@@ -45,12 +45,12 @@ ResultCode StandardUserSystemClockCore::GetClockContext(Core::System& system,
     return local_system_clock_core.GetClockContext(system, context);
 }
 
-ResultCode StandardUserSystemClockCore::Flush(const SystemClockContext& context) {
+ResultCode StandardUserSystemClockCore::Flush(const SystemClockContext&) {
     UNREACHABLE();
     return ERROR_NOT_IMPLEMENTED;
 }
 
-ResultCode StandardUserSystemClockCore::SetClockContext(const SystemClockContext& context) {
+ResultCode StandardUserSystemClockCore::SetClockContext(const SystemClockContext&) {
     UNREACHABLE();
     return ERROR_NOT_IMPLEMENTED;
 }
