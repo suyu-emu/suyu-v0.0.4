@@ -1027,10 +1027,8 @@ void QtSoftwareKeyboardDialog::ChangeBottomOSKIndex() {
         ui->bottomOSK->setCurrentIndex(static_cast<int>(bottom_osk_index));
 
         ui->button_shift_shift->setStyleSheet(
-            QStringLiteral("background-image: url(:/overlay/osk_button_shift_lock_off.png);"
-                           "\nbackground-position: left top;"
-                           "\nbackground-repeat: no-repeat;"
-                           "\nbackground-origin: content;"));
+            QStringLiteral("image: url(:/overlay/osk_button_shift_lock_off.png);"
+                           "\nimage-position: left;"));
 
         ui->button_shift_shift->setIconSize(ui->button_shift->iconSize());
         ui->button_backspace_shift->setIconSize(ui->button_backspace->iconSize());
@@ -1040,10 +1038,8 @@ void QtSoftwareKeyboardDialog::ChangeBottomOSKIndex() {
             caps_lock_enabled = false;
 
             ui->button_shift_shift->setStyleSheet(
-                QStringLiteral("background-image: url(:/overlay/osk_button_shift_lock_off.png);"
-                               "\nbackground-position: left top;"
-                               "\nbackground-repeat: no-repeat;"
-                               "\nbackground-origin: content;"));
+                QStringLiteral("image: url(:/overlay/osk_button_shift_lock_off.png);"
+                               "\nimage-position: left;"));
 
             ui->button_shift_shift->setIconSize(ui->button_shift->iconSize());
             ui->button_backspace_shift->setIconSize(ui->button_backspace->iconSize());
@@ -1056,10 +1052,8 @@ void QtSoftwareKeyboardDialog::ChangeBottomOSKIndex() {
             caps_lock_enabled = true;
 
             ui->button_shift_shift->setStyleSheet(
-                QStringLiteral("background-image: url(:/overlay/osk_button_shift_lock_on.png);"
-                               "\nbackground-position: left top;"
-                               "\nbackground-repeat: no-repeat;"
-                               "\nbackground-origin: content;"));
+                QStringLiteral("image: url(:/overlay/osk_button_shift_lock_on.png);"
+                               "\nimage-position: left;"));
 
             ui->button_shift_shift->setIconSize(ui->button_shift->iconSize());
             ui->button_backspace_shift->setIconSize(ui->button_backspace->iconSize());
