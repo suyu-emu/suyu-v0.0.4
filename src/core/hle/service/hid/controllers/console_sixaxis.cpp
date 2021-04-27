@@ -77,10 +77,10 @@ void Controller_ConsoleSixAxis::OnLoadInputDevices() {
                    Input::CreateDevice<Input::MotionDevice>);
 }
 
-void Controller_ConsoleSixAxis::SetTransferMemoryPointer(u8* t_mem_1) {
+void Controller_ConsoleSixAxis::SetTransferMemoryPointer(u8* t_mem) {
     is_transfer_memory_set = true;
-    transfer_memory = t_mem_1;
-};
+    transfer_memory = t_mem;
+}
 
 void Controller_ConsoleSixAxis::ResetTimestamp() {
     auto& cur_entry = seven_six_axis.sevensixaxis_states[seven_six_axis.header.last_entry_index];

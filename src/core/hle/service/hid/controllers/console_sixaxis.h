@@ -30,7 +30,7 @@ public:
     void OnLoadInputDevices() override;
 
     // Called on InitializeSevenSixAxisSensor
-    void SetTransferMemoryPointer(u8* t_mem_1);
+    void SetTransferMemoryPointer(u8* t_mem);
 
     // Called on ResetSevenSixAxisSensorTimestamp
     void ResetTimestamp();
@@ -71,8 +71,8 @@ private:
 
     using MotionArray =
         std::array<std::unique_ptr<Input::MotionDevice>, Settings::NativeMotion::NUM_MOTIONS_HID>;
-    u8* transfer_memory;
     MotionArray motions;
+    u8* transfer_memory = nullptr;
     bool is_transfer_memory_set = false;
     ConsoleSharedMemory console_six_axis{};
     SevenSixAxisMemory seven_six_axis{};
