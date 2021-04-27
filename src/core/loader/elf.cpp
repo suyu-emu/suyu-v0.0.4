@@ -364,21 +364,24 @@ SectionID ElfReader::GetSectionByName(const char* name, int firstSection) const 
 
 namespace Loader {
 
-AppLoader_ELF::AppLoader_ELF(FileSys::VirtualFile file) : AppLoader(std::move(file)) {}
+AppLoader_ELF::AppLoader_ELF(FileSys::VirtualFile file_) : AppLoader(std::move(file_)) {}
 
-FileType AppLoader_ELF::IdentifyType(const FileSys::VirtualFile& file) {
+FileType AppLoader_ELF::IdentifyType(const FileSys::VirtualFile& elf_file) {
     static constexpr u16 ELF_MACHINE_ARM{0x28};
 
     u32 magic = 0;
-    if (4 != file->ReadObject(&magic))
+    if (4 != elf_file->ReadObject(&magic)) {
         return FileType::Error;
+    }
 
     u16 machine = 0;
-    if (2 != file->ReadObject(&machine, 18))
+    if (2 != elf_file->ReadObject(&machine, 18)) {
         return FileType::Error;
+    }
 
-    if (Common::MakeMagic('\x7f', 'E', 'L', 'F') == magic && ELF_MACHINE_ARM == machine)
+    if (Common::MakeMagic('\x7f', 'E', 'L', 'F') == magic && ELF_MACHINE_ARM == machine) {
         return FileType::ELF;
+    }
 
     return FileType::Error;
 }

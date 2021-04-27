@@ -23,15 +23,17 @@ class AppLoader_DeconstructedRomDirectory;
 /// Loads an NCA file
 class AppLoader_NCA final : public AppLoader {
 public:
-    explicit AppLoader_NCA(FileSys::VirtualFile file);
+    explicit AppLoader_NCA(FileSys::VirtualFile file_);
     ~AppLoader_NCA() override;
 
     /**
-     * Returns the type of the file
-     * @param file open file
-     * @return FileType found, or FileType::Error if this loader doesn't know it
+     * Identifies whether or not the given file is an NCA file.
+     *
+     * @param nca_file The file to identify.
+     *
+     * @return FileType::NCA, or FileType::Error if the file is not an NCA file.
      */
-    static FileType IdentifyType(const FileSys::VirtualFile& file);
+    static FileType IdentifyType(const FileSys::VirtualFile& nca_file);
 
     FileType GetFileType() const override {
         return IdentifyType(file);

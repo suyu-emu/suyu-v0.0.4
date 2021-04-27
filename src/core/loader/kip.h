@@ -22,11 +22,13 @@ public:
     ~AppLoader_KIP() override;
 
     /**
-     * Returns the type of the file
-     * @param file open file
-     * @return FileType found, or FileType::Error if this loader doesn't know it
+     * Identifies whether or not the given file is a KIP.
+     *
+     * @param in_file The file to identify.
+     *
+     * @return FileType::KIP if found, or FileType::Error if unknown.
      */
-    static FileType IdentifyType(const FileSys::VirtualFile& file);
+    static FileType IdentifyType(const FileSys::VirtualFile& in_file);
 
     FileType GetFileType() const override;
 

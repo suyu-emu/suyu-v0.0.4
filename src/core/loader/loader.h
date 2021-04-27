@@ -152,21 +152,26 @@ public:
 
     /**
      * Returns the type of this file
+     *
      * @return FileType corresponding to the loaded file
      */
     virtual FileType GetFileType() const = 0;
 
     /**
      * Load the application and return the created Process instance
+     *
      * @param process The newly created process.
      * @param system  The system that this process is being loaded under.
+     *
      * @return The status result of the operation.
      */
     virtual LoadResult Load(Kernel::Process& process, Core::System& system) = 0;
 
     /**
      * Get the code (typically .code section) of the application
-     * @param buffer Reference to buffer to store data
+     *
+     * @param[out] buffer Reference to buffer to store data
+     *
      * @return ResultStatus result of function
      */
     virtual ResultStatus ReadCode(std::vector<u8>& buffer) {
@@ -175,7 +180,9 @@ public:
 
     /**
      * Get the icon (typically icon section) of the application
-     * @param buffer Reference to buffer to store data
+     *
+     * @param[out] buffer Reference to buffer to store data
+     *
      * @return ResultStatus result of function
      */
     virtual ResultStatus ReadIcon(std::vector<u8>& buffer) {
@@ -186,7 +193,9 @@ public:
      * Get the banner (typically banner section) of the application
      * In the context of NX, this is the animation that displays in the bottom right of the screen
      * when a game boots. Stored in GIF format.
-     * @param buffer Reference to buffer to store data
+     *
+     * @param[out] buffer Reference to buffer to store data
+     *
      * @return ResultStatus result of function
      */
     virtual ResultStatus ReadBanner(std::vector<u8>& buffer) {
@@ -197,7 +206,9 @@ public:
      * Get the logo (typically logo section) of the application
      * In the context of NX, this is the static image that displays in the top left of the screen
      * when a game boots. Stored in JPEG format.
-     * @param buffer Reference to buffer to store data
+     *
+     * @param[out] buffer Reference to buffer to store data
+     *
      * @return ResultStatus result of function
      */
     virtual ResultStatus ReadLogo(std::vector<u8>& buffer) {
@@ -206,7 +217,9 @@ public:
 
     /**
      * Get the program id of the application
-     * @param out_program_id Reference to store program id into
+     *
+     * @param[out] out_program_id Reference to store program id into
+     *
      * @return ResultStatus result of function
      */
     virtual ResultStatus ReadProgramId(u64& out_program_id) {
@@ -216,19 +229,23 @@ public:
     /**
      * Get the RomFS of the application
      * Since the RomFS can be huge, we return a file reference instead of copying to a buffer
-     * @param file The directory containing the RomFS
+     *
+     * @param[out] out_file The directory containing the RomFS
+     *
      * @return ResultStatus result of function
      */
-    virtual ResultStatus ReadRomFS(FileSys::VirtualFile& file) {
+    virtual ResultStatus ReadRomFS(FileSys::VirtualFile& out_file) {
         return ResultStatus::ErrorNotImplemented;
     }
 
     /**
      * Get the raw update of the application, should it come packed with one
-     * @param file The raw update NCA file (Program-type
+     *
+     * @param[out] out_file The raw update NCA file (Program-type)
+     *
      * @return ResultStatus result of function
      */
-    virtual ResultStatus ReadUpdateRaw(FileSys::VirtualFile& file) {
+    virtual ResultStatus ReadUpdateRaw(FileSys::VirtualFile& out_file) {
         return ResultStatus::ErrorNotImplemented;
     }
 
@@ -236,7 +253,8 @@ public:
      * Get whether or not updates can be applied to the RomFS.
      * By default, this is true, however for formats where it cannot be guaranteed that the RomFS is
      * the base game it should be set to false.
-     * @return bool whether or not updatable.
+     *
+     * @return bool indicating whether or not the RomFS is updatable.
      */
     virtual bool IsRomFSUpdatable() const {
         return true;
@@ -244,8 +262,9 @@ public:
 
     /**
      * Gets the difference between the start of the IVFC header and the start of level 6 (RomFS)
-     * data. Needed for bktr patching.
-     * @return IVFC offset for romfs.
+     * data. Needed for BKTR patching.
+     *
+     * @return IVFC offset for RomFS.
      */
     virtual u64 ReadRomFSIVFCOffset() const {
         return 0;
@@ -253,7 +272,9 @@ public:
 
     /**
      * Get the title of the application
-     * @param title Reference to store the application title into
+     *
+     * @param[out] title Reference to store the application title into
+     *
      * @return ResultStatus result of function
      */
     virtual ResultStatus ReadTitle(std::string& title) {
@@ -262,7 +283,9 @@ public:
 
     /**
      * Get the control data (CNMT) of the application
-     * @param control Reference to store the application control data into
+     *
+     * @param[out] control Reference to store the application control data into
+     *
      * @return ResultStatus result of function
      */
     virtual ResultStatus ReadControlData(FileSys::NACP& control) {
@@ -271,10 +294,12 @@ public:
 
     /**
      * Get the RomFS of the manual of the application
-     * @param file The raw manual RomFS of the game
+     *
+     * @param[out] out_file The raw manual RomFS of the game
+     *
      * @return ResultStatus result of function
      */
-    virtual ResultStatus ReadManualRomFS(FileSys::VirtualFile& file) {
+    virtual ResultStatus ReadManualRomFS(FileSys::VirtualFile& out_file) {
         return ResultStatus::ErrorNotImplemented;
     }
 

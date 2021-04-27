@@ -43,13 +43,13 @@ public:
 
     LoadResult Load(Kernel::Process& process, Core::System& system) override;
 
-    ResultStatus ReadRomFS(FileSys::VirtualFile& dir) override;
-    ResultStatus ReadIcon(std::vector<u8>& buffer) override;
+    ResultStatus ReadRomFS(FileSys::VirtualFile& out_dir) override;
+    ResultStatus ReadIcon(std::vector<u8>& out_buffer) override;
     ResultStatus ReadProgramId(u64& out_program_id) override;
     ResultStatus ReadTitle(std::string& title) override;
     bool IsRomFSUpdatable() const override;
 
-    ResultStatus ReadNSOModules(Modules& modules) override;
+    ResultStatus ReadNSOModules(Modules& out_modules) override;
 
 private:
     FileSys::ProgramMetadata metadata;

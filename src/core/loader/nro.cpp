@@ -72,7 +72,7 @@ struct AssetHeader {
 };
 static_assert(sizeof(AssetHeader) == 0x38, "AssetHeader has incorrect size.");
 
-AppLoader_NRO::AppLoader_NRO(FileSys::VirtualFile file) : AppLoader(file) {
+AppLoader_NRO::AppLoader_NRO(FileSys::VirtualFile file_) : AppLoader(std::move(file_)) {
     NroHeader nro_header{};
     if (file->ReadObject(&nro_header) != sizeof(NroHeader)) {
         return;
@@ -114,10 +114,10 @@ AppLoader_NRO::AppLoader_NRO(FileSys::VirtualFile file) : AppLoader(file) {
 
 AppLoader_NRO::~AppLoader_NRO() = default;
 
-FileType AppLoader_NRO::IdentifyType(const FileSys::VirtualFile& file) {
+FileType AppLoader_NRO::IdentifyType(const FileSys::VirtualFile& nro_file) {
     // Read NSO header
     NroHeader nro_header{};
-    if (sizeof(NroHeader) != file->ReadObject(&nro_header)) {
+    if (sizeof(NroHeader) != nro_file->ReadObject(&nro_header)) {
         return FileType::Error;
     }
     if (nro_header.magic == Common::MakeMagic('N', 'R', 'O', '0')) {
@@ -130,8 +130,7 @@ static constexpr u32 PageAlignSize(u32 size) {
     return static_cast<u32>((size + Core::Memory::PAGE_MASK) & ~Core::Memory::PAGE_MASK);
 }
 
-static bool LoadNroImpl(Kernel::Process& process, const std::vector<u8>& data,
-                        const std::string& name) {
+static bool LoadNroImpl(Kernel::Process& process, const std::vector<u8>& data) {
     if (data.size() < sizeof(NroHeader)) {
         return {};
     }
@@ -200,8 +199,8 @@ static bool LoadNroImpl(Kernel::Process& process, const std::vector<u8>& data,
     return true;
 }
 
-bool AppLoader_NRO::LoadNro(Kernel::Process& process, const FileSys::VfsFile& file) {
-    return LoadNroImpl(process, file.ReadAllBytes(), file.GetName());
+bool AppLoader_NRO::LoadNro(Kernel::Process& process, const FileSys::VfsFile& nro_file) {
+    return LoadNroImpl(process, nro_file.ReadAllBytes());
 }
 
 AppLoader_NRO::LoadResult AppLoader_NRO::Load(Kernel::Process& process, Core::System& system) {

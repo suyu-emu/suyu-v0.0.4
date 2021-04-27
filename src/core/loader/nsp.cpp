@@ -21,11 +21,11 @@
 
 namespace Loader {
 
-AppLoader_NSP::AppLoader_NSP(FileSys::VirtualFile file,
+AppLoader_NSP::AppLoader_NSP(FileSys::VirtualFile file_,
                              const Service::FileSystem::FileSystemController& fsc,
                              const FileSys::ContentProvider& content_provider,
                              std::size_t program_index)
-    : AppLoader(file), nsp(std::make_unique<FileSys::NSP>(file, program_index)),
+    : AppLoader(file_), nsp(std::make_unique<FileSys::NSP>(file_, program_index)),
       title_id(nsp->GetProgramTitleID()) {
 
     if (nsp->GetStatus() != ResultStatus::Success) {
@@ -57,8 +57,8 @@ AppLoader_NSP::AppLoader_NSP(FileSys::VirtualFile file,
 
 AppLoader_NSP::~AppLoader_NSP() = default;
 
-FileType AppLoader_NSP::IdentifyType(const FileSys::VirtualFile& file) {
-    FileSys::NSP nsp(file);
+FileType AppLoader_NSP::IdentifyType(const FileSys::VirtualFile& nsp_file) {
+    const FileSys::NSP nsp(nsp_file);
 
     if (nsp.GetStatus() == ResultStatus::Success) {
         // Extracted Type case
@@ -121,67 +121,80 @@ AppLoader_NSP::LoadResult AppLoader_NSP::Load(Kernel::Process& process, Core::Sy
     return result;
 }
 
-ResultStatus AppLoader_NSP::ReadRomFS(FileSys::VirtualFile& file) {
-    return secondary_loader->ReadRomFS(file);
+ResultStatus AppLoader_NSP::ReadRomFS(FileSys::VirtualFile& out_file) {
+    return secondary_loader->ReadRomFS(out_file);
 }
 
 u64 AppLoader_NSP::ReadRomFSIVFCOffset() const {
     return secondary_loader->ReadRomFSIVFCOffset();
 }
 
-ResultStatus AppLoader_NSP::ReadUpdateRaw(FileSys::VirtualFile& file) {
-    if (nsp->IsExtractedType())
+ResultStatus AppLoader_NSP::ReadUpdateRaw(FileSys::VirtualFile& out_file) {
+    if (nsp->IsExtractedType()) {
         return ResultStatus::ErrorNoPackedUpdate;
+    }
 
     const auto read =
         nsp->GetNCAFile(FileSys::GetUpdateTitleID(title_id), FileSys::ContentRecordType::Program);
 
-    if (read == nullptr)
+    if (read == nullptr) {
         return ResultStatus::ErrorNoPackedUpdate;
+    }
+
     const auto nca_test = std::make_shared<FileSys::NCA>(read);
-
-    if (nca_test->GetStatus() != ResultStatus::ErrorMissingBKTRBaseRomFS)
+    if (nca_test->GetStatus() != ResultStatus::ErrorMissingBKTRBaseRomFS) {
         return nca_test->GetStatus();
+    }
 
-    file = read;
+    out_file = read;
     return ResultStatus::Success;
 }
 
 ResultStatus AppLoader_NSP::ReadProgramId(u64& out_program_id) {
-    if (title_id == 0)
+    if (title_id == 0) {
         return ResultStatus::ErrorNotInitialized;
+    }
+
     out_program_id = title_id;
     return ResultStatus::Success;
 }
 
 ResultStatus AppLoader_NSP::ReadIcon(std::vector<u8>& buffer) {
-    if (icon_file == nullptr)
+    if (icon_file == nullptr) {
         return ResultStatus::ErrorNoControl;
+    }
+
     buffer = icon_file->ReadAllBytes();
     return ResultStatus::Success;
 }
 
 ResultStatus AppLoader_NSP::ReadTitle(std::string& title) {
-    if (nacp_file == nullptr)
+    if (nacp_file == nullptr) {
         return ResultStatus::ErrorNoControl;
+    }
+
     title = nacp_file->GetApplicationName();
     return ResultStatus::Success;
 }
 
 ResultStatus AppLoader_NSP::ReadControlData(FileSys::NACP& nacp) {
-    if (nacp_file == nullptr)
+    if (nacp_file == nullptr) {
         return ResultStatus::ErrorNoControl;
+    }
+
     nacp = *nacp_file;
     return ResultStatus::Success;
 }
 
-ResultStatus AppLoader_NSP::ReadManualRomFS(FileSys::VirtualFile& file) {
+ResultStatus AppLoader_NSP::ReadManualRomFS(FileSys::VirtualFile& out_file) {
     const auto nca =
         nsp->GetNCA(nsp->GetProgramTitleID(), FileSys::ContentRecordType::HtmlDocument);
-    if (nsp->GetStatus() != ResultStatus::Success || nca == nullptr)
+    if (nsp->GetStatus() != ResultStatus::Success || nca == nullptr) {
         return ResultStatus::ErrorNoRomFS;
-    file = nca->GetRomFS();
-    return file == nullptr ? ResultStatus::ErrorNoRomFS : ResultStatus::Success;
+    }
+
+    out_file = nca->GetRomFS();
+    return out_file == nullptr ? ResultStatus::ErrorNoRomFS : ResultStatus::Success;
 }
 
 ResultStatus AppLoader_NSP::ReadBanner(std::vector<u8>& buffer) {

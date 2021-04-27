@@ -24,9 +24,9 @@ AppLoader_KIP::AppLoader_KIP(FileSys::VirtualFile file_)
 
 AppLoader_KIP::~AppLoader_KIP() = default;
 
-FileType AppLoader_KIP::IdentifyType(const FileSys::VirtualFile& file) {
+FileType AppLoader_KIP::IdentifyType(const FileSys::VirtualFile& in_file) {
     u32_le magic{};
-    if (file->GetSize() < sizeof(u32) || file->ReadObject(&magic) != sizeof(u32)) {
+    if (in_file->GetSize() < sizeof(u32) || in_file->ReadObject(&magic) != sizeof(u32)) {
         return FileType::Error;
     }
 
@@ -56,10 +56,10 @@ AppLoader::LoadResult AppLoader_KIP::Load(Kernel::Process& process,
         return {kip->GetStatus(), {}};
     }
 
-    const auto get_kip_address_space_type = [](const auto& kip) {
-        return kip.Is64Bit()
-                   ? (kip.Is39BitAddressSpace() ? FileSys::ProgramAddressSpaceType::Is39Bit
-                                                : FileSys::ProgramAddressSpaceType::Is36Bit)
+    const auto get_kip_address_space_type = [](const auto& kip_type) {
+        return kip_type.Is64Bit()
+                   ? (kip_type.Is39BitAddressSpace() ? FileSys::ProgramAddressSpaceType::Is39Bit
+                                                     : FileSys::ProgramAddressSpaceType::Is36Bit)
                    : FileSys::ProgramAddressSpaceType::Is32Bit;
     };
 
