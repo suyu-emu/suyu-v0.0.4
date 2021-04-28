@@ -71,27 +71,29 @@ static_assert(sizeof(NSOArgumentHeader) == 0x20, "NSOArgumentHeader has incorrec
 /// Loads an NSO file
 class AppLoader_NSO final : public AppLoader {
 public:
-    explicit AppLoader_NSO(FileSys::VirtualFile file);
+    explicit AppLoader_NSO(FileSys::VirtualFile file_);
 
     /**
-     * Returns the type of the file
-     * @param file open file
-     * @return FileType found, or FileType::Error if this loader doesn't know it
+     * Identifies whether or not the given file is a form of NSO file.
+     *
+     * @param in_file The file to be identified.
+     *
+     * @return FileType::NSO if found, or FileType::Error if some other type of file.
      */
-    static FileType IdentifyType(const FileSys::VirtualFile& file);
+    static FileType IdentifyType(const FileSys::VirtualFile& in_file);
 
     FileType GetFileType() const override {
         return IdentifyType(file);
     }
 
     static std::optional<VAddr> LoadModule(Kernel::Process& process, Core::System& system,
-                                           const FileSys::VfsFile& file, VAddr load_base,
+                                           const FileSys::VfsFile& nso_file, VAddr load_base,
                                            bool should_pass_arguments, bool load_into_process,
                                            std::optional<FileSys::PatchManager> pm = {});
 
     LoadResult Load(Kernel::Process& process, Core::System& system) override;
 
-    ResultStatus ReadNSOModules(Modules& modules) override;
+    ResultStatus ReadNSOModules(Modules& out_modules) override;
 
 private:
     Modules modules;

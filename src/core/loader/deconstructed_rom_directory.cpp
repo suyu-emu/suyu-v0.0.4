@@ -24,10 +24,10 @@ namespace Loader {
 AppLoader_DeconstructedRomDirectory::AppLoader_DeconstructedRomDirectory(FileSys::VirtualFile file_,
                                                                          bool override_update)
     : AppLoader(std::move(file_)), override_update(override_update) {
-    const auto dir = file->GetContainingDirectory();
+    const auto file_dir = file->GetContainingDirectory();
 
     // Title ID
-    const auto npdm = dir->GetFile("main.npdm");
+    const auto npdm = file_dir->GetFile("main.npdm");
     if (npdm != nullptr) {
         const auto res = metadata.Load(npdm);
         if (res == ResultStatus::Success)
@@ -37,7 +37,7 @@ AppLoader_DeconstructedRomDirectory::AppLoader_DeconstructedRomDirectory(FileSys
     // Icon
     FileSys::VirtualFile icon_file = nullptr;
     for (const auto& language : FileSys::LANGUAGE_NAMES) {
-        icon_file = dir->GetFile("icon_" + std::string(language) + ".dat");
+        icon_file = file_dir->GetFile("icon_" + std::string(language) + ".dat");
         if (icon_file != nullptr) {
             icon_data = icon_file->ReadAllBytes();
             break;
@@ -46,7 +46,7 @@ AppLoader_DeconstructedRomDirectory::AppLoader_DeconstructedRomDirectory(FileSys
 
     if (icon_data.empty()) {
         // Any png, jpeg, or bmp file
-        const auto& files = dir->GetFiles();
+        const auto& files = file_dir->GetFiles();
         const auto icon_iter =
             std::find_if(files.begin(), files.end(), [](const FileSys::VirtualFile& file) {
                 return file->GetExtension() == "png" || file->GetExtension() == "jpg" ||
@@ -57,9 +57,9 @@ AppLoader_DeconstructedRomDirectory::AppLoader_DeconstructedRomDirectory(FileSys
     }
 
     // Metadata
-    FileSys::VirtualFile nacp_file = dir->GetFile("control.nacp");
+    FileSys::VirtualFile nacp_file = file_dir->GetFile("control.nacp");
     if (nacp_file == nullptr) {
-        const auto& files = dir->GetFiles();
+        const auto& files = file_dir->GetFiles();
         const auto nacp_iter =
             std::find_if(files.begin(), files.end(), [](const FileSys::VirtualFile& file) {
                 return file->GetExtension() == "nacp";
@@ -200,17 +200,21 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
             LoadParameters{metadata.GetMainThreadPriority(), metadata.GetMainThreadStackSize()}};
 }
 
-ResultStatus AppLoader_DeconstructedRomDirectory::ReadRomFS(FileSys::VirtualFile& dir) {
-    if (romfs == nullptr)
+ResultStatus AppLoader_DeconstructedRomDirectory::ReadRomFS(FileSys::VirtualFile& out_dir) {
+    if (romfs == nullptr) {
         return ResultStatus::ErrorNoRomFS;
-    dir = romfs;
+    }
+
+    out_dir = romfs;
     return ResultStatus::Success;
 }
 
-ResultStatus AppLoader_DeconstructedRomDirectory::ReadIcon(std::vector<u8>& buffer) {
-    if (icon_data.empty())
+ResultStatus AppLoader_DeconstructedRomDirectory::ReadIcon(std::vector<u8>& out_buffer) {
+    if (icon_data.empty()) {
         return ResultStatus::ErrorNoIcon;
-    buffer = icon_data;
+    }
+
+    out_buffer = icon_data;
     return ResultStatus::Success;
 }
 
@@ -219,10 +223,12 @@ ResultStatus AppLoader_DeconstructedRomDirectory::ReadProgramId(u64& out_program
     return ResultStatus::Success;
 }
 
-ResultStatus AppLoader_DeconstructedRomDirectory::ReadTitle(std::string& title) {
-    if (name.empty())
+ResultStatus AppLoader_DeconstructedRomDirectory::ReadTitle(std::string& out_title) {
+    if (name.empty()) {
         return ResultStatus::ErrorNoControl;
-    title = name;
+    }
+
+    out_title = name;
     return ResultStatus::Success;
 }
 
@@ -230,12 +236,12 @@ bool AppLoader_DeconstructedRomDirectory::IsRomFSUpdatable() const {
     return false;
 }
 
-ResultStatus AppLoader_DeconstructedRomDirectory::ReadNSOModules(Modules& modules) {
+ResultStatus AppLoader_DeconstructedRomDirectory::ReadNSOModules(Modules& out_modules) {
     if (!is_loaded) {
         return ResultStatus::ErrorNotInitialized;
     }
 
-    modules = this->modules;
+    out_modules = this->modules;
     return ResultStatus::Success;
 }
 

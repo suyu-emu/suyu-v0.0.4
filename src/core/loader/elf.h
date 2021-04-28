@@ -20,11 +20,13 @@ public:
     explicit AppLoader_ELF(FileSys::VirtualFile file);
 
     /**
-     * Returns the type of the file
-     * @param file open file
-     * @return FileType found, or FileType::Error if this loader doesn't know it
+     * Identifies whether or not the given file is an ELF file.
+     *
+     * @param elf_file The file to identify.
+     *
+     * @return FileType::ELF, or FileType::Error if the file is not an ELF file.
      */
-    static FileType IdentifyType(const FileSys::VirtualFile& file);
+    static FileType IdentifyType(const FileSys::VirtualFile& elf_file);
 
     FileType GetFileType() const override {
         return IdentifyType(file);

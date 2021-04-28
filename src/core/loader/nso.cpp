@@ -56,11 +56,11 @@ bool NSOHeader::IsSegmentCompressed(size_t segment_num) const {
     return ((flags >> segment_num) & 1) != 0;
 }
 
-AppLoader_NSO::AppLoader_NSO(FileSys::VirtualFile file) : AppLoader(std::move(file)) {}
+AppLoader_NSO::AppLoader_NSO(FileSys::VirtualFile file_) : AppLoader(std::move(file_)) {}
 
-FileType AppLoader_NSO::IdentifyType(const FileSys::VirtualFile& file) {
+FileType AppLoader_NSO::IdentifyType(const FileSys::VirtualFile& in_file) {
     u32 magic = 0;
-    if (file->ReadObject(&magic) != sizeof(magic)) {
+    if (in_file->ReadObject(&magic) != sizeof(magic)) {
         return FileType::Error;
     }
 
@@ -72,15 +72,15 @@ FileType AppLoader_NSO::IdentifyType(const FileSys::VirtualFile& file) {
 }
 
 std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process, Core::System& system,
-                                               const FileSys::VfsFile& file, VAddr load_base,
+                                               const FileSys::VfsFile& nso_file, VAddr load_base,
                                                bool should_pass_arguments, bool load_into_process,
                                                std::optional<FileSys::PatchManager> pm) {
-    if (file.GetSize() < sizeof(NSOHeader)) {
+    if (nso_file.GetSize() < sizeof(NSOHeader)) {
         return std::nullopt;
     }
 
     NSOHeader nso_header{};
-    if (sizeof(NSOHeader) != file.ReadObject(&nso_header)) {
+    if (sizeof(NSOHeader) != nso_file.ReadObject(&nso_header)) {
         return std::nullopt;
     }
 
@@ -92,8 +92,8 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process, Core::S
     Kernel::CodeSet codeset;
     Kernel::PhysicalMemory program_image;
     for (std::size_t i = 0; i < nso_header.segments.size(); ++i) {
-        std::vector<u8> data =
-            file.ReadBytes(nso_header.segments_compressed_size[i], nso_header.segments[i].offset);
+        std::vector<u8> data = nso_file.ReadBytes(nso_header.segments_compressed_size[i],
+                                                  nso_header.segments[i].offset);
         if (nso_header.IsSegmentCompressed(i)) {
             data = DecompressSegment(data, nso_header.segments[i]);
         }
@@ -136,7 +136,7 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process, Core::S
         pi_header.insert(pi_header.begin() + sizeof(NSOHeader), program_image.data(),
                          program_image.data() + program_image.size());
 
-        pi_header = pm->PatchNSO(pi_header, file.GetName());
+        pi_header = pm->PatchNSO(pi_header, nso_file.GetName());
 
         std::copy(pi_header.begin() + sizeof(NSOHeader), pi_header.end(), program_image.data());
     }
@@ -183,8 +183,8 @@ AppLoader_NSO::LoadResult AppLoader_NSO::Load(Kernel::Process& process, Core::Sy
                                                   Core::Memory::DEFAULT_STACK_SIZE}};
 }
 
-ResultStatus AppLoader_NSO::ReadNSOModules(Modules& modules) {
-    modules = this->modules;
+ResultStatus AppLoader_NSO::ReadNSOModules(Modules& out_modules) {
+    out_modules = this->modules;
     return ResultStatus::Success;
 }
 
