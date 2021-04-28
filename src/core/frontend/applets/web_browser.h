@@ -16,11 +16,11 @@ public:
     virtual ~WebBrowserApplet();
 
     virtual void OpenLocalWebPage(
-        std::string_view local_url, std::function<void()> extract_romfs_callback,
+        const std::string& local_url, std::function<void()> extract_romfs_callback,
         std::function<void(Service::AM::Applets::WebExitReason, std::string)> callback) const = 0;
 
     virtual void OpenExternalWebPage(
-        std::string_view external_url,
+        const std::string& external_url,
         std::function<void(Service::AM::Applets::WebExitReason, std::string)> callback) const = 0;
 };
 
@@ -28,11 +28,12 @@ class DefaultWebBrowserApplet final : public WebBrowserApplet {
 public:
     ~DefaultWebBrowserApplet() override;
 
-    void OpenLocalWebPage(std::string_view local_url, std::function<void()> extract_romfs_callback,
+    void OpenLocalWebPage(const std::string& local_url,
+                          std::function<void()> extract_romfs_callback,
                           std::function<void(Service::AM::Applets::WebExitReason, std::string)>
                               callback) const override;
 
-    void OpenExternalWebPage(std::string_view external_url,
+    void OpenExternalWebPage(const std::string& external_url,
                              std::function<void(Service::AM::Applets::WebExitReason, std::string)>
                                  callback) const override;
 };

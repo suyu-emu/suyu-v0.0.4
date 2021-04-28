@@ -12,7 +12,7 @@ WebBrowserApplet::~WebBrowserApplet() = default;
 DefaultWebBrowserApplet::~DefaultWebBrowserApplet() = default;
 
 void DefaultWebBrowserApplet::OpenLocalWebPage(
-    std::string_view local_url, std::function<void()> extract_romfs_callback,
+    const std::string& local_url, std::function<void()> extract_romfs_callback,
     std::function<void(Service::AM::Applets::WebExitReason, std::string)> callback) const {
     LOG_WARNING(Service_AM, "(STUBBED) called, backend requested to open local web page at {}",
                 local_url);
@@ -21,7 +21,7 @@ void DefaultWebBrowserApplet::OpenLocalWebPage(
 }
 
 void DefaultWebBrowserApplet::OpenExternalWebPage(
-    std::string_view external_url,
+    const std::string& external_url,
     std::function<void(Service::AM::Applets::WebExitReason, std::string)> callback) const {
     LOG_WARNING(Service_AM, "(STUBBED) called, backend requested to open external web page at {}",
                 external_url);

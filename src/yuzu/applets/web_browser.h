@@ -58,7 +58,7 @@ public:
      * @param main_url The url to the file.
      * @param additional_args Additional arguments appended to the main url.
      */
-    void LoadLocalWebPage(std::string_view main_url, std::string_view additional_args);
+    void LoadLocalWebPage(const std::string& main_url, const std::string& additional_args);
 
     /**
      * Loads an external website. Cannot be used to load local urls.
@@ -66,7 +66,7 @@ public:
      * @param main_url The url to the website.
      * @param additional_args Additional arguments appended to the main url.
      */
-    void LoadExternalWebPage(std::string_view main_url, std::string_view additional_args);
+    void LoadExternalWebPage(const std::string& main_url, const std::string& additional_args);
 
     /**
      * Sets the background color of the web page.
@@ -193,16 +193,17 @@ public:
     explicit QtWebBrowser(GMainWindow& parent);
     ~QtWebBrowser() override;
 
-    void OpenLocalWebPage(std::string_view local_url, std::function<void()> extract_romfs_callback_,
+    void OpenLocalWebPage(const std::string& local_url,
+                          std::function<void()> extract_romfs_callback_,
                           std::function<void(Service::AM::Applets::WebExitReason, std::string)>
                               callback_) const override;
 
-    void OpenExternalWebPage(std::string_view external_url,
+    void OpenExternalWebPage(const std::string& external_url,
                              std::function<void(Service::AM::Applets::WebExitReason, std::string)>
                                  callback_) const override;
 
 signals:
-    void MainWindowOpenWebPage(std::string_view main_url, std::string_view additional_args,
+    void MainWindowOpenWebPage(const std::string& main_url, const std::string& additional_args,
                                bool is_local) const;
 
 private:

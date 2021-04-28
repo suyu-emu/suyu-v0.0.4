@@ -574,8 +574,8 @@ void GMainWindow::SoftwareKeyboardExit() {
     software_keyboard = nullptr;
 }
 
-void GMainWindow::WebBrowserOpenWebPage(std::string_view main_url, std::string_view additional_args,
-                                        bool is_local) {
+void GMainWindow::WebBrowserOpenWebPage(const std::string& main_url,
+                                        const std::string& additional_args, bool is_local) {
 #ifdef YUZU_USE_QT_WEB_ENGINE
 
     if (disable_web_applet) {
@@ -596,13 +596,15 @@ void GMainWindow::WebBrowserOpenWebPage(std::string_view main_url, std::string_v
         loading_progress.setRange(0, 3);
         loading_progress.setValue(0);
 
-        if (is_local && !Common::FS::Exists(std::string(main_url))) {
+        if (is_local && !Common::FS::Exists(main_url)) {
             loading_progress.show();
 
             auto future = QtConcurrent::run([this] { emit WebBrowserExtractOfflineRomFS(); });
 
             while (!future.isFinished()) {
                 QCoreApplication::processEvents();
+
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
         }
 
