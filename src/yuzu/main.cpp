@@ -349,7 +349,7 @@ GMainWindow::GMainWindow()
                 continue;
             }
 
-            Settings::values.current_user = selected_user;
+            Settings::values.current_user = static_cast<s32>(selected_user);
             continue;
         }
 
