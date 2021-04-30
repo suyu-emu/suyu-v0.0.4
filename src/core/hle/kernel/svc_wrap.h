@@ -232,10 +232,11 @@ void SvcWrap64(Core::System& system) {
         func(system, Param(system, 0), Param(system, 1), static_cast<u32>(Param(system, 2))).raw);
 }
 
-template <ResultCode func(Core::System&, u32, u64, u64, u32)>
+// Used by MapSharedMemory
+template <ResultCode func(Core::System&, Handle, u64, u64, Svc::MemoryPermission)>
 void SvcWrap64(Core::System& system) {
-    FuncReturn(system, func(system, static_cast<u32>(Param(system, 0)), Param(system, 1),
-                            Param(system, 2), static_cast<u32>(Param(system, 3)))
+    FuncReturn(system, func(system, static_cast<Handle>(Param(system, 0)), Param(system, 1),
+                            Param(system, 2), static_cast<Svc::MemoryPermission>(Param(system, 3)))
                            .raw);
 }
 
@@ -549,6 +550,16 @@ void SvcWrap32(Core::System& system) {
     const u32 retval =
         func(system, static_cast<Handle>(Param(system, 0)), static_cast<u32>(Param(system, 1)),
              static_cast<u32>(Param(system, 2)), static_cast<u32>(Param(system, 3)))
+            .raw;
+    FuncReturn(system, retval);
+}
+
+// Used by MapSharedMemory32
+template <ResultCode func(Core::System&, Handle, u32, u32, Svc::MemoryPermission)>
+void SvcWrap32(Core::System& system) {
+    const u32 retval =
+        func(system, static_cast<Handle>(Param(system, 0)), static_cast<u32>(Param(system, 1)), static_cast<u32>(Param(system, 2)),
+                            static_cast<Svc::MemoryPermission>(Param(system, 3)))
             .raw;
     FuncReturn(system, retval);
 }

@@ -21,6 +21,7 @@
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_scoped_resource_reservation.h"
+#include "core/hle/kernel/k_shared_memory.h"
 #include "core/hle/kernel/k_slab_heap.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
@@ -245,6 +246,30 @@ void KProcess::UnpinCurrentThread() {
 
     // An update is needed.
     KScheduler::SetSchedulerUpdateNeeded(kernel);
+}
+
+ResultCode KProcess::AddSharedMemory(KSharedMemory* shmem, [[maybe_unused]] VAddr address,
+                                     [[maybe_unused]] size_t size) {
+    // Lock ourselves, to prevent concurrent access.
+    KScopedLightLock lk(state_lock);
+
+    // TODO(bunnei): Manage KSharedMemoryInfo list here.
+
+    // Open a reference to the shared memory.
+    shmem->Open();
+
+    return RESULT_SUCCESS;
+}
+
+void KProcess::RemoveSharedMemory(KSharedMemory* shmem, [[maybe_unused]] VAddr address,
+                                  [[maybe_unused]] size_t size) {
+    // Lock ourselves, to prevent concurrent access.
+    KScopedLightLock lk(state_lock);
+
+    // TODO(bunnei): Manage KSharedMemoryInfo list here.
+
+    // Close a reference to the shared memory.
+    shmem->Close();
 }
 
 void KProcess::RegisterThread(const KThread* thread) {

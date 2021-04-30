@@ -352,6 +352,9 @@ public:
         return state_lock;
     }
 
+    ResultCode AddSharedMemory(KSharedMemory* shmem, VAddr address, size_t size);
+    void RemoveSharedMemory(KSharedMemory* shmem, VAddr address, size_t size);
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Thread-local storage management
 

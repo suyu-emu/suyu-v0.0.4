@@ -1183,79 +1183,97 @@ static u32 GetCurrentProcessorNumber32(Core::System& system) {
     return GetCurrentProcessorNumber(system);
 }
 
-static ResultCode MapSharedMemory(Core::System& system, Handle shared_memory_handle, VAddr addr,
-                                  u64 size, u32 permissions) {
-    std::lock_guard lock{HLE::g_hle_lock};
-    LOG_TRACE(Kernel_SVC,
-              "called, shared_memory_handle=0x{:X}, addr=0x{:X}, size=0x{:X}, permissions=0x{:08X}",
-              shared_memory_handle, addr, size, permissions);
-
-    if (!Common::Is4KBAligned(addr)) {
-        LOG_ERROR(Kernel_SVC, "Address is not aligned to 4KB, addr=0x{:016X}", addr);
-        return ResultInvalidAddress;
+constexpr bool IsValidSharedMemoryPermission(Svc::MemoryPermission perm) {
+    switch (perm) {
+    case Svc::MemoryPermission::Read:
+    case Svc::MemoryPermission::ReadWrite:
+        return true;
+    default:
+        return false;
     }
-
-    if (size == 0) {
-        LOG_ERROR(Kernel_SVC, "Size is 0");
-        return ResultInvalidSize;
-    }
-
-    if (!Common::Is4KBAligned(size)) {
-        LOG_ERROR(Kernel_SVC, "Size is not aligned to 4KB, size=0x{:016X}", size);
-        return ResultInvalidSize;
-    }
-
-    if (!IsValidAddressRange(addr, size)) {
-        LOG_ERROR(Kernel_SVC, "Region is not a valid address range, addr=0x{:016X}, size=0x{:016X}",
-                  addr, size);
-        return ResultInvalidCurrentMemory;
-    }
-
-    const auto permission_type = static_cast<MemoryPermission>(permissions);
-    if ((permission_type | MemoryPermission::Write) != MemoryPermission::ReadWrite) {
-        LOG_ERROR(Kernel_SVC, "Expected Read or ReadWrite permission but got permissions=0x{:08X}",
-                  permissions);
-        return ResultInvalidNewMemoryPermission;
-    }
-
-    auto* const current_process{system.Kernel().CurrentProcess()};
-    auto& page_table{current_process->PageTable()};
-
-    if (page_table.IsInvalidRegion(addr, size)) {
-        LOG_ERROR(Kernel_SVC,
-                  "Addr does not fit within the valid region, addr=0x{:016X}, "
-                  "size=0x{:016X}",
-                  addr, size);
-        return ResultInvalidMemoryRegion;
-    }
-
-    if (page_table.IsInsideHeapRegion(addr, size)) {
-        LOG_ERROR(Kernel_SVC,
-                  "Addr does not fit within the heap region, addr=0x{:016X}, "
-                  "size=0x{:016X}",
-                  addr, size);
-        return ResultInvalidMemoryRegion;
-    }
-
-    if (page_table.IsInsideAliasRegion(addr, size)) {
-        LOG_ERROR(Kernel_SVC,
-                  "Address does not fit within the map region, addr=0x{:016X}, "
-                  "size=0x{:016X}",
-                  addr, size);
-        return ResultInvalidMemoryRegion;
-    }
-
-    auto shared_memory{
-        current_process->GetHandleTable().GetObject<KSharedMemory>(shared_memory_handle)};
-    R_UNLESS(shared_memory.IsNotNull(), ResultInvalidHandle);
-
-    return shared_memory->Map(*current_process, addr, size,
-                              static_cast<KMemoryPermission>(permission_type));
 }
 
-static ResultCode MapSharedMemory32(Core::System& system, Handle shared_memory_handle, u32 addr,
-                                    u32 size, u32 permissions) {
-    return MapSharedMemory(system, shared_memory_handle, addr, size, permissions);
+constexpr bool IsValidRemoteSharedMemoryPermission(Svc::MemoryPermission perm) {
+    return IsValidSharedMemoryPermission(perm) || perm == Svc::MemoryPermission::DontCare;
+}
+
+static ResultCode MapSharedMemory(Core::System& system, Handle shmem_handle, VAddr address,
+                                  u64 size, Svc::MemoryPermission map_perm) {
+    LOG_TRACE(Kernel_SVC,
+              "called, shared_memory_handle=0x{:X}, addr=0x{:X}, size=0x{:X}, permissions=0x{:08X}",
+              shmem_handle, address, size, map_perm);
+
+    // Validate the address/size.
+    R_UNLESS(Common::IsAligned(address, PageSize), ResultInvalidAddress);
+    R_UNLESS(Common::IsAligned(size, PageSize), ResultInvalidSize);
+    R_UNLESS(size > 0, ResultInvalidSize);
+    R_UNLESS((address < address + size), ResultInvalidCurrentMemory);
+
+    // Validate the permission.
+    R_UNLESS(IsValidSharedMemoryPermission(map_perm), ResultInvalidNewMemoryPermission);
+
+    // Get the current process.
+    auto& process = *system.Kernel().CurrentProcess();
+    auto& page_table = process.PageTable();
+
+    // Get the shared memory.
+    KScopedAutoObject shmem = process.GetHandleTable().GetObject<KSharedMemory>(shmem_handle);
+    R_UNLESS(shmem.IsNotNull(), ResultInvalidHandle);
+
+    // Verify that the mapping is in range.
+    R_UNLESS(page_table.CanContain(address, size, KMemoryState::Shared), ResultInvalidMemoryRegion);
+
+    // Add the shared memory to the process.
+    R_TRY(process.AddSharedMemory(shmem.GetPointerUnsafe(), address, size));
+
+    // Ensure that we clean up the shared memory if we fail to map it.
+    auto guard =
+        SCOPE_GUARD({ process.RemoveSharedMemory(shmem.GetPointerUnsafe(), address, size); });
+
+    // Map the shared memory.
+    R_TRY(shmem->Map(process, address, size, map_perm));
+
+    // We succeeded.
+    guard.Cancel();
+    return RESULT_SUCCESS;
+}
+
+static ResultCode MapSharedMemory32(Core::System& system, Handle shmem_handle, u32 address,
+                                    u32 size, Svc::MemoryPermission map_perm) {
+    return MapSharedMemory(system, shmem_handle, address, size, map_perm);
+}
+
+static ResultCode UnmapSharedMemory(Core::System& system, Handle shmem_handle, VAddr address,
+                                    u64 size) {
+    // Validate the address/size.
+    R_UNLESS(Common::IsAligned(address, PageSize), ResultInvalidAddress);
+    R_UNLESS(Common::IsAligned(size, PageSize), ResultInvalidSize);
+    R_UNLESS(size > 0, ResultInvalidSize);
+    R_UNLESS((address < address + size), ResultInvalidCurrentMemory);
+
+    // Get the current process.
+    auto& process = *system.Kernel().CurrentProcess();
+    auto& page_table = process.PageTable();
+
+    // Get the shared memory.
+    KScopedAutoObject shmem = process.GetHandleTable().GetObject<KSharedMemory>(shmem_handle);
+    R_UNLESS(shmem.IsNotNull(), ResultInvalidHandle);
+
+    // Verify that the mapping is in range.
+    R_UNLESS(page_table.CanContain(address, size, KMemoryState::Shared), ResultInvalidMemoryRegion);
+
+    // Unmap the shared memory.
+    R_TRY(shmem->Unmap(process, address, size));
+
+    // Remove the shared memory from the process.
+    process.RemoveSharedMemory(shmem.GetPointerUnsafe(), address, size);
+
+    return RESULT_SUCCESS;
+}
+
+static ResultCode UnmapSharedMemory32(Core::System& system, Handle shmem_handle, u32 address,
+                                      u32 size) {
+    return UnmapSharedMemory(system, shmem_handle, address, size);
 }
 
 static ResultCode QueryProcessMemory(Core::System& system, VAddr memory_info_address,
@@ -2297,7 +2315,7 @@ static const FunctionDef SVC_Table_32[] = {
     {0x11, SvcWrap32<SignalEvent32>, "SignalEvent32"},
     {0x12, SvcWrap32<ClearEvent32>, "ClearEvent32"},
     {0x13, SvcWrap32<MapSharedMemory32>, "MapSharedMemory32"},
-    {0x14, nullptr, "UnmapSharedMemory32"},
+    {0x14, SvcWrap32<UnmapSharedMemory32>, "UnmapSharedMemory32"},
     {0x15, SvcWrap32<CreateTransferMemory32>, "CreateTransferMemory32"},
     {0x16, SvcWrap32<CloseHandle32>, "CloseHandle32"},
     {0x17, SvcWrap32<ResetSignal32>, "ResetSignal32"},
@@ -2492,7 +2510,7 @@ static const FunctionDef SVC_Table_64[] = {
     {0x11, SvcWrap64<SignalEvent>, "SignalEvent"},
     {0x12, SvcWrap64<ClearEvent>, "ClearEvent"},
     {0x13, SvcWrap64<MapSharedMemory>, "MapSharedMemory"},
-    {0x14, nullptr, "UnmapSharedMemory"},
+    {0x14, SvcWrap64<UnmapSharedMemory>, "UnmapSharedMemory"},
     {0x15, SvcWrap64<CreateTransferMemory>, "CreateTransferMemory"},
     {0x16, SvcWrap64<CloseHandle>, "CloseHandle"},
     {0x17, SvcWrap64<ResetSignal>, "ResetSignal"},

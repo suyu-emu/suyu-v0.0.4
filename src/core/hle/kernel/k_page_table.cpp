@@ -641,6 +641,45 @@ ResultCode KPageTable::MapPages(VAddr addr, KPageLinkedList& page_linked_list, K
     return RESULT_SUCCESS;
 }
 
+ResultCode KPageTable::UnmapPages(VAddr addr, const KPageLinkedList& page_linked_list) {
+    VAddr cur_addr{addr};
+
+    for (const auto& node : page_linked_list.Nodes()) {
+        const std::size_t num_pages{(addr - cur_addr) / PageSize};
+        if (const auto result{
+                Operate(addr, num_pages, KMemoryPermission::None, OperationType::Unmap)};
+            result.IsError()) {
+            return result;
+        }
+
+        cur_addr += node.GetNumPages() * PageSize;
+    }
+
+    return RESULT_SUCCESS;
+}
+
+ResultCode KPageTable::UnmapPages(VAddr addr, KPageLinkedList& page_linked_list,
+                                  KMemoryState state) {
+    std::lock_guard lock{page_table_lock};
+
+    const std::size_t num_pages{page_linked_list.GetNumPages()};
+    const std::size_t size{num_pages * PageSize};
+
+    if (!CanContain(addr, size, state)) {
+        return ResultInvalidCurrentMemory;
+    }
+
+    if (IsRegionMapped(addr, num_pages * PageSize)) {
+        return ResultInvalidCurrentMemory;
+    }
+
+    CASCADE_CODE(UnmapPages(addr, page_linked_list));
+
+    block_manager->Update(addr, num_pages, state, KMemoryPermission::None);
+
+    return RESULT_SUCCESS;
+}
+
 ResultCode KPageTable::SetCodeMemoryPermission(VAddr addr, std::size_t size,
                                                KMemoryPermission perm) {
 

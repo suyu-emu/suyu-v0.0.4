@@ -20,9 +20,10 @@ KSharedMemory::~KSharedMemory() {
 
 ResultCode KSharedMemory::Initialize(KernelCore& kernel_, Core::DeviceMemory& device_memory_,
                                      KProcess* owner_process_, KPageLinkedList&& page_list_,
-                                     KMemoryPermission owner_permission_,
-                                     KMemoryPermission user_permission_, PAddr physical_address_,
-                                     std::size_t size_, std::string name_) {
+                                     Svc::MemoryPermission owner_permission_,
+                                     Svc::MemoryPermission user_permission_,
+                                     PAddr physical_address_, std::size_t size_,
+                                     std::string name_) {
     // Set members.
     owner_process = owner_process_;
     device_memory = &device_memory_;
@@ -58,14 +59,6 @@ ResultCode KSharedMemory::Initialize(KernelCore& kernel_, Core::DeviceMemory& de
 }
 
 void KSharedMemory::Finalize() {
-    ///* Get the number of pages. */
-    // const size_t num_pages = m_page_group.GetNumPages();
-    // const size_t size = num_pages * PageSize;
-
-    ///* Close and finalize the page group. */
-    // m_page_group.Close();
-    // m_page_group.Finalize();
-
     // Release the memory reservation.
     resource_limit->Release(LimitableResource::PhysicalMemory, size);
     resource_limit->Close();
@@ -75,14 +68,14 @@ void KSharedMemory::Finalize() {
 }
 
 ResultCode KSharedMemory::Map(KProcess& target_process, VAddr address, std::size_t size,
-                              KMemoryPermission permissions) {
+                              Svc::MemoryPermission permissions) {
     const u64 page_count{(size + PageSize - 1) / PageSize};
 
     if (page_list.GetNumPages() != page_count) {
         UNIMPLEMENTED_MSG("Page count does not match");
     }
 
-    const KMemoryPermission expected =
+    const Svc::MemoryPermission expected =
         &target_process == owner_process ? owner_permission : user_permission;
 
     if (permissions != expected) {
@@ -90,7 +83,17 @@ ResultCode KSharedMemory::Map(KProcess& target_process, VAddr address, std::size
     }
 
     return target_process.PageTable().MapPages(address, page_list, KMemoryState::Shared,
-                                               permissions);
+                                               ConvertToKMemoryPermission(permissions));
+}
+
+ResultCode KSharedMemory::Unmap(KProcess& target_process, VAddr address, std::size_t size) {
+    const u64 page_count{(size + PageSize - 1) / PageSize};
+
+    if (page_list.GetNumPages() != page_count) {
+        UNIMPLEMENTED_MSG("Page count does not match");
+    }
+
+    return target_process.PageTable().UnmapPages(address, page_list, KMemoryState::Shared);
 }
 
 } // namespace Kernel

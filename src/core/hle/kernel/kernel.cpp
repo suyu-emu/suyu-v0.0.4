@@ -599,21 +599,21 @@ struct KernelCore::Impl {
         time_shared_mem = KSharedMemory::Create(system.Kernel());
 
         hid_shared_mem->Initialize(system.Kernel(), system.DeviceMemory(), nullptr,
-                                   {hid_phys_addr, hid_size / PageSize}, KMemoryPermission::None,
-                                   KMemoryPermission::Read, hid_phys_addr, hid_size,
-                                   "HID:SharedMemory");
+                                   {hid_phys_addr, hid_size / PageSize},
+                                   Svc::MemoryPermission::None, Svc::MemoryPermission::Read,
+                                   hid_phys_addr, hid_size, "HID:SharedMemory");
         font_shared_mem->Initialize(system.Kernel(), system.DeviceMemory(), nullptr,
-                                    {font_phys_addr, font_size / PageSize}, KMemoryPermission::None,
-                                    KMemoryPermission::Read, font_phys_addr, font_size,
-                                    "Font:SharedMemory");
+                                    {font_phys_addr, font_size / PageSize},
+                                    Svc::MemoryPermission::None, Svc::MemoryPermission::Read,
+                                    font_phys_addr, font_size, "Font:SharedMemory");
         irs_shared_mem->Initialize(system.Kernel(), system.DeviceMemory(), nullptr,
-                                   {irs_phys_addr, irs_size / PageSize}, KMemoryPermission::None,
-                                   KMemoryPermission::Read, irs_phys_addr, irs_size,
-                                   "IRS:SharedMemory");
+                                   {irs_phys_addr, irs_size / PageSize},
+                                   Svc::MemoryPermission::None, Svc::MemoryPermission::Read,
+                                   irs_phys_addr, irs_size, "IRS:SharedMemory");
         time_shared_mem->Initialize(system.Kernel(), system.DeviceMemory(), nullptr,
-                                    {time_phys_addr, time_size / PageSize}, KMemoryPermission::None,
-                                    KMemoryPermission::Read, time_phys_addr, time_size,
-                                    "Time:SharedMemory");
+                                    {time_phys_addr, time_size / PageSize},
+                                    Svc::MemoryPermission::None, Svc::MemoryPermission::Read,
+                                    time_phys_addr, time_size, "Time:SharedMemory");
     }
 
     void InitializePageSlab() {
