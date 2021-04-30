@@ -159,7 +159,7 @@ public slots:
     void SoftwareKeyboardExit();
     void ErrorDisplayDisplayError(QString error_code, QString error_text);
     void ProfileSelectorSelectProfile();
-    void WebBrowserOpenWebPage(std::string_view main_url, std::string_view additional_args,
+    void WebBrowserOpenWebPage(const std::string& main_url, const std::string& additional_args,
                                bool is_local);
     void OnAppFocusStateChanged(Qt::ApplicationState state);
 
