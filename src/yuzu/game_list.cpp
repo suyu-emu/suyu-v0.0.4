@@ -622,7 +622,8 @@ void GameList::AddPermDirPopup(QMenu& context_menu, QModelIndex selected) {
         // move the treeview items
         QList<QStandardItem*> item = item_model->takeRow(row);
         item_model->invisibleRootItem()->insertRow(row - 1, item);
-        tree_view->setExpanded(selected, UISettings::values.game_dirs[game_dir_index].expanded);
+        tree_view->setExpanded(selected.sibling(row - 1, 0),
+                               UISettings::values.game_dirs[other_index].expanded);
     });
 
     connect(move_down, &QAction::triggered, [this, selected, row, game_dir_index] {
@@ -637,7 +638,8 @@ void GameList::AddPermDirPopup(QMenu& context_menu, QModelIndex selected) {
         // move the treeview items
         const QList<QStandardItem*> item = item_model->takeRow(row);
         item_model->invisibleRootItem()->insertRow(row + 1, item);
-        tree_view->setExpanded(selected, UISettings::values.game_dirs[game_dir_index].expanded);
+        tree_view->setExpanded(selected.sibling(row + 1, 0),
+                               UISettings::values.game_dirs[other_index].expanded);
     });
 
     connect(open_directory_location, &QAction::triggered, [this, game_dir_index] {
