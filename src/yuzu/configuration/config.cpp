@@ -863,8 +863,7 @@ void Config::ReadSystemValues() {
     Settings::values.rng_seed.SetGlobal(rng_seed_global);
     if (global || !rng_seed_global) {
         if (rng_seed_enabled) {
-            Settings::values.rng_seed.SetValue(
-                ReadSetting(QStringLiteral("rng_seed"), 0).toULongLong());
+            Settings::values.rng_seed.SetValue(ReadSetting(QStringLiteral("rng_seed"), 0).toUInt());
         } else {
             Settings::values.rng_seed.SetValue(std::nullopt);
         }
