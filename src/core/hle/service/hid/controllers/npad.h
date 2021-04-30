@@ -8,6 +8,7 @@
 #include <atomic>
 #include "common/bit_field.h"
 #include "common/common_types.h"
+#include "common/quaternion.h"
 #include "common/settings.h"
 #include "core/frontend/input.h"
 #include "core/hle/kernel/object.h"
@@ -467,6 +468,7 @@ private:
         Common::Vec3f gyro;
         Common::Vec3f rotation;
         std::array<Common::Vec3f, 3> orientation;
+        Common::Quaternion<f32> quaternion;
     };
 
     struct NfcXcdHandle {

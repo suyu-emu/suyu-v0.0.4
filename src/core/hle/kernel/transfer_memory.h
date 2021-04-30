@@ -57,6 +57,9 @@ public:
     }
 
     /// Gets a pointer to the backing block of this instance.
+    u8* GetPointer();
+
+    /// Gets a pointer to the backing block of this instance.
     const u8* GetPointer() const;
 
     /// Gets the size of the memory backing this instance in bytes.

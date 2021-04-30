@@ -393,6 +393,8 @@ add_library(core STATIC
     hle/service/hid/xcd.cpp
     hle/service/hid/xcd.h
     hle/service/hid/errors.h
+    hle/service/hid/controllers/console_sixaxis.cpp
+    hle/service/hid/controllers/console_sixaxis.h
     hle/service/hid/controllers/controller_base.cpp
     hle/service/hid/controllers/controller_base.h
     hle/service/hid/controllers/debug_pad.cpp
