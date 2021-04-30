@@ -155,8 +155,12 @@ void Adapter::UpdateStateAxes(std::size_t port, const AdapterPayload& adapter_pa
     for (const PadAxes axis : axes) {
         const auto index = static_cast<std::size_t>(axis);
         const u8 axis_value = adapter_payload[offset + 3 + index];
-        if (pads[port].axis_origin[index] == 255) {
+        if (pads[port].reset_origin_counter <= 18) {
+            if (pads[port].axis_origin[index] != axis_value) {
+                pads[port].reset_origin_counter = 0;
+            }
             pads[port].axis_origin[index] = axis_value;
+            pads[port].reset_origin_counter++;
         }
         pads[port].axis_values[index] =
             static_cast<s16>(axis_value - pads[port].axis_origin[index]);
@@ -375,7 +379,7 @@ void Adapter::ResetDevice(std::size_t port) {
     pads[port].buttons = 0;
     pads[port].last_button = PadButton::Undefined;
     pads[port].axis_values.fill(0);
-    pads[port].axis_origin.fill(255);
+    pads[port].reset_origin_counter = 0;
 }
 
 void Adapter::Reset() {

@@ -70,6 +70,7 @@ struct GCController {
     PadButton last_button{};
     std::array<s16, 6> axis_values{};
     std::array<u8, 6> axis_origin{};
+    u8 reset_origin_counter{};
 };
 
 class Adapter {
