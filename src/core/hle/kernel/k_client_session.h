@@ -45,7 +45,7 @@ public:
     virtual void Destroy() override;
     static void PostDestroy([[maybe_unused]] uintptr_t arg) {}
 
-    constexpr KSession* GetParent() const {
+    KSession* GetParent() const {
         return parent;
     }
 
