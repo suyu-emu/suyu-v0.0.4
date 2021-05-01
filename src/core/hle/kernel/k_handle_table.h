@@ -29,58 +29,11 @@ class KHandleTable {
 public:
     static constexpr size_t MaxTableSize = 1024;
 
-private:
-    union HandlePack {
-        u32 raw;
-        BitField<0, 15, u32> index;
-        BitField<15, 15, u32> linear_id;
-        BitField<30, 2, u32> reserved;
-    };
-
-    static constexpr u16 MinLinearId = 1;
-    static constexpr u16 MaxLinearId = 0x7FFF;
-
-    static constexpr Handle EncodeHandle(u16 index, u16 linear_id) {
-        HandlePack handle{};
-        handle.index.Assign(index);
-        handle.linear_id.Assign(linear_id);
-        handle.reserved.Assign(0);
-        return handle.raw;
-    }
-
-    union EntryInfo {
-        struct {
-            u16 linear_id;
-            u16 type;
-        } info;
-        s32 next_free_index;
-
-        constexpr u16 GetLinearId() const {
-            return info.linear_id;
-        }
-        constexpr u16 GetType() const {
-            return info.type;
-        }
-        constexpr s32 GetNextFreeIndex() const {
-            return next_free_index;
-        }
-    };
-
-private:
-    std::array<EntryInfo, MaxTableSize> m_entry_infos{};
-    std::array<KAutoObject*, MaxTableSize> m_objects{};
-    s32 m_free_head_index{-1};
-    u16 m_table_size{};
-    u16 m_max_count{};
-    u16 m_next_linear_id{MinLinearId};
-    u16 m_count{};
-    mutable KSpinLock m_lock;
-
 public:
     explicit KHandleTable(KernelCore& kernel_);
     ~KHandleTable();
 
-    constexpr ResultCode Initialize(s32 size) {
+    ResultCode Initialize(s32 size) {
         R_UNLESS(size <= static_cast<s32>(MaxTableSize), ResultOutOfMemory);
 
         // Initialize all fields.
@@ -100,13 +53,13 @@ public:
         return RESULT_SUCCESS;
     }
 
-    constexpr size_t GetTableSize() const {
+    size_t GetTableSize() const {
         return m_table_size;
     }
-    constexpr size_t GetCount() const {
+    size_t GetCount() const {
         return m_count;
     }
-    constexpr size_t GetMaxCount() const {
+    size_t GetMaxCount() const {
         return m_max_count;
     }
 
@@ -118,7 +71,7 @@ public:
         // Lock and look up in table.
         KScopedSpinLock lk(m_lock);
 
-        if constexpr (std::is_same<T, KAutoObject>::value) {
+        if constexpr (std::is_same_v<T, KAutoObject>) {
             return this->GetObjectImpl(handle);
         } else {
             if (auto* obj = this->GetObjectImpl(handle); obj != nullptr) {
@@ -154,13 +107,13 @@ public:
 
     template <typename T>
     ResultCode Add(Handle* out_handle, T* obj) {
-        static_assert(std::is_base_of<KAutoObject, T>::value);
+        static_assert(std::is_base_o_vf<KAutoObject, T>);
         return this->Add(out_handle, obj, obj->GetTypeObj().GetClassToken());
     }
 
     template <typename T>
     void Register(Handle handle, T* obj) {
-        static_assert(std::is_base_of<KAutoObject, T>::value);
+        static_assert(std::is_base_of_v<KAutoObject, T>);
         return this->Register(handle, obj, obj->GetTypeObj().GetClassToken());
     }
 
@@ -210,7 +163,7 @@ private:
     ResultCode Add(Handle* out_handle, KAutoObject* obj, u16 type);
     void Register(Handle handle, KAutoObject* obj, u16 type);
 
-    constexpr s32 AllocateEntry() {
+    s32 AllocateEntry() {
         ASSERT(m_count < m_table_size);
 
         const auto index = m_free_head_index;
@@ -222,7 +175,7 @@ private:
         return index;
     }
 
-    constexpr void FreeEntry(s32 index) {
+    void FreeEntry(s32 index) {
         ASSERT(m_count > 0);
 
         m_objects[index] = nullptr;
@@ -233,7 +186,7 @@ private:
         --m_count;
     }
 
-    constexpr u16 AllocateLinearId() {
+    u16 AllocateLinearId() {
         const u16 id = m_next_linear_id++;
         if (m_next_linear_id > MaxLinearId) {
             m_next_linear_id = MinLinearId;
@@ -241,7 +194,7 @@ private:
         return id;
     }
 
-    constexpr bool IsValidHandle(Handle handle) const {
+    bool IsValidHandle(Handle handle) const {
         // Unpack the handle.
         const auto handle_pack = HandlePack(handle);
         const auto raw_value = handle_pack.raw;
@@ -272,7 +225,7 @@ private:
         return true;
     }
 
-    constexpr KAutoObject* GetObjectImpl(Handle handle) const {
+    KAutoObject* GetObjectImpl(Handle handle) const {
         // Handles must not have reserved bits set.
         const auto handle_pack = HandlePack(handle);
         if (handle_pack.reserved != 0) {
@@ -286,7 +239,7 @@ private:
         }
     }
 
-    constexpr KAutoObject* GetObjectByIndexImpl(Handle* out_handle, size_t index) const {
+    KAutoObject* GetObjectByIndexImpl(Handle* out_handle, size_t index) const {
 
         // Index must be in bounds.
         if (index >= m_table_size) {
@@ -303,6 +256,51 @@ private:
     }
 
 private:
+    union HandlePack {
+        u32 raw;
+        BitField<0, 15, u32> index;
+        BitField<15, 15, u32> linear_id;
+        BitField<30, 2, u32> reserved;
+    };
+
+    static constexpr u16 MinLinearId = 1;
+    static constexpr u16 MaxLinearId = 0x7FFF;
+
+    static constexpr Handle EncodeHandle(u16 index, u16 linear_id) {
+        HandlePack handle{};
+        handle.index.Assign(index);
+        handle.linear_id.Assign(linear_id);
+        handle.reserved.Assign(0);
+        return handle.raw;
+    }
+
+    union EntryInfo {
+        struct {
+            u16 linear_id;
+            u16 type;
+        } info;
+        s32 next_free_index;
+
+        constexpr u16 GetLinearId() const {
+            return info.linear_id;
+        }
+        constexpr u16 GetType() const {
+            return info.type;
+        }
+        constexpr s32 GetNextFreeIndex() const {
+            return next_free_index;
+        }
+    };
+
+private:
+    std::array<EntryInfo, MaxTableSize> m_entry_infos{};
+    std::array<KAutoObject*, MaxTableSize> m_objects{};
+    s32 m_free_head_index{-1};
+    u16 m_table_size{};
+    u16 m_max_count{};
+    u16 m_next_linear_id{MinLinearId};
+    u16 m_count{};
+    mutable KSpinLock m_lock;
     KernelCore& kernel;
 };
 
