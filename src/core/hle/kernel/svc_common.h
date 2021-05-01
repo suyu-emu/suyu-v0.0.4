@@ -22,7 +22,7 @@ enum PseudoHandle : Handle {
     CurrentProcess = 0xFFFF8001,
 };
 
-constexpr bool IsPseudoHandle(const Handle& handle) {
+constexpr bool IsPseudoHandle(Handle handle) {
     return handle == PseudoHandle::CurrentProcess || handle == PseudoHandle::CurrentThread;
 }
 
