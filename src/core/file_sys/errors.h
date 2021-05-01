@@ -9,6 +9,7 @@
 namespace FileSys {
 
 constexpr ResultCode ERROR_PATH_NOT_FOUND{ErrorModule::FS, 1};
+constexpr ResultCode ERROR_PATH_ALREADY_EXISTS{ErrorModule::FS, 2};
 constexpr ResultCode ERROR_ENTITY_NOT_FOUND{ErrorModule::FS, 1002};
 constexpr ResultCode ERROR_SD_CARD_NOT_FOUND{ErrorModule::FS, 2001};
 constexpr ResultCode ERROR_OUT_OF_BOUNDS{ErrorModule::FS, 3005};
