@@ -28,7 +28,7 @@ public:
     void OnSessionFinalized();
     void OnServerClosed();
 
-    constexpr const KPort* GetParent() const {
+    const KPort* GetParent() const {
         return parent;
     }
 
