@@ -1,4 +1,4 @@
-// Copyright 2018 yuzu emulator team
+// Copyright 2021 yuzu Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
@@ -7,7 +7,6 @@
 #include <array>
 #include "common/bit_field.h"
 #include "common/common_types.h"
-#include "common/swap.h"
 #include "core/frontend/input.h"
 #include "core/hle/service/hid/controllers/controller_base.h"
 
@@ -35,10 +34,10 @@ private:
 
     enum class TouchType : u32 {
         Idle,     // Nothing touching the screen
-        Complete, // Unknown. End of touch?
-        Cancel,   // Never triggered
-        Touch,    // Pressing without movement
-        Press,    // Never triggered
+        Complete, // Set at the end of a touch event
+        Cancel,   // Set when the number of fingers change
+        Touch,    // A finger just touched the screen
+        Press,    // Set if last type is touch and the finger hasn't moved
         Tap,      // Fast press then release
         Pan,      // All points moving together across the screen
         Swipe,    // Fast press movement and release of a single point
@@ -58,8 +57,8 @@ private:
         union {
             u32_le raw{};
 
-            BitField<0, 1, u32> is_new_touch;
-            BitField<1, 1, u32> is_double_tap;
+            BitField<4, 1, u32> is_new_touch;
+            BitField<8, 1, u32> is_double_tap;
         };
     };
     static_assert(sizeof(Attribute) == 4, "Attribute is an invalid size");
@@ -73,10 +72,9 @@ private:
     struct GestureState {
         s64_le sampling_number;
         s64_le sampling_number2;
-
         s64_le detection_count;
         TouchType type;
-        Direction dir;
+        Direction direction;
         s32_le x;
         s32_le y;
         s32_le delta_x;
@@ -84,8 +82,8 @@ private:
         f32 vel_x;
         f32 vel_y;
         Attribute attributes;
-        u32 scale;
-        u32 rotation_angle;
+        f32 scale;
+        f32 rotation_angle;
         s32_le point_count;
         std::array<Points, 4> points;
     };
@@ -109,9 +107,45 @@ private:
         Points mid_point{};
         s64_le detection_count{};
         u64_le delta_time{};
-        float average_distance{};
-        float angle{};
+        f32 average_distance{};
+        f32 angle{};
     };
+
+    // Reads input from all available input engines
+    void ReadTouchInput();
+
+    // Returns true if gesture state needs to be updated
+    bool ShouldUpdateGesture(const GestureProperties& gesture, f32 time_difference);
+
+    // Updates the shared memory to the next state
+    void UpdateGestureSharedMemory(u8* data, std::size_t size, GestureProperties& gesture,
+                                   f32 time_difference);
+
+    // Initializes new gesture
+    void NewGesture(GestureProperties& gesture, TouchType& type, Attribute& attributes);
+
+    // Updates existing gesture state
+    void UpdateExistingGesture(GestureProperties& gesture, TouchType& type, f32 time_difference);
+
+    // Terminates exiting gesture
+    void EndGesture(GestureProperties& gesture, GestureProperties& last_gesture, TouchType& type,
+                    Attribute& attributes, f32 time_difference);
+
+    // Set current event to a tap event
+    void SetTapEvent(GestureProperties& gesture, GestureProperties& last_gesture, TouchType& type,
+                     Attribute& attributes);
+
+    // Calculates and set the extra parameters related to a pan event
+    void UpdatePanEvent(GestureProperties& gesture, GestureProperties& last_gesture,
+                        TouchType& type, f32 time_difference);
+
+    // Terminates the pan event
+    void EndPanEvent(GestureProperties& gesture, GestureProperties& last_gesture, TouchType& type,
+                     f32 time_difference);
+
+    // Set current event to a swipe event
+    void SetSwipeEvent(GestureProperties& gesture, GestureProperties& last_gesture,
+                       TouchType& type);
 
     // Returns an unused finger id, if there is no fingers avaliable MAX_FINGERS will be returned
     std::optional<size_t> GetUnusedFingerID() const;
@@ -134,6 +168,11 @@ private:
     std::array<size_t, MAX_FINGERS> keyboard_finger_id;
     std::array<size_t, MAX_FINGERS> udp_finger_id;
     std::array<Finger, MAX_POINTS> fingers;
-    GestureProperties last_gesture;
+    GestureProperties last_gesture{};
+    s64_le last_update_timestamp{};
+    s64_le last_tap_timestamp{};
+    f32 last_pan_time_difference{};
+    bool force_update{false};
+    bool enable_press_and_tap{false};
 };
 } // namespace Service::HID
