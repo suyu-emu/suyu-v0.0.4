@@ -49,24 +49,30 @@ void KSession::Initialize(KClientPort* port_, const std::string& name_) {
 }
 
 void KSession::Finalize() {
-    if (port != nullptr) {
-        port->OnSessionFinalized();
-        port->Close();
+    if (port == nullptr) {
+        return;
     }
+
+    port->OnSessionFinalized();
+    port->Close();
 }
 
 void KSession::OnServerClosed() {
-    if (GetState() == State::Normal) {
-        SetState(State::ServerClosed);
-        client.OnServerClosed();
+    if (GetState() != State::Normal) {
+        return;
     }
+
+    SetState(State::ServerClosed);
+    client.OnServerClosed();
 }
 
 void KSession::OnClientClosed() {
-    if (GetState() == State::Normal) {
-        SetState(State::ClientClosed);
-        server.OnClientClosed();
+    if (GetState() != State::Normal) {
+        return;
     }
+
+    SetState(State::ClientClosed);
+    server.OnClientClosed();
 }
 
 void KSession::PostDestroy(uintptr_t arg) {

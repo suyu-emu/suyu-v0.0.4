@@ -16,14 +16,6 @@ namespace Kernel {
 class KSession final : public KAutoObjectWithSlabHeapAndContainer<KSession, KAutoObjectWithList> {
     KERNEL_AUTOOBJECT_TRAITS(KSession, KAutoObject);
 
-private:
-    enum class State : u8 {
-        Invalid = 0,
-        Normal = 1,
-        ClientClosed = 2,
-        ServerClosed = 3,
-    };
-
 public:
     explicit KSession(KernelCore& kernel);
     virtual ~KSession() override;
@@ -75,19 +67,27 @@ public:
     }
 
 private:
+    enum class State : u8 {
+        Invalid = 0,
+        Normal = 1,
+        ClientClosed = 2,
+        ServerClosed = 3,
+    };
+
+private:
     void SetState(State state) {
         atomic_state = static_cast<u8>(state);
     }
 
     State GetState() const {
-        return static_cast<State>(atomic_state.load());
+        return static_cast<State>(atomic_state.load(std::memory_order_relaxed));
     }
 
 private:
     KServerSession server;
     KClientSession client;
-    std::atomic<std::underlying_type<State>::type> atomic_state{
-        static_cast<std::underlying_type<State>::type>(State::Invalid)};
+    std::atomic<std::underlying_type_t<State>> atomic_state{
+        static_cast<std::underlying_type_t<State>>(State::Invalid)};
     KClientPort* port{};
     KProcess* process{};
     bool initialized{};

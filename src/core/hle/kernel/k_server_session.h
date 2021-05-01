@@ -47,11 +47,11 @@ public:
 
     void Initialize(KSession* parent_, std::string&& name_);
 
-    constexpr KSession* GetParent() {
+    KSession* GetParent() {
         return parent;
     }
 
-    constexpr const KSession* GetParent() const {
+    const KSession* GetParent() const {
         return parent;
     }
 
