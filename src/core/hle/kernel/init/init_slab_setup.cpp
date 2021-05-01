@@ -146,21 +146,21 @@ void InitializeSlabHeaps(Core::System& system, KMemoryLayout& memory_layout) {
     VAddr address = memory_layout.GetSlabRegionAddress();
 
     // Initialize slab type array to be in sorted order.
-    KSlabType slab_types[KSlabType_Count];
-    for (size_t i = 0; i < Common::Size(slab_types); i++) {
+    std::array<KSlabType, KSlabType_Count> slab_types;
+    for (size_t i = 0; i < slab_types.size(); i++) {
         slab_types[i] = static_cast<KSlabType>(i);
     }
 
     // N shuffles the slab type array with the following simple algorithm.
-    for (size_t i = 0; i < Common::Size(slab_types); i++) {
-        const size_t rnd = KSystemControl::GenerateRandomRange(0, Common::Size(slab_types) - 1);
+    for (size_t i = 0; i < slab_types.size(); i++) {
+        const size_t rnd = KSystemControl::GenerateRandomRange(0, slab_types.size() - 1);
         std::swap(slab_types[i], slab_types[rnd]);
     }
 
     // Create an array to represent the gaps between the slabs.
     const size_t total_gap_size = CalculateSlabHeapGapSize();
-    size_t slab_gaps[Common::Size(slab_types)];
-    for (size_t i = 0; i < Common::Size(slab_gaps); i++) {
+    std::array<size_t, slab_types.size()> slab_gaps;
+    for (size_t i = 0; i < slab_gaps.size(); i++) {
         // Note: This is an off-by-one error from Nintendo's intention, because GenerateRandomRange
         // is inclusive. However, Nintendo also has the off-by-one error, and it's "harmless", so we
         // will include it ourselves.
@@ -169,13 +169,13 @@ void InitializeSlabHeaps(Core::System& system, KMemoryLayout& memory_layout) {
 
     // Sort the array, so that we can treat differences between values as offsets to the starts of
     // slabs.
-    for (size_t i = 1; i < Common::Size(slab_gaps); i++) {
+    for (size_t i = 1; i < slab_gaps.size(); i++) {
         for (size_t j = i; j > 0 && slab_gaps[j - 1] > slab_gaps[j]; j--) {
             std::swap(slab_gaps[j], slab_gaps[j - 1]);
         }
     }
 
-    for (size_t i = 0; i < Common::Size(slab_types); i++) {
+    for (size_t i = 0; i < slab_types.size(); i++) {
         // Add the random gap to the address.
         address += (i == 0) ? slab_gaps[0] : slab_gaps[i] - slab_gaps[i - 1];
 
