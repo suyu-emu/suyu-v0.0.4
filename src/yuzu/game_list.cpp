@@ -85,8 +85,8 @@ void GameListSearchField::setFilterResult(int visible, int total) {
     label_filter_result->setText(tr("%1 of %n result(s)", "", total).arg(visible));
 }
 
-bool GameListSearchField::isEmpty() const {
-    return edit_filter->text().isEmpty();
+QString GameListSearchField::filterText() const {
+    return edit_filter->text();
 }
 
 QString GameList::GetLastFilterResultItem() const {
@@ -236,9 +236,9 @@ void GameList::OnTextChanged(const QString& new_text) {
                 } else {
                     tree_view->setRowHidden(j, folder_index, true);
                 }
-                search_field->setFilterResult(result_count, children_total);
             }
         }
+        search_field->setFilterResult(result_count, children_total);
     }
 }
 
@@ -595,6 +595,7 @@ void GameList::AddCustomDirPopup(QMenu& context_menu, QModelIndex selected) {
     connect(delete_dir, &QAction::triggered, [this, &game_dir, selected] {
         UISettings::values.game_dirs.removeOne(game_dir);
         item_model->invisibleRootItem()->removeRow(selected.row());
+        OnTextChanged(search_field->filterText());
     });
 }
 
@@ -774,7 +775,7 @@ void GameList::RefreshGameDirectory() {
 void GameList::ToggleFavorite(u64 program_id) {
     if (!UISettings::values.favorited_ids.contains(program_id)) {
         tree_view->setRowHidden(0, item_model->invisibleRootItem()->index(),
-                                !search_field->isEmpty());
+                                !search_field->filterText().isEmpty());
         UISettings::values.favorited_ids.append(program_id);
         AddFavorite(program_id);
         item_model->sort(tree_view->header()->sortIndicatorSection(),

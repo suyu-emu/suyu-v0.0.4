@@ -346,8 +346,8 @@ class GameListSearchField : public QWidget {
 public:
     explicit GameListSearchField(GameList* parent = nullptr);
 
+    QString filterText() const;
     void setFilterResult(int visible, int total);
-    bool isEmpty() const;
 
     void clear();
     void setFocus();
