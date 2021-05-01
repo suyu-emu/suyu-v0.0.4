@@ -15,19 +15,20 @@ class KernelCore;
 
 class KLinkedListNode : public boost::intrusive::list_base_hook<>,
                         public KSlabAllocated<KLinkedListNode> {
-private:
-    void* m_item;
 
 public:
-    KLinkedListNode() : m_item(nullptr) {}
+    KLinkedListNode() = default;
 
-    constexpr void Initialize(void* it) {
+    void Initialize(void* it) {
         m_item = it;
     }
 
-    constexpr void* GetItem() const {
+    void* GetItem() const {
         return m_item;
     }
+
+private:
+    void* m_item = nullptr;
 };
 
 template <typename T>
@@ -61,13 +62,9 @@ public:
         using iterator_category = std::bidirectional_iterator_tag;
         using value_type = typename KLinkedList::value_type;
         using difference_type = typename KLinkedList::difference_type;
-        using pointer = typename std::conditional<Const, KLinkedList::const_pointer,
-                                                  KLinkedList::pointer>::type;
-        using reference = typename std::conditional<Const, KLinkedList::const_reference,
-                                                    KLinkedList::reference>::type;
-
-    private:
-        BaseIterator m_base_it;
+        using pointer = std::conditional_t<Const, KLinkedList::const_pointer, KLinkedList::pointer>;
+        using reference =
+            std::conditional_t<Const, KLinkedList::const_reference, KLinkedList::reference>;
 
     public:
         explicit Iterator(BaseIterator it) : m_base_it(it) {}
@@ -117,6 +114,9 @@ public:
         operator Iterator<true>() const {
             return Iterator<true>(m_base_it);
         }
+
+    private:
+        BaseIterator m_base_it;
     };
 
 public:
