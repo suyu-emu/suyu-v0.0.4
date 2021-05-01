@@ -33,7 +33,7 @@ void Controller_Touchscreen::OnUpdate(const Core::Timing::CoreTiming& core_timin
     shared_memory.header.timestamp = core_timing.GetCPUTicks();
     shared_memory.header.total_entry_count = 17;
 
-    if (!IsControllerActivated()) {
+    if (!IsControllerActivated() || !Settings::values.touchscreen.enabled) {
         shared_memory.header.entry_count = 0;
         shared_memory.header.last_entry_index = 0;
         return;
