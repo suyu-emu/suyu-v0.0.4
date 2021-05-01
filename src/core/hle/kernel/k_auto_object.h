@@ -5,6 +5,7 @@
 #pragma once
 
 #include <atomic>
+#include <string>
 
 #include "common/assert.h"
 #include "common/common_funcs.h"
@@ -45,19 +46,15 @@ public:                                                                         
         return GetStaticTypeName();                                                                \
     }                                                                                              \
                                                                                                    \
-private:
+private:                                                                                           \
+    constexpr bool operator!=(const TypeObj& rhs)
 
 class KAutoObject {
 protected:
     class TypeObj {
-    private:
-        const char* m_name;
-        ClassTokenType m_class_token;
-
     public:
         constexpr explicit TypeObj(const char* n, ClassTokenType tok)
-            : m_name(n), m_class_token(tok) { // ...
-        }
+            : m_name(n), m_class_token(tok) {}
 
         constexpr const char* GetName() const {
             return m_name;
@@ -66,35 +63,31 @@ protected:
             return m_class_token;
         }
 
-        constexpr bool operator==(const TypeObj& rhs) {
+        constexpr bool operator==(const TypeObj& rhs) const {
             return this->GetClassToken() == rhs.GetClassToken();
         }
 
-        constexpr bool operator!=(const TypeObj& rhs) {
+        constexpr bool operator!=(const TypeObj& rhs) const {
             return this->GetClassToken() != rhs.GetClassToken();
         }
 
-        constexpr bool IsDerivedFrom(const TypeObj& rhs) {
+        constexpr bool IsDerivedFrom(const TypeObj& rhs) const {
             return (this->GetClassToken() | rhs.GetClassToken()) == this->GetClassToken();
         }
+
+    private:
+        const char* m_name;
+        ClassTokenType m_class_token;
     };
 
 private:
     KERNEL_AUTOOBJECT_TRAITS(KAutoObject, KAutoObject);
 
-private:
-    std::atomic<u32> m_ref_count{};
-
-protected:
-    KernelCore& kernel;
-    std::string name;
-
-public:
-    static KAutoObject* Create(KAutoObject* ptr);
-
 public:
     explicit KAutoObject(KernelCore& kernel_) : kernel(kernel_) {}
-    virtual ~KAutoObject() {}
+    virtual ~KAutoObject() = default;
+
+    static KAutoObject* Create(KAutoObject* ptr);
 
     // Destroy is responsible for destroying the auto object's resources when ref_count hits zero.
     virtual void Destroy() {
@@ -122,8 +115,8 @@ public:
 
     template <typename Derived>
     Derived DynamicCast() {
-        static_assert(std::is_pointer<Derived>::value);
-        using DerivedType = typename std::remove_pointer<Derived>::type;
+        static_assert(std::is_pointer_v<Derived>);
+        using DerivedType = std::remove_pointer_t<Derived>;
 
         if (this->IsDerivedFrom(DerivedType::GetStaticTypeObj())) {
             return static_cast<Derived>(this);
@@ -134,8 +127,8 @@ public:
 
     template <typename Derived>
     const Derived DynamicCast() const {
-        static_assert(std::is_pointer<Derived>::value);
-        using DerivedType = typename std::remove_pointer<Derived>::type;
+        static_assert(std::is_pointer_v<Derived>);
+        using DerivedType = std::remove_pointer_t<Derived>;
 
         if (this->IsDerivedFrom(DerivedType::GetStaticTypeObj())) {
             return static_cast<Derived>(this);
@@ -171,20 +164,18 @@ public:
             this->Destroy();
         }
     }
+
+protected:
+    KernelCore& kernel;
+    std::string name;
+
+private:
+    std::atomic<u32> m_ref_count{};
 };
 
 class KAutoObjectWithListContainer;
 
 class KAutoObjectWithList : public KAutoObject {
-private:
-    friend class KAutoObjectWithListContainer;
-
-private:
-    Common::IntrusiveRedBlackTreeNode list_node;
-
-protected:
-    KernelCore& kernel;
-
 public:
     explicit KAutoObjectWithList(KernelCore& kernel_) : KAutoObject(kernel_), kernel(kernel_) {}
 
@@ -209,23 +200,20 @@ public:
     virtual const std::string& GetName() const {
         return name;
     }
+
+private:
+    friend class KAutoObjectWithListContainer;
+
+private:
+    Common::IntrusiveRedBlackTreeNode list_node;
+
+protected:
+    KernelCore& kernel;
 };
 
 template <typename T>
 class KScopedAutoObject {
     YUZU_NON_COPYABLE(KScopedAutoObject);
-
-private:
-    template <typename U>
-    friend class KScopedAutoObject;
-
-private:
-    T* m_obj{};
-
-private:
-    constexpr void Swap(KScopedAutoObject& rhs) {
-        std::swap(m_obj, rhs.m_obj);
-    }
 
 public:
     constexpr KScopedAutoObject() = default;
@@ -300,6 +288,18 @@ public:
     }
     constexpr bool IsNotNull() const {
         return m_obj != nullptr;
+    }
+
+private:
+    template <typename U>
+    friend class KScopedAutoObject;
+
+private:
+    T* m_obj{};
+
+private:
+    constexpr void Swap(KScopedAutoObject& rhs) noexcept {
+        std::swap(m_obj, rhs.m_obj);
     }
 };
 
