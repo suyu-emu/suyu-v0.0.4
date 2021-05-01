@@ -41,7 +41,7 @@ public:                                                                         
     virtual TypeObj GetTypeObj() const {                                                           \
         return GetStaticTypeObj();                                                                 \
     }                                                                                              \
-    virtual const char* GetTypeName() {                                                            \
+    virtual const char* GetTypeName() const {                                                      \
         return GetStaticTypeName();                                                                \
     }                                                                                              \
                                                                                                    \
