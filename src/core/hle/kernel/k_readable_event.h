@@ -27,7 +27,7 @@ public:
         name = std::move(name_);
     }
 
-    constexpr KEvent* GetParent() const {
+    KEvent* GetParent() const {
         return parent;
     }
 
