@@ -557,10 +557,10 @@ void SvcWrap32(Core::System& system) {
 // Used by MapSharedMemory32
 template <ResultCode func(Core::System&, Handle, u32, u32, Svc::MemoryPermission)>
 void SvcWrap32(Core::System& system) {
-    const u32 retval =
-        func(system, static_cast<Handle>(Param(system, 0)), static_cast<u32>(Param(system, 1)), static_cast<u32>(Param(system, 2)),
+    const u32 retval = func(system, static_cast<Handle>(Param(system, 0)),
+                            static_cast<u32>(Param(system, 1)), static_cast<u32>(Param(system, 2)),
                             static_cast<Svc::MemoryPermission>(Param(system, 3)))
-            .raw;
+                           .raw;
     FuncReturn(system, retval);
 }
 
