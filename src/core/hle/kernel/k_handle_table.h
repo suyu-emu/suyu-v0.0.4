@@ -107,7 +107,7 @@ public:
 
     template <typename T>
     ResultCode Add(Handle* out_handle, T* obj) {
-        static_assert(std::is_base_o_vf<KAutoObject, T>);
+        static_assert(std::is_base_of_v<KAutoObject, T>);
         return this->Add(out_handle, obj, obj->GetTypeObj().GetClassToken());
     }
 
