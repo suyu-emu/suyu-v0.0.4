@@ -19,8 +19,8 @@ class KernelCore;
 class KProcess;
 
 class KAutoObjectWithListContainer {
-    NON_COPYABLE(KAutoObjectWithListContainer);
-    NON_MOVEABLE(KAutoObjectWithListContainer);
+    YUZU_NON_COPYABLE(KAutoObjectWithListContainer);
+    YUZU_NON_MOVEABLE(KAutoObjectWithListContainer);
 
 public:
     using ListType = Common::IntrusiveRedBlackTreeMemberTraits<

@@ -18,8 +18,8 @@ class KernelCore;
 class KProcess;
 
 #define KERNEL_AUTOOBJECT_TRAITS(CLASS, BASE_CLASS)                                                \
-    NON_COPYABLE(CLASS);                                                                           \
-    NON_MOVEABLE(CLASS);                                                                           \
+    YUZU_NON_COPYABLE(CLASS);                                                                      \
+    YUZU_NON_MOVEABLE(CLASS);                                                                      \
                                                                                                    \
 private:                                                                                           \
     friend class ::Kernel::KClassTokenGenerator;                                                   \
@@ -213,7 +213,7 @@ public:
 
 template <typename T>
 class KScopedAutoObject {
-    NON_COPYABLE(KScopedAutoObject);
+    YUZU_NON_COPYABLE(KScopedAutoObject);
 
 private:
     template <typename U>
