@@ -133,27 +133,27 @@ template <auto MemberPtr>
 using GetMemberType = typename GetMemberPointerTraits<decltype(MemberPtr)>::Member;
 
 template <auto MemberPtr, typename RealParentType = GetParentType<MemberPtr>>
-static inline std::ptrdiff_t OffsetOf = [] {
+constexpr std::ptrdiff_t OffsetOf() {
     using DeducedParentType = GetParentType<MemberPtr>;
     using MemberType = GetMemberType<MemberPtr>;
     static_assert(std::is_base_of<DeducedParentType, RealParentType>::value ||
                   std::is_same<RealParentType, DeducedParentType>::value);
 
     return OffsetOfCalculator<RealParentType, MemberType>::OffsetOf(MemberPtr);
-}();
+};
 
 } // namespace impl
 
 template <auto MemberPtr, typename RealParentType = impl::GetParentType<MemberPtr>>
 constexpr RealParentType& GetParentReference(impl::GetMemberType<MemberPtr>* member) {
-    std::ptrdiff_t Offset = impl::OffsetOf<MemberPtr, RealParentType>;
+    std::ptrdiff_t Offset = impl::OffsetOf<MemberPtr, RealParentType>();
     return *static_cast<RealParentType*>(
         static_cast<void*>(static_cast<uint8_t*>(static_cast<void*>(member)) - Offset));
 }
 
 template <auto MemberPtr, typename RealParentType = impl::GetParentType<MemberPtr>>
 constexpr RealParentType const& GetParentReference(impl::GetMemberType<MemberPtr> const* member) {
-    std::ptrdiff_t Offset = impl::OffsetOf<MemberPtr, RealParentType>;
+    std::ptrdiff_t Offset = impl::OffsetOf<MemberPtr, RealParentType>();
     return *static_cast<const RealParentType*>(static_cast<const void*>(
         static_cast<const uint8_t*>(static_cast<const void*>(member)) - Offset));
 }
