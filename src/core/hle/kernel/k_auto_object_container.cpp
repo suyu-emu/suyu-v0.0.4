@@ -21,15 +21,8 @@ void KAutoObjectWithListContainer::Unregister(KAutoObjectWithList* obj) {
 size_t KAutoObjectWithListContainer::GetOwnedCount(KProcess* owner) {
     KScopedLightLock lk(m_lock);
 
-    size_t count = 0;
-
-    for (auto& obj : m_object_list) {
-        if (obj.GetOwner() == owner) {
-            count++;
-        }
-    }
-
-    return count;
+    return std::count_if(m_object_list.begin(), m_object_list.end(),
+                         [&](const auto& obj) { return obj.GetOwner() == owner; });
 }
 
 } // namespace Kernel
