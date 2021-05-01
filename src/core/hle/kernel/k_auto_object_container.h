@@ -28,16 +28,11 @@ public:
 
 public:
     class ListAccessor : public KScopedLightLock {
-    private:
-        ListType& m_list;
-
     public:
         explicit ListAccessor(KAutoObjectWithListContainer* container)
-            : KScopedLightLock(container->m_lock), m_list(container->m_object_list) { /* ... */
-        }
+            : KScopedLightLock(container->m_lock), m_list(container->m_object_list) {}
         explicit ListAccessor(KAutoObjectWithListContainer& container)
-            : KScopedLightLock(container.m_lock), m_list(container.m_object_list) { /* ... */
-        }
+            : KScopedLightLock(container.m_lock), m_list(container.m_object_list) {}
 
         typename ListType::iterator begin() const {
             return m_list.begin();
@@ -50,13 +45,12 @@ public:
         typename ListType::iterator find(typename ListType::const_reference ref) const {
             return m_list.find(ref);
         }
+
+    private:
+        ListType& m_list;
     };
 
     friend class ListAccessor;
-
-private:
-    KLightLock m_lock;
-    ListType m_object_list;
 
 public:
     KAutoObjectWithListContainer(KernelCore& kernel) : m_lock(kernel), m_object_list() {}
@@ -67,6 +61,10 @@ public:
     void Register(KAutoObjectWithList* obj);
     void Unregister(KAutoObjectWithList* obj);
     size_t GetOwnedCount(KProcess* owner);
+
+private:
+    KLightLock m_lock;
+    ListType m_object_list;
 };
 
 } // namespace Kernel
