@@ -58,7 +58,7 @@ public:
 
     KServerSession* AcceptSession();
 
-    constexpr const KPort* GetParent() const {
+    const KPort* GetParent() const {
         return parent;
     }
 
