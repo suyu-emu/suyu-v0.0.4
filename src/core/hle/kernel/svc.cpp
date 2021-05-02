@@ -141,38 +141,6 @@ enum class ResourceLimitValueType {
     PeakValue,
 };
 
-ResultVal<s64> RetrieveResourceLimitValue(Core::System& system, Handle resource_limit,
-                                          u32 resource_type, ResourceLimitValueType value_type) {
-    std::lock_guard lock{HLE::g_hle_lock};
-    const auto type = static_cast<LimitableResource>(resource_type);
-    if (!IsValidResourceType(type)) {
-        LOG_ERROR(Kernel_SVC, "Invalid resource limit type: '{}'", resource_type);
-        return ResultInvalidEnumValue;
-    }
-
-    const auto* const current_process = system.Kernel().CurrentProcess();
-    ASSERT(current_process != nullptr);
-
-    auto resource_limit_object =
-        current_process->GetHandleTable().GetObject<KResourceLimit>(resource_limit);
-    if (resource_limit_object.IsNull()) {
-        LOG_ERROR(Kernel_SVC, "Handle to non-existent resource limit instance used. Handle={:08X}",
-                  resource_limit);
-        return ResultInvalidHandle;
-    }
-
-    switch (value_type) {
-    case ResourceLimitValueType::CurrentValue:
-        return MakeResult(resource_limit_object->GetCurrentValue(type));
-    case ResourceLimitValueType::LimitValue:
-        return MakeResult(resource_limit_object->GetLimitValue(type));
-    case ResourceLimitValueType::PeakValue:
-        return MakeResult(resource_limit_object->GetPeakValue(type));
-    default:
-        LOG_ERROR(Kernel_SVC, "Invalid resource value_type: '{}'", value_type);
-        return ResultInvalidEnumValue;
-    }
-}
 } // Anonymous namespace
 
 /// Set the process heap to a given Size. It can both extend and shrink the heap.
