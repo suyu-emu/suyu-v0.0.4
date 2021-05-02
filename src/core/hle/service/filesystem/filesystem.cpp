@@ -55,10 +55,15 @@ std::string VfsDirectoryServiceWrapper::GetName() const {
 ResultCode VfsDirectoryServiceWrapper::CreateFile(const std::string& path_, u64 size) const {
     std::string path(Common::FS::SanitizePath(path_));
     auto dir = GetDirectoryRelativeWrapped(backing, Common::FS::GetParentPath(path));
-    // dir can be nullptr if path contains subdirectories, create those prior to creating the file.
     if (dir == nullptr) {
-        dir = backing->CreateSubdirectory(Common::FS::GetParentPath(path));
+        return FileSys::ERROR_PATH_NOT_FOUND;
     }
+
+    const auto entry_type = GetEntryType(path);
+    if (entry_type.Code() == RESULT_SUCCESS) {
+        return FileSys::ERROR_PATH_ALREADY_EXISTS;
+    }
+
     auto file = dir->CreateFile(Common::FS::GetFilename(path));
     if (file == nullptr) {
         // TODO(DarkLordZach): Find a better error code for this
