@@ -102,7 +102,7 @@ struct KernelCore::Impl {
         next_user_process_id = KProcess::ProcessIDMin;
         next_thread_id = 1;
 
-        for (s32 core_id = 0; core_id < Core::Hardware::NUM_CPU_CORES; core_id++) {
+        for (u32 core_id = 0; core_id < Core::Hardware::NUM_CPU_CORES; core_id++) {
             if (suspend_threads[core_id]) {
                 suspend_threads[core_id]->Close();
                 suspend_threads[core_id] = nullptr;
@@ -211,7 +211,7 @@ struct KernelCore::Impl {
     }
 
     void InitializeSuspendThreads() {
-        for (s32 core_id = 0; core_id < Core::Hardware::NUM_CPU_CORES; core_id++) {
+        for (u32 core_id = 0; core_id < Core::Hardware::NUM_CPU_CORES; core_id++) {
             suspend_threads[core_id] = KThread::Create(system.Kernel());
             ASSERT(KThread::InitializeHighPriorityThread(system, suspend_threads[core_id], {}, {},
                                                          core_id)
@@ -953,7 +953,7 @@ void KernelCore::Suspend(bool in_suspention) {
     {
         KScopedSchedulerLock lock(*this);
         const auto state = should_suspend ? ThreadState::Runnable : ThreadState::Waiting;
-        for (s32 core_id = 0; core_id < Core::Hardware::NUM_CPU_CORES; core_id++) {
+        for (u32 core_id = 0; core_id < Core::Hardware::NUM_CPU_CORES; core_id++) {
             impl->suspend_threads[core_id]->SetState(state);
             impl->suspend_threads[core_id]->SetWaitReasonForDebugging(
                 ThreadWaitReasonForDebugging::Suspended);
