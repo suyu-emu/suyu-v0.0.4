@@ -33,8 +33,8 @@ RomFSFactory::RomFSFactory(Loader::AppLoader& app_loader, ContentProvider& provi
 
 RomFSFactory::~RomFSFactory() = default;
 
-void RomFSFactory::SetPackedUpdate(VirtualFile update_raw) {
-    this->update_raw = std::move(update_raw);
+void RomFSFactory::SetPackedUpdate(VirtualFile update_raw_file) {
+    update_raw = std::move(update_raw_file);
 }
 
 ResultVal<VirtualFile> RomFSFactory::OpenCurrentProcess(u64 current_process_title_id) const {

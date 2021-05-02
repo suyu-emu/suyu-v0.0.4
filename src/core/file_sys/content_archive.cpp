@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstring>
 #include <optional>
+#include <ranges>
 #include <utility>
 
 #include "common/logging/log.h"
@@ -136,12 +137,11 @@ NCA::NCA(VirtualFile file_, VirtualFile bktr_base_romfs_, u64 bktr_base_ivfc_off
         return;
     }
 
-    has_rights_id = std::any_of(header.rights_id.begin(), header.rights_id.end(),
-                                [](char c) { return c != '\0'; });
+    has_rights_id = std::ranges::any_of(header.rights_id, [](char c) { return c != '\0'; });
 
     const std::vector<NCASectionHeader> sections = ReadSectionHeaders();
-    is_update = std::any_of(sections.begin(), sections.end(), [](const NCASectionHeader& header) {
-        return header.raw.header.crypto_type == NCASectionCryptoType::BKTR;
+    is_update = std::ranges::any_of(sections, [](const NCASectionHeader& nca_header) {
+        return nca_header.raw.header.crypto_type == NCASectionCryptoType::BKTR;
     });
 
     if (!ReadSections(sections, bktr_base_ivfc_offset)) {
@@ -202,8 +202,9 @@ bool NCA::HandlePotentialHeaderDecryption() {
 
 std::vector<NCASectionHeader> NCA::ReadSectionHeaders() const {
     const std::ptrdiff_t number_sections =
-        std::count_if(std::begin(header.section_tables), std::end(header.section_tables),
-                      [](NCASectionTableEntry entry) { return entry.media_offset > 0; });
+        std::ranges::count_if(header.section_tables, [](const NCASectionTableEntry& entry) {
+            return entry.media_offset > 0;
+        });
 
     std::vector<NCASectionHeader> sections(number_sections);
     const auto length_sections = SECTION_HEADER_SIZE * number_sections;
@@ -312,11 +313,11 @@ bool NCA::ReadRomFSSection(const NCASectionHeader& section, const NCASectionTabl
         }
 
         std::vector<RelocationBucket> relocation_buckets(relocation_buckets_raw.size());
-        std::transform(relocation_buckets_raw.begin(), relocation_buckets_raw.end(),
-                       relocation_buckets.begin(), &ConvertRelocationBucketRaw);
+        std::ranges::transform(relocation_buckets_raw, relocation_buckets.begin(),
+                               &ConvertRelocationBucketRaw);
         std::vector<SubsectionBucket> subsection_buckets(subsection_buckets_raw.size());
-        std::transform(subsection_buckets_raw.begin(), subsection_buckets_raw.end(),
-                       subsection_buckets.begin(), &ConvertSubsectionBucketRaw);
+        std::ranges::transform(subsection_buckets_raw, subsection_buckets.begin(),
+                               &ConvertSubsectionBucketRaw);
 
         u32 ctr_low;
         std::memcpy(&ctr_low, section.raw.section_ctr.data(), sizeof(ctr_low));

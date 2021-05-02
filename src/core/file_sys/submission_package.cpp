@@ -232,15 +232,15 @@ void NSP::SetTicketKeys(const std::vector<VirtualFile>& files) {
 void NSP::InitializeExeFSAndRomFS(const std::vector<VirtualFile>& files) {
     exefs = pfs;
 
-    const auto romfs_iter = std::find_if(files.begin(), files.end(), [](const VirtualFile& file) {
-        return file->GetName().rfind(".romfs") != std::string::npos;
+    const auto iter = std::find_if(files.begin(), files.end(), [](const VirtualFile& entry) {
+        return entry->GetName().rfind(".romfs") != std::string::npos;
     });
 
-    if (romfs_iter == files.end()) {
+    if (iter == files.end()) {
         return;
     }
 
-    romfs = *romfs_iter;
+    romfs = *iter;
 }
 
 void NSP::ReadNCAs(const std::vector<VirtualFile>& files) {

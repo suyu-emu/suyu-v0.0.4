@@ -176,26 +176,30 @@ u64 XCI::GetProgramTitleID() const {
 
 u32 XCI::GetSystemUpdateVersion() {
     const auto update = GetPartition(XCIPartition::Update);
-    if (update == nullptr)
+    if (update == nullptr) {
         return 0;
+    }
 
-    for (const auto& file : update->GetFiles()) {
-        NCA nca{file, nullptr, 0};
+    for (const auto& update_file : update->GetFiles()) {
+        NCA nca{update_file, nullptr, 0};
 
-        if (nca.GetStatus() != Loader::ResultStatus::Success)
+        if (nca.GetStatus() != Loader::ResultStatus::Success) {
             continue;
+        }
 
         if (nca.GetType() == NCAContentType::Meta && nca.GetTitleId() == 0x0100000000000816) {
             const auto dir = nca.GetSubdirectories()[0];
             const auto cnmt = dir->GetFile("SystemUpdate_0100000000000816.cnmt");
-            if (cnmt == nullptr)
+            if (cnmt == nullptr) {
                 continue;
+            }
 
             CNMT cnmt_data{cnmt};
 
             const auto metas = cnmt_data.GetMetaRecords();
-            if (metas.empty())
+            if (metas.empty()) {
                 continue;
+            }
 
             return metas[0].title_version;
         }
@@ -262,8 +266,8 @@ VirtualDir XCI::ConcatenatedPseudoDirectory() {
         if (part == nullptr)
             continue;
 
-        for (const auto& file : part->GetFiles())
-            out->AddFile(file);
+        for (const auto& part_file : part->GetFiles())
+            out->AddFile(part_file);
     }
 
     return out;
@@ -283,12 +287,12 @@ Loader::ResultStatus XCI::AddNCAFromPartition(XCIPartition part) {
         return Loader::ResultStatus::ErrorXCIMissingPartition;
     }
 
-    for (const VirtualFile& file : partition->GetFiles()) {
-        if (file->GetExtension() != "nca") {
+    for (const VirtualFile& partition_file : partition->GetFiles()) {
+        if (partition_file->GetExtension() != "nca") {
             continue;
         }
 
-        auto nca = std::make_shared<NCA>(file, nullptr, 0);
+        auto nca = std::make_shared<NCA>(partition_file, nullptr, 0);
         if (nca->IsUpdate()) {
             continue;
         }

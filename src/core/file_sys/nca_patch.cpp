@@ -83,11 +83,14 @@ BKTR::~BKTR() = default;
 
 std::size_t BKTR::Read(u8* data, std::size_t length, std::size_t offset) const {
     // Read out of bounds.
-    if (offset >= relocation.size)
+    if (offset >= relocation.size) {
         return 0;
-    const auto relocation = GetRelocationEntry(offset);
-    const auto section_offset = offset - relocation.address_patch + relocation.address_source;
-    const auto bktr_read = relocation.from_patch;
+    }
+
+    const auto relocation_entry = GetRelocationEntry(offset);
+    const auto section_offset =
+        offset - relocation_entry.address_patch + relocation_entry.address_source;
+    const auto bktr_read = relocation_entry.from_patch;
 
     const auto next_relocation = GetNextRelocationEntry(offset);
 
@@ -106,15 +109,16 @@ std::size_t BKTR::Read(u8* data, std::size_t length, std::size_t offset) const {
         return bktr_romfs->Read(data, length, section_offset);
     }
 
-    const auto subsection = GetSubsectionEntry(section_offset);
+    const auto subsection_entry = GetSubsectionEntry(section_offset);
     Core::Crypto::AESCipher<Core::Crypto::Key128> cipher(key, Core::Crypto::Mode::CTR);
 
     // Calculate AES IV
     std::array<u8, 16> iv{};
-    auto subsection_ctr = subsection.ctr;
+    auto subsection_ctr = subsection_entry.ctr;
     auto offset_iv = section_offset + base_offset;
-    for (std::size_t i = 0; i < section_ctr.size(); ++i)
+    for (std::size_t i = 0; i < section_ctr.size(); ++i) {
         iv[i] = section_ctr[0x8 - i - 1];
+    }
     offset_iv >>= 4;
     for (std::size_t i = 0; i < sizeof(u64); ++i) {
         iv[0xF - i] = static_cast<u8>(offset_iv & 0xFF);

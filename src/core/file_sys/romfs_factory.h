@@ -40,7 +40,7 @@ public:
                           Service::FileSystem::FileSystemController& controller);
     ~RomFSFactory();
 
-    void SetPackedUpdate(VirtualFile update_raw);
+    void SetPackedUpdate(VirtualFile update_raw_file);
     [[nodiscard]] ResultVal<VirtualFile> OpenCurrentProcess(u64 current_process_title_id) const;
     [[nodiscard]] ResultVal<VirtualFile> OpenPatchedRomFS(u64 title_id,
                                                           ContentRecordType type) const;
