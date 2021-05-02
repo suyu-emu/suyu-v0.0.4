@@ -136,7 +136,7 @@ std::size_t ConcatenatedVfsFile::Write(const u8* data, std::size_t length, std::
     return 0;
 }
 
-bool ConcatenatedVfsFile::Rename(std::string_view name) {
+bool ConcatenatedVfsFile::Rename(std::string_view new_name) {
     return false;
 }
 

@@ -84,8 +84,8 @@ std::size_t OffsetVfsFile::WriteBytes(const std::vector<u8>& data, std::size_t r
     return file->Write(data.data(), TrimToFit(data.size(), r_offset), offset + r_offset);
 }
 
-bool OffsetVfsFile::Rename(std::string_view name) {
-    return file->Rename(name);
+bool OffsetVfsFile::Rename(std::string_view new_name) {
+    return file->Rename(new_name);
 }
 
 std::size_t OffsetVfsFile::GetOffset() const {

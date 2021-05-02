@@ -79,12 +79,12 @@ class RealVfsDirectory : public VfsDirectory {
 public:
     ~RealVfsDirectory() override;
 
-    VirtualFile GetFileRelative(std::string_view path) const override;
-    VirtualDir GetDirectoryRelative(std::string_view path) const override;
+    VirtualFile GetFileRelative(std::string_view relative_path) const override;
+    VirtualDir GetDirectoryRelative(std::string_view relative_path) const override;
     VirtualFile GetFile(std::string_view name) const override;
     VirtualDir GetSubdirectory(std::string_view name) const override;
-    VirtualFile CreateFileRelative(std::string_view path) override;
-    VirtualDir CreateDirectoryRelative(std::string_view path) override;
+    VirtualFile CreateFileRelative(std::string_view relative_path) override;
+    VirtualDir CreateDirectoryRelative(std::string_view relative_path) override;
     bool DeleteSubdirectoryRecursive(std::string_view name) override;
     std::vector<VirtualFile> GetFiles() const override;
     std::vector<VirtualDir> GetSubdirectories() const override;

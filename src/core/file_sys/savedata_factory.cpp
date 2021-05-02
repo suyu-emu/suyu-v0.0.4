@@ -170,26 +170,30 @@ std::string SaveDataFactory::GetFullPath(Core::System& system, SaveDataSpaceId s
 SaveDataSize SaveDataFactory::ReadSaveDataSize(SaveDataType type, u64 title_id,
                                                u128 user_id) const {
     const auto path = GetFullPath(system, SaveDataSpaceId::NandUser, type, title_id, user_id, 0);
-    const auto dir = GetOrCreateDirectoryRelative(this->dir, path);
+    const auto relative_dir = GetOrCreateDirectoryRelative(dir, path);
 
-    const auto size_file = dir->GetFile(SAVE_DATA_SIZE_FILENAME);
-    if (size_file == nullptr || size_file->GetSize() < sizeof(SaveDataSize))
+    const auto size_file = relative_dir->GetFile(SAVE_DATA_SIZE_FILENAME);
+    if (size_file == nullptr || size_file->GetSize() < sizeof(SaveDataSize)) {
         return {0, 0};
+    }
 
     SaveDataSize out;
-    if (size_file->ReadObject(&out) != sizeof(SaveDataSize))
+    if (size_file->ReadObject(&out) != sizeof(SaveDataSize)) {
         return {0, 0};
+    }
+
     return out;
 }
 
 void SaveDataFactory::WriteSaveDataSize(SaveDataType type, u64 title_id, u128 user_id,
                                         SaveDataSize new_value) const {
     const auto path = GetFullPath(system, SaveDataSpaceId::NandUser, type, title_id, user_id, 0);
-    const auto dir = GetOrCreateDirectoryRelative(this->dir, path);
+    const auto relative_dir = GetOrCreateDirectoryRelative(dir, path);
 
-    const auto size_file = dir->CreateFile(SAVE_DATA_SIZE_FILENAME);
-    if (size_file == nullptr)
+    const auto size_file = relative_dir->CreateFile(SAVE_DATA_SIZE_FILENAME);
+    if (size_file == nullptr) {
         return;
+    }
 
     size_file->Resize(sizeof(SaveDataSize));
     size_file->WriteObject(new_value);
