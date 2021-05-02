@@ -65,9 +65,15 @@ public:
     void MouseMove(int x, int y, int center_x, int center_y);
 
     /**
-     * Signals that a motion sensor tilt has ended.
+     * Signals that a button is released.
+     * @param button_ the button pressed
      */
     void ReleaseButton(MouseButton button_);
+
+    /**
+     * Signals that all buttons are released
+     */
+    void ReleaseAllButtons();
 
     [[nodiscard]] bool ToggleButton(std::size_t button_);
     [[nodiscard]] bool UnlockButton(std::size_t button_);

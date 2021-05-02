@@ -143,6 +143,15 @@ void Mouse::ReleaseButton(MouseButton button_) {
     mouse_info[button_index].data.axis = {0, 0};
 }
 
+void Mouse::ReleaseAllButtons() {
+    buttons = 0;
+    for (auto& info : mouse_info) {
+        info.tilt_speed = 0;
+        info.data.pressed = false;
+        info.data.axis = {0, 0};
+    }
+}
+
 void Mouse::BeginConfiguration() {
     buttons = 0;
     last_button = MouseButton::Undefined;
