@@ -117,10 +117,6 @@ void InitializeSlabResourceCounts() {
     }
 }
 
-size_t CalculateSlabHeapGapSize() {
-    return KernelSlabHeapGapsSize;
-}
-
 size_t CalculateTotalSlabHeapSize() {
     size_t size = 0;
 
@@ -136,7 +132,7 @@ size_t CalculateTotalSlabHeapSize() {
 #undef ADD_SLAB_SIZE
 
     // Add the reserved size.
-    size += CalculateSlabHeapGapSize();
+    size += KernelSlabHeapGapsSize;
 
     return size;
 }
@@ -158,7 +154,7 @@ void InitializeSlabHeaps(Core::System& system, KMemoryLayout& memory_layout) {
     }
 
     // Create an array to represent the gaps between the slabs.
-    const size_t total_gap_size = CalculateSlabHeapGapSize();
+    const size_t total_gap_size = KernelSlabHeapGapsSize;
     std::array<size_t, slab_types.size()> slab_gaps;
     for (size_t i = 0; i < slab_gaps.size(); i++) {
         // Note: This is an off-by-one error from Nintendo's intention, because GenerateRandomRange
