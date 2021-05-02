@@ -257,6 +257,9 @@ private:
 
 private:
     union HandlePack {
+        HandlePack() = default;
+        HandlePack(Handle handle) : raw{static_cast<u32>(handle)} {}
+
         u32 raw;
         BitField<0, 15, u32> index;
         BitField<15, 15, u32> linear_id;
