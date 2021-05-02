@@ -75,13 +75,6 @@ private:
     }
 
 public:
-    class ListAccessor : public KAutoObjectWithListContainer::ListAccessor {
-    public:
-        ListAccessor() : KAutoObjectWithListContainer::ListAccessor(kernel.ObjectListContainer()) {}
-        ~ListAccessor() = default;
-    };
-
-public:
     KAutoObjectWithSlabHeapAndContainer(KernelCore& kernel_) : Base(kernel_), kernel(kernel_) {}
     virtual ~KAutoObjectWithSlabHeapAndContainer() {}
 
