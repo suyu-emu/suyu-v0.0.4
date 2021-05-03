@@ -539,6 +539,8 @@ bool GRenderWindow::event(QEvent* event) {
 void GRenderWindow::focusOutEvent(QFocusEvent* event) {
     QWidget::focusOutEvent(event);
     input_subsystem->GetKeyboard()->ReleaseAllKeys();
+    input_subsystem->GetMouse()->ReleaseAllButtons();
+    this->TouchReleased(0);
 }
 
 void GRenderWindow::resizeEvent(QResizeEvent* event) {
