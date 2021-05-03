@@ -94,12 +94,11 @@ CallbackOrAccessOneWord DynarmicCP15::CompileGetOneWord(bool two, unsigned opc1,
 CallbackOrAccessTwoWords DynarmicCP15::CompileGetTwoWords(bool two, unsigned opc, CoprocReg CRm) {
     if (!two && opc == 0 && CRm == CoprocReg::C14) {
         // CNTPCT
-        const auto callback = static_cast<u64 (*)(Dynarmic::A32::Jit*, void*, u32, u32)>(
-            [](Dynarmic::A32::Jit*, void* arg, u32, u32) -> u64 {
-                ARM_Dynarmic_32& parent = *(ARM_Dynarmic_32*)arg;
-                return parent.system.CoreTiming().GetClockTicks();
-            });
-        return Dynarmic::A32::Coprocessor::Callback{callback, (void*)&parent};
+        const auto callback = [](Dynarmic::A32::Jit*, void* arg, u32, u32) -> u64 {
+            const auto& parent_arg = *static_cast<ARM_Dynarmic_32*>(arg);
+            return parent_arg.system.CoreTiming().GetClockTicks();
+        };
+        return Callback{callback, &parent};
     }
 
     LOG_CRITICAL(Core_ARM, "CP15: mrrc{} p15, {}, <Rt>, <Rt2>, {}", two ? "2" : "", opc, CRm);

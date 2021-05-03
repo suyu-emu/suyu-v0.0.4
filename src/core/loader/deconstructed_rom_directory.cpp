@@ -79,8 +79,8 @@ AppLoader_DeconstructedRomDirectory::AppLoader_DeconstructedRomDirectory(
     : AppLoader(directory->GetFile("main")), dir(std::move(directory)),
       override_update(override_update) {}
 
-FileType AppLoader_DeconstructedRomDirectory::IdentifyType(const FileSys::VirtualFile& file) {
-    if (FileSys::IsDirectoryExeFS(file->GetContainingDirectory())) {
+FileType AppLoader_DeconstructedRomDirectory::IdentifyType(const FileSys::VirtualFile& dir_file) {
+    if (FileSys::IsDirectoryExeFS(dir_file->GetContainingDirectory())) {
         return FileType::DeconstructedRomDirectory;
     }
 

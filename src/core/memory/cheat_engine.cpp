@@ -222,8 +222,8 @@ void CheatEngine::SetMainMemoryParameters(VAddr main_region_begin, u64 main_regi
     };
 }
 
-void CheatEngine::Reload(std::vector<CheatEntry> cheats) {
-    this->cheats = std::move(cheats);
+void CheatEngine::Reload(std::vector<CheatEntry> reload_cheats) {
+    cheats = std::move(reload_cheats);
     is_pending_reload.exchange(true);
 }
 

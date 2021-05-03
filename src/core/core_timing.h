@@ -102,7 +102,7 @@ public:
     /// We only permit one event of each type in the queue at a time.
     void RemoveEvent(const std::shared_ptr<EventType>& event_type);
 
-    void AddTicks(u64 ticks);
+    void AddTicks(u64 ticks_to_add);
 
     void ResetTicks();
 
