@@ -31,11 +31,14 @@ public:
                                                  bool override_update = false);
 
     /**
-     * Returns the type of the file
-     * @param file open file
-     * @return FileType found, or FileType::Error if this loader doesn't know it
+     * Identifies whether or not the given file is a deconstructed ROM directory.
+     *
+     * @param dir_file The file to verify.
+     *
+     * @return FileType::DeconstructedRomDirectory, or FileType::Error
+     *         if the file is not a deconstructed ROM directory.
      */
-    static FileType IdentifyType(const FileSys::VirtualFile& file);
+    static FileType IdentifyType(const FileSys::VirtualFile& dir_file);
 
     FileType GetFileType() const override {
         return IdentifyType(file);

@@ -67,8 +67,8 @@ Freezer::~Freezer() {
     core_timing.UnscheduleEvent(event, 0);
 }
 
-void Freezer::SetActive(bool active) {
-    if (!this->active.exchange(active)) {
+void Freezer::SetActive(bool is_active) {
+    if (!active.exchange(is_active)) {
         FillEntryReads();
         core_timing.ScheduleEvent(memory_freezer_ns, event);
         LOG_DEBUG(Common_Memory, "Memory freezer activated!");

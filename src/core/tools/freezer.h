@@ -43,7 +43,7 @@ public:
     ~Freezer();
 
     // Enables or disables the entire memory freezer.
-    void SetActive(bool active);
+    void SetActive(bool is_active);
 
     // Returns whether or not the freezer is active.
     bool IsActive() const;

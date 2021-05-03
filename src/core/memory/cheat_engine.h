@@ -68,7 +68,7 @@ public:
     void Initialize();
     void SetMainMemoryParameters(VAddr main_region_begin, u64 main_region_size);
 
-    void Reload(std::vector<CheatEntry> cheats);
+    void Reload(std::vector<CheatEntry> reload_cheats);
 
 private:
     void FrameCallback(std::uintptr_t user_data, std::chrono::nanoseconds ns_late);
