@@ -33,7 +33,7 @@ void Controller_Gesture::OnUpdate(const Core::Timing::CoreTiming& core_timing, u
     shared_memory.header.timestamp = core_timing.GetCPUTicks();
     shared_memory.header.total_entry_count = 17;
 
-    if (!IsControllerActivated() || !Settings::values.touchscreen.enabled) {
+    if (!IsControllerActivated()) {
         shared_memory.header.entry_count = 0;
         shared_memory.header.last_entry_index = 0;
         return;
@@ -129,6 +129,10 @@ void Controller_Gesture::OnLoadInputDevices() {
 }
 
 std::optional<std::size_t> Controller_Gesture::GetUnusedFingerID() const {
+    // Dont assign any touch input to a point if disabled
+    if (!Settings::values.touchscreen.enabled) {
+        return std::nullopt;
+    }
     std::size_t first_free_id = 0;
     while (first_free_id < MAX_POINTS) {
         if (!fingers[first_free_id].pressed) {
