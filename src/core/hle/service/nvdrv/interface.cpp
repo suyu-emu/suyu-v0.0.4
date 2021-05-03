@@ -22,19 +22,30 @@ void NVDRV::SignalGPUInterruptSyncpt(const u32 syncpoint_id, const u32 value) {
 
 void NVDRV::Open(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_NVDRV, "called");
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(RESULT_SUCCESS);
 
     if (!is_initialized) {
-        ServiceError(ctx, NvResult::NotInitialized);
+        rb.Push<DeviceFD>(0);
+        rb.PushEnum(NvResult::NotInitialized);
+
         LOG_ERROR(Service_NVDRV, "NvServices is not initalized!");
         return;
     }
 
     const auto& buffer = ctx.ReadBuffer();
     const std::string device_name(buffer.begin(), buffer.end());
+
+    if (device_name == "/dev/nvhost-prof-gpu") {
+        rb.Push<DeviceFD>(0);
+        rb.PushEnum(NvResult::NotSupported);
+
+        LOG_WARNING(Service_NVDRV, "/dev/nvhost-prof-gpu cannot be openned on production");
+        return;
+    }
+
     DeviceFD fd = nvdrv->Open(device_name);
 
-    IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(RESULT_SUCCESS);
     rb.Push<DeviceFD>(fd);
     rb.PushEnum(fd != INVALID_NVDRV_FD ? NvResult::Success : NvResult::FileOperationFailed);
 }
