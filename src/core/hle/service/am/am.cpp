@@ -1338,8 +1338,6 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_)
 
     RegisterHandlers(functions);
 
-    auto& kernel = system.Kernel();
-
     Kernel::KAutoObject::Create(std::addressof(gpu_error_detected_event));
     Kernel::KAutoObject::Create(std::addressof(friend_invitation_storage_channel_event));
     Kernel::KAutoObject::Create(std::addressof(health_warning_disappeared_system_event));
