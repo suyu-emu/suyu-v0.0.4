@@ -14,8 +14,8 @@ namespace Service::Nvidia::Devices {
 
 class nvhost_ctrl final : public nvdevice {
 public:
-    explicit nvhost_ctrl(Core::System& system, EventInterface& events_interface,
-                         SyncpointManager& syncpoint_manager);
+    explicit nvhost_ctrl(Core::System& system_, EventInterface& events_interface_,
+                         SyncpointManager& syncpoint_manager_);
     ~nvhost_ctrl() override;
 
     NvResult Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,

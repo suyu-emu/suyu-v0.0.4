@@ -9,8 +9,8 @@
 namespace Service::HID {
 constexpr std::size_t SHARED_MEMORY_OFFSET = 0x3C200;
 
-Controller_ConsoleSixAxis::Controller_ConsoleSixAxis(Core::System& system)
-    : ControllerBase(system) {}
+Controller_ConsoleSixAxis::Controller_ConsoleSixAxis(Core::System& system_)
+    : ControllerBase{system_} {}
 Controller_ConsoleSixAxis::~Controller_ConsoleSixAxis() = default;
 
 void Controller_ConsoleSixAxis::OnInit() {}

@@ -12,7 +12,7 @@ namespace Service::GRC {
 
 class GRC final : public ServiceFramework<GRC> {
 public:
-    explicit GRC(Core::System& system) : ServiceFramework{system, "grc:c"} {
+    explicit GRC(Core::System& system_) : ServiceFramework{system_, "grc:c"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {1, nullptr, "OpenContinuousRecorder"},

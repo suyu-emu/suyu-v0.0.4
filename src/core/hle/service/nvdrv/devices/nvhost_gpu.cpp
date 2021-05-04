@@ -14,11 +14,11 @@
 
 namespace Service::Nvidia::Devices {
 
-nvhost_gpu::nvhost_gpu(Core::System& system, std::shared_ptr<nvmap> nvmap_dev,
-                       SyncpointManager& syncpoint_manager)
-    : nvdevice(system), nvmap_dev(std::move(nvmap_dev)), syncpoint_manager{syncpoint_manager} {
-    channel_fence.id = syncpoint_manager.AllocateSyncpoint();
-    channel_fence.value = system.GPU().GetSyncpointValue(channel_fence.id);
+nvhost_gpu::nvhost_gpu(Core::System& system_, std::shared_ptr<nvmap> nvmap_dev_,
+                       SyncpointManager& syncpoint_manager_)
+    : nvdevice{system_}, nvmap_dev{std::move(nvmap_dev_)}, syncpoint_manager{syncpoint_manager_} {
+    channel_fence.id = syncpoint_manager_.AllocateSyncpoint();
+    channel_fence.value = system_.GPU().GetSyncpointValue(channel_fence.id);
 }
 
 nvhost_gpu::~nvhost_gpu() = default;

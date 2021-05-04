@@ -15,7 +15,7 @@ constexpr std::size_t SHARED_MEMORY_OFFSET = 0x3BA00;
 constexpr f32 angle_threshold = 0.08f;
 constexpr f32 pinch_threshold = 100.0f;
 
-Controller_Gesture::Controller_Gesture(Core::System& system) : ControllerBase(system) {}
+Controller_Gesture::Controller_Gesture(Core::System& system_) : ControllerBase{system_} {}
 Controller_Gesture::~Controller_Gesture() = default;
 
 void Controller_Gesture::OnInit() {

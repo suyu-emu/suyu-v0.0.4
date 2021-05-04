@@ -10,7 +10,7 @@
 namespace Service::HID {
 class Controller_Stubbed final : public ControllerBase {
 public:
-    explicit Controller_Stubbed(Core::System& system);
+    explicit Controller_Stubbed(Core::System& system_);
     ~Controller_Stubbed() override;
 
     // Called when the controller is initialized

@@ -14,7 +14,7 @@ namespace Service::Time {
 
 class Time final : public Module::Interface {
 public:
-    explicit Time(std::shared_ptr<Module> time, Core::System& system, const char* name);
+    explicit Time(std::shared_ptr<Module> time, Core::System& system_, const char* name_);
     ~Time() override;
 };
 

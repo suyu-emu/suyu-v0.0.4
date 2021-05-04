@@ -10,9 +10,9 @@
 #include "video_core/renderer_base.h"
 
 namespace Service::Nvidia::Devices {
-nvhost_vic::nvhost_vic(Core::System& system, std::shared_ptr<nvmap> nvmap_dev,
-                       SyncpointManager& syncpoint_manager)
-    : nvhost_nvdec_common(system, std::move(nvmap_dev), syncpoint_manager) {}
+nvhost_vic::nvhost_vic(Core::System& system_, std::shared_ptr<nvmap> nvmap_dev_,
+                       SyncpointManager& syncpoint_manager_)
+    : nvhost_nvdec_common{system_, std::move(nvmap_dev_), syncpoint_manager_} {}
 
 nvhost_vic::~nvhost_vic() = default;
 

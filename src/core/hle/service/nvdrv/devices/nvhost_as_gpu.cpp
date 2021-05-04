@@ -17,8 +17,8 @@
 
 namespace Service::Nvidia::Devices {
 
-nvhost_as_gpu::nvhost_as_gpu(Core::System& system, std::shared_ptr<nvmap> nvmap_dev)
-    : nvdevice(system), nvmap_dev(std::move(nvmap_dev)) {}
+nvhost_as_gpu::nvhost_as_gpu(Core::System& system_, std::shared_ptr<nvmap> nvmap_dev_)
+    : nvdevice{system_}, nvmap_dev{std::move(nvmap_dev_)} {}
 nvhost_as_gpu::~nvhost_as_gpu() = default;
 
 NvResult nvhost_as_gpu::Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,

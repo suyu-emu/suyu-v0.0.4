@@ -15,9 +15,10 @@
 
 namespace Service::Nvidia::Devices {
 
-nvhost_ctrl::nvhost_ctrl(Core::System& system, EventInterface& events_interface,
-                         SyncpointManager& syncpoint_manager)
-    : nvdevice(system), events_interface{events_interface}, syncpoint_manager{syncpoint_manager} {}
+nvhost_ctrl::nvhost_ctrl(Core::System& system_, EventInterface& events_interface_,
+                         SyncpointManager& syncpoint_manager_)
+    : nvdevice{system_}, events_interface{events_interface_}, syncpoint_manager{
+                                                                  syncpoint_manager_} {}
 nvhost_ctrl::~nvhost_ctrl() = default;
 
 NvResult nvhost_ctrl::Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,

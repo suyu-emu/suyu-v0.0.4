@@ -13,7 +13,7 @@ namespace Service::Nvidia::Devices {
 
 class nvhost_nvjpg final : public nvdevice {
 public:
-    explicit nvhost_nvjpg(Core::System& system);
+    explicit nvhost_nvjpg(Core::System& system_);
     ~nvhost_nvjpg() override;
 
     NvResult Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,

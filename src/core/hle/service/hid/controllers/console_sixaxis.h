@@ -14,7 +14,7 @@
 namespace Service::HID {
 class Controller_ConsoleSixAxis final : public ControllerBase {
 public:
-    explicit Controller_ConsoleSixAxis(Core::System& system);
+    explicit Controller_ConsoleSixAxis(Core::System& system_);
     ~Controller_ConsoleSixAxis() override;
 
     // Called when the controller is initialized

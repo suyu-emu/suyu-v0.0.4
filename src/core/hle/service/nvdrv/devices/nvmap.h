@@ -16,7 +16,7 @@ namespace Service::Nvidia::Devices {
 
 class nvmap final : public nvdevice {
 public:
-    explicit nvmap(Core::System& system);
+    explicit nvmap(Core::System& system_);
     ~nvmap() override;
 
     NvResult Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,

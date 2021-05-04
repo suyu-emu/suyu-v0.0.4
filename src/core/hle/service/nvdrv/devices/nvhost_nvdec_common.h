@@ -18,8 +18,8 @@ class nvmap;
 
 class nvhost_nvdec_common : public nvdevice {
 public:
-    explicit nvhost_nvdec_common(Core::System& system, std::shared_ptr<nvmap> nvmap_dev,
-                                 SyncpointManager& syncpoint_manager);
+    explicit nvhost_nvdec_common(Core::System& system_, std::shared_ptr<nvmap> nvmap_dev_,
+                                 SyncpointManager& syncpoint_manager_);
     ~nvhost_nvdec_common() override;
 
 protected:

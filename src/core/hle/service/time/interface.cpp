@@ -6,8 +6,8 @@
 
 namespace Service::Time {
 
-Time::Time(std::shared_ptr<Module> module, Core::System& system, const char* name)
-    : Interface(std::move(module), system, name) {
+Time::Time(std::shared_ptr<Module> module_, Core::System& system_, const char* name_)
+    : Interface{std::move(module_), system_, name_} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &Time::GetStandardUserSystemClock, "GetStandardUserSystemClock"},

@@ -6,9 +6,9 @@
 
 namespace Service::BCAT {
 
-BCAT::BCAT(Core::System& system, std::shared_ptr<Module> module,
-           FileSystem::FileSystemController& fsc, const char* name)
-    : Interface(system, std::move(module), fsc, name) {
+BCAT::BCAT(Core::System& system_, std::shared_ptr<Module> module_,
+           FileSystem::FileSystemController& fsc_, const char* name_)
+    : Interface(system_, std::move(module_), fsc_, name_) {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &BCAT::CreateBcatService, "CreateBcatService"},
