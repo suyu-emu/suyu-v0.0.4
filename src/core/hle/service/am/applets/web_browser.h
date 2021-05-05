@@ -69,13 +69,12 @@ private:
     bool complete{false};
     ResultCode status{RESULT_SUCCESS};
 
-    WebAppletVersion web_applet_version;
-    WebExitReason web_exit_reason;
-    WebArgHeader web_arg_header;
+    WebAppletVersion web_applet_version{};
+    WebArgHeader web_arg_header{};
     WebArgInputTLVMap web_arg_input_tlv_map;
 
-    u64 title_id;
-    FileSys::ContentRecordType nca_type;
+    u64 title_id{};
+    FileSys::ContentRecordType nca_type{};
     std::string offline_cache_dir;
     std::string offline_document;
     FileSys::VirtualFile offline_romfs;

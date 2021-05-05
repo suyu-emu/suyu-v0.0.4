@@ -312,7 +312,6 @@ private:
 
     bool vr_mode_enabled = false;
     float current_brightness = 1.0f;
-    float backlight_brightness = 1.0f;
     float ambient_light_value = 0.0f;
     float current_vr_brightness = 1.0f;
     bool dimming = true;

@@ -361,7 +361,6 @@ private:
     States states{};
     ParentalControlSettings settings{};
     std::array<char, 8> pin_code{};
-    bool can_use_stereo_vision = true;
     Capability capability{};
 };
 
