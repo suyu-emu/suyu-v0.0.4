@@ -40,7 +40,7 @@ void NVDRV::Open(Kernel::HLERequestContext& ctx) {
         rb.Push<DeviceFD>(0);
         rb.PushEnum(NvResult::NotSupported);
 
-        LOG_WARNING(Service_NVDRV, "/dev/nvhost-prof-gpu cannot be openned on production");
+        LOG_WARNING(Service_NVDRV, "/dev/nvhost-prof-gpu cannot be opened in production");
         return;
     }
 
