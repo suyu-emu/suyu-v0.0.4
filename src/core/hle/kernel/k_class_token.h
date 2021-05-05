@@ -38,7 +38,7 @@ public:
 
 private:
     template <TokenBaseType Index>
-    static constexpr inline TokenBaseType BaseClassToken = BIT(Index);
+    static constexpr inline TokenBaseType BaseClassToken = 1U << Index;
 
     template <TokenBaseType Index>
     static constexpr inline TokenBaseType FinalClassToken = [] {
