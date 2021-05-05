@@ -9,12 +9,15 @@ class System;
 } // namespace Core
 
 namespace Kernel {
+class KernelCore;
 class KMemoryLayout;
 } // namespace Kernel
 
 namespace Kernel::Init {
 
 struct KSlabResourceCounts {
+    static KSlabResourceCounts CreateDefault();
+
     size_t num_KProcess;
     size_t num_KThread;
     size_t num_KEvent;
@@ -33,10 +36,8 @@ struct KSlabResourceCounts {
     size_t num_KBeta;
 };
 
-void InitializeSlabResourceCounts();
-const KSlabResourceCounts& GetSlabResourceCounts();
-
-size_t CalculateTotalSlabHeapSize();
+void InitializeSlabResourceCounts(KernelCore& kernel);
+size_t CalculateTotalSlabHeapSize(const KernelCore& kernel);
 void InitializeSlabHeaps(Core::System& system, KMemoryLayout& memory_layout);
 
 } // namespace Kernel::Init

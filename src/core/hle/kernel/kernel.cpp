@@ -69,6 +69,7 @@ struct KernelCore::Impl {
         InitializePhysicalCores();
 
         // Derive the initial memory layout from the emulated board
+        Init::InitializeSlabResourceCounts(kernel);
         KMemoryLayout memory_layout;
         DeriveInitialMemoryLayout(memory_layout);
         Init::InitializeSlabHeaps(system, memory_layout);
@@ -395,7 +396,7 @@ struct KernelCore::Impl {
 
         // Determine the size of the slab region.
         const size_t slab_region_size =
-            Common::AlignUp(Init::CalculateTotalSlabHeapSize(), PageSize);
+            Common::AlignUp(Init::CalculateTotalSlabHeapSize(system.Kernel()), PageSize);
         ASSERT(slab_region_size <= resource_region_size);
 
         // Setup the slab region.
@@ -642,6 +643,7 @@ struct KernelCore::Impl {
     std::unique_ptr<Kernel::GlobalSchedulerContext> global_scheduler_context;
     Kernel::TimeManager time_manager;
 
+    Init::KSlabResourceCounts slab_resource_counts{};
     KResourceLimit* system_resource_limit{};
 
     std::shared_ptr<Core::Timing::EventType> preemption_event;
@@ -993,6 +995,14 @@ void KernelCore::ReleaseServiceThread(std::weak_ptr<Kernel::ServiceThread> servi
             impl->service_threads.erase(strong_ptr);
         }
     });
+}
+
+Init::KSlabResourceCounts& KernelCore::SlabResourceCounts() {
+    return impl->slab_resource_counts;
+}
+
+const Init::KSlabResourceCounts& KernelCore::SlabResourceCounts() const {
+    return impl->slab_resource_counts;
 }
 
 bool KernelCore::IsPhantomModeForSingleCore() const {

@@ -51,6 +51,10 @@ class ServiceThread;
 class Synchronization;
 class TimeManager;
 
+namespace Init {
+struct KSlabResourceCounts;
+}
+
 template <typename T>
 class KSlabHeap;
 
@@ -291,6 +295,12 @@ public:
             return slab_heap_container->writeable_event;
         }
     }
+
+    /// Gets the current slab resource counts.
+    Init::KSlabResourceCounts& SlabResourceCounts();
+
+    /// Gets the current slab resource counts.
+    const Init::KSlabResourceCounts& SlabResourceCounts() const;
 
 private:
     friend class KProcess;

@@ -25,7 +25,7 @@
 
 namespace Kernel::Init {
 
-#define SLAB_COUNT(CLASS) g_slab_resource_counts.num_##CLASS
+#define SLAB_COUNT(CLASS) kernel.SlabResourceCounts().num_##CLASS
 
 #define FOREACH_SLAB_TYPE(HANDLER, ...)                                                            \
     HANDLER(KProcess, (SLAB_COUNT(KProcess)), ##__VA_ARGS__)                                       \
@@ -67,26 +67,6 @@ constexpr size_t SlabCountKBeta = 6;
 
 constexpr size_t SlabCountExtraKThread = 160;
 
-// Global to hold our resource counts.
-KSlabResourceCounts g_slab_resource_counts = {
-    .num_KProcess = SlabCountKProcess,
-    .num_KThread = SlabCountKThread,
-    .num_KEvent = SlabCountKEvent,
-    .num_KInterruptEvent = SlabCountKInterruptEvent,
-    .num_KPort = SlabCountKPort,
-    .num_KSharedMemory = SlabCountKSharedMemory,
-    .num_KTransferMemory = SlabCountKTransferMemory,
-    .num_KCodeMemory = SlabCountKCodeMemory,
-    .num_KDeviceAddressSpace = SlabCountKDeviceAddressSpace,
-    .num_KSession = SlabCountKSession,
-    .num_KLightSession = SlabCountKLightSession,
-    .num_KObjectName = SlabCountKObjectName,
-    .num_KResourceLimit = SlabCountKResourceLimit,
-    .num_KDebug = SlabCountKDebug,
-    .num_KAlpha = SlabCountKAlpha,
-    .num_KBeta = SlabCountKBeta,
-};
-
 template <typename T>
 VAddr InitializeSlabHeap(Core::System& system, KMemoryLayout& memory_layout, VAddr address,
                          size_t num_objects) {
@@ -105,19 +85,35 @@ VAddr InitializeSlabHeap(Core::System& system, KMemoryLayout& memory_layout, VAd
 
 } // namespace
 
-const KSlabResourceCounts& GetSlabResourceCounts() {
-    return g_slab_resource_counts;
+KSlabResourceCounts KSlabResourceCounts::CreateDefault() {
+    return {
+        .num_KProcess = SlabCountKProcess,
+        .num_KThread = SlabCountKThread,
+        .num_KEvent = SlabCountKEvent,
+        .num_KInterruptEvent = SlabCountKInterruptEvent,
+        .num_KPort = SlabCountKPort,
+        .num_KSharedMemory = SlabCountKSharedMemory,
+        .num_KTransferMemory = SlabCountKTransferMemory,
+        .num_KCodeMemory = SlabCountKCodeMemory,
+        .num_KDeviceAddressSpace = SlabCountKDeviceAddressSpace,
+        .num_KSession = SlabCountKSession,
+        .num_KLightSession = SlabCountKLightSession,
+        .num_KObjectName = SlabCountKObjectName,
+        .num_KResourceLimit = SlabCountKResourceLimit,
+        .num_KDebug = SlabCountKDebug,
+        .num_KAlpha = SlabCountKAlpha,
+        .num_KBeta = SlabCountKBeta,
+    };
 }
 
-void InitializeSlabResourceCounts() {
-    // Note: Nintendo initializes all fields here, but we initialize all constants at compile-time.
-
+void InitializeSlabResourceCounts(KernelCore& kernel) {
+    kernel.SlabResourceCounts() = KSlabResourceCounts::CreateDefault();
     if (KSystemControl::Init::ShouldIncreaseThreadResourceLimit()) {
-        g_slab_resource_counts.num_KThread += SlabCountExtraKThread;
+        kernel.SlabResourceCounts().num_KThread += SlabCountExtraKThread;
     }
 }
 
-size_t CalculateTotalSlabHeapSize() {
+size_t CalculateTotalSlabHeapSize(const KernelCore& kernel) {
     size_t size = 0;
 
 #define ADD_SLAB_SIZE(NAME, COUNT, ...)                                                            \
@@ -138,6 +134,8 @@ size_t CalculateTotalSlabHeapSize() {
 }
 
 void InitializeSlabHeaps(Core::System& system, KMemoryLayout& memory_layout) {
+    auto& kernel = system.Kernel();
+
     // Get the start of the slab region, since that's where we'll be working.
     VAddr address = memory_layout.GetSlabRegionAddress();
 
