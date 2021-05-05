@@ -42,9 +42,9 @@ std::size_t WriteVectors(std::vector<u8>& dst, const std::vector<T>& src, std::s
 }
 } // Anonymous namespace
 
-nvhost_nvdec_common::nvhost_nvdec_common(Core::System& system, std::shared_ptr<nvmap> nvmap_dev,
-                                         SyncpointManager& syncpoint_manager)
-    : nvdevice(system), nvmap_dev(std::move(nvmap_dev)), syncpoint_manager(syncpoint_manager) {}
+nvhost_nvdec_common::nvhost_nvdec_common(Core::System& system_, std::shared_ptr<nvmap> nvmap_dev_,
+                                         SyncpointManager& syncpoint_manager_)
+    : nvdevice{system_}, nvmap_dev{std::move(nvmap_dev_)}, syncpoint_manager{syncpoint_manager_} {}
 nvhost_nvdec_common::~nvhost_nvdec_common() = default;
 
 NvResult nvhost_nvdec_common::SetNVMAPfd(const std::vector<u8>& input) {

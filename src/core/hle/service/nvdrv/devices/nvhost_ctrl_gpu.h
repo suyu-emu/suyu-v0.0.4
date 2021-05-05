@@ -13,7 +13,7 @@ namespace Service::Nvidia::Devices {
 
 class nvhost_ctrl_gpu final : public nvdevice {
 public:
-    explicit nvhost_ctrl_gpu(Core::System& system);
+    explicit nvhost_ctrl_gpu(Core::System& system_);
     ~nvhost_ctrl_gpu() override;
 
     NvResult Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,

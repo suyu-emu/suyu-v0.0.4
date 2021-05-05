@@ -17,7 +17,7 @@ class nvmap;
 
 class nvdisp_disp0 final : public nvdevice {
 public:
-    explicit nvdisp_disp0(Core::System& system, std::shared_ptr<nvmap> nvmap_dev);
+    explicit nvdisp_disp0(Core::System& system_, std::shared_ptr<nvmap> nvmap_dev_);
     ~nvdisp_disp0() override;
 
     NvResult Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,

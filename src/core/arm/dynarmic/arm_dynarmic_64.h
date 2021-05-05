@@ -26,8 +26,8 @@ class System;
 
 class ARM_Dynarmic_64 final : public ARM_Interface {
 public:
-    ARM_Dynarmic_64(System& system, CPUInterrupts& interrupt_handlers, bool uses_wall_clock,
-                    ExclusiveMonitor& exclusive_monitor, std::size_t core_index);
+    ARM_Dynarmic_64(System& system_, CPUInterrupts& interrupt_handlers_, bool uses_wall_clock_,
+                    ExclusiveMonitor& exclusive_monitor_, std::size_t core_index_);
     ~ARM_Dynarmic_64() override;
 
     void SetPC(u64 pc) override;

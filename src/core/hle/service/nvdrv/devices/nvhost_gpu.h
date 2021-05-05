@@ -22,8 +22,8 @@ namespace Service::Nvidia::Devices {
 class nvmap;
 class nvhost_gpu final : public nvdevice {
 public:
-    explicit nvhost_gpu(Core::System& system, std::shared_ptr<nvmap> nvmap_dev,
-                        SyncpointManager& syncpoint_manager);
+    explicit nvhost_gpu(Core::System& system_, std::shared_ptr<nvmap> nvmap_dev_,
+                        SyncpointManager& syncpoint_manager_);
     ~nvhost_gpu() override;
 
     NvResult Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,

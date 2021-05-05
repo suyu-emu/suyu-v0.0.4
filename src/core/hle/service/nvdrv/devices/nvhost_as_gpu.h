@@ -30,7 +30,7 @@ DECLARE_ENUM_FLAG_OPERATORS(AddressSpaceFlags);
 
 class nvhost_as_gpu final : public nvdevice {
 public:
-    explicit nvhost_as_gpu(Core::System& system, std::shared_ptr<nvmap> nvmap_dev);
+    explicit nvhost_as_gpu(Core::System& system_, std::shared_ptr<nvmap> nvmap_dev_);
     ~nvhost_as_gpu() override;
 
     NvResult Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,

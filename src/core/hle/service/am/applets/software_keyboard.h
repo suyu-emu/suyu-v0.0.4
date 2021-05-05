@@ -57,7 +57,7 @@ private:
     void InitializeForeground();
 
     /// Initializes the inline software keyboard.
-    void InitializeBackground(LibraryAppletMode applet_mode);
+    void InitializeBackground(LibraryAppletMode library_applet_mode);
 
     /// Processes the text check sent by the application.
     void ProcessTextCheck();

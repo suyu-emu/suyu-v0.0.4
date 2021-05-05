@@ -12,7 +12,7 @@
 
 namespace Service::Nvidia::Devices {
 
-nvhost_ctrl_gpu::nvhost_ctrl_gpu(Core::System& system) : nvdevice(system) {}
+nvhost_ctrl_gpu::nvhost_ctrl_gpu(Core::System& system_) : nvdevice{system_} {}
 nvhost_ctrl_gpu::~nvhost_ctrl_gpu() = default;
 
 NvResult nvhost_ctrl_gpu::Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,

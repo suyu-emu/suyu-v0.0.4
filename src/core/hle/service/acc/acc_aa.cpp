@@ -6,9 +6,10 @@
 
 namespace Service::Account {
 
-ACC_AA::ACC_AA(std::shared_ptr<Module> module, std::shared_ptr<ProfileManager> profile_manager,
-               Core::System& system)
-    : Module::Interface(std::move(module), std::move(profile_manager), system, "acc:aa") {
+ACC_AA::ACC_AA(std::shared_ptr<Module> module_, std::shared_ptr<ProfileManager> profile_manager_,
+               Core::System& system_)
+    : Interface(std::move(module_), std::move(profile_manager_), system_, "acc:aa") {
+    // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "EnsureCacheAsync"},
         {1, nullptr, "LoadCache"},
@@ -16,6 +17,7 @@ ACC_AA::ACC_AA(std::shared_ptr<Module> module, std::shared_ptr<ProfileManager> p
         {50, nullptr, "RegisterNotificationTokenAsync"},   // 1.0.0 - 6.2.0
         {51, nullptr, "UnregisterNotificationTokenAsync"}, // 1.0.0 - 6.2.0
     };
+    // clang-format on
     RegisterHandlers(functions);
 }
 

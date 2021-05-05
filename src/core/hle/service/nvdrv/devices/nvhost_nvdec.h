@@ -11,8 +11,8 @@ namespace Service::Nvidia::Devices {
 
 class nvhost_nvdec final : public nvhost_nvdec_common {
 public:
-    explicit nvhost_nvdec(Core::System& system, std::shared_ptr<nvmap> nvmap_dev,
-                          SyncpointManager& syncpoint_manager);
+    explicit nvhost_nvdec(Core::System& system_, std::shared_ptr<nvmap> nvmap_dev_,
+                          SyncpointManager& syncpoint_manager_);
     ~nvhost_nvdec() override;
 
     NvResult Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,

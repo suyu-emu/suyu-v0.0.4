@@ -241,7 +241,7 @@ void SoftwareKeyboard::InitializeForeground() {
     InitializeFrontendKeyboard();
 }
 
-void SoftwareKeyboard::InitializeBackground(LibraryAppletMode applet_mode) {
+void SoftwareKeyboard::InitializeBackground(LibraryAppletMode library_applet_mode) {
     LOG_INFO(Service_AM, "Initializing Inline Software Keyboard Applet.");
 
     is_background = true;
@@ -256,9 +256,9 @@ void SoftwareKeyboard::InitializeBackground(LibraryAppletMode applet_mode) {
                 swkbd_inline_initialize_arg.size());
 
     if (swkbd_initialize_arg.library_applet_mode_flag) {
-        ASSERT(applet_mode == LibraryAppletMode::Background);
+        ASSERT(library_applet_mode == LibraryAppletMode::Background);
     } else {
-        ASSERT(applet_mode == LibraryAppletMode::BackgroundIndirectDisplay);
+        ASSERT(library_applet_mode == LibraryAppletMode::BackgroundIndirectDisplay);
     }
 }
 
