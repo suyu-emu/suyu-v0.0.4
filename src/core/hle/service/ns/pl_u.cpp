@@ -258,12 +258,12 @@ void PL_U::GetSharedMemoryNativeHandle(Kernel::HLERequestContext& ctx) {
     // Create shared font memory object
     auto& kernel = system.Kernel();
 
-    std::memcpy(system.Kernel().GetFontSharedMem().GetPointer(), impl->shared_font->data(),
+    std::memcpy(kernel.GetFontSharedMem().GetPointer(), impl->shared_font->data(),
                 impl->shared_font->size());
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushCopyObjects(&system.Kernel().GetFontSharedMem());
+    rb.PushCopyObjects(&kernel.GetFontSharedMem());
 }
 
 void PL_U::GetSharedFontInOrderOfPriority(Kernel::HLERequestContext& ctx) {
