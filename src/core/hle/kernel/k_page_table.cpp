@@ -1106,7 +1106,7 @@ constexpr std::size_t KPageTable::GetRegionSize(KMemoryState state) const {
     }
 }
 
-constexpr bool KPageTable::CanContain(VAddr addr, std::size_t size, KMemoryState state) const {
+bool KPageTable::CanContain(VAddr addr, std::size_t size, KMemoryState state) const {
     const VAddr end{addr + size};
     const VAddr last{end - 1};
     const VAddr region_start{GetRegionAddress(state)};

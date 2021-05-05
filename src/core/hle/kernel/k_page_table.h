@@ -64,7 +64,7 @@ public:
         return page_table_impl;
     }
 
-    constexpr bool CanContain(VAddr addr, std::size_t size, KMemoryState state) const;
+    bool CanContain(VAddr addr, std::size_t size, KMemoryState state) const;
 
 private:
     enum class OperationType : u32 {
