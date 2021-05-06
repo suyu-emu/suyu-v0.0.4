@@ -139,11 +139,15 @@ std::optional<u64> NVFlinger::CreateLayer(u64 display_id) {
     }
 
     const u64 layer_id = next_layer_id++;
+    CreateLayerAtId(*display, layer_id);
+    return layer_id;
+}
+
+void NVFlinger::CreateLayerAtId(VI::Display& display, u64 layer_id) {
     const u32 buffer_queue_id = next_buffer_queue_id++;
     buffer_queues.emplace_back(
         std::make_unique<BufferQueue>(system.Kernel(), buffer_queue_id, layer_id));
-    display->CreateLayer(layer_id, *buffer_queues.back());
-    return layer_id;
+    display.CreateLayer(layer_id, *buffer_queues.back());
 }
 
 void NVFlinger::CloseLayer(u64 layer_id) {
@@ -154,9 +158,9 @@ void NVFlinger::CloseLayer(u64 layer_id) {
     }
 }
 
-std::optional<u32> NVFlinger::FindBufferQueueId(u64 display_id, u64 layer_id) const {
+std::optional<u32> NVFlinger::FindBufferQueueId(u64 display_id, u64 layer_id) {
     const auto lock_guard = Lock();
-    const auto* const layer = FindLayer(display_id, layer_id);
+    const auto* const layer = FindOrCreateLayer(display_id, layer_id);
 
     if (layer == nullptr) {
         return std::nullopt;
@@ -230,6 +234,24 @@ const VI::Layer* NVFlinger::FindLayer(u64 display_id, u64 layer_id) const {
     }
 
     return display->FindLayer(layer_id);
+}
+
+VI::Layer* NVFlinger::FindOrCreateLayer(u64 display_id, u64 layer_id) {
+    auto* const display = FindDisplay(display_id);
+
+    if (display == nullptr) {
+        return nullptr;
+    }
+
+    auto* layer = display->FindLayer(layer_id);
+
+    if (layer == nullptr) {
+        LOG_DEBUG(Service, "Layer at id {} not found. Trying to create it.", layer_id);
+        CreateLayerAtId(*display, layer_id);
+        return display->FindLayer(layer_id);
+    }
+
+    return layer;
 }
 
 void NVFlinger::Compose() {

@@ -67,7 +67,7 @@ public:
     /// Finds the buffer queue ID of the specified layer in the specified display.
     ///
     /// If an invalid display ID or layer ID is provided, then an empty optional is returned.
-    [[nodiscard]] std::optional<u32> FindBufferQueueId(u64 display_id, u64 layer_id) const;
+    [[nodiscard]] std::optional<u32> FindBufferQueueId(u64 display_id, u64 layer_id);
 
     /// Gets the vsync event for the specified display.
     ///
@@ -99,6 +99,14 @@ private:
 
     /// Finds the layer identified by the specified ID in the desired display.
     [[nodiscard]] const VI::Layer* FindLayer(u64 display_id, u64 layer_id) const;
+
+    /// Finds the layer identified by the specified ID in the desired display,
+    /// or creates the layer if it is not found.
+    /// To be used when the system expects the specified ID to already exist.
+    [[nodiscard]] VI::Layer* FindOrCreateLayer(u64 display_id, u64 layer_id);
+
+    /// Creates a layer with the specified layer ID in the desired display.
+    void CreateLayerAtId(VI::Display& display, u64 layer_id);
 
     static void VSyncThread(NVFlinger& nv_flinger);
 
