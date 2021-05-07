@@ -387,11 +387,9 @@ public:
         const VAddr bss_end_addr{
             Common::AlignUp(bss_start + nro_header.bss_size, Kernel::PageSize)};
 
-        auto CopyCode{[&](VAddr src_addr, VAddr dst_addr, u64 size) {
-            std::vector<u8> source_data(size);
-            system.Memory().ReadBlock(src_addr, source_data.data(), source_data.size());
-            system.Memory().WriteBlock(dst_addr, source_data.data(), source_data.size());
-        }};
+        const auto CopyCode = [this, process](VAddr src_addr, VAddr dst_addr, u64 size) {
+            system.Memory().CopyBlock(*process, dst_addr, src_addr, size);
+        };
         CopyCode(nro_addr + nro_header.segment_headers[TEXT_INDEX].memory_offset, text_start,
                  nro_header.segment_headers[TEXT_INDEX].memory_size);
         CopyCode(nro_addr + nro_header.segment_headers[RO_INDEX].memory_offset, ro_start,
