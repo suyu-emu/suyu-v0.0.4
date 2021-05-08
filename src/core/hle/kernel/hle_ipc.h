@@ -132,6 +132,10 @@ public:
         return command;
     }
 
+    bool IsTipc() const {
+        return command_header->IsTipc();
+    }
+
     IPC::CommandType GetCommandType() const {
         return command_header->type;
     }
@@ -291,8 +295,10 @@ private:
     std::vector<IPC::BufferDescriptorABW> buffer_w_desciptors;
     std::vector<IPC::BufferDescriptorC> buffer_c_desciptors;
 
-    unsigned data_payload_offset{};
-    unsigned buffer_c_offset{};
+    u32 data_payload_offset{};
+    u32 buffer_c_offset{};
+    u32 handles_offset{};
+    u32 domain_offset{};
     u32_le command{};
 
     std::vector<std::shared_ptr<SessionRequestHandler>> domain_request_handlers;

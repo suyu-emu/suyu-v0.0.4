@@ -26,7 +26,7 @@ class RequestHelperBase {
 protected:
     Kernel::HLERequestContext* context = nullptr;
     u32* cmdbuf;
-    ptrdiff_t index = 0;
+    u32 index = 0;
 
 public:
     explicit RequestHelperBase(u32* command_buffer) : cmdbuf(command_buffer) {}
@@ -38,7 +38,7 @@ public:
         if (set_to_null) {
             memset(cmdbuf + index, 0, size_in_words * sizeof(u32));
         }
-        index += static_cast<ptrdiff_t>(size_in_words);
+        index += size_in_words;
     }
 
     /**
@@ -51,11 +51,11 @@ public:
     }
 
     u32 GetCurrentOffset() const {
-        return static_cast<u32>(index);
+        return index;
     }
 
     void SetCurrentOffset(u32 offset) {
-        index = static_cast<ptrdiff_t>(offset);
+        index = offset;
     }
 };
 
@@ -84,7 +84,9 @@ public:
 
         // The entire size of the raw data section in u32 units, including the 16 bytes of mandatory
         // padding.
-        u64 raw_data_size = sizeof(IPC::DataPayloadHeader) / 4 + 4 + normal_params_size;
+        u32 raw_data_size = ctx.IsTipc()
+                                ? normal_params_size - 1
+                                : sizeof(IPC::DataPayloadHeader) / 4 + 4 + normal_params_size;
 
         u32 num_handles_to_move{};
         u32 num_domain_objects{};
@@ -100,6 +102,10 @@ public:
             raw_data_size += sizeof(DomainMessageHeader) / 4 + num_domain_objects;
         }
 
+        if (ctx.IsTipc()) {
+            header.type.Assign(ctx.GetCommandType());
+        }
+
         header.data_size.Assign(static_cast<u32>(raw_data_size));
         if (num_handles_to_copy || num_handles_to_move) {
             header.enable_handle_descriptor.Assign(1);
@@ -111,22 +117,30 @@ public:
             handle_descriptor_header.num_handles_to_copy.Assign(num_handles_to_copy);
             handle_descriptor_header.num_handles_to_move.Assign(num_handles_to_move);
             PushRaw(handle_descriptor_header);
+
+            ctx.handles_offset = index;
+
             Skip(num_handles_to_copy + num_handles_to_move, true);
         }
 
-        AlignWithPadding();
+        if (!ctx.IsTipc()) {
+            AlignWithPadding();
 
-        if (ctx.Session()->IsDomain() && ctx.HasDomainMessageHeader()) {
-            IPC::DomainMessageHeader domain_header{};
-            domain_header.num_objects = num_domain_objects;
-            PushRaw(domain_header);
+            if (ctx.Session()->IsDomain() && ctx.HasDomainMessageHeader()) {
+                IPC::DomainMessageHeader domain_header{};
+                domain_header.num_objects = num_domain_objects;
+                PushRaw(domain_header);
+            }
+
+            IPC::DataPayloadHeader data_payload_header{};
+            data_payload_header.magic = Common::MakeMagic('S', 'F', 'C', 'O');
+            PushRaw(data_payload_header);
         }
 
-        IPC::DataPayloadHeader data_payload_header{};
-        data_payload_header.magic = Common::MakeMagic('S', 'F', 'C', 'O');
-        PushRaw(data_payload_header);
+        data_payload_index = index;
 
-        datapayload_index = index;
+        ctx.data_payload_offset = index;
+        ctx.domain_offset = index + raw_data_size / 4;
     }
 
     template <class T>
@@ -152,7 +166,7 @@ public:
         const std::size_t num_move_objects = context->NumMoveObjects();
         ASSERT_MSG(!num_domain_objects || !num_move_objects,
                    "cannot move normal handles and domain objects");
-        ASSERT_MSG((index - datapayload_index) == normal_params_size,
+        ASSERT_MSG((index - data_payload_index) == normal_params_size,
                    "normal_params_size value is incorrect");
         ASSERT_MSG((num_domain_objects + num_move_objects) == num_objects_to_move,
                    "num_objects_to_move value is incorrect");
@@ -229,14 +243,14 @@ private:
     u32 normal_params_size{};
     u32 num_handles_to_copy{};
     u32 num_objects_to_move{}; ///< Domain objects or move handles, context dependent
-    std::ptrdiff_t datapayload_index{};
+    u32 data_payload_index{};
     Kernel::KernelCore& kernel;
 };
 
 /// Push ///
 
 inline void ResponseBuilder::PushImpl(s32 value) {
-    cmdbuf[index++] = static_cast<u32>(value);
+    cmdbuf[index++] = value;
 }
 
 inline void ResponseBuilder::PushImpl(u32 value) {
