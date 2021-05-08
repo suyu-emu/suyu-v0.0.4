@@ -169,10 +169,9 @@ private:
 
 class IAudioDevice final : public ServiceFramework<IAudioDevice> {
 public:
-    explicit IAudioDevice(Core::System& system_, u32_le revision_num)
-        : ServiceFramework{system_, "IAudioDevice"}, revision{revision_num},
-          buffer_event{system.Kernel()}, audio_input_device_switch_event{system.Kernel()},
-          audio_output_device_switch_event{system.Kernel()} {
+    explicit IAudioDevice(Core::System& system_, Kernel::KEvent& buffer_event_, u32_le revision_)
+        : ServiceFramework{system_, "IAudioDevice"}, buffer_event{buffer_event_}, revision{
+                                                                                      revision_} {
         static const FunctionInfo functions[] = {
             {0, &IAudioDevice::ListAudioDeviceName, "ListAudioDeviceName"},
             {1, &IAudioDevice::SetAudioDeviceOutputVolume, "SetAudioDeviceOutputVolume"},
@@ -189,18 +188,6 @@ public:
             {13, nullptr, "GetAudioSystemMasterVolumeSetting"},
         };
         RegisterHandlers(functions);
-
-        Kernel::KAutoObject::Create(std::addressof(buffer_event));
-        buffer_event.Initialize("IAudioOutBufferReleasedEvent");
-
-        // Should be similar to audio_output_device_switch_event
-        Kernel::KAutoObject::Create(std::addressof(audio_input_device_switch_event));
-        audio_input_device_switch_event.Initialize("IAudioDevice:AudioInputDeviceSwitchedEvent");
-
-        // Should only be signalled when an audio output device has been changed, example: speaker
-        // to headset
-        Kernel::KAutoObject::Create(std::addressof(audio_output_device_switch_event));
-        audio_output_device_switch_event.Initialize("IAudioDevice:AudioOutputDeviceSwitchedEvent");
     }
 
 private:
@@ -310,7 +297,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(audio_input_device_switch_event.GetReadableEvent());
+        rb.PushCopyObjects(buffer_event.GetReadableEvent());
     }
 
     void QueryAudioDeviceOutputEvent(Kernel::HLERequestContext& ctx) {
@@ -318,17 +305,16 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(audio_output_device_switch_event.GetReadableEvent());
+        rb.PushCopyObjects(buffer_event.GetReadableEvent());
     }
 
+    Kernel::KEvent& buffer_event;
     u32_le revision = 0;
-    Kernel::KEvent buffer_event;
-    Kernel::KEvent audio_input_device_switch_event;
-    Kernel::KEvent audio_output_device_switch_event;
+};
 
-}; // namespace Audio
+AudRenU::AudRenU(Core::System& system_)
+    : ServiceFramework{system_, "audren:u"}, buffer_event{system.Kernel()} {
 
-AudRenU::AudRenU(Core::System& system_) : ServiceFramework{system_, "audren:u"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &AudRenU::OpenAudioRenderer, "OpenAudioRenderer"},
@@ -340,6 +326,9 @@ AudRenU::AudRenU(Core::System& system_) : ServiceFramework{system_, "audren:u"} 
     // clang-format on
 
     RegisterHandlers(functions);
+
+    Kernel::KAutoObject::Create(std::addressof(buffer_event));
+    buffer_event.Initialize("IAudioOutBufferReleasedEvent");
 }
 
 AudRenU::~AudRenU() = default;
@@ -662,7 +651,7 @@ void AudRenU::GetAudioDeviceService(Kernel::HLERequestContext& ctx) {
     // always assumes the initial release revision (REV1).
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<IAudioDevice>(system, Common::MakeMagic('R', 'E', 'V', '1'));
+    rb.PushIpcInterface<IAudioDevice>(system, buffer_event, Common::MakeMagic('R', 'E', 'V', '1'));
 }
 
 void AudRenU::OpenAudioRendererForManualExecution(Kernel::HLERequestContext& ctx) {
@@ -684,7 +673,7 @@ void AudRenU::GetAudioDeviceServiceWithRevisionInfo(Kernel::HLERequestContext& c
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<IAudioDevice>(system, revision);
+    rb.PushIpcInterface<IAudioDevice>(system, buffer_event, revision);
 }
 
 void AudRenU::OpenAudioRendererImpl(Kernel::HLERequestContext& ctx) {
