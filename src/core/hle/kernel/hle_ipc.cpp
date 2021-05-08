@@ -99,7 +99,7 @@ void HLERequestContext::ParseCommandBuffer(const KHandleTable& handle_table, u32
         buffer_w_desciptors.push_back(rp.PopRaw<IPC::BufferDescriptorABW>());
     }
 
-    buffer_c_offset = rp.GetCurrentOffset() + command_header->data_size;
+    const auto buffer_c_offset = rp.GetCurrentOffset() + command_header->data_size;
 
     // Padding to align to 16 bytes
     rp.AlignWithPadding();
