@@ -7,7 +7,7 @@
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/process.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/service/pctl/module.h"
 #include "core/hle/service/pctl/pctl.h"
 

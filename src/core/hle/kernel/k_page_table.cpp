@@ -11,11 +11,11 @@
 #include "core/hle/kernel/k_memory_block_manager.h"
 #include "core/hle/kernel/k_page_linked_list.h"
 #include "core/hle/kernel/k_page_table.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scoped_resource_reservation.h"
 #include "core/hle/kernel/k_system_control.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/process.h"
 #include "core/hle/kernel/svc_results.h"
 #include "core/memory.h"
 
@@ -420,7 +420,7 @@ ResultCode KPageTable::MapPhysicalMemory(VAddr addr, std::size_t size) {
         remaining_size);
     if (!memory_reservation.Succeeded()) {
         LOG_ERROR(Kernel, "Could not reserve remaining {:X} bytes", remaining_size);
-        return ResultResourceLimitedExceeded;
+        return ResultLimitReached;
     }
 
     KPageLinkedList page_linked_list;
@@ -578,7 +578,7 @@ ResultCode KPageTable::Unmap(VAddr dst_addr, VAddr src_addr, std::size_t size) {
     AddRegionToPages(dst_addr, num_pages, dst_pages);
 
     if (!dst_pages.IsEqual(src_pages)) {
-        return ResultInvalidMemoryRange;
+        return ResultInvalidMemoryRegion;
     }
 
     {
@@ -637,6 +637,45 @@ ResultCode KPageTable::MapPages(VAddr addr, KPageLinkedList& page_linked_list, K
     CASCADE_CODE(MapPages(addr, page_linked_list, perm));
 
     block_manager->Update(addr, num_pages, state, perm);
+
+    return RESULT_SUCCESS;
+}
+
+ResultCode KPageTable::UnmapPages(VAddr addr, const KPageLinkedList& page_linked_list) {
+    VAddr cur_addr{addr};
+
+    for (const auto& node : page_linked_list.Nodes()) {
+        const std::size_t num_pages{(addr - cur_addr) / PageSize};
+        if (const auto result{
+                Operate(addr, num_pages, KMemoryPermission::None, OperationType::Unmap)};
+            result.IsError()) {
+            return result;
+        }
+
+        cur_addr += node.GetNumPages() * PageSize;
+    }
+
+    return RESULT_SUCCESS;
+}
+
+ResultCode KPageTable::UnmapPages(VAddr addr, KPageLinkedList& page_linked_list,
+                                  KMemoryState state) {
+    std::lock_guard lock{page_table_lock};
+
+    const std::size_t num_pages{page_linked_list.GetNumPages()};
+    const std::size_t size{num_pages * PageSize};
+
+    if (!CanContain(addr, size, state)) {
+        return ResultInvalidCurrentMemory;
+    }
+
+    if (IsRegionMapped(addr, num_pages * PageSize)) {
+        return ResultInvalidCurrentMemory;
+    }
+
+    CASCADE_CODE(UnmapPages(addr, page_linked_list));
+
+    block_manager->Update(addr, num_pages, state, KMemoryPermission::None);
 
     return RESULT_SUCCESS;
 }
@@ -790,7 +829,7 @@ ResultVal<VAddr> KPageTable::SetHeapSize(std::size_t size) {
 
         if (!memory_reservation.Succeeded()) {
             LOG_ERROR(Kernel, "Could not reserve heap extension of size {:X} bytes", delta);
-            return ResultResourceLimitedExceeded;
+            return ResultLimitReached;
         }
 
         KPageLinkedList page_linked_list;
@@ -1067,7 +1106,7 @@ constexpr std::size_t KPageTable::GetRegionSize(KMemoryState state) const {
     }
 }
 
-constexpr bool KPageTable::CanContain(VAddr addr, std::size_t size, KMemoryState state) const {
+bool KPageTable::CanContain(VAddr addr, std::size_t size, KMemoryState state) const {
     const VAddr end{addr + size};
     const VAddr last{end - 1};
     const VAddr region_start{GetRegionAddress(state)};

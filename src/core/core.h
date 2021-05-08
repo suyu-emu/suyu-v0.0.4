@@ -12,7 +12,6 @@
 
 #include "common/common_types.h"
 #include "core/file_sys/vfs_types.h"
-#include "core/hle/kernel/object.h"
 
 namespace Core::Frontend {
 class EmuWindow;
@@ -29,7 +28,7 @@ namespace Kernel {
 class GlobalSchedulerContext;
 class KernelCore;
 class PhysicalCore;
-class Process;
+class KProcess;
 class KScheduler;
 } // namespace Kernel
 
@@ -264,10 +263,10 @@ public:
     [[nodiscard]] const Core::DeviceMemory& DeviceMemory() const;
 
     /// Provides a pointer to the current process
-    [[nodiscard]] Kernel::Process* CurrentProcess();
+    [[nodiscard]] Kernel::KProcess* CurrentProcess();
 
     /// Provides a constant pointer to the current process.
-    [[nodiscard]] const Kernel::Process* CurrentProcess() const;
+    [[nodiscard]] const Kernel::KProcess* CurrentProcess() const;
 
     /// Provides a reference to the core timing instance.
     [[nodiscard]] Timing::CoreTiming& CoreTiming();

@@ -108,6 +108,14 @@ __declspec(dllimport) void __stdcall DebugBreak(void);
         }                                                                                          \
     }
 
+#define YUZU_NON_COPYABLE(cls)                                                                     \
+    cls(const cls&) = delete;                                                                      \
+    cls& operator=(const cls&) = delete
+
+#define YUZU_NON_MOVEABLE(cls)                                                                     \
+    cls(cls&&) = delete;                                                                           \
+    cls& operator=(cls&&) = delete
+
 #define R_SUCCEEDED(res) (res.IsSuccess())
 
 /// Evaluates an expression that returns a result, and returns the result if it would fail.
@@ -126,6 +134,21 @@ namespace Common {
 
 [[nodiscard]] constexpr u32 MakeMagic(char a, char b, char c, char d) {
     return u32(a) | u32(b) << 8 | u32(c) << 16 | u32(d) << 24;
+}
+
+// std::size() does not support zero-size C arrays. We're fixing that.
+template <class C>
+constexpr auto Size(const C& c) -> decltype(c.size()) {
+    return std::size(c);
+}
+
+template <class C>
+constexpr std::size_t Size(const C& c) {
+    if constexpr (sizeof(C) == 0) {
+        return 0;
+    } else {
+        return std::size(c);
+    }
 }
 
 } // namespace Common

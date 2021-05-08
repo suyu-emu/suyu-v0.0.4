@@ -4,8 +4,9 @@
 
 #pragma once
 
+#include "core/hle/kernel/k_auto_object.h"
 #include "core/hle/kernel/k_synchronization_object.h"
-#include "core/hle/kernel/object.h"
+#include "core/hle/kernel/slab_helpers.h"
 #include "core/hle/result.h"
 
 namespace Kernel {
@@ -13,31 +14,25 @@ namespace Kernel {
 class KernelCore;
 class KEvent;
 
-class KReadableEvent final : public KSynchronizationObject {
+class KReadableEvent : public KSynchronizationObject {
+    KERNEL_AUTOOBJECT_TRAITS(KReadableEvent, KSynchronizationObject);
+
 public:
-    explicit KReadableEvent(KernelCore& kernel, std::string&& name);
+    explicit KReadableEvent(KernelCore& kernel);
     ~KReadableEvent() override;
 
-    std::string GetTypeName() const override {
-        return "KReadableEvent";
-    }
-
-    static constexpr HandleType HANDLE_TYPE = HandleType::ReadableEvent;
-    HandleType GetHandleType() const override {
-        return HANDLE_TYPE;
+    void Initialize(KEvent* parent_, std::string&& name_) {
+        is_signaled = false;
+        parent = parent_;
+        name = std::move(name_);
     }
 
     KEvent* GetParent() const {
         return parent;
     }
 
-    void Initialize(KEvent* parent_) {
-        is_signaled = false;
-        parent = parent_;
-    }
-
-    bool IsSignaled() const override;
-    void Finalize() override {}
+    virtual bool IsSignaled() const override;
+    virtual void Destroy() override;
 
     ResultCode Signal();
     ResultCode Clear();

@@ -17,8 +17,8 @@
 #include "core/core.h"
 #include "core/device_memory.h"
 #include "core/hle/kernel/k_page_table.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/physical_memory.h"
-#include "core/hle/kernel/process.h"
 #include "core/memory.h"
 #include "video_core/gpu.h"
 
@@ -30,7 +30,7 @@ namespace Core::Memory {
 struct Memory::Impl {
     explicit Impl(Core::System& system_) : system{system_} {}
 
-    void SetCurrentPageTable(Kernel::Process& process, u32 core_id) {
+    void SetCurrentPageTable(Kernel::KProcess& process, u32 core_id) {
         current_page_table = &process.PageTable().PageTableImpl();
 
         const std::size_t address_space_width = process.PageTable().GetAddressSpaceWidth();
@@ -50,7 +50,7 @@ struct Memory::Impl {
         MapPages(page_table, base / PAGE_SIZE, size / PAGE_SIZE, 0, Common::PageType::Unmapped);
     }
 
-    bool IsValidVirtualAddress(const Kernel::Process& process, const VAddr vaddr) const {
+    bool IsValidVirtualAddress(const Kernel::KProcess& process, const VAddr vaddr) const {
         const auto& page_table = process.PageTable().PageTableImpl();
         const auto [pointer, type] = page_table.pointers[vaddr >> PAGE_BITS].PointerType();
         return pointer != nullptr || type == Common::PageType::RasterizerCachedMemory;
@@ -80,6 +80,22 @@ struct Memory::Impl {
             return GetPointerFromRasterizerCachedMemory(vaddr);
         }
         return nullptr;
+    }
+
+    u8* GetKernelBuffer(VAddr start_vaddr, size_t size) {
+        // TODO(bunnei): This is just a workaround until we have kernel memory layout mapped &
+        // managed. Until then, we use this to allocate and access kernel memory regions.
+
+        auto search = kernel_memory_regions.find(start_vaddr);
+        if (search != kernel_memory_regions.end()) {
+            return search->second.get();
+        }
+
+        std::unique_ptr<u8[]> new_memory_region{new u8[size]};
+        u8* raw_ptr = new_memory_region.get();
+        kernel_memory_regions[start_vaddr] = std::move(new_memory_region);
+
+        return raw_ptr;
     }
 
     u8 Read8(const VAddr addr) {
@@ -178,7 +194,7 @@ struct Memory::Impl {
         return string;
     }
 
-    void ReadBlock(const Kernel::Process& process, const VAddr src_addr, void* dest_buffer,
+    void ReadBlock(const Kernel::KProcess& process, const VAddr src_addr, void* dest_buffer,
                    const std::size_t size) {
         const auto& page_table = process.PageTable().PageTableImpl();
 
@@ -223,7 +239,7 @@ struct Memory::Impl {
         }
     }
 
-    void ReadBlockUnsafe(const Kernel::Process& process, const VAddr src_addr, void* dest_buffer,
+    void ReadBlockUnsafe(const Kernel::KProcess& process, const VAddr src_addr, void* dest_buffer,
                          const std::size_t size) {
         const auto& page_table = process.PageTable().PageTableImpl();
 
@@ -275,7 +291,7 @@ struct Memory::Impl {
         ReadBlockUnsafe(*system.CurrentProcess(), src_addr, dest_buffer, size);
     }
 
-    void WriteBlock(const Kernel::Process& process, const VAddr dest_addr, const void* src_buffer,
+    void WriteBlock(const Kernel::KProcess& process, const VAddr dest_addr, const void* src_buffer,
                     const std::size_t size) {
         const auto& page_table = process.PageTable().PageTableImpl();
         std::size_t remaining_size = size;
@@ -318,7 +334,7 @@ struct Memory::Impl {
         }
     }
 
-    void WriteBlockUnsafe(const Kernel::Process& process, const VAddr dest_addr,
+    void WriteBlockUnsafe(const Kernel::KProcess& process, const VAddr dest_addr,
                           const void* src_buffer, const std::size_t size) {
         const auto& page_table = process.PageTable().PageTableImpl();
         std::size_t remaining_size = size;
@@ -368,7 +384,7 @@ struct Memory::Impl {
         WriteBlockUnsafe(*system.CurrentProcess(), dest_addr, src_buffer, size);
     }
 
-    void ZeroBlock(const Kernel::Process& process, const VAddr dest_addr, const std::size_t size) {
+    void ZeroBlock(const Kernel::KProcess& process, const VAddr dest_addr, const std::size_t size) {
         const auto& page_table = process.PageTable().PageTableImpl();
         std::size_t remaining_size = size;
         std::size_t page_index = dest_addr >> PAGE_BITS;
@@ -413,7 +429,7 @@ struct Memory::Impl {
         ZeroBlock(*system.CurrentProcess(), dest_addr, size);
     }
 
-    void CopyBlock(const Kernel::Process& process, VAddr dest_addr, VAddr src_addr,
+    void CopyBlock(const Kernel::KProcess& process, VAddr dest_addr, VAddr src_addr,
                    const std::size_t size) {
         const auto& page_table = process.PageTable().PageTableImpl();
         std::size_t remaining_size = size;
@@ -711,13 +727,21 @@ struct Memory::Impl {
     }
 
     Common::PageTable* current_page_table = nullptr;
+    std::unordered_map<VAddr, std::unique_ptr<u8[]>> kernel_memory_regions;
     Core::System& system;
 };
 
-Memory::Memory(Core::System& system) : impl{std::make_unique<Impl>(system)} {}
+Memory::Memory(Core::System& system_) : system{system_} {
+    Reset();
+}
+
 Memory::~Memory() = default;
 
-void Memory::SetCurrentPageTable(Kernel::Process& process, u32 core_id) {
+void Memory::Reset() {
+    impl = std::make_unique<Impl>(system);
+}
+
+void Memory::SetCurrentPageTable(Kernel::KProcess& process, u32 core_id) {
     impl->SetCurrentPageTable(process, core_id);
 }
 
@@ -729,7 +753,7 @@ void Memory::UnmapRegion(Common::PageTable& page_table, VAddr base, u64 size) {
     impl->UnmapRegion(page_table, base, size);
 }
 
-bool Memory::IsValidVirtualAddress(const Kernel::Process& process, const VAddr vaddr) const {
+bool Memory::IsValidVirtualAddress(const Kernel::KProcess& process, const VAddr vaddr) const {
     return impl->IsValidVirtualAddress(process, vaddr);
 }
 
@@ -739,6 +763,10 @@ bool Memory::IsValidVirtualAddress(const VAddr vaddr) const {
 
 u8* Memory::GetPointer(VAddr vaddr) {
     return impl->GetPointer(vaddr);
+}
+
+u8* Memory::GetKernelBuffer(VAddr start_vaddr, size_t size) {
+    return impl->GetKernelBuffer(start_vaddr, size);
 }
 
 const u8* Memory::GetPointer(VAddr vaddr) const {
@@ -801,7 +829,7 @@ std::string Memory::ReadCString(VAddr vaddr, std::size_t max_length) {
     return impl->ReadCString(vaddr, max_length);
 }
 
-void Memory::ReadBlock(const Kernel::Process& process, const VAddr src_addr, void* dest_buffer,
+void Memory::ReadBlock(const Kernel::KProcess& process, const VAddr src_addr, void* dest_buffer,
                        const std::size_t size) {
     impl->ReadBlock(process, src_addr, dest_buffer, size);
 }
@@ -810,7 +838,7 @@ void Memory::ReadBlock(const VAddr src_addr, void* dest_buffer, const std::size_
     impl->ReadBlock(src_addr, dest_buffer, size);
 }
 
-void Memory::ReadBlockUnsafe(const Kernel::Process& process, const VAddr src_addr,
+void Memory::ReadBlockUnsafe(const Kernel::KProcess& process, const VAddr src_addr,
                              void* dest_buffer, const std::size_t size) {
     impl->ReadBlockUnsafe(process, src_addr, dest_buffer, size);
 }
@@ -819,7 +847,7 @@ void Memory::ReadBlockUnsafe(const VAddr src_addr, void* dest_buffer, const std:
     impl->ReadBlockUnsafe(src_addr, dest_buffer, size);
 }
 
-void Memory::WriteBlock(const Kernel::Process& process, VAddr dest_addr, const void* src_buffer,
+void Memory::WriteBlock(const Kernel::KProcess& process, VAddr dest_addr, const void* src_buffer,
                         std::size_t size) {
     impl->WriteBlock(process, dest_addr, src_buffer, size);
 }
@@ -828,7 +856,7 @@ void Memory::WriteBlock(const VAddr dest_addr, const void* src_buffer, const std
     impl->WriteBlock(dest_addr, src_buffer, size);
 }
 
-void Memory::WriteBlockUnsafe(const Kernel::Process& process, VAddr dest_addr,
+void Memory::WriteBlockUnsafe(const Kernel::KProcess& process, VAddr dest_addr,
                               const void* src_buffer, std::size_t size) {
     impl->WriteBlockUnsafe(process, dest_addr, src_buffer, size);
 }
@@ -838,7 +866,7 @@ void Memory::WriteBlockUnsafe(const VAddr dest_addr, const void* src_buffer,
     impl->WriteBlockUnsafe(dest_addr, src_buffer, size);
 }
 
-void Memory::ZeroBlock(const Kernel::Process& process, VAddr dest_addr, std::size_t size) {
+void Memory::ZeroBlock(const Kernel::KProcess& process, VAddr dest_addr, std::size_t size) {
     impl->ZeroBlock(process, dest_addr, size);
 }
 
@@ -846,7 +874,7 @@ void Memory::ZeroBlock(VAddr dest_addr, std::size_t size) {
     impl->ZeroBlock(dest_addr, size);
 }
 
-void Memory::CopyBlock(const Kernel::Process& process, VAddr dest_addr, VAddr src_addr,
+void Memory::CopyBlock(const Kernel::KProcess& process, VAddr dest_addr, VAddr src_addr,
                        const std::size_t size) {
     impl->CopyBlock(process, dest_addr, src_addr, size);
 }

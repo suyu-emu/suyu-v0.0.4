@@ -37,10 +37,6 @@ IRS::IRS(Core::System& system_) : ServiceFramework{system_, "irs"} {
     // clang-format on
 
     RegisterHandlers(functions);
-
-    auto& kernel = system.Kernel();
-
-    shared_mem = SharedFrom(&kernel.GetIrsSharedMem());
 }
 
 void IRS::ActivateIrsensor(Kernel::HLERequestContext& ctx) {
@@ -62,7 +58,7 @@ void IRS::GetIrsensorSharedMemoryHandle(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushCopyObjects(shared_mem);
+    rb.PushCopyObjects(&system.Kernel().GetIrsSharedMem());
 }
 
 void IRS::StopImageProcessor(Kernel::HLERequestContext& ctx) {

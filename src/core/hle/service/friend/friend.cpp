@@ -185,7 +185,8 @@ private:
 class INotificationService final : public ServiceFramework<INotificationService> {
 public:
     explicit INotificationService(Common::UUID uuid_, Core::System& system_)
-        : ServiceFramework{system_, "INotificationService"}, uuid{uuid_} {
+        : ServiceFramework{system_, "INotificationService"}, uuid{uuid_}, notification_event{
+                                                                              system.Kernel()} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &INotificationService::GetEvent, "GetEvent"},
@@ -196,9 +197,8 @@ public:
 
         RegisterHandlers(functions);
 
-        notification_event =
-            Kernel::KEvent::Create(system.Kernel(), "INotificationService:NotifyEvent");
-        notification_event->Initialize();
+        Kernel::KAutoObject::Create(std::addressof(notification_event));
+        notification_event.Initialize("INotificationService:NotifyEvent");
     }
 
 private:
@@ -207,7 +207,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(notification_event->GetReadableEvent());
+        rb.PushCopyObjects(notification_event.GetReadableEvent());
     }
 
     void Clear(Kernel::HLERequestContext& ctx) {
@@ -273,7 +273,7 @@ private:
     };
 
     Common::UUID uuid{Common::INVALID_UUID};
-    std::shared_ptr<Kernel::KEvent> notification_event;
+    Kernel::KEvent notification_event;
     std::queue<SizedNotificationInfo> notifications;
     States states{};
 };

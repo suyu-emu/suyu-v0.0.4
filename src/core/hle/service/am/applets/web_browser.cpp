@@ -17,7 +17,7 @@
 #include "core/file_sys/system_archive/system_archive.h"
 #include "core/file_sys/vfs_vector.h"
 #include "core/frontend/applets/web_browser.h"
-#include "core/hle/kernel/process.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/result.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applets/web_browser.h"

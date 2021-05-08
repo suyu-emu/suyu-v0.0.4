@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "core/hle/kernel/k_event.h"
 #include "core/hle/service/service.h"
 
 namespace Core {
@@ -31,7 +32,7 @@ private:
     void CreatePermanentEcPurchasedEventManager(Kernel::HLERequestContext& ctx);
 
     std::vector<u64> add_on_content;
-    std::shared_ptr<Kernel::KEvent> aoc_change_event;
+    Kernel::KEvent aoc_change_event;
 };
 
 /// Registers all AOC services with the specified service manager.

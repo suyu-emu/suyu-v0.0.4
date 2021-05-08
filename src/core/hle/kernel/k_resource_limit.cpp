@@ -10,9 +10,15 @@
 namespace Kernel {
 constexpr s64 DefaultTimeout = 10000000000; // 10 seconds
 
-KResourceLimit::KResourceLimit(KernelCore& kernel, const Core::Timing::CoreTiming& core_timing_)
-    : Object{kernel}, lock{kernel}, cond_var{kernel}, core_timing(core_timing_) {}
+KResourceLimit::KResourceLimit(KernelCore& kernel)
+    : KAutoObjectWithSlabHeapAndContainer{kernel}, lock{kernel}, cond_var{kernel} {}
 KResourceLimit::~KResourceLimit() = default;
+
+void KResourceLimit::Initialize(const Core::Timing::CoreTiming* core_timing_) {
+    core_timing = core_timing_;
+}
+
+void KResourceLimit::Finalize() {}
 
 s64 KResourceLimit::GetLimitValue(LimitableResource which) const {
     const auto index = static_cast<std::size_t>(which);
@@ -78,7 +84,7 @@ ResultCode KResourceLimit::SetLimitValue(LimitableResource which, s64 value) {
 }
 
 bool KResourceLimit::Reserve(LimitableResource which, s64 value) {
-    return Reserve(which, value, core_timing.GetGlobalTimeNs().count() + DefaultTimeout);
+    return Reserve(which, value, core_timing->GetGlobalTimeNs().count() + DefaultTimeout);
 }
 
 bool KResourceLimit::Reserve(LimitableResource which, s64 value, s64 timeout) {
@@ -109,7 +115,7 @@ bool KResourceLimit::Reserve(LimitableResource which, s64 value, s64 timeout) {
         }
 
         if (current_hints[index] + value <= limit_values[index] &&
-            (timeout < 0 || core_timing.GetGlobalTimeNs().count() < timeout)) {
+            (timeout < 0 || core_timing->GetGlobalTimeNs().count() < timeout)) {
             waiter_count++;
             cond_var.Wait(&lock, timeout);
             waiter_count--;

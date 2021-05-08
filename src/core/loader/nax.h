@@ -37,7 +37,7 @@ public:
 
     FileType GetFileType() const override;
 
-    LoadResult Load(Kernel::Process& process, Core::System& system) override;
+    LoadResult Load(Kernel::KProcess& process, Core::System& system) override;
 
     ResultStatus ReadRomFS(FileSys::VirtualFile& dir) override;
     u64 ReadRomFSIVFCOffset() const override;

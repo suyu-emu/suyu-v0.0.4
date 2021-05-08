@@ -21,7 +21,7 @@
 #include "core/file_sys/sdmc_factory.h"
 #include "core/file_sys/vfs.h"
 #include "core/file_sys/vfs_offset.h"
-#include "core/hle/kernel/process.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/filesystem/fsp_ldr.h"
 #include "core/hle/service/filesystem/fsp_pr.h"

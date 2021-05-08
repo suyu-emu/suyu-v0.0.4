@@ -4,7 +4,6 @@
 
 #include "common/assert.h"
 #include "core/core.h"
-#include "core/hle/kernel/k_event.h"
 #include "core/hle/service/time/standard_local_system_clock_core.h"
 #include "core/hle/service/time/standard_network_system_clock_core.h"
 #include "core/hle/service/time/standard_user_system_clock_core.h"
@@ -17,10 +16,10 @@ StandardUserSystemClockCore::StandardUserSystemClockCore(
     : SystemClockCore(local_system_clock_core.GetSteadyClockCore()),
       local_system_clock_core{local_system_clock_core},
       network_system_clock_core{network_system_clock_core}, auto_correction_enabled{},
-      auto_correction_time{SteadyClockTimePoint::GetRandom()},
-      auto_correction_event{Kernel::KEvent::Create(
-          system.Kernel(), "StandardUserSystemClockCore:AutoCorrectionEvent")} {
-    auto_correction_event->Initialize();
+      auto_correction_time{SteadyClockTimePoint::GetRandom()}, auto_correction_event{
+                                                                   system.Kernel()} {
+    Kernel::KAutoObject::Create(std::addressof(auto_correction_event));
+    auto_correction_event.Initialize("StandardUserSystemClockCore:AutoCorrectionEvent");
 }
 
 ResultCode StandardUserSystemClockCore::SetAutomaticCorrectionEnabled(Core::System& system,

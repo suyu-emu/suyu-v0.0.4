@@ -8,15 +8,14 @@
 #pragma once
 
 #include "common/common_types.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_resource_limit.h"
-#include "core/hle/kernel/process.h"
 
 namespace Kernel {
 
 class KScopedResourceReservation {
 public:
-    explicit KScopedResourceReservation(std::shared_ptr<KResourceLimit> l, LimitableResource r,
-                                        s64 v, s64 timeout)
+    explicit KScopedResourceReservation(KResourceLimit* l, LimitableResource r, s64 v, s64 timeout)
         : resource_limit(std::move(l)), value(v), resource(r) {
         if (resource_limit && value) {
             success = resource_limit->Reserve(resource, value, timeout);
@@ -25,8 +24,7 @@ public:
         }
     }
 
-    explicit KScopedResourceReservation(std::shared_ptr<KResourceLimit> l, LimitableResource r,
-                                        s64 v = 1)
+    explicit KScopedResourceReservation(KResourceLimit* l, LimitableResource r, s64 v = 1)
         : resource_limit(std::move(l)), value(v), resource(r) {
         if (resource_limit && value) {
             success = resource_limit->Reserve(resource, value);
@@ -35,10 +33,10 @@ public:
         }
     }
 
-    explicit KScopedResourceReservation(const Process* p, LimitableResource r, s64 v, s64 t)
+    explicit KScopedResourceReservation(const KProcess* p, LimitableResource r, s64 v, s64 t)
         : KScopedResourceReservation(p->GetResourceLimit(), r, v, t) {}
 
-    explicit KScopedResourceReservation(const Process* p, LimitableResource r, s64 v = 1)
+    explicit KScopedResourceReservation(const KProcess* p, LimitableResource r, s64 v = 1)
         : KScopedResourceReservation(p->GetResourceLimit(), r, v) {}
 
     ~KScopedResourceReservation() noexcept {
@@ -58,7 +56,7 @@ public:
     }
 
 private:
-    std::shared_ptr<KResourceLimit> resource_limit;
+    KResourceLimit* resource_limit{};
     s64 value;
     LimitableResource resource;
     bool success;

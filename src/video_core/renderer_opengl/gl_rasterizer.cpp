@@ -19,7 +19,7 @@
 #include "common/scope_exit.h"
 #include "common/settings.h"
 #include "core/core.h"
-#include "core/hle/kernel/process.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/memory.h"
 #include "video_core/engines/kepler_compute.h"
 #include "video_core/engines/maxwell_3d.h"

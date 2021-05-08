@@ -134,6 +134,10 @@ enum class KMemoryPermission : u8 {
 };
 DECLARE_ENUM_FLAG_OPERATORS(KMemoryPermission);
 
+constexpr KMemoryPermission ConvertToKMemoryPermission(Svc::MemoryPermission perm) {
+    return static_cast<KMemoryPermission>(perm);
+}
+
 enum class KMemoryAttribute : u8 {
     None = 0x00,
     Mask = 0x7F,

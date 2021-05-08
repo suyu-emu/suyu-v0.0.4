@@ -4,8 +4,8 @@
 
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/process.h"
 #include "core/hle/service/pm/pm.h"
 #include "core/hle/service/service.h"
 
@@ -17,9 +17,9 @@ constexpr ResultCode ERROR_PROCESS_NOT_FOUND{ErrorModule::PM, 1};
 
 constexpr u64 NO_PROCESS_FOUND_PID{0};
 
-std::optional<std::shared_ptr<Kernel::Process>> SearchProcessList(
-    const std::vector<std::shared_ptr<Kernel::Process>>& process_list,
-    std::function<bool(const std::shared_ptr<Kernel::Process>&)> predicate) {
+std::optional<Kernel::KProcess*> SearchProcessList(
+    const std::vector<Kernel::KProcess*>& process_list,
+    std::function<bool(Kernel::KProcess*)> predicate) {
     const auto iter = std::find_if(process_list.begin(), process_list.end(), predicate);
 
     if (iter == process_list.end()) {
@@ -30,9 +30,9 @@ std::optional<std::shared_ptr<Kernel::Process>> SearchProcessList(
 }
 
 void GetApplicationPidGeneric(Kernel::HLERequestContext& ctx,
-                              const std::vector<std::shared_ptr<Kernel::Process>>& process_list) {
+                              const std::vector<Kernel::KProcess*>& process_list) {
     const auto process = SearchProcessList(process_list, [](const auto& process) {
-        return process->GetProcessID() == Kernel::Process::ProcessIDMin;
+        return process->GetProcessID() == Kernel::KProcess::ProcessIDMin;
     });
 
     IPC::ResponseBuilder rb{ctx, 4};
@@ -125,8 +125,7 @@ private:
 
 class Info final : public ServiceFramework<Info> {
 public:
-    explicit Info(Core::System& system_,
-                  const std::vector<std::shared_ptr<Kernel::Process>>& process_list_)
+    explicit Info(Core::System& system_, const std::vector<Kernel::KProcess*>& process_list_)
         : ServiceFramework{system_, "pm:info"}, process_list{process_list_} {
         static const FunctionInfo functions[] = {
             {0, &Info::GetTitleId, "GetTitleId"},
@@ -156,7 +155,7 @@ private:
         rb.Push((*process)->GetTitleID());
     }
 
-    const std::vector<std::shared_ptr<Kernel::Process>>& process_list;
+    const std::vector<Kernel::KProcess*>& process_list;
 };
 
 class Shell final : public ServiceFramework<Shell> {

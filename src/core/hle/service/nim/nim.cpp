@@ -300,7 +300,8 @@ class IEnsureNetworkClockAvailabilityService final
     : public ServiceFramework<IEnsureNetworkClockAvailabilityService> {
 public:
     explicit IEnsureNetworkClockAvailabilityService(Core::System& system_)
-        : ServiceFramework{system_, "IEnsureNetworkClockAvailabilityService"} {
+        : ServiceFramework{system_, "IEnsureNetworkClockAvailabilityService"},
+          finished_event{system.Kernel()} {
         static const FunctionInfo functions[] = {
             {0, &IEnsureNetworkClockAvailabilityService::StartTask, "StartTask"},
             {1, &IEnsureNetworkClockAvailabilityService::GetFinishNotificationEvent,
@@ -312,19 +313,17 @@ public:
         };
         RegisterHandlers(functions);
 
-        auto& kernel = system.Kernel();
-        finished_event =
-            Kernel::KEvent::Create(kernel, "IEnsureNetworkClockAvailabilityService:FinishEvent");
-        finished_event->Initialize();
+        Kernel::KAutoObject::Create(std::addressof(finished_event));
+        finished_event.Initialize("IEnsureNetworkClockAvailabilityService:FinishEvent");
     }
 
 private:
-    std::shared_ptr<Kernel::KEvent> finished_event;
+    Kernel::KEvent finished_event;
 
     void StartTask(Kernel::HLERequestContext& ctx) {
         // No need to connect to the internet, just finish the task straight away.
         LOG_DEBUG(Service_NIM, "called");
-        finished_event->GetWritableEvent()->Signal();
+        finished_event.GetWritableEvent().Signal();
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
@@ -334,7 +333,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(finished_event->GetReadableEvent());
+        rb.PushCopyObjects(finished_event.GetReadableEvent());
     }
 
     void GetResult(Kernel::HLERequestContext& ctx) {
@@ -346,7 +345,7 @@ private:
 
     void Cancel(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_NIM, "called");
-        finished_event->GetWritableEvent()->Clear();
+        finished_event.GetWritableEvent().Clear();
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }

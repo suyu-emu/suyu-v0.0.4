@@ -21,15 +21,16 @@
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
 #include "core/cpu_manager.h"
-#include "core/hle/kernel/client_port.h"
-#include "core/hle/kernel/client_session.h"
-#include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_address_arbiter.h"
+#include "core/hle/kernel/k_client_port.h"
+#include "core/hle/kernel/k_client_session.h"
 #include "core/hle/kernel/k_condition_variable.h"
 #include "core/hle/kernel/k_event.h"
+#include "core/hle/kernel/k_handle_table.h"
 #include "core/hle/kernel/k_memory_block.h"
 #include "core/hle/kernel/k_memory_layout.h"
 #include "core/hle/kernel/k_page_table.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scheduler.h"
@@ -38,16 +39,15 @@
 #include "core/hle/kernel/k_shared_memory.h"
 #include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/kernel/k_thread.h"
+#include "core/hle/kernel/k_transfer_memory.h"
 #include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/physical_core.h"
-#include "core/hle/kernel/process.h"
 #include "core/hle/kernel/svc.h"
 #include "core/hle/kernel/svc_results.h"
 #include "core/hle/kernel/svc_types.h"
 #include "core/hle/kernel/svc_wrap.h"
 #include "core/hle/kernel/time_manager.h"
-#include "core/hle/kernel/transfer_memory.h"
 #include "core/hle/lock.h"
 #include "core/hle/result.h"
 #include "core/hle/service/service.h"
@@ -113,7 +113,7 @@ ResultCode MapUnmapMemorySanityChecks(const KPageTable& manager, VAddr dst_addr,
         LOG_ERROR(Kernel_SVC,
                   "Destination is not within the stack region, addr=0x{:016X}, size=0x{:016X}",
                   dst_addr, size);
-        return ResultInvalidMemoryRange;
+        return ResultInvalidMemoryRegion;
     }
 
     if (manager.IsInsideHeapRegion(dst_addr, size)) {
@@ -121,7 +121,7 @@ ResultCode MapUnmapMemorySanityChecks(const KPageTable& manager, VAddr dst_addr,
                   "Destination does not fit within the heap region, addr=0x{:016X}, "
                   "size=0x{:016X}",
                   dst_addr, size);
-        return ResultInvalidMemoryRange;
+        return ResultInvalidMemoryRegion;
     }
 
     if (manager.IsInsideAliasRegion(dst_addr, size)) {
@@ -129,7 +129,7 @@ ResultCode MapUnmapMemorySanityChecks(const KPageTable& manager, VAddr dst_addr,
                   "Destination does not fit within the map region, addr=0x{:016X}, "
                   "size=0x{:016X}",
                   dst_addr, size);
-        return ResultInvalidMemoryRange;
+        return ResultInvalidMemoryRegion;
     }
 
     return RESULT_SUCCESS;
@@ -141,38 +141,6 @@ enum class ResourceLimitValueType {
     PeakValue,
 };
 
-ResultVal<s64> RetrieveResourceLimitValue(Core::System& system, Handle resource_limit,
-                                          u32 resource_type, ResourceLimitValueType value_type) {
-    std::lock_guard lock{HLE::g_hle_lock};
-    const auto type = static_cast<LimitableResource>(resource_type);
-    if (!IsValidResourceType(type)) {
-        LOG_ERROR(Kernel_SVC, "Invalid resource limit type: '{}'", resource_type);
-        return ResultInvalidEnumValue;
-    }
-
-    const auto* const current_process = system.Kernel().CurrentProcess();
-    ASSERT(current_process != nullptr);
-
-    const auto resource_limit_object =
-        current_process->GetHandleTable().Get<KResourceLimit>(resource_limit);
-    if (!resource_limit_object) {
-        LOG_ERROR(Kernel_SVC, "Handle to non-existent resource limit instance used. Handle={:08X}",
-                  resource_limit);
-        return ResultInvalidHandle;
-    }
-
-    switch (value_type) {
-    case ResourceLimitValueType::CurrentValue:
-        return MakeResult(resource_limit_object->GetCurrentValue(type));
-    case ResourceLimitValueType::LimitValue:
-        return MakeResult(resource_limit_object->GetLimitValue(type));
-    case ResourceLimitValueType::PeakValue:
-        return MakeResult(resource_limit_object->GetPeakValue(type));
-    default:
-        LOG_ERROR(Kernel_SVC, "Invalid resource value_type: '{}'", value_type);
-        return ResultInvalidEnumValue;
-    }
-}
 } // Anonymous namespace
 
 /// Set the process heap to a given Size. It can both extend and shrink the heap.
@@ -291,11 +259,8 @@ static ResultCode UnmapMemory32(Core::System& system, u32 dst_addr, u32 src_addr
 }
 
 /// Connect to an OS service given the port name, returns the handle to the port to out
-static ResultCode ConnectToNamedPort(Core::System& system, Handle* out_handle,
-                                     VAddr port_name_address) {
-    std::lock_guard lock{HLE::g_hle_lock};
+static ResultCode ConnectToNamedPort(Core::System& system, Handle* out, VAddr port_name_address) {
     auto& memory = system.Memory();
-
     if (!memory.IsValidVirtualAddress(port_name_address)) {
         LOG_ERROR(Kernel_SVC,
                   "Port Name Address is not a valid virtual address, port_name_address=0x{:016X}",
@@ -314,21 +279,33 @@ static ResultCode ConnectToNamedPort(Core::System& system, Handle* out_handle,
 
     LOG_TRACE(Kernel_SVC, "called port_name={}", port_name);
 
+    // Get the current handle table.
     auto& kernel = system.Kernel();
+    auto& handle_table = kernel.CurrentProcess()->GetHandleTable();
+
+    // Find the client port.
     const auto it = kernel.FindNamedPort(port_name);
     if (!kernel.IsValidNamedPort(it)) {
         LOG_WARNING(Kernel_SVC, "tried to connect to unknown port: {}", port_name);
         return ResultNotFound;
     }
+    auto port = it->second;
 
-    auto client_port = it->second;
+    // Reserve a handle for the port.
+    // NOTE: Nintendo really does write directly to the output handle here.
+    R_TRY(handle_table.Reserve(out));
+    auto handle_guard = SCOPE_GUARD({ handle_table.Unreserve(*out); });
 
-    std::shared_ptr<ClientSession> client_session;
-    CASCADE_RESULT(client_session, client_port->Connect());
+    // Create a session.
+    KClientSession* session{};
+    R_TRY(port->CreateSession(std::addressof(session)));
 
-    // Return the client session
-    auto& handle_table = kernel.CurrentProcess()->GetHandleTable();
-    CASCADE_RESULT(*out_handle, handle_table.Create(client_session));
+    // Register the session in the table, close the extra reference.
+    handle_table.Register(*out, session);
+    session->Close();
+
+    // We succeeded.
+    handle_guard.Cancel();
     return RESULT_SUCCESS;
 }
 
@@ -340,14 +317,12 @@ static ResultCode ConnectToNamedPort32(Core::System& system, Handle* out_handle,
 
 /// Makes a blocking IPC call to an OS service.
 static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
-    auto& kernel = system.Kernel();
-    const auto& handle_table = kernel.CurrentProcess()->GetHandleTable();
-    std::shared_ptr<ClientSession> session = handle_table.Get<ClientSession>(handle);
-    if (!session) {
-        LOG_ERROR(Kernel_SVC, "called with invalid handle=0x{:08X}", handle);
-        return ResultInvalidHandle;
-    }
 
+    auto& kernel = system.Kernel();
+
+    KScopedAutoObject session =
+        kernel.CurrentProcess()->GetHandleTable().GetObject<KClientSession>(handle);
+    R_UNLESS(session.IsNotNull(), ResultInvalidHandle);
     LOG_TRACE(Kernel_SVC, "called handle=0x{:08X}({})", handle, session->GetName());
 
     auto thread = kernel.CurrentScheduler()->GetCurrentThread();
@@ -355,7 +330,7 @@ static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
         KScopedSchedulerLock lock(kernel);
         thread->SetState(ThreadState::Waiting);
         thread->SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::IPC);
-        session->SendSyncRequest(SharedFrom(thread), system.Memory(), system.CoreTiming());
+        session->SendSyncRequest(thread, system.Memory(), system.CoreTiming());
     }
 
     KSynchronizationObject* dummy{};
@@ -368,18 +343,13 @@ static ResultCode SendSyncRequest32(Core::System& system, Handle handle) {
 
 /// Get the ID for the specified thread.
 static ResultCode GetThreadId(Core::System& system, u64* out_thread_id, Handle thread_handle) {
-    LOG_TRACE(Kernel_SVC, "called thread=0x{:08X}", thread_handle);
-
     // Get the thread from its handle.
-    const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    const std::shared_ptr<KThread> thread = handle_table.Get<KThread>(thread_handle);
-    if (!thread) {
-        LOG_ERROR(Kernel_SVC, "Invalid thread handle provided (handle={:08X})", thread_handle);
-        return ResultInvalidHandle;
-    }
+    KScopedAutoObject thread =
+        system.Kernel().CurrentProcess()->GetHandleTable().GetObject<KThread>(thread_handle);
+    R_UNLESS(thread.IsNotNull(), ResultInvalidHandle);
 
     // Get the thread's id.
-    *out_thread_id = thread->GetThreadID();
+    *out_thread_id = thread->GetId();
     return RESULT_SUCCESS;
 }
 
@@ -395,110 +365,101 @@ static ResultCode GetThreadId32(Core::System& system, u32* out_thread_id_low,
 }
 
 /// Gets the ID of the specified process or a specified thread's owning process.
-static ResultCode GetProcessId(Core::System& system, u64* process_id, Handle handle) {
+static ResultCode GetProcessId(Core::System& system, u64* out_process_id, Handle handle) {
     LOG_DEBUG(Kernel_SVC, "called handle=0x{:08X}", handle);
 
-    const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    const std::shared_ptr<Process> process = handle_table.Get<Process>(handle);
-    if (process) {
-        *process_id = process->GetProcessID();
-        return RESULT_SUCCESS;
+    // Get the object from the handle table.
+    KScopedAutoObject obj =
+        system.Kernel().CurrentProcess()->GetHandleTable().GetObject<KAutoObject>(
+            static_cast<Handle>(handle));
+    R_UNLESS(obj.IsNotNull(), ResultInvalidHandle);
+
+    // Get the process from the object.
+    KProcess* process = nullptr;
+    if (KProcess* p = obj->DynamicCast<KProcess*>(); p != nullptr) {
+        // The object is a process, so we can use it directly.
+        process = p;
+    } else if (KThread* t = obj->DynamicCast<KThread*>(); t != nullptr) {
+        // The object is a thread, so we want to use its parent.
+        process = reinterpret_cast<KThread*>(obj.GetPointerUnsafe())->GetOwnerProcess();
+    } else {
+        // TODO(bunnei): This should also handle debug objects before returning.
+        UNIMPLEMENTED_MSG("Debug objects not implemented");
     }
 
-    const std::shared_ptr<KThread> thread = handle_table.Get<KThread>(handle);
-    if (thread) {
-        const Process* const owner_process = thread->GetOwnerProcess();
-        if (!owner_process) {
-            LOG_ERROR(Kernel_SVC, "Non-existent owning process encountered.");
-            return ResultInvalidHandle;
-        }
+    // Make sure the target process exists.
+    R_UNLESS(process != nullptr, ResultInvalidHandle);
 
-        *process_id = owner_process->GetProcessID();
-        return RESULT_SUCCESS;
-    }
+    // Get the process id.
+    *out_process_id = process->GetId();
 
-    // NOTE: This should also handle debug objects before returning.
-
-    LOG_ERROR(Kernel_SVC, "Handle does not exist, handle=0x{:08X}", handle);
     return ResultInvalidHandle;
 }
 
-static ResultCode GetProcessId32(Core::System& system, u32* process_id_low, u32* process_id_high,
-                                 Handle handle) {
-    u64 process_id{};
-    const auto result = GetProcessId(system, &process_id, handle);
-    *process_id_low = static_cast<u32>(process_id);
-    *process_id_high = static_cast<u32>(process_id >> 32);
+static ResultCode GetProcessId32(Core::System& system, u32* out_process_id_low,
+                                 u32* out_process_id_high, Handle handle) {
+    u64 out_process_id{};
+    const auto result = GetProcessId(system, &out_process_id, handle);
+    *out_process_id_low = static_cast<u32>(out_process_id);
+    *out_process_id_high = static_cast<u32>(out_process_id >> 32);
     return result;
 }
 
 /// Wait for the given handles to synchronize, timeout after the specified nanoseconds
 static ResultCode WaitSynchronization(Core::System& system, s32* index, VAddr handles_address,
-                                      u64 handle_count, s64 nano_seconds) {
-    LOG_TRACE(Kernel_SVC, "called handles_address=0x{:X}, handle_count={}, nano_seconds={}",
-              handles_address, handle_count, nano_seconds);
+                                      u64 num_handles, s64 nano_seconds) {
+    LOG_TRACE(Kernel_SVC, "called handles_address=0x{:X}, num_handles={}, nano_seconds={}",
+              handles_address, num_handles, nano_seconds);
 
-    auto& memory = system.Memory();
-    if (!memory.IsValidVirtualAddress(handles_address)) {
-        LOG_ERROR(Kernel_SVC,
-                  "Handle address is not a valid virtual address, handle_address=0x{:016X}",
-                  handles_address);
-        return ResultInvalidPointer;
-    }
-
-    static constexpr u64 MaxHandles = 0x40;
-
-    if (handle_count > MaxHandles) {
-        LOG_ERROR(Kernel_SVC, "Handle count specified is too large, expected {} but got {}",
-                  MaxHandles, handle_count);
-        return ResultOutOfRange;
-    }
+    // Ensure number of handles is valid.
+    R_UNLESS(0 <= num_handles && num_handles <= ArgumentHandleCountMax, ResultOutOfRange);
 
     auto& kernel = system.Kernel();
-    std::vector<KSynchronizationObject*> objects(handle_count);
+    std::vector<KSynchronizationObject*> objs(num_handles);
     const auto& handle_table = kernel.CurrentProcess()->GetHandleTable();
+    Handle* handles = system.Memory().GetPointer<Handle>(handles_address);
 
-    for (u64 i = 0; i < handle_count; ++i) {
-        const Handle handle = memory.Read32(handles_address + i * sizeof(Handle));
-        const auto object = handle_table.Get<KSynchronizationObject>(handle);
-
-        if (object == nullptr) {
-            LOG_ERROR(Kernel_SVC, "Object is a nullptr");
-            return ResultInvalidHandle;
-        }
-
-        objects[i] = object.get();
+    // Copy user handles.
+    if (num_handles > 0) {
+        // Convert the handles to objects.
+        R_UNLESS(handle_table.GetMultipleObjects<KSynchronizationObject>(objs.data(), handles,
+                                                                         num_handles),
+                 ResultInvalidHandle);
     }
-    return KSynchronizationObject::Wait(kernel, index, objects.data(),
-                                        static_cast<s32>(objects.size()), nano_seconds);
+
+    // Ensure handles are closed when we're done.
+    SCOPE_EXIT({
+        for (u64 i = 0; i < num_handles; ++i) {
+            objs[i]->Close();
+        }
+    });
+
+    return KSynchronizationObject::Wait(kernel, index, objs.data(), static_cast<s32>(objs.size()),
+                                        nano_seconds);
 }
 
 static ResultCode WaitSynchronization32(Core::System& system, u32 timeout_low, u32 handles_address,
-                                        s32 handle_count, u32 timeout_high, s32* index) {
+                                        s32 num_handles, u32 timeout_high, s32* index) {
     const s64 nano_seconds{(static_cast<s64>(timeout_high) << 32) | static_cast<s64>(timeout_low)};
-    return WaitSynchronization(system, index, handles_address, handle_count, nano_seconds);
+    return WaitSynchronization(system, index, handles_address, num_handles, nano_seconds);
 }
 
 /// Resumes a thread waiting on WaitSynchronization
-static ResultCode CancelSynchronization(Core::System& system, Handle thread_handle) {
-    LOG_TRACE(Kernel_SVC, "called thread=0x{:X}", thread_handle);
+static ResultCode CancelSynchronization(Core::System& system, Handle handle) {
+    LOG_TRACE(Kernel_SVC, "called handle=0x{:X}", handle);
 
     // Get the thread from its handle.
-    const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    std::shared_ptr<KThread> thread = handle_table.Get<KThread>(thread_handle);
-
-    if (!thread) {
-        LOG_ERROR(Kernel_SVC, "Invalid thread handle provided (handle={:08X})", thread_handle);
-        return ResultInvalidHandle;
-    }
+    KScopedAutoObject thread =
+        system.Kernel().CurrentProcess()->GetHandleTable().GetObject<KThread>(
+            static_cast<Handle>(handle));
 
     // Cancel the thread's wait.
     thread->WaitCancel();
     return RESULT_SUCCESS;
 }
 
-static ResultCode CancelSynchronization32(Core::System& system, Handle thread_handle) {
-    return CancelSynchronization(system, thread_handle);
+static ResultCode CancelSynchronization32(Core::System& system, Handle handle) {
+    return CancelSynchronization(system, handle);
 }
 
 /// Attempts to locks a mutex
@@ -678,7 +639,7 @@ static void OutputDebugString(Core::System& system, VAddr address, u64 len) {
 }
 
 /// Gets system/memory information for the current process
-static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 handle,
+static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, Handle handle,
                           u64 info_sub_id) {
     std::lock_guard lock{HLE::g_hle_lock};
     LOG_TRACE(Kernel_SVC, "called info_id=0x{:X}, info_sub_id=0x{:X}, handle=0x{:08X}", info_id,
@@ -744,10 +705,9 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
             return ResultInvalidEnumValue;
         }
 
-        const auto& current_process_handle_table =
-            system.Kernel().CurrentProcess()->GetHandleTable();
-        const auto process = current_process_handle_table.Get<Process>(static_cast<Handle>(handle));
-        if (!process) {
+        const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
+        KScopedAutoObject process = handle_table.GetObject<KProcess>(handle);
+        if (process.IsNull()) {
             LOG_ERROR(Kernel_SVC, "Process is not valid! info_id={}, info_sub_id={}, handle={:08X}",
                       info_id, info_sub_id, handle);
             return ResultInvalidHandle;
@@ -851,21 +811,19 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
             return ResultInvalidCombination;
         }
 
-        Process* const current_process = system.Kernel().CurrentProcess();
-        HandleTable& handle_table = current_process->GetHandleTable();
+        KProcess* const current_process = system.Kernel().CurrentProcess();
+        KHandleTable& handle_table = current_process->GetHandleTable();
         const auto resource_limit = current_process->GetResourceLimit();
         if (!resource_limit) {
-            *result = KernelHandle::InvalidHandle;
+            *result = Svc::InvalidHandle;
             // Yes, the kernel considers this a successful operation.
             return RESULT_SUCCESS;
         }
 
-        const auto table_result = handle_table.Create(resource_limit);
-        if (table_result.Failed()) {
-            return table_result.Code();
-        }
+        Handle handle{};
+        R_TRY(handle_table.Add(&handle, resource_limit));
 
-        *result = *table_result;
+        *result = handle;
         return RESULT_SUCCESS;
     }
 
@@ -876,9 +834,9 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
             return ResultInvalidHandle;
         }
 
-        if (info_sub_id >= Process::RANDOM_ENTROPY_SIZE) {
+        if (info_sub_id >= KProcess::RANDOM_ENTROPY_SIZE) {
             LOG_ERROR(Kernel_SVC, "Entropy size is out of range, expected {} but got {}",
-                      Process::RANDOM_ENTROPY_SIZE, info_sub_id);
+                      KProcess::RANDOM_ENTROPY_SIZE, info_sub_id);
             return ResultInvalidCombination;
         }
 
@@ -899,9 +857,10 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
             return ResultInvalidCombination;
         }
 
-        const auto thread = system.Kernel().CurrentProcess()->GetHandleTable().Get<KThread>(
-            static_cast<Handle>(handle));
-        if (!thread) {
+        KScopedAutoObject thread =
+            system.Kernel().CurrentProcess()->GetHandleTable().GetObject<KThread>(
+                static_cast<Handle>(handle));
+        if (thread.IsNull()) {
             LOG_ERROR(Kernel_SVC, "Thread handle does not exist, handle=0x{:08X}",
                       static_cast<Handle>(handle));
             return ResultInvalidHandle;
@@ -910,7 +869,7 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
         const auto& core_timing = system.CoreTiming();
         const auto& scheduler = *system.Kernel().CurrentScheduler();
         const auto* const current_thread = scheduler.GetCurrentThread();
-        const bool same_thread = current_thread == thread.get();
+        const bool same_thread = current_thread == thread.GetPointerUnsafe();
 
         const u64 prev_ctx_ticks = scheduler.GetLastContextSwitchTicks();
         u64 out_ticks = 0;
@@ -966,10 +925,10 @@ static ResultCode MapPhysicalMemory(Core::System& system, VAddr addr, u64 size) 
 
     if (!(addr < addr + size)) {
         LOG_ERROR(Kernel_SVC, "Size causes 64-bit overflow of address");
-        return ResultInvalidMemoryRange;
+        return ResultInvalidMemoryRegion;
     }
 
-    Process* const current_process{system.Kernel().CurrentProcess()};
+    KProcess* const current_process{system.Kernel().CurrentProcess()};
     auto& page_table{current_process->PageTable()};
 
     if (current_process->GetSystemResourceSize() == 0) {
@@ -981,14 +940,14 @@ static ResultCode MapPhysicalMemory(Core::System& system, VAddr addr, u64 size) 
         LOG_ERROR(Kernel_SVC,
                   "Address is not within the address space, addr=0x{:016X}, size=0x{:016X}", addr,
                   size);
-        return ResultInvalidMemoryRange;
+        return ResultInvalidMemoryRegion;
     }
 
     if (page_table.IsOutsideAliasRegion(addr, size)) {
         LOG_ERROR(Kernel_SVC,
                   "Address is not within the alias region, addr=0x{:016X}, size=0x{:016X}", addr,
                   size);
-        return ResultInvalidMemoryRange;
+        return ResultInvalidMemoryRegion;
     }
 
     return page_table.MapPhysicalMemory(addr, size);
@@ -1020,10 +979,10 @@ static ResultCode UnmapPhysicalMemory(Core::System& system, VAddr addr, u64 size
 
     if (!(addr < addr + size)) {
         LOG_ERROR(Kernel_SVC, "Size causes 64-bit overflow of address");
-        return ResultInvalidMemoryRange;
+        return ResultInvalidMemoryRegion;
     }
 
-    Process* const current_process{system.Kernel().CurrentProcess()};
+    KProcess* const current_process{system.Kernel().CurrentProcess()};
     auto& page_table{current_process->PageTable()};
 
     if (current_process->GetSystemResourceSize() == 0) {
@@ -1035,14 +994,14 @@ static ResultCode UnmapPhysicalMemory(Core::System& system, VAddr addr, u64 size
         LOG_ERROR(Kernel_SVC,
                   "Address is not within the address space, addr=0x{:016X}, size=0x{:016X}", addr,
                   size);
-        return ResultInvalidMemoryRange;
+        return ResultInvalidMemoryRegion;
     }
 
     if (page_table.IsOutsideAliasRegion(addr, size)) {
         LOG_ERROR(Kernel_SVC,
                   "Address is not within the alias region, addr=0x{:016X}, size=0x{:016X}", addr,
                   size);
-        return ResultInvalidMemoryRange;
+        return ResultInvalidMemoryRegion;
     }
 
     return page_table.UnmapPhysicalMemory(addr, size);
@@ -1062,37 +1021,19 @@ static ResultCode SetThreadActivity(Core::System& system, Handle thread_handle,
     constexpr auto IsValidThreadActivity = [](ThreadActivity activity) {
         return activity == ThreadActivity::Runnable || activity == ThreadActivity::Paused;
     };
-    if (!IsValidThreadActivity(thread_activity)) {
-        LOG_ERROR(Kernel_SVC, "Invalid thread activity value provided (activity={})",
-                  thread_activity);
-        return ResultInvalidEnumValue;
-    }
+    R_UNLESS(IsValidThreadActivity(thread_activity), ResultInvalidEnumValue);
 
     // Get the thread from its handle.
-    auto& kernel = system.Kernel();
-    const auto& handle_table = kernel.CurrentProcess()->GetHandleTable();
-    const std::shared_ptr<KThread> thread = handle_table.Get<KThread>(thread_handle);
-    if (!thread) {
-        LOG_ERROR(Kernel_SVC, "Invalid thread handle provided (handle={:08X})", thread_handle);
-        return ResultInvalidHandle;
-    }
+    KScopedAutoObject thread =
+        system.Kernel().CurrentProcess()->GetHandleTable().GetObject<KThread>(thread_handle);
+    R_UNLESS(thread.IsNotNull(), ResultInvalidHandle);
 
     // Check that the activity is being set on a non-current thread for the current process.
-    if (thread->GetOwnerProcess() != kernel.CurrentProcess()) {
-        LOG_ERROR(Kernel_SVC, "Invalid owning process for the created thread.");
-        return ResultInvalidHandle;
-    }
-    if (thread.get() == GetCurrentThreadPointer(kernel)) {
-        LOG_ERROR(Kernel_SVC, "Thread is busy");
-        return ResultBusy;
-    }
+    R_UNLESS(thread->GetOwnerProcess() == system.Kernel().CurrentProcess(), ResultInvalidHandle);
+    R_UNLESS(thread.GetPointerUnsafe() != GetCurrentThreadPointer(system.Kernel()), ResultBusy);
 
     // Set the activity.
-    const auto set_result = thread->SetActivity(thread_activity);
-    if (set_result.IsError()) {
-        LOG_ERROR(Kernel_SVC, "Failed to set thread activity.");
-        return set_result;
-    }
+    R_TRY(thread->SetActivity(thread_activity));
 
     return RESULT_SUCCESS;
 }
@@ -1107,36 +1048,55 @@ static ResultCode GetThreadContext(Core::System& system, VAddr out_context, Hand
     LOG_DEBUG(Kernel_SVC, "called, out_context=0x{:08X}, thread_handle=0x{:X}", out_context,
               thread_handle);
 
+    auto& kernel = system.Kernel();
+
     // Get the thread from its handle.
-    const auto* current_process = system.Kernel().CurrentProcess();
-    const std::shared_ptr<KThread> thread =
-        current_process->GetHandleTable().Get<KThread>(thread_handle);
-    if (!thread) {
-        LOG_ERROR(Kernel_SVC, "Invalid thread handle provided (handle={})", thread_handle);
-        return ResultInvalidHandle;
-    }
+    KScopedAutoObject thread =
+        kernel.CurrentProcess()->GetHandleTable().GetObject<KThread>(thread_handle);
+    R_UNLESS(thread.IsNotNull(), ResultInvalidHandle);
 
     // Require the handle be to a non-current thread in the current process.
-    if (thread->GetOwnerProcess() != current_process) {
-        LOG_ERROR(Kernel_SVC, "Thread owning process is not the current process.");
-        return ResultInvalidHandle;
-    }
-    if (thread.get() == system.Kernel().CurrentScheduler()->GetCurrentThread()) {
-        LOG_ERROR(Kernel_SVC, "Current thread is busy.");
-        return ResultBusy;
-    }
+    const auto* current_process = kernel.CurrentProcess();
+    R_UNLESS(current_process == thread->GetOwnerProcess(), ResultInvalidId);
 
-    // Get the thread context.
-    std::vector<u8> context;
-    const auto context_result = thread->GetThreadContext3(context);
-    if (context_result.IsError()) {
-        LOG_ERROR(Kernel_SVC, "Unable to successfully retrieve thread context (result: {})",
-                  context_result.raw);
-        return context_result;
-    }
+    // Verify that the thread isn't terminated.
+    R_UNLESS(thread->GetState() != ThreadState::Terminated, ResultTerminationRequested);
 
-    // Copy the thread context to user space.
-    system.Memory().WriteBlock(out_context, context.data(), context.size());
+    /// Check that the thread is not the current one.
+    /// NOTE: Nintendo does not check this, and thus the following loop will deadlock.
+    R_UNLESS(thread.GetPointerUnsafe() != GetCurrentThreadPointer(kernel), ResultInvalidId);
+
+    // Try to get the thread context until the thread isn't current on any core.
+    while (true) {
+        KScopedSchedulerLock sl{kernel};
+
+        // TODO(bunnei): Enforce that thread is suspended for debug here.
+
+        // If the thread's raw state isn't runnable, check if it's current on some core.
+        if (thread->GetRawState() != ThreadState::Runnable) {
+            bool current = false;
+            for (auto i = 0; i < static_cast<s32>(Core::Hardware::NUM_CPU_CORES); ++i) {
+                if (thread.GetPointerUnsafe() == kernel.Scheduler(i).GetCurrentThread()) {
+                    current = true;
+                }
+                break;
+            }
+
+            // If the thread is current, retry until it isn't.
+            if (current) {
+                continue;
+            }
+        }
+
+        // Get the thread context.
+        std::vector<u8> context;
+        R_TRY(thread->GetThreadContext3(context));
+
+        // Copy the thread context to user space.
+        system.Memory().WriteBlock(out_context, context.data(), context.size());
+
+        return RESULT_SUCCESS;
+    }
 
     return RESULT_SUCCESS;
 }
@@ -1150,12 +1110,9 @@ static ResultCode GetThreadPriority(Core::System& system, u32* out_priority, Han
     LOG_TRACE(Kernel_SVC, "called");
 
     // Get the thread from its handle.
-    const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    const std::shared_ptr<KThread> thread = handle_table.Get<KThread>(handle);
-    if (!thread) {
-        LOG_ERROR(Kernel_SVC, "Invalid thread handle provided (handle={:08X})", handle);
-        return ResultInvalidHandle;
-    }
+    KScopedAutoObject thread =
+        system.Kernel().CurrentProcess()->GetHandleTable().GetObject<KThread>(handle);
+    R_UNLESS(thread.IsNotNull(), ResultInvalidHandle);
 
     // Get the thread's priority.
     *out_priority = thread->GetPriority();
@@ -1167,30 +1124,26 @@ static ResultCode GetThreadPriority32(Core::System& system, u32* out_priority, H
 }
 
 /// Sets the priority for the specified thread
-static ResultCode SetThreadPriority(Core::System& system, Handle handle, u32 priority) {
-    LOG_TRACE(Kernel_SVC, "called");
+static ResultCode SetThreadPriority(Core::System& system, Handle thread_handle, u32 priority) {
+    // Get the current process.
+    KProcess& process = *system.Kernel().CurrentProcess();
 
     // Validate the priority.
-    if (HighestThreadPriority > priority || priority > LowestThreadPriority) {
-        LOG_ERROR(Kernel_SVC, "Invalid thread priority specified (priority={})", priority);
-        return ResultInvalidPriority;
-    }
+    R_UNLESS(HighestThreadPriority <= priority && priority <= LowestThreadPriority,
+             ResultInvalidPriority);
+    R_UNLESS(process.CheckThreadPriority(priority), ResultInvalidPriority);
 
     // Get the thread from its handle.
-    const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    const std::shared_ptr<KThread> thread = handle_table.Get<KThread>(handle);
-    if (!thread) {
-        LOG_ERROR(Kernel_SVC, "Invalid handle provided (handle={:08X})", handle);
-        return ResultInvalidHandle;
-    }
+    KScopedAutoObject thread = process.GetHandleTable().GetObject<KThread>(thread_handle);
+    R_UNLESS(thread.IsNotNull(), ResultInvalidHandle);
 
     // Set the thread priority.
     thread->SetBasePriority(priority);
     return RESULT_SUCCESS;
 }
 
-static ResultCode SetThreadPriority32(Core::System& system, Handle handle, u32 priority) {
-    return SetThreadPriority(system, handle, priority);
+static ResultCode SetThreadPriority32(Core::System& system, Handle thread_handle, u32 priority) {
+    return SetThreadPriority(system, thread_handle, priority);
 }
 
 /// Get which CPU core is executing the current thread
@@ -1203,82 +1156,97 @@ static u32 GetCurrentProcessorNumber32(Core::System& system) {
     return GetCurrentProcessorNumber(system);
 }
 
-static ResultCode MapSharedMemory(Core::System& system, Handle shared_memory_handle, VAddr addr,
-                                  u64 size, u32 permissions) {
-    std::lock_guard lock{HLE::g_hle_lock};
-    LOG_TRACE(Kernel_SVC,
-              "called, shared_memory_handle=0x{:X}, addr=0x{:X}, size=0x{:X}, permissions=0x{:08X}",
-              shared_memory_handle, addr, size, permissions);
-
-    if (!Common::Is4KBAligned(addr)) {
-        LOG_ERROR(Kernel_SVC, "Address is not aligned to 4KB, addr=0x{:016X}", addr);
-        return ResultInvalidAddress;
+constexpr bool IsValidSharedMemoryPermission(Svc::MemoryPermission perm) {
+    switch (perm) {
+    case Svc::MemoryPermission::Read:
+    case Svc::MemoryPermission::ReadWrite:
+        return true;
+    default:
+        return false;
     }
-
-    if (size == 0) {
-        LOG_ERROR(Kernel_SVC, "Size is 0");
-        return ResultInvalidSize;
-    }
-
-    if (!Common::Is4KBAligned(size)) {
-        LOG_ERROR(Kernel_SVC, "Size is not aligned to 4KB, size=0x{:016X}", size);
-        return ResultInvalidSize;
-    }
-
-    if (!IsValidAddressRange(addr, size)) {
-        LOG_ERROR(Kernel_SVC, "Region is not a valid address range, addr=0x{:016X}, size=0x{:016X}",
-                  addr, size);
-        return ResultInvalidCurrentMemory;
-    }
-
-    const auto permission_type = static_cast<MemoryPermission>(permissions);
-    if ((permission_type | MemoryPermission::Write) != MemoryPermission::ReadWrite) {
-        LOG_ERROR(Kernel_SVC, "Expected Read or ReadWrite permission but got permissions=0x{:08X}",
-                  permissions);
-        return ResultInvalidMemoryPermissions;
-    }
-
-    auto* const current_process{system.Kernel().CurrentProcess()};
-    auto& page_table{current_process->PageTable()};
-
-    if (page_table.IsInvalidRegion(addr, size)) {
-        LOG_ERROR(Kernel_SVC,
-                  "Addr does not fit within the valid region, addr=0x{:016X}, "
-                  "size=0x{:016X}",
-                  addr, size);
-        return ResultInvalidMemoryRange;
-    }
-
-    if (page_table.IsInsideHeapRegion(addr, size)) {
-        LOG_ERROR(Kernel_SVC,
-                  "Addr does not fit within the heap region, addr=0x{:016X}, "
-                  "size=0x{:016X}",
-                  addr, size);
-        return ResultInvalidMemoryRange;
-    }
-
-    if (page_table.IsInsideAliasRegion(addr, size)) {
-        LOG_ERROR(Kernel_SVC,
-                  "Address does not fit within the map region, addr=0x{:016X}, "
-                  "size=0x{:016X}",
-                  addr, size);
-        return ResultInvalidMemoryRange;
-    }
-
-    auto shared_memory{current_process->GetHandleTable().Get<KSharedMemory>(shared_memory_handle)};
-    if (!shared_memory) {
-        LOG_ERROR(Kernel_SVC, "Shared memory does not exist, shared_memory_handle=0x{:08X}",
-                  shared_memory_handle);
-        return ResultInvalidHandle;
-    }
-
-    return shared_memory->Map(*current_process, addr, size,
-                              static_cast<KMemoryPermission>(permission_type));
 }
 
-static ResultCode MapSharedMemory32(Core::System& system, Handle shared_memory_handle, u32 addr,
-                                    u32 size, u32 permissions) {
-    return MapSharedMemory(system, shared_memory_handle, addr, size, permissions);
+constexpr bool IsValidRemoteSharedMemoryPermission(Svc::MemoryPermission perm) {
+    return IsValidSharedMemoryPermission(perm) || perm == Svc::MemoryPermission::DontCare;
+}
+
+static ResultCode MapSharedMemory(Core::System& system, Handle shmem_handle, VAddr address,
+                                  u64 size, Svc::MemoryPermission map_perm) {
+    LOG_TRACE(Kernel_SVC,
+              "called, shared_memory_handle=0x{:X}, addr=0x{:X}, size=0x{:X}, permissions=0x{:08X}",
+              shmem_handle, address, size, map_perm);
+
+    // Validate the address/size.
+    R_UNLESS(Common::IsAligned(address, PageSize), ResultInvalidAddress);
+    R_UNLESS(Common::IsAligned(size, PageSize), ResultInvalidSize);
+    R_UNLESS(size > 0, ResultInvalidSize);
+    R_UNLESS((address < address + size), ResultInvalidCurrentMemory);
+
+    // Validate the permission.
+    R_UNLESS(IsValidSharedMemoryPermission(map_perm), ResultInvalidNewMemoryPermission);
+
+    // Get the current process.
+    auto& process = *system.Kernel().CurrentProcess();
+    auto& page_table = process.PageTable();
+
+    // Get the shared memory.
+    KScopedAutoObject shmem = process.GetHandleTable().GetObject<KSharedMemory>(shmem_handle);
+    R_UNLESS(shmem.IsNotNull(), ResultInvalidHandle);
+
+    // Verify that the mapping is in range.
+    R_UNLESS(page_table.CanContain(address, size, KMemoryState::Shared), ResultInvalidMemoryRegion);
+
+    // Add the shared memory to the process.
+    R_TRY(process.AddSharedMemory(shmem.GetPointerUnsafe(), address, size));
+
+    // Ensure that we clean up the shared memory if we fail to map it.
+    auto guard =
+        SCOPE_GUARD({ process.RemoveSharedMemory(shmem.GetPointerUnsafe(), address, size); });
+
+    // Map the shared memory.
+    R_TRY(shmem->Map(process, address, size, map_perm));
+
+    // We succeeded.
+    guard.Cancel();
+    return RESULT_SUCCESS;
+}
+
+static ResultCode MapSharedMemory32(Core::System& system, Handle shmem_handle, u32 address,
+                                    u32 size, Svc::MemoryPermission map_perm) {
+    return MapSharedMemory(system, shmem_handle, address, size, map_perm);
+}
+
+static ResultCode UnmapSharedMemory(Core::System& system, Handle shmem_handle, VAddr address,
+                                    u64 size) {
+    // Validate the address/size.
+    R_UNLESS(Common::IsAligned(address, PageSize), ResultInvalidAddress);
+    R_UNLESS(Common::IsAligned(size, PageSize), ResultInvalidSize);
+    R_UNLESS(size > 0, ResultInvalidSize);
+    R_UNLESS((address < address + size), ResultInvalidCurrentMemory);
+
+    // Get the current process.
+    auto& process = *system.Kernel().CurrentProcess();
+    auto& page_table = process.PageTable();
+
+    // Get the shared memory.
+    KScopedAutoObject shmem = process.GetHandleTable().GetObject<KSharedMemory>(shmem_handle);
+    R_UNLESS(shmem.IsNotNull(), ResultInvalidHandle);
+
+    // Verify that the mapping is in range.
+    R_UNLESS(page_table.CanContain(address, size, KMemoryState::Shared), ResultInvalidMemoryRegion);
+
+    // Unmap the shared memory.
+    R_TRY(shmem->Unmap(process, address, size));
+
+    // Remove the shared memory from the process.
+    process.RemoveSharedMemory(shmem.GetPointerUnsafe(), address, size);
+
+    return RESULT_SUCCESS;
+}
+
+static ResultCode UnmapSharedMemory32(Core::System& system, Handle shmem_handle, u32 address,
+                                      u32 size) {
+    return UnmapSharedMemory(system, shmem_handle, address, size);
 }
 
 static ResultCode QueryProcessMemory(Core::System& system, VAddr memory_info_address,
@@ -1287,8 +1255,8 @@ static ResultCode QueryProcessMemory(Core::System& system, VAddr memory_info_add
     std::lock_guard lock{HLE::g_hle_lock};
     LOG_TRACE(Kernel_SVC, "called process=0x{:08X} address={:X}", process_handle, address);
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    std::shared_ptr<Process> process = handle_table.Get<Process>(process_handle);
-    if (!process) {
+    KScopedAutoObject process = handle_table.GetObject<KProcess>(process_handle);
+    if (process.IsNull()) {
         LOG_ERROR(Kernel_SVC, "Process handle does not exist, process_handle=0x{:08X}",
                   process_handle);
         return ResultInvalidHandle;
@@ -1369,8 +1337,8 @@ static ResultCode MapProcessCodeMemory(Core::System& system, Handle process_hand
     }
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    auto process = handle_table.Get<Process>(process_handle);
-    if (!process) {
+    KScopedAutoObject process = handle_table.GetObject<KProcess>(process_handle);
+    if (process.IsNull()) {
         LOG_ERROR(Kernel_SVC, "Invalid process handle specified (handle=0x{:08X}).",
                   process_handle);
         return ResultInvalidHandle;
@@ -1390,7 +1358,7 @@ static ResultCode MapProcessCodeMemory(Core::System& system, Handle process_hand
                   "Destination address range is not within the ASLR region (dst_address=0x{:016X}, "
                   "size=0x{:016X}).",
                   dst_address, size);
-        return ResultInvalidMemoryRange;
+        return ResultInvalidMemoryRegion;
     }
 
     return page_table.MapProcessCodeMemory(dst_address, src_address, size);
@@ -1437,8 +1405,8 @@ static ResultCode UnmapProcessCodeMemory(Core::System& system, Handle process_ha
     }
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    auto process = handle_table.Get<Process>(process_handle);
-    if (!process) {
+    KScopedAutoObject process = handle_table.GetObject<KProcess>(process_handle);
+    if (process.IsNull()) {
         LOG_ERROR(Kernel_SVC, "Invalid process handle specified (handle=0x{:08X}).",
                   process_handle);
         return ResultInvalidHandle;
@@ -1458,7 +1426,7 @@ static ResultCode UnmapProcessCodeMemory(Core::System& system, Handle process_ha
                   "Destination address range is not within the ASLR region (dst_address=0x{:016X}, "
                   "size=0x{:016X}).",
                   dst_address, size);
-        return ResultInvalidMemoryRange;
+        return ResultInvalidMemoryRegion;
     }
 
     return page_table.UnmapProcessCodeMemory(dst_address, src_address, size);
@@ -1483,7 +1451,7 @@ static void ExitProcess32(Core::System& system) {
     ExitProcess(system);
 }
 
-static constexpr bool IsValidCoreId(int32_t core_id) {
+static constexpr bool IsValidVirtualCoreId(int32_t core_id) {
     return (0 <= core_id && core_id < static_cast<int32_t>(Core::Hardware::NUM_CPU_CORES));
 }
 
@@ -1503,7 +1471,7 @@ static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr e
     }
 
     // Validate arguments.
-    if (!IsValidCoreId(core_id)) {
+    if (!IsValidVirtualCoreId(core_id)) {
         LOG_ERROR(Kernel_SVC, "Invalid Core ID specified (id={})", core_id);
         return ResultInvalidCoreId;
     }
@@ -1521,34 +1489,41 @@ static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr e
         return ResultInvalidPriority;
     }
 
+    // Reserve a new thread from the process resource limit (waiting up to 100ms).
     KScopedResourceReservation thread_reservation(
         kernel.CurrentProcess(), LimitableResource::Threads, 1,
         system.CoreTiming().GetGlobalTimeNs().count() + 100000000);
     if (!thread_reservation.Succeeded()) {
         LOG_ERROR(Kernel_SVC, "Could not reserve a new thread");
-        return ResultResourceLimitedExceeded;
+        return ResultLimitReached;
     }
 
-    std::shared_ptr<KThread> thread;
+    // Create the thread.
+    KThread* thread = KThread::Create(kernel);
+    if (!thread) {
+        LOG_ERROR(Kernel_SVC, "Unable to create new threads. Thread creation limit reached.");
+        return ResultOutOfResource;
+    }
+    SCOPE_EXIT({ thread->Close(); });
+
+    // Initialize the thread.
     {
         KScopedLightLock lk{process.GetStateLock()};
-        CASCADE_RESULT(thread,
-                       KThread::CreateUserThread(system, ThreadType::User, "", entry_point,
-                                                 priority, arg, core_id, stack_bottom, &process));
+        R_TRY(KThread::InitializeUserThread(system, thread, entry_point, arg, stack_bottom,
+                                            priority, core_id, &process));
     }
-
-    const auto new_thread_handle = process.GetHandleTable().Create(thread);
-    if (new_thread_handle.Failed()) {
-        LOG_ERROR(Kernel_SVC, "Failed to create handle with error=0x{:X}",
-                  new_thread_handle.Code().raw);
-        return new_thread_handle.Code();
-    }
-    *out_handle = *new_thread_handle;
 
     // Set the thread name for debugging purposes.
-    thread->SetName(
-        fmt::format("thread[entry_point={:X}, handle={:X}]", entry_point, *new_thread_handle));
+    thread->SetName(fmt::format("thread[entry_point={:X}, handle={:X}]", entry_point, *out_handle));
+
+    // Commit the thread reservation.
     thread_reservation.Commit();
+
+    // Register the new thread.
+    KThread::Register(kernel, thread);
+
+    // Add the thread to the handle table.
+    R_TRY(process.GetHandleTable().Add(out_handle, thread));
 
     return RESULT_SUCCESS;
 }
@@ -1563,21 +1538,15 @@ static ResultCode StartThread(Core::System& system, Handle thread_handle) {
     LOG_DEBUG(Kernel_SVC, "called thread=0x{:08X}", thread_handle);
 
     // Get the thread from its handle.
-    const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    const std::shared_ptr<KThread> thread = handle_table.Get<KThread>(thread_handle);
-    if (!thread) {
-        LOG_ERROR(Kernel_SVC, "Invalid thread handle provided (handle={:08X})", thread_handle);
-        return ResultInvalidHandle;
-    }
+    KScopedAutoObject thread =
+        system.Kernel().CurrentProcess()->GetHandleTable().GetObject<KThread>(thread_handle);
+    R_UNLESS(thread.IsNotNull(), ResultInvalidHandle);
 
     // Try to start the thread.
-    const auto run_result = thread->Run();
-    if (run_result.IsError()) {
-        LOG_ERROR(Kernel_SVC,
-                  "Unable to successfuly start thread (thread handle={:08X}, result={})",
-                  thread_handle, run_result.raw);
-        return run_result;
-    }
+    R_TRY(thread->Run());
+
+    // If we succeeded, persist a reference to the thread.
+    thread->Open();
 
     return RESULT_SUCCESS;
 }
@@ -1591,7 +1560,7 @@ static void ExitThread(Core::System& system) {
     LOG_DEBUG(Kernel_SVC, "called, pc=0x{:08X}", system.CurrentArmInterface().GetPC());
 
     auto* const current_thread = system.Kernel().CurrentScheduler()->GetCurrentThread();
-    system.GlobalSchedulerContext().RemoveThread(SharedFrom(current_thread));
+    system.GlobalSchedulerContext().RemoveThread(current_thread);
     current_thread->Exit();
 }
 
@@ -1824,8 +1793,11 @@ static void GetSystemTick32(Core::System& system, u32* time_low, u32* time_high)
 static ResultCode CloseHandle(Core::System& system, Handle handle) {
     LOG_TRACE(Kernel_SVC, "Closing handle 0x{:08X}", handle);
 
-    auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    return handle_table.Close(handle);
+    // Remove the handle.
+    R_UNLESS(system.Kernel().CurrentProcess()->GetHandleTable().Remove(handle),
+             ResultInvalidHandle);
+
+    return RESULT_SUCCESS;
 }
 
 static ResultCode CloseHandle32(Core::System& system, Handle handle) {
@@ -1841,16 +1813,16 @@ static ResultCode ResetSignal(Core::System& system, Handle handle) {
 
     // Try to reset as readable event.
     {
-        auto readable_event = handle_table.Get<KReadableEvent>(handle);
-        if (readable_event) {
+        KScopedAutoObject readable_event = handle_table.GetObject<KReadableEvent>(handle);
+        if (readable_event.IsNotNull()) {
             return readable_event->Reset();
         }
     }
 
     // Try to reset as process.
     {
-        auto process = handle_table.Get<Process>(handle);
-        if (process) {
+        KScopedAutoObject process = handle_table.GetObject<KProcess>(handle);
+        if (process.IsNotNull()) {
             return process->Reset();
         }
     }
@@ -1864,65 +1836,68 @@ static ResultCode ResetSignal32(Core::System& system, Handle handle) {
     return ResetSignal(system, handle);
 }
 
+static constexpr bool IsValidTransferMemoryPermission(MemoryPermission perm) {
+    switch (perm) {
+    case MemoryPermission::None:
+    case MemoryPermission::Read:
+    case MemoryPermission::ReadWrite:
+        return true;
+    default:
+        return false;
+    }
+}
+
 /// Creates a TransferMemory object
-static ResultCode CreateTransferMemory(Core::System& system, Handle* handle, VAddr addr, u64 size,
-                                       u32 permissions) {
-    std::lock_guard lock{HLE::g_hle_lock};
-    LOG_DEBUG(Kernel_SVC, "called addr=0x{:X}, size=0x{:X}, perms=0x{:08X}", addr, size,
-              permissions);
-
-    if (!Common::Is4KBAligned(addr)) {
-        LOG_ERROR(Kernel_SVC, "Address ({:016X}) is not page aligned!", addr);
-        return ResultInvalidAddress;
-    }
-
-    if (!Common::Is4KBAligned(size) || size == 0) {
-        LOG_ERROR(Kernel_SVC, "Size ({:016X}) is not page aligned or equal to zero!", size);
-        return ResultInvalidAddress;
-    }
-
-    if (!IsValidAddressRange(addr, size)) {
-        LOG_ERROR(Kernel_SVC, "Address and size cause overflow! (address={:016X}, size={:016X})",
-                  addr, size);
-        return ResultInvalidCurrentMemory;
-    }
-
-    const auto perms{static_cast<MemoryPermission>(permissions)};
-    if (perms > MemoryPermission::ReadWrite || perms == MemoryPermission::Write) {
-        LOG_ERROR(Kernel_SVC, "Invalid memory permissions for transfer memory! (perms={:08X})",
-                  permissions);
-        return ResultInvalidMemoryPermissions;
-    }
-
+static ResultCode CreateTransferMemory(Core::System& system, Handle* out, VAddr address, u64 size,
+                                       MemoryPermission map_perm) {
     auto& kernel = system.Kernel();
+
+    // Validate the size.
+    R_UNLESS(Common::IsAligned(address, PageSize), ResultInvalidAddress);
+    R_UNLESS(Common::IsAligned(size, PageSize), ResultInvalidSize);
+    R_UNLESS(size > 0, ResultInvalidSize);
+    R_UNLESS((address < address + size), ResultInvalidCurrentMemory);
+
+    // Validate the permissions.
+    R_UNLESS(IsValidTransferMemoryPermission(map_perm), ResultInvalidNewMemoryPermission);
+
+    // Get the current process and handle table.
+    auto& process = *kernel.CurrentProcess();
+    auto& handle_table = process.GetHandleTable();
+
     // Reserve a new transfer memory from the process resource limit.
     KScopedResourceReservation trmem_reservation(kernel.CurrentProcess(),
                                                  LimitableResource::TransferMemory);
-    if (!trmem_reservation.Succeeded()) {
-        LOG_ERROR(Kernel_SVC, "Could not reserve a new transfer memory");
-        return ResultResourceLimitedExceeded;
-    }
-    auto transfer_mem_handle = TransferMemory::Create(kernel, system.Memory(), addr, size,
-                                                      static_cast<KMemoryPermission>(perms));
+    R_UNLESS(trmem_reservation.Succeeded(), ResultLimitReached);
 
-    if (const auto reserve_result{transfer_mem_handle->Reserve()}; reserve_result.IsError()) {
-        return reserve_result;
-    }
+    // Create the transfer memory.
+    KTransferMemory* trmem = KTransferMemory::Create(kernel);
+    R_UNLESS(trmem != nullptr, ResultOutOfResource);
 
-    auto& handle_table = kernel.CurrentProcess()->GetHandleTable();
-    const auto result{handle_table.Create(std::move(transfer_mem_handle))};
-    if (result.Failed()) {
-        return result.Code();
-    }
+    // Ensure the only reference is in the handle table when we're done.
+    SCOPE_EXIT({ trmem->Close(); });
+
+    // Ensure that the region is in range.
+    R_UNLESS(process.PageTable().Contains(address, size), ResultInvalidCurrentMemory);
+
+    // Initialize the transfer memory.
+    R_TRY(trmem->Initialize(address, size, map_perm));
+
+    // Commit the reservation.
     trmem_reservation.Commit();
 
-    *handle = *result;
+    // Register the transfer memory.
+    KTransferMemory::Register(kernel, trmem);
+
+    // Add the transfer memory to the handle table.
+    R_TRY(handle_table.Add(out, trmem));
+
     return RESULT_SUCCESS;
 }
 
-static ResultCode CreateTransferMemory32(Core::System& system, Handle* handle, u32 addr, u32 size,
-                                         u32 permissions) {
-    return CreateTransferMemory(system, handle, addr, size, permissions);
+static ResultCode CreateTransferMemory32(Core::System& system, Handle* out, u32 address, u32 size,
+                                         MemoryPermission map_perm) {
+    return CreateTransferMemory(system, out, address, size, map_perm);
 }
 
 static ResultCode GetThreadCoreMask(Core::System& system, Handle thread_handle, s32* out_core_id,
@@ -1930,19 +1905,12 @@ static ResultCode GetThreadCoreMask(Core::System& system, Handle thread_handle, 
     LOG_TRACE(Kernel_SVC, "called, handle=0x{:08X}", thread_handle);
 
     // Get the thread from its handle.
-    const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    const std::shared_ptr<KThread> thread = handle_table.Get<KThread>(thread_handle);
-    if (!thread) {
-        LOG_ERROR(Kernel_SVC, "Invalid thread handle specified (handle={:08X})", thread_handle);
-        return ResultInvalidHandle;
-    }
+    KScopedAutoObject thread =
+        system.Kernel().CurrentProcess()->GetHandleTable().GetObject<KThread>(thread_handle);
+    R_UNLESS(thread.IsNotNull(), ResultInvalidHandle);
 
     // Get the core mask.
-    const auto result = thread->GetCoreMask(out_core_id, out_affinity_mask);
-    if (result.IsError()) {
-        LOG_ERROR(Kernel_SVC, "Unable to successfully retrieve core mask (result={})", result.raw);
-        return result;
-    }
+    R_TRY(thread->GetCoreMask(out_core_id, out_affinity_mask));
 
     return RESULT_SUCCESS;
 }
@@ -1958,58 +1926,33 @@ static ResultCode GetThreadCoreMask32(Core::System& system, Handle thread_handle
 
 static ResultCode SetThreadCoreMask(Core::System& system, Handle thread_handle, s32 core_id,
                                     u64 affinity_mask) {
-    LOG_DEBUG(Kernel_SVC, "called, handle=0x{:08X}, core_id=0x{:X}, affinity_mask=0x{:016X}",
-              thread_handle, core_id, affinity_mask);
-
-    const auto& current_process = *system.Kernel().CurrentProcess();
-
     // Determine the core id/affinity mask.
-    if (core_id == Svc::IdealCoreUseProcessValue) {
-        core_id = current_process.GetIdealCoreId();
+    if (core_id == IdealCoreUseProcessValue) {
+        core_id = system.Kernel().CurrentProcess()->GetIdealCoreId();
         affinity_mask = (1ULL << core_id);
     } else {
         // Validate the affinity mask.
-        const u64 process_core_mask = current_process.GetCoreMask();
-        if ((affinity_mask | process_core_mask) != process_core_mask) {
-            LOG_ERROR(Kernel_SVC,
-                      "Affinity mask does match the process core mask (affinity mask={:016X}, core "
-                      "mask={:016X})",
-                      affinity_mask, process_core_mask);
-            return ResultInvalidCoreId;
-        }
-        if (affinity_mask == 0) {
-            LOG_ERROR(Kernel_SVC, "Affinity mask is zero.");
-            return ResultInvalidCombination;
-        }
+        const u64 process_core_mask = system.Kernel().CurrentProcess()->GetCoreMask();
+        R_UNLESS((affinity_mask | process_core_mask) == process_core_mask, ResultInvalidCoreId);
+        R_UNLESS(affinity_mask != 0, ResultInvalidCombination);
 
         // Validate the core id.
-        if (IsValidCoreId(core_id)) {
-            if (((1ULL << core_id) & affinity_mask) == 0) {
-                LOG_ERROR(Kernel_SVC, "Invalid core ID (ID={})", core_id);
-                return ResultInvalidCombination;
-            }
+        if (IsValidVirtualCoreId(core_id)) {
+            R_UNLESS(((1ULL << core_id) & affinity_mask) != 0, ResultInvalidCombination);
         } else {
-            if (core_id != IdealCoreNoUpdate && core_id != IdealCoreDontCare) {
-                LOG_ERROR(Kernel_SVC, "Invalid core ID (ID={})", core_id);
-                return ResultInvalidCoreId;
-            }
+            R_UNLESS(core_id == IdealCoreNoUpdate || core_id == IdealCoreDontCare,
+                     ResultInvalidCoreId);
         }
     }
 
     // Get the thread from its handle.
-    const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    const std::shared_ptr<KThread> thread = handle_table.Get<KThread>(thread_handle);
-    if (!thread) {
-        LOG_ERROR(Kernel_SVC, "Invalid thread handle (handle={:08X})", thread_handle);
-        return ResultInvalidHandle;
-    }
+    KScopedAutoObject thread =
+        system.Kernel().CurrentProcess()->GetHandleTable().GetObject<KThread>(thread_handle);
+    R_UNLESS(thread.IsNotNull(), ResultInvalidHandle);
 
     // Set the core mask.
-    const auto set_result = thread->SetCoreMask(core_id, affinity_mask);
-    if (set_result.IsError()) {
-        LOG_ERROR(Kernel_SVC, "Unable to successfully set core mask (result={})", set_result.raw);
-        return set_result;
-    }
+    R_TRY(thread->SetCoreMask(core_id, affinity_mask));
+
     return RESULT_SUCCESS;
 }
 
@@ -2022,27 +1965,12 @@ static ResultCode SetThreadCoreMask32(Core::System& system, Handle thread_handle
 static ResultCode SignalEvent(Core::System& system, Handle event_handle) {
     LOG_DEBUG(Kernel_SVC, "called, event_handle=0x{:08X}", event_handle);
 
-    auto& kernel = system.Kernel();
     // Get the current handle table.
-    const HandleTable& handle_table = kernel.CurrentProcess()->GetHandleTable();
-
-    // Reserve a new event from the process resource limit.
-    KScopedResourceReservation event_reservation(kernel.CurrentProcess(),
-                                                 LimitableResource::Events);
-    if (!event_reservation.Succeeded()) {
-        LOG_ERROR(Kernel, "Could not reserve a new event");
-        return ResultResourceLimitedExceeded;
-    }
+    const KHandleTable& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
 
     // Get the writable event.
-    auto writable_event = handle_table.Get<KWritableEvent>(event_handle);
-    if (!writable_event) {
-        LOG_ERROR(Kernel_SVC, "Invalid event handle provided (handle={:08X})", event_handle);
-        return ResultInvalidHandle;
-    }
-
-    // Commit the successfuly reservation.
-    event_reservation.Commit();
+    KScopedAutoObject writable_event = handle_table.GetObject<KWritableEvent>(event_handle);
+    R_UNLESS(writable_event.IsNotNull(), ResultInvalidHandle);
 
     return writable_event->Signal();
 }
@@ -2059,16 +1987,16 @@ static ResultCode ClearEvent(Core::System& system, Handle event_handle) {
 
     // Try to clear the writable event.
     {
-        auto writable_event = handle_table.Get<KWritableEvent>(event_handle);
-        if (writable_event) {
+        KScopedAutoObject writable_event = handle_table.GetObject<KWritableEvent>(event_handle);
+        if (writable_event.IsNotNull()) {
             return writable_event->Clear();
         }
     }
 
     // Try to clear the readable event.
     {
-        auto readable_event = handle_table.Get<KReadableEvent>(event_handle);
-        if (readable_event) {
+        KScopedAutoObject readable_event = handle_table.GetObject<KReadableEvent>(event_handle);
+        if (readable_event.IsNotNull()) {
             return readable_event->Clear();
         }
     }
@@ -2087,34 +2015,40 @@ static ResultCode CreateEvent(Core::System& system, Handle* out_write, Handle* o
 
     // Get the kernel reference and handle table.
     auto& kernel = system.Kernel();
-    HandleTable& handle_table = kernel.CurrentProcess()->GetHandleTable();
+    auto& handle_table = kernel.CurrentProcess()->GetHandleTable();
+
+    // Reserve a new event from the process resource limit
+    KScopedResourceReservation event_reservation(kernel.CurrentProcess(),
+                                                 LimitableResource::Events);
+    R_UNLESS(event_reservation.Succeeded(), ResultLimitReached);
 
     // Create a new event.
-    const auto event = KEvent::Create(kernel, "CreateEvent");
-    if (!event) {
-        LOG_ERROR(Kernel_SVC, "Unable to create new events. Event creation limit reached.");
-        return ResultOutOfResource;
-    }
+    KEvent* event = KEvent::Create(kernel);
+    R_UNLESS(event != nullptr, ResultOutOfResource);
 
     // Initialize the event.
-    event->Initialize();
+    event->Initialize("CreateEvent");
+
+    // Commit the thread reservation.
+    event_reservation.Commit();
+
+    // Ensure that we clean up the event (and its only references are handle table) on function end.
+    SCOPE_EXIT({
+        event->GetWritableEvent().Close();
+        event->GetReadableEvent().Close();
+    });
+
+    // Register the event.
+    KEvent::Register(kernel, event);
 
     // Add the writable event to the handle table.
-    const auto write_create_result = handle_table.Create(event->GetWritableEvent());
-    if (write_create_result.Failed()) {
-        return write_create_result.Code();
-    }
-    *out_write = *write_create_result;
+    R_TRY(handle_table.Add(out_write, std::addressof(event->GetWritableEvent())));
 
     // Add the writable event to the handle table.
-    auto handle_guard = SCOPE_GUARD({ handle_table.Close(*write_create_result); });
+    auto handle_guard = SCOPE_GUARD({ handle_table.Remove(*out_write); });
 
     // Add the readable event to the handle table.
-    const auto read_create_result = handle_table.Create(event->GetReadableEvent());
-    if (read_create_result.Failed()) {
-        return read_create_result.Code();
-    }
-    *out_read = *read_create_result;
+    R_TRY(handle_table.Add(out_read, std::addressof(event->GetReadableEvent())));
 
     // We succeeded.
     handle_guard.Cancel();
@@ -2134,8 +2068,8 @@ static ResultCode GetProcessInfo(Core::System& system, u64* out, Handle process_
     };
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    const auto process = handle_table.Get<Process>(process_handle);
-    if (!process) {
+    KScopedAutoObject process = handle_table.GetObject<KProcess>(process_handle);
+    if (process.IsNull()) {
         LOG_ERROR(Kernel_SVC, "Process handle does not exist, process_handle=0x{:08X}",
                   process_handle);
         return ResultInvalidHandle;
@@ -2152,83 +2086,86 @@ static ResultCode GetProcessInfo(Core::System& system, u64* out, Handle process_
 }
 
 static ResultCode CreateResourceLimit(Core::System& system, Handle* out_handle) {
-    std::lock_guard lock{HLE::g_hle_lock};
     LOG_DEBUG(Kernel_SVC, "called");
 
+    // Create a new resource limit.
     auto& kernel = system.Kernel();
-    auto resource_limit = std::make_shared<KResourceLimit>(kernel, system.CoreTiming());
+    KResourceLimit* resource_limit = KResourceLimit::Create(kernel);
+    R_UNLESS(resource_limit != nullptr, ResultOutOfResource);
 
-    auto* const current_process = kernel.CurrentProcess();
-    ASSERT(current_process != nullptr);
+    // Ensure we don't leak a reference to the limit.
+    SCOPE_EXIT({ resource_limit->Close(); });
 
-    const auto handle = current_process->GetHandleTable().Create(std::move(resource_limit));
-    if (handle.Failed()) {
-        return handle.Code();
-    }
+    // Initialize the resource limit.
+    resource_limit->Initialize(&system.CoreTiming());
 
-    *out_handle = *handle;
+    // Register the limit.
+    KResourceLimit::Register(kernel, resource_limit);
+
+    // Add the limit to the handle table.
+    R_TRY(kernel.CurrentProcess()->GetHandleTable().Add(out_handle, resource_limit));
+
     return RESULT_SUCCESS;
 }
 
-static ResultCode GetResourceLimitLimitValue(Core::System& system, u64* out_value,
-                                             Handle resource_limit, u32 resource_type) {
-    LOG_DEBUG(Kernel_SVC, "called. Handle={:08X}, Resource type={}", resource_limit, resource_type);
+static ResultCode GetResourceLimitLimitValue(Core::System& system, u64* out_limit_value,
+                                             Handle resource_limit_handle,
+                                             LimitableResource which) {
+    LOG_DEBUG(Kernel_SVC, "called, resource_limit_handle={:08X}, which={}", resource_limit_handle,
+              which);
 
-    const auto limit_value = RetrieveResourceLimitValue(system, resource_limit, resource_type,
-                                                        ResourceLimitValueType::LimitValue);
-    if (limit_value.Failed()) {
-        return limit_value.Code();
-    }
+    // Validate the resource.
+    R_UNLESS(IsValidResourceType(which), ResultInvalidEnumValue);
 
-    *out_value = static_cast<u64>(*limit_value);
+    // Get the resource limit.
+    auto& kernel = system.Kernel();
+    KScopedAutoObject resource_limit =
+        kernel.CurrentProcess()->GetHandleTable().GetObject<KResourceLimit>(resource_limit_handle);
+    R_UNLESS(resource_limit.IsNotNull(), ResultInvalidHandle);
+
+    // Get the limit value.
+    *out_limit_value = resource_limit->GetLimitValue(which);
+
     return RESULT_SUCCESS;
 }
 
-static ResultCode GetResourceLimitCurrentValue(Core::System& system, u64* out_value,
-                                               Handle resource_limit, u32 resource_type) {
-    LOG_DEBUG(Kernel_SVC, "called. Handle={:08X}, Resource type={}", resource_limit, resource_type);
+static ResultCode GetResourceLimitCurrentValue(Core::System& system, u64* out_current_value,
+                                               Handle resource_limit_handle,
+                                               LimitableResource which) {
+    LOG_DEBUG(Kernel_SVC, "called, resource_limit_handle={:08X}, which={}", resource_limit_handle,
+              which);
 
-    const auto current_value = RetrieveResourceLimitValue(system, resource_limit, resource_type,
-                                                          ResourceLimitValueType::CurrentValue);
-    if (current_value.Failed()) {
-        return current_value.Code();
-    }
+    // Validate the resource.
+    R_UNLESS(IsValidResourceType(which), ResultInvalidEnumValue);
 
-    *out_value = static_cast<u64>(*current_value);
+    // Get the resource limit.
+    auto& kernel = system.Kernel();
+    KScopedAutoObject resource_limit =
+        kernel.CurrentProcess()->GetHandleTable().GetObject<KResourceLimit>(resource_limit_handle);
+    R_UNLESS(resource_limit.IsNotNull(), ResultInvalidHandle);
+
+    // Get the current value.
+    *out_current_value = resource_limit->GetCurrentValue(which);
+
     return RESULT_SUCCESS;
 }
 
-static ResultCode SetResourceLimitLimitValue(Core::System& system, Handle resource_limit,
-                                             u32 resource_type, u64 value) {
-    LOG_DEBUG(Kernel_SVC, "called. Handle={:08X}, Resource type={}, Value={}", resource_limit,
-              resource_type, value);
+static ResultCode SetResourceLimitLimitValue(Core::System& system, Handle resource_limit_handle,
+                                             LimitableResource which, u64 limit_value) {
+    LOG_DEBUG(Kernel_SVC, "called, resource_limit_handle={:08X}, which={}, limit_value={}",
+              resource_limit_handle, which, limit_value);
 
-    const auto type = static_cast<LimitableResource>(resource_type);
-    if (!IsValidResourceType(type)) {
-        LOG_ERROR(Kernel_SVC, "Invalid resource limit type: '{}'", resource_type);
-        return ResultInvalidEnumValue;
-    }
+    // Validate the resource.
+    R_UNLESS(IsValidResourceType(which), ResultInvalidEnumValue);
 
-    auto* const current_process = system.Kernel().CurrentProcess();
-    ASSERT(current_process != nullptr);
+    // Get the resource limit.
+    auto& kernel = system.Kernel();
+    KScopedAutoObject resource_limit =
+        kernel.CurrentProcess()->GetHandleTable().GetObject<KResourceLimit>(resource_limit_handle);
+    R_UNLESS(resource_limit.IsNotNull(), ResultInvalidHandle);
 
-    auto resource_limit_object =
-        current_process->GetHandleTable().Get<KResourceLimit>(resource_limit);
-    if (!resource_limit_object) {
-        LOG_ERROR(Kernel_SVC, "Handle to non-existent resource limit instance used. Handle={:08X}",
-                  resource_limit);
-        return ResultInvalidHandle;
-    }
-
-    const auto set_result = resource_limit_object->SetLimitValue(type, static_cast<s64>(value));
-    if (set_result.IsError()) {
-        LOG_ERROR(Kernel_SVC,
-                  "Attempted to lower resource limit ({}) for category '{}' below its current "
-                  "value ({})",
-                  resource_limit_object->GetLimitValue(type), resource_type,
-                  resource_limit_object->GetCurrentValue(type));
-        return set_result;
-    }
+    // Set the limit value.
+    R_TRY(resource_limit->SetLimitValue(which, limit_value));
 
     return RESULT_SUCCESS;
 }
@@ -2351,7 +2288,7 @@ static const FunctionDef SVC_Table_32[] = {
     {0x11, SvcWrap32<SignalEvent32>, "SignalEvent32"},
     {0x12, SvcWrap32<ClearEvent32>, "ClearEvent32"},
     {0x13, SvcWrap32<MapSharedMemory32>, "MapSharedMemory32"},
-    {0x14, nullptr, "UnmapSharedMemory32"},
+    {0x14, SvcWrap32<UnmapSharedMemory32>, "UnmapSharedMemory32"},
     {0x15, SvcWrap32<CreateTransferMemory32>, "CreateTransferMemory32"},
     {0x16, SvcWrap32<CloseHandle32>, "CloseHandle32"},
     {0x17, SvcWrap32<ResetSignal32>, "ResetSignal32"},
@@ -2546,7 +2483,7 @@ static const FunctionDef SVC_Table_64[] = {
     {0x11, SvcWrap64<SignalEvent>, "SignalEvent"},
     {0x12, SvcWrap64<ClearEvent>, "ClearEvent"},
     {0x13, SvcWrap64<MapSharedMemory>, "MapSharedMemory"},
-    {0x14, nullptr, "UnmapSharedMemory"},
+    {0x14, SvcWrap64<UnmapSharedMemory>, "UnmapSharedMemory"},
     {0x15, SvcWrap64<CreateTransferMemory>, "CreateTransferMemory"},
     {0x16, SvcWrap64<CloseHandle>, "CloseHandle"},
     {0x17, SvcWrap64<ResetSignal>, "ResetSignal"},

@@ -8,8 +8,6 @@
 #include <mutex>
 #include <unordered_map>
 
-#include "core/hle/kernel/object.h"
-
 namespace Core {
 class System;
 } // namespace Core

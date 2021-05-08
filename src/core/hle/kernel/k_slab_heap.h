@@ -97,6 +97,7 @@ public:
     void FreeImpl(void* obj) {
         // Don't allow freeing an object that wasn't allocated from this heap
         ASSERT(Contains(reinterpret_cast<uintptr_t>(obj)));
+
         impl.Free(obj);
     }
 
@@ -144,6 +145,14 @@ public:
         T* obj = static_cast<T*>(AllocateImpl());
         if (obj != nullptr) {
             new (obj) T();
+        }
+        return obj;
+    }
+
+    T* AllocateWithKernel(KernelCore& kernel) {
+        T* obj = static_cast<T*>(AllocateImpl());
+        if (obj != nullptr) {
+            new (obj) T(kernel);
         }
         return obj;
     }

@@ -35,7 +35,7 @@ class nvdevice;
 
 /// Represents an Nvidia event
 struct NvEvent {
-    std::shared_ptr<Kernel::KEvent> event;
+    Kernel::KEvent* event{};
     Fence fence{};
 };
 
@@ -136,9 +136,9 @@ public:
 
     void SignalSyncpt(const u32 syncpoint_id, const u32 value);
 
-    std::shared_ptr<Kernel::KReadableEvent> GetEvent(u32 event_id) const;
+    Kernel::KReadableEvent& GetEvent(u32 event_id);
 
-    std::shared_ptr<Kernel::KWritableEvent> GetEventWriteable(u32 event_id) const;
+    Kernel::KWritableEvent& GetEventWriteable(u32 event_id);
 
 private:
     /// Manages syncpoints on the host

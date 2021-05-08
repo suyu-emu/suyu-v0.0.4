@@ -8,8 +8,7 @@
 #include "core/core_timing_util.h"
 #include "core/hardware_properties.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/client_port.h"
-#include "core/hle/kernel/client_session.h"
+#include "core/hle/kernel/k_client_port.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/service/time/interface.h"
@@ -393,7 +392,7 @@ void Module::Interface::GetSharedMemoryNativeHandle(Kernel::HLERequestContext& c
     LOG_DEBUG(Service_Time, "called");
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushCopyObjects(SharedFrom(&system.Kernel().GetTimeSharedMem()));
+    rb.PushCopyObjects(&system.Kernel().GetTimeSharedMem());
 }
 
 Module::Interface::Interface(std::shared_ptr<Module> module_, Core::System& system_,

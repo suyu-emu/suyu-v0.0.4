@@ -8,12 +8,12 @@
 #include <memory>
 #include <queue>
 
+#include "core/hle/kernel/k_event.h"
 #include "core/hle/service/service.h"
 
 namespace Kernel {
 class KernelCore;
-class KEvent;
-class TransferMemory;
+class KTransferMemory;
 } // namespace Kernel
 
 namespace Service::NVFlinger {
@@ -56,8 +56,8 @@ public:
     explicit AppletMessageQueue(Kernel::KernelCore& kernel);
     ~AppletMessageQueue();
 
-    const std::shared_ptr<Kernel::KReadableEvent>& GetMessageReceiveEvent() const;
-    const std::shared_ptr<Kernel::KReadableEvent>& GetOperationModeChangedEvent() const;
+    Kernel::KReadableEvent& GetMessageReceiveEvent();
+    Kernel::KReadableEvent& GetOperationModeChangedEvent();
     void PushMessage(AppletMessage msg);
     AppletMessage PopMessage();
     std::size_t GetMessageCount() const;
@@ -67,8 +67,8 @@ public:
 
 private:
     std::queue<AppletMessage> messages;
-    std::shared_ptr<Kernel::KEvent> on_new_message;
-    std::shared_ptr<Kernel::KEvent> on_operation_mode_changed;
+    Kernel::KEvent on_new_message;
+    Kernel::KEvent on_operation_mode_changed;
 };
 
 class IWindowController final : public ServiceFramework<IWindowController> {
@@ -156,8 +156,8 @@ private:
     };
 
     NVFlinger::NVFlinger& nvflinger;
-    std::shared_ptr<Kernel::KEvent> launchable_event;
-    std::shared_ptr<Kernel::KEvent> accumulated_suspended_tick_changed_event;
+    Kernel::KEvent launchable_event;
+    Kernel::KEvent accumulated_suspended_tick_changed_event;
 
     u32 idle_time_detection_extension = 0;
     u64 num_fatal_sections_entered = 0;
@@ -300,9 +300,9 @@ private:
     bool launch_popped_application_specific = false;
     bool launch_popped_account_preselect = false;
     s32 previous_program_index{-1};
-    std::shared_ptr<Kernel::KEvent> gpu_error_detected_event;
-    std::shared_ptr<Kernel::KEvent> friend_invitation_storage_channel_event;
-    std::shared_ptr<Kernel::KEvent> health_warning_disappeared_system_event;
+    Kernel::KEvent gpu_error_detected_event;
+    Kernel::KEvent friend_invitation_storage_channel_event;
+    Kernel::KEvent health_warning_disappeared_system_event;
 };
 
 class IHomeMenuFunctions final : public ServiceFramework<IHomeMenuFunctions> {
@@ -314,7 +314,7 @@ private:
     void RequestToGetForeground(Kernel::HLERequestContext& ctx);
     void GetPopFromGeneralChannelEvent(Kernel::HLERequestContext& ctx);
 
-    std::shared_ptr<Kernel::KEvent> pop_from_general_channel_event;
+    Kernel::KEvent pop_from_general_channel_event;
 };
 
 class IGlobalStateController final : public ServiceFramework<IGlobalStateController> {

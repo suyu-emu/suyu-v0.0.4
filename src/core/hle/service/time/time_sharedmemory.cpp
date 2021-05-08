@@ -16,15 +16,10 @@ namespace Service::Time {
 static constexpr std::size_t SHARED_MEMORY_SIZE{0x1000};
 
 SharedMemory::SharedMemory(Core::System& system) : system(system) {
-    shared_memory_holder = SharedFrom(&system.Kernel().GetTimeSharedMem());
-    std::memset(shared_memory_holder->GetPointer(), 0, SHARED_MEMORY_SIZE);
+    std::memset(system.Kernel().GetTimeSharedMem().GetPointer(), 0, SHARED_MEMORY_SIZE);
 }
 
 SharedMemory::~SharedMemory() = default;
-
-std::shared_ptr<Kernel::KSharedMemory> SharedMemory::GetSharedMemoryHolder() const {
-    return shared_memory_holder;
-}
 
 void SharedMemory::SetupStandardSteadyClock(const Common::UUID& clock_source_id,
                                             Clock::TimeSpanType current_time_point) {
@@ -34,22 +29,22 @@ void SharedMemory::SetupStandardSteadyClock(const Common::UUID& clock_source_id,
         static_cast<u64>(current_time_point.nanoseconds - ticks_time_span.nanoseconds),
         clock_source_id};
     shared_memory_format.standard_steady_clock_timepoint.StoreData(
-        shared_memory_holder->GetPointer(), context);
+        system.Kernel().GetTimeSharedMem().GetPointer(), context);
 }
 
 void SharedMemory::UpdateLocalSystemClockContext(const Clock::SystemClockContext& context) {
     shared_memory_format.standard_local_system_clock_context.StoreData(
-        shared_memory_holder->GetPointer(), context);
+        system.Kernel().GetTimeSharedMem().GetPointer(), context);
 }
 
 void SharedMemory::UpdateNetworkSystemClockContext(const Clock::SystemClockContext& context) {
     shared_memory_format.standard_network_system_clock_context.StoreData(
-        shared_memory_holder->GetPointer(), context);
+        system.Kernel().GetTimeSharedMem().GetPointer(), context);
 }
 
 void SharedMemory::SetAutomaticCorrectionEnabled(bool is_enabled) {
     shared_memory_format.standard_user_system_clock_automatic_correction.StoreData(
-        shared_memory_holder->GetPointer(), is_enabled);
+        system.Kernel().GetTimeSharedMem().GetPointer(), is_enabled);
 }
 
 } // namespace Service::Time

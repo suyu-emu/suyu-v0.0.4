@@ -11,11 +11,13 @@
 #include <unordered_map>
 #include <vector>
 #include "common/common_types.h"
-#include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_address_arbiter.h"
+#include "core/hle/kernel/k_auto_object.h"
 #include "core/hle/kernel/k_condition_variable.h"
+#include "core/hle/kernel/k_handle_table.h"
 #include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/kernel/process_capability.h"
+#include "core/hle/kernel/slab_helpers.h"
 #include "core/hle/result.h"
 
 namespace Core {
@@ -60,10 +62,13 @@ enum class ProcessStatus {
     DebugBreak,
 };
 
-class Process final : public KSynchronizationObject {
+class KProcess final
+    : public KAutoObjectWithSlabHeapAndContainer<KProcess, KSynchronizationObject> {
+    KERNEL_AUTOOBJECT_TRAITS(KProcess, KSynchronizationObject);
+
 public:
-    explicit Process(Core::System& system);
-    ~Process() override;
+    explicit KProcess(KernelCore& kernel);
+    ~KProcess() override;
 
     enum : u64 {
         /// Lowest allowed process ID for a kernel initial process.
@@ -85,20 +90,8 @@ public:
 
     static constexpr std::size_t RANDOM_ENTROPY_SIZE = 4;
 
-    static std::shared_ptr<Process> Create(Core::System& system, std::string name,
-                                           ProcessType type);
-
-    std::string GetTypeName() const override {
-        return "Process";
-    }
-    std::string GetName() const override {
-        return name;
-    }
-
-    static constexpr HandleType HANDLE_TYPE = HandleType::Process;
-    HandleType GetHandleType() const override {
-        return HANDLE_TYPE;
-    }
+    static ResultCode Initialize(KProcess* process, Core::System& system, std::string name,
+                                 ProcessType type);
 
     /// Gets a reference to the process' page table.
     KPageTable& PageTable() {
@@ -111,12 +104,12 @@ public:
     }
 
     /// Gets a reference to the process' handle table.
-    HandleTable& GetHandleTable() {
+    KHandleTable& GetHandleTable() {
         return handle_table;
     }
 
     /// Gets a const reference to the process' handle table.
-    const HandleTable& GetHandleTable() const {
+    const KHandleTable& GetHandleTable() const {
         return handle_table;
     }
 
@@ -167,7 +160,7 @@ public:
     }
 
     /// Gets the resource limit descriptor for this process
-    std::shared_ptr<KResourceLimit> GetResourceLimit() const;
+    KResourceLimit* GetResourceLimit() const;
 
     /// Gets the ideal CPU core ID for this process
     u8 GetIdealCoreId() const {
@@ -338,9 +331,19 @@ public:
 
     void LoadModule(CodeSet code_set, VAddr base_addr);
 
-    bool IsSignaled() const override;
+    virtual bool IsInitialized() const override {
+        return is_initialized;
+    }
 
-    void Finalize() override {}
+    static void PostDestroy([[maybe_unused]] uintptr_t arg) {}
+
+    virtual void Finalize();
+
+    virtual u64 GetId() const override final {
+        return GetProcessID();
+    }
+
+    virtual bool IsSignaled() const override;
 
     void PinCurrentThread();
     void UnpinCurrentThread();
@@ -348,6 +351,9 @@ public:
     KLightLock& GetStateLock() {
         return state_lock;
     }
+
+    ResultCode AddSharedMemory(KSharedMemory* shmem, VAddr address, size_t size);
+    void RemoveSharedMemory(KSharedMemory* shmem, VAddr address, size_t size);
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Thread-local storage management
@@ -399,7 +405,7 @@ private:
     u32 system_resource_size = 0;
 
     /// Resource limit descriptor for this process
-    std::shared_ptr<KResourceLimit> resource_limit;
+    KResourceLimit* resource_limit{};
 
     /// The ideal CPU core for this process, threads are scheduled on this core by default.
     u8 ideal_core = 0;
@@ -423,7 +429,7 @@ private:
     u64 total_process_running_time_ticks = 0;
 
     /// Per-process handle table for storing created object handles in.
-    HandleTable handle_table;
+    KHandleTable handle_table;
 
     /// Per-process address arbiter.
     KAddressArbiter address_arbiter;
@@ -454,14 +460,12 @@ private:
     /// Process total image size
     std::size_t image_size{};
 
-    /// Name of this process
-    std::string name;
-
     /// Schedule count of this process
     s64 schedule_count{};
 
     bool is_signaled{};
     bool is_suspended{};
+    bool is_initialized{};
 
     std::atomic<s32> num_created_threads{};
     std::atomic<u16> num_threads{};
@@ -474,9 +478,6 @@ private:
     KThread* exception_thread{};
 
     KLightLock state_lock;
-
-    /// System context
-    Core::System& system;
 };
 
 } // namespace Kernel

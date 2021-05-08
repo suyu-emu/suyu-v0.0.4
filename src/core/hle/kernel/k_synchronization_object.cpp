@@ -13,6 +13,11 @@
 
 namespace Kernel {
 
+void KSynchronizationObject::Finalize() {
+    this->OnFinalizeSynchronizationObject();
+    KAutoObject::Finalize();
+}
+
 ResultCode KSynchronizationObject::Wait(KernelCore& kernel, s32* out_index,
                                         KSynchronizationObject** objects, const s32 num_objects,
                                         s64 timeout) {
@@ -130,10 +135,7 @@ ResultCode KSynchronizationObject::Wait(KernelCore& kernel, s32* out_index,
     return wait_result;
 }
 
-KSynchronizationObject::KSynchronizationObject(KernelCore& kernel) : Object{kernel} {}
-
-KSynchronizationObject::KSynchronizationObject(KernelCore& kernel, std::string&& name)
-    : Object{kernel, std::move(name)} {}
+KSynchronizationObject::KSynchronizationObject(KernelCore& kernel) : KAutoObjectWithList{kernel} {}
 
 KSynchronizationObject::~KSynchronizationObject() = default;
 

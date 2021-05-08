@@ -17,7 +17,7 @@ class System;
 }
 
 namespace Kernel {
-class Process;
+class KProcess;
 }
 
 namespace Loader {
@@ -86,12 +86,12 @@ public:
         return IdentifyType(file);
     }
 
-    static std::optional<VAddr> LoadModule(Kernel::Process& process, Core::System& system,
+    static std::optional<VAddr> LoadModule(Kernel::KProcess& process, Core::System& system,
                                            const FileSys::VfsFile& nso_file, VAddr load_base,
                                            bool should_pass_arguments, bool load_into_process,
                                            std::optional<FileSys::PatchManager> pm = {});
 
-    LoadResult Load(Kernel::Process& process, Core::System& system) override;
+    LoadResult Load(Kernel::KProcess& process, Core::System& system) override;
 
     ResultStatus ReadNSOModules(Modules& out_modules) override;
 

@@ -27,12 +27,12 @@
 #include "core/file_sys/vfs_concat.h"
 #include "core/file_sys/vfs_real.h"
 #include "core/hardware_interrupt_manager.h"
-#include "core/hle/kernel/client_port.h"
+#include "core/hle/kernel/k_client_port.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/physical_core.h"
-#include "core/hle/kernel/process.h"
 #include "core/hle/service/am/applets/applets.h"
 #include "core/hle/service/apm/controller.h"
 #include "core/hle/service/filesystem/filesystem.h"
@@ -166,9 +166,9 @@ struct System::Impl {
         cpu_manager.SetAsyncGpu(is_async_gpu);
         core_timing.SetMulticore(is_multicore);
 
-        core_timing.Initialize([&system]() { system.RegisterHostThread(); });
         kernel.Initialize();
         cpu_manager.Initialize();
+        core_timing.Initialize([&system]() { system.RegisterHostThread(); });
 
         const auto current_time = std::chrono::duration_cast<std::chrono::seconds>(
             std::chrono::system_clock::now().time_since_epoch());
@@ -233,8 +233,11 @@ struct System::Impl {
         }
 
         telemetry_session->AddInitialInfo(*app_loader, fs_controller, *content_provider);
-        auto main_process =
-            Kernel::Process::Create(system, "main", Kernel::Process::ProcessType::Userland);
+        auto main_process = Kernel::KProcess::Create(system.Kernel());
+        ASSERT(Kernel::KProcess::Initialize(main_process, system, "main",
+                                            Kernel::KProcess::ProcessType::Userland)
+                   .IsSuccess());
+        main_process->Open();
         const auto [load_result, load_parameters] = app_loader->Load(*main_process, system);
         if (load_result != Loader::ResultStatus::Success) {
             LOG_CRITICAL(Core, "Failed to load ROM (Error {})!", load_result);
@@ -244,7 +247,7 @@ struct System::Impl {
                                              static_cast<u32>(load_result));
         }
         AddGlueRegistrationForProcess(*app_loader, *main_process);
-        kernel.MakeCurrentProcess(main_process.get());
+        kernel.MakeCurrentProcess(main_process);
         kernel.InitializeCores();
 
         // Initialize cheat engine
@@ -311,6 +314,7 @@ struct System::Impl {
         gpu_core.reset();
         perf_stats.reset();
         kernel.Shutdown();
+        memory.Reset();
         applet_manager.ClearAll();
 
         LOG_DEBUG(Core, "Shutdown OK");
@@ -322,7 +326,7 @@ struct System::Impl {
         return app_loader->ReadTitle(out);
     }
 
-    void AddGlueRegistrationForProcess(Loader::AppLoader& loader, Kernel::Process& process) {
+    void AddGlueRegistrationForProcess(Loader::AppLoader& loader, Kernel::KProcess& process) {
         std::vector<u8> nacp_data;
         FileSys::NACP nacp;
         if (loader.ReadControlData(nacp) == Loader::ResultStatus::Success) {
@@ -513,7 +517,7 @@ const Kernel::GlobalSchedulerContext& System::GlobalSchedulerContext() const {
     return impl->kernel.GlobalSchedulerContext();
 }
 
-Kernel::Process* System::CurrentProcess() {
+Kernel::KProcess* System::CurrentProcess() {
     return impl->kernel.CurrentProcess();
 }
 
@@ -525,7 +529,7 @@ const Core::DeviceMemory& System::DeviceMemory() const {
     return *impl->device_memory;
 }
 
-const Kernel::Process* System::CurrentProcess() const {
+const Kernel::KProcess* System::CurrentProcess() const {
     return impl->kernel.CurrentProcess();
 }
 

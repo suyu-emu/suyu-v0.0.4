@@ -16,10 +16,9 @@
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/k_event.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/process.h"
 #include "core/hle/service/aoc/aoc_u.h"
 #include "core/loader/loader.h"
 
@@ -50,7 +49,7 @@ static std::vector<u64> AccumulateAOCTitleIDs(Core::System& system) {
 class IPurchaseEventManager final : public ServiceFramework<IPurchaseEventManager> {
 public:
     explicit IPurchaseEventManager(Core::System& system_)
-        : ServiceFramework{system_, "IPurchaseEventManager"} {
+        : ServiceFramework{system_, "IPurchaseEventManager"}, purchased_event{system.Kernel()} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IPurchaseEventManager::SetDefaultDeliveryTarget, "SetDefaultDeliveryTarget"},
@@ -63,9 +62,8 @@ public:
 
         RegisterHandlers(functions);
 
-        purchased_event =
-            Kernel::KEvent::Create(system.Kernel(), "IPurchaseEventManager:PurchasedEvent");
-        purchased_event->Initialize();
+        Kernel::KAutoObject::Create(std::addressof(purchased_event));
+        purchased_event.Initialize("IPurchaseEventManager:PurchasedEvent");
     }
 
 private:
@@ -98,14 +96,15 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(purchased_event->GetReadableEvent());
+        rb.PushCopyObjects(purchased_event.GetReadableEvent());
     }
 
-    std::shared_ptr<Kernel::KEvent> purchased_event;
+    Kernel::KEvent purchased_event;
 };
 
 AOC_U::AOC_U(Core::System& system_)
-    : ServiceFramework{system_, "aoc:u"}, add_on_content{AccumulateAOCTitleIDs(system)} {
+    : ServiceFramework{system_, "aoc:u"}, add_on_content{AccumulateAOCTitleIDs(system)},
+      aoc_change_event{system.Kernel()} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "CountAddOnContentByApplicationId"},
@@ -127,9 +126,8 @@ AOC_U::AOC_U(Core::System& system_)
 
     RegisterHandlers(functions);
 
-    auto& kernel = system.Kernel();
-    aoc_change_event = Kernel::KEvent::Create(kernel, "GetAddOnContentListChanged:Event");
-    aoc_change_event->Initialize();
+    Kernel::KAutoObject::Create(std::addressof(aoc_change_event));
+    aoc_change_event.Initialize("GetAddOnContentListChanged:Event");
 }
 
 AOC_U::~AOC_U() = default;
@@ -256,7 +254,7 @@ void AOC_U::GetAddOnContentListChangedEvent(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushCopyObjects(aoc_change_event->GetReadableEvent());
+    rb.PushCopyObjects(aoc_change_event.GetReadableEvent());
 }
 
 void AOC_U::CreateEcPurchasedEventManager(Kernel::HLERequestContext& ctx) {

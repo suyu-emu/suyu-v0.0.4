@@ -40,6 +40,7 @@ public:
     ResultCode Unmap(VAddr dst_addr, VAddr src_addr, std::size_t size);
     ResultCode MapPages(VAddr addr, KPageLinkedList& page_linked_list, KMemoryState state,
                         KMemoryPermission perm);
+    ResultCode UnmapPages(VAddr addr, KPageLinkedList& page_linked_list, KMemoryState state);
     ResultCode SetCodeMemoryPermission(VAddr addr, std::size_t size, KMemoryPermission perm);
     KMemoryInfo QueryInfo(VAddr addr);
     ResultCode ReserveTransferMemory(VAddr addr, std::size_t size, KMemoryPermission perm);
@@ -63,6 +64,8 @@ public:
         return page_table_impl;
     }
 
+    bool CanContain(VAddr addr, std::size_t size, KMemoryState state) const;
+
 private:
     enum class OperationType : u32 {
         Map,
@@ -79,6 +82,7 @@ private:
     ResultCode InitializeMemoryLayout(VAddr start, VAddr end);
     ResultCode MapPages(VAddr addr, const KPageLinkedList& page_linked_list,
                         KMemoryPermission perm);
+    ResultCode UnmapPages(VAddr addr, const KPageLinkedList& page_linked_list);
     void MapPhysicalMemory(KPageLinkedList& page_linked_list, VAddr start, VAddr end);
     bool IsRegionMapped(VAddr address, u64 size);
     bool IsRegionContiguous(VAddr addr, u64 size) const;
@@ -92,7 +96,6 @@ private:
                        OperationType operation, PAddr map_addr = 0);
     constexpr VAddr GetRegionAddress(KMemoryState state) const;
     constexpr std::size_t GetRegionSize(KMemoryState state) const;
-    constexpr bool CanContain(VAddr addr, std::size_t size, KMemoryState state) const;
 
     constexpr ResultCode CheckMemoryState(const KMemoryInfo& info, KMemoryState state_mask,
                                           KMemoryState state, KMemoryPermission perm_mask,
@@ -216,8 +219,6 @@ public:
     constexpr PAddr GetPhysicalAddr(VAddr addr) {
         return page_table_impl.backing_addr[addr >> PageBits] + addr;
     }
-
-private:
     constexpr bool Contains(VAddr addr) const {
         return address_space_start <= addr && addr <= address_space_end - 1;
     }
@@ -225,6 +226,8 @@ private:
         return address_space_start <= addr && addr < addr + size &&
                addr + size - 1 <= address_space_end - 1;
     }
+
+private:
     constexpr bool IsKernel() const {
         return is_kernel;
     }

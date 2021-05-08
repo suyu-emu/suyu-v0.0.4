@@ -43,9 +43,9 @@ class IAudioOut final : public ServiceFramework<IAudioOut> {
 public:
     IAudioOut(Core::System& system_, AudoutParams audio_params_, AudioCore::AudioOut& audio_core_,
               std::string&& device_name_, std::string&& unique_name)
-        : ServiceFramework{system_, "IAudioOut"}, audio_core{audio_core_},
-          device_name{std::move(device_name_)}, audio_params{audio_params_}, main_memory{
-                                                                                 system.Memory()} {
+        : ServiceFramework{system_, "IAudioOut"}, audio_core{audio_core_}, device_name{std::move(
+                                                                               device_name_)},
+          audio_params{audio_params_}, buffer_event{system.Kernel()}, main_memory{system.Memory()} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IAudioOut::GetAudioOutState, "GetAudioOutState"},
@@ -67,13 +67,13 @@ public:
         RegisterHandlers(functions);
 
         // This is the event handle used to check if the audio buffer was released
-        buffer_event = Kernel::KEvent::Create(system.Kernel(), "IAudioOutBufferReleased");
-        buffer_event->Initialize();
+        Kernel::KAutoObject::Create(std::addressof(buffer_event));
+        buffer_event.Initialize("IAudioOutBufferReleased");
 
         stream = audio_core.OpenStream(system.CoreTiming(), audio_params.sample_rate,
                                        audio_params.channel_count, std::move(unique_name), [this] {
                                            const auto guard = LockService();
-                                           buffer_event->GetWritableEvent()->Signal();
+                                           buffer_event.GetWritableEvent().Signal();
                                        });
     }
 
@@ -126,7 +126,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(buffer_event->GetReadableEvent());
+        rb.PushCopyObjects(buffer_event.GetReadableEvent());
     }
 
     void AppendAudioOutBufferImpl(Kernel::HLERequestContext& ctx) {
@@ -220,7 +220,7 @@ private:
     [[maybe_unused]] AudoutParams audio_params{};
 
     /// This is the event handle used to check if the audio buffer was released
-    std::shared_ptr<Kernel::KEvent> buffer_event;
+    Kernel::KEvent buffer_event;
     Core::Memory::Memory& main_memory;
 };
 

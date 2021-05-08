@@ -19,7 +19,8 @@ namespace Service::PSM {
 
 class IPsmSession final : public ServiceFramework<IPsmSession> {
 public:
-    explicit IPsmSession(Core::System& system_) : ServiceFramework{system_, "IPsmSession"} {
+    explicit IPsmSession(Core::System& system_)
+        : ServiceFramework{system_, "IPsmSession"}, state_change_event{system.Kernel()} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IPsmSession::BindStateChangeEvent, "BindStateChangeEvent"},
@@ -32,28 +33,27 @@ public:
 
         RegisterHandlers(functions);
 
-        state_change_event =
-            Kernel::KEvent::Create(system_.Kernel(), "IPsmSession::state_change_event");
-        state_change_event->Initialize();
+        Kernel::KAutoObject::Create(std::addressof(state_change_event));
+        state_change_event.Initialize("IPsmSession::state_change_event");
     }
 
     ~IPsmSession() override = default;
 
     void SignalChargerTypeChanged() {
         if (should_signal && should_signal_charger_type) {
-            state_change_event->GetWritableEvent()->Signal();
+            state_change_event.GetWritableEvent().Signal();
         }
     }
 
     void SignalPowerSupplyChanged() {
         if (should_signal && should_signal_power_supply) {
-            state_change_event->GetWritableEvent()->Signal();
+            state_change_event.GetWritableEvent().Signal();
         }
     }
 
     void SignalBatteryVoltageStateChanged() {
         if (should_signal && should_signal_battery_voltage) {
-            state_change_event->GetWritableEvent()->Signal();
+            state_change_event.GetWritableEvent().Signal();
         }
     }
 
@@ -65,7 +65,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushCopyObjects(state_change_event->GetReadableEvent());
+        rb.PushCopyObjects(state_change_event.GetReadableEvent());
     }
 
     void UnbindStateChangeEvent(Kernel::HLERequestContext& ctx) {
@@ -114,7 +114,7 @@ private:
     bool should_signal_power_supply{};
     bool should_signal_battery_voltage{};
     bool should_signal{};
-    std::shared_ptr<Kernel::KEvent> state_change_event;
+    Kernel::KEvent state_change_event;
 };
 
 class PSM final : public ServiceFramework<PSM> {

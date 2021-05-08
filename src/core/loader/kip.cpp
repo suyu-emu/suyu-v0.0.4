@@ -7,7 +7,7 @@
 #include "core/file_sys/program_metadata.h"
 #include "core/hle/kernel/code_set.h"
 #include "core/hle/kernel/k_page_table.h"
-#include "core/hle/kernel/process.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/loader/kip.h"
 #include "core/memory.h"
 
@@ -42,7 +42,7 @@ FileType AppLoader_KIP::GetFileType() const {
                                                                          : FileType::Error;
 }
 
-AppLoader::LoadResult AppLoader_KIP::Load(Kernel::Process& process,
+AppLoader::LoadResult AppLoader_KIP::Load(Kernel::KProcess& process,
                                           [[maybe_unused]] Core::System& system) {
     if (is_loaded) {
         return {ResultStatus::ErrorAlreadyLoaded, {}};

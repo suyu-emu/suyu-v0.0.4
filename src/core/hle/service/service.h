@@ -11,7 +11,6 @@
 #include "common/common_types.h"
 #include "common/spin_lock.h"
 #include "core/hle/kernel/hle_ipc.h"
-#include "core/hle/kernel/object.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Namespace Service
@@ -21,11 +20,8 @@ class System;
 }
 
 namespace Kernel {
-class ClientPort;
-class ServerPort;
-class ServerSession;
 class HLERequestContext;
-} // namespace Kernel
+}
 
 namespace Service {
 

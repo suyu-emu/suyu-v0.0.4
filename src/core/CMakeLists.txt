@@ -144,31 +144,40 @@ add_library(core STATIC
     hle/kernel/board/nintendo/nx/k_system_control.cpp
     hle/kernel/board/nintendo/nx/k_system_control.h
     hle/kernel/board/nintendo/nx/secure_monitor.h
-    hle/kernel/client_port.cpp
-    hle/kernel/client_port.h
-    hle/kernel/client_session.cpp
-    hle/kernel/client_session.h
     hle/kernel/code_set.cpp
     hle/kernel/code_set.h
     hle/kernel/svc_results.h
     hle/kernel/global_scheduler_context.cpp
     hle/kernel/global_scheduler_context.h
-    hle/kernel/handle_table.cpp
-    hle/kernel/handle_table.h
     hle/kernel/hle_ipc.cpp
     hle/kernel/hle_ipc.h
+    hle/kernel/init/init_slab_setup.cpp
+    hle/kernel/init/init_slab_setup.h
     hle/kernel/k_address_arbiter.cpp
     hle/kernel/k_address_arbiter.h
     hle/kernel/k_address_space_info.cpp
     hle/kernel/k_address_space_info.h
+    hle/kernel/k_auto_object.cpp
+    hle/kernel/k_auto_object.h
+    hle/kernel/k_auto_object_container.cpp
+    hle/kernel/k_auto_object_container.h
     hle/kernel/k_affinity_mask.h
+    hle/kernel/k_class_token.cpp
+    hle/kernel/k_class_token.h
+    hle/kernel/k_client_port.cpp
+    hle/kernel/k_client_port.h
+    hle/kernel/k_client_session.cpp
+    hle/kernel/k_client_session.h
     hle/kernel/k_condition_variable.cpp
     hle/kernel/k_condition_variable.h
     hle/kernel/k_event.cpp
     hle/kernel/k_event.h
+    hle/kernel/k_handle_table.cpp
+    hle/kernel/k_handle_table.h
     hle/kernel/k_light_condition_variable.h
     hle/kernel/k_light_lock.cpp
     hle/kernel/k_light_lock.h
+    hle/kernel/k_linked_list.h
     hle/kernel/k_memory_block.h
     hle/kernel/k_memory_block_manager.cpp
     hle/kernel/k_memory_block_manager.h
@@ -185,7 +194,11 @@ add_library(core STATIC
     hle/kernel/k_page_linked_list.h
     hle/kernel/k_page_table.cpp
     hle/kernel/k_page_table.h
+    hle/kernel/k_port.cpp
+    hle/kernel/k_port.h
     hle/kernel/k_priority_queue.h
+    hle/kernel/k_process.cpp
+    hle/kernel/k_process.h
     hle/kernel/k_readable_event.cpp
     hle/kernel/k_readable_event.h
     hle/kernel/k_resource_limit.cpp
@@ -196,6 +209,12 @@ add_library(core STATIC
     hle/kernel/k_scoped_lock.h
     hle/kernel/k_scoped_resource_reservation.h
     hle/kernel/k_scoped_scheduler_lock_and_sleep.h
+    hle/kernel/k_server_port.cpp
+    hle/kernel/k_server_port.h
+    hle/kernel/k_server_session.cpp
+    hle/kernel/k_server_session.h
+    hle/kernel/k_session.cpp
+    hle/kernel/k_session.h
     hle/kernel/k_shared_memory.cpp
     hle/kernel/k_shared_memory.h
     hle/kernel/k_slab_heap.h
@@ -208,28 +227,21 @@ add_library(core STATIC
     hle/kernel/k_thread.h
     hle/kernel/k_thread_queue.h
     hle/kernel/k_trace.h
+    hle/kernel/k_transfer_memory.cpp
+    hle/kernel/k_transfer_memory.h
     hle/kernel/k_writable_event.cpp
     hle/kernel/k_writable_event.h
     hle/kernel/kernel.cpp
     hle/kernel/kernel.h
     hle/kernel/memory_types.h
-    hle/kernel/object.cpp
-    hle/kernel/object.h
     hle/kernel/physical_core.cpp
     hle/kernel/physical_core.h
     hle/kernel/physical_memory.h
-    hle/kernel/process.cpp
-    hle/kernel/process.h
     hle/kernel/process_capability.cpp
     hle/kernel/process_capability.h
-    hle/kernel/server_port.cpp
-    hle/kernel/server_port.h
-    hle/kernel/server_session.cpp
-    hle/kernel/server_session.h
     hle/kernel/service_thread.cpp
     hle/kernel/service_thread.h
-    hle/kernel/session.cpp
-    hle/kernel/session.h
+    hle/kernel/slab_helpers.h
     hle/kernel/svc.cpp
     hle/kernel/svc.h
     hle/kernel/svc_common.h
@@ -237,8 +249,6 @@ add_library(core STATIC
     hle/kernel/svc_wrap.h
     hle/kernel/time_manager.cpp
     hle/kernel/time_manager.h
-    hle/kernel/transfer_memory.cpp
-    hle/kernel/transfer_memory.h
     hle/lock.cpp
     hle/lock.h
     hle/result.h

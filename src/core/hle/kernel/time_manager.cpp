@@ -6,7 +6,6 @@
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
-#include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
@@ -15,16 +14,12 @@
 namespace Kernel {
 
 TimeManager::TimeManager(Core::System& system_) : system{system_} {
-    time_manager_event_type = Core::Timing::CreateEvent(
-        "Kernel::TimeManagerCallback",
-        [this](std::uintptr_t thread_handle, std::chrono::nanoseconds) {
-            std::shared_ptr<KThread> thread;
-            {
-                std::lock_guard lock{mutex};
-                thread = SharedFrom<KThread>(reinterpret_cast<KThread*>(thread_handle));
-            }
-            thread->Wakeup();
-        });
+    time_manager_event_type =
+        Core::Timing::CreateEvent("Kernel::TimeManagerCallback",
+                                  [this](std::uintptr_t thread_handle, std::chrono::nanoseconds) {
+                                      KThread* thread = reinterpret_cast<KThread*>(thread_handle);
+                                      thread->Wakeup();
+                                  });
 }
 
 void TimeManager::ScheduleTimeEvent(KThread* thread, s64 nanoseconds) {

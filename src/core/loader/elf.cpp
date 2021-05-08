@@ -11,7 +11,7 @@
 #include "common/logging/log.h"
 #include "core/hle/kernel/code_set.h"
 #include "core/hle/kernel/k_page_table.h"
-#include "core/hle/kernel/process.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/loader/elf.h"
 #include "core/memory.h"
 
@@ -386,7 +386,7 @@ FileType AppLoader_ELF::IdentifyType(const FileSys::VirtualFile& elf_file) {
     return FileType::Error;
 }
 
-AppLoader_ELF::LoadResult AppLoader_ELF::Load(Kernel::Process& process,
+AppLoader_ELF::LoadResult AppLoader_ELF::Load(Kernel::KProcess& process,
                                               [[maybe_unused]] Core::System& system) {
     if (is_loaded) {
         return {ResultStatus::ErrorAlreadyLoaded, {}};

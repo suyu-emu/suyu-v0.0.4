@@ -44,7 +44,7 @@ public:
         return IdentifyType(file);
     }
 
-    LoadResult Load(Kernel::Process& process, Core::System& system) override;
+    LoadResult Load(Kernel::KProcess& process, Core::System& system) override;
 
     ResultStatus ReadRomFS(FileSys::VirtualFile& out_dir) override;
     ResultStatus ReadIcon(std::vector<u8>& out_buffer) override;

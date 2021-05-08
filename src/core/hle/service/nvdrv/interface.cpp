@@ -187,8 +187,8 @@ void NVDRV::QueryEvent(Kernel::HLERequestContext& ctx) {
     if (event_id < MaxNvEvents) {
         IPC::ResponseBuilder rb{ctx, 3, 1};
         rb.Push(RESULT_SUCCESS);
-        auto event = nvdrv->GetEvent(event_id);
-        event->Clear();
+        auto& event = nvdrv->GetEvent(event_id);
+        event.Clear();
         rb.PushCopyObjects(event);
         rb.PushEnum(NvResult::Success);
     } else {

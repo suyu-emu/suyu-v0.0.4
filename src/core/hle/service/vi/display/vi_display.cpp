@@ -17,10 +17,10 @@
 
 namespace Service::VI {
 
-Display::Display(u64 id, std::string name, Core::System& system) : id{id}, name{std::move(name)} {
-    auto& kernel = system.Kernel();
-    vsync_event = Kernel::KEvent::Create(kernel, fmt::format("Display VSync Event {}", id));
-    vsync_event->Initialize();
+Display::Display(u64 id, std::string name, Core::System& system)
+    : id{id}, name{std::move(name)}, vsync_event{system.Kernel()} {
+    Kernel::KAutoObject::Create(std::addressof(vsync_event));
+    vsync_event.Initialize(fmt::format("Display VSync Event {}", id));
 }
 
 Display::~Display() = default;
@@ -33,12 +33,12 @@ const Layer& Display::GetLayer(std::size_t index) const {
     return *layers.at(index);
 }
 
-std::shared_ptr<Kernel::KReadableEvent> Display::GetVSyncEvent() const {
-    return vsync_event->GetReadableEvent();
+Kernel::KReadableEvent& Display::GetVSyncEvent() {
+    return vsync_event.GetReadableEvent();
 }
 
 void Display::SignalVSyncEvent() {
-    vsync_event->GetWritableEvent()->Signal();
+    vsync_event.GetWritableEvent().Signal();
 }
 
 void Display::CreateLayer(u64 layer_id, NVFlinger::BufferQueue& buffer_queue) {

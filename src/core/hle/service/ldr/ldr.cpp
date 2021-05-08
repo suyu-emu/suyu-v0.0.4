@@ -12,8 +12,8 @@
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/k_page_table.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_system_control.h"
-#include "core/hle/kernel/process.h"
 #include "core/hle/kernel/svc_results.h"
 #include "core/hle/service/ldr/ldr.h"
 #include "core/hle/service/service.h"
@@ -321,7 +321,7 @@ public:
         return addr;
     }
 
-    ResultVal<VAddr> MapProcessCodeMemory(Kernel::Process* process, VAddr baseAddress,
+    ResultVal<VAddr> MapProcessCodeMemory(Kernel::KProcess* process, VAddr baseAddress,
                                           u64 size) const {
         for (std::size_t retry = 0; retry < MAXIMUM_MAP_RETRIES; retry++) {
             auto& page_table{process->PageTable()};
@@ -342,7 +342,7 @@ public:
         return ERROR_INSUFFICIENT_ADDRESS_SPACE;
     }
 
-    ResultVal<VAddr> MapNro(Kernel::Process* process, VAddr nro_addr, std::size_t nro_size,
+    ResultVal<VAddr> MapNro(Kernel::KProcess* process, VAddr nro_addr, std::size_t nro_size,
                             VAddr bss_addr, std::size_t bss_size, std::size_t size) const {
         for (std::size_t retry = 0; retry < MAXIMUM_MAP_RETRIES; retry++) {
             auto& page_table{process->PageTable()};
@@ -378,7 +378,7 @@ public:
         return ERROR_INSUFFICIENT_ADDRESS_SPACE;
     }
 
-    ResultCode LoadNro(Kernel::Process* process, const NROHeader& nro_header, VAddr nro_addr,
+    ResultCode LoadNro(Kernel::KProcess* process, const NROHeader& nro_header, VAddr nro_addr,
                        VAddr start) const {
         const VAddr text_start{start + nro_header.segment_headers[TEXT_INDEX].memory_offset};
         const VAddr ro_start{start + nro_header.segment_headers[RO_INDEX].memory_offset};

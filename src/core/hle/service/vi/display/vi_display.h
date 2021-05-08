@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "common/common_funcs.h"
 #include "common/common_types.h"
 
 namespace Kernel {
@@ -24,6 +25,9 @@ class Layer;
 
 /// Represents a single display type
 class Display {
+    YUZU_NON_COPYABLE(Display);
+    YUZU_NON_MOVEABLE(Display);
+
 public:
     /// Constructs a display with a given unique ID and name.
     ///
@@ -32,12 +36,6 @@ public:
     ///
     Display(u64 id, std::string name, Core::System& system);
     ~Display();
-
-    Display(const Display&) = delete;
-    Display& operator=(const Display&) = delete;
-
-    Display(Display&&) = default;
-    Display& operator=(Display&&) = default;
 
     /// Gets the unique ID assigned to this display.
     u64 GetID() const {
@@ -61,7 +59,7 @@ public:
     const Layer& GetLayer(std::size_t index) const;
 
     /// Gets the readable vsync event.
-    std::shared_ptr<Kernel::KReadableEvent> GetVSyncEvent() const;
+    Kernel::KReadableEvent& GetVSyncEvent();
 
     /// Signals the internal vsync event.
     void SignalVSyncEvent();
@@ -102,7 +100,7 @@ private:
     std::string name;
 
     std::vector<std::shared_ptr<Layer>> layers;
-    std::shared_ptr<Kernel::KEvent> vsync_event;
+    Kernel::KEvent vsync_event;
 };
 
 } // namespace Service::VI

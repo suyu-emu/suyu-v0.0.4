@@ -5,16 +5,16 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/client_session.h"
-#include "core/hle/kernel/server_session.h"
-#include "core/hle/kernel/session.h"
+#include "core/hle/kernel/k_client_session.h"
+#include "core/hle/kernel/k_server_session.h"
+#include "core/hle/kernel/k_session.h"
 #include "core/hle/service/sm/controller.h"
 
 namespace Service::SM {
 
 void Controller::ConvertCurrentObjectToDomain(Kernel::HLERequestContext& ctx) {
     ASSERT_MSG(ctx.Session()->IsSession(), "Session is already a domain");
-    LOG_DEBUG(Service, "called, server_session={}", ctx.Session()->GetObjectId());
+    LOG_DEBUG(Service, "called, server_session={}", ctx.Session()->GetId());
     ctx.Session()->ConvertToDomain();
 
     IPC::ResponseBuilder rb{ctx, 3};
@@ -30,7 +30,7 @@ void Controller::CloneCurrentObject(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1, IPC::ResponseBuilder::Flags::AlwaysMoveHandles};
     rb.Push(RESULT_SUCCESS);
-    rb.PushMoveObjects(ctx.Session()->GetParent()->Client());
+    rb.PushMoveObjects(ctx.Session()->GetParent()->GetClientSession());
 }
 
 void Controller::CloneCurrentObjectEx(Kernel::HLERequestContext& ctx) {

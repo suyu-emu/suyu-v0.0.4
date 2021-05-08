@@ -14,17 +14,16 @@
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/hle_ipc.h"
+#include "core/hle/kernel/k_handle_table.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
+#include "core/hle/kernel/k_server_session.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/object.h"
-#include "core/hle/kernel/process.h"
-#include "core/hle/kernel/server_session.h"
 #include "core/hle/kernel/svc_results.h"
 #include "core/hle/kernel/time_manager.h"
 #include "core/memory.h"
@@ -35,28 +34,23 @@ SessionRequestHandler::SessionRequestHandler() = default;
 
 SessionRequestHandler::~SessionRequestHandler() = default;
 
-void SessionRequestHandler::ClientConnected(std::shared_ptr<ServerSession> server_session) {
-    server_session->SetHleHandler(shared_from_this());
-    connected_sessions.push_back(std::move(server_session));
+void SessionRequestHandler::ClientConnected(KServerSession* session) {
+    session->SetHleHandler(shared_from_this());
 }
 
-void SessionRequestHandler::ClientDisconnected(
-    const std::shared_ptr<ServerSession>& server_session) {
-    server_session->SetHleHandler(nullptr);
-    boost::range::remove_erase(connected_sessions, server_session);
+void SessionRequestHandler::ClientDisconnected(KServerSession* session) {
+    session->SetHleHandler(nullptr);
 }
 
-HLERequestContext::HLERequestContext(KernelCore& kernel, Core::Memory::Memory& memory,
-                                     std::shared_ptr<ServerSession> server_session,
-                                     std::shared_ptr<KThread> thread)
-    : server_session(std::move(server_session)),
-      thread(std::move(thread)), kernel{kernel}, memory{memory} {
+HLERequestContext::HLERequestContext(KernelCore& kernel_, Core::Memory::Memory& memory_,
+                                     KServerSession* server_session_, KThread* thread_)
+    : server_session(server_session_), thread(thread_), kernel{kernel_}, memory{memory_} {
     cmd_buf[0] = 0;
 }
 
 HLERequestContext::~HLERequestContext() = default;
 
-void HLERequestContext::ParseCommandBuffer(const HandleTable& handle_table, u32_le* src_cmdbuf,
+void HLERequestContext::ParseCommandBuffer(const KHandleTable& handle_table, u32_le* src_cmdbuf,
                                            bool incoming) {
     IPC::RequestParser rp(src_cmdbuf);
     command_header = rp.PopRaw<IPC::CommandHeader>();
@@ -77,12 +71,12 @@ void HLERequestContext::ParseCommandBuffer(const HandleTable& handle_table, u32_
             for (u32 handle = 0; handle < handle_descriptor_header->num_handles_to_copy; ++handle) {
                 const u32 copy_handle{rp.Pop<Handle>()};
                 copy_handles.push_back(copy_handle);
-                copy_objects.push_back(handle_table.GetGeneric(copy_handle));
+                copy_objects.push_back(handle_table.GetObject(copy_handle).GetPointerUnsafe());
             }
             for (u32 handle = 0; handle < handle_descriptor_header->num_handles_to_move; ++handle) {
                 const u32 move_handle{rp.Pop<Handle>()};
                 move_handles.push_back(move_handle);
-                move_objects.push_back(handle_table.GetGeneric(move_handle));
+                move_objects.push_back(handle_table.GetObject(move_handle).GetPointerUnsafe());
             }
         } else {
             // For responses we just ignore the handles, they're empty and will be populated when
@@ -169,7 +163,7 @@ void HLERequestContext::ParseCommandBuffer(const HandleTable& handle_table, u32_
     rp.Skip(1, false); // The command is actually an u64, but we don't use the high part.
 }
 
-ResultCode HLERequestContext::PopulateFromIncomingCommandBuffer(const HandleTable& handle_table,
+ResultCode HLERequestContext::PopulateFromIncomingCommandBuffer(const KHandleTable& handle_table,
                                                                 u32_le* src_cmdbuf) {
     ParseCommandBuffer(handle_table, src_cmdbuf, true);
     if (command_header->type == IPC::CommandType::Close) {
@@ -223,12 +217,12 @@ ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(KThread& thread) {
         // for specific values in each of these descriptors.
         for (auto& object : copy_objects) {
             ASSERT(object != nullptr);
-            dst_cmdbuf[current_offset++] = handle_table.Create(object).Unwrap();
+            R_TRY(handle_table.Add(&dst_cmdbuf[current_offset++], object));
         }
 
         for (auto& object : move_objects) {
             ASSERT(object != nullptr);
-            dst_cmdbuf[current_offset++] = handle_table.Create(object).Unwrap();
+            R_TRY(handle_table.Add(&dst_cmdbuf[current_offset++], object));
         }
     }
 

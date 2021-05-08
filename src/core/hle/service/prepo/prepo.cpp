@@ -6,7 +6,7 @@
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/process.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/prepo/prepo.h"
 #include "core/hle/service/service.h"
@@ -60,7 +60,7 @@ private:
         const auto process_id = rp.PopRaw<u64>();
 
         const auto data1 = ctx.ReadBuffer(0);
-        const auto data2 = [ctx] {
+        const auto data2 = [&ctx] {
             if (ctx.CanReadBuffer(1)) {
                 return ctx.ReadBuffer(1);
             }
@@ -87,7 +87,7 @@ private:
         const auto process_id = rp.PopRaw<u64>();
 
         const auto data1 = ctx.ReadBuffer(0);
-        const auto data2 = [ctx] {
+        const auto data2 = [&ctx] {
             if (ctx.CanReadBuffer(1)) {
                 return ctx.ReadBuffer(1);
             }
@@ -139,7 +139,7 @@ private:
         const auto title_id = rp.PopRaw<u64>();
 
         const auto data1 = ctx.ReadBuffer(0);
-        const auto data2 = [ctx] {
+        const auto data2 = [&ctx] {
             if (ctx.CanReadBuffer(1)) {
                 return ctx.ReadBuffer(1);
             }
@@ -163,7 +163,7 @@ private:
         const auto title_id = rp.PopRaw<u64>();
 
         const auto data1 = ctx.ReadBuffer(0);
-        const auto data2 = [ctx] {
+        const auto data2 = [&ctx] {
             if (ctx.CanReadBuffer(1)) {
                 return ctx.ReadBuffer(1);
             }

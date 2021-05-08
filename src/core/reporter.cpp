@@ -19,7 +19,7 @@
 #include "core/core.h"
 #include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/kernel/k_page_table.h"
-#include "core/hle/kernel/process.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/result.h"
 #include "core/memory.h"
 #include "core/reporter.h"

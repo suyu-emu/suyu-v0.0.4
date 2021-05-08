@@ -12,9 +12,9 @@
 #include "core/core.h"
 #include "core/file_sys/vfs.h"
 #include "core/hle/ipc_helpers.h"
+#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/k_writable_event.h"
-#include "core/hle/kernel/process.h"
 #include "core/hle/service/bcat/backend/backend.h"
 #include "core/hle/service/bcat/bcat.h"
 #include "core/hle/service/bcat/module.h"
@@ -88,11 +88,9 @@ struct DeliveryCacheDirectoryEntry {
 
 class IDeliveryCacheProgressService final : public ServiceFramework<IDeliveryCacheProgressService> {
 public:
-    explicit IDeliveryCacheProgressService(Core::System& system_,
-                                           std::shared_ptr<Kernel::KReadableEvent> event_,
+    explicit IDeliveryCacheProgressService(Core::System& system_, Kernel::KReadableEvent& event_,
                                            const DeliveryCacheProgressImpl& impl_)
-        : ServiceFramework{system_, "IDeliveryCacheProgressService"}, event{std::move(event_)},
-          impl{impl_} {
+        : ServiceFramework{system_, "IDeliveryCacheProgressService"}, event{event_}, impl{impl_} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IDeliveryCacheProgressService::GetEvent, "GetEvent"},
@@ -121,7 +119,7 @@ private:
         rb.Push(RESULT_SUCCESS);
     }
 
-    std::shared_ptr<Kernel::KReadableEvent> event;
+    Kernel::KReadableEvent& event;
     const DeliveryCacheProgressImpl& impl;
 };
 

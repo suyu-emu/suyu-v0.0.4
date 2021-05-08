@@ -2,27 +2,30 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <algorithm>
 #include "common/assert.h"
-#include "common/common_funcs.h"
-#include "common/logging/log.h"
+#include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/object.h"
 #include "core/hle/kernel/svc_results.h"
 
 namespace Kernel {
 
-KReadableEvent::KReadableEvent(KernelCore& kernel, std::string&& name)
-    : KSynchronizationObject{kernel, std::move(name)} {}
+KReadableEvent::KReadableEvent(KernelCore& kernel) : KSynchronizationObject{kernel} {}
+
 KReadableEvent::~KReadableEvent() = default;
 
 bool KReadableEvent::IsSignaled() const {
     ASSERT(kernel.GlobalSchedulerContext().IsLocked());
 
     return is_signaled;
+}
+
+void KReadableEvent::Destroy() {
+    if (parent) {
+        parent->Close();
+    }
 }
 
 ResultCode KReadableEvent::Signal() {
