@@ -21,7 +21,7 @@ class KClientPort final : public KSynchronizationObject {
     KERNEL_AUTOOBJECT_TRAITS(KClientPort, KSynchronizationObject);
 
 public:
-    explicit KClientPort(KernelCore& kernel);
+    explicit KClientPort(KernelCore& kernel_);
     virtual ~KClientPort() override;
 
     void Initialize(KPort* parent_, s32 max_sessions_, std::string&& name_);

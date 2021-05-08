@@ -12,14 +12,14 @@
 
 namespace Kernel {
 
-KSharedMemory::KSharedMemory(KernelCore& kernel) : KAutoObjectWithSlabHeapAndContainer{kernel} {}
+KSharedMemory::KSharedMemory(KernelCore& kernel_) : KAutoObjectWithSlabHeapAndContainer{kernel_} {}
 
 KSharedMemory::~KSharedMemory() {
     kernel.GetSystemResourceLimit()->Release(LimitableResource::PhysicalMemory, size);
 }
 
-ResultCode KSharedMemory::Initialize(KernelCore& kernel_, Core::DeviceMemory& device_memory_,
-                                     KProcess* owner_process_, KPageLinkedList&& page_list_,
+ResultCode KSharedMemory::Initialize(Core::DeviceMemory& device_memory_, KProcess* owner_process_,
+                                     KPageLinkedList&& page_list_,
                                      Svc::MemoryPermission owner_permission_,
                                      Svc::MemoryPermission user_permission_,
                                      PAddr physical_address_, std::size_t size_,
@@ -32,7 +32,7 @@ ResultCode KSharedMemory::Initialize(KernelCore& kernel_, Core::DeviceMemory& de
     user_permission = user_permission_;
     physical_address = physical_address_;
     size = size_;
-    name = name_;
+    name = std::move(name_);
 
     // Get the resource limit.
     KResourceLimit* reslimit = kernel.GetSystemResourceLimit();
@@ -67,9 +67,9 @@ void KSharedMemory::Finalize() {
     KAutoObjectWithSlabHeapAndContainer<KSharedMemory, KAutoObjectWithList>::Finalize();
 }
 
-ResultCode KSharedMemory::Map(KProcess& target_process, VAddr address, std::size_t size,
+ResultCode KSharedMemory::Map(KProcess& target_process, VAddr address, std::size_t map_size,
                               Svc::MemoryPermission permissions) {
-    const u64 page_count{(size + PageSize - 1) / PageSize};
+    const u64 page_count{(map_size + PageSize - 1) / PageSize};
 
     if (page_list.GetNumPages() != page_count) {
         UNIMPLEMENTED_MSG("Page count does not match");
@@ -86,8 +86,8 @@ ResultCode KSharedMemory::Map(KProcess& target_process, VAddr address, std::size
                                                ConvertToKMemoryPermission(permissions));
 }
 
-ResultCode KSharedMemory::Unmap(KProcess& target_process, VAddr address, std::size_t size) {
-    const u64 page_count{(size + PageSize - 1) / PageSize};
+ResultCode KSharedMemory::Unmap(KProcess& target_process, VAddr address, std::size_t unmap_size) {
+    const u64 page_count{(unmap_size + PageSize - 1) / PageSize};
 
     if (page_list.GetNumPages() != page_count) {
         UNIMPLEMENTED_MSG("Page count does not match");

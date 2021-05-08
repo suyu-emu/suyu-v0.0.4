@@ -8,8 +8,9 @@
 
 namespace Kernel {
 
-KEvent::KEvent(KernelCore& kernel)
-    : KAutoObjectWithSlabHeapAndContainer{kernel}, readable_event{kernel}, writable_event{kernel} {}
+KEvent::KEvent(KernelCore& kernel_)
+    : KAutoObjectWithSlabHeapAndContainer{kernel_}, readable_event{kernel_}, writable_event{
+                                                                                 kernel_} {}
 
 KEvent::~KEvent() = default;
 

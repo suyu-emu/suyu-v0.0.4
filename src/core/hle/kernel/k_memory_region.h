@@ -82,9 +82,9 @@ public:
         type_id = type;
     }
 
-    constexpr bool Contains(u64 address) const {
+    constexpr bool Contains(u64 addr) const {
         ASSERT(this->GetEndAddress() != 0);
-        return this->GetAddress() <= address && address <= this->GetLastAddress();
+        return this->GetAddress() <= addr && addr <= this->GetLastAddress();
     }
 
     constexpr bool IsDerivedFrom(u32 type) const {

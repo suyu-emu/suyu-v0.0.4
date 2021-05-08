@@ -141,7 +141,7 @@ private:
 
     [[nodiscard]] static KSchedulerPriorityQueue& GetPriorityQueue(KernelCore& kernel);
 
-    void RotateScheduledQueue(s32 core_id, s32 priority);
+    void RotateScheduledQueue(s32 cpu_core_id, s32 priority);
 
     void Schedule() {
         ASSERT(GetCurrentThread()->GetDisableDispatchCount() == 1);

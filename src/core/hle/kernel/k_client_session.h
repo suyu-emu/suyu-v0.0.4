@@ -33,7 +33,7 @@ class KClientSession final
     KERNEL_AUTOOBJECT_TRAITS(KClientSession, KAutoObject);
 
 public:
-    explicit KClientSession(KernelCore& kernel);
+    explicit KClientSession(KernelCore& kernel_);
     virtual ~KClientSession();
 
     void Initialize(KSession* parent_, std::string&& name_) {

@@ -18,18 +18,18 @@ void KSynchronizationObject::Finalize() {
     KAutoObject::Finalize();
 }
 
-ResultCode KSynchronizationObject::Wait(KernelCore& kernel, s32* out_index,
+ResultCode KSynchronizationObject::Wait(KernelCore& kernel_ctx, s32* out_index,
                                         KSynchronizationObject** objects, const s32 num_objects,
                                         s64 timeout) {
     // Allocate space on stack for thread nodes.
     std::vector<ThreadListNode> thread_nodes(num_objects);
 
     // Prepare for wait.
-    KThread* thread = kernel.CurrentScheduler()->GetCurrentThread();
+    KThread* thread = kernel_ctx.CurrentScheduler()->GetCurrentThread();
 
     {
         // Setup the scheduling lock and sleep.
-        KScopedSchedulerLockAndSleep slp{kernel, thread, timeout};
+        KScopedSchedulerLockAndSleep slp{kernel_ctx, thread, timeout};
 
         // Check if any of the objects are already signaled.
         for (auto i = 0; i < num_objects; ++i) {
@@ -94,13 +94,13 @@ ResultCode KSynchronizationObject::Wait(KernelCore& kernel, s32* out_index,
     thread->SetWaitObjectsForDebugging({});
 
     // Cancel the timer as needed.
-    kernel.TimeManager().UnscheduleTimeEvent(thread);
+    kernel_ctx.TimeManager().UnscheduleTimeEvent(thread);
 
     // Get the wait result.
     ResultCode wait_result{RESULT_SUCCESS};
     s32 sync_index = -1;
     {
-        KScopedSchedulerLock lock(kernel);
+        KScopedSchedulerLock lock(kernel_ctx);
         KSynchronizationObject* synced_obj;
         wait_result = thread->GetWaitResult(std::addressof(synced_obj));
 
@@ -135,7 +135,8 @@ ResultCode KSynchronizationObject::Wait(KernelCore& kernel, s32* out_index,
     return wait_result;
 }
 
-KSynchronizationObject::KSynchronizationObject(KernelCore& kernel) : KAutoObjectWithList{kernel} {}
+KSynchronizationObject::KSynchronizationObject(KernelCore& kernel_)
+    : KAutoObjectWithList{kernel_} {}
 
 KSynchronizationObject::~KSynchronizationObject() = default;
 

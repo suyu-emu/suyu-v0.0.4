@@ -11,8 +11,8 @@
 
 namespace Kernel {
 
-KSession::KSession(KernelCore& kernel)
-    : KAutoObjectWithSlabHeapAndContainer{kernel}, server{kernel}, client{kernel} {}
+KSession::KSession(KernelCore& kernel_)
+    : KAutoObjectWithSlabHeapAndContainer{kernel_}, server{kernel_}, client{kernel_} {}
 KSession::~KSession() = default;
 
 void KSession::Initialize(KClientPort* port_, const std::string& name_) {

@@ -23,7 +23,7 @@
 
 namespace Kernel {
 
-KServerSession::KServerSession(KernelCore& kernel) : KSynchronizationObject{kernel} {}
+KServerSession::KServerSession(KernelCore& kernel_) : KSynchronizationObject{kernel_} {}
 
 KServerSession::~KServerSession() {
     kernel.ReleaseServiceThread(service_thread);

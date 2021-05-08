@@ -69,16 +69,16 @@ public:
         AlwaysMoveHandles = 1,
     };
 
-    explicit ResponseBuilder(Kernel::HLERequestContext& context, u32 normal_params_size,
+    explicit ResponseBuilder(Kernel::HLERequestContext& ctx, u32 normal_params_size,
                              u32 num_handles_to_copy = 0, u32 num_objects_to_move = 0,
                              Flags flags = Flags::None)
-        : RequestHelperBase(context), normal_params_size(normal_params_size),
+        : RequestHelperBase(ctx), normal_params_size(normal_params_size),
           num_handles_to_copy(num_handles_to_copy),
-          num_objects_to_move(num_objects_to_move), kernel{context.kernel} {
+          num_objects_to_move(num_objects_to_move), kernel{ctx.kernel} {
 
         memset(cmdbuf, 0, sizeof(u32) * IPC::COMMAND_BUFFER_LENGTH);
 
-        context.ClearIncomingObjects();
+        ctx.ClearIncomingObjects();
 
         IPC::CommandHeader header{};
 
@@ -90,13 +90,13 @@ public:
         u32 num_domain_objects{};
         const bool always_move_handles{
             (static_cast<u32>(flags) & static_cast<u32>(Flags::AlwaysMoveHandles)) != 0};
-        if (!context.Session()->IsDomain() || always_move_handles) {
+        if (!ctx.Session()->IsDomain() || always_move_handles) {
             num_handles_to_move = num_objects_to_move;
         } else {
             num_domain_objects = num_objects_to_move;
         }
 
-        if (context.Session()->IsDomain()) {
+        if (ctx.Session()->IsDomain()) {
             raw_data_size += sizeof(DomainMessageHeader) / 4 + num_domain_objects;
         }
 
@@ -116,7 +116,7 @@ public:
 
         AlignWithPadding();
 
-        if (context.Session()->IsDomain() && context.HasDomainMessageHeader()) {
+        if (ctx.Session()->IsDomain() && ctx.HasDomainMessageHeader()) {
             IPC::DomainMessageHeader domain_header{};
             domain_header.num_objects = num_domain_objects;
             PushRaw(domain_header);
@@ -341,9 +341,9 @@ class RequestParser : public RequestHelperBase {
 public:
     explicit RequestParser(u32* command_buffer) : RequestHelperBase(command_buffer) {}
 
-    explicit RequestParser(Kernel::HLERequestContext& context) : RequestHelperBase(context) {
-        ASSERT_MSG(context.GetDataPayloadOffset(), "context is incomplete");
-        Skip(context.GetDataPayloadOffset(), false);
+    explicit RequestParser(Kernel::HLERequestContext& ctx) : RequestHelperBase(ctx) {
+        ASSERT_MSG(ctx.GetDataPayloadOffset(), "context is incomplete");
+        Skip(ctx.GetDataPayloadOffset(), false);
         // Skip the u64 command id, it's already stored in the context
         static constexpr u32 CommandIdSize = 2;
         Skip(CommandIdSize, false);

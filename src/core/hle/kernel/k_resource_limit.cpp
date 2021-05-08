@@ -10,8 +10,8 @@
 namespace Kernel {
 constexpr s64 DefaultTimeout = 10000000000; // 10 seconds
 
-KResourceLimit::KResourceLimit(KernelCore& kernel)
-    : KAutoObjectWithSlabHeapAndContainer{kernel}, lock{kernel}, cond_var{kernel} {}
+KResourceLimit::KResourceLimit(KernelCore& kernel_)
+    : KAutoObjectWithSlabHeapAndContainer{kernel_}, lock{kernel_}, cond_var{kernel_} {}
 KResourceLimit::~KResourceLimit() = default;
 
 void KResourceLimit::Initialize(const Core::Timing::CoreTiming* core_timing_) {

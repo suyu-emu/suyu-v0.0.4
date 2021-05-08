@@ -51,11 +51,11 @@ MICROPROFILE_DEFINE(Kernel_SVC, "Kernel", "SVC", MP_RGB(70, 200, 70));
 namespace Kernel {
 
 struct KernelCore::Impl {
-    explicit Impl(Core::System& system, KernelCore& kernel)
-        : time_manager{system}, object_list_container{kernel}, system{system} {}
+    explicit Impl(Core::System& system_, KernelCore& kernel_)
+        : time_manager{system_}, object_list_container{kernel_}, system{system_} {}
 
-    void SetMulticore(bool is_multicore) {
-        this->is_multicore = is_multicore;
+    void SetMulticore(bool is_multi) {
+        is_multicore = is_multi;
     }
 
     void Initialize(KernelCore& kernel) {
@@ -599,19 +599,19 @@ struct KernelCore::Impl {
         irs_shared_mem = KSharedMemory::Create(system.Kernel());
         time_shared_mem = KSharedMemory::Create(system.Kernel());
 
-        hid_shared_mem->Initialize(system.Kernel(), system.DeviceMemory(), nullptr,
+        hid_shared_mem->Initialize(system.DeviceMemory(), nullptr,
                                    {hid_phys_addr, hid_size / PageSize},
                                    Svc::MemoryPermission::None, Svc::MemoryPermission::Read,
                                    hid_phys_addr, hid_size, "HID:SharedMemory");
-        font_shared_mem->Initialize(system.Kernel(), system.DeviceMemory(), nullptr,
+        font_shared_mem->Initialize(system.DeviceMemory(), nullptr,
                                     {font_phys_addr, font_size / PageSize},
                                     Svc::MemoryPermission::None, Svc::MemoryPermission::Read,
                                     font_phys_addr, font_size, "Font:SharedMemory");
-        irs_shared_mem->Initialize(system.Kernel(), system.DeviceMemory(), nullptr,
+        irs_shared_mem->Initialize(system.DeviceMemory(), nullptr,
                                    {irs_phys_addr, irs_size / PageSize},
                                    Svc::MemoryPermission::None, Svc::MemoryPermission::Read,
                                    irs_phys_addr, irs_size, "IRS:SharedMemory");
-        time_shared_mem->Initialize(system.Kernel(), system.DeviceMemory(), nullptr,
+        time_shared_mem->Initialize(system.DeviceMemory(), nullptr,
                                     {time_phys_addr, time_size / PageSize},
                                     Svc::MemoryPermission::None, Svc::MemoryPermission::Read,
                                     time_phys_addr, time_size, "Time:SharedMemory");

@@ -67,7 +67,7 @@ class KProcess final
     KERNEL_AUTOOBJECT_TRAITS(KProcess, KSynchronizationObject);
 
 public:
-    explicit KProcess(KernelCore& kernel);
+    explicit KProcess(KernelCore& kernel_);
     ~KProcess() override;
 
     enum : u64 {
@@ -90,7 +90,7 @@ public:
 
     static constexpr std::size_t RANDOM_ENTROPY_SIZE = 4;
 
-    static ResultCode Initialize(KProcess* process, Core::System& system, std::string name,
+    static ResultCode Initialize(KProcess* process, Core::System& system, std::string process_name,
                                  ProcessType type);
 
     /// Gets a reference to the process' page table.

@@ -111,7 +111,7 @@ public:
     static constexpr s32 DefaultThreadPriority = 44;
     static constexpr s32 IdleThreadPriority = Svc::LowestThreadPriority + 1;
 
-    explicit KThread(KernelCore& kernel);
+    explicit KThread(KernelCore& kernel_);
     ~KThread() override;
 
 public:
@@ -318,7 +318,7 @@ public:
 
     [[nodiscard]] ResultCode GetPhysicalCoreMask(s32* out_ideal_core, u64* out_affinity_mask);
 
-    [[nodiscard]] ResultCode SetCoreMask(s32 core_id, u64 v_affinity_mask);
+    [[nodiscard]] ResultCode SetCoreMask(s32 cpu_core_id, u64 v_affinity_mask);
 
     [[nodiscard]] ResultCode SetActivity(Svc::ThreadActivity activity);
 
@@ -649,7 +649,7 @@ private:
                                                      std::function<void(void*)>&& init_func,
                                                      void* init_func_parameter);
 
-    static void RestorePriority(KernelCore& kernel, KThread* thread);
+    static void RestorePriority(KernelCore& kernel_ctx, KThread* thread);
 
     // For core KThread implementation
     ThreadContext32 thread_context_32{};

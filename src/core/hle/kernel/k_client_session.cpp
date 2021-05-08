@@ -12,7 +12,8 @@
 
 namespace Kernel {
 
-KClientSession::KClientSession(KernelCore& kernel) : KAutoObjectWithSlabHeapAndContainer{kernel} {}
+KClientSession::KClientSession(KernelCore& kernel_)
+    : KAutoObjectWithSlabHeapAndContainer{kernel_} {}
 KClientSession::~KClientSession() = default;
 
 void KClientSession::Destroy() {

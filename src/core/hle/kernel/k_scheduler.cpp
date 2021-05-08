@@ -259,7 +259,7 @@ void KScheduler::OnThreadAffinityMaskChanged(KernelCore& kernel, KThread* thread
     }
 }
 
-void KScheduler::RotateScheduledQueue(s32 core_id, s32 priority) {
+void KScheduler::RotateScheduledQueue(s32 cpu_core_id, s32 priority) {
     ASSERT(system.GlobalSchedulerContext().IsLocked());
 
     // Get a reference to the priority queue.
@@ -267,7 +267,7 @@ void KScheduler::RotateScheduledQueue(s32 core_id, s32 priority) {
     auto& priority_queue = GetPriorityQueue(kernel);
 
     // Rotate the front of the queue to the end.
-    KThread* top_thread = priority_queue.GetScheduledFront(core_id, priority);
+    KThread* top_thread = priority_queue.GetScheduledFront(cpu_core_id, priority);
     KThread* next_thread = nullptr;
     if (top_thread != nullptr) {
         next_thread = priority_queue.MoveToScheduledBack(top_thread);
@@ -279,7 +279,7 @@ void KScheduler::RotateScheduledQueue(s32 core_id, s32 priority) {
 
     // While we have a suggested thread, try to migrate it!
     {
-        KThread* suggested = priority_queue.GetSuggestedFront(core_id, priority);
+        KThread* suggested = priority_queue.GetSuggestedFront(cpu_core_id, priority);
         while (suggested != nullptr) {
             // Check if the suggested thread is the top thread on its core.
             const s32 suggested_core = suggested->GetActiveCore();
@@ -300,7 +300,7 @@ void KScheduler::RotateScheduledQueue(s32 core_id, s32 priority) {
                 // to the front of the queue.
                 if (top_on_suggested_core == nullptr ||
                     top_on_suggested_core->GetPriority() >= HighestCoreMigrationAllowedPriority) {
-                    suggested->SetActiveCore(core_id);
+                    suggested->SetActiveCore(cpu_core_id);
                     priority_queue.ChangeCore(suggested_core, suggested, true);
                     IncrementScheduledCount(suggested);
                     break;
@@ -308,22 +308,22 @@ void KScheduler::RotateScheduledQueue(s32 core_id, s32 priority) {
             }
 
             // Get the next suggestion.
-            suggested = priority_queue.GetSamePriorityNext(core_id, suggested);
+            suggested = priority_queue.GetSamePriorityNext(cpu_core_id, suggested);
         }
     }
 
     // Now that we might have migrated a thread with the same priority, check if we can do better.
 
     {
-        KThread* best_thread = priority_queue.GetScheduledFront(core_id);
+        KThread* best_thread = priority_queue.GetScheduledFront(cpu_core_id);
         if (best_thread == GetCurrentThread()) {
-            best_thread = priority_queue.GetScheduledNext(core_id, best_thread);
+            best_thread = priority_queue.GetScheduledNext(cpu_core_id, best_thread);
         }
 
         // If the best thread we can choose has a priority the same or worse than ours, try to
         // migrate a higher priority thread.
         if (best_thread != nullptr && best_thread->GetPriority() >= priority) {
-            KThread* suggested = priority_queue.GetSuggestedFront(core_id);
+            KThread* suggested = priority_queue.GetSuggestedFront(cpu_core_id);
             while (suggested != nullptr) {
                 // If the suggestion's priority is the same as ours, don't bother.
                 if (suggested->GetPriority() >= best_thread->GetPriority()) {
@@ -342,7 +342,7 @@ void KScheduler::RotateScheduledQueue(s32 core_id, s32 priority) {
                     if (top_on_suggested_core == nullptr ||
                         top_on_suggested_core->GetPriority() >=
                             HighestCoreMigrationAllowedPriority) {
-                        suggested->SetActiveCore(core_id);
+                        suggested->SetActiveCore(cpu_core_id);
                         priority_queue.ChangeCore(suggested_core, suggested, true);
                         IncrementScheduledCount(suggested);
                         break;
@@ -350,7 +350,7 @@ void KScheduler::RotateScheduledQueue(s32 core_id, s32 priority) {
                 }
 
                 // Get the next suggestion.
-                suggested = priority_queue.GetSuggestedNext(core_id, suggested);
+                suggested = priority_queue.GetSuggestedNext(cpu_core_id, suggested);
             }
         }
     }
