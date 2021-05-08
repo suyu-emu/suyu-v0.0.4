@@ -16,7 +16,7 @@ namespace Vulkan {
 
 using VideoCommon::ImageId;
 using VideoCommon::NUM_RT;
-using VideoCommon::Offset2D;
+using VideoCommon::Region2D;
 using VideoCommon::RenderTargets;
 using VideoCore::Surface::PixelFormat;
 
@@ -71,8 +71,7 @@ struct TextureCacheRuntime {
     [[nodiscard]] StagingBufferRef DownloadStagingBuffer(size_t size);
 
     void BlitImage(Framebuffer* dst_framebuffer, ImageView& dst, ImageView& src,
-                   const std::array<Offset2D, 2>& dst_region,
-                   const std::array<Offset2D, 2>& src_region,
+                   const Region2D& dst_region, const Region2D& src_region,
                    Tegra::Engines::Fermi2D::Filter filter,
                    Tegra::Engines::Fermi2D::Operation operation);
 

@@ -490,8 +490,7 @@ void CopyBufferToImage(vk::CommandBuffer cmdbuf, VkBuffer src_buffer, VkImage im
                            write_barrier);
 }
 
-[[nodiscard]] VkImageBlit MakeImageBlit(const std::array<Offset2D, 2>& dst_region,
-                                        const std::array<Offset2D, 2>& src_region,
+[[nodiscard]] VkImageBlit MakeImageBlit(const Region2D& dst_region, const Region2D& src_region,
                                         const VkImageSubresourceLayers& dst_layers,
                                         const VkImageSubresourceLayers& src_layers) {
     return VkImageBlit{
@@ -499,13 +498,13 @@ void CopyBufferToImage(vk::CommandBuffer cmdbuf, VkBuffer src_buffer, VkImage im
         .srcOffsets =
             {
                 {
-                    .x = src_region[0].x,
-                    .y = src_region[0].y,
+                    .x = src_region.start.x,
+                    .y = src_region.start.y,
                     .z = 0,
                 },
                 {
-                    .x = src_region[1].x,
-                    .y = src_region[1].y,
+                    .x = src_region.end.x,
+                    .y = src_region.end.y,
                     .z = 1,
                 },
             },
@@ -513,42 +512,42 @@ void CopyBufferToImage(vk::CommandBuffer cmdbuf, VkBuffer src_buffer, VkImage im
         .dstOffsets =
             {
                 {
-                    .x = dst_region[0].x,
-                    .y = dst_region[0].y,
+                    .x = dst_region.start.x,
+                    .y = dst_region.start.y,
                     .z = 0,
                 },
                 {
-                    .x = dst_region[1].x,
-                    .y = dst_region[1].y,
+                    .x = dst_region.end.x,
+                    .y = dst_region.end.y,
                     .z = 1,
                 },
             },
     };
 }
 
-[[nodiscard]] VkImageResolve MakeImageResolve(const std::array<Offset2D, 2>& dst_region,
-                                              const std::array<Offset2D, 2>& src_region,
+[[nodiscard]] VkImageResolve MakeImageResolve(const Region2D& dst_region,
+                                              const Region2D& src_region,
                                               const VkImageSubresourceLayers& dst_layers,
                                               const VkImageSubresourceLayers& src_layers) {
     return VkImageResolve{
         .srcSubresource = src_layers,
         .srcOffset =
             {
-                .x = src_region[0].x,
-                .y = src_region[0].y,
+                .x = src_region.start.x,
+                .y = src_region.start.y,
                 .z = 0,
             },
         .dstSubresource = dst_layers,
         .dstOffset =
             {
-                .x = dst_region[0].x,
-                .y = dst_region[0].y,
+                .x = dst_region.start.x,
+                .y = dst_region.start.y,
                 .z = 0,
             },
         .extent =
             {
-                .width = static_cast<u32>(dst_region[1].x - dst_region[0].x),
-                .height = static_cast<u32>(dst_region[1].y - dst_region[0].y),
+                .width = static_cast<u32>(dst_region.end.x - dst_region.start.x),
+                .height = static_cast<u32>(dst_region.end.y - dst_region.start.y),
                 .depth = 1,
             },
     };
@@ -602,8 +601,7 @@ StagingBufferRef TextureCacheRuntime::DownloadStagingBuffer(size_t size) {
 }
 
 void TextureCacheRuntime::BlitImage(Framebuffer* dst_framebuffer, ImageView& dst, ImageView& src,
-                                    const std::array<Offset2D, 2>& dst_region,
-                                    const std::array<Offset2D, 2>& src_region,
+                                    const Region2D& dst_region, const Region2D& src_region,
                                     Tegra::Engines::Fermi2D::Filter filter,
                                     Tegra::Engines::Fermi2D::Operation operation) {
     const VkImageAspectFlags aspect_mask = ImageAspectMask(src.format);

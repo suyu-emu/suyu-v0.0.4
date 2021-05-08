@@ -289,16 +289,15 @@ void UpdateTwoTexturesDescriptorSet(const Device& device, VkDescriptorSet descri
     device.GetLogical().UpdateDescriptorSets(write_descriptor_sets, nullptr);
 }
 
-void BindBlitState(vk::CommandBuffer cmdbuf, VkPipelineLayout layout,
-                   const std::array<Offset2D, 2>& dst_region,
-                   const std::array<Offset2D, 2>& src_region) {
+void BindBlitState(vk::CommandBuffer cmdbuf, VkPipelineLayout layout, const Region2D& dst_region,
+                   const Region2D& src_region) {
     const VkOffset2D offset{
-        .x = std::min(dst_region[0].x, dst_region[1].x),
-        .y = std::min(dst_region[0].y, dst_region[1].y),
+        .x = std::min(dst_region.start.x, dst_region.end.x),
+        .y = std::min(dst_region.start.y, dst_region.end.y),
     };
     const VkExtent2D extent{
-        .width = static_cast<u32>(std::abs(dst_region[1].x - dst_region[0].x)),
-        .height = static_cast<u32>(std::abs(dst_region[1].y - dst_region[0].y)),
+        .width = static_cast<u32>(std::abs(dst_region.end.x - dst_region.start.x)),
+        .height = static_cast<u32>(std::abs(dst_region.end.y - dst_region.start.y)),
     };
     const VkViewport viewport{
         .x = static_cast<float>(offset.x),
@@ -313,11 +312,12 @@ void BindBlitState(vk::CommandBuffer cmdbuf, VkPipelineLayout layout,
         .offset = offset,
         .extent = extent,
     };
-    const float scale_x = static_cast<float>(src_region[1].x - src_region[0].x);
-    const float scale_y = static_cast<float>(src_region[1].y - src_region[0].y);
+    const float scale_x = static_cast<float>(src_region.end.x - src_region.start.x);
+    const float scale_y = static_cast<float>(src_region.end.y - src_region.start.y);
     const PushConstants push_constants{
         .tex_scale = {scale_x, scale_y},
-        .tex_offset = {static_cast<float>(src_region[0].x), static_cast<float>(src_region[0].y)},
+        .tex_offset = {static_cast<float>(src_region.start.x),
+                       static_cast<float>(src_region.start.y)},
     };
     cmdbuf.SetViewport(0, viewport);
     cmdbuf.SetScissor(0, scissor);
@@ -353,8 +353,7 @@ BlitImageHelper::BlitImageHelper(const Device& device_, VKScheduler& scheduler_,
 BlitImageHelper::~BlitImageHelper() = default;
 
 void BlitImageHelper::BlitColor(const Framebuffer* dst_framebuffer, const ImageView& src_image_view,
-                                const std::array<Offset2D, 2>& dst_region,
-                                const std::array<Offset2D, 2>& src_region,
+                                const Region2D& dst_region, const Region2D& src_region,
                                 Tegra::Engines::Fermi2D::Filter filter,
                                 Tegra::Engines::Fermi2D::Operation operation) {
     const bool is_linear = filter == Tegra::Engines::Fermi2D::Filter::Bilinear;
@@ -383,8 +382,7 @@ void BlitImageHelper::BlitColor(const Framebuffer* dst_framebuffer, const ImageV
 
 void BlitImageHelper::BlitDepthStencil(const Framebuffer* dst_framebuffer,
                                        VkImageView src_depth_view, VkImageView src_stencil_view,
-                                       const std::array<Offset2D, 2>& dst_region,
-                                       const std::array<Offset2D, 2>& src_region,
+                                       const Region2D& dst_region, const Region2D& src_region,
                                        Tegra::Engines::Fermi2D::Filter filter,
                                        Tegra::Engines::Fermi2D::Operation operation) {
     ASSERT(filter == Tegra::Engines::Fermi2D::Filter::Point);

@@ -64,6 +64,13 @@ struct Offset3D {
     s32 z;
 };
 
+struct Region2D {
+    constexpr auto operator<=>(const Region2D&) const noexcept = default;
+
+    Offset2D start;
+    Offset2D end;
+};
+
 struct Extent2D {
     constexpr auto operator<=>(const Extent2D&) const noexcept = default;
 
