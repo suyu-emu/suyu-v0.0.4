@@ -32,7 +32,8 @@ enum class CommandType : u32 {
     Control = 5,
     RequestWithContext = 6,
     ControlWithContext = 7,
-    Unspecified,
+    TIPC_Close = 15,
+    TIPC_CommandRegion = 16, // Start of TIPC commands, this is an offset.
 };
 
 struct CommandHeader {
@@ -57,6 +58,20 @@ struct CommandHeader {
         BitField<10, 4, BufferDescriptorCFlag> buf_c_descriptor_flags;
         BitField<31, 1, u32> enable_handle_descriptor;
     };
+
+    bool IsTipc() const {
+        return type.Value() >= CommandType::TIPC_CommandRegion;
+    }
+
+    bool IsCloseCommand() const {
+        switch (type.Value()) {
+        case CommandType::Close:
+        case CommandType::TIPC_Close:
+            return true;
+        default:
+            return false;
+        }
+    }
 };
 static_assert(sizeof(CommandHeader) == 8, "CommandHeader size is incorrect");
 
