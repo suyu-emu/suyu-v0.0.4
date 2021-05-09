@@ -47,7 +47,10 @@ target_include_directories(unicorn-headers INTERFACE ./unicorn/include)
 
 # SDL2
 if (NOT SDL2_FOUND AND ENABLE_SDL2)
+    set(SDL_STATIC ON)
+    set(SDL_SHARED OFF)
     add_subdirectory(SDL EXCLUDE_FROM_ALL)
+    add_library(SDL2 ALIAS SDL2-static)
 endif()
 
 # SoundTouch
