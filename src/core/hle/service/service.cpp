@@ -208,7 +208,7 @@ Services::Services(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system
 
     system.GetFileSystemController().CreateFactories(*system.GetFilesystem(), false);
 
-    SM::ServiceManager::InstallInterfaces(sm, system);
+    system.Kernel().RegisterNamedService("sm:", SM::ServiceManager::InterfaceFactory);
 
     Account::InstallInterfaces(system);
     AM::InstallInterfaces(*sm, *nv_flinger, system);
