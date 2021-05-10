@@ -91,7 +91,7 @@ ResultCode KClientPort::CreateSession(KClientSession** out) {
     // Create a new session.
     KSession* session = KSession::Create(kernel);
     if (session == nullptr) {
-        /* Decrement the session count. */
+        // Decrement the session count.
         const auto prev = num_sessions--;
         if (prev == max_sessions) {
             this->NotifyAvailable();
