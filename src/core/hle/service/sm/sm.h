@@ -44,6 +44,7 @@ private:
     void UnregisterService(Kernel::HLERequestContext& ctx);
 
     std::shared_ptr<ServiceManager> service_manager;
+    bool is_initialized{};
     Kernel::KernelCore& kernel;
 };
 

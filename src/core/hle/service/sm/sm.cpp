@@ -107,6 +107,8 @@ SM::~SM() = default;
 void SM::Initialize(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_SM, "called");
 
+    is_initialized = true;
+
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
 }
