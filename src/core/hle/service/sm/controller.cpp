@@ -44,7 +44,7 @@ void Controller::QueryPointerBufferSize(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
-    rb.Push<u16>(0x1000);
+    rb.Push<u16>(0x8000);
 }
 
 // https://switchbrew.org/wiki/IPC_Marshalling
