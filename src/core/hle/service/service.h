@@ -21,7 +21,9 @@ class System;
 
 namespace Kernel {
 class HLERequestContext;
-}
+class KClientPort;
+class KServerSession;
+} // namespace Kernel
 
 namespace Service {
 
@@ -67,6 +69,10 @@ public:
 
     /// Invokes a service request routine using the HIPC protocol.
     void InvokeRequest(Kernel::HLERequestContext& ctx);
+
+    /// Invokes a service request routine using the HIPC protocol.
+    void InvokeRequestTipc(Kernel::HLERequestContext& ctx);
+
     /// Creates a port pair and registers it on the kernel's global port registry.
     Kernel::KClientPort& CreatePort(Kernel::KernelCore& kernel);
 
@@ -105,6 +111,7 @@ private:
     ~ServiceFrameworkBase() override;
 
     void RegisterHandlersBase(const FunctionInfoBase* functions, std::size_t n);
+    void RegisterHandlersBaseTipc(const FunctionInfoBase* functions, std::size_t n);
     void ReportUnimplementedFunction(Kernel::HLERequestContext& ctx, const FunctionInfoBase* info);
 
     /// Identifier string used to connect to the service.
@@ -119,6 +126,7 @@ private:
     /// Function used to safely up-cast pointers to the derived class before invoking a handler.
     InvokerFn* handler_invoker;
     boost::container::flat_map<u32, FunctionInfoBase> handlers;
+    boost::container::flat_map<u32, FunctionInfoBase> handlers_tipc;
 
     /// Used to gain exclusive access to the service members, e.g. from CoreTiming thread.
     Common::SpinLock lock_service;
@@ -184,6 +192,20 @@ protected:
      */
     void RegisterHandlers(const FunctionInfo* functions, std::size_t n) {
         RegisterHandlersBase(functions, n);
+    }
+
+    /// Registers handlers in the service.
+    template <std::size_t N>
+    void RegisterHandlersTipc(const FunctionInfo (&functions)[N]) {
+        RegisterHandlersTipc(functions, N);
+    }
+
+    /**
+     * Registers handlers in the service. Usually prefer using the other RegisterHandlers
+     * overload in order to avoid needing to specify the array size.
+     */
+    void RegisterHandlersTipc(const FunctionInfo* functions, std::size_t n) {
+        RegisterHandlersBaseTipc(functions, n);
     }
 
 private:

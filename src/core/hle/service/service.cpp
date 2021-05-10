@@ -133,6 +133,16 @@ void ServiceFrameworkBase::RegisterHandlersBase(const FunctionInfoBase* function
     }
 }
 
+void ServiceFrameworkBase::RegisterHandlersBaseTipc(const FunctionInfoBase* functions,
+                                                    std::size_t n) {
+    handlers_tipc.reserve(handlers_tipc.size() + n);
+    for (std::size_t i = 0; i < n; ++i) {
+        // Usually this array is sorted by id already, so hint to insert at the end
+        handlers_tipc.emplace_hint(handlers_tipc.cend(), functions[i].expected_header,
+                                   functions[i]);
+    }
+}
+
 void ServiceFrameworkBase::ReportUnimplementedFunction(Kernel::HLERequestContext& ctx,
                                                        const FunctionInfoBase* info) {
     auto cmd_buf = ctx.CommandBuffer();
@@ -167,6 +177,20 @@ void ServiceFrameworkBase::InvokeRequest(Kernel::HLERequestContext& ctx) {
     handler_invoker(this, info->handler_callback, ctx);
 }
 
+void ServiceFrameworkBase::InvokeRequestTipc(Kernel::HLERequestContext& ctx) {
+    boost::container::flat_map<u32, FunctionInfoBase>::iterator itr;
+
+    itr = handlers_tipc.find(ctx.GetCommand());
+
+    const FunctionInfoBase* info = itr == handlers_tipc.end() ? nullptr : &itr->second;
+    if (info == nullptr || info->handler_callback == nullptr) {
+        return ReportUnimplementedFunction(ctx, info);
+    }
+
+    LOG_TRACE(Service, "{}", MakeFunctionString(info->name, GetServiceName(), ctx.CommandBuffer()));
+    handler_invoker(this, info->handler_callback, ctx);
+}
+
 ResultCode ServiceFrameworkBase::HandleSyncRequest(Kernel::KServerSession& session,
                                                    Kernel::HLERequestContext& ctx) {
     const auto guard = LockService();
@@ -190,6 +214,11 @@ ResultCode ServiceFrameworkBase::HandleSyncRequest(Kernel::KServerSession& sessi
         break;
     }
     default:
+        if (ctx.IsTipc()) {
+            InvokeRequestTipc(ctx);
+            break;
+        }
+
         UNIMPLEMENTED_MSG("command_type={}", ctx.GetCommandType());
     }
 
