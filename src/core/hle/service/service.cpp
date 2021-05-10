@@ -167,33 +167,36 @@ void ServiceFrameworkBase::InvokeRequest(Kernel::HLERequestContext& ctx) {
     handler_invoker(this, info->handler_callback, ctx);
 }
 
-ResultCode ServiceFrameworkBase::HandleSyncRequest(Kernel::HLERequestContext& context) {
+ResultCode ServiceFrameworkBase::HandleSyncRequest(Kernel::KServerSession& session,
+                                                   Kernel::HLERequestContext& ctx) {
     const auto guard = LockService();
 
-    switch (context.GetCommandType()) {
-    case IPC::CommandType::Close: {
-        IPC::ResponseBuilder rb{context, 2};
+    switch (ctx.GetCommandType()) {
+    case IPC::CommandType::Close:
+    case IPC::CommandType::TIPC_Close: {
+        session.Close();
+        IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
         return IPC::ERR_REMOTE_PROCESS_DEAD;
     }
     case IPC::CommandType::ControlWithContext:
     case IPC::CommandType::Control: {
-        system.ServiceManager().InvokeControlRequest(context);
+        system.ServiceManager().InvokeControlRequest(ctx);
         break;
     }
     case IPC::CommandType::RequestWithContext:
     case IPC::CommandType::Request: {
-        InvokeRequest(context);
+        InvokeRequest(ctx);
         break;
     }
     default:
-        UNIMPLEMENTED_MSG("command_type={}", context.GetCommandType());
+        UNIMPLEMENTED_MSG("command_type={}", ctx.GetCommandType());
     }
 
     // If emulation was shutdown, we are closing service threads, do not write the response back to
     // memory that may be shutting down as well.
     if (system.IsPoweredOn()) {
-        context.WriteToOutgoingCommandBuffer(context.GetThread());
+        ctx.WriteToOutgoingCommandBuffer(ctx.GetThread());
     }
 
     return RESULT_SUCCESS;

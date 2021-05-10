@@ -95,7 +95,7 @@ ResultCode KServerSession::HandleDomainSyncRequest(Kernel::HLERequestContext& co
             UNREACHABLE();
             return RESULT_SUCCESS; // Ignore error if asserts are off
         }
-        return domain_request_handlers[object_id - 1]->HandleSyncRequest(context);
+        return domain_request_handlers[object_id - 1]->HandleSyncRequest(*this, context);
 
     case IPC::DomainMessageHeader::CommandType::CloseVirtualHandle: {
         LOG_DEBUG(IPC, "CloseVirtualHandle, object_id=0x{:08X}", object_id);
@@ -135,7 +135,7 @@ ResultCode KServerSession::CompleteSyncRequest(HLERequestContext& context) {
         // If there is no domain header, the regular session handler is used
     } else if (hle_handler != nullptr) {
         // If this ServerSession has an associated HLE handler, forward the request to it.
-        result = hle_handler->HandleSyncRequest(context);
+        result = hle_handler->HandleSyncRequest(*this, context);
     }
 
     if (convert_to_domain) {
