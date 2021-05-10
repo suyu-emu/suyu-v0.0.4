@@ -66,7 +66,8 @@ public:
      * this request (ServerSession, Originator thread, Translated command buffer, etc).
      * @returns ResultCode the result code of the translate operation.
      */
-    virtual ResultCode HandleSyncRequest(Kernel::HLERequestContext& context) = 0;
+    virtual ResultCode HandleSyncRequest(Kernel::KServerSession& session,
+                                         Kernel::HLERequestContext& context) = 0;
 
     /**
      * Signals that a client has just connected to this HLE handler and keeps the
