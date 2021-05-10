@@ -111,7 +111,7 @@ void ServiceFrameworkBase::InstallAsService(SM::ServiceManager& service_manager)
     port_installed = true;
 }
 
-void ServiceFrameworkBase::InstallAsNamedPort(Kernel::KernelCore& kernel) {
+Kernel::KClientPort& ServiceFrameworkBase::CreatePort(Kernel::KernelCore& kernel) {
     const auto guard = LockService();
 
     ASSERT(!port_installed);
@@ -119,9 +119,10 @@ void ServiceFrameworkBase::InstallAsNamedPort(Kernel::KernelCore& kernel) {
     auto* port = Kernel::KPort::Create(kernel);
     port->Initialize(max_sessions, false, service_name);
     port->GetServerPort().SetHleHandler(shared_from_this());
-    kernel.AddNamedPort(service_name, &port->GetClientPort());
 
     port_installed = true;
+
+    return port->GetClientPort();
 }
 
 void ServiceFrameworkBase::RegisterHandlersBase(const FunctionInfoBase* functions, std::size_t n) {

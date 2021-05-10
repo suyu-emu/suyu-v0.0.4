@@ -64,10 +64,12 @@ public:
 
     /// Creates a port pair and registers this service with the given ServiceManager.
     void InstallAsService(SM::ServiceManager& service_manager);
-    /// Creates a port pair and registers it on the kernel's global port registry.
-    void InstallAsNamedPort(Kernel::KernelCore& kernel);
-    /// Invokes a service request routine.
+
+    /// Invokes a service request routine using the HIPC protocol.
     void InvokeRequest(Kernel::HLERequestContext& ctx);
+    /// Creates a port pair and registers it on the kernel's global port registry.
+    Kernel::KClientPort& CreatePort(Kernel::KernelCore& kernel);
+
     /// Handles a synchronization request for the service.
     ResultCode HandleSyncRequest(Kernel::HLERequestContext& context) override;
 
