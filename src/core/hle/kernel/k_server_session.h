@@ -40,7 +40,7 @@ class KServerSession final : public KSynchronizationObject,
     friend class ServiceThread;
 
 public:
-    explicit KServerSession(KernelCore& kernel);
+    explicit KServerSession(KernelCore& kernel_);
     virtual ~KServerSession() override;
 
     virtual void Destroy() override;

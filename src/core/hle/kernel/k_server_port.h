@@ -29,7 +29,7 @@ private:
     using SessionList = boost::intrusive::list<KServerSession>;
 
 public:
-    explicit KServerPort(KernelCore& kernel);
+    explicit KServerPort(KernelCore& kernel_);
     virtual ~KServerPort() override;
 
     using HLEHandler = std::shared_ptr<SessionRequestHandler>;

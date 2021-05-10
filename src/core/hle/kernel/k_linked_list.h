@@ -124,7 +124,7 @@ public:
 
     ~KLinkedList() {
         // Erase all elements.
-        for (auto it = this->begin(); it != this->end(); it = this->erase(kernel, it)) {
+        for (auto it = begin(); it != end(); it = erase(it)) {
         }
 
         // Ensure we succeeded.
@@ -223,7 +223,7 @@ public:
         this->erase(this->begin());
     }
 
-    iterator erase(KernelCore& kernel, const iterator pos) {
+    iterator erase(const iterator pos) {
         KLinkedListNode* freed_node = std::addressof(*pos.m_base_it);
         iterator ret = iterator(BaseList::erase(pos.m_base_it));
         KLinkedListNode::Free(kernel, freed_node);

@@ -8,7 +8,8 @@
 
 namespace Kernel {
 
-KWritableEvent::KWritableEvent(KernelCore& kernel) : KAutoObjectWithSlabHeapAndContainer{kernel} {}
+KWritableEvent::KWritableEvent(KernelCore& kernel_)
+    : KAutoObjectWithSlabHeapAndContainer{kernel_} {}
 
 KWritableEvent::~KWritableEvent() = default;
 

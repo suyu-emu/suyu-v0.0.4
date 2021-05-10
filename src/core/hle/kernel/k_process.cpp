@@ -118,11 +118,11 @@ private:
     std::bitset<num_slot_entries> is_slot_used;
 };
 
-ResultCode KProcess::Initialize(KProcess* process, Core::System& system, std::string name,
+ResultCode KProcess::Initialize(KProcess* process, Core::System& system, std::string process_name,
                                 ProcessType type) {
     auto& kernel = system.Kernel();
 
-    process->name = std::move(name);
+    process->name = std::move(process_name);
 
     process->resource_limit = kernel.GetSystemResourceLimit();
     process->status = ProcessStatus::Created;
@@ -373,8 +373,8 @@ void KProcess::Run(s32 main_thread_priority, u64 stack_size) {
 void KProcess::PrepareForTermination() {
     ChangeStatus(ProcessStatus::Exiting);
 
-    const auto stop_threads = [this](const std::vector<KThread*>& thread_list) {
-        for (auto& thread : thread_list) {
+    const auto stop_threads = [this](const std::vector<KThread*>& in_thread_list) {
+        for (auto& thread : in_thread_list) {
             if (thread->GetOwnerProcess() != this)
                 continue;
 
@@ -491,10 +491,10 @@ bool KProcess::IsSignaled() const {
     return is_signaled;
 }
 
-KProcess::KProcess(KernelCore& kernel)
-    : KAutoObjectWithSlabHeapAndContainer{kernel},
-      page_table{std::make_unique<KPageTable>(kernel.System())}, handle_table{kernel},
-      address_arbiter{kernel.System()}, condition_var{kernel.System()}, state_lock{kernel} {}
+KProcess::KProcess(KernelCore& kernel_)
+    : KAutoObjectWithSlabHeapAndContainer{kernel_},
+      page_table{std::make_unique<KPageTable>(kernel_.System())}, handle_table{kernel_},
+      address_arbiter{kernel_.System()}, condition_var{kernel_.System()}, state_lock{kernel_} {}
 
 KProcess::~KProcess() = default;
 

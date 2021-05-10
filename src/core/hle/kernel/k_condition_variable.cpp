@@ -254,8 +254,7 @@ void KConditionVariable::Signal(u64 cv_key, s32 count) {
     }
 
     // Close threads in the list.
-    for (auto it = thread_list.begin(); it != thread_list.end();
-         it = thread_list.erase(kernel, it)) {
+    for (auto it = thread_list.begin(); it != thread_list.end(); it = thread_list.erase(it)) {
         (*it).Close();
     }
 }

@@ -13,7 +13,7 @@
 
 namespace Kernel {
 
-KClientPort::KClientPort(KernelCore& kernel) : KSynchronizationObject{kernel} {}
+KClientPort::KClientPort(KernelCore& kernel_) : KSynchronizationObject{kernel_} {}
 KClientPort::~KClientPort() = default;
 
 void KClientPort::Initialize(KPort* parent_, s32 max_sessions_, std::string&& name_) {

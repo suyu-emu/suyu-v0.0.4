@@ -60,8 +60,8 @@ static void ResetThreadContext64(Core::ARM_Interface::ThreadContext64& context, 
 
 namespace Kernel {
 
-KThread::KThread(KernelCore& kernel)
-    : KAutoObjectWithSlabHeapAndContainer{kernel}, activity_pause_lock{kernel} {}
+KThread::KThread(KernelCore& kernel_)
+    : KAutoObjectWithSlabHeapAndContainer{kernel_}, activity_pause_lock{kernel_} {}
 KThread::~KThread() = default;
 
 ResultCode KThread::Initialize(KThreadFunction func, uintptr_t arg, VAddr user_stack_top, s32 prio,
@@ -479,7 +479,7 @@ ResultCode KThread::GetPhysicalCoreMask(s32* out_ideal_core, u64* out_affinity_m
     return RESULT_SUCCESS;
 }
 
-ResultCode KThread::SetCoreMask(s32 core_id, u64 v_affinity_mask) {
+ResultCode KThread::SetCoreMask(s32 cpu_core_id, u64 v_affinity_mask) {
     ASSERT(parent != nullptr);
     ASSERT(v_affinity_mask != 0);
     KScopedLightLock lk{activity_pause_lock};
@@ -491,18 +491,18 @@ ResultCode KThread::SetCoreMask(s32 core_id, u64 v_affinity_mask) {
         ASSERT(num_core_migration_disables >= 0);
 
         // If the core id is no-update magic, preserve the ideal core id.
-        if (core_id == Svc::IdealCoreNoUpdate) {
-            core_id = virtual_ideal_core_id;
-            R_UNLESS(((1ULL << core_id) & v_affinity_mask) != 0, ResultInvalidCombination);
+        if (cpu_core_id == Svc::IdealCoreNoUpdate) {
+            cpu_core_id = virtual_ideal_core_id;
+            R_UNLESS(((1ULL << cpu_core_id) & v_affinity_mask) != 0, ResultInvalidCombination);
         }
 
         // Set the virtual core/affinity mask.
-        virtual_ideal_core_id = core_id;
+        virtual_ideal_core_id = cpu_core_id;
         virtual_affinity_mask = v_affinity_mask;
 
         // Translate the virtual core to a physical core.
-        if (core_id >= 0) {
-            core_id = Core::Hardware::VirtualToPhysicalCoreMap[core_id];
+        if (cpu_core_id >= 0) {
+            cpu_core_id = Core::Hardware::VirtualToPhysicalCoreMap[cpu_core_id];
         }
 
         // Translate the virtual affinity mask to a physical one.
@@ -517,7 +517,7 @@ ResultCode KThread::SetCoreMask(s32 core_id, u64 v_affinity_mask) {
             const KAffinityMask old_mask = physical_affinity_mask;
 
             // Set our new ideals.
-            physical_ideal_core_id = core_id;
+            physical_ideal_core_id = cpu_core_id;
             physical_affinity_mask.SetAffinityMask(p_affinity_mask);
 
             if (physical_affinity_mask.GetAffinityMask() != old_mask.GetAffinityMask()) {
@@ -535,7 +535,7 @@ ResultCode KThread::SetCoreMask(s32 core_id, u64 v_affinity_mask) {
             }
         } else {
             // Otherwise, we edit the original affinity for restoration later.
-            original_physical_ideal_core_id = core_id;
+            original_physical_ideal_core_id = cpu_core_id;
             original_physical_affinity_mask.SetAffinityMask(p_affinity_mask);
         }
     }
@@ -851,8 +851,8 @@ void KThread::RemoveWaiterImpl(KThread* thread) {
     thread->SetLockOwner(nullptr);
 }
 
-void KThread::RestorePriority(KernelCore& kernel, KThread* thread) {
-    ASSERT(kernel.GlobalSchedulerContext().IsLocked());
+void KThread::RestorePriority(KernelCore& kernel_ctx, KThread* thread) {
+    ASSERT(kernel_ctx.GlobalSchedulerContext().IsLocked());
 
     while (true) {
         // We want to inherit priority where possible.
@@ -868,7 +868,7 @@ void KThread::RestorePriority(KernelCore& kernel, KThread* thread) {
 
         // Ensure we don't violate condition variable red black tree invariants.
         if (auto* cv_tree = thread->GetConditionVariableTree(); cv_tree != nullptr) {
-            BeforeUpdatePriority(kernel, cv_tree, thread);
+            BeforeUpdatePriority(kernel_ctx, cv_tree, thread);
         }
 
         // Change the priority.
@@ -877,11 +877,11 @@ void KThread::RestorePriority(KernelCore& kernel, KThread* thread) {
 
         // Restore the condition variable, if relevant.
         if (auto* cv_tree = thread->GetConditionVariableTree(); cv_tree != nullptr) {
-            AfterUpdatePriority(kernel, cv_tree, thread);
+            AfterUpdatePriority(kernel_ctx, cv_tree, thread);
         }
 
         // Update the scheduler.
-        KScheduler::OnThreadPriorityChanged(kernel, thread, old_priority);
+        KScheduler::OnThreadPriorityChanged(kernel_ctx, thread, old_priority);
 
         // Keep the lock owner up to date.
         KThread* lock_owner = thread->GetLockOwner();

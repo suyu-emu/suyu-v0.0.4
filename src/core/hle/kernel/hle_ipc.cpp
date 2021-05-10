@@ -180,12 +180,12 @@ ResultCode HLERequestContext::PopulateFromIncomingCommandBuffer(const KHandleTab
     return RESULT_SUCCESS;
 }
 
-ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(KThread& thread) {
-    auto& owner_process = *thread.GetOwnerProcess();
+ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(KThread& requesting_thread) {
+    auto& owner_process = *requesting_thread.GetOwnerProcess();
     auto& handle_table = owner_process.GetHandleTable();
 
     std::array<u32, IPC::COMMAND_BUFFER_LENGTH> dst_cmdbuf;
-    memory.ReadBlock(owner_process, thread.GetTLSAddress(), dst_cmdbuf.data(),
+    memory.ReadBlock(owner_process, requesting_thread.GetTLSAddress(), dst_cmdbuf.data(),
                      dst_cmdbuf.size() * sizeof(u32));
 
     // The header was already built in the internal command buffer. Attempt to parse it to verify
@@ -242,7 +242,7 @@ ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(KThread& thread) {
     }
 
     // Copy the translated command buffer back into the thread's command buffer area.
-    memory.WriteBlock(owner_process, thread.GetTLSAddress(), dst_cmdbuf.data(),
+    memory.WriteBlock(owner_process, requesting_thread.GetTLSAddress(), dst_cmdbuf.data(),
                       dst_cmdbuf.size() * sizeof(u32));
 
     return RESULT_SUCCESS;

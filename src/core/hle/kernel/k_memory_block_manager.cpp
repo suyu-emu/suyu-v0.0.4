@@ -17,8 +17,8 @@ KMemoryBlockManager::KMemoryBlockManager(VAddr start_addr, VAddr end_addr)
 KMemoryBlockManager::iterator KMemoryBlockManager::FindIterator(VAddr addr) {
     auto node{memory_block_tree.begin()};
     while (node != end()) {
-        const VAddr end_addr{node->GetNumPages() * PageSize + node->GetAddress()};
-        if (node->GetAddress() <= addr && end_addr - 1 >= addr) {
+        const VAddr node_end_addr{node->GetNumPages() * PageSize + node->GetAddress()};
+        if (node->GetAddress() <= addr && node_end_addr - 1 >= addr) {
             return node;
         }
         node = std::next(node);
@@ -67,7 +67,7 @@ void KMemoryBlockManager::Update(VAddr addr, std::size_t num_pages, KMemoryState
                                  KMemoryPermission prev_perm, KMemoryAttribute prev_attribute,
                                  KMemoryState state, KMemoryPermission perm,
                                  KMemoryAttribute attribute) {
-    const VAddr end_addr{addr + num_pages * PageSize};
+    const VAddr update_end_addr{addr + num_pages * PageSize};
     iterator node{memory_block_tree.begin()};
 
     prev_attribute |= KMemoryAttribute::IpcAndDeviceMapped;
@@ -78,7 +78,7 @@ void KMemoryBlockManager::Update(VAddr addr, std::size_t num_pages, KMemoryState
         const VAddr cur_addr{block->GetAddress()};
         const VAddr cur_end_addr{block->GetNumPages() * PageSize + cur_addr};
 
-        if (addr < cur_end_addr && cur_addr < end_addr) {
+        if (addr < cur_end_addr && cur_addr < update_end_addr) {
             if (!block->HasProperties(prev_state, prev_perm, prev_attribute)) {
                 node = next_node;
                 continue;
@@ -89,8 +89,8 @@ void KMemoryBlockManager::Update(VAddr addr, std::size_t num_pages, KMemoryState
                 memory_block_tree.insert(node, block->Split(addr));
             }
 
-            if (end_addr < cur_end_addr) {
-                new_node = memory_block_tree.insert(node, block->Split(end_addr));
+            if (update_end_addr < cur_end_addr) {
+                new_node = memory_block_tree.insert(node, block->Split(update_end_addr));
             }
 
             new_node->Update(state, perm, attribute);
@@ -98,7 +98,7 @@ void KMemoryBlockManager::Update(VAddr addr, std::size_t num_pages, KMemoryState
             MergeAdjacent(new_node, next_node);
         }
 
-        if (cur_end_addr - 1 >= end_addr - 1) {
+        if (cur_end_addr - 1 >= update_end_addr - 1) {
             break;
         }
 
@@ -108,7 +108,7 @@ void KMemoryBlockManager::Update(VAddr addr, std::size_t num_pages, KMemoryState
 
 void KMemoryBlockManager::Update(VAddr addr, std::size_t num_pages, KMemoryState state,
                                  KMemoryPermission perm, KMemoryAttribute attribute) {
-    const VAddr end_addr{addr + num_pages * PageSize};
+    const VAddr update_end_addr{addr + num_pages * PageSize};
     iterator node{memory_block_tree.begin()};
 
     while (node != memory_block_tree.end()) {
@@ -117,15 +117,15 @@ void KMemoryBlockManager::Update(VAddr addr, std::size_t num_pages, KMemoryState
         const VAddr cur_addr{block->GetAddress()};
         const VAddr cur_end_addr{block->GetNumPages() * PageSize + cur_addr};
 
-        if (addr < cur_end_addr && cur_addr < end_addr) {
+        if (addr < cur_end_addr && cur_addr < update_end_addr) {
             iterator new_node{node};
 
             if (addr > cur_addr) {
                 memory_block_tree.insert(node, block->Split(addr));
             }
 
-            if (end_addr < cur_end_addr) {
-                new_node = memory_block_tree.insert(node, block->Split(end_addr));
+            if (update_end_addr < cur_end_addr) {
+                new_node = memory_block_tree.insert(node, block->Split(update_end_addr));
             }
 
             new_node->Update(state, perm, attribute);
@@ -133,7 +133,7 @@ void KMemoryBlockManager::Update(VAddr addr, std::size_t num_pages, KMemoryState
             MergeAdjacent(new_node, next_node);
         }
 
-        if (cur_end_addr - 1 >= end_addr - 1) {
+        if (cur_end_addr - 1 >= update_end_addr - 1) {
             break;
         }
 
@@ -143,7 +143,7 @@ void KMemoryBlockManager::Update(VAddr addr, std::size_t num_pages, KMemoryState
 
 void KMemoryBlockManager::UpdateLock(VAddr addr, std::size_t num_pages, LockFunc&& lock_func,
                                      KMemoryPermission perm) {
-    const VAddr end_addr{addr + num_pages * PageSize};
+    const VAddr update_end_addr{addr + num_pages * PageSize};
     iterator node{memory_block_tree.begin()};
 
     while (node != memory_block_tree.end()) {
@@ -152,15 +152,15 @@ void KMemoryBlockManager::UpdateLock(VAddr addr, std::size_t num_pages, LockFunc
         const VAddr cur_addr{block->GetAddress()};
         const VAddr cur_end_addr{block->GetNumPages() * PageSize + cur_addr};
 
-        if (addr < cur_end_addr && cur_addr < end_addr) {
+        if (addr < cur_end_addr && cur_addr < update_end_addr) {
             iterator new_node{node};
 
             if (addr > cur_addr) {
                 memory_block_tree.insert(node, block->Split(addr));
             }
 
-            if (end_addr < cur_end_addr) {
-                new_node = memory_block_tree.insert(node, block->Split(end_addr));
+            if (update_end_addr < cur_end_addr) {
+                new_node = memory_block_tree.insert(node, block->Split(update_end_addr));
             }
 
             lock_func(new_node, perm);
@@ -168,7 +168,7 @@ void KMemoryBlockManager::UpdateLock(VAddr addr, std::size_t num_pages, LockFunc
             MergeAdjacent(new_node, next_node);
         }
 
-        if (cur_end_addr - 1 >= end_addr - 1) {
+        if (cur_end_addr - 1 >= update_end_addr - 1) {
             break;
         }
 

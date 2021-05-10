@@ -126,7 +126,7 @@ public:
                                                  u32_le* src_cmdbuf);
 
     /// Writes data from this context back to the requesting process/thread.
-    ResultCode WriteToOutgoingCommandBuffer(KThread& thread);
+    ResultCode WriteToOutgoingCommandBuffer(KThread& requesting_thread);
 
     u32_le GetCommand() const {
         return command;

@@ -18,7 +18,7 @@ class KWritableEvent final
     KERNEL_AUTOOBJECT_TRAITS(KWritableEvent, KAutoObject);
 
 public:
-    explicit KWritableEvent(KernelCore& kernel);
+    explicit KWritableEvent(KernelCore& kernel_);
     ~KWritableEvent() override;
 
     virtual void Destroy() override;

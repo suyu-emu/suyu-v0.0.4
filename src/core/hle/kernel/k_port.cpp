@@ -9,8 +9,8 @@
 
 namespace Kernel {
 
-KPort::KPort(KernelCore& kernel)
-    : KAutoObjectWithSlabHeapAndContainer{kernel}, server{kernel}, client{kernel} {}
+KPort::KPort(KernelCore& kernel_)
+    : KAutoObjectWithSlabHeapAndContainer{kernel_}, server{kernel_}, client{kernel_} {}
 
 KPort::~KPort() = default;
 

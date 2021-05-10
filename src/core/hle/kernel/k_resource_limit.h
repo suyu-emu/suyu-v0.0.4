@@ -36,7 +36,7 @@ class KResourceLimit final
     KERNEL_AUTOOBJECT_TRAITS(KResourceLimit, KAutoObject);
 
 public:
-    explicit KResourceLimit(KernelCore& kernel);
+    explicit KResourceLimit(KernelCore& kernel_);
     virtual ~KResourceLimit();
 
     void Initialize(const Core::Timing::CoreTiming* core_timing_);

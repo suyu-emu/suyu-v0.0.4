@@ -12,7 +12,7 @@
 
 namespace Kernel {
 
-KReadableEvent::KReadableEvent(KernelCore& kernel) : KSynchronizationObject{kernel} {}
+KReadableEvent::KReadableEvent(KernelCore& kernel_) : KSynchronizationObject{kernel_} {}
 
 KReadableEvent::~KReadableEvent() = default;
 

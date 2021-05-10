@@ -177,7 +177,7 @@ class KAutoObjectWithListContainer;
 
 class KAutoObjectWithList : public KAutoObject {
 public:
-    explicit KAutoObjectWithList(KernelCore& kernel_) : KAutoObject(kernel_), kernel(kernel_) {}
+    explicit KAutoObjectWithList(KernelCore& kernel_) : KAutoObject(kernel_) {}
 
     static int Compare(const KAutoObjectWithList& lhs, const KAutoObjectWithList& rhs) {
         const u64 lid = lhs.GetId();
@@ -204,11 +204,7 @@ public:
 private:
     friend class KAutoObjectWithListContainer;
 
-private:
     Common::IntrusiveRedBlackTreeNode list_node;
-
-protected:
-    KernelCore& kernel;
 };
 
 template <typename T>

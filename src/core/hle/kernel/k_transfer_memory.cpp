@@ -9,8 +9,8 @@
 
 namespace Kernel {
 
-KTransferMemory::KTransferMemory(KernelCore& kernel)
-    : KAutoObjectWithSlabHeapAndContainer{kernel} {}
+KTransferMemory::KTransferMemory(KernelCore& kernel_)
+    : KAutoObjectWithSlabHeapAndContainer{kernel_} {}
 
 KTransferMemory::~KTransferMemory() = default;
 
