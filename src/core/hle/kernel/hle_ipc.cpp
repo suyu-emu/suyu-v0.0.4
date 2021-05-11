@@ -186,6 +186,18 @@ ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(KThread& requesting_t
     auto& owner_process = *requesting_thread.GetOwnerProcess();
     auto& handle_table = owner_process.GetHandleTable();
 
+    // The data_size already includes the payload header, the padding and the domain header.
+    std::size_t size{};
+
+    if (IsTipc()) {
+        size = cmd_buf.size();
+    } else {
+        size = data_payload_offset + data_size - sizeof(IPC::DataPayloadHeader) / sizeof(u32) - 4;
+        if (Session()->IsDomain()) {
+            size -= sizeof(IPC::DomainMessageHeader) / sizeof(u32);
+        }
+    }
+
     for (auto& object : copy_objects) {
         Handle handle{};
         if (object) {
@@ -218,7 +230,7 @@ ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(KThread& requesting_t
 
     // Copy the translated command buffer back into the thread's command buffer area.
     memory.WriteBlock(owner_process, requesting_thread.GetTLSAddress(), cmd_buf.data(),
-                      cmd_buf.size() * sizeof(u32));
+                      size * sizeof(u32));
 
     return RESULT_SUCCESS;
 }

@@ -108,6 +108,7 @@ public:
             header.type.Assign(ctx.GetCommandType());
         }
 
+        ctx.data_size = static_cast<u32>(raw_data_size);
         header.data_size.Assign(static_cast<u32>(raw_data_size));
         if (num_handles_to_copy || num_handles_to_move) {
             header.enable_handle_descriptor.Assign(1);

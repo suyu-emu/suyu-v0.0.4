@@ -308,6 +308,7 @@ private:
     u32 data_payload_offset{};
     u32 handles_offset{};
     u32 domain_offset{};
+    u32 data_size{};
     u32_le command{};
 
     std::vector<std::shared_ptr<SessionRequestHandler>> domain_request_handlers;
