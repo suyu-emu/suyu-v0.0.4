@@ -10,6 +10,11 @@
 
 namespace Service::SSL {
 
+enum class CertificateFormat : u32 {
+    Pem = 1,
+    Der = 2,
+};
+
 class ISslConnection final : public ServiceFramework<ISslConnection> {
 public:
     explicit ISslConnection(Core::System& system_) : ServiceFramework{system_, "ISslConnection"} {
@@ -58,8 +63,8 @@ public:
             {1, nullptr, "GetOption"},
             {2, &ISslContext::CreateConnection, "CreateConnection"},
             {3, nullptr, "GetConnectionCount"},
-            {4, nullptr, "ImportServerPki"},
-            {5, nullptr, "ImportClientPki"},
+            {4, &ISslContext::ImportServerPki, "ImportServerPki"},
+            {5, &ISslContext::ImportClientPki, "ImportClientPki"},
             {6, nullptr, "RemoveServerPki"},
             {7, nullptr, "RemoveClientPki"},
             {8, nullptr, "RegisterInternalPki"},
@@ -93,6 +98,39 @@ private:
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<ISslConnection>(system);
+    }
+
+    void ImportServerPki(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto certificate_format = rp.PopEnum<CertificateFormat>();
+        const auto pkcs_12_certificates = ctx.ReadBuffer(0);
+
+        constexpr u64 server_id = 0;
+
+        LOG_WARNING(Service_SSL, "(STUBBED) called, certificate_format={}", certificate_format);
+
+        IPC::ResponseBuilder rb{ctx, 4};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push(server_id);
+    }
+
+    void ImportClientPki(Kernel::HLERequestContext& ctx) {
+        const auto pkcs_12_certificate = ctx.ReadBuffer(0);
+        const auto ascii_password = [&ctx] {
+            if (ctx.CanReadBuffer(1)) {
+                return ctx.ReadBuffer(1);
+            }
+
+            return std::vector<u8>{};
+        }();
+
+        constexpr u64 client_id = 0;
+
+        LOG_WARNING(Service_SSL, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push(client_id);
     }
 };
 
