@@ -101,7 +101,7 @@ public:
         }
 
         if (ctx.Session()->IsDomain()) {
-            raw_data_size += sizeof(DomainMessageHeader) / 4 + num_domain_objects;
+            raw_data_size += static_cast<u32>(sizeof(DomainMessageHeader) / 4 + num_domain_objects);
         }
 
         if (ctx.IsTipc()) {
