@@ -368,7 +368,7 @@ private:
             },
         };
 
-        IPC::ResponseBuilder rb{ctx, 2 + sizeof(IpConfigInfo) / sizeof(u32)};
+        IPC::ResponseBuilder rb{ctx, 2 + (sizeof(IpConfigInfo) + 3) / sizeof(u32)};
         rb.Push(RESULT_SUCCESS);
         rb.PushRaw<IpConfigInfo>(ip_config_info);
     }
