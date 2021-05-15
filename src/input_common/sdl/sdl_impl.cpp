@@ -267,7 +267,9 @@ void SDLState::CloseJoystick(SDL_Joystick* sdl_joystick) {
                                               return joystick->GetSDLJoystick() == sdl_joystick;
                                           });
 
-    (*joystick_it)->SetSDLJoystick(nullptr, nullptr);
+    if (joystick_it != joystick_guid_list.end()) {
+        (*joystick_it)->SetSDLJoystick(nullptr, nullptr);
+    }
 }
 
 void SDLState::HandleGameControllerEvent(const SDL_Event& event) {
