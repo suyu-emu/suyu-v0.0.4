@@ -2751,24 +2751,19 @@ void GMainWindow::MigrateConfigFiles() {
 
 void GMainWindow::UpdateWindowTitle(const std::string& title_name,
                                     const std::string& title_version) {
-    const auto full_name = std::string(Common::g_build_fullname);
     const auto branch_name = std::string(Common::g_scm_branch);
     const auto description = std::string(Common::g_scm_desc);
     const auto build_id = std::string(Common::g_build_id);
 
-    const auto date =
-        QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd")).toStdString();
+    const auto yuzu_title = fmt::format("yuzu | {}-{}", branch_name, description);
+    const auto override_title = fmt::format(std::string(Common::g_title_bar_format_idle), build_id);
+    const auto window_title = override_title.empty() ? yuzu_title : override_title;
 
     if (title_name.empty()) {
-        const auto fmt = std::string(Common::g_title_bar_format_idle);
-        setWindowTitle(QString::fromStdString(fmt::format(fmt.empty() ? "yuzu {0}| {1}-{2}" : fmt,
-                                                          full_name, branch_name, description,
-                                                          std::string{}, date, build_id)));
+        setWindowTitle(QString::fromStdString(window_title));
     } else {
-        const auto fmt = std::string(Common::g_title_bar_format_running);
-        setWindowTitle(QString::fromStdString(
-            fmt::format(fmt.empty() ? "yuzu {0}| {3} | {6} | {1}-{2}" : fmt, full_name, branch_name,
-                        description, title_name, date, build_id, title_version)));
+        const auto run_title = fmt::format("{} | {} | {}", window_title, title_name, title_version);
+        setWindowTitle(QString::fromStdString(run_title));
     }
 }
 
