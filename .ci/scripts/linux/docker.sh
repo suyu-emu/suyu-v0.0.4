@@ -30,10 +30,10 @@ make install DESTDIR=AppDir
 rm -vf AppDir/usr/bin/yuzu-cmd AppDir/usr/bin/yuzu-tester
 
 # Download tools needed to build an AppImage
-wget -nc https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-wget -nc https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
-wget -nc https://github.com/darealshinji/AppImageKit-checkrt/releases/download/continuous/AppRun-patched-x86_64
-wget -nc https://github.com/darealshinji/AppImageKit-checkrt/releases/download/continuous/exec-x86_64.so
+wget -nc https://github.com/yuzu-emu/ext-linux-bin/raw/main/appimage/linuxdeploy-x86_64.AppImage
+wget -nc https://github.com/yuzu-emu/ext-linux-bin/raw/main/appimage/linuxdeploy-plugin-qt-x86_64.AppImage
+wget -nc https://github.com/yuzu-emu/ext-linux-bin/raw/main/appimage/AppRun-patched-x86_64
+wget -nc https://github.com/yuzu-emu/ext-linux-bin/raw/main/appimage/exec-x86_64.so
 # Set executable bit
 chmod 755 \
     AppRun-patched-x86_64 \
