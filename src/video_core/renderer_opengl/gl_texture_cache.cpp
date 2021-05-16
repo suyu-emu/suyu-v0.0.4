@@ -543,8 +543,7 @@ void TextureCacheRuntime::EmulateCopyImage(Image& dst, Image& src,
 }
 
 void TextureCacheRuntime::BlitFramebuffer(Framebuffer* dst, Framebuffer* src,
-                                          const std::array<Offset2D, 2>& dst_region,
-                                          const std::array<Offset2D, 2>& src_region,
+                                          const Region2D& dst_region, const Region2D& src_region,
                                           Tegra::Engines::Fermi2D::Filter filter,
                                           Tegra::Engines::Fermi2D::Operation operation) {
     state_tracker.NotifyScissor0();
@@ -560,9 +559,9 @@ void TextureCacheRuntime::BlitFramebuffer(Framebuffer* dst, Framebuffer* src,
     const GLbitfield buffer_bits = dst->BufferBits();
     const bool has_depth = (buffer_bits & ~GL_COLOR_BUFFER_BIT) != 0;
     const bool is_linear = !has_depth && filter == Tegra::Engines::Fermi2D::Filter::Bilinear;
-    glBlitNamedFramebuffer(src->Handle(), dst->Handle(), src_region[0].x, src_region[0].y,
-                           src_region[1].x, src_region[1].y, dst_region[0].x, dst_region[0].y,
-                           dst_region[1].x, dst_region[1].y, buffer_bits,
+    glBlitNamedFramebuffer(src->Handle(), dst->Handle(), src_region.start.x, src_region.start.y,
+                           src_region.end.x, src_region.end.y, dst_region.start.x,
+                           dst_region.start.y, dst_region.end.x, dst_region.end.y, buffer_bits,
                            is_linear ? GL_LINEAR : GL_NEAREST);
 }
 

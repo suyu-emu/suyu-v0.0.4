@@ -13,7 +13,7 @@
 
 namespace Vulkan {
 
-using VideoCommon::Offset2D;
+using VideoCommon::Region2D;
 
 class Device;
 class Framebuffer;
@@ -35,15 +35,13 @@ public:
     ~BlitImageHelper();
 
     void BlitColor(const Framebuffer* dst_framebuffer, const ImageView& src_image_view,
-                   const std::array<Offset2D, 2>& dst_region,
-                   const std::array<Offset2D, 2>& src_region,
+                   const Region2D& dst_region, const Region2D& src_region,
                    Tegra::Engines::Fermi2D::Filter filter,
                    Tegra::Engines::Fermi2D::Operation operation);
 
     void BlitDepthStencil(const Framebuffer* dst_framebuffer, VkImageView src_depth_view,
-                          VkImageView src_stencil_view, const std::array<Offset2D, 2>& dst_region,
-                          const std::array<Offset2D, 2>& src_region,
-                          Tegra::Engines::Fermi2D::Filter filter,
+                          VkImageView src_stencil_view, const Region2D& dst_region,
+                          const Region2D& src_region, Tegra::Engines::Fermi2D::Filter filter,
                           Tegra::Engines::Fermi2D::Operation operation);
 
     void ConvertD32ToR32(const Framebuffer* dst_framebuffer, const ImageView& src_image_view);

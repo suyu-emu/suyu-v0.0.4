@@ -28,7 +28,7 @@ using VideoCommon::ImageId;
 using VideoCommon::ImageViewId;
 using VideoCommon::ImageViewType;
 using VideoCommon::NUM_RT;
-using VideoCommon::Offset2D;
+using VideoCommon::Region2D;
 using VideoCommon::RenderTargets;
 
 struct ImageBufferMap {
@@ -73,10 +73,8 @@ public:
 
     void EmulateCopyImage(Image& dst, Image& src, std::span<const VideoCommon::ImageCopy> copies);
 
-    void BlitFramebuffer(Framebuffer* dst, Framebuffer* src,
-                         const std::array<Offset2D, 2>& dst_region,
-                         const std::array<Offset2D, 2>& src_region,
-                         Tegra::Engines::Fermi2D::Filter filter,
+    void BlitFramebuffer(Framebuffer* dst, Framebuffer* src, const Region2D& dst_region,
+                         const Region2D& src_region, Tegra::Engines::Fermi2D::Filter filter,
                          Tegra::Engines::Fermi2D::Operation operation);
 
     void AccelerateImageUpload(Image& image, const ImageBufferMap& map,
