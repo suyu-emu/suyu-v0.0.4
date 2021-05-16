@@ -55,7 +55,7 @@ void HLERequestContext::ParseCommandBuffer(const KHandleTable& handle_table, u32
     IPC::RequestParser rp(src_cmdbuf);
     command_header = rp.PopRaw<IPC::CommandHeader>();
 
-    if (command_header->type == IPC::CommandType::Close) {
+    if (command_header->IsCloseCommand()) {
         // Close does not populate the rest of the IPC header
         return;
     }
@@ -99,39 +99,43 @@ void HLERequestContext::ParseCommandBuffer(const KHandleTable& handle_table, u32
         buffer_w_desciptors.push_back(rp.PopRaw<IPC::BufferDescriptorABW>());
     }
 
-    buffer_c_offset = rp.GetCurrentOffset() + command_header->data_size;
+    const auto buffer_c_offset = rp.GetCurrentOffset() + command_header->data_size;
 
-    // Padding to align to 16 bytes
-    rp.AlignWithPadding();
+    if (!command_header->IsTipc()) {
+        // Padding to align to 16 bytes
+        rp.AlignWithPadding();
 
-    if (Session()->IsDomain() && ((command_header->type == IPC::CommandType::Request ||
-                                   command_header->type == IPC::CommandType::RequestWithContext) ||
-                                  !incoming)) {
-        // If this is an incoming message, only CommandType "Request" has a domain header
-        // All outgoing domain messages have the domain header, if only incoming has it
-        if (incoming || domain_message_header) {
-            domain_message_header = rp.PopRaw<IPC::DomainMessageHeader>();
-        } else {
-            if (Session()->IsDomain()) {
-                LOG_WARNING(IPC, "Domain request has no DomainMessageHeader!");
+        if (Session()->IsDomain() &&
+            ((command_header->type == IPC::CommandType::Request ||
+              command_header->type == IPC::CommandType::RequestWithContext) ||
+             !incoming)) {
+            // If this is an incoming message, only CommandType "Request" has a domain header
+            // All outgoing domain messages have the domain header, if only incoming has it
+            if (incoming || domain_message_header) {
+                domain_message_header = rp.PopRaw<IPC::DomainMessageHeader>();
+            } else {
+                if (Session()->IsDomain()) {
+                    LOG_WARNING(IPC, "Domain request has no DomainMessageHeader!");
+                }
             }
         }
-    }
 
-    data_payload_header = rp.PopRaw<IPC::DataPayloadHeader>();
+        data_payload_header = rp.PopRaw<IPC::DataPayloadHeader>();
 
-    data_payload_offset = rp.GetCurrentOffset();
+        data_payload_offset = rp.GetCurrentOffset();
 
-    if (domain_message_header && domain_message_header->command ==
-                                     IPC::DomainMessageHeader::CommandType::CloseVirtualHandle) {
-        // CloseVirtualHandle command does not have SFC* or any data
-        return;
-    }
+        if (domain_message_header &&
+            domain_message_header->command ==
+                IPC::DomainMessageHeader::CommandType::CloseVirtualHandle) {
+            // CloseVirtualHandle command does not have SFC* or any data
+            return;
+        }
 
-    if (incoming) {
-        ASSERT(data_payload_header->magic == Common::MakeMagic('S', 'F', 'C', 'I'));
-    } else {
-        ASSERT(data_payload_header->magic == Common::MakeMagic('S', 'F', 'C', 'O'));
+        if (incoming) {
+            ASSERT(data_payload_header->magic == Common::MakeMagic('S', 'F', 'C', 'I'));
+        } else {
+            ASSERT(data_payload_header->magic == Common::MakeMagic('S', 'F', 'C', 'O'));
+        }
     }
 
     rp.SetCurrentOffset(buffer_c_offset);
@@ -166,84 +170,67 @@ void HLERequestContext::ParseCommandBuffer(const KHandleTable& handle_table, u32
 ResultCode HLERequestContext::PopulateFromIncomingCommandBuffer(const KHandleTable& handle_table,
                                                                 u32_le* src_cmdbuf) {
     ParseCommandBuffer(handle_table, src_cmdbuf, true);
-    if (command_header->type == IPC::CommandType::Close) {
+
+    if (command_header->IsCloseCommand()) {
         // Close does not populate the rest of the IPC header
         return RESULT_SUCCESS;
     }
 
-    // The data_size already includes the payload header, the padding and the domain header.
-    std::size_t size = data_payload_offset + command_header->data_size -
-                       sizeof(IPC::DataPayloadHeader) / sizeof(u32) - 4;
-    if (domain_message_header)
-        size -= sizeof(IPC::DomainMessageHeader) / sizeof(u32);
-    std::copy_n(src_cmdbuf, size, cmd_buf.begin());
+    std::copy_n(src_cmdbuf, IPC::COMMAND_BUFFER_LENGTH, cmd_buf.begin());
+
     return RESULT_SUCCESS;
 }
 
 ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(KThread& requesting_thread) {
+    auto current_offset = handles_offset;
     auto& owner_process = *requesting_thread.GetOwnerProcess();
     auto& handle_table = owner_process.GetHandleTable();
 
-    std::array<u32, IPC::COMMAND_BUFFER_LENGTH> dst_cmdbuf;
-    memory.ReadBlock(owner_process, requesting_thread.GetTLSAddress(), dst_cmdbuf.data(),
-                     dst_cmdbuf.size() * sizeof(u32));
-
-    // The header was already built in the internal command buffer. Attempt to parse it to verify
-    // the integrity and then copy it over to the target command buffer.
-    ParseCommandBuffer(handle_table, cmd_buf.data(), false);
-
     // The data_size already includes the payload header, the padding and the domain header.
-    std::size_t size = data_payload_offset + command_header->data_size -
-                       sizeof(IPC::DataPayloadHeader) / sizeof(u32) - 4;
-    if (domain_message_header)
-        size -= sizeof(IPC::DomainMessageHeader) / sizeof(u32);
+    std::size_t size{};
 
-    std::copy_n(cmd_buf.begin(), size, dst_cmdbuf.data());
-
-    if (command_header->enable_handle_descriptor) {
-        ASSERT_MSG(!move_objects.empty() || !copy_objects.empty(),
-                   "Handle descriptor bit set but no handles to translate");
-        // We write the translated handles at a specific offset in the command buffer, this space
-        // was already reserved when writing the header.
-        std::size_t current_offset =
-            (sizeof(IPC::CommandHeader) + sizeof(IPC::HandleDescriptorHeader)) / sizeof(u32);
-        ASSERT_MSG(!handle_descriptor_header->send_current_pid, "Sending PID is not implemented");
-
-        ASSERT(copy_objects.size() == handle_descriptor_header->num_handles_to_copy);
-        ASSERT(move_objects.size() == handle_descriptor_header->num_handles_to_move);
-
-        // We don't make a distinction between copy and move handles when translating since HLE
-        // services don't deal with handles directly. However, the guest applications might check
-        // for specific values in each of these descriptors.
-        for (auto& object : copy_objects) {
-            ASSERT(object != nullptr);
-            R_TRY(handle_table.Add(&dst_cmdbuf[current_offset++], object));
-        }
-
-        for (auto& object : move_objects) {
-            ASSERT(object != nullptr);
-            R_TRY(handle_table.Add(&dst_cmdbuf[current_offset++], object));
+    if (IsTipc()) {
+        size = cmd_buf.size();
+    } else {
+        size = data_payload_offset + data_size - sizeof(IPC::DataPayloadHeader) / sizeof(u32) - 4;
+        if (Session()->IsDomain()) {
+            size -= sizeof(IPC::DomainMessageHeader) / sizeof(u32);
         }
     }
 
-    // TODO(Subv): Translate the X/A/B/W buffers.
+    for (auto& object : copy_objects) {
+        Handle handle{};
+        if (object) {
+            R_TRY(handle_table.Add(&handle, object));
+        }
+        cmd_buf[current_offset++] = handle;
+    }
+    for (auto& object : move_objects) {
+        Handle handle{};
+        if (object) {
+            R_TRY(handle_table.Add(&handle, object));
 
-    if (Session()->IsDomain() && domain_message_header) {
-        ASSERT(domain_message_header->num_objects == domain_objects.size());
-        // Write the domain objects to the command buffer, these go after the raw untranslated data.
-        // TODO(Subv): This completely ignores C buffers.
-        std::size_t domain_offset = size - domain_message_header->num_objects;
+            // Close our reference to the object, as it is being moved to the caller.
+            object->Close();
+        }
+        cmd_buf[current_offset++] = handle;
+    }
 
+    // Write the domain objects to the command buffer, these go after the raw untranslated data.
+    // TODO(Subv): This completely ignores C buffers.
+
+    if (Session()->IsDomain()) {
+        current_offset = domain_offset - static_cast<u32>(domain_objects.size());
         for (const auto& object : domain_objects) {
             server_session->AppendDomainRequestHandler(object);
-            dst_cmdbuf[domain_offset++] =
+            cmd_buf[current_offset++] =
                 static_cast<u32_le>(server_session->NumDomainRequestHandlers());
         }
     }
 
     // Copy the translated command buffer back into the thread's command buffer area.
-    memory.WriteBlock(owner_process, requesting_thread.GetTLSAddress(), dst_cmdbuf.data(),
-                      dst_cmdbuf.size() * sizeof(u32));
+    memory.WriteBlock(owner_process, requesting_thread.GetTLSAddress(), cmd_buf.data(),
+                      size * sizeof(u32));
 
     return RESULT_SUCCESS;
 }

@@ -34,22 +34,26 @@ class Controller;
 /// Interface to "sm:" service
 class SM final : public ServiceFramework<SM> {
 public:
-    explicit SM(std::shared_ptr<ServiceManager> service_manager_, Core::System& system_);
+    explicit SM(ServiceManager& service_manager_, Core::System& system_);
     ~SM() override;
 
 private:
     void Initialize(Kernel::HLERequestContext& ctx);
     void GetService(Kernel::HLERequestContext& ctx);
+    void GetServiceTipc(Kernel::HLERequestContext& ctx);
     void RegisterService(Kernel::HLERequestContext& ctx);
     void UnregisterService(Kernel::HLERequestContext& ctx);
 
-    std::shared_ptr<ServiceManager> service_manager;
+    ResultVal<Kernel::KClientSession*> GetServiceImpl(Kernel::HLERequestContext& ctx);
+
+    ServiceManager& service_manager;
+    bool is_initialized{};
     Kernel::KernelCore& kernel;
 };
 
 class ServiceManager {
 public:
-    static void InstallInterfaces(std::shared_ptr<ServiceManager> self, Core::System& system);
+    static Kernel::KClientPort& InterfaceFactory(ServiceManager& self, Core::System& system);
 
     explicit ServiceManager(Kernel::KernelCore& kernel_);
     ~ServiceManager();

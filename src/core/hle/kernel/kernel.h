@@ -27,6 +27,10 @@ class CoreTiming;
 struct EventType;
 } // namespace Core::Timing
 
+namespace Service::SM {
+class ServiceManager;
+}
+
 namespace Kernel {
 
 class KClientPort;
@@ -50,6 +54,9 @@ class PhysicalCore;
 class ServiceThread;
 class Synchronization;
 class TimeManager;
+
+using ServiceInterfaceFactory =
+    std::function<KClientPort&(Service::SM::ServiceManager&, Core::System&)>;
 
 namespace Init {
 struct KSlabResourceCounts;
@@ -172,14 +179,11 @@ public:
 
     void InvalidateCpuInstructionCacheRange(VAddr addr, std::size_t size);
 
-    /// Adds a port to the named port table
-    void AddNamedPort(std::string name, KClientPort* port);
+    /// Registers a named HLE service, passing a factory used to open a port to that service.
+    void RegisterNamedService(std::string name, ServiceInterfaceFactory&& factory);
 
-    /// Finds a port within the named port table with the given name.
-    NamedPortTable::iterator FindNamedPort(const std::string& name);
-
-    /// Finds a port within the named port table with the given name.
-    NamedPortTable::const_iterator FindNamedPort(const std::string& name) const;
+    /// Opens a port to a service previously registered with RegisterNamedService.
+    KClientPort* CreateNamedServicePort(std::string name);
 
     /// Determines whether or not the given port is a valid named port.
     bool IsValidNamedPort(NamedPortTable::const_iterator port) const;

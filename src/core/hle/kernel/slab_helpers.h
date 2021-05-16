@@ -67,11 +67,11 @@ class KAutoObjectWithSlabHeapAndContainer : public Base {
 
 private:
     static Derived* Allocate(KernelCore& kernel) {
-        return kernel.SlabHeap<Derived>().AllocateWithKernel(kernel);
+        return new Derived(kernel);
     }
 
     static void Free(KernelCore& kernel, Derived* obj) {
-        kernel.SlabHeap<Derived>().Free(obj);
+        delete obj;
     }
 
 public:

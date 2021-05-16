@@ -322,7 +322,7 @@ void RB_INSERT_COLOR(RBHead<Node>* head, Node* elm) {
 template <typename Node>
 void RB_REMOVE_COLOR(RBHead<Node>* head, Node* parent, Node* elm) {
     Node* tmp;
-    while ((elm == nullptr || RB_IS_BLACK(elm)) && elm != head->Root()) {
+    while ((elm == nullptr || RB_IS_BLACK(elm)) && elm != head->Root() && parent != nullptr) {
         if (RB_LEFT(parent) == elm) {
             tmp = RB_RIGHT(parent);
             if (RB_IS_RED(tmp)) {

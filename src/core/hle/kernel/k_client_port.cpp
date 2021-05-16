@@ -58,9 +58,9 @@ bool KClientPort::IsSignaled() const {
 
 ResultCode KClientPort::CreateSession(KClientSession** out) {
     // Reserve a new session from the resource limit.
-    KScopedResourceReservation session_reservation(kernel.CurrentProcess()->GetResourceLimit(),
-                                                   LimitableResource::Sessions);
-    R_UNLESS(session_reservation.Succeeded(), ResultLimitReached);
+    // KScopedResourceReservation session_reservation(kernel.CurrentProcess()->GetResourceLimit(),
+    //                                               LimitableResource::Sessions);
+    // R_UNLESS(session_reservation.Succeeded(), ResultLimitReached);
 
     // Update the session counts.
     {
@@ -91,7 +91,7 @@ ResultCode KClientPort::CreateSession(KClientSession** out) {
     // Create a new session.
     KSession* session = KSession::Create(kernel);
     if (session == nullptr) {
-        /* Decrement the session count. */
+        // Decrement the session count.
         const auto prev = num_sessions--;
         if (prev == max_sessions) {
             this->NotifyAvailable();
@@ -104,7 +104,7 @@ ResultCode KClientPort::CreateSession(KClientSession** out) {
     session->Initialize(this, parent->GetName());
 
     // Commit the session reservation.
-    session_reservation.Commit();
+    // session_reservation.Commit();
 
     // Register the session.
     KSession::Register(kernel, session);

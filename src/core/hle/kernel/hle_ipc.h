@@ -66,7 +66,8 @@ public:
      * this request (ServerSession, Originator thread, Translated command buffer, etc).
      * @returns ResultCode the result code of the translate operation.
      */
-    virtual ResultCode HandleSyncRequest(Kernel::HLERequestContext& context) = 0;
+    virtual ResultCode HandleSyncRequest(Kernel::KServerSession& session,
+                                         Kernel::HLERequestContext& context) = 0;
 
     /**
      * Signals that a client has just connected to this HLE handler and keeps the
@@ -128,15 +129,28 @@ public:
     /// Writes data from this context back to the requesting process/thread.
     ResultCode WriteToOutgoingCommandBuffer(KThread& requesting_thread);
 
-    u32_le GetCommand() const {
+    u32_le GetHipcCommand() const {
         return command;
+    }
+
+    u32_le GetTipcCommand() const {
+        return static_cast<u32_le>(command_header->type.Value()) -
+               static_cast<u32_le>(IPC::CommandType::TIPC_CommandRegion);
+    }
+
+    u32_le GetCommand() const {
+        return command_header->IsTipc() ? GetTipcCommand() : GetHipcCommand();
+    }
+
+    bool IsTipc() const {
+        return command_header->IsTipc();
     }
 
     IPC::CommandType GetCommandType() const {
         return command_header->type;
     }
 
-    unsigned GetDataPayloadOffset() const {
+    u32 GetDataPayloadOffset() const {
         return data_payload_offset;
     }
 
@@ -291,8 +305,10 @@ private:
     std::vector<IPC::BufferDescriptorABW> buffer_w_desciptors;
     std::vector<IPC::BufferDescriptorC> buffer_c_desciptors;
 
-    unsigned data_payload_offset{};
-    unsigned buffer_c_offset{};
+    u32 data_payload_offset{};
+    u32 handles_offset{};
+    u32 domain_offset{};
+    u32 data_size{};
     u32_le command{};
 
     std::vector<std::shared_ptr<SessionRequestHandler>> domain_request_handlers;

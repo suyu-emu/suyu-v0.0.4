@@ -284,12 +284,11 @@ static ResultCode ConnectToNamedPort(Core::System& system, Handle* out, VAddr po
     auto& handle_table = kernel.CurrentProcess()->GetHandleTable();
 
     // Find the client port.
-    const auto it = kernel.FindNamedPort(port_name);
-    if (!kernel.IsValidNamedPort(it)) {
-        LOG_WARNING(Kernel_SVC, "tried to connect to unknown port: {}", port_name);
+    auto port = kernel.CreateNamedServicePort(port_name);
+    if (!port) {
+        LOG_ERROR(Kernel_SVC, "tried to connect to unknown port: {}", port_name);
         return ResultNotFound;
     }
-    auto port = it->second;
 
     // Reserve a handle for the port.
     // NOTE: Nintendo really does write directly to the output handle here.

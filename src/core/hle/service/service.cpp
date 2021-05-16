@@ -111,7 +111,7 @@ void ServiceFrameworkBase::InstallAsService(SM::ServiceManager& service_manager)
     port_installed = true;
 }
 
-void ServiceFrameworkBase::InstallAsNamedPort(Kernel::KernelCore& kernel) {
+Kernel::KClientPort& ServiceFrameworkBase::CreatePort(Kernel::KernelCore& kernel) {
     const auto guard = LockService();
 
     ASSERT(!port_installed);
@@ -119,9 +119,10 @@ void ServiceFrameworkBase::InstallAsNamedPort(Kernel::KernelCore& kernel) {
     auto* port = Kernel::KPort::Create(kernel);
     port->Initialize(max_sessions, false, service_name);
     port->GetServerPort().SetHleHandler(shared_from_this());
-    kernel.AddNamedPort(service_name, &port->GetClientPort());
 
     port_installed = true;
+
+    return port->GetClientPort();
 }
 
 void ServiceFrameworkBase::RegisterHandlersBase(const FunctionInfoBase* functions, std::size_t n) {
@@ -129,6 +130,16 @@ void ServiceFrameworkBase::RegisterHandlersBase(const FunctionInfoBase* function
     for (std::size_t i = 0; i < n; ++i) {
         // Usually this array is sorted by id already, so hint to insert at the end
         handlers.emplace_hint(handlers.cend(), functions[i].expected_header, functions[i]);
+    }
+}
+
+void ServiceFrameworkBase::RegisterHandlersBaseTipc(const FunctionInfoBase* functions,
+                                                    std::size_t n) {
+    handlers_tipc.reserve(handlers_tipc.size() + n);
+    for (std::size_t i = 0; i < n; ++i) {
+        // Usually this array is sorted by id already, so hint to insert at the end
+        handlers_tipc.emplace_hint(handlers_tipc.cend(), functions[i].expected_header,
+                                   functions[i]);
     }
 }
 
@@ -166,33 +177,55 @@ void ServiceFrameworkBase::InvokeRequest(Kernel::HLERequestContext& ctx) {
     handler_invoker(this, info->handler_callback, ctx);
 }
 
-ResultCode ServiceFrameworkBase::HandleSyncRequest(Kernel::HLERequestContext& context) {
+void ServiceFrameworkBase::InvokeRequestTipc(Kernel::HLERequestContext& ctx) {
+    boost::container::flat_map<u32, FunctionInfoBase>::iterator itr;
+
+    itr = handlers_tipc.find(ctx.GetCommand());
+
+    const FunctionInfoBase* info = itr == handlers_tipc.end() ? nullptr : &itr->second;
+    if (info == nullptr || info->handler_callback == nullptr) {
+        return ReportUnimplementedFunction(ctx, info);
+    }
+
+    LOG_TRACE(Service, "{}", MakeFunctionString(info->name, GetServiceName(), ctx.CommandBuffer()));
+    handler_invoker(this, info->handler_callback, ctx);
+}
+
+ResultCode ServiceFrameworkBase::HandleSyncRequest(Kernel::KServerSession& session,
+                                                   Kernel::HLERequestContext& ctx) {
     const auto guard = LockService();
 
-    switch (context.GetCommandType()) {
-    case IPC::CommandType::Close: {
-        IPC::ResponseBuilder rb{context, 2};
+    switch (ctx.GetCommandType()) {
+    case IPC::CommandType::Close:
+    case IPC::CommandType::TIPC_Close: {
+        session.Close();
+        IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
         return IPC::ERR_REMOTE_PROCESS_DEAD;
     }
     case IPC::CommandType::ControlWithContext:
     case IPC::CommandType::Control: {
-        system.ServiceManager().InvokeControlRequest(context);
+        system.ServiceManager().InvokeControlRequest(ctx);
         break;
     }
     case IPC::CommandType::RequestWithContext:
     case IPC::CommandType::Request: {
-        InvokeRequest(context);
+        InvokeRequest(ctx);
         break;
     }
     default:
-        UNIMPLEMENTED_MSG("command_type={}", context.GetCommandType());
+        if (ctx.IsTipc()) {
+            InvokeRequestTipc(ctx);
+            break;
+        }
+
+        UNIMPLEMENTED_MSG("command_type={}", ctx.GetCommandType());
     }
 
     // If emulation was shutdown, we are closing service threads, do not write the response back to
     // memory that may be shutting down as well.
     if (system.IsPoweredOn()) {
-        context.WriteToOutgoingCommandBuffer(context.GetThread());
+        ctx.WriteToOutgoingCommandBuffer(ctx.GetThread());
     }
 
     return RESULT_SUCCESS;
@@ -207,7 +240,7 @@ Services::Services(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system
 
     system.GetFileSystemController().CreateFactories(*system.GetFilesystem(), false);
 
-    SM::ServiceManager::InstallInterfaces(sm, system);
+    system.Kernel().RegisterNamedService("sm:", SM::ServiceManager::InterfaceFactory);
 
     Account::InstallInterfaces(system);
     AM::InstallInterfaces(*sm, *nv_flinger, system);

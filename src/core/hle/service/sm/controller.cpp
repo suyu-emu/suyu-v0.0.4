@@ -26,15 +26,23 @@ void Controller::CloneCurrentObject(Kernel::HLERequestContext& ctx) {
     // TODO(bunnei): This is just creating a new handle to the same Session. I assume this is wrong
     // and that we probably want to actually make an entirely new Session, but we still need to
     // verify this on hardware.
+
     LOG_DEBUG(Service, "called");
+
+    auto session = ctx.Session()->GetParent();
+
+    // Open a reference to the session to simulate a new one being created.
+    session->Open();
+    session->GetClientSession().Open();
+    session->GetServerSession().Open();
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1, IPC::ResponseBuilder::Flags::AlwaysMoveHandles};
     rb.Push(RESULT_SUCCESS);
-    rb.PushMoveObjects(ctx.Session()->GetParent()->GetClientSession());
+    rb.PushMoveObjects(session->GetClientSession());
 }
 
 void Controller::CloneCurrentObjectEx(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service, "(STUBBED) called, using CloneCurrentObject");
+    LOG_DEBUG(Service, "called");
 
     CloneCurrentObject(ctx);
 }
@@ -44,7 +52,7 @@ void Controller::QueryPointerBufferSize(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
-    rb.Push<u16>(0x1000);
+    rb.Push<u16>(0x8000);
 }
 
 // https://switchbrew.org/wiki/IPC_Marshalling

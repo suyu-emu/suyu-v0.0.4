@@ -44,6 +44,7 @@
 #include "core/hle/kernel/time_manager.h"
 #include "core/hle/lock.h"
 #include "core/hle/result.h"
+#include "core/hle/service/sm/sm.h"
 #include "core/memory.h"
 
 MICROPROFILE_DEFINE(Kernel_SVC, "Kernel", "SVC", MP_RGB(70, 200, 70));
@@ -656,6 +657,7 @@ struct KernelCore::Impl {
 
     /// Map of named ports managed by the kernel, which can be retrieved using
     /// the ConnectToPort SVC.
+    std::unordered_map<std::string, ServiceInterfaceFactory> service_interface_factory;
     NamedPortTable named_ports;
 
     std::unique_ptr<Core::ExclusiveMonitor> exclusive_monitor;
@@ -844,18 +846,17 @@ void KernelCore::PrepareReschedule(std::size_t id) {
     // TODO: Reimplement, this
 }
 
-void KernelCore::AddNamedPort(std::string name, KClientPort* port) {
-    port->Open();
-    impl->named_ports.emplace(std::move(name), port);
+void KernelCore::RegisterNamedService(std::string name, ServiceInterfaceFactory&& factory) {
+    impl->service_interface_factory.emplace(std::move(name), factory);
 }
 
-KernelCore::NamedPortTable::iterator KernelCore::FindNamedPort(const std::string& name) {
-    return impl->named_ports.find(name);
-}
-
-KernelCore::NamedPortTable::const_iterator KernelCore::FindNamedPort(
-    const std::string& name) const {
-    return impl->named_ports.find(name);
+KClientPort* KernelCore::CreateNamedServicePort(std::string name) {
+    auto search = impl->service_interface_factory.find(name);
+    if (search == impl->service_interface_factory.end()) {
+        UNIMPLEMENTED();
+        return {};
+    }
+    return &search->second(impl->system.ServiceManager(), impl->system);
 }
 
 bool KernelCore::IsValidNamedPort(NamedPortTable::const_iterator port) const {
