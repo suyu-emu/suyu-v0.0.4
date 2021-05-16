@@ -47,8 +47,20 @@ target_include_directories(unicorn-headers INTERFACE ./unicorn/include)
 
 # SDL2
 if (NOT SDL2_FOUND AND ENABLE_SDL2)
+    # Yuzu itself needs: Events Joystick Haptic Sensor Timers
+    # Yuzu-cmd also needs: Video (depends on Loadso/Dlopen)
+    set(SDL_UNUSED_SUBSYSTEMS
+        Atomic Audio Render Power Threads
+        File CPUinfo Filesystem Locale)
+    foreach(_SUB ${SDL_UNUSED_SUBSYSTEMS})
+      string(TOUPPER ${_SUB} _OPT)
+      option(SDL_${_OPT} "" OFF)
+    endforeach()
+
     set(SDL_STATIC ON)
     set(SDL_SHARED OFF)
+    option(HIDAPI "" ON)
+
     add_subdirectory(SDL EXCLUDE_FROM_ALL)
     add_library(SDL2 ALIAS SDL2-static)
 endif()
