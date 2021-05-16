@@ -13,32 +13,44 @@
 void ConfigurationShared::ApplyPerGameSetting(Settings::Setting<bool>* setting,
                                               const QCheckBox* checkbox,
                                               const CheckState& tracker) {
-    if (tracker == CheckState::Global) {
-        setting->SetGlobal(true);
-    } else {
-        setting->SetGlobal(false);
+    if (Settings::IsConfiguringGlobal() && setting->UsingGlobal()) {
         setting->SetValue(checkbox->checkState());
+    } else if (!Settings::IsConfiguringGlobal()) {
+        if (tracker == CheckState::Global) {
+            setting->SetGlobal(true);
+        } else {
+            setting->SetGlobal(false);
+            setting->SetValue(checkbox->checkState());
+        }
     }
 }
 
 void ConfigurationShared::ApplyPerGameSetting(Settings::Setting<int>* setting,
                                               const QComboBox* combobox) {
-    if (combobox->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
-        setting->SetGlobal(true);
-    } else {
-        setting->SetGlobal(false);
-        setting->SetValue(combobox->currentIndex() - ConfigurationShared::USE_GLOBAL_OFFSET);
+    if (Settings::IsConfiguringGlobal() && setting->UsingGlobal()) {
+        setting->SetValue(combobox->currentIndex());
+    } else if (!Settings::IsConfiguringGlobal()) {
+        if (combobox->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
+            setting->SetGlobal(true);
+        } else {
+            setting->SetGlobal(false);
+            setting->SetValue(combobox->currentIndex() - ConfigurationShared::USE_GLOBAL_OFFSET);
+        }
     }
 }
 
 void ConfigurationShared::ApplyPerGameSetting(Settings::Setting<Settings::RendererBackend>* setting,
                                               const QComboBox* combobox) {
-    if (combobox->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
-        setting->SetGlobal(true);
-    } else {
-        setting->SetGlobal(false);
-        setting->SetValue(static_cast<Settings::RendererBackend>(
-            combobox->currentIndex() - ConfigurationShared::USE_GLOBAL_OFFSET));
+    if (Settings::IsConfiguringGlobal() && setting->UsingGlobal()) {
+        setting->SetValue(static_cast<Settings::RendererBackend>(combobox->currentIndex()));
+    } else if (!Settings::IsConfiguringGlobal()) {
+        if (combobox->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
+            setting->SetGlobal(true);
+        } else {
+            setting->SetGlobal(false);
+            setting->SetValue(static_cast<Settings::RendererBackend>(
+                combobox->currentIndex() - ConfigurationShared::USE_GLOBAL_OFFSET));
+        }
     }
 }
 

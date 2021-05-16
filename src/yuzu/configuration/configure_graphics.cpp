@@ -106,6 +106,19 @@ void ConfigureGraphics::SetConfiguration() {
 }
 
 void ConfigureGraphics::ApplyConfiguration() {
+    ConfigurationShared::ApplyPerGameSetting(&Settings::values.fullscreen_mode,
+                                             ui->fullscreen_mode_combobox);
+    ConfigurationShared::ApplyPerGameSetting(&Settings::values.aspect_ratio,
+                                             ui->aspect_ratio_combobox);
+
+    ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_disk_shader_cache,
+                                             ui->use_disk_shader_cache, use_disk_shader_cache);
+    ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_asynchronous_gpu_emulation,
+                                             ui->use_asynchronous_gpu_emulation,
+                                             use_asynchronous_gpu_emulation);
+    ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_nvdec_emulation,
+                                             ui->use_nvdec_emulation, use_nvdec_emulation);
+
     if (Settings::IsConfiguringGlobal()) {
         // Guard if during game and set to game-specific value
         if (Settings::values.renderer_backend.UsingGlobal()) {
@@ -113,22 +126,6 @@ void ConfigureGraphics::ApplyConfiguration() {
         }
         if (Settings::values.vulkan_device.UsingGlobal()) {
             Settings::values.vulkan_device.SetValue(vulkan_device);
-        }
-        if (Settings::values.fullscreen_mode.UsingGlobal()) {
-            Settings::values.fullscreen_mode.SetValue(ui->fullscreen_mode_combobox->currentIndex());
-        }
-        if (Settings::values.aspect_ratio.UsingGlobal()) {
-            Settings::values.aspect_ratio.SetValue(ui->aspect_ratio_combobox->currentIndex());
-        }
-        if (Settings::values.use_disk_shader_cache.UsingGlobal()) {
-            Settings::values.use_disk_shader_cache.SetValue(ui->use_disk_shader_cache->isChecked());
-        }
-        if (Settings::values.use_asynchronous_gpu_emulation.UsingGlobal()) {
-            Settings::values.use_asynchronous_gpu_emulation.SetValue(
-                ui->use_asynchronous_gpu_emulation->isChecked());
-        }
-        if (Settings::values.use_nvdec_emulation.UsingGlobal()) {
-            Settings::values.use_nvdec_emulation.SetValue(ui->use_nvdec_emulation->isChecked());
         }
         if (Settings::values.bg_red.UsingGlobal()) {
             Settings::values.bg_red.SetValue(static_cast<float>(bg_color.redF()));
@@ -149,19 +146,6 @@ void ConfigureGraphics::ApplyConfiguration() {
                 Settings::values.vulkan_device.SetGlobal(true);
             }
         }
-
-        ConfigurationShared::ApplyPerGameSetting(&Settings::values.fullscreen_mode,
-                                                 ui->fullscreen_mode_combobox);
-        ConfigurationShared::ApplyPerGameSetting(&Settings::values.aspect_ratio,
-                                                 ui->aspect_ratio_combobox);
-
-        ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_disk_shader_cache,
-                                                 ui->use_disk_shader_cache, use_disk_shader_cache);
-        ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_asynchronous_gpu_emulation,
-                                                 ui->use_asynchronous_gpu_emulation,
-                                                 use_asynchronous_gpu_emulation);
-        ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_nvdec_emulation,
-                                                 ui->use_nvdec_emulation, use_nvdec_emulation);
 
         if (ui->bg_combobox->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
             Settings::values.bg_red.SetGlobal(true);

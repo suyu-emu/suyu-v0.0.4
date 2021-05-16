@@ -127,21 +127,15 @@ void ConfigureSystem::ApplyConfiguration() {
         return;
     }
 
+    ConfigurationShared::ApplyPerGameSetting(&Settings::values.language_index,
+                                             ui->combo_language);
+    ConfigurationShared::ApplyPerGameSetting(&Settings::values.region_index, ui->combo_region);
+    ConfigurationShared::ApplyPerGameSetting(&Settings::values.time_zone_index,
+                                             ui->combo_time_zone);
+    ConfigurationShared::ApplyPerGameSetting(&Settings::values.sound_index, ui->combo_sound);
+
     if (Settings::IsConfiguringGlobal()) {
         // Guard if during game and set to game-specific value
-        if (Settings::values.language_index.UsingGlobal()) {
-            Settings::values.language_index.SetValue(ui->combo_language->currentIndex());
-        }
-        if (Settings::values.region_index.UsingGlobal()) {
-            Settings::values.region_index.SetValue(ui->combo_region->currentIndex());
-        }
-        if (Settings::values.time_zone_index.UsingGlobal()) {
-            Settings::values.time_zone_index.SetValue(ui->combo_time_zone->currentIndex());
-        }
-        if (Settings::values.sound_index.UsingGlobal()) {
-            Settings::values.sound_index.SetValue(ui->combo_sound->currentIndex());
-        }
-
         if (Settings::values.rng_seed.UsingGlobal()) {
             if (ui->rng_seed_checkbox->isChecked()) {
                 Settings::values.rng_seed.SetValue(
@@ -151,13 +145,6 @@ void ConfigureSystem::ApplyConfiguration() {
             }
         }
     } else {
-        ConfigurationShared::ApplyPerGameSetting(&Settings::values.language_index,
-                                                 ui->combo_language);
-        ConfigurationShared::ApplyPerGameSetting(&Settings::values.region_index, ui->combo_region);
-        ConfigurationShared::ApplyPerGameSetting(&Settings::values.time_zone_index,
-                                                 ui->combo_time_zone);
-        ConfigurationShared::ApplyPerGameSetting(&Settings::values.sound_index, ui->combo_sound);
-
         switch (use_rng_seed) {
         case ConfigurationShared::CheckState::On:
         case ConfigurationShared::CheckState::Off:
