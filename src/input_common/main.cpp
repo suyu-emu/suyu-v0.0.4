@@ -153,6 +153,11 @@ struct InputSubsystem::Impl {
             // TODO return the correct motion device
             return {};
         }
+#ifdef HAVE_SDL2
+        if (params.Get("class", "") == "sdl") {
+            return sdl->GetMotionMappingForDevice(params);
+        }
+#endif
         return {};
     }
 

@@ -29,6 +29,7 @@
 #endif
 
 #include "common/logging/log.h"
+#include "common/math_util.h"
 #include "common/param_package.h"
 #include "common/settings_input.h"
 #include "common/threadsafe_queue.h"
@@ -68,11 +69,55 @@ public:
     SDLJoystick(std::string guid_, int port_, SDL_Joystick* joystick,
                 SDL_GameController* game_controller)
         : guid{std::move(guid_)}, port{port_}, sdl_joystick{joystick, &SDL_JoystickClose},
-          sdl_controller{game_controller, &SDL_GameControllerClose} {}
+          sdl_controller{game_controller, &SDL_GameControllerClose} {
+        EnableMotion();
+    }
+
+    void EnableMotion() {
+        if (sdl_controller) {
+            SDL_GameController* controller = sdl_controller.get();
+            if (SDL_GameControllerHasSensor(controller, SDL_SENSOR_ACCEL) && !has_accel) {
+                SDL_GameControllerSetSensorEnabled(controller, SDL_SENSOR_ACCEL, SDL_TRUE);
+                has_accel = true;
+            }
+            if (SDL_GameControllerHasSensor(controller, SDL_SENSOR_GYRO) && !has_gyro) {
+                SDL_GameControllerSetSensorEnabled(controller, SDL_SENSOR_GYRO, SDL_TRUE);
+                has_gyro = true;
+            }
+        }
+    }
 
     void SetButton(int button, bool value) {
         std::lock_guard lock{mutex};
         state.buttons.insert_or_assign(button, value);
+    }
+
+    void SetMotion(SDL_ControllerSensorEvent event) {
+        constexpr float gravity_constant = 9.80665f;
+        std::lock_guard lock{mutex};
+        u64 time_difference = event.timestamp - last_motion_update;
+        last_motion_update = event.timestamp;
+        switch (event.sensor) {
+        case SDL_SENSOR_ACCEL: {
+            const Common::Vec3f acceleration = {-event.data[0], event.data[2], -event.data[1]};
+            motion.SetAcceleration(acceleration / gravity_constant);
+            break;
+        }
+        case SDL_SENSOR_GYRO: {
+            const Common::Vec3f gyroscope = {event.data[0], -event.data[2], event.data[1]};
+            motion.SetGyroscope(gyroscope / (Common::PI * 2));
+            break;
+        }
+        }
+
+        // Ignore duplicated timestamps
+        if (time_difference == 0) {
+            return;
+        }
+
+        motion.SetGyroThreshold(0.0001f);
+        motion.UpdateRotation(time_difference * 1000);
+        motion.UpdateOrientation(time_difference * 1000);
     }
 
     bool GetButton(int button) const {
@@ -119,6 +164,14 @@ public:
         }
 
         return std::make_tuple(x, y);
+    }
+
+    bool HasGyro() const {
+        return has_gyro;
+    }
+
+    bool HasAccel() const {
+        return has_accel;
     }
 
     const MotionInput& GetMotion() const {
@@ -173,8 +226,11 @@ private:
     std::unique_ptr<SDL_GameController, decltype(&SDL_GameControllerClose)> sdl_controller;
     mutable std::mutex mutex;
 
-    // Motion is initialized without PID values as motion input is not aviable for SDL2
-    MotionInput motion{0.0f, 0.0f, 0.0f};
+    // Motion is initialized with the PID values
+    MotionInput motion{0.3f, 0.005f, 0.0f};
+    u64 last_motion_update{};
+    bool has_gyro{false};
+    bool has_accel{false};
 };
 
 std::shared_ptr<SDLJoystick> SDLState::GetSDLJoystickByGUID(const std::string& guid, int port) {
@@ -293,6 +349,12 @@ void SDLState::HandleGameControllerEvent(const SDL_Event& event) {
     case SDL_JOYAXISMOTION: {
         if (auto joystick = GetSDLJoystickBySDLID(event.jaxis.which)) {
             joystick->SetAxis(event.jaxis.axis, event.jaxis.value);
+        }
+        break;
+    }
+    case SDL_CONTROLLERSENSORUPDATE: {
+        if (auto joystick = GetSDLJoystickBySDLID(event.csensor.which)) {
+            joystick->SetMotion(event.csensor);
         }
         break;
     }
@@ -443,6 +505,18 @@ public:
         const auto processed_amp_high = process_amplitude(amp_high);
 
         return joystick->RumblePlay(processed_amp_low, processed_amp_high);
+    }
+
+private:
+    std::shared_ptr<SDLJoystick> joystick;
+};
+
+class SDLMotion final : public Input::MotionDevice {
+public:
+    explicit SDLMotion(std::shared_ptr<SDLJoystick> joystick_) : joystick(std::move(joystick_)) {}
+
+    Input::MotionStatus GetStatus() const override {
+        return joystick->GetMotion().GetMotion();
     }
 
 private:
@@ -658,6 +732,10 @@ public:
 
         auto joystick = state.GetSDLJoystickByGUID(guid, port);
 
+        if (params.Has("motion")) {
+            return std::make_unique<SDLMotion>(joystick);
+        }
+
         if (params.Has("hat")) {
             const int hat = params.Get("hat", 0);
             const std::string direction_name = params.Get("direction", "");
@@ -716,6 +794,17 @@ SDLState::SDLState() {
     RegisterFactory<AnalogDevice>("sdl", analog_factory);
     RegisterFactory<VibrationDevice>("sdl", vibration_factory);
     RegisterFactory<MotionDevice>("sdl", motion_factory);
+
+    // Enable HIDAPI rumble. This prevents SDL from disabling motion on PS4 and PS5 controllers
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE, "1");
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE, "1");
+
+    // Tell SDL2 to use the hidapi driver. This will allow joycons to be detected as a
+    // GameController and not a generic one
+    SDL_SetHint("SDL_JOYSTICK_HIDAPI_JOY_CONS", "1");
+
+    // Turn off Pro controller home led
+    SDL_SetHint("SDL_JOYSTICK_HIDAPI_SWITCH_HOME_LED", "0");
 
     // If the frontend is going to manage the event loop, then we don't start one here
     start_thread = SDL_WasInit(SDL_INIT_JOYSTICK) == 0;
@@ -853,6 +942,13 @@ Common::ParamPackage BuildHatParamPackageForButton(int port, std::string guid, s
     return params;
 }
 
+Common::ParamPackage BuildMotionParam(int port, std::string guid) {
+    Common::ParamPackage params({{"engine", "sdl"}, {"motion", "0"}});
+    params.Set("port", port);
+    params.Set("guid", std::move(guid));
+    return params;
+}
+
 Common::ParamPackage SDLEventToButtonParamPackage(SDLState& state, const SDL_Event& event) {
     switch (event.type) {
     case SDL_JOYAXISMOTION: {
@@ -904,6 +1000,35 @@ Common::ParamPackage SDLEventToMotionParamPackage(SDLState& state, const SDL_Eve
             return BuildHatParamPackageForButton(joystick->GetPort(), joystick->GetGUID(),
                                                  static_cast<s32>(event.jhat.hat),
                                                  static_cast<s32>(event.jhat.value));
+        }
+        break;
+    }
+    case SDL_CONTROLLERSENSORUPDATE: {
+        bool is_motion_shaking = false;
+        constexpr float gyro_threshold = 5.0f;
+        constexpr float accel_threshold = 11.0f;
+        if (event.csensor.sensor == SDL_SENSOR_ACCEL) {
+            const Common::Vec3f acceleration = {-event.csensor.data[0], event.csensor.data[2],
+                                                -event.csensor.data[1]};
+            if (acceleration.Length() > accel_threshold) {
+                is_motion_shaking = true;
+            }
+        }
+
+        if (event.csensor.sensor == SDL_SENSOR_GYRO) {
+            const Common::Vec3f gyroscope = {event.csensor.data[0], -event.csensor.data[2],
+                                             event.csensor.data[1]};
+            if (gyroscope.Length() > gyro_threshold) {
+                is_motion_shaking = true;
+            }
+        }
+
+        if (!is_motion_shaking) {
+            break;
+        }
+
+        if (const auto joystick = state.GetSDLJoystickBySDLID(event.csensor.which)) {
+            return BuildMotionParam(joystick->GetPort(), joystick->GetGUID());
         }
         break;
     }
@@ -1036,6 +1161,27 @@ AnalogMapping SDLState::GetAnalogMappingForDevice(const Common::ParamPackage& pa
     return mapping;
 }
 
+MotionMapping SDLState::GetMotionMappingForDevice(const Common::ParamPackage& params) {
+    if (!params.Has("guid") || !params.Has("port")) {
+        return {};
+    }
+    const auto joystick = GetSDLJoystickByGUID(params.Get("guid", ""), params.Get("port", 0));
+    auto* controller = joystick->GetSDLGameController();
+    if (controller == nullptr) {
+        return {};
+    }
+
+    joystick->EnableMotion();
+
+    if (!joystick->HasGyro() && !joystick->HasAccel()) {
+        return {};
+    }
+
+    MotionMapping mapping = {};
+    mapping.insert_or_assign(Settings::NativeMotion::MotionLeft,
+                             BuildMotionParam(joystick->GetPort(), joystick->GetGUID()));
+    return mapping;
+}
 namespace Polling {
 class SDLPoller : public InputCommon::Polling::DevicePoller {
 public:
@@ -1149,6 +1295,7 @@ public:
             [[fallthrough]];
         case SDL_JOYBUTTONUP:
         case SDL_JOYHATMOTION:
+        case SDL_CONTROLLERSENSORUPDATE:
             return {SDLEventToMotionParamPackage(state, event)};
         }
         return std::nullopt;

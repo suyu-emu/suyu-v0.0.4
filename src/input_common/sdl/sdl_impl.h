@@ -57,6 +57,7 @@ public:
 
     ButtonMapping GetButtonMappingForDevice(const Common::ParamPackage& params) override;
     AnalogMapping GetAnalogMappingForDevice(const Common::ParamPackage& params) override;
+    MotionMapping GetMotionMappingForDevice(const Common::ParamPackage& params) override;
 
 private:
     void InitJoystick(int joystick_index);
