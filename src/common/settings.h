@@ -115,7 +115,7 @@ struct Values {
     Setting<bool> use_multi_core;
 
     // Cpu
-    CPUAccuracy cpu_accuracy;
+    Setting<CPUAccuracy> cpu_accuracy;
 
     bool cpuopt_page_tables;
     bool cpuopt_block_linking;
@@ -126,9 +126,9 @@ struct Values {
     bool cpuopt_misc_ir;
     bool cpuopt_reduce_misalign_checks;
 
-    bool cpuopt_unsafe_unfuse_fma;
-    bool cpuopt_unsafe_reduce_fp_error;
-    bool cpuopt_unsafe_inaccurate_nan;
+    Setting<bool> cpuopt_unsafe_unfuse_fma;
+    Setting<bool> cpuopt_unsafe_reduce_fp_error;
+    Setting<bool> cpuopt_unsafe_inaccurate_nan;
 
     // Renderer
     Setting<RendererBackend> renderer_backend;

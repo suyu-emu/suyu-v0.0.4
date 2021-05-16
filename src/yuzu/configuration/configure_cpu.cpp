@@ -29,15 +29,17 @@ void ConfigureCpu::SetConfiguration() {
     const bool runtime_lock = !Core::System::GetInstance().IsPoweredOn();
 
     ui->accuracy->setEnabled(runtime_lock);
-    ui->accuracy->setCurrentIndex(static_cast<int>(Settings::values.cpu_accuracy));
-    UpdateGroup(static_cast<int>(Settings::values.cpu_accuracy));
+    ui->accuracy->setCurrentIndex(static_cast<int>(Settings::values.cpu_accuracy.GetValue()));
+    UpdateGroup(static_cast<int>(Settings::values.cpu_accuracy.GetValue()));
 
     ui->cpuopt_unsafe_unfuse_fma->setEnabled(runtime_lock);
-    ui->cpuopt_unsafe_unfuse_fma->setChecked(Settings::values.cpuopt_unsafe_unfuse_fma);
+    ui->cpuopt_unsafe_unfuse_fma->setChecked(Settings::values.cpuopt_unsafe_unfuse_fma.GetValue());
     ui->cpuopt_unsafe_reduce_fp_error->setEnabled(runtime_lock);
-    ui->cpuopt_unsafe_reduce_fp_error->setChecked(Settings::values.cpuopt_unsafe_reduce_fp_error);
+    ui->cpuopt_unsafe_reduce_fp_error->setChecked(
+        Settings::values.cpuopt_unsafe_reduce_fp_error.GetValue());
     ui->cpuopt_unsafe_inaccurate_nan->setEnabled(runtime_lock);
-    ui->cpuopt_unsafe_inaccurate_nan->setChecked(Settings::values.cpuopt_unsafe_inaccurate_nan);
+    ui->cpuopt_unsafe_inaccurate_nan->setChecked(
+        Settings::values.cpuopt_unsafe_inaccurate_nan.GetValue());
 }
 
 void ConfigureCpu::AccuracyUpdated(int index) {
@@ -59,11 +61,13 @@ void ConfigureCpu::UpdateGroup(int index) {
 }
 
 void ConfigureCpu::ApplyConfiguration() {
-    Settings::values.cpu_accuracy =
-        static_cast<Settings::CPUAccuracy>(ui->accuracy->currentIndex());
-    Settings::values.cpuopt_unsafe_unfuse_fma = ui->cpuopt_unsafe_unfuse_fma->isChecked();
-    Settings::values.cpuopt_unsafe_reduce_fp_error = ui->cpuopt_unsafe_reduce_fp_error->isChecked();
-    Settings::values.cpuopt_unsafe_inaccurate_nan = ui->cpuopt_unsafe_inaccurate_nan->isChecked();
+    Settings::values.cpu_accuracy.SetValue(
+        static_cast<Settings::CPUAccuracy>(ui->accuracy->currentIndex()));
+    Settings::values.cpuopt_unsafe_unfuse_fma.SetValue(ui->cpuopt_unsafe_unfuse_fma->isChecked());
+    Settings::values.cpuopt_unsafe_reduce_fp_error.SetValue(
+        ui->cpuopt_unsafe_reduce_fp_error->isChecked());
+    Settings::values.cpuopt_unsafe_inaccurate_nan.SetValue(
+        ui->cpuopt_unsafe_inaccurate_nan->isChecked());
 }
 
 void ConfigureCpu::changeEvent(QEvent* event) {

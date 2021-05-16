@@ -737,8 +737,7 @@ void Config::ReadCpuValues() {
     qt_config->beginGroup(QStringLiteral("Cpu"));
 
     if (global) {
-        Settings::values.cpu_accuracy = static_cast<Settings::CPUAccuracy>(
-            ReadSetting(QStringLiteral("cpu_accuracy"), 0).toInt());
+        ReadSettingGlobal(Settings::values.cpu_accuracy, QStringLiteral("cpu_accuracy"), 0);
 
         Settings::values.cpuopt_page_tables =
             ReadSetting(QStringLiteral("cpuopt_page_tables"), true).toBool();
@@ -757,12 +756,12 @@ void Config::ReadCpuValues() {
         Settings::values.cpuopt_reduce_misalign_checks =
             ReadSetting(QStringLiteral("cpuopt_reduce_misalign_checks"), true).toBool();
 
-        Settings::values.cpuopt_unsafe_unfuse_fma =
-            ReadSetting(QStringLiteral("cpuopt_unsafe_unfuse_fma"), true).toBool();
-        Settings::values.cpuopt_unsafe_reduce_fp_error =
-            ReadSetting(QStringLiteral("cpuopt_unsafe_reduce_fp_error"), true).toBool();
-        Settings::values.cpuopt_unsafe_inaccurate_nan =
-            ReadSetting(QStringLiteral("cpuopt_unsafe_inaccurate_nan"), true).toBool();
+        ReadSettingGlobal(Settings::values.cpuopt_unsafe_unfuse_fma,
+                          QStringLiteral("cpuopt_unsafe_unfuse_fma"), true);
+        ReadSettingGlobal(Settings::values.cpuopt_unsafe_reduce_fp_error,
+                          QStringLiteral("cpuopt_unsafe_reduce_fp_error"), true);
+        ReadSettingGlobal(Settings::values.cpuopt_unsafe_inaccurate_nan,
+                          QStringLiteral("cpuopt_unsafe_inaccurate_nan"), true);
     }
 
     qt_config->endGroup();
@@ -1314,8 +1313,10 @@ void Config::SaveCpuValues() {
     qt_config->beginGroup(QStringLiteral("Cpu"));
 
     if (global) {
-        WriteSetting(QStringLiteral("cpu_accuracy"),
-                     static_cast<int>(Settings::values.cpu_accuracy), 0);
+        WriteSettingGlobal(QStringLiteral("cpu_accuracy"),
+                           static_cast<u32>(Settings::values.cpu_accuracy.GetValue(global)),
+                           Settings::values.renderer_backend.UsingGlobal(),
+                           static_cast<u32>(Settings::CPUAccuracy::Accurate));
 
         WriteSetting(QStringLiteral("cpuopt_page_tables"), Settings::values.cpuopt_page_tables,
                      true);
@@ -1332,12 +1333,12 @@ void Config::SaveCpuValues() {
         WriteSetting(QStringLiteral("cpuopt_reduce_misalign_checks"),
                      Settings::values.cpuopt_reduce_misalign_checks, true);
 
-        WriteSetting(QStringLiteral("cpuopt_unsafe_unfuse_fma"),
-                     Settings::values.cpuopt_unsafe_unfuse_fma, true);
-        WriteSetting(QStringLiteral("cpuopt_unsafe_reduce_fp_error"),
-                     Settings::values.cpuopt_unsafe_reduce_fp_error, true);
-        WriteSetting(QStringLiteral("cpuopt_unsafe_inaccurate_nan"),
-                     Settings::values.cpuopt_unsafe_inaccurate_nan, true);
+        WriteSettingGlobal(QStringLiteral("cpuopt_unsafe_unfuse_fma"),
+                           Settings::values.cpuopt_unsafe_unfuse_fma, true);
+        WriteSettingGlobal(QStringLiteral("cpuopt_unsafe_reduce_fp_error"),
+                           Settings::values.cpuopt_unsafe_reduce_fp_error, true);
+        WriteSettingGlobal(QStringLiteral("cpuopt_unsafe_inaccurate_nan"),
+                           Settings::values.cpuopt_unsafe_inaccurate_nan, true);
     }
 
     qt_config->endGroup();
