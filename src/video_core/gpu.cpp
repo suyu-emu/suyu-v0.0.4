@@ -13,6 +13,7 @@
 #include "core/frontend/emu_window.h"
 #include "core/hardware_interrupt_manager.h"
 #include "core/memory.h"
+#include "core/perf_stats.h"
 #include "video_core/engines/fermi_2d.h"
 #include "video_core/engines/kepler_compute.h"
 #include "video_core/engines/kepler_memory.h"
@@ -189,6 +190,10 @@ u64 GPU::GetTicks() const {
     const u64 nanoseconds_num = nanoseconds / gpu_ticks_den;
     const u64 nanoseconds_rem = nanoseconds % gpu_ticks_den;
     return nanoseconds_num * gpu_ticks_num + (nanoseconds_rem * gpu_ticks_num) / gpu_ticks_den;
+}
+
+void GPU::RendererFrameEndNotify() {
+    system.GetPerfStats().EndGameFrame();
 }
 
 void GPU::FlushCommands() {

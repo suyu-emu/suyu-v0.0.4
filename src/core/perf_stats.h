@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <atomic>
 #include <chrono>
 #include <cstddef>
 #include <mutex>
@@ -15,8 +16,8 @@ namespace Core {
 struct PerfStatsResults {
     /// System FPS (LCD VBlanks) in Hz
     double system_fps;
-    /// Game FPS (GSP frame submissions) in Hz
-    double game_fps;
+    /// Average game FPS (GPU frame renders) in Hz
+    double average_game_fps;
     /// Walltime per system frame, in seconds, excluding any waits
     double frametime;
     /// Ratio of walltime / emulated time elapsed
@@ -72,7 +73,7 @@ private:
     /// Cumulative number of system frames (LCD VBlanks) presented since last reset
     u32 system_frames = 0;
     /// Cumulative number of game frames (GSP frame submissions) since last reset
-    u32 game_frames = 0;
+    std::atomic<u32> game_frames = 0;
 
     /// Point when the previous system frame ended
     Clock::time_point previous_frame_end = reset_point;
@@ -80,6 +81,8 @@ private:
     Clock::time_point frame_begin = reset_point;
     /// Total visible duration (including frame-limiting, etc.) of the previous system frame
     Clock::duration previous_frame_length = Clock::duration::zero();
+    /// Previously computed fps
+    double previous_fps = 0;
 };
 
 class FrameLimiter {

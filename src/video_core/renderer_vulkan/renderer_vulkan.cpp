@@ -154,6 +154,7 @@ void RendererVulkan::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
         if (swapchain.Present(render_semaphore)) {
             blit_screen.Recreate();
         }
+        gpu.RendererFrameEndNotify();
         rasterizer.TickFrame();
     }
 

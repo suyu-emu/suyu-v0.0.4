@@ -69,9 +69,7 @@ void PerfStats::EndSystemFrame() {
 }
 
 void PerfStats::EndGameFrame() {
-    std::lock_guard lock{object_mutex};
-
-    game_frames += 1;
+    game_frames.fetch_add(1, std::memory_order_relaxed);
 }
 
 double PerfStats::GetMeanFrametime() const {
@@ -94,10 +92,11 @@ PerfStatsResults PerfStats::GetAndResetStats(microseconds current_system_time_us
     const auto interval = duration_cast<DoubleSecs>(now - reset_point).count();
 
     const auto system_us_per_second = (current_system_time_us - reset_point_system_us) / interval;
-
+    const auto current_frames = static_cast<double>(game_frames.load(std::memory_order_relaxed));
+    const auto current_fps = current_frames / interval;
     const PerfStatsResults results{
         .system_fps = static_cast<double>(system_frames) / interval,
-        .game_fps = static_cast<double>(game_frames) / interval,
+        .average_game_fps = (current_fps + previous_fps) / 2.0,
         .frametime = duration_cast<DoubleSecs>(accumulated_frametime).count() /
                      static_cast<double>(system_frames),
         .emulation_speed = system_us_per_second.count() / 1'000'000.0,
@@ -108,7 +107,8 @@ PerfStatsResults PerfStats::GetAndResetStats(microseconds current_system_time_us
     reset_point_system_us = current_system_time_us;
     accumulated_frametime = Clock::duration::zero();
     system_frames = 0;
-    game_frames = 0;
+    game_frames.store(0, std::memory_order_relaxed);
+    previous_fps = current_fps;
 
     return results;
 }

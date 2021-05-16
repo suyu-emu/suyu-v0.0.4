@@ -289,7 +289,8 @@ struct System::Impl {
 
             telemetry_session->AddField(performance, "Shutdown_EmulationSpeed",
                                         perf_results.emulation_speed * 100.0);
-            telemetry_session->AddField(performance, "Shutdown_Framerate", perf_results.game_fps);
+            telemetry_session->AddField(performance, "Shutdown_Framerate",
+                                        perf_results.average_game_fps);
             telemetry_session->AddField(performance, "Shutdown_Frametime",
                                         perf_results.frametime * 1000.0);
             telemetry_session->AddField(performance, "Mean_Frametime_MS",
