@@ -158,15 +158,15 @@ ResultVal<Kernel::KClientSession*> SM::GetServiceImpl(Kernel::HLERequestContext&
 
     auto* port = result.Unwrap();
 
-    // Kernel::KScopedResourceReservation session_reservation(
-    //    kernel.CurrentProcess()->GetResourceLimit(), Kernel::LimitableResource::Sessions);
-    // R_UNLESS(session_reservation.Succeeded(), Kernel::ResultLimitReached);
+    Kernel::KScopedResourceReservation session_reservation(
+        kernel.CurrentProcess()->GetResourceLimit(), Kernel::LimitableResource::Sessions);
+    R_UNLESS(session_reservation.Succeeded(), Kernel::ResultLimitReached);
 
     auto* session = Kernel::KSession::Create(kernel);
     session->Initialize(&port->GetClientPort(), std::move(name));
 
     // Commit the session reservation.
-    // session_reservation.Commit();
+    session_reservation.Commit();
 
     if (port->GetServerPort().GetHLEHandler()) {
         port->GetServerPort().GetHLEHandler()->ClientConnected(&session->GetServerSession());
