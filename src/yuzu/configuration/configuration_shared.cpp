@@ -84,6 +84,13 @@ void ConfigurationShared::SetPerGameSetting(
                                                            ConfigurationShared::USE_GLOBAL_OFFSET);
 }
 
+void ConfigurationShared::SetPerGameSetting(
+    QComboBox* combobox, const Settings::Setting<Settings::CPUAccuracy>* setting) {
+    combobox->setCurrentIndex(setting->UsingGlobal() ? ConfigurationShared::USE_GLOBAL_INDEX
+                                                     : static_cast<int>(setting->GetValue()) +
+                                                           ConfigurationShared::USE_GLOBAL_OFFSET);
+}
+
 void ConfigurationShared::SetHighlight(QWidget* widget, bool highlighted) {
     if (highlighted) {
         widget->setStyleSheet(QStringLiteral("QWidget#%1 { background-color:rgba(0,203,255,0.5) }")

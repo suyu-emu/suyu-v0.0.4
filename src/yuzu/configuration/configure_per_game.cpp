@@ -52,6 +52,7 @@ ConfigurePerGame::~ConfigurePerGame() = default;
 void ConfigurePerGame::ApplyConfiguration() {
     ui->addonsTab->ApplyConfiguration();
     ui->generalTab->ApplyConfiguration();
+    ui->cpuTab->ApplyConfiguration();
     ui->systemTab->ApplyConfiguration();
     ui->graphicsTab->ApplyConfiguration();
     ui->graphicsAdvancedTab->ApplyConfiguration();

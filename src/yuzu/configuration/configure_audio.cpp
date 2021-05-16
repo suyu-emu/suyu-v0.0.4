@@ -100,8 +100,7 @@ void ConfigureAudio::SetVolumeIndicatorText(int percentage) {
 
 void ConfigureAudio::ApplyConfiguration() {
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.enable_audio_stretching,
-                                             ui->toggle_audio_stretching,
-                                             enable_audio_stretching);
+                                             ui->toggle_audio_stretching, enable_audio_stretching);
 
     if (Settings::IsConfiguringGlobal()) {
         Settings::values.sink_id =

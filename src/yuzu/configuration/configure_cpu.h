@@ -8,6 +8,10 @@
 #include <QWidget>
 #include "common/settings.h"
 
+namespace ConfigurationShared {
+enum class CheckState;
+}
+
 namespace Ui {
 class ConfigureCpu;
 }
@@ -30,5 +34,11 @@ private:
 
     void SetConfiguration();
 
+    void SetupPerGameUI();
+
     std::unique_ptr<Ui::ConfigureCpu> ui;
+
+    ConfigurationShared::CheckState cpuopt_unsafe_unfuse_fma;
+    ConfigurationShared::CheckState cpuopt_unsafe_reduce_fp_error;
+    ConfigurationShared::CheckState cpuopt_unsafe_inaccurate_nan;
 };

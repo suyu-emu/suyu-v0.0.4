@@ -39,6 +39,8 @@ void SetPerGameSetting(QComboBox* combobox,
                        const Settings::Setting<Settings::RendererBackend>* setting);
 void SetPerGameSetting(QComboBox* combobox,
                        const Settings::Setting<Settings::GPUAccuracy>* setting);
+void SetPerGameSetting(QComboBox* combobox,
+                       const Settings::Setting<Settings::CPUAccuracy>* setting);
 
 // (Un)highlights a Qt UI element
 void SetHighlight(QWidget* widget, bool highlighted);

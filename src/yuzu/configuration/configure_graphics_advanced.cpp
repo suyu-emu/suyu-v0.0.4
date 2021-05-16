@@ -56,8 +56,7 @@ void ConfigureGraphicsAdvanced::ApplyConfiguration() {
 
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.max_anisotropy,
                                              ui->anisotropic_filtering_combobox);
-    ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_vsync, ui->use_vsync,
-                                             use_vsync);
+    ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_vsync, ui->use_vsync, use_vsync);
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_assembly_shaders,
                                              ui->use_assembly_shaders, use_assembly_shaders);
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_asynchronous_shaders,

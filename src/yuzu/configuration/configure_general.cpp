@@ -50,8 +50,8 @@ void ConfigureGeneral::SetConfiguration() {
 }
 
 void ConfigureGeneral::ApplyConfiguration() {
-    ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_multi_core,
-                                             ui->use_multi_core, use_multi_core);
+    ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_multi_core, ui->use_multi_core,
+                                             use_multi_core);
 
     if (Settings::IsConfiguringGlobal()) {
         UISettings::values.confirm_before_closing = ui->toggle_check_exit->isChecked();

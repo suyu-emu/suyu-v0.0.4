@@ -127,8 +127,7 @@ void ConfigureSystem::ApplyConfiguration() {
         return;
     }
 
-    ConfigurationShared::ApplyPerGameSetting(&Settings::values.language_index,
-                                             ui->combo_language);
+    ConfigurationShared::ApplyPerGameSetting(&Settings::values.language_index, ui->combo_language);
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.region_index, ui->combo_region);
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.time_zone_index,
                                              ui->combo_time_zone);

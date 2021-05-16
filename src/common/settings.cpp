@@ -106,6 +106,12 @@ void RestoreGlobalState(bool is_powered_on) {
     // Core
     values.use_multi_core.SetGlobal(true);
 
+    // CPU
+    values.cpu_accuracy.SetGlobal(true);
+    values.cpuopt_unsafe_unfuse_fma.SetGlobal(true);
+    values.cpuopt_unsafe_reduce_fp_error.SetGlobal(true);
+    values.cpuopt_unsafe_inaccurate_nan.SetGlobal(true);
+
     // Renderer
     values.renderer_backend.SetGlobal(true);
     values.vulkan_device.SetGlobal(true);
