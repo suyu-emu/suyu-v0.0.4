@@ -690,7 +690,10 @@ void BufferCache<P>::BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 
     const VAddr cpu_addr = binding.cpu_addr;
     const u32 size = binding.size;
     Buffer& buffer = slot_buffers[binding.buffer_id];
-    if (size <= uniform_buffer_skip_cache_size && !buffer.IsRegionGpuModified(cpu_addr, size)) {
+    const bool use_fast_buffer = binding.buffer_id != NULL_BUFFER_ID &&
+                                 size <= uniform_buffer_skip_cache_size &&
+                                 !buffer.IsRegionGpuModified(cpu_addr, size);
+    if (use_fast_buffer) {
         if constexpr (IS_OPENGL) {
             if (runtime.HasFastBufferSubData()) {
                 // Fast path for Nvidia
