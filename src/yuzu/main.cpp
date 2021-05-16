@@ -2101,6 +2101,7 @@ void GMainWindow::OnMenuInstallToNAND() {
     QStringList new_files{};         // Newly installed files that do not yet exist in the NAND
     QStringList overwritten_files{}; // Files that overwrote those existing in the NAND
     QStringList failed_files{};      // Files that failed to install due to errors
+    bool detected_base_install{};    // Whether a base game was attempted to be installed
 
     ui.action_Install_File_NAND->setEnabled(false);
 
@@ -2126,6 +2127,7 @@ void GMainWindow::OnMenuInstallToNAND() {
 
             while (!future.isFinished()) {
                 QCoreApplication::processEvents();
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
 
             result = future.result();
@@ -2146,12 +2148,23 @@ void GMainWindow::OnMenuInstallToNAND() {
         case InstallResult::Failure:
             failed_files.append(QFileInfo(file).fileName());
             break;
+        case InstallResult::BaseInstallAttempted:
+            failed_files.append(QFileInfo(file).fileName());
+            detected_base_install = true;
+            break;
         }
 
         --remaining;
     }
 
     install_progress->close();
+
+    if (detected_base_install) {
+        QMessageBox::warning(
+            this, tr("Install Results"),
+            tr("To avoid possible conflicts, we discourage users from installing base games to the "
+               "NAND.\nPlease, only use this feature to install updates and DLC."));
+    }
 
     const QString install_results =
         (new_files.isEmpty() ? QString{}
@@ -2214,11 +2227,14 @@ InstallResult GMainWindow::InstallNSPXCI(const QString& filename) {
     const auto res =
         Core::System::GetInstance().GetFileSystemController().GetUserNANDContents()->InstallEntry(
             *nsp, true, qt_raw_copy);
-    if (res == FileSys::InstallResult::Success) {
+    switch (res) {
+    case FileSys::InstallResult::Success:
         return InstallResult::Success;
-    } else if (res == FileSys::InstallResult::OverwriteExisting) {
+    case FileSys::InstallResult::OverwriteExisting:
         return InstallResult::Overwrite;
-    } else {
+    case FileSys::InstallResult::ErrorBaseInstall:
+        return InstallResult::BaseInstallAttempted;
+    default:
         return InstallResult::Failure;
     }
 }
