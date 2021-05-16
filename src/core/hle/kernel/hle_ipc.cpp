@@ -64,7 +64,7 @@ void HLERequestContext::ParseCommandBuffer(const KHandleTable& handle_table, u32
     if (command_header->enable_handle_descriptor) {
         handle_descriptor_header = rp.PopRaw<IPC::HandleDescriptorHeader>();
         if (handle_descriptor_header->send_current_pid) {
-            rp.Skip(2, false);
+            pid = rp.Pop<u64>();
         }
         if (incoming) {
             // Populate the object lists with the data in the IPC request.
