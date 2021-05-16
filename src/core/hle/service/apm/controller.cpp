@@ -15,11 +15,11 @@ namespace Service::APM {
 
 constexpr auto DEFAULT_PERFORMANCE_CONFIGURATION = PerformanceConfiguration::Config7;
 
-Controller::Controller(Core::Timing::CoreTiming& core_timing)
-    : core_timing{core_timing}, configs{
-                                    {PerformanceMode::Handheld, DEFAULT_PERFORMANCE_CONFIGURATION},
-                                    {PerformanceMode::Docked, DEFAULT_PERFORMANCE_CONFIGURATION},
-                                } {}
+Controller::Controller(Core::Timing::CoreTiming& core_timing_)
+    : core_timing{core_timing_}, configs{
+                                     {PerformanceMode::Handheld, DEFAULT_PERFORMANCE_CONFIGURATION},
+                                     {PerformanceMode::Docked, DEFAULT_PERFORMANCE_CONFIGURATION},
+                                 } {}
 
 Controller::~Controller() = default;
 

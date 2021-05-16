@@ -39,10 +39,10 @@ CNMT::CNMT(VirtualFile file) {
     }
 }
 
-CNMT::CNMT(CNMTHeader header, OptionalHeader opt_header, std::vector<ContentRecord> content_records,
-           std::vector<MetaRecord> meta_records)
-    : header(std::move(header)), opt_header(std::move(opt_header)),
-      content_records(std::move(content_records)), meta_records(std::move(meta_records)) {}
+CNMT::CNMT(CNMTHeader header_, OptionalHeader opt_header_,
+           std::vector<ContentRecord> content_records_, std::vector<MetaRecord> meta_records_)
+    : header(std::move(header_)), opt_header(std::move(opt_header_)),
+      content_records(std::move(content_records_)), meta_records(std::move(meta_records_)) {}
 
 CNMT::~CNMT() = default;
 

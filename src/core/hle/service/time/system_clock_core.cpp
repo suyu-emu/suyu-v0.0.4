@@ -8,8 +8,8 @@
 
 namespace Service::Time::Clock {
 
-SystemClockCore::SystemClockCore(SteadyClockCore& steady_clock_core)
-    : steady_clock_core{steady_clock_core} {
+SystemClockCore::SystemClockCore(SteadyClockCore& steady_clock_core_)
+    : steady_clock_core{steady_clock_core_} {
     context.steady_time_point.clock_source_id = steady_clock_core.GetClockSourceId();
 }
 

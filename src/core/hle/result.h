@@ -56,7 +56,7 @@ enum class ErrorModule : u32 {
     PCIe = 120,
     Friends = 121,
     BCAT = 122,
-    SSL = 123,
+    SSLSrv = 123,
     Account = 124,
     News = 125,
     Mii = 126,

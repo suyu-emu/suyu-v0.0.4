@@ -12,8 +12,8 @@ namespace Service::Time::Clock {
 
 class LocalSystemClockContextWriter final : public SystemClockContextUpdateCallback {
 public:
-    explicit LocalSystemClockContextWriter(SharedMemory& shared_memory)
-        : SystemClockContextUpdateCallback{}, shared_memory{shared_memory} {}
+    explicit LocalSystemClockContextWriter(SharedMemory& shared_memory_)
+        : SystemClockContextUpdateCallback{}, shared_memory{shared_memory_} {}
 
 protected:
     ResultCode Update() override {

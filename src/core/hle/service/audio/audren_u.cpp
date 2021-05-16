@@ -362,7 +362,7 @@ void AudRenU::GetAudioRendererWorkBufferSize(Kernel::HLERequestContext& ctx) {
     static constexpr u64 max_perf_detail_entries = 100;
 
     // Size of the data structure representing the bulk of the voice-related state.
-    static constexpr u64 voice_state_size = 0x100;
+    static constexpr u64 voice_state_size_bytes = 0x100;
 
     // Size of the upsampler manager data structure
     constexpr u64 upsampler_manager_size = 0x48;
@@ -449,7 +449,8 @@ void AudRenU::GetAudioRendererWorkBufferSize(Kernel::HLERequestContext& ctx) {
         size += Common::AlignUp(voice_info_size * params.voice_count, info_field_alignment_size);
         size +=
             Common::AlignUp(voice_resource_size * params.voice_count, info_field_alignment_size);
-        size += Common::AlignUp(voice_state_size * params.voice_count, info_field_alignment_size);
+        size +=
+            Common::AlignUp(voice_state_size_bytes * params.voice_count, info_field_alignment_size);
         return size;
     };
 

@@ -10,7 +10,7 @@ namespace Kernel {
 
 class KThreadQueue {
 public:
-    explicit KThreadQueue(KernelCore& kernel) : kernel{kernel} {}
+    explicit KThreadQueue(KernelCore& kernel_) : kernel{kernel_} {}
 
     bool IsEmpty() const {
         return wait_list.empty();

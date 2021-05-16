@@ -30,7 +30,7 @@ class System;
 
 class Reporter {
 public:
-    explicit Reporter(System& system);
+    explicit Reporter(System& system_);
     ~Reporter();
 
     // Used by fatal services

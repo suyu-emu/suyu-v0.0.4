@@ -22,7 +22,7 @@ namespace Core {
 
 class DynarmicExclusiveMonitor final : public ExclusiveMonitor {
 public:
-    explicit DynarmicExclusiveMonitor(Memory::Memory& memory, std::size_t core_count);
+    explicit DynarmicExclusiveMonitor(Memory::Memory& memory_, std::size_t core_count_);
     ~DynarmicExclusiveMonitor() override;
 
     u8 ExclusiveRead8(std::size_t core_index, VAddr addr) override;

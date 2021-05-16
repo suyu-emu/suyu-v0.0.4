@@ -24,7 +24,7 @@ namespace Core {
 
 class DynarmicCallbacks32 : public Dynarmic::A32::UserCallbacks {
 public:
-    explicit DynarmicCallbacks32(ARM_Dynarmic_32& parent) : parent(parent) {}
+    explicit DynarmicCallbacks32(ARM_Dynarmic_32& parent_) : parent{parent_} {}
 
     u8 MemoryRead8(u32 vaddr) override {
         return parent.system.Memory().Read8(vaddr);

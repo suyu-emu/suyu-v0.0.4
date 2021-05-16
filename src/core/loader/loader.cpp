@@ -194,7 +194,7 @@ std::ostream& operator<<(std::ostream& os, ResultStatus status) {
     return os;
 }
 
-AppLoader::AppLoader(FileSys::VirtualFile file) : file(std::move(file)) {}
+AppLoader::AppLoader(FileSys::VirtualFile file_) : file(std::move(file_)) {}
 AppLoader::~AppLoader() = default;
 
 /**

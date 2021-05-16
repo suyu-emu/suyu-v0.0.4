@@ -293,7 +293,7 @@ public:
     static constexpr std::size_t NumStaticRegisters =
         NumReadableStaticRegisters + NumWritableStaticRegisters;
 
-    explicit DmntCheatVm(std::unique_ptr<Callbacks> callbacks);
+    explicit DmntCheatVm(std::unique_ptr<Callbacks> callbacks_);
     ~DmntCheatVm();
 
     std::size_t GetProgramSize() const {

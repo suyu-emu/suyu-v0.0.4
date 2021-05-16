@@ -61,7 +61,7 @@ void NVFlinger::SplitVSync() {
     }
 }
 
-NVFlinger::NVFlinger(Core::System& system) : system(system) {
+NVFlinger::NVFlinger(Core::System& system_) : system(system_) {
     displays.emplace_back(0, "Default", system);
     displays.emplace_back(1, "External", system);
     displays.emplace_back(2, "Edid", system);

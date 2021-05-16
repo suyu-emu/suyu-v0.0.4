@@ -29,7 +29,8 @@
 
 namespace Core::Memory {
 
-DmntCheatVm::DmntCheatVm(std::unique_ptr<Callbacks> callbacks) : callbacks(std::move(callbacks)) {}
+DmntCheatVm::DmntCheatVm(std::unique_ptr<Callbacks> callbacks_)
+    : callbacks(std::move(callbacks_)) {}
 
 DmntCheatVm::~DmntCheatVm() = default;
 

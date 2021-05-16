@@ -24,7 +24,7 @@ class KMemoryBlockManager;
 
 class KPageTable final : NonCopyable {
 public:
-    explicit KPageTable(Core::System& system);
+    explicit KPageTable(Core::System& system_);
 
     ResultCode InitializeForProcess(FileSys::ProgramAddressSpaceType as_type, bool enable_aslr,
                                     VAddr code_addr, std::size_t code_size,

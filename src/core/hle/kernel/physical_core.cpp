@@ -13,10 +13,10 @@
 
 namespace Kernel {
 
-PhysicalCore::PhysicalCore(std::size_t core_index, Core::System& system,
-                           Kernel::KScheduler& scheduler, Core::CPUInterrupts& interrupts)
-    : core_index{core_index}, system{system}, scheduler{scheduler},
-      interrupts{interrupts}, guard{std::make_unique<Common::SpinLock>()} {}
+PhysicalCore::PhysicalCore(std::size_t core_index_, Core::System& system_, KScheduler& scheduler_,
+                           Core::CPUInterrupts& interrupts_)
+    : core_index{core_index_}, system{system_}, scheduler{scheduler_},
+      interrupts{interrupts_}, guard{std::make_unique<Common::SpinLock>()} {}
 
 PhysicalCore::~PhysicalCore() = default;
 

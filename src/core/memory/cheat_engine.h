@@ -25,7 +25,7 @@ namespace Core::Memory {
 
 class StandardVmCallbacks : public DmntCheatVm::Callbacks {
 public:
-    StandardVmCallbacks(Core::System& system, const CheatProcessMetadata& metadata);
+    StandardVmCallbacks(System& system_, const CheatProcessMetadata& metadata_);
     ~StandardVmCallbacks() override;
 
     void MemoryRead(VAddr address, void* data, u64 size) override;
@@ -38,7 +38,7 @@ private:
     VAddr SanitizeAddress(VAddr address) const;
 
     const CheatProcessMetadata& metadata;
-    Core::System& system;
+    System& system;
 };
 
 // Intermediary class that parses a text file or other disk format for storing cheats into a
@@ -61,8 +61,8 @@ public:
 // Class that encapsulates a CheatList and manages its interaction with memory and CoreTiming
 class CheatEngine final {
 public:
-    CheatEngine(Core::System& system_, std::vector<CheatEntry> cheats_,
-                const std::array<u8, 0x20>& build_id);
+    CheatEngine(System& system_, std::vector<CheatEntry> cheats_,
+                const std::array<u8, 0x20>& build_id_);
     ~CheatEngine();
 
     void Initialize();

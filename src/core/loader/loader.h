@@ -147,7 +147,7 @@ public:
     };
     using LoadResult = std::pair<ResultStatus, std::optional<LoadParameters>>;
 
-    explicit AppLoader(FileSys::VirtualFile file);
+    explicit AppLoader(FileSys::VirtualFile file_);
     virtual ~AppLoader();
 
     /**

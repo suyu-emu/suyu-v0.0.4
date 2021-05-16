@@ -8,7 +8,7 @@
 
 namespace Service::Nvidia {
 
-SyncpointManager::SyncpointManager(Tegra::GPU& gpu) : gpu{gpu} {}
+SyncpointManager::SyncpointManager(Tegra::GPU& gpu_) : gpu{gpu_} {}
 
 SyncpointManager::~SyncpointManager() = default;
 

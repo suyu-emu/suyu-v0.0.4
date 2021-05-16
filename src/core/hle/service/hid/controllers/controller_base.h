@@ -18,7 +18,7 @@ class System;
 namespace Service::HID {
 class ControllerBase {
 public:
-    explicit ControllerBase(Core::System& system);
+    explicit ControllerBase(Core::System& system_);
     virtual ~ControllerBase();
 
     // Called when the controller is initialized

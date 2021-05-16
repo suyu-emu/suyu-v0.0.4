@@ -54,7 +54,7 @@ public:
         NativeWindowFormat = 2,
     };
 
-    explicit BufferQueue(Kernel::KernelCore& kernel, u32 id, u64 layer_id);
+    explicit BufferQueue(Kernel::KernelCore& kernel, u32 id_, u64 layer_id_);
     ~BufferQueue();
 
     enum class BufferTransformFlags : u32 {

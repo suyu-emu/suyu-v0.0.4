@@ -253,8 +253,8 @@ private:
 
 class MiiDBModule final : public ServiceFramework<MiiDBModule> {
 public:
-    explicit MiiDBModule(Core::System& system_, const char* name)
-        : ServiceFramework{system_, name} {
+    explicit MiiDBModule(Core::System& system_, const char* name_)
+        : ServiceFramework{system_, name_} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &MiiDBModule::GetDatabaseService, "GetDatabaseService"},

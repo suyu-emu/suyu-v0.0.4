@@ -23,13 +23,13 @@ class StandardNetworkSystemClockCore;
 
 class StandardUserSystemClockCore final : public SystemClockCore {
 public:
-    StandardUserSystemClockCore(StandardLocalSystemClockCore& local_system_clock_core,
-                                StandardNetworkSystemClockCore& network_system_clock_core,
-                                Core::System& system);
+    StandardUserSystemClockCore(StandardLocalSystemClockCore& local_system_clock_core_,
+                                StandardNetworkSystemClockCore& network_system_clock_core_,
+                                Core::System& system_);
 
     ResultCode SetAutomaticCorrectionEnabled(Core::System& system, bool value);
 
-    ResultCode GetClockContext(Core::System& system, SystemClockContext& context) const override;
+    ResultCode GetClockContext(Core::System& system, SystemClockContext& ctx) const override;
 
     bool IsAutomaticCorrectionEnabled() const {
         return auto_correction_enabled;

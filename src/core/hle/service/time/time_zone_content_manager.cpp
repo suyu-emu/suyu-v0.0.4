@@ -68,8 +68,8 @@ static std::vector<std::string> BuildLocationNameCache(Core::System& system) {
     return location_name_cache;
 }
 
-TimeZoneContentManager::TimeZoneContentManager(Core::System& system)
-    : system{system}, location_name_cache{BuildLocationNameCache(system)} {}
+TimeZoneContentManager::TimeZoneContentManager(Core::System& system_)
+    : system{system_}, location_name_cache{BuildLocationNameCache(system)} {}
 
 void TimeZoneContentManager::Initialize(TimeManager& time_manager) {
     std::string location_name;

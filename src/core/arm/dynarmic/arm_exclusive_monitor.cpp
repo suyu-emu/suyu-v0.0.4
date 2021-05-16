@@ -9,8 +9,8 @@
 
 namespace Core {
 
-DynarmicExclusiveMonitor::DynarmicExclusiveMonitor(Memory::Memory& memory, std::size_t core_count)
-    : monitor(core_count), memory{memory} {}
+DynarmicExclusiveMonitor::DynarmicExclusiveMonitor(Memory::Memory& memory_, std::size_t core_count_)
+    : monitor{core_count_}, memory{memory_} {}
 
 DynarmicExclusiveMonitor::~DynarmicExclusiveMonitor() = default;
 

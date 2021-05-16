@@ -14,9 +14,9 @@ namespace FileSys {
 
 class StaticVfsFile : public VfsFile {
 public:
-    explicit StaticVfsFile(u8 value, std::size_t size = 0, std::string name = "",
-                           VirtualDir parent = nullptr)
-        : value{value}, size{size}, name{std::move(name)}, parent{std::move(parent)} {}
+    explicit StaticVfsFile(u8 value_, std::size_t size_ = 0, std::string name_ = "",
+                           VirtualDir parent_ = nullptr)
+        : value{value_}, size{size_}, name{std::move(name_)}, parent{std::move(parent_)} {}
 
     std::string GetName() const override {
         return name;

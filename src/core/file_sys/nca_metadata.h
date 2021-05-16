@@ -87,8 +87,8 @@ static_assert(sizeof(CNMTHeader) == 0x20, "CNMTHeader has incorrect size.");
 class CNMT {
 public:
     explicit CNMT(VirtualFile file);
-    CNMT(CNMTHeader header, OptionalHeader opt_header, std::vector<ContentRecord> content_records,
-         std::vector<MetaRecord> meta_records);
+    CNMT(CNMTHeader header_, OptionalHeader opt_header_,
+         std::vector<ContentRecord> content_records_, std::vector<MetaRecord> meta_records_);
     ~CNMT();
 
     u64 GetTitleID() const;

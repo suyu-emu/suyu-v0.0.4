@@ -17,7 +17,7 @@ class CTREncryptionLayer : public EncryptionLayer {
 public:
     using IVData = std::array<u8, 16>;
 
-    CTREncryptionLayer(FileSys::VirtualFile base, Key128 key, std::size_t base_offset);
+    CTREncryptionLayer(FileSys::VirtualFile base_, Key128 key_, std::size_t base_offset_);
 
     std::size_t Read(u8* data, std::size_t length, std::size_t offset) const override;
 

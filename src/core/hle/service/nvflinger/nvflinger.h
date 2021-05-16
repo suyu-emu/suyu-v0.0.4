@@ -45,7 +45,7 @@ class BufferQueue;
 
 class NVFlinger final {
 public:
-    explicit NVFlinger(Core::System& system);
+    explicit NVFlinger(Core::System& system_);
     ~NVFlinger();
 
     /// Sets the NVDrv module instance to use to send buffers to the GPU.

@@ -48,13 +48,13 @@ private:
     public:
         constexpr BufferMap() = default;
 
-        constexpr BufferMap(GPUVAddr start_addr, std::size_t size)
-            : start_addr{start_addr}, end_addr{start_addr + size} {}
+        constexpr BufferMap(GPUVAddr start_addr_, std::size_t size_)
+            : start_addr{start_addr_}, end_addr{start_addr_ + size_} {}
 
-        constexpr BufferMap(GPUVAddr start_addr, std::size_t size, VAddr cpu_addr,
-                            bool is_allocated)
-            : start_addr{start_addr}, end_addr{start_addr + size}, cpu_addr{cpu_addr},
-              is_allocated{is_allocated} {}
+        constexpr BufferMap(GPUVAddr start_addr_, std::size_t size_, VAddr cpu_addr_,
+                            bool is_allocated_)
+            : start_addr{start_addr_}, end_addr{start_addr_ + size_}, cpu_addr{cpu_addr_},
+              is_allocated{is_allocated_} {}
 
         constexpr VAddr StartAddr() const {
             return start_addr;

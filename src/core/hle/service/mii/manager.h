@@ -89,7 +89,7 @@ static_assert(std::has_unique_object_representations_v<MiiInfo>,
 #pragma pack(push, 4)
 
 struct MiiInfoElement {
-    MiiInfoElement(const MiiInfo& info, Source source) : info{info}, source{source} {}
+    MiiInfoElement(const MiiInfo& info_, Source source_) : info{info_}, source{source_} {}
 
     MiiInfo info{};
     Source source{};

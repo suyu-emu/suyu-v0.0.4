@@ -29,7 +29,7 @@ struct PerfStatsResults {
  */
 class PerfStats {
 public:
-    explicit PerfStats(u64 title_id);
+    explicit PerfStats(u64 title_id_);
     ~PerfStats();
 
     using Clock = std::chrono::high_resolution_clock;

@@ -18,7 +18,8 @@ class KernelCore;
 
 class KLightConditionVariable {
 public:
-    explicit KLightConditionVariable(KernelCore& kernel) : thread_queue(kernel), kernel(kernel) {}
+    explicit KLightConditionVariable(KernelCore& kernel_)
+        : thread_queue(kernel_), kernel(kernel_) {}
 
     void Wait(KLightLock* lock, s64 timeout = -1) {
         WaitImpl(lock, timeout);

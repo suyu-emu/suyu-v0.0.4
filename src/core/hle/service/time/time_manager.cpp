@@ -223,7 +223,7 @@ struct TimeManager::Impl final {
     TimeZone::TimeZoneContentManager time_zone_content_manager;
 };
 
-TimeManager::TimeManager(Core::System& system) : system{system} {}
+TimeManager::TimeManager(Core::System& system_) : system{system_} {}
 
 TimeManager::~TimeManager() = default;
 

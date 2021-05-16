@@ -128,32 +128,34 @@ private:
     void UpdateExistingGesture(GestureProperties& gesture, TouchType& type, f32 time_difference);
 
     // Terminates exiting gesture
-    void EndGesture(GestureProperties& gesture, GestureProperties& last_gesture, TouchType& type,
-                    Attribute& attributes, f32 time_difference);
+    void EndGesture(GestureProperties& gesture, GestureProperties& last_gesture_props,
+                    TouchType& type, Attribute& attributes, f32 time_difference);
 
     // Set current event to a tap event
-    void SetTapEvent(GestureProperties& gesture, GestureProperties& last_gesture, TouchType& type,
-                     Attribute& attributes);
+    void SetTapEvent(GestureProperties& gesture, GestureProperties& last_gesture_props,
+                     TouchType& type, Attribute& attributes);
 
     // Calculates and set the extra parameters related to a pan event
-    void UpdatePanEvent(GestureProperties& gesture, GestureProperties& last_gesture,
+    void UpdatePanEvent(GestureProperties& gesture, GestureProperties& last_gesture_props,
                         TouchType& type, f32 time_difference);
 
     // Terminates the pan event
-    void EndPanEvent(GestureProperties& gesture, GestureProperties& last_gesture, TouchType& type,
-                     f32 time_difference);
+    void EndPanEvent(GestureProperties& gesture, GestureProperties& last_gesture_props,
+                     TouchType& type, f32 time_difference);
 
     // Set current event to a swipe event
-    void SetSwipeEvent(GestureProperties& gesture, GestureProperties& last_gesture,
+    void SetSwipeEvent(GestureProperties& gesture, GestureProperties& last_gesture_props,
                        TouchType& type);
 
-    // Returns an unused finger id, if there is no fingers avaliable MAX_FINGERS will be returned
+    // Returns an unused finger id, if there is no fingers available std::nullopt is returned.
     std::optional<size_t> GetUnusedFingerID() const;
 
-    /** If the touch is new it tries to assing a new finger id, if there is no fingers avaliable no
+    /**
+     * If the touch is new it tries to assign a new finger id, if there is no fingers available no
      * changes will be made. Updates the coordinates if the finger id it's already set. If the touch
      * ends delays the output by one frame to set the end_touch flag before finally freeing the
-     * finger id */
+     * finger id
+     */
     size_t UpdateTouchInputEvent(const std::tuple<float, float, bool>& touch_input,
                                  size_t finger_id);
 

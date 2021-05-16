@@ -7,8 +7,8 @@
 
 namespace Kernel {
 
-KMemoryBlockManager::KMemoryBlockManager(VAddr start_addr, VAddr end_addr)
-    : start_addr{start_addr}, end_addr{end_addr} {
+KMemoryBlockManager::KMemoryBlockManager(VAddr start_addr_, VAddr end_addr_)
+    : start_addr{start_addr_}, end_addr{end_addr_} {
     const u64 num_pages{(end_addr - start_addr) / PageSize};
     memory_block_tree.emplace_back(start_addr, num_pages, KMemoryState::Free,
                                    KMemoryPermission::None, KMemoryAttribute::None);

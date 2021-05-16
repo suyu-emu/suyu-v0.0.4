@@ -212,7 +212,7 @@ private:
 
 class IGBPConnectRequestParcel : public Parcel {
 public:
-    explicit IGBPConnectRequestParcel(std::vector<u8> buffer) : Parcel(std::move(buffer)) {
+    explicit IGBPConnectRequestParcel(std::vector<u8> buffer_) : Parcel(std::move(buffer_)) {
         Deserialize();
     }
 
@@ -274,8 +274,8 @@ private:
 
 class IGBPSetPreallocatedBufferRequestParcel : public Parcel {
 public:
-    explicit IGBPSetPreallocatedBufferRequestParcel(std::vector<u8> buffer)
-        : Parcel(std::move(buffer)) {
+    explicit IGBPSetPreallocatedBufferRequestParcel(std::vector<u8> buffer_)
+        : Parcel(std::move(buffer_)) {
         Deserialize();
     }
 
@@ -312,7 +312,7 @@ protected:
 
 class IGBPCancelBufferRequestParcel : public Parcel {
 public:
-    explicit IGBPCancelBufferRequestParcel(std::vector<u8> buffer) : Parcel(std::move(buffer)) {
+    explicit IGBPCancelBufferRequestParcel(std::vector<u8> buffer_) : Parcel(std::move(buffer_)) {
         Deserialize();
     }
 
@@ -338,7 +338,7 @@ protected:
 
 class IGBPDequeueBufferRequestParcel : public Parcel {
 public:
-    explicit IGBPDequeueBufferRequestParcel(std::vector<u8> buffer) : Parcel(std::move(buffer)) {
+    explicit IGBPDequeueBufferRequestParcel(std::vector<u8> buffer_) : Parcel(std::move(buffer_)) {
         Deserialize();
     }
 
@@ -360,8 +360,8 @@ public:
 
 class IGBPDequeueBufferResponseParcel : public Parcel {
 public:
-    explicit IGBPDequeueBufferResponseParcel(u32 slot, Service::Nvidia::MultiFence& multi_fence)
-        : slot(slot), multi_fence(multi_fence) {}
+    explicit IGBPDequeueBufferResponseParcel(u32 slot_, Nvidia::MultiFence& multi_fence_)
+        : slot(slot_), multi_fence(multi_fence_) {}
 
 protected:
     void SerializeData() override {
@@ -377,7 +377,7 @@ protected:
 
 class IGBPRequestBufferRequestParcel : public Parcel {
 public:
-    explicit IGBPRequestBufferRequestParcel(std::vector<u8> buffer) : Parcel(std::move(buffer)) {
+    explicit IGBPRequestBufferRequestParcel(std::vector<u8> buffer_) : Parcel(std::move(buffer_)) {
         Deserialize();
     }
 
@@ -391,7 +391,7 @@ public:
 
 class IGBPRequestBufferResponseParcel : public Parcel {
 public:
-    explicit IGBPRequestBufferResponseParcel(NVFlinger::IGBPBuffer buffer) : buffer(buffer) {}
+    explicit IGBPRequestBufferResponseParcel(NVFlinger::IGBPBuffer buffer_) : buffer(buffer_) {}
     ~IGBPRequestBufferResponseParcel() override = default;
 
 protected:
@@ -408,7 +408,7 @@ protected:
 
 class IGBPQueueBufferRequestParcel : public Parcel {
 public:
-    explicit IGBPQueueBufferRequestParcel(std::vector<u8> buffer) : Parcel(std::move(buffer)) {
+    explicit IGBPQueueBufferRequestParcel(std::vector<u8> buffer_) : Parcel(std::move(buffer_)) {
         Deserialize();
     }
 
@@ -470,7 +470,7 @@ private:
 
 class IGBPQueryRequestParcel : public Parcel {
 public:
-    explicit IGBPQueryRequestParcel(std::vector<u8> buffer) : Parcel(std::move(buffer)) {
+    explicit IGBPQueryRequestParcel(std::vector<u8> buffer_) : Parcel(std::move(buffer_)) {
         Deserialize();
     }
 
@@ -484,7 +484,7 @@ public:
 
 class IGBPQueryResponseParcel : public Parcel {
 public:
-    explicit IGBPQueryResponseParcel(u32 value) : value(value) {}
+    explicit IGBPQueryResponseParcel(u32 value_) : value{value_} {}
     ~IGBPQueryResponseParcel() override = default;
 
 protected:

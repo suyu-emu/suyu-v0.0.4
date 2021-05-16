@@ -27,7 +27,7 @@ enum class ContentRecordType : u8;
 
 class NSP : public ReadOnlyVfsDirectory {
 public:
-    explicit NSP(VirtualFile file, std::size_t program_index = 0);
+    explicit NSP(VirtualFile file_, std::size_t program_index_ = 0);
     ~NSP() override;
 
     Loader::ResultStatus GetStatus() const;

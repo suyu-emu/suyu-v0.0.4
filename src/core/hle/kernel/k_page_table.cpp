@@ -58,7 +58,7 @@ constexpr std::size_t GetSizeInRange(const KMemoryInfo& info, VAddr start, VAddr
 
 } // namespace
 
-KPageTable::KPageTable(Core::System& system) : system{system} {}
+KPageTable::KPageTable(Core::System& system_) : system{system_} {}
 
 ResultCode KPageTable::InitializeForProcess(FileSys::ProgramAddressSpaceType as_type,
                                             bool enable_aslr, VAddr code_addr,
@@ -906,8 +906,8 @@ ResultCode KPageTable::LockForDeviceAddressSpace(VAddr addr, std::size_t size) {
 
     block_manager->UpdateLock(
         addr, size / PageSize,
-        [](KMemoryBlockManager::iterator block, KMemoryPermission perm) {
-            block->ShareToDevice(perm);
+        [](KMemoryBlockManager::iterator block, KMemoryPermission permission) {
+            block->ShareToDevice(permission);
         },
         perm);
 
@@ -929,8 +929,8 @@ ResultCode KPageTable::UnlockForDeviceAddressSpace(VAddr addr, std::size_t size)
 
     block_manager->UpdateLock(
         addr, size / PageSize,
-        [](KMemoryBlockManager::iterator block, KMemoryPermission perm) {
-            block->UnshareToDevice(perm);
+        [](KMemoryBlockManager::iterator block, KMemoryPermission permission) {
+            block->UnshareToDevice(permission);
         },
         perm);
 
