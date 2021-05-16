@@ -38,6 +38,7 @@ enum class InstallResult {
     ErrorAlreadyExists,
     ErrorCopyFailed,
     ErrorMetaFailed,
+    ErrorBaseInstall,
 };
 
 struct ContentProviderEntry {

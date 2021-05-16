@@ -76,6 +76,7 @@ enum class InstallResult {
     Success,
     Overwrite,
     Failure,
+    BaseInstallAttempted,
 };
 
 enum class ReinitializeKeyBehavior {
