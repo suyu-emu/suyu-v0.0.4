@@ -65,7 +65,7 @@ void ConfigureSystem::SetConfiguration() {
         QStringLiteral("%1")
             .arg(Settings::values.rng_seed.GetValue().value_or(0), 8, 16, QLatin1Char{'0'})
             .toUpper();
-    const auto rtc_time = Settings::values.custom_rtc.GetValue().value_or(
+    const auto rtc_time = Settings::values.custom_rtc.value_or(
         std::chrono::seconds(QDateTime::currentSecsSinceEpoch()));
 
     ui->rng_seed_checkbox->setChecked(Settings::values.rng_seed.GetValue().has_value());
@@ -73,9 +73,8 @@ void ConfigureSystem::SetConfiguration() {
                                   Settings::values.rng_seed.UsingGlobal());
     ui->rng_seed_edit->setText(rng_seed);
 
-    ui->custom_rtc_checkbox->setChecked(Settings::values.custom_rtc.GetValue().has_value());
-    ui->custom_rtc_edit->setEnabled(Settings::values.custom_rtc.GetValue().has_value() &&
-                                    Settings::values.rng_seed.UsingGlobal());
+    ui->custom_rtc_checkbox->setChecked(Settings::values.custom_rtc.has_value());
+    ui->custom_rtc_edit->setEnabled(Settings::values.custom_rtc.has_value());
     ui->custom_rtc_edit->setDateTime(QDateTime::fromSecsSinceEpoch(rtc_time.count()));
 
     if (Settings::IsConfiguringGlobal()) {
@@ -109,17 +108,17 @@ void ConfigureSystem::ApplyConfiguration() {
 
     // Allow setting custom RTC even if system is powered on,
     // to allow in-game time to be fast forwarded
-    if (Settings::values.custom_rtc.UsingGlobal()) {
+    if (Settings::IsConfiguringGlobal()) {
         if (ui->custom_rtc_checkbox->isChecked()) {
-            Settings::values.custom_rtc.SetValue(
-                std::chrono::seconds(ui->custom_rtc_edit->dateTime().toSecsSinceEpoch()));
+            Settings::values.custom_rtc =
+                std::chrono::seconds(ui->custom_rtc_edit->dateTime().toSecsSinceEpoch());
             if (system.IsPoweredOn()) {
-                const s64 posix_time{Settings::values.custom_rtc.GetValue()->count() +
+                const s64 posix_time{Settings::values.custom_rtc->count() +
                                      Service::Time::TimeManager::GetExternalTimeZoneOffset()};
                 system.GetTimeManager().UpdateLocalSystemClockTime(posix_time);
             }
         } else {
-            Settings::values.custom_rtc.SetValue(std::nullopt);
+            Settings::values.custom_rtc = std::nullopt;
         }
     }
 
@@ -163,26 +162,6 @@ void ConfigureSystem::ApplyConfiguration() {
         case ConfigurationShared::CheckState::Count:
             break;
         }
-
-        switch (use_custom_rtc) {
-        case ConfigurationShared::CheckState::On:
-        case ConfigurationShared::CheckState::Off:
-            Settings::values.custom_rtc.SetGlobal(false);
-            if (ui->custom_rtc_checkbox->isChecked()) {
-                Settings::values.custom_rtc.SetValue(
-                    std::chrono::seconds(ui->custom_rtc_edit->dateTime().toSecsSinceEpoch()));
-            } else {
-                Settings::values.custom_rtc.SetValue(std::nullopt);
-            }
-            break;
-        case ConfigurationShared::CheckState::Global:
-            Settings::values.custom_rtc.SetGlobal(false);
-            Settings::values.custom_rtc.SetValue(std::nullopt);
-            Settings::values.custom_rtc.SetGlobal(true);
-            break;
-        case ConfigurationShared::CheckState::Count:
-            break;
-        }
     }
 
     system.ApplySettings();
@@ -213,8 +192,6 @@ void ConfigureSystem::SetupPerGameUI() {
         ui->combo_sound->setEnabled(Settings::values.sound_index.UsingGlobal());
         ui->rng_seed_checkbox->setEnabled(Settings::values.rng_seed.UsingGlobal());
         ui->rng_seed_edit->setEnabled(Settings::values.rng_seed.UsingGlobal());
-        ui->custom_rtc_checkbox->setEnabled(Settings::values.custom_rtc.UsingGlobal());
-        ui->custom_rtc_edit->setEnabled(Settings::values.custom_rtc.UsingGlobal());
 
         return;
     }
@@ -232,8 +209,7 @@ void ConfigureSystem::SetupPerGameUI() {
         ui->rng_seed_checkbox, Settings::values.rng_seed.UsingGlobal(),
         Settings::values.rng_seed.GetValue().has_value(),
         Settings::values.rng_seed.GetValue(true).has_value(), use_rng_seed);
-    ConfigurationShared::SetColoredTristate(
-        ui->custom_rtc_checkbox, Settings::values.custom_rtc.UsingGlobal(),
-        Settings::values.custom_rtc.GetValue().has_value(),
-        Settings::values.custom_rtc.GetValue(true).has_value(), use_custom_rtc);
+
+    ui->custom_rtc_checkbox->setVisible(false);
+    ui->custom_rtc_edit->setVisible(false);
 }

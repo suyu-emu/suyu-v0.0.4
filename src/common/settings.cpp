@@ -136,7 +136,6 @@ void RestoreGlobalState(bool is_powered_on) {
     values.region_index.SetGlobal(true);
     values.time_zone_index.SetGlobal(true);
     values.rng_seed.SetGlobal(true);
-    values.custom_rtc.SetGlobal(true);
     values.sound_index.SetGlobal(true);
 
     // Controls
