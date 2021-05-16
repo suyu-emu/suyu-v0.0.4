@@ -86,10 +86,8 @@ public:
 
         // The entire size of the raw data section in u32 units, including the 16 bytes of mandatory
         // padding.
-        u32 raw_data_size = ctx.IsTipc()
-                                ? normal_params_size - 1
-                                : sizeof(IPC::DataPayloadHeader) / 4 + 4 + normal_params_size;
-
+        u32 raw_data_size = ctx.write_size =
+            ctx.IsTipc() ? normal_params_size - 1 : normal_params_size;
         u32 num_handles_to_move{};
         u32 num_domain_objects{};
         const bool always_move_handles{
@@ -101,16 +99,20 @@ public:
         }
 
         if (ctx.Session()->IsDomain()) {
-            raw_data_size += static_cast<u32>(sizeof(DomainMessageHeader) / 4 + num_domain_objects);
+            raw_data_size +=
+                static_cast<u32>(sizeof(DomainMessageHeader) / sizeof(u32) + num_domain_objects);
+            ctx.write_size += num_domain_objects;
         }
 
         if (ctx.IsTipc()) {
             header.type.Assign(ctx.GetCommandType());
+        } else {
+            raw_data_size += static_cast<u32>(sizeof(IPC::DataPayloadHeader) / sizeof(u32) + 4 +
+                                              normal_params_size);
         }
 
-        ctx.data_size = static_cast<u32>(raw_data_size);
-        header.data_size.Assign(static_cast<u32>(raw_data_size));
-        if (num_handles_to_copy != 0 || num_handles_to_move != 0) {
+        header.data_size.Assign(raw_data_size);
+        if (num_handles_to_copy || num_handles_to_move) {
             header.enable_handle_descriptor.Assign(1);
         }
         PushRaw(header);
@@ -143,7 +145,8 @@ public:
         data_payload_index = index;
 
         ctx.data_payload_offset = index;
-        ctx.domain_offset = index + raw_data_size / 4;
+        ctx.write_size += index;
+        ctx.domain_offset = static_cast<u32>(index + raw_data_size / sizeof(u32));
     }
 
     template <class T>
@@ -404,7 +407,7 @@ public:
     std::shared_ptr<T> PopIpcInterface() {
         ASSERT(context->Session()->IsDomain());
         ASSERT(context->GetDomainMessageHeader().input_object_count > 0);
-        return context->GetDomainRequestHandler<T>(Pop<u32>() - 1);
+        return context->GetDomainHandler<T>(Pop<u32>() - 1);
     }
 };
 

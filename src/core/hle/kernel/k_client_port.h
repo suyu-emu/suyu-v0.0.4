@@ -31,6 +31,9 @@ public:
     const KPort* GetParent() const {
         return parent;
     }
+    KPort* GetParent() {
+        return parent;
+    }
 
     s32 GetNumSessions() const {
         return num_sessions;

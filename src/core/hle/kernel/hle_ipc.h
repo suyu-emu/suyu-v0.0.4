@@ -12,6 +12,8 @@
 #include <type_traits>
 #include <vector>
 #include <boost/container/small_vector.hpp>
+
+#include "common/assert.h"
 #include "common/common_types.h"
 #include "common/concepts.h"
 #include "common/swap.h"
@@ -82,6 +84,69 @@ public:
      * @param server_session ServerSession associated with the connection.
      */
     void ClientDisconnected(KServerSession* session);
+};
+
+using SessionRequestHandlerPtr = std::shared_ptr<SessionRequestHandler>;
+
+/**
+ * Manages the underlying HLE requests for a session, and whether (or not) the session should be
+ * treated as a domain. This is managed separately from server sessions, as this state is shared
+ * when objects are cloned.
+ */
+class SessionRequestManager final {
+public:
+    SessionRequestManager() = default;
+
+    bool IsDomain() const {
+        return is_domain;
+    }
+
+    void ConvertToDomain() {
+        domain_handlers = {session_handler};
+        is_domain = true;
+    }
+
+    std::size_t DomainHandlerCount() const {
+        return domain_handlers.size();
+    }
+
+    bool HasSessionHandler() const {
+        return session_handler != nullptr;
+    }
+
+    SessionRequestHandler& SessionHandler() {
+        return *session_handler;
+    }
+
+    const SessionRequestHandler& SessionHandler() const {
+        return *session_handler;
+    }
+
+    void CloseDomainHandler(std::size_t index) {
+        if (index < DomainHandlerCount()) {
+            domain_handlers[index] = nullptr;
+        } else {
+            UNREACHABLE_MSG("Unexpected handler index {}", index);
+        }
+    }
+
+    SessionRequestHandlerPtr DomainHandler(std::size_t index) const {
+        ASSERT_MSG(index < DomainHandlerCount(), "Unexpected handler index {}", index);
+        return domain_handlers.at(index);
+    }
+
+    void AppendDomainHandler(SessionRequestHandlerPtr&& handler) {
+        domain_handlers.emplace_back(std::move(handler));
+    }
+
+    void SetSessionHandler(SessionRequestHandlerPtr&& handler) {
+        session_handler = std::move(handler);
+    }
+
+private:
+    bool is_domain{};
+    SessionRequestHandlerPtr session_handler;
+    std::vector<SessionRequestHandlerPtr> domain_handlers;
 };
 
 /**
@@ -239,18 +304,17 @@ public:
         copy_objects.emplace_back(object);
     }
 
-    void AddDomainObject(std::shared_ptr<SessionRequestHandler> object) {
+    void AddDomainObject(SessionRequestHandlerPtr object) {
         domain_objects.emplace_back(std::move(object));
     }
 
     template <typename T>
-    std::shared_ptr<T> GetDomainRequestHandler(std::size_t index) const {
-        return std::static_pointer_cast<T>(domain_request_handlers.at(index));
+    std::shared_ptr<T> GetDomainHandler(std::size_t index) const {
+        return std::static_pointer_cast<T>(manager->DomainHandler(index));
     }
 
-    void SetDomainRequestHandlers(
-        const std::vector<std::shared_ptr<SessionRequestHandler>>& handlers) {
-        domain_request_handlers = handlers;
+    void SetSessionRequestManager(std::shared_ptr<SessionRequestManager> manager_) {
+        manager = std::move(manager_);
     }
 
     /// Clears the list of objects so that no lingering objects are written accidentally to the
@@ -297,7 +361,7 @@ private:
     boost::container::small_vector<Handle, 8> copy_handles;
     boost::container::small_vector<KAutoObject*, 8> move_objects;
     boost::container::small_vector<KAutoObject*, 8> copy_objects;
-    boost::container::small_vector<std::shared_ptr<SessionRequestHandler>, 8> domain_objects;
+    boost::container::small_vector<SessionRequestHandlerPtr, 8> domain_objects;
 
     std::optional<IPC::CommandHeader> command_header;
     std::optional<IPC::HandleDescriptorHeader> handle_descriptor_header;
@@ -311,12 +375,12 @@ private:
 
     u32_le command{};
     u64 pid{};
+    u32 write_size{};
     u32 data_payload_offset{};
     u32 handles_offset{};
     u32 domain_offset{};
-    u32 data_size{};
 
-    std::vector<std::shared_ptr<SessionRequestHandler>> domain_request_handlers;
+    std::shared_ptr<SessionRequestManager> manager;
     bool is_thread_waiting{};
 
     KernelCore& kernel;

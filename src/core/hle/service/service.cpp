@@ -107,7 +107,7 @@ void ServiceFrameworkBase::InstallAsService(SM::ServiceManager& service_manager)
     ASSERT(!port_installed);
 
     auto port = service_manager.RegisterService(service_name, max_sessions).Unwrap();
-    port->SetHleHandler(shared_from_this());
+    port->SetSessionHandler(shared_from_this());
     port_installed = true;
 }
 
@@ -118,7 +118,7 @@ Kernel::KClientPort& ServiceFrameworkBase::CreatePort(Kernel::KernelCore& kernel
 
     auto* port = Kernel::KPort::Create(kernel);
     port->Initialize(max_sessions, false, service_name);
-    port->GetServerPort().SetHleHandler(shared_from_this());
+    port->GetServerPort().SetSessionHandler(shared_from_this());
 
     port_installed = true;
 
