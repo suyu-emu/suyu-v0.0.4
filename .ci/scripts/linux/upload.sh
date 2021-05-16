@@ -21,7 +21,7 @@ cp build/bin/yuzu "$DIR_NAME"
 # Build an AppImage
 cd build
 
-wget -nc https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+wget -nc https://github.com/yuzu-emu/ext-linux-bin/raw/main/appimage/appimagetool-x86_64.AppImage
 chmod 755 appimagetool-x86_64.AppImage
 
 if [ "${RELEASE_NAME}" = "mainline" ]; then
