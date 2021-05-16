@@ -819,10 +819,10 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, Handle
             return RESULT_SUCCESS;
         }
 
-        Handle handle{};
-        R_TRY(handle_table.Add(&handle, resource_limit));
+        Handle resource_handle{};
+        R_TRY(handle_table.Add(&resource_handle, resource_limit));
 
-        *result = handle;
+        *result = resource_handle;
         return RESULT_SUCCESS;
     }
 

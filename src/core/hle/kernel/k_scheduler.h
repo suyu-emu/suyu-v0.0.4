@@ -30,7 +30,7 @@ class KThread;
 
 class KScheduler final {
 public:
-    explicit KScheduler(Core::System& system, s32 core_id);
+    explicit KScheduler(Core::System& system_, s32 core_id_);
     ~KScheduler();
 
     /// Reschedules to the next available thread (call after current thread is suspended)

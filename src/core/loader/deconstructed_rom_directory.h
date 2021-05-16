@@ -24,11 +24,11 @@ namespace Loader {
 class AppLoader_DeconstructedRomDirectory final : public AppLoader {
 public:
     explicit AppLoader_DeconstructedRomDirectory(FileSys::VirtualFile main_file,
-                                                 bool override_update = false);
+                                                 bool override_update_ = false);
 
     // Overload to accept exefs directory. Must contain 'main' and 'main.npdm'
     explicit AppLoader_DeconstructedRomDirectory(FileSys::VirtualDir directory,
-                                                 bool override_update = false);
+                                                 bool override_update_ = false);
 
     /**
      * Identifies whether or not the given file is a deconstructed ROM directory.

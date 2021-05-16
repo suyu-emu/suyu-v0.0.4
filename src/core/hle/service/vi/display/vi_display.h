@@ -32,14 +32,14 @@ public:
     /// Constructs a display with a given unique ID and name.
     ///
     /// @param id   The unique ID for this display.
-    /// @param name The name for this display.
+    /// @param name_ The name for this display.
     ///
-    Display(u64 id, std::string name, Core::System& system);
+    Display(u64 id, std::string name_, Core::System& system);
     ~Display();
 
     /// Gets the unique ID assigned to this display.
     u64 GetID() const {
-        return id;
+        return display_id;
     }
 
     /// Gets the name of this display
@@ -96,7 +96,7 @@ public:
     const Layer* FindLayer(u64 layer_id) const;
 
 private:
-    u64 id;
+    u64 display_id;
     std::string name;
 
     std::vector<std::shared_ptr<Layer>> layers;

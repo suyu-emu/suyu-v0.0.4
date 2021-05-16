@@ -31,8 +31,8 @@ std::optional<Kernel::KProcess*> SearchProcessList(
 
 void GetApplicationPidGeneric(Kernel::HLERequestContext& ctx,
                               const std::vector<Kernel::KProcess*>& process_list) {
-    const auto process = SearchProcessList(process_list, [](const auto& process) {
-        return process->GetProcessID() == Kernel::KProcess::ProcessIDMin;
+    const auto process = SearchProcessList(process_list, [](const auto& proc) {
+        return proc->GetProcessID() == Kernel::KProcess::ProcessIDMin;
     });
 
     IPC::ResponseBuilder rb{ctx, 4};
@@ -100,8 +100,8 @@ private:
         LOG_DEBUG(Service_PM, "called, title_id={:016X}", title_id);
 
         const auto process =
-            SearchProcessList(kernel.GetProcessList(), [title_id](const auto& process) {
-                return process->GetTitleID() == title_id;
+            SearchProcessList(kernel.GetProcessList(), [title_id](const auto& proc) {
+                return proc->GetTitleID() == title_id;
             });
 
         if (!process.has_value()) {
@@ -140,8 +140,8 @@ private:
 
         LOG_DEBUG(Service_PM, "called, process_id={:016X}", process_id);
 
-        const auto process = SearchProcessList(process_list, [process_id](const auto& process) {
-            return process->GetProcessID() == process_id;
+        const auto process = SearchProcessList(process_list, [process_id](const auto& proc) {
+            return proc->GetProcessID() == process_id;
         });
 
         if (!process.has_value()) {

@@ -19,7 +19,7 @@ public:
     using const_iterator = MemoryBlockTree::const_iterator;
 
 public:
-    KMemoryBlockManager(VAddr start_addr, VAddr end_addr);
+    KMemoryBlockManager(VAddr start_addr_, VAddr end_addr_);
 
     iterator end() {
         return memory_block_tree.end();

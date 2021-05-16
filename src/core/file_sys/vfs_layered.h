@@ -13,7 +13,7 @@ namespace FileSys {
 // one and falling back to the one after. The highest priority directory (overwrites all others)
 // should be element 0 in the dirs vector.
 class LayeredVfsDirectory : public VfsDirectory {
-    LayeredVfsDirectory(std::vector<VirtualDir> dirs, std::string name);
+    explicit LayeredVfsDirectory(std::vector<VirtualDir> dirs_, std::string name_);
 
 public:
     ~LayeredVfsDirectory() override;

@@ -75,8 +75,8 @@ std::shared_ptr<ArrayVfsFile<Size>> MakeArrayFile(const std::array<u8, Size>& da
 // An implementation of VfsFile that is backed by a vector optionally supplied upon construction
 class VectorVfsFile : public VfsFile {
 public:
-    explicit VectorVfsFile(std::vector<u8> initial_data = {}, std::string name = "",
-                           VirtualDir parent = nullptr);
+    explicit VectorVfsFile(std::vector<u8> initial_data = {}, std::string name_ = "",
+                           VirtualDir parent_ = nullptr);
     ~VectorVfsFile() override;
 
     std::string GetName() const override;

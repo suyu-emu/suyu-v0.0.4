@@ -10,8 +10,8 @@
 namespace Core::Crypto {
 
 CTREncryptionLayer::CTREncryptionLayer(FileSys::VirtualFile base_, Key128 key_,
-                                       std::size_t base_offset)
-    : EncryptionLayer(std::move(base_)), base_offset(base_offset), cipher(key_, Mode::CTR) {}
+                                       std::size_t base_offset_)
+    : EncryptionLayer(std::move(base_)), base_offset(base_offset_), cipher(key_, Mode::CTR) {}
 
 std::size_t CTREncryptionLayer::Read(u8* data, std::size_t length, std::size_t offset) const {
     if (length == 0)

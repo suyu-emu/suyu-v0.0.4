@@ -26,7 +26,7 @@ public:
 private:
     class Device : public Input::TouchDevice {
     public:
-        explicit Device(std::weak_ptr<TouchState>&& touch_state) : touch_state(touch_state) {}
+        explicit Device(std::weak_ptr<TouchState>&& touch_state_) : touch_state(touch_state_) {}
         Input::TouchStatus GetStatus() const override {
             if (auto state = touch_state.lock()) {
                 std::lock_guard guard{state->mutex};

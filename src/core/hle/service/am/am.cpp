@@ -833,7 +833,7 @@ IStorageImpl::~IStorageImpl() = default;
 
 class StorageDataImpl final : public IStorageImpl {
 public:
-    explicit StorageDataImpl(std::vector<u8>&& buffer) : buffer{std::move(buffer)} {}
+    explicit StorageDataImpl(std::vector<u8>&& buffer_) : buffer{std::move(buffer_)} {}
 
     std::vector<u8>& GetData() override {
         return buffer;
@@ -1513,9 +1513,9 @@ void IApplicationFunctions::GetDisplayVersion(Kernel::HLERequestContext& ctx) {
 
         const FileSys::PatchManager pm{title_id, system.GetFileSystemController(),
                                        system.GetContentProvider()};
-        auto res = pm.GetControlMetadata();
-        if (res.first != nullptr) {
-            return res;
+        auto metadata = pm.GetControlMetadata();
+        if (metadata.first != nullptr) {
+            return metadata;
         }
 
         const FileSys::PatchManager pm_update{FileSys::GetUpdateTitleID(title_id),
@@ -1550,9 +1550,9 @@ void IApplicationFunctions::GetDesiredLanguage(Kernel::HLERequestContext& ctx) {
 
         const FileSys::PatchManager pm{title_id, system.GetFileSystemController(),
                                        system.GetContentProvider()};
-        auto res = pm.GetControlMetadata();
-        if (res.first != nullptr) {
-            return res;
+        auto metadata = pm.GetControlMetadata();
+        if (metadata.first != nullptr) {
+            return metadata;
         }
 
         const FileSys::PatchManager pm_update{FileSys::GetUpdateTitleID(title_id),

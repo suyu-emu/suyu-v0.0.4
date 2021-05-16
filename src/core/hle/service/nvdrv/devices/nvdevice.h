@@ -21,7 +21,7 @@ namespace Service::Nvidia::Devices {
 /// implement the ioctl interface.
 class nvdevice {
 public:
-    explicit nvdevice(Core::System& system) : system{system} {}
+    explicit nvdevice(Core::System& system_) : system{system_} {}
     virtual ~nvdevice() = default;
 
     /**

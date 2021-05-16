@@ -3,9 +3,18 @@
 // Refer to the license.txt file included.
 
 #include <fmt/ostream.h>
+
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#endif
 #include <httplib.h>
 #include <mbedtls/sha256.h>
 #include <nlohmann/json.hpp>
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+
 #include "common/hex_util.h"
 #include "common/logging/backend.h"
 #include "common/logging/log.h"
@@ -178,8 +187,8 @@ bool VfsRawCopyDProgress(FileSys::VirtualDir src, FileSys::VirtualDir dest,
 
 class Boxcat::Client {
 public:
-    Client(std::string path, u64 title_id, u64 build_id)
-        : path(std::move(path)), title_id(title_id), build_id(build_id) {}
+    Client(std::string path_, u64 title_id_, u64 build_id_)
+        : path(std::move(path_)), title_id(title_id_), build_id(build_id_) {}
 
     DownloadResult DownloadDataZip() {
         return DownloadInternal(fmt::format(BOXCAT_PATHNAME_DATA, title_id), TIMEOUT_SECONDS,

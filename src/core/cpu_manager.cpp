@@ -18,7 +18,7 @@
 
 namespace Core {
 
-CpuManager::CpuManager(System& system) : system{system} {}
+CpuManager::CpuManager(System& system_) : system{system_} {}
 CpuManager::~CpuManager() = default;
 
 void CpuManager::ThreadStart(CpuManager& cpu_manager, std::size_t core) {

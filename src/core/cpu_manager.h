@@ -25,7 +25,7 @@ class System;
 
 class CpuManager {
 public:
-    explicit CpuManager(System& system);
+    explicit CpuManager(System& system_);
     CpuManager(const CpuManager&) = delete;
     CpuManager(CpuManager&&) = delete;
 

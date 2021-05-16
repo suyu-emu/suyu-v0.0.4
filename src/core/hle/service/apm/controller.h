@@ -50,7 +50,7 @@ enum class PerformanceMode : u8 {
 // system during times of high load -- this simply maps to different PerformanceConfigs to use.
 class Controller {
 public:
-    explicit Controller(Core::Timing::CoreTiming& core_timing);
+    explicit Controller(Core::Timing::CoreTiming& core_timing_);
     ~Controller();
 
     void SetPerformanceConfiguration(PerformanceMode mode, PerformanceConfiguration config);

@@ -607,7 +607,7 @@ void KScheduler::YieldToAnyThread(KernelCore& kernel) {
     }
 }
 
-KScheduler::KScheduler(Core::System& system, s32 core_id) : system(system), core_id(core_id) {
+KScheduler::KScheduler(Core::System& system_, s32 core_id_) : system{system_}, core_id{core_id_} {
     switch_fiber = std::make_shared<Common::Fiber>(OnSwitch, this);
     state.needs_scheduling.store(true);
     state.interrupt_task_thread_runnable = false;

@@ -13,8 +13,8 @@
 
 namespace Service::NVFlinger {
 
-BufferQueue::BufferQueue(Kernel::KernelCore& kernel, u32 id, u64 layer_id)
-    : id(id), layer_id(layer_id), buffer_wait_event{kernel} {
+BufferQueue::BufferQueue(Kernel::KernelCore& kernel, u32 id_, u64 layer_id_)
+    : id(id_), layer_id(layer_id_), buffer_wait_event{kernel} {
     Kernel::KAutoObject::Create(std::addressof(buffer_wait_event));
     buffer_wait_event.Initialize("BufferQueue:WaitEvent");
 }

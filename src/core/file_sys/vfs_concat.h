@@ -14,8 +14,8 @@ namespace FileSys {
 // Class that wraps multiple vfs files and concatenates them, making reads seamless. Currently
 // read-only.
 class ConcatenatedVfsFile : public VfsFile {
-    ConcatenatedVfsFile(std::vector<VirtualFile> files, std::string name);
-    ConcatenatedVfsFile(std::multimap<u64, VirtualFile> files, std::string name);
+    explicit ConcatenatedVfsFile(std::vector<VirtualFile> files, std::string name_);
+    explicit ConcatenatedVfsFile(std::multimap<u64, VirtualFile> files, std::string name_);
 
 public:
     ~ConcatenatedVfsFile() override;

@@ -27,7 +27,7 @@ using Vector = Dynarmic::A64::Vector;
 
 class DynarmicCallbacks64 : public Dynarmic::A64::UserCallbacks {
 public:
-    explicit DynarmicCallbacks64(ARM_Dynarmic_64& parent) : parent(parent) {}
+    explicit DynarmicCallbacks64(ARM_Dynarmic_64& parent_) : parent{parent_} {}
 
     u8 MemoryRead8(u64 vaddr) override {
         return parent.system.Memory().Read8(vaddr);

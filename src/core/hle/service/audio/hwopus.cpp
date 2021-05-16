@@ -50,8 +50,8 @@ public:
         Enabled,
     };
 
-    explicit OpusDecoderState(OpusDecoderPtr decoder, u32 sample_rate, u32 channel_count)
-        : decoder{std::move(decoder)}, sample_rate{sample_rate}, channel_count{channel_count} {}
+    explicit OpusDecoderState(OpusDecoderPtr decoder_, u32 sample_rate_, u32 channel_count_)
+        : decoder{std::move(decoder_)}, sample_rate{sample_rate_}, channel_count{channel_count_} {}
 
     // Decodes interleaved Opus packets. Optionally allows reporting time taken to
     // perform the decoding, as well as any relevant extra behavior.
@@ -160,9 +160,9 @@ private:
 
 class IHardwareOpusDecoderManager final : public ServiceFramework<IHardwareOpusDecoderManager> {
 public:
-    explicit IHardwareOpusDecoderManager(Core::System& system_, OpusDecoderState decoder_state)
+    explicit IHardwareOpusDecoderManager(Core::System& system_, OpusDecoderState decoder_state_)
         : ServiceFramework{system_, "IHardwareOpusDecoderManager"}, decoder_state{
-                                                                        std::move(decoder_state)} {
+                                                                        std::move(decoder_state_)} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IHardwareOpusDecoderManager::DecodeInterleavedOld, "DecodeInterleavedOld"},

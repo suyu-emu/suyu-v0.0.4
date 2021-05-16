@@ -15,7 +15,7 @@ namespace Service::Time {
 
 static constexpr std::size_t SHARED_MEMORY_SIZE{0x1000};
 
-SharedMemory::SharedMemory(Core::System& system) : system(system) {
+SharedMemory::SharedMemory(Core::System& system_) : system(system_) {
     std::memset(system.Kernel().GetTimeSharedMem().GetPointer(), 0, SHARED_MEMORY_SIZE);
 }
 

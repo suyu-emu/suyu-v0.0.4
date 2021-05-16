@@ -14,7 +14,7 @@ namespace Service::Time {
 
 class SharedMemory final {
 public:
-    explicit SharedMemory(Core::System& system);
+    explicit SharedMemory(Core::System& system_);
     ~SharedMemory();
 
     // TODO(ogniK): We have to properly simulate memory barriers, how are we going to do this?

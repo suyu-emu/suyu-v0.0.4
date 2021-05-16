@@ -20,8 +20,8 @@
 
 namespace FileSys {
 
-NSP::NSP(VirtualFile file_, std::size_t program_index)
-    : file(std::move(file_)), program_index(program_index), status{Loader::ResultStatus::Success},
+NSP::NSP(VirtualFile file_, std::size_t program_index_)
+    : file(std::move(file_)), program_index(program_index_), status{Loader::ResultStatus::Success},
       pfs(std::make_shared<PartitionFilesystem>(file)), keys{Core::Crypto::KeyManager::Instance()} {
     if (pfs->GetStatus() != Loader::ResultStatus::Success) {
         status = pfs->GetStatus();

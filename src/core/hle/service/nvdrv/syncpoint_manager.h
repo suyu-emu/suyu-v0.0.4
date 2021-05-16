@@ -18,7 +18,7 @@ namespace Service::Nvidia {
 
 class SyncpointManager final {
 public:
-    explicit SyncpointManager(Tegra::GPU& gpu);
+    explicit SyncpointManager(Tegra::GPU& gpu_);
     ~SyncpointManager();
 
     /**

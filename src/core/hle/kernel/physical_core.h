@@ -28,8 +28,8 @@ namespace Kernel {
 
 class PhysicalCore {
 public:
-    PhysicalCore(std::size_t core_index, Core::System& system, Kernel::KScheduler& scheduler,
-                 Core::CPUInterrupts& interrupts);
+    PhysicalCore(std::size_t core_index_, Core::System& system_, KScheduler& scheduler_,
+                 Core::CPUInterrupts& interrupts_);
     ~PhysicalCore();
 
     PhysicalCore(const PhysicalCore&) = delete;

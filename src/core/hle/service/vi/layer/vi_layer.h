@@ -31,7 +31,7 @@ public:
 
     /// Gets the ID for this layer.
     u64 GetID() const {
-        return id;
+        return layer_id;
     }
 
     /// Gets a reference to the buffer queue this layer is using.
@@ -45,7 +45,7 @@ public:
     }
 
 private:
-    u64 id;
+    u64 layer_id;
     NVFlinger::BufferQueue& buffer_queue;
 };
 

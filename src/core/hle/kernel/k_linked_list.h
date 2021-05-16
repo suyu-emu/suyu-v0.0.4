@@ -201,10 +201,10 @@ public:
     }
 
     iterator insert(const_iterator pos, reference ref) {
-        KLinkedListNode* node = KLinkedListNode::Allocate(kernel);
-        ASSERT(node != nullptr);
-        node->Initialize(std::addressof(ref));
-        return iterator(BaseList::insert(pos.m_base_it, *node));
+        KLinkedListNode* new_node = KLinkedListNode::Allocate(kernel);
+        ASSERT(new_node != nullptr);
+        new_node->Initialize(std::addressof(ref));
+        return iterator(BaseList::insert(pos.m_base_it, *new_node));
     }
 
     void push_back(reference ref) {

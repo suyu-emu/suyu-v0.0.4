@@ -458,7 +458,7 @@ static std::array<u8, size> operator^(const std::array<u8, size>& lhs,
                                       const std::array<u8, size>& rhs) {
     std::array<u8, size> out;
     std::transform(lhs.begin(), lhs.end(), rhs.begin(), out.begin(),
-                   [](u8 lhs, u8 rhs) { return u8(lhs ^ rhs); });
+                   [](u8 lhs_elem, u8 rhs_elem) { return u8(lhs_elem ^ rhs_elem); });
     return out;
 }
 

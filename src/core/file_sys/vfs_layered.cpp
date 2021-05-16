@@ -8,8 +8,8 @@
 
 namespace FileSys {
 
-LayeredVfsDirectory::LayeredVfsDirectory(std::vector<VirtualDir> dirs, std::string name)
-    : dirs(std::move(dirs)), name(std::move(name)) {}
+LayeredVfsDirectory::LayeredVfsDirectory(std::vector<VirtualDir> dirs_, std::string name_)
+    : dirs(std::move(dirs_)), name(std::move(name_)) {}
 
 LayeredVfsDirectory::~LayeredVfsDirectory() = default;
 

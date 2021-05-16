@@ -33,8 +33,8 @@ protected:
 public:
     explicit RequestHelperBase(u32* command_buffer) : cmdbuf(command_buffer) {}
 
-    explicit RequestHelperBase(Kernel::HLERequestContext& context)
-        : context(&context), cmdbuf(context.CommandBuffer()) {}
+    explicit RequestHelperBase(Kernel::HLERequestContext& ctx)
+        : context(&ctx), cmdbuf(ctx.CommandBuffer()) {}
 
     void Skip(u32 size_in_words, bool set_to_null) {
         if (set_to_null) {
@@ -71,12 +71,12 @@ public:
         AlwaysMoveHandles = 1,
     };
 
-    explicit ResponseBuilder(Kernel::HLERequestContext& ctx, u32 normal_params_size,
-                             u32 num_handles_to_copy = 0, u32 num_objects_to_move = 0,
+    explicit ResponseBuilder(Kernel::HLERequestContext& ctx, u32 normal_params_size_,
+                             u32 num_handles_to_copy_ = 0, u32 num_objects_to_move_ = 0,
                              Flags flags = Flags::None)
-        : RequestHelperBase(ctx), normal_params_size(normal_params_size),
-          num_handles_to_copy(num_handles_to_copy),
-          num_objects_to_move(num_objects_to_move), kernel{ctx.kernel} {
+        : RequestHelperBase(ctx), normal_params_size(normal_params_size_),
+          num_handles_to_copy(num_handles_to_copy_),
+          num_objects_to_move(num_objects_to_move_), kernel{ctx.kernel} {
 
         memset(cmdbuf, 0, sizeof(u32) * IPC::COMMAND_BUFFER_LENGTH);
 
@@ -110,14 +110,14 @@ public:
 
         ctx.data_size = static_cast<u32>(raw_data_size);
         header.data_size.Assign(static_cast<u32>(raw_data_size));
-        if (num_handles_to_copy || num_handles_to_move) {
+        if (num_handles_to_copy != 0 || num_handles_to_move != 0) {
             header.enable_handle_descriptor.Assign(1);
         }
         PushRaw(header);
 
         if (header.enable_handle_descriptor) {
             IPC::HandleDescriptorHeader handle_descriptor_header{};
-            handle_descriptor_header.num_handles_to_copy.Assign(num_handles_to_copy);
+            handle_descriptor_header.num_handles_to_copy.Assign(num_handles_to_copy_);
             handle_descriptor_header.num_handles_to_move.Assign(num_handles_to_move);
             PushRaw(handle_descriptor_header);
 

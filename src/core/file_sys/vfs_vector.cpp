@@ -7,8 +7,8 @@
 #include "core/file_sys/vfs_vector.h"
 
 namespace FileSys {
-VectorVfsFile::VectorVfsFile(std::vector<u8> initial_data, std::string name, VirtualDir parent)
-    : data(std::move(initial_data)), parent(std::move(parent)), name(std::move(name)) {}
+VectorVfsFile::VectorVfsFile(std::vector<u8> initial_data, std::string name_, VirtualDir parent_)
+    : data(std::move(initial_data)), parent(std::move(parent_)), name(std::move(name_)) {}
 
 VectorVfsFile::~VectorVfsFile() = default;
 

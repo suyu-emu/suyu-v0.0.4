@@ -23,7 +23,7 @@ constexpr f32 Square(s32 num) {
     return static_cast<f32>(num * num);
 }
 
-Controller_Gesture::Controller_Gesture(Core::System& system) : ControllerBase(system) {}
+Controller_Gesture::Controller_Gesture(Core::System& system_) : ControllerBase(system_) {}
 Controller_Gesture::~Controller_Gesture() = default;
 
 void Controller_Gesture::OnInit() {
@@ -211,15 +211,16 @@ void Controller_Gesture::UpdateExistingGesture(GestureProperties& gesture, Touch
     }
 }
 
-void Controller_Gesture::EndGesture(GestureProperties& gesture, GestureProperties& last_gesture,
-                                    TouchType& type, Attribute& attributes, f32 time_difference) {
+void Controller_Gesture::EndGesture(GestureProperties& gesture,
+                                    GestureProperties& last_gesture_props, TouchType& type,
+                                    Attribute& attributes, f32 time_difference) {
     const auto& last_entry =
         shared_memory.gesture_states[(shared_memory.header.last_entry_index + 16) % 17];
-    if (last_gesture.active_points != 0) {
+    if (last_gesture_props.active_points != 0) {
         switch (last_entry.type) {
         case TouchType::Touch:
             if (enable_press_and_tap) {
-                SetTapEvent(gesture, last_gesture, type, attributes);
+                SetTapEvent(gesture, last_gesture_props, type, attributes);
                 return;
             }
             type = TouchType::Cancel;
@@ -234,7 +235,7 @@ void Controller_Gesture::EndGesture(GestureProperties& gesture, GesturePropertie
             force_update = true;
             break;
         case TouchType::Pan:
-            EndPanEvent(gesture, last_gesture, type, time_difference);
+            EndPanEvent(gesture, last_gesture_props, type, time_difference);
             break;
         default:
             break;
@@ -246,10 +247,11 @@ void Controller_Gesture::EndGesture(GestureProperties& gesture, GesturePropertie
     }
 }
 
-void Controller_Gesture::SetTapEvent(GestureProperties& gesture, GestureProperties& last_gesture,
-                                     TouchType& type, Attribute& attributes) {
+void Controller_Gesture::SetTapEvent(GestureProperties& gesture,
+                                     GestureProperties& last_gesture_props, TouchType& type,
+                                     Attribute& attributes) {
     type = TouchType::Tap;
-    gesture = last_gesture;
+    gesture = last_gesture_props;
     force_update = true;
     f32 tap_time_difference =
         static_cast<f32>(last_update_timestamp - last_tap_timestamp) / (1000 * 1000 * 1000);
@@ -259,8 +261,9 @@ void Controller_Gesture::SetTapEvent(GestureProperties& gesture, GestureProperti
     }
 }
 
-void Controller_Gesture::UpdatePanEvent(GestureProperties& gesture, GestureProperties& last_gesture,
-                                        TouchType& type, f32 time_difference) {
+void Controller_Gesture::UpdatePanEvent(GestureProperties& gesture,
+                                        GestureProperties& last_gesture_props, TouchType& type,
+                                        f32 time_difference) {
     auto& cur_entry = shared_memory.gesture_states[shared_memory.header.last_entry_index];
     const auto& last_entry =
         shared_memory.gesture_states[(shared_memory.header.last_entry_index + 16) % 17];
@@ -272,13 +275,14 @@ void Controller_Gesture::UpdatePanEvent(GestureProperties& gesture, GesturePrope
     last_pan_time_difference = time_difference;
 
     // Promote to pinch type
-    if (std::abs(gesture.average_distance - last_gesture.average_distance) > pinch_threshold) {
+    if (std::abs(gesture.average_distance - last_gesture_props.average_distance) >
+        pinch_threshold) {
         type = TouchType::Pinch;
-        cur_entry.scale = gesture.average_distance / last_gesture.average_distance;
+        cur_entry.scale = gesture.average_distance / last_gesture_props.average_distance;
     }
 
-    const f32 angle_between_two_lines = std::atan((gesture.angle - last_gesture.angle) /
-                                                  (1 + (gesture.angle * last_gesture.angle)));
+    const f32 angle_between_two_lines = std::atan((gesture.angle - last_gesture_props.angle) /
+                                                  (1 + (gesture.angle * last_gesture_props.angle)));
     // Promote to rotate type
     if (std::abs(angle_between_two_lines) > angle_threshold) {
         type = TouchType::Rotate;
@@ -287,8 +291,9 @@ void Controller_Gesture::UpdatePanEvent(GestureProperties& gesture, GesturePrope
     }
 }
 
-void Controller_Gesture::EndPanEvent(GestureProperties& gesture, GestureProperties& last_gesture,
-                                     TouchType& type, f32 time_difference) {
+void Controller_Gesture::EndPanEvent(GestureProperties& gesture,
+                                     GestureProperties& last_gesture_props, TouchType& type,
+                                     f32 time_difference) {
     auto& cur_entry = shared_memory.gesture_states[shared_memory.header.last_entry_index];
     const auto& last_entry =
         shared_memory.gesture_states[(shared_memory.header.last_entry_index + 16) % 17];
@@ -301,7 +306,7 @@ void Controller_Gesture::EndPanEvent(GestureProperties& gesture, GestureProperti
 
     // Set swipe event with parameters
     if (curr_vel > swipe_threshold) {
-        SetSwipeEvent(gesture, last_gesture, type);
+        SetSwipeEvent(gesture, last_gesture_props, type);
         return;
     }
 
@@ -312,13 +317,13 @@ void Controller_Gesture::EndPanEvent(GestureProperties& gesture, GestureProperti
     force_update = true;
 }
 
-void Controller_Gesture::SetSwipeEvent(GestureProperties& gesture, GestureProperties& last_gesture,
-                                       TouchType& type) {
+void Controller_Gesture::SetSwipeEvent(GestureProperties& gesture,
+                                       GestureProperties& last_gesture_props, TouchType& type) {
     auto& cur_entry = shared_memory.gesture_states[shared_memory.header.last_entry_index];
     const auto& last_entry =
         shared_memory.gesture_states[(shared_memory.header.last_entry_index + 16) % 17];
     type = TouchType::Swipe;
-    gesture = last_gesture;
+    gesture = last_gesture_props;
     force_update = true;
     cur_entry.delta_x = last_entry.delta_x;
     cur_entry.delta_y = last_entry.delta_y;

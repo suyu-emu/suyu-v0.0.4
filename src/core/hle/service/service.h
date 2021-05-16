@@ -155,17 +155,17 @@ protected:
         /**
          * Constructs a FunctionInfo for a function.
          *
-         * @param expected_header request header in the command buffer which will trigger dispatch
+         * @param expected_header_ request header in the command buffer which will trigger dispatch
          *     to this handler
-         * @param handler_callback member function in this service which will be called to handle
+         * @param handler_callback_ member function in this service which will be called to handle
          *     the request
-         * @param name human-friendly name for the request. Used mostly for logging purposes.
+         * @param name_ human-friendly name for the request. Used mostly for logging purposes.
          */
-        FunctionInfo(u32 expected_header, HandlerFnP<Self> handler_callback, const char* name)
+        FunctionInfo(u32 expected_header_, HandlerFnP<Self> handler_callback_, const char* name_)
             : FunctionInfoBase{
-                  expected_header,
+                  expected_header_,
                   // Type-erase member function pointer by casting it down to the base class.
-                  static_cast<HandlerFnP<ServiceFrameworkBase>>(handler_callback), name} {}
+                  static_cast<HandlerFnP<ServiceFrameworkBase>>(handler_callback_), name_} {}
     };
 
     /**

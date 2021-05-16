@@ -17,7 +17,7 @@ class KPageLinkedList final {
 public:
     class Node final {
     public:
-        constexpr Node(u64 addr, std::size_t num_pages) : addr{addr}, num_pages{num_pages} {}
+        constexpr Node(u64 addr_, std::size_t num_pages_) : addr{addr_}, num_pages{num_pages_} {}
 
         constexpr u64 GetAddress() const {
             return addr;

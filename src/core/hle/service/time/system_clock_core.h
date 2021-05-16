@@ -21,7 +21,7 @@ class SystemClockContextUpdateCallback;
 
 class SystemClockCore {
 public:
-    explicit SystemClockCore(SteadyClockCore& steady_clock_core);
+    explicit SystemClockCore(SteadyClockCore& steady_clock_core_);
     virtual ~SystemClockCore();
 
     SteadyClockCore& GetSteadyClockCore() const {

@@ -17,8 +17,8 @@ namespace Kernel {
 
 class [[nodiscard]] KScopedSchedulerLockAndSleep {
 public:
-    explicit KScopedSchedulerLockAndSleep(KernelCore & kernel, KThread * t, s64 timeout)
-        : kernel(kernel), thread(t), timeout_tick(timeout) {
+    explicit KScopedSchedulerLockAndSleep(KernelCore & kernel_, KThread * t, s64 timeout)
+        : kernel(kernel_), thread(t), timeout_tick(timeout) {
         // Lock the scheduler.
         kernel.GlobalSchedulerContext().scheduler_lock.Lock();
     }

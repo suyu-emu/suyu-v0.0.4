@@ -12,8 +12,8 @@
 
 namespace Kernel {
 
-GlobalSchedulerContext::GlobalSchedulerContext(KernelCore& kernel)
-    : kernel{kernel}, scheduler_lock{kernel} {}
+GlobalSchedulerContext::GlobalSchedulerContext(KernelCore& kernel_)
+    : kernel{kernel_}, scheduler_lock{kernel_} {}
 
 GlobalSchedulerContext::~GlobalSchedulerContext() = default;
 

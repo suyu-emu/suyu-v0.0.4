@@ -34,7 +34,7 @@ class GlobalSchedulerContext final {
 public:
     using LockType = KAbstractSchedulerLock<KScheduler>;
 
-    explicit GlobalSchedulerContext(KernelCore& kernel);
+    explicit GlobalSchedulerContext(KernelCore& kernel_);
     ~GlobalSchedulerContext();
 
     /// Adds a new thread to the scheduler

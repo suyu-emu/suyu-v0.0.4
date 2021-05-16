@@ -10,8 +10,8 @@ namespace Service::Time::Clock {
 
 class StandardLocalSystemClockCore final : public SystemClockCore {
 public:
-    explicit StandardLocalSystemClockCore(SteadyClockCore& steady_clock_core)
-        : SystemClockCore{steady_clock_core} {}
+    explicit StandardLocalSystemClockCore(SteadyClockCore& steady_clock_core_)
+        : SystemClockCore{steady_clock_core_} {}
 };
 
 } // namespace Service::Time::Clock

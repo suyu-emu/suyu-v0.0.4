@@ -23,8 +23,8 @@ static bool VerifyConcatenationMapContinuity(const std::multimap<u64, VirtualFil
     return map.begin()->first == 0;
 }
 
-ConcatenatedVfsFile::ConcatenatedVfsFile(std::vector<VirtualFile> files_, std::string name)
-    : name(std::move(name)) {
+ConcatenatedVfsFile::ConcatenatedVfsFile(std::vector<VirtualFile> files_, std::string name_)
+    : name(std::move(name_)) {
     std::size_t next_offset = 0;
     for (const auto& file : files_) {
         files.emplace(next_offset, file);
@@ -32,8 +32,8 @@ ConcatenatedVfsFile::ConcatenatedVfsFile(std::vector<VirtualFile> files_, std::s
     }
 }
 
-ConcatenatedVfsFile::ConcatenatedVfsFile(std::multimap<u64, VirtualFile> files_, std::string name)
-    : files(std::move(files_)), name(std::move(name)) {
+ConcatenatedVfsFile::ConcatenatedVfsFile(std::multimap<u64, VirtualFile> files_, std::string name_)
+    : files(std::move(files_)), name(std::move(name_)) {
     ASSERT(VerifyConcatenationMapContinuity(files));
 }
 

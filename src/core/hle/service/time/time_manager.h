@@ -30,7 +30,7 @@ class NetworkSystemClockContextWriter;
 
 class TimeManager final {
 public:
-    explicit TimeManager(Core::System& system);
+    explicit TimeManager(Core::System& system_);
     ~TimeManager();
 
     void Initialize();
