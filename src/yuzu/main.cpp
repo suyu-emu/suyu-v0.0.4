@@ -241,14 +241,15 @@ GMainWindow::GMainWindow()
     ConnectMenuEvents();
     ConnectWidgetEvents();
 
+    const auto branch_name = std::string(Common::g_scm_branch);
+    const auto description = std::string(Common::g_scm_desc);
     const auto build_id = std::string(Common::g_build_id);
-    const auto fmt = std::string(Common::g_title_bar_format_idle);
-    const auto yuzu_build_version =
-        fmt::format(fmt.empty() ? "yuzu Development Build" : fmt, std::string{}, std::string{},
-                    std::string{}, std::string{}, std::string{}, build_id);
 
-    LOG_INFO(Frontend, "yuzu Version: {} | {}-{}", yuzu_build_version, Common::g_scm_branch,
-             Common::g_scm_desc);
+    const auto yuzu_build = fmt::format("yuzu Development Build | {}-{}", branch_name, description);
+    const auto override_build = fmt::format(std::string(Common::g_title_bar_format_idle), build_id);
+    const auto yuzu_build_version = override_build.empty() ? yuzu_build : override_build;
+
+    LOG_INFO(Frontend, "yuzu Version: {}", yuzu_build_version);
 #ifdef ARCHITECTURE_x86_64
     const auto& caps = Common::GetCPUCaps();
     std::string cpu_string = caps.cpu_string;
