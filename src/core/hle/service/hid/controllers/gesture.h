@@ -63,11 +63,11 @@ private:
     };
     static_assert(sizeof(Attribute) == 4, "Attribute is an invalid size");
 
-    struct Points {
+    struct Point {
         s32_le x;
         s32_le y;
     };
-    static_assert(sizeof(Points) == 8, "Points is an invalid size");
+    static_assert(sizeof(Point) == 8, "Point is an invalid size");
 
     struct GestureState {
         s64_le sampling_number;
@@ -85,7 +85,7 @@ private:
         f32 scale;
         f32 rotation_angle;
         s32_le point_count;
-        std::array<Points, 4> points;
+        std::array<Point, 4> points;
     };
     static_assert(sizeof(GestureState) == 0x68, "GestureState is an invalid size");
 
@@ -102,9 +102,9 @@ private:
     };
 
     struct GestureProperties {
-        std::array<Points, MAX_POINTS> points{};
+        std::array<Point, MAX_POINTS> points{};
         std::size_t active_points{};
-        Points mid_point{};
+        Point mid_point{};
         s64_le detection_count{};
         u64_le delta_time{};
         f32 average_distance{};
