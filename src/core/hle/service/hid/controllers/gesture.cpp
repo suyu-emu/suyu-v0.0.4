@@ -91,8 +91,7 @@ bool Controller_Gesture::ShouldUpdateGesture(const GestureProperties& gesture,
 
     // Update if coordinates change
     for (size_t id = 0; id < MAX_POINTS; id++) {
-        if (gesture.points[id].x != last_gesture.points[id].x ||
-            gesture.points[id].y != last_gesture.points[id].y) {
+        if (gesture.points[id] != last_gesture.points[id]) {
             return true;
         }
     }
@@ -179,8 +178,7 @@ void Controller_Gesture::UpdateExistingGesture(GestureProperties& gesture, Touch
 
     // Promote to pan type if touch moved
     for (size_t id = 0; id < MAX_POINTS; id++) {
-        if (gesture.points[id].x != last_gesture.points[id].x ||
-            gesture.points[id].y != last_gesture.points[id].y) {
+        if (gesture.points[id] != last_gesture.points[id]) {
             type = TouchType::Pan;
             break;
         }
@@ -192,10 +190,7 @@ void Controller_Gesture::UpdateExistingGesture(GestureProperties& gesture, Touch
         enable_press_and_tap = false;
         gesture.active_points = 0;
         gesture.mid_point = {};
-        for (size_t id = 0; id < MAX_POINTS; id++) {
-            gesture.points[id].x = 0;
-            gesture.points[id].y = 0;
-        }
+        gesture.points.fill({});
         return;
     }
 

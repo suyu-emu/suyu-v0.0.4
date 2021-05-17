@@ -64,8 +64,10 @@ private:
     static_assert(sizeof(Attribute) == 4, "Attribute is an invalid size");
 
     struct Point {
-        s32_le x;
-        s32_le y;
+        s32_le x{};
+        s32_le y{};
+
+        friend bool operator==(const Point&, const Point&) = default;
     };
     static_assert(sizeof(Point) == 8, "Point is an invalid size");
 
