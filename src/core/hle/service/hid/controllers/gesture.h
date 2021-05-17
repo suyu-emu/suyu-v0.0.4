@@ -63,13 +63,28 @@ private:
     };
     static_assert(sizeof(Attribute) == 4, "Attribute is an invalid size");
 
+    template <typename T>
     struct Point {
-        s32_le x{};
-        s32_le y{};
+        T x{};
+        T y{};
+
+        friend Point operator+(const Point& lhs, const Point& rhs) {
+            return {
+                .x = lhs.x + rhs.x,
+                .y = lhs.y + rhs.y,
+            };
+        }
+
+        friend Point operator-(const Point& lhs, const Point& rhs) {
+            return {
+                .x = lhs.x - rhs.x,
+                .y = lhs.y - rhs.y,
+            };
+        }
 
         friend bool operator==(const Point&, const Point&) = default;
     };
-    static_assert(sizeof(Point) == 8, "Point is an invalid size");
+    static_assert(sizeof(Point<s32_le>) == 8, "Point is an invalid size");
 
     struct GestureState {
         s64_le sampling_number;
@@ -77,16 +92,15 @@ private:
         s64_le detection_count;
         TouchType type;
         Direction direction;
-        Point pos;
-        s32_le delta_x;
-        s32_le delta_y;
+        Point<s32_le> pos;
+        Point<s32_le> delta;
         f32 vel_x;
         f32 vel_y;
         Attribute attributes;
         f32 scale;
         f32 rotation_angle;
         s32_le point_count;
-        std::array<Point, 4> points;
+        std::array<Point<s32_le>, 4> points;
     };
     static_assert(sizeof(GestureState) == 0x68, "GestureState is an invalid size");
 
@@ -97,15 +111,14 @@ private:
     static_assert(sizeof(SharedMemory) == 0x708, "SharedMemory is an invalid size");
 
     struct Finger {
-        f32 x{};
-        f32 y{};
+        Point<f32> pos{};
         bool pressed{};
     };
 
     struct GestureProperties {
-        std::array<Point, MAX_POINTS> points{};
+        std::array<Point<s32_le>, MAX_POINTS> points{};
         std::size_t active_points{};
-        Point mid_point{};
+        Point<s32_le> mid_point{};
         s64_le detection_count{};
         u64_le delta_time{};
         f32 average_distance{};
