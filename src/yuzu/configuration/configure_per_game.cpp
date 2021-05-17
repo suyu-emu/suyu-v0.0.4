@@ -6,9 +6,12 @@
 #include <memory>
 #include <utility>
 
+#include <QAbstractButton>
 #include <QCheckBox>
+#include <QDialogButtonBox>
 #include <QHeaderView>
 #include <QMenu>
+#include <QPushButton>
 #include <QStandardItemModel>
 #include <QString>
 #include <QTimer>
@@ -44,6 +47,12 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id)
     scene = new QGraphicsScene;
     ui->icon_view->setScene(scene);
 
+    if (Core::System::GetInstance().IsPoweredOn()) {
+        QPushButton* apply_button = ui->buttonBox->addButton(QDialogButtonBox::Apply);
+        connect(apply_button, &QAbstractButton::clicked, this,
+                &ConfigurePerGame::HandleApplyButtonClicked);
+    }
+
     LoadConfiguration();
 }
 
@@ -74,6 +83,11 @@ void ConfigurePerGame::changeEvent(QEvent* event) {
 
 void ConfigurePerGame::RetranslateUI() {
     ui->retranslateUi(this);
+}
+
+void ConfigurePerGame::HandleApplyButtonClicked() {
+    UISettings::values.configuration_applied = true;
+    ApplyConfiguration();
 }
 
 void ConfigurePerGame::LoadFromFile(FileSys::VirtualFile file) {

@@ -35,8 +35,9 @@ signals:
 
 private:
     void changeEvent(QEvent* event) override;
-
     void RetranslateUI();
+
+    void HandleApplyButtonClicked();
 
     void SetConfiguration();
     void UpdateVisibleTabs();
