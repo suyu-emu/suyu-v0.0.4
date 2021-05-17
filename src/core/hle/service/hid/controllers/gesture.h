@@ -180,10 +180,10 @@ private:
     std::unique_ptr<Input::TouchDevice> touch_mouse_device;
     std::unique_ptr<Input::TouchDevice> touch_udp_device;
     std::unique_ptr<Input::TouchDevice> touch_btn_device;
-    std::array<size_t, MAX_FINGERS> mouse_finger_id;
-    std::array<size_t, MAX_FINGERS> keyboard_finger_id;
-    std::array<size_t, MAX_FINGERS> udp_finger_id;
-    std::array<Finger, MAX_POINTS> fingers;
+    std::array<size_t, MAX_FINGERS> mouse_finger_id{};
+    std::array<size_t, MAX_FINGERS> keyboard_finger_id{};
+    std::array<size_t, MAX_FINGERS> udp_finger_id{};
+    std::array<Finger, MAX_POINTS> fingers{};
     GestureProperties last_gesture{};
     s64_le last_update_timestamp{};
     s64_le last_tap_timestamp{};
