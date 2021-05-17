@@ -23,7 +23,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <widget class="QLabel" name="label_2">
+         <widget class="QLabel" name="label_1">
           <property name="text">
            <string>Global Log Filter</string>
           </property>
@@ -66,7 +66,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="label_3">
+       <widget class="QLabel" name="label_2">
         <property name="font">
          <font>
           <italic>true</italic>
@@ -92,7 +92,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
-         <widget class="QLabel" name="label_4">
+         <widget class="QLabel" name="label_3">
           <property name="text">
            <string>Arguments String</string>
           </property>
@@ -155,7 +155,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="label_5">
+       <widget class="QLabel" name="label_4">
         <property name="font">
          <font>
           <italic>true</italic>
@@ -200,7 +200,7 @@
          </widget>
        </item>
       <item>
-        <widget class="QLabel" name="label_3">
+        <widget class="QLabel" name="label_5">
           <property name="font">
             <font>
               <italic>true</italic>
