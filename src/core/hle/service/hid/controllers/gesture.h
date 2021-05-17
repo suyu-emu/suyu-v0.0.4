@@ -77,8 +77,7 @@ private:
         s64_le detection_count;
         TouchType type;
         Direction direction;
-        s32_le x;
-        s32_le y;
+        Point pos;
         s32_le delta_x;
         s32_le delta_y;
         f32 vel_x;

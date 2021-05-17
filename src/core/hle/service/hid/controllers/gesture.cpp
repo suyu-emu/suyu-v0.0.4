@@ -145,8 +145,7 @@ void Controller_Gesture::UpdateGestureSharedMemory(u8* data, std::size_t size,
     cur_entry.detection_count = gesture.detection_count;
     cur_entry.type = type;
     cur_entry.attributes = attributes;
-    cur_entry.x = gesture.mid_point.x;
-    cur_entry.y = gesture.mid_point.y;
+    cur_entry.pos = gesture.mid_point;
     cur_entry.point_count = static_cast<s32>(gesture.active_points);
     for (size_t id = 0; id < MAX_POINTS; id++) {
         cur_entry.points[id].x = gesture.points[id].x;
@@ -262,8 +261,8 @@ void Controller_Gesture::UpdatePanEvent(GestureProperties& gesture,
     auto& cur_entry = shared_memory.gesture_states[shared_memory.header.last_entry_index];
     const auto& last_entry =
         shared_memory.gesture_states[(shared_memory.header.last_entry_index + 16) % 17];
-    cur_entry.delta_x = gesture.mid_point.x - last_entry.x;
-    cur_entry.delta_y = gesture.mid_point.y - last_entry.y;
+    cur_entry.delta_x = gesture.mid_point.x - last_entry.pos.x;
+    cur_entry.delta_y = gesture.mid_point.y - last_entry.pos.y;
 
     cur_entry.vel_x = static_cast<f32>(cur_entry.delta_x) / time_difference;
     cur_entry.vel_y = static_cast<f32>(cur_entry.delta_y) / time_difference;
