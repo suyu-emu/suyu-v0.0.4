@@ -52,7 +52,7 @@ public:
     }
 
     size_t GetSize() const {
-        return is_initialized ? size * PageSize : 0;
+        return is_initialized ? size : 0;
     }
 
 private:
