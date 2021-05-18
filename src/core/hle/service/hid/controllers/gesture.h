@@ -162,7 +162,11 @@ private:
                        TouchType& type);
 
     // Returns an unused finger id, if there is no fingers available std::nullopt is returned.
-    std::optional<size_t> GetUnusedFingerID() const;
+    [[nodiscard]] std::optional<size_t> GetUnusedFingerID() const;
+
+    // Retrieves the last gesture entry, as indicated by shared memory indices.
+    [[nodiscard]] GestureState& GetLastGestureEntry();
+    [[nodiscard]] const GestureState& GetLastGestureEntry() const;
 
     /**
      * If the touch is new it tries to assign a new finger id, if there is no fingers available no

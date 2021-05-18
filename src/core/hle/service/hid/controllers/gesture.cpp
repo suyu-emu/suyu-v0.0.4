@@ -154,8 +154,8 @@ void Controller_Gesture::UpdateGestureSharedMemory(u8* data, std::size_t size,
 
 void Controller_Gesture::NewGesture(GestureProperties& gesture, TouchType& type,
                                     Attribute& attributes) {
-    const auto& last_entry =
-        shared_memory.gesture_states[(shared_memory.header.last_entry_index + 16) % 17];
+    const auto& last_entry = GetLastGestureEntry();
+
     gesture.detection_count++;
     type = TouchType::Touch;
 
@@ -168,8 +168,7 @@ void Controller_Gesture::NewGesture(GestureProperties& gesture, TouchType& type,
 
 void Controller_Gesture::UpdateExistingGesture(GestureProperties& gesture, TouchType& type,
                                                f32 time_difference) {
-    const auto& last_entry =
-        shared_memory.gesture_states[(shared_memory.header.last_entry_index + 16) % 17];
+    const auto& last_entry = GetLastGestureEntry();
 
     // Promote to pan type if touch moved
     for (size_t id = 0; id < MAX_POINTS; id++) {
@@ -204,8 +203,8 @@ void Controller_Gesture::UpdateExistingGesture(GestureProperties& gesture, Touch
 void Controller_Gesture::EndGesture(GestureProperties& gesture,
                                     GestureProperties& last_gesture_props, TouchType& type,
                                     Attribute& attributes, f32 time_difference) {
-    const auto& last_entry =
-        shared_memory.gesture_states[(shared_memory.header.last_entry_index + 16) % 17];
+    const auto& last_entry = GetLastGestureEntry();
+
     if (last_gesture_props.active_points != 0) {
         switch (last_entry.type) {
         case TouchType::Touch:
@@ -255,10 +254,9 @@ void Controller_Gesture::UpdatePanEvent(GestureProperties& gesture,
                                         GestureProperties& last_gesture_props, TouchType& type,
                                         f32 time_difference) {
     auto& cur_entry = shared_memory.gesture_states[shared_memory.header.last_entry_index];
-    const auto& last_entry =
-        shared_memory.gesture_states[(shared_memory.header.last_entry_index + 16) % 17];
-    cur_entry.delta = gesture.mid_point - last_entry.pos;
+    const auto& last_entry = GetLastGestureEntry();
 
+    cur_entry.delta = gesture.mid_point - last_entry.pos;
     cur_entry.vel_x = static_cast<f32>(cur_entry.delta.x) / time_difference;
     cur_entry.vel_y = static_cast<f32>(cur_entry.delta.y) / time_difference;
     last_pan_time_difference = time_difference;
@@ -284,8 +282,7 @@ void Controller_Gesture::EndPanEvent(GestureProperties& gesture,
                                      GestureProperties& last_gesture_props, TouchType& type,
                                      f32 time_difference) {
     auto& cur_entry = shared_memory.gesture_states[shared_memory.header.last_entry_index];
-    const auto& last_entry =
-        shared_memory.gesture_states[(shared_memory.header.last_entry_index + 16) % 17];
+    const auto& last_entry = GetLastGestureEntry();
     cur_entry.vel_x =
         static_cast<f32>(last_entry.delta.x) / (last_pan_time_difference + time_difference);
     cur_entry.vel_y =
@@ -309,8 +306,8 @@ void Controller_Gesture::EndPanEvent(GestureProperties& gesture,
 void Controller_Gesture::SetSwipeEvent(GestureProperties& gesture,
                                        GestureProperties& last_gesture_props, TouchType& type) {
     auto& cur_entry = shared_memory.gesture_states[shared_memory.header.last_entry_index];
-    const auto& last_entry =
-        shared_memory.gesture_states[(shared_memory.header.last_entry_index + 16) % 17];
+    const auto& last_entry = GetLastGestureEntry();
+
     type = TouchType::Swipe;
     gesture = last_gesture_props;
     force_update = true;
@@ -351,6 +348,14 @@ std::optional<std::size_t> Controller_Gesture::GetUnusedFingerID() const {
         }
     }
     return std::nullopt;
+}
+
+Controller_Gesture::GestureState& Controller_Gesture::GetLastGestureEntry() {
+    return shared_memory.gesture_states[(shared_memory.header.last_entry_index + 16) % 17];
+}
+
+const Controller_Gesture::GestureState& Controller_Gesture::GetLastGestureEntry() const {
+    return shared_memory.gesture_states[(shared_memory.header.last_entry_index + 16) % 17];
 }
 
 std::size_t Controller_Gesture::UpdateTouchInputEvent(
