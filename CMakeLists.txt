@@ -17,7 +17,7 @@ CMAKE_DEPENDENT_OPTION(YUZU_ALLOW_SYSTEM_SDL2 "Try using system SDL2 before fall
 
 option(ENABLE_QT "Enable the Qt frontend" ON)
 option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" OFF)
-CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" ON "ENABLE_QT;MSVC" OFF)
+CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" MSVC "ENABLE_QT" OFF)
 
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 
@@ -240,6 +240,7 @@ yuzu_find_packages()
 
 # Qt5 requires that we find components, so it doesn't fit our pretty little find package function
 if(ENABLE_QT)
+    set(QT_VERSION 5.12)
     # We want to load the generated conan qt config so that we get the QT_ROOT var so that we can use the official
     # Qt5Config inside the root folder instead of the conan generated one.
     if(EXISTS ${CMAKE_BINARY_DIR}/qtConfig.cmake)
@@ -247,22 +248,40 @@ if(ENABLE_QT)
         list(APPEND CMAKE_MODULE_PATH "${CONAN_QT_ROOT_RELEASE}")
         list(APPEND CMAKE_PREFIX_PATH "${CONAN_QT_ROOT_RELEASE}")
     endif()
+
+    # Check for system Qt on Linux, fallback to bundled Qt
+    if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+        if (NOT YUZU_USE_BUNDLED_QT)
+            find_package(Qt5 ${QT_VERSION} COMPONENTS Widgets QUIET)
+            if (NOT Qt5_FOUND)
+                set(YUZU_USE_BUNDLED_QT ON CACHE BOOL "Download bundled Qt" FORCE)
+            endif()
+        endif()
+        if (YUZU_USE_BUNDLED_QT)
+            # Binary package currently does not support Qt webengine, so make sure it's disabled
+            set(YUZU_USE_QT_WEB_ENGINE OFF CACHE BOOL "Use Qt Webengine" FORCE)
+        endif()
+    endif()
+
     # Workaround for an issue where conan tries to build Qt from scratch instead of download prebuilt binaries
     set(QT_PREFIX_HINT)
+
     if(YUZU_USE_BUNDLED_QT)
         if ((MSVC_VERSION GREATER_EQUAL 1910 AND MSVC_VERSION LESS 1930) AND ARCHITECTURE_x86_64)
-            set(QT_VER qt-5.12.8-msvc2017_64)
+            set(QT_BUILD qt-5.12.8-msvc2017_64)
+        elseif ((${CMAKE_SYSTEM_NAME} STREQUAL "Linux") AND NOT MINGW AND ARCHITECTURE_x86_64)
+            set(QT_BUILD qt5_5_15_2)
         else()
             message(FATAL_ERROR "No bundled Qt binaries for your toolchain. Disable YUZU_USE_BUNDLED_QT and provide your own.")
         endif()
 
-        if (DEFINED QT_VER)
-            download_bundled_external("qt/" ${QT_VER} QT_PREFIX)
+        if (DEFINED QT_BUILD)
+            download_bundled_external("qt/" ${QT_BUILD} QT_PREFIX)
         endif()
 
         set(QT_PREFIX_HINT HINTS "${QT_PREFIX}")
     endif()
-    find_package(Qt5 5.9 COMPONENTS Widgets ${QT_PREFIX_HINT})
+    find_package(Qt5 ${QT_VERSION} REQUIRED COMPONENTS Widgets ${QT_PREFIX_HINT} NO_CMAKE_SYSTEM_PATH)
     if (YUZU_USE_QT_WEB_ENGINE)
         find_package(Qt5 COMPONENTS WebEngineCore WebEngineWidgets)
     endif()
@@ -271,6 +290,7 @@ if(ENABLE_QT)
         find_package(Qt5 REQUIRED COMPONENTS LinguistTools ${QT_PREFIX_HINT})
     endif()
 endif()
+
 # find SDL2 exports a bunch of variables that are needed, so its easier to do this outside of the yuzu_find_package
 if (ENABLE_SDL2)
     if (YUZU_USE_BUNDLED_SDL2)
@@ -379,7 +399,7 @@ if (CONAN_REQUIRED_LIBS)
     if(ENABLE_QT)
         list(APPEND CMAKE_MODULE_PATH "${CONAN_QT_ROOT_RELEASE}")
         list(APPEND CMAKE_PREFIX_PATH "${CONAN_QT_ROOT_RELEASE}")
-        find_package(Qt5 5.9 REQUIRED COMPONENTS Widgets)
+        find_package(Qt5 5.12 REQUIRED COMPONENTS Widgets)
         if (YUZU_USE_QT_WEB_ENGINE)
             find_package(Qt5 REQUIRED COMPONENTS WebEngineCore WebEngineWidgets)
         endif()
