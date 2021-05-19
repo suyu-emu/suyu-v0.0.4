@@ -80,8 +80,6 @@ public:
 
         memset(cmdbuf, 0, sizeof(u32) * IPC::COMMAND_BUFFER_LENGTH);
 
-        ctx.ClearIncomingObjects();
-
         IPC::CommandHeader header{};
 
         // The entire size of the raw data section in u32 units, including the 16 bytes of mandatory
@@ -168,24 +166,6 @@ public:
     template <class T, class... Args>
     void PushIpcInterface(Args&&... args) {
         PushIpcInterface<T>(std::make_shared<T>(std::forward<Args>(args)...));
-    }
-
-    void ValidateHeader() {
-        const std::size_t num_domain_objects = context->NumDomainObjects();
-        const std::size_t num_move_objects = context->NumMoveObjects();
-        ASSERT_MSG(!num_domain_objects || !num_move_objects,
-                   "cannot move normal handles and domain objects");
-        ASSERT_MSG((index - data_payload_index) == normal_params_size,
-                   "normal_params_size value is incorrect");
-        ASSERT_MSG((num_domain_objects + num_move_objects) == num_objects_to_move,
-                   "num_objects_to_move value is incorrect");
-        ASSERT_MSG(context->NumCopyObjects() == num_handles_to_copy,
-                   "num_handles_to_copy value is incorrect");
-    }
-
-    // Validate on destruction, as there shouldn't be any case where we don't want it
-    ~ResponseBuilder() {
-        ValidateHeader();
     }
 
     void PushImpl(s8 value);

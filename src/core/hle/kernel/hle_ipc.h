@@ -11,7 +11,6 @@
 #include <string>
 #include <type_traits>
 #include <vector>
-#include <boost/container/small_vector.hpp>
 
 #include "common/assert.h"
 #include "common/common_types.h"
@@ -289,23 +288,23 @@ public:
     bool CanWriteBuffer(std::size_t buffer_index = 0) const;
 
     Handle GetCopyHandle(std::size_t index) const {
-        return copy_handles.at(index);
+        return incoming_copy_handles.at(index);
     }
 
     Handle GetMoveHandle(std::size_t index) const {
-        return move_handles.at(index);
+        return incoming_move_handles.at(index);
     }
 
     void AddMoveObject(KAutoObject* object) {
-        move_objects.emplace_back(object);
+        outgoing_move_objects.emplace_back(object);
     }
 
     void AddCopyObject(KAutoObject* object) {
-        copy_objects.emplace_back(object);
+        outgoing_copy_objects.emplace_back(object);
     }
 
     void AddDomainObject(SessionRequestHandlerPtr object) {
-        domain_objects.emplace_back(std::move(object));
+        outgoing_domain_objects.emplace_back(std::move(object));
     }
 
     template <typename T>
@@ -315,26 +314,6 @@ public:
 
     void SetSessionRequestManager(std::shared_ptr<SessionRequestManager> manager_) {
         manager = std::move(manager_);
-    }
-
-    /// Clears the list of objects so that no lingering objects are written accidentally to the
-    /// response buffer.
-    void ClearIncomingObjects() {
-        move_objects.clear();
-        copy_objects.clear();
-        domain_objects.clear();
-    }
-
-    std::size_t NumMoveObjects() const {
-        return move_objects.size();
-    }
-
-    std::size_t NumCopyObjects() const {
-        return copy_objects.size();
-    }
-
-    std::size_t NumDomainObjects() const {
-        return domain_objects.size();
     }
 
     std::string Description() const;
@@ -356,12 +335,12 @@ private:
     Kernel::KServerSession* server_session{};
     KThread* thread;
 
-    // TODO(yuriks): Check common usage of this and optimize size accordingly
-    boost::container::small_vector<Handle, 8> move_handles;
-    boost::container::small_vector<Handle, 8> copy_handles;
-    boost::container::small_vector<KAutoObject*, 8> move_objects;
-    boost::container::small_vector<KAutoObject*, 8> copy_objects;
-    boost::container::small_vector<SessionRequestHandlerPtr, 8> domain_objects;
+    std::vector<Handle> incoming_move_handles;
+    std::vector<Handle> incoming_copy_handles;
+
+    std::vector<KAutoObject*> outgoing_move_objects;
+    std::vector<KAutoObject*> outgoing_copy_objects;
+    std::vector<SessionRequestHandlerPtr> outgoing_domain_objects;
 
     std::optional<IPC::CommandHeader> command_header;
     std::optional<IPC::HandleDescriptorHeader> handle_descriptor_header;
