@@ -155,6 +155,7 @@ void RendererOpenGL::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
 
     ++m_current_frame;
 
+    gpu.RendererFrameEndNotify();
     rasterizer.TickFrame();
 
     context->SwapBuffers();

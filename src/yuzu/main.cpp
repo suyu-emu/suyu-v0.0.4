@@ -1378,7 +1378,7 @@ void GMainWindow::BootGame(const QString& filename, std::size_t program_index) {
         game_list->hide();
         game_list_placeholder->hide();
     }
-    status_bar_update_timer.start(2000);
+    status_bar_update_timer.start(500);
     async_status_button->setDisabled(true);
     multicore_status_button->setDisabled(true);
     renderer_status_button->setDisabled(true);
@@ -2809,7 +2809,7 @@ void GMainWindow::UpdateStatusBar() {
     } else {
         emu_speed_label->setText(tr("Speed: %1%").arg(results.emulation_speed * 100.0, 0, 'f', 0));
     }
-    game_fps_label->setText(tr("Game: %1 FPS").arg(results.game_fps, 0, 'f', 0));
+    game_fps_label->setText(tr("Game: %1 FPS").arg(results.average_game_fps, 0, 'f', 0));
     emu_frametime_label->setText(tr("Frame: %1 ms").arg(results.frametime * 1000.0, 0, 'f', 2));
 
     emu_speed_label->setVisible(!Settings::values.use_multi_core.GetValue());

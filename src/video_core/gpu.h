@@ -247,6 +247,8 @@ public:
         return use_nvdec;
     }
 
+    void RendererFrameEndNotify();
+
     enum class FenceOperation : u32 {
         Acquire = 0,
         Increment = 1,
