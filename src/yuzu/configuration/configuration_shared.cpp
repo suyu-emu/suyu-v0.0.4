@@ -39,21 +39,6 @@ void ConfigurationShared::ApplyPerGameSetting(Settings::Setting<int>* setting,
     }
 }
 
-void ConfigurationShared::ApplyPerGameSetting(Settings::Setting<Settings::RendererBackend>* setting,
-                                              const QComboBox* combobox) {
-    if (Settings::IsConfiguringGlobal() && setting->UsingGlobal()) {
-        setting->SetValue(static_cast<Settings::RendererBackend>(combobox->currentIndex()));
-    } else if (!Settings::IsConfiguringGlobal()) {
-        if (combobox->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
-            setting->SetGlobal(true);
-        } else {
-            setting->SetGlobal(false);
-            setting->SetValue(static_cast<Settings::RendererBackend>(
-                combobox->currentIndex() - ConfigurationShared::USE_GLOBAL_OFFSET));
-        }
-    }
-}
-
 void ConfigurationShared::SetPerGameSetting(QCheckBox* checkbox,
                                             const Settings::Setting<bool>* setting) {
     if (setting->UsingGlobal()) {
@@ -61,34 +46,6 @@ void ConfigurationShared::SetPerGameSetting(QCheckBox* checkbox,
     } else {
         checkbox->setCheckState(setting->GetValue() ? Qt::Checked : Qt::Unchecked);
     }
-}
-
-void ConfigurationShared::SetPerGameSetting(QComboBox* combobox,
-                                            const Settings::Setting<int>* setting) {
-    combobox->setCurrentIndex(setting->UsingGlobal()
-                                  ? ConfigurationShared::USE_GLOBAL_INDEX
-                                  : setting->GetValue() + ConfigurationShared::USE_GLOBAL_OFFSET);
-}
-
-void ConfigurationShared::SetPerGameSetting(
-    QComboBox* combobox, const Settings::Setting<Settings::RendererBackend>* setting) {
-    combobox->setCurrentIndex(setting->UsingGlobal() ? ConfigurationShared::USE_GLOBAL_INDEX
-                                                     : static_cast<int>(setting->GetValue()) +
-                                                           ConfigurationShared::USE_GLOBAL_OFFSET);
-}
-
-void ConfigurationShared::SetPerGameSetting(
-    QComboBox* combobox, const Settings::Setting<Settings::GPUAccuracy>* setting) {
-    combobox->setCurrentIndex(setting->UsingGlobal() ? ConfigurationShared::USE_GLOBAL_INDEX
-                                                     : static_cast<int>(setting->GetValue()) +
-                                                           ConfigurationShared::USE_GLOBAL_OFFSET);
-}
-
-void ConfigurationShared::SetPerGameSetting(
-    QComboBox* combobox, const Settings::Setting<Settings::CPUAccuracy>* setting) {
-    combobox->setCurrentIndex(setting->UsingGlobal() ? ConfigurationShared::USE_GLOBAL_INDEX
-                                                     : static_cast<int>(setting->GetValue()) +
-                                                           ConfigurationShared::USE_GLOBAL_OFFSET);
 }
 
 void ConfigurationShared::SetHighlight(QWidget* widget, bool highlighted) {

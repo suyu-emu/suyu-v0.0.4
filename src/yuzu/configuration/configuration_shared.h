@@ -29,18 +29,16 @@ enum class CheckState {
 void ApplyPerGameSetting(Settings::Setting<bool>* setting, const QCheckBox* checkbox,
                          const CheckState& tracker);
 void ApplyPerGameSetting(Settings::Setting<int>* setting, const QComboBox* combobox);
-void ApplyPerGameSetting(Settings::Setting<Settings::RendererBackend>* setting,
-                         const QComboBox* combobox);
 
 // Sets a Qt UI element given a Settings::Setting
 void SetPerGameSetting(QCheckBox* checkbox, const Settings::Setting<bool>* setting);
-void SetPerGameSetting(QComboBox* combobox, const Settings::Setting<int>* setting);
-void SetPerGameSetting(QComboBox* combobox,
-                       const Settings::Setting<Settings::RendererBackend>* setting);
-void SetPerGameSetting(QComboBox* combobox,
-                       const Settings::Setting<Settings::GPUAccuracy>* setting);
-void SetPerGameSetting(QComboBox* combobox,
-                       const Settings::Setting<Settings::CPUAccuracy>* setting);
+
+template <typename Type>
+void SetPerGameSetting(QComboBox* combobox, const Settings::Setting<Type>* setting) {
+    combobox->setCurrentIndex(setting->UsingGlobal() ? ConfigurationShared::USE_GLOBAL_INDEX
+                                                     : static_cast<int>(setting->GetValue()) +
+                                                           ConfigurationShared::USE_GLOBAL_OFFSET);
+}
 
 // (Un)highlights a Qt UI element
 void SetHighlight(QWidget* widget, bool highlighted);
