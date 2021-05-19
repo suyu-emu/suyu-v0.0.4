@@ -86,6 +86,7 @@ private:
             case Type::PadData: {
                 Response::PadData pad_data;
                 std::memcpy(&pad_data, &receive_buffer[sizeof(Header)], sizeof(Response::PadData));
+                SanitizeMotion(pad_data);
                 callback.pad_data(std::move(pad_data));
                 break;
             }
@@ -112,6 +113,28 @@ private:
         std::memcpy(send_buffer2.data(), &pad_message, PAD_DATA_SIZE);
         socket.send_to(boost::asio::buffer(send_buffer2), send_endpoint, {}, _ignored);
         StartSend(timer.expiry());
+    }
+
+    void SanitizeMotion(Response::PadData& data) {
+        // Zero out any non number value
+        if (!std::isnormal(data.gyro.pitch)) {
+            data.gyro.pitch = 0;
+        }
+        if (!std::isnormal(data.gyro.roll)) {
+            data.gyro.roll = 0;
+        }
+        if (!std::isnormal(data.gyro.yaw)) {
+            data.gyro.yaw = 0;
+        }
+        if (!std::isnormal(data.accel.x)) {
+            data.accel.x = 0;
+        }
+        if (!std::isnormal(data.accel.y)) {
+            data.accel.y = 0;
+        }
+        if (!std::isnormal(data.accel.z)) {
+            data.accel.z = 0;
+        }
     }
 
     SocketCallback callback;
