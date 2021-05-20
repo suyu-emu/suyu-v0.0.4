@@ -67,14 +67,11 @@ void ConfigureCpu::AccuracyUpdated(int index) {
 }
 
 void ConfigureCpu::UpdateGroup(int index) {
-    if (Settings::IsConfiguringGlobal()) {
-        ui->unsafe_group->setVisible(static_cast<Settings::CPUAccuracy>(index) ==
-                                     Settings::CPUAccuracy::Unsafe);
-    } else {
-        ui->unsafe_group->setVisible(
-            static_cast<Settings::CPUAccuracy>(index - ConfigurationShared::USE_GLOBAL_OFFSET) ==
-            Settings::CPUAccuracy::Unsafe);
+    if (!Settings::IsConfiguringGlobal()) {
+        index -= ConfigurationShared::USE_GLOBAL_OFFSET;
     }
+    const auto accuracy = static_cast<Settings::CPUAccuracy>(index);
+    ui->unsafe_group->setVisible(accuracy == Settings::CPUAccuracy::Unsafe);
 }
 
 void ConfigureCpu::ApplyConfiguration() {
