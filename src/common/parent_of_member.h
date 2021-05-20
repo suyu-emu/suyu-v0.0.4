@@ -109,7 +109,8 @@ struct OffsetOfCalculator {
             }
         }
 
-        return (next - start) * sizeof(MemberType) + Offset;
+        return static_cast<ptrdiff_t>(static_cast<size_t>(next - start) * sizeof(MemberType) +
+                                      Offset);
     }
 
     static constexpr std::ptrdiff_t OffsetOf(MemberType ParentType::*member) {
