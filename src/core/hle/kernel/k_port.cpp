@@ -56,8 +56,8 @@ ResultCode KPort::EnqueueSession(KServerSession* session) {
 
     R_UNLESS(state == State::Normal, ResultPortClosed);
 
-    server.GetSessionRequestHandler()->ClientConnected(session);
     server.EnqueueSession(session);
+    server.GetSessionRequestHandler()->ClientConnected(server.AcceptSession());
 
     return RESULT_SUCCESS;
 }
