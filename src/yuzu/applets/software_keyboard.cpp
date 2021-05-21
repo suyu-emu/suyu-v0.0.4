@@ -404,12 +404,16 @@ void QtSoftwareKeyboardDialog::ShowTextCheckDialog(
 
         OverlayDialog dialog(this, system, QString{}, QString::fromStdU16String(text_check_message),
                              tr("Cancel"), tr("OK"), Qt::AlignCenter);
-        if (dialog.exec() == QDialog::Accepted) {
-            emit SubmitNormalText(SwkbdResult::Ok, current_text);
+        if (dialog.exec() != QDialog::Accepted) {
+            StartInputThread();
             break;
         }
 
-        StartInputThread();
+        auto text = ui->topOSK->currentIndex() == 1
+                        ? ui->text_edit_osk->toPlainText().toStdU16String()
+                        : ui->line_edit_osk->text().toStdU16String();
+
+        emit SubmitNormalText(SwkbdResult::Ok, std::move(text));
         break;
     }
     }
@@ -480,11 +484,7 @@ void QtSoftwareKeyboardDialog::open() {
 void QtSoftwareKeyboardDialog::reject() {
     // Pressing the ESC key in a dialog calls QDialog::reject().
     // We will override this behavior to the "Cancel" action on the software keyboard.
-    if (is_inline) {
-        emit SubmitInlineText(SwkbdReplyType::DecidedCancel, current_text, cursor_position);
-    } else {
-        emit SubmitNormalText(SwkbdResult::Cancel, current_text);
-    }
+    TranslateButtonPress(HIDButton::X);
 }
 
 void QtSoftwareKeyboardDialog::keyPressEvent(QKeyEvent* event) {
