@@ -36,7 +36,7 @@ void Module::Interface::GetRandomBytes(Kernel::HLERequestContext& ctx) {
     ctx.WriteBuffer(data);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system) {

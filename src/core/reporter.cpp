@@ -144,7 +144,7 @@ json GetFullDataAuto(const std::string& timestamp, u64 title_id, Core::System& s
     json out;
 
     out["yuzu_version"] = GetYuzuVersionData();
-    out["report_common"] = GetReportCommonData(title_id, RESULT_SUCCESS, timestamp);
+    out["report_common"] = GetReportCommonData(title_id, ResultSuccess, timestamp);
     out["processor_state"] = GetProcessorStateDataAuto(system);
     out["backtrace"] = GetBacktraceData(system);
 
@@ -322,7 +322,7 @@ void Reporter::SavePlayReport(PlayReportType type, u64 title_id, std::vector<std
     json out;
 
     out["yuzu_version"] = GetYuzuVersionData();
-    out["report_common"] = GetReportCommonData(title_id, RESULT_SUCCESS, timestamp, user_id);
+    out["report_common"] = GetReportCommonData(title_id, ResultSuccess, timestamp, user_id);
 
     auto data_out = json::array();
     for (const auto& d : data) {
@@ -372,7 +372,7 @@ void Reporter::SaveFilesystemAccessReport(Service::FileSystem::LogMode log_mode,
     json out;
 
     out["yuzu_version"] = GetYuzuVersionData();
-    out["report_common"] = GetReportCommonData(title_id, RESULT_SUCCESS, timestamp);
+    out["report_common"] = GetReportCommonData(title_id, ResultSuccess, timestamp);
 
     out["log_mode"] = fmt::format("{:08X}", static_cast<u32>(log_mode));
     out["log_message"] = std::move(log_message);

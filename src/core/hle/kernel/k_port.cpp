@@ -59,7 +59,7 @@ ResultCode KPort::EnqueueSession(KServerSession* session) {
     server.EnqueueSession(session);
     server.GetSessionRequestHandler()->ClientConnected(server.AcceptSession());
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 } // namespace Kernel

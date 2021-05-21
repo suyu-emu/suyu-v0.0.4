@@ -33,7 +33,7 @@ void CAPS_SU::SetShimLibraryVersion(Kernel::HLERequestContext& ctx) {
                 library_version, applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 } // namespace Service::Capture

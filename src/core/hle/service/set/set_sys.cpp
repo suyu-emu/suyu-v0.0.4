@@ -70,7 +70,7 @@ void GetFirmwareVersionImpl(Kernel::HLERequestContext& ctx, GetFirmwareVersionTy
     ctx.WriteBuffer(data);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 } // Anonymous namespace
 
@@ -89,7 +89,7 @@ void SET_SYS::GetColorSetId(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 3};
 
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushEnum(color_set);
 }
 
@@ -100,7 +100,7 @@ void SET_SYS::SetColorSetId(Kernel::HLERequestContext& ctx) {
     color_set = rp.PopEnum<ColorSet>();
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 SET_SYS::SET_SYS(Core::System& system_) : ServiceFramework{system_, "set:sys"} {

@@ -106,7 +106,7 @@ bool NullBackend::Synchronize(TitleIDVersion title, ProgressServiceBackend& prog
     LOG_DEBUG(Service_BCAT, "called, title_id={:016X}, build_id={:016X}", title.title_id,
               title.build_id);
 
-    progress.FinishDownload(RESULT_SUCCESS);
+    progress.FinishDownload(ResultSuccess);
     return true;
 }
 
@@ -115,7 +115,7 @@ bool NullBackend::SynchronizeDirectory(TitleIDVersion title, std::string name,
     LOG_DEBUG(Service_BCAT, "called, title_id={:016X}, build_id={:016X}, name={}", title.title_id,
               title.build_id, name);
 
-    progress.FinishDownload(RESULT_SUCCESS);
+    progress.FinishDownload(ResultSuccess);
     return true;
 }
 

@@ -51,7 +51,7 @@ struct DeliveryCacheProgressImpl {
     };
 
     Status status;
-    ResultCode result = RESULT_SUCCESS;
+    ResultCode result = ResultSuccess;
     DirectoryName current_directory;
     FileName current_file;
     s64 current_downloaded_bytes; ///< Bytes downloaded on current file.

@@ -129,7 +129,7 @@ private:
     ControllerSupportArgNew controller_user_arg_new;
     ControllerUpdateFirmwareArg controller_update_arg;
     bool complete{false};
-    ResultCode status{RESULT_SUCCESS};
+    ResultCode status{ResultSuccess};
     bool is_single_mode{false};
     std::vector<u8> out_data;
 };

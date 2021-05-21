@@ -86,7 +86,7 @@ private:
 
         const u32 param_size = performance != nullptr ? 6 : 4;
         IPC::ResponseBuilder rb{ctx, param_size};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push<u32>(consumed);
         rb.Push<u32>(sample_count);
         if (performance) {
@@ -249,7 +249,7 @@ void HwOpus::GetWorkBufferSize(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Audio, "worker_buffer_sz={}", worker_buffer_sz);
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push<u32>(worker_buffer_sz);
 }
 
@@ -286,7 +286,7 @@ void HwOpus::OpenOpusDecoder(Kernel::HLERequestContext& ctx) {
     }
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushIpcInterface<IHardwareOpusDecoderManager>(
         system, OpusDecoderState{std::move(decoder), sample_rate, channel_count});
 }

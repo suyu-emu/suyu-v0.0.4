@@ -68,7 +68,7 @@ private:
     const Core::Frontend::WebBrowserApplet& frontend;
 
     bool complete{false};
-    ResultCode status{RESULT_SUCCESS};
+    ResultCode status{ResultSuccess};
 
     WebAppletVersion web_applet_version{};
     WebArgHeader web_arg_header{};

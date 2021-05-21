@@ -23,7 +23,7 @@ void NVDRV::SignalGPUInterruptSyncpt(const u32 syncpoint_id, const u32 value) {
 void NVDRV::Open(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_NVDRV, "called");
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 
     if (!is_initialized) {
         rb.Push<DeviceFD>(0);
@@ -52,7 +52,7 @@ void NVDRV::Open(Kernel::HLERequestContext& ctx) {
 
 void NVDRV::ServiceError(Kernel::HLERequestContext& ctx, NvResult result) {
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushEnum(result);
 }
 
@@ -78,7 +78,7 @@ void NVDRV::Ioctl1(Kernel::HLERequestContext& ctx) {
     }
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushEnum(nv_result);
 }
 
@@ -105,7 +105,7 @@ void NVDRV::Ioctl2(Kernel::HLERequestContext& ctx) {
     }
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushEnum(nv_result);
 }
 
@@ -133,7 +133,7 @@ void NVDRV::Ioctl3(Kernel::HLERequestContext& ctx) {
     }
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushEnum(nv_result);
 }
 
@@ -151,7 +151,7 @@ void NVDRV::Close(Kernel::HLERequestContext& ctx) {
     const auto result = nvdrv->Close(fd);
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushEnum(result);
 }
 
@@ -161,7 +161,7 @@ void NVDRV::Initialize(Kernel::HLERequestContext& ctx) {
     is_initialized = true;
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushEnum(NvResult::Success);
 }
 
@@ -186,14 +186,14 @@ void NVDRV::QueryEvent(Kernel::HLERequestContext& ctx) {
 
     if (event_id < MaxNvEvents) {
         IPC::ResponseBuilder rb{ctx, 3, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         auto& event = nvdrv->GetEvent(event_id);
         event.Clear();
         rb.PushCopyObjects(event);
         rb.PushEnum(NvResult::Success);
     } else {
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushEnum(NvResult::BadParameter);
     }
 }
@@ -204,7 +204,7 @@ void NVDRV::SetAruid(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_NVDRV, "(STUBBED) called, pid=0x{:X}", pid);
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushEnum(NvResult::Success);
 }
 
@@ -212,14 +212,14 @@ void NVDRV::SetGraphicsFirmwareMemoryMarginEnabled(Kernel::HLERequestContext& ct
     LOG_WARNING(Service_NVDRV, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void NVDRV::GetStatus(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_NVDRV, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushEnum(NvResult::Success);
 }
 
@@ -229,7 +229,7 @@ void NVDRV::DumpGraphicsMemoryInfo(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_NVDRV, "called");
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 NVDRV::NVDRV(Core::System& system_, std::shared_ptr<Module> nvdrv_, const char* name)

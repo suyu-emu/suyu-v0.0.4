@@ -21,7 +21,7 @@ ResultCode SystemClockCore::GetCurrentTime(Core::System& system, s64& posix_time
     const SteadyClockTimePoint current_time_point{steady_clock_core.GetCurrentTimePoint(system)};
 
     SystemClockContext clock_context{};
-    if (const ResultCode result{GetClockContext(system, clock_context)}; result != RESULT_SUCCESS) {
+    if (const ResultCode result{GetClockContext(system, clock_context)}; result != ResultSuccess) {
         return result;
     }
 
@@ -31,7 +31,7 @@ ResultCode SystemClockCore::GetCurrentTime(Core::System& system, s64& posix_time
 
     posix_time = clock_context.offset + current_time_point.time_point;
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode SystemClockCore::SetCurrentTime(Core::System& system, s64 posix_time) {
@@ -39,7 +39,7 @@ ResultCode SystemClockCore::SetCurrentTime(Core::System& system, s64 posix_time)
     const SystemClockContext clock_context{posix_time - current_time_point.time_point,
                                            current_time_point};
 
-    if (const ResultCode result{SetClockContext(clock_context)}; result != RESULT_SUCCESS) {
+    if (const ResultCode result{SetClockContext(clock_context)}; result != ResultSuccess) {
         return result;
     }
     return Flush(clock_context);
@@ -47,13 +47,13 @@ ResultCode SystemClockCore::SetCurrentTime(Core::System& system, s64 posix_time)
 
 ResultCode SystemClockCore::Flush(const SystemClockContext& clock_context) {
     if (!system_clock_context_update_callback) {
-        return RESULT_SUCCESS;
+        return ResultSuccess;
     }
     return system_clock_context_update_callback->Update(clock_context);
 }
 
 ResultCode SystemClockCore::SetSystemClockContext(const SystemClockContext& clock_context) {
-    if (const ResultCode result{SetClockContext(clock_context)}; result != RESULT_SUCCESS) {
+    if (const ResultCode result{SetClockContext(clock_context)}; result != ResultSuccess) {
         return result;
     }
     return Flush(clock_context);
@@ -61,7 +61,7 @@ ResultCode SystemClockCore::SetSystemClockContext(const SystemClockContext& cloc
 
 bool SystemClockCore::IsClockSetup(Core::System& system) const {
     SystemClockContext value{};
-    if (GetClockContext(system, value) == RESULT_SUCCESS) {
+    if (GetClockContext(system, value) == ResultSuccess) {
         const SteadyClockTimePoint steady_clock_time_point{
             steady_clock_core.GetCurrentTimePoint(system)};
         return steady_clock_time_point.clock_source_id == value.steady_time_point.clock_source_id;

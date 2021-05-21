@@ -142,7 +142,7 @@ ResultCode KProcess::Initialize(KProcess* process, Core::System& system, std::st
     // Open a reference to the resource limit.
     process->resource_limit->Open();
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 KResourceLimit* KProcess::GetResourceLimit() const {
@@ -258,7 +258,7 @@ ResultCode KProcess::AddSharedMemory(KSharedMemory* shmem, [[maybe_unused]] VAdd
     // Open a reference to the shared memory.
     shmem->Open();
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 void KProcess::RemoveSharedMemory(KSharedMemory* shmem, [[maybe_unused]] VAddr address,
@@ -291,7 +291,7 @@ ResultCode KProcess::Reset() {
 
     // Clear signaled.
     is_signaled = false;
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode KProcess::LoadFromMetadata(const FileSys::ProgramMetadata& metadata,
@@ -524,7 +524,7 @@ ResultCode KProcess::AllocateMainThreadStack(std::size_t stack_size) {
 
     main_thread_stack_top += main_thread_stack_size;
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 } // namespace Kernel

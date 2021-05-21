@@ -144,7 +144,7 @@ constexpr bool operator!=(const ResultCode& a, const ResultCode& b) {
 // Convenience functions for creating some common kinds of errors:
 
 /// The default success `ResultCode`.
-constexpr ResultCode RESULT_SUCCESS(0);
+constexpr ResultCode ResultSuccess(0);
 
 /**
  * Placeholder result code used for unknown error codes.
@@ -321,7 +321,7 @@ private:
  */
 template <typename T, typename... Args>
 ResultVal<T> MakeResult(Args&&... args) {
-    return ResultVal<T>::WithCode(RESULT_SUCCESS, std::forward<Args>(args)...);
+    return ResultVal<T>::WithCode(ResultSuccess, std::forward<Args>(args)...);
 }
 
 /**
@@ -330,8 +330,7 @@ ResultVal<T> MakeResult(Args&&... args) {
  */
 template <typename Arg>
 ResultVal<std::remove_reference_t<Arg>> MakeResult(Arg&& arg) {
-    return ResultVal<std::remove_reference_t<Arg>>::WithCode(RESULT_SUCCESS,
-                                                             std::forward<Arg>(arg));
+    return ResultVal<std::remove_reference_t<Arg>>::WithCode(ResultSuccess, std::forward<Arg>(arg));
 }
 
 /**
@@ -362,7 +361,7 @@ ResultVal<std::remove_reference_t<Arg>> MakeResult(Arg&& arg) {
 #define R_SUCCEEDED(res) (res.IsSuccess())
 
 /// Evaluates a boolean expression, and succeeds if that expression is true.
-#define R_SUCCEED_IF(expr) R_UNLESS(!(expr), RESULT_SUCCESS)
+#define R_SUCCEED_IF(expr) R_UNLESS(!(expr), ResultSuccess)
 
 /// Evaluates a boolean expression, and returns a result unless that expression is true.
 #define R_UNLESS(expr, res)                                                                        \

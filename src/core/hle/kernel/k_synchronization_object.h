@@ -43,7 +43,7 @@ protected:
 
     void NotifyAvailable(ResultCode result);
     void NotifyAvailable() {
-        return this->NotifyAvailable(RESULT_SUCCESS);
+        return this->NotifyAvailable(ResultSuccess);
     }
 
 private:

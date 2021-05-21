@@ -407,7 +407,7 @@ ResultCode InfoUpdater::UpdateMixes(MixContext& mix_context, std::size_t mix_buf
 
     // TODO(ogniK): Sort when splitter is suppoorted
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 bool InfoUpdater::UpdateSinks(SinkContext& sink_context) {

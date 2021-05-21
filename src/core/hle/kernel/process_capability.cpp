@@ -153,7 +153,7 @@ ResultCode ProcessCapabilities::ParseCapabilities(const u32* capabilities,
         }
     }
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode ProcessCapabilities::ParseSingleFlagCapability(u32& set_flags, u32& set_svc_bits,
@@ -167,7 +167,7 @@ ResultCode ProcessCapabilities::ParseSingleFlagCapability(u32& set_flags, u32& s
     // Bail early on ignorable entries, as one would expect,
     // ignorable descriptors can be ignored.
     if (type == CapabilityType::Ignorable) {
-        return RESULT_SUCCESS;
+        return ResultSuccess;
     }
 
     // Ensure that the give flag hasn't already been initialized before.
@@ -264,7 +264,7 @@ ResultCode ProcessCapabilities::HandlePriorityCoreNumFlags(u32 flags) {
 
     core_mask = make_mask(core_num_min, core_num_max);
     priority_mask = make_mask(priority_min, priority_max);
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode ProcessCapabilities::HandleSyscallFlags(u32& set_svc_bits, u32 flags) {
@@ -288,23 +288,23 @@ ResultCode ProcessCapabilities::HandleSyscallFlags(u32& set_svc_bits, u32 flags)
         svc_capabilities[svc_number] = true;
     }
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode ProcessCapabilities::HandleMapPhysicalFlags(u32 flags, u32 size_flags,
                                                        KPageTable& page_table) {
     // TODO(Lioncache): Implement once the memory manager can handle this.
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode ProcessCapabilities::HandleMapIOFlags(u32 flags, KPageTable& page_table) {
     // TODO(Lioncache): Implement once the memory manager can handle this.
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode ProcessCapabilities::HandleMapRegionFlags(u32 flags, KPageTable& page_table) {
     // TODO(Lioncache): Implement once the memory manager can handle this.
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode ProcessCapabilities::HandleInterruptFlags(u32 flags) {
@@ -331,7 +331,7 @@ ResultCode ProcessCapabilities::HandleInterruptFlags(u32 flags) {
         interrupt_capabilities[interrupt] = true;
     }
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode ProcessCapabilities::HandleProgramTypeFlags(u32 flags) {
@@ -342,7 +342,7 @@ ResultCode ProcessCapabilities::HandleProgramTypeFlags(u32 flags) {
     }
 
     program_type = static_cast<ProgramType>((flags >> 14) & 0b111);
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode ProcessCapabilities::HandleKernelVersionFlags(u32 flags) {
@@ -362,7 +362,7 @@ ResultCode ProcessCapabilities::HandleKernelVersionFlags(u32 flags) {
     }
 
     kernel_version = flags;
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode ProcessCapabilities::HandleHandleTableFlags(u32 flags) {
@@ -373,7 +373,7 @@ ResultCode ProcessCapabilities::HandleHandleTableFlags(u32 flags) {
     }
 
     handle_table_size = static_cast<s32>((flags >> 16) & 0x3FF);
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode ProcessCapabilities::HandleDebugFlags(u32 flags) {
@@ -385,7 +385,7 @@ ResultCode ProcessCapabilities::HandleDebugFlags(u32 flags) {
 
     is_debuggable = (flags & 0x20000) != 0;
     can_force_debug = (flags & 0x40000) != 0;
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 } // namespace Kernel

@@ -32,7 +32,7 @@ void SystemClockContextUpdateCallback::BroadcastOperationEvent() {
 }
 
 ResultCode SystemClockContextUpdateCallback::Update(const SystemClockContext& value) {
-    ResultCode result{RESULT_SUCCESS};
+    ResultCode result{ResultSuccess};
 
     if (NeedUpdate(value)) {
         context = value;
@@ -40,7 +40,7 @@ ResultCode SystemClockContextUpdateCallback::Update(const SystemClockContext& va
 
         result = Update();
 
-        if (result == RESULT_SUCCESS) {
+        if (result == ResultSuccess) {
             BroadcastOperationEvent();
         }
     }
@@ -49,7 +49,7 @@ ResultCode SystemClockContextUpdateCallback::Update(const SystemClockContext& va
 }
 
 ResultCode SystemClockContextUpdateCallback::Update() {
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 } // namespace Service::Time::Clock

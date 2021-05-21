@@ -25,7 +25,7 @@ ResultCode KHandleTable::Finalize() {
         }
     }
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 bool KHandleTable::Remove(Handle handle) {
@@ -79,7 +79,7 @@ ResultCode KHandleTable::Add(Handle* out_handle, KAutoObject* obj, u16 type) {
         *out_handle = EncodeHandle(static_cast<u16>(index), linear_id);
     }
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode KHandleTable::Reserve(Handle* out_handle) {
@@ -89,7 +89,7 @@ ResultCode KHandleTable::Reserve(Handle* out_handle) {
     R_UNLESS(m_count < m_table_size, ResultOutOfHandles);
 
     *out_handle = EncodeHandle(static_cast<u16>(this->AllocateEntry()), this->AllocateLinearId());
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 void KHandleTable::Unreserve(Handle handle) {

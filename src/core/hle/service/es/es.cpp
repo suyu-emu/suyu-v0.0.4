@@ -137,7 +137,7 @@ private:
         }
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void GetTitleKey(Kernel::HLERequestContext& ctx) {
@@ -163,7 +163,7 @@ private:
         ctx.WriteBuffer(key);
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void CountCommonTicket(Kernel::HLERequestContext& ctx) {
@@ -172,7 +172,7 @@ private:
         const u32 count = static_cast<u32>(keys.GetCommonTickets().size());
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push<u32>(count);
     }
 
@@ -182,7 +182,7 @@ private:
         const u32 count = static_cast<u32>(keys.GetPersonalizedTickets().size());
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push<u32>(count);
     }
 
@@ -205,7 +205,7 @@ private:
         ctx.WriteBuffer(ids.data(), out_entries * sizeof(u128));
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push<u32>(out_entries);
     }
 
@@ -228,7 +228,7 @@ private:
         ctx.WriteBuffer(ids.data(), out_entries * sizeof(u128));
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push<u32>(out_entries);
     }
 
@@ -244,7 +244,7 @@ private:
         const auto ticket = keys.GetCommonTickets().at(rights_id);
 
         IPC::ResponseBuilder rb{ctx, 4};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push<u64>(ticket.GetSize());
     }
 
@@ -260,7 +260,7 @@ private:
         const auto ticket = keys.GetPersonalizedTickets().at(rights_id);
 
         IPC::ResponseBuilder rb{ctx, 4};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push<u64>(ticket.GetSize());
     }
 
@@ -279,7 +279,7 @@ private:
         ctx.WriteBuffer(&ticket, write_size);
 
         IPC::ResponseBuilder rb{ctx, 4};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push<u64>(write_size);
     }
 
@@ -298,7 +298,7 @@ private:
         ctx.WriteBuffer(&ticket, write_size);
 
         IPC::ResponseBuilder rb{ctx, 4};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push<u64>(write_size);
     }
 

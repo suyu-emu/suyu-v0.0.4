@@ -71,7 +71,7 @@ public:
 
     ResultCode AddBlock(u64 address, u64 num_pages) {
         if (!num_pages) {
-            return RESULT_SUCCESS;
+            return ResultSuccess;
         }
         if (!nodes.empty()) {
             const auto node = nodes.back();
@@ -82,7 +82,7 @@ public:
             }
         }
         nodes.push_back({address, num_pages});
-        return RESULT_SUCCESS;
+        return ResultSuccess;
     }
 
 private:

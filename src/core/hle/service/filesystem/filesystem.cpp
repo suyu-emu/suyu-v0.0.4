@@ -60,7 +60,7 @@ ResultCode VfsDirectoryServiceWrapper::CreateFile(const std::string& path_, u64 
     }
 
     const auto entry_type = GetEntryType(path);
-    if (entry_type.Code() == RESULT_SUCCESS) {
+    if (entry_type.Code() == ResultSuccess) {
         return FileSys::ERROR_PATH_ALREADY_EXISTS;
     }
 
@@ -73,14 +73,14 @@ ResultCode VfsDirectoryServiceWrapper::CreateFile(const std::string& path_, u64 
         // TODO(DarkLordZach): Find a better error code for this
         return RESULT_UNKNOWN;
     }
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode VfsDirectoryServiceWrapper::DeleteFile(const std::string& path_) const {
     std::string path(Common::FS::SanitizePath(path_));
     if (path.empty()) {
         // TODO(DarkLordZach): Why do games call this and what should it do? Works as is but...
-        return RESULT_SUCCESS;
+        return ResultSuccess;
     }
 
     auto dir = GetDirectoryRelativeWrapped(backing, Common::FS::GetParentPath(path));
@@ -92,7 +92,7 @@ ResultCode VfsDirectoryServiceWrapper::DeleteFile(const std::string& path_) cons
         return RESULT_UNKNOWN;
     }
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode VfsDirectoryServiceWrapper::CreateDirectory(const std::string& path_) const {
@@ -106,7 +106,7 @@ ResultCode VfsDirectoryServiceWrapper::CreateDirectory(const std::string& path_)
         // TODO(DarkLordZach): Find a better error code for this
         return RESULT_UNKNOWN;
     }
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode VfsDirectoryServiceWrapper::DeleteDirectory(const std::string& path_) const {
@@ -116,7 +116,7 @@ ResultCode VfsDirectoryServiceWrapper::DeleteDirectory(const std::string& path_)
         // TODO(DarkLordZach): Find a better error code for this
         return RESULT_UNKNOWN;
     }
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode VfsDirectoryServiceWrapper::DeleteDirectoryRecursively(const std::string& path_) const {
@@ -126,7 +126,7 @@ ResultCode VfsDirectoryServiceWrapper::DeleteDirectoryRecursively(const std::str
         // TODO(DarkLordZach): Find a better error code for this
         return RESULT_UNKNOWN;
     }
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode VfsDirectoryServiceWrapper::CleanDirectoryRecursively(const std::string& path) const {
@@ -138,7 +138,7 @@ ResultCode VfsDirectoryServiceWrapper::CleanDirectoryRecursively(const std::stri
         return RESULT_UNKNOWN;
     }
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode VfsDirectoryServiceWrapper::RenameFile(const std::string& src_path_,
@@ -154,12 +154,12 @@ ResultCode VfsDirectoryServiceWrapper::RenameFile(const std::string& src_path_,
             // TODO(DarkLordZach): Find a better error code for this
             return RESULT_UNKNOWN;
         }
-        return RESULT_SUCCESS;
+        return ResultSuccess;
     }
 
     // Move by hand -- TODO(DarkLordZach): Optimize
     auto c_res = CreateFile(dest_path, src->GetSize());
-    if (c_res != RESULT_SUCCESS)
+    if (c_res != ResultSuccess)
         return c_res;
 
     auto dest = backing->GetFileRelative(dest_path);
@@ -173,7 +173,7 @@ ResultCode VfsDirectoryServiceWrapper::RenameFile(const std::string& src_path_,
         return RESULT_UNKNOWN;
     }
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode VfsDirectoryServiceWrapper::RenameDirectory(const std::string& src_path_,
@@ -189,7 +189,7 @@ ResultCode VfsDirectoryServiceWrapper::RenameDirectory(const std::string& src_pa
             // TODO(DarkLordZach): Find a better error code for this
             return RESULT_UNKNOWN;
         }
-        return RESULT_SUCCESS;
+        return ResultSuccess;
     }
 
     // TODO(DarkLordZach): Implement renaming across the tree (move).
@@ -258,7 +258,7 @@ FileSystemController::~FileSystemController() = default;
 ResultCode FileSystemController::RegisterRomFS(std::unique_ptr<FileSys::RomFSFactory>&& factory) {
     romfs_factory = std::move(factory);
     LOG_DEBUG(Service_FS, "Registered RomFS");
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode FileSystemController::RegisterSaveData(
@@ -266,21 +266,21 @@ ResultCode FileSystemController::RegisterSaveData(
     ASSERT_MSG(save_data_factory == nullptr, "Tried to register a second save data");
     save_data_factory = std::move(factory);
     LOG_DEBUG(Service_FS, "Registered save data");
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode FileSystemController::RegisterSDMC(std::unique_ptr<FileSys::SDMCFactory>&& factory) {
     ASSERT_MSG(sdmc_factory == nullptr, "Tried to register a second SDMC");
     sdmc_factory = std::move(factory);
     LOG_DEBUG(Service_FS, "Registered SDMC");
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode FileSystemController::RegisterBIS(std::unique_ptr<FileSys::BISFactory>&& factory) {
     ASSERT_MSG(bis_factory == nullptr, "Tried to register a second BIS");
     bis_factory = std::move(factory);
     LOG_DEBUG(Service_FS, "Registered BIS");
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 void FileSystemController::SetPackedUpdate(FileSys::VirtualFile update_raw) {

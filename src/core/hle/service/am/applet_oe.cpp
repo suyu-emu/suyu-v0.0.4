@@ -39,7 +39,7 @@ private:
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IAudioController>(system);
     }
 
@@ -47,7 +47,7 @@ private:
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IDisplayController>(system);
     }
 
@@ -55,7 +55,7 @@ private:
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IDebugFunctions>(system);
     }
 
@@ -63,7 +63,7 @@ private:
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IWindowController>(system);
     }
 
@@ -71,7 +71,7 @@ private:
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<ISelfController>(system, nvflinger);
     }
 
@@ -79,7 +79,7 @@ private:
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<ICommonStateGetter>(system, msg_queue);
     }
 
@@ -87,7 +87,7 @@ private:
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<ILibraryAppletCreator>(system);
     }
 
@@ -95,7 +95,7 @@ private:
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IApplicationFunctions>(system);
     }
 
@@ -107,7 +107,7 @@ void AppletOE::OpenApplicationProxy(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushIpcInterface<IApplicationProxy>(nvflinger, msg_queue, system);
 }
 

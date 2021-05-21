@@ -135,7 +135,7 @@ bool Error::TransactionComplete() const {
 }
 
 ResultCode Error::GetStatus() const {
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 void Error::ExecuteInteractive() {

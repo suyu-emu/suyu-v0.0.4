@@ -169,12 +169,12 @@ ResultCode HLERequestContext::PopulateFromIncomingCommandBuffer(const KHandleTab
 
     if (command_header->IsCloseCommand()) {
         // Close does not populate the rest of the IPC header
-        return RESULT_SUCCESS;
+        return ResultSuccess;
     }
 
     std::copy_n(src_cmdbuf, IPC::COMMAND_BUFFER_LENGTH, cmd_buf.begin());
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(KThread& requesting_thread) {
@@ -216,7 +216,7 @@ ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(KThread& requesting_t
     memory.WriteBlock(owner_process, requesting_thread.GetTLSAddress(), cmd_buf.data(),
                       write_size * sizeof(u32));
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 std::vector<u8> HLERequestContext::ReadBuffer(std::size_t buffer_index) const {

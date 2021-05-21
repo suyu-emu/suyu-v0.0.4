@@ -108,7 +108,7 @@ struct TimeManager::Impl final {
                               std::size_t total_location_name_count, u128 time_zone_rule_version,
                               FileSys::VirtualFile& vfs_file) {
         if (time_zone_content_manager.GetTimeZoneManager().SetDeviceLocationNameWithTimeZoneRule(
-                location_name, vfs_file) != RESULT_SUCCESS) {
+                location_name, vfs_file) != ResultSuccess) {
             UNREACHABLE();
             return;
         }
@@ -152,7 +152,7 @@ struct TimeManager::Impl final {
             standard_local_system_clock_core.SetSystemClockContext(clock_context);
         } else {
             if (standard_local_system_clock_core.SetCurrentTime(system_, posix_time) !=
-                RESULT_SUCCESS) {
+                ResultSuccess) {
                 UNREACHABLE();
                 return;
             }
@@ -167,7 +167,7 @@ struct TimeManager::Impl final {
             network_system_clock_context_writer);
 
         if (standard_network_system_clock_core.SetSystemClockContext(clock_context) !=
-            RESULT_SUCCESS) {
+            ResultSuccess) {
             UNREACHABLE();
             return;
         }
@@ -180,7 +180,7 @@ struct TimeManager::Impl final {
     void SetupStandardUserSystemClock(Core::System& system_, bool is_automatic_correction_enabled,
                                       Clock::SteadyClockTimePoint steady_clock_time_point) {
         if (standard_user_system_clock_core.SetAutomaticCorrectionEnabled(
-                system_, is_automatic_correction_enabled) != RESULT_SUCCESS) {
+                system_, is_automatic_correction_enabled) != ResultSuccess) {
             UNREACHABLE();
             return;
         }

@@ -75,7 +75,7 @@ private:
         update_instantly = true;
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void GetCurrentBrightnessSetting(Kernel::HLERequestContext& ctx) {
@@ -88,7 +88,7 @@ private:
         LOG_DEBUG(Service_LBL, "called brightness={}", brightness);
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push(brightness);
     }
 
@@ -100,7 +100,7 @@ private:
         backlight_enabled = true;
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void SwitchBacklightOff(Kernel::HLERequestContext& ctx) {
@@ -111,14 +111,14 @@ private:
         backlight_enabled = false;
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void GetBacklightSwitchStatus(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_LBL, "called");
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushEnum<BacklightSwitchStatus>(backlight_enabled ? BacklightSwitchStatus::On
                                                              : BacklightSwitchStatus::Off);
     }
@@ -129,7 +129,7 @@ private:
         dimming = true;
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void DisableDimming(Kernel::HLERequestContext& ctx) {
@@ -138,14 +138,14 @@ private:
         dimming = false;
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void IsDimmingEnabled(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_LBL, "called");
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push(dimming);
     }
 
@@ -155,7 +155,7 @@ private:
         update_instantly = true;
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void DisableAutoBrightnessControl(Kernel::HLERequestContext& ctx) {
@@ -163,14 +163,14 @@ private:
         auto_brightness = false;
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void IsAutoBrightnessControlEnabled(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_LBL, "called");
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push(auto_brightness);
     }
 
@@ -183,14 +183,14 @@ private:
         ambient_light_value = light_value;
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void GetAmbientLightSensorValue(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_LBL, "called");
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push(ambient_light_value);
     }
 
@@ -199,7 +199,7 @@ private:
         LOG_DEBUG(Service_LBL, "called");
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void GetBrightnessReflectionDelayLevel(Kernel::HLERequestContext& ctx) {
@@ -207,7 +207,7 @@ private:
         LOG_DEBUG(Service_LBL, "called");
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push(0.0f);
     }
 
@@ -216,7 +216,7 @@ private:
         LOG_DEBUG(Service_LBL, "called");
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void GetCurrentBrightnessMapping(Kernel::HLERequestContext& ctx) {
@@ -224,7 +224,7 @@ private:
         LOG_DEBUG(Service_LBL, "called");
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         // This function is suppose to return something but it seems like it doesn't
     }
 
@@ -233,7 +233,7 @@ private:
         LOG_DEBUG(Service_LBL, "called");
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void GetCurrentAmbientLightSensorMapping(Kernel::HLERequestContext& ctx) {
@@ -241,14 +241,14 @@ private:
         LOG_DEBUG(Service_LBL, "called");
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         // This function is suppose to return something but it seems like it doesn't
     }
 
     void IsAmbientLightSensorAvailable(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_LBL, "(STUBBED) called");
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         // TODO(ogniK): Only return true if there's no device error
         rb.Push(true);
     }
@@ -267,7 +267,7 @@ private:
         current_vr_brightness = brightness;
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void GetCurrentBrightnessSettingForVrMode(Kernel::HLERequestContext& ctx) {
@@ -280,7 +280,7 @@ private:
         LOG_DEBUG(Service_LBL, "called brightness={}", brightness);
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push(brightness);
     }
 
@@ -288,7 +288,7 @@ private:
         LOG_DEBUG(Service_LBL, "called");
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
 
         vr_mode_enabled = true;
     }
@@ -297,7 +297,7 @@ private:
         LOG_DEBUG(Service_LBL, "called");
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
 
         vr_mode_enabled = false;
     }
@@ -306,7 +306,7 @@ private:
         LOG_DEBUG(Service_LBL, "called");
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push(vr_mode_enabled);
     }
 

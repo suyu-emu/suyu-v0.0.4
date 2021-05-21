@@ -89,14 +89,14 @@ private:
                     parameters.option);
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void CreateConnection(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_SSL, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<ISslConnection>(system);
     }
 
@@ -110,7 +110,7 @@ private:
         LOG_WARNING(Service_SSL, "(STUBBED) called, certificate_format={}", certificate_format);
 
         IPC::ResponseBuilder rb{ctx, 4};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push(server_id);
     }
 
@@ -129,7 +129,7 @@ private:
         LOG_WARNING(Service_SSL, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 4};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push(client_id);
     }
 };
@@ -160,7 +160,7 @@ private:
         LOG_WARNING(Service_SSL, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<ISslContext>(system);
     }
 
@@ -171,7 +171,7 @@ private:
         ssl_version = rp.Pop<u32>();
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 };
 

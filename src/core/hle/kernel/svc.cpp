@@ -132,7 +132,7 @@ ResultCode MapUnmapMemorySanityChecks(const KPageTable& manager, VAddr dst_addr,
         return ResultInvalidMemoryRegion;
     }
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 enum class ResourceLimitValueType {
@@ -164,7 +164,7 @@ static ResultCode SetHeapSize(Core::System& system, VAddr* heap_addr, u64 heap_s
 
     CASCADE_RESULT(*heap_addr, page_table.SetHeapSize(heap_size));
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 static ResultCode SetHeapSize32(Core::System& system, u32* heap_addr, u32 heap_size) {
@@ -305,7 +305,7 @@ static ResultCode ConnectToNamedPort(Core::System& system, Handle* out, VAddr po
 
     // We succeeded.
     handle_guard.Cancel();
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 static ResultCode ConnectToNamedPort32(Core::System& system, Handle* out_handle,
@@ -349,7 +349,7 @@ static ResultCode GetThreadId(Core::System& system, u64* out_thread_id, Handle t
 
     // Get the thread's id.
     *out_thread_id = thread->GetId();
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 static ResultCode GetThreadId32(Core::System& system, u32* out_thread_id_low,
@@ -454,7 +454,7 @@ static ResultCode CancelSynchronization(Core::System& system, Handle handle) {
 
     // Cancel the thread's wait.
     thread->WaitCancel();
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 static ResultCode CancelSynchronization32(Core::System& system, Handle handle) {
@@ -715,76 +715,76 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, Handle
         switch (info_id_type) {
         case GetInfoType::AllowedCPUCoreMask:
             *result = process->GetCoreMask();
-            return RESULT_SUCCESS;
+            return ResultSuccess;
 
         case GetInfoType::AllowedThreadPriorityMask:
             *result = process->GetPriorityMask();
-            return RESULT_SUCCESS;
+            return ResultSuccess;
 
         case GetInfoType::MapRegionBaseAddr:
             *result = process->PageTable().GetAliasRegionStart();
-            return RESULT_SUCCESS;
+            return ResultSuccess;
 
         case GetInfoType::MapRegionSize:
             *result = process->PageTable().GetAliasRegionSize();
-            return RESULT_SUCCESS;
+            return ResultSuccess;
 
         case GetInfoType::HeapRegionBaseAddr:
             *result = process->PageTable().GetHeapRegionStart();
-            return RESULT_SUCCESS;
+            return ResultSuccess;
 
         case GetInfoType::HeapRegionSize:
             *result = process->PageTable().GetHeapRegionSize();
-            return RESULT_SUCCESS;
+            return ResultSuccess;
 
         case GetInfoType::ASLRRegionBaseAddr:
             *result = process->PageTable().GetAliasCodeRegionStart();
-            return RESULT_SUCCESS;
+            return ResultSuccess;
 
         case GetInfoType::ASLRRegionSize:
             *result = process->PageTable().GetAliasCodeRegionSize();
-            return RESULT_SUCCESS;
+            return ResultSuccess;
 
         case GetInfoType::StackRegionBaseAddr:
             *result = process->PageTable().GetStackRegionStart();
-            return RESULT_SUCCESS;
+            return ResultSuccess;
 
         case GetInfoType::StackRegionSize:
             *result = process->PageTable().GetStackRegionSize();
-            return RESULT_SUCCESS;
+            return ResultSuccess;
 
         case GetInfoType::TotalPhysicalMemoryAvailable:
             *result = process->GetTotalPhysicalMemoryAvailable();
-            return RESULT_SUCCESS;
+            return ResultSuccess;
 
         case GetInfoType::TotalPhysicalMemoryUsed:
             *result = process->GetTotalPhysicalMemoryUsed();
-            return RESULT_SUCCESS;
+            return ResultSuccess;
 
         case GetInfoType::SystemResourceSize:
             *result = process->GetSystemResourceSize();
-            return RESULT_SUCCESS;
+            return ResultSuccess;
 
         case GetInfoType::SystemResourceUsage:
             LOG_WARNING(Kernel_SVC, "(STUBBED) Attempted to query system resource usage");
             *result = process->GetSystemResourceUsage();
-            return RESULT_SUCCESS;
+            return ResultSuccess;
 
         case GetInfoType::TitleId:
             *result = process->GetTitleID();
-            return RESULT_SUCCESS;
+            return ResultSuccess;
 
         case GetInfoType::UserExceptionContextAddr:
             *result = process->GetTLSRegionAddress();
-            return RESULT_SUCCESS;
+            return ResultSuccess;
 
         case GetInfoType::TotalPhysicalMemoryAvailableWithoutSystemResource:
             *result = process->GetTotalPhysicalMemoryAvailableWithoutSystemResource();
-            return RESULT_SUCCESS;
+            return ResultSuccess;
 
         case GetInfoType::TotalPhysicalMemoryUsedWithoutSystemResource:
             *result = process->GetTotalPhysicalMemoryUsedWithoutSystemResource();
-            return RESULT_SUCCESS;
+            return ResultSuccess;
 
         default:
             break;
@@ -796,7 +796,7 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, Handle
 
     case GetInfoType::IsCurrentProcessBeingDebugged:
         *result = 0;
-        return RESULT_SUCCESS;
+        return ResultSuccess;
 
     case GetInfoType::RegisterResourceLimit: {
         if (handle != 0) {
@@ -816,14 +816,14 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, Handle
         if (!resource_limit) {
             *result = Svc::InvalidHandle;
             // Yes, the kernel considers this a successful operation.
-            return RESULT_SUCCESS;
+            return ResultSuccess;
         }
 
         Handle resource_handle{};
         R_TRY(handle_table.Add(&resource_handle, resource_limit));
 
         *result = resource_handle;
-        return RESULT_SUCCESS;
+        return ResultSuccess;
     }
 
     case GetInfoType::RandomEntropy:
@@ -840,13 +840,13 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, Handle
         }
 
         *result = system.Kernel().CurrentProcess()->GetRandomEntropy(info_sub_id);
-        return RESULT_SUCCESS;
+        return ResultSuccess;
 
     case GetInfoType::PrivilegedProcessId:
         LOG_WARNING(Kernel_SVC,
                     "(STUBBED) Attempted to query privileged process id bounds, returned 0");
         *result = 0;
-        return RESULT_SUCCESS;
+        return ResultSuccess;
 
     case GetInfoType::ThreadTickCount: {
         constexpr u64 num_cpus = 4;
@@ -881,7 +881,7 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, Handle
         }
 
         *result = out_ticks;
-        return RESULT_SUCCESS;
+        return ResultSuccess;
     }
 
     default:
@@ -1034,7 +1034,7 @@ static ResultCode SetThreadActivity(Core::System& system, Handle thread_handle,
     // Set the activity.
     R_TRY(thread->SetActivity(thread_activity));
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 static ResultCode SetThreadActivity32(Core::System& system, Handle thread_handle,
@@ -1094,10 +1094,10 @@ static ResultCode GetThreadContext(Core::System& system, VAddr out_context, Hand
         // Copy the thread context to user space.
         system.Memory().WriteBlock(out_context, context.data(), context.size());
 
-        return RESULT_SUCCESS;
+        return ResultSuccess;
     }
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 static ResultCode GetThreadContext32(Core::System& system, u32 out_context, Handle thread_handle) {
@@ -1115,7 +1115,7 @@ static ResultCode GetThreadPriority(Core::System& system, u32* out_priority, Han
 
     // Get the thread's priority.
     *out_priority = thread->GetPriority();
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 static ResultCode GetThreadPriority32(Core::System& system, u32* out_priority, Handle handle) {
@@ -1138,7 +1138,7 @@ static ResultCode SetThreadPriority(Core::System& system, Handle thread_handle, 
 
     // Set the thread priority.
     thread->SetBasePriority(priority);
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 static ResultCode SetThreadPriority32(Core::System& system, Handle thread_handle, u32 priority) {
@@ -1207,7 +1207,7 @@ static ResultCode MapSharedMemory(Core::System& system, Handle shmem_handle, VAd
 
     // We succeeded.
     guard.Cancel();
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 static ResultCode MapSharedMemory32(Core::System& system, Handle shmem_handle, u32 address,
@@ -1240,7 +1240,7 @@ static ResultCode UnmapSharedMemory(Core::System& system, Handle shmem_handle, V
     // Remove the shared memory from the process.
     process.RemoveSharedMemory(shmem.GetPointerUnsafe(), address, size);
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 static ResultCode UnmapSharedMemory32(Core::System& system, Handle shmem_handle, u32 address,
@@ -1276,7 +1276,7 @@ static ResultCode QueryProcessMemory(Core::System& system, VAddr memory_info_add
     // Page info appears to be currently unused by the kernel and is always set to zero.
     memory.Write32(page_info_address, 0);
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 static ResultCode QueryMemory(Core::System& system, VAddr memory_info_address,
@@ -1524,7 +1524,7 @@ static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr e
     // Add the thread to the handle table.
     R_TRY(process.GetHandleTable().Add(out_handle, thread));
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 static ResultCode CreateThread32(Core::System& system, Handle* out_handle, u32 priority,
@@ -1547,7 +1547,7 @@ static ResultCode StartThread(Core::System& system, Handle thread_handle) {
     // If we succeeded, persist a reference to the thread.
     thread->Open();
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 static ResultCode StartThread32(Core::System& system, Handle thread_handle) {
@@ -1796,7 +1796,7 @@ static ResultCode CloseHandle(Core::System& system, Handle handle) {
     R_UNLESS(system.Kernel().CurrentProcess()->GetHandleTable().Remove(handle),
              ResultInvalidHandle);
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 static ResultCode CloseHandle32(Core::System& system, Handle handle) {
@@ -1891,7 +1891,7 @@ static ResultCode CreateTransferMemory(Core::System& system, Handle* out, VAddr 
     // Add the transfer memory to the handle table.
     R_TRY(handle_table.Add(out, trmem));
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 static ResultCode CreateTransferMemory32(Core::System& system, Handle* out, u32 address, u32 size,
@@ -1911,7 +1911,7 @@ static ResultCode GetThreadCoreMask(Core::System& system, Handle thread_handle, 
     // Get the core mask.
     R_TRY(thread->GetCoreMask(out_core_id, out_affinity_mask));
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 static ResultCode GetThreadCoreMask32(Core::System& system, Handle thread_handle, s32* out_core_id,
@@ -1952,7 +1952,7 @@ static ResultCode SetThreadCoreMask(Core::System& system, Handle thread_handle, 
     // Set the core mask.
     R_TRY(thread->SetCoreMask(core_id, affinity_mask));
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 static ResultCode SetThreadCoreMask32(Core::System& system, Handle thread_handle, s32 core_id,
@@ -2051,7 +2051,7 @@ static ResultCode CreateEvent(Core::System& system, Handle* out_write, Handle* o
 
     // We succeeded.
     handle_guard.Cancel();
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 static ResultCode CreateEvent32(Core::System& system, Handle* out_write, Handle* out_read) {
@@ -2081,7 +2081,7 @@ static ResultCode GetProcessInfo(Core::System& system, u64* out, Handle process_
     }
 
     *out = static_cast<u64>(process->GetStatus());
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 static ResultCode CreateResourceLimit(Core::System& system, Handle* out_handle) {
@@ -2104,7 +2104,7 @@ static ResultCode CreateResourceLimit(Core::System& system, Handle* out_handle) 
     // Add the limit to the handle table.
     R_TRY(kernel.CurrentProcess()->GetHandleTable().Add(out_handle, resource_limit));
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 static ResultCode GetResourceLimitLimitValue(Core::System& system, u64* out_limit_value,
@@ -2125,7 +2125,7 @@ static ResultCode GetResourceLimitLimitValue(Core::System& system, u64* out_limi
     // Get the limit value.
     *out_limit_value = resource_limit->GetLimitValue(which);
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 static ResultCode GetResourceLimitCurrentValue(Core::System& system, u64* out_current_value,
@@ -2146,7 +2146,7 @@ static ResultCode GetResourceLimitCurrentValue(Core::System& system, u64* out_cu
     // Get the current value.
     *out_current_value = resource_limit->GetCurrentValue(which);
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 static ResultCode SetResourceLimitLimitValue(Core::System& system, Handle resource_limit_handle,
@@ -2166,7 +2166,7 @@ static ResultCode SetResourceLimitLimitValue(Core::System& system, Handle resour
     // Set the limit value.
     R_TRY(resource_limit->SetLimitValue(which, limit_value));
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 static ResultCode GetProcessList(Core::System& system, u32* out_num_processes,
@@ -2203,7 +2203,7 @@ static ResultCode GetProcessList(Core::System& system, u32* out_num_processes,
     }
 
     *out_num_processes = static_cast<u32>(num_processes);
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 static ResultCode GetThreadList(Core::System& system, u32* out_num_threads, VAddr out_thread_ids,
@@ -2243,7 +2243,7 @@ static ResultCode GetThreadList(Core::System& system, u32* out_num_threads, VAdd
     }
 
     *out_num_threads = static_cast<u32>(num_threads);
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 static ResultCode FlushProcessDataCache32([[maybe_unused]] Core::System& system,
@@ -2253,7 +2253,7 @@ static ResultCode FlushProcessDataCache32([[maybe_unused]] Core::System& system,
     // as all emulation is done in the same cache level in host architecture, thus data cache
     // does not need flushing.
     LOG_DEBUG(Kernel_SVC, "called");
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 namespace {

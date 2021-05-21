@@ -50,7 +50,7 @@ public:
             m_free_head_index = i;
         }
 
-        return RESULT_SUCCESS;
+        return ResultSuccess;
     }
 
     size_t GetTableSize() const {

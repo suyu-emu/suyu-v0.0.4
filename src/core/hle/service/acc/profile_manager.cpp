@@ -91,7 +91,7 @@ ResultCode ProfileManager::AddUser(const ProfileInfo& user) {
     if (!AddToProfiles(user)) {
         return ERROR_TOO_MANY_USERS;
     }
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 /// Create a new user on the system. If the uuid of the user already exists, the user is not

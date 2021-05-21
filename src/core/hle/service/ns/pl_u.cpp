@@ -216,7 +216,7 @@ void PL_U::RequestLoad(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_NS, "called, shared_font_type={}", shared_font_type);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void PL_U::GetLoadState(Kernel::HLERequestContext& ctx) {
@@ -225,7 +225,7 @@ void PL_U::GetLoadState(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_NS, "called, font_id={}", font_id);
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push<u32>(static_cast<u32>(LoadState::Done));
 }
 
@@ -235,7 +235,7 @@ void PL_U::GetSize(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_NS, "called, font_id={}", font_id);
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push<u32>(impl->GetSharedFontRegion(font_id).size);
 }
 
@@ -245,7 +245,7 @@ void PL_U::GetSharedMemoryAddressOffset(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_NS, "called, font_id={}", font_id);
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push<u32>(impl->GetSharedFontRegion(font_id).offset);
 }
 
@@ -260,7 +260,7 @@ void PL_U::GetSharedMemoryNativeHandle(Kernel::HLERequestContext& ctx) {
                 impl->shared_font->size());
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushCopyObjects(&kernel.GetFontSharedMem());
 }
 
@@ -294,7 +294,7 @@ void PL_U::GetSharedFontInOrderOfPriority(Kernel::HLERequestContext& ctx) {
     ctx.WriteBuffer(font_offsets, 1);
     ctx.WriteBuffer(font_sizes, 2);
 
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push<u8>(static_cast<u8>(LoadState::Done)); // Fonts Loaded
     rb.Push<u32>(static_cast<u32>(font_codes.size()));
 }

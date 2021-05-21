@@ -41,7 +41,7 @@ private:
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<ICommonStateGetter>(system, msg_queue);
     }
 
@@ -49,7 +49,7 @@ private:
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<ISelfController>(system, nvflinger);
     }
 
@@ -57,7 +57,7 @@ private:
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IWindowController>(system);
     }
 
@@ -65,7 +65,7 @@ private:
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IAudioController>(system);
     }
 
@@ -73,7 +73,7 @@ private:
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IDisplayController>(system);
     }
 
@@ -81,7 +81,7 @@ private:
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IProcessWindingController>(system);
     }
 
@@ -89,7 +89,7 @@ private:
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IDebugFunctions>(system);
     }
 
@@ -97,7 +97,7 @@ private:
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<ILibraryAppletCreator>(system);
     }
 
@@ -105,7 +105,7 @@ private:
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IApplicationFunctions>(system);
     }
 
@@ -145,7 +145,7 @@ private:
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<ICommonStateGetter>(system, msg_queue);
     }
 
@@ -153,7 +153,7 @@ private:
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<ISelfController>(system, nvflinger);
     }
 
@@ -161,7 +161,7 @@ private:
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IWindowController>(system);
     }
 
@@ -169,7 +169,7 @@ private:
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IAudioController>(system);
     }
 
@@ -177,7 +177,7 @@ private:
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IDisplayController>(system);
     }
 
@@ -185,7 +185,7 @@ private:
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IDebugFunctions>(system);
     }
 
@@ -193,7 +193,7 @@ private:
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<ILibraryAppletCreator>(system);
     }
 
@@ -201,7 +201,7 @@ private:
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IHomeMenuFunctions>(system);
     }
 
@@ -209,7 +209,7 @@ private:
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IGlobalStateController>(system);
     }
 
@@ -217,7 +217,7 @@ private:
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IApplicationCreator>(system);
     }
 
@@ -229,7 +229,7 @@ void AppletAE::OpenSystemAppletProxy(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushIpcInterface<ISystemAppletProxy>(nvflinger, msg_queue, system);
 }
 
@@ -237,7 +237,7 @@ void AppletAE::OpenLibraryAppletProxy(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushIpcInterface<ILibraryAppletProxy>(nvflinger, msg_queue, system);
 }
 
@@ -245,7 +245,7 @@ void AppletAE::OpenLibraryAppletProxyOld(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushIpcInterface<ILibraryAppletProxy>(nvflinger, msg_queue, system);
 }
 

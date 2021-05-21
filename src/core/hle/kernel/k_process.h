@@ -310,7 +310,7 @@ public:
      *
      * @param metadata The provided metadata to load process specific info from.
      *
-     * @returns RESULT_SUCCESS if all relevant metadata was able to be
+     * @returns ResultSuccess if all relevant metadata was able to be
      *          loaded and parsed. Otherwise, an error code is returned.
      */
     ResultCode LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std::size_t code_size);

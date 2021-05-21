@@ -47,7 +47,7 @@ void BSD::PollWork::Response(Kernel::HLERequestContext& ctx) {
     }
 
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push<s32>(ret);
     rb.PushEnum(bsd_errno);
 }
@@ -62,7 +62,7 @@ void BSD::AcceptWork::Response(Kernel::HLERequestContext& ctx) {
     }
 
     IPC::ResponseBuilder rb{ctx, 5};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push<s32>(ret);
     rb.PushEnum(bsd_errno);
     rb.Push<u32>(static_cast<u32>(write_buffer.size()));
@@ -74,7 +74,7 @@ void BSD::ConnectWork::Execute(BSD* bsd) {
 
 void BSD::ConnectWork::Response(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push<s32>(bsd_errno == Errno::SUCCESS ? 0 : -1);
     rb.PushEnum(bsd_errno);
 }
@@ -87,7 +87,7 @@ void BSD::RecvWork::Response(Kernel::HLERequestContext& ctx) {
     ctx.WriteBuffer(message);
 
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push<s32>(ret);
     rb.PushEnum(bsd_errno);
 }
@@ -103,7 +103,7 @@ void BSD::RecvFromWork::Response(Kernel::HLERequestContext& ctx) {
     }
 
     IPC::ResponseBuilder rb{ctx, 5};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push<s32>(ret);
     rb.PushEnum(bsd_errno);
     rb.Push<u32>(static_cast<u32>(addr.size()));
@@ -115,7 +115,7 @@ void BSD::SendWork::Execute(BSD* bsd) {
 
 void BSD::SendWork::Response(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push<s32>(ret);
     rb.PushEnum(bsd_errno);
 }
@@ -126,7 +126,7 @@ void BSD::SendToWork::Execute(BSD* bsd) {
 
 void BSD::SendToWork::Response(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push<s32>(ret);
     rb.PushEnum(bsd_errno);
 }
@@ -136,7 +136,7 @@ void BSD::RegisterClient(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 3};
 
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push<s32>(0); // bsd errno
 }
 
@@ -145,7 +145,7 @@ void BSD::StartMonitoring(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2};
 
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void BSD::Socket(Kernel::HLERequestContext& ctx) {
@@ -160,7 +160,7 @@ void BSD::Socket(Kernel::HLERequestContext& ctx) {
                                             static_cast<Protocol>(protocol));
 
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push<s32>(fd);
     rb.PushEnum(bsd_errno);
 }
@@ -170,7 +170,7 @@ void BSD::Select(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 4};
 
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push<u32>(0); // ret
     rb.Push<u32>(0); // bsd errno
 }
@@ -235,7 +235,7 @@ void BSD::GetPeerName(Kernel::HLERequestContext& ctx) {
     ctx.WriteBuffer(write_buffer);
 
     IPC::ResponseBuilder rb{ctx, 5};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push<s32>(bsd_errno != Errno::SUCCESS ? -1 : 0);
     rb.PushEnum(bsd_errno);
     rb.Push<u32>(static_cast<u32>(write_buffer.size()));
@@ -253,7 +253,7 @@ void BSD::GetSockName(Kernel::HLERequestContext& ctx) {
     ctx.WriteBuffer(write_buffer);
 
     IPC::ResponseBuilder rb{ctx, 5};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push<s32>(bsd_errno != Errno::SUCCESS ? -1 : 0);
     rb.PushEnum(bsd_errno);
     rb.Push<u32>(static_cast<u32>(write_buffer.size()));
@@ -272,7 +272,7 @@ void BSD::GetSockOpt(Kernel::HLERequestContext& ctx) {
     ctx.WriteBuffer(optval);
 
     IPC::ResponseBuilder rb{ctx, 5};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push<s32>(-1);
     rb.PushEnum(Errno::NOTCONN);
     rb.Push<u32>(static_cast<u32>(optval.size()));
@@ -299,7 +299,7 @@ void BSD::Fcntl(Kernel::HLERequestContext& ctx) {
     const auto [ret, bsd_errno] = FcntlImpl(fd, static_cast<FcntlCmd>(cmd), arg);
 
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push<s32>(ret);
     rb.PushEnum(bsd_errno);
 }
@@ -822,7 +822,7 @@ bool BSD::IsFileDescriptorValid(s32 fd) const noexcept {
 void BSD::BuildErrnoResponse(Kernel::HLERequestContext& ctx, Errno bsd_errno) const noexcept {
     IPC::ResponseBuilder rb{ctx, 4};
 
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push<s32>(bsd_errno == Errno::SUCCESS ? 0 : -1);
     rb.PushEnum(bsd_errno);
 }

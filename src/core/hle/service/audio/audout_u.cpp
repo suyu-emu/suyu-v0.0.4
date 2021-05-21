@@ -91,7 +91,7 @@ private:
         LOG_DEBUG(Service_Audio, "called");
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push(static_cast<u32>(stream->IsPlaying() ? AudioState::Started : AudioState::Stopped));
     }
 
@@ -107,7 +107,7 @@ private:
         audio_core.StartStream(stream);
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void StopAudioOut(Kernel::HLERequestContext& ctx) {
@@ -118,14 +118,14 @@ private:
         }
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void RegisterBufferEvent(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_Audio, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushCopyObjects(buffer_event.GetReadableEvent());
     }
 
@@ -150,7 +150,7 @@ private:
         }
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void GetReleasedAudioOutBufferImpl(Kernel::HLERequestContext& ctx) {
@@ -164,7 +164,7 @@ private:
         ctx.WriteBuffer(tags);
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push<u32>(static_cast<u32>(released_buffers.size()));
     }
 
@@ -174,7 +174,7 @@ private:
         IPC::RequestParser rp{ctx};
         const u64 tag{rp.Pop<u64>()};
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push(stream->ContainsBuffer(tag));
     }
 
@@ -182,7 +182,7 @@ private:
         LOG_DEBUG(Service_Audio, "called");
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push(static_cast<u32>(stream->GetQueueSize()));
     }
 
@@ -190,7 +190,7 @@ private:
         LOG_DEBUG(Service_Audio, "called");
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push(stream->Flush());
     }
 
@@ -202,14 +202,14 @@ private:
         stream->SetVolume(volume);
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void GetAudioOutVolume(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_Audio, "called");
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push(stream->GetVolume());
     }
 
@@ -246,7 +246,7 @@ void AudOutU::ListAudioOutsImpl(Kernel::HLERequestContext& ctx) {
     ctx.WriteBuffer(DefaultDevice);
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push<u32>(1); // Amount of audio devices
 }
 
@@ -279,7 +279,7 @@ void AudOutU::OpenAudioOutImpl(Kernel::HLERequestContext& ctx) {
         system, params, *audio_core, std::move(device_name), std::move(unique_name));
 
     IPC::ResponseBuilder rb{ctx, 6, 0, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push<u32>(DefaultSampleRate);
     rb.Push<u32>(params.channel_count);
     rb.Push<u32>(static_cast<u32>(AudioCore::Codec::PcmFormat::Int16));

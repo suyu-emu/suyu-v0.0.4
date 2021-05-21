@@ -205,7 +205,7 @@ ResultCode KThread::Initialize(KThreadFunction func, uintptr_t arg, VAddr user_s
         }
     }
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode KThread::InitializeThread(KThread* thread, KThreadFunction func, uintptr_t arg,
@@ -219,7 +219,7 @@ ResultCode KThread::InitializeThread(KThread* thread, KThreadFunction func, uint
     thread->host_context =
         std::make_shared<Common::Fiber>(std::move(init_func), init_func_parameter);
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode KThread::InitializeDummyThread(KThread* thread) {
@@ -460,7 +460,7 @@ ResultCode KThread::GetCoreMask(s32* out_ideal_core, u64* out_affinity_mask) {
     *out_ideal_core = virtual_ideal_core_id;
     *out_affinity_mask = virtual_affinity_mask;
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode KThread::GetPhysicalCoreMask(s32* out_ideal_core, u64* out_affinity_mask) {
@@ -476,7 +476,7 @@ ResultCode KThread::GetPhysicalCoreMask(s32* out_ideal_core, u64* out_affinity_m
         *out_affinity_mask = original_physical_affinity_mask.GetAffinityMask();
     }
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode KThread::SetCoreMask(s32 cpu_core_id, u64 v_affinity_mask) {
@@ -599,7 +599,7 @@ ResultCode KThread::SetCoreMask(s32 cpu_core_id, u64 v_affinity_mask) {
         }
     }
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 void KThread::SetBasePriority(s32 value) {
@@ -778,7 +778,7 @@ ResultCode KThread::SetActivity(Svc::ThreadActivity activity) {
         }
     }
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode KThread::GetThreadContext3(std::vector<u8>& out) {
@@ -813,7 +813,7 @@ ResultCode KThread::GetThreadContext3(std::vector<u8>& out) {
         }
     }
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 void KThread::AddWaiterImpl(KThread* thread) {
@@ -970,7 +970,7 @@ ResultCode KThread::Run() {
 
         // Set our state and finish.
         SetState(ThreadState::Runnable);
-        return RESULT_SUCCESS;
+        return ResultSuccess;
     }
 }
 
@@ -1020,7 +1020,7 @@ ResultCode KThread::Sleep(s64 timeout) {
     // Cancel the timer.
     kernel.TimeManager().UnscheduleTimeEvent(this);
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 void KThread::SetState(ThreadState state) {

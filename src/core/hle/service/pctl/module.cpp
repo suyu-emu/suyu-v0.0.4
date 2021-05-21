@@ -213,7 +213,7 @@ private:
             }
         }
 
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void CheckFreeCommunicationPermission(Kernel::HLERequestContext& ctx) {
@@ -223,7 +223,7 @@ private:
         if (!CheckFreeCommunicationPermissionImpl()) {
             rb.Push(Error::ResultNoFreeCommunication);
         } else {
-            rb.Push(RESULT_SUCCESS);
+            rb.Push(ResultSuccess);
         }
 
         states.free_communication = true;
@@ -234,7 +234,7 @@ private:
         states.stereo_vision = true;
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void IsFreeCommunicationAvailable(Kernel::HLERequestContext& ctx) {
@@ -244,7 +244,7 @@ private:
         if (!CheckFreeCommunicationPermissionImpl()) {
             rb.Push(Error::ResultNoFreeCommunication);
         } else {
-            rb.Push(RESULT_SUCCESS);
+            rb.Push(ResultSuccess);
         }
     }
 
@@ -278,7 +278,7 @@ private:
             return;
         }
 
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void IsStereoVisionPermitted(Kernel::HLERequestContext& ctx) {
@@ -289,7 +289,7 @@ private:
             rb.Push(Error::ResultStereoVisionRestricted);
             rb.Push(false);
         } else {
-            rb.Push(RESULT_SUCCESS);
+            rb.Push(ResultSuccess);
             rb.Push(true);
         }
     }
@@ -307,7 +307,7 @@ private:
         }
 
         SetStereoVisionRestrictionImpl(can_use);
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void GetStereoVisionRestriction(Kernel::HLERequestContext& ctx) {
@@ -321,7 +321,7 @@ private:
             return;
         }
 
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push(settings.is_stero_vision_restricted);
     }
 
@@ -331,7 +331,7 @@ private:
         states.stereo_vision = false;
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     struct ApplicationInfo {
@@ -368,7 +368,7 @@ void Module::Interface::CreateService(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_PCTL, "called");
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     // TODO(ogniK): Get TID from process
 
     rb.PushIpcInterface<IParentalControlService>(system, capability);
@@ -378,7 +378,7 @@ void Module::Interface::CreateServiceWithoutInitialize(Kernel::HLERequestContext
     LOG_DEBUG(Service_PCTL, "called");
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushIpcInterface<IParentalControlService>(system, capability);
 }
 

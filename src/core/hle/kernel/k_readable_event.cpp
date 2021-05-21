@@ -36,13 +36,13 @@ ResultCode KReadableEvent::Signal() {
         NotifyAvailable();
     }
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode KReadableEvent::Clear() {
     Reset();
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode KReadableEvent::Reset() {
@@ -53,7 +53,7 @@ ResultCode KReadableEvent::Reset() {
     }
 
     is_signaled = false;
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 } // namespace Kernel

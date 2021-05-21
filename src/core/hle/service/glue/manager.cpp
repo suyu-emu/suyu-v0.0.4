@@ -54,7 +54,7 @@ ResultCode ARPManager::Register(u64 title_id, ApplicationLaunchProperty launch,
     }
 
     entries.insert_or_assign(title_id, MapEntry{launch, std::move(control)});
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode ARPManager::Unregister(u64 title_id) {
@@ -68,7 +68,7 @@ ResultCode ARPManager::Unregister(u64 title_id) {
     }
 
     entries.erase(iter);
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 void ARPManager::ResetAll() {

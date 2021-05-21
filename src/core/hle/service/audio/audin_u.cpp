@@ -70,7 +70,7 @@ void AudInU::ListAudioIns(Kernel::HLERequestContext& ctx) {
     ctx.WriteBuffer(device_names);
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push(static_cast<u32>(device_names.size()));
 }
 
@@ -82,7 +82,7 @@ void AudInU::ListAudioInsAutoFiltered(Kernel::HLERequestContext& ctx) {
     // device listing just omits the default input device
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push(static_cast<u32>(device_count));
 }
 
@@ -94,7 +94,7 @@ void AudInU::OpenInOutImpl(Kernel::HLERequestContext& ctx) {
     params.state = State::Started;
 
     IPC::ResponseBuilder rb{ctx, 6, 0, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushRaw<AudInOutParams>(params);
     rb.PushIpcInterface<IAudioIn>(system);
 }

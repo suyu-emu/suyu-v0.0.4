@@ -86,7 +86,7 @@ ResultCode KConditionVariable::SignalToAddress(VAddr addr) {
                 next_value |= Svc::HandleWaitMask;
             }
 
-            next_owner_thread->SetSyncedObject(nullptr, RESULT_SUCCESS);
+            next_owner_thread->SetSyncedObject(nullptr, ResultSuccess);
             next_owner_thread->Wakeup();
         }
 
@@ -100,7 +100,7 @@ ResultCode KConditionVariable::SignalToAddress(VAddr addr) {
         }
     }
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode KConditionVariable::WaitForAddress(Handle handle, VAddr addr, u32 value) {
@@ -112,7 +112,7 @@ ResultCode KConditionVariable::WaitForAddress(Handle handle, VAddr addr, u32 val
         ASSERT(owner_thread.IsNull());
         {
             KScopedSchedulerLock sl(kernel);
-            cur_thread->SetSyncedObject(nullptr, RESULT_SUCCESS);
+            cur_thread->SetSyncedObject(nullptr, ResultSuccess);
 
             // Check if the thread should terminate.
             R_UNLESS(!cur_thread->IsTerminationRequested(), ResultTerminationRequested);
@@ -124,7 +124,7 @@ ResultCode KConditionVariable::WaitForAddress(Handle handle, VAddr addr, u32 val
                          ResultInvalidCurrentMemory);
 
                 // If the tag isn't the handle (with wait mask), we're done.
-                R_UNLESS(test_tag == (handle | Svc::HandleWaitMask), RESULT_SUCCESS);
+                R_UNLESS(test_tag == (handle | Svc::HandleWaitMask), ResultSuccess);
 
                 // Get the lock owner thread.
                 owner_thread =
@@ -181,7 +181,7 @@ KThread* KConditionVariable::SignalImpl(KThread* thread) {
     if (can_access) {
         if (prev_tag == Svc::InvalidHandle) {
             // If nobody held the lock previously, we're all good.
-            thread->SetSyncedObject(nullptr, RESULT_SUCCESS);
+            thread->SetSyncedObject(nullptr, ResultSuccess);
             thread->Wakeup();
         } else {
             // Get the previous owner.
@@ -292,7 +292,7 @@ ResultCode KConditionVariable::Wait(VAddr addr, u64 key, u32 value, s64 timeout)
                 }
 
                 // Wake up the next owner.
-                next_owner_thread->SetSyncedObject(nullptr, RESULT_SUCCESS);
+                next_owner_thread->SetSyncedObject(nullptr, ResultSuccess);
                 next_owner_thread->Wakeup();
             }
 

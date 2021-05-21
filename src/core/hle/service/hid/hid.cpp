@@ -114,7 +114,7 @@ void IAppletResource::GetSharedMemoryHandle(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_HID, "called");
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushCopyObjects(&system.Kernel().GetHidSharedMem());
 }
 
@@ -183,7 +183,7 @@ private:
                   vibration_device_handle.device_index);
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     std::shared_ptr<IAppletResource> applet_resource;
@@ -351,7 +351,7 @@ void Hid::CreateAppletResource(Kernel::HLERequestContext& ctx) {
     }
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushIpcInterface<IAppletResource>(applet_resource);
 }
 
@@ -364,7 +364,7 @@ void Hid::ActivateDebugPad(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::ActivateTouchScreen(Kernel::HLERequestContext& ctx) {
@@ -376,7 +376,7 @@ void Hid::ActivateTouchScreen(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::ActivateMouse(Kernel::HLERequestContext& ctx) {
@@ -388,7 +388,7 @@ void Hid::ActivateMouse(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::ActivateKeyboard(Kernel::HLERequestContext& ctx) {
@@ -400,7 +400,7 @@ void Hid::ActivateKeyboard(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::SendKeyboardLockKeyEvent(Kernel::HLERequestContext& ctx) {
@@ -410,7 +410,7 @@ void Hid::SendKeyboardLockKeyEvent(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_HID, "(STUBBED) called. flags={}", flags);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::ActivateXpad(Kernel::HLERequestContext& ctx) {
@@ -429,7 +429,7 @@ void Hid::ActivateXpad(Kernel::HLERequestContext& ctx) {
               parameters.basic_xpad_id, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::GetXpadIDs(Kernel::HLERequestContext& ctx) {
@@ -439,7 +439,7 @@ void Hid::GetXpadIDs(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_HID, "(STUBBED) called, applet_resource_user_id={}", applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push(0);
 }
 
@@ -461,7 +461,7 @@ void Hid::ActivateSixAxisSensor(Kernel::HLERequestContext& ctx) {
               parameters.sixaxis_handle.device_index, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::DeactivateSixAxisSensor(Kernel::HLERequestContext& ctx) {
@@ -482,7 +482,7 @@ void Hid::DeactivateSixAxisSensor(Kernel::HLERequestContext& ctx) {
               parameters.sixaxis_handle.device_index, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::StartSixAxisSensor(Kernel::HLERequestContext& ctx) {
@@ -503,7 +503,7 @@ void Hid::StartSixAxisSensor(Kernel::HLERequestContext& ctx) {
               parameters.sixaxis_handle.device_index, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::StopSixAxisSensor(Kernel::HLERequestContext& ctx) {
@@ -524,7 +524,7 @@ void Hid::StopSixAxisSensor(Kernel::HLERequestContext& ctx) {
               parameters.sixaxis_handle.device_index, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::EnableSixAxisSensorFusion(Kernel::HLERequestContext& ctx) {
@@ -547,7 +547,7 @@ void Hid::EnableSixAxisSensorFusion(Kernel::HLERequestContext& ctx) {
                 parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::SetSixAxisSensorFusionParameters(Kernel::HLERequestContext& ctx) {
@@ -573,7 +573,7 @@ void Hid::SetSixAxisSensorFusionParameters(Kernel::HLERequestContext& ctx) {
                 parameters.parameter2, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::GetSixAxisSensorFusionParameters(Kernel::HLERequestContext& ctx) {
@@ -599,7 +599,7 @@ void Hid::GetSixAxisSensorFusionParameters(Kernel::HLERequestContext& ctx) {
         parameters.sixaxis_handle.device_index, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push(parameter1);
     rb.Push(parameter2);
 }
@@ -624,7 +624,7 @@ void Hid::ResetSixAxisSensorFusionParameters(Kernel::HLERequestContext& ctx) {
         parameters.sixaxis_handle.device_index, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::SetGyroscopeZeroDriftMode(Kernel::HLERequestContext& ctx) {
@@ -643,7 +643,7 @@ void Hid::SetGyroscopeZeroDriftMode(Kernel::HLERequestContext& ctx) {
               drift_mode, applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::GetGyroscopeZeroDriftMode(Kernel::HLERequestContext& ctx) {
@@ -662,7 +662,7 @@ void Hid::GetGyroscopeZeroDriftMode(Kernel::HLERequestContext& ctx) {
               parameters.sixaxis_handle.device_index, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushEnum(applet_resource->GetController<Controller_NPad>(HidController::NPad)
                     .GetGyroscopeZeroDriftMode());
 }
@@ -686,7 +686,7 @@ void Hid::ResetGyroscopeZeroDriftMode(Kernel::HLERequestContext& ctx) {
               parameters.sixaxis_handle.device_index, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::IsSixAxisSensorAtRest(Kernel::HLERequestContext& ctx) {
@@ -705,7 +705,7 @@ void Hid::IsSixAxisSensorAtRest(Kernel::HLERequestContext& ctx) {
               parameters.sixaxis_handle.device_index, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push(applet_resource->GetController<Controller_NPad>(HidController::NPad)
                 .IsSixAxisSensorAtRest());
 }
@@ -726,7 +726,7 @@ void Hid::ActivateGesture(Kernel::HLERequestContext& ctx) {
               parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::SetSupportedNpadStyleSet(Kernel::HLERequestContext& ctx) {
@@ -739,7 +739,7 @@ void Hid::SetSupportedNpadStyleSet(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_HID, "called, supported_styleset={}", supported_styleset);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::GetSupportedNpadStyleSet(Kernel::HLERequestContext& ctx) {
@@ -749,7 +749,7 @@ void Hid::GetSupportedNpadStyleSet(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push(applet_resource->GetController<Controller_NPad>(HidController::NPad)
                 .GetSupportedStyleSet()
                 .raw);
@@ -765,7 +765,7 @@ void Hid::SetSupportedNpadIdType(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::ActivateNpad(Kernel::HLERequestContext& ctx) {
@@ -777,7 +777,7 @@ void Hid::ActivateNpad(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::DeactivateNpad(Kernel::HLERequestContext& ctx) {
@@ -789,7 +789,7 @@ void Hid::DeactivateNpad(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::AcquireNpadStyleSetUpdateEventHandle(Kernel::HLERequestContext& ctx) {
@@ -807,7 +807,7 @@ void Hid::AcquireNpadStyleSetUpdateEventHandle(Kernel::HLERequestContext& ctx) {
               parameters.npad_id, parameters.applet_resource_user_id, parameters.unknown);
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushCopyObjects(applet_resource->GetController<Controller_NPad>(HidController::NPad)
                            .GetStyleSetChangedEvent(parameters.npad_id));
 }
@@ -829,7 +829,7 @@ void Hid::DisconnectNpad(Kernel::HLERequestContext& ctx) {
               parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::GetPlayerLedPattern(Kernel::HLERequestContext& ctx) {
@@ -839,7 +839,7 @@ void Hid::GetPlayerLedPattern(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_HID, "called, npad_id={}", npad_id);
 
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push(applet_resource->GetController<Controller_NPad>(HidController::NPad)
                 .GetLedPattern(npad_id)
                 .raw);
@@ -862,7 +862,7 @@ void Hid::ActivateNpadWithRevision(Kernel::HLERequestContext& ctx) {
               parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::SetNpadJoyHoldType(Kernel::HLERequestContext& ctx) {
@@ -876,7 +876,7 @@ void Hid::SetNpadJoyHoldType(Kernel::HLERequestContext& ctx) {
               applet_resource_user_id, hold_type);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::GetNpadJoyHoldType(Kernel::HLERequestContext& ctx) {
@@ -886,7 +886,7 @@ void Hid::GetNpadJoyHoldType(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushEnum(applet_resource->GetController<Controller_NPad>(HidController::NPad).GetHoldType());
 }
 
@@ -907,7 +907,7 @@ void Hid::SetNpadJoyAssignmentModeSingleByDefault(Kernel::HLERequestContext& ctx
                 parameters.npad_id, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::SetNpadJoyAssignmentModeSingle(Kernel::HLERequestContext& ctx) {
@@ -931,7 +931,7 @@ void Hid::SetNpadJoyAssignmentModeSingle(Kernel::HLERequestContext& ctx) {
                 parameters.npad_joy_device_type);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::SetNpadJoyAssignmentModeDual(Kernel::HLERequestContext& ctx) {
@@ -951,7 +951,7 @@ void Hid::SetNpadJoyAssignmentModeDual(Kernel::HLERequestContext& ctx) {
                 parameters.npad_id, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::MergeSingleJoyAsDualJoy(Kernel::HLERequestContext& ctx) {
@@ -967,7 +967,7 @@ void Hid::MergeSingleJoyAsDualJoy(Kernel::HLERequestContext& ctx) {
               npad_id_1, npad_id_2, applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::StartLrAssignmentMode(Kernel::HLERequestContext& ctx) {
@@ -979,7 +979,7 @@ void Hid::StartLrAssignmentMode(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::StopLrAssignmentMode(Kernel::HLERequestContext& ctx) {
@@ -991,7 +991,7 @@ void Hid::StopLrAssignmentMode(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::SetNpadHandheldActivationMode(Kernel::HLERequestContext& ctx) {
@@ -1006,7 +1006,7 @@ void Hid::SetNpadHandheldActivationMode(Kernel::HLERequestContext& ctx) {
               applet_resource_user_id, activation_mode);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::GetNpadHandheldActivationMode(Kernel::HLERequestContext& ctx) {
@@ -1016,7 +1016,7 @@ void Hid::GetNpadHandheldActivationMode(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushEnum(applet_resource->GetController<Controller_NPad>(HidController::NPad)
                     .GetNpadHandheldActivationMode());
 }
@@ -1035,7 +1035,7 @@ void Hid::SwapNpadAssignment(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2};
     if (res) {
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     } else {
         LOG_ERROR(Service_HID, "Npads are not connected!");
         rb.Push(ERR_NPAD_NOT_CONNECTED);
@@ -1056,7 +1056,7 @@ void Hid::IsUnintendedHomeButtonInputProtectionEnabled(Kernel::HLERequestContext
                 parameters.npad_id, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push(applet_resource->GetController<Controller_NPad>(HidController::NPad)
                 .IsUnintendedHomeButtonInputProtectionEnabled(parameters.npad_id));
 }
@@ -1083,7 +1083,7 @@ void Hid::EnableUnintendedHomeButtonInputProtection(Kernel::HLERequestContext& c
                 parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::SetNpadAnalogStickUseCenterClamp(Kernel::HLERequestContext& ctx) {
@@ -1104,7 +1104,7 @@ void Hid::SetNpadAnalogStickUseCenterClamp(Kernel::HLERequestContext& ctx) {
                 parameters.analog_stick_use_center_clamp, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::GetVibrationDeviceInfo(Kernel::HLERequestContext& ctx) {
@@ -1148,7 +1148,7 @@ void Hid::GetVibrationDeviceInfo(Kernel::HLERequestContext& ctx) {
               vibration_device_info.type, vibration_device_info.position);
 
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushRaw(vibration_device_info);
 }
 
@@ -1173,7 +1173,7 @@ void Hid::SendVibrationValue(Kernel::HLERequestContext& ctx) {
               parameters.vibration_device_handle.device_index, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::GetActualVibrationValue(Kernel::HLERequestContext& ctx) {
@@ -1193,7 +1193,7 @@ void Hid::GetActualVibrationValue(Kernel::HLERequestContext& ctx) {
               parameters.vibration_device_handle.device_index, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 6};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushRaw(applet_resource->GetController<Controller_NPad>(HidController::NPad)
                    .GetLastVibration(parameters.vibration_device_handle));
 }
@@ -1202,7 +1202,7 @@ void Hid::CreateActiveVibrationDeviceList(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_HID, "called");
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushIpcInterface<IActiveVibrationDeviceList>(system, applet_resource);
 }
 
@@ -1215,14 +1215,14 @@ void Hid::PermitVibration(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_HID, "called, can_vibrate={}", can_vibrate);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::IsVibrationPermitted(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_HID, "called");
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push(Settings::values.vibration_enabled.GetValue());
 }
 
@@ -1247,7 +1247,7 @@ void Hid::SendVibrationValues(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::SendVibrationGcErmCommand(Kernel::HLERequestContext& ctx) {
@@ -1307,7 +1307,7 @@ void Hid::SendVibrationGcErmCommand(Kernel::HLERequestContext& ctx) {
               parameters.gc_erm_command);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::GetActualVibrationGcErmCommand(Kernel::HLERequestContext& ctx) {
@@ -1348,7 +1348,7 @@ void Hid::GetActualVibrationGcErmCommand(Kernel::HLERequestContext& ctx) {
               parameters.vibration_device_handle.device_index, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushEnum(gc_erm_command);
 }
 
@@ -1362,7 +1362,7 @@ void Hid::BeginPermitVibrationSession(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::EndPermitVibrationSession(Kernel::HLERequestContext& ctx) {
@@ -1372,7 +1372,7 @@ void Hid::EndPermitVibrationSession(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_HID, "called");
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::IsVibrationDeviceMounted(Kernel::HLERequestContext& ctx) {
@@ -1392,7 +1392,7 @@ void Hid::IsVibrationDeviceMounted(Kernel::HLERequestContext& ctx) {
               parameters.vibration_device_handle.device_index, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push(applet_resource->GetController<Controller_NPad>(HidController::NPad)
                 .IsVibrationDeviceMounted(parameters.vibration_device_handle));
 }
@@ -1406,7 +1406,7 @@ void Hid::ActivateConsoleSixAxisSensor(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::StartConsoleSixAxisSensor(Kernel::HLERequestContext& ctx) {
@@ -1426,7 +1426,7 @@ void Hid::StartConsoleSixAxisSensor(Kernel::HLERequestContext& ctx) {
         parameters.sixaxis_handle.device_index, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::StopConsoleSixAxisSensor(Kernel::HLERequestContext& ctx) {
@@ -1446,7 +1446,7 @@ void Hid::StopConsoleSixAxisSensor(Kernel::HLERequestContext& ctx) {
         parameters.sixaxis_handle.device_index, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::ActivateSevenSixAxisSensor(Kernel::HLERequestContext& ctx) {
@@ -1458,7 +1458,7 @@ void Hid::ActivateSevenSixAxisSensor(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::StartSevenSixAxisSensor(Kernel::HLERequestContext& ctx) {
@@ -1469,7 +1469,7 @@ void Hid::StartSevenSixAxisSensor(Kernel::HLERequestContext& ctx) {
                 applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::StopSevenSixAxisSensor(Kernel::HLERequestContext& ctx) {
@@ -1480,7 +1480,7 @@ void Hid::StopSevenSixAxisSensor(Kernel::HLERequestContext& ctx) {
                 applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::InitializeSevenSixAxisSensor(Kernel::HLERequestContext& ctx) {
@@ -1530,7 +1530,7 @@ void Hid::InitializeSevenSixAxisSensor(Kernel::HLERequestContext& ctx) {
                 t_mem_1_handle, t_mem_2_handle, applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::FinalizeSevenSixAxisSensor(Kernel::HLERequestContext& ctx) {
@@ -1541,7 +1541,7 @@ void Hid::FinalizeSevenSixAxisSensor(Kernel::HLERequestContext& ctx) {
                 applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::ResetSevenSixAxisSensorTimestamp(Kernel::HLERequestContext& ctx) {
@@ -1554,7 +1554,7 @@ void Hid::ResetSevenSixAxisSensorTimestamp(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::SetIsPalmaAllConnectable(Kernel::HLERequestContext& ctx) {
@@ -1567,7 +1567,7 @@ void Hid::SetIsPalmaAllConnectable(Kernel::HLERequestContext& ctx) {
                 applet_resource_user_id, is_palma_all_connectable);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::SetPalmaBoostMode(Kernel::HLERequestContext& ctx) {
@@ -1577,7 +1577,7 @@ void Hid::SetPalmaBoostMode(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_HID, "(STUBBED) called, palma_boost_mode={}", palma_boost_mode);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::SetNpadCommunicationMode(Kernel::HLERequestContext& ctx) {
@@ -1592,7 +1592,7 @@ void Hid::SetNpadCommunicationMode(Kernel::HLERequestContext& ctx) {
                 applet_resource_user_id, communication_mode);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Hid::GetNpadCommunicationMode(Kernel::HLERequestContext& ctx) {
@@ -1603,7 +1603,7 @@ void Hid::GetNpadCommunicationMode(Kernel::HLERequestContext& ctx) {
                 applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushEnum(applet_resource->GetController<Controller_NPad>(HidController::NPad)
                     .GetNpadCommunicationMode());
 }
@@ -1956,7 +1956,7 @@ private:
         LOG_WARNING(Service_HID, "called");
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 };
 

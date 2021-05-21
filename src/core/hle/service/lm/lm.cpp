@@ -84,7 +84,7 @@ private:
 
         // This function only succeeds - Get that out of the way
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
 
         if (data.size() < sizeof(LogPacketHeader)) {
             LOG_ERROR(Service_LM, "Data size is too small for header! size={}", data.size());
@@ -141,7 +141,7 @@ private:
         destination = log_destination;
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     u64 ReadLeb128(const std::vector<u8>& data, std::size_t& offset) {
@@ -357,7 +357,7 @@ private:
         LOG_DEBUG(Service_LM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<ILogger>(system);
     }
 };

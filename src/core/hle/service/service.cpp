@@ -162,7 +162,7 @@ void ServiceFrameworkBase::ReportUnimplementedFunction(Kernel::HLERequestContext
     if (Settings::values.use_auto_stub) {
         LOG_WARNING(Service, "Using auto stub fallback!");
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 }
 
@@ -200,7 +200,7 @@ ResultCode ServiceFrameworkBase::HandleSyncRequest(Kernel::KServerSession& sessi
     case IPC::CommandType::TIPC_Close: {
         session.Close();
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         return IPC::ERR_REMOTE_PROCESS_DEAD;
     }
     case IPC::CommandType::ControlWithContext:
@@ -228,7 +228,7 @@ ResultCode ServiceFrameworkBase::HandleSyncRequest(Kernel::KServerSession& sessi
         ctx.WriteToOutgoingCommandBuffer(ctx.GetThread());
     }
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 /// Initialize Services

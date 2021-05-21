@@ -23,7 +23,7 @@ void Controller::ConvertCurrentObjectToDomain(Kernel::HLERequestContext& ctx) {
     ctx.Session()->ConvertToDomain();
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push<u32>(1); // Converted sessions start with 1 request handler
 }
 
@@ -62,7 +62,7 @@ void Controller::CloneCurrentObject(Kernel::HLERequestContext& ctx) {
 
     // We succeeded.
     IPC::ResponseBuilder rb{ctx, 2, 0, 1, IPC::ResponseBuilder::Flags::AlwaysMoveHandles};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushMoveObjects(clone->GetClientSession());
 }
 
@@ -76,7 +76,7 @@ void Controller::QueryPointerBufferSize(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push<u16>(0x8000);
 }
 

@@ -25,7 +25,7 @@ void BGTC_T::OpenTaskService(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_BGTC, "called");
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushIpcInterface<ITaskService>(system);
 }
 

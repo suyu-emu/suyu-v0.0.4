@@ -36,7 +36,7 @@ void GetApplicationPidGeneric(Kernel::HLERequestContext& ctx,
     });
 
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push(process.has_value() ? (*process)->GetProcessID() : NO_PROCESS_FOUND_PID);
 }
 
@@ -57,7 +57,7 @@ private:
         LOG_DEBUG(Service_PM, "called");
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushEnum(boot_mode);
     }
 
@@ -67,7 +67,7 @@ private:
         boot_mode = SystemBootMode::Maintenance;
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     SystemBootMode boot_mode = SystemBootMode::Normal;
@@ -111,7 +111,7 @@ private:
         }
 
         IPC::ResponseBuilder rb{ctx, 4};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push((*process)->GetProcessID());
     }
 
@@ -151,7 +151,7 @@ private:
         }
 
         IPC::ResponseBuilder rb{ctx, 4};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push((*process)->GetTitleID());
     }
 

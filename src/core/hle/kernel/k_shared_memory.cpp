@@ -55,7 +55,7 @@ ResultCode KSharedMemory::Initialize(Core::DeviceMemory& device_memory_, KProces
     // Clear all pages in the memory.
     std::memset(device_memory_.GetPointer(physical_address_), 0, size_);
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 void KSharedMemory::Finalize() {

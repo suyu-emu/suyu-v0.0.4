@@ -84,7 +84,7 @@ public:
     /// @param page_table       The memory manager to use for handling any mapping-related
     ///                         operations (such as mapping IO memory, etc).
     ///
-    /// @returns RESULT_SUCCESS if this capabilities instance was able to be initialized,
+    /// @returns ResultSuccess if this capabilities instance was able to be initialized,
     ///          otherwise, an error code upon failure.
     ///
     ResultCode InitializeForKernelProcess(const u32* capabilities, std::size_t num_capabilities,
@@ -97,7 +97,7 @@ public:
     /// @param page_table       The memory manager to use for handling any mapping-related
     ///                         operations (such as mapping IO memory, etc).
     ///
-    /// @returns RESULT_SUCCESS if this capabilities instance was able to be initialized,
+    /// @returns ResultSuccess if this capabilities instance was able to be initialized,
     ///          otherwise, an error code upon failure.
     ///
     ResultCode InitializeForUserProcess(const u32* capabilities, std::size_t num_capabilities,
@@ -184,7 +184,7 @@ private:
     /// @param page_table       The memory manager that will perform any memory
     ///                         mapping if necessary.
     ///
-    /// @return RESULT_SUCCESS if no errors occur, otherwise an error code.
+    /// @return ResultSuccess if no errors occur, otherwise an error code.
     ///
     ResultCode ParseCapabilities(const u32* capabilities, std::size_t num_capabilities,
                                  KPageTable& page_table);
@@ -199,7 +199,7 @@ private:
     /// @param page_table   The memory manager that will perform any memory
     ///                     mapping if necessary.
     ///
-    /// @return RESULT_SUCCESS if no errors occurred, otherwise an error code.
+    /// @return ResultSuccess if no errors occurred, otherwise an error code.
     ///
     ResultCode ParseSingleFlagCapability(u32& set_flags, u32& set_svc_bits, u32 flag,
                                          KPageTable& page_table);

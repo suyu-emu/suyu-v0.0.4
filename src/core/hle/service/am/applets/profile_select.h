@@ -51,7 +51,7 @@ private:
 
     UserSelectionConfig config;
     bool complete = false;
-    ResultCode status = RESULT_SUCCESS;
+    ResultCode status = ResultSuccess;
     std::vector<u8> final_data;
     Core::System& system;
 };
