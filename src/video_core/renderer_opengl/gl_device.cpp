@@ -241,7 +241,7 @@ Device::Device() {
     has_variable_aoffi = TestVariableAoffi();
     has_component_indexing_bug = is_amd;
     has_precise_bug = TestPreciseBug();
-    has_broken_texture_view_formats = is_amd || is_intel;
+    has_broken_texture_view_formats = is_amd || (!is_linux && is_intel);
     has_nv_viewport_array2 = GLAD_GL_NV_viewport_array2;
     has_vertex_buffer_unified_memory = GLAD_GL_NV_vertex_buffer_unified_memory;
     has_debugging_tool_attached = IsDebugToolAttached(extensions);
