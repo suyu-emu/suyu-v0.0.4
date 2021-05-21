@@ -48,7 +48,7 @@ if(WIN32 OR CYGWIN)
       libusb/libusb/os/threads_windows.c
       libusb/libusb/os/windows_winusb.c
       libusb/libusb/os/windows_usbdk.c
-      libusb/libusb/os/windows_nt_common.c
+      libusb/libusb/os/windows_common.c
     )
     set(OS_WINDOWS TRUE)
 elseif(APPLE)
@@ -105,7 +105,7 @@ endif()
 
 if(UNIX)
     target_sources(usb PRIVATE
-        libusb/libusb/os/poll_posix.c
+        libusb/libusb/os/events_posix.c
         libusb/libusb/os/threads_posix.c
     )
     find_package(Threads REQUIRED)
@@ -118,7 +118,7 @@ if(UNIX)
     set(THREADS_POSIX TRUE)
 elseif(WIN32)
     target_sources(usb PRIVATE
-        libusb/libusb/os/poll_windows.c
+        libusb/libusb/os/events_windows.c
         libusb/libusb/os/threads_windows.c
     )
 endif()
