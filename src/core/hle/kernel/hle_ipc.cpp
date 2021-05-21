@@ -64,7 +64,7 @@ void HLERequestContext::ParseCommandBuffer(const KHandleTable& handle_table, u32
     if (command_header->enable_handle_descriptor) {
         handle_descriptor_header = rp.PopRaw<IPC::HandleDescriptorHeader>();
         if (handle_descriptor_header->send_current_pid) {
-            rp.Skip(2, false);
+            pid = rp.Pop<u64>();
         }
         if (incoming) {
             // Populate the object lists with the data in the IPC request.
@@ -86,16 +86,16 @@ void HLERequestContext::ParseCommandBuffer(const KHandleTable& handle_table, u32
         }
     }
 
-    for (unsigned i = 0; i < command_header->num_buf_x_descriptors; ++i) {
+    for (u32 i = 0; i < command_header->num_buf_x_descriptors; ++i) {
         buffer_x_desciptors.push_back(rp.PopRaw<IPC::BufferDescriptorX>());
     }
-    for (unsigned i = 0; i < command_header->num_buf_a_descriptors; ++i) {
+    for (u32 i = 0; i < command_header->num_buf_a_descriptors; ++i) {
         buffer_a_desciptors.push_back(rp.PopRaw<IPC::BufferDescriptorABW>());
     }
-    for (unsigned i = 0; i < command_header->num_buf_b_descriptors; ++i) {
+    for (u32 i = 0; i < command_header->num_buf_b_descriptors; ++i) {
         buffer_b_desciptors.push_back(rp.PopRaw<IPC::BufferDescriptorABW>());
     }
-    for (unsigned i = 0; i < command_header->num_buf_w_descriptors; ++i) {
+    for (u32 i = 0; i < command_header->num_buf_w_descriptors; ++i) {
         buffer_w_desciptors.push_back(rp.PopRaw<IPC::BufferDescriptorABW>());
     }
 
@@ -148,14 +148,14 @@ void HLERequestContext::ParseCommandBuffer(const KHandleTable& handle_table, u32
             IPC::CommandHeader::BufferDescriptorCFlag::OneDescriptor) {
             buffer_c_desciptors.push_back(rp.PopRaw<IPC::BufferDescriptorC>());
         } else {
-            unsigned num_buf_c_descriptors =
-                static_cast<unsigned>(command_header->buf_c_descriptor_flags.Value()) - 2;
+            u32 num_buf_c_descriptors =
+                static_cast<u32>(command_header->buf_c_descriptor_flags.Value()) - 2;
 
             // This is used to detect possible underflows, in case something is broken
             // with the two ifs above and the flags value is == 0 || == 1.
             ASSERT(num_buf_c_descriptors < 14);
 
-            for (unsigned i = 0; i < num_buf_c_descriptors; ++i) {
+            for (u32 i = 0; i < num_buf_c_descriptors; ++i) {
                 buffer_c_desciptors.push_back(rp.PopRaw<IPC::BufferDescriptorC>());
             }
         }
