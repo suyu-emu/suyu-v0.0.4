@@ -1500,7 +1500,7 @@ void Hid::InitializeSevenSixAxisSensor(Kernel::HLERequestContext& ctx) {
     if (t_mem_1.IsNull()) {
         LOG_ERROR(Service_HID, "t_mem_1 is a nullptr for handle=0x{:08X}", t_mem_1_handle);
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_UNKNOWN);
+        rb.Push(ResultUnknown);
         return;
     }
 
@@ -1510,7 +1510,7 @@ void Hid::InitializeSevenSixAxisSensor(Kernel::HLERequestContext& ctx) {
     if (t_mem_2.IsNull()) {
         LOG_ERROR(Service_HID, "t_mem_2 is a nullptr for handle=0x{:08X}", t_mem_2_handle);
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_UNKNOWN);
+        rb.Push(ResultUnknown);
         return;
     }
 

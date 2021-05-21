@@ -152,7 +152,7 @@ constexpr ResultCode ResultSuccess(0);
  * @note This should only be used when a particular error code
  *       is not known yet.
  */
-constexpr ResultCode RESULT_UNKNOWN(UINT32_MAX);
+constexpr ResultCode ResultUnknown(UINT32_MAX);
 
 /**
  * This is an optional value type. It holds a `ResultCode` and, if that code is a success code,
@@ -191,7 +191,7 @@ class ResultVal {
 public:
     /// Constructs an empty `ResultVal` with the given error code. The code must not be a success
     /// code.
-    ResultVal(ResultCode error_code = RESULT_UNKNOWN) : result_code(error_code) {
+    ResultVal(ResultCode error_code = ResultUnknown) : result_code(error_code) {
         ASSERT(error_code.IsError());
     }
 

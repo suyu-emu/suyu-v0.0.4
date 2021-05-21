@@ -1162,7 +1162,7 @@ void ILibraryAppletCreator::CreateLibraryApplet(Kernel::HLERequestContext& ctx) 
         LOG_ERROR(Service_AM, "Applet doesn't exist! applet_id={}", applet_id);
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_UNKNOWN);
+        rb.Push(ResultUnknown);
         return;
     }
 
@@ -1182,7 +1182,7 @@ void ILibraryAppletCreator::CreateStorage(Kernel::HLERequestContext& ctx) {
     if (size <= 0) {
         LOG_ERROR(Service_AM, "size is less than or equal to 0");
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_UNKNOWN);
+        rb.Push(ResultUnknown);
         return;
     }
 
@@ -1210,7 +1210,7 @@ void ILibraryAppletCreator::CreateTransferMemoryStorage(Kernel::HLERequestContex
     if (parameters.size <= 0) {
         LOG_ERROR(Service_AM, "size is less than or equal to 0");
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_UNKNOWN);
+        rb.Push(ResultUnknown);
         return;
     }
 
@@ -1220,7 +1220,7 @@ void ILibraryAppletCreator::CreateTransferMemoryStorage(Kernel::HLERequestContex
     if (transfer_mem.IsNull()) {
         LOG_ERROR(Service_AM, "transfer_mem is a nullptr for handle={:08X}", handle);
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_UNKNOWN);
+        rb.Push(ResultUnknown);
         return;
     }
 
@@ -1244,7 +1244,7 @@ void ILibraryAppletCreator::CreateHandleStorage(Kernel::HLERequestContext& ctx) 
     if (size <= 0) {
         LOG_ERROR(Service_AM, "size is less than or equal to 0");
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_UNKNOWN);
+        rb.Push(ResultUnknown);
         return;
     }
 
@@ -1254,7 +1254,7 @@ void ILibraryAppletCreator::CreateHandleStorage(Kernel::HLERequestContext& ctx) 
     if (transfer_mem.IsNull()) {
         LOG_ERROR(Service_AM, "transfer_mem is a nullptr for handle={:08X}", handle);
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_UNKNOWN);
+        rb.Push(ResultUnknown);
         return;
     }
 

@@ -121,7 +121,7 @@ void HandleDownloadDisplayResult(const AM::Applets::AppletManager& applet_manage
 
     const auto& frontend{applet_manager.GetAppletFrontendSet()};
     frontend.error->ShowCustomErrorText(
-        RESULT_UNKNOWN, "There was an error while attempting to use Boxcat.",
+        ResultUnknown, "There was an error while attempting to use Boxcat.",
         DOWNLOAD_RESULT_LOG_MESSAGES[static_cast<std::size_t>(res)], [] {});
 }
 

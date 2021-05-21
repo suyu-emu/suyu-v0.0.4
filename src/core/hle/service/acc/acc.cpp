@@ -304,7 +304,7 @@ protected:
             LOG_ERROR(Service_ACC, "Failed to get profile base and data for user={}",
                       user_id.Format());
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(RESULT_UNKNOWN); // TODO(ogniK): Get actual error code
+            rb.Push(ResultUnknown); // TODO(ogniK): Get actual error code
         }
     }
 
@@ -318,7 +318,7 @@ protected:
         } else {
             LOG_ERROR(Service_ACC, "Failed to get profile base for user={}", user_id.Format());
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(RESULT_UNKNOWN); // TODO(ogniK): Get actual error code
+            rb.Push(ResultUnknown); // TODO(ogniK): Get actual error code
         }
     }
 
@@ -903,7 +903,7 @@ void Module::Interface::TrySelectUserWithoutInteraction(Kernel::HLERequestContex
     const auto user_list = profile_manager->GetAllUsers();
     if (std::all_of(user_list.begin(), user_list.end(),
                     [](const auto& user) { return user.uuid == Common::INVALID_UUID; })) {
-        rb.Push(RESULT_UNKNOWN); // TODO(ogniK): Find the correct error code
+        rb.Push(ResultUnknown); // TODO(ogniK): Find the correct error code
         rb.PushRaw<u128>(Common::INVALID_UUID);
         return;
     }

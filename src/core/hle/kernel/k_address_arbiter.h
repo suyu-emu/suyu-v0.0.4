@@ -37,7 +37,7 @@ public:
             return SignalAndModifyByWaitingCountIfEqual(addr, value, count);
         }
         UNREACHABLE();
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
 
     [[nodiscard]] ResultCode WaitForAddress(VAddr addr, Svc::ArbitrationType type, s32 value,
@@ -51,7 +51,7 @@ public:
             return WaitIfEqual(addr, value, timeout);
         }
         UNREACHABLE();
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
 
 private:

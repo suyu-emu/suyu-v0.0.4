@@ -67,11 +67,11 @@ ResultCode VfsDirectoryServiceWrapper::CreateFile(const std::string& path_, u64 
     auto file = dir->CreateFile(Common::FS::GetFilename(path));
     if (file == nullptr) {
         // TODO(DarkLordZach): Find a better error code for this
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
     if (!file->Resize(size)) {
         // TODO(DarkLordZach): Find a better error code for this
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
     return ResultSuccess;
 }
@@ -89,7 +89,7 @@ ResultCode VfsDirectoryServiceWrapper::DeleteFile(const std::string& path_) cons
     }
     if (!dir->DeleteFile(Common::FS::GetFilename(path))) {
         // TODO(DarkLordZach): Find a better error code for this
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
 
     return ResultSuccess;
@@ -104,7 +104,7 @@ ResultCode VfsDirectoryServiceWrapper::CreateDirectory(const std::string& path_)
     auto new_dir = dir->CreateSubdirectory(Common::FS::GetFilename(path));
     if (new_dir == nullptr) {
         // TODO(DarkLordZach): Find a better error code for this
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
     return ResultSuccess;
 }
@@ -114,7 +114,7 @@ ResultCode VfsDirectoryServiceWrapper::DeleteDirectory(const std::string& path_)
     auto dir = GetDirectoryRelativeWrapped(backing, Common::FS::GetParentPath(path));
     if (!dir->DeleteSubdirectory(Common::FS::GetFilename(path))) {
         // TODO(DarkLordZach): Find a better error code for this
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
     return ResultSuccess;
 }
@@ -124,7 +124,7 @@ ResultCode VfsDirectoryServiceWrapper::DeleteDirectoryRecursively(const std::str
     auto dir = GetDirectoryRelativeWrapped(backing, Common::FS::GetParentPath(path));
     if (!dir->DeleteSubdirectoryRecursive(Common::FS::GetFilename(path))) {
         // TODO(DarkLordZach): Find a better error code for this
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
     return ResultSuccess;
 }
@@ -135,7 +135,7 @@ ResultCode VfsDirectoryServiceWrapper::CleanDirectoryRecursively(const std::stri
 
     if (!dir->CleanSubdirectoryRecursive(Common::FS::GetFilename(sanitized_path))) {
         // TODO(DarkLordZach): Find a better error code for this
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
 
     return ResultSuccess;
@@ -152,7 +152,7 @@ ResultCode VfsDirectoryServiceWrapper::RenameFile(const std::string& src_path_,
             return FileSys::ERROR_PATH_NOT_FOUND;
         if (!src->Rename(Common::FS::GetFilename(dest_path))) {
             // TODO(DarkLordZach): Find a better error code for this
-            return RESULT_UNKNOWN;
+            return ResultUnknown;
         }
         return ResultSuccess;
     }
@@ -170,7 +170,7 @@ ResultCode VfsDirectoryServiceWrapper::RenameFile(const std::string& src_path_,
 
     if (!src->GetContainingDirectory()->DeleteFile(Common::FS::GetFilename(src_path))) {
         // TODO(DarkLordZach): Find a better error code for this
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
 
     return ResultSuccess;
@@ -187,7 +187,7 @@ ResultCode VfsDirectoryServiceWrapper::RenameDirectory(const std::string& src_pa
             return FileSys::ERROR_PATH_NOT_FOUND;
         if (!src->Rename(Common::FS::GetFilename(dest_path))) {
             // TODO(DarkLordZach): Find a better error code for this
-            return RESULT_UNKNOWN;
+            return ResultUnknown;
         }
         return ResultSuccess;
     }
@@ -199,7 +199,7 @@ ResultCode VfsDirectoryServiceWrapper::RenameDirectory(const std::string& src_pa
                src_path, dest_path);
 
     // TODO(DarkLordZach): Find a better error code for this
-    return RESULT_UNKNOWN;
+    return ResultUnknown;
 }
 
 ResultVal<FileSys::VirtualFile> VfsDirectoryServiceWrapper::OpenFile(const std::string& path_,
@@ -297,7 +297,7 @@ ResultVal<FileSys::VirtualFile> FileSystemController::OpenRomFSCurrentProcess() 
 
     if (romfs_factory == nullptr) {
         // TODO(bunnei): Find a better error code for this
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
 
     return romfs_factory->OpenCurrentProcess(system.CurrentProcess()->GetTitleID());
@@ -309,7 +309,7 @@ ResultVal<FileSys::VirtualFile> FileSystemController::OpenPatchedRomFS(
 
     if (romfs_factory == nullptr) {
         // TODO: Find a better error code for this
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
 
     return romfs_factory->OpenPatchedRomFS(title_id, type);
@@ -322,7 +322,7 @@ ResultVal<FileSys::VirtualFile> FileSystemController::OpenPatchedRomFSWithProgra
 
     if (romfs_factory == nullptr) {
         // TODO: Find a better error code for this
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
 
     return romfs_factory->OpenPatchedRomFSWithProgramIndex(title_id, program_index, type);
@@ -335,7 +335,7 @@ ResultVal<FileSys::VirtualFile> FileSystemController::OpenRomFS(
 
     if (romfs_factory == nullptr) {
         // TODO(bunnei): Find a better error code for this
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
 
     return romfs_factory->Open(title_id, storage_id, type);

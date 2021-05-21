@@ -53,7 +53,7 @@ ResultVal<VirtualFile> RomFSFactory::OpenPatchedRomFS(u64 title_id, ContentRecor
 
     if (nca == nullptr) {
         // TODO: Find the right error code to use here
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
 
     const PatchManager patch_manager{title_id, filesystem_controller, content_provider};
@@ -74,13 +74,13 @@ ResultVal<VirtualFile> RomFSFactory::Open(u64 title_id, StorageId storage,
     const std::shared_ptr<NCA> res = GetEntry(title_id, storage, type);
     if (res == nullptr) {
         // TODO(DarkLordZach): Find the right error code to use here
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
 
     const auto romfs = res->GetRomFS();
     if (romfs == nullptr) {
         // TODO(DarkLordZach): Find the right error code to use here
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
 
     return MakeResult<VirtualFile>(romfs);

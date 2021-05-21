@@ -80,7 +80,7 @@ private:
             LOG_ERROR(Audio, "Failed to decode opus data");
             IPC::ResponseBuilder rb{ctx, 2};
             // TODO(ogniK): Use correct error code
-            rb.Push(RESULT_UNKNOWN);
+            rb.Push(ResultUnknown);
             return;
         }
 
@@ -281,7 +281,7 @@ void HwOpus::OpenOpusDecoder(Kernel::HLERequestContext& ctx) {
         LOG_ERROR(Audio, "Failed to create Opus decoder (error={}).", error);
         IPC::ResponseBuilder rb{ctx, 2};
         // TODO(ogniK): Use correct error code
-        rb.Push(RESULT_UNKNOWN);
+        rb.Push(ResultUnknown);
         return;
     }
 

@@ -335,7 +335,7 @@ void IApplicationManagerInterface::GetApplicationControlData(Kernel::HLERequestC
                       "output buffer is too small! (actual={:016X}, expected_min=0x4000)", size);
             IPC::ResponseBuilder rb{ctx, 2};
             // TODO(DarkLordZach): Find a better error code for this.
-            rb.Push(RESULT_UNKNOWN);
+            rb.Push(ResultUnknown);
             return;
         }
 
@@ -355,7 +355,7 @@ void IApplicationManagerInterface::GetApplicationControlData(Kernel::HLERequestC
                       0x4000 + control.second->GetSize());
             IPC::ResponseBuilder rb{ctx, 2};
             // TODO(DarkLordZach): Find a better error code for this.
-            rb.Push(RESULT_UNKNOWN);
+            rb.Push(ResultUnknown);
             return;
         }
 
