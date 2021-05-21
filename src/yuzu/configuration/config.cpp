@@ -736,10 +736,16 @@ void Config::ReadPathValues() {
 void Config::ReadCpuValues() {
     qt_config->beginGroup(QStringLiteral("Cpu"));
 
-    if (global) {
-        Settings::values.cpu_accuracy = static_cast<Settings::CPUAccuracy>(
-            ReadSetting(QStringLiteral("cpu_accuracy"), 0).toInt());
+    ReadSettingGlobal(Settings::values.cpu_accuracy, QStringLiteral("cpu_accuracy"), 0);
 
+    ReadSettingGlobal(Settings::values.cpuopt_unsafe_unfuse_fma,
+                      QStringLiteral("cpuopt_unsafe_unfuse_fma"), true);
+    ReadSettingGlobal(Settings::values.cpuopt_unsafe_reduce_fp_error,
+                      QStringLiteral("cpuopt_unsafe_reduce_fp_error"), true);
+    ReadSettingGlobal(Settings::values.cpuopt_unsafe_inaccurate_nan,
+                      QStringLiteral("cpuopt_unsafe_inaccurate_nan"), true);
+
+    if (global) {
         Settings::values.cpuopt_page_tables =
             ReadSetting(QStringLiteral("cpuopt_page_tables"), true).toBool();
         Settings::values.cpuopt_block_linking =
@@ -756,13 +762,6 @@ void Config::ReadCpuValues() {
             ReadSetting(QStringLiteral("cpuopt_misc_ir"), true).toBool();
         Settings::values.cpuopt_reduce_misalign_checks =
             ReadSetting(QStringLiteral("cpuopt_reduce_misalign_checks"), true).toBool();
-
-        Settings::values.cpuopt_unsafe_unfuse_fma =
-            ReadSetting(QStringLiteral("cpuopt_unsafe_unfuse_fma"), true).toBool();
-        Settings::values.cpuopt_unsafe_reduce_fp_error =
-            ReadSetting(QStringLiteral("cpuopt_unsafe_reduce_fp_error"), true).toBool();
-        Settings::values.cpuopt_unsafe_inaccurate_nan =
-            ReadSetting(QStringLiteral("cpuopt_unsafe_inaccurate_nan"), true).toBool();
     }
 
     qt_config->endGroup();
@@ -869,17 +868,14 @@ void Config::ReadSystemValues() {
         }
     }
 
-    bool custom_rtc_enabled;
-    ReadSettingGlobal(custom_rtc_enabled, QStringLiteral("custom_rtc_enabled"), false);
-    bool custom_rtc_global =
-        global || qt_config->value(QStringLiteral("custom_rtc/use_global"), true).toBool();
-    Settings::values.custom_rtc.SetGlobal(custom_rtc_global);
-    if (global || !custom_rtc_global) {
+    if (global) {
+        const auto custom_rtc_enabled =
+            ReadSetting(QStringLiteral("custom_rtc_enabled"), false).toBool();
         if (custom_rtc_enabled) {
-            Settings::values.custom_rtc.SetValue(
-                std::chrono::seconds(ReadSetting(QStringLiteral("custom_rtc"), 0).toULongLong()));
+            Settings::values.custom_rtc =
+                std::chrono::seconds(ReadSetting(QStringLiteral("custom_rtc"), 0).toULongLong());
         } else {
-            Settings::values.custom_rtc.SetValue(std::nullopt);
+            Settings::values.custom_rtc = std::nullopt;
         }
     }
 
@@ -1313,10 +1309,19 @@ void Config::SavePathValues() {
 void Config::SaveCpuValues() {
     qt_config->beginGroup(QStringLiteral("Cpu"));
 
-    if (global) {
-        WriteSetting(QStringLiteral("cpu_accuracy"),
-                     static_cast<int>(Settings::values.cpu_accuracy), 0);
+    WriteSettingGlobal(QStringLiteral("cpu_accuracy"),
+                       static_cast<u32>(Settings::values.cpu_accuracy.GetValue(global)),
+                       Settings::values.cpu_accuracy.UsingGlobal(),
+                       static_cast<u32>(Settings::CPUAccuracy::Accurate));
 
+    WriteSettingGlobal(QStringLiteral("cpuopt_unsafe_unfuse_fma"),
+                       Settings::values.cpuopt_unsafe_unfuse_fma, true);
+    WriteSettingGlobal(QStringLiteral("cpuopt_unsafe_reduce_fp_error"),
+                       Settings::values.cpuopt_unsafe_reduce_fp_error, true);
+    WriteSettingGlobal(QStringLiteral("cpuopt_unsafe_inaccurate_nan"),
+                       Settings::values.cpuopt_unsafe_inaccurate_nan, true);
+
+    if (global) {
         WriteSetting(QStringLiteral("cpuopt_page_tables"), Settings::values.cpuopt_page_tables,
                      true);
         WriteSetting(QStringLiteral("cpuopt_block_linking"), Settings::values.cpuopt_block_linking,
@@ -1331,13 +1336,6 @@ void Config::SaveCpuValues() {
         WriteSetting(QStringLiteral("cpuopt_misc_ir"), Settings::values.cpuopt_misc_ir, true);
         WriteSetting(QStringLiteral("cpuopt_reduce_misalign_checks"),
                      Settings::values.cpuopt_reduce_misalign_checks, true);
-
-        WriteSetting(QStringLiteral("cpuopt_unsafe_unfuse_fma"),
-                     Settings::values.cpuopt_unsafe_unfuse_fma, true);
-        WriteSetting(QStringLiteral("cpuopt_unsafe_reduce_fp_error"),
-                     Settings::values.cpuopt_unsafe_reduce_fp_error, true);
-        WriteSetting(QStringLiteral("cpuopt_unsafe_inaccurate_nan"),
-                     Settings::values.cpuopt_unsafe_inaccurate_nan, true);
     }
 
     qt_config->endGroup();
@@ -1432,14 +1430,14 @@ void Config::SaveSystemValues() {
                        Settings::values.rng_seed.GetValue(global).value_or(0),
                        Settings::values.rng_seed.UsingGlobal(), 0);
 
-    WriteSettingGlobal(QStringLiteral("custom_rtc_enabled"),
-                       Settings::values.custom_rtc.GetValue(global).has_value(),
-                       Settings::values.custom_rtc.UsingGlobal(), false);
-    WriteSettingGlobal(
-        QStringLiteral("custom_rtc"),
-        QVariant::fromValue<long long>(
-            Settings::values.custom_rtc.GetValue(global).value_or(std::chrono::seconds{}).count()),
-        Settings::values.custom_rtc.UsingGlobal(), 0);
+    if (global) {
+        WriteSetting(QStringLiteral("custom_rtc_enabled"), Settings::values.custom_rtc.has_value(),
+                     false);
+        WriteSetting(QStringLiteral("custom_rtc"),
+                     QVariant::fromValue<long long>(
+                         Settings::values.custom_rtc.value_or(std::chrono::seconds{}).count()),
+                     0);
+    }
 
     WriteSettingGlobal(QStringLiteral("sound_index"), Settings::values.sound_index, 1);
 

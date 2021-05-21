@@ -50,6 +50,9 @@ void ConfigureGeneral::SetConfiguration() {
 }
 
 void ConfigureGeneral::ApplyConfiguration() {
+    ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_multi_core, ui->use_multi_core,
+                                             use_multi_core);
+
     if (Settings::IsConfiguringGlobal()) {
         UISettings::values.confirm_before_closing = ui->toggle_check_exit->isChecked();
         UISettings::values.select_user_on_boot = ui->toggle_user_on_boot->isChecked();
@@ -62,13 +65,7 @@ void ConfigureGeneral::ApplyConfiguration() {
                                                       Qt::Checked);
             Settings::values.frame_limit.SetValue(ui->frame_limit->value());
         }
-        if (Settings::values.use_multi_core.UsingGlobal()) {
-            Settings::values.use_multi_core.SetValue(ui->use_multi_core->isChecked());
-        }
     } else {
-        ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_multi_core,
-                                                 ui->use_multi_core, use_multi_core);
-
         bool global_frame_limit = use_frame_limit == ConfigurationShared::CheckState::Global;
         Settings::values.use_frame_limit.SetGlobal(global_frame_limit);
         Settings::values.frame_limit.SetGlobal(global_frame_limit);
@@ -94,6 +91,9 @@ void ConfigureGeneral::RetranslateUI() {
 
 void ConfigureGeneral::SetupPerGameUI() {
     if (Settings::IsConfiguringGlobal()) {
+        // Disables each setting if:
+        //  - A game is running (thus settings in use), and
+        //  - A non-global setting is applied.
         ui->toggle_frame_limit->setEnabled(Settings::values.use_frame_limit.UsingGlobal());
         ui->frame_limit->setEnabled(Settings::values.frame_limit.UsingGlobal());
 

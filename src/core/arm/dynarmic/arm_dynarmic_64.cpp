@@ -182,7 +182,7 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable* 
     config.far_code_offset = 256 * 1024 * 1024;
 
     // Safe optimizations
-    if (Settings::values.cpu_accuracy == Settings::CPUAccuracy::DebugMode) {
+    if (Settings::values.cpu_accuracy.GetValue() == Settings::CPUAccuracy::DebugMode) {
         if (!Settings::values.cpuopt_page_tables) {
             config.page_table = nullptr;
         }
@@ -210,15 +210,15 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable* 
     }
 
     // Unsafe optimizations
-    if (Settings::values.cpu_accuracy == Settings::CPUAccuracy::Unsafe) {
+    if (Settings::values.cpu_accuracy.GetValue() == Settings::CPUAccuracy::Unsafe) {
         config.unsafe_optimizations = true;
-        if (Settings::values.cpuopt_unsafe_unfuse_fma) {
+        if (Settings::values.cpuopt_unsafe_unfuse_fma.GetValue()) {
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_UnfuseFMA;
         }
-        if (Settings::values.cpuopt_unsafe_reduce_fp_error) {
+        if (Settings::values.cpuopt_unsafe_reduce_fp_error.GetValue()) {
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_ReducedErrorFP;
         }
-        if (Settings::values.cpuopt_unsafe_inaccurate_nan) {
+        if (Settings::values.cpuopt_unsafe_inaccurate_nan.GetValue()) {
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_InaccurateNaN;
         }
     }

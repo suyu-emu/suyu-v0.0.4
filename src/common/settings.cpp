@@ -42,7 +42,7 @@ void LogSettings() {
     log_setting("System_RegionIndex", values.region_index.GetValue());
     log_setting("System_TimeZoneIndex", values.time_zone_index.GetValue());
     log_setting("Core_UseMultiCore", values.use_multi_core.GetValue());
-    log_setting("CPU_Accuracy", values.cpu_accuracy);
+    log_setting("CPU_Accuracy", values.cpu_accuracy.GetValue());
     log_setting("Renderer_UseResolutionFactor", values.resolution_factor.GetValue());
     log_setting("Renderer_UseFrameLimit", values.use_frame_limit.GetValue());
     log_setting("Renderer_FrameLimit", values.frame_limit.GetValue());
@@ -106,6 +106,12 @@ void RestoreGlobalState(bool is_powered_on) {
     // Core
     values.use_multi_core.SetGlobal(true);
 
+    // CPU
+    values.cpu_accuracy.SetGlobal(true);
+    values.cpuopt_unsafe_unfuse_fma.SetGlobal(true);
+    values.cpuopt_unsafe_reduce_fp_error.SetGlobal(true);
+    values.cpuopt_unsafe_inaccurate_nan.SetGlobal(true);
+
     // Renderer
     values.renderer_backend.SetGlobal(true);
     values.vulkan_device.SetGlobal(true);
@@ -130,7 +136,6 @@ void RestoreGlobalState(bool is_powered_on) {
     values.region_index.SetGlobal(true);
     values.time_zone_index.SetGlobal(true);
     values.rng_seed.SetGlobal(true);
-    values.custom_rtc.SetGlobal(true);
     values.sound_index.SetGlobal(true);
 
     // Controls
