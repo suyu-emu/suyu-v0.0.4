@@ -74,21 +74,17 @@ void ServiceThread::Impl::QueueSyncRequest(KSession& session,
     {
         std::unique_lock lock{queue_mutex};
 
+        auto* server_session{&session.GetServerSession()};
+
         // Open a reference to the session to ensure it is not closes while the service request
         // completes asynchronously.
-        session.Open();
+        server_session->Open();
 
-        requests.emplace([session_ptr{&session}, context{std::move(context)}]() {
+        requests.emplace([server_session, context{std::move(context)}]() {
             // Close the reference.
-            SCOPE_EXIT({ session_ptr->Close(); });
-
-            // If the session has been closed, we are done.
-            if (session_ptr->IsServerClosed()) {
-                return;
-            }
+            SCOPE_EXIT({ server_session->Close(); });
 
             // Complete the service request.
-            KScopedAutoObject server_session{&session_ptr->GetServerSession()};
             server_session->CompleteSyncRequest(*context);
         });
     }
