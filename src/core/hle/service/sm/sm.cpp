@@ -150,31 +150,31 @@ ResultVal<Kernel::KClientSession*> SM::GetServiceImpl(Kernel::HLERequestContext&
     IPC::RequestParser rp{ctx};
     std::string name(PopServiceName(rp));
 
+    // Find the named port.
     auto result = service_manager.GetServicePort(name);
     if (result.Failed()) {
         LOG_ERROR(Service_SM, "called service={} -> error 0x{:08X}", name, result.Code().raw);
         return result.Code();
     }
-
     auto* port = result.Unwrap();
 
-    // Kernel::KScopedResourceReservation session_reservation(
-    //    kernel.CurrentProcess()->GetResourceLimit(), Kernel::LimitableResource::Sessions);
-    // R_UNLESS(session_reservation.Succeeded(), Kernel::ResultLimitReached);
+    // Reserve a new session from the process resource limit.
+    Kernel::KScopedResourceReservation session_reservation(
+        kernel.CurrentProcess()->GetResourceLimit(), Kernel::LimitableResource::Sessions);
+    R_UNLESS(session_reservation.Succeeded(), Kernel::ResultLimitReached);
 
+    // Create a new session.
     auto* session = Kernel::KSession::Create(kernel);
     session->Initialize(&port->GetClientPort(), std::move(name));
 
     // Commit the session reservation.
-    // session_reservation.Commit();
+    session_reservation.Commit();
 
-    if (port->GetServerPort().GetHLEHandler()) {
-        port->GetServerPort().GetHLEHandler()->ClientConnected(&session->GetServerSession());
-    } else {
-        port->EnqueueSession(&session->GetServerSession());
-    }
+    // Enqueue the session with the named port.
+    port->EnqueueSession(&session->GetServerSession());
 
     LOG_DEBUG(Service_SM, "called service={} -> session={}", name, session->GetId());
+
     return MakeResult(&session->GetClientSession());
 }
 

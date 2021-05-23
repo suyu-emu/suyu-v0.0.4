@@ -121,15 +121,6 @@ public:
      */
     u8* GetPointer(VAddr vaddr);
 
-    /**
-     * Gets a pointer to the start of a kernel heap allocated memory region. Will allocate one if it
-     * does not already exist.
-     *
-     * @param start_vaddr Start virtual address for the memory region.
-     * @param size Size of the memory region.
-     */
-    u8* GetKernelBuffer(VAddr start_vaddr, size_t size);
-
     template <typename T>
     T* GetPointer(VAddr vaddr) {
         return reinterpret_cast<T*>(GetPointer(vaddr));

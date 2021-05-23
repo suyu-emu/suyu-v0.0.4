@@ -70,14 +70,22 @@ constexpr size_t SlabCountExtraKThread = 160;
 template <typename T>
 VAddr InitializeSlabHeap(Core::System& system, KMemoryLayout& memory_layout, VAddr address,
                          size_t num_objects) {
+    // TODO(bunnei): This is just a place holder. We should initialize the appropriate KSlabHeap for
+    // kernel object type T with the backing kernel memory pointer once we emulate kernel memory.
+
     const size_t size = Common::AlignUp(sizeof(T) * num_objects, alignof(void*));
     VAddr start = Common::AlignUp(address, alignof(T));
+
+    // This is intentionally empty. Once KSlabHeap is fully implemented, we can replace this with
+    // the pointer to emulated memory to pass along. Until then, KSlabHeap will just allocate/free
+    // host memory.
+    void* backing_kernel_memory{};
 
     if (size > 0) {
         const KMemoryRegion* region = memory_layout.FindVirtual(start + size - 1);
         ASSERT(region != nullptr);
         ASSERT(region->IsDerivedFrom(KMemoryRegionType_KernelSlab));
-        T::InitializeSlabHeap(system.Kernel(), system.Memory().GetKernelBuffer(start, size), size);
+        T::InitializeSlabHeap(system.Kernel(), backing_kernel_memory, size);
     }
 
     return start + size;

@@ -12,6 +12,7 @@
 #include <boost/intrusive/list.hpp>
 
 #include "common/threadsafe_queue.h"
+#include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/kernel/service_thread.h"
 #include "core/hle/result.h"
@@ -64,8 +65,8 @@ public:
      * instead of the regular IPC machinery. (The regular IPC machinery is currently not
      * implemented.)
      */
-    void SetHleHandler(std::shared_ptr<SessionRequestHandler> hle_handler_) {
-        hle_handler = std::move(hle_handler_);
+    void SetSessionHandler(SessionRequestHandlerPtr handler) {
+        manager->SetSessionHandler(std::move(handler));
     }
 
     /**
@@ -82,7 +83,7 @@ public:
 
     /// Adds a new domain request handler to the collection of request handlers within
     /// this ServerSession instance.
-    void AppendDomainRequestHandler(std::shared_ptr<SessionRequestHandler> handler);
+    void AppendDomainHandler(SessionRequestHandlerPtr handler);
 
     /// Retrieves the total number of domain request handlers that have been
     /// appended to this ServerSession instance.
@@ -90,17 +91,27 @@ public:
 
     /// Returns true if the session has been converted to a domain, otherwise False
     bool IsDomain() const {
-        return !IsSession();
-    }
-
-    /// Returns true if this session has not been converted to a domain, otherwise false.
-    bool IsSession() const {
-        return domain_request_handlers.empty();
+        return manager->IsDomain();
     }
 
     /// Converts the session to a domain at the end of the current command
     void ConvertToDomain() {
         convert_to_domain = true;
+    }
+
+    /// Gets the session request manager, which forwards requests to the underlying service
+    std::shared_ptr<SessionRequestManager>& GetSessionRequestManager() {
+        return manager;
+    }
+
+    /// Gets the session request manager, which forwards requests to the underlying service
+    const std::shared_ptr<SessionRequestManager>& GetSessionRequestManager() const {
+        return manager;
+    }
+
+    /// Sets the session request manager, which forwards requests to the underlying service
+    void SetSessionRequestManager(std::shared_ptr<SessionRequestManager> manager_) {
+        manager = std::move(manager_);
     }
 
 private:
@@ -114,11 +125,8 @@ private:
     /// object handle.
     ResultCode HandleDomainSyncRequest(Kernel::HLERequestContext& context);
 
-    /// This session's HLE request handler (applicable when not a domain)
-    std::shared_ptr<SessionRequestHandler> hle_handler;
-
-    /// This is the list of domain request handlers (after conversion to a domain)
-    std::vector<std::shared_ptr<SessionRequestHandler>> domain_request_handlers;
+    /// This session's HLE request handlers
+    std::shared_ptr<SessionRequestManager> manager;
 
     /// When set to True, converts the session to a domain at the end of the command
     bool convert_to_domain{};

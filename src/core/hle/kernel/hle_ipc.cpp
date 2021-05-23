@@ -35,11 +35,11 @@ SessionRequestHandler::SessionRequestHandler() = default;
 SessionRequestHandler::~SessionRequestHandler() = default;
 
 void SessionRequestHandler::ClientConnected(KServerSession* session) {
-    session->SetHleHandler(shared_from_this());
+    session->SetSessionHandler(shared_from_this());
 }
 
 void SessionRequestHandler::ClientDisconnected(KServerSession* session) {
-    session->SetHleHandler(nullptr);
+    session->SetSessionHandler(nullptr);
 }
 
 HLERequestContext::HLERequestContext(KernelCore& kernel_, Core::Memory::Memory& memory_,
@@ -69,14 +69,10 @@ void HLERequestContext::ParseCommandBuffer(const KHandleTable& handle_table, u32
         if (incoming) {
             // Populate the object lists with the data in the IPC request.
             for (u32 handle = 0; handle < handle_descriptor_header->num_handles_to_copy; ++handle) {
-                const u32 copy_handle{rp.Pop<Handle>()};
-                copy_handles.push_back(copy_handle);
-                copy_objects.push_back(handle_table.GetObject(copy_handle).GetPointerUnsafe());
+                incoming_copy_handles.push_back(rp.Pop<Handle>());
             }
             for (u32 handle = 0; handle < handle_descriptor_header->num_handles_to_move; ++handle) {
-                const u32 move_handle{rp.Pop<Handle>()};
-                move_handles.push_back(move_handle);
-                move_objects.push_back(handle_table.GetObject(move_handle).GetPointerUnsafe());
+                incoming_move_handles.push_back(rp.Pop<Handle>());
             }
         } else {
             // For responses we just ignore the handles, they're empty and will be populated when
@@ -186,26 +182,14 @@ ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(KThread& requesting_t
     auto& owner_process = *requesting_thread.GetOwnerProcess();
     auto& handle_table = owner_process.GetHandleTable();
 
-    // The data_size already includes the payload header, the padding and the domain header.
-    std::size_t size{};
-
-    if (IsTipc()) {
-        size = cmd_buf.size();
-    } else {
-        size = data_payload_offset + data_size - sizeof(IPC::DataPayloadHeader) / sizeof(u32) - 4;
-        if (Session()->IsDomain()) {
-            size -= sizeof(IPC::DomainMessageHeader) / sizeof(u32);
-        }
-    }
-
-    for (auto& object : copy_objects) {
+    for (auto& object : outgoing_copy_objects) {
         Handle handle{};
         if (object) {
             R_TRY(handle_table.Add(&handle, object));
         }
         cmd_buf[current_offset++] = handle;
     }
-    for (auto& object : move_objects) {
+    for (auto& object : outgoing_move_objects) {
         Handle handle{};
         if (object) {
             R_TRY(handle_table.Add(&handle, object));
@@ -220,9 +204,9 @@ ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(KThread& requesting_t
     // TODO(Subv): This completely ignores C buffers.
 
     if (Session()->IsDomain()) {
-        current_offset = domain_offset - static_cast<u32>(domain_objects.size());
-        for (const auto& object : domain_objects) {
-            server_session->AppendDomainRequestHandler(object);
+        current_offset = domain_offset - static_cast<u32>(outgoing_domain_objects.size());
+        for (const auto& object : outgoing_domain_objects) {
+            server_session->AppendDomainHandler(object);
             cmd_buf[current_offset++] =
                 static_cast<u32_le>(server_session->NumDomainRequestHandlers());
         }
@@ -230,7 +214,7 @@ ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(KThread& requesting_t
 
     // Copy the translated command buffer back into the thread's command buffer area.
     memory.WriteBlock(owner_process, requesting_thread.GetTLSAddress(), cmd_buf.data(),
-                      size * sizeof(u32));
+                      write_size * sizeof(u32));
 
     return RESULT_SUCCESS;
 }

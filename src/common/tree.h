@@ -43,6 +43,8 @@
  * The maximum height of a red-black tree is 2lg (n+1).
  */
 
+#include "common/assert.h"
+
 namespace Common {
 template <typename T>
 class RBHead {
@@ -325,6 +327,10 @@ void RB_REMOVE_COLOR(RBHead<Node>* head, Node* parent, Node* elm) {
     while ((elm == nullptr || RB_IS_BLACK(elm)) && elm != head->Root() && parent != nullptr) {
         if (RB_LEFT(parent) == elm) {
             tmp = RB_RIGHT(parent);
+            if (!tmp) {
+                ASSERT_MSG(false, "tmp is invalid!");
+                break;
+            }
             if (RB_IS_RED(tmp)) {
                 RB_SET_BLACKRED(tmp, parent);
                 RB_ROTATE_LEFT(head, parent, tmp);
@@ -364,6 +370,11 @@ void RB_REMOVE_COLOR(RBHead<Node>* head, Node* parent, Node* elm) {
                 RB_SET_BLACKRED(tmp, parent);
                 RB_ROTATE_RIGHT(head, parent, tmp);
                 tmp = RB_LEFT(parent);
+            }
+
+            if (!tmp) {
+                ASSERT_MSG(false, "tmp is invalid!");
+                break;
             }
 
             if ((RB_LEFT(tmp) == nullptr || RB_IS_BLACK(RB_LEFT(tmp))) &&
