@@ -1770,7 +1770,7 @@ public:
             {232, nullptr, "GetIrSensorState"},
             {233, nullptr, "GetXcdHandleForNpadWithIrSensor"},
             {301, nullptr, "ActivateNpadSystem"},
-            {303, nullptr, "ApplyNpadSystemCommonPolicy"},
+            {303, &HidSys::ApplyNpadSystemCommonPolicy, "ApplyNpadSystemCommonPolicy"},
             {304, nullptr, "EnableAssigningSingleOnSlSrPress"},
             {305, nullptr, "DisableAssigningSingleOnSlSrPress"},
             {306, nullptr, "GetLastActiveNpad"},
@@ -1948,6 +1948,15 @@ public:
         // clang-format on
 
         RegisterHandlers(functions);
+    }
+
+private:
+    void ApplyNpadSystemCommonPolicy(Kernel::HLERequestContext& ctx) {
+        // We already do this for homebrew so we can just stub it out
+        LOG_WARNING(Service_HID, "called");
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
     }
 };
 
