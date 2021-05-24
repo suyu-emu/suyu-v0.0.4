@@ -323,7 +323,9 @@ void SDLState::CloseJoystick(SDL_Joystick* sdl_joystick) {
                                               return joystick->GetSDLJoystick() == sdl_joystick;
                                           });
 
-    (*joystick_it)->SetSDLJoystick(nullptr, nullptr);
+    if (joystick_it != joystick_guid_list.end()) {
+        (*joystick_it)->SetSDLJoystick(nullptr, nullptr);
+    }
 }
 
 void SDLState::HandleGameControllerEvent(const SDL_Event& event) {
@@ -1315,51 +1317,51 @@ public:
     void Start(const std::string& device_id) override {
         SDLPoller::Start(device_id);
         // Reset stored axes
-        analog_x_axis = -1;
-        analog_y_axis = -1;
+        first_axis = -1;
     }
 
     Common::ParamPackage GetNextInput() override {
         SDL_Event event;
         while (state.event_queue.Pop(event)) {
-            // Filter out axis events that are below a threshold
-            if (event.type == SDL_JOYAXISMOTION && std::abs(event.jaxis.value / 32767.0) < 0.5) {
-                continue;
-            }
-            if (event.type == SDL_JOYAXISMOTION) {
-                const auto axis = event.jaxis.axis;
-                // In order to return a complete analog param, we need inputs for both axes.
-                // First we take the x-axis (horizontal) input, then the y-axis (vertical) input.
-                if (analog_x_axis == -1) {
-                    analog_x_axis = axis;
-                } else if (analog_y_axis == -1 && analog_x_axis != axis) {
-                    analog_y_axis = axis;
-                }
-            } else {
-                // If the press wasn't accepted as a joy axis, check for a button press
+            if (event.type != SDL_JOYAXISMOTION) {
+                // Check for a button press
                 auto button_press = button_poller.FromEvent(event);
                 if (button_press) {
                     return *button_press;
                 }
+                continue;
             }
-        }
+            const auto axis = event.jaxis.axis;
 
-        if (analog_x_axis != -1 && analog_y_axis != -1) {
+            // Filter out axis events that are below a threshold
+            if (std::abs(event.jaxis.value / 32767.0) < 0.5) {
+                continue;
+            }
+
+            // Filter out axis events that are the same
+            if (first_axis == axis) {
+                continue;
+            }
+
+            // In order to return a complete analog param, we need inputs for both axes.
+            // If the first axis isn't set we set the value then wait till next event
+            if (first_axis == -1) {
+                first_axis = axis;
+                continue;
+            }
+
             if (const auto joystick = state.GetSDLJoystickBySDLID(event.jaxis.which)) {
                 auto params = BuildParamPackageForAnalog(joystick->GetPort(), joystick->GetGUID(),
-                                                         analog_x_axis, analog_y_axis);
-                analog_x_axis = -1;
-                analog_y_axis = -1;
+                                                         first_axis, axis);
+                first_axis = -1;
                 return params;
             }
         }
-
         return {};
     }
 
 private:
-    int analog_x_axis = -1;
-    int analog_y_axis = -1;
+    int first_axis = -1;
     SDLButtonPoller button_poller;
 };
 } // namespace Polling
