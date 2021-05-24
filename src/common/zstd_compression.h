@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <span>
 #include <vector>
 
 #include "common/common_types.h"
@@ -40,6 +41,6 @@ namespace Common::Compression {
  *
  * @return the decompressed data.
  */
-[[nodiscard]] std::vector<u8> DecompressDataZSTD(const std::vector<u8>& compressed);
+[[nodiscard]] std::vector<u8> DecompressDataZSTD(std::span<const u8> compressed);
 
 } // namespace Common::Compression

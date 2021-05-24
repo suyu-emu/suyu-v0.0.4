@@ -32,7 +32,7 @@ std::vector<u8> CompressDataZSTDDefault(const u8* source, std::size_t source_siz
     return CompressDataZSTD(source, source_size, ZSTD_CLEVEL_DEFAULT);
 }
 
-std::vector<u8> DecompressDataZSTD(const std::vector<u8>& compressed) {
+std::vector<u8> DecompressDataZSTD(std::span<const u8> compressed) {
     const std::size_t decompressed_size =
         ZSTD_getDecompressedSize(compressed.data(), compressed.size());
     std::vector<u8> decompressed(decompressed_size);
