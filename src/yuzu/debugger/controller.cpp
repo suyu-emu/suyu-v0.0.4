@@ -38,6 +38,7 @@ void ControllerDialog::refreshConfiguration() {
     widget->SetPlayerInputRaw(player, players[player].buttons, players[player].analogs);
     widget->SetConnectedStatus(players[player].connected);
     widget->SetControllerType(players[player].controller_type);
+    widget->repaint();
 }
 
 QAction* ControllerDialog::toggleViewAction() {
