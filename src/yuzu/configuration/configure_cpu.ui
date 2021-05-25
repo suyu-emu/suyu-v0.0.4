@@ -26,7 +26,7 @@
          <widget class="QWidget" name="widget_accuracy" native="true">
           <layout class="QHBoxLayout" name="layout_accuracy">
            <item>
-            <widget class="QLabel" name="label">
+            <widget class="QLabel" name="label_accuracy">
              <property name="text">
               <string>Accuracy:</string>
              </property>
@@ -55,7 +55,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="label">
+         <widget class="QLabel" name="label_recommended_accuracy">
           <property name="text">
            <string>We recommend setting accuracy to &quot;Accurate&quot;.</string>
           </property>
@@ -78,7 +78,7 @@
        </property>
        <layout class="QVBoxLayout">
         <item>
-         <widget class="QLabel" name="label">
+         <widget class="QLabel" name="label_accuracy_description">
           <property name="text">
            <string>These settings reduce accuracy for speed.</string>
           </property>
