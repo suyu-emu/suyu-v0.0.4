@@ -773,10 +773,22 @@ void GMainWindow::InitializeWidgets() {
     dock_status_button->setObjectName(QStringLiteral("TogglableStatusBarButton"));
     dock_status_button->setFocusPolicy(Qt::NoFocus);
     connect(dock_status_button, &QPushButton::clicked, [&] {
-        Settings::values.use_docked_mode.SetValue(!Settings::values.use_docked_mode.GetValue());
-        dock_status_button->setChecked(Settings::values.use_docked_mode.GetValue());
-        OnDockedModeChanged(!Settings::values.use_docked_mode.GetValue(),
-                            Settings::values.use_docked_mode.GetValue());
+        const bool is_docked = Settings::values.use_docked_mode.GetValue();
+        auto& controller_type = Settings::values.players.GetValue()[0].controller_type;
+
+        if (!is_docked && controller_type == Settings::ControllerType::Handheld) {
+            QMessageBox::warning(this, tr("Invalid config detected"),
+                                 tr("Handheld controller can't be used on docked mode. Pro "
+                                    "controller will be selected."));
+            controller_type = Settings::ControllerType::ProController;
+            ConfigureDialog configure_dialog(this, hotkey_registry, input_subsystem.get());
+            configure_dialog.ApplyConfiguration();
+            controller_dialog->refreshConfiguration();
+        }
+
+        Settings::values.use_docked_mode.SetValue(!is_docked);
+        dock_status_button->setChecked(!is_docked);
+        OnDockedModeChanged(is_docked, !is_docked);
     });
     dock_status_button->setText(tr("DOCK"));
     dock_status_button->setCheckable(true);

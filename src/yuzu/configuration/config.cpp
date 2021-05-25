@@ -514,6 +514,13 @@ void Config::ReadControlValues() {
         ReadSetting(QStringLiteral("mouse_panning_sensitivity"), 1).toFloat();
 
     ReadSettingGlobal(Settings::values.use_docked_mode, QStringLiteral("use_docked_mode"), true);
+
+    // Disable docked mode if handheld is selected
+    const auto controller_type = Settings::values.players.GetValue()[0].controller_type;
+    if (controller_type == Settings::ControllerType::Handheld) {
+        Settings::values.use_docked_mode.SetValue(false);
+    }
+
     ReadSettingGlobal(Settings::values.vibration_enabled, QStringLiteral("vibration_enabled"),
                       true);
     ReadSettingGlobal(Settings::values.enable_accurate_vibrations,
