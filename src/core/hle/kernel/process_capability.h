@@ -231,6 +231,9 @@ private:
     /// Handles flags related to mapping IO pages.
     ResultCode HandleMapIOFlags(u32 flags, KPageTable& page_table);
 
+    /// Handles flags related to mapping physical memory regions.
+    ResultCode HandleMapRegionFlags(u32 flags, KPageTable& page_table);
+
     /// Handles flags related to the interrupt capability flags.
     ResultCode HandleInterruptFlags(u32 flags);
 
