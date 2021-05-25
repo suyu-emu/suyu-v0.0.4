@@ -22,6 +22,7 @@ enum : u32 {
     CapabilityOffset_Syscall            = 4,
     CapabilityOffset_MapPhysical        = 6,
     CapabilityOffset_MapIO              = 7,
+    CapabilityOffset_MapRegion          = 10,
     CapabilityOffset_Interrupt          = 11,
     CapabilityOffset_ProgramType        = 13,
     CapabilityOffset_KernelVersion      = 14,
@@ -46,6 +47,7 @@ enum class CapabilityType : u32 {
     Syscall            = (1U << CapabilityOffset_Syscall) - 1,
     MapPhysical        = (1U << CapabilityOffset_MapPhysical) - 1,
     MapIO              = (1U << CapabilityOffset_MapIO) - 1,
+    MapRegion          = (1U << CapabilityOffset_MapRegion) - 1,
     Interrupt          = (1U << CapabilityOffset_Interrupt) - 1,
     ProgramType        = (1U << CapabilityOffset_ProgramType) - 1,
     KernelVersion      = (1U << CapabilityOffset_KernelVersion) - 1,
@@ -187,6 +189,8 @@ ResultCode ProcessCapabilities::ParseSingleFlagCapability(u32& set_flags, u32& s
         return HandleSyscallFlags(set_svc_bits, flag);
     case CapabilityType::MapIO:
         return HandleMapIOFlags(flag, page_table);
+    case CapabilityType::MapRegion:
+        return HandleMapRegionFlags(flag, page_table);
     case CapabilityType::Interrupt:
         return HandleInterruptFlags(flag);
     case CapabilityType::ProgramType:
@@ -294,6 +298,11 @@ ResultCode ProcessCapabilities::HandleMapPhysicalFlags(u32 flags, u32 size_flags
 }
 
 ResultCode ProcessCapabilities::HandleMapIOFlags(u32 flags, KPageTable& page_table) {
+    // TODO(Lioncache): Implement once the memory manager can handle this.
+    return RESULT_SUCCESS;
+}
+
+ResultCode ProcessCapabilities::HandleMapRegionFlags(u32 flags, KPageTable& page_table) {
     // TODO(Lioncache): Implement once the memory manager can handle this.
     return RESULT_SUCCESS;
 }
