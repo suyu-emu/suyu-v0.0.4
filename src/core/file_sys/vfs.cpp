@@ -5,8 +5,7 @@
 #include <algorithm>
 #include <numeric>
 #include <string>
-#include "common/common_paths.h"
-#include "common/file_util.h"
+#include "common/fs/path_util.h"
 #include "common/logging/backend.h"
 #include "core/file_sys/mode.h"
 #include "core/file_sys/vfs.h"
@@ -122,15 +121,14 @@ VirtualDir VfsFilesystem::CopyDirectory(std::string_view old_path_, std::string_
         return nullptr;
 
     for (const auto& file : old_dir->GetFiles()) {
-        const auto x =
-            CopyFile(old_path + DIR_SEP + file->GetName(), new_path + DIR_SEP + file->GetName());
+        const auto x = CopyFile(old_path + '/' + file->GetName(), new_path + '/' + file->GetName());
         if (x == nullptr)
             return nullptr;
     }
 
     for (const auto& dir : old_dir->GetSubdirectories()) {
         const auto x =
-            CopyDirectory(old_path + DIR_SEP + dir->GetName(), new_path + DIR_SEP + dir->GetName());
+            CopyDirectory(old_path + '/' + dir->GetName(), new_path + '/' + dir->GetName());
         if (x == nullptr)
             return nullptr;
     }

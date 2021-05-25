@@ -4,7 +4,6 @@
 
 #include <utility>
 
-#include "common/file_util.h"
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/file_sys/content_archive.h"

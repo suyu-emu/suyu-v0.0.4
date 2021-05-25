@@ -4,8 +4,8 @@
 
 #include <QFileDialog>
 #include <QMessageBox>
-#include "common/common_paths.h"
-#include "common/file_util.h"
+#include "common/fs/fs.h"
+#include "common/fs/path_util.h"
 #include "common/settings.h"
 #include "ui_configure_filesystem.h"
 #include "yuzu/configuration/configure_filesystem.h"
@@ -40,14 +40,14 @@ ConfigureFilesystem::~ConfigureFilesystem() = default;
 
 void ConfigureFilesystem::setConfiguration() {
     ui->nand_directory_edit->setText(
-        QString::fromStdString(Common::FS::GetUserPath(Common::FS::UserPath::NANDDir)));
+        QString::fromStdString(Common::FS::GetYuzuPathString(Common::FS::YuzuPath::NANDDir)));
     ui->sdmc_directory_edit->setText(
-        QString::fromStdString(Common::FS::GetUserPath(Common::FS::UserPath::SDMCDir)));
+        QString::fromStdString(Common::FS::GetYuzuPathString(Common::FS::YuzuPath::SDMCDir)));
     ui->gamecard_path_edit->setText(QString::fromStdString(Settings::values.gamecard_path));
     ui->dump_path_edit->setText(
-        QString::fromStdString(Common::FS::GetUserPath(Common::FS::UserPath::DumpDir)));
+        QString::fromStdString(Common::FS::GetYuzuPathString(Common::FS::YuzuPath::DumpDir)));
     ui->load_path_edit->setText(
-        QString::fromStdString(Common::FS::GetUserPath(Common::FS::UserPath::LoadDir)));
+        QString::fromStdString(Common::FS::GetYuzuPathString(Common::FS::YuzuPath::LoadDir)));
 
     ui->gamecard_inserted->setChecked(Settings::values.gamecard_inserted);
     ui->gamecard_current_game->setChecked(Settings::values.gamecard_current_game);
@@ -60,13 +60,13 @@ void ConfigureFilesystem::setConfiguration() {
 }
 
 void ConfigureFilesystem::applyConfiguration() {
-    Common::FS::GetUserPath(Common::FS::UserPath::NANDDir,
+    Common::FS::SetYuzuPath(Common::FS::YuzuPath::NANDDir,
                             ui->nand_directory_edit->text().toStdString());
-    Common::FS::GetUserPath(Common::FS::UserPath::SDMCDir,
+    Common::FS::SetYuzuPath(Common::FS::YuzuPath::SDMCDir,
                             ui->sdmc_directory_edit->text().toStdString());
-    Common::FS::GetUserPath(Common::FS::UserPath::DumpDir,
+    Common::FS::SetYuzuPath(Common::FS::YuzuPath::DumpDir,
                             ui->dump_path_edit->text().toStdString());
-    Common::FS::GetUserPath(Common::FS::UserPath::LoadDir,
+    Common::FS::SetYuzuPath(Common::FS::YuzuPath::LoadDir,
                             ui->load_path_edit->text().toStdString());
 
     Settings::values.gamecard_inserted = ui->gamecard_inserted->isChecked();
@@ -104,25 +104,26 @@ void ConfigureFilesystem::SetDirectory(DirectoryTarget target, QLineEdit* edit) 
                                            QStringLiteral("NX Gamecard;*.xci"));
     } else {
         str = QFileDialog::getExistingDirectory(this, caption, edit->text());
-        if (!str.isNull() && str.back() != QDir::separator()) {
-            str.append(QDir::separator());
-        }
     }
 
-    if (str.isEmpty())
+    if (str.isNull() || str.isEmpty()) {
         return;
+    }
+
+    if (str.back() != QChar::fromLatin1('/')) {
+        str.append(QChar::fromLatin1('/'));
+    }
 
     edit->setText(str);
 }
 
 void ConfigureFilesystem::ResetMetadata() {
-    if (!Common::FS::Exists(Common::FS::GetUserPath(Common::FS::UserPath::CacheDir) + DIR_SEP +
-                            "game_list")) {
+    if (!Common::FS::Exists(Common::FS::GetYuzuPath(Common::FS::YuzuPath::CacheDir) /
+                            "game_list/")) {
         QMessageBox::information(this, tr("Reset Metadata Cache"),
                                  tr("The metadata cache is already empty."));
-    } else if (Common::FS::DeleteDirRecursively(
-                   Common::FS::GetUserPath(Common::FS::UserPath::CacheDir) + DIR_SEP +
-                   "game_list")) {
+    } else if (Common::FS::RemoveDirRecursively(
+                   Common::FS::GetYuzuPath(Common::FS::YuzuPath::CacheDir) / "game_list")) {
         QMessageBox::information(this, tr("Reset Metadata Cache"),
                                  tr("The operation completed successfully."));
         UISettings::values.is_game_list_reload_pending.exchange(true);

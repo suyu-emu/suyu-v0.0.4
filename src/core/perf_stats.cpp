@@ -11,7 +11,9 @@
 #include <thread>
 #include <fmt/chrono.h>
 #include <fmt/format.h>
-#include "common/file_util.h"
+#include "common/fs/file.h"
+#include "common/fs/fs.h"
+#include "common/fs/path_util.h"
 #include "common/math_util.h"
 #include "common/settings.h"
 #include "core/perf_stats.h"
@@ -38,12 +40,17 @@ PerfStats::~PerfStats() {
     std::ostringstream stream;
     std::copy(perf_history.begin() + IgnoreFrames, perf_history.begin() + current_index,
               std::ostream_iterator<double>(stream, "\n"));
-    const std::string& path = Common::FS::GetUserPath(Common::FS::UserPath::LogDir);
+
+    const auto path = Common::FS::GetYuzuPath(Common::FS::YuzuPath::LogDir);
     // %F Date format expanded is "%Y-%m-%d"
-    const std::string filename =
-        fmt::format("{}/{:%F-%H-%M}_{:016X}.csv", path, *std::localtime(&t), title_id);
-    Common::FS::IOFile file(filename, "w");
-    file.WriteString(stream.str());
+    const auto filename = fmt::format("{:%F-%H-%M}_{:016X}.csv", *std::localtime(&t), title_id);
+    const auto filepath = path / filename;
+
+    if (Common::FS::CreateParentDir(filepath)) {
+        Common::FS::IOFile file(filepath, Common::FS::FileAccessMode::Write,
+                                Common::FS::FileType::TextFile);
+        void(file.WriteString(stream.str()));
+    }
 }
 
 void PerfStats::BeginSystemFrame() {

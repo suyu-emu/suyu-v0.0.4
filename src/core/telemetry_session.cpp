@@ -9,7 +9,9 @@
 
 #include "common/assert.h"
 #include "common/common_types.h"
-#include "common/file_util.h"
+#include "common/fs/file.h"
+#include "common/fs/fs.h"
+#include "common/fs/path_util.h"
 #include "common/logging/log.h"
 
 #include "common/settings.h"
@@ -72,31 +74,41 @@ static const char* TranslateGPUAccuracyLevel(Settings::GPUAccuracy backend) {
 
 u64 GetTelemetryId() {
     u64 telemetry_id{};
-    const std::string filename{Common::FS::GetUserPath(Common::FS::UserPath::ConfigDir) +
-                               "telemetry_id"};
+    const auto filename = Common::FS::GetYuzuPath(Common::FS::YuzuPath::ConfigDir) / "telemetry_id";
 
     bool generate_new_id = !Common::FS::Exists(filename);
+
     if (!generate_new_id) {
-        Common::FS::IOFile file(filename, "rb");
+        Common::FS::IOFile file{filename, Common::FS::FileAccessMode::Read,
+                                Common::FS::FileType::BinaryFile};
+
         if (!file.IsOpen()) {
-            LOG_ERROR(Core, "failed to open telemetry_id: {}", filename);
+            LOG_ERROR(Core, "failed to open telemetry_id: {}",
+                      Common::FS::PathToUTF8String(filename));
             return {};
         }
-        file.ReadBytes(&telemetry_id, sizeof(u64));
-        if (telemetry_id == 0) {
+
+        if (!file.ReadObject(telemetry_id) || telemetry_id == 0) {
             LOG_ERROR(Frontend, "telemetry_id is 0. Generating a new one.", telemetry_id);
             generate_new_id = true;
         }
     }
 
     if (generate_new_id) {
-        Common::FS::IOFile file(filename, "wb");
+        Common::FS::IOFile file{filename, Common::FS::FileAccessMode::Write,
+                                Common::FS::FileType::BinaryFile};
+
         if (!file.IsOpen()) {
-            LOG_ERROR(Core, "failed to open telemetry_id: {}", filename);
+            LOG_ERROR(Core, "failed to open telemetry_id: {}",
+                      Common::FS::PathToUTF8String(filename));
             return {};
         }
+
         telemetry_id = GenerateTelemetryId();
-        file.WriteBytes(&telemetry_id, sizeof(u64));
+
+        if (!file.WriteObject(telemetry_id)) {
+            LOG_ERROR(Core, "Failed to write telemetry_id to file.");
+        }
     }
 
     return telemetry_id;
@@ -104,15 +116,20 @@ u64 GetTelemetryId() {
 
 u64 RegenerateTelemetryId() {
     const u64 new_telemetry_id{GenerateTelemetryId()};
-    const std::string filename{Common::FS::GetUserPath(Common::FS::UserPath::ConfigDir) +
-                               "telemetry_id"};
+    const auto filename = Common::FS::GetYuzuPath(Common::FS::YuzuPath::ConfigDir) / "telemetry_id";
 
-    Common::FS::IOFile file(filename, "wb");
+    Common::FS::IOFile file{filename, Common::FS::FileAccessMode::Write,
+                            Common::FS::FileType::BinaryFile};
+
     if (!file.IsOpen()) {
-        LOG_ERROR(Core, "failed to open telemetry_id: {}", filename);
+        LOG_ERROR(Core, "failed to open telemetry_id: {}", Common::FS::PathToUTF8String(filename));
         return {};
     }
-    file.WriteBytes(&new_telemetry_id, sizeof(u64));
+
+    if (!file.WriteObject(new_telemetry_id)) {
+        LOG_ERROR(Core, "Failed to write telemetry_id to file.");
+    }
+
     return new_telemetry_id;
 }
 

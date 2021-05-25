@@ -5,7 +5,7 @@
 #include <utility>
 
 #include "common/assert.h"
-#include "common/file_util.h"
+#include "common/fs/path_util.h"
 #include "common/settings.h"
 #include "core/core.h"
 #include "core/file_sys/bis_factory.h"
@@ -728,14 +728,17 @@ void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool ove
         sdmc_factory = nullptr;
     }
 
-    auto nand_directory = vfs.OpenDirectory(Common::FS::GetUserPath(Common::FS::UserPath::NANDDir),
-                                            FileSys::Mode::ReadWrite);
-    auto sd_directory = vfs.OpenDirectory(Common::FS::GetUserPath(Common::FS::UserPath::SDMCDir),
-                                          FileSys::Mode::ReadWrite);
-    auto load_directory = vfs.OpenDirectory(Common::FS::GetUserPath(Common::FS::UserPath::LoadDir),
-                                            FileSys::Mode::ReadWrite);
-    auto dump_directory = vfs.OpenDirectory(Common::FS::GetUserPath(Common::FS::UserPath::DumpDir),
-                                            FileSys::Mode::ReadWrite);
+    using YuzuPath = Common::FS::YuzuPath;
+    const auto rw_mode = FileSys::Mode::ReadWrite;
+
+    auto nand_directory =
+        vfs.OpenDirectory(Common::FS::GetYuzuPathString(YuzuPath::NANDDir), rw_mode);
+    auto sd_directory =
+        vfs.OpenDirectory(Common::FS::GetYuzuPathString(YuzuPath::SDMCDir), rw_mode);
+    auto load_directory =
+        vfs.OpenDirectory(Common::FS::GetYuzuPathString(YuzuPath::LoadDir), FileSys::Mode::Read);
+    auto dump_directory =
+        vfs.OpenDirectory(Common::FS::GetYuzuPathString(YuzuPath::DumpDir), rw_mode);
 
     if (bis_factory == nullptr) {
         bis_factory =

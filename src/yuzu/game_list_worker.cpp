@@ -12,8 +12,8 @@
 #include <QFileInfo>
 #include <QSettings>
 
-#include "common/common_paths.h"
-#include "common/file_util.h"
+#include "common/fs/fs.h"
+#include "common/fs/path_util.h"
 #include "core/core.h"
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/content_archive.h"
@@ -39,10 +39,11 @@ QString GetGameListCachedObject(const std::string& filename, const std::string& 
         return generator();
     }
 
-    const auto path = Common::FS::GetUserPath(Common::FS::UserPath::CacheDir) + DIR_SEP +
-                      "game_list" + DIR_SEP + filename + '.' + ext;
+    const auto path =
+        Common::FS::PathToUTF8String(Common::FS::GetYuzuPath(Common::FS::YuzuPath::CacheDir) /
+                                     "game_list" / fmt::format("{}.{}", filename, ext));
 
-    Common::FS::CreateFullPath(path);
+    void(Common::FS::CreateParentDirs(path));
 
     if (!Common::FS::Exists(path)) {
         const auto str = generator();
@@ -70,12 +71,15 @@ std::pair<std::vector<u8>, std::string> GetGameListCachedObject(
         return generator();
     }
 
-    const auto path1 = Common::FS::GetUserPath(Common::FS::UserPath::CacheDir) + DIR_SEP +
-                       "game_list" + DIR_SEP + filename + ".jpeg";
-    const auto path2 = Common::FS::GetUserPath(Common::FS::UserPath::CacheDir) + DIR_SEP +
-                       "game_list" + DIR_SEP + filename + ".appname.txt";
+    const auto game_list_dir =
+        Common::FS::GetYuzuPath(Common::FS::YuzuPath::CacheDir) / "game_list";
+    const auto jpeg_name = fmt::format("{}.jpeg", filename);
+    const auto app_name = fmt::format("{}.appname.txt", filename);
 
-    Common::FS::CreateFullPath(path1);
+    const auto path1 = Common::FS::PathToUTF8String(game_list_dir / jpeg_name);
+    const auto path2 = Common::FS::PathToUTF8String(game_list_dir / app_name);
+
+    void(Common::FS::CreateParentDirs(path1));
 
     if (!Common::FS::Exists(path1) || !Common::FS::Exists(path2)) {
         const auto [icon, nacp] = generator();
@@ -281,23 +285,27 @@ void GameListWorker::AddTitlesToGameList(GameListDir* parent_dir) {
     }
 }
 
-void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_path,
-                                    unsigned int recursion, GameListDir* parent_dir) {
+void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_path, bool deep_scan,
+                                    GameListDir* parent_dir) {
     auto& system = Core::System::GetInstance();
 
-    const auto callback = [this, target, recursion, parent_dir,
-                           &system](u64* num_entries_out, const std::string& directory,
-                                    const std::string& virtual_name) -> bool {
+    const auto callback = [this, target, parent_dir,
+                           &system](const std::filesystem::path& path) -> bool {
         if (stop_processing) {
             // Breaks the callback loop.
             return false;
         }
 
-        const std::string physical_name = directory + DIR_SEP + virtual_name;
-        const bool is_dir = Common::FS::IsDirectory(physical_name);
+        const auto physical_name = Common::FS::PathToUTF8String(path);
+        const auto is_dir = Common::FS::IsDir(path);
+
         if (!is_dir &&
             (HasSupportedFileExtension(physical_name) || IsExtractedNCAMain(physical_name))) {
             const auto file = vfs->OpenFile(physical_name, FileSys::Mode::Read);
+            if (!file) {
+                return true;
+            }
+
             auto loader = Loader::GetLoader(system, file);
             if (!loader) {
                 return true;
@@ -343,15 +351,19 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
                                                   compatibility_list, patch),
                                 parent_dir);
             }
-        } else if (is_dir && recursion > 0) {
+        } else if (is_dir) {
             watch_list.append(QString::fromStdString(physical_name));
-            ScanFileSystem(target, physical_name, recursion - 1, parent_dir);
         }
 
         return true;
     };
 
-    Common::FS::ForeachDirectoryEntry(nullptr, dir_path, callback);
+    if (deep_scan) {
+        Common::FS::IterateDirEntriesRecursively(dir_path, callback,
+                                                 Common::FS::DirEntryFilter::All);
+    } else {
+        Common::FS::IterateDirEntries(dir_path, callback, Common::FS::DirEntryFilter::File);
+    }
 }
 
 void GameListWorker::run() {
@@ -376,9 +388,9 @@ void GameListWorker::run() {
             auto* const game_list_dir = new GameListDir(game_dir);
             emit DirEntryReady(game_list_dir);
             ScanFileSystem(ScanTarget::FillManualContentProvider, game_dir.path.toStdString(),
-                           game_dir.deep_scan ? 256 : 0, game_list_dir);
+                           game_dir.deep_scan, game_list_dir);
             ScanFileSystem(ScanTarget::PopulateGameList, game_dir.path.toStdString(),
-                           game_dir.deep_scan ? 256 : 0, game_list_dir);
+                           game_dir.deep_scan, game_list_dir);
         }
     }
 

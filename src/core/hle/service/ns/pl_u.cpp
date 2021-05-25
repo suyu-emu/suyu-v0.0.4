@@ -7,9 +7,7 @@
 #include <vector>
 
 #include "common/assert.h"
-#include "common/common_paths.h"
 #include "common/common_types.h"
-#include "common/file_util.h"
 #include "common/logging/log.h"
 #include "common/swap.h"
 #include "core/core.h"

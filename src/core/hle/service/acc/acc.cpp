@@ -4,9 +4,9 @@
 
 #include <algorithm>
 #include <array>
-#include "common/common_paths.h"
 #include "common/common_types.h"
-#include "common/file_util.h"
+#include "common/fs/file.h"
+#include "common/fs/path_util.h"
 #include "common/logging/log.h"
 #include "common/string_util.h"
 #include "common/swap.h"
@@ -41,9 +41,9 @@ constexpr ResultCode ERR_FAILED_SAVE_DATA{ErrorModule::Account, 100};
 // Thumbnails are hard coded to be at least this size
 constexpr std::size_t THUMBNAIL_SIZE = 0x24000;
 
-static std::string GetImagePath(Common::UUID uuid) {
-    return Common::FS::GetUserPath(Common::FS::UserPath::NANDDir) +
-           "/system/save/8000000000000010/su/avators/" + uuid.FormatSwitch() + ".jpg";
+static std::filesystem::path GetImagePath(Common::UUID uuid) {
+    return Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir) /
+           fmt::format("system/save/8000000000000010/su/avators/{}.jpg", uuid.FormatSwitch());
 }
 
 static constexpr u32 SanitizeJPEGSize(std::size_t size) {
@@ -328,7 +328,8 @@ protected:
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
 
-        const Common::FS::IOFile image(GetImagePath(user_id), "rb");
+        const Common::FS::IOFile image(GetImagePath(user_id), Common::FS::FileAccessMode::Read,
+                                       Common::FS::FileType::BinaryFile);
         if (!image.IsOpen()) {
             LOG_WARNING(Service_ACC,
                         "Failed to load user provided image! Falling back to built-in backup...");
@@ -339,7 +340,10 @@ protected:
 
         const u32 size = SanitizeJPEGSize(image.GetSize());
         std::vector<u8> buffer(size);
-        image.ReadBytes(buffer.data(), buffer.size());
+
+        if (image.Read(buffer) != buffer.size()) {
+            LOG_ERROR(Service_ACC, "Failed to read all the bytes in the user provided image.");
+        }
 
         ctx.WriteBuffer(buffer);
         rb.Push<u32>(size);
@@ -350,7 +354,8 @@ protected:
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
 
-        const Common::FS::IOFile image(GetImagePath(user_id), "rb");
+        const Common::FS::IOFile image(GetImagePath(user_id), Common::FS::FileAccessMode::Read,
+                                       Common::FS::FileType::BinaryFile);
 
         if (!image.IsOpen()) {
             LOG_WARNING(Service_ACC,
@@ -415,10 +420,11 @@ protected:
         ProfileData data;
         std::memcpy(&data, user_data.data(), sizeof(ProfileData));
 
-        Common::FS::IOFile image(GetImagePath(user_id), "wb");
+        Common::FS::IOFile image(GetImagePath(user_id), Common::FS::FileAccessMode::Write,
+                                 Common::FS::FileType::BinaryFile);
 
-        if (!image.IsOpen() || !image.Resize(image_data.size()) ||
-            image.WriteBytes(image_data.data(), image_data.size()) != image_data.size() ||
+        if (!image.IsOpen() || !image.SetSize(image_data.size()) ||
+            image.Write(image_data) != image_data.size() ||
             !profile_manager.SetProfileBaseAndData(user_id, base, data)) {
             LOG_ERROR(Service_ACC, "Failed to update profile data, base, and image!");
             IPC::ResponseBuilder rb{ctx, 2};

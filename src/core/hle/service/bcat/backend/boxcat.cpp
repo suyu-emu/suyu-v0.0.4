@@ -15,6 +15,9 @@
 #pragma GCC diagnostic pop
 #endif
 
+#include "common/fs/file.h"
+#include "common/fs/fs.h"
+#include "common/fs/path_util.h"
 #include "common/hex_util.h"
 #include "common/logging/backend.h"
 #include "common/logging/log.h"
@@ -96,14 +99,14 @@ constexpr u32 PORT = 443;
 constexpr u32 TIMEOUT_SECONDS = 30;
 [[maybe_unused]] constexpr u64 VFS_COPY_BLOCK_SIZE = 1ULL << 24; // 4MB
 
-std::string GetBINFilePath(u64 title_id) {
-    return fmt::format("{}bcat/{:016X}/launchparam.bin",
-                       Common::FS::GetUserPath(Common::FS::UserPath::CacheDir), title_id);
+std::filesystem::path GetBINFilePath(u64 title_id) {
+    return Common::FS::GetYuzuPath(Common::FS::YuzuPath::CacheDir) / "bcat" /
+           fmt::format("{:016X}/launchparam.bin", title_id);
 }
 
-std::string GetZIPFilePath(u64 title_id) {
-    return fmt::format("{}bcat/{:016X}/data.zip",
-                       Common::FS::GetUserPath(Common::FS::UserPath::CacheDir), title_id);
+std::filesystem::path GetZIPFilePath(u64 title_id) {
+    return Common::FS::GetYuzuPath(Common::FS::YuzuPath::CacheDir) / "bcat" /
+           fmt::format("{:016X}/data.zip", title_id);
 }
 
 // If the error is something the user should know about (build ID mismatch, bad client version),
@@ -187,7 +190,7 @@ bool VfsRawCopyDProgress(FileSys::VirtualDir src, FileSys::VirtualDir dest,
 
 class Boxcat::Client {
 public:
-    Client(std::string path_, u64 title_id_, u64 build_id_)
+    Client(std::filesystem::path path_, u64 title_id_, u64 build_id_)
         : path(std::move(path_)), title_id(title_id_), build_id(build_id_) {}
 
     DownloadResult DownloadDataZip() {
@@ -217,10 +220,11 @@ private:
         };
 
         if (Common::FS::Exists(path)) {
-            Common::FS::IOFile file{path, "rb"};
+            Common::FS::IOFile file{path, Common::FS::FileAccessMode::Read,
+                                    Common::FS::FileType::BinaryFile};
             if (file.IsOpen()) {
                 std::vector<u8> bytes(file.GetSize());
-                file.ReadBytes(bytes.data(), bytes.size());
+                void(file.Read(bytes));
                 const auto digest = DigestFile(bytes);
                 headers.insert({std::string("If-None-Match"), Common::HexToString(digest, false)});
             }
@@ -247,14 +251,23 @@ private:
             return DownloadResult::InvalidContentType;
         }
 
-        Common::FS::CreateFullPath(path);
-        Common::FS::IOFile file{path, "wb"};
-        if (!file.IsOpen())
+        if (!Common::FS::CreateDirs(path)) {
             return DownloadResult::GeneralFSError;
-        if (!file.Resize(response->body.size()))
+        }
+
+        Common::FS::IOFile file{path, Common::FS::FileAccessMode::Append,
+                                Common::FS::FileType::BinaryFile};
+        if (!file.IsOpen()) {
             return DownloadResult::GeneralFSError;
-        if (file.WriteBytes(response->body.data(), response->body.size()) != response->body.size())
+        }
+
+        if (!file.SetSize(response->body.size())) {
             return DownloadResult::GeneralFSError;
+        }
+
+        if (file.Write(response->body) != response->body.size()) {
+            return DownloadResult::GeneralFSError;
+        }
 
         return DownloadResult::Success;
     }
@@ -267,7 +280,7 @@ private:
     }
 
     std::unique_ptr<httplib::SSLClient> client;
-    std::string path;
+    std::filesystem::path path;
     u64 title_id;
     u64 build_id;
 };
@@ -291,7 +304,7 @@ void SynchronizeInternal(AM::Applets::AppletManager& applet_manager, DirectoryGe
         return;
     }
 
-    const auto zip_path{GetZIPFilePath(title.title_id)};
+    const auto zip_path = GetZIPFilePath(title.title_id);
     Boxcat::Client client{zip_path, title.title_id, title.build_id};
 
     progress.StartConnecting();
@@ -301,7 +314,7 @@ void SynchronizeInternal(AM::Applets::AppletManager& applet_manager, DirectoryGe
         LOG_ERROR(Service_BCAT, "Boxcat synchronization failed with error '{}'!", res);
 
         if (res == DownloadResult::NoMatchBuildId || res == DownloadResult::NoMatchTitleId) {
-            Common::FS::Delete(zip_path);
+            void(Common::FS::RemoveFile(zip_path));
         }
 
         HandleDownloadDisplayResult(applet_manager, res);
@@ -311,11 +324,13 @@ void SynchronizeInternal(AM::Applets::AppletManager& applet_manager, DirectoryGe
 
     progress.StartProcessingDataList();
 
-    Common::FS::IOFile zip{zip_path, "rb"};
+    Common::FS::IOFile zip{zip_path, Common::FS::FileAccessMode::Read,
+                           Common::FS::FileType::BinaryFile};
     const auto size = zip.GetSize();
     std::vector<u8> bytes(size);
-    if (!zip.IsOpen() || size == 0 || zip.ReadBytes(bytes.data(), bytes.size()) != bytes.size()) {
-        LOG_ERROR(Service_BCAT, "Boxcat failed to read ZIP file at path '{}'!", zip_path);
+    if (!zip.IsOpen() || size == 0 || zip.Read(bytes) != bytes.size()) {
+        LOG_ERROR(Service_BCAT, "Boxcat failed to read ZIP file at path '{}'!",
+                  Common::FS::PathToUTF8String(zip_path));
         progress.FinishDownload(ERROR_GENERAL_BCAT_FAILURE);
         return;
     }
@@ -419,19 +434,19 @@ void Boxcat::SetPassphrase(u64 title_id, const Passphrase& passphrase) {
 }
 
 std::optional<std::vector<u8>> Boxcat::GetLaunchParameter(TitleIDVersion title) {
-    const auto path{GetBINFilePath(title.title_id)};
+    const auto bin_file_path = GetBINFilePath(title.title_id);
 
     if (Settings::values.bcat_boxcat_local) {
         LOG_INFO(Service_BCAT, "Boxcat using local data by override, skipping download.");
     } else {
-        Client launch_client{path, title.title_id, title.build_id};
+        Client launch_client{bin_file_path, title.title_id, title.build_id};
 
         const auto res = launch_client.DownloadLaunchParam();
         if (res != DownloadResult::Success) {
             LOG_ERROR(Service_BCAT, "Boxcat synchronization failed with error '{}'!", res);
 
             if (res == DownloadResult::NoMatchBuildId || res == DownloadResult::NoMatchTitleId) {
-                Common::FS::Delete(path);
+                void(Common::FS::RemoveFile(bin_file_path));
             }
 
             HandleDownloadDisplayResult(applet_manager, res);
@@ -439,12 +454,13 @@ std::optional<std::vector<u8>> Boxcat::GetLaunchParameter(TitleIDVersion title) 
         }
     }
 
-    Common::FS::IOFile bin{path, "rb"};
+    Common::FS::IOFile bin{bin_file_path, Common::FS::FileAccessMode::Read,
+                           Common::FS::FileType::BinaryFile};
     const auto size = bin.GetSize();
     std::vector<u8> bytes(size);
-    if (!bin.IsOpen() || size == 0 || bin.ReadBytes(bytes.data(), bytes.size()) != bytes.size()) {
+    if (!bin.IsOpen() || size == 0 || bin.Read(bytes) != bytes.size()) {
         LOG_ERROR(Service_BCAT, "Boxcat failed to read launch parameter binary at path '{}'!",
-                  path);
+                  Common::FS::PathToUTF8String(bin_file_path));
         return std::nullopt;
     }
 

@@ -7,7 +7,9 @@
 
 #include <fmt/format.h>
 
-#include "common/file_util.h"
+#include "common/fs/file.h"
+#include "common/fs/fs.h"
+#include "common/fs/path_util.h"
 #include "common/settings.h"
 #include "core/hle/service/acc/profile_manager.h"
 
@@ -36,7 +38,7 @@ constexpr ResultCode ERROR_TOO_MANY_USERS(ErrorModule::Account, u32(-1));
 constexpr ResultCode ERROR_USER_ALREADY_EXISTS(ErrorModule::Account, u32(-2));
 constexpr ResultCode ERROR_ARGUMENT_IS_NULL(ErrorModule::Account, 20);
 
-constexpr char ACC_SAVE_AVATORS_BASE_PATH[] = "/system/save/8000000000000010/su/avators/";
+constexpr char ACC_SAVE_AVATORS_BASE_PATH[] = "system/save/8000000000000010/su/avators";
 
 ProfileManager::ProfileManager() {
     ParseUserSaveFile();
@@ -325,8 +327,9 @@ bool ProfileManager::SetProfileBaseAndData(Common::UUID uuid, const ProfileBase&
 }
 
 void ProfileManager::ParseUserSaveFile() {
-    const FS::IOFile save(
-        FS::GetUserPath(FS::UserPath::NANDDir) + ACC_SAVE_AVATORS_BASE_PATH + "profiles.dat", "rb");
+    const auto save_path(FS::GetYuzuPath(FS::YuzuPath::NANDDir) / ACC_SAVE_AVATORS_BASE_PATH /
+                         "profiles.dat");
+    const FS::IOFile save(save_path, FS::FileAccessMode::Read, FS::FileType::BinaryFile);
 
     if (!save.IsOpen()) {
         LOG_WARNING(Service_ACC, "Failed to load profile data from save data... Generating new "
@@ -335,7 +338,7 @@ void ProfileManager::ParseUserSaveFile() {
     }
 
     ProfileDataRaw data;
-    if (save.ReadBytes(&data, sizeof(ProfileDataRaw)) != sizeof(ProfileDataRaw)) {
+    if (!save.ReadObject(data)) {
         LOG_WARNING(Service_ACC, "profiles.dat is smaller than expected... Generating new user "
                                  "'yuzu' with random UUID.");
         return;
@@ -372,31 +375,27 @@ void ProfileManager::WriteUserSaveFile() {
         };
     }
 
-    const auto raw_path = FS::GetUserPath(FS::UserPath::NANDDir) + "/system/save/8000000000000010";
-    if (FS::Exists(raw_path) && !FS::IsDirectory(raw_path)) {
-        FS::Delete(raw_path);
+    const auto raw_path(FS::GetYuzuPath(FS::YuzuPath::NANDDir) / "system/save/8000000000000010");
+    if (FS::IsFile(raw_path) && !FS::RemoveFile(raw_path)) {
+        return;
     }
 
-    const auto path =
-        FS::GetUserPath(FS::UserPath::NANDDir) + ACC_SAVE_AVATORS_BASE_PATH + "profiles.dat";
+    const auto save_path(FS::GetYuzuPath(FS::YuzuPath::NANDDir) / ACC_SAVE_AVATORS_BASE_PATH /
+                         "profiles.dat");
 
-    if (!FS::CreateFullPath(path)) {
+    if (!FS::CreateParentDirs(save_path)) {
         LOG_WARNING(Service_ACC, "Failed to create full path of profiles.dat. Create the directory "
                                  "nand/system/save/8000000000000010/su/avators to mitigate this "
                                  "issue.");
         return;
     }
 
-    FS::IOFile save(path, "wb");
+    FS::IOFile save(save_path, FS::FileAccessMode::Write, FS::FileType::BinaryFile);
 
-    if (!save.IsOpen()) {
+    if (!save.IsOpen() || !save.SetSize(sizeof(ProfileDataRaw)) || !save.WriteObject(raw)) {
         LOG_WARNING(Service_ACC, "Failed to write save data to file... No changes to user data "
                                  "made in current session will be saved.");
-        return;
     }
-
-    save.Resize(sizeof(ProfileDataRaw));
-    save.WriteBytes(&raw, sizeof(ProfileDataRaw));
 }
 
 }; // namespace Service::Account

@@ -9,7 +9,6 @@
 #include <locale>
 #include <sstream>
 
-#include "common/common_paths.h"
 #include "common/logging/log.h"
 #include "common/string_util.h"
 
@@ -91,18 +90,6 @@ bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _
         *_pExtension = full_path.substr(fname_end);
 
     return true;
-}
-
-void BuildCompleteFilename(std::string& _CompleteFilename, const std::string& _Path,
-                           const std::string& _Filename) {
-    _CompleteFilename = _Path;
-
-    // check for seperator
-    if (DIR_SEP_CHR != *_CompleteFilename.rbegin())
-        _CompleteFilename += DIR_SEP_CHR;
-
-    // add the filename
-    _CompleteFilename += _Filename;
 }
 
 void SplitString(const std::string& str, const char delim, std::vector<std::string>& output) {

@@ -16,7 +16,9 @@
 #endif
 
 #include <inih/cpp/INIReader.h>
-#include "common/file_util.h"
+#include "common/fs/file.h"
+#include "common/fs/fs.h"
+#include "common/fs/path_util.h"
 #include "common/logging/log.h"
 #include "common/param_package.h"
 #include "common/settings.h"
@@ -30,8 +32,8 @@ namespace FS = Common::FS;
 
 Config::Config() {
     // TODO: Don't hardcode the path; let the frontend decide where to put the config files.
-    sdl2_config_loc = FS::GetUserPath(FS::UserPath::ConfigDir) + "sdl2-config.ini";
-    sdl2_config = std::make_unique<INIReader>(sdl2_config_loc);
+    sdl2_config_loc = FS::GetYuzuPath(FS::YuzuPath::ConfigDir) / "sdl2-config.ini";
+    sdl2_config = std::make_unique<INIReader>(FS::PathToUTF8String(sdl2_config_loc));
 
     Reload();
 }
@@ -39,20 +41,23 @@ Config::Config() {
 Config::~Config() = default;
 
 bool Config::LoadINI(const std::string& default_contents, bool retry) {
-    const std::string& location = this->sdl2_config_loc;
+    const auto config_loc_str = FS::PathToUTF8String(sdl2_config_loc);
     if (sdl2_config->ParseError() < 0) {
         if (retry) {
-            LOG_WARNING(Config, "Failed to load {}. Creating file from defaults...", location);
-            FS::CreateFullPath(location);
-            FS::WriteStringToFile(true, location, default_contents);
-            sdl2_config = std::make_unique<INIReader>(location); // Reopen file
+            LOG_WARNING(Config, "Failed to load {}. Creating file from defaults...",
+                        config_loc_str);
+
+            void(FS::CreateParentDir(sdl2_config_loc));
+            void(FS::WriteStringToFile(sdl2_config_loc, FS::FileType::TextFile, default_contents));
+
+            sdl2_config = std::make_unique<INIReader>(config_loc_str);
 
             return LoadINI(default_contents, false);
         }
         LOG_ERROR(Config, "Failed.");
         return false;
     }
-    LOG_INFO(Config, "Successfully loaded {}", location);
+    LOG_INFO(Config, "Successfully loaded {}", config_loc_str);
     return true;
 }
 
@@ -327,18 +332,18 @@ void Config::ReadValues() {
     // Data Storage
     Settings::values.use_virtual_sd =
         sdl2_config->GetBoolean("Data Storage", "use_virtual_sd", true);
-    FS::GetUserPath(
-        FS::UserPath::NANDDir,
-        sdl2_config->Get("Data Storage", "nand_directory", FS::GetUserPath(FS::UserPath::NANDDir)));
-    FS::GetUserPath(
-        FS::UserPath::SDMCDir,
-        sdl2_config->Get("Data Storage", "sdmc_directory", FS::GetUserPath(FS::UserPath::SDMCDir)));
-    FS::GetUserPath(
-        FS::UserPath::LoadDir,
-        sdl2_config->Get("Data Storage", "load_directory", FS::GetUserPath(FS::UserPath::LoadDir)));
-    FS::GetUserPath(
-        FS::UserPath::DumpDir,
-        sdl2_config->Get("Data Storage", "dump_directory", FS::GetUserPath(FS::UserPath::DumpDir)));
+    FS::SetYuzuPath(FS::YuzuPath::NANDDir,
+                    sdl2_config->Get("Data Storage", "nand_directory",
+                                     FS::GetYuzuPathString(FS::YuzuPath::NANDDir)));
+    FS::SetYuzuPath(FS::YuzuPath::SDMCDir,
+                    sdl2_config->Get("Data Storage", "sdmc_directory",
+                                     FS::GetYuzuPathString(FS::YuzuPath::SDMCDir)));
+    FS::SetYuzuPath(FS::YuzuPath::LoadDir,
+                    sdl2_config->Get("Data Storage", "load_directory",
+                                     FS::GetYuzuPathString(FS::YuzuPath::LoadDir)));
+    FS::SetYuzuPath(FS::YuzuPath::DumpDir,
+                    sdl2_config->Get("Data Storage", "dump_directory",
+                                     FS::GetYuzuPathString(FS::YuzuPath::DumpDir)));
     Settings::values.gamecard_inserted =
         sdl2_config->GetBoolean("Data Storage", "gamecard_inserted", false);
     Settings::values.gamecard_current_game =

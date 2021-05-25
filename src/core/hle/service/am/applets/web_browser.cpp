@@ -3,8 +3,9 @@
 // Refer to the license.txt file included.
 
 #include "common/assert.h"
-#include "common/common_paths.h"
-#include "common/file_util.h"
+#include "common/fs/file.h"
+#include "common/fs/fs.h"
+#include "common/fs/path_util.h"
 #include "common/logging/log.h"
 #include "common/string_util.h"
 #include "core/core.h"
@@ -135,14 +136,10 @@ void ExtractSharedFonts(Core::System& system) {
         "FontNintendoExtended2.ttf",
     };
 
-    for (std::size_t i = 0; i < NS::SHARED_FONTS.size(); ++i) {
-        const auto fonts_dir = Common::FS::SanitizePath(
-            fmt::format("{}/fonts", Common::FS::GetUserPath(Common::FS::UserPath::CacheDir)),
-            Common::FS::DirectorySeparator::PlatformDefault);
+    const auto fonts_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::CacheDir) / "fonts";
 
-        const auto font_file_path =
-            Common::FS::SanitizePath(fmt::format("{}/{}", fonts_dir, DECRYPTED_SHARED_FONTS[i]),
-                                     Common::FS::DirectorySeparator::PlatformDefault);
+    for (std::size_t i = 0; i < NS::SHARED_FONTS.size(); ++i) {
+        const auto font_file_path = fonts_dir / DECRYPTED_SHARED_FONTS[i];
 
         if (Common::FS::Exists(font_file_path)) {
             continue;
@@ -197,8 +194,8 @@ void ExtractSharedFonts(Core::System& system) {
         FileSys::VirtualFile decrypted_font = std::make_shared<FileSys::VectorVfsFile>(
             std::move(decrypted_data), DECRYPTED_SHARED_FONTS[i]);
 
-        const auto temp_dir =
-            system.GetFilesystem()->CreateDirectory(fonts_dir, FileSys::Mode::ReadWrite);
+        const auto temp_dir = system.GetFilesystem()->CreateDirectory(
+            Common::FS::PathToUTF8String(fonts_dir), FileSys::Mode::ReadWrite);
 
         const auto out_file = temp_dir->CreateFile(DECRYPTED_SHARED_FONTS[i]);
 
@@ -312,13 +309,14 @@ void WebBrowser::Execute() {
 }
 
 void WebBrowser::ExtractOfflineRomFS() {
-    LOG_DEBUG(Service_AM, "Extracting RomFS to {}", offline_cache_dir);
+    LOG_DEBUG(Service_AM, "Extracting RomFS to {}",
+              Common::FS::PathToUTF8String(offline_cache_dir));
 
     const auto extracted_romfs_dir =
         FileSys::ExtractRomFS(offline_romfs, FileSys::RomFSExtractionType::SingleDiscard);
 
-    const auto temp_dir =
-        system.GetFilesystem()->CreateDirectory(offline_cache_dir, FileSys::Mode::ReadWrite);
+    const auto temp_dir = system.GetFilesystem()->CreateDirectory(
+        Common::FS::PathToUTF8String(offline_cache_dir), FileSys::Mode::ReadWrite);
 
     FileSys::VfsRawCopyD(extracted_romfs_dir, temp_dir);
 }
@@ -397,15 +395,12 @@ void WebBrowser::InitializeOffline() {
         "system_data",
     };
 
-    offline_cache_dir = Common::FS::SanitizePath(
-        fmt::format("{}/offline_web_applet_{}/{:016X}",
-                    Common::FS::GetUserPath(Common::FS::UserPath::CacheDir),
-                    RESOURCE_TYPES[static_cast<u32>(document_kind) - 1], title_id),
-        Common::FS::DirectorySeparator::PlatformDefault);
+    offline_cache_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::CacheDir) /
+                        fmt::format("offline_web_applet_{}/{:016X}",
+                                    RESOURCE_TYPES[static_cast<u32>(document_kind) - 1], title_id);
 
-    offline_document = Common::FS::SanitizePath(
-        fmt::format("{}/{}/{}", offline_cache_dir, additional_paths, document_path),
-        Common::FS::DirectorySeparator::PlatformDefault);
+    offline_document = Common::FS::ConcatPathSafe(
+        offline_cache_dir, fmt::format("{}/{}", additional_paths, document_path));
 }
 
 void WebBrowser::InitializeShare() {}
@@ -429,8 +424,7 @@ void WebBrowser::ExecuteLogin() {
 }
 
 void WebBrowser::ExecuteOffline() {
-    const auto main_url = Common::FS::SanitizePath(GetMainURL(offline_document),
-                                                   Common::FS::DirectorySeparator::PlatformDefault);
+    const auto main_url = GetMainURL(Common::FS::PathToUTF8String(offline_document));
 
     if (!Common::FS::Exists(main_url)) {
         offline_romfs = GetOfflineRomFS(system, title_id, nca_type);
@@ -444,10 +438,11 @@ void WebBrowser::ExecuteOffline() {
         }
     }
 
-    LOG_INFO(Service_AM, "Opening offline document at {}", offline_document);
+    LOG_INFO(Service_AM, "Opening offline document at {}",
+             Common::FS::PathToUTF8String(offline_document));
 
     frontend.OpenLocalWebPage(
-        offline_document, [this] { ExtractOfflineRomFS(); },
+        Common::FS::PathToUTF8String(offline_document), [this] { ExtractOfflineRomFS(); },
         [this](WebExitReason exit_reason, std::string last_url) {
             WebBrowserExit(exit_reason, last_url);
         });

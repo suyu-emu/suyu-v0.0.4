@@ -4,10 +4,11 @@
 #pragma once
 
 #include <chrono>
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <string_view>
-#include "common/file_util.h"
+#include "common/fs/file.h"
 #include "common/logging/filter.h"
 #include "common/logging/log.h"
 
@@ -81,7 +82,7 @@ public:
  */
 class FileBackend : public Backend {
 public:
-    explicit FileBackend(const std::string& filename);
+    explicit FileBackend(const std::filesystem::path& filename);
 
     static const char* Name() {
         return "file";

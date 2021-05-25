@@ -4,7 +4,7 @@
 
 #include <QDesktopServices>
 #include <QUrl>
-#include "common/file_util.h"
+#include "common/fs/path_util.h"
 #include "common/logging/backend.h"
 #include "common/logging/filter.h"
 #include "common/settings.h"
@@ -20,7 +20,7 @@ ConfigureDebug::ConfigureDebug(QWidget* parent) : QWidget(parent), ui(new Ui::Co
 
     connect(ui->open_log_button, &QPushButton::clicked, []() {
         const auto path =
-            QString::fromStdString(Common::FS::GetUserPath(Common::FS::UserPath::LogDir));
+            QString::fromStdString(Common::FS::GetYuzuPathString(Common::FS::YuzuPath::LogDir));
         QDesktopServices::openUrl(QUrl::fromLocalFile(path));
     });
 }

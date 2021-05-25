@@ -10,11 +10,13 @@
 namespace FileSys {
 
 enum class Mode : u32 {
-    Read = 1,
-    Write = 2,
+    Read = 1 << 0,
+    Write = 1 << 1,
     ReadWrite = Read | Write,
-    Append = 4,
+    Append = 1 << 2,
+    ReadAppend = Read | Append,
     WriteAppend = Write | Append,
+    All = ReadWrite | Append,
 };
 
 DECLARE_ENUM_FLAG_OPERATORS(Mode)

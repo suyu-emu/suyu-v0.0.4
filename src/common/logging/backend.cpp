@@ -11,13 +11,13 @@
 #include <mutex>
 #include <thread>
 #include <vector>
+
 #ifdef _WIN32
-#include <share.h>   // For _SH_DENYWR
 #include <windows.h> // For OutputDebugStringW
-#else
-#define _SH_DENYWR 0
 #endif
+
 #include "common/assert.h"
+#include "common/fs/fs.h"
 #include "common/logging/backend.h"
 #include "common/logging/log.h"
 #include "common/logging/text_formatter.h"
@@ -148,19 +148,16 @@ void ColorConsoleBackend::Write(const Entry& entry) {
     PrintColoredMessage(entry);
 }
 
-FileBackend::FileBackend(const std::string& filename) {
-    const auto old_filename = filename + ".old.txt";
+FileBackend::FileBackend(const std::filesystem::path& filename) {
+    auto old_filename = filename;
+    old_filename += ".old.txt";
 
-    if (FS::Exists(old_filename)) {
-        FS::Delete(old_filename);
-    }
-    if (FS::Exists(filename)) {
-        FS::Rename(filename, old_filename);
-    }
+    // Existence checks are done within the functions themselves.
+    // We don't particularly care if these succeed or not.
+    void(FS::RemoveFile(old_filename));
+    void(FS::RenameFile(filename, old_filename));
 
-    // _SH_DENYWR allows read only access to the file for other programs.
-    // It is #defined to 0 on other platforms
-    file = FS::IOFile(filename, "w", _SH_DENYWR);
+    file = FS::IOFile(filename, FS::FileAccessMode::Write, FS::FileType::TextFile);
 }
 
 void FileBackend::Write(const Entry& entry) {
@@ -181,7 +178,7 @@ void FileBackend::Write(const Entry& entry) {
 
     bytes_written += file.WriteString(FormatLogMessage(entry).append(1, '\n'));
     if (entry.log_level >= Level::Error) {
-        file.Flush();
+        void(file.Flush());
     }
 }
 

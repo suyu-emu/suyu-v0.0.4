@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <filesystem>
 #include <memory>
 #include <string>
 
@@ -11,7 +12,7 @@ class INIReader;
 
 class Config {
     std::unique_ptr<INIReader> sdl2_config;
-    std::string sdl2_config_loc;
+    std::filesystem::path sdl2_config_loc;
 
     bool LoadINI(const std::string& default_contents = "", bool retry = true);
     void ReadValues();

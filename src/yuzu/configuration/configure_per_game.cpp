@@ -14,8 +14,6 @@
 #include <QTimer>
 #include <QTreeView>
 
-#include "common/common_paths.h"
-#include "common/file_util.h"
 #include "core/core.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/patch_manager.h"

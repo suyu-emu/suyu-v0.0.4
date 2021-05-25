@@ -6,7 +6,7 @@
 #include <memory>
 #include <utility>
 
-#include "common/file_util.h"
+#include "common/fs/fs.h"
 #include "common/logging/log.h"
 #include "common/microprofile.h"
 #include "common/settings.h"
@@ -121,7 +121,7 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
                                                                   dir->GetName());
     }
 
-    if (Common::FS::IsDirectory(path)) {
+    if (Common::FS::IsDir(path)) {
         return vfs->OpenFile(path + "/main", FileSys::Mode::Read);
     }
 

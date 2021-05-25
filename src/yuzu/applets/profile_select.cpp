@@ -10,7 +10,7 @@
 #include <QScrollArea>
 #include <QStandardItemModel>
 #include <QVBoxLayout>
-#include "common/file_util.h"
+#include "common/fs/path_util.h"
 #include "common/string_util.h"
 #include "core/constants.h"
 #include "core/hle/lock.h"
@@ -26,9 +26,10 @@ QString FormatUserEntryText(const QString& username, Common::UUID uuid) {
 }
 
 QString GetImagePath(Common::UUID uuid) {
-    const auto path = Common::FS::GetUserPath(Common::FS::UserPath::NANDDir) +
-                      "/system/save/8000000000000010/su/avators/" + uuid.FormatSwitch() + ".jpg";
-    return QString::fromStdString(path);
+    const auto path =
+        Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir) /
+        fmt::format("system/save/8000000000000010/su/avators/{}.jpg", uuid.FormatSwitch());
+    return QString::fromStdString(Common::FS::PathToUTF8String(path));
 }
 
 QPixmap GetIcon(Common::UUID uuid) {

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <filesystem>
 #include <optional>
 #include <string>
 #include <tuple>
@@ -108,19 +109,19 @@ private:
     bool EnsureDirectories() const;
 
     /// Gets current game's transferable file path
-    std::string GetTransferablePath() const;
+    std::filesystem::path GetTransferablePath() const;
 
     /// Gets current game's precompiled file path
-    std::string GetPrecompiledPath() const;
+    std::filesystem::path GetPrecompiledPath() const;
 
     /// Get user's transferable directory path
-    std::string GetTransferableDir() const;
+    std::filesystem::path GetTransferableDir() const;
 
     /// Get user's precompiled directory path
-    std::string GetPrecompiledDir() const;
+    std::filesystem::path GetPrecompiledDir() const;
 
     /// Get user's shader directory path
-    std::string GetBaseDir() const;
+    std::filesystem::path GetBaseDir() const;
 
     /// Get current game's title id
     std::string GetTitleID() const;

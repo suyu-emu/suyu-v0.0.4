@@ -13,8 +13,8 @@
 #include <QTimer>
 #include <QTreeView>
 
-#include "common/common_paths.h"
-#include "common/file_util.h"
+#include "common/fs/fs.h"
+#include "common/fs/path_util.h"
 #include "core/core.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/xts_archive.h"
@@ -79,8 +79,8 @@ void ConfigurePerGameAddons::ApplyConfiguration() {
     std::sort(disabled_addons.begin(), disabled_addons.end());
     std::sort(current.begin(), current.end());
     if (disabled_addons != current) {
-        Common::FS::Delete(Common::FS::GetUserPath(Common::FS::UserPath::CacheDir) + DIR_SEP +
-                           "game_list" + DIR_SEP + fmt::format("{:016X}.pv.txt", title_id));
+        void(Common::FS::RemoveFile(Common::FS::GetYuzuPath(Common::FS::YuzuPath::CacheDir) /
+                                    "game_list" / fmt::format("{:016X}.pv.txt", title_id)));
     }
 
     Settings::values.disabled_addons[title_id] = disabled_addons;

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <filesystem>
 #include <optional>
 
 #include "common/common_funcs.h"
@@ -75,8 +76,8 @@ private:
 
     u64 title_id{};
     FileSys::ContentRecordType nca_type{};
-    std::string offline_cache_dir;
-    std::string offline_document;
+    std::filesystem::path offline_cache_dir;
+    std::filesystem::path offline_document;
     FileSys::VirtualFile offline_romfs;
 
     std::string external_url;

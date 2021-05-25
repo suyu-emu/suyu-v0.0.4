@@ -8,7 +8,7 @@
 
 #include <QDirIterator>
 #include "common/common_types.h"
-#include "common/file_util.h"
+#include "common/fs/path_util.h"
 #include "common/settings.h"
 #include "core/core.h"
 #include "ui_configure_ui.h"
@@ -62,13 +62,16 @@ ConfigureUi::ConfigureUi(QWidget* parent) : QWidget(parent), ui(new Ui::Configur
 
     // Set screenshot path to user specification.
     connect(ui->screenshot_path_button, &QToolButton::pressed, this, [this] {
-        const QString& filename =
+        auto dir =
             QFileDialog::getExistingDirectory(this, tr("Select Screenshots Path..."),
-                                              QString::fromStdString(Common::FS::GetUserPath(
-                                                  Common::FS::UserPath::ScreenshotsDir))) +
-            QDir::separator();
-        if (!filename.isEmpty()) {
-            ui->screenshot_path_edit->setText(filename);
+                                              QString::fromStdString(Common::FS::GetYuzuPathString(
+                                                  Common::FS::YuzuPath::ScreenshotsDir)));
+        if (!dir.isEmpty()) {
+            if (dir.back() != QChar::fromLatin1('/')) {
+                dir.append(QChar::fromLatin1('/'));
+            }
+
+            ui->screenshot_path_edit->setText(dir);
         }
     });
 }
@@ -84,7 +87,7 @@ void ConfigureUi::ApplyConfiguration() {
     UISettings::values.row_2_text_id = ui->row_2_text_combobox->currentData().toUInt();
 
     UISettings::values.enable_screenshot_save_as = ui->enable_screenshot_save_as->isChecked();
-    Common::FS::GetUserPath(Common::FS::UserPath::ScreenshotsDir,
+    Common::FS::SetYuzuPath(Common::FS::YuzuPath::ScreenshotsDir,
                             ui->screenshot_path_edit->text().toStdString());
     Core::System::GetInstance().ApplySettings();
 }
@@ -102,8 +105,8 @@ void ConfigureUi::SetConfiguration() {
         ui->icon_size_combobox->findData(UISettings::values.icon_size));
 
     ui->enable_screenshot_save_as->setChecked(UISettings::values.enable_screenshot_save_as);
-    ui->screenshot_path_edit->setText(
-        QString::fromStdString(Common::FS::GetUserPath(Common::FS::UserPath::ScreenshotsDir)));
+    ui->screenshot_path_edit->setText(QString::fromStdString(
+        Common::FS::GetYuzuPathString(Common::FS::YuzuPath::ScreenshotsDir)));
 }
 
 void ConfigureUi::changeEvent(QEvent* event) {

@@ -7,7 +7,7 @@
 #include <regex>
 #include <mbedtls/sha256.h>
 #include "common/assert.h"
-#include "common/file_util.h"
+#include "common/fs/path_util.h"
 #include "common/hex_util.h"
 #include "common/logging/log.h"
 #include "core/crypto/key_manager.h"

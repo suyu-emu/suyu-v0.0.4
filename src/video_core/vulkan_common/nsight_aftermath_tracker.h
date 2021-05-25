@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <filesystem>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -54,7 +55,7 @@ private:
 
     mutable std::mutex mutex;
 
-    std::string dump_dir;
+    std::filesystem::path dump_dir;
     int dump_id = 0;
 
     bool initialized = false;

@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <fmt/format.h>
-#include "common/file_util.h"
+#include "common/fs/path_util.h"
 #include "core/file_sys/bis_factory.h"
 #include "core/file_sys/mode.h"
 #include "core/file_sys/registered_cache.h"
@@ -85,7 +85,7 @@ VirtualFile BISFactory::OpenPartitionStorage(BisPartitionId id,
                                              VirtualFilesystem file_system) const {
     auto& keys = Core::Crypto::KeyManager::Instance();
     Core::Crypto::PartitionDataManager pdm{file_system->OpenDirectory(
-        Common::FS::GetUserPath(Common::FS::UserPath::SysDataDir), Mode::Read)};
+        Common::FS::GetYuzuPathString(Common::FS::YuzuPath::NANDDir), Mode::Read)};
     keys.PopulateFromPartitionData(pdm);
 
     switch (id) {

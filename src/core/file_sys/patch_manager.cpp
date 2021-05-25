@@ -7,7 +7,6 @@
 #include <cstddef>
 #include <cstring>
 
-#include "common/file_util.h"
 #include "common/hex_util.h"
 #include "common/logging/log.h"
 #include "common/settings.h"

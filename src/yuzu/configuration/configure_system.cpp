@@ -10,7 +10,6 @@
 #include <QGraphicsItem>
 #include <QMessageBox>
 #include "common/assert.h"
-#include "common/file_util.h"
 #include "common/settings.h"
 #include "core/core.h"
 #include "core/hle/service/time/time.h"

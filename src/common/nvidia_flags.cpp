@@ -2,24 +2,30 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <filesystem>
-#include <stdlib.h>
+#include <cstdlib>
 
 #include <fmt/format.h>
 
-#include "common/file_util.h"
+#include "common/fs/file.h"
+#include "common/fs/fs.h"
+#include "common/fs/path_util.h"
 #include "common/nvidia_flags.h"
 
 namespace Common {
 
 void ConfigureNvidiaEnvironmentFlags() {
 #ifdef _WIN32
-    const std::string shader_path = Common::FS::SanitizePath(
-        fmt::format("{}/nvidia/", Common::FS::GetUserPath(Common::FS::UserPath::ShaderDir)));
-    const std::string windows_path =
-        Common::FS::SanitizePath(shader_path, Common::FS::DirectorySeparator::BackwardSlash);
-    void(Common::FS::CreateFullPath(shader_path + '/'));
-    void(_putenv(fmt::format("__GL_SHADER_DISK_CACHE_PATH={}", windows_path).c_str()));
+    const auto nvidia_shader_dir =
+        Common::FS::GetYuzuPath(Common::FS::YuzuPath::ShaderDir) / "nvidia";
+
+    if (!Common::FS::CreateDirs(nvidia_shader_dir)) {
+        return;
+    }
+
+    const auto windows_path_string =
+        Common::FS::PathToUTF8String(nvidia_shader_dir.lexically_normal());
+
+    void(_putenv(fmt::format("__GL_SHADER_DISK_CACHE_PATH={}", windows_path_string).c_str()));
     void(_putenv("__GL_SHADER_DISK_CACHE_SKIP_CLEANUP=1"));
 #endif
 }

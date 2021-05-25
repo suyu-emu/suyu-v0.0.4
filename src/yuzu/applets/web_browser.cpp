@@ -12,7 +12,7 @@
 #include <QWebEngineUrlScheme>
 #endif
 
-#include "common/file_util.h"
+#include "common/fs/path_util.h"
 #include "core/core.h"
 #include "core/frontend/input_interpreter.h"
 #include "input_common/keyboard.h"
@@ -322,21 +322,25 @@ void QtNXWebEngineView::LoadExtractedFonts() {
     QWebEngineScript nx_font_css;
     QWebEngineScript load_nx_font;
 
-    const QString fonts_dir = QString::fromStdString(Common::FS::SanitizePath(
-        fmt::format("{}/fonts", Common::FS::GetUserPath(Common::FS::UserPath::CacheDir))));
+    auto fonts_dir_str = Common::FS::PathToUTF8String(
+        Common::FS::GetYuzuPath(Common::FS::YuzuPath::CacheDir) / "fonts/");
+
+    std::replace(fonts_dir_str.begin(), fonts_dir_str.end(), '\\', '/');
+
+    const auto fonts_dir = QString::fromStdString(fonts_dir_str);
 
     nx_font_css.setName(QStringLiteral("nx_font_css.js"));
     load_nx_font.setName(QStringLiteral("load_nx_font.js"));
 
     nx_font_css.setSourceCode(
         QString::fromStdString(NX_FONT_CSS)
-            .arg(fonts_dir + QStringLiteral("/FontStandard.ttf"))
-            .arg(fonts_dir + QStringLiteral("/FontChineseSimplified.ttf"))
-            .arg(fonts_dir + QStringLiteral("/FontExtendedChineseSimplified.ttf"))
-            .arg(fonts_dir + QStringLiteral("/FontChineseTraditional.ttf"))
-            .arg(fonts_dir + QStringLiteral("/FontKorean.ttf"))
-            .arg(fonts_dir + QStringLiteral("/FontNintendoExtended.ttf"))
-            .arg(fonts_dir + QStringLiteral("/FontNintendoExtended2.ttf")));
+            .arg(fonts_dir + QStringLiteral("FontStandard.ttf"))
+            .arg(fonts_dir + QStringLiteral("FontChineseSimplified.ttf"))
+            .arg(fonts_dir + QStringLiteral("FontExtendedChineseSimplified.ttf"))
+            .arg(fonts_dir + QStringLiteral("FontChineseTraditional.ttf"))
+            .arg(fonts_dir + QStringLiteral("FontKorean.ttf"))
+            .arg(fonts_dir + QStringLiteral("FontNintendoExtended.ttf"))
+            .arg(fonts_dir + QStringLiteral("FontNintendoExtended2.ttf")));
     load_nx_font.setSourceCode(QString::fromStdString(LOAD_NX_FONT));
 
     nx_font_css.setInjectionPoint(QWebEngineScript::DocumentReady);

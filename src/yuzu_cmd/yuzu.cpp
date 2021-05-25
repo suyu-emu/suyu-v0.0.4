@@ -10,9 +10,10 @@
 
 #include <fmt/ostream.h>
 
-#include "common/common_paths.h"
 #include "common/detached_tasks.h"
-#include "common/file_util.h"
+#include "common/fs/fs.h"
+#include "common/fs/fs_paths.h"
+#include "common/fs/path_util.h"
 #include "common/logging/backend.h"
 #include "common/logging/filter.h"
 #include "common/logging/log.h"
@@ -82,9 +83,9 @@ static void InitializeLogging() {
 
     Log::AddBackend(std::make_unique<Log::ColorConsoleBackend>());
 
-    const std::string& log_dir = FS::GetUserPath(FS::UserPath::LogDir);
-    FS::CreateFullPath(log_dir);
-    Log::AddBackend(std::make_unique<Log::FileBackend>(log_dir + LOG_FILE));
+    const auto& log_dir = FS::GetYuzuPath(FS::YuzuPath::LogDir);
+    void(FS::CreateDir(log_dir));
+    Log::AddBackend(std::make_unique<Log::FileBackend>(log_dir / LOG_FILE));
 #ifdef _WIN32
     Log::AddBackend(std::make_unique<Log::DebuggerBackend>());
 #endif

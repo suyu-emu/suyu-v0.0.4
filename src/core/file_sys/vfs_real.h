@@ -61,14 +61,13 @@ private:
     RealVfsFile(RealVfsFilesystem& base, std::shared_ptr<Common::FS::IOFile> backing,
                 const std::string& path, Mode perms = Mode::Read);
 
-    bool Close();
+    void Close();
 
     RealVfsFilesystem& base;
     std::shared_ptr<Common::FS::IOFile> backing;
     std::string path;
     std::string parent_path;
     std::vector<std::string> path_components;
-    std::vector<std::string> parent_components;
     Mode perms;
 };
 
@@ -110,7 +109,6 @@ private:
     std::string path;
     std::string parent_path;
     std::vector<std::string> path_components;
-    std::vector<std::string> parent_components;
     Mode perms;
 };
 

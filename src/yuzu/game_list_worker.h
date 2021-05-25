@@ -70,7 +70,7 @@ private:
         PopulateGameList,
     };
 
-    void ScanFileSystem(ScanTarget target, const std::string& dir_path, unsigned int recursion,
+    void ScanFileSystem(ScanTarget target, const std::string& dir_path, bool deep_scan,
                         GameListDir* parent_dir);
 
     std::shared_ptr<FileSys::VfsFilesystem> vfs;

@@ -4,8 +4,8 @@
 
 #include <fmt/format.h>
 
-#include "common/common_paths.h"
-#include "common/file_util.h"
+#include "common/fs/fs.h"
+#include "common/fs/path_util.h"
 #include "yuzu/configuration/config.h"
 #include "yuzu/configuration/input_profiles.h"
 
@@ -14,47 +14,43 @@ namespace FS = Common::FS;
 namespace {
 
 bool ProfileExistsInFilesystem(std::string_view profile_name) {
-    return FS::Exists(fmt::format("{}input" DIR_SEP "{}.ini",
-                                  FS::GetUserPath(FS::UserPath::ConfigDir), profile_name));
+    return FS::Exists(FS::GetYuzuPath(FS::YuzuPath::ConfigDir) / "input" /
+                      fmt::format("{}.ini", profile_name));
 }
 
-bool IsINI(std::string_view filename) {
-    const std::size_t index = filename.rfind('.');
-
-    if (index == std::string::npos) {
-        return false;
-    }
-
-    return filename.substr(index) == ".ini";
+bool IsINI(const std::filesystem::path& filename) {
+    return filename.extension() == ".ini";
 }
 
-std::string GetNameWithoutExtension(const std::string& filename) {
-    const std::size_t index = filename.rfind('.');
-
-    if (index == std::string::npos) {
-        return filename;
-    }
-
-    return filename.substr(0, index);
+std::filesystem::path GetNameWithoutExtension(std::filesystem::path filename) {
+    return filename.replace_extension();
 }
 
 } // namespace
 
 InputProfiles::InputProfiles() {
-    const std::string input_profile_loc =
-        fmt::format("{}input", FS::GetUserPath(FS::UserPath::ConfigDir));
+    const auto input_profile_loc = FS::GetYuzuPath(FS::YuzuPath::ConfigDir) / "input";
 
-    FS::ForeachDirectoryEntry(
-        nullptr, input_profile_loc,
-        [this](u64* entries_out, const std::string& directory, const std::string& filename) {
-            if (IsINI(filename) && IsProfileNameValid(GetNameWithoutExtension(filename))) {
+    if (!FS::IsDir(input_profile_loc)) {
+        return;
+    }
+
+    FS::IterateDirEntries(
+        input_profile_loc,
+        [this](const std::filesystem::path& full_path) {
+            const auto filename = full_path.filename();
+            const auto name_without_ext =
+                Common::FS::PathToUTF8String(GetNameWithoutExtension(filename));
+
+            if (IsINI(filename) && IsProfileNameValid(name_without_ext)) {
                 map_profiles.insert_or_assign(
-                    GetNameWithoutExtension(filename),
-                    std::make_unique<Config>(GetNameWithoutExtension(filename),
-                                             Config::ConfigType::InputProfile));
+                    name_without_ext,
+                    std::make_unique<Config>(name_without_ext, Config::ConfigType::InputProfile));
             }
+
             return true;
-        });
+        },
+        FS::DirEntryFilter::File);
 }
 
 InputProfiles::~InputProfiles() = default;
@@ -96,7 +92,7 @@ bool InputProfiles::DeleteProfile(const std::string& profile_name) {
     }
 
     if (!ProfileExistsInFilesystem(profile_name) ||
-        FS::Delete(map_profiles[profile_name]->GetConfigFilePath())) {
+        FS::RemoveFile(map_profiles[profile_name]->GetConfigFilePath())) {
         map_profiles.erase(profile_name);
     }
 

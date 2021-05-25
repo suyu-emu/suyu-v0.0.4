@@ -7,7 +7,6 @@
 #include <vector>
 
 #include "common/common_funcs.h"
-#include "common/file_util.h"
 #include "common/hex_util.h"
 #include "common/logging/log.h"
 #include "common/lz4_compression.h"

@@ -5,6 +5,7 @@
 #ifdef HAS_NSIGHT_AFTERMATH
 
 #include <mutex>
+#include <span>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -12,9 +13,10 @@
 
 #include <fmt/format.h>
 
-#include "common/common_paths.h"
 #include "common/common_types.h"
-#include "common/file_util.h"
+#include "common/fs/file.h"
+#include "common/fs/fs.h"
+#include "common/fs/path_util.h"
 #include "common/logging/log.h"
 #include "common/scope_exit.h"
 #include "video_core/vulkan_common/nsight_aftermath_tracker.h"
@@ -46,9 +48,9 @@ NsightAftermathTracker::NsightAftermathTracker() {
         LOG_ERROR(Render_Vulkan, "Failed to load Nsight Aftermath function pointers");
         return;
     }
-    dump_dir = Common::FS::GetUserPath(Common::FS::UserPath::LogDir) + "gpucrash";
+    dump_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::LogDir) / "gpucrash";
 
-    void(Common::FS::DeleteDirRecursively(dump_dir));
+    void(Common::FS::RemoveDirRecursively(dump_dir));
     if (!Common::FS::CreateDir(dump_dir)) {
         LOG_ERROR(Render_Vulkan, "Failed to create Nsight Aftermath dump directory");
         return;
@@ -60,7 +62,8 @@ NsightAftermathTracker::NsightAftermathTracker() {
         LOG_ERROR(Render_Vulkan, "GFSDK_Aftermath_EnableGpuCrashDumps failed");
         return;
     }
-    LOG_INFO(Render_Vulkan, "Nsight Aftermath dump directory is \"{}\"", dump_dir);
+    LOG_INFO(Render_Vulkan, "Nsight Aftermath dump directory is \"{}\"",
+             Common::FS::PathToUTF8String(dump_dir));
     initialized = true;
 }
 
@@ -89,12 +92,15 @@ void NsightAftermathTracker::SaveShader(const std::vector<u32>& spirv) const {
         return;
     }
 
-    Common::FS::IOFile file(fmt::format("{}/source_{:016x}.spv", dump_dir, hash.hash), "wb");
+    const auto shader_file = dump_dir / fmt::format("source_{:016x}.spv", hash.hash);
+
+    Common::FS::IOFile file{shader_file, Common::FS::FileAccessMode::Write,
+                            Common::FS::FileType::BinaryFile};
     if (!file.IsOpen()) {
         LOG_ERROR(Render_Vulkan, "Failed to dump SPIR-V module with hash={:016x}", hash.hash);
         return;
     }
-    if (file.WriteArray(spirv.data(), spirv.size()) != spirv.size()) {
+    if (file.Write(spirv) != spirv.size()) {
         LOG_ERROR(Render_Vulkan, "Failed to write SPIR-V module with hash={:016x}", hash.hash);
         return;
     }
@@ -129,22 +135,24 @@ void NsightAftermathTracker::OnGpuCrashDumpCallback(const void* gpu_crash_dump,
         return;
     }
 
-    const std::string base_name = [this] {
+    std::filesystem::path base_name = [this] {
         const int id = dump_id++;
         if (id == 0) {
-            return fmt::format("{}/crash.nv-gpudmp", dump_dir);
+            return dump_dir / "crash.nv-gpudmp";
         } else {
-            return fmt::format("{}/crash_{}.nv-gpudmp", dump_dir, id);
+            return dump_dir / fmt::format("crash_{}.nv-gpudmp", id);
         }
     }();
 
     std::string_view dump_view(static_cast<const char*>(gpu_crash_dump), gpu_crash_dump_size);
-    if (Common::FS::WriteStringToFile(false, base_name, dump_view) != gpu_crash_dump_size) {
+    if (Common::FS::WriteStringToFile(base_name, Common::FS::FileType::BinaryFile, dump_view) !=
+        gpu_crash_dump_size) {
         LOG_ERROR(Render_Vulkan, "Failed to write dump file");
         return;
     }
     const std::string_view json_view(json.data(), json.size());
-    if (Common::FS::WriteStringToFile(true, base_name + ".json", json_view) != json.size()) {
+    if (Common::FS::WriteStringToFile(base_name.concat(".json"), Common::FS::FileType::TextFile,
+                                      json_view) != json.size()) {
         LOG_ERROR(Render_Vulkan, "Failed to write JSON");
         return;
     }
@@ -161,16 +169,17 @@ void NsightAftermathTracker::OnShaderDebugInfoCallback(const void* shader_debug_
         return;
     }
 
-    const std::string path =
-        fmt::format("{}/shader_{:016x}{:016x}.nvdbg", dump_dir, identifier.id[0], identifier.id[1]);
-    Common::FS::IOFile file(path, "wb");
+    const auto path =
+        dump_dir / fmt::format("shader_{:016x}{:016x}.nvdbg", identifier.id[0], identifier.id[1]);
+    Common::FS::IOFile file{path, Common::FS::FileAccessMode::Write,
+                            Common::FS::FileType::BinaryFile};
     if (!file.IsOpen()) {
-        LOG_ERROR(Render_Vulkan, "Failed to create file {}", path);
+        LOG_ERROR(Render_Vulkan, "Failed to create file {}", Common::FS::PathToUTF8String(path));
         return;
     }
-    if (file.WriteBytes(static_cast<const u8*>(shader_debug_info), shader_debug_info_size) !=
-        shader_debug_info_size) {
-        LOG_ERROR(Render_Vulkan, "Failed to write file {}", path);
+    if (file.WriteSpan(std::span(static_cast<const u8*>(shader_debug_info),
+                                 shader_debug_info_size)) != shader_debug_info_size) {
+        LOG_ERROR(Render_Vulkan, "Failed to write file {}", Common::FS::PathToUTF8String(path));
         return;
     }
 }

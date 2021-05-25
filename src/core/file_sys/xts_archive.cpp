@@ -11,7 +11,7 @@
 #include <mbedtls/md.h>
 #include <mbedtls/sha256.h>
 
-#include "common/file_util.h"
+#include "common/fs/path_util.h"
 #include "common/hex_util.h"
 #include "common/string_util.h"
 #include "core/crypto/aes_util.h"
