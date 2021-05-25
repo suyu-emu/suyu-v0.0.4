@@ -59,8 +59,7 @@ std::vector<u8> CompressDataLZ4HCMax(const u8* source, std::size_t source_size) 
     return CompressDataLZ4HC(source, source_size, LZ4HC_CLEVEL_MAX);
 }
 
-std::vector<u8> DecompressDataLZ4(const std::vector<u8>& compressed,
-                                  std::size_t uncompressed_size) {
+std::vector<u8> DecompressDataLZ4(std::span<const u8> compressed, std::size_t uncompressed_size) {
     std::vector<u8> uncompressed(uncompressed_size);
     const int size_check = LZ4_decompress_safe(reinterpret_cast<const char*>(compressed.data()),
                                                reinterpret_cast<char*>(uncompressed.data()),
