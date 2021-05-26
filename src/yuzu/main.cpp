@@ -2593,7 +2593,11 @@ void GMainWindow::OnConfigure() {
         configure_dialog.ApplyConfiguration();
         controller_dialog->refreshConfiguration();
     }
+
+    configure_dialog.ApplyConfiguration();
+    controller_dialog->refreshConfiguration();
     InitializeHotkeys();
+
     if (UISettings::values.theme != old_theme) {
         UpdateUITheme();
     }

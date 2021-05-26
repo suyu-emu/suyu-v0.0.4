@@ -4,11 +4,13 @@
 
 #include <QCheckBox>
 #include <QSpinBox>
+#include <QMessageBox>
 #include "common/settings.h"
 #include "core/core.h"
 #include "ui_configure_general.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_general.h"
+#include "yuzu/configuration/config.h"
 #include "yuzu/uisettings.h"
 
 ConfigureGeneral::ConfigureGeneral(QWidget* parent)
@@ -23,6 +25,9 @@ ConfigureGeneral::ConfigureGeneral(QWidget* parent)
         connect(ui->toggle_frame_limit, &QCheckBox::clicked, ui->frame_limit,
                 [this]() { ui->frame_limit->setEnabled(ui->toggle_frame_limit->isChecked()); });
     }
+
+    connect(ui->button_reset_defaults, &QPushButton::clicked, this,
+            &ConfigureGeneral::ResetDefaults);
 }
 
 ConfigureGeneral::~ConfigureGeneral() = default;
@@ -47,6 +52,15 @@ void ConfigureGeneral::SetConfiguration() {
         ui->frame_limit->setEnabled(Settings::values.use_frame_limit.GetValue() &&
                                     use_frame_limit != ConfigurationShared::CheckState::Global);
     }
+}
+
+void ConfigureGeneral::ResetDefaults() {
+    QMessageBox::StandardButton answer = QMessageBox::question(
+        this, tr("yuzu"), tr("Are you sure you want to <b>reset your settings</b>?"),
+        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+    if (answer == QMessageBox::No)
+        return;
+    UISettings::values.
 }
 
 void ConfigureGeneral::ApplyConfiguration() {

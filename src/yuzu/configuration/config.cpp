@@ -1632,6 +1632,12 @@ void Config::Save() {
     SaveValues();
 }
 
+void Config::ResetDefaults() {
+    FS::Delete(qt_config_loc);
+    FS::CreateFullPath(qt_config_loc);
+    Reload();
+}
+
 void Config::ReadControlPlayerValue(std::size_t player_index) {
     qt_config->beginGroup(QStringLiteral("Controls"));
     ReadPlayerValue(player_index);
