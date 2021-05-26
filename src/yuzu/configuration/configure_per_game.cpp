@@ -30,13 +30,9 @@
 
 ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id, std::string_view file_name)
     : QDialog(parent), ui(std::make_unique<Ui::ConfigurePerGame>()), title_id(title_id) {
-    if (title_id == 0) {
-        game_config = std::make_unique<Config>(Common::FS::GetFilename(file_name),
-                                               Config::ConfigType::PerGameConfig);
-    } else {
-        game_config = std::make_unique<Config>(fmt::format("{:016X}", title_id),
-                                               Config::ConfigType::PerGameConfig);
-    }
+    const auto config_file_name =
+        title_id == 0 ? Common::FS::GetFilename(file_name) : fmt::format("{:016X}", title_id);
+    game_config = std::make_unique<Config>(config_file_name, Config::ConfigType::PerGameConfig);
 
     Settings::SetConfiguringGlobal(false);
 

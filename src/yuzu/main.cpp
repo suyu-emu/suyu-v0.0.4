@@ -1334,13 +1334,10 @@ void GMainWindow::BootGame(const QString& filename, std::size_t program_index) {
 
     if (!(loader == nullptr || loader->ReadProgramId(title_id) != Loader::ResultStatus::Success)) {
         // Load per game settings
-        if (title_id == 0) {
-            Config per_game_config(Common::FS::GetFilename(filename.toStdString()),
-                                   Config::ConfigType::PerGameConfig);
-        } else {
-            Config per_game_config(fmt::format("{:016X}", title_id),
-                                   Config::ConfigType::PerGameConfig);
-        }
+        const auto config_file_name = title_id == 0
+                                          ? Common::FS::GetFilename(filename.toStdString())
+                                          : fmt::format("{:016X}", title_id);
+        Config per_game_config(config_file_name, Config::ConfigType::PerGameConfig);
     }
 
     ConfigureVibration::SetAllVibrationDevices();
@@ -1850,15 +1847,11 @@ void GMainWindow::RemoveTransferableShaderCache(u64 program_id) {
 }
 
 void GMainWindow::RemoveCustomConfiguration(u64 program_id, std::string_view game_path) {
-    std::string custom_config_file_path;
-    if (program_id == 0) {
-        custom_config_file_path = Common::FS::GetYuzuPath(Common::FS::YuzuPath::ConfigDir) /
-                                  "custom" /
-                                  fmt::format("{:s}.ini", Common::FS::GetFilename(game_path));
-    } else {
-        custom_config_file_path = Common::FS::GetYuzuPath(Common::FS::YuzuPath::ConfigDir) /
-                                  "custom" / fmt::format("{:016X}.ini", program_id);
-    }
+    const auto config_file_name = program_id == 0
+                                      ? fmt::format("{:s}.ini", Common::FS::GetFilename(game_path))
+                                      : fmt::format("{:016X}.ini", program_id);
+    const auto custom_config_file_path =
+        Common::FS::GetYuzuPath(Common::FS::YuzuPath::ConfigDir) / "custom" / config_file_name;
 
     if (!Common::FS::Exists(custom_config_file_path)) {
         QMessageBox::warning(this, tr("Error Removing Custom Configuration"),
