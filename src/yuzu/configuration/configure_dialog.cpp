@@ -16,10 +16,6 @@
 #include "yuzu/configuration/configure_input_player.h"
 #include "yuzu/hotkeys.h"
 
-static void CloseDialog(ConfigureDialog *dialog) {
-    dialog->close();
-}
-
 ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry,
                                  InputCommon::InputSubsystem* input_subsystem)
     : QDialog(parent), ui(new Ui::ConfigureDialog), registry(registry) {
@@ -31,7 +27,7 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry,
 
     ui->inputTab->Initialize(input_subsystem);
 
-    ui->generalTab->SetResetCallback(&CloseDialog, this);
+    ui->generalTab->SetResetCallback([&] { this->close(); });
 
     SetConfiguration();
     PopulateSelectionList();

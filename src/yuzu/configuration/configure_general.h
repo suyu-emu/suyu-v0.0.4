@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <QWidget>
 
@@ -26,7 +27,7 @@ public:
     explicit ConfigureGeneral(QWidget* parent = nullptr);
     ~ConfigureGeneral() override;
 
-    void SetResetCallback(void (*callback)(ConfigureDialog*), ConfigureDialog *param);
+    void SetResetCallback(std::function<void()> callback);
     void ResetDefaults();
     void ApplyConfiguration();
 
@@ -38,8 +39,7 @@ private:
 
     void SetupPerGameUI();
 
-    void (*ResetCallback)(ConfigureDialog*);
-    ConfigureDialog *reset_callback_param;
+    std::function<void()> reset_callback;
 
     std::unique_ptr<Ui::ConfigureGeneral> ui;
 

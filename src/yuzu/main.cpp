@@ -2611,17 +2611,18 @@ void GMainWindow::OnConfigure() {
             LOG_WARNING(Frontend, "Failed to remove game metadata cache files");
         }
 
-        // Explicitly save the game directories, since reinitializing config does not do so.
-        QVector<UISettings::GameDir> old_game_dirs = UISettings::values.game_dirs;
-        QVector<u64> old_favorited_ids = UISettings::values.favorited_ids;
+        // Explicitly save the game directories, since reinitializing config does not explicitly do
+        // so.
+        QVector<UISettings::GameDir> old_game_dirs = std::move(UISettings::values.game_dirs);
+        QVector<u64> old_favorited_ids = std::move(UISettings::values.favorited_ids);
 
         Settings::values.disabled_addons.clear();
 
         config = std::make_unique<Config>();
         UISettings::values.reset_to_defaults = false;
 
-        UISettings::values.game_dirs = old_game_dirs;
-        UISettings::values.favorited_ids = old_favorited_ids;
+        UISettings::values.game_dirs = std::move(old_game_dirs);
+        UISettings::values.favorited_ids = std::move(old_favorited_ids);
 
         InitializeRecentFileMenuActions();
 

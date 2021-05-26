@@ -2,6 +2,8 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <functional>
+#include <utility>
 #include <QCheckBox>
 #include <QMessageBox>
 #include <QSpinBox>
@@ -57,10 +59,8 @@ void ConfigureGeneral::SetConfiguration() {
 }
 
 // Called to set the callback when resetting settings to defaults
-void ConfigureGeneral::SetResetCallback(void (*callback)(ConfigureDialog*),
-                                        ConfigureDialog* param) {
-    ResetCallback = callback;
-    reset_callback_param = param;
+void ConfigureGeneral::SetResetCallback(std::function<void()> callback) {
+    reset_callback = std::move(callback);
 }
 
 void ConfigureGeneral::ResetDefaults() {
@@ -69,11 +69,12 @@ void ConfigureGeneral::ResetDefaults() {
         tr("This reset all settings and remove all per-game configurations. This will not delete "
            "game directories, profiles, or input profiles. Proceed?"),
         QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-    if (answer == QMessageBox::No)
+    if (answer == QMessageBox::No) {
         return;
+    }
     UISettings::values.reset_to_defaults = true;
     UISettings::values.is_game_list_reload_pending.exchange(true);
-    (*ResetCallback)(reset_callback_param);
+    reset_callback();
 }
 
 void ConfigureGeneral::ApplyConfiguration() {
