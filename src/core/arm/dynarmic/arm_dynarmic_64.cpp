@@ -296,10 +296,6 @@ void ARM_Dynarmic_64::SetTPIDR_EL0(u64 value) {
     cb->tpidr_el0 = value;
 }
 
-void ARM_Dynarmic_64::ChangeProcessorID(std::size_t new_core_id) {
-    jit->ChangeProcessorID(new_core_id);
-}
-
 void ARM_Dynarmic_64::SaveContext(ThreadContext64& ctx) {
     ctx.cpu_registers = jit->GetRegisters();
     ctx.sp = jit->GetSP();
