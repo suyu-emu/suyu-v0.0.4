@@ -28,7 +28,6 @@ public:
 
     void Reload();
     void Save();
-    void ResetDefaults();
 
     void ReadControlPlayerValue(std::size_t player_index);
     void SaveControlPlayerValue(std::size_t player_index);

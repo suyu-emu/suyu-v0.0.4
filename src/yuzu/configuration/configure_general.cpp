@@ -3,14 +3,14 @@
 // Refer to the license.txt file included.
 
 #include <QCheckBox>
-#include <QSpinBox>
 #include <QMessageBox>
+#include <QSpinBox>
 #include "common/settings.h"
 #include "core/core.h"
 #include "ui_configure_general.h"
+#include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_general.h"
-#include "yuzu/configuration/config.h"
 #include "yuzu/uisettings.h"
 
 ConfigureGeneral::ConfigureGeneral(QWidget* parent)
@@ -46,6 +46,8 @@ void ConfigureGeneral::SetConfiguration() {
     ui->toggle_frame_limit->setChecked(Settings::values.use_frame_limit.GetValue());
     ui->frame_limit->setValue(Settings::values.frame_limit.GetValue());
 
+    ui->button_reset_defaults->setEnabled(runtime_lock);
+
     if (Settings::IsConfiguringGlobal()) {
         ui->frame_limit->setEnabled(Settings::values.use_frame_limit.GetValue());
     } else {
@@ -54,13 +56,24 @@ void ConfigureGeneral::SetConfiguration() {
     }
 }
 
+// Called to set the callback when resetting settings to defaults
+void ConfigureGeneral::SetResetCallback(void (*callback)(ConfigureDialog*),
+                                        ConfigureDialog* param) {
+    ResetCallback = callback;
+    reset_callback_param = param;
+}
+
 void ConfigureGeneral::ResetDefaults() {
     QMessageBox::StandardButton answer = QMessageBox::question(
-        this, tr("yuzu"), tr("Are you sure you want to <b>reset your settings</b>?"),
+        this, tr("yuzu"),
+        tr("This reset all settings and remove all per-game configurations. This will not delete "
+           "game directories, profiles, or input profiles. Proceed?"),
         QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
     if (answer == QMessageBox::No)
         return;
-    UISettings::values.
+    UISettings::values.reset_to_defaults = true;
+    UISettings::values.is_game_list_reload_pending.exchange(true);
+    (*ResetCallback)(reset_callback_param);
 }
 
 void ConfigureGeneral::ApplyConfiguration() {
@@ -118,6 +131,8 @@ void ConfigureGeneral::SetupPerGameUI() {
     ui->toggle_user_on_boot->setVisible(false);
     ui->toggle_background_pause->setVisible(false);
     ui->toggle_hide_mouse->setVisible(false);
+
+    ui->button_reset_defaults->setVisible(false);
 
     ConfigurationShared::SetColoredTristate(ui->toggle_frame_limit,
                                             Settings::values.use_frame_limit, use_frame_limit);
