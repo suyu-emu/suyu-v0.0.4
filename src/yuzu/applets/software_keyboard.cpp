@@ -720,21 +720,9 @@ void QtSoftwareKeyboardDialog::SetTextDrawType() {
                     ui->line_edit_osk->setFocus();
                 });
 
-        connect(ui->line_edit_osk, &QLineEdit::returnPressed, [this] {
-            switch (bottom_osk_index) {
-            case BottomOSKIndex::LowerCase:
-                ui->button_ok->click();
-                break;
-            case BottomOSKIndex::UpperCase:
-                ui->button_ok_shift->click();
-                break;
-            case BottomOSKIndex::NumberPad:
-                ui->button_ok_num->click();
-                break;
-            default:
-                break;
-            }
-        });
+        connect(
+            ui->line_edit_osk, &QLineEdit::returnPressed, this,
+            [this] { TranslateButtonPress(HIDButton::Plus); }, Qt::QueuedConnection);
 
         ui->line_edit_osk->setPlaceholderText(
             QString::fromStdU16String(initialize_parameters.guide_text));
