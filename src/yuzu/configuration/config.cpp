@@ -16,7 +16,7 @@
 
 namespace FS = Common::FS;
 
-Config::Config(const std::string& config_name, ConfigType config_type) : type(config_type) {
+Config::Config(std::string_view config_name, ConfigType config_type) : type(config_type) {
     global = config_type == ConfigType::GlobalConfig;
 
     Initialize(config_name);
@@ -242,7 +242,7 @@ const std::array<UISettings::Shortcut, 17> Config::default_hotkeys{{
 }};
 // clang-format on
 
-void Config::Initialize(const std::string& config_name) {
+void Config::Initialize(std::string_view config_name) {
     const auto fs_config_loc = FS::GetYuzuPath(FS::YuzuPath::ConfigDir);
     const auto config_file = fmt::format("{}.ini", config_name);
 

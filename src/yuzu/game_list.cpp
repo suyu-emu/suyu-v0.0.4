@@ -561,11 +561,11 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::stri
     connect(remove_dlc, &QAction::triggered, [this, program_id]() {
         emit RemoveInstalledEntryRequested(program_id, InstalledEntryType::AddOnContent);
     });
-    connect(remove_shader_cache, &QAction::triggered, [this, program_id]() {
-        emit RemoveFileRequested(program_id, GameListRemoveTarget::ShaderCache);
+    connect(remove_shader_cache, &QAction::triggered, [this, program_id, path]() {
+        emit RemoveFileRequested(program_id, GameListRemoveTarget::ShaderCache, path);
     });
-    connect(remove_custom_config, &QAction::triggered, [this, program_id]() {
-        emit RemoveFileRequested(program_id, GameListRemoveTarget::CustomConfiguration);
+    connect(remove_custom_config, &QAction::triggered, [this, program_id, path]() {
+        emit RemoveFileRequested(program_id, GameListRemoveTarget::CustomConfiguration, path);
     });
     connect(dump_romfs, &QAction::triggered,
             [this, program_id, path]() { emit DumpRomFSRequested(program_id, path); });

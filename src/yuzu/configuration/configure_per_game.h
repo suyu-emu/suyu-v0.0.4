@@ -5,6 +5,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include <vector>
 
 #include <QDialog>
@@ -27,7 +28,7 @@ class ConfigurePerGame : public QDialog {
     Q_OBJECT
 
 public:
-    explicit ConfigurePerGame(QWidget* parent, u64 title_id);
+    explicit ConfigurePerGame(QWidget* parent, u64 title_id, std::string_view file_name);
     ~ConfigurePerGame() override;
 
     /// Save all button configurations to settings file

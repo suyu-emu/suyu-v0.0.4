@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <string>
 #include <utility>
 
 #include <QCheckBox>
@@ -14,6 +15,7 @@
 #include <QTimer>
 #include <QTreeView>
 
+#include "common/fs/path_util.h"
 #include "core/core.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/patch_manager.h"
@@ -26,10 +28,15 @@
 #include "yuzu/uisettings.h"
 #include "yuzu/util/util.h"
 
-ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id)
+ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id, std::string_view file_name)
     : QDialog(parent), ui(std::make_unique<Ui::ConfigurePerGame>()), title_id(title_id) {
-    game_config = std::make_unique<Config>(fmt::format("{:016X}", title_id),
-                                           Config::ConfigType::PerGameConfig);
+    if (title_id == 0) {
+        game_config = std::make_unique<Config>(Common::FS::GetFilename(file_name),
+                                               Config::ConfigType::PerGameConfig);
+    } else {
+        game_config = std::make_unique<Config>(fmt::format("{:016X}", title_id),
+                                               Config::ConfigType::PerGameConfig);
+    }
 
     Settings::SetConfiguringGlobal(false);
 
