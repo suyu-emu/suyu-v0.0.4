@@ -255,10 +255,6 @@ void ARM_Dynarmic_32::SetTPIDR_EL0(u64 value) {
     cp15->uprw = static_cast<u32>(value);
 }
 
-void ARM_Dynarmic_32::ChangeProcessorID(std::size_t new_core_id) {
-    jit->ChangeProcessorID(new_core_id);
-}
-
 void ARM_Dynarmic_32::SaveContext(ThreadContext32& ctx) {
     Dynarmic::A32::Context context;
     jit->SaveContext(context);
