@@ -7,7 +7,7 @@
 #include <memory>
 #include <unordered_map>
 
-#include <dynarmic/exclusive_monitor.h>
+#include <dynarmic/interface/exclusive_monitor.h>
 
 #include "common/common_types.h"
 #include "core/arm/dynarmic/arm_dynarmic_32.h"

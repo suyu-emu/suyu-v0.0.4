@@ -7,7 +7,7 @@
 #include <memory>
 #include <unordered_map>
 
-#include <dynarmic/A64/a64.h>
+#include <dynarmic/interface/A64/a64.h>
 #include "common/common_types.h"
 #include "common/hash.h"
 #include "core/arm/arm_interface.h"

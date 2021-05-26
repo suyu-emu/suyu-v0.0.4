@@ -4,8 +4,8 @@
 
 #include <cinttypes>
 #include <memory>
-#include <dynarmic/A64/a64.h>
-#include <dynarmic/A64/config.h>
+#include <dynarmic/interface/A64/a64.h>
+#include <dynarmic/interface/A64/config.h>
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/page_table.h"
