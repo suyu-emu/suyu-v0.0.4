@@ -659,7 +659,6 @@ void KScheduler::Unload(KThread* thread) {
 
     if (thread) {
         if (thread->IsCallingSvc()) {
-            system.ArmInterface(core_id).ExceptionalExit();
             thread->ClearIsCallingSvc();
         }
         if (!thread->IsTerminationRequested()) {
