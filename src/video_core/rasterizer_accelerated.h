@@ -29,20 +29,20 @@ private:
     public:
         CacheEntry() = default;
 
-        std::atomic_uint8_t& Count(std::size_t page) {
-            return values[page & 7];
+        std::atomic_uint16_t& Count(std::size_t page) {
+            return values[page & 3];
         }
 
-        const std::atomic_uint8_t& Count(std::size_t page) const {
-            return values[page & 7];
+        const std::atomic_uint16_t& Count(std::size_t page) const {
+            return values[page & 3];
         }
 
     private:
-        std::array<std::atomic_uint8_t, 8> values{};
+        std::array<std::atomic_uint16_t, 4> values{};
     };
     static_assert(sizeof(CacheEntry) == 8, "CacheEntry should be 8 bytes!");
 
-    std::array<CacheEntry, 0x800000> cached_pages;
+    std::array<CacheEntry, 0x1000000> cached_pages;
     Core::Memory::Memory& cpu_memory;
 };
 
