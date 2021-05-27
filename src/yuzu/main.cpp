@@ -2587,12 +2587,12 @@ void GMainWindow::OnConfigure() {
             &GMainWindow::OnLanguageChanged);
 
     const auto result = configure_dialog.exec();
-    if (result != QDialog::Accepted) {
+    if (result != QDialog::Accepted && !UISettings::values.configuration_applied) {
         return;
+    } else if (result == QDialog::Accepted) {
+        configure_dialog.ApplyConfiguration();
+        controller_dialog->refreshConfiguration();
     }
-
-    configure_dialog.ApplyConfiguration();
-    controller_dialog->refreshConfiguration();
     InitializeHotkeys();
     if (UISettings::values.theme != old_theme) {
         UpdateUITheme();
@@ -2606,6 +2606,8 @@ void GMainWindow::OnConfigure() {
     if (reload) {
         game_list->PopulateAsync(UISettings::values.game_dirs);
     }
+
+    UISettings::values.configuration_applied = false;
 
     config->Save();
 
@@ -2636,23 +2638,27 @@ void GMainWindow::OpenPerGameConfiguration(u64 title_id, const std::string& file
     ConfigurePerGame dialog(this, title_id);
     dialog.LoadFromFile(v_file);
     const auto result = dialog.exec();
-    if (result == QDialog::Accepted) {
-        dialog.ApplyConfiguration();
 
-        const auto reload = UISettings::values.is_game_list_reload_pending.exchange(false);
-        if (reload) {
-            game_list->PopulateAsync(UISettings::values.game_dirs);
-        }
-
-        // Do not cause the global config to write local settings into the config file
-        const bool is_powered_on = system.IsPoweredOn();
-        Settings::RestoreGlobalState(is_powered_on);
-
-        if (!is_powered_on) {
-            config->Save();
-        }
-    } else {
+    if (result != QDialog::Accepted && !UISettings::values.configuration_applied) {
         Settings::RestoreGlobalState(system.IsPoweredOn());
+        return;
+    } else if (result == QDialog::Accepted) {
+        dialog.ApplyConfiguration();
+    }
+
+    const auto reload = UISettings::values.is_game_list_reload_pending.exchange(false);
+    if (reload) {
+        game_list->PopulateAsync(UISettings::values.game_dirs);
+    }
+
+    // Do not cause the global config to write local settings into the config file
+    const bool is_powered_on = system.IsPoweredOn();
+    Settings::RestoreGlobalState(is_powered_on);
+
+    UISettings::values.configuration_applied = false;
+
+    if (!is_powered_on) {
+        config->Save();
     }
 }
 

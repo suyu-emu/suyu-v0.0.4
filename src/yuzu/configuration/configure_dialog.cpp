@@ -2,8 +2,11 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <QAbstractButton>
+#include <QDialogButtonBox>
 #include <QHash>
 #include <QListWidgetItem>
+#include <QPushButton>
 #include <QSignalBlocker>
 #include "common/settings.h"
 #include "core/core.h"
@@ -30,6 +33,12 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry,
     connect(ui->uiTab, &ConfigureUi::LanguageChanged, this, &ConfigureDialog::OnLanguageChanged);
     connect(ui->selectorList, &QListWidget::itemSelectionChanged, this,
             &ConfigureDialog::UpdateVisibleTabs);
+
+    if (Core::System::GetInstance().IsPoweredOn()) {
+        QPushButton* apply_button = ui->buttonBox->addButton(QDialogButtonBox::Apply);
+        connect(apply_button, &QAbstractButton::clicked, this,
+                &ConfigureDialog::HandleApplyButtonClicked);
+    }
 
     adjustSize();
     ui->selectorList->setCurrentRow(0);
@@ -78,6 +87,11 @@ void ConfigureDialog::RetranslateUI() {
 
     UpdateVisibleTabs();
     ui->tabWidget->setCurrentIndex(old_index);
+}
+
+void ConfigureDialog::HandleApplyButtonClicked() {
+    UISettings::values.configuration_applied = true;
+    ApplyConfiguration();
 }
 
 Q_DECLARE_METATYPE(QList<QWidget*>);

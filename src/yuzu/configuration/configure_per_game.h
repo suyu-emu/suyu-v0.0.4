@@ -39,6 +39,8 @@ private:
     void changeEvent(QEvent* event) override;
     void RetranslateUI();
 
+    void HandleApplyButtonClicked();
+
     void LoadConfiguration();
 
     std::unique_ptr<Ui::ConfigurePerGame> ui;
