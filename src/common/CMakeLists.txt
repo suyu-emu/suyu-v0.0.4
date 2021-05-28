@@ -154,6 +154,7 @@ add_library(common STATIC
     param_package.cpp
     param_package.h
     parent_of_member.h
+    point.h
     quaternion.h
     ring_buffer.h
     scm_rev.cpp
