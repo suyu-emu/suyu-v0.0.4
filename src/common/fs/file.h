@@ -142,7 +142,7 @@ public:
                     FileType type = FileType::BinaryFile,
                     FileShareFlag flag = FileShareFlag::ShareReadOnly);
 
-    virtual ~IOFile();
+    ~IOFile();
 
     IOFile(IOFile&& other) noexcept;
     IOFile& operator=(IOFile&& other) noexcept;
