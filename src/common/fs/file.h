@@ -117,7 +117,7 @@ template <typename Path>
 }
 #endif
 
-class IOFile final : NonCopyable {
+class IOFile final {
 public:
     IOFile();
 
@@ -142,7 +142,10 @@ public:
                     FileType type = FileType::BinaryFile,
                     FileShareFlag flag = FileShareFlag::ShareReadOnly);
 
-    virtual ~IOFile();
+    ~IOFile();
+
+    IOFile(const IOFile&) = delete;
+    IOFile& operator=(const IOFile&) = delete;
 
     IOFile(IOFile&& other) noexcept;
     IOFile& operator=(IOFile&& other) noexcept;
@@ -441,8 +444,8 @@ public:
 
 private:
     std::filesystem::path file_path;
-    FileAccessMode file_access_mode;
-    FileType file_type;
+    FileAccessMode file_access_mode{};
+    FileType file_type{};
 
     std::FILE* file = nullptr;
 };
