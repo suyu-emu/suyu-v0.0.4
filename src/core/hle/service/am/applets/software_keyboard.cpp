@@ -273,8 +273,13 @@ void SoftwareKeyboard::ProcessTextCheck() {
 
     std::memcpy(&swkbd_text_check, text_check_data.data(), sizeof(SwkbdTextCheck));
 
-    std::u16string text_check_message = Common::UTF16StringFromFixedZeroTerminatedBuffer(
-        swkbd_text_check.text_check_message.data(), swkbd_text_check.text_check_message.size());
+    std::u16string text_check_message =
+        swkbd_text_check.text_check_result == SwkbdTextCheckResult::Failure ||
+                swkbd_text_check.text_check_result == SwkbdTextCheckResult::Confirm
+            ? Common::UTF16StringFromFixedZeroTerminatedBuffer(
+                  swkbd_text_check.text_check_message.data(),
+                  swkbd_text_check.text_check_message.size())
+            : u"";
 
     LOG_INFO(Service_AM, "\nTextCheckResult: {}\nTextCheckMessage: {}",
              GetTextCheckResultName(swkbd_text_check.text_check_result),
