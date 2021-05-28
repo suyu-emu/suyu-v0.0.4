@@ -74,8 +74,11 @@ void Controller_Touchscreen::OnUpdate(const Core::Timing::CoreTiming& core_timin
     for (std::size_t id = 0; id < MAX_FINGERS; ++id) {
         auto& touch_entry = cur_entry.states[id];
         if (id < active_fingers_count) {
-            touch_entry.x = static_cast<u16>(active_fingers[id].x * Layout::ScreenUndocked::Width);
-            touch_entry.y = static_cast<u16>(active_fingers[id].y * Layout::ScreenUndocked::Height);
+            const auto& [active_x, active_y] = active_fingers[id].position;
+            touch_entry.position = {
+                .x = static_cast<u16>(active_x * Layout::ScreenUndocked::Width),
+                .y = static_cast<u16>(active_y * Layout::ScreenUndocked::Height),
+            };
             touch_entry.diameter_x = Settings::values.touchscreen.diameter_x;
             touch_entry.diameter_y = Settings::values.touchscreen.diameter_y;
             touch_entry.rotation_angle = Settings::values.touchscreen.rotation_angle;
@@ -86,8 +89,7 @@ void Controller_Touchscreen::OnUpdate(const Core::Timing::CoreTiming& core_timin
         } else {
             // Clear touch entry
             touch_entry.attribute.raw = 0;
-            touch_entry.x = 0;
-            touch_entry.y = 0;
+            touch_entry.position = {};
             touch_entry.diameter_x = 0;
             touch_entry.diameter_y = 0;
             touch_entry.rotation_angle = 0;
@@ -140,8 +142,7 @@ std::size_t Controller_Touchscreen::UpdateTouchInputEvent(
             fingers[finger_id].id = static_cast<u32_le>(finger_id);
             attribute.start_touch.Assign(1);
         }
-        fingers[finger_id].x = x;
-        fingers[finger_id].y = y;
+        fingers[finger_id].position = {x, y};
         fingers[finger_id].attribute = attribute;
         return finger_id;
     }
