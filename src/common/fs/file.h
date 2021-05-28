@@ -117,7 +117,7 @@ template <typename Path>
 }
 #endif
 
-class IOFile final : NonCopyable {
+class IOFile final {
 public:
     IOFile();
 
@@ -143,6 +143,9 @@ public:
                     FileShareFlag flag = FileShareFlag::ShareReadOnly);
 
     ~IOFile();
+
+    IOFile(const IOFile&) = delete;
+    IOFile& operator=(const IOFile&) = delete;
 
     IOFile(IOFile&& other) noexcept;
     IOFile& operator=(IOFile&& other) noexcept;
