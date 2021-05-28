@@ -441,8 +441,8 @@ public:
 
 private:
     std::filesystem::path file_path;
-    FileAccessMode file_access_mode;
-    FileType file_type;
+    FileAccessMode file_access_mode{};
+    FileType file_type{};
 
     std::FILE* file = nullptr;
 };
