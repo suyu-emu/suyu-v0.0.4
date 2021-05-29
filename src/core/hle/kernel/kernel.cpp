@@ -620,7 +620,8 @@ struct KernelCore::Impl {
 
     void InitializePageSlab() {
         // Allocate slab heaps
-        user_slab_heap_pages = std::make_unique<KSlabHeap<Page>>();
+        user_slab_heap_pages =
+            std::make_unique<KSlabHeap<Page>>(KSlabHeap<Page>::AllocationType::Guest);
 
         // TODO(ameerj): This should be derived, not hardcoded within the kernel
         constexpr u64 user_slab_heap_size{0x3de000};
