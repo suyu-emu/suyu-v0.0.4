@@ -596,7 +596,7 @@ void BufferCache<P>::PopAsyncFlushes() {
             runtime.CopyBuffer(download_staging.buffer, slot_buffers[buffer_id], copies);
         }
         runtime.Finish();
-        for (const auto [copy, buffer_id] : downloads) {
+        for (const auto& [copy, buffer_id] : downloads) {
             const Buffer& buffer = slot_buffers[buffer_id];
             const VAddr cpu_addr = buffer.CpuAddr() + copy.src_offset;
             // Undo the modified offset
@@ -606,7 +606,7 @@ void BufferCache<P>::PopAsyncFlushes() {
         }
     } else {
         const std::span<u8> immediate_buffer = ImmediateBuffer(largest_copy);
-        for (const auto [copy, buffer_id] : downloads) {
+        for (const auto& [copy, buffer_id] : downloads) {
             Buffer& buffer = slot_buffers[buffer_id];
             buffer.ImmediateDownload(copy.src_offset, immediate_buffer.subspan(0, copy.size));
             const VAddr cpu_addr = buffer.CpuAddr() + copy.src_offset;

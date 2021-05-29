@@ -258,7 +258,7 @@ struct KernelCore::Impl {
             KAutoObject::Create(thread.get());
             ASSERT(KThread::InitializeDummyThread(thread.get()).IsSuccess());
             thread->SetName(fmt::format("DummyThread:{}", GetHostThreadId()));
-            return std::move(thread);
+            return thread;
         };
 
         thread_local auto thread = make_thread();
