@@ -20,23 +20,21 @@ class KEvent final : public KAutoObjectWithSlabHeapAndContainer<KEvent, KAutoObj
 
 public:
     explicit KEvent(KernelCore& kernel_);
-    virtual ~KEvent();
+    ~KEvent() override;
 
     void Initialize(std::string&& name);
 
-    virtual void Finalize() override;
+    void Finalize() override;
 
-    virtual bool IsInitialized() const override {
+    bool IsInitialized() const override {
         return initialized;
     }
 
-    virtual uintptr_t GetPostDestroyArgument() const override {
+    uintptr_t GetPostDestroyArgument() const override {
         return reinterpret_cast<uintptr_t>(owner);
     }
 
-    static void PostDestroy(uintptr_t arg);
-
-    virtual KProcess* GetOwner() const override {
+    KProcess* GetOwner() const override {
         return owner;
     }
 
@@ -47,6 +45,8 @@ public:
     KWritableEvent& GetWritableEvent() {
         return writable_event;
     }
+
+    static void PostDestroy(uintptr_t arg);
 
 private:
     KReadableEvent readable_event;

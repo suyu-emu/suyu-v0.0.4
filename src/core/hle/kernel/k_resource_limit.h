@@ -37,10 +37,10 @@ class KResourceLimit final
 
 public:
     explicit KResourceLimit(KernelCore& kernel_);
-    virtual ~KResourceLimit();
+    ~KResourceLimit() override;
 
     void Initialize(const Core::Timing::CoreTiming* core_timing_);
-    virtual void Finalize() override;
+    void Finalize() override;
 
     s64 GetLimitValue(LimitableResource which) const;
     s64 GetCurrentValue(LimitableResource which) const;

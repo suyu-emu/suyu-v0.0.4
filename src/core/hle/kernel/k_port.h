@@ -22,7 +22,7 @@ class KPort final : public KAutoObjectWithSlabHeapAndContainer<KPort, KAutoObjec
 
 public:
     explicit KPort(KernelCore& kernel_);
-    virtual ~KPort();
+    ~KPort() override;
 
     static void PostDestroy([[maybe_unused]] uintptr_t arg) {}
 
@@ -59,7 +59,6 @@ private:
         ServerClosed = 3,
     };
 
-private:
     KServerPort server;
     KClientPort client;
     State state{State::Invalid};

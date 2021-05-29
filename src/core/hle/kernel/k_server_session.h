@@ -42,9 +42,9 @@ class KServerSession final : public KSynchronizationObject,
 
 public:
     explicit KServerSession(KernelCore& kernel_);
-    virtual ~KServerSession() override;
+    ~KServerSession() override;
 
-    virtual void Destroy() override;
+    void Destroy() override;
 
     void Initialize(KSession* parent_, std::string&& name_);
 
@@ -56,7 +56,7 @@ public:
         return parent;
     }
 
-    virtual bool IsSignaled() const override;
+    bool IsSignaled() const override;
 
     void OnClientClosed();
 

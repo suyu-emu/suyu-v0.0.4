@@ -25,12 +25,9 @@ class SessionRequestHandler;
 class KServerPort final : public KSynchronizationObject {
     KERNEL_AUTOOBJECT_TRAITS(KServerPort, KSynchronizationObject);
 
-private:
-    using SessionList = boost::intrusive::list<KServerSession>;
-
 public:
     explicit KServerPort(KernelCore& kernel_);
-    virtual ~KServerPort() override;
+    ~KServerPort() override;
 
     void Initialize(KPort* parent_, std::string&& name_);
 
@@ -63,13 +60,14 @@ public:
     bool IsLight() const;
 
     // Overridden virtual functions.
-    virtual void Destroy() override;
-    virtual bool IsSignaled() const override;
+    void Destroy() override;
+    bool IsSignaled() const override;
 
 private:
+    using SessionList = boost::intrusive::list<KServerSession>;
+
     void CleanupSessions();
 
-private:
     SessionList session_list;
     SessionRequestHandlerPtr session_handler;
     KPort* parent{};

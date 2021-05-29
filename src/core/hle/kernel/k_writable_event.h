@@ -21,7 +21,7 @@ public:
     explicit KWritableEvent(KernelCore& kernel_);
     ~KWritableEvent() override;
 
-    virtual void Destroy() override;
+    void Destroy() override;
 
     static void PostDestroy([[maybe_unused]] uintptr_t arg) {}
 

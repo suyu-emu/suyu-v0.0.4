@@ -31,8 +31,8 @@ public:
         return parent;
     }
 
-    virtual bool IsSignaled() const override;
-    virtual void Destroy() override;
+    bool IsSignaled() const override;
+    void Destroy() override;
 
     ResultCode Signal();
     ResultCode Clear();

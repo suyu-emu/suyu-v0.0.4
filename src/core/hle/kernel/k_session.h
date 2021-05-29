@@ -18,17 +18,17 @@ class KSession final : public KAutoObjectWithSlabHeapAndContainer<KSession, KAut
 
 public:
     explicit KSession(KernelCore& kernel_);
-    virtual ~KSession() override;
+    ~KSession() override;
 
     void Initialize(KClientPort* port_, const std::string& name_);
 
-    virtual void Finalize() override;
+    void Finalize() override;
 
-    virtual bool IsInitialized() const override {
+    bool IsInitialized() const override {
         return initialized;
     }
 
-    virtual uintptr_t GetPostDestroyArgument() const override {
+    uintptr_t GetPostDestroyArgument() const override {
         return reinterpret_cast<uintptr_t>(process);
     }
 
@@ -78,7 +78,6 @@ private:
         ServerClosed = 3,
     };
 
-private:
     void SetState(State state) {
         atomic_state = static_cast<u8>(state);
     }
@@ -87,7 +86,6 @@ private:
         return static_cast<State>(atomic_state.load(std::memory_order_relaxed));
     }
 
-private:
     KServerSession server;
     KClientSession client;
     std::atomic<std::underlying_type_t<State>> atomic_state{

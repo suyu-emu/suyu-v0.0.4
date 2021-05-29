@@ -29,7 +29,7 @@ public:
                                          KSynchronizationObject** objects, const s32 num_objects,
                                          s64 timeout);
 
-    virtual void Finalize() override;
+    void Finalize() override;
 
     [[nodiscard]] virtual bool IsSignaled() const = 0;
 
@@ -37,7 +37,7 @@ public:
 
 protected:
     explicit KSynchronizationObject(KernelCore& kernel);
-    virtual ~KSynchronizationObject();
+    ~KSynchronizationObject() override;
 
     virtual void OnFinalizeSynchronizationObject() {}
 
