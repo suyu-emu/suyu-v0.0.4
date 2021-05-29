@@ -98,6 +98,10 @@ struct PageTable {
      */
     void Resize(size_t address_space_width_in_bits, size_t page_size_in_bits);
 
+    size_t GetAddressSpaceBits() const {
+        return current_address_space_width_in_bits;
+    }
+
     /**
      * Vector of memory pointers backing each page. An entry can only be non-null if the
      * corresponding attribute element is of type `Memory`.
@@ -105,6 +109,8 @@ struct PageTable {
     VirtualBuffer<PageInfo> pointers;
 
     VirtualBuffer<u64> backing_addr;
+
+    size_t current_address_space_width_in_bits;
 };
 
 } // namespace Common
