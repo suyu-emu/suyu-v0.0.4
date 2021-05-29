@@ -42,7 +42,6 @@ public:
     u32 GetPSTATE() const override;
     void SetPSTATE(u32 pstate) override;
     void Run() override;
-    void ExceptionalExit() override;
     void Step() override;
     VAddr GetTlsAddress() const override;
     void SetTlsAddress(VAddr address) override;
@@ -82,6 +81,12 @@ private:
     std::size_t core_index;
     DynarmicExclusiveMonitor& exclusive_monitor;
     std::shared_ptr<Dynarmic::A32::Jit> jit;
+
+    // SVC callback
+    u32 svc_swi{};
+    bool svc_called{};
+
+    bool shutdown{};
 };
 
 } // namespace Core

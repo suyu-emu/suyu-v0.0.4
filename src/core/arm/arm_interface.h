@@ -65,9 +65,6 @@ public:
     /// Step CPU by one instruction
     virtual void Step() = 0;
 
-    /// Exits execution from a callback, the callback must rewind the stack
-    virtual void ExceptionalExit() = 0;
-
     /// Clear all instruction cache
     virtual void ClearInstructionCache() = 0;
 

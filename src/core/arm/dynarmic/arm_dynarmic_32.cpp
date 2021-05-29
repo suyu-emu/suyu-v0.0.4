@@ -78,7 +78,9 @@ public:
     }
 
     void CallSVC(u32 swi) override {
-        Kernel::Svc::Call(parent.system, swi);
+        parent.svc_called = true;
+        parent.svc_swi = swi;
+        parent.jit->HaltExecution();
     }
 
     void AddTicks(u64 ticks) override {
@@ -187,11 +189,17 @@ std::shared_ptr<Dynarmic::A32::Jit> ARM_Dynarmic_32::MakeJit(Common::PageTable* 
 }
 
 void ARM_Dynarmic_32::Run() {
-    jit->Run();
-}
-
-void ARM_Dynarmic_32::ExceptionalExit() {
-    jit->ExceptionalExit();
+    while (true) {
+        jit->Run();
+        if (!svc_called) {
+            break;
+        }
+        svc_called = false;
+        Kernel::Svc::Call(system, svc_swi);
+        if (shutdown) {
+            break;
+        }
+    }
 }
 
 void ARM_Dynarmic_32::Step() {
@@ -275,6 +283,7 @@ void ARM_Dynarmic_32::LoadContext(const ThreadContext32& ctx) {
 
 void ARM_Dynarmic_32::PrepareReschedule() {
     jit->HaltExecution();
+    shutdown = true;
 }
 
 void ARM_Dynarmic_32::ClearInstructionCache() {
