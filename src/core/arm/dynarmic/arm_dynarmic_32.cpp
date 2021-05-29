@@ -24,45 +24,46 @@ namespace Core {
 
 class DynarmicCallbacks32 : public Dynarmic::A32::UserCallbacks {
 public:
-    explicit DynarmicCallbacks32(ARM_Dynarmic_32& parent_) : parent{parent_} {}
+    explicit DynarmicCallbacks32(ARM_Dynarmic_32& parent_)
+        : parent{parent_}, memory(parent.system.Memory()) {}
 
     u8 MemoryRead8(u32 vaddr) override {
-        return parent.system.Memory().Read8(vaddr);
+        return memory.Read8(vaddr);
     }
     u16 MemoryRead16(u32 vaddr) override {
-        return parent.system.Memory().Read16(vaddr);
+        return memory.Read16(vaddr);
     }
     u32 MemoryRead32(u32 vaddr) override {
-        return parent.system.Memory().Read32(vaddr);
+        return memory.Read32(vaddr);
     }
     u64 MemoryRead64(u32 vaddr) override {
-        return parent.system.Memory().Read64(vaddr);
+        return memory.Read64(vaddr);
     }
 
     void MemoryWrite8(u32 vaddr, u8 value) override {
-        parent.system.Memory().Write8(vaddr, value);
+        memory.Write8(vaddr, value);
     }
     void MemoryWrite16(u32 vaddr, u16 value) override {
-        parent.system.Memory().Write16(vaddr, value);
+        memory.Write16(vaddr, value);
     }
     void MemoryWrite32(u32 vaddr, u32 value) override {
-        parent.system.Memory().Write32(vaddr, value);
+        memory.Write32(vaddr, value);
     }
     void MemoryWrite64(u32 vaddr, u64 value) override {
-        parent.system.Memory().Write64(vaddr, value);
+        memory.Write64(vaddr, value);
     }
 
     bool MemoryWriteExclusive8(u32 vaddr, u8 value, u8 expected) override {
-        return parent.system.Memory().WriteExclusive8(vaddr, value, expected);
+        return memory.WriteExclusive8(vaddr, value, expected);
     }
     bool MemoryWriteExclusive16(u32 vaddr, u16 value, u16 expected) override {
-        return parent.system.Memory().WriteExclusive16(vaddr, value, expected);
+        return memory.WriteExclusive16(vaddr, value, expected);
     }
     bool MemoryWriteExclusive32(u32 vaddr, u32 value, u32 expected) override {
-        return parent.system.Memory().WriteExclusive32(vaddr, value, expected);
+        return memory.WriteExclusive32(vaddr, value, expected);
     }
     bool MemoryWriteExclusive64(u32 vaddr, u64 value, u64 expected) override {
-        return parent.system.Memory().WriteExclusive64(vaddr, value, expected);
+        return memory.WriteExclusive64(vaddr, value, expected);
     }
 
     void InterpreterFallback(u32 pc, std::size_t num_instructions) override {
@@ -112,6 +113,7 @@ public:
     }
 
     ARM_Dynarmic_32& parent;
+    Core::Memory::Memory& memory;
     std::size_t num_interpreted_instructions{};
     static constexpr u64 minimum_run_cycles = 1000U;
 };
