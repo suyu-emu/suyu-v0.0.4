@@ -168,13 +168,13 @@ ResultCode KThread::Initialize(KThreadFunction func, uintptr_t arg, VAddr user_s
     std::memset(static_cast<void*>(std::addressof(GetStackParameters())), 0,
                 sizeof(StackParameters));
 
-    // Setup the TLS, if needed.
-    if (type == ThreadType::User) {
-        tls_address = owner->CreateTLSRegion();
-    }
-
     // Set parent, if relevant.
     if (owner != nullptr) {
+        // Setup the TLS, if needed.
+        if (type == ThreadType::User) {
+            tls_address = owner->CreateTLSRegion();
+        }
+
         parent = owner;
         parent->Open();
         parent->IncrementThreadCount();
