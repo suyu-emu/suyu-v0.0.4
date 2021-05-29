@@ -104,7 +104,13 @@ void GPU::WaitFence(u32 syncpoint_id, u32 value) {
     }
     MICROPROFILE_SCOPE(GPU_wait);
     std::unique_lock lock{sync_mutex};
-    sync_cv.wait(lock, [=, this] { return syncpoints.at(syncpoint_id).load() >= value; });
+    sync_cv.wait(lock, [=, this] {
+        if (shutting_down.load(std::memory_order_relaxed)) {
+            // We're shutting down, ensure no threads continue to wait for the next syncpoint
+            return true;
+        }
+        return syncpoints.at(syncpoint_id).load() >= value;
+    });
 }
 
 void GPU::IncrementSyncPoint(const u32 syncpoint_id) {
@@ -523,6 +529,10 @@ void GPU::TriggerCpuInterrupt(const u32 syncpoint_id, const u32 value) const {
 }
 
 void GPU::ShutDown() {
+    // Signal that threads should no longer block on syncpoint fences
+    shutting_down.store(true, std::memory_order_relaxed);
+    sync_cv.notify_all();
+
     gpu_thread.ShutDown();
 }
 
