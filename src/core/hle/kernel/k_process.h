@@ -331,19 +331,19 @@ public:
 
     void LoadModule(CodeSet code_set, VAddr base_addr);
 
-    virtual bool IsInitialized() const override {
+    bool IsInitialized() const override {
         return is_initialized;
     }
 
     static void PostDestroy([[maybe_unused]] uintptr_t arg) {}
 
-    virtual void Finalize();
+    void Finalize() override;
 
-    virtual u64 GetId() const override final {
+    u64 GetId() const override {
         return GetProcessID();
     }
 
-    virtual bool IsSignaled() const override;
+    bool IsSignaled() const override;
 
     void PinCurrentThread();
     void UnpinCurrentThread();

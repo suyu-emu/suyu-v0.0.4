@@ -68,9 +68,9 @@ public:
         return device_memory->GetPointer(physical_address + offset);
     }
 
-    virtual void Finalize() override;
+    void Finalize() override;
 
-    virtual bool IsInitialized() const override {
+    bool IsInitialized() const override {
         return is_initialized;
     }
     static void PostDestroy([[maybe_unused]] uintptr_t arg) {}

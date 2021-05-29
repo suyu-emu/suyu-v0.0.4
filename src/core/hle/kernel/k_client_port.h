@@ -22,7 +22,7 @@ class KClientPort final : public KSynchronizationObject {
 
 public:
     explicit KClientPort(KernelCore& kernel_);
-    virtual ~KClientPort() override;
+    ~KClientPort() override;
 
     void Initialize(KPort* parent_, s32 max_sessions_, std::string&& name_);
     void OnSessionFinalized();
@@ -49,8 +49,8 @@ public:
     bool IsServerClosed() const;
 
     // Overridden virtual functions.
-    virtual void Destroy() override;
-    virtual bool IsSignaled() const override;
+    void Destroy() override;
+    bool IsSignaled() const override;
 
     ResultCode CreateSession(KClientSession** out);
 

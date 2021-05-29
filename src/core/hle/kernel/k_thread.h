@@ -358,21 +358,21 @@ public:
         return termination_requested || GetRawState() == ThreadState::Terminated;
     }
 
-    [[nodiscard]] virtual u64 GetId() const override final {
+    [[nodiscard]] u64 GetId() const override {
         return this->GetThreadID();
     }
 
-    [[nodiscard]] virtual bool IsInitialized() const override {
+    [[nodiscard]] bool IsInitialized() const override {
         return initialized;
     }
 
-    [[nodiscard]] virtual uintptr_t GetPostDestroyArgument() const override {
+    [[nodiscard]] uintptr_t GetPostDestroyArgument() const override {
         return reinterpret_cast<uintptr_t>(parent) | (resource_limit_release_hint ? 1 : 0);
     }
 
-    virtual void Finalize() override;
+    void Finalize() override;
 
-    [[nodiscard]] virtual bool IsSignaled() const override;
+    [[nodiscard]] bool IsSignaled() const override;
 
     static void PostDestroy(uintptr_t arg);
 

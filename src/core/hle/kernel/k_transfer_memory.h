@@ -27,23 +27,23 @@ class KTransferMemory final
 
 public:
     explicit KTransferMemory(KernelCore& kernel_);
-    virtual ~KTransferMemory() override;
+    ~KTransferMemory() override;
 
     ResultCode Initialize(VAddr address_, std::size_t size_, Svc::MemoryPermission owner_perm_);
 
-    virtual void Finalize() override;
+    void Finalize() override;
 
-    virtual bool IsInitialized() const override {
+    bool IsInitialized() const override {
         return is_initialized;
     }
 
-    virtual uintptr_t GetPostDestroyArgument() const override {
+    uintptr_t GetPostDestroyArgument() const override {
         return reinterpret_cast<uintptr_t>(owner);
     }
 
     static void PostDestroy(uintptr_t arg);
 
-    KProcess* GetOwner() const {
+    KProcess* GetOwner() const override {
         return owner;
     }
 
