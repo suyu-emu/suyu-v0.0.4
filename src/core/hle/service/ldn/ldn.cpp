@@ -215,10 +215,151 @@ public:
     }
 };
 
+class INetworkService final : public ServiceFramework<INetworkService> {
+public:
+    explicit INetworkService(Core::System& system_) : ServiceFramework{system_, "INetworkService"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "Initialize"},
+            {256, nullptr, "AttachNetworkInterfaceStateChangeEvent"},
+            {264, nullptr, "GetNetworkInterfaceLastError"},
+            {272, nullptr, "GetRole"},
+            {280, nullptr, "GetAdvertiseData"},
+            {288, nullptr, "GetGroupInfo"},
+            {296, nullptr, "GetGroupInfo2"},
+            {304, nullptr, "GetGroupOwner"},
+            {312, nullptr, "GetIpConfig"},
+            {320, nullptr, "GetLinkLevel"},
+            {512, nullptr, "Scan"},
+            {768, nullptr, "CreateGroup"},
+            {776, nullptr, "DestroyGroup"},
+            {784, nullptr, "SetAdvertiseData"},
+            {1536, nullptr, "SendToOtherGroup"},
+            {1544, nullptr, "RecvFromOtherGroup"},
+            {1552, nullptr, "AddAcceptableGroupId"},
+            {1560, nullptr, "ClearAcceptableGroupId"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+};
+
+class INetworkServiceMonitor final : public ServiceFramework<INetworkServiceMonitor> {
+public:
+    explicit INetworkServiceMonitor(Core::System& system_)
+        : ServiceFramework{system_, "INetworkServiceMonitor"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, &INetworkServiceMonitor::Initialize, "Initialize"},
+            {256, nullptr, "AttachNetworkInterfaceStateChangeEvent"},
+            {264, nullptr, "GetNetworkInterfaceLastError"},
+            {272, nullptr, "GetRole"},
+            {280, nullptr, "GetAdvertiseData"},
+            {281, nullptr, "GetAdvertiseData2"},
+            {288, nullptr, "GetGroupInfo"},
+            {296, nullptr, "GetGroupInfo2"},
+            {304, nullptr, "GetGroupOwner"},
+            {312, nullptr, "GetIpConfig"},
+            {320, nullptr, "GetLinkLevel"},
+            {328, nullptr, "AttachJoinEvent"},
+            {336, nullptr, "GetMembers"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+
+    void Initialize(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_LDN, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ERROR_DISABLED);
+    }
+};
+
+class LP2PAPP final : public ServiceFramework<LP2PAPP> {
+public:
+    explicit LP2PAPP(Core::System& system_) : ServiceFramework{system_, "lp2p:app"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, &LP2PAPP::CreateMonitorService, "CreateNetworkService"},
+            {8, &LP2PAPP::CreateMonitorService, "CreateNetworkServiceMonitor"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+
+    void CreateNetworkervice(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const u64 reserved_input = rp.Pop<u64>();
+        const u32 input = rp.Pop<u32>();
+
+        LOG_WARNING(Service_LDN, "(STUBBED) called reserved_input={} input={}", reserved_input,
+                    input);
+
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushIpcInterface<INetworkService>(system);
+    }
+
+    void CreateMonitorService(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const u64 reserved_input = rp.Pop<u64>();
+
+        LOG_WARNING(Service_LDN, "(STUBBED) called reserved_input={}", reserved_input);
+
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushIpcInterface<INetworkServiceMonitor>(system);
+    }
+};
+
+class LP2PSYS final : public ServiceFramework<LP2PSYS> {
+public:
+    explicit LP2PSYS(Core::System& system_) : ServiceFramework{system_, "lp2p:sys"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, &LP2PSYS::CreateMonitorService, "CreateNetworkService"},
+            {8, &LP2PSYS::CreateMonitorService, "CreateNetworkServiceMonitor"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+
+    void CreateNetworkervice(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const u64 reserved_input = rp.Pop<u64>();
+        const u32 input = rp.Pop<u32>();
+
+        LOG_WARNING(Service_LDN, "(STUBBED) called reserved_input={} input={}", reserved_input,
+                    input);
+
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushIpcInterface<INetworkService>(system);
+    }
+
+    void CreateMonitorService(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const u64 reserved_input = rp.Pop<u64>();
+
+        LOG_WARNING(Service_LDN, "(STUBBED) called reserved_input={}", reserved_input);
+
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushIpcInterface<INetworkServiceMonitor>(system);
+    }
+};
+
 void InstallInterfaces(SM::ServiceManager& sm, Core::System& system) {
     std::make_shared<LDNM>(system)->InstallAsService(sm);
     std::make_shared<LDNS>(system)->InstallAsService(sm);
     std::make_shared<LDNU>(system)->InstallAsService(sm);
+    std::make_shared<LP2PAPP>(system)->InstallAsService(sm);
+    std::make_shared<LP2PSYS>(system)->InstallAsService(sm);
 }
 
 } // namespace Service::LDN
