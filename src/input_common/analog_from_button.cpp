@@ -21,104 +21,153 @@ public:
         : up(std::move(up_)), down(std::move(down_)), left(std::move(left_)),
           right(std::move(right_)), modifier(std::move(modifier_)), modifier_scale(modifier_scale_),
           modifier_angle(modifier_angle_) {
-        update_thread_running.store(true);
-        update_thread = std::thread(&Analog::UpdateStatus, this);
+        Input::InputCallback<bool> callbacks{
+            [this]([[maybe_unused]] bool status) { UpdateStatus(); }};
+        up->SetCallback(callbacks);
+        down->SetCallback(callbacks);
+        left->SetCallback(callbacks);
+        right->SetCallback(callbacks);
     }
 
-    ~Analog() override {
-        if (update_thread_running.load()) {
-            update_thread_running.store(false);
-            if (update_thread.joinable()) {
-                update_thread.join();
-            }
-        }
-    }
-
-    void MoveToDirection(bool enable, float to_angle) {
-        if (!enable) {
-            return;
-        }
+    bool IsAngleGreater(float old_angle, float new_angle) const {
         constexpr float TAU = Common::PI * 2.0f;
         // Use wider angle to ease the transition.
         constexpr float aperture = TAU * 0.15f;
-        const float top_limit = to_angle + aperture;
-        const float bottom_limit = to_angle - aperture;
+        const float top_limit = new_angle + aperture;
+        return (old_angle > new_angle && old_angle <= top_limit) ||
+               (old_angle + TAU > new_angle && old_angle + TAU <= top_limit);
+    }
 
-        if ((angle > to_angle && angle <= top_limit) ||
-            (angle + TAU > to_angle && angle + TAU <= top_limit)) {
-            angle -= modifier_angle;
-            if (angle < 0) {
-                angle += TAU;
+    bool IsAngleSmaller(float old_angle, float new_angle) const {
+        constexpr float TAU = Common::PI * 2.0f;
+        // Use wider angle to ease the transition.
+        constexpr float aperture = TAU * 0.15f;
+        const float bottom_limit = new_angle - aperture;
+        return (old_angle >= bottom_limit && old_angle < new_angle) ||
+               (old_angle - TAU >= bottom_limit && old_angle - TAU < new_angle);
+    }
+
+    float GetAngle(std::chrono::time_point<std::chrono::steady_clock> now) const {
+        constexpr float TAU = Common::PI * 2.0f;
+        float new_angle = angle;
+
+        auto time_difference = static_cast<float>(
+            std::chrono::duration_cast<std::chrono::microseconds>(now - last_update).count());
+        time_difference /= 1000.0f * 1000.0f;
+        if (time_difference > 0.5f) {
+            time_difference = 0.5f;
+        }
+
+        if (IsAngleGreater(new_angle, goal_angle)) {
+            new_angle -= modifier_angle * time_difference;
+            if (new_angle < 0) {
+                new_angle += TAU;
             }
-        } else if ((angle >= bottom_limit && angle < to_angle) ||
-                   (angle - TAU >= bottom_limit && angle - TAU < to_angle)) {
-            angle += modifier_angle;
-            if (angle >= TAU) {
-                angle -= TAU;
+            if (!IsAngleGreater(new_angle, goal_angle)) {
+                return goal_angle;
+            }
+        } else if (IsAngleSmaller(new_angle, goal_angle)) {
+            new_angle += modifier_angle * time_difference;
+            if (new_angle >= TAU) {
+                new_angle -= TAU;
+            }
+            if (!IsAngleSmaller(new_angle, goal_angle)) {
+                return goal_angle;
             }
         } else {
-            angle = to_angle;
+            return goal_angle;
+        }
+        return new_angle;
+    }
+
+    void SetGoalAngle(bool r, bool l, bool u, bool d) {
+        // Move to the right
+        if (r && !u && !d) {
+            goal_angle = 0.0f;
+        }
+
+        // Move to the upper right
+        if (r && u && !d) {
+            goal_angle = Common::PI * 0.25f;
+        }
+
+        // Move up
+        if (u && !l && !r) {
+            goal_angle = Common::PI * 0.5f;
+        }
+
+        // Move to the upper left
+        if (l && u && !d) {
+            goal_angle = Common::PI * 0.75f;
+        }
+
+        // Move to the left
+        if (l && !u && !d) {
+            goal_angle = Common::PI;
+        }
+
+        // Move to the bottom left
+        if (l && !u && d) {
+            goal_angle = Common::PI * 1.25f;
+        }
+
+        // Move down
+        if (d && !l && !r) {
+            goal_angle = Common::PI * 1.5f;
+        }
+
+        // Move to the bottom right
+        if (r && !u && d) {
+            goal_angle = Common::PI * 1.75f;
         }
     }
 
     void UpdateStatus() {
-        while (update_thread_running.load()) {
-            const float coef = modifier->GetStatus() ? modifier_scale : 1.0f;
+        const float coef = modifier->GetStatus() ? modifier_scale : 1.0f;
 
-            bool r = right->GetStatus();
-            bool l = left->GetStatus();
-            bool u = up->GetStatus();
-            bool d = down->GetStatus();
+        bool r = right->GetStatus();
+        bool l = left->GetStatus();
+        bool u = up->GetStatus();
+        bool d = down->GetStatus();
 
-            // Eliminate contradictory movements
-            if (r && l) {
-                r = false;
-                l = false;
-            }
-            if (u && d) {
-                u = false;
-                d = false;
-            }
-
-            // Move to the right
-            MoveToDirection(r && !u && !d, 0.0f);
-
-            // Move to the upper right
-            MoveToDirection(r && u && !d, Common::PI * 0.25f);
-
-            // Move up
-            MoveToDirection(u && !l && !r, Common::PI * 0.5f);
-
-            // Move to the upper left
-            MoveToDirection(l && u && !d, Common::PI * 0.75f);
-
-            // Move to the left
-            MoveToDirection(l && !u && !d, Common::PI);
-
-            // Move to the bottom left
-            MoveToDirection(l && !u && d, Common::PI * 1.25f);
-
-            // Move down
-            MoveToDirection(d && !l && !r, Common::PI * 1.5f);
-
-            // Move to the bottom right
-            MoveToDirection(r && !u && d, Common::PI * 1.75f);
-
-            // Move if a key is pressed
-            if (r || l || u || d) {
-                amplitude = coef;
-            } else {
-                amplitude = 0;
-            }
-
-            // Delay the update rate to 100hz
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        // Eliminate contradictory movements
+        if (r && l) {
+            r = false;
+            l = false;
         }
+        if (u && d) {
+            u = false;
+            d = false;
+        }
+
+        // Move if a key is pressed
+        if (r || l || u || d) {
+            amplitude = coef;
+        } else {
+            amplitude = 0;
+        }
+
+        const auto now = std::chrono::steady_clock::now();
+        const auto time_difference = static_cast<u64>(
+            std::chrono::duration_cast<std::chrono::milliseconds>(now - last_update).count());
+
+        if (time_difference < 10) {
+            // Disable analog mode if inputs are too fast
+            SetGoalAngle(r, l, u, d);
+            angle = goal_angle;
+        } else {
+            angle = GetAngle(now);
+            SetGoalAngle(r, l, u, d);
+        }
+
+        last_update = now;
     }
 
     std::tuple<float, float> GetStatus() const override {
         if (Settings::values.emulate_analog_keyboard) {
-            return std::make_tuple(std::cos(angle) * amplitude, std::sin(angle) * amplitude);
+            const auto now = std::chrono::steady_clock::now();
+            float angle_ = GetAngle(now);
+            return std::make_tuple(std::cos(angle_) * amplitude, std::sin(angle_) * amplitude);
         }
         constexpr float SQRT_HALF = 0.707106781f;
         int x = 0, y = 0;
@@ -166,9 +215,9 @@ private:
     float modifier_scale;
     float modifier_angle;
     float angle{};
+    float goal_angle{};
     float amplitude{};
-    std::thread update_thread;
-    std::atomic<bool> update_thread_running{};
+    std::chrono::time_point<std::chrono::steady_clock> last_update;
 };
 
 std::unique_ptr<Input::AnalogDevice> AnalogFromButton::Create(const Common::ParamPackage& params) {
@@ -179,7 +228,7 @@ std::unique_ptr<Input::AnalogDevice> AnalogFromButton::Create(const Common::Para
     auto right = Input::CreateDevice<Input::ButtonDevice>(params.Get("right", null_engine));
     auto modifier = Input::CreateDevice<Input::ButtonDevice>(params.Get("modifier", null_engine));
     auto modifier_scale = params.Get("modifier_scale", 0.5f);
-    auto modifier_angle = params.Get("modifier_angle", 0.035f);
+    auto modifier_angle = params.Get("modifier_angle", 5.5f);
     return std::make_unique<Analog>(std::move(up), std::move(down), std::move(left),
                                     std::move(right), std::move(modifier), modifier_scale,
                                     modifier_angle);
