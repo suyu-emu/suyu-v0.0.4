@@ -7,6 +7,7 @@
 #include <array>
 #include "common/bit_field.h"
 #include "common/common_types.h"
+#include "common/point.h"
 #include "core/frontend/input.h"
 #include "core/hle/service/hid/controllers/controller_base.h"
 
@@ -63,44 +64,21 @@ private:
     };
     static_assert(sizeof(Attribute) == 4, "Attribute is an invalid size");
 
-    template <typename T>
-    struct Point {
-        T x{};
-        T y{};
-
-        friend Point operator+(const Point& lhs, const Point& rhs) {
-            return {
-                .x = lhs.x + rhs.x,
-                .y = lhs.y + rhs.y,
-            };
-        }
-
-        friend Point operator-(const Point& lhs, const Point& rhs) {
-            return {
-                .x = lhs.x - rhs.x,
-                .y = lhs.y - rhs.y,
-            };
-        }
-
-        friend bool operator==(const Point&, const Point&) = default;
-    };
-    static_assert(sizeof(Point<s32_le>) == 8, "Point is an invalid size");
-
     struct GestureState {
         s64_le sampling_number;
         s64_le sampling_number2;
         s64_le detection_count;
         TouchType type;
         Direction direction;
-        Point<s32_le> pos;
-        Point<s32_le> delta;
+        Common::Point<s32_le> pos;
+        Common::Point<s32_le> delta;
         f32 vel_x;
         f32 vel_y;
         Attribute attributes;
         f32 scale;
         f32 rotation_angle;
         s32_le point_count;
-        std::array<Point<s32_le>, 4> points;
+        std::array<Common::Point<s32_le>, 4> points;
     };
     static_assert(sizeof(GestureState) == 0x68, "GestureState is an invalid size");
 
@@ -111,14 +89,14 @@ private:
     static_assert(sizeof(SharedMemory) == 0x708, "SharedMemory is an invalid size");
 
     struct Finger {
-        Point<f32> pos{};
+        Common::Point<f32> pos{};
         bool pressed{};
     };
 
     struct GestureProperties {
-        std::array<Point<s32_le>, MAX_POINTS> points{};
+        std::array<Common::Point<s32_le>, MAX_POINTS> points{};
         std::size_t active_points{};
-        Point<s32_le> mid_point{};
+        Common::Point<s32_le> mid_point{};
         s64_le detection_count{};
         u64_le delta_time{};
         f32 average_distance{};

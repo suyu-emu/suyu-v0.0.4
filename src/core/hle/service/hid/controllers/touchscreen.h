@@ -7,6 +7,7 @@
 #include "common/bit_field.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
+#include "common/point.h"
 #include "common/swap.h"
 #include "core/frontend/input.h"
 #include "core/hle/service/hid/controllers/controller_base.h"
@@ -55,8 +56,7 @@ private:
         u64_le delta_time;
         Attributes attribute;
         u32_le finger;
-        u32_le x;
-        u32_le y;
+        Common::Point<u32_le> position;
         u32_le diameter_x;
         u32_le diameter_y;
         u32_le rotation_angle;
@@ -81,8 +81,7 @@ private:
 
     struct Finger {
         u64_le last_touch{};
-        float x{};
-        float y{};
+        Common::Point<float> position;
         u32_le id{};
         bool pressed{};
         Attributes attribute;
