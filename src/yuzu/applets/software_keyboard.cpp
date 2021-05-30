@@ -1101,12 +1101,11 @@ void QtSoftwareKeyboardDialog::NormalKeyboardButtonClicked(QPushButton* button) 
     }
 
     if (button == ui->button_ok || button == ui->button_ok_shift || button == ui->button_ok_num) {
-        if (ui->topOSK->currentIndex() == 1) {
-            emit SubmitNormalText(SwkbdResult::Ok,
-                                  ui->text_edit_osk->toPlainText().toStdU16String());
-        } else {
-            emit SubmitNormalText(SwkbdResult::Ok, ui->line_edit_osk->text().toStdU16String());
-        }
+        auto text = ui->topOSK->currentIndex() == 1
+                        ? ui->text_edit_osk->toPlainText().toStdU16String()
+                        : ui->line_edit_osk->text().toStdU16String();
+
+        emit SubmitNormalText(SwkbdResult::Ok, std::move(text));
         return;
     }
 
@@ -1265,13 +1264,11 @@ void QtSoftwareKeyboardDialog::TranslateButtonPress(HIDButton button) {
         if (is_inline) {
             emit SubmitInlineText(SwkbdReplyType::DecidedCancel, current_text, cursor_position);
         } else {
-            if (ui->topOSK->currentIndex() == 1) {
-                emit SubmitNormalText(SwkbdResult::Cancel,
-                                      ui->text_edit_osk->toPlainText().toStdU16String());
-            } else {
-                emit SubmitNormalText(SwkbdResult::Cancel,
-                                      ui->line_edit_osk->text().toStdU16String());
-            }
+            auto text = ui->topOSK->currentIndex() == 1
+                            ? ui->text_edit_osk->toPlainText().toStdU16String()
+                            : ui->line_edit_osk->text().toStdU16String();
+
+            emit SubmitNormalText(SwkbdResult::Cancel, std::move(text));
         }
         break;
     case HIDButton::Y:
@@ -1563,7 +1560,7 @@ void QtSoftwareKeyboard::ShowNormalKeyboard() const {
 void QtSoftwareKeyboard::ShowTextCheckDialog(
     Service::AM::Applets::SwkbdTextCheckResult text_check_result,
     std::u16string text_check_message) const {
-    emit MainWindowShowTextCheckDialog(text_check_result, text_check_message);
+    emit MainWindowShowTextCheckDialog(text_check_result, std::move(text_check_message));
 }
 
 void QtSoftwareKeyboard::ShowInlineKeyboard(

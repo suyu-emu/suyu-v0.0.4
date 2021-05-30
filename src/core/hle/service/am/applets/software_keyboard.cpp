@@ -273,8 +273,13 @@ void SoftwareKeyboard::ProcessTextCheck() {
 
     std::memcpy(&swkbd_text_check, text_check_data.data(), sizeof(SwkbdTextCheck));
 
-    std::u16string text_check_message = Common::UTF16StringFromFixedZeroTerminatedBuffer(
-        swkbd_text_check.text_check_message.data(), swkbd_text_check.text_check_message.size());
+    std::u16string text_check_message =
+        swkbd_text_check.text_check_result == SwkbdTextCheckResult::Failure ||
+                swkbd_text_check.text_check_result == SwkbdTextCheckResult::Confirm
+            ? Common::UTF16StringFromFixedZeroTerminatedBuffer(
+                  swkbd_text_check.text_check_message.data(),
+                  swkbd_text_check.text_check_message.size())
+            : u"";
 
     LOG_INFO(Service_AM, "\nTextCheckResult: {}\nTextCheckMessage: {}",
              GetTextCheckResultName(swkbd_text_check.text_check_result),
@@ -285,10 +290,10 @@ void SoftwareKeyboard::ProcessTextCheck() {
         SubmitNormalOutputAndExit(SwkbdResult::Ok, current_text);
         break;
     case SwkbdTextCheckResult::Failure:
-        ShowTextCheckDialog(SwkbdTextCheckResult::Failure, text_check_message);
+        ShowTextCheckDialog(SwkbdTextCheckResult::Failure, std::move(text_check_message));
         break;
     case SwkbdTextCheckResult::Confirm:
-        ShowTextCheckDialog(SwkbdTextCheckResult::Confirm, text_check_message);
+        ShowTextCheckDialog(SwkbdTextCheckResult::Confirm, std::move(text_check_message));
         break;
     case SwkbdTextCheckResult::Silent:
     default:
@@ -482,7 +487,7 @@ void SoftwareKeyboard::InitializeFrontendKeyboard() {
             max_text_length <= 32 ? SwkbdTextDrawType::Line : SwkbdTextDrawType::Box;
 
         Core::Frontend::KeyboardInitializeParameters initialize_parameters{
-            .ok_text{ok_text},
+            .ok_text{std::move(ok_text)},
             .header_text{},
             .sub_text{},
             .guide_text{},
@@ -558,10 +563,10 @@ void SoftwareKeyboard::InitializeFrontendKeyboard() {
                                                : false;
 
         Core::Frontend::KeyboardInitializeParameters initialize_parameters{
-            .ok_text{ok_text},
-            .header_text{header_text},
-            .sub_text{sub_text},
-            .guide_text{guide_text},
+            .ok_text{std::move(ok_text)},
+            .header_text{std::move(header_text)},
+            .sub_text{std::move(sub_text)},
+            .guide_text{std::move(guide_text)},
             .initial_text{initial_text},
             .max_text_length{max_text_length},
             .min_text_length{min_text_length},
@@ -590,7 +595,7 @@ void SoftwareKeyboard::ShowNormalKeyboard() {
 
 void SoftwareKeyboard::ShowTextCheckDialog(SwkbdTextCheckResult text_check_result,
                                            std::u16string text_check_message) {
-    frontend.ShowTextCheckDialog(text_check_result, text_check_message);
+    frontend.ShowTextCheckDialog(text_check_result, std::move(text_check_message));
 }
 
 void SoftwareKeyboard::ShowInlineKeyboard() {
