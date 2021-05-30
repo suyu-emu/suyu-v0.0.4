@@ -84,50 +84,43 @@ static_assert(ClassToken<KTransferMemory> == ((0b10010001 << 8) | ClassToken<KAu
 // Ensure that the token hierarchy reflects the class hierarchy.
 
 // Base classes.
-static_assert(!std::is_final<KSynchronizationObject>::value &&
-              std::is_base_of<KAutoObject, KSynchronizationObject>::value);
-static_assert(!std::is_final<KReadableEvent>::value &&
-              std::is_base_of<KSynchronizationObject, KReadableEvent>::value);
+static_assert(!std::is_final_v<KSynchronizationObject> &&
+              std::is_base_of_v<KAutoObject, KSynchronizationObject>);
+static_assert(!std::is_final_v<KReadableEvent> &&
+              std::is_base_of_v<KSynchronizationObject, KReadableEvent>);
 
 // Final classes
-// static_assert(std::is_final<KInterruptEvent>::value &&
-//              std::is_base_of<KReadableEvent, KInterruptEvent>::value);
-// static_assert(std::is_final<KDebug>::value &&
-//              std::is_base_of<KSynchronizationObject, KDebug>::value);
-static_assert(std::is_final<KThread>::value &&
-              std::is_base_of<KSynchronizationObject, KThread>::value);
-static_assert(std::is_final<KServerPort>::value &&
-              std::is_base_of<KSynchronizationObject, KServerPort>::value);
-static_assert(std::is_final<KServerSession>::value &&
-              std::is_base_of<KSynchronizationObject, KServerSession>::value);
-static_assert(std::is_final<KClientPort>::value &&
-              std::is_base_of<KSynchronizationObject, KClientPort>::value);
-static_assert(std::is_final<KClientSession>::value &&
-              std::is_base_of<KAutoObject, KClientSession>::value);
-static_assert(std::is_final<KProcess>::value &&
-              std::is_base_of<KSynchronizationObject, KProcess>::value);
-static_assert(std::is_final<KResourceLimit>::value &&
-              std::is_base_of<KAutoObject, KResourceLimit>::value);
-// static_assert(std::is_final<KLightSession>::value &&
-//              std::is_base_of<KAutoObject, KLightSession>::value);
-static_assert(std::is_final<KPort>::value && std::is_base_of<KAutoObject, KPort>::value);
-static_assert(std::is_final<KSession>::value && std::is_base_of<KAutoObject, KSession>::value);
-static_assert(std::is_final<KSharedMemory>::value &&
-              std::is_base_of<KAutoObject, KSharedMemory>::value);
-static_assert(std::is_final<KEvent>::value && std::is_base_of<KAutoObject, KEvent>::value);
-static_assert(std::is_final<KWritableEvent>::value &&
-              std::is_base_of<KAutoObject, KWritableEvent>::value);
-// static_assert(std::is_final<KLightClientSession>::value &&
-//              std::is_base_of<KAutoObject, KLightClientSession>::value);
-// static_assert(std::is_final<KLightServerSession>::value &&
-//              std::is_base_of<KAutoObject, KLightServerSession>::value);
-static_assert(std::is_final<KTransferMemory>::value &&
-              std::is_base_of<KAutoObject, KTransferMemory>::value);
-// static_assert(std::is_final<KDeviceAddressSpace>::value &&
-//              std::is_base_of<KAutoObject, KDeviceAddressSpace>::value);
-// static_assert(std::is_final<KSessionRequest>::value &&
-//              std::is_base_of<KAutoObject, KSessionRequest>::value);
-// static_assert(std::is_final<KCodeMemory>::value &&
-//              std::is_base_of<KAutoObject, KCodeMemory>::value);
+// static_assert(std::is_final_v<KInterruptEvent> &&
+//              std::is_base_of_v<KReadableEvent, KInterruptEvent>);
+// static_assert(std::is_final_v<KDebug> &&
+//              std::is_base_of_v<KSynchronizationObject, KDebug>);
+static_assert(std::is_final_v<KThread> && std::is_base_of_v<KSynchronizationObject, KThread>);
+static_assert(std::is_final_v<KServerPort> &&
+              std::is_base_of_v<KSynchronizationObject, KServerPort>);
+static_assert(std::is_final_v<KServerSession> &&
+              std::is_base_of_v<KSynchronizationObject, KServerSession>);
+static_assert(std::is_final_v<KClientPort> &&
+              std::is_base_of_v<KSynchronizationObject, KClientPort>);
+static_assert(std::is_final_v<KClientSession> && std::is_base_of_v<KAutoObject, KClientSession>);
+static_assert(std::is_final_v<KProcess> && std::is_base_of_v<KSynchronizationObject, KProcess>);
+static_assert(std::is_final_v<KResourceLimit> && std::is_base_of_v<KAutoObject, KResourceLimit>);
+// static_assert(std::is_final_v<KLightSession> &&
+//              std::is_base_of_v<KAutoObject, KLightSession>);
+static_assert(std::is_final_v<KPort> && std::is_base_of_v<KAutoObject, KPort>);
+static_assert(std::is_final_v<KSession> && std::is_base_of_v<KAutoObject, KSession>);
+static_assert(std::is_final_v<KSharedMemory> && std::is_base_of_v<KAutoObject, KSharedMemory>);
+static_assert(std::is_final_v<KEvent> && std::is_base_of_v<KAutoObject, KEvent>);
+static_assert(std::is_final_v<KWritableEvent> && std::is_base_of_v<KAutoObject, KWritableEvent>);
+// static_assert(std::is_final_v<KLightClientSession> &&
+//              std::is_base_of_v<KAutoObject, KLightClientSession>);
+// static_assert(std::is_final_v<KLightServerSession> &&
+//              std::is_base_of_v<KAutoObject, KLightServerSession>);
+static_assert(std::is_final_v<KTransferMemory> && std::is_base_of_v<KAutoObject, KTransferMemory>);
+// static_assert(std::is_final_v<KDeviceAddressSpace> &&
+//              std::is_base_of_v<KAutoObject, KDeviceAddressSpace>);
+// static_assert(std::is_final_v<KSessionRequest> &&
+//              std::is_base_of_v<KAutoObject, KSessionRequest>);
+// static_assert(std::is_final_v<KCodeMemory> &&
+//              std::is_base_of_v<KAutoObject, KCodeMemory>);
 
 } // namespace Kernel
