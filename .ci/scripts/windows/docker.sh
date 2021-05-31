@@ -47,3 +47,6 @@ python3 .ci/scripts/windows/scan_dll.py package/imageformats/*.dll "package/"
 EXTERNALS_PATH="$(pwd)/build/externals"
 FFMPEG_DLL_PATH="$(find ${EXTERNALS_PATH} -maxdepth 1 -type d | grep ffmpeg)/bin"
 find ${FFMPEG_DLL_PATH} -type f -regex ".*\.dll" -exec cp -v {} package/ ';'
+
+# copy libraries from yuzu.exe path
+find "$(pwd)/build/bin/" -type f -regex ".*\.dll" -exec cp -v {} package/ ';'
