@@ -14,6 +14,7 @@ void PageTable::Resize(size_t address_space_width_in_bits, size_t page_size_in_b
     const size_t num_page_table_entries{1ULL << (address_space_width_in_bits - page_size_in_bits)};
     pointers.resize(num_page_table_entries);
     backing_addr.resize(num_page_table_entries);
+    current_address_space_width_in_bits = address_space_width_in_bits;
 }
 
 } // namespace Common
