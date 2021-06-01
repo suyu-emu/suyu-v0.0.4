@@ -163,6 +163,9 @@ std::optional<GPUVAddr> MemoryManager::FindFreeRange(std::size_t size, std::size
 }
 
 std::optional<VAddr> MemoryManager::GpuToCpuAddress(GPUVAddr gpu_addr) const {
+    if (gpu_addr == 0) {
+        return std::nullopt;
+    }
     const auto page_entry{GetPageEntry(gpu_addr)};
     if (!page_entry.IsValid()) {
         return std::nullopt;

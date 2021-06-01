@@ -526,6 +526,10 @@ void RasterizerOpenGL::BindGraphicsUniformBuffer(size_t stage, u32 index, GPUVAd
     buffer_cache.BindGraphicsUniformBuffer(stage, index, gpu_addr, size);
 }
 
+void RasterizerOpenGL::DisableGraphicsUniformBuffer(size_t stage, u32 index) {
+    buffer_cache.DisableGraphicsUniformBuffer(stage, index);
+}
+
 void RasterizerOpenGL::FlushAll() {}
 
 void RasterizerOpenGL::FlushRegion(VAddr addr, u64 size) {

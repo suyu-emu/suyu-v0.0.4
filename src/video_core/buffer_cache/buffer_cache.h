@@ -110,6 +110,8 @@ public:
 
     void BindGraphicsUniformBuffer(size_t stage, u32 index, GPUVAddr gpu_addr, u32 size);
 
+    void DisableGraphicsUniformBuffer(size_t stage, u32 index);
+
     void UpdateGraphicsBuffers(bool is_indexed);
 
     void UpdateComputeBuffers();
@@ -419,16 +421,17 @@ template <class P>
 void BufferCache<P>::BindGraphicsUniformBuffer(size_t stage, u32 index, GPUVAddr gpu_addr,
                                                u32 size) {
     const std::optional<VAddr> cpu_addr = gpu_memory.GpuToCpuAddress(gpu_addr);
-    if (!cpu_addr) {
-        uniform_buffers[stage][index] = NULL_BINDING;
-        return;
-    }
     const Binding binding{
         .cpu_addr = *cpu_addr,
         .size = size,
         .buffer_id = BufferId{},
     };
     uniform_buffers[stage][index] = binding;
+}
+
+template <class P>
+void BufferCache<P>::DisableGraphicsUniformBuffer(size_t stage, u32 index) {
+    uniform_buffers[stage][index] = NULL_BINDING;
 }
 
 template <class P>
