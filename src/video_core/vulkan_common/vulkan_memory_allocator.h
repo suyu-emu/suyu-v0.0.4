@@ -101,15 +101,12 @@ public:
     MemoryCommit Commit(const vk::Image& image, MemoryUsage usage);
 
 private:
-    /// Allocates a chunk of memory.
-    void AllocMemory(VkMemoryPropertyFlags flags, u32 type_mask, u64 size);
+    /// Tries to allocate a chunk of memory.
+    bool TryAllocMemory(VkMemoryPropertyFlags flags, u32 type_mask, u64 size);
 
     /// Tries to allocate a memory commit.
     std::optional<MemoryCommit> TryCommit(const VkMemoryRequirements& requirements,
                                           VkMemoryPropertyFlags flags);
-
-    /// Returns the fastest compatible memory property flags from a wanted usage.
-    VkMemoryPropertyFlags MemoryPropertyFlags(u32 type_mask, MemoryUsage usage) const;
 
     /// Returns the fastest compatible memory property flags from the wanted flags.
     VkMemoryPropertyFlags MemoryPropertyFlags(u32 type_mask, VkMemoryPropertyFlags flags) const;

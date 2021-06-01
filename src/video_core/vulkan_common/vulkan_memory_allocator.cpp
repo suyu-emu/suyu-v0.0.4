@@ -53,6 +53,18 @@ struct Range {
     UNREACHABLE_MSG("Invalid memory usage={}", usage);
     return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 }
+
+constexpr VkExportMemoryAllocateInfo EXPORT_ALLOCATE_INFO{
+    .sType = VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO,
+    .pNext = nullptr,
+#ifdef _WIN32
+    .handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT,
+#elif __unix__
+    .handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
+#else
+    .handleTypes = 0,
+#endif
+};
 } // Anonymous namespace
 
 class MemoryAllocation {
@@ -131,7 +143,7 @@ public:
 
     /// Returns whether this allocation is compatible with the arguments.
     [[nodiscard]] bool IsCompatible(VkMemoryPropertyFlags flags, u32 type_mask) const {
-        return (flags & property_flags) && (type_mask & shifted_memory_type) != 0;
+        return (flags & property_flags) == property_flags && (type_mask & shifted_memory_type) != 0;
     }
 
 private:
@@ -217,14 +229,18 @@ MemoryAllocator::~MemoryAllocator() = default;
 
 MemoryCommit MemoryAllocator::Commit(const VkMemoryRequirements& requirements, MemoryUsage usage) {
     // Find the fastest memory flags we can afford with the current requirements
-    const VkMemoryPropertyFlags flags = MemoryPropertyFlags(requirements.memoryTypeBits, usage);
+    const u32 type_mask = requirements.memoryTypeBits;
+    const VkMemoryPropertyFlags usage_flags = MemoryUsagePropertyFlags(usage);
+    const VkMemoryPropertyFlags flags = MemoryPropertyFlags(type_mask, usage_flags);
     if (std::optional<MemoryCommit> commit = TryCommit(requirements, flags)) {
         return std::move(*commit);
     }
     // Commit has failed, allocate more memory.
-    // TODO(Rodrigo): Handle out of memory situations in some way like flushing to guest memory.
-    AllocMemory(flags, requirements.memoryTypeBits, AllocationChunkSize(requirements.size));
-
+    const u64 chunk_size = AllocationChunkSize(requirements.size);
+    if (!TryAllocMemory(flags, type_mask, chunk_size)) {
+        // TODO(Rodrigo): Handle out of memory situations in some way like flushing to guest memory.
+        throw vk::Exception(VK_ERROR_OUT_OF_DEVICE_MEMORY);
+    }
     // Commit again, this time it won't fail since there's a fresh allocation above.
     // If it does, there's a bug.
     return TryCommit(requirements, flags).value();
@@ -242,26 +258,25 @@ MemoryCommit MemoryAllocator::Commit(const vk::Image& image, MemoryUsage usage) 
     return commit;
 }
 
-void MemoryAllocator::AllocMemory(VkMemoryPropertyFlags flags, u32 type_mask, u64 size) {
+bool MemoryAllocator::TryAllocMemory(VkMemoryPropertyFlags flags, u32 type_mask, u64 size) {
     const u32 type = FindType(flags, type_mask).value();
-    const VkExportMemoryAllocateInfo export_allocate_info{
-        .sType = VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO,
-        .pNext = nullptr,
-#ifdef _WIN32
-        .handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT,
-#elif __unix__
-        .handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
-#else
-        .handleTypes = 0,
-#endif
-    };
-    vk::DeviceMemory memory = device.GetLogical().AllocateMemory({
+    vk::DeviceMemory memory = device.GetLogical().TryAllocateMemory({
         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-        .pNext = export_allocations ? &export_allocate_info : nullptr,
+        .pNext = export_allocations ? &EXPORT_ALLOCATE_INFO : nullptr,
         .allocationSize = size,
         .memoryTypeIndex = type,
     });
+    if (!memory) {
+        if ((flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) != 0) {
+            // Try to allocate non device local memory
+            return TryAllocMemory(flags & ~VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, type_mask, size);
+        } else {
+            // RIP
+            return false;
+        }
+    }
     allocations.push_back(std::make_unique<MemoryAllocation>(std::move(memory), flags, size, type));
+    return true;
 }
 
 std::optional<MemoryCommit> MemoryAllocator::TryCommit(const VkMemoryRequirements& requirements,
@@ -274,11 +289,11 @@ std::optional<MemoryCommit> MemoryAllocator::TryCommit(const VkMemoryRequirement
             return commit;
         }
     }
+    if ((flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) != 0) {
+        // Look for non device local commits on failure
+        return TryCommit(requirements, flags & ~VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    }
     return std::nullopt;
-}
-
-VkMemoryPropertyFlags MemoryAllocator::MemoryPropertyFlags(u32 type_mask, MemoryUsage usage) const {
-    return MemoryPropertyFlags(type_mask, MemoryUsagePropertyFlags(usage));
 }
 
 VkMemoryPropertyFlags MemoryAllocator::MemoryPropertyFlags(u32 type_mask,
@@ -287,11 +302,11 @@ VkMemoryPropertyFlags MemoryAllocator::MemoryPropertyFlags(u32 type_mask,
         // Found a memory type with those requirements
         return flags;
     }
-    if (flags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT) {
+    if ((flags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT) != 0) {
         // Remove host cached bit in case it's not supported
         return MemoryPropertyFlags(type_mask, flags & ~VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
     }
-    if (flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) {
+    if ((flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) != 0) {
         // Remove device local, if it's not supported by the requested resource
         return MemoryPropertyFlags(type_mask, flags & ~VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     }
@@ -302,7 +317,7 @@ VkMemoryPropertyFlags MemoryAllocator::MemoryPropertyFlags(u32 type_mask,
 std::optional<u32> MemoryAllocator::FindType(VkMemoryPropertyFlags flags, u32 type_mask) const {
     for (u32 type_index = 0; type_index < properties.memoryTypeCount; ++type_index) {
         const VkMemoryPropertyFlags type_flags = properties.memoryTypes[type_index].propertyFlags;
-        if ((type_mask & (1U << type_index)) && (type_flags & flags)) {
+        if ((type_mask & (1U << type_index)) != 0 && (type_flags & flags) == flags) {
             // The type matches in type and in the wanted properties.
             return type_index;
         }
