@@ -129,12 +129,6 @@ private:
     std::unordered_map<YuzuPath, fs::path> yuzu_paths;
 };
 
-std::string PathToUTF8String(const fs::path& path) {
-    const auto utf8_string = path.u8string();
-
-    return std::string{utf8_string.begin(), utf8_string.end()};
-}
-
 bool ValidatePath(const fs::path& path) {
     if (path.empty()) {
         LOG_ERROR(Common_Filesystem, "Input path is empty, path={}", PathToUTF8String(path));

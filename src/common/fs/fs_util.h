@@ -5,6 +5,7 @@
 #pragma once
 
 #include <concepts>
+#include <filesystem>
 #include <span>
 #include <string>
 #include <string_view>
@@ -44,5 +45,14 @@ concept IsChar = std::same_as<T, char>;
  * @returns UTF-8 encoded std::string.
  */
 [[nodiscard]] std::string ToUTF8String(std::u8string_view u8_string);
+
+/**
+ * Converts a filesystem path to a UTF-8 encoded std::string.
+ *
+ * @param path Filesystem path
+ *
+ * @returns UTF-8 encoded std::string.
+ */
+[[nodiscard]] std::string PathToUTF8String(const std::filesystem::path& path);
 
 } // namespace Common::FS

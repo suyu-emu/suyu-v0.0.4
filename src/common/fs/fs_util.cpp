@@ -20,4 +20,8 @@ std::string ToUTF8String(std::u8string_view u8_string) {
     return std::string{u8_string.begin(), u8_string.end()};
 }
 
+std::string PathToUTF8String(const std::filesystem::path& path) {
+    return ToUTF8String(path.u8string());
+}
+
 } // namespace Common::FS
