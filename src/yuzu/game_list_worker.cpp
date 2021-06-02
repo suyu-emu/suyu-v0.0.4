@@ -215,13 +215,11 @@ QList<QStandardItem*> MakeGameListEntry(const std::string& path, const std::stri
         new GameListItemSize(Common::FS::GetSize(path)),
     };
 
-    if (UISettings::values.show_add_ons) {
-        const auto patch_versions = GetGameListCachedObject(
-            fmt::format("{:016X}", patch.GetTitleID()), "pv.txt", [&patch, &loader] {
-                return FormatPatchNameVersions(patch, loader, loader.IsRomFSUpdatable());
-            });
-        list.insert(2, new GameListItem(patch_versions));
-    }
+    const auto patch_versions = GetGameListCachedObject(
+        fmt::format("{:016X}", patch.GetTitleID()), "pv.txt", [&patch, &loader] {
+            return FormatPatchNameVersions(patch, loader, loader.IsRomFSUpdatable());
+        });
+    list.insert(2, new GameListItem(patch_versions));
 
     return list;
 }
