@@ -236,7 +236,8 @@ private slots:
                               const std::string& game_path);
     void OnTransferableShaderCacheOpenFile(u64 program_id);
     void OnGameListRemoveInstalledEntry(u64 program_id, InstalledEntryType type);
-    void OnGameListRemoveFile(u64 program_id, GameListRemoveTarget target);
+    void OnGameListRemoveFile(u64 program_id, GameListRemoveTarget target,
+                              std::string_view game_path);
     void OnGameListDumpRomFS(u64 program_id, const std::string& game_path);
     void OnGameListCopyTID(u64 program_id);
     void OnGameListNavigateToGamedbEntry(u64 program_id,
@@ -275,7 +276,7 @@ private:
     void RemoveUpdateContent(u64 program_id, const QString& entry_type);
     void RemoveAddOnContent(u64 program_id, const QString& entry_type);
     void RemoveTransferableShaderCache(u64 program_id);
-    void RemoveCustomConfiguration(u64 program_id);
+    void RemoveCustomConfiguration(u64 program_id, std::string_view game_path);
     std::optional<u64> SelectRomFSDumpTarget(const FileSys::ContentProvider&, u64 program_id);
     InstallResult InstallNSPXCI(const QString& filename);
     InstallResult InstallNCA(const QString& filename);

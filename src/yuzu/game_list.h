@@ -88,7 +88,8 @@ signals:
                              const std::string& game_path);
     void OpenTransferableShaderCacheRequested(u64 program_id);
     void RemoveInstalledEntryRequested(u64 program_id, InstalledEntryType type);
-    void RemoveFileRequested(u64 program_id, GameListRemoveTarget target);
+    void RemoveFileRequested(u64 program_id, GameListRemoveTarget target,
+                             std::string_view game_path);
     void DumpRomFSRequested(u64 program_id, const std::string& game_path);
     void CopyTIDRequested(u64 program_id);
     void NavigateToGamedbEntryRequested(u64 program_id,

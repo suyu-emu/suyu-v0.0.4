@@ -1334,7 +1334,10 @@ void GMainWindow::BootGame(const QString& filename, std::size_t program_index) {
 
     if (!(loader == nullptr || loader->ReadProgramId(title_id) != Loader::ResultStatus::Success)) {
         // Load per game settings
-        Config per_game_config(fmt::format("{:016X}", title_id), Config::ConfigType::PerGameConfig);
+        const auto config_file_name = title_id == 0
+                                          ? Common::FS::GetFilename(filename.toStdString())
+                                          : fmt::format("{:016X}", title_id);
+        Config per_game_config(config_file_name, Config::ConfigType::PerGameConfig);
     }
 
     ConfigureVibration::SetAllVibrationDevices();
@@ -1795,7 +1798,8 @@ void GMainWindow::RemoveAddOnContent(u64 program_id, const QString& entry_type) 
                              tr("Successfully removed %1 installed DLC.").arg(count));
 }
 
-void GMainWindow::OnGameListRemoveFile(u64 program_id, GameListRemoveTarget target) {
+void GMainWindow::OnGameListRemoveFile(u64 program_id, GameListRemoveTarget target,
+                                       std::string_view game_path) {
     const QString question = [this, target] {
         switch (target) {
         case GameListRemoveTarget::ShaderCache:
@@ -1817,7 +1821,7 @@ void GMainWindow::OnGameListRemoveFile(u64 program_id, GameListRemoveTarget targ
         RemoveTransferableShaderCache(program_id);
         break;
     case GameListRemoveTarget::CustomConfiguration:
-        RemoveCustomConfiguration(program_id);
+        RemoveCustomConfiguration(program_id, game_path);
         break;
     }
 }
@@ -1842,9 +1846,12 @@ void GMainWindow::RemoveTransferableShaderCache(u64 program_id) {
     }
 }
 
-void GMainWindow::RemoveCustomConfiguration(u64 program_id) {
-    const auto custom_config_file_path = Common::FS::GetYuzuPath(Common::FS::YuzuPath::ConfigDir) /
-                                         "custom" / fmt::format("{:016X}.ini", program_id);
+void GMainWindow::RemoveCustomConfiguration(u64 program_id, std::string_view game_path) {
+    const auto config_file_name = program_id == 0
+                                      ? fmt::format("{:s}.ini", Common::FS::GetFilename(game_path))
+                                      : fmt::format("{:016X}.ini", program_id);
+    const auto custom_config_file_path =
+        Common::FS::GetYuzuPath(Common::FS::YuzuPath::ConfigDir) / "custom" / config_file_name;
 
     if (!Common::FS::Exists(custom_config_file_path)) {
         QMessageBox::warning(this, tr("Error Removing Custom Configuration"),
@@ -2635,7 +2642,7 @@ void GMainWindow::OpenPerGameConfiguration(u64 title_id, const std::string& file
     const auto v_file = Core::GetGameFileFromPath(vfs, file_name);
     const auto& system = Core::System::GetInstance();
 
-    ConfigurePerGame dialog(this, title_id);
+    ConfigurePerGame dialog(this, title_id, file_name);
     dialog.LoadFromFile(v_file);
     const auto result = dialog.exec();
 
