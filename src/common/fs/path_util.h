@@ -26,15 +26,6 @@ enum class YuzuPath {
 };
 
 /**
- * Converts a filesystem path to a UTF-8 encoded std::string.
- *
- * @param path Filesystem path
- *
- * @returns UTF-8 encoded std::string.
- */
-[[nodiscard]] std::string PathToUTF8String(const std::filesystem::path& path);
-
-/**
  * Validates a given path.
  *
  * A given path is valid if it meets these conditions:
