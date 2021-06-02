@@ -91,9 +91,8 @@ QString GameListSearchField::filterText() const {
 
 QString GameList::GetLastFilterResultItem() const {
     QString file_path;
-    const int folder_count = item_model->rowCount();
 
-    for (int i = 0; i < folder_count; ++i) {
+    for (int i = 1; i < item_model->rowCount() - 1; ++i) {
         const QStandardItem* folder = item_model->item(i, 0);
         const QModelIndex folder_index = folder->index();
         const int children_count = folder->rowCount();
@@ -184,7 +183,6 @@ void GameList::OnItemExpanded(const QModelIndex& item) {
 
 // Event in order to filter the gamelist after editing the searchfield
 void GameList::OnTextChanged(const QString& new_text) {
-    const int folder_count = tree_view->model()->rowCount();
     QString edit_filter_text = new_text.toLower();
     QStandardItem* folder;
     int children_total = 0;
@@ -194,7 +192,7 @@ void GameList::OnTextChanged(const QString& new_text) {
     if (edit_filter_text.isEmpty()) {
         tree_view->setRowHidden(0, item_model->invisibleRootItem()->index(),
                                 UISettings::values.favorited_ids.size() == 0);
-        for (int i = 1; i < folder_count; ++i) {
+        for (int i = 1; i < item_model->rowCount() - 1; ++i) {
             folder = item_model->item(i, 0);
             const QModelIndex folder_index = folder->index();
             const int children_count = folder->rowCount();
@@ -207,7 +205,7 @@ void GameList::OnTextChanged(const QString& new_text) {
     } else {
         tree_view->setRowHidden(0, item_model->invisibleRootItem()->index(), true);
         int result_count = 0;
-        for (int i = 1; i < folder_count; ++i) {
+        for (int i = 1; i < item_model->rowCount() - 1; ++i) {
             folder = item_model->item(i, 0);
             const QModelIndex folder_index = folder->index();
             const int children_count = folder->rowCount();
@@ -466,9 +464,8 @@ void GameList::DonePopulating(const QStringList& watch_list) {
         QCoreApplication::processEvents();
     }
     tree_view->setEnabled(true);
-    const int folder_count = tree_view->model()->rowCount();
     int children_total = 0;
-    for (int i = 1; i < folder_count; ++i) {
+    for (int i = 1; i < item_model->rowCount() - 1; ++i) {
         children_total += item_model->item(i, 0)->rowCount();
     }
     search_field->setFilterResult(children_total, children_total);
@@ -649,9 +646,9 @@ void GameList::AddPermDirPopup(QMenu& context_menu, QModelIndex selected) {
 }
 
 void GameList::AddFavoritesPopup(QMenu& context_menu) {
-    QAction* clear_all = context_menu.addAction(tr("Clear"));
+    QAction* clear = context_menu.addAction(tr("Clear"));
 
-    connect(clear_all, &QAction::triggered, [this] {
+    connect(clear, &QAction::triggered, [this] {
         for (const auto id : UISettings::values.favorited_ids) {
             RemoveFavorite(id);
         }
