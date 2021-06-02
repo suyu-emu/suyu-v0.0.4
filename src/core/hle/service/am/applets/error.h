@@ -42,7 +42,7 @@ private:
     union ErrorArguments;
 
     const Core::Frontend::ErrorApplet& frontend;
-    ResultCode error_code = RESULT_SUCCESS;
+    ResultCode error_code = ResultSuccess;
     ErrorAppletMode mode = ErrorAppletMode::ShowError;
     std::unique_ptr<ErrorArguments> args;
 

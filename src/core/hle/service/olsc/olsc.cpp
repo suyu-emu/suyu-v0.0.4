@@ -50,7 +50,7 @@ private:
         initialized = true;
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void GetSaveDataBackupSetting(Kernel::HLERequestContext& ctx) {
@@ -60,7 +60,7 @@ private:
         constexpr u64 backup_setting = 0;
 
         IPC::ResponseBuilder rb{ctx, 4};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push(backup_setting);
     }
 
@@ -68,7 +68,7 @@ private:
         LOG_WARNING(Service_OLSC, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     bool initialized{};

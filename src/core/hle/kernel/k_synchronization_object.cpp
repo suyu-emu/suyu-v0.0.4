@@ -38,7 +38,7 @@ ResultCode KSynchronizationObject::Wait(KernelCore& kernel_ctx, s32* out_index,
             if (objects[i]->IsSignaled()) {
                 *out_index = i;
                 slp.CancelSleep();
-                return RESULT_SUCCESS;
+                return ResultSuccess;
             }
         }
 
@@ -97,7 +97,7 @@ ResultCode KSynchronizationObject::Wait(KernelCore& kernel_ctx, s32* out_index,
     kernel_ctx.TimeManager().UnscheduleTimeEvent(thread);
 
     // Get the wait result.
-    ResultCode wait_result{RESULT_SUCCESS};
+    ResultCode wait_result{ResultSuccess};
     s32 sync_index = -1;
     {
         KScopedSchedulerLock lock(kernel_ctx);

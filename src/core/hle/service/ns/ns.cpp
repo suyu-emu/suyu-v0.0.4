@@ -335,7 +335,7 @@ void IApplicationManagerInterface::GetApplicationControlData(Kernel::HLERequestC
                       "output buffer is too small! (actual={:016X}, expected_min=0x4000)", size);
             IPC::ResponseBuilder rb{ctx, 2};
             // TODO(DarkLordZach): Find a better error code for this.
-            rb.Push(RESULT_UNKNOWN);
+            rb.Push(ResultUnknown);
             return;
         }
 
@@ -355,7 +355,7 @@ void IApplicationManagerInterface::GetApplicationControlData(Kernel::HLERequestC
                       0x4000 + control.second->GetSize());
             IPC::ResponseBuilder rb{ctx, 2};
             // TODO(DarkLordZach): Find a better error code for this.
-            rb.Push(RESULT_UNKNOWN);
+            rb.Push(ResultUnknown);
             return;
         }
 
@@ -369,7 +369,7 @@ void IApplicationManagerInterface::GetApplicationControlData(Kernel::HLERequestC
     ctx.WriteBuffer(out);
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push<u32>(static_cast<u32>(out.size()));
 }
 
@@ -380,7 +380,7 @@ void IApplicationManagerInterface::GetApplicationDesiredLanguage(Kernel::HLERequ
     const auto res = GetApplicationDesiredLanguage(supported_languages);
     if (res.Succeeded()) {
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push<u32>(*res);
     } else {
         IPC::ResponseBuilder rb{ctx, 2};
@@ -432,7 +432,7 @@ void IApplicationManagerInterface::ConvertApplicationLanguageToLanguageCode(
     const auto res = ConvertApplicationLanguageToLanguageCode(application_language);
     if (res.Succeeded()) {
         IPC::ResponseBuilder rb{ctx, 4};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push(*res);
     } else {
         IPC::ResponseBuilder rb{ctx, 2};
@@ -697,7 +697,7 @@ private:
         LOG_DEBUG(Service_NS, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<ISystemUpdateControl>(system);
     }
 };
@@ -721,7 +721,7 @@ private:
         LOG_WARNING(Service_NS, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push(false);
     }
 };

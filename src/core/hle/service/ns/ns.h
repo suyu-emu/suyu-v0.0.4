@@ -87,7 +87,7 @@ private:
         LOG_DEBUG(Service_NS, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<T>(system);
     }
 
@@ -95,7 +95,7 @@ private:
         LOG_DEBUG(Service_NS, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IApplicationManagerInterface>(system);
     }
 

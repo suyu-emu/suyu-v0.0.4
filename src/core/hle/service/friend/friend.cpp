@@ -135,7 +135,7 @@ private:
         // blocked users.
         LOG_WARNING(Service_Friend, "(STUBBED) called");
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push<u32>(0); // Indicates there are no blocked users
     }
 
@@ -143,14 +143,14 @@ private:
         // Stub used by Splatoon 2
         LOG_WARNING(Service_Friend, "(STUBBED) called");
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void UpdateUserPresence(Kernel::HLERequestContext& ctx) {
         // Stub used by Retro City Rampage
         LOG_WARNING(Service_Friend, "(STUBBED) called");
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void GetPlayHistoryRegistrationKey(Kernel::HLERequestContext& ctx) {
@@ -162,7 +162,7 @@ private:
                     uuid.Format());
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void GetFriendList(Kernel::HLERequestContext& ctx) {
@@ -175,7 +175,7 @@ private:
                     uuid.Format(), pid);
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
 
         rb.Push<u32>(0); // Friend count
         // TODO(ogniK): Return a buffer of u64s which are the "NetworkServiceAccountId"
@@ -206,7 +206,7 @@ private:
         LOG_DEBUG(Service_Friend, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushCopyObjects(notification_event.GetReadableEvent());
     }
 
@@ -218,7 +218,7 @@ private:
         std::memset(&states, 0, sizeof(States));
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void Pop(Kernel::HLERequestContext& ctx) {
@@ -249,7 +249,7 @@ private:
         }
 
         IPC::ResponseBuilder rb{ctx, 6};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushRaw<SizedNotificationInfo>(notification);
     }
 
@@ -280,7 +280,7 @@ private:
 
 void Module::Interface::CreateFriendService(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushIpcInterface<IFriendService>(system);
     LOG_DEBUG(Service_Friend, "called");
 }
@@ -292,7 +292,7 @@ void Module::Interface::CreateNotificationService(Kernel::HLERequestContext& ctx
     LOG_DEBUG(Service_Friend, "called, uuid={}", uuid.Format());
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushIpcInterface<INotificationService>(uuid, system);
 }
 

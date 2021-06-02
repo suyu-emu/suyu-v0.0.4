@@ -77,7 +77,7 @@ constexpr ResultCode ERR_INVALID_LANGUAGE{ErrorModule::Settings, 625};
 
 void PushResponseLanguageCode(Kernel::HLERequestContext& ctx, std::size_t num_language_codes) {
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push(static_cast<u32>(num_language_codes));
 }
 
@@ -107,7 +107,7 @@ void GetKeyCodeMapImpl(Kernel::HLERequestContext& ctx) {
     ctx.WriteBuffer(layout);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 } // Anonymous namespace
 
@@ -133,7 +133,7 @@ void SET::MakeLanguageCode(Kernel::HLERequestContext& ctx) {
     }
 
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushEnum(available_language_codes[index]);
 }
 
@@ -159,7 +159,7 @@ void SET::GetQuestFlag(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push(static_cast<u32>(Settings::values.quest_flag));
 }
 
@@ -167,7 +167,7 @@ void SET::GetLanguageCode(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called {}", Settings::values.language_index.GetValue());
 
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushEnum(available_language_codes[Settings::values.language_index.GetValue()]);
 }
 
@@ -175,7 +175,7 @@ void SET::GetRegionCode(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push(Settings::values.region_index.GetValue());
 }
 

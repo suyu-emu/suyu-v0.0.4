@@ -76,7 +76,7 @@ bool Auth::TransactionComplete() const {
 }
 
 ResultCode Auth::GetStatus() const {
-    return successful ? RESULT_SUCCESS : ERROR_INVALID_PIN;
+    return successful ? ResultSuccess : ERROR_INVALID_PIN;
 }
 
 void Auth::ExecuteInteractive() {
@@ -175,7 +175,7 @@ bool PhotoViewer::TransactionComplete() const {
 }
 
 ResultCode PhotoViewer::GetStatus() const {
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 void PhotoViewer::ExecuteInteractive() {
@@ -229,7 +229,7 @@ bool StubApplet::TransactionComplete() const {
 
 ResultCode StubApplet::GetStatus() const {
     LOG_WARNING(Service_AM, "called (STUBBED)");
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 void StubApplet::ExecuteInteractive() {

@@ -33,14 +33,14 @@ private:
         LOG_WARNING(Service_MM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void FinalizeOld(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_MM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void SetAndWaitOld(Kernel::HLERequestContext& ctx) {
@@ -51,14 +51,14 @@ private:
 
         current = min;
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void GetOld(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_MM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push(current);
     }
 
@@ -66,7 +66,7 @@ private:
         LOG_WARNING(Service_MM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push<u32>(id); // Any non zero value
     }
 
@@ -74,7 +74,7 @@ private:
         LOG_WARNING(Service_MM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void SetAndWait(Kernel::HLERequestContext& ctx) {
@@ -87,14 +87,14 @@ private:
 
         current = min;
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void Get(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_MM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push(current);
     }
 

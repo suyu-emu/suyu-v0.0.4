@@ -57,7 +57,7 @@ void AudCtl::GetTargetVolumeMin(Kernel::HLERequestContext& ctx) {
     constexpr s32 target_min_volume = 0;
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push(target_min_volume);
 }
 
@@ -69,7 +69,7 @@ void AudCtl::GetTargetVolumeMax(Kernel::HLERequestContext& ctx) {
     constexpr s32 target_max_volume = 15;
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push(target_max_volume);
 }
 

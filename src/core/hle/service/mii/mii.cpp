@@ -74,7 +74,7 @@ private:
         LOG_DEBUG(Service_Mii, "called with source_flag={}", source_flag);
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push(manager.CheckAndResetUpdateCounter(source_flag, current_update_counter));
     }
 
@@ -82,7 +82,7 @@ private:
         LOG_DEBUG(Service_Mii, "called");
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push(manager.IsFullDatabase());
     }
 
@@ -93,7 +93,7 @@ private:
         LOG_DEBUG(Service_Mii, "called with source_flag={}", source_flag);
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push<u32>(manager.GetCount(source_flag));
     }
 
@@ -115,7 +115,7 @@ private:
         }
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push<u32>(static_cast<u32>(result->size()));
     }
 
@@ -140,7 +140,7 @@ private:
         ctx.WriteBuffer(SerializeArray(values));
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push<u32>(static_cast<u32>(result->size()));
     }
 
@@ -159,7 +159,7 @@ private:
         }
 
         IPC::ResponseBuilder rb{ctx, 2 + sizeof(MiiInfo) / sizeof(u32)};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushRaw<MiiInfo>(*result);
     }
 
@@ -194,7 +194,7 @@ private:
         }
 
         IPC::ResponseBuilder rb{ctx, 2 + sizeof(MiiInfo) / sizeof(u32)};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushRaw<MiiInfo>(manager.BuildRandom(age, gender, race));
     }
 
@@ -213,7 +213,7 @@ private:
         }
 
         IPC::ResponseBuilder rb{ctx, 2 + sizeof(MiiInfo) / sizeof(u32)};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushRaw<MiiInfo>(manager.BuildDefault(index));
     }
 
@@ -238,7 +238,7 @@ private:
         UNIMPLEMENTED_IF(current_interface_version != 1);
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     constexpr bool IsInterfaceVersionSupported(u32 interface_version) const {
@@ -267,7 +267,7 @@ public:
 private:
     void GetDatabaseService(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IDatabaseService>(system);
 
         LOG_DEBUG(Service_Mii, "called");

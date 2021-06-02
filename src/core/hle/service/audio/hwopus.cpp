@@ -80,13 +80,13 @@ private:
             LOG_ERROR(Audio, "Failed to decode opus data");
             IPC::ResponseBuilder rb{ctx, 2};
             // TODO(ogniK): Use correct error code
-            rb.Push(RESULT_UNKNOWN);
+            rb.Push(ResultUnknown);
             return;
         }
 
         const u32 param_size = performance != nullptr ? 6 : 4;
         IPC::ResponseBuilder rb{ctx, param_size};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push<u32>(consumed);
         rb.Push<u32>(sample_count);
         if (performance) {
@@ -249,7 +249,7 @@ void HwOpus::GetWorkBufferSize(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Audio, "worker_buffer_sz={}", worker_buffer_sz);
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push<u32>(worker_buffer_sz);
 }
 
@@ -281,12 +281,12 @@ void HwOpus::OpenOpusDecoder(Kernel::HLERequestContext& ctx) {
         LOG_ERROR(Audio, "Failed to create Opus decoder (error={}).", error);
         IPC::ResponseBuilder rb{ctx, 2};
         // TODO(ogniK): Use correct error code
-        rb.Push(RESULT_UNKNOWN);
+        rb.Push(ResultUnknown);
         return;
     }
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushIpcInterface<IHardwareOpusDecoderManager>(
         system, OpusDecoderState{std::move(decoder), sample_rate, channel_count});
 }

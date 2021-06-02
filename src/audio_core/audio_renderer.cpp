@@ -197,7 +197,7 @@ ResultCode AudioRenderer::UpdateAudioRenderer(const std::vector<u8>& input_param
 
     ReleaseAndQueueBuffers();
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 void AudioRenderer::QueueMixedBuffer(Buffer::Tag tag) {

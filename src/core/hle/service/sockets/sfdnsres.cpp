@@ -46,7 +46,7 @@ void SFDNSRES::GetAddrInfoRequest(Kernel::HLERequestContext& ctx) {
                 parameters.use_nsd_resolve, parameters.unknown, parameters.process_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 } // namespace Service::Sockets

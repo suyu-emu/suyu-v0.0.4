@@ -71,7 +71,7 @@ std::size_t KServerSession::NumDomainRequestHandlers() const {
 
 ResultCode KServerSession::HandleDomainSyncRequest(Kernel::HLERequestContext& context) {
     if (!context.HasDomainMessageHeader()) {
-        return RESULT_SUCCESS;
+        return ResultSuccess;
     }
 
     // Set domain handlers in HLE context, used for domain objects (IPC interfaces) as inputs
@@ -88,7 +88,7 @@ ResultCode KServerSession::HandleDomainSyncRequest(Kernel::HLERequestContext& co
                          "to {} needed to return a new interface!",
                          object_id, name);
             UNREACHABLE();
-            return RESULT_SUCCESS; // Ignore error if asserts are off
+            return ResultSuccess; // Ignore error if asserts are off
         }
         return manager->DomainHandler(object_id - 1)->HandleSyncRequest(*this, context);
 
@@ -98,14 +98,14 @@ ResultCode KServerSession::HandleDomainSyncRequest(Kernel::HLERequestContext& co
         manager->CloseDomainHandler(object_id - 1);
 
         IPC::ResponseBuilder rb{context, 2};
-        rb.Push(RESULT_SUCCESS);
-        return RESULT_SUCCESS;
+        rb.Push(ResultSuccess);
+        return ResultSuccess;
     }
     }
 
     LOG_CRITICAL(IPC, "Unknown domain command={}", domain_message_header.command.Value());
     ASSERT(false);
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode KServerSession::QueueSyncRequest(KThread* thread, Core::Memory::Memory& memory) {
@@ -116,14 +116,14 @@ ResultCode KServerSession::QueueSyncRequest(KThread* thread, Core::Memory::Memor
 
     if (auto strong_ptr = service_thread.lock()) {
         strong_ptr->QueueSyncRequest(*parent, std::move(context));
-        return RESULT_SUCCESS;
+        return ResultSuccess;
     }
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode KServerSession::CompleteSyncRequest(HLERequestContext& context) {
-    ResultCode result = RESULT_SUCCESS;
+    ResultCode result = ResultSuccess;
     // If the session has been converted to a domain, handle the domain request
     if (IsDomain() && context.HasDomainMessageHeader()) {
         result = HandleDomainSyncRequest(context);

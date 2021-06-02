@@ -64,7 +64,7 @@ private:
         should_signal = true;
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushCopyObjects(state_change_event.GetReadableEvent());
     }
 
@@ -74,7 +74,7 @@ private:
         should_signal = false;
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void SetChargerTypeChangeEventEnabled(Kernel::HLERequestContext& ctx) {
@@ -85,7 +85,7 @@ private:
         should_signal_charger_type = state;
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void SetPowerSupplyChangeEventEnabled(Kernel::HLERequestContext& ctx) {
@@ -96,7 +96,7 @@ private:
         should_signal_power_supply = state;
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void SetBatteryVoltageStateChangeEventEnabled(Kernel::HLERequestContext& ctx) {
@@ -107,7 +107,7 @@ private:
         should_signal_battery_voltage = state;
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     bool should_signal_charger_type{};
@@ -154,7 +154,7 @@ private:
         LOG_DEBUG(Service_PSM, "called");
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push<u32>(battery_charge_percentage);
     }
 
@@ -162,7 +162,7 @@ private:
         LOG_DEBUG(Service_PSM, "called");
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushEnum(charger_type);
     }
 
@@ -170,7 +170,7 @@ private:
         LOG_DEBUG(Service_PSM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IPsmSession>(system);
     }
 

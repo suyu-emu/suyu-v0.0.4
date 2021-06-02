@@ -76,7 +76,7 @@ private:
         LOG_WARNING(Service_BTM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushCopyObjects(scan_event.GetReadableEvent());
     }
 
@@ -84,7 +84,7 @@ private:
         LOG_WARNING(Service_BTM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushCopyObjects(connection_event.GetReadableEvent());
     }
 
@@ -92,7 +92,7 @@ private:
         LOG_WARNING(Service_BTM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushCopyObjects(service_discovery.GetReadableEvent());
     }
 
@@ -100,7 +100,7 @@ private:
         LOG_WARNING(Service_BTM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushCopyObjects(config_event.GetReadableEvent());
     }
 
@@ -126,7 +126,7 @@ private:
         LOG_DEBUG(Service_BTM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IBtmUserCore>(system);
     }
 };
@@ -273,7 +273,7 @@ private:
         LOG_DEBUG(Service_BTM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IBtmSystemCore>(system);
     }
 };

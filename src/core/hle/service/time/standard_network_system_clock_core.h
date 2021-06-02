@@ -25,13 +25,13 @@ public:
 
     bool IsStandardNetworkSystemClockAccuracySufficient(Core::System& system) const {
         SystemClockContext clock_ctx{};
-        if (GetClockContext(system, clock_ctx) != RESULT_SUCCESS) {
+        if (GetClockContext(system, clock_ctx) != ResultSuccess) {
             return {};
         }
 
         s64 span{};
         if (clock_ctx.steady_time_point.GetSpanBetween(
-                GetSteadyClockCore().GetCurrentTimePoint(system), span) != RESULT_SUCCESS) {
+                GetSteadyClockCore().GetCurrentTimePoint(system), span) != ResultSuccess) {
             return {};
         }
 

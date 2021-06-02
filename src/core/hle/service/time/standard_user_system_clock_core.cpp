@@ -24,20 +24,18 @@ StandardUserSystemClockCore::StandardUserSystemClockCore(
 
 ResultCode StandardUserSystemClockCore::SetAutomaticCorrectionEnabled(Core::System& system,
                                                                       bool value) {
-    if (const ResultCode result{ApplyAutomaticCorrection(system, value)};
-        result != RESULT_SUCCESS) {
+    if (const ResultCode result{ApplyAutomaticCorrection(system, value)}; result != ResultSuccess) {
         return result;
     }
 
     auto_correction_enabled = value;
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode StandardUserSystemClockCore::GetClockContext(Core::System& system,
                                                         SystemClockContext& ctx) const {
-    if (const ResultCode result{ApplyAutomaticCorrection(system, false)};
-        result != RESULT_SUCCESS) {
+    if (const ResultCode result{ApplyAutomaticCorrection(system, false)}; result != ResultSuccess) {
         return result;
     }
 
@@ -57,7 +55,7 @@ ResultCode StandardUserSystemClockCore::SetClockContext(const SystemClockContext
 ResultCode StandardUserSystemClockCore::ApplyAutomaticCorrection(Core::System& system,
                                                                  bool value) const {
     if (auto_correction_enabled == value) {
-        return RESULT_SUCCESS;
+        return ResultSuccess;
     }
 
     if (!network_system_clock_core.IsClockSetup(system)) {
@@ -66,13 +64,13 @@ ResultCode StandardUserSystemClockCore::ApplyAutomaticCorrection(Core::System& s
 
     SystemClockContext ctx{};
     if (const ResultCode result{network_system_clock_core.GetClockContext(system, ctx)};
-        result != RESULT_SUCCESS) {
+        result != ResultSuccess) {
         return result;
     }
 
     local_system_clock_core.SetClockContext(ctx);
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 } // namespace Service::Time::Clock

@@ -106,7 +106,7 @@ private:
         LOG_DEBUG(Service_BCAT, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushCopyObjects(event);
     }
 
@@ -116,7 +116,7 @@ private:
         ctx.WriteBuffer(impl);
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     Kernel::KReadableEvent& event;
@@ -185,7 +185,7 @@ private:
                             GetProgressBackend(SyncType::Normal));
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface(CreateProgressService(SyncType::Normal));
     }
 
@@ -202,7 +202,7 @@ private:
                                      name, GetProgressBackend(SyncType::Directory));
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface(CreateProgressService(SyncType::Directory));
     }
 
@@ -235,7 +235,7 @@ private:
         backend.SetPassphrase(title_id, passphrase);
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void ClearDeliveryCacheStorage(Kernel::HLERequestContext& ctx) {
@@ -259,7 +259,7 @@ private:
         }
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     ProgressServiceBackend& GetProgressBackend(SyncType type) {
@@ -278,7 +278,7 @@ void Module::Interface::CreateBcatService(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_BCAT, "called");
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushIpcInterface<IBcatService>(system, *backend);
 }
 
@@ -340,7 +340,7 @@ private:
         }
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void Read(Kernel::HLERequestContext& ctx) {
@@ -362,7 +362,7 @@ private:
         ctx.WriteBuffer(buffer);
 
         IPC::ResponseBuilder rb{ctx, 4};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push<u64>(buffer.size());
     }
 
@@ -376,7 +376,7 @@ private:
         }
 
         IPC::ResponseBuilder rb{ctx, 4};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push<u64>(current_file->GetSize());
     }
 
@@ -390,7 +390,7 @@ private:
         }
 
         IPC::ResponseBuilder rb{ctx, 6};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushRaw(DigestFile(current_file));
     }
 
@@ -443,7 +443,7 @@ private:
         }
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void Read(Kernel::HLERequestContext& ctx) {
@@ -472,7 +472,7 @@ private:
         ctx.WriteBuffer(entries);
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push(static_cast<u32>(write_size * sizeof(DeliveryCacheDirectoryEntry)));
     }
 
@@ -489,7 +489,7 @@ private:
         const auto files = current_dir->GetFiles();
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push(static_cast<u32>(files.size()));
     }
 
@@ -524,7 +524,7 @@ private:
         LOG_DEBUG(Service_BCAT, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IDeliveryCacheFileService>(system, root);
     }
 
@@ -532,7 +532,7 @@ private:
         LOG_DEBUG(Service_BCAT, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IDeliveryCacheDirectoryService>(system, root);
     }
 
@@ -546,7 +546,7 @@ private:
         next_read_index += size;
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push(static_cast<u32>(size));
     }
 
@@ -560,7 +560,7 @@ void Module::Interface::CreateDeliveryCacheStorageService(Kernel::HLERequestCont
 
     const auto title_id = system.CurrentProcess()->GetTitleID();
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushIpcInterface<IDeliveryCacheStorageService>(system, fsc.GetBCATDirectory(title_id));
 }
 
@@ -572,7 +572,7 @@ void Module::Interface::CreateDeliveryCacheStorageServiceWithApplicationId(
     LOG_DEBUG(Service_BCAT, "called, title_id={:016X}", title_id);
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushIpcInterface<IDeliveryCacheStorageService>(system, fsc.GetBCATDirectory(title_id));
 }
 

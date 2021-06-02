@@ -80,7 +80,7 @@ ResultCode KResourceLimit::SetLimitValue(LimitableResource which, s64 value) {
 
     limit_values[index] = value;
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 bool KResourceLimit::Reserve(LimitableResource which, s64 value) {

@@ -742,7 +742,7 @@ static ResultCode CreateCalendarTime(s64 time, int gmt_offset, CalendarTimeInter
     calendar_additional_info.is_dst = false;
     calendar_additional_info.gmt_offset = gmt_offset;
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 static ResultCode ToCalendarTimeInternal(const TimeZoneRule& rules, s64 time,
@@ -772,7 +772,7 @@ static ResultCode ToCalendarTimeInternal(const TimeZoneRule& rules, s64 time,
         }
         if (const ResultCode result{
                 ToCalendarTimeInternal(rules, new_time, calendar_time, calendar_additional_info)};
-            result != RESULT_SUCCESS) {
+            result != ResultSuccess) {
             return result;
         }
         if (time < rules.ats[0]) {
@@ -781,7 +781,7 @@ static ResultCode ToCalendarTimeInternal(const TimeZoneRule& rules, s64 time,
             calendar_time.year += years;
         }
 
-        return RESULT_SUCCESS;
+        return ResultSuccess;
     }
 
     s32 tti_index{};
@@ -803,7 +803,7 @@ static ResultCode ToCalendarTimeInternal(const TimeZoneRule& rules, s64 time,
 
     if (const ResultCode result{CreateCalendarTime(time, rules.ttis[tti_index].gmt_offset,
                                                    calendar_time, calendar_additional_info)};
-        result != RESULT_SUCCESS) {
+        result != ResultSuccess) {
         return result;
     }
 
@@ -812,7 +812,7 @@ static ResultCode ToCalendarTimeInternal(const TimeZoneRule& rules, s64 time,
     for (int index{}; time_zone[index] != '\0'; ++index) {
         calendar_additional_info.timezone_name[index] = time_zone[index];
     }
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 static ResultCode ToCalendarTimeImpl(const TimeZoneRule& rules, s64 time, CalendarInfo& calendar) {
@@ -845,14 +845,14 @@ ResultCode TimeZoneManager::SetDeviceLocationNameWithTimeZoneRule(const std::str
     if (ParseTimeZoneBinary(rule, vfs_file)) {
         device_location_name = location_name;
         time_zone_rule = rule;
-        return RESULT_SUCCESS;
+        return ResultSuccess;
     }
     return ERROR_TIME_ZONE_CONVERSION_FAILED;
 }
 
 ResultCode TimeZoneManager::SetUpdatedTime(const Clock::SteadyClockTimePoint& value) {
     time_zone_update_time_point = value;
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode TimeZoneManager::ToCalendarTimeWithMyRules(s64 time, CalendarInfo& calendar) const {
@@ -868,7 +868,7 @@ ResultCode TimeZoneManager::ParseTimeZoneRuleBinary(TimeZoneRule& rules,
     if (!ParseTimeZoneBinary(rules, vfs_file)) {
         return ERROR_TIME_ZONE_CONVERSION_FAILED;
     }
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode TimeZoneManager::ToPosixTime(const TimeZoneRule& rules,
@@ -981,7 +981,7 @@ ResultCode TimeZoneManager::ToPosixTime(const TimeZoneRule& rules,
         CalendarTimeInternal candidate_calendar_time{};
         CalendarAdditionalInfo unused{};
         if (ToCalendarTimeInternal(rules, pivot, candidate_calendar_time, unused) !=
-            RESULT_SUCCESS) {
+            ResultSuccess) {
             if (pivot > 0) {
                 direction = 1;
             } else {
@@ -1021,7 +1021,7 @@ ResultCode TimeZoneManager::ToPosixTime(const TimeZoneRule& rules,
             }
         }
     }
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode TimeZoneManager::ToPosixTimeWithMyRule(const CalendarTime& calendar_time,
@@ -1038,7 +1038,7 @@ ResultCode TimeZoneManager::GetDeviceLocationName(LocationName& value) const {
         return ERROR_UNINITIALIZED_CLOCK;
     }
     std::memcpy(value.data(), device_location_name.c_str(), device_location_name.size());
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 } // namespace Service::Time::TimeZone

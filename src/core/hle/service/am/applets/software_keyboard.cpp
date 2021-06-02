@@ -658,7 +658,7 @@ void SoftwareKeyboard::InlineTextChanged() {
 
 void SoftwareKeyboard::ExitKeyboard() {
     complete = true;
-    status = RESULT_SUCCESS;
+    status = ResultSuccess;
 
     frontend.ExitKeyboard();
 

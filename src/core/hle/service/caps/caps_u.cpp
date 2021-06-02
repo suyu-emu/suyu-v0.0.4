@@ -62,7 +62,7 @@ void CAPS_U::SetShimLibraryVersion(Kernel::HLERequestContext& ctx) {
                 library_version, applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void CAPS_U::GetAlbumContentsFileListForApplication(Kernel::HLERequestContext& ctx) {
@@ -89,7 +89,7 @@ void CAPS_U::GetAlbumContentsFileListForApplication(Kernel::HLERequestContext& c
         total_entries_1, total_entries_2);
 
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push(total_entries_1);
     rb.Push(total_entries_2);
 }

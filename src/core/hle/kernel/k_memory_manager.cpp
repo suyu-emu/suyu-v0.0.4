@@ -86,7 +86,7 @@ ResultCode KMemoryManager::Allocate(KPageLinkedList& page_list, std::size_t num_
 
     // Early return if we're allocating no pages
     if (num_pages == 0) {
-        return RESULT_SUCCESS;
+        return ResultSuccess;
     }
 
     // Lock the pool that we're allocating from
@@ -146,14 +146,14 @@ ResultCode KMemoryManager::Allocate(KPageLinkedList& page_list, std::size_t num_
 
     // We succeeded!
     group_guard.Cancel();
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode KMemoryManager::Free(KPageLinkedList& page_list, std::size_t num_pages, Pool pool,
                                 Direction dir) {
     // Early return if we're freeing no pages
     if (!num_pages) {
-        return RESULT_SUCCESS;
+        return ResultSuccess;
     }
 
     // Lock the pool that we're freeing from
@@ -170,7 +170,7 @@ ResultCode KMemoryManager::Free(KPageLinkedList& page_list, std::size_t num_page
         chosen_manager.Free(it.GetAddress(), min_num_pages);
     }
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 std::size_t KMemoryManager::Impl::CalculateManagementOverheadSize(std::size_t region_size) {

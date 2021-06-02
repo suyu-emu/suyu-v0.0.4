@@ -46,7 +46,7 @@ private:
         LOG_DEBUG(Service_NFC, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IAm>(system);
     }
 };
@@ -94,7 +94,7 @@ private:
         LOG_DEBUG(Service_NFC, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<MFIUser>(system);
     }
 };
@@ -141,7 +141,7 @@ private:
         LOG_DEBUG(Service_NFC, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         // We don't deal with hardware initialization so we can just stub this.
     }
 
@@ -149,7 +149,7 @@ private:
         LOG_DEBUG(Service_NFC, "IsNfcEnabledOld");
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushRaw<u8>(true);
     }
 
@@ -157,7 +157,7 @@ private:
         LOG_WARNING(Service_NFC, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushEnum(NfcStates::Finalized); // TODO(ogniK): Figure out if this matches nfp
     }
 
@@ -165,7 +165,7 @@ private:
         LOG_WARNING(Service_NFC, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 };
 
@@ -186,7 +186,7 @@ private:
         LOG_DEBUG(Service_NFC, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IUser>(system);
     }
 };
@@ -245,7 +245,7 @@ private:
         LOG_DEBUG(Service_NFC, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<ISystem>(system);
     }
 };

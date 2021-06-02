@@ -165,7 +165,7 @@ private:
         LOG_DEBUG(Service_USB, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IPdSession>(system);
     }
 };
@@ -207,7 +207,7 @@ public:
 private:
     void GetPdCradleSession(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IPdCradleSession>(system);
 
         LOG_DEBUG(Service_USB, "called");

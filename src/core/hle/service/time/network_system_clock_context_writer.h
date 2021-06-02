@@ -18,7 +18,7 @@ public:
 protected:
     ResultCode Update() override {
         shared_memory.UpdateNetworkSystemClockContext(context);
-        return RESULT_SUCCESS;
+        return ResultSuccess;
     }
 
 private:

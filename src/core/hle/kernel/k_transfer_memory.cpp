@@ -28,7 +28,7 @@ ResultCode KTransferMemory::Initialize(VAddr address_, std::size_t size_,
     size = size_;
     is_initialized = true;
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 void KTransferMemory::Finalize() {

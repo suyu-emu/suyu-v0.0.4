@@ -76,7 +76,7 @@ private:
         LOG_WARNING(Service_AOC, "(STUBBED) called, unknown_1={}", unknown_1);
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void SetDeliveryTarget(Kernel::HLERequestContext& ctx) {
@@ -88,14 +88,14 @@ private:
         LOG_WARNING(Service_AOC, "(STUBBED) called, unknown_1={}", unknown_1);
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void GetPurchasedEventReadableHandle(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_AOC, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushCopyObjects(purchased_event.GetReadableEvent());
     }
 
@@ -144,7 +144,7 @@ void AOC_U::CountAddOnContent(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_AOC, "called. process_id={}", params.process_id);
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 
     const auto current = system.CurrentProcess()->GetTitleID();
 
@@ -190,7 +190,7 @@ void AOC_U::ListAddOnContent(Kernel::HLERequestContext& ctx) {
     if (out.size() < offset) {
         IPC::ResponseBuilder rb{ctx, 2};
         // TODO(DarkLordZach): Find the correct error code.
-        rb.Push(RESULT_UNKNOWN);
+        rb.Push(ResultUnknown);
         return;
     }
 
@@ -201,7 +201,7 @@ void AOC_U::ListAddOnContent(Kernel::HLERequestContext& ctx) {
     ctx.WriteBuffer(out);
 
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push(out_count);
 }
 
@@ -217,7 +217,7 @@ void AOC_U::GetAddOnContentBaseId(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_AOC, "called. process_id={}", params.process_id);
 
     IPC::ResponseBuilder rb{ctx, 4};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 
     const auto title_id = system.CurrentProcess()->GetTitleID();
     const FileSys::PatchManager pm{title_id, system.GetFileSystemController(),
@@ -246,14 +246,14 @@ void AOC_U::PrepareAddOnContent(Kernel::HLERequestContext& ctx) {
                 process_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void AOC_U::GetAddOnContentListChangedEvent(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_AOC, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushCopyObjects(aoc_change_event.GetReadableEvent());
 }
 
@@ -261,7 +261,7 @@ void AOC_U::CreateEcPurchasedEventManager(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_AOC, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushIpcInterface<IPurchaseEventManager>(system);
 }
 
@@ -269,7 +269,7 @@ void AOC_U::CreatePermanentEcPurchasedEventManager(Kernel::HLERequestContext& ct
     LOG_WARNING(Service_AOC, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushIpcInterface<IPurchaseEventManager>(system);
 }
 

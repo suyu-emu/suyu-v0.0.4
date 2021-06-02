@@ -23,7 +23,7 @@ ProfileSelect::~ProfileSelect() = default;
 
 void ProfileSelect::Initialize() {
     complete = false;
-    status = RESULT_SUCCESS;
+    status = ResultSuccess;
     final_data.clear();
 
     Applet::Initialize();

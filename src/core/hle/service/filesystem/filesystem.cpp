@@ -60,27 +60,27 @@ ResultCode VfsDirectoryServiceWrapper::CreateFile(const std::string& path_, u64 
     }
 
     const auto entry_type = GetEntryType(path);
-    if (entry_type.Code() == RESULT_SUCCESS) {
+    if (entry_type.Code() == ResultSuccess) {
         return FileSys::ERROR_PATH_ALREADY_EXISTS;
     }
 
     auto file = dir->CreateFile(Common::FS::GetFilename(path));
     if (file == nullptr) {
         // TODO(DarkLordZach): Find a better error code for this
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
     if (!file->Resize(size)) {
         // TODO(DarkLordZach): Find a better error code for this
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode VfsDirectoryServiceWrapper::DeleteFile(const std::string& path_) const {
     std::string path(Common::FS::SanitizePath(path_));
     if (path.empty()) {
         // TODO(DarkLordZach): Why do games call this and what should it do? Works as is but...
-        return RESULT_SUCCESS;
+        return ResultSuccess;
     }
 
     auto dir = GetDirectoryRelativeWrapped(backing, Common::FS::GetParentPath(path));
@@ -89,10 +89,10 @@ ResultCode VfsDirectoryServiceWrapper::DeleteFile(const std::string& path_) cons
     }
     if (!dir->DeleteFile(Common::FS::GetFilename(path))) {
         // TODO(DarkLordZach): Find a better error code for this
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode VfsDirectoryServiceWrapper::CreateDirectory(const std::string& path_) const {
@@ -104,9 +104,9 @@ ResultCode VfsDirectoryServiceWrapper::CreateDirectory(const std::string& path_)
     auto new_dir = dir->CreateSubdirectory(Common::FS::GetFilename(path));
     if (new_dir == nullptr) {
         // TODO(DarkLordZach): Find a better error code for this
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode VfsDirectoryServiceWrapper::DeleteDirectory(const std::string& path_) const {
@@ -114,9 +114,9 @@ ResultCode VfsDirectoryServiceWrapper::DeleteDirectory(const std::string& path_)
     auto dir = GetDirectoryRelativeWrapped(backing, Common::FS::GetParentPath(path));
     if (!dir->DeleteSubdirectory(Common::FS::GetFilename(path))) {
         // TODO(DarkLordZach): Find a better error code for this
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode VfsDirectoryServiceWrapper::DeleteDirectoryRecursively(const std::string& path_) const {
@@ -124,9 +124,9 @@ ResultCode VfsDirectoryServiceWrapper::DeleteDirectoryRecursively(const std::str
     auto dir = GetDirectoryRelativeWrapped(backing, Common::FS::GetParentPath(path));
     if (!dir->DeleteSubdirectoryRecursive(Common::FS::GetFilename(path))) {
         // TODO(DarkLordZach): Find a better error code for this
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode VfsDirectoryServiceWrapper::CleanDirectoryRecursively(const std::string& path) const {
@@ -135,10 +135,10 @@ ResultCode VfsDirectoryServiceWrapper::CleanDirectoryRecursively(const std::stri
 
     if (!dir->CleanSubdirectoryRecursive(Common::FS::GetFilename(sanitized_path))) {
         // TODO(DarkLordZach): Find a better error code for this
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode VfsDirectoryServiceWrapper::RenameFile(const std::string& src_path_,
@@ -152,14 +152,14 @@ ResultCode VfsDirectoryServiceWrapper::RenameFile(const std::string& src_path_,
             return FileSys::ERROR_PATH_NOT_FOUND;
         if (!src->Rename(Common::FS::GetFilename(dest_path))) {
             // TODO(DarkLordZach): Find a better error code for this
-            return RESULT_UNKNOWN;
+            return ResultUnknown;
         }
-        return RESULT_SUCCESS;
+        return ResultSuccess;
     }
 
     // Move by hand -- TODO(DarkLordZach): Optimize
     auto c_res = CreateFile(dest_path, src->GetSize());
-    if (c_res != RESULT_SUCCESS)
+    if (c_res != ResultSuccess)
         return c_res;
 
     auto dest = backing->GetFileRelative(dest_path);
@@ -170,10 +170,10 @@ ResultCode VfsDirectoryServiceWrapper::RenameFile(const std::string& src_path_,
 
     if (!src->GetContainingDirectory()->DeleteFile(Common::FS::GetFilename(src_path))) {
         // TODO(DarkLordZach): Find a better error code for this
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode VfsDirectoryServiceWrapper::RenameDirectory(const std::string& src_path_,
@@ -187,9 +187,9 @@ ResultCode VfsDirectoryServiceWrapper::RenameDirectory(const std::string& src_pa
             return FileSys::ERROR_PATH_NOT_FOUND;
         if (!src->Rename(Common::FS::GetFilename(dest_path))) {
             // TODO(DarkLordZach): Find a better error code for this
-            return RESULT_UNKNOWN;
+            return ResultUnknown;
         }
-        return RESULT_SUCCESS;
+        return ResultSuccess;
     }
 
     // TODO(DarkLordZach): Implement renaming across the tree (move).
@@ -199,7 +199,7 @@ ResultCode VfsDirectoryServiceWrapper::RenameDirectory(const std::string& src_pa
                src_path, dest_path);
 
     // TODO(DarkLordZach): Find a better error code for this
-    return RESULT_UNKNOWN;
+    return ResultUnknown;
 }
 
 ResultVal<FileSys::VirtualFile> VfsDirectoryServiceWrapper::OpenFile(const std::string& path_,
@@ -258,7 +258,7 @@ FileSystemController::~FileSystemController() = default;
 ResultCode FileSystemController::RegisterRomFS(std::unique_ptr<FileSys::RomFSFactory>&& factory) {
     romfs_factory = std::move(factory);
     LOG_DEBUG(Service_FS, "Registered RomFS");
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode FileSystemController::RegisterSaveData(
@@ -266,21 +266,21 @@ ResultCode FileSystemController::RegisterSaveData(
     ASSERT_MSG(save_data_factory == nullptr, "Tried to register a second save data");
     save_data_factory = std::move(factory);
     LOG_DEBUG(Service_FS, "Registered save data");
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode FileSystemController::RegisterSDMC(std::unique_ptr<FileSys::SDMCFactory>&& factory) {
     ASSERT_MSG(sdmc_factory == nullptr, "Tried to register a second SDMC");
     sdmc_factory = std::move(factory);
     LOG_DEBUG(Service_FS, "Registered SDMC");
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode FileSystemController::RegisterBIS(std::unique_ptr<FileSys::BISFactory>&& factory) {
     ASSERT_MSG(bis_factory == nullptr, "Tried to register a second BIS");
     bis_factory = std::move(factory);
     LOG_DEBUG(Service_FS, "Registered BIS");
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 void FileSystemController::SetPackedUpdate(FileSys::VirtualFile update_raw) {
@@ -297,7 +297,7 @@ ResultVal<FileSys::VirtualFile> FileSystemController::OpenRomFSCurrentProcess() 
 
     if (romfs_factory == nullptr) {
         // TODO(bunnei): Find a better error code for this
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
 
     return romfs_factory->OpenCurrentProcess(system.CurrentProcess()->GetTitleID());
@@ -309,7 +309,7 @@ ResultVal<FileSys::VirtualFile> FileSystemController::OpenPatchedRomFS(
 
     if (romfs_factory == nullptr) {
         // TODO: Find a better error code for this
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
 
     return romfs_factory->OpenPatchedRomFS(title_id, type);
@@ -322,7 +322,7 @@ ResultVal<FileSys::VirtualFile> FileSystemController::OpenPatchedRomFSWithProgra
 
     if (romfs_factory == nullptr) {
         // TODO: Find a better error code for this
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
 
     return romfs_factory->OpenPatchedRomFSWithProgramIndex(title_id, program_index, type);
@@ -335,7 +335,7 @@ ResultVal<FileSys::VirtualFile> FileSystemController::OpenRomFS(
 
     if (romfs_factory == nullptr) {
         // TODO(bunnei): Find a better error code for this
-        return RESULT_UNKNOWN;
+        return ResultUnknown;
     }
 
     return romfs_factory->Open(title_id, storage_id, type);

@@ -684,7 +684,7 @@ private:
     u32 address_key_value{};
     u32 suspend_request_flags{};
     u32 suspend_allowed_flags{};
-    ResultCode wait_result{RESULT_SUCCESS};
+    ResultCode wait_result{ResultSuccess};
     s32 base_priority{};
     s32 physical_ideal_core_id{};
     s32 virtual_ideal_core_id{};

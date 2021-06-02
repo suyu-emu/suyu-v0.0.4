@@ -97,7 +97,7 @@ ResultCode KAddressArbiter::Signal(VAddr addr, s32 count) {
         while ((it != thread_tree.end()) && (count <= 0 || num_waiters < count) &&
                (it->GetAddressArbiterKey() == addr)) {
             KThread* target_thread = std::addressof(*it);
-            target_thread->SetSyncedObject(nullptr, RESULT_SUCCESS);
+            target_thread->SetSyncedObject(nullptr, ResultSuccess);
 
             ASSERT(target_thread->IsWaitingForAddressArbiter());
             target_thread->Wakeup();
@@ -107,7 +107,7 @@ ResultCode KAddressArbiter::Signal(VAddr addr, s32 count) {
             ++num_waiters;
         }
     }
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode KAddressArbiter::SignalAndIncrementIfEqual(VAddr addr, s32 value, s32 count) {
@@ -130,7 +130,7 @@ ResultCode KAddressArbiter::SignalAndIncrementIfEqual(VAddr addr, s32 value, s32
         while ((it != thread_tree.end()) && (count <= 0 || num_waiters < count) &&
                (it->GetAddressArbiterKey() == addr)) {
             KThread* target_thread = std::addressof(*it);
-            target_thread->SetSyncedObject(nullptr, RESULT_SUCCESS);
+            target_thread->SetSyncedObject(nullptr, ResultSuccess);
 
             ASSERT(target_thread->IsWaitingForAddressArbiter());
             target_thread->Wakeup();
@@ -140,7 +140,7 @@ ResultCode KAddressArbiter::SignalAndIncrementIfEqual(VAddr addr, s32 value, s32
             ++num_waiters;
         }
     }
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode KAddressArbiter::SignalAndModifyByWaitingCountIfEqual(VAddr addr, s32 value, s32 count) {
@@ -198,7 +198,7 @@ ResultCode KAddressArbiter::SignalAndModifyByWaitingCountIfEqual(VAddr addr, s32
         while ((it != thread_tree.end()) && (count <= 0 || num_waiters < count) &&
                (it->GetAddressArbiterKey() == addr)) {
             KThread* target_thread = std::addressof(*it);
-            target_thread->SetSyncedObject(nullptr, RESULT_SUCCESS);
+            target_thread->SetSyncedObject(nullptr, ResultSuccess);
 
             ASSERT(target_thread->IsWaitingForAddressArbiter());
             target_thread->Wakeup();
@@ -208,7 +208,7 @@ ResultCode KAddressArbiter::SignalAndModifyByWaitingCountIfEqual(VAddr addr, s32
             ++num_waiters;
         }
     }
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultCode KAddressArbiter::WaitIfLessThan(VAddr addr, s32 value, bool decrement, s64 timeout) {

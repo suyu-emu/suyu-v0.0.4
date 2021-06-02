@@ -54,7 +54,7 @@ private:
         }
 
         IPC::ResponseBuilder rb{ctx, 4};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push<s64>(posix_time);
     }
 
@@ -76,7 +76,7 @@ private:
         }
 
         IPC::ResponseBuilder rb{ctx, sizeof(Clock::SystemClockContext) / 4 + 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushRaw(system_clock_context);
     }
 
@@ -112,7 +112,7 @@ private:
 
         const Clock::SteadyClockTimePoint time_point{clock_core.GetCurrentTimePoint(system)};
         IPC::ResponseBuilder rb{ctx, (sizeof(Clock::SteadyClockTimePoint) / 4) + 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushRaw(time_point);
     }
 
@@ -135,7 +135,7 @@ ResultCode Module::Interface::GetClockSnapshotFromSystemClockContextInternal(
     if (const ResultCode result{
             time_manager.GetTimeZoneContentManager().GetTimeZoneManager().GetDeviceLocationName(
                 clock_snapshot.location_name)};
-        result != RESULT_SUCCESS) {
+        result != ResultSuccess) {
         return result;
     }
 
@@ -144,7 +144,7 @@ ResultCode Module::Interface::GetClockSnapshotFromSystemClockContextInternal(
     if (const ResultCode result{Clock::ClockSnapshot::GetCurrentTime(
             clock_snapshot.user_time, clock_snapshot.steady_clock_time_point,
             clock_snapshot.user_context)};
-        result != RESULT_SUCCESS) {
+        result != ResultSuccess) {
         return result;
     }
 
@@ -152,7 +152,7 @@ ResultCode Module::Interface::GetClockSnapshotFromSystemClockContextInternal(
     if (const ResultCode result{
             time_manager.GetTimeZoneContentManager().GetTimeZoneManager().ToCalendarTimeWithMyRules(
                 clock_snapshot.user_time, userCalendarInfo)};
-        result != RESULT_SUCCESS) {
+        result != ResultSuccess) {
         return result;
     }
 
@@ -163,7 +163,7 @@ ResultCode Module::Interface::GetClockSnapshotFromSystemClockContextInternal(
 
     if (Clock::ClockSnapshot::GetCurrentTime(clock_snapshot.network_time,
                                              clock_snapshot.steady_clock_time_point,
-                                             clock_snapshot.network_context) != RESULT_SUCCESS) {
+                                             clock_snapshot.network_context) != ResultSuccess) {
         clock_snapshot.network_time = 0;
     }
 
@@ -171,20 +171,20 @@ ResultCode Module::Interface::GetClockSnapshotFromSystemClockContextInternal(
     if (const ResultCode result{
             time_manager.GetTimeZoneContentManager().GetTimeZoneManager().ToCalendarTimeWithMyRules(
                 clock_snapshot.network_time, networkCalendarInfo)};
-        result != RESULT_SUCCESS) {
+        result != ResultSuccess) {
         return result;
     }
 
     clock_snapshot.network_calendar_time = networkCalendarInfo.time;
     clock_snapshot.network_calendar_additional_time = networkCalendarInfo.additional_info;
 
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 void Module::Interface::GetStandardUserSystemClock(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called");
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushIpcInterface<ISystemClock>(system.GetTimeManager().GetStandardUserSystemClockCore(),
                                       system);
 }
@@ -192,7 +192,7 @@ void Module::Interface::GetStandardUserSystemClock(Kernel::HLERequestContext& ct
 void Module::Interface::GetStandardNetworkSystemClock(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called");
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushIpcInterface<ISystemClock>(system.GetTimeManager().GetStandardNetworkSystemClockCore(),
                                       system);
 }
@@ -200,14 +200,14 @@ void Module::Interface::GetStandardNetworkSystemClock(Kernel::HLERequestContext&
 void Module::Interface::GetStandardSteadyClock(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called");
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushIpcInterface<ISteadyClock>(system.GetTimeManager().GetStandardSteadyClockCore(), system);
 }
 
 void Module::Interface::GetTimeZoneService(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called");
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushIpcInterface<ITimeZoneService>(system,
                                           system.GetTimeManager().GetTimeZoneContentManager());
 }
@@ -215,7 +215,7 @@ void Module::Interface::GetTimeZoneService(Kernel::HLERequestContext& ctx) {
 void Module::Interface::GetStandardLocalSystemClock(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called");
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushIpcInterface<ISystemClock>(system.GetTimeManager().GetStandardLocalSystemClockCore(),
                                       system);
 }
@@ -225,7 +225,7 @@ void Module::Interface::IsStandardNetworkSystemClockAccuracySufficient(
     LOG_DEBUG(Service_Time, "called");
     auto& clock_core{system.GetTimeManager().GetStandardNetworkSystemClockCore()};
     IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.Push<u32>(clock_core.IsStandardNetworkSystemClockAccuracySufficient(system));
 }
 
@@ -249,7 +249,7 @@ void Module::Interface::CalculateMonotonicSystemClockBaseTimePoint(Kernel::HLERe
         const s64 base_time_point{context.offset + current_time_point.time_point -
                                   ticks.ToSeconds()};
         IPC::ResponseBuilder rb{ctx, (sizeof(s64) / 4) + 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushRaw(base_time_point);
         return;
     }
@@ -296,7 +296,7 @@ void Module::Interface::GetClockSnapshot(Kernel::HLERequestContext& ctx) {
     ctx.WriteBuffer(clock_snapshot);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Module::Interface::GetClockSnapshotFromSystemClockContext(Kernel::HLERequestContext& ctx) {
@@ -313,7 +313,7 @@ void Module::Interface::GetClockSnapshotFromSystemClockContext(Kernel::HLEReques
     Clock::ClockSnapshot clock_snapshot{};
     if (const ResultCode result{GetClockSnapshotFromSystemClockContextInternal(
             &ctx.GetThread(), user_context, network_context, type, clock_snapshot)};
-        result != RESULT_SUCCESS) {
+        result != ResultSuccess) {
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(result);
         return;
@@ -322,7 +322,7 @@ void Module::Interface::GetClockSnapshotFromSystemClockContext(Kernel::HLEReques
     ctx.WriteBuffer(clock_snapshot);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void Module::Interface::CalculateStandardUserSystemClockDifferenceByUser(
@@ -349,7 +349,7 @@ void Module::Interface::CalculateStandardUserSystemClockDifferenceByUser(
     }
 
     IPC::ResponseBuilder rb{ctx, (sizeof(s64) / 4) + 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushRaw(time_span_type.nanoseconds);
 }
 
@@ -370,7 +370,7 @@ void Module::Interface::CalculateSpanBetween(Kernel::HLERequestContext& ctx) {
 
     if (const ResultCode result{snapshot_a.steady_clock_time_point.GetSpanBetween(
             snapshot_b.steady_clock_time_point, span)};
-        result != RESULT_SUCCESS) {
+        result != ResultSuccess) {
         if (snapshot_a.network_time && snapshot_b.network_time) {
             time_span_type =
                 Clock::TimeSpanType::FromSeconds(snapshot_b.network_time - snapshot_a.network_time);
@@ -384,14 +384,14 @@ void Module::Interface::CalculateSpanBetween(Kernel::HLERequestContext& ctx) {
     }
 
     IPC::ResponseBuilder rb{ctx, (sizeof(s64) / 4) + 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushRaw(time_span_type.nanoseconds);
 }
 
 void Module::Interface::GetSharedMemoryNativeHandle(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called");
     IPC::ResponseBuilder rb{ctx, 2, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushCopyObjects(&system.Kernel().GetTimeSharedMem());
 }
 

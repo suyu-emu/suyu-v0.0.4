@@ -119,7 +119,7 @@ ResultCode KClientPort::CreateSession(KClientSession** out) {
     // We succeeded, so set the output.
     session_guard.Cancel();
     *out = std::addressof(session->GetClientSession());
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 } // namespace Kernel

@@ -79,7 +79,7 @@ void ARP_R::GetApplicationLaunchProperty(Kernel::HLERequestContext& ctx) {
     }
 
     IPC::ResponseBuilder rb{ctx, 6};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushRaw(*res);
 }
 
@@ -99,7 +99,7 @@ void ARP_R::GetApplicationLaunchPropertyWithApplicationId(Kernel::HLERequestCont
     }
 
     IPC::ResponseBuilder rb{ctx, 6};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushRaw(*res);
 }
 
@@ -129,7 +129,7 @@ void ARP_R::GetApplicationControlProperty(Kernel::HLERequestContext& ctx) {
     ctx.WriteBuffer(*res);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void ARP_R::GetApplicationControlPropertyWithApplicationId(Kernel::HLERequestContext& ctx) {
@@ -150,7 +150,7 @@ void ARP_R::GetApplicationControlPropertyWithApplicationId(Kernel::HLERequestCon
     ctx.WriteBuffer(*res);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 class IRegistrar final : public ServiceFramework<IRegistrar> {
@@ -198,7 +198,7 @@ private:
         issued = true;
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void SetApplicationLaunchProperty(Kernel::HLERequestContext& ctx) {
@@ -217,7 +217,7 @@ private:
         launch = rp.PopRaw<ApplicationLaunchProperty>();
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void SetApplicationControlProperty(Kernel::HLERequestContext& ctx) {
@@ -235,7 +235,7 @@ private:
         control = ctx.ReadBuffer();
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     IssuerFn issue_process_id;
@@ -273,7 +273,7 @@ void ARP_W::AcquireRegistrar(Kernel::HLERequestContext& ctx) {
         });
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushIpcInterface(registrar);
 }
 

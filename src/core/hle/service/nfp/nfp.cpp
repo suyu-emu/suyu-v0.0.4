@@ -113,7 +113,7 @@ private:
         LOG_DEBUG(Service_NFC, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
 
         state = State::Initialized;
     }
@@ -122,7 +122,7 @@ private:
         LOG_DEBUG(Service_NFC, "called");
 
         IPC::ResponseBuilder rb{ctx, 3, 0};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushRaw<u32>(static_cast<u32>(state));
     }
 
@@ -134,7 +134,7 @@ private:
         ctx.WriteBuffer(device_handle);
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push<u32>(1);
     }
 
@@ -144,7 +144,7 @@ private:
         LOG_DEBUG(Service_NFP, "called, dev_handle=0x{:X}", dev_handle);
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push<u32>(npad_id);
     }
 
@@ -154,7 +154,7 @@ private:
         LOG_DEBUG(Service_NFP, "called, dev_handle=0x{:X}", dev_handle);
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushCopyObjects(nfp_interface.GetNFCEvent());
         has_attached_handle = true;
     }
@@ -165,7 +165,7 @@ private:
         LOG_DEBUG(Service_NFP, "called, dev_handle=0x{:X}", dev_handle);
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushCopyObjects(deactivate_event.GetReadableEvent());
     }
 
@@ -186,14 +186,14 @@ private:
             break;
         }
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void GetDeviceState(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_NFP, "called");
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push<u32>(static_cast<u32>(device_state));
     }
 
@@ -204,7 +204,7 @@ private:
             device_state = DeviceState::SearchingForTag;
         }
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void GetTagInfo(Kernel::HLERequestContext& ctx) {
@@ -221,7 +221,7 @@ private:
             .padding_2 = {},
         };
         ctx.WriteBuffer(tag_info);
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void Mount(Kernel::HLERequestContext& ctx) {
@@ -229,7 +229,7 @@ private:
 
         device_state = DeviceState::TagNearby;
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void GetModelInfo(Kernel::HLERequestContext& ctx) {
@@ -238,7 +238,7 @@ private:
         IPC::ResponseBuilder rb{ctx, 2};
         const auto& amiibo = nfp_interface.GetAmiiboBuffer();
         ctx.WriteBuffer(amiibo.model_info);
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void Unmount(Kernel::HLERequestContext& ctx) {
@@ -247,7 +247,7 @@ private:
         device_state = DeviceState::TagFound;
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void Finalize(Kernel::HLERequestContext& ctx) {
@@ -256,14 +256,14 @@ private:
         device_state = DeviceState::Finalized;
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void AttachAvailabilityChangeEvent(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_NFP, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushCopyObjects(availability_change_event.GetReadableEvent());
     }
 
@@ -273,7 +273,7 @@ private:
         // TODO(ogniK): Pull Mii and owner data from amiibo
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void GetCommonInfo(Kernel::HLERequestContext& ctx) {
@@ -286,7 +286,7 @@ private:
         ctx.WriteBuffer(common_info);
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void OpenApplicationArea(Kernel::HLERequestContext& ctx) {
@@ -299,7 +299,7 @@ private:
         LOG_WARNING(Service_NFP, "(STUBBED) called");
         // We don't need to worry about this since we can just open the file
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushRaw<u32>(0); // This is from the GetCommonInfo stub
     }
 
@@ -309,7 +309,7 @@ private:
         // TODO(ogniK): Pull application area from amiibo
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushRaw<u32>(0); // This is from the GetCommonInfo stub
     }
 
@@ -327,7 +327,7 @@ void Module::Interface::CreateUserInterface(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_NFP, "called");
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
     rb.PushIpcInterface<IUser>(*this, system);
 }
 

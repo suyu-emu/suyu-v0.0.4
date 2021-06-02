@@ -160,7 +160,7 @@ private:
     bool is_background{false};
 
     bool complete{false};
-    ResultCode status{RESULT_SUCCESS};
+    ResultCode status{ResultSuccess};
 };
 
 } // namespace Service::AM::Applets

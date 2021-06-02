@@ -270,7 +270,7 @@ public:
         nrr.insert_or_assign(nrr_address, std::move(hashes));
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void UnregisterModuleInfo(Kernel::HLERequestContext& ctx) {
@@ -284,7 +284,7 @@ public:
 
         IPC::ResponseBuilder rb{ctx, 2};
 
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     bool ValidateRegionForMap(Kernel::KPageTable& page_table, VAddr start, std::size_t size) const {
@@ -524,7 +524,7 @@ public:
                                      header.segment_headers[DATA_INDEX].memory_size, nro_address});
 
         IPC::ResponseBuilder rb{ctx, 4};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push(*map_result);
     }
 
@@ -541,7 +541,7 @@ public:
             info.nro_address + info.text_size, info.src_addr + info.text_size, info.ro_size));
         CASCADE_CODE(
             page_table.UnmapProcessCodeMemory(info.nro_address, info.src_addr, info.text_size));
-        return RESULT_SUCCESS;
+        return ResultSuccess;
     }
 
     void UnloadModule(Kernel::HLERequestContext& ctx) {
@@ -596,7 +596,7 @@ public:
         initialized = true;
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
 private:

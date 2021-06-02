@@ -170,14 +170,14 @@ private:
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void GetRequestState(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
 
         if (Settings::values.bcat_backend == "none") {
             rb.PushEnum(RequestState::NotSubmitted);
@@ -190,14 +190,14 @@ private:
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void GetSystemEventReadableHandles(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushCopyObjects(event1.GetReadableEvent(), event2.GetReadableEvent());
     }
 
@@ -205,14 +205,14 @@ private:
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void SetConnectionConfirmationOption(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void GetAppletInfo(Kernel::HLERequestContext& ctx) {
@@ -223,7 +223,7 @@ private:
         ctx.WriteBuffer(out_buffer);
 
         IPC::ResponseBuilder rb{ctx, 5};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push<u32>(0);
         rb.Push<u32>(0);
         rb.Push<u32>(0);
@@ -254,7 +254,7 @@ private:
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 4};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push<u64>(client_id); // Client ID needs to be non zero otherwise it's considered invalid
     }
     void CreateScanRequest(Kernel::HLERequestContext& ctx) {
@@ -262,7 +262,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
 
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IScanRequest>(system);
     }
     void CreateRequest(Kernel::HLERequestContext& ctx) {
@@ -270,7 +270,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
 
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IRequest>(system);
     }
     void GetCurrentNetworkProfile(Kernel::HLERequestContext& ctx) {
@@ -311,13 +311,13 @@ private:
         ctx.WriteBuffer(network_profile_data);
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
     void RemoveNetworkProfile(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
     void GetCurrentIpAddress(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
@@ -326,7 +326,7 @@ private:
         UNIMPLEMENTED_IF(error != Network::Errno::SUCCESS);
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushRaw(ipv4);
     }
     void CreateTemporaryNetworkProfile(Kernel::HLERequestContext& ctx) {
@@ -340,7 +340,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 6, 0, 1};
 
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<INetworkProfile>(system);
         rb.PushRaw<u128>(uuid);
     }
@@ -369,21 +369,21 @@ private:
         };
 
         IPC::ResponseBuilder rb{ctx, 2 + (sizeof(IpConfigInfo) + 3) / sizeof(u32)};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushRaw<IpConfigInfo>(ip_config_info);
     }
     void IsWirelessCommunicationEnabled(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.Push<u8>(0);
     }
     void IsEthernetCommunicationEnabled(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         if (Settings::values.bcat_backend == "none") {
             rb.Push<u8>(0);
         } else {
@@ -394,7 +394,7 @@ private:
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         if (Settings::values.bcat_backend == "none") {
             rb.Push<u8>(0);
         } else {
@@ -471,7 +471,7 @@ private:
         LOG_DEBUG(Service_NIFM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IGeneralService>(system);
     }
 
@@ -479,7 +479,7 @@ private:
         LOG_DEBUG(Service_NIFM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IGeneralService>(system);
     }
 };

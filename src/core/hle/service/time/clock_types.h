@@ -32,7 +32,7 @@ struct SteadyClockTimePoint {
 
         span = other.time_point - time_point;
 
-        return RESULT_SUCCESS;
+        return ResultSuccess;
     }
 
     static SteadyClockTimePoint GetRandom() {
@@ -101,7 +101,7 @@ struct ClockSnapshot {
             return ERROR_TIME_MISMATCH;
         }
         current_time = steady_clock_time_point.time_point + context.offset;
-        return RESULT_SUCCESS;
+        return ResultSuccess;
     }
 };
 static_assert(sizeof(ClockSnapshot) == 0xD0, "ClockSnapshot is incorrect size");

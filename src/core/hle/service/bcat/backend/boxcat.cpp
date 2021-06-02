@@ -121,7 +121,7 @@ void HandleDownloadDisplayResult(const AM::Applets::AppletManager& applet_manage
 
     const auto& frontend{applet_manager.GetAppletFrontendSet()};
     frontend.error->ShowCustomErrorText(
-        RESULT_UNKNOWN, "There was an error while attempting to use Boxcat.",
+        ResultUnknown, "There was an error while attempting to use Boxcat.",
         DOWNLOAD_RESULT_LOG_MESSAGES[static_cast<std::size_t>(res)], [] {});
 }
 
@@ -300,7 +300,7 @@ void SynchronizeInternal(AM::Applets::AppletManager& applet_manager, DirectoryGe
         const auto dir = dir_getter(title.title_id);
         if (dir)
             progress.SetTotalSize(dir->GetSize());
-        progress.FinishDownload(RESULT_SUCCESS);
+        progress.FinishDownload(ResultSuccess);
         return;
     }
 
@@ -383,7 +383,7 @@ void SynchronizeInternal(AM::Applets::AppletManager& applet_manager, DirectoryGe
         }
     }
 
-    progress.FinishDownload(RESULT_SUCCESS);
+    progress.FinishDownload(ResultSuccess);
 }
 
 bool Boxcat::Synchronize(TitleIDVersion title, ProgressServiceBackend& progress) {

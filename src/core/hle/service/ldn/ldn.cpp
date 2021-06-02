@@ -48,7 +48,7 @@ public:
         LOG_DEBUG(Service_LDN, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IMonitorService>(system);
     }
 };
@@ -147,7 +147,7 @@ public:
         // Indicate a network error, as we do not actually emulate LDN
         rb.Push(static_cast<u32>(State::Error));
 
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
     }
 
     void Initialize2(Kernel::HLERequestContext& ctx) {
@@ -189,7 +189,7 @@ public:
         LOG_DEBUG(Service_LDN, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<ISystemLocalCommunicationService>(system);
     }
 };
@@ -210,7 +210,7 @@ public:
         LOG_DEBUG(Service_LDN, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<IUserLocalCommunicationService>(system);
     }
 };
@@ -300,7 +300,7 @@ public:
                     input);
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<INetworkService>(system);
     }
 
@@ -311,7 +311,7 @@ public:
         LOG_WARNING(Service_LDN, "(STUBBED) called reserved_input={}", reserved_input);
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<INetworkServiceMonitor>(system);
     }
 };
@@ -338,7 +338,7 @@ public:
                     input);
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<INetworkService>(system);
     }
 
@@ -349,7 +349,7 @@ public:
         LOG_WARNING(Service_LDN, "(STUBBED) called reserved_input={}", reserved_input);
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-        rb.Push(RESULT_SUCCESS);
+        rb.Push(ResultSuccess);
         rb.PushIpcInterface<INetworkServiceMonitor>(system);
     }
 };

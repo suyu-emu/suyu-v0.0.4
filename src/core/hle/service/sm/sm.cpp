@@ -36,7 +36,7 @@ static ResultCode ValidateServiceName(const std::string& name) {
         LOG_ERROR(Service_SM, "Invalid service name! service={}", name);
         return ERR_INVALID_NAME;
     }
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 Kernel::KClientPort& ServiceManager::InterfaceFactory(ServiceManager& self, Core::System& system) {
@@ -79,7 +79,7 @@ ResultCode ServiceManager::UnregisterService(const std::string& name) {
     iter->second->Close();
 
     registered_services.erase(iter);
-    return RESULT_SUCCESS;
+    return ResultSuccess;
 }
 
 ResultVal<Kernel::KPort*> ServiceManager::GetServicePort(const std::string& name) {
@@ -109,7 +109,7 @@ void SM::Initialize(Kernel::HLERequestContext& ctx) {
     is_initialized = true;
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void SM::GetService(Kernel::HLERequestContext& ctx) {
