@@ -358,3 +358,28 @@ ResultVal<std::remove_reference_t<Arg>> MakeResult(Arg&& arg) {
             return CONCAT2(check_result_L, __LINE__);                                              \
         }                                                                                          \
     } while (false)
+
+#define R_SUCCEEDED(res) (res.IsSuccess())
+
+/// Evaluates a boolean expression, and succeeds if that expression is true.
+#define R_SUCCEED_IF(expr) R_UNLESS(!(expr), RESULT_SUCCESS)
+
+/// Evaluates a boolean expression, and returns a result unless that expression is true.
+#define R_UNLESS(expr, res)                                                                        \
+    {                                                                                              \
+        if (!(expr)) {                                                                             \
+            if (res.IsError()) {                                                                   \
+                LOG_ERROR(Kernel, "Failed with result: {}", res.raw);                              \
+            }                                                                                      \
+            return res;                                                                            \
+        }                                                                                          \
+    }
+
+/// Evaluates an expression that returns a result, and returns the result if it would fail.
+#define R_TRY(res_expr)                                                                            \
+    {                                                                                              \
+        const auto _tmp_r_try_rc = (res_expr);                                                     \
+        if (_tmp_r_try_rc.IsError()) {                                                             \
+            return _tmp_r_try_rc;                                                                  \
+        }                                                                                          \
+    }
