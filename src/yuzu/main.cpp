@@ -1334,8 +1334,9 @@ void GMainWindow::BootGame(const QString& filename, std::size_t program_index) {
 
     if (!(loader == nullptr || loader->ReadProgramId(title_id) != Loader::ResultStatus::Success)) {
         // Load per game settings
+        const auto file_path = std::filesystem::path{filename.toStdU16String()};
         const auto config_file_name = title_id == 0
-                                          ? Common::FS::GetFilename(filename.toStdString())
+                                          ? Common::FS::PathToUTF8String(file_path.filename())
                                           : fmt::format("{:016X}", title_id);
         Config per_game_config(config_file_name, Config::ConfigType::PerGameConfig);
     }
@@ -1799,7 +1800,7 @@ void GMainWindow::RemoveAddOnContent(u64 program_id, const QString& entry_type) 
 }
 
 void GMainWindow::OnGameListRemoveFile(u64 program_id, GameListRemoveTarget target,
-                                       std::string_view game_path) {
+                                       const std::string& game_path) {
     const QString question = [this, target] {
         switch (target) {
         case GameListRemoveTarget::ShaderCache:
@@ -1846,10 +1847,11 @@ void GMainWindow::RemoveTransferableShaderCache(u64 program_id) {
     }
 }
 
-void GMainWindow::RemoveCustomConfiguration(u64 program_id, std::string_view game_path) {
-    const auto config_file_name = program_id == 0
-                                      ? fmt::format("{:s}.ini", Common::FS::GetFilename(game_path))
-                                      : fmt::format("{:016X}.ini", program_id);
+void GMainWindow::RemoveCustomConfiguration(u64 program_id, const std::string& game_path) {
+    const auto file_path = std::filesystem::path(Common::FS::ToU8String(game_path));
+    const auto config_file_name =
+        program_id == 0 ? Common::FS::PathToUTF8String(file_path.filename()).append(".ini")
+                        : fmt::format("{:016X}.ini", program_id);
     const auto custom_config_file_path =
         Common::FS::GetYuzuPath(Common::FS::YuzuPath::ConfigDir) / "custom" / config_file_name;
 
