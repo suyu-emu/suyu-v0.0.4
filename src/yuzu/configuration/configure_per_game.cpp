@@ -3,9 +3,12 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <utility>
+
+#include <fmt/format.h>
 
 #include <QAbstractButton>
 #include <QCheckBox>
@@ -18,6 +21,7 @@
 #include <QTimer>
 #include <QTreeView>
 
+#include "common/fs/fs_util.h"
 #include "common/fs/path_util.h"
 #include "core/core.h"
 #include "core/file_sys/control_metadata.h"
@@ -31,10 +35,11 @@
 #include "yuzu/uisettings.h"
 #include "yuzu/util/util.h"
 
-ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id, std::string_view file_name)
+ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id, const std::string& file_name)
     : QDialog(parent), ui(std::make_unique<Ui::ConfigurePerGame>()), title_id(title_id) {
-    const auto config_file_name =
-        title_id == 0 ? Common::FS::GetFilename(file_name) : fmt::format("{:016X}", title_id);
+    const auto file_path = std::filesystem::path(Common::FS::ToU8String(file_name));
+    const auto config_file_name = title_id == 0 ? Common::FS::PathToUTF8String(file_path.filename())
+                                                : fmt::format("{:016X}", title_id);
     game_config = std::make_unique<Config>(config_file_name, Config::ConfigType::PerGameConfig);
 
     Settings::SetConfiguringGlobal(false);
