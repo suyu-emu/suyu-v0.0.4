@@ -341,11 +341,7 @@ GameList::GameList(FileSys::VirtualFilesystem vfs, FileSys::ManualContentProvide
     connect(tree_view, &QTreeView::customContextMenuRequested, this, &GameList::PopupContextMenu);
     connect(tree_view, &QTreeView::expanded, this, &GameList::OnItemExpanded);
     connect(tree_view, &QTreeView::collapsed, this, &GameList::OnItemExpanded);
-    connect(tree_view->header(), &QHeaderView::sectionResized, this,
-            &GameList::SaveInterfaceLayout);
-    connect(tree_view->header(), &QHeaderView::sectionMoved, this, &GameList::SaveInterfaceLayout);
-    connect(tree_view->header(), &QHeaderView::sortIndicatorChanged, this,
-            &GameList::SaveInterfaceLayout);
+
     // We must register all custom types with the Qt Automoc system so that we are able to use
     // it with signals/slots. In this case, QList falls under the umbrells of custom types.
     qRegisterMetaType<QList<QStandardItem*>>("QList<QStandardItem*>");
