@@ -326,18 +326,14 @@ GameList::GameList(FileSys::VirtualFilesystem vfs, FileSys::ManualContentProvide
     tree_view->setContextMenuPolicy(Qt::CustomContextMenu);
     tree_view->setStyleSheet(QStringLiteral("QTreeView{ border: none; }"));
 
-    item_model->insertColumns(0, UISettings::values.show_add_ons ? COLUMN_COUNT : COLUMN_COUNT - 1);
+    item_model->insertColumns(0, COLUMN_COUNT);
     item_model->setHeaderData(COLUMN_NAME, Qt::Horizontal, tr("Name"));
     item_model->setHeaderData(COLUMN_COMPATIBILITY, Qt::Horizontal, tr("Compatibility"));
 
-    if (UISettings::values.show_add_ons) {
-        item_model->setHeaderData(COLUMN_ADD_ONS, Qt::Horizontal, tr("Add-ons"));
-        item_model->setHeaderData(COLUMN_FILE_TYPE, Qt::Horizontal, tr("File type"));
-        item_model->setHeaderData(COLUMN_SIZE, Qt::Horizontal, tr("Size"));
-    } else {
-        item_model->setHeaderData(COLUMN_FILE_TYPE - 1, Qt::Horizontal, tr("File type"));
-        item_model->setHeaderData(COLUMN_SIZE - 1, Qt::Horizontal, tr("Size"));
-    }
+    item_model->setHeaderData(COLUMN_ADD_ONS, Qt::Horizontal, tr("Add-ons"));
+    tree_view->setColumnHidden(COLUMN_ADD_ONS, !UISettings::values.show_add_ons);
+    item_model->setHeaderData(COLUMN_FILE_TYPE, Qt::Horizontal, tr("File type"));
+    item_model->setHeaderData(COLUMN_SIZE, Qt::Horizontal, tr("Size"));
     item_model->setSortRole(GameListItemPath::SortRole);
 
     connect(main_window, &GMainWindow::UpdateThemedIcons, this, &GameList::OnUpdateThemedIcons);
@@ -345,7 +341,11 @@ GameList::GameList(FileSys::VirtualFilesystem vfs, FileSys::ManualContentProvide
     connect(tree_view, &QTreeView::customContextMenuRequested, this, &GameList::PopupContextMenu);
     connect(tree_view, &QTreeView::expanded, this, &GameList::OnItemExpanded);
     connect(tree_view, &QTreeView::collapsed, this, &GameList::OnItemExpanded);
-
+    connect(tree_view->header(), &QHeaderView::sectionResized, this,
+            &GameList::SaveInterfaceLayout);
+    connect(tree_view->header(), &QHeaderView::sectionMoved, this, &GameList::SaveInterfaceLayout);
+    connect(tree_view->header(), &QHeaderView::sortIndicatorChanged, this,
+            &GameList::SaveInterfaceLayout);
     // We must register all custom types with the Qt Automoc system so that we are able to use
     // it with signals/slots. In this case, QList falls under the umbrells of custom types.
     qRegisterMetaType<QList<QStandardItem*>>("QList<QStandardItem*>");
@@ -705,22 +705,7 @@ void GameList::PopulateAsync(QVector<UISettings::GameDir>& game_dirs) {
     tree_view->setEnabled(false);
 
     // Update the columns in case UISettings has changed
-    item_model->removeColumns(0, item_model->columnCount());
-    item_model->insertColumns(0, UISettings::values.show_add_ons ? COLUMN_COUNT : COLUMN_COUNT - 1);
-    item_model->setHeaderData(COLUMN_NAME, Qt::Horizontal, tr("Name"));
-    item_model->setHeaderData(COLUMN_COMPATIBILITY, Qt::Horizontal, tr("Compatibility"));
-
-    if (UISettings::values.show_add_ons) {
-        item_model->setHeaderData(COLUMN_ADD_ONS, Qt::Horizontal, tr("Add-ons"));
-        item_model->setHeaderData(COLUMN_FILE_TYPE, Qt::Horizontal, tr("File type"));
-        item_model->setHeaderData(COLUMN_SIZE, Qt::Horizontal, tr("Size"));
-    } else {
-        item_model->setHeaderData(COLUMN_FILE_TYPE - 1, Qt::Horizontal, tr("File type"));
-        item_model->setHeaderData(COLUMN_SIZE - 1, Qt::Horizontal, tr("Size"));
-        item_model->removeColumns(COLUMN_COUNT - 1, 1);
-    }
-
-    LoadInterfaceLayout();
+    tree_view->setColumnHidden(COLUMN_ADD_ONS, !UISettings::values.show_add_ons);
 
     // Delete any rows that might already exist if we're repopulating
     item_model->removeRows(0, item_model->rowCount());
@@ -797,7 +782,7 @@ void GameList::AddFavorite(u64 program_id) {
             if (folder->child(j)->data(GameListItemPath::ProgramIdRole).toULongLong() ==
                 program_id) {
                 QList<QStandardItem*> list;
-                for (int k = 0; k < item_model->columnCount(); k++) {
+                for (int k = 0; k < COLUMN_COUNT; k++) {
                     list.append(folder->child(j, k)->clone());
                 }
                 list[0]->setData(folder->child(j)->data(GameListItem::SortRole),
