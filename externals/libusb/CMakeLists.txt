@@ -30,15 +30,15 @@ if (MINGW OR (${CMAKE_SYSTEM_NAME} MATCHES "Linux"))
 
         set(LIBUSB_CONFIGURE_ARGS --host=x86_64-w64-mingw32 --build=x86_64-windows)
     else()
-        set(LIBUSB_LIBRARIES "${LIBUSB_PREFIX}/libusb/.libs/libusb-1.0.so" CACHE PATH "libusb library path" FORCE)
-        set(LIBUSB_SHARED_LIBRARY "${LIBUSB_LIBRARIES}")
-        set(LIBUSB_SHARED_LIBRARY_DEST "${CMAKE_BINARY_DIR}/bin/libusb-1.0.so")
+        set(LIBUSB_LIBRARIES "${LIBUSB_PREFIX}/libusb/.libs/libusb-1.0.a" CACHE PATH "libusb library path" FORCE)
     endif()
 
     set(LIBUSB_INCLUDE_DIRS "${LIBUSB_SRC_DIR}/libusb" CACHE PATH "libusb headers path" FORCE)
 
-    # Causes "externals/libusb/libusb/libusb/os/windows_winusb.c:1427:2: error: conversion to non-scalar type requested", so cannot statically link it for now.
-    # set(LIBUSB_CFLAGS "-DGUID_DEVINTERFACE_USB_DEVICE=\\(GUID\\){0xA5DCBF10,0x6530,0x11D2,{0x90,0x1F,0x00,0xC0,0x4F,0xB9,0x51,0xED}}")
+    # MINGW: causes "externals/libusb/libusb/libusb/os/windows_winusb.c:1427:2: error: conversion to non-scalar type requested", so cannot statically link it for now.
+    if (NOT MINGW)
+        set(LIBUSB_CFLAGS "-DGUID_DEVINTERFACE_USB_DEVICE=\\(GUID\\){0xA5DCBF10,0x6530,0x11D2,{0x90,0x1F,0x00,0xC0,0x4F,0xB9,0x51,0xED}}")
+    endif()
 
     make_directory("${LIBUSB_PREFIX}")
 
@@ -55,8 +55,8 @@ if (MINGW OR (${CMAKE_SYSTEM_NAME} MATCHES "Linux"))
         OUTPUT
             "${LIBUSB_MAKEFILE}"
         COMMAND
-            # /bin/env
-            #     CFLAGS="${LIBUSB_CFLAGS}"
+            /bin/env
+                CFLAGS="${LIBUSB_CFLAGS}"
             /bin/sh "${LIBUSB_CONFIGURE}"
                 ${LIBUSB_CONFIGURE_ARGS}
                 --srcdir="${LIBUSB_SRC_DIR}"
@@ -92,10 +92,12 @@ if (MINGW OR (${CMAKE_SYSTEM_NAME} MATCHES "Linux"))
     target_include_directories(usb INTERFACE "${LIBUSB_INCLUDE_DIRS}")
 
     if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-        find_package(Libudev QUIET)
-        if(LIBUDEV_FOUND)
-            target_link_libraries(usb INTERFACE "${LIBUDEV_LIBRARIES}")
-            target_include_directories(usb INTERFACE "${LIBUDEV_INCLUDE_DIR}")
+        Include(FindPkgConfig)
+        pkg_check_modules(LIBUDEV REQUIRED libudev)
+
+        if (LIBUDEV_FOUND)
+            target_include_directories(usb INTERFACE "${LIBUDEV_INCLUDE_DIRS}")
+            target_link_libraries(usb INTERFACE "${LIBUDEV_STATIC_LIBRARIES}")
         endif()
     endif()
 else() # MINGW OR (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
