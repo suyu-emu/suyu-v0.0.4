@@ -1036,7 +1036,7 @@ void FSP_SRV::DisableAutoSaveDataCreation(Kernel::HLERequestContext& ctx) {
     fsc.SetAutoSaveDataCreation(false);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
+    rb.Push(ResultSuccess);
 }
 
 void FSP_SRV::SetGlobalAccessLogMode(Kernel::HLERequestContext& ctx) {
