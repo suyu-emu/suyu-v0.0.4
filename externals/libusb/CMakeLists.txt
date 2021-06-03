@@ -1,10 +1,10 @@
-if (MINGW)
-    # The MinGW toolchain for some reason doesn't work with this CMakeLists file after updating to
-    # 1.0.24, so we do it the old-fashioned way for now. We may want to move native Linux toolchains
-    # to here, too (TODO lat9nq?).
+if (MINGW OR NOT WIN32)
+    # GNU toolchains for some reason doesn't work with the later half of this CMakeLists after
+    # updating to 1.0.24, so we do it the old-fashioned way for now.
 
     set(LIBUSB_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/libusb")
     set(LIBUSB_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libusb")
+
     # Workarounds for MSYS/MinGW
     if (MSYS)
         # CMake on Windows passes `C:/`, but we need `/C/` or `/c/` to use `configure`
@@ -19,9 +19,18 @@ if (MINGW)
 
     set(LIBUSB_CONFIGURE "${LIBUSB_SRC_DIR}/configure")
     set(LIBUSB_MAKEFILE "${LIBUSB_PREFIX}/Makefile")
-    set(LIBUSB_LIBRARY "${LIBUSB_PREFIX}/libusb/.libs/libusb-1.0.dll.a")
-    set(LIBUSB_SHARED_LIBRARY "${LIBUSB_PREFIX}/libusb/.libs/libusb-1.0.dll")
-    set(LIBUSB_SHARED_LIBRARY_DEST "${CMAKE_BINARY_DIR}/bin/libusb-1.0.dll")
+
+    if (MINGW)
+        set(LIBUSB_LIBRARY "${LIBUSB_PREFIX}/libusb/.libs/libusb-1.0.dll.a")
+        set(LIBUSB_SHARED_LIBRARY "${LIBUSB_PREFIX}/libusb/.libs/libusb-1.0.dll")
+        set(LIBUSB_SHARED_LIBRARY_DEST "${CMAKE_BINARY_DIR}/bin/libusb-1.0.dll")
+
+        set(LIBUSB_CONFIGURE_ARGS --host=x86_64-w64-mingw32 --build=x86_64-windows)
+    else()
+        set(LIBUSB_LIBRARY "${LIBUSB_PREFIX}/libusb/.libs/libusb-1.0.so")
+        set(LIBUSB_SHARED_LIBRARY "${LIBUSB_LIBRARY}")
+        set(LIBUSB_SHARED_LIBRARY_DEST "${CMAKE_BINARY_DIR}/bin/libusb-1.0.so")
+    endif()
 
     # Causes "externals/libusb/libusb/libusb/os/windows_winusb.c:1427:2: error: conversion to non-scalar type requested", so cannot statically link it for now.
     # set(LIBUSB_CFLAGS "-DGUID_DEVINTERFACE_USB_DEVICE=\\(GUID\\){0xA5DCBF10,0x6530,0x11D2,{0x90,0x1F,0x00,0xC0,0x4F,0xB9,0x51,0xED}}")
@@ -36,11 +45,6 @@ if (MINGW)
         WORKING_DIRECTORY
             "${LIBUSB_PREFIX}"
     )
-
-    # We may use this path for other GNU toolchains, so put all of the MinGW-specific stuff here
-    if (MINGW)
-        set(LIBUSB_CONFIGURE_ARGS --host=x86_64-w64-mingw32 --build=x86_64-windows)
-    endif()
 
     add_custom_command(
         OUTPUT
@@ -71,16 +75,24 @@ if (MINGW)
             /bin/cp "${LIBUSB_SHARED_LIBRARY}" "${LIBUSB_SHARED_LIBRARY_DEST}"
     )
 
-    add_custom_target(usb-bootstrap ALL DEPENDS "${LIBUSB_CONFIGURE}")
-    add_custom_target(usb-configure ALL DEPENDS "${LIBUSB_MAKEFILE}" usb-bootstrap)
+    add_custom_target(usb-bootstrap DEPENDS "${LIBUSB_CONFIGURE}")
+    add_custom_target(usb-configure DEPENDS "${LIBUSB_MAKEFILE}" usb-bootstrap)
     add_custom_target(usb-build ALL DEPENDS "${LIBUSB_LIBRARY}" usb-configure)
     # Workaround since static linking didn't work out -- We need to copy the DLL to the bin directory
     add_custom_target(usb-copy ALL DEPENDS "${LIBUSB_SHARED_LIBRARY_DEST}" usb-build)
 
-    # Make `usb` alias to LIBUSB_LIBRARY
     add_library(usb INTERFACE)
+    add_dependencies(usb usb-copy)
     target_link_libraries(usb INTERFACE "${LIBUSB_LIBRARY}")
-else() # MINGW
+
+    if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+        find_package(Libudev QUIET)
+        if(LIBUDEV_FOUND)
+            target_link_libraries(usb INTERFACE "${LIBUDEV_LIBRARIES}")
+            target_include_directories(usb INTERFACE "${LIBUDEV_INCLUDE_DIR}")
+        endif()
+    endif()
+else() # MINGW OR NOT WIN32
     # Ensure libusb compiles with UTF-8 encoding on MSVC
     if(MSVC)
         add_compile_options(/utf-8)

@@ -23,6 +23,8 @@ option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 
 option(YUZU_USE_BUNDLED_BOOST "Download bundled Boost" OFF)
 
+option(YUZU_USE_BUNDLED_LIBUSB "Compile bundled libusb" OFF)
+
 CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" ON "WIN32" OFF)
 
 option(YUZU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet implementation" OFF)
@@ -422,11 +424,15 @@ endif()
 # Ensure libusb is properly configured (based on dolphin libusb include)
 if(NOT APPLE)
     include(FindPkgConfig)
-    find_package(LibUSB)
+    if (PKG_CONFIG_FOUND)
+        pkg_check_modules(LIBUSB QUIET libusb-1.0>=1.0.24)
+    else()
+        find_package(LibUSB)
+    endif()
 endif()
-if (NOT LIBUSB_FOUND)
+if (NOT LIBUSB_FOUND OR YUZU_USE_BUNDLED_LIBUSB)
     add_subdirectory(externals/libusb)
-    set(LIBUSB_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/externals/libusb/libusb/libusb")
+    set(LIBUSB_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/externals/libusb/libusb/libusb")
     set(LIBUSB_LIBRARIES usb)
 endif()
 
