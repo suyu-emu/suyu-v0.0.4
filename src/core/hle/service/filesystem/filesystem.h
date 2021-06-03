@@ -120,6 +120,8 @@ public:
 
     FileSys::VirtualDir GetBCATDirectory(u64 title_id) const;
 
+    void SetAutoSaveDataCreation(bool enable);
+
     // Creates the SaveData, SDMC, and BIS Factories. Should be called once and before any function
     // above is called.
     void CreateFactories(FileSys::VfsFilesystem& vfs, bool overwrite = true);

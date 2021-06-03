@@ -105,7 +105,7 @@ ResultVal<VirtualDir> SaveDataFactory::Open(SaveDataSpaceId space,
 
     auto out = dir->GetDirectoryRelative(save_directory);
 
-    if (out == nullptr && ShouldSaveDataBeAutomaticallyCreated(space, meta)) {
+    if (out == nullptr && (ShouldSaveDataBeAutomaticallyCreated(space, meta) && auto_create)) {
         return Create(space, meta);
     }
 
@@ -197,6 +197,10 @@ void SaveDataFactory::WriteSaveDataSize(SaveDataType type, u64 title_id, u128 us
 
     size_file->Resize(sizeof(SaveDataSize));
     size_file->WriteObject(new_value);
+}
+
+void SaveDataFactory::SetAutoCreate(bool state) {
+    auto_create = state;
 }
 
 } // namespace FileSys

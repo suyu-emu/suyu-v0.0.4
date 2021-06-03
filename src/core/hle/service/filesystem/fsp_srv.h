@@ -50,6 +50,7 @@ private:
     void OpenDataStorageByDataId(Kernel::HLERequestContext& ctx);
     void OpenPatchDataStorageByCurrentProcess(Kernel::HLERequestContext& ctx);
     void OpenDataStorageWithProgramIndex(Kernel::HLERequestContext& ctx);
+    void DisableAutoSaveDataCreation(Kernel::HLERequestContext& ctx);
     void SetGlobalAccessLogMode(Kernel::HLERequestContext& ctx);
     void GetGlobalAccessLogMode(Kernel::HLERequestContext& ctx);
     void OutputAccessLogToSdCard(Kernel::HLERequestContext& ctx);

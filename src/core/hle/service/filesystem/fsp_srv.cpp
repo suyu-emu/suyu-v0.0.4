@@ -764,7 +764,7 @@ FSP_SRV::FSP_SRV(Core::System& system_)
         {1000, nullptr, "SetBisRootForHost"},
         {1001, nullptr, "SetSaveDataSize"},
         {1002, nullptr, "SetSaveDataRootPath"},
-        {1003, nullptr, "DisableAutoSaveDataCreation"},
+        {1003, &FSP_SRV::DisableAutoSaveDataCreation, "DisableAutoSaveDataCreation"},
         {1004, &FSP_SRV::SetGlobalAccessLogMode, "SetGlobalAccessLogMode"},
         {1005, &FSP_SRV::GetGlobalAccessLogMode, "GetGlobalAccessLogMode"},
         {1006, &FSP_SRV::OutputAccessLogToSdCard, "OutputAccessLogToSdCard"},
@@ -1028,6 +1028,15 @@ void FSP_SRV::OpenDataStorageWithProgramIndex(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
     rb.PushIpcInterface<IStorage>(std::move(storage));
+}
+
+void FSP_SRV::DisableAutoSaveDataCreation(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_FS, "called");
+
+    fsc.SetAutoSaveDataCreation(false);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
 }
 
 void FSP_SRV::SetGlobalAccessLogMode(Kernel::HLERequestContext& ctx) {

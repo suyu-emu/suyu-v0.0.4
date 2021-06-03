@@ -104,9 +104,12 @@ public:
     void WriteSaveDataSize(SaveDataType type, u64 title_id, u128 user_id,
                            SaveDataSize new_value) const;
 
+    void SetAutoCreate(bool state);
+
 private:
     VirtualDir dir;
     Core::System& system;
+    bool auto_create{true};
 };
 
 } // namespace FileSys

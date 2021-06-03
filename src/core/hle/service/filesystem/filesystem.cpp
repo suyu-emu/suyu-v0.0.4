@@ -721,6 +721,10 @@ FileSys::VirtualDir FileSystemController::GetBCATDirectory(u64 title_id) const {
     return bis_factory->GetBCATDirectory(title_id);
 }
 
+void FileSystemController::SetAutoSaveDataCreation(bool enable) {
+    save_data_factory->SetAutoCreate(enable);
+}
+
 void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool overwrite) {
     if (overwrite) {
         bis_factory = nullptr;
