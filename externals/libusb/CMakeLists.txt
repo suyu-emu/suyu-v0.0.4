@@ -55,9 +55,9 @@ if (MINGW OR (${CMAKE_SYSTEM_NAME} MATCHES "Linux"))
         OUTPUT
             "${LIBUSB_MAKEFILE}"
         COMMAND
-            /bin/env
+            env
                 CFLAGS="${LIBUSB_CFLAGS}"
-            /bin/sh "${LIBUSB_CONFIGURE}"
+            sh "${LIBUSB_CONFIGURE}"
                 ${LIBUSB_CONFIGURE_ARGS}
                 --srcdir="${LIBUSB_SRC_DIR}"
         WORKING_DIRECTORY
@@ -68,7 +68,7 @@ if (MINGW OR (${CMAKE_SYSTEM_NAME} MATCHES "Linux"))
         OUTPUT
             "${LIBUSB_CONFIGURE}"
         COMMAND
-            /bin/sh "${LIBUSB_SRC_DIR}/bootstrap.sh"
+            sh "${LIBUSB_SRC_DIR}/bootstrap.sh"
         WORKING_DIRECTORY
             "${LIBUSB_SRC_DIR}"
     )
@@ -77,7 +77,7 @@ if (MINGW OR (${CMAKE_SYSTEM_NAME} MATCHES "Linux"))
         OUTPUT
             "${LIBUSB_SHARED_LIBRARY_DEST}"
         COMMAND
-            /bin/cp "${LIBUSB_SHARED_LIBRARY}" "${LIBUSB_SHARED_LIBRARY_DEST}"
+            cp "${LIBUSB_SHARED_LIBRARY}" "${LIBUSB_SHARED_LIBRARY_DEST}"
     )
 
     add_custom_target(usb-bootstrap DEPENDS "${LIBUSB_CONFIGURE}")
