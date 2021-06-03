@@ -317,6 +317,43 @@ void Config::ReadValues() {
         sdl2_config->GetInteger("ControlsGeneral", "touch_diameter_x", 15);
     Settings::values.touchscreen.diameter_y =
         sdl2_config->GetInteger("ControlsGeneral", "touch_diameter_y", 15);
+
+    int num_touch_from_button_maps =
+        sdl2_config->GetInteger("ControlsGeneral", "touch_from_button_map", 0);
+    if (num_touch_from_button_maps > 0) {
+        for (int i = 0; i < num_touch_from_button_maps; ++i) {
+            Settings::TouchFromButtonMap map;
+            map.name = sdl2_config->Get("ControlsGeneral",
+                                        std::string("touch_from_button_maps_") + std::to_string(i) +
+                                            std::string("_name"),
+                                        "default");
+            const int num_touch_maps = sdl2_config->GetInteger(
+                "ControlsGeneral",
+                std::string("touch_from_button_maps_") + std::to_string(i) + std::string("_count"),
+                0);
+            map.buttons.reserve(num_touch_maps);
+
+            for (int j = 0; j < num_touch_maps; ++j) {
+                std::string touch_mapping =
+                    sdl2_config->Get("ControlsGeneral",
+                                     std::string("touch_from_button_maps_") + std::to_string(i) +
+                                         std::string("_bind_") + std::to_string(j),
+                                     "");
+                map.buttons.emplace_back(std::move(touch_mapping));
+            }
+
+            Settings::values.touch_from_button_maps.emplace_back(std::move(map));
+        }
+    } else {
+        Settings::values.touch_from_button_maps.emplace_back(
+            Settings::TouchFromButtonMap{"default", {}});
+        num_touch_from_button_maps = 1;
+    }
+    Settings::values.use_touch_from_button =
+        sdl2_config->GetBoolean("ControlsGeneral", "use_touch_from_button", false);
+    Settings::values.touch_from_button_map_index =
+        std::clamp(Settings::values.touch_from_button_map_index, 0, num_touch_from_button_maps - 1);
+
     Settings::values.udp_input_servers =
         sdl2_config->Get("Controls", "udp_input_address", InputCommon::CemuhookUDP::DEFAULT_SRV);
 

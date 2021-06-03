@@ -7,7 +7,7 @@
 namespace DefaultINI {
 
 const char* sdl2_config_file = R"(
-[Controls]
+[ControlsGeneral]
 # The input devices and parameters for each Switch native input
 # It should be in the format of "engine:[engine_name],[param1]:[value1],[param2]:[value2]..."
 # Escape characters $0 (for ':'), $1 (for ',') and $2 (for '$') can be used in values
@@ -85,6 +85,18 @@ motion_device=
 #  - "cemuhookudp" reads touch input from a udp server that uses cemuhook's udp protocol
 #      - "min_x", "min_y", "max_x", "max_y": defines the udp device's touch screen coordinate system
 touch_device=
+
+# Whether to enable or disable touch input from button
+# 0 (default): Disabled, 1: Enabled
+use_touch_from_button=
+
+# for mapping buttons to touch inputs.
+#touch_from_button_map=1
+#touch_from_button_maps_0_name=default
+#touch_from_button_maps_0_count=2
+#touch_from_button_maps_0_bind_0=foo
+#touch_from_button_maps_0_bind_1=bar
+# etc.
 
 # Most desktop operating systems do not expose a way to poll the motion state of the controllers
 # so as a way around it, cemuhook created a udp client/server protocol to broadcast the data directly
