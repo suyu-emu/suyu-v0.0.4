@@ -27,6 +27,10 @@ struct AnalogProperties {
     float range;
     float threshold;
 };
+template <typename StatusType>
+struct InputCallback {
+    std::function<void(StatusType)> on_change;
+};
 
 /// An abstract class template for an input device (a button, an analog input, etc.).
 template <typename StatusType>
@@ -50,6 +54,17 @@ public:
                                [[maybe_unused]] f32 freq_high) const {
         return {};
     }
+    void SetCallback(InputCallback<StatusType> callback_) {
+        callback = std::move(callback_);
+    }
+    void TriggerOnChange() {
+        if (callback.on_change) {
+            callback.on_change(GetStatus());
+        }
+    }
+
+private:
+    InputCallback<StatusType> callback;
 };
 
 /// An abstract class template for a factory that can create input devices.
