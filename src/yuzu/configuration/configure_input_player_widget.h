@@ -100,6 +100,7 @@ private:
 
     static LedPattern GetColorPattern(std::size_t index, bool player_on);
     void UpdateColors();
+    void ResetInputs();
 
     // Draw controller functions
     void DrawHandheldController(QPainter& p, QPointF center);
@@ -176,6 +177,7 @@ private:
     using StickArray =
         std::array<std::unique_ptr<Input::AnalogDevice>, Settings::NativeAnalog::NUM_STICKS_HID>;
 
+    bool is_enabled{};
     bool mapping_active{};
     int blink_counter{};
     QColor button_color{};

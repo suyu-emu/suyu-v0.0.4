@@ -85,6 +85,8 @@ void PlayerControlPreview::SetConnectedStatus(bool checked) {
     led_color[1] = led_pattern.position2 ? colors.led_on : colors.led_off;
     led_color[2] = led_pattern.position3 ? colors.led_on : colors.led_off;
     led_color[3] = led_pattern.position4 ? colors.led_on : colors.led_off;
+    is_enabled = checked;
+    ResetInputs();
 }
 
 void PlayerControlPreview::SetControllerType(const Settings::ControllerType type) {
@@ -108,6 +110,7 @@ void PlayerControlPreview::EndMapping() {
     analog_mapping_index = Settings::NativeAnalog::NumAnalogs;
     mapping_active = false;
     blink_counter = 0;
+    ResetInputs();
 }
 
 void PlayerControlPreview::UpdateColors() {
@@ -156,7 +159,23 @@ void PlayerControlPreview::UpdateColors() {
     // colors.right = QColor(Settings::values.players.GetValue()[player_index].body_color_right);
 }
 
+void PlayerControlPreview::ResetInputs() {
+    for (std::size_t index = 0; index < button_values.size(); ++index) {
+        button_values[index] = false;
+    }
+
+    for (std::size_t index = 0; index < axis_values.size(); ++index) {
+        axis_values[index].properties = {0, 1, 0};
+        axis_values[index].value = {0, 0};
+        axis_values[index].raw_value = {0, 0};
+    }
+    update();
+}
+
 void PlayerControlPreview::UpdateInput() {
+    if (!is_enabled && !mapping_active) {
+        return;
+    }
     bool input_changed = false;
     const auto& button_state = buttons;
     for (std::size_t index = 0; index < button_values.size(); ++index) {

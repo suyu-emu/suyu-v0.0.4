@@ -28,6 +28,7 @@ ControllerDialog::ControllerDialog(QWidget* parent) : QWidget(parent, Qt::Dialog
     // Configure focus so that widget is focusable and the dialog automatically forwards focus to
     // it.
     setFocusProxy(widget);
+    widget->SetConnectedStatus(false);
     widget->setFocusPolicy(Qt::StrongFocus);
     widget->setFocus();
 }
@@ -36,9 +37,8 @@ void ControllerDialog::refreshConfiguration() {
     const auto& players = Settings::values.players.GetValue();
     constexpr std::size_t player = 0;
     widget->SetPlayerInputRaw(player, players[player].buttons, players[player].analogs);
-    widget->SetConnectedStatus(players[player].connected);
     widget->SetControllerType(players[player].controller_type);
-    widget->repaint();
+    widget->SetConnectedStatus(players[player].connected);
 }
 
 QAction* ControllerDialog::toggleViewAction() {
@@ -56,6 +56,7 @@ void ControllerDialog::showEvent(QShowEvent* ev) {
     if (toggle_view_action) {
         toggle_view_action->setChecked(isVisible());
     }
+    refreshConfiguration();
     QWidget::showEvent(ev);
 }
 
@@ -63,5 +64,6 @@ void ControllerDialog::hideEvent(QHideEvent* ev) {
     if (toggle_view_action) {
         toggle_view_action->setChecked(isVisible());
     }
+    widget->SetConnectedStatus(false);
     QWidget::hideEvent(ev);
 }
