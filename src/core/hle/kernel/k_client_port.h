@@ -16,6 +16,7 @@ namespace Kernel {
 class KClientSession;
 class KernelCore;
 class KPort;
+class SessionRequestManager;
 
 class KClientPort final : public KSynchronizationObject {
     KERNEL_AUTOOBJECT_TRAITS(KClientPort, KSynchronizationObject);
@@ -52,7 +53,8 @@ public:
     void Destroy() override;
     bool IsSignaled() const override;
 
-    ResultCode CreateSession(KClientSession** out);
+    ResultCode CreateSession(KClientSession** out,
+                             std::shared_ptr<SessionRequestManager> session_manager = nullptr);
 
 private:
     std::atomic<s32> num_sessions{};

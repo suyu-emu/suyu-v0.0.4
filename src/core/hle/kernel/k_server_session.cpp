@@ -13,8 +13,10 @@
 #include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/kernel/k_client_port.h"
 #include "core/hle/kernel/k_handle_table.h"
+#include "core/hle/kernel/k_port.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_scheduler.h"
+#include "core/hle/kernel/k_server_port.h"
 #include "core/hle/kernel/k_server_session.h"
 #include "core/hle/kernel/k_session.h"
 #include "core/hle/kernel/k_thread.h"
@@ -23,18 +25,21 @@
 
 namespace Kernel {
 
-KServerSession::KServerSession(KernelCore& kernel_)
-    : KSynchronizationObject{kernel_}, manager{std::make_shared<SessionRequestManager>()} {}
+KServerSession::KServerSession(KernelCore& kernel_) : KSynchronizationObject{kernel_} {}
 
-KServerSession::~KServerSession() {
-    kernel.ReleaseServiceThread(service_thread);
-}
+KServerSession::~KServerSession() {}
 
-void KServerSession::Initialize(KSession* parent_, std::string&& name_) {
+void KServerSession::Initialize(KSession* parent_, std::string&& name_,
+                                std::shared_ptr<SessionRequestManager> manager_) {
     // Set member variables.
     parent = parent_;
     name = std::move(name_);
-    service_thread = kernel.CreateServiceThread(name);
+
+    if (manager_) {
+        manager = manager_;
+    } else {
+        manager = std::make_shared<SessionRequestManager>(kernel);
+    }
 }
 
 void KServerSession::Destroy() {
@@ -114,7 +119,7 @@ ResultCode KServerSession::QueueSyncRequest(KThread* thread, Core::Memory::Memor
 
     context->PopulateFromIncomingCommandBuffer(kernel.CurrentProcess()->GetHandleTable(), cmd_buf);
 
-    if (auto strong_ptr = service_thread.lock()) {
+    if (auto strong_ptr = manager->GetServiceThread().lock()) {
         strong_ptr->QueueSyncRequest(*parent, std::move(context));
         return ResultSuccess;
     }
