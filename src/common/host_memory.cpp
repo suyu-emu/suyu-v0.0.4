@@ -27,6 +27,7 @@
 
 #include <mutex>
 
+#include "common/alignment.h"
 #include "common/assert.h"
 #include "common/host_memory.h"
 #include "common/logging/log.h"
@@ -35,6 +36,7 @@
 namespace Common {
 
 constexpr size_t PageAlignment = 0x1000;
+constexpr size_t HugePageSize = 0x200000;
 
 #ifdef _WIN32
 
@@ -385,9 +387,16 @@ private:
 
 #endif
 
-HostMemory::HostMemory(size_t backing_size, size_t virtual_size)
-    : impl{std::make_unique<HostMemory::Impl>(backing_size, virtual_size)},
-      backing_base{impl->backing_base}, virtual_base{impl->virtual_base} {}
+HostMemory::HostMemory(size_t backing_size_, size_t virtual_size_)
+    : backing_size(backing_size_),
+      virtual_size(virtual_size_), impl{std::make_unique<HostMemory::Impl>(
+                                       AlignUp(backing_size, PageAlignment),
+                                       AlignUp(virtual_size, PageAlignment) + 3 * HugePageSize)},
+      backing_base{impl->backing_base}, virtual_base{impl->virtual_base} {
+    virtual_base += 2 * HugePageSize - 1;
+    virtual_base -= reinterpret_cast<size_t>(virtual_base) & (HugePageSize - 1);
+    virtual_base_offset = virtual_base - impl->virtual_base;
+}
 
 HostMemory::~HostMemory() = default;
 
@@ -399,32 +408,32 @@ void HostMemory::Map(size_t virtual_offset, size_t host_offset, size_t length) {
     ASSERT(virtual_offset % PageAlignment == 0);
     ASSERT(host_offset % PageAlignment == 0);
     ASSERT(length % PageAlignment == 0);
-    ASSERT(virtual_offset + length <= impl->virtual_size);
-    ASSERT(host_offset + length <= impl->backing_size);
+    ASSERT(virtual_offset + length <= virtual_size);
+    ASSERT(host_offset + length <= backing_size);
     if (length == 0) {
         return;
     }
-    impl->Map(virtual_offset, host_offset, length);
+    impl->Map(virtual_offset + virtual_base_offset, host_offset, length);
 }
 
 void HostMemory::Unmap(size_t virtual_offset, size_t length) {
     ASSERT(virtual_offset % PageAlignment == 0);
     ASSERT(length % PageAlignment == 0);
-    ASSERT(virtual_offset + length <= impl->virtual_size);
+    ASSERT(virtual_offset + length <= virtual_size);
     if (length == 0) {
         return;
     }
-    impl->Unmap(virtual_offset, length);
+    impl->Unmap(virtual_offset + virtual_base_offset, length);
 }
 
 void HostMemory::Protect(size_t virtual_offset, size_t length, bool read, bool write) {
     ASSERT(virtual_offset % PageAlignment == 0);
     ASSERT(length % PageAlignment == 0);
-    ASSERT(virtual_offset + length <= impl->virtual_size);
+    ASSERT(virtual_offset + length <= virtual_size);
     if (length == 0) {
         return;
     }
-    impl->Protect(virtual_offset, length, read, write);
+    impl->Protect(virtual_offset + virtual_base_offset, length, read, write);
 }
 
 } // namespace Common
