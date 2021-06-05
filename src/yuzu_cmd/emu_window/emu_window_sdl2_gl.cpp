@@ -32,7 +32,7 @@
 
 class SDLGLContext : public Core::Frontend::GraphicsContext {
 public:
-    explicit SDLGLContext(SDL_Window* window) : window(window) {
+    explicit SDLGLContext(SDL_Window* window_) : window{window_} {
         context = SDL_GL_CreateContext(window);
     }
 
