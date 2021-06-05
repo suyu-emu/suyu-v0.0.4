@@ -97,6 +97,7 @@ struct Values {
     bool cache_game_list;
 
     bool configuration_applied;
+    bool reset_to_defaults;
 };
 
 extern Values values;

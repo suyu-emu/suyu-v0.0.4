@@ -2596,13 +2596,53 @@ void GMainWindow::OnConfigure() {
             &GMainWindow::OnLanguageChanged);
 
     const auto result = configure_dialog.exec();
-    if (result != QDialog::Accepted && !UISettings::values.configuration_applied) {
+    if (result != QDialog::Accepted && !UISettings::values.configuration_applied &&
+        !UISettings::values.reset_to_defaults) {
+        // Runs if the user hit Cancel or closed the window, and did not ever press the Apply button
+        // or `Reset to Defaults` button
         return;
     } else if (result == QDialog::Accepted) {
+        // Only apply new changes if user hit Okay
+        // This is here to avoid applying changes if the user hit Apply, made some changes, then hit
+        // Cancel
         configure_dialog.ApplyConfiguration();
-        controller_dialog->refreshConfiguration();
+    } else if (UISettings::values.reset_to_defaults) {
+        LOG_INFO(Frontend, "Resetting all settings to defaults");
+        if (!Common::FS::RemoveFile(config->GetConfigFilePath())) {
+            LOG_WARNING(Frontend, "Failed to remove configuration file");
+        }
+        if (!Common::FS::RemoveDirContentsRecursively(
+                Common::FS::GetYuzuPath(Common::FS::YuzuPath::ConfigDir) / "custom")) {
+            LOG_WARNING(Frontend, "Failed to remove custom configuration files");
+        }
+        if (!Common::FS::RemoveDirRecursively(
+                Common::FS::GetYuzuPath(Common::FS::YuzuPath::CacheDir) / "game_list")) {
+            LOG_WARNING(Frontend, "Failed to remove game metadata cache files");
+        }
+
+        // Explicitly save the game directories, since reinitializing config does not explicitly do
+        // so.
+        QVector<UISettings::GameDir> old_game_dirs = std::move(UISettings::values.game_dirs);
+        QVector<u64> old_favorited_ids = std::move(UISettings::values.favorited_ids);
+
+        Settings::values.disabled_addons.clear();
+
+        config = std::make_unique<Config>();
+        UISettings::values.reset_to_defaults = false;
+
+        UISettings::values.game_dirs = std::move(old_game_dirs);
+        UISettings::values.favorited_ids = std::move(old_favorited_ids);
+
+        InitializeRecentFileMenuActions();
+
+        SetDefaultUIGeometry();
+        RestoreUIState();
+
+        ShowTelemetryCallout();
     }
+    controller_dialog->refreshConfiguration();
     InitializeHotkeys();
+
     if (UISettings::values.theme != old_theme) {
         UpdateUITheme();
     }

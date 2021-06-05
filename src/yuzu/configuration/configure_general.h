@@ -4,8 +4,11 @@
 
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <QWidget>
+
+class ConfigureDialog;
 
 namespace ConfigurationShared {
 enum class CheckState;
@@ -24,6 +27,8 @@ public:
     explicit ConfigureGeneral(QWidget* parent = nullptr);
     ~ConfigureGeneral() override;
 
+    void SetResetCallback(std::function<void()> callback);
+    void ResetDefaults();
     void ApplyConfiguration();
 
 private:
@@ -33,6 +38,8 @@ private:
     void SetConfiguration();
 
     void SetupPerGameUI();
+
+    std::function<void()> reset_callback;
 
     std::unique_ptr<Ui::ConfigureGeneral> ui;
 

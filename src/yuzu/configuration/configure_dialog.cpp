@@ -27,6 +27,8 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry,
 
     ui->inputTab->Initialize(input_subsystem);
 
+    ui->generalTab->SetResetCallback([&] { this->close(); });
+
     SetConfiguration();
     PopulateSelectionList();
 
