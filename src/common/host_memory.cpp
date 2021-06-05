@@ -1,11 +1,5 @@
-#ifdef __linux__
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
-#include <fcntl.h>
-#include <sys/mman.h>
-#include <unistd.h>
-#elif defined(_WIN32) // ^^^ Linux ^^^ vvv Windows vvv
+#ifdef _WIN32
+
 #ifdef _WIN32_WINNT
 #undef _WIN32_WINNT
 #endif
@@ -20,13 +14,23 @@
 
 #pragma comment(lib, "mincore.lib")
 
-#endif // ^^^ Windows ^^^
+#elif defined(__linux__) // ^^^ Windows ^^^ vvv Linux vvv
+
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <unistd.h>
+
+#endif // ^^^ Linux ^^^
 
 #include <mutex>
 
 #include "common/assert.h"
 #include "common/host_memory.h"
 #include "common/logging/log.h"
+#include "common/scope_exit.h"
 
 namespace Common {
 
@@ -269,7 +273,113 @@ private:
     std::unordered_map<size_t, size_t> placeholder_host_pointers; ///< Placeholder backing offset
 };
 
-#else
+#elif defined(__linux__) // ^^^ Windows ^^^ vvv Linux vvv
+
+class HostMemory::Impl {
+public:
+    explicit Impl(size_t backing_size_, size_t virtual_size_)
+        : backing_size{backing_size_}, virtual_size{virtual_size_} {
+        bool good = false;
+        SCOPE_EXIT({
+            if (!good) {
+                Release();
+            }
+        });
+
+        // Backing memory initialization
+        fd = memfd_create("HostMemory", 0);
+        if (fd == -1) {
+            LOG_CRITICAL(HW_Memory, "memfd_create failed: {}", strerror(errno));
+            throw std::bad_alloc{};
+        }
+
+        // Defined to extend the file with zeros
+        int ret = ftruncate(fd, backing_size);
+        if (ret != 0) {
+            LOG_CRITICAL(HW_Memory, "ftruncate failed with {}, are you out-of-memory?",
+                         strerror(errno));
+            throw std::bad_alloc{};
+        }
+
+        backing_base = static_cast<u8*>(
+            mmap(nullptr, backing_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0));
+        if (backing_base == MAP_FAILED) {
+            LOG_CRITICAL(HW_Memory, "mmap failed: {}", strerror(errno));
+            throw std::bad_alloc{};
+        }
+
+        // Virtual memory initialization
+        virtual_base = static_cast<u8*>(
+            mmap(nullptr, virtual_size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
+        if (virtual_base == MAP_FAILED) {
+            LOG_CRITICAL(HW_Memory, "mmap failed: {}", strerror(errno));
+            throw std::bad_alloc{};
+        }
+
+        good = true;
+    }
+
+    ~Impl() {
+        Release();
+    }
+
+    void Map(size_t virtual_offset, size_t host_offset, size_t length) {
+
+        void* ret = mmap(virtual_base + virtual_offset, length, PROT_READ | PROT_WRITE,
+                         MAP_SHARED | MAP_FIXED, fd, host_offset);
+        ASSERT_MSG(ret != MAP_FAILED, "mmap failed: {}", strerror(errno));
+    }
+
+    void Unmap(size_t virtual_offset, size_t length) {
+        // The method name is wrong. We're still talking about the virtual range.
+        // We don't want to unmap, we want to reserve this memory.
+
+        void* ret = mmap(virtual_base + virtual_offset, length, PROT_NONE,
+                         MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
+        ASSERT_MSG(ret != MAP_FAILED, "mmap failed: {}", strerror(errno));
+    }
+
+    void Protect(size_t virtual_offset, size_t length, bool read, bool write) {
+        int flags = 0;
+        if (read) {
+            flags |= PROT_READ;
+        }
+        if (write) {
+            flags |= PROT_WRITE;
+        }
+        int ret = mprotect(virtual_base + virtual_offset, length, flags);
+        ASSERT_MSG(ret == 0, "mprotect failed: {}", strerror(errno));
+    }
+
+    const size_t backing_size; ///< Size of the backing memory in bytes
+    const size_t virtual_size; ///< Size of the virtual address placeholder in bytes
+
+    u8* backing_base{reinterpret_cast<u8*>(MAP_FAILED)};
+    u8* virtual_base{reinterpret_cast<u8*>(MAP_FAILED)};
+
+private:
+    /// Release all resources in the object
+    void Release() {
+        if (virtual_base != MAP_FAILED) {
+            int ret = munmap(virtual_base, virtual_size);
+            ASSERT_MSG(ret == 0, "munmap failed: {}", strerror(errno));
+        }
+
+        if (backing_base != MAP_FAILED) {
+            int ret = munmap(backing_base, backing_size);
+            ASSERT_MSG(ret == 0, "munmap failed: {}", strerror(errno));
+        }
+
+        if (fd != -1) {
+            int ret = close(fd);
+            ASSERT_MSG(ret == 0, "close failed: {}", strerror(errno));
+        }
+    }
+
+    int fd{-1}; // memfd file descriptor, -1 is the error value of memfd_create
+};
+
+#else // ^^^ Linux ^^^
 
 #error Please implement the host memory for your platform
 
