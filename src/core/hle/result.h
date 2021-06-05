@@ -124,21 +124,21 @@ union ResultCode {
     constexpr ResultCode(ErrorModule module_, u32 description_)
         : raw(module.FormatValue(module_) | description.FormatValue(description_)) {}
 
-    constexpr bool IsSuccess() const {
+    [[nodiscard]] constexpr bool IsSuccess() const {
         return raw == 0;
     }
 
-    constexpr bool IsError() const {
-        return raw != 0;
+    [[nodiscard]] constexpr bool IsError() const {
+        return !IsSuccess();
     }
 };
 
-constexpr bool operator==(const ResultCode& a, const ResultCode& b) {
+[[nodiscard]] constexpr bool operator==(const ResultCode& a, const ResultCode& b) {
     return a.raw == b.raw;
 }
 
-constexpr bool operator!=(const ResultCode& a, const ResultCode& b) {
-    return a.raw != b.raw;
+[[nodiscard]] constexpr bool operator!=(const ResultCode& a, const ResultCode& b) {
+    return !operator==(a, b);
 }
 
 // Convenience functions for creating some common kinds of errors:
@@ -200,7 +200,7 @@ public:
      * specify the success code. `success_code` must not be an error code.
      */
     template <typename... Args>
-    static ResultVal WithCode(ResultCode success_code, Args&&... args) {
+    [[nodiscard]] static ResultVal WithCode(ResultCode success_code, Args&&... args) {
         ResultVal<T> result;
         result.emplace(success_code, std::forward<Args>(args)...);
         return result;
@@ -259,49 +259,49 @@ public:
     }
 
     /// Returns true if the `ResultVal` contains an error code and no value.
-    bool empty() const {
+    [[nodiscard]] bool empty() const {
         return result_code.IsError();
     }
 
     /// Returns true if the `ResultVal` contains a return value.
-    bool Succeeded() const {
+    [[nodiscard]] bool Succeeded() const {
         return result_code.IsSuccess();
     }
     /// Returns true if the `ResultVal` contains an error code and no value.
-    bool Failed() const {
+    [[nodiscard]] bool Failed() const {
         return empty();
     }
 
-    ResultCode Code() const {
+    [[nodiscard]] ResultCode Code() const {
         return result_code;
     }
 
-    const T& operator*() const {
+    [[nodiscard]] const T& operator*() const {
         return object;
     }
-    T& operator*() {
+    [[nodiscard]] T& operator*() {
         return object;
     }
-    const T* operator->() const {
+    [[nodiscard]] const T* operator->() const {
         return &object;
     }
-    T* operator->() {
+    [[nodiscard]] T* operator->() {
         return &object;
     }
 
     /// Returns the value contained in this `ResultVal`, or the supplied default if it is missing.
     template <typename U>
-    T ValueOr(U&& value) const {
+    [[nodiscard]] T ValueOr(U&& value) const {
         return !empty() ? object : std::move(value);
     }
 
     /// Asserts that the result succeeded and returns a reference to it.
-    T& Unwrap() & {
+    [[nodiscard]] T& Unwrap() & {
         ASSERT_MSG(Succeeded(), "Tried to Unwrap empty ResultVal");
         return **this;
     }
 
-    T&& Unwrap() && {
+    [[nodiscard]] T&& Unwrap() && {
         ASSERT_MSG(Succeeded(), "Tried to Unwrap empty ResultVal");
         return std::move(**this);
     }
@@ -320,7 +320,7 @@ private:
  * `T` with and creates a success `ResultVal` contained the constructed value.
  */
 template <typename T, typename... Args>
-ResultVal<T> MakeResult(Args&&... args) {
+[[nodiscard]] ResultVal<T> MakeResult(Args&&... args) {
     return ResultVal<T>::WithCode(ResultSuccess, std::forward<Args>(args)...);
 }
 
@@ -329,7 +329,7 @@ ResultVal<T> MakeResult(Args&&... args) {
  * copy or move constructing.
  */
 template <typename Arg>
-ResultVal<std::remove_reference_t<Arg>> MakeResult(Arg&& arg) {
+[[nodiscard]] ResultVal<std::remove_reference_t<Arg>> MakeResult(Arg&& arg) {
     return ResultVal<std::remove_reference_t<Arg>>::WithCode(ResultSuccess, std::forward<Arg>(arg));
 }
 
