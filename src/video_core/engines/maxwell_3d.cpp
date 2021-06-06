@@ -578,8 +578,12 @@ void Maxwell3D::ProcessCBBind(size_t stage_index) {
     buffer.size = regs.const_buffer.cb_size;
 
     const bool is_enabled = bind_data.valid.Value() != 0;
-    const GPUVAddr gpu_addr = is_enabled ? regs.const_buffer.BufferAddress() : 0;
-    const u32 size = is_enabled ? regs.const_buffer.cb_size : 0;
+    if (!is_enabled) {
+        rasterizer->DisableGraphicsUniformBuffer(stage_index, bind_data.index);
+        return;
+    }
+    const GPUVAddr gpu_addr = regs.const_buffer.BufferAddress();
+    const u32 size = regs.const_buffer.cb_size;
     rasterizer->BindGraphicsUniformBuffer(stage_index, bind_data.index, gpu_addr, size);
 }
 

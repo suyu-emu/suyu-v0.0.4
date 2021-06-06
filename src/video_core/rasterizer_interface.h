@@ -54,6 +54,9 @@ public:
     virtual void BindGraphicsUniformBuffer(size_t stage, u32 index, GPUVAddr gpu_addr,
                                            u32 size) = 0;
 
+    /// Signal disabling of a uniform buffer
+    virtual void DisableGraphicsUniformBuffer(size_t stage, u32 index) = 0;
+
     /// Signal a GPU based semaphore as a fence
     virtual void SignalSemaphore(GPUVAddr addr, u32 value) = 0;
 
