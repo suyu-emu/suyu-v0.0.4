@@ -39,7 +39,7 @@ SessionRequestHandler::~SessionRequestHandler() {
 
 SessionRequestManager::SessionRequestManager(KernelCore& kernel_) : kernel{kernel_} {}
 
-SessionRequestManager::~SessionRequestManager() {}
+SessionRequestManager::~SessionRequestManager() = default;
 
 void SessionRequestHandler::ClientConnected(KServerSession* session) {
     session->SetSessionHandler(shared_from_this());
