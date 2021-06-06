@@ -9,13 +9,13 @@ namespace Kernel {
 void KAutoObjectWithListContainer::Register(KAutoObjectWithList* obj) {
     KScopedLightLock lk(m_lock);
 
-    m_object_list.insert(*obj);
+    m_object_list.insert_unique(*obj);
 }
 
 void KAutoObjectWithListContainer::Unregister(KAutoObjectWithList* obj) {
     KScopedLightLock lk(m_lock);
 
-    m_object_list.erase(m_object_list.iterator_to(*obj));
+    m_object_list.erase(*obj);
 }
 
 size_t KAutoObjectWithListContainer::GetOwnedCount(KProcess* owner) {

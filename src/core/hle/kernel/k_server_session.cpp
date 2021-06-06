@@ -29,10 +29,10 @@ KServerSession::KServerSession(KernelCore& kernel_) : KSynchronizationObject{ker
 
 KServerSession::~KServerSession() {}
 
-void KServerSession::Initialize(KSession* parent_, std::string&& name_,
+void KServerSession::Initialize(KSession* parent_session_, std::string&& name_,
                                 std::shared_ptr<SessionRequestManager> manager_) {
     // Set member variables.
-    parent = parent_;
+    parent = parent_session_;
     name = std::move(name_);
 
     if (manager_) {

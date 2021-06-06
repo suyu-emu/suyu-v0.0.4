@@ -29,7 +29,7 @@ public:
     explicit KServerPort(KernelCore& kernel_);
     ~KServerPort() override;
 
-    void Initialize(KPort* parent_, std::string&& name_);
+    void Initialize(KPort* parent_port_, std::string&& name_);
 
     /// Whether or not this server port has an HLE handler available.
     bool HasSessionRequestHandler() const {

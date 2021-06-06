@@ -13,8 +13,8 @@ KWritableEvent::KWritableEvent(KernelCore& kernel_)
 
 KWritableEvent::~KWritableEvent() = default;
 
-void KWritableEvent::Initialize(KEvent* parent_, std::string&& name_) {
-    parent = parent_;
+void KWritableEvent::Initialize(KEvent* parent_event_, std::string&& name_) {
+    parent = parent_event_;
     name = std::move(name_);
     parent->GetReadableEvent().Open();
 }

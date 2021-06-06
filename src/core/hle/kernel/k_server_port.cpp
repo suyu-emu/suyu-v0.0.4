@@ -17,9 +17,9 @@ namespace Kernel {
 KServerPort::KServerPort(KernelCore& kernel_) : KSynchronizationObject{kernel_} {}
 KServerPort::~KServerPort() = default;
 
-void KServerPort::Initialize(KPort* parent_, std::string&& name_) {
+void KServerPort::Initialize(KPort* parent_port_, std::string&& name_) {
     // Set member variables.
-    parent = parent_;
+    parent = parent_port_;
     name = std::move(name_);
 }
 

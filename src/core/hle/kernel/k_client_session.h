@@ -36,9 +36,9 @@ public:
     explicit KClientSession(KernelCore& kernel_);
     ~KClientSession() override;
 
-    void Initialize(KSession* parent_, std::string&& name_) {
+    void Initialize(KSession* parent_session_, std::string&& name_) {
         // Set member variables.
-        parent = parent_;
+        parent = parent_session_;
         name = std::move(name_);
     }
 

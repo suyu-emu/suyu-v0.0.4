@@ -16,11 +16,11 @@ namespace Kernel {
 KClientPort::KClientPort(KernelCore& kernel_) : KSynchronizationObject{kernel_} {}
 KClientPort::~KClientPort() = default;
 
-void KClientPort::Initialize(KPort* parent_, s32 max_sessions_, std::string&& name_) {
+void KClientPort::Initialize(KPort* parent_port_, s32 max_sessions_, std::string&& name_) {
     // Set member variables.
     num_sessions = 0;
     peak_sessions = 0;
-    parent = parent_;
+    parent = parent_port_;
     max_sessions = max_sessions_;
     name = std::move(name_);
 }

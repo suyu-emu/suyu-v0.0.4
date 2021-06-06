@@ -47,7 +47,7 @@ public:
 
     void Destroy() override;
 
-    void Initialize(KSession* parent_, std::string&& name_,
+    void Initialize(KSession* parent_session_, std::string&& name_,
                     std::shared_ptr<SessionRequestManager> manager_);
 
     KSession* GetParent() {
