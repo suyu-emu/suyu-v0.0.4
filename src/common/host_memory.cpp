@@ -110,9 +110,18 @@ public:
         } else {
             UNIMPLEMENTED_MSG("Protection flag combination read={} write={}", read, write);
         }
-        DWORD old_flags{};
-        if (!VirtualProtect(virtual_base + virtual_offset, length, new_flags, &old_flags)) {
-            LOG_CRITICAL(HW_Memory, "Failed to change virtual memory protect rules");
+        const size_t virtual_end = virtual_offset + length;
+
+        std::lock_guard lock{placeholder_mutex};
+        auto [it, end] = placeholders.equal_range({virtual_offset, virtual_end});
+        while (it != end) {
+            const size_t offset = std::max(it->lower(), virtual_offset);
+            const size_t protect_length = std::min(it->upper(), virtual_end) - offset;
+            DWORD old_flags{};
+            if (!VirtualProtect(virtual_base + offset, protect_length, new_flags, &old_flags)) {
+                LOG_CRITICAL(HW_Memory, "Failed to change virtual memory protect rules");
+            }
+            ++it;
         }
     }
 
