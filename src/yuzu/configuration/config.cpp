@@ -756,6 +756,8 @@ void Config::ReadCpuValues() {
                       QStringLiteral("cpuopt_unsafe_reduce_fp_error"), true);
     ReadSettingGlobal(Settings::values.cpuopt_unsafe_inaccurate_nan,
                       QStringLiteral("cpuopt_unsafe_inaccurate_nan"), true);
+    ReadSettingGlobal(Settings::values.cpuopt_unsafe_fastmem_check,
+                      QStringLiteral("cpuopt_unsafe_fastmem_check"), true);
 
     if (global) {
         Settings::values.cpuopt_page_tables =
@@ -774,6 +776,8 @@ void Config::ReadCpuValues() {
             ReadSetting(QStringLiteral("cpuopt_misc_ir"), true).toBool();
         Settings::values.cpuopt_reduce_misalign_checks =
             ReadSetting(QStringLiteral("cpuopt_reduce_misalign_checks"), true).toBool();
+        Settings::values.cpuopt_fastmem =
+            ReadSetting(QStringLiteral("cpuopt_fastmem"), true).toBool();
     }
 
     qt_config->endGroup();
@@ -1332,6 +1336,8 @@ void Config::SaveCpuValues() {
                        Settings::values.cpuopt_unsafe_reduce_fp_error, true);
     WriteSettingGlobal(QStringLiteral("cpuopt_unsafe_inaccurate_nan"),
                        Settings::values.cpuopt_unsafe_inaccurate_nan, true);
+    WriteSettingGlobal(QStringLiteral("cpuopt_unsafe_fastmem_check"),
+                       Settings::values.cpuopt_unsafe_fastmem_check, true);
 
     if (global) {
         WriteSetting(QStringLiteral("cpuopt_page_tables"), Settings::values.cpuopt_page_tables,
@@ -1348,6 +1354,7 @@ void Config::SaveCpuValues() {
         WriteSetting(QStringLiteral("cpuopt_misc_ir"), Settings::values.cpuopt_misc_ir, true);
         WriteSetting(QStringLiteral("cpuopt_reduce_misalign_checks"),
                      Settings::values.cpuopt_reduce_misalign_checks, true);
+        WriteSetting(QStringLiteral("cpuopt_fastmem"), Settings::values.cpuopt_fastmem, true);
     }
 
     qt_config->endGroup();

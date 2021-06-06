@@ -123,6 +123,18 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QCheckBox" name="cpuopt_unsafe_fastmem_check">
+          <property name="toolTip">
+           <string>
+            &lt;div&gt;This option improves speed by eliminating a safety check before every memory read/write in guest. Disabling it may allow a game to read/write the emulator's memory.&lt;/div&gt;
+           </string>
+          </property>
+          <property name="text">
+           <string>Disable address space checks</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </item>

@@ -139,6 +139,20 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QCheckBox" name="cpuopt_fastmem">
+          <property name="text">
+           <string>Enable Host MMU Emulation</string>
+          </property>
+          <property name="toolTip">
+           <string>
+            &lt;div style="white-space: nowrap"&gt;This optimization speeds up memory accesses by the guest program.&lt;/div&gt;
+            &lt;div style="white-space: nowrap"&gt;Enabling it causes guest memory reads/writes to be done directly into memory and make use of Host's MMU.&lt;/div&gt;
+            &lt;div style="white-space: nowrap"&gt;Disabling this forces all memory accesses to use Software MMU Emulation.&lt;/div&gt;
+           </string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </item>

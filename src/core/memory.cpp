@@ -47,7 +47,9 @@ struct Memory::Impl {
                    "Out of bounds target: {:016X}", target);
         MapPages(page_table, base / PAGE_SIZE, size / PAGE_SIZE, target, Common::PageType::Memory);
 
-        system.DeviceMemory().buffer.Map(base, target - DramMemoryMap::Base, size);
+        if (Settings::IsFastmemEnabled()) {
+            system.DeviceMemory().buffer.Map(base, target - DramMemoryMap::Base, size);
+        }
     }
 
     void UnmapRegion(Common::PageTable& page_table, VAddr base, u64 size) {
@@ -55,7 +57,9 @@ struct Memory::Impl {
         ASSERT_MSG((base & PAGE_MASK) == 0, "non-page aligned base: {:016X}", base);
         MapPages(page_table, base / PAGE_SIZE, size / PAGE_SIZE, 0, Common::PageType::Unmapped);
 
-        system.DeviceMemory().buffer.Unmap(base, size);
+        if (Settings::IsFastmemEnabled()) {
+            system.DeviceMemory().buffer.Unmap(base, size);
+        }
     }
 
     bool IsValidVirtualAddress(const Kernel::KProcess& process, const VAddr vaddr) const {
@@ -475,8 +479,10 @@ struct Memory::Impl {
             return;
         }
 
-        const bool is_read_enable = Settings::IsGPULevelHigh() || !cached;
-        system.DeviceMemory().buffer.Protect(vaddr, size, is_read_enable, !cached);
+        if (Settings::IsFastmemEnabled()) {
+            const bool is_read_enable = Settings::IsGPULevelHigh() || !cached;
+            system.DeviceMemory().buffer.Protect(vaddr, size, is_read_enable, !cached);
+        }
 
         // Iterate over a contiguous CPU address space, which corresponds to the specified GPU
         // address space, marking the region as un/cached. The region is marked un/cached at a

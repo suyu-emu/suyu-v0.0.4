@@ -125,10 +125,12 @@ struct Values {
     bool cpuopt_const_prop;
     bool cpuopt_misc_ir;
     bool cpuopt_reduce_misalign_checks;
+    bool cpuopt_fastmem;
 
     Setting<bool> cpuopt_unsafe_unfuse_fma;
     Setting<bool> cpuopt_unsafe_reduce_fp_error;
     Setting<bool> cpuopt_unsafe_inaccurate_nan;
+    Setting<bool> cpuopt_unsafe_fastmem_check;
 
     // Renderer
     Setting<RendererBackend> renderer_backend;
@@ -248,6 +250,8 @@ void SetConfiguringGlobal(bool is_global);
 
 bool IsGPULevelExtreme();
 bool IsGPULevelHigh();
+
+bool IsFastmemEnabled();
 
 float Volume();
 
