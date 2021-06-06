@@ -236,7 +236,8 @@ swap_screen =
 
 [Audio]
 # Which audio output engine to use.
-# auto (default): Auto-select, null: No audio output, cubeb: Cubeb audio engine (if available)
+# auto (default): Auto-select, null: No audio output, cubeb: Cubeb audio engine (if available),
+# sdl2: SDL2 audio engine (if available)
 output_engine =
 
 # Whether or not to enable the audio-stretching post-processing effect.
