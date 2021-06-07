@@ -119,7 +119,7 @@ ResultCode KServerSession::QueueSyncRequest(KThread* thread, Core::Memory::Memor
 
     context->PopulateFromIncomingCommandBuffer(kernel.CurrentProcess()->GetHandleTable(), cmd_buf);
 
-    if (auto strong_ptr = manager->GetServiceThread().lock(); strong_ptr) {
+    if (auto strong_ptr = manager->GetServiceThread(); strong_ptr) {
         strong_ptr->QueueSyncRequest(*parent, std::move(context));
         return ResultSuccess;
     } else {

@@ -85,8 +85,8 @@ public:
      */
     void ClientDisconnected(KServerSession* session);
 
-    std::weak_ptr<ServiceThread> GetServiceThread() const {
-        return service_thread;
+    std::shared_ptr<ServiceThread> GetServiceThread() const {
+        return service_thread.lock();
     }
 
 protected:
@@ -152,7 +152,7 @@ public:
         session_handler = std::move(handler);
     }
 
-    std::weak_ptr<ServiceThread> GetServiceThread() const {
+    std::shared_ptr<ServiceThread> GetServiceThread() const {
         return session_handler->GetServiceThread();
     }
 
