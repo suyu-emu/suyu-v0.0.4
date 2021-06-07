@@ -123,7 +123,7 @@ ResultCode KServerSession::QueueSyncRequest(KThread* thread, Core::Memory::Memor
         strong_ptr->QueueSyncRequest(*parent, std::move(context));
         return ResultSuccess;
     } else {
-        ASSERT(false, "strong_ptr was nullptr!");
+        ASSERT_MSG(false, "strong_ptr was nullptr!");
     }
 
     return ResultSuccess;
