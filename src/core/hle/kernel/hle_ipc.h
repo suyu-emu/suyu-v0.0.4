@@ -46,6 +46,7 @@ class KThread;
 class KReadableEvent;
 class KSession;
 class KWritableEvent;
+class ServiceThread;
 
 enum class ThreadWakeupReason;
 
@@ -56,7 +57,7 @@ enum class ThreadWakeupReason;
  */
 class SessionRequestHandler : public std::enable_shared_from_this<SessionRequestHandler> {
 public:
-    SessionRequestHandler();
+    SessionRequestHandler(KernelCore& kernel, const char* service_name_);
     virtual ~SessionRequestHandler();
 
     /**
@@ -83,6 +84,14 @@ public:
      * @param server_session ServerSession associated with the connection.
      */
     void ClientDisconnected(KServerSession* session);
+
+    std::shared_ptr<ServiceThread> GetServiceThread() const {
+        return service_thread.lock();
+    }
+
+protected:
+    KernelCore& kernel;
+    std::weak_ptr<ServiceThread> service_thread;
 };
 
 using SessionRequestHandlerPtr = std::shared_ptr<SessionRequestHandler>;
@@ -94,7 +103,8 @@ using SessionRequestHandlerPtr = std::shared_ptr<SessionRequestHandler>;
  */
 class SessionRequestManager final {
 public:
-    SessionRequestManager() = default;
+    explicit SessionRequestManager(KernelCore& kernel);
+    ~SessionRequestManager();
 
     bool IsDomain() const {
         return is_domain;
@@ -142,10 +152,18 @@ public:
         session_handler = std::move(handler);
     }
 
+    std::shared_ptr<ServiceThread> GetServiceThread() const {
+        return session_handler->GetServiceThread();
+    }
+
 private:
     bool is_domain{};
     SessionRequestHandlerPtr session_handler;
     std::vector<SessionRequestHandlerPtr> domain_handlers;
+
+private:
+    KernelCore& kernel;
+    std::weak_ptr<ServiceThread> service_thread;
 };
 
 /**

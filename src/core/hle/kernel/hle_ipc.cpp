@@ -30,9 +30,16 @@
 
 namespace Kernel {
 
-SessionRequestHandler::SessionRequestHandler() = default;
+SessionRequestHandler::SessionRequestHandler(KernelCore& kernel_, const char* service_name_)
+    : kernel{kernel_}, service_thread{kernel.CreateServiceThread(service_name_)} {}
 
-SessionRequestHandler::~SessionRequestHandler() = default;
+SessionRequestHandler::~SessionRequestHandler() {
+    kernel.ReleaseServiceThread(service_thread);
+}
+
+SessionRequestManager::SessionRequestManager(KernelCore& kernel_) : kernel{kernel_} {}
+
+SessionRequestManager::~SessionRequestManager() = default;
 
 void SessionRequestHandler::ClientConnected(KServerSession* session) {
     session->SetSessionHandler(shared_from_this());

@@ -21,9 +21,9 @@ public:
     explicit KReadableEvent(KernelCore& kernel_);
     ~KReadableEvent() override;
 
-    void Initialize(KEvent* parent_, std::string&& name_) {
+    void Initialize(KEvent* parent_event_, std::string&& name_) {
         is_signaled = false;
-        parent = parent_;
+        parent = parent_event_;
         name = std::move(name_);
     }
 

@@ -254,8 +254,6 @@ void PL_U::GetSharedMemoryNativeHandle(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_NS, "called");
 
     // Create shared font memory object
-    auto& kernel = system.Kernel();
-
     std::memcpy(kernel.GetFontSharedMem().GetPointer(), impl->shared_font->data(),
                 impl->shared_font->size());
 

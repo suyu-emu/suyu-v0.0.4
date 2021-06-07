@@ -13,6 +13,8 @@
 
 namespace Kernel {
 
+class SessionRequestManager;
+
 class KSession final : public KAutoObjectWithSlabHeapAndContainer<KSession, KAutoObjectWithList> {
     KERNEL_AUTOOBJECT_TRAITS(KSession, KAutoObject);
 
@@ -20,7 +22,8 @@ public:
     explicit KSession(KernelCore& kernel_);
     ~KSession() override;
 
-    void Initialize(KClientPort* port_, const std::string& name_);
+    void Initialize(KClientPort* port_, const std::string& name_,
+                    std::shared_ptr<SessionRequestManager> manager_ = nullptr);
 
     void Finalize() override;
 

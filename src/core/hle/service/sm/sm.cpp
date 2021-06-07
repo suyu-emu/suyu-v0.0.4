@@ -46,7 +46,7 @@ Kernel::KClientPort& ServiceManager::InterfaceFactory(ServiceManager& self, Core
     self.sm_interface = sm;
     self.controller_interface = std::make_unique<Controller>(system);
 
-    return sm->CreatePort(system.Kernel());
+    return sm->CreatePort();
 }
 
 ResultVal<Kernel::KServerPort*> ServiceManager::RegisterService(std::string name,

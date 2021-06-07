@@ -23,6 +23,7 @@ namespace Kernel {
 class HLERequestContext;
 class KClientPort;
 class KServerSession;
+class ServiceThread;
 } // namespace Kernel
 
 namespace Service {
@@ -41,7 +42,7 @@ class ServiceManager;
 
 static const int kMaxPortSize = 8; ///< Maximum size of a port name (8 characters)
 /// Arbitrary default number of maximum connections to an HLE service.
-static const u32 DefaultMaxSessions = 10;
+static const u32 DefaultMaxSessions = 64;
 
 /**
  * This is an non-templated base of ServiceFramework to reduce code bloat and compilation times, it
@@ -74,7 +75,7 @@ public:
     void InvokeRequestTipc(Kernel::HLERequestContext& ctx);
 
     /// Creates a port pair and registers it on the kernel's global port registry.
-    Kernel::KClientPort& CreatePort(Kernel::KernelCore& kernel);
+    Kernel::KClientPort& CreatePort();
 
     /// Handles a synchronization request for the service.
     ResultCode HandleSyncRequest(Kernel::KServerSession& session,

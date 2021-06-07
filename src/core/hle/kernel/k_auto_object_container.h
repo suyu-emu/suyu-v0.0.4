@@ -6,6 +6,8 @@
 
 #include <atomic>
 
+#include <boost/intrusive/rbtree.hpp>
+
 #include "common/assert.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
@@ -23,8 +25,7 @@ class KAutoObjectWithListContainer {
     YUZU_NON_MOVEABLE(KAutoObjectWithListContainer);
 
 public:
-    using ListType = Common::IntrusiveRedBlackTreeMemberTraits<
-        &KAutoObjectWithList::list_node>::TreeType<KAutoObjectWithList>;
+    using ListType = boost::intrusive::rbtree<KAutoObjectWithList>;
 
 public:
     class ListAccessor : public KScopedLightLock {

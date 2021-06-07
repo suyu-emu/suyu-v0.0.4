@@ -7,10 +7,11 @@
 #include <atomic>
 #include <string>
 
+#include <boost/intrusive/rbtree.hpp>
+
 #include "common/assert.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
-#include "common/intrusive_red_black_tree.h"
 #include "core/hle/kernel/k_class_token.h"
 
 namespace Kernel {
@@ -175,7 +176,7 @@ private:
 
 class KAutoObjectWithListContainer;
 
-class KAutoObjectWithList : public KAutoObject {
+class KAutoObjectWithList : public KAutoObject, public boost::intrusive::set_base_hook<> {
 public:
     explicit KAutoObjectWithList(KernelCore& kernel_) : KAutoObject(kernel_) {}
 
@@ -192,6 +193,10 @@ public:
         }
     }
 
+    friend bool operator<(const KAutoObjectWithList& left, const KAutoObjectWithList& right) {
+        return &left < &right;
+    }
+
 public:
     virtual u64 GetId() const {
         return reinterpret_cast<u64>(this);
@@ -203,8 +208,6 @@ public:
 
 private:
     friend class KAutoObjectWithListContainer;
-
-    Common::IntrusiveRedBlackTreeNode list_node;
 };
 
 template <typename T>

@@ -28,42 +28,25 @@ void Controller::ConvertCurrentObjectToDomain(Kernel::HLERequestContext& ctx) {
 }
 
 void Controller::CloneCurrentObject(Kernel::HLERequestContext& ctx) {
-    // TODO(bunnei): This is just creating a new handle to the same Session. I assume this is wrong
-    // and that we probably want to actually make an entirely new Session, but we still need to
-    // verify this on hardware.
-
     LOG_DEBUG(Service, "called");
 
-    auto& kernel = system.Kernel();
-    auto* session = ctx.Session()->GetParent();
-    auto* port = session->GetParent()->GetParent();
+    auto& parent_session = *ctx.Session()->GetParent();
+    auto& parent_port = parent_session.GetParent()->GetParent()->GetClientPort();
+    auto& session_manager = parent_session.GetServerSession().GetSessionRequestManager();
 
-    // Reserve a new session from the process resource limit.
-    Kernel::KScopedResourceReservation session_reservation(
-        kernel.CurrentProcess()->GetResourceLimit(), Kernel::LimitableResource::Sessions);
-    if (!session_reservation.Succeeded()) {
+    // Create a session.
+    Kernel::KClientSession* session{};
+    const ResultCode result = parent_port.CreateSession(std::addressof(session), session_manager);
+    if (result.IsError()) {
+        LOG_CRITICAL(Service, "CreateSession failed with error 0x{:08X}", result.raw);
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(Kernel::ResultLimitReached);
+        rb.Push(result);
     }
-
-    // Create a new session.
-    auto* clone = Kernel::KSession::Create(kernel);
-    clone->Initialize(&port->GetClientPort(), session->GetName());
-
-    // Commit the session reservation.
-    session_reservation.Commit();
-
-    // Enqueue the session with the named port.
-    port->EnqueueSession(&clone->GetServerSession());
-
-    // Set the session request manager.
-    clone->GetServerSession().SetSessionRequestManager(
-        session->GetServerSession().GetSessionRequestManager());
 
     // We succeeded.
     IPC::ResponseBuilder rb{ctx, 2, 0, 1, IPC::ResponseBuilder::Flags::AlwaysMoveHandles};
     rb.Push(ResultSuccess);
-    rb.PushMoveObjects(clone->GetClientSession());
+    rb.PushMoveObjects(session);
 }
 
 void Controller::CloneCurrentObjectEx(Kernel::HLERequestContext& ctx) {

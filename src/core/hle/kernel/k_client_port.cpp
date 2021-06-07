@@ -16,11 +16,11 @@ namespace Kernel {
 KClientPort::KClientPort(KernelCore& kernel_) : KSynchronizationObject{kernel_} {}
 KClientPort::~KClientPort() = default;
 
-void KClientPort::Initialize(KPort* parent_, s32 max_sessions_, std::string&& name_) {
+void KClientPort::Initialize(KPort* parent_port_, s32 max_sessions_, std::string&& name_) {
     // Set member variables.
     num_sessions = 0;
     peak_sessions = 0;
-    parent = parent_;
+    parent = parent_port_;
     max_sessions = max_sessions_;
     name = std::move(name_);
 }
@@ -56,7 +56,8 @@ bool KClientPort::IsSignaled() const {
     return num_sessions < max_sessions;
 }
 
-ResultCode KClientPort::CreateSession(KClientSession** out) {
+ResultCode KClientPort::CreateSession(KClientSession** out,
+                                      std::shared_ptr<SessionRequestManager> session_manager) {
     // Reserve a new session from the resource limit.
     KScopedResourceReservation session_reservation(kernel.CurrentProcess()->GetResourceLimit(),
                                                    LimitableResource::Sessions);
@@ -101,7 +102,7 @@ ResultCode KClientPort::CreateSession(KClientSession** out) {
     }
 
     // Initialize the session.
-    session->Initialize(this, parent->GetName());
+    session->Initialize(this, parent->GetName(), session_manager);
 
     // Commit the session reservation.
     session_reservation.Commit();
