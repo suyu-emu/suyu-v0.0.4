@@ -63,6 +63,14 @@ void Swizzle(std::span<u8> output, std::span<const u8> input, u32 bytes_per_pixe
                 const u32 unswizzled_offset =
                     slice * pitch * height + line * pitch + column * bytes_per_pixel;
 
+                if (const auto offset = (TO_LINEAR ? unswizzled_offset : swizzled_offset);
+                    offset >= input.size()) {
+                    // TODO(Rodrigo): This is an out of bounds access that should never happen. To
+                    // avoid crashing the emulator, break.
+                    ASSERT_MSG(false, "offset {} exceeds input size {}!", offset, input.size());
+                    break;
+                }
+
                 u8* const dst = &output[TO_LINEAR ? swizzled_offset : unswizzled_offset];
                 const u8* const src = &input[TO_LINEAR ? unswizzled_offset : swizzled_offset];
                 std::memcpy(dst, src, bytes_per_pixel);
