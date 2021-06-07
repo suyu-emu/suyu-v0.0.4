@@ -99,25 +99,13 @@ void ThreadManager::FlushRegion(VAddr addr, u64 size) {
         PushCommand(FlushRegionCommand(addr, size));
         return;
     }
-
-    // Asynchronous GPU mode
-    switch (Settings::values.gpu_accuracy.GetValue()) {
-    case Settings::GPUAccuracy::Normal:
-        PushCommand(FlushRegionCommand(addr, size));
-        break;
-    case Settings::GPUAccuracy::High:
-        // TODO(bunnei): Is this right? Preserving existing behavior for now
-        break;
-    case Settings::GPUAccuracy::Extreme: {
-        auto& gpu = system.GPU();
-        u64 fence = gpu.RequestFlush(addr, size);
-        PushCommand(GPUTickCommand(), true);
-        ASSERT(fence <= gpu.CurrentFlushRequestFence());
-        break;
+    if (!Settings::IsGPULevelExtreme()) {
+        return;
     }
-    default:
-        UNIMPLEMENTED_MSG("Unsupported gpu_accuracy {}", Settings::values.gpu_accuracy.GetValue());
-    }
+    auto& gpu = system.GPU();
+    u64 fence = gpu.RequestFlush(addr, size);
+    PushCommand(GPUTickCommand(), true);
+    ASSERT(fence <= gpu.CurrentFlushRequestFence());
 }
 
 void ThreadManager::InvalidateRegion(VAddr addr, u64 size) {
