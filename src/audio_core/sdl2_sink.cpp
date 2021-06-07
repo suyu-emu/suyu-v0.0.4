@@ -37,10 +37,11 @@ public:
         spec.callback = nullptr;
 
         SDL_AudioSpec obtained;
-        if (output_device.empty())
+        if (output_device.empty()) {
             dev = SDL_OpenAudioDevice(nullptr, 0, &spec, &obtained, 0);
-        else
+        } else {
             dev = SDL_OpenAudioDevice(output_device.c_str(), 0, &spec, &obtained, 0);
+        }
 
         if (dev == 0) {
             LOG_CRITICAL(Audio_Sink, "Error opening sdl audio device: {}", SDL_GetError());
@@ -55,7 +56,6 @@ public:
             return;
         }
 
-        SDL_PauseAudioDevice(dev, 1);
         SDL_CloseAudioDevice(dev);
     }
 
@@ -134,11 +134,7 @@ SDLSink::SDLSink(std::string_view target_device_name) {
     }
 }
 
-SDLSink::~SDLSink() {
-    for (auto& sink_stream : sink_streams) {
-        sink_stream.reset();
-    }
-}
+SDLSink::~SDLSink() = default;
 
 SinkStream& SDLSink::AcquireSinkStream(u32 sample_rate, u32 num_channels, const std::string&) {
     sink_streams.push_back(
@@ -152,11 +148,11 @@ std::vector<std::string> ListSDLSinkDevices() {
     if (!SDL_WasInit(SDL_INIT_AUDIO)) {
         if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0) {
             LOG_CRITICAL(Audio_Sink, "SDL_InitSubSystem audio failed: {}", SDL_GetError());
-            return std::vector<std::string>();
+            return {};
         }
     }
 
-    int device_count = SDL_GetNumAudioDevices(0);
+    const int device_count = SDL_GetNumAudioDevices(0);
     for (int i = 0; i < device_count; ++i) {
         device_list.emplace_back(SDL_GetAudioDeviceName(i, 0));
     }
