@@ -85,8 +85,8 @@ public:
      */
     void ClientDisconnected(KServerSession* session);
 
-    std::shared_ptr<ServiceThread> GetServiceThread() const {
-        return service_thread.lock();
+    std::weak_ptr<ServiceThread> GetServiceThread() const {
+        return service_thread;
     }
 
 protected:
@@ -152,9 +152,11 @@ public:
         session_handler = std::move(handler);
     }
 
-    std::shared_ptr<ServiceThread> GetServiceThread() const {
+    std::weak_ptr<ServiceThread> GetServiceThread() const {
         return session_handler->GetServiceThread();
     }
+
+    bool HasSessionRequestHandler(const HLERequestContext& context) const;
 
 private:
     bool is_domain{};
@@ -163,7 +165,6 @@ private:
 
 private:
     KernelCore& kernel;
-    std::weak_ptr<ServiceThread> service_thread;
 };
 
 /**

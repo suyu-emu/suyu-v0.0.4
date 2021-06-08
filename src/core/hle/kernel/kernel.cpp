@@ -63,8 +63,6 @@ struct KernelCore::Impl {
         global_scheduler_context = std::make_unique<Kernel::GlobalSchedulerContext>(kernel);
         global_handle_table = std::make_unique<Kernel::KHandleTable>(kernel);
 
-        service_thread_manager =
-            std::make_unique<Common::ThreadWorker>(1, "yuzu:ServiceThreadManager");
         is_phantom_mode_for_singlecore = false;
 
         InitializePhysicalCores();
@@ -96,7 +94,6 @@ struct KernelCore::Impl {
         process_list.clear();
 
         // Ensures all service threads gracefully shutdown
-        service_thread_manager.reset();
         service_threads.clear();
 
         next_object_id = 0;
@@ -680,10 +677,6 @@ struct KernelCore::Impl {
     // Threads used for services
     std::unordered_set<std::shared_ptr<Kernel::ServiceThread>> service_threads;
 
-    // Service threads are managed by a worker thread, so that a calling service thread can queue up
-    // the release of itself
-    std::unique_ptr<Common::ThreadWorker> service_thread_manager;
-
     std::array<KThread*, Core::Hardware::NUM_CPU_CORES> suspend_threads;
     std::array<Core::CPUInterruptHandler, Core::Hardware::NUM_CPU_CORES> interrupts{};
     std::array<std::unique_ptr<Kernel::KScheduler>, Core::Hardware::NUM_CPU_CORES> schedulers{};
@@ -986,17 +979,14 @@ void KernelCore::ExitSVCProfile() {
 
 std::weak_ptr<Kernel::ServiceThread> KernelCore::CreateServiceThread(const std::string& name) {
     auto service_thread = std::make_shared<Kernel::ServiceThread>(*this, 1, name);
-    impl->service_thread_manager->QueueWork(
-        [this, service_thread] { impl->service_threads.emplace(service_thread); });
+    impl->service_threads.emplace(service_thread);
     return service_thread;
 }
 
 void KernelCore::ReleaseServiceThread(std::weak_ptr<Kernel::ServiceThread> service_thread) {
-    impl->service_thread_manager->QueueWork([this, service_thread] {
-        if (auto strong_ptr = service_thread.lock()) {
-            impl->service_threads.erase(strong_ptr);
-        }
-    });
+    if (auto strong_ptr = service_thread.lock()) {
+        impl->service_threads.erase(strong_ptr);
+    }
 }
 
 Init::KSlabResourceCounts& KernelCore::SlabResourceCounts() {
