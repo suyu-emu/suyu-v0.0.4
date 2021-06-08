@@ -209,7 +209,7 @@ void SetYuzuPath(YuzuPath yuzu_path, const std::filesystem::path& new_path);
 
 #ifdef _WIN32
 template <typename Path>
-[[nodiscard]] void SetYuzuPath(YuzuPath yuzu_path, const Path& new_path) {
+void SetYuzuPath(YuzuPath yuzu_path, const Path& new_path) {
     if constexpr (IsChar<typename Path::value_type>) {
         SetYuzuPath(yuzu_path, ToU8String(new_path));
     } else {
