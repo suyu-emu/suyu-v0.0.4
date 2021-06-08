@@ -119,11 +119,16 @@ ResultCode KServerSession::QueueSyncRequest(KThread* thread, Core::Memory::Memor
 
     context->PopulateFromIncomingCommandBuffer(kernel.CurrentProcess()->GetHandleTable(), cmd_buf);
 
-    if (auto strong_ptr = manager->GetServiceThread().lock()) {
-        strong_ptr->QueueSyncRequest(*parent, std::move(context));
-        return ResultSuccess;
+    // Ensure we have a session request handler
+    if (manager->HasSessionRequestHandler(*context)) {
+        if (auto strong_ptr = manager->GetServiceThread().lock()) {
+            strong_ptr->QueueSyncRequest(*parent, std::move(context));
+            return ResultSuccess;
+        } else {
+            ASSERT_MSG(false, "strong_ptr is nullptr!");
+        }
     } else {
-        ASSERT_MSG(false, "strong_ptr was nullptr!");
+        ASSERT_MSG(false, "handler is invalid!");
     }
 
     return ResultSuccess;

@@ -156,6 +156,8 @@ public:
         return session_handler->GetServiceThread();
     }
 
+    bool HasSessionRequestHandler(const HLERequestContext& context) const;
+
 private:
     bool is_domain{};
     SessionRequestHandlerPtr session_handler;
@@ -163,7 +165,6 @@ private:
 
 private:
     KernelCore& kernel;
-    std::weak_ptr<ServiceThread> service_thread;
 };
 
 /**
