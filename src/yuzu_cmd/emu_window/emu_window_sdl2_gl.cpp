@@ -32,17 +32,17 @@
 
 class SDLGLContext : public Core::Frontend::GraphicsContext {
 public:
-    explicit SDLGLContext() {
-        // create a hidden window to make the shared context against
-        window = SDL_CreateWindow(NULL, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 0, 0,
-                                  SDL_WINDOW_HIDDEN | SDL_WINDOW_OPENGL);
+    explicit SDLGLContext(SDL_Window* window_) : window{window_} {
         context = SDL_GL_CreateContext(window);
     }
 
     ~SDLGLContext() {
         DoneCurrent();
         SDL_GL_DeleteContext(context);
-        SDL_DestroyWindow(window);
+    }
+
+    void SwapBuffers() override {
+        SDL_GL_SwapWindow(window);
     }
 
     void MakeCurrent() override {
@@ -114,9 +114,6 @@ EmuWindow_SDL2_GL::EmuWindow_SDL2_GL(InputCommon::InputSubsystem* input_subsyste
         exit(1);
     }
 
-    dummy_window = SDL_CreateWindow(NULL, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 0, 0,
-                                    SDL_WINDOW_HIDDEN | SDL_WINDOW_OPENGL);
-
     SetWindowIcon();
 
     if (fullscreen) {
@@ -159,5 +156,5 @@ EmuWindow_SDL2_GL::~EmuWindow_SDL2_GL() {
 }
 
 std::unique_ptr<Core::Frontend::GraphicsContext> EmuWindow_SDL2_GL::CreateSharedContext() const {
-    return std::make_unique<SDLGLContext>();
+    return std::make_unique<SDLGLContext>(render_window);
 }

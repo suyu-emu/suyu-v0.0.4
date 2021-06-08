@@ -20,9 +20,6 @@ public:
     std::unique_ptr<Core::Frontend::GraphicsContext> CreateSharedContext() const override;
 
 private:
-    /// Fake hidden window for the core context
-    SDL_Window* dummy_window{};
-
     /// Whether the GPU and driver supports the OpenGL extension required
     bool SupportsRequiredGLExtensions();
 
