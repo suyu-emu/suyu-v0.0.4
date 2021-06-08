@@ -1,18 +1,10 @@
 #ifdef _WIN32
 
-#ifdef _WIN32_WINNT
-#undef _WIN32_WINNT
-#endif
-#define _WIN32_WINNT 0x0A00 // Windows 10
-
-#include <windows.h>
-
-#include <boost/icl/separate_interval_set.hpp>
-
 #include <iterator>
 #include <unordered_map>
-
-#pragma comment(lib, "mincore.lib")
+#include <boost/icl/separate_interval_set.hpp>
+#include <windows.h>
+#include "common/dynamic_library.h"
 
 #elif defined(__linux__) // ^^^ Windows ^^^ vvv Linux vvv
 
@@ -40,38 +32,99 @@ constexpr size_t HugePageSize = 0x200000;
 
 #ifdef _WIN32
 
+// Manually imported for MinGW compatibility
+#ifndef MEM_RESERVE_PLACEHOLDER
+#define MEM_RESERVE_PLACEHOLDER 0x0004000
+#endif
+#ifndef MEM_REPLACE_PLACEHOLDER
+#define MEM_REPLACE_PLACEHOLDER 0x00004000
+#endif
+#ifndef MEM_COALESCE_PLACEHOLDERS
+#define MEM_COALESCE_PLACEHOLDERS 0x00000001
+#endif
+#ifndef MEM_PRESERVE_PLACEHOLDER
+#define MEM_PRESERVE_PLACEHOLDER 0x00000002
+#endif
+
+using PFN_CreateFileMapping2 = _Ret_maybenull_ HANDLE(WINAPI*)(
+    _In_ HANDLE File, _In_opt_ SECURITY_ATTRIBUTES* SecurityAttributes, _In_ ULONG DesiredAccess,
+    _In_ ULONG PageProtection, _In_ ULONG AllocationAttributes, _In_ ULONG64 MaximumSize,
+    _In_opt_ PCWSTR Name,
+    _Inout_updates_opt_(ParameterCount) MEM_EXTENDED_PARAMETER* ExtendedParameters,
+    _In_ ULONG ParameterCount);
+
+using PFN_VirtualAlloc2 = _Ret_maybenull_ PVOID(WINAPI*)(
+    _In_opt_ HANDLE Process, _In_opt_ PVOID BaseAddress, _In_ SIZE_T Size,
+    _In_ ULONG AllocationType, _In_ ULONG PageProtection,
+    _Inout_updates_opt_(ParameterCount) MEM_EXTENDED_PARAMETER* ExtendedParameters,
+    _In_ ULONG ParameterCount);
+
+using PFN_MapViewOfFile3 = _Ret_maybenull_ PVOID(WINAPI*)(
+    _In_ HANDLE FileMapping, _In_opt_ HANDLE Process, _In_opt_ PVOID BaseAddress,
+    _In_ ULONG64 Offset, _In_ SIZE_T ViewSize, _In_ ULONG AllocationType, _In_ ULONG PageProtection,
+    _Inout_updates_opt_(ParameterCount) MEM_EXTENDED_PARAMETER* ExtendedParameters,
+    _In_ ULONG ParameterCount);
+
+using PFN_UnmapViewOfFile2 = BOOL(WINAPI*)(_In_ HANDLE Process, _In_ PVOID BaseAddress,
+                                           _In_ ULONG UnmapFlags);
+
+template <typename T>
+static void GetFuncAddress(Common::DynamicLibrary& dll, const char* name, T& pfn) {
+    if (!dll.GetSymbol(name, &pfn)) {
+        LOG_CRITICAL(HW_Memory, "Failed to load {}", name);
+        throw std::bad_alloc{};
+    }
+}
+
 class HostMemory::Impl {
 public:
     explicit Impl(size_t backing_size_, size_t virtual_size_)
-        : backing_size{backing_size_}, virtual_size{virtual_size_}, process{GetCurrentProcess()} {
+        : backing_size{backing_size_}, virtual_size{virtual_size_}, process{GetCurrentProcess()},
+          kernelbase_dll("Kernelbase") {
+        if (!kernelbase_dll.IsOpen()) {
+            LOG_CRITICAL(HW_Memory, "Failed to load Kernelbase.dll");
+            throw std::bad_alloc{};
+        }
+        GetFuncAddress(kernelbase_dll, "CreateFileMapping2", pfn_CreateFileMapping2);
+        GetFuncAddress(kernelbase_dll, "VirtualAlloc2", pfn_VirtualAlloc2);
+        GetFuncAddress(kernelbase_dll, "MapViewOfFile3", pfn_MapViewOfFile3);
+        GetFuncAddress(kernelbase_dll, "UnmapViewOfFile2", pfn_UnmapViewOfFile2);
+
         // Allocate backing file map
         backing_handle =
-            CreateFileMapping2(INVALID_HANDLE_VALUE, nullptr, FILE_MAP_WRITE | FILE_MAP_READ,
-                               PAGE_READWRITE, SEC_COMMIT, backing_size, nullptr, nullptr, 0);
+            pfn_CreateFileMapping2(INVALID_HANDLE_VALUE, nullptr, FILE_MAP_WRITE | FILE_MAP_READ,
+                                   PAGE_READWRITE, SEC_COMMIT, backing_size, nullptr, nullptr, 0);
         if (!backing_handle) {
+            LOG_CRITICAL(HW_Memory, "Failed to allocate {} MiB of backing memory",
+                         backing_size >> 20);
             throw std::bad_alloc{};
         }
         // Allocate a virtual memory for the backing file map as placeholder
-        backing_base = static_cast<u8*>(VirtualAlloc2(process, nullptr, backing_size,
-                                                      MEM_RESERVE | MEM_RESERVE_PLACEHOLDER,
-                                                      PAGE_NOACCESS, nullptr, 0));
+        backing_base = static_cast<u8*>(pfn_VirtualAlloc2(process, nullptr, backing_size,
+                                                          MEM_RESERVE | MEM_RESERVE_PLACEHOLDER,
+                                                          PAGE_NOACCESS, nullptr, 0));
         if (!backing_base) {
             Release();
+            LOG_CRITICAL(HW_Memory, "Failed to reserve {} MiB of virtual memory",
+                         backing_size >> 20);
             throw std::bad_alloc{};
         }
         // Map backing placeholder
-        void* const ret = MapViewOfFile3(backing_handle, process, backing_base, 0, backing_size,
-                                         MEM_REPLACE_PLACEHOLDER, PAGE_READWRITE, nullptr, 0);
+        void* const ret = pfn_MapViewOfFile3(backing_handle, process, backing_base, 0, backing_size,
+                                             MEM_REPLACE_PLACEHOLDER, PAGE_READWRITE, nullptr, 0);
         if (ret != backing_base) {
             Release();
+            LOG_CRITICAL(HW_Memory, "Failed to map {} MiB of virtual memory", backing_size >> 20);
             throw std::bad_alloc{};
         }
         // Allocate virtual address placeholder
-        virtual_base = static_cast<u8*>(VirtualAlloc2(process, nullptr, virtual_size,
-                                                      MEM_RESERVE | MEM_RESERVE_PLACEHOLDER,
-                                                      PAGE_NOACCESS, nullptr, 0));
+        virtual_base = static_cast<u8*>(pfn_VirtualAlloc2(process, nullptr, virtual_size,
+                                                          MEM_RESERVE | MEM_RESERVE_PLACEHOLDER,
+                                                          PAGE_NOACCESS, nullptr, 0));
         if (!virtual_base) {
             Release();
+            LOG_CRITICAL(HW_Memory, "Failed to reserve {} GiB of virtual memory",
+                         virtual_size >> 30);
             throw std::bad_alloc{};
         }
     }
@@ -136,8 +189,8 @@ private:
     void Release() {
         if (!placeholders.empty()) {
             for (const auto& placeholder : placeholders) {
-                if (!UnmapViewOfFile2(process, virtual_base + placeholder.lower(),
-                                      MEM_PRESERVE_PLACEHOLDER)) {
+                if (!pfn_UnmapViewOfFile2(process, virtual_base + placeholder.lower(),
+                                          MEM_PRESERVE_PLACEHOLDER)) {
                     LOG_CRITICAL(HW_Memory, "Failed to unmap virtual memory placeholder");
                 }
             }
@@ -149,7 +202,7 @@ private:
             }
         }
         if (backing_base) {
-            if (!UnmapViewOfFile2(process, backing_base, MEM_PRESERVE_PLACEHOLDER)) {
+            if (!pfn_UnmapViewOfFile2(process, backing_base, MEM_PRESERVE_PLACEHOLDER)) {
                 LOG_CRITICAL(HW_Memory, "Failed to unmap backing memory placeholder");
             }
             if (!VirtualFreeEx(process, backing_base, 0, MEM_RELEASE)) {
@@ -184,8 +237,8 @@ private:
         const bool split_left = unmap_begin > placeholder_begin;
         const bool split_right = unmap_end < placeholder_end;
 
-        if (!UnmapViewOfFile2(process, virtual_base + placeholder_begin,
-                              MEM_PRESERVE_PLACEHOLDER)) {
+        if (!pfn_UnmapViewOfFile2(process, virtual_base + placeholder_begin,
+                                  MEM_PRESERVE_PLACEHOLDER)) {
             LOG_CRITICAL(HW_Memory, "Failed to unmap placeholder");
         }
         // If we have to remap memory regions due to partial unmaps, we are in a data race as
@@ -235,8 +288,8 @@ private:
     }
 
     void MapView(size_t virtual_offset, size_t host_offset, size_t length) {
-        if (!MapViewOfFile3(backing_handle, process, virtual_base + virtual_offset, host_offset,
-                            length, MEM_REPLACE_PLACEHOLDER, PAGE_READWRITE, nullptr, 0)) {
+        if (!pfn_MapViewOfFile3(backing_handle, process, virtual_base + virtual_offset, host_offset,
+                                length, MEM_REPLACE_PLACEHOLDER, PAGE_READWRITE, nullptr, 0)) {
             LOG_CRITICAL(HW_Memory, "Failed to map placeholder");
         }
     }
@@ -278,6 +331,12 @@ private:
 
     HANDLE process{};        ///< Current process handle
     HANDLE backing_handle{}; ///< File based backing memory
+
+    DynamicLibrary kernelbase_dll;
+    PFN_CreateFileMapping2 pfn_CreateFileMapping2{};
+    PFN_VirtualAlloc2 pfn_VirtualAlloc2{};
+    PFN_MapViewOfFile3 pfn_MapViewOfFile3{};
+    PFN_UnmapViewOfFile2 pfn_UnmapViewOfFile2{};
 
     std::mutex placeholder_mutex;                                 ///< Mutex for placeholders
     boost::icl::separate_interval_set<size_t> placeholders;       ///< Mapped placeholders
