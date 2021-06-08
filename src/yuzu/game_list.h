@@ -28,6 +28,7 @@ class GameListWorker;
 class GameListSearchField;
 class GameListDir;
 class GMainWindow;
+enum class StartGameType;
 
 namespace FileSys {
 class ManualContentProvider;
@@ -82,6 +83,7 @@ public:
     static const QStringList supported_file_extensions;
 
 signals:
+    void BootGame(const QString& game_path, std::size_t program_index, StartGameType type);
     void GameChosen(const QString& game_path);
     void ShouldCancelWorker();
     void OpenFolderRequested(u64 program_id, GameListOpenTarget target,
