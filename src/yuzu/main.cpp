@@ -1094,6 +1094,7 @@ void GMainWindow::OnAppFocusStateChanged(Qt::ApplicationState state) {
 }
 
 void GMainWindow::ConnectWidgetEvents() {
+    connect(game_list, &GameList::BootGame, this, &GMainWindow::BootGame);
     connect(game_list, &GameList::GameChosen, this, &GMainWindow::OnGameListLoadFile);
     connect(game_list, &GameList::OpenDirectory, this, &GMainWindow::OnGameListOpenDirectory);
     connect(game_list, &GameList::OpenFolderRequested, this, &GMainWindow::OnGameListOpenFolder);
@@ -1320,7 +1321,7 @@ void GMainWindow::SelectAndSetCurrentUser() {
     Settings::values.current_user = dialog.GetIndex();
 }
 
-void GMainWindow::BootGame(const QString& filename, std::size_t program_index) {
+void GMainWindow::BootGame(const QString& filename, std::size_t program_index, StartGameType type) {
     LOG_INFO(Frontend, "yuzu starting...");
     StoreRecentFile(filename); // Put the filename on top of the list
 
@@ -1332,7 +1333,8 @@ void GMainWindow::BootGame(const QString& filename, std::size_t program_index) {
     const auto v_file = Core::GetGameFileFromPath(vfs, filename.toUtf8().constData());
     const auto loader = Loader::GetLoader(system, v_file, program_index);
 
-    if (!(loader == nullptr || loader->ReadProgramId(title_id) != Loader::ResultStatus::Success)) {
+    if (loader != nullptr && loader->ReadProgramId(title_id) == Loader::ResultStatus::Success &&
+        type == StartGameType::Normal) {
         // Load per game settings
         const auto file_path = std::filesystem::path{filename.toStdU16String()};
         const auto config_file_name = title_id == 0
