@@ -42,7 +42,7 @@ class ServiceManager;
 
 static const int kMaxPortSize = 8; ///< Maximum size of a port name (8 characters)
 /// Arbitrary default number of maximum connections to an HLE service.
-static const u32 DefaultMaxSessions = 64;
+static const u32 DefaultMaxSessions = 0x10000;
 
 /**
  * This is an non-templated base of ServiceFramework to reduce code bloat and compilation times, it
