@@ -3,8 +3,8 @@
 . .ci/scripts/common/pre-upload.sh
 
 REV_NAME="yuzu-windows-mingw-${GITDATE}-${GITREV}"
-ARCHIVE_NAME="${REV_NAME}.tar.gz"
-COMPRESSION_FLAGS="-czvf"
+ARCHIVE_NAME="${REV_NAME}.tar.xz"
+COMPRESSION_FLAGS="-cJvf"
 
 if [ "${RELEASE_NAME}" = "mainline" ]; then
     DIR_NAME="${REV_NAME}"
