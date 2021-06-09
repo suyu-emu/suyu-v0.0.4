@@ -449,8 +449,8 @@ static ResultCode CancelSynchronization(Core::System& system, Handle handle) {
 
     // Get the thread from its handle.
     KScopedAutoObject thread =
-        system.Kernel().CurrentProcess()->GetHandleTable().GetObject<KThread>(
-            static_cast<Handle>(handle));
+        system.Kernel().CurrentProcess()->GetHandleTable().GetObject<KThread>(handle);
+    R_UNLESS(thread.IsNotNull(), ResultInvalidHandle);
 
     // Cancel the thread's wait.
     thread->WaitCancel();
