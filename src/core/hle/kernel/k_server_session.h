@@ -62,13 +62,12 @@ public:
 
     void OnClientClosed();
 
-    /**
-     * Sets the HLE handler for the session. This handler will be called to service IPC requests
-     * instead of the regular IPC machinery. (The regular IPC machinery is currently not
-     * implemented.)
-     */
-    void SetSessionHandler(SessionRequestHandlerPtr handler) {
+    void ClientConnected(SessionRequestHandlerPtr handler) {
         manager->SetSessionHandler(std::move(handler));
+    }
+
+    void ClientDisconnected() {
+        manager = nullptr;
     }
 
     /**

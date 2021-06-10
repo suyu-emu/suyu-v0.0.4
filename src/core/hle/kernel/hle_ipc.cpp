@@ -57,11 +57,11 @@ bool SessionRequestManager::HasSessionRequestHandler(const HLERequestContext& co
 }
 
 void SessionRequestHandler::ClientConnected(KServerSession* session) {
-    session->SetSessionHandler(shared_from_this());
+    session->ClientConnected(shared_from_this());
 }
 
 void SessionRequestHandler::ClientDisconnected(KServerSession* session) {
-    session->SetSessionHandler(nullptr);
+    session->ClientDisconnected();
 }
 
 HLERequestContext::HLERequestContext(KernelCore& kernel_, Core::Memory::Memory& memory_,
