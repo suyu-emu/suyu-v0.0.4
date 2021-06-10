@@ -40,9 +40,11 @@ namespace SM {
 class ServiceManager;
 }
 
-static const int kMaxPortSize = 8; ///< Maximum size of a port name (8 characters)
-/// Arbitrary default number of maximum connections to an HLE service.
-static const u32 DefaultMaxSessions = 0x100;
+/// Default number of maximum connections to a server session.
+static constexpr u32 ServerSessionCountMax = 0x40;
+static_assert(ServerSessionCountMax == 0x40,
+              "ServerSessionCountMax isn't 0x40 somehow, this assert is a reminder that this will "
+              "break lots of things");
 
 /**
  * This is an non-templated base of ServiceFramework to reduce code bloat and compilation times, it
@@ -178,7 +180,7 @@ protected:
      *                      connected to this service at the same time.
      */
     explicit ServiceFramework(Core::System& system_, const char* service_name_,
-                              u32 max_sessions_ = DefaultMaxSessions)
+                              u32 max_sessions_ = ServerSessionCountMax)
         : ServiceFrameworkBase(system_, service_name_, max_sessions_, Invoker) {}
 
     /// Registers handlers in the service.
