@@ -151,27 +151,19 @@ ResultVal<Kernel::KClientSession*> SM::GetServiceImpl(Kernel::HLERequestContext&
     std::string name(PopServiceName(rp));
 
     // Find the named port.
-    auto result = service_manager.GetServicePort(name);
-    if (result.Failed()) {
-        LOG_ERROR(Service_SM, "called service={} -> error 0x{:08X}", name, result.Code().raw);
-        return result.Code();
+    auto port_result = service_manager.GetServicePort(name);
+    if (port_result.Failed()) {
+        LOG_ERROR(Service_SM, "called service={} -> error 0x{:08X}", name, port_result.Code().raw);
+        return port_result.Code();
     }
-    auto* port = result.Unwrap();
-
-    // Reserve a new session from the process resource limit.
-    Kernel::KScopedResourceReservation session_reservation(
-        kernel.CurrentProcess()->GetResourceLimit(), Kernel::LimitableResource::Sessions);
-    R_UNLESS(session_reservation.Succeeded(), Kernel::ResultLimitReached);
+    auto& port = port_result.Unwrap()->GetClientPort();
 
     // Create a new session.
     Kernel::KClientSession* session{};
-    port->GetClientPort().CreateSession(std::addressof(session));
-
-    // Commit the session reservation.
-    session_reservation.Commit();
-
-    // Enqueue the session with the named port.
-    port->EnqueueSession(&session->GetParent()->GetServerSession());
+    if (const auto result = port.CreateSession(std::addressof(session)); result.IsError()) {
+        LOG_ERROR(Service_SM, "called service={} -> error 0x{:08X}", name, result.raw);
+        return result;
+    }
 
     LOG_DEBUG(Service_SM, "called service={} -> session={}", name, session->GetId());
 
