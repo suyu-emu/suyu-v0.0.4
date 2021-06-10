@@ -164,18 +164,18 @@ ResultVal<Kernel::KClientSession*> SM::GetServiceImpl(Kernel::HLERequestContext&
     R_UNLESS(session_reservation.Succeeded(), Kernel::ResultLimitReached);
 
     // Create a new session.
-    auto* session = Kernel::KSession::Create(kernel);
-    session->Initialize(&port->GetClientPort(), std::move(name));
+    Kernel::KClientSession* session{};
+    port->GetClientPort().CreateSession(std::addressof(session));
 
     // Commit the session reservation.
     session_reservation.Commit();
 
     // Enqueue the session with the named port.
-    port->EnqueueSession(&session->GetServerSession());
+    port->EnqueueSession(&session->GetParent()->GetServerSession());
 
     LOG_DEBUG(Service_SM, "called service={} -> session={}", name, session->GetId());
 
-    return MakeResult(&session->GetClientSession());
+    return MakeResult(session);
 }
 
 void SM::RegisterService(Kernel::HLERequestContext& ctx) {

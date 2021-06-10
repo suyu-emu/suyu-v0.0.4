@@ -66,7 +66,7 @@ ResultCode KClientPort::CreateSession(KClientSession** out,
     // Update the session counts.
     {
         // Atomically increment the number of sessions.
-        s32 new_sessions;
+        s32 new_sessions{};
         {
             const auto max = max_sessions;
             auto cur_sessions = num_sessions.load(std::memory_order_acquire);
