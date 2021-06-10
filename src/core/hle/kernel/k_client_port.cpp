@@ -28,6 +28,9 @@ void KClientPort::Initialize(KPort* parent_port_, s32 max_sessions_, std::string
 void KClientPort::OnSessionFinalized() {
     KScopedSchedulerLock sl{kernel};
 
+    // This might happen if a session was improperly used with this port.
+    ASSERT_MSG(num_sessions > 0, "num_sessions is invalid");
+
     const auto prev = num_sessions--;
     if (prev == max_sessions) {
         this->NotifyAvailable();
