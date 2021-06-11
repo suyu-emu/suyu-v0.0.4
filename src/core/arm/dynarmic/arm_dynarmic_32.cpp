@@ -128,6 +128,7 @@ std::shared_ptr<Dynarmic::A32::Jit> ARM_Dynarmic_32::MakeJit(Common::PageTable* 
     if (page_table) {
         config.page_table = reinterpret_cast<std::array<std::uint8_t*, NUM_PAGE_TABLE_ENTRIES>*>(
             page_table->pointers.data());
+        config.fastmem_pointer = page_table->fastmem_arena;
     }
     config.absolute_offset_page_table = true;
     config.page_table_pointer_mask_bits = Common::PageTable::ATTRIBUTE_BITS;
@@ -143,7 +144,7 @@ std::shared_ptr<Dynarmic::A32::Jit> ARM_Dynarmic_32::MakeJit(Common::PageTable* 
 
     // Code cache size
     config.code_cache_size = 512 * 1024 * 1024;
-    config.far_code_offset = 256 * 1024 * 1024;
+    config.far_code_offset = 400 * 1024 * 1024;
 
     // Safe optimizations
     if (Settings::values.cpu_accuracy.GetValue() == Settings::CPUAccuracy::DebugMode) {
@@ -170,6 +171,9 @@ std::shared_ptr<Dynarmic::A32::Jit> ARM_Dynarmic_32::MakeJit(Common::PageTable* 
         }
         if (!Settings::values.cpuopt_reduce_misalign_checks) {
             config.only_detect_misalignment_via_page_table_on_page_boundary = false;
+        }
+        if (!Settings::values.cpuopt_fastmem) {
+            config.fastmem_pointer = nullptr;
         }
     }
 

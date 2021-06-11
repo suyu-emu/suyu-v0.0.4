@@ -90,6 +90,13 @@ bool IsGPULevelHigh() {
            values.gpu_accuracy.GetValue() == GPUAccuracy::High;
 }
 
+bool IsFastmemEnabled() {
+    if (values.cpu_accuracy.GetValue() == CPUAccuracy::DebugMode) {
+        return values.cpuopt_fastmem;
+    }
+    return true;
+}
+
 float Volume() {
     if (values.audio_muted) {
         return 0.0f;
@@ -115,6 +122,7 @@ void RestoreGlobalState(bool is_powered_on) {
     values.cpuopt_unsafe_unfuse_fma.SetGlobal(true);
     values.cpuopt_unsafe_reduce_fp_error.SetGlobal(true);
     values.cpuopt_unsafe_inaccurate_nan.SetGlobal(true);
+    values.cpuopt_unsafe_fastmem_check.SetGlobal(true);
 
     // Renderer
     values.renderer_backend.SetGlobal(true);

@@ -12,6 +12,7 @@
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "common/page_table.h"
+#include "common/settings.h"
 #include "common/swap.h"
 #include "core/arm/arm_interface.h"
 #include "core/core.h"
@@ -32,6 +33,7 @@ struct Memory::Impl {
 
     void SetCurrentPageTable(Kernel::KProcess& process, u32 core_id) {
         current_page_table = &process.PageTable().PageTableImpl();
+        current_page_table->fastmem_arena = system.DeviceMemory().buffer.VirtualBasePointer();
 
         const std::size_t address_space_width = process.PageTable().GetAddressSpaceWidth();
 
@@ -41,13 +43,23 @@ struct Memory::Impl {
     void MapMemoryRegion(Common::PageTable& page_table, VAddr base, u64 size, PAddr target) {
         ASSERT_MSG((size & PAGE_MASK) == 0, "non-page aligned size: {:016X}", size);
         ASSERT_MSG((base & PAGE_MASK) == 0, "non-page aligned base: {:016X}", base);
+        ASSERT_MSG(target >= DramMemoryMap::Base && target < DramMemoryMap::End,
+                   "Out of bounds target: {:016X}", target);
         MapPages(page_table, base / PAGE_SIZE, size / PAGE_SIZE, target, Common::PageType::Memory);
+
+        if (Settings::IsFastmemEnabled()) {
+            system.DeviceMemory().buffer.Map(base, target - DramMemoryMap::Base, size);
+        }
     }
 
     void UnmapRegion(Common::PageTable& page_table, VAddr base, u64 size) {
         ASSERT_MSG((size & PAGE_MASK) == 0, "non-page aligned size: {:016X}", size);
         ASSERT_MSG((base & PAGE_MASK) == 0, "non-page aligned base: {:016X}", base);
         MapPages(page_table, base / PAGE_SIZE, size / PAGE_SIZE, 0, Common::PageType::Unmapped);
+
+        if (Settings::IsFastmemEnabled()) {
+            system.DeviceMemory().buffer.Unmap(base, size);
+        }
     }
 
     bool IsValidVirtualAddress(const Kernel::KProcess& process, const VAddr vaddr) const {
@@ -466,6 +478,12 @@ struct Memory::Impl {
         if (vaddr == 0) {
             return;
         }
+
+        if (Settings::IsFastmemEnabled()) {
+            const bool is_read_enable = Settings::IsGPULevelHigh() || !cached;
+            system.DeviceMemory().buffer.Protect(vaddr, size, is_read_enable, !cached);
+        }
+
         // Iterate over a contiguous CPU address space, which corresponds to the specified GPU
         // address space, marking the region as un/cached. The region is marked un/cached at a
         // granularity of CPU pages, hence why we iterate on a CPU page basis (note: GPU page size

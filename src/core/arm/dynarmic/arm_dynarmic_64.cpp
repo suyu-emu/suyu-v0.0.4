@@ -160,6 +160,10 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable* 
         config.absolute_offset_page_table = true;
         config.detect_misaligned_access_via_page_table = 16 | 32 | 64 | 128;
         config.only_detect_misalignment_via_page_table_on_page_boundary = true;
+
+        config.fastmem_pointer = page_table->fastmem_arena;
+        config.fastmem_address_space_bits = address_space_bits;
+        config.silently_mirror_fastmem = false;
     }
 
     // Multi-process state
@@ -181,7 +185,7 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable* 
 
     // Code cache size
     config.code_cache_size = 512 * 1024 * 1024;
-    config.far_code_offset = 256 * 1024 * 1024;
+    config.far_code_offset = 400 * 1024 * 1024;
 
     // Safe optimizations
     if (Settings::values.cpu_accuracy.GetValue() == Settings::CPUAccuracy::DebugMode) {
@@ -209,6 +213,9 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable* 
         if (!Settings::values.cpuopt_reduce_misalign_checks) {
             config.only_detect_misalignment_via_page_table_on_page_boundary = false;
         }
+        if (!Settings::values.cpuopt_fastmem) {
+            config.fastmem_pointer = nullptr;
+        }
     }
 
     // Unsafe optimizations
@@ -222,6 +229,9 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable* 
         }
         if (Settings::values.cpuopt_unsafe_inaccurate_nan.GetValue()) {
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_InaccurateNaN;
+        }
+        if (Settings::values.cpuopt_unsafe_fastmem_check.GetValue()) {
+            config.fastmem_address_space_bits = 64;
         }
     }
 

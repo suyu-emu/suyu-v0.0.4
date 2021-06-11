@@ -131,6 +131,8 @@ add_library(common STATIC
     hash.h
     hex_util.cpp
     hex_util.h
+    host_memory.cpp
+    host_memory.h
     intrusive_red_black_tree.h
     logging/backend.cpp
     logging/backend.h

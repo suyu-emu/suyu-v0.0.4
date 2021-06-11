@@ -35,12 +35,15 @@ void ConfigureCpu::SetConfiguration() {
     ui->cpuopt_unsafe_unfuse_fma->setEnabled(runtime_lock);
     ui->cpuopt_unsafe_reduce_fp_error->setEnabled(runtime_lock);
     ui->cpuopt_unsafe_inaccurate_nan->setEnabled(runtime_lock);
+    ui->cpuopt_unsafe_fastmem_check->setEnabled(runtime_lock);
 
     ui->cpuopt_unsafe_unfuse_fma->setChecked(Settings::values.cpuopt_unsafe_unfuse_fma.GetValue());
     ui->cpuopt_unsafe_reduce_fp_error->setChecked(
         Settings::values.cpuopt_unsafe_reduce_fp_error.GetValue());
     ui->cpuopt_unsafe_inaccurate_nan->setChecked(
         Settings::values.cpuopt_unsafe_inaccurate_nan.GetValue());
+    ui->cpuopt_unsafe_fastmem_check->setChecked(
+        Settings::values.cpuopt_unsafe_fastmem_check.GetValue());
 
     if (Settings::IsConfiguringGlobal()) {
         ui->accuracy->setCurrentIndex(static_cast<int>(Settings::values.cpu_accuracy.GetValue()));
@@ -84,6 +87,9 @@ void ConfigureCpu::ApplyConfiguration() {
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.cpuopt_unsafe_inaccurate_nan,
                                              ui->cpuopt_unsafe_inaccurate_nan,
                                              cpuopt_unsafe_inaccurate_nan);
+    ConfigurationShared::ApplyPerGameSetting(&Settings::values.cpuopt_unsafe_fastmem_check,
+                                             ui->cpuopt_unsafe_fastmem_check,
+                                             cpuopt_unsafe_fastmem_check);
 
     if (Settings::IsConfiguringGlobal()) {
         // Guard if during game and set to game-specific value
@@ -134,4 +140,7 @@ void ConfigureCpu::SetupPerGameUI() {
     ConfigurationShared::SetColoredTristate(ui->cpuopt_unsafe_inaccurate_nan,
                                             Settings::values.cpuopt_unsafe_inaccurate_nan,
                                             cpuopt_unsafe_inaccurate_nan);
+    ConfigurationShared::SetColoredTristate(ui->cpuopt_unsafe_fastmem_check,
+                                            Settings::values.cpuopt_unsafe_fastmem_check,
+                                            cpuopt_unsafe_fastmem_check);
 }

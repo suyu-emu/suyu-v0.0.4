@@ -150,6 +150,10 @@ cpuopt_misc_ir =
 # 0: Disabled, 1 (default): Enabled
 cpuopt_reduce_misalign_checks =
 
+# Enable Host MMU Emulation (faster guest memory access)
+# 0: Disabled, 1 (default): Enabled
+cpuopt_fastmem =
+
 [Renderer]
 # Which backend API to use.
 # 0 (default): OpenGL, 1: Vulkan

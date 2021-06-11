@@ -39,6 +39,8 @@ void ConfigureCpuDebug::SetConfiguration() {
     ui->cpuopt_misc_ir->setChecked(Settings::values.cpuopt_misc_ir);
     ui->cpuopt_reduce_misalign_checks->setEnabled(runtime_lock);
     ui->cpuopt_reduce_misalign_checks->setChecked(Settings::values.cpuopt_reduce_misalign_checks);
+    ui->cpuopt_fastmem->setEnabled(runtime_lock);
+    ui->cpuopt_fastmem->setChecked(Settings::values.cpuopt_fastmem);
 }
 
 void ConfigureCpuDebug::ApplyConfiguration() {
@@ -50,6 +52,7 @@ void ConfigureCpuDebug::ApplyConfiguration() {
     Settings::values.cpuopt_const_prop = ui->cpuopt_const_prop->isChecked();
     Settings::values.cpuopt_misc_ir = ui->cpuopt_misc_ir->isChecked();
     Settings::values.cpuopt_reduce_misalign_checks = ui->cpuopt_reduce_misalign_checks->isChecked();
+    Settings::values.cpuopt_fastmem = ui->cpuopt_fastmem->isChecked();
 }
 
 void ConfigureCpuDebug::changeEvent(QEvent* event) {
