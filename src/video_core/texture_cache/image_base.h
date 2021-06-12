@@ -57,6 +57,12 @@ struct ImageBase {
         return cpu_addr < overlap_end && overlap_cpu_addr < cpu_addr_end;
     }
 
+    [[nodiscard]] bool OverlapsGPU(GPUVAddr overlap_gpu_addr, size_t overlap_size) const noexcept {
+        const VAddr overlap_end = overlap_gpu_addr + overlap_size;
+        const GPUVAddr gpu_addr_end = gpu_addr + guest_size_bytes;
+        return gpu_addr < overlap_end && overlap_gpu_addr < gpu_addr_end;
+    }
+
     void CheckBadOverlapState();
     void CheckAliasState();
 
@@ -84,6 +90,8 @@ struct ImageBase {
 
     std::vector<AliasedImage> aliased_images;
     std::vector<ImageId> overlapping_images;
+    ImageMapId map_view_id{};
+    bool is_sparse{};
 };
 
 struct ImageAllocBase {

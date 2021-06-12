@@ -664,6 +664,16 @@ LevelArray CalculateMipLevelOffsets(const ImageInfo& info) noexcept {
     return offsets;
 }
 
+LevelArray CalculateMipLevelSizes(const ImageInfo& info) noexcept {
+    const u32 num_levels = info.resources.levels;
+    const LevelInfo level_info = MakeLevelInfo(info);
+    LevelArray sizes{};
+    for (u32 level = 0; level < num_levels; ++level) {
+        sizes[level] = CalculateLevelSize(level_info, level);
+    }
+    return sizes;
+}
+
 std::vector<u32> CalculateSliceOffsets(const ImageInfo& info) {
     ASSERT(info.type == ImageType::e3D);
     std::vector<u32> offsets;
@@ -776,14 +786,37 @@ std::vector<ImageCopy> MakeShrinkImageCopies(const ImageInfo& dst, const ImageIn
     return copies;
 }
 
-bool IsValidAddress(const Tegra::MemoryManager& gpu_memory, const TICEntry& config) {
-    if (config.Address() == 0) {
+bool IsValidAddress(const Tegra::MemoryManager& gpu_memory, GPUVAddr gpu_addr) {
+    if (gpu_addr == 0) {
         return false;
     }
-    if (config.Address() > (u64(1) << 48)) {
+    if (gpu_addr > (u64(1) << 48)) {
         return false;
     }
-    return gpu_memory.GpuToCpuAddress(config.Address()).has_value();
+    const auto cpu_addr = gpu_memory.GpuToCpuAddress(gpu_addr);
+    return cpu_addr.has_value() && *cpu_addr != 0;
+}
+
+bool IsValidEntry(const Tegra::MemoryManager& gpu_memory, const TICEntry& config) {
+    const GPUVAddr gpu_addr = config.Address();
+    if (IsValidAddress(gpu_memory, gpu_addr)) {
+        return true;
+    }
+    if (!config.IsBlockLinear()) {
+        return false;
+    }
+    const size_t levels = config.max_mip_level + 1;
+    if (levels <= 1) {
+        return false;
+    }
+    const ImageInfo info{config};
+    const LevelArray offsets = CalculateMipLevelOffsets(info);
+    for (size_t level = 1; level < levels; level++) {
+        if (IsValidAddress(gpu_memory, static_cast<GPUVAddr>(gpu_addr + offsets[level]))) {
+            return true;
+        }
+    }
+    return false;
 }
 
 std::vector<BufferImageCopy> UnswizzleImage(Tegra::MemoryManager& gpu_memory, GPUVAddr gpu_addr,

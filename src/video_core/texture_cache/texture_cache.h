@@ -152,6 +152,9 @@ public:
     /// Remove images in a region
     void UnmapMemory(VAddr cpu_addr, size_t size);
 
+    /// Remove images in a region
+    void UnmapGPUMemory(GPUVAddr gpu_addr, size_t size);
+
     /// Blit an image with the given parameters
     void BlitImage(const Tegra::Engines::Fermi2D::Surface& dst,
                    const Tegra::Engines::Fermi2D::Surface& src,
@@ -190,7 +193,22 @@ public:
 private:
     /// Iterate over all page indices in a range
     template <typename Func>
-    static void ForEachPage(VAddr addr, size_t size, Func&& func) {
+    static void ForEachCPUPage(VAddr addr, size_t size, Func&& func) {
+        static constexpr bool RETURNS_BOOL = std::is_same_v<std::invoke_result<Func, u64>, bool>;
+        const u64 page_end = (addr + size - 1) >> PAGE_BITS;
+        for (u64 page = addr >> PAGE_BITS; page <= page_end; ++page) {
+            if constexpr (RETURNS_BOOL) {
+                if (func(page)) {
+                    break;
+                }
+            } else {
+                func(page);
+            }
+        }
+    }
+
+    template <typename Func>
+    static void ForEachGPUPage(GPUVAddr addr, size_t size, Func&& func) {
         static constexpr bool RETURNS_BOOL = std::is_same_v<std::invoke_result<Func, u64>, bool>;
         const u64 page_end = (addr + size - 1) >> PAGE_BITS;
         for (u64 page = addr >> PAGE_BITS; page <= page_end; ++page) {
@@ -269,6 +287,13 @@ private:
     template <typename Func>
     void ForEachImageInRegion(VAddr cpu_addr, size_t size, Func&& func);
 
+    template <typename Func>
+    void ForEachImageInRegionGPU(GPUVAddr gpu_addr, size_t size, Func&& func);
+
+    /// Iterates over all the images in a region calling func
+    template <typename Func>
+    void ForEachSparseSegment(ImageBase& image, Func&& func);
+
     /// Find or create an image view in the given image with the passed parameters
     [[nodiscard]] ImageViewId FindOrEmplaceImageView(ImageId image_id, const ImageViewInfo& info);
 
@@ -340,7 +365,8 @@ private:
     std::unordered_map<TSCEntry, SamplerId> samplers;
     std::unordered_map<RenderTargets, FramebufferId> framebuffers;
 
-    std::unordered_map<u64, std::vector<ImageId>, IdentityHash<u64>> page_table;
+    std::unordered_map<u64, std::vector<ImageMapId>, IdentityHash<u64>> page_table;
+    std::unordered_map<u64, std::vector<ImageId>, IdentityHash<u64>> gpu_page_table;
 
     bool has_deleted_images = false;
     u64 total_used_memory = 0;
@@ -349,6 +375,7 @@ private:
     u64 critical_memory;
 
     SlotVector<Image> slot_images;
+    SlotVector<ImageMapView> slot_map_views;
     SlotVector<ImageView> slot_image_views;
     SlotVector<ImageAlloc> slot_image_allocs;
     SlotVector<Sampler> slot_samplers;
@@ -703,6 +730,21 @@ void TextureCache<P>::UnmapMemory(VAddr cpu_addr, size_t size) {
 }
 
 template <class P>
+void TextureCache<P>::UnmapGPUMemory(GPUVAddr gpu_addr, size_t size) {
+    std::vector<ImageId> deleted_images;
+    ForEachImageInRegionGPU(gpu_addr, size,
+                            [&](ImageId id, Image&) { deleted_images.push_back(id); });
+    for (const ImageId id : deleted_images) {
+        Image& image = slot_images[id];
+        if (True(image.flags & ImageFlagBits::Tracked)) {
+            UntrackImage(image);
+        }
+        UnregisterImage(id);
+        DeleteImage(id);
+    }
+}
+
+template <class P>
 void TextureCache<P>::BlitImage(const Tegra::Engines::Fermi2D::Surface& dst,
                                 const Tegra::Engines::Fermi2D::Surface& src,
                                 const Tegra::Engines::Fermi2D::Config& copy,
@@ -833,9 +875,10 @@ typename P::ImageView* TextureCache<P>::TryFindFramebufferImageView(VAddr cpu_ad
     if (it == page_table.end()) {
         return nullptr;
     }
-    const auto& image_ids = it->second;
-    for (const ImageId image_id : image_ids) {
-        const ImageBase& image = slot_images[image_id];
+    const auto& image_map_ids = it->second;
+    for (const ImageMapId map_id : image_map_ids) {
+        const ImageMapView& map = slot_map_views[map_id];
+        const ImageBase& image = slot_images[map.image_id];
         if (image.cpu_addr != cpu_addr) {
             continue;
         }
@@ -958,7 +1001,7 @@ void TextureCache<P>::UploadImageContents(Image& image, StagingBuffer& staging) 
 
 template <class P>
 ImageViewId TextureCache<P>::FindImageView(const TICEntry& config) {
-    if (!IsValidAddress(gpu_memory, config)) {
+    if (!IsValidEntry(gpu_memory, config)) {
         return NULL_IMAGE_VIEW_ID;
     }
     const auto [pair, is_new] = image_views.try_emplace(config);
@@ -1026,7 +1069,7 @@ ImageId TextureCache<P>::FindImage(const ImageInfo& info, GPUVAddr gpu_addr,
         }
         return false;
     };
-    ForEachImageInRegion(*cpu_addr, CalculateGuestSizeInBytes(info), lambda);
+    ForEachImageInRegionGPU(gpu_addr, CalculateGuestSizeInBytes(info), lambda);
     return image_id;
 }
 
@@ -1056,7 +1099,7 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
     std::vector<ImageId> left_aliased_ids;
     std::vector<ImageId> right_aliased_ids;
     std::vector<ImageId> bad_overlap_ids;
-    ForEachImageInRegion(cpu_addr, size_bytes, [&](ImageId overlap_id, ImageBase& overlap) {
+    ForEachImageInRegionGPU(gpu_addr, size_bytes, [&](ImageId overlap_id, ImageBase& overlap) {
         if (info.type == ImageType::Linear) {
             if (info.pitch == overlap.info.pitch && gpu_addr == overlap.gpu_addr) {
                 // Alias linear images with the same pitch
@@ -1090,6 +1133,24 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
     });
     const ImageId new_image_id = slot_images.insert(runtime, new_info, gpu_addr, cpu_addr);
     Image& new_image = slot_images[new_image_id];
+
+    new_image.is_sparse = false;
+    if (new_image.info.type != ImageType::Linear && new_image.info.type != ImageType::Buffer) {
+        const LevelArray offsets = CalculateMipLevelOffsets(new_image.info);
+        size_t level;
+        const size_t levels = static_cast<size_t>(new_image.info.resources.levels);
+        VAddr n_cpu_addr = new_image.cpu_addr;
+        GPUVAddr n_gpu_addr = new_image.gpu_addr;
+        for (level = 0; level < levels; level++) {
+            n_gpu_addr += offsets[level];
+            n_cpu_addr += offsets[level];
+            std::optional<VAddr> cpu_addr_opt = gpu_memory.GpuToCpuAddress(n_gpu_addr);
+            if (!cpu_addr_opt || *cpu_addr_opt == 0 || n_cpu_addr != *cpu_addr_opt) {
+                new_image.is_sparse = true;
+                break;
+            }
+        }
+    }
 
     // TODO: Only upload what we need
     RefreshContents(new_image);
@@ -1239,9 +1300,61 @@ void TextureCache<P>::ForEachImageInRegion(VAddr cpu_addr, size_t size, Func&& f
     using FuncReturn = typename std::invoke_result<Func, ImageId, Image&>::type;
     static constexpr bool BOOL_BREAK = std::is_same_v<FuncReturn, bool>;
     boost::container::small_vector<ImageId, 32> images;
-    ForEachPage(cpu_addr, size, [this, &images, cpu_addr, size, func](u64 page) {
+    boost::container::small_vector<ImageMapId, 32> maps;
+    ForEachCPUPage(cpu_addr, size, [this, &images, &maps, cpu_addr, size, func](u64 page) {
         const auto it = page_table.find(page);
         if (it == page_table.end()) {
+            if constexpr (BOOL_BREAK) {
+                return false;
+            } else {
+                return;
+            }
+        }
+        for (const ImageMapId map_id : it->second) {
+            ImageMapView& map = slot_map_views[map_id];
+            if (map.picked) {
+                continue;
+            }
+            if (!map.Overlaps(cpu_addr, size)) {
+                continue;
+            }
+            map.picked = true;
+            maps.push_back(map_id);
+            Image& image = slot_images[map.image_id];
+            if (True(image.flags & ImageFlagBits::Picked)) {
+                continue;
+            }
+            image.flags |= ImageFlagBits::Picked;
+            images.push_back(map.image_id);
+            if constexpr (BOOL_BREAK) {
+                if (func(map.image_id, image)) {
+                    return true;
+                }
+            } else {
+                func(map.image_id, image);
+            }
+        }
+        if constexpr (BOOL_BREAK) {
+            return false;
+        }
+    });
+    for (const ImageId image_id : images) {
+        slot_images[image_id].flags &= ~ImageFlagBits::Picked;
+    }
+    for (const ImageMapId map_id : maps) {
+        slot_map_views[map_id].picked = false;
+    }
+}
+
+template <class P>
+template <typename Func>
+void TextureCache<P>::ForEachImageInRegionGPU(GPUVAddr gpu_addr, size_t size, Func&& func) {
+    using FuncReturn = typename std::invoke_result<Func, ImageId, Image&>::type;
+    static constexpr bool BOOL_BREAK = std::is_same_v<FuncReturn, bool>;
+    boost::container::small_vector<ImageId, 8> images;
+    ForEachGPUPage(gpu_addr, size, [this, &images, gpu_addr, size, func](u64 page) {
+        const auto it = gpu_page_table.find(page);
+        if (it == gpu_page_table.end()) {
             if constexpr (BOOL_BREAK) {
                 return false;
             } else {
@@ -1253,7 +1366,7 @@ void TextureCache<P>::ForEachImageInRegion(VAddr cpu_addr, size_t size, Func&& f
             if (True(image.flags & ImageFlagBits::Picked)) {
                 continue;
             }
-            if (!image.Overlaps(cpu_addr, size)) {
+            if (!image.OverlapsGPU(gpu_addr, size)) {
                 continue;
             }
             image.flags |= ImageFlagBits::Picked;
@@ -1276,6 +1389,30 @@ void TextureCache<P>::ForEachImageInRegion(VAddr cpu_addr, size_t size, Func&& f
 }
 
 template <class P>
+template <typename Func>
+void TextureCache<P>::ForEachSparseSegment(ImageBase& image, Func&& func) {
+    using FuncReturn = typename std::invoke_result<Func, GPUVAddr, VAddr, size_t>::type;
+    static constexpr bool BOOL_BREAK = std::is_same_v<FuncReturn, bool>;
+    GPUVAddr gpu_addr = image.gpu_addr;
+    const size_t levels = image.info.resources.levels;
+    const auto mipmap_sizes = CalculateMipLevelSizes(image.info);
+    for (size_t level = 0; level < levels; level++) {
+        const size_t size = mipmap_sizes[level];
+        std::optional<VAddr> cpu_addr = gpu_memory.GpuToCpuAddress(gpu_addr);
+        if (cpu_addr && *cpu_addr != 0) {
+            if constexpr (BOOL_BREAK) {
+                if (func(gpu_addr, *cpu_addr, size)) {
+                    return true;
+                }
+            } else {
+                func(gpu_addr, *cpu_addr, size);
+            }
+        }
+        gpu_addr += size;
+    }
+}
+
+template <class P>
 ImageViewId TextureCache<P>::FindOrEmplaceImageView(ImageId image_id, const ImageViewInfo& info) {
     Image& image = slot_images[image_id];
     if (const ImageViewId image_view_id = image.FindView(info); image_view_id) {
@@ -1292,8 +1429,6 @@ void TextureCache<P>::RegisterImage(ImageId image_id) {
     ASSERT_MSG(False(image.flags & ImageFlagBits::Registered),
                "Trying to register an already registered image");
     image.flags |= ImageFlagBits::Registered;
-    ForEachPage(image.cpu_addr, image.guest_size_bytes,
-                [this, image_id](u64 page) { page_table[page].push_back(image_id); });
     u64 tentative_size = std::max(image.guest_size_bytes, image.unswizzled_size_bytes);
     if ((IsPixelFormatASTC(image.info.format) &&
          True(image.flags & ImageFlagBits::AcceleratedUpload)) ||
@@ -1301,6 +1436,21 @@ void TextureCache<P>::RegisterImage(ImageId image_id) {
         tentative_size = EstimatedDecompressedSize(tentative_size, image.info.format);
     }
     total_used_memory += Common::AlignUp(tentative_size, 1024);
+    ForEachGPUPage(image.gpu_addr, image.guest_size_bytes,
+                   [this, image_id](u64 page) { gpu_page_table[page].push_back(image_id); });
+    if (!image.is_sparse) {
+        auto map_id =
+            slot_map_views.insert(image.gpu_addr, image.cpu_addr, image.guest_size_bytes, image_id);
+        ForEachCPUPage(image.cpu_addr, image.guest_size_bytes,
+                       [this, map_id](u64 page) { page_table[page].push_back(map_id); });
+        image.map_view_id = map_id;
+        return;
+    }
+    ForEachSparseSegment(image, [this, image_id](GPUVAddr gpu_addr, VAddr cpu_addr, size_t size) {
+        auto map_id = slot_map_views.insert(gpu_addr, cpu_addr, size, image_id);
+        ForEachCPUPage(cpu_addr, size,
+                       [this, map_id](u64 page) { page_table[page].push_back(map_id); });
+    });
 }
 
 template <class P>
@@ -1317,9 +1467,9 @@ void TextureCache<P>::UnregisterImage(ImageId image_id) {
         tentative_size = EstimatedDecompressedSize(tentative_size, image.info.format);
     }
     total_used_memory -= Common::AlignUp(tentative_size, 1024);
-    ForEachPage(image.cpu_addr, image.guest_size_bytes, [this, image_id](u64 page) {
-        const auto page_it = page_table.find(page);
-        if (page_it == page_table.end()) {
+    ForEachGPUPage(image.gpu_addr, image.guest_size_bytes, [this, image_id](u64 page) {
+        const auto page_it = gpu_page_table.find(page);
+        if (page_it == gpu_page_table.end()) {
             UNREACHABLE_MSG("Unregistering unregistered page=0x{:x}", page << PAGE_BITS);
             return;
         }
@@ -1331,20 +1481,84 @@ void TextureCache<P>::UnregisterImage(ImageId image_id) {
         }
         image_ids.erase(vector_it);
     });
+    if (!image.is_sparse) {
+        const auto map_id = image.map_view_id;
+        ForEachCPUPage(image.cpu_addr, image.guest_size_bytes, [this, map_id](u64 page) {
+            const auto page_it = page_table.find(page);
+            if (page_it == page_table.end()) {
+                UNREACHABLE_MSG("Unregistering unregistered page=0x{:x}", page << PAGE_BITS);
+                return;
+            }
+            std::vector<ImageMapId>& image_map_ids = page_it->second;
+            const auto vector_it = std::ranges::find(image_map_ids, map_id);
+            if (vector_it == image_map_ids.end()) {
+                UNREACHABLE_MSG("Unregistering unregistered image in page=0x{:x}",
+                                page << PAGE_BITS);
+                return;
+            }
+            image_map_ids.erase(vector_it);
+        });
+        slot_map_views.erase(map_id);
+        return;
+    }
+    boost::container::small_vector<ImageMapId, 8> maps_to_delete;
+    ForEachSparseSegment(
+        image, [this, image_id, &maps_to_delete]([[maybe_unused]] GPUVAddr gpu_addr, VAddr cpu_addr,
+                                                 size_t size) {
+            ForEachCPUPage(cpu_addr, size, [this, image_id, &maps_to_delete](u64 page) {
+                const auto page_it = page_table.find(page);
+                if (page_it == page_table.end()) {
+                    UNREACHABLE_MSG("Unregistering unregistered page=0x{:x}", page << PAGE_BITS);
+                    return;
+                }
+                std::vector<ImageMapId>& image_map_ids = page_it->second;
+                auto vector_it = image_map_ids.begin();
+                while (vector_it != image_map_ids.end()) {
+                    ImageMapView& map = slot_map_views[*vector_it];
+                    if (map.image_id != image_id) {
+                        vector_it++;
+                        continue;
+                    }
+                    if (!map.picked) {
+                        maps_to_delete.push_back(*vector_it);
+                        map.picked = true;
+                    }
+                    vector_it = image_map_ids.erase(vector_it);
+                }
+            });
+        });
+
+    for (const ImageMapId map_id : maps_to_delete) {
+        slot_map_views.erase(map_id);
+    }
 }
 
 template <class P>
 void TextureCache<P>::TrackImage(ImageBase& image) {
     ASSERT(False(image.flags & ImageFlagBits::Tracked));
     image.flags |= ImageFlagBits::Tracked;
-    rasterizer.UpdatePagesCachedCount(image.cpu_addr, image.guest_size_bytes, 1);
+    if (!image.is_sparse) {
+        rasterizer.UpdatePagesCachedCount(image.cpu_addr, image.guest_size_bytes, 1);
+        return;
+    }
+    ForEachSparseSegment(image,
+                         [this]([[maybe_unused]] GPUVAddr gpu_addr, VAddr cpu_addr, size_t size) {
+                             rasterizer.UpdatePagesCachedCount(cpu_addr, size, 1);
+                         });
 }
 
 template <class P>
 void TextureCache<P>::UntrackImage(ImageBase& image) {
     ASSERT(True(image.flags & ImageFlagBits::Tracked));
     image.flags &= ~ImageFlagBits::Tracked;
-    rasterizer.UpdatePagesCachedCount(image.cpu_addr, image.guest_size_bytes, -1);
+    if (!image.is_sparse) {
+        rasterizer.UpdatePagesCachedCount(image.cpu_addr, image.guest_size_bytes, -1);
+        return;
+    }
+    ForEachSparseSegment(image,
+                         [this]([[maybe_unused]] GPUVAddr gpu_addr, VAddr cpu_addr, size_t size) {
+                             rasterizer.UpdatePagesCachedCount(cpu_addr, size, -1);
+                         });
 }
 
 template <class P>
