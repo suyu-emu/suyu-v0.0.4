@@ -17,6 +17,7 @@
 #endif
 
 #include "common/assert.h"
+#include "common/fs/file.h"
 #include "common/fs/fs.h"
 #include "common/logging/backend.h"
 #include "common/logging/log.h"
@@ -140,9 +141,13 @@ private:
     std::chrono::steady_clock::time_point time_origin{std::chrono::steady_clock::now()};
 };
 
+ConsoleBackend::~ConsoleBackend() = default;
+
 void ConsoleBackend::Write(const Entry& entry) {
     PrintMessage(entry);
 }
+
+ColorConsoleBackend::~ColorConsoleBackend() = default;
 
 void ColorConsoleBackend::Write(const Entry& entry) {
     PrintColoredMessage(entry);
@@ -157,8 +162,11 @@ FileBackend::FileBackend(const std::filesystem::path& filename) {
     void(FS::RemoveFile(old_filename));
     void(FS::RenameFile(filename, old_filename));
 
-    file = FS::IOFile(filename, FS::FileAccessMode::Write, FS::FileType::TextFile);
+    file =
+        std::make_unique<FS::IOFile>(filename, FS::FileAccessMode::Write, FS::FileType::TextFile);
 }
+
+FileBackend::~FileBackend() = default;
 
 void FileBackend::Write(const Entry& entry) {
     // prevent logs from going over the maximum size (in case its spamming and the user doesn't
@@ -166,7 +174,7 @@ void FileBackend::Write(const Entry& entry) {
     constexpr std::size_t MAX_BYTES_WRITTEN = 100 * 1024 * 1024;
     constexpr std::size_t MAX_BYTES_WRITTEN_EXTENDED = 1024 * 1024 * 1024;
 
-    if (!file.IsOpen()) {
+    if (!file->IsOpen()) {
         return;
     }
 
@@ -176,11 +184,13 @@ void FileBackend::Write(const Entry& entry) {
         return;
     }
 
-    bytes_written += file.WriteString(FormatLogMessage(entry).append(1, '\n'));
+    bytes_written += file->WriteString(FormatLogMessage(entry).append(1, '\n'));
     if (entry.log_level >= Level::Error) {
-        void(file.Flush());
+        void(file->Flush());
     }
 }
+
+DebuggerBackend::~DebuggerBackend() = default;
 
 void DebuggerBackend::Write(const Entry& entry) {
 #ifdef _WIN32
