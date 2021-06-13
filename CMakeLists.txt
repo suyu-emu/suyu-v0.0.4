@@ -473,7 +473,15 @@ if (YUZU_USE_BUNDLED_FFMPEG)
 
         # FFmpeg has source that requires one of nasm or yasm to assemble it.
         # REQUIRED throws an error if not found here during configuration rather than during compilation.
-        find_program(ASSEMBLER NAMES nasm yasm REQUIRED)
+        find_program(ASSEMBLER NAMES nasm yasm)
+        if ("${ASSEMBLER}" STREQUAL "ASSEMBLER-NOTFOUND")
+            message(FATAL_ERROR "One of either `nasm` or `yasm` not found but is required.")
+        endif()
+
+        find_program(AUTOCONF autoconf)
+        if ("${AUTOCONF}" STREQUAL "AUTOCONF-NOTFOUND")
+            message(FATAL_ERROR "Required program `autoconf` not found.")
+        endif()
 
         set(FFmpeg_PREFIX ${PROJECT_SOURCE_DIR}/externals/ffmpeg)
         set(FFmpeg_BUILD_DIR ${PROJECT_BINARY_DIR}/externals/ffmpeg)
