@@ -76,6 +76,8 @@ public:
 
     [[nodiscard]] std::optional<VAddr> GpuToCpuAddress(GPUVAddr addr) const;
 
+    [[nodiscard]] std::optional<VAddr> GpuToCpuAddress(GPUVAddr addr, std::size_t size) const;
+
     template <typename T>
     [[nodiscard]] T Read(GPUVAddr addr) const;
 
@@ -115,6 +117,24 @@ public:
      * IsGranularRange checks if a gpu region can be simply read with a pointer.
      */
     [[nodiscard]] bool IsGranularRange(GPUVAddr gpu_addr, std::size_t size) const;
+
+    /**
+     * IsContinousRange checks if a gpu region is mapped by a single range of cpu addresses.
+     */
+    [[nodiscard]] bool IsContinousRange(GPUVAddr gpu_addr, std::size_t size) const;
+
+    /**
+     * IsFullyMappedRange checks if a gpu region is mapped entirely.
+     */
+    [[nodiscard]] bool IsFullyMappedRange(GPUVAddr gpu_addr, std::size_t size) const;
+
+    /**
+     * GetSubmappedRange returns a vector with all the subranges of cpu addresses mapped beneath.
+     * if the region is continous, a single pair will be returned. If it's unmapped, an empty vector
+     * will be returned;
+     */
+    std::vector<std::pair<GPUVAddr, std::size_t>> GetSubmappedRange(GPUVAddr gpu_addr,
+                                                                    std::size_t size) const;
 
     [[nodiscard]] GPUVAddr Map(VAddr cpu_addr, GPUVAddr gpu_addr, std::size_t size);
     [[nodiscard]] GPUVAddr MapAllocate(VAddr cpu_addr, std::size_t size, std::size_t align);

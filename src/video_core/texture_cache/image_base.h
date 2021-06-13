@@ -25,11 +25,12 @@ enum class ImageFlagBits : u32 {
     Strong = 1 << 5,      ///< Exists in the image table, the dimensions are can be trusted
     Registered = 1 << 6,  ///< True when the image is registered
     Picked = 1 << 7,      ///< Temporary flag to mark the image as picked
+    Remapped = 1 << 8,    ///< Image has been remapped.
 
     // Garbage Collection Flags
-    BadOverlap = 1 << 8, ///< This image overlaps other but doesn't fit, has higher
+    BadOverlap = 1 << 9, ///< This image overlaps other but doesn't fit, has higher
                          ///< garbage collection priority
-    Alias = 1 << 9,      ///< This image has aliases and has priority on garbage
+    Alias = 1 << 10,     ///< This image has aliases and has priority on garbage
                          ///< collection
 };
 DECLARE_ENUM_FLAG_OPERATORS(ImageFlagBits)

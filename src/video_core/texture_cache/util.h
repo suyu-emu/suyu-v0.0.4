@@ -57,8 +57,6 @@ struct OverlapResult {
                                                            const ImageInfo& src,
                                                            SubresourceBase base);
 
-[[nodiscard]] bool IsValidAddress(const Tegra::MemoryManager& gpu_memory, GPUVAddr gpu_addr);
-
 [[nodiscard]] bool IsValidEntry(const Tegra::MemoryManager& gpu_memory, const TICEntry& config);
 
 [[nodiscard]] std::vector<BufferImageCopy> UnswizzleImage(Tegra::MemoryManager& gpu_memory,
