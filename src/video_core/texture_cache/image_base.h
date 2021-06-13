@@ -25,6 +25,12 @@ enum class ImageFlagBits : u32 {
     Strong = 1 << 5,      ///< Exists in the image table, the dimensions are can be trusted
     Registered = 1 << 6,  ///< True when the image is registered
     Picked = 1 << 7,      ///< Temporary flag to mark the image as picked
+
+    // Garbage Collection Flags
+    BadOverlap = 1 << 8,     ///< This image overlaps other but doesn't fit, has higher
+                             ///< garbage collection priority
+    Alias = 1 << 9,          ///< This image has aliases and has priority on garbage
+                             ///< collection
 };
 DECLARE_ENUM_FLAG_OPERATORS(ImageFlagBits)
 
@@ -51,6 +57,9 @@ struct ImageBase {
         return cpu_addr < overlap_end && overlap_cpu_addr < cpu_addr_end;
     }
 
+    void CheckBadOverlapState();
+    void CheckAliasState();
+
     ImageInfo info;
 
     u32 guest_size_bytes = 0;
@@ -74,6 +83,7 @@ struct ImageBase {
     std::vector<SubresourceBase> slice_subresources;
 
     std::vector<AliasedImage> aliased_images;
+    std::vector<ImageId> overlapping_images;
 };
 
 struct ImageAllocBase {

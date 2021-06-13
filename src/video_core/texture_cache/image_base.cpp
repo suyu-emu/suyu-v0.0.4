@@ -130,6 +130,26 @@ bool ImageBase::IsSafeDownload() const noexcept {
     return true;
 }
 
+void ImageBase::CheckBadOverlapState() {
+    if (False(flags & ImageFlagBits::BadOverlap)) {
+        return;
+    }
+    if (!overlapping_images.empty()) {
+        return;
+    }
+    flags &= ~ImageFlagBits::BadOverlap;
+}
+
+void ImageBase::CheckAliasState() {
+    if (False(flags & ImageFlagBits::Alias)) {
+        return;
+    }
+    if (!aliased_images.empty()) {
+        return;
+    }
+    flags &= ~ImageFlagBits::Alias;
+}
+
 void AddImageAlias(ImageBase& lhs, ImageBase& rhs, ImageId lhs_id, ImageId rhs_id) {
     static constexpr auto OPTIONS = RelaxedOptions::Size | RelaxedOptions::Format;
     ASSERT(lhs.info.type == rhs.info.type);

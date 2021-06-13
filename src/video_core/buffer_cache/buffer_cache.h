@@ -65,6 +65,9 @@ class BufferCache {
 
     static constexpr BufferId NULL_BUFFER_ID{0};
 
+    static constexpr u64 expected_memory = 512ULL * 1024ULL * 1024ULL;
+    static constexpr u64 critical_memory = 1024ULL * 1024ULL * 1024ULL;
+
     using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
     using Runtime = typename P::Runtime;
@@ -327,6 +330,7 @@ private:
 
     typename SlotVector<Buffer>::Iterator deletion_iterator;
     u64 frame_tick = 0;
+    u64 total_used_memory = 0;
 
     std::array<BufferId, ((1ULL << 39) >> PAGE_BITS)> page_table;
 };
@@ -346,6 +350,10 @@ BufferCache<P>::BufferCache(VideoCore::RasterizerInterface& rasterizer_,
 
 template <class P>
 void BufferCache<P>::TickFrame() {
+    SCOPE_EXIT({
+      ++frame_tick;
+      delayed_destruction_ring.Tick();
+    });
     // Calculate hits and shots and move hit bits to the right
     const u32 hits = std::reduce(uniform_cache_hits.begin(), uniform_cache_hits.end());
     const u32 shots = std::reduce(uniform_cache_shots.begin(), uniform_cache_shots.end());
@@ -359,8 +367,13 @@ void BufferCache<P>::TickFrame() {
     const bool skip_preferred = hits * 256 < shots * 251;
     uniform_buffer_skip_cache_size = skip_preferred ? DEFAULT_SKIP_CACHE_SIZE : 0;
 
-    static constexpr u64 ticks_to_destroy = 120;
-    int num_iterations = 32;
+    const bool activate_gc = total_used_memory >= expected_memory;
+    if (!activate_gc) {
+        return;
+    }
+    const bool agressive_gc = total_used_memory >= critical_memory;
+    const u64 ticks_to_destroy = agressive_gc ? 60 : 120;
+    int num_iterations = agressive_gc ? 64 : 32;
     for (; num_iterations > 0; --num_iterations) {
         if (deletion_iterator == slot_buffers.end()) {
             deletion_iterator = slot_buffers.begin();
@@ -375,8 +388,6 @@ void BufferCache<P>::TickFrame() {
             DeleteBuffer(buffer_id);
         }
     }
-    delayed_destruction_ring.Tick();
-    ++frame_tick;
 }
 
 template <class P>
@@ -1115,8 +1126,14 @@ template <class P>
 template <bool insert>
 void BufferCache<P>::ChangeRegister(BufferId buffer_id) {
     const Buffer& buffer = slot_buffers[buffer_id];
+    const auto size = buffer.SizeBytes();
+    if (insert) {
+        total_used_memory += Common::AlignUp(size, 1024);
+    } else {
+        total_used_memory -= Common::AlignUp(size, 1024);
+    }
     const VAddr cpu_addr_begin = buffer.CpuAddr();
-    const VAddr cpu_addr_end = cpu_addr_begin + buffer.SizeBytes();
+    const VAddr cpu_addr_end = cpu_addr_begin + size;
     const u64 page_begin = cpu_addr_begin / PAGE_SIZE;
     const u64 page_end = Common::DivCeil(cpu_addr_end, PAGE_SIZE);
     for (u64 page = page_begin; page != page_end; ++page) {
