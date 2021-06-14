@@ -106,7 +106,7 @@
         <item>
          <widget class="QCheckBox" name="use_caches_gc">
           <property name="toolTip">
-           <string>Enables garbage collection for the GPU caches, this will try to keep VRAM within 3-4Gb and flush least used textures/buffers. This option may be unsafe on a few games</string>
+           <string>Enables garbage collection for the GPU caches, this will try to keep VRAM within 3-4 GB by flushing the least used textures/buffers. May cause issues in a few games.</string>
           </property>
           <property name="text">
            <string>Enable GPU caches garbage collection (unsafe)</string>

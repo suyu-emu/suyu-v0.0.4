@@ -20,6 +20,7 @@
 
 #include "common/alignment.h"
 #include "common/common_funcs.h"
+#include "common/common_sizes.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
@@ -76,8 +77,8 @@ class TextureCache {
     /// Sampler ID for bugged sampler ids
     static constexpr SamplerId NULL_SAMPLER_ID{0};
 
-    static constexpr u64 expected_memory = 1024ULL * 1024ULL * 1024ULL;
-    static constexpr u64 critical_memory = 2 * 1024ULL * 1024ULL * 1024ULL;
+    static constexpr u64 EXPECTED_MEMORY = Common::Size_1_GB;
+    static constexpr u64 CRITICAL_MEMORY = Common::Size_2_GB;
 
     using Runtime = typename P::Runtime;
     using Image = typename P::Image;
@@ -394,8 +395,8 @@ void TextureCache<P>::TickFrame() {
         ++frame_tick;
         return;
     }
-    const bool high_priority_mode = total_used_memory >= expected_memory;
-    const bool aggressive_mode = total_used_memory >= critical_memory;
+    const bool high_priority_mode = total_used_memory >= EXPECTED_MEMORY;
+    const bool aggressive_mode = total_used_memory >= CRITICAL_MEMORY;
     const u64 ticks_to_destroy = high_priority_mode ? 60 : 100;
     int num_iterations = aggressive_mode ? 256 : (high_priority_mode ? 128 : 64);
     for (; num_iterations > 0; --num_iterations) {
@@ -405,7 +406,8 @@ void TextureCache<P>::TickFrame() {
                 break;
             }
         }
-        const auto [image_id, image] = *deletion_iterator;
+        auto [image_id, image_tmp] = *deletion_iterator;
+        Image* image = image_tmp; // fix clang error.
         const bool is_alias = True(image->flags & ImageFlagBits::Alias);
         const bool is_bad_overlap = True(image->flags & ImageFlagBits::BadOverlap);
         const bool must_download = image->IsSafeDownload();
@@ -417,8 +419,8 @@ void TextureCache<P>::TickFrame() {
         should_care |= aggressive_mode;
         if (should_care && image->frame_tick + ticks_needed < frame_tick) {
             if (is_bad_overlap) {
-                const bool overlap_check =
-                    std::ranges::all_of(image->overlapping_images, [&](const ImageId& overlap_id) {
+                const bool overlap_check = std::ranges::all_of(
+                    image->overlapping_images, [&, image](const ImageId& overlap_id) {
                         auto& overlap = slot_images[overlap_id];
                         return overlap.frame_tick >= image->frame_tick;
                     });
@@ -428,8 +430,8 @@ void TextureCache<P>::TickFrame() {
                 }
             }
             if (!is_bad_overlap && must_download) {
-                const bool alias_check =
-                    std::ranges::none_of(image->aliased_images, [&](const AliasedImage& alias) {
+                const bool alias_check = std::ranges::none_of(
+                    image->aliased_images, [&, image](const AliasedImage& alias) {
                         auto& alias_image = slot_images[alias.id];
                         return (alias_image.frame_tick < image->frame_tick) ||
                                (alias_image.modification_tick < image->modification_tick);
@@ -1275,8 +1277,13 @@ void TextureCache<P>::RegisterImage(ImageId image_id) {
     image.flags |= ImageFlagBits::Registered;
     ForEachPage(image.cpu_addr, image.guest_size_bytes,
                 [this, image_id](u64 page) { page_table[page].push_back(image_id); });
-    total_used_memory +=
-        Common::AlignUp(std::max(image.guest_size_bytes, image.unswizzled_size_bytes), 1024);
+    u64 tentative_size = std::max(image.guest_size_bytes, image.unswizzled_size_bytes);
+    if ((IsPixelFormatASTC(image.info.format) &&
+         True(image.flags & ImageFlagBits::AcceleratedUpload)) ||
+        True(image.flags & ImageFlagBits::Converted)) {
+        tentative_size = EstimatedDecompressedSize(tentative_size, image.info.format);
+    }
+    total_used_memory += Common::AlignUp(tentative_size, 1024);
 }
 
 template <class P>
@@ -1286,8 +1293,13 @@ void TextureCache<P>::UnregisterImage(ImageId image_id) {
                "Trying to unregister an already registered image");
     image.flags &= ~ImageFlagBits::Registered;
     image.flags &= ~ImageFlagBits::BadOverlap;
-    total_used_memory -=
-        Common::AlignUp(std::max(image.guest_size_bytes, image.unswizzled_size_bytes), 1024);
+    u64 tentative_size = std::max(image.guest_size_bytes, image.unswizzled_size_bytes);
+    if ((IsPixelFormatASTC(image.info.format) &&
+         True(image.flags & ImageFlagBits::AcceleratedUpload)) ||
+        True(image.flags & ImageFlagBits::Converted)) {
+        tentative_size = EstimatedDecompressedSize(tentative_size, image.info.format);
+    }
+    total_used_memory -= Common::AlignUp(tentative_size, 1024);
     ForEachPage(image.cpu_addr, image.guest_size_bytes, [this, image_id](u64 page) {
         const auto page_it = page_table.find(page);
         if (page_it == page_table.end()) {

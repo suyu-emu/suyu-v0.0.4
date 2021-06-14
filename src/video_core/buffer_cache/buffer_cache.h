@@ -16,6 +16,7 @@
 
 #include <boost/container/small_vector.hpp>
 
+#include "common/common_sizes.h"
 #include "common/common_types.h"
 #include "common/div_ceil.h"
 #include "common/microprofile.h"
@@ -65,8 +66,8 @@ class BufferCache {
 
     static constexpr BufferId NULL_BUFFER_ID{0};
 
-    static constexpr u64 expected_memory = 512ULL * 1024ULL * 1024ULL;
-    static constexpr u64 critical_memory = 1024ULL * 1024ULL * 1024ULL;
+    static constexpr u64 EXPECTED_MEMORY = Common::Size_512_MB;
+    static constexpr u64 CRITICAL_MEMORY = Common::Size_1_GB;
 
     using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
@@ -368,13 +369,13 @@ void BufferCache<P>::TickFrame() {
     const bool skip_preferred = hits * 256 < shots * 251;
     uniform_buffer_skip_cache_size = skip_preferred ? DEFAULT_SKIP_CACHE_SIZE : 0;
 
-    const bool activate_gc = enabled_gc && total_used_memory >= expected_memory;
+    const bool activate_gc = enabled_gc && total_used_memory >= EXPECTED_MEMORY;
     if (!activate_gc) {
         return;
     }
-    const bool agressive_gc = total_used_memory >= critical_memory;
-    const u64 ticks_to_destroy = agressive_gc ? 60 : 120;
-    int num_iterations = agressive_gc ? 64 : 32;
+    const bool aggressive_gc = total_used_memory >= CRITICAL_MEMORY;
+    const u64 ticks_to_destroy = aggressive_gc ? 60 : 120;
+    int num_iterations = aggressive_gc ? 64 : 32;
     for (; num_iterations > 0; --num_iterations) {
         if (deletion_iterator == slot_buffers.end()) {
             deletion_iterator = slot_buffers.begin();
