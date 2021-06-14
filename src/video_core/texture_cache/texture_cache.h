@@ -22,6 +22,7 @@
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "video_core/compatible_formats.h"
 #include "video_core/delayed_destruction_ring.h"
 #include "video_core/dirty_flags.h"
@@ -384,6 +385,15 @@ TextureCache<P>::TextureCache(Runtime& runtime_, VideoCore::RasterizerInterface&
 
 template <class P>
 void TextureCache<P>::TickFrame() {
+    const bool enabled_gc = Settings::values.use_caches_gc.GetValue();
+    if (!enabled_gc) {
+        // @Note(Blinkhawk): compile error with SCOPE_EXIT on msvc.
+        sentenced_images.Tick();
+        sentenced_framebuffers.Tick();
+        sentenced_image_view.Tick();
+        ++frame_tick;
+        return;
+    }
     const bool high_priority_mode = total_used_memory >= expected_memory;
     const bool aggressive_mode = total_used_memory >= critical_memory;
     const u64 ticks_to_destroy = high_priority_mode ? 60 : 100;
@@ -397,22 +407,20 @@ void TextureCache<P>::TickFrame() {
         }
         const auto [image_id, image] = *deletion_iterator;
         const bool is_alias = True(image->flags & ImageFlagBits::Alias);
-        if (is_alias && image->aliased_images.size() <= 1) {
-            ++deletion_iterator;
-            continue;
-        }
         const bool is_bad_overlap = True(image->flags & ImageFlagBits::BadOverlap);
         const bool must_download = image->IsSafeDownload();
-        const u64 ticks_needed = is_bad_overlap ? ticks_to_destroy >> 4 : ticks_to_destroy;
-        const bool should_care =
-            aggressive_mode || is_bad_overlap || is_alias || (high_priority_mode && !must_download);
+        bool should_care = is_bad_overlap || is_alias || (high_priority_mode && !must_download);
+        const u64 ticks_needed =
+            is_bad_overlap
+                ? ticks_to_destroy >> 4
+                : ((should_care && aggressive_mode) ? ticks_to_destroy >> 1 : ticks_to_destroy);
+        should_care |= aggressive_mode;
         if (should_care && image->frame_tick + ticks_needed < frame_tick) {
             if (is_bad_overlap) {
                 const bool overlap_check =
                     std::ranges::all_of(image->overlapping_images, [&](const ImageId& overlap_id) {
                         auto& overlap = slot_images[overlap_id];
-                        return (overlap.frame_tick >= image->frame_tick) &&
-                               (overlap.modification_tick > image->modification_tick);
+                        return overlap.frame_tick >= image->frame_tick;
                     });
                 if (!overlap_check) {
                     ++deletion_iterator;
@@ -420,23 +428,20 @@ void TextureCache<P>::TickFrame() {
                 }
             }
             if (!is_bad_overlap && must_download) {
-                if (is_alias) {
-                    const bool alias_check =
-                        std::ranges::all_of(image->aliased_images, [&](const AliasedImage& alias) {
-                            auto& alias_image = slot_images[alias.id];
-                            return (alias_image.frame_tick >= image->frame_tick) &&
-                                   (alias_image.modification_tick > image->modification_tick);
-                        });
-                    if (!alias_check) {
-                        ++deletion_iterator;
-                        continue;
-                    }
+                const bool alias_check =
+                    std::ranges::none_of(image->aliased_images, [&](const AliasedImage& alias) {
+                        auto& alias_image = slot_images[alias.id];
+                        return (alias_image.frame_tick < image->frame_tick) ||
+                               (alias_image.modification_tick < image->modification_tick);
+                    });
+
+                if (alias_check) {
+                    auto map = runtime.DownloadStagingBuffer(image->unswizzled_size_bytes);
+                    const auto copies = FullDownloadCopies(image->info);
+                    image->DownloadMemory(map, copies);
+                    runtime.Finish();
+                    SwizzleImage(gpu_memory, image->gpu_addr, image->info, copies, map.mapped_span);
                 }
-                auto map = runtime.DownloadStagingBuffer(image->unswizzled_size_bytes);
-                const auto copies = FullDownloadCopies(image->info);
-                image->DownloadMemory(map, copies);
-                runtime.Finish();
-                SwizzleImage(gpu_memory, image->gpu_addr, image->info, copies, map.mapped_span);
             }
             if (True(image->flags & ImageFlagBits::Tracked)) {
                 UntrackImage(*image);

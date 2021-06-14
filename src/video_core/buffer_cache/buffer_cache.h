@@ -350,9 +350,10 @@ BufferCache<P>::BufferCache(VideoCore::RasterizerInterface& rasterizer_,
 
 template <class P>
 void BufferCache<P>::TickFrame() {
+    const bool enabled_gc = Settings::values.use_caches_gc.GetValue();
     SCOPE_EXIT({
-      ++frame_tick;
-      delayed_destruction_ring.Tick();
+        ++frame_tick;
+        delayed_destruction_ring.Tick();
     });
     // Calculate hits and shots and move hit bits to the right
     const u32 hits = std::reduce(uniform_cache_hits.begin(), uniform_cache_hits.end());
@@ -367,7 +368,7 @@ void BufferCache<P>::TickFrame() {
     const bool skip_preferred = hits * 256 < shots * 251;
     uniform_buffer_skip_cache_size = skip_preferred ? DEFAULT_SKIP_CACHE_SIZE : 0;
 
-    const bool activate_gc = total_used_memory >= expected_memory;
+    const bool activate_gc = enabled_gc && total_used_memory >= expected_memory;
     if (!activate_gc) {
         return;
     }

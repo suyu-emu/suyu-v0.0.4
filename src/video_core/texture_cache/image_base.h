@@ -27,10 +27,10 @@ enum class ImageFlagBits : u32 {
     Picked = 1 << 7,      ///< Temporary flag to mark the image as picked
 
     // Garbage Collection Flags
-    BadOverlap = 1 << 8,     ///< This image overlaps other but doesn't fit, has higher
-                             ///< garbage collection priority
-    Alias = 1 << 9,          ///< This image has aliases and has priority on garbage
-                             ///< collection
+    BadOverlap = 1 << 8, ///< This image overlaps other but doesn't fit, has higher
+                         ///< garbage collection priority
+    Alias = 1 << 9,      ///< This image has aliases and has priority on garbage
+                         ///< collection
 };
 DECLARE_ENUM_FLAG_OPERATORS(ImageFlagBits)
 
