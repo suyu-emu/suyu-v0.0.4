@@ -29,8 +29,9 @@ ResultVal<VirtualDir> SDMCFactory::Open() const {
 
 VirtualDir SDMCFactory::GetSDMCModificationLoadRoot(u64 title_id) const {
     // LayeredFS doesn't work on updates and title id-less homebrew
-    if (title_id == 0 || (title_id & 0xFFF) == 0x800)
+    if (title_id == 0 || (title_id & 0xFFF) == 0x800) {
         return nullptr;
+    }
     return GetOrCreateDirectoryRelative(dir, fmt::format("/atmosphere/contents/{:016X}", title_id));
 }
 

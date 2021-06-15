@@ -529,26 +529,13 @@ PatchManager::PatchVersionNames PatchManager::GetPatchVersionNames(VirtualFile u
         }
     }
 
-    // SDMC mod directory (LayeredFS)
+    // SDMC mod directory (RomFS LayeredFS)
     const auto sdmc_mod_dir = fs_controller.GetSDMCModificationLoadRoot(title_id);
-    if (sdmc_mod_dir != nullptr && sdmc_mod_dir->GetSize() > 0) {
-        std::string types;
-
-        const auto exefs_dir = FindSubdirectoryCaseless(sdmc_mod_dir, "exefs");
-        if (IsDirValidAndNonEmpty(exefs_dir)) {
-            bool layeredfs = false;
-
-            if (layeredfs)
-                AppendCommaIfNotEmpty(types, "LayeredExeFS");
-        }
-        if (IsDirValidAndNonEmpty(FindSubdirectoryCaseless(sdmc_mod_dir, "romfs")))
-            AppendCommaIfNotEmpty(types, "LayeredFS");
-
-        if (!types.empty()) {
-            const auto mod_disabled =
-                std::find(disabled.begin(), disabled.end(), "SDMC") != disabled.end();
-            out.insert_or_assign(mod_disabled ? "[D] SDMC" : "SDMC", types);
-        }
+    if (sdmc_mod_dir != nullptr && sdmc_mod_dir->GetSize() > 0 &&
+        IsDirValidAndNonEmpty(FindSubdirectoryCaseless(sdmc_mod_dir, "romfs"))) {
+        const auto mod_disabled =
+            std::find(disabled.begin(), disabled.end(), "SDMC") != disabled.end();
+        out.insert_or_assign(mod_disabled ? "[D] SDMC" : "SDMC", "LayeredFS");
     }
 
     // DLC
