@@ -551,6 +551,7 @@ add_library(core STATIC
     hle/service/spl/spl.cpp
     hle/service/spl/spl.h
     hle/service/spl/spl_results.h
+    hle/service/spl/spl_types.h
     hle/service/ssl/ssl.cpp
     hle/service/ssl/ssl.h
     hle/service/time/clock_types.h
