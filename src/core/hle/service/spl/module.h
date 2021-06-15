@@ -6,6 +6,8 @@
 
 #include <random>
 #include "core/hle/service/service.h"
+#include "core/hle/service/spl/spl_results.h"
+#include "core/hle/service/spl/spl_types.h"
 
 namespace Core {
 class System;
@@ -34,6 +36,8 @@ public:
         std::shared_ptr<Module> module;
 
     private:
+        ResultVal<u64> GetConfigImpl(ConfigItem config_item) const;
+
         std::mt19937 rng;
     };
 };
