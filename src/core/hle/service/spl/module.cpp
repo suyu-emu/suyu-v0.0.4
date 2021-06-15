@@ -24,7 +24,13 @@ Module::Interface::Interface(Core::System& system_, std::shared_ptr<Module> modu
 
 Module::Interface::~Interface() = default;
 
-void Module::Interface::GetRandomBytes(Kernel::HLERequestContext& ctx) {
+void Module::Interface::GetConfig(Kernel::HLERequestContext& ctx) {}
+
+void Module::Interface::ModularExponentiate(Kernel::HLERequestContext& ctx) {}
+
+void Module::Interface::SetConfig(Kernel::HLERequestContext& ctx) {}
+
+void Module::Interface::GenerateRandomBytes(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_SPL, "called");
 
     const std::size_t size = ctx.GetWriteBufferSize();
@@ -38,6 +44,12 @@ void Module::Interface::GetRandomBytes(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
 }
+
+void Module::Interface::IsDevelopment(Kernel::HLERequestContext& ctx) {}
+
+void Module::Interface::SetBootReason(Kernel::HLERequestContext& ctx) {}
+
+void Module::Interface::GetBootReason(Kernel::HLERequestContext& ctx) {}
 
 void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system) {
     auto module = std::make_shared<Module>();
