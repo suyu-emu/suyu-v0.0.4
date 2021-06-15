@@ -50,9 +50,19 @@ void Module::Interface::GetConfig(Kernel::HLERequestContext& ctx) {
     rb.Push(*smc_result);
 }
 
-void Module::Interface::ModularExponentiate(Kernel::HLERequestContext& ctx) {}
+void Module::Interface::ModularExponentiate(Kernel::HLERequestContext& ctx) {
+    UNIMPLEMENTED_MSG("ModularExponentiate is not implemented!");
 
-void Module::Interface::SetConfig(Kernel::HLERequestContext& ctx) {}
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSecureMonitorNotImplemented);
+}
+
+void Module::Interface::SetConfig(Kernel::HLERequestContext& ctx) {
+    UNIMPLEMENTED_MSG("SetConfig is not implemented!");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSecureMonitorNotImplemented);
+}
 
 void Module::Interface::GenerateRandomBytes(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_SPL, "called");
@@ -69,11 +79,26 @@ void Module::Interface::GenerateRandomBytes(Kernel::HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
-void Module::Interface::IsDevelopment(Kernel::HLERequestContext& ctx) {}
+void Module::Interface::IsDevelopment(Kernel::HLERequestContext& ctx) {
+    UNIMPLEMENTED_MSG("IsDevelopment is not implemented!");
 
-void Module::Interface::SetBootReason(Kernel::HLERequestContext& ctx) {}
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSecureMonitorNotImplemented);
+}
 
-void Module::Interface::GetBootReason(Kernel::HLERequestContext& ctx) {}
+void Module::Interface::SetBootReason(Kernel::HLERequestContext& ctx) {
+    UNIMPLEMENTED_MSG("SetBootReason is not implemented!");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSecureMonitorNotImplemented);
+}
+
+void Module::Interface::GetBootReason(Kernel::HLERequestContext& ctx) {
+    UNIMPLEMENTED_MSG("GetBootReason is not implemented!");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSecureMonitorNotImplemented);
+}
 
 ResultVal<u64> Module::Interface::GetConfigImpl(ConfigItem config_item) const {
     switch (config_item) {
