@@ -194,6 +194,14 @@ use_assembly_shaders =
 # 0 (default): Off, 1: On
 use_asynchronous_shaders =
 
+# Enable NVDEC emulation.
+# 0: Off, 1 (default): On
+use_nvdec_emulation =
+
+# Accelerate ASTC texture decoding.
+# 0: Off, 1 (default): On
+accelerate_astc =
+
 # Turns on the frame limiter, which will limit frames output to the target game speed
 # 0: Off, 1: On (default)
 use_frame_limit =
