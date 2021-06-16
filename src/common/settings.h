@@ -149,6 +149,7 @@ struct Values {
     Setting<bool> use_nvdec_emulation;
     Setting<bool> accelerate_astc;
     Setting<bool> use_vsync;
+    Setting<bool> disable_fps_limit;
     Setting<bool> use_assembly_shaders;
     Setting<bool> use_asynchronous_shaders;
     Setting<bool> use_fast_gpu_time;

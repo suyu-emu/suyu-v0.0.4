@@ -362,6 +362,9 @@ use_debug_asserts =
 use_auto_stub =
 # Enables/Disables the macro JIT compiler
 disable_macro_jit=false
+# Presents guest frames as they become available. Experimental.
+# false: Disabled (default), true: Enabled
+disable_fps_limit=false
 
 [WebService]
 # Whether or not to enable telemetry
