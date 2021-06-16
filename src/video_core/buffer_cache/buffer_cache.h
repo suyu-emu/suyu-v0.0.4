@@ -106,6 +106,8 @@ public:
 
     void TickFrame();
 
+    void RunGarbageCollector();
+
     void WriteMemory(VAddr cpu_addr, u64 size);
 
     void CachedWriteMemory(VAddr cpu_addr, u64 size);
@@ -350,29 +352,7 @@ BufferCache<P>::BufferCache(VideoCore::RasterizerInterface& rasterizer_,
 }
 
 template <class P>
-void BufferCache<P>::TickFrame() {
-    const bool enabled_gc = Settings::values.use_caches_gc.GetValue();
-    SCOPE_EXIT({
-        ++frame_tick;
-        delayed_destruction_ring.Tick();
-    });
-    // Calculate hits and shots and move hit bits to the right
-    const u32 hits = std::reduce(uniform_cache_hits.begin(), uniform_cache_hits.end());
-    const u32 shots = std::reduce(uniform_cache_shots.begin(), uniform_cache_shots.end());
-    std::copy_n(uniform_cache_hits.begin(), uniform_cache_hits.size() - 1,
-                uniform_cache_hits.begin() + 1);
-    std::copy_n(uniform_cache_shots.begin(), uniform_cache_shots.size() - 1,
-                uniform_cache_shots.begin() + 1);
-    uniform_cache_hits[0] = 0;
-    uniform_cache_shots[0] = 0;
-
-    const bool skip_preferred = hits * 256 < shots * 251;
-    uniform_buffer_skip_cache_size = skip_preferred ? DEFAULT_SKIP_CACHE_SIZE : 0;
-
-    const bool activate_gc = enabled_gc && total_used_memory >= EXPECTED_MEMORY;
-    if (!activate_gc) {
-        return;
-    }
+void BufferCache<P>::RunGarbageCollector() {
     const bool aggressive_gc = total_used_memory >= CRITICAL_MEMORY;
     const u64 ticks_to_destroy = aggressive_gc ? 60 : 120;
     int num_iterations = aggressive_gc ? 64 : 32;
@@ -390,6 +370,28 @@ void BufferCache<P>::TickFrame() {
             DeleteBuffer(buffer_id);
         }
     }
+}
+
+template <class P>
+void BufferCache<P>::TickFrame() {
+    // Calculate hits and shots and move hit bits to the right
+    const u32 hits = std::reduce(uniform_cache_hits.begin(), uniform_cache_hits.end());
+    const u32 shots = std::reduce(uniform_cache_shots.begin(), uniform_cache_shots.end());
+    std::copy_n(uniform_cache_hits.begin(), uniform_cache_hits.size() - 1,
+                uniform_cache_hits.begin() + 1);
+    std::copy_n(uniform_cache_shots.begin(), uniform_cache_shots.size() - 1,
+                uniform_cache_shots.begin() + 1);
+    uniform_cache_hits[0] = 0;
+    uniform_cache_shots[0] = 0;
+
+    const bool skip_preferred = hits * 256 < shots * 251;
+    uniform_buffer_skip_cache_size = skip_preferred ? DEFAULT_SKIP_CACHE_SIZE : 0;
+
+    if (Settings::values.use_caches_gc.GetValue() && total_used_memory >= EXPECTED_MEMORY) {
+        RunGarbageCollector();
+    }
+    ++frame_tick;
+    delayed_destruction_ring.Tick();
 }
 
 template <class P>

@@ -227,7 +227,7 @@ use_asynchronous_gpu_emulation =
 # 0: Off, 1 (default): On
 use_vsync =
 
-# Whether to use garbage collection or not.
+# Whether to use garbage collection or not for GPU caches.
 # 0 (default): Off, 1: On
 use_caches_gc =
 
