@@ -1217,7 +1217,7 @@ static void ComputeEndpoints(Pixel& ep1, Pixel& ep2, const u32*& colorValues,
     case 1: {
         READ_UINT_VALUES(2)
         u32 L0 = (v[0] >> 2) | (v[1] & 0xC0);
-        u32 L1 = std::max(L0 + (v[1] & 0x3F), 0xFFU);
+        u32 L1 = std::min(L0 + (v[1] & 0x3F), 0xFFU);
         ep1 = Pixel(0xFF, L0, L0, L0);
         ep2 = Pixel(0xFF, L1, L1, L1);
     } break;
