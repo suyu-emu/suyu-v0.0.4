@@ -120,12 +120,13 @@ private:
         state = State::Initialized;
     }
 
-    void GetState(Kernel::HLERequestContext& ctx) {
-        LOG_DEBUG(Service_NFC, "called");
+    void Finalize(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_NFP, "called");
 
-        IPC::ResponseBuilder rb{ctx, 3, 0};
+        device_state = DeviceState::Finalized;
+
+        IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultSuccess);
-        rb.PushRaw<u32>(static_cast<u32>(state));
     }
 
     void ListDevices(Kernel::HLERequestContext& ctx) {
@@ -140,35 +141,14 @@ private:
         rb.Push<u32>(1);
     }
 
-    void GetNpadId(Kernel::HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
-        const u64 dev_handle = rp.Pop<u64>();
-        LOG_DEBUG(Service_NFP, "called, dev_handle=0x{:X}", dev_handle);
+    void StartDetection(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_NFP, "called");
 
-        IPC::ResponseBuilder rb{ctx, 3};
+        if (device_state == DeviceState::Initialized || device_state == DeviceState::TagRemoved) {
+            device_state = DeviceState::SearchingForTag;
+        }
+        IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultSuccess);
-        rb.Push<u32>(npad_id);
-    }
-
-    void AttachActivateEvent(Kernel::HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
-        const u64 dev_handle = rp.Pop<u64>();
-        LOG_DEBUG(Service_NFP, "called, dev_handle=0x{:X}", dev_handle);
-
-        IPC::ResponseBuilder rb{ctx, 2, 1};
-        rb.Push(ResultSuccess);
-        rb.PushCopyObjects(nfp_interface.GetNFCEvent());
-        has_attached_handle = true;
-    }
-
-    void AttachDeactivateEvent(Kernel::HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
-        const u64 dev_handle = rp.Pop<u64>();
-        LOG_DEBUG(Service_NFP, "called, dev_handle=0x{:X}", dev_handle);
-
-        IPC::ResponseBuilder rb{ctx, 2, 1};
-        rb.Push(ResultSuccess);
-        rb.PushCopyObjects(deactivate_event->GetReadableEvent());
     }
 
     void StopDetection(Kernel::HLERequestContext& ctx) {
@@ -191,22 +171,37 @@ private:
         rb.Push(ResultSuccess);
     }
 
-    void GetDeviceState(Kernel::HLERequestContext& ctx) {
+    void Mount(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_NFP, "called");
+
+        device_state = DeviceState::TagNearby;
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+    }
+
+    void Unmount(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_NFP, "called");
+
+        device_state = DeviceState::TagFound;
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+    }
+
+    void OpenApplicationArea(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_NFP, "(STUBBED) called");
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ErrCodes::ERR_NO_APPLICATION_AREA);
+    }
+
+    void GetApplicationArea(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_NFP, "(STUBBED) called");
+
+        // TODO(ogniK): Pull application area from amiibo
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
-        rb.Push<u32>(static_cast<u32>(device_state));
-    }
-
-    void StartDetection(Kernel::HLERequestContext& ctx) {
-        LOG_DEBUG(Service_NFP, "called");
-
-        if (device_state == DeviceState::Initialized || device_state == DeviceState::TagRemoved) {
-            device_state = DeviceState::SearchingForTag;
-        }
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultSuccess);
+        rb.PushRaw<u32>(0); // This is from the GetCommonInfo stub
     }
 
     void GetTagInfo(Kernel::HLERequestContext& ctx) {
@@ -224,49 +219,6 @@ private:
         };
         ctx.WriteBuffer(tag_info);
         rb.Push(ResultSuccess);
-    }
-
-    void Mount(Kernel::HLERequestContext& ctx) {
-        LOG_DEBUG(Service_NFP, "called");
-
-        device_state = DeviceState::TagNearby;
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultSuccess);
-    }
-
-    void GetModelInfo(Kernel::HLERequestContext& ctx) {
-        LOG_DEBUG(Service_NFP, "called");
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        const auto& amiibo = nfp_interface.GetAmiiboBuffer();
-        ctx.WriteBuffer(amiibo.model_info);
-        rb.Push(ResultSuccess);
-    }
-
-    void Unmount(Kernel::HLERequestContext& ctx) {
-        LOG_DEBUG(Service_NFP, "called");
-
-        device_state = DeviceState::TagFound;
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultSuccess);
-    }
-
-    void Finalize(Kernel::HLERequestContext& ctx) {
-        LOG_DEBUG(Service_NFP, "called");
-
-        device_state = DeviceState::Finalized;
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultSuccess);
-    }
-
-    void AttachAvailabilityChangeEvent(Kernel::HLERequestContext& ctx) {
-        LOG_WARNING(Service_NFP, "(STUBBED) called");
-
-        IPC::ResponseBuilder rb{ctx, 2, 1};
-        rb.Push(ResultSuccess);
-        rb.PushCopyObjects(availability_change_event->GetReadableEvent());
     }
 
     void GetRegisterInfo(Kernel::HLERequestContext& ctx) {
@@ -291,10 +243,60 @@ private:
         rb.Push(ResultSuccess);
     }
 
-    void OpenApplicationArea(Kernel::HLERequestContext& ctx) {
-        LOG_WARNING(Service_NFP, "(STUBBED) called");
+    void GetModelInfo(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_NFP, "called");
+
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ErrCodes::ERR_NO_APPLICATION_AREA);
+        const auto& amiibo = nfp_interface.GetAmiiboBuffer();
+        ctx.WriteBuffer(amiibo.model_info);
+        rb.Push(ResultSuccess);
+    }
+
+    void AttachActivateEvent(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const u64 dev_handle = rp.Pop<u64>();
+        LOG_DEBUG(Service_NFP, "called, dev_handle=0x{:X}", dev_handle);
+
+        IPC::ResponseBuilder rb{ctx, 2, 1};
+        rb.Push(ResultSuccess);
+        rb.PushCopyObjects(nfp_interface.GetNFCEvent());
+        has_attached_handle = true;
+    }
+
+    void AttachDeactivateEvent(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const u64 dev_handle = rp.Pop<u64>();
+        LOG_DEBUG(Service_NFP, "called, dev_handle=0x{:X}", dev_handle);
+
+        IPC::ResponseBuilder rb{ctx, 2, 1};
+        rb.Push(ResultSuccess);
+        rb.PushCopyObjects(deactivate_event.GetReadableEvent());
+    }
+
+    void GetState(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_NFC, "called");
+
+        IPC::ResponseBuilder rb{ctx, 3, 0};
+        rb.Push(ResultSuccess);
+        rb.PushRaw<u32>(static_cast<u32>(state));
+    }
+
+    void GetDeviceState(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_NFP, "called");
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push<u32>(static_cast<u32>(device_state));
+    }
+
+    void GetNpadId(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const u64 dev_handle = rp.Pop<u64>();
+        LOG_DEBUG(Service_NFP, "called, dev_handle=0x{:X}", dev_handle);
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push<u32>(npad_id);
     }
 
     void GetApplicationAreaSize(Kernel::HLERequestContext& ctx) {
@@ -305,14 +307,12 @@ private:
         rb.PushRaw<u32>(0); // This is from the GetCommonInfo stub
     }
 
-    void GetApplicationArea(Kernel::HLERequestContext& ctx) {
+    void AttachAvailabilityChangeEvent(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_NFP, "(STUBBED) called");
 
-        // TODO(ogniK): Pull application area from amiibo
-
-        IPC::ResponseBuilder rb{ctx, 3};
+        IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(ResultSuccess);
-        rb.PushRaw<u32>(0); // This is from the GetCommonInfo stub
+        rb.PushCopyObjects(availability_change_event.GetReadableEvent());
     }
 
     Module::Interface& nfp_interface;
