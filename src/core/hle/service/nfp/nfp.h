@@ -8,79 +8,155 @@
 #include <vector>
 
 #include "core/hle/service/kernel_helpers.h"
-#include "core/hle/kernel/k_event.h"
-#include "core/hle/service/mii/manager.h"
+#include "core/hle/service/mii/mii_manager.h"
 #include "core/hle/service/service.h"
 
 namespace Kernel {
 class KEvent;
-}
+class KReadableEvent;
+} // namespace Kernel
+
+namespace Core::HID {
+enum class NpadIdType : u32;
+} // namespace Core::HID
 
 namespace Service::NFP {
 
 enum class ServiceType : u32 {
-    User = 0,
-    Debug = 1,
-    System = 2,
+    User,
+    Debug,
+    System,
 };
 
 enum class State : u32 {
-    NonInitialized = 0,
-    Initialized = 1,
+    NonInitialized,
+    Initialized,
 };
 
 enum class DeviceState : u32 {
-    Initialized = 0,
-    SearchingForTag = 1,
-    TagFound = 2,
-    TagRemoved = 3,
-    TagMounted = 4,
-    Unaviable = 5,
-    Finalized = 6
+    Initialized,
+    SearchingForTag,
+    TagFound,
+    TagRemoved,
+    TagMounted,
+    Unaviable,
+    Finalized,
+};
+
+enum class ModelType : u32 {
+    Amiibo,
 };
 
 enum class MountTarget : u32 {
-    Rom = 1,
-    Ram = 2,
-    All = 3,
+    Rom,
+    Ram,
+    All,
 };
 
 struct TagInfo {
     std::array<u8, 10> uuid;
     u8 uuid_length;
     INSERT_PADDING_BYTES(0x15);
-    u32_le protocol;
-    u32_le tag_type;
-    INSERT_PADDING_BYTES(0x2c);
+    u32 protocol;
+    u32 tag_type;
+    INSERT_PADDING_BYTES(0x30);
 };
-static_assert(sizeof(TagInfo) == 0x54, "TagInfo is an invalid size");
+static_assert(sizeof(TagInfo) == 0x58, "TagInfo is an invalid size");
 
 struct CommonInfo {
-    u16_be last_write_year;
+    u16 last_write_year;
     u8 last_write_month;
     u8 last_write_day;
-    u16_be write_counter;
-    u16_be version;
-    u32_be application_area_size;
+    u16 write_counter;
+    u16 version;
+    u32 application_area_size;
     INSERT_PADDING_BYTES(0x34);
 };
 static_assert(sizeof(CommonInfo) == 0x40, "CommonInfo is an invalid size");
 
 struct ModelInfo {
-    std::array<u8, 0x8> ammibo_id;
-    INSERT_PADDING_BYTES(0x38);
+    u16 character_id;
+    u8 character_variant;
+    u8 figure_type;
+    u16 model_number;
+    u8 series;
+    INSERT_PADDING_BYTES(0x39);
 };
 static_assert(sizeof(ModelInfo) == 0x40, "ModelInfo is an invalid size");
 
 struct RegisterInfo {
-    Service::Mii::MiiInfo mii;
-    u16_be first_write_year;
+    Service::Mii::MiiInfo mii_char_info;
+    u16 first_write_year;
     u8 first_write_month;
     u8 first_write_day;
     std::array<u8, 11> amiibo_name;
-    INSERT_PADDING_BYTES(0x99);
+    u8 unknown;
+    INSERT_PADDING_BYTES(0x98);
 };
-// static_assert(sizeof(RegisterInfo) == 0x106, "RegisterInfo is an invalid size");
+static_assert(sizeof(RegisterInfo) == 0x100, "RegisterInfo is an invalid size");
+
+class Module final {
+public:
+    class Interface : public ServiceFramework<Interface> {
+    public:
+        explicit Interface(std::shared_ptr<Module> module_, Core::System& system_,
+                           const char* name);
+        ~Interface() override;
+
+        struct AmiiboFile {
+            std::array<u8, 10> uuid;
+            INSERT_PADDING_BYTES(0x4); // Compability container
+            INSERT_PADDING_BYTES(0x46);
+            ModelInfo model_info;
+        };
+        static_assert(sizeof(AmiiboFile) == 0x94, "AmiiboFile is an invalid size");
+
+        void CreateUserInterface(Kernel::HLERequestContext& ctx);
+        bool LoadAmiibo(const std::vector<u8>& buffer);
+        void CloseAmiibo();
+
+        void Initialize();
+        void Finalize();
+
+        ResultCode StartDetection();
+        ResultCode StopDetection();
+        ResultCode Mount();
+        ResultCode Unmount();
+
+        ResultCode GetTagInfo(TagInfo& tag_info) const;
+        ResultCode GetCommonInfo(CommonInfo& common_info) const;
+        ResultCode GetModelInfo(ModelInfo& model_info) const;
+        ResultCode GetRegisterInfo(RegisterInfo& register_info) const;
+
+        ResultCode OpenApplicationArea(u32 access_id);
+        ResultCode GetApplicationArea(std::vector<u8>& data) const;
+        ResultCode SetApplicationArea(const std::vector<u8>& data);
+        ResultCode CreateApplicationArea(u32 access_id, const std::vector<u8>& data);
+
+        u64 GetHandle() const;
+        DeviceState GetCurrentState() const;
+        Core::HID::NpadIdType GetNpadId() const;
+
+        Kernel::KReadableEvent& GetActivateEvent() const;
+        Kernel::KReadableEvent& GetDeactivateEvent() const;
+
+    protected:
+        std::shared_ptr<Module> module;
+
+    private:
+        const Core::HID::NpadIdType npad_id;
+
+        DeviceState device_state{DeviceState::Unaviable};
+        KernelHelpers::ServiceContext service_context;
+        Kernel::KEvent* activate_event;
+        Kernel::KEvent* deactivate_event;
+        AmiiboFile amiibo{};
+        u16 write_counter{};
+        bool is_application_area_initialized{};
+        u32 application_area_id;
+        std::vector<u8> application_area_data;
+    };
+};
 
 class IUser final : public ServiceFramework<IUser> {
 public:
@@ -96,6 +172,8 @@ private:
     void Unmount(Kernel::HLERequestContext& ctx);
     void OpenApplicationArea(Kernel::HLERequestContext& ctx);
     void GetApplicationArea(Kernel::HLERequestContext& ctx);
+    void SetApplicationArea(Kernel::HLERequestContext& ctx);
+    void CreateApplicationArea(Kernel::HLERequestContext& ctx);
     void GetTagInfo(Kernel::HLERequestContext& ctx);
     void GetRegisterInfo(Kernel::HLERequestContext& ctx);
     void GetCommonInfo(Kernel::HLERequestContext& ctx);
@@ -108,50 +186,13 @@ private:
     void GetApplicationAreaSize(Kernel::HLERequestContext& ctx);
     void AttachAvailabilityChangeEvent(Kernel::HLERequestContext& ctx);
 
-    bool has_attached_handle{};
-    const u64 device_handle{0}; // Npad device 1
-    const u32 npad_id{0};       // Player 1 controller
-    State state{State::NonInitialized};
-    DeviceState device_state{DeviceState::Initialized};
+    KernelHelpers::ServiceContext service_context;
+
+    // TODO(german77): We should have a vector of interfaces
     Module::Interface& nfp_interface;
-    Kernel::KEvent deactivate_event;
-    Kernel::KEvent availability_change_event;
-};
 
-class Module final {
-public:
-    class Interface : public ServiceFramework<Interface> {
-    public:
-        explicit Interface(std::shared_ptr<Module> module_, Core::System& system_,
-                           const char* name);
-        ~Interface() override;
-
-        struct ModelInfo {
-            std::array<u8, 0x8> amiibo_identification_block;
-            INSERT_PADDING_BYTES(0x38);
-        };
-        static_assert(sizeof(ModelInfo) == 0x40, "ModelInfo is an invalid size");
-
-        struct AmiiboFile {
-            std::array<u8, 10> uuid;
-            INSERT_PADDING_BYTES(0x4a);
-            ModelInfo model_info;
-        };
-        static_assert(sizeof(AmiiboFile) == 0x94, "AmiiboFile is an invalid size");
-
-        void CreateUserInterface(Kernel::HLERequestContext& ctx);
-        bool LoadAmiibo(const std::vector<u8>& buffer);
-        Kernel::KReadableEvent& GetNFCEvent();
-        const AmiiboFile& GetAmiiboBuffer() const;
-
-    protected:
-        std::shared_ptr<Module> module;
-
-    private:
-        KernelHelpers::ServiceContext service_context;
-        Kernel::KEvent* nfc_tag_load;
-        AmiiboFile amiibo{};
-    };
+    State state{State::NonInitialized};
+    Kernel::KEvent* availability_change_event;
 };
 
 void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system);

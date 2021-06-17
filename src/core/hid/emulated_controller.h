@@ -309,6 +309,8 @@ public:
      */
     bool TestVibration(std::size_t device_index);
 
+    bool SetPollingMode(Common::Input::PollingMode polling_mode);
+
     /// Returns the led pattern corresponding to this emulated controller
     LedPattern GetLedPattern() const;
 

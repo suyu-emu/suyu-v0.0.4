@@ -7,6 +7,9 @@
 
 #include "common/logging/log.h"
 #include "core/core.h"
+#include "core/hid/emulated_controller.h"
+#include "core/hid/hid_core.h"
+#include "core/hid/hid_types.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/service/nfp/nfp.h"
@@ -14,12 +17,18 @@
 
 namespace Service::NFP {
 namespace ErrCodes {
-constexpr ResultCode ERR_NO_APPLICATION_AREA(ErrorModule::NFP, 152);
+constexpr ResultCode DeviceNotFound(ErrorModule::NFP, 64);
+constexpr ResultCode WrongDeviceState(ErrorModule::NFP, 73);
+constexpr ResultCode ApplicationAreaIsNotInitialized(ErrorModule::NFP, 128);
+constexpr ResultCode NoApplicationArea(ErrorModule::NFP, 152);
+constexpr ResultCode ApplicationAreaExist(ErrorModule::NFP, 168);
 } // namespace ErrCodes
 
+constexpr u32 ApplicationAreaSize = 0xD8;
+
 IUser::IUser(Module::Interface& nfp_interface_, Core::System& system_)
-    : ServiceFramework{system_, "NFP::IUser"}, nfp_interface{nfp_interface_},
-      deactivate_event{system.Kernel()}, availability_change_event{system.Kernel()} {
+    : ServiceFramework{system_, "NFP::IUser"}, service_context{system_, service_name},
+      nfp_interface{nfp_interface_} {
     static const FunctionInfo functions[] = {
         {0, &IUser::Initialize, "Initialize"},
         {1, &IUser::Finalize, "Finalize"},
@@ -30,10 +39,10 @@ IUser::IUser(Module::Interface& nfp_interface_, Core::System& system_)
         {6, &IUser::Unmount, "Unmount"},
         {7, &IUser::OpenApplicationArea, "OpenApplicationArea"},
         {8, &IUser::GetApplicationArea, "GetApplicationArea"},
-        {9, nullptr, "SetApplicationArea"},
+        {9, &IUser::SetApplicationArea, "SetApplicationArea"},
         {10, nullptr, "Flush"},
         {11, nullptr, "Restore"},
-        {12, nullptr, "CreateApplicationArea"},
+        {12, &IUser::CreateApplicationArea, "CreateApplicationArea"},
         {13, &IUser::GetTagInfo, "GetTagInfo"},
         {14, &IUser::GetRegisterInfo, "GetRegisterInfo"},
         {15, &IUser::GetCommonInfo, "GetCommonInfo"},
@@ -49,220 +58,416 @@ IUser::IUser(Module::Interface& nfp_interface_, Core::System& system_)
     };
     RegisterHandlers(functions);
 
-    Kernel::KAutoObject::Create(std::addressof(deactivate_event));
-    Kernel::KAutoObject::Create(std::addressof(availability_change_event));
-
-    deactivate_event.Initialize("IUser:DeactivateEvent");
-    availability_change_event.Initialize("IUser:AvailabilityChangeEvent");
+    availability_change_event = service_context.CreateEvent("IUser:AvailabilityChangeEvent");
 }
 
 void IUser::Initialize(Kernel::HLERequestContext& ctx) {
-    LOG_DEBUG(Service_NFC, "called");
+    LOG_INFO(Service_NFC, "called");
+
+    state = State::Initialized;
+
+    // TODO(german77): Loop through all interfaces
+    nfp_interface.Initialize();
 
     IPC::ResponseBuilder rb{ctx, 2, 0};
     rb.Push(ResultSuccess);
-
-    state = State::Initialized;
 }
 
 void IUser::Finalize(Kernel::HLERequestContext& ctx) {
-    LOG_DEBUG(Service_NFP, "called");
+    LOG_INFO(Service_NFP, "called");
 
-    device_state = DeviceState::Finalized;
+    state = State::NonInitialized;
+
+    // TODO(german77): Loop through all interfaces
+    nfp_interface.Finalize();
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
 }
 
 void IUser::ListDevices(Kernel::HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const u32 array_size = rp.Pop<u32>();
-    LOG_DEBUG(Service_NFP, "called, array_size={}", array_size);
+    LOG_INFO(Service_NFP, "called");
 
-    ctx.WriteBuffer(device_handle);
+    std::vector<u64> devices;
+
+    // TODO(german77): Loop through all interfaces
+    devices.push_back(nfp_interface.GetHandle());
+
+    ctx.WriteBuffer(devices);
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.Push<u32>(1);
+    rb.Push(devices.size());
 }
 
 void IUser::StartDetection(Kernel::HLERequestContext& ctx) {
-    LOG_DEBUG(Service_NFP, "called");
+    IPC::RequestParser rp{ctx};
+    const auto device_handle{rp.Pop<u64>()};
+    const auto nfp_protocol{rp.Pop<s32>()};
+    LOG_INFO(Service_NFP, "called, device_handle={}, nfp_protocol={}", device_handle, nfp_protocol);
 
-    if (device_state == DeviceState::Initialized || device_state == DeviceState::TagRemoved) {
-        device_state = DeviceState::SearchingForTag;
+    // TODO(german77): Loop through all interfaces
+    if (device_handle == nfp_interface.GetHandle()) {
+        const auto result = nfp_interface.StartDetection();
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(result);
+        return;
     }
+
+    LOG_ERROR(Service_NFP, "Handle not found, device_handle={}", device_handle);
+
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(ErrCodes::DeviceNotFound);
 }
 
 void IUser::StopDetection(Kernel::HLERequestContext& ctx) {
-    LOG_DEBUG(Service_NFP, "called");
+    IPC::RequestParser rp{ctx};
+    const auto device_handle{rp.Pop<u64>()};
+    LOG_INFO(Service_NFP, "called, device_handle={}", device_handle);
 
-    switch (device_state) {
-    case DeviceState::TagFound:
-    case DeviceState::TagMounted:
-        deactivate_event.GetWritableEvent().Signal();
-        device_state = DeviceState::Initialized;
-        break;
-    case DeviceState::SearchingForTag:
-    case DeviceState::TagRemoved:
-        device_state = DeviceState::Initialized;
-        break;
-    default:
-        break;
+    // TODO(german77): Loop through all interfaces
+    if (device_handle == nfp_interface.GetHandle()) {
+        const auto result = nfp_interface.StopDetection();
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(result);
+        return;
     }
+
+    LOG_ERROR(Service_NFP, "Handle not found, device_handle={}", device_handle);
+
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(ErrCodes::DeviceNotFound);
 }
 
 void IUser::Mount(Kernel::HLERequestContext& ctx) {
-    LOG_DEBUG(Service_NFP, "called");
+    IPC::RequestParser rp{ctx};
+    const auto device_handle{rp.Pop<u64>()};
+    const auto model_type{rp.PopEnum<ModelType>()};
+    const auto mount_target{rp.PopEnum<MountTarget>()};
+    LOG_INFO(Service_NFP, "called, device_handle={}, model_type={}, mount_target={}", device_handle,
+             model_type, mount_target);
 
-    device_state = DeviceState::TagMounted;
+    // TODO(german77): Loop through all interfaces
+    if (device_handle == nfp_interface.GetHandle()) {
+        const auto result = nfp_interface.Mount();
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(result);
+        return;
+    }
+
+    LOG_ERROR(Service_NFP, "Handle not found, device_handle={}", device_handle);
+
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(ErrCodes::DeviceNotFound);
 }
 
 void IUser::Unmount(Kernel::HLERequestContext& ctx) {
-    LOG_DEBUG(Service_NFP, "called");
+    IPC::RequestParser rp{ctx};
+    const auto device_handle{rp.Pop<u64>()};
+    LOG_INFO(Service_NFP, "called, device_handle={}", device_handle);
 
-    device_state = DeviceState::TagFound;
+    // TODO(german77): Loop through all interfaces
+    if (device_handle == nfp_interface.GetHandle()) {
+        const auto result = nfp_interface.Unmount();
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(result);
+        return;
+    }
+
+    LOG_ERROR(Service_NFP, "Handle not found, device_handle={}", device_handle);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(ErrCodes::DeviceNotFound);
 }
 
 void IUser::OpenApplicationArea(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_NFP, "(STUBBED) called");
+    IPC::RequestParser rp{ctx};
+    const auto device_handle{rp.Pop<u64>()};
+    const auto access_id{rp.Pop<u32>()};
+    LOG_INFO(Service_NFP, "called, device_handle={}, access_id={}", device_handle, access_id);
+
+    // TODO(german77): Loop through all interfaces
+    if (device_handle == nfp_interface.GetHandle()) {
+        const auto result = nfp_interface.OpenApplicationArea(access_id);
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(result);
+        return;
+    }
+
+    LOG_ERROR(Service_NFP, "Handle not found, device_handle={}", device_handle);
+
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ErrCodes::ERR_NO_APPLICATION_AREA);
+    rb.Push(ErrCodes::DeviceNotFound);
 }
 
 void IUser::GetApplicationArea(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_NFP, "(STUBBED) called");
+    IPC::RequestParser rp{ctx};
+    const auto device_handle{rp.Pop<u64>()};
+    LOG_INFO(Service_NFP, "called, device_handle={}", device_handle);
 
-    // TODO(ogniK): Pull application area from amiibo
+    // TODO(german77): Loop through all interfaces
+    if (device_handle == nfp_interface.GetHandle()) {
+        std::vector<u8> data{};
+        const auto result = nfp_interface.GetApplicationArea(data);
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.PushRaw<u32>(0); // This is from the GetCommonInfo stub
+        ctx.WriteBuffer(data);
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(result);
+        rb.PushRaw<u32>(data.size());
+        return;
+    }
+
+    LOG_ERROR(Service_NFP, "Handle not found, device_handle={}", device_handle);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ErrCodes::DeviceNotFound);
+}
+
+void IUser::SetApplicationArea(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto device_handle{rp.Pop<u64>()};
+    const auto data{ctx.ReadBuffer()};
+    LOG_INFO(Service_NFP, "called, device_handle={}, data_size={}", device_handle, data.size());
+
+    // TODO(german77): Loop through all interfaces
+    if (device_handle == nfp_interface.GetHandle()) {
+        const auto result = nfp_interface.SetApplicationArea(data);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(result);
+        return;
+    }
+
+    LOG_ERROR(Service_NFP, "Handle not found, device_handle={}", device_handle);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ErrCodes::DeviceNotFound);
+}
+
+void IUser::CreateApplicationArea(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto device_handle{rp.Pop<u64>()};
+    const auto access_id{rp.Pop<u32>()};
+    const auto data{ctx.ReadBuffer()};
+    LOG_INFO(Service_NFP, "called, device_handle={}, data_size={}, access_id={}", device_handle,
+             access_id, data.size());
+
+    // TODO(german77): Loop through all interfaces
+    if (device_handle == nfp_interface.GetHandle()) {
+        const auto result = nfp_interface.CreateApplicationArea(access_id, data);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(result);
+        return;
+    }
+
+    LOG_ERROR(Service_NFP, "Handle not found, device_handle={}", device_handle);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ErrCodes::DeviceNotFound);
 }
 
 void IUser::GetTagInfo(Kernel::HLERequestContext& ctx) {
-    LOG_DEBUG(Service_NFP, "called");
+    IPC::RequestParser rp{ctx};
+    const auto device_handle{rp.Pop<u64>()};
+    LOG_INFO(Service_NFP, "called, device_handle={}", device_handle);
+
+    // TODO(german77): Loop through all interfaces
+    if (device_handle == nfp_interface.GetHandle()) {
+        TagInfo tag_info{};
+        const auto result = nfp_interface.GetTagInfo(tag_info);
+        ctx.WriteBuffer(tag_info);
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(result);
+        return;
+    }
+
+    LOG_ERROR(Service_NFP, "Handle not found, device_handle={}", device_handle);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    const auto& amiibo = nfp_interface.GetAmiiboBuffer();
-    const TagInfo tag_info{
-        .uuid = amiibo.uuid,
-        .uuid_length = static_cast<u8>(amiibo.uuid.size()),
-        .protocol = 1, // TODO(ogniK): Figure out actual values
-        .tag_type = 2,
-    };
-    ctx.WriteBuffer(tag_info);
-    rb.Push(ResultSuccess);
+    rb.Push(ErrCodes::DeviceNotFound);
 }
 
 void IUser::GetRegisterInfo(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_NFP, "(STUBBED) called");
+    IPC::RequestParser rp{ctx};
+    const auto device_handle{rp.Pop<u64>()};
+    LOG_INFO(Service_NFP, "called, device_handle={}", device_handle);
 
-    // TODO(ogniK): Pull Mii and owner data from amiibo
+    // TODO(german77): Loop through all interfaces
+    if (device_handle == nfp_interface.GetHandle()) {
+        RegisterInfo register_info{};
+        const auto result = nfp_interface.GetRegisterInfo(register_info);
+        ctx.WriteBuffer(register_info);
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(result);
+        return;
+    }
+
+    LOG_ERROR(Service_NFP, "Handle not found, device_handle={}", device_handle);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(ErrCodes::DeviceNotFound);
 }
 
 void IUser::GetCommonInfo(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_NFP, "(STUBBED) called");
+    IPC::RequestParser rp{ctx};
+    const auto device_handle{rp.Pop<u64>()};
+    LOG_INFO(Service_NFP, "called, device_handle={}", device_handle);
 
-    // TODO(ogniK): Pull common information from amiibo
+    // TODO(german77): Loop through all interfaces
+    if (device_handle == nfp_interface.GetHandle()) {
+        CommonInfo common_info{};
+        const auto result = nfp_interface.GetCommonInfo(common_info);
+        ctx.WriteBuffer(common_info);
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(result);
+        return;
+    }
 
-    CommonInfo common_info{};
-    common_info.application_area_size = 0;
-    ctx.WriteBuffer(common_info);
+    LOG_ERROR(Service_NFP, "Handle not found, device_handle={}", device_handle);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(ErrCodes::DeviceNotFound);
 }
 
 void IUser::GetModelInfo(Kernel::HLERequestContext& ctx) {
-    LOG_DEBUG(Service_NFP, "called");
+    IPC::RequestParser rp{ctx};
+    const auto device_handle{rp.Pop<u64>()};
+    LOG_INFO(Service_NFP, "called, device_handle={}", device_handle);
+
+    // TODO(german77): Loop through all interfaces
+    if (device_handle == nfp_interface.GetHandle()) {
+        ModelInfo model_info{};
+        const auto result = nfp_interface.GetModelInfo(model_info);
+        ctx.WriteBuffer(model_info);
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+        return;
+    }
+
+    LOG_ERROR(Service_NFP, "Handle not found, device_handle={}", device_handle);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    const auto& amiibo = nfp_interface.GetAmiiboBuffer();
-    ctx.WriteBuffer(amiibo.model_info);
-    rb.Push(ResultSuccess);
+    rb.Push(ErrCodes::DeviceNotFound);
 }
 
 void IUser::AttachActivateEvent(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    const u64 dev_handle = rp.Pop<u64>();
-    LOG_DEBUG(Service_NFP, "called, dev_handle=0x{:X}", dev_handle);
+    const auto device_handle{rp.Pop<u64>()};
+    LOG_DEBUG(Service_NFP, "called, device_handle={}", device_handle);
 
-    IPC::ResponseBuilder rb{ctx, 2, 1};
-    rb.Push(ResultSuccess);
-    rb.PushCopyObjects(nfp_interface.GetNFCEvent());
-    has_attached_handle = true;
+    // TODO(german77): Loop through all interfaces
+    if (device_handle == nfp_interface.GetHandle()) {
+        IPC::ResponseBuilder rb{ctx, 2, 1};
+        rb.Push(ResultSuccess);
+        rb.PushCopyObjects(nfp_interface.GetActivateEvent());
+        return;
+    }
+
+    LOG_ERROR(Service_NFP, "Handle not found, device_handle={}", device_handle);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ErrCodes::DeviceNotFound);
 }
 
 void IUser::AttachDeactivateEvent(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    const u64 dev_handle = rp.Pop<u64>();
-    LOG_DEBUG(Service_NFP, "called, dev_handle=0x{:X}", dev_handle);
+    const auto device_handle{rp.Pop<u64>()};
+    LOG_DEBUG(Service_NFP, "called, device_handle={}", device_handle);
 
-    IPC::ResponseBuilder rb{ctx, 2, 1};
-    rb.Push(ResultSuccess);
-    rb.PushCopyObjects(deactivate_event.GetReadableEvent());
+    // TODO(german77): Loop through all interfaces
+    if (device_handle == nfp_interface.GetHandle()) {
+        IPC::ResponseBuilder rb{ctx, 2, 1};
+        rb.Push(ResultSuccess);
+        rb.PushCopyObjects(nfp_interface.GetDeactivateEvent());
+        return;
+    }
+
+    LOG_ERROR(Service_NFP, "Handle not found, device_handle={}", device_handle);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ErrCodes::DeviceNotFound);
 }
 
 void IUser::GetState(Kernel::HLERequestContext& ctx) {
-    LOG_DEBUG(Service_NFC, "called");
+    LOG_INFO(Service_NFC, "called");
 
     IPC::ResponseBuilder rb{ctx, 3, 0};
     rb.Push(ResultSuccess);
-    rb.PushRaw<u32>(static_cast<u32>(state));
+    rb.PushEnum(state);
 }
 
 void IUser::GetDeviceState(Kernel::HLERequestContext& ctx) {
-    LOG_DEBUG(Service_NFP, "called");
+    IPC::RequestParser rp{ctx};
+    const auto device_handle{rp.Pop<u64>()};
+    LOG_INFO(Service_NFP, "called, device_handle={}", device_handle);
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push<u32>(static_cast<u32>(device_state));
+    // TODO(german77): Loop through all interfaces
+    if (device_handle == nfp_interface.GetHandle()) {
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.PushEnum(nfp_interface.GetCurrentState());
+        return;
+    }
+
+    LOG_ERROR(Service_NFP, "Handle not found, device_handle={}", device_handle);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ErrCodes::DeviceNotFound);
 }
 
 void IUser::GetNpadId(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    const u64 dev_handle = rp.Pop<u64>();
-    LOG_DEBUG(Service_NFP, "called, dev_handle=0x{:X}", dev_handle);
+    const auto device_handle{rp.Pop<u64>()};
+    LOG_INFO(Service_NFP, "called, device_handle={}", device_handle);
 
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.Push<u32>(npad_id);
+    // TODO(german77): Loop through all interfaces
+    if (device_handle == nfp_interface.GetHandle()) {
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.PushEnum(nfp_interface.GetNpadId());
+        return;
+    }
+
+    LOG_ERROR(Service_NFP, "Handle not found, device_handle={}", device_handle);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ErrCodes::DeviceNotFound);
 }
 
 void IUser::GetApplicationAreaSize(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_NFP, "(STUBBED) called");
-    // We don't need to worry about this since we can just open the file
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(ResultSuccess);
-    rb.PushRaw<u32>(0); // This is from the GetCommonInfo stub
+    IPC::RequestParser rp{ctx};
+    const auto device_handle{rp.Pop<u64>()};
+    LOG_INFO(Service_NFP, "called, device_handle={}", device_handle);
+
+    // TODO(german77): Loop through all interfaces
+    if (device_handle == nfp_interface.GetHandle()) {
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(ResultSuccess);
+        rb.Push(ApplicationAreaSize);
+        return;
+    }
+
+    LOG_ERROR(Service_NFP, "Handle not found, device_handle={}", device_handle);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ErrCodes::DeviceNotFound);
 }
 
 void IUser::AttachAvailabilityChangeEvent(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_NFP, "(STUBBED) called");
+    LOG_DEBUG(Service_NFP, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
-    rb.PushCopyObjects(availability_change_event.GetReadableEvent());
+    rb.PushCopyObjects(availability_change_event->GetReadableEvent());
 }
 
 Module::Interface::Interface(std::shared_ptr<Module> module_, Core::System& system_,
                              const char* name)
-    : ServiceFramework{system_, name}, nfc_tag_load{system.Kernel()}, module{std::move(module_)} {
-    Kernel::KAutoObject::Create(std::addressof(nfc_tag_load));
-    nfc_tag_load.Initialize("IUser:NFCTagDetected");
+    : ServiceFramework{system_, name}, module{std::move(module_)},
+      npad_id{Core::HID::NpadIdType::Player1}, service_context{system_, service_name} {
+    activate_event = service_context.CreateEvent("IUser:NFPActivateEvent");
+    deactivate_event = service_context.CreateEvent("IUser:NFPDeactivateEvent");
 }
 
 Module::Interface::~Interface() = default;
@@ -272,25 +477,254 @@ void Module::Interface::CreateUserInterface(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(ResultSuccess);
-    rb.PushIpcInterface<IUser>(*this, system, service_context);
+    rb.PushIpcInterface<IUser>(*this, system);
 }
 
 bool Module::Interface::LoadAmiibo(const std::vector<u8>& buffer) {
     if (buffer.size() < sizeof(AmiiboFile)) {
+        LOG_ERROR(Service_NFP, "Wrong file size");
         return false;
     }
 
+    if (device_state != DeviceState::SearchingForTag) {
+        LOG_ERROR(Service_NFP, "Game is not looking for amiibos, current state {}", device_state);
+        return false;
+    }
+
+    LOG_INFO(Service_NFP, "New Amiibo detected");
     std::memcpy(&amiibo, buffer.data(), sizeof(amiibo));
-    nfc_tag_load->GetWritableEvent().Signal();
+    device_state = DeviceState::TagFound;
+    activate_event->GetWritableEvent().Signal();
     return true;
 }
 
-Kernel::KReadableEvent& Module::Interface::GetNFCEvent() {
-    return nfc_tag_load->GetReadableEvent();
+void Module::Interface::CloseAmiibo() {
+    LOG_INFO(Service_NFP, "Remove amiibo");
+    device_state = DeviceState::TagRemoved;
+    write_counter = 0;
+    is_application_area_initialized = false;
+    application_area_id = 0;
+    application_area_data.clear();
+    deactivate_event->GetWritableEvent().Signal();
 }
 
-const Module::Interface::AmiiboFile& Module::Interface::GetAmiiboBuffer() const {
-    return amiibo;
+Kernel::KReadableEvent& Module::Interface::GetActivateEvent() const {
+    return activate_event->GetReadableEvent();
+}
+
+Kernel::KReadableEvent& Module::Interface::GetDeactivateEvent() const {
+    return deactivate_event->GetReadableEvent();
+}
+
+void Module::Interface::Initialize() {
+    device_state = DeviceState::Initialized;
+}
+
+void Module::Interface::Finalize() {
+    device_state = DeviceState::Unaviable;
+    write_counter = 0;
+    is_application_area_initialized = false;
+    application_area_id = 0;
+    application_area_data.clear();
+}
+
+ResultCode Module::Interface::StartDetection() {
+    auto npad_device = system.HIDCore().GetEmulatedController(npad_id);
+
+    // TODO(german77): Add callback for when nfc data is available
+
+    if (device_state == DeviceState::Initialized || device_state == DeviceState::TagRemoved) {
+        npad_device->SetPollingMode(Common::Input::PollingMode::NFC);
+        device_state = DeviceState::SearchingForTag;
+        return ResultSuccess;
+    }
+
+    LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
+    return ErrCodes::WrongDeviceState;
+}
+
+ResultCode Module::Interface::StopDetection() {
+    auto npad_device = system.HIDCore().GetEmulatedController(npad_id);
+    npad_device->SetPollingMode(Common::Input::PollingMode::Active);
+
+    if (device_state == DeviceState::TagFound || device_state == DeviceState::TagMounted) {
+        CloseAmiibo();
+        return ResultSuccess;
+    }
+    if (device_state == DeviceState::SearchingForTag || device_state == DeviceState::TagRemoved) {
+        device_state = DeviceState::Initialized;
+        return ResultSuccess;
+    }
+
+    LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
+    return ErrCodes::WrongDeviceState;
+}
+
+ResultCode Module::Interface::Mount() {
+    if (device_state == DeviceState::TagFound) {
+        device_state = DeviceState::TagMounted;
+        return ResultSuccess;
+    }
+
+    LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
+    return ErrCodes::WrongDeviceState;
+}
+
+ResultCode Module::Interface::Unmount() {
+    if (device_state == DeviceState::TagMounted) {
+        is_application_area_initialized = false;
+        application_area_id = 0;
+        application_area_data.clear();
+        device_state = DeviceState::TagFound;
+        return ResultSuccess;
+    }
+
+    LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
+    return ErrCodes::WrongDeviceState;
+}
+
+ResultCode Module::Interface::GetTagInfo(TagInfo& tag_info) const {
+    if (device_state == DeviceState::TagFound || device_state == DeviceState::TagMounted) {
+        // Read this data from the amiibo save file
+        tag_info = {
+            .uuid = amiibo.uuid,
+            .uuid_length = static_cast<u8>(amiibo.uuid.size()),
+            .protocol = 0xFFFFFFFF, // TODO(ogniK): Figure out actual values
+            .tag_type = 0xFFFFFFFF,
+        };
+        return ResultSuccess;
+    }
+
+    LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
+    return ErrCodes::WrongDeviceState;
+}
+
+ResultCode Module::Interface::GetCommonInfo(CommonInfo& common_info) const {
+    if (device_state != DeviceState::TagMounted) {
+        LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
+        return ErrCodes::WrongDeviceState;
+    }
+
+    // Read this data from the amiibo save file
+    common_info = {
+        .last_write_year = 2022,
+        .last_write_month = 2,
+        .last_write_day = 7,
+        .write_counter = write_counter,
+        .version = 1,
+        .application_area_size = ApplicationAreaSize,
+    };
+    return ResultSuccess;
+}
+
+ResultCode Module::Interface::GetModelInfo(ModelInfo& model_info) const {
+    if (device_state != DeviceState::TagMounted) {
+        LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
+        return ErrCodes::WrongDeviceState;
+    }
+
+    model_info = amiibo.model_info;
+    return ResultSuccess;
+}
+
+ResultCode Module::Interface::GetRegisterInfo(RegisterInfo& register_info) const {
+    if (device_state != DeviceState::TagMounted) {
+        LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
+        return ErrCodes::WrongDeviceState;
+    }
+
+    Service::Mii::MiiManager manager;
+
+    // Read this data from the amiibo save file
+    register_info = {
+        .mii_char_info = manager.BuildDefault(0),
+        .first_write_year = 2022,
+        .first_write_month = 2,
+        .first_write_day = 7,
+        .amiibo_name = {'Y', 'u', 'z', 'u', 'A', 'm', 'i', 'i', 'b', 'o', 0},
+        .unknown = {},
+    };
+    return ResultSuccess;
+}
+
+ResultCode Module::Interface::OpenApplicationArea(u32 access_id) {
+    if (device_state != DeviceState::TagMounted) {
+        LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
+        return ErrCodes::WrongDeviceState;
+    }
+    // if (AmiiboApplicationDataExist(access_id)) {
+    //    application_area_data = LoadAmiiboApplicationData(access_id);
+    //    application_area_id = access_id;
+    //    is_application_area_initialized = true;
+    // }
+    if (!is_application_area_initialized) {
+        LOG_ERROR(Service_NFP, "Application area is not initialized");
+        return ErrCodes::ApplicationAreaIsNotInitialized;
+    }
+    return ResultSuccess;
+}
+
+ResultCode Module::Interface::GetApplicationArea(std::vector<u8>& data) const {
+    if (device_state != DeviceState::TagMounted) {
+        LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
+        return ErrCodes::WrongDeviceState;
+    }
+    if (!is_application_area_initialized) {
+        LOG_ERROR(Service_NFP, "Application area is not initialized");
+        return ErrCodes::ApplicationAreaIsNotInitialized;
+    }
+
+    data = application_area_data;
+
+    return ResultSuccess;
+}
+
+ResultCode Module::Interface::SetApplicationArea(const std::vector<u8>& data) {
+    if (device_state != DeviceState::TagMounted) {
+        LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
+        return ErrCodes::WrongDeviceState;
+    }
+    if (!is_application_area_initialized) {
+        LOG_ERROR(Service_NFP, "Application area is not initialized");
+        return ErrCodes::ApplicationAreaIsNotInitialized;
+    }
+    application_area_data = data;
+    write_counter++;
+    // SaveAmiiboApplicationData(application_area_id,application_area_data);
+    return ResultSuccess;
+}
+
+ResultCode Module::Interface::CreateApplicationArea(u32 access_id, const std::vector<u8>& data) {
+    if (device_state != DeviceState::TagMounted) {
+        LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
+        return ErrCodes::WrongDeviceState;
+    }
+    // if (AmiiboApplicationDataExist(access_id)) {
+    //    LOG_ERROR(Service_NFP, "Application area already exist");
+    //    return ErrCodes::ApplicationAreaExist;
+    // }
+    // if (LoadAmiiboApplicationData(access_id,data)) {
+    //    is_application_area_initialized = true;
+    //    application_area_id = access_id;
+    // }
+    application_area_data = data;
+    application_area_id = access_id;
+    write_counter = 0;
+    // SaveAmiiboApplicationData(application_area_id,application_area_data);
+    return ResultSuccess;
+}
+
+u64 Module::Interface::GetHandle() const {
+    // Generate a handle based of the npad id
+    return static_cast<u64>(npad_id);
+}
+
+DeviceState Module::Interface::GetCurrentState() const {
+    return device_state;
+}
+
+Core::HID::NpadIdType Module::Interface::GetNpadId() const {
+    return npad_id;
 }
 
 void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system) {
