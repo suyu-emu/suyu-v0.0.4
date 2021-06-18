@@ -826,11 +826,11 @@ void GMainWindow::InitializeWidgets() {
     });
     statusBar()->insertPermanentWidget(0, renderer_status_button);
 
-    TASlabel = new QLabel();
-    TASlabel->setObjectName(QStringLiteral("TASlabel"));
-    TASlabel->setText(tr("TAS not running"));
-    TASlabel->setFocusPolicy(Qt::NoFocus);
-    statusBar()->insertPermanentWidget(0, TASlabel);
+    tas_label = new QLabel();
+    tas_label->setObjectName(QStringLiteral("TASlabel"));
+    tas_label->setText(tr("TAS not running"));
+    tas_label->setFocusPolicy(Qt::NoFocus);
+    statusBar()->insertPermanentWidget(0, tas_label);
 
     statusBar()->setVisible(true);
     setStyleSheet(QStringLiteral("QStatusBar::item{border: none;}"));
@@ -2896,13 +2896,28 @@ void GMainWindow::UpdateWindowTitle(std::string_view title_name, std::string_vie
     }
 }
 
+static std::string GetTasStateDescription(TasInput::TasState state) {
+    switch (state) {
+        case TasInput::TasState::RUNNING:
+            return "Running";
+        case TasInput::TasState::RECORDING:
+            return "Recording";
+        case TasInput::TasState::STOPPED:
+            return "Stopped";
+        default:
+            return "INVALID STATE";
+    }
+}
+
 void GMainWindow::UpdateStatusBar() {
     if (emu_thread == nullptr) {
         status_bar_update_timer.stop();
         return;
     }
 
-    TASlabel->setText(tr(input_subsystem->GetTas()->GetStatusDescription().c_str())); 
+    auto [tas_status, current_tas_frame, total_tas_frames] = input_subsystem->GetTas()->GetStatus();
+    tas_label->setText(tr("%1 TAS %2/%3").arg(tr(GetTasStateDescription(tas_status).c_str())).arg(current_tas_frame).arg(total_tas_frames));
+
     auto& system = Core::System::GetInstance();
     auto results = system.GetAndResetPerfStats();
     auto& shader_notify = system.GPU().ShaderNotify();

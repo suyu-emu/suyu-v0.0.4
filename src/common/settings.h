@@ -500,7 +500,6 @@ struct Values {
 
     // Controls
     InputSetting<std::array<PlayerInput, 10>> players;
-    std::shared_ptr<InputCommon::InputSubsystem> inputSubsystem = NULL;
 
     Setting<bool> use_docked_mode{true, "use_docked_mode"};
 
@@ -514,9 +513,12 @@ struct Values {
                                             "motion_device"};
     BasicSetting<std::string> udp_input_servers{"127.0.0.1:26760", "udp_input_servers"};
 
-    BasicSetting<bool> tas_enable{false, "tas_enable"};
+    BasicSetting<bool> pause_tas_on_load { false, "pause_tas_on_load" };
+    BasicSetting<bool> tas_enable{ false, "tas_enable" };
     BasicSetting<bool> tas_reset{ false, "tas_reset" };
     BasicSetting<bool> tas_record{ false, "tas_record" };
+    BasicSetting<bool> is_cpu_boxted{ false, "    BasicSetting<bool> is_cpu_boxted{ false, "cpuBoosted" };
+" };
 
     BasicSetting<bool> mouse_panning{false, "mouse_panning"};
     BasicRangedSetting<u8> mouse_panning_sensitivity{10, 1, 100, "mouse_panning_sensitivity"};
@@ -549,9 +551,6 @@ struct Values {
     BasicSetting<bool> gamecard_inserted{false, "gamecard_inserted"};
     BasicSetting<bool> gamecard_current_game{false, "gamecard_current_game"};
     BasicSetting<std::string> gamecard_path{std::string(), "gamecard_path"};
-
-    // TAS
-    bool pauseTasOnLoad;
 
     // Debugging
     bool record_frame_times;
