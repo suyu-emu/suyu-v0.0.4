@@ -14,6 +14,7 @@
 #include <utility>
 #include <vector>
 
+#include <input_common/main.h>
 #include "common/common_types.h"
 #include "common/settings_input.h"
 
@@ -499,6 +500,7 @@ struct Values {
 
     // Controls
     InputSetting<std::array<PlayerInput, 10>> players;
+    std::shared_ptr<InputCommon::InputSubsystem> inputSubsystem = NULL;
 
     Setting<bool> use_docked_mode{true, "use_docked_mode"};
 
@@ -512,9 +514,14 @@ struct Values {
                                             "motion_device"};
     BasicSetting<std::string> udp_input_servers{"127.0.0.1:26760", "udp_input_servers"};
 
+    BasicSetting<bool> tas_enable{false, "tas_enable"};
+    BasicSetting<bool> tas_reset{ false, "tas_reset" };
+    BasicSetting<bool> tas_record{ false, "tas_record" };
+
     BasicSetting<bool> mouse_panning{false, "mouse_panning"};
     BasicRangedSetting<u8> mouse_panning_sensitivity{10, 1, 100, "mouse_panning_sensitivity"};
     BasicSetting<bool> mouse_enabled{false, "mouse_enabled"};
+
     std::string mouse_device;
     MouseButtonsRaw mouse_buttons;
 

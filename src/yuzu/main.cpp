@@ -193,6 +193,7 @@ GMainWindow::GMainWindow()
       config{std::make_unique<Config>()}, vfs{std::make_shared<FileSys::RealVfsFilesystem>()},
       provider{std::make_unique<FileSys::ManualContentProvider>()} {
     Common::Log::Initialize();
+    Settings::values.inputSubsystem = input_subsystem;
     LoadTranslation();
 
     setAcceptDrops(true);
@@ -841,7 +842,7 @@ void GMainWindow::InitializeDebugWidgets() {
     waitTreeWidget->hide();
     debug_menu->addAction(waitTreeWidget->toggleViewAction());
 
-    controller_dialog = new ControllerDialog(this);
+    controller_dialog = new ControllerDialog(this, input_subsystem.get());
     controller_dialog->hide();
     debug_menu->addAction(controller_dialog->toggleViewAction());
 
