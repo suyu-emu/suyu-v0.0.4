@@ -394,11 +394,11 @@ public:
     [[nodiscard]] size_t WriteString(std::span<const char> string) const;
 
     /**
-     * Flushes any unwritten buffered data into the file.
+     * Attempts to flush any unwritten buffered data into the file and flush the file into the disk.
      *
      * @returns True if the flush was successful, false otherwise.
      */
-    [[nodiscard]] bool Flush() const;
+    bool Flush() const;
 
     /**
      * Resizes the file to a given size.

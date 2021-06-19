@@ -186,7 +186,7 @@ void FileBackend::Write(const Entry& entry) {
 
     bytes_written += file->WriteString(FormatLogMessage(entry).append(1, '\n'));
     if (entry.log_level >= Level::Error) {
-        void(file->Flush());
+        file->Flush();
     }
 }
 
