@@ -41,7 +41,8 @@ void ControllerDialog::refreshConfiguration() {
     constexpr std::size_t player = 0;
     widget->SetPlayerInputRaw(player, players[player].buttons, players[player].analogs);
     widget->SetControllerType(players[player].controller_type);
-    ControllerCallback callback{[this](ControllerInput input) { InputController(input); }};
+    ControllerCallback callback{[this](ControllerInput input) { InputController(input); },
+                                [this](bool update) { UpdateController(update); }};
     widget->SetCallBack(callback);
     widget->repaint();
     widget->SetConnectedStatus(players[player].connected);
@@ -74,10 +75,6 @@ void ControllerDialog::hideEvent(QHideEvent* ev) {
     QWidget::hideEvent(ev);
 }
 
-void ControllerDialog::RefreshTasFile() {
-    input_subsystem->GetTas()->RefreshTasFile();
-}
-
 void ControllerDialog::InputController(ControllerInput input) {
     u32 buttons = 0;
     int index = 0;
@@ -86,4 +83,11 @@ void ControllerDialog::InputController(ControllerInput input) {
         index++;
     }
     input_subsystem->GetTas()->RecordInput(buttons, input.axis_values);
+}
+
+void ControllerDialog::UpdateController(bool update) {
+    if (!update) {
+        return;
+    }
+    input_subsystem->GetTas()->UpdateThread();
 }

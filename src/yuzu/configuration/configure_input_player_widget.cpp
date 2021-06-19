@@ -175,6 +175,9 @@ void PlayerControlPreview::ResetInputs() {
 }
 
 void PlayerControlPreview::UpdateInput() {
+    if (controller_callback.update != nullptr) {
+        controller_callback.update(std::move(true));
+    }
     if (!is_enabled && !mapping_active) {
         return;
     }
