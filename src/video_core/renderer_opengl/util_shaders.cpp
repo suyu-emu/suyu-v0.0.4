@@ -118,7 +118,12 @@ void UtilShaders::ASTCDecode(Image& image, const ImageBufferMap& map,
 
         glDispatchCompute(num_dispatches_x, num_dispatches_y, image.info.resources.layers);
     }
-    glMemoryBarrier(GL_ALL_BARRIER_BITS);
+    // Precautionary barrier to ensure the compute shader is done decoding prior to texture access.
+    // GL_TEXTURE_FETCH_BARRIER_BIT and GL_SHADER_IMAGE_ACCESS_BARRIER_BIT are used in a separate
+    // glMemoryBarrier call by the texture cache runtime
+    glMemoryBarrier(GL_UNIFORM_BARRIER_BIT | GL_COMMAND_BARRIER_BIT | GL_PIXEL_BUFFER_BARRIER_BIT |
+                    GL_TEXTURE_UPDATE_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT |
+                    GL_SHADER_STORAGE_BARRIER_BIT | GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
     program_manager.RestoreGuestCompute();
 }
 
