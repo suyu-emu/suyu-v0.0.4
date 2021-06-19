@@ -55,11 +55,11 @@ template <typename Path>
  *
  * @returns True if file removal succeeds or file does not exist, false otherwise.
  */
-[[nodiscard]] bool RemoveFile(const std::filesystem::path& path);
+bool RemoveFile(const std::filesystem::path& path);
 
 #ifdef _WIN32
 template <typename Path>
-[[nodiscard]] bool RemoveFile(const Path& path) {
+bool RemoveFile(const Path& path) {
     if constexpr (IsChar<typename Path::value_type>) {
         return RemoveFile(ToU8String(path));
     } else {
@@ -251,11 +251,11 @@ template <typename Path>
  *
  * @returns True if directory removal succeeds or directory does not exist, false otherwise.
  */
-[[nodiscard]] bool RemoveDir(const std::filesystem::path& path);
+bool RemoveDir(const std::filesystem::path& path);
 
 #ifdef _WIN32
 template <typename Path>
-[[nodiscard]] bool RemoveDir(const Path& path) {
+bool RemoveDir(const Path& path) {
     if constexpr (IsChar<typename Path::value_type>) {
         return RemoveDir(ToU8String(path));
     } else {
@@ -276,11 +276,11 @@ template <typename Path>
  *
  * @returns True if the directory and all of its contents are removed successfully, false otherwise.
  */
-[[nodiscard]] bool RemoveDirRecursively(const std::filesystem::path& path);
+bool RemoveDirRecursively(const std::filesystem::path& path);
 
 #ifdef _WIN32
 template <typename Path>
-[[nodiscard]] bool RemoveDirRecursively(const Path& path) {
+bool RemoveDirRecursively(const Path& path) {
     if constexpr (IsChar<typename Path::value_type>) {
         return RemoveDirRecursively(ToU8String(path));
     } else {
@@ -301,11 +301,11 @@ template <typename Path>
  *
  * @returns True if all of the directory's contents are removed successfully, false otherwise.
  */
-[[nodiscard]] bool RemoveDirContentsRecursively(const std::filesystem::path& path);
+bool RemoveDirContentsRecursively(const std::filesystem::path& path);
 
 #ifdef _WIN32
 template <typename Path>
-[[nodiscard]] bool RemoveDirContentsRecursively(const Path& path) {
+bool RemoveDirContentsRecursively(const Path& path) {
     if constexpr (IsChar<typename Path::value_type>) {
         return RemoveDirContentsRecursively(ToU8String(path));
     } else {

@@ -159,7 +159,7 @@ FileBackend::FileBackend(const std::filesystem::path& filename) {
 
     // Existence checks are done within the functions themselves.
     // We don't particularly care if these succeed or not.
-    void(FS::RemoveFile(old_filename));
+    FS::RemoveFile(old_filename);
     void(FS::RenameFile(filename, old_filename));
 
     file =
