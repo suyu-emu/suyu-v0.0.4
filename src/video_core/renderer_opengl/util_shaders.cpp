@@ -83,7 +83,6 @@ void UtilShaders::ASTCDecode(Image& image, const ImageBufferMap& map,
     static constexpr GLuint BINDING_6_TO_8_BUFFER = 3;
     static constexpr GLuint BINDING_7_TO_8_BUFFER = 4;
     static constexpr GLuint BINDING_8_TO_8_BUFFER = 5;
-    static constexpr GLuint BINDING_BYTE_TO_16_BUFFER = 6;
 
     static constexpr GLuint BINDING_OUTPUT_IMAGE = 0;
 
@@ -105,9 +104,6 @@ void UtilShaders::ASTCDecode(Image& image, const ImageBufferMap& map,
     glBindBufferRange(GL_SHADER_STORAGE_BUFFER, BINDING_8_TO_8_BUFFER, astc_buffer.handle,
                       offsetof(AstcBufferData, replicate_8_to_8),
                       sizeof(AstcBufferData::replicate_8_to_8));
-    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, BINDING_BYTE_TO_16_BUFFER, astc_buffer.handle,
-                      offsetof(AstcBufferData, replicate_byte_to_16),
-                      sizeof(AstcBufferData::replicate_byte_to_16));
 
     glFlushMappedNamedBufferRange(map.buffer, map.offset, image.guest_size_bytes);
     glUniform2ui(1, tile_size.width, tile_size.height);
@@ -137,6 +133,7 @@ void UtilShaders::ASTCDecode(Image& image, const ImageBufferMap& map,
 
         glDispatchCompute(num_dispatches_x, num_dispatches_y, image.info.resources.layers);
     }
+    glMemoryBarrier(GL_ALL_BARRIER_BITS);
     program_manager.RestoreGuestCompute();
 }
 

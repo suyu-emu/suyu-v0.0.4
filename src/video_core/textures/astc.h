@@ -116,7 +116,6 @@ constexpr auto MakeReplicateTable() {
     return table;
 }
 
-constexpr auto REPLICATE_BYTE_TO_16_TABLE = MakeReplicateTable<u32, 8, 16>();
 constexpr auto REPLICATE_6_BIT_TO_8_TABLE = MakeReplicateTable<u32, 6, 8>();
 constexpr auto REPLICATE_7_BIT_TO_8_TABLE = MakeReplicateTable<u32, 7, 8>();
 constexpr auto REPLICATE_8_BIT_TO_8_TABLE = MakeReplicateTable<u32, 8, 8>();
@@ -126,7 +125,6 @@ struct AstcBufferData {
     decltype(REPLICATE_6_BIT_TO_8_TABLE) replicate_6_to_8 = REPLICATE_6_BIT_TO_8_TABLE;
     decltype(REPLICATE_7_BIT_TO_8_TABLE) replicate_7_to_8 = REPLICATE_7_BIT_TO_8_TABLE;
     decltype(REPLICATE_8_BIT_TO_8_TABLE) replicate_8_to_8 = REPLICATE_8_BIT_TO_8_TABLE;
-    decltype(REPLICATE_BYTE_TO_16_TABLE) replicate_byte_to_16 = REPLICATE_BYTE_TO_16_TABLE;
 } constexpr ASTC_BUFFER_DATA;
 
 void Decompress(std::span<const uint8_t> data, uint32_t width, uint32_t height, uint32_t depth,

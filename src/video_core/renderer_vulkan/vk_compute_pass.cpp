@@ -40,9 +40,9 @@ constexpr u32 ASTC_BINDING_ENC_BUFFER = 1;
 constexpr u32 ASTC_BINDING_6_TO_8_BUFFER = 2;
 constexpr u32 ASTC_BINDING_7_TO_8_BUFFER = 3;
 constexpr u32 ASTC_BINDING_8_TO_8_BUFFER = 4;
-constexpr u32 ASTC_BINDING_BYTE_TO_16_BUFFER = 5;
-constexpr u32 ASTC_BINDING_SWIZZLE_BUFFER = 6;
-constexpr u32 ASTC_BINDING_OUTPUT_IMAGE = 7;
+constexpr u32 ASTC_BINDING_SWIZZLE_BUFFER = 5;
+constexpr u32 ASTC_BINDING_OUTPUT_IMAGE = 6;
+constexpr size_t ASTC_NUM_BINDINGS = 7;
 
 VkPushConstantRange BuildComputePushConstantRange(std::size_t size) {
     return {
@@ -71,7 +71,7 @@ std::array<VkDescriptorSetLayoutBinding, 2> BuildInputOutputDescriptorSetBinding
     }};
 }
 
-std::array<VkDescriptorSetLayoutBinding, 8> BuildASTCDescriptorSetBindings() {
+std::array<VkDescriptorSetLayoutBinding, ASTC_NUM_BINDINGS> BuildASTCDescriptorSetBindings() {
     return {{
         {
             .binding = ASTC_BINDING_INPUT_BUFFER,
@@ -109,13 +109,6 @@ std::array<VkDescriptorSetLayoutBinding, 8> BuildASTCDescriptorSetBindings() {
             .pImmutableSamplers = nullptr,
         },
         {
-            .binding = ASTC_BINDING_BYTE_TO_16_BUFFER,
-            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-            .descriptorCount = 1,
-            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-            .pImmutableSamplers = nullptr,
-        },
-        {
             .binding = ASTC_BINDING_SWIZZLE_BUFFER,
             .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
             .descriptorCount = 1,
@@ -143,7 +136,8 @@ VkDescriptorUpdateTemplateEntryKHR BuildInputOutputDescriptorUpdateTemplate() {
     };
 }
 
-std::array<VkDescriptorUpdateTemplateEntryKHR, 8> BuildASTCPassDescriptorUpdateTemplateEntry() {
+std::array<VkDescriptorUpdateTemplateEntryKHR, ASTC_NUM_BINDINGS>
+BuildASTCPassDescriptorUpdateTemplateEntry() {
     return {{
         {
             .dstBinding = ASTC_BINDING_INPUT_BUFFER,
@@ -186,14 +180,6 @@ std::array<VkDescriptorUpdateTemplateEntryKHR, 8> BuildASTCPassDescriptorUpdateT
             .stride = sizeof(DescriptorUpdateEntry),
         },
         {
-            .dstBinding = ASTC_BINDING_BYTE_TO_16_BUFFER,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-            .offset = ASTC_BINDING_BYTE_TO_16_BUFFER * sizeof(DescriptorUpdateEntry),
-            .stride = sizeof(DescriptorUpdateEntry),
-        },
-        {
             .dstBinding = ASTC_BINDING_SWIZZLE_BUFFER,
             .dstArrayElement = 0,
             .descriptorCount = 1,
@@ -221,15 +207,6 @@ struct AstcPushConstants {
     u32 block_height;
     u32 block_height_mask;
 };
-
-struct AstcBufferData {
-    decltype(SWIZZLE_TABLE) swizzle_table_buffer = SWIZZLE_TABLE;
-    decltype(EncodingsValues) encoding_values = EncodingsValues;
-    decltype(REPLICATE_6_BIT_TO_8_TABLE) replicate_6_to_8 = REPLICATE_6_BIT_TO_8_TABLE;
-    decltype(REPLICATE_7_BIT_TO_8_TABLE) replicate_7_to_8 = REPLICATE_7_BIT_TO_8_TABLE;
-    decltype(REPLICATE_8_BIT_TO_8_TABLE) replicate_8_to_8 = REPLICATE_8_BIT_TO_8_TABLE;
-    decltype(REPLICATE_BYTE_TO_16_TABLE) replicate_byte_to_16 = REPLICATE_BYTE_TO_16_TABLE;
-} constexpr ASTC_BUFFER_DATA;
 
 } // Anonymous namespace
 
@@ -517,9 +494,6 @@ void ASTCDecoderPass::Assemble(Image& image, const StagingBufferRef& map,
                                           sizeof(AstcBufferData::replicate_7_to_8));
         update_descriptor_queue.AddBuffer(*data_buffer, offsetof(AstcBufferData, replicate_8_to_8),
                                           sizeof(AstcBufferData::replicate_8_to_8));
-        update_descriptor_queue.AddBuffer(*data_buffer,
-                                          offsetof(AstcBufferData, replicate_byte_to_16),
-                                          sizeof(AstcBufferData::replicate_byte_to_16));
         update_descriptor_queue.AddBuffer(*data_buffer, sizeof(AstcBufferData),
                                           sizeof(SWIZZLE_TABLE));
         update_descriptor_queue.AddImage(image.StorageImageView(swizzle.level));
@@ -569,6 +543,7 @@ void ASTCDecoderPass::Assemble(Image& image, const StagingBufferRef& map,
         cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
                                VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, image_barrier);
     });
+    scheduler.Finish();
 }
 
 } // namespace Vulkan

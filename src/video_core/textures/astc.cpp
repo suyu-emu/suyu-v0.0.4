@@ -551,6 +551,8 @@ static void FillError(std::span<u32> outBuf, u32 blockWidth, u32 blockHeight) {
         }
     }
 }
+
+static constexpr auto REPLICATE_BYTE_TO_16_TABLE = MakeReplicateTable<u32, 8, 16>();
 static constexpr u32 ReplicateByteTo16(std::size_t value) {
     return REPLICATE_BYTE_TO_16_TABLE[value];
 }
