@@ -110,8 +110,8 @@ template <typename Path1, typename Path2>
  *
  * Failures occur when:
  * - Input path is not valid
- * - Filesystem object at path is not a file
- * - The file is not opened
+ * - Filesystem object at path exists and is not a regular file
+ * - The file is not open
  *
  * @param path Filesystem path
  * @param mode File access mode
