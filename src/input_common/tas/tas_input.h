@@ -14,14 +14,14 @@
 
 namespace TasInput {
 
-constexpr int PLAYER_NUMBER = 8;
+constexpr size_t PLAYER_NUMBER = 8;
 
 using TasAnalog = std::pair<float, float>;
 
 enum class TasState {
-    RUNNING,
-    RECORDING,
-    STOPPED,
+    Running,
+    Recording,
+    Stopped,
 };
 
 enum class TasButton : u32 {
@@ -114,8 +114,19 @@ public:
     void LoadTasFiles();
     void RecordInput(u32 buttons, const std::array<std::pair<float, float>, 2>& axes);
     void UpdateThread();
-    std::tuple<TasState, size_t, size_t> GetStatus();
 
+    void StartStop();
+    void Reset();
+    void Record();
+
+    /**
+     * Returns the current status values of TAS playback/recording
+     * @return Tuple of
+     * TasState indicating the current state out of Running, Recording or Stopped ;
+     * Current playback progress or amount of frames (so far) for Recording ;
+     * Total length of script file currently loaded or amount of frames (so far) for Recording
+     */
+    std::tuple<TasState, size_t, size_t> GetStatus() const;
     InputCommon::ButtonMapping GetButtonMappingForDevice(const Common::ParamPackage& params) const;
     InputCommon::AnalogMapping GetAnalogMappingForDevice(const Common::ParamPackage& params) const;
     [[nodiscard]] const TasData& GetTasState(std::size_t pad) const;
@@ -137,9 +148,12 @@ private:
     std::array<TasData, PLAYER_NUMBER> tas_data;
     bool update_thread_running{true};
     bool refresh_tas_fle{false};
+    bool is_recording{false};
+    bool is_running{false};
+    bool needs_reset{false};
     std::array<std::vector<TASCommand>, PLAYER_NUMBER> commands{};
     std::vector<TASCommand> record_commands{};
-    std::size_t current_command{0};
+    size_t current_command{0};
     TASCommand last_input{}; // only used for recording
 };
 } // namespace TasInput

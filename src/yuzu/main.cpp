@@ -19,6 +19,7 @@
 #include "common/nvidia_flags.h"
 #include "configuration/configure_input.h"
 #include "configuration/configure_per_game.h"
+#include "configuration/configure_tas.h"
 #include "configuration/configure_vibration.h"
 #include "core/file_sys/vfs.h"
 #include "core/file_sys/vfs_real.h"
@@ -750,6 +751,11 @@ void GMainWindow::InitializeWidgets() {
         statusBar()->addPermanentWidget(label);
     }
 
+    tas_label = new QLabel();
+    tas_label->setObjectName(QStringLiteral("TASlabel"));
+    tas_label->setFocusPolicy(Qt::NoFocus);
+    statusBar()->insertPermanentWidget(0, tas_label);
+
     // Setup Dock button
     dock_status_button = new QPushButton();
     dock_status_button->setObjectName(QStringLiteral("TogglableStatusBarButton"));
@@ -825,12 +831,6 @@ void GMainWindow::InitializeWidgets() {
         Core::System::GetInstance().ApplySettings();
     });
     statusBar()->insertPermanentWidget(0, renderer_status_button);
-
-    tas_label = new QLabel();
-    tas_label->setObjectName(QStringLiteral("TASlabel"));
-    tas_label->setText(tr("TAS not running"));
-    tas_label->setFocusPolicy(Qt::NoFocus);
-    statusBar()->insertPermanentWidget(0, tas_label);
 
     statusBar()->setVisible(true);
     setStyleSheet(QStringLiteral("QStatusBar::item{border: none;}"));
@@ -1024,18 +1024,11 @@ void GMainWindow::InitializeHotkeys() {
                 }
             });
     connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("TAS Start/Stop"), this),
-            &QShortcut::activated, this, [&] {
-                Settings::values.tas_enable = !Settings::values.tas_enable;
-                LOG_INFO(Frontend, "Tas enabled {}", Settings::values.tas_enable);
-            });
-
+            &QShortcut::activated, this, [&] { input_subsystem->GetTas()->StartStop(); });
     connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("TAS Reset"), this),
-            &QShortcut::activated, this, [&] { Settings::values.tas_reset = true; });
+            &QShortcut::activated, this, [&] { input_subsystem->GetTas()->Reset(); });
     connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("TAS Record"), this),
-            &QShortcut::activated, this, [&] {
-                Settings::values.tas_record = !Settings::values.tas_record;
-                LOG_INFO(Frontend, "Tas recording {}", Settings::values.tas_record);
-            });
+            &QShortcut::activated, this, [&] { input_subsystem->GetTas()->Record(); });
 }
 
 void GMainWindow::SetDefaultUIGeometry() {
@@ -1154,6 +1147,7 @@ void GMainWindow::ConnectMenuEvents() {
     connect(ui.action_Open_FAQ, &QAction::triggered, this, &GMainWindow::OnOpenFAQ);
     connect(ui.action_Restart, &QAction::triggered, this, [this] { BootGame(QString(game_path)); });
     connect(ui.action_Configure, &QAction::triggered, this, &GMainWindow::OnConfigure);
+    connect(ui.action_Configure_Tas, &QAction::triggered, this, &GMainWindow::OnConfigureTas);
     connect(ui.action_Configure_Current_Game, &QAction::triggered, this,
             &GMainWindow::OnConfigurePerGame);
 
@@ -2720,6 +2714,19 @@ void GMainWindow::OnConfigure() {
     UpdateStatusButtons();
 }
 
+void GMainWindow::OnConfigureTas() {
+    const auto& system = Core::System::GetInstance();
+    ConfigureTasDialog dialog(this);
+    const auto result = dialog.exec();
+
+    if (result != QDialog::Accepted && !UISettings::values.configuration_applied) {
+        Settings::RestoreGlobalState(system.IsPoweredOn());
+        return;
+    } else if (result == QDialog::Accepted) {
+        dialog.ApplyConfiguration();
+    }
+}
+
 void GMainWindow::OnConfigurePerGame() {
     const u64 title_id = Core::System::GetInstance().CurrentProcess()->GetTitleID();
     OpenPerGameConfiguration(title_id, game_path.toStdString());
@@ -2898,14 +2905,14 @@ void GMainWindow::UpdateWindowTitle(std::string_view title_name, std::string_vie
 
 static std::string GetTasStateDescription(TasInput::TasState state) {
     switch (state) {
-        case TasInput::TasState::RUNNING:
-            return "Running";
-        case TasInput::TasState::RECORDING:
-            return "Recording";
-        case TasInput::TasState::STOPPED:
-            return "Stopped";
-        default:
-            return "INVALID STATE";
+    case TasInput::TasState::Running:
+        return "Running";
+    case TasInput::TasState::Recording:
+        return "Recording";
+    case TasInput::TasState::Stopped:
+        return "Stopped";
+    default:
+        return "INVALID STATE";
     }
 }
 
@@ -2915,8 +2922,16 @@ void GMainWindow::UpdateStatusBar() {
         return;
     }
 
-    auto [tas_status, current_tas_frame, total_tas_frames] = input_subsystem->GetTas()->GetStatus();
-    tas_label->setText(tr("%1 TAS %2/%3").arg(tr(GetTasStateDescription(tas_status).c_str())).arg(current_tas_frame).arg(total_tas_frames));
+    if (Settings::values.tas_enable) {
+        auto [tas_status, current_tas_frame, total_tas_frames] =
+            input_subsystem->GetTas()->GetStatus();
+        tas_label->setText(tr("%1 TAS %2/%3")
+                               .arg(tr(GetTasStateDescription(tas_status).c_str()))
+                               .arg(current_tas_frame)
+                               .arg(total_tas_frames));
+    } else {
+        tas_label->clear();
+    }
 
     auto& system = Core::System::GetInstance();
     auto results = system.GetAndResetPerfStats();

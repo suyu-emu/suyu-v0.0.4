@@ -232,7 +232,7 @@ void PlayerControlPreview::UpdateInput() {
         axis_values[Settings::NativeAnalog::RStick].value.x(),
         axis_values[Settings::NativeAnalog::RStick].value.y()};
     input.button_values = button_values;
-    if (controller_callback.input != NULL) {
+    if (controller_callback.input != nullptr) {
         controller_callback.input(std::move(input));
     }
 
@@ -242,7 +242,7 @@ void PlayerControlPreview::UpdateInput() {
 }
 
 void PlayerControlPreview::SetCallBack(ControllerCallback callback_) {
-    controller_callback = callback_;
+    controller_callback = std::move(callback_);
 }
 
 void PlayerControlPreview::paintEvent(QPaintEvent* event) {
