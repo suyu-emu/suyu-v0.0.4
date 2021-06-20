@@ -29,10 +29,10 @@ enum class ImageFlagBits : u32 {
     Sparse = 1 << 9,      ///< Image has non continous submemory.
 
     // Garbage Collection Flags
-    BadOverlap = 1 << 10,///< This image overlaps other but doesn't fit, has higher
-                         ///< garbage collection priority
-    Alias = 1 << 11,     ///< This image has aliases and has priority on garbage
-                         ///< collection
+    BadOverlap = 1 << 10, ///< This image overlaps other but doesn't fit, has higher
+                          ///< garbage collection priority
+    Alias = 1 << 11,      ///< This image has aliases and has priority on garbage
+                          ///< collection
 };
 DECLARE_ENUM_FLAG_OPERATORS(ImageFlagBits)
 

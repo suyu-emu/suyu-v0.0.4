@@ -495,7 +495,7 @@ void TextureCache<P>::RunGarbageCollector() {
                 }
             }
             if (True(image->flags & ImageFlagBits::Tracked)) {
-                UntrackImage(*image);
+                UntrackImage(*image, image_id);
             }
             UnregisterImage(image_id);
             DeleteImage(image_id);
@@ -1474,16 +1474,16 @@ template <class P>
 template <typename Func>
 void TextureCache<P>::ForEachSparseSegment(ImageBase& image, Func&& func) {
     using FuncReturn = typename std::invoke_result<Func, GPUVAddr, VAddr, size_t>::type;
-    static constexpr bool BOOL_BREAK = std::is_same_v<FuncReturn, bool>;
+    static constexpr bool RETURNS_BOOL = std::is_same_v<FuncReturn, bool>;
     const auto segments = gpu_memory.GetSubmappedRange(image.gpu_addr, image.guest_size_bytes);
     for (auto& segment : segments) {
         const auto gpu_addr = segment.first;
         const auto size = segment.second;
         std::optional<VAddr> cpu_addr = gpu_memory.GpuToCpuAddress(gpu_addr);
         ASSERT(cpu_addr);
-        if constexpr (BOOL_BREAK) {
+        if constexpr (RETURNS_BOOL) {
             if (func(gpu_addr, *cpu_addr, size)) {
-                return true;
+                break;
             }
         } else {
             func(gpu_addr, *cpu_addr, size);
@@ -1599,9 +1599,9 @@ void TextureCache<P>::UnregisterImage(ImageId image_id) {
     ASSERT(it != sparse_views.end());
     auto& sparse_maps = it->second;
     for (auto& map_view_id : sparse_maps) {
-        const auto& map = slot_map_views[map_view_id];
-        const VAddr cpu_addr = map.cpu_addr;
-        const std::size_t size = map.size;
+        const auto& map_range = slot_map_views[map_view_id];
+        const VAddr cpu_addr = map_range.cpu_addr;
+        const std::size_t size = map_range.size;
         ForEachCPUPage(cpu_addr, size, [this, image_id](u64 page) {
             const auto page_it = page_table.find(page);
             if (page_it == page_table.end()) {
