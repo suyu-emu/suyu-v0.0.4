@@ -6,6 +6,7 @@
 
 #include <array>
 #include <memory>
+#include <mutex>
 #include <vector>
 
 #include "audio_core/behavior_info.h"
@@ -45,6 +46,8 @@ public:
 
     [[nodiscard]] ResultCode UpdateAudioRenderer(const std::vector<u8>& input_params,
                                                  std::vector<u8>& output_params);
+    [[nodiscard]] ResultCode Start();
+    [[nodiscard]] ResultCode Stop();
     void QueueMixedBuffer(Buffer::Tag tag);
     void ReleaseAndQueueBuffers();
     [[nodiscard]] u32 GetSampleRate() const;
@@ -68,6 +71,9 @@ private:
     Core::Memory::Memory& memory;
     CommandGenerator command_generator;
     std::size_t elapsed_frame_count{};
+    Core::Timing::CoreTiming& core_timing;
+    std::shared_ptr<Core::Timing::EventType> process_event;
+    std::mutex mutex;
 };
 
 } // namespace AudioCore
