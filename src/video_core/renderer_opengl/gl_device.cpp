@@ -202,13 +202,13 @@ Device::Device() {
         LOG_ERROR(Render_OpenGL, "OpenGL 4.6 is not available");
         throw std::runtime_error{"Insufficient version"};
     }
-    const std::string_view vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+    vendor_name = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
     const std::string_view version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
     const std::vector extensions = GetExtensions();
 
-    const bool is_nvidia = vendor == "NVIDIA Corporation";
-    const bool is_amd = vendor == "ATI Technologies Inc.";
-    const bool is_intel = vendor == "Intel";
+    const bool is_nvidia = vendor_name == "NVIDIA Corporation";
+    const bool is_amd = vendor_name == "ATI Technologies Inc.";
+    const bool is_intel = vendor_name == "Intel";
 
 #ifdef __unix__
     const bool is_linux = true;
@@ -273,6 +273,31 @@ Device::Device() {
     if (Settings::values.use_asynchronous_shaders.GetValue() && !use_asynchronous_shaders) {
         LOG_WARNING(Render_OpenGL, "Asynchronous shader compilation enabled but not supported");
     }
+}
+
+std::string Device::GetVendorName() const {
+    if (vendor_name == "NVIDIA Corporation") {
+        return "NVIDIA";
+    }
+    if (vendor_name == "ATI Technologies Inc.") {
+        return "AMD";
+    }
+    if (vendor_name == "Intel" || vendor_name == "Intel Open Source Technology Center") {
+        return "INTEL";
+    }
+    if (vendor_name == "Mesa Project") {
+        return "MESA";
+    }
+    if (vendor_name == "Mesa/X.org") {
+        return "LLVMPIPE";
+    }
+    if (vendor_name == "AMD") {
+        return "RADEONSI";
+    }
+    if (vendor_name == "nouveau") {
+        return "NOUVEAU";
+    }
+    return vendor_name;
 }
 
 Device::Device(std::nullptr_t) {

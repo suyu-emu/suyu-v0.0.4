@@ -104,6 +104,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "input_common/main.h"
 #include "util/overlay_dialog.h"
 #include "video_core/gpu.h"
+#include "video_core/renderer_base.h"
 #include "video_core/shader_notify.h"
 #include "yuzu/about_dialog.h"
 #include "yuzu/bootmanager.h"
@@ -1418,7 +1419,8 @@ void GMainWindow::BootGame(const QString& filename, std::size_t program_index, S
             std::filesystem::path{filename.toStdU16String()}.filename());
     }
     LOG_INFO(Frontend, "Booting game: {:016X} | {} | {}", title_id, title_name, title_version);
-    UpdateWindowTitle(title_name, title_version);
+    const auto gpu_vendor = system.GPU().Renderer().GetDeviceVendor();
+    UpdateWindowTitle(title_name, title_version, gpu_vendor);
 
     loading_screen->Prepare(system.GetAppLoader());
     loading_screen->show();
@@ -2847,8 +2849,8 @@ void GMainWindow::MigrateConfigFiles() {
     }
 }
 
-void GMainWindow::UpdateWindowTitle(const std::string& title_name,
-                                    const std::string& title_version) {
+void GMainWindow::UpdateWindowTitle(std::string_view title_name, std::string_view title_version,
+                                    std::string_view gpu_vendor) {
     const auto branch_name = std::string(Common::g_scm_branch);
     const auto description = std::string(Common::g_scm_desc);
     const auto build_id = std::string(Common::g_build_id);
@@ -2860,7 +2862,8 @@ void GMainWindow::UpdateWindowTitle(const std::string& title_name,
     if (title_name.empty()) {
         setWindowTitle(QString::fromStdString(window_title));
     } else {
-        const auto run_title = fmt::format("{} | {} | {}", window_title, title_name, title_version);
+        const auto run_title =
+            fmt::format("{} | {} | {} | {}", window_title, title_name, title_version, gpu_vendor);
         setWindowTitle(QString::fromStdString(run_title));
     }
 }
