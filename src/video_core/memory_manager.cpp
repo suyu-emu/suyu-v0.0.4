@@ -80,7 +80,6 @@ void MemoryManager::Unmap(GPUVAddr gpu_addr, std::size_t size) {
         rasterizer->UnmapMemory(*cpu_addr, map.second);
     }
 
-
     UpdateRange(gpu_addr, PageEntry::State::Unmapped, size);
 }
 

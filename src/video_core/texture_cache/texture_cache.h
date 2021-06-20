@@ -156,9 +156,6 @@ public:
     /// Remove images in a region
     void UnmapGPUMemory(GPUVAddr gpu_addr, size_t size);
 
-    /// Used when GPU memory changes layout on sparse textures.
-    // void CheckRemaps();
-
     /// Blit an image with the given parameters
     void BlitImage(const Tegra::Engines::Fermi2D::Surface& dst,
                    const Tegra::Engines::Fermi2D::Surface& src,
@@ -1179,8 +1176,9 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
     const ImageId new_image_id = slot_images.insert(runtime, new_info, gpu_addr, cpu_addr);
     Image& new_image = slot_images[new_image_id];
 
-    new_image.is_sparse =
-        !gpu_memory.IsContinousRange(new_image.gpu_addr, new_image.guest_size_bytes);
+    if (!gpu_memory.IsContinousRange(new_image.gpu_addr, new_image.guest_size_bytes)) {
+        new_image.flags |= ImageFlagBits::Sparse;
+    }
 
     for (const ImageId overlap_id : ignore_textures) {
         Image& overlap = slot_images[overlap_id];
@@ -1519,7 +1517,7 @@ void TextureCache<P>::RegisterImage(ImageId image_id) {
     total_used_memory += Common::AlignUp(tentative_size, 1024);
     ForEachGPUPage(image.gpu_addr, image.guest_size_bytes,
                    [this, image_id](u64 page) { gpu_page_table[page].push_back(image_id); });
-    if (!image.is_sparse) {
+    if (False(image.flags & ImageFlagBits::Sparse)) {
         auto map_id =
             slot_map_views.insert(image.gpu_addr, image.cpu_addr, image.guest_size_bytes, image_id);
         ForEachCPUPage(image.cpu_addr, image.guest_size_bytes,
@@ -1574,7 +1572,7 @@ void TextureCache<P>::UnregisterImage(ImageId image_id) {
         };
     ForEachGPUPage(image.gpu_addr, image.guest_size_bytes,
                    [this, &clear_page_table](u64 page) { clear_page_table(page, gpu_page_table); });
-    if (!image.is_sparse) {
+    if (False(image.flags & ImageFlagBits::Sparse)) {
         const auto map_id = image.map_view_id;
         ForEachCPUPage(image.cpu_addr, image.guest_size_bytes, [this, map_id](u64 page) {
             const auto page_it = page_table.find(page);
@@ -1633,7 +1631,7 @@ template <class P>
 void TextureCache<P>::TrackImage(ImageBase& image, ImageId image_id) {
     ASSERT(False(image.flags & ImageFlagBits::Tracked));
     image.flags |= ImageFlagBits::Tracked;
-    if (!image.is_sparse) {
+    if (False(image.flags & ImageFlagBits::Sparse)) {
         rasterizer.UpdatePagesCachedCount(image.cpu_addr, image.guest_size_bytes, 1);
         return;
     }
@@ -1659,7 +1657,7 @@ template <class P>
 void TextureCache<P>::UntrackImage(ImageBase& image, ImageId image_id) {
     ASSERT(True(image.flags & ImageFlagBits::Tracked));
     image.flags &= ~ImageFlagBits::Tracked;
-    if (!image.is_sparse) {
+    if (False(image.flags & ImageFlagBits::Sparse)) {
         rasterizer.UpdatePagesCachedCount(image.cpu_addr, image.guest_size_bytes, -1);
         return;
     }
