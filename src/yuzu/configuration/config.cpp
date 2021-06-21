@@ -221,7 +221,7 @@ const std::array<int, Settings::NativeKeyboard::NumKeyboardMods> Config::default
 // This must be in alphabetical order according to action name as it must have the same order as
 // UISetting::values.shortcuts, which is alphabetically ordered.
 // clang-format off
-const std::array<UISettings::Shortcut, 17> Config::default_hotkeys{{
+const std::array<UISettings::Shortcut, 18> Config::default_hotkeys{{
     {QStringLiteral("Capture Screenshot"),       QStringLiteral("Main Window"), {QStringLiteral("Ctrl+P"), Qt::WidgetWithChildrenShortcut}},
     {QStringLiteral("Change Docked Mode"),       QStringLiteral("Main Window"), {QStringLiteral("F10"), Qt::ApplicationShortcut}},
     {QStringLiteral("Continue/Pause Emulation"), QStringLiteral("Main Window"), {QStringLiteral("F4"), Qt::WindowShortcut}},
@@ -236,6 +236,7 @@ const std::array<UISettings::Shortcut, 17> Config::default_hotkeys{{
     {QStringLiteral("Restart Emulation"),        QStringLiteral("Main Window"), {QStringLiteral("F6"), Qt::WindowShortcut}},
     {QStringLiteral("Stop Emulation"),           QStringLiteral("Main Window"), {QStringLiteral("F5"), Qt::WindowShortcut}},
     {QStringLiteral("Toggle Filter Bar"),        QStringLiteral("Main Window"), {QStringLiteral("Ctrl+F"), Qt::WindowShortcut}},
+    {QStringLiteral("Toggle Framerate Limit"),   QStringLiteral("Main Window"), {QStringLiteral("Ctrl+U"), Qt::ApplicationShortcut}},
     {QStringLiteral("Toggle Mouse Panning"),     QStringLiteral("Main Window"), {QStringLiteral("Ctrl+F9"), Qt::ApplicationShortcut}},
     {QStringLiteral("Toggle Speed Limit"),       QStringLiteral("Main Window"), {QStringLiteral("Ctrl+Z"), Qt::ApplicationShortcut}},
     {QStringLiteral("Toggle Status Bar"),        QStringLiteral("Main Window"), {QStringLiteral("Ctrl+S"), Qt::WindowShortcut}},
@@ -811,6 +812,8 @@ void Config::ReadRendererValues() {
                       true);
     ReadSettingGlobal(Settings::values.accelerate_astc, QStringLiteral("accelerate_astc"), true);
     ReadSettingGlobal(Settings::values.use_vsync, QStringLiteral("use_vsync"), true);
+    ReadSettingGlobal(Settings::values.disable_fps_limit, QStringLiteral("disable_fps_limit"),
+                      false);
     ReadSettingGlobal(Settings::values.use_assembly_shaders, QStringLiteral("use_assembly_shaders"),
                       false);
     ReadSettingGlobal(Settings::values.use_asynchronous_shaders,
@@ -1395,6 +1398,8 @@ void Config::SaveRendererValues() {
                        true);
     WriteSettingGlobal(QStringLiteral("accelerate_astc"), Settings::values.accelerate_astc, true);
     WriteSettingGlobal(QStringLiteral("use_vsync"), Settings::values.use_vsync, true);
+    WriteSettingGlobal(QStringLiteral("disable_fps_limit"), Settings::values.disable_fps_limit,
+                       false);
     WriteSettingGlobal(QStringLiteral("use_assembly_shaders"),
                        Settings::values.use_assembly_shaders, false);
     WriteSettingGlobal(QStringLiteral("use_asynchronous_shaders"),
