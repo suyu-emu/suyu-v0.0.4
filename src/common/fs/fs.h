@@ -48,7 +48,7 @@ template <typename Path>
  *
  * Failures occur when:
  * - Input path is not valid
- * - Filesystem object at path is not a file
+ * - Filesystem object at path is not a regular file
  * - Filesystem at path is read only
  *
  * @param path Filesystem path
@@ -74,7 +74,7 @@ bool RemoveFile(const Path& path) {
  * Failures occur when:
  * - One or both input path(s) is not valid
  * - Filesystem object at old_path does not exist
- * - Filesystem object at old_path is not a file
+ * - Filesystem object at old_path is not a regular file
  * - Filesystem object at new_path exists
  * - Filesystem at either path is read only
  *
@@ -435,11 +435,13 @@ template <typename Path>
 #endif
 
 /**
- * Returns whether a filesystem object at path is a file.
+ * Returns whether a filesystem object at path is a regular file.
+ * A regular file is a file that stores text or binary data.
+ * It is not a directory, symlink, FIFO, socket, block device, or character device.
  *
  * @param path Filesystem path
  *
- * @returns True if a filesystem object at path is a file, false otherwise.
+ * @returns True if a filesystem object at path is a regular file, false otherwise.
  */
 [[nodiscard]] bool IsFile(const std::filesystem::path& path);
 
