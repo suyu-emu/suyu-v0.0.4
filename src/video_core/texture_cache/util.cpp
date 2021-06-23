@@ -581,6 +581,8 @@ void SwizzleBlockLinearImage(Tegra::MemoryManager& gpu_memory, GPUVAddr gpu_addr
 
     for (s32 layer = 0; layer < info.resources.layers; ++layer) {
         const std::span<const u8> src = input.subspan(host_offset);
+        gpu_memory.ReadBlockUnsafe(gpu_addr + guest_offset, dst.data(), dst.size_bytes());
+
         SwizzleTexture(dst, src, bytes_per_block, num_tiles.width, num_tiles.height,
                        num_tiles.depth, block.height, block.depth);
 

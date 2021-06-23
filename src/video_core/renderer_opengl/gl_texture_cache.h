@@ -143,6 +143,14 @@ public:
     explicit Image(TextureCacheRuntime&, const VideoCommon::ImageInfo& info, GPUVAddr gpu_addr,
                    VAddr cpu_addr);
 
+    ~Image();
+
+    Image(const Image&) = delete;
+    Image& operator=(const Image&) = delete;
+
+    Image(Image&&) = default;
+    Image& operator=(Image&&) = default;
+
     void UploadMemory(const ImageBufferMap& map,
                       std::span<const VideoCommon::BufferImageCopy> copies);
 
@@ -235,6 +243,7 @@ struct TextureCacheParams {
     static constexpr bool ENABLE_VALIDATION = true;
     static constexpr bool FRAMEBUFFER_BLITS = true;
     static constexpr bool HAS_EMULATED_COPIES = true;
+    static constexpr bool HAS_DEVICE_MEMORY_INFO = false;
 
     using Runtime = OpenGL::TextureCacheRuntime;
     using Image = OpenGL::Image;

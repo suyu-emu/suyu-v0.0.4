@@ -154,6 +154,7 @@ struct Values {
     Setting<bool> use_assembly_shaders;
     Setting<bool> use_asynchronous_shaders;
     Setting<bool> use_fast_gpu_time;
+    Setting<bool> use_caches_gc;
 
     Setting<float> bg_red;
     Setting<float> bg_green;
