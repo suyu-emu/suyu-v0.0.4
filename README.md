@@ -60,7 +60,7 @@ You can download the latest releases automatically via the installer on our [dow
 
 ## Support
 
-If you find enjoy the project and want to support us financially, check out our Patreon!
+If you enjoy the project and want to support us financially, check out our Patreon!
 
 <a href="https://www.patreon.com/yuzuteam">
     <img src="https://c5.patreon.com/external/logo/become_a_patron_button@2x.png" width="160">
