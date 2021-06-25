@@ -99,7 +99,7 @@ class BufferCache {
     };
 
 public:
-    static constexpr u32 DEFAULT_SKIP_CACHE_SIZE = 4_KiB;
+    static constexpr u32 DEFAULT_SKIP_CACHE_SIZE = static_cast<u32>(4_KiB);
 
     explicit BufferCache(VideoCore::RasterizerInterface& rasterizer_,
                          Tegra::Engines::Maxwell3D& maxwell3d_,
