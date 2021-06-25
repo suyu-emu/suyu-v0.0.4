@@ -416,8 +416,9 @@ void BufferCache<P>::CachedWriteMemory(VAddr cpu_addr, u64 size) {
 
 template <class P>
 void BufferCache<P>::DownloadMemory(VAddr cpu_addr, u64 size) {
-    ForEachBufferInRange(cpu_addr, size,
-                         [&](BufferId, Buffer& buffer) { DownloadBufferMemory(buffer); });
+    ForEachBufferInRange(cpu_addr, size, [&](BufferId, Buffer& buffer) {
+        DownloadBufferMemory(buffer, cpu_addr, size);
+    });
 }
 
 template <class P>
