@@ -109,8 +109,6 @@ public:
 
     void TickFrame();
 
-    void RunGarbageCollector();
-
     void WriteMemory(VAddr cpu_addr, u64 size);
 
     void CachedWriteMemory(VAddr cpu_addr, u64 size);
@@ -196,6 +194,8 @@ private:
         return (cpu_addr & ~Core::Memory::PAGE_MASK) ==
                ((cpu_addr + size) & ~Core::Memory::PAGE_MASK);
     }
+
+    void RunGarbageCollector();
 
     void BindHostIndexBuffer();
 
