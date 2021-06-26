@@ -37,8 +37,9 @@ enum class CPUAccuracy : u32 {
 template <typename Type>
 class Setting final {
 public:
-    Setting() = default;
-    explicit Setting(Type val) : global{val} {}
+    explicit Setting(Type val) : global{val} {
+        default_value = val;
+    }
     ~Setting() = default;
     void SetGlobal(bool to_global) {
         use_global = to_global;
@@ -59,11 +60,15 @@ public:
             local = value;
         }
     }
+    Type GetDefault() const {
+        return default_value;
+    }
 
 private:
     bool use_global = true;
     Type global{};
     Type local{};
+    Type default_value{};
 };
 
 /**
@@ -108,14 +113,14 @@ struct Values {
     std::string audio_device_id;
     std::string sink_id;
     bool audio_muted;
-    Setting<bool> enable_audio_stretching;
-    Setting<float> volume;
+    Setting<bool> enable_audio_stretching{true};
+    Setting<float> volume{1.0f};
 
     // Core
-    Setting<bool> use_multi_core;
+    Setting<bool> use_multi_core{true};
 
     // Cpu
-    Setting<CPUAccuracy> cpu_accuracy;
+    Setting<CPUAccuracy> cpu_accuracy{CPUAccuracy::Accurate};
 
     bool cpuopt_page_tables;
     bool cpuopt_block_linking;
@@ -127,61 +132,69 @@ struct Values {
     bool cpuopt_reduce_misalign_checks;
     bool cpuopt_fastmem;
 
-    Setting<bool> cpuopt_unsafe_unfuse_fma;
-    Setting<bool> cpuopt_unsafe_reduce_fp_error;
-    Setting<bool> cpuopt_unsafe_ignore_standard_fpcr;
-    Setting<bool> cpuopt_unsafe_inaccurate_nan;
-    Setting<bool> cpuopt_unsafe_fastmem_check;
+    Setting<bool> cpuopt_unsafe_unfuse_fma{true};
+    Setting<bool> cpuopt_unsafe_reduce_fp_error{true};
+    Setting<bool> cpuopt_unsafe_ignore_standard_fpcr{true};
+    Setting<bool> cpuopt_unsafe_inaccurate_nan{true};
+    Setting<bool> cpuopt_unsafe_fastmem_check{true};
 
     // Renderer
-    Setting<RendererBackend> renderer_backend;
+    Setting<RendererBackend> renderer_backend{RendererBackend::OpenGL};
     bool renderer_debug;
-    Setting<int> vulkan_device;
+    Setting<int> vulkan_device{0};
 
-    Setting<u16> resolution_factor{1};
-    Setting<int> fullscreen_mode;
-    Setting<int> aspect_ratio;
-    Setting<int> max_anisotropy;
-    Setting<bool> use_frame_limit;
-    Setting<u16> frame_limit;
-    Setting<bool> use_disk_shader_cache;
-    Setting<GPUAccuracy> gpu_accuracy;
-    Setting<bool> use_asynchronous_gpu_emulation;
-    Setting<bool> use_nvdec_emulation;
-    Setting<bool> accelerate_astc;
-    Setting<bool> use_vsync;
-    Setting<bool> disable_fps_limit;
-    Setting<bool> use_assembly_shaders;
-    Setting<bool> use_asynchronous_shaders;
-    Setting<bool> use_fast_gpu_time;
-    Setting<bool> use_caches_gc;
+    Setting<u16> resolution_factor{0};
+    // *nix platforms may have issues with the borderless windowed fullscreen mode.
+    // Default to exclusive fullscreen on these platforms for now.
+    Setting<int> fullscreen_mode{
+#ifdef _WIN32
+        0
+#else
+        1
+#endif
+    };
+    Setting<int> aspect_ratio{0};
+    Setting<int> max_anisotropy{0};
+    Setting<bool> use_frame_limit{true};
+    Setting<u16> frame_limit{100};
+    Setting<bool> use_disk_shader_cache{true};
+    Setting<GPUAccuracy> gpu_accuracy{GPUAccuracy::High};
+    Setting<bool> use_asynchronous_gpu_emulation{true};
+    Setting<bool> use_nvdec_emulation{true};
+    Setting<bool> accelerate_astc{true};
+    Setting<bool> use_vsync{true};
+    Setting<bool> disable_fps_limit{false};
+    Setting<bool> use_assembly_shaders{false};
+    Setting<bool> use_asynchronous_shaders{false};
+    Setting<bool> use_fast_gpu_time{true};
+    Setting<bool> use_caches_gc{false};
 
-    Setting<float> bg_red;
-    Setting<float> bg_green;
-    Setting<float> bg_blue;
+    Setting<float> bg_red{0.0f};
+    Setting<float> bg_green{0.0f};
+    Setting<float> bg_blue{0.0f};
 
     // System
-    Setting<std::optional<u32>> rng_seed;
+    Setting<std::optional<u32>> rng_seed{std::optional<u32>()};
     // Measured in seconds since epoch
     std::optional<std::chrono::seconds> custom_rtc;
     // Set on game boot, reset on stop. Seconds difference between current time and `custom_rtc`
     std::chrono::seconds custom_rtc_differential;
 
     s32 current_user;
-    Setting<s32> language_index;
-    Setting<s32> region_index;
-    Setting<s32> time_zone_index;
-    Setting<s32> sound_index;
+    Setting<s32> language_index{1};
+    Setting<s32> region_index{1};
+    Setting<s32> time_zone_index{0};
+    Setting<s32> sound_index{1};
 
     // Controls
     InputSetting<std::array<PlayerInput, 10>> players;
 
-    Setting<bool> use_docked_mode;
+    Setting<bool> use_docked_mode{true};
 
-    Setting<bool> vibration_enabled;
-    Setting<bool> enable_accurate_vibrations;
+    Setting<bool> vibration_enabled{true};
+    Setting<bool> enable_accurate_vibrations{false};
 
-    Setting<bool> motion_enabled;
+    Setting<bool> motion_enabled{true};
     std::string motion_device;
     std::string udp_input_servers;
 
