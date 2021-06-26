@@ -104,13 +104,13 @@ private:
 
     QVariant ReadSetting(const QString& name) const;
     QVariant ReadSetting(const QString& name, const QVariant& default_value) const;
+    QVariant ReadSetting(const QString& name, Settings::CPUAccuracy default_value) const;
+    QVariant ReadSetting(const QString& name, Settings::GPUAccuracy default_value) const;
+    QVariant ReadSetting(const QString& name, Settings::RendererBackend default_value) const;
     // Templated ReadSettingGlobal functions will also look for the use_global setting and set
     // both the value and the global state properly
     template <typename Type>
     void ReadSettingGlobal(Settings::Setting<Type>& setting, const QString& name);
-    template <typename Type>
-    void ReadSettingGlobal(Settings::Setting<Type>& setting, const QString& name,
-                           const QVariant& default_value);
     template <typename Type>
     void ReadSettingGlobal(Type& setting, const QString& name, const QVariant& default_value) const;
     // Templated WriteSettingGlobal functions will also write the global state if needed and will

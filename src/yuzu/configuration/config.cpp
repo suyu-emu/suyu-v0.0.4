@@ -491,8 +491,8 @@ void Config::ReadAudioValues() {
                 .toStdString();
     }
     ReadSettingGlobal(Settings::values.enable_audio_stretching,
-                      QStringLiteral("enable_audio_stretching"), true);
-    ReadSettingGlobal(Settings::values.volume, QStringLiteral("volume"), 1);
+                      QStringLiteral("enable_audio_stretching"));
+    ReadSettingGlobal(Settings::values.volume, QStringLiteral("volume"));
 
     qt_config->endGroup();
 }
@@ -515,7 +515,7 @@ void Config::ReadControlValues() {
     Settings::values.mouse_panning_sensitivity =
         ReadSetting(QStringLiteral("mouse_panning_sensitivity"), 1).toFloat();
 
-    ReadSettingGlobal(Settings::values.use_docked_mode, QStringLiteral("use_docked_mode"), true);
+    ReadSettingGlobal(Settings::values.use_docked_mode, QStringLiteral("use_docked_mode"));
 
     // Disable docked mode if handheld is selected
     const auto controller_type = Settings::values.players.GetValue()[0].controller_type;
@@ -523,11 +523,10 @@ void Config::ReadControlValues() {
         Settings::values.use_docked_mode.SetValue(false);
     }
 
-    ReadSettingGlobal(Settings::values.vibration_enabled, QStringLiteral("vibration_enabled"),
-                      true);
+    ReadSettingGlobal(Settings::values.vibration_enabled, QStringLiteral("vibration_enabled"));
     ReadSettingGlobal(Settings::values.enable_accurate_vibrations,
-                      QStringLiteral("enable_accurate_vibrations"), false);
-    ReadSettingGlobal(Settings::values.motion_enabled, QStringLiteral("motion_enabled"), true);
+                      QStringLiteral("enable_accurate_vibrations"));
+    ReadSettingGlobal(Settings::values.motion_enabled, QStringLiteral("motion_enabled"));
 
     qt_config->endGroup();
 }
@@ -591,7 +590,7 @@ void Config::ReadMotionTouchValues() {
 void Config::ReadCoreValues() {
     qt_config->beginGroup(QStringLiteral("Core"));
 
-    ReadSettingGlobal(Settings::values.use_multi_core, QStringLiteral("use_multi_core"), true);
+    ReadSettingGlobal(Settings::values.use_multi_core, QStringLiteral("use_multi_core"));
 
     qt_config->endGroup();
 }
@@ -751,18 +750,18 @@ void Config::ReadPathValues() {
 void Config::ReadCpuValues() {
     qt_config->beginGroup(QStringLiteral("Cpu"));
 
-    ReadSettingGlobal(Settings::values.cpu_accuracy, QStringLiteral("cpu_accuracy"), 0);
+    ReadSettingGlobal(Settings::values.cpu_accuracy, QStringLiteral("cpu_accuracy"));
 
     ReadSettingGlobal(Settings::values.cpuopt_unsafe_unfuse_fma,
-                      QStringLiteral("cpuopt_unsafe_unfuse_fma"), true);
+                      QStringLiteral("cpuopt_unsafe_unfuse_fma"));
     ReadSettingGlobal(Settings::values.cpuopt_unsafe_reduce_fp_error,
-                      QStringLiteral("cpuopt_unsafe_reduce_fp_error"), true);
+                      QStringLiteral("cpuopt_unsafe_reduce_fp_error"));
     ReadSettingGlobal(Settings::values.cpuopt_unsafe_ignore_standard_fpcr,
-                      QStringLiteral("cpuopt_unsafe_ignore_standard_fpcr"), true);
+                      QStringLiteral("cpuopt_unsafe_ignore_standard_fpcr"));
     ReadSettingGlobal(Settings::values.cpuopt_unsafe_inaccurate_nan,
-                      QStringLiteral("cpuopt_unsafe_inaccurate_nan"), true);
+                      QStringLiteral("cpuopt_unsafe_inaccurate_nan"));
     ReadSettingGlobal(Settings::values.cpuopt_unsafe_fastmem_check,
-                      QStringLiteral("cpuopt_unsafe_fastmem_check"), true);
+                      QStringLiteral("cpuopt_unsafe_fastmem_check"));
 
     if (global) {
         Settings::values.cpuopt_page_tables =
@@ -791,41 +790,32 @@ void Config::ReadCpuValues() {
 void Config::ReadRendererValues() {
     qt_config->beginGroup(QStringLiteral("Renderer"));
 
-    ReadSettingGlobal(Settings::values.renderer_backend, QStringLiteral("backend"), 0);
+    ReadSettingGlobal(Settings::values.renderer_backend, QStringLiteral("backend"));
     ReadSettingGlobal(Settings::values.renderer_debug, QStringLiteral("debug"), false);
-    ReadSettingGlobal(Settings::values.vulkan_device, QStringLiteral("vulkan_device"), 0);
-#ifdef _WIN32
-    ReadSettingGlobal(Settings::values.fullscreen_mode, QStringLiteral("fullscreen_mode"), 0);
-#else
-    // *nix platforms may have issues with the borderless windowed fullscreen mode.
-    // Default to exclusive fullscreen on these platforms for now.
-    ReadSettingGlobal(Settings::values.fullscreen_mode, QStringLiteral("fullscreen_mode"), 1);
-#endif
-    ReadSettingGlobal(Settings::values.aspect_ratio, QStringLiteral("aspect_ratio"), 0);
-    ReadSettingGlobal(Settings::values.max_anisotropy, QStringLiteral("max_anisotropy"), 0);
-    ReadSettingGlobal(Settings::values.use_frame_limit, QStringLiteral("use_frame_limit"), true);
-    ReadSettingGlobal(Settings::values.frame_limit, QStringLiteral("frame_limit"), 100);
+    ReadSettingGlobal(Settings::values.vulkan_device, QStringLiteral("vulkan_device"));
+    ReadSettingGlobal(Settings::values.fullscreen_mode, QStringLiteral("fullscreen_mode"));
+    ReadSettingGlobal(Settings::values.aspect_ratio, QStringLiteral("aspect_ratio"));
+    ReadSettingGlobal(Settings::values.max_anisotropy, QStringLiteral("max_anisotropy"));
+    ReadSettingGlobal(Settings::values.use_frame_limit, QStringLiteral("use_frame_limit"));
+    ReadSettingGlobal(Settings::values.frame_limit, QStringLiteral("frame_limit"));
     ReadSettingGlobal(Settings::values.use_disk_shader_cache,
-                      QStringLiteral("use_disk_shader_cache"), true);
-    ReadSettingGlobal(Settings::values.gpu_accuracy, QStringLiteral("gpu_accuracy"), 1);
+                      QStringLiteral("use_disk_shader_cache"));
+    ReadSettingGlobal(Settings::values.gpu_accuracy, QStringLiteral("gpu_accuracy"));
     ReadSettingGlobal(Settings::values.use_asynchronous_gpu_emulation,
-                      QStringLiteral("use_asynchronous_gpu_emulation"), true);
-    ReadSettingGlobal(Settings::values.use_nvdec_emulation, QStringLiteral("use_nvdec_emulation"),
-                      true);
-    ReadSettingGlobal(Settings::values.accelerate_astc, QStringLiteral("accelerate_astc"), true);
-    ReadSettingGlobal(Settings::values.use_vsync, QStringLiteral("use_vsync"), true);
-    ReadSettingGlobal(Settings::values.disable_fps_limit, QStringLiteral("disable_fps_limit"),
-                      false);
-    ReadSettingGlobal(Settings::values.use_assembly_shaders, QStringLiteral("use_assembly_shaders"),
-                      false);
+                      QStringLiteral("use_asynchronous_gpu_emulation"));
+    ReadSettingGlobal(Settings::values.use_nvdec_emulation, QStringLiteral("use_nvdec_emulation"));
+    ReadSettingGlobal(Settings::values.accelerate_astc, QStringLiteral("accelerate_astc"));
+    ReadSettingGlobal(Settings::values.use_vsync, QStringLiteral("use_vsync"));
+    ReadSettingGlobal(Settings::values.disable_fps_limit, QStringLiteral("disable_fps_limit"));
+    ReadSettingGlobal(Settings::values.use_assembly_shaders,
+                      QStringLiteral("use_assembly_shaders"));
     ReadSettingGlobal(Settings::values.use_asynchronous_shaders,
-                      QStringLiteral("use_asynchronous_shaders"), false);
-    ReadSettingGlobal(Settings::values.use_fast_gpu_time, QStringLiteral("use_fast_gpu_time"),
-                      true);
-    ReadSettingGlobal(Settings::values.use_caches_gc, QStringLiteral("use_caches_gc"), false);
-    ReadSettingGlobal(Settings::values.bg_red, QStringLiteral("bg_red"), 0.0);
-    ReadSettingGlobal(Settings::values.bg_green, QStringLiteral("bg_green"), 0.0);
-    ReadSettingGlobal(Settings::values.bg_blue, QStringLiteral("bg_blue"), 0.0);
+                      QStringLiteral("use_asynchronous_shaders"));
+    ReadSettingGlobal(Settings::values.use_fast_gpu_time, QStringLiteral("use_fast_gpu_time"));
+    ReadSettingGlobal(Settings::values.use_caches_gc, QStringLiteral("use_caches_gc"));
+    ReadSettingGlobal(Settings::values.bg_red, QStringLiteral("bg_red"));
+    ReadSettingGlobal(Settings::values.bg_green, QStringLiteral("bg_green"));
+    ReadSettingGlobal(Settings::values.bg_blue, QStringLiteral("bg_blue"));
 
     qt_config->endGroup();
 }
@@ -874,11 +864,11 @@ void Config::ReadSystemValues() {
     Settings::values.current_user =
         std::clamp<int>(Settings::values.current_user, 0, Service::Account::MAX_USERS - 1);
 
-    ReadSettingGlobal(Settings::values.language_index, QStringLiteral("language_index"), 1);
+    ReadSettingGlobal(Settings::values.language_index, QStringLiteral("language_index"));
 
-    ReadSettingGlobal(Settings::values.region_index, QStringLiteral("region_index"), 1);
+    ReadSettingGlobal(Settings::values.region_index, QStringLiteral("region_index"));
 
-    ReadSettingGlobal(Settings::values.time_zone_index, QStringLiteral("time_zone_index"), 0);
+    ReadSettingGlobal(Settings::values.time_zone_index, QStringLiteral("time_zone_index"));
 
     bool rng_seed_enabled;
     ReadSettingGlobal(rng_seed_enabled, QStringLiteral("rng_seed_enabled"), false);
@@ -904,7 +894,7 @@ void Config::ReadSystemValues() {
         }
     }
 
-    ReadSettingGlobal(Settings::values.sound_index, QStringLiteral("sound_index"), 1);
+    ReadSettingGlobal(Settings::values.sound_index, QStringLiteral("sound_index"));
 
     qt_config->endGroup();
 }
@@ -1188,8 +1178,8 @@ void Config::SaveAudioValues() {
                      QStringLiteral("auto"));
     }
     WriteSettingGlobal(QStringLiteral("enable_audio_stretching"),
-                       Settings::values.enable_audio_stretching, true);
-    WriteSettingGlobal(QStringLiteral("volume"), Settings::values.volume, 1.0f);
+                       Settings::values.enable_audio_stretching);
+    WriteSettingGlobal(QStringLiteral("volume"), Settings::values.volume);
 
     qt_config->endGroup();
 }
@@ -1205,12 +1195,11 @@ void Config::SaveControlValues() {
     SaveTouchscreenValues();
     SaveMotionTouchValues();
 
-    WriteSettingGlobal(QStringLiteral("use_docked_mode"), Settings::values.use_docked_mode, true);
-    WriteSettingGlobal(QStringLiteral("vibration_enabled"), Settings::values.vibration_enabled,
-                       true);
+    WriteSettingGlobal(QStringLiteral("use_docked_mode"), Settings::values.use_docked_mode);
+    WriteSettingGlobal(QStringLiteral("vibration_enabled"), Settings::values.vibration_enabled);
     WriteSettingGlobal(QStringLiteral("enable_accurate_vibrations"),
-                       Settings::values.enable_accurate_vibrations, false);
-    WriteSettingGlobal(QStringLiteral("motion_enabled"), Settings::values.motion_enabled, true);
+                       Settings::values.enable_accurate_vibrations);
+    WriteSettingGlobal(QStringLiteral("motion_enabled"), Settings::values.motion_enabled);
     WriteSetting(QStringLiteral("motion_device"),
                  QString::fromStdString(Settings::values.motion_device),
                  QStringLiteral("engine:motion_emu,update_period:100,sensitivity:0.01"));
@@ -1228,7 +1217,7 @@ void Config::SaveControlValues() {
 void Config::SaveCoreValues() {
     qt_config->beginGroup(QStringLiteral("Core"));
 
-    WriteSettingGlobal(QStringLiteral("use_multi_core"), Settings::values.use_multi_core, true);
+    WriteSettingGlobal(QStringLiteral("use_multi_core"), Settings::values.use_multi_core);
 
     qt_config->endGroup();
 }
@@ -1339,18 +1328,18 @@ void Config::SaveCpuValues() {
     WriteSettingGlobal(QStringLiteral("cpu_accuracy"),
                        static_cast<u32>(Settings::values.cpu_accuracy.GetValue(global)),
                        Settings::values.cpu_accuracy.UsingGlobal(),
-                       static_cast<u32>(Settings::CPUAccuracy::Accurate));
+                       static_cast<u32>(Settings::values.cpu_accuracy.GetDefault()));
 
     WriteSettingGlobal(QStringLiteral("cpuopt_unsafe_unfuse_fma"),
-                       Settings::values.cpuopt_unsafe_unfuse_fma, true);
+                       Settings::values.cpuopt_unsafe_unfuse_fma);
     WriteSettingGlobal(QStringLiteral("cpuopt_unsafe_reduce_fp_error"),
-                       Settings::values.cpuopt_unsafe_reduce_fp_error, true);
+                       Settings::values.cpuopt_unsafe_reduce_fp_error);
     WriteSettingGlobal(QStringLiteral("cpuopt_unsafe_ignore_standard_fpcr"),
-                       Settings::values.cpuopt_unsafe_ignore_standard_fpcr, true);
+                       Settings::values.cpuopt_unsafe_ignore_standard_fpcr);
     WriteSettingGlobal(QStringLiteral("cpuopt_unsafe_inaccurate_nan"),
-                       Settings::values.cpuopt_unsafe_inaccurate_nan, true);
+                       Settings::values.cpuopt_unsafe_inaccurate_nan);
     WriteSettingGlobal(QStringLiteral("cpuopt_unsafe_fastmem_check"),
-                       Settings::values.cpuopt_unsafe_fastmem_check, true);
+                       Settings::values.cpuopt_unsafe_fastmem_check);
 
     if (global) {
         WriteSetting(QStringLiteral("cpuopt_page_tables"), Settings::values.cpuopt_page_tables,
@@ -1377,45 +1366,37 @@ void Config::SaveRendererValues() {
     qt_config->beginGroup(QStringLiteral("Renderer"));
 
     WriteSettingGlobal(QStringLiteral("backend"),
-                       static_cast<int>(Settings::values.renderer_backend.GetValue(global)),
-                       Settings::values.renderer_backend.UsingGlobal(), 0);
-    WriteSetting(QStringLiteral("debug"), Settings::values.renderer_debug, false);
-    WriteSettingGlobal(QStringLiteral("vulkan_device"), Settings::values.vulkan_device, 0);
-#ifdef _WIN32
-    WriteSettingGlobal(QStringLiteral("fullscreen_mode"), Settings::values.fullscreen_mode, 0);
-#else
-    // *nix platforms may have issues with the borderless windowed fullscreen mode.
-    // Default to exclusive fullscreen on these platforms for now.
-    WriteSettingGlobal(QStringLiteral("fullscreen_mode"), Settings::values.fullscreen_mode, 1);
-#endif
-    WriteSettingGlobal(QStringLiteral("aspect_ratio"), Settings::values.aspect_ratio, 0);
-    WriteSettingGlobal(QStringLiteral("max_anisotropy"), Settings::values.max_anisotropy, 0);
-    WriteSettingGlobal(QStringLiteral("use_frame_limit"), Settings::values.use_frame_limit, true);
-    WriteSettingGlobal(QStringLiteral("frame_limit"), Settings::values.frame_limit, 100);
+                       static_cast<u32>(Settings::values.renderer_backend.GetValue(global)),
+                       Settings::values.renderer_backend.UsingGlobal(),
+                       static_cast<u32>(Settings::values.renderer_backend.GetDefault()));
+    WriteSetting(QStringLiteral("debug"), Settings::values.renderer_debug);
+    WriteSettingGlobal(QStringLiteral("vulkan_device"), Settings::values.vulkan_device);
+    WriteSettingGlobal(QStringLiteral("fullscreen_mode"), Settings::values.fullscreen_mode);
+    WriteSettingGlobal(QStringLiteral("aspect_ratio"), Settings::values.aspect_ratio);
+    WriteSettingGlobal(QStringLiteral("max_anisotropy"), Settings::values.max_anisotropy);
+    WriteSettingGlobal(QStringLiteral("use_frame_limit"), Settings::values.use_frame_limit);
+    WriteSettingGlobal(QStringLiteral("frame_limit"), Settings::values.frame_limit);
     WriteSettingGlobal(QStringLiteral("use_disk_shader_cache"),
-                       Settings::values.use_disk_shader_cache, true);
+                       Settings::values.use_disk_shader_cache);
     WriteSettingGlobal(QStringLiteral("gpu_accuracy"),
-                       static_cast<int>(Settings::values.gpu_accuracy.GetValue(global)),
-                       Settings::values.gpu_accuracy.UsingGlobal(), 1);
+                       static_cast<u32>(Settings::values.gpu_accuracy.GetValue(global)),
+                       Settings::values.gpu_accuracy.UsingGlobal(),
+                       static_cast<u32>(Settings::values.gpu_accuracy.GetDefault()));
     WriteSettingGlobal(QStringLiteral("use_asynchronous_gpu_emulation"),
-                       Settings::values.use_asynchronous_gpu_emulation, true);
-    WriteSettingGlobal(QStringLiteral("use_nvdec_emulation"), Settings::values.use_nvdec_emulation,
-                       true);
-    WriteSettingGlobal(QStringLiteral("accelerate_astc"), Settings::values.accelerate_astc, true);
-    WriteSettingGlobal(QStringLiteral("use_vsync"), Settings::values.use_vsync, true);
-    WriteSettingGlobal(QStringLiteral("disable_fps_limit"), Settings::values.disable_fps_limit,
-                       false);
+                       Settings::values.use_asynchronous_gpu_emulation);
+    WriteSettingGlobal(QStringLiteral("use_nvdec_emulation"), Settings::values.use_nvdec_emulation);
+    WriteSettingGlobal(QStringLiteral("accelerate_astc"), Settings::values.accelerate_astc);
+    WriteSettingGlobal(QStringLiteral("use_vsync"), Settings::values.use_vsync);
+    WriteSettingGlobal(QStringLiteral("disable_fps_limit"), Settings::values.disable_fps_limit);
     WriteSettingGlobal(QStringLiteral("use_assembly_shaders"),
-                       Settings::values.use_assembly_shaders, false);
+                       Settings::values.use_assembly_shaders);
     WriteSettingGlobal(QStringLiteral("use_asynchronous_shaders"),
-                       Settings::values.use_asynchronous_shaders, false);
-    WriteSettingGlobal(QStringLiteral("use_fast_gpu_time"), Settings::values.use_fast_gpu_time,
-                       true);
-    WriteSettingGlobal(QStringLiteral("use_caches_gc"), Settings::values.use_caches_gc, false);
-    // Cast to double because Qt's written float values are not human-readable
-    WriteSettingGlobal(QStringLiteral("bg_red"), Settings::values.bg_red, 0.0);
-    WriteSettingGlobal(QStringLiteral("bg_green"), Settings::values.bg_green, 0.0);
-    WriteSettingGlobal(QStringLiteral("bg_blue"), Settings::values.bg_blue, 0.0);
+                       Settings::values.use_asynchronous_shaders);
+    WriteSettingGlobal(QStringLiteral("use_fast_gpu_time"), Settings::values.use_fast_gpu_time);
+    WriteSettingGlobal(QStringLiteral("use_caches_gc"), Settings::values.use_caches_gc);
+    WriteSettingGlobal(QStringLiteral("bg_red"), Settings::values.bg_red);
+    WriteSettingGlobal(QStringLiteral("bg_green"), Settings::values.bg_green);
+    WriteSettingGlobal(QStringLiteral("bg_blue"), Settings::values.bg_blue);
 
     qt_config->endGroup();
 }
@@ -1454,10 +1435,10 @@ void Config::SaveShortcutValues() {
 void Config::SaveSystemValues() {
     qt_config->beginGroup(QStringLiteral("System"));
 
-    WriteSetting(QStringLiteral("current_user"), Settings::values.current_user, 0);
-    WriteSettingGlobal(QStringLiteral("language_index"), Settings::values.language_index, 1);
-    WriteSettingGlobal(QStringLiteral("region_index"), Settings::values.region_index, 1);
-    WriteSettingGlobal(QStringLiteral("time_zone_index"), Settings::values.time_zone_index, 0);
+    WriteSetting(QStringLiteral("current_user"), Settings::values.current_user);
+    WriteSettingGlobal(QStringLiteral("language_index"), Settings::values.language_index);
+    WriteSettingGlobal(QStringLiteral("region_index"), Settings::values.region_index);
+    WriteSettingGlobal(QStringLiteral("time_zone_index"), Settings::values.time_zone_index);
 
     WriteSettingGlobal(QStringLiteral("rng_seed_enabled"),
                        Settings::values.rng_seed.GetValue(global).has_value(),
@@ -1475,7 +1456,7 @@ void Config::SaveSystemValues() {
                      0);
     }
 
-    WriteSettingGlobal(QStringLiteral("sound_index"), Settings::values.sound_index, 1);
+    WriteSettingGlobal(QStringLiteral("sound_index"), Settings::values.sound_index);
 
     qt_config->endGroup();
 }
@@ -1574,22 +1555,25 @@ QVariant Config::ReadSetting(const QString& name, const QVariant& default_value)
     return result;
 }
 
+QVariant Config::ReadSetting(const QString& name, Settings::CPUAccuracy default_value) const {
+    return ReadSetting(name, static_cast<u32>(default_value));
+}
+
+QVariant Config::ReadSetting(const QString& name, Settings::GPUAccuracy default_value) const {
+    return ReadSetting(name, static_cast<u32>(default_value));
+}
+
+QVariant Config::ReadSetting(const QString& name, Settings::RendererBackend default_value) const {
+    return ReadSetting(name, static_cast<u32>(default_value));
+}
+
 template <typename Type>
 void Config::ReadSettingGlobal(Settings::Setting<Type>& setting, const QString& name) {
     const bool use_global = qt_config->value(name + QStringLiteral("/use_global"), true).toBool();
     setting.SetGlobal(use_global);
+    const Type& default_value = setting.GetDefault();
     if (global || !use_global) {
-        setting.SetValue(ReadSetting(name).value<Type>());
-    }
-}
-
-template <typename Type>
-void Config::ReadSettingGlobal(Settings::Setting<Type>& setting, const QString& name,
-                               const QVariant& default_value) {
-    const bool use_global = qt_config->value(name + QStringLiteral("/use_global"), true).toBool();
-    setting.SetGlobal(use_global);
-    if (global || !use_global) {
-        setting.SetValue(ReadSetting(name, default_value).value<Type>());
+        setting.SetValue(static_cast<QVariant>(ReadSetting(name, default_value)).value<Type>());
     }
 }
 
@@ -1618,19 +1602,8 @@ void Config::WriteSettingGlobal(const QString& name, const Settings::Setting<Typ
         qt_config->setValue(name + QStringLiteral("/use_global"), setting.UsingGlobal());
     }
     if (global || !setting.UsingGlobal()) {
-        qt_config->setValue(name, setting.GetValue(global));
-    }
-}
-
-template <typename Type>
-void Config::WriteSettingGlobal(const QString& name, const Settings::Setting<Type>& setting,
-                                const QVariant& default_value) {
-    if (!global) {
-        qt_config->setValue(name + QStringLiteral("/use_global"), setting.UsingGlobal());
-    }
-    if (global || !setting.UsingGlobal()) {
         qt_config->setValue(name + QStringLiteral("/default"),
-                            setting.GetValue(global) == default_value.value<Type>());
+                            setting.GetValue(global) == setting.GetDefault());
         qt_config->setValue(name, setting.GetValue(global));
     }
 }
