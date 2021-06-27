@@ -110,9 +110,6 @@ public:
     /// Notify the cache that a new frame has been queued
     void TickFrame();
 
-    /// Runs the Garbage Collector.
-    void RunGarbageCollector();
-
     /// Return a constant reference to the given image view id
     [[nodiscard]] const ImageView& GetImageView(ImageViewId id) const noexcept;
 
@@ -206,6 +203,9 @@ private:
             }
         }
     }
+
+    /// Runs the Garbage Collector.
+    void RunGarbageCollector();
 
     /// Fills image_view_ids in the image views in indices
     void FillImageViews(DescriptorTable<TICEntry>& table,
