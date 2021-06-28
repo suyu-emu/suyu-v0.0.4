@@ -287,8 +287,8 @@ private:
     InstallResult InstallNSPXCI(const QString& filename);
     InstallResult InstallNCA(const QString& filename);
     void MigrateConfigFiles();
-    void UpdateWindowTitle(const std::string& title_name = {},
-                           const std::string& title_version = {});
+    void UpdateWindowTitle(std::string_view title_name = {}, std::string_view title_version = {},
+                           std::string_view gpu_vendor = {});
     void UpdateStatusBar();
     void UpdateStatusButtons();
     void UpdateUISettings();
