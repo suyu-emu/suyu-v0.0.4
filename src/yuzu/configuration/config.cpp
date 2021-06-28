@@ -272,7 +272,12 @@ void Config::Initialize(const std::string& config_name) {
     }
 }
 
-// Explicity std::string definition: Qt can't implicitly convert a std::string to a QVariant, nor
+/* {Read,Write}BasicSetting and WriteGlobalSetting templates must be defined here before their
+ * usages later in this file. This allows explicit definition of some types that don't work
+ * nicely with the general version.
+ */
+
+// Explicit std::string definition: Qt can't implicitly convert a std::string to a QVariant, nor
 // can it implicitly convert a QVariant back to a {std::,Q}string
 template <>
 void Config::ReadBasicSetting(Settings::BasicSetting<std::string>& setting) {
@@ -1375,8 +1380,7 @@ void Config::SaveRendererValues() {
 void Config::SaveScreenshotValues() {
     qt_config->beginGroup(QStringLiteral("Screenshots"));
 
-    WriteSetting(QStringLiteral("enable_screenshot_save_as"),
-                 UISettings::values.enable_screenshot_save_as);
+    WriteBasicSetting(UISettings::values.enable_screenshot_save_as);
     WriteSetting(QStringLiteral("screenshot_path"),
                  QString::fromStdString(FS::GetYuzuPathString(FS::YuzuPath::ScreenshotsDir)));
 
@@ -1412,10 +1416,10 @@ void Config::SaveSystemValues() {
     WriteGlobalSetting(Settings::values.time_zone_index);
 
     WriteSetting(QStringLiteral("rng_seed_enabled"),
-                 Settings::values.rng_seed.GetValue(global).has_value(),
-                 Settings::values.rng_seed.UsingGlobal(), false);
+                 Settings::values.rng_seed.GetValue(global).has_value(), false,
+                 Settings::values.rng_seed.UsingGlobal());
     WriteSetting(QStringLiteral("rng_seed"), Settings::values.rng_seed.GetValue(global).value_or(0),
-                 Settings::values.rng_seed.UsingGlobal(), 0);
+                 0, Settings::values.rng_seed.UsingGlobal());
 
     if (global) {
         WriteSetting(QStringLiteral("custom_rtc_enabled"), Settings::values.custom_rtc.has_value(),
@@ -1436,10 +1440,8 @@ void Config::SaveUIValues() {
 
     WriteSetting(QStringLiteral("theme"), UISettings::values.theme,
                  QString::fromUtf8(UISettings::themes[0].second));
-    WriteSetting(QStringLiteral("enable_discord_presence"),
-                 UISettings::values.enable_discord_presence, true);
-    WriteSetting(QStringLiteral("select_user_on_boot"), UISettings::values.select_user_on_boot,
-                 false);
+    WriteBasicSetting(UISettings::values.enable_discord_presence);
+    WriteBasicSetting(UISettings::values.select_user_on_boot);
 
     SaveUIGamelistValues();
     SaveUILayoutValues();
@@ -1447,18 +1449,17 @@ void Config::SaveUIValues() {
     SaveScreenshotValues();
     SaveShortcutValues();
 
-    WriteSetting(QStringLiteral("singleWindowMode"), UISettings::values.single_window_mode, true);
-    WriteSetting(QStringLiteral("fullscreen"), UISettings::values.fullscreen, false);
-    WriteSetting(QStringLiteral("displayTitleBars"), UISettings::values.display_titlebar, true);
-    WriteSetting(QStringLiteral("showFilterBar"), UISettings::values.show_filter_bar, true);
-    WriteSetting(QStringLiteral("showStatusBar"), UISettings::values.show_status_bar, true);
-    WriteSetting(QStringLiteral("confirmClose"), UISettings::values.confirm_before_closing, true);
-    WriteSetting(QStringLiteral("firstStart"), UISettings::values.first_start, true);
-    WriteSetting(QStringLiteral("calloutFlags"), UISettings::values.callout_flags, 0);
-    WriteSetting(QStringLiteral("showConsole"), UISettings::values.show_console, false);
-    WriteSetting(QStringLiteral("pauseWhenInBackground"),
-                 UISettings::values.pause_when_in_background, false);
-    WriteSetting(QStringLiteral("hideInactiveMouse"), UISettings::values.hide_mouse, false);
+    WriteBasicSetting(UISettings::values.single_window_mode);
+    WriteBasicSetting(UISettings::values.fullscreen);
+    WriteBasicSetting(UISettings::values.display_titlebar);
+    WriteBasicSetting(UISettings::values.show_filter_bar);
+    WriteBasicSetting(UISettings::values.show_status_bar);
+    WriteBasicSetting(UISettings::values.confirm_before_closing);
+    WriteBasicSetting(UISettings::values.first_start);
+    WriteBasicSetting(UISettings::values.callout_flags);
+    WriteBasicSetting(UISettings::values.show_console);
+    WriteBasicSetting(UISettings::values.pause_when_in_background);
+    WriteBasicSetting(UISettings::values.hide_mouse);
 
     qt_config->endGroup();
 }
@@ -1466,11 +1467,11 @@ void Config::SaveUIValues() {
 void Config::SaveUIGamelistValues() {
     qt_config->beginGroup(QStringLiteral("UIGameList"));
 
-    WriteSetting(QStringLiteral("show_add_ons"), UISettings::values.show_add_ons, true);
-    WriteSetting(QStringLiteral("icon_size"), UISettings::values.icon_size, 64);
-    WriteSetting(QStringLiteral("row_1_text_id"), UISettings::values.row_1_text_id, 3);
-    WriteSetting(QStringLiteral("row_2_text_id"), UISettings::values.row_2_text_id, 2);
-    WriteSetting(QStringLiteral("cache_game_list"), UISettings::values.cache_game_list, true);
+    WriteBasicSetting(UISettings::values.show_add_ons);
+    WriteBasicSetting(UISettings::values.icon_size);
+    WriteBasicSetting(UISettings::values.row_1_text_id);
+    WriteBasicSetting(UISettings::values.row_2_text_id);
+    WriteBasicSetting(UISettings::values.cache_game_list);
     qt_config->beginWriteArray(QStringLiteral("favorites"));
     for (int i = 0; i < UISettings::values.favorited_ids.size(); i++) {
         qt_config->setArrayIndex(i);
@@ -1491,8 +1492,7 @@ void Config::SaveUILayoutValues() {
     WriteSetting(QStringLiteral("gameListHeaderState"), UISettings::values.gamelist_header_state);
     WriteSetting(QStringLiteral("microProfileDialogGeometry"),
                  UISettings::values.microprofile_geometry);
-    WriteSetting(QStringLiteral("microProfileDialogVisible"),
-                 UISettings::values.microprofile_visible, false);
+    WriteBasicSetting(UISettings::values.microprofile_visible);
 
     qt_config->endGroup();
 }

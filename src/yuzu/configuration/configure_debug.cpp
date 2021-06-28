@@ -31,7 +31,7 @@ void ConfigureDebug::SetConfiguration() {
     const bool runtime_lock = !Core::System::GetInstance().IsPoweredOn();
 
     ui->toggle_console->setEnabled(runtime_lock);
-    ui->toggle_console->setChecked(UISettings::values.show_console);
+    ui->toggle_console->setChecked(UISettings::values.show_console.GetValue());
     ui->log_filter_edit->setText(QString::fromStdString(Settings::values.log_filter.GetValue()));
     ui->homebrew_args_edit->setText(
         QString::fromStdString(Settings::values.program_args.GetValue()));

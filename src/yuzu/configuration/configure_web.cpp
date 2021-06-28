@@ -103,7 +103,7 @@ void ConfigureWeb::SetConfiguration() {
 
     user_verified = true;
 
-    ui->toggle_discordrpc->setChecked(UISettings::values.enable_discord_presence);
+    ui->toggle_discordrpc->setChecked(UISettings::values.enable_discord_presence.GetValue());
 }
 
 void ConfigureWeb::ApplyConfiguration() {

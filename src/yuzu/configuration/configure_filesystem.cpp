@@ -55,7 +55,7 @@ void ConfigureFilesystem::setConfiguration() {
     ui->dump_exefs->setChecked(Settings::values.dump_exefs.GetValue());
     ui->dump_nso->setChecked(Settings::values.dump_nso.GetValue());
 
-    ui->cache_game_list->setChecked(UISettings::values.cache_game_list);
+    ui->cache_game_list->setChecked(UISettings::values.cache_game_list.GetValue());
 
     UpdateEnabledControls();
 }
