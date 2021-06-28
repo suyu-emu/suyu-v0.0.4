@@ -16,7 +16,7 @@ class PlaceholderCache;
 /// File system interface to the SDCard archive
 class SDMCFactory {
 public:
-    explicit SDMCFactory(VirtualDir dir);
+    explicit SDMCFactory(VirtualDir sd_dir_, VirtualDir sd_mod_dir_);
     ~SDMCFactory();
 
     ResultVal<VirtualDir> Open() const;
@@ -33,7 +33,8 @@ public:
     u64 GetSDMCTotalSpace() const;
 
 private:
-    VirtualDir dir;
+    VirtualDir sd_dir;
+    VirtualDir sd_mod_dir;
 
     std::unique_ptr<RegisteredCache> contents;
     std::unique_ptr<PlaceholderCache> placeholder;
