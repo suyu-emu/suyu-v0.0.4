@@ -47,11 +47,15 @@ if (MSVC)
 
         # Warnings
         /W3
-        /we4062 # enumerator 'identifier' in a switch of enum 'enumeration' is not handled
+        /we4018 # 'expression': signed/unsigned mismatch
+        /we4062 # Enumerator 'identifier' in a switch of enum 'enumeration' is not handled
         /we4101 # 'identifier': unreferenced local variable
         /we4265 # 'class': class has virtual functions, but destructor is not virtual
-        /we4388 # signed/unsigned mismatch
-        /we4547 # 'operator' : operator before comma has no effect; expected operator with side-effect
+        /we4267 # 'var': conversion from 'size_t' to 'type', possible loss of data
+        /we4305 # 'context': truncation from 'type1' to 'type2'
+        /we4388 # 'expression': signed/unsigned mismatch
+        /we4389 # 'operator': signed/unsigned mismatch
+        /we4547 # 'operator': operator before comma has no effect; expected operator with side-effect
         /we4549 # 'operator1': operator before comma has no effect; did you intend 'operator2'?
         /we4555 # Expression has no effect; expected expression with side-effect
         /we4715 # 'function': not all control paths return a value
