@@ -1422,6 +1422,9 @@ void GMainWindow::BootGame(const QString& filename, std::size_t program_index, S
         title_name = Common::FS::PathToUTF8String(
             std::filesystem::path{filename.toStdU16String()}.filename());
     }
+    const bool is_64bit = system.Kernel().CurrentProcess()->Is64BitProcess();
+    const auto instruction_set_suffix = is_64bit ? " (64-bit)" : " (32-bit)";
+    title_name += instruction_set_suffix;
     LOG_INFO(Frontend, "Booting game: {:016X} | {} | {}", title_id, title_name, title_version);
     UpdateWindowTitle(title_name, title_version);
 
