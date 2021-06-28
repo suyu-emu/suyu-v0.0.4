@@ -212,7 +212,7 @@ void TelemetrySession::AddInitialInfo(Loader::AppLoader& app_loader,
 
     // Log user configuration information
     constexpr auto field_type = Telemetry::FieldType::UserConfig;
-    AddField(field_type, "Audio_SinkId", Settings::values.sink_id);
+    AddField(field_type, "Audio_SinkId", Settings::values.sink_id.GetValue());
     AddField(field_type, "Audio_EnableAudioStretching",
              Settings::values.enable_audio_stretching.GetValue());
     AddField(field_type, "Core_UseMultiCore", Settings::values.use_multi_core.GetValue());

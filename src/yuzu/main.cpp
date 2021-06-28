@@ -176,7 +176,7 @@ static void InitializeLogging() {
     using namespace Common;
 
     Log::Filter log_filter;
-    log_filter.ParseFilterString(Settings::values.log_filter);
+    log_filter.ParseFilterString(Settings::values.log_filter.GetValue());
     Log::SetGlobalFilter(log_filter);
 
     const auto log_dir = FS::GetYuzuPath(FS::YuzuPath::LogDir);
@@ -2443,7 +2443,8 @@ void GMainWindow::ErrorDisplayDisplayError(QString error_code, QString error_tex
 }
 
 void GMainWindow::OnMenuReportCompatibility() {
-    if (!Settings::values.yuzu_token.empty() && !Settings::values.yuzu_username.empty()) {
+    if (!Settings::values.yuzu_token.GetValue().empty() &&
+        !Settings::values.yuzu_username.GetValue().empty()) {
         CompatDB compatdb{this};
         compatdb.exec();
     } else {

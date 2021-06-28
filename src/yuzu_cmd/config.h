@@ -8,6 +8,8 @@
 #include <memory>
 #include <string>
 
+#include "common/settings.h"
+
 class INIReader;
 
 class Config {
@@ -22,4 +24,8 @@ public:
     ~Config();
 
     void Reload();
+
+private:
+    template <typename Type>
+    void ReadSetting(const std::string& group, Settings::BasicSetting<Type> setting);
 };
