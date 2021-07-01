@@ -308,7 +308,7 @@ struct Values {
     BasicSetting<bool> renderer_debug{false, "debug"};
     Setting<int> vulkan_device{0, "vulkan_device"};
 
-    Setting<u16> resolution_factor{0, "resolution_factor"};
+    Setting<u16> resolution_factor{1, "resolution_factor"};
     // *nix platforms may have issues with the borderless windowed fullscreen mode.
     // Default to exclusive fullscreen on these platforms for now.
     Setting<int> fullscreen_mode{
