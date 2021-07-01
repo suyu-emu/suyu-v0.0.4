@@ -183,16 +183,30 @@ std::shared_ptr<Dynarmic::A32::Jit> ARM_Dynarmic_32::MakeJit(Common::PageTable* 
     // Unsafe optimizations
     if (Settings::values.cpu_accuracy.GetValue() == Settings::CPUAccuracy::Unsafe) {
         config.unsafe_optimizations = true;
-        if (Settings::values.cpuopt_unsafe_unfuse_fma.GetValue()) {
+        if (Settings::values.cpuopt_unsafe_unfuse_fma) {
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_UnfuseFMA;
         }
-        if (Settings::values.cpuopt_unsafe_reduce_fp_error.GetValue()) {
+        if (Settings::values.cpuopt_unsafe_reduce_fp_error) {
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_ReducedErrorFP;
         }
-        if (Settings::values.cpuopt_unsafe_ignore_standard_fpcr.GetValue()) {
+        if (Settings::values.cpuopt_unsafe_ignore_standard_fpcr) {
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_IgnoreStandardFPCRValue;
         }
-        if (Settings::values.cpuopt_unsafe_inaccurate_nan.GetValue()) {
+        if (Settings::values.cpuopt_unsafe_inaccurate_nan) {
+            config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_InaccurateNaN;
+        }
+    }
+
+    // Curated optimizations
+    if (Settings::values.cpu_accuracy.GetValue() == Settings::CPUAccuracy::Auto) {
+        config.unsafe_optimizations = true;
+        if (Settings::values.cpuopt_unsafe_unfuse_fma) {
+            config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_UnfuseFMA;
+        }
+        if (Settings::values.cpuopt_unsafe_ignore_standard_fpcr) {
+            config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_IgnoreStandardFPCRValue;
+        }
+        if (Settings::values.cpuopt_unsafe_inaccurate_nan) {
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_InaccurateNaN;
         }
     }
