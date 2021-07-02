@@ -926,10 +926,8 @@ void Config::ReadUIValues() {
     UISettings::values.theme =
         ReadSetting(QStringLiteral("theme"), QString::fromUtf8(UISettings::themes[0].second))
             .toString();
-    UISettings::values.enable_discord_presence =
-        ReadSetting(QStringLiteral("enable_discord_presence"), true).toBool();
-    UISettings::values.select_user_on_boot =
-        ReadSetting(QStringLiteral("select_user_on_boot"), false).toBool();
+    ReadBasicSetting(UISettings::values.enable_discord_presence);
+    ReadBasicSetting(UISettings::values.select_user_on_boot);
 
     ReadUIGamelistValues();
     ReadUILayoutValues();
@@ -937,24 +935,17 @@ void Config::ReadUIValues() {
     ReadScreenshotValues();
     ReadShortcutValues();
 
-    UISettings::values.single_window_mode =
-        ReadSetting(QStringLiteral("singleWindowMode"), true).toBool();
-    UISettings::values.fullscreen = ReadSetting(QStringLiteral("fullscreen"), false).toBool();
-    UISettings::values.display_titlebar =
-        ReadSetting(QStringLiteral("displayTitleBars"), true).toBool();
-    UISettings::values.show_filter_bar =
-        ReadSetting(QStringLiteral("showFilterBar"), true).toBool();
-    UISettings::values.show_status_bar =
-        ReadSetting(QStringLiteral("showStatusBar"), true).toBool();
-    UISettings::values.confirm_before_closing =
-        ReadSetting(QStringLiteral("confirmClose"), true).toBool();
-    UISettings::values.first_start = ReadSetting(QStringLiteral("firstStart"), true).toBool();
-    UISettings::values.callout_flags = ReadSetting(QStringLiteral("calloutFlags"), 0).toUInt();
-    UISettings::values.show_console = ReadSetting(QStringLiteral("showConsole"), false).toBool();
-    UISettings::values.pause_when_in_background =
-        ReadSetting(QStringLiteral("pauseWhenInBackground"), false).toBool();
-    UISettings::values.hide_mouse =
-        ReadSetting(QStringLiteral("hideInactiveMouse"), false).toBool();
+    ReadBasicSetting(UISettings::values.single_window_mode);
+    ReadBasicSetting(UISettings::values.fullscreen);
+    ReadBasicSetting(UISettings::values.display_titlebar);
+    ReadBasicSetting(UISettings::values.show_filter_bar);
+    ReadBasicSetting(UISettings::values.show_status_bar);
+    ReadBasicSetting(UISettings::values.confirm_before_closing);
+    ReadBasicSetting(UISettings::values.first_start);
+    ReadBasicSetting(UISettings::values.callout_flags);
+    ReadBasicSetting(UISettings::values.show_console);
+    ReadBasicSetting(UISettings::values.pause_when_in_background);
+    ReadBasicSetting(UISettings::values.hide_mouse);
 
     qt_config->endGroup();
 }
@@ -962,12 +953,11 @@ void Config::ReadUIValues() {
 void Config::ReadUIGamelistValues() {
     qt_config->beginGroup(QStringLiteral("UIGameList"));
 
-    UISettings::values.show_add_ons = ReadSetting(QStringLiteral("show_add_ons"), true).toBool();
-    UISettings::values.icon_size = ReadSetting(QStringLiteral("icon_size"), 64).toUInt();
-    UISettings::values.row_1_text_id = ReadSetting(QStringLiteral("row_1_text_id"), 3).toUInt();
-    UISettings::values.row_2_text_id = ReadSetting(QStringLiteral("row_2_text_id"), 2).toUInt();
-    UISettings::values.cache_game_list =
-        ReadSetting(QStringLiteral("cache_game_list"), true).toBool();
+    ReadBasicSetting(UISettings::values.show_add_ons);
+    ReadBasicSetting(UISettings::values.icon_size);
+    ReadBasicSetting(UISettings::values.row_1_text_id);
+    ReadBasicSetting(UISettings::values.row_2_text_id);
+    ReadBasicSetting(UISettings::values.cache_game_list);
     const int favorites_size = qt_config->beginReadArray(QStringLiteral("favorites"));
     for (int i = 0; i < favorites_size; i++) {
         qt_config->setArrayIndex(i);
@@ -990,8 +980,7 @@ void Config::ReadUILayoutValues() {
         ReadSetting(QStringLiteral("gameListHeaderState")).toByteArray();
     UISettings::values.microprofile_geometry =
         ReadSetting(QStringLiteral("microProfileDialogGeometry")).toByteArray();
-    UISettings::values.microprofile_visible =
-        ReadSetting(QStringLiteral("microProfileDialogVisible"), false).toBool();
+    ReadBasicSetting(UISettings::values.microprofile_visible);
 
     qt_config->endGroup();
 }
