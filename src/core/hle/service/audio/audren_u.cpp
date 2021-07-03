@@ -96,7 +96,7 @@ private:
     void RequestUpdateImpl(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_Audio, "(STUBBED) called");
 
-        std::vector<u8> output_params(ctx.GetWriteBufferSize());
+        std::vector<u8> output_params(ctx.GetWriteBufferSize(), 0);
         auto result = renderer->UpdateAudioRenderer(ctx.ReadBuffer(), output_params);
 
         if (result.IsSuccess()) {
@@ -110,17 +110,19 @@ private:
     void Start(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_Audio, "(STUBBED) called");
 
-        IPC::ResponseBuilder rb{ctx, 2};
+        const auto result = renderer->Start();
 
-        rb.Push(ResultSuccess);
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(result);
     }
 
     void Stop(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_Audio, "(STUBBED) called");
 
-        IPC::ResponseBuilder rb{ctx, 2};
+        const auto result = renderer->Stop();
 
-        rb.Push(ResultSuccess);
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(result);
     }
 
     void QuerySystemEvent(Kernel::HLERequestContext& ctx) {
