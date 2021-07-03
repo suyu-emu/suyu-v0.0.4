@@ -1057,9 +1057,6 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
     std::vector<ImageId> right_aliased_ids;
     std::vector<ImageId> bad_overlap_ids;
     ForEachImageInRegion(cpu_addr, size_bytes, [&](ImageId overlap_id, ImageBase& overlap) {
-        if (info.type != overlap.info.type) {
-            return;
-        }
         if (info.type == ImageType::Linear) {
             if (info.pitch == overlap.info.pitch && gpu_addr == overlap.gpu_addr) {
                 // Alias linear images with the same pitch
