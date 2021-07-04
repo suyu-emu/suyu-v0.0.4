@@ -1169,7 +1169,12 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
     ForEachImageInRegion(cpu_addr, size_bytes, region_check);
     const auto region_check_gpu = [&](ImageId overlap_id, ImageBase& overlap) {
         if (!overlaps_found.contains(overlap_id)) {
-            ignore_textures.insert(overlap_id);
+            if (True(overlap.flags & ImageFlagBits::Remapped)) {
+                ignore_textures.insert(overlap_id);
+            }
+            if (overlap.gpu_addr == gpu_addr && overlap.guest_size_bytes == size_bytes) {
+                ignore_textures.insert(overlap_id);
+            }
         }
     };
     ForEachSparseImageInRegion(gpu_addr, size_bytes, region_check_gpu);
