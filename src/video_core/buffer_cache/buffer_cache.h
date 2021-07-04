@@ -14,8 +14,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include <boost/icl/interval_set.hpp>
 #include <boost/container/small_vector.hpp>
+#include <boost/icl/interval_set.hpp>
 
 #include "common/common_types.h"
 #include "common/div_ceil.h"
@@ -333,10 +333,7 @@ private:
 
     std::vector<BufferId> cached_write_buffer_ids;
 
-    // TODO: This data structure is not optimal and it should be reworked
-    IntervalSet  uncommitted_ranges;
-    std::deque<IntervalSet> committed_ranges;
-    std::deque<boost::container::small_vector<BufferCopy, 4>> pending_downloads;
+    IntervalSet uncommitted_ranges;
 
     size_t immediate_buffer_capacity = 0;
     std::unique_ptr<u8[]> immediate_buffer_alloc;
@@ -564,74 +561,75 @@ bool BufferCache<P>::ShouldWaitAsyncFlushes() const noexcept {
 
 template <class P>
 void BufferCache<P>::CommitAsyncFlushesHigh() {
-  const IntervalSet& intervals = uncommitted_ranges;
-  if (intervals.empty()) {
-      return;
-  }
-  MICROPROFILE_SCOPE(GPU_DownloadMemory);
+    const IntervalSet& intervals = uncommitted_ranges;
+    if (intervals.empty()) {
+        return;
+    }
+    MICROPROFILE_SCOPE(GPU_DownloadMemory);
 
-  boost::container::small_vector<std::pair<BufferCopy, BufferId>, 1> downloads;
-  u64 total_size_bytes = 0;
-  u64 largest_copy = 0;
-  for (auto& interval : intervals) {
-      const std::size_t size = interval.upper() - interval.lower();
-      const VAddr cpu_addr = interval.lower();
-      const VAddr cpu_addr_end = interval.upper();
-      ForEachBufferInRange(cpu_addr, size, [&](BufferId buffer_id, Buffer& buffer) {
-          boost::container::small_vector<BufferCopy, 1> copies;
-          buffer.ForEachDownloadRange(cpu_addr, size, false, [&](u64 range_offset, u64 range_size) {
-            VAddr cpu_addr_base = buffer.CpuAddr() + range_offset;
-            VAddr cpu_addr_end2 = cpu_addr_base + range_size;
-            const s64 difference = s64(cpu_addr_end2 - cpu_addr_end);
-            cpu_addr_end2 -= u64(std::max<s64>(difference, 0));
-            const s64 difference2 = s64(cpu_addr - cpu_addr_base);
-            cpu_addr_base += u64(std::max<s64>(difference2, 0));
-            const u64 new_size = cpu_addr_end2 - cpu_addr_base;
-            const u64 new_offset = cpu_addr_base - buffer.CpuAddr();
-            ASSERT(!IsRegionCpuModified(cpu_addr_base, new_size));
-            downloads.push_back({
-                BufferCopy{
-                    .src_offset = new_offset,
-                    .dst_offset = total_size_bytes,
-                    .size = new_size,
-                },
-                buffer_id,
-            });
-            total_size_bytes += new_size;
-            buffer.UnmarkRegionAsGpuModified(cpu_addr_base, new_size);
-            largest_copy = std::max(largest_copy, new_size);
-          });
-      });
-  }
-  if (downloads.empty()) {
-      return;
-  }
-  if constexpr (USE_MEMORY_MAPS) {
-      auto download_staging = runtime.DownloadStagingBuffer(total_size_bytes);
-      for (auto& [copy, buffer_id] : downloads) {
-          // Have in mind the staging buffer offset for the copy
-          copy.dst_offset += download_staging.offset;
-          const std::array copies{copy};
-          runtime.CopyBuffer(download_staging.buffer, slot_buffers[buffer_id], copies);
-      }
-      runtime.Finish();
-      for (const auto& [copy, buffer_id] : downloads) {
-          const Buffer& buffer = slot_buffers[buffer_id];
-          const VAddr cpu_addr = buffer.CpuAddr() + copy.src_offset;
-          // Undo the modified offset
-          const u64 dst_offset = copy.dst_offset - download_staging.offset;
-          const u8* read_mapped_memory = download_staging.mapped_span.data() + dst_offset;
-          cpu_memory.WriteBlockUnsafe(cpu_addr, read_mapped_memory, copy.size);
-      }
-  } else {
-      const std::span<u8> immediate_buffer = ImmediateBuffer(largest_copy);
-      for (const auto& [copy, buffer_id] : downloads) {
-          Buffer& buffer = slot_buffers[buffer_id];
-          buffer.ImmediateDownload(copy.src_offset, immediate_buffer.subspan(0, copy.size));
-          const VAddr cpu_addr = buffer.CpuAddr() + copy.src_offset;
-          cpu_memory.WriteBlockUnsafe(cpu_addr, immediate_buffer.data(), copy.size);
-      }
-  }
+    boost::container::small_vector<std::pair<BufferCopy, BufferId>, 1> downloads;
+    u64 total_size_bytes = 0;
+    u64 largest_copy = 0;
+    for (auto& interval : intervals) {
+        const std::size_t size = interval.upper() - interval.lower();
+        const VAddr cpu_addr = interval.lower();
+        const VAddr cpu_addr_end = interval.upper();
+        ForEachBufferInRange(cpu_addr, size, [&](BufferId buffer_id, Buffer& buffer) {
+            boost::container::small_vector<BufferCopy, 1> copies;
+            buffer.ForEachDownloadRange(
+                cpu_addr, size, false, [&](u64 range_offset, u64 range_size) {
+                    VAddr cpu_addr_base = buffer.CpuAddr() + range_offset;
+                    VAddr cpu_addr_end2 = cpu_addr_base + range_size;
+                    const s64 difference = s64(cpu_addr_end2 - cpu_addr_end);
+                    cpu_addr_end2 -= u64(std::max<s64>(difference, 0));
+                    const s64 difference2 = s64(cpu_addr - cpu_addr_base);
+                    cpu_addr_base += u64(std::max<s64>(difference2, 0));
+                    const u64 new_size = cpu_addr_end2 - cpu_addr_base;
+                    const u64 new_offset = cpu_addr_base - buffer.CpuAddr();
+                    ASSERT(!IsRegionCpuModified(cpu_addr_base, new_size));
+                    downloads.push_back({
+                        BufferCopy{
+                            .src_offset = new_offset,
+                            .dst_offset = total_size_bytes,
+                            .size = new_size,
+                        },
+                        buffer_id,
+                    });
+                    total_size_bytes += new_size;
+                    buffer.UnmarkRegionAsGpuModified(cpu_addr_base, new_size);
+                    largest_copy = std::max(largest_copy, new_size);
+                });
+        });
+    }
+    if (downloads.empty()) {
+        return;
+    }
+    if constexpr (USE_MEMORY_MAPS) {
+        auto download_staging = runtime.DownloadStagingBuffer(total_size_bytes);
+        for (auto& [copy, buffer_id] : downloads) {
+            // Have in mind the staging buffer offset for the copy
+            copy.dst_offset += download_staging.offset;
+            const std::array copies{copy};
+            runtime.CopyBuffer(download_staging.buffer, slot_buffers[buffer_id], copies);
+        }
+        runtime.Finish();
+        for (const auto& [copy, buffer_id] : downloads) {
+            const Buffer& buffer = slot_buffers[buffer_id];
+            const VAddr cpu_addr = buffer.CpuAddr() + copy.src_offset;
+            // Undo the modified offset
+            const u64 dst_offset = copy.dst_offset - download_staging.offset;
+            const u8* read_mapped_memory = download_staging.mapped_span.data() + dst_offset;
+            cpu_memory.WriteBlockUnsafe(cpu_addr, read_mapped_memory, copy.size);
+        }
+    } else {
+        const std::span<u8> immediate_buffer = ImmediateBuffer(largest_copy);
+        for (const auto& [copy, buffer_id] : downloads) {
+            Buffer& buffer = slot_buffers[buffer_id];
+            buffer.ImmediateDownload(copy.src_offset, immediate_buffer.subspan(0, copy.size));
+            const VAddr cpu_addr = buffer.CpuAddr() + copy.src_offset;
+            cpu_memory.WriteBlockUnsafe(cpu_addr, immediate_buffer.data(), copy.size);
+        }
+    }
 }
 
 template <class P>
@@ -644,9 +642,7 @@ void BufferCache<P>::CommitAsyncFlushes() {
 }
 
 template <class P>
-void BufferCache<P>::PopAsyncFlushes() {
-
-}
+void BufferCache<P>::PopAsyncFlushes() {}
 
 template <class P>
 bool BufferCache<P>::IsRegionGpuModified(VAddr addr, size_t size) {
@@ -1055,7 +1051,8 @@ void BufferCache<P>::MarkWrittenBuffer(BufferId buffer_id, VAddr cpu_addr, u32 s
     Buffer& buffer = slot_buffers[buffer_id];
     buffer.MarkRegionAsGpuModified(cpu_addr, size);
 
-    const bool is_accuracy_high = Settings::values.gpu_accuracy.GetValue() == Settings::GPUAccuracy::High;
+    const bool is_accuracy_high =
+        Settings::values.gpu_accuracy.GetValue() == Settings::GPUAccuracy::High;
     const bool is_async = Settings::values.use_asynchronous_gpu_emulation.GetValue();
     if (!is_async && !is_accuracy_high) {
         return;

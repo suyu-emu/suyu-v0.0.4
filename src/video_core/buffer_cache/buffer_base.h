@@ -468,7 +468,7 @@ private:
 
             const u64 current_word = state_words[word_index] & bits;
             if (clear) {
-              state_words[word_index] &= ~bits;
+                state_words[word_index] &= ~bits;
             }
 
             if constexpr (type == Type::CPU) {
