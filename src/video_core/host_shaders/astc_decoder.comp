@@ -284,14 +284,10 @@ uint Hash52(uint p) {
     return p;
 }
 
-uint SelectPartition(uint seed, uint x, uint y, uint z, uint partition_count, bool small_block) {
-    if (partition_count == 1) {
-        return 0;
-    }
+uint Select2DPartition(uint seed, uint x, uint y, uint partition_count, bool small_block) {
     if (small_block) {
         x <<= 1;
         y <<= 1;
-        z <<= 1;
     }
 
     seed += (partition_count - 1) * 1024;
@@ -305,10 +301,6 @@ uint SelectPartition(uint seed, uint x, uint y, uint z, uint partition_count, bo
     uint seed6 = uint((rnum >> 20) & 0xF);
     uint seed7 = uint((rnum >> 24) & 0xF);
     uint seed8 = uint((rnum >> 28) & 0xF);
-    uint seed9 = uint((rnum >> 18) & 0xF);
-    uint seed10 = uint((rnum >> 22) & 0xF);
-    uint seed11 = uint((rnum >> 26) & 0xF);
-    uint seed12 = uint(((rnum >> 30) | (rnum << 2)) & 0xF);
 
     seed1 = (seed1 * seed1);
     seed2 = (seed2 * seed2);
@@ -318,12 +310,8 @@ uint SelectPartition(uint seed, uint x, uint y, uint z, uint partition_count, bo
     seed6 = (seed6 * seed6);
     seed7 = (seed7 * seed7);
     seed8 = (seed8 * seed8);
-    seed9 = (seed9 * seed9);
-    seed10 = (seed10 * seed10);
-    seed11 = (seed11 * seed11);
-    seed12 = (seed12 * seed12);
 
-    int sh1, sh2, sh3;
+    uint sh1, sh2;
     if ((seed & 1) > 0) {
         sh1 = (seed & 2) > 0 ? 4 : 5;
         sh2 = (partition_count == 3) ? 6 : 5;
@@ -331,25 +319,19 @@ uint SelectPartition(uint seed, uint x, uint y, uint z, uint partition_count, bo
         sh1 = (partition_count == 3) ? 6 : 5;
         sh2 = (seed & 2) > 0 ? 4 : 5;
     }
-    sh3 = (seed & 0x10) > 0 ? sh1 : sh2;
+    seed1 >>= sh1;
+    seed2 >>= sh2;
+    seed3 >>= sh1;
+    seed4 >>= sh2;
+    seed5 >>= sh1;
+    seed6 >>= sh2;
+    seed7 >>= sh1;
+    seed8 >>= sh2;
 
-    seed1 = (seed1 >> sh1);
-    seed2 = (seed2 >> sh2);
-    seed3 = (seed3 >> sh1);
-    seed4 = (seed4 >> sh2);
-    seed5 = (seed5 >> sh1);
-    seed6 = (seed6 >> sh2);
-    seed7 = (seed7 >> sh1);
-    seed8 = (seed8 >> sh2);
-    seed9 = (seed9 >> sh3);
-    seed10 = (seed10 >> sh3);
-    seed11 = (seed11 >> sh3);
-    seed12 = (seed12 >> sh3);
-
-    uint a = seed1 * x + seed2 * y + seed11 * z + (rnum >> 14);
-    uint b = seed3 * x + seed4 * y + seed12 * z + (rnum >> 10);
-    uint c = seed5 * x + seed6 * y + seed9 * z + (rnum >> 6);
-    uint d = seed7 * x + seed8 * y + seed10 * z + (rnum >> 2);
+    uint a = seed1 * x + seed2 * y + (rnum >> 14);
+    uint b = seed3 * x + seed4 * y + (rnum >> 10);
+    uint c = seed5 * x + seed6 * y + (rnum >> 6);
+    uint d = seed7 * x + seed8 * y + (rnum >> 2);
 
     a &= 0x3F;
     b &= 0x3F;
@@ -372,10 +354,6 @@ uint SelectPartition(uint seed, uint x, uint y, uint z, uint partition_count, bo
     } else {
         return 3;
     }
-}
-
-uint Select2DPartition(uint seed, uint x, uint y, uint partition_count, bool small_block) {
-    return SelectPartition(seed, x, y, 0, partition_count, small_block);
 }
 
 uint ReadBit() {
@@ -1281,8 +1259,11 @@ void DecompressBlock(ivec3 coord, uint block_index) {
 
     for (uint j = 0; j < block_dims.y; j++) {
         for (uint i = 0; i < block_dims.x; i++) {
-            uint local_partition = Select2DPartition(partition_index, i, j, num_partitions,
+            uint local_partition = 0;
+            if (num_partitions > 1) {
+                local_partition = Select2DPartition(partition_index, i, j, num_partitions,
                                                      (block_dims.y * block_dims.x) < 32);
+            }
             vec4 p;
             uvec4 C0 = ReplicateByteTo16(endpoints[local_partition][0]);
             uvec4 C1 = ReplicateByteTo16(endpoints[local_partition][1]);
