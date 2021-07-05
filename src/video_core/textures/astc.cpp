@@ -521,35 +521,41 @@ static TexelWeightParams DecodeBlockInfo(InputBitStream& strm) {
     return params;
 }
 
-static void FillVoidExtentLDR(InputBitStream& strm, std::span<u32> outBuf, u32 blockWidth,
-                              u32 blockHeight) {
-    // Don't actually care about the void extent, just read the bits...
-    for (s32 i = 0; i < 4; ++i) {
-        strm.ReadBits<13>();
+// Replicates low num_bits such that [(to_bit - 1):(to_bit - 1 - from_bit)]
+// is the same as [(num_bits - 1):0] and repeats all the way down.
+template <typename IntType>
+static constexpr IntType Replicate(IntType val, u32 num_bits, u32 to_bit) {
+    if (num_bits == 0 || to_bit == 0) {
+        return 0;
     }
-
-    // Decode the RGBA components and renormalize them to the range [0, 255]
-    u16 r = static_cast<u16>(strm.ReadBits<16>());
-    u16 g = static_cast<u16>(strm.ReadBits<16>());
-    u16 b = static_cast<u16>(strm.ReadBits<16>());
-    u16 a = static_cast<u16>(strm.ReadBits<16>());
-
-    u32 rgba = (r >> 8) | (g & 0xFF00) | (static_cast<u32>(b) & 0xFF00) << 8 |
-               (static_cast<u32>(a) & 0xFF00) << 16;
-
-    for (u32 j = 0; j < blockHeight; j++) {
-        for (u32 i = 0; i < blockWidth; i++) {
-            outBuf[j * blockWidth + i] = rgba;
+    const IntType v = val & static_cast<IntType>((1 << num_bits) - 1);
+    IntType res = v;
+    u32 reslen = num_bits;
+    while (reslen < to_bit) {
+        u32 comp = 0;
+        if (num_bits > to_bit - reslen) {
+            u32 newshift = to_bit - reslen;
+            comp = num_bits - newshift;
+            num_bits = newshift;
         }
+        res = static_cast<IntType>(res << num_bits);
+        res = static_cast<IntType>(res | (v >> comp));
+        reslen += num_bits;
     }
+    return res;
 }
 
-static void FillError(std::span<u32> outBuf, u32 blockWidth, u32 blockHeight) {
-    for (u32 j = 0; j < blockHeight; j++) {
-        for (u32 i = 0; i < blockWidth; i++) {
-            outBuf[j * blockWidth + i] = 0xFFFF00FF;
-        }
+static constexpr std::size_t NumReplicateEntries(u32 num_bits) {
+    return std::size_t(1) << num_bits;
+}
+
+template <typename IntType, u32 num_bits, u32 to_bit>
+static constexpr auto MakeReplicateTable() {
+    std::array<IntType, NumReplicateEntries(num_bits)> table{};
+    for (IntType value = 0; value < static_cast<IntType>(std::size(table)); ++value) {
+        table[value] = Replicate(value, num_bits, to_bit);
     }
+    return table;
 }
 
 static constexpr auto REPLICATE_BYTE_TO_16_TABLE = MakeReplicateTable<u32, 8, 16>();
@@ -572,6 +578,9 @@ static constexpr auto REPLICATE_2_BIT_TO_8_TABLE = MakeReplicateTable<u32, 2, 8>
 static constexpr auto REPLICATE_3_BIT_TO_8_TABLE = MakeReplicateTable<u32, 3, 8>();
 static constexpr auto REPLICATE_4_BIT_TO_8_TABLE = MakeReplicateTable<u32, 4, 8>();
 static constexpr auto REPLICATE_5_BIT_TO_8_TABLE = MakeReplicateTable<u32, 5, 8>();
+static constexpr auto REPLICATE_6_BIT_TO_8_TABLE = MakeReplicateTable<u32, 6, 8>();
+static constexpr auto REPLICATE_7_BIT_TO_8_TABLE = MakeReplicateTable<u32, 7, 8>();
+static constexpr auto REPLICATE_8_BIT_TO_8_TABLE = MakeReplicateTable<u32, 8, 8>();
 /// Use a precompiled table with the most common usages, if it's not in the expected range, fallback
 /// to the runtime implementation
 static constexpr u32 FastReplicateTo8(u32 value, u32 num_bits) {
@@ -1314,6 +1323,37 @@ static void ComputeEndpoints(Pixel& ep1, Pixel& ep2, const u32*& colorValues,
 
 #undef READ_UINT_VALUES
 #undef READ_INT_VALUES
+}
+
+static void FillVoidExtentLDR(InputBitStream& strm, std::span<u32> outBuf, u32 blockWidth,
+                              u32 blockHeight) {
+    // Don't actually care about the void extent, just read the bits...
+    for (s32 i = 0; i < 4; ++i) {
+        strm.ReadBits<13>();
+    }
+
+    // Decode the RGBA components and renormalize them to the range [0, 255]
+    u16 r = static_cast<u16>(strm.ReadBits<16>());
+    u16 g = static_cast<u16>(strm.ReadBits<16>());
+    u16 b = static_cast<u16>(strm.ReadBits<16>());
+    u16 a = static_cast<u16>(strm.ReadBits<16>());
+
+    u32 rgba = (r >> 8) | (g & 0xFF00) | (static_cast<u32>(b) & 0xFF00) << 8 |
+               (static_cast<u32>(a) & 0xFF00) << 16;
+
+    for (u32 j = 0; j < blockHeight; j++) {
+        for (u32 i = 0; i < blockWidth; i++) {
+            outBuf[j * blockWidth + i] = rgba;
+        }
+    }
+}
+
+static void FillError(std::span<u32> outBuf, u32 blockWidth, u32 blockHeight) {
+    for (u32 j = 0; j < blockHeight; j++) {
+        for (u32 i = 0; i < blockWidth; i++) {
+            outBuf[j * blockWidth + i] = 0xFFFF00FF;
+        }
+    }
 }
 
 static void DecompressBlock(std::span<const u8, 16> inBuf, const u32 blockWidth,
