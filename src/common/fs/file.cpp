@@ -347,6 +347,9 @@ u64 IOFile::GetSize() const {
         return 0;
     }
 
+    // Flush any unwritten buffered data into the file prior to retrieving the file size.
+    std::fflush(file);
+
     std::error_code ec;
 
     const auto file_size = fs::file_size(file_path, ec);
