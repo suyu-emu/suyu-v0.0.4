@@ -10,18 +10,16 @@
 #define END_PUSH_CONSTANTS };
 #define UNIFORM(n)
 #define BINDING_INPUT_BUFFER 0
-#define BINDING_ENC_BUFFER 1
-#define BINDING_SWIZZLE_BUFFER 2
-#define BINDING_OUTPUT_IMAGE 3
+#define BINDING_SWIZZLE_BUFFER 1
+#define BINDING_OUTPUT_IMAGE 2
 
 #else // ^^^ Vulkan ^^^ // vvv OpenGL vvv
 
 #define BEGIN_PUSH_CONSTANTS
 #define END_PUSH_CONSTANTS
 #define UNIFORM(n) layout(location = n) uniform
-#define BINDING_SWIZZLE_BUFFER 0
-#define BINDING_INPUT_BUFFER 1
-#define BINDING_ENC_BUFFER 2
+#define BINDING_INPUT_BUFFER 0
+#define BINDING_SWIZZLE_BUFFER 1
 #define BINDING_OUTPUT_IMAGE 0
 
 #endif
@@ -64,11 +62,6 @@ layout(binding = BINDING_INPUT_BUFFER, std430) readonly buffer InputBufferU32 {
     uint astc_data[];
 };
 
-// ASTC Encodings data
-layout(binding = BINDING_ENC_BUFFER, std430) readonly buffer EncodingsValues {
-    EncodingData encoding_values[];
-};
-
 layout(binding = BINDING_OUTPUT_IMAGE, rgba8) uniform writeonly image2DArray dest_image;
 
 const uint GOB_SIZE_X = 64;
@@ -93,6 +86,19 @@ const int BLOCK_INFO_NORMAL = 3;
 const int JUST_BITS = 0;
 const int QUINT = 1;
 const int TRIT = 2;
+
+// ASTC Encodings data, sorted in ascending order based on their BitLength value
+// (see GetBitLength() function)
+EncodingData encoding_values[22] = EncodingData[](
+    EncodingData(JUST_BITS, 0, 0, 0), EncodingData(JUST_BITS, 1, 0, 0), EncodingData(TRIT, 0, 0, 0),
+    EncodingData(JUST_BITS, 2, 0, 0), EncodingData(QUINT, 0, 0, 0), EncodingData(TRIT, 1, 0, 0),
+    EncodingData(JUST_BITS, 3, 0, 0), EncodingData(QUINT, 1, 0, 0), EncodingData(TRIT, 2, 0, 0),
+    EncodingData(JUST_BITS, 4, 0, 0), EncodingData(QUINT, 2, 0, 0), EncodingData(TRIT, 3, 0, 0),
+    EncodingData(JUST_BITS, 5, 0, 0), EncodingData(QUINT, 3, 0, 0), EncodingData(TRIT, 4, 0, 0),
+    EncodingData(JUST_BITS, 6, 0, 0), EncodingData(QUINT, 4, 0, 0), EncodingData(TRIT, 5, 0, 0),
+    EncodingData(JUST_BITS, 7, 0, 0), EncodingData(QUINT, 5, 0, 0), EncodingData(TRIT, 6, 0, 0),
+    EncodingData(JUST_BITS, 8, 0, 0)
+);
 
 // The following constants are expanded variants of the Replicate()
 // function calls corresponding to the following arguments:
@@ -596,22 +602,16 @@ void DecodeColorValues(uvec4 modes, uint num_partitions, uint color_data_bits) {
     for (uint i = 0; i < num_partitions; i++) {
         num_values += ((modes[i] >> 2) + 1) << 1;
     }
-    int range = 256;
-    while (--range > 0) {
-        EncodingData val = encoding_values[range];
+    // Find the largest encoding that's within color_data_bits
+    // TODO(ameerj): profile with binary search
+    int range = 0;
+    while (++range < encoding_values.length()) {
         uint bit_length = GetBitLength(num_values, range);
-        if (bit_length <= color_data_bits) {
-            while (--range > 0) {
-                EncodingData newval = encoding_values[range];
-                if (newval.encoding != val.encoding && newval.num_bits != val.num_bits) {
-                    break;
-                }
-            }
-            ++range;
+        if (bit_length > color_data_bits) {
             break;
         }
     }
-    DecodeIntegerSequence(range, num_values);
+    DecodeIntegerSequence(range - 1, num_values);
     uint out_index = 0;
     for (int itr = 0; itr < result_index; ++itr) {
         if (out_index >= num_values) {
@@ -1110,10 +1110,10 @@ TexelWeightParams DecodeBlockInfo(uint block_index) {
     }
     weight_index -= 2;
     if ((mode_layout != 9) && ((mode & 0x200) != 0)) {
-        const int max_weights[6] = int[6](9, 11, 15, 19, 23, 31);
+        const int max_weights[6] = int[6](7, 8, 9, 10, 11, 12);
         params.max_weight = max_weights[weight_index];
     } else {
-        const int max_weights[6] = int[6](1, 2, 3, 4, 5, 7);
+        const int max_weights[6] = int[6](1, 2, 3, 4, 5, 6);
         params.max_weight = max_weights[weight_index];
     }
     return params;

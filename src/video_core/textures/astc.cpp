@@ -151,6 +151,76 @@ private:
     const IntType& m_Bits;
 };
 
+enum class IntegerEncoding { JustBits, Quint, Trit };
+
+struct IntegerEncodedValue {
+    constexpr IntegerEncodedValue() = default;
+
+    constexpr IntegerEncodedValue(IntegerEncoding encoding_, u32 num_bits_)
+        : encoding{encoding_}, num_bits{num_bits_} {}
+
+    constexpr bool MatchesEncoding(const IntegerEncodedValue& other) const {
+        return encoding == other.encoding && num_bits == other.num_bits;
+    }
+
+    // Returns the number of bits required to encode num_vals values.
+    u32 GetBitLength(u32 num_vals) const {
+        u32 total_bits = num_bits * num_vals;
+        if (encoding == IntegerEncoding::Trit) {
+            total_bits += (num_vals * 8 + 4) / 5;
+        } else if (encoding == IntegerEncoding::Quint) {
+            total_bits += (num_vals * 7 + 2) / 3;
+        }
+        return total_bits;
+    }
+
+    IntegerEncoding encoding{};
+    u32 num_bits = 0;
+    u32 bit_value = 0;
+    union {
+        u32 quint_value = 0;
+        u32 trit_value;
+    };
+};
+
+// Returns a new instance of this struct that corresponds to the
+// can take no more than mav_value values
+static constexpr IntegerEncodedValue CreateEncoding(u32 mav_value) {
+    while (mav_value > 0) {
+        u32 check = mav_value + 1;
+
+        // Is mav_value a power of two?
+        if (!(check & (check - 1))) {
+            return IntegerEncodedValue(IntegerEncoding::JustBits, std::popcount(mav_value));
+        }
+
+        // Is mav_value of the type 3*2^n - 1?
+        if ((check % 3 == 0) && !((check / 3) & ((check / 3) - 1))) {
+            return IntegerEncodedValue(IntegerEncoding::Trit, std::popcount(check / 3 - 1));
+        }
+
+        // Is mav_value of the type 5*2^n - 1?
+        if ((check % 5 == 0) && !((check / 5) & ((check / 5) - 1))) {
+            return IntegerEncodedValue(IntegerEncoding::Quint, std::popcount(check / 5 - 1));
+        }
+
+        // Apparently it can't be represented with a bounded integer sequence...
+        // just iterate.
+        mav_value--;
+    }
+    return IntegerEncodedValue(IntegerEncoding::JustBits, 0);
+}
+
+static constexpr std::array<IntegerEncodedValue, 256> MakeEncodedValues() {
+    std::array<IntegerEncodedValue, 256> encodings{};
+    for (std::size_t i = 0; i < encodings.size(); ++i) {
+        encodings[i] = CreateEncoding(static_cast<u32>(i));
+    }
+    return encodings;
+}
+
+static constexpr std::array<IntegerEncodedValue, 256> ASTC_ENCODINGS_VALUES = MakeEncodedValues();
+
 namespace Tegra::Texture::ASTC {
 using IntegerEncodedVector = boost::container::static_vector<
     IntegerEncodedValue, 256,

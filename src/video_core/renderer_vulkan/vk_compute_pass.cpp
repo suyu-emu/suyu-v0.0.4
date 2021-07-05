@@ -30,16 +30,13 @@
 namespace Vulkan {
 
 using Tegra::Texture::SWIZZLE_TABLE;
-using Tegra::Texture::ASTC::ASTC_ENCODINGS_VALUES;
-using namespace Tegra::Texture::ASTC;
 
 namespace {
 
 constexpr u32 ASTC_BINDING_INPUT_BUFFER = 0;
-constexpr u32 ASTC_BINDING_ENC_BUFFER = 1;
-constexpr u32 ASTC_BINDING_SWIZZLE_BUFFER = 2;
-constexpr u32 ASTC_BINDING_OUTPUT_IMAGE = 3;
-constexpr size_t ASTC_NUM_BINDINGS = 4;
+constexpr u32 ASTC_BINDING_SWIZZLE_BUFFER = 1;
+constexpr u32 ASTC_BINDING_OUTPUT_IMAGE = 2;
+constexpr size_t ASTC_NUM_BINDINGS = 3;
 
 template <size_t size>
 inline constexpr VkPushConstantRange COMPUTE_PUSH_CONSTANT_RANGE{
@@ -75,16 +72,9 @@ constexpr DescriptorBankInfo INPUT_OUTPUT_BANK_INFO{
     .score = 2,
 };
 
-constexpr std::array<VkDescriptorSetLayoutBinding, 4> ASTC_DESCRIPTOR_SET_BINDINGS{{
+constexpr std::array<VkDescriptorSetLayoutBinding, ASTC_NUM_BINDINGS> ASTC_DESCRIPTOR_SET_BINDINGS{{
     {
         .binding = ASTC_BINDING_INPUT_BUFFER,
-        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-        .descriptorCount = 1,
-        .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
-        .pImmutableSamplers = nullptr,
-    },
-    {
-        .binding = ASTC_BINDING_ENC_BUFFER,
         .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
         .descriptorCount = 1,
         .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
@@ -108,12 +98,12 @@ constexpr std::array<VkDescriptorSetLayoutBinding, 4> ASTC_DESCRIPTOR_SET_BINDIN
 
 constexpr DescriptorBankInfo ASTC_BANK_INFO{
     .uniform_buffers = 0,
-    .storage_buffers = 3,
+    .storage_buffers = 2,
     .texture_buffers = 0,
     .image_buffers = 0,
     .textures = 0,
     .images = 1,
-    .score = 4,
+    .score = 3,
 };
 
 constexpr VkDescriptorUpdateTemplateEntryKHR INPUT_OUTPUT_DESCRIPTOR_UPDATE_TEMPLATE{
@@ -133,14 +123,6 @@ constexpr std::array<VkDescriptorUpdateTemplateEntryKHR, ASTC_NUM_BINDINGS>
             .descriptorCount = 1,
             .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
             .offset = ASTC_BINDING_INPUT_BUFFER * sizeof(DescriptorUpdateEntry),
-            .stride = sizeof(DescriptorUpdateEntry),
-        },
-        {
-            .dstBinding = ASTC_BINDING_ENC_BUFFER,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-            .offset = ASTC_BINDING_ENC_BUFFER * sizeof(DescriptorUpdateEntry),
             .stride = sizeof(DescriptorUpdateEntry),
         },
         {
@@ -355,7 +337,7 @@ ASTCDecoderPass::ASTCDecoderPass(const Device& device_, VKScheduler& scheduler_,
 ASTCDecoderPass::~ASTCDecoderPass() = default;
 
 void ASTCDecoderPass::MakeDataBuffer() {
-    constexpr size_t TOTAL_BUFFER_SIZE = sizeof(ASTC_ENCODINGS_VALUES) + sizeof(SWIZZLE_TABLE);
+    constexpr size_t TOTAL_BUFFER_SIZE = sizeof(SWIZZLE_TABLE);
     data_buffer = device.GetLogical().CreateBuffer(VkBufferCreateInfo{
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .pNext = nullptr,
@@ -369,11 +351,7 @@ void ASTCDecoderPass::MakeDataBuffer() {
     data_buffer_commit = memory_allocator.Commit(data_buffer, MemoryUsage::Upload);
 
     const auto staging_ref = staging_buffer_pool.Request(TOTAL_BUFFER_SIZE, MemoryUsage::Upload);
-    std::memcpy(staging_ref.mapped_span.data(), &ASTC_ENCODINGS_VALUES,
-                sizeof(ASTC_ENCODINGS_VALUES));
-    // Tack on the swizzle table at the end of the buffer
-    std::memcpy(staging_ref.mapped_span.data() + sizeof(ASTC_ENCODINGS_VALUES), &SWIZZLE_TABLE,
-                sizeof(SWIZZLE_TABLE));
+    std::memcpy(staging_ref.mapped_span.data(), &SWIZZLE_TABLE, sizeof(SWIZZLE_TABLE));
 
     scheduler.Record([src = staging_ref.buffer, offset = staging_ref.offset, dst = *data_buffer,
                       TOTAL_BUFFER_SIZE](vk::CommandBuffer cmdbuf) {
@@ -443,9 +421,7 @@ void ASTCDecoderPass::Assemble(Image& image, const StagingBufferRef& map,
         update_descriptor_queue.Acquire();
         update_descriptor_queue.AddBuffer(map.buffer, input_offset,
                                           image.guest_size_bytes - swizzle.buffer_offset);
-        update_descriptor_queue.AddBuffer(*data_buffer, 0, sizeof(ASTC_ENCODINGS_VALUES));
-        update_descriptor_queue.AddBuffer(*data_buffer, sizeof(ASTC_ENCODINGS_VALUES),
-                                          sizeof(SWIZZLE_TABLE));
+        update_descriptor_queue.AddBuffer(*data_buffer, 0, sizeof(SWIZZLE_TABLE));
         update_descriptor_queue.AddImage(image.StorageImageView(swizzle.level));
         const void* const descriptor_data{update_descriptor_queue.UpdateData()};
 
