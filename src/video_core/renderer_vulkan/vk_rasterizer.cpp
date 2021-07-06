@@ -580,6 +580,13 @@ void RasterizerVulkan::SignalSyncPoint(u32 value) {
     fence_manager.SignalSyncPoint(value);
 }
 
+void RasterizerVulkan::SignalReference() {
+    if (!gpu.IsAsync()) {
+        return;
+    }
+    fence_manager.SignalReference();
+}
+
 void RasterizerVulkan::ReleaseFences() {
     if (!gpu.IsAsync()) {
         return;

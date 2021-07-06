@@ -8,6 +8,7 @@
 #include <queue>
 
 #include "common/common_types.h"
+#include "common/settings.h"
 #include "core/core.h"
 #include "video_core/delayed_destruction_ring.h"
 #include "video_core/gpu.h"
@@ -53,6 +54,23 @@ public:
         delayed_destruction_ring.Tick();
     }
 
+    void SignalReference() {
+        // Only sync references on High
+        if (Settings::values.gpu_accuracy.GetValue() != Settings::GPUAccuracy::High) {
+            return;
+        }
+        TryReleasePendingFences();
+        const bool should_flush = ShouldFlush();
+        CommitAsyncFlushes();
+        TFence new_fence = CreateFence(0, 0, !should_flush);
+        fences.push(new_fence);
+        QueueFence(new_fence);
+        if (should_flush) {
+            rasterizer.FlushCommands();
+        }
+        rasterizer.SyncGuestHost();
+    }
+
     void SignalSemaphore(GPUVAddr addr, u32 value) {
         TryReleasePendingFences();
         const bool should_flush = ShouldFlush();
@@ -87,8 +105,10 @@ public:
             }
             PopAsyncFlushes();
             if (current_fence->IsSemaphore()) {
-                gpu_memory.template Write<u32>(current_fence->GetAddress(),
-                                               current_fence->GetPayload());
+                if (current_fence->GetAddress() != 0) {
+                    gpu_memory.template Write<u32>(current_fence->GetAddress(),
+                                                   current_fence->GetPayload());
+                }
             } else {
                 gpu.IncrementSyncPoint(current_fence->GetPayload());
             }

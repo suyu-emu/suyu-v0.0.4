@@ -634,6 +634,13 @@ void RasterizerOpenGL::SignalSyncPoint(u32 value) {
     fence_manager.SignalSyncPoint(value);
 }
 
+void RasterizerOpenGL::SignalReference() {
+    if (!gpu.IsAsync()) {
+        return;
+    }
+    fence_manager.SignalReference();
+}
+
 void RasterizerOpenGL::ReleaseFences() {
     if (!gpu.IsAsync()) {
         return;
