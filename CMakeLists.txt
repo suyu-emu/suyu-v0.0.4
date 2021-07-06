@@ -605,6 +605,8 @@ if (YUZU_USE_BUNDLED_FFMPEG)
                     --disable-vdpau
                     --enable-decoder=h264
                     --enable-decoder=vp9
+                    --cc="${CMAKE_C_COMPILER}"
+                    --cxx="${CMAKE_CXX_COMPILER}"
             WORKING_DIRECTORY
                 ${FFmpeg_BUILD_DIR}
         )
