@@ -25,7 +25,7 @@ option(YUZU_USE_BUNDLED_BOOST "Download bundled Boost" OFF)
 
 option(YUZU_USE_BUNDLED_LIBUSB "Compile bundled libusb" OFF)
 
-CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" ON "WIN32" OFF)
+option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" "${WIN32}")
 
 option(YUZU_USE_QT_WEB_ENGINE "Use QtWebEngine for web applet implementation" OFF)
 
@@ -253,7 +253,9 @@ if(ENABLE_QT)
 
     # Check for system Qt on Linux, fallback to bundled Qt
     if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-        find_package(Qt5 ${QT_VERSION} COMPONENTS Widgets)
+        if (NOT YUZU_USE_BUNDLED_QT)
+            find_package(Qt5 ${QT_VERSION} COMPONENTS Widgets)
+        endif()
         if (NOT Qt5_FOUND OR YUZU_USE_BUNDLED_QT)
             # Check for dependencies, then enable bundled Qt download
 
