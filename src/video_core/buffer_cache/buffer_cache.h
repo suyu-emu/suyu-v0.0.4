@@ -152,6 +152,8 @@ public:
     /// Return true when there are uncommitted buffers to be downloaded
     [[nodiscard]] bool HasUncommittedFlushes() const noexcept;
 
+    void AccumulateFlushes();
+
     /// Return true when the caller should wait for async downloads
     [[nodiscard]] bool ShouldWaitAsyncFlushes() const noexcept;
 
@@ -334,6 +336,7 @@ private:
     std::vector<BufferId> cached_write_buffer_ids;
 
     IntervalSet uncommitted_ranges;
+    std::deque<IntervalSet> committed_ranges;
 
     size_t immediate_buffer_capacity = 0;
     std::unique_ptr<u8[]> immediate_buffer_alloc;
@@ -551,7 +554,19 @@ void BufferCache<P>::FlushCachedWrites() {
 
 template <class P>
 bool BufferCache<P>::HasUncommittedFlushes() const noexcept {
-    return !uncommitted_ranges.empty();
+    return !uncommitted_ranges.empty() || !committed_ranges.empty();
+}
+
+template <class P>
+void BufferCache<P>::AccumulateFlushes() {
+    if (Settings::values.gpu_accuracy.GetValue() != Settings::GPUAccuracy::High) {
+        uncommitted_ranges.clear();
+        return;
+    }
+    if (uncommitted_ranges.empty()) {
+        return;
+    }
+    committed_ranges.emplace_back(std::move(uncommitted_ranges));
 }
 
 template <class P>
@@ -561,8 +576,8 @@ bool BufferCache<P>::ShouldWaitAsyncFlushes() const noexcept {
 
 template <class P>
 void BufferCache<P>::CommitAsyncFlushesHigh() {
-    const IntervalSet& intervals = uncommitted_ranges;
-    if (intervals.empty()) {
+    AccumulateFlushes();
+    if (committed_ranges.empty()) {
         return;
     }
     MICROPROFILE_SCOPE(GPU_DownloadMemory);
@@ -570,43 +585,46 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
     boost::container::small_vector<std::pair<BufferCopy, BufferId>, 1> downloads;
     u64 total_size_bytes = 0;
     u64 largest_copy = 0;
-    for (auto& interval : intervals) {
-        const std::size_t size = interval.upper() - interval.lower();
-        const VAddr cpu_addr = interval.lower();
-        const VAddr cpu_addr_end = interval.upper();
-        ForEachBufferInRange(cpu_addr, size, [&](BufferId buffer_id, Buffer& buffer) {
-            boost::container::small_vector<BufferCopy, 1> copies;
-            buffer.ForEachDownloadRange(
-                cpu_addr, size, false, [&](u64 range_offset, u64 range_size) {
-                    VAddr cpu_addr_base = buffer.CpuAddr() + range_offset;
-                    VAddr cpu_addr_end2 = cpu_addr_base + range_size;
-                    const s64 difference = s64(cpu_addr_end2 - cpu_addr_end);
-                    cpu_addr_end2 -= u64(std::max<s64>(difference, 0));
-                    const s64 difference2 = s64(cpu_addr - cpu_addr_base);
-                    cpu_addr_base += u64(std::max<s64>(difference2, 0));
-                    const u64 new_size = cpu_addr_end2 - cpu_addr_base;
-                    const u64 new_offset = cpu_addr_base - buffer.CpuAddr();
-                    downloads.push_back({
-                        BufferCopy{
-                            .src_offset = new_offset,
-                            .dst_offset = total_size_bytes,
-                            .size = new_size,
-                        },
-                        buffer_id,
+    for (const IntervalSet& intervals : committed_ranges) {
+        for (auto& interval : intervals) {
+            const std::size_t size = interval.upper() - interval.lower();
+            const VAddr cpu_addr = interval.lower();
+            const VAddr cpu_addr_end = interval.upper();
+            ForEachBufferInRange(cpu_addr, size, [&](BufferId buffer_id, Buffer& buffer) {
+                boost::container::small_vector<BufferCopy, 1> copies;
+                buffer.ForEachDownloadRange(
+                    cpu_addr, size, false, [&](u64 range_offset, u64 range_size) {
+                        VAddr cpu_addr_base = buffer.CpuAddr() + range_offset;
+                        VAddr cpu_addr_end2 = cpu_addr_base + range_size;
+                        const s64 difference = s64(cpu_addr_end2 - cpu_addr_end);
+                        cpu_addr_end2 -= u64(std::max<s64>(difference, 0));
+                        const s64 difference2 = s64(cpu_addr - cpu_addr_base);
+                        cpu_addr_base += u64(std::max<s64>(difference2, 0));
+                        const u64 new_size = cpu_addr_end2 - cpu_addr_base;
+                        const u64 new_offset = cpu_addr_base - buffer.CpuAddr();
+                        downloads.push_back({
+                            BufferCopy{
+                                .src_offset = new_offset,
+                                .dst_offset = total_size_bytes,
+                                .size = new_size,
+                            },
+                            buffer_id,
+                        });
+                        total_size_bytes += new_size;
+                        largest_copy = std::max(largest_copy, new_size);
+                        constexpr u64 align_mask = ~(32ULL - 1);
+                        const VAddr align_up_address = (cpu_addr_base + 31) & align_mask;
+                        const u64 difference_base = align_up_address - cpu_addr_base;
+                        if (difference_base > new_size) {
+                            return;
+                        }
+                        const u64 fixed_size = new_size - difference_base;
+                        buffer.UnmarkRegionAsGpuModified(align_up_address, fixed_size & align_mask);
                     });
-                    total_size_bytes += new_size;
-                    largest_copy = std::max(largest_copy, new_size);
-                    constexpr u64 align_mask = ~(32ULL - 1);
-                    const VAddr align_up_address = (cpu_addr_base + 31) & align_mask;
-                    const u64 difference_base = align_up_address - cpu_addr_base;
-                    if (difference_base > new_size) {
-                        return;
-                    }
-                    const u64 fixed_size = new_size - difference_base;
-                    buffer.UnmarkRegionAsGpuModified(align_up_address, fixed_size & align_mask);
-                });
-        });
+            });
+        }
     }
+    committed_ranges.clear();
     if (downloads.empty()) {
         return;
     }
@@ -644,6 +662,7 @@ void BufferCache<P>::CommitAsyncFlushes() {
         CommitAsyncFlushesHigh();
     } else {
         uncommitted_ranges.clear();
+        committed_ranges.clear();
     }
 }
 

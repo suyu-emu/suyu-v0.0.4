@@ -619,6 +619,10 @@ void RasterizerVulkan::WaitForIdle() {
         cmdbuf.SetEvent(event, flags);
         cmdbuf.WaitEvents(event, flags, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, {}, {}, {});
     });
+    if (!gpu.IsAsync()) {
+        return;
+    }
+    fence_manager.SignalOrdering();
 }
 
 void RasterizerVulkan::FragmentBarrier() {

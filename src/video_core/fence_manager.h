@@ -54,6 +54,12 @@ public:
         delayed_destruction_ring.Tick();
     }
 
+    // Unlike other fences, this one doesn't
+    void SignalOrdering() {
+        std::scoped_lock lock{buffer_cache.mutex};
+        buffer_cache.AccumulateFlushes();
+    }
+
     void SignalReference() {
         // Only sync references on High
         if (Settings::values.gpu_accuracy.GetValue() != Settings::GPUAccuracy::High) {
