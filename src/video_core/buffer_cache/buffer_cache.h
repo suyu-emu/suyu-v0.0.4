@@ -586,9 +586,6 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
                     cpu_addr_base += u64(std::max<s64>(difference2, 0));
                     const u64 new_size = cpu_addr_end2 - cpu_addr_base;
                     const u64 new_offset = cpu_addr_base - buffer.CpuAddr();
-                    if (IsRegionCpuModified(cpu_addr_base, new_size)) {
-                        return;
-                    }
                     downloads.push_back({
                         BufferCopy{
                             .src_offset = new_offset,
@@ -601,11 +598,11 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
                     largest_copy = std::max(largest_copy, new_size);
                     constexpr u64 align_mask = ~(32ULL - 1);
                     const VAddr align_up_address = (cpu_addr_base + 31) & align_mask;
-                    const u64 difference = align_up_address - cpu_addr_base;
-                    if (difference > new_size) {
+                    const u64 difference_base = align_up_address - cpu_addr_base;
+                    if (difference_base > new_size) {
                         return;
                     }
-                    const u64 fixed_size = new_size - difference;
+                    const u64 fixed_size = new_size - difference_base;
                     buffer.UnmarkRegionAsGpuModified(align_up_address, fixed_size & align_mask);
                 });
         });
@@ -1384,16 +1381,9 @@ typename BufferCache<P>::Binding BufferCache<P>::StorageBufferBinding(GPUVAddr s
     if (!cpu_addr || size == 0) {
         return NULL_BINDING;
     }
-    // HACK(Rodrigo): This is the number of bytes bound in host beyond the guest API's range.
-    // It exists due to some games like Astral Chain operate out of bounds.
-    // Binding the whole map range would be technically correct, but games have large maps that make
-    // this approach unaffordable for now.
-    static constexpr u32 arbitrary_extra_bytes = 0xc000;
-    const u32 bytes_to_map_end =
-        std::max(size, static_cast<u32>(gpu_memory.BytesToMapEnd(gpu_addr)));
     const Binding binding{
         .cpu_addr = *cpu_addr,
-        .size = std::min(size + arbitrary_extra_bytes, bytes_to_map_end),
+        .size = size,
         .buffer_id = BufferId{},
     };
     return binding;
