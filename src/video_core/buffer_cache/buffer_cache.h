@@ -592,35 +592,19 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
             const VAddr cpu_addr_end = interval.upper();
             ForEachBufferInRange(cpu_addr, size, [&](BufferId buffer_id, Buffer& buffer) {
                 boost::container::small_vector<BufferCopy, 1> copies;
-                buffer.ForEachDownloadRange(
-                    cpu_addr, size, false, [&](u64 range_offset, u64 range_size) {
-                        VAddr cpu_addr_base = buffer.CpuAddr() + range_offset;
-                        VAddr cpu_addr_end2 = cpu_addr_base + range_size;
-                        const s64 difference = s64(cpu_addr_end2 - cpu_addr_end);
-                        cpu_addr_end2 -= u64(std::max<s64>(difference, 0));
-                        const s64 difference2 = s64(cpu_addr - cpu_addr_base);
-                        cpu_addr_base += u64(std::max<s64>(difference2, 0));
-                        const u64 new_size = cpu_addr_end2 - cpu_addr_base;
-                        const u64 new_offset = cpu_addr_base - buffer.CpuAddr();
-                        downloads.push_back({
-                            BufferCopy{
-                                .src_offset = new_offset,
-                                .dst_offset = total_size_bytes,
-                                .size = new_size,
-                            },
-                            buffer_id,
-                        });
-                        total_size_bytes += new_size;
-                        largest_copy = std::max(largest_copy, new_size);
-                        constexpr u64 align_mask = ~(32ULL - 1);
-                        const VAddr align_up_address = (cpu_addr_base + 31) & align_mask;
-                        const u64 difference_base = align_up_address - cpu_addr_base;
-                        if (difference_base > new_size) {
-                            return;
-                        }
-                        const u64 fixed_size = new_size - difference_base;
-                        buffer.UnmarkRegionAsGpuModified(align_up_address, fixed_size & align_mask);
-                    });
+                buffer.ForEachDownloadRange(cpu_addr, size, true,
+                                            [&](u64 range_offset, u64 range_size) {
+                                                downloads.push_back({
+                                                    BufferCopy{
+                                                        .src_offset = range_offset,
+                                                        .dst_offset = total_size_bytes,
+                                                        .size = range_size,
+                                                    },
+                                                    buffer_id,
+                                                });
+                                                total_size_bytes += range_size;
+                                                largest_copy = std::max(largest_copy, range_size);
+                                            });
             });
         }
     }
