@@ -242,6 +242,7 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable* 
         config.unsafe_optimizations = true;
         config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_UnfuseFMA;
         config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_InaccurateNaN;
+        config.fastmem_address_space_bits = 64;
     }
 
     return std::make_shared<Dynarmic::A64::Jit>(config);
