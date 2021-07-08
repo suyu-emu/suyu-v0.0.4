@@ -286,6 +286,8 @@ struct Values {
 
     // Cpu
     Setting<CPUAccuracy> cpu_accuracy{CPUAccuracy::Auto, "cpu_accuracy"};
+    // TODO: remove cpu_accuracy_first_time, migration setting added 8 July 2021
+    BasicSetting<bool> cpu_accuracy_first_time{true, "cpu_accuracy_first_time"};
 
     BasicSetting<bool> cpuopt_page_tables{true, "cpuopt_page_tables"};
     BasicSetting<bool> cpuopt_block_linking{true, "cpuopt_block_linking"};
