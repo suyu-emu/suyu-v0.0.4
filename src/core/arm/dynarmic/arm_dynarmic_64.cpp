@@ -240,15 +240,8 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable* 
     // Curated optimizations
     if (Settings::values.cpu_accuracy.GetValue() == Settings::CPUAccuracy::Auto) {
         config.unsafe_optimizations = true;
-        if (Settings::values.cpuopt_unsafe_unfuse_fma) {
-            config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_UnfuseFMA;
-        }
-        if (Settings::values.cpuopt_unsafe_inaccurate_nan) {
-            config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_InaccurateNaN;
-        }
-        if (Settings::values.cpuopt_unsafe_fastmem_check) {
-            config.fastmem_address_space_bits = 64;
-        }
+        config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_UnfuseFMA;
+        config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_InaccurateNaN;
     }
 
     return std::make_shared<Dynarmic::A64::Jit>(config);

@@ -200,15 +200,9 @@ std::shared_ptr<Dynarmic::A32::Jit> ARM_Dynarmic_32::MakeJit(Common::PageTable* 
     // Curated optimizations
     if (Settings::values.cpu_accuracy.GetValue() == Settings::CPUAccuracy::Auto) {
         config.unsafe_optimizations = true;
-        if (Settings::values.cpuopt_unsafe_unfuse_fma) {
-            config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_UnfuseFMA;
-        }
-        if (Settings::values.cpuopt_unsafe_ignore_standard_fpcr) {
-            config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_IgnoreStandardFPCRValue;
-        }
-        if (Settings::values.cpuopt_unsafe_inaccurate_nan) {
-            config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_InaccurateNaN;
-        }
+        config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_UnfuseFMA;
+        config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_IgnoreStandardFPCRValue;
+        config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_InaccurateNaN;
     }
 
     return std::make_unique<Dynarmic::A32::Jit>(config);
