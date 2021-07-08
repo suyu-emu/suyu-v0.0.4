@@ -808,6 +808,7 @@ void Config::ReadCpuValues() {
     ReadGlobalSetting(Settings::values.cpuopt_unsafe_fastmem_check);
 
     if (global) {
+        ReadBasicSetting(Settings::values.cpu_debug_mode);
         ReadBasicSetting(Settings::values.cpuopt_page_tables);
         ReadBasicSetting(Settings::values.cpuopt_block_linking);
         ReadBasicSetting(Settings::values.cpuopt_return_stack_buffer);
@@ -1328,6 +1329,7 @@ void Config::SaveCpuValues() {
     WriteGlobalSetting(Settings::values.cpuopt_unsafe_fastmem_check);
 
     if (global) {
+        WriteBasicSetting(Settings::values.cpu_debug_mode);
         WriteBasicSetting(Settings::values.cpuopt_page_tables);
         WriteBasicSetting(Settings::values.cpuopt_block_linking);
         WriteBasicSetting(Settings::values.cpuopt_return_stack_buffer);

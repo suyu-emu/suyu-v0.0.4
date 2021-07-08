@@ -150,7 +150,7 @@ std::shared_ptr<Dynarmic::A32::Jit> ARM_Dynarmic_32::MakeJit(Common::PageTable* 
     config.far_code_offset = 400_MiB;
 
     // Safe optimizations
-    if (Settings::values.cpu_accuracy.GetValue() == Settings::CPUAccuracy::DebugMode) {
+    if (Settings::values.cpu_debug_mode) {
         if (!Settings::values.cpuopt_page_tables) {
             config.page_table = nullptr;
         }

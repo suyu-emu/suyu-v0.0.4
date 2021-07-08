@@ -49,11 +49,6 @@
                <string>Unsafe</string>
               </property>
              </item>
-             <item>
-              <property name="text">
-               <string>Enable Debug Mode</string>
-              </property>
-             </item>
             </widget>
            </item>
           </layout>
