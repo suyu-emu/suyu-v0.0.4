@@ -59,7 +59,7 @@ layout(binding = BINDING_SWIZZLE_BUFFER, std430) readonly buffer SwizzleTable {
 };
 
 layout(binding = BINDING_INPUT_BUFFER, std430) readonly buffer InputBufferU32 {
-    uint astc_data[];
+    uvec4 astc_data[];
 };
 
 layout(binding = BINDING_OUTPUT_IMAGE, rgba8) uniform writeonly image2DArray dest_image;
@@ -141,32 +141,28 @@ const uint REPLICATE_7_BIT_TO_8_TABLE[128] =
 // Input ASTC texture globals
 uint current_index = 0;
 int bitsread = 0;
-uint total_bitsread = 0;
-uint local_buff[16];
+int total_bitsread = 0;
+uvec4 local_buff;
 
 // Color data globals
-uint color_endpoint_data[16];
+uvec4 color_endpoint_data;
 int color_bitsread = 0;
-uint total_color_bitsread = 0;
-int color_index = 0;
 
 // Four values, two endpoints, four maximum paritions
 uint color_values[32];
 int colvals_index = 0;
 
 // Weight data globals
-uint texel_weight_data[16];
+uvec4 texel_weight_data;
 int texel_bitsread = 0;
-uint total_texel_bitsread = 0;
-int texel_index = 0;
 
 bool texel_flag = false;
 
 // Global "vectors" to be pushed into when decoding
-EncodingData result_vector[100];
+EncodingData result_vector[144];
 int result_index = 0;
 
-EncodingData texel_vector[100];
+EncodingData texel_vector[144];
 int texel_vector_index = 0;
 
 uint unquantized_texel_weights[2][144];
@@ -174,11 +170,6 @@ uint unquantized_texel_weights[2][144];
 uint SwizzleOffset(uvec2 pos) {
     pos = pos & SWIZZLE_MASK;
     return swizzle_table[pos.y * 64 + pos.x];
-}
-
-uint ReadTexel(uint offset) {
-    // extract the 8-bit value from the 32-bit packed data.
-    return bitfieldExtract(astc_data[offset / 4], int((offset * 8) & 24), 8);
 }
 
 // Replicates low num_bits such that [(to_bit - 1):(to_bit - 1 - from_bit)]
@@ -356,54 +347,37 @@ uint Select2DPartition(uint seed, uint x, uint y, uint partition_count, bool sma
     }
 }
 
-uint ReadBit() {
-    if (current_index >= local_buff.length()) {
+uint ExtractBits(uvec4 payload, int offset, int bits) {
+    if (bits <= 0) {
         return 0;
     }
-    uint bit = bitfieldExtract(local_buff[current_index], bitsread, 1);
-    ++bitsread;
-    ++total_bitsread;
-    if (bitsread == 8) {
-        ++current_index;
-        bitsread = 0;
+    int last_offset = offset + bits - 1;
+    int shifted_offset = offset >> 5;
+    if ((last_offset >> 5) == shifted_offset) {
+        return bitfieldExtract(payload[shifted_offset], offset & 31, bits);
     }
-    return bit;
+    int first_bits = 32 - (offset & 31);
+    int result_first = int(bitfieldExtract(payload[shifted_offset], offset & 31, first_bits));
+    int result_second = int(bitfieldExtract(payload[shifted_offset + 1], 0, bits - first_bits));
+    return result_first | (result_second << first_bits);
 }
 
 uint StreamBits(uint num_bits) {
-    uint ret = 0;
-    for (uint i = 0; i < num_bits; i++) {
-        ret |= ((ReadBit() & 1) << i);
-    }
+    int int_bits = int(num_bits);
+    uint ret = ExtractBits(local_buff, total_bitsread, int_bits);
+    total_bitsread += int_bits;
     return ret;
-}
-
-uint ReadColorBit() {
-    uint bit = 0;
-    if (texel_flag) {
-        bit = bitfieldExtract(texel_weight_data[texel_index], texel_bitsread, 1);
-        ++texel_bitsread;
-        ++total_texel_bitsread;
-        if (texel_bitsread == 8) {
-            ++texel_index;
-            texel_bitsread = 0;
-        }
-    } else {
-        bit = bitfieldExtract(color_endpoint_data[color_index], color_bitsread, 1);
-        ++color_bitsread;
-        ++total_color_bitsread;
-        if (color_bitsread == 8) {
-            ++color_index;
-            color_bitsread = 0;
-        }
-    }
-    return bit;
 }
 
 uint StreamColorBits(uint num_bits) {
     uint ret = 0;
-    for (uint i = 0; i < num_bits; i++) {
-        ret |= ((ReadColorBit() & 1) << i);
+    int int_bits = int(num_bits);
+    if (texel_flag) {
+        ret = ExtractBits(texel_weight_data, texel_bitsread, int_bits);
+        texel_bitsread += int_bits;
+    } else {
+        ret = ExtractBits(color_endpoint_data, color_bitsread, int_bits);
+        color_bitsread += int_bits;
     }
     return ret;
 }
@@ -1006,7 +980,7 @@ int FindLayout(uint mode) {
     return 5;
 }
 
-TexelWeightParams DecodeBlockInfo(uint block_index) {
+TexelWeightParams DecodeBlockInfo() {
     TexelWeightParams params = TexelWeightParams(uvec2(0), 0, false, false, false, false);
     uint mode = StreamBits(11);
     if ((mode & 0x1ff) == 0x1fc) {
@@ -1122,8 +1096,8 @@ void FillVoidExtentLDR(ivec3 coord) {
     }
 }
 
-void DecompressBlock(ivec3 coord, uint block_index) {
-    TexelWeightParams params = DecodeBlockInfo(block_index);
+void DecompressBlock(ivec3 coord) {
+    TexelWeightParams params = DecodeBlockInfo();
     if (params.error_state) {
         FillError(coord);
         return;
@@ -1190,7 +1164,7 @@ void DecompressBlock(ivec3 coord, uint block_index) {
     // Read color data...
     uint color_data_bits = remaining_bits;
     while (remaining_bits > 0) {
-        int nb = int(min(remaining_bits, 8U));
+        int nb = int(min(remaining_bits, 32U));
         uint b = StreamBits(nb);
         color_endpoint_data[ced_pointer] = uint(bitfieldExtract(b, 0, nb));
         ++ced_pointer;
@@ -1232,25 +1206,20 @@ void DecompressBlock(ivec3 coord, uint block_index) {
         ComputeEndpoints(endpoints[i][0], endpoints[i][1], color_endpoint_mode[i]);
     }
 
-    for (uint i = 0; i < 16; i++) {
-        texel_weight_data[i] = local_buff[i];
-    }
-    for (uint i = 0; i < 8; i++) {
-#define REVERSE_BYTE(b) ((b * 0x0802U & 0x22110U) | (b * 0x8020U & 0x88440U)) * 0x10101U >> 16
-        uint a = REVERSE_BYTE(texel_weight_data[i]);
-        uint b = REVERSE_BYTE(texel_weight_data[15 - i]);
-#undef REVERSE_BYTE
-        texel_weight_data[i] = uint(bitfieldExtract(b, 0, 8));
-        texel_weight_data[15 - i] = uint(bitfieldExtract(a, 0, 8));
-    }
+    texel_weight_data = local_buff;
+    texel_weight_data = bitfieldReverse(texel_weight_data).wzyx;
     uint clear_byte_start =
         (GetPackedBitSize(params.size, params.dual_plane, params.max_weight) >> 3) + 1;
-    texel_weight_data[clear_byte_start - 1] =
-        texel_weight_data[clear_byte_start - 1] &
+
+    uint byte_insert = ExtractBits(texel_weight_data, int(clear_byte_start - 1) * 8, 8) &
         uint(
             ((1 << (GetPackedBitSize(params.size, params.dual_plane, params.max_weight) % 8)) - 1));
-    for (uint i = 0; i < 16 - clear_byte_start; i++) {
-        texel_weight_data[clear_byte_start + i] = 0U;
+    uint vec_index = (clear_byte_start - 1) >> 2;
+    texel_weight_data[vec_index] =
+        bitfieldInsert(texel_weight_data[vec_index], byte_insert, int((clear_byte_start - 1) % 4) * 8, 8);
+    for (uint i = clear_byte_start; i < 16; ++i) {
+        uint idx = i >> 2;
+        texel_weight_data[idx] = bitfieldInsert(texel_weight_data[idx], 0, int(i % 4) * 8, 8);
     }
     texel_flag = true; // use texel "vector" and bit stream in integer decoding
     DecodeIntegerSequence(params.max_weight, GetNumWeightValues(params.size, params.dual_plane));
@@ -1302,13 +1271,8 @@ void main() {
     if (any(greaterThanEqual(coord, imageSize(dest_image)))) {
         return;
     }
-    uint block_index =
-        pos.z * gl_WorkGroupSize.x * gl_WorkGroupSize.y + pos.y * gl_WorkGroupSize.x + pos.x;
-
     current_index = 0;
     bitsread = 0;
-    for (int i = 0; i < 16; i++) {
-        local_buff[i] = ReadTexel(offset + i);
-    }
-    DecompressBlock(coord, block_index);
+    local_buff = astc_data[offset / 16];
+    DecompressBlock(coord);
 }
