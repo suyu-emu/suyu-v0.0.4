@@ -638,7 +638,7 @@ void RasterizerOpenGL::SignalReference() {
     if (!gpu.IsAsync()) {
         return;
     }
-    fence_manager.SignalReference();
+    fence_manager.SignalOrdering();
 }
 
 void RasterizerOpenGL::ReleaseFences() {
@@ -657,10 +657,7 @@ void RasterizerOpenGL::FlushAndInvalidateRegion(VAddr addr, u64 size) {
 
 void RasterizerOpenGL::WaitForIdle() {
     glMemoryBarrier(GL_ALL_BARRIER_BITS);
-    if (!gpu.IsAsync()) {
-        return;
-    }
-    fence_manager.SignalOrdering();
+    SignalReference();
 }
 
 void RasterizerOpenGL::FragmentBarrier() {
