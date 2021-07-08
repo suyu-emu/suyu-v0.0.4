@@ -336,6 +336,7 @@ private:
     std::vector<BufferId> cached_write_buffer_ids;
 
     IntervalSet uncommitted_ranges;
+    IntervalSet common_ranges;
     std::deque<IntervalSet> committed_ranges;
 
     size_t immediate_buffer_capacity = 0;
@@ -359,6 +360,7 @@ BufferCache<P>::BufferCache(VideoCore::RasterizerInterface& rasterizer_,
     // Ensure the first slot is used for the null buffer
     void(slot_buffers.insert(runtime, NullBufferParams{}));
     deletion_iterator = slot_buffers.end();
+    common_ranges.clear();
 }
 
 template <class P>
@@ -592,19 +594,56 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
             const VAddr cpu_addr_end = interval.upper();
             ForEachBufferInRange(cpu_addr, size, [&](BufferId buffer_id, Buffer& buffer) {
                 boost::container::small_vector<BufferCopy, 1> copies;
-                buffer.ForEachDownloadRange(cpu_addr, size, true,
-                                            [&](u64 range_offset, u64 range_size) {
-                                                downloads.push_back({
-                                                    BufferCopy{
-                                                        .src_offset = range_offset,
-                                                        .dst_offset = total_size_bytes,
-                                                        .size = range_size,
-                                                    },
-                                                    buffer_id,
-                                                });
-                                                total_size_bytes += range_size;
-                                                largest_copy = std::max(largest_copy, range_size);
-                                            });
+                buffer.ForEachDownloadRange(
+                    cpu_addr, size, true, [&](u64 range_offset, u64 range_size) {
+                        const VAddr buffer_addr = buffer.CpuAddr();
+                        const auto add_download = [&](VAddr start, VAddr end) {
+                            const u64 new_offset = start - buffer_addr;
+                            const u64 new_size = end - start;
+                            downloads.push_back({
+                                BufferCopy{
+                                    .src_offset = new_offset,
+                                    .dst_offset = total_size_bytes,
+                                    .size = new_size,
+                                },
+                                buffer_id,
+                            });
+                            // Align up to avoid cache conflicts
+                            constexpr u64 align = 256ULL;
+                            constexpr u64 mask = ~(align - 1ULL);
+                            total_size_bytes += (new_size + align - 1) & mask;
+                            largest_copy = std::max(largest_copy, new_size);
+                        };
+
+                        const VAddr start_address = buffer_addr + range_offset;
+                        const VAddr end_address = start_address + range_size;
+                        const IntervalType search_interval{cpu_addr, 1};
+                        auto it = common_ranges.lower_bound(search_interval);
+                        if (it == common_ranges.end()) {
+                            it = common_ranges.begin();
+                        }
+                        while (it != common_ranges.end()) {
+                            VAddr inter_addr_end = it->upper();
+                            VAddr inter_addr = it->lower();
+                            if (inter_addr >= end_address) {
+                                break;
+                            }
+                            if (inter_addr_end <= start_address) {
+                                it++;
+                                continue;
+                            }
+                            if (inter_addr_end > end_address) {
+                                inter_addr_end = end_address;
+                            }
+                            if (inter_addr < start_address) {
+                                inter_addr = start_address;
+                            }
+                            add_download(inter_addr, inter_addr_end);
+                            it++;
+                        }
+                        const IntervalType subtract_interval{start_address, end_address};
+                        common_ranges.subtract(subtract_interval);
+                    });
             });
         }
     }
@@ -1060,13 +1099,15 @@ void BufferCache<P>::MarkWrittenBuffer(BufferId buffer_id, VAddr cpu_addr, u32 s
     Buffer& buffer = slot_buffers[buffer_id];
     buffer.MarkRegionAsGpuModified(cpu_addr, size);
 
+    const IntervalType base_interval{cpu_addr, cpu_addr + size};
+    common_ranges.add(base_interval);
+
     const bool is_accuracy_high =
         Settings::values.gpu_accuracy.GetValue() == Settings::GPUAccuracy::High;
     const bool is_async = Settings::values.use_asynchronous_gpu_emulation.GetValue();
     if (!is_async && !is_accuracy_high) {
         return;
     }
-    const IntervalType base_interval{cpu_addr, cpu_addr + size};
     uncommitted_ranges.add(base_interval);
 }
 
@@ -1292,13 +1333,50 @@ void BufferCache<P>::DownloadBufferMemory(Buffer& buffer, VAddr cpu_addr, u64 si
     u64 total_size_bytes = 0;
     u64 largest_copy = 0;
     buffer.ForEachDownloadRange(cpu_addr, size, true, [&](u64 range_offset, u64 range_size) {
-        copies.push_back(BufferCopy{
-            .src_offset = range_offset,
-            .dst_offset = total_size_bytes,
-            .size = range_size,
-        });
-        total_size_bytes += range_size;
-        largest_copy = std::max(largest_copy, range_size);
+        const VAddr buffer_addr = buffer.CpuAddr();
+        const auto add_download = [&](VAddr start, VAddr end) {
+            const u64 new_offset = start - buffer_addr;
+            const u64 new_size = end - start;
+            copies.push_back(BufferCopy{
+                .src_offset = new_offset,
+                .dst_offset = total_size_bytes,
+                .size = new_size,
+            });
+            // Align up to avoid cache conflicts
+            constexpr u64 align = 256ULL;
+            constexpr u64 mask = ~(align - 1ULL);
+            total_size_bytes += (new_size + align - 1) & mask;
+            largest_copy = std::max(largest_copy, new_size);
+        };
+
+        const VAddr start_address = buffer_addr + range_offset;
+        const VAddr end_address = start_address + range_size;
+        const IntervalType search_interval{start_address - range_size, 1};
+        auto it = common_ranges.lower_bound(search_interval);
+        if (it == common_ranges.end()) {
+            it = common_ranges.begin();
+        }
+        while (it != common_ranges.end()) {
+            VAddr inter_addr_end = it->upper();
+            VAddr inter_addr = it->lower();
+            if (inter_addr >= end_address) {
+                break;
+            }
+            if (inter_addr_end <= start_address) {
+                it++;
+                continue;
+            }
+            if (inter_addr_end > end_address) {
+                inter_addr_end = end_address;
+            }
+            if (inter_addr < start_address) {
+                inter_addr = start_address;
+            }
+            add_download(inter_addr, inter_addr_end);
+            it++;
+        }
+        const IntervalType subtract_interval{start_address, end_address};
+        common_ranges.subtract(subtract_interval);
     });
     if (total_size_bytes == 0) {
         return;
