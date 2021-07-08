@@ -1355,6 +1355,9 @@ void GMainWindow::BootGame(const QString& filename, std::size_t program_index, S
 
     ConfigureVibration::SetAllVibrationDevices();
 
+    // Disable fps limit toggle when booting a new title
+    Settings::values.disable_fps_limit.SetValue(false);
+
     // Save configurations
     UpdateUISettings();
     game_list->SaveInterfaceLayout();
@@ -2913,7 +2916,12 @@ void GMainWindow::UpdateStatusBar() {
     } else {
         emu_speed_label->setText(tr("Speed: %1%").arg(results.emulation_speed * 100.0, 0, 'f', 0));
     }
-    game_fps_label->setText(tr("Game: %1 FPS").arg(results.average_game_fps, 0, 'f', 0));
+    if (Settings::values.disable_fps_limit) {
+        game_fps_label->setText(
+            tr("Game: %1 FPS (Limit off)").arg(results.average_game_fps, 0, 'f', 0));
+    } else {
+        game_fps_label->setText(tr("Game: %1 FPS").arg(results.average_game_fps, 0, 'f', 0));
+    }
     emu_frametime_label->setText(tr("Frame: %1 ms").arg(results.frametime * 1000.0, 0, 'f', 2));
 
     emu_speed_label->setVisible(!Settings::values.use_multi_core.GetValue());
