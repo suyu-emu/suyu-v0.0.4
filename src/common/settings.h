@@ -278,7 +278,7 @@ struct Values {
     BasicSetting<std::string> sink_id{"auto", "output_engine"};
     BasicSetting<bool> audio_muted{false, "audio_muted"};
     Setting<bool> enable_audio_stretching{true, "enable_audio_stretching"};
-    Setting<float> volume{1.0f, "volume"};
+    Setting<u8> volume{100, "volume"};
 
     // Core
     Setting<bool> use_multi_core{true, "use_multi_core"};

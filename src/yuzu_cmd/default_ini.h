@@ -281,7 +281,7 @@ enable_audio_stretching =
 output_device =
 
 # Output volume.
-# 1.0 (default): 100%, 0.0; mute
+# 100 (default): 100%, 0; mute
 volume =
 
 [Data Storage]
