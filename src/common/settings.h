@@ -333,9 +333,9 @@ struct Values {
     Setting<bool> use_fast_gpu_time{true, "use_fast_gpu_time"};
     Setting<bool> use_caches_gc{false, "use_caches_gc"};
 
-    Setting<float> bg_red{0.0f, "bg_red"};
-    Setting<float> bg_green{0.0f, "bg_green"};
-    Setting<float> bg_blue{0.0f, "bg_blue"};
+    Setting<u8> bg_red{0, "bg_red"};
+    Setting<u8> bg_green{0, "bg_green"};
+    Setting<u8> bg_blue{0, "bg_blue"};
 
     // System
     Setting<std::optional<u32>> rng_seed{std::optional<u32>(), "rng_seed"};

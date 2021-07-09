@@ -232,7 +232,7 @@ use_vsync =
 use_caches_gc =
 
 # The clear color for the renderer. What shows up on the sides of the bottom screen.
-# Must be in range of 0.0-1.0. Defaults to 1.0 for all.
+# Must be in range of 0-255. Defaults to 0 for all.
 bg_red =
 bg_blue =
 bg_green =
