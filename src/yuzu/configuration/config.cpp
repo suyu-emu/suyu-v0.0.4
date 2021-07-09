@@ -820,7 +820,6 @@ void Config::ReadRendererValues() {
     qt_config->beginGroup(QStringLiteral("Renderer"));
 
     ReadGlobalSetting(Settings::values.renderer_backend);
-    ReadBasicSetting(Settings::values.renderer_debug);
     ReadGlobalSetting(Settings::values.vulkan_device);
     ReadGlobalSetting(Settings::values.fullscreen_mode);
     ReadGlobalSetting(Settings::values.aspect_ratio);
@@ -841,6 +840,10 @@ void Config::ReadRendererValues() {
     ReadGlobalSetting(Settings::values.bg_red);
     ReadGlobalSetting(Settings::values.bg_green);
     ReadGlobalSetting(Settings::values.bg_blue);
+
+    if (global) {
+        ReadBasicSetting(Settings::values.renderer_debug);
+    }
 
     qt_config->endGroup();
 }
@@ -1342,7 +1345,6 @@ void Config::SaveRendererValues() {
                  static_cast<u32>(Settings::values.renderer_backend.GetValue(global)),
                  static_cast<u32>(Settings::values.renderer_backend.GetDefault()),
                  Settings::values.renderer_backend.UsingGlobal());
-    WriteBasicSetting(Settings::values.renderer_debug);
     WriteGlobalSetting(Settings::values.vulkan_device);
     WriteGlobalSetting(Settings::values.fullscreen_mode);
     WriteGlobalSetting(Settings::values.aspect_ratio);
@@ -1366,6 +1368,10 @@ void Config::SaveRendererValues() {
     WriteGlobalSetting(Settings::values.bg_red);
     WriteGlobalSetting(Settings::values.bg_green);
     WriteGlobalSetting(Settings::values.bg_blue);
+
+    if (global) {
+        WriteBasicSetting(Settings::values.renderer_debug);
+    }
 
     qt_config->endGroup();
 }
