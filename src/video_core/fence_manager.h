@@ -8,6 +8,7 @@
 #include <queue>
 
 #include "common/common_types.h"
+#include "common/settings.h"
 #include "core/core.h"
 #include "video_core/delayed_destruction_ring.h"
 #include "video_core/gpu.h"
@@ -51,6 +52,12 @@ public:
     /// Notify the fence manager about a new frame
     void TickFrame() {
         delayed_destruction_ring.Tick();
+    }
+
+    // Unlike other fences, this one doesn't
+    void SignalOrdering() {
+        std::scoped_lock lock{buffer_cache.mutex};
+        buffer_cache.AccumulateFlushes();
     }
 
     void SignalSemaphore(GPUVAddr addr, u32 value) {

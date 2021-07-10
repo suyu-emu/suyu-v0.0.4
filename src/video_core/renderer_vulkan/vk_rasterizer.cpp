@@ -580,6 +580,13 @@ void RasterizerVulkan::SignalSyncPoint(u32 value) {
     fence_manager.SignalSyncPoint(value);
 }
 
+void RasterizerVulkan::SignalReference() {
+    if (!gpu.IsAsync()) {
+        return;
+    }
+    fence_manager.SignalOrdering();
+}
+
 void RasterizerVulkan::ReleaseFences() {
     if (!gpu.IsAsync()) {
         return;
@@ -612,6 +619,7 @@ void RasterizerVulkan::WaitForIdle() {
         cmdbuf.SetEvent(event, flags);
         cmdbuf.WaitEvents(event, flags, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, {}, {}, {});
     });
+    SignalReference();
 }
 
 void RasterizerVulkan::FragmentBarrier() {
