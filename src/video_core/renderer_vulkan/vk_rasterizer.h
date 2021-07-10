@@ -49,6 +49,16 @@ struct VKScreenInfo;
 
 class StateTracker;
 
+class AccelerateDMA : public Tegra::Engines::AccelerateDMAInterface {
+public:
+  explicit AccelerateDMA(BufferCache& buffer_cache);
+
+  bool BufferCopy(GPUVAddr start_address, GPUVAddr end_address, u64 amount) override;
+
+  private:
+  BufferCache& buffer_cache;
+};
+
 class RasterizerVulkan final : public VideoCore::RasterizerAccelerated {
 public:
     explicit RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
@@ -86,6 +96,7 @@ public:
     bool AccelerateSurfaceCopy(const Tegra::Engines::Fermi2D::Surface& src,
                                const Tegra::Engines::Fermi2D::Surface& dst,
                                const Tegra::Engines::Fermi2D::Config& copy_config) override;
+    Tegra::Engines::AccelerateDMAInterface& AccessAccelerateDMA() override;
     bool AccelerateDisplay(const Tegra::FramebufferConfig& config, VAddr framebuffer_addr,
                            u32 pixel_stride) override;
 
@@ -186,6 +197,7 @@ private:
     BufferCache buffer_cache;
     VKPipelineCache pipeline_cache;
     VKQueryCache query_cache;
+    AccelerateDMA accelerate_dma;
     VKFenceManager fence_manager;
 
     vk::Event wfi_event;

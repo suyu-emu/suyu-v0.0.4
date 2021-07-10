@@ -164,6 +164,8 @@ public:
     /// Pop asynchronous downloads
     void PopAsyncFlushes();
 
+    [[nodiscard]] bool DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 amount);
+
     /// Return true when a CPU region is modified from the GPU
     [[nodiscard]] bool IsRegionGpuModified(VAddr addr, size_t size);
 
@@ -428,6 +430,83 @@ void BufferCache<P>::DownloadMemory(VAddr cpu_addr, u64 size) {
     ForEachBufferInRange(cpu_addr, size, [&](BufferId, Buffer& buffer) {
         DownloadBufferMemory(buffer, cpu_addr, size);
     });
+}
+
+template <class P>
+bool BufferCache<P>::DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 amount) {
+    const std::optional<VAddr> cpu_src_address = gpu_memory.GpuToCpuAddress(src_address);
+    const std::optional<VAddr> cpu_dest_address = gpu_memory.GpuToCpuAddress(dest_address);
+    if (!cpu_src_address || !cpu_dest_address) {
+        return false;
+    }
+    const bool source_dirty = IsRegionGpuModified(*cpu_src_address, amount);
+    const bool dest_dirty = IsRegionGpuModified(*cpu_dest_address, amount);
+    if (!(source_dirty || dest_dirty)) {
+        return false;
+    }
+
+    const IntervalType subtract_interval{*cpu_dest_address, *cpu_dest_address + amount};
+    common_ranges.subtract(subtract_interval);
+
+    BufferId buffer_a;
+    BufferId buffer_b;
+    do {
+        has_deleted_buffers = false;
+        buffer_a = FindBuffer(*cpu_src_address, static_cast<u32>(amount));
+        buffer_b = FindBuffer(*cpu_dest_address, static_cast<u32>(amount));
+    } while (has_deleted_buffers);
+    auto& src_buffer = slot_buffers[buffer_a];
+    auto& dest_buffer = slot_buffers[buffer_b];
+    SynchronizeBuffer(src_buffer, *cpu_src_address, amount);
+    SynchronizeBuffer(dest_buffer, *cpu_dest_address, amount);
+    std::array copies{BufferCopy{
+        .src_offset = src_buffer.Offset(*cpu_src_address),
+        .dst_offset = dest_buffer.Offset(*cpu_dest_address),
+        .size = amount,
+    }};
+
+    auto mirror = [&](VAddr base_address, u64 size) {
+        VAddr diff = base_address - *cpu_src_address;
+        VAddr new_base_address = *cpu_dest_address + diff;
+        const IntervalType add_interval{new_base_address, new_base_address + size};
+        common_ranges.add(add_interval);
+    };
+
+    const VAddr start_address = *cpu_src_address;
+    const VAddr end_address = start_address + amount;
+    const IntervalType search_interval{start_address - amount, 1};
+    auto it = common_ranges.lower_bound(search_interval);
+    if (it == common_ranges.end()) {
+        it = common_ranges.begin();
+    }
+    while (it != common_ranges.end()) {
+        VAddr inter_addr_end = it->upper();
+        VAddr inter_addr = it->lower();
+        if (inter_addr >= end_address) {
+            break;
+        }
+        if (inter_addr_end <= start_address) {
+            it++;
+            continue;
+        }
+        if (inter_addr_end > end_address) {
+            inter_addr_end = end_address;
+        }
+        if (inter_addr < start_address) {
+            inter_addr = start_address;
+        }
+        mirror(inter_addr, inter_addr_end - inter_addr);
+        it++;
+    }
+
+    runtime.CopyBuffer(dest_buffer, src_buffer, copies);
+    if (source_dirty) {
+        dest_buffer.MarkRegionAsGpuModified(*cpu_dest_address, amount);
+    }
+    std::vector<u8> tmp_buffer(amount);
+    cpu_memory.ReadBlockUnsafe(*cpu_src_address, tmp_buffer.data(), amount);
+    cpu_memory.WriteBlockUnsafe(*cpu_dest_address, tmp_buffer.data(), amount);
+    return true;
 }
 
 template <class P>
@@ -951,7 +1030,7 @@ void BufferCache<P>::UpdateIndexBuffer() {
     const GPUVAddr gpu_addr_end = index_array.EndAddress();
     const std::optional<VAddr> cpu_addr = gpu_memory.GpuToCpuAddress(gpu_addr_begin);
     const u32 address_size = static_cast<u32>(gpu_addr_end - gpu_addr_begin);
-    const u32 draw_size = index_array.count * index_array.FormatSizeInBytes();
+    const u32 draw_size = (index_array.count + index_array.first) * index_array.FormatSizeInBytes();
     const u32 size = std::min(address_size, draw_size);
     if (size == 0 || !cpu_addr) {
         index_buffer = NULL_BINDING;

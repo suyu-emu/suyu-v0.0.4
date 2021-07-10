@@ -19,6 +19,7 @@
 #include "common/common_types.h"
 #include "video_core/engines/const_buffer_info.h"
 #include "video_core/engines/maxwell_3d.h"
+#include "video_core/engines/maxwell_dma.h"
 #include "video_core/rasterizer_accelerated.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_opengl/gl_buffer_cache.h"
@@ -58,6 +59,16 @@ struct BindlessSSBO {
 };
 static_assert(sizeof(BindlessSSBO) * CHAR_BIT == 128);
 
+class AccelerateDMA : public Tegra::Engines::AccelerateDMAInterface {
+public:
+    explicit AccelerateDMA(BufferCache& buffer_cache);
+
+    bool BufferCopy(GPUVAddr src_address, GPUVAddr dest_address, u64 amount) override;
+
+private:
+    BufferCache& buffer_cache;
+};
+
 class RasterizerOpenGL : public VideoCore::RasterizerAccelerated {
 public:
     explicit RasterizerOpenGL(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
@@ -94,6 +105,7 @@ public:
     bool AccelerateSurfaceCopy(const Tegra::Engines::Fermi2D::Surface& src,
                                const Tegra::Engines::Fermi2D::Surface& dst,
                                const Tegra::Engines::Fermi2D::Config& copy_config) override;
+    Tegra::Engines::AccelerateDMAInterface& AccessAccelerateDMA() override;
     bool AccelerateDisplay(const Tegra::FramebufferConfig& config, VAddr framebuffer_addr,
                            u32 pixel_stride) override;
     void LoadDiskResources(u64 title_id, std::stop_token stop_loading,
@@ -234,6 +246,7 @@ private:
     BufferCache buffer_cache;
     ShaderCacheOpenGL shader_cache;
     QueryCache query_cache;
+    AccelerateDMA accelerate_dma;
     FenceManagerOpenGL fence_manager;
 
     VideoCommon::Shader::AsyncShaders async_shaders;

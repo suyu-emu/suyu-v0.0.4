@@ -10,6 +10,7 @@
 #include <stop_token>
 #include "common/common_types.h"
 #include "video_core/engines/fermi_2d.h"
+#include "video_core/engines/maxwell_dma.h"
 #include "video_core/gpu.h"
 #include "video_core/guest_driver.h"
 
@@ -118,6 +119,8 @@ public:
         const Tegra::Engines::Fermi2D::Config& copy_config) {
         return false;
     }
+
+    [[nodiscard]] virtual Tegra::Engines::AccelerateDMAInterface& AccessAccelerateDMA() = 0;
 
     /// Attempt to use a faster method to display the framebuffer to screen
     [[nodiscard]] virtual bool AccelerateDisplay(const Tegra::FramebufferConfig& config,
