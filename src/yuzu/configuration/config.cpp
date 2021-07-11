@@ -839,7 +839,6 @@ void Config::ReadRendererValues() {
     ReadGlobalSetting(Settings::values.use_nvdec_emulation);
     ReadGlobalSetting(Settings::values.accelerate_astc);
     ReadGlobalSetting(Settings::values.use_vsync);
-    ReadGlobalSetting(Settings::values.disable_fps_limit);
     ReadGlobalSetting(Settings::values.use_assembly_shaders);
     ReadGlobalSetting(Settings::values.use_asynchronous_shaders);
     ReadGlobalSetting(Settings::values.use_fast_gpu_time);
@@ -1369,7 +1368,6 @@ void Config::SaveRendererValues() {
     WriteGlobalSetting(Settings::values.use_nvdec_emulation);
     WriteGlobalSetting(Settings::values.accelerate_astc);
     WriteGlobalSetting(Settings::values.use_vsync);
-    WriteGlobalSetting(Settings::values.disable_fps_limit);
     WriteGlobalSetting(Settings::values.use_assembly_shaders);
     WriteGlobalSetting(Settings::values.use_asynchronous_shaders);
     WriteGlobalSetting(Settings::values.use_fast_gpu_time);
