@@ -13,6 +13,7 @@
 #include <boost/container/static_vector.hpp>
 
 #include "common/common_types.h"
+#include "video_core/engines/maxwell_dma.h"
 #include "video_core/rasterizer_accelerated.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_vulkan/blit_image.h"
@@ -51,12 +52,12 @@ class StateTracker;
 
 class AccelerateDMA : public Tegra::Engines::AccelerateDMAInterface {
 public:
-  explicit AccelerateDMA(BufferCache& buffer_cache);
+    explicit AccelerateDMA(BufferCache& buffer_cache);
 
-  bool BufferCopy(GPUVAddr start_address, GPUVAddr end_address, u64 amount) override;
+    bool BufferCopy(GPUVAddr start_address, GPUVAddr end_address, u64 amount) override;
 
-  private:
-  BufferCache& buffer_cache;
+private:
+    BufferCache& buffer_cache;
 };
 
 class RasterizerVulkan final : public VideoCore::RasterizerAccelerated {

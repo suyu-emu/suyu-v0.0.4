@@ -10,13 +10,15 @@
 #include <stop_token>
 #include "common/common_types.h"
 #include "video_core/engines/fermi_2d.h"
-#include "video_core/engines/maxwell_dma.h"
 #include "video_core/gpu.h"
 #include "video_core/guest_driver.h"
 
 namespace Tegra {
 class MemoryManager;
+namespace Engines {
+class AccelerateDMAInterface;
 }
+} // namespace Tegra
 
 namespace VideoCore {
 

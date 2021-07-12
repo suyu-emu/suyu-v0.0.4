@@ -202,6 +202,36 @@ private:
         }
     }
 
+    template <typename Func>
+    void ForEachWrittenRange(VAddr cpu_addr, u64 size, Func&& func) {
+        const VAddr start_address = cpu_addr;
+        const VAddr end_address = start_address + size;
+        const VAddr search_base =
+            static_cast<VAddr>(std::min<s64>(0LL, static_cast<s64>(start_address - size)));
+        const IntervalType search_interval{search_base, search_base + 1};
+        auto it = common_ranges.lower_bound(search_interval);
+        if (it == common_ranges.end()) {
+            it = common_ranges.begin();
+        }
+        for (; it != common_ranges.end(); it++) {
+            VAddr inter_addr_end = it->upper();
+            VAddr inter_addr = it->lower();
+            if (inter_addr >= end_address) {
+                break;
+            }
+            if (inter_addr_end <= start_address) {
+                continue;
+            }
+            if (inter_addr_end > end_address) {
+                inter_addr_end = end_address;
+            }
+            if (inter_addr < start_address) {
+                inter_addr = start_address;
+            }
+            func(inter_addr, inter_addr_end);
+        }
+    }
+
     static bool IsRangeGranular(VAddr cpu_addr, size_t size) {
         return (cpu_addr & ~Core::Memory::PAGE_MASK) ==
                ((cpu_addr + size) & ~Core::Memory::PAGE_MASK);
@@ -441,12 +471,15 @@ bool BufferCache<P>::DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 am
     }
     const bool source_dirty = IsRegionGpuModified(*cpu_src_address, amount);
     const bool dest_dirty = IsRegionGpuModified(*cpu_dest_address, amount);
-    if (!(source_dirty || dest_dirty)) {
+    if (!source_dirty && !dest_dirty) {
         return false;
     }
 
     const IntervalType subtract_interval{*cpu_dest_address, *cpu_dest_address + amount};
-    common_ranges.subtract(subtract_interval);
+    uncommitted_ranges.subtract(subtract_interval);
+    for (auto& interval_set : committed_ranges) {
+        interval_set.subtract(subtract_interval);
+    }
 
     BufferId buffer_a;
     BufferId buffer_b;
@@ -457,46 +490,28 @@ bool BufferCache<P>::DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 am
     } while (has_deleted_buffers);
     auto& src_buffer = slot_buffers[buffer_a];
     auto& dest_buffer = slot_buffers[buffer_b];
-    SynchronizeBuffer(src_buffer, *cpu_src_address, amount);
-    SynchronizeBuffer(dest_buffer, *cpu_dest_address, amount);
+    SynchronizeBuffer(src_buffer, *cpu_src_address, static_cast<u32>(amount));
+    SynchronizeBuffer(dest_buffer, *cpu_dest_address, static_cast<u32>(amount));
     std::array copies{BufferCopy{
         .src_offset = src_buffer.Offset(*cpu_src_address),
         .dst_offset = dest_buffer.Offset(*cpu_dest_address),
         .size = amount,
     }};
 
-    auto mirror = [&](VAddr base_address, u64 size) {
-        VAddr diff = base_address - *cpu_src_address;
-        VAddr new_base_address = *cpu_dest_address + diff;
+    boost::container::small_vector<IntervalType, 4> tmp_intervals;
+    auto mirror = [&](VAddr base_address, VAddr base_address_end) {
+        const u64 size = base_address_end - base_address;
+        const VAddr diff = base_address - *cpu_src_address;
+        const VAddr new_base_address = *cpu_dest_address + diff;
         const IntervalType add_interval{new_base_address, new_base_address + size};
-        common_ranges.add(add_interval);
+        uncommitted_ranges.add(add_interval);
+        tmp_intervals.push_back(add_interval);
     };
-
-    const VAddr start_address = *cpu_src_address;
-    const VAddr end_address = start_address + amount;
-    const IntervalType search_interval{start_address - amount, 1};
-    auto it = common_ranges.lower_bound(search_interval);
-    if (it == common_ranges.end()) {
-        it = common_ranges.begin();
-    }
-    while (it != common_ranges.end()) {
-        VAddr inter_addr_end = it->upper();
-        VAddr inter_addr = it->lower();
-        if (inter_addr >= end_address) {
-            break;
-        }
-        if (inter_addr_end <= start_address) {
-            it++;
-            continue;
-        }
-        if (inter_addr_end > end_address) {
-            inter_addr_end = end_address;
-        }
-        if (inter_addr < start_address) {
-            inter_addr = start_address;
-        }
-        mirror(inter_addr, inter_addr_end - inter_addr);
-        it++;
+    ForEachWrittenRange(*cpu_src_address, amount, mirror);
+    // This subtraction in this order is important for overlapping copies.
+    common_ranges.subtract(subtract_interval);
+    for (const IntervalType add_interval : tmp_intervals) {
+        common_ranges.add(add_interval);
     }
 
     runtime.CopyBuffer(dest_buffer, src_buffer, copies);
@@ -695,30 +710,7 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
 
                         const VAddr start_address = buffer_addr + range_offset;
                         const VAddr end_address = start_address + range_size;
-                        const IntervalType search_interval{cpu_addr, 1};
-                        auto it = common_ranges.lower_bound(search_interval);
-                        if (it == common_ranges.end()) {
-                            it = common_ranges.begin();
-                        }
-                        while (it != common_ranges.end()) {
-                            VAddr inter_addr_end = it->upper();
-                            VAddr inter_addr = it->lower();
-                            if (inter_addr >= end_address) {
-                                break;
-                            }
-                            if (inter_addr_end <= start_address) {
-                                it++;
-                                continue;
-                            }
-                            if (inter_addr_end > end_address) {
-                                inter_addr_end = end_address;
-                            }
-                            if (inter_addr < start_address) {
-                                inter_addr = start_address;
-                            }
-                            add_download(inter_addr, inter_addr_end);
-                            it++;
-                        }
+                        ForEachWrittenRange(start_address, range_size, add_download);
                         const IntervalType subtract_interval{start_address, end_address};
                         common_ranges.subtract(subtract_interval);
                     });
@@ -816,7 +808,9 @@ void BufferCache<P>::BindHostIndexBuffer() {
     const u32 size = index_buffer.size;
     SynchronizeBuffer(buffer, index_buffer.cpu_addr, size);
     if constexpr (HAS_FULL_INDEX_AND_PRIMITIVE_SUPPORT) {
-        runtime.BindIndexBuffer(buffer, offset, size);
+        const u32 new_offset = offset + maxwell3d.regs.index_array.first *
+                                            maxwell3d.regs.index_array.FormatSizeInBytes();
+        runtime.BindIndexBuffer(buffer, new_offset, size);
     } else {
         runtime.BindIndexBuffer(maxwell3d.regs.draw.topology, maxwell3d.regs.index_array.format,
                                 maxwell3d.regs.index_array.first, maxwell3d.regs.index_array.count,
@@ -1429,30 +1423,7 @@ void BufferCache<P>::DownloadBufferMemory(Buffer& buffer, VAddr cpu_addr, u64 si
 
         const VAddr start_address = buffer_addr + range_offset;
         const VAddr end_address = start_address + range_size;
-        const IntervalType search_interval{start_address - range_size, 1};
-        auto it = common_ranges.lower_bound(search_interval);
-        if (it == common_ranges.end()) {
-            it = common_ranges.begin();
-        }
-        while (it != common_ranges.end()) {
-            VAddr inter_addr_end = it->upper();
-            VAddr inter_addr = it->lower();
-            if (inter_addr >= end_address) {
-                break;
-            }
-            if (inter_addr_end <= start_address) {
-                it++;
-                continue;
-            }
-            if (inter_addr_end > end_address) {
-                inter_addr_end = end_address;
-            }
-            if (inter_addr < start_address) {
-                inter_addr = start_address;
-            }
-            add_download(inter_addr, inter_addr_end);
-            it++;
-        }
+        ForEachWrittenRange(start_address, range_size, add_download);
         const IntervalType subtract_interval{start_address, end_address};
         common_ranges.subtract(subtract_interval);
     });
