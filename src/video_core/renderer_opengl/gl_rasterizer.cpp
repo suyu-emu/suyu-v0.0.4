@@ -171,7 +171,7 @@ RasterizerOpenGL::RasterizerOpenGL(Core::Frontend::EmuWindow& emu_window_, Tegra
       buffer_cache_runtime(device),
       buffer_cache(*this, maxwell3d, kepler_compute, gpu_memory, cpu_memory_, buffer_cache_runtime),
       shader_cache(*this, emu_window_, gpu, maxwell3d, kepler_compute, gpu_memory, device),
-      query_cache(*this, maxwell3d, gpu_memory),
+      query_cache(*this, maxwell3d, gpu_memory), accelerate_dma(buffer_cache),
       fence_manager(*this, gpu, texture_cache, buffer_cache, query_cache),
       async_shaders(emu_window_) {
     if (device.UseAsynchronousShaders()) {
@@ -699,6 +699,10 @@ bool RasterizerOpenGL::AccelerateSurfaceCopy(const Tegra::Engines::Fermi2D::Surf
     std::scoped_lock lock{texture_cache.mutex};
     texture_cache.BlitImage(dst, src, copy_config);
     return true;
+}
+
+Tegra::Engines::AccelerateDMAInterface& RasterizerOpenGL::AccessAccelerateDMA() {
+    return accelerate_dma;
 }
 
 bool RasterizerOpenGL::AccelerateDisplay(const Tegra::FramebufferConfig& config,
@@ -1394,6 +1398,13 @@ void RasterizerOpenGL::EndTransformFeedback() {
         return;
     }
     glEndTransformFeedback();
+}
+
+AccelerateDMA::AccelerateDMA(BufferCache& buffer_cache_) : buffer_cache{buffer_cache_} {}
+
+bool AccelerateDMA::BufferCopy(GPUVAddr src_address, GPUVAddr dest_address, u64 amount) {
+    std::scoped_lock lock{buffer_cache.mutex};
+    return buffer_cache.DMACopy(src_address, dest_address, amount);
 }
 
 } // namespace OpenGL
