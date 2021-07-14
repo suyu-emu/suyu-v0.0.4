@@ -11,8 +11,8 @@
 #include "common/common_types.h"
 #include "core/file_sys/vfs_types.h"
 #include "core/hle/result.h"
+#include "core/hle/service/am/applets/applet_web_browser_types.h"
 #include "core/hle/service/am/applets/applets.h"
-#include "core/hle/service/am/applets/web_types.h"
 
 namespace Core {
 class System;

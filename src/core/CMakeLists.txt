@@ -272,22 +272,22 @@ add_library(core STATIC
     hle/service/am/applet_ae.h
     hle/service/am/applet_oe.cpp
     hle/service/am/applet_oe.h
+    hle/service/am/applets/applet_controller.cpp
+    hle/service/am/applets/applet_controller.h
+    hle/service/am/applets/applet_error.cpp
+    hle/service/am/applets/applet_error.h
+    hle/service/am/applets/applet_general_backend.cpp
+    hle/service/am/applets/applet_general_backend.h
+    hle/service/am/applets/applet_profile_select.cpp
+    hle/service/am/applets/applet_profile_select.h
+    hle/service/am/applets/applet_software_keyboard.cpp
+    hle/service/am/applets/applet_software_keyboard.h
+    hle/service/am/applets/applet_software_keyboard_types.h
+    hle/service/am/applets/applet_web_browser.cpp
+    hle/service/am/applets/applet_web_browser.h
+    hle/service/am/applets/applet_web_browser_types.h
     hle/service/am/applets/applets.cpp
     hle/service/am/applets/applets.h
-    hle/service/am/applets/controller.cpp
-    hle/service/am/applets/controller.h
-    hle/service/am/applets/error.cpp
-    hle/service/am/applets/error.h
-    hle/service/am/applets/general_backend.cpp
-    hle/service/am/applets/general_backend.h
-    hle/service/am/applets/profile_select.cpp
-    hle/service/am/applets/profile_select.h
-    hle/service/am/applets/software_keyboard.cpp
-    hle/service/am/applets/software_keyboard.h
-    hle/service/am/applets/software_keyboard_types.h
-    hle/service/am/applets/web_browser.cpp
-    hle/service/am/applets/web_browser.h
-    hle/service/am/applets/web_types.h
     hle/service/am/idle.cpp
     hle/service/am/idle.h
     hle/service/am/omm.cpp
