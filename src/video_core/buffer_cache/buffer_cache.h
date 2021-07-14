@@ -172,7 +172,7 @@ public:
     [[nodiscard]] bool IsRegionGpuModified(VAddr addr, size_t size);
 
     /// Return true when a region is registered on the cache
-    [[nodiscard]] bool IsRegionRegistered(VAddr addr, size_t size);
+    [[nodiscard]] bool IsRegionRegistered(VAddr addr, size_t size) const;
 
     /// Return true when a CPU region is modified from the CPU
     [[nodiscard]] bool IsRegionCpuModified(VAddr addr, size_t size);
@@ -503,6 +503,11 @@ bool BufferCache<P>::DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 am
     auto& src_buffer = slot_buffers[buffer_a];
     auto& dest_buffer = slot_buffers[buffer_b];
     SynchronizeBuffer(src_buffer, *cpu_src_address, static_cast<u32>(amount));
+    const VAddr aligned_dst = Common::AlignUp(*cpu_dest_address, 64);
+    const u64 diff = aligned_dst - *cpu_dest_address;
+    const u64 new_amount = diff > amount ? 0 : amount - diff;
+    dest_buffer.UnmarkRegionAsCpuModified(aligned_dst, Common::AlignDown(new_amount, 64));
+    SynchronizeBuffer(dest_buffer, *cpu_dest_address, static_cast<u32>(amount));
     std::array copies{BufferCopy{
         .src_offset = src_buffer.Offset(*cpu_src_address),
         .dst_offset = dest_buffer.Offset(*cpu_dest_address),
@@ -526,11 +531,7 @@ bool BufferCache<P>::DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 am
         common_ranges.add(add_interval);
     }
 
-    if (dest_buffer.HasCachedWrites()) {
-        dest_buffer.FlushCachedWrites();
-    }
     runtime.CopyBuffer(dest_buffer, src_buffer, copies);
-    dest_buffer.UnmarkRegionAsCpuModified(*cpu_dest_address, amount);
     if (atleast_1_download) {
         dest_buffer.MarkRegionAsGpuModified(*cpu_dest_address, amount);
     }
@@ -827,7 +828,7 @@ bool BufferCache<P>::IsRegionGpuModified(VAddr addr, size_t size) {
 }
 
 template <class P>
-bool BufferCache<P>::IsRegionRegistered(VAddr addr, size_t size) {
+bool BufferCache<P>::IsRegionRegistered(VAddr addr, size_t size) const {
     const VAddr end_addr = addr + size;
     const u64 page_end = Common::DivCeil(end_addr, PAGE_SIZE);
     for (u64 page = addr >> PAGE_BITS; page < page_end;) {
