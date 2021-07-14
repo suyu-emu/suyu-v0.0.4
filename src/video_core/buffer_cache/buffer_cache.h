@@ -172,7 +172,7 @@ public:
     [[nodiscard]] bool IsRegionGpuModified(VAddr addr, size_t size);
 
     /// Return true when a region is registered on the cache
-    [[nodiscard]] bool IsRegionRegistered(VAddr addr, size_t size) const;
+    [[nodiscard]] bool IsRegionRegistered(VAddr addr, size_t size);
 
     /// Return true when a CPU region is modified from the CPU
     [[nodiscard]] bool IsRegionCpuModified(VAddr addr, size_t size);
@@ -503,10 +503,6 @@ bool BufferCache<P>::DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 am
     auto& src_buffer = slot_buffers[buffer_a];
     auto& dest_buffer = slot_buffers[buffer_b];
     SynchronizeBuffer(src_buffer, *cpu_src_address, static_cast<u32>(amount));
-    const VAddr aligned_dst = Common::AlignUp(*cpu_dest_address, 64);
-    const u64 diff = aligned_dst - *cpu_dest_address;
-    const u64 new_amount = diff > amount ? 0 : amount - diff;
-    dest_buffer.UnmarkRegionAsCpuModified(aligned_dst, Common::AlignDown(new_amount, 64));
     SynchronizeBuffer(dest_buffer, *cpu_dest_address, static_cast<u32>(amount));
     std::array copies{BufferCopy{
         .src_offset = src_buffer.Offset(*cpu_src_address),
@@ -552,21 +548,19 @@ bool BufferCache<P>::DMAClear(GPUVAddr dst_address, u64 amount, u32 value) {
         return false;
     }
 
-    const IntervalType subtract_interval{*cpu_dst_address, *cpu_dst_address + amount * sizeof(u32)};
+    const size_t size = amount * sizeof(u32);
+    const IntervalType subtract_interval{*cpu_dst_address, *cpu_dst_address + size};
     ClearDownload(subtract_interval);
     common_ranges.subtract(subtract_interval);
 
-    const size_t size = amount * sizeof(u32);
     BufferId buffer;
     do {
         has_deleted_buffers = false;
         buffer = FindBuffer(*cpu_dst_address, static_cast<u32>(size));
     } while (has_deleted_buffers);
-
     auto& dest_buffer = slot_buffers[buffer];
     const u32 offset = static_cast<u32>(*cpu_dst_address - dest_buffer.CpuAddr());
     runtime.ClearBuffer(dest_buffer, offset, size, value);
-    dest_buffer.UnmarkRegionAsCpuModified(*cpu_dst_address, size);
     return true;
 }
 
@@ -828,7 +822,7 @@ bool BufferCache<P>::IsRegionGpuModified(VAddr addr, size_t size) {
 }
 
 template <class P>
-bool BufferCache<P>::IsRegionRegistered(VAddr addr, size_t size) const {
+bool BufferCache<P>::IsRegionRegistered(VAddr addr, size_t size) {
     const VAddr end_addr = addr + size;
     const u64 page_end = Common::DivCeil(end_addr, PAGE_SIZE);
     for (u64 page = addr >> PAGE_BITS; page < page_end;) {
