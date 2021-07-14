@@ -17,7 +17,7 @@
 #include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/service/bcat/backend/backend.h"
 #include "core/hle/service/bcat/bcat.h"
-#include "core/hle/service/bcat/module.h"
+#include "core/hle/service/bcat/bcat_module.h"
 #include "core/hle/service/filesystem/filesystem.h"
 
 namespace Service::BCAT {

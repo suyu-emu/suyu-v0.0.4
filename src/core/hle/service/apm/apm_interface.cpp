@@ -5,8 +5,8 @@
 #include "common/logging/log.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/service/apm/apm.h"
-#include "core/hle/service/apm/controller.h"
-#include "core/hle/service/apm/interface.h"
+#include "core/hle/service/apm/apm_controller.h"
+#include "core/hle/service/apm/apm_interface.h"
 
 namespace Service::APM {
 

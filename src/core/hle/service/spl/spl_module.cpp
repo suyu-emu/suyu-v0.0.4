@@ -13,8 +13,8 @@
 #include "core/hle/api_version.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/service/spl/csrng.h"
-#include "core/hle/service/spl/module.h"
 #include "core/hle/service/spl/spl.h"
+#include "core/hle/service/spl/spl_module.h"
 
 namespace Service::SPL {
 
