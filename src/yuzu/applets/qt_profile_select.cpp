@@ -14,7 +14,7 @@
 #include "common/string_util.h"
 #include "core/constants.h"
 #include "core/hle/lock.h"
-#include "yuzu/applets/profile_select.h"
+#include "yuzu/applets/qt_profile_select.h"
 #include "yuzu/main.h"
 
 namespace {
