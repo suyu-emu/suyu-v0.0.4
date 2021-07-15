@@ -17,8 +17,8 @@
 #include "core/frontend/input_interpreter.h"
 #include "input_common/keyboard.h"
 #include "input_common/main.h"
-#include "yuzu/applets/web_browser.h"
-#include "yuzu/applets/web_browser_scripts.h"
+#include "yuzu/applets/qt_web_browser.h"
+#include "yuzu/applets/qt_web_browser_scripts.h"
 #include "yuzu/main.h"
 #include "yuzu/util/url_request_interceptor.h"
 

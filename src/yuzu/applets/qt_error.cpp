@@ -4,7 +4,7 @@
 
 #include <QDateTime>
 #include "core/hle/lock.h"
-#include "yuzu/applets/error.h"
+#include "yuzu/applets/qt_error.h"
 #include "yuzu/main.h"
 
 QtErrorDisplay::QtErrorDisplay(GMainWindow& parent) {

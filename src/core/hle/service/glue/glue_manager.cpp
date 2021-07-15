@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "core/hle/service/glue/errors.h"
-#include "core/hle/service/glue/manager.h"
+#include "core/hle/service/glue/glue_manager.h"
 
 namespace Service::Glue {
 

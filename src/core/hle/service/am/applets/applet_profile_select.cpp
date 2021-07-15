@@ -9,7 +9,7 @@
 #include "core/core.h"
 #include "core/frontend/applets/profile_select.h"
 #include "core/hle/service/am/am.h"
-#include "core/hle/service/am/applets/profile_select.h"
+#include "core/hle/service/am/applets/applet_profile_select.h"
 
 namespace Service::AM::Applets {
 

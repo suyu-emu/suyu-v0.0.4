@@ -11,8 +11,8 @@
 #include "common/string_util.h"
 #include "core/core.h"
 #include "core/frontend/input_interpreter.h"
-#include "ui_software_keyboard.h"
-#include "yuzu/applets/software_keyboard.h"
+#include "ui_qt_software_keyboard.h"
+#include "yuzu/applets/qt_software_keyboard.h"
 #include "yuzu/main.h"
 #include "yuzu/util/overlay_dialog.h"
 

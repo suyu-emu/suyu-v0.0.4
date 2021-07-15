@@ -12,7 +12,7 @@
 #include "core/frontend/applets/controller.h"
 #include "core/hle/result.h"
 #include "core/hle/service/am/am.h"
-#include "core/hle/service/am/applets/controller.h"
+#include "core/hle/service/am/applets/applet_controller.h"
 #include "core/hle/service/hid/controllers/npad.h"
 
 namespace Service::AM::Applets {

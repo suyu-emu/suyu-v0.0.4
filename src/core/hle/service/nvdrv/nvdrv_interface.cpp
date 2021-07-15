@@ -10,9 +10,9 @@
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/service/nvdrv/interface.h"
 #include "core/hle/service/nvdrv/nvdata.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
+#include "core/hle/service/nvdrv/nvdrv_interface.h"
 
 namespace Service::Nvidia {
 

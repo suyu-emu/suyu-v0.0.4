@@ -2,7 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include "core/hle/service/time/interface.h"
+#include "core/hle/service/time/time_interface.h"
 
 namespace Service::Time {
 
