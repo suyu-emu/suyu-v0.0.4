@@ -254,7 +254,9 @@ if(ENABLE_QT)
 
     # Check for system Qt on Linux, fallback to bundled Qt
     if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-        find_package(Qt5 ${QT_VERSION} COMPONENTS Widgets)
+        if (NOT YUZU_USE_BUNDLED_QT)
+            find_package(Qt5 ${QT_VERSION} COMPONENTS Widgets)
+        endif()
         if (NOT Qt5_FOUND OR YUZU_USE_BUNDLED_QT)
             # Check for dependencies, then enable bundled Qt download
 
