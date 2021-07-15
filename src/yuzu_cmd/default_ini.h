@@ -98,20 +98,6 @@ use_touch_from_button=
 #touch_from_button_maps_0_bind_1=bar
 # etc.
 
-# Most desktop operating systems do not expose a way to poll the motion state of the controllers
-# so as a way around it, cemuhook created a udp client/server protocol to broadcast the data directly
-# from a controller device to the client program. Citra has a client that can connect and read
-# from any cemuhook compatible motion program.
-
-# IPv4 address of the udp input server (Default "127.0.0.1")
-udp_input_address=127.0.0.1
-
-# Port of the udp input server. (Default 26760)
-udp_input_port=
-
-# The pad to request data on. Should be between 0 (Pad 1) and 3 (Pad 4). (Default 0)
-udp_pad_index=
-
 [Core]
 # Whether to use multi-core for CPU emulation
 # 0: Disabled, 1 (default): Enabled
@@ -166,14 +152,6 @@ debug =
 # Which Vulkan physical device to use (defaults to 0)
 vulkan_device =
 
-# Whether to use software or hardware rendering.
-# 0: Software, 1 (default): Hardware
-use_hw_renderer =
-
-# Whether to use the Just-In-Time (JIT) compiler for shader emulation
-# 0: Interpreter (slow), 1 (default): JIT (fast)
-use_shader_jit =
-
 # Aspect ratio
 # 0: Default (16:9), 1: Force 4:3, 2: Force 21:9, 3: Stretch to Window
 aspect_ratio =
@@ -222,11 +200,6 @@ gpu_accuracy =
 # 0 : Off (slow), 1 (default): On (fast)
 use_asynchronous_gpu_emulation =
 
-# Forces VSync on the display thread. Usually doesn't impact performance, but on some drivers it can
-# so only turn this off if you notice a speed difference.
-# 0: Off, 1 (default): On
-use_vsync =
-
 # Whether to use garbage collection or not for GPU caches.
 # 0 (default): Off, 1: On
 use_caches_gc =
@@ -236,31 +209,6 @@ use_caches_gc =
 bg_red =
 bg_blue =
 bg_green =
-
-[Layout]
-# Layout for the screen inside the render window.
-# 0 (default): Default Top Bottom Screen, 1: Single Screen Only, 2: Large Screen Small Screen
-layout_option =
-
-# Toggle custom layout (using the settings below) on or off.
-# 0 (default): Off, 1: On
-custom_layout =
-
-# Screen placement when using Custom layout option
-# 0x, 0y is the top left corner of the render window.
-custom_top_left =
-custom_top_top =
-custom_top_right =
-custom_top_bottom =
-custom_bottom_left =
-custom_bottom_top =
-custom_bottom_right =
-custom_bottom_bottom =
-
-# Swaps the prominent screen with the other screen.
-# For example, if Single Screen is chosen, setting this to 1 will display the bottom screen instead of the top screen.
-# 0 (default): Top Screen is prominent, 1: Bottom Screen is prominent
-swap_screen =
 
 [Audio]
 # Which audio output engine to use.
@@ -308,10 +256,6 @@ gamecard_path =
 # 1 (default): Yes, 0: No
 use_docked_mode =
 
-# Allow the use of NFC in games
-# 1 (default): Yes, 0 : No
-enable_nfc =
-
 # Sets the seed for the RNG generator built into the switch
 # rng_seed will be ignored and randomly generated if rng_seed_enabled is false
 rng_seed_enabled =
@@ -322,10 +266,6 @@ rng_seed =
 # This override will only occur if custom_rtc_enabled is true, otherwise the current time is used
 custom_rtc_enabled =
 custom_rtc =
-
-# Sets the account username, max length is 32 characters
-# yuzu (default)
-username = yuzu
 
 # Sets the systems language index
 # 0: Japanese, 1: English (default), 2: French, 3: German, 4: Italian, 5: Spanish, 6: Chinese,
@@ -393,4 +333,4 @@ title_ids =
 # For each title ID, have a key/value pair called `disabled_<title_id>` equal to the names of the add-ons to disable (sep. by '|')
 # e.x. disabled_0100000000010000 = Update|DLC <- disables Updates and DLC on Super Mario Odyssey
 )";
-}
+} // namespace DefaultINI
