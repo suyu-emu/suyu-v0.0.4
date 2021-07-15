@@ -93,15 +93,9 @@ NvResult nvhost_nvdec_common::Submit(const std::vector<u8>& input, std::vector<u
     for (const auto& cmd_buffer : command_buffers) {
         const auto object = nvmap_dev->GetObject(cmd_buffer.memory_id);
         ASSERT_OR_EXECUTE(object, return NvResult::InvalidState;);
-        const auto map = FindBufferMap(object->dma_map_addr);
-        if (!map) {
-            LOG_ERROR(Service_NVDRV, "Tried to submit an invalid offset 0x{:X} dma 0x{:X}",
-                      object->addr, object->dma_map_addr);
-            return NvResult::Success;
-        }
         Tegra::ChCommandHeaderList cmdlist(cmd_buffer.word_count);
-        gpu.MemoryManager().ReadBlock(map->StartAddr() + cmd_buffer.offset, cmdlist.data(),
-                                      cmdlist.size() * sizeof(u32));
+        system.Memory().ReadBlock(object->addr + cmd_buffer.offset, cmdlist.data(),
+                                  cmdlist.size() * sizeof(u32));
         gpu.PushCommandBuffer(cmdlist);
     }
     if (gpu.UseNvdec()) {
