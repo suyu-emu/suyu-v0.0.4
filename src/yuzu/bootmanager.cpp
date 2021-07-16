@@ -567,6 +567,12 @@ std::unique_ptr<Core::Frontend::GraphicsContext> GRenderWindow::CreateSharedCont
 bool GRenderWindow::InitRenderTarget() {
     ReleaseRenderTarget();
 
+    {
+        // Create a dummy render widget so that Qt
+        // places the render window at the correct position.
+        const RenderWidget dummy_widget{this};
+    }
+
     first_frame = false;
 
     switch (Settings::values.renderer_backend.GetValue()) {
