@@ -15,6 +15,12 @@
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
 #include "yuzu_cmd/emu_window/emu_window_sdl2_vk.h"
 
+#ifdef YUZU_USE_EXTERNAL_SDL2
+// Include this before SDL.h to prevent the external from including a dummy
+#define USING_GENERATED_CONFIG_H
+#include <SDL_config.h>
+#endif
+
 // Include these late to avoid polluting everything with Xlib macros
 // Ignore -Wimplicit-fallthrough due to https://github.com/libsdl-org/SDL/issues/4307
 #ifdef __clang__
