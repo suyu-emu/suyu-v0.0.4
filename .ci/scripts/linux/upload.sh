@@ -5,15 +5,16 @@
 
 . .ci/scripts/common/pre-upload.sh
 
-APPIMAGE_NAME="yuzu-${GITDATE}-${GITREV}.AppImage"
-REV_NAME="yuzu-linux-${GITDATE}-${GITREV}"
+APPIMAGE_NAME="yuzu-${RELEASE_NAME}-${GITDATE}-${GITREV}.AppImage"
+BASE_NAME="yuzu-linux"
+REV_NAME="${BASE_NAME}-${GITDATE}-${GITREV}"
 ARCHIVE_NAME="${REV_NAME}.tar.xz"
 COMPRESSION_FLAGS="-cJvf"
 
-if [ "${RELEASE_NAME}" = "mainline" ]; then
-    DIR_NAME="${REV_NAME}"
+if [ "${RELEASE_NAME}" = "mainline" ] || [ "${RELEASE_NAME}" = "early-access" ]; then
+    DIR_NAME="${BASE_NAME}-${RELEASE_NAME}"
 else
-    DIR_NAME="${REV_NAME}_${RELEASE_NAME}"
+    DIR_NAME="${REV_NAME}-${RELEASE_NAME}"
 fi
 
 mkdir "$DIR_NAME"
@@ -44,6 +45,11 @@ cd ..
 cp "build/${APPIMAGE_NAME}" "${ARTIFACTS_DIR}/"
 if [ -f "build/${APPIMAGE_NAME}.zsync" ]; then
     cp "build/${APPIMAGE_NAME}.zsync" "${ARTIFACTS_DIR}/"
+fi
+
+# Copy the AppImage to the general release directory and remove git revision info
+if [ "${RELEASE_NAME}" = "mainline" ] || [ "${RELEASE_NAME}" = "early-access" ]; then
+    cp "build/${APPIMAGE_NAME}" "${DIR_NAME}/yuzu-${RELEASE_NAME}.AppImage"
 fi
 
 . .ci/scripts/common/post-upload.sh
