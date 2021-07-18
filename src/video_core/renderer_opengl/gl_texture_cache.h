@@ -72,6 +72,8 @@ public:
                                  StateTracker& state_tracker);
     ~TextureCacheRuntime();
 
+    void Init() {}
+
     void Finish();
 
     ImageBufferMap UploadStagingBuffer(size_t size);
@@ -109,6 +111,8 @@ public:
     }
 
     bool HasNativeASTC() const noexcept;
+
+    void TickFrame() {}
 
 private:
     struct StagingBuffers {
@@ -184,6 +188,10 @@ public:
     GLuint GlType() const noexcept {
         return gl_type;
     }
+
+    bool ScaleUp();
+
+    bool ScaleDown();
 
 private:
     void CopyBufferToImage(const VideoCommon::BufferImageCopy& copy, size_t buffer_offset);

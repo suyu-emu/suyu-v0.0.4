@@ -52,6 +52,22 @@ enum class NvdecEmulation : u32 {
     GPU = 2,
 };
 
+enum class ResolutionSetup : u32 {
+    Res1_2X = 0,
+    Res3_4X = 1,
+    Res1X = 2,
+    Res3_2K = 3,
+    Res2X = 4,
+    Res3X = 5,
+};
+
+struct ResolutionScalingInfo {
+    u32 up_scale{2};
+    u32 down_shift{0};
+    f32 up_factor{2.0f};
+    f32 down_factor{0.5f};
+};
+
 /** The BasicSetting class is a simple resource manager. It defines a label and default value
  * alongside the actual value of the setting for simpler and less-error prone use with frontend
  * configurations. Setting a default value and label is required, though subclasses may deviate from
@@ -451,6 +467,8 @@ struct Values {
                                                          "disable_shader_loop_safety_checks"};
     Setting<int> vulkan_device{0, "vulkan_device"};
 
+    ResolutionScalingInfo resolution_info{};
+    Setting<ResolutionSetup> resolution_setup{ResolutionSetup::Res1X, "resolution_setup"};
     Setting<u16> resolution_factor{1, "resolution_factor"};
     // *nix platforms may have issues with the borderless windowed fullscreen mode.
     // Default to exclusive fullscreen on these platforms for now.

@@ -15,7 +15,7 @@ using Tegra::Texture::TICEntry;
 using VideoCore::Surface::PixelFormat;
 
 struct ImageInfo {
-    explicit ImageInfo() = default;
+    ImageInfo() = default;
     explicit ImageInfo(const TICEntry& config) noexcept;
     explicit ImageInfo(const Tegra::Engines::Maxwell3D::Regs& regs, size_t index) noexcept;
     explicit ImageInfo(const Tegra::Engines::Maxwell3D::Regs& regs) noexcept;

@@ -35,6 +35,7 @@ TextureCache<P>::TextureCache(Runtime& runtime_, VideoCore::RasterizerInterface&
                               Tegra::MemoryManager& gpu_memory_)
     : runtime{runtime_}, rasterizer{rasterizer_}, maxwell3d{maxwell3d_},
       kepler_compute{kepler_compute_}, gpu_memory{gpu_memory_} {
+    runtime.Init();
     // Configure null sampler
     TSCEntry sampler_descriptor{};
     sampler_descriptor.min_filter.Assign(Tegra::Texture::TextureFilter::Linear);
@@ -103,6 +104,7 @@ void TextureCache<P>::TickFrame() {
     sentenced_images.Tick();
     sentenced_framebuffers.Tick();
     sentenced_image_view.Tick();
+    runtime.TickFrame();
     ++frame_tick;
 }
 
@@ -208,17 +210,62 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
     const bool force = flags[Dirty::RenderTargetControl];
     flags[Dirty::RenderTargetControl] = false;
 
+    bool can_rescale = true;
+    std::array<ImageId, NUM_RT> tmp_color_images{};
+    ImageId tmp_depth_image{};
+    const auto check_rescale = [&](ImageViewId view_id, ImageId& id_save) {
+        if (view_id) {
+            const auto& view = slot_image_views[view_id];
+            const auto image_id = view.image_id;
+            id_save = image_id;
+            auto& image = slot_images[image_id];
+            can_rescale &= ImageCanRescale(image);
+        } else {
+            id_save = CORRUPT_ID;
+        }
+    };
     for (size_t index = 0; index < NUM_RT; ++index) {
         ImageViewId& color_buffer_id = render_targets.color_buffer_ids[index];
         if (flags[Dirty::ColorBuffer0 + index] || force) {
             flags[Dirty::ColorBuffer0 + index] = false;
             BindRenderTarget(&color_buffer_id, FindColorBuffer(index, is_clear));
         }
-        PrepareImageView(color_buffer_id, true, is_clear && IsFullClear(color_buffer_id));
+        check_rescale(color_buffer_id, tmp_color_images[index]);
     }
     if (flags[Dirty::ZetaBuffer] || force) {
         flags[Dirty::ZetaBuffer] = false;
         BindRenderTarget(&render_targets.depth_buffer_id, FindDepthBuffer(is_clear));
+    }
+    check_rescale(render_targets.depth_buffer_id, tmp_depth_image);
+
+    if (can_rescale) {
+        const auto scale_up = [this](ImageId image_id) {
+            if (image_id != CORRUPT_ID) {
+                Image& image = slot_images[image_id];
+                image.ScaleUp();
+            }
+        };
+        for (size_t index = 0; index < NUM_RT; ++index) {
+            scale_up(tmp_color_images[index]);
+        }
+        scale_up(tmp_depth_image);
+    } else {
+        const auto scale_down = [this](ImageId image_id) {
+            if (image_id != CORRUPT_ID) {
+                Image& image = slot_images[image_id];
+                image.ScaleDown();
+            }
+        };
+        for (size_t index = 0; index < NUM_RT; ++index) {
+            scale_down(tmp_color_images[index]);
+        }
+        scale_down(tmp_depth_image);
+    }
+    // Rescale End
+
+    for (size_t index = 0; index < NUM_RT; ++index) {
+        ImageViewId& color_buffer_id = render_targets.color_buffer_ids[index];
+        PrepareImageView(color_buffer_id, true, is_clear && IsFullClear(color_buffer_id));
     }
     const ImageViewId depth_buffer_id = render_targets.depth_buffer_id;
 
@@ -624,6 +671,31 @@ ImageId TextureCache<P>::FindImage(const ImageInfo& info, GPUVAddr gpu_addr,
 }
 
 template <class P>
+bool TextureCache<P>::ImageCanRescale(Image& image) {
+    if (True(image.flags & ImageFlagBits::Rescaled) ||
+        True(image.flags & ImageFlagBits::RescaleChecked)) {
+        return true;
+    }
+    const auto& info = image.info;
+    const bool can_this_rescale =
+        (info.type == ImageType::e1D || info.type == ImageType::e2D) && info.block.depth == 0;
+    if (!can_this_rescale) {
+        image.flags &= ~ImageFlagBits::RescaleChecked;
+        return false;
+    }
+    image.flags |= ImageFlagBits::RescaleChecked;
+    for (const auto& alias : image.aliased_images) {
+        Image& other_image = slot_images[alias.id];
+        if (!ImageCanRescale(other_image)) {
+            image.flags &= ~ImageFlagBits::RescaleChecked;
+            return false;
+        }
+    }
+    image.flags &= ~ImageFlagBits::RescaleChecked;
+    return true;
+}
+
+template <class P>
 ImageId TextureCache<P>::InsertImage(const ImageInfo& info, GPUVAddr gpu_addr,
                                      RelaxedOptions options) {
     std::optional<VAddr> cpu_addr = gpu_memory.GpuToCpuAddress(gpu_addr);
@@ -660,12 +732,18 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
     std::vector<ImageId> right_aliased_ids;
     std::unordered_set<ImageId> ignore_textures;
     std::vector<ImageId> bad_overlap_ids;
+    std::vector<ImageId> all_siblings;
+    const bool this_is_linear = info.type == ImageType::Linear;
     const auto region_check = [&](ImageId overlap_id, ImageBase& overlap) {
         if (True(overlap.flags & ImageFlagBits::Remapped)) {
             ignore_textures.insert(overlap_id);
             return;
         }
-        if (info.type == ImageType::Linear) {
+        const bool overlap_is_linear = overlap.info.type == ImageType::Linear;
+        if (this_is_linear != overlap_is_linear) {
+            return;
+        }
+        if (this_is_linear && overlap_is_linear) {
             if (info.pitch == overlap.info.pitch && gpu_addr == overlap.gpu_addr) {
                 // Alias linear images with the same pitch
                 left_aliased_ids.push_back(overlap_id);
@@ -681,6 +759,7 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
             cpu_addr = solution->cpu_addr;
             new_info.resources = solution->resources;
             overlap_ids.push_back(overlap_id);
+            all_siblings.push_back(overlap_id);
             return;
         }
         static constexpr auto options = RelaxedOptions::Size | RelaxedOptions::Format;
@@ -688,10 +767,12 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
         if (IsSubresource(new_info, overlap, gpu_addr, options, broken_views, native_bgr)) {
             left_aliased_ids.push_back(overlap_id);
             overlap.flags |= ImageFlagBits::Alias;
+            all_siblings.push_back(overlap_id);
         } else if (IsSubresource(overlap.info, new_image_base, overlap.gpu_addr, options,
                                  broken_views, native_bgr)) {
             right_aliased_ids.push_back(overlap_id);
             overlap.flags |= ImageFlagBits::Alias;
+            all_siblings.push_back(overlap_id);
         } else {
             bad_overlap_ids.push_back(overlap_id);
             overlap.flags |= ImageFlagBits::BadOverlap;
@@ -709,8 +790,36 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
         }
     };
     ForEachSparseImageInRegion(gpu_addr, size_bytes, region_check_gpu);
+
+    bool can_rescale =
+        (info.type == ImageType::e1D || info.type == ImageType::e2D) && info.block.depth == 0;
+    for (const ImageId sibling_id : all_siblings) {
+        if (!can_rescale) {
+            break;
+        }
+        Image& sibling = slot_images[sibling_id];
+        can_rescale &= ImageCanRescale(sibling);
+    }
+
+    if (can_rescale) {
+        for (const ImageId sibling_id : all_siblings) {
+            Image& sibling = slot_images[sibling_id];
+            sibling.ScaleUp();
+        }
+    } else {
+        for (const ImageId sibling_id : all_siblings) {
+            Image& sibling = slot_images[sibling_id];
+            sibling.ScaleDown();
+        }
+    }
+
     const ImageId new_image_id = slot_images.insert(runtime, new_info, gpu_addr, cpu_addr);
     Image& new_image = slot_images[new_image_id];
+    if (can_rescale) {
+        new_image.ScaleUp();
+    } else {
+        new_image.ScaleDown();
+    }
 
     if (!gpu_memory.IsContinousRange(new_image.gpu_addr, new_image.guest_size_bytes)) {
         new_image.flags |= ImageFlagBits::Sparse;

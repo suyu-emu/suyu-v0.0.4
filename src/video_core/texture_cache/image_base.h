@@ -33,6 +33,10 @@ enum class ImageFlagBits : u32 {
                           ///< garbage collection priority
     Alias = 1 << 11,      ///< This image has aliases and has priority on garbage
                           ///< collection
+
+    // Rescaler
+    Rescaled = 1 << 12,
+    RescaleChecked = 1 << 13,
 };
 DECLARE_ENUM_FLAG_OPERATORS(ImageFlagBits)
 

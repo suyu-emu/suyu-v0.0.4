@@ -47,6 +47,7 @@ void LogSettings() {
     log_setting("System_TimeZoneIndex", values.time_zone_index.GetValue());
     log_setting("Core_UseMultiCore", values.use_multi_core.GetValue());
     log_setting("CPU_Accuracy", values.cpu_accuracy.GetValue());
+    log_setting("Renderer_UseResolutionScaling", values.resolution_setup.GetValue());
     log_setting("Renderer_UseResolutionFactor", values.resolution_factor.GetValue());
     log_setting("Renderer_UseSpeedLimit", values.use_speed_limit.GetValue());
     log_setting("Renderer_SpeedLimit", values.speed_limit.GetValue());

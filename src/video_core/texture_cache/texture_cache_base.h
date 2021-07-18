@@ -142,6 +142,14 @@ public:
                    const Tegra::Engines::Fermi2D::Surface& src,
                    const Tegra::Engines::Fermi2D::Config& copy);
 
+    /// Invalidate the contents of the color buffer index
+    /// These contents become unspecified, the cache can assume aggressive optimizations.
+    void InvalidateColorBuffer(size_t index);
+
+    /// Invalidate the contents of the depth buffer
+    /// These contents become unspecified, the cache can assume aggressive optimizations.
+    void InvalidateDepthBuffer();
+
     /// Try to find a cached image view in the given CPU address
     [[nodiscard]] ImageView* TryFindFramebufferImageView(VAddr cpu_addr);
 
@@ -317,6 +325,8 @@ private:
 
     /// Returns true if the current clear parameters clear the whole image of a given image view
     [[nodiscard]] bool IsFullClear(ImageViewId id);
+
+    bool ImageCanRescale(Image& image);
 
     Runtime& runtime;
     VideoCore::RasterizerInterface& rasterizer;

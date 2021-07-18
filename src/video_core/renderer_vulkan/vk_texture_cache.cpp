@@ -32,6 +32,7 @@ using Tegra::Engines::Fermi2D;
 using Tegra::Texture::SwizzleSource;
 using Tegra::Texture::TextureMipmapFilter;
 using VideoCommon::BufferImageCopy;
+using VideoCommon::ImageFlagBits;
 using VideoCommon::ImageInfo;
 using VideoCommon::ImageType;
 using VideoCommon::SubresourceRange;
@@ -123,7 +124,8 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     }
 }
 
-[[nodiscard]] VkImageCreateInfo MakeImageCreateInfo(const Device& device, const ImageInfo& info) {
+[[nodiscard]] VkImageCreateInfo MakeImageCreateInfo(const Device& device, const ImageInfo& info,
+                                                    u32 up, u32 down) {
     const PixelFormat format = StorageFormat(info.format);
     const auto format_info = MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, false, format);
     VkImageCreateFlags flags = VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
@@ -142,9 +144,9 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
         .imageType = ConvertImageType(info.type),
         .format = format_info.format,
         .extent{
-            .width = info.size.width >> samples_x,
-            .height = info.size.height >> samples_y,
-            .depth = info.size.depth,
+            .width = ((info.size.width << up) >> down) >> samples_x,
+            .height = ((info.size.height << up) >> down) >> samples_y,
+            .depth = (info.size.depth << up) >> down,
         },
         .mipLevels = static_cast<u32>(info.resources.levels),
         .arrayLayers = static_cast<u32>(info.resources.layers),
@@ -158,11 +160,12 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     };
 }
 
-[[nodiscard]] vk::Image MakeImage(const Device& device, const ImageInfo& info) {
+[[nodiscard]] vk::Image MakeImage(const Device& device, const ImageInfo& info, u32 up = 0,
+                                  u32 down = 0) {
     if (info.type == ImageType::Buffer) {
         return vk::Image{};
     }
-    return device.GetLogical().CreateImage(MakeImageCreateInfo(device, info));
+    return device.GetLogical().CreateImage(MakeImageCreateInfo(device, info, up, down));
 }
 
 [[nodiscard]] VkImageAspectFlags ImageAspectMask(PixelFormat format) {
@@ -590,6 +593,11 @@ struct RangedBarrierRange {
 }
 } // Anonymous namespace
 
+void TextureCacheRuntime::Init() {
+    resolution = Settings::values.resolution_info;
+    is_rescaling_on = resolution.up_scale != 1 || resolution.down_shift != 0;
+}
+
 void TextureCacheRuntime::Finish() {
     scheduler.Finish();
 }
@@ -840,20 +848,26 @@ u64 TextureCacheRuntime::GetDeviceLocalMemory() const {
     return device.GetDeviceLocalMemory();
 }
 
-Image::Image(TextureCacheRuntime& runtime, const ImageInfo& info_, GPUVAddr gpu_addr_,
+void TextureCacheRuntime::TickFrame() {
+    prescaled_images.Tick();
+    prescaled_commits.Tick();
+    prescaled_views.Tick();
+}
+
+Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu_addr_,
              VAddr cpu_addr_)
-    : VideoCommon::ImageBase(info_, gpu_addr_, cpu_addr_), scheduler{&runtime.scheduler},
-      image(MakeImage(runtime.device, info)),
-      commit(runtime.memory_allocator.Commit(image, MemoryUsage::DeviceLocal)),
-      aspect_mask(ImageAspectMask(info.format)) {
-    if (IsPixelFormatASTC(info.format) && !runtime.device.IsOptimalAstcSupported()) {
+    : VideoCommon::ImageBase(info_, gpu_addr_, cpu_addr_), scheduler{&runtime_.scheduler},
+      image(MakeImage(runtime_.device, info)),
+      commit(runtime_.memory_allocator.Commit(image, MemoryUsage::DeviceLocal)),
+      aspect_mask(ImageAspectMask(info.format)), runtime{&runtime_} {
+    if (IsPixelFormatASTC(info.format) && !runtime->device.IsOptimalAstcSupported()) {
         if (Settings::values.accelerate_astc.GetValue()) {
             flags |= VideoCommon::ImageFlagBits::AcceleratedUpload;
         } else {
             flags |= VideoCommon::ImageFlagBits::Converted;
         }
     }
-    if (runtime.device.HasDebuggingToolAttached()) {
+    if (runtime->device.HasDebuggingToolAttached()) {
         image.SetObjectNameEXT(VideoCommon::Name(*this).c_str());
     }
     static constexpr VkImageViewUsageCreateInfo storage_image_view_usage_create_info{
@@ -861,8 +875,8 @@ Image::Image(TextureCacheRuntime& runtime, const ImageInfo& info_, GPUVAddr gpu_
         .pNext = nullptr,
         .usage = VK_IMAGE_USAGE_STORAGE_BIT,
     };
-    if (IsPixelFormatASTC(info.format) && !runtime.device.IsOptimalAstcSupported()) {
-        const auto& device = runtime.device.GetLogical();
+    if (IsPixelFormatASTC(info.format) && !runtime->device.IsOptimalAstcSupported()) {
+        const auto& device = runtime->device.GetLogical();
         storage_image_views.reserve(info.resources.levels);
         for (s32 level = 0; level < info.resources.levels; ++level) {
             storage_image_views.push_back(device.CreateImageView(VkImageViewCreateInfo{
@@ -907,6 +921,10 @@ void Image::UploadMemory(const StagingBufferRef& map, std::span<const BufferImag
 }
 
 void Image::DownloadMemory(const StagingBufferRef& map, std::span<const BufferImageCopy> copies) {
+    const bool is_rescaled = True(flags & ImageFlagBits::Rescaled);
+    if (is_rescaled) {
+        ScaleDown();
+    }
     std::vector vk_copies = TransformBufferImageCopies(copies, map.offset, aspect_mask);
     scheduler->RequestOutsideRenderPassOperationContext();
     scheduler->Record([buffer = map.buffer, image = *image, aspect_mask = aspect_mask,
@@ -959,6 +977,39 @@ void Image::DownloadMemory(const StagingBufferRef& map, std::span<const BufferIm
         cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
                                0, memory_write_barrier, nullptr, image_write_barrier);
     });
+    if (is_rescaled) {
+        ScaleUp();
+    }
+}
+
+void Image::ScaleUp() {
+    if (True(flags & ImageFlagBits::Rescaled)) {
+        return;
+    }
+    ASSERT(info.type != ImageType::Linear);
+    if (!runtime->is_rescaling_on) {
+        flags |= ImageFlagBits::Rescaled;
+        return;
+    }
+    flags |= ImageFlagBits::Rescaled;
+    scaling_count++;
+    ASSERT(scaling_count < 10);
+    return;
+}
+
+void Image::ScaleDown() {
+    if (False(flags & ImageFlagBits::Rescaled)) {
+        return;
+    }
+    ASSERT(info.type != ImageType::Linear);
+    if (!runtime->is_rescaling_on) {
+        flags &= ~ImageFlagBits::Rescaled;
+        return;
+    }
+    flags &= ~ImageFlagBits::Rescaled;
+    scaling_count++;
+    ASSERT(scaling_count < 10);
+    return;
 }
 
 ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewInfo& info,
