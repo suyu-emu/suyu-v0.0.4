@@ -210,7 +210,7 @@ void QtNXWebEngineView::HandleWindowFooterButtonPressedOnce() {
         if (input_interpreter->IsButtonPressedOnce(button)) {
             page()->runJavaScript(
                 QStringLiteral("yuzu_key_callbacks[%1] == null;").arg(static_cast<u8>(button)),
-                [&](const QVariant& variant) {
+                [this, button](const QVariant& variant) {
                     if (variant.toBool()) {
                         switch (button) {
                         case HIDButton::A:
