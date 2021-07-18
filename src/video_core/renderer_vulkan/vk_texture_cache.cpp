@@ -609,7 +609,7 @@ void TextureCacheRuntime::BlitImage(Framebuffer* dst_framebuffer, ImageView& dst
     const bool is_dst_msaa = dst.Samples() != VK_SAMPLE_COUNT_1_BIT;
     const bool is_src_msaa = src.Samples() != VK_SAMPLE_COUNT_1_BIT;
     if (aspect_mask != ImageAspectMask(dst.format)) {
-        UNIMPLEMENTED_MSG("Incompatible blit from format {} to {}", src.format, dst.format));
+        UNIMPLEMENTED_MSG("Incompatible blit from format {} to {}", src.format, dst.format);
         return;
     }
     if (aspect_mask == VK_IMAGE_ASPECT_COLOR_BIT && !is_src_msaa && !is_dst_msaa) {
