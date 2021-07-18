@@ -106,6 +106,57 @@ float Volume() {
     return values.volume.GetValue() / 100.0f;
 }
 
+void UpdateRescalingInfo() {
+    auto setup = values.resolution_setup.GetValue();
+    auto& info = values.resolution_info;
+    switch (setup) {
+    case ResolutionSetup::Res1_2X: {
+        info.up_scale = 1;
+        info.down_shift = 1;
+        break;
+    }
+    case ResolutionSetup::Res3_4X: {
+        info.up_scale = 3;
+        info.down_shift = 2;
+        break;
+    }
+    case ResolutionSetup::Res1X: {
+        info.up_scale = 1;
+        info.down_shift = 0;
+        break;
+    }
+    case ResolutionSetup::Res3_2X: {
+        info.up_scale = 3;
+        info.down_shift = 1;
+        break;
+    }
+    case ResolutionSetup::Res2X: {
+        info.up_scale = 2;
+        info.down_shift = 0;
+        break;
+    }
+    case ResolutionSetup::Res3X: {
+        info.up_scale = 3;
+        info.down_shift = 0;
+        break;
+    }
+    case ResolutionSetup::Res4X: {
+        info.up_scale = 4;
+        info.down_shift = 0;
+        break;
+    }
+    default: {
+        UNREACHABLE();
+        info.up_scale = 1;
+        info.down_shift = 0;
+    }
+    }
+    info.up_factor = static_cast<f32>(info.up_scale) / (1U << info.down_shift);
+    info.down_factor = static_cast<f32>(1U << info.down_shift) / info.up_scale;
+    info.size_up = info.up_scale * info.up_scale;
+    info.size_shift = info.down_shift * 2;
+}
+
 void RestoreGlobalState(bool is_powered_on) {
     // If a game is running, DO NOT restore the global settings state
     if (is_powered_on) {

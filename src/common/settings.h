@@ -56,16 +56,19 @@ enum class ResolutionSetup : u32 {
     Res1_2X = 0,
     Res3_4X = 1,
     Res1X = 2,
-    Res3_2K = 3,
+    Res3_2X = 3,
     Res2X = 4,
     Res3X = 5,
+    Res4X = 6,
 };
 
 struct ResolutionScalingInfo {
-    u32 up_scale{2};
+    u32 up_scale{1};
     u32 down_shift{0};
-    f32 up_factor{2.0f};
-    f32 down_factor{0.5f};
+    f32 up_factor{1.0f};
+    f32 down_factor{1.0f};
+    u32 size_up{1};
+    u32 size_shift{0};
 };
 
 /** The BasicSetting class is a simple resource manager. It defines a label and default value
@@ -612,6 +615,8 @@ float Volume();
 std::string GetTimeZoneString();
 
 void LogSettings();
+
+void UpdateRescalingInfo();
 
 // Restore the global state of all applicable settings in the Values struct
 void RestoreGlobalState(bool is_powered_on);
