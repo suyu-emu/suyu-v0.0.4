@@ -374,20 +374,20 @@ void ASTCDecoderPass::MakeDataBuffer() {
 
     scheduler.Record([src = staging_ref.buffer, offset = staging_ref.offset, dst = *data_buffer,
                       TOTAL_BUFFER_SIZE](vk::CommandBuffer cmdbuf) {
-        cmdbuf.CopyBuffer(src, dst,
-                          VkBufferCopy{
-                              .srcOffset = offset,
-                              .dstOffset = 0,
-                              .size = TOTAL_BUFFER_SIZE,
-                          });
-        cmdbuf.PipelineBarrier(
-            VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0,
-            VkMemoryBarrier{
-                .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
-                .pNext = nullptr,
-                .srcAccessMask = 0,
-                .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT,
-            });
+        static constexpr VkMemoryBarrier write_barrier{
+            .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+        };
+        const VkBufferCopy copy{
+            .srcOffset = offset,
+            .dstOffset = 0,
+            .size = TOTAL_BUFFER_SIZE,
+        };
+        cmdbuf.CopyBuffer(src, dst, copy);
+        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                               0, write_barrier);
     });
 }
 
