@@ -198,6 +198,8 @@ private:
 
     void CopyImageToBuffer(const VideoCommon::BufferImageCopy& copy, size_t buffer_offset);
 
+    void Scale();
+
     OGLTexture texture;
     OGLTextureView store_view;
     GLenum gl_internal_format = GL_NONE;

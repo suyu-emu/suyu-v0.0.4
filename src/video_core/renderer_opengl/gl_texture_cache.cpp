@@ -698,7 +698,10 @@ void Image::UploadMemory(const ImageBufferMap& map,
 void Image::DownloadMemory(ImageBufferMap& map,
                            std::span<const VideoCommon::BufferImageCopy> copies) {
     glMemoryBarrier(GL_PIXEL_BUFFER_BARRIER_BIT); // TODO: Move this to its own API
-
+    const bool is_rescaled = True(flags & ImageFlagBits::Rescaled);
+    if (is_rescaled) {
+        ScaleDown();
+    }
     glBindBuffer(GL_PIXEL_PACK_BUFFER, map.buffer);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
@@ -715,6 +718,9 @@ void Image::DownloadMemory(ImageBufferMap& map,
             glPixelStorei(GL_PACK_IMAGE_HEIGHT, current_image_height);
         }
         CopyImageToBuffer(copy, map.offset);
+    }
+    if (is_rescaled) {
+        ScaleUp();
     }
 }
 
@@ -849,12 +855,70 @@ void Image::CopyImageToBuffer(const VideoCommon::BufferImageCopy& copy, size_t b
     }
 }
 
+void Image::Scale() {
+    // TODO: Pass scaling factor?
+    if (gl_format == 0 || gl_type == 0) {
+        // compressed textures
+        return;
+    }
+    if (info.type == ImageType::Linear) {
+        UNIMPLEMENTED();
+        return;
+    }
+    GLint prev_draw_fbo;
+    GLint prev_read_fbo;
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &prev_draw_fbo);
+    glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &prev_read_fbo);
+    const GLenum attachment = [this] {
+        switch (GetFormatType(info.format)) {
+        case SurfaceType::ColorTexture:
+            return GL_COLOR_ATTACHMENT0;
+        case SurfaceType::Depth:
+            return GL_DEPTH_ATTACHMENT;
+        case SurfaceType::DepthStencil:
+            return GL_DEPTH_STENCIL_ATTACHMENT;
+        default:
+            UNREACHABLE();
+            return GL_COLOR_ATTACHMENT0;
+        }
+    }();
+    const GLenum mask = [this] {
+        switch (GetFormatType(info.format)) {
+        case SurfaceType::ColorTexture:
+            return GL_COLOR_BUFFER_BIT;
+        case SurfaceType::Depth:
+            return GL_DEPTH_BUFFER_BIT;
+        case SurfaceType::DepthStencil:
+            return GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT;
+        default:
+            UNREACHABLE();
+            return GL_COLOR_BUFFER_BIT;
+        }
+    }();
+    const GLenum filter = (mask & GL_COLOR_BUFFER_BIT) != 0 ? GL_LINEAR : GL_NEAREST;
+    GLuint fbo_handle;
+    glGenFramebuffers(1, &fbo_handle);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_handle);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo_handle);
+    glNamedFramebufferTexture(fbo_handle, attachment, texture.handle, 0);
+
+    const size_t scaled_width = info.size.width;
+    const size_t scaled_height = info.size.height * 2;
+    glBlitNamedFramebuffer(fbo_handle, fbo_handle, 0, 0, info.size.width, info.size.height, 0, 0,
+                           scaled_width, scaled_height, mask, filter);
+    // TODO: resize texture?
+    glCopyTextureSubImage3D(texture.handle, 0, 0, 0, 0, 0, 0, scaled_width, scaled_height / 2);
+    // Restore previous framebuffers
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prev_draw_fbo);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, prev_read_fbo);
+}
+
 bool Image::ScaleUp() {
     if (True(flags & ImageFlagBits::Rescaled)) {
         return false;
     }
     flags |= ImageFlagBits::Rescaled;
-    UNIMPLEMENTED();
+    Scale();
     return true;
 }
 
@@ -863,7 +927,7 @@ bool Image::ScaleDown() {
         return false;
     }
     flags &= ~ImageFlagBits::Rescaled;
-    UNIMPLEMENTED();
+    Scale();
     return true;
 }
 
