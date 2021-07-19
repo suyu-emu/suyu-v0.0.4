@@ -45,7 +45,6 @@ struct TextureCacheRuntime {
     static constexpr size_t TICKS_TO_DESTROY = 6;
     DelayedDestructionRing<vk::Image, TICKS_TO_DESTROY> prescaled_images;
     DelayedDestructionRing<MemoryCommit, TICKS_TO_DESTROY> prescaled_commits;
-    DelayedDestructionRing<vk::ImageView, TICKS_TO_DESTROY> prescaled_views;
     Settings::ResolutionScalingInfo resolution;
     bool is_rescaling_on{};
 
@@ -126,9 +125,11 @@ public:
         return std::exchange(initialized, true);
     }
 
-    void ScaleUp();
+    bool ScaleUp(bool save_as_backup = false);
 
-    void ScaleDown();
+    bool ScaleDown(bool save_as_backup = false);
+
+    void SwapBackup();
 
 private:
     VKScheduler* scheduler;
@@ -140,6 +141,9 @@ private:
     bool initialized = false;
     TextureCacheRuntime* runtime;
     u32 scaling_count{};
+    vk::Image backup_image{};
+    MemoryCommit backup_commit{};
+    bool has_backup{};
 };
 
 class ImageView : public VideoCommon::ImageViewBase {

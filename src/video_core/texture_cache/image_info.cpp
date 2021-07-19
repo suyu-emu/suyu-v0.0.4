@@ -41,6 +41,7 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
         ASSERT(config.BaseLayer() == 0);
         type = ImageType::e1D;
         size.width = config.Width();
+        resources.layers = 1;
         break;
     case TextureType::Texture1DArray:
         UNIMPLEMENTED_IF(config.BaseLayer() != 0);
@@ -82,10 +83,12 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
         size.width = config.Width();
         size.height = config.Height();
         size.depth = config.Depth();
+        resources.layers = 1;
         break;
     case TextureType::Texture1DBuffer:
         type = ImageType::Buffer;
         size.width = config.Width();
+        resources.layers = 1;
         break;
     default:
         UNREACHABLE_MSG("Invalid texture_type={}", static_cast<int>(config.texture_type.Value()));

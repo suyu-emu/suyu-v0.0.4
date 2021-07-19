@@ -242,24 +242,36 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
         const auto scale_up = [this](ImageId image_id) {
             if (image_id != CORRUPT_ID) {
                 Image& image = slot_images[image_id];
-                image.ScaleUp();
+                return ScaleUp(image);
             }
+            return false;
         };
         for (size_t index = 0; index < NUM_RT; ++index) {
-            scale_up(tmp_color_images[index]);
+            if (scale_up(tmp_color_images[index])) {
+                BindRenderTarget(&render_targets.color_buffer_ids[index],
+                                 FindColorBuffer(index, is_clear));
+            }
         }
-        scale_up(tmp_depth_image);
+        if (scale_up(tmp_depth_image)) {
+            BindRenderTarget(&render_targets.depth_buffer_id, FindDepthBuffer(is_clear));
+        }
     } else {
         const auto scale_down = [this](ImageId image_id) {
             if (image_id != CORRUPT_ID) {
                 Image& image = slot_images[image_id];
-                image.ScaleDown();
+                return ScaleDown(image);
             }
+            return false;
         };
         for (size_t index = 0; index < NUM_RT; ++index) {
-            scale_down(tmp_color_images[index]);
+            if (scale_down(tmp_color_images[index])) {
+                BindRenderTarget(&render_targets.color_buffer_ids[index],
+                                 FindColorBuffer(index, is_clear));
+            }
         }
-        scale_down(tmp_depth_image);
+        if (scale_down(tmp_depth_image)) {
+            BindRenderTarget(&render_targets.depth_buffer_id, FindDepthBuffer(is_clear));
+        }
     }
     // Rescale End
 
@@ -696,6 +708,47 @@ bool TextureCache<P>::ImageCanRescale(Image& image) {
 }
 
 template <class P>
+void TextureCache<P>::InvalidateScale(Image& image, bool invalidate_rt) {
+    const std::span<const ImageViewId> image_view_ids = image.image_view_ids;
+    if (invalidate_rt) {
+        auto& dirty = maxwell3d.dirty.flags;
+        dirty[Dirty::RenderTargets] = true;
+        dirty[Dirty::ZetaBuffer] = true;
+        for (size_t rt = 0; rt < NUM_RT; ++rt) {
+            dirty[Dirty::ColorBuffer0 + rt] = true;
+        }
+        for (const ImageViewId image_view_id : image_view_ids) {
+            std::ranges::replace(render_targets.color_buffer_ids, image_view_id, ImageViewId{});
+            if (render_targets.depth_buffer_id == image_view_id) {
+                render_targets.depth_buffer_id = ImageViewId{};
+            }
+        }
+    }
+    RemoveImageViewReferences(image_view_ids);
+    RemoveFramebuffers(image_view_ids);
+}
+
+template <class P>
+bool TextureCache<P>::ScaleUp(Image& image, bool invalidate_rt) {
+    const bool rescaled = image.ScaleUp();
+    if (!rescaled) {
+        return false;
+    }
+    InvalidateScale(image, invalidate_rt);
+    return true;
+}
+
+template <class P>
+bool TextureCache<P>::ScaleDown(Image& image, bool invalidate_rt) {
+    const bool rescaled = image.ScaleDown();
+    if (!rescaled) {
+        return false;
+    }
+    InvalidateScale(image, invalidate_rt);
+    return true;
+}
+
+template <class P>
 ImageId TextureCache<P>::InsertImage(const ImageInfo& info, GPUVAddr gpu_addr,
                                      RelaxedOptions options) {
     std::optional<VAddr> cpu_addr = gpu_memory.GpuToCpuAddress(gpu_addr);
@@ -793,33 +846,32 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
 
     bool can_rescale =
         (info.type == ImageType::e1D || info.type == ImageType::e2D) && info.block.depth == 0;
+    bool any_rescaled = false;
     for (const ImageId sibling_id : all_siblings) {
         if (!can_rescale) {
             break;
         }
         Image& sibling = slot_images[sibling_id];
         can_rescale &= ImageCanRescale(sibling);
+        any_rescaled |= True(sibling.flags & ImageFlagBits::Rescaled);
     }
+
+    can_rescale &= any_rescaled;
 
     if (can_rescale) {
         for (const ImageId sibling_id : all_siblings) {
             Image& sibling = slot_images[sibling_id];
-            sibling.ScaleUp();
+            ScaleUp(sibling, true);
         }
     } else {
         for (const ImageId sibling_id : all_siblings) {
             Image& sibling = slot_images[sibling_id];
-            sibling.ScaleDown();
+            ScaleDown(sibling, true);
         }
     }
 
     const ImageId new_image_id = slot_images.insert(runtime, new_info, gpu_addr, cpu_addr);
     Image& new_image = slot_images[new_image_id];
-    if (can_rescale) {
-        new_image.ScaleUp();
-    } else {
-        new_image.ScaleDown();
-    }
 
     if (!gpu_memory.IsContinousRange(new_image.gpu_addr, new_image.guest_size_bytes)) {
         new_image.flags |= ImageFlagBits::Sparse;
@@ -839,6 +891,12 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
 
     // TODO: Only upload what we need
     RefreshContents(new_image, new_image_id);
+
+    if (can_rescale) {
+        new_image.ScaleUp();
+    } else {
+        new_image.ScaleDown();
+    }
 
     for (const ImageId overlap_id : overlap_ids) {
         Image& overlap = slot_images[overlap_id];

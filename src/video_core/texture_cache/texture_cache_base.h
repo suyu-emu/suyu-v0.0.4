@@ -327,6 +327,9 @@ private:
     [[nodiscard]] bool IsFullClear(ImageViewId id);
 
     bool ImageCanRescale(Image& image);
+    void InvalidateScale(Image& image, bool invalidate_rt = false);
+    bool ScaleUp(Image& image, bool invalidate_rt = false);
+    bool ScaleDown(Image& image, bool invalidate_rt = false);
 
     Runtime& runtime;
     VideoCore::RasterizerInterface& rasterizer;

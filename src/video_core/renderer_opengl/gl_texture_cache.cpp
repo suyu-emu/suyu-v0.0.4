@@ -849,20 +849,22 @@ void Image::CopyImageToBuffer(const VideoCommon::BufferImageCopy& copy, size_t b
     }
 }
 
-void Image::ScaleUp() {
+bool Image::ScaleUp() {
     if (True(flags & ImageFlagBits::Rescaled)) {
-        return;
+        return false;
     }
     flags |= ImageFlagBits::Rescaled;
     UNIMPLEMENTED();
+    return true;
 }
 
-void Image::ScaleDown() {
+bool Image::ScaleDown() {
     if (False(flags & ImageFlagBits::Rescaled)) {
-        return;
+        return false;
     }
     flags &= ~ImageFlagBits::Rescaled;
     UNIMPLEMENTED();
+    return true;
 }
 
 ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewInfo& info,

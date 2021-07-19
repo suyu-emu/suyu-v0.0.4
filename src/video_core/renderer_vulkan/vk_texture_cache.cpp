@@ -137,6 +137,7 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
         flags |= VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;
     }
     const auto [samples_x, samples_y] = VideoCommon::SamplesLog2(info.num_samples);
+    const bool is_2d = info.type == ImageType::e2D;
     return VkImageCreateInfo{
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         .pNext = nullptr,
@@ -144,9 +145,9 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
         .imageType = ConvertImageType(info.type),
         .format = format_info.format,
         .extent{
-            .width = ((info.size.width << up) >> down) >> samples_x,
-            .height = ((info.size.height << up) >> down) >> samples_y,
-            .depth = (info.size.depth << up) >> down,
+            .width = ((info.size.width * up) >> down) >> samples_x,
+            .height = (is_2d ? ((info.size.height * up) >> down) : info.size.height) >> samples_y,
+            .depth = info.size.depth,
         },
         .mipLevels = static_cast<u32>(info.resources.levels),
         .arrayLayers = static_cast<u32>(info.resources.layers),
@@ -160,7 +161,7 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     };
 }
 
-[[nodiscard]] vk::Image MakeImage(const Device& device, const ImageInfo& info, u32 up = 0,
+[[nodiscard]] vk::Image MakeImage(const Device& device, const ImageInfo& info, u32 up = 1,
                                   u32 down = 0) {
     if (info.type == ImageType::Buffer) {
         return vk::Image{};
@@ -851,7 +852,6 @@ u64 TextureCacheRuntime::GetDeviceLocalMemory() const {
 void TextureCacheRuntime::TickFrame() {
     prescaled_images.Tick();
     prescaled_commits.Tick();
-    prescaled_views.Tick();
 }
 
 Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu_addr_,
@@ -923,7 +923,7 @@ void Image::UploadMemory(const StagingBufferRef& map, std::span<const BufferImag
 void Image::DownloadMemory(const StagingBufferRef& map, std::span<const BufferImageCopy> copies) {
     const bool is_rescaled = True(flags & ImageFlagBits::Rescaled);
     if (is_rescaled) {
-        ScaleDown();
+        ScaleDown(true);
     }
     std::vector vk_copies = TransformBufferImageCopies(copies, map.offset, aspect_mask);
     scheduler->RequestOutsideRenderPassOperationContext();
@@ -978,38 +978,253 @@ void Image::DownloadMemory(const StagingBufferRef& map, std::span<const BufferIm
                                0, memory_write_barrier, nullptr, image_write_barrier);
     });
     if (is_rescaled) {
-        ScaleUp();
+        SwapBackup();
     }
 }
 
-void Image::ScaleUp() {
+void BlitScale(VKScheduler& scheduler, VkImage src_image, VkImage dst_image,
+               boost::container::small_vector<VkImageBlit, 4>& blit_regions,
+               VkImageAspectFlags aspect_mask) {
+    scheduler.RequestOutsideRenderPassOperationContext();
+    scheduler.Record([dst_image, src_image, aspect_mask,
+                      regions = std::move(blit_regions)](vk::CommandBuffer cmdbuf) {
+        const std::array read_barriers{
+            VkImageMemoryBarrier{
+                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                .pNext = nullptr,
+                .srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT |
+                                 VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
+                                 VK_ACCESS_TRANSFER_WRITE_BIT,
+                .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+                .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .image = src_image,
+                .subresourceRange{
+                    .aspectMask = aspect_mask,
+                    .baseMipLevel = 0,
+                    .levelCount = VK_REMAINING_MIP_LEVELS,
+                    .baseArrayLayer = 0,
+                    .layerCount = VK_REMAINING_ARRAY_LAYERS,
+                },
+            },
+            VkImageMemoryBarrier{
+                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                .pNext = nullptr,
+                .srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT |
+                                 VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
+                                 VK_ACCESS_TRANSFER_WRITE_BIT,
+                .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+                .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .image = dst_image,
+                .subresourceRange{
+                    .aspectMask = aspect_mask,
+                    .baseMipLevel = 0,
+                    .levelCount = VK_REMAINING_MIP_LEVELS,
+                    .baseArrayLayer = 0,
+                    .layerCount = VK_REMAINING_ARRAY_LAYERS,
+                },
+            },
+        };
+        VkImageMemoryBarrier write_barrier{
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT |
+                             VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+                             VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
+                             VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = dst_image,
+            .subresourceRange{
+                .aspectMask = aspect_mask,
+                .baseMipLevel = 0,
+                .levelCount = VK_REMAINING_MIP_LEVELS,
+                .baseArrayLayer = 0,
+                .layerCount = VK_REMAINING_ARRAY_LAYERS,
+            },
+        };
+        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                               0, nullptr, nullptr, read_barriers);
+        const VkFilter vk_filter = VK_FILTER_NEAREST;
+        cmdbuf.BlitImage(src_image, VK_IMAGE_LAYOUT_GENERAL, dst_image,
+                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, regions, vk_filter);
+        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                               0, write_barrier);
+    });
+}
+
+bool Image::ScaleUp(bool save_as_backup) {
     if (True(flags & ImageFlagBits::Rescaled)) {
-        return;
+        return false;
     }
     ASSERT(info.type != ImageType::Linear);
-    if (!runtime->is_rescaling_on) {
-        flags |= ImageFlagBits::Rescaled;
-        return;
-    }
-    flags |= ImageFlagBits::Rescaled;
     scaling_count++;
     ASSERT(scaling_count < 10);
-    return;
+    flags |= ImageFlagBits::Rescaled;
+    /*if (!runtime->is_rescaling_on) {
+        return;
+    }*/
+    const auto& resolution = runtime->resolution;
+    vk::Image rescaled_image =
+        MakeImage(runtime->device, info, resolution.up_scale, resolution.down_shift);
+    MemoryCommit new_commit(
+        runtime->memory_allocator.Commit(rescaled_image, MemoryUsage::DeviceLocal));
+
+    const auto scale_up = [&](u32 value) {
+        return (value * resolution.up_scale) >> resolution.down_shift;
+    };
+
+    const bool is_2d = info.type == ImageType::e2D;
+    boost::container::small_vector<VkImageBlit, 4> vkRegions(info.resources.levels);
+    for (s32 level = 0; level < info.resources.levels; level++) {
+        VkImageBlit blit{
+            .srcSubresource{
+                .aspectMask = aspect_mask,
+                .mipLevel = u32(level),
+                .baseArrayLayer = 0,
+                .layerCount = u32(info.resources.layers),
+            },
+            .srcOffsets{
+                {
+                    .x = 0,
+                    .y = 0,
+                    .z = 0,
+                },
+                {
+                    .x = s32(info.size.width),
+                    .y = s32(info.size.height),
+                    .z = 1,
+                },
+            },
+            .dstSubresource{
+                .aspectMask = aspect_mask,
+                .mipLevel = u32(level),
+                .baseArrayLayer = 0,
+                .layerCount = u32(info.resources.layers),
+            },
+            .dstOffsets{
+                {
+                    .x = 0,
+                    .y = 0,
+                    .z = 0,
+                },
+                {
+                    .x = s32(scale_up(info.size.width)),
+                    .y = is_2d ? s32(scale_up(info.size.height)) : s32(info.size.height),
+                    .z = 1,
+                },
+            },
+        };
+        vkRegions.push_back(blit);
+    }
+    BlitScale(*scheduler, *image, *rescaled_image, vkRegions, aspect_mask);
+    if (save_as_backup) {
+        backup_image = std::move(image);
+        backup_commit = std::move(commit);
+        has_backup = true;
+    } else {
+        runtime->prescaled_images.Push(std::move(image));
+        runtime->prescaled_commits.Push(std::move(commit));
+    }
+    image = std::move(rescaled_image);
+    commit = std::move(new_commit);
+    return true;
 }
 
-void Image::ScaleDown() {
+void Image::SwapBackup() {
+    ASSERT(has_backup);
+    runtime->prescaled_images.Push(std::move(image));
+    runtime->prescaled_commits.Push(std::move(commit));
+    image = std::move(backup_image);
+    commit = std::move(backup_commit);
+    has_backup = false;
+}
+
+bool Image::ScaleDown(bool save_as_backup) {
     if (False(flags & ImageFlagBits::Rescaled)) {
-        return;
+        return false;
     }
     ASSERT(info.type != ImageType::Linear);
-    if (!runtime->is_rescaling_on) {
-        flags &= ~ImageFlagBits::Rescaled;
-        return;
-    }
     flags &= ~ImageFlagBits::Rescaled;
     scaling_count++;
     ASSERT(scaling_count < 10);
-    return;
+    /*if (!runtime->is_rescaling_on) {
+        return false;
+    }*/
+
+    const auto& resolution = runtime->resolution;
+    vk::Image downscaled_image =
+        MakeImage(runtime->device, info, resolution.up_scale, resolution.down_shift);
+    MemoryCommit new_commit(
+        runtime->memory_allocator.Commit(downscaled_image, MemoryUsage::DeviceLocal));
+
+    const auto scale_up = [&](u32 value) {
+        return (value * resolution.up_scale) >> resolution.down_shift;
+    };
+
+    const bool is_2d = info.type == ImageType::e2D;
+    boost::container::small_vector<VkImageBlit, 4> vkRegions(info.resources.levels);
+    for (s32 level = 0; level < info.resources.levels; level++) {
+        VkImageBlit blit{
+            .srcSubresource{
+                .aspectMask = aspect_mask,
+                .mipLevel = u32(level),
+                .baseArrayLayer = 0,
+                .layerCount = u32(info.resources.layers),
+            },
+            .srcOffsets{
+                {
+                    .x = 0,
+                    .y = 0,
+                    .z = 0,
+                },
+                {
+                    .x = s32(scale_up(info.size.width)),
+                    .y = is_2d ? s32(scale_up(info.size.height)) : s32(info.size.height),
+                    .z = 1,
+                },
+            },
+            .dstSubresource{
+                .aspectMask = aspect_mask,
+                .mipLevel = u32(level),
+                .baseArrayLayer = 0,
+                .layerCount = u32(info.resources.layers),
+            },
+            .dstOffsets{
+                {
+                    .x = 0,
+                    .y = 0,
+                    .z = 0,
+                },
+                {
+                    .x = s32(info.size.width),
+                    .y = s32(info.size.height),
+                    .z = 1,
+                },
+            },
+        };
+        vkRegions.push_back(blit);
+    }
+    BlitScale(*scheduler, *image, *downscaled_image, vkRegions, aspect_mask);
+    if (save_as_backup) {
+        backup_image = std::move(image);
+        backup_commit = std::move(commit);
+        has_backup = true;
+    } else {
+        runtime->prescaled_images.Push(std::move(image));
+        runtime->prescaled_commits.Push(std::move(commit));
+    }
+    image = std::move(downscaled_image);
+    commit = std::move(new_commit);
+    return true;
 }
 
 ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewInfo& info,
