@@ -316,7 +316,7 @@ private:
     void PrepareImageView(ImageViewId image_view_id, bool is_modification, bool invalidate);
 
     /// Execute copies from one image to the other, even if they are incompatible
-    void CopyImage(ImageId dst_id, ImageId src_id, std::span<const ImageCopy> copies);
+    void CopyImage(ImageId dst_id, ImageId src_id, std::vector<ImageCopy> copies);
 
     /// Bind an image view as render target, downloading resources preemtively if needed
     void BindRenderTarget(ImageViewId* old_id, ImageViewId new_id);

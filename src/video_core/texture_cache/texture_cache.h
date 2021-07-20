@@ -929,8 +929,8 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
             LOG_WARNING(HW_GPU, "Copying between images with different samples is not implemented");
         } else {
             const SubresourceBase base = new_image.TryFindBase(overlap.gpu_addr).value();
-            const auto copies = MakeShrinkImageCopies(new_info, overlap.info, base);
-            runtime.CopyImage(new_image, overlap, copies);
+            auto copies = MakeShrinkImageCopies(new_info, overlap.info, base);
+            runtime.CopyImage(new_image, overlap, std::move(copies));
         }
         if (True(overlap.flags & ImageFlagBits::Tracked)) {
             UntrackImage(overlap, overlap_id);
@@ -1569,9 +1569,33 @@ void TextureCache<P>::PrepareImageView(ImageViewId image_view_id, bool is_modifi
 }
 
 template <class P>
-void TextureCache<P>::CopyImage(ImageId dst_id, ImageId src_id, std::span<const ImageCopy> copies) {
+void TextureCache<P>::CopyImage(ImageId dst_id, ImageId src_id, std::vector<ImageCopy> copies) {
     Image& dst = slot_images[dst_id];
     Image& src = slot_images[src_id];
+    const bool is_rescaled = True(src.flags & ImageFlagBits::Rescaled);
+    if (is_rescaled) {
+        ASSERT(True(dst.flags & ImageFlagBits::Rescaled));
+        const bool both_2d{src.info.type == ImageType::e2D && dst.info.type == ImageType::e2D};
+        const auto& resolution = Settings::values.resolution_info;
+        const auto scale_up = [&](u32 value) -> u32 {
+            if (value == 0) {
+                return 0U;
+            }
+            return std::max<u32>((value * resolution.up_scale) >> resolution.down_shift, 1U);
+        };
+        for (auto& copy : copies) {
+            copy.src_offset.x = scale_up(copy.src_offset.x);
+
+            copy.dst_offset.x = scale_up(copy.dst_offset.x);
+
+            copy.extent.width = scale_up(copy.extent.width);
+            if (both_2d) {
+                copy.src_offset.y = scale_up(copy.src_offset.y);
+                copy.dst_offset.y = scale_up(copy.dst_offset.y);
+                copy.extent.height = scale_up(copy.extent.height);
+            }
+        }
+    }
     const auto dst_format_type = GetFormatType(dst.info.format);
     const auto src_format_type = GetFormatType(src.info.format);
     if (src_format_type == dst_format_type) {
@@ -1639,10 +1663,21 @@ std::pair<FramebufferId, ImageViewId> TextureCache<P>::RenderTargetFromImage(
     ImageId image_id, const ImageViewInfo& view_info) {
     const ImageViewId view_id = FindOrEmplaceImageView(image_id, view_info);
     const ImageBase& image = slot_images[image_id];
+    const bool is_rescaled = True(image.flags & ImageFlagBits::Rescaled);
     const bool is_color = GetFormatType(image.info.format) == SurfaceType::ColorTexture;
     const ImageViewId color_view_id = is_color ? view_id : ImageViewId{};
     const ImageViewId depth_view_id = is_color ? ImageViewId{} : view_id;
-    const Extent3D extent = MipSize(image.info.size, view_info.range.base.level);
+    Extent3D extent = MipSize(image.info.size, view_info.range.base.level);
+    if (is_rescaled) {
+        const auto& resolution = Settings::values.resolution_info;
+        const auto scale_up = [&](u32 value) {
+            return std::max<u32>((value * resolution.up_scale) >> resolution.down_shift, 1U);
+        };
+        extent.width = scale_up(extent.width);
+        if (image.info.type == ImageType::e2D) {
+            extent.height = scale_up(extent.height);
+        }
+    }
     const u32 num_samples = image.info.num_samples;
     const auto [samples_x, samples_y] = SamplesLog2(num_samples);
     const FramebufferId framebuffer_id = GetFramebufferId(RenderTargets{

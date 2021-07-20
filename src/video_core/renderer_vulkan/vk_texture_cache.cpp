@@ -136,6 +136,7 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     if (info.type == ImageType::e3D) {
         flags |= VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;
     }
+    const auto scale_up = [&](u32 value) { return std::max<u32>((value * up) >> down, 1U); };
     const auto [samples_x, samples_y] = VideoCommon::SamplesLog2(info.num_samples);
     const bool is_2d = info.type == ImageType::e2D;
     return VkImageCreateInfo{
@@ -145,8 +146,8 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
         .imageType = ConvertImageType(info.type),
         .format = format_info.format,
         .extent{
-            .width = ((info.size.width * up) >> down) >> samples_x,
-            .height = (is_2d ? ((info.size.height * up) >> down) : info.size.height) >> samples_y,
+            .width = scale_up(info.size.width) >> samples_x,
+            .height = (is_2d ? scale_up(info.size.height) : info.size.height) >> samples_y,
             .depth = info.size.depth,
         },
         .mipLevels = static_cast<u32>(info.resources.levels),
@@ -1078,12 +1079,35 @@ bool Image::ScaleUp(bool save_as_backup) {
     MemoryCommit new_commit(
         runtime->memory_allocator.Commit(rescaled_image, MemoryUsage::DeviceLocal));
 
+    SCOPE_EXIT({
+        if (save_as_backup) {
+            backup_image = std::move(image);
+            backup_commit = std::move(commit);
+            has_backup = true;
+        } else {
+            runtime->prescaled_images.Push(std::move(image));
+            runtime->prescaled_commits.Push(std::move(commit));
+        }
+        image = std::move(rescaled_image);
+        commit = std::move(new_commit);
+    });
+
+    const PixelFormat format = StorageFormat(info.format);
+    const auto format_info =
+        MaxwellToVK::SurfaceFormat(runtime->device, FormatType::Optimal, false, format);
+    const auto similar = runtime->device.GetSupportedFormat(
+        format_info.format, (VK_FORMAT_FEATURE_BLIT_SRC_BIT | VK_FORMAT_FEATURE_BLIT_DST_BIT),
+        FormatType::Optimal);
+
+    if (similar != format_info.format) {
+        return true;
+    }
     if (aspect_mask == 0) {
         aspect_mask = ImageAspectMask(info.format);
     }
 
     const auto scale_up = [&](u32 value) {
-        return (value * resolution.up_scale) >> resolution.down_shift;
+        return std::max<u32>((value * resolution.up_scale) >> resolution.down_shift, 1U);
     };
 
     const bool is_2d = info.type == ImageType::e2D;
@@ -1130,16 +1154,6 @@ bool Image::ScaleUp(bool save_as_backup) {
         vkRegions.push_back(blit);
     }
     BlitScale(*scheduler, *image, *rescaled_image, vkRegions, aspect_mask);
-    if (save_as_backup) {
-        backup_image = std::move(image);
-        backup_commit = std::move(commit);
-        has_backup = true;
-    } else {
-        runtime->prescaled_images.Push(std::move(image));
-        runtime->prescaled_commits.Push(std::move(commit));
-    }
-    image = std::move(rescaled_image);
-    commit = std::move(new_commit);
     return true;
 }
 
