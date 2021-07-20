@@ -1078,6 +1078,10 @@ bool Image::ScaleUp(bool save_as_backup) {
     MemoryCommit new_commit(
         runtime->memory_allocator.Commit(rescaled_image, MemoryUsage::DeviceLocal));
 
+    if (aspect_mask == 0) {
+        aspect_mask = ImageAspectMask(info.format);
+    }
+
     const auto scale_up = [&](u32 value) {
         return (value * resolution.up_scale) >> resolution.down_shift;
     };
@@ -1169,6 +1173,10 @@ bool Image::ScaleDown(bool save_as_backup) {
     const auto scale_up = [&](u32 value) {
         return (value * resolution.up_scale) >> resolution.down_shift;
     };
+
+    if (aspect_mask == 0) {
+        aspect_mask = ImageAspectMask(info.format);
+    }
 
     const bool is_2d = info.type == ImageType::e2D;
     boost::container::small_vector<VkImageBlit, 4> vkRegions(info.resources.levels);

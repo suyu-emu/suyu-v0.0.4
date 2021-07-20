@@ -918,7 +918,7 @@ bool Image::ScaleUp() {
         return false;
     }
     flags |= ImageFlagBits::Rescaled;
-    Scale();
+    //Scale();
     return true;
 }
 
@@ -927,7 +927,7 @@ bool Image::ScaleDown() {
         return false;
     }
     flags &= ~ImageFlagBits::Rescaled;
-    Scale();
+    //Scale();
     return true;
 }
 

@@ -204,75 +204,68 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
         PrepareImageView(depth_buffer_id, true, is_clear && IsFullClear(depth_buffer_id));
         return;
     }
-    flags[Dirty::RenderTargets] = false;
 
-    // Render target control is used on all render targets, so force look ups when this one is up
-    const bool force = flags[Dirty::RenderTargetControl];
-    flags[Dirty::RenderTargetControl] = false;
+    do {
+        flags[Dirty::RenderTargets] = false;
 
-    bool can_rescale = true;
-    std::array<ImageId, NUM_RT> tmp_color_images{};
-    ImageId tmp_depth_image{};
-    const auto check_rescale = [&](ImageViewId view_id, ImageId& id_save) {
-        if (view_id) {
-            const auto& view = slot_image_views[view_id];
-            const auto image_id = view.image_id;
-            id_save = image_id;
-            auto& image = slot_images[image_id];
-            can_rescale &= ImageCanRescale(image);
+        has_deleted_images = false;
+        // Render target control is used on all render targets, so force look ups when this one is
+        // up
+        const bool force = flags[Dirty::RenderTargetControl];
+        flags[Dirty::RenderTargetControl] = false;
+
+        bool can_rescale = true;
+        std::array<ImageId, NUM_RT> tmp_color_images{};
+        ImageId tmp_depth_image{};
+        const auto check_rescale = [&](ImageViewId view_id, ImageId& id_save) {
+            if (view_id) {
+                const auto& view = slot_image_views[view_id];
+                const auto image_id = view.image_id;
+                id_save = image_id;
+                auto& image = slot_images[image_id];
+                can_rescale &= ImageCanRescale(image);
+            } else {
+                id_save = CORRUPT_ID;
+            }
+        };
+        for (size_t index = 0; index < NUM_RT; ++index) {
+            ImageViewId& color_buffer_id = render_targets.color_buffer_ids[index];
+            if (flags[Dirty::ColorBuffer0 + index] || force) {
+                flags[Dirty::ColorBuffer0 + index] = false;
+                BindRenderTarget(&color_buffer_id, FindColorBuffer(index, is_clear));
+            }
+            check_rescale(color_buffer_id, tmp_color_images[index]);
+        }
+        if (flags[Dirty::ZetaBuffer] || force) {
+            flags[Dirty::ZetaBuffer] = false;
+            BindRenderTarget(&render_targets.depth_buffer_id, FindDepthBuffer(is_clear));
+        }
+        check_rescale(render_targets.depth_buffer_id, tmp_depth_image);
+
+        if (can_rescale) {
+            const auto scale_up = [this](ImageId image_id) {
+                if (image_id != CORRUPT_ID) {
+                    Image& image = slot_images[image_id];
+                    ScaleUp(image);
+                }
+            };
+            for (size_t index = 0; index < NUM_RT; ++index) {
+                scale_up(tmp_color_images[index]);
+            }
+            scale_up(tmp_depth_image);
         } else {
-            id_save = CORRUPT_ID;
-        }
-    };
-    for (size_t index = 0; index < NUM_RT; ++index) {
-        ImageViewId& color_buffer_id = render_targets.color_buffer_ids[index];
-        if (flags[Dirty::ColorBuffer0 + index] || force) {
-            flags[Dirty::ColorBuffer0 + index] = false;
-            BindRenderTarget(&color_buffer_id, FindColorBuffer(index, is_clear));
-        }
-        check_rescale(color_buffer_id, tmp_color_images[index]);
-    }
-    if (flags[Dirty::ZetaBuffer] || force) {
-        flags[Dirty::ZetaBuffer] = false;
-        BindRenderTarget(&render_targets.depth_buffer_id, FindDepthBuffer(is_clear));
-    }
-    check_rescale(render_targets.depth_buffer_id, tmp_depth_image);
-
-    if (can_rescale) {
-        const auto scale_up = [this](ImageId image_id) {
-            if (image_id != CORRUPT_ID) {
-                Image& image = slot_images[image_id];
-                return ScaleUp(image);
+            const auto scale_down = [this](ImageId image_id) {
+                if (image_id != CORRUPT_ID) {
+                    Image& image = slot_images[image_id];
+                    ScaleDown(image);
+                }
+            };
+            for (size_t index = 0; index < NUM_RT; ++index) {
+                scale_down(tmp_color_images[index]);
             }
-            return false;
-        };
-        for (size_t index = 0; index < NUM_RT; ++index) {
-            if (scale_up(tmp_color_images[index])) {
-                BindRenderTarget(&render_targets.color_buffer_ids[index],
-                                 FindColorBuffer(index, is_clear));
-            }
+            scale_down(tmp_depth_image);
         }
-        if (scale_up(tmp_depth_image)) {
-            BindRenderTarget(&render_targets.depth_buffer_id, FindDepthBuffer(is_clear));
-        }
-    } else {
-        const auto scale_down = [this](ImageId image_id) {
-            if (image_id != CORRUPT_ID) {
-                Image& image = slot_images[image_id];
-                return ScaleDown(image);
-            }
-            return false;
-        };
-        for (size_t index = 0; index < NUM_RT; ++index) {
-            if (scale_down(tmp_color_images[index])) {
-                BindRenderTarget(&render_targets.color_buffer_ids[index],
-                                 FindColorBuffer(index, is_clear));
-            }
-        }
-        if (scale_down(tmp_depth_image)) {
-            BindRenderTarget(&render_targets.depth_buffer_id, FindDepthBuffer(is_clear));
-        }
-    }
+    } while (has_deleted_images);
     // Rescale End
 
     for (size_t index = 0; index < NUM_RT; ++index) {
@@ -708,43 +701,54 @@ bool TextureCache<P>::ImageCanRescale(Image& image) {
 }
 
 template <class P>
-void TextureCache<P>::InvalidateScale(Image& image, bool invalidate_rt) {
+void TextureCache<P>::InvalidateScale(Image& image) {
     const std::span<const ImageViewId> image_view_ids = image.image_view_ids;
-    if (invalidate_rt) {
-        auto& dirty = maxwell3d.dirty.flags;
-        dirty[Dirty::RenderTargets] = true;
-        dirty[Dirty::ZetaBuffer] = true;
-        for (size_t rt = 0; rt < NUM_RT; ++rt) {
-            dirty[Dirty::ColorBuffer0 + rt] = true;
-        }
-        for (const ImageViewId image_view_id : image_view_ids) {
-            std::ranges::replace(render_targets.color_buffer_ids, image_view_id, ImageViewId{});
-            if (render_targets.depth_buffer_id == image_view_id) {
-                render_targets.depth_buffer_id = ImageViewId{};
-            }
+    auto& dirty = maxwell3d.dirty.flags;
+    dirty[Dirty::RenderTargets] = true;
+    dirty[Dirty::ZetaBuffer] = true;
+    for (size_t rt = 0; rt < NUM_RT; ++rt) {
+        dirty[Dirty::ColorBuffer0 + rt] = true;
+    }
+    for (const ImageViewId image_view_id : image_view_ids) {
+        std::ranges::replace(render_targets.color_buffer_ids, image_view_id, ImageViewId{});
+        if (render_targets.depth_buffer_id == image_view_id) {
+            render_targets.depth_buffer_id = ImageViewId{};
         }
     }
     RemoveImageViewReferences(image_view_ids);
     RemoveFramebuffers(image_view_ids);
+    for (const ImageViewId image_view_id : image_view_ids) {
+        sentenced_image_view.Push(std::move(slot_image_views[image_view_id]));
+        slot_image_views.erase(image_view_id);
+    }
+    image.image_view_ids.clear();
+    image.image_view_infos.clear();
+    if constexpr (ENABLE_VALIDATION) {
+        std::ranges::fill(graphics_image_view_ids, CORRUPT_ID);
+        std::ranges::fill(compute_image_view_ids, CORRUPT_ID);
+    }
+    graphics_image_table.Invalidate();
+    compute_image_table.Invalidate();
+    has_deleted_images = true;
 }
 
 template <class P>
-bool TextureCache<P>::ScaleUp(Image& image, bool invalidate_rt) {
+bool TextureCache<P>::ScaleUp(Image& image) {
     const bool rescaled = image.ScaleUp();
     if (!rescaled) {
         return false;
     }
-    InvalidateScale(image, invalidate_rt);
+    InvalidateScale(image);
     return true;
 }
 
 template <class P>
-bool TextureCache<P>::ScaleDown(Image& image, bool invalidate_rt) {
+bool TextureCache<P>::ScaleDown(Image& image) {
     const bool rescaled = image.ScaleDown();
     if (!rescaled) {
         return false;
     }
-    InvalidateScale(image, invalidate_rt);
+    InvalidateScale(image);
     return true;
 }
 
@@ -861,12 +865,12 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
     if (can_rescale) {
         for (const ImageId sibling_id : all_siblings) {
             Image& sibling = slot_images[sibling_id];
-            ScaleUp(sibling, true);
+            ScaleUp(sibling);
         }
     } else {
         for (const ImageId sibling_id : all_siblings) {
             Image& sibling = slot_images[sibling_id];
-            ScaleDown(sibling, true);
+            ScaleDown(sibling);
         }
     }
 
@@ -893,9 +897,9 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
     RefreshContents(new_image, new_image_id);
 
     if (can_rescale) {
-        new_image.ScaleUp();
+        ScaleUp(new_image);
     } else {
-        new_image.ScaleDown();
+        ScaleDown(new_image);
     }
 
     for (const ImageId overlap_id : overlap_ids) {
