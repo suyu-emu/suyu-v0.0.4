@@ -161,6 +161,13 @@ void BufferCacheRuntime::BindIndexBuffer(PrimitiveTopology topology, IndexFormat
 }
 
 void BufferCacheRuntime::BindQuadArrayIndexBuffer(u32 first, u32 count) {
+    if (count == 0) {
+        ReserveNullBuffer();
+        scheduler.Record([this](vk::CommandBuffer cmdbuf) {
+            cmdbuf.BindIndexBuffer(*null_buffer, 0, VK_INDEX_TYPE_UINT32);
+        });
+        return;
+    }
     ReserveQuadArrayLUT(first + count, true);
 
     // The LUT has the indices 0, 1, 2, and 3 copied as an array
