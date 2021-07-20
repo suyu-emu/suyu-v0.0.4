@@ -48,7 +48,6 @@ void LogSettings() {
     log_setting("Core_UseMultiCore", values.use_multi_core.GetValue());
     log_setting("CPU_Accuracy", values.cpu_accuracy.GetValue());
     log_setting("Renderer_UseResolutionScaling", values.resolution_setup.GetValue());
-    log_setting("Renderer_UseResolutionFactor", values.resolution_factor.GetValue());
     log_setting("Renderer_UseSpeedLimit", values.use_speed_limit.GetValue());
     log_setting("Renderer_SpeedLimit", values.speed_limit.GetValue());
     log_setting("Renderer_UseDiskShaderCache", values.use_disk_shader_cache.GetValue());
@@ -155,6 +154,7 @@ void UpdateRescalingInfo() {
     info.down_factor = static_cast<f32>(1U << info.down_shift) / info.up_scale;
     info.size_up = info.up_scale * info.up_scale;
     info.size_shift = info.down_shift * 2;
+    info.active = info.up_scale != 1 || info.down_shift != 0;
 }
 
 void RestoreGlobalState(bool is_powered_on) {

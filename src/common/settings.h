@@ -69,6 +69,7 @@ struct ResolutionScalingInfo {
     f32 down_factor{1.0f};
     u32 size_up{1};
     u32 size_shift{0};
+    bool active{};
 };
 
 /** The BasicSetting class is a simple resource manager. It defines a label and default value
@@ -472,7 +473,6 @@ struct Values {
 
     ResolutionScalingInfo resolution_info{};
     Setting<ResolutionSetup> resolution_setup{ResolutionSetup::Res1X, "resolution_setup"};
-    Setting<u16> resolution_factor{1, "resolution_factor"};
     // *nix platforms may have issues with the borderless windowed fullscreen mode.
     // Default to exclusive fullscreen on these platforms for now.
     RangedSetting<FullscreenMode> fullscreen_mode{

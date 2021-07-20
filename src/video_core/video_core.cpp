@@ -53,11 +53,10 @@ std::unique_ptr<Tegra::GPU> CreateGPU(Core::Frontend::EmuWindow& emu_window, Cor
     }
 }
 
-u16 GetResolutionScaleFactor(const RendererBase& renderer) {
-    return static_cast<u16>(
-        Settings::values.resolution_factor.GetValue() != 0
-            ? Settings::values.resolution_factor.GetValue()
-            : renderer.GetRenderWindow().GetFramebufferLayout().GetScalingRatio());
+float GetResolutionScaleFactor(const RendererBase& renderer) {
+    return Settings::values.resolution_info.active
+               ? Settings::values.resolution_info.up_factor
+               : renderer.GetRenderWindow().GetFramebufferLayout().GetScalingRatio();
 }
 
 } // namespace VideoCore
