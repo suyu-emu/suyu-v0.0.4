@@ -168,6 +168,8 @@ public:
     /// Return true when a CPU region is modified from the GPU
     [[nodiscard]] bool IsRegionGpuModified(VAddr addr, size_t size);
 
+    [[nodiscard]] bool IsRescaling();
+
     std::mutex mutex;
 
 private:
@@ -362,6 +364,7 @@ private:
     VAddr virtual_invalid_space{};
 
     bool has_deleted_images = false;
+    bool is_rescaling = false;
     u64 total_used_memory = 0;
     u64 minimum_memory;
     u64 expected_memory;

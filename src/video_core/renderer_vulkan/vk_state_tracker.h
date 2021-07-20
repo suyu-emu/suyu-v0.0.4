@@ -71,11 +71,13 @@ public:
     }
 
     bool TouchViewports() {
-        return Exchange(Dirty::Viewports, false);
+        return Exchange(Dirty::Viewports, false) ||
+               Exchange(VideoCommon::Dirty::RescaleViewports, false);
     }
 
     bool TouchScissors() {
-        return Exchange(Dirty::Scissors, false);
+        return Exchange(Dirty::Scissors, false) ||
+               Exchange(VideoCommon::Dirty::RescaleScissors, false);
     }
 
     bool TouchDepthBias() {

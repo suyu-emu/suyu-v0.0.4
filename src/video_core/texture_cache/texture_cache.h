@@ -7,6 +7,7 @@
 #include <unordered_set>
 
 #include "common/alignment.h"
+#include "common/settings.h"
 #include "video_core/dirty_flags.h"
 #include "video_core/engines/kepler_compute.h"
 #include "video_core/texture_cache/image_view_base.h"
@@ -205,6 +206,7 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
         return;
     }
 
+    bool rescaled;
     do {
         flags[Dirty::RenderTargets] = false;
 
@@ -243,6 +245,7 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
         check_rescale(render_targets.depth_buffer_id, tmp_depth_image);
 
         if (can_rescale) {
+            rescaled = true;
             const auto scale_up = [this](ImageId image_id) {
                 if (image_id != CORRUPT_ID) {
                     Image& image = slot_images[image_id];
@@ -254,6 +257,7 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
             }
             scale_up(tmp_depth_image);
         } else {
+            rescaled = false;
             const auto scale_down = [this](ImageId image_id) {
                 if (image_id != CORRUPT_ID) {
                     Image& image = slot_images[image_id];
@@ -268,6 +272,12 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
     } while (has_deleted_images);
     // Rescale End
 
+    if (is_rescaling != rescaled) {
+        flags[Dirty::RescaleViewports] = true;
+        flags[Dirty::RescaleScissors] = true;
+        is_rescaling = rescaled;
+    }
+
     for (size_t index = 0; index < NUM_RT; ++index) {
         ImageViewId& color_buffer_id = render_targets.color_buffer_ids[index];
         PrepareImageView(color_buffer_id, true, is_clear && IsFullClear(color_buffer_id));
@@ -279,9 +289,15 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
     for (size_t index = 0; index < NUM_RT; ++index) {
         render_targets.draw_buffers[index] = static_cast<u8>(maxwell3d.regs.rt_control.Map(index));
     }
+    u32 up_scale = 1;
+    u32 down_shift = 0;
+    if (is_rescaling) {
+        up_scale = Settings::values.resolution_info.up_scale;
+        down_shift = Settings::values.resolution_info.down_shift;
+    }
     render_targets.size = Extent2D{
-        maxwell3d.regs.render_area.width,
-        maxwell3d.regs.render_area.height,
+        (maxwell3d.regs.render_area.width * up_scale) >> down_shift,
+        (maxwell3d.regs.render_area.height * up_scale) >> down_shift,
     };
 
     flags[Dirty::DepthBiasGlobal] = true;
@@ -536,6 +552,11 @@ void TextureCache<P>::PopAsyncFlushes() {
         download_span = download_span.subspan(image.unswizzled_size_bytes);
     }
     committed_downloads.pop();
+}
+
+template <class P>
+bool TextureCache<P>::IsRescaling() {
+    return is_rescaling;
 }
 
 template <class P>

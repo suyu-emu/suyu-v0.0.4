@@ -58,19 +58,14 @@ struct DrawParams {
     bool is_indexed;
 };
 
-VkViewport GetViewportState(const Device& device, const Maxwell& regs, size_t index) {
+VkViewport GetViewportState(const Device& device, const Maxwell& regs, size_t index, float scale) {
     const auto& src = regs.viewport_transform[index];
-    const float width = src.scale_x * 2.0f;
-    float y = src.translate_y - src.scale_y;
-    float height = src.scale_y * 2.0f;
-    if (regs.screen_y_control.y_negate) {
-        y += height;
-        height = -height;
-    }
+    const float width = src.scale_x * 2.0f * scale;
+    const float height = src.scale_y * 2.0f * scale;
     const float reduce_z = regs.depth_mode == Maxwell::DepthMode::MinusOneToOne ? 1.0f : 0.0f;
     VkViewport viewport{
-        .x = src.translate_x - src.scale_x,
-        .y = y,
+        .x = (src.translate_x - src.scale_x) * scale,
+        .y = (src.translate_y - src.scale_y) * scale,
         .width = width != 0.0f ? width : 1.0f,
         .height = height != 0.0f ? height : 1.0f,
         .minDepth = src.translate_z - src.scale_z * reduce_z,
@@ -83,14 +78,21 @@ VkViewport GetViewportState(const Device& device, const Maxwell& regs, size_t in
     return viewport;
 }
 
-VkRect2D GetScissorState(const Maxwell& regs, size_t index) {
+VkRect2D GetScissorState(const Maxwell& regs, size_t index, u32 up_scale = 1, u32 down_shift = 0) {
     const auto& src = regs.scissor_test[index];
     VkRect2D scissor;
+    const auto scale_up = [&](u32 value) -> u32 {
+        if (value == 0) {
+            return 0U;
+        }
+        const u32 converted_value = (value * up_scale) >> down_shift;
+        return std::max<u32>(converted_value, 1U);
+    };
     if (src.enable) {
-        scissor.offset.x = static_cast<s32>(src.min_x);
-        scissor.offset.y = static_cast<s32>(src.min_y);
-        scissor.extent.width = src.max_x - src.min_x;
-        scissor.extent.height = src.max_y - src.min_y;
+        scissor.offset.x = static_cast<s32>(scale_up(src.min_x));
+        scissor.offset.y = static_cast<s32>(scale_up(src.min_y));
+        scissor.extent.width = scale_up(src.max_x - src.min_x);
+        scissor.extent.height = scale_up(src.max_y - src.min_y);
     } else {
         scissor.offset.x = 0;
         scissor.offset.y = 0;
@@ -214,8 +216,15 @@ void RasterizerVulkan::Clear() {
     const VkExtent2D render_area = framebuffer->RenderArea();
     scheduler.RequestRenderpass(framebuffer);
 
+    u32 up_scale = 1;
+    u32 down_shift = 0;
+    if (texture_cache.IsRescaling()) {
+        up_scale = Settings::values.resolution_info.up_scale;
+        down_shift = Settings::values.resolution_info.down_shift;
+    }
+
     VkClearRect clear_rect{
-        .rect = GetScissorState(regs, 0),
+        .rect = GetScissorState(regs, 0, up_scale, down_shift),
         .baseArrayLayer = regs.clear_buffers.layer,
         .layerCount = 1,
     };
@@ -595,15 +604,17 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
     if (!state_tracker.TouchViewports()) {
         return;
     }
+    const float scale =
+        texture_cache.IsRescaling() ? Settings::values.resolution_info.up_factor : 1.0f;
     const std::array viewports{
-        GetViewportState(device, regs, 0),  GetViewportState(device, regs, 1),
-        GetViewportState(device, regs, 2),  GetViewportState(device, regs, 3),
-        GetViewportState(device, regs, 4),  GetViewportState(device, regs, 5),
-        GetViewportState(device, regs, 6),  GetViewportState(device, regs, 7),
-        GetViewportState(device, regs, 8),  GetViewportState(device, regs, 9),
-        GetViewportState(device, regs, 10), GetViewportState(device, regs, 11),
-        GetViewportState(device, regs, 12), GetViewportState(device, regs, 13),
-        GetViewportState(device, regs, 14), GetViewportState(device, regs, 15),
+        GetViewportState(device, regs, 0, scale),  GetViewportState(device, regs, 1, scale),
+        GetViewportState(device, regs, 2, scale),  GetViewportState(device, regs, 3, scale),
+        GetViewportState(device, regs, 4, scale),  GetViewportState(device, regs, 5, scale),
+        GetViewportState(device, regs, 6, scale),  GetViewportState(device, regs, 7, scale),
+        GetViewportState(device, regs, 8, scale),  GetViewportState(device, regs, 9, scale),
+        GetViewportState(device, regs, 10, scale), GetViewportState(device, regs, 11, scale),
+        GetViewportState(device, regs, 12, scale), GetViewportState(device, regs, 13, scale),
+        GetViewportState(device, regs, 14, scale), GetViewportState(device, regs, 15, scale),
     };
     scheduler.Record([viewports](vk::CommandBuffer cmdbuf) { cmdbuf.SetViewport(0, viewports); });
 }
@@ -612,13 +623,29 @@ void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs
     if (!state_tracker.TouchScissors()) {
         return;
     }
+    u32 up_scale = 1;
+    u32 down_shift = 0;
+    if (texture_cache.IsRescaling()) {
+        up_scale = Settings::values.resolution_info.up_scale;
+        down_shift = Settings::values.resolution_info.down_shift;
+    }
     const std::array scissors{
-        GetScissorState(regs, 0),  GetScissorState(regs, 1),  GetScissorState(regs, 2),
-        GetScissorState(regs, 3),  GetScissorState(regs, 4),  GetScissorState(regs, 5),
-        GetScissorState(regs, 6),  GetScissorState(regs, 7),  GetScissorState(regs, 8),
-        GetScissorState(regs, 9),  GetScissorState(regs, 10), GetScissorState(regs, 11),
-        GetScissorState(regs, 12), GetScissorState(regs, 13), GetScissorState(regs, 14),
-        GetScissorState(regs, 15),
+        GetScissorState(regs, 0, up_scale, down_shift),
+        GetScissorState(regs, 1, up_scale, down_shift),
+        GetScissorState(regs, 2, up_scale, down_shift),
+        GetScissorState(regs, 3, up_scale, down_shift),
+        GetScissorState(regs, 4, up_scale, down_shift),
+        GetScissorState(regs, 5, up_scale, down_shift),
+        GetScissorState(regs, 6, up_scale, down_shift),
+        GetScissorState(regs, 7, up_scale, down_shift),
+        GetScissorState(regs, 8, up_scale, down_shift),
+        GetScissorState(regs, 9, up_scale, down_shift),
+        GetScissorState(regs, 10, up_scale, down_shift),
+        GetScissorState(regs, 11, up_scale, down_shift),
+        GetScissorState(regs, 12, up_scale, down_shift),
+        GetScissorState(regs, 13, up_scale, down_shift),
+        GetScissorState(regs, 14, up_scale, down_shift),
+        GetScissorState(regs, 15, up_scale, down_shift),
     };
     scheduler.Record([scissors](vk::CommandBuffer cmdbuf) { cmdbuf.SetScissor(0, scissors); });
 }

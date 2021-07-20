@@ -849,6 +849,8 @@ void Config::ReadRendererValues() {
         ReadBasicSetting(Settings::values.disable_shader_loop_safety_checks);
     }
 
+    Settings::UpdateRescalingInfo();
+
     qt_config->endGroup();
 }
 
@@ -1401,6 +1403,8 @@ void Config::SaveRendererValues() {
         WriteBasicSetting(Settings::values.enable_nsight_aftermath);
         WriteBasicSetting(Settings::values.disable_shader_loop_safety_checks);
     }
+
+    Settings::UpdateRescalingInfo();
 
     qt_config->endGroup();
 }
