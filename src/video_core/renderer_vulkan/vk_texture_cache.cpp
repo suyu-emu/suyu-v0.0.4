@@ -1111,9 +1111,10 @@ bool Image::ScaleUp(bool save_as_backup) {
     };
 
     const bool is_2d = info.type == ImageType::e2D;
-    boost::container::small_vector<VkImageBlit, 4> vkRegions(info.resources.levels);
+    boost::container::small_vector<VkImageBlit, 4> regions;
+    regions.reserve(info.resources.levels);
     for (s32 level = 0; level < info.resources.levels; level++) {
-        VkImageBlit blit{
+        regions.push_back({
             .srcSubresource{
                 .aspectMask = aspect_mask,
                 .mipLevel = u32(level),
@@ -1150,10 +1151,9 @@ bool Image::ScaleUp(bool save_as_backup) {
                     .z = 1,
                 },
             },
-        };
-        vkRegions.push_back(blit);
+        });
     }
-    BlitScale(*scheduler, *image, *rescaled_image, vkRegions, aspect_mask);
+    BlitScale(*scheduler, *image, *rescaled_image, regions, aspect_mask);
     return true;
 }
 
@@ -1193,9 +1193,10 @@ bool Image::ScaleDown(bool save_as_backup) {
     }
 
     const bool is_2d = info.type == ImageType::e2D;
-    boost::container::small_vector<VkImageBlit, 4> vkRegions(info.resources.levels);
+    boost::container::small_vector<VkImageBlit, 4> regions;
+    regions.reserve(info.resources.levels);
     for (s32 level = 0; level < info.resources.levels; level++) {
-        VkImageBlit blit{
+        regions.push_back({
             .srcSubresource{
                 .aspectMask = aspect_mask,
                 .mipLevel = u32(level),
@@ -1232,10 +1233,9 @@ bool Image::ScaleDown(bool save_as_backup) {
                     .z = 1,
                 },
             },
-        };
-        vkRegions.push_back(blit);
+        });
     }
-    BlitScale(*scheduler, *image, *downscaled_image, vkRegions, aspect_mask);
+    BlitScale(*scheduler, *image, *downscaled_image, regions, aspect_mask);
     if (save_as_backup) {
         backup_image = std::move(image);
         backup_commit = std::move(commit);
