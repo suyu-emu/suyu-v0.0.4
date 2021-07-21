@@ -9,6 +9,7 @@
 
 #include <glad/glad.h>
 
+#include "common/settings.h"
 #include "shader_recompiler/shader_info.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/util_shaders.h"
@@ -72,7 +73,7 @@ public:
                                  StateTracker& state_tracker);
     ~TextureCacheRuntime();
 
-    void Init() {}
+    void Init();
 
     void Finish();
 
@@ -153,6 +154,9 @@ private:
     OGLTextureView null_image_view_cube;
 
     std::array<GLuint, Shader::NUM_TEXTURE_TYPES> null_image_views{};
+
+    Settings::ResolutionScalingInfo resolution;
+    bool is_rescaling_on{};
 };
 
 class Image : public VideoCommon::ImageBase {
@@ -198,13 +202,14 @@ private:
 
     void CopyImageToBuffer(const VideoCommon::BufferImageCopy& copy, size_t buffer_offset);
 
-    void Scale();
+    void Scale(u32 up, u32 down);
 
     OGLTexture texture;
     OGLTextureView store_view;
     GLenum gl_internal_format = GL_NONE;
     GLenum gl_format = GL_NONE;
     GLenum gl_type = GL_NONE;
+    TextureCacheRuntime* runtime;
 };
 
 class ImageView : public VideoCommon::ImageViewBase {

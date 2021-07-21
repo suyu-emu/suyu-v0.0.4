@@ -577,6 +577,14 @@ void RasterizerOpenGL::SyncViewport() {
         const bool force = flags[Dirty::ViewportTransform];
         flags[Dirty::ViewportTransform] = false;
 
+        const auto& resolution = Settings::values.resolution_info;
+        const auto scale_up = [&](u32 value) -> u32 {
+            if (value == 0) {
+                return 0U;
+            }
+            const u32 converted_value = (value * resolution.up_scale) >> resolution.down_shift;
+            return std::max<u32>(converted_value, 1U);
+        };
         for (std::size_t i = 0; i < Maxwell::NumViewports; ++i) {
             if (!force && !flags[Dirty::Viewport0 + i]) {
                 continue;
@@ -585,8 +593,8 @@ void RasterizerOpenGL::SyncViewport() {
 
             const auto& src = regs.viewport_transform[i];
             const Common::Rectangle<f32> rect{src.GetRect()};
-            glViewportIndexedf(static_cast<GLuint>(i), rect.left, rect.bottom, rect.GetWidth(),
-                               rect.GetHeight());
+            glViewportIndexedf(static_cast<GLuint>(i), rect.left, rect.bottom,
+                               scale_up(rect.GetWidth()), scale_up(rect.GetHeight()));
 
             const GLdouble reduce_z = regs.depth_mode == Maxwell::DepthMode::MinusOneToOne;
             const GLdouble near_depth = src.translate_z - src.scale_z * reduce_z;
@@ -909,6 +917,15 @@ void RasterizerOpenGL::SyncScissorTest() {
     flags[Dirty::Scissors] = false;
 
     const auto& regs = maxwell3d.regs;
+
+    const auto& resolution = Settings::values.resolution_info;
+    const auto scale_up = [&](u32 value) -> u32 {
+        if (value == 0) {
+            return 0U;
+        }
+        const u32 converted_value = (value * resolution.up_scale) >> resolution.down_shift;
+        return std::max<u32>(converted_value, 1U);
+    };
     for (std::size_t index = 0; index < Maxwell::NumViewports; ++index) {
         if (!flags[Dirty::Scissor0 + index]) {
             continue;
@@ -919,7 +936,7 @@ void RasterizerOpenGL::SyncScissorTest() {
         if (src.enable) {
             glEnablei(GL_SCISSOR_TEST, static_cast<GLuint>(index));
             glScissorIndexed(static_cast<GLuint>(index), src.min_x, src.min_y,
-                             src.max_x - src.min_x, src.max_y - src.min_y);
+                             scale_up(src.max_x - src.min_x), scale_up(src.max_y - src.min_y));
         } else {
             glDisablei(GL_SCISSOR_TEST, static_cast<GLuint>(index));
         }
