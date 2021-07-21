@@ -437,8 +437,32 @@ void TextureCache<P>::BlitImage(const Tegra::Engines::Fermi2D::Surface& dst,
     PrepareImage(src_id, false, false);
     PrepareImage(dst_id, true, false);
 
-    ImageBase& dst_image = slot_images[dst_id];
-    const ImageBase& src_image = slot_images[src_id];
+    Image& dst_image = slot_images[dst_id];
+    const Image& src_image = slot_images[src_id];
+
+    const bool is_src_rescaled = True(src_image.flags & ImageFlagBits::Rescaled);
+    bool is_dst_rescaled = True(dst_image.flags & ImageFlagBits::Rescaled);
+
+    if (is_src_rescaled && !is_dst_rescaled) {
+        if (ImageCanRescale(dst_image)) {
+            is_dst_rescaled = dst_image.ScaleUp();
+        }
+    }
+
+    const auto& resolution = Settings::values.resolution_info;
+    const auto scale_up = [&](u32 value) -> u32 {
+        if (value == 0) {
+            return 0U;
+        }
+        return std::max<u32>((value * resolution.up_scale) >> resolution.down_shift, 1U);
+    };
+
+    const auto scale_region = [&](Region2D& region) {
+        region.start.x = scale_up(region.start.x);
+        region.start.y = scale_up(region.start.y);
+        region.end.x = scale_up(region.end.x);
+        region.end.y = scale_up(region.end.y);
+    };
 
     // TODO: Deduplicate
     const std::optional src_base = src_image.TryFindBase(src.Address());
@@ -446,20 +470,26 @@ void TextureCache<P>::BlitImage(const Tegra::Engines::Fermi2D::Surface& dst,
     const ImageViewInfo src_view_info(ImageViewType::e2D, images.src_format, src_range);
     const auto [src_framebuffer_id, src_view_id] = RenderTargetFromImage(src_id, src_view_info);
     const auto [src_samples_x, src_samples_y] = SamplesLog2(src_image.info.num_samples);
-    const Region2D src_region{
+    Region2D src_region{
         Offset2D{.x = copy.src_x0 >> src_samples_x, .y = copy.src_y0 >> src_samples_y},
         Offset2D{.x = copy.src_x1 >> src_samples_x, .y = copy.src_y1 >> src_samples_y},
     };
+    if (is_src_rescaled) {
+        scale_region(src_region);
+    }
 
     const std::optional dst_base = dst_image.TryFindBase(dst.Address());
     const SubresourceRange dst_range{.base = dst_base.value(), .extent = {1, 1}};
     const ImageViewInfo dst_view_info(ImageViewType::e2D, images.dst_format, dst_range);
     const auto [dst_framebuffer_id, dst_view_id] = RenderTargetFromImage(dst_id, dst_view_info);
     const auto [dst_samples_x, dst_samples_y] = SamplesLog2(dst_image.info.num_samples);
-    const Region2D dst_region{
+    Region2D dst_region{
         Offset2D{.x = copy.dst_x0 >> dst_samples_x, .y = copy.dst_y0 >> dst_samples_y},
         Offset2D{.x = copy.dst_x1 >> dst_samples_x, .y = copy.dst_y1 >> dst_samples_y},
     };
+    if (is_dst_rescaled) {
+        scale_region(dst_region);
+    }
 
     // Always call this after src_framebuffer_id was queried, as the address might be invalidated.
     Framebuffer* const dst_framebuffer = &slot_framebuffers[dst_framebuffer_id];
@@ -1514,17 +1544,27 @@ void TextureCache<P>::MarkModification(ImageBase& image) noexcept {
 template <class P>
 void TextureCache<P>::SynchronizeAliases(ImageId image_id) {
     boost::container::small_vector<const AliasedImage*, 1> aliased_images;
-    ImageBase& image = slot_images[image_id];
+    Image& image = slot_images[image_id];
+    bool any_rescaled = True(image.flags & ImageFlagBits::Rescaled);
     u64 most_recent_tick = image.modification_tick;
     for (const AliasedImage& aliased : image.aliased_images) {
         ImageBase& aliased_image = slot_images[aliased.id];
         if (image.modification_tick < aliased_image.modification_tick) {
             most_recent_tick = std::max(most_recent_tick, aliased_image.modification_tick);
             aliased_images.push_back(&aliased);
+            any_rescaled |= True(image.flags & ImageFlagBits::Rescaled);
         }
     }
     if (aliased_images.empty()) {
         return;
+    }
+    const bool can_rescale = ImageCanRescale(image);
+    if (any_rescaled) {
+        if (can_rescale) {
+            ScaleUp(image);
+        } else {
+            ScaleDown(image);
+        }
     }
     image.modification_tick = most_recent_tick;
     std::ranges::sort(aliased_images, [this](const AliasedImage* lhs, const AliasedImage* rhs) {
@@ -1533,6 +1573,14 @@ void TextureCache<P>::SynchronizeAliases(ImageId image_id) {
         return lhs_image.modification_tick < rhs_image.modification_tick;
     });
     for (const AliasedImage* const aliased : aliased_images) {
+        if (any_rescaled) {
+            Image& aliased_image = slot_images[aliased->id];
+            if (can_rescale) {
+                ScaleUp(aliased_image);
+            } else {
+                ScaleDown(aliased_image);
+            }
+        }
         CopyImage(image_id, aliased->id, aliased->copies);
     }
 }
