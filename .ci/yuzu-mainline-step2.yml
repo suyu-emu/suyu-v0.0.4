@@ -19,6 +19,7 @@ stages:
   displayName: 'build'
   jobs:
   - job: build
+    timeoutInMinutes: 120
     displayName: 'standard'
     pool:
       vmImage: ubuntu-latest
@@ -43,6 +44,7 @@ stages:
   displayName: 'build-windows'
   jobs:
   - job: build
+    timeoutInMinutes: 120
     displayName: 'msvc'
     pool:
       vmImage: windows-2019
