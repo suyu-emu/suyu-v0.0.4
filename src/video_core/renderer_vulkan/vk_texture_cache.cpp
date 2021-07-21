@@ -1128,8 +1128,8 @@ bool Image::ScaleUp(bool save_as_backup) {
                     .z = 0,
                 },
                 {
-                    .x = s32(info.size.width),
-                    .y = s32(info.size.height),
+                    .x = static_cast<s32>(info.size.width),
+                    .y = static_cast<s32>(info.size.height),
                     .z = 1,
                 },
             },
@@ -1146,8 +1146,10 @@ bool Image::ScaleUp(bool save_as_backup) {
                     .z = 0,
                 },
                 {
-                    .x = s32(scale_up(info.size.width)),
-                    .y = is_2d ? s32(scale_up(info.size.height)) : s32(info.size.height),
+                    .x = std::max(1, static_cast<s32>(scale_up(info.size.width)) >> level),
+                    .y = std::max(1, static_cast<s32>(is_2d ? scale_up(info.size.height)
+                                                            : info.size.height) >>
+                                         level),
                     .z = 1,
                 },
             },
@@ -1199,9 +1201,9 @@ bool Image::ScaleDown(bool save_as_backup) {
         regions.push_back({
             .srcSubresource{
                 .aspectMask = aspect_mask,
-                .mipLevel = u32(level),
+                .mipLevel = static_cast<u32>(level),
                 .baseArrayLayer = 0,
-                .layerCount = u32(info.resources.layers),
+                .layerCount = static_cast<u32>(info.resources.layers),
             },
             .srcOffsets{
                 {
@@ -1210,16 +1212,18 @@ bool Image::ScaleDown(bool save_as_backup) {
                     .z = 0,
                 },
                 {
-                    .x = s32(scale_up(info.size.width)),
-                    .y = is_2d ? s32(scale_up(info.size.height)) : s32(info.size.height),
+                    .x = std::max(1, static_cast<s32>(scale_up(info.size.width)) >> level),
+                    .y = std::max(1, static_cast<s32>(is_2d ? scale_up(info.size.height)
+                                                            : info.size.height) >>
+                                         level),
                     .z = 1,
                 },
             },
             .dstSubresource{
                 .aspectMask = aspect_mask,
-                .mipLevel = u32(level),
+                .mipLevel = static_cast<u32>(level),
                 .baseArrayLayer = 0,
-                .layerCount = u32(info.resources.layers),
+                .layerCount = static_cast<u32>(info.resources.layers),
             },
             .dstOffsets{
                 {
@@ -1228,8 +1232,8 @@ bool Image::ScaleDown(bool save_as_backup) {
                     .z = 0,
                 },
                 {
-                    .x = s32(info.size.width),
-                    .y = s32(info.size.height),
+                    .x = std::max(1, static_cast<s32>(info.size.width) >> level),
+                    .y = std::max(1, static_cast<s32>(info.size.height) >> level),
                     .z = 1,
                 },
             },
