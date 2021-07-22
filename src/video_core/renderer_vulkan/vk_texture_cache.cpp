@@ -593,6 +593,82 @@ struct RangedBarrierRange {
     UNREACHABLE_MSG("Invalid image format={}", format);
     return VK_FORMAT_R32_UINT;
 }
+
+void BlitScale(VKScheduler& scheduler, VkImage src_image, VkImage dst_image,
+               boost::container::small_vector<VkImageBlit, 4>&& blit_regions,
+               VkImageAspectFlags aspect_mask) {
+    scheduler.RequestOutsideRenderPassOperationContext();
+    scheduler.Record([dst_image, src_image, aspect_mask,
+                      regions = std::move(blit_regions)](vk::CommandBuffer cmdbuf) {
+        const VkImageSubresourceRange subresource_range{
+            .aspectMask = aspect_mask,
+            .baseMipLevel = 0,
+            .levelCount = VK_REMAINING_MIP_LEVELS,
+            .baseArrayLayer = 0,
+            .layerCount = VK_REMAINING_ARRAY_LAYERS,
+        };
+        const std::array read_barriers{
+            VkImageMemoryBarrier{
+                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                .pNext = nullptr,
+                .srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
+                .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+                .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .image = src_image,
+                .subresourceRange = subresource_range,
+            },
+            VkImageMemoryBarrier{
+                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                .pNext = nullptr,
+                .srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT |
+                                 VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
+                                 VK_ACCESS_TRANSFER_WRITE_BIT,
+                .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+                .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED, // Discard contents
+                .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .image = dst_image,
+                .subresourceRange = subresource_range,
+            },
+        };
+        const std::array write_barriers{
+            VkImageMemoryBarrier{
+                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                .pNext = nullptr,
+                .srcAccessMask = 0,
+                .dstAccessMask = VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT,
+                .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .image = src_image,
+                .subresourceRange = subresource_range,
+            },
+            VkImageMemoryBarrier{
+                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                .pNext = nullptr,
+                .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+                .dstAccessMask = VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT,
+                .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .image = dst_image,
+                .subresourceRange = subresource_range,
+            },
+        };
+        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                               0, nullptr, nullptr, read_barriers);
+        cmdbuf.BlitImage(src_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst_image,
+                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, regions, VK_FILTER_NEAREST);
+        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                               0, nullptr, nullptr, write_barriers);
+    });
+}
 } // Anonymous namespace
 
 void TextureCacheRuntime::Init() {
@@ -983,85 +1059,6 @@ void Image::DownloadMemory(const StagingBufferRef& map, std::span<const BufferIm
     }
 }
 
-void BlitScale(VKScheduler& scheduler, VkImage src_image, VkImage dst_image,
-               boost::container::small_vector<VkImageBlit, 4>& blit_regions,
-               VkImageAspectFlags aspect_mask) {
-    scheduler.RequestOutsideRenderPassOperationContext();
-    scheduler.Record([dst_image, src_image, aspect_mask,
-                      regions = std::move(blit_regions)](vk::CommandBuffer cmdbuf) {
-        const std::array read_barriers{
-            VkImageMemoryBarrier{
-                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-                .pNext = nullptr,
-                .srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT |
-                                 VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
-                                 VK_ACCESS_TRANSFER_WRITE_BIT,
-                .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
-                .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
-                .newLayout = VK_IMAGE_LAYOUT_GENERAL,
-                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                .image = src_image,
-                .subresourceRange{
-                    .aspectMask = aspect_mask,
-                    .baseMipLevel = 0,
-                    .levelCount = VK_REMAINING_MIP_LEVELS,
-                    .baseArrayLayer = 0,
-                    .layerCount = VK_REMAINING_ARRAY_LAYERS,
-                },
-            },
-            VkImageMemoryBarrier{
-                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-                .pNext = nullptr,
-                .srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT |
-                                 VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
-                                 VK_ACCESS_TRANSFER_WRITE_BIT,
-                .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
-                .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
-                .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                .image = dst_image,
-                .subresourceRange{
-                    .aspectMask = aspect_mask,
-                    .baseMipLevel = 0,
-                    .levelCount = VK_REMAINING_MIP_LEVELS,
-                    .baseArrayLayer = 0,
-                    .layerCount = VK_REMAINING_ARRAY_LAYERS,
-                },
-            },
-        };
-        VkImageMemoryBarrier write_barrier{
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            .pNext = nullptr,
-            .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
-            .dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT |
-                             VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
-                             VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
-                             VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT,
-            .oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            .newLayout = VK_IMAGE_LAYOUT_GENERAL,
-            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .image = dst_image,
-            .subresourceRange{
-                .aspectMask = aspect_mask,
-                .baseMipLevel = 0,
-                .levelCount = VK_REMAINING_MIP_LEVELS,
-                .baseArrayLayer = 0,
-                .layerCount = VK_REMAINING_ARRAY_LAYERS,
-            },
-        };
-        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                               0, nullptr, nullptr, read_barriers);
-        const VkFilter vk_filter = VK_FILTER_NEAREST;
-        cmdbuf.BlitImage(src_image, VK_IMAGE_LAYOUT_GENERAL, dst_image,
-                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, regions, vk_filter);
-        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-                               0, write_barrier);
-    });
-}
-
 bool Image::ScaleUp(bool save_as_backup) {
     if (True(flags & ImageFlagBits::Rescaled)) {
         return false;
@@ -1155,7 +1152,7 @@ bool Image::ScaleUp(bool save_as_backup) {
             },
         });
     }
-    BlitScale(*scheduler, *image, *rescaled_image, regions, aspect_mask);
+    BlitScale(*scheduler, *image, *rescaled_image, std::move(regions), aspect_mask);
     return true;
 }
 
@@ -1239,7 +1236,7 @@ bool Image::ScaleDown(bool save_as_backup) {
             },
         });
     }
-    BlitScale(*scheduler, *image, *downscaled_image, regions, aspect_mask);
+    BlitScale(*scheduler, *image, *downscaled_image, std::move(regions), aspect_mask);
     if (save_as_backup) {
         backup_image = std::move(image);
         backup_commit = std::move(commit);
