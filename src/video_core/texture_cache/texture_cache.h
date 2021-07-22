@@ -1552,7 +1552,7 @@ void TextureCache<P>::SynchronizeAliases(ImageId image_id) {
         if (image.modification_tick < aliased_image.modification_tick) {
             most_recent_tick = std::max(most_recent_tick, aliased_image.modification_tick);
             aliased_images.push_back(&aliased);
-            any_rescaled |= True(image.flags & ImageFlagBits::Rescaled);
+            any_rescaled |= True(aliased_image.flags & ImageFlagBits::Rescaled);
         }
     }
     if (aliased_images.empty()) {
