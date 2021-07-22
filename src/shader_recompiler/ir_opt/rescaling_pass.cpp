@@ -3,7 +3,9 @@
 // Refer to the license.txt file included.
 
 #include "common/alignment.h"
+#include "common/settings.h"
 #include "shader_recompiler/environment.h"
+#include "shader_recompiler/frontend/ir/ir_emitter.h"
 #include "shader_recompiler/frontend/ir/modifiers.h"
 #include "shader_recompiler/frontend/ir/program.h"
 #include "shader_recompiler/frontend/ir/value.h"
@@ -12,59 +14,49 @@
 
 namespace Shader::Optimization {
 namespace {
-
-void PatchFragCoord(IR::Inst& inst) {
+void PatchFragCoord(IR::Block& block, IR::Inst& inst) {
     IR::IREmitter ir{block, IR::Block::InstructionList::s_iterator_to(inst)};
-    const IR::F32 inv_resolution_factor = IR::F32{Settings::values.resolution_info.down_factor};
-    const IR::F32 new_get_attribute = ir.GetAttribute(inst.Arg(0).Attribute());
-    const IR::F32 mul = ir.FMul(new_get_attribute, inv_resolution_factor);
-    const IR::U1 should_rescale = IR::U1{true};
-    const IR::F32 selection = ir.Select(should_rescale, mul, new_get_attribute);
-    inst.ReplaceUsesWith(selection);
+    const IR::F32 down_factor{ir.ResolutionDownFactor()};
+    const IR::F32 frag_coord{&inst};
+    const IR::F32 downscaled_frag_coord{ir.FPMul(frag_coord, down_factor)};
+    inst.ReplaceUsesWith(downscaled_frag_coord);
 }
 
-void Visit(Info& info, IR::Inst& inst) {
-    info.requires_rescaling_uniform = false;
+void Visit(const IR::Program& program, IR::Block& block, IR::Inst& inst) {
+    const bool is_fragment_shader{program.stage == Stage::Fragment};
     switch (inst.GetOpcode()) {
     case IR::Opcode::GetAttribute: {
-        conast auto attrib = inst.Arg(0).Attribute();
-        const bool is_frag =
-            attrib == IR::Attribute::PositionX || attrib == IR::Attribute::PositionY;
-        const bool must_path = is_frag && program.stage == Stage::Fragment;
-        if (must_path) {
-            PatchFragCoord(inst);
-            info.requires_rescaling_uniform = true;
+        const IR::Attribute attr{inst.Arg(0).Attribute()};
+        switch (attr) {
+        case IR::Attribute::PositionX:
+        case IR::Attribute::PositionY:
+            if (is_fragment_shader) {
+                PatchFragCoord(block, inst);
+            }
+            break;
+        default:
+            break;
         }
         break;
     }
-    case IR::Opcode::ImageQueryDimensions: {
-        info.requires_rescaling_uniform |= true;
+    case IR::Opcode::ImageQueryDimensions:
         break;
-    }
-    case IR::Opcode::ImageFetch: {
-        info.requires_rescaling_uniform |= true;
+    case IR::Opcode::ImageFetch:
         break;
-    }
-    case IR::Opcode::ImageRead: {
-        info.requires_rescaling_uniform |= true;
+    case IR::Opcode::ImageRead:
         break;
-    }
-    case IR::Opcode::ImageWrite: {
-        info.requires_rescaling_uniform |= true;
+    case IR::Opcode::ImageWrite:
         break;
-    }
     default:
         break;
     }
 }
+} // Anonymous namespace
 
-} // namespace
-
-void RescalingPass(Environment& env, IR::Program& program) {
-    Info& info{program.info};
+void RescalingPass(IR::Program& program) {
     for (IR::Block* const block : program.post_order_blocks) {
         for (IR::Inst& inst : block->Instructions()) {
-            Visit(info, inst);
+            Visit(program, *block, inst);
         }
     }
 }

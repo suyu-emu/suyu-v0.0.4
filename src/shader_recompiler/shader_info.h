@@ -172,7 +172,7 @@ struct Info {
     bool uses_global_memory{};
     bool uses_atomic_image_u32{};
     bool uses_shadow_lod{};
-    bool requires_rescaling_uniform{};
+    bool uses_rescaling_uniform{};
 
     IR::Type used_constant_buffer_types{};
     IR::Type used_storage_buffer_types{};
