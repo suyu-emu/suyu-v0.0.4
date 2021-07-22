@@ -203,7 +203,7 @@ private:
 
     void CopyImageToBuffer(const VideoCommon::BufferImageCopy& copy, size_t buffer_offset);
 
-    void Scale(u32 up, u32 down);
+    bool Scale(bool scale_src, bool scale_dst);
 
     OGLTexture texture;
     OGLTextureView store_view;

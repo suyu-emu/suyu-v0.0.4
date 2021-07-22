@@ -869,17 +869,17 @@ void Image::CopyImageToBuffer(const VideoCommon::BufferImageCopy& copy, size_t b
     }
 }
 
-void Image::Scale(u32 up, u32 down) {
+bool Image::Scale(bool scale_src, bool scale_dst) {
     if (!runtime->is_rescaling_on) {
-        return;
+        return false;
     }
     if (gl_format == 0 && gl_type == 0) {
         // compressed textures
-        return;
+        return false;
     }
     if (info.type == ImageType::Linear) {
         UNIMPLEMENTED();
-        return;
+        return false;
     }
     GLint prev_read_fbo;
     glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &prev_read_fbo);
@@ -910,43 +910,58 @@ void Image::Scale(u32 up, u32 down) {
         }
     }();
     const GLenum filter = (mask & GL_COLOR_BUFFER_BIT) != 0 ? GL_LINEAR : GL_NEAREST;
-    const auto scale_up = [&](u32 value) { return std::max<u32>((value * up) >> down, 1U); };
     const bool is_2d = info.type == ImageType::e2D;
+    const auto& resolution = runtime->resolution;
+    const u32 up = resolution.up_scale;
+    const u32 down = resolution.down_shift;
+
+    const auto scale_up = [&](u32 value) { return std::max<u32>((value * up) >> down, 1U); };
     const u32 scaled_width = scale_up(info.size.width);
     const u32 scaled_height = is_2d ? scale_up(info.size.height) : info.size.height;
     const u32 original_width = info.size.width;
     const u32 original_height = info.size.height;
 
-    auto scaled_info = info;
-    scaled_info.size.width = scaled_width;
-    scaled_info.size.height = scaled_height;
-    auto scaled_texture = MakeImage(scaled_info, gl_internal_format);
+    const u32 src_width = scale_src ? scaled_width : original_width;
+    const u32 src_height = scale_src ? scaled_height : original_height;
+    const u32 dst_width = scale_dst ? scaled_width : original_width;
+    const u32 dst_height = scale_dst ? scaled_height : original_height;
+
+    auto dst_info = info;
+    dst_info.size.width = dst_width;
+    dst_info.size.height = dst_height;
+    auto dst_texture = MakeImage(dst_info, gl_internal_format);
+
     const auto& blit_fbo = runtime->rescale_fbo;
     for (s32 level = 0; level < info.resources.levels; ++level) {
-        const u32 level_width = scaled_width >> level;
-        const u32 level_height = scaled_height >> level;
+        const u32 src_level_width = std::max(1u, src_width >> level);
+        const u32 src_level_height = std::max(1u, src_height >> level);
+        const u32 dst_level_width = std::max(1u, dst_width >> level);
+        const u32 dst_level_height = std::max(1u, dst_height >> level);
+
         glBindFramebuffer(GL_READ_FRAMEBUFFER, blit_fbo.handle);
         glNamedFramebufferTexture(blit_fbo.handle, attachment, texture.handle, level);
-        glBlitNamedFramebuffer(blit_fbo.handle, blit_fbo.handle, 0, 0, original_width,
-                               original_height, 0, 0, level_width, level_height, mask, filter);
+        glBlitNamedFramebuffer(blit_fbo.handle, blit_fbo.handle, 0, 0, src_level_width,
+                               src_level_height, 0, 0, dst_level_width, dst_level_height, mask,
+                               filter);
         switch (info.type) {
         case ImageType::e1D:
-            glCopyTextureSubImage2D(scaled_texture.handle, level, 0, 0, 0, 0, level_width,
-                                    level_height);
+            glCopyTextureSubImage2D(dst_texture.handle, level, 0, 0, 0, 0, dst_level_width,
+                                    dst_level_height);
             break;
         case ImageType::e2D:
-            glCopyTextureSubImage3D(scaled_texture.handle, level, 0, 0, 0, 0, 0, level_width,
-                                    level_height);
+            glCopyTextureSubImage3D(dst_texture.handle, level, 0, 0, 0, 0, 0, dst_level_width,
+                                    dst_level_height);
             break;
         case ImageType::e3D:
         default:
             UNREACHABLE();
         }
     }
-    texture = std::move(scaled_texture);
+    texture = std::move(dst_texture);
 
     // Restore previous framebuffers
     glBindFramebuffer(GL_READ_FRAMEBUFFER, prev_read_fbo);
+    return true;
 }
 
 bool Image::ScaleUp() {
@@ -954,9 +969,7 @@ bool Image::ScaleUp() {
         return false;
     }
     flags |= ImageFlagBits::Rescaled;
-    const auto& resolution = runtime->resolution;
-    Scale(resolution.up_scale, resolution.down_shift);
-    return true;
+    return Scale(false, true);
 }
 
 bool Image::ScaleDown() {
@@ -964,10 +977,7 @@ bool Image::ScaleDown() {
         return false;
     }
     flags &= ~ImageFlagBits::Rescaled;
-    UNIMPLEMENTED();
-    // const auto& resolution = runtime->resolution;
-    // Scale();
-    return true;
+    return Scale(true, false);
 }
 
 ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewInfo& info,
