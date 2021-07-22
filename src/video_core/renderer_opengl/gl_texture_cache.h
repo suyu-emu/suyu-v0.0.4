@@ -155,6 +155,7 @@ private:
 
     std::array<GLuint, Shader::NUM_TEXTURE_TYPES> null_image_views{};
 
+    OGLFramebuffer rescale_fbo;
     Settings::ResolutionScalingInfo resolution;
     bool is_rescaling_on{};
 };

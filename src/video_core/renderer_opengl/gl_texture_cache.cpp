@@ -479,6 +479,9 @@ TextureCacheRuntime::~TextureCacheRuntime() = default;
 void TextureCacheRuntime::Init() {
     resolution = Settings::values.resolution_info;
     is_rescaling_on = resolution.up_scale != 1 || resolution.down_shift != 0;
+    if (is_rescaling_on) {
+        rescale_fbo.Create();
+    }
 }
 
 void TextureCacheRuntime::Finish() {
@@ -867,8 +870,10 @@ void Image::CopyImageToBuffer(const VideoCommon::BufferImageCopy& copy, size_t b
 }
 
 void Image::Scale(u32 up, u32 down) {
-    // TODO: Pass scaling factor?
-    if (gl_format == 0 || gl_type == 0) {
+    if (!runtime->is_rescaling_on) {
+        return;
+    }
+    if (gl_format == 0 && gl_type == 0) {
         // compressed textures
         return;
     }
@@ -876,9 +881,7 @@ void Image::Scale(u32 up, u32 down) {
         UNIMPLEMENTED();
         return;
     }
-    GLint prev_draw_fbo;
     GLint prev_read_fbo;
-    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &prev_draw_fbo);
     glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &prev_read_fbo);
     const GLenum attachment = [this] {
         switch (GetFormatType(info.format)) {
@@ -907,15 +910,10 @@ void Image::Scale(u32 up, u32 down) {
         }
     }();
     const GLenum filter = (mask & GL_COLOR_BUFFER_BIT) != 0 ? GL_LINEAR : GL_NEAREST;
-    GLuint fbo_handle;
-    glGenFramebuffers(1, &fbo_handle);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo_handle);
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo_handle);
-    glNamedFramebufferTexture(fbo_handle, attachment, texture.handle, 0);
-
     const auto scale_up = [&](u32 value) { return std::max<u32>((value * up) >> down, 1U); };
+    const bool is_2d = info.type == ImageType::e2D;
     const u32 scaled_width = scale_up(info.size.width);
-    const u32 scaled_height = scale_up(info.size.height);
+    const u32 scaled_height = is_2d ? scale_up(info.size.height) : info.size.height;
     const u32 original_width = info.size.width;
     const u32 original_height = info.size.height;
 
@@ -923,14 +921,31 @@ void Image::Scale(u32 up, u32 down) {
     scaled_info.size.width = scaled_width;
     scaled_info.size.height = scaled_height;
     auto scaled_texture = MakeImage(scaled_info, gl_internal_format);
-
-    glBlitNamedFramebuffer(fbo_handle, fbo_handle, 0, 0, original_width, original_height, 0, 0,
-                           scaled_width, scaled_height, mask, filter);
-    glCopyTextureSubImage3D(scaled_texture.handle, 0, 0, 0, 0, 0, 0, scaled_width, scaled_height);
+    const auto& blit_fbo = runtime->rescale_fbo;
+    for (s32 level = 0; level < info.resources.levels; ++level) {
+        const u32 level_width = scaled_width >> level;
+        const u32 level_height = scaled_height >> level;
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, blit_fbo.handle);
+        glNamedFramebufferTexture(blit_fbo.handle, attachment, texture.handle, level);
+        glBlitNamedFramebuffer(blit_fbo.handle, blit_fbo.handle, 0, 0, original_width,
+                               original_height, 0, 0, level_width, level_height, mask, filter);
+        switch (info.type) {
+        case ImageType::e1D:
+            glCopyTextureSubImage2D(scaled_texture.handle, level, 0, 0, 0, 0, level_width,
+                                    level_height);
+            break;
+        case ImageType::e2D:
+            glCopyTextureSubImage3D(scaled_texture.handle, level, 0, 0, 0, 0, 0, level_width,
+                                    level_height);
+            break;
+        case ImageType::e3D:
+        default:
+            UNREACHABLE();
+        }
+    }
     texture = std::move(scaled_texture);
 
     // Restore previous framebuffers
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prev_draw_fbo);
     glBindFramebuffer(GL_READ_FRAMEBUFFER, prev_read_fbo);
 }
 
