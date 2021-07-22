@@ -17,7 +17,7 @@ namespace {
 void PatchFragCoord(IR::Block& block, IR::Inst& inst) {
     IR::IREmitter ir{block, IR::Block::InstructionList::s_iterator_to(inst)};
     const IR::F32 down_factor{ir.ResolutionDownFactor()};
-    const IR::F32 frag_coord{&inst};
+    const IR::F32 frag_coord{ir.GetAttribute(inst.Arg(0).Attribute())};
     const IR::F32 downscaled_frag_coord{ir.FPMul(frag_coord, down_factor)};
     inst.ReplaceUsesWith(downscaled_frag_coord);
 }
