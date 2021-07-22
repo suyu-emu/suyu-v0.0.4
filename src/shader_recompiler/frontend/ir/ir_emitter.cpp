@@ -375,6 +375,10 @@ F32 IREmitter::YDirection() {
     return Inst<F32>(Opcode::YDirection);
 }
 
+F32 IREmitter::ResolutionDownFactor() {
+    return Inst<F32>(Opcode::ResolutionDownFactor);
+}
+
 U32 IREmitter::LaneId() {
     return Inst<U32>(Opcode::LaneId);
 }

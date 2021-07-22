@@ -75,6 +75,7 @@ Id EmitInvocationId(EmitContext& ctx);
 Id EmitSampleId(EmitContext& ctx);
 Id EmitIsHelperInvocation(EmitContext& ctx);
 Id EmitYDirection(EmitContext& ctx);
+Id EmitResolutionDownFactor(EmitContext& ctx);
 Id EmitLoadLocal(EmitContext& ctx, Id word_offset);
 void EmitWriteLocal(EmitContext& ctx, Id word_offset, Id value);
 Id EmitUndefU1(EmitContext& ctx);

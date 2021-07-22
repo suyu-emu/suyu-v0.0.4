@@ -526,6 +526,11 @@ Id EmitYDirection(EmitContext& ctx) {
     return ctx.Const(ctx.runtime_info.y_negate ? -1.0f : 1.0f);
 }
 
+Id EmitResolutionDownFactor(EmitContext& ctx) {
+    UNIMPLEMENTED();
+    return ctx.Const(1.0f);
+}
+
 Id EmitLoadLocal(EmitContext& ctx, Id word_offset) {
     const Id pointer{ctx.OpAccessChain(ctx.private_u32, ctx.local_memory, word_offset)};
     return ctx.OpLoad(ctx.U32[1], pointer);

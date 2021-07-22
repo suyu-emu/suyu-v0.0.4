@@ -102,6 +102,8 @@ public:
     [[nodiscard]] U1 IsHelperInvocation();
     [[nodiscard]] F32 YDirection();
 
+    [[nodiscard]] F32 ResolutionDownFactor();
+
     [[nodiscard]] U32 LaneId();
 
     [[nodiscard]] U32 LoadGlobalU8(const U64& address);
