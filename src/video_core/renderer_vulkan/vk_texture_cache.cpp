@@ -594,12 +594,67 @@ struct RangedBarrierRange {
     return VK_FORMAT_R32_UINT;
 }
 
-void BlitScale(VKScheduler& scheduler, VkImage src_image, VkImage dst_image,
-               boost::container::small_vector<VkImageBlit, 4>&& blit_regions,
-               VkImageAspectFlags aspect_mask) {
+void BlitScale(VKScheduler& scheduler, VkImage src_image, VkImage dst_image, const ImageInfo& info,
+               VkImageAspectFlags aspect_mask, const Settings::ResolutionScalingInfo& resolution) {
+    const auto type = info.type;
+    const auto resources = info.resources;
+    const VkExtent2D extent{
+        .width = info.size.width,
+        .height = info.size.height,
+    };
     scheduler.RequestOutsideRenderPassOperationContext();
-    scheduler.Record([dst_image, src_image, aspect_mask,
-                      regions = std::move(blit_regions)](vk::CommandBuffer cmdbuf) {
+    scheduler.Record([dst_image, src_image, extent, resources, aspect_mask, resolution,
+                      type](vk::CommandBuffer cmdbuf) {
+        const auto scale_up = [&](u32 value) {
+            return std::max<u32>((value * resolution.up_scale) >> resolution.down_shift, 1U);
+        };
+        const bool is_2d = type == ImageType::e2D;
+        const VkOffset2D mip0_size{
+            .x = static_cast<s32>(scale_up(extent.width)),
+            .y = static_cast<s32>(is_2d ? scale_up(extent.height) : extent.height),
+        };
+        boost::container::small_vector<VkImageBlit, 4> regions;
+        regions.reserve(resources.levels);
+        for (s32 level = 0; level < resources.levels; level++) {
+            regions.push_back({
+                .srcSubresource{
+                    .aspectMask = aspect_mask,
+                    .mipLevel = static_cast<u32>(level),
+                    .baseArrayLayer = 0,
+                    .layerCount = static_cast<u32>(resources.layers),
+                },
+                .srcOffsets{
+                    {
+                        .x = 0,
+                        .y = 0,
+                        .z = 0,
+                    },
+                    {
+                        .x = static_cast<s32>(extent.width),
+                        .y = static_cast<s32>(extent.height),
+                        .z = 1,
+                    },
+                },
+                .dstSubresource{
+                    .aspectMask = aspect_mask,
+                    .mipLevel = static_cast<u32>(level),
+                    .baseArrayLayer = 0,
+                    .layerCount = static_cast<u32>(resources.layers),
+                },
+                .dstOffsets{
+                    {
+                        .x = 0,
+                        .y = 0,
+                        .z = 0,
+                    },
+                    {
+                        .x = std::max(1, mip0_size.x >> level),
+                        .y = std::max(1, mip0_size.y >> level),
+                        .z = 1,
+                    },
+                },
+            });
+        }
         const VkImageSubresourceRange subresource_range{
             .aspectMask = aspect_mask,
             .baseMipLevel = 0,
@@ -1102,57 +1157,7 @@ bool Image::ScaleUp(bool save_as_backup) {
     if (aspect_mask == 0) {
         aspect_mask = ImageAspectMask(info.format);
     }
-
-    const auto scale_up = [&](u32 value) {
-        return std::max<u32>((value * resolution.up_scale) >> resolution.down_shift, 1U);
-    };
-
-    const bool is_2d = info.type == ImageType::e2D;
-    boost::container::small_vector<VkImageBlit, 4> regions;
-    regions.reserve(info.resources.levels);
-    for (s32 level = 0; level < info.resources.levels; level++) {
-        regions.push_back({
-            .srcSubresource{
-                .aspectMask = aspect_mask,
-                .mipLevel = u32(level),
-                .baseArrayLayer = 0,
-                .layerCount = u32(info.resources.layers),
-            },
-            .srcOffsets{
-                {
-                    .x = 0,
-                    .y = 0,
-                    .z = 0,
-                },
-                {
-                    .x = static_cast<s32>(info.size.width),
-                    .y = static_cast<s32>(info.size.height),
-                    .z = 1,
-                },
-            },
-            .dstSubresource{
-                .aspectMask = aspect_mask,
-                .mipLevel = u32(level),
-                .baseArrayLayer = 0,
-                .layerCount = u32(info.resources.layers),
-            },
-            .dstOffsets{
-                {
-                    .x = 0,
-                    .y = 0,
-                    .z = 0,
-                },
-                {
-                    .x = std::max(1, static_cast<s32>(scale_up(info.size.width)) >> level),
-                    .y = std::max(1, static_cast<s32>(is_2d ? scale_up(info.size.height)
-                                                            : info.size.height) >>
-                                         level),
-                    .z = 1,
-                },
-            },
-        });
-    }
-    BlitScale(*scheduler, *image, *rescaled_image, std::move(regions), aspect_mask);
+    BlitScale(*scheduler, *image, *rescaled_image, info, aspect_mask, resolution);
     return true;
 }
 
@@ -1183,60 +1188,11 @@ bool Image::ScaleDown(bool save_as_backup) {
     MemoryCommit new_commit(
         runtime->memory_allocator.Commit(downscaled_image, MemoryUsage::DeviceLocal));
 
-    const auto scale_up = [&](u32 value) {
-        return (value * resolution.up_scale) >> resolution.down_shift;
-    };
-
     if (aspect_mask == 0) {
         aspect_mask = ImageAspectMask(info.format);
     }
+    BlitScale(*scheduler, *image, *downscaled_image, info, aspect_mask, resolution);
 
-    const bool is_2d = info.type == ImageType::e2D;
-    boost::container::small_vector<VkImageBlit, 4> regions;
-    regions.reserve(info.resources.levels);
-    for (s32 level = 0; level < info.resources.levels; level++) {
-        regions.push_back({
-            .srcSubresource{
-                .aspectMask = aspect_mask,
-                .mipLevel = static_cast<u32>(level),
-                .baseArrayLayer = 0,
-                .layerCount = static_cast<u32>(info.resources.layers),
-            },
-            .srcOffsets{
-                {
-                    .x = 0,
-                    .y = 0,
-                    .z = 0,
-                },
-                {
-                    .x = std::max(1, static_cast<s32>(scale_up(info.size.width)) >> level),
-                    .y = std::max(1, static_cast<s32>(is_2d ? scale_up(info.size.height)
-                                                            : info.size.height) >>
-                                         level),
-                    .z = 1,
-                },
-            },
-            .dstSubresource{
-                .aspectMask = aspect_mask,
-                .mipLevel = static_cast<u32>(level),
-                .baseArrayLayer = 0,
-                .layerCount = static_cast<u32>(info.resources.layers),
-            },
-            .dstOffsets{
-                {
-                    .x = 0,
-                    .y = 0,
-                    .z = 0,
-                },
-                {
-                    .x = std::max(1, static_cast<s32>(info.size.width) >> level),
-                    .y = std::max(1, static_cast<s32>(info.size.height) >> level),
-                    .z = 1,
-                },
-            },
-        });
-    }
-    BlitScale(*scheduler, *image, *downscaled_image, std::move(regions), aspect_mask);
     if (save_as_backup) {
         backup_image = std::move(image);
         backup_commit = std::move(commit);
