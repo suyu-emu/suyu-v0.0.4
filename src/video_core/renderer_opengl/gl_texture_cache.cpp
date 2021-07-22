@@ -480,7 +480,8 @@ void TextureCacheRuntime::Init() {
     resolution = Settings::values.resolution_info;
     is_rescaling_on = resolution.up_scale != 1 || resolution.down_shift != 0;
     if (is_rescaling_on) {
-        rescale_fbo.Create();
+        rescale_draw_fbo.Create();
+        rescale_read_fbo.Create();
     }
 }
 
@@ -881,8 +882,11 @@ bool Image::Scale(bool scale_src, bool scale_dst) {
         UNIMPLEMENTED();
         return false;
     }
+    GLint prev_draw_fbo;
     GLint prev_read_fbo;
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &prev_draw_fbo);
     glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &prev_read_fbo);
+
     const GLenum attachment = [this] {
         switch (GetFormatType(info.format)) {
         case SurfaceType::ColorTexture:
@@ -931,35 +935,26 @@ bool Image::Scale(bool scale_src, bool scale_dst) {
     dst_info.size.height = dst_height;
     auto dst_texture = MakeImage(dst_info, gl_internal_format);
 
-    const auto& blit_fbo = runtime->rescale_fbo;
+    const auto& read_fbo = runtime->rescale_read_fbo;
+    const auto& draw_fbo = runtime->rescale_draw_fbo;
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, draw_fbo.handle);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, read_fbo.handle);
     for (s32 level = 0; level < info.resources.levels; ++level) {
         const u32 src_level_width = std::max(1u, src_width >> level);
         const u32 src_level_height = std::max(1u, src_height >> level);
         const u32 dst_level_width = std::max(1u, dst_width >> level);
         const u32 dst_level_height = std::max(1u, dst_height >> level);
 
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, blit_fbo.handle);
-        glNamedFramebufferTexture(blit_fbo.handle, attachment, texture.handle, level);
-        glBlitNamedFramebuffer(blit_fbo.handle, blit_fbo.handle, 0, 0, src_level_width,
+        glNamedFramebufferTexture(read_fbo.handle, attachment, texture.handle, level);
+        glNamedFramebufferTexture(draw_fbo.handle, attachment, dst_texture.handle, level);
+        glBlitNamedFramebuffer(read_fbo.handle, draw_fbo.handle, 0, 0, src_level_width,
                                src_level_height, 0, 0, dst_level_width, dst_level_height, mask,
                                filter);
-        switch (info.type) {
-        case ImageType::e1D:
-            glCopyTextureSubImage2D(dst_texture.handle, level, 0, 0, 0, 0, dst_level_width,
-                                    dst_level_height);
-            break;
-        case ImageType::e2D:
-            glCopyTextureSubImage3D(dst_texture.handle, level, 0, 0, 0, 0, 0, dst_level_width,
-                                    dst_level_height);
-            break;
-        case ImageType::e3D:
-        default:
-            UNREACHABLE();
-        }
     }
     texture = std::move(dst_texture);
 
     // Restore previous framebuffers
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prev_draw_fbo);
     glBindFramebuffer(GL_READ_FRAMEBUFFER, prev_read_fbo);
     return true;
 }
