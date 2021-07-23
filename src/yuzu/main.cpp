@@ -2515,7 +2515,7 @@ void GMainWindow::ShowFullscreen() {
         ui.menubar->hide();
         statusBar()->hide();
 
-        if (Settings::values.fullscreen_mode.GetValue() == 1) {
+        if (Settings::values.fullscreen_mode.GetValue() == Settings::FullscreenMode::Exclusive) {
             showFullScreen();
             return;
         }
@@ -2530,7 +2530,7 @@ void GMainWindow::ShowFullscreen() {
     } else {
         UISettings::values.renderwindow_geometry = render_window->saveGeometry();
 
-        if (Settings::values.fullscreen_mode.GetValue() == 1) {
+        if (Settings::values.fullscreen_mode.GetValue() == Settings::FullscreenMode::Exclusive) {
             render_window->showFullScreen();
             return;
         }
@@ -2547,7 +2547,7 @@ void GMainWindow::ShowFullscreen() {
 
 void GMainWindow::HideFullscreen() {
     if (ui.action_Single_Window_Mode->isChecked()) {
-        if (Settings::values.fullscreen_mode.GetValue() == 1) {
+        if (Settings::values.fullscreen_mode.GetValue() == Settings::FullscreenMode::Exclusive) {
             showNormal();
             restoreGeometry(UISettings::values.geometry);
         } else {
@@ -2561,7 +2561,7 @@ void GMainWindow::HideFullscreen() {
         statusBar()->setVisible(ui.action_Show_Status_Bar->isChecked());
         ui.menubar->show();
     } else {
-        if (Settings::values.fullscreen_mode.GetValue() == 1) {
+        if (Settings::values.fullscreen_mode.GetValue() == Settings::FullscreenMode::Exclusive) {
             render_window->showNormal();
             render_window->restoreGeometry(UISettings::values.renderwindow_geometry);
         } else {
