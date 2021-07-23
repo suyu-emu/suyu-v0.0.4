@@ -332,12 +332,10 @@ void RendererOpenGL::ConfigureFramebufferTexture(TextureInfo& texture,
 }
 
 void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
-    if (renderer_settings.set_background_color) {
-        // Update background color before drawing
-        glClearColor(Settings::values.bg_red.GetValue() / 255.0f,
-                     Settings::values.bg_green.GetValue() / 255.0f,
-                     Settings::values.bg_blue.GetValue() / 255.0f, 1.0f);
-    }
+    // Update background color before drawing
+    glClearColor(Settings::values.bg_red.GetValue() / 255.0f,
+                 Settings::values.bg_green.GetValue() / 255.0f,
+                 Settings::values.bg_blue.GetValue() / 255.0f, 1.0f);
 
     // Set projection matrix
     const std::array ortho_matrix =

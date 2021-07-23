@@ -19,9 +19,6 @@ RendererBase::~RendererBase() = default;
 
 void RendererBase::RefreshBaseSettings() {
     UpdateCurrentFramebufferLayout();
-
-    renderer_settings.use_framelimiter = Settings::values.use_speed_limit.GetValue();
-    renderer_settings.set_background_color = true;
 }
 
 void RendererBase::UpdateCurrentFramebufferLayout() {
