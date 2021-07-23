@@ -330,6 +330,7 @@ struct Values {
     Setting<bool> use_nvdec_emulation{true, "use_nvdec_emulation"};
     Setting<bool> accelerate_astc{true, "accelerate_astc"};
     Setting<bool> use_vsync{true, "use_vsync"};
+    BasicSetting<u16> fps_cap{1000, "fps_cap"};
     BasicSetting<bool> disable_fps_limit{false, "disable_fps_limit"};
     Setting<bool> use_assembly_shaders{false, "use_assembly_shaders"};
     Setting<bool> use_asynchronous_shaders{false, "use_asynchronous_shaders"};

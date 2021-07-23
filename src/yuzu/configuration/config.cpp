@@ -823,6 +823,7 @@ void Config::ReadRendererValues() {
     ReadGlobalSetting(Settings::values.bg_blue);
 
     if (global) {
+        ReadBasicSetting(Settings::values.fps_cap);
         ReadBasicSetting(Settings::values.renderer_debug);
     }
 
@@ -1352,6 +1353,7 @@ void Config::SaveRendererValues() {
     WriteGlobalSetting(Settings::values.bg_blue);
 
     if (global) {
+        WriteBasicSetting(Settings::values.fps_cap);
         WriteBasicSetting(Settings::values.renderer_debug);
     }
 
