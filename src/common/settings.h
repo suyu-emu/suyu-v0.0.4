@@ -142,6 +142,67 @@ protected:
 };
 
 /**
+ * BasicRangedSetting class is intended for use with quantifiable settings that need a more
+ * restrictive range than implicitly defined by its type. Implements a minimum and maximum that is
+ * simply used to sanitize SetValue and the assignment overload.
+ */
+template <typename Type>
+class BasicRangedSetting : virtual public BasicSetting<Type> {
+public:
+    /**
+     * Sets a default value, minimum value, maximum value, and label.
+     *
+     * @param default_val Intial value of the setting, and default value of the setting
+     * @param min_val Sets the minimum allowed value of the setting
+     * @param max_val Sets the maximum allowed value of the setting
+     * @param name Label for the setting
+     */
+    explicit BasicRangedSetting(const Type& default_val, const Type& min_val, const Type& max_val,
+                                const std::string& name)
+        : BasicSetting<Type>{default_val, name}, minimum{min_val}, maximum{max_val} {}
+    ~BasicRangedSetting() = default;
+
+    /**
+     * Like BasicSetting's SetValue, except value is clamped to the range of the setting.
+     *
+     * @param value The desired value
+     */
+    void SetValue(const Type& value) {
+        Type temp;
+        if (value < minimum) {
+            temp = std::move(minimum);
+        } else if (value > maximum) {
+            temp = std::move(maximum);
+        } else {
+            temp = std::move(value);
+        }
+        std::swap(this->global, temp);
+    }
+
+    /**
+     * Like BasicSetting's assignment overload, except value is clamped to the range of the setting.
+     *
+     * @param value The desired value
+     * @returns A reference to the setting's value
+     */
+    const Type& operator=(const Type& value) {
+        Type temp;
+        if (value < minimum) {
+            temp = std::move(minimum);
+        } else if (value > maximum) {
+            temp = std::move(maximum);
+        } else {
+            temp = std::move(value);
+        }
+        std::swap(this->global, temp);
+        return this->global;
+    }
+
+    const Type minimum; ///< Minimum allowed value of the setting
+    const Type maximum; ///< Maximum allowed value of the setting
+};
+
+/**
  * The Setting class is a slightly more complex version of the BasicSetting class. This adds a
  * custom setting to switch to when a guest application specifically requires it. The effect is that
  * other components of the emulator can access the setting's intended value without any need for the
@@ -152,7 +213,7 @@ protected:
  * Like the BasicSetting, this requires setting a default value and label to use.
  */
 template <typename Type>
-class Setting final : public BasicSetting<Type> {
+class Setting : virtual public BasicSetting<Type> {
 public:
     /**
      * Sets a default value, label, and setting value.
@@ -241,9 +302,78 @@ public:
         return custom;
     }
 
-private:
+protected:
     bool use_global{true}; ///< The setting's global state
     Type custom{};         ///< The custom value of the setting
+};
+
+/**
+ * RangedSetting is a Setting that implements a maximum and minimum value for its setting. Intended
+ * for use with quantifiable settings.
+ */
+template <typename Type>
+class RangedSetting final : public BasicRangedSetting<Type>, public Setting<Type> {
+public:
+    /**
+     * Sets a default value, minimum value, maximum value, and label.
+     *
+     * @param default_val Intial value of the setting, and default value of the setting
+     * @param min_val Sets the minimum allowed value of the setting
+     * @param max_val Sets the maximum allowed value of the setting
+     * @param name Label for the setting
+     */
+    explicit RangedSetting(const Type& default_val, const Type& min_val, const Type& max_val,
+                           const std::string& name)
+        : BasicSetting<Type>{default_val, name},
+          BasicRangedSetting<Type>{default_val, min_val, max_val, name}, Setting<Type>{default_val,
+                                                                                       name} {}
+    ~RangedSetting() = default;
+
+    /**
+     * Like BasicSetting's SetValue, except value is clamped to the range of the setting. Sets the
+     * appropriate value depending on the global state.
+     *
+     * @param value The desired value
+     */
+    void SetValue(const Type& value) {
+        Type temp;
+        if (value < this->minimum) {
+            temp = std::move(this->minimum);
+        } else if (value > this->maximum) {
+            temp = std::move(this->maximum);
+        } else {
+            temp = std::move(value);
+        }
+        if (this->use_global) {
+            std::swap(this->global, temp);
+        } else {
+            std::swap(this->custom, temp);
+        }
+    }
+
+    /**
+     * Like BasicSetting's assignment overload, except value is clamped to the range of the setting.
+     * Uses the appropriate value depending on the global state.
+     *
+     * @param value The desired value
+     * @returns A reference to the setting's value
+     */
+    const Type& operator=(const Type& value) {
+        Type temp;
+        if (value < this->minimum) {
+            temp = std::move(this->minimum);
+        } else if (value > this->maximum) {
+            temp = std::move(this->maximum);
+        } else {
+            temp = std::move(value);
+        }
+        if (this->use_global) {
+            std::swap(this->global, temp);
+            return this->global;
+        }
+        std::swap(this->custom, temp);
+        return this->custom;
+    }
 };
 
 /**
@@ -289,13 +419,14 @@ struct Values {
     BasicSetting<std::string> sink_id{"auto", "output_engine"};
     BasicSetting<bool> audio_muted{false, "audio_muted"};
     Setting<bool> enable_audio_stretching{true, "enable_audio_stretching"};
-    Setting<u8> volume{100, "volume"};
+    RangedSetting<u8> volume{100, 0, 100, "volume"};
 
     // Core
     Setting<bool> use_multi_core{true, "use_multi_core"};
 
     // Cpu
-    Setting<CPUAccuracy> cpu_accuracy{CPUAccuracy::Auto, "cpu_accuracy"};
+    RangedSetting<CPUAccuracy> cpu_accuracy{CPUAccuracy::Auto, CPUAccuracy::Auto,
+                                            CPUAccuracy::Unsafe, "cpu_accuracy"};
     // TODO: remove cpu_accuracy_first_time, migration setting added 8 July 2021
     BasicSetting<bool> cpu_accuracy_first_time{true, "cpu_accuracy_first_time"};
     BasicSetting<bool> cpu_debug_mode{false, "cpu_debug_mode"};
@@ -317,7 +448,8 @@ struct Values {
     Setting<bool> cpuopt_unsafe_fastmem_check{true, "cpuopt_unsafe_fastmem_check"};
 
     // Renderer
-    Setting<RendererBackend> renderer_backend{RendererBackend::OpenGL, "backend"};
+    RangedSetting<RendererBackend> renderer_backend{
+        RendererBackend::OpenGL, RendererBackend::OpenGL, RendererBackend::Vulkan, "backend"};
     BasicSetting<bool> renderer_debug{false, "debug"};
     BasicSetting<bool> enable_nsight_aftermath{false, "nsight_aftermath"};
     BasicSetting<bool> disable_shader_loop_safety_checks{false,
@@ -327,26 +459,28 @@ struct Values {
     Setting<u16> resolution_factor{1, "resolution_factor"};
     // *nix platforms may have issues with the borderless windowed fullscreen mode.
     // Default to exclusive fullscreen on these platforms for now.
-    Setting<FullscreenMode> fullscreen_mode{
+    RangedSetting<FullscreenMode> fullscreen_mode{
 #ifdef _WIN32
         FullscreenMode::Borderless,
 #else
         FullscreenMode::Exclusive,
 #endif
-        "fullscreen_mode"};
-    Setting<int> aspect_ratio{0, "aspect_ratio"};
-    Setting<int> max_anisotropy{0, "max_anisotropy"};
+        FullscreenMode::Borderless, FullscreenMode::Exclusive, "fullscreen_mode"};
+    RangedSetting<int> aspect_ratio{0, 0, 3, "aspect_ratio"};
+    RangedSetting<int> max_anisotropy{0, 0, 4, "max_anisotropy"};
     Setting<bool> use_speed_limit{true, "use_speed_limit"};
-    Setting<u16> speed_limit{100, "speed_limit"};
+    RangedSetting<u16> speed_limit{100, 0, 9999, "speed_limit"};
     Setting<bool> use_disk_shader_cache{true, "use_disk_shader_cache"};
-    Setting<GPUAccuracy> gpu_accuracy{GPUAccuracy::High, "gpu_accuracy"};
+    RangedSetting<GPUAccuracy> gpu_accuracy{GPUAccuracy::High, GPUAccuracy::Normal,
+                                            GPUAccuracy::Extreme, "gpu_accuracy"};
     Setting<bool> use_asynchronous_gpu_emulation{true, "use_asynchronous_gpu_emulation"};
     Setting<bool> use_nvdec_emulation{true, "use_nvdec_emulation"};
     Setting<bool> accelerate_astc{true, "accelerate_astc"};
     Setting<bool> use_vsync{true, "use_vsync"};
-    BasicSetting<u16> fps_cap{1000, "fps_cap"};
+    BasicRangedSetting<u16> fps_cap{1000, 1, 1000, "fps_cap"};
     BasicSetting<bool> disable_fps_limit{false, "disable_fps_limit"};
-    Setting<ShaderBackend> shader_backend{ShaderBackend::GLASM, "shader_backend"};
+    RangedSetting<ShaderBackend> shader_backend{ShaderBackend::GLASM, ShaderBackend::GLSL,
+                                                ShaderBackend::SPIRV, "shader_backend"};
     Setting<bool> use_asynchronous_shaders{false, "use_asynchronous_shaders"};
     Setting<bool> use_fast_gpu_time{true, "use_fast_gpu_time"};
     Setting<bool> use_caches_gc{false, "use_caches_gc"};
@@ -363,10 +497,10 @@ struct Values {
     std::chrono::seconds custom_rtc_differential;
 
     BasicSetting<s32> current_user{0, "current_user"};
-    Setting<s32> language_index{1, "language_index"};
-    Setting<s32> region_index{1, "region_index"};
-    Setting<s32> time_zone_index{0, "time_zone_index"};
-    Setting<s32> sound_index{1, "sound_index"};
+    RangedSetting<s32> language_index{1, 0, 16, "language_index"};
+    RangedSetting<s32> region_index{1, 0, 6, "region_index"};
+    RangedSetting<s32> time_zone_index{0, 0, 45, "time_zone_index"};
+    RangedSetting<s32> sound_index{1, 0, 2, "sound_index"};
 
     // Controls
     InputSetting<std::array<PlayerInput, 10>> players;
@@ -383,7 +517,7 @@ struct Values {
                                                 "udp_input_servers"};
 
     BasicSetting<bool> mouse_panning{false, "mouse_panning"};
-    BasicSetting<u8> mouse_panning_sensitivity{10, "mouse_panning_sensitivity"};
+    BasicRangedSetting<u8> mouse_panning_sensitivity{10, 1, 100, "mouse_panning_sensitivity"};
     BasicSetting<bool> mouse_enabled{false, "mouse_enabled"};
     std::string mouse_device;
     MouseButtonsRaw mouse_buttons;
