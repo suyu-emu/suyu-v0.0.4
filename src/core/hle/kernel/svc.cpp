@@ -298,6 +298,7 @@ static ResultCode ConnectToNamedPort(Core::System& system, Handle* out, VAddr po
     // Create a session.
     KClientSession* session{};
     R_TRY(port->CreateSession(std::addressof(session)));
+    port->Close();
 
     // Register the session in the table, close the extra reference.
     handle_table.Register(*out, session);
@@ -1439,11 +1440,6 @@ static void ExitProcess(Core::System& system) {
     LOG_INFO(Kernel_SVC, "Process {} exiting", current_process->GetProcessID());
     ASSERT_MSG(current_process->GetStatus() == ProcessStatus::Running,
                "Process has already exited");
-
-    current_process->PrepareForTermination();
-
-    // Kill the current thread
-    system.Kernel().CurrentScheduler()->GetCurrentThread()->Exit();
 }
 
 static void ExitProcess32(Core::System& system) {
