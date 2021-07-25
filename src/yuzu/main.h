@@ -292,6 +292,7 @@ private:
     void UpdateWindowTitle(std::string_view title_name = {}, std::string_view title_version = {},
                            std::string_view gpu_vendor = {});
     void UpdateStatusBar();
+    void UpdateGPUAccuracyButton();
     void UpdateStatusButtons();
     void UpdateUISettings();
     void HideMouseCursor();
@@ -317,8 +318,7 @@ private:
     QLabel* emu_speed_label = nullptr;
     QLabel* game_fps_label = nullptr;
     QLabel* emu_frametime_label = nullptr;
-    QPushButton* async_status_button = nullptr;
-    QPushButton* multicore_status_button = nullptr;
+    QPushButton* gpu_accuracy_button = nullptr;
     QPushButton* renderer_status_button = nullptr;
     QPushButton* dock_status_button = nullptr;
     QTimer status_bar_update_timer;
