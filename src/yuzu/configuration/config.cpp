@@ -823,6 +823,7 @@ void Config::ReadRendererValues() {
     ReadGlobalSetting(Settings::values.bg_blue);
 
     if (global) {
+        ReadBasicSetting(Settings::values.fps_cap);
         ReadBasicSetting(Settings::values.renderer_debug);
         ReadBasicSetting(Settings::values.enable_nsight_aftermath);
         ReadBasicSetting(Settings::values.disable_shader_loop_safety_checks);
@@ -1357,6 +1358,7 @@ void Config::SaveRendererValues() {
     WriteGlobalSetting(Settings::values.bg_blue);
 
     if (global) {
+        WriteBasicSetting(Settings::values.fps_cap);
         WriteBasicSetting(Settings::values.renderer_debug);
         WriteBasicSetting(Settings::values.enable_nsight_aftermath);
         WriteBasicSetting(Settings::values.disable_shader_loop_safety_checks);
