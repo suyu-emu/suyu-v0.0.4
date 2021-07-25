@@ -789,41 +789,28 @@ void GMainWindow::InitializeWidgets() {
     dock_status_button->setChecked(Settings::values.use_docked_mode.GetValue());
     statusBar()->insertPermanentWidget(0, dock_status_button);
 
-    // Setup ASync button
-    async_status_button = new QPushButton();
-    async_status_button->setObjectName(QStringLiteral("TogglableStatusBarButton"));
-    async_status_button->setFocusPolicy(Qt::NoFocus);
-    connect(async_status_button, &QPushButton::clicked, [&] {
-        if (emulation_running) {
-            return;
+    gpu_accuracy_button = new QPushButton();
+    gpu_accuracy_button->setObjectName(QStringLiteral("GPUStatusBarButton"));
+    gpu_accuracy_button->setCheckable(true);
+    gpu_accuracy_button->setFocusPolicy(Qt::NoFocus);
+    connect(gpu_accuracy_button, &QPushButton::clicked, [this] {
+        switch (Settings::values.gpu_accuracy.GetValue()) {
+        case Settings::GPUAccuracy::High: {
+            Settings::values.gpu_accuracy.SetValue(Settings::GPUAccuracy::Normal);
+            break;
         }
-        Settings::values.use_asynchronous_gpu_emulation.SetValue(
-            !Settings::values.use_asynchronous_gpu_emulation.GetValue());
-        async_status_button->setChecked(Settings::values.use_asynchronous_gpu_emulation.GetValue());
-        Core::System::GetInstance().ApplySettings();
-    });
-    async_status_button->setText(tr("ASYNC"));
-    async_status_button->setCheckable(true);
-    async_status_button->setChecked(Settings::values.use_asynchronous_gpu_emulation.GetValue());
-
-    // Setup Multicore button
-    multicore_status_button = new QPushButton();
-    multicore_status_button->setObjectName(QStringLiteral("TogglableStatusBarButton"));
-    multicore_status_button->setFocusPolicy(Qt::NoFocus);
-    connect(multicore_status_button, &QPushButton::clicked, [&] {
-        if (emulation_running) {
-            return;
+        case Settings::GPUAccuracy::Normal:
+        case Settings::GPUAccuracy::Extreme:
+        default: {
+            Settings::values.gpu_accuracy.SetValue(Settings::GPUAccuracy::High);
         }
-        Settings::values.use_multi_core.SetValue(!Settings::values.use_multi_core.GetValue());
-        multicore_status_button->setChecked(Settings::values.use_multi_core.GetValue());
-        Core::System::GetInstance().ApplySettings();
-    });
-    multicore_status_button->setText(tr("MULTICORE"));
-    multicore_status_button->setCheckable(true);
-    multicore_status_button->setChecked(Settings::values.use_multi_core.GetValue());
+        }
 
-    statusBar()->insertPermanentWidget(0, multicore_status_button);
-    statusBar()->insertPermanentWidget(0, async_status_button);
+        Core::System::GetInstance().ApplySettings();
+        UpdateGPUAccuracyButton();
+    });
+    UpdateGPUAccuracyButton();
+    statusBar()->insertPermanentWidget(0, gpu_accuracy_button);
 
     // Setup Renderer API button
     renderer_status_button = new QPushButton();
@@ -1401,8 +1388,6 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
         game_list_placeholder->hide();
     }
     status_bar_update_timer.start(500);
-    async_status_button->setDisabled(true);
-    multicore_status_button->setDisabled(true);
     renderer_status_button->setDisabled(true);
 
     if (UISettings::values.hide_mouse || Settings::values.mouse_panning) {
@@ -1506,8 +1491,6 @@ void GMainWindow::ShutdownGame() {
     emu_speed_label->setVisible(false);
     game_fps_label->setVisible(false);
     emu_frametime_label->setVisible(false);
-    async_status_button->setEnabled(true);
-    multicore_status_button->setEnabled(true);
     renderer_status_button->setEnabled(true);
 
     emulation_running = false;
@@ -1654,35 +1637,15 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
 
 void GMainWindow::OnTransferableShaderCacheOpenFile(u64 program_id) {
     const auto shader_cache_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::ShaderDir);
-    const auto transferable_shader_cache_folder_path = shader_cache_dir / "opengl" / "transferable";
-    const auto transferable_shader_cache_file_path =
-        transferable_shader_cache_folder_path / fmt::format("{:016X}.bin", program_id);
-
-    if (!Common::FS::Exists(transferable_shader_cache_file_path)) {
+    const auto shader_cache_folder_path{shader_cache_dir / fmt::format("{:016x}", program_id)};
+    if (!Common::FS::CreateDirs(shader_cache_folder_path)) {
         QMessageBox::warning(this, tr("Error Opening Transferable Shader Cache"),
-                             tr("A shader cache for this title does not exist."));
+                             tr("Filed to create the shader cache directory for this title."));
         return;
     }
-
-    const auto qt_shader_cache_folder_path =
-        QString::fromStdString(Common::FS::PathToUTF8String(transferable_shader_cache_folder_path));
-    const auto qt_shader_cache_file_path =
-        QString::fromStdString(Common::FS::PathToUTF8String(transferable_shader_cache_file_path));
-
-    // Windows supports opening a folder with selecting a specified file in explorer. On every other
-    // OS we just open the transferable shader cache folder without preselecting the transferable
-    // shader cache file for the selected game.
-#if defined(Q_OS_WIN)
-    const QString explorer = QStringLiteral("explorer");
-    QStringList param;
-    if (!QFileInfo(qt_shader_cache_file_path).isDir()) {
-        param << QStringLiteral("/select,");
-    }
-    param << QDir::toNativeSeparators(qt_shader_cache_file_path);
-    QProcess::startDetached(explorer, param);
-#else
-    QDesktopServices::openUrl(QUrl::fromLocalFile(qt_shader_cache_folder_path));
-#endif
+    const auto shader_path_string{Common::FS::PathToUTF8String(shader_cache_folder_path)};
+    const auto qt_shader_cache_path = QString::fromStdString(shader_path_string);
+    QDesktopServices::openUrl(QUrl::fromLocalFile(qt_shader_cache_path));
 }
 
 static std::size_t CalculateRomFSEntrySize(const FileSys::VirtualDir& dir, bool full) {
@@ -1825,8 +1788,12 @@ void GMainWindow::OnGameListRemoveFile(u64 program_id, GameListRemoveTarget targ
                                        const std::string& game_path) {
     const QString question = [this, target] {
         switch (target) {
-        case GameListRemoveTarget::ShaderCache:
-            return tr("Delete Transferable Shader Cache?");
+        case GameListRemoveTarget::GlShaderCache:
+            return tr("Delete OpenGL Transferable Shader Cache?");
+        case GameListRemoveTarget::VkShaderCache:
+            return tr("Delete Vulkan Transferable Shader Cache?");
+        case GameListRemoveTarget::AllShaderCache:
+            return tr("Delete All Transferable Shader Caches?");
         case GameListRemoveTarget::CustomConfiguration:
             return tr("Remove Custom Game Configuration?");
         default:
@@ -1840,8 +1807,12 @@ void GMainWindow::OnGameListRemoveFile(u64 program_id, GameListRemoveTarget targ
     }
 
     switch (target) {
-    case GameListRemoveTarget::ShaderCache:
-        RemoveTransferableShaderCache(program_id);
+    case GameListRemoveTarget::GlShaderCache:
+    case GameListRemoveTarget::VkShaderCache:
+        RemoveTransferableShaderCache(program_id, target);
+        break;
+    case GameListRemoveTarget::AllShaderCache:
+        RemoveAllTransferableShaderCaches(program_id);
         break;
     case GameListRemoveTarget::CustomConfiguration:
         RemoveCustomConfiguration(program_id, game_path);
@@ -1849,23 +1820,50 @@ void GMainWindow::OnGameListRemoveFile(u64 program_id, GameListRemoveTarget targ
     }
 }
 
-void GMainWindow::RemoveTransferableShaderCache(u64 program_id) {
+void GMainWindow::RemoveTransferableShaderCache(u64 program_id, GameListRemoveTarget target) {
+    const auto target_file_name = [target] {
+        switch (target) {
+        case GameListRemoveTarget::GlShaderCache:
+            return "opengl.bin";
+        case GameListRemoveTarget::VkShaderCache:
+            return "vulkan.bin";
+        default:
+            return "";
+        }
+    }();
     const auto shader_cache_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::ShaderDir);
-    const auto transferable_shader_cache_file_path =
-        shader_cache_dir / "opengl" / "transferable" / fmt::format("{:016X}.bin", program_id);
+    const auto shader_cache_folder_path = shader_cache_dir / fmt::format("{:016x}", program_id);
+    const auto target_file = shader_cache_folder_path / target_file_name;
 
-    if (!Common::FS::Exists(transferable_shader_cache_file_path)) {
+    if (!Common::FS::Exists(target_file)) {
         QMessageBox::warning(this, tr("Error Removing Transferable Shader Cache"),
                              tr("A shader cache for this title does not exist."));
         return;
     }
-
-    if (Common::FS::RemoveFile(transferable_shader_cache_file_path)) {
+    if (Common::FS::RemoveFile(target_file)) {
         QMessageBox::information(this, tr("Successfully Removed"),
                                  tr("Successfully removed the transferable shader cache."));
     } else {
         QMessageBox::warning(this, tr("Error Removing Transferable Shader Cache"),
                              tr("Failed to remove the transferable shader cache."));
+    }
+}
+
+void GMainWindow::RemoveAllTransferableShaderCaches(u64 program_id) {
+    const auto shader_cache_dir = Common::FS::GetYuzuPath(Common::FS::YuzuPath::ShaderDir);
+    const auto program_shader_cache_dir = shader_cache_dir / fmt::format("{:016x}", program_id);
+
+    if (!Common::FS::Exists(program_shader_cache_dir)) {
+        QMessageBox::warning(this, tr("Error Removing Transferable Shader Caches"),
+                             tr("A shader cache for this title does not exist."));
+        return;
+    }
+    if (Common::FS::RemoveDirRecursively(program_shader_cache_dir)) {
+        QMessageBox::information(this, tr("Successfully Removed"),
+                                 tr("Successfully removed the transferable shader caches."));
+    } else {
+        QMessageBox::warning(this, tr("Error Removing Transferable Shader Caches"),
+                             tr("Failed to remove the transferable shader cache directory."));
     }
 }
 
@@ -2823,7 +2821,7 @@ void GMainWindow::OnCaptureScreenshot() {
         QString::fromStdString(Common::FS::GetYuzuPathString(Common::FS::YuzuPath::ScreenshotsDir));
     const auto date =
         QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd_hh-mm-ss-zzz"));
-    QString filename = QStringLiteral("%1%2_%3.png")
+    QString filename = QStringLiteral("%1/%2_%3.png")
                            .arg(screenshot_path)
                            .arg(title_id, 16, 16, QLatin1Char{'0'})
                            .arg(date);
@@ -2900,13 +2898,13 @@ void GMainWindow::UpdateStatusBar() {
         return;
     }
 
-    auto results = Core::System::GetInstance().GetAndResetPerfStats();
-    auto& shader_notify = Core::System::GetInstance().GPU().ShaderNotify();
-    const auto shaders_building = shader_notify.GetShadersBuilding();
+    auto& system = Core::System::GetInstance();
+    auto results = system.GetAndResetPerfStats();
+    auto& shader_notify = system.GPU().ShaderNotify();
+    const int shaders_building = shader_notify.ShadersBuilding();
 
-    if (shaders_building != 0) {
-        shader_building_label->setText(
-            tr("Building: %n shader(s)", "", static_cast<int>(shaders_building)));
+    if (shaders_building > 0) {
+        shader_building_label->setText(tr("Building: %n shader(s)", "", shaders_building));
         shader_building_label->setVisible(true);
     } else {
         shader_building_label->setVisible(false);
@@ -2932,12 +2930,35 @@ void GMainWindow::UpdateStatusBar() {
     emu_frametime_label->setVisible(true);
 }
 
+void GMainWindow::UpdateGPUAccuracyButton() {
+    switch (Settings::values.gpu_accuracy.GetValue()) {
+    case Settings::GPUAccuracy::Normal: {
+        gpu_accuracy_button->setText(tr("GPU NORMAL"));
+        gpu_accuracy_button->setChecked(false);
+        break;
+    }
+    case Settings::GPUAccuracy::High: {
+        gpu_accuracy_button->setText(tr("GPU HIGH"));
+        gpu_accuracy_button->setChecked(true);
+        break;
+    }
+    case Settings::GPUAccuracy::Extreme: {
+        gpu_accuracy_button->setText(tr("GPU EXTREME"));
+        gpu_accuracy_button->setChecked(true);
+        break;
+    }
+    default: {
+        gpu_accuracy_button->setText(tr("GPU ERROR"));
+        gpu_accuracy_button->setChecked(true);
+    }
+    }
+}
+
 void GMainWindow::UpdateStatusButtons() {
     dock_status_button->setChecked(Settings::values.use_docked_mode.GetValue());
-    multicore_status_button->setChecked(Settings::values.use_multi_core.GetValue());
-    async_status_button->setChecked(Settings::values.use_asynchronous_gpu_emulation.GetValue());
     renderer_status_button->setChecked(Settings::values.renderer_backend.GetValue() ==
                                        Settings::RendererBackend::Vulkan);
+    UpdateGPUAccuracyButton();
 }
 
 void GMainWindow::UpdateUISettings() {

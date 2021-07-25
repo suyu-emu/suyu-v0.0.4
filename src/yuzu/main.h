@@ -282,7 +282,8 @@ private:
     void RemoveBaseContent(u64 program_id, const QString& entry_type);
     void RemoveUpdateContent(u64 program_id, const QString& entry_type);
     void RemoveAddOnContent(u64 program_id, const QString& entry_type);
-    void RemoveTransferableShaderCache(u64 program_id);
+    void RemoveTransferableShaderCache(u64 program_id, GameListRemoveTarget target);
+    void RemoveAllTransferableShaderCaches(u64 program_id);
     void RemoveCustomConfiguration(u64 program_id, const std::string& game_path);
     std::optional<u64> SelectRomFSDumpTarget(const FileSys::ContentProvider&, u64 program_id);
     InstallResult InstallNSPXCI(const QString& filename);
@@ -291,6 +292,7 @@ private:
     void UpdateWindowTitle(std::string_view title_name = {}, std::string_view title_version = {},
                            std::string_view gpu_vendor = {});
     void UpdateStatusBar();
+    void UpdateGPUAccuracyButton();
     void UpdateStatusButtons();
     void UpdateUISettings();
     void HideMouseCursor();
@@ -316,8 +318,7 @@ private:
     QLabel* emu_speed_label = nullptr;
     QLabel* game_fps_label = nullptr;
     QLabel* emu_frametime_label = nullptr;
-    QPushButton* async_status_button = nullptr;
-    QPushButton* multicore_status_button = nullptr;
+    QPushButton* gpu_accuracy_button = nullptr;
     QPushButton* renderer_status_button = nullptr;
     QPushButton* dock_status_button = nullptr;
     QTimer status_bar_update_timer;

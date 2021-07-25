@@ -35,7 +35,7 @@ It is written in C++ with portability in mind, and we actively maintain builds f
 
 The emulator is capable of running most commercial games at full speed, provided you meet the [necessary hardware requirements](https://yuzu-emu.org/help/quickstart/#hardware-requirements).
 
-For a full list of games yuzu support, please visit our [Compatibility page](https://yuzu-emu.org/game/) 
+For a full list of games yuzu support, please visit our [Compatibility page](https://yuzu-emu.org/game/)
 
 Check out our [website](https://yuzu-emu.org/) for the latest news on exciting features, monthly progress reports, and more!
 
@@ -43,7 +43,7 @@ Check out our [website](https://yuzu-emu.org/) for the latest news on exciting f
 
 Most of the development happens on GitHub. It's also where [our central repository](https://github.com/yuzu-emu/yuzu) is hosted. For development discussion, please join us on [Discord](https://discord.com/invite/u77vRWY).
 
-If you want to contribute, please take a look at the [Contributor's Guide](https://github.com/yuzu-emu/yuzu/wiki/Contributing) and [Developer Information](https://github.com/yuzu-emu/yuzu/wiki/Developer-Information). 
+If you want to contribute, please take a look at the [Contributor's Guide](https://github.com/yuzu-emu/yuzu/wiki/Contributing) and [Developer Information](https://github.com/yuzu-emu/yuzu/wiki/Developer-Information).
 You can also contact any of the developers on Discord in order to know about the current state of the emulator.
 
 If you want to contribute to the user interface translation project, please check out the [yuzu project on transifex](https://www.transifex.com/yuzu-emulator/yuzu). We centralize translation work there, and periodically upstream translations.
@@ -78,3 +78,5 @@ If you wish to support us a different way, please join our [Discord](https://dis
 ## License
 
 yuzu is licensed under the GPLv2 (or any later version). Refer to the [license.txt](https://github.com/yuzu-emu/yuzu/blob/master/license.txt) file.
+
+The [Skyline-Emulator Team](https://github.com/skyline-emu/skyline) is exempt from GPLv2 for the contributions from all these contributors [FernandoS27](https://github.com/FernandoS27), [lioncash](https://github.com/lioncash), [bunnei](https://github.com/bunnei), [ReinUsesLisp](https://github.com/ReinUsesLisp), [Morph1984](https://github.com/Morph1984), [ogniK5377](https://github.com/ogniK5377), [german77](https://github.com/german77), [ameerj](https://github.com/ameerj), [Kelebek1](https://github.com/Kelebek1) and [lat9nq](https://github.com/lat9nq). They may only use the code from these contributors under Mozilla Public License, version 2.0.
