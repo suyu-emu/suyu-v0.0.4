@@ -630,8 +630,8 @@ void BlitScale(VKScheduler& scheduler, VkImage src_image, VkImage dst_image, con
                         .z = 0,
                     },
                     {
-                        .x = static_cast<s32>(extent.width),
-                        .y = static_cast<s32>(extent.height),
+                        .x = std::max(1, static_cast<s32>(extent.width) >> level),
+                        .y = std::max(1, static_cast<s32>(extent.height) >> level),
                         .z = 1,
                     },
                 },
