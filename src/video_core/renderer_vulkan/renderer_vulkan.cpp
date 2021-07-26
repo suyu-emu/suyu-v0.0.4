@@ -339,7 +339,7 @@ void Vulkan::RendererVulkan::RenderScreenshot(const Tegra::FramebufferConfig& fr
     // Copy backing image data to the QImage screenshot buffer
     const auto dst_memory_map = dst_buffer_memory.Map();
     std::memcpy(renderer_settings.screenshot_bits, dst_memory_map.data(), dst_memory_map.size());
-    renderer_settings.screenshot_complete_callback();
+    renderer_settings.screenshot_complete_callback(false);
     renderer_settings.screenshot_requested = false;
 }
 
