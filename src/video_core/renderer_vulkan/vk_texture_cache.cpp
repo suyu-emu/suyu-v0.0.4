@@ -595,7 +595,8 @@ struct RangedBarrierRange {
 }
 
 void BlitScale(VKScheduler& scheduler, VkImage src_image, VkImage dst_image, const ImageInfo& info,
-               VkImageAspectFlags aspect_mask, const Settings::ResolutionScalingInfo& resolution) {
+               VkImageAspectFlags aspect_mask, const Settings::ResolutionScalingInfo& resolution,
+               bool scaling) {
     const auto type = info.type;
     const auto resources = info.resources;
     const VkExtent2D extent{
@@ -603,15 +604,18 @@ void BlitScale(VKScheduler& scheduler, VkImage src_image, VkImage dst_image, con
         .height = info.size.height,
     };
     scheduler.RequestOutsideRenderPassOperationContext();
-    scheduler.Record([dst_image, src_image, extent, resources, aspect_mask, resolution,
-                      type](vk::CommandBuffer cmdbuf) {
+    scheduler.Record([dst_image, src_image, extent, resources, aspect_mask, resolution, type,
+                      scaling](vk::CommandBuffer cmdbuf) {
         const auto scale_up = [&](u32 value) {
             return std::max<u32>((value * resolution.up_scale) >> resolution.down_shift, 1U);
         };
-        const bool is_2d = type == ImageType::e2D;
-        const VkOffset2D mip0_size{
-            .x = static_cast<s32>(scale_up(extent.width)),
-            .y = static_cast<s32>(is_2d ? scale_up(extent.height) : extent.height),
+        const VkOffset2D src_size{
+            .x = static_cast<s32>(scaling ? extent.width : scale_up(extent.width)),
+            .y = static_cast<s32>(scaling ? extent.height : scale_up(extent.height)),
+        };
+        const VkOffset2D dst_size{
+            .x = static_cast<s32>(scaling ? scale_up(extent.width) : extent.width),
+            .y = static_cast<s32>(scaling ? scale_up(extent.height) : extent.height),
         };
         boost::container::small_vector<VkImageBlit, 4> regions;
         regions.reserve(resources.levels);
@@ -630,8 +634,8 @@ void BlitScale(VKScheduler& scheduler, VkImage src_image, VkImage dst_image, con
                         .z = 0,
                     },
                     {
-                        .x = std::max(1, static_cast<s32>(extent.width) >> level),
-                        .y = std::max(1, static_cast<s32>(extent.height) >> level),
+                        .x = std::max(1, src_size.x >> level),
+                        .y = std::max(1, src_size.y >> level),
                         .z = 1,
                     },
                 },
@@ -648,8 +652,8 @@ void BlitScale(VKScheduler& scheduler, VkImage src_image, VkImage dst_image, con
                         .z = 0,
                     },
                     {
-                        .x = std::max(1, mip0_size.x >> level),
-                        .y = std::max(1, mip0_size.y >> level),
+                        .x = std::max(1, dst_size.x >> level),
+                        .y = std::max(1, dst_size.y >> level),
                         .z = 1,
                     },
                 },
@@ -1157,7 +1161,7 @@ bool Image::ScaleUp(bool save_as_backup) {
     if (aspect_mask == 0) {
         aspect_mask = ImageAspectMask(info.format);
     }
-    BlitScale(*scheduler, *image, *rescaled_image, info, aspect_mask, resolution);
+    BlitScale(*scheduler, *image, *rescaled_image, info, aspect_mask, resolution, true);
     return true;
 }
 
@@ -1184,14 +1188,14 @@ bool Image::ScaleDown(bool save_as_backup) {
 
     const auto& resolution = runtime->resolution;
     vk::Image downscaled_image =
-        MakeImage(runtime->device, info, resolution.up_scale, resolution.down_shift);
+        MakeImage(runtime->device, info);
     MemoryCommit new_commit(
         runtime->memory_allocator.Commit(downscaled_image, MemoryUsage::DeviceLocal));
 
     if (aspect_mask == 0) {
         aspect_mask = ImageAspectMask(info.format);
     }
-    BlitScale(*scheduler, *image, *downscaled_image, info, aspect_mask, resolution);
+    BlitScale(*scheduler, *image, *downscaled_image, info, aspect_mask, resolution, false);
 
     if (save_as_backup) {
         backup_image = std::move(image);
