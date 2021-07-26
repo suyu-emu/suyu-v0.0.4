@@ -191,4 +191,13 @@ struct Info {
     ImageDescriptors image_descriptors;
 };
 
+template <typename Descriptors>
+u32 NumDescriptors(const Descriptors& descriptors) {
+    u32 num{};
+    for (const auto& desc : descriptors) {
+        num += desc.count;
+    }
+    return num;
+}
+
 } // namespace Shader

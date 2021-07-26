@@ -7,6 +7,8 @@
 #include <climits>
 #include <string_view>
 
+#include <boost/container/static_vector.hpp>
+
 #include <fmt/format.h>
 
 #include "common/common_types.h"
@@ -496,6 +498,7 @@ EmitContext::EmitContext(const Profile& profile_, const RuntimeInfo& runtime_inf
     DefineImages(program.info, image_binding);
     DefineAttributeMemAccess(program.info);
     DefineGlobalMemoryFunctions(program.info);
+    DefineRescalingInput(program.info);
 }
 
 EmitContext::~EmitContext() = default;
@@ -994,6 +997,38 @@ void EmitContext::DefineGlobalMemoryFunctions(const Info& info) {
         define(&StorageDefinitions::U32x2, storage_types.U32x2, U32[2], sizeof(u32[2]));
     std::tie(load_global_func_u32x4, write_global_func_u32x4) =
         define(&StorageDefinitions::U32x4, storage_types.U32x4, U32[4], sizeof(u32[4]));
+}
+
+void EmitContext::DefineRescalingInput(const Info& info) {
+    if (!info.uses_rescaling_uniform) {
+        return;
+    }
+    boost::container::static_vector<Id, 2> members{F32[1]};
+    u32 member_index{0};
+    const u32 num_texture_words{Common::DivCeil(runtime_info.num_textures, 32u)};
+    if (runtime_info.num_textures > 0) {
+        rescaling_textures_type = TypeArray(U32[1], Const(num_texture_words));
+        Decorate(rescaling_textures_type, spv::Decoration::ArrayStride, 4u);
+        members.push_back(rescaling_textures_type);
+        rescaling_textures_member_index = ++member_index;
+    }
+    const Id push_constant_struct{TypeStruct(std::span(members.data(), members.size()))};
+    Decorate(push_constant_struct, spv::Decoration::Block);
+    Name(push_constant_struct, "ResolutionInfo");
+    MemberDecorate(push_constant_struct, 0u, spv::Decoration::Offset, 0u);
+    MemberName(push_constant_struct, 0u, "down_factor");
+    if (runtime_info.num_textures > 0) {
+        MemberDecorate(push_constant_struct, rescaling_textures_member_index,
+                       spv::Decoration::Offset, 4u);
+        MemberName(push_constant_struct, rescaling_textures_member_index, "rescaling_textures");
+    }
+    const Id pointer_type{TypePointer(spv::StorageClass::PushConstant, push_constant_struct)};
+    rescaling_push_constants = AddGlobalVariable(pointer_type, spv::StorageClass::PushConstant);
+    Name(rescaling_push_constants, "rescaling_push_constants");
+
+    if (profile.supported_spirv >= 0x00010400) {
+        interfaces.push_back(rescaling_push_constants);
+    }
 }
 
 void EmitContext::DefineConstantBuffers(const Info& info, u32& binding) {

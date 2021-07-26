@@ -527,8 +527,10 @@ Id EmitYDirection(EmitContext& ctx) {
 }
 
 Id EmitResolutionDownFactor(EmitContext& ctx) {
-    UNIMPLEMENTED();
-    return ctx.Const(1.0f);
+    const Id pointer_type{ctx.TypePointer(spv::StorageClass::PushConstant, ctx.F32[1])};
+    const Id pointer{
+        ctx.OpAccessChain(pointer_type, ctx.rescaling_push_constants, ctx.u32_zero_value)};
+    return ctx.OpLoad(ctx.F32[1], pointer);
 }
 
 Id EmitLoadLocal(EmitContext& ctx, Id word_offset) {

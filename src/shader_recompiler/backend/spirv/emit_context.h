@@ -238,6 +238,10 @@ public:
     Id indexed_load_func{};
     Id indexed_store_func{};
 
+    Id rescaling_push_constants{};
+    Id rescaling_textures_type{};
+    u32 rescaling_textures_member_index{};
+
     Id local_memory{};
 
     Id shared_memory_u8{};
@@ -314,6 +318,7 @@ private:
     void DefineImages(const Info& info, u32& binding);
     void DefineAttributeMemAccess(const Info& info);
     void DefineGlobalMemoryFunctions(const Info& info);
+    void DefineRescalingInput(const Info& info);
 
     void DefineInputs(const IR::Program& program);
     void DefineOutputs(const IR::Program& program);

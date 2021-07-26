@@ -20,8 +20,11 @@ namespace Shader::Backend::SPIRV {
                                          IR::Program& program, Bindings& bindings);
 
 [[nodiscard]] inline std::vector<u32> EmitSPIRV(const Profile& profile, IR::Program& program) {
+    RuntimeInfo runtime_info{};
+    runtime_info.num_textures = Shader::NumDescriptors(program.info.texture_descriptors);
+
     Bindings binding;
-    return EmitSPIRV(profile, {}, program, binding);
+    return EmitSPIRV(profile, runtime_info, program, binding);
 }
 
 } // namespace Shader::Backend::SPIRV
