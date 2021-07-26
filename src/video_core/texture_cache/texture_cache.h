@@ -216,7 +216,10 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
         return;
     }
 
+    u32 scale_rating;
     bool rescaled;
+    std::array<ImageId, NUM_RT> tmp_color_images{};
+    ImageId tmp_depth_image{};
     do {
         flags[Dirty::RenderTargets] = false;
 
@@ -226,10 +229,10 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
         const bool force = flags[Dirty::RenderTargetControl];
         flags[Dirty::RenderTargetControl] = false;
 
+        scale_rating = 0;
+        bool any_rescaled = false;
         bool can_rescale = true;
         bool any_blacklisted = false;
-        std::array<ImageId, NUM_RT> tmp_color_images{};
-        ImageId tmp_depth_image{};
         const auto check_rescale = [&](ImageViewId view_id, ImageId& id_save) {
             if (view_id) {
                 const auto& view = slot_image_views[view_id];
@@ -238,6 +241,10 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
                 auto& image = slot_images[image_id];
                 can_rescale &= ImageCanRescale(image);
                 any_blacklisted |= True(image.flags & ImageFlagBits::Blacklisted);
+                any_rescaled |= True(image.flags & ImageFlagBits::Rescaled);
+                scale_rating = std::max<u32>(scale_rating, image.scale_tick <= frame_tick
+                                                               ? image.scale_rating + 1U
+                                                               : image.scale_rating);
             } else {
                 id_save = CORRUPT_ID;
             }
@@ -257,17 +264,19 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
         check_rescale(render_targets.depth_buffer_id, tmp_depth_image);
 
         if (can_rescale) {
-            rescaled = true;
+            rescaled = any_rescaled || scale_rating >= 2;
             const auto scale_up = [this](ImageId image_id) {
                 if (image_id != CORRUPT_ID) {
                     Image& image = slot_images[image_id];
                     ScaleUp(image);
                 }
             };
-            for (size_t index = 0; index < NUM_RT; ++index) {
-                scale_up(tmp_color_images[index]);
+            if (rescaled) {
+                for (size_t index = 0; index < NUM_RT; ++index) {
+                    scale_up(tmp_color_images[index]);
+                }
+                scale_up(tmp_depth_image);
             }
-            scale_up(tmp_depth_image);
         } else {
             rescaled = false;
             const auto scale_down = [this, any_blacklisted](ImageId image_id) {
@@ -283,9 +292,22 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
                 scale_down(tmp_color_images[index]);
             }
             scale_down(tmp_depth_image);
+            scale_rating = 0;
         }
     } while (has_deleted_images);
     // Rescale End
+
+    const auto set_rating = [this, scale_rating](ImageId image_id) {
+        if (image_id != CORRUPT_ID) {
+            Image& image = slot_images[image_id];
+            image.scale_rating = scale_rating;
+            image.scale_tick = frame_tick + 1;
+        }
+    };
+    for (size_t index = 0; index < NUM_RT; ++index) {
+        set_rating(tmp_color_images[index]);
+    }
+    set_rating(tmp_depth_image);
 
     if (is_rescaling != rescaled) {
         flags[Dirty::RescaleViewports] = true;
@@ -761,10 +783,7 @@ bool TextureCache<P>::ImageCanRescale(Image& image) {
         True(image.flags & ImageFlagBits::RescaleChecked)) {
         return true;
     }
-    const auto& info = image.info;
-    const bool can_this_rescale =
-        (info.type == ImageType::e1D || info.type == ImageType::e2D) && info.block.depth == 0;
-    if (!can_this_rescale) {
+    if (!image.info.rescaleable) {
         image.flags &= ~ImageFlagBits::RescaleChecked;
         return false;
     }
@@ -928,8 +947,7 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
     };
     ForEachSparseImageInRegion(gpu_addr, size_bytes, region_check_gpu);
 
-    bool can_rescale =
-        (info.type == ImageType::e1D || info.type == ImageType::e2D) && info.block.depth == 0;
+    bool can_rescale = info.rescaleable;
     bool any_rescaled = false;
     bool any_blacklisted = false;
     for (const ImageId sibling_id : all_siblings) {

@@ -78,6 +78,8 @@ struct ImageBase {
     u32 guest_size_bytes = 0;
     u32 unswizzled_size_bytes = 0;
     u32 converted_size_bytes = 0;
+    u32 scale_rating = 0;
+    u64 scale_tick = 0;
     ImageFlagBits flags = ImageFlagBits::CpuModified;
 
     GPUVAddr gpu_addr = 0;
