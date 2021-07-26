@@ -120,6 +120,16 @@ typename P::ImageView& TextureCache<P>::GetImageView(ImageViewId id) noexcept {
 }
 
 template <class P>
+const typename P::Image& TextureCache<P>::GetImage(ImageId id) const noexcept {
+    return slot_images[id];
+}
+
+template <class P>
+typename P::Image& TextureCache<P>::GetImage(ImageId id) noexcept {
+    return slot_images[id];
+}
+
+template <class P>
 void TextureCache<P>::MarkModification(ImageId id) noexcept {
     MarkModification(slot_images[id]);
 }

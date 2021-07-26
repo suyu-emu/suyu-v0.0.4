@@ -95,6 +95,12 @@ public:
     /// Return a reference to the given image view id
     [[nodiscard]] ImageView& GetImageView(ImageViewId id) noexcept;
 
+    /// Return a constant reference to the given image id
+    [[nodiscard]] const Image& GetImage(ImageId id) const noexcept;
+
+    /// Return a reference to the given image id
+    [[nodiscard]] Image& GetImage(ImageId id) noexcept;
+
     /// Mark an image as modified from the GPU
     void MarkModification(ImageId id) noexcept;
 
