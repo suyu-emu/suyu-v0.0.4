@@ -19,15 +19,6 @@ using VideoCommon::ImageId;
 constexpr u32 MAX_TEXTURES = 64;
 constexpr u32 MAX_IMAGES = 16;
 
-template <typename Range>
-u32 AccumulateCount(const Range& range) {
-    u32 num{};
-    for (const auto& desc : range) {
-        num += desc.count;
-    }
-    return num;
-}
-
 size_t ComputePipelineKey::Hash() const noexcept {
     return static_cast<size_t>(
         Common::CityHash64(reinterpret_cast<const char*>(this), sizeof *this));
@@ -58,17 +49,17 @@ ComputePipeline::ComputePipeline(const Device& device, TextureCache& texture_cac
     std::copy_n(info.constant_buffer_used_sizes.begin(), uniform_buffer_sizes.size(),
                 uniform_buffer_sizes.begin());
 
-    num_texture_buffers = AccumulateCount(info.texture_buffer_descriptors);
-    num_image_buffers = AccumulateCount(info.image_buffer_descriptors);
+    num_texture_buffers = Shader::NumDescriptors(info.texture_buffer_descriptors);
+    num_image_buffers = Shader::NumDescriptors(info.image_buffer_descriptors);
 
-    const u32 num_textures{num_texture_buffers + AccumulateCount(info.texture_descriptors)};
+    const u32 num_textures{num_texture_buffers + Shader::NumDescriptors(info.texture_descriptors)};
     ASSERT(num_textures <= MAX_TEXTURES);
 
-    const u32 num_images{num_image_buffers + AccumulateCount(info.image_descriptors)};
+    const u32 num_images{num_image_buffers + Shader::NumDescriptors(info.image_descriptors)};
     ASSERT(num_images <= MAX_IMAGES);
 
     const bool is_glasm{assembly_program.handle != 0};
-    const u32 num_storage_buffers{AccumulateCount(info.storage_buffers_descriptors)};
+    const u32 num_storage_buffers{Shader::NumDescriptors(info.storage_buffers_descriptors)};
     use_storage_buffers =
         !is_glasm || num_storage_buffers < device.GetMaxGLASMStorageBufferBlocks();
     writes_global_memory = !use_storage_buffers &&

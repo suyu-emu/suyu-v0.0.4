@@ -27,6 +27,7 @@ namespace OpenGL {
 namespace {
 using Shader::ImageBufferDescriptor;
 using Shader::ImageDescriptor;
+using Shader::NumDescriptors;
 using Shader::TextureBufferDescriptor;
 using Shader::TextureDescriptor;
 using Tegra::Texture::TexturePair;
@@ -34,15 +35,6 @@ using VideoCommon::ImageId;
 
 constexpr u32 MAX_TEXTURES = 64;
 constexpr u32 MAX_IMAGES = 8;
-
-template <typename Range>
-u32 AccumulateCount(const Range& range) {
-    u32 num{};
-    for (const auto& desc : range) {
-        num += desc.count;
-    }
-    return num;
-}
 
 GLenum Stage(size_t stage_index) {
     switch (stage_index) {
@@ -204,23 +196,23 @@ GraphicsPipeline::GraphicsPipeline(
             base_uniform_bindings[stage + 1] = base_uniform_bindings[stage];
             base_storage_bindings[stage + 1] = base_storage_bindings[stage];
 
-            base_uniform_bindings[stage + 1] += AccumulateCount(info.constant_buffer_descriptors);
-            base_storage_bindings[stage + 1] += AccumulateCount(info.storage_buffers_descriptors);
+            base_uniform_bindings[stage + 1] += NumDescriptors(info.constant_buffer_descriptors);
+            base_storage_bindings[stage + 1] += NumDescriptors(info.storage_buffers_descriptors);
         }
         enabled_uniform_buffer_masks[stage] = info.constant_buffer_mask;
         std::ranges::copy(info.constant_buffer_used_sizes, uniform_buffer_sizes[stage].begin());
 
-        const u32 num_tex_buffer_bindings{AccumulateCount(info.texture_buffer_descriptors)};
+        const u32 num_tex_buffer_bindings{NumDescriptors(info.texture_buffer_descriptors)};
         num_texture_buffers[stage] += num_tex_buffer_bindings;
         num_textures += num_tex_buffer_bindings;
 
-        const u32 num_img_buffers_bindings{AccumulateCount(info.image_buffer_descriptors)};
+        const u32 num_img_buffers_bindings{NumDescriptors(info.image_buffer_descriptors)};
         num_image_buffers[stage] += num_img_buffers_bindings;
         num_images += num_img_buffers_bindings;
 
-        num_textures += AccumulateCount(info.texture_descriptors);
-        num_images += AccumulateCount(info.image_descriptors);
-        num_storage_buffers += AccumulateCount(info.storage_buffers_descriptors);
+        num_textures += NumDescriptors(info.texture_descriptors);
+        num_images += NumDescriptors(info.image_descriptors);
+        num_storage_buffers += NumDescriptors(info.storage_buffers_descriptors);
 
         writes_global_memory |= std::ranges::any_of(
             info.storage_buffers_descriptors, [](const auto& desc) { return desc.is_written; });
@@ -423,13 +415,9 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
                 add_buffer(desc);
             }
         }
-        for (const auto& desc : info.texture_descriptors) {
-            texture_buffer_index += desc.count;
-        }
+        texture_buffer_index += Shader::NumDescriptors(info.texture_descriptors);
         if constexpr (Spec::has_images) {
-            for (const auto& desc : info.image_descriptors) {
-                texture_buffer_index += desc.count;
-            }
+            texture_buffer_index += Shader::NumDescriptors(info.image_descriptors);
         }
     }};
     if constexpr (Spec::enabled_stages[0]) {
