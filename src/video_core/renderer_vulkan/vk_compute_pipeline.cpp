@@ -111,6 +111,7 @@ void ComputePipeline::Configure(Tegra::Engines::KeplerCompute& kepler_compute,
     std::array<ImageId, max_elements> image_view_ids;
     boost::container::static_vector<u32, max_elements> image_view_indices;
     boost::container::static_vector<VkSampler, max_elements> samplers;
+    boost::container::static_vector<bool, max_elements> image_view_blacklist;
 
     const auto& qmd{kepler_compute.launch_description};
     const auto& cbufs{qmd.const_buffer_config};
@@ -151,10 +152,34 @@ void ComputePipeline::Configure(Tegra::Engines::KeplerCompute& kepler_compute,
             samplers.push_back(sampler->Handle());
         }
     }
-    std::ranges::for_each(info.image_descriptors, add_image);
+    const u32 black_list_base = image_view_indices.size();
+    bool atleast_one_blacklisted = false;
+    for (const auto& desc : info.image_descriptors) {
+        const bool is_black_listed =
+            desc.is_written && (desc.type == Shader::TextureType::Color2D ||
+                                desc.type == Shader::TextureType::ColorArray2D);
+        for (u32 index = 0; index < desc.count; ++index) {
+            image_view_blacklist.push_back(is_black_listed);
+        }
+        atleast_one_blacklisted |= is_black_listed;
+        add_image(desc);
+    }
 
     const std::span indices_span(image_view_indices.data(), image_view_indices.size());
-    texture_cache.FillComputeImageViews(indices_span, image_view_ids);
+    bool has_listed_stuffs;
+    do {
+        has_listed_stuffs = false;
+        texture_cache.FillComputeImageViews(indices_span, image_view_ids);
+        if (atleast_one_blacklisted) {
+            for (u32 index = 0; index < image_view_blacklist.size(); index++) {
+                if (image_view_blacklist[index]) {
+                    ImageView& image_view{
+                        texture_cache.GetImageView(image_view_ids[index + black_list_base])};
+                    has_listed_stuffs |= texture_cache.BlackListImage(image_view.image_id);
+                }
+            }
+        }
+    } while (has_listed_stuffs);
 
     buffer_cache.UnbindComputeTextureBuffers();
     ImageId* texture_buffer_ids{image_view_ids.data()};

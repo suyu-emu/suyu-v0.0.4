@@ -176,6 +176,8 @@ public:
 
     [[nodiscard]] bool IsRescaling();
 
+    [[nodiscard]] bool BlackListImage(ImageId image_id);
+
     std::mutex mutex;
 
 private:

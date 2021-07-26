@@ -227,6 +227,7 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
         flags[Dirty::RenderTargetControl] = false;
 
         bool can_rescale = true;
+        bool any_blacklisted = false;
         std::array<ImageId, NUM_RT> tmp_color_images{};
         ImageId tmp_depth_image{};
         const auto check_rescale = [&](ImageViewId view_id, ImageId& id_save) {
@@ -236,6 +237,7 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
                 id_save = image_id;
                 auto& image = slot_images[image_id];
                 can_rescale &= ImageCanRescale(image);
+                any_blacklisted |= True(image.flags & ImageFlagBits::Blacklisted);
             } else {
                 id_save = CORRUPT_ID;
             }
@@ -268,10 +270,13 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
             scale_up(tmp_depth_image);
         } else {
             rescaled = false;
-            const auto scale_down = [this](ImageId image_id) {
+            const auto scale_down = [this, any_blacklisted](ImageId image_id) {
                 if (image_id != CORRUPT_ID) {
                     Image& image = slot_images[image_id];
                     ScaleDown(image);
+                    if (any_blacklisted) {
+                        image.flags |= ImageFlagBits::Blacklisted;
+                    }
                 }
             };
             for (size_t index = 0; index < NUM_RT; ++index) {
@@ -737,7 +742,21 @@ ImageId TextureCache<P>::FindImage(const ImageInfo& info, GPUVAddr gpu_addr,
 }
 
 template <class P>
+bool TextureCache<P>::BlackListImage(ImageId image_id) {
+    auto& image = slot_images[image_id];
+    if (True(image.flags & ImageFlagBits::Blacklisted)) {
+        return false;
+    }
+    image.flags |= ImageFlagBits::Blacklisted;
+    ScaleDown(image);
+    return true;
+}
+
+template <class P>
 bool TextureCache<P>::ImageCanRescale(Image& image) {
+    if (True(image.flags & ImageFlagBits::Blacklisted)) {
+        return false;
+    }
     if (True(image.flags & ImageFlagBits::Rescaled) ||
         True(image.flags & ImageFlagBits::RescaleChecked)) {
         return true;
@@ -912,6 +931,7 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
     bool can_rescale =
         (info.type == ImageType::e1D || info.type == ImageType::e2D) && info.block.depth == 0;
     bool any_rescaled = false;
+    bool any_blacklisted = false;
     for (const ImageId sibling_id : all_siblings) {
         if (!can_rescale) {
             break;
@@ -919,6 +939,7 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
         Image& sibling = slot_images[sibling_id];
         can_rescale &= ImageCanRescale(sibling);
         any_rescaled |= True(sibling.flags & ImageFlagBits::Rescaled);
+        any_blacklisted |= True(sibling.flags & ImageFlagBits::Blacklisted);
     }
 
     can_rescale &= any_rescaled;
@@ -932,6 +953,9 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
         for (const ImageId sibling_id : all_siblings) {
             Image& sibling = slot_images[sibling_id];
             ScaleDown(sibling);
+            if (any_blacklisted) {
+                sibling.flags |= ImageFlagBits::Blacklisted;
+            }
         }
     }
 
@@ -1556,6 +1580,7 @@ void TextureCache<P>::SynchronizeAliases(ImageId image_id) {
     boost::container::small_vector<const AliasedImage*, 1> aliased_images;
     Image& image = slot_images[image_id];
     bool any_rescaled = True(image.flags & ImageFlagBits::Rescaled);
+    bool any_blacklisted = True(image.flags & ImageFlagBits::Blacklisted);
     u64 most_recent_tick = image.modification_tick;
     for (const AliasedImage& aliased : image.aliased_images) {
         ImageBase& aliased_image = slot_images[aliased.id];
@@ -1563,6 +1588,7 @@ void TextureCache<P>::SynchronizeAliases(ImageId image_id) {
             most_recent_tick = std::max(most_recent_tick, aliased_image.modification_tick);
             aliased_images.push_back(&aliased);
             any_rescaled |= True(aliased_image.flags & ImageFlagBits::Rescaled);
+            any_blacklisted |= True(aliased_image.flags & ImageFlagBits::Blacklisted);
         }
     }
     if (aliased_images.empty()) {
@@ -1574,6 +1600,9 @@ void TextureCache<P>::SynchronizeAliases(ImageId image_id) {
             ScaleUp(image);
         } else {
             ScaleDown(image);
+            if (any_blacklisted) {
+                image.flags |= ImageFlagBits::Blacklisted;
+            }
         }
     }
     image.modification_tick = most_recent_tick;
@@ -1589,6 +1618,9 @@ void TextureCache<P>::SynchronizeAliases(ImageId image_id) {
                 ScaleUp(aliased_image);
             } else {
                 ScaleDown(aliased_image);
+                if (any_blacklisted) {
+                    aliased_image.flags |= ImageFlagBits::Blacklisted;
+                }
             }
         }
         CopyImage(image_id, aliased->id, aliased->copies);

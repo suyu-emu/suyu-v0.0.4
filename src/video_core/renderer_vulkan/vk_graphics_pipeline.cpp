@@ -280,6 +280,7 @@ template <typename Spec>
 void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     std::array<ImageId, MAX_IMAGE_ELEMENTS> image_view_ids;
     std::array<u32, MAX_IMAGE_ELEMENTS> image_view_indices;
+    std::array<bool, MAX_IMAGE_ELEMENTS> image_view_blacklist;
     std::array<VkSampler, MAX_IMAGE_ELEMENTS> samplers;
     size_t sampler_index{};
     size_t image_index{};
@@ -290,6 +291,8 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
 
     const auto& regs{maxwell3d.regs};
     const bool via_header_index{regs.sampler_index == Maxwell::SamplerIndex::ViaHeaderIndex};
+    u32 start_black_list = std::numeric_limits<u32>::max();
+    u32 end_black_list = 0;
     const auto config_stage{[&](size_t stage) LAMBDA_FORCEINLINE {
         const Shader::Info& info{stage_infos[stage]};
         buffer_cache.UnbindGraphicsStorageBuffers(stage);
@@ -350,6 +353,15 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
         }
         if constexpr (Spec::has_images) {
             for (const auto& desc : info.image_descriptors) {
+                if (desc.is_written && (desc.type == Shader::TextureType::Color2D ||
+                                        desc.type == Shader::TextureType::ColorArray2D)) {
+                    auto index_copy = image_index;
+                    for (u32 index = 0; index < desc.count; ++index) {
+                        start_black_list = std::min<u32>(start_black_list, index_copy);
+                        image_view_blacklist[index_copy++] = true;
+                        end_black_list = std::max<u32>(end_black_list, index_copy);
+                    }
+                }
                 add_image(desc);
             }
         }
@@ -370,7 +382,21 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
         config_stage(4);
     }
     const std::span indices_span(image_view_indices.data(), image_index);
-    texture_cache.FillGraphicsImageViews(indices_span, image_view_ids);
+    bool has_listed_stuffs;
+    do {
+        has_listed_stuffs = false;
+        texture_cache.FillGraphicsImageViews(indices_span, image_view_ids);
+        if constexpr (Spec::has_images) {
+            if (start_black_list < end_black_list) {
+                for (u32 index = start_black_list; index < end_black_list; index++) {
+                    if (image_view_blacklist[index]) {
+                        ImageView& image_view{texture_cache.GetImageView(image_view_ids[index])};
+                        has_listed_stuffs |= texture_cache.BlackListImage(image_view.image_id);
+                    }
+                }
+            }
+        }
+    } while (has_listed_stuffs);
 
     ImageId* texture_buffer_index{image_view_ids.data()};
     const auto bind_stage_info{[&](size_t stage) LAMBDA_FORCEINLINE {
