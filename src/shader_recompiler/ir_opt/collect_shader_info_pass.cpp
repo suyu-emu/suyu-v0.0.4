@@ -431,6 +431,7 @@ void VisitUsages(Info& info, IR::Inst& inst) {
         info.uses_is_helper_invocation = true;
         break;
     case IR::Opcode::ResolutionDownFactor:
+    case IR::Opcode::IsTextureScaled:
         info.uses_rescaling_uniform = true;
         break;
     case IR::Opcode::LaneId:

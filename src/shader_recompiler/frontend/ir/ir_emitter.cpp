@@ -1946,6 +1946,10 @@ Value IREmitter::ImageAtomicExchange(const Value& handle, const Value& coords, c
     return Inst(op, Flags{info}, handle, coords, value);
 }
 
+U1 IREmitter::IsTextureScaled(const U32& index) {
+    return Inst<U1>(Opcode::IsTextureScaled, index);
+}
+
 U1 IREmitter::VoteAll(const U1& value) {
     return Inst<U1>(Opcode::VoteAll, value);
 }

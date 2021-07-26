@@ -493,6 +493,8 @@ OPCODE(ImageGradient,                                       F32x4,          Opaq
 OPCODE(ImageRead,                                           U32x4,          Opaque,         Opaque,                                                         )
 OPCODE(ImageWrite,                                          Void,           Opaque,         Opaque,         U32x4,                                          )
 
+OPCODE(IsTextureScaled,                                     U1,             U32,                                                                            )
+
 // Atomic Image operations
 
 OPCODE(BindlessImageAtomicIAdd32,                           U32,            U32,            Opaque,            U32,                                         )

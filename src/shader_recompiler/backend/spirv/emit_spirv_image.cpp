@@ -470,4 +470,8 @@ void EmitImageWrite(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id
     ctx.OpImageWrite(Image(ctx, index, info), coords, color);
 }
 
+Id EmitIsTextureScaled([[maybe_unused]] EmitContext& ctx, [[maybe_unused]] const IR::Value& index) {
+    return ctx.false_value;
+}
+
 } // namespace Shader::Backend::SPIRV

@@ -359,6 +359,9 @@ public:
                                        TextureInstInfo info);
     [[nodiscard]] Value ImageAtomicExchange(const Value& handle, const Value& coords,
                                             const Value& value, TextureInstInfo info);
+
+    [[nodiscard]] U1 IsTextureScaled(const U32& index);
+
     [[nodiscard]] U1 VoteAll(const U1& value);
     [[nodiscard]] U1 VoteAny(const U1& value);
     [[nodiscard]] U1 VoteEqual(const U1& value);

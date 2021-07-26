@@ -612,6 +612,14 @@ void EmitImageAtomicExchange32(EmitContext& ctx, IR::Inst& inst, const IR::Value
                value);
 }
 
+void EmitIsTextureScaled(EmitContext& ctx, IR::Inst& inst, const IR::Value& index) {
+    if (!index.IsImmediate()) {
+        throw NotImplementedException("Non-constant texture rescaling");
+    }
+    UNIMPLEMENTED();
+    ctx.AddU1("{}=true;", inst);
+}
+
 void EmitBindlessImageSampleImplicitLod(EmitContext&) {
     NotImplemented();
 }

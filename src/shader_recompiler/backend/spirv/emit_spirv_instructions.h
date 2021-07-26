@@ -513,6 +513,7 @@ Id EmitImageGradient(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, I
                      Id derivates, Id offset, Id lod_clamp);
 Id EmitImageRead(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id coords);
 void EmitImageWrite(EmitContext& ctx, IR::Inst* inst, const IR::Value& index, Id coords, Id color);
+Id EmitIsTextureScaled(EmitContext& ctx, const IR::Value& index);
 Id EmitBindlessImageAtomicIAdd32(EmitContext&);
 Id EmitBindlessImageAtomicSMin32(EmitContext&);
 Id EmitBindlessImageAtomicUMin32(EmitContext&);

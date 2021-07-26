@@ -630,6 +630,8 @@ void EmitImageRead(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
                    std::string_view coords);
 void EmitImageWrite(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
                     std::string_view coords, std::string_view color);
+void EmitIsTextureScaled(EmitContext& ctx, IR::Inst& inst, const IR::Value& index);
+void EmitIsImageScaled(EmitContext& ctx, IR::Inst& inst, const IR::Value& index);
 void EmitBindlessImageAtomicIAdd32(EmitContext&);
 void EmitBindlessImageAtomicSMin32(EmitContext&);
 void EmitBindlessImageAtomicUMin32(EmitContext&);

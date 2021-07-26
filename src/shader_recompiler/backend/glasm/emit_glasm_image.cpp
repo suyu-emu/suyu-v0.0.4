@@ -608,6 +608,14 @@ void EmitImageWrite(EmitContext& ctx, IR::Inst& inst, const IR::Value& index, Re
     ctx.Add("STOREIM.{} {},{},{},{};", format, image, color, coord, type);
 }
 
+void EmitIsTextureScaled(EmitContext& ctx, IR::Inst& inst, const IR::Value& index) {
+    if (!index.IsImmediate()) {
+        throw NotImplementedException("Non-constant texture rescaling");
+    }
+    UNIMPLEMENTED();
+    ctx.Add("MOV.S {}.x,-1;", inst);
+}
+
 void EmitImageAtomicIAdd32(EmitContext& ctx, IR::Inst& inst, const IR::Value& index, Register coord,
                            ScalarU32 value) {
     ImageAtomic(ctx, inst, index, coord, value, "ADD.U32");
