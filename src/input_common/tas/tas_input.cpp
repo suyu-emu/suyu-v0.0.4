@@ -40,12 +40,15 @@ constexpr std::array<std::pair<std::string_view, TasButton>, 20> text_to_tas_but
 
 Tas::Tas() {
     if (!Settings::values.tas_enable) {
+        needs_reset = true;
         return;
     }
     LoadTasFiles();
 }
 
-Tas::~Tas() = default;
+Tas::~Tas() {
+    Stop();
+};
 
 void Tas::LoadTasFiles() {
     script_length = 0;
@@ -184,6 +187,9 @@ std::string Tas::ButtonsToString(u32 button) const {
 
 void Tas::UpdateThread() {
     if (!Settings::values.tas_enable) {
+        if (is_running) {
+            Stop();
+        }
         return;
     }
 
@@ -196,34 +202,35 @@ void Tas::UpdateThread() {
         LoadTasFiles();
         LOG_DEBUG(Input, "tas_reset done");
     }
-    if (is_running) {
-        if (current_command < script_length) {
-            LOG_DEBUG(Input, "Playing TAS {}/{}", current_command, script_length);
-            size_t frame = current_command++;
-            for (size_t i = 0; i < commands.size(); i++) {
-                if (frame < commands[i].size()) {
-                    TASCommand command = commands[i][frame];
-                    tas_data[i].buttons = command.buttons;
-                    auto [l_axis_x, l_axis_y] = command.l_axis;
-                    tas_data[i].axis[0] = l_axis_x;
-                    tas_data[i].axis[1] = l_axis_y;
-                    auto [r_axis_x, r_axis_y] = command.r_axis;
-                    tas_data[i].axis[2] = r_axis_x;
-                    tas_data[i].axis[3] = r_axis_y;
-                } else {
-                    tas_data[i] = {};
-                }
-            }
-        } else {
-            is_running = Settings::values.tas_loop.GetValue();
-            current_command = 0;
-            tas_data.fill({});
-            if (!is_running) {
-                SwapToStoredController();
+
+    if (!is_running) {
+        tas_data.fill({});
+        return;
+    }
+    if (current_command < script_length) {
+        LOG_DEBUG(Input, "Playing TAS {}/{}", current_command, script_length);
+        size_t frame = current_command++;
+        for (size_t i = 0; i < commands.size(); i++) {
+            if (frame < commands[i].size()) {
+                TASCommand command = commands[i][frame];
+                tas_data[i].buttons = command.buttons;
+                auto [l_axis_x, l_axis_y] = command.l_axis;
+                tas_data[i].axis[0] = l_axis_x;
+                tas_data[i].axis[1] = l_axis_y;
+                auto [r_axis_x, r_axis_y] = command.r_axis;
+                tas_data[i].axis[2] = r_axis_x;
+                tas_data[i].axis[3] = r_axis_y;
+            } else {
+                tas_data[i] = {};
             }
         }
     } else {
+        is_running = Settings::values.tas_loop.GetValue();
+        current_command = 0;
         tas_data.fill({});
+        if (!is_running) {
+            SwapToStoredController();
+        }
     }
     LOG_DEBUG(Input, "TAS inputs: {}", DebugInputs(tas_data));
 }
@@ -237,8 +244,8 @@ TasAnalog Tas::ReadCommandAxis(const std::string& line) const {
         seglist.push_back(segment);
     }
 
-    const float x = std::stof(seglist.at(0)) / 32767.f;
-    const float y = std::stof(seglist.at(1)) / 32767.f;
+    const float x = std::stof(seglist.at(0)) / 32767.0f;
+    const float y = std::stof(seglist.at(1)) / 32767.0f;
 
     return {x, y};
 }
@@ -293,12 +300,20 @@ std::string Tas::WriteCommandButtons(u32 data) const {
 }
 
 void Tas::StartStop() {
-    is_running = !is_running;
-    if (is_running) {
-        SwapToTasController();
-    } else {
-        SwapToStoredController();
+    if (!Settings::values.tas_enable) {
+        return;
     }
+    if (is_running) {
+        Stop();
+    } else {
+        is_running = true;
+        SwapToTasController();
+    }
+}
+
+void Tas::Stop() {
+    is_running = false;
+    SwapToStoredController();
 }
 
 void Tas::SwapToTasController() {
@@ -315,7 +330,8 @@ void Tas::SwapToTasController() {
             continue;
         }
 
-        auto tas_param = Common::ParamPackage{{"pad", static_cast<u8>(index)}};
+        Common::ParamPackage tas_param;
+        tas_param.Set("pad", static_cast<u8>(index));
         auto button_mapping = GetButtonMappingForDevice(tas_param);
         auto analog_mapping = GetAnalogMappingForDevice(tas_param);
         auto& buttons = player.buttons;
@@ -328,25 +344,33 @@ void Tas::SwapToTasController() {
             analogs[i] = analog_mapping[static_cast<Settings::NativeAnalog::Values>(i)].Serialize();
         }
     }
+    is_old_input_saved = true;
     Settings::values.is_device_reload_pending.store(true);
 }
 
 void Tas::SwapToStoredController() {
-    if (!Settings::values.tas_swap_controllers) {
+    if (!is_old_input_saved) {
         return;
     }
     auto& players = Settings::values.players.GetValue();
     for (std::size_t index = 0; index < players.size(); index++) {
         players[index] = player_mappings[index];
     }
+    is_old_input_saved = false;
     Settings::values.is_device_reload_pending.store(true);
 }
 
 void Tas::Reset() {
+    if (!Settings::values.tas_enable) {
+        return;
+    }
     needs_reset = true;
 }
 
 bool Tas::Record() {
+    if (!Settings::values.tas_enable) {
+        return true;
+    }
     is_recording = !is_recording;
     return is_recording;
 }

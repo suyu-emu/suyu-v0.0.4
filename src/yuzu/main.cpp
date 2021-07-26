@@ -1022,18 +1022,25 @@ void GMainWindow::InitializeHotkeys() {
                 }
             });
     connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("TAS Start/Stop"), this),
-            &QShortcut::activated, this, [&] { input_subsystem->GetTas()->StartStop(); });
+            &QShortcut::activated, this, [&] {
+                if (!emulation_running) {
+                    return;
+                }
+                input_subsystem->GetTas()->StartStop();
+            });
     connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("TAS Reset"), this),
             &QShortcut::activated, this, [&] { input_subsystem->GetTas()->Reset(); });
     connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("TAS Record"), this),
             &QShortcut::activated, this, [&] {
+                if (!emulation_running) {
+                    return;
+                }
                 bool is_recording = input_subsystem->GetTas()->Record();
                 if (!is_recording) {
-                    QMessageBox::StandardButton reply;
-                    reply = QMessageBox::question(this, tr("TAS Recording"),
-                                                  tr("Overwrite file of player 1?"),
-                                                  QMessageBox::Yes | QMessageBox::No);
-                    input_subsystem->GetTas()->SaveRecording(reply == QMessageBox::Yes);
+                    const auto res = QMessageBox::question(this, tr("TAS Recording"),
+                                                           tr("Overwrite file of player 1?"),
+                                                           QMessageBox::Yes | QMessageBox::No);
+                    input_subsystem->GetTas()->SaveRecording(res == QMessageBox::Yes);
                 }
             });
 }
@@ -1487,6 +1494,8 @@ void GMainWindow::ShutdownGame() {
         game_list->show();
     }
     game_list->SetFilterFocus();
+    tas_label->clear();
+    input_subsystem->GetTas()->Stop();
 
     render_window->removeEventFilter(render_window);
     render_window->setAttribute(Qt::WA_Hover, false);
