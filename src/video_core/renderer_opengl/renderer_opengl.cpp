@@ -257,6 +257,7 @@ void RendererOpenGL::InitOpenGLObjects() {
     // Generate presentation sampler
     present_sampler.Create();
     glSamplerParameteri(present_sampler.handle, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glSamplerParameteri(present_sampler.handle, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     // Generate VBO handle for drawing
     vertex_buffer.Create();
