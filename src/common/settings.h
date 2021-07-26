@@ -67,8 +67,6 @@ struct ResolutionScalingInfo {
     u32 down_shift{0};
     f32 up_factor{1.0f};
     f32 down_factor{1.0f};
-    u32 size_up{1};
-    u32 size_shift{0};
     bool active{};
 };
 
