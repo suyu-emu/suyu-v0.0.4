@@ -180,9 +180,11 @@ void ComputePipeline::Configure(Tegra::Engines::KeplerCompute& kepler_compute,
     buffer_cache.UpdateComputeBuffers();
     buffer_cache.BindHostComputeBuffers();
 
+    RescalingPushConstant rescaling(num_textures);
     const VkSampler* samplers_it{samplers.data()};
     const ImageId* views_it{image_view_ids.data()};
-    PushImageDescriptors(info, samplers_it, views_it, texture_cache, update_descriptor_queue);
+    PushImageDescriptors(info, samplers_it, views_it, texture_cache, update_descriptor_queue,
+                         rescaling);
 
     if (!is_built.load(std::memory_order::relaxed)) {
         // Wait for the pipeline to be built
@@ -192,17 +194,21 @@ void ComputePipeline::Configure(Tegra::Engines::KeplerCompute& kepler_compute,
         });
     }
     const void* const descriptor_data{update_descriptor_queue.UpdateData()};
-    scheduler.Record([this, descriptor_data](vk::CommandBuffer cmdbuf) {
-        cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, *pipeline);
-        if (!descriptor_set_layout) {
-            return;
-        }
-        const VkDescriptorSet descriptor_set{descriptor_allocator.Commit()};
-        const vk::Device& dev{device.GetLogical()};
-        dev.UpdateDescriptorSet(descriptor_set, *descriptor_update_template, descriptor_data);
-        cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, *pipeline_layout, 0,
-                                  descriptor_set, nullptr);
-    });
+    scheduler.Record(
+        [this, descriptor_data, rescaling_data = rescaling.Data()](vk::CommandBuffer cmdbuf) {
+            cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, *pipeline);
+            if (!descriptor_set_layout) {
+                return;
+            }
+            if (num_textures > 0) {
+                cmdbuf.PushConstants(*pipeline_layout, VK_SHADER_STAGE_COMPUTE_BIT, rescaling_data);
+            }
+            const VkDescriptorSet descriptor_set{descriptor_allocator.Commit()};
+            const vk::Device& dev{device.GetLogical()};
+            dev.UpdateDescriptorSet(descriptor_set, *descriptor_update_template, descriptor_data);
+            cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, *pipeline_layout, 0,
+                                      descriptor_set, nullptr);
+        });
 }
 
 } // namespace Vulkan

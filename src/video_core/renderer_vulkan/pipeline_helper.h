@@ -20,6 +20,8 @@
 
 namespace Vulkan {
 
+constexpr size_t MAX_RESCALING_WORDS = 4;
+
 class DescriptorLayoutBuilder {
 public:
     DescriptorLayoutBuilder(const Device& device_) : device{&device_} {}
@@ -68,18 +70,26 @@ public:
     }
 
     vk::PipelineLayout CreatePipelineLayout(VkDescriptorSetLayout descriptor_set_layout) const {
+        const VkPushConstantRange range{
+            .stageFlags = static_cast<VkShaderStageFlags>(
+                is_compute ? VK_SHADER_STAGE_COMPUTE_BIT : VK_SHADER_STAGE_ALL_GRAPHICS),
+            .offset = 0,
+            .size = (is_compute ? 0 : sizeof(f32)) + sizeof(std::array<u32, MAX_RESCALING_WORDS>),
+        };
         return device->GetLogical().CreatePipelineLayout({
             .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
             .setLayoutCount = descriptor_set_layout ? 1U : 0U,
             .pSetLayouts = bindings.empty() ? nullptr : &descriptor_set_layout,
-            .pushConstantRangeCount = 0,
-            .pPushConstantRanges = nullptr,
+            .pushConstantRangeCount = 1,
+            .pPushConstantRanges = &range,
         });
     }
 
     void Add(const Shader::Info& info, VkShaderStageFlags stage) {
+        is_compute |= (stage & VK_SHADER_STAGE_COMPUTE_BIT) != 0;
+
         Add(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, stage, info.constant_buffer_descriptors);
         Add(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, stage, info.storage_buffers_descriptors);
         Add(VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, stage, info.texture_buffer_descriptors);
@@ -115,6 +125,7 @@ private:
     }
 
     const Device* device{};
+    bool is_compute{};
     boost::container::small_vector<VkDescriptorSetLayoutBinding, 32> bindings;
     boost::container::small_vector<VkDescriptorUpdateTemplateEntryKHR, 32> entries;
     u32 binding{};
@@ -122,21 +133,46 @@ private:
     size_t offset{};
 };
 
+class RescalingPushConstant {
+public:
+    explicit RescalingPushConstant(u32 num_textures) noexcept {}
+
+    void PushTexture(bool is_rescaled) noexcept {
+        *texture_ptr |= is_rescaled ? texture_bit : 0;
+        texture_bit <<= 1;
+        if (texture_bit == 0) {
+            texture_bit = 1u;
+            ++texture_ptr;
+        }
+    }
+
+    const std::array<u32, MAX_RESCALING_WORDS>& Data() const noexcept {
+        return words;
+    }
+
+private:
+    std::array<u32, MAX_RESCALING_WORDS> words{};
+    u32* texture_ptr{words.data()};
+    u32 texture_bit{1u};
+};
+
 inline void PushImageDescriptors(const Shader::Info& info, const VkSampler*& samplers,
                                  const ImageId*& image_view_ids, TextureCache& texture_cache,
-                                 VKUpdateDescriptorQueue& update_descriptor_queue) {
-    for (const auto& desc : info.texture_buffer_descriptors) {
-        image_view_ids += desc.count;
-    }
-    for (const auto& desc : info.image_buffer_descriptors) {
-        image_view_ids += desc.count;
-    }
+                                 VKUpdateDescriptorQueue& update_descriptor_queue,
+                                 RescalingPushConstant& rescaling) {
+    static constexpr VideoCommon::ImageViewId NULL_IMAGE_VIEW_ID{0};
+    image_view_ids += Shader::NumDescriptors(info.texture_buffer_descriptors);
+    image_view_ids += Shader::NumDescriptors(info.image_buffer_descriptors);
     for (const auto& desc : info.texture_descriptors) {
         for (u32 index = 0; index < desc.count; ++index) {
+            const VideoCommon::ImageViewId image_view_id{*(image_view_ids++)};
             const VkSampler sampler{*(samplers++)};
-            ImageView& image_view{texture_cache.GetImageView(*(image_view_ids++))};
+            ImageView& image_view{texture_cache.GetImageView(image_view_id)};
+            const Image& image{texture_cache.GetImage(image_view.image_id)};
             const VkImageView vk_image_view{image_view.Handle(desc.type)};
             update_descriptor_queue.AddSampledImage(vk_image_view, sampler);
+            rescaling.PushTexture(image_view_id != NULL_IMAGE_VIEW_ID &&
+                                  True(image.flags & VideoCommon::ImageFlagBits::Rescaled));
         }
     }
     for (const auto& desc : info.image_descriptors) {

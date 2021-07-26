@@ -235,6 +235,7 @@ GraphicsPipeline::GraphicsPipeline(
         stage_infos[stage] = *info;
         enabled_uniform_buffer_masks[stage] = info->constant_buffer_mask;
         std::ranges::copy(info->constant_buffer_used_sizes, uniform_buffer_sizes[stage].begin());
+        num_textures += Shader::NumDescriptors(info->texture_descriptors);
     }
     auto func{[this, shader_notify, &render_pass_cache, &descriptor_pool, pipeline_statistics] {
         DescriptorLayoutBuilder builder{MakeBuilder(device, stage_infos)};
@@ -428,12 +429,13 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
 
     update_descriptor_queue.Acquire();
 
+    RescalingPushConstant rescaling(num_textures);
     const VkSampler* samplers_it{samplers.data()};
     const ImageId* views_it{image_view_ids.data()};
     const auto prepare_stage{[&](size_t stage) LAMBDA_FORCEINLINE {
         buffer_cache.BindHostStageBuffers(stage);
         PushImageDescriptors(stage_infos[stage], samplers_it, views_it, texture_cache,
-                             update_descriptor_queue);
+                             update_descriptor_queue, rescaling);
     }};
     if constexpr (Spec::enabled_stages[0]) {
         prepare_stage(0);
@@ -450,10 +452,10 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     if constexpr (Spec::enabled_stages[4]) {
         prepare_stage(4);
     }
-    ConfigureDraw();
+    ConfigureDraw(rescaling);
 }
 
-void GraphicsPipeline::ConfigureDraw() {
+void GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling) {
     texture_cache.UpdateRenderTargets(false);
     scheduler.RequestRenderpass(texture_cache.GetFramebuffer());
 
@@ -464,12 +466,23 @@ void GraphicsPipeline::ConfigureDraw() {
             build_condvar.wait(lock, [this] { return is_built.load(std::memory_order::relaxed); });
         });
     }
+    const bool is_rescaling{texture_cache.IsRescaling()};
+    const bool update_rescaling{scheduler.UpdateRescaling(is_rescaling)};
     const bool bind_pipeline{scheduler.UpdateGraphicsPipeline(this)};
     const void* const descriptor_data{update_descriptor_queue.UpdateData()};
-    scheduler.Record([this, descriptor_data, bind_pipeline](vk::CommandBuffer cmdbuf) {
+    scheduler.Record([this, descriptor_data, bind_pipeline, rescaling_data = rescaling.Data(),
+                      is_rescaling, update_rescaling](vk::CommandBuffer cmdbuf) {
         if (bind_pipeline) {
             cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *pipeline);
         }
+        if (update_rescaling) {
+            const f32 config_down_factor{Settings::values.resolution_info.down_factor};
+            const float scale_down_factor{is_rescaling ? config_down_factor : 1.0f};
+            cmdbuf.PushConstants(*pipeline_layout, VK_SHADER_STAGE_ALL_GRAPHICS, 0,
+                                 sizeof(scale_down_factor), &scale_down_factor);
+        }
+        cmdbuf.PushConstants(*pipeline_layout, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(f32),
+                             sizeof(rescaling_data), rescaling_data.data());
         if (!descriptor_set_layout) {
             return;
         }

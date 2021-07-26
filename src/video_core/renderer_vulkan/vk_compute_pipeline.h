@@ -59,6 +59,7 @@ private:
     vk::PipelineLayout pipeline_layout;
     vk::DescriptorUpdateTemplateKHR descriptor_update_template;
     vk::Pipeline pipeline;
+    u32 num_textures{};
 
     std::condition_variable build_condvar;
     std::mutex build_mutex;
