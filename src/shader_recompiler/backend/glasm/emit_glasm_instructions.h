@@ -304,6 +304,8 @@ void EmitIAdd64(EmitContext& ctx, IR::Inst& inst, Register a, Register b);
 void EmitISub32(EmitContext& ctx, IR::Inst& inst, ScalarS32 a, ScalarS32 b);
 void EmitISub64(EmitContext& ctx, IR::Inst& inst, Register a, Register b);
 void EmitIMul32(EmitContext& ctx, IR::Inst& inst, ScalarS32 a, ScalarS32 b);
+void EmitSDiv32(EmitContext& ctx, IR::Inst& inst, ScalarS32 a, ScalarS32 b);
+void EmitUDiv32(EmitContext& ctx, IR::Inst& inst, ScalarU32 a, ScalarU32 b);
 void EmitINeg32(EmitContext& ctx, IR::Inst& inst, ScalarS32 value);
 void EmitINeg64(EmitContext& ctx, IR::Inst& inst, Register value);
 void EmitIAbs32(EmitContext& ctx, IR::Inst& inst, ScalarS32 value);

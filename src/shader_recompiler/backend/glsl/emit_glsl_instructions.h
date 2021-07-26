@@ -363,6 +363,8 @@ void EmitIAdd64(EmitContext& ctx, IR::Inst& inst, std::string_view a, std::strin
 void EmitISub32(EmitContext& ctx, IR::Inst& inst, std::string_view a, std::string_view b);
 void EmitISub64(EmitContext& ctx, IR::Inst& inst, std::string_view a, std::string_view b);
 void EmitIMul32(EmitContext& ctx, IR::Inst& inst, std::string_view a, std::string_view b);
+void EmitSDiv32(EmitContext& ctx, IR::Inst& inst, std::string_view a, std::string_view b);
+void EmitUDiv32(EmitContext& ctx, IR::Inst& inst, std::string_view a, std::string_view b);
 void EmitINeg32(EmitContext& ctx, IR::Inst& inst, std::string_view value);
 void EmitINeg64(EmitContext& ctx, IR::Inst& inst, std::string_view value);
 void EmitIAbs32(EmitContext& ctx, IR::Inst& inst, std::string_view value);
