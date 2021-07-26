@@ -402,13 +402,9 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
                 add_buffer(desc);
             }
         }
-        for (const auto& desc : info.texture_descriptors) {
-            texture_buffer_index += desc.count;
-        }
+        texture_buffer_index += Shader::NumDescriptors(info.texture_descriptors);
         if constexpr (Spec::has_images) {
-            for (const auto& desc : info.image_descriptors) {
-                texture_buffer_index += desc.count;
-            }
+            texture_buffer_index += Shader::NumDescriptors(info.image_descriptors);
         }
     }};
     if constexpr (Spec::enabled_stages[0]) {
@@ -826,18 +822,10 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
 void GraphicsPipeline::Validate() {
     size_t num_images{};
     for (const auto& info : stage_infos) {
-        for (const auto& desc : info.texture_buffer_descriptors) {
-            num_images += desc.count;
-        }
-        for (const auto& desc : info.image_buffer_descriptors) {
-            num_images += desc.count;
-        }
-        for (const auto& desc : info.texture_descriptors) {
-            num_images += desc.count;
-        }
-        for (const auto& desc : info.image_descriptors) {
-            num_images += desc.count;
-        }
+        num_images += Shader::NumDescriptors(info.texture_buffer_descriptors);
+        num_images += Shader::NumDescriptors(info.image_buffer_descriptors);
+        num_images += Shader::NumDescriptors(info.texture_descriptors);
+        num_images += Shader::NumDescriptors(info.image_descriptors);
     }
     ASSERT(num_images <= MAX_IMAGE_ELEMENTS);
 }
