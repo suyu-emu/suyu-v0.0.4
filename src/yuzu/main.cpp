@@ -747,6 +747,8 @@ void GMainWindow::InitializeWidgets() {
 
     shader_building_label = new QLabel();
     shader_building_label->setToolTip(tr("The amount of shaders currently being built"));
+    res_scale_label = new QLabel();
+    res_scale_label->setToolTip(tr("The current selected resolution scaling multiplier."));
     emu_speed_label = new QLabel();
     emu_speed_label->setToolTip(
         tr("Current emulation speed. Values higher or lower than 100% "
@@ -759,8 +761,8 @@ void GMainWindow::InitializeWidgets() {
         tr("Time taken to emulate a Switch frame, not counting framelimiting or v-sync. For "
            "full-speed emulation this should be at most 16.67 ms."));
 
-    for (auto& label :
-         {shader_building_label, emu_speed_label, game_fps_label, emu_frametime_label}) {
+    for (auto& label : {shader_building_label, res_scale_label, emu_speed_label, game_fps_label,
+                        emu_frametime_label}) {
         label->setVisible(false);
         label->setFrameStyle(QFrame::NoFrame);
         label->setContentsMargins(4, 0, 4, 0);
@@ -1535,6 +1537,7 @@ void GMainWindow::ShutdownGame() {
     // Disable status bar updates
     status_bar_update_timer.stop();
     shader_building_label->setVisible(false);
+    res_scale_label->setVisible(false);
     emu_speed_label->setVisible(false);
     game_fps_label->setVisible(false);
     emu_frametime_label->setVisible(false);
@@ -2981,6 +2984,11 @@ void GMainWindow::UpdateStatusBar() {
         shader_building_label->setVisible(false);
     }
 
+    const auto res_info = Settings::values.resolution_info;
+    const auto res_scale = res_info.up_factor;
+    res_scale_label->setText(
+        tr("Scale: %1x", "%1 is the resolution scaling factor").arg(res_scale));
+
     if (Settings::values.use_speed_limit.GetValue()) {
         emu_speed_label->setText(tr("Speed: %1% / %2%")
                                      .arg(results.emulation_speed * 100.0, 0, 'f', 0)
@@ -2996,6 +3004,7 @@ void GMainWindow::UpdateStatusBar() {
     }
     emu_frametime_label->setText(tr("Frame: %1 ms").arg(results.frametime * 1000.0, 0, 'f', 2));
 
+    res_scale_label->setVisible(true);
     emu_speed_label->setVisible(!Settings::values.use_multi_core.GetValue());
     game_fps_label->setVisible(true);
     emu_frametime_label->setVisible(true);
