@@ -6,7 +6,7 @@
 #include <windows.h>
 #include "common/dynamic_library.h"
 
-#elif defined(__linux__) // ^^^ Windows ^^^ vvv Linux vvv
+#elif defined(__linux__) || defined(__FreeBSD__) // ^^^ Windows ^^^ vvv Linux vvv
 
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
@@ -343,7 +343,7 @@ private:
     std::unordered_map<size_t, size_t> placeholder_host_pointers; ///< Placeholder backing offset
 };
 
-#elif defined(__linux__) // ^^^ Windows ^^^ vvv Linux vvv
+#elif defined(__linux__) || defined(__FreeBSD__) // ^^^ Windows ^^^ vvv Linux vvv
 
 class HostMemory::Impl {
 public:
