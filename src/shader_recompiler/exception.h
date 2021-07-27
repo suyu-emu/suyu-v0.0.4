@@ -17,7 +17,7 @@ class Exception : public std::exception {
 public:
     explicit Exception(std::string message) noexcept : err_message{std::move(message)} {}
 
-    const char* what() const noexcept override {
+    [[nodiscard]] const char* what() const noexcept override {
         return err_message.c_str();
     }
 
