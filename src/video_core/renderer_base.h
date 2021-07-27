@@ -21,9 +21,6 @@ class GraphicsContext;
 namespace VideoCore {
 
 struct RendererSettings {
-    std::atomic_bool use_framelimiter{false};
-    std::atomic_bool set_background_color{false};
-
     // Screenshot
     std::atomic<bool> screenshot_requested{false};
     void* screenshot_bits{};
