@@ -72,8 +72,8 @@ constexpr std::array<std::pair<LanguageCode, KeyboardLayout>, 18> language_to_la
     {LanguageCode::PT_BR, KeyboardLayout::Portuguese},
 }};
 
-constexpr std::size_t pre4_0_0_max_entries = 15;
-constexpr std::size_t post4_0_0_max_entries = 17;
+constexpr std::size_t PRE_4_0_0_MAX_ENTRIES = 0xF;
+constexpr std::size_t POST_4_0_0_MAX_ENTRIES = 0x40;
 
 constexpr ResultCode ERR_INVALID_LANGUAGE{ErrorModule::Settings, 625};
 
@@ -83,9 +83,9 @@ void PushResponseLanguageCode(Kernel::HLERequestContext& ctx, std::size_t num_la
     rb.Push(static_cast<u32>(num_language_codes));
 }
 
-void GetAvailableLanguageCodesImpl(Kernel::HLERequestContext& ctx, std::size_t max_size) {
+void GetAvailableLanguageCodesImpl(Kernel::HLERequestContext& ctx, std::size_t max_entries) {
     const std::size_t requested_amount = ctx.GetWriteBufferSize() / sizeof(LanguageCode);
-    const std::size_t copy_amount = std::min(requested_amount, max_size);
+    const std::size_t copy_amount = std::min(requested_amount, max_entries);
     const std::size_t copy_size = copy_amount * sizeof(LanguageCode);
 
     ctx.WriteBuffer(available_language_codes.data(), copy_size);
@@ -120,7 +120,7 @@ LanguageCode GetLanguageCodeFromIndex(std::size_t index) {
 void SET::GetAvailableLanguageCodes(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
 
-    GetAvailableLanguageCodesImpl(ctx, pre4_0_0_max_entries);
+    GetAvailableLanguageCodesImpl(ctx, PRE_4_0_0_MAX_ENTRIES);
 }
 
 void SET::MakeLanguageCode(Kernel::HLERequestContext& ctx) {
@@ -142,19 +142,19 @@ void SET::MakeLanguageCode(Kernel::HLERequestContext& ctx) {
 void SET::GetAvailableLanguageCodes2(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
 
-    GetAvailableLanguageCodesImpl(ctx, post4_0_0_max_entries);
+    GetAvailableLanguageCodesImpl(ctx, POST_4_0_0_MAX_ENTRIES);
 }
 
 void SET::GetAvailableLanguageCodeCount(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
 
-    PushResponseLanguageCode(ctx, pre4_0_0_max_entries);
+    PushResponseLanguageCode(ctx, PRE_4_0_0_MAX_ENTRIES);
 }
 
 void SET::GetAvailableLanguageCodeCount2(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_SET, "called");
 
-    PushResponseLanguageCode(ctx, post4_0_0_max_entries);
+    PushResponseLanguageCode(ctx, POST_4_0_0_MAX_ENTRIES);
 }
 
 void SET::GetQuestFlag(Kernel::HLERequestContext& ctx) {
