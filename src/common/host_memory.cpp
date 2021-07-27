@@ -357,7 +357,12 @@ public:
         });
 
         // Backing memory initialization
+#if defined(__FreeBSD__) && __FreeBSD__ < 13
+        // XXX Drop after FreeBSD 12.* reaches EOL on 2024-06-30
+        fd = shm_open(SHM_ANON, O_RDWR, 0600);
+#else
         fd = memfd_create("HostMemory", 0);
+#endif
         if (fd == -1) {
             LOG_CRITICAL(HW_Memory, "memfd_create failed: {}", strerror(errno));
             throw std::bad_alloc{};
