@@ -12,7 +12,7 @@
 
 namespace Service::Set {
 namespace {
-constexpr std::array<LanguageCode, 17> available_language_codes = {{
+constexpr std::array<LanguageCode, 18> available_language_codes = {{
     LanguageCode::JA,
     LanguageCode::EN_US,
     LanguageCode::FR,
@@ -30,6 +30,7 @@ constexpr std::array<LanguageCode, 17> available_language_codes = {{
     LanguageCode::ES_419,
     LanguageCode::ZH_HANS,
     LanguageCode::ZH_HANT,
+    LanguageCode::PT_BR,
 }};
 
 enum class KeyboardLayout : u64 {
@@ -50,7 +51,7 @@ enum class KeyboardLayout : u64 {
     ChineseTraditional = 14,
 };
 
-constexpr std::array<std::pair<LanguageCode, KeyboardLayout>, 17> language_to_layout{{
+constexpr std::array<std::pair<LanguageCode, KeyboardLayout>, 18> language_to_layout{{
     {LanguageCode::JA, KeyboardLayout::Japanese},
     {LanguageCode::EN_US, KeyboardLayout::EnglishUs},
     {LanguageCode::FR, KeyboardLayout::French},
@@ -68,6 +69,7 @@ constexpr std::array<std::pair<LanguageCode, KeyboardLayout>, 17> language_to_la
     {LanguageCode::ES_419, KeyboardLayout::SpanishLatin},
     {LanguageCode::ZH_HANS, KeyboardLayout::ChineseSimplified},
     {LanguageCode::ZH_HANT, KeyboardLayout::ChineseTraditional},
+    {LanguageCode::PT_BR, KeyboardLayout::Portuguese},
 }};
 
 constexpr std::size_t pre4_0_0_max_entries = 15;
