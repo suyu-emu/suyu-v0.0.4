@@ -472,11 +472,7 @@ TextureCacheRuntime::TextureCacheRuntime(const Device& device_, ProgramManager& 
     set_view(Shader::TextureType::ColorArray1D, null_image_1d_array.handle);
     set_view(Shader::TextureType::ColorArray2D, null_image_view_2d_array.handle);
     set_view(Shader::TextureType::ColorArrayCube, null_image_cube_array.handle);
-}
 
-TextureCacheRuntime::~TextureCacheRuntime() = default;
-
-void TextureCacheRuntime::Init() {
     resolution = Settings::values.resolution_info;
     is_rescaling_on = resolution.up_scale != 1 || resolution.down_shift != 0;
     if (is_rescaling_on) {
@@ -484,6 +480,8 @@ void TextureCacheRuntime::Init() {
         rescale_read_fbo.Create();
     }
 }
+
+TextureCacheRuntime::~TextureCacheRuntime() = default;
 
 void TextureCacheRuntime::Finish() {
     glFinish();
@@ -684,6 +682,8 @@ Image::Image(TextureCacheRuntime& runtime_, const VideoCommon::ImageInfo& info_,
                       texture.handle, static_cast<GLsizei>(name.size()), name.data());
     }
 }
+
+Image::Image(const VideoCommon::NullImageParams& params) : VideoCommon::ImageBase{params} {}
 
 Image::~Image() = default;
 
@@ -1076,7 +1076,7 @@ ImageView::ImageView(TextureCacheRuntime&, const VideoCommon::ImageInfo& info,
                      const VideoCommon::ImageViewInfo& view_info)
     : VideoCommon::ImageViewBase{info, view_info} {}
 
-ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::NullImageParams& params)
+ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::NullImageViewParams& params)
     : VideoCommon::ImageViewBase{params}, views{runtime.null_image_views} {}
 
 GLuint ImageView::StorageView(Shader::TextureType texture_type, Shader::ImageFormat image_format) {

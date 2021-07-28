@@ -48,8 +48,11 @@ struct AliasedImage {
     ImageId id;
 };
 
+struct NullImageParams {};
+
 struct ImageBase {
     explicit ImageBase(const ImageInfo& info, GPUVAddr gpu_addr, VAddr cpu_addr);
+    explicit ImageBase(const NullImageParams&);
 
     [[nodiscard]] std::optional<SubresourceBase> TryFindBase(GPUVAddr other_addr) const noexcept;
 

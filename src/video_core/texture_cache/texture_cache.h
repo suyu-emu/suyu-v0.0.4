@@ -36,7 +36,6 @@ TextureCache<P>::TextureCache(Runtime& runtime_, VideoCore::RasterizerInterface&
                               Tegra::MemoryManager& gpu_memory_)
     : runtime{runtime_}, rasterizer{rasterizer_}, maxwell3d{maxwell3d_},
       kepler_compute{kepler_compute_}, gpu_memory{gpu_memory_} {
-    runtime.Init();
     // Configure null sampler
     TSCEntry sampler_descriptor{};
     sampler_descriptor.min_filter.Assign(Tegra::Texture::TextureFilter::Linear);
@@ -46,7 +45,8 @@ TextureCache<P>::TextureCache(Runtime& runtime_, VideoCore::RasterizerInterface&
 
     // Make sure the first index is reserved for the null resources
     // This way the null resource becomes a compile time constant
-    void(slot_image_views.insert(runtime, NullImageParams{}));
+    void(slot_images.insert(NullImageParams{}));
+    void(slot_image_views.insert(runtime, NullImageViewParams{}));
     void(slot_samplers.insert(runtime, sampler_descriptor));
 
     if constexpr (HAS_DEVICE_MEMORY_INFO) {
@@ -57,7 +57,7 @@ TextureCache<P>::TextureCache(Runtime& runtime_, VideoCore::RasterizerInterface&
         critical_memory = std::max(possible_critical_memory, DEFAULT_CRITICAL_MEMORY);
         minimum_memory = 0;
     } else {
-        // on OGL we can be more conservatives as the driver takes care.
+        // On OpenGL we can be more conservatives as the driver takes care.
         expected_memory = DEFAULT_EXPECTED_MEMORY + 512_MiB;
         critical_memory = DEFAULT_CRITICAL_MEMORY + 1_GiB;
         minimum_memory = expected_memory;
@@ -135,15 +135,14 @@ void TextureCache<P>::MarkModification(ImageId id) noexcept {
 }
 
 template <class P>
-void TextureCache<P>::FillGraphicsImageViews(std::span<const u32> indices,
-                                             std::span<ImageViewId> image_view_ids) {
-    FillImageViews(graphics_image_table, graphics_image_view_ids, indices, image_view_ids);
+template <bool has_blacklists>
+void TextureCache<P>::FillGraphicsImageViews(std::span<ImageViewInOut> views) {
+    FillImageViews<has_blacklists>(graphics_image_table, graphics_image_view_ids, views);
 }
 
 template <class P>
-void TextureCache<P>::FillComputeImageViews(std::span<const u32> indices,
-                                            std::span<ImageViewId> image_view_ids) {
-    FillImageViews(compute_image_table, compute_image_view_ids, indices, image_view_ids);
+void TextureCache<P>::FillComputeImageViews(std::span<ImageViewInOut> views) {
+    FillImageViews<false>(compute_image_table, compute_image_view_ids, views);
 }
 
 template <class P>
@@ -346,17 +345,26 @@ typename P::Framebuffer* TextureCache<P>::GetFramebuffer() {
 }
 
 template <class P>
+template <bool has_blacklists>
 void TextureCache<P>::FillImageViews(DescriptorTable<TICEntry>& table,
                                      std::span<ImageViewId> cached_image_view_ids,
-                                     std::span<const u32> indices,
-                                     std::span<ImageViewId> image_view_ids) {
-    ASSERT(indices.size() <= image_view_ids.size());
+                                     std::span<ImageViewInOut> views) {
+    bool has_blacklisted;
     do {
         has_deleted_images = false;
-        std::ranges::transform(indices, image_view_ids.begin(), [&](u32 index) {
-            return VisitImageView(table, cached_image_view_ids, index);
-        });
-    } while (has_deleted_images);
+        if constexpr (has_blacklists) {
+            has_blacklisted = false;
+        }
+        for (ImageViewInOut& view : views) {
+            view.id = VisitImageView(table, cached_image_view_ids, view.index);
+            if constexpr (has_blacklists) {
+                if (view.blacklist && view.id != NULL_IMAGE_VIEW_ID) {
+                    const ImageViewBase& image_view{slot_image_views[view.id]};
+                    has_blacklisted |= BlackListImage(image_view.image_id);
+                }
+            }
+        }
+    } while (has_deleted_images || (has_blacklists && has_blacklisted));
 }
 
 template <class P>
@@ -622,7 +630,7 @@ void TextureCache<P>::PopAsyncFlushes() {
 }
 
 template <class P>
-bool TextureCache<P>::IsRescaling() {
+bool TextureCache<P>::IsRescaling() const noexcept {
     return is_rescaling;
 }
 
@@ -775,12 +783,11 @@ bool TextureCache<P>::BlackListImage(ImageId image_id) {
 }
 
 template <class P>
-bool TextureCache<P>::ImageCanRescale(Image& image) {
+bool TextureCache<P>::ImageCanRescale(ImageBase& image) {
     if (True(image.flags & ImageFlagBits::Blacklisted)) {
         return false;
     }
-    if (True(image.flags & ImageFlagBits::Rescaled) ||
-        True(image.flags & ImageFlagBits::RescaleChecked)) {
+    if (True(image.flags & (ImageFlagBits::Rescaled | ImageFlagBits::RescaleChecked))) {
         return true;
     }
     if (!image.info.rescaleable) {

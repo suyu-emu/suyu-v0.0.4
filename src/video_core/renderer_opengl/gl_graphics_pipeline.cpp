@@ -15,7 +15,7 @@
 #include "video_core/renderer_opengl/gl_shader_util.h"
 #include "video_core/renderer_opengl/gl_state_tracker.h"
 #include "video_core/shader_notify.h"
-#include "video_core/texture_cache/texture_cache_base.h"
+#include "video_core/texture_cache/texture_cache.h"
 
 #if defined(_MSC_VER) && defined(NDEBUG)
 #define LAMBDA_FORCEINLINE [[msvc::forceinline]]
@@ -280,10 +280,9 @@ GraphicsPipeline::GraphicsPipeline(
 
 template <typename Spec>
 void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
-    std::array<ImageId, MAX_TEXTURES + MAX_IMAGES> image_view_ids;
-    std::array<u32, MAX_TEXTURES + MAX_IMAGES> image_view_indices;
+    std::array<VideoCommon::ImageViewInOut, MAX_TEXTURES + MAX_IMAGES> views;
     std::array<GLuint, MAX_TEXTURES> samplers;
-    size_t image_view_index{};
+    size_t views_index{};
     GLsizei sampler_binding{};
 
     texture_cache.SynchronizeGraphicsDescriptors();
@@ -328,30 +327,34 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
             }
             return TexturePair(gpu_memory.Read<u32>(addr), via_header_index);
         }};
-        const auto add_image{[&](const auto& desc) {
+        const auto add_image{[&](const auto& desc, bool blacklist) LAMBDA_FORCEINLINE {
             for (u32 index = 0; index < desc.count; ++index) {
                 const auto handle{read_handle(desc, index)};
-                image_view_indices[image_view_index++] = handle.first;
+                views[views_index++] = {
+                    .index = handle.first,
+                    .blacklist = blacklist,
+                    .id = {},
+                };
             }
         }};
         if constexpr (Spec::has_texture_buffers) {
             for (const auto& desc : info.texture_buffer_descriptors) {
                 for (u32 index = 0; index < desc.count; ++index) {
                     const auto handle{read_handle(desc, index)};
-                    image_view_indices[image_view_index++] = handle.first;
+                    views[views_index++] = {handle.first};
                     samplers[sampler_binding++] = 0;
                 }
             }
         }
         if constexpr (Spec::has_image_buffers) {
             for (const auto& desc : info.image_buffer_descriptors) {
-                add_image(desc);
+                add_image(desc, false);
             }
         }
         for (const auto& desc : info.texture_descriptors) {
             for (u32 index = 0; index < desc.count; ++index) {
                 const auto handle{read_handle(desc, index)};
-                image_view_indices[image_view_index++] = handle.first;
+                views[views_index++] = {handle.first};
 
                 Sampler* const sampler{texture_cache.GetGraphicsSampler(handle.second)};
                 samplers[sampler_binding++] = sampler->Handle();
@@ -359,7 +362,7 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
         }
         if constexpr (Spec::has_images) {
             for (const auto& desc : info.image_descriptors) {
-                add_image(desc);
+                add_image(desc, true);
             }
         }
     }};
@@ -378,13 +381,12 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     if constexpr (Spec::enabled_stages[4]) {
         config_stage(4);
     }
-    const std::span indices_span(image_view_indices.data(), image_view_index);
-    texture_cache.FillGraphicsImageViews(indices_span, image_view_ids);
+    texture_cache.FillGraphicsImageViews<Spec::has_images>(std::span(views.data(), views_index));
 
     texture_cache.UpdateRenderTargets(false);
     state_tracker.BindFramebuffer(texture_cache.GetFramebuffer()->Handle());
 
-    ImageId* texture_buffer_index{image_view_ids.data()};
+    VideoCommon::ImageViewInOut* texture_buffer_it{views.data()};
     const auto bind_stage_info{[&](size_t stage) LAMBDA_FORCEINLINE {
         size_t index{};
         const auto add_buffer{[&](const auto& desc) {
@@ -394,12 +396,12 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
                 if constexpr (is_image) {
                     is_written = desc.is_written;
                 }
-                ImageView& image_view{texture_cache.GetImageView(*texture_buffer_index)};
+                ImageView& image_view{texture_cache.GetImageView(texture_buffer_it->id)};
                 buffer_cache.BindGraphicsTextureBuffer(stage, index, image_view.GpuAddr(),
                                                        image_view.BufferSize(), image_view.format,
                                                        is_written, is_image);
                 ++index;
-                ++texture_buffer_index;
+                ++texture_buffer_it;
             }
         }};
         const Shader::Info& info{stage_infos[stage]};
@@ -415,9 +417,9 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
                 add_buffer(desc);
             }
         }
-        texture_buffer_index += Shader::NumDescriptors(info.texture_descriptors);
+        texture_buffer_it += Shader::NumDescriptors(info.texture_descriptors);
         if constexpr (Spec::has_images) {
-            texture_buffer_index += Shader::NumDescriptors(info.image_descriptors);
+            texture_buffer_it += Shader::NumDescriptors(info.image_descriptors);
         }
     }};
     if constexpr (Spec::enabled_stages[0]) {
@@ -446,7 +448,7 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     } else {
         program_manager.BindSourcePrograms(source_programs);
     }
-    const ImageId* views_it{image_view_ids.data()};
+    const VideoCommon::ImageViewInOut* views_it{views.data()};
     GLsizei texture_binding = 0;
     GLsizei image_binding = 0;
     std::array<GLuint, MAX_TEXTURES> textures;
@@ -464,13 +466,13 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
         const auto& info{stage_infos[stage]};
         for (const auto& desc : info.texture_descriptors) {
             for (u32 index = 0; index < desc.count; ++index) {
-                ImageView& image_view{texture_cache.GetImageView(*(views_it++))};
+                ImageView& image_view{texture_cache.GetImageView((views_it++)->id)};
                 textures[texture_binding++] = image_view.Handle(desc.type);
             }
         }
         for (const auto& desc : info.image_descriptors) {
             for (u32 index = 0; index < desc.count; ++index) {
-                ImageView& image_view{texture_cache.GetImageView(*(views_it++))};
+                ImageView& image_view{texture_cache.GetImageView((views_it++)->id)};
                 if (desc.is_written) {
                     texture_cache.MarkModification(image_view.image_id);
                 }

@@ -73,8 +73,6 @@ public:
                                  StateTracker& state_tracker);
     ~TextureCacheRuntime();
 
-    void Init();
-
     void Finish();
 
     ImageBufferMap UploadStagingBuffer(size_t size);
@@ -167,6 +165,7 @@ class Image : public VideoCommon::ImageBase {
 public:
     explicit Image(TextureCacheRuntime&, const VideoCommon::ImageInfo& info, GPUVAddr gpu_addr,
                    VAddr cpu_addr);
+    explicit Image(const VideoCommon::NullImageParams&);
 
     ~Image();
 
@@ -223,7 +222,7 @@ public:
                        const VideoCommon::ImageViewInfo&, GPUVAddr);
     explicit ImageView(TextureCacheRuntime&, const VideoCommon::ImageInfo& info,
                        const VideoCommon::ImageViewInfo& view_info);
-    explicit ImageView(TextureCacheRuntime&, const VideoCommon::NullImageParams&);
+    explicit ImageView(TextureCacheRuntime&, const VideoCommon::NullImageViewParams&);
 
     [[nodiscard]] GLuint StorageView(Shader::TextureType texture_type,
                                      Shader::ImageFormat image_format);

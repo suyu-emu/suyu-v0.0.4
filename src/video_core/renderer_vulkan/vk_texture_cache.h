@@ -34,27 +34,26 @@ class RenderPassCache;
 class StagingBufferPool;
 class VKScheduler;
 
-struct TextureCacheRuntime {
-    const Device& device;
-    VKScheduler& scheduler;
-    MemoryAllocator& memory_allocator;
-    StagingBufferPool& staging_buffer_pool;
-    BlitImageHelper& blit_image_helper;
-    ASTCDecoderPass& astc_decoder_pass;
-    RenderPassCache& render_pass_cache;
+class TextureCacheRuntime {
+public:
     static constexpr size_t TICKS_TO_DESTROY = 6;
-    DelayedDestructionRing<vk::Image, TICKS_TO_DESTROY> prescaled_images;
-    DelayedDestructionRing<MemoryCommit, TICKS_TO_DESTROY> prescaled_commits;
-    Settings::ResolutionScalingInfo resolution;
-    bool is_rescaling_on{};
 
-    void Init();
+    explicit TextureCacheRuntime(const Device& device_, VKScheduler& scheduler_,
+                                 MemoryAllocator& memory_allocator_,
+                                 StagingBufferPool& staging_buffer_pool_,
+                                 BlitImageHelper& blit_image_helper_,
+                                 ASTCDecoderPass& astc_decoder_pass_,
+                                 RenderPassCache& render_pass_cache_);
 
     void Finish();
 
     StagingBufferRef UploadStagingBuffer(size_t size);
 
     StagingBufferRef DownloadStagingBuffer(size_t size);
+
+    void TickFrame();
+
+    u64 GetDeviceLocalMemory() const;
 
     void BlitImage(Framebuffer* dst_framebuffer, ImageView& dst, ImageView& src,
                    const Region2D& dst_region, const Region2D& src_region,
@@ -84,15 +83,25 @@ struct TextureCacheRuntime {
         return true;
     }
 
-    void TickFrame();
+    const Device& device;
+    VKScheduler& scheduler;
+    MemoryAllocator& memory_allocator;
+    StagingBufferPool& staging_buffer_pool;
+    BlitImageHelper& blit_image_helper;
+    ASTCDecoderPass& astc_decoder_pass;
+    RenderPassCache& render_pass_cache;
 
-    u64 GetDeviceLocalMemory() const;
+    DelayedDestructionRing<vk::Image, TICKS_TO_DESTROY> prescaled_images;
+    DelayedDestructionRing<MemoryCommit, TICKS_TO_DESTROY> prescaled_commits;
+    Settings::ResolutionScalingInfo resolution;
+    bool is_rescaling_on{};
 };
 
 class Image : public VideoCommon::ImageBase {
 public:
     explicit Image(TextureCacheRuntime&, const VideoCommon::ImageInfo& info, GPUVAddr gpu_addr,
                    VAddr cpu_addr);
+    explicit Image(const VideoCommon::NullImageParams&);
 
     ~Image();
 
@@ -151,7 +160,7 @@ public:
     explicit ImageView(TextureCacheRuntime&, const VideoCommon::ImageViewInfo&, ImageId, Image&);
     explicit ImageView(TextureCacheRuntime&, const VideoCommon::ImageInfo&,
                        const VideoCommon::ImageViewInfo&, GPUVAddr);
-    explicit ImageView(TextureCacheRuntime&, const VideoCommon::NullImageParams&);
+    explicit ImageView(TextureCacheRuntime&, const VideoCommon::NullImageViewParams&);
 
     [[nodiscard]] VkImageView DepthView();
 

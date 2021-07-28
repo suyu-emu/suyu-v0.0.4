@@ -39,6 +39,16 @@ using VideoCore::Surface::PixelFormatFromDepthFormat;
 using VideoCore::Surface::PixelFormatFromRenderTargetFormat;
 using namespace Common::Literals;
 
+struct ImageViewInOut {
+    u32 index;
+    bool blacklist;
+    union {
+        struct Empty {
+        } empty{};
+        ImageViewId id;
+    };
+};
+
 template <class P>
 class TextureCache {
     /// Address shift for caching images into a hash table
@@ -52,11 +62,6 @@ class TextureCache {
     static constexpr bool HAS_EMULATED_COPIES = P::HAS_EMULATED_COPIES;
     /// True when the API can provide info about the memory of the device.
     static constexpr bool HAS_DEVICE_MEMORY_INFO = P::HAS_DEVICE_MEMORY_INFO;
-
-    /// Image view ID for null descriptors
-    static constexpr ImageViewId NULL_IMAGE_VIEW_ID{0};
-    /// Sampler ID for bugged sampler ids
-    static constexpr SamplerId NULL_SAMPLER_ID{0};
 
     static constexpr u64 DEFAULT_EXPECTED_MEMORY = 1_GiB;
     static constexpr u64 DEFAULT_CRITICAL_MEMORY = 2_GiB;
@@ -105,11 +110,11 @@ public:
     void MarkModification(ImageId id) noexcept;
 
     /// Fill image_view_ids with the graphics images in indices
-    void FillGraphicsImageViews(std::span<const u32> indices,
-                                std::span<ImageViewId> image_view_ids);
+    template <bool has_blacklists>
+    void FillGraphicsImageViews(std::span<ImageViewInOut> views);
 
     /// Fill image_view_ids with the compute images in indices
-    void FillComputeImageViews(std::span<const u32> indices, std::span<ImageViewId> image_view_ids);
+    void FillComputeImageViews(std::span<ImageViewInOut> views);
 
     /// Get the sampler from the graphics descriptor table in the specified index
     Sampler* GetGraphicsSampler(u32 index);
@@ -174,7 +179,7 @@ public:
     /// Return true when a CPU region is modified from the GPU
     [[nodiscard]] bool IsRegionGpuModified(VAddr addr, size_t size);
 
-    [[nodiscard]] bool IsRescaling();
+    [[nodiscard]] bool IsRescaling() const noexcept;
 
     [[nodiscard]] bool BlackListImage(ImageId image_id);
 
@@ -216,9 +221,10 @@ private:
     void RunGarbageCollector();
 
     /// Fills image_view_ids in the image views in indices
+    template <bool has_blacklists>
     void FillImageViews(DescriptorTable<TICEntry>& table,
-                        std::span<ImageViewId> cached_image_view_ids, std::span<const u32> indices,
-                        std::span<ImageViewId> image_view_ids);
+                        std::span<ImageViewId> cached_image_view_ids,
+                        std::span<ImageViewInOut> views);
 
     /// Find or create an image view in the guest descriptor table
     ImageViewId VisitImageView(DescriptorTable<TICEntry>& table,
@@ -336,7 +342,7 @@ private:
     /// Returns true if the current clear parameters clear the whole image of a given image view
     [[nodiscard]] bool IsFullClear(ImageViewId id);
 
-    bool ImageCanRescale(Image& image);
+    bool ImageCanRescale(ImageBase& image);
     void InvalidateScale(Image& image);
     bool ScaleUp(Image& image);
     bool ScaleDown(Image& image);

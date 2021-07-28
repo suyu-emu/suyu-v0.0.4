@@ -45,6 +45,6 @@ ImageViewBase::ImageViewBase(const ImageInfo& info, const ImageViewInfo& view_in
     ASSERT_MSG(view_info.type == ImageViewType::Buffer, "Expected texture buffer");
 }
 
-ImageViewBase::ImageViewBase(const NullImageParams&) {}
+ImageViewBase::ImageViewBase(const NullImageViewParams&) : image_id{NULL_IMAGE_ID} {}
 
 } // namespace VideoCommon

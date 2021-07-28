@@ -69,6 +69,8 @@ ImageBase::ImageBase(const ImageInfo& info_, GPUVAddr gpu_addr_, VAddr cpu_addr_
     }
 }
 
+ImageBase::ImageBase(const NullImageParams&) {}
+
 ImageMapView::ImageMapView(GPUVAddr gpu_addr_, VAddr cpu_addr_, size_t size_, ImageId image_id_)
     : gpu_addr{gpu_addr_}, cpu_addr{cpu_addr_}, size{size_}, image_id{image_id_} {}
 

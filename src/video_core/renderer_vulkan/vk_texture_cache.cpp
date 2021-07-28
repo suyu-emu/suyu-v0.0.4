@@ -730,10 +730,17 @@ void BlitScale(VKScheduler& scheduler, VkImage src_image, VkImage dst_image, con
 }
 } // Anonymous namespace
 
-void TextureCacheRuntime::Init() {
-    resolution = Settings::values.resolution_info;
-    is_rescaling_on = resolution.up_scale != 1 || resolution.down_shift != 0;
-}
+TextureCacheRuntime::TextureCacheRuntime(const Device& device_, VKScheduler& scheduler_,
+                                         MemoryAllocator& memory_allocator_,
+                                         StagingBufferPool& staging_buffer_pool_,
+                                         BlitImageHelper& blit_image_helper_,
+                                         ASTCDecoderPass& astc_decoder_pass_,
+                                         RenderPassCache& render_pass_cache_)
+    : device{device_}, scheduler{scheduler_}, memory_allocator{memory_allocator_},
+      staging_buffer_pool{staging_buffer_pool_}, blit_image_helper{blit_image_helper_},
+      astc_decoder_pass{astc_decoder_pass_}, render_pass_cache{render_pass_cache_},
+      resolution{Settings::values.resolution_info},
+      is_rescaling_on(resolution.up_scale != 1 || resolution.down_shift != 0) {}
 
 void TextureCacheRuntime::Finish() {
     scheduler.Finish();
@@ -1040,6 +1047,8 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu
     }
 }
 
+Image::Image(const VideoCommon::NullImageParams& params) : VideoCommon::ImageBase{params} {}
+
 Image::~Image() = default;
 
 void Image::UploadMemory(const StagingBufferRef& map, std::span<const BufferImageCopy> copies) {
@@ -1187,8 +1196,7 @@ bool Image::ScaleDown(bool save_as_backup) {
     }*/
 
     const auto& resolution = runtime->resolution;
-    vk::Image downscaled_image =
-        MakeImage(runtime->device, info);
+    vk::Image downscaled_image = MakeImage(runtime->device, info);
     MemoryCommit new_commit(
         runtime->memory_allocator.Commit(downscaled_image, MemoryUsage::DeviceLocal));
 
@@ -1301,7 +1309,7 @@ ImageView::ImageView(TextureCacheRuntime&, const VideoCommon::ImageInfo& info,
     : VideoCommon::ImageViewBase{info, view_info}, gpu_addr{gpu_addr_},
       buffer_size{VideoCommon::CalculateGuestSizeInBytes(info)} {}
 
-ImageView::ImageView(TextureCacheRuntime&, const VideoCommon::NullImageParams& params)
+ImageView::ImageView(TextureCacheRuntime&, const VideoCommon::NullImageViewParams& params)
     : VideoCommon::ImageViewBase{params} {}
 
 VkImageView ImageView::DepthView() {

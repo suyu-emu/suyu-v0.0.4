@@ -156,28 +156,27 @@ private:
     u32 texture_bit{1u};
 };
 
-inline void PushImageDescriptors(const Shader::Info& info, const VkSampler*& samplers,
-                                 const ImageId*& image_view_ids, TextureCache& texture_cache,
+inline void PushImageDescriptors(TextureCache& texture_cache,
                                  VKUpdateDescriptorQueue& update_descriptor_queue,
-                                 RescalingPushConstant& rescaling) {
-    static constexpr VideoCommon::ImageViewId NULL_IMAGE_VIEW_ID{0};
-    image_view_ids += Shader::NumDescriptors(info.texture_buffer_descriptors);
-    image_view_ids += Shader::NumDescriptors(info.image_buffer_descriptors);
+                                 const Shader::Info& info, RescalingPushConstant& rescaling,
+                                 const VkSampler*& samplers,
+                                 const VideoCommon::ImageViewInOut*& views) {
+    views += Shader::NumDescriptors(info.texture_buffer_descriptors);
+    views += Shader::NumDescriptors(info.image_buffer_descriptors);
     for (const auto& desc : info.texture_descriptors) {
         for (u32 index = 0; index < desc.count; ++index) {
-            const VideoCommon::ImageViewId image_view_id{*(image_view_ids++)};
+            const VideoCommon::ImageViewId image_view_id{(views++)->id};
             const VkSampler sampler{*(samplers++)};
             ImageView& image_view{texture_cache.GetImageView(image_view_id)};
             const Image& image{texture_cache.GetImage(image_view.image_id)};
             const VkImageView vk_image_view{image_view.Handle(desc.type)};
             update_descriptor_queue.AddSampledImage(vk_image_view, sampler);
-            rescaling.PushTexture(image_view_id != NULL_IMAGE_VIEW_ID &&
-                                  True(image.flags & VideoCommon::ImageFlagBits::Rescaled));
+            rescaling.PushTexture(True(image.flags & VideoCommon::ImageFlagBits::Rescaled));
         }
     }
     for (const auto& desc : info.image_descriptors) {
         for (u32 index = 0; index < desc.count; ++index) {
-            ImageView& image_view{texture_cache.GetImageView(*(image_view_ids++))};
+            ImageView& image_view{texture_cache.GetImageView((views++)->id)};
             if (desc.is_written) {
                 texture_cache.MarkModification(image_view.image_id);
             }
