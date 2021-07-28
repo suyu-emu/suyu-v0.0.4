@@ -142,7 +142,7 @@ void TextureCache<P>::FillGraphicsImageViews(std::span<ImageViewInOut> views) {
 
 template <class P>
 void TextureCache<P>::FillComputeImageViews(std::span<ImageViewInOut> views) {
-    FillImageViews<false>(compute_image_table, compute_image_view_ids, views);
+    FillImageViews<true>(compute_image_table, compute_image_view_ids, views);
 }
 
 template <class P>
