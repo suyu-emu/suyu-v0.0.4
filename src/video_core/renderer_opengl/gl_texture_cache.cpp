@@ -939,17 +939,21 @@ bool Image::Scale(bool scale_src, bool scale_dst) {
     const auto& draw_fbo = runtime->rescale_draw_fbo;
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, draw_fbo.handle);
     glBindFramebuffer(GL_READ_FRAMEBUFFER, read_fbo.handle);
-    for (s32 level = 0; level < info.resources.levels; ++level) {
-        const u32 src_level_width = std::max(1u, src_width >> level);
-        const u32 src_level_height = std::max(1u, src_height >> level);
-        const u32 dst_level_width = std::max(1u, dst_width >> level);
-        const u32 dst_level_height = std::max(1u, dst_height >> level);
+    for (s32 layer = 0; layer < info.resources.layers; ++layer) {
+        for (s32 level = 0; level < info.resources.levels; ++level) {
+            const u32 src_level_width = std::max(1u, src_width >> level);
+            const u32 src_level_height = std::max(1u, src_height >> level);
+            const u32 dst_level_width = std::max(1u, dst_width >> level);
+            const u32 dst_level_height = std::max(1u, dst_height >> level);
 
-        glNamedFramebufferTexture(read_fbo.handle, attachment, texture.handle, level);
-        glNamedFramebufferTexture(draw_fbo.handle, attachment, dst_texture.handle, level);
-        glBlitNamedFramebuffer(read_fbo.handle, draw_fbo.handle, 0, 0, src_level_width,
-                               src_level_height, 0, 0, dst_level_width, dst_level_height, mask,
-                               filter);
+            glNamedFramebufferTextureLayer(read_fbo.handle, attachment, texture.handle, level,
+                                           layer);
+            glNamedFramebufferTextureLayer(draw_fbo.handle, attachment, dst_texture.handle, level,
+                                           layer);
+            glBlitNamedFramebuffer(read_fbo.handle, draw_fbo.handle, 0, 0, src_level_width,
+                                   src_level_height, 0, 0, dst_level_width, dst_level_height, mask,
+                                   filter);
+        }
     }
     texture = std::move(dst_texture);
 
