@@ -143,10 +143,19 @@ void ComputePipeline::Configure() {
     }
     texture_cache.FillComputeImageViews(std::span(views.data(), views.size()));
 
+    const bool is_rescaling{texture_cache.IsRescaling()};
+    const f32 config_down_factor{Settings::values.resolution_info.down_factor};
+    const f32 down_factor{is_rescaling ? config_down_factor : 1.0f};
     if (assembly_program.handle != 0) {
         program_manager.BindComputeAssemblyProgram(assembly_program.handle);
+        if (info.uses_rescaling_uniform) {
+            glProgramEnvParameter4fARB(GL_COMPUTE_PROGRAM_NV, 0, down_factor, 0.0f, 0.0f, 1.0f);
+        }
     } else {
         program_manager.BindComputeProgram(source_program.handle);
+        if (info.uses_rescaling_uniform) {
+            glProgramUniform1f(source_program.handle, 0, down_factor);
+        }
     }
     buffer_cache.UnbindComputeTextureBuffers();
     size_t texbuf_index{};
