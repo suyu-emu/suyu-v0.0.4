@@ -446,8 +446,7 @@ void EmitYDirection(EmitContext& ctx, IR::Inst& inst) {
 }
 
 void EmitResolutionDownFactor(EmitContext& ctx, IR::Inst& inst) {
-    UNIMPLEMENTED();
-    ctx.AddF32("{}=1.0f;", inst);
+    ctx.AddF32("{}=down_factor;", inst);
 }
 
 void EmitLoadLocal(EmitContext& ctx, IR::Inst& inst, std::string_view word_offset) {

@@ -211,8 +211,7 @@ void EmitYDirection(EmitContext& ctx, IR::Inst& inst) {
 }
 
 void EmitResolutionDownFactor(EmitContext& ctx, IR::Inst& inst) {
-    UNIMPLEMENTED();
-    ctx.Add("MOV.F {}.x,1;", inst);
+    ctx.Add("MOV.F {}.x,program.env[0].x;", inst);
 }
 
 void EmitUndefU1(EmitContext& ctx, IR::Inst& inst) {

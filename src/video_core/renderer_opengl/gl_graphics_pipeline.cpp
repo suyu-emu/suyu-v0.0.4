@@ -443,10 +443,23 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
     if (!is_built.load(std::memory_order::relaxed)) {
         WaitForBuild();
     }
-    if (assembly_programs[0].handle != 0) {
+    const bool use_assembly{assembly_programs[0].handle != 0};
+    const bool is_rescaling{texture_cache.IsRescaling()};
+    const f32 config_down_factor{Settings::values.resolution_info.down_factor};
+    const f32 down_factor{is_rescaling ? config_down_factor : 1.0f};
+    if (use_assembly) {
         program_manager.BindAssemblyPrograms(assembly_programs, enabled_stages_mask);
     } else {
         program_manager.BindSourcePrograms(source_programs);
+    }
+    for (size_t stage = 0; stage < source_programs.size(); ++stage) {
+        if (stage_infos[stage].uses_rescaling_uniform) {
+            if (use_assembly) {
+                glProgramEnvParameter4fARB(AssemblyStage(stage), 0, down_factor, 0.0f, 0.0f, 1.0f);
+            } else {
+                glProgramUniform1f(source_programs[stage].handle, 0, down_factor);
+            }
+        }
     }
     const VideoCommon::ImageViewInOut* views_it{views.data()};
     GLsizei texture_binding = 0;
