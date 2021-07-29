@@ -533,7 +533,8 @@ void RasterizerOpenGL::SyncViewport() {
     auto& flags = maxwell3d.dirty.flags;
     const auto& regs = maxwell3d.regs;
 
-    const bool dirty_viewport = flags[Dirty::Viewports];
+    const bool rescale_viewports = flags[VideoCommon::Dirty::RescaleViewports];
+    const bool dirty_viewport = flags[Dirty::Viewports] || rescale_viewports;
     const bool dirty_clip_control = flags[Dirty::ClipControl];
 
     if (dirty_clip_control || flags[Dirty::FrontFace]) {
@@ -574,8 +575,9 @@ void RasterizerOpenGL::SyncViewport() {
     if (dirty_viewport) {
         flags[Dirty::Viewports] = false;
 
-        const bool force = flags[Dirty::ViewportTransform];
+        const bool force = flags[Dirty::ViewportTransform] || rescale_viewports;
         flags[Dirty::ViewportTransform] = false;
+        flags[VideoCommon::Dirty::RescaleViewports] = false;
 
         const auto& resolution = Settings::values.resolution_info;
         const auto scale_up = [&](u32 value) -> u32 {
@@ -911,10 +913,13 @@ void RasterizerOpenGL::SyncLogicOpState() {
 
 void RasterizerOpenGL::SyncScissorTest() {
     auto& flags = maxwell3d.dirty.flags;
-    if (!flags[Dirty::Scissors]) {
+    if (!flags[Dirty::Scissors] && !flags[VideoCommon::Dirty::RescaleScissors]) {
         return;
     }
     flags[Dirty::Scissors] = false;
+
+    const bool force = flags[VideoCommon::Dirty::RescaleScissors];
+    flags[VideoCommon::Dirty::RescaleScissors] = false;
 
     const auto& regs = maxwell3d.regs;
 
@@ -927,7 +932,7 @@ void RasterizerOpenGL::SyncScissorTest() {
         return std::max<u32>(converted_value, 1U);
     };
     for (std::size_t index = 0; index < Maxwell::NumViewports; ++index) {
-        if (!flags[Dirty::Scissor0 + index]) {
+        if (!force && !flags[Dirty::Scissor0 + index]) {
             continue;
         }
         flags[Dirty::Scissor0 + index] = false;
