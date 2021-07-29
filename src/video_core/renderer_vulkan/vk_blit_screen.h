@@ -63,6 +63,9 @@ public:
     [[nodiscard]] VkSemaphore DrawToSwapchain(const Tegra::FramebufferConfig& framebuffer,
                                               bool use_accelerated);
 
+    [[nodiscard]] vk::Framebuffer CreateFramebuffer(const VkImageView& image_view,
+                                                    VkExtent2D extent);
+
 private:
     struct BufferData;
 
