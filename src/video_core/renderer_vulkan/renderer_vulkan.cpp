@@ -162,7 +162,7 @@ void RendererVulkan::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
     if (has_been_recreated) {
         blit_screen.Recreate();
     }
-    const VkSemaphore render_semaphore = blit_screen.Draw(*framebuffer, use_accelerated);
+    const VkSemaphore render_semaphore = blit_screen.DrawToSwapchain(*framebuffer, use_accelerated);
     scheduler.Flush(render_semaphore);
     scheduler.WaitWorker();
     swapchain.Present(render_semaphore);
