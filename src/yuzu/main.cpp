@@ -701,7 +701,7 @@ void GMainWindow::InitializeWidgets() {
     render_window = new GRenderWindow(this, emu_thread.get(), input_subsystem, system);
     render_window->hide();
 
-    game_list = new GameList(vfs, provider.get(), this);
+    game_list = new GameList(vfs, provider.get(), system, this);
     ui.horizontalLayout->addWidget(game_list);
 
     game_list_placeholder = new GameListPlaceholder(this);
