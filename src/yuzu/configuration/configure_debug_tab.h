@@ -22,7 +22,7 @@ class ConfigureDebugTab : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ConfigureDebugTab(Core::System& system_, QWidget* parent = nullptr);
+    explicit ConfigureDebugTab(const Core::System& system_, QWidget* parent = nullptr);
     ~ConfigureDebugTab() override;
 
     void ApplyConfiguration();
@@ -36,8 +36,6 @@ private:
     void SetConfiguration();
 
     std::unique_ptr<Ui::ConfigureDebugTab> ui;
-
-    Core::System& system;
 
     std::unique_ptr<ConfigureDebug> debug_tab;
     std::unique_ptr<ConfigureCpuDebug> cpu_debug_tab;

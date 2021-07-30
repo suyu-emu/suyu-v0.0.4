@@ -11,7 +11,7 @@
 #include "ui_configure_cpu_debug.h"
 #include "yuzu/configuration/configure_cpu_debug.h"
 
-ConfigureCpuDebug::ConfigureCpuDebug(Core::System& system_, QWidget* parent)
+ConfigureCpuDebug::ConfigureCpuDebug(const Core::System& system_, QWidget* parent)
     : QWidget(parent), ui(new Ui::ConfigureCpuDebug), system{system_} {
     ui->setupUi(this);
 

@@ -24,7 +24,7 @@ class ConfigureCpu : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ConfigureCpu(Core::System& system_, QWidget* parent = nullptr);
+    explicit ConfigureCpu(const Core::System& system_, QWidget* parent = nullptr);
     ~ConfigureCpu() override;
 
     void ApplyConfiguration();
@@ -46,5 +46,5 @@ private:
     ConfigurationShared::CheckState cpuopt_unsafe_inaccurate_nan;
     ConfigurationShared::CheckState cpuopt_unsafe_fastmem_check;
 
-    Core::System& system;
+    const Core::System& system;
 };

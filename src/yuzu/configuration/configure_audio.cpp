@@ -14,7 +14,7 @@
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_audio.h"
 
-ConfigureAudio::ConfigureAudio(Core::System& system_, QWidget* parent)
+ConfigureAudio::ConfigureAudio(const Core::System& system_, QWidget* parent)
     : QWidget(parent), ui(std::make_unique<Ui::ConfigureAudio>()), system{system_} {
     ui->setupUi(this);
 
@@ -32,7 +32,7 @@ ConfigureAudio::ConfigureAudio(Core::System& system_, QWidget* parent)
 
     SetConfiguration();
 
-    const bool is_powered_on = system.IsPoweredOn();
+    const bool is_powered_on = system_.IsPoweredOn();
     ui->output_sink_combo_box->setEnabled(!is_powered_on);
     ui->audio_device_combo_box->setEnabled(!is_powered_on);
 }

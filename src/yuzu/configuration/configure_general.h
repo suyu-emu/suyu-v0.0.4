@@ -28,7 +28,7 @@ class ConfigureGeneral : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ConfigureGeneral(Core::System& system_, QWidget* parent = nullptr);
+    explicit ConfigureGeneral(const Core::System& system_, QWidget* parent = nullptr);
     ~ConfigureGeneral() override;
 
     void SetResetCallback(std::function<void()> callback);
@@ -49,5 +49,5 @@ private:
     ConfigurationShared::CheckState use_speed_limit;
     ConfigurationShared::CheckState use_multi_core;
 
-    Core::System& system;
+    const Core::System& system;
 };

@@ -23,7 +23,7 @@ class ConfigureAudio : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ConfigureAudio(Core::System& system_, QWidget* parent = nullptr);
+    explicit ConfigureAudio(const Core::System& system_, QWidget* parent = nullptr);
     ~ConfigureAudio() override;
 
     void ApplyConfiguration();
@@ -46,5 +46,5 @@ private:
 
     std::unique_ptr<Ui::ConfigureAudio> ui;
 
-    Core::System& system;
+    const Core::System& system;
 };

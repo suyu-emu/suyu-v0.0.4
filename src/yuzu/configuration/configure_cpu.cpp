@@ -13,7 +13,7 @@
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_cpu.h"
 
-ConfigureCpu::ConfigureCpu(Core::System& system_, QWidget* parent)
+ConfigureCpu::ConfigureCpu(const Core::System& system_, QWidget* parent)
     : QWidget(parent), ui(new Ui::ConfigureCpu), system{system_} {
     ui->setupUi(this);
 

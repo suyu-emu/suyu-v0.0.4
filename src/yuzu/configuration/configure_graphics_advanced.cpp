@@ -8,7 +8,7 @@
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_graphics_advanced.h"
 
-ConfigureGraphicsAdvanced::ConfigureGraphicsAdvanced(Core::System& system_, QWidget* parent)
+ConfigureGraphicsAdvanced::ConfigureGraphicsAdvanced(const Core::System& system_, QWidget* parent)
     : QWidget(parent), ui(new Ui::ConfigureGraphicsAdvanced), system{system_} {
 
     ui->setupUi(this);

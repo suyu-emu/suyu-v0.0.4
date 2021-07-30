@@ -15,7 +15,7 @@
 #include "yuzu/configuration/configure_general.h"
 #include "yuzu/uisettings.h"
 
-ConfigureGeneral::ConfigureGeneral(Core::System& system_, QWidget* parent)
+ConfigureGeneral::ConfigureGeneral(const Core::System& system_, QWidget* parent)
     : QWidget(parent), ui(new Ui::ConfigureGeneral), system{system_} {
     ui->setupUi(this);
 

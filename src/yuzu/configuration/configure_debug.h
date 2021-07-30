@@ -19,7 +19,7 @@ class ConfigureDebug : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ConfigureDebug(Core::System& system_, QWidget* parent = nullptr);
+    explicit ConfigureDebug(const Core::System& system_, QWidget* parent = nullptr);
     ~ConfigureDebug() override;
 
     void ApplyConfiguration();
@@ -32,5 +32,5 @@ private:
 
     std::unique_ptr<Ui::ConfigureDebug> ui;
 
-    Core::System& system;
+    const Core::System& system;
 };

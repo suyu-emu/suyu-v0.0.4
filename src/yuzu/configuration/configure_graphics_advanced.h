@@ -23,7 +23,7 @@ class ConfigureGraphicsAdvanced : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ConfigureGraphicsAdvanced(Core::System& system_, QWidget* parent = nullptr);
+    explicit ConfigureGraphicsAdvanced(const Core::System& system_, QWidget* parent = nullptr);
     ~ConfigureGraphicsAdvanced() override;
 
     void ApplyConfiguration();
@@ -41,5 +41,5 @@ private:
     ConfigurationShared::CheckState use_asynchronous_shaders;
     ConfigurationShared::CheckState use_fast_gpu_time;
 
-    Core::System& system;
+    const Core::System& system;
 };

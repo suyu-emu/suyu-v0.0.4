@@ -26,7 +26,7 @@ class ConfigureGraphics : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ConfigureGraphics(Core::System& system_, QWidget* parent = nullptr);
+    explicit ConfigureGraphics(const Core::System& system_, QWidget* parent = nullptr);
     ~ConfigureGraphics() override;
 
     void ApplyConfiguration();
@@ -60,5 +60,5 @@ private:
     u32 vulkan_device{};
     Settings::ShaderBackend shader_backend{};
 
-    Core::System& system;
+    const Core::System& system;
 };
