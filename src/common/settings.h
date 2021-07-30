@@ -170,11 +170,11 @@ public:
     void SetValue(const Type& value) override {
         Type temp;
         if (value < minimum) {
-            temp = std::move(minimum);
+            temp = minimum;
         } else if (value > maximum) {
-            temp = std::move(maximum);
+            temp = maximum;
         } else {
-            temp = std::move(value);
+            temp = value;
         }
         std::swap(this->global, temp);
     }
@@ -188,11 +188,11 @@ public:
     const Type& operator=(const Type& value) override {
         Type temp;
         if (value < minimum) {
-            temp = std::move(minimum);
+            temp = minimum;
         } else if (value > maximum) {
-            temp = std::move(maximum);
+            temp = maximum;
         } else {
-            temp = std::move(value);
+            temp = value;
         }
         std::swap(this->global, temp);
         return this->global;
@@ -344,11 +344,11 @@ public:
     void SetValue(const Type& value) override {
         Type temp;
         if (value < this->minimum) {
-            temp = std::move(this->minimum);
+            temp = this->minimum;
         } else if (value > this->maximum) {
-            temp = std::move(this->maximum);
+            temp = this->maximum;
         } else {
-            temp = std::move(value);
+            temp = value;
         }
         if (this->use_global) {
             std::swap(this->global, temp);
@@ -367,11 +367,11 @@ public:
     const Type& operator=(const Type& value) override {
         Type temp;
         if (value < this->minimum) {
-            temp = std::move(this->minimum);
+            temp = this->minimum;
         } else if (value > this->maximum) {
-            temp = std::move(this->maximum);
+            temp = this->maximum;
         } else {
-            temp = std::move(value);
+            temp = value;
         }
         if (this->use_global) {
             std::swap(this->global, temp);
