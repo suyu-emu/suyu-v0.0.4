@@ -81,7 +81,7 @@ public:
      *
      * @returns A reference to the setting
      */
-    [[nodiscard]] const Type& GetValue() const {
+    [[nodiscard]] virtual const Type& GetValue() const {
         return global;
     }
 
@@ -90,7 +90,7 @@ public:
      *
      * @param value The desired value
      */
-    void SetValue(const Type& value) {
+    virtual void SetValue(const Type& value) {
         Type temp{value};
         std::swap(global, temp);
     }
@@ -120,7 +120,7 @@ public:
      *
      * @returns A reference to the setting
      */
-    const Type& operator=(const Type& value) {
+    virtual const Type& operator=(const Type& value) {
         Type temp{value};
         std::swap(global, temp);
         return global;
@@ -131,7 +131,7 @@ public:
      *
      * @returns A reference to the setting
      */
-    explicit operator const Type&() const {
+    explicit virtual operator const Type&() const {
         return global;
     }
 
@@ -167,7 +167,7 @@ public:
      *
      * @param value The desired value
      */
-    void SetValue(const Type& value) {
+    void SetValue(const Type& value) override {
         Type temp;
         if (value < minimum) {
             temp = std::move(minimum);
@@ -185,7 +185,7 @@ public:
      * @param value The desired value
      * @returns A reference to the setting's value
      */
-    const Type& operator=(const Type& value) {
+    const Type& operator=(const Type& value) override {
         Type temp;
         if (value < minimum) {
             temp = std::move(minimum);
@@ -252,7 +252,13 @@ public:
      *
      * @returns The required value of the setting
      */
-    [[nodiscard]] const Type& GetValue(bool need_global = false) const {
+    [[nodiscard]] const Type& GetValue() const override {
+        if (use_global) {
+            return this->global;
+        }
+        return custom;
+    }
+    [[nodiscard]] const Type& GetValue(bool need_global) const {
         if (use_global || need_global) {
             return this->global;
         }
@@ -264,7 +270,7 @@ public:
      *
      * @param value The new value
      */
-    void SetValue(const Type& value) {
+    void SetValue(const Type& value) override {
         Type temp{value};
         if (use_global) {
             std::swap(this->global, temp);
@@ -280,7 +286,7 @@ public:
      *
      * @returns A reference to the current setting value
      */
-    const Type& operator=(const Type& value) {
+    const Type& operator=(const Type& value) override {
         Type temp{value};
         if (use_global) {
             std::swap(this->global, temp);
@@ -295,7 +301,7 @@ public:
      *
      * @returns A reference to the current setting value
      */
-    explicit operator const Type&() const {
+    explicit operator const Type&() const override {
         if (use_global) {
             return this->global;
         }
@@ -335,7 +341,7 @@ public:
      *
      * @param value The desired value
      */
-    void SetValue(const Type& value) {
+    void SetValue(const Type& value) override {
         Type temp;
         if (value < this->minimum) {
             temp = std::move(this->minimum);
@@ -358,7 +364,7 @@ public:
      * @param value The desired value
      * @returns A reference to the setting's value
      */
-    const Type& operator=(const Type& value) {
+    const Type& operator=(const Type& value) override {
         Type temp;
         if (value < this->minimum) {
             temp = std::move(this->minimum);
