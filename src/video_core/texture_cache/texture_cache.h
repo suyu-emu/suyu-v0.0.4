@@ -120,16 +120,6 @@ typename P::ImageView& TextureCache<P>::GetImageView(ImageViewId id) noexcept {
 }
 
 template <class P>
-const typename P::Image& TextureCache<P>::GetImage(ImageId id) const noexcept {
-    return slot_images[id];
-}
-
-template <class P>
-typename P::Image& TextureCache<P>::GetImage(ImageId id) noexcept {
-    return slot_images[id];
-}
-
-template <class P>
 void TextureCache<P>::MarkModification(ImageId id) noexcept {
     MarkModification(slot_images[id]);
 }
@@ -632,6 +622,12 @@ void TextureCache<P>::PopAsyncFlushes() {
 template <class P>
 bool TextureCache<P>::IsRescaling() const noexcept {
     return is_rescaling;
+}
+
+template <class P>
+bool TextureCache<P>::IsRescaling(const ImageViewBase& image_view) const noexcept {
+    const ImageBase& image = slot_images[image_view.image_id];
+    return True(image.flags & ImageFlagBits::Rescaled);
 }
 
 template <class P>

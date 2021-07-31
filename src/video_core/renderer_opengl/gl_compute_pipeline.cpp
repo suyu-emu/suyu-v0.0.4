@@ -186,8 +186,7 @@ void ComputePipeline::Configure() {
         for (u32 index = 0; index < desc.count; ++index) {
             ImageView& image_view{texture_cache.GetImageView((views_it++)->id)};
             textures[texture_binding] = image_view.Handle(desc.type);
-            if (True(texture_cache.GetImage(image_view.image_id).flags &
-                     VideoCommon::ImageFlagBits::Rescaled)) {
+            if (texture_cache.IsRescaling(image_view)) {
                 scaling_mask |= 1u << texture_binding;
             }
             ++texture_binding;

@@ -168,10 +168,9 @@ inline void PushImageDescriptors(TextureCache& texture_cache,
             const VideoCommon::ImageViewId image_view_id{(views++)->id};
             const VkSampler sampler{*(samplers++)};
             ImageView& image_view{texture_cache.GetImageView(image_view_id)};
-            const Image& image{texture_cache.GetImage(image_view.image_id)};
             const VkImageView vk_image_view{image_view.Handle(desc.type)};
             update_descriptor_queue.AddSampledImage(vk_image_view, sampler);
-            rescaling.PushTexture(True(image.flags & VideoCommon::ImageFlagBits::Rescaled));
+            rescaling.PushTexture(texture_cache.IsRescaling(image_view));
         }
     }
     for (const auto& desc : info.image_descriptors) {
