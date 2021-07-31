@@ -604,8 +604,8 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
     if (!state_tracker.TouchViewports()) {
         return;
     }
-    const float scale =
-        texture_cache.IsRescaling() ? Settings::values.resolution_info.up_factor : 1.0f;
+    const bool is_rescaling{texture_cache.IsRescaling()};
+    const float scale = is_rescaling ? Settings::values.resolution_info.up_factor : 1.0f;
     const std::array viewports{
         GetViewportState(device, regs, 0, scale),  GetViewportState(device, regs, 1, scale),
         GetViewportState(device, regs, 2, scale),  GetViewportState(device, regs, 3, scale),
