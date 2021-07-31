@@ -214,14 +214,14 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
 
     query_cache.UpdateCounters();
 
-    SyncState();
-
     GraphicsPipeline* const pipeline{shader_cache.CurrentGraphicsPipeline()};
     if (!pipeline) {
         return;
     }
     std::scoped_lock lock{buffer_cache.mutex, texture_cache.mutex};
     pipeline->Configure(is_indexed);
+
+    SyncState();
 
     const GLenum primitive_mode = MaxwellToGL::PrimitiveTopology(maxwell3d.regs.draw.topology);
     BeginTransformFeedback(pipeline, primitive_mode);
@@ -554,7 +554,6 @@ void RasterizerOpenGL::SyncViewport() {
         }
         glFrontFace(mode);
     }
-
     if (dirty_viewport || flags[Dirty::ClipControl]) {
         flags[Dirty::ClipControl] = false;
 
@@ -571,6 +570,8 @@ void RasterizerOpenGL::SyncViewport() {
         state_tracker.ClipControl(origin, depth);
         state_tracker.SetYNegate(regs.screen_y_control.y_negate != 0);
     }
+    const bool is_rescaling{texture_cache.IsRescaling()};
+    const float scale = is_rescaling ? Settings::values.resolution_info.up_factor : 1.0f;
 
     if (dirty_viewport) {
         flags[Dirty::Viewports] = false;
@@ -579,38 +580,38 @@ void RasterizerOpenGL::SyncViewport() {
         flags[Dirty::ViewportTransform] = false;
         flags[VideoCommon::Dirty::RescaleViewports] = false;
 
-        const auto& resolution = Settings::values.resolution_info;
-        const auto scale_up = [&](u32 value) -> u32 {
-            if (value == 0) {
-                return 0U;
-            }
-            const u32 converted_value = (value * resolution.up_scale) >> resolution.down_shift;
-            return std::max<u32>(converted_value, 1U);
-        };
-        for (std::size_t i = 0; i < Maxwell::NumViewports; ++i) {
-            if (!force && !flags[Dirty::Viewport0 + i]) {
+        for (size_t index = 0; index < Maxwell::NumViewports; ++index) {
+            if (!force && !flags[Dirty::Viewport0 + index]) {
                 continue;
             }
-            flags[Dirty::Viewport0 + i] = false;
+            flags[Dirty::Viewport0 + index] = false;
 
-            const auto& src = regs.viewport_transform[i];
-            const Common::Rectangle<f32> rect{src.GetRect()};
-            glViewportIndexedf(static_cast<GLuint>(i), rect.left, rect.bottom,
-                               scale_up(rect.GetWidth()), scale_up(rect.GetHeight()));
+            const auto& src = regs.viewport_transform[index];
+            GLfloat x = (src.translate_x - src.scale_x) * scale;
+            GLfloat y = (src.translate_y - src.scale_y) * scale;
+            GLfloat width = src.scale_x * 2.0f * scale;
+            GLfloat height = src.scale_y * 2.0f * scale;
+            if (height < 0) {
+                y += height;
+                height = -height;
+            }
+            glViewportIndexedf(static_cast<GLuint>(index), x, y, width != 0.0f ? width : 1.0f,
+                               height != 0.0f ? height : 1.0f);
 
             const GLdouble reduce_z = regs.depth_mode == Maxwell::DepthMode::MinusOneToOne;
             const GLdouble near_depth = src.translate_z - src.scale_z * reduce_z;
             const GLdouble far_depth = src.translate_z + src.scale_z;
             if (device.HasDepthBufferFloat()) {
-                glDepthRangeIndexeddNV(static_cast<GLuint>(i), near_depth, far_depth);
+                glDepthRangeIndexeddNV(static_cast<GLuint>(index), near_depth, far_depth);
             } else {
-                glDepthRangeIndexed(static_cast<GLuint>(i), near_depth, far_depth);
+                glDepthRangeIndexed(static_cast<GLuint>(index), near_depth, far_depth);
             }
 
             if (!GLAD_GL_NV_viewport_swizzle) {
                 continue;
             }
-            glViewportSwizzleNV(static_cast<GLuint>(i), MaxwellToGL::ViewportSwizzle(src.swizzle.x),
+            glViewportSwizzleNV(static_cast<GLuint>(index),
+                                MaxwellToGL::ViewportSwizzle(src.swizzle.x),
                                 MaxwellToGL::ViewportSwizzle(src.swizzle.y),
                                 MaxwellToGL::ViewportSwizzle(src.swizzle.z),
                                 MaxwellToGL::ViewportSwizzle(src.swizzle.w));
@@ -940,7 +941,7 @@ void RasterizerOpenGL::SyncScissorTest() {
         const auto& src = regs.scissor_test[index];
         if (src.enable) {
             glEnablei(GL_SCISSOR_TEST, static_cast<GLuint>(index));
-            glScissorIndexed(static_cast<GLuint>(index), src.min_x, src.min_y,
+            glScissorIndexed(static_cast<GLuint>(index), scale_up(src.min_x), scale_up(src.min_y),
                              scale_up(src.max_x - src.min_x), scale_up(src.max_y - src.min_y));
         } else {
             glDisablei(GL_SCISSOR_TEST, static_cast<GLuint>(index));
