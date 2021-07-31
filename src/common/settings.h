@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <atomic>
 #include <chrono>
@@ -168,15 +169,7 @@ public:
      * @param value The desired value
      */
     void SetValue(const Type& value) override {
-        Type temp;
-        if (value < minimum) {
-            temp = minimum;
-        } else if (value > maximum) {
-            temp = maximum;
-        } else {
-            temp = value;
-        }
-        std::swap(this->global, temp);
+        this->global = std::clamp(value, minimum, maximum);
     }
 
     /**
@@ -186,15 +179,7 @@ public:
      * @returns A reference to the setting's value
      */
     const Type& operator=(const Type& value) override {
-        Type temp;
-        if (value < minimum) {
-            temp = minimum;
-        } else if (value > maximum) {
-            temp = maximum;
-        } else {
-            temp = value;
-        }
-        std::swap(this->global, temp);
+        this->global = std::clamp(value, minimum, maximum);
         return this->global;
     }
 
@@ -342,19 +327,11 @@ public:
      * @param value The desired value
      */
     void SetValue(const Type& value) override {
-        Type temp;
-        if (value < this->minimum) {
-            temp = this->minimum;
-        } else if (value > this->maximum) {
-            temp = this->maximum;
-        } else {
-            temp = value;
-        }
+        const Type temp = std::clamp(value, this->minimum, this->maximum);
         if (this->use_global) {
-            std::swap(this->global, temp);
-        } else {
-            std::swap(this->custom, temp);
+            this->global = temp;
         }
+        this->custom = temp;
     }
 
     /**
@@ -365,19 +342,12 @@ public:
      * @returns A reference to the setting's value
      */
     const Type& operator=(const Type& value) override {
-        Type temp;
-        if (value < this->minimum) {
-            temp = this->minimum;
-        } else if (value > this->maximum) {
-            temp = this->maximum;
-        } else {
-            temp = value;
-        }
+        const Type temp = std::clamp(value, this->minimum, this->maximum);
         if (this->use_global) {
-            std::swap(this->global, temp);
+            this->global = temp;
             return this->global;
         }
-        std::swap(this->custom, temp);
+        this->custom = temp;
         return this->custom;
     }
 };
