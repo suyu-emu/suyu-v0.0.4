@@ -210,7 +210,7 @@ private:
     GLenum gl_internal_format = GL_NONE;
     GLenum gl_format = GL_NONE;
     GLenum gl_type = GL_NONE;
-    TextureCacheRuntime* runtime;
+    TextureCacheRuntime* runtime{};
 };
 
 class ImageView : public VideoCommon::ImageViewBase {

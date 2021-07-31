@@ -148,14 +148,8 @@ void ComputePipeline::Configure() {
     const f32 down_factor{is_rescaling ? config_down_factor : 1.0f};
     if (assembly_program.handle != 0) {
         program_manager.BindComputeAssemblyProgram(assembly_program.handle);
-        if (info.uses_rescaling_uniform) {
-            glProgramEnvParameter4fARB(GL_COMPUTE_PROGRAM_NV, 0, down_factor, 0.0f, 0.0f, 1.0f);
-        }
     } else {
         program_manager.BindComputeProgram(source_program.handle);
-        if (info.uses_rescaling_uniform) {
-            glProgramUniform1f(source_program.handle, 0, down_factor);
-        }
     }
     buffer_cache.UnbindComputeTextureBuffers();
     size_t texbuf_index{};
@@ -187,10 +181,16 @@ void ComputePipeline::Configure() {
     texture_binding += num_texture_buffers;
     image_binding += num_image_buffers;
 
+    u32 scaling_mask{};
     for (const auto& desc : info.texture_descriptors) {
         for (u32 index = 0; index < desc.count; ++index) {
             ImageView& image_view{texture_cache.GetImageView((views_it++)->id)};
-            textures[texture_binding++] = image_view.Handle(desc.type);
+            textures[texture_binding] = image_view.Handle(desc.type);
+            if (True(texture_cache.GetImage(image_view.image_id).flags &
+                     VideoCommon::ImageFlagBits::Rescaled)) {
+                scaling_mask |= 1u << texture_binding;
+            }
+            ++texture_binding;
         }
     }
     for (const auto& desc : info.image_descriptors) {
@@ -200,6 +200,15 @@ void ComputePipeline::Configure() {
                 texture_cache.MarkModification(image_view.image_id);
             }
             images[image_binding++] = image_view.StorageView(desc.type, desc.format);
+        }
+    }
+    if (info.uses_rescaling_uniform) {
+        const f32 float_scaling_mask{Common::BitCast<f32>(scaling_mask)};
+        if (assembly_program.handle != 0) {
+            glProgramLocalParameter4fARB(GL_COMPUTE_PROGRAM_NV, 0, float_scaling_mask, 0.0f, 0.0f,
+                                         0.0f);
+        } else {
+            glProgramUniform4f(source_program.handle, 0, float_scaling_mask, 0.0f, 0.0f, 0.0f);
         }
     }
     if (texture_binding != 0) {

@@ -394,7 +394,7 @@ EmitContext::EmitContext(IR::Program& program, Bindings& bindings, const Profile
         }
     }
     if (info.uses_rescaling_uniform) {
-        header += "layout(location=0) uniform float down_factor;";
+        header += "layout(location=0) uniform vec4 scaling;";
     }
     DefineConstantBuffers(bindings);
     DefineStorageBuffers(bindings);

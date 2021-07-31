@@ -444,22 +444,10 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
         WaitForBuild();
     }
     const bool use_assembly{assembly_programs[0].handle != 0};
-    const bool is_rescaling{texture_cache.IsRescaling()};
-    const f32 config_down_factor{Settings::values.resolution_info.down_factor};
-    const f32 down_factor{is_rescaling ? config_down_factor : 1.0f};
     if (use_assembly) {
         program_manager.BindAssemblyPrograms(assembly_programs, enabled_stages_mask);
     } else {
         program_manager.BindSourcePrograms(source_programs);
-    }
-    for (size_t stage = 0; stage < source_programs.size(); ++stage) {
-        if (stage_infos[stage].uses_rescaling_uniform) {
-            if (use_assembly) {
-                glProgramEnvParameter4fARB(AssemblyStage(stage), 0, down_factor, 0.0f, 0.0f, 1.0f);
-            } else {
-                glProgramUniform1f(source_programs[stage].handle, 0, down_factor);
-            }
-        }
     }
     const VideoCommon::ImageViewInOut* views_it{views.data()};
     GLsizei texture_binding = 0;
@@ -476,11 +464,20 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
         views_it += num_texture_buffers[stage];
         views_it += num_image_buffers[stage];
 
+        u32 scaling_mask{};
+        u32 stage_texture_binding{};
+
         const auto& info{stage_infos[stage]};
         for (const auto& desc : info.texture_descriptors) {
             for (u32 index = 0; index < desc.count; ++index) {
                 ImageView& image_view{texture_cache.GetImageView((views_it++)->id)};
-                textures[texture_binding++] = image_view.Handle(desc.type);
+                textures[texture_binding] = image_view.Handle(desc.type);
+                if (True(texture_cache.GetImage(image_view.image_id).flags &
+                         VideoCommon::ImageFlagBits::Rescaled)) {
+                    scaling_mask |= 1u << stage_texture_binding;
+                }
+                ++texture_binding;
+                ++stage_texture_binding;
             }
         }
         for (const auto& desc : info.image_descriptors) {
@@ -490,6 +487,19 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
                     texture_cache.MarkModification(image_view.image_id);
                 }
                 images[image_binding++] = image_view.StorageView(desc.type, desc.format);
+            }
+        }
+        if (info.uses_rescaling_uniform) {
+            const f32 float_scaling_mask{Common::BitCast<f32>(scaling_mask)};
+            const bool is_rescaling{texture_cache.IsRescaling()};
+            const f32 config_down_factor{Settings::values.resolution_info.down_factor};
+            const f32 down_factor{is_rescaling ? config_down_factor : 1.0f};
+            if (use_assembly) {
+                glProgramLocalParameter4fARB(AssemblyStage(stage), 0, float_scaling_mask,
+                                             down_factor, 0.0f, 0.0f);
+            } else {
+                glProgramUniform4f(source_programs[stage].handle, 0, float_scaling_mask,
+                                   down_factor, 0.0f, 0.0f);
             }
         }
     }};

@@ -616,8 +616,8 @@ void EmitIsTextureScaled(EmitContext& ctx, IR::Inst& inst, const IR::Value& inde
     if (!index.IsImmediate()) {
         throw NotImplementedException("Non-constant texture rescaling");
     }
-    UNIMPLEMENTED();
-    ctx.AddU1("{}=true;", inst);
+    const u32 image_index{index.U32()};
+    ctx.AddU1("{}=(ftou(scaling.x)&{})!=0;", inst, 1u << image_index);
 }
 
 void EmitBindlessImageSampleImplicitLod(EmitContext&) {

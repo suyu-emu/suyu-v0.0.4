@@ -612,8 +612,9 @@ void EmitIsTextureScaled(EmitContext& ctx, IR::Inst& inst, const IR::Value& inde
     if (!index.IsImmediate()) {
         throw NotImplementedException("Non-constant texture rescaling");
     }
-    UNIMPLEMENTED();
-    ctx.Add("MOV.S {}.x,-1;", inst);
+    ctx.Add("AND.U RC.x,scaling[0].x,{};"
+            "SNE.S {},RC.x,0;",
+            1u << index.U32(), ctx.reg_alloc.Define(inst));
 }
 
 void EmitImageAtomicIAdd32(EmitContext& ctx, IR::Inst& inst, const IR::Value& index, Register coord,
