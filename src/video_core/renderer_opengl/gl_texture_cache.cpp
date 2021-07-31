@@ -478,6 +478,10 @@ TextureCacheRuntime::TextureCacheRuntime(const Device& device_, ProgramManager& 
     if (is_rescaling_on) {
         rescale_draw_fbo.Create();
         rescale_read_fbo.Create();
+
+        // Make sure the framebuffer is created without DSA
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, rescale_draw_fbo.handle);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, rescale_read_fbo.handle);
     }
 }
 
@@ -882,11 +886,6 @@ bool Image::Scale(bool scale_src, bool scale_dst) {
         UNIMPLEMENTED();
         return false;
     }
-    GLint prev_draw_fbo;
-    GLint prev_read_fbo;
-    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &prev_draw_fbo);
-    glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &prev_read_fbo);
-
     const GLenum attachment = [this] {
         switch (GetFormatType(info.format)) {
         case SurfaceType::ColorTexture:
@@ -935,10 +934,8 @@ bool Image::Scale(bool scale_src, bool scale_dst) {
     dst_info.size.height = dst_height;
     auto dst_texture = MakeImage(dst_info, gl_internal_format);
 
-    const auto& read_fbo = runtime->rescale_read_fbo;
-    const auto& draw_fbo = runtime->rescale_draw_fbo;
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, draw_fbo.handle);
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, read_fbo.handle);
+    const GLuint read_fbo = runtime->rescale_read_fbo.handle;
+    const GLuint draw_fbo = runtime->rescale_draw_fbo.handle;
     for (s32 layer = 0; layer < info.resources.layers; ++layer) {
         for (s32 level = 0; level < info.resources.levels; ++level) {
             const u32 src_level_width = std::max(1u, src_width >> level);
@@ -946,20 +943,15 @@ bool Image::Scale(bool scale_src, bool scale_dst) {
             const u32 dst_level_width = std::max(1u, dst_width >> level);
             const u32 dst_level_height = std::max(1u, dst_height >> level);
 
-            glNamedFramebufferTextureLayer(read_fbo.handle, attachment, texture.handle, level,
-                                           layer);
-            glNamedFramebufferTextureLayer(draw_fbo.handle, attachment, dst_texture.handle, level,
-                                           layer);
-            glBlitNamedFramebuffer(read_fbo.handle, draw_fbo.handle, 0, 0, src_level_width,
-                                   src_level_height, 0, 0, dst_level_width, dst_level_height, mask,
-                                   filter);
+            glNamedFramebufferTextureLayer(read_fbo, attachment, texture.handle, level, layer);
+            glNamedFramebufferTextureLayer(draw_fbo, attachment, dst_texture.handle, level, layer);
+            glBlitNamedFramebuffer(read_fbo, draw_fbo, 0, 0, src_level_width, src_level_height, 0,
+                                   0, dst_level_width, dst_level_height, mask, filter);
+            glNamedFramebufferTextureLayer(read_fbo, attachment, 0, level, layer);
+            glNamedFramebufferTextureLayer(draw_fbo, attachment, 0, level, layer);
         }
     }
     texture = std::move(dst_texture);
-
-    // Restore previous framebuffers
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prev_draw_fbo);
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, prev_read_fbo);
     return true;
 }
 
