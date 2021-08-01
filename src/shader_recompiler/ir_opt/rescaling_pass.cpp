@@ -26,11 +26,11 @@ void PatchFragCoord(IR::Block& block, IR::Inst& inst) {
     IR::U32 scaled_value{value};
     bool changed{};
     if (const u32 up_scale = Settings::values.resolution_info.up_scale; up_scale != 1) {
-        scaled_value = ir.IMul(value, ir.Imm32(up_scale));
+        scaled_value = ir.IMul(scaled_value, ir.Imm32(up_scale));
         changed = true;
     }
     if (const u32 down_shift = Settings::values.resolution_info.down_shift; down_shift != 0) {
-        scaled_value = ir.ShiftRightArithmetic(value, ir.Imm32(down_shift));
+        scaled_value = ir.ShiftRightArithmetic(scaled_value, ir.Imm32(down_shift));
         changed = true;
     }
     if (changed) {
@@ -40,41 +40,42 @@ void PatchFragCoord(IR::Block& block, IR::Inst& inst) {
     }
 }
 
-[[nodiscard]] IR::U32 DownScale(IR::IREmitter& ir, IR::U32 value) {
+[[nodiscard]] IR::U32 DownScale(IR::IREmitter& ir, const IR::U1& is_scaled, IR::U32 value) {
+    IR::U32 scaled_value{value};
+    bool changed{};
     if (const u32 down_shift = Settings::values.resolution_info.down_shift; down_shift != 0) {
-        value = ir.ShiftLeftLogical(value, ir.Imm32(down_shift));
+        scaled_value = ir.ShiftLeftLogical(scaled_value, ir.Imm32(down_shift));
+        changed = true;
     }
     if (const u32 up_scale = Settings::values.resolution_info.up_scale; up_scale != 1) {
-        value = ir.IDiv(value, ir.Imm32(up_scale));
+        scaled_value = ir.IDiv(scaled_value, ir.Imm32(up_scale));
+        changed = true;
     }
-    return value;
+    if (changed) {
+        return IR::U32{ir.Select(is_scaled, scaled_value, value)};
+    } else {
+        return value;
+    }
 }
 
 void PatchImageQueryDimensions(IR::Block& block, IR::Inst& inst) {
     const auto it{IR::Block::InstructionList::s_iterator_to(inst)};
     IR::IREmitter ir{block, IR::Block::InstructionList::s_iterator_to(inst)};
     const auto info{inst.Flags<IR::TextureInstInfo>()};
+    const IR::U1 is_scaled{ir.IsTextureScaled(ir.Imm32(info.descriptor_index))};
     switch (info.type) {
-    case TextureType::Color1D:
-    case TextureType::ColorArray1D: {
-        const IR::Value new_inst{&*block.PrependNewInst(it, inst)};
-        const IR::U32 width{DownScale(ir, IR::U32{ir.CompositeExtract(new_inst, 0)})};
-        const IR::Value replacement{ir.CompositeConstruct(width, ir.CompositeExtract(new_inst, 1),
-                                                          ir.CompositeExtract(new_inst, 2),
-                                                          ir.CompositeExtract(new_inst, 3))};
-        inst.ReplaceUsesWith(replacement);
-        break;
-    }
     case TextureType::Color2D:
     case TextureType::ColorArray2D: {
         const IR::Value new_inst{&*block.PrependNewInst(it, inst)};
-        const IR::U32 width{DownScale(ir, IR::U32{ir.CompositeExtract(new_inst, 0)})};
-        const IR::U32 height{DownScale(ir, IR::U32{ir.CompositeExtract(new_inst, 1)})};
+        const IR::U32 width{DownScale(ir, is_scaled, IR::U32{ir.CompositeExtract(new_inst, 0)})};
+        const IR::U32 height{DownScale(ir, is_scaled, IR::U32{ir.CompositeExtract(new_inst, 1)})};
         const IR::Value replacement{ir.CompositeConstruct(
             width, height, ir.CompositeExtract(new_inst, 2), ir.CompositeExtract(new_inst, 3))};
         inst.ReplaceUsesWith(replacement);
         break;
     }
+    case TextureType::Color1D:
+    case TextureType::ColorArray1D:
     case TextureType::Color3D:
     case TextureType::ColorCube:
     case TextureType::ColorArrayCube:
@@ -88,15 +89,6 @@ void ScaleIntegerCoord(IR::IREmitter& ir, IR::Inst& inst, const IR::U1& is_scale
     const auto info{inst.Flags<IR::TextureInstInfo>()};
     const IR::Value coord{inst.Arg(1)};
     switch (info.type) {
-    case TextureType::Color1D:
-        inst.SetArg(1, Scale(ir, is_scaled, IR::U32{coord}));
-        break;
-    case TextureType::ColorArray1D: {
-        const IR::U32 x{Scale(ir, is_scaled, IR::U32{ir.CompositeExtract(coord, 0)})};
-        const IR::U32 y{ir.CompositeExtract(coord, 1)};
-        inst.SetArg(1, ir.CompositeConstruct(x, y));
-        break;
-    }
     case TextureType::Color2D: {
         const IR::U32 x{Scale(ir, is_scaled, IR::U32{ir.CompositeExtract(coord, 0)})};
         const IR::U32 y{Scale(ir, is_scaled, IR::U32{ir.CompositeExtract(coord, 1)})};
@@ -110,6 +102,8 @@ void ScaleIntegerCoord(IR::IREmitter& ir, IR::Inst& inst, const IR::U1& is_scale
         inst.SetArg(1, ir.CompositeConstruct(x, y, z));
         break;
     }
+    case TextureType::Color1D:
+    case TextureType::ColorArray1D:
     case TextureType::Color3D:
     case TextureType::ColorCube:
     case TextureType::ColorArrayCube:
