@@ -1950,6 +1950,10 @@ U1 IREmitter::IsTextureScaled(const U32& index) {
     return Inst<U1>(Opcode::IsTextureScaled, index);
 }
 
+U1 IREmitter::IsImageScaled(const U32& index) {
+    return Inst<U1>(Opcode::IsImageScaled, index);
+}
+
 U1 IREmitter::VoteAll(const U1& value) {
     return Inst<U1>(Opcode::VoteAll, value);
 }

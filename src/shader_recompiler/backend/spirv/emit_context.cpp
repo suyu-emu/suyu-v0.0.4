@@ -14,6 +14,7 @@
 #include "common/common_types.h"
 #include "common/div_ceil.h"
 #include "shader_recompiler/backend/spirv/emit_context.h"
+#include "shader_recompiler/backend/spirv/emit_spirv.h"
 
 namespace Shader::Backend::SPIRV {
 namespace {
@@ -476,8 +477,9 @@ void VectorTypes::Define(Sirit::Module& sirit_ctx, Id base_type, std::string_vie
 
 EmitContext::EmitContext(const Profile& profile_, const RuntimeInfo& runtime_info_,
                          IR::Program& program, Bindings& bindings)
-    : Sirit::Module(profile_.supported_spirv), profile{profile_},
-      runtime_info{runtime_info_}, stage{program.stage} {
+    : Sirit::Module(profile_.supported_spirv), profile{profile_}, runtime_info{runtime_info_},
+      stage{program.stage}, texture_rescaling_index{bindings.texture_scaling_index},
+      image_rescaling_index{bindings.image_scaling_index} {
     const bool is_unified{profile.unified_descriptor_binding};
     u32& uniform_binding{is_unified ? bindings.unified : bindings.uniform_buffer};
     u32& storage_binding{is_unified ? bindings.unified : bindings.storage_buffer};
@@ -494,8 +496,8 @@ EmitContext::EmitContext(const Profile& profile_, const RuntimeInfo& runtime_inf
     DefineStorageBuffers(program.info, storage_binding);
     DefineTextureBuffers(program.info, texture_binding);
     DefineImageBuffers(program.info, image_binding);
-    DefineTextures(program.info, texture_binding);
-    DefineImages(program.info, image_binding);
+    DefineTextures(program.info, texture_binding, bindings.texture_scaling_index);
+    DefineImages(program.info, image_binding, bindings.image_scaling_index);
     DefineAttributeMemAccess(program.info);
     DefineGlobalMemoryFunctions(program.info);
     DefineRescalingInput(program.info);
@@ -1003,24 +1005,48 @@ void EmitContext::DefineRescalingInput(const Info& info) {
     if (!info.uses_rescaling_uniform) {
         return;
     }
-    boost::container::static_vector<Id, 2> members{F32[1]};
+    if (profile.unified_descriptor_binding) {
+        DefineRescalingInputPushConstant(info);
+    } else {
+        DefineRescalingInputUniformConstant();
+    }
+}
+
+void EmitContext::DefineRescalingInputPushConstant(const Info& info) {
+    boost::container::static_vector<Id, 3> members{F32[1]};
     u32 member_index{0};
-    const u32 num_texture_words{Common::DivCeil(runtime_info.num_textures, 32u)};
-    if (runtime_info.num_textures > 0) {
-        rescaling_textures_type = TypeArray(U32[1], Const(num_texture_words));
+    if (!info.texture_descriptors.empty()) {
+        rescaling_textures_type = TypeArray(U32[1], Const(4u));
         Decorate(rescaling_textures_type, spv::Decoration::ArrayStride, 4u);
         members.push_back(rescaling_textures_type);
         rescaling_textures_member_index = ++member_index;
     }
+    if (!info.image_descriptors.empty()) {
+        rescaling_images_type = TypeArray(U32[1], Const(NUM_IMAGE_SCALING_WORDS));
+        if (rescaling_textures_type.value != rescaling_images_type.value) {
+            Decorate(rescaling_images_type, spv::Decoration::ArrayStride, 4u);
+        }
+        members.push_back(rescaling_images_type);
+        rescaling_images_member_index = ++member_index;
+    }
     const Id push_constant_struct{TypeStruct(std::span(members.data(), members.size()))};
     Decorate(push_constant_struct, spv::Decoration::Block);
     Name(push_constant_struct, "ResolutionInfo");
+
     MemberDecorate(push_constant_struct, 0u, spv::Decoration::Offset, 0u);
     MemberName(push_constant_struct, 0u, "down_factor");
-    if (runtime_info.num_textures > 0) {
-        MemberDecorate(push_constant_struct, rescaling_textures_member_index,
-                       spv::Decoration::Offset, 4u);
+
+    const u32 offset_bias = stage == Stage::Compute ? sizeof(u32) : 0;
+    if (!info.texture_descriptors.empty()) {
+        MemberDecorate(
+            push_constant_struct, rescaling_textures_member_index, spv::Decoration::Offset,
+            static_cast<u32>(offsetof(RescalingLayout, rescaling_textures) - offset_bias));
         MemberName(push_constant_struct, rescaling_textures_member_index, "rescaling_textures");
+    }
+    if (!info.image_descriptors.empty()) {
+        MemberDecorate(push_constant_struct, rescaling_images_member_index, spv::Decoration::Offset,
+                       static_cast<u32>(offsetof(RescalingLayout, rescaling_images) - offset_bias));
+        MemberName(push_constant_struct, rescaling_images_member_index, "rescaling_images");
     }
     const Id pointer_type{TypePointer(spv::StorageClass::PushConstant, push_constant_struct)};
     rescaling_push_constants = AddGlobalVariable(pointer_type, spv::StorageClass::PushConstant);
@@ -1028,6 +1054,17 @@ void EmitContext::DefineRescalingInput(const Info& info) {
 
     if (profile.supported_spirv >= 0x00010400) {
         interfaces.push_back(rescaling_push_constants);
+    }
+}
+
+void EmitContext::DefineRescalingInputUniformConstant() {
+    const Id pointer_type{TypePointer(spv::StorageClass::UniformConstant, F32[4])};
+    rescaling_uniform_constant =
+        AddGlobalVariable(pointer_type, spv::StorageClass::UniformConstant);
+    Decorate(rescaling_uniform_constant, spv::Decoration::Location, 0u);
+
+    if (profile.supported_spirv >= 0x00010400) {
+        interfaces.push_back(rescaling_uniform_constant);
     }
 }
 
@@ -1219,7 +1256,7 @@ void EmitContext::DefineImageBuffers(const Info& info, u32& binding) {
     }
 }
 
-void EmitContext::DefineTextures(const Info& info, u32& binding) {
+void EmitContext::DefineTextures(const Info& info, u32& binding, u32& scaling_index) {
     textures.reserve(info.texture_descriptors.size());
     for (const TextureDescriptor& desc : info.texture_descriptors) {
         const Id image_type{ImageType(*this, desc)};
@@ -1241,13 +1278,14 @@ void EmitContext::DefineTextures(const Info& info, u32& binding) {
             interfaces.push_back(id);
         }
         ++binding;
+        ++scaling_index;
     }
     if (info.uses_atomic_image_u32) {
         image_u32 = TypePointer(spv::StorageClass::Image, U32[1]);
     }
 }
 
-void EmitContext::DefineImages(const Info& info, u32& binding) {
+void EmitContext::DefineImages(const Info& info, u32& binding, u32& scaling_index) {
     images.reserve(info.image_descriptors.size());
     for (const ImageDescriptor& desc : info.image_descriptors) {
         if (desc.count != 1) {
@@ -1268,6 +1306,7 @@ void EmitContext::DefineImages(const Info& info, u32& binding) {
             interfaces.push_back(id);
         }
         ++binding;
+        ++scaling_index;
     }
 }
 

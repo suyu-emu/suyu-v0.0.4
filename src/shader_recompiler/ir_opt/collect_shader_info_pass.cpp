@@ -432,6 +432,7 @@ void VisitUsages(Info& info, IR::Inst& inst) {
         break;
     case IR::Opcode::ResolutionDownFactor:
     case IR::Opcode::IsTextureScaled:
+    case IR::Opcode::IsImageScaled:
         info.uses_rescaling_uniform = true;
         break;
     case IR::Opcode::LaneId:

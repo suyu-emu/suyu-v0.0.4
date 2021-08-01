@@ -129,8 +129,7 @@ void PatchImageFetch(IR::Block& block, IR::Inst& inst) {
 void PatchImageRead(IR::Block& block, IR::Inst& inst) {
     IR::IREmitter ir{block, IR::Block::InstructionList::s_iterator_to(inst)};
     const auto info{inst.Flags<IR::TextureInstInfo>()};
-    // TODO: Scale conditionally
-    const IR::U1 is_scaled{IR::Value{true}};
+    const IR::U1 is_scaled{ir.IsImageScaled(ir.Imm32(info.descriptor_index))};
     ScaleIntegerCoord(ir, inst, is_scaled);
 }
 

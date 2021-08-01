@@ -16,15 +16,23 @@
 
 namespace Shader::Backend::SPIRV {
 
+constexpr u32 NUM_TEXTURE_SCALING_WORDS = 4;
+constexpr u32 NUM_IMAGE_SCALING_WORDS = 2;
+constexpr u32 NUM_TEXTURE_AND_IMAGE_SCALING_WORDS =
+    NUM_TEXTURE_SCALING_WORDS + NUM_IMAGE_SCALING_WORDS;
+
+struct RescalingLayout {
+    u32 down_factor;
+    std::array<u32, NUM_TEXTURE_SCALING_WORDS> rescaling_textures;
+    std::array<u32, NUM_IMAGE_SCALING_WORDS> rescaling_images;
+};
+
 [[nodiscard]] std::vector<u32> EmitSPIRV(const Profile& profile, const RuntimeInfo& runtime_info,
                                          IR::Program& program, Bindings& bindings);
 
 [[nodiscard]] inline std::vector<u32> EmitSPIRV(const Profile& profile, IR::Program& program) {
-    RuntimeInfo runtime_info{};
-    runtime_info.num_textures = Shader::NumDescriptors(program.info.texture_descriptors);
-
     Bindings binding;
-    return EmitSPIRV(profile, runtime_info, program, binding);
+    return EmitSPIRV(profile, {}, program, binding);
 }
 
 } // namespace Shader::Backend::SPIRV

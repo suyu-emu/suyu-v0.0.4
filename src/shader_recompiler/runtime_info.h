@@ -63,8 +63,6 @@ struct RuntimeInfo {
     std::array<AttributeType, 32> generic_input_types{};
     VaryingState previous_stage_stores;
 
-    u32 num_textures{};
-
     bool convert_depth_mode{};
     bool force_early_z{};
 

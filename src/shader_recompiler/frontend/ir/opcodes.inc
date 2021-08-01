@@ -494,6 +494,7 @@ OPCODE(ImageRead,                                           U32x4,          Opaq
 OPCODE(ImageWrite,                                          Void,           Opaque,         Opaque,         U32x4,                                          )
 
 OPCODE(IsTextureScaled,                                     U1,             U32,                                                                            )
+OPCODE(IsImageScaled,                                       U1,             U32,                                                                            )
 
 // Atomic Image operations
 

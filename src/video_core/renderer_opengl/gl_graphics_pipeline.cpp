@@ -464,8 +464,10 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
         views_it += num_texture_buffers[stage];
         views_it += num_image_buffers[stage];
 
-        u32 scaling_mask{};
+        u32 texture_scaling_mask{};
+        u32 image_scaling_mask{};
         u32 stage_texture_binding{};
+        u32 stage_image_binding{};
 
         const auto& info{stage_infos[stage]};
         for (const auto& desc : info.texture_descriptors) {
@@ -473,7 +475,7 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
                 ImageView& image_view{texture_cache.GetImageView((views_it++)->id)};
                 textures[texture_binding] = image_view.Handle(desc.type);
                 if (texture_cache.IsRescaling(image_view)) {
-                    scaling_mask |= 1u << stage_texture_binding;
+                    texture_scaling_mask |= 1u << stage_texture_binding;
                 }
                 ++texture_binding;
                 ++stage_texture_binding;
@@ -485,20 +487,26 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
                 if (desc.is_written) {
                     texture_cache.MarkModification(image_view.image_id);
                 }
-                images[image_binding++] = image_view.StorageView(desc.type, desc.format);
+                images[image_binding] = image_view.StorageView(desc.type, desc.format);
+                if (texture_cache.IsRescaling(image_view)) {
+                    image_scaling_mask |= 1u << stage_image_binding;
+                }
+                ++image_binding;
+                ++stage_image_binding;
             }
         }
         if (info.uses_rescaling_uniform) {
-            const f32 float_scaling_mask{Common::BitCast<f32>(scaling_mask)};
+            const f32 float_texture_scaling_mask{Common::BitCast<f32>(texture_scaling_mask)};
+            const f32 float_image_scaling_mask{Common::BitCast<f32>(image_scaling_mask)};
             const bool is_rescaling{texture_cache.IsRescaling()};
             const f32 config_down_factor{Settings::values.resolution_info.down_factor};
             const f32 down_factor{is_rescaling ? config_down_factor : 1.0f};
             if (use_assembly) {
-                glProgramLocalParameter4fARB(AssemblyStage(stage), 0, float_scaling_mask,
-                                             down_factor, 0.0f, 0.0f);
+                glProgramLocalParameter4fARB(AssemblyStage(stage), 0, float_texture_scaling_mask,
+                                             float_image_scaling_mask, down_factor, 0.0f);
             } else {
-                glProgramUniform4f(source_programs[stage].handle, 0, float_scaling_mask,
-                                   down_factor, 0.0f, 0.0f);
+                glProgramUniform4f(source_programs[stage].handle, 0, float_texture_scaling_mask,
+                                   float_image_scaling_mask, down_factor, 0.0f);
             }
         }
     }};

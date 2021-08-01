@@ -361,6 +361,7 @@ public:
                                             const Value& value, TextureInstInfo info);
 
     [[nodiscard]] U1 IsTextureScaled(const U32& index);
+    [[nodiscard]] U1 IsImageScaled(const U32& index);
 
     [[nodiscard]] U1 VoteAll(const U1& value);
     [[nodiscard]] U1 VoteAny(const U1& value);

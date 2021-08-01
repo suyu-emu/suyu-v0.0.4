@@ -527,10 +527,15 @@ Id EmitYDirection(EmitContext& ctx) {
 }
 
 Id EmitResolutionDownFactor(EmitContext& ctx) {
-    const Id pointer_type{ctx.TypePointer(spv::StorageClass::PushConstant, ctx.F32[1])};
-    const Id pointer{
-        ctx.OpAccessChain(pointer_type, ctx.rescaling_push_constants, ctx.u32_zero_value)};
-    return ctx.OpLoad(ctx.F32[1], pointer);
+    if (ctx.profile.unified_descriptor_binding) {
+        const Id pointer_type{ctx.TypePointer(spv::StorageClass::PushConstant, ctx.F32[1])};
+        const Id pointer{
+            ctx.OpAccessChain(pointer_type, ctx.rescaling_push_constants, ctx.u32_zero_value)};
+        return ctx.OpLoad(ctx.F32[1], pointer);
+    } else {
+        const Id composite{ctx.OpLoad(ctx.F32[4], ctx.rescaling_uniform_constant)};
+        return ctx.OpCompositeExtract(ctx.F32[1], composite, 2u);
+    }
 }
 
 Id EmitLoadLocal(EmitContext& ctx, Id word_offset) {

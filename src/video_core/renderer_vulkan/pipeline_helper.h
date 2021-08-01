@@ -10,6 +10,7 @@
 
 #include "common/assert.h"
 #include "common/common_types.h"
+#include "shader_recompiler/backend/spirv/emit_spirv.h"
 #include "shader_recompiler/shader_info.h"
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
@@ -20,7 +21,7 @@
 
 namespace Vulkan {
 
-constexpr size_t MAX_RESCALING_WORDS = 4;
+using Shader::Backend::SPIRV::NUM_TEXTURE_AND_IMAGE_SCALING_WORDS;
 
 class DescriptorLayoutBuilder {
 public:
@@ -74,7 +75,8 @@ public:
             .stageFlags = static_cast<VkShaderStageFlags>(
                 is_compute ? VK_SHADER_STAGE_COMPUTE_BIT : VK_SHADER_STAGE_ALL_GRAPHICS),
             .offset = 0,
-            .size = (is_compute ? 0 : sizeof(f32)) + sizeof(std::array<u32, MAX_RESCALING_WORDS>),
+            .size = (is_compute ? 0 : sizeof(f32)) +
+                    sizeof(std::array<u32, NUM_TEXTURE_AND_IMAGE_SCALING_WORDS>),
         };
         return device->GetLogical().CreatePipelineLayout({
             .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
@@ -146,14 +148,25 @@ public:
         }
     }
 
-    const std::array<u32, MAX_RESCALING_WORDS>& Data() const noexcept {
+    void PushImage(bool is_rescaled) noexcept {
+        *image_ptr |= is_rescaled ? image_bit : 0;
+        image_bit <<= 1;
+        if (image_bit == 0) {
+            image_bit = 1u;
+            ++image_ptr;
+        }
+    }
+
+    const std::array<u32, NUM_TEXTURE_AND_IMAGE_SCALING_WORDS>& Data() const noexcept {
         return words;
     }
 
 private:
-    std::array<u32, MAX_RESCALING_WORDS> words{};
+    std::array<u32, NUM_TEXTURE_AND_IMAGE_SCALING_WORDS> words{};
     u32* texture_ptr{words.data()};
+    u32* image_ptr{words.data() + Shader::Backend::SPIRV::NUM_TEXTURE_SCALING_WORDS};
     u32 texture_bit{1u};
+    u32 image_bit{1u};
 };
 
 inline void PushImageDescriptors(TextureCache& texture_cache,
@@ -181,6 +194,7 @@ inline void PushImageDescriptors(TextureCache& texture_cache,
             }
             const VkImageView vk_image_view{image_view.StorageView(desc.type, desc.format)};
             update_descriptor_queue.AddImage(vk_image_view);
+            rescaling.PushImage(texture_cache.IsRescaling(image_view));
         }
     }
 }

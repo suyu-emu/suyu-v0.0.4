@@ -557,6 +557,7 @@ void EmitImageRead(EmitContext& ctx, IR::Inst& inst, const IR::Value& index, Reg
 void EmitImageWrite(EmitContext& ctx, IR::Inst& inst, const IR::Value& index, Register coord,
                     Register color);
 void EmitIsTextureScaled(EmitContext& ctx, IR::Inst& inst, const IR::Value& index);
+void EmitIsImageScaled(EmitContext& ctx, IR::Inst& inst, const IR::Value& index);
 void EmitBindlessImageAtomicIAdd32(EmitContext&);
 void EmitBindlessImageAtomicSMin32(EmitContext&);
 void EmitBindlessImageAtomicUMin32(EmitContext&);
