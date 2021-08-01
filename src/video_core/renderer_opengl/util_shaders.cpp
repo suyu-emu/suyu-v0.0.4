@@ -82,8 +82,8 @@ void UtilShaders::ASTCDecode(Image& image, const ImageBufferMap& map,
     glFlush();
     for (const SwizzleParameters& swizzle : swizzles) {
         const size_t input_offset = swizzle.buffer_offset + map.offset;
-        const u32 num_dispatches_x = Common::DivCeil(swizzle.num_tiles.width, 32U);
-        const u32 num_dispatches_y = Common::DivCeil(swizzle.num_tiles.height, 32U);
+        const u32 num_dispatches_x = Common::DivCeil(swizzle.num_tiles.width, 8U);
+        const u32 num_dispatches_y = Common::DivCeil(swizzle.num_tiles.height, 8U);
 
         const auto params = MakeBlockLinearSwizzle2DParams(swizzle, image.info);
         ASSERT(params.origin == (std::array<u32, 3>{0, 0, 0}));

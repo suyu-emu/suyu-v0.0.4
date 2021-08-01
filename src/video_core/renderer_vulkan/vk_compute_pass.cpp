@@ -358,8 +358,8 @@ void ASTCDecoderPass::Assemble(Image& image, const StagingBufferRef& map,
         });
     for (const VideoCommon::SwizzleParameters& swizzle : swizzles) {
         const size_t input_offset = swizzle.buffer_offset + map.offset;
-        const u32 num_dispatches_x = Common::DivCeil(swizzle.num_tiles.width, 32U);
-        const u32 num_dispatches_y = Common::DivCeil(swizzle.num_tiles.height, 32U);
+        const u32 num_dispatches_x = Common::DivCeil(swizzle.num_tiles.width, 8U);
+        const u32 num_dispatches_y = Common::DivCeil(swizzle.num_tiles.height, 8U);
         const u32 num_dispatches_z = image.info.resources.layers;
 
         update_descriptor_queue.Acquire();
