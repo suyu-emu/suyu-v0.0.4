@@ -68,7 +68,6 @@ UtilShaders::~UtilShaders() = default;
 void UtilShaders::ASTCDecode(Image& image, const ImageBufferMap& map,
                              std::span<const VideoCommon::SwizzleParameters> swizzles) {
     static constexpr GLuint BINDING_INPUT_BUFFER = 0;
-    static constexpr GLuint BINDING_SWIZZLE_BUFFER = 1;
     static constexpr GLuint BINDING_OUTPUT_IMAGE = 0;
 
     const Extent2D tile_size{
@@ -76,10 +75,9 @@ void UtilShaders::ASTCDecode(Image& image, const ImageBufferMap& map,
         .height = VideoCore::Surface::DefaultBlockHeight(image.info.format),
     };
     program_manager.BindComputeProgram(astc_decoder_program.handle);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, BINDING_SWIZZLE_BUFFER, swizzle_table_buffer.handle);
-
     glFlushMappedNamedBufferRange(map.buffer, map.offset, image.guest_size_bytes);
     glUniform2ui(1, tile_size.width, tile_size.height);
+
     // Ensure buffer data is valid before dispatching
     glFlush();
     for (const SwizzleParameters& swizzle : swizzles) {
@@ -90,13 +88,13 @@ void UtilShaders::ASTCDecode(Image& image, const ImageBufferMap& map,
         const auto params = MakeBlockLinearSwizzle2DParams(swizzle, image.info);
         ASSERT(params.origin == (std::array<u32, 3>{0, 0, 0}));
         ASSERT(params.destination == (std::array<s32, 3>{0, 0, 0}));
+        ASSERT(params.bytes_per_block_log2 == 4);
 
-        glUniform1ui(2, params.bytes_per_block_log2);
-        glUniform1ui(3, params.layer_stride);
-        glUniform1ui(4, params.block_size);
-        glUniform1ui(5, params.x_shift);
-        glUniform1ui(6, params.block_height);
-        glUniform1ui(7, params.block_height_mask);
+        glUniform1ui(2, params.layer_stride);
+        glUniform1ui(3, params.block_size);
+        glUniform1ui(4, params.x_shift);
+        glUniform1ui(5, params.block_height);
+        glUniform1ui(6, params.block_height_mask);
 
         // ASTC texture data
         glBindBufferRange(GL_SHADER_STORAGE_BUFFER, BINDING_INPUT_BUFFER, map.buffer, input_offset,
