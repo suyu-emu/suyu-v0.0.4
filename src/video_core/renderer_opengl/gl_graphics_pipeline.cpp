@@ -362,7 +362,7 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
         }
         if constexpr (Spec::has_images) {
             for (const auto& desc : info.image_descriptors) {
-                add_image(desc, true);
+                add_image(desc, desc.is_written);
             }
         }
     }};

@@ -84,10 +84,8 @@ void PatchImageQueryDimensions(IR::Block& block, IR::Inst& inst) {
     }
 }
 
-void PatchImageFetch(IR::Block& block, IR::Inst& inst) {
-    IR::IREmitter ir{block, IR::Block::InstructionList::s_iterator_to(inst)};
+void ScaleIntegerCoord(IR::IREmitter& ir, IR::Inst& inst, const IR::U1& is_scaled) {
     const auto info{inst.Flags<IR::TextureInstInfo>()};
-    const IR::U1 is_scaled{ir.IsTextureScaled(ir.Imm32(info.descriptor_index))};
     const IR::Value coord{inst.Arg(1)};
     switch (info.type) {
     case TextureType::Color1D:
@@ -121,6 +119,21 @@ void PatchImageFetch(IR::Block& block, IR::Inst& inst) {
     }
 }
 
+void PatchImageFetch(IR::Block& block, IR::Inst& inst) {
+    IR::IREmitter ir{block, IR::Block::InstructionList::s_iterator_to(inst)};
+    const auto info{inst.Flags<IR::TextureInstInfo>()};
+    const IR::U1 is_scaled{ir.IsTextureScaled(ir.Imm32(info.descriptor_index))};
+    ScaleIntegerCoord(ir, inst, is_scaled);
+}
+
+void PatchImageRead(IR::Block& block, IR::Inst& inst) {
+    IR::IREmitter ir{block, IR::Block::InstructionList::s_iterator_to(inst)};
+    const auto info{inst.Flags<IR::TextureInstInfo>()};
+    // TODO: Scale conditionally
+    const IR::U1 is_scaled{IR::Value{true}};
+    ScaleIntegerCoord(ir, inst, is_scaled);
+}
+
 void Visit(const IR::Program& program, IR::Block& block, IR::Inst& inst) {
     const bool is_fragment_shader{program.stage == Stage::Fragment};
     switch (inst.GetOpcode()) {
@@ -143,6 +156,9 @@ void Visit(const IR::Program& program, IR::Block& block, IR::Inst& inst) {
         break;
     case IR::Opcode::ImageFetch:
         PatchImageFetch(block, inst);
+        break;
+    case IR::Opcode::ImageRead:
+        PatchImageRead(block, inst);
         break;
     default:
         break;

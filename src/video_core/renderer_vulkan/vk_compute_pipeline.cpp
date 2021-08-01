@@ -159,7 +159,7 @@ void ComputePipeline::Configure(Tegra::Engines::KeplerCompute& kepler_compute,
         }
     }
     for (const auto& desc : info.image_descriptors) {
-        add_image(desc, true);
+        add_image(desc, desc.is_written);
     }
     texture_cache.FillComputeImageViews(std::span(views.data(), views.size()));
 
