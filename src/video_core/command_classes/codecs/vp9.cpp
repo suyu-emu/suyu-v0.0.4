@@ -11,6 +11,9 @@
 
 namespace Tegra::Decoder {
 namespace {
+constexpr u32 diff_update_probability = 252;
+constexpr u32 frame_sync_code = 0x498342;
+
 // Default compressed header probabilities once frame context resets
 constexpr Vp9EntropyProbs default_probs{
     .y_mode_prob{
@@ -361,8 +364,7 @@ Vp9PictureInfo VP9::GetVp9PictureInfo(const NvdecCommon::NvdecRegisters& state) 
     InsertEntropy(state.vp9_entropy_probs_offset, vp9_info.entropy);
 
     // surface_luma_offset[0:3] contains the address of the reference frame offsets in the following
-    // order: last, golden, altref, current. It may be worthwhile to track the updates done here
-    // to avoid buffering frame data needed for reference frame updating in the header composition.
+    // order: last, golden, altref, current.
     std::copy(state.surface_luma_offset.begin(), state.surface_luma_offset.begin() + 4,
               vp9_info.frame_offsets.begin());
 
@@ -384,33 +386,18 @@ Vp9FrameContainer VP9::GetCurrentFrame(const NvdecCommon::NvdecRegisters& state)
         gpu.MemoryManager().ReadBlock(state.frame_bitstream_offset, current_frame.bit_stream.data(),
                                       current_frame.info.bitstream_size);
     }
-    // Buffer two frames, saving the last show frame info
-    if (!next_next_frame.bit_stream.empty()) {
+    if (!next_frame.bit_stream.empty()) {
         Vp9FrameContainer temp{
             .info = current_frame.info,
             .bit_stream = std::move(current_frame.bit_stream),
         };
-        next_next_frame.info.show_frame = current_frame.info.last_frame_shown;
-        current_frame.info = next_next_frame.info;
-        current_frame.bit_stream = std::move(next_next_frame.bit_stream);
-        next_next_frame = std::move(temp);
-
-        if (!next_frame.bit_stream.empty()) {
-            Vp9FrameContainer temp2{
-                .info = current_frame.info,
-                .bit_stream = std::move(current_frame.bit_stream),
-            };
-            next_frame.info.show_frame = current_frame.info.last_frame_shown;
-            current_frame.info = next_frame.info;
-            current_frame.bit_stream = std::move(next_frame.bit_stream);
-            next_frame = std::move(temp2);
-        } else {
-            next_frame.info = current_frame.info;
-            next_frame.bit_stream = std::move(current_frame.bit_stream);
-        }
+        next_frame.info.show_frame = current_frame.info.last_frame_shown;
+        current_frame.info = next_frame.info;
+        current_frame.bit_stream = std::move(next_frame.bit_stream);
+        next_frame = std::move(temp);
     } else {
-        next_next_frame.info = current_frame.info;
-        next_next_frame.bit_stream = std::move(current_frame.bit_stream);
+        next_frame.info = current_frame.info;
+        next_frame.bit_stream = std::move(current_frame.bit_stream);
     }
     return current_frame;
 }
@@ -616,13 +603,7 @@ VpxBitStreamWriter VP9::ComposeUncompressedHeader() {
         swap_ref_indices = false;
         loop_filter_ref_deltas.fill(0);
         loop_filter_mode_deltas.fill(0);
-
-        // allow frames offsets to stabilize before checking for golden frames
-        grace_period = 4;
-
-        // On key frames, all frame slots are set to the current frame,
-        // so the value of the selected slot doesn't really matter.
-        frame_ctxs.fill({current_frame_number, false, default_probs});
+        frame_ctxs.fill(default_probs);
 
         // intra only, meaning the frame can be recreated with no other references
         current_frame_info.intra_only = true;
@@ -698,10 +679,9 @@ VpxBitStreamWriter VP9::ComposeUncompressedHeader() {
         frame_ctx_idx = 1;
     }
 
-    uncomp_writer.WriteU(frame_ctx_idx, 2); // Frame context index.
-    prev_frame_probs =
-        frame_ctxs[frame_ctx_idx].probs; // reference probabilities for compressed header
-    frame_ctxs[frame_ctx_idx] = {current_frame_number, false, current_frame_info.entropy};
+    uncomp_writer.WriteU(frame_ctx_idx, 2);       // Frame context index.
+    prev_frame_probs = frame_ctxs[frame_ctx_idx]; // reference probabilities for compressed header
+    frame_ctxs[frame_ctx_idx] = current_frame_info.entropy;
 
     uncomp_writer.WriteU(current_frame_info.first_level, 6);
     uncomp_writer.WriteU(current_frame_info.sharpness_level, 3);
@@ -811,13 +791,6 @@ const std::vector<u8>& VP9::ComposeFrameHeader(const NvdecCommon::NvdecRegisters
               frame.begin() + uncompressed_header.size());
     std::copy(bitstream.begin(), bitstream.end(),
               frame.begin() + uncompressed_header.size() + compressed_header.size());
-
-    // keep track of frame number
-    current_frame_number++;
-    grace_period--;
-
-    // don't display hidden frames
-    hidden = !current_frame_info.show_frame;
     return frame;
 }
 
