@@ -184,7 +184,7 @@ private:
     std::array<FrameContexts, 4> frame_ctxs{};
     Vp9FrameContainer next_frame{};
     Vp9FrameContainer next_next_frame{};
-    bool swap_next_golden{};
+    bool swap_ref_indices{};
 
     Vp9PictureInfo current_frame_info{};
     Vp9EntropyProbs prev_frame_probs{};

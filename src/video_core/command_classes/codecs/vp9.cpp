@@ -613,7 +613,7 @@ VpxBitStreamWriter VP9::ComposeUncompressedHeader() {
 
         // Reset context
         prev_frame_probs = default_probs;
-        swap_next_golden = false;
+        swap_ref_indices = false;
         loop_filter_ref_deltas.fill(0);
         loop_filter_mode_deltas.fill(0);
 
@@ -626,73 +626,57 @@ VpxBitStreamWriter VP9::ComposeUncompressedHeader() {
 
         // intra only, meaning the frame can be recreated with no other references
         current_frame_info.intra_only = true;
-
     } else {
-
         if (!current_frame_info.show_frame) {
             uncomp_writer.WriteBit(current_frame_info.intra_only);
-            if (!current_frame_info.last_frame_was_key) {
-                swap_next_golden = !swap_next_golden;
-            }
         } else {
             current_frame_info.intra_only = false;
         }
         if (!current_frame_info.error_resilient_mode) {
             uncomp_writer.WriteU(0, 2); // Reset frame context.
         }
-
-        // Last, Golden, Altref frames
-        std::array<s32, 3> ref_frame_index{0, 1, 2};
-
-        // Set when next frame is hidden
-        // altref and golden references are swapped
-        if (swap_next_golden) {
-            ref_frame_index = std::array<s32, 3>{0, 2, 1};
+        const auto& curr_offsets = current_frame_info.frame_offsets;
+        const auto& next_offsets = next_frame.info.frame_offsets;
+        const bool ref_frames_different = curr_offsets[1] != curr_offsets[2];
+        const bool next_references_swap =
+            (next_offsets[1] == curr_offsets[2]) || (next_offsets[2] == curr_offsets[1]);
+        const bool needs_ref_swap = ref_frames_different && next_references_swap;
+        if (needs_ref_swap) {
+            swap_ref_indices = !swap_ref_indices;
         }
+        union {
+            u32 raw;
+            BitField<0, 1, u32> refresh_last;
+            BitField<1, 2, u32> refresh_golden;
+            BitField<2, 1, u32> refresh_alt;
+        } refresh_frame_flags;
 
-        // update Last Frame
-        u64 refresh_frame_flags = 1;
-
-        // golden frame may refresh, determined if the next golden frame offset is changed
-        bool golden_refresh = false;
-        if (grace_period <= 0) {
-            for (s32 index = 1; index < 3; ++index) {
-                if (current_frame_info.frame_offsets[index] !=
-                    next_frame.info.frame_offsets[index]) {
-                    current_frame_info.refresh_frame[index] = true;
-                    golden_refresh = true;
-                    grace_period = 3;
-                }
+        refresh_frame_flags.raw = 0;
+        for (u32 index = 0; index < 3; ++index) {
+            // Refresh indices that use the current frame as an index
+            if (curr_offsets[3] == next_offsets[index]) {
+                refresh_frame_flags.raw |= 1u << index;
             }
         }
-
-        if (current_frame_info.show_frame &&
-            (!next_frame.info.show_frame || next_frame.info.is_key_frame)) {
-            // Update golden frame
-            refresh_frame_flags = swap_next_golden ? 2 : 4;
+        if (swap_ref_indices) {
+            const u32 temp = refresh_frame_flags.refresh_golden;
+            refresh_frame_flags.refresh_golden.Assign(refresh_frame_flags.refresh_alt.Value());
+            refresh_frame_flags.refresh_alt.Assign(temp);
         }
-
-        if (!current_frame_info.show_frame) {
-            // Update altref
-            refresh_frame_flags = swap_next_golden ? 2 : 4;
-        } else if (golden_refresh) {
-            refresh_frame_flags = 3;
-        }
-
         if (current_frame_info.intra_only) {
             uncomp_writer.WriteU(frame_sync_code, 24);
-            uncomp_writer.WriteU(static_cast<s32>(refresh_frame_flags), 8);
+            uncomp_writer.WriteU(refresh_frame_flags.raw, 8);
             uncomp_writer.WriteU(current_frame_info.frame_size.width - 1, 16);
             uncomp_writer.WriteU(current_frame_info.frame_size.height - 1, 16);
             uncomp_writer.WriteBit(false); // Render and frame size different.
         } else {
-            uncomp_writer.WriteU(static_cast<s32>(refresh_frame_flags), 8);
-
-            for (s32 index = 1; index < 4; index++) {
+            const bool swap_indices = needs_ref_swap ^ swap_ref_indices;
+            const auto ref_frame_index = swap_indices ? std::array{0, 2, 1} : std::array{0, 1, 2};
+            uncomp_writer.WriteU(refresh_frame_flags.raw, 8);
+            for (size_t index = 1; index < 4; index++) {
                 uncomp_writer.WriteU(ref_frame_index[index - 1], 3);
                 uncomp_writer.WriteU(current_frame_info.ref_frame_sign_bias[index], 1);
             }
-
             uncomp_writer.WriteBit(true);  // Frame size with refs.
             uncomp_writer.WriteBit(false); // Render and frame size different.
             uncomp_writer.WriteBit(current_frame_info.allow_high_precision_mv);
@@ -812,7 +796,6 @@ const std::vector<u8>& VP9::ComposeFrameHeader(const NvdecCommon::NvdecRegisters
         current_frame_info = curr_frame.info;
         bitstream = std::move(curr_frame.bit_stream);
     }
-
     // The uncompressed header routine sets PrevProb parameters needed for the compressed header
     auto uncomp_writer = ComposeUncompressedHeader();
     std::vector<u8> compressed_header = ComposeCompressedHeader();
