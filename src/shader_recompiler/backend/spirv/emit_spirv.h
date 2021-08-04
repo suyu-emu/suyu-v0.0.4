@@ -23,8 +23,8 @@ constexpr u32 NUM_TEXTURE_AND_IMAGE_SCALING_WORDS =
 
 struct RescalingLayout {
     u32 down_factor;
-    std::array<u32, NUM_TEXTURE_SCALING_WORDS> rescaling_textures;
-    std::array<u32, NUM_IMAGE_SCALING_WORDS> rescaling_images;
+    alignas(16) std::array<u32, NUM_TEXTURE_SCALING_WORDS> rescaling_textures;
+    alignas(16) std::array<u32, NUM_IMAGE_SCALING_WORDS> rescaling_images;
 };
 
 [[nodiscard]] std::vector<u32> EmitSPIRV(const Profile& profile, const RuntimeInfo& runtime_info,

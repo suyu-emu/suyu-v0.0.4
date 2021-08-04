@@ -479,7 +479,7 @@ void GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling) {
         }
         if (update_rescaling) {
             const f32 config_down_factor{Settings::values.resolution_info.down_factor};
-            const float scale_down_factor{is_rescaling ? config_down_factor : 1.0f};
+            const f32 scale_down_factor{is_rescaling ? config_down_factor : 1.0f};
             cmdbuf.PushConstants(*pipeline_layout, VK_SHADER_STAGE_ALL_GRAPHICS, 0,
                                  sizeof(scale_down_factor), &scale_down_factor);
         }
