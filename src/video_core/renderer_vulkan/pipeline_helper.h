@@ -22,6 +22,7 @@
 namespace Vulkan {
 
 using Shader::Backend::SPIRV::NUM_TEXTURE_AND_IMAGE_SCALING_WORDS;
+using Shader::Backend::SPIRV::RESCALING_PUSH_CONSTANT_WORDS_OFFSET;
 
 class DescriptorLayoutBuilder {
 public:
@@ -71,12 +72,13 @@ public:
     }
 
     vk::PipelineLayout CreatePipelineLayout(VkDescriptorSetLayout descriptor_set_layout) const {
+        using Shader::Backend::SPIRV::RescalingLayout;
+        const u32 push_offset = is_compute ? RESCALING_PUSH_CONSTANT_WORDS_OFFSET : 0;
         const VkPushConstantRange range{
             .stageFlags = static_cast<VkShaderStageFlags>(
                 is_compute ? VK_SHADER_STAGE_COMPUTE_BIT : VK_SHADER_STAGE_ALL_GRAPHICS),
             .offset = 0,
-            .size = (is_compute ? 0 : sizeof(f32)) +
-                    sizeof(std::array<u32, NUM_TEXTURE_AND_IMAGE_SCALING_WORDS>),
+            .size = sizeof(RescalingLayout) - push_offset,
         };
         return device->GetLogical().CreatePipelineLayout({
             .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,

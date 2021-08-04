@@ -483,8 +483,9 @@ void GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling) {
             cmdbuf.PushConstants(*pipeline_layout, VK_SHADER_STAGE_ALL_GRAPHICS, 0,
                                  sizeof(scale_down_factor), &scale_down_factor);
         }
-        cmdbuf.PushConstants(*pipeline_layout, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(f32),
-                             sizeof(rescaling_data), rescaling_data.data());
+        cmdbuf.PushConstants(*pipeline_layout, VK_SHADER_STAGE_ALL_GRAPHICS,
+                             RESCALING_PUSH_CONSTANT_WORDS_OFFSET, sizeof(rescaling_data),
+                             rescaling_data.data());
         if (!descriptor_set_layout) {
             return;
         }
