@@ -478,11 +478,13 @@ void TextureCache<P>::BlitImage(const Tegra::Engines::Fermi2D::Surface& dst,
     const bool is_src_rescaled = True(src_image.flags & ImageFlagBits::Rescaled);
     bool is_dst_rescaled = True(dst_image.flags & ImageFlagBits::Rescaled);
 
-    if (is_src_rescaled && !is_dst_rescaled) {
-        if (ImageCanRescale(dst_image)) {
-            is_dst_rescaled = dst_image.ScaleUp();
-        }
-    }
+    // TODO: This requires the rendertarget image views to be updated with the upscaled sizes,
+    // otherwise the blit will use a larger framebuffer size than the image view attachment.
+    // if (is_src_rescaled && !is_dst_rescaled) {
+    //     if (ImageCanRescale(dst_image)) {
+    //         is_dst_rescaled = dst_image.ScaleUp();
+    //     }
+    // }
 
     const auto& resolution = Settings::values.resolution_info;
     const auto scale_up = [&](u32 value) -> u32 {
