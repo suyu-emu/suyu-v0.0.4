@@ -176,7 +176,7 @@ struct Memory::Impl {
         return string;
     }
 
-    void WalkBlock(const Kernel::KProcess& process, VAddr addr, const std::size_t size,
+    void WalkBlock(const Kernel::KProcess& process, const VAddr addr, const std::size_t size,
                    auto on_unmapped, auto on_memory, auto on_rasterizer, auto increment) {
         const auto& page_table = process.PageTable().PageTableImpl();
         std::size_t remaining_size = size;
@@ -211,7 +211,6 @@ struct Memory::Impl {
 
             page_index++;
             page_offset = 0;
-            addr += static_cast<VAddr>(copy_amount);
             increment(copy_amount);
             remaining_size -= copy_amount;
         }
@@ -307,47 +306,27 @@ struct Memory::Impl {
 
     void CopyBlock(const Kernel::KProcess& process, VAddr dest_addr, VAddr src_addr,
                    const std::size_t size) {
-        const auto& page_table = process.PageTable().PageTableImpl();
-        std::size_t remaining_size = size;
-        std::size_t page_index = src_addr >> PAGE_BITS;
-        std::size_t page_offset = src_addr & PAGE_MASK;
-
-        while (remaining_size) {
-            const std::size_t copy_amount =
-                std::min(static_cast<std::size_t>(PAGE_SIZE) - page_offset, remaining_size);
-            const auto current_vaddr = static_cast<VAddr>((page_index << PAGE_BITS) + page_offset);
-
-            const auto [pointer, type] = page_table.pointers[page_index].PointerType();
-            switch (type) {
-            case Common::PageType::Unmapped: {
+        WalkBlock(
+            process, dest_addr, size,
+            [this, &process, &dest_addr, &src_addr, size](const std::size_t copy_amount,
+                                                          const VAddr current_vaddr) {
                 LOG_ERROR(HW_Memory,
                           "Unmapped CopyBlock @ 0x{:016X} (start address = 0x{:016X}, size = {})",
                           current_vaddr, src_addr, size);
                 ZeroBlock(process, dest_addr, copy_amount);
-                break;
-            }
-            case Common::PageType::Memory: {
-                DEBUG_ASSERT(pointer);
-                const u8* src_ptr = pointer + page_offset + (page_index << PAGE_BITS);
+            },
+            [this, &process, &dest_addr](const std::size_t copy_amount, const u8* const src_ptr) {
                 WriteBlockImpl<false>(process, dest_addr, src_ptr, copy_amount);
-                break;
-            }
-            case Common::PageType::RasterizerCachedMemory: {
-                const u8* const host_ptr{GetPointerFromRasterizerCachedMemory(current_vaddr)};
+            },
+            [this, &system = system, &process, &dest_addr](
+                const VAddr current_vaddr, const std::size_t copy_amount, u8* const host_ptr) {
                 system.GPU().FlushRegion(current_vaddr, copy_amount);
                 WriteBlockImpl<false>(process, dest_addr, host_ptr, copy_amount);
-                break;
-            }
-            default:
-                UNREACHABLE();
-            }
-
-            page_index++;
-            page_offset = 0;
-            dest_addr += static_cast<VAddr>(copy_amount);
-            src_addr += static_cast<VAddr>(copy_amount);
-            remaining_size -= copy_amount;
-        }
+            },
+            [&dest_addr, &src_addr](const std::size_t copy_amount) {
+                dest_addr += static_cast<VAddr>(copy_amount);
+                src_addr += static_cast<VAddr>(copy_amount);
+            });
     }
 
     void RasterizerMarkRegionCached(VAddr vaddr, u64 size, bool cached) {
