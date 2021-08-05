@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
-#include "video_core/texture_cache/texture_cache_templates.h"
+#include "video_core/texture_cache/texture_cache.h"
 
 namespace VideoCommon {
 template class VideoCommon::TextureCache<Vulkan::TextureCacheParams>;

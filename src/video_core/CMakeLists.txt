@@ -97,7 +97,7 @@ add_library(video_core STATIC
     renderer_opengl/gl_stream_buffer.h
     renderer_opengl/gl_texture_cache.cpp
     renderer_opengl/gl_texture_cache.h
-    renderer_opengl/gl_texture_cache_templates.cpp
+    renderer_opengl/gl_texture_cache_base.cpp
     renderer_opengl/gl_query_cache.cpp
     renderer_opengl/gl_query_cache.h
     renderer_opengl/maxwell_to_gl.h
@@ -156,7 +156,7 @@ add_library(video_core STATIC
     renderer_vulkan/vk_swapchain.h
     renderer_vulkan/vk_texture_cache.cpp
     renderer_vulkan/vk_texture_cache.h
-    renderer_vulkan/vk_texture_cache_templates.cpp
+    renderer_vulkan/vk_texture_cache_base.cpp
     renderer_vulkan/vk_update_descriptor.cpp
     renderer_vulkan/vk_update_descriptor.h
     shader_cache.cpp
@@ -188,7 +188,7 @@ add_library(video_core STATIC
     texture_cache/samples_helper.h
     texture_cache/slot_vector.h
     texture_cache/texture_cache.h
-    texture_cache/texture_cache_templates.h
+    texture_cache/texture_cache_base.h
     texture_cache/types.h
     texture_cache/util.cpp
     texture_cache/util.h
