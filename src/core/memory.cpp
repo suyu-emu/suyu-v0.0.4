@@ -1,4 +1,4 @@
-// Copyright 2021 Citra Emulator Project
+// Copyright 2015 Citra Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
@@ -235,7 +235,7 @@ struct Memory::Impl {
             [&system = system, &dest_buffer](const VAddr current_vaddr,
                                              const std::size_t copy_amount,
                                              const u8* const host_ptr) {
-                if (!UNSAFE) {
+                if constexpr (!UNSAFE) {
                     system.GPU().FlushRegion(current_vaddr, copy_amount);
                 }
                 std::memcpy(dest_buffer, host_ptr, copy_amount);
@@ -268,7 +268,7 @@ struct Memory::Impl {
             },
             [&system = system, &src_buffer](const VAddr current_vaddr,
                                             const std::size_t copy_amount, u8* const host_ptr) {
-                if (!UNSAFE) {
+                if constexpr (!UNSAFE) {
                     system.GPU().InvalidateRegion(current_vaddr, copy_amount);
                 }
                 std::memcpy(host_ptr, src_buffer, copy_amount);
@@ -390,9 +390,10 @@ struct Memory::Impl {
             } else {
                 // Switch page type to uncached if now uncached
                 switch (page_type) {
-                case Common::PageType::Unmapped:
+                case Common::PageType::Unmapped: // NOLINT(bugprone-branch-clone)
                     // It is not necessary for a process to have this region mapped into its address
                     // space, for example, a system module need not have a VRAM mapping.
+                    break;
                 case Common::PageType::Memory:
                     // There can be more than one GPU region mapped per CPU region, so it's common
                     // that this area is already unmarked as cached.
@@ -666,8 +667,8 @@ void Memory::UnmapRegion(Common::PageTable& page_table, VAddr base, u64 size) {
 
 bool Memory::IsValidVirtualAddress(const VAddr vaddr) const {
     const Kernel::KProcess& process = *system.CurrentProcess();
-    const auto& pageTable = process.PageTable().PageTableImpl();
-    const auto [pointer, type] = pageTable.pointers[vaddr >> PAGE_BITS].PointerType();
+    const auto& page_table = process.PageTable().PageTableImpl();
+    const auto [pointer, type] = page_table.pointers[vaddr >> PAGE_BITS].PointerType();
     return pointer != nullptr || type == Common::PageType::RasterizerCachedMemory;
 }
 
