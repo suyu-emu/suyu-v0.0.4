@@ -1,4 +1,4 @@
-// Copyright 2019 yuzu Emulator Project
+// Copyright 2021 yuzu Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
@@ -18,10 +18,7 @@
 #include "video_core/renderer_opengl/maxwell_to_gl.h"
 #include "video_core/renderer_opengl/util_shaders.h"
 #include "video_core/surface.h"
-#include "video_core/texture_cache/format_lookup_table.h"
 #include "video_core/texture_cache/samples_helper.h"
-#include "video_core/texture_cache/texture_cache.h"
-#include "video_core/textures/decoders.h"
 
 namespace OpenGL {
 namespace {
