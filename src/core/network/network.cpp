@@ -182,7 +182,7 @@ linger MakeLinger(bool enable, u32 linger_value) {
 }
 
 bool EnableNonBlock(int fd, bool enable) {
-    int flags = fcntl(fd, F_GETFD);
+    int flags = fcntl(fd, F_GETFL);
     if (flags == -1) {
         return false;
     }
@@ -191,7 +191,7 @@ bool EnableNonBlock(int fd, bool enable) {
     } else {
         flags &= ~O_NONBLOCK;
     }
-    return fcntl(fd, F_SETFD, flags) == 0;
+    return fcntl(fd, F_SETFL, flags) == 0;
 }
 
 Errno TranslateNativeError(int e) {
