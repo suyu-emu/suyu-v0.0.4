@@ -699,11 +699,6 @@ void KScheduler::Reload(KThread* thread) {
     if (thread) {
         ASSERT_MSG(thread->GetState() == ThreadState::Runnable, "Thread must be runnable.");
 
-        auto* const thread_owner_process = thread->GetOwnerProcess();
-        if (thread_owner_process != nullptr) {
-            system.Kernel().MakeCurrentProcess(thread_owner_process);
-        }
-
         Core::ARM_Interface& cpu_core = system.ArmInterface(core_id);
         cpu_core.LoadContext(thread->GetContext32());
         cpu_core.LoadContext(thread->GetContext64());
