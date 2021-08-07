@@ -376,20 +376,18 @@ void KScheduler::ClearSchedulerUpdateNeeded(KernelCore& kernel) {
 }
 
 void KScheduler::DisableScheduling(KernelCore& kernel) {
-    if (auto* scheduler = kernel.CurrentScheduler(); scheduler) {
-        ASSERT(scheduler->GetCurrentThread()->GetDisableDispatchCount() >= 0);
-        scheduler->GetCurrentThread()->DisableDispatch();
-    }
+    ASSERT(GetCurrentThreadPointer(kernel)->GetDisableDispatchCount() >= 0);
+    GetCurrentThreadPointer(kernel)->DisableDispatch();
 }
 
 void KScheduler::EnableScheduling(KernelCore& kernel, u64 cores_needing_scheduling) {
-    if (auto* scheduler = kernel.CurrentScheduler(); scheduler) {
-        ASSERT(scheduler->GetCurrentThread()->GetDisableDispatchCount() >= 1);
-        if (scheduler->GetCurrentThread()->GetDisableDispatchCount() >= 1) {
-            scheduler->GetCurrentThread()->EnableDispatch();
-        }
+    ASSERT(GetCurrentThreadPointer(kernel)->GetDisableDispatchCount() >= 1);
+
+    if (GetCurrentThreadPointer(kernel)->GetDisableDispatchCount() > 1) {
+        GetCurrentThreadPointer(kernel)->EnableDispatch();
+    } else {
+        RescheduleCores(kernel, cores_needing_scheduling);
     }
-    RescheduleCores(kernel, cores_needing_scheduling);
 }
 
 u64 KScheduler::UpdateHighestPriorityThreads(KernelCore& kernel) {
@@ -646,6 +644,7 @@ void KScheduler::RescheduleCurrentCore() {
     if (phys_core.IsInterrupted()) {
         phys_core.ClearInterrupt();
     }
+
     guard.Lock();
     if (state.needs_scheduling.load()) {
         Schedule();
@@ -661,10 +660,6 @@ void KScheduler::OnThreadStart() {
 
 void KScheduler::Unload(KThread* thread) {
     ASSERT(thread);
-
-    if (!thread) {
-        return;
-    }
 
     LOG_TRACE(Kernel, "core {}, unload thread {}", core_id, thread ? thread->GetName() : "nullptr");
 
