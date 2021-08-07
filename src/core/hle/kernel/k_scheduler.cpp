@@ -650,6 +650,7 @@ void KScheduler::RescheduleCurrentCore() {
     if (state.needs_scheduling.load()) {
         Schedule();
     } else {
+        GetCurrentThread()->EnableDispatch();
         guard.Unlock();
     }
 }
@@ -659,26 +660,37 @@ void KScheduler::OnThreadStart() {
 }
 
 void KScheduler::Unload(KThread* thread) {
+    ASSERT(thread);
+
+    if (!thread) {
+        return;
+    }
+
     LOG_TRACE(Kernel, "core {}, unload thread {}", core_id, thread ? thread->GetName() : "nullptr");
 
-    if (thread) {
-        if (thread->IsCallingSvc()) {
-            thread->ClearIsCallingSvc();
-        }
-        if (!thread->IsTerminationRequested()) {
-            prev_thread = thread;
-
-            Core::ARM_Interface& cpu_core = system.ArmInterface(core_id);
-            cpu_core.SaveContext(thread->GetContext32());
-            cpu_core.SaveContext(thread->GetContext64());
-            // Save the TPIDR_EL0 system register in case it was modified.
-            thread->SetTPIDR_EL0(cpu_core.GetTPIDR_EL0());
-            cpu_core.ClearExclusiveState();
-        } else {
-            prev_thread = nullptr;
-        }
-        thread->context_guard.Unlock();
+    if (thread->IsCallingSvc()) {
+        thread->ClearIsCallingSvc();
     }
+
+    auto& physical_core = system.Kernel().PhysicalCore(core_id);
+    if (!physical_core.IsInitialized()) {
+        return;
+    }
+
+    Core::ARM_Interface& cpu_core = physical_core.ArmInterface();
+    cpu_core.SaveContext(thread->GetContext32());
+    cpu_core.SaveContext(thread->GetContext64());
+    // Save the TPIDR_EL0 system register in case it was modified.
+    thread->SetTPIDR_EL0(cpu_core.GetTPIDR_EL0());
+    cpu_core.ClearExclusiveState();
+
+    if (!thread->IsTerminationRequested() && thread->GetActiveCore() == core_id) {
+        prev_thread = thread;
+    } else {
+        prev_thread = nullptr;
+    }
+
+    thread->context_guard.Unlock();
 }
 
 void KScheduler::Reload(KThread* thread) {
