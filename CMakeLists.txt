@@ -518,6 +518,10 @@ set(FFmpeg_COMPONENTS
     avutil
     swscale)
 
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    Include(FindPkgConfig REQUIRED)
+    pkg_check_modules(LIBVA libva)
+endif()
 if (NOT YUZU_USE_BUNDLED_FFMPEG)
     # Use system installed FFmpeg
     find_package(FFmpeg QUIET COMPONENTS ${FFmpeg_COMPONENTS})
@@ -583,10 +587,6 @@ if (YUZU_USE_BUNDLED_FFMPEG)
             "${FFmpeg_PREFIX};${FFmpeg_BUILD_DIR}"
             CACHE PATH "Path to FFmpeg headers" FORCE)
 
-        if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-            Include(FindPkgConfig REQUIRED)
-            pkg_check_modules(LIBVA libva)
-        endif()
         if(LIBVA_FOUND)
             pkg_check_modules(LIBDRM libdrm REQUIRED)
             find_package(X11 REQUIRED)
@@ -670,7 +670,7 @@ if (YUZU_USE_BUNDLED_FFMPEG)
         endif()
     else() # WIN32
         # Use yuzu FFmpeg binaries
-        set(FFmpeg_EXT_NAME "ffmpeg-4.3.1")
+        set(FFmpeg_EXT_NAME "ffmpeg-4.4")
         set(FFmpeg_PATH "${CMAKE_BINARY_DIR}/externals/${FFmpeg_EXT_NAME}")
         download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "")
         set(FFmpeg_FOUND YES)
