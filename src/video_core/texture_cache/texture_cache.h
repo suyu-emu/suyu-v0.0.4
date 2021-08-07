@@ -631,6 +631,9 @@ bool TextureCache<P>::IsRescaling() const noexcept {
 
 template <class P>
 bool TextureCache<P>::IsRescaling(const ImageViewBase& image_view) const noexcept {
+    if (image_view.type == ImageViewType::Buffer) {
+        return false;
+    }
     const ImageBase& image = slot_images[image_view.image_id];
     return True(image.flags & ImageFlagBits::Rescaled);
 }
