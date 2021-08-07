@@ -166,8 +166,6 @@ NvResult nvhost_nvdec_common::MapBuffer(const std::vector<u8>& input, std::vecto
             LOG_ERROR(Service_NVDRV, "failed to map size={}", object->size);
         } else {
             cmd_buffer.map_address = object->dma_map_addr;
-            AddBufferMap(object->dma_map_addr, object->size, object->addr,
-                         object->status == nvmap::Object::Status::Allocated);
         }
     }
     std::memcpy(output.data(), &params, sizeof(IoctlMapBuffer));
@@ -191,35 +189,6 @@ NvResult nvhost_nvdec_common::SetSubmitTimeout(const std::vector<u8>& input,
     std::memcpy(&submit_timeout, input.data(), input.size());
     LOG_WARNING(Service_NVDRV, "(STUBBED) called");
     return NvResult::Success;
-}
-
-std::optional<nvhost_nvdec_common::BufferMap> nvhost_nvdec_common::FindBufferMap(
-    GPUVAddr gpu_addr) const {
-    const auto it = std::find_if(
-        buffer_mappings.begin(), buffer_mappings.upper_bound(gpu_addr), [&](const auto& entry) {
-            return (gpu_addr >= entry.second.StartAddr() && gpu_addr < entry.second.EndAddr());
-        });
-
-    ASSERT(it != buffer_mappings.end());
-    return it->second;
-}
-
-void nvhost_nvdec_common::AddBufferMap(GPUVAddr gpu_addr, std::size_t size, VAddr cpu_addr,
-                                       bool is_allocated) {
-    buffer_mappings.insert_or_assign(gpu_addr, BufferMap{gpu_addr, size, cpu_addr, is_allocated});
-}
-
-std::optional<std::size_t> nvhost_nvdec_common::RemoveBufferMap(GPUVAddr gpu_addr) {
-    const auto iter{buffer_mappings.find(gpu_addr)};
-    if (iter == buffer_mappings.end()) {
-        return std::nullopt;
-    }
-    std::size_t size = 0;
-    if (iter->second.IsAllocated()) {
-        size = iter->second.Size();
-    }
-    buffer_mappings.erase(iter);
-    return size;
 }
 
 } // namespace Service::Nvidia::Devices
