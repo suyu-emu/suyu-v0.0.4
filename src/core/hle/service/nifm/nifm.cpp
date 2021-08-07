@@ -354,10 +354,13 @@ private:
         static_assert(sizeof(IpConfigInfo) == sizeof(IpAddressSetting) + sizeof(DnsSetting),
                       "IpConfigInfo has incorrect size.");
 
+        const auto [ipv4, error] = Network::GetHostIPv4Address();
+        ASSERT_MSG(error == Network::Errno::SUCCESS, "Couldn't get host IPv4 address");
+
         const IpConfigInfo ip_config_info{
             .ip_address_setting{
                 .is_automatic{true},
-                .current_address{192, 168, 1, 100},
+                .current_address{ipv4},
                 .subnet_mask{255, 255, 255, 0},
                 .gateway{192, 168, 1, 1},
             },
