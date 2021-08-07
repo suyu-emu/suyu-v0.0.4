@@ -227,8 +227,12 @@ Errno GetAndLogLastError() {
 #else
     int e = errno;
 #endif
+    const Errno err = TranslateNativeError(e);
+    if (err == Errno::AGAIN) {
+        return err;
+    }
     LOG_ERROR(Network, "Socket operation error: {}", NativeErrorToString(e));
-    return TranslateNativeError(e);
+    return err;
 }
 
 int TranslateDomain(Domain domain) {
