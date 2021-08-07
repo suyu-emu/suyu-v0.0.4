@@ -824,6 +824,14 @@ const Kernel::PhysicalCore& KernelCore::PhysicalCore(std::size_t id) const {
     return impl->cores[id];
 }
 
+size_t KernelCore::CurrentPhysicalCoreIndex() const {
+    const u32 core_id = impl->GetCurrentHostThreadID();
+    if (core_id >= Core::Hardware::NUM_CPU_CORES) {
+        return Core::Hardware::NUM_CPU_CORES - 1;
+    }
+    return core_id;
+}
+
 Kernel::PhysicalCore& KernelCore::CurrentPhysicalCore() {
     u32 core_id = impl->GetCurrentHostThreadID();
     ASSERT(core_id < Core::Hardware::NUM_CPU_CORES);
