@@ -617,11 +617,15 @@ KScheduler::KScheduler(Core::System& system_, s32 core_id_) : system{system_}, c
     state.highest_priority_thread = nullptr;
 }
 
-KScheduler::~KScheduler() {
+void KScheduler::Finalize() {
     if (idle_thread) {
         idle_thread->Close();
         idle_thread = nullptr;
     }
+}
+
+KScheduler::~KScheduler() {
+    ASSERT(!idle_thread);
 }
 
 KThread* KScheduler::GetCurrentThread() const {
