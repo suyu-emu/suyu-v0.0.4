@@ -5,10 +5,6 @@
 #include <algorithm>
 #include <cstring>
 
-#define BOOST_HANA_CONFIG_ENABLE_STRING_UDL
-#include <boost/hana/string.hpp>
-#undef BOOST_HANA_CONFIG_ENABLE_STRING_UDL
-
 #include "common/assert.h"
 #include "common/atomic_ops.h"
 #include "common/common_types.h"
@@ -22,8 +18,6 @@
 #include "core/hle/kernel/k_process.h"
 #include "core/memory.h"
 #include "video_core/gpu.h"
-
-using namespace boost::hana::literals;
 
 namespace Core::Memory {
 
@@ -446,42 +440,6 @@ struct Memory::Impl {
         }
     }
 
-    /**
-     * Returns a message like "Unmapped NameBits @ 0x{:016X}Suffix".
-     *
-     * @tparam NAME The caller name like "Read"_s or "Write"_s.
-     * @tparam BYTES The number of bits written. 0 is for read and sizeof(T) is for write.
-     * @tparam SUFFIX A suffix. ""_s is for read and " = 0x{:016X}" is for write.
-     */
-    template <boost::hana::string NAME, int BYTES, boost::hana::string SUFFIX>
-    static consteval const char* GetPointerImplError() {
-        constexpr auto unmapped_fmt = ([]() {
-            constexpr auto prefix = "Unmapped "_s + NAME;
-            constexpr auto suffix = " @ 0x{:016X}"_s + SUFFIX;
-            const char* result = nullptr;
-            switch (BYTES * 8) {
-            case 0:
-                result = (prefix + suffix).c_str();
-                break;
-#define BITS_CASE(x)                                                                               \
-    case x:                                                                                        \
-        result = (prefix + BOOST_HANA_STRING(#x) + suffix).c_str();                                \
-        break;
-                BITS_CASE(8)
-                BITS_CASE(16)
-                BITS_CASE(32)
-                BITS_CASE(64)
-                BITS_CASE(128)
-#undef BITS_CASE
-            default:
-                break;
-            }
-            return result;
-        })();
-        static_assert(unmapped_fmt);
-        return unmapped_fmt;
-    }
-
     [[nodiscard]] u8* GetPointerImpl(VAddr vaddr, auto on_unmapped, auto on_rasterizer) const {
         // AARCH64 masks the upper 16 bit of all memory accesses
         vaddr &= 0xffffffffffffLL;
@@ -516,10 +474,7 @@ struct Memory::Impl {
 
     [[nodiscard]] u8* GetPointer(const VAddr vaddr) const {
         return GetPointerImpl(
-            vaddr,
-            [vaddr]() {
-                LOG_ERROR(HW_Memory, GetPointerImplError<"GetPointer"_s, 0, ""_s>(), vaddr);
-            },
+            vaddr, [vaddr]() { LOG_ERROR(HW_Memory, "Unmapped GetPointer @ 0x{:016X}", vaddr); },
             []() {});
     }
 
@@ -540,7 +495,7 @@ struct Memory::Impl {
         const u8* const ptr = GetPointerImpl(
             vaddr,
             [vaddr]() {
-                LOG_ERROR(HW_Memory, GetPointerImplError<"Read"_s, sizeof(T), ""_s>(), vaddr);
+                LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:016X}", sizeof(T) * 8, vaddr);
             },
             [&system = system, vaddr]() { system.GPU().FlushRegion(vaddr, sizeof(T)); });
         if (ptr) {
@@ -563,7 +518,7 @@ struct Memory::Impl {
         u8* const ptr = GetPointerImpl(
             vaddr,
             [vaddr, data]() {
-                LOG_ERROR(HW_Memory, GetPointerImplError<"Write"_s, sizeof(T), " = 0x{:016X}"_s>(),
+                LOG_ERROR(HW_Memory, "Unmapped Write{} @ 0x{:016X} = 0x{:016X}", sizeof(T) * 8,
                           vaddr, static_cast<u64>(data));
             },
             [&system = system, vaddr]() { system.GPU().InvalidateRegion(vaddr, sizeof(T)); });
@@ -577,8 +532,8 @@ struct Memory::Impl {
         u8* const ptr = GetPointerImpl(
             vaddr,
             [vaddr, data]() {
-                LOG_ERROR(HW_Memory, GetPointerImplError<"Write"_s, sizeof(T), " = 0x{:016X}"_s>(),
-                          vaddr, static_cast<u64>(data));
+                LOG_ERROR(HW_Memory, "Unmapped WriteExclusive{} @ 0x{:016X} = 0x{:016X}",
+                          sizeof(T) * 8, vaddr, static_cast<u64>(data));
             },
             [&system = system, vaddr]() { system.GPU().InvalidateRegion(vaddr, sizeof(T)); });
         if (ptr) {
@@ -592,8 +547,7 @@ struct Memory::Impl {
         u8* const ptr = GetPointerImpl(
             vaddr,
             [vaddr, data]() {
-                LOG_ERROR(HW_Memory,
-                          GetPointerImplError<"Write"_s, sizeof(u128), " = 0x{:016X}{:016X}"_s>(),
+                LOG_ERROR(HW_Memory, "Unmapped WriteExclusive128 @ 0x{:016X} = 0x{:016X}{:016X}",
                           vaddr, static_cast<u64>(data[1]), static_cast<u64>(data[0]));
             },
             [&system = system, vaddr]() { system.GPU().InvalidateRegion(vaddr, sizeof(u128)); });
