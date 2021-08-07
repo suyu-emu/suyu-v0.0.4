@@ -5,6 +5,10 @@
 #include <algorithm>
 #include <cstring>
 
+#define BOOST_HANA_CONFIG_ENABLE_STRING_UDL
+#include <boost/hana/string.hpp>
+#undef BOOST_HANA_CONFIG_ENABLE_STRING_UDL
+
 #include "common/assert.h"
 #include "common/atomic_ops.h"
 #include "common/common_types.h"
@@ -18,6 +22,8 @@
 #include "core/hle/kernel/k_process.h"
 #include "core/memory.h"
 #include "video_core/gpu.h"
+
+using namespace boost::hana::literals;
 
 namespace Core::Memory {
 
@@ -66,18 +72,6 @@ struct Memory::Impl {
         }
 
         return system.DeviceMemory().GetPointer(paddr) + vaddr;
-    }
-
-    [[nodiscard]] u8* GetPointer(const VAddr vaddr) const {
-        const uintptr_t raw_pointer = current_page_table->pointers[vaddr >> PAGE_BITS].Raw();
-        if (u8* const pointer = Common::PageTable::PageInfo::ExtractPointer(raw_pointer)) {
-            return pointer + vaddr;
-        }
-        const auto type = Common::PageTable::PageInfo::ExtractType(raw_pointer);
-        if (type == Common::PageType::RasterizerCachedMemory) {
-            return GetPointerFromRasterizerCachedMemory(vaddr);
-        }
-        return nullptr;
     }
 
     u8 Read8(const VAddr addr) {
@@ -453,6 +447,83 @@ struct Memory::Impl {
     }
 
     /**
+     * Returns a message like "Unmapped NameBits @ 0x{:016X}Suffix".
+     *
+     * @tparam NAME The caller name like "Read"_s or "Write"_s.
+     * @tparam BYTES The number of bits written. 0 is for read and sizeof(T) is for write.
+     * @tparam SUFFIX A suffix. ""_s is for read and " = 0x{:016X}" is for write.
+     */
+    template <boost::hana::string NAME, int BYTES, boost::hana::string SUFFIX>
+    static consteval const char* GetPointerImplError() {
+        constexpr auto unmapped_fmt = ([]() {
+            constexpr auto prefix = "Unmapped "_s + NAME;
+            constexpr auto suffix = " @ 0x{:016X}"_s + SUFFIX;
+            const char* result = nullptr;
+            switch (BYTES * 8) {
+            case 0:
+                result = (prefix + suffix).c_str();
+                break;
+#define BITS_CASE(x)                                                                               \
+    case x:                                                                                        \
+        result = (prefix + BOOST_HANA_STRING(#x) + suffix).c_str();                                \
+        break;
+                BITS_CASE(8)
+                BITS_CASE(16)
+                BITS_CASE(32)
+                BITS_CASE(64)
+                BITS_CASE(128)
+#undef BITS_CASE
+            default:
+                break;
+            }
+            return result;
+        })();
+        static_assert(unmapped_fmt);
+        return unmapped_fmt;
+    }
+
+    [[nodiscard]] u8* GetPointerImpl(VAddr vaddr, auto on_unmapped, auto on_rasterizer) const {
+        // AARCH64 masks the upper 16 bit of all memory accesses
+        vaddr &= 0xffffffffffffLL;
+
+        if (vaddr >= 1uLL << current_page_table->GetAddressSpaceBits()) {
+            on_unmapped();
+            return nullptr;
+        }
+
+        // Avoid adding any extra logic to this fast-path block
+        const uintptr_t raw_pointer = current_page_table->pointers[vaddr >> PAGE_BITS].Raw();
+        if (u8* const pointer = Common::PageTable::PageInfo::ExtractPointer(raw_pointer)) {
+            return &pointer[vaddr];
+        }
+        switch (Common::PageTable::PageInfo::ExtractType(raw_pointer)) {
+        case Common::PageType::Unmapped:
+            on_unmapped();
+            return nullptr;
+        case Common::PageType::Memory:
+            ASSERT_MSG(false, "Mapped memory page without a pointer @ 0x{:016X}", vaddr);
+            return nullptr;
+        case Common::PageType::RasterizerCachedMemory: {
+            u8* const host_ptr{GetPointerFromRasterizerCachedMemory(vaddr)};
+            on_rasterizer();
+            return host_ptr;
+        }
+        default:
+            UNREACHABLE();
+        }
+        return nullptr;
+    }
+
+    [[nodiscard]] u8* GetPointer(const VAddr vaddr) const {
+        return GetPointerImpl(
+            vaddr,
+            [vaddr]() {
+                LOG_ERROR(HW_Memory, GetPointerImplError<"GetPointer"_s, 0, ""_s>(), vaddr);
+            },
+            []() {});
+    }
+
+    /**
      * Reads a particular data type out of memory at the given virtual address.
      *
      * @param vaddr The virtual address to read the data type from.
@@ -465,39 +536,17 @@ struct Memory::Impl {
      */
     template <typename T>
     T Read(VAddr vaddr) {
-        // AARCH64 masks the upper 16 bit of all memory accesses
-        vaddr &= 0xffffffffffffLL;
-
-        if (vaddr >= 1uLL << current_page_table->GetAddressSpaceBits()) {
-            LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:08X}", sizeof(T) * 8, vaddr);
-            return 0;
+        T result = 0;
+        const u8* const ptr = GetPointerImpl(
+            vaddr,
+            [vaddr]() {
+                LOG_ERROR(HW_Memory, GetPointerImplError<"Read"_s, sizeof(T), ""_s>(), vaddr);
+            },
+            [&system = system, vaddr]() { system.GPU().FlushRegion(vaddr, sizeof(T)); });
+        if (ptr) {
+            std::memcpy(&result, ptr, sizeof(T));
         }
-
-        // Avoid adding any extra logic to this fast-path block
-        const uintptr_t raw_pointer = current_page_table->pointers[vaddr >> PAGE_BITS].Raw();
-        if (const u8* const pointer = Common::PageTable::PageInfo::ExtractPointer(raw_pointer)) {
-            T value;
-            std::memcpy(&value, &pointer[vaddr], sizeof(T));
-            return value;
-        }
-        switch (Common::PageTable::PageInfo::ExtractType(raw_pointer)) {
-        case Common::PageType::Unmapped:
-            LOG_ERROR(HW_Memory, "Unmapped Read{} @ 0x{:08X}", sizeof(T) * 8, vaddr);
-            return 0;
-        case Common::PageType::Memory:
-            ASSERT_MSG(false, "Mapped memory page without a pointer @ {:016X}", vaddr);
-            break;
-        case Common::PageType::RasterizerCachedMemory: {
-            const u8* const host_ptr{GetPointerFromRasterizerCachedMemory(vaddr)};
-            system.GPU().FlushRegion(vaddr, sizeof(T));
-            T value;
-            std::memcpy(&value, host_ptr, sizeof(T));
-            return value;
-        }
-        default:
-            UNREACHABLE();
-        }
-        return {};
+        return result;
     }
 
     /**
@@ -511,109 +560,46 @@ struct Memory::Impl {
      */
     template <typename T>
     void Write(VAddr vaddr, const T data) {
-        // AARCH64 masks the upper 16 bit of all memory accesses
-        vaddr &= 0xffffffffffffLL;
-
-        if (vaddr >= 1uLL << current_page_table->GetAddressSpaceBits()) {
-            LOG_ERROR(HW_Memory, "Unmapped Write{} 0x{:08X} @ 0x{:016X}", sizeof(data) * 8,
-                      static_cast<u32>(data), vaddr);
-            return;
-        }
-
-        // Avoid adding any extra logic to this fast-path block
-        const uintptr_t raw_pointer = current_page_table->pointers[vaddr >> PAGE_BITS].Raw();
-        if (u8* const pointer = Common::PageTable::PageInfo::ExtractPointer(raw_pointer)) {
-            std::memcpy(&pointer[vaddr], &data, sizeof(T));
-            return;
-        }
-        switch (Common::PageTable::PageInfo::ExtractType(raw_pointer)) {
-        case Common::PageType::Unmapped:
-            LOG_ERROR(HW_Memory, "Unmapped Write{} 0x{:08X} @ 0x{:016X}", sizeof(data) * 8,
-                      static_cast<u32>(data), vaddr);
-            return;
-        case Common::PageType::Memory:
-            ASSERT_MSG(false, "Mapped memory page without a pointer @ {:016X}", vaddr);
-            break;
-        case Common::PageType::RasterizerCachedMemory: {
-            u8* const host_ptr{GetPointerFromRasterizerCachedMemory(vaddr)};
-            system.GPU().InvalidateRegion(vaddr, sizeof(T));
-            std::memcpy(host_ptr, &data, sizeof(T));
-            break;
-        }
-        default:
-            UNREACHABLE();
+        u8* const ptr = GetPointerImpl(
+            vaddr,
+            [vaddr, data]() {
+                LOG_ERROR(HW_Memory, GetPointerImplError<"Write"_s, sizeof(T), " = 0x{:016X}"_s>(),
+                          vaddr, static_cast<u64>(data));
+            },
+            [&system = system, vaddr]() { system.GPU().InvalidateRegion(vaddr, sizeof(T)); });
+        if (ptr) {
+            std::memcpy(ptr, &data, sizeof(T));
         }
     }
 
     template <typename T>
     bool WriteExclusive(VAddr vaddr, const T data, const T expected) {
-        // AARCH64 masks the upper 16 bit of all memory accesses
-        vaddr &= 0xffffffffffffLL;
-
-        if (vaddr >= 1uLL << current_page_table->GetAddressSpaceBits()) {
-            LOG_ERROR(HW_Memory, "Unmapped Write{} 0x{:08X} @ 0x{:016X}", sizeof(data) * 8,
-                      static_cast<u32>(data), vaddr);
-            return true;
-        }
-
-        const uintptr_t raw_pointer = current_page_table->pointers[vaddr >> PAGE_BITS].Raw();
-        if (u8* const pointer = Common::PageTable::PageInfo::ExtractPointer(raw_pointer)) {
-            // NOTE: Avoid adding any extra logic to this fast-path block
-            const auto volatile_pointer = reinterpret_cast<volatile T*>(&pointer[vaddr]);
+        u8* const ptr = GetPointerImpl(
+            vaddr,
+            [vaddr, data]() {
+                LOG_ERROR(HW_Memory, GetPointerImplError<"Write"_s, sizeof(T), " = 0x{:016X}"_s>(),
+                          vaddr, static_cast<u64>(data));
+            },
+            [&system = system, vaddr]() { system.GPU().InvalidateRegion(vaddr, sizeof(T)); });
+        if (ptr) {
+            const auto volatile_pointer = reinterpret_cast<volatile T*>(ptr);
             return Common::AtomicCompareAndSwap(volatile_pointer, data, expected);
-        }
-        switch (Common::PageTable::PageInfo::ExtractType(raw_pointer)) {
-        case Common::PageType::Unmapped:
-            LOG_ERROR(HW_Memory, "Unmapped Write{} 0x{:08X} @ 0x{:016X}", sizeof(data) * 8,
-                      static_cast<u32>(data), vaddr);
-            return true;
-        case Common::PageType::Memory:
-            ASSERT_MSG(false, "Mapped memory page without a pointer @ {:016X}", vaddr);
-            break;
-        case Common::PageType::RasterizerCachedMemory: {
-            u8* host_ptr{GetPointerFromRasterizerCachedMemory(vaddr)};
-            system.GPU().InvalidateRegion(vaddr, sizeof(T));
-            auto* pointer = reinterpret_cast<volatile T*>(&host_ptr);
-            return Common::AtomicCompareAndSwap(pointer, data, expected);
-        }
-        default:
-            UNREACHABLE();
         }
         return true;
     }
 
     bool WriteExclusive128(VAddr vaddr, const u128 data, const u128 expected) {
-        // AARCH64 masks the upper 16 bit of all memory accesses
-        vaddr &= 0xffffffffffffLL;
-
-        if (vaddr >= 1uLL << current_page_table->GetAddressSpaceBits()) {
-            LOG_ERROR(HW_Memory, "Unmapped Write{} 0x{:08X} @ 0x{:016X}", sizeof(data) * 8,
-                      static_cast<u32>(data[0]), vaddr);
-            return true;
-        }
-
-        const uintptr_t raw_pointer = current_page_table->pointers[vaddr >> PAGE_BITS].Raw();
-        if (u8* const pointer = Common::PageTable::PageInfo::ExtractPointer(raw_pointer)) {
-            // NOTE: Avoid adding any extra logic to this fast-path block
-            const auto volatile_pointer = reinterpret_cast<volatile u64*>(&pointer[vaddr]);
+        u8* const ptr = GetPointerImpl(
+            vaddr,
+            [vaddr, data]() {
+                LOG_ERROR(HW_Memory,
+                          GetPointerImplError<"Write"_s, sizeof(u128), " = 0x{:016X}{:016X}"_s>(),
+                          vaddr, static_cast<u64>(data[1]), static_cast<u64>(data[0]));
+            },
+            [&system = system, vaddr]() { system.GPU().InvalidateRegion(vaddr, sizeof(u128)); });
+        if (ptr) {
+            const auto volatile_pointer = reinterpret_cast<volatile u64*>(ptr);
             return Common::AtomicCompareAndSwap(volatile_pointer, data, expected);
-        }
-        switch (Common::PageTable::PageInfo::ExtractType(raw_pointer)) {
-        case Common::PageType::Unmapped:
-            LOG_ERROR(HW_Memory, "Unmapped Write{} 0x{:08X} @ 0x{:016X}{:016X}", sizeof(data) * 8,
-                      static_cast<u64>(data[1]), static_cast<u64>(data[0]), vaddr);
-            return true;
-        case Common::PageType::Memory:
-            ASSERT_MSG(false, "Mapped memory page without a pointer @ {:016X}", vaddr);
-            break;
-        case Common::PageType::RasterizerCachedMemory: {
-            u8* host_ptr{GetPointerFromRasterizerCachedMemory(vaddr)};
-            system.GPU().InvalidateRegion(vaddr, sizeof(u128));
-            auto* pointer = reinterpret_cast<volatile u64*>(&host_ptr);
-            return Common::AtomicCompareAndSwap(pointer, data, expected);
-        }
-        default:
-            UNREACHABLE();
         }
         return true;
     }
