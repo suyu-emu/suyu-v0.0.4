@@ -40,6 +40,22 @@ void PatchFragCoord(IR::Block& block, IR::Inst& inst) {
     }
 }
 
+[[nodiscard]] IR::U32 SubScale(IR::IREmitter& ir, const IR::U1& is_scaled, const IR::U32& value,
+                               const IR::Attribute attrib) {
+    if (Settings::values.resolution_info.active) {
+        const IR::F32 opt1{ir.Imm32(Settings::values.resolution_info.up_factor)};
+        const IR::F32 base{ir.FPMul(ir.ConvertUToF(32, 32, value), opt1)};
+        const IR::F32 frag_coord{ir.GetAttribute(attrib)};
+        const IR::F32 opt2{ir.Imm32(Settings::values.resolution_info.down_factor)};
+        const IR::F32 floor{ir.FPMul(opt1, ir.FPFloor(ir.FPMul(frag_coord, opt2)))};
+        const IR::U32 deviation{
+            ir.ConvertFToU(32, ir.FPAdd(base, ir.FPAdd(frag_coord, ir.FPNeg(floor))))};
+        return IR::U32{ir.Select(is_scaled, deviation, value)};
+    } else {
+        return value;
+    }
+}
+
 [[nodiscard]] IR::U32 DownScale(IR::IREmitter& ir, const IR::U1& is_scaled, IR::U32 value) {
     IR::U32 scaled_value{value};
     bool changed{};
@@ -113,6 +129,74 @@ void ScaleIntegerCoord(IR::IREmitter& ir, IR::Inst& inst, const IR::U1& is_scale
     }
 }
 
+void SubScaleImageFetch(IR::Block& block, IR::Inst& inst) {
+    IR::IREmitter ir{block, IR::Block::InstructionList::s_iterator_to(inst)};
+    const auto info{inst.Flags<IR::TextureInstInfo>()};
+    const IR::U1 is_scaled{ir.IsTextureScaled(ir.Imm32(info.descriptor_index))};
+    const IR::Value coord{inst.Arg(1)};
+    switch (info.type) {
+    case TextureType::Color2D: {
+        const IR::U32 x{SubScale(ir, is_scaled, IR::U32{ir.CompositeExtract(coord, 0)},
+                                 IR::Attribute::PositionX)};
+        const IR::U32 y{SubScale(ir, is_scaled, IR::U32{ir.CompositeExtract(coord, 1)},
+                                 IR::Attribute::PositionY)};
+        inst.SetArg(1, ir.CompositeConstruct(x, y));
+        break;
+    }
+    case TextureType::ColorArray2D: {
+        const IR::U32 x{SubScale(ir, is_scaled, IR::U32{ir.CompositeExtract(coord, 0)},
+                                 IR::Attribute::PositionX)};
+        const IR::U32 y{SubScale(ir, is_scaled, IR::U32{ir.CompositeExtract(coord, 1)},
+                                 IR::Attribute::PositionY)};
+        const IR::U32 z{ir.CompositeExtract(coord, 2)};
+        inst.SetArg(1, ir.CompositeConstruct(x, y, z));
+        break;
+    }
+    case TextureType::Color1D:
+    case TextureType::ColorArray1D:
+    case TextureType::Color3D:
+    case TextureType::ColorCube:
+    case TextureType::ColorArrayCube:
+    case TextureType::Buffer:
+        // Nothing to patch here
+        break;
+    }
+}
+
+void SubScaleImageRead(IR::Block& block, IR::Inst& inst) {
+    IR::IREmitter ir{block, IR::Block::InstructionList::s_iterator_to(inst)};
+    const auto info{inst.Flags<IR::TextureInstInfo>()};
+    const IR::U1 is_scaled{ir.IsImageScaled(ir.Imm32(info.descriptor_index))};
+    const IR::Value coord{inst.Arg(1)};
+    switch (info.type) {
+    case TextureType::Color2D: {
+        const IR::U32 x{SubScale(ir, is_scaled, IR::U32{ir.CompositeExtract(coord, 0)},
+                                 IR::Attribute::PositionX)};
+        const IR::U32 y{SubScale(ir, is_scaled, IR::U32{ir.CompositeExtract(coord, 1)},
+                                 IR::Attribute::PositionY)};
+        inst.SetArg(1, ir.CompositeConstruct(x, y));
+        break;
+    }
+    case TextureType::ColorArray2D: {
+        const IR::U32 x{SubScale(ir, is_scaled, IR::U32{ir.CompositeExtract(coord, 0)},
+                                 IR::Attribute::PositionX)};
+        const IR::U32 y{SubScale(ir, is_scaled, IR::U32{ir.CompositeExtract(coord, 1)},
+                                 IR::Attribute::PositionY)};
+        const IR::U32 z{ir.CompositeExtract(coord, 2)};
+        inst.SetArg(1, ir.CompositeConstruct(x, y, z));
+        break;
+    }
+    case TextureType::Color1D:
+    case TextureType::ColorArray1D:
+    case TextureType::Color3D:
+    case TextureType::ColorCube:
+    case TextureType::ColorArrayCube:
+    case TextureType::Buffer:
+        // Nothing to patch here
+        break;
+    }
+}
+
 void PatchImageFetch(IR::Block& block, IR::Inst& inst) {
     IR::IREmitter ir{block, IR::Block::InstructionList::s_iterator_to(inst)};
     const auto info{inst.Flags<IR::TextureInstInfo>()};
@@ -145,13 +229,23 @@ void Visit(const IR::Program& program, IR::Block& block, IR::Inst& inst) {
         break;
     }
     case IR::Opcode::ImageQueryDimensions:
-        PatchImageQueryDimensions(block, inst);
+        if (program.stage == Stage::Compute) {
+            PatchImageQueryDimensions(block, inst);
+        }
         break;
     case IR::Opcode::ImageFetch:
-        PatchImageFetch(block, inst);
+        if (is_fragment_shader) {
+            SubScaleImageFetch(block, inst);
+        } else if (program.stage == Stage::Compute) {
+            PatchImageFetch(block, inst);
+        }
         break;
     case IR::Opcode::ImageRead:
-        PatchImageRead(block, inst);
+        if (is_fragment_shader) {
+            SubScaleImageRead(block, inst);
+        } else if (program.stage == Stage::Compute) {
+            PatchImageRead(block, inst);
+        }
         break;
     default:
         break;
