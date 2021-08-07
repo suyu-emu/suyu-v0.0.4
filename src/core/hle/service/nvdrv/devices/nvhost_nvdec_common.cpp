@@ -178,30 +178,11 @@ NvResult nvhost_nvdec_common::MapBuffer(const std::vector<u8>& input, std::vecto
 }
 
 NvResult nvhost_nvdec_common::UnmapBuffer(const std::vector<u8>& input, std::vector<u8>& output) {
-    IoctlMapBuffer params{};
-    std::memcpy(&params, input.data(), sizeof(IoctlMapBuffer));
-    std::vector<MapBufferEntry> cmd_buffer_handles(params.num_entries);
-    SliceVectors(input, cmd_buffer_handles, params.num_entries, sizeof(IoctlMapBuffer));
-
-    auto& gpu = system.GPU();
-
-    for (auto& cmd_buffer : cmd_buffer_handles) {
-        const auto object{nvmap_dev->GetObject(cmd_buffer.map_handle)};
-        if (!object) {
-            LOG_ERROR(Service_NVDRV, "invalid cmd_buffer nvmap_handle={:X}", cmd_buffer.map_handle);
-            std::memcpy(output.data(), &params, output.size());
-            return NvResult::InvalidState;
-        }
-        if (const auto size{RemoveBufferMap(object->dma_map_addr)}; size) {
-            gpu.MemoryManager().Unmap(object->dma_map_addr, *size);
-        } else {
-            // This occurs quite frequently, however does not seem to impact functionality
-            LOG_DEBUG(Service_NVDRV, "invalid offset=0x{:X} dma=0x{:X}", object->addr,
-                      object->dma_map_addr);
-        }
-        object->dma_map_addr = 0;
-    }
+    // This is intntionally stubbed.
+    // Skip unmapping buffers here, as to not break the continuity of the VP9 reference frame
+    // addresses, and risk invalidating data before the async GPU thread is done with it
     std::memset(output.data(), 0, output.size());
+    LOG_DEBUG(Service_NVDRV, "(STUBBED) called");
     return NvResult::Success;
 }
 
