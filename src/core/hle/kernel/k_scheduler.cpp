@@ -721,7 +721,7 @@ void KScheduler::SwitchContextStep2() {
 }
 
 void KScheduler::ScheduleImpl() {
-    KThread* previous_thread = current_thread.load();
+    KThread* previous_thread = GetCurrentThread();
     KThread* next_thread = state.highest_priority_thread;
 
     state.needs_scheduling = false;
@@ -733,8 +733,13 @@ void KScheduler::ScheduleImpl() {
 
     // If we're not actually switching thread, there's nothing to do.
     if (next_thread == current_thread.load()) {
+        previous_thread->EnableDispatch();
         guard.Unlock();
         return;
+    }
+
+    if (next_thread->GetCurrentCore() != core_id) {
+        next_thread->SetCurrentCore(core_id);
     }
 
     current_thread.store(next_thread);
@@ -747,11 +752,7 @@ void KScheduler::ScheduleImpl() {
     Unload(previous_thread);
 
     std::shared_ptr<Common::Fiber>* old_context;
-    if (previous_thread != nullptr) {
-        old_context = &previous_thread->GetHostContext();
-    } else {
-        old_context = &idle_thread->GetHostContext();
-    }
+    old_context = &previous_thread->GetHostContext();
     guard.Unlock();
 
     Common::Fiber::YieldTo(*old_context, *switch_fiber);
