@@ -827,15 +827,11 @@ size_t KernelCore::CurrentPhysicalCoreIndex() const {
 }
 
 Kernel::PhysicalCore& KernelCore::CurrentPhysicalCore() {
-    u32 core_id = impl->GetCurrentHostThreadID();
-    ASSERT(core_id < Core::Hardware::NUM_CPU_CORES);
-    return impl->cores[core_id];
+    return impl->cores[CurrentPhysicalCoreIndex()];
 }
 
 const Kernel::PhysicalCore& KernelCore::CurrentPhysicalCore() const {
-    u32 core_id = impl->GetCurrentHostThreadID();
-    ASSERT(core_id < Core::Hardware::NUM_CPU_CORES);
-    return impl->cores[core_id];
+    return impl->cores[CurrentPhysicalCoreIndex()];
 }
 
 Kernel::KScheduler* KernelCore::CurrentScheduler() {
