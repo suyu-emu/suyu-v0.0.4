@@ -134,9 +134,8 @@ void Codec::Initialize() {
     if (!av_codec_ctx->hw_device_ctx) {
         LOG_INFO(Service_NVDRV, "Using FFmpeg software decoding");
     }
-    const auto av_error = avcodec_open2(av_codec_ctx, av_codec, nullptr);
-    if (av_error < 0) {
-        LOG_ERROR(Service_NVDRV, "avcodec_open2() Failed.");
+    if (const int res = avcodec_open2(av_codec_ctx, av_codec, nullptr); res < 0) {
+        LOG_ERROR(Service_NVDRV, "avcodec_open2() Failed with result {}", res);
         avcodec_close(av_codec_ctx);
         av_buffer_unref(&av_gpu_decoder);
         return;
@@ -164,12 +163,17 @@ void Codec::Decode() {
         frame_data = vp9_decoder->ComposeFrameHeader(state);
         vp9_hidden_frame = vp9_decoder->WasFrameHidden();
     }
-    AVPacket packet{};
-    av_init_packet(&packet);
-    packet.data = frame_data.data();
-    packet.size = static_cast<s32>(frame_data.size());
-    if (const int ret = avcodec_send_packet(av_codec_ctx, &packet); ret) {
-        LOG_DEBUG(Service_NVDRV, "avcodec_send_packet error {}", ret);
+    AVPacket* packet = av_packet_alloc();
+    if (!packet) {
+        LOG_ERROR(Service_NVDRV, "av_packet_alloc failed");
+        return;
+    }
+    packet->data = frame_data.data();
+    packet->size = static_cast<s32>(frame_data.size());
+    const int send_pkt_ret = avcodec_send_packet(av_codec_ctx, packet);
+    av_packet_free(&packet);
+    if (send_pkt_ret != 0) {
+        LOG_DEBUG(Service_NVDRV, "avcodec_send_packet error {}", send_pkt_ret);
         return;
     }
     // Only receive/store visible frames
