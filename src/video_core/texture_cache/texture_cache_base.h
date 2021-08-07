@@ -4,12 +4,8 @@
 
 #pragma once
 
-#include <algorithm>
 #include <array>
-#include <bit>
-#include <memory>
 #include <mutex>
-#include <optional>
 #include <span>
 #include <type_traits>
 #include <unordered_map>
@@ -22,11 +18,9 @@
 #include "common/alignment.h"
 #include "common/common_types.h"
 #include "common/literals.h"
-#include "common/logging/log.h"
 #include "common/settings.h"
 #include "video_core/compatible_formats.h"
 #include "video_core/delayed_destruction_ring.h"
-#include "video_core/dirty_flags.h"
 #include "video_core/engines/fermi_2d.h"
 #include "video_core/engines/kepler_compute.h"
 #include "video_core/engines/maxwell_3d.h"
@@ -34,14 +28,10 @@
 #include "video_core/rasterizer_interface.h"
 #include "video_core/surface.h"
 #include "video_core/texture_cache/descriptor_table.h"
-#include "video_core/texture_cache/format_lookup_table.h"
-#include "video_core/texture_cache/formatter.h"
 #include "video_core/texture_cache/image_base.h"
 #include "video_core/texture_cache/image_info.h"
-#include "video_core/texture_cache/image_view_base.h"
 #include "video_core/texture_cache/image_view_info.h"
 #include "video_core/texture_cache/render_targets.h"
-#include "video_core/texture_cache/samples_helper.h"
 #include "video_core/texture_cache/slot_vector.h"
 #include "video_core/texture_cache/types.h"
 #include "video_core/texture_cache/util.h"
