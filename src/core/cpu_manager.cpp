@@ -33,7 +33,7 @@ void CpuManager::Initialize() {
             core_data[core].host_thread = std::jthread(ThreadStart, std::ref(*this), core);
         }
     } else {
-        core_data[0].host_thread = std::jthread(ThreadStart, std::ref(*this), 0);
+        core_data[0].host_thread = std::jthread(ThreadStart, std::ref(*this), -1);
     }
 }
 
@@ -348,13 +348,9 @@ void CpuManager::RunThread(std::stop_token stop_token, std::size_t core) {
             sc_sync_first_use = false;
         }
 
-        // Abort if emulation was killed before the session really starts
-        if (!system.IsPoweredOn()) {
-            return;
-        }
-
+        // Emulation was stopped
         if (stop_token.stop_requested()) {
-            break;
+            return;
         }
 
         auto current_thread = system.Kernel().CurrentScheduler()->GetCurrentThread();
