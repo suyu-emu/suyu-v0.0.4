@@ -773,7 +773,7 @@ public:
 
 class KScopedDisableDispatch {
 public:
-    explicit KScopedDisableDispatch(KernelCore& kernel_) : kernel{kernel_} {
+    [[nodiscard]] explicit KScopedDisableDispatch(KernelCore& kernel_) : kernel{kernel_} {
         GetCurrentThread(kernel).DisableDispatch();
     }
 
