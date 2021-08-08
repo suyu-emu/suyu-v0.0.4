@@ -55,6 +55,8 @@ public:
     [[nodiscard]] std::string_view GetCurrentCodecName() const;
 
 private:
+    void InitializeAvCodecContext();
+
     void InitializeGpuDecoder();
 
     bool CreateGpuAvDevice();

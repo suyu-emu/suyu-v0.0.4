@@ -20,6 +20,12 @@ namespace {
 constexpr AVPixelFormat PREFERRED_GPU_FMT = AV_PIX_FMT_NV12;
 constexpr AVPixelFormat PREFERRED_CPU_FMT = AV_PIX_FMT_YUV420P;
 
+void AVPacketDeleter(AVPacket* ptr) {
+    av_packet_free(&ptr);
+}
+
+using AVPacketPtr = std::unique_ptr<AVPacket, decltype(&AVPacketDeleter)>;
+
 AVPixelFormat GetGpuFormat(AVCodecContext* av_codec_ctx, const AVPixelFormat* pix_fmts) {
     for (const AVPixelFormat* p = pix_fmts; *p != AV_PIX_FMT_NONE; ++p) {
         if (*p == av_codec_ctx->pix_fmt) {
@@ -46,11 +52,7 @@ Codec::~Codec() {
         return;
     }
     // Free libav memory
-    avcodec_send_packet(av_codec_ctx, nullptr);
-    AVFramePtr av_frame{av_frame_alloc(), AVFrameDeleter};
-    avcodec_receive_frame(av_codec_ctx, av_frame.get());
-    avcodec_flush_buffers(av_codec_ctx);
-    avcodec_close(av_codec_ctx);
+    avcodec_free_context(&av_codec_ctx);
     av_buffer_unref(&av_gpu_decoder);
 }
 
@@ -111,6 +113,11 @@ bool Codec::CreateGpuAvDevice() {
     return false;
 }
 
+void Codec::InitializeAvCodecContext() {
+    av_codec_ctx = avcodec_alloc_context3(av_codec);
+    av_opt_set(av_codec_ctx->priv_data, "tune", "zerolatency", 0);
+}
+
 void Codec::InitializeGpuDecoder() {
     if (!CreateGpuAvDevice()) {
         av_buffer_unref(&av_gpu_decoder);
@@ -135,13 +142,11 @@ void Codec::Initialize() {
         }
     }();
     av_codec = avcodec_find_decoder(codec);
-    av_codec_ctx = avcodec_alloc_context3(av_codec);
-    av_opt_set(av_codec_ctx->priv_data, "tune", "zerolatency", 0);
-
+    InitializeAvCodecContext();
     InitializeGpuDecoder();
     if (const int res = avcodec_open2(av_codec_ctx, av_codec, nullptr); res < 0) {
         LOG_ERROR(Service_NVDRV, "avcodec_open2() Failed with result {}", res);
-        avcodec_close(av_codec_ctx);
+        avcodec_free_context(&av_codec_ctx);
         av_buffer_unref(&av_gpu_decoder);
         return;
     }
@@ -174,17 +179,15 @@ void Codec::Decode() {
         frame_data = vp9_decoder->ComposeFrameHeader(state);
         vp9_hidden_frame = vp9_decoder->WasFrameHidden();
     }
-    AVPacket* packet = av_packet_alloc();
+    AVPacketPtr packet{av_packet_alloc(), AVPacketDeleter};
     if (!packet) {
         LOG_ERROR(Service_NVDRV, "av_packet_alloc failed");
         return;
     }
     packet->data = frame_data.data();
     packet->size = static_cast<s32>(frame_data.size());
-    const int send_pkt_ret = avcodec_send_packet(av_codec_ctx, packet);
-    av_packet_free(&packet);
-    if (send_pkt_ret != 0) {
-        LOG_DEBUG(Service_NVDRV, "avcodec_send_packet error {}", send_pkt_ret);
+    if (const int res = avcodec_send_packet(av_codec_ctx, packet.get()); res != 0) {
+        LOG_DEBUG(Service_NVDRV, "avcodec_send_packet error {}", res);
         return;
     }
     // Only receive/store visible frames
