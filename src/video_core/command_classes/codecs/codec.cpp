@@ -5,6 +5,7 @@
 #include <fstream>
 #include <vector>
 #include "common/assert.h"
+#include "common/settings.h"
 #include "video_core/command_classes/codecs/codec.h"
 #include "video_core/command_classes/codecs/h264.h"
 #include "video_core/command_classes/codecs/vp9.h"
@@ -142,8 +143,11 @@ void Codec::Initialize() {
         }
     }();
     av_codec = avcodec_find_decoder(codec);
+
     InitializeAvCodecContext();
-    InitializeGpuDecoder();
+    if (Settings::values.nvdec_emulation.GetValue() == Settings::NvdecEmulation::GPU) {
+        InitializeGpuDecoder();
+    }
     if (const int res = avcodec_open2(av_codec_ctx, av_codec, nullptr); res < 0) {
         LOG_ERROR(Service_NVDRV, "avcodec_open2() Failed with result {}", res);
         avcodec_free_context(&av_codec_ctx);

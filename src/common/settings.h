@@ -48,6 +48,12 @@ enum class FullscreenMode : u32 {
     Exclusive = 1,
 };
 
+enum class NvdecEmulation : u32 {
+    Off = 0,
+    CPU = 1,
+    GPU = 2,
+};
+
 /** The BasicSetting class is a simple resource manager. It defines a label and default value
  * alongside the actual value of the setting for simpler and less-error prone use with frontend
  * configurations. Setting a default value and label is required, though subclasses may deviate from
@@ -466,7 +472,7 @@ struct Values {
     RangedSetting<GPUAccuracy> gpu_accuracy{GPUAccuracy::High, GPUAccuracy::Normal,
                                             GPUAccuracy::Extreme, "gpu_accuracy"};
     Setting<bool> use_asynchronous_gpu_emulation{true, "use_asynchronous_gpu_emulation"};
-    Setting<bool> use_nvdec_emulation{true, "use_nvdec_emulation"};
+    Setting<NvdecEmulation> nvdec_emulation{NvdecEmulation::GPU, "nvdec_emulation"};
     Setting<bool> accelerate_astc{true, "accelerate_astc"};
     Setting<bool> use_vsync{true, "use_vsync"};
     BasicRangedSetting<u16> fps_cap{1000, 1, 1000, "fps_cap"};
