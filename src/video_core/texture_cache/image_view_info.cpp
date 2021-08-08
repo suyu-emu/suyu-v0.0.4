@@ -14,6 +14,8 @@ namespace VideoCommon {
 
 namespace {
 
+using Tegra::Texture::TextureType;
+
 constexpr u8 RENDER_TARGET_SWIZZLE = std::numeric_limits<u8>::max();
 
 [[nodiscard]] u8 CastSwizzle(SwizzleSource source) {

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "common/alignment.h"
+#include "common/settings.h"
 #include "video_core/dirty_flags.h"
 #include "video_core/texture_cache/samples_helper.h"
 #include "video_core/texture_cache/texture_cache_base.h"

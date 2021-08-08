@@ -10,15 +10,10 @@
 #include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
-#include <utility>
 #include <vector>
 
-#include <boost/container/small_vector.hpp>
-
-#include "common/alignment.h"
 #include "common/common_types.h"
 #include "common/literals.h"
-#include "common/settings.h"
 #include "video_core/compatible_formats.h"
 #include "video_core/delayed_destruction_ring.h"
 #include "video_core/engines/fermi_2d.h"
@@ -40,7 +35,6 @@
 namespace VideoCommon {
 
 using Tegra::Texture::SwizzleSource;
-using Tegra::Texture::TextureType;
 using Tegra::Texture::TICEntry;
 using Tegra::Texture::TSCEntry;
 using VideoCore::Surface::GetFormatType;
@@ -48,7 +42,6 @@ using VideoCore::Surface::IsCopyCompatible;
 using VideoCore::Surface::PixelFormat;
 using VideoCore::Surface::PixelFormatFromDepthFormat;
 using VideoCore::Surface::PixelFormatFromRenderTargetFormat;
-using VideoCore::Surface::SurfaceType;
 using namespace Common::Literals;
 
 template <class P>
