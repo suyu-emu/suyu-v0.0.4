@@ -60,7 +60,6 @@ private:
     bool CreateGpuAvDevice();
 
     bool initialized{};
-    bool using_gpu_decode{};
     NvdecCommon::VideoCodec current_codec{NvdecCommon::VideoCodec::None};
 
     AVCodec* av_codec{nullptr};

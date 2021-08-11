@@ -17,6 +17,9 @@ extern "C" {
 
 namespace Tegra {
 namespace {
+constexpr AVPixelFormat PREFERRED_GPU_FMT = AV_PIX_FMT_NV12;
+constexpr AVPixelFormat PREFERRED_CPU_FMT = AV_PIX_FMT_YUV420P;
+
 AVPixelFormat GetGpuFormat(AVCodecContext* av_codec_ctx, const AVPixelFormat* pix_fmts) {
     for (const AVPixelFormat* p = pix_fmts; *p != AV_PIX_FMT_NONE; ++p) {
         if (*p == av_codec_ctx->pix_fmt) {
@@ -24,7 +27,9 @@ AVPixelFormat GetGpuFormat(AVCodecContext* av_codec_ctx, const AVPixelFormat* pi
         }
     }
     LOG_INFO(Service_NVDRV, "Could not find compatible GPU AV format, falling back to CPU");
-    return AV_PIX_FMT_NONE;
+    av_buffer_unref(&av_codec_ctx->hw_device_ctx);
+    av_codec_ctx->pix_fmt = PREFERRED_CPU_FMT;
+    return PREFERRED_CPU_FMT;
 }
 } // namespace
 
@@ -83,7 +88,12 @@ bool Codec::CreateGpuAvDevice() {
 #endif
     };
     for (const auto& type : GPU_DECODER_TYPES) {
-        av_hwdevice_ctx_create(&av_gpu_decoder, type, nullptr, nullptr, 0);
+        const int hwdevice_res = av_hwdevice_ctx_create(&av_gpu_decoder, type, nullptr, nullptr, 0);
+        if (hwdevice_res < 0) {
+            LOG_DEBUG(Service_NVDRV, "{} av_hwdevice_ctx_create failed {}",
+                      av_hwdevice_get_type_name(type), hwdevice_res);
+            continue;
+        }
         for (int i = 0;; i++) {
             const AVCodecHWConfig* config = avcodec_get_hw_config(av_codec, i);
             if (!config) {
@@ -110,35 +120,33 @@ void Codec::InitializeGpuDecoder() {
     ASSERT_MSG(hw_device_ctx, "av_buffer_ref failed");
     av_codec_ctx->hw_device_ctx = hw_device_ctx;
     av_codec_ctx->get_format = GetGpuFormat;
-    using_gpu_decode = true;
 }
 
 void Codec::Initialize() {
-    AVCodecID codec;
-    switch (current_codec) {
-    case NvdecCommon::VideoCodec::H264:
-        codec = AV_CODEC_ID_H264;
-        break;
-    case NvdecCommon::VideoCodec::Vp9:
-        codec = AV_CODEC_ID_VP9;
-        break;
-    default:
-        UNIMPLEMENTED_MSG("Unknown codec {}", current_codec);
-        return;
-    }
+    const AVCodecID codec = [&] {
+        switch (current_codec) {
+        case NvdecCommon::VideoCodec::H264:
+            return AV_CODEC_ID_H264;
+        case NvdecCommon::VideoCodec::Vp9:
+            return AV_CODEC_ID_VP9;
+        default:
+            UNIMPLEMENTED_MSG("Unknown codec {}", current_codec);
+            return AV_CODEC_ID_NONE;
+        }
+    }();
     av_codec = avcodec_find_decoder(codec);
     av_codec_ctx = avcodec_alloc_context3(av_codec);
     av_opt_set(av_codec_ctx->priv_data, "tune", "zerolatency", 0);
 
     InitializeGpuDecoder();
-    if (!av_codec_ctx->hw_device_ctx) {
-        LOG_INFO(Service_NVDRV, "Using FFmpeg software decoding");
-    }
     if (const int res = avcodec_open2(av_codec_ctx, av_codec, nullptr); res < 0) {
         LOG_ERROR(Service_NVDRV, "avcodec_open2() Failed with result {}", res);
         avcodec_close(av_codec_ctx);
         av_buffer_unref(&av_gpu_decoder);
         return;
+    }
+    if (!av_codec_ctx->hw_device_ctx) {
+        LOG_INFO(Service_NVDRV, "Using FFmpeg software decoding");
     }
     initialized = true;
 }
@@ -154,6 +162,9 @@ void Codec::Decode() {
     const bool is_first_frame = !initialized;
     if (is_first_frame) {
         Initialize();
+    }
+    if (!initialized) {
+        return;
     }
     bool vp9_hidden_frame = false;
     std::vector<u8> frame_data;
@@ -191,18 +202,18 @@ void Codec::Decode() {
         LOG_WARNING(Service_NVDRV, "Zero width or height in frame");
         return;
     }
-    if (using_gpu_decode) {
+    if (av_codec_ctx->hw_device_ctx) {
         final_frame = AVFramePtr{av_frame_alloc(), AVFrameDeleter};
         ASSERT_MSG(final_frame, "av_frame_alloc final_frame failed");
         // Can't use AV_PIX_FMT_YUV420P and share code with software decoding in vic.cpp
         // because Intel drivers crash unless using AV_PIX_FMT_NV12
-        final_frame->format = AV_PIX_FMT_NV12;
+        final_frame->format = PREFERRED_GPU_FMT;
         const int ret = av_hwframe_transfer_data(final_frame.get(), initial_frame.get(), 0);
         ASSERT_MSG(!ret, "av_hwframe_transfer_data error {}", ret);
     } else {
         final_frame = std::move(initial_frame);
     }
-    if (final_frame->format != AV_PIX_FMT_YUV420P && final_frame->format != AV_PIX_FMT_NV12) {
+    if (final_frame->format != PREFERRED_CPU_FMT && final_frame->format != PREFERRED_GPU_FMT) {
         UNIMPLEMENTED_MSG("Unexpected video format: {}", final_frame->format);
         return;
     }
