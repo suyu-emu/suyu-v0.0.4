@@ -75,7 +75,7 @@ public:
      */
     explicit BasicSetting(const Type& default_val, const std::string& name)
         : default_value{default_val}, global{default_val}, label{name} {}
-    ~BasicSetting() = default;
+    virtual ~BasicSetting() = default;
 
     /**
      *  Returns a reference to the setting's value.
@@ -161,7 +161,7 @@ public:
     explicit BasicRangedSetting(const Type& default_val, const Type& min_val, const Type& max_val,
                                 const std::string& name)
         : BasicSetting<Type>{default_val, name}, minimum{min_val}, maximum{max_val} {}
-    ~BasicRangedSetting() = default;
+    virtual ~BasicRangedSetting() = default;
 
     /**
      * Like BasicSetting's SetValue, except value is clamped to the range of the setting.
@@ -208,7 +208,7 @@ public:
      */
     explicit Setting(const Type& default_val, const std::string& name)
         : BasicSetting<Type>(default_val, name) {}
-    ~Setting() = default;
+    virtual ~Setting() = default;
 
     /**
      * Tells this setting to represent either the global or custom setting when other member
@@ -237,13 +237,13 @@ public:
      *
      * @returns The required value of the setting
      */
-    [[nodiscard]] const Type& GetValue() const override {
+    [[nodiscard]] virtual const Type& GetValue() const override {
         if (use_global) {
             return this->global;
         }
         return custom;
     }
-    [[nodiscard]] const Type& GetValue(bool need_global) const {
+    [[nodiscard]] virtual const Type& GetValue(bool need_global) const {
         if (use_global || need_global) {
             return this->global;
         }
@@ -286,7 +286,7 @@ public:
      *
      * @returns A reference to the current setting value
      */
-    explicit operator const Type&() const override {
+    virtual explicit operator const Type&() const override {
         if (use_global) {
             return this->global;
         }
@@ -318,7 +318,22 @@ public:
         : BasicSetting<Type>{default_val, name},
           BasicRangedSetting<Type>{default_val, min_val, max_val, name}, Setting<Type>{default_val,
                                                                                        name} {}
-    ~RangedSetting() = default;
+    virtual ~RangedSetting() = default;
+
+    // The following are needed to avoid a MSVC bug
+    // (source: https://stackoverflow.com/questions/469508)
+    [[nodiscard]] const Type& GetValue() const override {
+        return Setting<Type>::GetValue();
+    }
+    [[nodiscard]] const Type& GetValue(bool need_global) const override {
+        return Setting<Type>::GetValue(need_global);
+    }
+    explicit operator const Type&() const override {
+        if (this->use_global) {
+            return this->global;
+        }
+        return this->custom;
+    }
 
     /**
      * Like BasicSetting's SetValue, except value is clamped to the range of the setting. Sets the
