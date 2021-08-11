@@ -376,7 +376,7 @@ if (ENABLE_SDL2)
     if (YUZU_USE_BUNDLED_SDL2)
         # Detect toolchain and platform
         if ((MSVC_VERSION GREATER_EQUAL 1910 AND MSVC_VERSION LESS 1930) AND ARCHITECTURE_x86_64)
-            set(SDL2_VER "SDL2-2.0.15-prerelease")
+            set(SDL2_VER "SDL2-2.0.16")
         else()
             message(FATAL_ERROR "No bundled SDL2 binaries for your toolchain. Disable YUZU_USE_BUNDLED_SDL2 and provide your own.")
         endif()
@@ -396,7 +396,7 @@ if (ENABLE_SDL2)
     elseif (YUZU_USE_EXTERNAL_SDL2)
         message(STATUS "Using SDL2 from externals.")
     else()
-        find_package(SDL2 2.0.15 REQUIRED)
+        find_package(SDL2 2.0.16 REQUIRED)
 
         # Some installations don't set SDL2_LIBRARIES
         if("${SDL2_LIBRARIES}" STREQUAL "")
