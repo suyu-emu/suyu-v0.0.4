@@ -122,6 +122,10 @@ void EmuWindow_SDL2::OnResize() {
     UpdateCurrentFramebufferLayout(width, height);
 }
 
+void EmuWindow_SDL2::ShowCursor(bool show_cursor) {
+    SDL_ShowCursor(show_cursor ? SDL_ENABLE : SDL_DISABLE);
+}
+
 void EmuWindow_SDL2::Fullscreen() {
     switch (Settings::values.fullscreen_mode.GetValue()) {
     case Settings::FullscreenMode::Exclusive:
@@ -228,6 +232,7 @@ void EmuWindow_SDL2::WaitEvent() {
     }
 }
 
+// Credits to Samantas5855 and others for this function.
 void EmuWindow_SDL2::SetWindowIcon() {
     SDL_RWops* const yuzu_icon_stream = SDL_RWFromConstMem((void*)yuzu_icon, yuzu_icon_size);
     if (yuzu_icon_stream == nullptr) {
