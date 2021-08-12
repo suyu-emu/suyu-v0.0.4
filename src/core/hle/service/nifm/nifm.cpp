@@ -324,7 +324,7 @@ private:
 
         auto ipv4 = Network::GetHostIPv4Address();
         if (!ipv4) {
-            LOG_CRITICAL(Service_NIFM, "Couldn't get host IPv4 address, defaulting to 0.0.0.0");
+            LOG_ERROR(Service_NIFM, "Couldn't get host IPv4 address, defaulting to 0.0.0.0");
             ipv4.emplace(Network::IPv4Address{0, 0, 0, 0});
         }
 
@@ -359,7 +359,7 @@ private:
 
         auto ipv4 = Network::GetHostIPv4Address();
         if (!ipv4) {
-            LOG_CRITICAL(Service_NIFM, "Couldn't get host IPv4 address, defaulting to 0.0.0.0");
+            LOG_ERROR(Service_NIFM, "Couldn't get host IPv4 address, defaulting to 0.0.0.0");
             ipv4.emplace(Network::IPv4Address{0, 0, 0, 0});
         }
 
