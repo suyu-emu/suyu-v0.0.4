@@ -22,8 +22,6 @@ namespace Network {
 #ifdef _WIN32
 
 std::vector<NetworkInterface> GetAvailableNetworkInterfaces() {
-    std::vector<NetworkInterface> result;
-
     std::vector<u8> adapter_addresses_raw;
     auto adapter_addresses = reinterpret_cast<PIP_ADAPTER_ADDRESSES>(adapter_addresses_raw.data());
     DWORD ret = ERROR_BUFFER_OVERFLOW;
@@ -44,6 +42,8 @@ std::vector<NetworkInterface> GetAvailableNetworkInterfaces() {
     }
 
     if (ret == NO_ERROR) {
+        std::vector<NetworkInterface> result;
+
         for (auto current_address = adapter_addresses; current_address != nullptr;
              current_address = current_address->Next) {
             if (current_address->FirstUnicastAddress == nullptr ||
@@ -63,11 +63,12 @@ std::vector<NetworkInterface> GetAvailableNetworkInterfaces() {
                 .name{Common::UTF16ToUTF8(std::wstring{current_address->FriendlyName})},
                 .ip_address{ip_addr}});
         }
+
+        return result;
     } else {
         LOG_ERROR(Network, "Failed to get network interfaces with GetAdaptersAddresses");
+        return {};
     }
-
-    return result;
 }
 
 #else
