@@ -48,7 +48,7 @@ ConfigureNetwork::ConfigureNetwork(QWidget* parent)
     ui->bcat_source->addItem(QStringLiteral("Boxcat"), QStringLiteral("boxcat"));
 #endif
 
-    ui->network_interface->addItem(QStringLiteral("None"));
+    ui->network_interface->addItem(tr("None"));
     for (const auto& interface : Network::GetAvailableNetworkInterfaces()) {
         ui->network_interface->addItem(QString::fromStdString(interface.name));
     }
