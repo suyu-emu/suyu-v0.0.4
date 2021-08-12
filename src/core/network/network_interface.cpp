@@ -92,7 +92,7 @@ std::vector<NetworkInterface> GetAvailableNetworkInterfaces() {
             continue;
         }
 
-        if (!(ifa->ifa_flags & IFF_UP) || ifa->ifa_flags & IFF_LOOPBACK) {
+        if ((ifa->ifa_flags & IFF_UP) == 0 || (ifa->ifa_flags & IFF_LOOPBACK) != 0) {
             continue;
         }
 
