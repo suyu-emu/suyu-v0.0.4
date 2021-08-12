@@ -4,6 +4,7 @@
 
 #include <vector>
 
+#include "common/bit_cast.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "common/string_util.h"
@@ -55,7 +56,7 @@ std::vector<NetworkInterface> GetAvailableNetworkInterfaces() {
                 continue;
             }
 
-            const auto ip_addr = std::bit_cast<struct sockaddr_in>(
+            const auto ip_addr = Common::BitCast<struct sockaddr_in>(
                                      *current_address->FirstUnicastAddress->Address.lpSockaddr)
                                      .sin_addr;
 
@@ -99,7 +100,7 @@ std::vector<NetworkInterface> GetAvailableNetworkInterfaces() {
 
         result.push_back(NetworkInterface{
             .name{ifa->ifa_name},
-            .ip_address{std::bit_cast<struct sockaddr_in>(*ifa->ifa_addr).sin_addr}});
+            .ip_address{Common::BitCast<struct sockaddr_in>(*ifa->ifa_addr).sin_addr}});
     }
 
     freeifaddrs(ifaddr);
