@@ -10,8 +10,8 @@
 #include "common/common_funcs.h"
 
 #ifdef _WIN32
-#define _WINSOCK_DEPRECATED_NO_WARNINGS // gethostname
 #include <winsock2.h>
+#include <ws2tcpip.h>
 #elif YUZU_UNIX
 #include <errno.h>
 #include <fcntl.h>
@@ -19,6 +19,7 @@
 #include <netinet/in.h>
 #include <poll.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 #include <unistd.h>
 #else
 #error "Unimplemented platform"
@@ -27,7 +28,9 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/network/network.h"
+#include "core/network/network_interface.h"
 #include "core/network/sockets.h"
 
 namespace Network {
@@ -357,27 +360,27 @@ NetworkInstance::~NetworkInstance() {
     Finalize();
 }
 
-std::pair<IPv4Address, Errno> GetHostIPv4Address() {
-    std::array<char, 256> name{};
-    if (gethostname(name.data(), static_cast<int>(name.size()) - 1) == SOCKET_ERROR) {
-        return {IPv4Address{}, GetAndLogLastError()};
-    }
+std::optional<IPv4Address> GetHostIPv4Address() {
+    const std::string& selected_network_interface = Settings::values.network_interface.GetValue();
+    const auto network_interfaces = Network::GetAvailableNetworkInterfaces();
+    ASSERT_MSG(network_interfaces.size() > 0, "GetAvailableNetworkInterfaces returned no interfaces");
 
-    hostent* const ent = gethostbyname(name.data());
-    if (!ent) {
-        return {IPv4Address{}, GetAndLogLastError()};
-    }
-    if (ent->h_addr_list == nullptr) {
-        UNIMPLEMENTED_MSG("No addr provided in hostent->h_addr_list");
-        return {IPv4Address{}, Errno::SUCCESS};
-    }
-    if (ent->h_length != sizeof(in_addr)) {
-        UNIMPLEMENTED_MSG("Unexpected size={} in hostent->h_length", ent->h_length);
-    }
 
-    in_addr addr;
-    std::memcpy(&addr, ent->h_addr_list[0], sizeof(addr));
-    return {TranslateIPv4(addr), Errno::SUCCESS};
+    const auto res = std::ranges::find_if(network_interfaces,
+                                          [&selected_network_interface](const auto& interface) {
+                                              return interface.name == selected_network_interface;
+                                          });
+
+    if (res != network_interfaces.end()) {
+        char ip_addr[16];
+        ASSERT(inet_ntop(AF_INET, &res->ip_address, ip_addr, sizeof(ip_addr)) != nullptr);
+        LOG_INFO(Network, "IP address: {}", ip_addr);
+
+        return TranslateIPv4(res->ip_address);
+    } else {
+        LOG_ERROR(Network, "Couldn't find selected interface \"{}\"", selected_network_interface);
+        return {};
+    }
 }
 
 std::pair<s32, Errno> Poll(std::vector<PollFD>& pollfds, s32 timeout) {

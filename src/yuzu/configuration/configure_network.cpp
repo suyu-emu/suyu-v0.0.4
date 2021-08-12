@@ -5,9 +5,10 @@
 #include <QGraphicsItem>
 #include <QtConcurrent/QtConcurrent>
 #include "common/settings.h"
+#include "core/core.h"
 #include "core/hle/service/bcat/backend/boxcat.h"
-#include "ui_configure_service.h"
-#include "yuzu/configuration/configure_service.h"
+#include "ui_configure_network.h"
+#include "yuzu/configuration/configure_network.h"
 
 #ifdef YUZU_ENABLE_BOXCAT
 namespace {
@@ -35,8 +36,8 @@ QString FormatEventStatusString(const Service::BCAT::EventStatus& status) {
 } // Anonymous namespace
 #endif
 
-ConfigureService::ConfigureService(QWidget* parent)
-    : QWidget(parent), ui(std::make_unique<Ui::ConfigureService>()) {
+ConfigureNetwork::ConfigureNetwork(QWidget* parent)
+    : QWidget(parent), ui(std::make_unique<Ui::ConfigureNetwork>()) {
     ui->setupUi(this);
 
     ui->bcat_source->addItem(QStringLiteral("None"));
@@ -47,29 +48,42 @@ ConfigureService::ConfigureService(QWidget* parent)
     ui->bcat_source->addItem(QStringLiteral("Boxcat"), QStringLiteral("boxcat"));
 #endif
 
+    ui->network_interface->addItem(QStringLiteral("None"));
+    for (const auto& interface : Network::GetAvailableNetworkInterfaces()) {
+        ui->network_interface->addItem(QString::fromStdString(interface.name));
+    }
+
     connect(ui->bcat_source, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-            &ConfigureService::OnBCATImplChanged);
+            &ConfigureNetwork::OnBCATImplChanged);
 
     this->SetConfiguration();
 }
 
-ConfigureService::~ConfigureService() = default;
+ConfigureNetwork::~ConfigureNetwork() = default;
 
-void ConfigureService::ApplyConfiguration() {
+void ConfigureNetwork::ApplyConfiguration() {
     Settings::values.bcat_backend = ui->bcat_source->currentText().toLower().toStdString();
+    Settings::values.network_interface = ui->network_interface->currentText().toStdString();
 }
 
-void ConfigureService::RetranslateUi() {
+void ConfigureNetwork::RetranslateUi() {
     ui->retranslateUi(this);
 }
 
-void ConfigureService::SetConfiguration() {
+void ConfigureNetwork::SetConfiguration() {
+    const bool runtime_lock = !Core::System::GetInstance().IsPoweredOn();
+
     const int index =
         ui->bcat_source->findData(QString::fromStdString(Settings::values.bcat_backend.GetValue()));
     ui->bcat_source->setCurrentIndex(index == -1 ? 0 : index);
+
+    const std::string& network_interface = Settings::values.network_interface.GetValue();
+
+    ui->network_interface->setCurrentText(QString::fromStdString(network_interface));
+    ui->network_interface->setEnabled(runtime_lock);
 }
 
-std::pair<QString, QString> ConfigureService::BCATDownloadEvents() {
+std::pair<QString, QString> ConfigureNetwork::BCATDownloadEvents() {
 #ifdef YUZU_ENABLE_BOXCAT
     std::optional<std::string> global;
     std::map<std::string, Service::BCAT::EventStatus> map;
@@ -114,7 +128,7 @@ std::pair<QString, QString> ConfigureService::BCATDownloadEvents() {
 #endif
 }
 
-void ConfigureService::OnBCATImplChanged() {
+void ConfigureNetwork::OnBCATImplChanged() {
 #ifdef YUZU_ENABLE_BOXCAT
     const auto boxcat = ui->bcat_source->currentText() == QStringLiteral("Boxcat");
     ui->bcat_empty_header->setHidden(!boxcat);
@@ -133,7 +147,7 @@ void ConfigureService::OnBCATImplChanged() {
 #endif
 }
 
-void ConfigureService::OnUpdateBCATEmptyLabel(std::pair<QString, QString> string) {
+void ConfigureNetwork::OnUpdateBCATEmptyLabel(std::pair<QString, QString> string) {
 #ifdef YUZU_ENABLE_BOXCAT
     const auto boxcat = ui->bcat_source->currentText() == QStringLiteral("Boxcat");
     if (boxcat) {
