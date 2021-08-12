@@ -12,9 +12,9 @@
 #ifdef _WIN32
 #include <iphlpapi.h>
 #else
+#include <cerrno>
 #include <ifaddrs.h>
 #include <net/if.h>
-#include <cerrno>
 #endif
 
 namespace Network {
@@ -61,8 +61,7 @@ std::vector<NetworkInterface> GetAvailableNetworkInterfaces() {
 
             result.push_back(NetworkInterface{
                 .name{Common::UTF16ToUTF8(std::wstring{current_address->FriendlyName})},
-                .ip_address{ip_addr}
-            });
+                .ip_address{ip_addr}});
         }
     } else {
         LOG_ERROR(Network, "Failed to get network interfaces with GetAdaptersAddresses");
@@ -99,8 +98,7 @@ std::vector<NetworkInterface> GetAvailableNetworkInterfaces() {
 
         result.push_back(NetworkInterface{
             .name{ifa->ifa_name},
-            .ip_address{std::bit_cast<struct sockaddr_in>(*ifa->ifa_addr).sin_addr}
-        });
+            .ip_address{std::bit_cast<struct sockaddr_in>(*ifa->ifa_addr).sin_addr}});
     }
 
     freeifaddrs(ifaddr);

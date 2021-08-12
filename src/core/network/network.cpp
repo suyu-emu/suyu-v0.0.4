@@ -13,13 +13,13 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #elif YUZU_UNIX
+#include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <poll.h>
 #include <sys/socket.h>
-#include <arpa/inet.h>
 #include <unistd.h>
 #else
 #error "Unimplemented platform"
@@ -363,8 +363,8 @@ NetworkInstance::~NetworkInstance() {
 std::optional<IPv4Address> GetHostIPv4Address() {
     const std::string& selected_network_interface = Settings::values.network_interface.GetValue();
     const auto network_interfaces = Network::GetAvailableNetworkInterfaces();
-    ASSERT_MSG(network_interfaces.size() > 0, "GetAvailableNetworkInterfaces returned no interfaces");
-
+    ASSERT_MSG(network_interfaces.size() > 0,
+               "GetAvailableNetworkInterfaces returned no interfaces");
 
     const auto res = std::ranges::find_if(network_interfaces,
                                           [&selected_network_interface](const auto& interface) {
