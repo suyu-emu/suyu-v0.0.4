@@ -330,7 +330,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
-        rb.PushRaw(ipv4.value());
+        rb.PushRaw(*ipv4);
     }
     void CreateTemporaryNetworkProfile(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_NIFM, "called");
@@ -366,7 +366,7 @@ private:
         const IpConfigInfo ip_config_info{
             .ip_address_setting{
                 .is_automatic{true},
-                .current_address{ipv4.value()},
+                .current_address{*ipv4},
                 .subnet_mask{255, 255, 255, 0},
                 .gateway{192, 168, 1, 1},
             },
