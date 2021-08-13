@@ -7,6 +7,7 @@
 #include "common/settings.h"
 #include "core/core.h"
 #include "core/hle/service/bcat/backend/boxcat.h"
+#include "core/network/network_interface.h"
 #include "ui_configure_network.h"
 #include "yuzu/configuration/configure_network.h"
 

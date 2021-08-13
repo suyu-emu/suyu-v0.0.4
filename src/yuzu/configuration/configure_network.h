@@ -8,8 +8,6 @@
 #include <QFutureWatcher>
 #include <QWidget>
 
-#include "core/network/network_interface.h"
-
 namespace Ui {
 class ConfigureNetwork;
 }
