@@ -368,10 +368,10 @@ std::optional<IPv4Address> GetHostIPv4Address() {
         return {};
     }
 
-    const auto res = std::ranges::find_if(network_interfaces,
-                                          [&selected_network_interface](const auto& interface) {
-                                              return interface.name == selected_network_interface;
-                                          });
+    const auto res =
+        std::ranges::find_if(network_interfaces, [&selected_network_interface](const auto& iface) {
+            return iface.name == selected_network_interface;
+        });
 
     if (res != network_interfaces.end()) {
         char ip_addr[16] = {};
