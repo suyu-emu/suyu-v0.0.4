@@ -41,13 +41,9 @@ using VideoCore::Surface::PixelFormatFromRenderTargetFormat;
 using namespace Common::Literals;
 
 struct ImageViewInOut {
-    u32 index;
-    bool blacklist;
-    union {
-        struct Empty {
-        } empty{};
-        ImageViewId id;
-    };
+    u32 index{};
+    bool blacklist{};
+    ImageViewId id{};
 };
 
 template <class P>

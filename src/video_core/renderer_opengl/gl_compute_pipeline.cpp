@@ -143,9 +143,6 @@ void ComputePipeline::Configure() {
     }
     texture_cache.FillComputeImageViews(std::span(views.data(), views.size()));
 
-    const bool is_rescaling{texture_cache.IsRescaling()};
-    const f32 config_down_factor{Settings::values.resolution_info.down_factor};
-    const f32 down_factor{is_rescaling ? config_down_factor : 1.0f};
     if (assembly_program.handle != 0) {
         program_manager.BindComputeAssemblyProgram(assembly_program.handle);
     } else {
