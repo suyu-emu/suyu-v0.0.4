@@ -14,6 +14,7 @@
 #include "common/fiber.h"
 #include "common/logging/log.h"
 #include "common/scope_exit.h"
+#include "common/settings.h"
 #include "common/thread_queue_list.h"
 #include "core/core.h"
 #include "core/cpu_manager.h"
@@ -215,9 +216,10 @@ ResultCode KThread::InitializeThread(KThread* thread, KThreadFunction func, uint
     // Initialize the thread.
     R_TRY(thread->Initialize(func, arg, user_stack_top, prio, core, owner, type));
 
-    // Initialize host context.
+    // Initialize emulation parameters.
     thread->host_context =
         std::make_shared<Common::Fiber>(std::move(init_func), init_func_parameter);
+    thread->is_single_core = !Settings::values.use_multi_core.GetValue();
 
     return ResultSuccess;
 }

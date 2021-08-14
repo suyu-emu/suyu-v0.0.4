@@ -33,7 +33,7 @@ void CpuManager::Initialize() {
             core_data[core].host_thread = std::jthread(ThreadStart, std::ref(*this), core);
         }
     } else {
-        core_data[0].host_thread = std::jthread(ThreadStart, std::ref(*this), -1);
+        core_data[0].host_thread = std::jthread(ThreadStart, std::ref(*this), 0);
     }
 }
 

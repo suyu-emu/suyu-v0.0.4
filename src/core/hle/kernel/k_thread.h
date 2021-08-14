@@ -454,8 +454,12 @@ public:
         return GetActiveCore() == 3;
     }
 
+    [[nodiscard]] bool IsDispatchTrackingDisabled() const {
+        return is_single_core || IsKernelThread();
+    }
+
     [[nodiscard]] s32 GetDisableDispatchCount() const {
-        if (IsKernelThread()) {
+        if (IsDispatchTrackingDisabled()) {
             // TODO(bunnei): Until kernel threads are emulated, we cannot enable/disable dispatch.
             return 1;
         }
@@ -464,7 +468,7 @@ public:
     }
 
     void DisableDispatch() {
-        if (IsKernelThread()) {
+        if (IsDispatchTrackingDisabled()) {
             // TODO(bunnei): Until kernel threads are emulated, we cannot enable/disable dispatch.
             return;
         }
@@ -474,7 +478,7 @@ public:
     }
 
     void EnableDispatch() {
-        if (IsKernelThread()) {
+        if (IsDispatchTrackingDisabled()) {
             // TODO(bunnei): Until kernel threads are emulated, we cannot enable/disable dispatch.
             return;
         }
@@ -727,6 +731,7 @@ private:
 
     // For emulation
     std::shared_ptr<Common::Fiber> host_context{};
+    bool is_single_core{};
 
     // For debugging
     std::vector<KSynchronizationObject*> wait_objects_for_debugging;
