@@ -21,6 +21,7 @@ target_include_directories(catch-single-include INTERFACE catch/single_include)
 if (ARCHITECTURE_x86_64)
     set(DYNARMIC_TESTS OFF)
     set(DYNARMIC_NO_BUNDLED_FMT ON)
+    set(DYNARMIC_IGNORE_ASSERTS ON CACHE BOOL "" FORCE)
     add_subdirectory(dynarmic)
 endif()
 
