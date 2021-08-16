@@ -69,7 +69,7 @@ std::vector<NetworkInterface> GetAvailableNetworkInterfaces() {
                 continue;
             }
 
-            struct in_addr gateway = {0};
+            struct in_addr gateway{.S_un{.S_addr{0}}};
             if (current_address->FirstGatewayAddress != nullptr &&
                 current_address->FirstGatewayAddress->Address.lpSockaddr != nullptr) {
                 gateway = Common::BitCast<struct sockaddr_in>(
