@@ -9,15 +9,15 @@
 #include <QWidget>
 
 namespace Ui {
-class ConfigureService;
+class ConfigureNetwork;
 }
 
-class ConfigureService : public QWidget {
+class ConfigureNetwork : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ConfigureService(QWidget* parent = nullptr);
-    ~ConfigureService() override;
+    explicit ConfigureNetwork(QWidget* parent = nullptr);
+    ~ConfigureNetwork() override;
 
     void ApplyConfiguration();
     void RetranslateUi();
@@ -29,6 +29,6 @@ private:
     void OnBCATImplChanged();
     void OnUpdateBCATEmptyLabel(std::pair<QString, QString> string);
 
-    std::unique_ptr<Ui::ConfigureService> ui;
+    std::unique_ptr<Ui::ConfigureNetwork> ui;
     QFutureWatcher<std::pair<QString, QString>> watcher{this};
 };

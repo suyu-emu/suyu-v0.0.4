@@ -10,9 +10,10 @@
 #include "common/common_funcs.h"
 
 #ifdef _WIN32
-#define _WINSOCK_DEPRECATED_NO_WARNINGS // gethostname
 #include <winsock2.h>
+#include <ws2tcpip.h>
 #elif YUZU_UNIX
+#include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
@@ -27,7 +28,9 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/network/network.h"
+#include "core/network/network_interface.h"
 #include "core/network/sockets.h"
 
 namespace Network {
@@ -45,11 +48,6 @@ void Initialize() {
 
 void Finalize() {
     WSACleanup();
-}
-
-constexpr IPv4Address TranslateIPv4(in_addr addr) {
-    auto& bytes = addr.S_un.S_un_b;
-    return IPv4Address{bytes.s_b1, bytes.s_b2, bytes.s_b3, bytes.s_b4};
 }
 
 sockaddr TranslateFromSockAddrIn(SockAddrIn input) {
@@ -138,12 +136,6 @@ void Initialize() {}
 
 void Finalize() {}
 
-constexpr IPv4Address TranslateIPv4(in_addr addr) {
-    const u32 bytes = addr.s_addr;
-    return IPv4Address{static_cast<u8>(bytes), static_cast<u8>(bytes >> 8),
-                       static_cast<u8>(bytes >> 16), static_cast<u8>(bytes >> 24)};
-}
-
 sockaddr TranslateFromSockAddrIn(SockAddrIn input) {
     sockaddr_in result;
 
@@ -182,7 +174,7 @@ linger MakeLinger(bool enable, u32 linger_value) {
 }
 
 bool EnableNonBlock(int fd, bool enable) {
-    int flags = fcntl(fd, F_GETFD);
+    int flags = fcntl(fd, F_GETFL);
     if (flags == -1) {
         return false;
     }
@@ -191,7 +183,7 @@ bool EnableNonBlock(int fd, bool enable) {
     } else {
         flags &= ~O_NONBLOCK;
     }
-    return fcntl(fd, F_SETFD, flags) == 0;
+    return fcntl(fd, F_SETFL, flags) == 0;
 }
 
 Errno TranslateNativeError(int e) {
@@ -227,8 +219,12 @@ Errno GetAndLogLastError() {
 #else
     int e = errno;
 #endif
+    const Errno err = TranslateNativeError(e);
+    if (err == Errno::AGAIN) {
+        return err;
+    }
     LOG_ERROR(Network, "Socket operation error: {}", NativeErrorToString(e));
-    return TranslateNativeError(e);
+    return err;
 }
 
 int TranslateDomain(Domain domain) {
@@ -353,27 +349,29 @@ NetworkInstance::~NetworkInstance() {
     Finalize();
 }
 
-std::pair<IPv4Address, Errno> GetHostIPv4Address() {
-    std::array<char, 256> name{};
-    if (gethostname(name.data(), static_cast<int>(name.size()) - 1) == SOCKET_ERROR) {
-        return {IPv4Address{}, GetAndLogLastError()};
+std::optional<IPv4Address> GetHostIPv4Address() {
+    const std::string& selected_network_interface = Settings::values.network_interface.GetValue();
+    const auto network_interfaces = Network::GetAvailableNetworkInterfaces();
+    if (network_interfaces.size() == 0) {
+        LOG_ERROR(Network, "GetAvailableNetworkInterfaces returned no interfaces");
+        return {};
     }
 
-    hostent* const ent = gethostbyname(name.data());
-    if (!ent) {
-        return {IPv4Address{}, GetAndLogLastError()};
-    }
-    if (ent->h_addr_list == nullptr) {
-        UNIMPLEMENTED_MSG("No addr provided in hostent->h_addr_list");
-        return {IPv4Address{}, Errno::SUCCESS};
-    }
-    if (ent->h_length != sizeof(in_addr)) {
-        UNIMPLEMENTED_MSG("Unexpected size={} in hostent->h_length", ent->h_length);
-    }
+    const auto res =
+        std::ranges::find_if(network_interfaces, [&selected_network_interface](const auto& iface) {
+            return iface.name == selected_network_interface;
+        });
 
-    in_addr addr;
-    std::memcpy(&addr, ent->h_addr_list[0], sizeof(addr));
-    return {TranslateIPv4(addr), Errno::SUCCESS};
+    if (res != network_interfaces.end()) {
+        char ip_addr[16] = {};
+        ASSERT(inet_ntop(AF_INET, &res->ip_address, ip_addr, sizeof(ip_addr)) != nullptr);
+        LOG_INFO(Network, "IP address: {}", ip_addr);
+
+        return TranslateIPv4(res->ip_address);
+    } else {
+        LOG_ERROR(Network, "Couldn't find selected interface \"{}\"", selected_network_interface);
+        return {};
+    }
 }
 
 std::pair<s32, Errno> Poll(std::vector<PollFD>& pollfds, s32 timeout) {

@@ -5,10 +5,17 @@
 #pragma once
 
 #include <array>
+#include <optional>
 #include <utility>
 
 #include "common/common_funcs.h"
 #include "common/common_types.h"
+
+#ifdef _WIN32
+#include <winsock2.h>
+#elif YUZU_UNIX
+#include <netinet/in.h>
+#endif
 
 namespace Network {
 
@@ -92,8 +99,21 @@ public:
     ~NetworkInstance();
 };
 
+#ifdef _WIN32
+constexpr IPv4Address TranslateIPv4(in_addr addr) {
+    auto& bytes = addr.S_un.S_un_b;
+    return IPv4Address{bytes.s_b1, bytes.s_b2, bytes.s_b3, bytes.s_b4};
+}
+#elif YUZU_UNIX
+constexpr IPv4Address TranslateIPv4(in_addr addr) {
+    const u32 bytes = addr.s_addr;
+    return IPv4Address{static_cast<u8>(bytes), static_cast<u8>(bytes >> 8),
+                       static_cast<u8>(bytes >> 16), static_cast<u8>(bytes >> 24)};
+}
+#endif
+
 /// @brief Returns host's IPv4 address
-/// @return Pair of an array of human ordered IPv4 address (e.g. 192.168.0.1) and an error code
-std::pair<IPv4Address, Errno> GetHostIPv4Address();
+/// @return human ordered IPv4 address (e.g. 192.168.0.1) as an array
+std::optional<IPv4Address> GetHostIPv4Address();
 
 } // namespace Network
