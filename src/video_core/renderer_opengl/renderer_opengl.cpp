@@ -21,7 +21,9 @@
 #include "core/memory.h"
 #include "core/perf_stats.h"
 #include "core/telemetry_session.h"
+#include "video_core/host_shaders/opengl_present_bicubic_frag.h"
 #include "video_core/host_shaders/opengl_present_frag.h"
+#include "video_core/host_shaders/opengl_present_scaleforce_frag.h"
 #include "video_core/host_shaders/opengl_present_vert.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
@@ -252,7 +254,11 @@ void RendererOpenGL::LoadColorToActiveGLTexture(u8 color_r, u8 color_g, u8 color
 void RendererOpenGL::InitOpenGLObjects() {
     // Create shader programs
     present_vertex = CreateProgram(HostShaders::OPENGL_PRESENT_VERT, GL_VERTEX_SHADER);
-    present_fragment = CreateProgram(HostShaders::OPENGL_PRESENT_FRAG, GL_FRAGMENT_SHADER);
+    present_bilinear_fragment = CreateProgram(HostShaders::OPENGL_PRESENT_FRAG, GL_FRAGMENT_SHADER);
+    present_bicubic_fragment =
+        CreateProgram(HostShaders::OPENGL_PRESENT_BICUBIC_FRAG, GL_FRAGMENT_SHADER);
+    present_scaleforce_fragment =
+        CreateProgram(HostShaders::OPENGL_PRESENT_SCALEFORCE_FRAG, GL_FRAGMENT_SHADER);
 
     // Generate presentation sampler
     present_sampler.Create();
@@ -337,7 +343,24 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     // Set projection matrix
     const std::array ortho_matrix =
         MakeOrthographicMatrix(static_cast<float>(layout.width), static_cast<float>(layout.height));
-    program_manager.BindPresentPrograms(present_vertex.handle, present_fragment.handle);
+
+    GLuint fragment_handle;
+    const auto filter = Settings::values.scaling_filter.GetValue();
+    switch (filter) {
+    case Settings::ScalingFilter::Bilinear:
+        fragment_handle = present_bilinear_fragment.handle;
+        break;
+    case Settings::ScalingFilter::Bicubic:
+        fragment_handle = present_bicubic_fragment.handle;
+        break;
+    case Settings::ScalingFilter::ScaleForce:
+        fragment_handle = present_scaleforce_fragment.handle;
+        break;
+    default:
+        fragment_handle = present_bilinear_fragment.handle;
+        break;
+    }
+    program_manager.BindPresentPrograms(present_vertex.handle, fragment_handle);
     glProgramUniformMatrix3x2fv(present_vertex.handle, ModelViewMatrixLocation, 1, GL_FALSE,
                                 ortho_matrix.data());
 

@@ -48,6 +48,7 @@ void LogSettings() {
     log_setting("Core_UseMultiCore", values.use_multi_core.GetValue());
     log_setting("CPU_Accuracy", values.cpu_accuracy.GetValue());
     log_setting("Renderer_UseResolutionScaling", values.resolution_setup.GetValue());
+    log_setting("Renderer_ScalingFilter", values.scaling_filter.GetValue());
     log_setting("Renderer_UseSpeedLimit", values.use_speed_limit.GetValue());
     log_setting("Renderer_SpeedLimit", values.speed_limit.GetValue());
     log_setting("Renderer_UseDiskShaderCache", values.use_disk_shader_cache.GetValue());
@@ -113,19 +114,10 @@ void UpdateRescalingInfo() {
         info.up_scale = 1;
         info.down_shift = 1;
         break;
-    case ResolutionSetup::Res3_4X:
-        info.up_scale = 3;
-        info.down_shift = 2;
-        break;
     case ResolutionSetup::Res1X:
         info.up_scale = 1;
         info.down_shift = 0;
         break;
-    case ResolutionSetup::Res3_2X: {
-        info.up_scale = 3;
-        info.down_shift = 1;
-        break;
-    }
     case ResolutionSetup::Res2X:
         info.up_scale = 2;
         info.down_shift = 0;

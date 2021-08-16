@@ -54,12 +54,16 @@ enum class NvdecEmulation : u32 {
 
 enum class ResolutionSetup : u32 {
     Res1_2X = 0,
-    Res3_4X = 1,
-    Res1X = 2,
-    Res3_2X = 3,
-    Res2X = 4,
-    Res3X = 5,
-    Res4X = 6,
+    Res1X = 1,
+    Res2X = 2,
+    Res3X = 3,
+    Res4X = 4,
+};
+
+enum class ScalingFilter : u32 {
+    Bilinear = 0,
+    Bicubic = 1,
+    ScaleForce = 2,
 };
 
 struct ResolutionScalingInfo {
@@ -471,6 +475,7 @@ struct Values {
 
     ResolutionScalingInfo resolution_info{};
     Setting<ResolutionSetup> resolution_setup{ResolutionSetup::Res1X, "resolution_setup"};
+    Setting<ScalingFilter> scaling_filter{ScalingFilter::Bilinear, "scaling_filter"};
     // *nix platforms may have issues with the borderless windowed fullscreen mode.
     // Default to exclusive fullscreen on these platforms for now.
     RangedSetting<FullscreenMode> fullscreen_mode{

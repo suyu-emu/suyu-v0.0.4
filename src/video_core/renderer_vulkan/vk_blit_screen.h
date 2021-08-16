@@ -107,11 +107,15 @@ private:
     const VKScreenInfo& screen_info;
 
     vk::ShaderModule vertex_shader;
-    vk::ShaderModule fragment_shader;
+    vk::ShaderModule bilinear_fragment_shader;
+    vk::ShaderModule bicubic_fragment_shader;
+    vk::ShaderModule scaleforce_fragment_shader;
     vk::DescriptorPool descriptor_pool;
     vk::DescriptorSetLayout descriptor_set_layout;
     vk::PipelineLayout pipeline_layout;
-    vk::Pipeline pipeline;
+    vk::Pipeline bilinear_pipeline;
+    vk::Pipeline bicubic_pipeline;
+    vk::Pipeline scaleforce_pipeline;
     vk::RenderPass renderpass;
     std::vector<vk::Framebuffer> framebuffers;
     vk::DescriptorSets descriptor_sets;

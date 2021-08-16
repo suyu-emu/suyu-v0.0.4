@@ -6,11 +6,15 @@ set(SHADER_FILES
     convert_float_to_depth.frag
     full_screen_triangle.vert
     opengl_copy_bc4.comp
+    opengl_present_scaleforce.frag
+    opengl_present_bicubic.frag
     opengl_present.frag
     opengl_present.vert
     pitch_unswizzle.comp
     vulkan_blit_color_float.frag
     vulkan_blit_depth_stencil.frag
+    vulkan_present_bicubic.frag
+    vulkan_present_scaleforce.frag
     vulkan_present.frag
     vulkan_present.vert
     vulkan_quad_indexed.comp

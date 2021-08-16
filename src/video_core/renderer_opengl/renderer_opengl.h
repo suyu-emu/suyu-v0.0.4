@@ -111,7 +111,9 @@ private:
     OGLSampler present_sampler;
     OGLBuffer vertex_buffer;
     OGLProgram present_vertex;
-    OGLProgram present_fragment;
+    OGLProgram present_bilinear_fragment;
+    OGLProgram present_bicubic_fragment;
+    OGLProgram present_scaleforce_fragment;
     OGLFramebuffer screenshot_framebuffer;
 
     // GPU address of the vertex buffer

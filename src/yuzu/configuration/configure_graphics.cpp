@@ -89,6 +89,7 @@ void ConfigureGraphics::SetConfiguration() {
     ui->use_asynchronous_gpu_emulation->setEnabled(runtime_lock);
     ui->use_disk_shader_cache->setEnabled(runtime_lock);
     ui->nvdec_emulation_widget->setEnabled(runtime_lock);
+    ui->resolution_combobox->setEnabled(runtime_lock);
     ui->accelerate_astc->setEnabled(runtime_lock);
     ui->use_disk_shader_cache->setChecked(Settings::values.use_disk_shader_cache.GetValue());
     ui->use_asynchronous_gpu_emulation->setChecked(
@@ -104,6 +105,8 @@ void ConfigureGraphics::SetConfiguration() {
         ui->aspect_ratio_combobox->setCurrentIndex(Settings::values.aspect_ratio.GetValue());
         ui->resolution_combobox->setCurrentIndex(
             static_cast<int>(Settings::values.resolution_setup.GetValue()));
+        ui->scaling_filter_combobox->setCurrentIndex(
+            static_cast<int>(Settings::values.scaling_filter.GetValue()));
     } else {
         ConfigurationShared::SetPerGameSetting(ui->api, &Settings::values.renderer_backend);
         ConfigurationShared::SetHighlight(ui->api_widget,
@@ -129,6 +132,11 @@ void ConfigureGraphics::SetConfiguration() {
         ConfigurationShared::SetHighlight(ui->resolution_label,
                                           !Settings::values.resolution_setup.UsingGlobal());
 
+        ConfigurationShared::SetPerGameSetting(ui->scaling_filter_combobox,
+                                               &Settings::values.scaling_filter);
+        ConfigurationShared::SetHighlight(ui->scaling_filter_label,
+                                          !Settings::values.scaling_filter.UsingGlobal());
+
         ui->bg_combobox->setCurrentIndex(Settings::values.bg_red.UsingGlobal() ? 0 : 1);
         ui->bg_button->setEnabled(!Settings::values.bg_red.UsingGlobal());
         ConfigurationShared::SetHighlight(ui->bg_layout, !Settings::values.bg_red.UsingGlobal());
@@ -142,6 +150,10 @@ void ConfigureGraphics::SetConfiguration() {
 void ConfigureGraphics::ApplyConfiguration() {
     const auto resolution_setup = static_cast<Settings::ResolutionSetup>(
         ui->resolution_combobox->currentIndex() -
+        ((Settings::IsConfiguringGlobal()) ? 0 : ConfigurationShared::USE_GLOBAL_OFFSET));
+
+    const auto scaling_filter = static_cast<Settings::ScalingFilter>(
+        ui->scaling_filter_combobox->currentIndex() -
         ((Settings::IsConfiguringGlobal()) ? 0 : ConfigurationShared::USE_GLOBAL_OFFSET));
 
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.fullscreen_mode,
@@ -178,12 +190,21 @@ void ConfigureGraphics::ApplyConfiguration() {
         if (Settings::values.resolution_setup.UsingGlobal()) {
             Settings::values.resolution_setup.SetValue(resolution_setup);
         }
+        if (Settings::values.scaling_filter.UsingGlobal()) {
+            Settings::values.scaling_filter.SetValue(scaling_filter);
+        }
     } else {
         if (ui->resolution_combobox->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
             Settings::values.resolution_setup.SetGlobal(true);
         } else {
             Settings::values.resolution_setup.SetGlobal(false);
             Settings::values.resolution_setup.SetValue(resolution_setup);
+        }
+        if (ui->scaling_filter_combobox->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
+            Settings::values.scaling_filter.SetGlobal(true);
+        } else {
+            Settings::values.scaling_filter.SetGlobal(false);
+            Settings::values.scaling_filter.SetValue(scaling_filter);
         }
         if (ui->api->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
             Settings::values.renderer_backend.SetGlobal(true);
@@ -333,6 +354,7 @@ void ConfigureGraphics::SetupPerGameUI() {
         ui->fullscreen_mode_combobox->setEnabled(Settings::values.fullscreen_mode.UsingGlobal());
         ui->aspect_ratio_combobox->setEnabled(Settings::values.aspect_ratio.UsingGlobal());
         ui->resolution_combobox->setEnabled(Settings::values.resolution_setup.UsingGlobal());
+        ui->scaling_filter_combobox->setEnabled(Settings::values.scaling_filter.UsingGlobal());
         ui->use_asynchronous_gpu_emulation->setEnabled(
             Settings::values.use_asynchronous_gpu_emulation.UsingGlobal());
         ui->nvdec_emulation->setEnabled(Settings::values.nvdec_emulation.UsingGlobal());
@@ -364,6 +386,9 @@ void ConfigureGraphics::SetupPerGameUI() {
     ConfigurationShared::SetColoredComboBox(
         ui->resolution_combobox, ui->resolution_label,
         static_cast<int>(Settings::values.resolution_setup.GetValue(true)));
+    ConfigurationShared::SetColoredComboBox(
+        ui->scaling_filter_combobox, ui->scaling_filter_label,
+        static_cast<int>(Settings::values.scaling_filter.GetValue(true)));
     ConfigurationShared::InsertGlobalItem(
         ui->api, static_cast<int>(Settings::values.renderer_backend.GetValue(true)));
     ConfigurationShared::InsertGlobalItem(

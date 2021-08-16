@@ -12,11 +12,14 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/math_util.h"
+#include "common/settings.h"
 #include "core/core.h"
 #include "core/frontend/emu_window.h"
 #include "core/memory.h"
 #include "video_core/gpu.h"
+#include "video_core/host_shaders/vulkan_present_bicubic_frag_spv.h"
 #include "video_core/host_shaders/vulkan_present_frag_spv.h"
+#include "video_core/host_shaders/vulkan_present_scaleforce_frag_spv.h"
 #include "video_core/host_shaders/vulkan_present_vert_spv.h"
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
 #include "video_core/renderer_vulkan/vk_blit_screen.h"
@@ -258,8 +261,22 @@ VkSemaphore VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer,
                 .offset = {0, 0},
                 .extent = size,
             };
+            const auto filter = Settings::values.scaling_filter.GetValue();
             cmdbuf.BeginRenderPass(renderpass_bi, VK_SUBPASS_CONTENTS_INLINE);
-            cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *pipeline);
+            switch (filter) {
+            case Settings::ScalingFilter::Bilinear:
+                cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *bilinear_pipeline);
+                break;
+            case Settings::ScalingFilter::Bicubic:
+                cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *bicubic_pipeline);
+                break;
+            case Settings::ScalingFilter::ScaleForce:
+                cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *scaleforce_pipeline);
+                break;
+            default:
+                cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *bilinear_pipeline);
+                break;
+            }
             cmdbuf.SetViewport(0, viewport);
             cmdbuf.SetScissor(0, scissor);
 
@@ -324,7 +341,9 @@ void VKBlitScreen::RefreshResources(const Tegra::FramebufferConfig& framebuffer)
 
 void VKBlitScreen::CreateShaders() {
     vertex_shader = BuildShader(device, VULKAN_PRESENT_VERT_SPV);
-    fragment_shader = BuildShader(device, VULKAN_PRESENT_FRAG_SPV);
+    bilinear_fragment_shader = BuildShader(device, VULKAN_PRESENT_FRAG_SPV);
+    bicubic_fragment_shader = BuildShader(device, VULKAN_PRESENT_BICUBIC_FRAG_SPV);
+    scaleforce_fragment_shader = BuildShader(device, VULKAN_PRESENT_SCALEFORCE_FRAG_SPV);
 }
 
 void VKBlitScreen::CreateSemaphores() {
@@ -468,7 +487,7 @@ void VKBlitScreen::CreatePipelineLayout() {
 }
 
 void VKBlitScreen::CreateGraphicsPipeline() {
-    const std::array<VkPipelineShaderStageCreateInfo, 2> shader_stages{{
+    const std::array<VkPipelineShaderStageCreateInfo, 2> bilinear_shader_stages{{
         {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
             .pNext = nullptr,
@@ -483,7 +502,49 @@ void VKBlitScreen::CreateGraphicsPipeline() {
             .pNext = nullptr,
             .flags = 0,
             .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
-            .module = *fragment_shader,
+            .module = *bilinear_fragment_shader,
+            .pName = "main",
+            .pSpecializationInfo = nullptr,
+        },
+    }};
+
+    const std::array<VkPipelineShaderStageCreateInfo, 2> bicubic_shader_stages{{
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .stage = VK_SHADER_STAGE_VERTEX_BIT,
+            .module = *vertex_shader,
+            .pName = "main",
+            .pSpecializationInfo = nullptr,
+        },
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
+            .module = *bicubic_fragment_shader,
+            .pName = "main",
+            .pSpecializationInfo = nullptr,
+        },
+    }};
+
+    const std::array<VkPipelineShaderStageCreateInfo, 2> scaleforce_shader_stages{{
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .stage = VK_SHADER_STAGE_VERTEX_BIT,
+            .module = *vertex_shader,
+            .pName = "main",
+            .pSpecializationInfo = nullptr,
+        },
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
+            .module = *scaleforce_fragment_shader,
             .pName = "main",
             .pSpecializationInfo = nullptr,
         },
@@ -583,12 +644,12 @@ void VKBlitScreen::CreateGraphicsPipeline() {
         .pDynamicStates = dynamic_states.data(),
     };
 
-    const VkGraphicsPipelineCreateInfo pipeline_ci{
+    const VkGraphicsPipelineCreateInfo bilinear_pipeline_ci{
         .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .stageCount = static_cast<u32>(shader_stages.size()),
-        .pStages = shader_stages.data(),
+        .stageCount = static_cast<u32>(bilinear_shader_stages.size()),
+        .pStages = bilinear_shader_stages.data(),
         .pVertexInputState = &vertex_input_ci,
         .pInputAssemblyState = &input_assembly_ci,
         .pTessellationState = nullptr,
@@ -605,7 +666,53 @@ void VKBlitScreen::CreateGraphicsPipeline() {
         .basePipelineIndex = 0,
     };
 
-    pipeline = device.GetLogical().CreateGraphicsPipeline(pipeline_ci);
+    const VkGraphicsPipelineCreateInfo bicubic_pipeline_ci{
+        .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .stageCount = static_cast<u32>(bicubic_shader_stages.size()),
+        .pStages = bicubic_shader_stages.data(),
+        .pVertexInputState = &vertex_input_ci,
+        .pInputAssemblyState = &input_assembly_ci,
+        .pTessellationState = nullptr,
+        .pViewportState = &viewport_state_ci,
+        .pRasterizationState = &rasterization_ci,
+        .pMultisampleState = &multisampling_ci,
+        .pDepthStencilState = nullptr,
+        .pColorBlendState = &color_blend_ci,
+        .pDynamicState = &dynamic_state_ci,
+        .layout = *pipeline_layout,
+        .renderPass = *renderpass,
+        .subpass = 0,
+        .basePipelineHandle = 0,
+        .basePipelineIndex = 0,
+    };
+
+    const VkGraphicsPipelineCreateInfo scaleforce_pipeline_ci{
+        .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .stageCount = static_cast<u32>(scaleforce_shader_stages.size()),
+        .pStages = scaleforce_shader_stages.data(),
+        .pVertexInputState = &vertex_input_ci,
+        .pInputAssemblyState = &input_assembly_ci,
+        .pTessellationState = nullptr,
+        .pViewportState = &viewport_state_ci,
+        .pRasterizationState = &rasterization_ci,
+        .pMultisampleState = &multisampling_ci,
+        .pDepthStencilState = nullptr,
+        .pColorBlendState = &color_blend_ci,
+        .pDynamicState = &dynamic_state_ci,
+        .layout = *pipeline_layout,
+        .renderPass = *renderpass,
+        .subpass = 0,
+        .basePipelineHandle = 0,
+        .basePipelineIndex = 0,
+    };
+
+    bilinear_pipeline = device.GetLogical().CreateGraphicsPipeline(bilinear_pipeline_ci);
+    bicubic_pipeline = device.GetLogical().CreateGraphicsPipeline(bicubic_pipeline_ci);
+    scaleforce_pipeline = device.GetLogical().CreateGraphicsPipeline(scaleforce_pipeline_ci);
 }
 
 void VKBlitScreen::CreateSampler() {
