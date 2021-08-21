@@ -277,37 +277,45 @@ private:
     void GetCurrentNetworkProfile(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
 
-        const SfNetworkProfileData network_profile_data{
-            .ip_setting_data{
-                .ip_address_setting{
-                    .is_automatic{true},
-                    .current_address{192, 168, 1, 100},
-                    .subnet_mask{255, 255, 255, 0},
-                    .gateway{192, 168, 1, 1},
+        const auto net_iface = Network::GetSelectedNetworkInterface();
+
+        const SfNetworkProfileData network_profile_data = [&net_iface] {
+            if (!net_iface) {
+                return SfNetworkProfileData{};
+            }
+
+            return SfNetworkProfileData{
+                .ip_setting_data{
+                    .ip_address_setting{
+                        .is_automatic{true},
+                        .current_address{Network::TranslateIPv4(net_iface->ip_address)},
+                        .subnet_mask{Network::TranslateIPv4(net_iface->subnet_mask)},
+                        .gateway{Network::TranslateIPv4(net_iface->gateway)},
+                    },
+                    .dns_setting{
+                        .is_automatic{true},
+                        .primary_dns{1, 1, 1, 1},
+                        .secondary_dns{1, 0, 0, 1},
+                    },
+                    .proxy_setting{
+                        .enabled{false},
+                        .port{},
+                        .proxy_server{},
+                        .automatic_auth_enabled{},
+                        .user{},
+                        .password{},
+                    },
+                    .mtu{1500},
                 },
-                .dns_setting{
-                    .is_automatic{true},
-                    .primary_dns{1, 1, 1, 1},
-                    .secondary_dns{1, 0, 0, 1},
+                .uuid{0xdeadbeef, 0xdeadbeef},
+                .network_name{"yuzu Network"},
+                .wireless_setting_data{
+                    .ssid_length{12},
+                    .ssid{"yuzu Network"},
+                    .passphrase{"yuzupassword"},
                 },
-                .proxy_setting{
-                    .enabled{false},
-                    .port{},
-                    .proxy_server{},
-                    .automatic_auth_enabled{},
-                    .user{},
-                    .password{},
-                },
-                .mtu{1500},
-            },
-            .uuid{0xdeadbeef, 0xdeadbeef},
-            .network_name{"yuzu Network"},
-            .wireless_setting_data{
-                .ssid_length{12},
-                .ssid{"yuzu Network"},
-                .passphrase{"yuzupassword"},
-            },
-        };
+            };
+        }();
 
         ctx.WriteBuffer(network_profile_data);
 
