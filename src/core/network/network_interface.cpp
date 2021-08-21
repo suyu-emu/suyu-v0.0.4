@@ -180,11 +180,11 @@ std::vector<NetworkInterface> GetAvailableNetworkInterfaces() {
 #endif
 
 std::optional<NetworkInterface> GetSelectedNetworkInterface() {
-    const std::string& selected_network_interface = Settings::values.network_interface.GetValue();
+    const auto& selected_network_interface = Settings::values.network_interface.GetValue();
     const auto network_interfaces = Network::GetAvailableNetworkInterfaces();
     if (network_interfaces.size() == 0) {
         LOG_ERROR(Network, "GetAvailableNetworkInterfaces returned no interfaces");
-        return {};
+        return std::nullopt;
     }
 
     const auto res =
@@ -192,12 +192,12 @@ std::optional<NetworkInterface> GetSelectedNetworkInterface() {
             return iface.name == selected_network_interface;
         });
 
-    if (res != network_interfaces.end()) {
-        return *res;
-    } else {
+    if (res == network_interfaces.end()) {
         LOG_ERROR(Network, "Couldn't find selected interface \"{}\"", selected_network_interface);
-        return {};
+        return std::nullopt;
     }
+
+    return *res;
 }
 
 } // namespace Network
