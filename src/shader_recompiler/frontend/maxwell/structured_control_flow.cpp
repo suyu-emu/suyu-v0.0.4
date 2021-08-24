@@ -20,6 +20,7 @@
 #include "shader_recompiler/frontend/maxwell/decode.h"
 #include "shader_recompiler/frontend/maxwell/structured_control_flow.h"
 #include "shader_recompiler/frontend/maxwell/translate/translate.h"
+#include "shader_recompiler/host_translate_info.h"
 #include "shader_recompiler/object_pool.h"
 
 namespace Shader::Maxwell {
@@ -652,7 +653,7 @@ class TranslatePass {
 public:
     TranslatePass(ObjectPool<IR::Inst>& inst_pool_, ObjectPool<IR::Block>& block_pool_,
                   ObjectPool<Statement>& stmt_pool_, Environment& env_, Statement& root_stmt,
-                  IR::AbstractSyntaxList& syntax_list_)
+                  IR::AbstractSyntaxList& syntax_list_, const HostTranslateInfo& host_info)
         : stmt_pool{stmt_pool_}, inst_pool{inst_pool_}, block_pool{block_pool_}, env{env_},
           syntax_list{syntax_list_} {
         Visit(root_stmt, nullptr, nullptr);
@@ -660,7 +661,7 @@ public:
         IR::Block& first_block{*syntax_list.front().data.block};
         IR::IREmitter ir(first_block, first_block.begin());
         ir.Prologue();
-        if (uses_demote_to_helper) {
+        if (uses_demote_to_helper && host_info.needs_demote_reorder) {
             DemoteCombinationPass();
         }
     }
@@ -977,12 +978,13 @@ private:
 } // Anonymous namespace
 
 IR::AbstractSyntaxList BuildASL(ObjectPool<IR::Inst>& inst_pool, ObjectPool<IR::Block>& block_pool,
-                                Environment& env, Flow::CFG& cfg) {
+                                Environment& env, Flow::CFG& cfg,
+                                const HostTranslateInfo& host_info) {
     ObjectPool<Statement> stmt_pool{64};
     GotoPass goto_pass{cfg, stmt_pool};
     Statement& root{goto_pass.RootStatement()};
     IR::AbstractSyntaxList syntax_list;
-    TranslatePass{inst_pool, block_pool, stmt_pool, env, root, syntax_list};
+    TranslatePass{inst_pool, block_pool, stmt_pool, env, root, syntax_list, host_info};
     return syntax_list;
 }
 

@@ -219,6 +219,7 @@ ShaderCache::ShaderCache(RasterizerOpenGL& rasterizer_, Core::Frontend::EmuWindo
       host_info{
           .support_float16 = false,
           .support_int64 = device.HasShaderInt64(),
+          .needs_demote_reorder = device.IsAmd(),
       } {
     if (use_asynchronous_shaders) {
         workers = CreateWorkers();
