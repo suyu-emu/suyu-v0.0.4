@@ -95,7 +95,6 @@ struct Vp9PictureInfo {
     bool is_key_frame;
     bool intra_only;
     bool last_frame_was_key;
-    bool frame_size_changed;
     bool error_resilient_mode;
     bool last_frame_shown;
     bool show_frame;
@@ -109,18 +108,10 @@ struct Vp9PictureInfo {
     bool allow_high_precision_mv;
     s32 interp_filter;
     s32 reference_mode;
-    s8 comp_fixed_ref;
-    std::array<s8, 2> comp_var_ref;
     s32 log2_tile_cols;
     s32 log2_tile_rows;
     bool segment_enabled;
-    bool segment_map_update;
-    bool segment_map_temporal_update;
-    s32 segment_abs_delta;
-    std::array<u32, 8> segment_feature_enable;
-    std::array<std::array<s16, 4>, 8> segment_feature_data;
     bool mode_ref_delta_enabled;
-    bool use_prev_in_find_mv_refs;
     std::array<s8, 4> ref_deltas;
     std::array<s8, 2> mode_deltas;
     Vp9EntropyProbs entropy;
@@ -129,7 +120,6 @@ struct Vp9PictureInfo {
     u8 sharpness_level;
     u32 bitstream_size;
     std::array<u64, 4> frame_offsets;
-    std::array<bool, 4> refresh_frame;
 };
 
 struct Vp9FrameContainer {
@@ -187,22 +177,9 @@ struct PictureInfo {
             .allow_high_precision_mv = allow_high_precision_mv != 0,
             .interp_filter = interp_filter,
             .reference_mode = reference_mode,
-            .comp_fixed_ref = comp_fixed_ref,
-            .comp_var_ref = comp_var_ref,
             .log2_tile_cols = log2_tile_cols,
             .log2_tile_rows = log2_tile_rows,
             .segment_enabled = segmentation.enabled != 0,
-            .segment_map_update = segmentation.update_map != 0,
-            .segment_map_temporal_update = segmentation.temporal_update != 0,
-            .segment_abs_delta = segmentation.abs_delta,
-            .segment_feature_enable = segmentation.feature_mask,
-            .segment_feature_data = segmentation.feature_data,
-            .mode_ref_delta_enabled = loop_filter.mode_ref_delta_enabled != 0,
-            .use_prev_in_find_mv_refs = !(vp9_flags == (FrameFlags::ErrorResilientMode)) &&
-                                        !(vp9_flags == (FrameFlags::FrameSizeChanged)) &&
-                                        !(vp9_flags == (FrameFlags::IntraOnly)) &&
-                                        (vp9_flags == (FrameFlags::LastShowFrame)) &&
-                                        !(vp9_flags == (FrameFlags::LastFrameIsKeyFrame)),
             .ref_deltas = loop_filter.ref_deltas,
             .mode_deltas = loop_filter.mode_deltas,
             .entropy{},
@@ -211,7 +188,6 @@ struct PictureInfo {
             .sharpness_level = sharpness_level,
             .bitstream_size = bitstream_size,
             .frame_offsets{},
-            .refresh_frame{},
         };
     }
 };
