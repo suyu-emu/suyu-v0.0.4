@@ -1053,6 +1053,10 @@ Image::~Image() = default;
 
 void Image::UploadMemory(const StagingBufferRef& map, std::span<const BufferImageCopy> copies) {
     // TODO: Move this to another API
+    const bool is_rescaled = True(flags & ImageFlagBits::Rescaled);
+    if (is_rescaled) {
+        ScaleDown(true);
+    }
     scheduler->RequestOutsideRenderPassOperationContext();
     std::vector vk_copies = TransformBufferImageCopies(copies, map.offset, aspect_mask);
     const VkBuffer src_buffer = map.buffer;
@@ -1063,6 +1067,9 @@ void Image::UploadMemory(const StagingBufferRef& map, std::span<const BufferImag
                        vk_copies](vk::CommandBuffer cmdbuf) {
         CopyBufferToImage(cmdbuf, src_buffer, vk_image, vk_aspect_mask, is_initialized, vk_copies);
     });
+    if (is_rescaled) {
+        ScaleUp(true);
+    }
 }
 
 void Image::DownloadMemory(const StagingBufferRef& map, std::span<const BufferImageCopy> copies) {
@@ -1133,17 +1140,23 @@ bool Image::ScaleUp(bool save_as_backup) {
     }
     ASSERT(info.type != ImageType::Linear);
     scaling_count++;
-    ASSERT(scaling_count < 10);
     flags |= ImageFlagBits::Rescaled;
-    /*if (!runtime->is_rescaling_on) {
-        return;
-    }*/
+    if (!runtime->is_rescaling_on) {
+        return true;
+    }
+
     const auto& resolution = runtime->resolution;
     vk::Image rescaled_image =
-        MakeImage(runtime->device, info, resolution.up_scale, resolution.down_shift);
-    MemoryCommit new_commit(
-        runtime->memory_allocator.Commit(rescaled_image, MemoryUsage::DeviceLocal));
+        has_backup ? std::move(backup_image)
+                   : MakeImage(runtime->device, info, resolution.up_scale, resolution.down_shift);
+    MemoryCommit new_commit = has_backup ? std::move(backup_commit)
+                                         : MemoryCommit(runtime->memory_allocator.Commit(
+                                               rescaled_image, MemoryUsage::DeviceLocal));
+    has_backup = false;
 
+    if (aspect_mask == 0) {
+        aspect_mask = ImageAspectMask(info.format);
+    }
     SCOPE_EXIT({
         if (save_as_backup) {
             backup_image = std::move(image);
@@ -1175,6 +1188,9 @@ bool Image::ScaleUp(bool save_as_backup) {
 }
 
 void Image::SwapBackup() {
+    if (!runtime->is_rescaling_on) {
+        return;
+    }
     ASSERT(has_backup);
     runtime->prescaled_images.Push(std::move(image));
     runtime->prescaled_commits.Push(std::move(commit));
@@ -1190,16 +1206,18 @@ bool Image::ScaleDown(bool save_as_backup) {
     ASSERT(info.type != ImageType::Linear);
     flags &= ~ImageFlagBits::Rescaled;
     scaling_count++;
-    ASSERT(scaling_count < 10);
-    /*if (!runtime->is_rescaling_on) {
-        return false;
-    }*/
+    if (!runtime->is_rescaling_on) {
+        return true;
+    }
 
     const auto& resolution = runtime->resolution;
-    vk::Image downscaled_image = MakeImage(runtime->device, info);
-    MemoryCommit new_commit(
-        runtime->memory_allocator.Commit(downscaled_image, MemoryUsage::DeviceLocal));
+    vk::Image downscaled_image =
+        has_backup ? std::move(backup_image) : MakeImage(runtime->device, info);
+    MemoryCommit new_commit = has_backup ? std::move(backup_commit)
+                                         : MemoryCommit(runtime->memory_allocator.Commit(
+                                               downscaled_image, MemoryUsage::DeviceLocal));
 
+    has_backup = false;
     if (aspect_mask == 0) {
         aspect_mask = ImageAspectMask(info.format);
     }
