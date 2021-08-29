@@ -599,6 +599,12 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
 
     graphics_queue = logical.GetQueue(graphics_family);
     present_queue = logical.GetQueue(present_family);
+
+    sets_per_pool = 64;
+    if (driver_id == VK_DRIVER_ID_AMD_PROPRIETARY || driver_id == VK_DRIVER_ID_AMD_OPEN_SOURCE) {
+        // AMD drivers need a higher amount of Sets per Pool in certain circunstances like in XC2.
+        sets_per_pool = 96;
+    }
 }
 
 Device::~Device() = default;
