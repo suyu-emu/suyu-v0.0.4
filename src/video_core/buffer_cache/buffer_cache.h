@@ -78,7 +78,7 @@ class BufferCache {
 
     static constexpr BufferId NULL_BUFFER_ID{0};
 
-    static constexpr u64 EXPECTED_MEMORY = 256_MiB;
+    static constexpr u64 EXPECTED_MEMORY = 512_MiB;
     static constexpr u64 CRITICAL_MEMORY = 1_GiB;
 
     using Maxwell = Tegra::Engines::Maxwell3D::Regs;
