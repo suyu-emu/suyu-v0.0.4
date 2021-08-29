@@ -20,16 +20,15 @@ namespace Vulkan {
 
 namespace {
 
-VkSurfaceFormatKHR ChooseSwapSurfaceFormat(vk::Span<VkSurfaceFormatKHR> formats, bool srgb) {
+VkSurfaceFormatKHR ChooseSwapSurfaceFormat(vk::Span<VkSurfaceFormatKHR> formats) {
     if (formats.size() == 1 && formats[0].format == VK_FORMAT_UNDEFINED) {
         VkSurfaceFormatKHR format;
         format.format = VK_FORMAT_B8G8R8A8_UNORM;
         format.colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
         return format;
     }
-    const auto& found = std::find_if(formats.begin(), formats.end(), [srgb](const auto& format) {
-        const auto request_format = srgb ? VK_FORMAT_B8G8R8A8_SRGB : VK_FORMAT_B8G8R8A8_UNORM;
-        return format.format == request_format &&
+    const auto& found = std::find_if(formats.begin(), formats.end(), [](const auto& format) {
+        return format.format == VK_FORMAT_B8G8R8A8_UNORM &&
                format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
     });
     return found != formats.end() ? *found : formats[0];
@@ -145,7 +144,7 @@ void VKSwapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities, 
     const auto formats{physical_device.GetSurfaceFormatsKHR(surface)};
     const auto present_modes{physical_device.GetSurfacePresentModesKHR(surface)};
 
-    const VkSurfaceFormatKHR surface_format{ChooseSwapSurfaceFormat(formats, srgb)};
+    const VkSurfaceFormatKHR surface_format{ChooseSwapSurfaceFormat(formats)};
     const VkPresentModeKHR present_mode{ChooseSwapPresentMode(present_modes)};
 
     u32 requested_image_count{capabilities.minImageCount + 1};
@@ -191,7 +190,7 @@ void VKSwapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities, 
 
     images = swapchain.GetImages();
     image_count = static_cast<u32>(images.size());
-    image_format = surface_format.format;
+    image_view_format = srgb ? VK_FORMAT_B8G8R8A8_SRGB : VK_FORMAT_B8G8R8A8_UNORM;
 }
 
 void VKSwapchain::CreateSemaphores() {
@@ -207,7 +206,7 @@ void VKSwapchain::CreateImageViews() {
         .flags = 0,
         .image = {},
         .viewType = VK_IMAGE_VIEW_TYPE_2D,
-        .format = image_format,
+        .format = image_view_format,
         .components =
             {
                 .r = VK_COMPONENT_SWIZZLE_IDENTITY,
