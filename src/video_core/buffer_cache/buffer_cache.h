@@ -1539,10 +1539,10 @@ void BufferCache<P>::ChangeRegister(BufferId buffer_id) {
     const auto size = buffer.SizeBytes();
     if (insert) {
         total_used_memory += Common::AlignUp(size, 1024);
-        buffer.lru_id = lru_cache.Insert(buffer_id, frame_tick);
+        buffer.setLRUID(lru_cache.Insert(buffer_id, frame_tick));
     } else {
         total_used_memory -= Common::AlignUp(size, 1024);
-        lru_cache.Free(buffer.lru_id);
+        lru_cache.Free(buffer.getLRUID());
     }
     const VAddr cpu_addr_begin = buffer.CpuAddr();
     const VAddr cpu_addr_end = cpu_addr_begin + size;
@@ -1560,7 +1560,7 @@ void BufferCache<P>::ChangeRegister(BufferId buffer_id) {
 template <class P>
 void BufferCache<P>::TouchBuffer(Buffer& buffer, BufferId buffer_id) noexcept {
     if (buffer_id != NULL_BUFFER_ID) {
-        lru_cache.Touch(buffer.lru_id, frame_tick);
+        lru_cache.Touch(buffer.getLRUID(), frame_tick);
     }
 }
 
