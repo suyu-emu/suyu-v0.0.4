@@ -179,6 +179,17 @@ void VKSwapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities, 
         swapchain_ci.queueFamilyIndexCount = static_cast<u32>(queue_indices.size());
         swapchain_ci.pQueueFamilyIndices = queue_indices.data();
     }
+    static constexpr std::array view_formats{VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_B8G8R8A8_SRGB};
+    VkImageFormatListCreateInfo format_list{
+        .sType = VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO_KHR,
+        .pNext = nullptr,
+        .viewFormatCount = static_cast<u32>(view_formats.size()),
+        .pViewFormats = view_formats.data(),
+    };
+    if (device.IsKhrSwapchainMutableFormatEnabled()) {
+        format_list.pNext = std::exchange(swapchain_ci.pNext, &format_list);
+        swapchain_ci.flags |= VK_SWAPCHAIN_CREATE_MUTABLE_FORMAT_BIT_KHR;
+    }
     // Request the size again to reduce the possibility of a TOCTOU race condition.
     const auto updated_capabilities = physical_device.GetSurfaceCapabilitiesKHR(surface);
     swapchain_ci.imageExtent = ChooseSwapExtent(updated_capabilities, width, height);
