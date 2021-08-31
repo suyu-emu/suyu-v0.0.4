@@ -261,16 +261,6 @@ public:
         stream_score += score;
     }
 
-    /// Sets the new frame tick
-    void SetFrameTick(u64 new_frame_tick) noexcept {
-        frame_tick = new_frame_tick;
-    }
-
-    /// Returns the new frame tick
-    [[nodiscard]] u64 FrameTick() const noexcept {
-        return frame_tick;
-    }
-
     /// Returns the likeliness of this being a stream buffer
     [[nodiscard]] int StreamScore() const noexcept {
         return stream_score;
@@ -305,6 +295,14 @@ public:
     /// Returns the size in bytes of the buffer
     [[nodiscard]] u64 SizeBytes() const noexcept {
         return words.size_bytes;
+    }
+
+    size_t getLRUID() const noexcept {
+        return lru_id;
+    }
+
+    void setLRUID(size_t lru_id_) {
+        lru_id = lru_id_;
     }
 
 private:
@@ -603,9 +601,9 @@ private:
     RasterizerInterface* rasterizer = nullptr;
     VAddr cpu_addr = 0;
     Words words;
-    u64 frame_tick = 0;
     BufferFlagBits flags{};
     int stream_score = 0;
+    size_t lru_id = SIZE_MAX;
 };
 
 } // namespace VideoCommon
