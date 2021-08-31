@@ -11,6 +11,8 @@
 
 namespace Shader::Backend::GLSL {
 namespace {
+constexpr char THREAD_ID[]{"gl_SubGroupInvocationARB"};
+
 void SetInBoundsFlag(EmitContext& ctx, IR::Inst& inst) {
     IR::Inst* const in_bounds{inst.GetAssociatedPseudoOperation(IR::Opcode::GetInBoundsFromOp)};
     if (!in_bounds) {
@@ -43,69 +45,81 @@ void UseShuffleNv(EmitContext& ctx, IR::Inst& inst, std::string_view shfl_op,
     ctx.AddU32("{}={}({},{},{},shfl_in_bounds);", inst, shfl_op, value, index, width);
     SetInBoundsFlag(ctx, inst);
 }
+
+std::string_view BallotIndex(EmitContext& ctx) {
+    if (!ctx.profile.warp_size_potentially_larger_than_guest) {
+        return ".x";
+    }
+    return "[gl_SubGroupInvocationARB>>5]";
+}
+
+std::string GetMask(EmitContext& ctx, std::string_view mask) {
+    const auto ballot_index{BallotIndex(ctx)};
+    return fmt::format("uint(uvec2({}){})", mask, ballot_index);
+}
 } // Anonymous namespace
 
 void EmitLaneId(EmitContext& ctx, IR::Inst& inst) {
-    ctx.AddU32("{}=gl_SubGroupInvocationARB&31u;", inst);
+    ctx.AddU32("{}={}&31u;", inst, THREAD_ID);
 }
 
 void EmitVoteAll(EmitContext& ctx, IR::Inst& inst, std::string_view pred) {
     if (!ctx.profile.warp_size_potentially_larger_than_guest) {
         ctx.AddU1("{}=allInvocationsEqualARB({});", inst, pred);
-    } else {
-        const auto active_mask{fmt::format("uvec2(ballotARB(true))[gl_SubGroupInvocationARB]")};
-        const auto ballot{fmt::format("uvec2(ballotARB({}))[gl_SubGroupInvocationARB]", pred)};
-        ctx.AddU1("{}=({}&{})=={};", inst, ballot, active_mask, active_mask);
+        return;
     }
+    const auto ballot_index{BallotIndex(ctx)};
+    const auto active_mask{fmt::format("uvec2(ballotARB(true)){}", ballot_index)};
+    const auto ballot{fmt::format("uvec2(ballotARB({})){}", pred, ballot_index)};
+    ctx.AddU1("{}=({}&{})=={};", inst, ballot, active_mask, active_mask);
 }
 
 void EmitVoteAny(EmitContext& ctx, IR::Inst& inst, std::string_view pred) {
     if (!ctx.profile.warp_size_potentially_larger_than_guest) {
         ctx.AddU1("{}=anyInvocationARB({});", inst, pred);
-    } else {
-        const auto active_mask{fmt::format("uvec2(ballotARB(true))[gl_SubGroupInvocationARB]")};
-        const auto ballot{fmt::format("uvec2(ballotARB({}))[gl_SubGroupInvocationARB]", pred)};
-        ctx.AddU1("{}=({}&{})!=0u;", inst, ballot, active_mask, active_mask);
+        return;
     }
+    const auto ballot_index{BallotIndex(ctx)};
+    const auto active_mask{fmt::format("uvec2(ballotARB(true)){}", ballot_index)};
+    const auto ballot{fmt::format("uvec2(ballotARB({})){}", pred, ballot_index)};
+    ctx.AddU1("{}=({}&{})!=0u;", inst, ballot, active_mask, active_mask);
 }
 
 void EmitVoteEqual(EmitContext& ctx, IR::Inst& inst, std::string_view pred) {
     if (!ctx.profile.warp_size_potentially_larger_than_guest) {
         ctx.AddU1("{}=allInvocationsEqualARB({});", inst, pred);
-    } else {
-        const auto active_mask{fmt::format("uvec2(ballotARB(true))[gl_SubGroupInvocationARB]")};
-        const auto ballot{fmt::format("uvec2(ballotARB({}))[gl_SubGroupInvocationARB]", pred)};
-        const auto value{fmt::format("({}^{})", ballot, active_mask)};
-        ctx.AddU1("{}=({}==0)||({}=={});", inst, value, value, active_mask);
+        return;
     }
+    const auto ballot_index{BallotIndex(ctx)};
+    const auto active_mask{fmt::format("uvec2(ballotARB(true)){}", ballot_index)};
+    const auto ballot{fmt::format("uvec2(ballotARB({})){}", pred, ballot_index)};
+    const auto value{fmt::format("({}^{})", ballot, active_mask)};
+    ctx.AddU1("{}=({}==0)||({}=={});", inst, value, value, active_mask);
 }
 
 void EmitSubgroupBallot(EmitContext& ctx, IR::Inst& inst, std::string_view pred) {
-    if (!ctx.profile.warp_size_potentially_larger_than_guest) {
-        ctx.AddU32("{}=uvec2(ballotARB({})).x;", inst, pred);
-    } else {
-        ctx.AddU32("{}=uvec2(ballotARB({}))[gl_SubGroupInvocationARB];", inst, pred);
-    }
+    const auto ballot_index{BallotIndex(ctx)};
+    ctx.AddU32("{}=uvec2(ballotARB({})){};", inst, pred, ballot_index);
 }
 
 void EmitSubgroupEqMask(EmitContext& ctx, IR::Inst& inst) {
-    ctx.AddU32("{}=uint(gl_SubGroupEqMaskARB.x);", inst);
+    ctx.AddU32("{}={};", inst, GetMask(ctx, "gl_SubGroupEqMaskARB"));
 }
 
 void EmitSubgroupLtMask(EmitContext& ctx, IR::Inst& inst) {
-    ctx.AddU32("{}=uint(gl_SubGroupLtMaskARB.x);", inst);
+    ctx.AddU32("{}={};", inst, GetMask(ctx, "gl_SubGroupLtMaskARB"));
 }
 
 void EmitSubgroupLeMask(EmitContext& ctx, IR::Inst& inst) {
-    ctx.AddU32("{}=uint(gl_SubGroupLeMaskARB.x);", inst);
+    ctx.AddU32("{}={};", inst, GetMask(ctx, "gl_SubGroupLeMaskARB"));
 }
 
 void EmitSubgroupGtMask(EmitContext& ctx, IR::Inst& inst) {
-    ctx.AddU32("{}=uint(gl_SubGroupGtMaskARB.x);", inst);
+    ctx.AddU32("{}={};", inst, GetMask(ctx, "gl_SubGroupGtMaskARB"));
 }
 
 void EmitSubgroupGeMask(EmitContext& ctx, IR::Inst& inst) {
-    ctx.AddU32("{}=uint(gl_SubGroupGeMaskARB.x);", inst);
+    ctx.AddU32("{}={};", inst, GetMask(ctx, "gl_SubGroupGeMaskARB"));
 }
 
 void EmitShuffleIndex(EmitContext& ctx, IR::Inst& inst, std::string_view value,
