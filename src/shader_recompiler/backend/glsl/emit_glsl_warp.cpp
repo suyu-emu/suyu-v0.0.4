@@ -123,18 +123,22 @@ void EmitSubgroupGeMask(EmitContext& ctx, IR::Inst& inst) {
 }
 
 void EmitShuffleIndex(EmitContext& ctx, IR::Inst& inst, std::string_view value,
-                      std::string_view index, std::string_view clamp,
-                      std::string_view segmentation_mask) {
+                      std::string_view index, std::string_view clamp, std::string_view seg_mask) {
     if (ctx.profile.support_gl_warp_intrinsics) {
-        UseShuffleNv(ctx, inst, "shuffleNV", value, index, clamp, segmentation_mask);
+        UseShuffleNv(ctx, inst, "shuffleNV", value, index, clamp, seg_mask);
         return;
     }
-    const auto not_seg_mask{fmt::format("(~{})", segmentation_mask)};
-    const auto thread_id{"gl_SubGroupInvocationARB"};
-    const auto min_thread_id{ComputeMinThreadId(thread_id, segmentation_mask)};
-    const auto max_thread_id{ComputeMaxThreadId(min_thread_id, clamp, not_seg_mask)};
+    const bool big_warp{ctx.profile.warp_size_potentially_larger_than_guest};
+    const auto is_upper_partition{"int(gl_SubGroupInvocationARB)>=32"};
+    const auto upper_index{fmt::format("{}?{}+32:{}", is_upper_partition, index, index)};
+    const auto upper_clamp{fmt::format("{}?{}+32:{}", is_upper_partition, clamp, clamp)};
 
-    const auto lhs{fmt::format("({}&{})", index, not_seg_mask)};
+    const auto not_seg_mask{fmt::format("(~{})", seg_mask)};
+    const auto min_thread_id{ComputeMinThreadId(THREAD_ID, seg_mask)};
+    const auto max_thread_id{
+        ComputeMaxThreadId(min_thread_id, big_warp ? upper_clamp : clamp, not_seg_mask)};
+
+    const auto lhs{fmt::format("({}&{})", big_warp ? upper_index : index, not_seg_mask)};
     const auto src_thread_id{fmt::format("({})|({})", lhs, min_thread_id)};
     ctx.Add("shfl_in_bounds=int({})<=int({});", src_thread_id, max_thread_id);
     SetInBoundsFlag(ctx, inst);
@@ -142,29 +146,34 @@ void EmitShuffleIndex(EmitContext& ctx, IR::Inst& inst, std::string_view value,
 }
 
 void EmitShuffleUp(EmitContext& ctx, IR::Inst& inst, std::string_view value, std::string_view index,
-                   std::string_view clamp, std::string_view segmentation_mask) {
+                   std::string_view clamp, std::string_view seg_mask) {
     if (ctx.profile.support_gl_warp_intrinsics) {
-        UseShuffleNv(ctx, inst, "shuffleUpNV", value, index, clamp, segmentation_mask);
+        UseShuffleNv(ctx, inst, "shuffleUpNV", value, index, clamp, seg_mask);
         return;
     }
-    const auto thread_id{"gl_SubGroupInvocationARB"};
-    const auto max_thread_id{GetMaxThreadId(thread_id, clamp, segmentation_mask)};
-    const auto src_thread_id{fmt::format("({}-{})", thread_id, index)};
+    const bool big_warp{ctx.profile.warp_size_potentially_larger_than_guest};
+    const auto is_upper_partition{"int(gl_SubGroupInvocationARB)>=32"};
+    const auto upper_clamp{fmt::format("{}?{}+32:{}", is_upper_partition, clamp, clamp)};
+
+    const auto max_thread_id{GetMaxThreadId(THREAD_ID, big_warp ? upper_clamp : clamp, seg_mask)};
+    const auto src_thread_id{fmt::format("({}-{})", THREAD_ID, index)};
     ctx.Add("shfl_in_bounds=int({})>=int({});", src_thread_id, max_thread_id);
     SetInBoundsFlag(ctx, inst);
     ctx.AddU32("{}=shfl_in_bounds?readInvocationARB({},{}):{};", inst, value, src_thread_id, value);
 }
 
 void EmitShuffleDown(EmitContext& ctx, IR::Inst& inst, std::string_view value,
-                     std::string_view index, std::string_view clamp,
-                     std::string_view segmentation_mask) {
+                     std::string_view index, std::string_view clamp, std::string_view seg_mask) {
     if (ctx.profile.support_gl_warp_intrinsics) {
-        UseShuffleNv(ctx, inst, "shuffleDownNV", value, index, clamp, segmentation_mask);
+        UseShuffleNv(ctx, inst, "shuffleDownNV", value, index, clamp, seg_mask);
         return;
     }
-    const auto thread_id{"gl_SubGroupInvocationARB"};
-    const auto max_thread_id{GetMaxThreadId(thread_id, clamp, segmentation_mask)};
-    const auto src_thread_id{fmt::format("({}+{})", thread_id, index)};
+    const bool big_warp{ctx.profile.warp_size_potentially_larger_than_guest};
+    const auto is_upper_partition{"int(gl_SubGroupInvocationARB)>=32"};
+    const auto upper_clamp{fmt::format("{}?{}+32:{}", is_upper_partition, clamp, clamp)};
+
+    const auto max_thread_id{GetMaxThreadId(THREAD_ID, big_warp ? upper_clamp : clamp, seg_mask)};
+    const auto src_thread_id{fmt::format("({}+{})", THREAD_ID, index)};
     ctx.Add("shfl_in_bounds=int({})<=int({});", src_thread_id, max_thread_id);
     SetInBoundsFlag(ctx, inst);
     ctx.AddU32("{}=shfl_in_bounds?readInvocationARB({},{}):{};", inst, value, src_thread_id, value);
@@ -172,14 +181,17 @@ void EmitShuffleDown(EmitContext& ctx, IR::Inst& inst, std::string_view value,
 
 void EmitShuffleButterfly(EmitContext& ctx, IR::Inst& inst, std::string_view value,
                           std::string_view index, std::string_view clamp,
-                          std::string_view segmentation_mask) {
+                          std::string_view seg_mask) {
     if (ctx.profile.support_gl_warp_intrinsics) {
-        UseShuffleNv(ctx, inst, "shuffleXorNV", value, index, clamp, segmentation_mask);
+        UseShuffleNv(ctx, inst, "shuffleXorNV", value, index, clamp, seg_mask);
         return;
     }
-    const auto thread_id{"gl_SubGroupInvocationARB"};
-    const auto max_thread_id{GetMaxThreadId(thread_id, clamp, segmentation_mask)};
-    const auto src_thread_id{fmt::format("({}^{})", thread_id, index)};
+    const bool big_warp{ctx.profile.warp_size_potentially_larger_than_guest};
+    const auto is_upper_partition{"int(gl_SubGroupInvocationARB)>=32"};
+    const auto upper_clamp{fmt::format("{}?{}+32:{}", is_upper_partition, clamp, clamp)};
+
+    const auto max_thread_id{GetMaxThreadId(THREAD_ID, big_warp ? upper_clamp : clamp, seg_mask)};
+    const auto src_thread_id{fmt::format("({}^{})", THREAD_ID, index)};
     ctx.Add("shfl_in_bounds=int({})<=int({});", src_thread_id, max_thread_id);
     SetInBoundsFlag(ctx, inst);
     ctx.AddU32("{}=shfl_in_bounds?readInvocationARB({},{}):{};", inst, value, src_thread_id, value);
