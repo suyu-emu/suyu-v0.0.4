@@ -53,10 +53,21 @@ Id SelectValue(EmitContext& ctx, Id in_range, Id value, Id src_thread_id) {
     return ctx.OpSelect(ctx.U32[1], in_range,
                         ctx.OpSubgroupReadInvocationKHR(ctx.U32[1], value, src_thread_id), value);
 }
+
+Id GetUpperClamp(EmitContext& ctx, Id invocation_id, Id clamp) {
+    const Id thirty_two{ctx.Const(32u)};
+    const Id is_upper_partition{ctx.OpSGreaterThanEqual(ctx.U1, invocation_id, thirty_two)};
+    const Id upper_clamp{ctx.OpIAdd(ctx.U32[1], thirty_two, clamp)};
+    return ctx.OpSelect(ctx.U32[1], is_upper_partition, upper_clamp, clamp);
+}
 } // Anonymous namespace
 
 Id EmitLaneId(EmitContext& ctx) {
-    return GetThreadId(ctx);
+    const Id id{GetThreadId(ctx)};
+    if (!ctx.profile.warp_size_potentially_larger_than_guest) {
+        return id;
+    }
+    return ctx.OpBitwiseAnd(ctx.U32[1], id, ctx.Const(31U));
 }
 
 Id EmitVoteAll(EmitContext& ctx, Id pred) {
@@ -125,6 +136,14 @@ Id EmitShuffleIndex(EmitContext& ctx, IR::Inst* inst, Id value, Id index, Id cla
                     Id segmentation_mask) {
     const Id not_seg_mask{ctx.OpNot(ctx.U32[1], segmentation_mask)};
     const Id thread_id{GetThreadId(ctx)};
+    if (ctx.profile.warp_size_potentially_larger_than_guest) {
+        const Id thirty_two{ctx.Const(32u)};
+        const Id is_upper_partition{ctx.OpSGreaterThanEqual(ctx.U1, thread_id, thirty_two)};
+        const Id upper_index{ctx.OpIAdd(ctx.U32[1], thirty_two, index)};
+        const Id upper_clamp{ctx.OpIAdd(ctx.U32[1], thirty_two, clamp)};
+        index = ctx.OpSelect(ctx.U32[1], is_upper_partition, upper_index, index);
+        clamp = ctx.OpSelect(ctx.U32[1], is_upper_partition, upper_clamp, clamp);
+    }
     const Id min_thread_id{ComputeMinThreadId(ctx, thread_id, segmentation_mask)};
     const Id max_thread_id{ComputeMaxThreadId(ctx, min_thread_id, clamp, not_seg_mask)};
 
@@ -139,6 +158,9 @@ Id EmitShuffleIndex(EmitContext& ctx, IR::Inst* inst, Id value, Id index, Id cla
 Id EmitShuffleUp(EmitContext& ctx, IR::Inst* inst, Id value, Id index, Id clamp,
                  Id segmentation_mask) {
     const Id thread_id{GetThreadId(ctx)};
+    if (ctx.profile.warp_size_potentially_larger_than_guest) {
+        clamp = GetUpperClamp(ctx, thread_id, clamp);
+    }
     const Id max_thread_id{GetMaxThreadId(ctx, thread_id, clamp, segmentation_mask)};
     const Id src_thread_id{ctx.OpISub(ctx.U32[1], thread_id, index)};
     const Id in_range{ctx.OpSGreaterThanEqual(ctx.U1, src_thread_id, max_thread_id)};
@@ -150,6 +172,9 @@ Id EmitShuffleUp(EmitContext& ctx, IR::Inst* inst, Id value, Id index, Id clamp,
 Id EmitShuffleDown(EmitContext& ctx, IR::Inst* inst, Id value, Id index, Id clamp,
                    Id segmentation_mask) {
     const Id thread_id{GetThreadId(ctx)};
+    if (ctx.profile.warp_size_potentially_larger_than_guest) {
+        clamp = GetUpperClamp(ctx, thread_id, clamp);
+    }
     const Id max_thread_id{GetMaxThreadId(ctx, thread_id, clamp, segmentation_mask)};
     const Id src_thread_id{ctx.OpIAdd(ctx.U32[1], thread_id, index)};
     const Id in_range{ctx.OpSLessThanEqual(ctx.U1, src_thread_id, max_thread_id)};
@@ -161,6 +186,9 @@ Id EmitShuffleDown(EmitContext& ctx, IR::Inst* inst, Id value, Id index, Id clam
 Id EmitShuffleButterfly(EmitContext& ctx, IR::Inst* inst, Id value, Id index, Id clamp,
                         Id segmentation_mask) {
     const Id thread_id{GetThreadId(ctx)};
+    if (ctx.profile.warp_size_potentially_larger_than_guest) {
+        clamp = GetUpperClamp(ctx, thread_id, clamp);
+    }
     const Id max_thread_id{GetMaxThreadId(ctx, thread_id, clamp, segmentation_mask)};
     const Id src_thread_id{ctx.OpBitwiseXor(ctx.U32[1], thread_id, index)};
     const Id in_range{ctx.OpSLessThanEqual(ctx.U1, src_thread_id, max_thread_id)};
