@@ -268,10 +268,14 @@ public:
     Id write_global_func_u32x4{};
 
     Id input_position{};
+    Id input_front_color{};
+    Id input_txt_coord{};
     std::array<Id, 32> input_generics{};
 
     Id output_point_size{};
     Id output_position{};
+    Id output_front_color{};
+    Id output_txt_coord;
     std::array<std::array<GenericElementInfo, 4>, 32> output_generics{};
 
     Id output_tess_level_outer{};

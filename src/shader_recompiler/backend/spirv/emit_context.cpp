@@ -1201,6 +1201,12 @@ void EmitContext::DefineInputs(const IR::Program& program) {
             }
         }
     }
+    if (loads.AllComponents(IR::Attribute::ColorFrontDiffuseR)) {
+        input_front_color = DefineInput(*this, F32[4], true);
+    }
+    if (loads.AllComponents(IR::Attribute::FixedFncTexture0S)) {
+        input_txt_coord = DefineInput(*this, F32[4], true);
+    }
     if (loads[IR::Attribute::InstanceId]) {
         if (profile.support_vertex_instance_id) {
             instance_id = DefineInput(*this, U32[1], true, spv::BuiltIn::InstanceId);
@@ -1282,6 +1288,9 @@ void EmitContext::DefineOutputs(const IR::Program& program) {
     if (info.stores.AnyComponent(IR::Attribute::PositionX) || stage == Stage::VertexB) {
         output_position = DefineOutput(*this, F32[4], invocations, spv::BuiltIn::Position);
     }
+    if (info.stores.AnyComponent(IR::Attribute::ColorFrontDiffuseR) || stage == Stage::VertexB) {
+        output_front_color = DefineOutput(*this, F32[4], invocations);
+    }
     if (info.stores[IR::Attribute::PointSize] || runtime_info.fixed_state_point_size) {
         if (stage == Stage::Fragment) {
             throw NotImplementedException("Storing PointSize in fragment stage");
@@ -1313,6 +1322,11 @@ void EmitContext::DefineOutputs(const IR::Program& program) {
         viewport_mask = DefineOutput(*this, TypeArray(U32[1], Const(1u)), std::nullopt,
                                      spv::BuiltIn::ViewportMaskNV);
     }
+
+    if (info.stores.AnyComponent(IR::Attribute::FixedFncTexture0S)) {
+        output_txt_coord = DefineOutput(*this, F32[4], invocations);
+    }
+
     for (size_t index = 0; index < IR::NUM_GENERICS; ++index) {
         if (info.stores.Generic(index)) {
             DefineGenericOutput(*this, index, invocations);

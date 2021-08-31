@@ -9,6 +9,14 @@
 
 namespace Shader::IR {
 
+u32 TxtCoordAttributeIndex(Attribute attribute) {
+    return (static_cast<u32>(attribute) - static_cast<u32>(Attribute::FixedFncTexture0S)) / 4u;
+}
+
+u32 TxtCoordAttributeElement(Attribute attribute) {
+    return static_cast<u32>(attribute) % 4;
+}
+
 bool IsGeneric(Attribute attribute) noexcept {
     return attribute >= Attribute::Generic0X && attribute <= Attribute::Generic31X;
 }

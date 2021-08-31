@@ -74,6 +74,12 @@ std::optional<OutAttr> OutputAttrPointer(EmitContext& ctx, IR::Attribute attr) {
             return OutputAccessChain(ctx, ctx.output_f32, info.id, index_id);
         }
     }
+    if (attr >= IR::Attribute::FixedFncTexture0S && attr <= IR::Attribute::FixedFncTexture9Q) {
+        const u32 index{IR::TxtCoordAttributeIndex(attr)};
+        const u32 element{IR::TxtCoordAttributeElement(attr)};
+        const Id element_id{ctx.Const(element)};
+        return OutputAccessChain(ctx, ctx.output_f32, ctx.output_txt_coord, element_id);
+    }
     switch (attr) {
     case IR::Attribute::PointSize:
         return ctx.output_point_size;
@@ -84,6 +90,14 @@ std::optional<OutAttr> OutputAttrPointer(EmitContext& ctx, IR::Attribute attr) {
         const u32 element{static_cast<u32>(attr) % 4};
         const Id element_id{ctx.Const(element)};
         return OutputAccessChain(ctx, ctx.output_f32, ctx.output_position, element_id);
+    }
+    case IR::Attribute::ColorFrontDiffuseR:
+    case IR::Attribute::ColorFrontDiffuseG:
+    case IR::Attribute::ColorFrontDiffuseB:
+    case IR::Attribute::ColorFrontDiffuseA: {
+        const u32 element{static_cast<u32>(attr) % 4};
+        const Id element_id{ctx.Const(element)};
+        return OutputAccessChain(ctx, ctx.output_f32, ctx.output_front_color, element_id);
     }
     case IR::Attribute::ClipDistance0:
     case IR::Attribute::ClipDistance1:
@@ -307,6 +321,11 @@ Id EmitGetAttribute(EmitContext& ctx, IR::Attribute attr, Id vertex) {
         const Id value{ctx.OpLoad(type->id, pointer)};
         return type->needs_cast ? ctx.OpBitcast(ctx.F32[1], value) : value;
     }
+    if (attr >= IR::Attribute::FixedFncTexture0S && attr <= IR::Attribute::FixedFncTexture9Q) {
+        const u32 index{IR::TxtCoordAttributeIndex(attr)};
+        return ctx.OpLoad(ctx.F32[1], AttrPointer(ctx, ctx.input_f32, vertex, ctx.input_txt_coord,
+                                                  ctx.Const(element)));
+    }
     switch (attr) {
     case IR::Attribute::PrimitiveId:
         return ctx.OpBitcast(ctx.F32[1], ctx.OpLoad(ctx.U32[1], ctx.primitive_id));
@@ -316,6 +335,13 @@ Id EmitGetAttribute(EmitContext& ctx, IR::Attribute attr, Id vertex) {
     case IR::Attribute::PositionW:
         return ctx.OpLoad(ctx.F32[1], AttrPointer(ctx, ctx.input_f32, vertex, ctx.input_position,
                                                   ctx.Const(element)));
+    case IR::Attribute::ColorFrontDiffuseR:
+    case IR::Attribute::ColorFrontDiffuseG:
+    case IR::Attribute::ColorFrontDiffuseB:
+    case IR::Attribute::ColorFrontDiffuseA: {
+        return ctx.OpLoad(ctx.F32[1], AttrPointer(ctx, ctx.input_f32, vertex, ctx.input_front_color,
+                                                  ctx.Const(element)));
+    }
     case IR::Attribute::InstanceId:
         if (ctx.profile.support_vertex_instance_id) {
             return ctx.OpBitcast(ctx.F32[1], ctx.OpLoad(ctx.U32[1], ctx.instance_id));

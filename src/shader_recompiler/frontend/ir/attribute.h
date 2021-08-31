@@ -222,7 +222,12 @@ enum class Attribute : u64 {
     FrontFace = 255,
 };
 
+constexpr size_t NUM_TXT_COORD = 10;
 constexpr size_t NUM_GENERICS = 32;
+
+[[nodiscard]] u32 TxtCoordAttributeIndex(Attribute attribute);
+
+[[nodiscard]] u32 TxtCoordAttributeElement(Attribute attribute);
 
 [[nodiscard]] bool IsGeneric(Attribute attribute) noexcept;
 
