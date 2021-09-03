@@ -1209,7 +1209,7 @@ void EmitContext::DefineInputs(const IR::Program& program) {
     if (loads.AnyComponent(IR::Attribute::FixedFncTexture0S)) {
         const Id id{DefineInput(*this, F32[4], true)};
         Decorate(id, spv::Decoration::Location, static_cast<u32>(12));
-        input_txt_coord = id;
+        input_fixed_fnc_texture = id;
     }
     if (loads[IR::Attribute::InstanceId]) {
         if (profile.support_vertex_instance_id) {
@@ -1332,7 +1332,7 @@ void EmitContext::DefineOutputs(const IR::Program& program) {
     if (info.stores.AnyComponent(IR::Attribute::FixedFncTexture0S)) {
         const Id id{DefineOutput(*this, F32[4], invocations)};
         Decorate(id, spv::Decoration::Location, static_cast<u32>(12));
-        output_txt_coord = id;
+        output_fixed_fnc_texture = id;
     }
 
     for (size_t index = 0; index < IR::NUM_GENERICS; ++index) {
