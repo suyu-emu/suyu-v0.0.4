@@ -1201,14 +1201,14 @@ void EmitContext::DefineInputs(const IR::Program& program) {
             }
         }
     }
-    if (loads.AllComponents(IR::Attribute::ColorFrontDiffuseR)) {
+    if (loads.AnyComponent(IR::Attribute::ColorFrontDiffuseR)) {
         const Id id{DefineInput(*this, F32[4], true)};
-        Decorate(id, spv::Decoration::Location, static_cast<u32>(55));
+        Decorate(id, spv::Decoration::Location, static_cast<u32>(11));
         input_front_color = id;
     }
     if (loads.AnyComponent(IR::Attribute::FixedFncTexture0S)) {
         const Id id{DefineInput(*this, F32[4], true)};
-        Decorate(id, spv::Decoration::Location, static_cast<u32>(56));
+        Decorate(id, spv::Decoration::Location, static_cast<u32>(12));
         input_txt_coord = id;
     }
     if (loads[IR::Attribute::InstanceId]) {
@@ -1294,7 +1294,7 @@ void EmitContext::DefineOutputs(const IR::Program& program) {
     }
     if (info.stores.AnyComponent(IR::Attribute::ColorFrontDiffuseR) || stage == Stage::VertexB) {
         const Id id{DefineOutput(*this, F32[4], invocations)};
-        Decorate(id, spv::Decoration::Location, static_cast<u32>(55));
+        Decorate(id, spv::Decoration::Location, static_cast<u32>(11));
         output_front_color = id;
     }
     if (info.stores[IR::Attribute::PointSize] || runtime_info.fixed_state_point_size) {
@@ -1331,7 +1331,7 @@ void EmitContext::DefineOutputs(const IR::Program& program) {
 
     if (info.stores.AnyComponent(IR::Attribute::FixedFncTexture0S)) {
         const Id id{DefineOutput(*this, F32[4], invocations)};
-        Decorate(id, spv::Decoration::Location, static_cast<u32>(56));
+        Decorate(id, spv::Decoration::Location, static_cast<u32>(12));
         output_txt_coord = id;
     }
 
