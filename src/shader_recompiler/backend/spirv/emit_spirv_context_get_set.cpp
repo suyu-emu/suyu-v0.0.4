@@ -78,7 +78,8 @@ std::optional<OutAttr> OutputAttrPointer(EmitContext& ctx, IR::Attribute attr) {
         const u32 index{IR::FixedFncTextureAttributeIndex(attr)};
         const u32 element{IR::FixedFncTextureAttributeElement(attr)};
         const Id element_id{ctx.Const(element)};
-        return OutputAccessChain(ctx, ctx.output_f32, ctx.output_fixed_fnc_texture, element_id);
+        return OutputAccessChain(ctx, ctx.output_f32, ctx.output_fixed_fnc_textures[index],
+                                 element_id);
     }
     switch (attr) {
     case IR::Attribute::PointSize:
@@ -323,8 +324,9 @@ Id EmitGetAttribute(EmitContext& ctx, IR::Attribute attr, Id vertex) {
     }
     if (attr >= IR::Attribute::FixedFncTexture0S && attr <= IR::Attribute::FixedFncTexture9Q) {
         const u32 index{IR::FixedFncTextureAttributeIndex(attr)};
-        return ctx.OpLoad(ctx.F32[1], AttrPointer(ctx, ctx.input_f32, vertex, ctx.input_fixed_fnc_texture,
-                                                  ctx.Const(element)));
+        return ctx.OpLoad(ctx.F32[1],
+                          AttrPointer(ctx, ctx.input_f32, vertex,
+                                      ctx.input_fixed_fnc_textures[index], ctx.Const(element)));
     }
     switch (attr) {
     case IR::Attribute::PrimitiveId:

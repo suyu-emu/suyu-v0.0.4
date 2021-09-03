@@ -225,6 +225,8 @@ enum class Attribute : u64 {
 constexpr size_t NUM_FIXEDFNCTEXTURE = 10;
 constexpr size_t NUM_GENERICS = 32;
 
+[[nodiscard]] bool IsFixedFncTexture(Attribute attribute);
+
 [[nodiscard]] u32 FixedFncTextureAttributeIndex(Attribute attribute);
 
 [[nodiscard]] u32 FixedFncTextureAttributeElement(Attribute attribute);

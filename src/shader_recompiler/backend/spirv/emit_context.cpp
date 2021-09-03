@@ -1206,10 +1206,12 @@ void EmitContext::DefineInputs(const IR::Program& program) {
         Decorate(id, spv::Decoration::Location, static_cast<u32>(11));
         input_front_color = id;
     }
-    if (loads.AnyComponent(IR::Attribute::FixedFncTexture0S)) {
-        const Id id{DefineInput(*this, F32[4], true)};
-        Decorate(id, spv::Decoration::Location, static_cast<u32>(12));
-        input_fixed_fnc_texture = id;
+    for (size_t index = 0; index < IR::NUM_FIXEDFNCTEXTURE; ++index) {
+        if (loads.AnyComponent(IR::Attribute::FixedFncTexture0S + index * 4)) {
+            const Id id{DefineInput(*this, F32[4], true)};
+            Decorate(id, spv::Decoration::Location, static_cast<u32>(12));
+            input_fixed_fnc_textures[index] = id;
+        }
     }
     if (loads[IR::Attribute::InstanceId]) {
         if (profile.support_vertex_instance_id) {
@@ -1292,11 +1294,6 @@ void EmitContext::DefineOutputs(const IR::Program& program) {
     if (info.stores.AnyComponent(IR::Attribute::PositionX) || stage == Stage::VertexB) {
         output_position = DefineOutput(*this, F32[4], invocations, spv::BuiltIn::Position);
     }
-    if (info.stores.AnyComponent(IR::Attribute::ColorFrontDiffuseR) || stage == Stage::VertexB) {
-        const Id id{DefineOutput(*this, F32[4], invocations)};
-        Decorate(id, spv::Decoration::Location, static_cast<u32>(11));
-        output_front_color = id;
-    }
     if (info.stores[IR::Attribute::PointSize] || runtime_info.fixed_state_point_size) {
         if (stage == Stage::Fragment) {
             throw NotImplementedException("Storing PointSize in fragment stage");
@@ -1328,13 +1325,18 @@ void EmitContext::DefineOutputs(const IR::Program& program) {
         viewport_mask = DefineOutput(*this, TypeArray(U32[1], Const(1u)), std::nullopt,
                                      spv::BuiltIn::ViewportMaskNV);
     }
-
-    if (info.stores.AnyComponent(IR::Attribute::FixedFncTexture0S)) {
+    if (info.stores.AnyComponent(IR::Attribute::ColorFrontDiffuseR) || stage == Stage::VertexB) {
         const Id id{DefineOutput(*this, F32[4], invocations)};
-        Decorate(id, spv::Decoration::Location, static_cast<u32>(12));
-        output_fixed_fnc_texture = id;
+        Decorate(id, spv::Decoration::Location, static_cast<u32>(11));
+        output_front_color = id;
     }
-
+    for (size_t index = 0; index < IR::NUM_FIXEDFNCTEXTURE; ++index) {
+        if (info.stores.AnyComponent(IR::Attribute::FixedFncTexture0S + index * 4)) {
+            const Id id{DefineOutput(*this, F32[4], invocations)};
+            Decorate(id, spv::Decoration::Location, static_cast<u32>(12));
+            output_fixed_fnc_textures[index] = id;
+        }
+    }
     for (size_t index = 0; index < IR::NUM_GENERICS; ++index) {
         if (info.stores.Generic(index)) {
             DefineGenericOutput(*this, index, invocations);
