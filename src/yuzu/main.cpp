@@ -3431,7 +3431,7 @@ void GMainWindow::OnLanguageChanged(const QString& locale) {
 void GMainWindow::SetDiscordEnabled([[maybe_unused]] bool state) {
 #ifdef USE_DISCORD_PRESENCE
     if (state) {
-        discord_rpc = std::make_unique<DiscordRPC::DiscordImpl>();
+        discord_rpc = std::make_unique<DiscordRPC::DiscordImpl>(system);
     } else {
         discord_rpc = std::make_unique<DiscordRPC::NullImpl>();
     }
