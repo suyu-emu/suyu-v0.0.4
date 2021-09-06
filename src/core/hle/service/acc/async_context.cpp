@@ -7,8 +7,8 @@
 #include "core/hle/service/acc/async_context.h"
 
 namespace Service::Account {
-IAsyncContext::IAsyncContext(Core::System& system)
-    : ServiceFramework{system, "IAsyncContext"}, compeletion_event{system.Kernel()} {
+IAsyncContext::IAsyncContext(Core::System& system_)
+    : ServiceFramework{system_, "IAsyncContext"}, compeletion_event{system_.Kernel()} {
 
     Kernel::KAutoObject::Create(std::addressof(compeletion_event));
     compeletion_event.Initialize("IAsyncContext:CompletionEvent");
