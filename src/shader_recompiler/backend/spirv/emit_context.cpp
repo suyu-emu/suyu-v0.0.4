@@ -6,6 +6,7 @@
 #include <array>
 #include <climits>
 #include <string_view>
+#include <queue>
 
 #include <fmt/format.h>
 
@@ -1201,18 +1202,6 @@ void EmitContext::DefineInputs(const IR::Program& program) {
             }
         }
     }
-    if (loads.AnyComponent(IR::Attribute::ColorFrontDiffuseR)) {
-        const Id id{DefineInput(*this, F32[4], true)};
-        Decorate(id, spv::Decoration::Location, static_cast<u32>(11));
-        input_front_color = id;
-    }
-    for (size_t index = 0; index < IR::NUM_FIXEDFNCTEXTURE; ++index) {
-        if (loads.AnyComponent(IR::Attribute::FixedFncTexture0S + index * 4)) {
-            const Id id{DefineInput(*this, F32[4], true)};
-            Decorate(id, spv::Decoration::Location, static_cast<u32>(12));
-            input_fixed_fnc_textures[index] = id;
-        }
-    }
     if (loads[IR::Attribute::InstanceId]) {
         if (profile.support_vertex_instance_id) {
             instance_id = DefineInput(*this, U32[1], true, spv::BuiltIn::InstanceId);
@@ -1239,17 +1228,15 @@ void EmitContext::DefineInputs(const IR::Program& program) {
         loads[IR::Attribute::TessellationEvaluationPointV]) {
         tess_coord = DefineInput(*this, F32[3], false, spv::BuiltIn::TessCoord);
     }
+    std::queue<u32> ununsed_location;
     for (size_t index = 0; index < IR::NUM_GENERICS; ++index) {
         const AttributeType input_type{runtime_info.generic_input_types[index]};
-        if (!runtime_info.previous_stage_stores.Generic(index)) {
+        if (!runtime_info.previous_stage_stores.Generic(index) || !loads.Generic(index) ||
+            input_type == AttributeType::Disabled) {
+            ununsed_location.push(static_cast<u32>(index));
             continue;
         }
-        if (!loads.Generic(index)) {
-            continue;
-        }
-        if (input_type == AttributeType::Disabled) {
-            continue;
-        }
+
         const Id type{GetAttributeType(*this, input_type)};
         const Id id{DefineInput(*this, type, true)};
         Decorate(id, spv::Decoration::Location, static_cast<u32>(index));
@@ -1273,6 +1260,28 @@ void EmitContext::DefineInputs(const IR::Program& program) {
         case Interpolation::Flat:
             Decorate(id, spv::Decoration::Flat);
             break;
+        }
+    }
+    if (loads.AnyComponent(IR::Attribute::ColorFrontDiffuseR)) {
+        if (ununsed_location.empty()) {
+            throw RuntimeError("Unable to get an unused location");
+        }
+        u32 location = ununsed_location.front();
+        ununsed_location.pop();
+        const Id id{DefineInput(*this, F32[4], true)};
+        Decorate(id, spv::Decoration::Location, location);
+        input_front_color = id;
+    }
+    for (size_t index = 0; index < IR::NUM_FIXEDFNCTEXTURE; ++index) {
+        if (loads.AnyComponent(IR::Attribute::FixedFncTexture0S + index * 4)) {
+            if (ununsed_location.empty()) {
+                throw RuntimeError("Unable to get an unused location");
+            }
+            u32 location = ununsed_location.front();
+            ununsed_location.pop();
+            const Id id{DefineInput(*this, F32[4], true)};
+            Decorate(id, spv::Decoration::Location, location);
+            input_fixed_fnc_textures[index] = id;
         }
     }
     if (stage == Stage::TessellationEval) {
@@ -1325,21 +1334,34 @@ void EmitContext::DefineOutputs(const IR::Program& program) {
         viewport_mask = DefineOutput(*this, TypeArray(U32[1], Const(1u)), std::nullopt,
                                      spv::BuiltIn::ViewportMaskNV);
     }
-    if (info.stores.AnyComponent(IR::Attribute::ColorFrontDiffuseR) || stage == Stage::VertexB) {
+    std::queue<u32> ununsed_location;
+    for (size_t index = 0; index < IR::NUM_GENERICS; ++index) {
+        if (info.stores.Generic(index)) {
+            DefineGenericOutput(*this, index, invocations);
+        } else {
+            ununsed_location.push(static_cast<u32>(index));
+        }
+    }
+    if (info.stores.AnyComponent(IR::Attribute::ColorFrontDiffuseR)) {
+        if (ununsed_location.empty()) {
+            throw RuntimeError("Unable to get an unused location");
+        }
+        u32 location = ununsed_location.front();
+        ununsed_location.pop();
         const Id id{DefineOutput(*this, F32[4], invocations)};
-        Decorate(id, spv::Decoration::Location, static_cast<u32>(11));
+        Decorate(id, spv::Decoration::Location, location);
         output_front_color = id;
     }
     for (size_t index = 0; index < IR::NUM_FIXEDFNCTEXTURE; ++index) {
         if (info.stores.AnyComponent(IR::Attribute::FixedFncTexture0S + index * 4)) {
+            if (ununsed_location.empty()) {
+                throw RuntimeError("Unable to get an unused location");
+            }
+            u32 location = ununsed_location.front();
+            ununsed_location.pop();
             const Id id{DefineOutput(*this, F32[4], invocations)};
-            Decorate(id, spv::Decoration::Location, static_cast<u32>(12));
+            Decorate(id, spv::Decoration::Location, location);
             output_fixed_fnc_textures[index] = id;
-        }
-    }
-    for (size_t index = 0; index < IR::NUM_GENERICS; ++index) {
-        if (info.stores.Generic(index)) {
-            DefineGenericOutput(*this, index, invocations);
         }
     }
     switch (stage) {
