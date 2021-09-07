@@ -43,6 +43,25 @@ Id AttrPointer(EmitContext& ctx, Id pointer_type, Id vertex, Id base, Args&&... 
     }
 }
 
+bool IsFixedFncTexture(IR::Attribute attribute) {
+    return attribute >= IR::Attribute::FixedFncTexture0S &&
+           attribute <= IR::Attribute::FixedFncTexture9Q;
+}
+
+u32 FixedFncTextureAttributeIndex(IR::Attribute attribute) {
+    if (!IsFixedFncTexture(attribute)) {
+        throw InvalidArgument("Attribute is not fixedfnctexture {}", attribute);
+    }
+    return (static_cast<u32>(attribute) - static_cast<u32>(IR::Attribute::FixedFncTexture0S)) / 4u;
+}
+
+u32 FixedFncTextureAttributeElement(IR::Attribute attribute) {
+    if (!IsFixedFncTexture(attribute)) {
+        throw InvalidArgument("Attribute is not fixedfnctexture {}", attribute);
+    }
+    return static_cast<u32>(attribute) % 4;
+}
+
 template <typename... Args>
 Id OutputAccessChain(EmitContext& ctx, Id result_type, Id base, Args&&... args) {
     if (ctx.stage == Stage::TessellationControl) {
@@ -75,8 +94,8 @@ std::optional<OutAttr> OutputAttrPointer(EmitContext& ctx, IR::Attribute attr) {
         }
     }
     if (attr >= IR::Attribute::FixedFncTexture0S && attr <= IR::Attribute::FixedFncTexture9Q) {
-        const u32 index{IR::FixedFncTextureAttributeIndex(attr)};
-        const u32 element{IR::FixedFncTextureAttributeElement(attr)};
+        const u32 index{FixedFncTextureAttributeIndex(attr)};
+        const u32 element{FixedFncTextureAttributeElement(attr)};
         const Id element_id{ctx.Const(element)};
         return OutputAccessChain(ctx, ctx.output_f32, ctx.output_fixed_fnc_textures[index],
                                  element_id);
@@ -323,7 +342,7 @@ Id EmitGetAttribute(EmitContext& ctx, IR::Attribute attr, Id vertex) {
         return type->needs_cast ? ctx.OpBitcast(ctx.F32[1], value) : value;
     }
     if (attr >= IR::Attribute::FixedFncTexture0S && attr <= IR::Attribute::FixedFncTexture9Q) {
-        const u32 index{IR::FixedFncTextureAttributeIndex(attr)};
+        const u32 index{FixedFncTextureAttributeIndex(attr)};
         return ctx.OpLoad(ctx.F32[1],
                           AttrPointer(ctx, ctx.input_f32, vertex,
                                       ctx.input_fixed_fnc_textures[index], ctx.Const(element)));

@@ -9,24 +9,6 @@
 
 namespace Shader::IR {
 
-bool IsFixedFncTexture(Attribute attribute) {
-    return attribute >= Attribute::FixedFncTexture0S && attribute <= Attribute::FixedFncTexture9Q;
-}
-
-u32 FixedFncTextureAttributeIndex(Attribute attribute) {
-    if (!IsFixedFncTexture(attribute)) {
-        throw InvalidArgument("Attribute is not fixedfnctexture {}", attribute);
-    }
-    return (static_cast<u32>(attribute) - static_cast<u32>(Attribute::FixedFncTexture0S)) / 4u;
-}
-
-u32 FixedFncTextureAttributeElement(Attribute attribute) {
-    if (!IsFixedFncTexture(attribute)) {
-        throw InvalidArgument("Attribute is not fixedfnctexture {}", attribute);
-    }
-    return static_cast<u32>(attribute) % 4;
-}
-
 bool IsGeneric(Attribute attribute) noexcept {
     return attribute >= Attribute::Generic0X && attribute <= Attribute::Generic31X;
 }

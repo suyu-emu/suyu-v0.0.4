@@ -428,6 +428,8 @@ Id DescType(EmitContext& ctx, Id sampled_type, Id pointer_type, u32 count) {
         return pointer_type;
     }
 }
+
+constexpr size_t NUM_FIXEDFNCTEXTURE = 10;
 } // Anonymous namespace
 
 void VectorTypes::Define(Sirit::Module& sirit_ctx, Id base_type, std::string_view name) {
@@ -1272,7 +1274,7 @@ void EmitContext::DefineInputs(const IR::Program& program) {
         Decorate(id, spv::Decoration::Location, location);
         input_front_color = id;
     }
-    for (size_t index = 0; index < IR::NUM_FIXEDFNCTEXTURE; ++index) {
+    for (size_t index = 0; index < NUM_FIXEDFNCTEXTURE; ++index) {
         if (loads.AnyComponent(IR::Attribute::FixedFncTexture0S + index * 4)) {
             if (ununsed_location.empty()) {
                 throw RuntimeError("Unable to get an unused location");
@@ -1352,7 +1354,7 @@ void EmitContext::DefineOutputs(const IR::Program& program) {
         Decorate(id, spv::Decoration::Location, location);
         output_front_color = id;
     }
-    for (size_t index = 0; index < IR::NUM_FIXEDFNCTEXTURE; ++index) {
+    for (size_t index = 0; index < NUM_FIXEDFNCTEXTURE; ++index) {
         if (info.stores.AnyComponent(IR::Attribute::FixedFncTexture0S + index * 4)) {
             if (ununsed_location.empty()) {
                 throw RuntimeError("Unable to get an unused location");
