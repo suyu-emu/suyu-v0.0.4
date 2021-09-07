@@ -254,11 +254,25 @@ public:
     }
 
     bool IsJoyconLeft() const {
-        return std::strstr(GetControllerName().c_str(), "Joy-Con Left") != nullptr;
+        const std::string controller_name = GetControllerName();
+        if (std::strstr(controller_name.c_str(), "Joy-Con Left") != nullptr) {
+            return true;
+        }
+        if (std::strstr(controller_name.c_str(), "Joy-Con (L)") != nullptr) {
+            return true;
+        }
+        return false;
     }
 
     bool IsJoyconRight() const {
-        return std::strstr(GetControllerName().c_str(), "Joy-Con Right") != nullptr;
+        const std::string controller_name = GetControllerName();
+        if (std::strstr(controller_name.c_str(), "Joy-Con Right") != nullptr) {
+            return true;
+        }
+        if (std::strstr(controller_name.c_str(), "Joy-Con (R)") != nullptr) {
+            return true;
+        }
+        return false;
     }
 
     std::string GetControllerName() const {
