@@ -46,11 +46,11 @@ void IAsyncContext::Cancel(Kernel::HLERequestContext& ctx) {
 void IAsyncContext::HasDone(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_ACC, "called");
 
-    is_complete = IsComplete();
+    is_complete.store(IsComplete());
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.Push(is_complete);
+    rb.Push(is_complete.load());
 }
 
 void IAsyncContext::GetResult(Kernel::HLERequestContext& ctx) {
@@ -61,7 +61,7 @@ void IAsyncContext::GetResult(Kernel::HLERequestContext& ctx) {
 }
 
 void IAsyncContext::MarkComplete() {
-    is_complete = true;
+    is_complete.store(true);
     compeletion_event.GetWritableEvent().Signal();
 }
 

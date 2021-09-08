@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <atomic>
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/service/service.h"
 
@@ -29,7 +30,7 @@ protected:
 
     void MarkComplete();
 
-    bool is_complete{false};
+    std::atomic<bool> is_complete{false};
     Kernel::KEvent compeletion_event;
 };
 
