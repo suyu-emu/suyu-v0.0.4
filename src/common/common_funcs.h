@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <algorithm>
 #include <array>
+#include <iterator>
 
 #if !defined(ARCHITECTURE_x86_64)
 #include <cstdlib> // for exit
