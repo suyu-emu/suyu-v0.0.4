@@ -50,16 +50,16 @@ bool IsFixedFncTexture(IR::Attribute attribute) {
 
 u32 FixedFncTextureAttributeIndex(IR::Attribute attribute) {
     if (!IsFixedFncTexture(attribute)) {
-        throw InvalidArgument("Attribute is not fixedfnctexture {}", attribute);
+        throw InvalidArgument("Attribute {} is not a FixedFncTexture", attribute);
     }
     return (static_cast<u32>(attribute) - static_cast<u32>(IR::Attribute::FixedFncTexture0S)) / 4u;
 }
 
 u32 FixedFncTextureAttributeElement(IR::Attribute attribute) {
     if (!IsFixedFncTexture(attribute)) {
-        throw InvalidArgument("Attribute is not fixedfnctexture {}", attribute);
+        throw InvalidArgument("Attribute {} is not a FixedFncTexture", attribute);
     }
-    return static_cast<u32>(attribute) % 4;
+    return static_cast<u32>(attribute) % 4u;
 }
 
 template <typename... Args>
@@ -93,7 +93,7 @@ std::optional<OutAttr> OutputAttrPointer(EmitContext& ctx, IR::Attribute attr) {
             return OutputAccessChain(ctx, ctx.output_f32, info.id, index_id);
         }
     }
-    if (attr >= IR::Attribute::FixedFncTexture0S && attr <= IR::Attribute::FixedFncTexture9Q) {
+    if (IsFixedFncTexture(attr)) {
         const u32 index{FixedFncTextureAttributeIndex(attr)};
         const u32 element{FixedFncTextureAttributeElement(attr)};
         const Id element_id{ctx.Const(element)};
@@ -341,11 +341,11 @@ Id EmitGetAttribute(EmitContext& ctx, IR::Attribute attr, Id vertex) {
         const Id value{ctx.OpLoad(type->id, pointer)};
         return type->needs_cast ? ctx.OpBitcast(ctx.F32[1], value) : value;
     }
-    if (attr >= IR::Attribute::FixedFncTexture0S && attr <= IR::Attribute::FixedFncTexture9Q) {
+    if (IsFixedFncTexture(attr)) {
         const u32 index{FixedFncTextureAttributeIndex(attr)};
-        return ctx.OpLoad(ctx.F32[1],
-                          AttrPointer(ctx, ctx.input_f32, vertex,
-                                      ctx.input_fixed_fnc_textures[index], ctx.Const(element)));
+        const Id attr_id{ctx.input_fixed_fnc_textures[index]};
+        const Id attr_ptr{AttrPointer(ctx, ctx.input_f32, vertex, attr_id, ctx.Const(element))};
+        return ctx.OpLoad(ctx.F32[1], attr_ptr);
     }
     switch (attr) {
     case IR::Attribute::PrimitiveId:
