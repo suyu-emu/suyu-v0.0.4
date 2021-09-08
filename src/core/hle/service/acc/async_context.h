@@ -23,9 +23,9 @@ public:
     void GetResult(Kernel::HLERequestContext& ctx);
 
 protected:
-    virtual bool IsComplete() = 0;
+    virtual bool IsComplete() const = 0;
     virtual void Cancel() = 0;
-    virtual ResultCode GetResult() = 0;
+    virtual ResultCode GetResult() const = 0;
 
     void MarkComplete();
 
