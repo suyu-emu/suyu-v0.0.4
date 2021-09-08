@@ -430,15 +430,14 @@ Id DescType(EmitContext& ctx, Id sampled_type, Id pointer_type, u32 count) {
     }
 }
 
-size_t FindFistUnUsedLocation(const std::bitset<IR::NUM_GENERICS>& used_locations,
-                              size_t previous_unused_location) {
-    size_t location = previous_unused_location + 1;
-    while (location < used_locations.size() && used_locations.test(location))
-        ++location;
-    if (location == used_locations.size()) {
-        throw RuntimeError("Unable to get an unused location for legacy attribute");
+size_t FindNextUnusedLocation(const std::bitset<IR::NUM_GENERICS>& used_locations,
+                              size_t start_offset) {
+    for (size_t location = start_offset; location < used_locations.size(); ++location) {
+        if (!used_locations.test(location)) {
+            return location;
+        }
     }
-    return location;
+    throw RuntimeError("Unable to get an unused location for legacy attribute");
 }
 } // Anonymous namespace
 
@@ -1280,7 +1279,7 @@ void EmitContext::DefineInputs(const IR::Program& program) {
     }
     size_t previous_unused_location = 0;
     if (loads.AnyComponent(IR::Attribute::ColorFrontDiffuseR)) {
-        size_t location = FindFistUnUsedLocation(used_locations, previous_unused_location);
+        const size_t location = FindNextUnusedLocation(used_locations, previous_unused_location);
         previous_unused_location = location;
         used_locations.set(location);
         const Id id{DefineInput(*this, F32[4], true)};
@@ -1289,7 +1288,8 @@ void EmitContext::DefineInputs(const IR::Program& program) {
     }
     for (size_t index = 0; index < NUM_FIXEDFNCTEXTURE; ++index) {
         if (loads.AnyComponent(IR::Attribute::FixedFncTexture0S + index * 4)) {
-            size_t location = FindFistUnUsedLocation(used_locations, previous_unused_location);
+            const size_t location =
+                FindNextUnusedLocation(used_locations, previous_unused_location);
             previous_unused_location = location;
             used_locations.set(location);
             const Id id{DefineInput(*this, F32[4], true)};
@@ -1356,7 +1356,7 @@ void EmitContext::DefineOutputs(const IR::Program& program) {
     }
     size_t previous_unused_location = 0;
     if (info.stores.AnyComponent(IR::Attribute::ColorFrontDiffuseR)) {
-        size_t location = FindFistUnUsedLocation(used_locations, previous_unused_location);
+        const size_t location = FindNextUnusedLocation(used_locations, previous_unused_location);
         previous_unused_location = location;
         used_locations.set(location);
         const Id id{DefineOutput(*this, F32[4], invocations)};
@@ -1365,7 +1365,8 @@ void EmitContext::DefineOutputs(const IR::Program& program) {
     }
     for (size_t index = 0; index < NUM_FIXEDFNCTEXTURE; ++index) {
         if (info.stores.AnyComponent(IR::Attribute::FixedFncTexture0S + index * 4)) {
-            size_t location = FindFistUnUsedLocation(used_locations, previous_unused_location);
+            const size_t location =
+                FindNextUnusedLocation(used_locations, previous_unused_location);
             previous_unused_location = location;
             used_locations.set(location);
             const Id id{DefineOutput(*this, F32[4], invocations)};
