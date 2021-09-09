@@ -693,6 +693,10 @@ Image::~Image() = default;
 
 void Image::UploadMemory(const ImageBufferMap& map,
                          std::span<const VideoCommon::BufferImageCopy> copies) {
+    const bool is_rescaled = True(flags & ImageFlagBits::Rescaled);
+    if (is_rescaled) {
+        ScaleDown();
+    }
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, map.buffer);
     glFlushMappedBufferRange(GL_PIXEL_UNPACK_BUFFER, map.offset, unswizzled_size_bytes);
 
@@ -711,6 +715,9 @@ void Image::UploadMemory(const ImageBufferMap& map,
             glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, current_image_height);
         }
         CopyBufferToImage(copy, map.offset);
+    }
+    if (is_rescaled) {
+        ScaleUp();
     }
 }
 
