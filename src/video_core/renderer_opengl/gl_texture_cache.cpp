@@ -696,6 +696,7 @@ void Image::UploadMemory(const ImageBufferMap& map,
     const bool is_rescaled = True(flags & ImageFlagBits::Rescaled);
     if (is_rescaled) {
         ScaleDown();
+        scale_backup.Release();
     }
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, map.buffer);
     glFlushMappedBufferRange(GL_PIXEL_UNPACK_BUFFER, map.offset, unswizzled_size_bytes);
@@ -727,6 +728,7 @@ void Image::DownloadMemory(ImageBufferMap& map,
     const bool is_rescaled = True(flags & ImageFlagBits::Rescaled);
     if (is_rescaled) {
         ScaleDown();
+        scale_backup.Release();
     }
     glBindBuffer(GL_PIXEL_PACK_BUFFER, map.buffer);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -881,17 +883,11 @@ void Image::CopyImageToBuffer(const VideoCommon::BufferImageCopy& copy, size_t b
     }
 }
 
-bool Image::Scale(bool scale_src, bool scale_dst) {
-    if (!runtime->is_rescaling_on) {
-        return false;
-    }
-    if (gl_format == 0 && gl_type == 0) {
-        // compressed textures
-        return false;
-    }
-    if (info.type == ImageType::Linear) {
-        UNIMPLEMENTED();
-        return false;
+bool Image::Scale() {
+    if (scale_backup.handle) {
+        // This was a texture which was scaled previously, no need to repeat scaling
+        std::swap(texture, scale_backup);
+        return true;
     }
     const GLenum attachment = [this] {
         switch (GetFormatType(info.format)) {
@@ -924,41 +920,36 @@ bool Image::Scale(bool scale_src, bool scale_dst) {
     const auto& resolution = runtime->resolution;
     const u32 up = resolution.up_scale;
     const u32 down = resolution.down_shift;
+    const auto scale = [&](u32 value) { return std::max<u32>((value * up) >> down, 1U); };
 
-    const auto scale_up = [&](u32 value) { return std::max<u32>((value * up) >> down, 1U); };
-    const u32 scaled_width = scale_up(info.size.width);
-    const u32 scaled_height = is_2d ? scale_up(info.size.height) : info.size.height;
+    const u32 scaled_width = scale(info.size.width);
+    const u32 scaled_height = is_2d ? scale(info.size.height) : info.size.height;
     const u32 original_width = info.size.width;
     const u32 original_height = info.size.height;
 
-    const u32 src_width = scale_src ? scaled_width : original_width;
-    const u32 src_height = scale_src ? scaled_height : original_height;
-    const u32 dst_width = scale_dst ? scaled_width : original_width;
-    const u32 dst_height = scale_dst ? scaled_height : original_height;
-
     auto dst_info = info;
-    dst_info.size.width = dst_width;
-    dst_info.size.height = dst_height;
-    auto dst_texture = MakeImage(dst_info, gl_internal_format);
+    dst_info.size.width = scaled_width;
+    dst_info.size.height = scaled_height;
+    scale_backup = MakeImage(dst_info, gl_internal_format);
 
     const GLuint read_fbo = runtime->rescale_read_fbo.handle;
     const GLuint draw_fbo = runtime->rescale_draw_fbo.handle;
     for (s32 layer = 0; layer < info.resources.layers; ++layer) {
         for (s32 level = 0; level < info.resources.levels; ++level) {
-            const u32 src_level_width = std::max(1u, src_width >> level);
-            const u32 src_level_height = std::max(1u, src_height >> level);
-            const u32 dst_level_width = std::max(1u, dst_width >> level);
-            const u32 dst_level_height = std::max(1u, dst_height >> level);
+            const u32 src_level_width = std::max(1u, original_width >> level);
+            const u32 src_level_height = std::max(1u, original_height >> level);
+            const u32 dst_level_width = std::max(1u, scaled_width >> level);
+            const u32 dst_level_height = std::max(1u, scaled_height >> level);
 
             glNamedFramebufferTextureLayer(read_fbo, attachment, texture.handle, level, layer);
-            glNamedFramebufferTextureLayer(draw_fbo, attachment, dst_texture.handle, level, layer);
+            glNamedFramebufferTextureLayer(draw_fbo, attachment, scale_backup.handle, level, layer);
             glBlitNamedFramebuffer(read_fbo, draw_fbo, 0, 0, src_level_width, src_level_height, 0,
                                    0, dst_level_width, dst_level_height, mask, filter);
             glNamedFramebufferTextureLayer(read_fbo, attachment, 0, level, layer);
             glNamedFramebufferTextureLayer(draw_fbo, attachment, 0, level, layer);
         }
     }
-    texture = std::move(dst_texture);
+    std::swap(texture, scale_backup);
     return true;
 }
 
@@ -966,16 +957,32 @@ bool Image::ScaleUp() {
     if (True(flags & ImageFlagBits::Rescaled)) {
         return false;
     }
+    if (!runtime->is_rescaling_on) {
+        return false;
+    }
+    if (gl_format == 0 && gl_type == 0) {
+        // compressed textures
+        return false;
+    }
+    if (info.type == ImageType::Linear) {
+        UNIMPLEMENTED();
+        return false;
+    }
     flags |= ImageFlagBits::Rescaled;
-    return Scale(false, true);
+    return Scale();
 }
 
 bool Image::ScaleDown() {
     if (False(flags & ImageFlagBits::Rescaled)) {
         return false;
     }
+    if (!scale_backup.handle) {
+        LOG_ERROR(Render_OpenGL, "Downscaling an upscaled texture that didn't backup original");
+        return false;
+    }
     flags &= ~ImageFlagBits::Rescaled;
-    return Scale(true, false);
+    std::swap(texture, scale_backup);
+    return true;
 }
 
 ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewInfo& info,
