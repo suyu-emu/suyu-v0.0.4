@@ -2892,8 +2892,7 @@ void GMainWindow::OnCaptureScreenshot() {
         }
     }
 #endif
-    render_window->CaptureScreenshot(UISettings::values.screenshot_resolution_factor.GetValue(),
-                                     filename);
+    render_window->CaptureScreenshot(filename);
 }
 
 // TODO: Written 2020-10-01: Remove per-game config migration code when it is irrelevant
