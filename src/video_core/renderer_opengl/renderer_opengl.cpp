@@ -21,10 +21,10 @@
 #include "core/memory.h"
 #include "core/perf_stats.h"
 #include "core/telemetry_session.h"
-#include "video_core/host_shaders/opengl_present_bicubic_frag.h"
 #include "video_core/host_shaders/opengl_present_frag.h"
-#include "video_core/host_shaders/opengl_present_scaleforce_frag.h"
 #include "video_core/host_shaders/opengl_present_vert.h"
+#include "video_core/host_shaders/present_bicubic_frag.h"
+#include "video_core/host_shaders/present_scaleforce_frag.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
 #include "video_core/renderer_opengl/gl_shader_util.h"
@@ -255,10 +255,9 @@ void RendererOpenGL::InitOpenGLObjects() {
     // Create shader programs
     present_vertex = CreateProgram(HostShaders::OPENGL_PRESENT_VERT, GL_VERTEX_SHADER);
     present_bilinear_fragment = CreateProgram(HostShaders::OPENGL_PRESENT_FRAG, GL_FRAGMENT_SHADER);
-    present_bicubic_fragment =
-        CreateProgram(HostShaders::OPENGL_PRESENT_BICUBIC_FRAG, GL_FRAGMENT_SHADER);
+    present_bicubic_fragment = CreateProgram(HostShaders::PRESENT_BICUBIC_FRAG, GL_FRAGMENT_SHADER);
     present_scaleforce_fragment =
-        CreateProgram(HostShaders::OPENGL_PRESENT_SCALEFORCE_FRAG, GL_FRAGMENT_SHADER);
+        CreateProgram(HostShaders::PRESENT_SCALEFORCE_FRAG, GL_FRAGMENT_SHADER);
 
     // Generate presentation sampler
     present_sampler.Create();

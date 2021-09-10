@@ -17,9 +17,9 @@
 #include "core/frontend/emu_window.h"
 #include "core/memory.h"
 #include "video_core/gpu.h"
-#include "video_core/host_shaders/vulkan_present_bicubic_frag_spv.h"
+#include "video_core/host_shaders/present_bicubic_frag_spv.h"
+#include "video_core/host_shaders/present_scaleforce_frag_spv.h"
 #include "video_core/host_shaders/vulkan_present_frag_spv.h"
-#include "video_core/host_shaders/vulkan_present_scaleforce_frag_spv.h"
 #include "video_core/host_shaders/vulkan_present_vert_spv.h"
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
 #include "video_core/renderer_vulkan/vk_blit_screen.h"
@@ -342,8 +342,8 @@ void VKBlitScreen::RefreshResources(const Tegra::FramebufferConfig& framebuffer)
 void VKBlitScreen::CreateShaders() {
     vertex_shader = BuildShader(device, VULKAN_PRESENT_VERT_SPV);
     bilinear_fragment_shader = BuildShader(device, VULKAN_PRESENT_FRAG_SPV);
-    bicubic_fragment_shader = BuildShader(device, VULKAN_PRESENT_BICUBIC_FRAG_SPV);
-    scaleforce_fragment_shader = BuildShader(device, VULKAN_PRESENT_SCALEFORCE_FRAG_SPV);
+    bicubic_fragment_shader = BuildShader(device, PRESENT_BICUBIC_FRAG_SPV);
+    scaleforce_fragment_shader = BuildShader(device, PRESENT_SCALEFORCE_FRAG_SPV);
 }
 
 void VKBlitScreen::CreateSemaphores() {

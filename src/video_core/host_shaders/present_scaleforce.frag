@@ -1,5 +1,3 @@
-// from https://github.com/BreadFish64/ScaleFish/tree/master/scale_force
-
 // MIT License
 //
 // Copyright (c) 2020 BreadFish64
@@ -22,13 +20,25 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-precision mediump float;
+// Adapted from https://github.com/BreadFish64/ScaleFish/tree/master/scaleforce
+
+#version 460
+
+#ifdef VULKAN
+
+#define BINDING_COLOR_TEXTURE 1
+
+#else // ^^^ Vulkan ^^^ // vvv OpenGL vvv
+
+#define BINDING_COLOR_TEXTURE 0
+
+#endif
 
 layout (location = 0) in vec2 tex_coord;
 
 layout (location = 0) out vec4 frag_color;
 
-layout (binding = 1) uniform sampler2D input_texture;
+layout (binding = BINDING_COLOR_TEXTURE) uniform sampler2D input_texture;
 
 vec2 tex_size;
 vec2 inv_tex_size;
