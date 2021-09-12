@@ -23,6 +23,7 @@
 #include "core/hle/service/acc/acc_su.h"
 #include "core/hle/service/acc/acc_u0.h"
 #include "core/hle/service/acc/acc_u1.h"
+#include "core/hle/service/acc/async_context.h"
 #include "core/hle/service/acc/errors.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/glue/arp.h"
@@ -454,22 +455,6 @@ public:
         : IProfileCommon{system_, "IProfileEditor", true, user_id_, profile_manager_} {}
 };
 
-class IAsyncContext final : public ServiceFramework<IAsyncContext> {
-public:
-    explicit IAsyncContext(Core::System& system_) : ServiceFramework{system_, "IAsyncContext"} {
-        // clang-format off
-        static const FunctionInfo functions[] = {
-            {0, nullptr, "GetSystemEvent"},
-            {1, nullptr, "Cancel"},
-            {2, nullptr, "HasDone"},
-            {3, nullptr, "GetResult"},
-        };
-        // clang-format on
-
-        RegisterHandlers(functions);
-    }
-};
-
 class ISessionObject final : public ServiceFramework<ISessionObject> {
 public:
     explicit ISessionObject(Core::System& system_, Common::UUID)
@@ -504,16 +489,44 @@ public:
     }
 };
 
+class EnsureTokenIdCacheAsyncInterface final : public IAsyncContext {
+public:
+    explicit EnsureTokenIdCacheAsyncInterface(Core::System& system_) : IAsyncContext{system_} {
+        MarkComplete();
+    }
+    ~EnsureTokenIdCacheAsyncInterface() = default;
+
+    void LoadIdTokenCache(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_ACC, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+    }
+
+protected:
+    bool IsComplete() const override {
+        return true;
+    }
+
+    void Cancel() override {}
+
+    ResultCode GetResult() const override {
+        return ResultSuccess;
+    }
+};
+
 class IManagerForApplication final : public ServiceFramework<IManagerForApplication> {
 public:
     explicit IManagerForApplication(Core::System& system_, Common::UUID user_id_)
-        : ServiceFramework{system_, "IManagerForApplication"}, user_id{user_id_} {
+        : ServiceFramework{system_, "IManagerForApplication"},
+          ensure_token_id{std::make_shared<EnsureTokenIdCacheAsyncInterface>(system)},
+          user_id{user_id_} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IManagerForApplication::CheckAvailability, "CheckAvailability"},
             {1, &IManagerForApplication::GetAccountId, "GetAccountId"},
-            {2, nullptr, "EnsureIdTokenCacheAsync"},
-            {3, nullptr, "LoadIdTokenCache"},
+            {2, &IManagerForApplication::EnsureIdTokenCacheAsync, "EnsureIdTokenCacheAsync"},
+            {3, &IManagerForApplication::LoadIdTokenCache, "LoadIdTokenCache"},
             {130, &IManagerForApplication::GetNintendoAccountUserResourceCacheForApplication, "GetNintendoAccountUserResourceCacheForApplication"},
             {150, nullptr, "CreateAuthorizationRequest"},
             {160, &IManagerForApplication::StoreOpenContext, "StoreOpenContext"},
@@ -540,6 +553,20 @@ private:
         rb.PushRaw<u64>(user_id.GetNintendoID());
     }
 
+    void EnsureIdTokenCacheAsync(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_ACC, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(ResultSuccess);
+        rb.PushIpcInterface(ensure_token_id);
+    }
+
+    void LoadIdTokenCache(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_ACC, "(STUBBED) called");
+
+        ensure_token_id->LoadIdTokenCache(ctx);
+    }
+
     void GetNintendoAccountUserResourceCacheForApplication(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_ACC, "(STUBBED) called");
 
@@ -562,6 +589,7 @@ private:
         rb.Push(ResultSuccess);
     }
 
+    std::shared_ptr<EnsureTokenIdCacheAsyncInterface> ensure_token_id{};
     Common::UUID user_id{Common::INVALID_UUID};
 };
 
