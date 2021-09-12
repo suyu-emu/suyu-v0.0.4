@@ -10,7 +10,9 @@
 #include <cstring>
 #endif
 
-#include "common/common_funcs.h"
+#include "common/error.h"
+
+namespace Common {
 
 std::string NativeErrorToString(int e) {
 #ifdef _WIN32
@@ -50,3 +52,5 @@ std::string GetLastErrorMsg() {
     return NativeErrorToString(errno);
 #endif
 }
+
+} // namespace Common
