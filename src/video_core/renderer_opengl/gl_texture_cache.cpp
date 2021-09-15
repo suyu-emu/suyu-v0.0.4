@@ -461,7 +461,7 @@ bool TextureCacheRuntime::CanImageBeCopied(const Image& dst, const Image& src) {
     if (dst.info.type == ImageType::e3D && dst.info.format == PixelFormat::BC4_UNORM) {
         return false;
     }
-    if (IsPixelFormatBGR(dst.info.format) || IsPixelFormatBGR(src.info.format)) {
+    if (IsPixelFormatBGR(dst.info.format) != IsPixelFormatBGR(src.info.format)) {
         return false;
     }
     return true;

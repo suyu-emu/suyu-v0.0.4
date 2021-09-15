@@ -162,6 +162,14 @@ public:
         return texture.handle;
     }
 
+    GLuint GlFormat() const noexcept {
+        return gl_format;
+    }
+
+    GLuint GlType() const noexcept {
+        return gl_type;
+    }
+
 private:
     void CopyBufferToImage(const VideoCommon::BufferImageCopy& copy, size_t buffer_offset);
 

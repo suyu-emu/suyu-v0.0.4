@@ -19,22 +19,6 @@ class ProgramManager;
 
 struct ImageBufferMap;
 
-class Bgr565CopyPass {
-public:
-    Bgr565CopyPass() = default;
-    ~Bgr565CopyPass() = default;
-
-    void Execute(const Image& dst_image, const Image& src_image,
-                 const VideoCommon::ImageCopy& copy);
-
-private:
-    [[nodiscard]] bool CopyBufferCreationNeeded(const VideoCommon::ImageCopy& copy);
-    void CreateNewCopyBuffer(const VideoCommon::ImageCopy& copy, GLenum target, GLuint format);
-
-    OGLBuffer bgr16_pbo;
-    size_t bgr16_pbo_size{};
-};
-
 class UtilShaders {
 public:
     explicit UtilShaders(ProgramManager& program_manager);
@@ -70,7 +54,8 @@ private:
     OGLProgram copy_bgra_program;
     OGLProgram copy_bc4_program;
 
-    Bgr565CopyPass bgr_copy_pass;
+    OGLBuffer bgr_pbo;
+    size_t bgr_pbo_size{};
 };
 
 GLenum StoreFormat(u32 bytes_per_block);
