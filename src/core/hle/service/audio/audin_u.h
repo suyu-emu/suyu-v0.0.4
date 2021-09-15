@@ -16,6 +16,17 @@ class HLERequestContext;
 
 namespace Service::Audio {
 
+class IAudioIn final : public ServiceFramework<IAudioIn> {
+public:
+    explicit IAudioIn(Core::System& system_);
+    ~IAudioIn() override;
+
+private:
+    void Start(Kernel::HLERequestContext& ctx);
+    void RegisterBufferEvent(Kernel::HLERequestContext& ctx);
+    void AppendAudioInBufferAuto(Kernel::HLERequestContext& ctx);
+};
+
 class AudInU final : public ServiceFramework<AudInU> {
 public:
     explicit AudInU(Core::System& system_);
