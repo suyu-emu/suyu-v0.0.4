@@ -3,13 +3,16 @@
 // Refer to the license.txt file included.
 
 #include "common/logging/log.h"
+#include "core/core.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/hle_ipc.h"
+#include "core/hle/kernel/k_event.h"
 #include "core/hle/service/audio/audin_u.h"
 
 namespace Service::Audio {
 
-IAudioIn::IAudioIn(Core::System& system_) : ServiceFramework{system_, "IAudioIn"} {
+IAudioIn::IAudioIn(Core::System& system_)
+    : ServiceFramework{system_, "IAudioIn"}, buffer_event{system_.Kernel()} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "GetAudioInState"},
@@ -31,6 +34,9 @@ IAudioIn::IAudioIn(Core::System& system_) : ServiceFramework{system_, "IAudioIn"
     // clang-format on
 
     RegisterHandlers(functions);
+
+    Kernel::KAutoObject::Create(std::addressof(buffer_event));
+    buffer_event.Initialize("IAudioIn:BufferEvent");
 }
 
 IAudioIn::~IAudioIn() = default;
@@ -45,8 +51,9 @@ void IAudioIn::Start(Kernel::HLERequestContext& ctx) {
 void IAudioIn::RegisterBufferEvent(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_Audio, "(STUBBED) called");
 
-    IPC::ResponseBuilder rb{ctx, 2};
+    IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(ResultSuccess);
+    rb.PushCopyObjects(buffer_event.GetReadableEvent());
 }
 
 void IAudioIn::AppendAudioInBufferAuto(Kernel::HLERequestContext& ctx) {
