@@ -14,7 +14,6 @@
 #include "video_core/host_shaders/block_linear_unswizzle_2d_comp.h"
 #include "video_core/host_shaders/block_linear_unswizzle_3d_comp.h"
 #include "video_core/host_shaders/opengl_copy_bc4_comp.h"
-#include "video_core/host_shaders/opengl_copy_bgra_comp.h"
 #include "video_core/host_shaders/pitch_unswizzle_comp.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
 #include "video_core/renderer_opengl/gl_shader_util.h"
@@ -51,7 +50,6 @@ UtilShaders::UtilShaders(ProgramManager& program_manager_)
       block_linear_unswizzle_2d_program(MakeProgram(BLOCK_LINEAR_UNSWIZZLE_2D_COMP)),
       block_linear_unswizzle_3d_program(MakeProgram(BLOCK_LINEAR_UNSWIZZLE_3D_COMP)),
       pitch_unswizzle_program(MakeProgram(PITCH_UNSWIZZLE_COMP)),
-      copy_bgra_program(MakeProgram(OPENGL_COPY_BGRA_COMP)),
       copy_bc4_program(MakeProgram(OPENGL_COPY_BC4_COMP)) {
     const auto swizzle_table = Tegra::Texture::MakeSwizzleTable();
     swizzle_table_buffer.Create();

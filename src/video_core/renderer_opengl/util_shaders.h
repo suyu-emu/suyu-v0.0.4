@@ -48,7 +48,6 @@ private:
     OGLProgram block_linear_unswizzle_2d_program;
     OGLProgram block_linear_unswizzle_3d_program;
     OGLProgram pitch_unswizzle_program;
-    OGLProgram copy_bgra_program;
     OGLProgram copy_bc4_program;
 };
 
