@@ -41,5 +41,4 @@ private:
     void SetupPerGameUI();
 
     std::unique_ptr<Ui::ConfigureAudio> ui;
-
 };
