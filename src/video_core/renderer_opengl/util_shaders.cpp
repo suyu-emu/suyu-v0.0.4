@@ -44,11 +44,6 @@ namespace {
 OGLProgram MakeProgram(std::string_view source) {
     return CreateProgram(source, GL_COMPUTE_SHADER);
 }
-
-size_t NumPixelsInCopy(const VideoCommon::ImageCopy& copy) {
-    return static_cast<size_t>(copy.extent.width * copy.extent.height *
-                               copy.src_subresource.num_layers);
-}
 } // Anonymous namespace
 
 UtilShaders::UtilShaders(ProgramManager& program_manager_)
@@ -253,36 +248,6 @@ void UtilShaders::CopyBC4(Image& dst_image, Image& src_image, std::span<const Im
         glDispatchCompute(copy.extent.width, copy.extent.height, copy.extent.depth);
     }
     program_manager.RestoreGuestCompute();
-}
-
-void UtilShaders::CopyBGR(Image& dst_image, Image& src_image,
-                          std::span<const VideoCommon::ImageCopy> copies) {
-    static constexpr VideoCommon::Offset3D zero_offset{0, 0, 0};
-    for (const ImageCopy& copy : copies) {
-        ASSERT(copy.src_offset == zero_offset);
-        ASSERT(copy.dst_offset == zero_offset);
-
-        if (bgr_pbo_size < dst_image.unswizzled_size_bytes) {
-            bgr_pbo.Create();
-            bgr_pbo_size = dst_image.unswizzled_size_bytes;
-            glNamedBufferData(bgr_pbo.handle, bgr_pbo_size, nullptr, GL_STREAM_COPY);
-        }
-        // Copy from source to PBO
-        glPixelStorei(GL_PACK_ALIGNMENT, 1);
-        glPixelStorei(GL_PACK_ROW_LENGTH, copy.extent.width);
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, bgr_pbo.handle);
-        glGetTextureSubImage(src_image.Handle(), 0, 0, 0, 0, copy.extent.width, copy.extent.height,
-                             copy.src_subresource.num_layers, src_image.GlFormat(),
-                             src_image.GlType(), static_cast<GLsizei>(bgr_pbo_size), nullptr);
-
-        // Copy from PBO to destination in reverse order
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        glPixelStorei(GL_UNPACK_ROW_LENGTH, copy.extent.width);
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, bgr_pbo.handle);
-        glTextureSubImage3D(dst_image.Handle(), 0, 0, 0, 0, copy.extent.width, copy.extent.height,
-                            copy.dst_subresource.num_layers, dst_image.GlFormat(),
-                            dst_image.GlType(), nullptr);
-    }
 }
 
 GLenum StoreFormat(u32 bytes_per_block) {
