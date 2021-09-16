@@ -42,5 +42,4 @@ private:
 
     std::unique_ptr<Ui::ConfigureAudio> ui;
 
-    ConfigurationShared::CheckState enable_audio_stretching;
 };
