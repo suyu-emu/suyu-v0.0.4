@@ -110,7 +110,8 @@ void RestoreGlobalState(bool is_powered_on) {
         return;
     }
 
-    // Audio: None
+    // Audio
+    values.volume.SetGlobal(true);
 
     // Core
     values.use_multi_core.SetGlobal(true);
