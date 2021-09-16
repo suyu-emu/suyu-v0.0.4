@@ -368,8 +368,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     };
     SetNext(next, demote);
 
+    VkPhysicalDeviceFloat16Int8FeaturesKHR float16_int8;
     if (is_int8_supported || is_float16_supported) {
-        VkPhysicalDeviceFloat16Int8FeaturesKHR float16_int8{
+        float16_int8 = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FLOAT16_INT8_FEATURES_KHR,
             .pNext = nullptr,
             .shaderFloat16 = is_float16_supported,
