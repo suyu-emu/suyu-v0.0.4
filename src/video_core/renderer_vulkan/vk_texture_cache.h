@@ -94,7 +94,6 @@ public:
     DelayedDestructionRing<vk::Image, TICKS_TO_DESTROY> prescaled_images;
     DelayedDestructionRing<MemoryCommit, TICKS_TO_DESTROY> prescaled_commits;
     Settings::ResolutionScalingInfo resolution;
-    bool is_rescaling_on{};
 };
 
 class Image : public VideoCommon::ImageBase {

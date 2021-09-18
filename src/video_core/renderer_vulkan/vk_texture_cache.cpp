@@ -739,8 +739,7 @@ TextureCacheRuntime::TextureCacheRuntime(const Device& device_, VKScheduler& sch
     : device{device_}, scheduler{scheduler_}, memory_allocator{memory_allocator_},
       staging_buffer_pool{staging_buffer_pool_}, blit_image_helper{blit_image_helper_},
       astc_decoder_pass{astc_decoder_pass_}, render_pass_cache{render_pass_cache_},
-      resolution{Settings::values.resolution_info},
-      is_rescaling_on(resolution.up_scale != 1 || resolution.down_shift != 0) {}
+      resolution{Settings::values.resolution_info} {}
 
 void TextureCacheRuntime::Finish() {
     scheduler.Finish();
@@ -1141,11 +1140,11 @@ bool Image::ScaleUp(bool save_as_backup) {
     ASSERT(info.type != ImageType::Linear);
     scaling_count++;
     flags |= ImageFlagBits::Rescaled;
-    if (!runtime->is_rescaling_on) {
-        return true;
-    }
 
     const auto& resolution = runtime->resolution;
+    if (!resolution.active) {
+        return true;
+    }
     vk::Image rescaled_image =
         has_backup ? std::move(backup_image)
                    : MakeImage(runtime->device, info, resolution.up_scale, resolution.down_shift);
@@ -1188,7 +1187,7 @@ bool Image::ScaleUp(bool save_as_backup) {
 }
 
 void Image::SwapBackup() {
-    if (!runtime->is_rescaling_on) {
+    if (!runtime->resolution.active) {
         return;
     }
     ASSERT(has_backup);
@@ -1206,17 +1205,16 @@ bool Image::ScaleDown(bool save_as_backup) {
     ASSERT(info.type != ImageType::Linear);
     flags &= ~ImageFlagBits::Rescaled;
     scaling_count++;
-    if (!runtime->is_rescaling_on) {
-        return true;
-    }
 
     const auto& resolution = runtime->resolution;
+    if (!resolution.active) {
+        return true;
+    }
     vk::Image downscaled_image =
         has_backup ? std::move(backup_image) : MakeImage(runtime->device, info);
     MemoryCommit new_commit = has_backup ? std::move(backup_commit)
                                          : MemoryCommit(runtime->memory_allocator.Commit(
                                                downscaled_image, MemoryUsage::DeviceLocal));
-
     has_backup = false;
     if (aspect_mask == 0) {
         aspect_mask = ImageAspectMask(info.format);
