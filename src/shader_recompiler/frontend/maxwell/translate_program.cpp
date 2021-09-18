@@ -178,10 +178,12 @@ IR::Program TranslateProgram(ObjectPool<IR::Inst>& inst_pool, ObjectPool<IR::Blo
     Optimization::GlobalMemoryToStorageBufferPass(program);
     Optimization::TexturePass(env, program);
 
+    Optimization::ConstantPropagationPass(program);
+
     if (Settings::values.resolution_info.active) {
         Optimization::RescalingPass(program);
     }
-    Optimization::ConstantPropagationPass(program);
+
     Optimization::DeadCodeEliminationPass(program);
     if (Settings::values.renderer_debug) {
         Optimization::VerificationPass(program);

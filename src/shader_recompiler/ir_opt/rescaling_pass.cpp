@@ -14,6 +14,52 @@
 
 namespace Shader::Optimization {
 namespace {
+void VisitMark(const IR::Program& program, IR::Inst& inst) {
+    const bool is_fragment_shader{program.stage == Stage::Fragment};
+    switch (inst.GetOpcode()) {
+    case IR::Opcode::ShuffleIndex:
+    case IR::Opcode::ShuffleUp:
+    case IR::Opcode::ShuffleDown:
+    case IR::Opcode::ShuffleButterfly: {
+        const auto try_mark = [is_fragment_shader](IR::Inst* op) {
+            const IR::Attribute attr{op->Arg(0).Attribute()};
+            switch (attr) {
+            case IR::Attribute::PositionX:
+            case IR::Attribute::PositionY:
+                if (is_fragment_shader) {
+                    op->SetFlags<u32>(0xDEADBEEF);
+                }
+                break;
+            default:
+                break;
+            }
+        };
+        const IR::Value param_1{inst.Arg(0)};
+        if (param_1.IsImmediate()) {
+            break;
+        }
+        IR::Inst* op_a{param_1.InstRecursive()};
+        if (op_a->GetOpcode() == IR::Opcode::GetAttribute) {
+            try_mark(op_a);
+            break;
+        }
+        if (op_a->GetOpcode() != IR::Opcode::BitCastF32U32) {
+            break;
+        }
+        const IR::Value param_2{op_a->Arg(0)};
+        if (param_2.IsImmediate()) {
+            break;
+        }
+        IR::Inst* op_b{param_2.InstRecursive()};
+        if (op_b->GetOpcode() == IR::Opcode::GetAttribute) {
+            try_mark(op_b);
+        }
+        break;
+    }
+    default:
+        break;
+    }
+}
 void PatchFragCoord(IR::Block& block, IR::Inst& inst) {
     IR::IREmitter ir{block, IR::Block::InstructionList::s_iterator_to(inst)};
     const IR::F32 down_factor{ir.ResolutionDownFactor()};
@@ -219,7 +265,7 @@ void Visit(const IR::Program& program, IR::Block& block, IR::Inst& inst) {
         switch (attr) {
         case IR::Attribute::PositionX:
         case IR::Attribute::PositionY:
-            if (is_fragment_shader) {
+            if (is_fragment_shader && inst.Flags<u32>() != 0xDEADBEEF) {
                 PatchFragCoord(block, inst);
             }
             break;
@@ -254,6 +300,11 @@ void Visit(const IR::Program& program, IR::Block& block, IR::Inst& inst) {
 } // Anonymous namespace
 
 void RescalingPass(IR::Program& program) {
+    for (IR::Block* const block : program.post_order_blocks) {
+        for (IR::Inst& inst : block->Instructions()) {
+            VisitMark(program, inst);
+        }
+    }
     for (IR::Block* const block : program.post_order_blocks) {
         for (IR::Inst& inst : block->Instructions()) {
             Visit(program, *block, inst);
