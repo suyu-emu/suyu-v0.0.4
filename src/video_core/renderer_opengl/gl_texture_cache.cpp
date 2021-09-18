@@ -395,6 +395,33 @@ OGLTexture MakeImage(const VideoCommon::ImageInfo& info, GLenum gl_internal_form
     UNREACHABLE_MSG("Invalid image format={}", format);
     return GL_R32UI;
 }
+
+[[nodiscard]] bool IsPixelFormatInteger(PixelFormat format) {
+    switch (format) {
+    case PixelFormat::A8B8G8R8_SINT:
+    case PixelFormat::A8B8G8R8_UINT:
+    case PixelFormat::A2B10G10R10_UINT:
+    case PixelFormat::R8_SINT:
+    case PixelFormat::R8_UINT:
+    case PixelFormat::R16G16B16A16_SINT:
+    case PixelFormat::R16G16B16A16_UINT:
+    case PixelFormat::R32G32B32A32_UINT:
+    case PixelFormat::R32G32B32A32_SINT:
+    case PixelFormat::R32G32_SINT:
+    case PixelFormat::R16_UINT:
+    case PixelFormat::R16_SINT:
+    case PixelFormat::R16G16_UINT:
+    case PixelFormat::R16G16_SINT:
+    case PixelFormat::R8G8_SINT:
+    case PixelFormat::R8G8_UINT:
+    case PixelFormat::R32G32_UINT:
+    case PixelFormat::R32_UINT:
+    case PixelFormat::R32_SINT:
+        return true;
+    default:
+        return false;
+    }
+}
 } // Anonymous namespace
 
 ImageBufferMap::~ImageBufferMap() {
@@ -475,12 +502,14 @@ TextureCacheRuntime::TextureCacheRuntime(const Device& device_, ProgramManager& 
 
     resolution = Settings::values.resolution_info;
     if (resolution.active) {
-        rescale_draw_fbo.Create();
-        rescale_read_fbo.Create();
+        for (size_t i = 0; i < rescale_draw_fbos.size(); ++i) {
+            rescale_draw_fbos[i].Create();
+            rescale_read_fbos[i].Create();
 
-        // Make sure the framebuffer is created without DSA
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, rescale_draw_fbo.handle);
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, rescale_read_fbo.handle);
+            // Make sure the framebuffer is created without DSA
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, rescale_draw_fbos[i].handle);
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, rescale_read_fbos[i].handle);
+        }
     }
 }
 
@@ -888,8 +917,9 @@ bool Image::Scale() {
         std::swap(texture, scale_backup);
         return true;
     }
-    const GLenum attachment = [this] {
-        switch (GetFormatType(info.format)) {
+    const auto format_type = GetFormatType(info.format);
+    const GLenum attachment = [format_type] {
+        switch (format_type) {
         case SurfaceType::ColorTexture:
             return GL_COLOR_ATTACHMENT0;
         case SurfaceType::Depth:
@@ -901,8 +931,8 @@ bool Image::Scale() {
             return GL_COLOR_ATTACHMENT0;
         }
     }();
-    const GLenum mask = [this] {
-        switch (GetFormatType(info.format)) {
+    const GLenum mask = [format_type] {
+        switch (format_type) {
         case SurfaceType::ColorTexture:
             return GL_COLOR_BUFFER_BIT;
         case SurfaceType::Depth:
@@ -914,8 +944,25 @@ bool Image::Scale() {
             return GL_COLOR_BUFFER_BIT;
         }
     }();
-    const GLenum filter = (mask & GL_COLOR_BUFFER_BIT) != 0 ? GL_LINEAR : GL_NEAREST;
+    const size_t fbo_index = [format_type] {
+        switch (format_type) {
+        case SurfaceType::ColorTexture:
+            return 0;
+        case SurfaceType::Depth:
+            return 1;
+        case SurfaceType::DepthStencil:
+            return 2;
+        default:
+            UNREACHABLE();
+            return 0;
+        }
+    }();
     const bool is_2d = info.type == ImageType::e2D;
+    const bool is_color{(mask & GL_COLOR_BUFFER_BIT) != 0};
+    // Integer formats must use NEAREST filter
+    const bool linear_color_format{is_color && !IsPixelFormatInteger(info.format)};
+    const GLenum filter = linear_color_format ? GL_LINEAR : GL_NEAREST;
+
     const auto& resolution = runtime->resolution;
     const u32 up = resolution.up_scale;
     const u32 down = resolution.down_shift;
@@ -931,8 +978,8 @@ bool Image::Scale() {
     dst_info.size.height = scaled_height;
     scale_backup = MakeImage(dst_info, gl_internal_format);
 
-    const GLuint read_fbo = runtime->rescale_read_fbo.handle;
-    const GLuint draw_fbo = runtime->rescale_draw_fbo.handle;
+    const GLuint read_fbo = runtime->rescale_read_fbos[fbo_index].handle;
+    const GLuint draw_fbo = runtime->rescale_draw_fbos[fbo_index].handle;
     for (s32 layer = 0; layer < info.resources.layers; ++layer) {
         for (s32 level = 0; level < info.resources.levels; ++level) {
             const u32 src_level_width = std::max(1u, original_width >> level);
@@ -944,8 +991,6 @@ bool Image::Scale() {
             glNamedFramebufferTextureLayer(draw_fbo, attachment, scale_backup.handle, level, layer);
             glBlitNamedFramebuffer(read_fbo, draw_fbo, 0, 0, src_level_width, src_level_height, 0,
                                    0, dst_level_width, dst_level_height, mask, filter);
-            glNamedFramebufferTextureLayer(read_fbo, attachment, 0, level, layer);
-            glNamedFramebufferTextureLayer(draw_fbo, attachment, 0, level, layer);
         }
     }
     std::swap(texture, scale_backup);
