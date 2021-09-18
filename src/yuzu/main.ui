@@ -100,6 +100,7 @@
     <addaction name="action_Rederive"/>
     <addaction name="separator"/>
     <addaction name="action_Capture_Screenshot"/>
+    <addaction name="action_Configure_Tas"/>
    </widget>
    <widget class="QMenu" name="menu_Help">
     <property name="title">
@@ -292,6 +293,11 @@
    </property>
    <property name="text">
     <string>&amp;Capture Screenshot</string>
+   </property>
+  </action>
+  <action name="action_Configure_Tas">
+   <property name="text">
+    <string>Configure &amp;TAS...</string>
    </property>
   </action>
   <action name="action_Configure_Current_Game">
