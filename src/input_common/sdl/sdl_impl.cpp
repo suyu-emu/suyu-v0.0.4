@@ -21,7 +21,7 @@
 #include "common/logging/log.h"
 #include "common/math_util.h"
 #include "common/param_package.h"
-#include "common/settings_input.h"
+#include "common/settings.h"
 #include "common/threadsafe_queue.h"
 #include "core/frontend/input.h"
 #include "input_common/motion_input.h"
@@ -889,8 +889,10 @@ SDLState::SDLState() {
     RegisterFactory<VibrationDevice>("sdl", vibration_factory);
     RegisterFactory<MotionDevice>("sdl", motion_factory);
 
-    // Disable raw input. When enabled this setting causes SDL to die when a web applet opens
-    SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, "0");
+    if (!Settings::values.enable_raw_input) {
+        // Disable raw input. When enabled this setting causes SDL to die when a web applet opens
+        SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, "0");
+    }
 
     // Enable HIDAPI rumble. This prevents SDL from disabling motion on PS4 and PS5 controllers
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE, "1");
@@ -898,10 +900,10 @@ SDLState::SDLState() {
 
     // Tell SDL2 to use the hidapi driver. This will allow joycons to be detected as a
     // GameController and not a generic one
-    SDL_SetHint("SDL_JOYSTICK_HIDAPI_JOY_CONS", "1");
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS, "1");
 
     // Turn off Pro controller home led
-    SDL_SetHint("SDL_JOYSTICK_HIDAPI_SWITCH_HOME_LED", "0");
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_SWITCH_HOME_LED, "0");
 
     // If the frontend is going to manage the event loop, then we don't start one here
     start_thread = SDL_WasInit(SDL_INIT_JOYSTICK) == 0;
