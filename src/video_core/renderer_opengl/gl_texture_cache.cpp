@@ -474,8 +474,7 @@ TextureCacheRuntime::TextureCacheRuntime(const Device& device_, ProgramManager& 
     set_view(Shader::TextureType::ColorArrayCube, null_image_cube_array.handle);
 
     resolution = Settings::values.resolution_info;
-    is_rescaling_on = resolution.up_scale != 1 || resolution.down_shift != 0;
-    if (is_rescaling_on) {
+    if (resolution.active) {
         rescale_draw_fbo.Create();
         rescale_read_fbo.Create();
 
@@ -957,7 +956,7 @@ bool Image::ScaleUp() {
     if (True(flags & ImageFlagBits::Rescaled)) {
         return false;
     }
-    if (!runtime->is_rescaling_on) {
+    if (!runtime->resolution.active) {
         return false;
     }
     if (gl_format == 0 && gl_type == 0) {

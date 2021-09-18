@@ -156,7 +156,6 @@ private:
     OGLFramebuffer rescale_draw_fbo;
     OGLFramebuffer rescale_read_fbo;
     Settings::ResolutionScalingInfo resolution;
-    bool is_rescaling_on{};
 };
 
 class Image : public VideoCommon::ImageBase {

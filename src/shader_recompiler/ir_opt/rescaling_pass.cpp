@@ -82,18 +82,14 @@ void PatchFragCoord(IR::Block& block, IR::Inst& inst) {
 
 [[nodiscard]] IR::U32 SubScale(IR::IREmitter& ir, const IR::U1& is_scaled, const IR::U32& value,
                                const IR::Attribute attrib) {
-    if (Settings::values.resolution_info.active) {
-        const IR::F32 opt1{ir.Imm32(Settings::values.resolution_info.up_factor)};
-        const IR::F32 base{ir.FPMul(ir.ConvertUToF(32, 32, value), opt1)};
-        const IR::F32 frag_coord{ir.GetAttribute(attrib)};
-        const IR::F32 opt2{ir.Imm32(Settings::values.resolution_info.down_factor)};
-        const IR::F32 floor{ir.FPMul(opt1, ir.FPFloor(ir.FPMul(frag_coord, opt2)))};
-        const IR::U32 deviation{
-            ir.ConvertFToU(32, ir.FPAdd(base, ir.FPAdd(frag_coord, ir.FPNeg(floor))))};
-        return IR::U32{ir.Select(is_scaled, deviation, value)};
-    } else {
-        return value;
-    }
+    const IR::F32 opt1{ir.Imm32(Settings::values.resolution_info.up_factor)};
+    const IR::F32 base{ir.FPMul(ir.ConvertUToF(32, 32, value), opt1)};
+    const IR::F32 frag_coord{ir.GetAttribute(attrib)};
+    const IR::F32 opt2{ir.Imm32(Settings::values.resolution_info.down_factor)};
+    const IR::F32 floor{ir.FPMul(opt1, ir.FPFloor(ir.FPMul(frag_coord, opt2)))};
+    const IR::U32 deviation{
+        ir.ConvertFToU(32, ir.FPAdd(base, ir.FPAdd(frag_coord, ir.FPNeg(floor))))};
+    return IR::U32{ir.Select(is_scaled, deviation, value)};
 }
 
 [[nodiscard]] IR::U32 DownScale(IR::IREmitter& ir, const IR::U1& is_scaled, IR::U32 value) {
