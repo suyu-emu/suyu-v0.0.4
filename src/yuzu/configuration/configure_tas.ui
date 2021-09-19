@@ -6,8 +6,8 @@
       <rect>
         <x>0</x>
         <y>0</y>
-        <width>800</width>
-        <height>300</height>
+        <width>900</width>
+        <height>506</height>
       </rect>
     </property>
     <property name="windowTitle">
@@ -25,7 +25,7 @@
                 <item row="0" column="0" colspan="1">
                   <widget class="QLabel" name="label_1">
                     <property name="text">
-                      <string>Reads controller input from scripts in the same format as TAS-nx scripts. For a more detailed explanation please consult the FAQ on the yuzu website.</string>
+                      <string>Reads controller input from scripts in the same format as TAS-nx scripts.&lt;br/&gt;For a more detailed explanation please consult the FAQ on the yuzu website.</string>
                     </property>
                     <property name="wordWrap">
                       <bool>true</bool>
@@ -45,7 +45,7 @@
                 <item row="2" column="0" colspan="1">
                   <widget class="QLabel" name="label_2">
                     <property name="text">
-                      <string>WARNING: This is an experimental feature. It will not play back scripts frame perfectly with the current, imperfect syncing method.</string>
+                      <string>WARNING: This is an experimental feature.&lt;br/&gt;It will not play back scripts frame perfectly with the current, imperfect syncing method.</string>
                     </property>
                     <property name="wordWrap">
                       <bool>true</bool>
