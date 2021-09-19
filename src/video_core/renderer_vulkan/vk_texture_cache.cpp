@@ -37,6 +37,7 @@ using VideoCommon::ImageInfo;
 using VideoCommon::ImageType;
 using VideoCommon::SubresourceRange;
 using VideoCore::Surface::IsPixelFormatASTC;
+using VideoCore::Surface::IsPixelFormatInteger;
 
 namespace {
 constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
@@ -603,9 +604,13 @@ void BlitScale(VKScheduler& scheduler, VkImage src_image, VkImage dst_image, con
         .width = info.size.width,
         .height = info.size.height,
     };
+    const bool is_zeta = (aspect_mask & VK_IMAGE_ASPECT_DEPTH_BIT) != 0;
+    const bool is_int_format = IsPixelFormatInteger(info.format);
+    const VkFilter vk_filter = (is_zeta || is_int_format) ? VK_FILTER_NEAREST : VK_FILTER_LINEAR;
+
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([dst_image, src_image, extent, resources, aspect_mask, resolution, type,
-                      scaling](vk::CommandBuffer cmdbuf) {
+                      scaling, vk_filter](vk::CommandBuffer cmdbuf) {
         const auto scale_up = [&](u32 value) {
             return std::max<u32>((value * resolution.up_scale) >> resolution.down_shift, 1U);
         };
@@ -723,7 +728,7 @@ void BlitScale(VKScheduler& scheduler, VkImage src_image, VkImage dst_image, con
         cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
                                0, nullptr, nullptr, read_barriers);
         cmdbuf.BlitImage(src_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst_image,
-                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, regions, VK_FILTER_NEAREST);
+                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, regions, vk_filter);
         cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
                                0, nullptr, nullptr, write_barriers);
     });

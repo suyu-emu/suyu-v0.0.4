@@ -460,6 +460,8 @@ bool IsPixelFormatASTC(PixelFormat format);
 
 bool IsPixelFormatSRGB(PixelFormat format);
 
+bool IsPixelFormatInteger(PixelFormat format);
+
 std::pair<u32, u32> GetASTCBlockSize(PixelFormat format);
 
 u64 EstimatedDecompressedSize(u64 base_size, PixelFormat format);

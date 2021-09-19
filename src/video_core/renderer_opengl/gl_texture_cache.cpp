@@ -395,33 +395,6 @@ OGLTexture MakeImage(const VideoCommon::ImageInfo& info, GLenum gl_internal_form
     UNREACHABLE_MSG("Invalid image format={}", format);
     return GL_R32UI;
 }
-
-[[nodiscard]] bool IsPixelFormatInteger(PixelFormat format) {
-    switch (format) {
-    case PixelFormat::A8B8G8R8_SINT:
-    case PixelFormat::A8B8G8R8_UINT:
-    case PixelFormat::A2B10G10R10_UINT:
-    case PixelFormat::R8_SINT:
-    case PixelFormat::R8_UINT:
-    case PixelFormat::R16G16B16A16_SINT:
-    case PixelFormat::R16G16B16A16_UINT:
-    case PixelFormat::R32G32B32A32_UINT:
-    case PixelFormat::R32G32B32A32_SINT:
-    case PixelFormat::R32G32_SINT:
-    case PixelFormat::R16_UINT:
-    case PixelFormat::R16_SINT:
-    case PixelFormat::R16G16_UINT:
-    case PixelFormat::R16G16_SINT:
-    case PixelFormat::R8G8_SINT:
-    case PixelFormat::R8G8_UINT:
-    case PixelFormat::R32G32_UINT:
-    case PixelFormat::R32_UINT:
-    case PixelFormat::R32_SINT:
-        return true;
-    default:
-        return false;
-    }
-}
 } // Anonymous namespace
 
 ImageBufferMap::~ImageBufferMap() {
