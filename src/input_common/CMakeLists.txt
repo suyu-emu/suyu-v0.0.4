@@ -5,6 +5,8 @@ add_library(input_common STATIC
     drivers/keyboard.h
     drivers/mouse.cpp
     drivers/mouse.h
+    drivers/tas_input.cpp
+    drivers/tas_input.h
     drivers/touch_screen.cpp
     drivers/touch_screen.h
     helpers/stick_from_buttons.cpp
@@ -27,10 +29,6 @@ add_library(input_common STATIC
     motion_input.h
     sdl/sdl.cpp
     sdl/sdl.h
-    tas/tas_input.cpp
-    tas/tas_input.h
-    tas/tas_poller.cpp
-    tas/tas_poller.h
     udp/client.cpp
     udp/client.h
     udp/udp.cpp
