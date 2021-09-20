@@ -101,7 +101,7 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
         // FIXME: Call this without passing *this
         layer_stride = CalculateLayerStride(*this);
         maybe_unaligned_layer_stride = CalculateLayerSize(*this);
-        rescaleable &= (block.depth == 0) && resources.levels == 1 && num_samples == 1;
+        rescaleable &= (block.depth == 0) && resources.levels == 1;
     }
 }
 
@@ -134,7 +134,7 @@ ImageInfo::ImageInfo(const Tegra::Engines::Maxwell3D::Regs& regs, size_t index) 
         type = ImageType::e3D;
         size.depth = rt.depth;
     } else {
-        rescaleable = block.depth == 0 && size.height > 256 && num_samples == 1;
+        rescaleable = block.depth == 0 && size.height > 256;
         type = ImageType::e2D;
         resources.layers = rt.depth;
     }

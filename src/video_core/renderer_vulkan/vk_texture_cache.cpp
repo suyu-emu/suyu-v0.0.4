@@ -860,9 +860,10 @@ void TextureCacheRuntime::BlitImage(Framebuffer* dst_framebuffer, ImageView& dst
         cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
                                0, nullptr, nullptr, read_barriers);
         if (is_resolve) {
+            VkImageResolve resolve_info =
+                MakeImageResolve(dst_region, src_region, dst_layers, src_layers);
             cmdbuf.ResolveImage(src_image, VK_IMAGE_LAYOUT_GENERAL, dst_image,
-                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                MakeImageResolve(dst_region, src_region, dst_layers, src_layers));
+                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, resolve_info);
         } else {
             const bool is_linear = filter == Fermi2D::Filter::Bilinear;
             const VkFilter vk_filter = is_linear ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
@@ -1148,6 +1149,9 @@ bool Image::ScaleUp() {
     }
     if (aspect_mask == 0) {
         aspect_mask = ImageAspectMask(info.format);
+    }
+    if (info.num_samples > 1) {
+        return true;
     }
     const PixelFormat format = StorageFormat(info.format);
     const auto format_info = MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, false, format);

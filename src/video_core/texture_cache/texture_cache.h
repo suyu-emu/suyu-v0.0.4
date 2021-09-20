@@ -476,17 +476,26 @@ void TextureCache<P>::BlitImage(const Tegra::Engines::Fermi2D::Surface& dst,
     Image& dst_image = slot_images[dst_id];
     Image& src_image = slot_images[src_id];
 
+    bool is_resolve = src_image.info.num_samples != 1 && dst_image.info.num_samples == 1;
+
     bool is_src_rescaled = True(src_image.flags & ImageFlagBits::Rescaled);
     bool is_dst_rescaled = True(dst_image.flags & ImageFlagBits::Rescaled);
 
     if (is_src_rescaled != is_dst_rescaled) {
-        if (ImageCanRescale(dst_image)) {
-            ScaleUp(dst_image);
-            is_dst_rescaled = True(dst_image.flags & ImageFlagBits::Rescaled);
-        }
         if (ImageCanRescale(src_image)) {
             ScaleUp(src_image);
             is_src_rescaled = True(src_image.flags & ImageFlagBits::Rescaled);
+            if (is_resolve) {
+                dst_image.info.rescaleable = true;
+                for (const auto& alias : dst_image.aliased_images) {
+                    Image& other_image = slot_images[alias.id];
+                    other_image.info.rescaleable = true;
+                }
+            }
+        }
+        if (ImageCanRescale(dst_image)) {
+            ScaleUp(dst_image);
+            is_dst_rescaled = True(dst_image.flags & ImageFlagBits::Rescaled);
         }
     }
 
