@@ -38,6 +38,9 @@ namespace Polling {
 
 enum class DeviceType { Button, AnalogPreferred, Motion };
 
+/// Type of input desired for mapping purposes
+enum class InputType { None, Button, Stick, Motion, Touch };
+
 /**
  * A class that can be used to get inputs from an input device like controllers without having to
  * poll the device's status yourself

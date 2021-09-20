@@ -3,6 +3,12 @@ add_library(input_common STATIC
     analog_from_button.h
     keyboard.cpp
     keyboard.h
+    input_engine.cpp
+    input_engine.h
+    input_mapping.cpp
+    input_mapping.h
+    input_poller.cpp
+    input_poller.h
     main.cpp
     main.h
     motion_from_button.cpp
