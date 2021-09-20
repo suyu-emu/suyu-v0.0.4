@@ -1,6 +1,8 @@
 add_library(input_common STATIC
     drivers/keyboard.cpp
     drivers/keyboard.h
+    drivers/mouse.cpp
+    drivers/mouse.h
     helpers/stick_from_buttons.cpp
     helpers/stick_from_buttons.h
     helpers/touch_from_buttons.cpp
@@ -23,10 +25,6 @@ add_library(input_common STATIC
     gcadapter/gc_adapter.h
     gcadapter/gc_poller.cpp
     gcadapter/gc_poller.h
-    mouse/mouse_input.cpp
-    mouse/mouse_input.h
-    mouse/mouse_poller.cpp
-    mouse/mouse_poller.h
     sdl/sdl.cpp
     sdl/sdl.h
     tas/tas_input.cpp
