@@ -2,32 +2,38 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <atomic>
 #include <chrono>
 #include <cmath>
-#include <thread>
 #include "common/math_util.h"
 #include "common/settings.h"
-#include "input_common/analog_from_button.h"
+#include "input_common/helpers/stick_from_buttons.h"
 
 namespace InputCommon {
 
-class Analog final : public Input::AnalogDevice {
+class Stick final : public Input::InputDevice {
 public:
-    using Button = std::unique_ptr<Input::ButtonDevice>;
+    using Button = std::unique_ptr<Input::InputDevice>;
 
-    Analog(Button up_, Button down_, Button left_, Button right_, Button modifier_,
-           float modifier_scale_, float modifier_angle_)
+    Stick(Button up_, Button down_, Button left_, Button right_, Button modifier_,
+          float modifier_scale_, float modifier_angle_)
         : up(std::move(up_)), down(std::move(down_)), left(std::move(left_)),
           right(std::move(right_)), modifier(std::move(modifier_)), modifier_scale(modifier_scale_),
           modifier_angle(modifier_angle_) {
-        Input::InputCallback<bool> callbacks{
-            [this]([[maybe_unused]] bool status) { UpdateStatus(); }};
-        up->SetCallback(callbacks);
-        down->SetCallback(callbacks);
-        left->SetCallback(callbacks);
-        right->SetCallback(callbacks);
-        modifier->SetCallback(callbacks);
+        Input::InputCallback button_up_callback{
+            [this](Input::CallbackStatus callback_) { UpdateUpButtonStatus(callback_); }};
+        Input::InputCallback button_down_callback{
+            [this](Input::CallbackStatus callback_) { UpdateDownButtonStatus(callback_); }};
+        Input::InputCallback button_left_callback{
+            [this](Input::CallbackStatus callback_) { UpdateLeftButtonStatus(callback_); }};
+        Input::InputCallback button_right_callback{
+            [this](Input::CallbackStatus callback_) { UpdateRightButtonStatus(callback_); }};
+        Input::InputCallback button_modifier_callback{
+            [this](Input::CallbackStatus callback_) { UpdateModButtonStatus(callback_); }};
+        up->SetCallback(button_up_callback);
+        down->SetCallback(button_down_callback);
+        left->SetCallback(button_left_callback);
+        right->SetCallback(button_right_callback);
+        modifier->SetCallback(button_modifier_callback);
     }
 
     bool IsAngleGreater(float old_angle, float new_angle) const {
@@ -123,13 +129,38 @@ public:
         }
     }
 
-    void UpdateStatus() {
-        const float coef = modifier->GetStatus() ? modifier_scale : 1.0f;
+    void UpdateUpButtonStatus(Input::CallbackStatus button_callback) {
+        up_status = button_callback.button_status.value;
+        UpdateStatus();
+    }
 
-        bool r = right->GetStatus();
-        bool l = left->GetStatus();
-        bool u = up->GetStatus();
-        bool d = down->GetStatus();
+    void UpdateDownButtonStatus(Input::CallbackStatus button_callback) {
+        down_status = button_callback.button_status.value;
+        UpdateStatus();
+    }
+
+    void UpdateLeftButtonStatus(Input::CallbackStatus button_callback) {
+        left_status = button_callback.button_status.value;
+        UpdateStatus();
+    }
+
+    void UpdateRightButtonStatus(Input::CallbackStatus button_callback) {
+        right_status = button_callback.button_status.value;
+        UpdateStatus();
+    }
+
+    void UpdateModButtonStatus(Input::CallbackStatus button_callback) {
+        modifier_status = button_callback.button_status.value;
+        UpdateStatus();
+    }
+
+    void UpdateStatus() {
+        const float coef = modifier_status ? modifier_scale : 1.0f;
+
+        bool r = right_status;
+        bool l = left_status;
+        bool u = up_status;
+        bool d = down_status;
 
         // Eliminate contradictory movements
         if (r && l) {
@@ -162,49 +193,42 @@ public:
         }
 
         last_update = now;
+        Input::CallbackStatus status{
+            .type = Input::InputType::Stick,
+            .stick_status = GetStatus(),
+        };
+        TriggerOnChange(status);
     }
 
-    std::tuple<float, float> GetStatus() const override {
+    Input::StickStatus GetStatus() const {
+        Input::StickStatus status{};
+        status.x.properties = properties;
+        status.y.properties = properties;
         if (Settings::values.emulate_analog_keyboard) {
             const auto now = std::chrono::steady_clock::now();
             float angle_ = GetAngle(now);
-            return std::make_tuple(std::cos(angle_) * amplitude, std::sin(angle_) * amplitude);
+            status.x.raw_value = std::cos(angle_) * amplitude;
+            status.y.raw_value = std::sin(angle_) * amplitude;
+            return status;
         }
         constexpr float SQRT_HALF = 0.707106781f;
         int x = 0, y = 0;
-        if (right->GetStatus()) {
+        if (right_status) {
             ++x;
         }
-        if (left->GetStatus()) {
+        if (left_status) {
             --x;
         }
-        if (up->GetStatus()) {
+        if (up_status) {
             ++y;
         }
-        if (down->GetStatus()) {
+        if (down_status) {
             --y;
         }
-        const float coef = modifier->GetStatus() ? modifier_scale : 1.0f;
-        return std::make_tuple(static_cast<float>(x) * coef * (y == 0 ? 1.0f : SQRT_HALF),
-                               static_cast<float>(y) * coef * (x == 0 ? 1.0f : SQRT_HALF));
-    }
-
-    Input::AnalogProperties GetAnalogProperties() const override {
-        return {modifier_scale, 1.0f, 0.5f};
-    }
-
-    bool GetAnalogDirectionStatus(Input::AnalogDirection direction) const override {
-        switch (direction) {
-        case Input::AnalogDirection::RIGHT:
-            return right->GetStatus();
-        case Input::AnalogDirection::LEFT:
-            return left->GetStatus();
-        case Input::AnalogDirection::UP:
-            return up->GetStatus();
-        case Input::AnalogDirection::DOWN:
-            return down->GetStatus();
-        }
-        return false;
+        const float coef = modifier_status ? modifier_scale : 1.0f;
+        status.x.raw_value = static_cast<float>(x) * coef * (y == 0 ? 1.0f : SQRT_HALF);
+        status.y.raw_value = static_cast<float>(y) * coef * (x == 0 ? 1.0f : SQRT_HALF);
+        return status;
     }
 
 private:
@@ -218,21 +242,29 @@ private:
     float angle{};
     float goal_angle{};
     float amplitude{};
+    bool up_status;
+    bool down_status;
+    bool left_status;
+    bool right_status;
+    bool modifier_status;
+    const Input::AnalogProperties properties{0.0f, 1.0f, 0.5f, 0.0f, false};
     std::chrono::time_point<std::chrono::steady_clock> last_update;
 };
 
-std::unique_ptr<Input::AnalogDevice> AnalogFromButton::Create(const Common::ParamPackage& params) {
+std::unique_ptr<Input::InputDevice> StickFromButton::Create(const Common::ParamPackage& params) {
     const std::string null_engine = Common::ParamPackage{{"engine", "null"}}.Serialize();
-    auto up = Input::CreateDevice<Input::ButtonDevice>(params.Get("up", null_engine));
-    auto down = Input::CreateDevice<Input::ButtonDevice>(params.Get("down", null_engine));
-    auto left = Input::CreateDevice<Input::ButtonDevice>(params.Get("left", null_engine));
-    auto right = Input::CreateDevice<Input::ButtonDevice>(params.Get("right", null_engine));
-    auto modifier = Input::CreateDevice<Input::ButtonDevice>(params.Get("modifier", null_engine));
+    auto up = Input::CreateDeviceFromString<Input::InputDevice>(params.Get("up", null_engine));
+    auto down = Input::CreateDeviceFromString<Input::InputDevice>(params.Get("down", null_engine));
+    auto left = Input::CreateDeviceFromString<Input::InputDevice>(params.Get("left", null_engine));
+    auto right =
+        Input::CreateDeviceFromString<Input::InputDevice>(params.Get("right", null_engine));
+    auto modifier =
+        Input::CreateDeviceFromString<Input::InputDevice>(params.Get("modifier", null_engine));
     auto modifier_scale = params.Get("modifier_scale", 0.5f);
     auto modifier_angle = params.Get("modifier_angle", 5.5f);
-    return std::make_unique<Analog>(std::move(up), std::move(down), std::move(left),
-                                    std::move(right), std::move(modifier), modifier_scale,
-                                    modifier_angle);
+    return std::make_unique<Stick>(std::move(up), std::move(down), std::move(left),
+                                   std::move(right), std::move(modifier), modifier_scale,
+                                   modifier_angle);
 }
 
 } // namespace InputCommon

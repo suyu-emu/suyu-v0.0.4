@@ -11,7 +11,7 @@
 #include "common/logging/log.h"
 #include "common/settings.h"
 #include "input_common/udp/client.h"
-#include "input_common/udp/protocol.h"
+#include "input_common/helpers/udp_protocol.h"
 
 using boost::asio::ip::udp;
 

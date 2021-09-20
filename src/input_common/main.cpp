@@ -6,7 +6,6 @@
 #include <thread>
 #include "common/param_package.h"
 #include "common/settings.h"
-#include "input_common/analog_from_button.h"
 #include "input_common/gcadapter/gc_adapter.h"
 #include "input_common/gcadapter/gc_poller.h"
 #include "input_common/keyboard.h"
@@ -16,7 +15,6 @@
 #include "input_common/mouse/mouse_poller.h"
 #include "input_common/tas/tas_input.h"
 #include "input_common/tas/tas_poller.h"
-#include "input_common/touch_from_button.h"
 #include "input_common/udp/client.h"
 #include "input_common/udp/udp.h"
 #ifdef HAVE_SDL2
@@ -37,12 +35,8 @@ struct InputSubsystem::Impl {
 
         keyboard = std::make_shared<Keyboard>();
         Input::RegisterFactory<Input::ButtonDevice>("keyboard", keyboard);
-        Input::RegisterFactory<Input::AnalogDevice>("analog_from_button",
-                                                    std::make_shared<AnalogFromButton>());
         Input::RegisterFactory<Input::MotionDevice>("keyboard",
                                                     std::make_shared<MotionFromButton>());
-        Input::RegisterFactory<Input::TouchDevice>("touch_from_button",
-                                                   std::make_shared<TouchFromButtonFactory>());
 
 #ifdef HAVE_SDL2
         sdl = SDL::Init();
@@ -75,8 +69,6 @@ struct InputSubsystem::Impl {
         Input::UnregisterFactory<Input::ButtonDevice>("keyboard");
         Input::UnregisterFactory<Input::MotionDevice>("keyboard");
         keyboard.reset();
-        Input::UnregisterFactory<Input::AnalogDevice>("analog_from_button");
-        Input::UnregisterFactory<Input::TouchDevice>("touch_from_button");
 #ifdef HAVE_SDL2
         sdl.reset();
 #endif

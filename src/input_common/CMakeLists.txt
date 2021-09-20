@@ -1,8 +1,12 @@
 add_library(input_common STATIC
-    analog_from_button.cpp
-    analog_from_button.h
     keyboard.cpp
     keyboard.h
+    helpers/stick_from_buttons.cpp
+    helpers/stick_from_buttons.h
+    helpers/touch_from_buttons.cpp
+    helpers/touch_from_buttons.h
+    helpers/udp_protocol.cpp
+    helpers/udp_protocol.h
     input_engine.cpp
     input_engine.h
     input_mapping.cpp
@@ -15,8 +19,6 @@ add_library(input_common STATIC
     motion_from_button.h
     motion_input.cpp
     motion_input.h
-    touch_from_button.cpp
-    touch_from_button.h
     gcadapter/gc_adapter.cpp
     gcadapter/gc_adapter.h
     gcadapter/gc_poller.cpp
@@ -33,8 +35,6 @@ add_library(input_common STATIC
     tas/tas_poller.h
     udp/client.cpp
     udp/client.h
-    udp/protocol.cpp
-    udp/protocol.h
     udp/udp.cpp
     udp/udp.h
 )

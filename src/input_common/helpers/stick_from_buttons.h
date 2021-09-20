@@ -1,11 +1,11 @@
+
 // Copyright 2017 Citra Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
 #pragma once
 
-#include <memory>
-#include "core/frontend/input.h"
+#include "common/input.h"
 
 namespace InputCommon {
 
@@ -13,7 +13,7 @@ namespace InputCommon {
  * An analog device factory that takes direction button devices and combines them into a analog
  * device.
  */
-class AnalogFromButton final : public Input::Factory<Input::AnalogDevice> {
+class StickFromButton final : public Input::Factory<Input::InputDevice> {
 public:
     /**
      * Creates an analog device from direction button devices
@@ -25,7 +25,7 @@ public:
      *     - "modifier": a serialized ParamPackage for creating a button device as the modifier
      *     - "modifier_scale": a float for the multiplier the modifier gives to the position
      */
-    std::unique_ptr<Input::AnalogDevice> Create(const Common::ParamPackage& params) override;
+    std::unique_ptr<Input::InputDevice> Create(const Common::ParamPackage& params) override;
 };
 
 } // namespace InputCommon
