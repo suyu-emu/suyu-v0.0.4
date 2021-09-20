@@ -27,10 +27,6 @@ add_library(input_common STATIC
     input_poller.h
     main.cpp
     main.h
-    motion_from_button.cpp
-    motion_from_button.h
-    motion_input.cpp
-    motion_input.h
 )
 
 if (MSVC)
