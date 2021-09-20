@@ -9,6 +9,8 @@ add_library(input_common STATIC
     drivers/tas_input.h
     drivers/touch_screen.cpp
     drivers/touch_screen.h
+    drivers/udp_client.cpp
+    drivers/udp_client.h
     helpers/stick_from_buttons.cpp
     helpers/stick_from_buttons.h
     helpers/touch_from_buttons.cpp
@@ -29,10 +31,6 @@ add_library(input_common STATIC
     motion_input.h
     sdl/sdl.cpp
     sdl/sdl.h
-    udp/client.cpp
-    udp/client.h
-    udp/udp.cpp
-    udp/udp.h
 )
 
 if (MSVC)

@@ -1,23 +1,14 @@
-// Copyright 2018 Citra Emulator Project
+// Copyright 2021 yuzu Emulator Project
 // Licensed under GPLv2 or any later version
-// Refer to the license.txt file included.
+// Refer to the license.txt file included
 
 #pragma once
 
-#include <functional>
-#include <memory>
-#include <mutex>
 #include <optional>
-#include <string>
-#include <thread>
-#include <tuple>
+
 #include "common/common_types.h"
-#include "common/param_package.h"
 #include "common/thread.h"
-#include "common/threadsafe_queue.h"
-#include "common/vector_math.h"
-#include "core/frontend/input.h"
-#include "input_common/motion_input.h"
+#include "input_common/input_engine.h"
 
 namespace InputCommon::CemuhookUDP {
 
@@ -30,16 +21,6 @@ struct TouchPad;
 struct Version;
 } // namespace Response
 
-enum class PadMotion {
-    GyroX,
-    GyroY,
-    GyroZ,
-    AccX,
-    AccY,
-    AccZ,
-    Undefined,
-};
-
 enum class PadTouch {
     Click,
     Undefined,
@@ -49,14 +30,10 @@ struct UDPPadStatus {
     std::string host{"127.0.0.1"};
     u16 port{26760};
     std::size_t pad_index{};
-    PadMotion motion{PadMotion::Undefined};
-    f32 motion_value{0.0f};
 };
 
 struct DeviceStatus {
     std::mutex update_mutex;
-    Input::MotionStatus motion_status;
-    std::tuple<float, float, bool> touch_status;
 
     // calibration data for scaling the device's touch area to 3ds
     struct CalibrationData {
@@ -68,31 +45,16 @@ struct DeviceStatus {
     std::optional<CalibrationData> touch_calibration;
 };
 
-class Client {
+/**
+ * A button device factory representing a keyboard. It receives keyboard events and forward them
+ * to all button devices it created.
+ */
+class UDPClient final : public InputCommon::InputEngine {
 public:
-    // Initialize the UDP client capture and read sequence
-    Client();
+    explicit UDPClient(const std::string& input_engine_);
+    ~UDPClient();
 
-    // Close and release the client
-    ~Client();
-
-    // Used for polling
-    void BeginConfiguration();
-    void EndConfiguration();
-
-    std::vector<Common::ParamPackage> GetInputDevices() const;
-
-    bool DeviceConnected(std::size_t pad) const;
     void ReloadSockets();
-
-    Common::SPSCQueue<UDPPadStatus>& GetPadQueue();
-    const Common::SPSCQueue<UDPPadStatus>& GetPadQueue() const;
-
-    DeviceStatus& GetPadState(const std::string& host, u16 port, std::size_t pad);
-    const DeviceStatus& GetPadState(const std::string& host, u16 port, std::size_t pad) const;
-
-    Input::TouchStatus& GetTouchState();
-    const Input::TouchStatus& GetTouchState() const;
 
 private:
     struct PadData {
@@ -101,9 +63,6 @@ private:
         DeviceStatus status;
         u64 packet_sequence{};
 
-        // Realtime values
-        // motion is initalized with PID values for drift correction on joycons
-        InputCommon::MotionInput motion{0.3f, 0.005f, 0.0f};
         std::chrono::time_point<std::chrono::steady_clock> last_update;
     };
 
@@ -127,28 +86,13 @@ private:
     void OnPortInfo(Response::PortInfo);
     void OnPadData(Response::PadData, std::size_t client);
     void StartCommunication(std::size_t client, const std::string& host, u16 port);
-    void UpdateYuzuSettings(std::size_t client, std::size_t pad_index,
-                            const Common::Vec3<float>& acc, const Common::Vec3<float>& gyro);
-
-    // Returns an unused finger id, if there is no fingers available std::nullopt will be
-    // returned
-    std::optional<std::size_t> GetUnusedFingerID() const;
-
-    // Merges and updates all touch inputs into the touch_status array
-    void UpdateTouchInput(Response::TouchPad& touch_pad, std::size_t client, std::size_t id);
-
-    bool configuring = false;
+    const PadIdentifier GetPadIdentifier(std::size_t pad_index) const;
 
     // Allocate clients for 8 udp servers
     static constexpr std::size_t MAX_UDP_CLIENTS = 8;
     static constexpr std::size_t PADS_PER_CLIENT = 4;
-    // Each client can have up 2 touch inputs
-    static constexpr std::size_t MAX_TOUCH_FINGERS = MAX_UDP_CLIENTS * 2;
     std::array<PadData, MAX_UDP_CLIENTS * PADS_PER_CLIENT> pads{};
     std::array<ClientConnection, MAX_UDP_CLIENTS> clients{};
-    Common::SPSCQueue<UDPPadStatus> pad_queue{};
-    Input::TouchStatus touch_status{};
-    std::array<std::size_t, MAX_TOUCH_FINGERS> finger_id{};
 };
 
 /// An async job allowing configuration of the touchpad calibration.
