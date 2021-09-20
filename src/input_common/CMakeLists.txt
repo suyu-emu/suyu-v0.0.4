@@ -3,6 +3,8 @@ add_library(input_common STATIC
     drivers/keyboard.h
     drivers/mouse.cpp
     drivers/mouse.h
+    drivers/touch_screen.cpp
+    drivers/touch_screen.h
     helpers/stick_from_buttons.cpp
     helpers/stick_from_buttons.h
     helpers/touch_from_buttons.cpp
