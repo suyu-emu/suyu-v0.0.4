@@ -15,7 +15,7 @@
 
 #include "common/fs/path_util.h"
 #include "core/core.h"
-#include "core/frontend/input_interpreter.h"
+#include "core/hid/input_interpreter.h"
 #include "input_common/keyboard.h"
 #include "input_common/main.h"
 #include "yuzu/applets/qt_web_browser.h"

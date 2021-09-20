@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "core/core.h"
-#include "core/frontend/input_interpreter.h"
+#include "core/hid/input_interpreter.h"
 #include "core/hle/service/hid/controllers/npad.h"
 #include "core/hle/service/hid/hid.h"
 #include "core/hle/service/sm/sm.h"
