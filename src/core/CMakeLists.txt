@@ -135,8 +135,13 @@ add_library(core STATIC
     frontend/input.h
     hardware_interrupt_manager.cpp
     hardware_interrupt_manager.h
+    hid/hid_types.h
+    hid/input_converter.cpp
+    hid/input_converter.h
     hid/input_interpreter.cpp
     hid/input_interpreter.h
+    hid/motion_input.cpp
+    hid/motion_input.h
     hle/api_version.h
     hle/ipc.h
     hle/ipc_helpers.h
