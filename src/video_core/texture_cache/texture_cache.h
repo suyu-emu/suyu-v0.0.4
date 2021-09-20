@@ -205,8 +205,8 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
         return;
     }
 
-    u32 scale_rating;
-    bool rescaled;
+    u32 scale_rating = 0;
+    bool rescaled = false;
     std::array<ImageId, NUM_RT> tmp_color_images{};
     ImageId tmp_depth_image{};
     do {
@@ -223,7 +223,7 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
         bool can_rescale = true;
         bool any_blacklisted = false;
         const auto check_rescale = [&](ImageViewId view_id, ImageId& id_save) {
-            if (view_id) {
+            if (view_id != NULL_IMAGE_VIEW_ID && view_id != ImageViewId{}) {
                 const auto& view = slot_image_views[view_id];
                 const auto image_id = view.image_id;
                 id_save = image_id;
@@ -265,6 +265,7 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
                     scale_up(tmp_color_images[index]);
                 }
                 scale_up(tmp_depth_image);
+                scale_rating = 2;
             }
         } else {
             rescaled = false;

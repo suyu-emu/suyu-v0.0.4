@@ -207,7 +207,7 @@ void RasterizerVulkan::Clear() {
 
     query_cache.UpdateCounters();
 
-    const auto& regs = maxwell3d.regs;
+    auto& regs = maxwell3d.regs;
     const bool use_color = regs.clear_buffers.R || regs.clear_buffers.G || regs.clear_buffers.B ||
                            regs.clear_buffers.A;
     const bool use_depth = regs.clear_buffers.Z;
@@ -228,6 +228,7 @@ void RasterizerVulkan::Clear() {
         up_scale = Settings::values.resolution_info.up_scale;
         down_shift = Settings::values.resolution_info.down_shift;
     }
+    UpdateViewportsState(regs);
 
     VkClearRect clear_rect{
         .rect = GetScissorState(regs, 0, up_scale, down_shift),
