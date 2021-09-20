@@ -1,30 +1,20 @@
-// Copyright 2017 Citra Emulator Project
+// Copyright 2021 yuzu Emulator Project
 // Licensed under GPLv2 or any later version
-// Refer to the license.txt file included.
+// Refer to the license.txt file included
 
 #pragma once
 
-#include <memory>
-#include "core/frontend/input.h"
+#include "input_common/input_engine.h"
 
 namespace InputCommon {
-
-class KeyButtonList;
 
 /**
  * A button device factory representing a keyboard. It receives keyboard events and forward them
  * to all button devices it created.
  */
-class Keyboard final : public Input::Factory<Input::ButtonDevice> {
+class Keyboard final : public InputCommon::InputEngine {
 public:
-    Keyboard();
-
-    /**
-     * Creates a button device from a keyboard key
-     * @param params contains parameters for creating the device:
-     *     - "code": the code of the key to bind with the button
-     */
-    std::unique_ptr<Input::ButtonDevice> Create(const Common::ParamPackage& params) override;
+    explicit Keyboard(const std::string& input_engine_);
 
     /**
      * Sets the status of all buttons bound with the key to pressed
@@ -40,8 +30,15 @@ public:
 
     void ReleaseAllKeys();
 
+    /// Used for automapping features
+    std::vector<Common::ParamPackage> GetInputDevices() const override;
+
 private:
-    std::shared_ptr<KeyButtonList> key_button_list;
+    const PadIdentifier identifier = {
+        .guid = Common::UUID{""},
+        .port = 0,
+        .pad = 0,
+    };
 };
 
 } // namespace InputCommon

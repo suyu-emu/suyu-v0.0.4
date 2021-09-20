@@ -165,7 +165,7 @@ public:
     void keyReleaseEvent(QKeyEvent* event) override;
 
     /// Converts a Qt mouse button into MouseInput mouse button
-    static MouseInput::MouseButton QtButtonToMouseButton(Qt::MouseButton button);
+    // static MouseInput::MouseButton QtButtonToMouseButton(Qt::MouseButton button);
 
     void mousePressEvent(QMouseEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;

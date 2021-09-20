@@ -16,10 +16,7 @@
 #include "core/hle/service/hid/controllers/npad.h"
 #include "core/hle/service/hid/hid.h"
 #include "core/hle/service/sm/sm.h"
-#include "input_common/gcadapter/gc_poller.h"
 #include "input_common/main.h"
-#include "input_common/mouse/mouse_poller.h"
-#include "input_common/udp/udp.h"
 #include "ui_configure_input_player.h"
 #include "yuzu/bootmanager.h"
 #include "yuzu/configuration/config.h"
@@ -564,55 +561,6 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
 
     connect(poll_timer.get(), &QTimer::timeout, [this] {
         Common::ParamPackage params;
-        if (input_subsystem->GetGCButtons()->IsPolling()) {
-            params = input_subsystem->GetGCButtons()->GetNextInput();
-            if (params.Has("engine") && IsInputAcceptable(params)) {
-                SetPollingResult(params, false);
-                return;
-            }
-        }
-        if (input_subsystem->GetGCAnalogs()->IsPolling()) {
-            params = input_subsystem->GetGCAnalogs()->GetNextInput();
-            if (params.Has("engine") && IsInputAcceptable(params)) {
-                SetPollingResult(params, false);
-                return;
-            }
-        }
-        if (input_subsystem->GetUDPMotions()->IsPolling()) {
-            params = input_subsystem->GetUDPMotions()->GetNextInput();
-            if (params.Has("engine")) {
-                SetPollingResult(params, false);
-                return;
-            }
-        }
-        if (input_subsystem->GetMouseButtons()->IsPolling()) {
-            params = input_subsystem->GetMouseButtons()->GetNextInput();
-            if (params.Has("engine") && IsInputAcceptable(params)) {
-                SetPollingResult(params, false);
-                return;
-            }
-        }
-        if (input_subsystem->GetMouseAnalogs()->IsPolling()) {
-            params = input_subsystem->GetMouseAnalogs()->GetNextInput();
-            if (params.Has("engine") && IsInputAcceptable(params)) {
-                SetPollingResult(params, false);
-                return;
-            }
-        }
-        if (input_subsystem->GetMouseMotions()->IsPolling()) {
-            params = input_subsystem->GetMouseMotions()->GetNextInput();
-            if (params.Has("engine") && IsInputAcceptable(params)) {
-                SetPollingResult(params, false);
-                return;
-            }
-        }
-        if (input_subsystem->GetMouseTouch()->IsPolling()) {
-            params = input_subsystem->GetMouseTouch()->GetNextInput();
-            if (params.Has("engine") && IsInputAcceptable(params)) {
-                SetPollingResult(params, false);
-                return;
-            }
-        }
         for (auto& poller : device_pollers) {
             params = poller->GetNextInput();
             if (params.Has("engine") && IsInputAcceptable(params)) {
@@ -1353,25 +1301,6 @@ void ConfigureInputPlayer::HandleClick(
     QWidget::grabMouse();
     QWidget::grabKeyboard();
 
-    if (type == InputCommon::Polling::DeviceType::Button) {
-        input_subsystem->GetGCButtons()->BeginConfiguration();
-    } else {
-        input_subsystem->GetGCAnalogs()->BeginConfiguration();
-    }
-
-    if (type == InputCommon::Polling::DeviceType::Motion) {
-        input_subsystem->GetUDPMotions()->BeginConfiguration();
-    }
-
-    if (type == InputCommon::Polling::DeviceType::Button) {
-        input_subsystem->GetMouseButtons()->BeginConfiguration();
-    } else if (type == InputCommon::Polling::DeviceType::AnalogPreferred) {
-        input_subsystem->GetMouseAnalogs()->BeginConfiguration();
-    } else if (type == InputCommon::Polling::DeviceType::Motion) {
-        input_subsystem->GetMouseMotions()->BeginConfiguration();
-    } else {
-        input_subsystem->GetMouseTouch()->BeginConfiguration();
-    }
 
     if (type == InputCommon::Polling::DeviceType::Button) {
         ui->controllerFrame->BeginMappingButton(button_id);
@@ -1393,15 +1322,6 @@ void ConfigureInputPlayer::SetPollingResult(const Common::ParamPackage& params, 
     QWidget::releaseMouse();
     QWidget::releaseKeyboard();
 
-    input_subsystem->GetGCButtons()->EndConfiguration();
-    input_subsystem->GetGCAnalogs()->EndConfiguration();
-
-    input_subsystem->GetUDPMotions()->EndConfiguration();
-
-    input_subsystem->GetMouseButtons()->EndConfiguration();
-    input_subsystem->GetMouseAnalogs()->EndConfiguration();
-    input_subsystem->GetMouseMotions()->EndConfiguration();
-    input_subsystem->GetMouseTouch()->EndConfiguration();
 
     if (!abort) {
         (*input_setter)(params);
@@ -1435,8 +1355,7 @@ void ConfigureInputPlayer::mousePressEvent(QMouseEvent* event) {
         return;
     }
 
-    const auto button = GRenderWindow::QtButtonToMouseButton(event->button());
-    input_subsystem->GetMouse()->PressButton(0, 0, button);
+    //const auto button = GRenderWindow::QtButtonToMouseButton(event->button());
 }
 
 void ConfigureInputPlayer::keyPressEvent(QKeyEvent* event) {

@@ -1,6 +1,6 @@
 add_library(input_common STATIC
-    keyboard.cpp
-    keyboard.h
+    drivers/keyboard.cpp
+    drivers/keyboard.h
     helpers/stick_from_buttons.cpp
     helpers/stick_from_buttons.h
     helpers/touch_from_buttons.cpp

@@ -34,8 +34,6 @@
 #include "core/frontend/framebuffer_layout.h"
 #include "input_common/keyboard.h"
 #include "input_common/main.h"
-#include "input_common/mouse/mouse_input.h"
-#include "input_common/tas/tas_input.h"
 #include "video_core/renderer_base.h"
 #include "video_core/video_core.h"
 #include "yuzu/bootmanager.h"
@@ -394,34 +392,34 @@ void GRenderWindow::closeEvent(QCloseEvent* event) {
 
 void GRenderWindow::keyPressEvent(QKeyEvent* event) {
     if (!event->isAutoRepeat()) {
-        input_subsystem->GetKeyboard()->PressKey(event->key());
+       // input_subsystem->GetKeyboard()->PressKey(event->key());
     }
 }
 
 void GRenderWindow::keyReleaseEvent(QKeyEvent* event) {
     if (!event->isAutoRepeat()) {
-        input_subsystem->GetKeyboard()->ReleaseKey(event->key());
+       // input_subsystem->GetKeyboard()->ReleaseKey(event->key());
     }
 }
 
-MouseInput::MouseButton GRenderWindow::QtButtonToMouseButton(Qt::MouseButton button) {
-    switch (button) {
-    case Qt::LeftButton:
-        return MouseInput::MouseButton::Left;
-    case Qt::RightButton:
-        return MouseInput::MouseButton::Right;
-    case Qt::MiddleButton:
-        return MouseInput::MouseButton::Wheel;
-    case Qt::BackButton:
-        return MouseInput::MouseButton::Backward;
-    case Qt::ForwardButton:
-        return MouseInput::MouseButton::Forward;
-    case Qt::TaskButton:
-        return MouseInput::MouseButton::Task;
-    default:
-        return MouseInput::MouseButton::Extra;
-    }
-}
+//MouseInput::MouseButton GRenderWindow::QtButtonToMouseButton(Qt::MouseButton button) {
+//    switch (button) {
+//    case Qt::LeftButton:
+//        return MouseInput::MouseButton::Left;
+//    case Qt::RightButton:
+//        return MouseInput::MouseButton::Right;
+//    case Qt::MiddleButton:
+//        return MouseInput::MouseButton::Wheel;
+//    case Qt::BackButton:
+//        return MouseInput::MouseButton::Backward;
+//    case Qt::ForwardButton:
+//        return MouseInput::MouseButton::Forward;
+//    case Qt::TaskButton:
+//        return MouseInput::MouseButton::Task;
+//    default:
+//        return MouseInput::MouseButton::Extra;
+//    }
+//}
 
 void GRenderWindow::mousePressEvent(QMouseEvent* event) {
     // Touch input is handled in TouchBeginEvent
@@ -432,8 +430,8 @@ void GRenderWindow::mousePressEvent(QMouseEvent* event) {
     // coordinates and map them to the current render area
     const auto pos = mapFromGlobal(QCursor::pos());
     const auto [x, y] = ScaleTouch(pos);
-    const auto button = QtButtonToMouseButton(event->button());
-    input_subsystem->GetMouse()->PressButton(x, y, button);
+    //const auto button = QtButtonToMouseButton(event->button());
+    //input_subsystem->GetMouse()->PressButton(x, y, button);
 
     if (event->button() == Qt::LeftButton) {
         this->TouchPressed(x, y, 0);
@@ -453,7 +451,7 @@ void GRenderWindow::mouseMoveEvent(QMouseEvent* event) {
     const auto [x, y] = ScaleTouch(pos);
     const int center_x = width() / 2;
     const int center_y = height() / 2;
-    input_subsystem->GetMouse()->MouseMove(x, y, center_x, center_y);
+    //input_subsystem->GetMouse()->MouseMove(x, y, center_x, center_y);
     this->TouchMoved(x, y, 0);
 
     if (Settings::values.mouse_panning) {
@@ -469,8 +467,8 @@ void GRenderWindow::mouseReleaseEvent(QMouseEvent* event) {
         return;
     }
 
-    const auto button = QtButtonToMouseButton(event->button());
-    input_subsystem->GetMouse()->ReleaseButton(button);
+    //const auto button = QtButtonToMouseButton(event->button());
+    //input_subsystem->GetMouse()->ReleaseButton(button);
 
     if (event->button() == Qt::LeftButton) {
         this->TouchReleased(0);
@@ -558,8 +556,8 @@ bool GRenderWindow::event(QEvent* event) {
 
 void GRenderWindow::focusOutEvent(QFocusEvent* event) {
     QWidget::focusOutEvent(event);
-    input_subsystem->GetKeyboard()->ReleaseAllKeys();
-    input_subsystem->GetMouse()->ReleaseAllButtons();
+    //input_subsystem->GetKeyboard()->ReleaseAllKeys();
+    //input_subsystem->GetMouse()->ReleaseAllButtons();
     this->TouchReleased(0);
 }
 

@@ -2969,15 +2969,15 @@ void GMainWindow::UpdateWindowTitle(std::string_view title_name, std::string_vie
 }
 
 QString GMainWindow::GetTasStateDescription() const {
-    auto [tas_status, current_tas_frame, total_tas_frames] = input_subsystem->GetTas()->GetStatus();
-    switch (tas_status) {
-    case TasInput::TasState::Running:
-        return tr("TAS state: Running %1/%2").arg(current_tas_frame).arg(total_tas_frames);
-    case TasInput::TasState::Recording:
-        return tr("TAS state: Recording %1").arg(total_tas_frames);
-    case TasInput::TasState::Stopped:
-        return tr("TAS state: Idle %1/%2").arg(current_tas_frame).arg(total_tas_frames);
-    default:
+    //auto [tas_status, current_tas_frame, total_tas_frames] = input_subsystem->GetTas()->GetStatus();
+    //switch (tas_status) {
+    //case TasInput::TasState::Running:
+    //    return tr("TAS state: Running %1/%2").arg(current_tas_frame).arg(total_tas_frames);
+    //case TasInput::TasState::Recording:
+    //    return tr("TAS state: Recording %1").arg(total_tas_frames);
+    //case TasInput::TasState::Stopped:
+    //    return tr("TAS state: Idle %1/%2").arg(current_tas_frame).arg(total_tas_frames);
+    //default:
         return tr("TAS State: Invalid");
     }
 }

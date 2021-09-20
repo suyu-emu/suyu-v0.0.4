@@ -7,7 +7,6 @@
 #include <QString>
 #include "common/settings.h"
 #include "input_common/main.h"
-#include "input_common/tas/tas_input.h"
 #include "yuzu/configuration/configure_input_player_widget.h"
 #include "yuzu/debugger/controller.h"
 
@@ -81,5 +80,5 @@ void ControllerDialog::InputController(ControllerInput input) {
         buttons |= (btn ? 1U : 0U) << index;
         index++;
     }
-    input_subsystem->GetTas()->RecordInput(buttons, input.axis_values);
+    //input_subsystem->GetTas()->RecordInput(buttons, input.axis_values);
 }

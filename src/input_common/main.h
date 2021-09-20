@@ -63,18 +63,6 @@ public:
 };
 } // namespace Polling
 
-class GCAnalogFactory;
-class GCButtonFactory;
-class UDPMotionFactory;
-class UDPTouchFactory;
-class MouseButtonFactory;
-class MouseAnalogFactory;
-class MouseMotionFactory;
-class MouseTouchFactory;
-class TasButtonFactory;
-class TasAnalogFactory;
-class Keyboard;
-
 /**
  * Given a ParamPackage for a Device returned from `GetInputDevices`, attempt to get the default
  * mapping for the device. This is currently only implemented for the SDL backend devices.
@@ -100,23 +88,6 @@ public:
     /// Unregisters all built-in input device factories and shuts them down.
     void Shutdown();
 
-    /// Retrieves the underlying keyboard device.
-    [[nodiscard]] Keyboard* GetKeyboard();
-
-    /// Retrieves the underlying keyboard device.
-    [[nodiscard]] const Keyboard* GetKeyboard() const;
-
-    /// Retrieves the underlying mouse device.
-    [[nodiscard]] MouseInput::Mouse* GetMouse();
-
-    /// Retrieves the underlying mouse device.
-    [[nodiscard]] const MouseInput::Mouse* GetMouse() const;
-
-    /// Retrieves the underlying tas device.
-    [[nodiscard]] TasInput::Tas* GetTas();
-
-    /// Retrieves the underlying tas device.
-    [[nodiscard]] const TasInput::Tas* GetTas() const;
     /**
      * Returns all available input devices that this Factory can create a new device with.
      * Each returned ParamPackage should have a `display` field used for display, a class field for
@@ -133,66 +104,6 @@ public:
 
     /// Retrieves the motion mappings for the given device.
     [[nodiscard]] MotionMapping GetMotionMappingForDevice(const Common::ParamPackage& device) const;
-
-    /// Retrieves the underlying GameCube analog handler.
-    [[nodiscard]] GCAnalogFactory* GetGCAnalogs();
-
-    /// Retrieves the underlying GameCube analog handler.
-    [[nodiscard]] const GCAnalogFactory* GetGCAnalogs() const;
-
-    /// Retrieves the underlying GameCube button handler.
-    [[nodiscard]] GCButtonFactory* GetGCButtons();
-
-    /// Retrieves the underlying GameCube button handler.
-    [[nodiscard]] const GCButtonFactory* GetGCButtons() const;
-
-    /// Retrieves the underlying udp motion handler.
-    [[nodiscard]] UDPMotionFactory* GetUDPMotions();
-
-    /// Retrieves the underlying udp motion handler.
-    [[nodiscard]] const UDPMotionFactory* GetUDPMotions() const;
-
-    /// Retrieves the underlying udp touch handler.
-    [[nodiscard]] UDPTouchFactory* GetUDPTouch();
-
-    /// Retrieves the underlying udp touch handler.
-    [[nodiscard]] const UDPTouchFactory* GetUDPTouch() const;
-
-    /// Retrieves the underlying mouse button handler.
-    [[nodiscard]] MouseButtonFactory* GetMouseButtons();
-
-    /// Retrieves the underlying mouse button handler.
-    [[nodiscard]] const MouseButtonFactory* GetMouseButtons() const;
-
-    /// Retrieves the underlying mouse analog handler.
-    [[nodiscard]] MouseAnalogFactory* GetMouseAnalogs();
-
-    /// Retrieves the underlying mouse analog handler.
-    [[nodiscard]] const MouseAnalogFactory* GetMouseAnalogs() const;
-
-    /// Retrieves the underlying mouse motion handler.
-    [[nodiscard]] MouseMotionFactory* GetMouseMotions();
-
-    /// Retrieves the underlying mouse motion handler.
-    [[nodiscard]] const MouseMotionFactory* GetMouseMotions() const;
-
-    /// Retrieves the underlying mouse touch handler.
-    [[nodiscard]] MouseTouchFactory* GetMouseTouch();
-
-    /// Retrieves the underlying mouse touch handler.
-    [[nodiscard]] const MouseTouchFactory* GetMouseTouch() const;
-
-    /// Retrieves the underlying tas button handler.
-    [[nodiscard]] TasButtonFactory* GetTasButtons();
-
-    /// Retrieves the underlying tas button handler.
-    [[nodiscard]] const TasButtonFactory* GetTasButtons() const;
-
-    /// Retrieves the underlying tas analogs handler.
-    [[nodiscard]] TasAnalogFactory* GetTasAnalogs();
-
-    /// Retrieves the underlying tas analogs handler.
-    [[nodiscard]] const TasAnalogFactory* GetTasAnalogs() const;
 
     /// Reloads the input devices
     void ReloadInputDevices();
