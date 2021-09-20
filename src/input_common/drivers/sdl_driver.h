@@ -5,7 +5,6 @@
 #pragma once
 
 #include <atomic>
-#include <memory>
 #include <mutex>
 #include <thread>
 #include <unordered_map>
@@ -13,8 +12,7 @@
 #include <SDL.h>
 
 #include "common/common_types.h"
-#include "common/threadsafe_queue.h"
-#include "input_common/sdl/sdl.h"
+#include "input_common/input_engine.h"
 
 union SDL_Event;
 using SDL_GameController = struct _SDL_GameController;
@@ -26,21 +24,17 @@ using ButtonBindings =
 using ZButtonBindings =
     std::array<std::pair<Settings::NativeButton::Values, SDL_GameControllerAxis>, 2>;
 
-namespace InputCommon::SDL {
+namespace InputCommon {
 
-class SDLAnalogFactory;
-class SDLButtonFactory;
-class SDLMotionFactory;
-class SDLVibrationFactory;
 class SDLJoystick;
 
-class SDLState : public State {
+class SDLDriver : public InputCommon::InputEngine {
 public:
     /// Initializes and registers SDL device factories
-    SDLState();
+    SDLDriver(const std::string& input_engine_);
 
     /// Unregisters SDL device factories and shut them down.
-    ~SDLState() override;
+    ~SDLDriver() override;
 
     /// Handle SDL_Events for joysticks from SDL_PollEvent
     void HandleGameControllerEvent(const SDL_Event& event);
@@ -54,18 +48,18 @@ public:
      */
     std::shared_ptr<SDLJoystick> GetSDLJoystickByGUID(const std::string& guid, int port);
 
-    /// Get all DevicePoller that use the SDL backend for a specific device type
-    Pollers GetPollers(Polling::DeviceType type) override;
-
-    /// Used by the Pollers during config
-    std::atomic<bool> polling = false;
-    Common::SPSCQueue<SDL_Event> event_queue;
-
-    std::vector<Common::ParamPackage> GetInputDevices() override;
+    std::vector<Common::ParamPackage> GetInputDevices() const override;
 
     ButtonMapping GetButtonMappingForDevice(const Common::ParamPackage& params) override;
     AnalogMapping GetAnalogMappingForDevice(const Common::ParamPackage& params) override;
     MotionMapping GetMotionMappingForDevice(const Common::ParamPackage& params) override;
+    std::string GetUIName(const Common::ParamPackage& params) const override;
+
+    std::string GetHatButtonName(u8 direction_value) const override;
+    u8 GetHatButtonId(const std::string direction_name) const override;
+
+    bool SetRumble(const PadIdentifier& identifier,
+                   const Input::VibrationStatus vibration) override;
 
 private:
     void InitJoystick(int joystick_index);
@@ -73,6 +67,23 @@ private:
 
     /// Needs to be called before SDL_QuitSubSystem.
     void CloseJoysticks();
+
+    Common::ParamPackage BuildAnalogParamPackageForButton(int port, std::string guid, s32 axis,
+                                                          float value = 0.1f) const;
+    Common::ParamPackage BuildButtonParamPackageForButton(int port, std::string guid,
+                                                          s32 button) const;
+
+    Common::ParamPackage BuildHatParamPackageForButton(int port, std::string guid, s32 hat,
+                                                       u8 value) const;
+
+    Common::ParamPackage BuildMotionParam(int port, std::string guid) const;
+
+    Common::ParamPackage BuildParamPackageForBinding(
+        int port, const std::string& guid, const SDL_GameControllerButtonBind& binding) const;
+
+    Common::ParamPackage BuildParamPackageForAnalog(PadIdentifier identifier, int axis_x,
+                                                    int axis_y, float offset_x,
+                                                    float offset_y) const;
 
     /// Returns the default button bindings list for generic controllers
     ButtonBindings GetDefaultButtonBinding() const;
@@ -101,14 +112,9 @@ private:
     std::unordered_map<std::string, std::vector<std::shared_ptr<SDLJoystick>>> joystick_map;
     std::mutex joystick_map_mutex;
 
-    std::shared_ptr<SDLButtonFactory> button_factory;
-    std::shared_ptr<SDLAnalogFactory> analog_factory;
-    std::shared_ptr<SDLVibrationFactory> vibration_factory;
-    std::shared_ptr<SDLMotionFactory> motion_factory;
-
     bool start_thread = false;
     std::atomic<bool> initialized = false;
 
     std::thread poll_thread;
 };
-} // namespace InputCommon::SDL
+} // namespace InputCommon
