@@ -8,7 +8,9 @@
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/swap.h"
+#include "core/hid/hid_types.h"
 #include "core/hle/service/hid/controllers/controller_base.h"
+#include "core/hle/service/hid/ring_lifo.h"
 
 namespace Service::HID {
 class Controller_XPad final : public ControllerBase {
@@ -25,11 +27,9 @@ public:
     // When the controller is requesting an update for the shared memory
     void OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* data, std::size_t size) override;
 
-    // Called when input devices should be loaded
-    void OnLoadInputDevices() override;
-
 private:
-    struct Attributes {
+    // This is nn::hid::BasicXpadAttributeSet
+    struct BasicXpadAttributeSet {
         union {
             u32_le raw{};
             BitField<0, 1, u32> is_connected;
@@ -40,9 +40,10 @@ private:
             BitField<5, 1, u32> is_right_wired;
         };
     };
-    static_assert(sizeof(Attributes) == 4, "Attributes is an invalid size");
+    static_assert(sizeof(BasicXpadAttributeSet) == 4, "BasicXpadAttributeSet is an invalid size");
 
-    struct Buttons {
+    // This is nn::hid::BasicXpadButtonSet
+    struct BasicXpadButtonSet {
         union {
             u32_le raw{};
             // Button states
@@ -88,35 +89,21 @@ private:
             BitField<30, 1, u32> handheld_left_b;
         };
     };
-    static_assert(sizeof(Buttons) == 4, "Buttons is an invalid size");
+    static_assert(sizeof(BasicXpadButtonSet) == 4, "BasicXpadButtonSet is an invalid size");
 
-    struct AnalogStick {
-        s32_le x;
-        s32_le y;
-    };
-    static_assert(sizeof(AnalogStick) == 0x8, "AnalogStick is an invalid size");
-
-    struct XPadState {
+    // This is nn::hid::detail::BasicXpadState
+    struct BasicXpadState {
         s64_le sampling_number;
-        s64_le sampling_number2;
-        Attributes attributes;
-        Buttons pad_states;
-        AnalogStick l_stick;
-        AnalogStick r_stick;
+        BasicXpadAttributeSet attributes;
+        BasicXpadButtonSet pad_states;
+        Core::HID::AnalogStickState l_stick;
+        Core::HID::AnalogStickState r_stick;
     };
-    static_assert(sizeof(XPadState) == 0x28, "XPadState is an invalid size");
+    static_assert(sizeof(BasicXpadState) == 0x20, "BasicXpadState is an invalid size");
 
-    struct XPadEntry {
-        CommonHeader header;
-        std::array<XPadState, 17> pad_states{};
-        INSERT_PADDING_BYTES(0x138);
-    };
-    static_assert(sizeof(XPadEntry) == 0x400, "XPadEntry is an invalid size");
-
-    struct SharedMemory {
-        std::array<XPadEntry, 4> shared_memory_entries{};
-    };
-    static_assert(sizeof(SharedMemory) == 0x1000, "SharedMemory is an invalid size");
-    SharedMemory shared_memory{};
+    // This is nn::hid::detail::BasicXpadLifo
+    Lifo<BasicXpadState> basic_xpad_lifo{};
+    static_assert(sizeof(basic_xpad_lifo) == 0x2C8, "basic_xpad_lifo is an invalid size");
+    BasicXpadState next_state{};
 };
 } // namespace Service::HID

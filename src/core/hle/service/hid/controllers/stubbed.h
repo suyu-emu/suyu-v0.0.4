@@ -22,12 +22,17 @@ public:
     // When the controller is requesting an update for the shared memory
     void OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* data, std::size_t size) override;
 
-    // Called when input devices should be loaded
-    void OnLoadInputDevices() override;
-
     void SetCommonHeaderOffset(std::size_t off);
 
 private:
+    struct CommonHeader {
+        s64_le timestamp;
+        s64_le total_entry_count;
+        s64_le last_entry_index;
+        s64_le entry_count;
+    };
+    static_assert(sizeof(CommonHeader) == 0x20, "CommonHeader is an invalid size");
+
     bool smart_update{};
     std::size_t common_offset{};
 };
