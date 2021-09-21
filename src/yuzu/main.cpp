@@ -106,8 +106,8 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "core/loader/loader.h"
 #include "core/perf_stats.h"
 #include "core/telemetry_session.h"
+#include "input_common/drivers/tas_input.h"
 #include "input_common/main.h"
-#include "input_common/tas/tas_input.h"
 #include "ui_main.h"
 #include "util/overlay_dialog.h"
 #include "video_core/gpu.h"
@@ -838,7 +838,6 @@ void GMainWindow::InitializeWidgets() {
             controller_type = Settings::ControllerType::ProController;
             ConfigureDialog configure_dialog(this, hotkey_registry, input_subsystem.get(), *system);
             configure_dialog.ApplyConfiguration();
-            controller_dialog->refreshConfiguration();
         }
 
         Settings::values.use_docked_mode.SetValue(!is_docked);
@@ -922,7 +921,7 @@ void GMainWindow::InitializeDebugWidgets() {
     waitTreeWidget->hide();
     debug_menu->addAction(waitTreeWidget->toggleViewAction());
 
-    controller_dialog = new ControllerDialog(this, input_subsystem.get());
+    controller_dialog = new ControllerDialog(this);
     controller_dialog->hide();
     debug_menu->addAction(controller_dialog->toggleViewAction());
 
@@ -2708,7 +2707,6 @@ void GMainWindow::OnConfigure() {
 
         ShowTelemetryCallout();
     }
-    controller_dialog->refreshConfiguration();
     InitializeHotkeys();
 
     if (UISettings::values.theme != old_theme) {
@@ -2969,15 +2967,15 @@ void GMainWindow::UpdateWindowTitle(std::string_view title_name, std::string_vie
 }
 
 QString GMainWindow::GetTasStateDescription() const {
-    //auto [tas_status, current_tas_frame, total_tas_frames] = input_subsystem->GetTas()->GetStatus();
-    //switch (tas_status) {
-    //case TasInput::TasState::Running:
-    //    return tr("TAS state: Running %1/%2").arg(current_tas_frame).arg(total_tas_frames);
-    //case TasInput::TasState::Recording:
-    //    return tr("TAS state: Recording %1").arg(total_tas_frames);
-    //case TasInput::TasState::Stopped:
-    //    return tr("TAS state: Idle %1/%2").arg(current_tas_frame).arg(total_tas_frames);
-    //default:
+    auto [tas_status, current_tas_frame, total_tas_frames] = input_subsystem->GetTas()->GetStatus();
+    switch (tas_status) {
+    case InputCommon::TasInput::TasState::Running:
+        return tr("TAS state: Running %1/%2").arg(current_tas_frame).arg(total_tas_frames);
+    case InputCommon::TasInput::TasState::Recording:
+        return tr("TAS state: Recording %1").arg(total_tas_frames);
+    case InputCommon::TasInput::TasState::Stopped:
+        return tr("TAS state: Idle %1/%2").arg(current_tas_frame).arg(total_tas_frames);
+    default:
         return tr("TAS State: Invalid");
     }
 }
@@ -3371,6 +3369,7 @@ void GMainWindow::closeEvent(QCloseEvent* event) {
     UpdateUISettings();
     game_list->SaveInterfaceLayout();
     hotkey_registry.SaveHotkeys();
+    Core::System::GetInstance().HIDCore().UnloadInputDevices();
 
     // Shutdown session if the emu thread is active...
     if (emu_thread != nullptr) {
