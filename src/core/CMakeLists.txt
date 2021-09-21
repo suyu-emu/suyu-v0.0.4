@@ -132,7 +132,6 @@ add_library(core STATIC
     frontend/emu_window.h
     frontend/framebuffer_layout.cpp
     frontend/framebuffer_layout.h
-    frontend/input.h
     hardware_interrupt_manager.cpp
     hardware_interrupt_manager.h
     hid/emulated_console.cpp
@@ -415,6 +414,7 @@ add_library(core STATIC
     hle/service/hid/hid.h
     hle/service/hid/irs.cpp
     hle/service/hid/irs.h
+    hle/service/hid/ring_lifo.h
     hle/service/hid/xcd.cpp
     hle/service/hid/xcd.h
     hle/service/hid/errors.h
