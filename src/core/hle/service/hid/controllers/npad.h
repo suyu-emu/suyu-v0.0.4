@@ -563,7 +563,7 @@ private:
         std::array<std::unique_ptr<Input::ButtonDevice>, Settings::NativeButton::NUM_BUTTONS_HID>,
         10>;
     using StickArray = std::array<
-        std::array<std::unique_ptr<Input::AnalogDevice>, Settings::NativeAnalog::NUM_STICKS_HID>,
+        std::array<std::unique_ptr<Input::AnalogDevice>, Settings::NativeAnalog::NumAnalogs>,
         10>;
     using VibrationArray = std::array<std::array<std::unique_ptr<Input::VibrationDevice>,
                                                  Settings::NativeVibration::NUM_VIBRATIONS_HID>,

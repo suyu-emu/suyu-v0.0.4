@@ -61,7 +61,7 @@ void Controller_Mouse::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8*
 }
 
 void Controller_Mouse::OnLoadInputDevices() {
-    mouse_device = Input::CreateDevice<Input::MouseDevice>(Settings::values.mouse_device);
+    //mouse_device = Input::CreateDevice<Input::MouseDevice>(Settings::values.mouse_device);
     std::transform(Settings::values.mouse_buttons.begin(), Settings::values.mouse_buttons.end(),
                    mouse_button_devices.begin(), Input::CreateDevice<Input::ButtonDevice>);
 }

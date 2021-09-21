@@ -572,7 +572,6 @@ struct Values {
     BasicSetting<bool> mouse_panning{false, "mouse_panning"};
     BasicRangedSetting<u8> mouse_panning_sensitivity{10, 1, 100, "mouse_panning_sensitivity"};
     BasicSetting<bool> mouse_enabled{false, "mouse_enabled"};
-    std::string mouse_device;
     MouseButtonsRaw mouse_buttons;
 
     BasicSetting<bool> emulate_analog_keyboard{false, "emulate_analog_keyboard"};
@@ -591,8 +590,6 @@ struct Values {
                                            "touch_device"};
     BasicSetting<int> touch_from_button_map_index{0, "touch_from_button_map"};
     std::vector<TouchFromButtonMap> touch_from_button_maps;
-
-    std::atomic_bool is_device_reload_pending{true};
 
     // Data Storage
     BasicSetting<bool> use_virtual_sd{true, "use_virtual_sd"};

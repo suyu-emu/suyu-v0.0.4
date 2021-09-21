@@ -117,7 +117,7 @@ void IAppletResource::UpdateControllers(std::uintptr_t user_data,
                                         std::chrono::nanoseconds ns_late) {
     auto& core_timing = system.CoreTiming();
 
-    const bool should_reload = Settings::values.is_device_reload_pending.exchange(false);
+    const bool should_reload = false;
     for (const auto& controller : controllers) {
         if (should_reload) {
             controller->OnLoadInputDevices();
@@ -2038,7 +2038,6 @@ public:
 };
 
 void ReloadInputDevices() {
-    Settings::values.is_device_reload_pending.store(true);
 }
 
 void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system) {
