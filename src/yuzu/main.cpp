@@ -26,6 +26,7 @@
 #include "core/frontend/applets/controller.h"
 #include "core/frontend/applets/general_frontend.h"
 #include "core/frontend/applets/software_keyboard.h"
+#include "core/hid/hid_core.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/applet_ae.h"
 #include "core/hle/service/am/applet_oe.h"
@@ -226,6 +227,8 @@ GMainWindow::GMainWindow()
 
     ConnectMenuEvents();
     ConnectWidgetEvents();
+
+    Core::System::GetInstance().HIDCore().ReloadInputDevices();
 
     const auto branch_name = std::string(Common::g_scm_branch);
     const auto description = std::string(Common::g_scm_desc);
@@ -2969,7 +2972,7 @@ void GMainWindow::UpdateWindowTitle(std::string_view title_name, std::string_vie
 QString GMainWindow::GetTasStateDescription() const {
     auto [tas_status, current_tas_frame, total_tas_frames] = input_subsystem->GetTas()->GetStatus();
     switch (tas_status) {
-    case InputCommon::TasInput::TasState::Running:
+    case InputCommon::TasInput::TasState::Running :
         return tr("TAS state: Running %1/%2").arg(current_tas_frame).arg(total_tas_frames);
     case InputCommon::TasInput::TasState::Recording:
         return tr("TAS state: Recording %1").arg(total_tas_frames);
