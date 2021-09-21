@@ -6,12 +6,11 @@
 #include <QLayout>
 #include <QString>
 #include "common/settings.h"
-#include "input_common/main.h"
+#include "core/core.h"
 #include "yuzu/configuration/configure_input_player_widget.h"
 #include "yuzu/debugger/controller.h"
 
-ControllerDialog::ControllerDialog(QWidget* parent, InputCommon::InputSubsystem* input_subsystem_)
-    : QWidget(parent, Qt::Dialog), input_subsystem{input_subsystem_} {
+ControllerDialog::ControllerDialog(QWidget* parent) : QWidget(parent, Qt::Dialog) {
     setObjectName(QStringLiteral("Controller"));
     setWindowTitle(tr("Controller P1"));
     resize(500, 350);
@@ -21,7 +20,8 @@ ControllerDialog::ControllerDialog(QWidget* parent, InputCommon::InputSubsystem*
                    Qt::WindowMaximizeButtonHint);
 
     widget = new PlayerControlPreview(this);
-    refreshConfiguration();
+    widget->SetController(Core::System::GetInstance().HIDCore().GetEmulatedController(
+        Core::HID::NpadIdType::Player1));
     QLayout* layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(widget);
@@ -30,20 +30,8 @@ ControllerDialog::ControllerDialog(QWidget* parent, InputCommon::InputSubsystem*
     // Configure focus so that widget is focusable and the dialog automatically forwards focus to
     // it.
     setFocusProxy(widget);
-    widget->SetConnectedStatus(false);
     widget->setFocusPolicy(Qt::StrongFocus);
     widget->setFocus();
-}
-
-void ControllerDialog::refreshConfiguration() {
-    const auto& players = Settings::values.players.GetValue();
-    constexpr std::size_t player = 0;
-    widget->SetPlayerInputRaw(player, players[player].buttons, players[player].analogs);
-    widget->SetControllerType(players[player].controller_type);
-    ControllerCallback callback{[this](ControllerInput input) { InputController(input); }};
-    widget->SetCallBack(callback);
-    widget->repaint();
-    widget->SetConnectedStatus(players[player].connected);
 }
 
 QAction* ControllerDialog::toggleViewAction() {
@@ -61,7 +49,6 @@ void ControllerDialog::showEvent(QShowEvent* ev) {
     if (toggle_view_action) {
         toggle_view_action->setChecked(isVisible());
     }
-    refreshConfiguration();
     QWidget::showEvent(ev);
 }
 
@@ -69,16 +56,5 @@ void ControllerDialog::hideEvent(QHideEvent* ev) {
     if (toggle_view_action) {
         toggle_view_action->setChecked(isVisible());
     }
-    widget->SetConnectedStatus(false);
     QWidget::hideEvent(ev);
-}
-
-void ControllerDialog::InputController(ControllerInput input) {
-    u32 buttons = 0;
-    int index = 0;
-    for (bool btn : input.button_values) {
-        buttons |= (btn ? 1U : 0U) << index;
-        index++;
-    }
-    //input_subsystem->GetTas()->RecordInput(buttons, input.axis_values);
 }
