@@ -31,6 +31,10 @@ namespace Ui {
 class QtControllerSelectorDialog;
 }
 
+namespace Core {
+class System;
+}
+
 class QtControllerSelectorDialog final : public QDialog {
     Q_OBJECT
 
@@ -102,6 +106,7 @@ private:
     Core::Frontend::ControllerParameters parameters;
 
     InputCommon::InputSubsystem* input_subsystem;
+    Core::System& system;
 
     std::unique_ptr<InputProfiles> input_profiles;
 

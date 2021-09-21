@@ -6,8 +6,11 @@
 #include <thread>
 
 #include "common/assert.h"
+#include "common/param_package.h"
 #include "common/string_util.h"
 #include "core/core.h"
+#include "core/hid/emulated_controller.h
+#include "core/hid/hid_types.h
 #include "core/hle/lock.h"
 #include "core/hle/service/hid/controllers/npad.h"
 #include "core/hle/service/hid/hid.h"
@@ -48,7 +51,8 @@ void UpdateController(Settings::ControllerType controller_type, std::size_t npad
             ->GetAppletResource()
             ->GetController<Service::HID::Controller_NPad>(Service::HID::HidController::NPad);
 
-    npad.UpdateControllerAt(npad.MapSettingsTypeToNPad(controller_type), npad_index, connected);
+    npad.UpdateControllerAt(Core::HID::EmulatedController::MapSettingsTypeToNPad(controller_type),
+                            npad_index, connected);
 }
 
 // Returns true if the given controller type is compatible with the given parameters.
