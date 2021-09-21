@@ -135,6 +135,14 @@ add_library(core STATIC
     frontend/input.h
     hardware_interrupt_manager.cpp
     hardware_interrupt_manager.h
+    hid/emulated_console.cpp
+    hid/emulated_console.h
+    hid/emulated_controller.cpp
+    hid/emulated_controller.h
+    hid/emulated_devices.cpp
+    hid/emulated_devices.h
+    hid/hid_core.cpp
+    hid/hid_core.h
     hid/hid_types.h
     hid/input_converter.cpp
     hid/input_converter.h

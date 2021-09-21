@@ -1,0 +1,208 @@
+// Copyright 2021 yuzu Emulator Project
+// Licensed under GPLv2 or any later version
+// Refer to the license.txt file included
+
+#include <fmt/format.h>
+
+#include "core/hid/emulated_console.h"
+#include "core/hid/input_converter.h"
+
+namespace Core::HID {
+EmulatedConsole::EmulatedConsole() {}
+
+EmulatedConsole::~EmulatedConsole() = default;
+
+void EmulatedConsole::ReloadFromSettings() {
+    // Using first motion device from player 1. No need to assign a special config at the moment
+    const auto& player = Settings::values.players.GetValue()[0];
+    motion_params = Common::ParamPackage(player.motions[0]);
+
+    ReloadInput();
+}
+
+void EmulatedConsole::ReloadInput() {
+    motion_devices = Input::CreateDevice<Input::InputDevice>(motion_params);
+    if (motion_devices) {
+        Input::InputCallback motion_callback{
+            [this](Input::CallbackStatus callback) { SetMotion(callback); }};
+        motion_devices->SetCallback(motion_callback);
+    }
+
+    // TODO: Fix this mess
+    std::size_t index = 0;
+    const std::string mouse_device_string =
+        fmt::format("engine:mouse,axis_x:10,axis_y:11,button:{}", index);
+    touch_devices[index] = Input::CreateDeviceFromString<Input::InputDevice>(mouse_device_string);
+    Input::InputCallback trigger_callbackk{
+        [this, index](Input::CallbackStatus callback) { SetTouch(callback, index); }};
+    touch_devices[index]->SetCallback(trigger_callbackk);
+
+    index++;
+    const auto button_index =
+        static_cast<u64>(Settings::values.touch_from_button_map_index.GetValue());
+    const auto& touch_buttons = Settings::values.touch_from_button_maps[button_index].buttons;
+    for (const auto& config_entry : touch_buttons) {
+        Common::ParamPackage params{config_entry};
+        Common::ParamPackage touch_button_params;
+        const int x = params.Get("x", 0);
+        const int y = params.Get("y", 0);
+        params.Erase("x");
+        params.Erase("y");
+        touch_button_params.Set("engine", "touch_from_button");
+        touch_button_params.Set("button", params.Serialize());
+        touch_button_params.Set("x", x);
+        touch_button_params.Set("y", y);
+        touch_button_params.Set("touch_id", static_cast<int>(index));
+        LOG_ERROR(Common, "{} ", touch_button_params.Serialize());
+        touch_devices[index] =
+            Input::CreateDeviceFromString<Input::InputDevice>(touch_button_params.Serialize());
+        if (!touch_devices[index]) {
+            continue;
+        }
+
+        Input::InputCallback trigger_callback{
+            [this, index](Input::CallbackStatus callback) { SetTouch(callback, index); }};
+        touch_devices[index]->SetCallback(trigger_callback);
+        index++;
+    }
+}
+
+void EmulatedConsole::UnloadInput() {
+    motion_devices.reset();
+    for (auto& touch : touch_devices) {
+        touch.reset();
+    }
+}
+
+void EmulatedConsole::EnableConfiguration() {
+    is_configuring = true;
+    SaveCurrentConfig();
+}
+
+void EmulatedConsole::DisableConfiguration() {
+    is_configuring = false;
+}
+
+bool EmulatedConsole::IsConfiguring() const {
+    return is_configuring;
+}
+
+void EmulatedConsole::SaveCurrentConfig() {
+    if (!is_configuring) {
+        return;
+    }
+}
+
+void EmulatedConsole::RestoreConfig() {
+    if (!is_configuring) {
+        return;
+    }
+    ReloadFromSettings();
+}
+
+Common::ParamPackage EmulatedConsole::GetMotionParam() const {
+    return motion_params;
+}
+
+void EmulatedConsole::SetMotionParam(Common::ParamPackage param) {
+    motion_params = param;
+    ReloadInput();
+}
+
+void EmulatedConsole::SetMotion(Input::CallbackStatus callback) {
+    std::lock_guard lock{mutex};
+    auto& raw_status = console.motion_values.raw_status;
+    auto& emulated = console.motion_values.emulated;
+
+    raw_status = TransformToMotion(callback);
+    emulated.SetAcceleration(Common::Vec3f{
+        raw_status.accel.x.value,
+        raw_status.accel.y.value,
+        raw_status.accel.z.value,
+    });
+    emulated.SetGyroscope(Common::Vec3f{
+        raw_status.gyro.x.value,
+        raw_status.gyro.y.value,
+        raw_status.gyro.z.value,
+    });
+    emulated.UpdateRotation(raw_status.delta_timestamp);
+    emulated.UpdateOrientation(raw_status.delta_timestamp);
+
+    if (is_configuring) {
+        TriggerOnChange(ConsoleTriggerType::Motion);
+        return;
+    }
+
+    auto& motion = console.motion_state;
+    motion.accel = emulated.GetAcceleration();
+    motion.gyro = emulated.GetGyroscope();
+    motion.rotation = emulated.GetGyroscope();
+    motion.orientation = emulated.GetOrientation();
+    motion.quaternion = emulated.GetQuaternion();
+    motion.is_at_rest = emulated.IsMoving(motion_sensitivity);
+
+    TriggerOnChange(ConsoleTriggerType::Motion);
+}
+
+void EmulatedConsole::SetTouch(Input::CallbackStatus callback, [[maybe_unused]] std::size_t index) {
+    if (index >= console.touch_values.size()) {
+        return;
+    }
+    std::lock_guard lock{mutex};
+
+    console.touch_values[index] = TransformToTouch(callback);
+
+    if (is_configuring) {
+        TriggerOnChange(ConsoleTriggerType::Touch);
+        return;
+    }
+
+    console.touch_state[index] = {
+        .position = {console.touch_values[index].x.value, console.touch_values[index].y.value},
+        .id = console.touch_values[index].id,
+        .pressed = console.touch_values[index].pressed.value,
+    };
+
+    TriggerOnChange(ConsoleTriggerType::Touch);
+}
+
+ConsoleMotionValues EmulatedConsole::GetMotionValues() const {
+    return console.motion_values;
+}
+
+TouchValues EmulatedConsole::GetTouchValues() const {
+    return console.touch_values;
+}
+
+ConsoleMotion EmulatedConsole::GetMotion() const {
+    return console.motion_state;
+}
+
+TouchFingerState EmulatedConsole::GetTouch() const {
+    return console.touch_state;
+}
+
+void EmulatedConsole::TriggerOnChange(ConsoleTriggerType type) {
+    for (const std::pair<int, ConsoleUpdateCallback> poller_pair : callback_list) {
+        const ConsoleUpdateCallback& poller = poller_pair.second;
+        if (poller.on_change) {
+            poller.on_change(type);
+        }
+    }
+}
+
+int EmulatedConsole::SetCallback(ConsoleUpdateCallback update_callback) {
+    std::lock_guard lock{mutex};
+    callback_list.insert_or_assign(last_callback_key, update_callback);
+    return last_callback_key++;
+}
+
+void EmulatedConsole::DeleteCallback(int key) {
+    std::lock_guard lock{mutex};
+    if (!callback_list.contains(key)) {
+        LOG_ERROR(Input, "Tried to delete non-existent callback {}", key);
+        return;
+    }
+    callback_list.erase(key);
+}
+} // namespace Core::HID
