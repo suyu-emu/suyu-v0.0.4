@@ -12,45 +12,13 @@ namespace Core {
 class System;
 }
 
+namespace Core::HID {
+enum class NpadButton : u64;
+}
+
 namespace Service::HID {
 class Controller_NPad;
 }
-
-enum class HIDButton : u8 {
-    A,
-    B,
-    X,
-    Y,
-    LStick,
-    RStick,
-    L,
-    R,
-    ZL,
-    ZR,
-    Plus,
-    Minus,
-
-    DLeft,
-    DUp,
-    DRight,
-    DDown,
-
-    LStickLeft,
-    LStickUp,
-    LStickRight,
-    LStickDown,
-
-    RStickLeft,
-    RStickUp,
-    RStickRight,
-    RStickDown,
-
-    LeftSL,
-    LeftSR,
-
-    RightSL,
-    RightSR,
-};
 
 /**
  * The InputInterpreter class interfaces with HID to retrieve button press states.
@@ -76,7 +44,7 @@ public:
      *
      * @returns True when the button is pressed.
      */
-    [[nodiscard]] bool IsButtonPressed(HIDButton button) const;
+    [[nodiscard]] bool IsButtonPressed(Core::HID::NpadButton button) const;
 
     /**
      * Checks whether any of the buttons in the parameter list is pressed.
@@ -85,7 +53,7 @@ public:
      *
      * @returns True when at least one of the buttons is pressed.
      */
-    template <HIDButton... T>
+    template <Core::HID::NpadButton... T>
     [[nodiscard]] bool IsAnyButtonPressed() {
         return (IsButtonPressed(T) || ...);
     }
@@ -98,7 +66,7 @@ public:
      *
      * @returns True when the button is pressed once.
      */
-    [[nodiscard]] bool IsButtonPressedOnce(HIDButton button) const;
+    [[nodiscard]] bool IsButtonPressedOnce(Core::HID::NpadButton button) const;
 
     /**
      * Checks whether any of the buttons in the parameter list is pressed once.
@@ -107,7 +75,7 @@ public:
      *
      * @returns True when at least one of the buttons is pressed once.
      */
-    template <HIDButton... T>
+    template <Core::HID::NpadButton... T>
     [[nodiscard]] bool IsAnyButtonPressedOnce() const {
         return (IsButtonPressedOnce(T) || ...);
     }
@@ -119,7 +87,7 @@ public:
      *
      * @returns True when the button is held down.
      */
-    [[nodiscard]] bool IsButtonHeld(HIDButton button) const;
+    [[nodiscard]] bool IsButtonHeld(Core::HID::NpadButton button) const;
 
     /**
      * Checks whether any of the buttons in the parameter list is held down.
@@ -128,7 +96,7 @@ public:
      *
      * @returns True when at least one of the buttons is held down.
      */
-    template <HIDButton... T>
+    template <Core::HID::NpadButton... T>
     [[nodiscard]] bool IsAnyButtonHeld() const {
         return (IsButtonHeld(T) || ...);
     }

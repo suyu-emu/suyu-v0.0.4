@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "core/core.h"
+#include "core/hid/hid_types.h"
 #include "core/hid/input_interpreter.h"
 #include "core/hle/service/hid/controllers/npad.h"
 #include "core/hle/service/hid/hid.h"
@@ -38,25 +39,23 @@ void InputInterpreter::ResetButtonStates() {
     }
 }
 
-bool InputInterpreter::IsButtonPressed(HIDButton button) const {
-    return (button_states[current_index] & (1U << static_cast<u8>(button))) != 0;
+bool InputInterpreter::IsButtonPressed(Core::HID::NpadButton button) const {
+    return (button_states[current_index] & static_cast<u32>(button)) != 0;
 }
 
-bool InputInterpreter::IsButtonPressedOnce(HIDButton button) const {
-    const bool current_press =
-        (button_states[current_index] & (1U << static_cast<u8>(button))) != 0;
-    const bool previous_press =
-        (button_states[previous_index] & (1U << static_cast<u8>(button))) != 0;
+bool InputInterpreter::IsButtonPressedOnce(Core::HID::NpadButton button) const {
+    const bool current_press = (button_states[current_index] & static_cast<u32>(button)) != 0;
+    const bool previous_press = (button_states[previous_index] & static_cast<u32>(button)) != 0;
 
     return current_press && !previous_press;
 }
 
-bool InputInterpreter::IsButtonHeld(HIDButton button) const {
+bool InputInterpreter::IsButtonHeld(Core::HID::NpadButton button) const {
     u32 held_buttons{button_states[0]};
 
     for (std::size_t i = 1; i < button_states.size(); ++i) {
         held_buttons &= button_states[i];
     }
 
-    return (held_buttons & (1U << static_cast<u8>(button))) != 0;
+    return (held_buttons & static_cast<u32>(button)) != 0;
 }
