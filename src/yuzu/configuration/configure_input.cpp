@@ -73,7 +73,7 @@ ConfigureInput::ConfigureInput(Core::System& system_, QWidget* parent)
 
 ConfigureInput::~ConfigureInput() = default;
 
-void ConfigureInput::Initialize(InputCommon::InputSubsystem* input_subsystem,
+void ConfigureInput::Initialize(InputCommon::InputSubsystem* input_subsystem, Core::System& system,
                                 std::size_t max_players) {
     player_controllers = {
         new ConfigureInputPlayer(this, 0, ui->consoleInputSettings, input_subsystem, profiles.get(),
@@ -184,21 +184,7 @@ QList<QWidget*> ConfigureInput::GetSubTabs() const {
 void ConfigureInput::ApplyConfiguration() {
     for (auto* controller : player_controllers) {
         controller->ApplyConfiguration();
-        controller->TryDisconnectSelectedController();
     }
-
-    // This emulates a delay between disconnecting and reconnecting controllers as some games
-    // do not respond to a change in controller type if it was instantaneous.
-    using namespace std::chrono_literals;
-    std::this_thread::sleep_for(150ms);
-
-    for (auto* controller : player_controllers) {
-        controller->TryConnectSelectedController();
-    }
-
-    // This emulates a delay between disconnecting and reconnecting controllers as some games
-    // do not respond to a change in controller type if it was instantaneous.
-    std::this_thread::sleep_for(150ms);
 
     advanced->ApplyConfiguration();
 

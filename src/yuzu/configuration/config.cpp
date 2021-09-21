@@ -11,7 +11,6 @@
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/hid/controllers/npad.h"
 #include "input_common/main.h"
-#include "input_common/udp/client.h"
 #include "yuzu/configuration/config.h"
 
 namespace FS = Common::FS;
