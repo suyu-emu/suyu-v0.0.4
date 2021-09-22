@@ -205,12 +205,13 @@ private:
     bool Scale();
 
     OGLTexture texture;
-    OGLTexture scale_backup;
+    OGLTexture upscaled_backup;
     OGLTextureView store_view;
     GLenum gl_internal_format = GL_NONE;
     GLenum gl_format = GL_NONE;
     GLenum gl_type = GL_NONE;
     TextureCacheRuntime* runtime{};
+    GLuint original_backup{};
 };
 
 class ImageView : public VideoCommon::ImageViewBase {

@@ -681,6 +681,7 @@ Image::Image(TextureCacheRuntime& runtime_, const VideoCommon::ImageInfo& info_,
         gl_type = tuple.type;
     }
     texture = MakeImage(info, gl_internal_format);
+    original_backup = texture.handle;
     if (runtime->device.HasDebuggingToolAttached()) {
         const std::string name = VideoCommon::Name(*this);
         glObjectLabel(ImageTarget(info) == GL_TEXTURE_BUFFER ? GL_BUFFER : GL_TEXTURE,
@@ -697,7 +698,6 @@ void Image::UploadMemory(const ImageBufferMap& map,
     const bool is_rescaled = True(flags & ImageFlagBits::Rescaled);
     if (is_rescaled) {
         ScaleDown();
-        scale_backup.Release();
     }
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, map.buffer);
     glFlushMappedBufferRange(GL_PIXEL_UNPACK_BUFFER, map.offset, unswizzled_size_bytes);
@@ -729,7 +729,6 @@ void Image::DownloadMemory(ImageBufferMap& map,
     const bool is_rescaled = True(flags & ImageFlagBits::Rescaled);
     if (is_rescaled) {
         ScaleDown();
-        scale_backup.Release();
     }
     glBindBuffer(GL_PIXEL_PACK_BUFFER, map.buffer);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -749,7 +748,7 @@ void Image::DownloadMemory(ImageBufferMap& map,
         CopyImageToBuffer(copy, map.offset);
     }
     if (is_rescaled) {
-        ScaleUp();
+        texture.handle = upscaled_backup.handle;
     }
 }
 
@@ -885,11 +884,6 @@ void Image::CopyImageToBuffer(const VideoCommon::BufferImageCopy& copy, size_t b
 }
 
 bool Image::Scale() {
-    if (scale_backup.handle) {
-        // This was a texture which was scaled previously, no need to repeat scaling
-        std::swap(texture, scale_backup);
-        return true;
-    }
     const auto format_type = GetFormatType(info.format);
     const GLenum attachment = [format_type] {
         switch (format_type) {
@@ -949,8 +943,9 @@ bool Image::Scale() {
     auto dst_info = info;
     dst_info.size.width = scaled_width;
     dst_info.size.height = scaled_height;
-    scale_backup = MakeImage(dst_info, gl_internal_format);
-
+    if (!upscaled_backup.handle) {
+        upscaled_backup = MakeImage(dst_info, gl_internal_format);
+    }
     const GLuint read_fbo = runtime->rescale_read_fbos[fbo_index].handle;
     const GLuint draw_fbo = runtime->rescale_draw_fbos[fbo_index].handle;
     for (s32 layer = 0; layer < info.resources.layers; ++layer) {
@@ -960,13 +955,14 @@ bool Image::Scale() {
             const u32 dst_level_width = std::max(1u, scaled_width >> level);
             const u32 dst_level_height = std::max(1u, scaled_height >> level);
 
-            glNamedFramebufferTextureLayer(read_fbo, attachment, texture.handle, level, layer);
-            glNamedFramebufferTextureLayer(draw_fbo, attachment, scale_backup.handle, level, layer);
+            glNamedFramebufferTextureLayer(read_fbo, attachment, original_backup, level, layer);
+            glNamedFramebufferTextureLayer(draw_fbo, attachment, upscaled_backup.handle, level,
+                                           layer);
             glBlitNamedFramebuffer(read_fbo, draw_fbo, 0, 0, src_level_width, src_level_height, 0,
                                    0, dst_level_width, dst_level_height, mask, filter);
         }
     }
-    std::swap(texture, scale_backup);
+    texture.handle = upscaled_backup.handle;
     return true;
 }
 
@@ -985,20 +981,19 @@ bool Image::ScaleUp() {
         UNIMPLEMENTED();
         return false;
     }
+    if (!Scale()) {
+        return false;
+    }
     flags |= ImageFlagBits::Rescaled;
-    return Scale();
+    return true;
 }
 
 bool Image::ScaleDown() {
     if (False(flags & ImageFlagBits::Rescaled)) {
         return false;
     }
-    if (!scale_backup.handle) {
-        LOG_ERROR(Render_OpenGL, "Downscaling an upscaled texture that didn't backup original");
-        return false;
-    }
     flags &= ~ImageFlagBits::Rescaled;
-    std::swap(texture, scale_backup);
+    texture.handle = original_backup;
     return true;
 }
 
