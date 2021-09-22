@@ -8,7 +8,6 @@
 
 #include "common/settings.h"
 #include "shader_recompiler/shader_info.h"
-#include "video_core/delayed_destruction_ring.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
 #include "video_core/texture_cache/image_view_base.h"
 #include "video_core/texture_cache/texture_cache_base.h"
@@ -17,7 +16,6 @@
 
 namespace Vulkan {
 
-using VideoCommon::DelayedDestructionRing;
 using VideoCommon::ImageId;
 using VideoCommon::NUM_RT;
 using VideoCommon::Region2D;
@@ -36,8 +34,6 @@ class VKScheduler;
 
 class TextureCacheRuntime {
 public:
-    static constexpr size_t TICKS_TO_DESTROY = 6;
-
     explicit TextureCacheRuntime(const Device& device_, VKScheduler& scheduler_,
                                  MemoryAllocator& memory_allocator_,
                                  StagingBufferPool& staging_buffer_pool_,
@@ -90,9 +86,6 @@ public:
     BlitImageHelper& blit_image_helper;
     ASTCDecoderPass& astc_decoder_pass;
     RenderPassCache& render_pass_cache;
-
-    DelayedDestructionRing<vk::Image, TICKS_TO_DESTROY> prescaled_images;
-    DelayedDestructionRing<MemoryCommit, TICKS_TO_DESTROY> prescaled_commits;
     Settings::ResolutionScalingInfo resolution;
 };
 
@@ -117,7 +110,7 @@ public:
                         std::span<const VideoCommon::BufferImageCopy> copies);
 
     [[nodiscard]] VkImage Handle() const noexcept {
-        return *image;
+        return current_image;
     }
 
     [[nodiscard]] VkImageAspectFlags AspectMask() const noexcept {
@@ -133,25 +126,22 @@ public:
         return std::exchange(initialized, true);
     }
 
-    bool ScaleUp(bool save_as_backup = false);
+    bool ScaleUp();
 
-    bool ScaleDown(bool save_as_backup = false);
-
-    void SwapBackup();
+    bool ScaleDown();
 
 private:
-    VKScheduler* scheduler;
-    vk::Image image;
+    VKScheduler* scheduler{};
+    TextureCacheRuntime* runtime{};
+
+    vk::Image original_image;
     MemoryCommit commit;
-    vk::ImageView image_view;
     std::vector<vk::ImageView> storage_image_views;
     VkImageAspectFlags aspect_mask = 0;
     bool initialized = false;
-    TextureCacheRuntime* runtime;
-    u32 scaling_count{};
-    vk::Image backup_image{};
-    MemoryCommit backup_commit{};
-    bool has_backup{};
+    vk::Image scaled_image{};
+    MemoryCommit scaled_commit{};
+    VkImage current_image{};
 };
 
 class ImageView : public VideoCommon::ImageViewBase {
