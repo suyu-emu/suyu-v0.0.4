@@ -249,6 +249,7 @@ void PatchImageRead(IR::Block& block, IR::Inst& inst) {
 
 void Visit(const IR::Program& program, IR::Block& block, IR::Inst& inst) {
     const bool is_fragment_shader{program.stage == Stage::Fragment};
+    const bool is_compute_shader{program.stage == Stage::Compute};
     switch (inst.GetOpcode()) {
     case IR::Opcode::GetAttribute: {
         const IR::Attribute attr{inst.Arg(0).Attribute()};
@@ -265,21 +266,19 @@ void Visit(const IR::Program& program, IR::Block& block, IR::Inst& inst) {
         break;
     }
     case IR::Opcode::ImageQueryDimensions:
-        if (program.stage == Stage::Compute) {
-            PatchImageQueryDimensions(block, inst);
-        }
+        PatchImageQueryDimensions(block, inst);
         break;
     case IR::Opcode::ImageFetch:
         if (is_fragment_shader) {
             SubScaleImageFetch(block, inst);
-        } else if (program.stage == Stage::Compute) {
+        } else if (is_compute_shader) {
             PatchImageFetch(block, inst);
         }
         break;
     case IR::Opcode::ImageRead:
         if (is_fragment_shader) {
             SubScaleImageRead(block, inst);
-        } else if (program.stage == Stage::Compute) {
+        } else if (is_compute_shader) {
             PatchImageRead(block, inst);
         }
         break;
