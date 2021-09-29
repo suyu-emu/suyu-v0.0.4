@@ -422,11 +422,6 @@ if (CONAN_REQUIRED_LIBS)
     endif()
     include(${CMAKE_BINARY_DIR}/conan.cmake)
 
-    set(CONAN_LIB_OPTIONS
-        libzip:with_openssl=False
-        libzip:enable_windows_crypto=False
-    )
-
     conan_check(VERSION 1.24.0 REQUIRED)
 
     # Manually add iconv to fix a dep conflict between qt and sdl2
