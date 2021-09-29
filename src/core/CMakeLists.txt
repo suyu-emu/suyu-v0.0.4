@@ -106,8 +106,6 @@ add_library(core STATIC
     file_sys/vfs_concat.h
     file_sys/vfs_layered.cpp
     file_sys/vfs_layered.h
-    file_sys/vfs_libzip.cpp
-    file_sys/vfs_libzip.h
     file_sys/vfs_offset.cpp
     file_sys/vfs_offset.h
     file_sys/vfs_real.cpp
