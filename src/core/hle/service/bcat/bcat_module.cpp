@@ -4,7 +4,6 @@
 
 #include <cctype>
 #include <mbedtls/md5.h>
-#include "backend/boxcat.h"
 #include "common/hex_util.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
@@ -578,12 +577,6 @@ void Module::Interface::CreateDeliveryCacheStorageServiceWithApplicationId(
 
 std::unique_ptr<Backend> CreateBackendFromSettings([[maybe_unused]] Core::System& system,
                                                    DirectoryGetter getter) {
-#ifdef YUZU_ENABLE_BOXCAT
-    if (Settings::values.bcat_backend.GetValue() == "boxcat") {
-        return std::make_unique<Boxcat>(system.GetAppletManager(), std::move(getter));
-    }
-#endif
-
     return std::make_unique<NullBackend>(std::move(getter));
 }
 

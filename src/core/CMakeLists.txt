@@ -651,13 +651,6 @@ add_library(core STATIC
     tools/freezer.h
 )
 
-if (YUZU_ENABLE_BOXCAT)
-    target_sources(core PRIVATE
-        hle/service/bcat/backend/boxcat.cpp
-        hle/service/bcat/backend/boxcat.h
-    )
-endif()
-
 if (MSVC)
     target_compile_options(core PRIVATE
         /we4242 # 'identifier': conversion from 'type1' to 'type2', possible loss of data
@@ -689,11 +682,6 @@ create_target_directory_groups(core)
 
 target_link_libraries(core PUBLIC common PRIVATE audio_core video_core)
 target_link_libraries(core PUBLIC Boost::boost PRIVATE fmt::fmt nlohmann_json::nlohmann_json mbedtls Opus::Opus)
-
-if (YUZU_ENABLE_BOXCAT)
-    target_compile_definitions(core PRIVATE -DYUZU_ENABLE_BOXCAT)
-    target_link_libraries(core PRIVATE httplib nlohmann_json::nlohmann_json)
-endif()
 
 if (ENABLE_WEB_SERVICE)
     target_compile_definitions(core PRIVATE -DENABLE_WEB_SERVICE)
