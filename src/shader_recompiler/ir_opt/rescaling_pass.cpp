@@ -14,11 +14,7 @@
 
 namespace Shader::Optimization {
 namespace {
-void VisitMark(const IR::Program& program, const IR::Inst& inst) {
-    const bool is_fragment_shader{program.stage == Stage::Fragment};
-    if (!is_fragment_shader) {
-        return;
-    }
+void VisitMark(const IR::Inst& inst) {
     switch (inst.GetOpcode()) {
     case IR::Opcode::ShuffleIndex:
     case IR::Opcode::ShuffleUp:
@@ -54,6 +50,7 @@ void VisitMark(const IR::Program& program, const IR::Inst& inst) {
         break;
     }
 }
+
 void PatchFragCoord(IR::Block& block, IR::Inst& inst) {
     IR::IREmitter ir{block, IR::Block::InstructionList::s_iterator_to(inst)};
     const IR::F32 down_factor{ir.ResolutionDownFactor()};
@@ -64,50 +61,35 @@ void PatchFragCoord(IR::Block& block, IR::Inst& inst) {
 
 [[nodiscard]] IR::U32 Scale(IR::IREmitter& ir, const IR::U1& is_scaled, const IR::U32& value) {
     IR::U32 scaled_value{value};
-    bool changed{};
     if (const u32 up_scale = Settings::values.resolution_info.up_scale; up_scale != 1) {
         scaled_value = ir.IMul(scaled_value, ir.Imm32(up_scale));
-        changed = true;
     }
     if (const u32 down_shift = Settings::values.resolution_info.down_shift; down_shift != 0) {
         scaled_value = ir.ShiftRightArithmetic(scaled_value, ir.Imm32(down_shift));
-        changed = true;
     }
-    if (changed) {
-        return IR::U32{ir.Select(is_scaled, scaled_value, value)};
-    } else {
-        return value;
-    }
+    return IR::U32{ir.Select(is_scaled, scaled_value, value)};
 }
 
 [[nodiscard]] IR::U32 SubScale(IR::IREmitter& ir, const IR::U1& is_scaled, const IR::U32& value,
                                const IR::Attribute attrib) {
-    const IR::F32 opt1{ir.Imm32(Settings::values.resolution_info.up_factor)};
-    const IR::F32 base{ir.FPMul(ir.ConvertUToF(32, 32, value), opt1)};
+    const IR::F32 up_factor{ir.Imm32(Settings::values.resolution_info.up_factor)};
+    const IR::F32 base{ir.FPMul(ir.ConvertUToF(32, 32, value), up_factor)};
     const IR::F32 frag_coord{ir.GetAttribute(attrib)};
-    const IR::F32 opt2{ir.Imm32(Settings::values.resolution_info.down_factor)};
-    const IR::F32 floor{ir.FPMul(opt1, ir.FPFloor(ir.FPMul(frag_coord, opt2)))};
-    const IR::U32 deviation{
-        ir.ConvertFToU(32, ir.FPAdd(base, ir.FPAdd(frag_coord, ir.FPNeg(floor))))};
-    return IR::U32{ir.Select(is_scaled, deviation, value)};
+    const IR::F32 down_factor{ir.Imm32(Settings::values.resolution_info.down_factor)};
+    const IR::F32 floor{ir.FPMul(up_factor, ir.FPFloor(ir.FPMul(frag_coord, down_factor)))};
+    const IR::F16F32F64 deviation{ir.FPAdd(base, ir.FPAdd(frag_coord, ir.FPNeg(floor)))};
+    return IR::U32{ir.Select(is_scaled, ir.ConvertFToU(32, deviation), value)};
 }
 
-[[nodiscard]] IR::U32 DownScale(IR::IREmitter& ir, const IR::U1& is_scaled, IR::U32 value) {
+[[nodiscard]] IR::U32 DownScale(IR::IREmitter& ir, const IR::U1& is_scaled, const IR::U32& value) {
     IR::U32 scaled_value{value};
-    bool changed{};
     if (const u32 down_shift = Settings::values.resolution_info.down_shift; down_shift != 0) {
         scaled_value = ir.ShiftLeftLogical(scaled_value, ir.Imm32(down_shift));
-        changed = true;
     }
     if (const u32 up_scale = Settings::values.resolution_info.up_scale; up_scale != 1) {
         scaled_value = ir.IDiv(scaled_value, ir.Imm32(up_scale));
-        changed = true;
     }
-    if (changed) {
-        return IR::U32{ir.Select(is_scaled, scaled_value, value)};
-    } else {
-        return value;
-    }
+    return IR::U32{ir.Select(is_scaled, scaled_value, value)};
 }
 
 void PatchImageQueryDimensions(IR::Block& block, IR::Inst& inst) {
@@ -267,9 +249,12 @@ void Visit(const IR::Program& program, IR::Block& block, IR::Inst& inst) {
 } // Anonymous namespace
 
 void RescalingPass(IR::Program& program) {
-    for (IR::Block* const block : program.post_order_blocks) {
-        for (IR::Inst& inst : block->Instructions()) {
-            VisitMark(program, inst);
+    const bool is_fragment_shader{program.stage == Stage::Fragment};
+    if (is_fragment_shader) {
+        for (IR::Block* const block : program.post_order_blocks) {
+            for (IR::Inst& inst : block->Instructions()) {
+                VisitMark(inst);
+            }
         }
     }
     for (IR::Block* const block : program.post_order_blocks) {
