@@ -14,6 +14,22 @@
 
 namespace Shader::Optimization {
 namespace {
+[[nodiscard]] bool IsTextureTypeRescalable(TextureType type) {
+    switch (type) {
+    case TextureType::Color2D:
+    case TextureType::ColorArray2D:
+        return true;
+    case TextureType::Color1D:
+    case TextureType::ColorArray1D:
+    case TextureType::Color3D:
+    case TextureType::ColorCube:
+    case TextureType::ColorArrayCube:
+    case TextureType::Buffer:
+        break;
+    }
+    return false;
+}
+
 void VisitMark(const IR::Inst& inst) {
     switch (inst.GetOpcode()) {
     case IR::Opcode::ShuffleIndex:
@@ -179,6 +195,9 @@ void SubScaleCoord(IR::IREmitter& ir, IR::Inst& inst, const IR::U1& is_scaled) {
 void SubScaleImageFetch(IR::Block& block, IR::Inst& inst) {
     IR::IREmitter ir{block, IR::Block::InstructionList::s_iterator_to(inst)};
     const auto info{inst.Flags<IR::TextureInstInfo>()};
+    if (!IsTextureTypeRescalable(info.type)) {
+        return;
+    }
     const IR::U1 is_scaled{ir.IsTextureScaled(ir.Imm32(info.descriptor_index))};
     SubScaleCoord(ir, inst, is_scaled);
     // Scale ImageFetch offset
@@ -188,6 +207,9 @@ void SubScaleImageFetch(IR::Block& block, IR::Inst& inst) {
 void SubScaleImageRead(IR::Block& block, IR::Inst& inst) {
     IR::IREmitter ir{block, IR::Block::InstructionList::s_iterator_to(inst)};
     const auto info{inst.Flags<IR::TextureInstInfo>()};
+    if (!IsTextureTypeRescalable(info.type)) {
+        return;
+    }
     const IR::U1 is_scaled{ir.IsImageScaled(ir.Imm32(info.descriptor_index))};
     SubScaleCoord(ir, inst, is_scaled);
 }
@@ -195,6 +217,9 @@ void SubScaleImageRead(IR::Block& block, IR::Inst& inst) {
 void PatchImageFetch(IR::Block& block, IR::Inst& inst) {
     IR::IREmitter ir{block, IR::Block::InstructionList::s_iterator_to(inst)};
     const auto info{inst.Flags<IR::TextureInstInfo>()};
+    if (!IsTextureTypeRescalable(info.type)) {
+        return;
+    }
     const IR::U1 is_scaled{ir.IsTextureScaled(ir.Imm32(info.descriptor_index))};
     ScaleIntegerComposite(ir, inst, is_scaled, 1);
     // Scale ImageFetch offset
@@ -204,6 +229,9 @@ void PatchImageFetch(IR::Block& block, IR::Inst& inst) {
 void PatchImageRead(IR::Block& block, IR::Inst& inst) {
     IR::IREmitter ir{block, IR::Block::InstructionList::s_iterator_to(inst)};
     const auto info{inst.Flags<IR::TextureInstInfo>()};
+    if (!IsTextureTypeRescalable(info.type)) {
+        return;
+    }
     const IR::U1 is_scaled{ir.IsImageScaled(ir.Imm32(info.descriptor_index))};
     ScaleIntegerComposite(ir, inst, is_scaled, 1);
 }
