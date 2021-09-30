@@ -4,7 +4,11 @@
 
 #pragma once
 
+#include <algorithm>
+#include <string_view>
+
 #include <fmt/format.h>
+
 #include "common/logging/types.h"
 
 namespace Common::Log {
