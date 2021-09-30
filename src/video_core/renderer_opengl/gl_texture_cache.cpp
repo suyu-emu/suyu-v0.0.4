@@ -1264,25 +1264,24 @@ Framebuffer::Framebuffer(TextureCacheRuntime& runtime, std::span<ImageView*, NUM
 void BGRCopyPass::CopyBGR(Image& dst_image, Image& src_image,
                           std::span<const VideoCommon::ImageCopy> copies) {
     static constexpr VideoCommon::Offset3D zero_offset{0, 0, 0};
-    const u32 requested_pbo_size =
-        std::max(src_image.unswizzled_size_bytes, dst_image.unswizzled_size_bytes);
-
-    if (bgr_pbo_size < requested_pbo_size) {
-        bgr_pbo.Create();
-        bgr_pbo_size = requested_pbo_size;
-        glNamedBufferData(bgr_pbo.handle, bgr_pbo_size, nullptr, GL_STREAM_COPY);
-    }
+    const u32 img_bpp = BytesPerBlock(src_image.info.format);
     for (const ImageCopy& copy : copies) {
         ASSERT(copy.src_offset == zero_offset);
         ASSERT(copy.dst_offset == zero_offset);
-
+        const u32 num_src_layers = static_cast<u32>(copy.src_subresource.num_layers);
+        const u32 copy_size = copy.extent.width * copy.extent.height * num_src_layers * img_bpp;
+        if (bgr_pbo_size < copy_size) {
+            bgr_pbo.Create();
+            bgr_pbo_size = copy_size;
+            glNamedBufferData(bgr_pbo.handle, bgr_pbo_size, nullptr, GL_STREAM_COPY);
+        }
         // Copy from source to PBO
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
         glPixelStorei(GL_PACK_ROW_LENGTH, copy.extent.width);
         glBindBuffer(GL_PIXEL_PACK_BUFFER, bgr_pbo.handle);
         glGetTextureSubImage(src_image.Handle(), 0, 0, 0, 0, copy.extent.width, copy.extent.height,
-                             copy.src_subresource.num_layers, src_image.GlFormat(),
-                             src_image.GlType(), static_cast<GLsizei>(bgr_pbo_size), nullptr);
+                             num_src_layers, src_image.GlFormat(), src_image.GlType(),
+                             static_cast<GLsizei>(bgr_pbo_size), nullptr);
 
         // Copy from PBO to destination in desired GL format
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
