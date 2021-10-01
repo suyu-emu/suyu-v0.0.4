@@ -4,13 +4,12 @@
 
 #pragma once
 
-#include <array>
 #include <mutex>
 #include <span>
 #include <type_traits>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
+#include <queue>
 
 #include "common/common_types.h"
 #include "common/literals.h"
@@ -18,10 +17,6 @@
 #include "video_core/compatible_formats.h"
 #include "video_core/delayed_destruction_ring.h"
 #include "video_core/engines/fermi_2d.h"
-#include "video_core/engines/kepler_compute.h"
-#include "video_core/engines/maxwell_3d.h"
-#include "video_core/memory_manager.h"
-#include "video_core/rasterizer_interface.h"
 #include "video_core/surface.h"
 #include "video_core/texture_cache/descriptor_table.h"
 #include "video_core/texture_cache/image_base.h"
@@ -30,7 +25,6 @@
 #include "video_core/texture_cache/render_targets.h"
 #include "video_core/texture_cache/slot_vector.h"
 #include "video_core/texture_cache/types.h"
-#include "video_core/texture_cache/util.h"
 #include "video_core/textures/texture.h"
 
 namespace VideoCommon {
