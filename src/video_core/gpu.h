@@ -5,21 +5,11 @@
 #pragma once
 
 #include <memory>
-#include <mutex>
 
 #include "common/bit_field.h"
 #include "common/common_types.h"
 #include "video_core/cdma_pusher.h"
 #include "video_core/framebuffer_config.h"
-
-using CacheAddr = std::uintptr_t;
-[[nodiscard]] inline CacheAddr ToCacheAddr(const void* host_ptr) {
-    return reinterpret_cast<CacheAddr>(host_ptr);
-}
-
-[[nodiscard]] inline u8* FromCacheAddr(CacheAddr cache_addr) {
-    return reinterpret_cast<u8*>(cache_addr);
-}
 
 namespace Core {
 namespace Frontend {
@@ -229,8 +219,6 @@ public:
     [[nodiscard]] bool CancelSyncptInterrupt(u32 syncpoint_id, u32 value);
 
     [[nodiscard]] u64 GetTicks() const;
-
-    [[nodiscard]] std::unique_lock<std::mutex> LockSync();
 
     [[nodiscard]] bool IsAsync() const;
 

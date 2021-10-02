@@ -262,6 +262,7 @@ struct GPU::Impl {
     }
 
     void RegisterSyncptInterrupt(u32 syncpoint_id, u32 value) {
+        std::lock_guard lock{sync_mutex};
         auto& interrupt = syncpt_interrupts.at(syncpoint_id);
         bool contains = std::any_of(interrupt.begin(), interrupt.end(),
                                     [value](u32 in_value) { return in_value == value; });
@@ -298,10 +299,6 @@ struct GPU::Impl {
         const u64 nanoseconds_num = nanoseconds / gpu_ticks_den;
         const u64 nanoseconds_rem = nanoseconds % gpu_ticks_den;
         return nanoseconds_num * gpu_ticks_num + (nanoseconds_rem * gpu_ticks_num) / gpu_ticks_den;
-    }
-
-    [[nodiscard]] std::unique_lock<std::mutex> LockSync() {
-        return std::unique_lock{sync_mutex};
     }
 
     [[nodiscard]] bool IsAsync() const {
@@ -860,10 +857,6 @@ bool GPU::CancelSyncptInterrupt(u32 syncpoint_id, u32 value) {
 
 u64 GPU::GetTicks() const {
     return impl->GetTicks();
-}
-
-std::unique_lock<std::mutex> GPU::LockSync() {
-    return impl->LockSync();
 }
 
 bool GPU::IsAsync() const {
