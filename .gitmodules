@@ -28,9 +28,6 @@
 [submodule "mbedtls"]
     path = externals/mbedtls
     url = https://github.com/yuzu-emu/mbedtls
-[submodule "libzip"]
-    path = externals/libzip/libzip
-    url = https://github.com/nih-at/libzip.git
 [submodule "xbyak"]
     path = externals/xbyak
     url = https://github.com/herumi/xbyak.git
