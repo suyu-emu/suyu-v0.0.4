@@ -858,6 +858,12 @@ bool TextureCache<P>::ScaleUp(Image& image) {
     if (!rescaled) {
         return false;
     }
+    const auto& add_to_size = Settings::values.resolution_info.up_factor - 1.0f;
+    const auto sign = std::signbit(add_to_size);
+    const u64 tentative_size = static_cast<u64>(
+        std::max(image.guest_size_bytes, image.unswizzled_size_bytes) * std::abs(add_to_size));
+    const u64 fitted_size = Common::AlignUp(tentative_size, 1024);
+    total_used_memory += sign ? -fitted_size : fitted_size;
     InvalidateScale(image);
     return true;
 }
@@ -868,6 +874,12 @@ bool TextureCache<P>::ScaleDown(Image& image) {
     if (!rescaled) {
         return false;
     }
+    const auto& add_to_size = Settings::values.resolution_info.up_factor - 1.0f;
+    const auto sign = std::signbit(add_to_size);
+    const u64 tentative_size = static_cast<u64>(
+        std::max(image.guest_size_bytes, image.unswizzled_size_bytes) * std::abs(add_to_size));
+    const u64 fitted_size = Common::AlignUp(tentative_size, 1024);
+    total_used_memory += sign ? fitted_size : -fitted_size;
     InvalidateScale(image);
     return true;
 }
