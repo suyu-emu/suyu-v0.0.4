@@ -216,6 +216,7 @@ add_library(core STATIC
     hle/kernel/k_session.h
     hle/kernel/k_shared_memory.cpp
     hle/kernel/k_shared_memory.h
+    hle/kernel/k_shared_memory_info.h
     hle/kernel/k_slab_heap.h
     hle/kernel/k_spin_lock.cpp
     hle/kernel/k_spin_lock.h
