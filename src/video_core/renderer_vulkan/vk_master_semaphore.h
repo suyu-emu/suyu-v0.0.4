@@ -46,9 +46,10 @@ public:
 
     /// Refresh the known GPU tick
     void Refresh() {
-        auto this_tick = gpu_tick.load(std::memory_order_acquire);
+        u64 this_tick{};
         u64 counter{};
         do {
+            this_tick = gpu_tick.load(std::memory_order_acquire);
             counter = semaphore.GetCounter();
             if (counter < this_tick) {
                 return;
