@@ -127,8 +127,8 @@ public:
     explicit IBcatService(Core::System& system_, Backend& backend_)
         : ServiceFramework{system_, "IBcatService"}, backend{backend_},
           progress{{
-              ProgressServiceBackend{system_.Kernel(), "Normal"},
-              ProgressServiceBackend{system_.Kernel(), "Directory"},
+              ProgressServiceBackend{system_, "Normal"},
+              ProgressServiceBackend{system_, "Directory"},
           }} {
         // clang-format off
         static const FunctionInfo functions[] = {
