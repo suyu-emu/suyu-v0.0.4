@@ -339,6 +339,7 @@ private:
     void InvalidateScale(Image& image);
     bool ScaleUp(Image& image);
     bool ScaleDown(Image& image);
+    u64 GetScaledImageSizeBytes(Image& image);
 
     Runtime& runtime;
     VideoCore::RasterizerInterface& rasterizer;

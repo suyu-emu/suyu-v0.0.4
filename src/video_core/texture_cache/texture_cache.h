@@ -853,17 +853,22 @@ void TextureCache<P>::InvalidateScale(Image& image) {
 }
 
 template <class P>
+u64 TextureCache<P>::GetScaledImageSizeBytes(Image& image) {
+    const f32 add_to_size = Settings::values.resolution_info.up_factor - 1.0f;
+    const bool sign = std::signbit(add_to_size);
+    const u32 image_size_bytes = std::max(image.guest_size_bytes, image.unswizzled_size_bytes);
+    const u64 tentative_size = static_cast<u64>(image_size_bytes * std::abs(add_to_size));
+    const u64 fitted_size = Common::AlignUp(tentative_size, 1024);
+    return sign ? -fitted_size : fitted_size;
+}
+
+template <class P>
 bool TextureCache<P>::ScaleUp(Image& image) {
     const bool rescaled = image.ScaleUp();
     if (!rescaled) {
         return false;
     }
-    const auto& add_to_size = Settings::values.resolution_info.up_factor - 1.0f;
-    const auto sign = std::signbit(add_to_size);
-    const u64 tentative_size = static_cast<u64>(
-        std::max(image.guest_size_bytes, image.unswizzled_size_bytes) * std::abs(add_to_size));
-    const u64 fitted_size = Common::AlignUp(tentative_size, 1024);
-    total_used_memory += sign ? -fitted_size : fitted_size;
+    total_used_memory += GetScaledImageSizeBytes(image);
     InvalidateScale(image);
     return true;
 }
@@ -874,12 +879,7 @@ bool TextureCache<P>::ScaleDown(Image& image) {
     if (!rescaled) {
         return false;
     }
-    const auto& add_to_size = Settings::values.resolution_info.up_factor - 1.0f;
-    const auto sign = std::signbit(add_to_size);
-    const u64 tentative_size = static_cast<u64>(
-        std::max(image.guest_size_bytes, image.unswizzled_size_bytes) * std::abs(add_to_size));
-    const u64 fitted_size = Common::AlignUp(tentative_size, 1024);
-    total_used_memory += sign ? fitted_size : -fitted_size;
+    total_used_memory += GetScaledImageSizeBytes(image);
     InvalidateScale(image);
     return true;
 }
