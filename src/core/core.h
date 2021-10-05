@@ -160,6 +160,8 @@ public:
     /// Shutdown the emulated system.
     void Shutdown();
 
+    void stallForGPU(bool pause);
+
     /**
      * Load an executable application.
      * @param emu_window Reference to the host-system window used for video output and keyboard
