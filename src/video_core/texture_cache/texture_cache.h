@@ -857,7 +857,7 @@ u64 TextureCache<P>::GetScaledImageSizeBytes(Image& image) {
     const f32 add_to_size = Settings::values.resolution_info.up_factor - 1.0f;
     const bool sign = std::signbit(add_to_size);
     const u32 image_size_bytes = std::max(image.guest_size_bytes, image.unswizzled_size_bytes);
-    const u64 tentative_size = static_cast<u64>(image_size_bytes * std::abs(add_to_size));
+    const u64 tentative_size = image_size_bytes * static_cast<u32>(std::abs(add_to_size));
     const u64 fitted_size = Common::AlignUp(tentative_size, 1024);
     return sign ? -fitted_size : fitted_size;
 }

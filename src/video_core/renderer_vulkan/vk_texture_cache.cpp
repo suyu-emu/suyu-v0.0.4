@@ -1130,13 +1130,19 @@ bool Image::ScaleUp() {
         return false;
     }
     ASSERT(info.type != ImageType::Linear);
-    flags |= ImageFlagBits::Rescaled;
-
     const auto& resolution = runtime->resolution;
     if (!resolution.active) {
-        return true;
+        return false;
     }
     const auto& device = runtime->device;
+    const PixelFormat format = StorageFormat(info.format);
+    const auto format_info = MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, false, format);
+    const auto similar = device.GetSupportedFormat(
+        format_info.format, (VK_FORMAT_FEATURE_BLIT_SRC_BIT | VK_FORMAT_FEATURE_BLIT_DST_BIT),
+        FormatType::Optimal);
+    if (similar != format_info.format) {
+        return true;
+    }
     if (!scaled_image) {
         const u32 up = resolution.up_scale;
         const u32 down = resolution.down_shift;
@@ -1155,23 +1161,9 @@ bool Image::ScaleUp() {
     if (aspect_mask == 0) {
         aspect_mask = ImageAspectMask(info.format);
     }
-    if (info.num_samples > 1) {
-        return true;
-    }
-    const PixelFormat format = StorageFormat(info.format);
-    const auto format_info = MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, false, format);
-    const auto similar = device.GetSupportedFormat(
-        format_info.format, (VK_FORMAT_FEATURE_BLIT_SRC_BIT | VK_FORMAT_FEATURE_BLIT_DST_BIT),
-        FormatType::Optimal);
-
-    if (similar != format_info.format) {
-        return true;
-    }
-    if (aspect_mask == 0) {
-        aspect_mask = ImageAspectMask(info.format);
-    }
     BlitScale(*scheduler, *original_image, *scaled_image, info, aspect_mask, resolution, true);
     current_image = *scaled_image;
+    flags |= ImageFlagBits::Rescaled;
     return true;
 }
 
