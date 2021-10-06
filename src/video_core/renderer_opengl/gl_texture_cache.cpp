@@ -405,7 +405,8 @@ ImageBufferMap::~ImageBufferMap() {
 
 TextureCacheRuntime::TextureCacheRuntime(const Device& device_, ProgramManager& program_manager,
                                          StateTracker& state_tracker_)
-    : device{device_}, state_tracker{state_tracker_}, util_shaders(program_manager) {
+    : device{device_}, state_tracker{state_tracker_},
+      util_shaders(program_manager), resolution{Settings::values.resolution_info} {
     static constexpr std::array TARGETS{GL_TEXTURE_1D_ARRAY, GL_TEXTURE_2D_ARRAY, GL_TEXTURE_3D};
     for (size_t i = 0; i < TARGETS.size(); ++i) {
         const GLenum target = TARGETS[i];
@@ -473,7 +474,6 @@ TextureCacheRuntime::TextureCacheRuntime(const Device& device_, ProgramManager& 
     set_view(Shader::TextureType::ColorArray2D, null_image_view_2d_array.handle);
     set_view(Shader::TextureType::ColorArrayCube, null_image_cube_array.handle);
 
-    resolution = Settings::values.resolution_info;
     if (resolution.active) {
         for (size_t i = 0; i < rescale_draw_fbos.size(); ++i) {
             rescale_draw_fbos[i].Create();
@@ -681,7 +681,7 @@ Image::Image(TextureCacheRuntime& runtime_, const VideoCommon::ImageInfo& info_,
         gl_type = tuple.type;
     }
     texture = MakeImage(info, gl_internal_format);
-    original_backup = texture.handle;
+    current_texture = texture.handle;
     if (runtime->device.HasDebuggingToolAttached()) {
         const std::string name = VideoCommon::Name(*this);
         glObjectLabel(ImageTarget(info) == GL_TEXTURE_BUFFER ? GL_BUFFER : GL_TEXTURE,
@@ -726,10 +726,6 @@ void Image::UploadMemory(const ImageBufferMap& map,
 void Image::DownloadMemory(ImageBufferMap& map,
                            std::span<const VideoCommon::BufferImageCopy> copies) {
     glMemoryBarrier(GL_PIXEL_BUFFER_BARRIER_BIT); // TODO: Move this to its own API
-    const bool is_rescaled = True(flags & ImageFlagBits::Rescaled);
-    if (is_rescaled) {
-        ScaleDown();
-    }
     glBindBuffer(GL_PIXEL_PACK_BUFFER, map.buffer);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
@@ -746,9 +742,6 @@ void Image::DownloadMemory(ImageBufferMap& map,
             glPixelStorei(GL_PACK_IMAGE_HEIGHT, current_image_height);
         }
         CopyImageToBuffer(copy, map.offset);
-    }
-    if (is_rescaled) {
-        texture.handle = upscaled_backup.handle;
     }
 }
 
@@ -775,11 +768,11 @@ GLuint Image::StorageHandle() noexcept {
             return store_view.handle;
         }
         store_view.Create();
-        glTextureView(store_view.handle, ImageTarget(info), texture.handle, GL_RGBA8, 0,
+        glTextureView(store_view.handle, ImageTarget(info), current_texture, GL_RGBA8, 0,
                       info.resources.levels, 0, info.resources.layers);
         return store_view.handle;
     default:
-        return texture.handle;
+        return current_texture;
     }
 }
 
@@ -940,10 +933,10 @@ bool Image::Scale() {
     const u32 original_width = info.size.width;
     const u32 original_height = info.size.height;
 
-    auto dst_info = info;
-    dst_info.size.width = scaled_width;
-    dst_info.size.height = scaled_height;
     if (!upscaled_backup.handle) {
+        auto dst_info = info;
+        dst_info.size.width = scaled_width;
+        dst_info.size.height = scaled_height;
         upscaled_backup = MakeImage(dst_info, gl_internal_format);
     }
     const GLuint read_fbo = runtime->rescale_read_fbos[fbo_index].handle;
@@ -955,14 +948,14 @@ bool Image::Scale() {
             const u32 dst_level_width = std::max(1u, scaled_width >> level);
             const u32 dst_level_height = std::max(1u, scaled_height >> level);
 
-            glNamedFramebufferTextureLayer(read_fbo, attachment, original_backup, level, layer);
+            glNamedFramebufferTextureLayer(read_fbo, attachment, texture.handle, level, layer);
             glNamedFramebufferTextureLayer(draw_fbo, attachment, upscaled_backup.handle, level,
                                            layer);
             glBlitNamedFramebuffer(read_fbo, draw_fbo, 0, 0, src_level_width, src_level_height, 0,
                                    0, dst_level_width, dst_level_height, mask, filter);
         }
     }
-    texture.handle = upscaled_backup.handle;
+    current_texture = upscaled_backup.handle;
     return true;
 }
 
@@ -993,7 +986,7 @@ bool Image::ScaleDown() {
         return false;
     }
     flags &= ~ImageFlagBits::Rescaled;
-    texture.handle = original_backup;
+    current_texture = texture.handle;
     return true;
 }
 
@@ -1010,7 +1003,7 @@ ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewI
     flat_range = info.range;
     set_object_label = device.HasDebuggingToolAttached();
     is_render_target = info.IsRenderTarget();
-    original_texture = image.texture.handle;
+    original_texture = image.Handle();
     num_samples = image.info.num_samples;
     if (!is_render_target) {
         swizzle[0] = info.x_source;

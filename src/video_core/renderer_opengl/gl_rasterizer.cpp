@@ -554,7 +554,7 @@ void RasterizerOpenGL::SyncViewport() {
         }
         glFrontFace(mode);
     }
-    if (dirty_viewport || flags[Dirty::ClipControl]) {
+    if (dirty_viewport || dirty_clip_control) {
         flags[Dirty::ClipControl] = false;
 
         bool flip_y = false;
@@ -925,7 +925,7 @@ void RasterizerOpenGL::SyncScissorTest() {
     const auto& regs = maxwell3d.regs;
 
     const auto& resolution = Settings::values.resolution_info;
-    const auto scale_up = [&](u32 value) -> u32 {
+    const auto scale_up = [resolution](u32 value) -> u32 {
         if (value == 0) {
             return 0U;
         }

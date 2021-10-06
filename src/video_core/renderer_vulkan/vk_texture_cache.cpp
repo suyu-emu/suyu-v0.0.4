@@ -125,8 +125,7 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     }
 }
 
-[[nodiscard]] VkImageCreateInfo MakeImageCreateInfo(const Device& device, const ImageInfo& info,
-                                                    u32 up, u32 down) {
+[[nodiscard]] VkImageCreateInfo MakeImageCreateInfo(const Device& device, const ImageInfo& info) {
     const PixelFormat format = StorageFormat(info.format);
     const auto format_info = MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, false, format);
     VkImageCreateFlags flags = VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
@@ -137,9 +136,7 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     if (info.type == ImageType::e3D) {
         flags |= VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;
     }
-    const auto scale_up = [&](u32 value) { return std::max<u32>((value * up) >> down, 1U); };
     const auto [samples_x, samples_y] = VideoCommon::SamplesLog2(info.num_samples);
-    const bool is_2d = info.type == ImageType::e2D;
     return VkImageCreateInfo{
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         .pNext = nullptr,
@@ -147,8 +144,8 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
         .imageType = ConvertImageType(info.type),
         .format = format_info.format,
         .extent{
-            .width = scale_up(info.size.width) >> samples_x,
-            .height = (is_2d ? scale_up(info.size.height) : info.size.height) >> samples_y,
+            .width = info.size.width >> samples_x,
+            .height = info.size.height >> samples_y,
             .depth = info.size.depth,
         },
         .mipLevels = static_cast<u32>(info.resources.levels),
@@ -163,12 +160,11 @@ constexpr VkBorderColor ConvertBorderColor(const std::array<float, 4>& color) {
     };
 }
 
-[[nodiscard]] vk::Image MakeImage(const Device& device, const ImageInfo& info, u32 up = 1,
-                                  u32 down = 0) {
+[[nodiscard]] vk::Image MakeImage(const Device& device, const ImageInfo& info) {
     if (info.type == ImageType::Buffer) {
         return vk::Image{};
     }
-    return device.GetLogical().CreateImage(MakeImageCreateInfo(device, info, up, down));
+    return device.GetLogical().CreateImage(MakeImageCreateInfo(device, info));
 }
 
 [[nodiscard]] VkImageAspectFlags ImageAspectMask(PixelFormat format) {
@@ -860,10 +856,9 @@ void TextureCacheRuntime::BlitImage(Framebuffer* dst_framebuffer, ImageView& dst
         cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
                                0, nullptr, nullptr, read_barriers);
         if (is_resolve) {
-            VkImageResolve resolve_info =
-                MakeImageResolve(dst_region, src_region, dst_layers, src_layers);
             cmdbuf.ResolveImage(src_image, VK_IMAGE_LAYOUT_GENERAL, dst_image,
-                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, resolve_info);
+                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                MakeImageResolve(dst_region, src_region, dst_layers, src_layers));
         } else {
             const bool is_linear = filter == Fermi2D::Filter::Bilinear;
             const VkFilter vk_filter = is_linear ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
@@ -1143,7 +1138,17 @@ bool Image::ScaleUp() {
     }
     const auto& device = runtime->device;
     if (!scaled_image) {
-        scaled_image = MakeImage(device, info, resolution.up_scale, resolution.down_shift);
+        const u32 up = resolution.up_scale;
+        const u32 down = resolution.down_shift;
+        const auto scale = [&](u32 value) { return std::max<u32>((value * up) >> down, 1U); };
+
+        const bool is_2d = info.type == ImageType::e2D;
+        const u32 scaled_width = scale(info.size.width);
+        const u32 scaled_height = is_2d ? scale(info.size.height) : info.size.height;
+        auto scaled_info = info;
+        scaled_info.size.width = scaled_width;
+        scaled_info.size.height = scaled_height;
+        scaled_image = MakeImage(device, scaled_info);
         auto& allocator = runtime->memory_allocator;
         scaled_commit = MemoryCommit(allocator.Commit(scaled_image, MemoryUsage::DeviceLocal));
     }

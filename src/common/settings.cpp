@@ -107,7 +107,7 @@ float Volume() {
 }
 
 void UpdateRescalingInfo() {
-    auto setup = values.resolution_setup.GetValue();
+    const auto setup = values.resolution_setup.GetValue();
     auto& info = values.resolution_info;
     switch (setup) {
     case ResolutionSetup::Res1_2X:

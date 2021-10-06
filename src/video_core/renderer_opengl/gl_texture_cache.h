@@ -9,12 +9,15 @@
 
 #include <glad/glad.h>
 
-#include "common/settings.h"
 #include "shader_recompiler/shader_info.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/util_shaders.h"
 #include "video_core/texture_cache/image_view_base.h"
 #include "video_core/texture_cache/texture_cache_base.h"
+
+namespace Settings {
+struct ResolutionScalingInfo;
+}
 
 namespace OpenGL {
 
@@ -155,7 +158,7 @@ private:
 
     std::array<OGLFramebuffer, 3> rescale_draw_fbos;
     std::array<OGLFramebuffer, 3> rescale_read_fbos;
-    Settings::ResolutionScalingInfo resolution;
+    const Settings::ResolutionScalingInfo& resolution;
 };
 
 class Image : public VideoCommon::ImageBase {
@@ -182,7 +185,7 @@ public:
     GLuint StorageHandle() noexcept;
 
     GLuint Handle() const noexcept {
-        return texture.handle;
+        return current_texture;
     }
 
     GLuint GlFormat() const noexcept {
@@ -211,7 +214,7 @@ private:
     GLenum gl_format = GL_NONE;
     GLenum gl_type = GL_NONE;
     TextureCacheRuntime* runtime{};
-    GLuint original_backup{};
+    GLuint current_texture{};
 };
 
 class ImageView : public VideoCommon::ImageViewBase {

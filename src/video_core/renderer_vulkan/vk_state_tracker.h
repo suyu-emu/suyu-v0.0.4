@@ -71,13 +71,15 @@ public:
     }
 
     bool TouchViewports() {
-        return Exchange(Dirty::Viewports, false) ||
-               Exchange(VideoCommon::Dirty::RescaleViewports, false);
+        const bool dirty_viewports = Exchange(Dirty::Viewports, false);
+        const bool rescale_viewports = Exchange(VideoCommon::Dirty::RescaleViewports, false);
+        return dirty_viewports || rescale_viewports;
     }
 
     bool TouchScissors() {
-        return Exchange(Dirty::Scissors, false) ||
-               Exchange(VideoCommon::Dirty::RescaleScissors, false);
+        const bool dirty_scissors = Exchange(Dirty::Scissors, false);
+        const bool rescale_scissors = Exchange(VideoCommon::Dirty::RescaleScissors, false);
+        return dirty_scissors || rescale_scissors;
     }
 
     bool TouchDepthBias() {

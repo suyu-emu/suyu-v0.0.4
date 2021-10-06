@@ -1726,9 +1726,7 @@ void TextureCache<P>::CopyImage(ImageId dst_id, ImageId src_id, std::vector<Imag
         };
         for (auto& copy : copies) {
             copy.src_offset.x = scale_up(copy.src_offset.x);
-
             copy.dst_offset.x = scale_up(copy.dst_offset.x);
-
             copy.extent.width = scale_up(copy.extent.width);
             if (both_2d) {
                 copy.src_offset.y = scale_up(copy.src_offset.y);

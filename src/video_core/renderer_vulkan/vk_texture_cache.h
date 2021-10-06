@@ -6,13 +6,16 @@
 
 #include <span>
 
-#include "common/settings.h"
 #include "shader_recompiler/shader_info.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
 #include "video_core/texture_cache/image_view_base.h"
 #include "video_core/texture_cache/texture_cache_base.h"
 #include "video_core/vulkan_common/vulkan_memory_allocator.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
+
+namespace Settings {
+struct ResolutionScalingInfo;
+}
 
 namespace Vulkan {
 
@@ -86,7 +89,7 @@ public:
     BlitImageHelper& blit_image_helper;
     ASTCDecoderPass& astc_decoder_pass;
     RenderPassCache& render_pass_cache;
-    Settings::ResolutionScalingInfo resolution;
+    const Settings::ResolutionScalingInfo& resolution;
 };
 
 class Image : public VideoCommon::ImageBase {
