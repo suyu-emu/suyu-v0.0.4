@@ -1137,11 +1137,11 @@ bool Image::ScaleUp() {
     const auto& device = runtime->device;
     const PixelFormat format = StorageFormat(info.format);
     const auto format_info = MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, false, format);
-    const auto similar = device.GetSupportedFormat(
-        format_info.format, (VK_FORMAT_FEATURE_BLIT_SRC_BIT | VK_FORMAT_FEATURE_BLIT_DST_BIT),
-        FormatType::Optimal);
-    if (similar != format_info.format) {
-        return true;
+    const auto blit_usage = VK_FORMAT_FEATURE_BLIT_SRC_BIT | VK_FORMAT_FEATURE_BLIT_DST_BIT;
+    if (!device.IsFormatSupported(format_info.format, blit_usage, FormatType::Optimal)) {
+        LOG_ERROR(Render_Vulkan, "Device does not support scaling format {}", format);
+        // TODO: Use helper blits where applicable
+        return false;
     }
     if (!scaled_image) {
         const u32 up = resolution.up_scale;
