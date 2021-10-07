@@ -68,13 +68,24 @@ void Vic::Execute() {
     const auto pixel_format = static_cast<VideoPixelFormat>(config.pixel_format.Value());
     switch (pixel_format) {
     case VideoPixelFormat::BGRA8:
+    case VideoPixelFormat::RGBX8:
     case VideoPixelFormat::RGBA8: {
         LOG_TRACE(Service_NVDRV, "Writing RGB Frame");
 
         if (scaler_ctx == nullptr || frame->width != scaler_width ||
             frame->height != scaler_height) {
-            const AVPixelFormat target_format =
-                (pixel_format == VideoPixelFormat::RGBA8) ? AV_PIX_FMT_RGBA : AV_PIX_FMT_BGRA;
+            const AVPixelFormat target_format = [pixel_format]() {
+                switch (pixel_format) {
+                case VideoPixelFormat::BGRA8:
+                    return AV_PIX_FMT_BGRA;
+                case VideoPixelFormat::RGBX8:
+                    return AV_PIX_FMT_RGB0;
+                case VideoPixelFormat::RGBA8:
+                    return AV_PIX_FMT_RGBA;
+                default:
+                    return AV_PIX_FMT_RGBA;
+                }
+            }();
 
             sws_freeContext(scaler_ctx);
             scaler_ctx = nullptr;
@@ -190,7 +201,7 @@ void Vic::Execute() {
         break;
     }
     default:
-        UNIMPLEMENTED_MSG("Unknown video pixel format {}", config.pixel_format.Value());
+        UNIMPLEMENTED_MSG("Unknown video pixel format {:X}", config.pixel_format.Value());
         break;
     }
 }

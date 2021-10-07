@@ -38,6 +38,7 @@ private:
     enum class VideoPixelFormat : u64_le {
         RGBA8 = 0x1f,
         BGRA8 = 0x20,
+        RGBX8 = 0x23,
         Yuv420 = 0x44,
     };
 
