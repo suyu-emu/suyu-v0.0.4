@@ -939,6 +939,11 @@ bool Image::Scale() {
         dst_info.size.height = scaled_height;
         upscaled_backup = MakeImage(dst_info, gl_internal_format);
     }
+    // TODO (ameerj): Investigate other GL states that affect blitting.
+    GLboolean scissor_test;
+    glGetBooleani_v(GL_SCISSOR_TEST, 0, &scissor_test);
+    glDisablei(GL_SCISSOR_TEST, 0);
+
     const GLuint read_fbo = runtime->rescale_read_fbos[fbo_index].handle;
     const GLuint draw_fbo = runtime->rescale_draw_fbos[fbo_index].handle;
     for (s32 layer = 0; layer < info.resources.layers; ++layer) {
@@ -954,6 +959,9 @@ bool Image::Scale() {
             glBlitNamedFramebuffer(read_fbo, draw_fbo, 0, 0, src_level_width, src_level_height, 0,
                                    0, dst_level_width, dst_level_height, mask, filter);
         }
+    }
+    if (scissor_test != GL_FALSE) {
+        glEnablei(GL_SCISSOR_TEST, 0);
     }
     current_texture = upscaled_backup.handle;
     return true;
