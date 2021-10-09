@@ -88,9 +88,10 @@ void Vic::Execute() {
     const u64 surface_width = config.surface_width_minus1 + 1;
     const u64 surface_height = config.surface_height_minus1 + 1;
     if (static_cast<u64>(frame->width) != surface_width ||
-        static_cast<u64>(frame->height) != surface_height) {
+        static_cast<u64>(frame->height) > surface_height) {
         // TODO: Properly support multiple video streams with differing frame dimensions
-        LOG_WARNING(Debug, "Frame dimensions {}x{} do not match expected surface dimensions {}x{}",
+        LOG_WARNING(Debug,
+                    "Frame dimensions {}x{} can't be safely decoded into surface dimensions {}x{}",
                     frame->width, frame->height, surface_width, surface_height);
         return;
     }
