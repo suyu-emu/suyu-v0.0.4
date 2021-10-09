@@ -37,6 +37,8 @@ std::unique_ptr<VideoCore::RendererBase> CreateRenderer(
 namespace VideoCore {
 
 std::unique_ptr<Tegra::GPU> CreateGPU(Core::Frontend::EmuWindow& emu_window, Core::System& system) {
+    Settings::UpdateRescalingInfo();
+
     const auto nvdec_value = Settings::values.nvdec_emulation.GetValue();
     const bool use_nvdec = nvdec_value != Settings::NvdecEmulation::Off;
     const bool use_async = Settings::values.use_asynchronous_gpu_emulation.GetValue();

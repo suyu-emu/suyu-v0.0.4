@@ -247,7 +247,6 @@ void ConfigureGraphics::ApplyConfiguration() {
             Settings::values.bg_blue.SetValue(static_cast<u8>(bg_color.blue()));
         }
     }
-    Settings::UpdateRescalingInfo();
 }
 
 void ConfigureGraphics::changeEvent(QEvent* event) {
