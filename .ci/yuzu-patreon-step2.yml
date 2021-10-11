@@ -29,5 +29,7 @@ stages:
   jobs:
     - job: release
       displayName: 'source'
+      pool:
+        vmImage: 'ubuntu-latest'
       steps:
         - template: ./templates/release-private-tag.yml
