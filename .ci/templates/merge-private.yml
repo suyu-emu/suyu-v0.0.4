@@ -1,6 +1,8 @@
 jobs:
 - job: merge
   displayName: 'pull requests'
+  pool:
+    vmImage: 'ubuntu-latest'
   steps:
   - checkout: self
     submodules: recursive
@@ -24,6 +26,8 @@ jobs:
 - job: upload_source
   displayName: 'upload'
   dependsOn: merge
+  pool:
+    vmImage: 'ubuntu-latest'
   steps:
   - template: ./sync-source.yml
     parameters:

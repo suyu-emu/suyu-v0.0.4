@@ -66,5 +66,7 @@ stages:
   jobs:
   - job: github
     displayName: 'github'
+    pool:
+      vmImage: ubuntu-latest
     steps:
     - template: ./templates/release-github.yml
