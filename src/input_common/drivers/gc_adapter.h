@@ -24,7 +24,7 @@ public:
     explicit GCAdapter(const std::string input_engine_);
     ~GCAdapter();
 
-    bool SetRumble(const PadIdentifier& identifier,
+    Input::VibrationError SetRumble(const PadIdentifier& identifier,
                    const Input::VibrationStatus vibration) override;
 
     /// Used for automapping features

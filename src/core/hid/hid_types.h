@@ -112,6 +112,8 @@ struct NpadStyleTag {
         BitField<7, 1, u32> lark;
         BitField<8, 1, u32> handheld_lark;
         BitField<9, 1, u32> lucia;
+        BitField<10, 1, u32> lagoon;
+        BitField<11, 1, u32> lager;
         BitField<29, 1, u32> system_ext;
         BitField<30, 1, u32> system;
     };
@@ -174,6 +176,22 @@ struct NpadPowerInfo {
     BatteryLevel battery_level;
 };
 static_assert(sizeof(NpadPowerInfo) == 0xC, "NpadPowerInfo is an invalid size");
+
+struct LedPattern {
+    explicit LedPattern(u64 light1, u64 light2, u64 light3, u64 light4) {
+        position1.Assign(light1);
+        position2.Assign(light2);
+        position3.Assign(light3);
+        position4.Assign(light4);
+    }
+    union {
+        u64 raw{};
+        BitField<0, 1, u64> position1;
+        BitField<1, 1, u64> position2;
+        BitField<2, 1, u64> position3;
+        BitField<3, 1, u64> position4;
+    };
+};
 
 // This is nn::hid::NpadButton
 enum class NpadButton : u64 {

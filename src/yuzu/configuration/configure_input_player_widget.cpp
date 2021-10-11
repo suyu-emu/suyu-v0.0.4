@@ -24,34 +24,6 @@ PlayerControlPreview::~PlayerControlPreview() {
     }
 };
 
-PlayerControlPreview::LedPattern PlayerControlPreview::GetColorPattern(std::size_t index,
-                                                                       bool player_on) {
-    if (!player_on) {
-        return {0, 0, 0, 0};
-    }
-
-    switch (index) {
-    case 0:
-        return {1, 0, 0, 0};
-    case 1:
-        return {1, 1, 0, 0};
-    case 2:
-        return {1, 1, 1, 0};
-    case 3:
-        return {1, 1, 1, 1};
-    case 4:
-        return {1, 0, 0, 1};
-    case 5:
-        return {1, 0, 1, 0};
-    case 6:
-        return {1, 0, 1, 1};
-    case 7:
-        return {0, 1, 1, 0};
-    default:
-        return {0, 0, 0, 0};
-    }
-}
-
 void PlayerControlPreview::SetController(Core::HID::EmulatedController* controller_) {
     if (is_controller_set) {
         controller->DeleteCallback(callback_key);
@@ -160,8 +132,13 @@ void PlayerControlPreview::ControllerUpdate(Core::HID::ControllerTriggerType typ
 
     switch (type) {
     case Core::HID::ControllerTriggerType::Connected:
+        is_connected = true;
+        led_pattern = controller->GetLedPattern();
+        needs_redraw = true;
+        break;
     case Core::HID::ControllerTriggerType::Disconnected:
-        is_connected = controller->IsConnected();
+        is_connected = false;
+        led_pattern.raw = 0;
         needs_redraw = true;
         break;
     case Core::HID::ControllerTriggerType::Type:
@@ -1853,10 +1830,14 @@ void PlayerControlPreview::DrawLeftBody(QPainter& p, const QPointF center) {
     const float led_size = 5.0f;
     const QPointF led_position = sideview_center + QPointF(0, -36);
     int led_count = 0;
-    for (const auto& color : led_color) {
-        p.setBrush(color);
-        DrawRectangle(p, led_position + QPointF(0, 12 * led_count++), led_size, led_size);
-    }
+    p.setBrush(led_pattern.position1 ? colors.led_on : colors.led_off);
+    DrawRectangle(p, led_position + QPointF(0, 12 * led_count++), led_size, led_size);
+    p.setBrush(led_pattern.position2 ? colors.led_on : colors.led_off);
+    DrawRectangle(p, led_position + QPointF(0, 12 * led_count++), led_size, led_size);
+    p.setBrush(led_pattern.position3 ? colors.led_on : colors.led_off);
+    DrawRectangle(p, led_position + QPointF(0, 12 * led_count++), led_size, led_size);
+    p.setBrush(led_pattern.position4 ? colors.led_on : colors.led_off);
+    DrawRectangle(p, led_position + QPointF(0, 12 * led_count++), led_size, led_size);
 }
 
 void PlayerControlPreview::DrawRightBody(QPainter& p, const QPointF center) {
@@ -1949,10 +1930,14 @@ void PlayerControlPreview::DrawRightBody(QPainter& p, const QPointF center) {
     const float led_size = 5.0f;
     const QPointF led_position = sideview_center + QPointF(0, -36);
     int led_count = 0;
-    for (const auto& color : led_color) {
-        p.setBrush(color);
-        DrawRectangle(p, led_position + QPointF(0, 12 * led_count++), led_size, led_size);
-    }
+    p.setBrush(led_pattern.position1 ? colors.led_on : colors.led_off);
+    DrawRectangle(p, led_position + QPointF(0, 12 * led_count++), led_size, led_size);
+    p.setBrush(led_pattern.position2 ? colors.led_on : colors.led_off);
+    DrawRectangle(p, led_position + QPointF(0, 12 * led_count++), led_size, led_size);
+    p.setBrush(led_pattern.position3 ? colors.led_on : colors.led_off);
+    DrawRectangle(p, led_position + QPointF(0, 12 * led_count++), led_size, led_size);
+    p.setBrush(led_pattern.position4 ? colors.led_on : colors.led_off);
+    DrawRectangle(p, led_position + QPointF(0, 12 * led_count++), led_size, led_size);
 }
 
 void PlayerControlPreview::DrawProTriggers(QPainter& p, const QPointF center,

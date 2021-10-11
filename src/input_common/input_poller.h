@@ -16,12 +16,32 @@ class InputEngine;
 /**
  * An Input factory. It receives input events and forward them to all input devices it created.
  */
+
+class OutputFactory final : public Input::Factory<Input::OutputDevice> {
+public:
+    explicit OutputFactory(std::shared_ptr<InputEngine> input_engine_);
+
+    /**
+     * Creates an output device from the parameters given.
+     * @param params contains parameters for creating the device:
+     * @param    - "guid": text string for identifing controllers
+     * @param    - "port": port of the connected device
+     * @param    - "pad": slot of the connected controller
+     * @return an unique ouput device with the parameters specified
+     */
+    std::unique_ptr<Input::OutputDevice> Create(
+        const Common::ParamPackage& params) override;
+
+private:
+    std::shared_ptr<InputEngine> input_engine;
+};
+
 class InputFactory final : public Input::Factory<Input::InputDevice> {
 public:
     explicit InputFactory(std::shared_ptr<InputEngine> input_engine_);
 
     /**
-     * Creates a input device from the parameters given. Identifies the type of input to be returned
+     * Creates an input device from the parameters given. Identifies the type of input to be returned
      * if it contains the following parameters:
      * - button: Contains "button" or "code"
      * - hat_button: Contains "hat"
@@ -32,6 +52,7 @@ public:
      * - motion: Contains "motion"
      * - touch: Contains "button", "axis_x" and "axis_y"
      * - battery: Contains "battery"
+     * - output: Contains "output"
      * @param params contains parameters for creating the device:
      * @param    - "code": the code of the keyboard key to bind with the input
      * @param    - "button": same as "code" but for controller buttons
@@ -41,10 +62,11 @@ public:
      * @param    - "axis_x": same as axis but specifing horizontal direction
      * @param    - "axis_y": same as axis but specifing vertical direction
      * @param    - "axis_z": same as axis but specifing forward direction
-     * @param   - "battery": Only used as a placeholder to set the input type
+     * @param    - "battery": Only used as a placeholder to set the input type
      * @return an unique input device with the parameters specified
      */
-    std::unique_ptr<Input::InputDevice> Create(const Common::ParamPackage& params) override;
+    std::unique_ptr<Input::InputDevice> Create(
+        const Common::ParamPackage& params) override;
 
 private:
     /**

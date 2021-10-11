@@ -58,7 +58,7 @@ public:
     std::string GetHatButtonName(u8 direction_value) const override;
     u8 GetHatButtonId(const std::string direction_name) const override;
 
-    bool SetRumble(const PadIdentifier& identifier,
+    Input::VibrationError SetRumble(const PadIdentifier& identifier,
                    const Input::VibrationStatus vibration) override;
 
 private:

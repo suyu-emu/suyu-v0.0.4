@@ -33,12 +33,14 @@ using ControllerMotionDevices =
 using TriggerDevices =
     std::array<std::unique_ptr<Input::InputDevice>, Settings::NativeTrigger::NumTriggers>;
 using BatteryDevices = std::array<std::unique_ptr<Input::InputDevice>, 2>;
+using OutputDevices = std::array<std::unique_ptr<Input::OutputDevice>, 2>;
 
 using ButtonParams = std::array<Common::ParamPackage, Settings::NativeButton::NumButtons>;
 using StickParams = std::array<Common::ParamPackage, Settings::NativeAnalog::NumAnalogs>;
 using ControllerMotionParams = std::array<Common::ParamPackage, Settings::NativeMotion::NumMotions>;
 using TriggerParams = std::array<Common::ParamPackage, Settings::NativeTrigger::NumTriggers>;
 using BatteryParams = std::array<Common::ParamPackage, 2>;
+using OutputParams = std::array<Common::ParamPackage, 2>;
 
 using ButtonValues = std::array<Input::ButtonStatus, Settings::NativeButton::NumButtons>;
 using SticksValues = std::array<Input::StickStatus, Settings::NativeAnalog::NumAnalogs>;
@@ -94,6 +96,7 @@ struct ControllerStatus {
     ControllerColors colors_state{};
     BatteryLevelState battery_state{};
 };
+
 enum class ControllerTriggerType {
     Button,
     Stick,
@@ -137,6 +140,9 @@ public:
     /// Gets the NpadType for this controller.
     NpadType GetNpadType() const;
 
+    /// Gets the NpadType for this controller.
+    LedPattern GetLedPattern() const;
+
     void Connect();
     void Disconnect();
 
@@ -179,7 +185,9 @@ public:
     BatteryLevelState GetBattery() const;
 
     bool SetVibration(std::size_t device_index, VibrationValue vibration);
-    int TestVibration(std::size_t device_index);
+    bool TestVibration(std::size_t device_index);
+
+    void SetLedPattern();
 
     int SetCallback(ControllerUpdateCallback update_callback);
     void DeleteCallback(int key);
@@ -215,13 +223,14 @@ private:
     ControllerMotionParams motion_params;
     TriggerParams trigger_params;
     BatteryParams battery_params;
+    OutputParams output_params;
 
     ButtonDevices button_devices;
     StickDevices stick_devices;
     ControllerMotionDevices motion_devices;
     TriggerDevices trigger_devices;
     BatteryDevices battery_devices;
-    // VibrationDevices vibration_devices;
+    OutputDevices output_devices;
 
     mutable std::mutex mutex;
     std::unordered_map<int, ControllerUpdateCallback> callback_list;

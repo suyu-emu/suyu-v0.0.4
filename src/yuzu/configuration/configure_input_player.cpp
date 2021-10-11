@@ -465,6 +465,8 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
         UpdateControllerEnabledButtons();
         UpdateControllerButtonNames();
         UpdateMotionButtons();
+        emulated_controller->SetNpadType(
+            GetControllerTypeFromIndex(ui->comboControllerType->currentIndex()));
     });
 
     connect(ui->comboDevices, qOverload<int>(&QComboBox::activated), this,
@@ -540,6 +542,11 @@ void ConfigureInputPlayer::LoadConfiguration() {
 
 void ConfigureInputPlayer::ConnectPlayer(bool connected) {
     ui->groupConnectedController->setChecked(connected);
+    if (connected) {
+        emulated_controller->Connect();
+    } else {
+        emulated_controller->Disconnect();
+    }
 }
 
 void ConfigureInputPlayer::UpdateInputDeviceCombobox() {

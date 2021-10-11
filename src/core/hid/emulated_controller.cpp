@@ -66,12 +66,32 @@ void EmulatedController::ReloadFromSettings() {
     for (std::size_t index = 0; index < player.motions.size(); ++index) {
         motion_params[index] = Common::ParamPackage(player.motions[index]);
     }
+
+    controller.colors_state.left = {
+        .body = player.body_color_left,
+        .button = player.button_color_left,
+    };
+
+    controller.colors_state.right = {
+        .body = player.body_color_right,
+        .button = player.button_color_right,
+    };
+
+    controller.colors_state.fullkey = controller.colors_state.left;
+
+    SetNpadType(MapSettingsTypeToNPad(player.controller_type));
+
+    if (player.connected) {
+        Connect();
+    } else {
+        Disconnect();
+    }
+
     ReloadInput();
 }
 
 void EmulatedController::ReloadInput() {
     const auto player_index = NpadIdTypeToIndex(npad_id_type);
-    const auto& player = Settings::values.players.GetValue()[player_index];
     const auto left_side = button_params[Settings::NativeButton::ZL];
     const auto right_side = button_params[Settings::NativeButton::ZR];
 
@@ -90,20 +110,12 @@ void EmulatedController::ReloadInput() {
     trigger_devices[1] =
         Input::CreateDevice<Input::InputDevice>(button_params[Settings::NativeButton::ZR]);
 
-    controller.colors_state.left = {
-        .body = player.body_color_left,
-        .button = player.button_color_left,
-    };
-
-    controller.colors_state.right = {
-        .body = player.body_color_right,
-        .button = player.button_color_right,
-    };
-
-    controller.colors_state.fullkey = controller.colors_state.left;
-
     battery_devices[0] = Input::CreateDevice<Input::InputDevice>(left_side);
     battery_devices[1] = Input::CreateDevice<Input::InputDevice>(right_side);
+
+    button_params[Settings::NativeButton::ZL].Set("output",true);
+    output_devices[0] =
+        Input::CreateDevice<Input::OutputDevice>(button_params[Settings::NativeButton::ZL]);
 
     for (std::size_t index = 0; index < button_devices.size(); ++index) {
         if (!button_devices[index]) {
@@ -149,14 +161,6 @@ void EmulatedController::ReloadInput() {
             [this, index](Input::CallbackStatus callback) { SetMotion(callback, index); }};
         motion_devices[index]->SetCallback(motion_callback);
     }
-
-    SetNpadType(MapSettingsTypeToNPad(player.controller_type));
-
-    if (player.connected) {
-        Connect();
-    } else {
-        Disconnect();
-    }
 }
 
 void EmulatedController::UnloadInput() {
@@ -197,7 +201,8 @@ void EmulatedController::SaveCurrentConfig() {
 
     const auto player_index = NpadIdTypeToIndex(npad_id_type);
     auto& player = Settings::values.players.GetValue()[player_index];
-
+    player.connected = is_connected;
+    player.controller_type = MapNPadToSettingsType(npad_type);
     for (std::size_t index = 0; index < player.buttons.size(); ++index) {
         player.buttons[index] = button_params[index].Serialize();
     }
@@ -601,13 +606,50 @@ void EmulatedController::SetBattery(Input::CallbackStatus callback, std::size_t 
     TriggerOnChange(ControllerTriggerType::Battery);
 }
 
-bool EmulatedController::SetVibration([[maybe_unused]] std::size_t device_index,
-                                      [[maybe_unused]] VibrationValue vibration) {
-    return false;
+bool EmulatedController::SetVibration(std::size_t device_index, VibrationValue vibration) {
+    if (!output_devices[device_index]) {
+        return false;
+    }
+
+    const Input::VibrationStatus status = {
+        .low_amplitude = vibration.high_amplitude,
+        .low_frequency = vibration.high_amplitude,
+        .high_amplitude = vibration.high_amplitude,
+        .high_frequency = vibration.high_amplitude,
+    };
+    return output_devices[device_index]->SetVibration(status) == Input::VibrationError::None;
 }
 
-int EmulatedController::TestVibration(std::size_t device_index) {
-    return 1;
+bool EmulatedController::TestVibration(std::size_t device_index) {
+    if (!output_devices[device_index]) {
+        return false;
+    }
+
+    // Send a slight vibration to test for rumble support
+    constexpr Input::VibrationStatus status = {
+        .low_amplitude = 0.001f,
+        .low_frequency = 160.0f,
+        .high_amplitude = 0.001f,
+        .high_frequency = 320.0f,
+    };
+    return output_devices[device_index]->SetVibration(status) == Input::VibrationError::None;
+}
+
+void EmulatedController::SetLedPattern() {
+    for (auto& device : output_devices) {
+        if (!device) {
+            continue;
+        }
+
+        const LedPattern pattern = GetLedPattern();
+        const Input::LedStatus status = {
+            .led_1 = pattern.position1 != 0,
+            .led_2 = pattern.position2 != 0,
+            .led_3 = pattern.position3 != 0,
+            .led_4 = pattern.position4 != 0,
+        };
+        device->SetLED(status);
+    }
 }
 
 void EmulatedController::Connect() {
@@ -653,6 +695,29 @@ void EmulatedController::SetNpadType(NpadType npad_type_) {
     }
     npad_type = npad_type_;
     TriggerOnChange(ControllerTriggerType::Type);
+}
+
+LedPattern EmulatedController::GetLedPattern() const {
+    switch (npad_id_type) {
+    case NpadIdType::Player1:
+        return LedPattern{1, 0, 0, 0};
+    case NpadIdType::Player2:
+        return LedPattern{1, 1, 0, 0};
+    case NpadIdType::Player3:
+        return LedPattern{1, 1, 1, 0};
+    case NpadIdType::Player4:
+        return LedPattern{1, 1, 1, 1};
+    case NpadIdType::Player5:
+        return LedPattern{1, 0, 0, 1};
+    case NpadIdType::Player6:
+        return LedPattern{1, 0, 1, 0};
+    case NpadIdType::Player7:
+        return LedPattern{1, 0, 1, 1};
+    case NpadIdType::Player8:
+        return LedPattern{0, 1, 1, 0};
+    default:
+        return LedPattern{0, 0, 0, 0};
+    }
 }
 
 ButtonValues EmulatedController::GetButtonsValues() const {

@@ -38,6 +38,27 @@ enum class BatteryLevel {
     Charging,
 };
 
+enum class PollingMode {
+    Active,
+    Pasive,
+    Camera,
+    NCF,
+    IR,
+};
+
+enum class VibrationError {
+    None,
+    NotSupported,
+    Disabled,
+    Unknown,
+};
+
+enum class PollingError {
+    None,
+    NotSupported,
+    Unknown,
+};
+
 struct AnalogProperties {
     float deadzone{};
     float range{1.0f};
@@ -147,6 +168,24 @@ public:
 
 private:
     InputCallback callback;
+};
+
+/// An abstract class template for an output device (rumble, LED pattern, polling mode).
+class OutputDevice {
+public:
+    virtual ~OutputDevice() = default;
+
+    virtual void SetLED([[maybe_unused]] LedStatus led_status) {
+        return;
+    }
+
+    virtual VibrationError SetVibration([[maybe_unused]] VibrationStatus vibration_status) {
+        return VibrationError::NotSupported;
+    }
+
+    virtual PollingError SetPollingMode([[maybe_unused]] PollingMode polling_mode) {
+        return PollingError::NotSupported;
+    }
 };
 
 /// An abstract class template for a factory that can create input devices.

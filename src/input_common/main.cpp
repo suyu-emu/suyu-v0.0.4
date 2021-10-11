@@ -46,8 +46,10 @@ struct InputSubsystem::Impl {
 
         gcadapter = std::make_shared<GCAdapter>("gcpad");
         gcadapter->SetMappingCallback(mapping_callback);
-        gcadapter_factory = std::make_shared<InputFactory>(gcadapter);
-        Input::RegisterFactory<Input::InputDevice>(gcadapter->GetEngineName(), gcadapter_factory);
+        gcadapter_input_factory = std::make_shared<InputFactory>(gcadapter);
+        gcadapter_output_factory = std::make_shared<OutputFactory>(gcadapter);
+        Input::RegisterFactory<Input::InputDevice>(gcadapter->GetEngineName(), gcadapter_input_factory);
+        Input::RegisterFactory<Input::OutputDevice>(gcadapter->GetEngineName(), gcadapter_output_factory);
 
         udp_client = std::make_shared<CemuhookUDP::UDPClient>("cemuhookudp");
         udp_client->SetMappingCallback(mapping_callback);
@@ -62,8 +64,10 @@ struct InputSubsystem::Impl {
 #ifdef HAVE_SDL2
         sdl = std::make_shared<SDLDriver>("sdl");
         sdl->SetMappingCallback(mapping_callback);
-        sdl_factory = std::make_shared<InputFactory>(sdl);
-        Input::RegisterFactory<Input::InputDevice>(sdl->GetEngineName(), sdl_factory);
+        sdl_input_factory = std::make_shared<InputFactory>(sdl);
+        sdl_output_factory = std::make_shared<OutputFactory>(sdl);
+        Input::RegisterFactory<Input::InputDevice>(sdl->GetEngineName(), sdl_input_factory);
+        Input::RegisterFactory<Input::OutputDevice>(sdl->GetEngineName(), sdl_output_factory);
 #endif
 
         Input::RegisterFactory<Input::InputDevice>("touch_from_button",
@@ -247,21 +251,27 @@ struct InputSubsystem::Impl {
     }
 
     std::shared_ptr<MappingFactory> mapping_factory;
+
     std::shared_ptr<Keyboard> keyboard;
-    std::shared_ptr<InputFactory> keyboard_factory;
     std::shared_ptr<Mouse> mouse;
-    std::shared_ptr<InputFactory> mouse_factory;
     std::shared_ptr<GCAdapter> gcadapter;
-    std::shared_ptr<InputFactory> gcadapter_factory;
     std::shared_ptr<TouchScreen> touch_screen;
-    std::shared_ptr<InputFactory> touch_screen_factory;
-    std::shared_ptr<CemuhookUDP::UDPClient> udp_client;
-    std::shared_ptr<InputFactory> udp_client_factory;
     std::shared_ptr<TasInput::Tas> tas_input;
+    std::shared_ptr<CemuhookUDP::UDPClient> udp_client;
+
+    std::shared_ptr<InputFactory> keyboard_factory;
+    std::shared_ptr<InputFactory> mouse_factory;
+    std::shared_ptr<InputFactory> gcadapter_input_factory;
+    std::shared_ptr<InputFactory> touch_screen_factory;
+    std::shared_ptr<InputFactory> udp_client_factory;
     std::shared_ptr<InputFactory> tas_input_factory;
+
+    std::shared_ptr<OutputFactory> gcadapter_output_factory;
+
 #ifdef HAVE_SDL2
     std::shared_ptr<SDLDriver> sdl;
-    std::shared_ptr<InputFactory> sdl_factory;
+    std::shared_ptr<InputFactory> sdl_input_factory;
+    std::shared_ptr<OutputFactory> sdl_output_factory;
 #endif
 };
 

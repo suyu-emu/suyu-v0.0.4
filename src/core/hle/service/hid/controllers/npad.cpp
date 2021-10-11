@@ -796,7 +796,7 @@ void Controller_NPad::InitializeVibrationDeviceAtIndex(std::size_t npad_index,
     }
 
     controller.vibration[device_index].device_mounted =
-        controller.device->TestVibration(device_index) == 1;
+        controller.device->TestVibration(device_index);
 }
 
 void Controller_NPad::SetPermitVibrationSession(bool permit_vibration_session) {
@@ -954,31 +954,12 @@ bool Controller_NPad::SwapNpadAssignment(u32 npad_id_1, u32 npad_id_2) {
     return true;
 }
 
-Controller_NPad::LedPattern Controller_NPad::GetLedPattern(u32 npad_id) {
+Core::HID::LedPattern Controller_NPad::GetLedPattern(u32 npad_id) {
     if (npad_id == npad_id_list.back() || npad_id == npad_id_list[npad_id_list.size() - 2]) {
         // These are controllers without led patterns
-        return LedPattern{0, 0, 0, 0};
+        return Core::HID::LedPattern{0, 0, 0, 0};
     }
-    switch (npad_id) {
-    case 0:
-        return LedPattern{1, 0, 0, 0};
-    case 1:
-        return LedPattern{1, 1, 0, 0};
-    case 2:
-        return LedPattern{1, 1, 1, 0};
-    case 3:
-        return LedPattern{1, 1, 1, 1};
-    case 4:
-        return LedPattern{1, 0, 0, 1};
-    case 5:
-        return LedPattern{1, 0, 1, 0};
-    case 6:
-        return LedPattern{1, 0, 1, 1};
-    case 7:
-        return LedPattern{0, 1, 1, 0};
-    default:
-        return LedPattern{0, 0, 0, 0};
-    }
+    return controller_data[npad_id].device->GetLedPattern();
 }
 
 bool Controller_NPad::IsUnintendedHomeButtonInputProtectionEnabled(u32 npad_id) const {

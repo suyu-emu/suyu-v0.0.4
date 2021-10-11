@@ -59,13 +59,6 @@ private:
         SR,
     };
 
-    struct LedPattern {
-        bool position1;
-        bool position2;
-        bool position3;
-        bool position4;
-    };
-
     struct ColorMapping {
         QColor outline{};
         QColor primary{};
@@ -88,7 +81,6 @@ private:
         QColor deadzone{};
     };
 
-    static LedPattern GetColorPattern(std::size_t index, bool player_on);
     void UpdateColors();
     void ResetInputs();
 
@@ -194,7 +186,7 @@ private:
     int callback_key;
     QColor button_color{};
     ColorMapping colors{};
-    std::array<QColor, 4> led_color{};
+    Core::HID::LedPattern led_pattern{0, 0, 0, 0};
     std::size_t player_index{};
     Core::HID::EmulatedController* controller;
     std::size_t button_mapping_index{Settings::NativeButton::NumButtons};

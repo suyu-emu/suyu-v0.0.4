@@ -592,6 +592,28 @@ private:
     InputEngine* input_engine;
 };
 
+class OutputFromIdentifier final : public Input::OutputDevice {
+public:
+    explicit OutputFromIdentifier(PadIdentifier identifier_, InputEngine* input_engine_)
+        : identifier(identifier_), input_engine(input_engine_) {}
+
+    virtual void SetLED( Input::LedStatus led_status) {
+        input_engine->SetLeds(identifier, led_status);
+    }
+
+    virtual Input::VibrationError SetVibration(Input::VibrationStatus vibration_status) {
+        return input_engine->SetRumble(identifier, vibration_status);
+    }
+
+    virtual Input::PollingError SetPollingMode(Input::PollingMode polling_mode) {
+        return input_engine->SetPollingMode(identifier, polling_mode);
+    }
+
+private:
+    const PadIdentifier identifier;
+    InputEngine* input_engine;
+};
+
 std::unique_ptr<Input::InputDevice> InputFactory::CreateButtonDevice(
     const Common::ParamPackage& params) {
     const PadIdentifier identifier = {
@@ -825,7 +847,8 @@ std::unique_ptr<Input::InputDevice> InputFactory::CreateMotionDevice(Common::Par
 InputFactory::InputFactory(std::shared_ptr<InputEngine> input_engine_)
     : input_engine(std::move(input_engine_)) {}
 
-std::unique_ptr<Input::InputDevice> InputFactory::Create(const Common::ParamPackage& params) {
+std::unique_ptr<Input::InputDevice> InputFactory::Create(
+    const Common::ParamPackage& params) {
     if (params.Has("button") && params.Has("axis")) {
         return CreateTriggerDevice(params);
     }
@@ -855,6 +878,21 @@ std::unique_ptr<Input::InputDevice> InputFactory::Create(const Common::ParamPack
     }
     LOG_ERROR(Input, "Invalid parameters given");
     return std::make_unique<DummyInput>();
+}
+
+OutputFactory::OutputFactory(std::shared_ptr<InputEngine> input_engine_)
+    : input_engine(std::move(input_engine_)) {}
+
+std::unique_ptr<Input::OutputDevice> OutputFactory::Create(
+    const Common::ParamPackage& params) {
+    const PadIdentifier identifier = {
+        .guid = Common::UUID{params.Get("guid", "")},
+        .port = static_cast<std::size_t>(params.Get("port", 0)),
+        .pad = static_cast<std::size_t>(params.Get("pad", 0)),
+    };
+
+    input_engine->PreSetController(identifier);
+    return std::make_unique<OutputFromIdentifier>(identifier, input_engine.get());
 }
 
 } // namespace InputCommon

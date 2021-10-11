@@ -115,22 +115,6 @@ public:
         .freq_high = 320.0f,
     };
 
-    struct LedPattern {
-        explicit LedPattern(u64 light1, u64 light2, u64 light3, u64 light4) {
-            position1.Assign(light1);
-            position2.Assign(light2);
-            position3.Assign(light3);
-            position4.Assign(light4);
-        }
-        union {
-            u64 raw{};
-            BitField<0, 1, u64> position1;
-            BitField<1, 1, u64> position2;
-            BitField<2, 1, u64> position3;
-            BitField<3, 1, u64> position4;
-        };
-    };
-
     void SetSupportedStyleSet(Core::HID::NpadStyleTag style_set);
     Core::HID::NpadStyleTag GetSupportedStyleSet() const;
 
@@ -186,7 +170,7 @@ public:
     void SetSixAxisFusionParameters(f32 parameter1, f32 parameter2);
     std::pair<f32, f32> GetSixAxisFusionParameters();
     void ResetSixAxisFusionParameters();
-    LedPattern GetLedPattern(u32 npad_id);
+    Core::HID::LedPattern GetLedPattern(u32 npad_id);
     bool IsUnintendedHomeButtonInputProtectionEnabled(u32 npad_id) const;
     void SetUnintendedHomeButtonInputProtectionEnabled(bool is_protection_enabled, u32 npad_id);
     void SetAnalogStickUseCenterClamp(bool use_center_clamp);
