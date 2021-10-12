@@ -592,9 +592,8 @@ struct RangedBarrierRange {
 }
 
 void BlitScale(VKScheduler& scheduler, VkImage src_image, VkImage dst_image, const ImageInfo& info,
-               VkImageAspectFlags aspect_mask, const Settings::ResolutionScalingInfo& resolution,
-               bool scaling) {
-    const auto type = info.type;
+               VkImageAspectFlags aspect_mask, const Settings::ResolutionScalingInfo& resolution) {
+    const bool is_2d = info.type == ImageType::e2D;
     const auto resources = info.resources;
     const VkExtent2D extent{
         .width = info.size.width,
@@ -605,15 +604,15 @@ void BlitScale(VKScheduler& scheduler, VkImage src_image, VkImage dst_image, con
     const VkFilter vk_filter = (is_zeta || is_int_format) ? VK_FILTER_NEAREST : VK_FILTER_LINEAR;
 
     scheduler.RequestOutsideRenderPassOperationContext();
-    scheduler.Record([dst_image, src_image, extent, resources, aspect_mask, resolution, type,
-                      scaling, vk_filter](vk::CommandBuffer cmdbuf) {
+    scheduler.Record([dst_image, src_image, extent, resources, aspect_mask, resolution, is_2d,
+                      vk_filter](vk::CommandBuffer cmdbuf) {
         const VkOffset2D src_size{
-            .x = static_cast<s32>(scaling ? extent.width : resolution.ScaleUp(extent.width)),
-            .y = static_cast<s32>(scaling ? extent.height : resolution.ScaleUp(extent.height)),
+            .x = static_cast<s32>(extent.width),
+            .y = static_cast<s32>(extent.height),
         };
         const VkOffset2D dst_size{
-            .x = static_cast<s32>(scaling ? resolution.ScaleUp(extent.width) : extent.width),
-            .y = static_cast<s32>(scaling ? resolution.ScaleUp(extent.height) : extent.height),
+            .x = static_cast<s32>(resolution.ScaleUp(extent.width)),
+            .y = static_cast<s32>(is_2d ? resolution.ScaleUp(extent.height) : extent.height),
         };
         boost::container::small_vector<VkImageBlit, 4> regions;
         regions.reserve(resources.levels);
@@ -1154,7 +1153,7 @@ bool Image::ScaleUp() {
     if (aspect_mask == 0) {
         aspect_mask = ImageAspectMask(info.format);
     }
-    BlitScale(*scheduler, *original_image, *scaled_image, info, aspect_mask, resolution, true);
+    BlitScale(*scheduler, *original_image, *scaled_image, info, aspect_mask, resolution);
     current_image = *scaled_image;
     flags |= ImageFlagBits::Rescaled;
     return true;
