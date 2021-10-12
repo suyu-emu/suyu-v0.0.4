@@ -924,12 +924,8 @@ bool Image::Scale() {
     const GLenum filter = linear_color_format ? GL_LINEAR : GL_NEAREST;
 
     const auto& resolution = runtime->resolution;
-    const u32 up = resolution.up_scale;
-    const u32 down = resolution.down_shift;
-    const auto scale = [&](u32 value) { return std::max<u32>((value * up) >> down, 1U); };
-
-    const u32 scaled_width = scale(info.size.width);
-    const u32 scaled_height = is_2d ? scale(info.size.height) : info.size.height;
+    const u32 scaled_width = resolution.ScaleUp(info.size.width);
+    const u32 scaled_height = is_2d ? resolution.ScaleUp(info.size.height) : info.size.height;
     const u32 original_width = info.size.width;
     const u32 original_height = info.size.height;
 

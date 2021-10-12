@@ -504,17 +504,11 @@ void TextureCache<P>::BlitImage(const Tegra::Engines::Fermi2D::Surface& dst,
         is_dst_rescaled = True(dst_image.flags & ImageFlagBits::Rescaled);
     }
     const auto& resolution = Settings::values.resolution_info;
-    const auto scale_up = [&](u32 value) -> u32 {
-        if (value == 0) {
-            return 0U;
-        }
-        return std::max<u32>((value * resolution.up_scale) >> resolution.down_shift, 1U);
-    };
     const auto scale_region = [&](Region2D& region) {
-        region.start.x = scale_up(region.start.x);
-        region.start.y = scale_up(region.start.y);
-        region.end.x = scale_up(region.end.x);
-        region.end.y = scale_up(region.end.y);
+        region.start.x = resolution.ScaleUp(region.start.x);
+        region.start.y = resolution.ScaleUp(region.start.y);
+        region.end.x = resolution.ScaleUp(region.end.x);
+        region.end.y = resolution.ScaleUp(region.end.y);
     };
 
     // TODO: Deduplicate
@@ -1721,20 +1715,14 @@ void TextureCache<P>::CopyImage(ImageId dst_id, ImageId src_id, std::vector<Imag
         ASSERT(True(dst.flags & ImageFlagBits::Rescaled));
         const bool both_2d{src.info.type == ImageType::e2D && dst.info.type == ImageType::e2D};
         const auto& resolution = Settings::values.resolution_info;
-        const auto scale_up = [&](u32 value) -> u32 {
-            if (value == 0) {
-                return 0U;
-            }
-            return std::max<u32>((value * resolution.up_scale) >> resolution.down_shift, 1U);
-        };
         for (auto& copy : copies) {
-            copy.src_offset.x = scale_up(copy.src_offset.x);
-            copy.dst_offset.x = scale_up(copy.dst_offset.x);
-            copy.extent.width = scale_up(copy.extent.width);
+            copy.src_offset.x = resolution.ScaleUp(copy.src_offset.x);
+            copy.dst_offset.x = resolution.ScaleUp(copy.dst_offset.x);
+            copy.extent.width = resolution.ScaleUp(copy.extent.width);
             if (both_2d) {
-                copy.src_offset.y = scale_up(copy.src_offset.y);
-                copy.dst_offset.y = scale_up(copy.dst_offset.y);
-                copy.extent.height = scale_up(copy.extent.height);
+                copy.src_offset.y = resolution.ScaleUp(copy.src_offset.y);
+                copy.dst_offset.y = resolution.ScaleUp(copy.dst_offset.y);
+                copy.extent.height = resolution.ScaleUp(copy.extent.height);
             }
         }
     }
@@ -1812,12 +1800,9 @@ std::pair<FramebufferId, ImageViewId> TextureCache<P>::RenderTargetFromImage(
     Extent3D extent = MipSize(image.info.size, view_info.range.base.level);
     if (is_rescaled) {
         const auto& resolution = Settings::values.resolution_info;
-        const auto scale_up = [&](u32 value) {
-            return std::max<u32>((value * resolution.up_scale) >> resolution.down_shift, 1U);
-        };
-        extent.width = scale_up(extent.width);
+        extent.width = resolution.ScaleUp(extent.width);
         if (image.info.type == ImageType::e2D) {
-            extent.height = scale_up(extent.height);
+            extent.height = resolution.ScaleUp(extent.height);
         }
     }
     const u32 num_samples = image.info.num_samples;

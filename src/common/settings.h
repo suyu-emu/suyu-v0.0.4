@@ -72,6 +72,20 @@ struct ResolutionScalingInfo {
     f32 up_factor{1.0f};
     f32 down_factor{1.0f};
     bool active{};
+
+    s32 ScaleUp(s32 value) const {
+        if (value == 0) {
+            return 0;
+        }
+        return std::max((value * static_cast<s32>(up_scale)) >> static_cast<s32>(down_shift), 1);
+    }
+
+    u32 ScaleUp(u32 value) const {
+        if (value == 0U) {
+            return 0U;
+        }
+        return std::max((value * up_scale) >> down_shift, 1U);
+    }
 };
 
 /** The BasicSetting class is a simple resource manager. It defines a label and default value

@@ -607,16 +607,13 @@ void BlitScale(VKScheduler& scheduler, VkImage src_image, VkImage dst_image, con
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([dst_image, src_image, extent, resources, aspect_mask, resolution, type,
                       scaling, vk_filter](vk::CommandBuffer cmdbuf) {
-        const auto scale_up = [&](u32 value) {
-            return std::max<u32>((value * resolution.up_scale) >> resolution.down_shift, 1U);
-        };
         const VkOffset2D src_size{
-            .x = static_cast<s32>(scaling ? extent.width : scale_up(extent.width)),
-            .y = static_cast<s32>(scaling ? extent.height : scale_up(extent.height)),
+            .x = static_cast<s32>(scaling ? extent.width : resolution.ScaleUp(extent.width)),
+            .y = static_cast<s32>(scaling ? extent.height : resolution.ScaleUp(extent.height)),
         };
         const VkOffset2D dst_size{
-            .x = static_cast<s32>(scaling ? scale_up(extent.width) : extent.width),
-            .y = static_cast<s32>(scaling ? scale_up(extent.height) : extent.height),
+            .x = static_cast<s32>(scaling ? resolution.ScaleUp(extent.width) : extent.width),
+            .y = static_cast<s32>(scaling ? resolution.ScaleUp(extent.height) : extent.height),
         };
         boost::container::small_vector<VkImageBlit, 4> regions;
         regions.reserve(resources.levels);
@@ -1144,13 +1141,9 @@ bool Image::ScaleUp() {
         return false;
     }
     if (!scaled_image) {
-        const u32 up = resolution.up_scale;
-        const u32 down = resolution.down_shift;
-        const auto scale = [&](u32 value) { return std::max<u32>((value * up) >> down, 1U); };
-
         const bool is_2d = info.type == ImageType::e2D;
-        const u32 scaled_width = scale(info.size.width);
-        const u32 scaled_height = is_2d ? scale(info.size.height) : info.size.height;
+        const u32 scaled_width = resolution.ScaleUp(info.size.width);
+        const u32 scaled_height = is_2d ? resolution.ScaleUp(info.size.height) : info.size.height;
         auto scaled_info = info;
         scaled_info.size.width = scaled_width;
         scaled_info.size.height = scaled_height;
