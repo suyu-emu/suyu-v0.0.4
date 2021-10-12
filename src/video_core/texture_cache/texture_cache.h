@@ -795,25 +795,25 @@ bool TextureCache<P>::BlackListImage(ImageId image_id) {
 
 template <class P>
 bool TextureCache<P>::ImageCanRescale(ImageBase& image) {
-    if (True(image.flags & ImageFlagBits::Blacklisted)) {
+    if (!image.info.rescaleable || True(image.flags & ImageFlagBits::Blacklisted)) {
         return false;
     }
-    if (True(image.flags & (ImageFlagBits::Rescaled | ImageFlagBits::RescaleChecked))) {
+    if (True(image.flags & (ImageFlagBits::Rescaled | ImageFlagBits::CheckingRescalable))) {
         return true;
     }
-    if (!image.info.rescaleable) {
-        image.flags &= ~ImageFlagBits::RescaleChecked;
-        return false;
+    if (True(image.flags & ImageFlagBits::IsRescalable)) {
+        return true;
     }
-    image.flags |= ImageFlagBits::RescaleChecked;
+    image.flags |= ImageFlagBits::CheckingRescalable;
     for (const auto& alias : image.aliased_images) {
         Image& other_image = slot_images[alias.id];
         if (!ImageCanRescale(other_image)) {
-            image.flags &= ~ImageFlagBits::RescaleChecked;
+            image.flags &= ~ImageFlagBits::CheckingRescalable;
             return false;
         }
     }
-    image.flags &= ~ImageFlagBits::RescaleChecked;
+    image.flags &= ~ImageFlagBits::CheckingRescalable;
+    image.flags |= ImageFlagBits::IsRescalable;
     return true;
 }
 

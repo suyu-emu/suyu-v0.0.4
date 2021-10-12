@@ -256,6 +256,8 @@ void AddImageAlias(ImageBase& lhs, ImageBase& rhs, ImageId lhs_id, ImageId rhs_i
     }
     lhs.aliased_images.push_back(std::move(lhs_alias));
     rhs.aliased_images.push_back(std::move(rhs_alias));
+    lhs.flags &= ~ImageFlagBits::IsRescalable;
+    rhs.flags &= ~ImageFlagBits::IsRescalable;
 }
 
 } // namespace VideoCommon
