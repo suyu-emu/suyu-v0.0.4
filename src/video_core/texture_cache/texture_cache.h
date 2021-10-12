@@ -475,12 +475,10 @@ void TextureCache<P>::BlitImage(const Tegra::Engines::Fermi2D::Surface& dst,
 
     Image& dst_image = slot_images[dst_id];
     Image& src_image = slot_images[src_id];
-
-    bool is_resolve = src_image.info.num_samples != 1 && dst_image.info.num_samples == 1;
-
     bool is_src_rescaled = True(src_image.flags & ImageFlagBits::Rescaled);
     bool is_dst_rescaled = True(dst_image.flags & ImageFlagBits::Rescaled);
 
+    const bool is_resolve = src_image.info.num_samples != 1 && dst_image.info.num_samples == 1;
     if (is_src_rescaled != is_dst_rescaled) {
         if (ImageCanRescale(src_image)) {
             ScaleUp(src_image);
@@ -498,7 +496,13 @@ void TextureCache<P>::BlitImage(const Tegra::Engines::Fermi2D::Surface& dst,
             is_dst_rescaled = True(dst_image.flags & ImageFlagBits::Rescaled);
         }
     }
-
+    if (is_resolve && (is_src_rescaled != is_dst_rescaled)) {
+        // A resolve requires both images to be the same dimensions. Resize down if needed.
+        ScaleDown(src_image);
+        ScaleDown(dst_image);
+        is_src_rescaled = True(src_image.flags & ImageFlagBits::Rescaled);
+        is_dst_rescaled = True(dst_image.flags & ImageFlagBits::Rescaled);
+    }
     const auto& resolution = Settings::values.resolution_info;
     const auto scale_up = [&](u32 value) -> u32 {
         if (value == 0) {
@@ -506,7 +510,6 @@ void TextureCache<P>::BlitImage(const Tegra::Engines::Fermi2D::Surface& dst,
         }
         return std::max<u32>((value * resolution.up_scale) >> resolution.down_shift, 1U);
     };
-
     const auto scale_region = [&](Region2D& region) {
         region.start.x = scale_up(region.start.x);
         region.start.y = scale_up(region.start.y);
