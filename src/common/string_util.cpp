@@ -191,9 +191,9 @@ std::string StringFromFixedZeroTerminatedBuffer(const char* buffer, std::size_t 
 std::u16string UTF16StringFromFixedZeroTerminatedBuffer(std::u16string_view buffer,
                                                         std::size_t max_len) {
     std::size_t len = 0;
-    while (len < max_len && buffer[len] != '\0')
+    while (len < buffer.length() && len < max_len && buffer[len] != '\0') {
         ++len;
-
+    }
     return std::u16string(buffer.begin(), buffer.begin() + len);
 }
 
