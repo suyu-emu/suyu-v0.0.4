@@ -146,9 +146,8 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    Core::System::InitializeGlobalInstance();
-    auto& system{Core::System::GetInstance()};
-    InputCommon::InputSubsystem input_subsystem;
+    Core::System system{};
+    InputCommon::InputSubsystem input_subsystem{};
 
     // Apply the command line arguments
     system.ApplySettings();
