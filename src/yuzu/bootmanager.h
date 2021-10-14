@@ -16,13 +16,17 @@
 #include <QWindow>
 
 #include "common/thread.h"
-#include "core/core.h"
 #include "core/frontend/emu_window.h"
 
 class GRenderWindow;
 class GMainWindow;
 class QKeyEvent;
 class QStringList;
+
+namespace Core {
+enum class SystemResultStatus : u32;
+class System;
+} // namespace Core
 
 namespace InputCommon {
 class InputSubsystem;
