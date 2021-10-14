@@ -172,7 +172,7 @@ void GMainWindow::ShowTelemetryCallout() {
            "<br/><br/>Would you like to share your usage data with us?");
     if (QMessageBox::question(this, tr("Telemetry"), telemetry_message) != QMessageBox::Yes) {
         Settings::values.enable_telemetry = false;
-        system.ApplySettings();
+        system->ApplySettings();
     }
 }
 
@@ -191,9 +191,10 @@ static void RemoveCachedContents() {
     Common::FS::RemoveDirRecursively(offline_system_data);
 }
 
-GMainWindow::GMainWindow(Core::System& system_)
-    : input_subsystem{std::make_shared<InputCommon::InputSubsystem>()}, system{system_},
-      config{std::make_unique<Config>(system_)},
+GMainWindow::GMainWindow()
+    : system{std::make_unique<Core::System>()},
+      input_subsystem{std::make_shared<InputCommon::InputSubsystem>()},
+      config{std::make_unique<Config>(*system)},
       vfs{std::make_shared<FileSys::RealVfsFilesystem>()},
       provider{std::make_unique<FileSys::ManualContentProvider>()} {
     Common::Log::Initialize();
@@ -257,10 +258,10 @@ GMainWindow::GMainWindow(Core::System& system_)
 
     show();
 
-    system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
-    system.RegisterContentProvider(FileSys::ContentProviderUnionSlot::FrontendManual,
-                                   provider.get());
-    system.GetFileSystemController().CreateFactories(*vfs);
+    system->SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
+    system->RegisterContentProvider(FileSys::ContentProviderUnionSlot::FrontendManual,
+                                    provider.get());
+    system->GetFileSystemController().CreateFactories(*vfs);
 
     // Remove cached contents generated during the previous session
     RemoveCachedContents();
@@ -411,7 +412,7 @@ void GMainWindow::RegisterMetaTypes() {
 
 void GMainWindow::ControllerSelectorReconfigureControllers(
     const Core::Frontend::ControllerParameters& parameters) {
-    QtControllerSelectorDialog dialog(this, parameters, input_subsystem.get(), system);
+    QtControllerSelectorDialog dialog(this, parameters, input_subsystem.get(), *system);
 
     dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint |
                           Qt::WindowTitleHint | Qt::WindowSystemMenuHint);
@@ -421,7 +422,7 @@ void GMainWindow::ControllerSelectorReconfigureControllers(
     emit ControllerSelectorReconfigureFinished();
 
     // Don't forget to apply settings.
-    system.ApplySettings();
+    system->ApplySettings();
     config->Save();
 
     UpdateStatusButtons();
@@ -455,7 +456,7 @@ void GMainWindow::SoftwareKeyboardInitialize(
         return;
     }
 
-    software_keyboard = new QtSoftwareKeyboardDialog(render_window, system, is_inline,
+    software_keyboard = new QtSoftwareKeyboardDialog(render_window, *system, is_inline,
                                                      std::move(initialize_parameters));
 
     if (is_inline) {
@@ -567,7 +568,7 @@ void GMainWindow::WebBrowserOpenWebPage(const std::string& main_url,
         return;
     }
 
-    QtNXWebEngineView web_browser_view(this, system, input_subsystem.get());
+    QtNXWebEngineView web_browser_view(this, *system, input_subsystem.get());
 
     ui->action_Pause->setEnabled(false);
     ui->action_Restart->setEnabled(false);
@@ -699,10 +700,10 @@ void GMainWindow::InitializeWidgets() {
 #ifdef YUZU_ENABLE_COMPATIBILITY_REPORTING
     ui->action_Report_Compatibility->setVisible(true);
 #endif
-    render_window = new GRenderWindow(this, emu_thread.get(), input_subsystem, system);
+    render_window = new GRenderWindow(this, emu_thread.get(), input_subsystem, *system);
     render_window->hide();
 
-    game_list = new GameList(vfs, provider.get(), system, this);
+    game_list = new GameList(vfs, provider.get(), *system, this);
     ui->horizontalLayout->addWidget(game_list);
 
     game_list_placeholder = new GameListPlaceholder(this);
@@ -768,14 +769,14 @@ void GMainWindow::InitializeWidgets() {
                                  tr("Handheld controller can't be used on docked mode. Pro "
                                     "controller will be selected."));
             controller_type = Settings::ControllerType::ProController;
-            ConfigureDialog configure_dialog(this, hotkey_registry, input_subsystem.get(), system);
+            ConfigureDialog configure_dialog(this, hotkey_registry, input_subsystem.get(), *system);
             configure_dialog.ApplyConfiguration();
             controller_dialog->refreshConfiguration();
         }
 
         Settings::values.use_docked_mode.SetValue(!is_docked);
         dock_status_button->setChecked(!is_docked);
-        OnDockedModeChanged(is_docked, !is_docked, system);
+        OnDockedModeChanged(is_docked, !is_docked, *system);
     });
     dock_status_button->setText(tr("DOCK"));
     dock_status_button->setCheckable(true);
@@ -799,7 +800,7 @@ void GMainWindow::InitializeWidgets() {
         }
         }
 
-        system.ApplySettings();
+        system->ApplySettings();
         UpdateGPUAccuracyButton();
     });
     UpdateGPUAccuracyButton();
@@ -827,7 +828,7 @@ void GMainWindow::InitializeWidgets() {
             Settings::values.renderer_backend.SetValue(Settings::RendererBackend::OpenGL);
         }
 
-        system.ApplySettings();
+        system->ApplySettings();
     });
     statusBar()->insertPermanentWidget(0, renderer_status_button);
 
@@ -844,7 +845,7 @@ void GMainWindow::InitializeDebugWidgets() {
     debug_menu->addAction(microProfileDialog->toggleViewAction());
 #endif
 
-    waitTreeWidget = new WaitTreeWidget(system, this);
+    waitTreeWidget = new WaitTreeWidget(*system, this);
     addDockWidget(Qt::LeftDockWidgetArea, waitTreeWidget);
     waitTreeWidget->hide();
     debug_menu->addAction(waitTreeWidget->toggleViewAction());
@@ -947,7 +948,7 @@ void GMainWindow::InitializeHotkeys() {
         });
     connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Restart Emulation"), this),
             &QShortcut::activated, this, [this] {
-                if (!system.IsPoweredOn()) {
+                if (!system->IsPoweredOn()) {
                     return;
                 }
                 BootGame(game_path);
@@ -1003,7 +1004,7 @@ void GMainWindow::InitializeHotkeys() {
                 Settings::values.use_docked_mode.SetValue(
                     !Settings::values.use_docked_mode.GetValue());
                 OnDockedModeChanged(!Settings::values.use_docked_mode.GetValue(),
-                                    Settings::values.use_docked_mode.GetValue(), system);
+                                    Settings::values.use_docked_mode.GetValue(), *system);
                 dock_status_button->setChecked(Settings::values.use_docked_mode.GetValue());
             });
     connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Mute Audio"), this),
@@ -1240,9 +1241,9 @@ bool GMainWindow::LoadROM(const QString& filename, u64 program_id, std::size_t p
         return false;
     }
 
-    system.SetFilesystem(vfs);
+    system->SetFilesystem(vfs);
 
-    system.SetAppletFrontendSet({
+    system->SetAppletFrontendSet({
         std::make_unique<QtControllerSelector>(*this), // Controller Selector
         std::make_unique<QtErrorDisplay>(*this),       // Error Display
         nullptr,                                       // Parental Controls
@@ -1253,13 +1254,13 @@ bool GMainWindow::LoadROM(const QString& filename, u64 program_id, std::size_t p
     });
 
     const Core::SystemResultStatus result{
-        system.Load(*render_window, filename.toStdString(), program_id, program_index)};
+        system->Load(*render_window, filename.toStdString(), program_id, program_index)};
 
     const auto drd_callout = (UISettings::values.callout_flags.GetValue() &
                               static_cast<u32>(CalloutFlag::DRDDeprecation)) == 0;
 
     if (result == Core::SystemResultStatus::Success &&
-        system.GetAppLoader().GetFileType() == Loader::FileType::DeconstructedRomDirectory &&
+        system->GetAppLoader().GetFileType() == Loader::FileType::DeconstructedRomDirectory &&
         drd_callout) {
         UISettings::values.callout_flags = UISettings::values.callout_flags.GetValue() |
                                            static_cast<u32>(CalloutFlag::DRDDeprecation);
@@ -1323,7 +1324,7 @@ bool GMainWindow::LoadROM(const QString& filename, u64 program_id, std::size_t p
     }
     game_path = filename;
 
-    system.TelemetrySession().AddField(Common::Telemetry::FieldType::App, "Frontend", "Qt");
+    system->TelemetrySession().AddField(Common::Telemetry::FieldType::App, "Frontend", "Qt");
     return true;
 }
 
@@ -1350,7 +1351,7 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
     last_filename_booted = filename;
 
     const auto v_file = Core::GetGameFileFromPath(vfs, filename.toUtf8().constData());
-    const auto loader = Loader::GetLoader(system, v_file, program_id, program_index);
+    const auto loader = Loader::GetLoader(*system, v_file, program_id, program_index);
 
     if (loader != nullptr && loader->ReadProgramId(title_id) == Loader::ResultStatus::Success &&
         type == StartGameType::Normal) {
@@ -1359,7 +1360,7 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
         const auto config_file_name = title_id == 0
                                           ? Common::FS::PathToUTF8String(file_path.filename())
                                           : fmt::format("{:016X}", title_id);
-        Config per_game_config(system, config_file_name, Config::ConfigType::PerGameConfig);
+        Config per_game_config(*system, config_file_name, Config::ConfigType::PerGameConfig);
     }
 
     ConfigureVibration::SetAllVibrationDevices();
@@ -1382,16 +1383,16 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
         return;
 
     // Create and start the emulation thread
-    emu_thread = std::make_unique<EmuThread>(system);
+    emu_thread = std::make_unique<EmuThread>(*system);
     emit EmulationStarting(emu_thread.get());
     emu_thread->start();
 
     // Register an ExecuteProgram callback such that Core can execute a sub-program
-    system.RegisterExecuteProgramCallback(
+    system->RegisterExecuteProgramCallback(
         [this](std::size_t program_index) { render_window->ExecuteProgram(program_index); });
 
     // Register an Exit callback such that Core can exit the currently running application.
-    system.RegisterExitCallback([this]() { render_window->Exit(); });
+    system->RegisterExitCallback([this]() { render_window->Exit(); });
 
     connect(render_window, &GRenderWindow::Closed, this, &GMainWindow::OnStopGame);
     connect(render_window, &GRenderWindow::MouseActivity, this, &GMainWindow::OnMouseActivity);
@@ -1425,11 +1426,11 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
 
     std::string title_name;
     std::string title_version;
-    const auto res = system.GetGameName(title_name);
+    const auto res = system->GetGameName(title_name);
 
     const auto metadata = [this, title_id] {
-        const FileSys::PatchManager pm(title_id, system.GetFileSystemController(),
-                                       system.GetContentProvider());
+        const FileSys::PatchManager pm(title_id, system->GetFileSystemController(),
+                                       system->GetContentProvider());
         return pm.GetControlMetadata();
     }();
     if (metadata.first != nullptr) {
@@ -1440,16 +1441,16 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
         title_name = Common::FS::PathToUTF8String(
             std::filesystem::path{filename.toStdU16String()}.filename());
     }
-    const bool is_64bit = system.Kernel().CurrentProcess()->Is64BitProcess();
+    const bool is_64bit = system->Kernel().CurrentProcess()->Is64BitProcess();
     const auto instruction_set_suffix = is_64bit ? tr("(64-bit)") : tr("(32-bit)");
     title_name = tr("%1 %2", "%1 is the title name. %2 indicates if the title is 64-bit or 32-bit")
                      .arg(QString::fromStdString(title_name), instruction_set_suffix)
                      .toStdString();
     LOG_INFO(Frontend, "Booting game: {:016X} | {} | {}", title_id, title_name, title_version);
-    const auto gpu_vendor = system.GPU().Renderer().GetDeviceVendor();
+    const auto gpu_vendor = system->GPU().Renderer().GetDeviceVendor();
     UpdateWindowTitle(title_name, title_version, gpu_vendor);
 
-    loading_screen->Prepare(system.GetAppLoader());
+    loading_screen->Prepare(system->GetAppLoader());
     loading_screen->show();
 
     emulation_running = true;
@@ -1568,15 +1569,15 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
     QString open_target;
 
     const auto [user_save_size, device_save_size] = [this, &game_path, &program_id] {
-        const FileSys::PatchManager pm{program_id, system.GetFileSystemController(),
-                                       system.GetContentProvider()};
+        const FileSys::PatchManager pm{program_id, system->GetFileSystemController(),
+                                       system->GetContentProvider()};
         const auto control = pm.GetControlMetadata().first;
         if (control != nullptr) {
             return std::make_pair(control->GetDefaultNormalSaveSize(),
                                   control->GetDeviceSaveDataSize());
         } else {
             const auto file = Core::GetGameFileFromPath(vfs, game_path);
-            const auto loader = Loader::GetLoader(system, file);
+            const auto loader = Loader::GetLoader(*system, file);
 
             FileSys::NACP nacp{};
             loader->ReadControlData(nacp);
@@ -1619,14 +1620,14 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
             ASSERT(user_id);
 
             const auto user_save_data_path = FileSys::SaveDataFactory::GetFullPath(
-                system, FileSys::SaveDataSpaceId::NandUser, FileSys::SaveDataType::SaveData,
+                *system, FileSys::SaveDataSpaceId::NandUser, FileSys::SaveDataType::SaveData,
                 program_id, user_id->uuid, 0);
 
             path = Common::FS::ConcatPathSafe(nand_dir, user_save_data_path);
         } else {
             // Device save data
             const auto device_save_data_path = FileSys::SaveDataFactory::GetFullPath(
-                system, FileSys::SaveDataSpaceId::NandUser, FileSys::SaveDataType::SaveData,
+                *system, FileSys::SaveDataSpaceId::NandUser, FileSys::SaveDataType::SaveData,
                 program_id, {}, 0);
 
             path = Common::FS::ConcatPathSafe(nand_dir, device_save_data_path);
@@ -1753,7 +1754,7 @@ void GMainWindow::OnGameListRemoveInstalledEntry(u64 program_id, InstalledEntryT
 }
 
 void GMainWindow::RemoveBaseContent(u64 program_id, const QString& entry_type) {
-    const auto& fs_controller = system.GetFileSystemController();
+    const auto& fs_controller = system->GetFileSystemController();
     const auto res = fs_controller.GetUserNANDContents()->RemoveExistingEntry(program_id) ||
                      fs_controller.GetSDMCContents()->RemoveExistingEntry(program_id);
 
@@ -1769,7 +1770,7 @@ void GMainWindow::RemoveBaseContent(u64 program_id, const QString& entry_type) {
 
 void GMainWindow::RemoveUpdateContent(u64 program_id, const QString& entry_type) {
     const auto update_id = program_id | 0x800;
-    const auto& fs_controller = system.GetFileSystemController();
+    const auto& fs_controller = system->GetFileSystemController();
     const auto res = fs_controller.GetUserNANDContents()->RemoveExistingEntry(update_id) ||
                      fs_controller.GetSDMCContents()->RemoveExistingEntry(update_id);
 
@@ -1784,8 +1785,8 @@ void GMainWindow::RemoveUpdateContent(u64 program_id, const QString& entry_type)
 
 void GMainWindow::RemoveAddOnContent(u64 program_id, const QString& entry_type) {
     u32 count{};
-    const auto& fs_controller = system.GetFileSystemController();
-    const auto dlc_entries = system.GetContentProvider().ListEntriesFilter(
+    const auto& fs_controller = system->GetFileSystemController();
+    const auto dlc_entries = system->GetContentProvider().ListEntriesFilter(
         FileSys::TitleType::AOC, FileSys::ContentRecordType::Data);
 
     for (const auto& entry : dlc_entries) {
@@ -1923,7 +1924,7 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
                                 "cancelled the operation."));
     };
 
-    const auto loader = Loader::GetLoader(system, vfs->OpenFile(game_path, FileSys::Mode::Read));
+    const auto loader = Loader::GetLoader(*system, vfs->OpenFile(game_path, FileSys::Mode::Read));
     if (loader == nullptr) {
         failed();
         return;
@@ -1935,7 +1936,7 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
         return;
     }
 
-    const auto& installed = system.GetContentProvider();
+    const auto& installed = system->GetContentProvider();
     const auto romfs_title_id = SelectRomFSDumpTarget(installed, program_id);
 
     if (!romfs_title_id) {
@@ -1955,7 +1956,7 @@ void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_pa
 
     if (*romfs_title_id == program_id) {
         const u64 ivfc_offset = loader->ReadRomFSIVFCOffset();
-        const FileSys::PatchManager pm{program_id, system.GetFileSystemController(), installed};
+        const FileSys::PatchManager pm{program_id, system->GetFileSystemController(), installed};
         romfs =
             pm.PatchRomFS(file, ivfc_offset, FileSys::ContentRecordType::Program, nullptr, false);
     } else {
@@ -2090,7 +2091,7 @@ void GMainWindow::OnGameListShowList(bool show) {
 void GMainWindow::OnGameListOpenPerGameProperties(const std::string& file) {
     u64 title_id{};
     const auto v_file = Core::GetGameFileFromPath(vfs, file);
-    const auto loader = Loader::GetLoader(system, v_file);
+    const auto loader = Loader::GetLoader(*system, v_file);
 
     if (loader == nullptr || loader->ReadProgramId(title_id) != Loader::ResultStatus::Success) {
         QMessageBox::information(this, tr("Properties"),
@@ -2304,7 +2305,7 @@ InstallResult GMainWindow::InstallNSPXCI(const QString& filename) {
     if (nsp->GetStatus() != Loader::ResultStatus::Success) {
         return InstallResult::Failure;
     }
-    const auto res = system.GetFileSystemController().GetUserNANDContents()->InstallEntry(
+    const auto res = system->GetFileSystemController().GetUserNANDContents()->InstallEntry(
         *nsp, true, qt_raw_copy);
     switch (res) {
     case FileSys::InstallResult::Success:
@@ -2384,7 +2385,7 @@ InstallResult GMainWindow::InstallNCA(const QString& filename) {
     }
 
     const bool is_application = index >= static_cast<s32>(FileSys::TitleType::Application);
-    const auto& fs_controller = system.GetFileSystemController();
+    const auto& fs_controller = system->GetFileSystemController();
     auto* registered_cache = is_application ? fs_controller.GetUserNANDContents()
                                             : fs_controller.GetSystemNANDContents();
 
@@ -2449,13 +2450,13 @@ void GMainWindow::OnPauseGame() {
 }
 
 void GMainWindow::OnStopGame() {
-    if (system.GetExitLock() && !ConfirmForceLockedExit()) {
+    if (system->GetExitLock() && !ConfirmForceLockedExit()) {
         return;
     }
 
     ShutdownGame();
 
-    Settings::RestoreGlobalState(system.IsPoweredOn());
+    Settings::RestoreGlobalState(system->IsPoweredOn());
     UpdateStatusButtons();
 }
 
@@ -2473,7 +2474,7 @@ void GMainWindow::OnExit() {
 }
 
 void GMainWindow::ErrorDisplayDisplayError(QString error_code, QString error_text) {
-    OverlayDialog dialog(render_window, system, error_code, error_text, QString{}, tr("OK"),
+    OverlayDialog dialog(render_window, *system, error_code, error_text, QString{}, tr("OK"),
                          Qt::AlignLeft | Qt::AlignVCenter);
     dialog.exec();
 
@@ -2483,7 +2484,7 @@ void GMainWindow::ErrorDisplayDisplayError(QString error_code, QString error_tex
 void GMainWindow::OnMenuReportCompatibility() {
     if (!Settings::values.yuzu_token.GetValue().empty() &&
         !Settings::values.yuzu_username.GetValue().empty()) {
-        CompatDB compatdb{system.TelemetrySession(), this};
+        CompatDB compatdb{system->TelemetrySession(), this};
         compatdb.exec();
     } else {
         QMessageBox::critical(
@@ -2647,7 +2648,7 @@ void GMainWindow::OnConfigure() {
     const bool old_discord_presence = UISettings::values.enable_discord_presence.GetValue();
 
     Settings::SetConfiguringGlobal(true);
-    ConfigureDialog configure_dialog(this, hotkey_registry, input_subsystem.get(), system);
+    ConfigureDialog configure_dialog(this, hotkey_registry, input_subsystem.get(), *system);
     connect(&configure_dialog, &ConfigureDialog::LanguageChanged, this,
             &GMainWindow::OnLanguageChanged);
 
@@ -2683,7 +2684,7 @@ void GMainWindow::OnConfigure() {
 
         Settings::values.disabled_addons.clear();
 
-        config = std::make_unique<Config>(system);
+        config = std::make_unique<Config>(*system);
         UISettings::values.reset_to_defaults = false;
 
         UISettings::values.game_dirs = std::move(old_game_dirs);
@@ -2732,12 +2733,11 @@ void GMainWindow::OnConfigure() {
 }
 
 void GMainWindow::OnConfigureTas() {
-    const auto& system = Core::System::GetInstance();
     ConfigureTasDialog dialog(this);
     const auto result = dialog.exec();
 
     if (result != QDialog::Accepted && !UISettings::values.configuration_applied) {
-        Settings::RestoreGlobalState(system.IsPoweredOn());
+        Settings::RestoreGlobalState(system->IsPoweredOn());
         return;
     } else if (result == QDialog::Accepted) {
         dialog.ApplyConfiguration();
@@ -2745,7 +2745,7 @@ void GMainWindow::OnConfigureTas() {
 }
 
 void GMainWindow::OnConfigurePerGame() {
-    const u64 title_id = system.CurrentProcess()->GetTitleID();
+    const u64 title_id = system->CurrentProcess()->GetTitleID();
     OpenPerGameConfiguration(title_id, game_path.toStdString());
 }
 
@@ -2753,12 +2753,12 @@ void GMainWindow::OpenPerGameConfiguration(u64 title_id, const std::string& file
     const auto v_file = Core::GetGameFileFromPath(vfs, file_name);
 
     Settings::SetConfiguringGlobal(false);
-    ConfigurePerGame dialog(this, title_id, file_name, system);
+    ConfigurePerGame dialog(this, title_id, file_name, *system);
     dialog.LoadFromFile(v_file);
     const auto result = dialog.exec();
 
     if (result != QDialog::Accepted && !UISettings::values.configuration_applied) {
-        Settings::RestoreGlobalState(system.IsPoweredOn());
+        Settings::RestoreGlobalState(system->IsPoweredOn());
         return;
     } else if (result == QDialog::Accepted) {
         dialog.ApplyConfiguration();
@@ -2770,7 +2770,7 @@ void GMainWindow::OpenPerGameConfiguration(u64 title_id, const std::string& file
     }
 
     // Do not cause the global config to write local settings into the config file
-    const bool is_powered_on = system.IsPoweredOn();
+    const bool is_powered_on = system->IsPoweredOn();
     Settings::RestoreGlobalState(is_powered_on);
 
     UISettings::values.configuration_applied = false;
@@ -2793,7 +2793,7 @@ void GMainWindow::OnLoadAmiibo() {
 }
 
 void GMainWindow::LoadAmiibo(const QString& filename) {
-    Service::SM::ServiceManager& sm = system.ServiceManager();
+    Service::SM::ServiceManager& sm = system->ServiceManager();
     auto nfc = sm.GetService<Service::NFP::Module::Interface>("nfp:user");
     if (nfc == nullptr) {
         return;
@@ -2844,7 +2844,7 @@ void GMainWindow::OnToggleFilterBar() {
 }
 
 void GMainWindow::OnCaptureScreenshot() {
-    const u64 title_id = system.CurrentProcess()->GetTitleID();
+    const u64 title_id = system->CurrentProcess()->GetTitleID();
     const auto screenshot_path =
         QString::fromStdString(Common::FS::GetYuzuPathString(Common::FS::YuzuPath::ScreenshotsDir));
     const auto date =
@@ -2950,8 +2950,8 @@ void GMainWindow::UpdateStatusBar() {
         tas_label->clear();
     }
 
-    auto results = system.GetAndResetPerfStats();
-    auto& shader_notify = system.GPU().ShaderNotify();
+    auto results = system->GetAndResetPerfStats();
+    auto& shader_notify = system->GPU().ShaderNotify();
     const int shaders_building = shader_notify.ShadersBuilding();
 
     if (shaders_building > 0) {
@@ -3112,7 +3112,7 @@ void GMainWindow::OnCoreError(Core::SystemResultStatus result, std::string detai
         if (emu_thread) {
             ShutdownGame();
 
-            Settings::RestoreGlobalState(system.IsPoweredOn());
+            Settings::RestoreGlobalState(system->IsPoweredOn());
             UpdateStatusButtons();
         }
     } else {
@@ -3154,8 +3154,8 @@ void GMainWindow::OnReinitializeKeys(ReinitializeKeyBehavior behavior) {
         const auto function = [this, &keys, &pdm] {
             keys.PopulateFromPartitionData(pdm);
 
-            system.GetFileSystemController().CreateFactories(*vfs);
-            keys.DeriveETicket(pdm, system.GetContentProvider());
+            system->GetFileSystemController().CreateFactories(*vfs);
+            keys.DeriveETicket(pdm, system->GetContentProvider());
         };
 
         QString errors;
@@ -3197,7 +3197,7 @@ void GMainWindow::OnReinitializeKeys(ReinitializeKeyBehavior behavior) {
         prog.close();
     }
 
-    system.GetFileSystemController().CreateFactories(*vfs);
+    system->GetFileSystemController().CreateFactories(*vfs);
 
     if (behavior == ReinitializeKeyBehavior::Warning) {
         game_list->PopulateAsync(UISettings::values.game_dirs);
@@ -3265,7 +3265,7 @@ void GMainWindow::closeEvent(QCloseEvent* event) {
     if (emu_thread != nullptr) {
         ShutdownGame();
 
-        Settings::RestoreGlobalState(system.IsPoweredOn());
+        Settings::RestoreGlobalState(system->IsPoweredOn());
         UpdateStatusButtons();
     }
 
@@ -3340,7 +3340,7 @@ bool GMainWindow::ConfirmForceLockedExit() {
 }
 
 void GMainWindow::RequestGameExit() {
-    auto& sm{system.ServiceManager()};
+    auto& sm{system->ServiceManager()};
     auto applet_oe = sm.GetService<Service::AM::AppletOE>("appletOE");
     auto applet_ae = sm.GetService<Service::AM::AppletAE>("appletAE");
     bool has_signalled = false;
@@ -3434,7 +3434,7 @@ void GMainWindow::OnLanguageChanged(const QString& locale) {
 void GMainWindow::SetDiscordEnabled([[maybe_unused]] bool state) {
 #ifdef USE_DISCORD_PRESENCE
     if (state) {
-        discord_rpc = std::make_unique<DiscordRPC::DiscordImpl>(system);
+        discord_rpc = std::make_unique<DiscordRPC::DiscordImpl>(*system);
     } else {
         discord_rpc = std::make_unique<DiscordRPC::NullImpl>();
     }
@@ -3488,8 +3488,7 @@ int main(int argc, char* argv[]) {
     // generating shaders
     setlocale(LC_ALL, "C");
 
-    Core::System::InitializeGlobalInstance();
-    GMainWindow main_window{Core::System::GetInstance()};
+    GMainWindow main_window{};
     // After settings have been loaded by GMainWindow, apply the filter
     main_window.show();
 
