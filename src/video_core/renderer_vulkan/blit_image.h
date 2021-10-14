@@ -34,7 +34,7 @@ public:
                              StateTracker& state_tracker, DescriptorPool& descriptor_pool);
     ~BlitImageHelper();
 
-    void BlitColor(const Framebuffer* dst_framebuffer, const ImageView& src_image_view,
+    void BlitColor(const Framebuffer* dst_framebuffer, VkImageView src_image_view,
                    const Region2D& dst_region, const Region2D& src_region,
                    Tegra::Engines::Fermi2D::Filter filter,
                    Tegra::Engines::Fermi2D::Operation operation);

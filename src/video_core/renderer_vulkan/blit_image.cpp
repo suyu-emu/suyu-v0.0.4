@@ -363,7 +363,7 @@ BlitImageHelper::BlitImageHelper(const Device& device_, VKScheduler& scheduler_,
 
 BlitImageHelper::~BlitImageHelper() = default;
 
-void BlitImageHelper::BlitColor(const Framebuffer* dst_framebuffer, const ImageView& src_image_view,
+void BlitImageHelper::BlitColor(const Framebuffer* dst_framebuffer, VkImageView src_view,
                                 const Region2D& dst_region, const Region2D& src_region,
                                 Tegra::Engines::Fermi2D::Filter filter,
                                 Tegra::Engines::Fermi2D::Operation operation) {
@@ -373,7 +373,6 @@ void BlitImageHelper::BlitColor(const Framebuffer* dst_framebuffer, const ImageV
         .operation = operation,
     };
     const VkPipelineLayout layout = *one_texture_pipeline_layout;
-    const VkImageView src_view = src_image_view.Handle(Shader::TextureType::Color2D);
     const VkSampler sampler = is_linear ? *linear_sampler : *nearest_sampler;
     const VkPipeline pipeline = FindOrEmplacePipeline(key);
     scheduler.RequestRenderpass(dst_framebuffer);

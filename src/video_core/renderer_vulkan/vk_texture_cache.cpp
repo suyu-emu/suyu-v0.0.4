@@ -762,8 +762,8 @@ void TextureCacheRuntime::BlitImage(Framebuffer* dst_framebuffer, ImageView& dst
         return;
     }
     if (aspect_mask == VK_IMAGE_ASPECT_COLOR_BIT && !is_src_msaa && !is_dst_msaa) {
-        blit_image_helper.BlitColor(dst_framebuffer, src, dst_region, src_region, filter,
-                                    operation);
+        blit_image_helper.BlitColor(dst_framebuffer, src.Handle(Shader::TextureType::Color2D),
+                                    dst_region, src_region, filter, operation);
         return;
     }
     if (aspect_mask == (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) {
@@ -1131,18 +1131,10 @@ bool Image::ScaleUp() {
         return false;
     }
     const auto& device = runtime->device;
-    const PixelFormat format = StorageFormat(info.format);
-    const auto format_info = MaxwellToVK::SurfaceFormat(device, FormatType::Optimal, false, format);
-    const auto blit_usage = VK_FORMAT_FEATURE_BLIT_SRC_BIT | VK_FORMAT_FEATURE_BLIT_DST_BIT;
-    if (!device.IsFormatSupported(format_info.format, blit_usage, FormatType::Optimal)) {
-        LOG_ERROR(Render_Vulkan, "Device does not support scaling format {}", format);
-        // TODO: Use helper blits where applicable
-        return false;
-    }
+    const bool is_2d = info.type == ImageType::e2D;
+    const u32 scaled_width = resolution.ScaleUp(info.size.width);
+    const u32 scaled_height = is_2d ? resolution.ScaleUp(info.size.height) : info.size.height;
     if (!scaled_image) {
-        const bool is_2d = info.type == ImageType::e2D;
-        const u32 scaled_width = resolution.ScaleUp(info.size.width);
-        const u32 scaled_height = is_2d ? resolution.ScaleUp(info.size.height) : info.size.height;
         auto scaled_info = info;
         scaled_info.size.width = scaled_width;
         scaled_info.size.height = scaled_height;
@@ -1150,11 +1142,56 @@ bool Image::ScaleUp() {
         auto& allocator = runtime->memory_allocator;
         scaled_commit = MemoryCommit(allocator.Commit(scaled_image, MemoryUsage::DeviceLocal));
     }
+    current_image = *scaled_image;
+
     if (aspect_mask == 0) {
         aspect_mask = ImageAspectMask(info.format);
     }
-    BlitScale(*scheduler, *original_image, *scaled_image, info, aspect_mask, resolution);
-    current_image = *scaled_image;
+    static constexpr auto OPTIMAL_FORMAT = FormatType::Optimal;
+    const PixelFormat format = StorageFormat(info.format);
+    const auto vk_format = MaxwellToVK::SurfaceFormat(device, OPTIMAL_FORMAT, false, format).format;
+    const auto blit_usage = VK_FORMAT_FEATURE_BLIT_SRC_BIT | VK_FORMAT_FEATURE_BLIT_DST_BIT;
+    if (device.IsFormatSupported(vk_format, blit_usage, OPTIMAL_FORMAT)) {
+        BlitScale(*scheduler, *original_image, *scaled_image, info, aspect_mask, resolution);
+    } else {
+        using namespace VideoCommon;
+        static constexpr auto BLIT_OPERATION = Tegra::Engines::Fermi2D::Operation::SrcCopy;
+
+        const auto view_info = ImageViewInfo(ImageViewType::e2D, info.format);
+        scale_view = std::make_unique<ImageView>(*runtime, view_info, NULL_IMAGE_ID, *this);
+        auto* view_ptr = scale_view.get();
+
+        const Region2D src_region{
+            .start = {0, 0},
+            .end = {static_cast<s32>(info.size.width), static_cast<s32>(info.size.height)},
+        };
+        const Region2D dst_region{
+            .start = {0, 0},
+            .end = {static_cast<s32>(scaled_width), static_cast<s32>(scaled_height)},
+        };
+        const VkExtent2D extent{
+            .width = scaled_width,
+            .height = scaled_height,
+        };
+        if (aspect_mask == VK_IMAGE_ASPECT_COLOR_BIT) {
+            scale_framebuffer = std::make_unique<Framebuffer>(*runtime, view_ptr, nullptr, extent);
+            const auto color_view = scale_view->Handle(Shader::TextureType::Color2D);
+
+            runtime->blit_image_helper.BlitColor(
+                scale_framebuffer.get(), color_view, dst_region, src_region,
+                Tegra::Engines::Fermi2D::Filter::Bilinear, BLIT_OPERATION);
+        } else if (!runtime->device.IsBlitDepthStencilSupported() &&
+                   aspect_mask == (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) {
+            scale_framebuffer = std::make_unique<Framebuffer>(*runtime, nullptr, view_ptr, extent);
+            runtime->blit_image_helper.BlitDepthStencil(
+                scale_framebuffer.get(), scale_view->DepthView(), scale_view->StencilView(),
+                dst_region, src_region, Tegra::Engines::Fermi2D::Filter::Point, BLIT_OPERATION);
+        } else {
+            // TODO: Use helper blits where applicable
+            LOG_ERROR(Render_Vulkan, "Device does not support scaling format {}", format);
+            return false;
+        }
+    }
     flags |= ImageFlagBits::Rescaled;
     return true;
 }
@@ -1370,7 +1407,27 @@ Sampler::Sampler(TextureCacheRuntime& runtime, const Tegra::Texture::TSCEntry& t
 }
 
 Framebuffer::Framebuffer(TextureCacheRuntime& runtime, std::span<ImageView*, NUM_RT> color_buffers,
-                         ImageView* depth_buffer, const VideoCommon::RenderTargets& key) {
+                         ImageView* depth_buffer, const VideoCommon::RenderTargets& key)
+    : render_area{VkExtent2D{
+          .width = key.size.width,
+          .height = key.size.height,
+      }} {
+    CreateFramebuffer(runtime, color_buffers, depth_buffer);
+    if (runtime.device.HasDebuggingToolAttached()) {
+        framebuffer.SetObjectNameEXT(VideoCommon::Name(key).c_str());
+    }
+}
+
+Framebuffer::Framebuffer(TextureCacheRuntime& runtime, ImageView* color_buffer,
+                         ImageView* depth_buffer, VkExtent2D extent)
+    : render_area{extent} {
+    std::array<ImageView*, NUM_RT> color_buffers{color_buffer};
+    CreateFramebuffer(runtime, color_buffers, depth_buffer);
+}
+
+void Framebuffer::CreateFramebuffer(TextureCacheRuntime& runtime,
+                                    std::span<ImageView*, NUM_RT> color_buffers,
+                                    ImageView* depth_buffer) {
     std::vector<VkImageView> attachments;
     RenderPassKey renderpass_key{};
     s32 num_layers = 1;
@@ -1408,10 +1465,6 @@ Framebuffer::Framebuffer(TextureCacheRuntime& runtime, std::span<ImageView*, NUM
 
     renderpass = runtime.render_pass_cache.Get(renderpass_key);
 
-    render_area = VkExtent2D{
-        .width = key.size.width,
-        .height = key.size.height,
-    };
     num_color_buffers = static_cast<u32>(num_colors);
     framebuffer = runtime.device.GetLogical().CreateFramebuffer({
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
@@ -1420,13 +1473,10 @@ Framebuffer::Framebuffer(TextureCacheRuntime& runtime, std::span<ImageView*, NUM
         .renderPass = renderpass,
         .attachmentCount = static_cast<u32>(attachments.size()),
         .pAttachments = attachments.data(),
-        .width = key.size.width,
-        .height = key.size.height,
+        .width = render_area.width,
+        .height = render_area.height,
         .layers = static_cast<u32>(std::max(num_layers, 1)),
     });
-    if (runtime.device.HasDebuggingToolAttached()) {
-        framebuffer.SetObjectNameEXT(VideoCommon::Name(key).c_str());
-    }
 }
 
 void TextureCacheRuntime::AccelerateImageUpload(

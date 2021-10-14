@@ -145,6 +145,9 @@ private:
     vk::Image scaled_image{};
     MemoryCommit scaled_commit{};
     VkImage current_image{};
+
+    std::unique_ptr<Framebuffer> scale_framebuffer;
+    std::unique_ptr<ImageView> scale_view;
 };
 
 class ImageView : public VideoCommon::ImageViewBase {
@@ -221,8 +224,14 @@ private:
 
 class Framebuffer {
 public:
-    explicit Framebuffer(TextureCacheRuntime&, std::span<ImageView*, NUM_RT> color_buffers,
+    explicit Framebuffer(TextureCacheRuntime& runtime, std::span<ImageView*, NUM_RT> color_buffers,
                          ImageView* depth_buffer, const VideoCommon::RenderTargets& key);
+
+    explicit Framebuffer(TextureCacheRuntime& runtime, ImageView* color_buffer,
+                         ImageView* depth_buffer, VkExtent2D extent);
+
+    void CreateFramebuffer(TextureCacheRuntime& runtime,
+                           std::span<ImageView*, NUM_RT> color_buffers, ImageView* depth_buffer);
 
     [[nodiscard]] VkFramebuffer Handle() const noexcept {
         return *framebuffer;
