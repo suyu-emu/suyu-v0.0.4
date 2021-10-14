@@ -280,7 +280,7 @@ private slots:
     void ResetWindowSize900();
     void ResetWindowSize1080();
     void OnCaptureScreenshot();
-    void OnCoreError(Core::System::ResultStatus, std::string);
+    void OnCoreError(Core::SystemResultStatus, std::string);
     void OnReinitializeKeys(ReinitializeKeyBehavior behavior);
     void OnLanguageChanged(const QString& locale);
     void OnMouseActivity();

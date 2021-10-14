@@ -123,7 +123,7 @@ signals:
      */
     void DebugModeLeft();
 
-    void ErrorThrown(Core::System::ResultStatus, std::string);
+    void ErrorThrown(Core::SystemResultStatus, std::string);
 
     void LoadProgress(VideoCore::LoadCallbackStage stage, std::size_t value, std::size_t total);
 };

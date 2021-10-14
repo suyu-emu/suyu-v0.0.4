@@ -406,7 +406,7 @@ void GMainWindow::RegisterMetaTypes() {
     qRegisterMetaType<Service::AM::Applets::WebExitReason>("Service::AM::Applets::WebExitReason");
 
     // Register loader types
-    qRegisterMetaType<Core::System::ResultStatus>("Core::System::ResultStatus");
+    qRegisterMetaType<Core::SystemResultStatus>("Core::SystemResultStatus");
 }
 
 void GMainWindow::ControllerSelectorReconfigureControllers(
@@ -1252,13 +1252,13 @@ bool GMainWindow::LoadROM(const QString& filename, u64 program_id, std::size_t p
         std::make_unique<QtWebBrowser>(*this),         // Web Browser
     });
 
-    const Core::System::ResultStatus result{
+    const Core::SystemResultStatus result{
         system.Load(*render_window, filename.toStdString(), program_id, program_index)};
 
     const auto drd_callout = (UISettings::values.callout_flags.GetValue() &
                               static_cast<u32>(CalloutFlag::DRDDeprecation)) == 0;
 
-    if (result == Core::System::ResultStatus::Success &&
+    if (result == Core::SystemResultStatus::Success &&
         system.GetAppLoader().GetFileType() == Loader::FileType::DeconstructedRomDirectory &&
         drd_callout) {
         UISettings::values.callout_flags = UISettings::values.callout_flags.GetValue() |
@@ -1273,14 +1273,14 @@ bool GMainWindow::LoadROM(const QString& filename, u64 program_id, std::size_t p
                "wiki</a>. This message will not be shown again."));
     }
 
-    if (result != Core::System::ResultStatus::Success) {
+    if (result != Core::SystemResultStatus::Success) {
         switch (result) {
-        case Core::System::ResultStatus::ErrorGetLoader:
+        case Core::SystemResultStatus::ErrorGetLoader:
             LOG_CRITICAL(Frontend, "Failed to obtain loader for {}!", filename.toStdString());
             QMessageBox::critical(this, tr("Error while loading ROM!"),
                                   tr("The ROM format is not supported."));
             break;
-        case Core::System::ResultStatus::ErrorVideoCore:
+        case Core::SystemResultStatus::ErrorVideoCore:
             QMessageBox::critical(
                 this, tr("An error occurred initializing the video core."),
                 tr("yuzu has encountered an error while running the video core, please see the "
@@ -1294,8 +1294,8 @@ bool GMainWindow::LoadROM(const QString& filename, u64 program_id, std::size_t p
             break;
 
         default:
-            if (result > Core::System::ResultStatus::ErrorLoader) {
-                const u16 loader_id = static_cast<u16>(Core::System::ResultStatus::ErrorLoader);
+            if (result > Core::SystemResultStatus::ErrorLoader) {
+                const u16 loader_id = static_cast<u16>(Core::SystemResultStatus::ErrorLoader);
                 const u16 error_id = static_cast<u16>(result) - loader_id;
                 const std::string error_code = fmt::format("({:04X}-{:04X})", loader_id, error_id);
                 LOG_CRITICAL(Frontend, "Failed to load ROM! {}", error_code);
@@ -3052,7 +3052,7 @@ void GMainWindow::OnMouseActivity() {
     }
 }
 
-void GMainWindow::OnCoreError(Core::System::ResultStatus result, std::string details) {
+void GMainWindow::OnCoreError(Core::SystemResultStatus result, std::string details) {
     QMessageBox::StandardButton answer;
     QString status_message;
     const QString common_message =
@@ -3067,7 +3067,7 @@ void GMainWindow::OnCoreError(Core::System::ResultStatus result, std::string det
            "back to the game list? Continuing emulation may result in crashes, corrupted save "
            "data, or other bugs.");
     switch (result) {
-    case Core::System::ResultStatus::ErrorSystemFiles: {
+    case Core::SystemResultStatus::ErrorSystemFiles: {
         QString message;
         if (details.empty()) {
             message =
@@ -3083,7 +3083,7 @@ void GMainWindow::OnCoreError(Core::System::ResultStatus result, std::string det
         break;
     }
 
-    case Core::System::ResultStatus::ErrorSharedFont: {
+    case Core::SystemResultStatus::ErrorSharedFont: {
         const QString message =
             tr("yuzu was unable to locate the Switch shared fonts. %1").arg(common_message);
         answer = QMessageBox::question(this, tr("Shared Fonts Not Found"), message,
