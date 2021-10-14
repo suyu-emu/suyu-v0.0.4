@@ -428,21 +428,8 @@ struct System::Impl {
 };
 
 System::System() : impl{std::make_unique<Impl>(*this)} {}
+
 System::~System() = default;
-
-System& System::GetInstance() {
-    if (!s_instance) {
-        throw std::runtime_error("Using System instance before its initialization");
-    }
-    return *s_instance;
-}
-
-void System::InitializeGlobalInstance() {
-    if (s_instance) {
-        throw std::runtime_error("Reinitializing Global System instance.");
-    }
-    s_instance = std::unique_ptr<System>(new System);
-}
 
 CpuManager& System::GetCpuManager() {
     return impl->cpu_manager;

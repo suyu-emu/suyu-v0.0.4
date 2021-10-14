@@ -108,21 +108,15 @@ class System {
 public:
     using CurrentBuildProcessID = std::array<u8, 0x20>;
 
+    explicit System();
+
+    ~System();
+
     System(const System&) = delete;
     System& operator=(const System&) = delete;
 
     System(System&&) = delete;
     System& operator=(System&&) = delete;
-
-    ~System();
-
-    /**
-     * Gets the instance of the System singleton class.
-     * @returns Reference to the instance of the System singleton class.
-     */
-    [[deprecated("Use of the global system instance is deprecated")]] static System& GetInstance();
-
-    static void InitializeGlobalInstance();
 
     /// Enumeration representing the return values of the System Initialize and Load process.
     enum class ResultStatus : u32 {
@@ -403,12 +397,8 @@ public:
     void ApplySettings();
 
 private:
-    System();
-
     struct Impl;
     std::unique_ptr<Impl> impl;
-
-    inline static std::unique_ptr<System> s_instance{};
 };
 
 } // namespace Core
