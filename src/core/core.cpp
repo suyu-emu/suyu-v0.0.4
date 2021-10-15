@@ -140,23 +140,43 @@ struct System::Impl {
           cpu_manager{system}, reporter{system}, applet_manager{system}, time_manager{system} {}
 
     SystemResultStatus Run() {
+        std::unique_lock<std::mutex> lk(suspend_guard);
         status = SystemResultStatus::Success;
 
         kernel.Suspend(false);
         core_timing.SyncPause(false);
         cpu_manager.Pause(false);
+        is_paused = false;
 
         return status;
     }
 
     SystemResultStatus Pause() {
+        std::unique_lock<std::mutex> lk(suspend_guard);
         status = SystemResultStatus::Success;
 
         core_timing.SyncPause(true);
         kernel.Suspend(true);
         cpu_manager.Pause(true);
+        is_paused = true;
 
         return status;
+    }
+
+    std::unique_lock<std::mutex> StallCPU() {
+        std::unique_lock<std::mutex> lk(suspend_guard);
+        kernel.Suspend(true);
+        core_timing.SyncPause(true);
+        cpu_manager.Pause(true);
+        return lk;
+    }
+
+    void UnstallCPU() {
+        if (!is_paused) {
+            core_timing.SyncPause(false);
+            kernel.Suspend(false);
+            cpu_manager.Pause(false);
+        }
     }
 
     SystemResultStatus Init(System& system, Frontend::EmuWindow& emu_window) {
@@ -367,6 +387,9 @@ struct System::Impl {
         return perf_stats->GetAndResetStats(core_timing.GetGlobalTimeUs());
     }
 
+    std::mutex suspend_guard;
+    bool is_paused{};
+
     Timing::CoreTiming core_timing;
     Kernel::KernelCore kernel;
     /// RealVfsFilesystem instance
@@ -462,6 +485,14 @@ void System::InvalidateCpuInstructionCacheRange(VAddr addr, std::size_t size) {
 
 void System::Shutdown() {
     impl->Shutdown();
+}
+
+std::unique_lock<std::mutex> System::StallCPU() {
+    return impl->StallCPU();
+}
+
+void System::UnstallCPU() {
+    impl->UnstallCPU();
 }
 
 SystemResultStatus System::Load(Frontend::EmuWindow& emu_window, const std::string& filepath,

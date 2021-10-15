@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -159,6 +160,9 @@ public:
 
     /// Shutdown the emulated system.
     void Shutdown();
+
+    std::unique_lock<std::mutex> StallCPU();
+    void UnstallCPU();
 
     /**
      * Load an executable application.
