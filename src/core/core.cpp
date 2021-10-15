@@ -163,19 +163,19 @@ struct System::Impl {
         return status;
     }
 
-    void stallForGPU(bool pause) {
-        if (pause) {
-            suspend_guard.lock();
-            kernel.Suspend(pause);
-            core_timing.SyncPause(pause);
-            cpu_manager.Pause(pause);
-        } else {
-            if (!is_paused) {
-                core_timing.SyncPause(pause);
-                kernel.Suspend(pause);
-                cpu_manager.Pause(pause);
-            }
-            suspend_guard.unlock();
+    std::unique_lock<std::mutex> StallCPU() {
+        std::unique_lock<std::mutex> lk(suspend_guard);
+        kernel.Suspend(true);
+        core_timing.SyncPause(true);
+        cpu_manager.Pause(true);
+        return lk;
+    }
+
+    void UnstallCPU() {
+        if (!is_paused) {
+            core_timing.SyncPause(false);
+            kernel.Suspend(false);
+            cpu_manager.Pause(false);
         }
     }
 
@@ -487,8 +487,12 @@ void System::Shutdown() {
     impl->Shutdown();
 }
 
-void System::stallForGPU(bool pause) {
-    impl->stallForGPU(pause);
+std::unique_lock<std::mutex> System::StallCPU() {
+    return impl->StallCPU();
+}
+
+void System::UnstallCPU() {
+    impl->UnstallCPU();
 }
 
 SystemResultStatus System::Load(Frontend::EmuWindow& emu_window, const std::string& filepath,
