@@ -72,6 +72,7 @@ struct ResolutionScalingInfo {
     f32 up_factor{1.0f};
     f32 down_factor{1.0f};
     bool active{};
+    bool downscale{};
 
     s32 ScaleUp(s32 value) const {
         if (value == 0) {

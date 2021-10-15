@@ -798,6 +798,9 @@ bool TextureCache<P>::ImageCanRescale(ImageBase& image) {
     if (!image.info.rescaleable || True(image.flags & ImageFlagBits::Blacklisted)) {
         return false;
     }
+    if (Settings::values.resolution_info.downscale && !image.info.downscaleable) {
+        return false;
+    }
     if (True(image.flags & (ImageFlagBits::Rescaled | ImageFlagBits::CheckingRescalable))) {
         return true;
     }

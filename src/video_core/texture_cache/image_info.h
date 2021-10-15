@@ -34,6 +34,7 @@ struct ImageInfo {
     u32 num_samples = 1;
     u32 tile_width_spacing = 0;
     bool rescaleable = false;
+    bool downscaleable = false;
 };
 
 } // namespace VideoCommon

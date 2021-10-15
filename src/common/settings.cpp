@@ -109,10 +109,12 @@ float Volume() {
 void UpdateRescalingInfo() {
     const auto setup = values.resolution_setup.GetValue();
     auto& info = values.resolution_info;
+    info.downscale = false;
     switch (setup) {
     case ResolutionSetup::Res1_2X:
         info.up_scale = 1;
         info.down_shift = 1;
+        info.downscale = true;
         break;
     case ResolutionSetup::Res1X:
         info.up_scale = 1;
