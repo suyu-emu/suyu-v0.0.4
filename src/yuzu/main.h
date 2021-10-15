@@ -15,7 +15,6 @@
 #include "common/common_types.h"
 #include "core/core.h"
 #include "core/hle/service/acc/profile_manager.h"
-#include "ui_main.h"
 #include "yuzu/compatibility_list.h"
 #include "yuzu/hotkeys.h"
 
@@ -72,6 +71,10 @@ enum class SwkbdTextCheckResult : u32;
 enum class SwkbdReplyType : u32;
 enum class WebExitReason : u32;
 } // namespace Service::AM::Applets
+
+namespace Ui {
+class MainWindow;
+}
 
 enum class EmulatedDirectoryTarget {
     NAND,
@@ -306,7 +309,7 @@ private:
     void OpenPerGameConfiguration(u64 title_id, const std::string& file_name);
     QString GetTasStateDescription() const;
 
-    Ui::MainWindow ui;
+    std::unique_ptr<Ui::MainWindow> ui;
 
     std::unique_ptr<DiscordRPC::DiscordInterface> discord_rpc;
     std::shared_ptr<InputCommon::InputSubsystem> input_subsystem;
