@@ -192,7 +192,7 @@ static void RemoveCachedContents() {
 }
 
 GMainWindow::GMainWindow()
-    : system{std::make_unique<Core::System>()},
+    : ui{std::make_unique<Ui::MainWindow>()}, system{std::make_unique<Core::System>()},
       input_subsystem{std::make_shared<InputCommon::InputSubsystem>()},
       config{std::make_unique<Config>(*system)},
       vfs{std::make_shared<FileSys::RealVfsFilesystem>()},
