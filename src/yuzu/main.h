@@ -13,7 +13,6 @@
 #include <QTranslator>
 
 #include "common/common_types.h"
-#include "core/core.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "yuzu/compatibility_list.h"
 #include "yuzu/hotkeys.h"
@@ -43,6 +42,11 @@ enum class StartGameType {
     Normal, // Can use custom configuration
     Global, // Only uses global configuration
 };
+
+namespace Core {
+enum class SystemResultStatus : u32;
+class System;
+} // namespace Core
 
 namespace Core::Frontend {
 struct ControllerParameters;
@@ -110,7 +114,7 @@ class GMainWindow : public QMainWindow {
 public:
     void filterBarSetChecked(bool state);
     void UpdateUITheme();
-    GMainWindow(Core::System& system_);
+    explicit GMainWindow();
     ~GMainWindow() override;
 
     bool DropAction(QDropEvent* event);
@@ -280,7 +284,7 @@ private slots:
     void ResetWindowSize900();
     void ResetWindowSize1080();
     void OnCaptureScreenshot();
-    void OnCoreError(Core::System::ResultStatus, std::string);
+    void OnCoreError(Core::SystemResultStatus, std::string);
     void OnReinitializeKeys(ReinitializeKeyBehavior behavior);
     void OnLanguageChanged(const QString& locale);
     void OnMouseActivity();
@@ -311,10 +315,9 @@ private:
 
     std::unique_ptr<Ui::MainWindow> ui;
 
+    std::unique_ptr<Core::System> system;
     std::unique_ptr<DiscordRPC::DiscordInterface> discord_rpc;
     std::shared_ptr<InputCommon::InputSubsystem> input_subsystem;
-
-    Core::System& system;
 
     GRenderWindow* render_window;
     GameList* game_list;

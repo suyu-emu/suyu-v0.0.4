@@ -139,8 +139,8 @@ struct System::Impl {
         : kernel{system}, fs_controller{system}, memory{system},
           cpu_manager{system}, reporter{system}, applet_manager{system}, time_manager{system} {}
 
-    ResultStatus Run() {
-        status = ResultStatus::Success;
+    SystemResultStatus Run() {
+        status = SystemResultStatus::Success;
 
         kernel.Suspend(false);
         core_timing.SyncPause(false);
@@ -149,8 +149,8 @@ struct System::Impl {
         return status;
     }
 
-    ResultStatus Pause() {
-        status = ResultStatus::Success;
+    SystemResultStatus Pause() {
+        status = SystemResultStatus::Success;
 
         core_timing.SyncPause(true);
         kernel.Suspend(true);
@@ -159,7 +159,7 @@ struct System::Impl {
         return status;
     }
 
-    ResultStatus Init(System& system, Frontend::EmuWindow& emu_window) {
+    SystemResultStatus Init(System& system, Frontend::EmuWindow& emu_window) {
         LOG_DEBUG(Core, "initialized OK");
 
         device_memory = std::make_unique<Core::DeviceMemory>();
@@ -197,7 +197,7 @@ struct System::Impl {
 
         gpu_core = VideoCore::CreateGPU(emu_window, system);
         if (!gpu_core) {
-            return ResultStatus::ErrorVideoCore;
+            return SystemResultStatus::ErrorVideoCore;
         }
 
         service_manager = std::make_shared<Service::SM::ServiceManager>(kernel);
@@ -217,21 +217,22 @@ struct System::Impl {
 
         LOG_DEBUG(Core, "Initialized OK");
 
-        return ResultStatus::Success;
+        return SystemResultStatus::Success;
     }
 
-    ResultStatus Load(System& system, Frontend::EmuWindow& emu_window, const std::string& filepath,
-                      u64 program_id, std::size_t program_index) {
+    SystemResultStatus Load(System& system, Frontend::EmuWindow& emu_window,
+                            const std::string& filepath, u64 program_id,
+                            std::size_t program_index) {
         app_loader = Loader::GetLoader(system, GetGameFileFromPath(virtual_filesystem, filepath),
                                        program_id, program_index);
 
         if (!app_loader) {
             LOG_CRITICAL(Core, "Failed to obtain loader for {}!", filepath);
-            return ResultStatus::ErrorGetLoader;
+            return SystemResultStatus::ErrorGetLoader;
         }
 
-        ResultStatus init_result{Init(system, emu_window)};
-        if (init_result != ResultStatus::Success) {
+        SystemResultStatus init_result{Init(system, emu_window)};
+        if (init_result != SystemResultStatus::Success) {
             LOG_CRITICAL(Core, "Failed to initialize system (Error {})!",
                          static_cast<int>(init_result));
             Shutdown();
@@ -249,8 +250,8 @@ struct System::Impl {
             LOG_CRITICAL(Core, "Failed to load ROM (Error {})!", load_result);
             Shutdown();
 
-            return static_cast<ResultStatus>(static_cast<u32>(ResultStatus::ErrorLoader) +
-                                             static_cast<u32>(load_result));
+            return static_cast<SystemResultStatus>(
+                static_cast<u32>(SystemResultStatus::ErrorLoader) + static_cast<u32>(load_result));
         }
         AddGlueRegistrationForProcess(*app_loader, *main_process);
         kernel.MakeCurrentProcess(main_process.get());
@@ -282,7 +283,7 @@ struct System::Impl {
         GetAndResetPerfStats();
         perf_stats->BeginSystemFrame();
 
-        status = ResultStatus::Success;
+        status = SystemResultStatus::Success;
         return status;
     }
 
@@ -355,7 +356,7 @@ struct System::Impl {
         arp_manager.Register(launch.title_id, launch, std::move(nacp_data));
     }
 
-    void SetStatus(ResultStatus new_status, const char* details = nullptr) {
+    void SetStatus(SystemResultStatus new_status, const char* details = nullptr) {
         status = new_status;
         if (details) {
             status_details = details;
@@ -411,7 +412,7 @@ struct System::Impl {
     /// Network instance
     Network::NetworkInstance network_instance;
 
-    ResultStatus status = ResultStatus::Success;
+    SystemResultStatus status = SystemResultStatus::Success;
     std::string status_details = "";
 
     std::unique_ptr<Core::PerfStats> perf_stats;
@@ -428,21 +429,8 @@ struct System::Impl {
 };
 
 System::System() : impl{std::make_unique<Impl>(*this)} {}
+
 System::~System() = default;
-
-System& System::GetInstance() {
-    if (!s_instance) {
-        throw std::runtime_error("Using System instance before its initialization");
-    }
-    return *s_instance;
-}
-
-void System::InitializeGlobalInstance() {
-    if (s_instance) {
-        throw std::runtime_error("Reinitializing Global System instance.");
-    }
-    s_instance = std::unique_ptr<System>(new System);
-}
 
 CpuManager& System::GetCpuManager() {
     return impl->cpu_manager;
@@ -452,16 +440,16 @@ const CpuManager& System::GetCpuManager() const {
     return impl->cpu_manager;
 }
 
-System::ResultStatus System::Run() {
+SystemResultStatus System::Run() {
     return impl->Run();
 }
 
-System::ResultStatus System::Pause() {
+SystemResultStatus System::Pause() {
     return impl->Pause();
 }
 
-System::ResultStatus System::SingleStep() {
-    return ResultStatus::Success;
+SystemResultStatus System::SingleStep() {
+    return SystemResultStatus::Success;
 }
 
 void System::InvalidateCpuInstructionCaches() {
@@ -476,8 +464,8 @@ void System::Shutdown() {
     impl->Shutdown();
 }
 
-System::ResultStatus System::Load(Frontend::EmuWindow& emu_window, const std::string& filepath,
-                                  u64 program_id, std::size_t program_index) {
+SystemResultStatus System::Load(Frontend::EmuWindow& emu_window, const std::string& filepath,
+                                u64 program_id, std::size_t program_index) {
     return impl->Load(*this, emu_window, filepath, program_id, program_index);
 }
 
@@ -637,7 +625,7 @@ Loader::ResultStatus System::GetGameName(std::string& out) const {
     return impl->GetGameName(out);
 }
 
-void System::SetStatus(ResultStatus new_status, const char* details) {
+void System::SetStatus(SystemResultStatus new_status, const char* details) {
     impl->SetStatus(new_status, details);
 }
 
