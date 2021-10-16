@@ -230,7 +230,8 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
                 auto& image = slot_images[image_id];
                 can_rescale &= ImageCanRescale(image);
                 any_blacklisted |= True(image.flags & ImageFlagBits::Blacklisted);
-                any_rescaled |= True(image.flags & ImageFlagBits::Rescaled);
+                any_rescaled |= True(image.flags & ImageFlagBits::Rescaled) ||
+                                GetFormatType(image.info.format) != SurfaceType::ColorTexture;
                 scale_rating = std::max<u32>(scale_rating, image.scale_tick <= frame_tick
                                                                ? image.scale_rating + 1U
                                                                : image.scale_rating);
@@ -857,7 +858,7 @@ u64 TextureCache<P>::GetScaledImageSizeBytes(Image& image) {
     const f32 add_to_size = Settings::values.resolution_info.up_factor - 1.0f;
     const bool sign = std::signbit(add_to_size);
     const u32 image_size_bytes = std::max(image.guest_size_bytes, image.unswizzled_size_bytes);
-    const u64 tentative_size = image_size_bytes * static_cast<u32>(std::abs(add_to_size));
+    const u64 tentative_size = image_size_bytes * static_cast<u64>(std::abs(add_to_size));
     const u64 fitted_size = Common::AlignUp(tentative_size, 1024);
     return sign ? -fitted_size : fitted_size;
 }
@@ -879,7 +880,7 @@ bool TextureCache<P>::ScaleDown(Image& image) {
     if (!rescaled) {
         return false;
     }
-    total_used_memory += GetScaledImageSizeBytes(image);
+    total_used_memory -= GetScaledImageSizeBytes(image);
     InvalidateScale(image);
     return true;
 }

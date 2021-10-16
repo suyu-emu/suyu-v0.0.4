@@ -967,21 +967,24 @@ bool Image::ScaleUp() {
     if (True(flags & ImageFlagBits::Rescaled)) {
         return false;
     }
+    flags |= ImageFlagBits::Rescaled;
     if (!runtime->resolution.active) {
         return false;
     }
     if (gl_format == 0 && gl_type == 0) {
         // compressed textures
+        flags &= ~ImageFlagBits::Rescaled;
         return false;
     }
     if (info.type == ImageType::Linear) {
-        UNIMPLEMENTED();
+        UNREACHABLE();
+        flags &= ~ImageFlagBits::Rescaled;
         return false;
     }
     if (!Scale()) {
+        flags &= ~ImageFlagBits::Rescaled;
         return false;
     }
-    flags |= ImageFlagBits::Rescaled;
     return true;
 }
 
@@ -990,6 +993,9 @@ bool Image::ScaleDown() {
         return false;
     }
     flags &= ~ImageFlagBits::Rescaled;
+    if (!runtime->resolution.active) {
+        return false;
+    }
     current_texture = texture.handle;
     return true;
 }

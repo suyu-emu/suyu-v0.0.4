@@ -1126,6 +1126,7 @@ bool Image::ScaleUp() {
         return false;
     }
     ASSERT(info.type != ImageType::Linear);
+    flags |= ImageFlagBits::Rescaled;
     const auto& resolution = runtime->resolution;
     if (!resolution.active) {
         return false;
@@ -1188,11 +1189,11 @@ bool Image::ScaleUp() {
                 dst_region, src_region, Tegra::Engines::Fermi2D::Filter::Point, BLIT_OPERATION);
         } else {
             // TODO: Use helper blits where applicable
+            flags &= ~ImageFlagBits::Rescaled;
             LOG_ERROR(Render_Vulkan, "Device does not support scaling format {}", format);
             return false;
         }
     }
-    flags |= ImageFlagBits::Rescaled;
     return true;
 }
 
@@ -1200,8 +1201,12 @@ bool Image::ScaleDown() {
     if (False(flags & ImageFlagBits::Rescaled)) {
         return false;
     }
-    ASSERT(info.type != ImageType::Linear);
     flags &= ~ImageFlagBits::Rescaled;
+    const auto& resolution = runtime->resolution;
+    if (!resolution.active) {
+        return false;
+    }
+    ASSERT(info.type != ImageType::Linear);
     current_image = *original_image;
     return true;
 }
