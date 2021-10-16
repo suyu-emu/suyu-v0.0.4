@@ -19,15 +19,11 @@ PlayerControlPreview::PlayerControlPreview(QWidget* parent) : QFrame(parent) {
 }
 
 PlayerControlPreview::~PlayerControlPreview() {
-    if (is_controller_set) {
-        controller->DeleteCallback(callback_key);
-    }
+    UnloadController();
 };
 
 void PlayerControlPreview::SetController(Core::HID::EmulatedController* controller_) {
-    if (is_controller_set) {
-        controller->DeleteCallback(callback_key);
-    }
+    UnloadController();
     is_controller_set = true;
     controller = controller_;
     Core::HID::ControllerUpdateCallback engine_callback{
@@ -36,14 +32,21 @@ void PlayerControlPreview::SetController(Core::HID::EmulatedController* controll
     ControllerUpdate(Core::HID::ControllerTriggerType::All);
 }
 
-void PlayerControlPreview::BeginMappingButton(std::size_t index) {
-    button_mapping_index = index;
+void PlayerControlPreview::UnloadController() {
+    if (is_controller_set) {
+        controller->DeleteCallback(callback_key);
+        is_controller_set = false;
+    }
+}
+
+void PlayerControlPreview::BeginMappingButton(std::size_t button_id) {
+    button_mapping_index = button_id;
     mapping_active = true;
 }
 
-void PlayerControlPreview::BeginMappingAnalog(std::size_t index) {
-    button_mapping_index = Settings::NativeButton::LStick + index;
-    analog_mapping_index = index;
+void PlayerControlPreview::BeginMappingAnalog(std::size_t stick_id) {
+    button_mapping_index = Settings::NativeButton::LStick + stick_id;
+    analog_mapping_index = stick_id;
     mapping_active = true;
 }
 

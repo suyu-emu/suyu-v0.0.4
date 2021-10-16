@@ -29,8 +29,7 @@ public:
      * @param    - "pad": slot of the connected controller
      * @return an unique ouput device with the parameters specified
      */
-    std::unique_ptr<Input::OutputDevice> Create(
-        const Common::ParamPackage& params) override;
+    std::unique_ptr<Input::OutputDevice> Create(const Common::ParamPackage& params) override;
 
 private:
     std::shared_ptr<InputEngine> input_engine;
@@ -41,8 +40,8 @@ public:
     explicit InputFactory(std::shared_ptr<InputEngine> input_engine_);
 
     /**
-     * Creates an input device from the parameters given. Identifies the type of input to be returned
-     * if it contains the following parameters:
+     * Creates an input device from the parameters given. Identifies the type of input to be
+     * returned if it contains the following parameters:
      * - button: Contains "button" or "code"
      * - hat_button: Contains "hat"
      * - analog: Contains "axis"
@@ -65,8 +64,7 @@ public:
      * @param    - "battery": Only used as a placeholder to set the input type
      * @return an unique input device with the parameters specified
      */
-    std::unique_ptr<Input::InputDevice> Create(
-        const Common::ParamPackage& params) override;
+    std::unique_ptr<Input::InputDevice> Create(const Common::ParamPackage& params) override;
 
 private:
     /**

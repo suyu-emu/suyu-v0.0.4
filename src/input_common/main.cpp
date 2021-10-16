@@ -48,8 +48,10 @@ struct InputSubsystem::Impl {
         gcadapter->SetMappingCallback(mapping_callback);
         gcadapter_input_factory = std::make_shared<InputFactory>(gcadapter);
         gcadapter_output_factory = std::make_shared<OutputFactory>(gcadapter);
-        Input::RegisterFactory<Input::InputDevice>(gcadapter->GetEngineName(), gcadapter_input_factory);
-        Input::RegisterFactory<Input::OutputDevice>(gcadapter->GetEngineName(), gcadapter_output_factory);
+        Input::RegisterFactory<Input::InputDevice>(gcadapter->GetEngineName(),
+                                                   gcadapter_input_factory);
+        Input::RegisterFactory<Input::OutputDevice>(gcadapter->GetEngineName(),
+                                                    gcadapter_output_factory);
 
         udp_client = std::make_shared<CemuhookUDP::UDPClient>("cemuhookudp");
         udp_client->SetMappingCallback(mapping_callback);

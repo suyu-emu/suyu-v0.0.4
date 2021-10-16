@@ -146,10 +146,11 @@ void ConfigureInput::Initialize(InputCommon::InputSubsystem* input_subsystem, Co
     advanced = new ConfigureInputAdvanced(this);
     ui->tabAdvanced->setLayout(new QHBoxLayout(ui->tabAdvanced));
     ui->tabAdvanced->layout()->addWidget(advanced);
-    connect(advanced, &ConfigureInputAdvanced::CallDebugControllerDialog, [this, input_subsystem] {
-        CallConfigureDialog<ConfigureDebugController>(*this, input_subsystem, profiles.get(),
-                                                      system);
-    });
+    connect(advanced, &ConfigureInputAdvanced::CallDebugControllerDialog,
+            [this, input_subsystem, &system] {
+                CallConfigureDialog<ConfigureDebugController>(*this, input_subsystem,
+                                                              profiles.get(), system);
+            });
     connect(advanced, &ConfigureInputAdvanced::CallMouseConfigDialog, [this, input_subsystem] {
         CallConfigureDialog<ConfigureMouseAdvanced>(*this, input_subsystem);
     });

@@ -597,7 +597,7 @@ public:
     explicit OutputFromIdentifier(PadIdentifier identifier_, InputEngine* input_engine_)
         : identifier(identifier_), input_engine(input_engine_) {}
 
-    virtual void SetLED( Input::LedStatus led_status) {
+    virtual void SetLED(Input::LedStatus led_status) {
         input_engine->SetLeds(identifier, led_status);
     }
 
@@ -847,8 +847,7 @@ std::unique_ptr<Input::InputDevice> InputFactory::CreateMotionDevice(Common::Par
 InputFactory::InputFactory(std::shared_ptr<InputEngine> input_engine_)
     : input_engine(std::move(input_engine_)) {}
 
-std::unique_ptr<Input::InputDevice> InputFactory::Create(
-    const Common::ParamPackage& params) {
+std::unique_ptr<Input::InputDevice> InputFactory::Create(const Common::ParamPackage& params) {
     if (params.Has("button") && params.Has("axis")) {
         return CreateTriggerDevice(params);
     }
@@ -883,8 +882,7 @@ std::unique_ptr<Input::InputDevice> InputFactory::Create(
 OutputFactory::OutputFactory(std::shared_ptr<InputEngine> input_engine_)
     : input_engine(std::move(input_engine_)) {}
 
-std::unique_ptr<Input::OutputDevice> OutputFactory::Create(
-    const Common::ParamPackage& params) {
+std::unique_ptr<Input::OutputDevice> OutputFactory::Create(const Common::ParamPackage& params) {
     const PadIdentifier identifier = {
         .guid = Common::UUID{params.Get("guid", "")},
         .port = static_cast<std::size_t>(params.Get("port", 0)),

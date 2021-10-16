@@ -11,6 +11,10 @@ class QHideEvent;
 class QShowEvent;
 class PlayerControlPreview;
 
+namespace Core {
+class System;
+}
+
 namespace InputCommon {
 class InputSubsystem;
 }
@@ -19,10 +23,13 @@ class ControllerDialog : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ControllerDialog(QWidget* parent = nullptr);
+    explicit ControllerDialog(Core::System& system, QWidget* parent = nullptr);
 
     /// Returns a QAction that can be used to toggle visibility of this dialog.
     QAction* toggleViewAction();
+
+    // Disables events from the emulated controller
+    void UnloadController();
 
 protected:
     void showEvent(QShowEvent* ev) override;

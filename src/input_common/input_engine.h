@@ -121,14 +121,16 @@ public:
     }
 
     // Sets rumble to a controller
-    virtual Input::VibrationError SetRumble([[maybe_unused]] const PadIdentifier& identifier,
-                           [[maybe_unused]] const Input::VibrationStatus vibration) {
+    virtual Input::VibrationError SetRumble(
+        [[maybe_unused]] const PadIdentifier& identifier,
+        [[maybe_unused]] const Input::VibrationStatus vibration) {
         return Input::VibrationError::NotSupported;
     }
 
     // Sets polling mode to a controller
-    virtual Input::PollingError SetPollingMode([[maybe_unused]] const PadIdentifier& identifier,
-                           [[maybe_unused]] const Input::PollingMode vibration) {
+    virtual Input::PollingError SetPollingMode(
+        [[maybe_unused]] const PadIdentifier& identifier,
+        [[maybe_unused]] const Input::PollingMode vibration) {
         return Input::PollingError::NotSupported;
     }
 

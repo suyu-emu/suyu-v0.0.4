@@ -228,7 +228,7 @@ GMainWindow::GMainWindow()
     ConnectMenuEvents();
     ConnectWidgetEvents();
 
-    Core::System::GetInstance().HIDCore().ReloadInputDevices();
+    system->HIDCore().ReloadInputDevices();
 
     const auto branch_name = std::string(Common::g_scm_branch);
     const auto description = std::string(Common::g_scm_desc);
@@ -924,7 +924,7 @@ void GMainWindow::InitializeDebugWidgets() {
     waitTreeWidget->hide();
     debug_menu->addAction(waitTreeWidget->toggleViewAction());
 
-    controller_dialog = new ControllerDialog(this);
+    controller_dialog = new ControllerDialog(*system, this);
     controller_dialog->hide();
     debug_menu->addAction(controller_dialog->toggleViewAction());
 
@@ -3372,7 +3372,8 @@ void GMainWindow::closeEvent(QCloseEvent* event) {
     UpdateUISettings();
     game_list->SaveInterfaceLayout();
     hotkey_registry.SaveHotkeys();
-    Core::System::GetInstance().HIDCore().UnloadInputDevices();
+    controller_dialog->UnloadController();
+    system->HIDCore().UnloadInputDevices();
 
     // Shutdown session if the emu thread is active...
     if (emu_thread != nullptr) {

@@ -25,8 +25,7 @@ public:
      *     - "modifier": a serialized ParamPackage for creating a button device as the modifier
      *     - "modifier_scale": a float for the multiplier the modifier gives to the position
      */
-    std::unique_ptr<Input::InputDevice> Create(
-        const Common::ParamPackage& params) override;
+    std::unique_ptr<Input::InputDevice> Create(const Common::ParamPackage& params) override;
 };
 
 } // namespace InputCommon

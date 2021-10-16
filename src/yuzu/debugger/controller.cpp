@@ -10,7 +10,8 @@
 #include "yuzu/configuration/configure_input_player_widget.h"
 #include "yuzu/debugger/controller.h"
 
-ControllerDialog::ControllerDialog(QWidget* parent) : QWidget(parent, Qt::Dialog) {
+ControllerDialog::ControllerDialog(Core::System& system, QWidget* parent)
+    : QWidget(parent, Qt::Dialog) {
     setObjectName(QStringLiteral("Controller"));
     setWindowTitle(tr("Controller P1"));
     resize(500, 350);
@@ -20,7 +21,7 @@ ControllerDialog::ControllerDialog(QWidget* parent) : QWidget(parent, Qt::Dialog
                    Qt::WindowMaximizeButtonHint);
 
     widget = new PlayerControlPreview(this);
-    widget->SetController(Core::System::GetInstance().HIDCore().GetEmulatedController(
+    widget->SetController(system.HIDCore().GetEmulatedController(
         Core::HID::NpadIdType::Player1));
     QLayout* layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
@@ -43,6 +44,10 @@ QAction* ControllerDialog::toggleViewAction() {
     }
 
     return toggle_view_action;
+}
+
+void ControllerDialog::UnloadController() {
+    widget->UnloadController();
 }
 
 void ControllerDialog::showEvent(QShowEvent* ev) {

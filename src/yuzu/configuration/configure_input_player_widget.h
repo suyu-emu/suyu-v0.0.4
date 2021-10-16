@@ -25,11 +25,25 @@ public:
     explicit PlayerControlPreview(QWidget* parent);
     ~PlayerControlPreview() override;
 
+    // Sets the emulated controller to be displayed
     void SetController(Core::HID::EmulatedController* controller);
+
+    // Disables events from the emulated controller
+    void UnloadController();
+
+    // Starts blinking animation at the button specified
     void BeginMappingButton(std::size_t button_id);
-    void BeginMappingAnalog(std::size_t button_id);
+
+    // Starts moving animation at the stick specified
+    void BeginMappingAnalog(std::size_t stick_id);
+
+    // Stops any ongoing animation
     void EndMapping();
+
+    // Handles emulated controller events
     void ControllerUpdate(Core::HID::ControllerTriggerType type);
+
+    // Updates input on sheduled interval
     void UpdateInput();
 
 protected:

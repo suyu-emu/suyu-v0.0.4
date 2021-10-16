@@ -59,7 +59,7 @@ public:
     u8 GetHatButtonId(const std::string direction_name) const override;
 
     Input::VibrationError SetRumble(const PadIdentifier& identifier,
-                   const Input::VibrationStatus vibration) override;
+                                    const Input::VibrationStatus vibration) override;
 
 private:
     void InitJoystick(int joystick_index);

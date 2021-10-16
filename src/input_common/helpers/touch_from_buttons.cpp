@@ -57,9 +57,7 @@ private:
     const Input::AnalogProperties properties{0.0f, 1.0f, 0.5f, 0.0f, false};
 };
 
-
-std::unique_ptr<Input::InputDevice> TouchFromButton::Create(
-    const Common::ParamPackage& params) {
+std::unique_ptr<Input::InputDevice> TouchFromButton::Create(const Common::ParamPackage& params) {
     const std::string null_engine = Common::ParamPackage{{"engine", "null"}}.Serialize();
     auto button =
         Input::CreateDeviceFromString<Input::InputDevice>(params.Get("button", null_engine));

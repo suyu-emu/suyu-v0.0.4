@@ -106,7 +106,6 @@ private:
     Core::Frontend::ControllerParameters parameters;
 
     InputCommon::InputSubsystem* input_subsystem;
-    Core::System& system;
 
     std::unique_ptr<InputProfiles> input_profiles;
 

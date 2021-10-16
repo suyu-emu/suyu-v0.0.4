@@ -251,8 +251,7 @@ private:
     std::chrono::time_point<std::chrono::steady_clock> last_update;
 };
 
-std::unique_ptr<Input::InputDevice> StickFromButton::Create(
-    const Common::ParamPackage& params) {
+std::unique_ptr<Input::InputDevice> StickFromButton::Create(const Common::ParamPackage& params) {
     const std::string null_engine = Common::ParamPackage{{"engine", "null"}}.Serialize();
     auto up = Input::CreateDeviceFromString<Input::InputDevice>(params.Get("up", null_engine));
     auto down = Input::CreateDeviceFromString<Input::InputDevice>(params.Get("down", null_engine));

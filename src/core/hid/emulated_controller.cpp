@@ -91,6 +91,7 @@ void EmulatedController::ReloadFromSettings() {
 }
 
 void EmulatedController::ReloadInput() {
+    // If you load any device here add the equivalent to the UnloadInput() function
     const auto player_index = NpadIdTypeToIndex(npad_id_type);
     const auto left_side = button_params[Settings::NativeButton::ZL];
     const auto right_side = button_params[Settings::NativeButton::ZR];
@@ -113,7 +114,7 @@ void EmulatedController::ReloadInput() {
     battery_devices[0] = Input::CreateDevice<Input::InputDevice>(left_side);
     battery_devices[1] = Input::CreateDevice<Input::InputDevice>(right_side);
 
-    button_params[Settings::NativeButton::ZL].Set("output",true);
+    button_params[Settings::NativeButton::ZL].Set("output", true);
     output_devices[0] =
         Input::CreateDevice<Input::OutputDevice>(button_params[Settings::NativeButton::ZL]);
 
@@ -178,6 +179,9 @@ void EmulatedController::UnloadInput() {
     }
     for (auto& battery : battery_devices) {
         battery.reset();
+    }
+    for (auto& output : output_devices) {
+        output.reset();
     }
 }
 
