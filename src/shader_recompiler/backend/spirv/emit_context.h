@@ -244,6 +244,7 @@ public:
     Id rescaling_images_type{};
     u32 rescaling_textures_member_index{};
     u32 rescaling_images_member_index{};
+    u32 rescaling_downfactor_member_index{};
     u32 texture_rescaling_index{};
     u32 image_rescaling_index{};
 
@@ -324,7 +325,7 @@ private:
     void DefineAttributeMemAccess(const Info& info);
     void DefineGlobalMemoryFunctions(const Info& info);
     void DefineRescalingInput(const Info& info);
-    void DefineRescalingInputPushConstant(const Info& info);
+    void DefineRescalingInputPushConstant();
     void DefineRescalingInputUniformConstant();
 
     void DefineInputs(const IR::Program& program);

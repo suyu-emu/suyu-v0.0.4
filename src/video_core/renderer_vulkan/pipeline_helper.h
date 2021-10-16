@@ -22,7 +22,6 @@
 namespace Vulkan {
 
 using Shader::Backend::SPIRV::NUM_TEXTURE_AND_IMAGE_SCALING_WORDS;
-using Shader::Backend::SPIRV::RESCALING_PUSH_CONSTANT_WORDS_OFFSET;
 
 class DescriptorLayoutBuilder {
 public:
@@ -73,12 +72,12 @@ public:
 
     vk::PipelineLayout CreatePipelineLayout(VkDescriptorSetLayout descriptor_set_layout) const {
         using Shader::Backend::SPIRV::RescalingLayout;
-        const u32 push_offset = is_compute ? RESCALING_PUSH_CONSTANT_WORDS_OFFSET : 0;
+        const u32 size_offset = is_compute ? sizeof(RescalingLayout::down_factor) : 0u;
         const VkPushConstantRange range{
             .stageFlags = static_cast<VkShaderStageFlags>(
                 is_compute ? VK_SHADER_STAGE_COMPUTE_BIT : VK_SHADER_STAGE_ALL_GRAPHICS),
             .offset = 0,
-            .size = sizeof(RescalingLayout) - push_offset,
+            .size = sizeof(RescalingLayout) - size_offset,
         };
         return device->GetLogical().CreatePipelineLayout({
             .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
@@ -139,21 +138,21 @@ private:
 
 class RescalingPushConstant {
 public:
-    explicit RescalingPushConstant(u32 num_textures) noexcept {}
+    explicit RescalingPushConstant() noexcept {}
 
     void PushTexture(bool is_rescaled) noexcept {
-        *texture_ptr |= is_rescaled ? texture_bit : 0;
-        texture_bit <<= 1;
-        if (texture_bit == 0) {
+        *texture_ptr |= is_rescaled ? texture_bit : 0u;
+        texture_bit <<= 1u;
+        if (texture_bit == 0u) {
             texture_bit = 1u;
             ++texture_ptr;
         }
     }
 
     void PushImage(bool is_rescaled) noexcept {
-        *image_ptr |= is_rescaled ? image_bit : 0;
-        image_bit <<= 1;
-        if (image_bit == 0) {
+        *image_ptr |= is_rescaled ? image_bit : 0u;
+        image_bit <<= 1u;
+        if (image_bit == 0u) {
             image_bit = 1u;
             ++image_ptr;
         }
@@ -176,8 +175,10 @@ inline void PushImageDescriptors(TextureCache& texture_cache,
                                  const Shader::Info& info, RescalingPushConstant& rescaling,
                                  const VkSampler*& samplers,
                                  const VideoCommon::ImageViewInOut*& views) {
-    views += Shader::NumDescriptors(info.texture_buffer_descriptors);
-    views += Shader::NumDescriptors(info.image_buffer_descriptors);
+    const u32 num_texture_buffers = Shader::NumDescriptors(info.texture_buffer_descriptors);
+    const u32 num_image_buffers = Shader::NumDescriptors(info.image_buffer_descriptors);
+    views += num_texture_buffers;
+    views += num_image_buffers;
     for (const auto& desc : info.texture_descriptors) {
         for (u32 index = 0; index < desc.count; ++index) {
             const VideoCommon::ImageViewId image_view_id{(views++)->id};

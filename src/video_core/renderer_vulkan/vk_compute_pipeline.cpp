@@ -22,6 +22,7 @@
 namespace Vulkan {
 
 using Shader::ImageBufferDescriptor;
+using Shader::Backend::SPIRV::RESCALING_LAYOUT_WORDS_OFFSET;
 using Tegra::Texture::TexturePair;
 
 ComputePipeline::ComputePipeline(const Device& device_, DescriptorPool& descriptor_pool,
@@ -185,7 +186,7 @@ void ComputePipeline::Configure(Tegra::Engines::KeplerCompute& kepler_compute,
     buffer_cache.UpdateComputeBuffers();
     buffer_cache.BindHostComputeBuffers();
 
-    RescalingPushConstant rescaling(num_textures);
+    RescalingPushConstant rescaling;
     const VkSampler* samplers_it{samplers.data()};
     const VideoCommon::ImageViewInOut* views_it{views.data()};
     PushImageDescriptors(texture_cache, update_descriptor_queue, info, rescaling, samplers_it,
@@ -199,21 +200,24 @@ void ComputePipeline::Configure(Tegra::Engines::KeplerCompute& kepler_compute,
         });
     }
     const void* const descriptor_data{update_descriptor_queue.UpdateData()};
-    scheduler.Record(
-        [this, descriptor_data, rescaling_data = rescaling.Data()](vk::CommandBuffer cmdbuf) {
-            cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, *pipeline);
-            if (!descriptor_set_layout) {
-                return;
-            }
-            if (num_textures > 0) {
-                cmdbuf.PushConstants(*pipeline_layout, VK_SHADER_STAGE_COMPUTE_BIT, rescaling_data);
-            }
-            const VkDescriptorSet descriptor_set{descriptor_allocator.Commit()};
-            const vk::Device& dev{device.GetLogical()};
-            dev.UpdateDescriptorSet(descriptor_set, *descriptor_update_template, descriptor_data);
-            cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, *pipeline_layout, 0,
-                                      descriptor_set, nullptr);
-        });
+    const bool is_rescaling = !info.texture_descriptors.empty() || !info.image_descriptors.empty();
+    scheduler.Record([this, descriptor_data, is_rescaling,
+                      rescaling_data = rescaling.Data()](vk::CommandBuffer cmdbuf) {
+        cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, *pipeline);
+        if (!descriptor_set_layout) {
+            return;
+        }
+        if (is_rescaling) {
+            cmdbuf.PushConstants(*pipeline_layout, VK_SHADER_STAGE_COMPUTE_BIT,
+                                 RESCALING_LAYOUT_WORDS_OFFSET, sizeof(rescaling_data),
+                                 rescaling_data.data());
+        }
+        const VkDescriptorSet descriptor_set{descriptor_allocator.Commit()};
+        const vk::Device& dev{device.GetLogical()};
+        dev.UpdateDescriptorSet(descriptor_set, *descriptor_update_template, descriptor_data);
+        cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, *pipeline_layout, 0,
+                                  descriptor_set, nullptr);
+    });
 }
 
 } // namespace Vulkan

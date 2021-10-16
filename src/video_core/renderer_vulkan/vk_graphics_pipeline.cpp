@@ -32,6 +32,8 @@ namespace {
 using boost::container::small_vector;
 using boost::container::static_vector;
 using Shader::ImageBufferDescriptor;
+using Shader::Backend::SPIRV::RESCALING_LAYOUT_DOWN_FACTOR_OFFSET;
+using Shader::Backend::SPIRV::RESCALING_LAYOUT_WORDS_OFFSET;
 using Tegra::Texture::TexturePair;
 using VideoCore::Surface::PixelFormat;
 using VideoCore::Surface::PixelFormatFromDepthFormat;
@@ -431,7 +433,7 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
 
     update_descriptor_queue.Acquire();
 
-    RescalingPushConstant rescaling(num_textures);
+    RescalingPushConstant rescaling;
     const VkSampler* samplers_it{samplers.data()};
     const VideoCommon::ImageViewInOut* views_it{views.data()};
     const auto prepare_stage{[&](size_t stage) LAMBDA_FORCEINLINE {
@@ -477,15 +479,16 @@ void GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling) {
         if (bind_pipeline) {
             cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *pipeline);
         }
+        cmdbuf.PushConstants(*pipeline_layout, VK_SHADER_STAGE_ALL_GRAPHICS,
+                             RESCALING_LAYOUT_WORDS_OFFSET, sizeof(rescaling_data),
+                             rescaling_data.data());
         if (update_rescaling) {
             const f32 config_down_factor{Settings::values.resolution_info.down_factor};
             const f32 scale_down_factor{is_rescaling ? config_down_factor : 1.0f};
-            cmdbuf.PushConstants(*pipeline_layout, VK_SHADER_STAGE_ALL_GRAPHICS, 0,
-                                 sizeof(scale_down_factor), &scale_down_factor);
+            cmdbuf.PushConstants(*pipeline_layout, VK_SHADER_STAGE_ALL_GRAPHICS,
+                                 RESCALING_LAYOUT_DOWN_FACTOR_OFFSET, sizeof(scale_down_factor),
+                                 &scale_down_factor);
         }
-        cmdbuf.PushConstants(*pipeline_layout, VK_SHADER_STAGE_ALL_GRAPHICS,
-                             RESCALING_PUSH_CONSTANT_WORDS_OFFSET, sizeof(rescaling_data),
-                             rescaling_data.data());
         if (!descriptor_set_layout) {
             return;
         }

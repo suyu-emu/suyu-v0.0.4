@@ -529,8 +529,8 @@ Id EmitYDirection(EmitContext& ctx) {
 Id EmitResolutionDownFactor(EmitContext& ctx) {
     if (ctx.profile.unified_descriptor_binding) {
         const Id pointer_type{ctx.TypePointer(spv::StorageClass::PushConstant, ctx.F32[1])};
-        const Id pointer{
-            ctx.OpAccessChain(pointer_type, ctx.rescaling_push_constants, ctx.u32_zero_value)};
+        const Id index{ctx.Const(ctx.rescaling_downfactor_member_index)};
+        const Id pointer{ctx.OpAccessChain(pointer_type, ctx.rescaling_push_constants, index)};
         return ctx.OpLoad(ctx.F32[1], pointer);
     } else {
         const Id composite{ctx.OpLoad(ctx.F32[4], ctx.rescaling_uniform_constant)};

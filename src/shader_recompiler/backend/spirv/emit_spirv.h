@@ -22,11 +22,12 @@ constexpr u32 NUM_TEXTURE_AND_IMAGE_SCALING_WORDS =
     NUM_TEXTURE_SCALING_WORDS + NUM_IMAGE_SCALING_WORDS;
 
 struct RescalingLayout {
-    u32 down_factor;
     alignas(16) std::array<u32, NUM_TEXTURE_SCALING_WORDS> rescaling_textures;
     alignas(16) std::array<u32, NUM_IMAGE_SCALING_WORDS> rescaling_images;
+    alignas(16) u32 down_factor;
 };
-constexpr u32 RESCALING_PUSH_CONSTANT_WORDS_OFFSET = offsetof(RescalingLayout, rescaling_textures);
+constexpr u32 RESCALING_LAYOUT_WORDS_OFFSET = offsetof(RescalingLayout, rescaling_textures);
+constexpr u32 RESCALING_LAYOUT_DOWN_FACTOR_OFFSET = offsetof(RescalingLayout, down_factor);
 
 [[nodiscard]] std::vector<u32> EmitSPIRV(const Profile& profile, const RuntimeInfo& runtime_info,
                                          IR::Program& program, Bindings& bindings);

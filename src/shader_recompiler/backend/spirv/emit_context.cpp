@@ -1006,47 +1006,47 @@ void EmitContext::DefineRescalingInput(const Info& info) {
         return;
     }
     if (profile.unified_descriptor_binding) {
-        DefineRescalingInputPushConstant(info);
+        DefineRescalingInputPushConstant();
     } else {
         DefineRescalingInputUniformConstant();
     }
 }
 
-void EmitContext::DefineRescalingInputPushConstant(const Info& info) {
-    boost::container::static_vector<Id, 3> members{F32[1]};
+void EmitContext::DefineRescalingInputPushConstant() {
+    boost::container::static_vector<Id, 3> members{};
     u32 member_index{0};
-    if (!info.texture_descriptors.empty()) {
-        rescaling_textures_type = TypeArray(U32[1], Const(4u));
-        Decorate(rescaling_textures_type, spv::Decoration::ArrayStride, 4u);
-        members.push_back(rescaling_textures_type);
-        rescaling_textures_member_index = ++member_index;
-    }
-    if (!info.image_descriptors.empty()) {
-        rescaling_images_type = TypeArray(U32[1], Const(NUM_IMAGE_SCALING_WORDS));
-        if (rescaling_textures_type.value != rescaling_images_type.value) {
-            Decorate(rescaling_images_type, spv::Decoration::ArrayStride, 4u);
-        }
-        members.push_back(rescaling_images_type);
-        rescaling_images_member_index = ++member_index;
+
+    rescaling_textures_type = TypeArray(U32[1], Const(4u));
+    Decorate(rescaling_textures_type, spv::Decoration::ArrayStride, 4u);
+    members.push_back(rescaling_textures_type);
+    rescaling_textures_member_index = member_index++;
+
+    rescaling_images_type = TypeArray(U32[1], Const(NUM_IMAGE_SCALING_WORDS));
+    Decorate(rescaling_images_type, spv::Decoration::ArrayStride, 4u);
+    members.push_back(rescaling_images_type);
+    rescaling_images_member_index = member_index++;
+
+    if (stage != Stage::Compute) {
+        members.push_back(F32[1]);
+        rescaling_downfactor_member_index = member_index++;
     }
     const Id push_constant_struct{TypeStruct(std::span(members.data(), members.size()))};
     Decorate(push_constant_struct, spv::Decoration::Block);
     Name(push_constant_struct, "ResolutionInfo");
 
-    MemberDecorate(push_constant_struct, 0u, spv::Decoration::Offset, 0u);
-    MemberName(push_constant_struct, 0u, "down_factor");
+    MemberDecorate(push_constant_struct, rescaling_textures_member_index, spv::Decoration::Offset,
+                   static_cast<u32>(offsetof(RescalingLayout, rescaling_textures)));
+    MemberName(push_constant_struct, rescaling_textures_member_index, "rescaling_textures");
 
-    const u32 offset_bias = stage == Stage::Compute ? sizeof(u32) : 0;
-    if (!info.texture_descriptors.empty()) {
-        MemberDecorate(
-            push_constant_struct, rescaling_textures_member_index, spv::Decoration::Offset,
-            static_cast<u32>(offsetof(RescalingLayout, rescaling_textures) - offset_bias));
-        MemberName(push_constant_struct, rescaling_textures_member_index, "rescaling_textures");
-    }
-    if (!info.image_descriptors.empty()) {
-        MemberDecorate(push_constant_struct, rescaling_images_member_index, spv::Decoration::Offset,
-                       static_cast<u32>(offsetof(RescalingLayout, rescaling_images) - offset_bias));
-        MemberName(push_constant_struct, rescaling_images_member_index, "rescaling_images");
+    MemberDecorate(push_constant_struct, rescaling_images_member_index, spv::Decoration::Offset,
+                   static_cast<u32>(offsetof(RescalingLayout, rescaling_images)));
+    MemberName(push_constant_struct, rescaling_images_member_index, "rescaling_images");
+
+    if (stage != Stage::Compute) {
+        MemberDecorate(push_constant_struct, rescaling_downfactor_member_index,
+                       spv::Decoration::Offset,
+                       static_cast<u32>(offsetof(RescalingLayout, down_factor)));
+        MemberName(push_constant_struct, rescaling_downfactor_member_index, "down_factor");
     }
     const Id pointer_type{TypePointer(spv::StorageClass::PushConstant, push_constant_struct)};
     rescaling_push_constants = AddGlobalVariable(pointer_type, spv::StorageClass::PushConstant);
