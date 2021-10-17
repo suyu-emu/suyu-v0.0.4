@@ -264,6 +264,10 @@ void RendererOpenGL::InitOpenGLObjects() {
     glSamplerParameteri(present_sampler.handle, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glSamplerParameteri(present_sampler.handle, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+    present_sampler_nn.Create();
+    glSamplerParameteri(present_sampler_nn.handle, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glSamplerParameteri(present_sampler_nn.handle, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
     // Generate VBO handle for drawing
     vertex_buffer.Create();
 
@@ -346,6 +350,9 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     GLuint fragment_handle;
     const auto filter = Settings::values.scaling_filter.GetValue();
     switch (filter) {
+    case Settings::ScalingFilter::NearestNeighbor:
+        fragment_handle = present_bilinear_fragment.handle;
+        break;
     case Settings::ScalingFilter::Bilinear:
         fragment_handle = present_bilinear_fragment.handle;
         break;
@@ -353,6 +360,12 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
         fragment_handle = present_bicubic_fragment.handle;
         break;
     case Settings::ScalingFilter::ScaleForce:
+        fragment_handle = present_scaleforce_fragment.handle;
+        break;
+    case Settings::ScalingFilter::Fsr:
+        LOG_WARNING(
+            Render_OpenGL,
+            "FidelityFX FSR Super Sampling is not supported in OpenGL, changing to ScaleForce");
         fragment_handle = present_scaleforce_fragment.handle;
         break;
     default:
@@ -464,7 +477,11 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     }
 
     glBindTextureUnit(0, screen_info.display_texture);
-    glBindSampler(0, present_sampler.handle);
+    if (Settings::values.scaling_filter.GetValue() != Settings::ScalingFilter::NearestNeighbor) {
+        glBindSampler(0, present_sampler.handle);
+    } else {
+        glBindSampler(0, present_sampler_nn.handle);
+    }
 
     glClear(GL_COLOR_BUFFER_BIT);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

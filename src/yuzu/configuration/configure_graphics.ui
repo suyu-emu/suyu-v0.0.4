@@ -389,6 +389,11 @@
             <widget class="QComboBox" name="scaling_filter_combobox">
              <item>
               <property name="text">
+               <string>Nearest Neighbor</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
                <string>Bilinear</string>
               </property>
              </item>
@@ -404,7 +409,7 @@
              </item>
              <item>
               <property name="text">
-               <string>FidelityFX Super Resolution</string>
+               <string>FidelityFX Super Resolution [Vulkan Only]</string>
               </property>
              </item>
             </widget>

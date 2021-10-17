@@ -109,6 +109,7 @@ private:
 
     // OpenGL object IDs
     OGLSampler present_sampler;
+    OGLSampler present_sampler_nn;
     OGLBuffer vertex_buffer;
     OGLProgram present_vertex;
     OGLProgram present_bilinear_fragment;

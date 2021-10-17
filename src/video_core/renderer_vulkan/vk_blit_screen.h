@@ -90,7 +90,7 @@ private:
     void CreateStagingBuffer(const Tegra::FramebufferConfig& framebuffer);
     void CreateRawImages(const Tegra::FramebufferConfig& framebuffer);
 
-    void UpdateDescriptorSet(std::size_t image_index, VkImageView image_view) const;
+    void UpdateDescriptorSet(std::size_t image_index, VkImageView image_view, bool nn) const;
     void SetUniformData(BufferData& data, const Layout::FramebufferLayout layout) const;
     void SetVertexData(BufferData& data, const Tegra::FramebufferConfig& framebuffer,
                        const Layout::FramebufferLayout layout) const;
@@ -115,12 +115,14 @@ private:
     vk::DescriptorPool descriptor_pool;
     vk::DescriptorSetLayout descriptor_set_layout;
     vk::PipelineLayout pipeline_layout;
+    vk::Pipeline nearest_neightbor_pipeline;
     vk::Pipeline bilinear_pipeline;
     vk::Pipeline bicubic_pipeline;
     vk::Pipeline scaleforce_pipeline;
     vk::RenderPass renderpass;
     std::vector<vk::Framebuffer> framebuffers;
     vk::DescriptorSets descriptor_sets;
+    vk::Sampler nn_sampler;
     vk::Sampler sampler;
 
     vk::Buffer buffer;

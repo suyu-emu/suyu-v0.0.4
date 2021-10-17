@@ -152,7 +152,9 @@ VkSemaphore VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer,
         use_accelerated ? screen_info.image_view : *raw_image_views[image_index];
 
     if (!fsr) {
-        UpdateDescriptorSet(image_index, source_image_view);
+        const bool is_nn =
+            Settings::values.scaling_filter.GetValue() == Settings::ScalingFilter::NearestNeighbor;
+        UpdateDescriptorSet(image_index, source_image_view, is_nn);
     }
 
     BufferData data;
@@ -247,7 +249,7 @@ VkSemaphore VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer,
         crop_rect = crop_rect.Scale(Settings::values.resolution_info.up_factor);
         VkImageView fsr_image_view =
             fsr->Draw(scheduler, image_index, source_image_view, crop_rect);
-        UpdateDescriptorSet(image_index, fsr_image_view);
+        UpdateDescriptorSet(image_index, fsr_image_view, true);
     }
 
     scheduler.Record(
@@ -286,6 +288,9 @@ VkSemaphore VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer,
             const auto filter = Settings::values.scaling_filter.GetValue();
             cmdbuf.BeginRenderPass(renderpass_bi, VK_SUBPASS_CONTENTS_INLINE);
             switch (filter) {
+            case Settings::ScalingFilter::NearestNeighbor:
+                cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *bilinear_pipeline);
+                break;
             case Settings::ScalingFilter::Bilinear:
                 cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *bilinear_pipeline);
                 break;
@@ -745,13 +750,33 @@ void VKBlitScreen::CreateGraphicsPipeline() {
 }
 
 void VKBlitScreen::CreateSampler() {
-    bool linear = Settings::values.scaling_filter.GetValue() != Settings::ScalingFilter::Fsr;
     const VkSamplerCreateInfo ci{
         .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .magFilter = linear ? VK_FILTER_LINEAR : VK_FILTER_NEAREST,
-        .minFilter = linear ? VK_FILTER_LINEAR : VK_FILTER_NEAREST,
+        .magFilter = VK_FILTER_LINEAR,
+        .minFilter = VK_FILTER_LINEAR,
+        .mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST,
+        .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+        .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+        .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+        .mipLodBias = 0.0f,
+        .anisotropyEnable = VK_FALSE,
+        .maxAnisotropy = 0.0f,
+        .compareEnable = VK_FALSE,
+        .compareOp = VK_COMPARE_OP_NEVER,
+        .minLod = 0.0f,
+        .maxLod = 0.0f,
+        .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
+        .unnormalizedCoordinates = VK_FALSE,
+    };
+
+    const VkSamplerCreateInfo ci_nn{
+        .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .magFilter = VK_FILTER_NEAREST,
+        .minFilter = VK_FILTER_NEAREST,
         .mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST,
         .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
         .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
@@ -768,6 +793,7 @@ void VKBlitScreen::CreateSampler() {
     };
 
     sampler = device.GetLogical().CreateSampler(ci);
+    nn_sampler = device.GetLogical().CreateSampler(ci_nn);
 }
 
 void VKBlitScreen::CreateFramebuffers() {
@@ -862,7 +888,8 @@ void VKBlitScreen::CreateRawImages(const Tegra::FramebufferConfig& framebuffer) 
     }
 }
 
-void VKBlitScreen::UpdateDescriptorSet(std::size_t image_index, VkImageView image_view) const {
+void VKBlitScreen::UpdateDescriptorSet(std::size_t image_index, VkImageView image_view,
+                                       bool nn) const {
     const VkDescriptorBufferInfo buffer_info{
         .buffer = *buffer,
         .offset = offsetof(BufferData, uniform),
@@ -883,7 +910,7 @@ void VKBlitScreen::UpdateDescriptorSet(std::size_t image_index, VkImageView imag
     };
 
     const VkDescriptorImageInfo image_info{
-        .sampler = *sampler,
+        .sampler = nn ? *nn_sampler : *sampler,
         .imageView = image_view,
         .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
     };
