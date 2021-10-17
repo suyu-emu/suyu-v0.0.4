@@ -38,9 +38,10 @@ struct TouchFinger {
     Common::Point<float> position{};
     u32_le id{};
     bool pressed{};
-    Core::HID::TouchAttribute attribute{};
+    TouchAttribute attribute{};
 };
 
+// Contains all motion related data that is used on the services
 struct ConsoleMotion {
     bool is_at_rest{};
     Common::Vec3f accel{};
@@ -57,7 +58,7 @@ struct ConsoleStatus {
     ConsoleMotionValues motion_values{};
     TouchValues touch_values{};
 
-    // Data for Nintendo devices;
+    // Data for HID services
     ConsoleMotion motion_state{};
     TouchFingerState touch_state{};
 };
@@ -75,52 +76,90 @@ struct ConsoleUpdateCallback {
 class EmulatedConsole {
 public:
     /**
-     * TODO: Write description
-     *
-     * @param npad_id_type
+     * Contains all input data related to the console like motion and touch input
      */
-    explicit EmulatedConsole();
+    EmulatedConsole();
     ~EmulatedConsole();
 
     YUZU_NON_COPYABLE(EmulatedConsole);
     YUZU_NON_MOVEABLE(EmulatedConsole);
 
-    void ReloadFromSettings();
-    void ReloadInput();
+    /// Removes all callbacks created from input devices
     void UnloadInput();
 
+    /// Sets the emulated console into configuring mode. Locking all HID service events from being
+    /// moddified
     void EnableConfiguration();
+
+    /// Returns the emulated console to the normal behaivour
     void DisableConfiguration();
+
+    /// Returns true if the emulated console is on configuring mode
     bool IsConfiguring() const;
+
+    /// Reload all input devices
+    void ReloadInput();
+
+    /// Overrides current mapped devices with the stored configuration and reloads all input devices
+    void ReloadFromSettings();
+
+    /// Saves the current mapped configuration
     void SaveCurrentConfig();
+
+    /// Reverts any mapped changes made that weren't saved
     void RestoreConfig();
 
+    // Returns the current mapped motion device
     Common::ParamPackage GetMotionParam() const;
 
+    /**
+     * Updates the current mapped motion device
+     * @param ParamPackage with controller data to be mapped
+     */
     void SetMotionParam(Common::ParamPackage param);
 
+    /// Returns the latest status of motion input from the console with parameters
     ConsoleMotionValues GetMotionValues() const;
+
+    /// Returns the latest status of touch input from the console with parameters
     TouchValues GetTouchValues() const;
 
+    /// Returns the latest status of motion input from the console
     ConsoleMotion GetMotion() const;
+
+    /// Returns the latest status of touch input from the console
     TouchFingerState GetTouch() const;
 
+    /**
+     * Adds a callback to the list of events
+     * @param ConsoleUpdateCallback that will be triggered
+     * @return an unique key corresponding to the callback index in the list
+     */
     int SetCallback(ConsoleUpdateCallback update_callback);
+
+    /**
+     * Removes a callback from the list stopping any future events to this object
+     * @param Key corresponding to the callback index in the list
+     */
     void DeleteCallback(int key);
 
 private:
     /**
-     * Sets the status of a button. Applies toggle properties to the output.
-     *
-     * @param A CallbackStatus and a button index number
+     * Updates the motion status of the console
+     * @param A CallbackStatus containing gyro and accelerometer data
      */
     void SetMotion(Input::CallbackStatus callback);
+
+    /**
+     * Updates the touch status of the console
+     * @param callback: A CallbackStatus containing the touch position
+     * @param index: Finger ID to be updated
+     */
     void SetTouch(Input::CallbackStatus callback, std::size_t index);
 
     /**
-     * Triggers a callback that something has changed
-     *
-     * @param Input type of the trigger
+     * Triggers a callback that something has changed on the console status
+     * @param Input type of the event to trigger
      */
     void TriggerOnChange(ConsoleTriggerType type);
 
@@ -136,6 +175,8 @@ private:
     mutable std::mutex mutex;
     std::unordered_map<int, ConsoleUpdateCallback> callback_list;
     int last_callback_key = 0;
+
+    // Stores the current status of all console input
     ConsoleStatus console;
 };
 

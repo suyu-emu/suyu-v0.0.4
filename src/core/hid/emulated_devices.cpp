@@ -114,7 +114,7 @@ Common::ParamPackage EmulatedDevices::GetMouseButtonParam(std::size_t index) con
     return mouse_button_params[index];
 }
 
-void EmulatedDevices::SetButtonParam(std::size_t index, Common::ParamPackage param) {
+void EmulatedDevices::SetMouseButtonParam(std::size_t index, Common::ParamPackage param) {
     if (index >= mouse_button_params.size()) {
         return;
     }
@@ -132,7 +132,7 @@ void EmulatedDevices::SetKeyboardButton(Input::CallbackStatus callback, std::siz
     auto& current_status = device_status.keyboard_values[index];
     current_status.toggle = new_status.toggle;
 
-    // Update button status with current
+    // Update button status with current status
     if (!current_status.toggle) {
         current_status.locked = false;
         if (current_status.value != new_status.value) {
@@ -147,7 +147,7 @@ void EmulatedDevices::SetKeyboardButton(Input::CallbackStatus callback, std::siz
             value_changed = true;
         }
 
-        // Unlock button ready for next press
+        // Unlock button, ready for next press
         if (!new_status.value && current_status.locked) {
             current_status.locked = false;
         }
@@ -168,7 +168,7 @@ void EmulatedDevices::SetKeyboardButton(Input::CallbackStatus callback, std::siz
     //    interface_status.keyboard_state.a.Assign(current_status.value);
     //    break;
     //    ....
-    //}
+    // }
 
     TriggerOnChange(DeviceTriggerType::Keyboard);
 }
@@ -301,6 +301,14 @@ void EmulatedDevices::SetMouseButton(Input::CallbackStatus callback, std::size_t
     }
 
     TriggerOnChange(DeviceTriggerType::Mouse);
+}
+
+KeyboardValues EmulatedDevices::GetKeyboardValues() const {
+    return device_status.keyboard_values;
+}
+
+KeyboardModifierValues EmulatedDevices::GetKeyboardModdifierValues() const {
+    return device_status.keyboard_moddifier_values;
 }
 
 MouseButtonValues EmulatedDevices::GetMouseButtonsValues() const {
