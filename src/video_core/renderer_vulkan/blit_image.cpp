@@ -418,40 +418,45 @@ void BlitImageHelper::BlitDepthStencil(const Framebuffer* dst_framebuffer,
 }
 
 void BlitImageHelper::ConvertD32ToR32(const Framebuffer* dst_framebuffer,
-                                      const ImageView& src_image_view) {
+                                      const ImageView& src_image_view, u32 up_scale,
+                                      u32 down_shift) {
     ConvertDepthToColorPipeline(convert_d32_to_r32_pipeline, dst_framebuffer->RenderPass());
-    Convert(*convert_d32_to_r32_pipeline, dst_framebuffer, src_image_view);
+    Convert(*convert_d32_to_r32_pipeline, dst_framebuffer, src_image_view, up_scale, down_shift);
 }
 
 void BlitImageHelper::ConvertR32ToD32(const Framebuffer* dst_framebuffer,
-                                      const ImageView& src_image_view) {
+                                      const ImageView& src_image_view, u32 up_scale,
+                                      u32 down_shift) {
     ConvertColorToDepthPipeline(convert_r32_to_d32_pipeline, dst_framebuffer->RenderPass());
-    Convert(*convert_r32_to_d32_pipeline, dst_framebuffer, src_image_view);
+    Convert(*convert_r32_to_d32_pipeline, dst_framebuffer, src_image_view, up_scale, down_shift);
 }
 
 void BlitImageHelper::ConvertD16ToR16(const Framebuffer* dst_framebuffer,
-                                      const ImageView& src_image_view) {
+                                      const ImageView& src_image_view, u32 up_scale,
+                                      u32 down_shift) {
     ConvertDepthToColorPipeline(convert_d16_to_r16_pipeline, dst_framebuffer->RenderPass());
-    Convert(*convert_d16_to_r16_pipeline, dst_framebuffer, src_image_view);
+    Convert(*convert_d16_to_r16_pipeline, dst_framebuffer, src_image_view, up_scale, down_shift);
 }
 
 void BlitImageHelper::ConvertR16ToD16(const Framebuffer* dst_framebuffer,
-                                      const ImageView& src_image_view) {
+                                      const ImageView& src_image_view, u32 up_scale,
+                                      u32 down_shift) {
     ConvertColorToDepthPipeline(convert_r16_to_d16_pipeline, dst_framebuffer->RenderPass());
-    Convert(*convert_r16_to_d16_pipeline, dst_framebuffer, src_image_view);
+    Convert(*convert_r16_to_d16_pipeline, dst_framebuffer, src_image_view, up_scale, down_shift);
 }
 
 void BlitImageHelper::Convert(VkPipeline pipeline, const Framebuffer* dst_framebuffer,
-                              const ImageView& src_image_view) {
+                              const ImageView& src_image_view, u32 up_scale, u32 down_shift) {
     const VkPipelineLayout layout = *one_texture_pipeline_layout;
     const VkImageView src_view = src_image_view.Handle(Shader::TextureType::Color2D);
     const VkSampler sampler = *nearest_sampler;
     const VkExtent2D extent{
-        .width = src_image_view.size.width,
-        .height = src_image_view.size.height,
+        .width = std::max((src_image_view.size.width * up_scale) >> down_shift, 1U),
+        .height = std::max((src_image_view.size.height * up_scale) >> down_shift, 1U),
     };
     scheduler.RequestRenderpass(dst_framebuffer);
-    scheduler.Record([pipeline, layout, sampler, src_view, extent, this](vk::CommandBuffer cmdbuf) {
+    scheduler.Record([pipeline, layout, sampler, src_view, extent, up_scale, down_shift,
+                      this](vk::CommandBuffer cmdbuf) {
         const VkOffset2D offset{
             .x = 0,
             .y = 0,
