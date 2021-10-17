@@ -633,10 +633,12 @@ void RasterizerVulkan::UpdateDepthBias(Tegra::Engines::Maxwell3D::Regs& regs) {
                         regs.zeta.format == Tegra::DepthFormat::D24S8_UNORM ||
                         regs.zeta.format == Tegra::DepthFormat::D24C8_UNORM;
     if (is_d24 && !device.SupportsD24DepthBuffer()) {
-        const double f = static_cast<double>(1ULL << (32 - 24)) / (static_cast<double>(0x1.ep+127));
-        units = static_cast<float>(static_cast<double>(units) * f);
+        // the base formulas can be obtained from here:
+        //   https://docs.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-output-merger-stage-depth-bias
+        const double rescale_factor =
+            static_cast<double>(1ULL << (32 - 24)) / (static_cast<double>(0x1.ep+127));
+        units = static_cast<float>(static_cast<double>(units) * rescale_factor);
     }
-
     scheduler.Record([constant = units, clamp = regs.polygon_offset_clamp,
                       factor = regs.polygon_offset_factor](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetDepthBias(constant, clamp, factor);
