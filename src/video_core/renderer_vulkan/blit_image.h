@@ -60,9 +60,9 @@ private:
     void Convert(VkPipeline pipeline, const Framebuffer* dst_framebuffer,
                  const ImageView& src_image_view, u32 up_scale, u32 down_shift);
 
-    [[nodiscard]] VkPipeline FindOrEmplacePipeline(const BlitImagePipelineKey& key);
+    [[nodiscard]] VkPipeline FindOrEmplaceColorPipeline(const BlitImagePipelineKey& key);
 
-    [[nodiscard]] VkPipeline BlitDepthStencilPipeline(VkRenderPass renderpass);
+    [[nodiscard]] VkPipeline FindOrEmplaceDepthStencilPipeline(const BlitImagePipelineKey& key);
 
     void ConvertDepthToColorPipeline(vk::Pipeline& pipeline, VkRenderPass renderpass);
 
@@ -88,7 +88,8 @@ private:
 
     std::vector<BlitImagePipelineKey> blit_color_keys;
     std::vector<vk::Pipeline> blit_color_pipelines;
-    vk::Pipeline blit_depth_stencil_pipeline;
+    std::vector<BlitImagePipelineKey> blit_depth_stencil_keys;
+    std::vector<vk::Pipeline> blit_depth_stencil_pipelines;
     vk::Pipeline convert_d32_to_r32_pipeline;
     vk::Pipeline convert_r32_to_d32_pipeline;
     vk::Pipeline convert_d16_to_r16_pipeline;
