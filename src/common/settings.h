@@ -64,6 +64,7 @@ enum class ScalingFilter : u32 {
     Bilinear = 0,
     Bicubic = 1,
     ScaleForce = 2,
+    Fsr = 3,
 };
 
 struct ResolutionScalingInfo {

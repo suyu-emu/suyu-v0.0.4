@@ -402,6 +402,11 @@
                <string>ScaleForce</string>
               </property>
              </item>
+             <item>
+              <property name="text">
+               <string>FidelityFX Super Resolution</string>
+              </property>
+             </item>
             </widget>
            </item>
           </layout>

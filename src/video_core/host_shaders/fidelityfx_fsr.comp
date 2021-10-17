@@ -1,0 +1,114 @@
+// Copyright 2021 yuzu Emulator Project
+// Licensed under GPLv2 or any later version
+// Refer to the license.txt file included.
+
+//!#version 460 core
+#extension GL_ARB_separate_shader_objects : enable
+#extension GL_ARB_shading_language_420pack : enable
+#extension GL_GOOGLE_include_directive : enable
+#extension GL_EXT_shader_explicit_arithmetic_types : require
+
+// FidelityFX Super Resolution Sample
+//
+// Copyright (c) 2021 Advanced Micro Devices, Inc. All rights reserved.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files(the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions :
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
+layout( push_constant ) uniform constants {
+    u32vec2 input_size;
+};
+
+uvec4 Const0;
+uvec4 Const1;
+uvec4 Const2;
+uvec4 Const3;
+
+#define A_GPU 1
+#define A_GLSL 1
+#define A_HALF
+
+#include "ffx_a.h"
+
+f16vec4 LinearToSRGB(f16vec4 linear) {
+    bvec4 selector = greaterThan(linear, f16vec4(0.00313066844250063));
+    f16vec4 low = linear * float16_t(12.92);
+    f16vec4 high = float16_t(1.055) * pow(linear, f16vec4(1 / 2.4)) - float16_t(0.055);
+    return mix(low, high, selector);
+}
+
+f16vec4 SRGBToLinear(f16vec4 srgb) {
+    bvec4 selector = greaterThan(srgb, f16vec4(0.0404482362771082));
+    f16vec4 low = srgb * float16_t(1.0 / 12.92);
+    f16vec4 high = pow((srgb + float16_t(0.055)) * float16_t(1.0 / 1.055), f16vec4(2.4));
+    return mix(low, high, selector);
+}
+
+#if USE_EASU
+    #define FSR_EASU_H 1
+    f16vec4 FsrEasuRH(vec2 p) { f16vec4 res = f16vec4(textureGather(InputTexture, p, 0)); return res; }
+    f16vec4 FsrEasuGH(vec2 p) { f16vec4 res = f16vec4(textureGather(InputTexture, p, 1)); return res; }
+    f16vec4 FsrEasuBH(vec2 p) { f16vec4 res = f16vec4(textureGather(InputTexture, p, 2)); return res; }
+#endif
+#if USE_RCAS
+    #define FSR_RCAS_H 1
+    f16vec4 FsrRcasLoadH(ASW2 p) { return f16vec4(texelFetch(InputTexture, ASU2(p), 0)); }
+    void FsrRcasInputH(inout float16_t r, inout float16_t g, inout float16_t b) {}
+#endif
+
+#include "ffx_fsr1.h"
+
+void CurrFilter(u32vec2 pos) {
+    // For debugging
+#if USE_BILINEAR
+    vec2 pp = (vec2(pos) * vec2_AU2(Const0.xy) + vec2_AU2(Const0.zw)) * vec2_AU2(Const1.xy) + vec2(0.5, -0.5) * vec2_AU2(Const1.zw);
+    imageStore(OutputTexture, ivec2(pos), textureLod(InputTexture, pp, 0.0));
+#endif
+#if USE_EASU
+    f16vec3 c;
+    FsrEasuH(c, pos, Const0, Const1, Const2, Const3);
+    imageStore(OutputTexture, ivec2(pos), f16vec4(c, 1));
+#endif
+#if USE_RCAS
+    f16vec3 c;
+    FsrRcasH(c.r, c.g, c.b, pos, Const0);
+    imageStore(OutputTexture, ivec2(pos), f16vec4(c, 1));
+#endif
+
+}
+
+layout(local_size_x=64) in;
+void main() {
+
+#if USE_EASU || USE_BILINEAR
+    vec2 ires = vec2(input_size);
+    vec2 tres = textureSize(InputTexture, 0);
+    vec2 ores = imageSize(OutputTexture);
+    FsrEasuCon(Const0, Const1, Const2, Const3, ires.x, ires.y, tres.x, tres.y, ores.x, ores.y);
+#endif
+#if USE_RCAS
+    FsrRcasCon(Const0, 0.25f);
+#endif
+
+    // Do remapping of local xy in workgroup for a more PS-like swizzle pattern.
+    AU2 gxy = ARmp8x8(gl_LocalInvocationID.x) + AU2(gl_WorkGroupID.x << 4u, gl_WorkGroupID.y << 4u);
+    CurrFilter(gxy);
+    gxy.x += 8u;
+    CurrFilter(gxy);
+    gxy.y += 8u;
+    CurrFilter(gxy);
+    gxy.x -= 8u;
+    CurrFilter(gxy);
+}

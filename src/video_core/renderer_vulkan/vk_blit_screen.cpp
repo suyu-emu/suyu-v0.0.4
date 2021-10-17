@@ -23,6 +23,7 @@
 #include "video_core/host_shaders/vulkan_present_vert_spv.h"
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
 #include "video_core/renderer_vulkan/vk_blit_screen.h"
+#include "video_core/renderer_vulkan/vk_fsr.h"
 #include "video_core/renderer_vulkan/vk_master_semaphore.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_shader_util.h"
@@ -147,8 +148,12 @@ VkSemaphore VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer,
     scheduler.Wait(resource_ticks[image_index]);
     resource_ticks[image_index] = scheduler.CurrentTick();
 
-    UpdateDescriptorSet(image_index,
-                        use_accelerated ? screen_info.image_view : *raw_image_views[image_index]);
+    const VkImageView source_image_view =
+        use_accelerated ? screen_info.image_view : *raw_image_views[image_index];
+
+    if (!fsr) {
+        UpdateDescriptorSet(image_index, source_image_view);
+    }
 
     BufferData data;
     SetUniformData(data, layout);
@@ -225,9 +230,26 @@ VkSemaphore VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer,
                                    read_barrier);
             cmdbuf.CopyBufferToImage(*buffer, image, VK_IMAGE_LAYOUT_GENERAL, copy);
             cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT,
-                                   VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, write_barrier);
+                                   VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
+                                       VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                                   0, write_barrier);
         });
     }
+
+    if (fsr) {
+        auto crop_rect = framebuffer.crop_rect;
+        if (crop_rect.GetWidth() == 0) {
+            crop_rect.right = framebuffer.width;
+        }
+        if (crop_rect.GetHeight() == 0) {
+            crop_rect.bottom = framebuffer.height;
+        }
+        crop_rect = crop_rect.Scale(Settings::values.resolution_info.up_factor);
+        VkImageView fsr_image_view =
+            fsr->Draw(scheduler, image_index, source_image_view, crop_rect);
+        UpdateDescriptorSet(image_index, fsr_image_view);
+    }
+
     scheduler.Record(
         [this, host_framebuffer, image_index, size = render_area](vk::CommandBuffer cmdbuf) {
             const f32 bg_red = Settings::values.bg_red.GetValue() / 255.0f;
@@ -325,6 +347,13 @@ void VKBlitScreen::CreateDynamicResources() {
     CreateRenderPass();
     CreateFramebuffers();
     CreateGraphicsPipeline();
+    fsr.reset();
+    if (Settings::values.scaling_filter.GetValue() == Settings::ScalingFilter::Fsr) {
+        const auto& layout = render_window.GetFramebufferLayout();
+        fsr = std::make_unique<FSR>(
+            device, memory_allocator, image_count,
+            VkExtent2D{.width = layout.screen.GetWidth(), .height = layout.screen.GetHeight()});
+    }
 }
 
 void VKBlitScreen::RefreshResources(const Tegra::FramebufferConfig& framebuffer) {
@@ -716,13 +745,14 @@ void VKBlitScreen::CreateGraphicsPipeline() {
 }
 
 void VKBlitScreen::CreateSampler() {
+    bool linear = Settings::values.scaling_filter.GetValue() != Settings::ScalingFilter::Fsr;
     const VkSamplerCreateInfo ci{
         .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .magFilter = VK_FILTER_LINEAR,
-        .minFilter = VK_FILTER_LINEAR,
-        .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+        .magFilter = linear ? VK_FILTER_LINEAR : VK_FILTER_NEAREST,
+        .minFilter = linear ? VK_FILTER_LINEAR : VK_FILTER_NEAREST,
+        .mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST,
         .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
         .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
         .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
@@ -905,17 +935,19 @@ void VKBlitScreen::SetVertexData(BufferData& data, const Tegra::FramebufferConfi
     UNIMPLEMENTED_IF(framebuffer_crop_rect.top != 0);
     UNIMPLEMENTED_IF(framebuffer_crop_rect.left != 0);
 
-    // Scale the output by the crop width/height. This is commonly used with 1280x720 rendering
-    // (e.g. handheld mode) on a 1920x1080 framebuffer.
     f32 scale_u = 1.0f;
     f32 scale_v = 1.0f;
-    if (framebuffer_crop_rect.GetWidth() > 0) {
-        scale_u = static_cast<f32>(framebuffer_crop_rect.GetWidth()) /
-                  static_cast<f32>(screen_info.width);
-    }
-    if (framebuffer_crop_rect.GetHeight() > 0) {
-        scale_v = static_cast<f32>(framebuffer_crop_rect.GetHeight()) /
-                  static_cast<f32>(screen_info.height);
+    // Scale the output by the crop width/height. This is commonly used with 1280x720 rendering
+    // (e.g. handheld mode) on a 1920x1080 framebuffer.
+    if (!fsr) {
+        if (framebuffer_crop_rect.GetWidth() > 0) {
+            scale_u = static_cast<f32>(framebuffer_crop_rect.GetWidth()) /
+                      static_cast<f32>(screen_info.width);
+        }
+        if (framebuffer_crop_rect.GetHeight() > 0) {
+            scale_v = static_cast<f32>(framebuffer_crop_rect.GetHeight()) /
+                      static_cast<f32>(screen_info.height);
+        }
     }
 
     const auto& screen = layout.screen;

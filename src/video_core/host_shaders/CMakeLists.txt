@@ -1,3 +1,11 @@
+set(FIDELITYFX_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/externals/FidelityFX-FSR/ffx-fsr)
+
+set(GLSL_INCLUDES
+    fidelityfx_fsr.comp
+    ${FIDELITYFX_INCLUDE_DIR}/ffx_a.h
+    ${FIDELITYFX_INCLUDE_DIR}/ffx_fsr1.h
+)
+
 set(SHADER_FILES
     astc_decoder.comp
     block_linear_unswizzle_2d.comp
@@ -13,6 +21,8 @@ set(SHADER_FILES
     present_bicubic.frag
     vulkan_blit_color_float.frag
     vulkan_blit_depth_stencil.frag
+    vulkan_fidelityfx_fsr_easu.comp
+    vulkan_fidelityfx_fsr_rcas.comp
     vulkan_present.frag
     vulkan_present.vert
     vulkan_quad_indexed.comp
@@ -78,7 +88,7 @@ foreach(FILENAME IN ITEMS ${SHADER_FILES})
             OUTPUT
                 ${SPIRV_HEADER_FILE}
             COMMAND
-                ${GLSLANGVALIDATOR} -V ${QUIET_FLAG} ${GLSL_FLAGS} --variable-name ${SPIRV_VARIABLE_NAME} -o ${SPIRV_HEADER_FILE} ${SOURCE_FILE}
+                ${GLSLANGVALIDATOR} -V ${QUIET_FLAG} -I"${FIDELITYFX_INCLUDE_DIR}" ${GLSL_FLAGS} --variable-name ${SPIRV_VARIABLE_NAME} -o ${SPIRV_HEADER_FILE} ${SOURCE_FILE}
             MAIN_DEPENDENCY
                 ${SOURCE_FILE}
         )
@@ -86,9 +96,12 @@ foreach(FILENAME IN ITEMS ${SHADER_FILES})
     endif()
 endforeach()
 
+set(SHADER_SOURCES ${SHADER_FILES})
+list(APPEND SHADER_SOURCES ${GLSL_INCLUDES})
+
 add_custom_target(host_shaders
     DEPENDS
         ${SHADER_HEADERS}
     SOURCES
-        ${SHADER_FILES}
+        ${SHADER_SOURCES}
 )

@@ -38,6 +38,8 @@ class RasterizerVulkan;
 class VKScheduler;
 class VKSwapchain;
 
+class FSR;
+
 struct VKScreenInfo {
     VkImageView image_view{};
     u32 width{};
@@ -132,6 +134,8 @@ private:
     std::vector<MemoryCommit> raw_buffer_commits;
     u32 raw_width = 0;
     u32 raw_height = 0;
+
+    std::unique_ptr<FSR> fsr;
 };
 
 } // namespace Vulkan
