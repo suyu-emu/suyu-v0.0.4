@@ -592,7 +592,8 @@ struct RangedBarrierRange {
 }
 
 void BlitScale(VKScheduler& scheduler, VkImage src_image, VkImage dst_image, const ImageInfo& info,
-               VkImageAspectFlags aspect_mask, const Settings::ResolutionScalingInfo& resolution) {
+               VkImageAspectFlags aspect_mask, const Settings::ResolutionScalingInfo& resolution,
+               bool up_scaling = true) {
     const bool is_2d = info.type == ImageType::e2D;
     const auto resources = info.resources;
     const VkExtent2D extent{
@@ -605,14 +606,16 @@ void BlitScale(VKScheduler& scheduler, VkImage src_image, VkImage dst_image, con
 
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([dst_image, src_image, extent, resources, aspect_mask, resolution, is_2d,
-                      vk_filter](vk::CommandBuffer cmdbuf) {
+                      vk_filter, up_scaling](vk::CommandBuffer cmdbuf) {
         const VkOffset2D src_size{
-            .x = static_cast<s32>(extent.width),
-            .y = static_cast<s32>(extent.height),
+            .x = static_cast<s32>(up_scaling ? extent.width : resolution.ScaleUp(extent.width)),
+            .y = static_cast<s32>(is_2d && up_scaling ? extent.height
+                                                      : resolution.ScaleUp(extent.height)),
         };
         const VkOffset2D dst_size{
-            .x = static_cast<s32>(resolution.ScaleUp(extent.width)),
-            .y = static_cast<s32>(is_2d ? resolution.ScaleUp(extent.height) : extent.height),
+            .x = static_cast<s32>(up_scaling ? resolution.ScaleUp(extent.width) : extent.width),
+            .y = static_cast<s32>(is_2d && up_scaling ? resolution.ScaleUp(extent.height)
+                                                      : extent.height),
         };
         boost::container::small_vector<VkImageBlit, 4> regions;
         regions.reserve(resources.levels);
@@ -1134,6 +1137,7 @@ bool Image::ScaleUp() {
     if (!resolution.active) {
         return false;
     }
+    scale_count++;
     const auto& device = runtime->device;
     const bool is_2d = info.type == ImageType::e2D;
     const u32 scaled_width = resolution.ScaleUp(info.size.width);
@@ -1161,8 +1165,10 @@ bool Image::ScaleUp() {
         using namespace VideoCommon;
         static constexpr auto BLIT_OPERATION = Tegra::Engines::Fermi2D::Operation::SrcCopy;
 
-        const auto view_info = ImageViewInfo(ImageViewType::e2D, info.format);
-        scale_view = std::make_unique<ImageView>(*runtime, view_info, NULL_IMAGE_ID, *this);
+        if (!scale_view) {
+            const auto view_info = ImageViewInfo(ImageViewType::e2D, info.format);
+            scale_view = std::make_unique<ImageView>(*runtime, view_info, NULL_IMAGE_ID, *this);
+        }
         auto* view_ptr = scale_view.get();
 
         const Region2D src_region{
@@ -1178,7 +1184,10 @@ bool Image::ScaleUp() {
             .height = scaled_height,
         };
         if (aspect_mask == VK_IMAGE_ASPECT_COLOR_BIT) {
-            scale_framebuffer = std::make_unique<Framebuffer>(*runtime, view_ptr, nullptr, extent);
+            if (!scale_framebuffer) {
+                scale_framebuffer =
+                    std::make_unique<Framebuffer>(*runtime, view_ptr, nullptr, extent);
+            }
             const auto color_view = scale_view->Handle(Shader::TextureType::Color2D);
 
             runtime->blit_image_helper.BlitColor(
@@ -1186,7 +1195,10 @@ bool Image::ScaleUp() {
                 Tegra::Engines::Fermi2D::Filter::Bilinear, BLIT_OPERATION);
         } else if (!runtime->device.IsBlitDepthStencilSupported() &&
                    aspect_mask == (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) {
-            scale_framebuffer = std::make_unique<Framebuffer>(*runtime, nullptr, view_ptr, extent);
+            if (!scale_framebuffer) {
+                scale_framebuffer =
+                    std::make_unique<Framebuffer>(*runtime, view_ptr, nullptr, extent);
+            }
             runtime->blit_image_helper.BlitDepthStencil(
                 scale_framebuffer.get(), scale_view->DepthView(), scale_view->StencilView(),
                 dst_region, src_region, Tegra::Engines::Fermi2D::Filter::Point, BLIT_OPERATION);
@@ -1208,6 +1220,67 @@ bool Image::ScaleDown() {
     const auto& resolution = runtime->resolution;
     if (!resolution.active) {
         return false;
+    }
+    const auto& device = runtime->device;
+    const bool is_2d = info.type == ImageType::e2D;
+    const u32 scaled_width = resolution.ScaleUp(info.size.width);
+    const u32 scaled_height = is_2d ? resolution.ScaleUp(info.size.height) : info.size.height;
+    if (aspect_mask == 0) {
+        aspect_mask = ImageAspectMask(info.format);
+    }
+    static constexpr auto OPTIMAL_FORMAT = FormatType::Optimal;
+    const PixelFormat format = StorageFormat(info.format);
+    const auto vk_format = MaxwellToVK::SurfaceFormat(device, OPTIMAL_FORMAT, false, format).format;
+    const auto blit_usage = VK_FORMAT_FEATURE_BLIT_SRC_BIT | VK_FORMAT_FEATURE_BLIT_DST_BIT;
+    if (device.IsFormatSupported(vk_format, blit_usage, OPTIMAL_FORMAT)) {
+        BlitScale(*scheduler, *scaled_image, *original_image, info, aspect_mask, resolution, false);
+    } else {
+        using namespace VideoCommon;
+        static constexpr auto BLIT_OPERATION = Tegra::Engines::Fermi2D::Operation::SrcCopy;
+
+        if (!normal_view) {
+            const auto view_info = ImageViewInfo(ImageViewType::e2D, info.format);
+            normal_view = std::make_unique<ImageView>(*runtime, view_info, NULL_IMAGE_ID, *this);
+        }
+        auto* view_ptr = normal_view.get();
+
+        const Region2D src_region{
+            .start = {0, 0},
+            .end = {static_cast<s32>(scaled_width), static_cast<s32>(scaled_height)},
+        };
+        const Region2D dst_region{
+            .start = {0, 0},
+            .end = {static_cast<s32>(info.size.width), static_cast<s32>(info.size.height)},
+        };
+        const VkExtent2D extent{
+            .width = scaled_width,
+            .height = scaled_height,
+        };
+        if (aspect_mask == VK_IMAGE_ASPECT_COLOR_BIT) {
+            if (!normal_framebuffer) {
+                normal_framebuffer =
+                    std::make_unique<Framebuffer>(*runtime, view_ptr, nullptr, extent);
+            }
+            const auto color_view = normal_view->Handle(Shader::TextureType::Color2D);
+
+            runtime->blit_image_helper.BlitColor(
+                normal_framebuffer.get(), color_view, dst_region, src_region,
+                Tegra::Engines::Fermi2D::Filter::Bilinear, BLIT_OPERATION);
+        } else if (!runtime->device.IsBlitDepthStencilSupported() &&
+                   aspect_mask == (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) {
+            if (!normal_framebuffer) {
+                normal_framebuffer =
+                    std::make_unique<Framebuffer>(*runtime, view_ptr, nullptr, extent);
+            }
+            runtime->blit_image_helper.BlitDepthStencil(
+                normal_framebuffer.get(), normal_view->DepthView(), normal_view->StencilView(),
+                dst_region, src_region, Tegra::Engines::Fermi2D::Filter::Point, BLIT_OPERATION);
+        } else {
+            // TODO: Use helper blits where applicable
+            flags &= ~ImageFlagBits::Rescaled;
+            LOG_ERROR(Render_Vulkan, "Device does not support scaling format {}", format);
+            return false;
+        }
     }
     ASSERT(info.type != ImageType::Linear);
     current_image = *original_image;

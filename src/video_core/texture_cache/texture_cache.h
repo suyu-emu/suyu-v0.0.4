@@ -854,8 +854,8 @@ void TextureCache<P>::InvalidateScale(Image& image) {
 }
 
 template <class P>
-u64 TextureCache<P>::GetScaledImageSizeBytes(Image& image) {
-    const f32 add_to_size = Settings::values.resolution_info.up_factor - 1.0f;
+u64 TextureCache<P>::GetScaledImageSizeBytes(ImageBase& image) {
+    const f32 add_to_size = Settings::values.resolution_info.up_factor;
     const bool sign = std::signbit(add_to_size);
     const u32 image_size_bytes = std::max(image.guest_size_bytes, image.unswizzled_size_bytes);
     const u64 tentative_size = image_size_bytes * static_cast<u64>(std::abs(add_to_size));
@@ -865,11 +865,14 @@ u64 TextureCache<P>::GetScaledImageSizeBytes(Image& image) {
 
 template <class P>
 bool TextureCache<P>::ScaleUp(Image& image) {
+    const bool has_copy = image.HasScaled();
     const bool rescaled = image.ScaleUp();
     if (!rescaled) {
         return false;
     }
-    total_used_memory += GetScaledImageSizeBytes(image);
+    if (!has_copy) {
+        total_used_memory += GetScaledImageSizeBytes(image);
+    }
     InvalidateScale(image);
     return true;
 }
@@ -880,7 +883,10 @@ bool TextureCache<P>::ScaleDown(Image& image) {
     if (!rescaled) {
         return false;
     }
-    total_used_memory -= GetScaledImageSizeBytes(image);
+    const bool has_copy = image.HasScaled();
+    if (!has_copy) {
+        total_used_memory -= GetScaledImageSizeBytes(image);
+    }
     InvalidateScale(image);
     return true;
 }
@@ -1391,13 +1397,6 @@ void TextureCache<P>::UnregisterImage(ImageId image_id) {
                "Trying to unregister an already registered image");
     image.flags &= ~ImageFlagBits::Registered;
     image.flags &= ~ImageFlagBits::BadOverlap;
-    u64 tentative_size = std::max(image.guest_size_bytes, image.unswizzled_size_bytes);
-    if ((IsPixelFormatASTC(image.info.format) &&
-         True(image.flags & ImageFlagBits::AcceleratedUpload)) ||
-        True(image.flags & ImageFlagBits::Converted)) {
-        tentative_size = EstimatedDecompressedSize(tentative_size, image.info.format);
-    }
-    total_used_memory -= Common::AlignUp(tentative_size, 1024);
     lru_cache.Free(image.lru_index);
     const auto& clear_page_table =
         [this, image_id](
@@ -1478,6 +1477,16 @@ template <class P>
 void TextureCache<P>::TrackImage(ImageBase& image, ImageId image_id) {
     ASSERT(False(image.flags & ImageFlagBits::Tracked));
     image.flags |= ImageFlagBits::Tracked;
+    if (image.HasScaled()) {
+        total_used_memory -= GetScaledImageSizeBytes(image);
+    }
+    u64 tentative_size = std::max(image.guest_size_bytes, image.unswizzled_size_bytes);
+    if ((IsPixelFormatASTC(image.info.format) &&
+         True(image.flags & ImageFlagBits::AcceleratedUpload)) ||
+        True(image.flags & ImageFlagBits::Converted)) {
+        tentative_size = EstimatedDecompressedSize(tentative_size, image.info.format);
+    }
+    total_used_memory -= Common::AlignUp(tentative_size, 1024);
     if (False(image.flags & ImageFlagBits::Sparse)) {
         rasterizer.UpdatePagesCachedCount(image.cpu_addr, image.guest_size_bytes, 1);
         return;

@@ -876,7 +876,7 @@ void Image::CopyImageToBuffer(const VideoCommon::BufferImageCopy& copy, size_t b
     }
 }
 
-bool Image::Scale() {
+bool Image::Scale(bool up_scale) {
     const auto format_type = GetFormatType(info.format);
     const GLenum attachment = [format_type] {
         switch (format_type) {
@@ -944,14 +944,25 @@ bool Image::Scale() {
     const GLuint draw_fbo = runtime->rescale_draw_fbos[fbo_index].handle;
     for (s32 layer = 0; layer < info.resources.layers; ++layer) {
         for (s32 level = 0; level < info.resources.levels; ++level) {
-            const u32 src_level_width = std::max(1u, original_width >> level);
-            const u32 src_level_height = std::max(1u, original_height >> level);
-            const u32 dst_level_width = std::max(1u, scaled_width >> level);
-            const u32 dst_level_height = std::max(1u, scaled_height >> level);
+            const u32 src_level_width =
+                std::max(1u, (up_scale ? original_width : scaled_width) >> level);
+            const u32 src_level_height =
+                std::max(1u, (up_scale ? original_height : scaled_height) >> level);
+            const u32 dst_level_width =
+                std::max(1u, (up_scale ? scaled_width : original_width) >> level);
+            const u32 dst_level_height =
+                std::max(1u, (up_scale ? scaled_height : original_height) >> level);
 
-            glNamedFramebufferTextureLayer(read_fbo, attachment, texture.handle, level, layer);
-            glNamedFramebufferTextureLayer(draw_fbo, attachment, upscaled_backup.handle, level,
-                                           layer);
+            if (up_scale) {
+                glNamedFramebufferTextureLayer(read_fbo, attachment, texture.handle, level, layer);
+                glNamedFramebufferTextureLayer(draw_fbo, attachment, upscaled_backup.handle, level,
+                                               layer);
+            } else {
+                glNamedFramebufferTextureLayer(read_fbo, attachment, upscaled_backup.handle, level,
+                                               layer);
+                glNamedFramebufferTextureLayer(draw_fbo, attachment, texture.handle, level, layer);
+            }
+
             glBlitNamedFramebuffer(read_fbo, draw_fbo, 0, 0, src_level_width, src_level_height, 0,
                                    0, dst_level_width, dst_level_height, mask, filter);
         }
@@ -959,7 +970,12 @@ bool Image::Scale() {
     if (scissor_test != GL_FALSE) {
         glEnablei(GL_SCISSOR_TEST, 0);
     }
-    current_texture = upscaled_backup.handle;
+    if (up_scale) {
+        current_texture = upscaled_backup.handle;
+    } else {
+        current_texture = texture.handle;
+    }
+
     return true;
 }
 
@@ -981,6 +997,7 @@ bool Image::ScaleUp() {
         flags &= ~ImageFlagBits::Rescaled;
         return false;
     }
+    scale_count++;
     if (!Scale()) {
         flags &= ~ImageFlagBits::Rescaled;
         return false;
@@ -996,7 +1013,11 @@ bool Image::ScaleDown() {
     if (!runtime->resolution.active) {
         return false;
     }
-    current_texture = texture.handle;
+    scale_count++;
+    if (!Scale(false)) {
+        flags &= ~ImageFlagBits::Rescaled;
+        return false;
+    }
     return true;
 }
 

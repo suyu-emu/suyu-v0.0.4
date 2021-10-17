@@ -77,6 +77,10 @@ struct ImageBase {
     void CheckBadOverlapState();
     void CheckAliasState();
 
+    bool HasScaled() {
+        return scale_count > 0;
+    }
+
     ImageInfo info;
 
     u32 guest_size_bytes = 0;
@@ -84,6 +88,7 @@ struct ImageBase {
     u32 converted_size_bytes = 0;
     u32 scale_rating = 0;
     u64 scale_tick = 0;
+    u32 scale_count = 0;
     ImageFlagBits flags = ImageFlagBits::CpuModified;
 
     GPUVAddr gpu_addr = 0;

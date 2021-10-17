@@ -148,6 +148,9 @@ private:
 
     std::unique_ptr<Framebuffer> scale_framebuffer;
     std::unique_ptr<ImageView> scale_view;
+
+    std::unique_ptr<Framebuffer> normal_framebuffer;
+    std::unique_ptr<ImageView> normal_view;
 };
 
 class ImageView : public VideoCommon::ImageViewBase {
