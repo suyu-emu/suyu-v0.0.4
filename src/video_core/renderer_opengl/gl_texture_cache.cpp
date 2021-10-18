@@ -697,7 +697,7 @@ void Image::UploadMemory(const ImageBufferMap& map,
                          std::span<const VideoCommon::BufferImageCopy> copies) {
     const bool is_rescaled = True(flags & ImageFlagBits::Rescaled);
     if (is_rescaled) {
-        ScaleDown();
+        ScaleDown(true);
     }
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, map.buffer);
     glFlushMappedBufferRange(GL_PIXEL_UNPACK_BUFFER, map.offset, unswizzled_size_bytes);
@@ -725,6 +725,10 @@ void Image::UploadMemory(const ImageBufferMap& map,
 
 void Image::DownloadMemory(ImageBufferMap& map,
                            std::span<const VideoCommon::BufferImageCopy> copies) {
+    const bool is_rescaled = True(flags & ImageFlagBits::Rescaled);
+    if (is_rescaled) {
+        ScaleDown();
+    }
     glMemoryBarrier(GL_PIXEL_BUFFER_BARRIER_BIT); // TODO: Move this to its own API
     glBindBuffer(GL_PIXEL_PACK_BUFFER, map.buffer);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -742,6 +746,9 @@ void Image::DownloadMemory(ImageBufferMap& map,
             glPixelStorei(GL_PACK_IMAGE_HEIGHT, current_image_height);
         }
         CopyImageToBuffer(copy, map.offset);
+    }
+    if (is_rescaled) {
+        ScaleUp(true);
     }
 }
 
@@ -979,7 +986,7 @@ bool Image::Scale(bool up_scale) {
     return true;
 }
 
-bool Image::ScaleUp() {
+bool Image::ScaleUp(bool ignore) {
     if (True(flags & ImageFlagBits::Rescaled)) {
         return false;
     }
@@ -997,7 +1004,11 @@ bool Image::ScaleUp() {
         flags &= ~ImageFlagBits::Rescaled;
         return false;
     }
-    scale_count++;
+    has_scaled = true;
+    if (ignore) {
+        current_texture = upscaled_backup.handle;
+        return true;
+    }
     if (!Scale()) {
         flags &= ~ImageFlagBits::Rescaled;
         return false;
@@ -1005,7 +1016,7 @@ bool Image::ScaleUp() {
     return true;
 }
 
-bool Image::ScaleDown() {
+bool Image::ScaleDown(bool ignore) {
     if (False(flags & ImageFlagBits::Rescaled)) {
         return false;
     }
@@ -1013,7 +1024,10 @@ bool Image::ScaleDown() {
     if (!runtime->resolution.active) {
         return false;
     }
-    scale_count++;
+    if (ignore) {
+        current_texture = texture.handle;
+        return true;
+    }
     if (!Scale(false)) {
         flags &= ~ImageFlagBits::Rescaled;
         return false;

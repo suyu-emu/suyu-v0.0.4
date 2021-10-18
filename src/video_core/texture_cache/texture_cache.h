@@ -60,7 +60,7 @@ TextureCache<P>::TextureCache(Runtime& runtime_, VideoCore::RasterizerInterface&
         // On OpenGL we can be more conservatives as the driver takes care.
         expected_memory = DEFAULT_EXPECTED_MEMORY + 512_MiB;
         critical_memory = DEFAULT_CRITICAL_MEMORY + 1_GiB;
-        minimum_memory = expected_memory;
+        minimum_memory = 0;
     }
 }
 
@@ -1464,16 +1464,6 @@ template <class P>
 void TextureCache<P>::TrackImage(ImageBase& image, ImageId image_id) {
     ASSERT(False(image.flags & ImageFlagBits::Tracked));
     image.flags |= ImageFlagBits::Tracked;
-    if (image.HasScaled()) {
-        total_used_memory -= GetScaledImageSizeBytes(image);
-    }
-    u64 tentative_size = std::max(image.guest_size_bytes, image.unswizzled_size_bytes);
-    if ((IsPixelFormatASTC(image.info.format) &&
-         True(image.flags & ImageFlagBits::AcceleratedUpload)) ||
-        True(image.flags & ImageFlagBits::Converted)) {
-        tentative_size = EstimatedDecompressedSize(tentative_size, image.info.format);
-    }
-    total_used_memory -= Common::AlignUp(tentative_size, 1024);
     if (False(image.flags & ImageFlagBits::Sparse)) {
         rasterizer.UpdatePagesCachedCount(image.cpu_addr, image.guest_size_bytes, 1);
         return;
@@ -1519,6 +1509,16 @@ void TextureCache<P>::UntrackImage(ImageBase& image, ImageId image_id) {
 template <class P>
 void TextureCache<P>::DeleteImage(ImageId image_id) {
     ImageBase& image = slot_images[image_id];
+    if (image.HasScaled()) {
+        total_used_memory -= GetScaledImageSizeBytes(image);
+    }
+    u64 tentative_size = std::max(image.guest_size_bytes, image.unswizzled_size_bytes);
+    if ((IsPixelFormatASTC(image.info.format) &&
+         True(image.flags & ImageFlagBits::AcceleratedUpload)) ||
+        True(image.flags & ImageFlagBits::Converted)) {
+        tentative_size = EstimatedDecompressedSize(tentative_size, image.info.format);
+    }
+    total_used_memory -= Common::AlignUp(tentative_size, 1024);
     const GPUVAddr gpu_addr = image.gpu_addr;
     const auto alloc_it = image_allocs_table.find(gpu_addr);
     if (alloc_it == image_allocs_table.end()) {

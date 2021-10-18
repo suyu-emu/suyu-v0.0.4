@@ -196,9 +196,9 @@ public:
         return gl_type;
     }
 
-    bool ScaleUp();
+    bool ScaleUp(bool ignore = false);
 
-    bool ScaleDown();
+    bool ScaleDown(bool ignore = false);
 
 private:
     void CopyBufferToImage(const VideoCommon::BufferImageCopy& copy, size_t buffer_offset);

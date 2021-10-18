@@ -1055,7 +1055,7 @@ void Image::UploadMemory(const StagingBufferRef& map, std::span<const BufferImag
     // TODO: Move this to another API
     const bool is_rescaled = True(flags & ImageFlagBits::Rescaled);
     if (is_rescaled) {
-        ScaleDown();
+        ScaleDown(true);
     }
     scheduler->RequestOutsideRenderPassOperationContext();
     std::vector vk_copies = TransformBufferImageCopies(copies, map.offset, aspect_mask);
@@ -1073,6 +1073,10 @@ void Image::UploadMemory(const StagingBufferRef& map, std::span<const BufferImag
 }
 
 void Image::DownloadMemory(const StagingBufferRef& map, std::span<const BufferImageCopy> copies) {
+    const bool is_rescaled = True(flags & ImageFlagBits::Rescaled);
+    if (is_rescaled) {
+        ScaleDown();
+    }
     std::vector vk_copies = TransformBufferImageCopies(copies, map.offset, aspect_mask);
     scheduler->RequestOutsideRenderPassOperationContext();
     scheduler->Record([buffer = map.buffer, image = *original_image, aspect_mask = aspect_mask,
@@ -1125,9 +1129,12 @@ void Image::DownloadMemory(const StagingBufferRef& map, std::span<const BufferIm
         cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
                                0, memory_write_barrier, nullptr, image_write_barrier);
     });
+    if (is_rescaled) {
+        ScaleUp(true);
+    }
 }
 
-bool Image::ScaleUp() {
+bool Image::ScaleUp(bool ignore) {
     if (True(flags & ImageFlagBits::Rescaled)) {
         return false;
     }
@@ -1137,7 +1144,7 @@ bool Image::ScaleUp() {
     if (!resolution.active) {
         return false;
     }
-    scale_count++;
+    has_scaled = true;
     const auto& device = runtime->device;
     const bool is_2d = info.type == ImageType::e2D;
     const u32 scaled_width = resolution.ScaleUp(info.size.width);
@@ -1149,8 +1156,12 @@ bool Image::ScaleUp() {
         scaled_image = MakeImage(device, scaled_info);
         auto& allocator = runtime->memory_allocator;
         scaled_commit = MemoryCommit(allocator.Commit(scaled_image, MemoryUsage::DeviceLocal));
+        ignore = false;
     }
     current_image = *scaled_image;
+    if (ignore) {
+      return true;
+    }
 
     if (aspect_mask == 0) {
         aspect_mask = ImageAspectMask(info.format);
@@ -1212,7 +1223,7 @@ bool Image::ScaleUp() {
     return true;
 }
 
-bool Image::ScaleDown() {
+bool Image::ScaleDown(bool ignore) {
     if (False(flags & ImageFlagBits::Rescaled)) {
         return false;
     }
@@ -1220,6 +1231,10 @@ bool Image::ScaleDown() {
     const auto& resolution = runtime->resolution;
     if (!resolution.active) {
         return false;
+    }
+    if (ignore) {
+      current_image = *original_image;
+      return true;
     }
     const auto& device = runtime->device;
     const bool is_2d = info.type == ImageType::e2D;

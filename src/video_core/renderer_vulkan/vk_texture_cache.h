@@ -129,9 +129,9 @@ public:
         return std::exchange(initialized, true);
     }
 
-    bool ScaleUp();
+    bool ScaleUp(bool ignore = false);
 
-    bool ScaleDown();
+    bool ScaleDown(bool ignore = false);
 
 private:
     VKScheduler* scheduler{};
