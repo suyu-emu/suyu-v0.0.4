@@ -221,7 +221,6 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
         scale_rating = 0;
         bool any_rescaled = false;
         bool can_rescale = true;
-        bool any_blacklisted = false;
         const auto check_rescale = [&](ImageViewId view_id, ImageId& id_save) {
             if (view_id != NULL_IMAGE_VIEW_ID && view_id != ImageViewId{}) {
                 const auto& view = slot_image_views[view_id];
@@ -229,7 +228,6 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
                 id_save = image_id;
                 auto& image = slot_images[image_id];
                 can_rescale &= ImageCanRescale(image);
-                any_blacklisted |= True(image.flags & ImageFlagBits::Blacklisted);
                 any_rescaled |= True(image.flags & ImageFlagBits::Rescaled) ||
                                 GetFormatType(image.info.format) != SurfaceType::ColorTexture;
                 scale_rating = std::max<u32>(scale_rating, image.scale_tick <= frame_tick
@@ -270,20 +268,17 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
             }
         } else {
             rescaled = false;
-            const auto scale_down = [this, any_blacklisted](ImageId image_id) {
+            const auto scale_down = [this](ImageId image_id) {
                 if (image_id != CORRUPT_ID) {
                     Image& image = slot_images[image_id];
                     ScaleDown(image);
-                    if (any_blacklisted) {
-                        image.flags |= ImageFlagBits::Blacklisted;
-                    }
                 }
             };
             for (size_t index = 0; index < NUM_RT; ++index) {
                 scale_down(tmp_color_images[index]);
             }
             scale_down(tmp_depth_image);
-            scale_rating = 0;
+            scale_rating = 1;
         }
     } while (has_deleted_images);
     // Rescale End
@@ -352,7 +347,10 @@ void TextureCache<P>::FillImageViews(DescriptorTable<TICEntry>& table,
             if constexpr (has_blacklists) {
                 if (view.blacklist && view.id != NULL_IMAGE_VIEW_ID) {
                     const ImageViewBase& image_view{slot_image_views[view.id]};
-                    has_blacklisted |= BlackListImage(image_view.image_id);
+                    auto& image = slot_images[image_view.image_id];
+                    image.flags |= ImageFlagBits::Blacklisted;
+                    has_blacklisted |= ScaleDown(image);
+                    image.scale_rating = 0;
                 }
             }
         }
@@ -784,19 +782,8 @@ ImageId TextureCache<P>::FindImage(const ImageInfo& info, GPUVAddr gpu_addr,
 }
 
 template <class P>
-bool TextureCache<P>::BlackListImage(ImageId image_id) {
-    auto& image = slot_images[image_id];
-    if (True(image.flags & ImageFlagBits::Blacklisted)) {
-        return false;
-    }
-    image.flags |= ImageFlagBits::Blacklisted;
-    ScaleDown(image);
-    return true;
-}
-
-template <class P>
 bool TextureCache<P>::ImageCanRescale(ImageBase& image) {
-    if (!image.info.rescaleable || True(image.flags & ImageFlagBits::Blacklisted)) {
+    if (!image.info.rescaleable) {
         return false;
     }
     if (Settings::values.resolution_info.downscale && !image.info.downscaleable) {

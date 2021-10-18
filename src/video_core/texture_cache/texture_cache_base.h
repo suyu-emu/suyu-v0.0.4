@@ -166,8 +166,6 @@ public:
 
     [[nodiscard]] bool IsRescaling(const ImageViewBase& image_view) const noexcept;
 
-    [[nodiscard]] bool BlackListImage(ImageId image_id);
-
     std::mutex mutex;
 
 private:
