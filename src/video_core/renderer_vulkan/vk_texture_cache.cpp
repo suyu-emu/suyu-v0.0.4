@@ -1214,7 +1214,7 @@ bool Image::ScaleUp(bool ignore) {
                    aspect_mask == (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) {
             if (!scale_framebuffer) {
                 scale_framebuffer =
-                    std::make_unique<Framebuffer>(*runtime, view_ptr, nullptr, extent);
+                    std::make_unique<Framebuffer>(*runtime, nullptr, view_ptr, extent);
             }
             runtime->blit_image_helper.BlitDepthStencil(
                 scale_framebuffer.get(), scale_view->DepthView(), scale_view->StencilView(),
@@ -1295,7 +1295,7 @@ bool Image::ScaleDown(bool ignore) {
                    aspect_mask == (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) {
             if (!normal_framebuffer) {
                 normal_framebuffer =
-                    std::make_unique<Framebuffer>(*runtime, view_ptr, nullptr, extent);
+                    std::make_unique<Framebuffer>(*runtime, nullptr, view_ptr, extent);
             }
             runtime->blit_image_helper.BlitDepthStencil(
                 normal_framebuffer.get(), normal_view->DepthView(), normal_view->StencilView(),
