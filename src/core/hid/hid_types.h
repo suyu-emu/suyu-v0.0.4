@@ -47,9 +47,9 @@ constexpr size_t NpadIdTypeToIndex(NpadIdType npad_id_type) {
         return 6;
     case NpadIdType::Player8:
         return 7;
-    case NpadIdType::Other:
-        return 8;
     case NpadIdType::Handheld:
+        return 8;
+    case NpadIdType::Other:
         return 9;
     default:
         return 0;
@@ -76,9 +76,9 @@ constexpr NpadIdType IndexToNpadIdType(size_t index) {
     case 7:
         return NpadIdType::Player8;
     case 8:
-        return NpadIdType::Other;
-    case 9:
         return NpadIdType::Handheld;
+    case 9:
+        return NpadIdType::Other;
     default:
         return NpadIdType::Invalid;
     }

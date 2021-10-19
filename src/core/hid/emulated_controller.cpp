@@ -54,6 +54,7 @@ Settings::ControllerType EmulatedController::MapNPadToSettingsType(NpadType type
 }
 
 void EmulatedController::ReloadFromSettings() {
+    //LOG_ERROR(Service_HID, "reload config from settings {}", NpadIdTypeToIndex(npad_id_type));
     const auto player_index = NpadIdTypeToIndex(npad_id_type);
     const auto& player = Settings::values.players.GetValue()[player_index];
 
@@ -91,6 +92,7 @@ void EmulatedController::ReloadFromSettings() {
 }
 
 void EmulatedController::ReloadInput() {
+    //LOG_ERROR(Service_HID, "reload config {}", NpadIdTypeToIndex(npad_id_type));
     // If you load any device here add the equivalent to the UnloadInput() function
     const auto player_index = NpadIdTypeToIndex(npad_id_type);
     const auto left_side = button_params[Settings::NativeButton::ZL];
@@ -187,11 +189,29 @@ void EmulatedController::UnloadInput() {
 
 void EmulatedController::EnableConfiguration() {
     is_configuring = true;
-    SaveCurrentConfig();
+    temporary_is_connected = is_connected;
+    temporary_npad_type = npad_type;
 }
 
 void EmulatedController::DisableConfiguration() {
     is_configuring = false;
+
+    // Apply temporary npad type to the real controller
+    if (temporary_npad_type != npad_type) {
+        if (is_connected) {
+            Disconnect();
+        }
+        SetNpadType(temporary_npad_type);
+    }
+
+    // Apply temporary connected status to the real controller
+    if (temporary_is_connected != is_connected) {
+        if (temporary_is_connected) {
+            Connect();
+            return;
+        }
+        Disconnect();
+    }
 }
 
 bool EmulatedController::IsConfiguring() const {
@@ -199,10 +219,6 @@ bool EmulatedController::IsConfiguring() const {
 }
 
 void EmulatedController::SaveCurrentConfig() {
-    if (!is_configuring) {
-        return;
-    }
-
     const auto player_index = NpadIdTypeToIndex(npad_id_type);
     auto& player = Settings::values.players.GetValue()[player_index];
     player.connected = is_connected;
@@ -657,26 +673,47 @@ void EmulatedController::SetLedPattern() {
 }
 
 void EmulatedController::Connect() {
-    std::lock_guard lock{mutex};
-    if (is_connected) {
-        LOG_WARNING(Service_HID, "Tried to turn on a connected controller {}", npad_id_type);
-        return;
+    {
+        std::lock_guard lock{mutex};
+        if (is_configuring) {
+            temporary_is_connected = true;
+            TriggerOnChange(ControllerTriggerType::Connected);
+            return;
+        }
+
+        if (is_connected) {
+            return;
+        }
+        is_connected = true;
     }
-    is_connected = true;
+    LOG_ERROR(Service_HID, "Connected controller {}", NpadIdTypeToIndex(npad_id_type));
     TriggerOnChange(ControllerTriggerType::Connected);
 }
 
 void EmulatedController::Disconnect() {
-    std::lock_guard lock{mutex};
-    if (!is_connected) {
-        LOG_WARNING(Service_HID, "Tried to turn off a disconnected controller {}", npad_id_type);
-        return;
+    {
+        std::lock_guard lock{mutex};
+        if (is_configuring) {
+            temporary_is_connected = false;
+            LOG_ERROR(Service_HID, "Disconnected temporal controller {}",
+                      NpadIdTypeToIndex(npad_id_type));
+            TriggerOnChange(ControllerTriggerType::Disconnected);
+            return;
+        }
+
+        if (!is_connected) {
+            return;
+        }
+        is_connected = false;
     }
-    is_connected = false;
+    LOG_ERROR(Service_HID, "Disconnected controller {}", NpadIdTypeToIndex(npad_id_type));
     TriggerOnChange(ControllerTriggerType::Disconnected);
 }
 
-bool EmulatedController::IsConnected() const {
+bool EmulatedController::IsConnected(bool temporary) const {
+    if (temporary) {
+        return temporary_is_connected;
+    }
     return is_connected;
 }
 
@@ -688,16 +725,35 @@ NpadIdType EmulatedController::GetNpadIdType() const {
     return npad_id_type;
 }
 
-NpadType EmulatedController::GetNpadType() const {
+NpadType EmulatedController::GetNpadType(bool temporary) const {
+    if (temporary) {
+        return temporary_npad_type;
+    }
     return npad_type;
 }
 
 void EmulatedController::SetNpadType(NpadType npad_type_) {
-    std::lock_guard lock{mutex};
-    if (npad_type == npad_type_) {
-        return;
+    {
+        std::lock_guard lock{mutex};
+
+        if (is_configuring) {
+            if (temporary_npad_type == npad_type_) {
+                return;
+            }
+            temporary_npad_type = npad_type_;
+            TriggerOnChange(ControllerTriggerType::Type);
+            return;
+        }
+
+        if (npad_type == npad_type_) {
+            return;
+        }
+        if (is_connected) {
+            LOG_WARNING(Service_HID, "Controller {} type changed while it's connected",
+                        NpadIdTypeToIndex(npad_id_type));
+        }
+        npad_type = npad_type_;
     }
-    npad_type = npad_type_;
     TriggerOnChange(ControllerTriggerType::Type);
 }
 

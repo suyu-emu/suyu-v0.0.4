@@ -125,18 +125,22 @@ void Controller_NPad::ControllerUpdate(Core::HID::ControllerTriggerType type,
         return;
     }
 
+    auto& controller = controller_data[controller_idx];
+    const auto is_connected = controller.device->IsConnected();
+    const auto npad_type = controller.device->GetNpadType();
     switch (type) {
     case Core::HID::ControllerTriggerType::Connected:
-        InitNewlyAddedController(controller_idx);
-        break;
     case Core::HID::ControllerTriggerType::Disconnected:
-        DisconnectNpadAtIndex(controller_idx);
+        if (is_connected == controller.is_connected) {
+            return;
+        }
+        UpdateControllerAt(npad_type, controller_idx, is_connected);
         break;
     case Core::HID::ControllerTriggerType::Type: {
-        auto& controller = controller_data[controller_idx];
-        if (controller.device->IsConnected()) {
-            LOG_ERROR(Service_HID, "Controller type changed without turning off the controller");
+        if (npad_type == controller.npad_type) {
+            return;
         }
+        // UpdateControllerAt(npad_type, controller_idx, is_connected);
         break;
     }
     default:
@@ -146,6 +150,7 @@ void Controller_NPad::ControllerUpdate(Core::HID::ControllerTriggerType type,
 
 void Controller_NPad::InitNewlyAddedController(std::size_t controller_idx) {
     auto& controller = controller_data[controller_idx];
+    LOG_ERROR(Service_HID, "Connect {} {}", controller_idx, controller.is_connected);
     const auto controller_type = controller.device->GetNpadType();
     auto& shared_memory = controller.shared_memory_entry;
     if (controller_type == Core::HID::NpadType::None) {
@@ -235,18 +240,21 @@ void Controller_NPad::InitNewlyAddedController(std::size_t controller_idx) {
     shared_memory.battery_level_left = battery_level.left.battery_level;
     shared_memory.battery_level_right = battery_level.right.battery_level;
 
+    controller.is_connected = true;
+    controller.device->Connect();
     SignalStyleSetChangedEvent(IndexToNPad(controller_idx));
+    WriteEmptyEntry(controller.shared_memory_entry);
 }
 
 void Controller_NPad::OnInit() {
+    if (!IsControllerActivated()) {
+        return;
+    }
+
     for (std::size_t i = 0; i < controller_data.size(); ++i) {
         auto& controller = controller_data[i];
         controller.styleset_changed_event =
             service_context.CreateEvent(fmt::format("npad:NpadStyleSetChanged_{}", i));
-    }
-
-    if (!IsControllerActivated()) {
-        return;
     }
 
     if (system.HIDCore().GetSupportedStyleTag().raw == 0) {
@@ -277,18 +285,31 @@ void Controller_NPad::OnInit() {
     for (auto& controller : controller_data) {
         NPadGenericState dummy_pad_state{};
         auto& npad = controller.shared_memory_entry;
-        for (std::size_t i = 0; i < 17; ++i) {
-            dummy_pad_state.sampling_number =
-                npad.fullkey_lifo.ReadCurrentEntry().sampling_number + 1;
-            npad.fullkey_lifo.WriteNextEntry(dummy_pad_state);
-            npad.handheld_lifo.WriteNextEntry(dummy_pad_state);
-            npad.joy_dual_lifo.WriteNextEntry(dummy_pad_state);
-            npad.joy_left_lifo.WriteNextEntry(dummy_pad_state);
-            npad.joy_right_lifo.WriteNextEntry(dummy_pad_state);
-            npad.joy_right_lifo.WriteNextEntry(dummy_pad_state);
-            npad.palma_lifo.WriteNextEntry(dummy_pad_state);
+        for (std::size_t i = 0; i < 19; ++i) {
+            WriteEmptyEntry(npad);
         }
     }
+}
+
+void Controller_NPad::WriteEmptyEntry(NpadInternalState& npad) {
+    NPadGenericState dummy_pad_state{};
+    NpadGcTriggerState dummy_gc_state{};
+    dummy_pad_state.sampling_number = npad.fullkey_lifo.ReadCurrentEntry().sampling_number + 1;
+    npad.fullkey_lifo.WriteNextEntry(dummy_pad_state);
+    dummy_pad_state.sampling_number = npad.handheld_lifo.ReadCurrentEntry().sampling_number + 1;
+    npad.handheld_lifo.WriteNextEntry(dummy_pad_state);
+    dummy_pad_state.sampling_number = npad.joy_dual_lifo.ReadCurrentEntry().sampling_number + 1;
+    npad.joy_dual_lifo.WriteNextEntry(dummy_pad_state);
+    dummy_pad_state.sampling_number = npad.joy_left_lifo.ReadCurrentEntry().sampling_number + 1;
+    npad.joy_left_lifo.WriteNextEntry(dummy_pad_state);
+    dummy_pad_state.sampling_number = npad.joy_right_lifo.ReadCurrentEntry().sampling_number + 1;
+    npad.joy_right_lifo.WriteNextEntry(dummy_pad_state);
+    dummy_pad_state.sampling_number = npad.palma_lifo.ReadCurrentEntry().sampling_number + 1;
+    npad.palma_lifo.WriteNextEntry(dummy_pad_state);
+    dummy_pad_state.sampling_number = npad.system_ext_lifo.ReadCurrentEntry().sampling_number + 1;
+    npad.system_ext_lifo.WriteNextEntry(dummy_pad_state);
+    dummy_gc_state.sampling_number = npad.gc_trigger_lifo.ReadCurrentEntry().sampling_number + 1;
+    npad.gc_trigger_lifo.WriteNextEntry(dummy_gc_state);
 }
 
 void Controller_NPad::OnRelease() {
@@ -359,6 +380,7 @@ void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* 
     if (!IsControllerActivated()) {
         return;
     }
+
     for (std::size_t i = 0; i < controller_data.size(); ++i) {
         auto& controller = controller_data[i];
         auto& npad = controller.shared_memory_entry;
@@ -366,6 +388,9 @@ void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* 
         const auto& controller_type = controller.device->GetNpadType();
 
         if (controller_type == Core::HID::NpadType::None || !controller.device->IsConnected()) {
+            // Refresh shared memory
+            std::memcpy(data + NPAD_OFFSET + (i * sizeof(NpadInternalState)),
+                        &controller.shared_memory_entry, sizeof(NpadInternalState));
             continue;
         }
         const u32 npad_index = static_cast<u32>(i);
@@ -830,14 +855,14 @@ void Controller_NPad::AddNewControllerAt(Core::HID::NpadType controller, std::si
 
 void Controller_NPad::UpdateControllerAt(Core::HID::NpadType type, std::size_t npad_index,
                                          bool connected) {
-    auto& controller = controller_data[npad_index].device;
+    auto& controller = controller_data[npad_index];
     if (!connected) {
         DisconnectNpadAtIndex(npad_index);
         return;
     }
 
-    controller->SetNpadType(type);
-    controller->Connect();
+    controller.device->SetNpadType(type);
+    controller.device->Connect();
     InitNewlyAddedController(npad_index);
 }
 
@@ -847,13 +872,12 @@ void Controller_NPad::DisconnectNpad(u32 npad_id) {
 
 void Controller_NPad::DisconnectNpadAtIndex(std::size_t npad_index) {
     auto& controller = controller_data[npad_index];
+    LOG_ERROR(Service_HID, "Disconnect {} {}", npad_index, controller.is_connected);
     for (std::size_t device_idx = 0; device_idx < controller.vibration.size(); ++device_idx) {
         // Send an empty vibration to stop any vibrations.
         VibrateControllerAtIndex(npad_index, device_idx, {});
         controller.vibration[device_idx].device_mounted = false;
     }
-
-    controller.device->Disconnect();
 
     auto& shared_memory_entry = controller.shared_memory_entry;
     shared_memory_entry.style_set.raw = 0; // Zero out
@@ -868,7 +892,10 @@ void Controller_NPad::DisconnectNpadAtIndex(std::size_t npad_index) {
     shared_memory_entry.assignment_mode = NpadJoyAssignmentMode::Dual;
     shared_memory_entry.footer_type = AppletFooterUiType::None;
 
+    controller.is_connected = false;
+    controller.device->Disconnect();
     SignalStyleSetChangedEvent(IndexToNPad(npad_index));
+    WriteEmptyEntry(controller.shared_memory_entry);
 }
 
 void Controller_NPad::SetGyroscopeZeroDriftMode(GyroscopeZeroDriftMode drift_mode) {

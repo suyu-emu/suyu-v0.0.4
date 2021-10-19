@@ -53,7 +53,6 @@ void EmulatedConsole::ReloadInput() {
         touch_button_params.Set("x", x);
         touch_button_params.Set("y", y);
         touch_button_params.Set("touch_id", static_cast<int>(index));
-        LOG_ERROR(Common, "{} ", touch_button_params.Serialize());
         touch_devices[index] =
             Input::CreateDeviceFromString<Input::InputDevice>(touch_button_params.Serialize());
         if (!touch_devices[index]) {

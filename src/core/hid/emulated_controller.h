@@ -139,8 +139,12 @@ public:
     /// Sets the NpadType for this controller
     void SetNpadType(NpadType npad_type_);
 
-    /// Gets the NpadType for this controller
-    NpadType GetNpadType() const;
+    /**
+     * Gets the NpadType for this controller
+     * @param Returns the temporary value if true
+     * @return NpadType set on the controller
+     */
+    NpadType GetNpadType(bool temporary = false) const;
 
     /// Sets the connected status to true
     void Connect();
@@ -148,8 +152,12 @@ public:
     /// Sets the connected status to false
     void Disconnect();
 
-    /// Returns true if the controller has the connected status
-    bool IsConnected() const;
+    /**
+     * Is the emulated connected
+     * @param Returns the temporary value if true
+     * @return true if the controller has the connected status
+     */
+    bool IsConnected(bool temporary = false) const;
 
     /// Returns true if vibration is enabled
     bool IsVibrationEnabled() const;
@@ -323,7 +331,9 @@ private:
 
     NpadIdType npad_id_type;
     NpadType npad_type{NpadType::None};
+    NpadType temporary_npad_type{NpadType::None};
     bool is_connected{false};
+    bool temporary_is_connected{false};
     bool is_configuring{false};
     bool is_vibration_enabled{true};
     f32 motion_sensitivity{0.01f};

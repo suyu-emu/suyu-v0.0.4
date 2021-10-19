@@ -417,6 +417,8 @@ private:
 
         std::array<VibrationData, 2> vibration{};
         bool unintended_home_button_input_protection{};
+        bool is_connected{};
+        Core::HID::NpadType npad_type{Core::HID::NpadType::None};
 
         // Current pad state
         NPadGenericState npad_pad_state{};
@@ -435,6 +437,7 @@ private:
     void InitNewlyAddedController(std::size_t controller_idx);
     bool IsControllerSupported(Core::HID::NpadType controller) const;
     void RequestPadStateUpdate(u32 npad_id);
+    void WriteEmptyEntry(NpadInternalState& npad);
 
     std::atomic<u32> press_state{};
 

@@ -145,7 +145,7 @@ void PlayerControlPreview::ControllerUpdate(Core::HID::ControllerTriggerType typ
         needs_redraw = true;
         break;
     case Core::HID::ControllerTriggerType::Type:
-        controller_type = controller->GetNpadType();
+        controller_type = controller->GetNpadType(true);
         needs_redraw = true;
         break;
     case Core::HID::ControllerTriggerType::Color:

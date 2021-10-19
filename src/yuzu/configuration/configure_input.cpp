@@ -114,6 +114,7 @@ void ConfigureInput::Initialize(InputCommon::InputSubsystem* input_subsystem, Co
         player_tabs[i]->setLayout(new QHBoxLayout(player_tabs[i]));
         player_tabs[i]->layout()->addWidget(player_controllers[i]);
         connect(player_controllers[i], &ConfigureInputPlayer::Connected, [&, i](bool is_connected) {
+            // Ensures that the controllers are always connected in sequential order
             if (is_connected) {
                 for (std::size_t index = 0; index <= i; ++index) {
                     player_connected[index]->setChecked(is_connected);

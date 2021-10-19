@@ -143,8 +143,26 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
       timeout_timer(std::make_unique<QTimer>()), poll_timer(std::make_unique<QTimer>()),
       bottom_row(bottom_row), system{system_} {
 
-    emulated_controller = system_.HIDCore().GetEmulatedControllerByIndex(player_index);
-    emulated_controller->EnableConfiguration();
+    if (player_index == 0) {
+        auto* emulated_controller_p1 =
+            system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
+        auto* emulated_controller_hanheld =
+            system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
+        emulated_controller_p1->SaveCurrentConfig();
+        emulated_controller_p1->EnableConfiguration();
+        emulated_controller_hanheld->SaveCurrentConfig();
+        emulated_controller_hanheld->EnableConfiguration();
+        if (emulated_controller_hanheld->IsConnected(true)) {
+            emulated_controller_p1->Disconnect();
+            emulated_controller = emulated_controller_hanheld;
+        } else {
+            emulated_controller = emulated_controller_p1;
+        }
+    } else {
+        emulated_controller = system_.HIDCore().GetEmulatedControllerByIndex(player_index);
+        emulated_controller->SaveCurrentConfig();
+        emulated_controller->EnableConfiguration();
+    }
     ui->setupUi(this);
 
     setFocusPolicy(Qt::ClickFocus);
@@ -460,13 +478,36 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
     UpdateControllerEnabledButtons();
     UpdateControllerButtonNames();
     UpdateMotionButtons();
-    connect(ui->comboControllerType, qOverload<int>(&QComboBox::currentIndexChanged), [this](int) {
+    connect(ui->comboControllerType, qOverload<int>(&QComboBox::currentIndexChanged), [this, player_index](int) {
         UpdateControllerAvailableButtons();
         UpdateControllerEnabledButtons();
         UpdateControllerButtonNames();
         UpdateMotionButtons();
-        emulated_controller->SetNpadType(
-            GetControllerTypeFromIndex(ui->comboControllerType->currentIndex()));
+        const Core::HID::NpadType type = GetControllerTypeFromIndex(ui->comboControllerType->currentIndex());
+
+        if (player_index == 0) {
+            auto* emulated_controller_p1 =
+                system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
+            auto* emulated_controller_hanheld =
+                system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
+            bool is_connected = emulated_controller->IsConnected(true);
+
+            emulated_controller_p1->SetNpadType(type);
+            emulated_controller_hanheld->SetNpadType(type);
+            if (is_connected) {
+                if (type == Core::HID::NpadType::Handheld) {
+                    emulated_controller_p1->Disconnect();
+                    emulated_controller_hanheld->Connect();
+                    emulated_controller = emulated_controller_hanheld;
+                } else {
+                    emulated_controller_hanheld->Disconnect();
+                    emulated_controller_p1->Connect();
+                    emulated_controller = emulated_controller_p1;
+                }
+            }
+            ui->controllerFrame->SetController(emulated_controller);
+        }
+        emulated_controller->SetNpadType(type);
     });
 
     connect(ui->comboDevices, qOverload<int>(&QComboBox::activated), this,
@@ -504,11 +545,35 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
 }
 
 ConfigureInputPlayer::~ConfigureInputPlayer() {
-    emulated_controller->DisableConfiguration();
+    if (player_index == 0) {
+        auto* emulated_controller_p1 =
+            system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
+        auto* emulated_controller_hanheld =
+            system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
+        emulated_controller_p1->DisableConfiguration();
+        emulated_controller_hanheld->DisableConfiguration();
+    } else {
+        emulated_controller->DisableConfiguration();
+    }
 };
 
 void ConfigureInputPlayer::ApplyConfiguration() {
+    if (player_index == 0) {
+        auto* emulated_controller_p1 =
+            system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
+        auto* emulated_controller_hanheld =
+            system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
+        emulated_controller_p1->DisableConfiguration();
+        emulated_controller_p1->SaveCurrentConfig();
+        emulated_controller_p1->EnableConfiguration();
+        emulated_controller_hanheld->DisableConfiguration();
+        emulated_controller_hanheld->SaveCurrentConfig();
+        emulated_controller_hanheld->EnableConfiguration();
+        return;
+    }
+    emulated_controller->DisableConfiguration();
     emulated_controller->SaveCurrentConfig();
+    emulated_controller->EnableConfiguration();
 }
 
 void ConfigureInputPlayer::showEvent(QShowEvent* event) {
@@ -535,9 +600,9 @@ void ConfigureInputPlayer::RetranslateUI() {
 void ConfigureInputPlayer::LoadConfiguration() {
     UpdateUI();
     UpdateInputDeviceCombobox();
-    const int comboBoxIndex = GetIndexFromControllerType(emulated_controller->GetNpadType());
+    const int comboBoxIndex = GetIndexFromControllerType(emulated_controller->GetNpadType(true));
     ui->comboControllerType->setCurrentIndex(comboBoxIndex);
-    ui->groupConnectedController->setChecked(emulated_controller->IsConnected());
+    ui->groupConnectedController->setChecked(emulated_controller->IsConnected(true));
 }
 
 void ConfigureInputPlayer::ConnectPlayer(bool connected) {
