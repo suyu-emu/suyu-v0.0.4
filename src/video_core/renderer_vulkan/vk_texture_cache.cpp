@@ -593,7 +593,7 @@ struct RangedBarrierRange {
 
 void BlitScale(VKScheduler& scheduler, VkImage src_image, VkImage dst_image, const ImageInfo& info,
                VkImageAspectFlags aspect_mask, const Settings::ResolutionScalingInfo& resolution,
-               bool up_scaling = true) {
+               bool is_bilinear, bool up_scaling = true) {
     const bool is_2d = info.type == ImageType::e2D;
     const auto resources = info.resources;
     const VkExtent2D extent{
@@ -602,7 +602,7 @@ void BlitScale(VKScheduler& scheduler, VkImage src_image, VkImage dst_image, con
     };
     const bool is_zeta = (aspect_mask & VK_IMAGE_ASPECT_DEPTH_BIT) != 0;
     const bool is_int_format = IsPixelFormatInteger(info.format);
-    const VkFilter vk_filter = (is_zeta || is_int_format) ? VK_FILTER_NEAREST : VK_FILTER_LINEAR;
+    const VkFilter vk_filter = is_bilinear ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
 
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([dst_image, src_image, extent, resources, aspect_mask, resolution, is_2d,
@@ -1160,7 +1160,7 @@ bool Image::ScaleUp(bool ignore) {
     }
     current_image = *scaled_image;
     if (ignore) {
-      return true;
+        return true;
     }
 
     if (aspect_mask == 0) {
@@ -1170,11 +1170,18 @@ bool Image::ScaleUp(bool ignore) {
     const PixelFormat format = StorageFormat(info.format);
     const auto vk_format = MaxwellToVK::SurfaceFormat(device, OPTIMAL_FORMAT, false, format).format;
     const auto blit_usage = VK_FORMAT_FEATURE_BLIT_SRC_BIT | VK_FORMAT_FEATURE_BLIT_DST_BIT;
+    const bool is_color{aspect_mask == VK_IMAGE_ASPECT_COLOR_BIT};
+    const bool is_bilinear{is_color && !IsPixelFormatInteger(info.format)};
     if (device.IsFormatSupported(vk_format, blit_usage, OPTIMAL_FORMAT)) {
-        BlitScale(*scheduler, *original_image, *scaled_image, info, aspect_mask, resolution);
+        BlitScale(*scheduler, *original_image, *scaled_image, info, aspect_mask, resolution,
+                  device.IsFormatSupported(vk_format,
+                                           VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT,
+                                           OPTIMAL_FORMAT));
     } else {
         using namespace VideoCommon;
         static constexpr auto BLIT_OPERATION = Tegra::Engines::Fermi2D::Operation::SrcCopy;
+        const auto operation = is_bilinear ? Tegra::Engines::Fermi2D::Filter::Bilinear
+                                           : Tegra::Engines::Fermi2D::Filter::Point;
 
         if (!scale_view) {
             const auto view_info = ImageViewInfo(ImageViewType::e2D, info.format);
@@ -1201,9 +1208,8 @@ bool Image::ScaleUp(bool ignore) {
             }
             const auto color_view = scale_view->Handle(Shader::TextureType::Color2D);
 
-            runtime->blit_image_helper.BlitColor(
-                scale_framebuffer.get(), color_view, dst_region, src_region,
-                Tegra::Engines::Fermi2D::Filter::Bilinear, BLIT_OPERATION);
+            runtime->blit_image_helper.BlitColor(scale_framebuffer.get(), color_view, dst_region,
+                                                 src_region, operation, BLIT_OPERATION);
         } else if (!runtime->device.IsBlitDepthStencilSupported() &&
                    aspect_mask == (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) {
             if (!scale_framebuffer) {
@@ -1212,7 +1218,7 @@ bool Image::ScaleUp(bool ignore) {
             }
             runtime->blit_image_helper.BlitDepthStencil(
                 scale_framebuffer.get(), scale_view->DepthView(), scale_view->StencilView(),
-                dst_region, src_region, Tegra::Engines::Fermi2D::Filter::Point, BLIT_OPERATION);
+                dst_region, src_region, operation, BLIT_OPERATION);
         } else {
             // TODO: Use helper blits where applicable
             flags &= ~ImageFlagBits::Rescaled;
@@ -1233,8 +1239,8 @@ bool Image::ScaleDown(bool ignore) {
         return false;
     }
     if (ignore) {
-      current_image = *original_image;
-      return true;
+        current_image = *original_image;
+        return true;
     }
     const auto& device = runtime->device;
     const bool is_2d = info.type == ImageType::e2D;
@@ -1247,11 +1253,16 @@ bool Image::ScaleDown(bool ignore) {
     const PixelFormat format = StorageFormat(info.format);
     const auto vk_format = MaxwellToVK::SurfaceFormat(device, OPTIMAL_FORMAT, false, format).format;
     const auto blit_usage = VK_FORMAT_FEATURE_BLIT_SRC_BIT | VK_FORMAT_FEATURE_BLIT_DST_BIT;
+    const bool is_color{aspect_mask == VK_IMAGE_ASPECT_COLOR_BIT};
+    const bool is_bilinear{is_color && !IsPixelFormatInteger(info.format)};
     if (device.IsFormatSupported(vk_format, blit_usage, OPTIMAL_FORMAT)) {
-        BlitScale(*scheduler, *scaled_image, *original_image, info, aspect_mask, resolution, false);
+        BlitScale(*scheduler, *scaled_image, *original_image, info, aspect_mask, resolution,
+                  is_bilinear, false);
     } else {
         using namespace VideoCommon;
         static constexpr auto BLIT_OPERATION = Tegra::Engines::Fermi2D::Operation::SrcCopy;
+        const auto operation = is_bilinear ? Tegra::Engines::Fermi2D::Filter::Bilinear
+                                           : Tegra::Engines::Fermi2D::Filter::Point;
 
         if (!normal_view) {
             const auto view_info = ImageViewInfo(ImageViewType::e2D, info.format);
@@ -1278,9 +1289,8 @@ bool Image::ScaleDown(bool ignore) {
             }
             const auto color_view = normal_view->Handle(Shader::TextureType::Color2D);
 
-            runtime->blit_image_helper.BlitColor(
-                normal_framebuffer.get(), color_view, dst_region, src_region,
-                Tegra::Engines::Fermi2D::Filter::Bilinear, BLIT_OPERATION);
+            runtime->blit_image_helper.BlitColor(normal_framebuffer.get(), color_view, dst_region,
+                                                 src_region, operation, BLIT_OPERATION);
         } else if (!runtime->device.IsBlitDepthStencilSupported() &&
                    aspect_mask == (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) {
             if (!normal_framebuffer) {
@@ -1289,7 +1299,7 @@ bool Image::ScaleDown(bool ignore) {
             }
             runtime->blit_image_helper.BlitDepthStencil(
                 normal_framebuffer.get(), normal_view->DepthView(), normal_view->StencilView(),
-                dst_region, src_region, Tegra::Engines::Fermi2D::Filter::Point, BLIT_OPERATION);
+                dst_region, src_region, operation, BLIT_OPERATION);
         } else {
             // TODO: Use helper blits where applicable
             flags &= ~ImageFlagBits::Rescaled;

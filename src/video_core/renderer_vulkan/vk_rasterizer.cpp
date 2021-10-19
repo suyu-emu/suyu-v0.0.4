@@ -60,10 +60,19 @@ struct DrawParams {
 
 VkViewport GetViewportState(const Device& device, const Maxwell& regs, size_t index, float scale) {
     const auto& src = regs.viewport_transform[index];
-    const float x = (src.translate_x - src.scale_x) * scale;
-    const float width = src.scale_x * 2.0f * scale;
-    float y = (src.translate_y - src.scale_y) * scale;
-    float height = src.scale_y * 2.0f * scale;
+    const auto conv = [scale](float value) {
+        float new_value = value * scale;
+        if (scale < 1.0f) {
+            bool sign = std::signbit(new_value);
+            new_value = std::round(std::abs(new_value));
+            new_value = sign ? -new_value : new_value;
+        }
+        return new_value;
+    };
+    const float x = conv(src.translate_x - src.scale_x);
+    const float width = conv(src.scale_x * 2.0f);
+    float y = conv(src.translate_y - src.scale_y);
+    float height = conv(src.scale_y * 2.0f);
     if (regs.screen_y_control.y_negate) {
         y += height;
         height = -height;
@@ -91,8 +100,13 @@ VkRect2D GetScissorState(const Maxwell& regs, size_t index, u32 up_scale = 1, u3
         if (value == 0) {
             return 0U;
         }
+        const u32 upset = value * up_scale;
+        u32 acumm = 0;
+        if ((up_scale >> down_shift) == 0) {
+            acumm = upset & 0x1;
+        }
         const u32 converted_value = (value * up_scale) >> down_shift;
-        return std::max<u32>(converted_value, 1U);
+        return std::max<u32>(converted_value + acumm, 1U);
     };
     if (src.enable) {
         scissor.offset.x = static_cast<s32>(scale_up(src.min_x));
