@@ -104,7 +104,10 @@ Controller_NPad::Controller_NPad(Core::System& system_,
         controller.vibration[0].latest_vibration_value = DEFAULT_VIBRATION_VALUE;
         controller.vibration[1].latest_vibration_value = DEFAULT_VIBRATION_VALUE;
         Core::HID::ControllerUpdateCallback engine_callback{
-            [this, i](Core::HID::ControllerTriggerType type) { ControllerUpdate(type, i); }};
+            .on_change = [this,
+                          i](Core::HID::ControllerTriggerType type) { ControllerUpdate(type, i); },
+            .is_service = true,
+        };
         controller.callback_key = controller.device->SetCallback(engine_callback);
     }
 }
@@ -283,7 +286,6 @@ void Controller_NPad::OnInit() {
 
     // Prefill controller buffers
     for (auto& controller : controller_data) {
-        NPadGenericState dummy_pad_state{};
         auto& npad = controller.shared_memory_entry;
         for (std::size_t i = 0; i < 19; ++i) {
             WriteEmptyEntry(npad);

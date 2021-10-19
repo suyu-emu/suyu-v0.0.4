@@ -10,7 +10,7 @@
 namespace Core::HID {
 
 Input::BatteryStatus TransformToBattery(const Input::CallbackStatus& callback) {
-    Input::BatteryStatus battery{};
+    Input::BatteryStatus battery{Input::BatteryStatus::None};
     switch (callback.type) {
     case Input::InputType::Analog:
     case Input::InputType::Trigger: {

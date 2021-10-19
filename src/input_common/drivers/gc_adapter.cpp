@@ -150,7 +150,10 @@ void GCAdapter::UpdatePadType(std::size_t port, ControllerTypes pad_type) {
         return;
     }
     // Device changed reset device and set new type
-    pads[port] = {};
+    pads[port].axis_origin = {};
+    pads[port].reset_origin_counter = {};
+    pads[port].enable_vibration = {};
+    pads[port].rumble_amplitude = {};
     pads[port].type = pad_type;
 }
 
@@ -396,12 +399,11 @@ std::vector<Common::ParamPackage> GCAdapter::GetInputDevices() const {
         if (!DeviceConnected(port)) {
             continue;
         }
-        const std::string name = fmt::format("Gamecube Controller {}", port + 1);
-        devices.emplace_back(Common::ParamPackage{
-            {"engine", "gcpad"},
-            {"display", std::move(name)},
-            {"port", std::to_string(port)},
-        });
+        Common::ParamPackage identifier{};
+        identifier.Set("engine", GetEngineName());
+        identifier.Set("display", fmt::format("Gamecube Controller {}", port + 1));
+        identifier.Set("port", static_cast<int>(port));
+        devices.emplace_back(identifier);
     }
     return devices;
 }
@@ -431,7 +433,8 @@ ButtonMapping GCAdapter::GetButtonMappingForDevice(const Common::ParamPackage& p
 
     ButtonMapping mapping{};
     for (const auto& [switch_button, gcadapter_button] : switch_to_gcadapter_button) {
-        Common::ParamPackage button_params({{"engine", "gcpad"}});
+        Common::ParamPackage button_params{};
+        button_params.Set("engine", GetEngineName());
         button_params.Set("port", params.Get("port", 0));
         button_params.Set("button", static_cast<int>(gcadapter_button));
         mapping.insert_or_assign(switch_button, std::move(button_params));
@@ -444,7 +447,8 @@ ButtonMapping GCAdapter::GetButtonMappingForDevice(const Common::ParamPackage& p
             {Settings::NativeButton::ZR, PadButton::TriggerR, PadAxes::TriggerRight},
         };
     for (const auto& [switch_button, gcadapter_buton, gcadapter_axis] : switch_to_gcadapter_axis) {
-        Common::ParamPackage button_params({{"engine", "gcpad"}});
+        Common::ParamPackage button_params{};
+        button_params.Set("engine", GetEngineName());
         button_params.Set("port", params.Get("port", 0));
         button_params.Set("button", static_cast<s32>(gcadapter_buton));
         button_params.Set("axis", static_cast<s32>(gcadapter_axis));
@@ -463,13 +467,13 @@ AnalogMapping GCAdapter::GetAnalogMappingForDevice(const Common::ParamPackage& p
 
     AnalogMapping mapping = {};
     Common::ParamPackage left_analog_params;
-    left_analog_params.Set("engine", "gcpad");
+    left_analog_params.Set("engine", GetEngineName());
     left_analog_params.Set("port", params.Get("port", 0));
     left_analog_params.Set("axis_x", static_cast<int>(PadAxes::StickX));
     left_analog_params.Set("axis_y", static_cast<int>(PadAxes::StickY));
     mapping.insert_or_assign(Settings::NativeAnalog::LStick, std::move(left_analog_params));
     Common::ParamPackage right_analog_params;
-    right_analog_params.Set("engine", "gcpad");
+    right_analog_params.Set("engine", GetEngineName());
     right_analog_params.Set("port", params.Get("port", 0));
     right_analog_params.Set("axis_x", static_cast<int>(PadAxes::SubstickX));
     right_analog_params.Set("axis_y", static_cast<int>(PadAxes::SubstickY));
@@ -477,9 +481,56 @@ AnalogMapping GCAdapter::GetAnalogMappingForDevice(const Common::ParamPackage& p
     return mapping;
 }
 
+std::string GCAdapter::GetUIButtonName(const Common::ParamPackage& params) const {
+    PadButton button = static_cast<PadButton>(params.Get("button", 0));
+    switch (button) {
+    case PadButton::ButtonLeft:
+        return "left";
+        break;
+    case PadButton::ButtonRight:
+        return "right";
+        break;
+    case PadButton::ButtonDown:
+        return "down";
+        break;
+    case PadButton::ButtonUp:
+        return "up";
+        break;
+    case PadButton::TriggerZ:
+        return "Z";
+        break;
+    case PadButton::TriggerR:
+        return "R";
+        break;
+    case PadButton::TriggerL:
+        return "L";
+        break;
+    case PadButton::ButtonA:
+        return "A";
+        break;
+    case PadButton::ButtonB:
+        return "B";
+        break;
+    case PadButton::ButtonX:
+        return "X";
+        break;
+    case PadButton::ButtonY:
+        return "Y";
+        break;
+    case PadButton::ButtonStart:
+        return "start";
+        break;
+    default:
+        return "Unkown GC";
+    }
+}
+
 std::string GCAdapter::GetUIName(const Common::ParamPackage& params) const {
     if (params.Has("button")) {
-        return fmt::format("Button {}", params.Get("button", 0));
+        return fmt::format("Button {}", GetUIButtonName(params));
+    }
+    if (params.Has("axis")) {
+        return fmt::format("Axis {}", params.Get("axis",0));
     }
 
     return "Bad GC Adapter";

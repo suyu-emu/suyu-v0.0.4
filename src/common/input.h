@@ -30,6 +30,7 @@ enum class InputType {
 };
 
 enum class BatteryLevel {
+    None,
     Empty,
     Critical,
     Low,

@@ -127,7 +127,7 @@ void Tas::WriteTasFile(std::u8string file_name) {
     std::string output_text;
     for (size_t frame = 0; frame < record_commands.size(); frame++) {
         const TASCommand& line = record_commands[frame];
-        output_text += fmt::format("{} {} {} {} {}\n", frame, WriteCommandButtons(line.buttons),
+        output_text += fmt::format("{} {} {} {}\n", frame, WriteCommandButtons(line.buttons),
                                    WriteCommandAxis(line.l_axis), WriteCommandAxis(line.r_axis));
     }
     const auto bytes_written = Common::FS::WriteStringToFile(

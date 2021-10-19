@@ -113,6 +113,7 @@ enum class ControllerTriggerType {
 
 struct ControllerUpdateCallback {
     std::function<void(ControllerTriggerType)> on_change;
+    bool is_service;
 };
 
 class EmulatedController {
@@ -325,9 +326,10 @@ private:
 
     /**
      * Triggers a callback that something has changed on the controller status
-     * @param Input type of the event to trigger
+     * @param type: Input type of the event to trigger
+     * @param is_service_update: indicates if this event should be sended to only services
      */
-    void TriggerOnChange(ControllerTriggerType type);
+    void TriggerOnChange(ControllerTriggerType type, bool  is_service_update);
 
     NpadIdType npad_id_type;
     NpadType npad_type{NpadType::None};

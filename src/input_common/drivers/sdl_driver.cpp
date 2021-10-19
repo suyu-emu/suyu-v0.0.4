@@ -305,6 +305,7 @@ void SDLDriver::InitJoystick(int joystick_index) {
     if (joystick_map.find(guid) == joystick_map.end()) {
         auto joystick = std::make_shared<SDLJoystick>(guid, 0, sdl_joystick, sdl_gamecontroller);
         PreSetController(joystick->GetPadIdentifier());
+        SetBattery(joystick->GetPadIdentifier(), joystick->GetBatteryLevel());
         joystick_map[guid].emplace_back(std::move(joystick));
         return;
     }
@@ -322,6 +323,7 @@ void SDLDriver::InitJoystick(int joystick_index) {
     const int port = static_cast<int>(joystick_guid_list.size());
     auto joystick = std::make_shared<SDLJoystick>(guid, port, sdl_joystick, sdl_gamecontroller);
     PreSetController(joystick->GetPadIdentifier());
+    SetBattery(joystick->GetPadIdentifier(), joystick->GetBatteryLevel());
     joystick_guid_list.emplace_back(std::move(joystick));
 }
 
@@ -472,7 +474,7 @@ std::vector<Common::ParamPackage> SDLDriver::GetInputDevices() const {
             const std::string name =
                 fmt::format("{} {}", joystick->GetControllerName(), joystick->GetPort());
             devices.emplace_back(Common::ParamPackage{
-                {"engine", "sdl"},
+                {"engine", GetEngineName()},
                 {"display", std::move(name)},
                 {"guid", joystick->GetGUID()},
                 {"port", std::to_string(joystick->GetPort())},
@@ -495,7 +497,7 @@ std::vector<Common::ParamPackage> SDLDriver::GetInputDevices() const {
                 const std::string name =
                     fmt::format("{} {}", "Nintendo Dual Joy-Con", joystick->GetPort());
                 devices.emplace_back(Common::ParamPackage{
-                    {"engine", "sdl"},
+                    {"engine", GetEngineName()},
                     {"display", std::move(name)},
                     {"guid", joystick->GetGUID()},
                     {"guid2", joystick2->GetGUID()},
@@ -527,7 +529,8 @@ Input::VibrationError SDLDriver::SetRumble(const PadIdentifier& identifier,
 }
 Common::ParamPackage SDLDriver::BuildAnalogParamPackageForButton(int port, std::string guid,
                                                                  s32 axis, float value) const {
-    Common::ParamPackage params({{"engine", "sdl"}});
+    Common::ParamPackage params{};
+    params.Set("engine", GetEngineName());
     params.Set("port", port);
     params.Set("guid", std::move(guid));
     params.Set("axis", axis);
@@ -538,7 +541,8 @@ Common::ParamPackage SDLDriver::BuildAnalogParamPackageForButton(int port, std::
 
 Common::ParamPackage SDLDriver::BuildButtonParamPackageForButton(int port, std::string guid,
                                                                  s32 button) const {
-    Common::ParamPackage params({{"engine", "sdl"}});
+    Common::ParamPackage params{};
+    params.Set("engine", GetEngineName());
     params.Set("port", port);
     params.Set("guid", std::move(guid));
     params.Set("button", button);
@@ -547,8 +551,8 @@ Common::ParamPackage SDLDriver::BuildButtonParamPackageForButton(int port, std::
 
 Common::ParamPackage SDLDriver::BuildHatParamPackageForButton(int port, std::string guid, s32 hat,
                                                               u8 value) const {
-    Common::ParamPackage params({{"engine", "sdl"}});
-
+    Common::ParamPackage params{};
+    params.Set("engine", GetEngineName());
     params.Set("port", port);
     params.Set("guid", std::move(guid));
     params.Set("hat", hat);
@@ -557,7 +561,9 @@ Common::ParamPackage SDLDriver::BuildHatParamPackageForButton(int port, std::str
 }
 
 Common::ParamPackage SDLDriver::BuildMotionParam(int port, std::string guid) const {
-    Common::ParamPackage params({{"engine", "sdl"}, {"motion", "0"}});
+    Common::ParamPackage params{};
+    params.Set("engine", GetEngineName());
+    params.Set("motion", 0);
     params.Set("port", port);
     params.Set("guid", std::move(guid));
     return params;
@@ -583,7 +589,7 @@ Common::ParamPackage SDLDriver::BuildParamPackageForAnalog(PadIdentifier identif
                                                            int axis_y, float offset_x,
                                                            float offset_y) const {
     Common::ParamPackage params;
-    params.Set("engine", "sdl");
+    params.Set("engine", GetEngineName());
     params.Set("port", static_cast<int>(identifier.port));
     params.Set("guid", identifier.guid.Format());
     params.Set("axis_x", axis_x);

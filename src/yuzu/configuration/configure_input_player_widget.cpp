@@ -27,7 +27,9 @@ void PlayerControlPreview::SetController(Core::HID::EmulatedController* controll
     is_controller_set = true;
     controller = controller_;
     Core::HID::ControllerUpdateCallback engine_callback{
-        [this](Core::HID::ControllerTriggerType type) { ControllerUpdate(type); }};
+        .on_change = [this](Core::HID::ControllerTriggerType type) { ControllerUpdate(type); },
+        .is_service = false,
+    };
     callback_key = controller->SetCallback(engine_callback);
     ControllerUpdate(Core::HID::ControllerTriggerType::All);
 }
@@ -810,7 +812,7 @@ void PlayerControlPreview::DrawProController(QPainter& p, const QPointF center) 
     DrawSymbol(p, center + QPoint(29, -56), Symbol::House, 3.9f);
 
     // Draw battery
-    DrawBattery(p, center + QPoint(-30, -165), battery_values[0]);
+    DrawBattery(p, center + QPoint(-30, -160), battery_values[0]);
 }
 
 void PlayerControlPreview::DrawGCController(QPainter& p, const QPointF center) {
@@ -2655,6 +2657,9 @@ void PlayerControlPreview::DrawTriggerButton(QPainter& p, const QPointF center,
 }
 
 void PlayerControlPreview::DrawBattery(QPainter& p, QPointF center, Input::BatteryLevel battery) {
+    if (battery == Input::BatteryLevel::None) {
+        return;
+    }
     p.setPen(colors.outline);
     p.setBrush(colors.transparent);
     p.drawRect(center.x(), center.y(), 56, 20);
@@ -2669,6 +2674,7 @@ void PlayerControlPreview::DrawBattery(QPainter& p, QPointF center, Input::Batte
         p.drawRect(center.x() + 42, center.y(), 14, 20);
         p.drawRect(center.x() + 28, center.y(), 14, 20);
         p.drawRect(center.x() + 14, center.y(), 14, 20);
+        p.drawRect(center.x(), center.y(), 14, 20);
         break;
     case Input::BatteryLevel::Medium:
         p.drawRect(center.x() + 28, center.y(), 14, 20);
@@ -2684,6 +2690,8 @@ void PlayerControlPreview::DrawBattery(QPainter& p, QPointF center, Input::Batte
         break;
     case Input::BatteryLevel::Empty:
         p.drawRect(center.x(), center.y(), 5, 20);
+        break;
+    default:
         break;
     }
 }

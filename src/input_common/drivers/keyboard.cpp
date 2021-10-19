@@ -26,7 +26,7 @@ void Keyboard::ReleaseAllKeys() {
 std::vector<Common::ParamPackage> Keyboard::GetInputDevices() const {
     std::vector<Common::ParamPackage> devices;
     devices.emplace_back(Common::ParamPackage{
-        {"engine", "keyboard"},
+        {"engine", GetEngineName()},
         {"display", "Keyboard Only"},
     });
     return devices;
