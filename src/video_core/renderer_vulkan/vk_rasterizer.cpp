@@ -211,8 +211,6 @@ void RasterizerVulkan::Draw(bool is_indexed, bool is_instanced) {
     EndTransformFeedback();
 }
 
-#pragma optimize("", off)
-
 void RasterizerVulkan::Clear() {
     MICROPROFILE_SCOPE(Vulkan_Clearing);
 
@@ -284,13 +282,14 @@ void RasterizerVulkan::Clear() {
             std::memcpy(clear_value.color.float32, regs.clear_color, sizeof(regs.clear_color));
         } else if (!is_signed) {
             for (size_t i = 0; i < 4; i++) {
-                clear_value.color.uint32[i] =
-                    static_cast<u32>(static_cast<u64>(int_size << 1U) * regs.clear_color[i]);
+                clear_value.color.uint32[i] = static_cast<u32>(
+                    static_cast<f32>(static_cast<u64>(int_size) << 1U) * regs.clear_color[i]);
             }
         } else {
             for (size_t i = 0; i < 4; i++) {
-                clear_value.color.int32[i] = static_cast<s32>(
-                    (static_cast<s32>(int_size - 1) << 1) * (regs.clear_color[i] - 0.5f));
+                clear_value.color.int32[i] =
+                    static_cast<s32>(static_cast<f32>(static_cast<s64>(int_size - 1) << 1) *
+                                     (regs.clear_color[i] - 0.5f));
             }
         }
 

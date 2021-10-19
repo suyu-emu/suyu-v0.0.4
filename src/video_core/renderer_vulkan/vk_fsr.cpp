@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include "common/common_types.h"
 #include "common/div_ceil.h"
 #include "video_core/host_shaders/vulkan_fidelityfx_fsr_easu_comp_spv.h"
 #include "video_core/host_shaders/vulkan_fidelityfx_fsr_rcas_comp_spv.h"
@@ -12,10 +13,10 @@
 
 namespace Vulkan {
 
-FSR::FSR(const Device& device, MemoryAllocator& memory_allocator, size_t image_count,
-         VkExtent2D output_size)
-    : device{device}, memory_allocator{memory_allocator}, image_count{image_count},
-      output_size{output_size} {
+FSR::FSR(const Device& device_, MemoryAllocator& memory_allocator_, size_t image_count_,
+         VkExtent2D output_size_)
+    : device{device_}, memory_allocator{memory_allocator_}, image_count{image_count_},
+      output_size{output_size_} {
 
     CreateImages();
     CreateSampler();
@@ -266,14 +267,17 @@ void FSR::UpdateDescriptorSet(std::size_t image_index, VkImageView image_view) c
     const auto blit_image_view = *image_views[image_count + image_index];
 
     const VkDescriptorImageInfo image_info{
+        .sampler = VK_NULL_HANDLE,
         .imageView = image_view,
         .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
     };
     const VkDescriptorImageInfo fsr_image_info{
+        .sampler = VK_NULL_HANDLE,
         .imageView = fsr_image_view,
         .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
     };
     const VkDescriptorImageInfo blit_image_info{
+        .sampler = VK_NULL_HANDLE,
         .imageView = blit_image_view,
         .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
     };
@@ -341,35 +345,52 @@ void FSR::CreateSampler() {
 
 void FSR::CreateShaders() {
     easu_shader = BuildShader(device, VULKAN_FIDELITYFX_FSR_EASU_COMP_SPV);
-    rcas_shader = BuildShader(device, VULKAN_FIDELITYFX_FSR_EASU_COMP_SPV);
+    rcas_shader = BuildShader(device, VULKAN_FIDELITYFX_FSR_RCAS_COMP_SPV);
 }
 
 void FSR::CreatePipeline() {
-    VkPipelineShaderStageCreateInfo shader_stage{
-
+    VkPipelineShaderStageCreateInfo shader_stage_easu{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
         .stage = VK_SHADER_STAGE_COMPUTE_BIT,
+        .module = *easu_shader,
         .pName = "main",
         .pSpecializationInfo = nullptr,
     };
 
-    VkComputePipelineCreateInfo pipeline_ci{
+    VkPipelineShaderStageCreateInfo shader_stage_rcas{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .stage = VK_SHADER_STAGE_COMPUTE_BIT,
+        .module = *rcas_shader,
+        .pName = "main",
+        .pSpecializationInfo = nullptr,
+    };
+
+    VkComputePipelineCreateInfo pipeline_ci_easu{
         .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
+        .stage = shader_stage_easu,
         .layout = *pipeline_layout,
+        .basePipelineHandle = VK_NULL_HANDLE,
         .basePipelineIndex = 0,
     };
 
-    shader_stage.module = *easu_shader;
-    pipeline_ci.stage = shader_stage;
-    easu_pipeline = device.GetLogical().CreateComputePipeline(pipeline_ci);
+    VkComputePipelineCreateInfo pipeline_ci_rcas{
+        .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .stage = shader_stage_rcas,
+        .layout = *pipeline_layout,
+        .basePipelineHandle = VK_NULL_HANDLE,
+        .basePipelineIndex = 0,
+    };
 
-    shader_stage.module = *rcas_shader;
-    pipeline_ci.stage = shader_stage;
-    rcas_pipeline = device.GetLogical().CreateComputePipeline(pipeline_ci);
+    easu_pipeline = device.GetLogical().CreateComputePipeline(pipeline_ci_easu);
+    rcas_pipeline = device.GetLogical().CreateComputePipeline(pipeline_ci_rcas);
 }
 
 } // namespace Vulkan

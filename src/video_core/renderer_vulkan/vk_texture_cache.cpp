@@ -600,8 +600,6 @@ void BlitScale(VKScheduler& scheduler, VkImage src_image, VkImage dst_image, con
         .width = info.size.width,
         .height = info.size.height,
     };
-    const bool is_zeta = (aspect_mask & VK_IMAGE_ASPECT_DEPTH_BIT) != 0;
-    const bool is_int_format = IsPixelFormatInteger(info.format);
     const VkFilter vk_filter = is_bilinear ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
 
     scheduler.RequestOutsideRenderPassOperationContext();
