@@ -211,6 +211,8 @@ void RasterizerVulkan::Draw(bool is_indexed, bool is_instanced) {
     EndTransformFeedback();
 }
 
+#pragma optimize("", off)
+
 void RasterizerVulkan::Clear() {
     MICROPROFILE_SCOPE(Vulkan_Clearing);
 
@@ -260,7 +262,37 @@ void RasterizerVulkan::Clear() {
     const u32 color_attachment = regs.clear_buffers.RT;
     if (use_color && framebuffer->HasAspectColorBit(color_attachment)) {
         VkClearValue clear_value;
-        std::memcpy(clear_value.color.float32, regs.clear_color, sizeof(regs.clear_color));
+        bool is_integer = false;
+        bool is_signed = false;
+        size_t int_size = 8;
+        for (std::size_t i = 0; i < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets; ++i) {
+            const auto& this_rt = regs.rt[i];
+            if (this_rt.Address() == 0) {
+                continue;
+            }
+            if (this_rt.format == Tegra::RenderTargetFormat::NONE) {
+                continue;
+            }
+            const auto format =
+                VideoCore::Surface::PixelFormatFromRenderTargetFormat(this_rt.format);
+            is_integer = IsPixelFormatInteger(format);
+            is_signed = IsPixelFormatSignedInteger(format);
+            int_size = PixelComponentSizeBitsInteger(format);
+            break;
+        }
+        if (!is_integer) {
+            std::memcpy(clear_value.color.float32, regs.clear_color, sizeof(regs.clear_color));
+        } else if (!is_signed) {
+            for (size_t i = 0; i < 4; i++) {
+                clear_value.color.uint32[i] =
+                    static_cast<u32>(static_cast<u64>(int_size << 1U) * regs.clear_color[i]);
+            }
+        } else {
+            for (size_t i = 0; i < 4; i++) {
+                clear_value.color.int32[i] = static_cast<s32>(
+                    (static_cast<s32>(int_size - 1) << 1) * (regs.clear_color[i] - 0.5f));
+            }
+        }
 
         scheduler.Record([color_attachment, clear_value, clear_rect](vk::CommandBuffer cmdbuf) {
             const VkClearAttachment attachment{
