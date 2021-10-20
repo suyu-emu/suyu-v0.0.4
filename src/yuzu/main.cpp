@@ -832,15 +832,16 @@ void GMainWindow::InitializeWidgets() {
     dock_status_button->setFocusPolicy(Qt::NoFocus);
     connect(dock_status_button, &QPushButton::clicked, [&] {
         const bool is_docked = Settings::values.use_docked_mode.GetValue();
-        auto& controller_type = Settings::values.players.GetValue()[0].controller_type;
+        auto* player_1 = system->HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
+        auto* handheld = system->HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
 
-        if (!is_docked && controller_type == Settings::ControllerType::Handheld) {
+        if (!is_docked && handheld->IsConnected()) {
             QMessageBox::warning(this, tr("Invalid config detected"),
                                  tr("Handheld controller can't be used on docked mode. Pro "
                                     "controller will be selected."));
-            controller_type = Settings::ControllerType::ProController;
-            ConfigureDialog configure_dialog(this, hotkey_registry, input_subsystem.get(), *system);
-            configure_dialog.ApplyConfiguration();
+            handheld->Disconnect();
+            player_1->SetNpadType(Core::HID::NpadType::ProController);
+            player_1->Connect();
         }
 
         Settings::values.use_docked_mode.SetValue(!is_docked);

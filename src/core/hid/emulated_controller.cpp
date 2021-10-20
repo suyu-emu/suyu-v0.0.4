@@ -91,7 +91,6 @@ void EmulatedController::ReloadFromSettings() {
 }
 
 void EmulatedController::ReloadInput() {
-    // LOG_ERROR(Service_HID, "reload config {}", NpadIdTypeToIndex(npad_id_type));
     // If you load any device here add the equivalent to the UnloadInput() function
     const auto left_side = button_params[Settings::NativeButton::ZL];
     const auto right_side = button_params[Settings::NativeButton::ZR];

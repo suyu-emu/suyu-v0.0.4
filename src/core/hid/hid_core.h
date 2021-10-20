@@ -35,10 +35,16 @@ public:
     void SetSupportedStyleTag(NpadStyleTag style_tag);
     NpadStyleTag GetSupportedStyleTag() const;
 
-    // Reloads all input devices from settings
+    /// Counts the connected players from P1-P8
+    s8 GetPlayerCount() const;
+
+    /// Returns the first connected npad id
+    NpadIdType GetFirstNpadId() const;
+
+    /// Reloads all input devices from settings
     void ReloadInputDevices();
 
-    // Removes all callbacks from input common
+    /// Removes all callbacks from input common
     void UnloadInputDevices();
 
 private:

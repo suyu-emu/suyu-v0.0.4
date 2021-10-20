@@ -104,8 +104,8 @@ void PlayerControlPreview::UpdateColors() {
     colors.left = colors.primary;
     colors.right = colors.primary;
     // Possible alternative to set colors from settings
-    // colors.left = QColor(Settings::values.players.GetValue()[player_index].body_color_left);
-    // colors.right = QColor(Settings::values.players.GetValue()[player_index].body_color_right);
+    // colors.left = QColor(controller->GetColors().left.body);
+    // colors.right = QColor(controller->GetColors().right.body);
 }
 
 void PlayerControlPreview::ResetInputs() {

@@ -243,19 +243,11 @@ void Controller::Execute() {
 void Controller::ConfigurationComplete() {
     ControllerSupportResultInfo result_info{};
 
-    const auto& players = Settings::values.players.GetValue();
-
     // If enable_single_mode is enabled, player_count is 1 regardless of any other parameters.
     // Otherwise, only count connected players from P1-P8.
-    result_info.player_count =
-        is_single_mode
-            ? 1
-            : static_cast<s8>(std::count_if(players.begin(), players.end() - 2,
-                                            [](const auto& player) { return player.connected; }));
+    result_info.player_count = is_single_mode ? 1 : system.HIDCore().GetPlayerCount();
 
-    result_info.selected_id = HID::Controller_NPad::IndexToNPad(std::distance(
-        players.begin(), std::find_if(players.begin(), players.end(),
-                                      [](const auto& player) { return player.connected; })));
+    result_info.selected_id = static_cast<u32>(system.HIDCore().GetFirstNpadId());
 
     result_info.result = 0;
 

@@ -329,7 +329,7 @@ private:
      * @param type: Input type of the event to trigger
      * @param is_service_update: indicates if this event should be sended to only services
      */
-    void TriggerOnChange(ControllerTriggerType type, bool  is_service_update);
+    void TriggerOnChange(ControllerTriggerType type, bool is_service_update);
 
     NpadIdType npad_id_type;
     NpadType npad_type{NpadType::None};

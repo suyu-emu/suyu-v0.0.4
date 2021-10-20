@@ -32,12 +32,17 @@ struct InputSubsystem::Impl {
         keyboard = std::make_shared<Keyboard>("keyboard");
         keyboard->SetMappingCallback(mapping_callback);
         keyboard_factory = std::make_shared<InputFactory>(keyboard);
+        keyboard_output_factory = std::make_shared<OutputFactory>(keyboard);
         Input::RegisterFactory<Input::InputDevice>(keyboard->GetEngineName(), keyboard_factory);
+        Input::RegisterFactory<Input::OutputDevice>(keyboard->GetEngineName(),
+                                                    keyboard_output_factory);
 
         mouse = std::make_shared<Mouse>("mouse");
         mouse->SetMappingCallback(mapping_callback);
         mouse_factory = std::make_shared<InputFactory>(mouse);
+        mouse_output_factory = std::make_shared<OutputFactory>(mouse);
         Input::RegisterFactory<Input::InputDevice>(mouse->GetEngineName(), mouse_factory);
+        Input::RegisterFactory<Input::OutputDevice>(mouse->GetEngineName(), mouse_output_factory);
 
         touch_screen = std::make_shared<TouchScreen>("touch");
         touch_screen_factory = std::make_shared<InputFactory>(touch_screen);
@@ -61,7 +66,9 @@ struct InputSubsystem::Impl {
         tas_input = std::make_shared<TasInput::Tas>("tas");
         tas_input->SetMappingCallback(mapping_callback);
         tas_input_factory = std::make_shared<InputFactory>(tas_input);
+        tas_output_factory = std::make_shared<OutputFactory>(tas_input);
         Input::RegisterFactory<Input::InputDevice>(tas_input->GetEngineName(), tas_input_factory);
+        Input::RegisterFactory<Input::OutputDevice>(tas_input->GetEngineName(), tas_output_factory);
 
 #ifdef HAVE_SDL2
         sdl = std::make_shared<SDLDriver>("sdl");
@@ -268,7 +275,10 @@ struct InputSubsystem::Impl {
     std::shared_ptr<InputFactory> udp_client_factory;
     std::shared_ptr<InputFactory> tas_input_factory;
 
+    std::shared_ptr<OutputFactory> keyboard_output_factory;
+    std::shared_ptr<OutputFactory> mouse_output_factory;
     std::shared_ptr<OutputFactory> gcadapter_output_factory;
+    std::shared_ptr<OutputFactory> tas_output_factory;
 
 #ifdef HAVE_SDL2
     std::shared_ptr<SDLDriver> sdl;

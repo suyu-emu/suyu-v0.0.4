@@ -211,8 +211,10 @@ void ConfigureInput::RetranslateUI() {
 }
 
 void ConfigureInput::LoadConfiguration() {
+    const auto* handheld = system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
+
     LoadPlayerControllerIndices();
-    UpdateDockedState(Settings::values.players.GetValue()[8].connected);
+    UpdateDockedState(handheld->IsConnected());
 
     ui->vibrationGroup->setChecked(Settings::values.vibration_enabled.GetValue());
     ui->motionGroup->setChecked(Settings::values.motion_enabled.GetValue());
@@ -220,9 +222,16 @@ void ConfigureInput::LoadConfiguration() {
 
 void ConfigureInput::LoadPlayerControllerIndices() {
     for (std::size_t i = 0; i < player_connected.size(); ++i) {
-        const auto connected = Settings::values.players.GetValue()[i].connected ||
-                               (i == 0 && Settings::values.players.GetValue()[8].connected);
-        player_connected[i]->setChecked(connected);
+        if (i == 0) {
+            auto* handheld =
+                system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
+            if (handheld->IsConnected()) {
+                player_connected[i]->setChecked(true);
+                continue;
+            }
+        }
+        const auto* controller = system.HIDCore().GetEmulatedControllerByIndex(i);
+        player_connected[i]->setChecked(controller->IsConnected());
     }
 }
 

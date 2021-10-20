@@ -111,6 +111,27 @@ NpadStyleTag HIDCore::GetSupportedStyleTag() const {
     return supported_style_tag;
 }
 
+s8 HIDCore::GetPlayerCount() const {
+    s8 active_players = 0;
+    for (std::size_t player_index = 0; player_index < 8; player_index++) {
+        const auto* controller = GetEmulatedControllerByIndex(player_index);
+        if (controller->IsConnected()) {
+            active_players++;
+        }
+    }
+    return active_players;
+}
+
+NpadIdType HIDCore::GetFirstNpadId() const {
+    for (std::size_t player_index = 0; player_index < 10; player_index++) {
+        const auto* controller = GetEmulatedControllerByIndex(player_index);
+        if (controller->IsConnected()) {
+            return controller->GetNpadIdType();
+        }
+    }
+    return NpadIdType::Player1;
+}
+
 void HIDCore::ReloadInputDevices() {
     player_1->ReloadFromSettings();
     player_2->ReloadFromSettings();
