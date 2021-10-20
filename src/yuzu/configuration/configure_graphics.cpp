@@ -107,6 +107,8 @@ void ConfigureGraphics::SetConfiguration() {
             static_cast<int>(Settings::values.resolution_setup.GetValue()));
         ui->scaling_filter_combobox->setCurrentIndex(
             static_cast<int>(Settings::values.scaling_filter.GetValue()));
+        ui->anti_aliasing_combobox->setCurrentIndex(
+            static_cast<int>(Settings::values.anti_aliasing.GetValue()));
     } else {
         ConfigurationShared::SetPerGameSetting(ui->api, &Settings::values.renderer_backend);
         ConfigurationShared::SetHighlight(ui->api_widget,
@@ -137,6 +139,11 @@ void ConfigureGraphics::SetConfiguration() {
         ConfigurationShared::SetHighlight(ui->scaling_filter_label,
                                           !Settings::values.scaling_filter.UsingGlobal());
 
+        ConfigurationShared::SetPerGameSetting(ui->anti_aliasing_combobox,
+                                               &Settings::values.anti_aliasing);
+        ConfigurationShared::SetHighlight(ui->anti_aliasing_label,
+                                          !Settings::values.anti_aliasing.UsingGlobal());
+
         ui->bg_combobox->setCurrentIndex(Settings::values.bg_red.UsingGlobal() ? 0 : 1);
         ui->bg_button->setEnabled(!Settings::values.bg_red.UsingGlobal());
         ConfigurationShared::SetHighlight(ui->bg_layout, !Settings::values.bg_red.UsingGlobal());
@@ -154,6 +161,10 @@ void ConfigureGraphics::ApplyConfiguration() {
 
     const auto scaling_filter = static_cast<Settings::ScalingFilter>(
         ui->scaling_filter_combobox->currentIndex() -
+        ((Settings::IsConfiguringGlobal()) ? 0 : ConfigurationShared::USE_GLOBAL_OFFSET));
+
+    const auto anti_aliasing = static_cast<Settings::AntiAliasing>(
+        ui->anti_aliasing_combobox->currentIndex() -
         ((Settings::IsConfiguringGlobal()) ? 0 : ConfigurationShared::USE_GLOBAL_OFFSET));
 
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.fullscreen_mode,
@@ -193,6 +204,9 @@ void ConfigureGraphics::ApplyConfiguration() {
         if (Settings::values.scaling_filter.UsingGlobal()) {
             Settings::values.scaling_filter.SetValue(scaling_filter);
         }
+        if (Settings::values.anti_aliasing.UsingGlobal()) {
+            Settings::values.anti_aliasing.SetValue(anti_aliasing);
+        }
     } else {
         if (ui->resolution_combobox->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
             Settings::values.resolution_setup.SetGlobal(true);
@@ -205,6 +219,12 @@ void ConfigureGraphics::ApplyConfiguration() {
         } else {
             Settings::values.scaling_filter.SetGlobal(false);
             Settings::values.scaling_filter.SetValue(scaling_filter);
+        }
+        if (ui->anti_aliasing_combobox->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
+            Settings::values.anti_aliasing.SetGlobal(true);
+        } else {
+            Settings::values.anti_aliasing.SetGlobal(false);
+            Settings::values.anti_aliasing.SetValue(anti_aliasing);
         }
         if (ui->api->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
             Settings::values.renderer_backend.SetGlobal(true);
@@ -354,6 +374,7 @@ void ConfigureGraphics::SetupPerGameUI() {
         ui->aspect_ratio_combobox->setEnabled(Settings::values.aspect_ratio.UsingGlobal());
         ui->resolution_combobox->setEnabled(Settings::values.resolution_setup.UsingGlobal());
         ui->scaling_filter_combobox->setEnabled(Settings::values.scaling_filter.UsingGlobal());
+        ui->anti_aliasing_combobox->setEnabled(Settings::values.anti_aliasing.UsingGlobal());
         ui->use_asynchronous_gpu_emulation->setEnabled(
             Settings::values.use_asynchronous_gpu_emulation.UsingGlobal());
         ui->nvdec_emulation->setEnabled(Settings::values.nvdec_emulation.UsingGlobal());
@@ -388,6 +409,9 @@ void ConfigureGraphics::SetupPerGameUI() {
     ConfigurationShared::SetColoredComboBox(
         ui->scaling_filter_combobox, ui->scaling_filter_label,
         static_cast<int>(Settings::values.scaling_filter.GetValue(true)));
+    ConfigurationShared::SetColoredComboBox(
+        ui->anti_aliasing_combobox, ui->anti_aliasing_label,
+        static_cast<int>(Settings::values.anti_aliasing.GetValue(true)));
     ConfigurationShared::InsertGlobalItem(
         ui->api, static_cast<int>(Settings::values.renderer_backend.GetValue(true)));
     ConfigurationShared::InsertGlobalItem(
