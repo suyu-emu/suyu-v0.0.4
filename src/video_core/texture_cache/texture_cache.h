@@ -51,8 +51,8 @@ TextureCache<P>::TextureCache(Runtime& runtime_, VideoCore::RasterizerInterface&
 
     if constexpr (HAS_DEVICE_MEMORY_INFO) {
         const auto device_memory = runtime.GetDeviceLocalMemory();
-        const u64 possible_expected_memory = (device_memory * 3) / 10;
-        const u64 possible_critical_memory = (device_memory * 6) / 10;
+        const u64 possible_expected_memory = (device_memory * 4) / 10;
+        const u64 possible_critical_memory = (device_memory * 7) / 10;
         expected_memory = std::max(possible_expected_memory, DEFAULT_EXPECTED_MEMORY);
         critical_memory = std::max(possible_critical_memory, DEFAULT_CRITICAL_MEMORY);
         minimum_memory = 0;
@@ -69,7 +69,7 @@ void TextureCache<P>::RunGarbageCollector() {
     const bool high_priority_mode = total_used_memory >= expected_memory;
     const bool aggressive_mode = total_used_memory >= critical_memory;
     const u64 ticks_to_destroy = aggressive_mode ? 10ULL : high_priority_mode ? 25ULL : 100ULL;
-    size_t num_iterations = aggressive_mode ? 10000 : (high_priority_mode ? 100 : 5);
+    size_t num_iterations = aggressive_mode ? 300 : (high_priority_mode ? 50 : 10);
     const auto clean_up = [this, &num_iterations, high_priority_mode](ImageId image_id) {
         if (num_iterations == 0) {
             return true;
@@ -91,7 +91,7 @@ void TextureCache<P>::RunGarbageCollector() {
             UntrackImage(image, image_id);
         }
         UnregisterImage(image_id);
-        DeleteImage(image_id);
+        DeleteImage(image_id, image.scale_tick > frame_tick + 5);
         return false;
     };
     lru_cache.ForEachItemBelow(frame_tick - ticks_to_destroy, clean_up);
@@ -287,7 +287,9 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
         if (image_id != CORRUPT_ID) {
             Image& image = slot_images[image_id];
             image.scale_rating = scale_rating;
-            image.scale_tick = frame_tick + 1;
+            if (image.scale_tick <= frame_tick) {
+                image.scale_tick = frame_tick + 1;
+            }
         }
     };
     for (size_t index = 0; index < NUM_RT; ++index) {
@@ -810,6 +812,9 @@ bool TextureCache<P>::ImageCanRescale(ImageBase& image) {
 
 template <class P>
 void TextureCache<P>::InvalidateScale(Image& image) {
+    if (image.scale_tick <= frame_tick) {
+        image.scale_tick = frame_tick + 1;
+    }
     const std::span<const ImageViewId> image_view_ids = image.image_view_ids;
     auto& dirty = maxwell3d.dirty.flags;
     dirty[Dirty::RenderTargets] = true;
@@ -842,12 +847,15 @@ void TextureCache<P>::InvalidateScale(Image& image) {
 
 template <class P>
 u64 TextureCache<P>::GetScaledImageSizeBytes(ImageBase& image) {
-    const f32 add_to_size = Settings::values.resolution_info.up_factor;
-    const bool sign = std::signbit(add_to_size);
-    const u32 image_size_bytes = std::max(image.guest_size_bytes, image.unswizzled_size_bytes);
-    const u64 tentative_size = image_size_bytes * static_cast<u64>(std::abs(add_to_size));
+    const u64 scale_up = static_cast<u64>(Settings::values.resolution_info.up_scale *
+                                          Settings::values.resolution_info.up_scale);
+    const u64 down_shift = static_cast<u64>(Settings::values.resolution_info.down_shift +
+                                            Settings::values.resolution_info.down_shift);
+    const u64 image_size_bytes =
+        static_cast<u64>(std::max(image.guest_size_bytes, image.unswizzled_size_bytes));
+    const u64 tentative_size = (image_size_bytes * scale_up) >> down_shift;
     const u64 fitted_size = Common::AlignUp(tentative_size, 1024);
-    return sign ? -fitted_size : fitted_size;
+    return fitted_size;
 }
 
 template <class P>
@@ -1510,7 +1518,7 @@ void TextureCache<P>::UntrackImage(ImageBase& image, ImageId image_id) {
 }
 
 template <class P>
-void TextureCache<P>::DeleteImage(ImageId image_id) {
+void TextureCache<P>::DeleteImage(ImageId image_id, bool immediate_delete) {
     ImageBase& image = slot_images[image_id];
     if (image.HasScaled()) {
         total_used_memory -= GetScaledImageSizeBytes(image);
@@ -1576,10 +1584,14 @@ void TextureCache<P>::DeleteImage(ImageId image_id) {
                    num_removed_overlaps);
     }
     for (const ImageViewId image_view_id : image_view_ids) {
-        sentenced_image_view.Push(std::move(slot_image_views[image_view_id]));
+        if (!immediate_delete) {
+            sentenced_image_view.Push(std::move(slot_image_views[image_view_id]));
+        }
         slot_image_views.erase(image_view_id);
     }
-    sentenced_images.Push(std::move(slot_images[image_id]));
+    if (!immediate_delete) {
+        sentenced_images.Push(std::move(slot_images[image_id]));
+    }
     slot_images.erase(image_id);
 
     alloc_images.erase(alloc_image_it);
