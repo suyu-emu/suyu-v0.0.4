@@ -21,6 +21,8 @@
 #include "core/memory.h"
 #include "core/perf_stats.h"
 #include "core/telemetry_session.h"
+#include "video_core/host_shaders/fxaa_frag.h"
+#include "video_core/host_shaders/fxaa_vert.h"
 #include "video_core/host_shaders/opengl_present_frag.h"
 #include "video_core/host_shaders/opengl_present_vert.h"
 #include "video_core/host_shaders/present_bicubic_frag.h"
@@ -254,6 +256,8 @@ void RendererOpenGL::LoadColorToActiveGLTexture(u8 color_r, u8 color_g, u8 color
 
 void RendererOpenGL::InitOpenGLObjects() {
     // Create shader programs
+    fxaa_vertex = CreateProgram(HostShaders::FXAA_VERT, GL_VERTEX_SHADER);
+    fxaa_fragment = CreateProgram(HostShaders::FXAA_FRAG, GL_FRAGMENT_SHADER);
     present_vertex = CreateProgram(HostShaders::OPENGL_PRESENT_VERT, GL_VERTEX_SHADER);
     present_bilinear_fragment = CreateProgram(HostShaders::OPENGL_PRESENT_FRAG, GL_FRAGMENT_SHADER);
     present_bicubic_fragment = CreateProgram(HostShaders::PRESENT_BICUBIC_FRAG, GL_FRAGMENT_SHADER);
@@ -287,6 +291,8 @@ void RendererOpenGL::InitOpenGLObjects() {
 
     // Clear screen to black
     LoadColorToActiveGLTexture(0, 0, 0, 0, screen_info.texture);
+
+    fxaa_framebuffer.Create();
 }
 
 void RendererOpenGL::AddTelemetryFields() {
@@ -338,13 +344,82 @@ void RendererOpenGL::ConfigureFramebufferTexture(TextureInfo& texture,
     texture.resource.Release();
     texture.resource.Create(GL_TEXTURE_2D);
     glTextureStorage2D(texture.resource.handle, 1, internal_format, texture.width, texture.height);
+    fxaa_texture.Release();
+    fxaa_texture.Create(GL_TEXTURE_2D);
+    glTextureStorage2D(fxaa_texture.handle, 1, GL_RGBA16F, texture.width, texture.height);
+    glNamedFramebufferTexture(fxaa_framebuffer.handle, GL_COLOR_ATTACHMENT0, fxaa_texture.handle,
+                              0);
 }
 
 void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
+    // TODO: Signal state tracker about these changes
+    state_tracker.NotifyScreenDrawVertexArray();
+    state_tracker.NotifyPolygonModes();
+    state_tracker.NotifyViewport0();
+    state_tracker.NotifyScissor0();
+    state_tracker.NotifyColorMask(0);
+    state_tracker.NotifyBlend0();
+    state_tracker.NotifyFramebuffer();
+    state_tracker.NotifyFrontFace();
+    state_tracker.NotifyCullTest();
+    state_tracker.NotifyDepthTest();
+    state_tracker.NotifyStencilTest();
+    state_tracker.NotifyPolygonOffset();
+    state_tracker.NotifyRasterizeEnable();
+    state_tracker.NotifyFramebufferSRGB();
+    state_tracker.NotifyLogicOp();
+    state_tracker.NotifyClipControl();
+    state_tracker.NotifyAlphaTest();
+
+    state_tracker.ClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+
     // Update background color before drawing
     glClearColor(Settings::values.bg_red.GetValue() / 255.0f,
                  Settings::values.bg_green.GetValue() / 255.0f,
                  Settings::values.bg_blue.GetValue() / 255.0f, 1.0f);
+
+    glEnable(GL_CULL_FACE);
+    glDisable(GL_COLOR_LOGIC_OP);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_STENCIL_TEST);
+    glDisable(GL_POLYGON_OFFSET_FILL);
+    glDisable(GL_RASTERIZER_DISCARD);
+    glDisable(GL_ALPHA_TEST);
+    glDisablei(GL_BLEND, 0);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CW);
+    glColorMaski(0, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+
+    glBindTextureUnit(0, screen_info.display_texture);
+
+    if (Settings::values.anti_aliasing.GetValue() == Settings::AntiAliasing::Fxaa) {
+        program_manager.BindPresentPrograms(fxaa_vertex.handle, fxaa_fragment.handle);
+
+        glEnablei(GL_SCISSOR_TEST, 0);
+        glScissorIndexed(0, 0, 0,
+                         framebuffer_crop_rect.GetWidth() != 0 ? framebuffer_crop_rect.GetWidth()
+                                                               : screen_info.texture.width,
+                         framebuffer_crop_rect.GetHeight() != 0 ? framebuffer_crop_rect.GetHeight()
+                                                                : screen_info.texture.height);
+        glViewportIndexedf(0, 0.0f, 0.0f, static_cast<GLfloat>(screen_info.texture.width),
+                           static_cast<GLfloat>(screen_info.texture.height));
+        glDepthRangeIndexed(0, 0.0, 0.0);
+
+        glBindSampler(0, present_sampler.handle);
+        GLint old_read_fb;
+        GLint old_draw_fb;
+        glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &old_read_fb);
+        glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &old_draw_fb);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fxaa_framebuffer.handle);
+
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, old_read_fb);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, old_draw_fb);
+
+        glBindTextureUnit(0, fxaa_texture.handle);
+    }
 
     // Set projection matrix
     const std::array ortho_matrix =
@@ -422,47 +497,14 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     };
     glNamedBufferSubData(vertex_buffer.handle, 0, sizeof(vertices), std::data(vertices));
 
-    // TODO: Signal state tracker about these changes
-    state_tracker.NotifyScreenDrawVertexArray();
-    state_tracker.NotifyPolygonModes();
-    state_tracker.NotifyViewport0();
-    state_tracker.NotifyScissor0();
-    state_tracker.NotifyColorMask(0);
-    state_tracker.NotifyBlend0();
-    state_tracker.NotifyFramebuffer();
-    state_tracker.NotifyFrontFace();
-    state_tracker.NotifyCullTest();
-    state_tracker.NotifyDepthTest();
-    state_tracker.NotifyStencilTest();
-    state_tracker.NotifyPolygonOffset();
-    state_tracker.NotifyRasterizeEnable();
-    state_tracker.NotifyFramebufferSRGB();
-    state_tracker.NotifyLogicOp();
-    state_tracker.NotifyClipControl();
-    state_tracker.NotifyAlphaTest();
-
-    state_tracker.ClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
-    glEnable(GL_CULL_FACE);
     if (screen_info.display_srgb) {
         glEnable(GL_FRAMEBUFFER_SRGB);
     } else {
         glDisable(GL_FRAMEBUFFER_SRGB);
     }
-    glDisable(GL_COLOR_LOGIC_OP);
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_STENCIL_TEST);
-    glDisable(GL_POLYGON_OFFSET_FILL);
-    glDisable(GL_RASTERIZER_DISCARD);
-    glDisable(GL_ALPHA_TEST);
-    glDisablei(GL_BLEND, 0);
     glDisablei(GL_SCISSOR_TEST, 0);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CW);
-    glColorMaski(0, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glViewportIndexedf(0, 0.0f, 0.0f, static_cast<GLfloat>(layout.width),
                        static_cast<GLfloat>(layout.height));
-    glDepthRangeIndexed(0, 0.0, 0.0);
 
     glEnableVertexAttribArray(PositionLocation);
     glEnableVertexAttribArray(TexCoordLocation);
@@ -482,7 +524,6 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
         glBindVertexBuffer(0, vertex_buffer.handle, 0, sizeof(ScreenRectVertex));
     }
 
-    glBindTextureUnit(0, screen_info.display_texture);
     if (Settings::values.scaling_filter.GetValue() != Settings::ScalingFilter::NearestNeighbor) {
         glBindSampler(0, present_sampler.handle);
     } else {

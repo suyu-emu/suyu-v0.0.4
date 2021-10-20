@@ -13,6 +13,8 @@ set(SHADER_FILES
     convert_depth_to_float.frag
     convert_float_to_depth.frag
     full_screen_triangle.vert
+    fxaa.frag
+    fxaa.vert
     opengl_copy_bc4.comp
     opengl_present.frag
     opengl_present.vert

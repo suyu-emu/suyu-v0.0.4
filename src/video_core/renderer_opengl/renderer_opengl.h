@@ -111,6 +111,8 @@ private:
     OGLSampler present_sampler;
     OGLSampler present_sampler_nn;
     OGLBuffer vertex_buffer;
+    OGLProgram fxaa_vertex;
+    OGLProgram fxaa_fragment;
     OGLProgram present_vertex;
     OGLProgram present_bilinear_fragment;
     OGLProgram present_bicubic_fragment;
@@ -123,6 +125,8 @@ private:
 
     /// Display information for Switch screen
     ScreenInfo screen_info;
+    OGLTexture fxaa_texture;
+    OGLFramebuffer fxaa_framebuffer;
 
     /// OpenGL framebuffer data
     std::vector<u8> gl_framebuffer_data;
