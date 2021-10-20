@@ -107,6 +107,14 @@ public:
 
         return false;
     }
+
+    bool HasHDRumble() const {
+        if (sdl_controller) {
+            return (SDL_GameControllerGetType(sdl_controller.get()) ==
+                    SDL_CONTROLLER_TYPE_NINTENDO_SWITCH_PRO);
+        }
+        return false;
+    }
     /**
      * The Pad identifier of the joystick
      */
@@ -515,16 +523,26 @@ Input::VibrationError SDLDriver::SetRumble(const PadIdentifier& identifier,
     const auto process_amplitude = [](f32 amplitude) {
         return (amplitude + std::pow(amplitude, 0.3f)) * 0.5f * 0xFFFF;
     };
-    const Input::VibrationStatus new_vibration{
+    const Input::VibrationStatus exponential_vibration{
         .low_amplitude = process_amplitude(vibration.low_amplitude),
         .low_frequency = vibration.low_frequency,
         .high_amplitude = process_amplitude(vibration.high_amplitude),
         .high_frequency = vibration.high_frequency,
+        .type = Input::VibrationAmplificationType::Exponential,
     };
+
+    Input::VibrationStatus new_vibration{};
+
+    if (vibration.type == Input::VibrationAmplificationType::Linear || joystick->HasHDRumble()) {
+        new_vibration = vibration;
+    } else {
+        new_vibration = exponential_vibration;
+    }
 
     if (!joystick->RumblePlay(new_vibration)) {
         return Input::VibrationError::Unknown;
     }
+
     return Input::VibrationError::None;
 }
 Common::ParamPackage SDLDriver::BuildAnalogParamPackageForButton(int port, std::string guid,

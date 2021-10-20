@@ -54,7 +54,6 @@ Settings::ControllerType EmulatedController::MapNPadToSettingsType(NpadType type
 }
 
 void EmulatedController::ReloadFromSettings() {
-    //LOG_ERROR(Service_HID, "reload config from settings {}", NpadIdTypeToIndex(npad_id_type));
     const auto player_index = NpadIdTypeToIndex(npad_id_type);
     const auto& player = Settings::values.players.GetValue()[player_index];
 
@@ -92,7 +91,7 @@ void EmulatedController::ReloadFromSettings() {
 }
 
 void EmulatedController::ReloadInput() {
-    //LOG_ERROR(Service_HID, "reload config {}", NpadIdTypeToIndex(npad_id_type));
+    // LOG_ERROR(Service_HID, "reload config {}", NpadIdTypeToIndex(npad_id_type));
     // If you load any device here add the equivalent to the UnloadInput() function
     const auto left_side = button_params[Settings::NativeButton::ZL];
     const auto right_side = button_params[Settings::NativeButton::ZR];
@@ -640,12 +639,22 @@ bool EmulatedController::SetVibration(std::size_t device_index, VibrationValue v
     if (!output_devices[device_index]) {
         return false;
     }
+    const auto player_index = NpadIdTypeToIndex(npad_id_type);
+    const auto& player = Settings::values.players.GetValue()[player_index];
+    const f32 strength = static_cast<f32>(player.vibration_strength) / 100.0f;
+
+    // Exponential amplification is too strong at low amplitudes. Switch to a linear
+    // amplification if strength is set below 0.7f
+    const Input::VibrationAmplificationType type =
+        strength > 0.7f ? Input::VibrationAmplificationType::Exponential
+                        : Input::VibrationAmplificationType::Linear;
 
     const Input::VibrationStatus status = {
-        .low_amplitude = vibration.high_amplitude,
-        .low_frequency = vibration.high_amplitude,
-        .high_amplitude = vibration.high_amplitude,
-        .high_frequency = vibration.high_amplitude,
+        .low_amplitude = std::min(vibration.low_amplitude * strength, 1.0f),
+        .low_frequency = vibration.low_frequency,
+        .high_amplitude = std::min(vibration.high_amplitude * strength, 1.0f),
+        .high_frequency = vibration.high_frequency,
+        .type = type,
     };
     return output_devices[device_index]->SetVibration(status) == Input::VibrationError::None;
 }
@@ -661,6 +670,7 @@ bool EmulatedController::TestVibration(std::size_t device_index) {
         .low_frequency = 160.0f,
         .high_amplitude = 0.001f,
         .high_frequency = 320.0f,
+        .type = Input::VibrationAmplificationType::Linear,
     };
     return output_devices[device_index]->SetVibration(status) == Input::VibrationError::None;
 }
@@ -687,7 +697,7 @@ void EmulatedController::Connect() {
         std::lock_guard lock{mutex};
         if (is_configuring) {
             temporary_is_connected = true;
-            TriggerOnChange(ControllerTriggerType::Connected,false);
+            TriggerOnChange(ControllerTriggerType::Connected, false);
             return;
         }
 
@@ -697,7 +707,7 @@ void EmulatedController::Connect() {
         is_connected = true;
     }
     LOG_ERROR(Service_HID, "Connected controller {}", NpadIdTypeToIndex(npad_id_type));
-    TriggerOnChange(ControllerTriggerType::Connected,true);
+    TriggerOnChange(ControllerTriggerType::Connected, true);
 }
 
 void EmulatedController::Disconnect() {
@@ -707,7 +717,7 @@ void EmulatedController::Disconnect() {
             temporary_is_connected = false;
             LOG_ERROR(Service_HID, "Disconnected temporal controller {}",
                       NpadIdTypeToIndex(npad_id_type));
-            TriggerOnChange(ControllerTriggerType::Disconnected,false);
+            TriggerOnChange(ControllerTriggerType::Disconnected, false);
             return;
         }
 
@@ -717,7 +727,7 @@ void EmulatedController::Disconnect() {
         is_connected = false;
     }
     LOG_ERROR(Service_HID, "Disconnected controller {}", NpadIdTypeToIndex(npad_id_type));
-    TriggerOnChange(ControllerTriggerType::Disconnected,true);
+    TriggerOnChange(ControllerTriggerType::Disconnected, true);
 }
 
 bool EmulatedController::IsConnected(bool temporary) const {
@@ -751,7 +761,7 @@ void EmulatedController::SetNpadType(NpadType npad_type_) {
                 return;
             }
             temporary_npad_type = npad_type_;
-            TriggerOnChange(ControllerTriggerType::Type,false);
+            TriggerOnChange(ControllerTriggerType::Type, false);
             return;
         }
 
@@ -764,7 +774,7 @@ void EmulatedController::SetNpadType(NpadType npad_type_) {
         }
         npad_type = npad_type_;
     }
-    TriggerOnChange(ControllerTriggerType::Type,true);
+    TriggerOnChange(ControllerTriggerType::Type, true);
 }
 
 LedPattern EmulatedController::GetLedPattern() const {

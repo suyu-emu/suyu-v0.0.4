@@ -60,6 +60,12 @@ enum class PollingError {
     Unknown,
 };
 
+// Hint for amplification curve to be used
+enum class VibrationAmplificationType {
+    Linear,
+    Exponential,
+};
+
 struct AnalogProperties {
     float deadzone{};
     float range{1.0f};
@@ -126,6 +132,7 @@ struct VibrationStatus {
     f32 low_frequency{};
     f32 high_amplitude{};
     f32 high_frequency{};
+    VibrationAmplificationType type;
 };
 
 struct LedStatus {
