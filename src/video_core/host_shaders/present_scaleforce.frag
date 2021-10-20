@@ -24,6 +24,9 @@
 
 #version 460
 
+#extension GL_AMD_gpu_shader_half_float : enable
+#extension GL_NV_gpu_shader5 : enable
+
 #ifdef VULKAN
 
 #define BINDING_COLOR_TEXTURE 1
@@ -40,106 +43,70 @@ layout (location = 0) out vec4 frag_color;
 
 layout (binding = BINDING_COLOR_TEXTURE) uniform sampler2D input_texture;
 
-vec2 tex_size;
-vec2 inv_tex_size;
+const bool ignore_alpha = true;
 
-vec4 cubic(float v) {
-    vec3 n = vec3(1.0, 2.0, 3.0) - v;
-    vec3 s = n * n * n;
-    float x = s.x;
-    float y = s.y - 4.0 * s.x;
-    float z = s.z - 4.0 * s.y + 6.0 * s.x;
-    float w = 6.0 - x - y - z;
-    return vec4(x, y, z, w) / 6.0;
-}
-
-// Bicubic interpolation
-vec4 textureBicubic(vec2 tex_coords) {
-    tex_coords = tex_coords * tex_size - 0.5;
-
-    vec2 fxy = modf(tex_coords, tex_coords);
-
-    vec4 xcubic = cubic(fxy.x);
-    vec4 ycubic = cubic(fxy.y);
-
-    vec4 c = tex_coords.xxyy + vec2(-0.5, +1.5).xyxy;
-
-    vec4 s = vec4(xcubic.xz + xcubic.yw, ycubic.xz + ycubic.yw);
-    vec4 offset = c + vec4(xcubic.yw, ycubic.yw) / s;
-
-    offset *= inv_tex_size.xxyy;
-
-    vec4 sample0 = textureLod(input_texture, offset.xz, 0.0);
-    vec4 sample1 = textureLod(input_texture, offset.yz, 0.0);
-    vec4 sample2 = textureLod(input_texture, offset.xw, 0.0);
-    vec4 sample3 = textureLod(input_texture, offset.yw, 0.0);
-
-    float sx = s.x / (s.x + s.y);
-    float sy = s.z / (s.z + s.w);
-
-    return mix(mix(sample3, sample2, sx), mix(sample1, sample0, sx), sy);
-}
-
-mat4x3 center_matrix;
-vec4 center_alpha;
-
-// Finds the distance between four colors and cc in YCbCr space
-vec4 ColorDist(vec4 A, vec4 B, vec4 C, vec4 D) {
+float16_t ColorDist1(f16vec4 a, f16vec4 b) {
     // https://en.wikipedia.org/wiki/YCbCr#ITU-R_BT.2020_conversion
-    const vec3 K = vec3(0.2627, 0.6780, 0.0593);
-    const float LUMINANCE_WEIGHT = .6;
-    const mat3 YCBCR_MATRIX =
-        mat3(K * LUMINANCE_WEIGHT, -.5 * K.r / (1.0 - K.b), -.5 * K.g / (1.0 - K.b), .5, .5,
-             -.5 * K.g / (1.0 - K.r), -.5 * K.b / (1.0 - K.r));
+    const f16vec3 K = f16vec3(0.2627, 0.6780, 0.0593);
+    const float16_t scaleB = float16_t(0.5) / (float16_t(1.0) - K.b);
+    const float16_t scaleR = float16_t(0.5) / (float16_t(1.0) - K.r);
+    f16vec4 diff = a - b;
+    float16_t Y = dot(diff.rgb, K);
+    float16_t Cb = scaleB * (diff.b - Y);
+    float16_t Cr = scaleR * (diff.r - Y);
+    f16vec3 YCbCr = f16vec3(Y, Cb, Cr);
+    float16_t d = length(YCbCr);
+    if (ignore_alpha) {
+        return d;
+    }
+    return sqrt(a.a * b.a * d * d + diff.a * diff.a);
+}
 
-    mat4x3 colors = mat4x3(A.rgb, B.rgb, C.rgb, D.rgb) - center_matrix;
-    mat4x3 YCbCr = YCBCR_MATRIX * colors;
-    vec4 color_dist = vec3(1.0) * YCbCr;
-    color_dist *= color_dist;
-    vec4 alpha = vec4(A.a, B.a, C.a, D.a);
+f16vec4 ColorDist(f16vec4 ref, f16vec4 A, f16vec4 B, f16vec4 C, f16vec4 D) {
+    return f16vec4(
+            ColorDist1(ref, A),
+            ColorDist1(ref, B),
+            ColorDist1(ref, C),
+            ColorDist1(ref, D)
+        );
+}
 
-    return sqrt((color_dist + abs(center_alpha - alpha)) * alpha * center_alpha);
+vec4 Scaleforce(sampler2D tex, vec2 tex_coord) {
+    f16vec4 bl = f16vec4(textureOffset(tex, tex_coord, ivec2(-1, -1)));
+    f16vec4 bc = f16vec4(textureOffset(tex, tex_coord, ivec2(0, -1)));
+    f16vec4 br = f16vec4(textureOffset(tex, tex_coord, ivec2(1, -1)));
+    f16vec4 cl = f16vec4(textureOffset(tex, tex_coord, ivec2(-1, 0)));
+    f16vec4 cc = f16vec4(texture(tex, tex_coord));
+    f16vec4 cr = f16vec4(textureOffset(tex, tex_coord, ivec2(1, 0)));
+    f16vec4 tl = f16vec4(textureOffset(tex, tex_coord, ivec2(-1, 1)));
+    f16vec4 tc = f16vec4(textureOffset(tex, tex_coord, ivec2(0, 1)));
+    f16vec4 tr = f16vec4(textureOffset(tex, tex_coord, ivec2(1, 1)));
+
+    f16vec4 offset_tl = ColorDist(cc, tl, tc, tr, cr);
+    f16vec4 offset_br = ColorDist(cc, br, bc, bl, cl);
+
+    // Calculate how different cc is from the texels around it
+    const float16_t plus_weight = float16_t(1.5);
+    const float16_t cross_weight = float16_t(1.5);
+    float16_t total_dist = dot(offset_tl + offset_br, f16vec4(cross_weight, plus_weight, cross_weight, plus_weight));
+
+    if (total_dist == float16_t(0.0)) {
+        return cc;
+    } else {
+        // Add together all the distances with direction taken into account
+        f16vec4 tmp = offset_tl - offset_br;
+        f16vec2 total_offset = tmp.wy * plus_weight + (tmp.zz + f16vec2(-tmp.x, tmp.x)) * cross_weight;
+
+        // When the image has thin points, they tend to split apart.
+        // This is because the texels all around are different and total_offset reaches into clear areas.
+        // This works pretty well to keep the offset in bounds for these cases.
+        float16_t clamp_val = length(total_offset) / total_dist;
+        f16vec2 final_offset = clamp(total_offset, -clamp_val, clamp_val) / f16vec2(textureSize(tex, 0));
+
+        return texture(tex, tex_coord - final_offset);
+    }
 }
 
 void main() {
-    vec4 bl = textureLodOffset(input_texture, tex_coord, 0.0, ivec2(-1, -1));
-    vec4 bc = textureLodOffset(input_texture, tex_coord, 0.0, ivec2(0, -1));
-    vec4 br = textureLodOffset(input_texture, tex_coord, 0.0, ivec2(1, -1));
-    vec4 cl = textureLodOffset(input_texture, tex_coord, 0.0, ivec2(-1, 0));
-    vec4 cc = textureLod(input_texture, tex_coord, 0.0);
-    vec4 cr = textureLodOffset(input_texture, tex_coord, 0.0, ivec2(1, 0));
-    vec4 tl = textureLodOffset(input_texture, tex_coord, 0.0, ivec2(-1, 1));
-    vec4 tc = textureLodOffset(input_texture, tex_coord, 0.0, ivec2(0, 1));
-    vec4 tr = textureLodOffset(input_texture, tex_coord, 0.0, ivec2(1, 1));
-
-
-    tex_size = vec2(textureSize(input_texture, 0));
-    inv_tex_size = 1.0 / tex_size;
-    center_matrix = mat4x3(cc.rgb, cc.rgb, cc.rgb, cc.rgb);
-    center_alpha = cc.aaaa;
-
-    vec4 offset_tl = ColorDist(tl, tc, tr, cr);
-    vec4 offset_br = ColorDist(br, bc, bl, cl);
-
-    // Calculate how different cc is from the texels around it
-    float total_dist = dot(offset_tl + offset_br, vec4(1.0));
-
-    // Add together all the distances with direction taken into account
-    vec4 tmp = offset_tl - offset_br;
-    vec2 total_offset = tmp.wy + tmp.zz + vec2(-tmp.x, tmp.x);
-
-    if (total_dist == 0.0) {
-        // Doing bicubic filtering just past the edges where the offset is 0 causes black floaters
-        // and it doesn't really matter which filter is used when the colors aren't changing.
-        frag_color = vec4(cc.rgb, 1.0f);
-    } else {
-        // When the image has thin points, they tend to split apart.
-        // This is because the texels all around are different
-        // and total_offset reaches into clear areas.
-        // This works pretty well to keep the offset in bounds for these cases.
-        float clamp_val = length(total_offset) / total_dist;
-        vec2 final_offset = clamp(total_offset, -clamp_val, clamp_val) * inv_tex_size;
-
-        frag_color = vec4(textureBicubic(tex_coord - final_offset).rgb, 1.0f);
-    }
+    frag_color = Scaleforce(input_texture, tex_coord);
 }
