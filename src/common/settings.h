@@ -73,6 +73,11 @@ enum class ScalingFilter : u32 {
     LastFilter = Fsr,
 };
 
+enum class AntiAliasing : u32 {
+    None = 0,
+    Fxaa = 1,
+};
+
 struct ResolutionScalingInfo {
     u32 up_scale{1};
     u32 down_shift{0};
@@ -498,6 +503,7 @@ struct Values {
     ResolutionScalingInfo resolution_info{};
     Setting<ResolutionSetup> resolution_setup{ResolutionSetup::Res1X, "resolution_setup"};
     Setting<ScalingFilter> scaling_filter{ScalingFilter::Bilinear, "scaling_filter"};
+    Setting<AntiAliasing> anti_aliasing{AntiAliasing::None, "anti_aliasing"};
     // *nix platforms may have issues with the borderless windowed fullscreen mode.
     // Default to exclusive fullscreen on these platforms for now.
     RangedSetting<FullscreenMode> fullscreen_mode{
