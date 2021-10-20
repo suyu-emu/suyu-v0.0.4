@@ -63,7 +63,7 @@ VkViewport GetViewportState(const Device& device, const Maxwell& regs, size_t in
     const auto conv = [scale](float value) {
         float new_value = value * scale;
         if (scale < 1.0f) {
-            bool sign = std::signbit(new_value);
+            const bool sign = std::signbit(value);
             new_value = std::round(std::abs(new_value));
             new_value = sign ? -new_value : new_value;
         }
@@ -96,21 +96,22 @@ VkViewport GetViewportState(const Device& device, const Maxwell& regs, size_t in
 VkRect2D GetScissorState(const Maxwell& regs, size_t index, u32 up_scale = 1, u32 down_shift = 0) {
     const auto& src = regs.scissor_test[index];
     VkRect2D scissor;
-    const auto scale_up = [&](u32 value) -> u32 {
+    const auto scale_up = [&](s32 value) -> s32 {
         if (value == 0) {
             return 0U;
         }
-        const u32 upset = value * up_scale;
-        u32 acumm = 0;
+        const s32 upset = value * up_scale;
+        s32 acumm = 0;
         if ((up_scale >> down_shift) == 0) {
-            acumm = upset & 0x1;
+            acumm = upset % 2;
         }
-        const u32 converted_value = (value * up_scale) >> down_shift;
-        return std::max<u32>(converted_value + acumm, 1U);
+        const s32 converted_value = (value * up_scale) >> down_shift;
+        return value < 0 ? std::min<s32>(converted_value - acumm, -1)
+                         : std::max<s32>(converted_value + acumm, 1);
     };
     if (src.enable) {
-        scissor.offset.x = static_cast<s32>(scale_up(src.min_x));
-        scissor.offset.y = static_cast<s32>(scale_up(src.min_y));
+        scissor.offset.x = scale_up(static_cast<s32>(src.min_x));
+        scissor.offset.y = scale_up(static_cast<s32>(src.min_y));
         scissor.extent.width = scale_up(src.max_x - src.min_x);
         scissor.extent.height = scale_up(src.max_y - src.min_y);
     } else {

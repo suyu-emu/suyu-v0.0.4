@@ -1037,8 +1037,11 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
         if (overlap.info.num_samples != new_image.info.num_samples) {
             LOG_WARNING(HW_GPU, "Copying between images with different samples is not implemented");
         } else {
+            const auto& resolution = Settings::values.resolution_info;
             const SubresourceBase base = new_image.TryFindBase(overlap.gpu_addr).value();
-            auto copies = MakeShrinkImageCopies(new_info, overlap.info, base);
+            const u32 up_scale = can_rescale ? resolution.up_scale : 1;
+            const u32 down_shift = can_rescale ? resolution.down_shift : 0;
+            auto copies = MakeShrinkImageCopies(new_info, overlap.info, base, up_scale, down_shift);
             runtime.CopyImage(new_image, overlap, std::move(copies));
         }
         if (True(overlap.flags & ImageFlagBits::Tracked)) {
@@ -1659,19 +1662,35 @@ void TextureCache<P>::SynchronizeAliases(ImageId image_id) {
         const ImageBase& rhs_image = slot_images[rhs->id];
         return lhs_image.modification_tick < rhs_image.modification_tick;
     });
+    const auto& resolution = Settings::values.resolution_info;
     for (const AliasedImage* const aliased : aliased_images) {
-        if (any_rescaled) {
-            Image& aliased_image = slot_images[aliased->id];
-            if (can_rescale) {
-                ScaleUp(aliased_image);
-            } else {
-                ScaleDown(aliased_image);
-                if (any_blacklisted) {
-                    aliased_image.flags |= ImageFlagBits::Blacklisted;
-                }
+        if (!resolution.active | !any_rescaled) {
+            CopyImage(image_id, aliased->id, aliased->copies);
+            continue;
+        }
+        Image& aliased_image = slot_images[aliased->id];
+        if (!can_rescale) {
+            ScaleDown(aliased_image);
+            if (any_blacklisted) {
+                aliased_image.flags |= ImageFlagBits::Blacklisted;
+            }
+            CopyImage(image_id, aliased->id, aliased->copies);
+            continue;
+        }
+        ScaleUp(aliased_image);
+
+        const bool both_2d{image.info.type == ImageType::e2D &&
+                           aliased_image.info.type == ImageType::e2D};
+        auto copies = aliased->copies;
+        for (auto copy : copies) {
+            copy.extent.width = std::max<u32>(
+                (copy.extent.width * resolution.up_scale) >> resolution.down_shift, 1);
+            if (both_2d) {
+                copy.extent.height = std::max<u32>(
+                    (copy.extent.height * resolution.up_scale) >> resolution.down_shift, 1);
             }
         }
-        CopyImage(image_id, aliased->id, aliased->copies);
+        CopyImage(image_id, aliased->id, copies);
     }
 }
 
