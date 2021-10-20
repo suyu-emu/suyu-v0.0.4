@@ -111,6 +111,7 @@ private:
     vk::ShaderModule vertex_shader;
     vk::ShaderModule bilinear_fragment_shader;
     vk::ShaderModule bicubic_fragment_shader;
+    vk::ShaderModule gaussian_fragment_shader;
     vk::ShaderModule scaleforce_fragment_shader;
     vk::DescriptorPool descriptor_pool;
     vk::DescriptorSetLayout descriptor_set_layout;
@@ -118,6 +119,7 @@ private:
     vk::Pipeline nearest_neightbor_pipeline;
     vk::Pipeline bilinear_pipeline;
     vk::Pipeline bicubic_pipeline;
+    vk::Pipeline gaussian_pipeline;
     vk::Pipeline scaleforce_pipeline;
     vk::RenderPass renderpass;
     std::vector<vk::Framebuffer> framebuffers;

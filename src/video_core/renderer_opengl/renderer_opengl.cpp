@@ -256,6 +256,8 @@ void RendererOpenGL::InitOpenGLObjects() {
     present_vertex = CreateProgram(HostShaders::OPENGL_PRESENT_VERT, GL_VERTEX_SHADER);
     present_bilinear_fragment = CreateProgram(HostShaders::OPENGL_PRESENT_FRAG, GL_FRAGMENT_SHADER);
     present_bicubic_fragment = CreateProgram(HostShaders::PRESENT_BICUBIC_FRAG, GL_FRAGMENT_SHADER);
+    present_gaussian_fragment =
+        CreateProgram(HostShaders::PRESENT_GAUSSIAN_FRAG, GL_FRAGMENT_SHADER);
     present_scaleforce_fragment =
         CreateProgram(HostShaders::PRESENT_SCALEFORCE_FRAG, GL_FRAGMENT_SHADER);
 
@@ -358,6 +360,9 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
         break;
     case Settings::ScalingFilter::Bicubic:
         fragment_handle = present_bicubic_fragment.handle;
+        break;
+    case Settings::ScalingFilter::Gaussian:
+        fragment_handle = present_gaussian_fragment.handle;
         break;
     case Settings::ScalingFilter::ScaleForce:
         fragment_handle = present_scaleforce_fragment.handle;

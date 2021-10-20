@@ -67,8 +67,9 @@ enum class ScalingFilter : u32 {
     NearestNeighbor = 0,
     Bilinear = 1,
     Bicubic = 2,
-    ScaleForce = 3,
-    Fsr = 4,
+    Gaussian = 3,
+    ScaleForce = 4,
+    Fsr = 5,
 };
 
 struct ResolutionScalingInfo {

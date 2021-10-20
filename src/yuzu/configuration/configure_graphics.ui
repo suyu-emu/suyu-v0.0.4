@@ -419,6 +419,11 @@
              </item>
              <item>
               <property name="text">
+               <string>Gaussian</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
                <string>ScaleForce</string>
               </property>
              </item>

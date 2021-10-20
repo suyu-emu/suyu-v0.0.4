@@ -18,6 +18,7 @@
 #include "core/memory.h"
 #include "video_core/gpu.h"
 #include "video_core/host_shaders/present_bicubic_frag_spv.h"
+#include "video_core/host_shaders/present_gaussian_frag_spv.h"
 #include "video_core/host_shaders/present_scaleforce_frag_spv.h"
 #include "video_core/host_shaders/vulkan_present_frag_spv.h"
 #include "video_core/host_shaders/vulkan_present_vert_spv.h"
@@ -297,6 +298,9 @@ VkSemaphore VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer,
             case Settings::ScalingFilter::Bicubic:
                 cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *bicubic_pipeline);
                 break;
+            case Settings::ScalingFilter::Gaussian:
+                cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *gaussian_pipeline);
+                break;
             case Settings::ScalingFilter::ScaleForce:
                 cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *scaleforce_pipeline);
                 break;
@@ -388,6 +392,7 @@ void VKBlitScreen::CreateShaders() {
     vertex_shader = BuildShader(device, VULKAN_PRESENT_VERT_SPV);
     bilinear_fragment_shader = BuildShader(device, VULKAN_PRESENT_FRAG_SPV);
     bicubic_fragment_shader = BuildShader(device, PRESENT_BICUBIC_FRAG_SPV);
+    gaussian_fragment_shader = BuildShader(device, PRESENT_GAUSSIAN_FRAG_SPV);
     scaleforce_fragment_shader = BuildShader(device, PRESENT_SCALEFORCE_FRAG_SPV);
 }
 
@@ -574,6 +579,27 @@ void VKBlitScreen::CreateGraphicsPipeline() {
         },
     }};
 
+    const std::array<VkPipelineShaderStageCreateInfo, 2> gaussian_shader_stages{{
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .stage = VK_SHADER_STAGE_VERTEX_BIT,
+            .module = *vertex_shader,
+            .pName = "main",
+            .pSpecializationInfo = nullptr,
+        },
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
+            .module = *gaussian_fragment_shader,
+            .pName = "main",
+            .pSpecializationInfo = nullptr,
+        },
+    }};
+
     const std::array<VkPipelineShaderStageCreateInfo, 2> scaleforce_shader_stages{{
         {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
@@ -733,6 +759,28 @@ void VKBlitScreen::CreateGraphicsPipeline() {
         .basePipelineIndex = 0,
     };
 
+    const VkGraphicsPipelineCreateInfo gaussian_pipeline_ci{
+        .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .stageCount = static_cast<u32>(gaussian_shader_stages.size()),
+        .pStages = gaussian_shader_stages.data(),
+        .pVertexInputState = &vertex_input_ci,
+        .pInputAssemblyState = &input_assembly_ci,
+        .pTessellationState = nullptr,
+        .pViewportState = &viewport_state_ci,
+        .pRasterizationState = &rasterization_ci,
+        .pMultisampleState = &multisampling_ci,
+        .pDepthStencilState = nullptr,
+        .pColorBlendState = &color_blend_ci,
+        .pDynamicState = &dynamic_state_ci,
+        .layout = *pipeline_layout,
+        .renderPass = *renderpass,
+        .subpass = 0,
+        .basePipelineHandle = 0,
+        .basePipelineIndex = 0,
+    };
+
     const VkGraphicsPipelineCreateInfo scaleforce_pipeline_ci{
         .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
         .pNext = nullptr,
@@ -757,6 +805,7 @@ void VKBlitScreen::CreateGraphicsPipeline() {
 
     bilinear_pipeline = device.GetLogical().CreateGraphicsPipeline(bilinear_pipeline_ci);
     bicubic_pipeline = device.GetLogical().CreateGraphicsPipeline(bicubic_pipeline_ci);
+    gaussian_pipeline = device.GetLogical().CreateGraphicsPipeline(gaussian_pipeline_ci);
     scaleforce_pipeline = device.GetLogical().CreateGraphicsPipeline(scaleforce_pipeline_ci);
 }
 

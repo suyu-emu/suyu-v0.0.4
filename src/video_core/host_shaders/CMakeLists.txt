@@ -19,6 +19,7 @@ set(SHADER_FILES
     pitch_unswizzle.comp
     present_scaleforce.frag
     present_bicubic.frag
+    present_gaussian.frag
     vulkan_blit_color_float.frag
     vulkan_blit_depth_stencil.frag
     vulkan_fidelityfx_fsr_easu.comp
