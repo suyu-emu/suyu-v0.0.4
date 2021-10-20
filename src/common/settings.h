@@ -54,10 +54,13 @@ enum class NvdecEmulation : u32 {
 
 enum class ResolutionSetup : u32 {
     Res1_2X = 0,
-    Res1X = 1,
-    Res2X = 2,
-    Res3X = 3,
-    Res4X = 4,
+    Res3_4X = 1,
+    Res1X = 2,
+    Res2X = 3,
+    Res3X = 4,
+    Res4X = 5,
+    Res5X = 6,
+    Res6X = 7,
 };
 
 enum class ScalingFilter : u32 {

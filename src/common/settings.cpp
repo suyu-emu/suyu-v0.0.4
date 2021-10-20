@@ -116,6 +116,11 @@ void UpdateRescalingInfo() {
         info.down_shift = 1;
         info.downscale = true;
         break;
+    case ResolutionSetup::Res3_4X:
+        info.up_scale = 3;
+        info.down_shift = 2;
+        info.downscale = true;
+        break;
     case ResolutionSetup::Res1X:
         info.up_scale = 1;
         info.down_shift = 0;
@@ -130,6 +135,14 @@ void UpdateRescalingInfo() {
         break;
     case ResolutionSetup::Res4X:
         info.up_scale = 4;
+        info.down_shift = 0;
+        break;
+    case ResolutionSetup::Res5X:
+        info.up_scale = 5;
+        info.down_shift = 0;
+        break;
+    case ResolutionSetup::Res6X:
+        info.up_scale = 6;
         info.down_shift = 0;
         break;
     default:

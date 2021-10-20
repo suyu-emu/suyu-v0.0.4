@@ -335,7 +335,12 @@
             <widget class="QComboBox" name="resolution_combobox">
              <item>
               <property name="text">
-               <string>0.5X (360p/540p)</string>
+               <string>0.5X (360p/540p)[MAY BREAK]</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>0.75X (540p/810p)[MAY BREAK]</string>
               </property>
              </item>
              <item>
@@ -350,12 +355,22 @@
              </item>
              <item>
               <property name="text">
-               <string>3X (2160p[4K]/3240p[6K])</string>
+               <string>3X (2160p[4K]/3240p)</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>4X (2880p/4320p[8K])</string>
+               <string>4X (2880p/4320p)</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>5X (3600p/5400p)</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>6X (4320p/6480p)</string>
               </property>
              </item>
             </widget>
