@@ -362,6 +362,17 @@ void VKBlitScreen::CreateDynamicResources() {
 }
 
 void VKBlitScreen::RefreshResources(const Tegra::FramebufferConfig& framebuffer) {
+    if (Settings::values.scaling_filter.GetValue() == Settings::ScalingFilter::Fsr) {
+        if (!fsr) {
+            const auto& layout = render_window.GetFramebufferLayout();
+            fsr = std::make_unique<FSR>(
+                device, memory_allocator, image_count,
+                VkExtent2D{.width = layout.screen.GetWidth(), .height = layout.screen.GetHeight()});
+        }
+    } else {
+        fsr.reset();
+    }
+
     if (framebuffer.width == raw_width && framebuffer.height == raw_height && !raw_images.empty()) {
         return;
     }
