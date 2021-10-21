@@ -774,6 +774,34 @@ void GMainWindow::InitializeWidgets() {
     tas_label->setFocusPolicy(Qt::NoFocus);
     statusBar()->insertPermanentWidget(0, tas_label);
 
+    // Setup Filter button
+    filter_status_button = new QPushButton();
+    filter_status_button->setObjectName(QStringLiteral("TogglableStatusBarButton"));
+    filter_status_button->setFocusPolicy(Qt::NoFocus);
+    connect(filter_status_button, &QPushButton::clicked, [&] {
+        auto filter = Settings::values.scaling_filter.GetValue();
+        if (filter == Settings::ScalingFilter::LastFilter) {
+            filter = Settings::ScalingFilter::NearestNeighbor;
+        } else {
+            filter = static_cast<Settings::ScalingFilter>(static_cast<u32>(filter) + 1);
+        }
+        if (Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL &&
+            filter == Settings::ScalingFilter::Fsr) {
+            filter = Settings::ScalingFilter::NearestNeighbor;
+        }
+        Settings::values.scaling_filter.SetValue(filter);
+        filter_status_button->setChecked(true);
+        UpdateFilterText();
+    });
+    auto filter = Settings::values.scaling_filter.GetValue();
+    if (Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL &&
+        filter == Settings::ScalingFilter::Fsr) {
+        Settings::values.scaling_filter.SetValue(Settings::ScalingFilter::NearestNeighbor);
+    }
+    UpdateFilterText();
+    filter_status_button->setCheckable(true);
+    statusBar()->insertPermanentWidget(0, filter_status_button);
+
     // Setup Dock button
     dock_status_button = new QPushButton();
     dock_status_button->setObjectName(QStringLiteral("TogglableStatusBarButton"));
@@ -3033,11 +3061,39 @@ void GMainWindow::UpdateGPUAccuracyButton() {
     }
 }
 
+void GMainWindow::UpdateFilterText() {
+    const auto filter = Settings::values.scaling_filter.GetValue();
+    switch (filter) {
+    case Settings::ScalingFilter::NearestNeighbor:
+        filter_status_button->setText(tr("NEAREST"));
+        break;
+    case Settings::ScalingFilter::Bilinear:
+        filter_status_button->setText(tr("BILINEAR"));
+        break;
+    case Settings::ScalingFilter::Bicubic:
+        filter_status_button->setText(tr("BICUBIC"));
+        break;
+    case Settings::ScalingFilter::Gaussian:
+        filter_status_button->setText(tr("GAUSSIAN"));
+        break;
+    case Settings::ScalingFilter::ScaleForce:
+        filter_status_button->setText(tr("SCALEFORCE"));
+        break;
+    case Settings::ScalingFilter::Fsr:
+        filter_status_button->setText(tr("AMD'S FIDELITYFX SR"));
+        break;
+    default:
+        filter_status_button->setText(tr("BILINEAR"));
+        break;
+    }
+}
+
 void GMainWindow::UpdateStatusButtons() {
     dock_status_button->setChecked(Settings::values.use_docked_mode.GetValue());
     renderer_status_button->setChecked(Settings::values.renderer_backend.GetValue() ==
                                        Settings::RendererBackend::Vulkan);
     UpdateGPUAccuracyButton();
+    UpdateFilterText();
 }
 
 void GMainWindow::UpdateUISettings() {

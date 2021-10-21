@@ -70,6 +70,7 @@ enum class ScalingFilter : u32 {
     Gaussian = 3,
     ScaleForce = 4,
     Fsr = 5,
+    LastFilter = Fsr,
 };
 
 struct ResolutionScalingInfo {
