@@ -71,7 +71,6 @@ private:
     // This is nn::hid::GestureState
     struct GestureState {
         s64_le sampling_number;
-        s64_le sampling_number2;
         s64_le detection_count;
         GestureType type;
         GestureDirection direction;
@@ -85,21 +84,7 @@ private:
         s32_le point_count;
         std::array<Common::Point<s32_le>, 4> points;
     };
-    static_assert(sizeof(GestureState) == 0x68, "GestureState is an invalid size");
-
-    struct CommonHeader {
-        s64_le timestamp;
-        s64_le total_entry_count;
-        s64_le last_entry_index;
-        s64_le entry_count;
-    };
-    static_assert(sizeof(CommonHeader) == 0x20, "CommonHeader is an invalid size");
-
-    struct SharedMemory {
-        CommonHeader header;
-        std::array<GestureState, 17> gesture_states;
-    };
-    static_assert(sizeof(SharedMemory) == 0x708, "SharedMemory is an invalid size");
+    static_assert(sizeof(GestureState) == 0x60, "GestureState is an invalid size");
 
     struct Finger {
         Common::Point<f32> pos{};
@@ -153,13 +138,16 @@ private:
                        GestureType& type);
 
     // Retrieves the last gesture entry, as indicated by shared memory indices.
-    [[nodiscard]] GestureState& GetLastGestureEntry();
     [[nodiscard]] const GestureState& GetLastGestureEntry() const;
 
     // Returns the average distance, angle and middle point of the active fingers
     GestureProperties GetGestureProperties();
 
-    SharedMemory shared_memory{};
+    // This is nn::hid::detail::GestureLifo
+    Lifo<GestureState> gesture_lifo{};
+    static_assert(sizeof(gesture_lifo) == 0x708, "gesture_lifo is an invalid size");
+    GestureState next_state{};
+
     Core::HID::EmulatedConsole* console;
 
     std::array<Finger, MAX_POINTS> fingers{};

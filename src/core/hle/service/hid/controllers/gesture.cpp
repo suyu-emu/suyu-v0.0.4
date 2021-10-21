@@ -31,7 +31,8 @@ Controller_Gesture::Controller_Gesture(Core::System& system_) : ControllerBase(s
 Controller_Gesture::~Controller_Gesture() = default;
 
 void Controller_Gesture::OnInit() {
-    shared_memory.header.entry_count = 0;
+    gesture_lifo.entry_count = 0;
+    gesture_lifo.last_entry_index = 0;
     force_update = true;
 }
 
@@ -39,27 +40,25 @@ void Controller_Gesture::OnRelease() {}
 
 void Controller_Gesture::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* data,
                                   std::size_t size) {
-    shared_memory.header.timestamp = core_timing.GetCPUTicks();
-    shared_memory.header.total_entry_count = 17;
-
     if (!IsControllerActivated()) {
-        shared_memory.header.entry_count = 0;
-        shared_memory.header.last_entry_index = 0;
+        gesture_lifo.entry_count = 0;
+        gesture_lifo.last_entry_index = 0;
+        std::memcpy(data, &gesture_lifo, sizeof(gesture_lifo));
         return;
     }
 
     ReadTouchInput();
 
     GestureProperties gesture = GetGestureProperties();
-    f32 time_difference = static_cast<f32>(shared_memory.header.timestamp - last_update_timestamp) /
-                          (1000 * 1000 * 1000);
+    f32 time_difference =
+        static_cast<f32>(gesture_lifo.timestamp - last_update_timestamp) / (1000 * 1000 * 1000);
 
     // Only update if necesary
     if (!ShouldUpdateGesture(gesture, time_difference)) {
         return;
     }
 
-    last_update_timestamp = shared_memory.header.timestamp;
+    last_update_timestamp = gesture_lifo.timestamp;
     UpdateGestureSharedMemory(data, size, gesture, time_difference);
 }
 
@@ -75,7 +74,7 @@ void Controller_Gesture::ReadTouchInput() {
 
 bool Controller_Gesture::ShouldUpdateGesture(const GestureProperties& gesture,
                                              f32 time_difference) {
-    const auto& last_entry = shared_memory.gesture_states[shared_memory.header.last_entry_index];
+    const auto& last_entry = GetLastGestureEntry();
     if (force_update) {
         force_update = false;
         return true;
@@ -103,24 +102,16 @@ void Controller_Gesture::UpdateGestureSharedMemory(u8* data, std::size_t size,
     GestureType type = GestureType::Idle;
     GestureAttribute attributes{};
 
-    const auto& last_entry = shared_memory.gesture_states[shared_memory.header.last_entry_index];
-    shared_memory.header.last_entry_index = (shared_memory.header.last_entry_index + 1) % 17;
-    auto& cur_entry = shared_memory.gesture_states[shared_memory.header.last_entry_index];
+    const auto& last_entry = gesture_lifo.ReadCurrentEntry().state;
 
-    if (shared_memory.header.entry_count < 16) {
-        shared_memory.header.entry_count++;
-    }
-
-    cur_entry.sampling_number = last_entry.sampling_number + 1;
-    cur_entry.sampling_number2 = cur_entry.sampling_number;
-
-    // Reset values to default
-    cur_entry.delta = {};
-    cur_entry.vel_x = 0;
-    cur_entry.vel_y = 0;
-    cur_entry.direction = GestureDirection::None;
-    cur_entry.rotation_angle = 0;
-    cur_entry.scale = 0;
+    // Reset next state to default
+    next_state.sampling_number = last_entry.sampling_number + 1;
+    next_state.delta = {};
+    next_state.vel_x = 0;
+    next_state.vel_y = 0;
+    next_state.direction = GestureDirection::None;
+    next_state.rotation_angle = 0;
+    next_state.scale = 0;
 
     if (gesture.active_points > 0) {
         if (last_gesture.active_points == 0) {
@@ -133,15 +124,16 @@ void Controller_Gesture::UpdateGestureSharedMemory(u8* data, std::size_t size,
     }
 
     // Apply attributes
-    cur_entry.detection_count = gesture.detection_count;
-    cur_entry.type = type;
-    cur_entry.attributes = attributes;
-    cur_entry.pos = gesture.mid_point;
-    cur_entry.point_count = static_cast<s32>(gesture.active_points);
-    cur_entry.points = gesture.points;
+    next_state.detection_count = gesture.detection_count;
+    next_state.type = type;
+    next_state.attributes = attributes;
+    next_state.pos = gesture.mid_point;
+    next_state.point_count = static_cast<s32>(gesture.active_points);
+    next_state.points = gesture.points;
     last_gesture = gesture;
 
-    std::memcpy(data + SHARED_MEMORY_OFFSET, &shared_memory, sizeof(SharedMemory));
+    gesture_lifo.WriteNextEntry(next_state);
+    std::memcpy(data + SHARED_MEMORY_OFFSET, &gesture_lifo, sizeof(gesture_lifo));
 }
 
 void Controller_Gesture::NewGesture(GestureProperties& gesture, GestureType& type,
@@ -245,19 +237,18 @@ void Controller_Gesture::SetTapEvent(GestureProperties& gesture,
 void Controller_Gesture::UpdatePanEvent(GestureProperties& gesture,
                                         GestureProperties& last_gesture_props, GestureType& type,
                                         f32 time_difference) {
-    auto& cur_entry = shared_memory.gesture_states[shared_memory.header.last_entry_index];
     const auto& last_entry = GetLastGestureEntry();
 
-    cur_entry.delta = gesture.mid_point - last_entry.pos;
-    cur_entry.vel_x = static_cast<f32>(cur_entry.delta.x) / time_difference;
-    cur_entry.vel_y = static_cast<f32>(cur_entry.delta.y) / time_difference;
+    next_state.delta = gesture.mid_point - last_entry.pos;
+    next_state.vel_x = static_cast<f32>(next_state.delta.x) / time_difference;
+    next_state.vel_y = static_cast<f32>(next_state.delta.y) / time_difference;
     last_pan_time_difference = time_difference;
 
     // Promote to pinch type
     if (std::abs(gesture.average_distance - last_gesture_props.average_distance) >
         pinch_threshold) {
         type = GestureType::Pinch;
-        cur_entry.scale = gesture.average_distance / last_gesture_props.average_distance;
+        next_state.scale = gesture.average_distance / last_gesture_props.average_distance;
     }
 
     const f32 angle_between_two_lines = std::atan((gesture.angle - last_gesture_props.angle) /
@@ -265,22 +256,21 @@ void Controller_Gesture::UpdatePanEvent(GestureProperties& gesture,
     // Promote to rotate type
     if (std::abs(angle_between_two_lines) > angle_threshold) {
         type = GestureType::Rotate;
-        cur_entry.scale = 0;
-        cur_entry.rotation_angle = angle_between_two_lines * 180.0f / Common::PI;
+        next_state.scale = 0;
+        next_state.rotation_angle = angle_between_two_lines * 180.0f / Common::PI;
     }
 }
 
 void Controller_Gesture::EndPanEvent(GestureProperties& gesture,
                                      GestureProperties& last_gesture_props, GestureType& type,
                                      f32 time_difference) {
-    auto& cur_entry = shared_memory.gesture_states[shared_memory.header.last_entry_index];
     const auto& last_entry = GetLastGestureEntry();
-    cur_entry.vel_x =
+    next_state.vel_x =
         static_cast<f32>(last_entry.delta.x) / (last_pan_time_difference + time_difference);
-    cur_entry.vel_y =
+    next_state.vel_y =
         static_cast<f32>(last_entry.delta.y) / (last_pan_time_difference + time_difference);
     const f32 curr_vel =
-        std::sqrt((cur_entry.vel_x * cur_entry.vel_x) + (cur_entry.vel_y * cur_entry.vel_y));
+        std::sqrt((next_state.vel_x * next_state.vel_x) + (next_state.vel_y * next_state.vel_y));
 
     // Set swipe event with parameters
     if (curr_vel > swipe_threshold) {
@@ -290,42 +280,37 @@ void Controller_Gesture::EndPanEvent(GestureProperties& gesture,
 
     // End panning without swipe
     type = GestureType::Complete;
-    cur_entry.vel_x = 0;
-    cur_entry.vel_y = 0;
+    next_state.vel_x = 0;
+    next_state.vel_y = 0;
     force_update = true;
 }
 
 void Controller_Gesture::SetSwipeEvent(GestureProperties& gesture,
                                        GestureProperties& last_gesture_props, GestureType& type) {
-    auto& cur_entry = shared_memory.gesture_states[shared_memory.header.last_entry_index];
     const auto& last_entry = GetLastGestureEntry();
 
     type = GestureType::Swipe;
     gesture = last_gesture_props;
     force_update = true;
-    cur_entry.delta = last_entry.delta;
+    next_state.delta = last_entry.delta;
 
-    if (std::abs(cur_entry.delta.x) > std::abs(cur_entry.delta.y)) {
-        if (cur_entry.delta.x > 0) {
-            cur_entry.direction = GestureDirection::Right;
+    if (std::abs(next_state.delta.x) > std::abs(next_state.delta.y)) {
+        if (next_state.delta.x > 0) {
+            next_state.direction = GestureDirection::Right;
             return;
         }
-        cur_entry.direction = GestureDirection::Left;
+        next_state.direction = GestureDirection::Left;
         return;
     }
-    if (cur_entry.delta.y > 0) {
-        cur_entry.direction = GestureDirection::Down;
+    if (next_state.delta.y > 0) {
+        next_state.direction = GestureDirection::Down;
         return;
     }
-    cur_entry.direction = GestureDirection::Up;
-}
-
-Controller_Gesture::GestureState& Controller_Gesture::GetLastGestureEntry() {
-    return shared_memory.gesture_states[(shared_memory.header.last_entry_index + 16) % 17];
+    next_state.direction = GestureDirection::Up;
 }
 
 const Controller_Gesture::GestureState& Controller_Gesture::GetLastGestureEntry() const {
-    return shared_memory.gesture_states[(shared_memory.header.last_entry_index + 16) % 17];
+    return gesture_lifo.ReadCurrentEntry().state;
 }
 
 Controller_Gesture::GestureProperties Controller_Gesture::GetGestureProperties() {
