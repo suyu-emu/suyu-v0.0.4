@@ -268,6 +268,8 @@ void UDPClient::OnPadData(Response::PadData data, std::size_t client) {
             SetButton(identifier, touch_id, true);
             continue;
         }
+        SetAxis(identifier, touch_id * 2, 0);
+        SetAxis(identifier, touch_id * 2 + 1, 0);
         SetButton(identifier, touch_id, false);
     }
 }

@@ -2,8 +2,6 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included
 
-#include <fmt/format.h>
-
 #include "core/hid/emulated_console.h"
 #include "core/hid/input_converter.h"
 

@@ -8,7 +8,6 @@
 #include "common/settings.h"
 #include "core/core.h"
 #include "core/core_timing.h"
-#include "core/hardware_properties.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/k_shared_memory.h"
@@ -34,7 +33,7 @@
 namespace Service::HID {
 
 // Updating period for each HID device.
-// Period time is obtained by measuring the number of samples in a second
+// Period time is obtained by measuring the number of samples in a second on HW using a homebrew
 constexpr auto pad_update_ns = std::chrono::nanoseconds{4 * 1000 * 1000};    // (4ms, 250Hz)
 constexpr auto motion_update_ns = std::chrono::nanoseconds{5 * 1000 * 1000}; // (5ms, 200Hz)
 constexpr std::size_t SHARED_MEMORY_SIZE = 0x40000;

@@ -2,8 +2,6 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included
 
-#include <fmt/format.h>
-
 #include "core/hid/emulated_controller.h"
 #include "core/hid/input_converter.h"
 
@@ -635,6 +633,9 @@ void EmulatedController::SetBattery(Input::CallbackStatus callback, std::size_t 
 }
 
 bool EmulatedController::SetVibration(std::size_t device_index, VibrationValue vibration) {
+    if (device_index >= output_devices.size()) {
+        return false;
+    }
     if (!output_devices[device_index]) {
         return false;
     }
@@ -659,6 +660,9 @@ bool EmulatedController::SetVibration(std::size_t device_index, VibrationValue v
 }
 
 bool EmulatedController::TestVibration(std::size_t device_index) {
+    if (device_index >= output_devices.size()) {
+        return false;
+    }
     if (!output_devices[device_index]) {
         return false;
     }
@@ -733,7 +737,9 @@ bool EmulatedController::IsConnected(bool temporary) const {
 }
 
 bool EmulatedController::IsVibrationEnabled() const {
-    return is_vibration_enabled;
+    const auto player_index = NpadIdTypeToIndex(npad_id_type);
+    const auto& player = Settings::values.players.GetValue()[player_index];
+    return player.vibration_enabled;
 }
 
 NpadIdType EmulatedController::GetNpadIdType() const {

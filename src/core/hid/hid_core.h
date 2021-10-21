@@ -47,6 +47,9 @@ public:
     /// Removes all callbacks from input common
     void UnloadInputDevices();
 
+    /// Number of emulated controllers
+    const std::size_t available_controllers{10};
+
 private:
     std::unique_ptr<EmulatedController> player_1;
     std::unique_ptr<EmulatedController> player_2;

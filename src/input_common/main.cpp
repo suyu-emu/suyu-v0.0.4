@@ -87,25 +87,30 @@ struct InputSubsystem::Impl {
 
     void Shutdown() {
         Input::UnregisterFactory<Input::InputDevice>(keyboard->GetEngineName());
+        Input::UnregisterFactory<Input::OutputDevice>(keyboard->GetEngineName());
         keyboard.reset();
 
         Input::UnregisterFactory<Input::InputDevice>(mouse->GetEngineName());
+        Input::UnregisterFactory<Input::OutputDevice>(mouse->GetEngineName());
         mouse.reset();
 
         Input::UnregisterFactory<Input::InputDevice>(touch_screen->GetEngineName());
         touch_screen.reset();
 
         Input::UnregisterFactory<Input::InputDevice>(gcadapter->GetEngineName());
+        Input::UnregisterFactory<Input::OutputDevice>(gcadapter->GetEngineName());
         gcadapter.reset();
 
         Input::UnregisterFactory<Input::InputDevice>(udp_client->GetEngineName());
         udp_client.reset();
 
         Input::UnregisterFactory<Input::InputDevice>(tas_input->GetEngineName());
+        Input::UnregisterFactory<Input::OutputDevice>(tas_input->GetEngineName());
         tas_input.reset();
 
 #ifdef HAVE_SDL2
         Input::UnregisterFactory<Input::InputDevice>(sdl->GetEngineName());
+        Input::UnregisterFactory<Input::OutputDevice>(sdl->GetEngineName());
         sdl.reset();
 #endif
 
@@ -124,8 +129,6 @@ struct InputSubsystem::Impl {
         devices.insert(devices.end(), mouse_devices.begin(), mouse_devices.end());
         auto gcadapter_devices = gcadapter->GetInputDevices();
         devices.insert(devices.end(), gcadapter_devices.begin(), gcadapter_devices.end());
-        auto tas_input_devices = tas_input->GetInputDevices();
-        devices.insert(devices.end(), tas_input_devices.begin(), tas_input_devices.end());
 #ifdef HAVE_SDL2
         auto sdl_devices = sdl->GetInputDevices();
         devices.insert(devices.end(), sdl_devices.begin(), sdl_devices.end());

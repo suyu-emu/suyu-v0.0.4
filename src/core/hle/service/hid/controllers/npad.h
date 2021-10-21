@@ -342,7 +342,7 @@ private:
         INSERT_PADDING_BYTES(0x4);
     };
 
-    // This is nn::hid::server::NpadGcTriggerState
+    // This is nn::hid::system::AppletFooterUiType
     enum class AppletFooterUiType : u8 {
         None = 0,
         HandheldNone = 1,

@@ -337,7 +337,6 @@ private:
     bool is_connected{false};
     bool temporary_is_connected{false};
     bool is_configuring{false};
-    bool is_vibration_enabled{true};
     f32 motion_sensitivity{0.01f};
 
     ButtonParams button_params;

@@ -113,7 +113,7 @@ NpadStyleTag HIDCore::GetSupportedStyleTag() const {
 
 s8 HIDCore::GetPlayerCount() const {
     s8 active_players = 0;
-    for (std::size_t player_index = 0; player_index < 8; player_index++) {
+    for (std::size_t player_index = 0; player_index < available_controllers -2; player_index++) {
         const auto* controller = GetEmulatedControllerByIndex(player_index);
         if (controller->IsConnected()) {
             active_players++;
@@ -123,7 +123,7 @@ s8 HIDCore::GetPlayerCount() const {
 }
 
 NpadIdType HIDCore::GetFirstNpadId() const {
-    for (std::size_t player_index = 0; player_index < 10; player_index++) {
+    for (std::size_t player_index = 0; player_index < available_controllers; player_index++) {
         const auto* controller = GetEmulatedControllerByIndex(player_index);
         if (controller->IsConnected()) {
             return controller->GetNpadIdType();

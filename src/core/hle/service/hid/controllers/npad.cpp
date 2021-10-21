@@ -608,15 +608,15 @@ void Controller_NPad::OnMotionUpdate(const Core::Timing::CoreTiming& core_timing
         sixaxis_fullkey_state.sampling_number =
             npad.sixaxis_fullkey_lifo.ReadCurrentEntry().state.sampling_number + 1;
         sixaxis_handheld_state.sampling_number =
-            npad.sixaxis_fullkey_lifo.ReadCurrentEntry().state.sampling_number + 1;
+            npad.sixaxis_handheld_lifo.ReadCurrentEntry().state.sampling_number + 1;
         sixaxis_dual_left_state.sampling_number =
-            npad.sixaxis_fullkey_lifo.ReadCurrentEntry().state.sampling_number + 1;
+            npad.sixaxis_dual_left_lifo.ReadCurrentEntry().state.sampling_number + 1;
         sixaxis_dual_right_state.sampling_number =
-            npad.sixaxis_fullkey_lifo.ReadCurrentEntry().state.sampling_number + 1;
+            npad.sixaxis_dual_right_lifo.ReadCurrentEntry().state.sampling_number + 1;
         sixaxis_left_lifo_state.sampling_number =
-            npad.sixaxis_fullkey_lifo.ReadCurrentEntry().state.sampling_number + 1;
+            npad.sixaxis_left_lifo.ReadCurrentEntry().state.sampling_number + 1;
         sixaxis_right_lifo_state.sampling_number =
-            npad.sixaxis_fullkey_lifo.ReadCurrentEntry().state.sampling_number + 1;
+            npad.sixaxis_right_lifo.ReadCurrentEntry().state.sampling_number + 1;
 
         npad.sixaxis_fullkey_lifo.WriteNextEntry(sixaxis_fullkey_state);
         npad.sixaxis_handheld_lifo.WriteNextEntry(sixaxis_handheld_state);
