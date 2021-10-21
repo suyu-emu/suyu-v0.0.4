@@ -1157,10 +1157,10 @@ void DeduceBlitImages(ImageInfo& dst_info, ImageInfo& src_info, const ImageBase*
     if (dst && GetFormatType(dst->info.format) != SurfaceType::ColorTexture) {
         dst_info.format = dst->info.format;
     }
-    if (!dst && src && GetFormatType(src->info.format) != SurfaceType::ColorTexture) {
+    if (src && GetFormatType(src->info.format) != SurfaceType::ColorTexture) {
         dst_info.format = src->info.format;
     }
-    if (!src && dst && GetFormatType(dst->info.format) != SurfaceType::ColorTexture) {
+    if (dst && GetFormatType(dst->info.format) != SurfaceType::ColorTexture) {
         src_info.format = dst->info.format;
     }
 }
