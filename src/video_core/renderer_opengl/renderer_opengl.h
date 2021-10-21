@@ -50,6 +50,7 @@ struct TextureInfo {
 /// Structure used for storing information about the display target for the Switch screen
 struct ScreenInfo {
     GLuint display_texture{};
+    bool was_accelerated = false;
     bool display_srgb{};
     const Common::Rectangle<float> display_texcoords{0.0f, 0.0f, 1.0f, 1.0f};
     TextureInfo texture;

@@ -213,7 +213,9 @@ void RendererOpenGL::LoadFBToScreenInfo(const Tegra::FramebufferConfig& framebuf
     framebuffer_crop_rect = framebuffer.crop_rect;
 
     const VAddr framebuffer_addr{framebuffer.address + framebuffer.offset};
-    if (rasterizer.AccelerateDisplay(framebuffer, framebuffer_addr, framebuffer.stride)) {
+    screen_info.was_accelerated =
+        rasterizer.AccelerateDisplay(framebuffer, framebuffer_addr, framebuffer.stride);
+    if (screen_info.was_accelerated) {
         return;
     }
 
@@ -346,7 +348,9 @@ void RendererOpenGL::ConfigureFramebufferTexture(TextureInfo& texture,
     glTextureStorage2D(texture.resource.handle, 1, internal_format, texture.width, texture.height);
     fxaa_texture.Release();
     fxaa_texture.Create(GL_TEXTURE_2D);
-    glTextureStorage2D(fxaa_texture.handle, 1, GL_RGBA16F, texture.width, texture.height);
+    glTextureStorage2D(fxaa_texture.handle, 1, GL_RGBA16F,
+                       Settings::values.resolution_info.ScaleUp(screen_info.texture.width),
+                       Settings::values.resolution_info.ScaleUp(screen_info.texture.height));
     glNamedFramebufferTexture(fxaa_framebuffer.handle, GL_COLOR_ATTACHMENT0, fxaa_texture.handle,
                               0);
 }
@@ -397,13 +401,25 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
         program_manager.BindPresentPrograms(fxaa_vertex.handle, fxaa_fragment.handle);
 
         glEnablei(GL_SCISSOR_TEST, 0);
-        glScissorIndexed(0, 0, 0,
-                         framebuffer_crop_rect.GetWidth() != 0 ? framebuffer_crop_rect.GetWidth()
-                                                               : screen_info.texture.width,
-                         framebuffer_crop_rect.GetHeight() != 0 ? framebuffer_crop_rect.GetHeight()
-                                                                : screen_info.texture.height);
-        glViewportIndexedf(0, 0.0f, 0.0f, static_cast<GLfloat>(screen_info.texture.width),
-                           static_cast<GLfloat>(screen_info.texture.height));
+        auto viewport_width = screen_info.texture.width;
+        auto scissor_width = framebuffer_crop_rect.GetWidth();
+        if (scissor_width <= 0) {
+            scissor_width = viewport_width;
+        }
+        auto viewport_height = screen_info.texture.height;
+        auto scissor_height = framebuffer_crop_rect.GetHeight();
+        if (scissor_height <= 0) {
+            scissor_height = viewport_height;
+        }
+        if (screen_info.was_accelerated) {
+            viewport_width = Settings::values.resolution_info.ScaleUp(viewport_width);
+            scissor_width = Settings::values.resolution_info.ScaleUp(scissor_width);
+            viewport_height = Settings::values.resolution_info.ScaleUp(viewport_height);
+            scissor_height = Settings::values.resolution_info.ScaleUp(scissor_height);
+        }
+        glScissorIndexed(0, 0, 0, scissor_width, scissor_height);
+        glViewportIndexedf(0, 0.0f, 0.0f, static_cast<GLfloat>(viewport_width),
+                           static_cast<GLfloat>(viewport_height));
         glDepthRangeIndexed(0, 0.0, 0.0);
 
         glBindSampler(0, present_sampler.handle);
@@ -486,6 +502,11 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     if (framebuffer_crop_rect.GetHeight() > 0) {
         scale_v = static_cast<f32>(framebuffer_crop_rect.GetHeight()) /
                   static_cast<f32>(screen_info.texture.height);
+    }
+    if (Settings::values.anti_aliasing.GetValue() == Settings::AntiAliasing::Fxaa &&
+        !screen_info.was_accelerated) {
+        scale_u /= Settings::values.resolution_info.up_factor;
+        scale_v /= Settings::values.resolution_info.up_factor;
     }
 
     const auto& screen = layout.screen;
