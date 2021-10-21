@@ -705,7 +705,6 @@ void EmulatedController::Connect() {
         }
         is_connected = true;
     }
-    LOG_ERROR(Service_HID, "Connected controller {}", NpadIdTypeToIndex(npad_id_type));
     TriggerOnChange(ControllerTriggerType::Connected, true);
 }
 
@@ -714,8 +713,6 @@ void EmulatedController::Disconnect() {
         std::lock_guard lock{mutex};
         if (is_configuring) {
             temporary_is_connected = false;
-            LOG_ERROR(Service_HID, "Disconnected temporal controller {}",
-                      NpadIdTypeToIndex(npad_id_type));
             TriggerOnChange(ControllerTriggerType::Disconnected, false);
             return;
         }
@@ -725,7 +722,6 @@ void EmulatedController::Disconnect() {
         }
         is_connected = false;
     }
-    LOG_ERROR(Service_HID, "Disconnected controller {}", NpadIdTypeToIndex(npad_id_type));
     TriggerOnChange(ControllerTriggerType::Disconnected, true);
 }
 

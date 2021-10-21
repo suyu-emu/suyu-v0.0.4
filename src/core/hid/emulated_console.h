@@ -144,6 +144,9 @@ public:
     void DeleteCallback(int key);
 
 private:
+    /// Creates and stores the touch params
+    void SetTouchParams();
+
     /**
      * Updates the motion status of the console
      * @param A CallbackStatus containing gyro and accelerometer data

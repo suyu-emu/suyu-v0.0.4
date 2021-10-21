@@ -243,6 +243,33 @@ void UDPClient::OnPadData(Response::PadData data, std::size_t client) {
     };
     const PadIdentifier identifier = GetPadIdentifier(pad_index);
     SetMotion(identifier, 0, motion);
+
+    for (std::size_t id = 0; id < data.touch.size(); ++id) {
+        const auto touch_pad = data.touch[id];
+        const int touch_id = static_cast<int>(client * 2 + id);
+
+        // TODO: Use custom calibration per device
+        const Common::ParamPackage touch_param(Settings::values.touch_device.GetValue());
+        const u16 min_x = static_cast<u16>(touch_param.Get("min_x", 100));
+        const u16 min_y = static_cast<u16>(touch_param.Get("min_y", 50));
+        const u16 max_x = static_cast<u16>(touch_param.Get("max_x", 1800));
+        const u16 max_y = static_cast<u16>(touch_param.Get("max_y", 850));
+
+        const f32 x =
+            static_cast<f32>(std::clamp(static_cast<u16>(touch_pad.x), min_x, max_x) - min_x) /
+            static_cast<f32>(max_x - min_x);
+        const f32 y =
+            static_cast<f32>(std::clamp(static_cast<u16>(touch_pad.y), min_y, max_y) - min_y) /
+            static_cast<f32>(max_y - min_y);
+
+        if (touch_pad.is_active) {
+            SetAxis(identifier, touch_id * 2, x);
+            SetAxis(identifier, touch_id * 2 + 1, y);
+            SetButton(identifier, touch_id, true);
+            continue;
+        }
+        SetButton(identifier, touch_id, false);
+    }
 }
 
 void UDPClient::StartCommunication(std::size_t client, const std::string& host, u16 port) {

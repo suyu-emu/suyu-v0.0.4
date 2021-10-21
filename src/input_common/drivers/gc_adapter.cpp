@@ -209,7 +209,7 @@ void GCAdapter::UpdateStateAxes(std::size_t port, const AdapterPayload& adapter_
             pads[port].axis_origin[index] = axis_value;
             pads[port].reset_origin_counter++;
         }
-        const f32 axis_status = (axis_value - pads[port].axis_origin[index]) / 110.0f;
+        const f32 axis_status = (axis_value - pads[port].axis_origin[index]) / 100.0f;
         SetAxis(pads[port].identifier, static_cast<int>(index), axis_status);
     }
 }
@@ -530,7 +530,7 @@ std::string GCAdapter::GetUIName(const Common::ParamPackage& params) const {
         return fmt::format("Button {}", GetUIButtonName(params));
     }
     if (params.Has("axis")) {
-        return fmt::format("Axis {}", params.Get("axis",0));
+        return fmt::format("Axis {}", params.Get("axis", 0));
     }
 
     return "Bad GC Adapter";

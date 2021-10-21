@@ -20,27 +20,21 @@ void EmulatedConsole::ReloadFromSettings() {
     ReloadInput();
 }
 
-void EmulatedConsole::ReloadInput() {
-    motion_devices = Input::CreateDevice<Input::InputDevice>(motion_params);
-    if (motion_devices) {
-        Input::InputCallback motion_callback{
-            [this](Input::CallbackStatus callback) { SetMotion(callback); }};
-        motion_devices->SetCallback(motion_callback);
-    }
-
-    // TODO: Fix this mess
+void EmulatedConsole::SetTouchParams() {
+    // TODO(german77): Support any number of fingers
     std::size_t index = 0;
-    const std::string mouse_device_string =
-        fmt::format("engine:mouse,axis_x:10,axis_y:11,button:{}", index);
-    touch_devices[index] = Input::CreateDeviceFromString<Input::InputDevice>(mouse_device_string);
-    Input::InputCallback trigger_callbackk{
-        [this, index](Input::CallbackStatus callback) { SetTouch(callback, index); }};
-    touch_devices[index]->SetCallback(trigger_callbackk);
 
-    index++;
+    // Hardcode mouse, touchscreen and cemuhook parameters
+    touch_params[index++] = Common::ParamPackage{"engine:mouse,axis_x:10,axis_y:11,button:0"};
+    touch_params[index++] = Common::ParamPackage{"engine:touch,axis_x:0,axis_y:1,button:0"};
+    touch_params[index++] = Common::ParamPackage{"engine:touch,axis_x:2,axis_y:3,button:1"};
+    touch_params[index++] = Common::ParamPackage{"engine:cemuhookudp,axis_x:0,axis_y:1,button:0"};
+    touch_params[index++] = Common::ParamPackage{"engine:cemuhookudp,axis_x:2,axis_y:3,button:1"};
+
     const auto button_index =
         static_cast<u64>(Settings::values.touch_from_button_map_index.GetValue());
     const auto& touch_buttons = Settings::values.touch_from_button_maps[button_index].buttons;
+
     for (const auto& config_entry : touch_buttons) {
         Common::ParamPackage params{config_entry};
         Common::ParamPackage touch_button_params;
@@ -53,15 +47,32 @@ void EmulatedConsole::ReloadInput() {
         touch_button_params.Set("x", x);
         touch_button_params.Set("y", y);
         touch_button_params.Set("touch_id", static_cast<int>(index));
-        touch_devices[index] =
-            Input::CreateDeviceFromString<Input::InputDevice>(touch_button_params.Serialize());
-        if (!touch_devices[index]) {
+        touch_params[index] = touch_button_params;
+        index++;
+        if (index >= touch_params.size()) {
+            return;
+        }
+    }
+}
+
+void EmulatedConsole::ReloadInput() {
+    SetTouchParams();
+    motion_devices = Input::CreateDevice<Input::InputDevice>(motion_params);
+    if (motion_devices) {
+        Input::InputCallback motion_callback{
+            [this](Input::CallbackStatus callback) { SetMotion(callback); }};
+        motion_devices->SetCallback(motion_callback);
+    }
+
+    std::size_t index = 0;
+    for (auto& touch_device : touch_devices) {
+        touch_device = Input::CreateDevice<Input::InputDevice>(touch_params[index]);
+        if (!touch_device) {
             continue;
         }
-
-        Input::InputCallback trigger_callback{
+        Input::InputCallback touch_callback{
             [this, index](Input::CallbackStatus callback) { SetTouch(callback, index); }};
-        touch_devices[index]->SetCallback(trigger_callback);
+        touch_device->SetCallback(touch_callback);
         index++;
     }
 }
