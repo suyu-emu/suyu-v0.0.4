@@ -1810,8 +1810,8 @@ void TextureCache<P>::BindRenderTarget(ImageViewId* old_id, ImageViewId new_id) 
     if (*old_id == new_id) {
         return;
     }
-    if (*old_id) {
-        const ImageViewBase& old_view = slot_image_views[*old_id];
+    if (new_id) {
+        const ImageViewBase& old_view = slot_image_views[new_id];
         if (True(old_view.flags & ImageViewFlagBits::PreemtiveDownload)) {
             uncommitted_downloads.push_back(old_view.image_id);
         }

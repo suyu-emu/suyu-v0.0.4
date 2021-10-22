@@ -942,10 +942,21 @@ bool Image::Scale(bool up_scale) {
         dst_info.size.height = scaled_height;
         upscaled_backup = MakeImage(dst_info, gl_internal_format);
     }
+    auto& state_tracker = runtime->GetStateTracker();
+    state_tracker.NotifyViewport0();
+    state_tracker.NotifyScissor0();
     // TODO (ameerj): Investigate other GL states that affect blitting.
     GLboolean scissor_test;
     glGetBooleani_v(GL_SCISSOR_TEST, 0, &scissor_test);
     glDisablei(GL_SCISSOR_TEST, 0);
+    if (up_scale) {
+      glViewportIndexedf(0, 0.0f, 0.0f, static_cast<GLfloat>(scaled_width),
+                         static_cast<GLfloat>(scaled_height));
+    } else {
+      glViewportIndexedf(0, 0.0f, 0.0f, static_cast<GLfloat>(original_width),
+                         static_cast<GLfloat>(original_height));
+    }
+
 
     const GLuint read_fbo = runtime->rescale_read_fbos[fbo_index].handle;
     const GLuint draw_fbo = runtime->rescale_draw_fbos[fbo_index].handle;

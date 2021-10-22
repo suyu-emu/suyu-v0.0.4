@@ -116,6 +116,10 @@ public:
 
     void TickFrame() {}
 
+    StateTracker& GetStateTracker() {
+        return state_tracker;
+    }
+
 private:
     struct StagingBuffers {
         explicit StagingBuffers(GLenum storage_flags_, GLenum map_flags_);
