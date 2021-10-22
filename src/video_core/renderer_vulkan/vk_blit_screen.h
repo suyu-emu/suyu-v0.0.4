@@ -68,6 +68,9 @@ public:
     [[nodiscard]] vk::Framebuffer CreateFramebuffer(const VkImageView& image_view,
                                                     VkExtent2D extent);
 
+    [[nodiscard]] vk::Framebuffer CreateFramebuffer(const VkImageView& image_view,
+                                                    VkExtent2D extent, vk::RenderPass& rd);
+
 private:
     struct BufferData;
 
@@ -76,6 +79,7 @@ private:
     void CreateSemaphores();
     void CreateDescriptorPool();
     void CreateRenderPass();
+    vk::RenderPass CreateRenderPassImpl(VkFormat, bool is_present = true);
     void CreateDescriptorSetLayout();
     void CreateDescriptorSets();
     void CreatePipelineLayout();
@@ -91,6 +95,7 @@ private:
     void CreateRawImages(const Tegra::FramebufferConfig& framebuffer);
 
     void UpdateDescriptorSet(std::size_t image_index, VkImageView image_view, bool nn) const;
+    void UpdateAADescriptorSet(std::size_t image_index, VkImageView image_view, bool nn) const;
     void SetUniformData(BufferData& data, const Layout::FramebufferLayout layout) const;
     void SetVertexData(BufferData& data, const Tegra::FramebufferConfig& framebuffer,
                        const Layout::FramebufferLayout layout) const;
@@ -109,6 +114,8 @@ private:
     const VKScreenInfo& screen_info;
 
     vk::ShaderModule vertex_shader;
+    vk::ShaderModule fxaa_vertex_shader;
+    vk::ShaderModule fxaa_fragment_shader;
     vk::ShaderModule bilinear_fragment_shader;
     vk::ShaderModule bicubic_fragment_shader;
     vk::ShaderModule gaussian_fragment_shader;
@@ -116,6 +123,7 @@ private:
     vk::DescriptorPool descriptor_pool;
     vk::DescriptorSetLayout descriptor_set_layout;
     vk::PipelineLayout pipeline_layout;
+    vk::Pipeline aa_pipeline;
     vk::Pipeline nearest_neightbor_pipeline;
     vk::Pipeline bilinear_pipeline;
     vk::Pipeline bicubic_pipeline;
@@ -136,6 +144,15 @@ private:
     std::vector<vk::Image> raw_images;
     std::vector<vk::ImageView> raw_image_views;
     std::vector<MemoryCommit> raw_buffer_commits;
+    vk::Image aa_image;
+    vk::ImageView aa_image_view;
+    MemoryCommit aa_commit;
+    vk::Framebuffer aa_framebuffer;
+    vk::RenderPass aa_renderpass;
+    vk::DescriptorSets aa_descriptor_sets;
+    vk::DescriptorPool aa_descriptor_pool;
+    vk::DescriptorSetLayout aa_descriptor_set_layout;
+    vk::PipelineLayout aa_pipeline_layout;
     u32 raw_width = 0;
     u32 raw_height = 0;
 

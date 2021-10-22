@@ -15,7 +15,7 @@ layout (location = 0) out vec4 posPos;
 
 #ifdef VULKAN
 
-#define BINDING_COLOR_TEXTURE 1
+#define BINDING_COLOR_TEXTURE 0
 
 #else // ^^^ Vulkan ^^^ // vvv OpenGL vvv
 

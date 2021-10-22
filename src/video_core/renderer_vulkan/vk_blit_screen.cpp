@@ -17,6 +17,8 @@
 #include "core/frontend/emu_window.h"
 #include "core/memory.h"
 #include "video_core/gpu.h"
+#include "video_core/host_shaders/fxaa_frag_spv.h"
+#include "video_core/host_shaders/fxaa_vert_spv.h"
 #include "video_core/host_shaders/present_bicubic_frag_spv.h"
 #include "video_core/host_shaders/present_gaussian_frag_spv.h"
 #include "video_core/host_shaders/present_scaleforce_frag_spv.h"
@@ -149,14 +151,8 @@ VkSemaphore VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer,
     scheduler.Wait(resource_ticks[image_index]);
     resource_ticks[image_index] = scheduler.CurrentTick();
 
-    const VkImageView source_image_view =
+    VkImageView source_image_view =
         use_accelerated ? screen_info.image_view : *raw_image_views[image_index];
-
-    if (!fsr) {
-        const bool is_nn =
-            Settings::values.scaling_filter.GetValue() == Settings::ScalingFilter::NearestNeighbor;
-        UpdateDescriptorSet(image_index, source_image_view, is_nn);
-    }
 
     BufferData data;
     SetUniformData(data, layout);
@@ -239,6 +235,68 @@ VkSemaphore VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer,
         });
     }
 
+    const auto anti_alias_pass = Settings::values.anti_aliasing.GetValue();
+    if (use_accelerated && anti_alias_pass != Settings::AntiAliasing::None) {
+        UpdateAADescriptorSet(image_index, source_image_view, false);
+        const u32 up_scale = Settings::values.resolution_info.up_scale;
+        const u32 down_shift = Settings::values.resolution_info.down_shift;
+        VkExtent2D size{
+            .width = (up_scale * framebuffer.width) >> down_shift,
+            .height = (up_scale * framebuffer.height) >> down_shift,
+        };
+        source_image_view = *aa_image_view;
+        scheduler.Record([this, image_index, size, anti_alias_pass](vk::CommandBuffer cmdbuf) {
+            const f32 bg_red = Settings::values.bg_red.GetValue() / 255.0f;
+            const f32 bg_green = Settings::values.bg_green.GetValue() / 255.0f;
+            const f32 bg_blue = Settings::values.bg_blue.GetValue() / 255.0f;
+            const VkClearValue clear_color{
+                .color = {.float32 = {bg_red, bg_green, bg_blue, 1.0f}},
+            };
+            const VkRenderPassBeginInfo renderpass_bi{
+                .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+                .pNext = nullptr,
+                .renderPass = *aa_renderpass,
+                .framebuffer = *aa_framebuffer,
+                .renderArea =
+                    {
+                        .offset = {0, 0},
+                        .extent = size,
+                    },
+                .clearValueCount = 1,
+                .pClearValues = &clear_color,
+            };
+            const VkViewport viewport{
+                .x = 0.0f,
+                .y = 0.0f,
+                .width = static_cast<float>(size.width),
+                .height = static_cast<float>(size.height),
+                .minDepth = 0.0f,
+                .maxDepth = 1.0f,
+            };
+            const VkRect2D scissor{
+                .offset = {0, 0},
+                .extent = size,
+            };
+            cmdbuf.BeginRenderPass(renderpass_bi, VK_SUBPASS_CONTENTS_INLINE);
+            switch (anti_alias_pass) {
+            case Settings::AntiAliasing::Fxaa:
+                cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *aa_pipeline);
+                break;
+            default:
+                cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *aa_pipeline);
+                break;
+            }
+            cmdbuf.SetViewport(0, viewport);
+            cmdbuf.SetScissor(0, scissor);
+
+            cmdbuf.BindVertexBuffer(0, *buffer, offsetof(BufferData, vertices));
+            cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, *aa_pipeline_layout, 0,
+                                      aa_descriptor_sets[image_index], {});
+            cmdbuf.Draw(4, 1, 0, 0);
+            cmdbuf.EndRenderPass();
+        });
+    }
+
     if (fsr) {
         auto crop_rect = framebuffer.crop_rect;
         if (crop_rect.GetWidth() == 0) {
@@ -251,6 +309,10 @@ VkSemaphore VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer,
         VkImageView fsr_image_view =
             fsr->Draw(scheduler, image_index, source_image_view, crop_rect);
         UpdateDescriptorSet(image_index, fsr_image_view, true);
+    } else {
+        const bool is_nn =
+            Settings::values.scaling_filter.GetValue() == Settings::ScalingFilter::NearestNeighbor;
+        UpdateDescriptorSet(image_index, source_image_view, is_nn);
     }
 
     scheduler.Record(
@@ -329,11 +391,16 @@ VkSemaphore VKBlitScreen::DrawToSwapchain(const Tegra::FramebufferConfig& frameb
 }
 
 vk::Framebuffer VKBlitScreen::CreateFramebuffer(const VkImageView& image_view, VkExtent2D extent) {
+    return CreateFramebuffer(image_view, extent, renderpass);
+}
+
+vk::Framebuffer VKBlitScreen::CreateFramebuffer(const VkImageView& image_view, VkExtent2D extent,
+                                                vk::RenderPass& rd) {
     return device.GetLogical().CreateFramebuffer(VkFramebufferCreateInfo{
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .renderPass = *renderpass,
+        .renderPass = *rd,
         .attachmentCount = 1,
         .pAttachments = &image_view,
         .width = extent.width,
@@ -390,6 +457,8 @@ void VKBlitScreen::RefreshResources(const Tegra::FramebufferConfig& framebuffer)
 
 void VKBlitScreen::CreateShaders() {
     vertex_shader = BuildShader(device, VULKAN_PRESENT_VERT_SPV);
+    fxaa_vertex_shader = BuildShader(device, FXAA_VERT_SPV);
+    fxaa_fragment_shader = BuildShader(device, FXAA_FRAG_SPV);
     bilinear_fragment_shader = BuildShader(device, VULKAN_PRESENT_FRAG_SPV);
     bicubic_fragment_shader = BuildShader(device, PRESENT_BICUBIC_FRAG_SPV);
     gaussian_fragment_shader = BuildShader(device, PRESENT_GAUSSIAN_FRAG_SPV);
@@ -413,6 +482,13 @@ void VKBlitScreen::CreateDescriptorPool() {
         },
     }};
 
+    const std::array<VkDescriptorPoolSize, 1> pool_sizes_aa{{
+        {
+            .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .descriptorCount = static_cast<u32>(2 * image_count),
+        },
+    }};
+
     const VkDescriptorPoolCreateInfo ci{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
         .pNext = nullptr,
@@ -422,19 +498,33 @@ void VKBlitScreen::CreateDescriptorPool() {
         .pPoolSizes = pool_sizes.data(),
     };
     descriptor_pool = device.GetLogical().CreateDescriptorPool(ci);
+
+    const VkDescriptorPoolCreateInfo ci_aa{
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
+        .maxSets = static_cast<u32>(image_count),
+        .poolSizeCount = static_cast<u32>(pool_sizes_aa.size()),
+        .pPoolSizes = pool_sizes_aa.data(),
+    };
+    aa_descriptor_pool = device.GetLogical().CreateDescriptorPool(ci_aa);
 }
 
 void VKBlitScreen::CreateRenderPass() {
+    renderpass = CreateRenderPassImpl(swapchain.GetImageViewFormat());
+}
+
+vk::RenderPass VKBlitScreen::CreateRenderPassImpl(VkFormat format, bool is_present) {
     const VkAttachmentDescription color_attachment{
         .flags = 0,
-        .format = swapchain.GetImageViewFormat(),
+        .format = format,
         .samples = VK_SAMPLE_COUNT_1_BIT,
         .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
         .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
         .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
         .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
         .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-        .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+        .finalLayout = is_present ? VK_IMAGE_LAYOUT_PRESENT_SRC_KHR : VK_IMAGE_LAYOUT_GENERAL,
     };
 
     const VkAttachmentReference color_attachment_ref{
@@ -477,7 +567,7 @@ void VKBlitScreen::CreateRenderPass() {
         .pDependencies = &dependency,
     };
 
-    renderpass = device.GetLogical().CreateRenderPass(renderpass_ci);
+    return device.GetLogical().CreateRenderPass(renderpass_ci);
 }
 
 void VKBlitScreen::CreateDescriptorSetLayout() {
@@ -485,6 +575,23 @@ void VKBlitScreen::CreateDescriptorSetLayout() {
         {
             .binding = 0,
             .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .descriptorCount = 1,
+            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+            .pImmutableSamplers = nullptr,
+        },
+        {
+            .binding = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .descriptorCount = 1,
+            .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+            .pImmutableSamplers = nullptr,
+        },
+    }};
+
+    const std::array<VkDescriptorSetLayoutBinding, 2> layout_bindings_aa{{
+        {
+            .binding = 0,
+            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             .descriptorCount = 1,
             .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
             .pImmutableSamplers = nullptr,
@@ -506,11 +613,21 @@ void VKBlitScreen::CreateDescriptorSetLayout() {
         .pBindings = layout_bindings.data(),
     };
 
+    const VkDescriptorSetLayoutCreateInfo ci_aa{
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .bindingCount = static_cast<u32>(layout_bindings_aa.size()),
+        .pBindings = layout_bindings_aa.data(),
+    };
+
     descriptor_set_layout = device.GetLogical().CreateDescriptorSetLayout(ci);
+    aa_descriptor_set_layout = device.GetLogical().CreateDescriptorSetLayout(ci_aa);
 }
 
 void VKBlitScreen::CreateDescriptorSets() {
     const std::vector layouts(image_count, *descriptor_set_layout);
+    const std::vector layouts_aa(image_count, *aa_descriptor_set_layout);
 
     const VkDescriptorSetAllocateInfo ai{
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
@@ -520,7 +637,16 @@ void VKBlitScreen::CreateDescriptorSets() {
         .pSetLayouts = layouts.data(),
     };
 
+    const VkDescriptorSetAllocateInfo ai_aa{
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+        .pNext = nullptr,
+        .descriptorPool = *aa_descriptor_pool,
+        .descriptorSetCount = static_cast<u32>(image_count),
+        .pSetLayouts = layouts_aa.data(),
+    };
+
     descriptor_sets = descriptor_pool.Allocate(ai);
+    aa_descriptor_sets = aa_descriptor_pool.Allocate(ai_aa);
 }
 
 void VKBlitScreen::CreatePipelineLayout() {
@@ -533,7 +659,17 @@ void VKBlitScreen::CreatePipelineLayout() {
         .pushConstantRangeCount = 0,
         .pPushConstantRanges = nullptr,
     };
+    const VkPipelineLayoutCreateInfo ci_aa{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .setLayoutCount = 1,
+        .pSetLayouts = aa_descriptor_set_layout.address(),
+        .pushConstantRangeCount = 0,
+        .pPushConstantRanges = nullptr,
+    };
     pipeline_layout = device.GetLogical().CreatePipelineLayout(ci);
+    aa_pipeline_layout = device.GetLogical().CreatePipelineLayout(ci_aa);
 }
 
 void VKBlitScreen::CreateGraphicsPipeline() {
@@ -862,7 +998,7 @@ void VKBlitScreen::CreateFramebuffers() {
 
     for (std::size_t i = 0; i < image_count; ++i) {
         const VkImageView image_view{swapchain.GetImageViewIndex(i)};
-        framebuffers[i] = CreateFramebuffer(image_view, size);
+        framebuffers[i] = CreateFramebuffer(image_view, size, renderpass);
     }
 }
 
@@ -872,6 +1008,11 @@ void VKBlitScreen::ReleaseRawImages() {
     }
     raw_images.clear();
     raw_buffer_commits.clear();
+
+    aa_image_view.reset();
+    aa_image.reset();
+    aa_commit = MemoryCommit{};
+
     buffer.reset();
     buffer_commit = MemoryCommit{};
 }
@@ -898,8 +1039,11 @@ void VKBlitScreen::CreateRawImages(const Tegra::FramebufferConfig& framebuffer) 
     raw_image_views.resize(image_count);
     raw_buffer_commits.resize(image_count);
 
-    for (size_t i = 0; i < image_count; ++i) {
-        raw_images[i] = device.GetLogical().CreateImage(VkImageCreateInfo{
+    const auto create_image = [&](bool used_on_framebuffer = false, u32 up_scale = 1,
+                                  u32 down_shift = 0) {
+        u32 extra_usages = used_on_framebuffer ? VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
+                                               : VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+        return device.GetLogical().CreateImage(VkImageCreateInfo{
             .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
@@ -907,26 +1051,30 @@ void VKBlitScreen::CreateRawImages(const Tegra::FramebufferConfig& framebuffer) 
             .format = GetFormat(framebuffer),
             .extent =
                 {
-                    .width = framebuffer.width,
-                    .height = framebuffer.height,
+                    .width = (up_scale * framebuffer.width) >> down_shift,
+                    .height = (up_scale * framebuffer.height) >> down_shift,
                     .depth = 1,
                 },
             .mipLevels = 1,
             .arrayLayers = 1,
             .samples = VK_SAMPLE_COUNT_1_BIT,
-            .tiling = VK_IMAGE_TILING_LINEAR,
-            .usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+            .tiling = used_on_framebuffer ? VK_IMAGE_TILING_OPTIMAL : VK_IMAGE_TILING_LINEAR,
+            .usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | extra_usages,
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
             .queueFamilyIndexCount = 0,
             .pQueueFamilyIndices = nullptr,
             .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
         });
-        raw_buffer_commits[i] = memory_allocator.Commit(raw_images[i], MemoryUsage::DeviceLocal);
-        raw_image_views[i] = device.GetLogical().CreateImageView(VkImageViewCreateInfo{
+    };
+    const auto create_commit = [&](vk::Image& image) {
+        return memory_allocator.Commit(image, MemoryUsage::DeviceLocal);
+    };
+    const auto create_image_view = [&](vk::Image& image) {
+        return device.GetLogical().CreateImageView(VkImageViewCreateInfo{
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
-            .image = *raw_images[i],
+            .image = *image,
             .viewType = VK_IMAGE_VIEW_TYPE_2D,
             .format = GetFormat(framebuffer),
             .components =
@@ -945,7 +1093,207 @@ void VKBlitScreen::CreateRawImages(const Tegra::FramebufferConfig& framebuffer) 
                     .layerCount = 1,
                 },
         });
+    };
+
+    for (size_t i = 0; i < image_count; ++i) {
+        raw_images[i] = create_image();
+        raw_buffer_commits[i] = create_commit(raw_images[i]);
+        raw_image_views[i] = create_image_view(raw_images[i]);
     }
+
+    // AA Resources
+    const u32 up_scale = Settings::values.resolution_info.up_scale;
+    const u32 down_shift = Settings::values.resolution_info.down_shift;
+    aa_image = create_image(true, up_scale, down_shift);
+    aa_commit = create_commit(aa_image);
+    aa_image_view = create_image_view(aa_image);
+    VkExtent2D size{
+        .width = (up_scale * framebuffer.width) >> down_shift,
+        .height = (up_scale * framebuffer.height) >> down_shift,
+    };
+    if (aa_renderpass) {
+        aa_framebuffer = CreateFramebuffer(*aa_image_view, size, aa_renderpass);
+        return;
+    }
+    aa_renderpass = CreateRenderPassImpl(GetFormat(framebuffer), false);
+    aa_framebuffer = CreateFramebuffer(*aa_image_view, size, aa_renderpass);
+
+    const std::array<VkPipelineShaderStageCreateInfo, 2> fxaa_shader_stages{{
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .stage = VK_SHADER_STAGE_VERTEX_BIT,
+            .module = *fxaa_vertex_shader,
+            .pName = "main",
+            .pSpecializationInfo = nullptr,
+        },
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
+            .module = *fxaa_fragment_shader,
+            .pName = "main",
+            .pSpecializationInfo = nullptr,
+        },
+    }};
+
+    const auto vertex_binding_description = ScreenRectVertex::GetDescription();
+    const auto vertex_attrs_description = ScreenRectVertex::GetAttributes();
+
+    const VkPipelineVertexInputStateCreateInfo vertex_input_ci{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .vertexBindingDescriptionCount = 1,
+        .pVertexBindingDescriptions = &vertex_binding_description,
+        .vertexAttributeDescriptionCount = u32{vertex_attrs_description.size()},
+        .pVertexAttributeDescriptions = vertex_attrs_description.data(),
+    };
+
+    const VkPipelineInputAssemblyStateCreateInfo input_assembly_ci{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP,
+        .primitiveRestartEnable = VK_FALSE,
+    };
+
+    const VkPipelineViewportStateCreateInfo viewport_state_ci{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .viewportCount = 1,
+        .pViewports = nullptr,
+        .scissorCount = 1,
+        .pScissors = nullptr,
+    };
+
+    const VkPipelineRasterizationStateCreateInfo rasterization_ci{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .depthClampEnable = VK_FALSE,
+        .rasterizerDiscardEnable = VK_FALSE,
+        .polygonMode = VK_POLYGON_MODE_FILL,
+        .cullMode = VK_CULL_MODE_NONE,
+        .frontFace = VK_FRONT_FACE_CLOCKWISE,
+        .depthBiasEnable = VK_FALSE,
+        .depthBiasConstantFactor = 0.0f,
+        .depthBiasClamp = 0.0f,
+        .depthBiasSlopeFactor = 0.0f,
+        .lineWidth = 1.0f,
+    };
+
+    const VkPipelineMultisampleStateCreateInfo multisampling_ci{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
+        .sampleShadingEnable = VK_FALSE,
+        .minSampleShading = 0.0f,
+        .pSampleMask = nullptr,
+        .alphaToCoverageEnable = VK_FALSE,
+        .alphaToOneEnable = VK_FALSE,
+    };
+
+    const VkPipelineColorBlendAttachmentState color_blend_attachment{
+        .blendEnable = VK_FALSE,
+        .srcColorBlendFactor = VK_BLEND_FACTOR_ZERO,
+        .dstColorBlendFactor = VK_BLEND_FACTOR_ZERO,
+        .colorBlendOp = VK_BLEND_OP_ADD,
+        .srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+        .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+        .alphaBlendOp = VK_BLEND_OP_ADD,
+        .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+                          VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+    };
+
+    const VkPipelineColorBlendStateCreateInfo color_blend_ci{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .logicOpEnable = VK_FALSE,
+        .logicOp = VK_LOGIC_OP_COPY,
+        .attachmentCount = 1,
+        .pAttachments = &color_blend_attachment,
+        .blendConstants = {0.0f, 0.0f, 0.0f, 0.0f},
+    };
+
+    static constexpr std::array dynamic_states{
+        VK_DYNAMIC_STATE_VIEWPORT,
+        VK_DYNAMIC_STATE_SCISSOR,
+    };
+    const VkPipelineDynamicStateCreateInfo dynamic_state_ci{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .dynamicStateCount = static_cast<u32>(dynamic_states.size()),
+        .pDynamicStates = dynamic_states.data(),
+    };
+
+    const VkGraphicsPipelineCreateInfo fxaa_pipeline_ci{
+        .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .stageCount = static_cast<u32>(fxaa_shader_stages.size()),
+        .pStages = fxaa_shader_stages.data(),
+        .pVertexInputState = &vertex_input_ci,
+        .pInputAssemblyState = &input_assembly_ci,
+        .pTessellationState = nullptr,
+        .pViewportState = &viewport_state_ci,
+        .pRasterizationState = &rasterization_ci,
+        .pMultisampleState = &multisampling_ci,
+        .pDepthStencilState = nullptr,
+        .pColorBlendState = &color_blend_ci,
+        .pDynamicState = &dynamic_state_ci,
+        .layout = *aa_pipeline_layout,
+        .renderPass = *aa_renderpass,
+        .subpass = 0,
+        .basePipelineHandle = 0,
+        .basePipelineIndex = 0,
+    };
+
+    // AA
+    aa_pipeline = device.GetLogical().CreateGraphicsPipeline(fxaa_pipeline_ci);
+}
+
+void VKBlitScreen::UpdateAADescriptorSet(std::size_t image_index, VkImageView image_view,
+                                         bool nn) const {
+    const VkDescriptorImageInfo image_info{
+        .sampler = nn ? *nn_sampler : *sampler,
+        .imageView = image_view,
+        .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
+    };
+
+    const VkWriteDescriptorSet sampler_write{
+        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+        .pNext = nullptr,
+        .dstSet = aa_descriptor_sets[image_index],
+        .dstBinding = 0,
+        .dstArrayElement = 0,
+        .descriptorCount = 1,
+        .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+        .pImageInfo = &image_info,
+        .pBufferInfo = nullptr,
+        .pTexelBufferView = nullptr,
+    };
+
+    const VkWriteDescriptorSet sampler_write_2{
+        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+        .pNext = nullptr,
+        .dstSet = aa_descriptor_sets[image_index],
+        .dstBinding = 1,
+        .dstArrayElement = 0,
+        .descriptorCount = 1,
+        .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+        .pImageInfo = &image_info,
+        .pBufferInfo = nullptr,
+        .pTexelBufferView = nullptr,
+    };
+
+    device.GetLogical().UpdateDescriptorSets(std::array{sampler_write, sampler_write_2}, {});
 }
 
 void VKBlitScreen::UpdateDescriptorSet(std::size_t image_index, VkImageView image_view,
