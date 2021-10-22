@@ -244,8 +244,35 @@ VkSemaphore VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer,
             .width = (up_scale * framebuffer.width) >> down_shift,
             .height = (up_scale * framebuffer.height) >> down_shift,
         };
-        source_image_view = *aa_image_view;
         scheduler.Record([this, image_index, size, anti_alias_pass](vk::CommandBuffer cmdbuf) {
+            const VkImageMemoryBarrier base_barrier{
+                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                .pNext = nullptr,
+                .srcAccessMask = 0,
+                .dstAccessMask = 0,
+                .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .image = {},
+                .subresourceRange =
+                    {
+                        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                        .baseMipLevel = 0,
+                        .levelCount = 1,
+                        .baseArrayLayer = 0,
+                        .layerCount = 1,
+                    },
+            };
+
+            {
+                VkImageMemoryBarrier fsr_write_barrier = base_barrier;
+                fsr_write_barrier.image = *aa_image;
+                fsr_write_barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+                cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                                       VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, fsr_write_barrier);
+            }
+
             const f32 bg_red = Settings::values.bg_red.GetValue() / 255.0f;
             const f32 bg_green = Settings::values.bg_green.GetValue() / 255.0f;
             const f32 bg_blue = Settings::values.bg_blue.GetValue() / 255.0f;
@@ -294,7 +321,18 @@ VkSemaphore VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer,
                                       aa_descriptor_sets[image_index], {});
             cmdbuf.Draw(4, 1, 0, 0);
             cmdbuf.EndRenderPass();
+
+            {
+                VkImageMemoryBarrier blit_read_barrier = base_barrier;
+                blit_read_barrier.image = *aa_image;
+                blit_read_barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+                blit_read_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+                cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT ,
+                                       VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, blit_read_barrier);
+            }
         });
+        source_image_view = *aa_image_view;
     }
 
     if (fsr) {
@@ -485,7 +523,7 @@ void VKBlitScreen::CreateDescriptorPool() {
     const std::array<VkDescriptorPoolSize, 1> pool_sizes_aa{{
         {
             .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = static_cast<u32>(2 * image_count),
+            .descriptorCount = static_cast<u32>(image_count * 2),
         },
     }};
 
