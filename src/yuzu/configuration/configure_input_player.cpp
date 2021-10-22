@@ -598,8 +598,15 @@ void ConfigureInputPlayer::RetranslateUI() {
 }
 
 void ConfigureInputPlayer::LoadConfiguration() {
+    emulated_controller->ReloadFromSettings();
+
     UpdateUI();
     UpdateInputDeviceCombobox();
+
+    if (debug) {
+        return;
+    }
+
     const int comboBoxIndex = GetIndexFromControllerType(emulated_controller->GetNpadType(true));
     ui->comboControllerType->setCurrentIndex(comboBoxIndex);
     ui->groupConnectedController->setChecked(emulated_controller->IsConnected(true));

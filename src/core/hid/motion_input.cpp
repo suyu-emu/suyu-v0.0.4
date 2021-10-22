@@ -73,6 +73,8 @@ void MotionInput::UpdateRotation(u64 elapsed_time) {
     rotations += gyro * sample_period;
 }
 
+// Based on Madgwick's implementation of Mayhony's AHRS algorithm.
+// https://github.com/xioTechnologies/Open-Source-AHRS-With-x-IMU/blob/master/x-IMU%20IMU%20and%20AHRS%20Algorithms/x-IMU%20IMU%20and%20AHRS%20Algorithms/AHRS/MahonyAHRS.cs
 void MotionInput::UpdateOrientation(u64 elapsed_time) {
     if (!IsCalibrated(0.1f)) {
         ResetOrientation();
