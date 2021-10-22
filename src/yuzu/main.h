@@ -303,6 +303,7 @@ private:
     void UpdateWindowTitle(std::string_view title_name = {}, std::string_view title_version = {},
                            std::string_view gpu_vendor = {});
     void UpdateFilterText();
+    void UpdateAAText();
     void UpdateStatusBar();
     void UpdateGPUAccuracyButton();
     void UpdateStatusButtons();
@@ -338,6 +339,7 @@ private:
     QPushButton* renderer_status_button = nullptr;
     QPushButton* dock_status_button = nullptr;
     QPushButton* filter_status_button = nullptr;
+    QPushButton* aa_status_button = nullptr;
     QTimer status_bar_update_timer;
 
     std::unique_ptr<Config> config;

@@ -774,6 +774,26 @@ void GMainWindow::InitializeWidgets() {
     tas_label->setFocusPolicy(Qt::NoFocus);
     statusBar()->insertPermanentWidget(0, tas_label);
 
+    // setup AA button
+    aa_status_button = new QPushButton();
+    aa_status_button->setObjectName(QStringLiteral("TogglableStatusBarButton"));
+    aa_status_button->setFocusPolicy(Qt::NoFocus);
+    connect(aa_status_button, &QPushButton::clicked, [&] {
+        auto aa_mode = Settings::values.anti_aliasing.GetValue();
+        if (aa_mode == Settings::AntiAliasing::LastAA) {
+            aa_mode = Settings::AntiAliasing::None;
+        } else {
+            aa_mode = static_cast<Settings::AntiAliasing>(static_cast<u32>(aa_mode) + 1);
+        }
+        Settings::values.anti_aliasing.SetValue(aa_mode);
+        aa_status_button->setChecked(true);
+        UpdateAAText();
+    });
+    UpdateAAText();
+    aa_status_button->setCheckable(true);
+    aa_status_button->setChecked(true);
+    statusBar()->insertPermanentWidget(0, aa_status_button);
+
     // Setup Filter button
     filter_status_button = new QPushButton();
     filter_status_button->setObjectName(QStringLiteral("TogglableStatusBarButton"));
@@ -800,6 +820,7 @@ void GMainWindow::InitializeWidgets() {
     }
     UpdateFilterText();
     filter_status_button->setCheckable(true);
+    filter_status_button->setChecked(true);
     statusBar()->insertPermanentWidget(0, filter_status_button);
 
     // Setup Dock button
@@ -872,6 +893,11 @@ void GMainWindow::InitializeWidgets() {
             Settings::values.renderer_backend.SetValue(Settings::RendererBackend::Vulkan);
         } else {
             Settings::values.renderer_backend.SetValue(Settings::RendererBackend::OpenGL);
+            const auto filter = Settings::values.scaling_filter.GetValue();
+            if (filter == Settings::ScalingFilter::Fsr) {
+                Settings::values.scaling_filter.SetValue(Settings::ScalingFilter::NearestNeighbor);
+                UpdateFilterText();
+            }
         }
 
         system->ApplySettings();
@@ -3088,12 +3114,28 @@ void GMainWindow::UpdateFilterText() {
     }
 }
 
+void GMainWindow::UpdateAAText() {
+    const auto aa_mode = Settings::values.anti_aliasing.GetValue();
+    switch (aa_mode) {
+    case Settings::AntiAliasing::Fxaa:
+        aa_status_button->setText(tr("FXAA"));
+        break;
+    case Settings::AntiAliasing::None:
+        aa_status_button->setText(tr("NO AA"));
+        break;
+    default:
+        aa_status_button->setText(tr("FXAA"));
+        break;
+    }
+}
+
 void GMainWindow::UpdateStatusButtons() {
     dock_status_button->setChecked(Settings::values.use_docked_mode.GetValue());
     renderer_status_button->setChecked(Settings::values.renderer_backend.GetValue() ==
                                        Settings::RendererBackend::Vulkan);
     UpdateGPUAccuracyButton();
     UpdateFilterText();
+    UpdateAAText();
 }
 
 void GMainWindow::UpdateUISettings() {
