@@ -1,8 +1,8 @@
-// Copyright 2019 yuzu Emulator Project
+// Copyright 2021 yuzu Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-// Code obtained from this 2 sources:
+// Code adapted from the following sources:
 // - https://learnopengl.com/Advanced-Lighting/Bloom
 // - https://www.rastergrid.com/blog/2010/09/efficient-gaussian-blur-with-linear-sampling/
 
