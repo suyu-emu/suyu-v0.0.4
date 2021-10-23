@@ -5,9 +5,7 @@
 #version 460 core
 #extension GL_GOOGLE_include_directive : enable
 
-layout(set=0,binding=0) uniform sampler2D InputTexture;
-layout(set=0,binding=1,rgba16f) uniform image2D OutputTexture;
-
+#define YUZU_USE_FP16
 #define USE_EASU 1
 
 #include "fidelityfx_fsr.comp"

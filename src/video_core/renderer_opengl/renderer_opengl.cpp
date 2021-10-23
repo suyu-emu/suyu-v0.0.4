@@ -24,10 +24,10 @@
 #include "video_core/host_shaders/fxaa_frag.h"
 #include "video_core/host_shaders/fxaa_vert.h"
 #include "video_core/host_shaders/opengl_present_frag.h"
+#include "video_core/host_shaders/opengl_present_scaleforce_frag.h"
 #include "video_core/host_shaders/opengl_present_vert.h"
 #include "video_core/host_shaders/present_bicubic_frag.h"
 #include "video_core/host_shaders/present_gaussian_frag.h"
-#include "video_core/host_shaders/present_scaleforce_frag.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
 #include "video_core/renderer_opengl/gl_shader_util.h"
@@ -266,7 +266,8 @@ void RendererOpenGL::InitOpenGLObjects() {
     present_gaussian_fragment =
         CreateProgram(HostShaders::PRESENT_GAUSSIAN_FRAG, GL_FRAGMENT_SHADER);
     present_scaleforce_fragment =
-        CreateProgram(HostShaders::PRESENT_SCALEFORCE_FRAG, GL_FRAGMENT_SHADER);
+        CreateProgram(fmt::format("#version 460\n{}", HostShaders::OPENGL_PRESENT_SCALEFORCE_FRAG),
+                      GL_FRAGMENT_SHADER);
 
     // Generate presentation sampler
     present_sampler.Create();

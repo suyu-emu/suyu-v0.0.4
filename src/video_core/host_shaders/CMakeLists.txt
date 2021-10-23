@@ -18,16 +18,20 @@ set(SHADER_FILES
     opengl_copy_bc4.comp
     opengl_present.frag
     opengl_present.vert
+    opengl_present_scaleforce.frag
     pitch_unswizzle.comp
-    present_scaleforce.frag
     present_bicubic.frag
     present_gaussian.frag
     vulkan_blit_color_float.frag
     vulkan_blit_depth_stencil.frag
-    vulkan_fidelityfx_fsr_easu.comp
-    vulkan_fidelityfx_fsr_rcas.comp
+    vulkan_fidelityfx_fsr_easu_fp16.comp
+    vulkan_fidelityfx_fsr_easu_fp32.comp
+    vulkan_fidelityfx_fsr_rcas_fp16.comp
+    vulkan_fidelityfx_fsr_rcas_fp32.comp
     vulkan_present.frag
     vulkan_present.vert
+    vulkan_present_scaleforce_fp16.frag
+    vulkan_present_scaleforce_fp32.frag
     vulkan_quad_indexed.comp
     vulkan_uint8.comp
 )

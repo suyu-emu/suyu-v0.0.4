@@ -4,12 +4,18 @@
 
 #include "common/common_types.h"
 #include "common/div_ceil.h"
-#include "video_core/host_shaders/vulkan_fidelityfx_fsr_easu_comp_spv.h"
-#include "video_core/host_shaders/vulkan_fidelityfx_fsr_rcas_comp_spv.h"
+#include "video_core/host_shaders/vulkan_fidelityfx_fsr_easu_fp16_comp_spv.h"
+#include "video_core/host_shaders/vulkan_fidelityfx_fsr_easu_fp32_comp_spv.h"
+#include "video_core/host_shaders/vulkan_fidelityfx_fsr_rcas_fp16_comp_spv.h"
+#include "video_core/host_shaders/vulkan_fidelityfx_fsr_rcas_fp32_comp_spv.h"
 #include "video_core/renderer_vulkan/vk_fsr.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_shader_util.h"
 #include "video_core/vulkan_common/vulkan_device.h"
+
+#define A_CPU
+#include <ffx_a.h>
+#include <ffx_fsr1.h>
 
 namespace Vulkan {
 
@@ -29,11 +35,11 @@ FSR::FSR(const Device& device_, MemoryAllocator& memory_allocator_, size_t image
 }
 
 VkImageView FSR::Draw(VKScheduler& scheduler, size_t image_index, VkImageView image_view,
-                      const Common::Rectangle<int>& crop_rect) {
+                      VkExtent2D input_image_extent, const Common::Rectangle<int>& crop_rect) {
 
     UpdateDescriptorSet(image_index, image_view);
 
-    scheduler.Record([this, image_index, crop_rect](vk::CommandBuffer cmdbuf) {
+    scheduler.Record([this, image_index, input_image_extent, crop_rect](vk::CommandBuffer cmdbuf) {
         const VkImageMemoryBarrier base_barrier{
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .pNext = nullptr,
@@ -54,13 +60,18 @@ VkImageView FSR::Draw(VKScheduler& scheduler, size_t image_index, VkImageView im
                 },
         };
 
-        // TODO: Support clear color
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, *easu_pipeline);
-        cmdbuf.PushConstants(*pipeline_layout, VK_SHADER_STAGE_COMPUTE_BIT,
-                             VkExtent2D{
-                                 .width = static_cast<u32>(crop_rect.GetWidth()),
-                                 .height = static_cast<u32>(crop_rect.GetHeight()),
-                             });
+
+        std::array<AU1, 4 * 4> push_constants;
+        FsrEasuConOffset(
+            push_constants.data() + 0, push_constants.data() + 4, push_constants.data() + 8,
+            push_constants.data() + 12,
+
+            static_cast<AF1>(crop_rect.GetWidth()), static_cast<AF1>(crop_rect.GetHeight()),
+            static_cast<AF1>(input_image_extent.width), static_cast<AF1>(input_image_extent.height),
+            static_cast<AF1>(output_size.width), static_cast<AF1>(output_size.height),
+            static_cast<AF1>(crop_rect.left), static_cast<AF1>(crop_rect.top));
+        cmdbuf.PushConstants(*pipeline_layout, VK_SHADER_STAGE_COMPUTE_BIT, push_constants);
 
         {
             VkImageMemoryBarrier fsr_write_barrier = base_barrier;
@@ -77,7 +88,9 @@ VkImageView FSR::Draw(VKScheduler& scheduler, size_t image_index, VkImageView im
                         Common::DivCeil(output_size.height, 16u), 1);
 
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, *rcas_pipeline);
-        cmdbuf.PushConstants(*pipeline_layout, VK_SHADER_STAGE_COMPUTE_BIT, output_size);
+
+        FsrRcasCon(push_constants.data(), 0.25f);
+        cmdbuf.PushConstants(*pipeline_layout, VK_SHADER_STAGE_COMPUTE_BIT, push_constants);
 
         {
             std::array<VkImageMemoryBarrier, 2> barriers;
@@ -247,7 +260,7 @@ void FSR::CreatePipelineLayout() {
     VkPushConstantRange push_const{
         .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
         .offset = 0,
-        .size = sizeof(std::array<u32, 2>),
+        .size = sizeof(std::array<u32, 4 * 4>),
     };
     VkPipelineLayoutCreateInfo ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
@@ -344,8 +357,13 @@ void FSR::CreateSampler() {
 }
 
 void FSR::CreateShaders() {
-    easu_shader = BuildShader(device, VULKAN_FIDELITYFX_FSR_EASU_COMP_SPV);
-    rcas_shader = BuildShader(device, VULKAN_FIDELITYFX_FSR_RCAS_COMP_SPV);
+    if (device.IsFloat16Supported()) {
+        easu_shader = BuildShader(device, VULKAN_FIDELITYFX_FSR_EASU_FP16_COMP_SPV);
+        rcas_shader = BuildShader(device, VULKAN_FIDELITYFX_FSR_RCAS_FP16_COMP_SPV);
+    } else {
+        easu_shader = BuildShader(device, VULKAN_FIDELITYFX_FSR_EASU_FP32_COMP_SPV);
+        rcas_shader = BuildShader(device, VULKAN_FIDELITYFX_FSR_RCAS_FP32_COMP_SPV);
+    }
 }
 
 void FSR::CreatePipeline() {

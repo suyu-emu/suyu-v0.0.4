@@ -22,10 +22,28 @@
 
 // Adapted from https://github.com/BreadFish64/ScaleFish/tree/master/scaleforce
 
-#version 460
+//! #version 460
+
+#extension GL_ARB_separate_shader_objects : enable
+
+#ifdef YUZU_USE_FP16
 
 #extension GL_AMD_gpu_shader_half_float : enable
 #extension GL_NV_gpu_shader5 : enable
+
+#define lfloat float16_t
+#define lvec2 f16vec2
+#define lvec3 f16vec3
+#define lvec4 f16vec4
+
+#else
+
+#define lfloat float
+#define lvec2 vec2
+#define lvec3 vec3
+#define lvec4 vec4
+
+#endif
 
 #ifdef VULKAN
 
@@ -45,25 +63,25 @@ layout (binding = BINDING_COLOR_TEXTURE) uniform sampler2D input_texture;
 
 const bool ignore_alpha = true;
 
-float16_t ColorDist1(f16vec4 a, f16vec4 b) {
+lfloat ColorDist1(lvec4 a, lvec4 b) {
     // https://en.wikipedia.org/wiki/YCbCr#ITU-R_BT.2020_conversion
-    const f16vec3 K = f16vec3(0.2627, 0.6780, 0.0593);
-    const float16_t scaleB = float16_t(0.5) / (float16_t(1.0) - K.b);
-    const float16_t scaleR = float16_t(0.5) / (float16_t(1.0) - K.r);
-    f16vec4 diff = a - b;
-    float16_t Y = dot(diff.rgb, K);
-    float16_t Cb = scaleB * (diff.b - Y);
-    float16_t Cr = scaleR * (diff.r - Y);
-    f16vec3 YCbCr = f16vec3(Y, Cb, Cr);
-    float16_t d = length(YCbCr);
+    const lvec3 K = lvec3(0.2627, 0.6780, 0.0593);
+    const lfloat scaleB = lfloat(0.5) / (lfloat(1.0) - K.b);
+    const lfloat scaleR = lfloat(0.5) / (lfloat(1.0) - K.r);
+    lvec4 diff = a - b;
+    lfloat Y = dot(diff.rgb, K);
+    lfloat Cb = scaleB * (diff.b - Y);
+    lfloat Cr = scaleR * (diff.r - Y);
+    lvec3 YCbCr = lvec3(Y, Cb, Cr);
+    lfloat d = length(YCbCr);
     if (ignore_alpha) {
         return d;
     }
     return sqrt(a.a * b.a * d * d + diff.a * diff.a);
 }
 
-f16vec4 ColorDist(f16vec4 ref, f16vec4 A, f16vec4 B, f16vec4 C, f16vec4 D) {
-    return f16vec4(
+lvec4 ColorDist(lvec4 ref, lvec4 A, lvec4 B, lvec4 C, lvec4 D) {
+    return lvec4(
             ColorDist1(ref, A),
             ColorDist1(ref, B),
             ColorDist1(ref, C),
@@ -72,36 +90,36 @@ f16vec4 ColorDist(f16vec4 ref, f16vec4 A, f16vec4 B, f16vec4 C, f16vec4 D) {
 }
 
 vec4 Scaleforce(sampler2D tex, vec2 tex_coord) {
-    f16vec4 bl = f16vec4(textureOffset(tex, tex_coord, ivec2(-1, -1)));
-    f16vec4 bc = f16vec4(textureOffset(tex, tex_coord, ivec2(0, -1)));
-    f16vec4 br = f16vec4(textureOffset(tex, tex_coord, ivec2(1, -1)));
-    f16vec4 cl = f16vec4(textureOffset(tex, tex_coord, ivec2(-1, 0)));
-    f16vec4 cc = f16vec4(texture(tex, tex_coord));
-    f16vec4 cr = f16vec4(textureOffset(tex, tex_coord, ivec2(1, 0)));
-    f16vec4 tl = f16vec4(textureOffset(tex, tex_coord, ivec2(-1, 1)));
-    f16vec4 tc = f16vec4(textureOffset(tex, tex_coord, ivec2(0, 1)));
-    f16vec4 tr = f16vec4(textureOffset(tex, tex_coord, ivec2(1, 1)));
+    lvec4 bl = lvec4(textureOffset(tex, tex_coord, ivec2(-1, -1)));
+    lvec4 bc = lvec4(textureOffset(tex, tex_coord, ivec2(0, -1)));
+    lvec4 br = lvec4(textureOffset(tex, tex_coord, ivec2(1, -1)));
+    lvec4 cl = lvec4(textureOffset(tex, tex_coord, ivec2(-1, 0)));
+    lvec4 cc = lvec4(texture(tex, tex_coord));
+    lvec4 cr = lvec4(textureOffset(tex, tex_coord, ivec2(1, 0)));
+    lvec4 tl = lvec4(textureOffset(tex, tex_coord, ivec2(-1, 1)));
+    lvec4 tc = lvec4(textureOffset(tex, tex_coord, ivec2(0, 1)));
+    lvec4 tr = lvec4(textureOffset(tex, tex_coord, ivec2(1, 1)));
 
-    f16vec4 offset_tl = ColorDist(cc, tl, tc, tr, cr);
-    f16vec4 offset_br = ColorDist(cc, br, bc, bl, cl);
+    lvec4 offset_tl = ColorDist(cc, tl, tc, tr, cr);
+    lvec4 offset_br = ColorDist(cc, br, bc, bl, cl);
 
     // Calculate how different cc is from the texels around it
-    const float16_t plus_weight = float16_t(1.5);
-    const float16_t cross_weight = float16_t(1.5);
-    float16_t total_dist = dot(offset_tl + offset_br, f16vec4(cross_weight, plus_weight, cross_weight, plus_weight));
+    const lfloat plus_weight = lfloat(1.5);
+    const lfloat cross_weight = lfloat(1.5);
+    lfloat total_dist = dot(offset_tl + offset_br, lvec4(cross_weight, plus_weight, cross_weight, plus_weight));
 
-    if (total_dist == float16_t(0.0)) {
+    if (total_dist == lfloat(0.0)) {
         return cc;
     } else {
         // Add together all the distances with direction taken into account
-        f16vec4 tmp = offset_tl - offset_br;
-        f16vec2 total_offset = tmp.wy * plus_weight + (tmp.zz + f16vec2(-tmp.x, tmp.x)) * cross_weight;
+        lvec4 tmp = offset_tl - offset_br;
+        lvec2 total_offset = tmp.wy * plus_weight + (tmp.zz + lvec2(-tmp.x, tmp.x)) * cross_weight;
 
         // When the image has thin points, they tend to split apart.
         // This is because the texels all around are different and total_offset reaches into clear areas.
         // This works pretty well to keep the offset in bounds for these cases.
-        float16_t clamp_val = length(total_offset) / total_dist;
-        f16vec2 final_offset = clamp(total_offset, -clamp_val, clamp_val) / f16vec2(textureSize(tex, 0));
+        lfloat clamp_val = length(total_offset) / total_dist;
+        vec2 final_offset = vec2(clamp(total_offset, -clamp_val, clamp_val)) / textureSize(tex, 0);
 
         return texture(tex, tex_coord - final_offset);
     }

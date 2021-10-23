@@ -21,8 +21,9 @@
 #include "video_core/host_shaders/fxaa_vert_spv.h"
 #include "video_core/host_shaders/present_bicubic_frag_spv.h"
 #include "video_core/host_shaders/present_gaussian_frag_spv.h"
-#include "video_core/host_shaders/present_scaleforce_frag_spv.h"
 #include "video_core/host_shaders/vulkan_present_frag_spv.h"
+#include "video_core/host_shaders/vulkan_present_scaleforce_fp16_frag_spv.h"
+#include "video_core/host_shaders/vulkan_present_scaleforce_fp32_frag_spv.h"
 #include "video_core/host_shaders/vulkan_present_vert_spv.h"
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
 #include "video_core/renderer_vulkan/vk_blit_screen.h"
@@ -328,7 +329,7 @@ VkSemaphore VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer,
                 blit_read_barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
                 blit_read_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-                cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT ,
+                cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
                                        VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, blit_read_barrier);
             }
         });
@@ -344,8 +345,12 @@ VkSemaphore VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer,
             crop_rect.bottom = framebuffer.height;
         }
         crop_rect = crop_rect.Scale(Settings::values.resolution_info.up_factor);
+        VkExtent2D fsr_input_size{
+            .width = Settings::values.resolution_info.ScaleUp(framebuffer.width),
+            .height = Settings::values.resolution_info.ScaleUp(framebuffer.height),
+        };
         VkImageView fsr_image_view =
-            fsr->Draw(scheduler, image_index, source_image_view, crop_rect);
+            fsr->Draw(scheduler, image_index, source_image_view, fsr_input_size, crop_rect);
         UpdateDescriptorSet(image_index, fsr_image_view, true);
     } else {
         const bool is_nn =
@@ -500,7 +505,11 @@ void VKBlitScreen::CreateShaders() {
     bilinear_fragment_shader = BuildShader(device, VULKAN_PRESENT_FRAG_SPV);
     bicubic_fragment_shader = BuildShader(device, PRESENT_BICUBIC_FRAG_SPV);
     gaussian_fragment_shader = BuildShader(device, PRESENT_GAUSSIAN_FRAG_SPV);
-    scaleforce_fragment_shader = BuildShader(device, PRESENT_SCALEFORCE_FRAG_SPV);
+    if (device.IsFloat16Supported()) {
+        scaleforce_fragment_shader = BuildShader(device, VULKAN_PRESENT_SCALEFORCE_FP16_FRAG_SPV);
+    } else {
+        scaleforce_fragment_shader = BuildShader(device, VULKAN_PRESENT_SCALEFORCE_FP32_FRAG_SPV);
+    }
 }
 
 void VKBlitScreen::CreateSemaphores() {
