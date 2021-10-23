@@ -569,7 +569,7 @@ VkPipeline BlitImageHelper::FindOrEmplaceDepthStencilPipeline(const BlitImagePip
         .pRasterizationState = &PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
         .pMultisampleState = &PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
         .pDepthStencilState = &PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-        .pColorBlendState = &PIPELINE_COLOR_BLEND_STATE_EMPTY_CREATE_INFO,
+        .pColorBlendState = &PIPELINE_COLOR_BLEND_STATE_GENERIC_CREATE_INFO,
         .pDynamicState = &PIPELINE_DYNAMIC_STATE_CREATE_INFO,
         .layout = *two_textures_pipeline_layout,
         .renderPass = key.renderpass,
