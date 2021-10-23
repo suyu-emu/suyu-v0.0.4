@@ -883,7 +883,7 @@ void Image::CopyImageToBuffer(const VideoCommon::BufferImageCopy& copy, size_t b
     }
 }
 
-bool Image::Scale(bool up_scale) {
+void Image::Scale(bool up_scale) {
     const auto format_type = GetFormatType(info.format);
     const GLenum attachment = [format_type] {
         switch (format_type) {
@@ -942,77 +942,54 @@ bool Image::Scale(bool up_scale) {
         dst_info.size.height = scaled_height;
         upscaled_backup = MakeImage(dst_info, gl_internal_format);
     }
-    auto& state_tracker = runtime->GetStateTracker();
-    state_tracker.NotifyViewport0();
-    state_tracker.NotifyScissor0();
-    // TODO (ameerj): Investigate other GL states that affect blitting.
-    GLboolean scissor_test;
-    glGetBooleani_v(GL_SCISSOR_TEST, 0, &scissor_test);
-    glDisablei(GL_SCISSOR_TEST, 0);
-    if (up_scale) {
-      glViewportIndexedf(0, 0.0f, 0.0f, static_cast<GLfloat>(scaled_width),
-                         static_cast<GLfloat>(scaled_height));
-    } else {
-      glViewportIndexedf(0, 0.0f, 0.0f, static_cast<GLfloat>(original_width),
-                         static_cast<GLfloat>(original_height));
-    }
+    const u32 src_width = up_scale ? original_width : scaled_width;
+    const u32 src_height = up_scale ? original_height : scaled_height;
+    const u32 dst_width = up_scale ? scaled_width : original_width;
+    const u32 dst_height = up_scale ? scaled_height : original_height;
+    const auto src_handle = up_scale ? texture.handle : upscaled_backup.handle;
+    const auto dst_handle = up_scale ? upscaled_backup.handle : texture.handle;
 
+    // TODO (ameerj): Investigate other GL states that affect blitting.
+    glDisablei(GL_SCISSOR_TEST, 0);
+    glViewportIndexedf(0, 0.0f, 0.0f, static_cast<GLfloat>(dst_width),
+                       static_cast<GLfloat>(dst_height));
 
     const GLuint read_fbo = runtime->rescale_read_fbos[fbo_index].handle;
     const GLuint draw_fbo = runtime->rescale_draw_fbos[fbo_index].handle;
     for (s32 layer = 0; layer < info.resources.layers; ++layer) {
         for (s32 level = 0; level < info.resources.levels; ++level) {
-            const u32 src_level_width =
-                std::max(1u, (up_scale ? original_width : scaled_width) >> level);
-            const u32 src_level_height =
-                std::max(1u, (up_scale ? original_height : scaled_height) >> level);
-            const u32 dst_level_width =
-                std::max(1u, (up_scale ? scaled_width : original_width) >> level);
-            const u32 dst_level_height =
-                std::max(1u, (up_scale ? scaled_height : original_height) >> level);
+            const u32 src_level_width = std::max(1u, src_width >> level);
+            const u32 src_level_height = std::max(1u, src_height >> level);
+            const u32 dst_level_width = std::max(1u, dst_width >> level);
+            const u32 dst_level_height = std::max(1u, dst_height >> level);
 
-            if (up_scale) {
-                glNamedFramebufferTextureLayer(read_fbo, attachment, texture.handle, level, layer);
-                glNamedFramebufferTextureLayer(draw_fbo, attachment, upscaled_backup.handle, level,
-                                               layer);
-            } else {
-                glNamedFramebufferTextureLayer(read_fbo, attachment, upscaled_backup.handle, level,
-                                               layer);
-                glNamedFramebufferTextureLayer(draw_fbo, attachment, texture.handle, level, layer);
-            }
+            glNamedFramebufferTextureLayer(read_fbo, attachment, src_handle, level, layer);
+            glNamedFramebufferTextureLayer(draw_fbo, attachment, dst_handle, level, layer);
 
             glBlitNamedFramebuffer(read_fbo, draw_fbo, 0, 0, src_level_width, src_level_height, 0,
                                    0, dst_level_width, dst_level_height, mask, filter);
         }
     }
-    if (scissor_test != GL_FALSE) {
-        glEnablei(GL_SCISSOR_TEST, 0);
-    }
-    if (up_scale) {
-        current_texture = upscaled_backup.handle;
-    } else {
-        current_texture = texture.handle;
-    }
-
-    return true;
+    current_texture = dst_handle;
+    auto& state_tracker = runtime->GetStateTracker();
+    state_tracker.NotifyViewport0();
+    state_tracker.NotifyScissor0();
 }
 
 bool Image::ScaleUp(bool ignore) {
     if (True(flags & ImageFlagBits::Rescaled)) {
         return false;
     }
-    flags |= ImageFlagBits::Rescaled;
-    if (!runtime->resolution.active) {
-        return false;
-    }
     if (gl_format == 0 && gl_type == 0) {
         // compressed textures
-        flags &= ~ImageFlagBits::Rescaled;
         return false;
     }
     if (info.type == ImageType::Linear) {
         UNREACHABLE();
-        flags &= ~ImageFlagBits::Rescaled;
+        return false;
+    }
+    flags |= ImageFlagBits::Rescaled;
+    if (!runtime->resolution.active) {
         return false;
     }
     has_scaled = true;
@@ -1020,10 +997,7 @@ bool Image::ScaleUp(bool ignore) {
         current_texture = upscaled_backup.handle;
         return true;
     }
-    if (!Scale()) {
-        flags &= ~ImageFlagBits::Rescaled;
-        return false;
-    }
+    Scale(true);
     return true;
 }
 
@@ -1039,10 +1013,7 @@ bool Image::ScaleDown(bool ignore) {
         current_texture = texture.handle;
         return true;
     }
-    if (!Scale(false)) {
-        flags &= ~ImageFlagBits::Rescaled;
-        return false;
-    }
+    Scale(false);
     return true;
 }
 
