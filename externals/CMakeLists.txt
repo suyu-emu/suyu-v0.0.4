@@ -25,9 +25,6 @@ if (ARCHITECTURE_x86_64)
     add_subdirectory(dynarmic)
 endif()
 
-add_library(ffx-fsr INTERFACE)
-target_include_directories(ffx-fsr INTERFACE FidelityFX-FSR/ffx-fsr)
-
 # getopt
 if (MSVC)
     add_subdirectory(getopt)
