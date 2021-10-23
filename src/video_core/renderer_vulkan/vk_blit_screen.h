@@ -99,6 +99,8 @@ private:
     void SetVertexData(BufferData& data, const Tegra::FramebufferConfig& framebuffer,
                        const Layout::FramebufferLayout layout) const;
 
+    void CreateFSR();
+
     u64 CalculateBufferSize(const Tegra::FramebufferConfig& framebuffer) const;
     u64 GetRawImageOffset(const Tegra::FramebufferConfig& framebuffer,
                           std::size_t image_index) const;

@@ -468,20 +468,14 @@ void VKBlitScreen::CreateDynamicResources() {
     CreateGraphicsPipeline();
     fsr.reset();
     if (Settings::values.scaling_filter.GetValue() == Settings::ScalingFilter::Fsr) {
-        const auto& layout = render_window.GetFramebufferLayout();
-        fsr = std::make_unique<FSR>(
-            device, memory_allocator, image_count,
-            VkExtent2D{.width = layout.screen.GetWidth(), .height = layout.screen.GetHeight()});
+        CreateFSR();
     }
 }
 
 void VKBlitScreen::RefreshResources(const Tegra::FramebufferConfig& framebuffer) {
     if (Settings::values.scaling_filter.GetValue() == Settings::ScalingFilter::Fsr) {
         if (!fsr) {
-            const auto& layout = render_window.GetFramebufferLayout();
-            fsr = std::make_unique<FSR>(
-                device, memory_allocator, image_count,
-                VkExtent2D{.width = layout.screen.GetWidth(), .height = layout.screen.GetHeight()});
+            CreateFSR();
         }
     } else {
         fsr.reset();
@@ -1441,6 +1435,15 @@ void VKBlitScreen::SetVertexData(BufferData& data, const Tegra::FramebufferConfi
     data.vertices[1] = ScreenRectVertex(x + w, y, texcoords.bottom * scale_u, left * scale_v);
     data.vertices[2] = ScreenRectVertex(x, y + h, texcoords.top * scale_u, right * scale_v);
     data.vertices[3] = ScreenRectVertex(x + w, y + h, texcoords.bottom * scale_u, right * scale_v);
+}
+
+void VKBlitScreen::CreateFSR() {
+    const auto& layout = render_window.GetFramebufferLayout();
+    const VkExtent2D fsr_size{
+        .width = layout.screen.GetWidth(),
+        .height = layout.screen.GetHeight(),
+    };
+    fsr = std::make_unique<FSR>(device, memory_allocator, image_count, fsr_size);
 }
 
 u64 VKBlitScreen::CalculateBufferSize(const Tegra::FramebufferConfig& framebuffer) const {
