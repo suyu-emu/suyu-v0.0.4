@@ -334,10 +334,7 @@ private:
         };
     };
 
-    struct NfcXcdHandle {
-        INSERT_PADDING_BYTES(0x60);
-    };
-
+    // This is nn::hid::system::AppletFooterUiAttributesSet
     struct AppletFooterUiAttributes {
         INSERT_PADDING_BYTES(0x4);
     };
@@ -368,6 +365,31 @@ private:
         Lagon = 21,
     };
 
+    // This is nn::hid::NpadLarkType
+    enum class NpadLarkType : u32 {
+        Invalid,
+        H1,
+        H2,
+        NL,
+        NR,
+    };
+
+    // This is nn::hid::NpadLuciaType
+    enum class NpadLuciaType : u32 {
+        Invalid,
+        J,
+        E,
+        U,
+    };
+
+    // This is nn::hid::NpadLagerType
+    enum class NpadLagerType : u32 {
+        Invalid,
+        J,
+        E,
+        U,
+    };
+
     // This is nn::hid::detail::NpadInternalState
     struct NpadInternalState {
         Core::HID::NpadStyleTag style_set;
@@ -396,11 +418,16 @@ private:
         Core::HID::BatteryLevel battery_level_right;
         AppletFooterUiAttributes footer_attributes;
         AppletFooterUiType footer_type;
-        // nfc_states needs to be checked switchbrew doesn't match with HW
-        NfcXcdHandle nfc_states;
-        INSERT_PADDING_BYTES(0x18); // Unknown
+        // GetXcdHandleForNpadWithNfc needs to be checked switchbrew doesn't match with HW
+        INSERT_PADDING_BYTES(0x78); // Unknown
         Lifo<NpadGcTriggerState> gc_trigger_lifo;
-        INSERT_PADDING_BYTES(0xc1f); // Unknown
+        NpadLarkType lark_type_l;
+        NpadLarkType lark_type_r;
+        NpadLuciaType lucia_type;
+        NpadLagerType lager_type;
+        INSERT_PADDING_BYTES(
+            0x8); // FW 13.x Investigate there is some sort of bitflag related to joycons
+        INSERT_PADDING_BYTES(0xc08); // Unknown
     };
     static_assert(sizeof(NpadInternalState) == 0x5000, "NpadInternalState is an invalid size");
 

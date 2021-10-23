@@ -123,8 +123,8 @@ Controller_NPad::~Controller_NPad() {
 void Controller_NPad::ControllerUpdate(Core::HID::ControllerTriggerType type,
                                        std::size_t controller_idx) {
     if (type == Core::HID::ControllerTriggerType::All) {
-        ControllerUpdate(Core::HID::ControllerTriggerType::Type, controller_idx);
         ControllerUpdate(Core::HID::ControllerTriggerType::Connected, controller_idx);
+        ControllerUpdate(Core::HID::ControllerTriggerType::Battery, controller_idx);
         return;
     }
 
@@ -139,11 +139,15 @@ void Controller_NPad::ControllerUpdate(Core::HID::ControllerTriggerType type,
         }
         UpdateControllerAt(npad_type, controller_idx, is_connected);
         break;
-    case Core::HID::ControllerTriggerType::Type: {
-        if (npad_type == controller.npad_type) {
+    case Core::HID::ControllerTriggerType::Battery: {
+        if (!controller.is_connected) {
             return;
         }
-        // UpdateControllerAt(npad_type, controller_idx, is_connected);
+        auto& shared_memory = controller.shared_memory_entry;
+        const auto& battery_level = controller.device->GetBattery();
+        shared_memory.battery_level_dual = battery_level.dual.battery_level;
+        shared_memory.battery_level_left = battery_level.left.battery_level;
+        shared_memory.battery_level_right = battery_level.right.battery_level;
         break;
     }
     default:
@@ -153,7 +157,7 @@ void Controller_NPad::ControllerUpdate(Core::HID::ControllerTriggerType type,
 
 void Controller_NPad::InitNewlyAddedController(std::size_t controller_idx) {
     auto& controller = controller_data[controller_idx];
-    LOG_ERROR(Service_HID, "Connect {} {}", controller_idx, controller.is_connected);
+    LOG_WARNING(Service_HID, "Connect {} {}", controller_idx, controller.is_connected);
     const auto controller_type = controller.device->GetNpadType();
     auto& shared_memory = controller.shared_memory_entry;
     if (controller_type == Core::HID::NpadType::None) {
@@ -277,18 +281,27 @@ void Controller_NPad::OnInit() {
     std::memcpy(supported_npad_id_types.data(), npad_id_list.data(),
                 npad_id_list.size() * sizeof(u32));
 
-    for (std::size_t i = 0; i < controller_data.size(); ++i) {
-        auto& controller = controller_data[i].device;
-        if (controller->IsConnected()) {
-            AddNewControllerAt(controller->GetNpadType(), i);
-        }
-    }
-
     // Prefill controller buffers
     for (auto& controller : controller_data) {
         auto& npad = controller.shared_memory_entry;
+        npad.fullkey_color = {
+            .attribute = ColorAttribute::NoController,
+        };
+        npad.joycon_color = {
+            .attribute = ColorAttribute::NoController,
+        };
+        // HW seems to initialize the first 19 entries
         for (std::size_t i = 0; i < 19; ++i) {
             WriteEmptyEntry(npad);
+        }
+    }
+
+    // Connect controllers
+    for (auto& controller : controller_data) {
+        const auto& device = controller.device;
+        if (device->IsConnected()) {
+            const std::size_t index = Core::HID::NpadIdTypeToIndex(device->GetNpadIdType());
+            AddNewControllerAt(device->GetNpadType(), index);
         }
     }
 }
@@ -618,8 +631,14 @@ void Controller_NPad::OnMotionUpdate(const Core::Timing::CoreTiming& core_timing
         sixaxis_right_lifo_state.sampling_number =
             npad.sixaxis_right_lifo.ReadCurrentEntry().state.sampling_number + 1;
 
-        npad.sixaxis_fullkey_lifo.WriteNextEntry(sixaxis_fullkey_state);
-        npad.sixaxis_handheld_lifo.WriteNextEntry(sixaxis_handheld_state);
+        if (Core::HID::IndexToNpadIdType(i) == Core::HID::NpadIdType::Handheld) {
+            // This buffer only is updated on handheld on HW
+            npad.sixaxis_handheld_lifo.WriteNextEntry(sixaxis_handheld_state);
+        } else {
+            // Hanheld doesn't update this buffer on HW
+            npad.sixaxis_fullkey_lifo.WriteNextEntry(sixaxis_fullkey_state);
+        }
+
         npad.sixaxis_dual_left_lifo.WriteNextEntry(sixaxis_dual_left_state);
         npad.sixaxis_dual_right_lifo.WriteNextEntry(sixaxis_dual_right_state);
         npad.sixaxis_left_lifo.WriteNextEntry(sixaxis_left_lifo_state);
@@ -864,7 +883,6 @@ void Controller_NPad::UpdateControllerAt(Core::HID::NpadType type, std::size_t n
     }
 
     controller.device->SetNpadType(type);
-    controller.device->Connect();
     InitNewlyAddedController(npad_index);
 }
 
@@ -874,7 +892,7 @@ void Controller_NPad::DisconnectNpad(u32 npad_id) {
 
 void Controller_NPad::DisconnectNpadAtIndex(std::size_t npad_index) {
     auto& controller = controller_data[npad_index];
-    LOG_ERROR(Service_HID, "Disconnect {} {}", npad_index, controller.is_connected);
+    LOG_WARNING(Service_HID, "Disconnect {} {}", npad_index, controller.is_connected);
     for (std::size_t device_idx = 0; device_idx < controller.vibration.size(); ++device_idx) {
         // Send an empty vibration to stop any vibrations.
         VibrateControllerAtIndex(npad_index, device_idx, {});
@@ -889,8 +907,12 @@ void Controller_NPad::DisconnectNpadAtIndex(std::size_t npad_index) {
     shared_memory_entry.battery_level_dual = 0;
     shared_memory_entry.battery_level_left = 0;
     shared_memory_entry.battery_level_right = 0;
-    shared_memory_entry.fullkey_color = {};
-    shared_memory_entry.joycon_color = {};
+    shared_memory_entry.fullkey_color = {
+        .attribute = ColorAttribute::NoController,
+    };
+    shared_memory_entry.joycon_color = {
+        .attribute = ColorAttribute::NoController,
+    };
     shared_memory_entry.assignment_mode = NpadJoyAssignmentMode::Dual;
     shared_memory_entry.footer_type = AppletFooterUiType::None;
 
