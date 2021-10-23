@@ -187,6 +187,7 @@ void RasterizerOpenGL::Clear() {
     std::scoped_lock lock{texture_cache.mutex};
     texture_cache.UpdateRenderTargets(true);
     state_tracker.BindFramebuffer(texture_cache.GetFramebuffer()->Handle());
+    SyncViewport();
     if (regs.clear_flags.scissor) {
         SyncScissorTest();
     } else {
@@ -571,6 +572,15 @@ void RasterizerOpenGL::SyncViewport() {
     }
     const bool is_rescaling{texture_cache.IsRescaling()};
     const float scale = is_rescaling ? Settings::values.resolution_info.up_factor : 1.0f;
+    const auto conv = [scale](float value) -> GLfloat {
+        float new_value = value * scale;
+        if (scale < 1.0f) {
+            const bool sign = std::signbit(value);
+            new_value = std::round(std::abs(new_value));
+            new_value = sign ? -new_value : new_value;
+        }
+        return static_cast<GLfloat>(new_value);
+    };
 
     if (dirty_viewport) {
         flags[Dirty::Viewports] = false;
@@ -586,10 +596,11 @@ void RasterizerOpenGL::SyncViewport() {
             flags[Dirty::Viewport0 + index] = false;
 
             const auto& src = regs.viewport_transform[index];
-            GLfloat x = (src.translate_x - src.scale_x) * scale;
-            GLfloat y = (src.translate_y - src.scale_y) * scale;
-            GLfloat width = src.scale_x * 2.0f * scale;
-            GLfloat height = src.scale_y * 2.0f * scale;
+            GLfloat x = conv(src.translate_x - src.scale_x);
+            GLfloat y = conv(src.translate_y - src.scale_y);
+            GLfloat width = conv(src.scale_x * 2.0f);
+            GLfloat height = conv(src.scale_y * 2.0f);
+
             if (height < 0) {
                 y += height;
                 height = -height;
@@ -925,8 +936,19 @@ void RasterizerOpenGL::SyncScissorTest() {
 
     const auto& resolution = Settings::values.resolution_info;
     const bool is_rescaling{texture_cache.IsRescaling()};
-    const auto scale_up = [resolution, is_rescaling](u32 value) {
-        return is_rescaling ? resolution.ScaleUp(value) : value;
+    const u32 up_scale = is_rescaling ? resolution.up_scale : 1U;
+    const u32 down_shift = is_rescaling ? resolution.down_shift : 0U;
+    const auto scale_up = [up_scale, down_shift](u32 value) -> u32 {
+        if (value == 0) {
+            return 0U;
+        }
+        const u32 upset = value * up_scale;
+        u32 acumm{};
+        if ((up_scale >> down_shift) == 0) {
+            acumm = upset % 2;
+        }
+        const u32 converted_value = upset >> down_shift;
+        return std::max<u32>(converted_value + acumm, 1U);
     };
     for (std::size_t index = 0; index < Maxwell::NumViewports; ++index) {
         if (!force && !flags[Dirty::Scissor0 + index]) {
