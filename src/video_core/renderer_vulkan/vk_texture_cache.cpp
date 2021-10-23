@@ -1221,9 +1221,12 @@ bool Image::BlitScaleHelper(bool scale_up) {
     const auto& resolution = runtime->resolution;
     const u32 scaled_width = resolution.ScaleUp(info.size.width);
     const u32 scaled_height = is_2d ? resolution.ScaleUp(info.size.height) : info.size.height;
-    if (!scale_view) {
+    std::unique_ptr<ImageView>& blit_view = scale_up ? scale_view : normal_view;
+    std::unique_ptr<Framebuffer>& blit_framebuffer =
+        scale_up ? scale_framebuffer : normal_framebuffer;
+    if (!blit_view) {
         const auto view_info = ImageViewInfo(ImageViewType::e2D, info.format);
-        scale_view = std::make_unique<ImageView>(*runtime, view_info, NULL_IMAGE_ID, *this);
+        blit_view = std::make_unique<ImageView>(*runtime, view_info, NULL_IMAGE_ID, *this);
     }
 
     const u32 src_width = scale_up ? info.size.width : scaled_width;
@@ -1239,27 +1242,27 @@ bool Image::BlitScaleHelper(bool scale_up) {
         .end = {static_cast<s32>(dst_width), static_cast<s32>(dst_height)},
     };
     const VkExtent2D extent{
-        .width = scaled_width,
-        .height = scaled_height,
+        .width = std::max(scaled_width, info.size.width),
+        .height = std::max(scaled_height, info.size.width),
     };
 
-    auto* view_ptr = scale_view.get();
+    auto* view_ptr = blit_view.get();
     if (aspect_mask == VK_IMAGE_ASPECT_COLOR_BIT) {
-        if (!scale_framebuffer) {
-            scale_framebuffer = std::make_unique<Framebuffer>(*runtime, view_ptr, nullptr, extent);
+        if (!blit_framebuffer) {
+            blit_framebuffer = std::make_unique<Framebuffer>(*runtime, view_ptr, nullptr, extent);
         }
-        const auto color_view = scale_view->Handle(Shader::TextureType::Color2D);
+        const auto color_view = blit_view->Handle(Shader::TextureType::Color2D);
 
-        runtime->blit_image_helper.BlitColor(scale_framebuffer.get(), color_view, dst_region,
+        runtime->blit_image_helper.BlitColor(blit_framebuffer.get(), color_view, dst_region,
                                              src_region, operation, BLIT_OPERATION);
     } else if (!runtime->device.IsBlitDepthStencilSupported() &&
                aspect_mask == (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) {
-        if (!scale_framebuffer) {
-            scale_framebuffer = std::make_unique<Framebuffer>(*runtime, nullptr, view_ptr, extent);
+        if (!blit_framebuffer) {
+            blit_framebuffer = std::make_unique<Framebuffer>(*runtime, nullptr, view_ptr, extent);
         }
-        runtime->blit_image_helper.BlitDepthStencil(
-            scale_framebuffer.get(), scale_view->DepthView(), scale_view->StencilView(), dst_region,
-            src_region, operation, BLIT_OPERATION);
+        runtime->blit_image_helper.BlitDepthStencil(blit_framebuffer.get(), blit_view->DepthView(),
+                                                    blit_view->StencilView(), dst_region,
+                                                    src_region, operation, BLIT_OPERATION);
     } else {
         // TODO: Use helper blits where applicable
         flags &= ~ImageFlagBits::Rescaled;
