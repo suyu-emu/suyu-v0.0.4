@@ -38,7 +38,7 @@ private:
     // This is nn::hid::DebugPadAttribute
     struct DebugPadAttribute {
         union {
-            u32_le raw{};
+            u32 raw{};
             BitField<0, 1, u32> connected;
         };
     };
@@ -46,7 +46,7 @@ private:
 
     // This is nn::hid::DebugPadState
     struct DebugPadState {
-        s64_le sampling_number;
+        s64 sampling_number;
         DebugPadAttribute attribute;
         Core::HID::DebugPadButton pad_state;
         Core::HID::AnalogStickState r_stick;

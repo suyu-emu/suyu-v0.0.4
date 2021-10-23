@@ -6,7 +6,7 @@
 #include "core/hid/input_converter.h"
 
 namespace Core::HID {
-EmulatedConsole::EmulatedConsole() {}
+EmulatedConsole::EmulatedConsole() = default;
 
 EmulatedConsole::~EmulatedConsole() = default;
 
@@ -191,7 +191,7 @@ TouchFingerState EmulatedConsole::GetTouch() const {
 }
 
 void EmulatedConsole::TriggerOnChange(ConsoleTriggerType type) {
-    for (const std::pair<int, ConsoleUpdateCallback> poller_pair : callback_list) {
+    for (const auto& poller_pair : callback_list) {
         const ConsoleUpdateCallback& poller = poller_pair.second;
         if (poller.on_change) {
             poller.on_change(type);

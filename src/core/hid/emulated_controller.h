@@ -20,7 +20,7 @@
 namespace Core::HID {
 
 struct ControllerMotionInfo {
-    Input::MotionStatus raw_status;
+    Input::MotionStatus raw_status{};
     MotionInput emulated{};
 };
 
@@ -51,28 +51,28 @@ using BatteryValues = std::array<Input::BatteryStatus, 3>;
 using VibrationValues = std::array<Input::VibrationStatus, 2>;
 
 struct AnalogSticks {
-    AnalogStickState left;
-    AnalogStickState right;
+    AnalogStickState left{};
+    AnalogStickState right{};
 };
 
 struct ControllerColors {
-    NpadControllerColor fullkey;
-    NpadControllerColor left;
-    NpadControllerColor right;
+    NpadControllerColor fullkey{};
+    NpadControllerColor left{};
+    NpadControllerColor right{};
 };
 
 struct BatteryLevelState {
-    NpadPowerInfo dual;
-    NpadPowerInfo left;
-    NpadPowerInfo right;
+    NpadPowerInfo dual{};
+    NpadPowerInfo left{};
+    NpadPowerInfo right{};
 };
 
 struct ControllerMotion {
-    bool is_at_rest;
     Common::Vec3f accel{};
     Common::Vec3f gyro{};
     Common::Vec3f rotation{};
     std::array<Common::Vec3f, 3> orientation{};
+    bool is_at_rest{};
 };
 
 using MotionState = std::array<ControllerMotion, 2>;
@@ -113,7 +113,7 @@ enum class ControllerTriggerType {
 
 struct ControllerUpdateCallback {
     std::function<void(ControllerTriggerType)> on_change;
-    bool is_service;
+    bool is_npad_service;
 };
 
 class EmulatedController {

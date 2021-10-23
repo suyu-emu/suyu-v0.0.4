@@ -142,8 +142,8 @@ Input::StickStatus TransformToStick(const Input::CallbackStatus& callback) {
     }
 
     SanitizeStick(status.x, status.y, true);
-    const Input::AnalogProperties& properties_x = status.x.properties;
-    const Input::AnalogProperties& properties_y = status.y.properties;
+    const auto& properties_x = status.x.properties;
+    const auto& properties_y = status.y.properties;
     const float x = status.x.value;
     const float y = status.y.value;
 
@@ -213,7 +213,7 @@ Input::TriggerStatus TransformToTrigger(const Input::CallbackStatus& callback) {
     }
 
     SanitizeAnalog(status.analog, true);
-    const Input::AnalogProperties& properties = status.analog.properties;
+    const auto& properties = status.analog.properties;
     float& value = status.analog.value;
 
     // Set button status
@@ -231,7 +231,7 @@ Input::TriggerStatus TransformToTrigger(const Input::CallbackStatus& callback) {
 }
 
 void SanitizeAnalog(Input::AnalogStatus& analog, bool clamp_value) {
-    const Input::AnalogProperties& properties = analog.properties;
+    const auto& properties = analog.properties;
     float& raw_value = analog.raw_value;
     float& value = analog.value;
 
@@ -271,8 +271,8 @@ void SanitizeAnalog(Input::AnalogStatus& analog, bool clamp_value) {
 }
 
 void SanitizeStick(Input::AnalogStatus& analog_x, Input::AnalogStatus& analog_y, bool clamp_value) {
-    const Input::AnalogProperties& properties_x = analog_x.properties;
-    const Input::AnalogProperties& properties_y = analog_y.properties;
+    const auto& properties_x = analog_x.properties;
+    const auto& properties_y = analog_y.properties;
     float& raw_x = analog_x.raw_value;
     float& raw_y = analog_y.raw_value;
     float& x = analog_x.value;

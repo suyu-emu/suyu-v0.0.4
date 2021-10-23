@@ -35,8 +35,8 @@ public:
 private:
     struct SevenSixAxisState {
         INSERT_PADDING_WORDS(4); // unused
-        s64_le sampling_number{};
-        s64_le sampling_number2{};
+        s64 sampling_number{};
+        s64 sampling_number2{};
         u64 unknown{};
         Common::Vec3f accel{};
         Common::Vec3f gyro{};
@@ -45,10 +45,10 @@ private:
     static_assert(sizeof(SevenSixAxisState) == 0x50, "SevenSixAxisState is an invalid size");
 
     struct CommonHeader {
-        s64_le timestamp;
-        s64_le total_entry_count;
-        s64_le last_entry_index;
-        s64_le entry_count;
+        s64 timestamp;
+        s64 total_entry_count;
+        s64 last_entry_index;
+        s64 entry_count;
     };
     static_assert(sizeof(CommonHeader) == 0x20, "CommonHeader is an invalid size");
 
@@ -61,7 +61,7 @@ private:
 
     // This is nn::hid::detail::ConsoleSixAxisSensorSharedMemoryFormat
     struct ConsoleSharedMemory {
-        u64_le sampling_number{};
+        u64 sampling_number{};
         bool is_seven_six_axis_sensor_at_rest{};
         f32 verticalization_error{};
         Common::Vec3f gyro_bias{};

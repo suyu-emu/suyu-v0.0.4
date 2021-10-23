@@ -28,7 +28,7 @@ void PlayerControlPreview::SetController(Core::HID::EmulatedController* controll
     controller = controller_;
     Core::HID::ControllerUpdateCallback engine_callback{
         .on_change = [this](Core::HID::ControllerTriggerType type) { ControllerUpdate(type); },
-        .is_service = false,
+        .is_npad_service = false,
     };
     callback_key = controller->SetCallback(engine_callback);
     ControllerUpdate(Core::HID::ControllerTriggerType::All);

@@ -865,10 +865,10 @@ BatteryLevelState EmulatedController::GetBattery() const {
     return controller.battery_state;
 }
 
-void EmulatedController::TriggerOnChange(ControllerTriggerType type, bool is_service_update) {
-    for (const std::pair<int, ControllerUpdateCallback> poller_pair : callback_list) {
+void EmulatedController::TriggerOnChange(ControllerTriggerType type, bool is_npad_service_update) {
+    for (const auto& poller_pair : callback_list) {
         const ControllerUpdateCallback& poller = poller_pair.second;
-        if (!is_service_update && poller.is_service) {
+        if (!is_npad_service_update && poller.is_npad_service) {
             continue;
         }
         if (poller.on_change) {

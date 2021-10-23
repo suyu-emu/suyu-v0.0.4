@@ -26,10 +26,10 @@ public:
 
 private:
     struct CommonHeader {
-        s64_le timestamp;
-        s64_le total_entry_count;
-        s64_le last_entry_index;
-        s64_le entry_count;
+        s64 timestamp;
+        s64 total_entry_count;
+        s64 last_entry_index;
+        s64 entry_count;
     };
     static_assert(sizeof(CommonHeader) == 0x20, "CommonHeader is an invalid size");
 

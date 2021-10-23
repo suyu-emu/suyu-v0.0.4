@@ -289,7 +289,7 @@ public:
     /// Provides a constant reference to the kernel instance.
     [[nodiscard]] const Kernel::KernelCore& Kernel() const;
 
-    /// Gets a mutable reference to the HID interface
+    /// Gets a mutable reference to the HID interface.
     [[nodiscard]] HID::HIDCore& HIDCore();
 
     /// Gets an immutable reference to the HID interface.

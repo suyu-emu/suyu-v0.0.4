@@ -12,16 +12,16 @@ constexpr std::size_t max_entry_size = 17;
 
 template <typename State>
 struct AtomicStorage {
-    s64_le sampling_number;
+    s64 sampling_number;
     State state;
 };
 
 template <typename State>
 struct Lifo {
-    s64_le timestamp{};
-    s64_le total_entry_count = max_entry_size;
-    s64_le last_entry_index{};
-    s64_le entry_count{};
+    s64 timestamp{};
+    s64 total_entry_count = max_entry_size;
+    s64 last_entry_index{};
+    s64 entry_count{};
     std::array<AtomicStorage<State>, max_entry_size> entries{};
 
     const AtomicStorage<State>& ReadCurrentEntry() const {

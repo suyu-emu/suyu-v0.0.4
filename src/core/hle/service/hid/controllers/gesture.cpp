@@ -65,10 +65,7 @@ void Controller_Gesture::OnUpdate(const Core::Timing::CoreTiming& core_timing, u
 void Controller_Gesture::ReadTouchInput() {
     const auto touch_status = console->GetTouch();
     for (std::size_t id = 0; id < fingers.size(); ++id) {
-        const Core::HID::TouchFinger& status = touch_status[id];
-        Finger& finger = fingers[id];
-        finger.pos = status.position;
-        finger.pressed = status.pressed;
+        fingers[id] = touch_status[id];
     }
 }
 
@@ -315,14 +312,14 @@ const Controller_Gesture::GestureState& Controller_Gesture::GetLastGestureEntry(
 
 Controller_Gesture::GestureProperties Controller_Gesture::GetGestureProperties() {
     GestureProperties gesture;
-    std::array<Finger, MAX_POINTS> active_fingers;
+    std::array<Core::HID::TouchFinger, MAX_POINTS> active_fingers;
     const auto end_iter = std::copy_if(fingers.begin(), fingers.end(), active_fingers.begin(),
                                        [](const auto& finger) { return finger.pressed; });
     gesture.active_points =
         static_cast<std::size_t>(std::distance(active_fingers.begin(), end_iter));
 
     for (size_t id = 0; id < gesture.active_points; ++id) {
-        const auto& [active_x, active_y] = active_fingers[id].pos;
+        const auto& [active_x, active_y] = active_fingers[id].position;
         gesture.points[id] = {
             .x = static_cast<s32>(active_x * Layout::ScreenUndocked::Width),
             .y = static_cast<s32>(active_y * Layout::ScreenUndocked::Height),

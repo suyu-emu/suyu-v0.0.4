@@ -106,7 +106,7 @@ Controller_NPad::Controller_NPad(Core::System& system_,
         Core::HID::ControllerUpdateCallback engine_callback{
             .on_change = [this,
                           i](Core::HID::ControllerTriggerType type) { ControllerUpdate(type, i); },
-            .is_service = true,
+            .is_npad_service = true,
         };
         controller.callback_key = controller.device->SetCallback(engine_callback);
     }
@@ -157,7 +157,6 @@ void Controller_NPad::ControllerUpdate(Core::HID::ControllerTriggerType type,
 
 void Controller_NPad::InitNewlyAddedController(std::size_t controller_idx) {
     auto& controller = controller_data[controller_idx];
-    LOG_WARNING(Service_HID, "Connect {} {}", controller_idx, controller.is_connected);
     const auto controller_type = controller.device->GetNpadType();
     auto& shared_memory = controller.shared_memory_entry;
     if (controller_type == Core::HID::NpadType::None) {
@@ -892,7 +891,6 @@ void Controller_NPad::DisconnectNpad(u32 npad_id) {
 
 void Controller_NPad::DisconnectNpadAtIndex(std::size_t npad_index) {
     auto& controller = controller_data[npad_index];
-    LOG_WARNING(Service_HID, "Disconnect {} {}", npad_index, controller.is_connected);
     for (std::size_t device_idx = 0; device_idx < controller.vibration.size(); ++device_idx) {
         // Send an empty vibration to stop any vibrations.
         VibrateControllerAtIndex(npad_index, device_idx, {});

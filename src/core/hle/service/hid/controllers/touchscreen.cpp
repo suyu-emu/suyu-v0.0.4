@@ -66,7 +66,7 @@ void Controller_Touchscreen::OnUpdate(const Core::Timing::CoreTiming& core_timin
         }
     }
 
-    std::array<Finger, MAX_FINGERS> active_fingers;
+    std::array<Core::HID::TouchFinger, MAX_FINGERS> active_fingers;
     const auto end_iter = std::copy_if(fingers.begin(), fingers.end(), active_fingers.begin(),
                                        [](const auto& finger) { return finger.pressed; });
     const auto active_fingers_count =
@@ -76,7 +76,7 @@ void Controller_Touchscreen::OnUpdate(const Core::Timing::CoreTiming& core_timin
     const auto& last_entry = touch_screen_lifo.ReadCurrentEntry().state;
 
     next_state.sampling_number = last_entry.sampling_number + 1;
-    next_state.entry_count = static_cast<s32_le>(active_fingers_count);
+    next_state.entry_count = static_cast<s32>(active_fingers_count);
 
     for (std::size_t id = 0; id < MAX_FINGERS; ++id) {
         auto& touch_entry = next_state.states[id];

@@ -195,7 +195,7 @@ public:
 
 private:
     // This is nn::hid::detail::ColorAttribute
-    enum class ColorAttribute : u32_le {
+    enum class ColorAttribute : u32 {
         Ok = 0,
         ReadError = 1,
         NoController = 2,
@@ -220,7 +220,7 @@ private:
     // This is nn::hid::NpadAttribute
     struct NpadAttribute {
         union {
-            u32_le raw{};
+            u32 raw{};
             BitField<0, 1, u32> is_connected;
             BitField<1, 1, u32> is_wired;
             BitField<2, 1, u32> is_left_connected;
@@ -251,7 +251,7 @@ private:
     // This is nn::hid::SixAxisSensorAttribute
     struct SixAxisSensorAttribute {
         union {
-            u32_le raw{};
+            u32 raw{};
             BitField<0, 1, u32> is_connected;
             BitField<1, 1, u32> is_interpolated;
         };
@@ -260,8 +260,8 @@ private:
 
     // This is nn::hid::SixAxisSensorState
     struct SixAxisSensorState {
-        s64_le delta_time{};
-        s64_le sampling_number{};
+        s64 delta_time{};
+        s64 sampling_number{};
         Common::Vec3f accel{};
         Common::Vec3f gyro{};
         Common::Vec3f rotation{};
@@ -273,16 +273,16 @@ private:
 
     // This is nn::hid::server::NpadGcTriggerState
     struct NpadGcTriggerState {
-        s64_le sampling_number{};
-        s32_le l_analog{};
-        s32_le r_analog{};
+        s64 sampling_number{};
+        s32 l_analog{};
+        s32 r_analog{};
     };
     static_assert(sizeof(NpadGcTriggerState) == 0x10, "NpadGcTriggerState is an invalid size");
 
     // This is nn::hid::NpadSystemProperties
     struct NPadSystemProperties {
         union {
-            s64_le raw{};
+            s64 raw{};
             BitField<0, 1, s64> is_charging_joy_dual;
             BitField<1, 1, s64> is_charging_joy_left;
             BitField<2, 1, s64> is_charging_joy_right;
@@ -303,7 +303,7 @@ private:
     // This is nn::hid::NpadSystemButtonProperties
     struct NpadSystemButtonProperties {
         union {
-            s32_le raw{};
+            s32 raw{};
             BitField<0, 1, s32> is_home_button_protection_enabled;
         };
     };
@@ -313,7 +313,7 @@ private:
     // This is nn::hid::system::DeviceType
     struct DeviceType {
         union {
-            u32_le raw{};
+            u32 raw{};
             BitField<0, 1, s32> fullkey;
             BitField<1, 1, s32> debug_pad;
             BitField<2, 1, s32> handheld_left;

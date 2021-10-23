@@ -50,27 +50,19 @@ private:
 
     // This is nn::hid::TouchScreenState
     struct TouchScreenState {
-        s64_le sampling_number;
-        s32_le entry_count;
+        s64 sampling_number;
+        s32 entry_count;
         INSERT_PADDING_BYTES(4); // Reserved
         std::array<Core::HID::TouchState, MAX_FINGERS> states;
     };
     static_assert(sizeof(TouchScreenState) == 0x290, "TouchScreenState is an invalid size");
-
-    struct Finger {
-        u64_le last_touch{};
-        Common::Point<float> position;
-        u32_le id{};
-        bool pressed{};
-        Core::HID::TouchAttribute attribute;
-    };
 
     // This is nn::hid::detail::TouchScreenLifo
     Lifo<TouchScreenState> touch_screen_lifo{};
     static_assert(sizeof(touch_screen_lifo) == 0x2C38, "touch_screen_lifo is an invalid size");
     TouchScreenState next_state{};
 
-    std::array<Finger, MAX_FINGERS> fingers;
+    std::array<Core::HID::TouchFinger, MAX_FINGERS> fingers;
     Core::HID::EmulatedConsole* console;
 };
 } // namespace Service::HID

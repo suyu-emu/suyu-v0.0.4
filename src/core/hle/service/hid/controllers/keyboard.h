@@ -37,7 +37,7 @@ public:
 private:
     // This is nn::hid::detail::KeyboardState
     struct KeyboardState {
-        s64_le sampling_number;
+        s64 sampling_number;
         Core::HID::KeyboardModifier modifier;
         Core::HID::KeyboardKey key;
     };

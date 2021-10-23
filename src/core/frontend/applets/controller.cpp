@@ -13,8 +13,7 @@ namespace Core::Frontend {
 
 ControllerApplet::~ControllerApplet() = default;
 
-DefaultControllerApplet::DefaultControllerApplet(HID::HIDCore& hid_core_)
-    : hid_core{hid_core_} {}
+DefaultControllerApplet::DefaultControllerApplet(HID::HIDCore& hid_core_) : hid_core{hid_core_} {}
 
 DefaultControllerApplet::~DefaultControllerApplet() = default;
 
@@ -26,7 +25,7 @@ void DefaultControllerApplet::ReconfigureControllers(std::function<void()> callb
         parameters.enable_single_mode ? 1 : parameters.min_players;
 
     // Disconnect Handheld first.
-    auto* handheld =hid_core.GetEmulatedController(Core::HID::NpadIdType::Handheld);
+    auto* handheld = hid_core.GetEmulatedController(Core::HID::NpadIdType::Handheld);
     handheld->Disconnect();
 
     // Deduce the best configuration based on the input parameters.

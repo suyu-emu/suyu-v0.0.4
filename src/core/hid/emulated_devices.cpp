@@ -9,7 +9,7 @@
 
 namespace Core::HID {
 
-EmulatedDevices::EmulatedDevices() {}
+EmulatedDevices::EmulatedDevices() = default;
 
 EmulatedDevices::~EmulatedDevices() = default;
 
@@ -332,7 +332,7 @@ MousePosition EmulatedDevices::GetMousePosition() const {
 }
 
 void EmulatedDevices::TriggerOnChange(DeviceTriggerType type) {
-    for (const std::pair<int, InterfaceUpdateCallback> poller_pair : callback_list) {
+    for (const auto& poller_pair : callback_list) {
         const InterfaceUpdateCallback& poller = poller_pair.second;
         if (poller.on_change) {
             poller.on_change(type);

@@ -20,7 +20,7 @@
 namespace Core::HID {
 
 struct ConsoleMotionInfo {
-    Input::MotionStatus raw_status;
+    Input::MotionStatus raw_status{};
     MotionInput emulated{};
 };
 
@@ -34,21 +34,21 @@ using ConsoleMotionValues = ConsoleMotionInfo;
 using TouchValues = std::array<Input::TouchStatus, 16>;
 
 struct TouchFinger {
-    u64_le last_touch{};
+    u64 last_touch{};
     Common::Point<float> position{};
-    u32_le id{};
-    bool pressed{};
+    u32 id{};
     TouchAttribute attribute{};
+    bool pressed{};
 };
 
 // Contains all motion related data that is used on the services
 struct ConsoleMotion {
-    bool is_at_rest{};
     Common::Vec3f accel{};
     Common::Vec3f gyro{};
     Common::Vec3f rotation{};
     std::array<Common::Vec3f, 3> orientation{};
     Common::Quaternion<f32> quaternion{};
+    bool is_at_rest{};
 };
 
 using TouchFingerState = std::array<TouchFinger, 16>;

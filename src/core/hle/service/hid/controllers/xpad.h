@@ -31,7 +31,7 @@ private:
     // This is nn::hid::BasicXpadAttributeSet
     struct BasicXpadAttributeSet {
         union {
-            u32_le raw{};
+            u32 raw{};
             BitField<0, 1, u32> is_connected;
             BitField<1, 1, u32> is_wired;
             BitField<2, 1, u32> is_left_connected;
@@ -45,7 +45,7 @@ private:
     // This is nn::hid::BasicXpadButtonSet
     struct BasicXpadButtonSet {
         union {
-            u32_le raw{};
+            u32 raw{};
             // Button states
             BitField<0, 1, u32> a;
             BitField<1, 1, u32> b;
@@ -93,7 +93,7 @@ private:
 
     // This is nn::hid::detail::BasicXpadState
     struct BasicXpadState {
-        s64_le sampling_number;
+        s64 sampling_number;
         BasicXpadAttributeSet attributes;
         BasicXpadButtonSet pad_states;
         Core::HID::AnalogStickState l_stick;

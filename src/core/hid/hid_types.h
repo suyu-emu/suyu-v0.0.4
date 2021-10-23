@@ -100,7 +100,7 @@ enum class NpadType : u8 {
 // This is nn::hid::NpadStyleTag
 struct NpadStyleTag {
     union {
-        u32_le raw{};
+        u32 raw{};
 
         BitField<0, 1, u32> fullkey;
         BitField<1, 1, u32> handheld;
@@ -132,35 +132,35 @@ static_assert(sizeof(TouchAttribute) == 0x4, "TouchAttribute is an invalid size"
 
 // This is nn::hid::TouchState
 struct TouchState {
-    u64_le delta_time;
+    u64 delta_time;
     TouchAttribute attribute;
-    u32_le finger;
-    Common::Point<u32_le> position;
-    u32_le diameter_x;
-    u32_le diameter_y;
-    u32_le rotation_angle;
+    u32 finger;
+    Common::Point<u32> position;
+    u32 diameter_x;
+    u32 diameter_y;
+    u32 rotation_angle;
 };
 static_assert(sizeof(TouchState) == 0x28, "Touchstate is an invalid size");
 
 // This is nn::hid::NpadControllerColor
 struct NpadControllerColor {
-    u32_le body;
-    u32_le button;
+    u32 body;
+    u32 button;
 };
 static_assert(sizeof(NpadControllerColor) == 8, "NpadControllerColor is an invalid size");
 
 // This is nn::hid::AnalogStickState
 struct AnalogStickState {
-    s32_le x;
-    s32_le y;
+    s32 x;
+    s32 y;
 };
 static_assert(sizeof(AnalogStickState) == 8, "AnalogStickState is an invalid size");
 
 // This is nn::hid::server::NpadGcTriggerState
 struct NpadGcTriggerState {
-    s64_le sampling_number{};
-    s32_le left{};
-    s32_le right{};
+    s64 sampling_number{};
+    s32 left{};
+    s32 right{};
 };
 static_assert(sizeof(NpadGcTriggerState) == 0x10, "NpadGcTriggerState is an invalid size");
 
@@ -286,7 +286,7 @@ static_assert(sizeof(NpadButtonState) == 0x8, "NpadButtonState has incorrect siz
 // This is nn::hid::DebugPadButton
 struct DebugPadButton {
     union {
-        u32_le raw{};
+        u32 raw{};
         BitField<0, 1, u32> a;
         BitField<1, 1, u32> b;
         BitField<2, 1, u32> x;
@@ -345,7 +345,7 @@ static_assert(sizeof(VibrationDeviceInfo) == 0x8, "VibrationDeviceInfo has incor
 // This is nn::hid::KeyboardModifier
 struct KeyboardModifier {
     union {
-        u32_le raw{};
+        u32 raw{};
         BitField<0, 1, u32> control;
         BitField<1, 1, u32> shift;
         BitField<2, 1, u32> left_alt;
@@ -383,7 +383,7 @@ static_assert(sizeof(MouseButton) == 0x4, "MouseButton is an invalid size");
 // This is nn::hid::MouseAttribute
 struct MouseAttribute {
     union {
-        u32_le raw{};
+        u32 raw{};
         BitField<0, 1, u32> transferable;
         BitField<1, 1, u32> is_connected;
     };
@@ -392,13 +392,13 @@ static_assert(sizeof(MouseAttribute) == 0x4, "MouseAttribute is an invalid size"
 
 // This is nn::hid::detail::MouseState
 struct MouseState {
-    s64_le sampling_number;
-    s32_le x;
-    s32_le y;
-    s32_le delta_x;
-    s32_le delta_y;
-    s32_le delta_wheel_x;
-    s32_le delta_wheel_y;
+    s64 sampling_number;
+    s32 x;
+    s32 y;
+    s32 delta_x;
+    s32 delta_y;
+    s32 delta_wheel_x;
+    s32 delta_wheel_y;
     MouseButton button;
     MouseAttribute attribute;
 };

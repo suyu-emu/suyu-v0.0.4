@@ -60,7 +60,7 @@ private:
     // This is nn::hid::GestureAttribute
     struct GestureAttribute {
         union {
-            u32_le raw{};
+            u32 raw{};
 
             BitField<4, 1, u32> is_new_touch;
             BitField<8, 1, u32> is_double_tap;
@@ -70,33 +70,28 @@ private:
 
     // This is nn::hid::GestureState
     struct GestureState {
-        s64_le sampling_number;
-        s64_le detection_count;
+        s64 sampling_number;
+        s64 detection_count;
         GestureType type;
         GestureDirection direction;
-        Common::Point<s32_le> pos;
-        Common::Point<s32_le> delta;
+        Common::Point<s32> pos;
+        Common::Point<s32> delta;
         f32 vel_x;
         f32 vel_y;
         GestureAttribute attributes;
         f32 scale;
         f32 rotation_angle;
-        s32_le point_count;
-        std::array<Common::Point<s32_le>, 4> points;
+        s32 point_count;
+        std::array<Common::Point<s32>, 4> points;
     };
     static_assert(sizeof(GestureState) == 0x60, "GestureState is an invalid size");
 
-    struct Finger {
-        Common::Point<f32> pos{};
-        bool pressed{};
-    };
-
     struct GestureProperties {
-        std::array<Common::Point<s32_le>, MAX_POINTS> points{};
+        std::array<Common::Point<s32>, MAX_POINTS> points{};
         std::size_t active_points{};
-        Common::Point<s32_le> mid_point{};
-        s64_le detection_count{};
-        u64_le delta_time{};
+        Common::Point<s32> mid_point{};
+        s64 detection_count{};
+        u64 delta_time{};
         f32 average_distance{};
         f32 angle{};
     };
@@ -150,10 +145,10 @@ private:
 
     Core::HID::EmulatedConsole* console;
 
-    std::array<Finger, MAX_POINTS> fingers{};
+    std::array<Core::HID::TouchFinger, MAX_POINTS> fingers{};
     GestureProperties last_gesture{};
-    s64_le last_update_timestamp{};
-    s64_le last_tap_timestamp{};
+    s64 last_update_timestamp{};
+    s64 last_tap_timestamp{};
     f32 last_pan_time_difference{};
     bool force_update{false};
     bool enable_press_and_tap{false};
