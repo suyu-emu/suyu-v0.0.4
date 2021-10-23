@@ -878,10 +878,6 @@ bool TextureCache<P>::ScaleDown(Image& image) {
     if (!rescaled) {
         return false;
     }
-    const bool has_copy = image.HasScaled();
-    if (!has_copy) {
-        total_used_memory -= GetScaledImageSizeBytes(image);
-    }
     InvalidateScale(image);
     return true;
 }
