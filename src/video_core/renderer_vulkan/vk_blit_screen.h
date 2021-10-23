@@ -34,11 +34,10 @@ namespace Vulkan {
 struct ScreenInfo;
 
 class Device;
+class FSR;
 class RasterizerVulkan;
 class VKScheduler;
 class VKSwapchain;
-
-class FSR;
 
 struct VKScreenInfo {
     VkImageView image_view{};
@@ -123,7 +122,6 @@ private:
     vk::DescriptorPool descriptor_pool;
     vk::DescriptorSetLayout descriptor_set_layout;
     vk::PipelineLayout pipeline_layout;
-    vk::Pipeline aa_pipeline;
     vk::Pipeline nearest_neightbor_pipeline;
     vk::Pipeline bilinear_pipeline;
     vk::Pipeline bicubic_pipeline;
@@ -144,15 +142,18 @@ private:
     std::vector<vk::Image> raw_images;
     std::vector<vk::ImageView> raw_image_views;
     std::vector<MemoryCommit> raw_buffer_commits;
-    vk::Image aa_image;
-    vk::ImageView aa_image_view;
-    MemoryCommit aa_commit;
-    vk::Framebuffer aa_framebuffer;
-    vk::RenderPass aa_renderpass;
-    vk::DescriptorSets aa_descriptor_sets;
+
     vk::DescriptorPool aa_descriptor_pool;
     vk::DescriptorSetLayout aa_descriptor_set_layout;
     vk::PipelineLayout aa_pipeline_layout;
+    vk::Pipeline aa_pipeline;
+    vk::RenderPass aa_renderpass;
+    vk::Framebuffer aa_framebuffer;
+    vk::DescriptorSets aa_descriptor_sets;
+    vk::Image aa_image;
+    vk::ImageView aa_image_view;
+    MemoryCommit aa_commit;
+
     u32 raw_width = 0;
     u32 raw_height = 0;
 
