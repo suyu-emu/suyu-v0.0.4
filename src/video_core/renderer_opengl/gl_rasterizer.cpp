@@ -184,6 +184,9 @@ void RasterizerOpenGL::Clear() {
     SyncRasterizeEnable();
     SyncStencilTestState();
 
+    std::scoped_lock lock{texture_cache.mutex};
+    texture_cache.UpdateRenderTargets(true);
+    state_tracker.BindFramebuffer(texture_cache.GetFramebuffer()->Handle());
     if (regs.clear_flags.scissor) {
         SyncScissorTest();
     } else {
@@ -191,10 +194,6 @@ void RasterizerOpenGL::Clear() {
         glDisablei(GL_SCISSOR_TEST, 0);
     }
     UNIMPLEMENTED_IF(regs.clear_flags.viewport);
-
-    std::scoped_lock lock{texture_cache.mutex};
-    texture_cache.UpdateRenderTargets(true);
-    state_tracker.BindFramebuffer(texture_cache.GetFramebuffer()->Handle());
 
     if (use_color) {
         glClearBufferfv(GL_COLOR, regs.clear_buffers.RT, regs.clear_color);
@@ -925,12 +924,9 @@ void RasterizerOpenGL::SyncScissorTest() {
     const auto& regs = maxwell3d.regs;
 
     const auto& resolution = Settings::values.resolution_info;
-    const auto scale_up = [resolution](u32 value) -> u32 {
-        if (value == 0) {
-            return 0U;
-        }
-        const u32 converted_value = (value * resolution.up_scale) >> resolution.down_shift;
-        return std::max<u32>(converted_value, 1U);
+    const bool is_rescaling{texture_cache.IsRescaling()};
+    const auto scale_up = [resolution, is_rescaling](u32 value) {
+        return is_rescaling ? resolution.ScaleUp(value) : value;
     };
     for (std::size_t index = 0; index < Maxwell::NumViewports; ++index) {
         if (!force && !flags[Dirty::Scissor0 + index]) {
