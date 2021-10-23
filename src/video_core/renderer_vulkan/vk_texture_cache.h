@@ -134,6 +134,8 @@ public:
     bool ScaleDown(bool ignore = false);
 
 private:
+    bool BlitScaleHelper(bool scale_up);
+
     VKScheduler* scheduler{};
     TextureCacheRuntime* runtime{};
 
