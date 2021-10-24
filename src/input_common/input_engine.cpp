@@ -202,6 +202,8 @@ void InputEngine::TriggerOnButtonChange(const PadIdentifier& identifier, int but
     if (!configuring || !mapping_callback.on_data) {
         return;
     }
+
+    PreSetButton(identifier, button);
     if (value == GetButton(identifier, button)) {
         return;
     }

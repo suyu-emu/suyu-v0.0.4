@@ -162,15 +162,20 @@ void EmulatedDevices::SetKeyboardButton(Input::CallbackStatus callback, std::siz
         return;
     }
 
-    // TODO(german77): Do this properly
-    // switch (index) {
-    // case Settings::NativeKeyboard::A:
-    //    interface_status.keyboard_state.a.Assign(current_status.value);
-    //    break;
-    //    ....
-    // }
+    UpdateKey(index, current_status.value);
 
     TriggerOnChange(DeviceTriggerType::Keyboard);
+}
+
+void EmulatedDevices::UpdateKey(std::size_t key_index, bool status) {
+    constexpr u8 KEYS_PER_BYTE = 8;
+    auto& entry = device_status.keyboard_state.key[key_index / KEYS_PER_BYTE];
+    const u8 mask = 1 << (key_index % KEYS_PER_BYTE);
+    if (status) {
+        entry = entry | mask;
+    } else {
+        entry = entry & ~mask;
+    }
 }
 
 void EmulatedDevices::SetKeyboardModifier(Input::CallbackStatus callback, std::size_t index) {

@@ -21,8 +21,7 @@ ControllerDialog::ControllerDialog(Core::System& system, QWidget* parent)
                    Qt::WindowMaximizeButtonHint);
 
     widget = new PlayerControlPreview(this);
-    widget->SetController(system.HIDCore().GetEmulatedController(
-        Core::HID::NpadIdType::Player1));
+    widget->SetController(system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1));
     QLayout* layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(widget);

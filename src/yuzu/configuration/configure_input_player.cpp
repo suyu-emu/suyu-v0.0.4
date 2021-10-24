@@ -478,37 +478,39 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
     UpdateControllerEnabledButtons();
     UpdateControllerButtonNames();
     UpdateMotionButtons();
-    connect(ui->comboControllerType, qOverload<int>(&QComboBox::currentIndexChanged), [this, player_index](int) {
-        UpdateControllerAvailableButtons();
-        UpdateControllerEnabledButtons();
-        UpdateControllerButtonNames();
-        UpdateMotionButtons();
-        const Core::HID::NpadType type = GetControllerTypeFromIndex(ui->comboControllerType->currentIndex());
+    connect(ui->comboControllerType, qOverload<int>(&QComboBox::currentIndexChanged),
+            [this, player_index](int) {
+                UpdateControllerAvailableButtons();
+                UpdateControllerEnabledButtons();
+                UpdateControllerButtonNames();
+                UpdateMotionButtons();
+                const Core::HID::NpadType type =
+                    GetControllerTypeFromIndex(ui->comboControllerType->currentIndex());
 
-        if (player_index == 0) {
-            auto* emulated_controller_p1 =
-                system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
-            auto* emulated_controller_hanheld =
-                system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
-            bool is_connected = emulated_controller->IsConnected(true);
+                if (player_index == 0) {
+                    auto* emulated_controller_p1 =
+                        system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
+                    auto* emulated_controller_hanheld =
+                        system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
+                    bool is_connected = emulated_controller->IsConnected(true);
 
-            emulated_controller_p1->SetNpadType(type);
-            emulated_controller_hanheld->SetNpadType(type);
-            if (is_connected) {
-                if (type == Core::HID::NpadType::Handheld) {
-                    emulated_controller_p1->Disconnect();
-                    emulated_controller_hanheld->Connect();
-                    emulated_controller = emulated_controller_hanheld;
-                } else {
-                    emulated_controller_hanheld->Disconnect();
-                    emulated_controller_p1->Connect();
-                    emulated_controller = emulated_controller_p1;
+                    emulated_controller_p1->SetNpadType(type);
+                    emulated_controller_hanheld->SetNpadType(type);
+                    if (is_connected) {
+                        if (type == Core::HID::NpadType::Handheld) {
+                            emulated_controller_p1->Disconnect();
+                            emulated_controller_hanheld->Connect();
+                            emulated_controller = emulated_controller_hanheld;
+                        } else {
+                            emulated_controller_hanheld->Disconnect();
+                            emulated_controller_p1->Connect();
+                            emulated_controller = emulated_controller_p1;
+                        }
+                    }
+                    ui->controllerFrame->SetController(emulated_controller);
                 }
-            }
-            ui->controllerFrame->SetController(emulated_controller);
-        }
-        emulated_controller->SetNpadType(type);
-    });
+                emulated_controller->SetNpadType(type);
+            });
 
     connect(ui->comboDevices, qOverload<int>(&QComboBox::activated), this,
             &ConfigureInputPlayer::UpdateMappingWithDefaults);
@@ -555,7 +557,7 @@ ConfigureInputPlayer::~ConfigureInputPlayer() {
     } else {
         emulated_controller->DisableConfiguration();
     }
-};
+}
 
 void ConfigureInputPlayer::ApplyConfiguration() {
     if (player_index == 0) {
@@ -642,7 +644,7 @@ void ConfigureInputPlayer::UpdateInputDeviceCombobox() {
 
     const auto first_engine = devices[0].Get("engine", "");
     const auto first_guid = devices[0].Get("guid", "");
-    const auto first_port = devices[0].Get("port", "");
+    const auto first_port = devices[0].Get("port", 0);
 
     if (devices.size() == 1) {
         const auto devices_it =
@@ -650,7 +652,7 @@ void ConfigureInputPlayer::UpdateInputDeviceCombobox() {
                          [first_engine, first_guid, first_port](const Common::ParamPackage param) {
                              return param.Get("engine", "") == first_engine &&
                                     param.Get("guid", "") == first_guid &&
-                                    param.Get("port", "") == first_port;
+                                    param.Get("port", 0) == first_port;
                          });
         const int device_index =
             devices_it != input_devices.end()
@@ -662,7 +664,7 @@ void ConfigureInputPlayer::UpdateInputDeviceCombobox() {
 
     const auto second_engine = devices[1].Get("engine", "");
     const auto second_guid = devices[1].Get("guid", "");
-    const auto second_port = devices[1].Get("port", "");
+    const auto second_port = devices[1].Get("port", 0);
 
     const bool is_keyboard_mouse = (first_engine == "keyboard" || first_engine == "mouse") &&
                                    (second_engine == "keyboard" || second_engine == "mouse");
@@ -684,7 +686,7 @@ void ConfigureInputPlayer::UpdateInputDeviceCombobox() {
                      param.Get("guid2", "") == second_guid) ||
                     (param.Get("guid", "") == second_guid && param.Get("guid2", "") == first_guid);
                 return param.Get("engine", "") == first_engine && is_guid_valid &&
-                       param.Get("port", "") == first_port;
+                       param.Get("port", 0) == first_port;
             });
         const int device_index =
             devices_it != input_devices.end()
@@ -1096,8 +1098,8 @@ void ConfigureInputPlayer::UpdateMappingWithDefaults() {
         emulated_controller->SetMotionParam(motion_id, {});
     }
 
-    // Reset keyboard bindings
-    if (ui->comboDevices->currentIndex() == 1) {
+    // Reset keyboard or mouse bindings
+    if (ui->comboDevices->currentIndex() == 1 || ui->comboDevices->currentIndex() == 2) {
         for (int button_id = 0; button_id < Settings::NativeButton::NumButtons; ++button_id) {
             emulated_controller->SetButtonParam(
                 button_id, Common::ParamPackage{InputCommon::GenerateKeyboardParam(
@@ -1122,63 +1124,30 @@ void ConfigureInputPlayer::UpdateMappingWithDefaults() {
                                Config::default_motions[motion_id])});
         }
 
-        UpdateUI();
-        return;
-    }
-
-    // Reset keyboard with mouse bindings
-    if (ui->comboDevices->currentIndex() == 2) {
-        for (int button_id = 0; button_id < Settings::NativeButton::NumButtons; ++button_id) {
-            emulated_controller->SetButtonParam(
-                button_id, Common::ParamPackage{InputCommon::GenerateKeyboardParam(
-                               Config::default_buttons[button_id])});
+        // If mouse is selected we want to override with mappings from the driver
+        if (ui->comboDevices->currentIndex() == 1) {
+            UpdateUI();
+            return;
         }
-
-        Common::ParamPackage left_analog_param{};
-        for (int sub_button_id = 0; sub_button_id < ANALOG_SUB_BUTTONS_NUM; ++sub_button_id) {
-            Common::ParamPackage params{InputCommon::GenerateKeyboardParam(
-                Config::default_analogs[Settings::NativeAnalog::LStick][sub_button_id])};
-            SetAnalogParam(params, left_analog_param, analog_sub_buttons[sub_button_id]);
-        }
-        left_analog_param.Set("modifier",
-                              InputCommon::GenerateKeyboardParam(
-                                  Config::default_stick_mod[Settings::NativeAnalog::LStick]));
-        emulated_controller->SetStickParam(Settings::NativeAnalog::LStick, left_analog_param);
-
-        Common::ParamPackage right_analog_param{};
-        right_analog_param.Set("engine", "mouse");
-        right_analog_param.Set("port", 0);
-        right_analog_param.Set("axis_x", 0);
-        right_analog_param.Set("axis_y", 1);
-        emulated_controller->SetStickParam(Settings::NativeAnalog::RStick,
-                                           std::move(right_analog_param));
-
-        for (int motion_id = 0; motion_id < Settings::NativeMotion::NumMotions; ++motion_id) {
-            emulated_controller->SetMotionParam(
-                motion_id, Common::ParamPackage{InputCommon::GenerateKeyboardParam(
-                               Config::default_motions[motion_id])});
-        }
-
-        UpdateUI();
-        return;
     }
 
     // Reset controller bindings
     const auto& device = input_devices[ui->comboDevices->currentIndex()];
-    auto button_mapping = input_subsystem->GetButtonMappingForDevice(device);
-    auto analog_mapping = input_subsystem->GetAnalogMappingForDevice(device);
-    auto motion_mapping = input_subsystem->GetMotionMappingForDevice(device);
-    for (std::size_t i = 0; i < button_mapping.size(); ++i) {
-        emulated_controller->SetButtonParam(
-            i, button_mapping[static_cast<Settings::NativeButton::Values>(i)]);
+    auto button_mappings = input_subsystem->GetButtonMappingForDevice(device);
+    auto analog_mappings = input_subsystem->GetAnalogMappingForDevice(device);
+    auto motion_mappings = input_subsystem->GetMotionMappingForDevice(device);
+
+    for (const auto& button_mapping : button_mappings) {
+        const std::size_t index = button_mapping.first;
+        emulated_controller->SetButtonParam(index, button_mapping.second);
     }
-    for (std::size_t i = 0; i < analog_mapping.size(); ++i) {
-        emulated_controller->SetStickParam(
-            i, analog_mapping[static_cast<Settings::NativeAnalog::Values>(i)]);
+    for (const auto& analog_mapping : analog_mappings) {
+        const std::size_t index = analog_mapping.first;
+        emulated_controller->SetStickParam(index, analog_mapping.second);
     }
-    for (std::size_t i = 0; i < motion_mapping.size(); ++i) {
-        emulated_controller->SetMotionParam(
-            i, motion_mapping[static_cast<Settings::NativeMotion::Values>(i)]);
+    for (const auto& motion_mapping : motion_mappings) {
+        const std::size_t index = motion_mapping.first;
+        emulated_controller->SetMotionParam(index, motion_mapping.second);
     }
 
     UpdateUI();
@@ -1237,7 +1206,7 @@ bool ConfigureInputPlayer::IsInputAcceptable(const Common::ParamPackage& params)
     }
 
     // Keyboard/Mouse
-    if (ui->comboDevices->currentIndex() == 2) {
+    if (ui->comboDevices->currentIndex() == 1 || ui->comboDevices->currentIndex() == 2) {
         return params.Get("engine", "") == "keyboard" || params.Get("engine", "") == "mouse";
     }
 
@@ -1245,7 +1214,7 @@ bool ConfigureInputPlayer::IsInputAcceptable(const Common::ParamPackage& params)
     return params.Get("engine", "") == current_input_device.Get("engine", "") &&
            (params.Get("guid", "") == current_input_device.Get("guid", "") ||
             params.Get("guid", "") == current_input_device.Get("guid2", "")) &&
-           params.Get("port", "") == current_input_device.Get("port", "");
+           params.Get("port", 0) == current_input_device.Get("port", 0);
 }
 
 void ConfigureInputPlayer::mousePressEvent(QMouseEvent* event) {

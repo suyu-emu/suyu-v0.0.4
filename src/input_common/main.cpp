@@ -143,6 +143,9 @@ struct InputSubsystem::Impl {
             return {};
         }
         const std::string engine = params.Get("engine", "");
+        if (engine == mouse->GetEngineName()) {
+            return mouse->GetAnalogMappingForDevice(params);
+        }
         if (engine == gcadapter->GetEngineName()) {
             return gcadapter->GetAnalogMappingForDevice(params);
         }

@@ -143,6 +143,9 @@ public:
     void DeleteCallback(int key);
 
 private:
+    /// Helps assigning a value to keyboard_state
+    void UpdateKey(std::size_t key_index, bool status);
+
     /**
      * Updates the touch status of the console
      * @param callback: A CallbackStatus containing the key status

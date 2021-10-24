@@ -246,7 +246,7 @@ std::vector<Common::ParamPackage> EmulatedController::GetMappedDevices() const {
             devices.begin(), devices.end(), [param](const Common::ParamPackage param_) {
                 return param.Get("engine", "") == param_.Get("engine", "") &&
                        param.Get("guid", "") == param_.Get("guid", "") &&
-                       param.Get("port", "") == param_.Get("port", "");
+                       param.Get("port", 0) == param_.Get("port", 0);
             });
         if (devices_it != devices.end()) {
             continue;
@@ -254,7 +254,7 @@ std::vector<Common::ParamPackage> EmulatedController::GetMappedDevices() const {
         Common::ParamPackage device{};
         device.Set("engine", param.Get("engine", ""));
         device.Set("guid", param.Get("guid", ""));
-        device.Set("port", param.Get("port", ""));
+        device.Set("port", param.Get("port", 0));
         devices.push_back(device);
     }
 
@@ -269,7 +269,7 @@ std::vector<Common::ParamPackage> EmulatedController::GetMappedDevices() const {
             devices.begin(), devices.end(), [param](const Common::ParamPackage param_) {
                 return param.Get("engine", "") == param_.Get("engine", "") &&
                        param.Get("guid", "") == param_.Get("guid", "") &&
-                       param.Get("port", "") == param_.Get("port", "");
+                       param.Get("port", 0) == param_.Get("port", 0);
             });
         if (devices_it != devices.end()) {
             continue;
@@ -277,7 +277,7 @@ std::vector<Common::ParamPackage> EmulatedController::GetMappedDevices() const {
         Common::ParamPackage device{};
         device.Set("engine", param.Get("engine", ""));
         device.Set("guid", param.Get("guid", ""));
-        device.Set("port", param.Get("port", ""));
+        device.Set("port", param.Get("port", 0));
         devices.push_back(device);
     }
     return devices;

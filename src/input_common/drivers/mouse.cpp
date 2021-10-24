@@ -121,10 +121,25 @@ void Mouse::StopPanning() {
 std::vector<Common::ParamPackage> Mouse::GetInputDevices() const {
     std::vector<Common::ParamPackage> devices;
     devices.emplace_back(Common::ParamPackage{
-        {"engine", "keyboard"},
+        {"engine", GetEngineName()},
         {"display", "Keyboard/Mouse"},
     });
     return devices;
+}
+
+AnalogMapping Mouse::GetAnalogMappingForDevice(
+    [[maybe_unused]] const Common::ParamPackage& params) {
+    // Only overwrite different buttons from default
+    AnalogMapping mapping = {};
+    Common::ParamPackage right_analog_params;
+    right_analog_params.Set("engine", GetEngineName());
+    right_analog_params.Set("axis_x", 0);
+    right_analog_params.Set("axis_y", 1);
+    right_analog_params.Set("threshold", 0.5f);
+    right_analog_params.Set("range", 1.0f);
+    right_analog_params.Set("deadzone", 0.0f);
+    mapping.insert_or_assign(Settings::NativeAnalog::RStick, std::move(right_analog_params));
+    return mapping;
 }
 
 std::string Mouse::GetUIName(const Common::ParamPackage& params) const {
