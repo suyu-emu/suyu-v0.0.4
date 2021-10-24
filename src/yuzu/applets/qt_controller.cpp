@@ -28,7 +28,8 @@ namespace {
 
 constexpr std::size_t HANDHELD_INDEX = 8;
 
-void UpdateController(Core::HID::EmulatedController* controller, Core::HID::NpadType controller_type, bool connected) {
+void UpdateController(Core::HID::EmulatedController* controller,
+                      Core::HID::NpadType controller_type, bool connected) {
     if (controller->IsConnected()) {
         controller->Disconnect();
     }
