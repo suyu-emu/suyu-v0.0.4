@@ -170,6 +170,17 @@ struct KernelCore::Impl {
         // Next host thead ID to use, 0-3 IDs represent core threads, >3 represent others
         next_host_thread_id = Core::Hardware::NUM_CPU_CORES;
 
+        // Close kernel objects that were not freed on shutdown
+        {
+            std::lock_guard lk(registered_in_use_objects_lock);
+            if (registered_in_use_objects.size()) {
+                for (auto thread : registered_in_use_objects) {
+                    thread->Close();
+                }
+                registered_in_use_objects.clear();
+            }
+        }
+
         // Track kernel objects that were not freed on shutdown
         {
             std::lock_guard lk(registered_objects_lock);
@@ -714,9 +725,11 @@ struct KernelCore::Impl {
     std::unordered_set<KServerPort*> server_ports;
     std::unordered_set<KServerSession*> server_sessions;
     std::unordered_set<KAutoObject*> registered_objects;
+    std::unordered_set<KAutoObject*> registered_in_use_objects;
     std::mutex server_ports_lock;
     std::mutex server_sessions_lock;
     std::mutex registered_objects_lock;
+    std::mutex registered_in_use_objects_lock;
 
     std::unique_ptr<Core::ExclusiveMonitor> exclusive_monitor;
     std::vector<Kernel::PhysicalCore> cores;
@@ -926,6 +939,16 @@ void KernelCore::RegisterKernelObject(KAutoObject* object) {
 void KernelCore::UnregisterKernelObject(KAutoObject* object) {
     std::lock_guard lk(impl->registered_objects_lock);
     impl->registered_objects.erase(object);
+}
+
+void KernelCore::RegisterInUseObject(KAutoObject* object) {
+    std::lock_guard lk(impl->registered_in_use_objects_lock);
+    impl->registered_in_use_objects.insert(object);
+}
+
+void KernelCore::UnregisterInUseObject(KAutoObject* object) {
+    std::lock_guard lk(impl->registered_in_use_objects_lock);
+    impl->registered_in_use_objects.erase(object);
 }
 
 bool KernelCore::IsValidNamedPort(NamedPortTable::const_iterator port) const {
