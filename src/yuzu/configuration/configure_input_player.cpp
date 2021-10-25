@@ -1178,7 +1178,7 @@ void ConfigureInputPlayer::HandleClick(
     }
 
     timeout_timer->start(2500); // Cancel after 2.5 seconds
-    poll_timer->start(50);      // Check for new inputs every 50ms
+    poll_timer->start(25);      // Check for new inputs every 25ms
 }
 
 void ConfigureInputPlayer::SetPollingResult(const Common::ParamPackage& params, bool abort) {
@@ -1202,6 +1202,10 @@ void ConfigureInputPlayer::SetPollingResult(const Common::ParamPackage& params, 
 
 bool ConfigureInputPlayer::IsInputAcceptable(const Common::ParamPackage& params) const {
     if (ui->comboDevices->currentIndex() == 0) {
+        return true;
+    }
+
+    if (params.Has("motion")) {
         return true;
     }
 

@@ -69,6 +69,7 @@ private:
     struct ClientConnection {
         ClientConnection();
         ~ClientConnection();
+        Common::UUID uuid{"7F000001"};
         std::string host{"127.0.0.1"};
         u16 port{26760};
         s8 active{-1};
@@ -87,6 +88,7 @@ private:
     void OnPadData(Response::PadData, std::size_t client);
     void StartCommunication(std::size_t client, const std::string& host, u16 port);
     const PadIdentifier GetPadIdentifier(std::size_t pad_index) const;
+    const Common::UUID GetHostUUID(const std::string host) const;
 
     // Allocate clients for 8 udp servers
     static constexpr std::size_t MAX_UDP_CLIENTS = 8;

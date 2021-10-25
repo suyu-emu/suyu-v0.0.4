@@ -4,6 +4,7 @@
 
 #include <random>
 #include <boost/asio.hpp>
+#include <fmt/format.h>
 
 #include "common/logging/log.h"
 #include "common/param_package.h"
@@ -279,6 +280,7 @@ void UDPClient::StartCommunication(std::size_t client, const std::string& host, 
                             [this](Response::PortInfo info) { OnPortInfo(info); },
                             [this, client](Response::PadData data) { OnPadData(data, client); }};
     LOG_INFO(Input, "Starting communication with UDP input server on {}:{}", host, port);
+    clients[client].uuid = GetHostUUID(host);
     clients[client].host = host;
     clients[client].port = port;
     clients[client].active = 0;
@@ -293,10 +295,16 @@ void UDPClient::StartCommunication(std::size_t client, const std::string& host, 
 const PadIdentifier UDPClient::GetPadIdentifier(std::size_t pad_index) const {
     const std::size_t client = pad_index / PADS_PER_CLIENT;
     return {
-        .guid = Common::UUID{clients[client].host},
+        .guid = clients[client].uuid,
         .port = static_cast<std::size_t>(clients[client].port),
         .pad = pad_index,
     };
+}
+
+const Common::UUID UDPClient::GetHostUUID(const std::string host) const {
+    const auto ip = boost::asio::ip::address_v4::from_string(host);
+    const auto hex_host = fmt::format("{:06x}", ip.to_ulong());
+    return Common::UUID{hex_host};
 }
 
 void UDPClient::Reset() {
