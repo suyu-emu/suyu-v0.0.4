@@ -200,7 +200,7 @@ public:
         TriggerOnChange(status);
     }
 
-    void ForceUpdate() override{
+    void ForceUpdate() override {
         up->ForceUpdate();
         down->ForceUpdate();
         left->ForceUpdate();

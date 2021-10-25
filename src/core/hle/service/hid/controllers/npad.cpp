@@ -101,8 +101,9 @@ Controller_NPad::Controller_NPad(Core::System& system_,
     for (std::size_t i = 0; i < controller_data.size(); ++i) {
         auto& controller = controller_data[i];
         controller.device = system.HIDCore().GetEmulatedControllerByIndex(i);
-        controller.vibration[0].latest_vibration_value = DEFAULT_VIBRATION_VALUE;
-        controller.vibration[1].latest_vibration_value = DEFAULT_VIBRATION_VALUE;
+        controller.vibration[Core::HID::DeviceIndex::LeftIndex].latest_vibration_value = DEFAULT_VIBRATION_VALUE;
+        controller.vibration[Core::HID::DeviceIndex::RightIndex].latest_vibration_value =
+            DEFAULT_VIBRATION_VALUE;
         Core::HID::ControllerUpdateCallback engine_callback{
             .on_change = [this,
                           i](Core::HID::ControllerTriggerType type) { ControllerUpdate(type, i); },
@@ -285,9 +286,12 @@ void Controller_NPad::OnInit() {
         auto& npad = controller.shared_memory_entry;
         npad.fullkey_color = {
             .attribute = ColorAttribute::NoController,
+            .fullkey = {},
         };
         npad.joycon_color = {
             .attribute = ColorAttribute::NoController,
+            .left = {},
+            .right = {},
         };
         // HW seems to initialize the first 19 entries
         for (std::size_t i = 0; i < 19; ++i) {
@@ -907,9 +911,12 @@ void Controller_NPad::DisconnectNpadAtIndex(std::size_t npad_index) {
     shared_memory_entry.battery_level_right = 0;
     shared_memory_entry.fullkey_color = {
         .attribute = ColorAttribute::NoController,
+        .fullkey = {},
     };
     shared_memory_entry.joycon_color = {
         .attribute = ColorAttribute::NoController,
+        .left = {},
+        .right = {},
     };
     shared_memory_entry.assignment_mode = NpadJoyAssignmentMode::Dual;
     shared_memory_entry.footer_type = AppletFooterUiType::None;

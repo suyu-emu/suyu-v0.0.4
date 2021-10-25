@@ -18,7 +18,7 @@
 #include "core/hid/motion_input.h"
 
 namespace Core::HID {
-
+const std::size_t max_emulated_controllers = 2;
 struct ControllerMotionInfo {
     Input::MotionStatus raw_status{};
     MotionInput emulated{};
@@ -32,23 +32,23 @@ using ControllerMotionDevices =
     std::array<std::unique_ptr<Input::InputDevice>, Settings::NativeMotion::NumMotions>;
 using TriggerDevices =
     std::array<std::unique_ptr<Input::InputDevice>, Settings::NativeTrigger::NumTriggers>;
-using BatteryDevices = std::array<std::unique_ptr<Input::InputDevice>, 2>;
-using OutputDevices = std::array<std::unique_ptr<Input::OutputDevice>, 2>;
+using BatteryDevices = std::array<std::unique_ptr<Input::InputDevice>, max_emulated_controllers>;
+using OutputDevices = std::array<std::unique_ptr<Input::OutputDevice>, max_emulated_controllers>;
 
 using ButtonParams = std::array<Common::ParamPackage, Settings::NativeButton::NumButtons>;
 using StickParams = std::array<Common::ParamPackage, Settings::NativeAnalog::NumAnalogs>;
 using ControllerMotionParams = std::array<Common::ParamPackage, Settings::NativeMotion::NumMotions>;
 using TriggerParams = std::array<Common::ParamPackage, Settings::NativeTrigger::NumTriggers>;
-using BatteryParams = std::array<Common::ParamPackage, 2>;
-using OutputParams = std::array<Common::ParamPackage, 2>;
+using BatteryParams = std::array<Common::ParamPackage, max_emulated_controllers>;
+using OutputParams = std::array<Common::ParamPackage, max_emulated_controllers>;
 
 using ButtonValues = std::array<Input::ButtonStatus, Settings::NativeButton::NumButtons>;
 using SticksValues = std::array<Input::StickStatus, Settings::NativeAnalog::NumAnalogs>;
 using TriggerValues = std::array<Input::TriggerStatus, Settings::NativeTrigger::NumTriggers>;
 using ControllerMotionValues = std::array<ControllerMotionInfo, Settings::NativeMotion::NumMotions>;
-using ColorValues = std::array<Input::BodyColorStatus, 3>;
-using BatteryValues = std::array<Input::BatteryStatus, 3>;
-using VibrationValues = std::array<Input::VibrationStatus, 2>;
+using ColorValues = std::array<Input::BodyColorStatus, max_emulated_controllers>;
+using BatteryValues = std::array<Input::BatteryStatus, max_emulated_controllers>;
+using VibrationValues = std::array<Input::VibrationStatus, max_emulated_controllers>;
 
 struct AnalogSticks {
     AnalogStickState left{};
@@ -73,6 +73,13 @@ struct ControllerMotion {
     Common::Vec3f rotation{};
     std::array<Common::Vec3f, 3> orientation{};
     bool is_at_rest{};
+};
+
+enum DeviceIndex : u8 {
+    LeftIndex,
+    RightIndex,
+    DualIndex,
+    AllDevices,
 };
 
 using MotionState = std::array<ControllerMotion, 2>;
@@ -189,7 +196,7 @@ public:
     void RestoreConfig();
 
     /// Returns a vector of mapped devices from the mapped button and stick parameters
-    std::vector<Common::ParamPackage> GetMappedDevices() const;
+    std::vector<Common::ParamPackage> GetMappedDevices(DeviceIndex device_index) const;
 
     // Returns the current mapped button device
     Common::ParamPackage GetButtonParam(std::size_t index) const;
@@ -289,6 +296,9 @@ public:
     void DeleteCallback(int key);
 
 private:
+    /// creates input devices from params
+    void LoadDevices();
+
     /**
      * Updates the button status of the controller
      * @param callback: A CallbackStatus containing the button status

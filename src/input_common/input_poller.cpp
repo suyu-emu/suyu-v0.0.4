@@ -183,6 +183,17 @@ public:
         return status;
     }
 
+    void ForceUpdate() {
+        const Input::CallbackStatus status{
+            .type = Input::InputType::Stick,
+            .stick_status = GetStatus(),
+        };
+
+        last_axis_x_value = status.stick_status.x.raw_value;
+        last_axis_y_value = status.stick_status.y.raw_value;
+        TriggerOnChange(status);
+    }
+
     void OnChange() {
         const Input::CallbackStatus status{
             .type = Input::InputType::Stick,
@@ -448,6 +459,16 @@ public:
         return static_cast<Input::BatteryLevel>(input_engine->GetBattery(identifier));
     }
 
+    void ForceUpdate() {
+        const Input::CallbackStatus status{
+            .type = Input::InputType::Battery,
+            .battery_status = GetStatus(),
+        };
+
+        last_battery_value = status.battery_status;
+        TriggerOnChange(status);
+    }
+
     void OnChange() {
         const Input::CallbackStatus status{
             .type = Input::InputType::Battery,
@@ -577,6 +598,18 @@ public:
             .properties = properties_z,
         };
         return status;
+    }
+
+    void ForceUpdate() {
+        const Input::CallbackStatus status{
+            .type = Input::InputType::Motion,
+            .motion_status = GetStatus(),
+        };
+
+        last_axis_x_value = status.motion_status.gyro.x.raw_value;
+        last_axis_y_value = status.motion_status.gyro.y.raw_value;
+        last_axis_z_value = status.motion_status.gyro.z.raw_value;
+        TriggerOnChange(status);
     }
 
     void OnChange() {
@@ -868,6 +901,9 @@ InputFactory::InputFactory(std::shared_ptr<InputEngine> input_engine_)
     : input_engine(std::move(input_engine_)) {}
 
 std::unique_ptr<Input::InputDevice> InputFactory::Create(const Common::ParamPackage& params) {
+    if (params.Has("battery")) {
+        return CreateBatteryDevice(params);
+    }
     if (params.Has("button") && params.Has("axis")) {
         return CreateTriggerDevice(params);
     }
@@ -891,9 +927,6 @@ std::unique_ptr<Input::InputDevice> InputFactory::Create(const Common::ParamPack
     }
     if (params.Has("axis")) {
         return CreateAnalogDevice(params);
-    }
-    if (params.Has("battery")) {
-        return CreateBatteryDevice(params);
     }
     LOG_ERROR(Input, "Invalid parameters given");
     return std::make_unique<DummyInput>();

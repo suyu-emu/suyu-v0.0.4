@@ -87,11 +87,23 @@ void EmulatedController::ReloadFromSettings() {
 
     ReloadInput();
 }
+void EmulatedController::LoadDevices() {
+    const auto left_joycon = button_params[Settings::NativeButton::ZL];
+    const auto right_joycon = button_params[Settings::NativeButton::ZR];
 
-void EmulatedController::ReloadInput() {
-    // If you load any device here add the equivalent to the UnloadInput() function
-    const auto left_side = button_params[Settings::NativeButton::ZL];
-    const auto right_side = button_params[Settings::NativeButton::ZR];
+    // Triggers for GC controllers
+    trigger_params[LeftIndex] = button_params[Settings::NativeButton::ZL];
+    trigger_params[RightIndex] = button_params[Settings::NativeButton::ZR];
+
+    battery_params[LeftIndex] = left_joycon;
+    battery_params[RightIndex] = right_joycon;
+    battery_params[LeftIndex].Set("battery", true);
+    battery_params[RightIndex].Set("battery", true);
+
+    output_params[LeftIndex] = left_joycon;
+    output_params[RightIndex] = right_joycon;
+    output_params[LeftIndex].Set("output", true);
+    output_params[RightIndex].Set("output", true);
 
     std::transform(button_params.begin() + Settings::NativeButton::BUTTON_HID_BEGIN,
                    button_params.begin() + Settings::NativeButton::BUTTON_NS_END,
@@ -102,19 +114,17 @@ void EmulatedController::ReloadInput() {
     std::transform(motion_params.begin() + Settings::NativeMotion::MOTION_HID_BEGIN,
                    motion_params.begin() + Settings::NativeMotion::MOTION_HID_END,
                    motion_devices.begin(), Input::CreateDevice<Input::InputDevice>);
+    std::transform(trigger_params.begin(), trigger_params.end(), trigger_devices.begin(),
+                   Input::CreateDevice<Input::InputDevice>);
+    std::transform(battery_params.begin(), battery_params.begin(), battery_devices.end(),
+                   Input::CreateDevice<Input::InputDevice>);
+    std::transform(output_params.begin(), output_params.end(), output_devices.begin(),
+                   Input::CreateDevice<Input::OutputDevice>);
+}
 
-    trigger_devices[0] =
-        Input::CreateDevice<Input::InputDevice>(button_params[Settings::NativeButton::ZL]);
-    trigger_devices[1] =
-        Input::CreateDevice<Input::InputDevice>(button_params[Settings::NativeButton::ZR]);
-
-    battery_devices[0] = Input::CreateDevice<Input::InputDevice>(left_side);
-    battery_devices[1] = Input::CreateDevice<Input::InputDevice>(right_side);
-
-    button_params[Settings::NativeButton::ZL].Set("output", true);
-    output_devices[0] =
-        Input::CreateDevice<Input::OutputDevice>(button_params[Settings::NativeButton::ZL]);
-
+void EmulatedController::ReloadInput() {
+    // If you load any device here add the equivalent to the UnloadInput() function
+    LoadDevices();
     for (std::size_t index = 0; index < button_devices.size(); ++index) {
         if (!button_devices[index]) {
             continue;
@@ -241,7 +251,7 @@ void EmulatedController::RestoreConfig() {
     ReloadFromSettings();
 }
 
-std::vector<Common::ParamPackage> EmulatedController::GetMappedDevices() const {
+std::vector<Common::ParamPackage> EmulatedController::GetMappedDevices(DeviceIndex device_index) const {
     std::vector<Common::ParamPackage> devices;
     for (const auto& param : button_params) {
         if (!param.Has("engine")) {
@@ -612,21 +622,21 @@ void EmulatedController::SetBattery(Input::CallbackStatus callback, std::size_t 
     }
 
     switch (index) {
-    case 0:
+    case LeftIndex:
         controller.battery_state.left = {
             .is_powered = is_powered,
             .is_charging = is_charging,
             .battery_level = battery_level,
         };
         break;
-    case 1:
+    case RightIndex:
         controller.battery_state.right = {
             .is_powered = is_powered,
             .is_charging = is_charging,
             .battery_level = battery_level,
         };
         break;
-    case 2:
+    case DualIndex:
         controller.battery_state.dual = {
             .is_powered = is_powered,
             .is_charging = is_charging,

@@ -33,6 +33,10 @@ Input::BatteryStatus TransformToBattery(const Input::CallbackStatus& callback) {
         }
         break;
     }
+    case Input::InputType::Button:
+        battery = callback.button_status.value ? Input::BatteryLevel::Charging
+                                               : Input::BatteryLevel::Critical;
+        break;
     case Input::InputType::Battery:
         battery = callback.battery_status;
         break;

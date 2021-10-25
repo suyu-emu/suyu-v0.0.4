@@ -356,7 +356,7 @@ void PlayerControlPreview::DrawLeftController(QPainter& p, const QPointF center)
     DrawCircle(p, center + QPoint(26, 71), 5);
 
     // Draw battery
-    DrawBattery(p, center + QPoint(-170, -140), battery_values[0]);
+    DrawBattery(p, center + QPoint(-170, -140), battery_values[Core::HID::DeviceIndex::LeftIndex]);
 }
 
 void PlayerControlPreview::DrawRightController(QPainter& p, const QPointF center) {
@@ -482,7 +482,7 @@ void PlayerControlPreview::DrawRightController(QPainter& p, const QPointF center
     DrawSymbol(p, center + QPoint(-26, 66), Symbol::House, 5);
 
     // Draw battery
-    DrawBattery(p, center + QPoint(110, -140), battery_values[1]);
+    DrawBattery(p, center + QPoint(110, -140), battery_values[Core::HID::DeviceIndex::RightIndex]);
 }
 
 void PlayerControlPreview::DrawDualController(QPainter& p, const QPointF center) {
@@ -618,8 +618,8 @@ void PlayerControlPreview::DrawDualController(QPainter& p, const QPointF center)
     DrawSymbol(p, center + QPoint(50, 60), Symbol::House, 4.2f);
 
     // Draw battery
-    DrawBattery(p, center + QPoint(-100, -160), battery_values[0]);
-    DrawBattery(p, center + QPoint(40, -160), battery_values[1]);
+    DrawBattery(p, center + QPoint(-100, -160), battery_values[Core::HID::DeviceIndex::LeftIndex]);
+    DrawBattery(p, center + QPoint(40, -160), battery_values[Core::HID::DeviceIndex::RightIndex]);
 }
 
 void PlayerControlPreview::DrawHandheldController(QPainter& p, const QPointF center) {
@@ -720,9 +720,8 @@ void PlayerControlPreview::DrawHandheldController(QPainter& p, const QPointF cen
     DrawSymbol(p, center + QPoint(161, 37), Symbol::House, 2.75f);
 
     // Draw battery
-    DrawBattery(p, center + QPoint(-200, 110), battery_values[0]);
-    DrawBattery(p, center + QPoint(-30, 110), battery_values[1]);
-    DrawBattery(p, center + QPoint(130, 110), battery_values[2]);
+    DrawBattery(p, center + QPoint(-200, 110), battery_values[Core::HID::DeviceIndex::LeftIndex]);
+    DrawBattery(p, center + QPoint(130, 110), battery_values[Core::HID::DeviceIndex::RightIndex]);
 }
 
 void PlayerControlPreview::DrawProController(QPainter& p, const QPointF center) {
@@ -812,7 +811,7 @@ void PlayerControlPreview::DrawProController(QPainter& p, const QPointF center) 
     DrawSymbol(p, center + QPoint(29, -56), Symbol::House, 3.9f);
 
     // Draw battery
-    DrawBattery(p, center + QPoint(-30, -160), battery_values[0]);
+    DrawBattery(p, center + QPoint(-30, -160), battery_values[Core::HID::DeviceIndex::LeftIndex]);
 }
 
 void PlayerControlPreview::DrawGCController(QPainter& p, const QPointF center) {
@@ -868,7 +867,7 @@ void PlayerControlPreview::DrawGCController(QPainter& p, const QPointF center) {
     DrawCircleButton(p, center + QPoint(0, -44), button_values[Plus], 8);
 
     // Draw battery
-    DrawBattery(p, center + QPoint(-30, -165), battery_values[0]);
+    DrawBattery(p, center + QPoint(-30, -165), battery_values[Core::HID::DeviceIndex::LeftIndex]);
 }
 
 constexpr std::array<float, 13 * 2> symbol_a = {

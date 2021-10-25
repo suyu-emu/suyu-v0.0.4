@@ -630,7 +630,7 @@ void ConfigureInputPlayer::UpdateInputDeviceCombobox() {
         return;
     }
 
-    const auto devices = emulated_controller->GetMappedDevices();
+    const auto devices = emulated_controller->GetMappedDevices(Core::HID::DeviceIndex::AllDevices);
     UpdateInputDevices();
 
     if (devices.empty()) {

@@ -174,7 +174,7 @@ void EmulatedDevices::UpdateKey(std::size_t key_index, bool status) {
     if (status) {
         entry = entry | mask;
     } else {
-        entry = entry & ~mask;
+        entry = static_cast<u8>(entry & ~mask);
     }
 }
 
