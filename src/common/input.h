@@ -164,6 +164,16 @@ class InputDevice {
 public:
     virtual ~InputDevice() = default;
 
+    // Request input device to update if necessary
+    virtual void SoftUpdate() {
+        return;
+    }
+
+    // Force input device to update data regarless of the current state
+    virtual void ForceUpdate() {
+        return;
+    }
+
     void SetCallback(InputCallback callback_) {
         callback = std::move(callback_);
     }

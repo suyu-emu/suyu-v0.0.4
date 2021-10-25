@@ -45,6 +45,16 @@ public:
         };
     }
 
+    void ForceUpdate() {
+        const Input::CallbackStatus status{
+            .type = Input::InputType::Button,
+            .button_status = GetStatus(),
+        };
+
+        last_button_value = status.button_status.value;
+        TriggerOnChange(status);
+    }
+
     void OnChange() {
         const Input::CallbackStatus status{
             .type = Input::InputType::Button,
@@ -94,6 +104,16 @@ public:
             .inverted = inverted,
             .toggle = toggle,
         };
+    }
+
+    void ForceUpdate() {
+        const Input::CallbackStatus status{
+            .type = Input::InputType::Button,
+            .button_status = GetStatus(),
+        };
+
+        last_button_value = status.button_status.value;
+        TriggerOnChange(status);
     }
 
     void OnChange() {

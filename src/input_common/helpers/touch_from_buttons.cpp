@@ -17,6 +17,7 @@ public:
         Input::InputCallback button_up_callback{
             [this](Input::CallbackStatus callback_) { UpdateButtonStatus(callback_); }};
         button->SetCallback(button_up_callback);
+        button->ForceUpdate();
     }
 
     Input::TouchStatus GetStatus(bool pressed) const {

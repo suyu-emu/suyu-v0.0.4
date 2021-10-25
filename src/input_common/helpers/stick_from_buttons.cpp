@@ -200,6 +200,22 @@ public:
         TriggerOnChange(status);
     }
 
+    void ForceUpdate() override{
+        up->ForceUpdate();
+        down->ForceUpdate();
+        left->ForceUpdate();
+        right->ForceUpdate();
+        modifier->ForceUpdate();
+    }
+
+    void SoftUpdate() override {
+        Input::CallbackStatus status{
+            .type = Input::InputType::Stick,
+            .stick_status = GetStatus(),
+        };
+        TriggerOnChange(status);
+    }
+
     Input::StickStatus GetStatus() const {
         Input::StickStatus status{};
         status.x.properties = properties;

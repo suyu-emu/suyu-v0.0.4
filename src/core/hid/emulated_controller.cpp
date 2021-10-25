@@ -122,6 +122,7 @@ void EmulatedController::ReloadInput() {
         Input::InputCallback button_callback{
             [this, index](Input::CallbackStatus callback) { SetButton(callback, index); }};
         button_devices[index]->SetCallback(button_callback);
+        button_devices[index]->ForceUpdate();
     }
 
     for (std::size_t index = 0; index < stick_devices.size(); ++index) {
@@ -131,6 +132,7 @@ void EmulatedController::ReloadInput() {
         Input::InputCallback stick_callback{
             [this, index](Input::CallbackStatus callback) { SetStick(callback, index); }};
         stick_devices[index]->SetCallback(stick_callback);
+        stick_devices[index]->ForceUpdate();
     }
 
     for (std::size_t index = 0; index < trigger_devices.size(); ++index) {
@@ -140,6 +142,7 @@ void EmulatedController::ReloadInput() {
         Input::InputCallback trigger_callback{
             [this, index](Input::CallbackStatus callback) { SetTrigger(callback, index); }};
         trigger_devices[index]->SetCallback(trigger_callback);
+        trigger_devices[index]->ForceUpdate();
     }
 
     for (std::size_t index = 0; index < battery_devices.size(); ++index) {
@@ -149,6 +152,7 @@ void EmulatedController::ReloadInput() {
         Input::InputCallback battery_callback{
             [this, index](Input::CallbackStatus callback) { SetBattery(callback, index); }};
         battery_devices[index]->SetCallback(battery_callback);
+        battery_devices[index]->ForceUpdate();
     }
 
     for (std::size_t index = 0; index < motion_devices.size(); ++index) {
@@ -158,6 +162,7 @@ void EmulatedController::ReloadInput() {
         Input::InputCallback motion_callback{
             [this, index](Input::CallbackStatus callback) { SetMotion(callback, index); }};
         motion_devices[index]->SetCallback(motion_callback);
+        motion_devices[index]->ForceUpdate();
     }
 }
 
@@ -842,6 +847,10 @@ DebugPadButton EmulatedController::GetDebugPadButtons() const {
 AnalogSticks EmulatedController::GetSticks() const {
     if (is_configuring) {
         return {};
+    }
+    // Some drivers like stick from buttons need constant refreshing
+    for (auto& device : stick_devices) {
+        device->SoftUpdate();
     }
     return controller.analog_stick_state;
 }
