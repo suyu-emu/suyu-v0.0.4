@@ -29,7 +29,7 @@ void Controller_Keyboard::OnUpdate(const Core::Timing::CoreTiming& core_timing, 
     if (!IsControllerActivated()) {
         keyboard_lifo.entry_count = 0;
         keyboard_lifo.last_entry_index = 0;
-        std::memcpy(data, &keyboard_lifo, sizeof(keyboard_lifo));
+        std::memcpy(data + SHARED_MEMORY_OFFSET, &keyboard_lifo, sizeof(keyboard_lifo));
         return;
     }
 

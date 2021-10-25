@@ -29,7 +29,7 @@ void Controller_Mouse::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8*
     if (!IsControllerActivated()) {
         mouse_lifo.entry_count = 0;
         mouse_lifo.last_entry_index = 0;
-        std::memcpy(data, &mouse_lifo, sizeof(mouse_lifo));
+        std::memcpy(data + SHARED_MEMORY_OFFSET, &mouse_lifo, sizeof(mouse_lifo));
         return;
     }
 

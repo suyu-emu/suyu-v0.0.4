@@ -12,7 +12,7 @@
 #include "core/hle/service/hid/controllers/debug_pad.h"
 
 namespace Service::HID {
-
+constexpr std::size_t SHARED_MEMORY_OFFSET = 0x00000;
 constexpr s32 HID_JOYSTICK_MAX = 0x7fff;
 [[maybe_unused]] constexpr s32 HID_JOYSTICK_MIN = -0x7fff;
 enum class JoystickId : std::size_t { Joystick_Left, Joystick_Right };
@@ -32,7 +32,7 @@ void Controller_DebugPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, 
     if (!IsControllerActivated()) {
         debug_pad_lifo.entry_count = 0;
         debug_pad_lifo.last_entry_index = 0;
-        std::memcpy(data, &debug_pad_lifo, sizeof(debug_pad_lifo));
+        std::memcpy(data + SHARED_MEMORY_OFFSET, &debug_pad_lifo, sizeof(debug_pad_lifo));
         return;
     }
 
@@ -51,7 +51,7 @@ void Controller_DebugPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, 
     }
 
     debug_pad_lifo.WriteNextEntry(next_state);
-    std::memcpy(data, &debug_pad_lifo, sizeof(debug_pad_lifo));
+    std::memcpy(data + SHARED_MEMORY_OFFSET, &debug_pad_lifo, sizeof(debug_pad_lifo));
 }
 
 } // namespace Service::HID

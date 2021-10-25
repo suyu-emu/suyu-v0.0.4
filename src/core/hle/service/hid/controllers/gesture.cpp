@@ -43,7 +43,7 @@ void Controller_Gesture::OnUpdate(const Core::Timing::CoreTiming& core_timing, u
     if (!IsControllerActivated()) {
         gesture_lifo.entry_count = 0;
         gesture_lifo.last_entry_index = 0;
-        std::memcpy(data, &gesture_lifo, sizeof(gesture_lifo));
+        std::memcpy(data + SHARED_MEMORY_OFFSET, &gesture_lifo, sizeof(gesture_lifo));
         return;
     }
 
