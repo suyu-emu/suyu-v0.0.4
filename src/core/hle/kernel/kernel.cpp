@@ -174,8 +174,8 @@ struct KernelCore::Impl {
         {
             std::lock_guard lk(registered_in_use_objects_lock);
             if (registered_in_use_objects.size()) {
-                for (auto thread : registered_in_use_objects) {
-                    thread->Close();
+                for (auto& object : registered_in_use_objects) {
+                    object->Close();
                 }
                 registered_in_use_objects.clear();
             }
