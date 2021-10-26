@@ -119,6 +119,14 @@ std::optional<OutAttr> OutputAttrPointer(EmitContext& ctx, IR::Attribute attr) {
         const Id element_id{ctx.Const(element)};
         return OutputAccessChain(ctx, ctx.output_f32, ctx.output_front_color, element_id);
     }
+    case IR::Attribute::ColorFrontSpecularR:
+    case IR::Attribute::ColorFrontSpecularG:
+    case IR::Attribute::ColorFrontSpecularB:
+    case IR::Attribute::ColorFrontSpecularA: {
+        const u32 element{static_cast<u32>(attr) % 4};
+        const Id element_id{ctx.Const(element)};
+        return OutputAccessChain(ctx, ctx.output_f32, ctx.output_front_secondary_color, element_id);
+    }
     case IR::Attribute::ColorBackDiffuseR:
     case IR::Attribute::ColorBackDiffuseG:
     case IR::Attribute::ColorBackDiffuseB:
@@ -369,6 +377,13 @@ Id EmitGetAttribute(EmitContext& ctx, IR::Attribute attr, Id vertex) {
     case IR::Attribute::ColorFrontDiffuseB:
     case IR::Attribute::ColorFrontDiffuseA: {
         return ctx.OpLoad(ctx.F32[1], AttrPointer(ctx, ctx.input_f32, vertex, ctx.input_front_color,
+                                                  ctx.Const(element)));
+    }
+    case IR::Attribute::ColorFrontSpecularR:
+    case IR::Attribute::ColorFrontSpecularG:
+    case IR::Attribute::ColorFrontSpecularB:
+    case IR::Attribute::ColorFrontSpecularA: {
+        return ctx.OpLoad(ctx.F32[1], AttrPointer(ctx, ctx.input_f32, vertex, ctx.input_front_secondary_color,
                                                   ctx.Const(element)));
     }
     case IR::Attribute::ColorBackDiffuseR:

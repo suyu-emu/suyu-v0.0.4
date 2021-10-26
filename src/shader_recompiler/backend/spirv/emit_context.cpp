@@ -1286,6 +1286,14 @@ void EmitContext::DefineInputs(const IR::Program& program) {
         Decorate(id, spv::Decoration::Location, location);
         input_front_color = id;
     }
+    if (loads.AnyComponent(IR::Attribute::ColorFrontSpecularR)) {
+        const size_t location = FindNextUnusedLocation(used_locations, previous_unused_location);
+        previous_unused_location = location;
+        used_locations.set(location);
+        const Id id{DefineInput(*this, F32[4], true)};
+        Decorate(id, spv::Decoration::Location, location);
+        input_front_secondary_color = id;
+    }
     if (loads.AnyComponent(IR::Attribute::ColorBackDiffuseR)) {
         const size_t location = FindNextUnusedLocation(used_locations, previous_unused_location);
         previous_unused_location = location;
@@ -1370,6 +1378,14 @@ void EmitContext::DefineOutputs(const IR::Program& program) {
         const Id id{DefineOutput(*this, F32[4], invocations)};
         Decorate(id, spv::Decoration::Location, static_cast<u32>(location));
         output_front_color = id;
+    }
+    if (info.stores.AnyComponent(IR::Attribute::ColorFrontSpecularR)) {
+        const size_t location = FindNextUnusedLocation(used_locations, previous_unused_location);
+        previous_unused_location = location;
+        used_locations.set(location);
+        const Id id{DefineOutput(*this, F32[4], invocations)};
+        Decorate(id, spv::Decoration::Location, static_cast<u32>(location));
+        output_front_secondary_color = id;
     }
     if (info.stores.AnyComponent(IR::Attribute::ColorBackDiffuseR)) {
         const size_t location = FindNextUnusedLocation(used_locations, previous_unused_location);
