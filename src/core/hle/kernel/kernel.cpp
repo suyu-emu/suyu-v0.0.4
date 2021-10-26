@@ -91,12 +91,6 @@ struct KernelCore::Impl {
     }
 
     void Shutdown() {
-        // Shutdown all processes.
-        if (current_process) {
-            current_process->Finalize();
-            current_process->Close();
-            current_process = nullptr;
-        }
         process_list.clear();
 
         // Close all open server ports.
@@ -179,6 +173,13 @@ struct KernelCore::Impl {
                 }
                 registered_in_use_objects.clear();
             }
+        }
+
+        // Shutdown all processes.
+        if (current_process) {
+            current_process->Finalize();
+            current_process->Close();
+            current_process = nullptr;
         }
 
         // Track kernel objects that were not freed on shutdown
