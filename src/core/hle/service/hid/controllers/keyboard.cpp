@@ -27,8 +27,8 @@ void Controller_Keyboard::OnRelease() {}
 void Controller_Keyboard::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* data,
                                    std::size_t size) {
     if (!IsControllerActivated()) {
-        keyboard_lifo.entry_count = 0;
-        keyboard_lifo.last_entry_index = 0;
+        keyboard_lifo.buffer_count = 0;
+        keyboard_lifo.buffer_tail = 0;
         std::memcpy(data + SHARED_MEMORY_OFFSET, &keyboard_lifo, sizeof(keyboard_lifo));
         return;
     }

@@ -30,8 +30,8 @@ void Controller_Touchscreen::OnUpdate(const Core::Timing::CoreTiming& core_timin
     touch_screen_lifo.timestamp = core_timing.GetCPUTicks();
 
     if (!IsControllerActivated()) {
-        touch_screen_lifo.entry_count = 0;
-        touch_screen_lifo.last_entry_index = 0;
+        touch_screen_lifo.buffer_count = 0;
+        touch_screen_lifo.buffer_tail = 0;
         std::memcpy(data, &touch_screen_lifo, sizeof(touch_screen_lifo));
         return;
     }

@@ -8,7 +8,7 @@
 #include "common/swap.h"
 
 namespace Service::HID {
-constexpr std::size_t max_entry_size = 17;
+constexpr std::size_t max_buffer_size = 17;
 
 template <typename State>
 struct AtomicStorage {
@@ -19,13 +19,13 @@ struct AtomicStorage {
 template <typename State>
 struct Lifo {
     s64 timestamp{};
-    s64 total_entry_count = max_entry_size;
-    s64 last_entry_index{};
-    s64 entry_count{};
-    std::array<AtomicStorage<State>, max_entry_size> entries{};
+    s64 total_buffer_count = max_buffer_size;
+    s64 buffer_tail{};
+    s64 buffer_count{};
+    std::array<AtomicStorage<State>, max_buffer_size> entries{};
 
     const AtomicStorage<State>& ReadCurrentEntry() const {
-        return entries[last_entry_index];
+        return entries[buffer_tail];
     }
 
     const AtomicStorage<State>& ReadPreviousEntry() const {
@@ -33,21 +33,21 @@ struct Lifo {
     }
 
     std::size_t GetPreviuousEntryIndex() const {
-        return (last_entry_index + total_entry_count - 1) % total_entry_count;
+        return (buffer_tail + total_buffer_count - 1) % total_buffer_count;
     }
 
     std::size_t GetNextEntryIndex() const {
-        return (last_entry_index + 1) % total_entry_count;
+        return (buffer_tail + 1) % total_buffer_count;
     }
 
     void WriteNextEntry(const State& new_state) {
-        if (entry_count < total_entry_count - 1) {
-            entry_count++;
+        if (buffer_count < total_buffer_count - 1) {
+            buffer_count++;
         }
-        last_entry_index = GetNextEntryIndex();
+        buffer_tail = GetNextEntryIndex();
         const auto& previous_entry = ReadPreviousEntry();
-        entries[last_entry_index].sampling_number = previous_entry.sampling_number + 1;
-        entries[last_entry_index].state = new_state;
+        entries[buffer_tail].sampling_number = previous_entry.sampling_number + 1;
+        entries[buffer_tail].state = new_state;
     }
 };
 

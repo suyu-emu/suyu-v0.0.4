@@ -20,8 +20,8 @@ void Controller_XPad::OnRelease() {}
 void Controller_XPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* data,
                                std::size_t size) {
     if (!IsControllerActivated()) {
-        basic_xpad_lifo.entry_count = 0;
-        basic_xpad_lifo.last_entry_index = 0;
+        basic_xpad_lifo.buffer_count = 0;
+        basic_xpad_lifo.buffer_tail = 0;
         std::memcpy(data + SHARED_MEMORY_OFFSET, &basic_xpad_lifo, sizeof(basic_xpad_lifo));
         return;
     }

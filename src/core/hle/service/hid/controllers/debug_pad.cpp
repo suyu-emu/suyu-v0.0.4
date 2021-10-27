@@ -30,8 +30,8 @@ void Controller_DebugPad::OnRelease() {}
 void Controller_DebugPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* data,
                                    std::size_t size) {
     if (!IsControllerActivated()) {
-        debug_pad_lifo.entry_count = 0;
-        debug_pad_lifo.last_entry_index = 0;
+        debug_pad_lifo.buffer_count = 0;
+        debug_pad_lifo.buffer_tail = 0;
         std::memcpy(data + SHARED_MEMORY_OFFSET, &debug_pad_lifo, sizeof(debug_pad_lifo));
         return;
     }

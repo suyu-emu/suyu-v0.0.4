@@ -31,8 +31,8 @@ Controller_Gesture::Controller_Gesture(Core::System& system_) : ControllerBase(s
 Controller_Gesture::~Controller_Gesture() = default;
 
 void Controller_Gesture::OnInit() {
-    gesture_lifo.entry_count = 0;
-    gesture_lifo.last_entry_index = 0;
+    gesture_lifo.buffer_count = 0;
+    gesture_lifo.buffer_tail = 0;
     force_update = true;
 }
 
@@ -41,8 +41,8 @@ void Controller_Gesture::OnRelease() {}
 void Controller_Gesture::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* data,
                                   std::size_t size) {
     if (!IsControllerActivated()) {
-        gesture_lifo.entry_count = 0;
-        gesture_lifo.last_entry_index = 0;
+        gesture_lifo.buffer_count = 0;
+        gesture_lifo.buffer_tail = 0;
         std::memcpy(data + SHARED_MEMORY_OFFSET, &gesture_lifo, sizeof(gesture_lifo));
         return;
     }

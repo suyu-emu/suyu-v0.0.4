@@ -330,9 +330,42 @@ private:
             BitField<13, 1, s32> handheld_lark_nes_left;
             BitField<14, 1, s32> handheld_lark_nes_right;
             BitField<15, 1, s32> lucia;
+            BitField<16, 1, s32> lagon;
+            BitField<17, 1, s32> lager;
             BitField<31, 1, s32> system;
         };
     };
+
+    // This is nn::hid::detail::NfcXcdDeviceHandleStateImpl
+    struct NfcXcdDeviceHandleStateImpl {
+        u64 handle;
+        bool is_available;
+        bool is_activated;
+        INSERT_PADDING_BYTES(0x6); // Reserved
+        u64 sampling_number;
+    };
+    static_assert(sizeof(NfcXcdDeviceHandleStateImpl) == 0x18,
+                  "NfcXcdDeviceHandleStateImpl is an invalid size");
+
+    // nn::hid::detail::NfcXcdDeviceHandleStateImplAtomicStorage
+    struct NfcXcdDeviceHandleStateImplAtomicStorage {
+        u64 sampling_number;
+        NfcXcdDeviceHandleStateImpl nfc_xcd_device_handle_state;
+    };
+    static_assert(sizeof(NfcXcdDeviceHandleStateImplAtomicStorage) == 0x20,
+                  "NfcXcdDeviceHandleStateImplAtomicStorage is an invalid size");
+
+    // This is nn::hid::detail::NfcXcdDeviceHandleState
+    struct NfcXcdDeviceHandleState {
+        // TODO(german77): Make this struct a ring lifo object
+        INSERT_PADDING_BYTES(0x8); // Unused
+        s64 total_buffer_count = max_buffer_size;
+        s64 buffer_tail{};
+        s64 buffer_count{};
+        std::array<NfcXcdDeviceHandleStateImplAtomicStorage, 2> nfc_xcd_device_handle_storage;
+    };
+    static_assert(sizeof(NfcXcdDeviceHandleState) == 0x60,
+                  "NfcXcdDeviceHandleState is an invalid size");
 
     // This is nn::hid::system::AppletFooterUiAttributesSet
     struct AppletFooterUiAttributes {
@@ -365,6 +398,14 @@ private:
         Lagon = 21,
     };
 
+    struct AppletFooterUi {
+        AppletFooterUiAttributes attributes;
+        AppletFooterUiType type;
+        INSERT_PADDING_BYTES(0x5B); // Reserved
+    };
+    static_assert(sizeof(AppletFooterUi) == 0x60,
+                  "AppletFooterUi is an invalid size");
+
     // This is nn::hid::NpadLarkType
     enum class NpadLarkType : u32 {
         Invalid,
@@ -380,6 +421,11 @@ private:
         J,
         E,
         U,
+    };
+
+    // This is nn::hid::NpadLagonType
+    enum class NpadLagonType : u32 {
+        Invalid,
     };
 
     // This is nn::hid::NpadLagerType
@@ -416,17 +462,19 @@ private:
         Core::HID::BatteryLevel battery_level_dual;
         Core::HID::BatteryLevel battery_level_left;
         Core::HID::BatteryLevel battery_level_right;
-        AppletFooterUiAttributes footer_attributes;
-        AppletFooterUiType footer_type;
-        // GetXcdHandleForNpadWithNfc needs to be checked switchbrew doesn't match with HW
-        INSERT_PADDING_BYTES(0x78); // Unknown
+        union {
+            NfcXcdDeviceHandleState nfc_xcd_device_handle;
+            AppletFooterUi applet_footer;
+        };
+        INSERT_PADDING_BYTES(0x20); // Unknown
         Lifo<NpadGcTriggerState> gc_trigger_lifo;
-        NpadLarkType lark_type_l;
+        NpadLarkType lark_type_l_and_main;
         NpadLarkType lark_type_r;
         NpadLuciaType lucia_type;
+        NpadLagonType lagon_type;
         NpadLagerType lager_type;
         INSERT_PADDING_BYTES(
-            0x8); // FW 13.x Investigate there is some sort of bitflag related to joycons
+            0x4); // FW 13.x Investigate there is some sort of bitflag related to joycons
         INSERT_PADDING_BYTES(0xc08); // Unknown
     };
     static_assert(sizeof(NpadInternalState) == 0x5000, "NpadInternalState is an invalid size");

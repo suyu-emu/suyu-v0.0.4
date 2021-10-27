@@ -101,7 +101,8 @@ Controller_NPad::Controller_NPad(Core::System& system_,
     for (std::size_t i = 0; i < controller_data.size(); ++i) {
         auto& controller = controller_data[i];
         controller.device = system.HIDCore().GetEmulatedControllerByIndex(i);
-        controller.vibration[Core::HID::DeviceIndex::LeftIndex].latest_vibration_value = DEFAULT_VIBRATION_VALUE;
+        controller.vibration[Core::HID::DeviceIndex::LeftIndex].latest_vibration_value =
+            DEFAULT_VIBRATION_VALUE;
         controller.vibration[Core::HID::DeviceIndex::RightIndex].latest_vibration_value =
             DEFAULT_VIBRATION_VALUE;
         Core::HID::ControllerUpdateCallback engine_callback{
@@ -178,7 +179,7 @@ void Controller_NPad::InitNewlyAddedController(std::size_t controller_idx) {
         shared_memory.system_properties.use_plus.Assign(1);
         shared_memory.system_properties.use_minus.Assign(1);
         shared_memory.assignment_mode = NpadJoyAssignmentMode::Single;
-        shared_memory.footer_type = AppletFooterUiType::SwitchProController;
+        shared_memory.applet_footer.type = AppletFooterUiType::SwitchProController;
         break;
     case Core::HID::NpadType::Handheld:
         shared_memory.style_set.handheld.Assign(1);
@@ -188,7 +189,7 @@ void Controller_NPad::InitNewlyAddedController(std::size_t controller_idx) {
         shared_memory.system_properties.use_plus.Assign(1);
         shared_memory.system_properties.use_minus.Assign(1);
         shared_memory.assignment_mode = NpadJoyAssignmentMode::Dual;
-        shared_memory.footer_type = AppletFooterUiType::HandheldJoyConLeftJoyConRight;
+        shared_memory.applet_footer.type = AppletFooterUiType::HandheldJoyConLeftJoyConRight;
         break;
     case Core::HID::NpadType::JoyconDual:
         shared_memory.style_set.joycon_dual.Assign(1);
@@ -198,7 +199,7 @@ void Controller_NPad::InitNewlyAddedController(std::size_t controller_idx) {
         shared_memory.system_properties.use_plus.Assign(1);
         shared_memory.system_properties.use_minus.Assign(1);
         shared_memory.assignment_mode = NpadJoyAssignmentMode::Dual;
-        shared_memory.footer_type = AppletFooterUiType::JoyDual;
+        shared_memory.applet_footer.type = AppletFooterUiType::JoyDual;
         break;
     case Core::HID::NpadType::JoyconLeft:
         shared_memory.style_set.joycon_left.Assign(1);
@@ -206,7 +207,7 @@ void Controller_NPad::InitNewlyAddedController(std::size_t controller_idx) {
         shared_memory.system_properties.is_horizontal.Assign(1);
         shared_memory.system_properties.use_minus.Assign(1);
         shared_memory.assignment_mode = NpadJoyAssignmentMode::Single;
-        shared_memory.footer_type = AppletFooterUiType::JoyLeftHorizontal;
+        shared_memory.applet_footer.type = AppletFooterUiType::JoyLeftHorizontal;
         break;
     case Core::HID::NpadType::JoyconRight:
         shared_memory.style_set.joycon_right.Assign(1);
@@ -214,7 +215,7 @@ void Controller_NPad::InitNewlyAddedController(std::size_t controller_idx) {
         shared_memory.system_properties.is_horizontal.Assign(1);
         shared_memory.system_properties.use_plus.Assign(1);
         shared_memory.assignment_mode = NpadJoyAssignmentMode::Single;
-        shared_memory.footer_type = AppletFooterUiType::JoyRightHorizontal;
+        shared_memory.applet_footer.type = AppletFooterUiType::JoyRightHorizontal;
         break;
     case Core::HID::NpadType::GameCube:
         shared_memory.style_set.gamecube.Assign(1);
@@ -919,7 +920,7 @@ void Controller_NPad::DisconnectNpadAtIndex(std::size_t npad_index) {
         .right = {},
     };
     shared_memory_entry.assignment_mode = NpadJoyAssignmentMode::Dual;
-    shared_memory_entry.footer_type = AppletFooterUiType::None;
+    shared_memory_entry.applet_footer.type = AppletFooterUiType::None;
 
     controller.is_connected = false;
     controller.device->Disconnect();

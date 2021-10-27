@@ -231,7 +231,12 @@ enum class NpadButton : u64 {
     RightSR = 1U << 27,
 
     Palma = 1U << 28,
+    Verification = 1U << 29,
     HandheldLeftB = 1U << 30,
+    LagonCLeft = 1U << 31,
+    LagonCUp = 1ULL << 32,
+    LagonCRight = 1ULL << 33,
+    LagonCDown = 1ULL << 34,
 };
 DECLARE_ENUM_FLAG_OPERATORS(NpadButton);
 
@@ -278,7 +283,12 @@ struct NpadButtonState {
         BitField<27, 1, u64> right_sr;
 
         BitField<28, 1, u64> palma;
+        BitField<29, 1, u64> verification;
         BitField<30, 1, u64> handheld_left_b;
+        BitField<31, 1, u64> lagon_c_left;
+        BitField<32, 1, u64> lagon_c_up;
+        BitField<33, 1, u64> lagon_c_right;
+        BitField<34, 1, u64> lagon_c_down;
     };
 };
 static_assert(sizeof(NpadButtonState) == 0x8, "NpadButtonState has incorrect size.");
