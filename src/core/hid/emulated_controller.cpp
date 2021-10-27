@@ -105,6 +105,8 @@ void EmulatedController::LoadDevices() {
     output_params[LeftIndex].Set("output", true);
     output_params[RightIndex].Set("output", true);
 
+    LoadTASParams();
+
     std::transform(button_params.begin() + Settings::NativeButton::BUTTON_HID_BEGIN,
                    button_params.begin() + Settings::NativeButton::BUTTON_NS_END,
                    button_devices.begin(), Input::CreateDevice<Input::InputDevice>);
@@ -120,6 +122,51 @@ void EmulatedController::LoadDevices() {
                    Input::CreateDevice<Input::InputDevice>);
     std::transform(output_params.begin(), output_params.end(), output_devices.begin(),
                    Input::CreateDevice<Input::OutputDevice>);
+
+    // Initialize TAS devices
+    std::transform(tas_button_params.begin(), tas_button_params.end(), tas_button_devices.begin(),
+                   Input::CreateDevice<Input::InputDevice>);
+    std::transform(tas_stick_params.begin(), tas_stick_params.begin(), tas_stick_devices.begin(),
+                   Input::CreateDevice<Input::InputDevice>);
+}
+
+void EmulatedController::LoadTASParams() {
+    const auto player_index = NpadIdTypeToIndex(npad_id_type);
+    Common::ParamPackage common_params{};
+    common_params.Set("engine", "tas");
+    common_params.Set("pad", static_cast<int>(player_index));
+    for (auto& param : tas_button_params) {
+        param = common_params;
+    }
+    for (auto& param : tas_stick_params) {
+        param = common_params;
+    }
+
+    tas_button_params[Settings::NativeButton::A].Set("button", 1 << 0);
+    tas_button_params[Settings::NativeButton::B].Set("button", 1 << 1);
+    tas_button_params[Settings::NativeButton::X].Set("button", 1 << 2);
+    tas_button_params[Settings::NativeButton::Y].Set("button", 1 << 3);
+    tas_button_params[Settings::NativeButton::LStick].Set("button", 1 << 4);
+    tas_button_params[Settings::NativeButton::RStick].Set("button", 1 << 5);
+    tas_button_params[Settings::NativeButton::L].Set("button", 1 << 6);
+    tas_button_params[Settings::NativeButton::R].Set("button", 1 << 7);
+    tas_button_params[Settings::NativeButton::ZL].Set("button", 1 << 8);
+    tas_button_params[Settings::NativeButton::ZR].Set("button", 1 << 9);
+    tas_button_params[Settings::NativeButton::Plus].Set("button", 1 << 10);
+    tas_button_params[Settings::NativeButton::Minus].Set("button", 1 << 11);
+    tas_button_params[Settings::NativeButton::DLeft].Set("button", 1 << 12);
+    tas_button_params[Settings::NativeButton::DUp].Set("button", 1 << 13);
+    tas_button_params[Settings::NativeButton::DRight].Set("button", 1 << 14);
+    tas_button_params[Settings::NativeButton::DDown].Set("button", 1 << 15);
+    tas_button_params[Settings::NativeButton::SL].Set("button", 1 << 16);
+    tas_button_params[Settings::NativeButton::SR].Set("button", 1 << 17);
+    tas_button_params[Settings::NativeButton::Home].Set("button", 1 << 18);
+    tas_button_params[Settings::NativeButton::Screenshot].Set("button", 1 << 19);
+
+    tas_stick_params[Settings::NativeAnalog::LStick].Set("axis_x", 0);
+    tas_stick_params[Settings::NativeAnalog::LStick].Set("axis_y", 1);
+    tas_stick_params[Settings::NativeAnalog::RStick].Set("axis_x", 2);
+    tas_stick_params[Settings::NativeAnalog::RStick].Set("axis_y", 3);
 }
 
 void EmulatedController::ReloadInput() {
@@ -174,6 +221,25 @@ void EmulatedController::ReloadInput() {
         motion_devices[index]->SetCallback(motion_callback);
         motion_devices[index]->ForceUpdate();
     }
+
+    // Register TAS devices. No need to force update
+    for (std::size_t index = 0; index < tas_button_devices.size(); ++index) {
+        if (!tas_button_devices[index]) {
+            continue;
+        }
+        Input::InputCallback button_callback{
+            [this, index](Input::CallbackStatus callback) { SetButton(callback, index); }};
+        tas_button_devices[index]->SetCallback(button_callback);
+    }
+
+    for (std::size_t index = 0; index < tas_stick_devices.size(); ++index) {
+        if (!tas_stick_devices[index]) {
+            continue;
+        }
+        Input::InputCallback stick_callback{
+            [this, index](Input::CallbackStatus callback) { SetStick(callback, index); }};
+        tas_stick_devices[index]->SetCallback(stick_callback);
+    }
 }
 
 void EmulatedController::UnloadInput() {
@@ -194,6 +260,12 @@ void EmulatedController::UnloadInput() {
     }
     for (auto& output : output_devices) {
         output.reset();
+    }
+    for (auto& button : tas_button_devices) {
+        button.reset();
+    }
+    for (auto& stick : tas_stick_devices) {
+        stick.reset();
     }
 }
 

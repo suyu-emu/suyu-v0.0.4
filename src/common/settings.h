@@ -567,7 +567,6 @@ struct Values {
     BasicSetting<bool> pause_tas_on_load{true, "pause_tas_on_load"};
     BasicSetting<bool> tas_enable{false, "tas_enable"};
     BasicSetting<bool> tas_loop{false, "tas_loop"};
-    BasicSetting<bool> tas_swap_controllers{true, "tas_swap_controllers"};
 
     BasicSetting<bool> mouse_panning{false, "mouse_panning"};
     BasicRangedSetting<u8> mouse_panning_sensitivity{10, 1, 100, "mouse_panning_sensitivity"};

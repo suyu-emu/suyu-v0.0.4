@@ -299,6 +299,9 @@ private:
     /// creates input devices from params
     void LoadDevices();
 
+    /// Set the params for TAS devices
+    void LoadTASParams();
+
     /**
      * Updates the button status of the controller
      * @param callback: A CallbackStatus containing the button status
@@ -362,6 +365,12 @@ private:
     TriggerDevices trigger_devices;
     BatteryDevices battery_devices;
     OutputDevices output_devices;
+
+    // TAS related variables
+    ButtonParams tas_button_params;
+    StickParams tas_stick_params;
+    ButtonDevices tas_button_devices;
+    StickDevices tas_stick_devices;
 
     mutable std::mutex mutex;
     std::unordered_map<int, ControllerUpdateCallback> callback_list;
