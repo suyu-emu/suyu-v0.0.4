@@ -94,7 +94,6 @@ public:
 
     bool RumblePlay(const Input::VibrationStatus vibration) {
         constexpr u32 rumble_max_duration_ms = 1000;
-
         if (sdl_controller) {
             return SDL_GameControllerRumble(
                        sdl_controller.get(), static_cast<u16>(vibration.low_amplitude),
@@ -520,24 +519,30 @@ Input::VibrationError SDLDriver::SetRumble(const PadIdentifier& identifier,
                                            const Input::VibrationStatus vibration) {
     const auto joystick =
         GetSDLJoystickByGUID(identifier.guid.Format(), static_cast<int>(identifier.port));
-    const auto process_amplitude = [](f32 amplitude) {
-        return (amplitude + std::pow(amplitude, 0.3f)) * 0.5f * 0xFFFF;
+    const auto process_amplitude_exp = [](f32 amplitude, f32 factor) {
+        return (amplitude + std::pow(amplitude, factor)) * 0.5f * 0xFFFF;
     };
-    const Input::VibrationStatus exponential_vibration{
-        .low_amplitude = process_amplitude(vibration.low_amplitude),
+
+    // Default exponential curve for rumble
+    f32 factor = 0.35f;
+
+    // If vibration is set as a linear output use a flatter value
+    if (vibration.type == Input::VibrationAmplificationType::Linear) {
+        factor = 0.5f;
+    }
+
+    // Amplitude for HD rumble needs no modification
+    if (joystick->HasHDRumble()) {
+        factor = 1.0f;
+    }
+
+    const Input::VibrationStatus new_vibration{
+        .low_amplitude = process_amplitude_exp(vibration.low_amplitude, factor),
         .low_frequency = vibration.low_frequency,
-        .high_amplitude = process_amplitude(vibration.high_amplitude),
+        .high_amplitude = process_amplitude_exp(vibration.high_amplitude, factor),
         .high_frequency = vibration.high_frequency,
         .type = Input::VibrationAmplificationType::Exponential,
     };
-
-    Input::VibrationStatus new_vibration{};
-
-    if (vibration.type == Input::VibrationAmplificationType::Linear || joystick->HasHDRumble()) {
-        new_vibration = vibration;
-    } else {
-        new_vibration = exponential_vibration;
-    }
 
     if (!joystick->RumblePlay(new_vibration)) {
         return Input::VibrationError::Unknown;

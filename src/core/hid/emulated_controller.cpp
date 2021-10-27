@@ -251,7 +251,8 @@ void EmulatedController::RestoreConfig() {
     ReloadFromSettings();
 }
 
-std::vector<Common::ParamPackage> EmulatedController::GetMappedDevices(DeviceIndex device_index) const {
+std::vector<Common::ParamPackage> EmulatedController::GetMappedDevices(
+    DeviceIndex device_index) const {
     std::vector<Common::ParamPackage> devices;
     for (const auto& param : button_params) {
         if (!param.Has("engine")) {
@@ -658,6 +659,10 @@ bool EmulatedController::SetVibration(std::size_t device_index, VibrationValue v
     const auto& player = Settings::values.players.GetValue()[player_index];
     const f32 strength = static_cast<f32>(player.vibration_strength) / 100.0f;
 
+    if (!player.vibration_enabled) {
+        return false;
+    }
+
     // Exponential amplification is too strong at low amplitudes. Switch to a linear
     // amplification if strength is set below 0.7f
     const Input::VibrationAmplificationType type =
@@ -860,6 +865,9 @@ AnalogSticks EmulatedController::GetSticks() const {
     }
     // Some drivers like stick from buttons need constant refreshing
     for (auto& device : stick_devices) {
+        if (!device) {
+            continue;
+        }
         device->SoftUpdate();
     }
     return controller.analog_stick_state;
