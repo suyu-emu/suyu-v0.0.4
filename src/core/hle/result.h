@@ -244,6 +244,26 @@ public:
         return *this;
     }
 
+    ResultVal& operator=(ResultVal&& o) {
+        if (this == &o) {
+            return *this;
+        }
+        if (!empty()) {
+            if (!o.empty()) {
+                object = std::move(o.object);
+            } else {
+                object.~T();
+            }
+        } else {
+            if (!o.empty()) {
+                new (&object) T(std::move(o.object));
+            }
+        }
+        result_code = o.result_code;
+
+        return *this;
+    }
+
     /**
      * Replaces the current result with a new constructed result value in-place. The code must not
      * be an error code.
