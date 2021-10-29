@@ -30,7 +30,7 @@ namespace {
     return false;
 }
 
-void VisitMark(const IR::Inst& inst) {
+void VisitMark(IR::Block& block, IR::Inst& inst) {
     switch (inst.GetOpcode()) {
     case IR::Opcode::ShuffleIndex:
     case IR::Opcode::ShuffleUp:
@@ -49,19 +49,30 @@ void VisitMark(const IR::Inst& inst) {
             break;
         }
         IR::Inst* const bitcast_inst{bitcast_arg.InstRecursive()};
+        bool must_patch_outside = false;
         if (bitcast_inst->GetOpcode() == IR::Opcode::GetAttribute) {
             const IR::Attribute attr{bitcast_inst->Arg(0).Attribute()};
             switch (attr) {
             case IR::Attribute::PositionX:
             case IR::Attribute::PositionY:
                 bitcast_inst->SetFlags<u32>(0xDEADBEEF);
+                must_patch_outside = true;
                 break;
             default:
                 break;
             }
         }
+        if (must_patch_outside) {
+            const auto it{IR::Block::InstructionList::s_iterator_to(inst)};
+            IR::IREmitter ir{block, IR::Block::InstructionList::s_iterator_to(inst)};
+            const IR::F32 new_inst{&*block.PrependNewInst(it, inst)};
+            const IR::F32 up_factor{ir.FPRecip(ir.ResolutionDownFactor())};
+            const IR::Value converted{ir.FPMul(new_inst, up_factor)};
+            inst.ReplaceUsesWith(converted);
+        }
         break;
     }
+
     default:
         break;
     }
@@ -302,7 +313,7 @@ void RescalingPass(IR::Program& program) {
     if (is_fragment_shader) {
         for (IR::Block* const block : program.post_order_blocks) {
             for (IR::Inst& inst : block->Instructions()) {
-                VisitMark(inst);
+                VisitMark(*block, inst);
             }
         }
     }
