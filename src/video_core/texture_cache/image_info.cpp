@@ -135,7 +135,7 @@ ImageInfo::ImageInfo(const Tegra::Engines::Maxwell3D::Regs& regs, size_t index) 
         type = ImageType::e3D;
         size.depth = rt.depth;
     } else {
-        rescaleable = block.depth == 0 && size.height > 256;
+        rescaleable = block.depth == 0;
         downscaleable = size.height > 512;
         type = ImageType::e2D;
         resources.layers = rt.depth;
@@ -165,7 +165,7 @@ ImageInfo::ImageInfo(const Tegra::Engines::Maxwell3D::Regs& regs) noexcept {
         type = ImageType::e3D;
         size.depth = regs.zeta_depth;
     } else {
-        rescaleable = block.depth == 0 && size.height > 256;
+        rescaleable = block.depth == 0;
         downscaleable = size.height > 512;
         type = ImageType::e2D;
         resources.layers = regs.zeta_depth;
@@ -199,7 +199,7 @@ ImageInfo::ImageInfo(const Tegra::Engines::Fermi2D::Surface& config) noexcept {
             .height = config.height,
             .depth = 1,
         };
-        rescaleable = block.depth == 0 && size.height > 256;
+        rescaleable = block.depth == 0;
         downscaleable = size.height > 512;
     }
 }

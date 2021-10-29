@@ -75,6 +75,14 @@ void PatchFragCoord(IR::Block& block, IR::Inst& inst) {
     inst.ReplaceUsesWith(downscaled_frag_coord);
 }
 
+void PatchPointSize(IR::Block& block, IR::Inst& inst) {
+    IR::IREmitter ir{block, IR::Block::InstructionList::s_iterator_to(inst)};
+    const IR::F32 point_value{inst.Arg(1)};
+    const IR::F32 up_factor{ir.FPRecip(ir.ResolutionDownFactor())};
+    const IR::F32 upscaled_point_value{ir.FPMul(point_value, up_factor)};
+    inst.SetArg(1, upscaled_point_value);
+}
+
 [[nodiscard]] IR::U32 Scale(IR::IREmitter& ir, const IR::U1& is_scaled, const IR::U32& value) {
     IR::U32 scaled_value{value};
     if (const u32 up_scale = Settings::values.resolution_info.up_scale; up_scale != 1) {
@@ -246,6 +254,19 @@ void Visit(const IR::Program& program, IR::Block& block, IR::Inst& inst) {
         case IR::Attribute::PositionY:
             if (is_fragment_shader && inst.Flags<u32>() != 0xDEADBEEF) {
                 PatchFragCoord(block, inst);
+            }
+            break;
+        default:
+            break;
+        }
+        break;
+    }
+    case IR::Opcode::SetAttribute: {
+        const IR::Attribute attr{inst.Arg(0).Attribute()};
+        switch (attr) {
+        case IR::Attribute::PointSize:
+            if (inst.Flags<u32>() != 0xDEADBEEF) {
+                PatchPointSize(block, inst);
             }
             break;
         default:
