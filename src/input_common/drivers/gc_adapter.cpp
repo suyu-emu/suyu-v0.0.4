@@ -73,7 +73,7 @@ GCAdapter::GCAdapter(const std::string input_engine_) : InputEngine(input_engine
     if (usb_adapter_handle) {
         return;
     }
-    LOG_INFO(Input, "GC Adapter Initialization started");
+    LOG_DEBUG(Input, "Initialization started");
 
     libusb_ctx = std::make_unique<LibUSBContext>();
     const int init_res = libusb_ctx->InitResult();
@@ -90,7 +90,7 @@ GCAdapter::~GCAdapter() {
 }
 
 void GCAdapter::AdapterInputThread(std::stop_token stop_token) {
-    LOG_DEBUG(Input, "GC Adapter input thread started");
+    LOG_DEBUG(Input, "Input thread started");
     Common::SetCurrentThreadName("yuzu:input:GCAdapter");
     s32 payload_size{};
     AdapterPayload adapter_payload{};
@@ -120,7 +120,7 @@ bool GCAdapter::IsPayloadCorrect(const AdapterPayload& adapter_payload, s32 payl
         LOG_DEBUG(Input, "Error reading payload (size: {}, type: {:02x})", payload_size,
                   adapter_payload[0]);
         if (input_error_counter++ > 20) {
-            LOG_ERROR(Input, "GC adapter timeout, Is the adapter connected?");
+            LOG_ERROR(Input, "Timeout, Is the adapter connected?");
             adapter_input_thread.request_stop();
             restart_scan_thread = true;
         }
@@ -263,13 +263,6 @@ bool GCAdapter::Setup() {
 }
 
 bool GCAdapter::CheckDeviceAccess() {
-    // This fixes payload problems from offbrand GCAdapters
-    const s32 control_transfer_error =
-        libusb_control_transfer(usb_adapter_handle->get(), 0x21, 11, 0x0001, 0, nullptr, 0, 1000);
-    if (control_transfer_error < 0) {
-        LOG_ERROR(Input, "libusb_control_transfer failed with error= {}", control_transfer_error);
-    }
-
     s32 kernel_driver_error = libusb_kernel_driver_active(usb_adapter_handle->get(), 0);
     if (kernel_driver_error == 1) {
         kernel_driver_error = libusb_detach_kernel_driver(usb_adapter_handle->get(), 0);
@@ -289,6 +282,13 @@ bool GCAdapter::CheckDeviceAccess() {
         LOG_ERROR(Input, "libusb_claim_interface failed with error = {}", interface_claim_error);
         usb_adapter_handle = nullptr;
         return false;
+    }
+
+    // This fixes payload problems from offbrand GCAdapters
+    const s32 control_transfer_error =
+        libusb_control_transfer(usb_adapter_handle->get(), 0x21, 11, 0x0001, 0, nullptr, 0, 1000);
+    if (control_transfer_error < 0) {
+        LOG_ERROR(Input, "libusb_control_transfer failed with error= {}", control_transfer_error);
     }
 
     return true;
@@ -370,9 +370,9 @@ void GCAdapter::SendVibrations() {
         libusb_interrupt_transfer(usb_adapter_handle->get(), output_endpoint, payload.data(),
                                   static_cast<s32>(payload.size()), &size, 16);
     if (err) {
-        LOG_DEBUG(Input, "Adapter libusb write failed: {}", libusb_error_name(err));
+        LOG_DEBUG(Input, "Libusb write failed: {}", libusb_error_name(err));
         if (output_error_counter++ > 5) {
-            LOG_ERROR(Input, "GC adapter output timeout, Rumble disabled");
+            LOG_ERROR(Input, "Output timeout, Rumble disabled");
             rumble_enabled = false;
         }
         return;
