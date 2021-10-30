@@ -105,30 +105,32 @@ NvResult nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector
 
     auto& event = events_interface.events[event_id];
     auto& gpu = system.GPU();
-
-    // This is mostly to take into account unimplemented features. As synced
-    // gpu is always synced.
-    if (!gpu.IsAsync()) {
-        event.event->GetWritableEvent().Signal();
-        return NvResult::Success;
-    }
     const u32 current_syncpoint_value = event.fence.value;
     const s32 diff = current_syncpoint_value - params.threshold;
-    if (diff >= 0) {
-        event.event->GetWritableEvent().Signal();
-        params.value = current_syncpoint_value;
-        std::memcpy(output.data(), &params, sizeof(params));
-        events_interface.failed[event_id] = false;
-        return NvResult::Success;
-    }
-    const u32 target_value = current_syncpoint_value - diff;
+    const u32 target_value = params.value;
 
     if (!is_async) {
         params.value = 0;
     }
 
+    const auto check_failing = [&]() {
+        if (events_interface.failed[event_id]) {
+            {
+                auto lk = system.StallProcesses();
+                gpu.WaitFence(params.syncpt_id, target_value);
+                system.UnstallProcesses();
+            }
+            std::memcpy(output.data(), &params, sizeof(params));
+            events_interface.failed[event_id] = false;
+            return true;
+        }
+        return false;
+    };
+
     if (params.timeout == 0) {
-        std::memcpy(output.data(), &params, sizeof(params));
+        if (check_failing()) {
+            return NvResult::Success;
+        }
         return NvResult::Timeout;
     }
 
@@ -147,15 +149,7 @@ NvResult nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector
         params.value = ((params.syncpt_id & 0xfff) << 16) | 0x10000000;
     }
     params.value |= event_id;
-    event.event->GetWritableEvent().Clear();
-    if (events_interface.failed[event_id]) {
-        {
-            auto lk = system.StallProcesses();
-            gpu.WaitFence(params.syncpt_id, target_value);
-            system.UnstallProcesses();
-        }
-        std::memcpy(output.data(), &params, sizeof(params));
-        events_interface.failed[event_id] = false;
+    if (check_failing()) {
         return NvResult::Success;
     }
     gpu.RegisterSyncptInterrupt(params.syncpt_id, target_value);
