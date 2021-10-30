@@ -66,6 +66,10 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include <QUrl>
 #include <QtConcurrent/QtConcurrent>
 
+#ifdef HAVE_SDL2
+#include <SDL.h> // For SDL ScreenSaver functions
+#endif
+
 #include <fmt/format.h>
 #include "common/detached_tasks.h"
 #include "common/fs/fs.h"
@@ -287,6 +291,14 @@ GMainWindow::GMainWindow()
 
     ui->action_Fullscreen->setChecked(false);
 
+#if defined(HAVE_SDL2) && !defined(_WIN32)
+    SDL_InitSubSystem(SDL_INIT_VIDEO);
+    // SDL disables the screen saver by default, and setting the hint
+    // SDL_HINT_VIDEO_ALLOW_SCREENSAVER doesn't seem to work, so we just enable the screen saver
+    // for now.
+    SDL_EnableScreenSaver();
+#endif
+
     QStringList args = QApplication::arguments();
 
     if (args.size() < 2) {
@@ -357,8 +369,9 @@ GMainWindow::GMainWindow()
 
 GMainWindow::~GMainWindow() {
     // will get automatically deleted otherwise
-    if (render_window->parent() == nullptr)
+    if (render_window->parent() == nullptr) {
         delete render_window;
+    }
 }
 
 void GMainWindow::RegisterMetaTypes() {
@@ -1223,12 +1236,16 @@ void GMainWindow::OnDisplayTitleBars(bool show) {
 void GMainWindow::PreventOSSleep() {
 #ifdef _WIN32
     SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED);
+#elif defined(HAVE_SDL2)
+    SDL_DisableScreenSaver();
 #endif
 }
 
 void GMainWindow::AllowOSSleep() {
 #ifdef _WIN32
     SetThreadExecutionState(ES_CONTINUOUS);
+#elif defined(HAVE_SDL2)
+    SDL_EnableScreenSaver();
 #endif
 }
 
