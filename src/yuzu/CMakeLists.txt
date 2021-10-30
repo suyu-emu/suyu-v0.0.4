@@ -299,6 +299,11 @@ if (YUZU_USE_BUNDLED_QT)
     copy_yuzu_Qt5_deps(yuzu)
 endif()
 
+if (ENABLE_SDL2)
+    target_link_libraries(yuzu PRIVATE SDL2)
+    target_compile_definitions(yuzu PRIVATE HAVE_SDL2)
+endif()
+
 if (MSVC)
     include(CopyYuzuSDLDeps)
     include(CopyYuzuFFmpegDeps)
