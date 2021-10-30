@@ -88,8 +88,9 @@ void EmulatedController::ReloadFromSettings() {
     ReloadInput();
 }
 void EmulatedController::LoadDevices() {
-    const auto left_joycon = button_params[Settings::NativeButton::ZL];
-    const auto right_joycon = button_params[Settings::NativeButton::ZR];
+    // TODO(german77): Use more buttons to detect the correct device
+    const auto left_joycon = button_params[Settings::NativeButton::A];
+    const auto right_joycon = button_params[Settings::NativeButton::DRight];
 
     // Triggers for GC controllers
     trigger_params[LeftIndex] = button_params[Settings::NativeButton::ZL];
@@ -142,6 +143,7 @@ void EmulatedController::LoadTASParams() {
         param = common_params;
     }
 
+    // TODO(german77): Replace this with an input profile or something better
     tas_button_params[Settings::NativeButton::A].Set("button", 1 << 0);
     tas_button_params[Settings::NativeButton::B].Set("button", 1 << 1);
     tas_button_params[Settings::NativeButton::X].Set("button", 1 << 2);
@@ -271,24 +273,24 @@ void EmulatedController::UnloadInput() {
 
 void EmulatedController::EnableConfiguration() {
     is_configuring = true;
-    temporary_is_connected = is_connected;
-    temporary_npad_type = npad_type;
+    tmp_is_connected = is_connected;
+    tmp_npad_type = npad_type;
 }
 
 void EmulatedController::DisableConfiguration() {
     is_configuring = false;
 
     // Apply temporary npad type to the real controller
-    if (temporary_npad_type != npad_type) {
+    if (tmp_npad_type != npad_type) {
         if (is_connected) {
             Disconnect();
         }
-        SetNpadType(temporary_npad_type);
+        SetNpadType(tmp_npad_type);
     }
 
     // Apply temporary connected status to the real controller
-    if (temporary_is_connected != is_connected) {
-        if (temporary_is_connected) {
+    if (tmp_is_connected != is_connected) {
+        if (tmp_is_connected) {
             Connect();
             return;
         }
@@ -791,7 +793,7 @@ void EmulatedController::Connect() {
     {
         std::lock_guard lock{mutex};
         if (is_configuring) {
-            temporary_is_connected = true;
+            tmp_is_connected = true;
             TriggerOnChange(ControllerTriggerType::Connected, false);
             return;
         }
@@ -808,7 +810,7 @@ void EmulatedController::Disconnect() {
     {
         std::lock_guard lock{mutex};
         if (is_configuring) {
-            temporary_is_connected = false;
+            tmp_is_connected = false;
             TriggerOnChange(ControllerTriggerType::Disconnected, false);
             return;
         }
@@ -821,9 +823,9 @@ void EmulatedController::Disconnect() {
     TriggerOnChange(ControllerTriggerType::Disconnected, true);
 }
 
-bool EmulatedController::IsConnected(bool temporary) const {
-    if (temporary) {
-        return temporary_is_connected;
+bool EmulatedController::IsConnected(bool get_temporary_value) const {
+    if (get_temporary_value) {
+        return tmp_is_connected;
     }
     return is_connected;
 }
@@ -838,9 +840,9 @@ NpadIdType EmulatedController::GetNpadIdType() const {
     return npad_id_type;
 }
 
-NpadType EmulatedController::GetNpadType(bool temporary) const {
-    if (temporary) {
-        return temporary_npad_type;
+NpadType EmulatedController::GetNpadType(bool get_temporary_value) const {
+    if (get_temporary_value) {
+        return tmp_npad_type;
     }
     return npad_type;
 }
@@ -850,10 +852,10 @@ void EmulatedController::SetNpadType(NpadType npad_type_) {
         std::lock_guard lock{mutex};
 
         if (is_configuring) {
-            if (temporary_npad_type == npad_type_) {
+            if (tmp_npad_type == npad_type_) {
                 return;
             }
-            temporary_npad_type = npad_type_;
+            tmp_npad_type = npad_type_;
             TriggerOnChange(ControllerTriggerType::Type, false);
             return;
         }

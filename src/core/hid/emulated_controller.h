@@ -149,10 +149,10 @@ public:
 
     /**
      * Gets the NpadType for this controller
-     * @param Returns the temporary value if true
+     * @param If true tmp_npad_type will be returned
      * @return NpadType set on the controller
      */
-    NpadType GetNpadType(bool temporary = false) const;
+    NpadType GetNpadType(bool get_temporary_value = false) const;
 
     /// Sets the connected status to true
     void Connect();
@@ -162,10 +162,10 @@ public:
 
     /**
      * Is the emulated connected
-     * @param Returns the temporary value if true
+     * @param If true tmp_is_connected will be returned
      * @return true if the controller has the connected status
      */
-    bool IsConnected(bool temporary = false) const;
+    bool IsConnected(bool get_temporary_value = false) const;
 
     /// Returns true if vibration is enabled
     bool IsVibrationEnabled() const;
@@ -346,11 +346,13 @@ private:
 
     NpadIdType npad_id_type;
     NpadType npad_type{NpadType::None};
-    NpadType temporary_npad_type{NpadType::None};
     bool is_connected{false};
-    bool temporary_is_connected{false};
     bool is_configuring{false};
     f32 motion_sensitivity{0.01f};
+
+    // Temporary values to avoid doing changes while the controller is on configuration mode
+    NpadType tmp_npad_type{NpadType::None};
+    bool tmp_is_connected{false};
 
     ButtonParams button_params;
     StickParams stick_params;
