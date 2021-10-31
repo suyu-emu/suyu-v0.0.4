@@ -143,6 +143,11 @@ std::optional<OutAttr> OutputAttrPointer(EmitContext& ctx, IR::Attribute attr) {
         const Id element_id{ctx.Const(element)};
         return OutputAccessChain(ctx, ctx.output_f32, ctx.output_back_secondary_color, element_id);
     }
+    case IR::Attribute::FogCoordinate: {
+        const u32 element{static_cast<u32>(attr) % 4};
+        const Id element_id{ctx.Const(element)};
+        return OutputAccessChain(ctx, ctx.output_f32, ctx.output_fog_frag_coord, element_id);
+    }
     case IR::Attribute::ClipDistance0:
     case IR::Attribute::ClipDistance1:
     case IR::Attribute::ClipDistance2:
@@ -391,8 +396,9 @@ Id EmitGetAttribute(EmitContext& ctx, IR::Attribute attr, Id vertex) {
     case IR::Attribute::ColorFrontSpecularG:
     case IR::Attribute::ColorFrontSpecularB:
     case IR::Attribute::ColorFrontSpecularA: {
-        return ctx.OpLoad(ctx.F32[1], AttrPointer(ctx, ctx.input_f32, vertex, ctx.input_front_secondary_color,
-                                                  ctx.Const(element)));
+        return ctx.OpLoad(ctx.F32[1],
+                          AttrPointer(ctx, ctx.input_f32, vertex, ctx.input_front_secondary_color,
+                                      ctx.Const(element)));
     }
     case IR::Attribute::ColorBackDiffuseR:
     case IR::Attribute::ColorBackDiffuseG:
@@ -405,8 +411,13 @@ Id EmitGetAttribute(EmitContext& ctx, IR::Attribute attr, Id vertex) {
     case IR::Attribute::ColorBackSpecularG:
     case IR::Attribute::ColorBackSpecularB:
     case IR::Attribute::ColorBackSpecularA: {
-        return ctx.OpLoad(ctx.F32[1], AttrPointer(ctx, ctx.input_f32, vertex, ctx.input_back_secondary_color,
-                                                  ctx.Const(element)));
+        return ctx.OpLoad(ctx.F32[1],
+                          AttrPointer(ctx, ctx.input_f32, vertex, ctx.input_back_secondary_color,
+                                      ctx.Const(element)));
+    }
+    case IR::Attribute::FogCoordinate: {
+        return ctx.OpLoad(ctx.F32[1], AttrPointer(ctx, ctx.input_f32, vertex,
+                                                  ctx.input_fog_frag_coord, ctx.Const(element)));
     }
     case IR::Attribute::InstanceId:
         if (ctx.profile.support_vertex_instance_id) {

@@ -430,10 +430,12 @@ Id DescType(EmitContext& ctx, Id sampled_type, Id pointer_type, u32 count) {
     }
 }
 
-size_t FindNextUnusedLocation(const std::bitset<IR::NUM_GENERICS>& used_locations,
-                              size_t start_offset) {
+size_t FindAndSetNextUnusedLocation(std::bitset<IR::NUM_GENERICS>& used_locations,
+                                    size_t& start_offset) {
     for (size_t location = start_offset; location < used_locations.size(); ++location) {
         if (!used_locations.test(location)) {
+            start_offset = location;
+            used_locations.set(location);
             return location;
         }
     }
@@ -1279,45 +1281,40 @@ void EmitContext::DefineInputs(const IR::Program& program) {
     }
     size_t previous_unused_location = 0;
     if (loads.AnyComponent(IR::Attribute::ColorFrontDiffuseR)) {
-        const size_t location = FindNextUnusedLocation(used_locations, previous_unused_location);
-        previous_unused_location = location;
-        used_locations.set(location);
         const Id id{DefineInput(*this, F32[4], true)};
-        Decorate(id, spv::Decoration::Location, location);
+        Decorate(id, spv::Decoration::Location,
+                 FindAndSetNextUnusedLocation(used_locations, previous_unused_location));
         input_front_color = id;
     }
     if (loads.AnyComponent(IR::Attribute::ColorFrontSpecularR)) {
-        const size_t location = FindNextUnusedLocation(used_locations, previous_unused_location);
-        previous_unused_location = location;
-        used_locations.set(location);
         const Id id{DefineInput(*this, F32[4], true)};
-        Decorate(id, spv::Decoration::Location, location);
+        Decorate(id, spv::Decoration::Location,
+                 FindAndSetNextUnusedLocation(used_locations, previous_unused_location));
         input_front_secondary_color = id;
     }
     if (loads.AnyComponent(IR::Attribute::ColorBackDiffuseR)) {
-        const size_t location = FindNextUnusedLocation(used_locations, previous_unused_location);
-        previous_unused_location = location;
-        used_locations.set(location);
         const Id id{DefineInput(*this, F32[4], true)};
-        Decorate(id, spv::Decoration::Location, location);
+        Decorate(id, spv::Decoration::Location,
+                 FindAndSetNextUnusedLocation(used_locations, previous_unused_location));
         input_back_color = id;
     }
     if (loads.AnyComponent(IR::Attribute::ColorBackSpecularR)) {
-        const size_t location = FindNextUnusedLocation(used_locations, previous_unused_location);
-        previous_unused_location = location;
-        used_locations.set(location);
         const Id id{DefineInput(*this, F32[4], true)};
-        Decorate(id, spv::Decoration::Location, location);
+        Decorate(id, spv::Decoration::Location,
+                 FindAndSetNextUnusedLocation(used_locations, previous_unused_location));
         input_back_secondary_color = id;
+    }
+    if (loads.AnyComponent(IR::Attribute::FogCoordinate)) {
+        const Id id{DefineInput(*this, F32[4], true)};
+        Decorate(id, spv::Decoration::Location,
+                 FindAndSetNextUnusedLocation(used_locations, previous_unused_location));
+        input_fog_frag_coord = id;
     }
     for (size_t index = 0; index < NUM_FIXEDFNCTEXTURE; ++index) {
         if (loads.AnyComponent(IR::Attribute::FixedFncTexture0S + index * 4)) {
-            const size_t location =
-                FindNextUnusedLocation(used_locations, previous_unused_location);
-            previous_unused_location = location;
-            used_locations.set(location);
             const Id id{DefineInput(*this, F32[4], true)};
-            Decorate(id, spv::Decoration::Location, location);
+            Decorate(id, spv::Decoration::Location,
+                     FindAndSetNextUnusedLocation(used_locations, previous_unused_location));
             input_fixed_fnc_textures[index] = id;
         }
     }
@@ -1380,45 +1377,45 @@ void EmitContext::DefineOutputs(const IR::Program& program) {
     }
     size_t previous_unused_location = 0;
     if (info.stores.AnyComponent(IR::Attribute::ColorFrontDiffuseR)) {
-        const size_t location = FindNextUnusedLocation(used_locations, previous_unused_location);
-        previous_unused_location = location;
-        used_locations.set(location);
         const Id id{DefineOutput(*this, F32[4], invocations)};
-        Decorate(id, spv::Decoration::Location, static_cast<u32>(location));
+        Decorate(id, spv::Decoration::Location,
+                 static_cast<u32>(
+                     FindAndSetNextUnusedLocation(used_locations, previous_unused_location)));
         output_front_color = id;
     }
     if (info.stores.AnyComponent(IR::Attribute::ColorFrontSpecularR)) {
-        const size_t location = FindNextUnusedLocation(used_locations, previous_unused_location);
-        previous_unused_location = location;
-        used_locations.set(location);
         const Id id{DefineOutput(*this, F32[4], invocations)};
-        Decorate(id, spv::Decoration::Location, static_cast<u32>(location));
+        Decorate(id, spv::Decoration::Location,
+                 static_cast<u32>(
+                     FindAndSetNextUnusedLocation(used_locations, previous_unused_location)));
         output_front_secondary_color = id;
     }
     if (info.stores.AnyComponent(IR::Attribute::ColorBackDiffuseR)) {
-        const size_t location = FindNextUnusedLocation(used_locations, previous_unused_location);
-        previous_unused_location = location;
-        used_locations.set(location);
         const Id id{DefineOutput(*this, F32[4], invocations)};
-        Decorate(id, spv::Decoration::Location, static_cast<u32>(location));
+        Decorate(id, spv::Decoration::Location,
+                 static_cast<u32>(
+                     FindAndSetNextUnusedLocation(used_locations, previous_unused_location)));
         output_back_color = id;
     }
     if (info.stores.AnyComponent(IR::Attribute::ColorBackSpecularR)) {
-        const size_t location = FindNextUnusedLocation(used_locations, previous_unused_location);
-        previous_unused_location = location;
-        used_locations.set(location);
         const Id id{DefineOutput(*this, F32[4], invocations)};
-        Decorate(id, spv::Decoration::Location, static_cast<u32>(location));
+        Decorate(id, spv::Decoration::Location,
+                 static_cast<u32>(
+                     FindAndSetNextUnusedLocation(used_locations, previous_unused_location)));
         output_back_secondary_color = id;
+    }
+    if (info.stores.AnyComponent(IR::Attribute::FogCoordinate)) {
+        const Id id{DefineOutput(*this, F32[4], invocations)};
+        Decorate(id, spv::Decoration::Location,
+                 static_cast<u32>(
+                     FindAndSetNextUnusedLocation(used_locations, previous_unused_location)));
+        output_fog_frag_coord = id;
     }
     for (size_t index = 0; index < NUM_FIXEDFNCTEXTURE; ++index) {
         if (info.stores.AnyComponent(IR::Attribute::FixedFncTexture0S + index * 4)) {
-            const size_t location =
-                FindNextUnusedLocation(used_locations, previous_unused_location);
-            previous_unused_location = location;
-            used_locations.set(location);
             const Id id{DefineOutput(*this, F32[4], invocations)};
-            Decorate(id, spv::Decoration::Location, location);
+            Decorate(id, spv::Decoration::Location,
+                     FindAndSetNextUnusedLocation(used_locations, previous_unused_location));
             output_fixed_fnc_textures[index] = id;
         }
     }
