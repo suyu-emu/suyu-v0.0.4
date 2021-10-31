@@ -13,9 +13,6 @@
 
 namespace Service::HID {
 constexpr std::size_t SHARED_MEMORY_OFFSET = 0x00000;
-constexpr s32 HID_JOYSTICK_MAX = 0x7fff;
-[[maybe_unused]] constexpr s32 HID_JOYSTICK_MIN = -0x7fff;
-enum class JoystickId : std::size_t { Joystick_Left, Joystick_Right };
 
 Controller_DebugPad::Controller_DebugPad(Core::System& system_) : ControllerBase{system_} {
     controller = system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Other);

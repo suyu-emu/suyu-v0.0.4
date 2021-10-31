@@ -403,8 +403,7 @@ private:
         AppletFooterUiType type;
         INSERT_PADDING_BYTES(0x5B); // Reserved
     };
-    static_assert(sizeof(AppletFooterUi) == 0x60,
-                  "AppletFooterUi is an invalid size");
+    static_assert(sizeof(AppletFooterUi) == 0x60, "AppletFooterUi is an invalid size");
 
     // This is nn::hid::NpadLarkType
     enum class NpadLarkType : u32 {

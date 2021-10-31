@@ -110,25 +110,25 @@ void EmulatedController::LoadDevices() {
 
     std::transform(button_params.begin() + Settings::NativeButton::BUTTON_HID_BEGIN,
                    button_params.begin() + Settings::NativeButton::BUTTON_NS_END,
-                   button_devices.begin(), Input::CreateDevice<Input::InputDevice>);
+                   button_devices.begin(), Common::Input::CreateDevice<Common::Input::InputDevice>);
     std::transform(stick_params.begin() + Settings::NativeAnalog::STICK_HID_BEGIN,
                    stick_params.begin() + Settings::NativeAnalog::STICK_HID_END,
-                   stick_devices.begin(), Input::CreateDevice<Input::InputDevice>);
+                   stick_devices.begin(), Common::Input::CreateDevice<Common::Input::InputDevice>);
     std::transform(motion_params.begin() + Settings::NativeMotion::MOTION_HID_BEGIN,
                    motion_params.begin() + Settings::NativeMotion::MOTION_HID_END,
-                   motion_devices.begin(), Input::CreateDevice<Input::InputDevice>);
+                   motion_devices.begin(), Common::Input::CreateDevice<Common::Input::InputDevice>);
     std::transform(trigger_params.begin(), trigger_params.end(), trigger_devices.begin(),
-                   Input::CreateDevice<Input::InputDevice>);
+                   Common::Input::CreateDevice<Common::Input::InputDevice>);
     std::transform(battery_params.begin(), battery_params.begin(), battery_devices.end(),
-                   Input::CreateDevice<Input::InputDevice>);
+                   Common::Input::CreateDevice<Common::Input::InputDevice>);
     std::transform(output_params.begin(), output_params.end(), output_devices.begin(),
-                   Input::CreateDevice<Input::OutputDevice>);
+                   Common::Input::CreateDevice<Common::Input::OutputDevice>);
 
     // Initialize TAS devices
     std::transform(tas_button_params.begin(), tas_button_params.end(), tas_button_devices.begin(),
-                   Input::CreateDevice<Input::InputDevice>);
+                   Common::Input::CreateDevice<Common::Input::InputDevice>);
     std::transform(tas_stick_params.begin(), tas_stick_params.end(), tas_stick_devices.begin(),
-                   Input::CreateDevice<Input::InputDevice>);
+                   Common::Input::CreateDevice<Common::Input::InputDevice>);
 }
 
 void EmulatedController::LoadTASParams() {
@@ -178,8 +178,8 @@ void EmulatedController::ReloadInput() {
         if (!button_devices[index]) {
             continue;
         }
-        Input::InputCallback button_callback{
-            [this, index](Input::CallbackStatus callback) { SetButton(callback, index); }};
+        Common::Input::InputCallback button_callback{
+            [this, index](Common::Input::CallbackStatus callback) { SetButton(callback, index); }};
         button_devices[index]->SetCallback(button_callback);
         button_devices[index]->ForceUpdate();
     }
@@ -188,8 +188,8 @@ void EmulatedController::ReloadInput() {
         if (!stick_devices[index]) {
             continue;
         }
-        Input::InputCallback stick_callback{
-            [this, index](Input::CallbackStatus callback) { SetStick(callback, index); }};
+        Common::Input::InputCallback stick_callback{
+            [this, index](Common::Input::CallbackStatus callback) { SetStick(callback, index); }};
         stick_devices[index]->SetCallback(stick_callback);
         stick_devices[index]->ForceUpdate();
     }
@@ -198,8 +198,8 @@ void EmulatedController::ReloadInput() {
         if (!trigger_devices[index]) {
             continue;
         }
-        Input::InputCallback trigger_callback{
-            [this, index](Input::CallbackStatus callback) { SetTrigger(callback, index); }};
+        Common::Input::InputCallback trigger_callback{
+            [this, index](Common::Input::CallbackStatus callback) { SetTrigger(callback, index); }};
         trigger_devices[index]->SetCallback(trigger_callback);
         trigger_devices[index]->ForceUpdate();
     }
@@ -208,8 +208,8 @@ void EmulatedController::ReloadInput() {
         if (!battery_devices[index]) {
             continue;
         }
-        Input::InputCallback battery_callback{
-            [this, index](Input::CallbackStatus callback) { SetBattery(callback, index); }};
+        Common::Input::InputCallback battery_callback{
+            [this, index](Common::Input::CallbackStatus callback) { SetBattery(callback, index); }};
         battery_devices[index]->SetCallback(battery_callback);
         battery_devices[index]->ForceUpdate();
     }
@@ -218,8 +218,8 @@ void EmulatedController::ReloadInput() {
         if (!motion_devices[index]) {
             continue;
         }
-        Input::InputCallback motion_callback{
-            [this, index](Input::CallbackStatus callback) { SetMotion(callback, index); }};
+        Common::Input::InputCallback motion_callback{
+            [this, index](Common::Input::CallbackStatus callback) { SetMotion(callback, index); }};
         motion_devices[index]->SetCallback(motion_callback);
         motion_devices[index]->ForceUpdate();
     }
@@ -229,8 +229,8 @@ void EmulatedController::ReloadInput() {
         if (!tas_button_devices[index]) {
             continue;
         }
-        Input::InputCallback button_callback{
-            [this, index](Input::CallbackStatus callback) { SetButton(callback, index); }};
+        Common::Input::InputCallback button_callback{
+            [this, index](Common::Input::CallbackStatus callback) { SetButton(callback, index); }};
         tas_button_devices[index]->SetCallback(button_callback);
     }
 
@@ -238,8 +238,8 @@ void EmulatedController::ReloadInput() {
         if (!tas_stick_devices[index]) {
             continue;
         }
-        Input::InputCallback stick_callback{
-            [this, index](Input::CallbackStatus callback) { SetStick(callback, index); }};
+        Common::Input::InputCallback stick_callback{
+            [this, index](Common::Input::CallbackStatus callback) { SetStick(callback, index); }};
         tas_stick_devices[index]->SetCallback(stick_callback);
     }
 }
@@ -418,7 +418,7 @@ void EmulatedController::SetMotionParam(std::size_t index, Common::ParamPackage 
     ReloadInput();
 }
 
-void EmulatedController::SetButton(Input::CallbackStatus callback, std::size_t index) {
+void EmulatedController::SetButton(Common::Input::CallbackStatus callback, std::size_t index) {
     if (index >= controller.button_values.size()) {
         return;
     }
@@ -548,7 +548,7 @@ void EmulatedController::SetButton(Input::CallbackStatus callback, std::size_t i
     TriggerOnChange(ControllerTriggerType::Button, true);
 }
 
-void EmulatedController::SetStick(Input::CallbackStatus callback, std::size_t index) {
+void EmulatedController::SetStick(Common::Input::CallbackStatus callback, std::size_t index) {
     if (index >= controller.stick_values.size()) {
         return;
     }
@@ -587,7 +587,7 @@ void EmulatedController::SetStick(Input::CallbackStatus callback, std::size_t in
     TriggerOnChange(ControllerTriggerType::Stick, true);
 }
 
-void EmulatedController::SetTrigger(Input::CallbackStatus callback, std::size_t index) {
+void EmulatedController::SetTrigger(Common::Input::CallbackStatus callback, std::size_t index) {
     if (index >= controller.trigger_values.size()) {
         return;
     }
@@ -618,7 +618,7 @@ void EmulatedController::SetTrigger(Input::CallbackStatus callback, std::size_t 
     TriggerOnChange(ControllerTriggerType::Trigger, true);
 }
 
-void EmulatedController::SetMotion(Input::CallbackStatus callback, std::size_t index) {
+void EmulatedController::SetMotion(Common::Input::CallbackStatus callback, std::size_t index) {
     if (index >= controller.motion_values.size()) {
         return;
     }
@@ -655,7 +655,7 @@ void EmulatedController::SetMotion(Input::CallbackStatus callback, std::size_t i
     TriggerOnChange(ControllerTriggerType::Motion, true);
 }
 
-void EmulatedController::SetBattery(Input::CallbackStatus callback, std::size_t index) {
+void EmulatedController::SetBattery(Common::Input::CallbackStatus callback, std::size_t index) {
     if (index >= controller.battery_values.size()) {
         return;
     }
@@ -671,25 +671,25 @@ void EmulatedController::SetBattery(Input::CallbackStatus callback, std::size_t 
     bool is_powered = false;
     BatteryLevel battery_level = 0;
     switch (controller.battery_values[index]) {
-    case Input::BatteryLevel::Charging:
+    case Common::Input::BatteryLevel::Charging:
         is_charging = true;
         is_powered = true;
         battery_level = 6;
         break;
-    case Input::BatteryLevel::Medium:
+    case Common::Input::BatteryLevel::Medium:
         battery_level = 6;
         break;
-    case Input::BatteryLevel::Low:
+    case Common::Input::BatteryLevel::Low:
         battery_level = 4;
         break;
-    case Input::BatteryLevel::Critical:
+    case Common::Input::BatteryLevel::Critical:
         battery_level = 2;
         break;
-    case Input::BatteryLevel::Empty:
+    case Common::Input::BatteryLevel::Empty:
         battery_level = 0;
         break;
-    case Input::BatteryLevel::None:
-    case Input::BatteryLevel::Full:
+    case Common::Input::BatteryLevel::None:
+    case Common::Input::BatteryLevel::Full:
     default:
         is_powered = true;
         battery_level = 8;
@@ -739,18 +739,19 @@ bool EmulatedController::SetVibration(std::size_t device_index, VibrationValue v
 
     // Exponential amplification is too strong at low amplitudes. Switch to a linear
     // amplification if strength is set below 0.7f
-    const Input::VibrationAmplificationType type =
-        strength > 0.7f ? Input::VibrationAmplificationType::Exponential
-                        : Input::VibrationAmplificationType::Linear;
+    const Common::Input::VibrationAmplificationType type =
+        strength > 0.7f ? Common::Input::VibrationAmplificationType::Exponential
+                        : Common::Input::VibrationAmplificationType::Linear;
 
-    const Input::VibrationStatus status = {
+    const Common::Input::VibrationStatus status = {
         .low_amplitude = std::min(vibration.low_amplitude * strength, 1.0f),
         .low_frequency = vibration.low_frequency,
         .high_amplitude = std::min(vibration.high_amplitude * strength, 1.0f),
         .high_frequency = vibration.high_frequency,
         .type = type,
     };
-    return output_devices[device_index]->SetVibration(status) == Input::VibrationError::None;
+    return output_devices[device_index]->SetVibration(status) ==
+           Common::Input::VibrationError::None;
 }
 
 bool EmulatedController::TestVibration(std::size_t device_index) {
@@ -762,14 +763,15 @@ bool EmulatedController::TestVibration(std::size_t device_index) {
     }
 
     // Send a slight vibration to test for rumble support
-    constexpr Input::VibrationStatus status = {
+    constexpr Common::Input::VibrationStatus status = {
         .low_amplitude = 0.001f,
         .low_frequency = 160.0f,
         .high_amplitude = 0.001f,
         .high_frequency = 320.0f,
-        .type = Input::VibrationAmplificationType::Linear,
+        .type = Common::Input::VibrationAmplificationType::Linear,
     };
-    return output_devices[device_index]->SetVibration(status) == Input::VibrationError::None;
+    return output_devices[device_index]->SetVibration(status) ==
+           Common::Input::VibrationError::None;
 }
 
 void EmulatedController::SetLedPattern() {
@@ -779,7 +781,7 @@ void EmulatedController::SetLedPattern() {
         }
 
         const LedPattern pattern = GetLedPattern();
-        const Input::LedStatus status = {
+        const Common::Input::LedStatus status = {
             .led_1 = pattern.position1 != 0,
             .led_2 = pattern.position2 != 0,
             .led_3 = pattern.position3 != 0,

@@ -33,89 +33,97 @@ struct InputSubsystem::Impl {
         keyboard->SetMappingCallback(mapping_callback);
         keyboard_factory = std::make_shared<InputFactory>(keyboard);
         keyboard_output_factory = std::make_shared<OutputFactory>(keyboard);
-        Input::RegisterFactory<Input::InputDevice>(keyboard->GetEngineName(), keyboard_factory);
-        Input::RegisterFactory<Input::OutputDevice>(keyboard->GetEngineName(),
-                                                    keyboard_output_factory);
+        Common::Input::RegisterFactory<Common::Input::InputDevice>(keyboard->GetEngineName(),
+                                                                   keyboard_factory);
+        Common::Input::RegisterFactory<Common::Input::OutputDevice>(keyboard->GetEngineName(),
+                                                                    keyboard_output_factory);
 
         mouse = std::make_shared<Mouse>("mouse");
         mouse->SetMappingCallback(mapping_callback);
         mouse_factory = std::make_shared<InputFactory>(mouse);
         mouse_output_factory = std::make_shared<OutputFactory>(mouse);
-        Input::RegisterFactory<Input::InputDevice>(mouse->GetEngineName(), mouse_factory);
-        Input::RegisterFactory<Input::OutputDevice>(mouse->GetEngineName(), mouse_output_factory);
+        Common::Input::RegisterFactory<Common::Input::InputDevice>(mouse->GetEngineName(),
+                                                                   mouse_factory);
+        Common::Input::RegisterFactory<Common::Input::OutputDevice>(mouse->GetEngineName(),
+                                                                    mouse_output_factory);
 
         touch_screen = std::make_shared<TouchScreen>("touch");
         touch_screen_factory = std::make_shared<InputFactory>(touch_screen);
-        Input::RegisterFactory<Input::InputDevice>(touch_screen->GetEngineName(),
-                                                   touch_screen_factory);
+        Common::Input::RegisterFactory<Common::Input::InputDevice>(touch_screen->GetEngineName(),
+                                                                   touch_screen_factory);
 
         gcadapter = std::make_shared<GCAdapter>("gcpad");
         gcadapter->SetMappingCallback(mapping_callback);
         gcadapter_input_factory = std::make_shared<InputFactory>(gcadapter);
         gcadapter_output_factory = std::make_shared<OutputFactory>(gcadapter);
-        Input::RegisterFactory<Input::InputDevice>(gcadapter->GetEngineName(),
-                                                   gcadapter_input_factory);
-        Input::RegisterFactory<Input::OutputDevice>(gcadapter->GetEngineName(),
-                                                    gcadapter_output_factory);
+        Common::Input::RegisterFactory<Common::Input::InputDevice>(gcadapter->GetEngineName(),
+                                                                   gcadapter_input_factory);
+        Common::Input::RegisterFactory<Common::Input::OutputDevice>(gcadapter->GetEngineName(),
+                                                                    gcadapter_output_factory);
 
         udp_client = std::make_shared<CemuhookUDP::UDPClient>("cemuhookudp");
         udp_client->SetMappingCallback(mapping_callback);
         udp_client_factory = std::make_shared<InputFactory>(udp_client);
-        Input::RegisterFactory<Input::InputDevice>(udp_client->GetEngineName(), udp_client_factory);
+        Common::Input::RegisterFactory<Common::Input::InputDevice>(udp_client->GetEngineName(),
+                                                                   udp_client_factory);
 
         tas_input = std::make_shared<TasInput::Tas>("tas");
         tas_input->SetMappingCallback(mapping_callback);
         tas_input_factory = std::make_shared<InputFactory>(tas_input);
         tas_output_factory = std::make_shared<OutputFactory>(tas_input);
-        Input::RegisterFactory<Input::InputDevice>(tas_input->GetEngineName(), tas_input_factory);
-        Input::RegisterFactory<Input::OutputDevice>(tas_input->GetEngineName(), tas_output_factory);
+        Common::Input::RegisterFactory<Common::Input::InputDevice>(tas_input->GetEngineName(),
+                                                                   tas_input_factory);
+        Common::Input::RegisterFactory<Common::Input::OutputDevice>(tas_input->GetEngineName(),
+                                                                    tas_output_factory);
 
 #ifdef HAVE_SDL2
         sdl = std::make_shared<SDLDriver>("sdl");
         sdl->SetMappingCallback(mapping_callback);
         sdl_input_factory = std::make_shared<InputFactory>(sdl);
         sdl_output_factory = std::make_shared<OutputFactory>(sdl);
-        Input::RegisterFactory<Input::InputDevice>(sdl->GetEngineName(), sdl_input_factory);
-        Input::RegisterFactory<Input::OutputDevice>(sdl->GetEngineName(), sdl_output_factory);
+        Common::Input::RegisterFactory<Common::Input::InputDevice>(sdl->GetEngineName(),
+                                                                   sdl_input_factory);
+        Common::Input::RegisterFactory<Common::Input::OutputDevice>(sdl->GetEngineName(),
+                                                                    sdl_output_factory);
 #endif
 
-        Input::RegisterFactory<Input::InputDevice>("touch_from_button",
-                                                   std::make_shared<TouchFromButton>());
-        Input::RegisterFactory<Input::InputDevice>("analog_from_button",
-                                                   std::make_shared<StickFromButton>());
+        Common::Input::RegisterFactory<Common::Input::InputDevice>(
+            "touch_from_button", std::make_shared<TouchFromButton>());
+        Common::Input::RegisterFactory<Common::Input::InputDevice>(
+            "analog_from_button", std::make_shared<StickFromButton>());
     }
 
     void Shutdown() {
-        Input::UnregisterFactory<Input::InputDevice>(keyboard->GetEngineName());
-        Input::UnregisterFactory<Input::OutputDevice>(keyboard->GetEngineName());
+        Common::Input::UnregisterFactory<Common::Input::InputDevice>(keyboard->GetEngineName());
+        Common::Input::UnregisterFactory<Common::Input::OutputDevice>(keyboard->GetEngineName());
         keyboard.reset();
 
-        Input::UnregisterFactory<Input::InputDevice>(mouse->GetEngineName());
-        Input::UnregisterFactory<Input::OutputDevice>(mouse->GetEngineName());
+        Common::Input::UnregisterFactory<Common::Input::InputDevice>(mouse->GetEngineName());
+        Common::Input::UnregisterFactory<Common::Input::OutputDevice>(mouse->GetEngineName());
         mouse.reset();
 
-        Input::UnregisterFactory<Input::InputDevice>(touch_screen->GetEngineName());
+        Common::Input::UnregisterFactory<Common::Input::InputDevice>(touch_screen->GetEngineName());
         touch_screen.reset();
 
-        Input::UnregisterFactory<Input::InputDevice>(gcadapter->GetEngineName());
-        Input::UnregisterFactory<Input::OutputDevice>(gcadapter->GetEngineName());
+        Common::Input::UnregisterFactory<Common::Input::InputDevice>(gcadapter->GetEngineName());
+        Common::Input::UnregisterFactory<Common::Input::OutputDevice>(gcadapter->GetEngineName());
         gcadapter.reset();
 
-        Input::UnregisterFactory<Input::InputDevice>(udp_client->GetEngineName());
+        Common::Input::UnregisterFactory<Common::Input::InputDevice>(udp_client->GetEngineName());
         udp_client.reset();
 
-        Input::UnregisterFactory<Input::InputDevice>(tas_input->GetEngineName());
-        Input::UnregisterFactory<Input::OutputDevice>(tas_input->GetEngineName());
+        Common::Input::UnregisterFactory<Common::Input::InputDevice>(tas_input->GetEngineName());
+        Common::Input::UnregisterFactory<Common::Input::OutputDevice>(tas_input->GetEngineName());
         tas_input.reset();
 
 #ifdef HAVE_SDL2
-        Input::UnregisterFactory<Input::InputDevice>(sdl->GetEngineName());
-        Input::UnregisterFactory<Input::OutputDevice>(sdl->GetEngineName());
+        Common::Input::UnregisterFactory<Common::Input::InputDevice>(sdl->GetEngineName());
+        Common::Input::UnregisterFactory<Common::Input::OutputDevice>(sdl->GetEngineName());
         sdl.reset();
 #endif
 
-        Input::UnregisterFactory<Input::InputDevice>("touch_from_button");
-        Input::UnregisterFactory<Input::InputDevice>("analog_from_button");
+        Common::Input::UnregisterFactory<Common::Input::InputDevice>("touch_from_button");
+        Common::Input::UnregisterFactory<Common::Input::InputDevice>("analog_from_button");
     }
 
     [[nodiscard]] std::vector<Common::ParamPackage> GetInputDevices() const {

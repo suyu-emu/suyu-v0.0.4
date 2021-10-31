@@ -4,10 +4,13 @@
 
 #pragma once
 
+#include <array>
 #include <functional>
+#include <memory>
 #include <mutex>
 #include <unordered_map>
 
+#include "common/common_types.h"
 #include "common/input.h"
 #include "common/param_package.h"
 #include "common/settings.h"
@@ -16,21 +19,22 @@
 
 namespace Core::HID {
 
-using KeyboardDevices =
-    std::array<std::unique_ptr<Input::InputDevice>, Settings::NativeKeyboard::NumKeyboardKeys>;
-using KeyboardModifierDevices =
-    std::array<std::unique_ptr<Input::InputDevice>, Settings::NativeKeyboard::NumKeyboardMods>;
-using MouseButtonDevices =
-    std::array<std::unique_ptr<Input::InputDevice>, Settings::NativeMouseButton::NumMouseButtons>;
+using KeyboardDevices = std::array<std::unique_ptr<Common::Input::InputDevice>,
+                                   Settings::NativeKeyboard::NumKeyboardKeys>;
+using KeyboardModifierDevices = std::array<std::unique_ptr<Common::Input::InputDevice>,
+                                           Settings::NativeKeyboard::NumKeyboardMods>;
+using MouseButtonDevices = std::array<std::unique_ptr<Common::Input::InputDevice>,
+                                      Settings::NativeMouseButton::NumMouseButtons>;
 
 using MouseButtonParams =
     std::array<Common::ParamPackage, Settings::NativeMouseButton::NumMouseButtons>;
 
-using KeyboardValues = std::array<Input::ButtonStatus, Settings::NativeKeyboard::NumKeyboardKeys>;
+using KeyboardValues =
+    std::array<Common::Input::ButtonStatus, Settings::NativeKeyboard::NumKeyboardKeys>;
 using KeyboardModifierValues =
-    std::array<Input::ButtonStatus, Settings::NativeKeyboard::NumKeyboardMods>;
+    std::array<Common::Input::ButtonStatus, Settings::NativeKeyboard::NumKeyboardMods>;
 using MouseButtonValues =
-    std::array<Input::ButtonStatus, Settings::NativeMouseButton::NumMouseButtons>;
+    std::array<Common::Input::ButtonStatus, Settings::NativeMouseButton::NumMouseButtons>;
 
 struct MousePosition {
     s32 x;
@@ -151,21 +155,21 @@ private:
      * @param callback: A CallbackStatus containing the key status
      * @param index: key ID to be updated
      */
-    void SetKeyboardButton(Input::CallbackStatus callback, std::size_t index);
+    void SetKeyboardButton(Common::Input::CallbackStatus callback, std::size_t index);
 
     /**
      * Updates the touch status of the console
      * @param callback: A CallbackStatus containing the modifier key status
      * @param index: modifier key ID to be updated
      */
-    void SetKeyboardModifier(Input::CallbackStatus callback, std::size_t index);
+    void SetKeyboardModifier(Common::Input::CallbackStatus callback, std::size_t index);
 
     /**
      * Updates the touch status of the console
      * @param callback: A CallbackStatus containing the button status
      * @param index: Button ID of the to be updated
      */
-    void SetMouseButton(Input::CallbackStatus callback, std::size_t index);
+    void SetMouseButton(Common::Input::CallbackStatus callback, std::size_t index);
 
     /**
      * Triggers a callback that something has changed on the device status

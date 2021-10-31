@@ -10,13 +10,13 @@
 
 namespace InputCommon {
 
-class DummyInput final : public Input::InputDevice {
+class DummyInput final : public Common::Input::InputDevice {
 public:
     explicit DummyInput() {}
     ~DummyInput() {}
 };
 
-class InputFromButton final : public Input::InputDevice {
+class InputFromButton final : public Common::Input::InputDevice {
 public:
     explicit InputFromButton(PadIdentifier identifier_, u32 button_, bool toggle_, bool inverted_,
                              InputEngine* input_engine_)
@@ -37,7 +37,7 @@ public:
         input_engine->DeleteCallback(callback_key);
     }
 
-    Input::ButtonStatus GetStatus() const {
+    Common::Input::ButtonStatus GetStatus() const {
         return {
             .value = input_engine->GetButton(identifier, button),
             .inverted = inverted,
@@ -46,8 +46,8 @@ public:
     }
 
     void ForceUpdate() {
-        const Input::CallbackStatus status{
-            .type = Input::InputType::Button,
+        const Common::Input::CallbackStatus status{
+            .type = Common::Input::InputType::Button,
             .button_status = GetStatus(),
         };
 
@@ -56,8 +56,8 @@ public:
     }
 
     void OnChange() {
-        const Input::CallbackStatus status{
-            .type = Input::InputType::Button,
+        const Common::Input::CallbackStatus status{
+            .type = Common::Input::InputType::Button,
             .button_status = GetStatus(),
         };
 
@@ -77,7 +77,7 @@ private:
     InputEngine* input_engine;
 };
 
-class InputFromHatButton final : public Input::InputDevice {
+class InputFromHatButton final : public Common::Input::InputDevice {
 public:
     explicit InputFromHatButton(PadIdentifier identifier_, u32 button_, u8 direction_, bool toggle_,
                                 bool inverted_, InputEngine* input_engine_)
@@ -98,7 +98,7 @@ public:
         input_engine->DeleteCallback(callback_key);
     }
 
-    Input::ButtonStatus GetStatus() const {
+    Common::Input::ButtonStatus GetStatus() const {
         return {
             .value = input_engine->GetHatButton(identifier, button, direction),
             .inverted = inverted,
@@ -107,8 +107,8 @@ public:
     }
 
     void ForceUpdate() {
-        const Input::CallbackStatus status{
-            .type = Input::InputType::Button,
+        const Common::Input::CallbackStatus status{
+            .type = Common::Input::InputType::Button,
             .button_status = GetStatus(),
         };
 
@@ -117,8 +117,8 @@ public:
     }
 
     void OnChange() {
-        const Input::CallbackStatus status{
-            .type = Input::InputType::Button,
+        const Common::Input::CallbackStatus status{
+            .type = Common::Input::InputType::Button,
             .button_status = GetStatus(),
         };
 
@@ -139,11 +139,12 @@ private:
     InputEngine* input_engine;
 };
 
-class InputFromStick final : public Input::InputDevice {
+class InputFromStick final : public Common::Input::InputDevice {
 public:
     explicit InputFromStick(PadIdentifier identifier_, u32 axis_x_, u32 axis_y_,
-                            Input::AnalogProperties properties_x_,
-                            Input::AnalogProperties properties_y_, InputEngine* input_engine_)
+                            Common::Input::AnalogProperties properties_x_,
+                            Common::Input::AnalogProperties properties_y_,
+                            InputEngine* input_engine_)
         : identifier(identifier_), axis_x(axis_x_), axis_y(axis_y_), properties_x(properties_x_),
           properties_y(properties_y_), input_engine(input_engine_) {
         UpdateCallback engine_callback{[this]() { OnChange(); }};
@@ -170,8 +171,8 @@ public:
         input_engine->DeleteCallback(callback_key_y);
     }
 
-    Input::StickStatus GetStatus() const {
-        Input::StickStatus status;
+    Common::Input::StickStatus GetStatus() const {
+        Common::Input::StickStatus status;
         status.x = {
             .raw_value = input_engine->GetAxis(identifier, axis_x),
             .properties = properties_x,
@@ -184,8 +185,8 @@ public:
     }
 
     void ForceUpdate() {
-        const Input::CallbackStatus status{
-            .type = Input::InputType::Stick,
+        const Common::Input::CallbackStatus status{
+            .type = Common::Input::InputType::Stick,
             .stick_status = GetStatus(),
         };
 
@@ -195,8 +196,8 @@ public:
     }
 
     void OnChange() {
-        const Input::CallbackStatus status{
-            .type = Input::InputType::Stick,
+        const Common::Input::CallbackStatus status{
+            .type = Common::Input::InputType::Stick,
             .stick_status = GetStatus(),
         };
 
@@ -212,8 +213,8 @@ private:
     const PadIdentifier identifier;
     const u32 axis_x;
     const u32 axis_y;
-    const Input::AnalogProperties properties_x;
-    const Input::AnalogProperties properties_y;
+    const Common::Input::AnalogProperties properties_x;
+    const Common::Input::AnalogProperties properties_y;
     int callback_key_x;
     int callback_key_y;
     float last_axis_x_value;
@@ -221,12 +222,13 @@ private:
     InputEngine* input_engine;
 };
 
-class InputFromTouch final : public Input::InputDevice {
+class InputFromTouch final : public Common::Input::InputDevice {
 public:
     explicit InputFromTouch(PadIdentifier identifier_, u32 touch_id_, u32 button_, bool toggle_,
                             bool inverted_, u32 axis_x_, u32 axis_y_,
-                            Input::AnalogProperties properties_x_,
-                            Input::AnalogProperties properties_y_, InputEngine* input_engine_)
+                            Common::Input::AnalogProperties properties_x_,
+                            Common::Input::AnalogProperties properties_y_,
+                            InputEngine* input_engine_)
         : identifier(identifier_), touch_id(touch_id_), button(button_), toggle(toggle_),
           inverted(inverted_), axis_x(axis_x_), axis_y(axis_y_), properties_x(properties_x_),
           properties_y(properties_y_), input_engine(input_engine_) {
@@ -263,8 +265,8 @@ public:
         input_engine->DeleteCallback(callback_key_y);
     }
 
-    Input::TouchStatus GetStatus() const {
-        Input::TouchStatus status;
+    Common::Input::TouchStatus GetStatus() const {
+        Common::Input::TouchStatus status;
         status.id = touch_id;
         status.pressed = {
             .value = input_engine->GetButton(identifier, button),
@@ -283,8 +285,8 @@ public:
     }
 
     void OnChange() {
-        const Input::CallbackStatus status{
-            .type = Input::InputType::Touch,
+        const Common::Input::CallbackStatus status{
+            .type = Common::Input::InputType::Touch,
             .touch_status = GetStatus(),
         };
 
@@ -306,8 +308,8 @@ private:
     const bool inverted;
     const u32 axis_x;
     const u32 axis_y;
-    const Input::AnalogProperties properties_x;
-    const Input::AnalogProperties properties_y;
+    const Common::Input::AnalogProperties properties_x;
+    const Common::Input::AnalogProperties properties_y;
     int callback_key_button;
     int callback_key_x;
     int callback_key_y;
@@ -317,10 +319,10 @@ private:
     InputEngine* input_engine;
 };
 
-class InputFromTrigger final : public Input::InputDevice {
+class InputFromTrigger final : public Common::Input::InputDevice {
 public:
     explicit InputFromTrigger(PadIdentifier identifier_, u32 button_, bool toggle_, bool inverted_,
-                              u32 axis_, Input::AnalogProperties properties_,
+                              u32 axis_, Common::Input::AnalogProperties properties_,
                               InputEngine* input_engine_)
         : identifier(identifier_), button(button_), toggle(toggle_), inverted(inverted_),
           axis(axis_), properties(properties_), input_engine(input_engine_) {
@@ -348,8 +350,8 @@ public:
         input_engine->DeleteCallback(axis_callback_key);
     }
 
-    Input::TriggerStatus GetStatus() const {
-        const Input::AnalogStatus analog_status{
+    Common::Input::TriggerStatus GetStatus() const {
+        const Common::Input::AnalogStatus analog_status{
             .raw_value = input_engine->GetAxis(identifier, axis),
             .properties = properties,
         };
@@ -360,8 +362,8 @@ public:
     }
 
     void OnChange() {
-        const Input::CallbackStatus status{
-            .type = Input::InputType::Trigger,
+        const Common::Input::CallbackStatus status{
+            .type = Common::Input::InputType::Trigger,
             .trigger_status = GetStatus(),
         };
 
@@ -379,7 +381,7 @@ private:
     const bool toggle;
     const bool inverted;
     const u32 axis;
-    const Input::AnalogProperties properties;
+    const Common::Input::AnalogProperties properties;
     int callback_key_button;
     int axis_callback_key;
     bool last_button_value;
@@ -387,10 +389,11 @@ private:
     InputEngine* input_engine;
 };
 
-class InputFromAnalog final : public Input::InputDevice {
+class InputFromAnalog final : public Common::Input::InputDevice {
 public:
     explicit InputFromAnalog(PadIdentifier identifier_, u32 axis_,
-                             Input::AnalogProperties properties_, InputEngine* input_engine_)
+                             Common::Input::AnalogProperties properties_,
+                             InputEngine* input_engine_)
         : identifier(identifier_), axis(axis_), properties(properties_),
           input_engine(input_engine_) {
         UpdateCallback engine_callback{[this]() { OnChange(); }};
@@ -408,7 +411,7 @@ public:
         input_engine->DeleteCallback(callback_key);
     }
 
-    Input::AnalogStatus GetStatus() const {
+    Common::Input::AnalogStatus GetStatus() const {
         return {
             .raw_value = input_engine->GetAxis(identifier, axis),
             .properties = properties,
@@ -416,8 +419,8 @@ public:
     }
 
     void OnChange() {
-        const Input::CallbackStatus status{
-            .type = Input::InputType::Analog,
+        const Common::Input::CallbackStatus status{
+            .type = Common::Input::InputType::Analog,
             .analog_status = GetStatus(),
         };
 
@@ -430,13 +433,13 @@ public:
 private:
     const PadIdentifier identifier;
     const u32 axis;
-    const Input::AnalogProperties properties;
+    const Common::Input::AnalogProperties properties;
     int callback_key;
     float last_axis_value;
     InputEngine* input_engine;
 };
 
-class InputFromBattery final : public Input::InputDevice {
+class InputFromBattery final : public Common::Input::InputDevice {
 public:
     explicit InputFromBattery(PadIdentifier identifier_, InputEngine* input_engine_)
         : identifier(identifier_), input_engine(input_engine_) {
@@ -447,7 +450,7 @@ public:
             .index = 0,
             .callback = engine_callback,
         };
-        last_battery_value = Input::BatteryStatus::Charging;
+        last_battery_value = Common::Input::BatteryStatus::Charging;
         callback_key = input_engine->SetCallback(input_identifier);
     }
 
@@ -455,13 +458,13 @@ public:
         input_engine->DeleteCallback(callback_key);
     }
 
-    Input::BatteryStatus GetStatus() const {
-        return static_cast<Input::BatteryLevel>(input_engine->GetBattery(identifier));
+    Common::Input::BatteryStatus GetStatus() const {
+        return static_cast<Common::Input::BatteryLevel>(input_engine->GetBattery(identifier));
     }
 
     void ForceUpdate() {
-        const Input::CallbackStatus status{
-            .type = Input::InputType::Battery,
+        const Common::Input::CallbackStatus status{
+            .type = Common::Input::InputType::Battery,
             .battery_status = GetStatus(),
         };
 
@@ -470,8 +473,8 @@ public:
     }
 
     void OnChange() {
-        const Input::CallbackStatus status{
-            .type = Input::InputType::Battery,
+        const Common::Input::CallbackStatus status{
+            .type = Common::Input::InputType::Battery,
             .battery_status = GetStatus(),
         };
 
@@ -484,11 +487,11 @@ public:
 private:
     const PadIdentifier identifier;
     int callback_key;
-    Input::BatteryStatus last_battery_value;
+    Common::Input::BatteryStatus last_battery_value;
     InputEngine* input_engine;
 };
 
-class InputFromMotion final : public Input::InputDevice {
+class InputFromMotion final : public Common::Input::InputDevice {
 public:
     explicit InputFromMotion(PadIdentifier identifier_, u32 motion_sensor_,
                              InputEngine* input_engine_)
@@ -507,10 +510,10 @@ public:
         input_engine->DeleteCallback(callback_key);
     }
 
-    Input::MotionStatus GetStatus() const {
+    Common::Input::MotionStatus GetStatus() const {
         const auto basic_motion = input_engine->GetMotion(identifier, motion_sensor);
-        Input::MotionStatus status{};
-        const Input::AnalogProperties properties = {
+        Common::Input::MotionStatus status{};
+        const Common::Input::AnalogProperties properties = {
             .deadzone = 0.001f,
             .range = 1.0f,
             .offset = 0.0f,
@@ -526,8 +529,8 @@ public:
     }
 
     void OnChange() {
-        const Input::CallbackStatus status{
-            .type = Input::InputType::Motion,
+        const Common::Input::CallbackStatus status{
+            .type = Common::Input::InputType::Motion,
             .motion_status = GetStatus(),
         };
 
@@ -541,12 +544,13 @@ private:
     InputEngine* input_engine;
 };
 
-class InputFromAxisMotion final : public Input::InputDevice {
+class InputFromAxisMotion final : public Common::Input::InputDevice {
 public:
     explicit InputFromAxisMotion(PadIdentifier identifier_, u32 axis_x_, u32 axis_y_, u32 axis_z_,
-                                 Input::AnalogProperties properties_x_,
-                                 Input::AnalogProperties properties_y_,
-                                 Input::AnalogProperties properties_z_, InputEngine* input_engine_)
+                                 Common::Input::AnalogProperties properties_x_,
+                                 Common::Input::AnalogProperties properties_y_,
+                                 Common::Input::AnalogProperties properties_z_,
+                                 InputEngine* input_engine_)
         : identifier(identifier_), axis_x(axis_x_), axis_y(axis_y_), axis_z(axis_z_),
           properties_x(properties_x_), properties_y(properties_y_), properties_z(properties_z_),
           input_engine(input_engine_) {
@@ -583,8 +587,8 @@ public:
         input_engine->DeleteCallback(callback_key_z);
     }
 
-    Input::MotionStatus GetStatus() const {
-        Input::MotionStatus status{};
+    Common::Input::MotionStatus GetStatus() const {
+        Common::Input::MotionStatus status{};
         status.gyro.x = {
             .raw_value = input_engine->GetAxis(identifier, axis_x),
             .properties = properties_x,
@@ -601,8 +605,8 @@ public:
     }
 
     void ForceUpdate() {
-        const Input::CallbackStatus status{
-            .type = Input::InputType::Motion,
+        const Common::Input::CallbackStatus status{
+            .type = Common::Input::InputType::Motion,
             .motion_status = GetStatus(),
         };
 
@@ -613,8 +617,8 @@ public:
     }
 
     void OnChange() {
-        const Input::CallbackStatus status{
-            .type = Input::InputType::Motion,
+        const Common::Input::CallbackStatus status{
+            .type = Common::Input::InputType::Motion,
             .motion_status = GetStatus(),
         };
 
@@ -633,9 +637,9 @@ private:
     const u32 axis_x;
     const u32 axis_y;
     const u32 axis_z;
-    const Input::AnalogProperties properties_x;
-    const Input::AnalogProperties properties_y;
-    const Input::AnalogProperties properties_z;
+    const Common::Input::AnalogProperties properties_x;
+    const Common::Input::AnalogProperties properties_y;
+    const Common::Input::AnalogProperties properties_z;
     int callback_key_x;
     int callback_key_y;
     int callback_key_z;
@@ -645,20 +649,21 @@ private:
     InputEngine* input_engine;
 };
 
-class OutputFromIdentifier final : public Input::OutputDevice {
+class OutputFromIdentifier final : public Common::Input::OutputDevice {
 public:
     explicit OutputFromIdentifier(PadIdentifier identifier_, InputEngine* input_engine_)
         : identifier(identifier_), input_engine(input_engine_) {}
 
-    virtual void SetLED(Input::LedStatus led_status) {
+    virtual void SetLED(Common::Input::LedStatus led_status) {
         input_engine->SetLeds(identifier, led_status);
     }
 
-    virtual Input::VibrationError SetVibration(Input::VibrationStatus vibration_status) {
+    virtual Common::Input::VibrationError SetVibration(
+        Common::Input::VibrationStatus vibration_status) {
         return input_engine->SetRumble(identifier, vibration_status);
     }
 
-    virtual Input::PollingError SetPollingMode(Input::PollingMode polling_mode) {
+    virtual Common::Input::PollingError SetPollingMode(Common::Input::PollingMode polling_mode) {
         return input_engine->SetPollingMode(identifier, polling_mode);
     }
 
@@ -667,7 +672,7 @@ private:
     InputEngine* input_engine;
 };
 
-std::unique_ptr<Input::InputDevice> InputFactory::CreateButtonDevice(
+std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateButtonDevice(
     const Common::ParamPackage& params) {
     const PadIdentifier identifier = {
         .guid = Common::UUID{params.Get("guid", "")},
@@ -690,7 +695,7 @@ std::unique_ptr<Input::InputDevice> InputFactory::CreateButtonDevice(
                                              input_engine.get());
 }
 
-std::unique_ptr<Input::InputDevice> InputFactory::CreateHatButtonDevice(
+std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateHatButtonDevice(
     const Common::ParamPackage& params) {
     const PadIdentifier identifier = {
         .guid = Common::UUID{params.Get("guid", "")},
@@ -709,7 +714,7 @@ std::unique_ptr<Input::InputDevice> InputFactory::CreateHatButtonDevice(
                                                 input_engine.get());
 }
 
-std::unique_ptr<Input::InputDevice> InputFactory::CreateStickDevice(
+std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateStickDevice(
     const Common::ParamPackage& params) {
     const auto deadzone = std::clamp(params.Get("deadzone", 0.15f), 0.0f, 1.0f);
     const auto range = std::clamp(params.Get("range", 1.0f), 0.25f, 1.50f);
@@ -721,7 +726,7 @@ std::unique_ptr<Input::InputDevice> InputFactory::CreateStickDevice(
     };
 
     const auto axis_x = static_cast<u32>(params.Get("axis_x", 0));
-    const Input::AnalogProperties properties_x = {
+    const Common::Input::AnalogProperties properties_x = {
         .deadzone = deadzone,
         .range = range,
         .threshold = threshold,
@@ -730,7 +735,7 @@ std::unique_ptr<Input::InputDevice> InputFactory::CreateStickDevice(
     };
 
     const auto axis_y = static_cast<u32>(params.Get("axis_y", 1));
-    const Input::AnalogProperties properties_y = {
+    const Common::Input::AnalogProperties properties_y = {
         .deadzone = deadzone,
         .range = range,
         .threshold = threshold,
@@ -744,7 +749,7 @@ std::unique_ptr<Input::InputDevice> InputFactory::CreateStickDevice(
                                             input_engine.get());
 }
 
-std::unique_ptr<Input::InputDevice> InputFactory::CreateAnalogDevice(
+std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateAnalogDevice(
     const Common::ParamPackage& params) {
     const PadIdentifier identifier = {
         .guid = Common::UUID{params.Get("guid", "")},
@@ -753,7 +758,7 @@ std::unique_ptr<Input::InputDevice> InputFactory::CreateAnalogDevice(
     };
 
     const auto axis = static_cast<u32>(params.Get("axis", 0));
-    const Input::AnalogProperties properties = {
+    const Common::Input::AnalogProperties properties = {
         .deadzone = std::clamp(params.Get("deadzone", 0.0f), 0.0f, 1.0f),
         .range = std::clamp(params.Get("range", 1.0f), 0.25f, 1.50f),
         .threshold = std::clamp(params.Get("threshold", 0.5f), 0.0f, 1.0f),
@@ -765,7 +770,7 @@ std::unique_ptr<Input::InputDevice> InputFactory::CreateAnalogDevice(
     return std::make_unique<InputFromAnalog>(identifier, axis, properties, input_engine.get());
 }
 
-std::unique_ptr<Input::InputDevice> InputFactory::CreateTriggerDevice(
+std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateTriggerDevice(
     const Common::ParamPackage& params) {
     const PadIdentifier identifier = {
         .guid = Common::UUID{params.Get("guid", "")},
@@ -778,7 +783,7 @@ std::unique_ptr<Input::InputDevice> InputFactory::CreateTriggerDevice(
     const auto inverted = params.Get("inverted", false);
 
     const auto axis = static_cast<u32>(params.Get("axis", 0));
-    const Input::AnalogProperties properties = {
+    const Common::Input::AnalogProperties properties = {
         .deadzone = std::clamp(params.Get("deadzone", 0.0f), 0.0f, 1.0f),
         .range = std::clamp(params.Get("range", 1.0f), 0.25f, 2.50f),
         .threshold = std::clamp(params.Get("threshold", 0.5f), 0.0f, 1.0f),
@@ -792,7 +797,7 @@ std::unique_ptr<Input::InputDevice> InputFactory::CreateTriggerDevice(
                                               properties, input_engine.get());
 }
 
-std::unique_ptr<Input::InputDevice> InputFactory::CreateTouchDevice(
+std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateTouchDevice(
     const Common::ParamPackage& params) {
     const auto touch_id = params.Get("touch_id", 0);
     const auto deadzone = std::clamp(params.Get("deadzone", 0.0f), 0.0f, 1.0f);
@@ -809,7 +814,7 @@ std::unique_ptr<Input::InputDevice> InputFactory::CreateTouchDevice(
     const auto inverted = params.Get("inverted", false);
 
     const auto axis_x = static_cast<u32>(params.Get("axis_x", 0));
-    const Input::AnalogProperties properties_x = {
+    const Common::Input::AnalogProperties properties_x = {
         .deadzone = deadzone,
         .range = range,
         .threshold = threshold,
@@ -818,7 +823,7 @@ std::unique_ptr<Input::InputDevice> InputFactory::CreateTouchDevice(
     };
 
     const auto axis_y = static_cast<u32>(params.Get("axis_y", 1));
-    const Input::AnalogProperties properties_y = {
+    const Common::Input::AnalogProperties properties_y = {
         .deadzone = deadzone,
         .range = range,
         .threshold = threshold,
@@ -833,7 +838,7 @@ std::unique_ptr<Input::InputDevice> InputFactory::CreateTouchDevice(
                                             axis_y, properties_x, properties_y, input_engine.get());
 }
 
-std::unique_ptr<Input::InputDevice> InputFactory::CreateBatteryDevice(
+std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateBatteryDevice(
     const Common::ParamPackage& params) {
     const PadIdentifier identifier = {
         .guid = Common::UUID{params.Get("guid", "")},
@@ -845,7 +850,8 @@ std::unique_ptr<Input::InputDevice> InputFactory::CreateBatteryDevice(
     return std::make_unique<InputFromBattery>(identifier, input_engine.get());
 }
 
-std::unique_ptr<Input::InputDevice> InputFactory::CreateMotionDevice(Common::ParamPackage params) {
+std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateMotionDevice(
+    Common::ParamPackage params) {
     const PadIdentifier identifier = {
         .guid = Common::UUID{params.Get("guid", "")},
         .port = static_cast<std::size_t>(params.Get("port", 0)),
@@ -864,7 +870,7 @@ std::unique_ptr<Input::InputDevice> InputFactory::CreateMotionDevice(Common::Par
     const auto threshold = std::clamp(params.Get("threshold", 0.5f), 0.0f, 1.0f);
 
     const auto axis_x = static_cast<u32>(params.Get("axis_x", 0));
-    const Input::AnalogProperties properties_x = {
+    const Common::Input::AnalogProperties properties_x = {
         .deadzone = deadzone,
         .range = range,
         .threshold = threshold,
@@ -873,7 +879,7 @@ std::unique_ptr<Input::InputDevice> InputFactory::CreateMotionDevice(Common::Par
     };
 
     const auto axis_y = static_cast<u32>(params.Get("axis_y", 1));
-    const Input::AnalogProperties properties_y = {
+    const Common::Input::AnalogProperties properties_y = {
         .deadzone = deadzone,
         .range = range,
         .threshold = threshold,
@@ -882,7 +888,7 @@ std::unique_ptr<Input::InputDevice> InputFactory::CreateMotionDevice(Common::Par
     };
 
     const auto axis_z = static_cast<u32>(params.Get("axis_z", 1));
-    const Input::AnalogProperties properties_z = {
+    const Common::Input::AnalogProperties properties_z = {
         .deadzone = deadzone,
         .range = range,
         .threshold = threshold,
@@ -900,7 +906,8 @@ std::unique_ptr<Input::InputDevice> InputFactory::CreateMotionDevice(Common::Par
 InputFactory::InputFactory(std::shared_ptr<InputEngine> input_engine_)
     : input_engine(std::move(input_engine_)) {}
 
-std::unique_ptr<Input::InputDevice> InputFactory::Create(const Common::ParamPackage& params) {
+std::unique_ptr<Common::Input::InputDevice> InputFactory::Create(
+    const Common::ParamPackage& params) {
     if (params.Has("battery")) {
         return CreateBatteryDevice(params);
     }
@@ -935,7 +942,8 @@ std::unique_ptr<Input::InputDevice> InputFactory::Create(const Common::ParamPack
 OutputFactory::OutputFactory(std::shared_ptr<InputEngine> input_engine_)
     : input_engine(std::move(input_engine_)) {}
 
-std::unique_ptr<Input::OutputDevice> OutputFactory::Create(const Common::ParamPackage& params) {
+std::unique_ptr<Common::Input::OutputDevice> OutputFactory::Create(
+    const Common::ParamPackage& params) {
     const PadIdentifier identifier = {
         .guid = Common::UUID{params.Get("guid", "")},
         .port = static_cast<std::size_t>(params.Get("port", 0)),

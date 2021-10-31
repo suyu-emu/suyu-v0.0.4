@@ -12,7 +12,7 @@ namespace InputCommon {
  * An analog device factory that takes direction button devices and combines them into a analog
  * device.
  */
-class StickFromButton final : public Input::Factory<Input::InputDevice> {
+class StickFromButton final : public Common::Input::Factory<Common::Input::InputDevice> {
 public:
     /**
      * Creates an analog device from direction button devices
@@ -24,7 +24,7 @@ public:
      *     - "modifier": a serialized ParamPackage for creating a button device as the modifier
      *     - "modifier_scale": a float for the multiplier the modifier gives to the position
      */
-    std::unique_ptr<Input::InputDevice> Create(const Common::ParamPackage& params) override;
+    std::unique_ptr<Common::Input::InputDevice> Create(const Common::ParamPackage& params) override;
 };
 
 } // namespace InputCommon

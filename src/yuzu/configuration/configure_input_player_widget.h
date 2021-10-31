@@ -115,66 +115,75 @@ private:
     void DrawGCBody(QPainter& p, QPointF center);
 
     // Draw triggers functions
-    void DrawProTriggers(QPainter& p, QPointF center, const Input::ButtonStatus& left_pressed,
-                         const Input::ButtonStatus& right_pressed);
-    void DrawGCTriggers(QPainter& p, QPointF center, Input::TriggerStatus left_trigger,
-                        Input::TriggerStatus right_trigger);
-    void DrawHandheldTriggers(QPainter& p, QPointF center, const Input::ButtonStatus& left_pressed,
-                              const Input::ButtonStatus& right_pressed);
-    void DrawDualTriggers(QPainter& p, QPointF center, const Input::ButtonStatus& left_pressed,
-                          const Input::ButtonStatus& right_pressed);
+    void DrawProTriggers(QPainter& p, QPointF center,
+                         const Common::Input::ButtonStatus& left_pressed,
+                         const Common::Input::ButtonStatus& right_pressed);
+    void DrawGCTriggers(QPainter& p, QPointF center, Common::Input::TriggerStatus left_trigger,
+                        Common::Input::TriggerStatus right_trigger);
+    void DrawHandheldTriggers(QPainter& p, QPointF center,
+                              const Common::Input::ButtonStatus& left_pressed,
+                              const Common::Input::ButtonStatus& right_pressed);
+    void DrawDualTriggers(QPainter& p, QPointF center,
+                          const Common::Input::ButtonStatus& left_pressed,
+                          const Common::Input::ButtonStatus& right_pressed);
     void DrawDualTriggersTopView(QPainter& p, QPointF center,
-                                 const Input::ButtonStatus& left_pressed,
-                                 const Input::ButtonStatus& right_pressed);
+                                 const Common::Input::ButtonStatus& left_pressed,
+                                 const Common::Input::ButtonStatus& right_pressed);
     void DrawDualZTriggersTopView(QPainter& p, QPointF center,
-                                  const Input::ButtonStatus& left_pressed,
-                                  const Input::ButtonStatus& right_pressed);
-    void DrawLeftTriggers(QPainter& p, QPointF center, const Input::ButtonStatus& left_pressed);
-    void DrawLeftZTriggers(QPainter& p, QPointF center, const Input::ButtonStatus& left_pressed);
+                                  const Common::Input::ButtonStatus& left_pressed,
+                                  const Common::Input::ButtonStatus& right_pressed);
+    void DrawLeftTriggers(QPainter& p, QPointF center,
+                          const Common::Input::ButtonStatus& left_pressed);
+    void DrawLeftZTriggers(QPainter& p, QPointF center,
+                           const Common::Input::ButtonStatus& left_pressed);
     void DrawLeftTriggersTopView(QPainter& p, QPointF center,
-                                 const Input::ButtonStatus& left_pressed);
+                                 const Common::Input::ButtonStatus& left_pressed);
     void DrawLeftZTriggersTopView(QPainter& p, QPointF center,
-                                  const Input::ButtonStatus& left_pressed);
-    void DrawRightTriggers(QPainter& p, QPointF center, const Input::ButtonStatus& right_pressed);
-    void DrawRightZTriggers(QPainter& p, QPointF center, const Input::ButtonStatus& right_pressed);
+                                  const Common::Input::ButtonStatus& left_pressed);
+    void DrawRightTriggers(QPainter& p, QPointF center,
+                           const Common::Input::ButtonStatus& right_pressed);
+    void DrawRightZTriggers(QPainter& p, QPointF center,
+                            const Common::Input::ButtonStatus& right_pressed);
     void DrawRightTriggersTopView(QPainter& p, QPointF center,
-                                  const Input::ButtonStatus& right_pressed);
+                                  const Common::Input::ButtonStatus& right_pressed);
     void DrawRightZTriggersTopView(QPainter& p, QPointF center,
-                                   const Input::ButtonStatus& right_pressed);
+                                   const Common::Input::ButtonStatus& right_pressed);
 
     // Draw joystick functions
-    void DrawJoystick(QPainter& p, QPointF center, float size, const Input::ButtonStatus& pressed);
+    void DrawJoystick(QPainter& p, QPointF center, float size,
+                      const Common::Input::ButtonStatus& pressed);
     void DrawJoystickSideview(QPainter& p, QPointF center, float angle, float size,
-                              const Input::ButtonStatus& pressed);
+                              const Common::Input::ButtonStatus& pressed);
     void DrawRawJoystick(QPainter& p, QPointF center_left, QPointF center_right);
     void DrawJoystickProperties(QPainter& p, QPointF center,
-                                const Input::AnalogProperties& properties);
-    void DrawJoystickDot(QPainter& p, QPointF center, const Input::StickStatus& stick, bool raw);
+                                const Common::Input::AnalogProperties& properties);
+    void DrawJoystickDot(QPainter& p, QPointF center, const Common::Input::StickStatus& stick,
+                         bool raw);
     void DrawProJoystick(QPainter& p, QPointF center, QPointF offset, float scalar,
-                         const Input::ButtonStatus& pressed);
-    void DrawGCJoystick(QPainter& p, QPointF center, const Input::ButtonStatus& pressed);
+                         const Common::Input::ButtonStatus& pressed);
+    void DrawGCJoystick(QPainter& p, QPointF center, const Common::Input::ButtonStatus& pressed);
 
     // Draw button functions
-    void DrawCircleButton(QPainter& p, QPointF center, const Input::ButtonStatus& pressed,
+    void DrawCircleButton(QPainter& p, QPointF center, const Common::Input::ButtonStatus& pressed,
                           float button_size);
-    void DrawRoundButton(QPainter& p, QPointF center, const Input::ButtonStatus& pressed,
+    void DrawRoundButton(QPainter& p, QPointF center, const Common::Input::ButtonStatus& pressed,
                          float width, float height, Direction direction = Direction::None,
                          float radius = 2);
-    void DrawMinusButton(QPainter& p, QPointF center, const Input::ButtonStatus& pressed,
+    void DrawMinusButton(QPainter& p, QPointF center, const Common::Input::ButtonStatus& pressed,
                          int button_size);
-    void DrawPlusButton(QPainter& p, QPointF center, const Input::ButtonStatus& pressed,
+    void DrawPlusButton(QPainter& p, QPointF center, const Common::Input::ButtonStatus& pressed,
                         int button_size);
-    void DrawGCButtonX(QPainter& p, QPointF center, const Input::ButtonStatus& pressed);
-    void DrawGCButtonY(QPainter& p, QPointF center, const Input::ButtonStatus& pressed);
-    void DrawGCButtonZ(QPainter& p, QPointF center, const Input::ButtonStatus& pressed);
+    void DrawGCButtonX(QPainter& p, QPointF center, const Common::Input::ButtonStatus& pressed);
+    void DrawGCButtonY(QPainter& p, QPointF center, const Common::Input::ButtonStatus& pressed);
+    void DrawGCButtonZ(QPainter& p, QPointF center, const Common::Input::ButtonStatus& pressed);
     void DrawArrowButtonOutline(QPainter& p, const QPointF center, float size = 1.0f);
     void DrawArrowButton(QPainter& p, QPointF center, Direction direction,
-                         const Input::ButtonStatus& pressed, float size = 1.0f);
+                         const Common::Input::ButtonStatus& pressed, float size = 1.0f);
     void DrawTriggerButton(QPainter& p, QPointF center, Direction direction,
-                           const Input::ButtonStatus& pressed);
+                           const Common::Input::ButtonStatus& pressed);
 
     // Draw battery functions
-    void DrawBattery(QPainter& p, QPointF center, Input::BatteryLevel battery);
+    void DrawBattery(QPainter& p, QPointF center, Common::Input::BatteryLevel battery);
 
     // Draw icon functions
     void DrawSymbol(QPainter& p, QPointF center, Symbol symbol, float icon_size);

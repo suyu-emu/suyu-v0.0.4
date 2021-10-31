@@ -17,7 +17,7 @@ class InputEngine;
  * An Input factory. It receives input events and forward them to all input devices it created.
  */
 
-class OutputFactory final : public Input::Factory<Input::OutputDevice> {
+class OutputFactory final : public Common::Input::Factory<Common::Input::OutputDevice> {
 public:
     explicit OutputFactory(std::shared_ptr<InputEngine> input_engine_);
 
@@ -29,13 +29,14 @@ public:
      * @param    - "pad": slot of the connected controller
      * @return an unique ouput device with the parameters specified
      */
-    std::unique_ptr<Input::OutputDevice> Create(const Common::ParamPackage& params) override;
+    std::unique_ptr<Common::Input::OutputDevice> Create(
+        const Common::ParamPackage& params) override;
 
 private:
     std::shared_ptr<InputEngine> input_engine;
 };
 
-class InputFactory final : public Input::Factory<Input::InputDevice> {
+class InputFactory final : public Common::Input::Factory<Common::Input::InputDevice> {
 public:
     explicit InputFactory(std::shared_ptr<InputEngine> input_engine_);
 
@@ -64,7 +65,7 @@ public:
      * @param    - "battery": Only used as a placeholder to set the input type
      * @return an unique input device with the parameters specified
      */
-    std::unique_ptr<Input::InputDevice> Create(const Common::ParamPackage& params) override;
+    std::unique_ptr<Common::Input::InputDevice> Create(const Common::ParamPackage& params) override;
 
 private:
     /**
@@ -79,7 +80,8 @@ private:
      * @param    - "pad": slot of the connected controller
      * @return an unique input device with the parameters specified
      */
-    std::unique_ptr<Input::InputDevice> CreateButtonDevice(const Common::ParamPackage& params);
+    std::unique_ptr<Common::Input::InputDevice> CreateButtonDevice(
+        const Common::ParamPackage& params);
 
     /**
      * Creates a hat button device from the parameters given.
@@ -93,7 +95,8 @@ private:
      * @param    - "pad": slot of the connected controller
      * @return an unique input device with the parameters specified
      */
-    std::unique_ptr<Input::InputDevice> CreateHatButtonDevice(const Common::ParamPackage& params);
+    std::unique_ptr<Common::Input::InputDevice> CreateHatButtonDevice(
+        const Common::ParamPackage& params);
 
     /**
      * Creates a stick device from the parameters given.
@@ -112,7 +115,8 @@ private:
      * @param    - "pad": slot of the connected controller
      * @return an unique input device with the parameters specified
      */
-    std::unique_ptr<Input::InputDevice> CreateStickDevice(const Common::ParamPackage& params);
+    std::unique_ptr<Common::Input::InputDevice> CreateStickDevice(
+        const Common::ParamPackage& params);
 
     /**
      * Creates an analog device from the parameters given.
@@ -128,7 +132,8 @@ private:
      * @param    - "pad": slot of the connected controller
      * @return an unique input device with the parameters specified
      */
-    std::unique_ptr<Input::InputDevice> CreateAnalogDevice(const Common::ParamPackage& params);
+    std::unique_ptr<Common::Input::InputDevice> CreateAnalogDevice(
+        const Common::ParamPackage& params);
 
     /**
      * Creates a trigger device from the parameters given.
@@ -148,7 +153,8 @@ private:
      * @param    - "pad": slot of the connected controller
      * @return an unique input device with the parameters specified
      */
-    std::unique_ptr<Input::InputDevice> CreateTriggerDevice(const Common::ParamPackage& params);
+    std::unique_ptr<Common::Input::InputDevice> CreateTriggerDevice(
+        const Common::ParamPackage& params);
 
     /**
      * Creates a touch device from the parameters given.
@@ -171,7 +177,8 @@ private:
      * @param    - "pad": slot of the connected controller
      * @return an unique input device with the parameters specified
      */
-    std::unique_ptr<Input::InputDevice> CreateTouchDevice(const Common::ParamPackage& params);
+    std::unique_ptr<Common::Input::InputDevice> CreateTouchDevice(
+        const Common::ParamPackage& params);
 
     /**
      * Creates a battery device from the parameters given.
@@ -181,7 +188,8 @@ private:
      * @param    - "pad": slot of the connected controller
      * @return an unique input device with the parameters specified
      */
-    std::unique_ptr<Input::InputDevice> CreateBatteryDevice(const Common::ParamPackage& params);
+    std::unique_ptr<Common::Input::InputDevice> CreateBatteryDevice(
+        const Common::ParamPackage& params);
 
     /**
      * Creates a motion device from the parameters given.
@@ -202,7 +210,7 @@ private:
      * @param    - "pad": slot of the connected controller
      * @return an unique input device with the parameters specified
      */
-    std::unique_ptr<Input::InputDevice> CreateMotionDevice(Common::ParamPackage params);
+    std::unique_ptr<Common::Input::InputDevice> CreateMotionDevice(Common::ParamPackage params);
 
     std::shared_ptr<InputEngine> input_engine;
 };

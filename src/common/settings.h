@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <array>
-#include <atomic>
 #include <map>
 #include <optional>
 #include <string>

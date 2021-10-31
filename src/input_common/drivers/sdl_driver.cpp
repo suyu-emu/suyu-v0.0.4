@@ -92,7 +92,7 @@ public:
         return motion;
     }
 
-    bool RumblePlay(const Input::VibrationStatus vibration) {
+    bool RumblePlay(const Common::Input::VibrationStatus vibration) {
         constexpr u32 rumble_max_duration_ms = 1000;
         if (sdl_controller) {
             return SDL_GameControllerRumble(
@@ -515,8 +515,8 @@ std::vector<Common::ParamPackage> SDLDriver::GetInputDevices() const {
     }
     return devices;
 }
-Input::VibrationError SDLDriver::SetRumble(const PadIdentifier& identifier,
-                                           const Input::VibrationStatus vibration) {
+Common::Input::VibrationError SDLDriver::SetRumble(const PadIdentifier& identifier,
+                                                   const Common::Input::VibrationStatus vibration) {
     const auto joystick =
         GetSDLJoystickByGUID(identifier.guid.Format(), static_cast<int>(identifier.port));
     const auto process_amplitude_exp = [](f32 amplitude, f32 factor) {
@@ -527,7 +527,7 @@ Input::VibrationError SDLDriver::SetRumble(const PadIdentifier& identifier,
     f32 factor = 0.35f;
 
     // If vibration is set as a linear output use a flatter value
-    if (vibration.type == Input::VibrationAmplificationType::Linear) {
+    if (vibration.type == Common::Input::VibrationAmplificationType::Linear) {
         factor = 0.5f;
     }
 
@@ -536,19 +536,19 @@ Input::VibrationError SDLDriver::SetRumble(const PadIdentifier& identifier,
         factor = 1.0f;
     }
 
-    const Input::VibrationStatus new_vibration{
+    const Common::Input::VibrationStatus new_vibration{
         .low_amplitude = process_amplitude_exp(vibration.low_amplitude, factor),
         .low_frequency = vibration.low_frequency,
         .high_amplitude = process_amplitude_exp(vibration.high_amplitude, factor),
         .high_frequency = vibration.high_frequency,
-        .type = Input::VibrationAmplificationType::Exponential,
+        .type = Common::Input::VibrationAmplificationType::Exponential,
     };
 
     if (!joystick->RumblePlay(new_vibration)) {
-        return Input::VibrationError::Unknown;
+        return Common::Input::VibrationError::Unknown;
     }
 
-    return Input::VibrationError::None;
+    return Common::Input::VibrationError::None;
 }
 Common::ParamPackage SDLDriver::BuildAnalogParamPackageForButton(int port, std::string guid,
                                                                  s32 axis, float value) const {

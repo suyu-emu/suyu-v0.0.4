@@ -12,7 +12,7 @@
 #include "common/logging/log.h"
 #include "common/param_package.h"
 
-namespace Input {
+namespace Common::Input {
 
 enum class InputType {
     None,
@@ -296,4 +296,4 @@ std::unique_ptr<InputDeviceType> CreateDevice(const Common::ParamPackage package
     return pair->second->Create(package);
 }
 
-} // namespace Input
+} // namespace Common::Input

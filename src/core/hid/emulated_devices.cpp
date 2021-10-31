@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included
 
+#include <algorithm>
 #include <fmt/format.h>
 
 #include "core/hid/emulated_devices.h"
@@ -25,21 +26,25 @@ void EmulatedDevices::ReloadFromSettings() {
 void EmulatedDevices::ReloadInput() {
     std::transform(mouse_button_params.begin() + Settings::NativeMouseButton::MOUSE_HID_BEGIN,
                    mouse_button_params.begin() + Settings::NativeMouseButton::MOUSE_HID_END,
-                   mouse_button_devices.begin(), Input::CreateDevice<Input::InputDevice>);
+                   mouse_button_devices.begin(),
+                   Common::Input::CreateDevice<Common::Input::InputDevice>);
 
     std::transform(Settings::values.keyboard_keys.begin(), Settings::values.keyboard_keys.end(),
-                   keyboard_devices.begin(), Input::CreateDeviceFromString<Input::InputDevice>);
+                   keyboard_devices.begin(),
+                   Common::Input::CreateDeviceFromString<Common::Input::InputDevice>);
 
     std::transform(Settings::values.keyboard_mods.begin(), Settings::values.keyboard_mods.end(),
                    keyboard_modifier_devices.begin(),
-                   Input::CreateDeviceFromString<Input::InputDevice>);
+                   Common::Input::CreateDeviceFromString<Common::Input::InputDevice>);
 
     for (std::size_t index = 0; index < mouse_button_devices.size(); ++index) {
         if (!mouse_button_devices[index]) {
             continue;
         }
-        Input::InputCallback button_callback{
-            [this, index](Input::CallbackStatus callback) { SetMouseButton(callback, index); }};
+        Common::Input::InputCallback button_callback{
+            [this, index](Common::Input::CallbackStatus callback) {
+                SetMouseButton(callback, index);
+            }};
         mouse_button_devices[index]->SetCallback(button_callback);
     }
 
@@ -47,8 +52,10 @@ void EmulatedDevices::ReloadInput() {
         if (!keyboard_devices[index]) {
             continue;
         }
-        Input::InputCallback button_callback{
-            [this, index](Input::CallbackStatus callback) { SetKeyboardButton(callback, index); }};
+        Common::Input::InputCallback button_callback{
+            [this, index](Common::Input::CallbackStatus callback) {
+                SetKeyboardButton(callback, index);
+            }};
         keyboard_devices[index]->SetCallback(button_callback);
     }
 
@@ -56,9 +63,10 @@ void EmulatedDevices::ReloadInput() {
         if (!keyboard_modifier_devices[index]) {
             continue;
         }
-        Input::InputCallback button_callback{[this, index](Input::CallbackStatus callback) {
-            SetKeyboardModifier(callback, index);
-        }};
+        Common::Input::InputCallback button_callback{
+            [this, index](Common::Input::CallbackStatus callback) {
+                SetKeyboardModifier(callback, index);
+            }};
         keyboard_modifier_devices[index]->SetCallback(button_callback);
     }
 }
@@ -122,7 +130,7 @@ void EmulatedDevices::SetMouseButtonParam(std::size_t index, Common::ParamPackag
     ReloadInput();
 }
 
-void EmulatedDevices::SetKeyboardButton(Input::CallbackStatus callback, std::size_t index) {
+void EmulatedDevices::SetKeyboardButton(Common::Input::CallbackStatus callback, std::size_t index) {
     if (index >= device_status.keyboard_values.size()) {
         return;
     }
@@ -170,7 +178,7 @@ void EmulatedDevices::SetKeyboardButton(Input::CallbackStatus callback, std::siz
 void EmulatedDevices::UpdateKey(std::size_t key_index, bool status) {
     constexpr u8 KEYS_PER_BYTE = 8;
     auto& entry = device_status.keyboard_state.key[key_index / KEYS_PER_BYTE];
-    const u8 mask = 1 << (key_index % KEYS_PER_BYTE);
+    const u8 mask = static_cast<u8>(1 << (key_index % KEYS_PER_BYTE));
     if (status) {
         entry = entry | mask;
     } else {
@@ -178,7 +186,8 @@ void EmulatedDevices::UpdateKey(std::size_t key_index, bool status) {
     }
 }
 
-void EmulatedDevices::SetKeyboardModifier(Input::CallbackStatus callback, std::size_t index) {
+void EmulatedDevices::SetKeyboardModifier(Common::Input::CallbackStatus callback,
+                                          std::size_t index) {
     if (index >= device_status.keyboard_moddifier_values.size()) {
         return;
     }
@@ -247,7 +256,7 @@ void EmulatedDevices::SetKeyboardModifier(Input::CallbackStatus callback, std::s
     TriggerOnChange(DeviceTriggerType::KeyboardModdifier);
 }
 
-void EmulatedDevices::SetMouseButton(Input::CallbackStatus callback, std::size_t index) {
+void EmulatedDevices::SetMouseButton(Common::Input::CallbackStatus callback, std::size_t index) {
     if (index >= device_status.mouse_button_values.size()) {
         return;
     }

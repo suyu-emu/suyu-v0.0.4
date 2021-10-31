@@ -4,10 +4,13 @@
 
 #pragma once
 
+#include <array>
 #include <functional>
+#include <memory>
 #include <mutex>
 #include <unordered_map>
 
+#include "common/common_types.h"
 #include "common/input.h"
 #include "common/param_package.h"
 #include "common/point.h"
@@ -20,20 +23,22 @@
 namespace Core::HID {
 const std::size_t max_emulated_controllers = 2;
 struct ControllerMotionInfo {
-    Input::MotionStatus raw_status{};
+    Common::Input::MotionStatus raw_status{};
     MotionInput emulated{};
 };
 
 using ButtonDevices =
-    std::array<std::unique_ptr<Input::InputDevice>, Settings::NativeButton::NumButtons>;
+    std::array<std::unique_ptr<Common::Input::InputDevice>, Settings::NativeButton::NumButtons>;
 using StickDevices =
-    std::array<std::unique_ptr<Input::InputDevice>, Settings::NativeAnalog::NumAnalogs>;
+    std::array<std::unique_ptr<Common::Input::InputDevice>, Settings::NativeAnalog::NumAnalogs>;
 using ControllerMotionDevices =
-    std::array<std::unique_ptr<Input::InputDevice>, Settings::NativeMotion::NumMotions>;
+    std::array<std::unique_ptr<Common::Input::InputDevice>, Settings::NativeMotion::NumMotions>;
 using TriggerDevices =
-    std::array<std::unique_ptr<Input::InputDevice>, Settings::NativeTrigger::NumTriggers>;
-using BatteryDevices = std::array<std::unique_ptr<Input::InputDevice>, max_emulated_controllers>;
-using OutputDevices = std::array<std::unique_ptr<Input::OutputDevice>, max_emulated_controllers>;
+    std::array<std::unique_ptr<Common::Input::InputDevice>, Settings::NativeTrigger::NumTriggers>;
+using BatteryDevices =
+    std::array<std::unique_ptr<Common::Input::InputDevice>, max_emulated_controllers>;
+using OutputDevices =
+    std::array<std::unique_ptr<Common::Input::OutputDevice>, max_emulated_controllers>;
 
 using ButtonParams = std::array<Common::ParamPackage, Settings::NativeButton::NumButtons>;
 using StickParams = std::array<Common::ParamPackage, Settings::NativeAnalog::NumAnalogs>;
@@ -42,13 +47,14 @@ using TriggerParams = std::array<Common::ParamPackage, Settings::NativeTrigger::
 using BatteryParams = std::array<Common::ParamPackage, max_emulated_controllers>;
 using OutputParams = std::array<Common::ParamPackage, max_emulated_controllers>;
 
-using ButtonValues = std::array<Input::ButtonStatus, Settings::NativeButton::NumButtons>;
-using SticksValues = std::array<Input::StickStatus, Settings::NativeAnalog::NumAnalogs>;
-using TriggerValues = std::array<Input::TriggerStatus, Settings::NativeTrigger::NumTriggers>;
+using ButtonValues = std::array<Common::Input::ButtonStatus, Settings::NativeButton::NumButtons>;
+using SticksValues = std::array<Common::Input::StickStatus, Settings::NativeAnalog::NumAnalogs>;
+using TriggerValues =
+    std::array<Common::Input::TriggerStatus, Settings::NativeTrigger::NumTriggers>;
 using ControllerMotionValues = std::array<ControllerMotionInfo, Settings::NativeMotion::NumMotions>;
-using ColorValues = std::array<Input::BodyColorStatus, max_emulated_controllers>;
-using BatteryValues = std::array<Input::BatteryStatus, max_emulated_controllers>;
-using VibrationValues = std::array<Input::VibrationStatus, max_emulated_controllers>;
+using ColorValues = std::array<Common::Input::BodyColorStatus, max_emulated_controllers>;
+using BatteryValues = std::array<Common::Input::BatteryStatus, max_emulated_controllers>;
+using VibrationValues = std::array<Common::Input::VibrationStatus, max_emulated_controllers>;
 
 struct AnalogSticks {
     AnalogStickState left{};
@@ -307,35 +313,35 @@ private:
      * @param callback: A CallbackStatus containing the button status
      * @param index: Button ID of the to be updated
      */
-    void SetButton(Input::CallbackStatus callback, std::size_t index);
+    void SetButton(Common::Input::CallbackStatus callback, std::size_t index);
 
     /**
      * Updates the analog stick status of the controller
      * @param callback: A CallbackStatus containing the analog stick status
      * @param index: stick ID of the to be updated
      */
-    void SetStick(Input::CallbackStatus callback, std::size_t index);
+    void SetStick(Common::Input::CallbackStatus callback, std::size_t index);
 
     /**
      * Updates the trigger status of the controller
      * @param callback: A CallbackStatus containing the trigger status
      * @param index: trigger ID of the to be updated
      */
-    void SetTrigger(Input::CallbackStatus callback, std::size_t index);
+    void SetTrigger(Common::Input::CallbackStatus callback, std::size_t index);
 
     /**
      * Updates the motion status of the controller
      * @param callback: A CallbackStatus containing gyro and accelerometer data
      * @param index: motion ID of the to be updated
      */
-    void SetMotion(Input::CallbackStatus callback, std::size_t index);
+    void SetMotion(Common::Input::CallbackStatus callback, std::size_t index);
 
     /**
      * Updates the battery status of the controller
      * @param callback: A CallbackStatus containing the battery status
      * @param index: Button ID of the to be updated
      */
-    void SetBattery(Input::CallbackStatus callback, std::size_t index);
+    void SetBattery(Common::Input::CallbackStatus callback, std::size_t index);
 
     /**
      * Triggers a callback that something has changed on the controller status

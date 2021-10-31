@@ -58,8 +58,8 @@ public:
     std::string GetHatButtonName(u8 direction_value) const override;
     u8 GetHatButtonId(const std::string direction_name) const override;
 
-    Input::VibrationError SetRumble(const PadIdentifier& identifier,
-                                    const Input::VibrationStatus vibration) override;
+    Common::Input::VibrationError SetRumble(
+        const PadIdentifier& identifier, const Common::Input::VibrationStatus vibration) override;
 
 private:
     void InitJoystick(int joystick_index);
@@ -104,9 +104,6 @@ private:
 
     /// Returns true if the button is on the left joycon
     bool IsButtonOnLeftSide(Settings::NativeButton::Values button) const;
-
-    // Set to true if SDL supports game controller subsystem
-    bool has_gamecontroller = false;
 
     /// Map of GUID of a list of corresponding virtual Joysticks
     std::unordered_map<std::string, std::vector<std::shared_ptr<SDLJoystick>>> joystick_map;

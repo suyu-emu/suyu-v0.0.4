@@ -9,22 +9,22 @@
 
 namespace InputCommon {
 
-class TouchFromButtonDevice final : public Input::InputDevice {
+class TouchFromButtonDevice final : public Common::Input::InputDevice {
 public:
-    using Button = std::unique_ptr<Input::InputDevice>;
+    using Button = std::unique_ptr<Common::Input::InputDevice>;
     TouchFromButtonDevice(Button button_, u32 touch_id_, float x_, float y_)
         : button(std::move(button_)), touch_id(touch_id_), x(x_), y(y_) {
-        Input::InputCallback button_up_callback{
-            [this](Input::CallbackStatus callback_) { UpdateButtonStatus(callback_); }};
+        Common::Input::InputCallback button_up_callback{
+            [this](Common::Input::CallbackStatus callback_) { UpdateButtonStatus(callback_); }};
         button->SetCallback(button_up_callback);
         button->ForceUpdate();
     }
 
-    Input::TouchStatus GetStatus(bool pressed) const {
-        const Input::ButtonStatus button_status{
+    Common::Input::TouchStatus GetStatus(bool pressed) const {
+        const Common::Input::ButtonStatus button_status{
             .value = pressed,
         };
-        Input::TouchStatus status{
+        Common::Input::TouchStatus status{
             .pressed = button_status,
             .x = {},
             .y = {},
@@ -42,9 +42,9 @@ public:
         return status;
     }
 
-    void UpdateButtonStatus(Input::CallbackStatus button_callback) {
-        const Input::CallbackStatus status{
-            .type = Input::InputType::Touch,
+    void UpdateButtonStatus(Common::Input::CallbackStatus button_callback) {
+        const Common::Input::CallbackStatus status{
+            .type = Common::Input::InputType::Touch,
             .touch_status = GetStatus(button_callback.button_status.value),
         };
         TriggerOnChange(status);
@@ -55,13 +55,14 @@ private:
     const u32 touch_id;
     const float x;
     const float y;
-    const Input::AnalogProperties properties{0.0f, 1.0f, 0.5f, 0.0f, false};
+    const Common::Input::AnalogProperties properties{0.0f, 1.0f, 0.5f, 0.0f, false};
 };
 
-std::unique_ptr<Input::InputDevice> TouchFromButton::Create(const Common::ParamPackage& params) {
+std::unique_ptr<Common::Input::InputDevice> TouchFromButton::Create(
+    const Common::ParamPackage& params) {
     const std::string null_engine = Common::ParamPackage{{"engine", "null"}}.Serialize();
-    auto button =
-        Input::CreateDeviceFromString<Input::InputDevice>(params.Get("button", null_engine));
+    auto button = Common::Input::CreateDeviceFromString<Common::Input::InputDevice>(
+        params.Get("button", null_engine));
     const auto touch_id = params.Get("touch_id", 0);
     const float x = params.Get("x", 0.0f) / 1280.0f;
     const float y = params.Get("y", 0.0f) / 720.0f;

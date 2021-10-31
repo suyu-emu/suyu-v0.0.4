@@ -55,21 +55,21 @@ void EmulatedConsole::SetTouchParams() {
 
 void EmulatedConsole::ReloadInput() {
     SetTouchParams();
-    motion_devices = Input::CreateDevice<Input::InputDevice>(motion_params);
+    motion_devices = Common::Input::CreateDevice<Common::Input::InputDevice>(motion_params);
     if (motion_devices) {
-        Input::InputCallback motion_callback{
-            [this](Input::CallbackStatus callback) { SetMotion(callback); }};
+        Common::Input::InputCallback motion_callback{
+            [this](Common::Input::CallbackStatus callback) { SetMotion(callback); }};
         motion_devices->SetCallback(motion_callback);
     }
 
     std::size_t index = 0;
     for (auto& touch_device : touch_devices) {
-        touch_device = Input::CreateDevice<Input::InputDevice>(touch_params[index]);
+        touch_device = Common::Input::CreateDevice<Common::Input::InputDevice>(touch_params[index]);
         if (!touch_device) {
             continue;
         }
-        Input::InputCallback touch_callback{
-            [this, index](Input::CallbackStatus callback) { SetTouch(callback, index); }};
+        Common::Input::InputCallback touch_callback{
+            [this, index](Common::Input::CallbackStatus callback) { SetTouch(callback, index); }};
         touch_device->SetCallback(touch_callback);
         index++;
     }
@@ -117,7 +117,7 @@ void EmulatedConsole::SetMotionParam(Common::ParamPackage param) {
     ReloadInput();
 }
 
-void EmulatedConsole::SetMotion(Input::CallbackStatus callback) {
+void EmulatedConsole::SetMotion(Common::Input::CallbackStatus callback) {
     std::lock_guard lock{mutex};
     auto& raw_status = console.motion_values.raw_status;
     auto& emulated = console.motion_values.emulated;
@@ -152,7 +152,8 @@ void EmulatedConsole::SetMotion(Input::CallbackStatus callback) {
     TriggerOnChange(ConsoleTriggerType::Motion);
 }
 
-void EmulatedConsole::SetTouch(Input::CallbackStatus callback, [[maybe_unused]] std::size_t index) {
+void EmulatedConsole::SetTouch(Common::Input::CallbackStatus callback,
+                               [[maybe_unused]] std::size_t index) {
     if (index >= console.touch_values.size()) {
         return;
     }

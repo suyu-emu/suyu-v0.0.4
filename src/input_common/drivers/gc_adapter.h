@@ -4,8 +4,11 @@
 
 #pragma once
 
+#include <array>
+#include <memory>
 #include <mutex>
 #include <stop_token>
+#include <string>
 #include <thread>
 
 #include "input_common/input_engine.h"
@@ -24,8 +27,8 @@ public:
     explicit GCAdapter(const std::string input_engine_);
     ~GCAdapter();
 
-    Input::VibrationError SetRumble(const PadIdentifier& identifier,
-                                    const Input::VibrationStatus vibration) override;
+    Common::Input::VibrationError SetRumble(
+        const PadIdentifier& identifier, const Common::Input::VibrationStatus vibration) override;
 
     /// Used for automapping features
     std::vector<Common::ParamPackage> GetInputDevices() const override;

@@ -4,10 +4,13 @@
 
 #pragma once
 
+#include <array>
 #include <functional>
+#include <memory>
 #include <mutex>
 #include <unordered_map>
 
+#include "common/common_types.h"
 #include "common/input.h"
 #include "common/param_package.h"
 #include "common/point.h"
@@ -20,18 +23,18 @@
 namespace Core::HID {
 
 struct ConsoleMotionInfo {
-    Input::MotionStatus raw_status{};
+    Common::Input::MotionStatus raw_status{};
     MotionInput emulated{};
 };
 
-using ConsoleMotionDevices = std::unique_ptr<Input::InputDevice>;
-using TouchDevices = std::array<std::unique_ptr<Input::InputDevice>, 16>;
+using ConsoleMotionDevices = std::unique_ptr<Common::Input::InputDevice>;
+using TouchDevices = std::array<std::unique_ptr<Common::Input::InputDevice>, 16>;
 
 using ConsoleMotionParams = Common::ParamPackage;
 using TouchParams = std::array<Common::ParamPackage, 16>;
 
 using ConsoleMotionValues = ConsoleMotionInfo;
-using TouchValues = std::array<Input::TouchStatus, 16>;
+using TouchValues = std::array<Common::Input::TouchStatus, 16>;
 
 struct TouchFinger {
     u64 last_touch{};
@@ -151,14 +154,14 @@ private:
      * Updates the motion status of the console
      * @param A CallbackStatus containing gyro and accelerometer data
      */
-    void SetMotion(Input::CallbackStatus callback);
+    void SetMotion(Common::Input::CallbackStatus callback);
 
     /**
      * Updates the touch status of the console
      * @param callback: A CallbackStatus containing the touch position
      * @param index: Finger ID to be updated
      */
-    void SetTouch(Input::CallbackStatus callback, std::size_t index);
+    void SetTouch(Common::Input::CallbackStatus callback, std::size_t index);
 
     /**
      * Triggers a callback that something has changed on the console status

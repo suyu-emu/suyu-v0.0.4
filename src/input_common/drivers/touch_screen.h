@@ -41,7 +41,7 @@ public:
 
 private:
     const PadIdentifier identifier = {
-        .guid = Common::UUID{""},
+        .guid = Common::UUID{Common::INVALID_UUID},
         .port = 0,
         .pad = 0,
     };

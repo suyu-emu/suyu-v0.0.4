@@ -10,25 +10,27 @@
 
 namespace InputCommon {
 
-class Stick final : public Input::InputDevice {
+class Stick final : public Common::Input::InputDevice {
 public:
-    using Button = std::unique_ptr<Input::InputDevice>;
+    using Button = std::unique_ptr<Common::Input::InputDevice>;
 
     Stick(Button up_, Button down_, Button left_, Button right_, Button modifier_,
           float modifier_scale_, float modifier_angle_)
         : up(std::move(up_)), down(std::move(down_)), left(std::move(left_)),
           right(std::move(right_)), modifier(std::move(modifier_)), modifier_scale(modifier_scale_),
           modifier_angle(modifier_angle_) {
-        Input::InputCallback button_up_callback{
-            [this](Input::CallbackStatus callback_) { UpdateUpButtonStatus(callback_); }};
-        Input::InputCallback button_down_callback{
-            [this](Input::CallbackStatus callback_) { UpdateDownButtonStatus(callback_); }};
-        Input::InputCallback button_left_callback{
-            [this](Input::CallbackStatus callback_) { UpdateLeftButtonStatus(callback_); }};
-        Input::InputCallback button_right_callback{
-            [this](Input::CallbackStatus callback_) { UpdateRightButtonStatus(callback_); }};
-        Input::InputCallback button_modifier_callback{
-            [this](Input::CallbackStatus callback_) { UpdateModButtonStatus(callback_); }};
+        Common::Input::InputCallback button_up_callback{
+            [this](Common::Input::CallbackStatus callback_) { UpdateUpButtonStatus(callback_); }};
+        Common::Input::InputCallback button_down_callback{
+            [this](Common::Input::CallbackStatus callback_) { UpdateDownButtonStatus(callback_); }};
+        Common::Input::InputCallback button_left_callback{
+            [this](Common::Input::CallbackStatus callback_) { UpdateLeftButtonStatus(callback_); }};
+        Common::Input::InputCallback button_right_callback{
+            [this](Common::Input::CallbackStatus callback_) {
+                UpdateRightButtonStatus(callback_);
+            }};
+        Common::Input::InputCallback button_modifier_callback{
+            [this](Common::Input::CallbackStatus callback_) { UpdateModButtonStatus(callback_); }};
         up->SetCallback(button_up_callback);
         down->SetCallback(button_down_callback);
         left->SetCallback(button_left_callback);
@@ -129,27 +131,27 @@ public:
         }
     }
 
-    void UpdateUpButtonStatus(Input::CallbackStatus button_callback) {
+    void UpdateUpButtonStatus(Common::Input::CallbackStatus button_callback) {
         up_status = button_callback.button_status.value;
         UpdateStatus();
     }
 
-    void UpdateDownButtonStatus(Input::CallbackStatus button_callback) {
+    void UpdateDownButtonStatus(Common::Input::CallbackStatus button_callback) {
         down_status = button_callback.button_status.value;
         UpdateStatus();
     }
 
-    void UpdateLeftButtonStatus(Input::CallbackStatus button_callback) {
+    void UpdateLeftButtonStatus(Common::Input::CallbackStatus button_callback) {
         left_status = button_callback.button_status.value;
         UpdateStatus();
     }
 
-    void UpdateRightButtonStatus(Input::CallbackStatus button_callback) {
+    void UpdateRightButtonStatus(Common::Input::CallbackStatus button_callback) {
         right_status = button_callback.button_status.value;
         UpdateStatus();
     }
 
-    void UpdateModButtonStatus(Input::CallbackStatus button_callback) {
+    void UpdateModButtonStatus(Common::Input::CallbackStatus button_callback) {
         modifier_status = button_callback.button_status.value;
         UpdateStatus();
     }
@@ -193,8 +195,8 @@ public:
         }
 
         last_update = now;
-        Input::CallbackStatus status{
-            .type = Input::InputType::Stick,
+        Common::Input::CallbackStatus status{
+            .type = Common::Input::InputType::Stick,
             .stick_status = GetStatus(),
         };
         TriggerOnChange(status);
@@ -209,15 +211,15 @@ public:
     }
 
     void SoftUpdate() override {
-        Input::CallbackStatus status{
-            .type = Input::InputType::Stick,
+        Common::Input::CallbackStatus status{
+            .type = Common::Input::InputType::Stick,
             .stick_status = GetStatus(),
         };
         TriggerOnChange(status);
     }
 
-    Input::StickStatus GetStatus() const {
-        Input::StickStatus status{};
+    Common::Input::StickStatus GetStatus() const {
+        Common::Input::StickStatus status{};
         status.x.properties = properties;
         status.y.properties = properties;
         if (Settings::values.emulate_analog_keyboard) {
@@ -263,19 +265,23 @@ private:
     bool left_status;
     bool right_status;
     bool modifier_status;
-    const Input::AnalogProperties properties{0.0f, 1.0f, 0.5f, 0.0f, false};
+    const Common::Input::AnalogProperties properties{0.0f, 1.0f, 0.5f, 0.0f, false};
     std::chrono::time_point<std::chrono::steady_clock> last_update;
 };
 
-std::unique_ptr<Input::InputDevice> StickFromButton::Create(const Common::ParamPackage& params) {
+std::unique_ptr<Common::Input::InputDevice> StickFromButton::Create(
+    const Common::ParamPackage& params) {
     const std::string null_engine = Common::ParamPackage{{"engine", "null"}}.Serialize();
-    auto up = Input::CreateDeviceFromString<Input::InputDevice>(params.Get("up", null_engine));
-    auto down = Input::CreateDeviceFromString<Input::InputDevice>(params.Get("down", null_engine));
-    auto left = Input::CreateDeviceFromString<Input::InputDevice>(params.Get("left", null_engine));
-    auto right =
-        Input::CreateDeviceFromString<Input::InputDevice>(params.Get("right", null_engine));
-    auto modifier =
-        Input::CreateDeviceFromString<Input::InputDevice>(params.Get("modifier", null_engine));
+    auto up = Common::Input::CreateDeviceFromString<Common::Input::InputDevice>(
+        params.Get("up", null_engine));
+    auto down = Common::Input::CreateDeviceFromString<Common::Input::InputDevice>(
+        params.Get("down", null_engine));
+    auto left = Common::Input::CreateDeviceFromString<Common::Input::InputDevice>(
+        params.Get("left", null_engine));
+    auto right = Common::Input::CreateDeviceFromString<Common::Input::InputDevice>(
+        params.Get("right", null_engine));
+    auto modifier = Common::Input::CreateDeviceFromString<Common::Input::InputDevice>(
+        params.Get("modifier", null_engine));
     auto modifier_scale = params.Get("modifier_scale", 0.5f);
     auto modifier_angle = params.Get("modifier_angle", 5.5f);
     return std::make_unique<Stick>(std::move(up), std::move(down), std::move(left),

@@ -9,35 +9,35 @@
 
 namespace Core::HID {
 
-Input::BatteryStatus TransformToBattery(const Input::CallbackStatus& callback) {
-    Input::BatteryStatus battery{Input::BatteryStatus::None};
+Common::Input::BatteryStatus TransformToBattery(const Common::Input::CallbackStatus& callback) {
+    Common::Input::BatteryStatus battery{Common::Input::BatteryStatus::None};
     switch (callback.type) {
-    case Input::InputType::Analog:
-    case Input::InputType::Trigger: {
+    case Common::Input::InputType::Analog:
+    case Common::Input::InputType::Trigger: {
         const auto value = TransformToTrigger(callback).analog.value;
-        battery = Input::BatteryLevel::Empty;
+        battery = Common::Input::BatteryLevel::Empty;
         if (value > 0.2f) {
-            battery = Input::BatteryLevel::Critical;
+            battery = Common::Input::BatteryLevel::Critical;
         }
         if (value > 0.4f) {
-            battery = Input::BatteryLevel::Low;
+            battery = Common::Input::BatteryLevel::Low;
         }
         if (value > 0.6f) {
-            battery = Input::BatteryLevel::Medium;
+            battery = Common::Input::BatteryLevel::Medium;
         }
         if (value > 0.8f) {
-            battery = Input::BatteryLevel::Full;
+            battery = Common::Input::BatteryLevel::Full;
         }
         if (value >= 1.0f) {
-            battery = Input::BatteryLevel::Charging;
+            battery = Common::Input::BatteryLevel::Charging;
         }
         break;
     }
-    case Input::InputType::Button:
-        battery = callback.button_status.value ? Input::BatteryLevel::Charging
-                                               : Input::BatteryLevel::Critical;
+    case Common::Input::InputType::Button:
+        battery = callback.button_status.value ? Common::Input::BatteryLevel::Charging
+                                               : Common::Input::BatteryLevel::Critical;
         break;
-    case Input::InputType::Battery:
+    case Common::Input::InputType::Battery:
         battery = callback.battery_status;
         break;
     default:
@@ -48,14 +48,14 @@ Input::BatteryStatus TransformToBattery(const Input::CallbackStatus& callback) {
     return battery;
 }
 
-Input::ButtonStatus TransformToButton(const Input::CallbackStatus& callback) {
-    Input::ButtonStatus status{};
+Common::Input::ButtonStatus TransformToButton(const Common::Input::CallbackStatus& callback) {
+    Common::Input::ButtonStatus status{};
     switch (callback.type) {
-    case Input::InputType::Analog:
-    case Input::InputType::Trigger:
+    case Common::Input::InputType::Analog:
+    case Common::Input::InputType::Trigger:
         status.value = TransformToTrigger(callback).pressed;
         break;
-    case Input::InputType::Button:
+    case Common::Input::InputType::Button:
         status = callback.button_status;
         break;
     default:
@@ -70,15 +70,15 @@ Input::ButtonStatus TransformToButton(const Input::CallbackStatus& callback) {
     return status;
 }
 
-Input::MotionStatus TransformToMotion(const Input::CallbackStatus& callback) {
-    Input::MotionStatus status{};
+Common::Input::MotionStatus TransformToMotion(const Common::Input::CallbackStatus& callback) {
+    Common::Input::MotionStatus status{};
     switch (callback.type) {
-    case Input::InputType::Button: {
+    case Common::Input::InputType::Button: {
         if (TransformToButton(callback).value) {
             std::random_device device;
             std::mt19937 gen(device());
             std::uniform_int_distribution<s16> distribution(-1000, 1000);
-            Input::AnalogProperties properties{
+            Common::Input::AnalogProperties properties{
                 .deadzone = 0.0,
                 .range = 1.0f,
                 .offset = 0.0,
@@ -116,7 +116,7 @@ Input::MotionStatus TransformToMotion(const Input::CallbackStatus& callback) {
         }
         break;
     }
-    case Input::InputType::Motion:
+    case Common::Input::InputType::Motion:
         status = callback.motion_status;
         break;
     default:
@@ -133,11 +133,11 @@ Input::MotionStatus TransformToMotion(const Input::CallbackStatus& callback) {
     return status;
 }
 
-Input::StickStatus TransformToStick(const Input::CallbackStatus& callback) {
-    Input::StickStatus status{};
+Common::Input::StickStatus TransformToStick(const Common::Input::CallbackStatus& callback) {
+    Common::Input::StickStatus status{};
 
     switch (callback.type) {
-    case Input::InputType::Stick:
+    case Common::Input::InputType::Stick:
         status = callback.stick_status;
         break;
     default:
@@ -160,11 +160,11 @@ Input::StickStatus TransformToStick(const Input::CallbackStatus& callback) {
     return status;
 }
 
-Input::TouchStatus TransformToTouch(const Input::CallbackStatus& callback) {
-    Input::TouchStatus status{};
+Common::Input::TouchStatus TransformToTouch(const Common::Input::CallbackStatus& callback) {
+    Common::Input::TouchStatus status{};
 
     switch (callback.type) {
-    case Input::InputType::Touch:
+    case Common::Input::InputType::Touch:
         status = callback.touch_status;
         break;
     default:
@@ -192,22 +192,22 @@ Input::TouchStatus TransformToTouch(const Input::CallbackStatus& callback) {
     return status;
 }
 
-Input::TriggerStatus TransformToTrigger(const Input::CallbackStatus& callback) {
-    Input::TriggerStatus status{};
+Common::Input::TriggerStatus TransformToTrigger(const Common::Input::CallbackStatus& callback) {
+    Common::Input::TriggerStatus status{};
     float& raw_value = status.analog.raw_value;
     bool calculate_button_value = true;
 
     switch (callback.type) {
-    case Input::InputType::Analog:
+    case Common::Input::InputType::Analog:
         status.analog.properties = callback.analog_status.properties;
         raw_value = callback.analog_status.raw_value;
         break;
-    case Input::InputType::Button:
+    case Common::Input::InputType::Button:
         status.analog.properties.range = 1.0f;
         status.analog.properties.inverted = callback.button_status.inverted;
         raw_value = callback.button_status.value ? 1.0f : 0.0f;
         break;
-    case Input::InputType::Trigger:
+    case Common::Input::InputType::Trigger:
         status = callback.trigger_status;
         calculate_button_value = false;
         break;
@@ -234,7 +234,7 @@ Input::TriggerStatus TransformToTrigger(const Input::CallbackStatus& callback) {
     return status;
 }
 
-void SanitizeAnalog(Input::AnalogStatus& analog, bool clamp_value) {
+void SanitizeAnalog(Common::Input::AnalogStatus& analog, bool clamp_value) {
     const auto& properties = analog.properties;
     float& raw_value = analog.raw_value;
     float& value = analog.value;
@@ -274,7 +274,8 @@ void SanitizeAnalog(Input::AnalogStatus& analog, bool clamp_value) {
     }
 }
 
-void SanitizeStick(Input::AnalogStatus& analog_x, Input::AnalogStatus& analog_y, bool clamp_value) {
+void SanitizeStick(Common::Input::AnalogStatus& analog_x, Common::Input::AnalogStatus& analog_y,
+                   bool clamp_value) {
     const auto& properties_x = analog_x.properties;
     const auto& properties_y = analog_y.properties;
     float& raw_x = analog_x.raw_value;

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <array>
+
 #include "common/common_types.h"
 #include "common/swap.h"
 
@@ -29,10 +31,10 @@ struct Lifo {
     }
 
     const AtomicStorage<State>& ReadPreviousEntry() const {
-        return entries[GetPreviuousEntryIndex()];
+        return entries[GetPreviousEntryIndex()];
     }
 
-    std::size_t GetPreviuousEntryIndex() const {
+    std::size_t GetPreviousEntryIndex() const {
         return (buffer_tail + total_buffer_count - 1) % total_buffer_count;
     }
 

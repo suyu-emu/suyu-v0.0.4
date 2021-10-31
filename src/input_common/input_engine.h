@@ -116,22 +116,22 @@ public:
 
     // Sets a led pattern for a controller
     virtual void SetLeds([[maybe_unused]] const PadIdentifier& identifier,
-                         [[maybe_unused]] const Input::LedStatus led_status) {
+                         [[maybe_unused]] const Common::Input::LedStatus led_status) {
         return;
     }
 
     // Sets rumble to a controller
-    virtual Input::VibrationError SetRumble(
+    virtual Common::Input::VibrationError SetRumble(
         [[maybe_unused]] const PadIdentifier& identifier,
-        [[maybe_unused]] const Input::VibrationStatus vibration) {
-        return Input::VibrationError::NotSupported;
+        [[maybe_unused]] const Common::Input::VibrationStatus vibration) {
+        return Common::Input::VibrationError::NotSupported;
     }
 
     // Sets polling mode to a controller
-    virtual Input::PollingError SetPollingMode(
+    virtual Common::Input::PollingError SetPollingMode(
         [[maybe_unused]] const PadIdentifier& identifier,
-        [[maybe_unused]] const Input::PollingMode vibration) {
-        return Input::PollingError::NotSupported;
+        [[maybe_unused]] const Common::Input::PollingMode vibration) {
+        return Common::Input::PollingError::NotSupported;
     }
 
     // Returns the engine name
