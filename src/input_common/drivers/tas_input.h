@@ -47,7 +47,7 @@ namespace InputCommon::TasInput {
 
 constexpr size_t PLAYER_NUMBER = 10;
 
-enum class TasButton : u32 {
+enum class TasButton : u64 {
     BUTTON_A = 1U << 0,
     BUTTON_B = 1U << 1,
     BUTTON_X = 1U << 2,
@@ -92,7 +92,7 @@ public:
      * @param left_axis: value of the left axis
      * @param right_axis: value of the right axis
      */
-    void RecordInput(u32 buttons, TasAnalog left_axis, TasAnalog right_axis);
+    void RecordInput(u64 buttons, TasAnalog left_axis, TasAnalog right_axis);
 
     // Main loop that records or executes input
     void UpdateThread();
@@ -129,7 +129,7 @@ public:
 
 private:
     struct TASCommand {
-        u32 buttons{};
+        u64 buttons{};
         TasAnalog l_axis{};
         TasAnalog r_axis{};
     };
@@ -164,9 +164,9 @@ private:
      * Parses a string containing the button values. Each button is represented by it's text format
      * specified in text_to_tas_button array
      * @param line: string containing button name with the following format "a;b;c;d..."
-     * @return Returns a u32 with each bit representing the status of a button
+     * @return Returns a u64 with each bit representing the status of a button
      */
-    u32 ReadCommandButtons(const std::string& line) const;
+    u64 ReadCommandButtons(const std::string& line) const;
 
     /**
      * Reset state of all players
@@ -174,11 +174,11 @@ private:
     void ClearInput();
 
     /**
-     * Converts an u32 containing the button status into the text equivalent
+     * Converts an u64 containing the button status into the text equivalent
      * @param buttons: bitfield with the status of the buttons
      * @return Returns a string with the name of the buttons to be written to the file
      */
-    std::string WriteCommandButtons(u32 buttons) const;
+    std::string WriteCommandButtons(u64 buttons) const;
 
     /**
      * Converts an TAS analog object containing the axis status into the text equivalent

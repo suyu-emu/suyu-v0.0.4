@@ -7,11 +7,16 @@
 #include <QString>
 #include "common/settings.h"
 #include "core/core.h"
+#include "core/hid/emulated_controller.h"
+#include "input_common/drivers/tas_input.h"
+#include "input_common/main.h"
 #include "yuzu/configuration/configure_input_player_widget.h"
 #include "yuzu/debugger/controller.h"
 
-ControllerDialog::ControllerDialog(Core::System& system, QWidget* parent)
-    : QWidget(parent, Qt::Dialog) {
+ControllerDialog::ControllerDialog(Core::System& system_,
+                                   std::shared_ptr<InputCommon::InputSubsystem> input_subsystem_,
+                                   QWidget* parent)
+    : QWidget(parent, Qt::Dialog), system{system_}, input_subsystem{input_subsystem_} {
     setObjectName(QStringLiteral("Controller"));
     setWindowTitle(tr("Controller P1"));
     resize(500, 350);
@@ -21,7 +26,7 @@ ControllerDialog::ControllerDialog(Core::System& system, QWidget* parent)
                    Qt::WindowMaximizeButtonHint);
 
     widget = new PlayerControlPreview(this);
-    widget->SetController(system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1));
+    refreshConfiguration();
     QLayout* layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addWidget(widget);
@@ -32,6 +37,22 @@ ControllerDialog::ControllerDialog(Core::System& system, QWidget* parent)
     setFocusProxy(widget);
     widget->setFocusPolicy(Qt::StrongFocus);
     widget->setFocus();
+}
+
+void ControllerDialog::refreshConfiguration() {
+    UnloadController();
+    auto* player_1 = system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
+    auto* handheld = system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
+    // Display the correct controller
+    controller = handheld->IsConnected() ? handheld : player_1;
+
+    Core::HID::ControllerUpdateCallback engine_callback{
+        .on_change = [this](Core::HID::ControllerTriggerType type) { ControllerUpdate(type); },
+        .is_npad_service = true,
+    };
+    callback_key = controller->SetCallback(engine_callback);
+    widget->SetController(controller);
+    is_controller_set = true;
 }
 
 QAction* ControllerDialog::toggleViewAction() {
@@ -47,6 +68,10 @@ QAction* ControllerDialog::toggleViewAction() {
 
 void ControllerDialog::UnloadController() {
     widget->UnloadController();
+    if (is_controller_set) {
+        controller->DeleteCallback(callback_key);
+        is_controller_set = false;
+    }
 }
 
 void ControllerDialog::showEvent(QShowEvent* ev) {
@@ -61,4 +86,33 @@ void ControllerDialog::hideEvent(QHideEvent* ev) {
         toggle_view_action->setChecked(isVisible());
     }
     QWidget::hideEvent(ev);
+}
+
+void ControllerDialog::ControllerUpdate(Core::HID::ControllerTriggerType type) {
+    // TODO(german77): Remove TAS from here
+    switch (type) {
+    case Core::HID::ControllerTriggerType::Button:
+    case Core::HID::ControllerTriggerType::Stick: {
+        const auto buttons_values = controller->GetButtonsValues();
+        const auto stick_values = controller->GetSticksValues();
+        u64 buttons = 0;
+        std::size_t index = 0;
+        for (const auto& button : buttons_values) {
+            buttons |= button.value ? 1LLU << index : 0;
+            index++;
+        }
+        const InputCommon::TasInput::TasAnalog left_axis = {
+            .x = stick_values[Settings::NativeAnalog::LStick].x.value,
+            .y = stick_values[Settings::NativeAnalog::LStick].y.value,
+        };
+        const InputCommon::TasInput::TasAnalog right_axis = {
+            .x = stick_values[Settings::NativeAnalog::RStick].x.value,
+            .y = stick_values[Settings::NativeAnalog::RStick].y.value,
+        };
+        input_subsystem->GetTas()->RecordInput(buttons, left_axis, right_axis);
+        break;
+    }
+    default:
+        break;
+    }
 }

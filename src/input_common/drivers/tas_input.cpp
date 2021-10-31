@@ -141,7 +141,7 @@ void Tas::WriteTasFile(std::u8string file_name) {
     }
 }
 
-void Tas::RecordInput(u32 buttons, TasAnalog left_axis, TasAnalog right_axis) {
+void Tas::RecordInput(u64 buttons, TasAnalog left_axis, TasAnalog right_axis) {
     last_input = {
         .buttons = buttons,
         .l_axis = FlipAxisY(left_axis),
@@ -195,7 +195,7 @@ void Tas::UpdateThread() {
     }
     if (current_command < script_length) {
         LOG_DEBUG(Input, "Playing TAS {}/{}", current_command, script_length);
-        size_t frame = current_command++;
+        const size_t frame = current_command++;
         for (size_t player_index = 0; player_index < commands.size(); player_index++) {
             TASCommand command{};
             if (frame < commands[player_index].size()) {
@@ -207,8 +207,8 @@ void Tas::UpdateThread() {
                 .port = player_index,
                 .pad = 0,
             };
-            for (std::size_t i = 0; i < sizeof(command.buttons); ++i) {
-                const bool button_status = (command.buttons & (1U << i)) != 0;
+            for (std::size_t i = 0; i < sizeof(command.buttons) * 8; ++i) {
+                const bool button_status = (command.buttons & (1LLU << i)) != 0;
                 const int button = static_cast<int>(i);
                 SetButton(identifier, button, button_status);
             }
@@ -244,14 +244,14 @@ TasAnalog Tas::ReadCommandAxis(const std::string& line) const {
     return {x, y};
 }
 
-u32 Tas::ReadCommandButtons(const std::string& data) const {
+u64 Tas::ReadCommandButtons(const std::string& data) const {
     std::stringstream button_text(data);
     std::string line;
-    u32 buttons = 0;
+    u64 buttons = 0;
     while (std::getline(button_text, line, ';')) {
         for (auto [text, tas_button] : text_to_tas_button) {
             if (text == line) {
-                buttons |= static_cast<u32>(tas_button);
+                buttons |= static_cast<u64>(tas_button);
                 break;
             }
         }
@@ -259,13 +259,14 @@ u32 Tas::ReadCommandButtons(const std::string& data) const {
     return buttons;
 }
 
-std::string Tas::WriteCommandButtons(u32 buttons) const {
+std::string Tas::WriteCommandButtons(u64 buttons) const {
     std::string returns = "";
     for (auto [text_button, tas_button] : text_to_tas_button) {
-        if ((buttons & static_cast<u32>(tas_button)) != 0)
-            returns += fmt::format("{};", text_button.substr(4));
+        if ((buttons & static_cast<u64>(tas_button)) != 0) {
+            returns += fmt::format("{};", text_button);
+        }
     }
-    return returns.empty() ? "NONE" : returns.substr(2);
+    return returns.empty() ? "NONE" : returns;
 }
 
 std::string Tas::WriteCommandAxis(TasAnalog analog) const {

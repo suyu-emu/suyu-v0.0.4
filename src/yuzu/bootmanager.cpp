@@ -35,6 +35,7 @@
 #include "core/frontend/framebuffer_layout.h"
 #include "input_common/drivers/keyboard.h"
 #include "input_common/drivers/mouse.h"
+#include "input_common/drivers/tas_input.h"
 #include "input_common/drivers/touch_screen.h"
 #include "input_common/main.h"
 #include "video_core/renderer_base.h"

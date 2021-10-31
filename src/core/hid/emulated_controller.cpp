@@ -127,7 +127,7 @@ void EmulatedController::LoadDevices() {
     // Initialize TAS devices
     std::transform(tas_button_params.begin(), tas_button_params.end(), tas_button_devices.begin(),
                    Input::CreateDevice<Input::InputDevice>);
-    std::transform(tas_stick_params.begin(), tas_stick_params.begin(), tas_stick_devices.begin(),
+    std::transform(tas_stick_params.begin(), tas_stick_params.end(), tas_stick_devices.begin(),
                    Input::CreateDevice<Input::InputDevice>);
 }
 
@@ -135,7 +135,7 @@ void EmulatedController::LoadTASParams() {
     const auto player_index = NpadIdTypeToIndex(npad_id_type);
     Common::ParamPackage common_params{};
     common_params.Set("engine", "tas");
-    common_params.Set("pad", static_cast<int>(player_index));
+    common_params.Set("port", static_cast<int>(player_index));
     for (auto& param : tas_button_params) {
         param = common_params;
     }
@@ -144,26 +144,26 @@ void EmulatedController::LoadTASParams() {
     }
 
     // TODO(german77): Replace this with an input profile or something better
-    tas_button_params[Settings::NativeButton::A].Set("button", 1 << 0);
-    tas_button_params[Settings::NativeButton::B].Set("button", 1 << 1);
-    tas_button_params[Settings::NativeButton::X].Set("button", 1 << 2);
-    tas_button_params[Settings::NativeButton::Y].Set("button", 1 << 3);
-    tas_button_params[Settings::NativeButton::LStick].Set("button", 1 << 4);
-    tas_button_params[Settings::NativeButton::RStick].Set("button", 1 << 5);
-    tas_button_params[Settings::NativeButton::L].Set("button", 1 << 6);
-    tas_button_params[Settings::NativeButton::R].Set("button", 1 << 7);
-    tas_button_params[Settings::NativeButton::ZL].Set("button", 1 << 8);
-    tas_button_params[Settings::NativeButton::ZR].Set("button", 1 << 9);
-    tas_button_params[Settings::NativeButton::Plus].Set("button", 1 << 10);
-    tas_button_params[Settings::NativeButton::Minus].Set("button", 1 << 11);
-    tas_button_params[Settings::NativeButton::DLeft].Set("button", 1 << 12);
-    tas_button_params[Settings::NativeButton::DUp].Set("button", 1 << 13);
-    tas_button_params[Settings::NativeButton::DRight].Set("button", 1 << 14);
-    tas_button_params[Settings::NativeButton::DDown].Set("button", 1 << 15);
-    tas_button_params[Settings::NativeButton::SL].Set("button", 1 << 16);
-    tas_button_params[Settings::NativeButton::SR].Set("button", 1 << 17);
-    tas_button_params[Settings::NativeButton::Home].Set("button", 1 << 18);
-    tas_button_params[Settings::NativeButton::Screenshot].Set("button", 1 << 19);
+    tas_button_params[Settings::NativeButton::A].Set("button", 0);
+    tas_button_params[Settings::NativeButton::B].Set("button", 1);
+    tas_button_params[Settings::NativeButton::X].Set("button", 2);
+    tas_button_params[Settings::NativeButton::Y].Set("button", 3);
+    tas_button_params[Settings::NativeButton::LStick].Set("button", 4);
+    tas_button_params[Settings::NativeButton::RStick].Set("button", 5);
+    tas_button_params[Settings::NativeButton::L].Set("button", 6);
+    tas_button_params[Settings::NativeButton::R].Set("button", 7);
+    tas_button_params[Settings::NativeButton::ZL].Set("button", 8);
+    tas_button_params[Settings::NativeButton::ZR].Set("button", 9);
+    tas_button_params[Settings::NativeButton::Plus].Set("button", 10);
+    tas_button_params[Settings::NativeButton::Minus].Set("button", 11);
+    tas_button_params[Settings::NativeButton::DLeft].Set("button", 12);
+    tas_button_params[Settings::NativeButton::DUp].Set("button", 13);
+    tas_button_params[Settings::NativeButton::DRight].Set("button", 14);
+    tas_button_params[Settings::NativeButton::DDown].Set("button", 15);
+    tas_button_params[Settings::NativeButton::SL].Set("button", 16);
+    tas_button_params[Settings::NativeButton::SR].Set("button", 17);
+    tas_button_params[Settings::NativeButton::Home].Set("button", 18);
+    tas_button_params[Settings::NativeButton::Screenshot].Set("button", 19);
 
     tas_stick_params[Settings::NativeAnalog::LStick].Set("axis_x", 0);
     tas_stick_params[Settings::NativeAnalog::LStick].Set("axis_y", 1);
