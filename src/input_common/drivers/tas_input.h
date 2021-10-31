@@ -188,7 +188,6 @@ private:
     std::string WriteCommandAxis(TasAnalog data) const;
 
     size_t script_length{0};
-    bool is_old_input_saved{false};
     bool is_recording{false};
     bool is_running{false};
     bool needs_reset{false};

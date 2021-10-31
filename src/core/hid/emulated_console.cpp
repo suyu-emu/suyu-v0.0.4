@@ -166,9 +166,10 @@ void EmulatedConsole::SetTouch(Common::Input::CallbackStatus callback,
         return;
     }
 
+    // TODO(german77): Remap touch id in sequential order
     console.touch_state[index] = {
         .position = {console.touch_values[index].x.value, console.touch_values[index].y.value},
-        .id = console.touch_values[index].id,
+        .id = static_cast<u32>(console.touch_values[index].id),
         .pressed = console.touch_values[index].pressed.value,
     };
 

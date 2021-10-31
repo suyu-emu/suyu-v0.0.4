@@ -38,8 +38,6 @@ const std::array<std::string, ConfigureInputPlayer::ANALOG_SUB_BUTTONS_NUM>
 
 namespace {
 
-constexpr std::size_t HANDHELD_INDEX = 8;
-
 QString GetKeyName(int key_code) {
     switch (key_code) {
     case Qt::Key_Shift:

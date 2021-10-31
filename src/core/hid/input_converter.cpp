@@ -53,7 +53,7 @@ Common::Input::ButtonStatus TransformToButton(const Common::Input::CallbackStatu
     switch (callback.type) {
     case Common::Input::InputType::Analog:
     case Common::Input::InputType::Trigger:
-        status.value = TransformToTrigger(callback).pressed;
+        status.value = TransformToTrigger(callback).pressed.value;
         break;
     case Common::Input::InputType::Button:
         status = callback.button_status;
@@ -222,7 +222,7 @@ Common::Input::TriggerStatus TransformToTrigger(const Common::Input::CallbackSta
 
     // Set button status
     if (calculate_button_value) {
-        status.pressed = value > properties.threshold;
+        status.pressed.value = value > properties.threshold;
     }
 
     // Adjust if value is inverted

@@ -18,7 +18,7 @@ public:
 
 class InputFromButton final : public Common::Input::InputDevice {
 public:
-    explicit InputFromButton(PadIdentifier identifier_, u32 button_, bool toggle_, bool inverted_,
+    explicit InputFromButton(PadIdentifier identifier_, int button_, bool toggle_, bool inverted_,
                              InputEngine* input_engine_)
         : identifier(identifier_), button(button_), toggle(toggle_), inverted(inverted_),
           input_engine(input_engine_) {
@@ -69,7 +69,7 @@ public:
 
 private:
     const PadIdentifier identifier;
-    const u32 button;
+    const int button;
     const bool toggle;
     const bool inverted;
     int callback_key;
@@ -79,7 +79,7 @@ private:
 
 class InputFromHatButton final : public Common::Input::InputDevice {
 public:
-    explicit InputFromHatButton(PadIdentifier identifier_, u32 button_, u8 direction_, bool toggle_,
+    explicit InputFromHatButton(PadIdentifier identifier_, int button_, u8 direction_, bool toggle_,
                                 bool inverted_, InputEngine* input_engine_)
         : identifier(identifier_), button(button_), direction(direction_), toggle(toggle_),
           inverted(inverted_), input_engine(input_engine_) {
@@ -130,7 +130,7 @@ public:
 
 private:
     const PadIdentifier identifier;
-    const u32 button;
+    const int button;
     const u8 direction;
     const bool toggle;
     const bool inverted;
@@ -141,7 +141,7 @@ private:
 
 class InputFromStick final : public Common::Input::InputDevice {
 public:
-    explicit InputFromStick(PadIdentifier identifier_, u32 axis_x_, u32 axis_y_,
+    explicit InputFromStick(PadIdentifier identifier_, int axis_x_, int axis_y_,
                             Common::Input::AnalogProperties properties_x_,
                             Common::Input::AnalogProperties properties_y_,
                             InputEngine* input_engine_)
@@ -211,8 +211,8 @@ public:
 
 private:
     const PadIdentifier identifier;
-    const u32 axis_x;
-    const u32 axis_y;
+    const int axis_x;
+    const int axis_y;
     const Common::Input::AnalogProperties properties_x;
     const Common::Input::AnalogProperties properties_y;
     int callback_key_x;
@@ -224,8 +224,8 @@ private:
 
 class InputFromTouch final : public Common::Input::InputDevice {
 public:
-    explicit InputFromTouch(PadIdentifier identifier_, u32 touch_id_, u32 button_, bool toggle_,
-                            bool inverted_, u32 axis_x_, u32 axis_y_,
+    explicit InputFromTouch(PadIdentifier identifier_, int touch_id_, int button_, bool toggle_,
+                            bool inverted_, int axis_x_, int axis_y_,
                             Common::Input::AnalogProperties properties_x_,
                             Common::Input::AnalogProperties properties_y_,
                             InputEngine* input_engine_)
@@ -302,12 +302,12 @@ public:
 
 private:
     const PadIdentifier identifier;
-    const u32 touch_id;
-    const u32 button;
+    const int touch_id;
+    const int button;
     const bool toggle;
     const bool inverted;
-    const u32 axis_x;
-    const u32 axis_y;
+    const int axis_x;
+    const int axis_y;
     const Common::Input::AnalogProperties properties_x;
     const Common::Input::AnalogProperties properties_y;
     int callback_key_button;
@@ -321,8 +321,8 @@ private:
 
 class InputFromTrigger final : public Common::Input::InputDevice {
 public:
-    explicit InputFromTrigger(PadIdentifier identifier_, u32 button_, bool toggle_, bool inverted_,
-                              u32 axis_, Common::Input::AnalogProperties properties_,
+    explicit InputFromTrigger(PadIdentifier identifier_, int button_, bool toggle_, bool inverted_,
+                              int axis_, Common::Input::AnalogProperties properties_,
                               InputEngine* input_engine_)
         : identifier(identifier_), button(button_), toggle(toggle_), inverted(inverted_),
           axis(axis_), properties(properties_), input_engine(input_engine_) {
@@ -355,9 +355,14 @@ public:
             .raw_value = input_engine->GetAxis(identifier, axis),
             .properties = properties,
         };
+        const Common::Input::ButtonStatus button_status{
+            .value = input_engine->GetButton(identifier, button),
+            .inverted = inverted,
+            .toggle = toggle,
+        };
         return {
             .analog = analog_status,
-            .pressed = input_engine->GetButton(identifier, button),
+            .pressed = button_status,
         };
     }
 
@@ -368,19 +373,19 @@ public:
         };
 
         if (status.trigger_status.analog.raw_value != last_axis_value ||
-            status.trigger_status.pressed != last_button_value) {
+            status.trigger_status.pressed.value != last_button_value) {
             last_axis_value = status.trigger_status.analog.raw_value;
-            last_button_value = status.trigger_status.pressed;
+            last_button_value = status.trigger_status.pressed.value;
             TriggerOnChange(status);
         }
     }
 
 private:
     const PadIdentifier identifier;
-    const u32 button;
+    const int button;
     const bool toggle;
     const bool inverted;
-    const u32 axis;
+    const int axis;
     const Common::Input::AnalogProperties properties;
     int callback_key_button;
     int axis_callback_key;
@@ -391,7 +396,7 @@ private:
 
 class InputFromAnalog final : public Common::Input::InputDevice {
 public:
-    explicit InputFromAnalog(PadIdentifier identifier_, u32 axis_,
+    explicit InputFromAnalog(PadIdentifier identifier_, int axis_,
                              Common::Input::AnalogProperties properties_,
                              InputEngine* input_engine_)
         : identifier(identifier_), axis(axis_), properties(properties_),
@@ -432,7 +437,7 @@ public:
 
 private:
     const PadIdentifier identifier;
-    const u32 axis;
+    const int axis;
     const Common::Input::AnalogProperties properties;
     int callback_key;
     float last_axis_value;
@@ -493,7 +498,7 @@ private:
 
 class InputFromMotion final : public Common::Input::InputDevice {
 public:
-    explicit InputFromMotion(PadIdentifier identifier_, u32 motion_sensor_,
+    explicit InputFromMotion(PadIdentifier identifier_, int motion_sensor_,
                              InputEngine* input_engine_)
         : identifier(identifier_), motion_sensor(motion_sensor_), input_engine(input_engine_) {
         UpdateCallback engine_callback{[this]() { OnChange(); }};
@@ -539,14 +544,14 @@ public:
 
 private:
     const PadIdentifier identifier;
-    const u32 motion_sensor;
+    const int motion_sensor;
     int callback_key;
     InputEngine* input_engine;
 };
 
 class InputFromAxisMotion final : public Common::Input::InputDevice {
 public:
-    explicit InputFromAxisMotion(PadIdentifier identifier_, u32 axis_x_, u32 axis_y_, u32 axis_z_,
+    explicit InputFromAxisMotion(PadIdentifier identifier_, int axis_x_, int axis_y_, int axis_z_,
                                  Common::Input::AnalogProperties properties_x_,
                                  Common::Input::AnalogProperties properties_y_,
                                  Common::Input::AnalogProperties properties_z_,
@@ -634,9 +639,9 @@ public:
 
 private:
     const PadIdentifier identifier;
-    const u32 axis_x;
-    const u32 axis_y;
-    const u32 axis_z;
+    const int axis_x;
+    const int axis_y;
+    const int axis_z;
     const Common::Input::AnalogProperties properties_x;
     const Common::Input::AnalogProperties properties_y;
     const Common::Input::AnalogProperties properties_z;
@@ -680,8 +685,8 @@ std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateButtonDevice(
         .pad = static_cast<std::size_t>(params.Get("pad", 0)),
     };
 
-    const auto button_id = static_cast<u32>(params.Get("button", 0));
-    const auto keyboard_key = static_cast<u32>(params.Get("code", 0));
+    const auto button_id = params.Get("button", 0);
+    const auto keyboard_key = params.Get("code", 0);
     const auto toggle = params.Get("toggle", false);
     const auto inverted = params.Get("inverted", false);
     input_engine->PreSetController(identifier);
@@ -703,7 +708,7 @@ std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateHatButtonDevice(
         .pad = static_cast<std::size_t>(params.Get("pad", 0)),
     };
 
-    const auto button_id = static_cast<u32>(params.Get("hat", 0));
+    const auto button_id = params.Get("hat", 0);
     const auto direction = input_engine->GetHatButtonId(params.Get("direction", ""));
     const auto toggle = params.Get("toggle", false);
     const auto inverted = params.Get("inverted", false);
@@ -725,7 +730,7 @@ std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateStickDevice(
         .pad = static_cast<std::size_t>(params.Get("pad", 0)),
     };
 
-    const auto axis_x = static_cast<u32>(params.Get("axis_x", 0));
+    const auto axis_x = params.Get("axis_x", 0);
     const Common::Input::AnalogProperties properties_x = {
         .deadzone = deadzone,
         .range = range,
@@ -734,7 +739,7 @@ std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateStickDevice(
         .inverted = params.Get("invert_x", "+") == "-",
     };
 
-    const auto axis_y = static_cast<u32>(params.Get("axis_y", 1));
+    const auto axis_y = params.Get("axis_y", 1);
     const Common::Input::AnalogProperties properties_y = {
         .deadzone = deadzone,
         .range = range,
@@ -757,7 +762,7 @@ std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateAnalogDevice(
         .pad = static_cast<std::size_t>(params.Get("pad", 0)),
     };
 
-    const auto axis = static_cast<u32>(params.Get("axis", 0));
+    const auto axis = params.Get("axis", 0);
     const Common::Input::AnalogProperties properties = {
         .deadzone = std::clamp(params.Get("deadzone", 0.0f), 0.0f, 1.0f),
         .range = std::clamp(params.Get("range", 1.0f), 0.25f, 1.50f),
@@ -778,11 +783,11 @@ std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateTriggerDevice(
         .pad = static_cast<std::size_t>(params.Get("pad", 0)),
     };
 
-    const auto button = static_cast<u32>(params.Get("button", 0));
+    const auto button = params.Get("button", 0);
     const auto toggle = params.Get("toggle", false);
     const auto inverted = params.Get("inverted", false);
 
-    const auto axis = static_cast<u32>(params.Get("axis", 0));
+    const auto axis = params.Get("axis", 0);
     const Common::Input::AnalogProperties properties = {
         .deadzone = std::clamp(params.Get("deadzone", 0.0f), 0.0f, 1.0f),
         .range = std::clamp(params.Get("range", 1.0f), 0.25f, 2.50f),
@@ -809,11 +814,11 @@ std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateTouchDevice(
         .pad = static_cast<std::size_t>(params.Get("pad", 0)),
     };
 
-    const auto button = static_cast<u32>(params.Get("button", 0));
+    const auto button = params.Get("button", 0);
     const auto toggle = params.Get("toggle", false);
     const auto inverted = params.Get("inverted", false);
 
-    const auto axis_x = static_cast<u32>(params.Get("axis_x", 0));
+    const auto axis_x = params.Get("axis_x", 0);
     const Common::Input::AnalogProperties properties_x = {
         .deadzone = deadzone,
         .range = range,
@@ -822,7 +827,7 @@ std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateTouchDevice(
         .inverted = params.Get("invert_x", "+") == "-",
     };
 
-    const auto axis_y = static_cast<u32>(params.Get("axis_y", 1));
+    const auto axis_y = params.Get("axis_y", 1);
     const Common::Input::AnalogProperties properties_y = {
         .deadzone = deadzone,
         .range = range,
@@ -869,7 +874,7 @@ std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateMotionDevice(
     const auto range = std::clamp(params.Get("range", 1.0f), 0.25f, 1.50f);
     const auto threshold = std::clamp(params.Get("threshold", 0.5f), 0.0f, 1.0f);
 
-    const auto axis_x = static_cast<u32>(params.Get("axis_x", 0));
+    const auto axis_x = params.Get("axis_x", 0);
     const Common::Input::AnalogProperties properties_x = {
         .deadzone = deadzone,
         .range = range,
@@ -878,7 +883,7 @@ std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateMotionDevice(
         .inverted = params.Get("invert_x", "+") == "-",
     };
 
-    const auto axis_y = static_cast<u32>(params.Get("axis_y", 1));
+    const auto axis_y = params.Get("axis_y", 1);
     const Common::Input::AnalogProperties properties_y = {
         .deadzone = deadzone,
         .range = range,
@@ -887,7 +892,7 @@ std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateMotionDevice(
         .inverted = params.Get("invert_y", "+") != "+",
     };
 
-    const auto axis_z = static_cast<u32>(params.Get("axis_z", 1));
+    const auto axis_z = params.Get("axis_z", 1);
     const Common::Input::AnalogProperties properties_z = {
         .deadzone = deadzone,
         .range = range,

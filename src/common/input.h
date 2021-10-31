@@ -100,7 +100,7 @@ struct StickStatus {
 
 struct TriggerStatus {
     AnalogStatus analog{};
-    bool pressed{};
+    ButtonStatus pressed{};
 };
 
 struct MotionSensor {
@@ -119,7 +119,7 @@ struct TouchStatus {
     ButtonStatus pressed{};
     AnalogStatus x{};
     AnalogStatus y{};
-    u32 id{};
+    int id{};
 };
 
 struct BodyColorStatus {

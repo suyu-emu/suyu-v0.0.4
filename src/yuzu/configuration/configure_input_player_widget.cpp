@@ -118,7 +118,7 @@ void PlayerControlPreview::ResetInputs() {
     });
     trigger_values.fill({
         .analog = {.value = 0, .properties = {0, 1, 0}},
-        .pressed = false,
+        .pressed = {.value = false},
     });
     update();
 }
@@ -2001,11 +2001,11 @@ void PlayerControlPreview::DrawGCTriggers(QPainter& p, const QPointF center,
 
     // Left trigger
     p.setPen(colors.outline);
-    p.setBrush(left_trigger.pressed ? colors.highlight : colors.button);
+    p.setBrush(left_trigger.pressed.value ? colors.highlight : colors.button);
     DrawPolygon(p, qleft_trigger);
 
     // Right trigger
-    p.setBrush(right_trigger.pressed ? colors.highlight : colors.button);
+    p.setBrush(right_trigger.pressed.value ? colors.highlight : colors.button);
     DrawPolygon(p, qright_trigger);
 
     // Draw L text
@@ -2587,14 +2587,16 @@ void PlayerControlPreview::DrawArrowButton(QPainter& p, const QPointF center,
         case Direction::Up:
             arrow_button[point] = center + QPointF(up_arrow_x * size, up_arrow_y * size);
             break;
-        case Direction::Left:
-            arrow_button[point] = center + QPointF(up_arrow_y * size, up_arrow_x * size);
-            break;
         case Direction::Right:
             arrow_button[point] = center + QPointF(-up_arrow_y * size, up_arrow_x * size);
             break;
         case Direction::Down:
             arrow_button[point] = center + QPointF(up_arrow_x * size, -up_arrow_y * size);
+            break;
+        case Direction::Left:
+            // Compiler doesn't optimize this correctly
+            arrow_button[point] = center + QPointF(up_arrow_button[point * 2 + 1] * size,
+                                                   up_arrow_button[point * 2 + 0] * size);
             break;
         case Direction::None:
             break;
@@ -2610,14 +2612,14 @@ void PlayerControlPreview::DrawArrowButton(QPainter& p, const QPointF center,
     case Direction::Up:
         offset = QPoint(0, -20 * size);
         break;
-    case Direction::Left:
-        offset = QPoint(-20 * size, 0);
-        break;
     case Direction::Right:
         offset = QPoint(20 * size, 0);
         break;
     case Direction::Down:
         offset = QPoint(0, 20 * size);
+        break;
+    case Direction::Left:
+        offset = QPoint(-20 * size, 0);
         break;
     case Direction::None:
         offset = QPoint(0, 0);

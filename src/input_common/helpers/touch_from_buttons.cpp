@@ -12,7 +12,7 @@ namespace InputCommon {
 class TouchFromButtonDevice final : public Common::Input::InputDevice {
 public:
     using Button = std::unique_ptr<Common::Input::InputDevice>;
-    TouchFromButtonDevice(Button button_, u32 touch_id_, float x_, float y_)
+    TouchFromButtonDevice(Button button_, int touch_id_, float x_, float y_)
         : button(std::move(button_)), touch_id(touch_id_), x(x_), y(y_) {
         Common::Input::InputCallback button_up_callback{
             [this](Common::Input::CallbackStatus callback_) { UpdateButtonStatus(callback_); }};
@@ -52,7 +52,7 @@ public:
 
 private:
     Button button;
-    const u32 touch_id;
+    const int touch_id;
     const float x;
     const float y;
     const Common::Input::AnalogProperties properties{0.0f, 1.0f, 0.5f, 0.0f, false};

@@ -315,7 +315,7 @@ void InputEngine::TriggerOnMotionChange(const PadIdentifier& identifier, int mot
 
 bool InputEngine::IsInputIdentifierEqual(const InputIdentifier& input_identifier,
                                          const PadIdentifier& identifier, EngineInputType type,
-                                         std::size_t index) const {
+                                         int index) const {
     if (input_identifier.type != type) {
         return false;
     }

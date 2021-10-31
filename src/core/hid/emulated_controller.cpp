@@ -77,7 +77,12 @@ void EmulatedController::ReloadFromSettings() {
 
     controller.colors_state.fullkey = controller.colors_state.left;
 
-    SetNpadType(MapSettingsTypeToNPad(player.controller_type));
+    // Other or debug controller should always be a pro controller
+    if (npad_id_type != NpadIdType::Other) {
+        SetNpadType(MapSettingsTypeToNPad(player.controller_type));
+    } else {
+        SetNpadType(NpadType::ProController);
+    }
 
     if (player.connected) {
         Connect();
@@ -606,12 +611,12 @@ void EmulatedController::SetTrigger(Common::Input::CallbackStatus callback, std:
     switch (index) {
     case Settings::NativeTrigger::LTrigger:
         controller.gc_trigger_state.left = static_cast<s32>(trigger.analog.value * HID_TRIGGER_MAX);
-        controller.npad_button_state.zl.Assign(trigger.pressed);
+        controller.npad_button_state.zl.Assign(trigger.pressed.value);
         break;
     case Settings::NativeTrigger::RTrigger:
         controller.gc_trigger_state.right =
             static_cast<s32>(trigger.analog.value * HID_TRIGGER_MAX);
-        controller.npad_button_state.zr.Assign(trigger.pressed);
+        controller.npad_button_state.zr.Assign(trigger.pressed.value);
         break;
     }
 

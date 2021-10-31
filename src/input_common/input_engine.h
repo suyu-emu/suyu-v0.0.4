@@ -96,7 +96,7 @@ struct MappingCallback {
 struct InputIdentifier {
     PadIdentifier identifier;
     EngineInputType type;
-    std::size_t index;
+    int index;
     UpdateCallback callback;
 };
 
@@ -216,12 +216,11 @@ private:
 
     bool IsInputIdentifierEqual(const InputIdentifier& input_identifier,
                                 const PadIdentifier& identifier, EngineInputType type,
-                                std::size_t index) const;
+                                int index) const;
 
     mutable std::mutex mutex;
     mutable std::mutex mutex_callback;
     bool configuring{false};
-    bool is_callback_enabled{true};
     const std::string input_engine;
     int last_callback_key = 0;
     std::unordered_map<PadIdentifier, ControllerData> controller_list;
