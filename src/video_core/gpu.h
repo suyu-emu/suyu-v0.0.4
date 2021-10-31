@@ -201,7 +201,7 @@ public:
 
     void RegisterSyncptInterrupt(u32 syncpoint_id, u32 value);
 
-    [[nodiscard]] bool CancelSyncptInterrupt(u32 syncpoint_id, u32 value);
+    bool CancelSyncptInterrupt(u32 syncpoint_id, u32 value);
 
     [[nodiscard]] u64 GetTicks() const;
 

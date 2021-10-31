@@ -5,6 +5,7 @@
 
 #include <array>
 #include <vector>
+#include "common/bit_field.h"
 #include "common/common_types.h"
 #include "core/hle/service/nvdrv/devices/nvdevice.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
@@ -26,6 +27,24 @@ public:
 
     void OnOpen(DeviceFD fd) override;
     void OnClose(DeviceFD fd) override;
+
+    union SyncpointEventValue {
+        u32 raw;
+
+        union {
+            BitField<0, 4, u32> partial_slot;
+            BitField<4, 28, u32> syncpoint_id;
+        };
+
+        struct {
+            u16 slot;
+            union {
+                BitField<0, 12, u16> syncpoint_id_for_allocation;
+                BitField<12, 1, u16> event_allocated;
+            };
+        };
+    };
+    static_assert(sizeof(SyncpointEventValue) == sizeof(u32));
 
 private:
     struct IocSyncptReadParams {
@@ -83,27 +102,18 @@ private:
     };
     static_assert(sizeof(IocGetConfigParams) == 387, "IocGetConfigParams is incorrect size");
 
-    struct IocCtrlEventSignalParams {
-        u32_le event_id{};
+    struct IocCtrlEventClearParams {
+        SyncpointEventValue event_id{};
     };
-    static_assert(sizeof(IocCtrlEventSignalParams) == 4,
-                  "IocCtrlEventSignalParams is incorrect size");
+    static_assert(sizeof(IocCtrlEventClearParams) == 4,
+                  "IocCtrlEventClearParams is incorrect size");
 
     struct IocCtrlEventWaitParams {
-        u32_le syncpt_id{};
-        u32_le threshold{};
-        s32_le timeout{};
-        u32_le value{};
-    };
-    static_assert(sizeof(IocCtrlEventWaitParams) == 16, "IocCtrlEventWaitParams is incorrect size");
-
-    struct IocCtrlEventWaitAsyncParams {
-        u32_le syncpt_id{};
-        u32_le threshold{};
+        NvFence fence{};
         u32_le timeout{};
-        u32_le value{};
+        SyncpointEventValue value{};
     };
-    static_assert(sizeof(IocCtrlEventWaitAsyncParams) == 16,
+    static_assert(sizeof(IocCtrlEventWaitParams) == 16,
                   "IocCtrlEventWaitAsyncParams is incorrect size");
 
     struct IocCtrlEventRegisterParams {
@@ -124,10 +134,13 @@ private:
     static_assert(sizeof(IocCtrlEventKill) == 8, "IocCtrlEventKill is incorrect size");
 
     NvResult NvOsGetConfigU32(const std::vector<u8>& input, std::vector<u8>& output);
-    NvResult IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>& output, bool is_async);
+    NvResult IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>& output,
+                              bool is_allocation);
     NvResult IocCtrlEventRegister(const std::vector<u8>& input, std::vector<u8>& output);
     NvResult IocCtrlEventUnregister(const std::vector<u8>& input, std::vector<u8>& output);
     NvResult IocCtrlClearEventWait(const std::vector<u8>& input, std::vector<u8>& output);
+
+    NvResult FreeEvent(u32 slot);
 
     EventInterface& events_interface;
     SyncpointManager& syncpoint_manager;

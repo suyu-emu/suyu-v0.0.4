@@ -5,6 +5,7 @@
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
+#include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/service/nvdrv/nvdata.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
@@ -164,8 +165,7 @@ void NVDRV::Initialize(Kernel::HLERequestContext& ctx) {
 void NVDRV::QueryEvent(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto fd = rp.Pop<DeviceFD>();
-    const auto event_id = rp.Pop<u32>() & 0x00FF;
-    LOG_WARNING(Service_NVDRV, "(STUBBED) called, fd={:X}, event_id={:X}", fd, event_id);
+    const auto event_id = rp.Pop<u32>();
 
     if (!is_initialized) {
         ServiceError(ctx, NvResult::NotInitialized);
@@ -180,12 +180,13 @@ void NVDRV::QueryEvent(Kernel::HLERequestContext& ctx) {
         return;
     }
 
-    if (event_id < MaxNvEvents) {
+    auto* event = nvdrv->GetEvent(event_id);
+
+    if (event) {
         IPC::ResponseBuilder rb{ctx, 3, 1};
         rb.Push(ResultSuccess);
-        auto& event = nvdrv->GetEvent(event_id);
-        event.Clear();
-        rb.PushCopyObjects(event);
+        auto& readable_event = event->GetReadableEvent();
+        rb.PushCopyObjects(readable_event);
         rb.PushEnum(NvResult::Success);
     } else {
         IPC::ResponseBuilder rb{ctx, 3};

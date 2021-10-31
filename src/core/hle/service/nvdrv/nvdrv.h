@@ -1,5 +1,7 @@
-// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: 2021 yuzu emulator team and Skyline Team and Contributors
+// (https://github.com/skyline-emu/)
+// SPDX-License-Identifier: GPL-3.0-or-later Licensed under GPLv3
+// or any later version Refer to the license.txt file included.
 
 #pragma once
 
@@ -34,19 +36,20 @@ namespace Devices {
 class nvdevice;
 }
 
-/// Represents an Nvidia event
-struct NvEvent {
-    Kernel::KEvent* event{};
-    NvFence fence{};
-};
+class Module;
 
-struct EventInterface {
-    // Mask representing currently busy events
+class EventInterface {
+public:
+    EventInterface(Module& module_) : module{module_} {}
+
+    // Mask representing registered events
     u64 events_mask{};
     // Each kernel event associated to an NV event
-    std::array<NvEvent, MaxNvEvents> events;
+    std::array<Kernel::KEvent*, MaxNvEvents> events{};
+    // Backup NV event
+    std::array<Kernel::KEvent*, MaxNvEvents> backup{};
     // The status of the current NVEvent
-    std::array<EventState, MaxNvEvents> status{};
+    std::array<std::atomic<EventState>, MaxNvEvents> status{};
     // Tells if an NVEvent is registered or not
     std::array<bool, MaxNvEvents> registered{};
     // Tells the NVEvent that it has failed.
@@ -59,50 +62,26 @@ struct EventInterface {
     std::array<u32, MaxNvEvents> assigned_value{};
     // Constant to denote an unasigned syncpoint.
     static constexpr u32 unassigned_syncpt = 0xFFFFFFFF;
-    std::optional<u32> GetFreeEvent() const {
-        u64 mask = events_mask;
-        for (u32 i = 0; i < MaxNvEvents; i++) {
-            const bool is_free = (mask & 0x1) == 0;
-            if (is_free) {
-                if (status[i] == EventState::Registered || status[i] == EventState::Free) {
-                    return {i};
-                }
-            }
-            mask = mask >> 1;
-        }
-        return std::nullopt;
+
+    bool IsBeingUsed(u32 event_id) {
+        const auto current_status = status[event_id].load(std::memory_order_acquire);
+        return current_status == EventState::Waiting || current_status == EventState::Cancelling ||
+               current_status == EventState::Signalling;
     }
-    void SetEventStatus(const u32 event_id, EventState new_status) {
-        EventState old_status = status[event_id];
-        if (old_status == new_status) {
-            return;
-        }
-        status[event_id] = new_status;
-        if (new_status == EventState::Registered) {
-            registered[event_id] = true;
-        }
-        if (new_status == EventState::Waiting || new_status == EventState::Busy) {
-            events_mask |= (1ULL << event_id);
-        }
-    }
-    void RegisterEvent(const u32 event_id) {
-        registered[event_id] = true;
-        if (status[event_id] == EventState::Free) {
-            status[event_id] = EventState::Registered;
-        }
-    }
-    void UnregisterEvent(const u32 event_id) {
-        registered[event_id] = false;
-        if (status[event_id] == EventState::Registered) {
-            status[event_id] = EventState::Free;
-        }
-    }
-    void LiberateEvent(const u32 event_id) {
-        status[event_id] = registered[event_id] ? EventState::Registered : EventState::Free;
-        events_mask &= ~(1ULL << event_id);
-        assigned_syncpt[event_id] = unassigned_syncpt;
-        assigned_value[event_id] = 0;
-    }
+
+    std::unique_lock<std::mutex> Lock();
+
+    void Signal(u32 event_id);
+
+    void Create(u32 event_id);
+
+    void Free(u32 event_id);
+
+    u32 FindFreeEvent(u32 syncpoint_id);
+
+private:
+    std::mutex events_mutex;
+    Module& module;
 };
 
 class Module final {
@@ -139,11 +118,11 @@ public:
 
     void SignalSyncpt(const u32 syncpoint_id, const u32 value);
 
-    Kernel::KReadableEvent& GetEvent(u32 event_id);
-
-    Kernel::KWritableEvent& GetEventWriteable(u32 event_id);
+    Kernel::KEvent* GetEvent(u32 event_id);
 
 private:
+    friend class EventInterface;
+
     /// Manages syncpoints on the host
     SyncpointManager syncpoint_manager;
 
@@ -159,6 +138,9 @@ private:
     EventInterface events_interface;
 
     KernelHelpers::ServiceContext service_context;
+
+    void CreateEvent(u32 event_id);
+    void FreeEvent(u32 event_id);
 };
 
 /// Registers all NVDRV services with the specified service manager.

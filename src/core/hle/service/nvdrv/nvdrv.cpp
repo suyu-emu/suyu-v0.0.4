@@ -1,6 +1,9 @@
-// SPDX-FileCopyrightText: Copyright 2018 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: 2021 yuzu emulator team and Skyline Team and Contributors
+// (https://github.com/skyline-emu/)
+// SPDX-License-Identifier: GPL-3.0-or-later Licensed under GPLv3
+// or any later version Refer to the license.txt file included.
 
+#include <bit>
 #include <utility>
 
 #include <fmt/format.h>
@@ -26,6 +29,73 @@
 
 namespace Service::Nvidia {
 
+std::unique_lock<std::mutex> EventInterface::Lock() {
+    return std::unique_lock<std::mutex>(events_mutex);
+}
+
+void EventInterface::Signal(u32 event_id) {
+    if (status[event_id].exchange(EventState::Signalling, std::memory_order_acq_rel) ==
+        EventState::Waiting) {
+        events[event_id]->GetWritableEvent().Signal();
+    }
+    status[event_id].store(EventState::Signalled, std::memory_order_release);
+}
+
+void EventInterface::Create(u32 event_id) {
+    ASSERT(!events[event_id]);
+    ASSERT(!registered[event_id]);
+    ASSERT(!IsBeingUsed(event_id));
+    events[event_id] = backup[event_id];
+    status[event_id] = EventState::Available;
+    registered[event_id] = true;
+    const u64 mask = 1ULL << event_id;
+    fails[event_id] = 0;
+    events_mask |= mask;
+    LOG_CRITICAL(Service_NVDRV, "Created Event {}", event_id);
+}
+
+void EventInterface::Free(u32 event_id) {
+    ASSERT(events[event_id]);
+    ASSERT(registered[event_id]);
+    ASSERT(!IsBeingUsed(event_id));
+
+    backup[event_id]->GetWritableEvent().Clear();
+    events[event_id] = nullptr;
+    status[event_id] = EventState::Available;
+    registered[event_id] = false;
+    const u64 mask = ~(1ULL << event_id);
+    events_mask &= mask;
+    LOG_CRITICAL(Service_NVDRV, "Freed Event {}", event_id);
+}
+
+u32 EventInterface::FindFreeEvent(u32 syncpoint_id) {
+    u32 slot{MaxNvEvents};
+    u32 free_slot{MaxNvEvents};
+    for (u32 i = 0; i < MaxNvEvents; i++) {
+        if (registered[i]) {
+            if (!IsBeingUsed(i)) {
+                slot = i;
+                if (assigned_syncpt[i] == syncpoint_id) {
+                    return slot;
+                }
+            }
+        } else if (free_slot == MaxNvEvents) {
+            free_slot = i;
+        }
+    }
+    if (free_slot < MaxNvEvents) {
+        Create(free_slot);
+        return free_slot;
+    }
+
+    if (slot < MaxNvEvents) {
+        return slot;
+    }
+
+    LOG_CRITICAL(Service_NVDRV, "Failed to allocate an event");
+    return 0;
+}
+
 void InstallInterfaces(SM::ServiceManager& service_manager, NVFlinger::NVFlinger& nvflinger,
                        Core::System& system) {
     auto module_ = std::make_shared<Module>(system);
@@ -38,12 +108,14 @@ void InstallInterfaces(SM::ServiceManager& service_manager, NVFlinger::NVFlinger
 }
 
 Module::Module(Core::System& system)
-    : syncpoint_manager{system.GPU()}, service_context{system, "nvdrv"} {
+    : syncpoint_manager{system.GPU()}, events_interface{*this}, service_context{system, "nvdrv"} {
+    events_interface.events_mask = 0;
     for (u32 i = 0; i < MaxNvEvents; i++) {
-        events_interface.events[i].event =
-            service_context.CreateEvent(fmt::format("NVDRV::NvEvent_{}", i));
-        events_interface.status[i] = EventState::Free;
+        events_interface.status[i] = EventState::Available;
+        events_interface.events[i] = nullptr;
         events_interface.registered[i] = false;
+        events_interface.backup[i] =
+            service_context.CreateEvent(fmt::format("NVDRV::NvEvent_{}", i));
     }
     auto nvmap_dev = std::make_shared<Devices::nvmap>(system);
     devices["/dev/nvhost-as-gpu"] = std::make_shared<Devices::nvhost_as_gpu>(system, nvmap_dev);
@@ -62,8 +134,12 @@ Module::Module(Core::System& system)
 }
 
 Module::~Module() {
+    auto lock = events_interface.Lock();
     for (u32 i = 0; i < MaxNvEvents; i++) {
-        service_context.CloseEvent(events_interface.events[i].event);
+        if (events_interface.registered[i]) {
+            events_interface.Free(i);
+        }
+        service_context.CloseEvent(events_interface.backup[i]);
     }
 }
 
@@ -169,21 +245,41 @@ NvResult Module::Close(DeviceFD fd) {
 }
 
 void Module::SignalSyncpt(const u32 syncpoint_id, const u32 value) {
-    for (u32 i = 0; i < MaxNvEvents; i++) {
-        if (events_interface.assigned_syncpt[i] == syncpoint_id &&
+    const u32 max = MaxNvEvents - std::countl_zero(events_interface.events_mask);
+    const u32 min = std::countr_zero(events_interface.events_mask);
+    for (u32 i = min; i < max; i++) {
+        if (events_interface.registered[i] && events_interface.assigned_syncpt[i] == syncpoint_id &&
             events_interface.assigned_value[i] == value) {
-            events_interface.LiberateEvent(i);
-            events_interface.events[i].event->GetWritableEvent().Signal();
+            events_interface.Signal(i);
         }
     }
 }
 
-Kernel::KReadableEvent& Module::GetEvent(const u32 event_id) {
-    return events_interface.events[event_id].event->GetReadableEvent();
-}
+Kernel::KEvent* Module::GetEvent(u32 event_id) {
+    const auto event = Devices::nvhost_ctrl::SyncpointEventValue{.raw = event_id};
 
-Kernel::KWritableEvent& Module::GetEventWriteable(const u32 event_id) {
-    return events_interface.events[event_id].event->GetWritableEvent();
+    const bool allocated = event.event_allocated.Value() != 0;
+    const u32 slot{allocated ? event.partial_slot.Value() : static_cast<u32>(event.slot)};
+    if (slot >= MaxNvEvents) {
+        ASSERT(false);
+        return nullptr;
+    }
+
+    const u32 syncpoint_id{allocated ? event.syncpoint_id_for_allocation.Value()
+                                     : event.syncpoint_id.Value()};
+
+    auto lock = events_interface.Lock();
+
+    if (events_interface.registered[slot] &&
+        events_interface.assigned_syncpt[slot] == syncpoint_id) {
+        ASSERT(events_interface.events[slot]);
+        return events_interface.events[slot];
+    }
+    // Temporary hack.
+    events_interface.Create(slot);
+    events_interface.assigned_syncpt[slot] = syncpoint_id;
+    ASSERT(false);
+    return events_interface.events[slot];
 }
 
 } // namespace Service::Nvidia
