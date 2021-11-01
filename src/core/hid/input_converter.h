@@ -4,9 +4,17 @@
 
 #pragma once
 
-namespace Input {
+namespace Common::Input {
 struct CallbackStatus;
-};
+enum class BatteryLevel : u32;
+using BatteryStatus = BatteryLevel;
+struct AnalogStatus;
+struct ButtonStatus;
+struct MotionStatus;
+struct StickStatus;
+struct TouchStatus;
+struct TriggerStatus;
+}; // namespace Common::Input
 
 namespace Core::HID {
 

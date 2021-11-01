@@ -62,11 +62,6 @@ private:
     void UpdateThread(std::stop_token stop_token);
     void StopPanning();
 
-    const PadIdentifier identifier = {
-        .guid = Common::UUID{Common::INVALID_UUID},
-        .port = 0,
-        .pad = 0,
-    };
     Common::Vec2<int> mouse_origin;
     Common::Vec2<int> last_mouse_position;
     Common::Vec2<float> last_mouse_change;

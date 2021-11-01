@@ -37,14 +37,8 @@ public:
      */
     void TouchReleased(std::size_t finger);
 
+    /// Resets all inputs to their initial value
     void ReleaseAllTouch();
-
-private:
-    const PadIdentifier identifier = {
-        .guid = Common::UUID{Common::INVALID_UUID},
-        .port = 0,
-        .pad = 0,
-    };
 };
 
 } // namespace InputCommon

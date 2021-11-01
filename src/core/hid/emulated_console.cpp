@@ -209,10 +209,11 @@ int EmulatedConsole::SetCallback(ConsoleUpdateCallback update_callback) {
 
 void EmulatedConsole::DeleteCallback(int key) {
     std::lock_guard lock{mutex};
-    if (!callback_list.contains(key)) {
+    const auto& iterator = callback_list.find(key);
+    if (iterator == callback_list.end()) {
         LOG_ERROR(Input, "Tried to delete non-existent callback {}", key);
         return;
     }
-    callback_list.erase(key);
+    callback_list.erase(iterator);
 }
 } // namespace Core::HID

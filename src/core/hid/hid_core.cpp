@@ -3,6 +3,9 @@
 // Refer to the license.txt file included.
 
 #include "common/assert.h"
+#include "core/hid/emulated_console.h"
+#include "core/hid/emulated_controller.h"
+#include "core/hid/emulated_devices.h"
 #include "core/hid/hid_core.h"
 
 namespace Core::HID {

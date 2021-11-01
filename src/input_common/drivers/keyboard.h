@@ -32,13 +32,6 @@ public:
 
     /// Used for automapping features
     std::vector<Common::ParamPackage> GetInputDevices() const override;
-
-private:
-    const PadIdentifier identifier = {
-        .guid = Common::UUID{Common::INVALID_UUID},
-        .port = 0,
-        .pad = 0,
-    };
 };
 
 } // namespace InputCommon

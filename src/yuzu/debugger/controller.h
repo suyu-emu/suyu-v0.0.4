@@ -21,7 +21,8 @@ class System;
 
 namespace Core::HID {
 class EmulatedController;
-}
+enum class ControllerTriggerType;
+} // namespace Core::HID
 
 class ControllerDialog : public QWidget {
     Q_OBJECT

@@ -2594,9 +2594,8 @@ void PlayerControlPreview::DrawArrowButton(QPainter& p, const QPointF center,
             arrow_button[point] = center + QPointF(up_arrow_x * size, -up_arrow_y * size);
             break;
         case Direction::Left:
-            // Compiler doesn't optimize this correctly
-            arrow_button[point] = center + QPointF(up_arrow_button[point * 2 + 1] * size,
-                                                   up_arrow_button[point * 2 + 0] * size);
+            // Compiler doesn't optimize this correctly check why
+            arrow_button[point] = center + QPointF(up_arrow_y * size, up_arrow_x * size);
             break;
         case Direction::None:
             break;

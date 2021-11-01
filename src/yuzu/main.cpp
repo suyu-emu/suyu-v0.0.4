@@ -26,6 +26,7 @@
 #include "core/frontend/applets/controller.h"
 #include "core/frontend/applets/general_frontend.h"
 #include "core/frontend/applets/software_keyboard.h"
+#include "core/hid/emulated_controller.h"
 #include "core/hid/hid_core.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/applet_ae.h"

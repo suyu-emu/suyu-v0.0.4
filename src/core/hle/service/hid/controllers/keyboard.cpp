@@ -7,6 +7,7 @@
 #include "common/settings.h"
 #include "core/core.h"
 #include "core/core_timing.h"
+#include "core/hid/emulated_devices.h"
 #include "core/hid/hid_core.h"
 #include "core/hle/service/hid/controllers/keyboard.h"
 

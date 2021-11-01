@@ -5,6 +5,7 @@
 #include "common/settings.h"
 #include "core/core.h"
 #include "core/core_timing.h"
+#include "core/hid/emulated_console.h"
 #include "core/hle/service/hid/controllers/console_sixaxis.h"
 
 namespace Service::HID {

@@ -6,9 +6,13 @@
 
 #include <memory>
 
-#include "core/hid/emulated_console.h"
-#include "core/hid/emulated_controller.h"
-#include "core/hid/emulated_devices.h"
+#include "core/hid/hid_types.h"
+
+namespace Core::HID {
+class EmulatedConsole;
+class EmulatedController;
+class EmulatedDevices;
+} // namespace Core::HID
 
 namespace Core::HID {
 

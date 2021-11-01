@@ -12,10 +12,14 @@
 #include "common/common_types.h"
 #include "common/quaternion.h"
 #include "common/settings.h"
-#include "core/hid/hid_core.h"
 #include "core/hid/hid_types.h"
 #include "core/hle/service/hid/controllers/controller_base.h"
 #include "core/hle/service/hid/ring_lifo.h"
+
+namespace Core::HID {
+class EmulatedController;
+enum class ControllerTriggerType;
+} // namespace Core::HID
 
 namespace Kernel {
 class KEvent;

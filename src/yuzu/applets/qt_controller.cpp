@@ -10,6 +10,7 @@
 #include "common/string_util.h"
 #include "core/core.h"
 #include "core/hid/emulated_controller.h"
+#include "core/hid/hid_core.h"
 #include "core/hid/hid_types.h"
 #include "core/hle/lock.h"
 #include "core/hle/service/hid/controllers/npad.h"

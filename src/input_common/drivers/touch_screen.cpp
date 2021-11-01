@@ -7,6 +7,12 @@
 
 namespace InputCommon {
 
+constexpr PadIdentifier identifier = {
+    .guid = Common::UUID{Common::INVALID_UUID},
+    .port = 0,
+    .pad = 0,
+};
+
 TouchScreen::TouchScreen(const std::string input_engine_) : InputEngine(input_engine_) {
     PreSetController(identifier);
 }

@@ -29,7 +29,7 @@ enum class InputType {
     Ir,
 };
 
-enum class BatteryLevel {
+enum class BatteryLevel : u32 {
     None,
     Empty,
     Critical,

@@ -9,6 +9,7 @@
 #include <QPointer>
 #include "common/input.h"
 #include "common/settings.h"
+#include "core/hid/emulated_controller.h"
 #include "core/hid/hid_core.h"
 #include "core/hid/hid_types.h"
 
