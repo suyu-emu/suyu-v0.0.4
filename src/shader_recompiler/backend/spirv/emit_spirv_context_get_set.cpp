@@ -43,23 +43,12 @@ Id AttrPointer(EmitContext& ctx, Id pointer_type, Id vertex, Id base, Args&&... 
     }
 }
 
-bool IsFixedFncTexture(IR::Attribute attribute) {
-    return attribute >= IR::Attribute::FixedFncTexture0S &&
-           attribute <= IR::Attribute::FixedFncTexture9Q;
-}
-
-u32 FixedFncTextureAttributeIndex(IR::Attribute attribute) {
-    if (!IsFixedFncTexture(attribute)) {
-        throw InvalidArgument("Attribute {} is not a FixedFncTexture", attribute);
-    }
-    return (static_cast<u32>(attribute) - static_cast<u32>(IR::Attribute::FixedFncTexture0S)) / 4u;
-}
-
-u32 FixedFncTextureAttributeElement(IR::Attribute attribute) {
-    if (!IsFixedFncTexture(attribute)) {
-        throw InvalidArgument("Attribute {} is not a FixedFncTexture", attribute);
-    }
-    return static_cast<u32>(attribute) % 4u;
+bool IsLegacyAttribute(IR::Attribute attribute) {
+    return (attribute >= IR::Attribute::ColorFrontDiffuseR &&
+            attribute <= IR::Attribute::ColorBackSpecularA) ||
+           attribute == IR::Attribute::FogCoordinate ||
+           (attribute >= IR::Attribute::FixedFncTexture0S &&
+            attribute <= IR::Attribute::FixedFncTexture9Q);
 }
 
 template <typename... Args>
@@ -93,12 +82,16 @@ std::optional<OutAttr> OutputAttrPointer(EmitContext& ctx, IR::Attribute attr) {
             return OutputAccessChain(ctx, ctx.output_f32, info.id, index_id);
         }
     }
-    if (IsFixedFncTexture(attr)) {
-        const u32 index{FixedFncTextureAttributeIndex(attr)};
-        const u32 element{FixedFncTextureAttributeElement(attr)};
-        const Id element_id{ctx.Const(element)};
-        return OutputAccessChain(ctx, ctx.output_f32, ctx.output_fixed_fnc_textures[index],
-                                 element_id);
+    if (IsLegacyAttribute(attr)) {
+        if (attr == IR::Attribute::FogCoordinate) {
+            return OutputAccessChain(ctx, ctx.output_f32, ctx.OutputLegacyAttribute(attr),
+                                     ctx.Const(0u));
+        } else {
+            const u32 element{static_cast<u32>(attr) % 4};
+            const Id element_id{ctx.Const(element)};
+            return OutputAccessChain(ctx, ctx.output_f32, ctx.OutputLegacyAttribute(attr),
+                                     element_id);
+        }
     }
     switch (attr) {
     case IR::Attribute::PointSize:
@@ -110,43 +103,6 @@ std::optional<OutAttr> OutputAttrPointer(EmitContext& ctx, IR::Attribute attr) {
         const u32 element{static_cast<u32>(attr) % 4};
         const Id element_id{ctx.Const(element)};
         return OutputAccessChain(ctx, ctx.output_f32, ctx.output_position, element_id);
-    }
-    case IR::Attribute::ColorFrontDiffuseR:
-    case IR::Attribute::ColorFrontDiffuseG:
-    case IR::Attribute::ColorFrontDiffuseB:
-    case IR::Attribute::ColorFrontDiffuseA: {
-        const u32 element{static_cast<u32>(attr) % 4};
-        const Id element_id{ctx.Const(element)};
-        return OutputAccessChain(ctx, ctx.output_f32, ctx.output_front_color, element_id);
-    }
-    case IR::Attribute::ColorFrontSpecularR:
-    case IR::Attribute::ColorFrontSpecularG:
-    case IR::Attribute::ColorFrontSpecularB:
-    case IR::Attribute::ColorFrontSpecularA: {
-        const u32 element{static_cast<u32>(attr) % 4};
-        const Id element_id{ctx.Const(element)};
-        return OutputAccessChain(ctx, ctx.output_f32, ctx.output_front_secondary_color, element_id);
-    }
-    case IR::Attribute::ColorBackDiffuseR:
-    case IR::Attribute::ColorBackDiffuseG:
-    case IR::Attribute::ColorBackDiffuseB:
-    case IR::Attribute::ColorBackDiffuseA: {
-        const u32 element{static_cast<u32>(attr) % 4};
-        const Id element_id{ctx.Const(element)};
-        return OutputAccessChain(ctx, ctx.output_f32, ctx.output_back_color, element_id);
-    }
-    case IR::Attribute::ColorBackSpecularR:
-    case IR::Attribute::ColorBackSpecularG:
-    case IR::Attribute::ColorBackSpecularB:
-    case IR::Attribute::ColorBackSpecularA: {
-        const u32 element{static_cast<u32>(attr) % 4};
-        const Id element_id{ctx.Const(element)};
-        return OutputAccessChain(ctx, ctx.output_f32, ctx.output_back_secondary_color, element_id);
-    }
-    case IR::Attribute::FogCoordinate: {
-        const u32 element{static_cast<u32>(attr) % 4};
-        const Id element_id{ctx.Const(element)};
-        return OutputAccessChain(ctx, ctx.output_f32, ctx.output_fog_frag_coord, element_id);
     }
     case IR::Attribute::ClipDistance0:
     case IR::Attribute::ClipDistance1:
@@ -370,11 +326,17 @@ Id EmitGetAttribute(EmitContext& ctx, IR::Attribute attr, Id vertex) {
         const Id value{ctx.OpLoad(type->id, pointer)};
         return type->needs_cast ? ctx.OpBitcast(ctx.F32[1], value) : value;
     }
-    if (IsFixedFncTexture(attr)) {
-        const u32 index{FixedFncTextureAttributeIndex(attr)};
-        const Id attr_id{ctx.input_fixed_fnc_textures[index]};
-        const Id attr_ptr{AttrPointer(ctx, ctx.input_f32, vertex, attr_id, ctx.Const(element))};
-        return ctx.OpLoad(ctx.F32[1], attr_ptr);
+    if (IsLegacyAttribute(attr)) {
+        if (attr == IR::Attribute::FogCoordinate) {
+            const Id attr_ptr{AttrPointer(ctx, ctx.input_f32, vertex,
+                                          ctx.InputLegacyAttribute(attr), ctx.Const(0u))};
+            return ctx.OpLoad(ctx.F32[1], attr_ptr);
+        } else {
+            const Id element_id{ctx.Const(element)};
+            const Id attr_ptr{AttrPointer(ctx, ctx.input_f32, vertex,
+                                          ctx.InputLegacyAttribute(attr), element_id)};
+            return ctx.OpLoad(ctx.F32[1], attr_ptr);
+        }
     }
     switch (attr) {
     case IR::Attribute::PrimitiveId:
@@ -385,40 +347,6 @@ Id EmitGetAttribute(EmitContext& ctx, IR::Attribute attr, Id vertex) {
     case IR::Attribute::PositionW:
         return ctx.OpLoad(ctx.F32[1], AttrPointer(ctx, ctx.input_f32, vertex, ctx.input_position,
                                                   ctx.Const(element)));
-    case IR::Attribute::ColorFrontDiffuseR:
-    case IR::Attribute::ColorFrontDiffuseG:
-    case IR::Attribute::ColorFrontDiffuseB:
-    case IR::Attribute::ColorFrontDiffuseA: {
-        return ctx.OpLoad(ctx.F32[1], AttrPointer(ctx, ctx.input_f32, vertex, ctx.input_front_color,
-                                                  ctx.Const(element)));
-    }
-    case IR::Attribute::ColorFrontSpecularR:
-    case IR::Attribute::ColorFrontSpecularG:
-    case IR::Attribute::ColorFrontSpecularB:
-    case IR::Attribute::ColorFrontSpecularA: {
-        return ctx.OpLoad(ctx.F32[1],
-                          AttrPointer(ctx, ctx.input_f32, vertex, ctx.input_front_secondary_color,
-                                      ctx.Const(element)));
-    }
-    case IR::Attribute::ColorBackDiffuseR:
-    case IR::Attribute::ColorBackDiffuseG:
-    case IR::Attribute::ColorBackDiffuseB:
-    case IR::Attribute::ColorBackDiffuseA: {
-        return ctx.OpLoad(ctx.F32[1], AttrPointer(ctx, ctx.input_f32, vertex, ctx.input_back_color,
-                                                  ctx.Const(element)));
-    }
-    case IR::Attribute::ColorBackSpecularR:
-    case IR::Attribute::ColorBackSpecularG:
-    case IR::Attribute::ColorBackSpecularB:
-    case IR::Attribute::ColorBackSpecularA: {
-        return ctx.OpLoad(ctx.F32[1],
-                          AttrPointer(ctx, ctx.input_f32, vertex, ctx.input_back_secondary_color,
-                                      ctx.Const(element)));
-    }
-    case IR::Attribute::FogCoordinate: {
-        return ctx.OpLoad(ctx.F32[1], AttrPointer(ctx, ctx.input_f32, vertex,
-                                                  ctx.input_fog_frag_coord, ctx.Const(element)));
-    }
     case IR::Attribute::InstanceId:
         if (ctx.profile.support_vertex_instance_id) {
             return ctx.OpBitcast(ctx.F32[1], ctx.OpLoad(ctx.U32[1], ctx.instance_id));

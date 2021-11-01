@@ -113,6 +113,9 @@ public:
     [[nodiscard]] Id BitOffset8(const IR::Value& offset);
     [[nodiscard]] Id BitOffset16(const IR::Value& offset);
 
+    Id InputLegacyAttribute(IR::Attribute attribute);
+    Id OutputLegacyAttribute(IR::Attribute attribute);
+
     Id Const(u32 value) {
         return Constant(U32[1], value);
     }
