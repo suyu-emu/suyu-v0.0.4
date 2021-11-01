@@ -154,34 +154,32 @@ constexpr ResultCode ResultSuccess(0);
 constexpr ResultCode ResultUnknown(UINT32_MAX);
 
 /**
- * This is an optional value type. It holds a `ResultCode` and, if that code is a success code,
- * also holds a result of type `T`. If the code is an error code then trying to access the inner
- * value fails, thus ensuring that the ResultCode of functions is always checked properly before
- * their return value is used.  It is similar in concept to the `std::optional` type
- * (http://en.cppreference.com/w/cpp/experimental/optional) originally proposed for inclusion in
- * C++14, or the `Result` type in Rust (http://doc.rust-lang.org/std/result/index.html).
+ * This is an optional value type. It holds a `ResultCode` and, if that code is ResultSuccess, it
+ * also holds a result of type `T`. If the code is an error code (not ResultSuccess), then trying
+ * to access the inner value with operator* is undefined behavior and will assert with Unwrap().
+ * Users of this class must be cognizant to check the status of the ResultVal with operator bool(),
+ * Code(), Succeeded() or Failed() prior to accessing the inner value.
  *
  * An example of how it could be used:
  * \code
  * ResultVal<int> Frobnicate(float strength) {
  *     if (strength < 0.f || strength > 1.0f) {
  *         // Can't frobnicate too weakly or too strongly
- *         return ResultCode(ErrorDescription::OutOfRange, ErrorModule::Common,
- *             ErrorSummary::InvalidArgument, ErrorLevel::Permanent);
+ *         return ResultCode{ErrorModule::Common, 1};
  *     } else {
  *         // Frobnicated! Give caller a cookie
- *         return MakeResult<int>(42);
+ *         return MakeResult(42);
  *     }
  * }
  * \endcode
  *
  * \code
- * ResultVal<int> frob_result = Frobnicate(0.75f);
+ * auto frob_result = Frobnicate(0.75f);
  * if (frob_result) {
  *     // Frobbed ok
  *     printf("My cookie is %d\n", *frob_result);
  * } else {
- *     printf("Guess I overdid it. :( Error code: %ux\n", frob_result.code().hex);
+ *     printf("Guess I overdid it. :( Error code: %ux\n", frob_result.Code().raw);
  * }
  * \endcode
  */
@@ -283,7 +281,7 @@ private:
 
 /**
  * This function is a helper used to construct `ResultVal`s. It receives the arguments to construct
- * `T` with and creates a success `ResultVal` contained the constructed value.
+ * `T` with and creates a `ResultVal` that contains the constructed value.
  */
 template <typename T, typename... Args>
 [[nodiscard]] ResultVal<T> MakeResult(Args&&... args) {
