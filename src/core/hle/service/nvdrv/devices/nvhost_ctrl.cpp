@@ -255,4 +255,27 @@ NvResult nvhost_ctrl::IocCtrlClearEventWait(const std::vector<u8>& input, std::v
     return NvResult::Success;
 }
 
+Kernel::KEvent* nvhost_ctrl::QueryEvent(u32 event_id) {
+    const auto event = SyncpointEventValue{.raw = event_id};
+
+    const bool allocated = event.event_allocated.Value() != 0;
+    const u32 slot{allocated ? event.partial_slot.Value() : static_cast<u32>(event.slot)};
+    if (slot >= MaxNvEvents) {
+        ASSERT(false);
+        return nullptr;
+    }
+
+    const u32 syncpoint_id{allocated ? event.syncpoint_id_for_allocation.Value()
+                                     : event.syncpoint_id.Value()};
+
+    auto lock = events_interface.Lock();
+
+    if (events_interface.registered[slot] &&
+        events_interface.assigned_syncpt[slot] == syncpoint_id) {
+        ASSERT(events_interface.events[slot]);
+        return events_interface.events[slot];
+    }
+    return nullptr;
+}
+
 } // namespace Service::Nvidia::Devices

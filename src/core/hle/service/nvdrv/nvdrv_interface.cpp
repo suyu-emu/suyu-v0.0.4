@@ -173,25 +173,20 @@ void NVDRV::QueryEvent(Kernel::HLERequestContext& ctx) {
         return;
     }
 
-    const auto nv_result = nvdrv->VerifyFD(fd);
-    if (nv_result != NvResult::Success) {
-        LOG_ERROR(Service_NVDRV, "Invalid FD specified DeviceFD={}!", fd);
-        ServiceError(ctx, nv_result);
-        return;
-    }
+    Kernel::KEvent* event = nullptr;
+    NvResult result = nvdrv->QueryEvent(fd, event_id, event);
 
-    auto* event = nvdrv->GetEvent(event_id);
-
-    if (event) {
+    if (result == NvResult::Success) {
         IPC::ResponseBuilder rb{ctx, 3, 1};
         rb.Push(ResultSuccess);
         auto& readable_event = event->GetReadableEvent();
         rb.PushCopyObjects(readable_event);
         rb.PushEnum(NvResult::Success);
     } else {
+        LOG_ERROR(Service_NVDRV, "Invalid event request!");
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
-        rb.PushEnum(NvResult::BadParameter);
+        rb.PushEnum(result);
     }
 }
 

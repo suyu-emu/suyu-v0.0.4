@@ -6,6 +6,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -79,9 +80,12 @@ public:
 
     u32 FindFreeEvent(u32 syncpoint_id);
 
+    Kernel::KEvent* CreateNonCtrlEvent(std::string name);
+
 private:
     std::mutex events_mutex;
     Module& module;
+    std::vector<Kernel::KEvent*> basic_events;
 };
 
 class Module final {
@@ -118,7 +122,7 @@ public:
 
     void SignalSyncpt(const u32 syncpoint_id, const u32 value);
 
-    Kernel::KEvent* GetEvent(u32 event_id);
+    NvResult QueryEvent(DeviceFD fd, u32 event_id, Kernel::KEvent*& event);
 
 private:
     friend class EventInterface;

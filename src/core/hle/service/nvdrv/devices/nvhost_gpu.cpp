@@ -6,6 +6,7 @@
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/hle/service/nvdrv/devices/nvhost_gpu.h"
+#include "core/hle/service/nvdrv/nvdrv.h"
 #include "core/hle/service/nvdrv/syncpoint_manager.h"
 #include "core/memory.h"
 #include "video_core/gpu.h"
@@ -21,10 +22,16 @@ Tegra::CommandHeader BuildFenceAction(Tegra::GPU::FenceOperation op, u32 syncpoi
 } // namespace
 
 nvhost_gpu::nvhost_gpu(Core::System& system_, std::shared_ptr<nvmap> nvmap_dev_,
-                       SyncpointManager& syncpoint_manager_)
-    : nvdevice{system_}, nvmap_dev{std::move(nvmap_dev_)}, syncpoint_manager{syncpoint_manager_} {
+                       EventInterface& events_interface_, SyncpointManager& syncpoint_manager_)
+    : nvdevice{system_}, nvmap_dev{std::move(nvmap_dev_)}, events_interface{events_interface_},
+      syncpoint_manager{syncpoint_manager_} {
     channel_fence.id = syncpoint_manager_.AllocateSyncpoint();
     channel_fence.value = system_.GPU().GetSyncpointValue(channel_fence.id);
+    sm_exception_breakpoint_int_report_event =
+        events_interface.CreateNonCtrlEvent("GpuChannelSMExceptionBreakpointInt");
+    sm_exception_breakpoint_pause_report_event =
+        events_interface.CreateNonCtrlEvent("GpuChannelSMExceptionBreakpointPause");
+    error_notifier_event = events_interface.CreateNonCtrlEvent("GpuChannelErrorNotifier");
 }
 
 nvhost_gpu::~nvhost_gpu() = default;
@@ -326,6 +333,21 @@ NvResult nvhost_gpu::ChannelSetTimeslice(const std::vector<u8>& input, std::vect
     channel_timeslice = params.timeslice;
 
     return NvResult::Success;
+}
+
+Kernel::KEvent* nvhost_gpu::QueryEvent(u32 event_id) {
+    switch (event_id) {
+    case 1:
+        return sm_exception_breakpoint_int_report_event;
+    case 2:
+        return sm_exception_breakpoint_pause_report_event;
+    case 3:
+        return error_notifier_event;
+    default: {
+        LOG_CRITICAL(Service_NVDRV, "Unknown Ctrl GPU Event {}", event_id);
+    }
+    }
+    return nullptr;
 }
 
 } // namespace Service::Nvidia::Devices

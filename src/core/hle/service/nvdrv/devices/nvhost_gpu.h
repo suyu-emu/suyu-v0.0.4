@@ -15,7 +15,8 @@
 
 namespace Service::Nvidia {
 class SyncpointManager;
-}
+class EventInterface;
+} // namespace Service::Nvidia
 
 namespace Service::Nvidia::Devices {
 
@@ -23,7 +24,7 @@ class nvmap;
 class nvhost_gpu final : public nvdevice {
 public:
     explicit nvhost_gpu(Core::System& system_, std::shared_ptr<nvmap> nvmap_dev_,
-                        SyncpointManager& syncpoint_manager_);
+                        EventInterface& events_interface_, SyncpointManager& syncpoint_manager_);
     ~nvhost_gpu() override;
 
     NvResult Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
@@ -35,6 +36,8 @@ public:
 
     void OnOpen(DeviceFD fd) override;
     void OnClose(DeviceFD fd) override;
+
+    Kernel::KEvent* QueryEvent(u32 event_id) override;
 
 private:
     enum class CtxObjects : u32_le {
@@ -192,8 +195,14 @@ private:
     NvResult ChannelSetTimeslice(const std::vector<u8>& input, std::vector<u8>& output);
 
     std::shared_ptr<nvmap> nvmap_dev;
+    EventInterface& events_interface;
     SyncpointManager& syncpoint_manager;
     NvFence channel_fence;
+
+    // Events
+    Kernel::KEvent* sm_exception_breakpoint_int_report_event;
+    Kernel::KEvent* sm_exception_breakpoint_pause_report_event;
+    Kernel::KEvent* error_notifier_event;
 };
 
 } // namespace Service::Nvidia::Devices

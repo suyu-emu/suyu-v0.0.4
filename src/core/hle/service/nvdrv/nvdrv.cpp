@@ -96,6 +96,12 @@ u32 EventInterface::FindFreeEvent(u32 syncpoint_id) {
     return 0;
 }
 
+Kernel::KEvent* EventInterface::CreateNonCtrlEvent(std::string name) {
+    Kernel::KEvent* new_event = module.service_context.CreateEvent(std::move(name));
+    basic_events.push_back(new_event);
+    return new_event;
+}
+
 void InstallInterfaces(SM::ServiceManager& service_manager, NVFlinger::NVFlinger& nvflinger,
                        Core::System& system) {
     auto module_ = std::make_shared<Module>(system);
@@ -119,9 +125,10 @@ Module::Module(Core::System& system)
     }
     auto nvmap_dev = std::make_shared<Devices::nvmap>(system);
     devices["/dev/nvhost-as-gpu"] = std::make_shared<Devices::nvhost_as_gpu>(system, nvmap_dev);
-    devices["/dev/nvhost-gpu"] =
-        std::make_shared<Devices::nvhost_gpu>(system, nvmap_dev, syncpoint_manager);
-    devices["/dev/nvhost-ctrl-gpu"] = std::make_shared<Devices::nvhost_ctrl_gpu>(system);
+    devices["/dev/nvhost-gpu"] = std::make_shared<Devices::nvhost_gpu>(
+        system, nvmap_dev, events_interface, syncpoint_manager);
+    devices["/dev/nvhost-ctrl-gpu"] =
+        std::make_shared<Devices::nvhost_ctrl_gpu>(system, events_interface);
     devices["/dev/nvmap"] = nvmap_dev;
     devices["/dev/nvdisp_disp0"] = std::make_shared<Devices::nvdisp_disp0>(system, nvmap_dev);
     devices["/dev/nvhost-ctrl"] =
@@ -255,31 +262,24 @@ void Module::SignalSyncpt(const u32 syncpoint_id, const u32 value) {
     }
 }
 
-Kernel::KEvent* Module::GetEvent(u32 event_id) {
-    const auto event = Devices::nvhost_ctrl::SyncpointEventValue{.raw = event_id};
-
-    const bool allocated = event.event_allocated.Value() != 0;
-    const u32 slot{allocated ? event.partial_slot.Value() : static_cast<u32>(event.slot)};
-    if (slot >= MaxNvEvents) {
-        ASSERT(false);
-        return nullptr;
+NvResult Module::QueryEvent(DeviceFD fd, u32 event_id, Kernel::KEvent*& event) {
+    if (fd < 0) {
+        LOG_ERROR(Service_NVDRV, "Invalid DeviceFD={}!", fd);
+        return NvResult::InvalidState;
     }
 
-    const u32 syncpoint_id{allocated ? event.syncpoint_id_for_allocation.Value()
-                                     : event.syncpoint_id.Value()};
+    const auto itr = open_files.find(fd);
 
-    auto lock = events_interface.Lock();
-
-    if (events_interface.registered[slot] &&
-        events_interface.assigned_syncpt[slot] == syncpoint_id) {
-        ASSERT(events_interface.events[slot]);
-        return events_interface.events[slot];
+    if (itr == open_files.end()) {
+        LOG_ERROR(Service_NVDRV, "Could not find DeviceFD={}!", fd);
+        return NvResult::NotImplemented;
     }
-    // Temporary hack.
-    events_interface.Create(slot);
-    events_interface.assigned_syncpt[slot] = syncpoint_id;
-    ASSERT(false);
-    return events_interface.events[slot];
+
+    event = itr->second->QueryEvent(event_id);
+    if (!event) {
+        return NvResult::BadParameter;
+    }
+    return NvResult::Success;
 }
 
 } // namespace Service::Nvidia

@@ -28,6 +28,8 @@ public:
     void OnOpen(DeviceFD fd) override;
     void OnClose(DeviceFD fd) override;
 
+    Kernel::KEvent* QueryEvent(u32 event_id) override;
+
     union SyncpointEventValue {
         u32 raw;
 
