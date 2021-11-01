@@ -125,8 +125,10 @@ NvResult nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector
         }
     }();
 
+    must_unmark_fail = true;
+
     const auto check_failing = [&]() {
-        if (events_interface.fails[slot] > 1) {
+        if (events_interface.fails[slot] > 2) {
             {
                 auto lk = system.StallProcesses();
                 gpu.WaitFence(fence_id, target_value);

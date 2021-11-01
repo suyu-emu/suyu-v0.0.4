@@ -29,6 +29,29 @@
 
 namespace Service::Nvidia {
 
+EventInterface::EventInterface(Module& module_) : module{module_} {
+    events_mask = 0;
+    for (u32 i = 0; i < MaxNvEvents; i++) {
+        status[i] = EventState::Available;
+        events[i] = nullptr;
+        registered[i] = false;
+    }
+}
+
+EventInterface::~EventInterface() {
+    auto lk = Lock();
+    for (u32 i = 0; i < MaxNvEvents; i++) {
+        if (registered[i]) {
+            module.service_context.CloseEvent(events[i]);
+            events[i] = nullptr;
+            registered[i] = false;
+        }
+    }
+    for (auto* event : basic_events) {
+        module.service_context.CloseEvent(event);
+    }
+}
+
 std::unique_lock<std::mutex> EventInterface::Lock() {
     return std::unique_lock<std::mutex>(events_mutex);
 }
@@ -45,27 +68,25 @@ void EventInterface::Create(u32 event_id) {
     ASSERT(!events[event_id]);
     ASSERT(!registered[event_id]);
     ASSERT(!IsBeingUsed(event_id));
-    events[event_id] = backup[event_id];
+    events[event_id] =
+        module.service_context.CreateEvent(fmt::format("NVDRV::NvEvent_{}", event_id));
     status[event_id] = EventState::Available;
     registered[event_id] = true;
     const u64 mask = 1ULL << event_id;
     fails[event_id] = 0;
     events_mask |= mask;
-    LOG_CRITICAL(Service_NVDRV, "Created Event {}", event_id);
 }
 
 void EventInterface::Free(u32 event_id) {
     ASSERT(events[event_id]);
     ASSERT(registered[event_id]);
     ASSERT(!IsBeingUsed(event_id));
-
-    backup[event_id]->GetWritableEvent().Clear();
+    module.service_context.CloseEvent(events[event_id]);
     events[event_id] = nullptr;
     status[event_id] = EventState::Available;
     registered[event_id] = false;
     const u64 mask = ~(1ULL << event_id);
     events_mask &= mask;
-    LOG_CRITICAL(Service_NVDRV, "Freed Event {}", event_id);
 }
 
 u32 EventInterface::FindFreeEvent(u32 syncpoint_id) {
@@ -114,15 +135,7 @@ void InstallInterfaces(SM::ServiceManager& service_manager, NVFlinger::NVFlinger
 }
 
 Module::Module(Core::System& system)
-    : syncpoint_manager{system.GPU()}, events_interface{*this}, service_context{system, "nvdrv"} {
-    events_interface.events_mask = 0;
-    for (u32 i = 0; i < MaxNvEvents; i++) {
-        events_interface.status[i] = EventState::Available;
-        events_interface.events[i] = nullptr;
-        events_interface.registered[i] = false;
-        events_interface.backup[i] =
-            service_context.CreateEvent(fmt::format("NVDRV::NvEvent_{}", i));
-    }
+    : syncpoint_manager{system.GPU()}, service_context{system, "nvdrv"}, events_interface{*this} {
     auto nvmap_dev = std::make_shared<Devices::nvmap>(system);
     devices["/dev/nvhost-as-gpu"] = std::make_shared<Devices::nvhost_as_gpu>(system, nvmap_dev);
     devices["/dev/nvhost-gpu"] = std::make_shared<Devices::nvhost_gpu>(
@@ -140,15 +153,7 @@ Module::Module(Core::System& system)
         std::make_shared<Devices::nvhost_vic>(system, nvmap_dev, syncpoint_manager);
 }
 
-Module::~Module() {
-    auto lock = events_interface.Lock();
-    for (u32 i = 0; i < MaxNvEvents; i++) {
-        if (events_interface.registered[i]) {
-            events_interface.Free(i);
-        }
-        service_context.CloseEvent(events_interface.backup[i]);
-    }
-}
+Module::~Module() = default;
 
 NvResult Module::VerifyFD(DeviceFD fd) const {
     if (fd < 0) {
@@ -255,7 +260,7 @@ void Module::SignalSyncpt(const u32 syncpoint_id, const u32 value) {
     const u32 max = MaxNvEvents - std::countl_zero(events_interface.events_mask);
     const u32 min = std::countr_zero(events_interface.events_mask);
     for (u32 i = min; i < max; i++) {
-        if (events_interface.registered[i] && events_interface.assigned_syncpt[i] == syncpoint_id &&
+        if (events_interface.assigned_syncpt[i] == syncpoint_id &&
             events_interface.assigned_value[i] == value) {
             events_interface.Signal(i);
         }

@@ -41,14 +41,13 @@ class Module;
 
 class EventInterface {
 public:
-    EventInterface(Module& module_) : module{module_} {}
+    EventInterface(Module& module_);
+    ~EventInterface();
 
     // Mask representing registered events
     u64 events_mask{};
     // Each kernel event associated to an NV event
     std::array<Kernel::KEvent*, MaxNvEvents> events{};
-    // Backup NV event
-    std::array<Kernel::KEvent*, MaxNvEvents> backup{};
     // The status of the current NVEvent
     std::array<std::atomic<EventState>, MaxNvEvents> status{};
     // Tells if an NVEvent is registered or not
@@ -139,9 +138,9 @@ private:
     /// Mapping of device node names to their implementation.
     std::unordered_map<std::string, std::shared_ptr<Devices::nvdevice>> devices;
 
-    EventInterface events_interface;
-
     KernelHelpers::ServiceContext service_context;
+
+    EventInterface events_interface;
 
     void CreateEvent(u32 event_id);
     void FreeEvent(u32 event_id);
