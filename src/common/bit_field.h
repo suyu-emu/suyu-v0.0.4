@@ -127,11 +127,14 @@ public:
         }
     }
 
-    // This constructor and assignment operator might be considered ambiguous:
-    // Would they initialize the storage or just the bitfield?
-    // Hence, delete them. Use the Assign method to set bitfield values!
-    BitField(T val) = delete;
-    BitField& operator=(T val) = delete;
+    BitField(T val) {
+        Assign(val);
+    }
+
+    BitField& operator=(T val) {
+        Assign(val);
+        return *this;
+    }
 
     constexpr BitField() noexcept = default;
 

@@ -12,15 +12,17 @@
 #include "core/core.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_writable_event.h"
+#include "core/hle/service/nvdrv/core/container.h"
+#include "core/hle/service/nvdrv/core/syncpoint_manager.h"
 #include "core/hle/service/nvdrv/devices/nvhost_ctrl.h"
 #include "video_core/gpu.h"
 
 namespace Service::Nvidia::Devices {
 
 nvhost_ctrl::nvhost_ctrl(Core::System& system_, EventInterface& events_interface_,
-                         SyncpointManager& syncpoint_manager_)
-    : nvdevice{system_}, events_interface{events_interface_}, syncpoint_manager{
-                                                                  syncpoint_manager_} {}
+                         NvCore::Container& core_)
+    : nvdevice{system_}, events_interface{events_interface_}, core{core_},
+      syncpoint_manager{core_.GetSyncpointManager()} {}
 nvhost_ctrl::~nvhost_ctrl() = default;
 
 NvResult nvhost_ctrl::Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,

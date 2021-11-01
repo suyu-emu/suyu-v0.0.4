@@ -8,9 +8,10 @@
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "core/core.h"
+#include "core/hle/service/nvdrv/core/container.h"
+#include "core/hle/service/nvdrv/core/syncpoint_manager.h"
 #include "core/hle/service/nvdrv/devices/nvhost_nvdec_common.h"
 #include "core/hle/service/nvdrv/devices/nvmap.h"
-#include "core/hle/service/nvdrv/syncpoint_manager.h"
 #include "core/memory.h"
 #include "video_core/memory_manager.h"
 #include "video_core/renderer_base.h"
@@ -45,8 +46,9 @@ std::size_t WriteVectors(std::vector<u8>& dst, const std::vector<T>& src, std::s
 } // Anonymous namespace
 
 nvhost_nvdec_common::nvhost_nvdec_common(Core::System& system_, std::shared_ptr<nvmap> nvmap_dev_,
-                                         SyncpointManager& syncpoint_manager_)
-    : nvdevice{system_}, nvmap_dev{std::move(nvmap_dev_)}, syncpoint_manager{syncpoint_manager_} {}
+                                         NvCore::Container& core_)
+    : nvdevice{system_}, nvmap_dev{std::move(nvmap_dev_)}, core{core_},
+      syncpoint_manager{core.GetSyncpointManager()} {}
 nvhost_nvdec_common::~nvhost_nvdec_common() = default;
 
 NvResult nvhost_nvdec_common::SetNVMAPfd(const std::vector<u8>& input) {

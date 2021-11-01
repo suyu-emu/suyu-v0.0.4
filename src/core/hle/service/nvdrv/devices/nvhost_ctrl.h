@@ -10,12 +10,17 @@
 #include "core/hle/service/nvdrv/devices/nvdevice.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
 
+namespace Service::Nvidia::NvCore {
+class Container;
+class SyncpointManager;
+} // namespace Service::Nvidia::NvCore
+
 namespace Service::Nvidia::Devices {
 
 class nvhost_ctrl final : public nvdevice {
 public:
     explicit nvhost_ctrl(Core::System& system_, EventInterface& events_interface_,
-                         SyncpointManager& syncpoint_manager_);
+                         NvCore::Container& core);
     ~nvhost_ctrl() override;
 
     NvResult Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
@@ -145,7 +150,8 @@ private:
     NvResult FreeEvent(u32 slot);
 
     EventInterface& events_interface;
-    SyncpointManager& syncpoint_manager;
+    NvCore::Container& core;
+    NvCore::SyncpointManager& syncpoint_manager;
 };
 
 } // namespace Service::Nvidia::Devices

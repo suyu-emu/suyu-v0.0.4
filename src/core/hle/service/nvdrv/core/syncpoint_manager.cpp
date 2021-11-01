@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/assert.h"
-#include "core/hle/service/nvdrv/syncpoint_manager.h"
+#include "core/hle/service/nvdrv/core/syncpoint_manager.h"
 #include "video_core/gpu.h"
 
-namespace Service::Nvidia {
+namespace Service::Nvidia::NvCore {
 
 SyncpointManager::SyncpointManager(Tegra::GPU& gpu_) : gpu{gpu_} {}
 
@@ -35,4 +35,4 @@ u32 SyncpointManager::IncreaseSyncpoint(u32 syncpoint_id, u32 value) {
     return GetSyncpointMax(syncpoint_id);
 }
 
-} // namespace Service::Nvidia
+} // namespace Service::Nvidia::NvCore

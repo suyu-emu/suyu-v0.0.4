@@ -14,7 +14,12 @@
 #include "video_core/dma_pusher.h"
 
 namespace Service::Nvidia {
+
+namespace NvCore {
+class Container;
 class SyncpointManager;
+} // namespace NvCore
+
 class EventInterface;
 } // namespace Service::Nvidia
 
@@ -24,7 +29,7 @@ class nvmap;
 class nvhost_gpu final : public nvdevice {
 public:
     explicit nvhost_gpu(Core::System& system_, std::shared_ptr<nvmap> nvmap_dev_,
-                        EventInterface& events_interface_, SyncpointManager& syncpoint_manager_);
+                        EventInterface& events_interface_, NvCore::Container& core);
     ~nvhost_gpu() override;
 
     NvResult Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
@@ -196,7 +201,8 @@ private:
 
     std::shared_ptr<nvmap> nvmap_dev;
     EventInterface& events_interface;
-    SyncpointManager& syncpoint_manager;
+    NvCore::Container& core;
+    NvCore::SyncpointManager& syncpoint_manager;
     NvFence channel_fence;
 
     // Events

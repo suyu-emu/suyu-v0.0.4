@@ -12,8 +12,8 @@
 
 #include "common/common_types.h"
 #include "core/hle/service/kernel_helpers.h"
+#include "core/hle/service/nvdrv/core/container.h"
 #include "core/hle/service/nvdrv/nvdata.h"
-#include "core/hle/service/nvdrv/syncpoint_manager.h"
 #include "core/hle/service/nvflinger/ui/fence.h"
 #include "core/hle/service/service.h"
 
@@ -31,7 +31,10 @@ class NVFlinger;
 
 namespace Service::Nvidia {
 
+namespace NvCore {
+class Container;
 class SyncpointManager;
+} // namespace NvCore
 
 namespace Devices {
 class nvdevice;
@@ -126,9 +129,6 @@ public:
 private:
     friend class EventInterface;
 
-    /// Manages syncpoints on the host
-    SyncpointManager syncpoint_manager;
-
     /// Id to use for the next open file descriptor.
     DeviceFD next_fd = 1;
 
@@ -141,6 +141,9 @@ private:
     KernelHelpers::ServiceContext service_context;
 
     EventInterface events_interface;
+
+    /// Manages syncpoints on the host
+    NvCore::Container container;
 
     void CreateEvent(u32 event_id);
     void FreeEvent(u32 event_id);

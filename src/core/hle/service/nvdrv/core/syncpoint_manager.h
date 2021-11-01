@@ -13,7 +13,7 @@ namespace Tegra {
 class GPU;
 }
 
-namespace Service::Nvidia {
+namespace Service::Nvidia::NvCore {
 
 class SyncpointManager final {
 public:
@@ -81,4 +81,4 @@ private:
     Tegra::GPU& gpu;
 };
 
-} // namespace Service::Nvidia
+} // namespace Service::Nvidia::NvCore

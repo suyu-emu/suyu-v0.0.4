@@ -9,7 +9,11 @@
 #include "core/hle/service/nvdrv/devices/nvdevice.h"
 
 namespace Service::Nvidia {
+
+namespace NvCore {
 class SyncpointManager;
+class Container;
+} // namespace NvCore
 
 namespace Devices {
 class nvmap;
@@ -17,7 +21,7 @@ class nvmap;
 class nvhost_nvdec_common : public nvdevice {
 public:
     explicit nvhost_nvdec_common(Core::System& system_, std::shared_ptr<nvmap> nvmap_dev_,
-                                 SyncpointManager& syncpoint_manager_);
+                                 NvCore::Container& core);
     ~nvhost_nvdec_common() override;
 
 protected:
@@ -114,7 +118,8 @@ protected:
     s32_le nvmap_fd{};
     u32_le submit_timeout{};
     std::shared_ptr<nvmap> nvmap_dev;
-    SyncpointManager& syncpoint_manager;
+    NvCore::Container& core;
+    NvCore::SyncpointManager& syncpoint_manager;
     std::array<u32, MaxSyncPoints> device_syncpoints{};
 };
 }; // namespace Devices
