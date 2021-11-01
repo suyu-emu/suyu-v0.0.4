@@ -4,11 +4,10 @@
 
 #pragma once
 
-#include <new>
-#include <utility>
 #include "common/assert.h"
 #include "common/bit_field.h"
 #include "common/common_types.h"
+#include "common/expected.h"
 
 // All the constants in this file come from http://switchbrew.org/index.php?title=Error_codes
 
@@ -189,150 +188,97 @@ constexpr ResultCode ResultUnknown(UINT32_MAX);
 template <typename T>
 class ResultVal {
 public:
-    /// Constructs an empty `ResultVal` with the given error code. The code must not be a success
-    /// code.
-    ResultVal(ResultCode error_code = ResultUnknown) : result_code(error_code) {
-        ASSERT(error_code.IsError());
-    }
+    constexpr ResultVal() : expected{} {}
 
-    /**
-     * Similar to the non-member function `MakeResult`, with the exception that you can manually
-     * specify the success code. `success_code` must not be an error code.
-     */
-    template <typename... Args>
-    [[nodiscard]] static ResultVal WithCode(ResultCode success_code, Args&&... args) {
-        ResultVal<T> result;
-        result.emplace(success_code, std::forward<Args>(args)...);
-        return result;
-    }
+    constexpr ResultVal(ResultCode code) : expected{Common::Unexpected(code)} {}
 
-    ResultVal(const ResultVal& o) noexcept : result_code(o.result_code) {
-        if (!o.empty()) {
-            new (&object) T(o.object);
-        }
-    }
-
-    ResultVal(ResultVal&& o) noexcept : result_code(o.result_code) {
-        if (!o.empty()) {
-            new (&object) T(std::move(o.object));
-        }
-    }
-
-    ~ResultVal() {
-        if (!empty()) {
-            object.~T();
-        }
-    }
-
-    ResultVal& operator=(const ResultVal& o) noexcept {
-        if (this == &o) {
-            return *this;
-        }
-        if (!empty()) {
-            if (!o.empty()) {
-                object = o.object;
-            } else {
-                object.~T();
-            }
-        } else {
-            if (!o.empty()) {
-                new (&object) T(o.object);
-            }
-        }
-        result_code = o.result_code;
-
-        return *this;
-    }
-
-    ResultVal& operator=(ResultVal&& o) noexcept {
-        if (this == &o) {
-            return *this;
-        }
-        if (!empty()) {
-            if (!o.empty()) {
-                object = std::move(o.object);
-            } else {
-                object.~T();
-            }
-        } else {
-            if (!o.empty()) {
-                new (&object) T(std::move(o.object));
-            }
-        }
-        result_code = o.result_code;
-
-        return *this;
-    }
-
-    /**
-     * Replaces the current result with a new constructed result value in-place. The code must not
-     * be an error code.
-     */
-    template <typename... Args>
-    void emplace(ResultCode success_code, Args&&... args) {
-        ASSERT(success_code.IsSuccess());
-        if (!empty()) {
-            object.~T();
-        }
-        new (&object) T(std::forward<Args>(args)...);
-        result_code = success_code;
-    }
-
-    /// Returns true if the `ResultVal` contains an error code and no value.
-    [[nodiscard]] bool empty() const {
-        return result_code.IsError();
-    }
-
-    /// Returns true if the `ResultVal` contains a return value.
-    [[nodiscard]] bool Succeeded() const {
-        return result_code.IsSuccess();
-    }
-    /// Returns true if the `ResultVal` contains an error code and no value.
-    [[nodiscard]] bool Failed() const {
-        return empty();
-    }
-
-    [[nodiscard]] ResultCode Code() const {
-        return result_code;
-    }
-
-    [[nodiscard]] const T& operator*() const {
-        return object;
-    }
-    [[nodiscard]] T& operator*() {
-        return object;
-    }
-    [[nodiscard]] const T* operator->() const {
-        return &object;
-    }
-    [[nodiscard]] T* operator->() {
-        return &object;
-    }
-
-    /// Returns the value contained in this `ResultVal`, or the supplied default if it is missing.
     template <typename U>
-    [[nodiscard]] T ValueOr(U&& value) const {
-        return !empty() ? object : std::move(value);
+    constexpr ResultVal(U&& val) : expected{std::forward<U>(val)} {}
+
+    template <typename... Args>
+    constexpr ResultVal(Args&&... args) : expected{std::in_place, std::forward<Args>(args)...} {}
+
+    ~ResultVal() = default;
+
+    constexpr ResultVal(const ResultVal&) = default;
+    constexpr ResultVal(ResultVal&&) = default;
+
+    ResultVal& operator=(const ResultVal&) = default;
+    ResultVal& operator=(ResultVal&&) = default;
+
+    [[nodiscard]] constexpr explicit operator bool() const noexcept {
+        return expected.has_value();
     }
 
-    /// Asserts that the result succeeded and returns a reference to it.
-    [[nodiscard]] T& Unwrap() & {
-        ASSERT_MSG(Succeeded(), "Tried to Unwrap empty ResultVal");
-        return **this;
+    [[nodiscard]] constexpr ResultCode Code() const {
+        return expected.has_value() ? ResultSuccess : expected.error();
     }
 
-    [[nodiscard]] T&& Unwrap() && {
+    [[nodiscard]] constexpr bool Succeeded() const {
+        return expected.has_value();
+    }
+
+    [[nodiscard]] constexpr bool Failed() const {
+        return !expected.has_value();
+    }
+
+    [[nodiscard]] constexpr T* operator->() {
+        return std::addressof(expected.value());
+    }
+
+    [[nodiscard]] constexpr const T* operator->() const {
+        return std::addressof(expected.value());
+    }
+
+    [[nodiscard]] constexpr T& operator*() & {
+        return *expected;
+    }
+
+    [[nodiscard]] constexpr const T& operator*() const& {
+        return *expected;
+    }
+
+    [[nodiscard]] constexpr T&& operator*() && {
+        return *expected;
+    }
+
+    [[nodiscard]] constexpr const T&& operator*() const&& {
+        return *expected;
+    }
+
+    [[nodiscard]] constexpr T& Unwrap() & {
         ASSERT_MSG(Succeeded(), "Tried to Unwrap empty ResultVal");
-        return std::move(**this);
+        return expected.value();
+    }
+
+    [[nodiscard]] constexpr const T& Unwrap() const& {
+        ASSERT_MSG(Succeeded(), "Tried to Unwrap empty ResultVal");
+        return expected.value();
+    }
+
+    [[nodiscard]] constexpr T&& Unwrap() && {
+        ASSERT_MSG(Succeeded(), "Tried to Unwrap empty ResultVal");
+        return std::move(expected.value());
+    }
+
+    [[nodiscard]] constexpr const T&& Unwrap() const&& {
+        ASSERT_MSG(Succeeded(), "Tried to Unwrap empty ResultVal");
+        return std::move(expected.value());
+    }
+
+    template <typename U>
+    [[nodiscard]] constexpr T ValueOr(U&& v) const& {
+        return expected.value_or(v);
+    }
+
+    template <typename U>
+    [[nodiscard]] constexpr T ValueOr(U&& v) && {
+        return expected.value_or(v);
     }
 
 private:
-    // A union is used to allocate the storage for the value, while allowing us to construct and
-    // destruct it at will.
-    union {
-        T object;
-    };
-    ResultCode result_code;
+    // TODO: Replace this with std::expected once it is standardized in the STL.
+    Common::Expected<T, ResultCode> expected;
 };
 
 /**
@@ -341,16 +287,16 @@ private:
  */
 template <typename T, typename... Args>
 [[nodiscard]] ResultVal<T> MakeResult(Args&&... args) {
-    return ResultVal<T>::WithCode(ResultSuccess, std::forward<Args>(args)...);
+    return ResultVal<T>{std::forward<Args>(args)...};
 }
 
 /**
  * Deducible overload of MakeResult, allowing the template parameter to be ommited if you're just
  * copy or move constructing.
  */
-template <typename Arg>
-[[nodiscard]] ResultVal<std::remove_cvref_t<Arg>> MakeResult(Arg&& arg) {
-    return ResultVal<std::remove_cvref_t<Arg>>::WithCode(ResultSuccess, std::forward<Arg>(arg));
+template <typename T>
+[[nodiscard]] ResultVal<std::remove_cvref_t<T>> MakeResult(T&& val) {
+    return ResultVal<std::remove_cvref_t<T>>{std::forward<T>(val)};
 }
 
 /**
