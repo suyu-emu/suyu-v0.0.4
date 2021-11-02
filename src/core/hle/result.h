@@ -168,7 +168,7 @@ constexpr ResultCode ResultUnknown(UINT32_MAX);
  *         return ResultCode{ErrorModule::Common, 1};
  *     } else {
  *         // Frobnicated! Give caller a cookie
- *         return MakeResult(42);
+ *         return 42;
  *     }
  * }
  * \endcode
@@ -278,24 +278,6 @@ private:
     // TODO: Replace this with std::expected once it is standardized in the STL.
     Common::Expected<T, ResultCode> expected;
 };
-
-/**
- * This function is a helper used to construct `ResultVal`s. It receives the arguments to construct
- * `T` with and creates a `ResultVal` that contains the constructed value.
- */
-template <typename T, typename... Args>
-[[nodiscard]] ResultVal<T> MakeResult(Args&&... args) {
-    return ResultVal<T>{std::forward<Args>(args)...};
-}
-
-/**
- * Deducible overload of MakeResult, allowing the template parameter to be ommited if you're just
- * copy or move constructing.
- */
-template <typename T>
-[[nodiscard]] ResultVal<std::remove_cvref_t<T>> MakeResult(T&& val) {
-    return ResultVal<std::remove_cvref_t<T>>{std::forward<T>(val)};
-}
 
 /**
  * Check for the success of `source` (which must evaluate to a ResultVal). If it succeeds, unwraps
