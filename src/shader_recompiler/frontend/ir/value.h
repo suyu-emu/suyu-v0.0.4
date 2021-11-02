@@ -182,6 +182,9 @@ public:
     /// Add phi operand to a phi instruction.
     void AddPhiOperand(Block* predecessor, const Value& value);
 
+    /// Orders the Phi arguments from farthest away to nearest.
+    void OrderPhiArgs();
+
     void Invalidate();
     void ClearArgs();
 
