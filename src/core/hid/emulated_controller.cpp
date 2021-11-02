@@ -644,6 +644,7 @@ void EmulatedController::SetMotion(Common::Input::CallbackStatus callback, std::
     });
     emulated.UpdateRotation(raw_status.delta_timestamp);
     emulated.UpdateOrientation(raw_status.delta_timestamp);
+    force_update_motion = raw_status.force_update;
 
     if (is_configuring) {
         TriggerOnChange(ControllerTriggerType::Motion, false);
@@ -653,7 +654,7 @@ void EmulatedController::SetMotion(Common::Input::CallbackStatus callback, std::
     auto& motion = controller.motion_state[index];
     motion.accel = emulated.GetAcceleration();
     motion.gyro = emulated.GetGyroscope();
-    motion.rotation = emulated.GetGyroscope();
+    motion.rotation = emulated.GetRotations();
     motion.orientation = emulated.GetOrientation();
     motion.is_at_rest = emulated.IsMoving(motion_sensitivity);
 
@@ -962,6 +963,14 @@ NpadGcTriggerState EmulatedController::GetTriggers() const {
 }
 
 MotionState EmulatedController::GetMotions() const {
+    if (force_update_motion) {
+        for (auto& device : motion_devices) {
+            if (!device) {
+                continue;
+            }
+            device->ForceUpdate();
+        }
+    }
     return controller.motion_state;
 }
 

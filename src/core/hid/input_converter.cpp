@@ -74,45 +74,53 @@ Common::Input::MotionStatus TransformToMotion(const Common::Input::CallbackStatu
     Common::Input::MotionStatus status{};
     switch (callback.type) {
     case Common::Input::InputType::Button: {
+        Common::Input::AnalogProperties properties{
+            .deadzone = 0.0f,
+            .range = 1.0f,
+            .offset = 0.0f,
+        };
+        status.delta_timestamp = 5000;
+        status.force_update = true;
+        status.accel.x = {
+            .value = 0.0f,
+            .raw_value = 0.0f,
+            .properties = properties,
+        };
+        status.accel.y = {
+            .value = 0.0f,
+            .raw_value = 0.0f,
+            .properties = properties,
+        };
+        status.accel.z = {
+            .value = 0.0f,
+            .raw_value = -1.0f,
+            .properties = properties,
+        };
+        status.gyro.x = {
+            .value = 0.0f,
+            .raw_value = 0.0f,
+            .properties = properties,
+        };
+        status.gyro.y = {
+            .value = 0.0f,
+            .raw_value = 0.0f,
+            .properties = properties,
+        };
+        status.gyro.z = {
+            .value = 0.0f,
+            .raw_value = 0.0f,
+            .properties = properties,
+        };
         if (TransformToButton(callback).value) {
             std::random_device device;
             std::mt19937 gen(device());
             std::uniform_int_distribution<s16> distribution(-1000, 1000);
-            Common::Input::AnalogProperties properties{
-                .deadzone = 0.0,
-                .range = 1.0f,
-                .offset = 0.0,
-            };
-            status.accel.x = {
-                .value = 0,
-                .raw_value = static_cast<f32>(distribution(gen)) * 0.001f,
-                .properties = properties,
-            };
-            status.accel.y = {
-                .value = 0,
-                .raw_value = static_cast<f32>(distribution(gen)) * 0.001f,
-                .properties = properties,
-            };
-            status.accel.z = {
-                .value = 0,
-                .raw_value = static_cast<f32>(distribution(gen)) * 0.001f,
-                .properties = properties,
-            };
-            status.gyro.x = {
-                .value = 0,
-                .raw_value = static_cast<f32>(distribution(gen)) * 0.001f,
-                .properties = properties,
-            };
-            status.gyro.y = {
-                .value = 0,
-                .raw_value = static_cast<f32>(distribution(gen)) * 0.001f,
-                .properties = properties,
-            };
-            status.gyro.z = {
-                .value = 0,
-                .raw_value = static_cast<f32>(distribution(gen)) * 0.001f,
-                .properties = properties,
-            };
+            status.accel.x.raw_value = static_cast<f32>(distribution(gen)) * 0.001f;
+            status.accel.y.raw_value = static_cast<f32>(distribution(gen)) * 0.001f;
+            status.accel.z.raw_value = static_cast<f32>(distribution(gen)) * 0.001f;
+            status.gyro.x.raw_value = static_cast<f32>(distribution(gen)) * 0.001f;
+            status.gyro.y.raw_value = static_cast<f32>(distribution(gen)) * 0.001f;
+            status.gyro.z.raw_value = static_cast<f32>(distribution(gen)) * 0.001f;
         }
         break;
     }

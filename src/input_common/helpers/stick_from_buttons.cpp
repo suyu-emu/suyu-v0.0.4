@@ -36,6 +36,8 @@ public:
         left->SetCallback(button_left_callback);
         right->SetCallback(button_right_callback);
         modifier->SetCallback(button_modifier_callback);
+        last_x_axis_value = 0.0f;
+        last_y_axis_value = 0.0f;
     }
 
     bool IsAngleGreater(float old_angle, float new_angle) const {
@@ -199,6 +201,8 @@ public:
             .type = Common::Input::InputType::Stick,
             .stick_status = GetStatus(),
         };
+        last_x_axis_value = status.stick_status.x.raw_value;
+        last_y_axis_value = status.stick_status.y.raw_value;
         TriggerOnChange(status);
     }
 
@@ -215,6 +219,12 @@ public:
             .type = Common::Input::InputType::Stick,
             .stick_status = GetStatus(),
         };
+        if (last_x_axis_value == status.stick_status.x.raw_value &&
+            last_y_axis_value == status.stick_status.y.raw_value) {
+            return;
+        }
+        last_x_axis_value = status.stick_status.x.raw_value;
+        last_y_axis_value = status.stick_status.y.raw_value;
         TriggerOnChange(status);
     }
 
@@ -265,6 +275,8 @@ private:
     bool left_status;
     bool right_status;
     bool modifier_status;
+    float last_x_axis_value;
+    float last_y_axis_value;
     const Common::Input::AnalogProperties properties{0.0f, 1.0f, 0.5f, 0.0f, false};
     std::chrono::time_point<std::chrono::steady_clock> last_update;
 };

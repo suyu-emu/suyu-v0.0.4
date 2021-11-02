@@ -110,9 +110,14 @@ struct MotionSensor {
 };
 
 struct MotionStatus {
+    // Gyroscope vector measurement in radians/s.
     MotionSensor gyro{};
+    // Acceleration vector measurement in G force
     MotionSensor accel{};
+    // Time since last measurement in microseconds
     u64 delta_timestamp{};
+    // Request to update after reading the value
+    bool force_update{};
 };
 
 struct TouchStatus {

@@ -16,7 +16,12 @@ public:
         : button(std::move(button_)), touch_id(touch_id_), x(x_), y(y_) {
         Common::Input::InputCallback button_up_callback{
             [this](Common::Input::CallbackStatus callback_) { UpdateButtonStatus(callback_); }};
+        last_button_value = false;
         button->SetCallback(button_up_callback);
+        button->ForceUpdate();
+    }
+
+    void ForceUpdate() override {
         button->ForceUpdate();
     }
 
@@ -47,11 +52,15 @@ public:
             .type = Common::Input::InputType::Touch,
             .touch_status = GetStatus(button_callback.button_status.value),
         };
-        TriggerOnChange(status);
+        if (last_button_value != button_callback.button_status.value) {
+            last_button_value = button_callback.button_status.value;
+            TriggerOnChange(status);
+        }
     }
 
 private:
     Button button;
+    bool last_button_value;
     const int touch_id;
     const float x;
     const float y;

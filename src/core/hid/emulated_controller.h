@@ -355,6 +355,7 @@ private:
     bool is_connected{false};
     bool is_configuring{false};
     f32 motion_sensitivity{0.01f};
+    bool force_update_motion{false};
 
     // Temporary values to avoid doing changes while the controller is on configuration mode
     NpadType tmp_npad_type{NpadType::None};

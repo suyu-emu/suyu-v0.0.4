@@ -56,15 +56,31 @@ private:
     Common::Vec3f integral_error;
     Common::Vec3f derivative_error;
 
+    // Quaternion containing the device orientation
     Common::Quaternion<f32> quat{{0.0f, 0.0f, -1.0f}, 0.0f};
+
+    // Number of full rotations in each axis
     Common::Vec3f rotations;
+
+    // Acceleration vector measurement in G force
     Common::Vec3f accel;
+
+    // Gyroscope vector measurement in radians/s.
     Common::Vec3f gyro;
+
+    // Vector to be substracted from gyro measurements
     Common::Vec3f gyro_drift;
 
+    // Minimum gyro amplitude to detect if the device is moving
     f32 gyro_threshold = 0.0f;
+
+    // Number of invalid sequential data
     u32 reset_counter = 0;
+
+    // If the provided data is invalid the device will be autocalibrated
     bool reset_enabled = true;
+
+    // Use accelerometer values to calculate position
     bool only_accelerometer = true;
 };
 
