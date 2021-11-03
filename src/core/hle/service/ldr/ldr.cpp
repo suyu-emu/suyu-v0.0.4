@@ -247,7 +247,7 @@ public:
             return;
         }
 
-        if (system.CurrentProcess()->GetTitleID() != header.application_id) {
+        if (system.CurrentProcess()->GetProgramID() != header.application_id) {
             LOG_ERROR(Service_LDR,
                       "Attempting to load NRR with title ID other than current process. (actual "
                       "{:016X})!",

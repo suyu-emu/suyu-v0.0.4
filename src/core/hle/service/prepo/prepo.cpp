@@ -73,7 +73,7 @@ private:
                   Type, process_id, data1.size(), data2.size());
 
         const auto& reporter{system.GetReporter()};
-        reporter.SavePlayReport(Type, system.CurrentProcess()->GetTitleID(), {data1, data2},
+        reporter.SavePlayReport(Type, system.CurrentProcess()->GetProgramID(), {data1, data2},
                                 process_id);
 
         IPC::ResponseBuilder rb{ctx, 2};
@@ -101,7 +101,7 @@ private:
                   Type, user_id[1], user_id[0], process_id, data1.size(), data2.size());
 
         const auto& reporter{system.GetReporter()};
-        reporter.SavePlayReport(Type, system.CurrentProcess()->GetTitleID(), {data1, data2},
+        reporter.SavePlayReport(Type, system.CurrentProcess()->GetProgramID(), {data1, data2},
                                 process_id, user_id);
 
         IPC::ResponseBuilder rb{ctx, 2};

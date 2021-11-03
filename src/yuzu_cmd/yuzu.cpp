@@ -203,7 +203,7 @@ int main(int argc, char** argv) {
 
     if (Settings::values.use_disk_shader_cache.GetValue()) {
         system.Renderer().ReadRasterizer()->LoadDiskResources(
-            system.CurrentProcess()->GetTitleID(), std::stop_token{},
+            system.CurrentProcess()->GetProgramID(), std::stop_token{},
             [](VideoCore::LoadCallbackStage, size_t value, size_t total) {});
     }
 

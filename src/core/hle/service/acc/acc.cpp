@@ -761,7 +761,7 @@ ResultCode Module::Interface::InitializeApplicationInfoBase() {
     // our own process
     const auto& current_process = system.Kernel().CurrentProcess();
     const auto launch_property =
-        system.GetARPManager().GetLaunchProperty(current_process->GetTitleID());
+        system.GetARPManager().GetLaunchProperty(current_process->GetProgramID());
 
     if (launch_property.Failed()) {
         LOG_ERROR(Service_ACC, "Failed to get launch property");
@@ -805,7 +805,7 @@ void Module::Interface::IsUserAccountSwitchLocked(Kernel::HLERequestContext& ctx
     bool is_locked = false;
 
     if (res != Loader::ResultStatus::Success) {
-        const FileSys::PatchManager pm{system.CurrentProcess()->GetTitleID(),
+        const FileSys::PatchManager pm{system.CurrentProcess()->GetProgramID(),
                                        system.GetFileSystemController(),
                                        system.GetContentProvider()};
         const auto nacp_unique = pm.GetControlMetadata().first;

@@ -2762,7 +2762,7 @@ void GMainWindow::OnConfigureTas() {
 }
 
 void GMainWindow::OnConfigurePerGame() {
-    const u64 title_id = system->CurrentProcess()->GetTitleID();
+    const u64 title_id = system->CurrentProcess()->GetProgramID();
     OpenPerGameConfiguration(title_id, game_path.toStdString());
 }
 
@@ -2861,7 +2861,7 @@ void GMainWindow::OnToggleFilterBar() {
 }
 
 void GMainWindow::OnCaptureScreenshot() {
-    const u64 title_id = system->CurrentProcess()->GetTitleID();
+    const u64 title_id = system->CurrentProcess()->GetProgramID();
     const auto screenshot_path =
         QString::fromStdString(Common::FS::GetYuzuPathString(Common::FS::YuzuPath::ScreenshotsDir));
     const auto date =

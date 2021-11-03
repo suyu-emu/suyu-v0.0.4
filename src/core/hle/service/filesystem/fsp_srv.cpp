@@ -1034,8 +1034,9 @@ void FSP_SRV::OpenDataStorageWithProgramIndex(Kernel::HLERequestContext& ctx) {
 
     LOG_DEBUG(Service_FS, "called, program_index={}", program_index);
 
-    auto patched_romfs = fsc.OpenPatchedRomFSWithProgramIndex(
-        system.CurrentProcess()->GetTitleID(), program_index, FileSys::ContentRecordType::Program);
+    auto patched_romfs =
+        fsc.OpenPatchedRomFSWithProgramIndex(system.CurrentProcess()->GetProgramID(), program_index,
+                                             FileSys::ContentRecordType::Program);
 
     if (patched_romfs.Failed()) {
         // TODO: Find the right error code to use here

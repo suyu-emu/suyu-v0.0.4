@@ -143,7 +143,7 @@ std::string SaveDataFactory::GetFullPath(Core::System& system, SaveDataSpaceId s
     // be interpreted as the title id of the current process.
     if (type == SaveDataType::SaveData || type == SaveDataType::DeviceSaveData) {
         if (title_id == 0) {
-            title_id = system.CurrentProcess()->GetTitleID();
+            title_id = system.CurrentProcess()->GetProgramID();
         }
     }
 

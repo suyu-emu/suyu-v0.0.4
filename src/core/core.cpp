@@ -349,7 +349,7 @@ struct System::Impl {
         }
 
         Service::Glue::ApplicationLaunchProperty launch{};
-        launch.title_id = process.GetTitleID();
+        launch.title_id = process.GetProgramID();
 
         FileSys::PatchManager pm{launch.title_id, fs_controller, *content_provider};
         launch.version = pm.GetGameVersion().value_or(0);
