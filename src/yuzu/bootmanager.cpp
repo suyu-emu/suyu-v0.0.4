@@ -32,7 +32,6 @@
 #include "common/settings.h"
 #include "core/core.h"
 #include "core/frontend/framebuffer_layout.h"
-#include "core/hle/kernel/k_process.h"
 #include "input_common/keyboard.h"
 #include "input_common/main.h"
 #include "input_common/mouse/mouse_input.h"
@@ -66,7 +65,7 @@ void EmuThread::run() {
 
     if (Settings::values.use_disk_shader_cache.GetValue()) {
         system.Renderer().ReadRasterizer()->LoadDiskResources(
-            system.CurrentProcess()->GetProgramID(), stop_token,
+            system.GetCurrentProcessProgramID(), stop_token,
             [this](VideoCore::LoadCallbackStage stage, std::size_t value, std::size_t total) {
                 emit LoadProgress(stage, value, total);
             });

@@ -15,7 +15,6 @@
 #include "core/file_sys/savedata_factory.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/k_event.h"
-#include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_transfer_memory.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/am.h"
@@ -1429,8 +1428,7 @@ void IApplicationFunctions::PopLaunchParameter(Kernel::HLERequestContext& ctx) {
         u64 build_id{};
         std::memcpy(&build_id, build_id_full.data(), sizeof(u64));
 
-        auto data =
-            backend->GetLaunchParameter({system.CurrentProcess()->GetProgramID(), build_id});
+        auto data = backend->GetLaunchParameter({system.GetCurrentProcessProgramID(), build_id});
         if (data.has_value()) {
             IPC::ResponseBuilder rb{ctx, 2, 0, 1};
             rb.Push(ResultSuccess);
@@ -1482,7 +1480,7 @@ void IApplicationFunctions::EnsureSaveData(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called, uid={:016X}{:016X}", user_id[1], user_id[0]);
 
     FileSys::SaveDataAttribute attribute{};
-    attribute.title_id = system.CurrentProcess()->GetProgramID();
+    attribute.title_id = system.GetCurrentProcessProgramID();
     attribute.user_id = user_id;
     attribute.type = FileSys::SaveDataType::SaveData;
     const auto res = system.GetFileSystemController().CreateSaveData(
@@ -1512,7 +1510,7 @@ void IApplicationFunctions::GetDisplayVersion(Kernel::HLERequestContext& ctx) {
     std::array<u8, 0x10> version_string{};
 
     const auto res = [this] {
-        const auto title_id = system.CurrentProcess()->GetProgramID();
+        const auto title_id = system.GetCurrentProcessProgramID();
 
         const FileSys::PatchManager pm{title_id, system.GetFileSystemController(),
                                        system.GetContentProvider()};
@@ -1549,7 +1547,7 @@ void IApplicationFunctions::GetDesiredLanguage(Kernel::HLERequestContext& ctx) {
     u32 supported_languages = 0;
 
     const auto res = [this] {
-        const auto title_id = system.CurrentProcess()->GetProgramID();
+        const auto title_id = system.GetCurrentProcessProgramID();
 
         const FileSys::PatchManager pm{title_id, system.GetFileSystemController(),
                                        system.GetContentProvider()};
@@ -1657,8 +1655,7 @@ void IApplicationFunctions::ExtendSaveData(Kernel::HLERequestContext& ctx) {
               static_cast<u8>(type), user_id[1], user_id[0], new_normal_size, new_journal_size);
 
     system.GetFileSystemController().WriteSaveDataSize(
-        type, system.CurrentProcess()->GetProgramID(), user_id,
-        {new_normal_size, new_journal_size});
+        type, system.GetCurrentProcessProgramID(), user_id, {new_normal_size, new_journal_size});
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(ResultSuccess);
@@ -1682,7 +1679,7 @@ void IApplicationFunctions::GetSaveDataSize(Kernel::HLERequestContext& ctx) {
               user_id[0]);
 
     const auto size = system.GetFileSystemController().ReadSaveDataSize(
-        type, system.CurrentProcess()->GetProgramID(), user_id);
+        type, system.GetCurrentProcessProgramID(), user_id);
 
     IPC::ResponseBuilder rb{ctx, 6};
     rb.Push(ResultSuccess);

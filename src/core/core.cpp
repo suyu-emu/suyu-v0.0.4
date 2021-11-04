@@ -639,6 +639,10 @@ const Core::SpeedLimiter& System::SpeedLimiter() const {
     return impl->speed_limiter;
 }
 
+u64 System::GetCurrentProcessProgramID() const {
+    return impl->kernel.CurrentProcess()->GetProgramID();
+}
+
 Loader::ResultStatus System::GetGameName(std::string& out) const {
     return impl->GetGameName(out);
 }

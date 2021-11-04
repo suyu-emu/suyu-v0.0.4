@@ -17,7 +17,6 @@
 #include "core/file_sys/registered_cache.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/k_event.h"
-#include "core/hle/kernel/k_process.h"
 #include "core/hle/service/aoc/aoc_u.h"
 #include "core/loader/loader.h"
 
@@ -152,7 +151,7 @@ void AOC_U::CountAddOnContent(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
 
-    const auto current = system.CurrentProcess()->GetProgramID();
+    const auto current = system.GetCurrentProcessProgramID();
 
     const auto& disabled = Settings::values.disabled_addons[current];
     if (std::find(disabled.begin(), disabled.end(), "DLC") != disabled.end()) {
@@ -179,7 +178,7 @@ void AOC_U::ListAddOnContent(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_AOC, "called with offset={}, count={}, process_id={}", offset, count,
               process_id);
 
-    const auto current = system.CurrentProcess()->GetProgramID();
+    const auto current = system.GetCurrentProcessProgramID();
 
     std::vector<u32> out;
     const auto& disabled = Settings::values.disabled_addons[current];
@@ -225,7 +224,7 @@ void AOC_U::GetAddOnContentBaseId(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(ResultSuccess);
 
-    const auto title_id = system.CurrentProcess()->GetProgramID();
+    const auto title_id = system.GetCurrentProcessProgramID();
     const FileSys::PatchManager pm{title_id, system.GetFileSystemController(),
                                    system.GetContentProvider()};
 
