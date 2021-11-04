@@ -125,7 +125,7 @@ AOC_U::AOC_U(Core::System& system_)
         {9, nullptr, "GetAddOnContentLostErrorCode"},
         {10, &AOC_U::GetAddOnContentListChangedEventWithProcessId, "GetAddOnContentListChangedEventWithProcessId"},
         {11, &AOC_U::NotifyMountAddOnContent, "NotifyMountAddOnContent"},
-        {12, nullptr, "NotifyUnmountAddOnContent"},
+        {12, &AOC_U::NotifyUnmountAddOnContent, "NotifyUnmountAddOnContent"},
         {13, nullptr, "IsAddOnContentMountedForDebug"},
         {50, &AOC_U::CheckAddOnContentMountStatus, "CheckAddOnContentMountStatus"},
         {100, &AOC_U::CreateEcPurchasedEventManager, "CreateEcPurchasedEventManager"},
@@ -278,6 +278,13 @@ void AOC_U::GetAddOnContentListChangedEventWithProcessId(Kernel::HLERequestConte
 }
 
 void AOC_U::NotifyMountAddOnContent(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_AOC, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void AOC_U::NotifyUnmountAddOnContent(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_AOC, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 2};
