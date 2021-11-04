@@ -7,6 +7,9 @@
 
 #pragma once
 
+#include <concepts>
+#include <type_traits>
+
 namespace Kernel {
 
 template <typename T>

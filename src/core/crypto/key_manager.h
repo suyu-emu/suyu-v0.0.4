@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <filesystem>
 #include <map>
 #include <optional>
 #include <string>

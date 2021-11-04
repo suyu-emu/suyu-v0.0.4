@@ -21,6 +21,7 @@
 #include "core/hle/kernel/k_session.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/service_thread.h"
 #include "core/memory.h"
 
 namespace Kernel {
