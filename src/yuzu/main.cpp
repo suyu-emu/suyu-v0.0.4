@@ -230,6 +230,7 @@ GMainWindow::GMainWindow()
     ConnectWidgetEvents();
 
     system->HIDCore().ReloadInputDevices();
+    controller_dialog->refreshConfiguration();
 
     const auto branch_name = std::string(Common::g_scm_branch);
     const auto description = std::string(Common::g_scm_desc);
@@ -843,6 +844,7 @@ void GMainWindow::InitializeWidgets() {
             handheld->Disconnect();
             player_1->SetNpadStyleIndex(Core::HID::NpadStyleIndex::ProController);
             player_1->Connect();
+            controller_dialog->refreshConfiguration();
         }
 
         Settings::values.use_docked_mode.SetValue(!is_docked);
@@ -2744,6 +2746,7 @@ void GMainWindow::OnConfigure() {
     }
 
     UpdateStatusButtons();
+    controller_dialog->refreshConfiguration();
 }
 
 void GMainWindow::OnConfigureTas() {

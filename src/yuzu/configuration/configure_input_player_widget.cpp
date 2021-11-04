@@ -2394,7 +2394,7 @@ void PlayerControlPreview::DrawGCJoystick(QPainter& p, const QPointF center,
 
 void PlayerControlPreview::DrawRawJoystick(QPainter& p, QPointF center_left, QPointF center_right) {
     using namespace Settings::NativeAnalog;
-    if (controller_type != Core::HID::NpadStyleIndex::JoyconLeft) {
+    if (center_right != QPointF(0, 0)) {
         DrawJoystickProperties(p, center_right, stick_values[RStick].x.properties);
         p.setPen(colors.indicator);
         p.setBrush(colors.indicator);
@@ -2404,7 +2404,7 @@ void PlayerControlPreview::DrawRawJoystick(QPainter& p, QPointF center_left, QPo
         DrawJoystickDot(p, center_right, stick_values[RStick], false);
     }
 
-    if (controller_type != Core::HID::NpadStyleIndex::JoyconRight) {
+    if (center_left != QPointF(0, 0)) {
         DrawJoystickProperties(p, center_left, stick_values[LStick].x.properties);
         p.setPen(colors.indicator);
         p.setBrush(colors.indicator);

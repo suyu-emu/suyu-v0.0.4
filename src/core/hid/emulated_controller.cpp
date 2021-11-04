@@ -880,7 +880,7 @@ void EmulatedController::Disconnect() {
 }
 
 bool EmulatedController::IsConnected(bool get_temporary_value) const {
-    if (get_temporary_value) {
+    if (get_temporary_value && is_configuring) {
         return tmp_is_connected;
     }
     return is_connected;
@@ -897,7 +897,7 @@ NpadIdType EmulatedController::GetNpadIdType() const {
 }
 
 NpadStyleIndex EmulatedController::GetNpadStyleIndex(bool get_temporary_value) const {
-    if (get_temporary_value) {
+    if (get_temporary_value && is_configuring) {
         return tmp_npad_type;
     }
     return npad_type;
