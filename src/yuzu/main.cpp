@@ -841,7 +841,7 @@ void GMainWindow::InitializeWidgets() {
                                  tr("Handheld controller can't be used on docked mode. Pro "
                                     "controller will be selected."));
             handheld->Disconnect();
-            player_1->SetNpadType(Core::HID::NpadType::ProController);
+            player_1->SetNpadStyleIndex(Core::HID::NpadStyleIndex::ProController);
             player_1->Connect();
         }
 

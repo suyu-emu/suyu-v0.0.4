@@ -1131,18 +1131,18 @@ void Hid::GetVibrationDeviceInfo(Kernel::HLERequestContext& ctx) {
     Core::HID::VibrationDeviceInfo vibration_device_info;
 
     switch (vibration_device_handle.npad_type) {
-    case Core::HID::NpadType::ProController:
-    case Core::HID::NpadType::Handheld:
-    case Core::HID::NpadType::JoyconDual:
-    case Core::HID::NpadType::JoyconLeft:
-    case Core::HID::NpadType::JoyconRight:
+    case Core::HID::NpadStyleIndex::ProController:
+    case Core::HID::NpadStyleIndex::Handheld:
+    case Core::HID::NpadStyleIndex::JoyconDual:
+    case Core::HID::NpadStyleIndex::JoyconLeft:
+    case Core::HID::NpadStyleIndex::JoyconRight:
     default:
         vibration_device_info.type = Core::HID::VibrationDeviceType::LinearResonantActuator;
         break;
-    case Core::HID::NpadType::GameCube:
+    case Core::HID::NpadStyleIndex::GameCube:
         vibration_device_info.type = Core::HID::VibrationDeviceType::GcErm;
         break;
-    case Core::HID::NpadType::Pokeball:
+    case Core::HID::NpadStyleIndex::Pokeball:
         vibration_device_info.type = Core::HID::VibrationDeviceType::Unknown;
         break;
     }
