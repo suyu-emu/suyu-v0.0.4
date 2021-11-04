@@ -221,7 +221,6 @@ void Controller_NPad::InitNewlyAddedController(std::size_t controller_idx) {
         break;
     case Core::HID::NpadStyleIndex::GameCube:
         shared_memory.style_set.gamecube.Assign(1);
-        // The GC Controller behaves like a wired Pro Controller
         shared_memory.device_type.fullkey.Assign(1);
         shared_memory.system_properties.is_vertical.Assign(1);
         shared_memory.system_properties.use_plus.Assign(1);
@@ -230,6 +229,24 @@ void Controller_NPad::InitNewlyAddedController(std::size_t controller_idx) {
         shared_memory.style_set.palma.Assign(1);
         shared_memory.device_type.palma.Assign(1);
         shared_memory.assignment_mode = NpadJoyAssignmentMode::Single;
+        break;
+    case Core::HID::NpadStyleIndex::NES:
+        shared_memory.style_set.lark.Assign(1);
+        shared_memory.device_type.fullkey.Assign(1);
+        break;
+    case Core::HID::NpadStyleIndex::SNES:
+        shared_memory.style_set.lucia.Assign(1);
+        shared_memory.device_type.fullkey.Assign(1);
+        shared_memory.applet_footer.type = AppletFooterUiType::Lucia;
+        break;
+    case Core::HID::NpadStyleIndex::N64:
+        shared_memory.style_set.lagoon.Assign(1);
+        shared_memory.device_type.fullkey.Assign(1);
+        shared_memory.applet_footer.type = AppletFooterUiType::Lagon;
+        break;
+    case Core::HID::NpadStyleIndex::SegaGenesis:
+        shared_memory.style_set.lager.Assign(1);
+        shared_memory.device_type.fullkey.Assign(1);
         break;
     default:
         break;
@@ -431,6 +448,10 @@ void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* 
             UNREACHABLE();
             break;
         case Core::HID::NpadStyleIndex::ProController:
+        case Core::HID::NpadStyleIndex::NES:
+        case Core::HID::NpadStyleIndex::SNES:
+        case Core::HID::NpadStyleIndex::N64:
+        case Core::HID::NpadStyleIndex::SegaGenesis:
             pad_state.connection_status.raw = 0;
             pad_state.connection_status.is_connected.Assign(1);
             pad_state.connection_status.is_wired.Assign(1);
@@ -1108,6 +1129,14 @@ bool Controller_NPad::IsControllerSupported(Core::HID::NpadStyleIndex controller
             return style.gamecube;
         case Core::HID::NpadStyleIndex::Pokeball:
             return style.palma;
+        case Core::HID::NpadStyleIndex::NES:
+            return style.lark;
+        case Core::HID::NpadStyleIndex::SNES:
+            return style.lucia;
+        case Core::HID::NpadStyleIndex::N64:
+            return style.lagoon;
+        case Core::HID::NpadStyleIndex::SegaGenesis:
+            return style.lager;
         default:
             return false;
         }
