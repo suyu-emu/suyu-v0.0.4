@@ -16,7 +16,6 @@
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/k_writable_event.h"
-#include "core/hle/kernel/kernel.h"
 #include "core/hle/service/hid/controllers/npad.h"
 #include "core/hle/service/kernel_helpers.h"
 
