@@ -17,6 +17,7 @@ namespace Service::Nvidia {
 
 namespace NvCore {
 class Container;
+class NvMap;
 class SyncpointManager;
 } // namespace NvCore
 
@@ -28,8 +29,8 @@ namespace Service::Nvidia::Devices {
 class nvmap;
 class nvhost_gpu final : public nvdevice {
 public:
-    explicit nvhost_gpu(Core::System& system_, std::shared_ptr<nvmap> nvmap_dev_,
-                        EventInterface& events_interface_, NvCore::Container& core);
+    explicit nvhost_gpu(Core::System& system_, EventInterface& events_interface_,
+                        NvCore::Container& core);
     ~nvhost_gpu() override;
 
     NvResult Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
@@ -199,10 +200,10 @@ private:
     NvResult ChannelSetTimeout(const std::vector<u8>& input, std::vector<u8>& output);
     NvResult ChannelSetTimeslice(const std::vector<u8>& input, std::vector<u8>& output);
 
-    std::shared_ptr<nvmap> nvmap_dev;
     EventInterface& events_interface;
     NvCore::Container& core;
     NvCore::SyncpointManager& syncpoint_manager;
+    NvCore::NvMap& nvmap;
     NvFence channel_fence;
 
     // Events

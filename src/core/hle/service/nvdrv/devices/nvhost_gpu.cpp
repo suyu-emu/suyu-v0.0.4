@@ -6,6 +6,7 @@
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/hle/service/nvdrv/core/container.h"
+#include "core/hle/service/nvdrv/core/nvmap.h"
 #include "core/hle/service/nvdrv/core/syncpoint_manager.h"
 #include "core/hle/service/nvdrv/devices/nvhost_gpu.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
@@ -22,10 +23,10 @@ Tegra::CommandHeader BuildFenceAction(Tegra::GPU::FenceOperation op, u32 syncpoi
 }
 } // namespace
 
-nvhost_gpu::nvhost_gpu(Core::System& system_, std::shared_ptr<nvmap> nvmap_dev_,
-                       EventInterface& events_interface_, NvCore::Container& core_)
-    : nvdevice{system_}, nvmap_dev{std::move(nvmap_dev_)}, events_interface{events_interface_},
-      core{core_}, syncpoint_manager{core_.GetSyncpointManager()} {
+nvhost_gpu::nvhost_gpu(Core::System& system_, EventInterface& events_interface_,
+                       NvCore::Container& core_)
+    : nvdevice{system_}, events_interface{events_interface_}, core{core_},
+      syncpoint_manager{core_.GetSyncpointManager()}, nvmap{core.GetNvMapFile()} {
     channel_fence.id = syncpoint_manager.AllocateSyncpoint();
     channel_fence.value = system_.GPU().GetSyncpointValue(channel_fence.id);
     sm_exception_breakpoint_int_report_event =

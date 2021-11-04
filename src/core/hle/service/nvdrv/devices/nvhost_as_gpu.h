@@ -13,6 +13,11 @@
 #include "common/swap.h"
 #include "core/hle/service/nvdrv/devices/nvdevice.h"
 
+namespace Service::Nvidia::NvCore {
+class Container;
+class NvMap;
+} // namespace Service::Nvidia::NvCore
+
 namespace Service::Nvidia::Devices {
 
 constexpr u32 DEFAULT_BIG_PAGE_SIZE = 1 << 16;
@@ -29,7 +34,7 @@ DECLARE_ENUM_FLAG_OPERATORS(AddressSpaceFlags);
 
 class nvhost_as_gpu final : public nvdevice {
 public:
-    explicit nvhost_as_gpu(Core::System& system_, std::shared_ptr<nvmap> nvmap_dev_);
+    explicit nvhost_as_gpu(Core::System& system_, NvCore::Container& core);
     ~nvhost_as_gpu() override;
 
     NvResult Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
@@ -41,6 +46,8 @@ public:
 
     void OnOpen(DeviceFD fd) override;
     void OnClose(DeviceFD fd) override;
+
+    Kernel::KEvent* QueryEvent(u32 event_id) override;
 
 private:
     class BufferMap final {
@@ -180,7 +187,8 @@ private:
     void AddBufferMap(GPUVAddr gpu_addr, std::size_t size, VAddr cpu_addr, bool is_allocated);
     std::optional<std::size_t> RemoveBufferMap(GPUVAddr gpu_addr);
 
-    std::shared_ptr<nvmap> nvmap_dev;
+    NvCore::Container& container;
+    NvCore::NvMap& nvmap;
 
     // This is expected to be ordered, therefore we must use a map, not unordered_map
     std::map<GPUVAddr, BufferMap> buffer_mappings;

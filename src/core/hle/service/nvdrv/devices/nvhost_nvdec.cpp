@@ -10,9 +10,8 @@
 
 namespace Service::Nvidia::Devices {
 
-nvhost_nvdec::nvhost_nvdec(Core::System& system_, std::shared_ptr<nvmap> nvmap_dev_,
-                           NvCore::Container& core)
-    : nvhost_nvdec_common{system_, std::move(nvmap_dev_), core} {}
+nvhost_nvdec::nvhost_nvdec(Core::System& system_, NvCore::Container& core)
+    : nvhost_nvdec_common{system_, core} {}
 nvhost_nvdec::~nvhost_nvdec() = default;
 
 NvResult nvhost_nvdec::Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,

@@ -59,6 +59,8 @@ public:
         u8 kind{};        //!< Used for memory compression
         bool allocated{}; //!< If the handle has been allocated with `Alloc`
 
+        u64 dma_map_addr{}; //! remove me after implementing pinning.
+
         Handle(u64 size, Id id);
 
         /**
@@ -101,16 +103,16 @@ private:
 
     /**
      * @brief Unmaps and frees the SMMU memory region a handle is mapped to
-     * @note Both `unmap_queue_lock` and `handleDesc.mutex` MUST be locked when calling this
+     * @note Both `unmap_queue_lock` and `handle_description.mutex` MUST be locked when calling this
      */
-    void UnmapHandle(Handle& handleDesc);
+    void UnmapHandle(Handle& handle_description);
 
     /**
      * @brief Removes a handle from the map taking its dupes into account
-     * @note handleDesc.mutex MUST be locked when calling this
+     * @note handle_description.mutex MUST be locked when calling this
      * @return If the handle was removed from the map
      */
-    bool TryRemoveHandle(const Handle& handleDesc);
+    bool TryRemoveHandle(const Handle& handle_description);
 
 public:
     /**
@@ -130,6 +132,8 @@ public:
     [[nodiscard]] NvResult CreateHandle(u64 size, std::shared_ptr<NvMap::Handle>& result_out);
 
     std::shared_ptr<Handle> GetHandle(Handle::Id handle);
+
+    VAddr GetHandleAddress(Handle::Id handle);
 
     /**
      * @brief Maps a handle into the SMMU address space

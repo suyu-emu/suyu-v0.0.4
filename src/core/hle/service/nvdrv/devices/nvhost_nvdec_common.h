@@ -11,17 +11,16 @@
 namespace Service::Nvidia {
 
 namespace NvCore {
-class SyncpointManager;
 class Container;
+class NvMap;
+class SyncpointManager;
 } // namespace NvCore
 
 namespace Devices {
-class nvmap;
 
 class nvhost_nvdec_common : public nvdevice {
 public:
-    explicit nvhost_nvdec_common(Core::System& system_, std::shared_ptr<nvmap> nvmap_dev_,
-                                 NvCore::Container& core);
+    explicit nvhost_nvdec_common(Core::System& system_, NvCore::Container& core);
     ~nvhost_nvdec_common() override;
 
 protected:
@@ -114,12 +113,14 @@ protected:
     NvResult UnmapBuffer(const std::vector<u8>& input, std::vector<u8>& output);
     NvResult SetSubmitTimeout(const std::vector<u8>& input, std::vector<u8>& output);
 
+    Kernel::KEvent* QueryEvent(u32 event_id) override;
+
     std::unordered_map<DeviceFD, u32> fd_to_id{};
     s32_le nvmap_fd{};
     u32_le submit_timeout{};
-    std::shared_ptr<nvmap> nvmap_dev;
     NvCore::Container& core;
     NvCore::SyncpointManager& syncpoint_manager;
+    NvCore::NvMap& nvmap;
     std::array<u32, MaxSyncPoints> device_syncpoints{};
 };
 }; // namespace Devices

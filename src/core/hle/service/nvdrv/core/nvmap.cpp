@@ -17,7 +17,7 @@ NvResult NvMap::Handle::Alloc(Flags pFlags, u32 pAlign, u8 pKind, u64 pAddress) 
     std::scoped_lock lock(mutex);
 
     // Handles cannot be allocated twice
-    if (allocated) [[unlikely]]
+    if (allocated)
         return NvResult::AccessDenied;
 
     flags = pFlags;
@@ -61,33 +61,34 @@ NvResult NvMap::Handle::Duplicate(bool internal_session) {
 
 NvMap::NvMap() = default;
 
-void NvMap::AddHandle(std::shared_ptr<Handle> handleDesc) {
+void NvMap::AddHandle(std::shared_ptr<Handle> handle_description) {
     std::scoped_lock lock(handles_lock);
 
-    handles.emplace(handleDesc->id, std::move(handleDesc));
+    handles.emplace(handle_description->id, std::move(handle_description));
 }
 
-void NvMap::UnmapHandle(Handle& handleDesc) {
+void NvMap::UnmapHandle(Handle& handle_description) {
     // Remove pending unmap queue entry if needed
-    if (handleDesc.unmap_queue_entry) {
-        unmap_queue.erase(*handleDesc.unmap_queue_entry);
-        handleDesc.unmap_queue_entry.reset();
+    if (handle_description.unmap_queue_entry) {
+        unmap_queue.erase(*handle_description.unmap_queue_entry);
+        handle_description.unmap_queue_entry.reset();
     }
 
     // Free and unmap the handle from the SMMU
     /*
-    state.soc->smmu.Unmap(handleDesc.pin_virt_address, static_cast<u32>(handleDesc.aligned_size));
-    smmuAllocator.Free(handleDesc.pin_virt_address, static_cast<u32>(handleDesc.aligned_size));
-    handleDesc.pin_virt_address = 0;
+    state.soc->smmu.Unmap(handle_description.pin_virt_address,
+    static_cast<u32>(handle_description.aligned_size));
+    smmuAllocator.Free(handle_description.pin_virt_address,
+    static_cast<u32>(handle_description.aligned_size)); handle_description.pin_virt_address = 0;
     */
 }
 
-bool NvMap::TryRemoveHandle(const Handle& handleDesc) {
+bool NvMap::TryRemoveHandle(const Handle& handle_description) {
     // No dupes left, we can remove from handle map
-    if (handleDesc.dupes == 0 && handleDesc.internal_dupes == 0) {
+    if (handle_description.dupes == 0 && handle_description.internal_dupes == 0) {
         std::scoped_lock lock(handles_lock);
 
-        auto it{handles.find(handleDesc.id)};
+        auto it{handles.find(handle_description.id)};
         if (it != handles.end())
             handles.erase(it);
 
@@ -102,10 +103,10 @@ NvResult NvMap::CreateHandle(u64 size, std::shared_ptr<NvMap::Handle>& result_ou
         return NvResult::BadValue;
 
     u32 id{next_handle_id.fetch_add(HandleIdIncrement, std::memory_order_relaxed)};
-    auto handleDesc{std::make_shared<Handle>(size, id)};
-    AddHandle(handleDesc);
+    auto handle_description{std::make_shared<Handle>(size, id)};
+    AddHandle(handle_description);
 
-    result_out = handleDesc;
+    result_out = handle_description;
     return NvResult::Success;
 }
 
@@ -118,73 +119,83 @@ std::shared_ptr<NvMap::Handle> NvMap::GetHandle(Handle::Id handle) {
     }
 }
 
+VAddr NvMap::GetHandleAddress(Handle::Id handle) {
+    std::scoped_lock lock(handles_lock);
+    try {
+        return handles.at(handle)->address;
+    } catch ([[maybe_unused]] std::out_of_range& e) {
+        return 0;
+    }
+}
+
 u32 NvMap::PinHandle(NvMap::Handle::Id handle) {
     UNIMPLEMENTED_MSG("pinning");
     return 0;
     /*
-    auto handleDesc{GetHandle(handle)};
-    if (!handleDesc)
+    auto handle_description{GetHandle(handle)};
+    if (!handle_description)
         [[unlikely]] return 0;
 
-    std::scoped_lock lock(handleDesc->mutex);
-    if (!handleDesc->pins) {
+    std::scoped_lock lock(handle_description->mutex);
+    if (!handle_description->pins) {
         // If we're in the unmap queue we can just remove ourselves and return since we're already
         // mapped
         {
             // Lock now to prevent our queue entry from being removed for allocation in-between the
             // following check and erase
             std::scoped_lock queueLock(unmap_queue_lock);
-            if (handleDesc->unmap_queue_entry) {
-                unmap_queue.erase(*handleDesc->unmap_queue_entry);
-                handleDesc->unmap_queue_entry.reset();
+            if (handle_description->unmap_queue_entry) {
+                unmap_queue.erase(*handle_description->unmap_queue_entry);
+                handle_description->unmap_queue_entry.reset();
 
-                handleDesc->pins++;
-                return handleDesc->pin_virt_address;
+                handle_description->pins++;
+                return handle_description->pin_virt_address;
             }
         }
 
         // If not then allocate some space and map it
         u32 address{};
-        while (!(address = smmuAllocator.Allocate(static_cast<u32>(handleDesc->aligned_size)))) {
+        while (!(address =
+    smmuAllocator.Allocate(static_cast<u32>(handle_description->aligned_size)))) {
             // Free handles until the allocation succeeds
             std::scoped_lock queueLock(unmap_queue_lock);
             if (auto freeHandleDesc{unmap_queue.front()}) {
                 // Handles in the unmap queue are guaranteed not to be pinned so don't bother
                 // checking if they are before unmapping
                 std::scoped_lock freeLock(freeHandleDesc->mutex);
-                if (handleDesc->pin_virt_address)
+                if (handle_description->pin_virt_address)
                     UnmapHandle(*freeHandleDesc);
             } else {
                 LOG_CRITICAL(Service_NVDRV, "Ran out of SMMU address space!");
             }
         }
 
-        state.soc->smmu.Map(address, handleDesc->GetPointer(),
-                            static_cast<u32>(handleDesc->aligned_size));
-        handleDesc->pin_virt_address = address;
+        state.soc->smmu.Map(address, handle_description->GetPointer(),
+                            static_cast<u32>(handle_description->aligned_size));
+        handle_description->pin_virt_address = address;
     }
 
-    handleDesc->pins++;
-    return handleDesc->pin_virt_address;
+    handle_description->pins++;
+    return handle_description->pin_virt_address;
     */
 }
 
 void NvMap::UnpinHandle(Handle::Id handle) {
     UNIMPLEMENTED_MSG("Unpinning");
     /*
-    auto handleDesc{GetHandle(handle)};
-    if (!handleDesc)
+    auto handle_description{GetHandle(handle)};
+    if (!handle_description)
         return;
 
-    std::scoped_lock lock(handleDesc->mutex);
-    if (--handleDesc->pins < 0) {
+    std::scoped_lock lock(handle_description->mutex);
+    if (--handle_description->pins < 0) {
         LOG_WARNING(Service_NVDRV, "Pin count imbalance detected!");
-    } else if (!handleDesc->pins) {
+    } else if (!handle_description->pins) {
         std::scoped_lock queueLock(unmap_queue_lock);
 
         // Add to the unmap queue allowing this handle's memory to be freed if needed
-        unmap_queue.push_back(handleDesc);
-        handleDesc->unmap_queue_entry = std::prev(unmap_queue.end());
+        unmap_queue.push_back(handle_description);
+        handle_description->unmap_queue_entry = std::prev(unmap_queue.end());
     }
     */
 }
@@ -195,39 +206,39 @@ std::optional<NvMap::FreeInfo> NvMap::FreeHandle(Handle::Id handle, bool interna
 
     // We use a weak ptr here so we can tell when the handle has been freed and report that back to
     // guest
-    if (auto handleDesc = hWeak.lock()) {
-        std::scoped_lock lock(handleDesc->mutex);
+    if (auto handle_description = hWeak.lock()) {
+        std::scoped_lock lock(handle_description->mutex);
 
         if (internal_session) {
-            if (--handleDesc->internal_dupes < 0)
+            if (--handle_description->internal_dupes < 0)
                 LOG_WARNING(Service_NVDRV, "Internal duplicate count imbalance detected!");
         } else {
-            if (--handleDesc->dupes < 0) {
+            if (--handle_description->dupes < 0) {
                 LOG_WARNING(Service_NVDRV, "User duplicate count imbalance detected!");
-            } else if (handleDesc->dupes == 0) {
+            } else if (handle_description->dupes == 0) {
                 // Force unmap the handle
-                if (handleDesc->pin_virt_address) {
+                if (handle_description->pin_virt_address) {
                     std::scoped_lock queueLock(unmap_queue_lock);
-                    UnmapHandle(*handleDesc);
+                    UnmapHandle(*handle_description);
                 }
 
-                handleDesc->pins = 0;
+                handle_description->pins = 0;
             }
         }
 
         // Try to remove the shared ptr to the handle from the map, if nothing else is using the
-        // handle then it will now be freed when `handleDesc` goes out of scope
-        if (TryRemoveHandle(*handleDesc))
-            LOG_ERROR(Service_NVDRV, "Removed nvmap handle: {}", handle);
+        // handle then it will now be freed when `handle_description` goes out of scope
+        if (TryRemoveHandle(*handle_description))
+            LOG_DEBUG(Service_NVDRV, "Removed nvmap handle: {}", handle);
         else
-            LOG_ERROR(Service_NVDRV,
+            LOG_DEBUG(Service_NVDRV,
                       "Tried to free nvmap handle: {} but didn't as it still has duplicates",
                       handle);
 
         freeInfo = {
-            .address = handleDesc->address,
-            .size = handleDesc->size,
-            .was_uncached = handleDesc->flags.map_uncached.Value() != 0,
+            .address = handle_description->address,
+            .size = handle_description->size,
+            .was_uncached = handle_description->flags.map_uncached.Value() != 0,
         };
     } else {
         return std::nullopt;

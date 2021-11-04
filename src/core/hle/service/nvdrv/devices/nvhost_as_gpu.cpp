@@ -7,15 +7,16 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/core.h"
+#include "core/hle/service/nvdrv/core/container.h"
+#include "core/hle/service/nvdrv/core/nvmap.h"
 #include "core/hle/service/nvdrv/devices/nvhost_as_gpu.h"
-#include "core/hle/service/nvdrv/devices/nvmap.h"
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
 
 namespace Service::Nvidia::Devices {
 
-nvhost_as_gpu::nvhost_as_gpu(Core::System& system_, std::shared_ptr<nvmap> nvmap_dev_)
-    : nvdevice{system_}, nvmap_dev{std::move(nvmap_dev_)} {}
+nvhost_as_gpu::nvhost_as_gpu(Core::System& system_, NvCore::Container& core)
+    : nvdevice{system_}, container{core}, nvmap{core.GetNvMapFile()} {}
 nvhost_as_gpu::~nvhost_as_gpu() = default;
 
 NvResult nvhost_as_gpu::Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
@@ -143,7 +144,7 @@ NvResult nvhost_as_gpu::Remap(const std::vector<u8>& input, std::vector<u8>& out
         LOG_DEBUG(Service_NVDRV, "remap entry, offset=0x{:X} handle=0x{:X} pages=0x{:X}",
                   entry.offset, entry.nvmap_handle, entry.pages);
 
-        const auto object{nvmap_dev->GetObject(entry.nvmap_handle)};
+        const auto object{nvmap.GetHandle(entry.nvmap_handle)};
         if (!object) {
             LOG_CRITICAL(Service_NVDRV, "invalid nvmap_handle={:X}", entry.nvmap_handle);
             result = NvResult::InvalidState;
@@ -153,7 +154,8 @@ NvResult nvhost_as_gpu::Remap(const std::vector<u8>& input, std::vector<u8>& out
         const auto offset{static_cast<GPUVAddr>(entry.offset) << 0x10};
         const auto size{static_cast<u64>(entry.pages) << 0x10};
         const auto map_offset{static_cast<u64>(entry.map_offset) << 0x10};
-        const auto addr{system.GPU().MemoryManager().Map(object->addr + map_offset, offset, size)};
+        const auto addr{
+            system.GPU().MemoryManager().Map(object->address + map_offset, offset, size)};
 
         if (!addr) {
             LOG_CRITICAL(Service_NVDRV, "map returned an invalid address!");
@@ -176,24 +178,7 @@ NvResult nvhost_as_gpu::MapBufferEx(const std::vector<u8>& input, std::vector<u8
               params.flags, params.nvmap_handle, params.buffer_offset, params.mapping_size,
               params.offset);
 
-    const auto object{nvmap_dev->GetObject(params.nvmap_handle)};
-    if (!object) {
-        LOG_CRITICAL(Service_NVDRV, "invalid nvmap_handle={:X}", params.nvmap_handle);
-        std::memcpy(output.data(), &params, output.size());
-        return NvResult::InvalidState;
-    }
-
-    // The real nvservices doesn't make a distinction between handles and ids, and
-    // object can only have one handle and it will be the same as its id. Assert that this is the
-    // case to prevent unexpected behavior.
-    ASSERT(object->id == params.nvmap_handle);
     auto& gpu = system.GPU();
-
-    u64 page_size{params.page_size};
-    if (!page_size) {
-        page_size = object->align;
-    }
-
     if ((params.flags & AddressSpaceFlags::Remap) != AddressSpaceFlags::None) {
         if (const auto buffer_map{FindBufferMap(params.offset)}; buffer_map) {
             const auto cpu_addr{static_cast<VAddr>(buffer_map->CpuAddr() + params.buffer_offset)};
@@ -220,10 +205,24 @@ NvResult nvhost_as_gpu::MapBufferEx(const std::vector<u8>& input, std::vector<u8
         }
     }
 
-    // We can only map objects that have already been assigned a CPU address.
-    ASSERT(object->status == nvmap::Object::Status::Allocated);
+    const auto object{nvmap.GetHandle(params.nvmap_handle)};
+    if (!object) {
+        LOG_CRITICAL(Service_NVDRV, "invalid nvmap_handle={:X}", params.nvmap_handle);
+        std::memcpy(output.data(), &params, output.size());
+        return NvResult::InvalidState;
+    }
 
-    const auto physical_address{object->addr + params.buffer_offset};
+    // The real nvservices doesn't make a distinction between handles and ids, and
+    // object can only have one handle and it will be the same as its id. Assert that this is the
+    // case to prevent unexpected behavior.
+    ASSERT(object->id == params.nvmap_handle);
+
+    u64 page_size{params.page_size};
+    if (!page_size) {
+        page_size = object->align;
+    }
+
+    const auto physical_address{object->address + params.buffer_offset};
     u64 size{params.mapping_size};
     if (!size) {
         size = object->size;
@@ -361,6 +360,11 @@ std::optional<std::size_t> nvhost_as_gpu::RemoveBufferMap(GPUVAddr gpu_addr) {
     }
 
     return std::nullopt;
+}
+
+Kernel::KEvent* nvhost_as_gpu::QueryEvent(u32 event_id) {
+    LOG_CRITICAL(Service_NVDRV, "Unknown AS GPU Event {}", event_id);
+    return nullptr;
 }
 
 } // namespace Service::Nvidia::Devices

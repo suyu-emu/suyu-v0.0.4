@@ -9,8 +9,7 @@ namespace Service::Nvidia::Devices {
 
 class nvhost_vic final : public nvhost_nvdec_common {
 public:
-    explicit nvhost_vic(Core::System& system_, std::shared_ptr<nvmap> nvmap_dev_,
-                        NvCore::Container& core);
+    explicit nvhost_vic(Core::System& system_, NvCore::Container& core);
     ~nvhost_vic();
 
     NvResult Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,

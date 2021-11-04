@@ -138,21 +138,18 @@ void InstallInterfaces(SM::ServiceManager& service_manager, NVFlinger::NVFlinger
 
 Module::Module(Core::System& system)
     : service_context{system, "nvdrv"}, events_interface{*this}, container{system.GPU()} {
-    auto nvmap_dev = std::make_shared<Devices::nvmap>(system);
-    devices["/dev/nvhost-as-gpu"] = std::make_shared<Devices::nvhost_as_gpu>(system, nvmap_dev);
+    devices["/dev/nvhost-as-gpu"] = std::make_shared<Devices::nvhost_as_gpu>(system, container);
     devices["/dev/nvhost-gpu"] =
-        std::make_shared<Devices::nvhost_gpu>(system, nvmap_dev, events_interface, container);
+        std::make_shared<Devices::nvhost_gpu>(system, events_interface, container);
     devices["/dev/nvhost-ctrl-gpu"] =
         std::make_shared<Devices::nvhost_ctrl_gpu>(system, events_interface);
-    devices["/dev/nvmap"] = nvmap_dev;
-    devices["/dev/nvdisp_disp0"] = std::make_shared<Devices::nvdisp_disp0>(system, nvmap_dev);
+    devices["/dev/nvmap"] = std::make_shared<Devices::nvmap>(system, container);
+    devices["/dev/nvdisp_disp0"] = std::make_shared<Devices::nvdisp_disp0>(system, container);
     devices["/dev/nvhost-ctrl"] =
         std::make_shared<Devices::nvhost_ctrl>(system, events_interface, container);
-    devices["/dev/nvhost-nvdec"] =
-        std::make_shared<Devices::nvhost_nvdec>(system, nvmap_dev, container);
+    devices["/dev/nvhost-nvdec"] = std::make_shared<Devices::nvhost_nvdec>(system, container);
     devices["/dev/nvhost-nvjpg"] = std::make_shared<Devices::nvhost_nvjpg>(system);
-    devices["/dev/nvhost-vic"] =
-        std::make_shared<Devices::nvhost_vic>(system, nvmap_dev, container);
+    devices["/dev/nvhost-vic"] = std::make_shared<Devices::nvhost_vic>(system, container);
 }
 
 Module::~Module() = default;

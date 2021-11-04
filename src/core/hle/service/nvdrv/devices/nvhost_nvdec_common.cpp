@@ -9,9 +9,9 @@
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/hle/service/nvdrv/core/container.h"
+#include "core/hle/service/nvdrv/core/nvmap.h"
 #include "core/hle/service/nvdrv/core/syncpoint_manager.h"
 #include "core/hle/service/nvdrv/devices/nvhost_nvdec_common.h"
-#include "core/hle/service/nvdrv/devices/nvmap.h"
 #include "core/memory.h"
 #include "video_core/memory_manager.h"
 #include "video_core/renderer_base.h"
@@ -45,10 +45,9 @@ std::size_t WriteVectors(std::vector<u8>& dst, const std::vector<T>& src, std::s
 }
 } // Anonymous namespace
 
-nvhost_nvdec_common::nvhost_nvdec_common(Core::System& system_, std::shared_ptr<nvmap> nvmap_dev_,
-                                         NvCore::Container& core_)
-    : nvdevice{system_}, nvmap_dev{std::move(nvmap_dev_)}, core{core_},
-      syncpoint_manager{core.GetSyncpointManager()} {}
+nvhost_nvdec_common::nvhost_nvdec_common(Core::System& system_, NvCore::Container& core_)
+    : nvdevice{system_}, core{core_},
+      syncpoint_manager{core.GetSyncpointManager()}, nvmap{core.GetNvMapFile()} {}
 nvhost_nvdec_common::~nvhost_nvdec_common() = default;
 
 NvResult nvhost_nvdec_common::SetNVMAPfd(const std::vector<u8>& input) {
@@ -90,10 +89,10 @@ NvResult nvhost_nvdec_common::Submit(DeviceFD fd, const std::vector<u8>& input,
         }
     }
     for (const auto& cmd_buffer : command_buffers) {
-        const auto object = nvmap_dev->GetObject(cmd_buffer.memory_id);
+        const auto object = nvmap.GetHandle(cmd_buffer.memory_id);
         ASSERT_OR_EXECUTE(object, return NvResult::InvalidState;);
         Tegra::ChCommandHeaderList cmdlist(cmd_buffer.word_count);
-        system.Memory().ReadBlock(object->addr + cmd_buffer.offset, cmdlist.data(),
+        system.Memory().ReadBlock(object->address + cmd_buffer.offset, cmdlist.data(),
                                   cmdlist.size() * sizeof(u32));
         gpu.PushCommandBuffer(fd_to_id[fd], cmdlist);
     }
@@ -125,6 +124,7 @@ NvResult nvhost_nvdec_common::GetSyncpoint(const std::vector<u8>& input, std::ve
 
 NvResult nvhost_nvdec_common::GetWaitbase(const std::vector<u8>& input, std::vector<u8>& output) {
     IoctlGetWaitbase params{};
+    LOG_CRITICAL(Service_NVDRV, "called WAITBASE");
     std::memcpy(&params, input.data(), sizeof(IoctlGetWaitbase));
     params.value = 0; // Seems to be hard coded at 0
     std::memcpy(output.data(), &params, sizeof(IoctlGetWaitbase));
@@ -141,7 +141,7 @@ NvResult nvhost_nvdec_common::MapBuffer(const std::vector<u8>& input, std::vecto
     auto& gpu = system.GPU();
 
     for (auto& cmd_buffer : cmd_buffer_handles) {
-        auto object{nvmap_dev->GetObject(cmd_buffer.map_handle)};
+        auto object{nvmap.GetHandle(cmd_buffer.map_handle)};
         if (!object) {
             LOG_ERROR(Service_NVDRV, "invalid cmd_buffer nvmap_handle={:X}", cmd_buffer.map_handle);
             std::memcpy(output.data(), &params, output.size());
@@ -150,7 +150,8 @@ NvResult nvhost_nvdec_common::MapBuffer(const std::vector<u8>& input, std::vecto
         if (object->dma_map_addr == 0) {
             // NVDEC and VIC memory is in the 32-bit address space
             // MapAllocate32 will attempt to map a lower 32-bit value in the shared gpu memory space
-            const GPUVAddr low_addr = gpu.MemoryManager().MapAllocate32(object->addr, object->size);
+            const GPUVAddr low_addr =
+                gpu.MemoryManager().MapAllocate32(object->address, object->size);
             object->dma_map_addr = static_cast<u32>(low_addr);
             // Ensure that the dma_map_addr is indeed in the lower 32-bit address space.
             ASSERT(object->dma_map_addr == low_addr);
@@ -158,7 +159,7 @@ NvResult nvhost_nvdec_common::MapBuffer(const std::vector<u8>& input, std::vecto
         if (!object->dma_map_addr) {
             LOG_ERROR(Service_NVDRV, "failed to map size={}", object->size);
         } else {
-            cmd_buffer.map_address = object->dma_map_addr;
+            cmd_buffer.map_address = static_cast<u32_le>(object->dma_map_addr);
         }
     }
     std::memcpy(output.data(), &params, sizeof(IoctlMapBuffer));
@@ -182,6 +183,11 @@ NvResult nvhost_nvdec_common::SetSubmitTimeout(const std::vector<u8>& input,
     std::memcpy(&submit_timeout, input.data(), input.size());
     LOG_WARNING(Service_NVDRV, "(STUBBED) called");
     return NvResult::Success;
+}
+
+Kernel::KEvent* nvhost_nvdec_common::QueryEvent(u32 event_id) {
+    LOG_CRITICAL(Service_NVDRV, "Unknown HOSTX1 Event {}", event_id);
+    return nullptr;
 }
 
 } // namespace Service::Nvidia::Devices

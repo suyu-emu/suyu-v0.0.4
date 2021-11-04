@@ -279,6 +279,8 @@ Kernel::KEvent* nvhost_ctrl::QueryEvent(u32 event_id) {
         ASSERT(events_interface.events[slot]);
         return events_interface.events[slot];
     }
+    // Is this possible in hardware?
+    ASSERT_MSG(false, "Slot:{}, SyncpointID:{}, requested", slot, syncpoint_id);
     return nullptr;
 }
 
