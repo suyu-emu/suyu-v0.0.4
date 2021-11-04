@@ -18,7 +18,6 @@
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_process.h"
-#include "core/hle/kernel/kernel.h"
 #include "core/hle/service/aoc/aoc_u.h"
 #include "core/loader/loader.h"
 
