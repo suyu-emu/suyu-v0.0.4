@@ -24,12 +24,9 @@ namespace Service::Nvidia::Devices {
 nvhost_ctrl::nvhost_ctrl(Core::System& system_, EventInterface& events_interface_,
                          NvCore::Container& core_)
     : nvdevice{system_}, events_interface{events_interface_}, core{core_},
-      syncpoint_manager{core_.GetSyncpointManager()} {
-    events_interface.RegisterForSignal(this);
-}
+      syncpoint_manager{core_.GetSyncpointManager()} {}
 
 nvhost_ctrl::~nvhost_ctrl() {
-    events_interface.UnregisterForSignal(this);
     for (auto& event : events) {
         if (!event.registered) {
             continue;
@@ -77,8 +74,12 @@ NvResult nvhost_ctrl::Ioctl3(DeviceFD fd, Ioctl command, const std::vector<u8>& 
     return NvResult::NotImplemented;
 }
 
-void nvhost_ctrl::OnOpen(DeviceFD fd) {}
-void nvhost_ctrl::OnClose(DeviceFD fd) {}
+void nvhost_ctrl::OnOpen(DeviceFD fd) {
+    events_interface.RegisterForSignal(this);
+}
+void nvhost_ctrl::OnClose(DeviceFD fd) {
+    events_interface.UnregisterForSignal(this);
+}
 
 NvResult nvhost_ctrl::NvOsGetConfigU32(const std::vector<u8>& input, std::vector<u8>& output) {
     IocGetConfigParams params{};

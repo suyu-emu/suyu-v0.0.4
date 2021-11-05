@@ -29,7 +29,7 @@
 
 namespace Service::Nvidia {
 
-EventInterface::EventInterface(Module& module_) : module{module_} {}
+EventInterface::EventInterface(Module& module_) : module{module_}, guard{}, on_signal{} {}
 
 EventInterface::~EventInterface() = default;
 
@@ -40,10 +40,7 @@ void EventInterface::RegisterForSignal(Devices::nvhost_ctrl* device) {
 
 void EventInterface::UnregisterForSignal(Devices::nvhost_ctrl* device) {
     std::unique_lock<std::mutex> lk(guard);
-    auto it = std::find(on_signal.begin(), on_signal.end(), device);
-    if (it != on_signal.end()) {
-        on_signal.erase(it);
-    }
+    on_signal.remove(device);
 }
 
 void EventInterface::Signal(u32 syncpoint_id, u32 value) {

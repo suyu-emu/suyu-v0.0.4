@@ -110,9 +110,6 @@ private:
     /// Mapping of file descriptors to the devices they reference.
     FilesContainerType open_files;
 
-    /// Mapping of device node names to their implementation.
-    std::unordered_map<std::string, std::shared_ptr<Devices::nvdevice>> devices;
-
     KernelHelpers::ServiceContext service_context;
 
     EventInterface events_interface;
