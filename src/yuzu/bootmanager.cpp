@@ -27,7 +27,6 @@
 
 #include "common/assert.h"
 #include "common/microprofile.h"
-#include "common/param_package.h"
 #include "common/scm_rev.h"
 #include "common/scope_exit.h"
 #include "common/settings.h"
