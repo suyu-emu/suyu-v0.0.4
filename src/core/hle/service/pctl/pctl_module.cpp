@@ -44,7 +44,7 @@ public:
             {1014, nullptr, "ConfirmPlayableApplicationVideoOld"},
             {1015, nullptr, "ConfirmPlayableApplicationVideo"},
             {1016, nullptr, "ConfirmShowNewsPermission"},
-            {1017, nullptr, "EndFreeCommunication"},
+            {1017, &IParentalControlService::EndFreeCommunication, "EndFreeCommunication"},
             {1018, &IParentalControlService::IsFreeCommunicationAvailable, "IsFreeCommunicationAvailable"},
             {1031, &IParentalControlService::IsRestrictionEnabled, "IsRestrictionEnabled"},
             {1032, nullptr, "GetSafetyLevel"},
@@ -231,6 +231,13 @@ private:
     void ConfirmStereoVisionPermission(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_PCTL, "called");
         states.stereo_vision = true;
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultSuccess);
+    }
+
+    void EndFreeCommunication(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_PCTL, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ResultSuccess);
