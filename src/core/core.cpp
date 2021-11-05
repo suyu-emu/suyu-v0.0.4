@@ -324,8 +324,8 @@ struct System::Impl {
         time_manager.Shutdown();
         core_timing.Shutdown();
         app_loader.reset();
-        perf_stats.reset();
         gpu_core.reset();
+        perf_stats.reset();
         kernel.Shutdown();
         memory.Reset();
         applet_manager.ClearAll();
