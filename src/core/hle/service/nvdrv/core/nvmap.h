@@ -44,6 +44,7 @@ public:
         std::optional<typename std::list<std::shared_ptr<Handle>>::iterator> unmap_queue_entry{};
 
         union Flags {
+            u32 raw;
             BitField<0, 1, u32> map_uncached; //!< If the handle should be mapped as uncached
             BitField<2, 1, u32> keep_uncached_after_free; //!< Only applicable when the handle was
                                                           //!< allocated with a fixed address

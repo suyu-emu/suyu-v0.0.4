@@ -11,7 +11,9 @@
 using Core::Memory::YUZU_PAGESIZE;
 
 namespace Service::Nvidia::NvCore {
-NvMap::Handle::Handle(u64 size, Id id) : size(size), aligned_size(size), orig_size(size), id(id) {}
+NvMap::Handle::Handle(u64 size, Id id) : size(size), aligned_size(size), orig_size(size), id(id) {
+    flags.raw = 0;
+}
 
 NvResult NvMap::Handle::Alloc(Flags pFlags, u32 pAlign, u8 pKind, u64 pAddress) {
     std::scoped_lock lock(mutex);

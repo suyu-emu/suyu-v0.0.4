@@ -82,7 +82,7 @@ std::shared_ptr<NvCore::NvMap::Handle> nvmap::GetObject(u32 handle) const {
 NvResult nvmap::IocCreate(const std::vector<u8>& input, std::vector<u8>& output) {
     IocCreateParams params;
     std::memcpy(&params, input.data(), sizeof(params));
-    LOG_WARNING(Service_NVDRV, "called, size=0x{:08X}", params.size);
+    LOG_DEBUG(Service_NVDRV, "called, size=0x{:08X}", params.size);
 
     std::shared_ptr<NvCore::NvMap::Handle> handle_description{};
     auto result =
@@ -102,7 +102,7 @@ NvResult nvmap::IocCreate(const std::vector<u8>& input, std::vector<u8>& output)
 NvResult nvmap::IocAlloc(const std::vector<u8>& input, std::vector<u8>& output) {
     IocAllocParams params;
     std::memcpy(&params, input.data(), sizeof(params));
-    LOG_WARNING(Service_NVDRV, "called, addr={:X}", params.address);
+    LOG_DEBUG(Service_NVDRV, "called, addr={:X}", params.address);
 
     if (!params.handle) {
         LOG_CRITICAL(Service_NVDRV, "Handle is 0");
@@ -144,7 +144,7 @@ NvResult nvmap::IocGetId(const std::vector<u8>& input, std::vector<u8>& output) 
     IocGetIdParams params;
     std::memcpy(&params, input.data(), sizeof(params));
 
-    LOG_WARNING(Service_NVDRV, "called");
+    LOG_DEBUG(Service_NVDRV, "called");
 
     // See the comment in FromId for extra info on this function
     if (!params.handle) {
@@ -168,26 +168,26 @@ NvResult nvmap::IocFromId(const std::vector<u8>& input, std::vector<u8>& output)
     IocFromIdParams params;
     std::memcpy(&params, input.data(), sizeof(params));
 
-    LOG_WARNING(Service_NVDRV, "called, id:{}");
+    LOG_DEBUG(Service_NVDRV, "called, id:{}");
 
     // Handles and IDs are always the same value in nvmap however IDs can be used globally given the
     // right permissions.
     // Since we don't plan on ever supporting multiprocess we can skip implementing handle refs and
     // so this function just does simple validation and passes through the handle id.
     if (!params.id) {
-        LOG_CRITICAL(Service_NVDRV, "Error!");
+        LOG_CRITICAL(Service_NVDRV, "Zero Id is invalid!");
         return NvResult::BadValue;
     }
 
     auto handle_description{file.GetHandle(params.id)};
     if (!handle_description) {
-        LOG_CRITICAL(Service_NVDRV, "Error!");
+        LOG_CRITICAL(Service_NVDRV, "Unregistered handle!");
         return NvResult::BadValue;
     }
 
     auto result = handle_description->Duplicate(false);
     if (result != NvResult::Success) {
-        LOG_CRITICAL(Service_NVDRV, "Error!");
+        LOG_CRITICAL(Service_NVDRV, "Could not duplicate handle!");
         return result;
     }
     params.handle = handle_description->id;
@@ -201,16 +201,16 @@ NvResult nvmap::IocParam(const std::vector<u8>& input, std::vector<u8>& output) 
     IocParamParams params;
     std::memcpy(&params, input.data(), sizeof(params));
 
-    LOG_WARNING(Service_NVDRV, "called type={}", params.param);
+    LOG_DEBUG(Service_NVDRV, "called type={}", params.param);
 
     if (!params.handle) {
-        LOG_CRITICAL(Service_NVDRV, "Error!");
+        LOG_CRITICAL(Service_NVDRV, "Invalid handle!");
         return NvResult::BadValue;
     }
 
     auto handle_description{file.GetHandle(params.handle)};
     if (!handle_description) {
-        LOG_CRITICAL(Service_NVDRV, "Error!");
+        LOG_CRITICAL(Service_NVDRV, "Not registered handle!");
         return NvResult::BadValue;
     }
 
@@ -228,7 +228,7 @@ NvResult nvmap::IocParam(const std::vector<u8>& input, std::vector<u8>& output) 
         if (handle_description->allocated)
             params.result = 0x40000000;
         else
-            params.result = 0x40000000;
+            params.result = 0;
         break;
     case HandleParameterType::Kind:
         params.result = handle_description->kind;
@@ -248,7 +248,7 @@ NvResult nvmap::IocFree(const std::vector<u8>& input, std::vector<u8>& output) {
     IocFreeParams params;
     std::memcpy(&params, input.data(), sizeof(params));
 
-    LOG_WARNING(Service_NVDRV, "called");
+    LOG_DEBUG(Service_NVDRV, "called");
 
     if (!params.handle) {
         LOG_CRITICAL(Service_NVDRV, "Handle null freed?");
@@ -258,10 +258,10 @@ NvResult nvmap::IocFree(const std::vector<u8>& input, std::vector<u8>& output) {
     if (auto freeInfo{file.FreeHandle(params.handle, false)}) {
         params.address = freeInfo->address;
         params.size = static_cast<u32>(freeInfo->size);
-        params.flags = NvCore::NvMap::Handle::Flags{.map_uncached = freeInfo->was_uncached};
+        params.flags.raw = 0;
+        params.flags.map_uncached = freeInfo->was_uncached;
     } else {
         // This is possible when there's internel dups or other duplicates.
-        LOG_CRITICAL(Service_NVDRV, "Not freed");
     }
 
     std::memcpy(output.data(), &params, sizeof(params));
