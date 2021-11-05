@@ -12,7 +12,7 @@ namespace OpenGL {
 
 GLInnerFence::GLInnerFence(u32 payload_, bool is_stubbed_) : FenceBase{payload_, is_stubbed_} {}
 
-GLInnerFence::GLInnerFence(GPUVAddr address_, u32 payload_, bool is_stubbed_)
+GLInnerFence::GLInnerFence(u8* address_, u32 payload_, bool is_stubbed_)
     : FenceBase{address_, payload_, is_stubbed_} {}
 
 GLInnerFence::~GLInnerFence() = default;
@@ -52,7 +52,7 @@ Fence FenceManagerOpenGL::CreateFence(u32 value, bool is_stubbed) {
     return std::make_shared<GLInnerFence>(value, is_stubbed);
 }
 
-Fence FenceManagerOpenGL::CreateFence(GPUVAddr addr, u32 value, bool is_stubbed) {
+Fence FenceManagerOpenGL::CreateFence(u8* addr, u32 value, bool is_stubbed) {
     return std::make_shared<GLInnerFence>(addr, value, is_stubbed);
 }
 

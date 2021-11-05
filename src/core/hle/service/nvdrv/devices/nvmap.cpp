@@ -168,7 +168,7 @@ NvResult nvmap::IocFromId(const std::vector<u8>& input, std::vector<u8>& output)
     IocFromIdParams params;
     std::memcpy(&params, input.data(), sizeof(params));
 
-    LOG_DEBUG(Service_NVDRV, "called, id:{}");
+    LOG_DEBUG(Service_NVDRV, "called, id:{}", params.id);
 
     // Handles and IDs are always the same value in nvmap however IDs can be used globally given the
     // right permissions.

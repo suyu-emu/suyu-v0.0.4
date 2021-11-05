@@ -89,56 +89,19 @@ class Maxwell3D;
 class KeplerCompute;
 } // namespace Engines
 
-enum class EngineID {
-    FERMI_TWOD_A = 0x902D, // 2D Engine
-    MAXWELL_B = 0xB197,    // 3D Engine
-    KEPLER_COMPUTE_B = 0xB1C0,
-    KEPLER_INLINE_TO_MEMORY_B = 0xA140,
-    MAXWELL_DMA_COPY_A = 0xB0B5,
-};
+namespace Control {
+struct ChannelState;
+}
 
 class MemoryManager;
 
 class GPU final {
 public:
-    struct MethodCall {
-        u32 method{};
-        u32 argument{};
-        u32 subchannel{};
-        u32 method_count{};
-
-        explicit MethodCall(u32 method_, u32 argument_, u32 subchannel_ = 0, u32 method_count_ = 0)
-            : method(method_), argument(argument_), subchannel(subchannel_),
-              method_count(method_count_) {}
-
-        [[nodiscard]] bool IsLastCall() const {
-            return method_count <= 1;
-        }
-    };
-
-    enum class FenceOperation : u32 {
-        Acquire = 0,
-        Increment = 1,
-    };
-
-    union FenceAction {
-        u32 raw;
-        BitField<0, 1, FenceOperation> op;
-        BitField<8, 24, u32> syncpoint_id;
-    };
-
     explicit GPU(Core::System& system, bool is_async, bool use_nvdec);
     ~GPU();
 
     /// Binds a renderer to the GPU.
     void BindRenderer(std::unique_ptr<VideoCore::RendererBase> renderer);
-
-    /// Calls a GPU method.
-    void CallMethod(const MethodCall& method_call);
-
-    /// Calls a GPU multivalue method.
-    void CallMultiMethod(u32 method, u32 subchannel, const u32* base_start, u32 amount,
-                         u32 methods_pending);
 
     /// Flush all current written commands into the host GPU for execution.
     void FlushCommands();
@@ -146,6 +109,14 @@ public:
     void SyncGuestHost();
     /// Signal the ending of command list.
     void OnCommandListEnd();
+
+    std::shared_ptr<Control::ChannelState> AllocateChannel();
+
+    void InitChannel(Control::ChannelState& to_init);
+
+    void BindChannel(s32 channel_id);
+
+    void ReleaseChannel(Control::ChannelState& to_release);
 
     /// Request a host GPU memory flush from the CPU.
     [[nodiscard]] u64 RequestFlush(VAddr addr, std::size_t size);
@@ -226,7 +197,7 @@ public:
     void ReleaseContext();
 
     /// Push GPU command entries to be processed
-    void PushGPUEntries(Tegra::CommandList&& entries);
+    void PushGPUEntries(s32 channel, Tegra::CommandList&& entries);
 
     /// Push GPU command buffer entries to be processed
     void PushCommandBuffer(u32 id, Tegra::ChCommandHeaderList& entries);
@@ -248,7 +219,7 @@ public:
 
 private:
     struct Impl;
-    std::unique_ptr<Impl> impl;
+    mutable std::unique_ptr<Impl> impl;
 };
 
 } // namespace Tegra

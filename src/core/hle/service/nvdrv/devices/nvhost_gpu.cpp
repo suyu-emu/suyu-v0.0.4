@@ -11,12 +11,14 @@
 #include "core/hle/service/nvdrv/devices/nvhost_gpu.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
 #include "core/memory.h"
+#include "video_core/control/channel_state.h"
+#include "video_core/engines/puller.h"
 #include "video_core/gpu.h"
 
 namespace Service::Nvidia::Devices {
 namespace {
-Tegra::CommandHeader BuildFenceAction(Tegra::GPU::FenceOperation op, u32 syncpoint_id) {
-    Tegra::GPU::FenceAction result{};
+Tegra::CommandHeader BuildFenceAction(Tegra::Engines::Puller::FenceOperation op, u32 syncpoint_id) {
+    Tegra::Engines::Puller::FenceAction result{};
     result.op.Assign(op);
     result.syncpoint_id.Assign(syncpoint_id);
     return {result.raw};
@@ -26,7 +28,8 @@ Tegra::CommandHeader BuildFenceAction(Tegra::GPU::FenceOperation op, u32 syncpoi
 nvhost_gpu::nvhost_gpu(Core::System& system_, EventInterface& events_interface_,
                        NvCore::Container& core_)
     : nvdevice{system_}, events_interface{events_interface_}, core{core_},
-      syncpoint_manager{core_.GetSyncpointManager()}, nvmap{core.GetNvMapFile()} {
+      syncpoint_manager{core_.GetSyncpointManager()}, nvmap{core.GetNvMapFile()},
+      channel_state{system.GPU().AllocateChannel()} {
     channel_fence.id = syncpoint_manager.AllocateSyncpoint();
     channel_fence.value = system_.GPU().GetSyncpointValue(channel_fence.id);
     sm_exception_breakpoint_int_report_event =
@@ -180,6 +183,12 @@ NvResult nvhost_gpu::AllocGPFIFOEx2(const std::vector<u8>& input, std::vector<u8
                 params.num_entries, params.flags, params.unk0, params.unk1, params.unk2,
                 params.unk3);
 
+    if (channel_state->initiated) {
+        LOG_CRITICAL(Service_NVDRV, "Already allocated!");
+        return NvResult::AlreadyAllocated;
+    }
+
+    system.GPU().InitChannel(*channel_state);
     channel_fence.value = system.GPU().GetSyncpointValue(channel_fence.id);
 
     params.fence_out = channel_fence;
@@ -206,7 +215,7 @@ static std::vector<Tegra::CommandHeader> BuildWaitCommandList(NvFence fence) {
         {fence.value},
         Tegra::BuildCommandHeader(Tegra::BufferMethods::FenceAction, 1,
                                   Tegra::SubmissionMode::Increasing),
-        BuildFenceAction(Tegra::GPU::FenceOperation::Acquire, fence.id),
+        BuildFenceAction(Tegra::Engines::Puller::FenceOperation::Acquire, fence.id),
     };
 }
 
@@ -220,7 +229,8 @@ static std::vector<Tegra::CommandHeader> BuildIncrementCommandList(NvFence fence
     for (u32 count = 0; count < add_increment; ++count) {
         result.emplace_back(Tegra::BuildCommandHeader(Tegra::BufferMethods::FenceAction, 1,
                                                       Tegra::SubmissionMode::Increasing));
-        result.emplace_back(BuildFenceAction(Tegra::GPU::FenceOperation::Increment, fence.id));
+        result.emplace_back(
+            BuildFenceAction(Tegra::Engines::Puller::FenceOperation::Increment, fence.id));
     }
 
     return result;
@@ -247,11 +257,13 @@ NvResult nvhost_gpu::SubmitGPFIFOImpl(IoctlSubmitGpfifo& params, std::vector<u8>
 
     auto& gpu = system.GPU();
 
+    const auto bind_id = channel_state->bind_id;
+
     params.fence_out.id = channel_fence.id;
 
     if (params.flags.add_wait.Value() &&
         !syncpoint_manager.IsSyncpointExpired(params.fence_out.id, params.fence_out.value)) {
-        gpu.PushGPUEntries(Tegra::CommandList{BuildWaitCommandList(params.fence_out)});
+        gpu.PushGPUEntries(bind_id, Tegra::CommandList{BuildWaitCommandList(params.fence_out)});
     }
 
     if (params.flags.add_increment.Value() || params.flags.increment.Value()) {
@@ -262,15 +274,15 @@ NvResult nvhost_gpu::SubmitGPFIFOImpl(IoctlSubmitGpfifo& params, std::vector<u8>
         params.fence_out.value = syncpoint_manager.GetSyncpointMax(params.fence_out.id);
     }
 
-    gpu.PushGPUEntries(std::move(entries));
+    gpu.PushGPUEntries(bind_id, std::move(entries));
 
     if (params.flags.add_increment.Value()) {
         if (params.flags.suppress_wfi) {
-            gpu.PushGPUEntries(Tegra::CommandList{
-                BuildIncrementCommandList(params.fence_out, params.AddIncrementValue())});
+            gpu.PushGPUEntries(bind_id, Tegra::CommandList{BuildIncrementCommandList(
+                                            params.fence_out, params.AddIncrementValue())});
         } else {
-            gpu.PushGPUEntries(Tegra::CommandList{
-                BuildIncrementWithWfiCommandList(params.fence_out, params.AddIncrementValue())});
+            gpu.PushGPUEntries(bind_id, Tegra::CommandList{BuildIncrementWithWfiCommandList(
+                                            params.fence_out, params.AddIncrementValue())});
         }
     }
 

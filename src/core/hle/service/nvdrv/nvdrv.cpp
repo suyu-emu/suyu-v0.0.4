@@ -74,7 +74,7 @@ Module::Module(Core::System& system)
     : service_context{system, "nvdrv"}, events_interface{*this}, container{system.GPU()} {
     builders["/dev/nvhost-as-gpu"] = [this, &system](DeviceFD fd) {
         std::shared_ptr<Devices::nvdevice> device =
-            std::make_shared<Devices::nvhost_as_gpu>(system, container);
+            std::make_shared<Devices::nvhost_as_gpu>(system, *this, container);
         return open_files.emplace(fd, device).first;
     };
     builders["/dev/nvhost-gpu"] = [this, &system](DeviceFD fd) {

@@ -13,6 +13,12 @@
 #include "core/hle/service/nvdrv/nvdata.h"
 #include "video_core/dma_pusher.h"
 
+namespace Tegra {
+namespace Control {
+struct ChannelState;
+}
+} // namespace Tegra
+
 namespace Service::Nvidia {
 
 namespace NvCore {
@@ -26,6 +32,7 @@ class EventInterface;
 
 namespace Service::Nvidia::Devices {
 
+class nvhost_as_gpu;
 class nvmap;
 class nvhost_gpu final : public nvdevice {
 public:
@@ -46,6 +53,7 @@ public:
     Kernel::KEvent* QueryEvent(u32 event_id) override;
 
 private:
+    friend class nvhost_as_gpu;
     enum class CtxObjects : u32_le {
         Ctx2D = 0x902D,
         Ctx3D = 0xB197,
@@ -204,6 +212,7 @@ private:
     NvCore::Container& core;
     NvCore::SyncpointManager& syncpoint_manager;
     NvCore::NvMap& nvmap;
+    std::shared_ptr<Tegra::Control::ChannelState> channel_state;
     NvFence channel_fence;
 
     // Events

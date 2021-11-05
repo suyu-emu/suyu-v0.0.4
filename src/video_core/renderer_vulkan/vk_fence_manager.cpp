@@ -14,7 +14,7 @@ namespace Vulkan {
 InnerFence::InnerFence(Scheduler& scheduler_, u32 payload_, bool is_stubbed_)
     : FenceBase{payload_, is_stubbed_}, scheduler{scheduler_} {}
 
-InnerFence::InnerFence(Scheduler& scheduler_, GPUVAddr address_, u32 payload_, bool is_stubbed_)
+InnerFence::InnerFence(Scheduler& scheduler_, u8* address_, u32 payload_, bool is_stubbed_)
     : FenceBase{address_, payload_, is_stubbed_}, scheduler{scheduler_} {}
 
 InnerFence::~InnerFence() = default;
@@ -52,7 +52,7 @@ Fence FenceManager::CreateFence(u32 value, bool is_stubbed) {
     return std::make_shared<InnerFence>(scheduler, value, is_stubbed);
 }
 
-Fence FenceManager::CreateFence(GPUVAddr addr, u32 value, bool is_stubbed) {
+Fence FenceManager::CreateFence(u8* addr, u32 value, bool is_stubbed) {
     return std::make_shared<InnerFence>(scheduler, addr, value, is_stubbed);
 }
 

@@ -35,6 +35,12 @@ add_library(video_core STATIC
     command_classes/vic.h
     compatible_formats.cpp
     compatible_formats.h
+    control/channel_state.cpp
+    control/channel_state.h
+    control/channel_state_cache.cpp
+    control/channel_state_cache.h
+    control/scheduler.cpp
+    control/scheduler.h
     delayed_destruction_ring.h
     dirty_flags.cpp
     dirty_flags.h
@@ -54,6 +60,8 @@ add_library(video_core STATIC
     engines/maxwell_3d.h
     engines/maxwell_dma.cpp
     engines/maxwell_dma.h
+    engines/puller.cpp
+    engines/puller.h
     framebuffer_config.h
     macro/macro.cpp
     macro/macro.h

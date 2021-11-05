@@ -10,6 +10,7 @@
 #include "common/bit_field.h"
 #include "common/common_types.h"
 #include "video_core/engines/engine_interface.h"
+#include "video_core/engines/puller.h"
 
 namespace Core {
 class System;
@@ -17,7 +18,12 @@ class System;
 
 namespace Tegra {
 
+namespace Control {
+struct ChannelState;
+}
+
 class GPU;
+class MemoryManager;
 
 enum class SubmissionMode : u32 {
     IncreasingOld = 0,
@@ -102,7 +108,8 @@ struct CommandList final {
  */
 class DmaPusher final {
 public:
-    explicit DmaPusher(Core::System& system_, GPU& gpu_);
+    explicit DmaPusher(Core::System& system_, GPU& gpu_, MemoryManager& memory_manager_,
+                       Control::ChannelState& channel_state_);
     ~DmaPusher();
 
     void Push(CommandList&& entries) {
@@ -114,6 +121,8 @@ public:
     void BindSubchannel(Engines::EngineInterface* engine, u32 subchannel_id) {
         subchannels[subchannel_id] = engine;
     }
+
+    void BindRasterizer(VideoCore::RasterizerInterface* rasterizer);
 
 private:
     static constexpr u32 non_puller_methods = 0x40;
@@ -148,6 +157,8 @@ private:
 
     GPU& gpu;
     Core::System& system;
+    MemoryManager& memory_manager;
+    mutable Engines::Puller puller;
 };
 
 } // namespace Tegra

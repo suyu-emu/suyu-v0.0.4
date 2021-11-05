@@ -8,6 +8,7 @@
 #include <boost/container/static_vector.hpp>
 
 #include "common/common_types.h"
+#include "video_core/control/channel_state_cache.h"
 #include "video_core/engines/maxwell_dma.h"
 #include "video_core/rasterizer_accelerated.h"
 #include "video_core/rasterizer_interface.h"
@@ -54,13 +55,13 @@ private:
     BufferCache& buffer_cache;
 };
 
-class RasterizerVulkan final : public VideoCore::RasterizerAccelerated {
+class RasterizerVulkan final : public VideoCore::RasterizerAccelerated,
+                               protected VideoCommon::ChannelSetupCaches<VideoCommon::ChannelInfo> {
 public:
     explicit RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
-                              Tegra::MemoryManager& gpu_memory_, Core::Memory::Memory& cpu_memory_,
-                              ScreenInfo& screen_info_, const Device& device_,
-                              MemoryAllocator& memory_allocator_, StateTracker& state_tracker_,
-                              Scheduler& scheduler_);
+                              Core::Memory::Memory& cpu_memory_, ScreenInfo& screen_info_,
+                              const Device& device_, MemoryAllocator& memory_allocator_,
+                              StateTracker& state_tracker_, Scheduler& scheduler_);
     ~RasterizerVulkan() override;
 
     void Draw(bool is_indexed, bool is_instanced) override;
@@ -99,6 +100,12 @@ public:
     void LoadDiskResources(u64 title_id, std::stop_token stop_loading,
                            const VideoCore::DiskResourceLoadCallback& callback) override;
 
+    void InitializeChannel(Tegra::Control::ChannelState& channel) override;
+
+    void BindChannel(Tegra::Control::ChannelState& channel) override;
+
+    void ReleaseChannel(s32 channel_id) override;
+
 private:
     static constexpr size_t MAX_TEXTURES = 192;
     static constexpr size_t MAX_IMAGES = 48;
@@ -134,9 +141,6 @@ private:
     void UpdateVertexInput(Tegra::Engines::Maxwell3D::Regs& regs);
 
     Tegra::GPU& gpu;
-    Tegra::MemoryManager& gpu_memory;
-    Tegra::Engines::Maxwell3D& maxwell3d;
-    Tegra::Engines::KeplerCompute& kepler_compute;
 
     ScreenInfo& screen_info;
     const Device& device;

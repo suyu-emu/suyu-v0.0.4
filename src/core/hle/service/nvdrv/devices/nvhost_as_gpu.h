@@ -13,6 +13,14 @@
 #include "common/swap.h"
 #include "core/hle/service/nvdrv/devices/nvdevice.h"
 
+namespace Tegra {
+class MemoryManager;
+} // namespace Tegra
+
+namespace Service::Nvidia {
+class Module;
+}
+
 namespace Service::Nvidia::NvCore {
 class Container;
 class NvMap;
@@ -34,7 +42,7 @@ DECLARE_ENUM_FLAG_OPERATORS(AddressSpaceFlags);
 
 class nvhost_as_gpu final : public nvdevice {
 public:
-    explicit nvhost_as_gpu(Core::System& system_, NvCore::Container& core);
+    explicit nvhost_as_gpu(Core::System& system_, Module& module, NvCore::Container& core);
     ~nvhost_as_gpu() override;
 
     NvResult Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
@@ -187,8 +195,12 @@ private:
     void AddBufferMap(GPUVAddr gpu_addr, std::size_t size, VAddr cpu_addr, bool is_allocated);
     std::optional<std::size_t> RemoveBufferMap(GPUVAddr gpu_addr);
 
+    Module& module;
+
     NvCore::Container& container;
     NvCore::NvMap& nvmap;
+
+    std::shared_ptr<Tegra::MemoryManager> gmmu;
 
     // This is expected to be ordered, therefore we must use a map, not unordered_map
     std::map<GPUVAddr, BufferMap> buffer_mappings;

@@ -16,6 +16,9 @@ class MemoryManager;
 namespace Engines {
 class AccelerateDMAInterface;
 }
+namespace Control {
+struct ChannelState;
+}
 } // namespace Tegra
 
 namespace VideoCore {
@@ -137,5 +140,11 @@ public:
     /// Initialize disk cached resources for the game being emulated
     virtual void LoadDiskResources(u64 title_id, std::stop_token stop_loading,
                                    const DiskResourceLoadCallback& callback) {}
+
+    virtual void InitializeChannel(Tegra::Control::ChannelState& channel) {}
+
+    virtual void BindChannel(Tegra::Control::ChannelState& channel) {}
+
+    virtual void ReleaseChannel(s32 channel_id) {}
 };
 } // namespace VideoCore

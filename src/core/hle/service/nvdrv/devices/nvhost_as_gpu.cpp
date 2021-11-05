@@ -10,13 +10,17 @@
 #include "core/hle/service/nvdrv/core/container.h"
 #include "core/hle/service/nvdrv/core/nvmap.h"
 #include "core/hle/service/nvdrv/devices/nvhost_as_gpu.h"
+#include "core/hle/service/nvdrv/devices/nvhost_gpu.h"
+#include "core/hle/service/nvdrv/nvdrv.h"
+#include "video_core/control/channel_state.h"
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
 
 namespace Service::Nvidia::Devices {
 
-nvhost_as_gpu::nvhost_as_gpu(Core::System& system_, NvCore::Container& core)
-    : nvdevice{system_}, container{core}, nvmap{core.GetNvMapFile()} {}
+nvhost_as_gpu::nvhost_as_gpu(Core::System& system_, Module& module_, NvCore::Container& core)
+    : nvdevice{system_}, module{module_}, container{core}, nvmap{core.GetNvMapFile()},
+      gmmu{std::make_shared<Tegra::MemoryManager>(system)} {}
 nvhost_as_gpu::~nvhost_as_gpu() = default;
 
 NvResult nvhost_as_gpu::Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
@@ -102,9 +106,9 @@ NvResult nvhost_as_gpu::AllocateSpace(const std::vector<u8>& input, std::vector<
 
     const auto size{static_cast<u64>(params.pages) * static_cast<u64>(params.page_size)};
     if ((params.flags & AddressSpaceFlags::FixedOffset) != AddressSpaceFlags::None) {
-        params.offset = *system.GPU().MemoryManager().AllocateFixed(params.offset, size);
+        params.offset = *(gmmu->AllocateFixed(params.offset, size));
     } else {
-        params.offset = system.GPU().MemoryManager().Allocate(size, params.align);
+        params.offset = gmmu->Allocate(size, params.align);
     }
 
     auto result = NvResult::Success;
@@ -124,8 +128,7 @@ NvResult nvhost_as_gpu::FreeSpace(const std::vector<u8>& input, std::vector<u8>&
     LOG_DEBUG(Service_NVDRV, "called, offset={:X}, pages={:X}, page_size={:X}", params.offset,
               params.pages, params.page_size);
 
-    system.GPU().MemoryManager().Unmap(params.offset,
-                                       static_cast<std::size_t>(params.pages) * params.page_size);
+    gmmu->Unmap(params.offset, static_cast<std::size_t>(params.pages) * params.page_size);
 
     std::memcpy(output.data(), &params, output.size());
     return NvResult::Success;
@@ -148,7 +151,7 @@ NvResult nvhost_as_gpu::Remap(const std::vector<u8>& input, std::vector<u8>& out
             // If nvmap handle is null, we should unmap instead.
             const auto offset{static_cast<GPUVAddr>(entry.offset) << 0x10};
             const auto size{static_cast<u64>(entry.pages) << 0x10};
-            system.GPU().MemoryManager().Unmap(offset, size);
+            gmmu->Unmap(offset, size);
             continue;
         }
 
@@ -162,8 +165,7 @@ NvResult nvhost_as_gpu::Remap(const std::vector<u8>& input, std::vector<u8>& out
         const auto offset{static_cast<GPUVAddr>(entry.offset) << 0x10};
         const auto size{static_cast<u64>(entry.pages) << 0x10};
         const auto map_offset{static_cast<u64>(entry.map_offset) << 0x10};
-        const auto addr{
-            system.GPU().MemoryManager().Map(object->address + map_offset, offset, size)};
+        const auto addr{gmmu->Map(object->address + map_offset, offset, size)};
 
         if (!addr) {
             LOG_CRITICAL(Service_NVDRV, "map returned an invalid address!");
@@ -186,13 +188,12 @@ NvResult nvhost_as_gpu::MapBufferEx(const std::vector<u8>& input, std::vector<u8
               params.flags, params.nvmap_handle, params.buffer_offset, params.mapping_size,
               params.offset);
 
-    auto& gpu = system.GPU();
     if ((params.flags & AddressSpaceFlags::Remap) != AddressSpaceFlags::None) {
         if (const auto buffer_map{FindBufferMap(params.offset)}; buffer_map) {
             const auto cpu_addr{static_cast<VAddr>(buffer_map->CpuAddr() + params.buffer_offset)};
             const auto gpu_addr{static_cast<GPUVAddr>(params.offset + params.buffer_offset)};
 
-            if (!gpu.MemoryManager().Map(cpu_addr, gpu_addr, params.mapping_size)) {
+            if (!gmmu->Map(cpu_addr, gpu_addr, params.mapping_size)) {
                 LOG_CRITICAL(Service_NVDRV,
                              "remap failed, flags={:X}, nvmap_handle={:X}, buffer_offset={}, "
                              "mapping_size = {}, offset={}",
@@ -238,9 +239,9 @@ NvResult nvhost_as_gpu::MapBufferEx(const std::vector<u8>& input, std::vector<u8
 
     const bool is_alloc{(params.flags & AddressSpaceFlags::FixedOffset) == AddressSpaceFlags::None};
     if (is_alloc) {
-        params.offset = gpu.MemoryManager().MapAllocate(physical_address, size, page_size);
+        params.offset = gmmu->MapAllocate(physical_address, size, page_size);
     } else {
-        params.offset = gpu.MemoryManager().Map(physical_address, params.offset, size);
+        params.offset = gmmu->Map(physical_address, params.offset, size);
     }
 
     auto result = NvResult::Success;
@@ -262,7 +263,7 @@ NvResult nvhost_as_gpu::UnmapBuffer(const std::vector<u8>& input, std::vector<u8
     LOG_DEBUG(Service_NVDRV, "called, offset=0x{:X}", params.offset);
 
     if (const auto size{RemoveBufferMap(params.offset)}; size) {
-        system.GPU().MemoryManager().Unmap(params.offset, *size);
+        gmmu->Unmap(params.offset, *size);
     } else {
         LOG_ERROR(Service_NVDRV, "invalid offset=0x{:X}", params.offset);
     }
@@ -274,9 +275,10 @@ NvResult nvhost_as_gpu::UnmapBuffer(const std::vector<u8>& input, std::vector<u8
 NvResult nvhost_as_gpu::BindChannel(const std::vector<u8>& input, std::vector<u8>& output) {
     IoctlBindChannel params{};
     std::memcpy(&params, input.data(), input.size());
-    LOG_WARNING(Service_NVDRV, "(STUBBED) called, fd={:X}", params.fd);
+    LOG_DEBUG(Service_NVDRV, "called, fd={:X}", params.fd);
 
-    channel = params.fd;
+    auto gpu_channel_device = module.GetDevice<nvhost_gpu>(params.fd);
+    gpu_channel_device->channel_state->memory_manager = gmmu;
     return NvResult::Success;
 }
 

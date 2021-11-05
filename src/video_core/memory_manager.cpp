@@ -133,11 +133,6 @@ void MemoryManager::SetPageEntry(GPUVAddr gpu_addr, PageEntry page_entry, std::s
     // TryLockPage(page_entry, size);
     auto& current_page = page_table[PageEntryIndex(gpu_addr)];
 
-    if ((!current_page.IsValid() && page_entry.IsValid()) ||
-        current_page.ToAddress() != page_entry.ToAddress()) {
-        rasterizer->ModifyGPUMemory(gpu_addr, size);
-    }
-
     current_page = page_entry;
 }
 

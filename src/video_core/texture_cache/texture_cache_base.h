@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <deque>
+#include <limits>
 #include <mutex>
 #include <span>
 #include <type_traits>
@@ -25,6 +27,10 @@
 #include "video_core/texture_cache/slot_vector.h"
 #include "video_core/texture_cache/types.h"
 #include "video_core/textures/texture.h"
+
+namespace Tegra::Control {
+struct ChannelState;
+}
 
 namespace VideoCommon {
 
@@ -58,6 +64,8 @@ class TextureCache {
     /// True when the API can provide info about the memory of the device.
     static constexpr bool HAS_DEVICE_MEMORY_INFO = P::HAS_DEVICE_MEMORY_INFO;
 
+    static constexpr size_t UNSET_CHANNEL{std::numeric_limits<size_t>::max()};
+
     static constexpr s64 TARGET_THRESHOLD = 4_GiB;
     static constexpr s64 DEFAULT_EXPECTED_MEMORY = 1_GiB + 125_MiB;
     static constexpr s64 DEFAULT_CRITICAL_MEMORY = 1_GiB + 625_MiB;
@@ -85,8 +93,7 @@ class TextureCache {
     };
 
 public:
-    explicit TextureCache(Runtime&, VideoCore::RasterizerInterface&, Tegra::Engines::Maxwell3D&,
-                          Tegra::Engines::KeplerCompute&, Tegra::MemoryManager&);
+    explicit TextureCache(Runtime&, VideoCore::RasterizerInterface&);
 
     /// Notify the cache that a new frame has been queued
     void TickFrame();
@@ -170,6 +177,15 @@ public:
     [[nodiscard]] bool IsRescaling() const noexcept;
 
     [[nodiscard]] bool IsRescaling(const ImageViewBase& image_view) const noexcept;
+
+    /// Create channel state.
+    void CreateChannel(struct Tegra::Control::ChannelState& channel);
+
+    /// Bind a channel for execution.
+    void BindToChannel(s32 id);
+
+    /// Erase channel's state.
+    void EraseChannel(s32 id);
 
     std::mutex mutex;
 
@@ -338,31 +354,52 @@ private:
     u64 GetScaledImageSizeBytes(ImageBase& image);
 
     Runtime& runtime;
+
+    struct ChannelInfo {
+        ChannelInfo() = delete;
+        ChannelInfo(struct Tegra::Control::ChannelState& state) noexcept;
+        ChannelInfo(const ChannelInfo& state) = delete;
+        ChannelInfo& operator=(const ChannelInfo&) = delete;
+        ChannelInfo(ChannelInfo&& other) noexcept = default;
+        ChannelInfo& operator=(ChannelInfo&& other) noexcept = default;
+
+        Tegra::Engines::Maxwell3D& maxwell3d;
+        Tegra::Engines::KeplerCompute& kepler_compute;
+        Tegra::MemoryManager& gpu_memory;
+
+        DescriptorTable<TICEntry> graphics_image_table{gpu_memory};
+        DescriptorTable<TSCEntry> graphics_sampler_table{gpu_memory};
+        std::vector<SamplerId> graphics_sampler_ids;
+        std::vector<ImageViewId> graphics_image_view_ids;
+
+        DescriptorTable<TICEntry> compute_image_table{gpu_memory};
+        DescriptorTable<TSCEntry> compute_sampler_table{gpu_memory};
+        std::vector<SamplerId> compute_sampler_ids;
+        std::vector<ImageViewId> compute_image_view_ids;
+
+        std::unordered_map<TICEntry, ImageViewId> image_views;
+        std::unordered_map<TSCEntry, SamplerId> samplers;
+
+        std::unordered_map<u64, std::vector<ImageId>, IdentityHash<u64>> gpu_page_table;
+    };
+
+    std::deque<ChannelInfo> channel_storage;
+    std::deque<size_t> free_channel_ids;
+    std::unordered_map<s32, size_t> channel_map;
+
+    ChannelInfo* state;
+    size_t current_channel_id{UNSET_CHANNEL};
     VideoCore::RasterizerInterface& rasterizer;
-    Tegra::Engines::Maxwell3D& maxwell3d;
-    Tegra::Engines::KeplerCompute& kepler_compute;
-    Tegra::MemoryManager& gpu_memory;
-
-    DescriptorTable<TICEntry> graphics_image_table{gpu_memory};
-    DescriptorTable<TSCEntry> graphics_sampler_table{gpu_memory};
-    std::vector<SamplerId> graphics_sampler_ids;
-    std::vector<ImageViewId> graphics_image_view_ids;
-
-    DescriptorTable<TICEntry> compute_image_table{gpu_memory};
-    DescriptorTable<TSCEntry> compute_sampler_table{gpu_memory};
-    std::vector<SamplerId> compute_sampler_ids;
-    std::vector<ImageViewId> compute_image_view_ids;
+    Tegra::Engines::Maxwell3D* maxwell3d;
+    Tegra::Engines::KeplerCompute* kepler_compute;
+    Tegra::MemoryManager* gpu_memory;
 
     RenderTargets render_targets;
 
-    std::unordered_map<TICEntry, ImageViewId> image_views;
-    std::unordered_map<TSCEntry, SamplerId> samplers;
     std::unordered_map<RenderTargets, FramebufferId> framebuffers;
 
     std::unordered_map<u64, std::vector<ImageMapId>, IdentityHash<u64>> page_table;
-    std::unordered_map<u64, std::vector<ImageId>, IdentityHash<u64>> gpu_page_table;
     std::unordered_map<u64, std::vector<ImageId>, IdentityHash<u64>> sparse_page_table;
-
     std::unordered_map<ImageId, std::vector<ImageViewId>> sparse_views;
 
     VAddr virtual_invalid_space{};
