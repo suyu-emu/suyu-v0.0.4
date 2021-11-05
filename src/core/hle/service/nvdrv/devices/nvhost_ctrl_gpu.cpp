@@ -13,10 +13,13 @@ namespace Service::Nvidia::Devices {
 
 nvhost_ctrl_gpu::nvhost_ctrl_gpu(Core::System& system_, EventInterface& events_interface_)
     : nvdevice{system_}, events_interface{events_interface_} {
-    error_notifier_event = events_interface.CreateNonCtrlEvent("CtrlGpuErrorNotifier");
-    unknown_event = events_interface.CreateNonCtrlEvent("CtrlGpuUknownEvent");
+    error_notifier_event = events_interface.CreateEvent("CtrlGpuErrorNotifier");
+    unknown_event = events_interface.CreateEvent("CtrlGpuUknownEvent");
 }
-nvhost_ctrl_gpu::~nvhost_ctrl_gpu() = default;
+nvhost_ctrl_gpu::~nvhost_ctrl_gpu() {
+    events_interface.FreeEvent(error_notifier_event);
+    events_interface.FreeEvent(unknown_event);
+}
 
 NvResult nvhost_ctrl_gpu::Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
                                  std::vector<u8>& output) {

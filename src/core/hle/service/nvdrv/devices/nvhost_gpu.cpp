@@ -30,13 +30,17 @@ nvhost_gpu::nvhost_gpu(Core::System& system_, EventInterface& events_interface_,
     channel_fence.id = syncpoint_manager.AllocateSyncpoint();
     channel_fence.value = system_.GPU().GetSyncpointValue(channel_fence.id);
     sm_exception_breakpoint_int_report_event =
-        events_interface.CreateNonCtrlEvent("GpuChannelSMExceptionBreakpointInt");
+        events_interface.CreateEvent("GpuChannelSMExceptionBreakpointInt");
     sm_exception_breakpoint_pause_report_event =
-        events_interface.CreateNonCtrlEvent("GpuChannelSMExceptionBreakpointPause");
-    error_notifier_event = events_interface.CreateNonCtrlEvent("GpuChannelErrorNotifier");
+        events_interface.CreateEvent("GpuChannelSMExceptionBreakpointPause");
+    error_notifier_event = events_interface.CreateEvent("GpuChannelErrorNotifier");
 }
 
-nvhost_gpu::~nvhost_gpu() = default;
+nvhost_gpu::~nvhost_gpu() {
+    events_interface.FreeEvent(sm_exception_breakpoint_int_report_event);
+    events_interface.FreeEvent(sm_exception_breakpoint_pause_report_event);
+    events_interface.FreeEvent(error_notifier_event);
+}
 
 NvResult nvhost_gpu::Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
                             std::vector<u8>& output) {

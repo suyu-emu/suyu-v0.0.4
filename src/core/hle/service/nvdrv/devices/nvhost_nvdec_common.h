@@ -115,7 +115,7 @@ protected:
 
     Kernel::KEvent* QueryEvent(u32 event_id) override;
 
-    std::unordered_map<DeviceFD, u32> fd_to_id{};
+    static std::unordered_map<DeviceFD, u32> fd_to_id;
     s32_le nvmap_fd{};
     u32_le submit_timeout{};
     NvCore::Container& core;

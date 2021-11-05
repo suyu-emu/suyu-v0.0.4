@@ -45,6 +45,8 @@ std::size_t WriteVectors(std::vector<u8>& dst, const std::vector<T>& src, std::s
 }
 } // Anonymous namespace
 
+std::unordered_map<DeviceFD, u32> nvhost_nvdec_common::fd_to_id{};
+
 nvhost_nvdec_common::nvhost_nvdec_common(Core::System& system_, NvCore::Container& core_)
     : nvdevice{system_}, core{core_},
       syncpoint_manager{core.GetSyncpointManager()}, nvmap{core.GetNvMapFile()} {}

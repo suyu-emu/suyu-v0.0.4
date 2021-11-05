@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later Licensed under GPLv3
 // or any later version Refer to the license.txt file included.
 
-#include <bit>
 #include <utility>
 
 #include <fmt/format.h>
@@ -30,99 +29,37 @@
 
 namespace Service::Nvidia {
 
-EventInterface::EventInterface(Module& module_) : module{module_} {
-    events_mask = 0;
-    for (u32 i = 0; i < MaxNvEvents; i++) {
-        status[i] = EventState::Available;
-        events[i] = nullptr;
-        registered[i] = false;
+EventInterface::EventInterface(Module& module_) : module{module_} {}
+
+EventInterface::~EventInterface() = default;
+
+void EventInterface::RegisterForSignal(Devices::nvhost_ctrl* device) {
+    std::unique_lock<std::mutex> lk(guard);
+    on_signal.push_back(device);
+}
+
+void EventInterface::UnregisterForSignal(Devices::nvhost_ctrl* device) {
+    std::unique_lock<std::mutex> lk(guard);
+    auto it = std::find(on_signal.begin(), on_signal.end(), device);
+    if (it != on_signal.end()) {
+        on_signal.erase(it);
     }
 }
 
-EventInterface::~EventInterface() {
-    auto lk = Lock();
-    for (u32 i = 0; i < MaxNvEvents; i++) {
-        if (registered[i]) {
-            module.service_context.CloseEvent(events[i]);
-            events[i] = nullptr;
-            registered[i] = false;
-        }
-    }
-    for (auto* event : basic_events) {
-        module.service_context.CloseEvent(event);
+void EventInterface::Signal(u32 syncpoint_id, u32 value) {
+    std::unique_lock<std::mutex> lk(guard);
+    for (auto* device : on_signal) {
+        device->SignalNvEvent(syncpoint_id, value);
     }
 }
 
-std::unique_lock<std::mutex> EventInterface::Lock() {
-    return std::unique_lock<std::mutex>(events_mutex);
-}
-
-void EventInterface::Signal(u32 event_id) {
-    if (status[event_id].exchange(EventState::Signalling, std::memory_order_acq_rel) ==
-        EventState::Waiting) {
-        events[event_id]->GetWritableEvent().Signal();
-    }
-    status[event_id].store(EventState::Signalled, std::memory_order_release);
-}
-
-void EventInterface::Create(u32 event_id) {
-    ASSERT(!events[event_id]);
-    ASSERT(!registered[event_id]);
-    ASSERT(!IsBeingUsed(event_id));
-    events[event_id] =
-        module.service_context.CreateEvent(fmt::format("NVDRV::NvEvent_{}", event_id));
-    status[event_id] = EventState::Available;
-    registered[event_id] = true;
-    const u64 mask = 1ULL << event_id;
-    fails[event_id] = 0;
-    events_mask |= mask;
-    assigned_syncpt[event_id] = 0;
-}
-
-void EventInterface::Free(u32 event_id) {
-    ASSERT(events[event_id]);
-    ASSERT(registered[event_id]);
-    ASSERT(!IsBeingUsed(event_id));
-    module.service_context.CloseEvent(events[event_id]);
-    events[event_id] = nullptr;
-    status[event_id] = EventState::Available;
-    registered[event_id] = false;
-    const u64 mask = ~(1ULL << event_id);
-    events_mask &= mask;
-}
-
-u32 EventInterface::FindFreeEvent(u32 syncpoint_id) {
-    u32 slot{MaxNvEvents};
-    u32 free_slot{MaxNvEvents};
-    for (u32 i = 0; i < MaxNvEvents; i++) {
-        if (registered[i]) {
-            if (!IsBeingUsed(i)) {
-                slot = i;
-                if (assigned_syncpt[i] == syncpoint_id) {
-                    return slot;
-                }
-            }
-        } else if (free_slot == MaxNvEvents) {
-            free_slot = i;
-        }
-    }
-    if (free_slot < MaxNvEvents) {
-        Create(free_slot);
-        return free_slot;
-    }
-
-    if (slot < MaxNvEvents) {
-        return slot;
-    }
-
-    LOG_CRITICAL(Service_NVDRV, "Failed to allocate an event");
-    return 0;
-}
-
-Kernel::KEvent* EventInterface::CreateNonCtrlEvent(std::string name) {
+Kernel::KEvent* EventInterface::CreateEvent(std::string name) {
     Kernel::KEvent* new_event = module.service_context.CreateEvent(std::move(name));
-    basic_events.push_back(new_event);
     return new_event;
+}
+
+void EventInterface::FreeEvent(Kernel::KEvent* event) {
+    module.service_context.CloseEvent(event);
 }
 
 void InstallInterfaces(SM::ServiceManager& service_manager, NVFlinger::NVFlinger& nvflinger,
@@ -138,18 +75,50 @@ void InstallInterfaces(SM::ServiceManager& service_manager, NVFlinger::NVFlinger
 
 Module::Module(Core::System& system)
     : service_context{system, "nvdrv"}, events_interface{*this}, container{system.GPU()} {
-    devices["/dev/nvhost-as-gpu"] = std::make_shared<Devices::nvhost_as_gpu>(system, container);
-    devices["/dev/nvhost-gpu"] =
-        std::make_shared<Devices::nvhost_gpu>(system, events_interface, container);
-    devices["/dev/nvhost-ctrl-gpu"] =
-        std::make_shared<Devices::nvhost_ctrl_gpu>(system, events_interface);
-    devices["/dev/nvmap"] = std::make_shared<Devices::nvmap>(system, container);
-    devices["/dev/nvdisp_disp0"] = std::make_shared<Devices::nvdisp_disp0>(system, container);
-    devices["/dev/nvhost-ctrl"] =
-        std::make_shared<Devices::nvhost_ctrl>(system, events_interface, container);
-    devices["/dev/nvhost-nvdec"] = std::make_shared<Devices::nvhost_nvdec>(system, container);
-    devices["/dev/nvhost-nvjpg"] = std::make_shared<Devices::nvhost_nvjpg>(system);
-    devices["/dev/nvhost-vic"] = std::make_shared<Devices::nvhost_vic>(system, container);
+    builders["/dev/nvhost-as-gpu"] = [this, &system](DeviceFD fd) {
+        std::shared_ptr<Devices::nvdevice> device =
+            std::make_shared<Devices::nvhost_as_gpu>(system, container);
+        return open_files.emplace(fd, device).first;
+    };
+    builders["/dev/nvhost-gpu"] = [this, &system](DeviceFD fd) {
+        std::shared_ptr<Devices::nvdevice> device =
+            std::make_shared<Devices::nvhost_gpu>(system, events_interface, container);
+        return open_files.emplace(fd, device).first;
+    };
+    builders["/dev/nvhost-ctrl-gpu"] = [this, &system](DeviceFD fd) {
+        std::shared_ptr<Devices::nvdevice> device =
+            std::make_shared<Devices::nvhost_ctrl_gpu>(system, events_interface);
+        return open_files.emplace(fd, device).first;
+    };
+    builders["/dev/nvmap"] = [this, &system](DeviceFD fd) {
+        std::shared_ptr<Devices::nvdevice> device =
+            std::make_shared<Devices::nvmap>(system, container);
+        return open_files.emplace(fd, device).first;
+    };
+    builders["/dev/nvdisp_disp0"] = [this, &system](DeviceFD fd) {
+        std::shared_ptr<Devices::nvdevice> device =
+            std::make_shared<Devices::nvdisp_disp0>(system, container);
+        return open_files.emplace(fd, device).first;
+    };
+    builders["/dev/nvhost-ctrl"] = [this, &system](DeviceFD fd) {
+        std::shared_ptr<Devices::nvdevice> device =
+            std::make_shared<Devices::nvhost_ctrl>(system, events_interface, container);
+        return open_files.emplace(fd, device).first;
+    };
+    builders["/dev/nvhost-nvdec"] = [this, &system](DeviceFD fd) {
+        std::shared_ptr<Devices::nvdevice> device =
+            std::make_shared<Devices::nvhost_nvdec>(system, container);
+        return open_files.emplace(fd, device).first;
+    };
+    builders["/dev/nvhost-nvjpg"] = [this, &system](DeviceFD fd) {
+        std::shared_ptr<Devices::nvdevice> device = std::make_shared<Devices::nvhost_nvjpg>(system);
+        return open_files.emplace(fd, device).first;
+    };
+    builders["/dev/nvhost-vic"] = [this, &system](DeviceFD fd) {
+        std::shared_ptr<Devices::nvdevice> device =
+            std::make_shared<Devices::nvhost_vic>(system, container);
+        return open_files.emplace(fd, device).first;
+    };
 }
 
 Module::~Module() = default;
@@ -169,17 +138,17 @@ NvResult Module::VerifyFD(DeviceFD fd) const {
 }
 
 DeviceFD Module::Open(const std::string& device_name) {
-    if (devices.find(device_name) == devices.end()) {
+    auto it = builders.find(device_name);
+    if (it == builders.end()) {
         LOG_ERROR(Service_NVDRV, "Trying to open unknown device {}", device_name);
         return INVALID_NVDRV_FD;
     }
 
-    auto device = devices[device_name];
     const DeviceFD fd = next_fd++;
+    auto& builder = it->second;
+    auto device = builder(fd)->second;
 
     device->OnOpen(fd);
-
-    open_files[fd] = std::move(device);
 
     return fd;
 }
@@ -256,14 +225,7 @@ NvResult Module::Close(DeviceFD fd) {
 }
 
 void Module::SignalSyncpt(const u32 syncpoint_id, const u32 value) {
-    const u32 max = MaxNvEvents - std::countl_zero(events_interface.events_mask);
-    const u32 min = std::countr_zero(events_interface.events_mask);
-    for (u32 i = min; i < max; i++) {
-        if (events_interface.assigned_syncpt[i] == syncpoint_id &&
-            events_interface.assigned_value[i] == value) {
-            events_interface.Signal(i);
-        }
-    }
+    events_interface.Signal(syncpoint_id, value);
 }
 
 NvResult Module::QueryEvent(DeviceFD fd, u32 event_id, Kernel::KEvent*& event) {

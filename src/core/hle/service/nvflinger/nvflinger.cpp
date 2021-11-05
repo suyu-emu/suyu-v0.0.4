@@ -105,10 +105,15 @@ NVFlinger::~NVFlinger() {
             display.GetLayer(layer).Core().NotifyShutdown();
         }
     }
+
+    if (nvdrv) {
+        nvdrv->Close(disp_fd);
+    }
 }
 
 void NVFlinger::SetNVDrvInstance(std::shared_ptr<Nvidia::Module> instance) {
     nvdrv = std::move(instance);
+    disp_fd = nvdrv->Open("/dev/nvdisp_disp0");
 }
 
 std::optional<u64> NVFlinger::OpenDisplay(std::string_view name) {
@@ -276,7 +281,7 @@ void NVFlinger::Compose() {
         // Now send the buffer to the GPU for drawing.
         // TODO(Subv): Support more than just disp0. The display device selection is probably based
         // on which display we're drawing (Default, Internal, External, etc)
-        auto nvdisp = nvdrv->GetDevice<Nvidia::Devices::nvdisp_disp0>("/dev/nvdisp_disp0");
+        auto nvdisp = nvdrv->GetDevice<Nvidia::Devices::nvdisp_disp0>(disp_fd);
         ASSERT(nvdisp);
 
         Common::Rectangle<int> crop_rect{

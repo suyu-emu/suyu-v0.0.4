@@ -53,7 +53,49 @@ public:
     };
     static_assert(sizeof(SyncpointEventValue) == sizeof(u32));
 
+    void SignalNvEvent(u32 syncpoint_id, u32 value);
+
 private:
+    struct InternalEvent {
+        // Mask representing registered events
+
+        // Each kernel event associated to an NV event
+        Kernel::KEvent* kevent{};
+        // The status of the current NVEvent
+        std::atomic<EventState> status{};
+
+        // Tells the NVEvent that it has failed.
+        u32 fails{};
+        // When an NVEvent is waiting on GPU interrupt, this is the sync_point
+        // associated with it.
+        u32 assigned_syncpt{};
+        // This is the value of the GPU interrupt for which the NVEvent is waiting
+        // for.
+        u32 assigned_value{};
+
+        // Tells if an NVEvent is registered or not
+        bool registered{};
+
+        bool IsBeingUsed() {
+            const auto current_status = status.load(std::memory_order_acquire);
+            return current_status == EventState::Waiting ||
+                   current_status == EventState::Cancelling ||
+                   current_status == EventState::Signalling;
+        }
+    };
+
+    std::unique_lock<std::mutex> NvEventsLock();
+
+    void CreateNvEvent(u32 event_id);
+
+    void FreeNvEvent(u32 event_id);
+
+    u32 FindFreeNvEvent(u32 syncpoint_id);
+
+    std::array<InternalEvent, MaxNvEvents> events{};
+    std::mutex events_mutex;
+    u64 events_mask{};
+
     struct IocSyncptReadParams {
         u32_le id{};
         u32_le value{};

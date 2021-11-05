@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -38,7 +39,8 @@ class SyncpointManager;
 
 namespace Devices {
 class nvdevice;
-}
+class nvhost_ctrl;
+} // namespace Devices
 
 class Module;
 
@@ -47,47 +49,19 @@ public:
     EventInterface(Module& module_);
     ~EventInterface();
 
-    // Mask representing registered events
-    u64 events_mask{};
-    // Each kernel event associated to an NV event
-    std::array<Kernel::KEvent*, MaxNvEvents> events{};
-    // The status of the current NVEvent
-    std::array<std::atomic<EventState>, MaxNvEvents> status{};
-    // Tells if an NVEvent is registered or not
-    std::array<bool, MaxNvEvents> registered{};
-    // Tells the NVEvent that it has failed.
-    std::array<u32, MaxNvEvents> fails{};
-    // When an NVEvent is waiting on GPU interrupt, this is the sync_point
-    // associated with it.
-    std::array<u32, MaxNvEvents> assigned_syncpt{};
-    // This is the value of the GPU interrupt for which the NVEvent is waiting
-    // for.
-    std::array<u32, MaxNvEvents> assigned_value{};
-    // Constant to denote an unasigned syncpoint.
-    static constexpr u32 unassigned_syncpt = 0xFFFFFFFF;
+    void RegisterForSignal(Devices::nvhost_ctrl*);
+    void UnregisterForSignal(Devices::nvhost_ctrl*);
 
-    bool IsBeingUsed(u32 event_id) {
-        const auto current_status = status[event_id].load(std::memory_order_acquire);
-        return current_status == EventState::Waiting || current_status == EventState::Cancelling ||
-               current_status == EventState::Signalling;
-    }
+    void Signal(u32 syncpoint_id, u32 value);
 
-    std::unique_lock<std::mutex> Lock();
+    Kernel::KEvent* CreateEvent(std::string name);
 
-    void Signal(u32 event_id);
-
-    void Create(u32 event_id);
-
-    void Free(u32 event_id);
-
-    u32 FindFreeEvent(u32 syncpoint_id);
-
-    Kernel::KEvent* CreateNonCtrlEvent(std::string name);
+    void FreeEvent(Kernel::KEvent* event);
 
 private:
-    std::mutex events_mutex;
     Module& module;
-    std::vector<Kernel::KEvent*> basic_events;
+    std::mutex guard;
+    std::list<Devices::nvhost_ctrl*> on_signal;
 };
 
 class Module final {
@@ -97,9 +71,9 @@ public:
 
     /// Returns a pointer to one of the available devices, identified by its name.
     template <typename T>
-    std::shared_ptr<T> GetDevice(const std::string& name) {
-        auto itr = devices.find(name);
-        if (itr == devices.end())
+    std::shared_ptr<T> GetDevice(DeviceFD fd) {
+        auto itr = open_files.find(fd);
+        if (itr == open_files.end())
             return nullptr;
         return std::static_pointer_cast<T>(itr->second);
     }
@@ -132,8 +106,9 @@ private:
     /// Id to use for the next open file descriptor.
     DeviceFD next_fd = 1;
 
+    using FilesContainerType = std::unordered_map<DeviceFD, std::shared_ptr<Devices::nvdevice>>;
     /// Mapping of file descriptors to the devices they reference.
-    std::unordered_map<DeviceFD, std::shared_ptr<Devices::nvdevice>> open_files;
+    FilesContainerType open_files;
 
     /// Mapping of device node names to their implementation.
     std::unordered_map<std::string, std::shared_ptr<Devices::nvdevice>> devices;
@@ -147,6 +122,7 @@ private:
 
     void CreateEvent(u32 event_id);
     void FreeEvent(u32 event_id);
+    std::unordered_map<std::string, std::function<FilesContainerType::iterator(DeviceFD)>> builders;
 };
 
 /// Registers all NVDRV services with the specified service manager.
