@@ -249,6 +249,11 @@ struct GPU::Impl {
 
     void RegisterSyncptInterrupt(u32 syncpoint_id, u32 value) {
         std::scoped_lock lock{sync_mutex};
+        u32 current_value = syncpoints.at(syncpoint_id).load();
+        if ((static_cast<s32>(current_value) - static_cast<s32>(value)) >= 0) {
+            TriggerCpuInterrupt(syncpoint_id, value);
+            return;
+        }
         auto& interrupt = syncpt_interrupts.at(syncpoint_id);
         bool contains = std::any_of(interrupt.begin(), interrupt.end(),
                                     [value](u32 in_value) { return in_value == value; });

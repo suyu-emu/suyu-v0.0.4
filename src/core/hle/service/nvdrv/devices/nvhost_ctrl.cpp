@@ -52,6 +52,8 @@ NvResult nvhost_ctrl::Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& 
             return IocCtrlEventRegister(input, output);
         case 0x20:
             return IocCtrlEventUnregister(input, output);
+        case 0x21:
+            return IocCtrlEventUnregisterBatch(input, output);
         }
         break;
     default:
@@ -249,6 +251,25 @@ NvResult nvhost_ctrl::IocCtrlEventUnregister(const std::vector<u8>& input,
     return FreeEvent(event_id);
 }
 
+NvResult nvhost_ctrl::IocCtrlEventUnregisterBatch(const std::vector<u8>& input,
+                                                  std::vector<u8>& output) {
+    IocCtrlEventUnregisterBatchParams params{};
+    std::memcpy(&params, input.data(), sizeof(params));
+    u64 event_mask = params.user_events;
+    LOG_DEBUG(Service_NVDRV, " called, event_mask: {:X}", event_mask);
+
+    auto lock = NvEventsLock();
+    while (event_mask != 0) {
+        const u64 event_id = std::countr_zero(event_mask);
+        event_mask &= ~(1ULL << event_id);
+        const auto result = FreeEvent(static_cast<u32>(event_id));
+        if (result != NvResult::Success) {
+            return result;
+        }
+    }
+    return NvResult::Success;
+}
+
 NvResult nvhost_ctrl::IocCtrlClearEventWait(const std::vector<u8>& input, std::vector<u8>& output) {
     IocCtrlEventClearParams params{};
     std::memcpy(&params, input.data(), sizeof(params));
@@ -362,10 +383,11 @@ u32 nvhost_ctrl::FindFreeNvEvent(u32 syncpoint_id) {
 }
 
 void nvhost_ctrl::SignalNvEvent(u32 syncpoint_id, u32 value) {
-    const u32 max = MaxNvEvents - std::countl_zero(events_mask);
-    const u32 min = std::countr_zero(events_mask);
-    for (u32 i = min; i < max; i++) {
-        auto& event = events[i];
+    u64 signal_mask = events_mask;
+    while (signal_mask != 0) {
+        const u64 event_id = std::countr_zero(signal_mask);
+        signal_mask &= ~(1ULL << event_id);
+        auto& event = events[event_id];
         if (event.assigned_syncpt != syncpoint_id || event.assigned_value != value) {
             continue;
         }
