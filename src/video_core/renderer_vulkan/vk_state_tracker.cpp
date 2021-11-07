@@ -10,7 +10,6 @@
 #include "video_core/control/channel_state.h"
 #include "video_core/dirty_flags.h"
 #include "video_core/engines/maxwell_3d.h"
-#include "video_core/gpu.h"
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
 
 #define OFF(field_name) MAXWELL3D_REG_INDEX(field_name)
@@ -203,7 +202,10 @@ void StateTracker::ChangeChannel(Tegra::Control::ChannelState& channel_state) {
     flags = &channel_state.maxwell_3d->dirty.flags;
 }
 
-StateTracker::StateTracker(Tegra::GPU& gpu)
-    : flags{}, invalidation_flags{MakeInvalidationFlags()} {}
+void StateTracker::InvalidateState() {
+    flags->set();
+}
+
+StateTracker::StateTracker() : flags{}, invalidation_flags{MakeInvalidationFlags()} {}
 
 } // namespace Vulkan

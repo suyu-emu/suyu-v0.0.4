@@ -59,7 +59,7 @@ class StateTracker {
     using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
 public:
-    explicit StateTracker(Tegra::GPU& gpu);
+    explicit StateTracker();
 
     void InvalidateCommandBufferState() {
         (*flags) |= invalidation_flags;
@@ -148,6 +148,8 @@ public:
     void SetupTables(Tegra::Control::ChannelState& channel_state);
 
     void ChangeChannel(Tegra::Control::ChannelState& channel_state);
+
+    void InvalidateState();
 
 private:
     static constexpr auto INVALID_TOPOLOGY = static_cast<Maxwell::PrimitiveTopology>(~0u);

@@ -995,7 +995,7 @@ void RasterizerVulkan::BindChannel(Tegra::Control::ChannelState& channel) {
     pipeline_cache.BindToChannel(channel_id);
     query_cache.BindToChannel(channel_id);
     state_tracker.ChangeChannel(channel);
-    scheduler.InvalidateState();
+    state_tracker.InvalidateState();
 }
 
 void RasterizerVulkan::ReleaseChannel(s32 channel_id) {

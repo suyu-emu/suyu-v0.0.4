@@ -12,6 +12,7 @@
 #include <glad/glad.h>
 
 #include "common/common_types.h"
+#include "video_core/control/channel_state_cache.h"
 #include "video_core/engines/maxwell_dma.h"
 #include "video_core/rasterizer_accelerated.h"
 #include "video_core/rasterizer_interface.h"
@@ -58,7 +59,8 @@ private:
     BufferCache& buffer_cache;
 };
 
-class RasterizerOpenGL : public VideoCore::RasterizerAccelerated {
+class RasterizerOpenGL : public VideoCore::RasterizerAccelerated,
+                         protected VideoCommon::ChannelSetupCaches<VideoCommon::ChannelInfo> {
 public:
     explicit RasterizerOpenGL(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
                               Core::Memory::Memory& cpu_memory_, const Device& device_,
@@ -106,6 +108,12 @@ public:
     bool AnyCommandQueued() const {
         return num_queued_commands > 0;
     }
+
+    void InitializeChannel(Tegra::Control::ChannelState& channel) override;
+
+    void BindChannel(Tegra::Control::ChannelState& channel) override;
+
+    void ReleaseChannel(s32 channel_id) override;
 
 private:
     static constexpr size_t MAX_TEXTURES = 192;
@@ -191,9 +199,6 @@ private:
     void EndTransformFeedback();
 
     Tegra::GPU& gpu;
-    Tegra::Engines::Maxwell3D& maxwell3d;
-    Tegra::Engines::KeplerCompute& kepler_compute;
-    Tegra::MemoryManager& gpu_memory;
 
     const Device& device;
     ScreenInfo& screen_info;
