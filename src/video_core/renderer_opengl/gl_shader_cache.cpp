@@ -477,9 +477,9 @@ std::unique_ptr<GraphicsPipeline> ShaderCache::CreateGraphicsPipeline(
         previous_program = &program;
     }
     auto* const thread_worker{build_in_parallel ? workers.get() : nullptr};
-    return std::make_unique<GraphicsPipeline>(
-        device, texture_cache, buffer_cache, *gpu_memory, *maxwell3d, program_manager,
-        state_tracker, thread_worker, &shader_notify, sources, sources_spirv, infos, key);
+    return std::make_unique<GraphicsPipeline>(device, texture_cache, buffer_cache, program_manager,
+                                              state_tracker, thread_worker, &shader_notify, sources,
+                                              sources_spirv, infos, key);
 
 } catch (Shader::Exception& exception) {
     LOG_ERROR(Render_OpenGL, "{}", exception.what());
@@ -533,9 +533,8 @@ std::unique_ptr<ComputePipeline> ShaderCache::CreateComputePipeline(
         break;
     }
 
-    return std::make_unique<ComputePipeline>(device, texture_cache, buffer_cache, *gpu_memory,
-                                             *kepler_compute, program_manager, program.info, code,
-                                             code_spirv);
+    return std::make_unique<ComputePipeline>(device, texture_cache, buffer_cache, program_manager,
+                                             program.info, code, code_spirv);
 } catch (Shader::Exception& exception) {
     LOG_ERROR(Render_OpenGL, "{}", exception.what());
     return nullptr;

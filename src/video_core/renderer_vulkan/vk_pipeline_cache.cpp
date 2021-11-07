@@ -555,10 +555,10 @@ std::unique_ptr<GraphicsPipeline> PipelineCache::CreateGraphicsPipeline(
         previous_stage = &program;
     }
     Common::ThreadWorker* const thread_worker{build_in_parallel ? &workers : nullptr};
-    return std::make_unique<GraphicsPipeline>(
-        *maxwell3d, *gpu_memory, scheduler, buffer_cache, texture_cache, &shader_notify, device,
-        descriptor_pool, update_descriptor_queue, thread_worker, statistics, render_pass_cache, key,
-        std::move(modules), infos);
+    return std::make_unique<GraphicsPipeline>(scheduler, buffer_cache, texture_cache,
+                                              &shader_notify, device, descriptor_pool,
+                                              update_descriptor_queue, thread_worker, statistics,
+                                              render_pass_cache, key, std::move(modules), infos);
 
 } catch (const Shader::Exception& exception) {
     LOG_ERROR(Render_Vulkan, "{}", exception.what());

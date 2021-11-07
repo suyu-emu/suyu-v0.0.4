@@ -885,12 +885,14 @@ void TextureCache<P>::InvalidateScale(Image& image) {
     }
     image.image_view_ids.clear();
     image.image_view_infos.clear();
-    if constexpr (ENABLE_VALIDATION) {
-        std::ranges::fill(state->graphics_image_view_ids, CORRUPT_ID);
-        std::ranges::fill(state->compute_image_view_ids, CORRUPT_ID);
+    for (auto& this_state : channel_storage) {
+        if constexpr (ENABLE_VALIDATION) {
+            std::ranges::fill(this_state.graphics_image_view_ids, CORRUPT_ID);
+            std::ranges::fill(this_state.compute_image_view_ids, CORRUPT_ID);
+        }
+        this_state.graphics_image_table.Invalidate();
+        this_state.compute_image_table.Invalidate();
     }
-    state->graphics_image_table.Invalidate();
-    state->compute_image_table.Invalidate();
     has_deleted_images = true;
 }
 
