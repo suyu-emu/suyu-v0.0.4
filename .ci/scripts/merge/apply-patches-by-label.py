@@ -1,7 +1,7 @@
 # Download all pull requests as patches that match a specific label
 # Usage: python download-patches-by-label.py <Label to Match> <Root Path Folder to DL to>
 
-import requests, sys, json, urllib3.request, shutil, subprocess, os
+import requests, sys, json, urllib3.request, shutil, subprocess, os, traceback
 
 tagline = sys.argv[2]
 
@@ -33,4 +33,5 @@ try:
     for i in range(1,30):
         do_page(i)
 except:
+    traceback.print_exc(file=sys.stdout)
     sys.exit(-1)
