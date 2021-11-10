@@ -97,7 +97,7 @@ ResultCode KAddressArbiter::Signal(VAddr addr, s32 count) {
         while ((it != thread_tree.end()) && (count <= 0 || num_waiters < count) &&
                (it->GetAddressArbiterKey() == addr)) {
             KThread* target_thread = std::addressof(*it);
-            target_thread->SetSyncedObject(nullptr, ResultSuccess);
+            target_thread->SetWaitResult(ResultSuccess);
 
             ASSERT(target_thread->IsWaitingForAddressArbiter());
             target_thread->Wakeup();
@@ -130,7 +130,7 @@ ResultCode KAddressArbiter::SignalAndIncrementIfEqual(VAddr addr, s32 value, s32
         while ((it != thread_tree.end()) && (count <= 0 || num_waiters < count) &&
                (it->GetAddressArbiterKey() == addr)) {
             KThread* target_thread = std::addressof(*it);
-            target_thread->SetSyncedObject(nullptr, ResultSuccess);
+            target_thread->SetWaitResult(ResultSuccess);
 
             ASSERT(target_thread->IsWaitingForAddressArbiter());
             target_thread->Wakeup();
@@ -198,7 +198,7 @@ ResultCode KAddressArbiter::SignalAndModifyByWaitingCountIfEqual(VAddr addr, s32
         while ((it != thread_tree.end()) && (count <= 0 || num_waiters < count) &&
                (it->GetAddressArbiterKey() == addr)) {
             KThread* target_thread = std::addressof(*it);
-            target_thread->SetSyncedObject(nullptr, ResultSuccess);
+            target_thread->SetWaitResult(ResultSuccess);
 
             ASSERT(target_thread->IsWaitingForAddressArbiter());
             target_thread->Wakeup();
@@ -225,7 +225,7 @@ ResultCode KAddressArbiter::WaitIfLessThan(VAddr addr, s32 value, bool decrement
         }
 
         // Set the synced object.
-        cur_thread->SetSyncedObject(nullptr, ResultTimedOut);
+        cur_thread->SetWaitResult(ResultTimedOut);
 
         // Read the value from userspace.
         s32 user_value{};
@@ -274,8 +274,7 @@ ResultCode KAddressArbiter::WaitIfLessThan(VAddr addr, s32 value, bool decrement
     }
 
     // Get the result.
-    KSynchronizationObject* dummy{};
-    return cur_thread->GetWaitResult(&dummy);
+    return cur_thread->GetWaitResult();
 }
 
 ResultCode KAddressArbiter::WaitIfEqual(VAddr addr, s32 value, s64 timeout) {
@@ -292,7 +291,7 @@ ResultCode KAddressArbiter::WaitIfEqual(VAddr addr, s32 value, s64 timeout) {
         }
 
         // Set the synced object.
-        cur_thread->SetSyncedObject(nullptr, ResultTimedOut);
+        cur_thread->SetWaitResult(ResultTimedOut);
 
         // Read the value from userspace.
         s32 user_value{};
@@ -334,8 +333,7 @@ ResultCode KAddressArbiter::WaitIfEqual(VAddr addr, s32 value, s64 timeout) {
     }
 
     // Get the result.
-    KSynchronizationObject* dummy{};
-    return cur_thread->GetWaitResult(&dummy);
+    return cur_thread->GetWaitResult();
 }
 
 } // namespace Kernel

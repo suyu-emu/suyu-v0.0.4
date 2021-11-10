@@ -325,8 +325,7 @@ static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
         }
     }
 
-    KSynchronizationObject* dummy{};
-    return thread->GetWaitResult(std::addressof(dummy));
+    return thread->GetWaitResult();
 }
 
 static ResultCode SendSyncRequest32(Core::System& system, Handle handle) {

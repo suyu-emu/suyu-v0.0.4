@@ -197,11 +197,6 @@ public:
 
     void Suspend();
 
-    void SetSyncedObject(KSynchronizationObject* obj, ResultCode wait_res) {
-        synced_object = obj;
-        wait_result = wait_res;
-    }
-
     constexpr void SetSyncedIndex(s32 index) {
         synced_index = index;
     }
@@ -212,15 +207,9 @@ public:
 
     constexpr void SetWaitResult(ResultCode wait_res) {
         wait_result = wait_res;
-        synced_object = nullptr;
     }
 
     constexpr ResultCode GetWaitResult() const {
-        return wait_result;
-    }
-
-    [[nodiscard]] ResultCode GetWaitResult(KSynchronizationObject** out) const {
-        *out = synced_object;
         return wait_result;
     }
 
@@ -716,7 +705,6 @@ private:
     KAffinityMask physical_affinity_mask{};
     u64 thread_id{};
     std::atomic<s64> cpu_time{};
-    KSynchronizationObject* synced_object{};
     VAddr address_key{};
     KProcess* parent{};
     VAddr kernel_stack_top{};

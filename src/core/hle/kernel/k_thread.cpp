@@ -130,9 +130,6 @@ ResultCode KThread::Initialize(KThreadFunction func, uintptr_t arg, VAddr user_s
     priority = prio;
     base_priority = prio;
 
-    // Set sync object and waiting lock to null.
-    synced_object = nullptr;
-
     // Initialize sleeping queue.
     sleeping_queue = nullptr;
 
@@ -279,7 +276,7 @@ void KThread::Finalize() {
         while (it != waiter_list.end()) {
             // The thread shouldn't be a kernel waiter.
             it->SetLockOwner(nullptr);
-            it->SetSyncedObject(nullptr, ResultInvalidState);
+            it->SetWaitResult(ResultInvalidState);
             it->Wakeup();
             it = waiter_list.erase(it);
         }
@@ -650,7 +647,7 @@ void KThread::WaitCancel() {
             sleeping_queue->WakeupThread(this);
             wait_cancelled = true;
         } else {
-            SetSyncedObject(nullptr, ResultCancelled);
+            SetWaitResult(ResultCancelled);
             SetState(ThreadState::Runnable);
             wait_cancelled = false;
         }
