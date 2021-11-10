@@ -109,13 +109,18 @@ void SoftwareKeyboard::Execute() {
     ShowNormalKeyboard();
 }
 
-void SoftwareKeyboard::SubmitTextNormal(SwkbdResult result, std::u16string submitted_text) {
+void SoftwareKeyboard::SubmitTextNormal(SwkbdResult result, std::u16string submitted_text,
+                                        bool confirmed) {
     if (complete) {
         return;
     }
 
     if (swkbd_config_common.use_text_check && result == SwkbdResult::Ok) {
-        SubmitForTextCheck(submitted_text);
+        if (confirmed) {
+            SubmitNormalOutputAndExit(result, submitted_text);
+        } else {
+            SubmitForTextCheck(submitted_text);
+        }
     } else {
         SubmitNormalOutputAndExit(result, submitted_text);
     }
@@ -273,13 +278,21 @@ void SoftwareKeyboard::ProcessTextCheck() {
 
     std::memcpy(&swkbd_text_check, text_check_data.data(), sizeof(SwkbdTextCheck));
 
-    std::u16string text_check_message =
-        swkbd_text_check.text_check_result == SwkbdTextCheckResult::Failure ||
-                swkbd_text_check.text_check_result == SwkbdTextCheckResult::Confirm
-            ? Common::UTF16StringFromFixedZeroTerminatedBuffer(
-                  swkbd_text_check.text_check_message.data(),
-                  swkbd_text_check.text_check_message.size())
-            : u"";
+    std::u16string text_check_message = [this, &swkbd_text_check]() -> std::u16string {
+        if (swkbd_text_check.text_check_result == SwkbdTextCheckResult::Failure ||
+            swkbd_text_check.text_check_result == SwkbdTextCheckResult::Confirm) {
+            return swkbd_config_common.use_utf8
+                       ? Common::UTF8ToUTF16(Common::StringFromFixedZeroTerminatedBuffer(
+                             reinterpret_cast<const char*>(
+                                 swkbd_text_check.text_check_message.data()),
+                             swkbd_text_check.text_check_message.size() * sizeof(char16_t)))
+                       : Common::UTF16StringFromFixedZeroTerminatedBuffer(
+                             swkbd_text_check.text_check_message.data(),
+                             swkbd_text_check.text_check_message.size());
+        } else {
+            return u"";
+        }
+    }();
 
     LOG_INFO(Service_AM, "\nTextCheckResult: {}\nTextCheckMessage: {}",
              GetTextCheckResultName(swkbd_text_check.text_check_result),
@@ -583,11 +596,12 @@ void SoftwareKeyboard::InitializeFrontendKeyboard() {
             .disable_cancel_button{disable_cancel_button},
         };
 
-        frontend.InitializeKeyboard(false, std::move(initialize_parameters),
-                                    [this](SwkbdResult result, std::u16string submitted_text) {
-                                        SubmitTextNormal(result, submitted_text);
-                                    },
-                                    {});
+        frontend.InitializeKeyboard(
+            false, std::move(initialize_parameters),
+            [this](SwkbdResult result, std::u16string submitted_text, bool confirmed) {
+                SubmitTextNormal(result, submitted_text, confirmed);
+            },
+            {});
     }
 }
 
