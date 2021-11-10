@@ -202,6 +202,23 @@ public:
         wait_result = wait_res;
     }
 
+    constexpr void SetSyncedIndex(s32 index) {
+        synced_index = index;
+    }
+
+    constexpr s32 GetSyncedIndex() const {
+        return synced_index;
+    }
+
+    constexpr void SetWaitResult(ResultCode wait_res) {
+        wait_result = wait_res;
+        synced_object = nullptr;
+    }
+
+    constexpr ResultCode GetWaitResult() const {
+        return wait_result;
+    }
+
     [[nodiscard]] ResultCode GetWaitResult(KSynchronizationObject** out) const {
         *out = synced_object;
         return wait_result;
@@ -596,6 +613,15 @@ public:
         address_key_value = val;
     }
 
+    void ClearWaitQueue() {
+        sleeping_queue = nullptr;
+    }
+
+    void BeginWait(KThreadQueue* queue);
+    void NotifyAvailable(KSynchronizationObject* signaled_object, ResultCode wait_result_);
+    void EndWait(ResultCode wait_result_);
+    void CancelWait(ResultCode wait_result_, bool cancel_timer_task);
+
     [[nodiscard]] bool HasWaiters() const {
         return !waiter_list.empty();
     }
@@ -707,6 +733,7 @@ private:
     u32 address_key_value{};
     u32 suspend_request_flags{};
     u32 suspend_allowed_flags{};
+    s32 synced_index{};
     ResultCode wait_result{ResultSuccess};
     s32 base_priority{};
     s32 physical_ideal_core_id{};

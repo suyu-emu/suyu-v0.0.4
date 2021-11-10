@@ -303,7 +303,7 @@ void KThread::Wakeup() {
 
     if (GetState() == ThreadState::Waiting) {
         if (sleeping_queue != nullptr) {
-            sleeping_queue->WakeupThread(this);
+            sleeping_queue->EndWait(this, ResultSuccess);
         } else {
             SetState(ThreadState::Runnable);
         }
@@ -331,7 +331,7 @@ void KThread::StartTermination() {
 
     // Signal.
     signaled = true;
-    NotifyAvailable();
+    KSynchronizationObject::NotifyAvailable();
 
     // Clear previous thread in KScheduler.
     KScheduler::ClearPreviousThread(kernel, this);
@@ -1024,6 +1024,44 @@ ResultCode KThread::Sleep(s64 timeout) {
     kernel.TimeManager().UnscheduleTimeEvent(this);
 
     return ResultSuccess;
+}
+
+void KThread::BeginWait(KThreadQueue* queue) {
+    // Set our state as waiting.
+    SetState(ThreadState::Waiting);
+
+    // Set our wait queue.
+    sleeping_queue = queue;
+}
+
+void KThread::NotifyAvailable(KSynchronizationObject* signaled_object, ResultCode wait_result_) {
+    // Lock the scheduler.
+    KScopedSchedulerLock sl(kernel);
+
+    // If we're waiting, notify our queue that we're available.
+    if (GetState() == ThreadState::Waiting) {
+        sleeping_queue->NotifyAvailable(this, signaled_object, wait_result_);
+    }
+}
+
+void KThread::EndWait(ResultCode wait_result_) {
+    // Lock the scheduler.
+    KScopedSchedulerLock sl(kernel);
+
+    // If we're waiting, notify our queue that we're available.
+    if (GetState() == ThreadState::Waiting) {
+        sleeping_queue->EndWait(this, wait_result_);
+    }
+}
+
+void KThread::CancelWait(ResultCode wait_result_, bool cancel_timer_task) {
+    // Lock the scheduler.
+    KScopedSchedulerLock sl(kernel);
+
+    // If we're waiting, notify our queue that we're available.
+    if (GetState() == ThreadState::Waiting) {
+        sleeping_queue->CancelWait(this, wait_result_, cancel_timer_task);
+    }
 }
 
 void KThread::SetState(ThreadState state) {

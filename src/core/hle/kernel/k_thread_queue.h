@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_thread.h"
 
 namespace Kernel {
@@ -11,7 +12,16 @@ namespace Kernel {
 class KThreadQueue {
 public:
     explicit KThreadQueue(KernelCore& kernel_) : kernel{kernel_} {}
+    virtual ~KThreadQueue(){};
 
+    virtual void NotifyAvailable(KThread* waiting_thread, KSynchronizationObject* signaled_object,
+                                 ResultCode wait_result);
+    virtual void EndWait(KThread* waiting_thread, ResultCode wait_result);
+    virtual void CancelWait(KThread* waiting_thread, ResultCode wait_result,
+                            bool cancel_timer_task);
+
+    // Deprecated, will be removed in subsequent commits.
+public:
     bool IsEmpty() const {
         return wait_list.empty();
     }
@@ -76,6 +86,13 @@ public:
 private:
     KernelCore& kernel;
     KThread::WaiterList wait_list{};
+};
+
+class KThreadQueueWithoutEndWait : public KThreadQueue {
+public:
+    explicit KThreadQueueWithoutEndWait(KernelCore& kernel_) : KThreadQueue(kernel_) {}
+
+    virtual void EndWait(KThread* waiting_thread, ResultCode wait_result) override final;
 };
 
 } // namespace Kernel
