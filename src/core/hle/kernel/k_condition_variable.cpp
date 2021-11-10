@@ -11,6 +11,7 @@
 #include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
 #include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/kernel/k_thread.h"
+#include "core/hle/kernel/k_thread_queue.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/svc_common.h"
 #include "core/hle/kernel/svc_results.h"
@@ -57,6 +58,48 @@ bool UpdateLockAtomic(Core::System& system, u32* out, VAddr address, u32 if_zero
     return true;
 }
 
+class ThreadQueueImplForKConditionVariableWaitForAddress final : public KThreadQueue {
+public:
+    explicit ThreadQueueImplForKConditionVariableWaitForAddress(KernelCore& kernel_)
+        : KThreadQueue(kernel_) {}
+
+    virtual void CancelWait(KThread* waiting_thread, ResultCode wait_result,
+                            bool cancel_timer_task) override {
+        // Remove the thread as a waiter from its owner.
+        waiting_thread->GetLockOwner()->RemoveWaiter(waiting_thread);
+
+        // Invoke the base cancel wait handler.
+        KThreadQueue::CancelWait(waiting_thread, wait_result, cancel_timer_task);
+    }
+};
+
+class ThreadQueueImplForKConditionVariableWaitConditionVariable final : public KThreadQueue {
+private:
+    KConditionVariable::ThreadTree* m_tree;
+
+public:
+    explicit ThreadQueueImplForKConditionVariableWaitConditionVariable(
+        KernelCore& kernel_, KConditionVariable::ThreadTree* t)
+        : KThreadQueue(kernel_), m_tree(t) {}
+
+    virtual void CancelWait(KThread* waiting_thread, ResultCode wait_result,
+                            bool cancel_timer_task) override {
+        // Remove the thread as a waiter from its owner.
+        if (KThread* owner = waiting_thread->GetLockOwner(); owner != nullptr) {
+            owner->RemoveWaiter(waiting_thread);
+        }
+
+        // If the thread is waiting on a condvar, remove it from the tree.
+        if (waiting_thread->IsWaitingForConditionVariable()) {
+            m_tree->erase(m_tree->iterator_to(*waiting_thread));
+            waiting_thread->ClearConditionVariable();
+        }
+
+        // Invoke the base cancel wait handler.
+        KThreadQueue::CancelWait(waiting_thread, wait_result, cancel_timer_task);
+    }
+};
+
 } // namespace
 
 KConditionVariable::KConditionVariable(Core::System& system_)
@@ -84,8 +127,7 @@ ResultCode KConditionVariable::SignalToAddress(VAddr addr) {
                 next_value |= Svc::HandleWaitMask;
             }
 
-            next_owner_thread->SetWaitResult(ResultSuccess);
-            next_owner_thread->Wakeup();
+            next_owner_thread->EndWait(ResultSuccess);
         }
 
         // Write the value to userspace.
@@ -103,6 +145,7 @@ ResultCode KConditionVariable::SignalToAddress(VAddr addr) {
 
 ResultCode KConditionVariable::WaitForAddress(Handle handle, VAddr addr, u32 value) {
     KThread* cur_thread = kernel.CurrentScheduler()->GetCurrentThread();
+    ThreadQueueImplForKConditionVariableWaitForAddress wait_queue(kernel);
 
     // Wait for the address.
     {
@@ -133,7 +176,9 @@ ResultCode KConditionVariable::WaitForAddress(Handle handle, VAddr addr, u32 val
                 // Update the lock.
                 cur_thread->SetAddressKey(addr, value);
                 owner_thread->AddWaiter(cur_thread);
-                cur_thread->SetState(ThreadState::Waiting);
+
+                // Begin waiting.
+                cur_thread->BeginWait(std::addressof(wait_queue));
                 cur_thread->SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::ConditionVar);
                 cur_thread->SetMutexWaitAddressForDebugging(addr);
             }
@@ -178,8 +223,7 @@ KThread* KConditionVariable::SignalImpl(KThread* thread) {
     if (can_access) {
         if (prev_tag == Svc::InvalidHandle) {
             // If nobody held the lock previously, we're all good.
-            thread->SetWaitResult(ResultSuccess);
-            thread->Wakeup();
+            thread->EndWait(ResultSuccess);
         } else {
             // Get the previous owner.
             KThread* owner_thread = kernel.CurrentProcess()
@@ -194,14 +238,12 @@ KThread* KConditionVariable::SignalImpl(KThread* thread) {
                 thread_to_close = owner_thread;
             } else {
                 // The lock was tagged with a thread that doesn't exist.
-                thread->SetWaitResult(ResultInvalidState);
-                thread->Wakeup();
+                thread->EndWait(ResultInvalidState);
             }
         }
     } else {
         // If the address wasn't accessible, note so.
-        thread->SetWaitResult(ResultInvalidCurrentMemory);
-        thread->Wakeup();
+        thread->EndWait(ResultInvalidCurrentMemory);
     }
 
     return thread_to_close;
@@ -259,6 +301,8 @@ void KConditionVariable::Signal(u64 cv_key, s32 count) {
 ResultCode KConditionVariable::Wait(VAddr addr, u64 key, u32 value, s64 timeout) {
     // Prepare to wait.
     KThread* cur_thread = kernel.CurrentScheduler()->GetCurrentThread();
+    ThreadQueueImplForKConditionVariableWaitConditionVariable wait_queue(
+        kernel, std::addressof(thread_tree));
 
     {
         KScopedSchedulerLockAndSleep slp{kernel, cur_thread, timeout};
@@ -289,8 +333,7 @@ ResultCode KConditionVariable::Wait(VAddr addr, u64 key, u32 value, s64 timeout)
                 }
 
                 // Wake up the next owner.
-                next_owner_thread->SetWaitResult(ResultSuccess);
-                next_owner_thread->Wakeup();
+                next_owner_thread->EndWait(ResultSuccess);
             }
 
             // Write to the cv key.
@@ -315,7 +358,7 @@ ResultCode KConditionVariable::Wait(VAddr addr, u64 key, u32 value, s64 timeout)
 
         // If the timeout is non-zero, set the thread as waiting.
         if (timeout != 0) {
-            cur_thread->SetState(ThreadState::Waiting);
+            cur_thread->BeginWait(std::addressof(wait_queue));
             cur_thread->SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::ConditionVar);
             cur_thread->SetMutexWaitAddressForDebugging(addr);
         }
