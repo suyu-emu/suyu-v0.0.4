@@ -31,6 +31,7 @@
 #include "core/hle/kernel/k_shared_memory.h"
 #include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/kernel/k_thread.h"
+#include "core/hle/kernel/k_thread_queue.h"
 #include "core/hle/kernel/k_transfer_memory.h"
 #include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
@@ -310,18 +311,24 @@ static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
 
     auto& kernel = system.Kernel();
 
+    // Create the wait queue.
+    KThreadQueue wait_queue(kernel);
+
     auto thread = kernel.CurrentScheduler()->GetCurrentThread();
     {
         KScopedSchedulerLock lock(kernel);
-        thread->SetState(ThreadState::Waiting);
-        thread->SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::IPC);
+
+        // This is a synchronous request, so we should wait for our request to complete.
+        GetCurrentThread(kernel).BeginWait(std::addressof(wait_queue));
+        GetCurrentThread(kernel).SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::IPC);
 
         {
             KScopedAutoObject session =
                 kernel.CurrentProcess()->GetHandleTable().GetObject<KClientSession>(handle);
             R_UNLESS(session.IsNotNull(), ResultInvalidHandle);
             LOG_TRACE(Kernel_SVC, "called handle=0x{:08X}({})", handle, session->GetName());
-            session->SendSyncRequest(thread, system.Memory(), system.CoreTiming());
+            session->SendSyncRequest(&GetCurrentThread(kernel), system.Memory(),
+                                     system.CoreTiming());
         }
     }
 
