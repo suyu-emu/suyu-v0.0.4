@@ -81,6 +81,8 @@ add_library(common STATIC
     microprofile.cpp
     microprofile.h
     microprofileui.h
+    multi_level_page_table.cpp
+    multi_level_page_table.h
     nvidia_flags.cpp
     nvidia_flags.h
     page_table.cpp
