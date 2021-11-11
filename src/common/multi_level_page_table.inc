@@ -20,7 +20,7 @@ MultiLevelPageTable<BaseAddr>::MultiLevelPageTable(std::size_t address_space_bit
     : address_space_bits{address_space_bits_},
       first_level_bits{first_level_bits_}, page_bits{page_bits_} {
     first_level_shift = address_space_bits - first_level_bits;
-    first_level_chunk_size = 1ULL << (first_level_shift - page_bits);
+    first_level_chunk_size = (1ULL << (first_level_shift - page_bits)) * sizeof(BaseAddr);
     alloc_size = (1ULL << (address_space_bits - page_bits)) * sizeof(BaseAddr);
     std::size_t first_level_size = 1ULL << first_level_bits;
     first_level_map.resize(first_level_size, nullptr);
@@ -53,8 +53,7 @@ MultiLevelPageTable<BaseAddr>::~MultiLevelPageTable() noexcept {
 template <typename BaseAddr>
 void MultiLevelPageTable<BaseAddr>::ReserveRange(u64 start, std::size_t size) {
     const u64 new_start = start >> first_level_shift;
-    const u64 new_end =
-        (start + size + (first_level_chunk_size << page_bits) - 1) >> first_level_shift;
+    const u64 new_end = (start + size) >> first_level_shift;
     for (u64 i = new_start; i <= new_end; i++) {
         if (!first_level_map[i]) {
             AllocateLevel(i);
@@ -64,7 +63,7 @@ void MultiLevelPageTable<BaseAddr>::ReserveRange(u64 start, std::size_t size) {
 
 template <typename BaseAddr>
 void MultiLevelPageTable<BaseAddr>::AllocateLevel(u64 level) {
-    void* ptr = reinterpret_cast<char*>(base_ptr) + level * first_level_chunk_size;
+    void* ptr = reinterpret_cast<char *>(base_ptr) + level * first_level_chunk_size;
 #ifdef _WIN32
     void* base{VirtualAlloc(ptr, first_level_chunk_size, MEM_COMMIT, PAGE_READWRITE)};
 #else

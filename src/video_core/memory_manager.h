@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "common/common_types.h"
+#include "common/multi_level_page_table.h"
 
 namespace VideoCore {
 class RasterizerInterface;
@@ -19,55 +20,10 @@ class System;
 
 namespace Tegra {
 
-class PageEntry final {
-public:
-    enum class State : u32 {
-        Unmapped = static_cast<u32>(-1),
-        Allocated = static_cast<u32>(-2),
-    };
-
-    constexpr PageEntry() = default;
-    constexpr PageEntry(State state_) : state{state_} {}
-    constexpr PageEntry(VAddr addr) : state{static_cast<State>(addr >> ShiftBits)} {}
-
-    [[nodiscard]] constexpr bool IsUnmapped() const {
-        return state == State::Unmapped;
-    }
-
-    [[nodiscard]] constexpr bool IsAllocated() const {
-        return state == State::Allocated;
-    }
-
-    [[nodiscard]] constexpr bool IsValid() const {
-        return !IsUnmapped() && !IsAllocated();
-    }
-
-    [[nodiscard]] constexpr VAddr ToAddress() const {
-        if (!IsValid()) {
-            return {};
-        }
-
-        return static_cast<VAddr>(state) << ShiftBits;
-    }
-
-    [[nodiscard]] constexpr PageEntry operator+(u64 offset) const {
-        // If this is a reserved value, offsets do not apply
-        if (!IsValid()) {
-            return *this;
-        }
-        return PageEntry{(static_cast<VAddr>(state) << ShiftBits) + offset};
-    }
-
-private:
-    static constexpr std::size_t ShiftBits{12};
-
-    State state{State::Unmapped};
-};
-static_assert(sizeof(PageEntry) == 4, "PageEntry is too large");
-
 class MemoryManager final {
 public:
-    explicit MemoryManager(Core::System& system_);
+    explicit MemoryManager(Core::System& system_, u64 address_space_bits_ = 40,
+                           u64 page_bits_ = 16);
     ~MemoryManager();
 
     /// Binds a renderer to the memory manager.
@@ -85,9 +41,6 @@ public:
 
     [[nodiscard]] u8* GetPointer(GPUVAddr addr);
     [[nodiscard]] const u8* GetPointer(GPUVAddr addr) const;
-
-    /// Returns the number of bytes until the end of the memory map containing the given GPU address
-    [[nodiscard]] size_t BytesToMapEnd(GPUVAddr gpu_addr) const noexcept;
 
     /**
      * ReadBlock and WriteBlock are full read and write operations over virtual
@@ -145,44 +98,47 @@ public:
     void FlushRegion(GPUVAddr gpu_addr, size_t size) const;
 
 private:
-    [[nodiscard]] PageEntry GetPageEntry(GPUVAddr gpu_addr) const;
-    void SetPageEntry(GPUVAddr gpu_addr, PageEntry page_entry, std::size_t size = page_size);
-    GPUVAddr UpdateRange(GPUVAddr gpu_addr, PageEntry page_entry, std::size_t size);
     [[nodiscard]] std::optional<GPUVAddr> FindFreeRange(std::size_t size, std::size_t align,
                                                         bool start_32bit_address = false) const;
-
-    void TryLockPage(PageEntry page_entry, std::size_t size);
-    void TryUnlockPage(PageEntry page_entry, std::size_t size);
 
     void ReadBlockImpl(GPUVAddr gpu_src_addr, void* dest_buffer, std::size_t size,
                        bool is_safe) const;
     void WriteBlockImpl(GPUVAddr gpu_dest_addr, const void* src_buffer, std::size_t size,
                         bool is_safe);
 
-    [[nodiscard]] static constexpr std::size_t PageEntryIndex(GPUVAddr gpu_addr) {
+    [[nodiscard]] inline std::size_t PageEntryIndex(GPUVAddr gpu_addr) const {
         return (gpu_addr >> page_bits) & page_table_mask;
     }
 
-    static constexpr u64 address_space_size = 1ULL << 40;
-    static constexpr u64 address_space_start = 1ULL << 32;
-    static constexpr u64 address_space_start_low = 1ULL << 16;
-    static constexpr u64 page_bits{16};
-    static constexpr u64 page_size{1 << page_bits};
-    static constexpr u64 page_mask{page_size - 1};
-    static constexpr u64 page_table_bits{24};
-    static constexpr u64 page_table_size{1 << page_table_bits};
-    static constexpr u64 page_table_mask{page_table_size - 1};
-
     Core::System& system;
+
+    const u64 address_space_bits;
+    const u64 page_bits;
+    u64 address_space_size;
+    u64 allocate_start;
+    u64 page_size;
+    u64 page_mask;
+    u64 page_table_mask;
+    static constexpr u64 cpu_page_bits{12};
 
     VideoCore::RasterizerInterface* rasterizer = nullptr;
 
-    std::vector<PageEntry> page_table;
+    enum class EntryType : u64 {
+        Free = 0,
+        Reserved = 1,
+        Mapped = 2,
+    };
 
-    using MapRange = std::pair<GPUVAddr, size_t>;
-    std::vector<MapRange> map_ranges;
+    std::vector<u64> entries;
 
-    std::vector<std::pair<VAddr, std::size_t>> cache_invalidate_queue;
+    template <EntryType entry_type>
+    GPUVAddr PageTableOp(GPUVAddr gpu_addr, [[maybe_unused]] VAddr cpu_addr, size_t size);
+
+    EntryType GetEntry(size_t position) const;
+
+    void SetEntry(size_t position, EntryType entry);
+
+    Common::MultiLevelPageTable<u32> page_table;
 };
 
 } // namespace Tegra
