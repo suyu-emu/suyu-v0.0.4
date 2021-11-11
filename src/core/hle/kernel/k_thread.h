@@ -161,8 +161,6 @@ public:
         }
     }
 
-    void Wakeup();
-
     void SetBasePriority(s32 value);
 
     [[nodiscard]] ResultCode Run();
@@ -379,6 +377,8 @@ public:
     void Finalize() override;
 
     [[nodiscard]] bool IsSignaled() const override;
+
+    void OnTimer();
 
     static void PostDestroy(uintptr_t arg);
 

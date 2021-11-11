@@ -59,6 +59,35 @@ static void ResetThreadContext64(Core::ARM_Interface::ThreadContext64& context, 
 
 namespace Kernel {
 
+namespace {
+
+class ThreadQueueImplForKThreadSleep final : public KThreadQueueWithoutEndWait {
+public:
+    explicit ThreadQueueImplForKThreadSleep(KernelCore& kernel_)
+        : KThreadQueueWithoutEndWait(kernel_) {}
+};
+
+class ThreadQueueImplForKThreadSetProperty final : public KThreadQueue {
+private:
+    KThread::WaiterList* m_wait_list;
+
+public:
+    explicit ThreadQueueImplForKThreadSetProperty(KernelCore& kernel_, KThread::WaiterList* wl)
+        : KThreadQueue(kernel_), m_wait_list(wl) { // ...
+    }
+
+    virtual void CancelWait(KThread* waiting_thread, ResultCode wait_result,
+                            bool cancel_timer_task) override {
+        // Remove the thread from the wait list.
+        m_wait_list->erase(m_wait_list->iterator_to(*waiting_thread));
+
+        // Invoke the base cancel wait handler.
+        KThreadQueue::CancelWait(waiting_thread, wait_result, cancel_timer_task);
+    }
+};
+
+} // namespace
+
 KThread::KThread(KernelCore& kernel_)
     : KAutoObjectWithSlabHeapAndContainer{kernel_}, activity_pause_lock{kernel_} {}
 KThread::~KThread() = default;
@@ -274,11 +303,14 @@ void KThread::Finalize() {
 
         auto it = waiter_list.begin();
         while (it != waiter_list.end()) {
-            // The thread shouldn't be a kernel waiter.
+            // Clear the lock owner
             it->SetLockOwner(nullptr);
-            it->SetWaitResult(ResultInvalidState);
-            it->Wakeup();
+
+            // Erase the waiter from our list.
             it = waiter_list.erase(it);
+
+            // Cancel the thread's wait.
+            it->CancelWait(ResultInvalidState, true);
         }
     }
 
@@ -295,15 +327,12 @@ bool KThread::IsSignaled() const {
     return signaled;
 }
 
-void KThread::Wakeup() {
-    KScopedSchedulerLock sl{kernel};
+void KThread::OnTimer() {
+    ASSERT(kernel.GlobalSchedulerContext().IsLocked());
 
+    // If we're waiting, cancel the wait.
     if (GetState() == ThreadState::Waiting) {
-        if (sleeping_queue != nullptr) {
-            sleeping_queue->EndWait(this, ResultSuccess);
-        } else {
-            SetState(ThreadState::Runnable);
-        }
+        sleeping_queue->CancelWait(this, ResultTimedOut, false);
     }
 }
 
@@ -475,7 +504,6 @@ ResultCode KThread::GetPhysicalCoreMask(s32* out_ideal_core, u64* out_affinity_m
 
     return ResultSuccess;
 }
-
 ResultCode KThread::SetCoreMask(s32 cpu_core_id, u64 v_affinity_mask) {
     ASSERT(parent != nullptr);
     ASSERT(v_affinity_mask != 0);
@@ -642,15 +670,9 @@ void KThread::WaitCancel() {
     KScopedSchedulerLock sl{kernel};
 
     // Check if we're waiting and cancellable.
-    if (GetState() == ThreadState::Waiting && cancellable) {
-        if (sleeping_queue != nullptr) {
-            sleeping_queue->WakeupThread(this);
-            wait_cancelled = true;
-        } else {
-            SetWaitResult(ResultCancelled);
-            SetState(ThreadState::Runnable);
-            wait_cancelled = false;
-        }
+    if (this->GetState() == ThreadState::Waiting && cancellable) {
+        wait_cancelled = false;
+        sleeping_queue->CancelWait(this, ResultCancelled, true);
     } else {
         // Otherwise, note that we cancelled a wait.
         wait_cancelled = true;
@@ -701,60 +723,59 @@ ResultCode KThread::SetActivity(Svc::ThreadActivity activity) {
     // Set the activity.
     {
         // Lock the scheduler.
-        KScopedSchedulerLock sl{kernel};
+        KScopedSchedulerLock sl(kernel);
 
         // Verify our state.
-        const auto cur_state = GetState();
+        const auto cur_state = this->GetState();
         R_UNLESS((cur_state == ThreadState::Waiting || cur_state == ThreadState::Runnable),
                  ResultInvalidState);
 
         // Either pause or resume.
         if (activity == Svc::ThreadActivity::Paused) {
             // Verify that we're not suspended.
-            R_UNLESS(!IsSuspendRequested(SuspendType::Thread), ResultInvalidState);
+            R_UNLESS(!this->IsSuspendRequested(SuspendType::Thread), ResultInvalidState);
 
             // Suspend.
-            RequestSuspend(SuspendType::Thread);
+            this->RequestSuspend(SuspendType::Thread);
         } else {
             ASSERT(activity == Svc::ThreadActivity::Runnable);
 
             // Verify that we're suspended.
-            R_UNLESS(IsSuspendRequested(SuspendType::Thread), ResultInvalidState);
+            R_UNLESS(this->IsSuspendRequested(SuspendType::Thread), ResultInvalidState);
 
             // Resume.
-            Resume(SuspendType::Thread);
+            this->Resume(SuspendType::Thread);
         }
     }
 
     // If the thread is now paused, update the pinned waiter list.
     if (activity == Svc::ThreadActivity::Paused) {
-        bool thread_is_pinned{};
-        bool thread_is_current{};
+        ThreadQueueImplForKThreadSetProperty wait_queue_(kernel,
+                                                         std::addressof(pinned_waiter_list));
+
+        bool thread_is_current;
         do {
             // Lock the scheduler.
-            KScopedSchedulerLock sl{kernel};
+            KScopedSchedulerLock sl(kernel);
 
             // Don't do any further management if our termination has been requested.
-            R_SUCCEED_IF(IsTerminationRequested());
+            R_SUCCEED_IF(this->IsTerminationRequested());
+
+            // By default, treat the thread as not current.
+            thread_is_current = false;
 
             // Check whether the thread is pinned.
-            if (GetStackParameters().is_pinned) {
+            if (this->GetStackParameters().is_pinned) {
                 // Verify that the current thread isn't terminating.
                 R_UNLESS(!GetCurrentThread(kernel).IsTerminationRequested(),
                          ResultTerminationRequested);
 
-                // Note that the thread was pinned and not current.
-                thread_is_pinned = true;
-                thread_is_current = false;
-
                 // Wait until the thread isn't pinned any more.
                 pinned_waiter_list.push_back(GetCurrentThread(kernel));
-                GetCurrentThread(kernel).SetState(ThreadState::Waiting);
+                GetCurrentThread(kernel).BeginWait(std::addressof(wait_queue_));
             } else {
                 // Check if the thread is currently running.
                 // If it is, we'll need to retry.
-                thread_is_current = false;
-
                 for (auto i = 0; i < static_cast<s32>(Core::Hardware::NUM_CPU_CORES); ++i) {
                     if (kernel.Scheduler(i).GetCurrentThread() == this) {
                         thread_is_current = true;
@@ -763,16 +784,6 @@ ResultCode KThread::SetActivity(Svc::ThreadActivity activity) {
                 }
             }
         } while (thread_is_current);
-
-        // If the thread was pinned, it no longer is, and we should remove the current thread from
-        // our waiter list.
-        if (thread_is_pinned) {
-            // Lock the scheduler.
-            KScopedSchedulerLock sl{kernel};
-
-            // Remove from the list.
-            pinned_waiter_list.erase(pinned_waiter_list.iterator_to(GetCurrentThread(kernel)));
-        }
     }
 
     return ResultSuccess;
@@ -1000,25 +1011,21 @@ ResultCode KThread::Sleep(s64 timeout) {
     ASSERT(this == GetCurrentThreadPointer(kernel));
     ASSERT(timeout > 0);
 
+    ThreadQueueImplForKThreadSleep wait_queue(kernel);
     {
         // Setup the scheduling lock and sleep.
-        KScopedSchedulerLockAndSleep slp{kernel, this, timeout};
+        KScopedSchedulerLockAndSleep slp(kernel, this, timeout);
 
         // Check if the thread should terminate.
-        if (IsTerminationRequested()) {
+        if (this->IsTerminationRequested()) {
             slp.CancelSleep();
             return ResultTerminationRequested;
         }
 
-        // Mark the thread as waiting.
-        SetState(ThreadState::Waiting);
+        // Wait for the sleep to end.
+        this->BeginWait(std::addressof(wait_queue));
         SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::Sleep);
     }
-
-    // The lock/sleep is done.
-
-    // Cancel the timer.
-    kernel.TimeManager().UnscheduleTimeEvent(this);
 
     return ResultSuccess;
 }
