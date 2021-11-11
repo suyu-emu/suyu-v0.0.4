@@ -504,30 +504,33 @@ ResultCode KThread::GetPhysicalCoreMask(s32* out_ideal_core, u64* out_affinity_m
 
     return ResultSuccess;
 }
-ResultCode KThread::SetCoreMask(s32 cpu_core_id, u64 v_affinity_mask) {
+
+ResultCode KThread::SetCoreMask(s32 core_id_, u64 v_affinity_mask) {
     ASSERT(parent != nullptr);
     ASSERT(v_affinity_mask != 0);
-    KScopedLightLock lk{activity_pause_lock};
+    KScopedLightLock lk(activity_pause_lock);
 
     // Set the core mask.
     u64 p_affinity_mask = 0;
     {
-        KScopedSchedulerLock sl{kernel};
+        KScopedSchedulerLock sl(kernel);
         ASSERT(num_core_migration_disables >= 0);
 
-        // If the core id is no-update magic, preserve the ideal core id.
-        if (cpu_core_id == Svc::IdealCoreNoUpdate) {
-            cpu_core_id = virtual_ideal_core_id;
-            R_UNLESS(((1ULL << cpu_core_id) & v_affinity_mask) != 0, ResultInvalidCombination);
+        // If we're updating, set our ideal virtual core.
+        if (core_id_ != Svc::IdealCoreNoUpdate) {
+            virtual_ideal_core_id = core_id_;
+        } else {
+            // Preserve our ideal core id.
+            core_id_ = virtual_ideal_core_id;
+            R_UNLESS(((1ULL << core_id_) & v_affinity_mask) != 0, ResultInvalidCombination);
         }
 
-        // Set the virtual core/affinity mask.
-        virtual_ideal_core_id = cpu_core_id;
+        // Set our affinity mask.
         virtual_affinity_mask = v_affinity_mask;
 
         // Translate the virtual core to a physical core.
-        if (cpu_core_id >= 0) {
-            cpu_core_id = Core::Hardware::VirtualToPhysicalCoreMap[cpu_core_id];
+        if (core_id_ >= 0) {
+            core_id_ = Core::Hardware::VirtualToPhysicalCoreMap[core_id_];
         }
 
         // Translate the virtual affinity mask to a physical one.
@@ -542,7 +545,7 @@ ResultCode KThread::SetCoreMask(s32 cpu_core_id, u64 v_affinity_mask) {
             const KAffinityMask old_mask = physical_affinity_mask;
 
             // Set our new ideals.
-            physical_ideal_core_id = cpu_core_id;
+            physical_ideal_core_id = core_id_;
             physical_affinity_mask.SetAffinityMask(p_affinity_mask);
 
             if (physical_affinity_mask.GetAffinityMask() != old_mask.GetAffinityMask()) {
@@ -560,18 +563,18 @@ ResultCode KThread::SetCoreMask(s32 cpu_core_id, u64 v_affinity_mask) {
             }
         } else {
             // Otherwise, we edit the original affinity for restoration later.
-            original_physical_ideal_core_id = cpu_core_id;
+            original_physical_ideal_core_id = core_id_;
             original_physical_affinity_mask.SetAffinityMask(p_affinity_mask);
         }
     }
 
     // Update the pinned waiter list.
+    ThreadQueueImplForKThreadSetProperty wait_queue(kernel, std::addressof(pinned_waiter_list));
     {
         bool retry_update{};
-        bool thread_is_pinned{};
         do {
             // Lock the scheduler.
-            KScopedSchedulerLock sl{kernel};
+            KScopedSchedulerLock sl(kernel);
 
             // Don't do any further management if our termination has been requested.
             R_SUCCEED_IF(IsTerminationRequested());
@@ -599,12 +602,9 @@ ResultCode KThread::SetCoreMask(s32 cpu_core_id, u64 v_affinity_mask) {
                     R_UNLESS(!GetCurrentThread(kernel).IsTerminationRequested(),
                              ResultTerminationRequested);
 
-                    // Note that the thread was pinned.
-                    thread_is_pinned = true;
-
                     // Wait until the thread isn't pinned any more.
                     pinned_waiter_list.push_back(GetCurrentThread(kernel));
-                    GetCurrentThread(kernel).SetState(ThreadState::Waiting);
+                    GetCurrentThread(kernel).BeginWait(std::addressof(wait_queue));
                 } else {
                     // If the thread isn't pinned, release the scheduler lock and retry until it's
                     // not current.
@@ -612,16 +612,6 @@ ResultCode KThread::SetCoreMask(s32 cpu_core_id, u64 v_affinity_mask) {
                 }
             }
         } while (retry_update);
-
-        // If the thread was pinned, it no longer is, and we should remove the current thread from
-        // our waiter list.
-        if (thread_is_pinned) {
-            // Lock the scheduler.
-            KScopedSchedulerLock sl{kernel};
-
-            // Remove from the list.
-            pinned_waiter_list.erase(pinned_waiter_list.iterator_to(GetCurrentThread(kernel)));
-        }
     }
 
     return ResultSuccess;
