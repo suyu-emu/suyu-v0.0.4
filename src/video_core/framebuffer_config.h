@@ -6,18 +6,14 @@
 
 #include "common/common_types.h"
 #include "common/math_util.h"
+#include "core/hle/service/nvflinger/pixel_format.h"
 
 namespace Tegra {
+
 /**
  * Struct describing framebuffer configuration
  */
 struct FramebufferConfig {
-    enum class PixelFormat : u32 {
-        A8B8G8R8_UNORM = 1,
-        RGB565_UNORM = 4,
-        B8G8R8A8_UNORM = 5,
-    };
-
     enum class TransformFlags : u32 {
         /// No transform flags are set
         Unset = 0x00,
@@ -38,9 +34,9 @@ struct FramebufferConfig {
     u32 width{};
     u32 height{};
     u32 stride{};
-    PixelFormat pixel_format{};
 
     TransformFlags transform_flags{};
+    android::PixelFormat pixel_format{};
     Common::Rectangle<int> crop_rect;
 };
 

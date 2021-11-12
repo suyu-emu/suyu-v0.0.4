@@ -46,7 +46,7 @@ struct TextureInfo {
     GLsizei height;
     GLenum gl_format;
     GLenum gl_type;
-    Tegra::FramebufferConfig::PixelFormat pixel_format;
+    android::PixelFormat pixel_format;
 };
 
 /// Structure used for storing information about the display target for the Switch screen
@@ -135,7 +135,7 @@ private:
     std::vector<u8> gl_framebuffer_data;
 
     /// Used for transforming the framebuffer orientation
-    Tegra::FramebufferConfig::TransformFlags framebuffer_transform_flags{};
+    android::BufferTransformFlags framebuffer_transform_flags{};
     Common::Rectangle<int> framebuffer_crop_rect;
 };
 

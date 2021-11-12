@@ -44,7 +44,7 @@ public:
         return buffer_id;
     }
 
-    constexpr u32 ExternalFormat() const {
+    constexpr PixelFormat ExternalFormat() const {
         return external_format;
     }
 
@@ -89,7 +89,7 @@ private:
     INSERT_PADDING_WORDS(3);
     u32 buffer_id{};
     INSERT_PADDING_WORDS(6);
-    u32 external_format{};
+    PixelFormat external_format{};
     INSERT_PADDING_WORDS(10);
     u32 handle{};
     u32 offset{};
