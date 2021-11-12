@@ -537,6 +537,7 @@ add_library(core STATIC
     hle/service/nvdrv/syncpoint_manager.h
     hle/service/nvflinger/buffer_queue.cpp
     hle/service/nvflinger/buffer_queue.h
+    hle/service/nvflinger/binder.h
     hle/service/nvflinger/buffer_transform_flags.h
     hle/service/nvflinger/consumer_listener.h
     hle/service/nvflinger/nvflinger.cpp
