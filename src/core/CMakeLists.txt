@@ -538,6 +538,7 @@ add_library(core STATIC
     hle/service/nvflinger/buffer_queue.cpp
     hle/service/nvflinger/buffer_queue.h
     hle/service/nvflinger/buffer_transform_flags.h
+    hle/service/nvflinger/consumer_listener.h
     hle/service/nvflinger/nvflinger.cpp
     hle/service/nvflinger/nvflinger.h
     hle/service/nvflinger/pixel_format.h
