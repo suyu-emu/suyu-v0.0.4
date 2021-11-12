@@ -9,7 +9,7 @@
 #include "common/common_types.h"
 #include "common/math_util.h"
 #include "core/hle/service/nvdrv/devices/nvdevice.h"
-#include "core/hle/service/nvflinger/buffer_queue.h"
+#include "core/hle/service/nvflinger/buffer_transform_flags.h"
 #include "core/hle/service/nvflinger/pixel_format.h"
 
 namespace Service::Nvidia::Devices {
