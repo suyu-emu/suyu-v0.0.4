@@ -541,6 +541,7 @@ add_library(core STATIC
     hle/service/nvflinger/nvflinger.cpp
     hle/service/nvflinger/nvflinger.h
     hle/service/nvflinger/pixel_format.h
+    hle/service/nvflinger/producer_listener.h
     hle/service/nvflinger/status.h
     hle/service/nvflinger/ui/fence.h
     hle/service/nvflinger/ui/graphic_buffer.h
