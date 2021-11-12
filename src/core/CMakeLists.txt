@@ -547,6 +547,8 @@ add_library(core STATIC
     hle/service/nvflinger/consumer_base.cpp
     hle/service/nvflinger/consumer_base.h
     hle/service/nvflinger/consumer_listener.h
+    hle/service/nvflinger/graphic_buffer_producer.cpp
+    hle/service/nvflinger/graphic_buffer_producer.h
     hle/service/nvflinger/nvflinger.cpp
     hle/service/nvflinger/nvflinger.h
     hle/service/nvflinger/parcel.h
