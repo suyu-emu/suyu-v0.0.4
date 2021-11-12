@@ -553,6 +553,8 @@ add_library(core STATIC
     hle/service/nvflinger/consumer_listener.h
     hle/service/nvflinger/graphic_buffer_producer.cpp
     hle/service/nvflinger/graphic_buffer_producer.h
+    hle/service/nvflinger/hos_binder_driver_server.cpp
+    hle/service/nvflinger/hos_binder_driver_server.h
     hle/service/nvflinger/nvflinger.cpp
     hle/service/nvflinger/nvflinger.h
     hle/service/nvflinger/parcel.h
