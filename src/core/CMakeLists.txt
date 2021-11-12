@@ -539,6 +539,8 @@ add_library(core STATIC
     hle/service/nvflinger/buffer_queue.h
     hle/service/nvflinger/binder.h
     hle/service/nvflinger/buffer_item.h
+    hle/service/nvflinger/buffer_item_consumer.cpp
+    hle/service/nvflinger/buffer_item_consumer.h
     hle/service/nvflinger/buffer_queue_defs.h
     hle/service/nvflinger/buffer_slot.h
     hle/service/nvflinger/buffer_transform_flags.h
