@@ -535,8 +535,6 @@ add_library(core STATIC
     hle/service/nvdrv/nvmemp.h
     hle/service/nvdrv/syncpoint_manager.cpp
     hle/service/nvdrv/syncpoint_manager.h
-    hle/service/nvflinger/buffer_queue.cpp
-    hle/service/nvflinger/buffer_queue.h
     hle/service/nvflinger/binder.h
     hle/service/nvflinger/buffer_item.h
     hle/service/nvflinger/buffer_item_consumer.cpp
@@ -546,6 +544,8 @@ add_library(core STATIC
     hle/service/nvflinger/buffer_queue_core.cpp
     hle/service/nvflinger/buffer_queue_core.h
     hle/service/nvflinger/buffer_queue_defs.h
+    hle/service/nvflinger/buffer_queue_producer.cpp
+    hle/service/nvflinger/buffer_queue_producer.h
     hle/service/nvflinger/buffer_slot.h
     hle/service/nvflinger/buffer_transform_flags.h
     hle/service/nvflinger/consumer_base.cpp
