@@ -185,7 +185,7 @@ void Codec::Decode() {
         case Tegra::NvdecCommon::VideoCodec::H264:
             return h264_decoder->ComposeFrameHeader(state, is_first_frame);
         case Tegra::NvdecCommon::VideoCodec::VP8:
-            return vp8_decoder->ComposeFrameHeader(state, is_first_frame);
+            return vp8_decoder->ComposeFrameHeader(state);
         case Tegra::NvdecCommon::VideoCodec::VP9:
             vp9_decoder->ComposeFrameHeader(state);
             vp9_hidden_frame = vp9_decoder->WasFrameHidden();
