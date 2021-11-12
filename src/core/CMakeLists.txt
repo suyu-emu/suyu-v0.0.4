@@ -545,6 +545,7 @@ add_library(core STATIC
     hle/service/nvflinger/ui/fence.h
     hle/service/nvflinger/ui/graphic_buffer.h
     hle/service/nvflinger/ui/rect.h
+    hle/service/nvflinger/window.h
     hle/service/olsc/olsc.cpp
     hle/service/olsc/olsc.h
     hle/service/pcie/pcie.cpp
