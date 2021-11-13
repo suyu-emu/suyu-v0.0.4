@@ -13,9 +13,9 @@ namespace Tegra::NvdecCommon {
 enum class VideoCodec : u64 {
     None = 0x0,
     H264 = 0x3,
-    Vp8 = 0x5,
+    VP8 = 0x5,
     H265 = 0x7,
-    Vp9 = 0x9,
+    VP9 = 0x9,
 };
 
 // NVDEC should use a 32-bit address space, but is mapped to 64-bit,
