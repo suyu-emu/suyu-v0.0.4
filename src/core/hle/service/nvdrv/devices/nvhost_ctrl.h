@@ -180,7 +180,8 @@ private:
     struct IocCtrlEventUnregisterBatchParams {
         u64_le user_events{};
     };
-    static_assert(sizeof(IocCtrlEventUnregisterBatchParams) == 8, "IocCtrlEventKill is incorrect size");
+    static_assert(sizeof(IocCtrlEventUnregisterBatchParams) == 8,
+                  "IocCtrlEventKill is incorrect size");
 
     NvResult NvOsGetConfigU32(const std::vector<u8>& input, std::vector<u8>& output);
     NvResult IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>& output,
