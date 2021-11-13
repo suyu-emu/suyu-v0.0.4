@@ -793,8 +793,6 @@ Status BufferQueueProducer::SetPreallocatedBuffer(s32 slot,
                                                   const std::shared_ptr<GraphicBuffer>& buffer) {
     LOG_DEBUG(Service_NVFlinger, "slot {}", slot);
 
-    UNIMPLEMENTED_IF_MSG(!buffer, "buffer must be valid!");
-
     if (slot < 0 || slot >= BufferQueueDefs::NUM_BUFFER_SLOTS) {
         return Status::BadValue;
     }
@@ -802,13 +800,18 @@ Status BufferQueueProducer::SetPreallocatedBuffer(s32 slot,
     BufferQueueCore::AutoLock lock(core);
 
     slots[slot] = {};
-    slots[slot].is_preallocated = true;
     slots[slot].graphic_buffer = buffer;
 
-    core->override_max_buffer_count = core->GetPreallocatedBufferCountLocked();
-    core->default_width = buffer->Width();
-    core->default_height = buffer->Height();
-    core->default_buffer_format = buffer->Format();
+    // Most games preallocate a buffer and pass a valid buffer here. However, it is possible for
+    // this to be called with an empty buffer, Naruto Ultimate Ninja Storm is a game that does this.
+    if (buffer) {
+        slots[slot].is_preallocated = true;
+
+        core->override_max_buffer_count = core->GetPreallocatedBufferCountLocked();
+        core->default_width = buffer->Width();
+        core->default_height = buffer->Height();
+        core->default_buffer_format = buffer->Format();
+    }
 
     core->SignalDequeueCondition();
     buffer_wait_event->GetWritableEvent().Signal();
