@@ -125,7 +125,7 @@ std::optional<GPUVAddr> MemoryManager::FindFreeRange(std::size_t size, std::size
     }
 
     u64 available_size{};
-    GPUVAddr gpu_addr{allocate_start};
+    GPUVAddr gpu_addr{start_32bit_address ? 0 : allocate_start};
     while (gpu_addr + available_size < address_space_size) {
         if (GetEntry(gpu_addr + available_size) == EntryType::Free) {
             available_size += page_size;
