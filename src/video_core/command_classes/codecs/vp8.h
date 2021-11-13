@@ -20,9 +20,8 @@ public:
     explicit VP8(GPU& gpu);
     ~VP8();
 
-    /// Compose the VP8 header of the frame for FFmpeg decoding
-    [[nodiscard]] const std::vector<u8>& ComposeFrameHeader(
-        const NvdecCommon::NvdecRegisters& state);
+    /// Compose the VP8 frame for FFmpeg decoding
+    [[nodiscard]] const std::vector<u8>& ComposeFrame(const NvdecCommon::NvdecRegisters& state);
 
 private:
     std::vector<u8> frame;

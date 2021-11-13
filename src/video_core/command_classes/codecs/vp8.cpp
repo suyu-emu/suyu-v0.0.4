@@ -14,7 +14,7 @@ VP8::VP8(GPU& gpu_) : gpu(gpu_) {}
 
 VP8::~VP8() = default;
 
-const std::vector<u8>& VP8::ComposeFrameHeader(const NvdecCommon::NvdecRegisters& state) {
+const std::vector<u8>& VP8::ComposeFrame(const NvdecCommon::NvdecRegisters& state) {
     VP8PictureInfo info;
     gpu.MemoryManager().ReadBlock(state.picture_info_offset, &info, sizeof(VP8PictureInfo));
 

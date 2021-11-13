@@ -183,11 +183,11 @@ void Codec::Decode() {
     const auto& frame_data = [&]() {
         switch (current_codec) {
         case Tegra::NvdecCommon::VideoCodec::H264:
-            return h264_decoder->ComposeFrameHeader(state, is_first_frame);
+            return h264_decoder->ComposeFrame(state, is_first_frame);
         case Tegra::NvdecCommon::VideoCodec::VP8:
-            return vp8_decoder->ComposeFrameHeader(state);
+            return vp8_decoder->ComposeFrame(state);
         case Tegra::NvdecCommon::VideoCodec::VP9:
-            vp9_decoder->ComposeFrameHeader(state);
+            vp9_decoder->ComposeFrame(state);
             vp9_hidden_frame = vp9_decoder->WasFrameHidden();
             return vp9_decoder->GetFrameBytes();
         default:

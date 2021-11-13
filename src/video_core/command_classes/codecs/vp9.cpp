@@ -770,7 +770,7 @@ VpxBitStreamWriter VP9::ComposeUncompressedHeader() {
     return uncomp_writer;
 }
 
-void VP9::ComposeFrameHeader(const NvdecCommon::NvdecRegisters& state) {
+void VP9::ComposeFrame(const NvdecCommon::NvdecRegisters& state) {
     std::vector<u8> bitstream;
     {
         Vp9FrameContainer curr_frame = GetCurrentFrame(state);

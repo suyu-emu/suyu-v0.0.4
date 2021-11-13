@@ -118,13 +118,14 @@ public:
 
     /// Composes the VP9 frame from the GPU state information.
     /// Based on the official VP9 spec documentation
-    void ComposeFrameHeader(const NvdecCommon::NvdecRegisters& state);
+    void ComposeFrame(const NvdecCommon::NvdecRegisters& state);
 
     /// Returns true if the most recent frame was a hidden frame.
     [[nodiscard]] bool WasFrameHidden() const {
         return !current_frame_info.show_frame;
     }
 
+    /// Returns a const reference to the composed frame data.
     [[nodiscard]] const std::vector<u8>& GetFrameBytes() const {
         return frame;
     }
