@@ -3381,36 +3381,38 @@ void GMainWindow::filterBarSetChecked(bool state) {
 }
 
 void GMainWindow::UpdateUITheme() {
-    const QString default_icons = QStringLiteral("default");
-    const QString& current_theme = UISettings::values.theme;
-    const bool is_default_theme = current_theme == QString::fromUtf8(UISettings::themes[0].second);
+    const QString default_theme = QStringLiteral("default");
+    QString current_theme = UISettings::values.theme;
     QStringList theme_paths(default_theme_paths);
 
-    if (is_default_theme || current_theme.isEmpty()) {
-        const QString theme_uri(QStringLiteral(":default/style.qss"));
-        QFile f(theme_uri);
-        if (f.open(QFile::ReadOnly | QFile::Text)) {
-            QTextStream ts(&f);
-            qApp->setStyleSheet(ts.readAll());
-            setStyleSheet(ts.readAll());
-        } else {
-            qApp->setStyleSheet({});
-            setStyleSheet({});
-        }
-        QIcon::setThemeName(default_icons);
-    } else {
-        const QString theme_uri(QLatin1Char{':'} + current_theme + QStringLiteral("/style.qss"));
-        QFile f(theme_uri);
-        if (f.open(QFile::ReadOnly | QFile::Text)) {
-            QTextStream ts(&f);
-            qApp->setStyleSheet(ts.readAll());
-            setStyleSheet(ts.readAll());
-        } else {
-            LOG_ERROR(Frontend, "Unable to set style, stylesheet file not found");
-        }
-        QIcon::setThemeName(current_theme);
+    if (current_theme.isEmpty()) {
+        current_theme = default_theme;
     }
 
+    if (current_theme != default_theme) {
+        QString theme_uri{QStringLiteral(":%1/style.qss").arg(current_theme)};
+        QFile f(theme_uri);
+        if (!f.open(QFile::ReadOnly | QFile::Text)) {
+            LOG_ERROR(Frontend, "Unable to open style \"{}\", fallback to the default theme",
+                      UISettings::values.theme.toStdString());
+            current_theme = default_theme;
+        }
+    }
+
+    QString theme_uri{QStringLiteral(":%1/style.qss").arg(current_theme)};
+    QFile f(theme_uri);
+    if (f.open(QFile::ReadOnly | QFile::Text)) {
+        QTextStream ts(&f);
+        qApp->setStyleSheet(ts.readAll());
+        setStyleSheet(ts.readAll());
+    } else {
+        LOG_ERROR(Frontend, "Unable to set style \"{}\", stylesheet file not found",
+                  UISettings::values.theme.toStdString());
+        qApp->setStyleSheet({});
+        setStyleSheet({});
+    }
+
+    QIcon::setThemeName(current_theme);
     QIcon::setThemeSearchPaths(theme_paths);
 }
 
