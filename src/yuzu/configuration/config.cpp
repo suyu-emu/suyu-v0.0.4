@@ -60,11 +60,6 @@ const std::array<int, 2> Config::default_stick_mod = {
     0,
 };
 
-const std::array<int, Settings::NativeMouseButton::NumMouseButtons> Config::default_mouse_buttons =
-    {
-        Qt::Key_BracketLeft, Qt::Key_BracketRight, Qt::Key_Apostrophe, Qt::Key_Minus, Qt::Key_Equal,
-};
-
 // This shouldn't have anything except static initializers (no functions). So
 // QKeySequence(...).toString() is NOT ALLOWED HERE.
 // This must be in alphabetical order according to action name as it must have the same order as
@@ -348,22 +343,6 @@ void Config::ReadKeyboardValues() {
 
 void Config::ReadMouseValues() {
     ReadBasicSetting(Settings::values.mouse_enabled);
-
-    for (int i = 0; i < Settings::NativeMouseButton::NumMouseButtons; ++i) {
-        const std::string default_param =
-            InputCommon::GenerateKeyboardParam(default_mouse_buttons[i]);
-        auto& mouse_buttons = Settings::values.mouse_buttons[i];
-
-        mouse_buttons = qt_config
-                            ->value(QStringLiteral("mouse_") +
-                                        QString::fromUtf8(Settings::NativeMouseButton::mapping[i]),
-                                    QString::fromStdString(default_param))
-                            .toString()
-                            .toStdString();
-        if (mouse_buttons.empty()) {
-            mouse_buttons = default_param;
-        }
-    }
 }
 
 void Config::ReadTouchscreenValues() {
@@ -947,15 +926,6 @@ void Config::SaveDebugValues() {
 
 void Config::SaveMouseValues() {
     WriteBasicSetting(Settings::values.mouse_enabled);
-
-    for (int i = 0; i < Settings::NativeMouseButton::NumMouseButtons; ++i) {
-        const std::string default_param =
-            InputCommon::GenerateKeyboardParam(default_mouse_buttons[i]);
-        WriteSetting(QStringLiteral("mouse_") +
-                         QString::fromStdString(Settings::NativeMouseButton::mapping[i]),
-                     QString::fromStdString(Settings::values.mouse_buttons[i]),
-                     QString::fromStdString(default_param));
-    }
 }
 
 void Config::SaveTouchscreenValues() {

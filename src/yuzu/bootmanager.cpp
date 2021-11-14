@@ -746,6 +746,12 @@ void GRenderWindow::mouseReleaseEvent(QMouseEvent* event) {
     input_subsystem->GetMouse()->ReleaseButton(button);
 }
 
+void GRenderWindow::wheelEvent(QWheelEvent* event) {
+    const int x = event->delta();
+    const int y = 0;
+    input_subsystem->GetMouse()->MouseWheelChange(x, y);
+}
+
 void GRenderWindow::TouchBeginEvent(const QTouchEvent* event) {
     QList<QTouchEvent::TouchPoint> touch_points = event->touchPoints();
     for (const auto& touch_point : touch_points) {
