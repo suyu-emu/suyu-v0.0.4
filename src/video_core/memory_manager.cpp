@@ -71,18 +71,22 @@ void MemoryManager::BindRasterizer(VideoCore::RasterizerInterface* rasterizer_) 
     rasterizer = rasterizer_;
 }
 
-GPUVAddr MemoryManager::Map(VAddr cpu_addr, GPUVAddr gpu_addr, std::size_t size) {
+GPUVAddr MemoryManager::Map(GPUVAddr gpu_addr, VAddr cpu_addr, std::size_t size) {
     return PageTableOp<EntryType::Mapped>(gpu_addr, cpu_addr, size);
 }
 
+GPUVAddr MemoryManager::MapSparse(GPUVAddr gpu_addr, std::size_t size) {
+    return PageTableOp<EntryType::Reserved>(gpu_addr, 0, size);
+}
+
 GPUVAddr MemoryManager::MapAllocate(VAddr cpu_addr, std::size_t size, std::size_t align) {
-    return Map(cpu_addr, *FindFreeRange(size, align), size);
+    return Map(*FindFreeRange(size, align), cpu_addr, size);
 }
 
 GPUVAddr MemoryManager::MapAllocate32(VAddr cpu_addr, std::size_t size) {
     const std::optional<GPUVAddr> gpu_addr = FindFreeRange(size, 1, true);
     ASSERT(gpu_addr);
-    return Map(cpu_addr, *gpu_addr, size);
+    return Map(*gpu_addr, cpu_addr, size);
 }
 
 void MemoryManager::Unmap(GPUVAddr gpu_addr, std::size_t size) {

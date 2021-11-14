@@ -17,6 +17,8 @@ endif ()
 include(GenerateSCMRev)
 
 add_library(common STATIC
+    address_space.cpp
+    address_space.h
     algorithm.h
     alignment.h
     announce_multiplayer_room.h

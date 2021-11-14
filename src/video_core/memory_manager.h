@@ -88,7 +88,8 @@ public:
     std::vector<std::pair<GPUVAddr, std::size_t>> GetSubmappedRange(GPUVAddr gpu_addr,
                                                                     std::size_t size) const;
 
-    [[nodiscard]] GPUVAddr Map(VAddr cpu_addr, GPUVAddr gpu_addr, std::size_t size);
+    GPUVAddr Map(GPUVAddr gpu_addr, VAddr cpu_addr, std::size_t size);
+    GPUVAddr MapSparse(GPUVAddr gpu_addr, std::size_t size);
     [[nodiscard]] GPUVAddr MapAllocate(VAddr cpu_addr, std::size_t size, std::size_t align);
     [[nodiscard]] GPUVAddr MapAllocate32(VAddr cpu_addr, std::size_t size);
     [[nodiscard]] std::optional<GPUVAddr> AllocateFixed(GPUVAddr gpu_addr, std::size_t size);
