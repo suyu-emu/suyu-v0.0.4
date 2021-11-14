@@ -344,15 +344,6 @@ void Config::ReadDebugValues() {
 
 void Config::ReadKeyboardValues() {
     ReadBasicSetting(Settings::values.keyboard_enabled);
-
-    for (std::size_t i = 0; i < Settings::values.keyboard_keys.size(); ++i) {
-        Settings::values.keyboard_keys[i] = InputCommon::GenerateKeyboardParam(static_cast<int>(i));
-    }
-
-    for (std::size_t i = 0; i < Settings::values.keyboard_mods.size(); ++i) {
-        Settings::values.keyboard_mods[i] =
-            InputCommon::GenerateModdifierKeyboardParam(static_cast<int>(i));
-    }
 }
 
 void Config::ReadMouseValues() {

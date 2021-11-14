@@ -572,8 +572,6 @@ struct Values {
 
     BasicSetting<bool> emulate_analog_keyboard{false, "emulate_analog_keyboard"};
     BasicSetting<bool> keyboard_enabled{false, "keyboard_enabled"};
-    KeyboardKeysRaw keyboard_keys;
-    KeyboardModsRaw keyboard_mods;
 
     BasicSetting<bool> debug_pad_enabled{false, "debug_pad_enabled"};
     ButtonsRaw debug_pad_buttons;

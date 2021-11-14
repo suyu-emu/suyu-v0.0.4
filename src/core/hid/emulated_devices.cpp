@@ -29,13 +29,29 @@ void EmulatedDevices::ReloadInput() {
                    mouse_button_devices.begin(),
                    Common::Input::CreateDevice<Common::Input::InputDevice>);
 
-    std::transform(Settings::values.keyboard_keys.begin(), Settings::values.keyboard_keys.end(),
-                   keyboard_devices.begin(),
-                   Common::Input::CreateDeviceFromString<Common::Input::InputDevice>);
+    std::size_t key_index = 0;
+    for (auto& keyboard_device : keyboard_devices) {
+        // Keyboard keys are only mapped on port 1, pad 0
+        Common::ParamPackage keyboard_params;
+        keyboard_params.Set("engine", "keyboard");
+        keyboard_params.Set("button", static_cast<int>(key_index));
+        keyboard_params.Set("port", 1);
+        keyboard_params.Set("pad", 0);
+        keyboard_device = Common::Input::CreateDevice<Common::Input::InputDevice>(keyboard_params);
+        key_index++;
+    }
 
-    std::transform(Settings::values.keyboard_mods.begin(), Settings::values.keyboard_mods.end(),
-                   keyboard_modifier_devices.begin(),
-                   Common::Input::CreateDeviceFromString<Common::Input::InputDevice>);
+    key_index = 0;
+    for (auto& keyboard_device : keyboard_modifier_devices) {
+        // Keyboard moddifiers are only mapped on port 1, pad 1
+        Common::ParamPackage keyboard_params;
+        keyboard_params.Set("engine", "keyboard");
+        keyboard_params.Set("button", static_cast<int>(key_index));
+        keyboard_params.Set("port", 1);
+        keyboard_params.Set("pad", 1);
+        keyboard_device = Common::Input::CreateDevice<Common::Input::InputDevice>(keyboard_params);
+        key_index++;
+    }
 
     for (std::size_t index = 0; index < mouse_button_devices.size(); ++index) {
         if (!mouse_button_devices[index]) {
