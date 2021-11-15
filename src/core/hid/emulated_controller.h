@@ -200,6 +200,15 @@ public:
     /// Returns the emulated controller into normal mode, allowing the modification of the HID state
     void DisableConfiguration();
 
+    /// Enables Home and Screenshot buttons
+    void EnableSystemButtons();
+
+    /// Disables Home and Screenshot buttons
+    void DisableSystemButtons();
+
+    /// Sets Home and Screenshot buttons to false
+    void ResetSystemButtons();
+
     /// Returns true if the emulated controller is in configuring mode
     bool IsConfiguring() const;
 
@@ -391,6 +400,7 @@ private:
     NpadStyleTag supported_style_tag{NpadStyleSet::All};
     bool is_connected{false};
     bool is_configuring{false};
+    bool system_buttons_enabled{true};
     f32 motion_sensitivity{0.01f};
     bool force_update_motion{false};
 
