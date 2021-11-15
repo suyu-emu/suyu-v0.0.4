@@ -564,8 +564,9 @@ struct MouseState {
     s32 y;
     s32 delta_x;
     s32 delta_y;
-    s32 delta_wheel_x;
+    // Axis Order in HW is switched for the wheel
     s32 delta_wheel_y;
+    s32 delta_wheel_x;
     MouseButton button;
     MouseAttribute attribute;
 };

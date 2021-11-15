@@ -613,56 +613,56 @@ int GRenderWindow::QtKeyToSwitchKey(Qt::Key qt_key) {
     }
 }
 
-int GRenderWindow::QtModifierToSwitchModdifier(quint32 qt_moddifiers) {
-    int moddifier = 0;
+int GRenderWindow::QtModifierToSwitchModifier(quint32 qt_modifiers) {
+    int modifier = 0;
     // The values are obtained through testing, Qt doesn't seem to provide a proper enum
-    if ((qt_moddifiers & 0x1) != 0) {
-        moddifier |= 1 << Settings::NativeKeyboard::LeftShift;
+    if ((qt_modifiers & 0x1) != 0) {
+        modifier |= 1 << Settings::NativeKeyboard::LeftShift;
     }
-    if ((qt_moddifiers & 0x2) != 0) {
-        moddifier |= 1 << Settings::NativeKeyboard::LeftControl;
+    if ((qt_modifiers & 0x2) != 0) {
+        modifier |= 1 << Settings::NativeKeyboard::LeftControl;
     }
-    if ((qt_moddifiers & 0x4) != 0) {
-        moddifier |= 1 << Settings::NativeKeyboard::LeftAlt;
+    if ((qt_modifiers & 0x4) != 0) {
+        modifier |= 1 << Settings::NativeKeyboard::LeftAlt;
     }
-    if ((qt_moddifiers & 0x08) != 0) {
-        moddifier |= 1 << Settings::NativeKeyboard::LeftMeta;
+    if ((qt_modifiers & 0x08) != 0) {
+        modifier |= 1 << Settings::NativeKeyboard::LeftMeta;
     }
-    if ((qt_moddifiers & 0x10) != 0) {
-        moddifier |= 1 << Settings::NativeKeyboard::RightShift;
+    if ((qt_modifiers & 0x10) != 0) {
+        modifier |= 1 << Settings::NativeKeyboard::RightShift;
     }
-    if ((qt_moddifiers & 0x20) != 0) {
-        moddifier |= 1 << Settings::NativeKeyboard::RightControl;
+    if ((qt_modifiers & 0x20) != 0) {
+        modifier |= 1 << Settings::NativeKeyboard::RightControl;
     }
-    if ((qt_moddifiers & 0x40) != 0) {
-        moddifier |= 1 << Settings::NativeKeyboard::RightAlt;
+    if ((qt_modifiers & 0x40) != 0) {
+        modifier |= 1 << Settings::NativeKeyboard::RightAlt;
     }
-    if ((qt_moddifiers & 0x80) != 0) {
-        moddifier |= 1 << Settings::NativeKeyboard::RightMeta;
+    if ((qt_modifiers & 0x80) != 0) {
+        modifier |= 1 << Settings::NativeKeyboard::RightMeta;
     }
-    if ((qt_moddifiers & 0x100) != 0) {
-        moddifier |= 1 << Settings::NativeKeyboard::CapsLock;
+    if ((qt_modifiers & 0x100) != 0) {
+        modifier |= 1 << Settings::NativeKeyboard::CapsLock;
     }
-    if ((qt_moddifiers & 0x200) != 0) {
-        moddifier |= 1 << Settings::NativeKeyboard::NumLock;
+    if ((qt_modifiers & 0x200) != 0) {
+        modifier |= 1 << Settings::NativeKeyboard::NumLock;
     }
     // Verify the last two keys
-    if ((qt_moddifiers & 0x400) != 0) {
-        moddifier |= 1 << Settings::NativeKeyboard::Katakana;
+    if ((qt_modifiers & 0x400) != 0) {
+        modifier |= 1 << Settings::NativeKeyboard::Katakana;
     }
-    if ((qt_moddifiers & 0x800) != 0) {
-        moddifier |= 1 << Settings::NativeKeyboard::Hiragana;
+    if ((qt_modifiers & 0x800) != 0) {
+        modifier |= 1 << Settings::NativeKeyboard::Hiragana;
     }
-    return moddifier;
+    return modifier;
 }
 
 void GRenderWindow::keyPressEvent(QKeyEvent* event) {
     if (!event->isAutoRepeat()) {
-        const auto moddifier = QtModifierToSwitchModdifier(event->nativeModifiers());
+        const auto modifier = QtModifierToSwitchModifier(event->nativeModifiers());
         // Replace event->key() with event->nativeVirtualKey() since the second one provides raw key
         // buttons
         const auto key = QtKeyToSwitchKey(Qt::Key(event->key()));
-        input_subsystem->GetKeyboard()->SetKeyboardModifiers(moddifier);
+        input_subsystem->GetKeyboard()->SetKeyboardModifiers(modifier);
         input_subsystem->GetKeyboard()->PressKeyboardKey(key);
         // This is used for gamepads
         input_subsystem->GetKeyboard()->PressKey(event->key());
@@ -671,9 +671,9 @@ void GRenderWindow::keyPressEvent(QKeyEvent* event) {
 
 void GRenderWindow::keyReleaseEvent(QKeyEvent* event) {
     if (!event->isAutoRepeat()) {
-        const auto moddifier = QtModifierToSwitchModdifier(event->nativeModifiers());
+        const auto modifier = QtModifierToSwitchModifier(event->nativeModifiers());
         const auto key = QtKeyToSwitchKey(Qt::Key(event->key()));
-        input_subsystem->GetKeyboard()->SetKeyboardModifiers(moddifier);
+        input_subsystem->GetKeyboard()->SetKeyboardModifiers(modifier);
         input_subsystem->GetKeyboard()->ReleaseKeyboardKey(key);
         // This is used for gamepads
         input_subsystem->GetKeyboard()->ReleaseKey(event->key());
@@ -747,8 +747,8 @@ void GRenderWindow::mouseReleaseEvent(QMouseEvent* event) {
 }
 
 void GRenderWindow::wheelEvent(QWheelEvent* event) {
-    const int x = event->delta();
-    const int y = 0;
+    const int x = event->angleDelta().x();
+    const int y = event->angleDelta().y();
     input_subsystem->GetMouse()->MouseWheelChange(x, y);
 }
 
