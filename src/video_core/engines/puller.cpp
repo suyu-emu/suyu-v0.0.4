@@ -118,7 +118,7 @@ void Puller::ProcessSemaphoreTriggerMethod() {
 }
 
 void Puller::ProcessSemaphoreRelease() {
-    memory_manager.Write<u32>(regs.semaphore_address.SemaphoreAddress(), regs.semaphore_release);
+    rasterizer->SignalSemaphore(regs.semaphore_address.SemaphoreAddress(), regs.semaphore_release);
 }
 
 void Puller::ProcessSemaphoreAcquire() {

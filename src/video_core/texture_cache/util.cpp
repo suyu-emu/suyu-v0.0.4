@@ -755,7 +755,7 @@ bool IsValidEntry(const Tegra::MemoryManager& gpu_memory, const TICEntry& config
     if (address == 0) {
         return false;
     }
-    if (address > (1ULL << 48)) {
+    if (address >= (1ULL << 40)) {
         return false;
     }
     if (gpu_memory.GpuToCpuAddress(address).has_value()) {

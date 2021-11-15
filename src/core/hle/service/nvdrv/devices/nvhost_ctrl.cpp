@@ -143,7 +143,7 @@ NvResult nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector
         }
     }();
 
-    must_unmark_fail = true;
+    must_unmark_fail = false;
 
     const auto check_failing = [&]() {
         if (events[slot].fails > 2) {
@@ -164,6 +164,7 @@ NvResult nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector
 
     if (params.timeout == 0) {
         if (check_failing()) {
+            events[slot].fails = 0;
             return NvResult::Success;
         }
         return NvResult::Timeout;
@@ -180,6 +181,7 @@ NvResult nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector
     }
 
     if (check_failing()) {
+        event.fails = 0;
         return NvResult::Success;
     }
 
