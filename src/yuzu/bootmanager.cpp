@@ -729,7 +729,7 @@ void GRenderWindow::mouseMoveEvent(QMouseEvent* event) {
     const int center_y = height() / 2;
     input_subsystem->GetMouse()->MouseMove(x, y, touch_x, touch_y, center_x, center_y);
 
-    if (Settings::values.mouse_panning) {
+    if (Settings::values.mouse_panning && !Settings::values.mouse_enabled) {
         QCursor::setPos(mapToGlobal({center_x, center_y}));
     }
 
@@ -1044,7 +1044,7 @@ void GRenderWindow::showEvent(QShowEvent* event) {
 
 bool GRenderWindow::eventFilter(QObject* object, QEvent* event) {
     if (event->type() == QEvent::HoverMove) {
-        if (Settings::values.mouse_panning) {
+        if (Settings::values.mouse_panning || Settings::values.mouse_enabled) {
             auto* hover_event = static_cast<QMouseEvent*>(event);
             mouseMoveEvent(hover_event);
             return false;

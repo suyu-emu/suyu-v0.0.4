@@ -376,9 +376,9 @@ void EmulatedDevices::SetMouseAnalog(Common::Input::CallbackStatus callback, std
 
 void EmulatedDevices::SetMouseStick(Common::Input::CallbackStatus callback) {
     std::lock_guard lock{mutex};
-    const auto stick_value = TransformToStick(callback);
+    const auto touch_value = TransformToTouch(callback);
 
-    device_status.mouse_stick_value = stick_value;
+    device_status.mouse_stick_value = touch_value;
 
     if (is_configuring) {
         device_status.mouse_position_state = {};
@@ -386,8 +386,8 @@ void EmulatedDevices::SetMouseStick(Common::Input::CallbackStatus callback) {
         return;
     }
 
-    device_status.mouse_position_state.x = stick_value.x.value;
-    device_status.mouse_position_state.y = stick_value.y.value;
+    device_status.mouse_position_state.x = touch_value.x.value;
+    device_status.mouse_position_state.y = touch_value.y.value;
 
     TriggerOnChange(DeviceTriggerType::Mouse);
 }
@@ -420,7 +420,7 @@ MousePosition EmulatedDevices::GetMousePosition() const {
     return device_status.mouse_position_state;
 }
 
-AnalogStickState EmulatedDevices::GetMouseDeltaWheel() const {
+AnalogStickState EmulatedDevices::GetMouseWheel() const {
     return device_status.mouse_wheel_state;
 }
 
