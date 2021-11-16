@@ -52,17 +52,17 @@ struct FormatProperties {
     bool is_compressed;
 };
 
-class BGRCopyPass {
+class FormatConversionPass {
 public:
-    BGRCopyPass() = default;
-    ~BGRCopyPass() = default;
+    FormatConversionPass() = default;
+    ~FormatConversionPass() = default;
 
-    void CopyBGR(Image& dst_image, Image& src_image,
-                 std::span<const VideoCommon::ImageCopy> copies);
+    void ConvertImage(Image& dst_image, Image& src_image,
+                      std::span<const VideoCommon::ImageCopy> copies);
 
 private:
-    OGLBuffer bgr_pbo;
-    size_t bgr_pbo_size{};
+    OGLBuffer intermediate_pbo;
+    size_t pbo_size{};
 };
 
 class TextureCacheRuntime {
@@ -144,7 +144,7 @@ private:
     const Device& device;
     StateTracker& state_tracker;
     UtilShaders util_shaders;
-    BGRCopyPass bgr_copy_pass;
+    FormatConversionPass format_conversion_pass;
 
     std::array<std::unordered_map<GLenum, FormatProperties>, 3> format_properties;
     bool has_broken_texture_view_formats = false;
