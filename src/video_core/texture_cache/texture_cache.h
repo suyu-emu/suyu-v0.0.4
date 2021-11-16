@@ -1620,6 +1620,9 @@ void TextureCache<P>::RemoveFramebuffers(std::span<const ImageViewId> removed_vi
     auto it = framebuffers.begin();
     while (it != framebuffers.end()) {
         if (it->first.Contains(removed_views)) {
+            auto framebuffer_id = it->second;
+            ASSERT(framebuffer_id);
+            sentenced_framebuffers.Push(std::move(slot_framebuffers[framebuffer_id]));
             it = framebuffers.erase(it);
         } else {
             ++it;

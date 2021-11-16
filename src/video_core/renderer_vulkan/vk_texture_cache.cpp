@@ -1366,6 +1366,8 @@ ImageView::ImageView(TextureCacheRuntime&, const VideoCommon::ImageInfo& info,
 ImageView::ImageView(TextureCacheRuntime&, const VideoCommon::NullImageViewParams& params)
     : VideoCommon::ImageViewBase{params} {}
 
+ImageView::~ImageView() = default;
+
 VkImageView ImageView::DepthView() {
     if (depth_view) {
         return *depth_view;
@@ -1491,6 +1493,8 @@ Framebuffer::Framebuffer(TextureCacheRuntime& runtime, ImageView* color_buffer,
     std::array<ImageView*, NUM_RT> color_buffers{color_buffer};
     CreateFramebuffer(runtime, color_buffers, depth_buffer);
 }
+
+Framebuffer::~Framebuffer() = default;
 
 void Framebuffer::CreateFramebuffer(TextureCacheRuntime& runtime,
                                     std::span<ImageView*, NUM_RT> color_buffers,

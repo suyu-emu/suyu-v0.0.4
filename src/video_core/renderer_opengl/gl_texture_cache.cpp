@@ -1117,6 +1117,8 @@ ImageView::ImageView(TextureCacheRuntime&, const VideoCommon::ImageInfo& info,
 ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::NullImageViewParams& params)
     : VideoCommon::ImageViewBase{params}, views{runtime.null_image_views} {}
 
+ImageView::~ImageView() = default;
+
 GLuint ImageView::StorageView(Shader::TextureType texture_type, Shader::ImageFormat image_format) {
     if (image_format == Shader::ImageFormat::Typeless) {
         return Handle(texture_type);
@@ -1271,6 +1273,8 @@ Framebuffer::Framebuffer(TextureCacheRuntime& runtime, std::span<ImageView*, NUM
         glObjectLabel(GL_FRAMEBUFFER, handle, static_cast<GLsizei>(name.size()), name.data());
     }
 }
+
+Framebuffer::~Framebuffer() = default;
 
 void BGRCopyPass::CopyBGR(Image& dst_image, Image& src_image,
                           std::span<const VideoCommon::ImageCopy> copies) {

@@ -232,6 +232,14 @@ public:
                        const VideoCommon::ImageViewInfo& view_info);
     explicit ImageView(TextureCacheRuntime&, const VideoCommon::NullImageViewParams&);
 
+    ~ImageView();
+
+    ImageView(const ImageView&) = delete;
+    ImageView& operator=(const ImageView&) = delete;
+
+    ImageView(ImageView&&) = default;
+    ImageView& operator=(ImageView&&) = default;
+
     [[nodiscard]] GLuint StorageView(Shader::TextureType texture_type,
                                      Shader::ImageFormat image_format);
 
@@ -299,6 +307,14 @@ class Framebuffer {
 public:
     explicit Framebuffer(TextureCacheRuntime&, std::span<ImageView*, NUM_RT> color_buffers,
                          ImageView* depth_buffer, const VideoCommon::RenderTargets& key);
+
+    ~Framebuffer();
+
+    Framebuffer(const Framebuffer&) = delete;
+    Framebuffer& operator=(const Framebuffer&) = delete;
+
+    Framebuffer(Framebuffer&&) = default;
+    Framebuffer& operator=(Framebuffer&&) = default;
 
     [[nodiscard]] GLuint Handle() const noexcept {
         return framebuffer.handle;
