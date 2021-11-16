@@ -515,7 +515,7 @@ struct Values {
 #endif
         FullscreenMode::Borderless, FullscreenMode::Exclusive, "fullscreen_mode"};
     RangedSetting<int> aspect_ratio{0, 0, 3, "aspect_ratio"};
-    RangedSetting<int> max_anisotropy{0, 0, 4, "max_anisotropy"};
+    RangedSetting<int> max_anisotropy{0, 0, 5, "max_anisotropy"};
     Setting<bool> use_speed_limit{true, "use_speed_limit"};
     RangedSetting<u16> speed_limit{100, 0, 9999, "speed_limit"};
     Setting<bool> use_disk_shader_cache{true, "use_disk_shader_cache"};
