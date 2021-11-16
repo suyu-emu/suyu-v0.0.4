@@ -1759,6 +1759,9 @@ void TextureCache<P>::CopyImage(ImageId dst_id, ImageId src_id, std::vector<Imag
     }
     UNIMPLEMENTED_IF(dst.info.type != ImageType::e2D);
     UNIMPLEMENTED_IF(src.info.type != ImageType::e2D);
+    if constexpr (HAS_PIXEL_FORMAT_CONVERSIONS) {
+        return runtime.ConvertImage(dst, src, copies);
+    }
     for (const ImageCopy& copy : copies) {
         UNIMPLEMENTED_IF(copy.dst_subresource.num_layers != 1);
         UNIMPLEMENTED_IF(copy.src_subresource.num_layers != 1);

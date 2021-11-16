@@ -522,6 +522,12 @@ void TextureCacheRuntime::CopyImage(Image& dst_image, Image& src_image,
     }
 }
 
+void TextureCacheRuntime::ConvertImage(Image& dst, Image& src,
+                                       std::span<const VideoCommon::ImageCopy> copies) {
+    LOG_DEBUG(Render_OpenGL, "Converting {} to {}", src.info.format, dst.info.format);
+    format_conversion_pass.ConvertImage(dst, src, copies);
+}
+
 bool TextureCacheRuntime::CanImageBeCopied(const Image& dst, const Image& src) {
     if (dst.info.type == ImageType::e3D && dst.info.format == PixelFormat::BC4_UNORM) {
         return false;
