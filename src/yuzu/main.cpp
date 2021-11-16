@@ -3194,9 +3194,9 @@ void GMainWindow::OnReinitializeKeys(ReinitializeKeyBehavior behavior) {
         if (!errors.isEmpty()) {
             QMessageBox::warning(
                 this, tr("Derivation Components Missing"),
-                tr("Components are missing that may hinder key derivation from completing. "
+                tr("Encryption keys are missing. "
                    "<br>Please follow <a href='https://yuzu-emu.org/help/quickstart/'>the yuzu "
-                   "quickstart guide</a> to get all your keys and "
+                   "quickstart guide</a> to get all your keys, firmware and "
                    "games.<br><br><small>(%1)</small>")
                     .arg(errors));
         }
