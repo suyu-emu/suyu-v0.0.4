@@ -148,6 +148,8 @@ GLenum AttachmentType(PixelFormat format) {
     switch (const SurfaceType type = VideoCore::Surface::GetFormatType(format); type) {
     case SurfaceType::Depth:
         return GL_DEPTH_ATTACHMENT;
+    case SurfaceType::Stencil:
+        return GL_STENCIL_ATTACHMENT;
     case SurfaceType::DepthStencil:
         return GL_DEPTH_STENCIL_ATTACHMENT;
     default:
@@ -897,6 +899,8 @@ void Image::Scale(bool up_scale) {
             return GL_COLOR_ATTACHMENT0;
         case SurfaceType::Depth:
             return GL_DEPTH_ATTACHMENT;
+        case SurfaceType::Stencil:
+            return GL_STENCIL_ATTACHMENT;
         case SurfaceType::DepthStencil:
             return GL_DEPTH_STENCIL_ATTACHMENT;
         default:
@@ -910,8 +914,10 @@ void Image::Scale(bool up_scale) {
             return GL_COLOR_BUFFER_BIT;
         case SurfaceType::Depth:
             return GL_DEPTH_BUFFER_BIT;
+        case SurfaceType::Stencil:
+            return GL_STENCIL_BUFFER_BIT;
         case SurfaceType::DepthStencil:
-            return GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT;
+            return GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
         default:
             UNREACHABLE();
             return GL_COLOR_BUFFER_BIT;
@@ -923,8 +929,10 @@ void Image::Scale(bool up_scale) {
             return 0;
         case SurfaceType::Depth:
             return 1;
-        case SurfaceType::DepthStencil:
+        case SurfaceType::Stencil:
             return 2;
+        case SurfaceType::DepthStencil:
+            return 3;
         default:
             UNREACHABLE();
             return 0;
@@ -1254,10 +1262,20 @@ Framebuffer::Framebuffer(TextureCacheRuntime& runtime, std::span<ImageView*, NUM
     }
 
     if (const ImageView* const image_view = depth_buffer; image_view) {
-        if (GetFormatType(image_view->format) == SurfaceType::DepthStencil) {
-            buffer_bits |= GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
-        } else {
+        switch (GetFormatType(image_view->format)) {
+        case SurfaceType::Depth:
             buffer_bits |= GL_DEPTH_BUFFER_BIT;
+            break;
+        case SurfaceType::Stencil:
+            buffer_bits |= GL_STENCIL_BUFFER_BIT;
+            break;
+        case SurfaceType::DepthStencil:
+            buffer_bits |= GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
+            break;
+        default:
+            UNREACHABLE();
+            buffer_bits |= GL_DEPTH_BUFFER_BIT;
+            break;
         }
         const GLenum attachment = AttachmentType(image_view->format);
         AttachTexture(handle, attachment, image_view);
