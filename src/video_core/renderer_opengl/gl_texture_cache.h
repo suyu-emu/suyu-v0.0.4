@@ -82,6 +82,8 @@ public:
 
     ImageBufferMap DownloadStagingBuffer(size_t size);
 
+    u64 GetDeviceLocalMemory() const;
+
     void CopyImage(Image& dst, Image& src, std::span<const VideoCommon::ImageCopy> copies);
 
     void ConvertImage(Framebuffer* dst, ImageView& dst_view, ImageView& src_view, bool rescaled) {
@@ -333,7 +335,7 @@ struct TextureCacheParams {
     static constexpr bool ENABLE_VALIDATION = true;
     static constexpr bool FRAMEBUFFER_BLITS = true;
     static constexpr bool HAS_EMULATED_COPIES = true;
-    static constexpr bool HAS_DEVICE_MEMORY_INFO = false;
+    static constexpr bool HAS_DEVICE_MEMORY_INFO = true;
 
     using Runtime = OpenGL::TextureCacheRuntime;
     using Image = OpenGL::Image;

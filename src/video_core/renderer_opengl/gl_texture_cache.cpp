@@ -9,8 +9,8 @@
 
 #include <glad/glad.h>
 
+#include "common/literals.h"
 #include "common/settings.h"
-
 #include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
 #include "video_core/renderer_opengl/gl_state_tracker.h"
@@ -42,6 +42,7 @@ using VideoCore::Surface::IsPixelFormatSRGB;
 using VideoCore::Surface::MaxPixelFormat;
 using VideoCore::Surface::PixelFormat;
 using VideoCore::Surface::SurfaceType;
+using namespace Common::Literals;
 
 struct CopyOrigin {
     GLint level;
@@ -494,6 +495,15 @@ ImageBufferMap TextureCacheRuntime::UploadStagingBuffer(size_t size) {
 
 ImageBufferMap TextureCacheRuntime::DownloadStagingBuffer(size_t size) {
     return download_buffers.RequestMap(size, false);
+}
+
+u64 TextureCacheRuntime::GetDeviceLocalMemory() const {
+    if (GLAD_GL_NVX_gpu_memory_info) {
+        GLint cur_avail_mem_kb = 0;
+        glGetIntegerv(GL_GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, &cur_avail_mem_kb);
+        return static_cast<u64>(cur_avail_mem_kb) * 1_KiB;
+    }
+    return 2_GiB; // Return minimum requirements
 }
 
 void TextureCacheRuntime::CopyImage(Image& dst_image, Image& src_image,
