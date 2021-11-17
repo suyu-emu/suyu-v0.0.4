@@ -66,15 +66,14 @@ float TSCEntry::MaxAnisotropy() const noexcept {
         return 1.0f;
     }
     const auto anisotropic_settings = Settings::values.max_anisotropy.GetValue();
-    u32 new_max_anisotropic{};
+    u32 added_anisotropic{};
     if (anisotropic_settings == 0) {
-        const auto anisotropic_based_onscale = Settings::values.resolution_info.up_scale >>
-                                               Settings::values.resolution_info.down_shift;
-        new_max_anisotropic = std::max(anisotropic_based_onscale + 1U, 1U);
+        added_anisotropic = Settings::values.resolution_info.up_scale >>
+                            Settings::values.resolution_info.down_shift;
     } else {
-        new_max_anisotropic = Settings::values.max_anisotropy.GetValue();
+        added_anisotropic = Settings::values.max_anisotropy.GetValue() - 1U;
     }
-    return static_cast<float>(1U << std::min(max_anisotropy + anisotropic_settings - 1, 31U));
+    return static_cast<float>(1U << (max_anisotropy + added_anisotropic));
 }
 
 } // namespace Tegra::Texture
