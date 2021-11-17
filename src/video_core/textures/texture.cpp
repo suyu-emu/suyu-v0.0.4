@@ -51,22 +51,6 @@ constexpr std::array<float, 256> SRGB_CONVERSION_LUT = {
     0.917104f, 0.929242f, 0.941493f, 0.953859f, 0.966338f, 1.000000f, 1.000000f, 1.000000f,
 };
 
-unsigned SettingsMinimumAnisotropy() noexcept {
-    switch (static_cast<Anisotropy>(Settings::values.max_anisotropy.GetValue())) {
-    default:
-    case Anisotropy::Default:
-        return 1U;
-    case Anisotropy::Filter2x:
-        return 2U;
-    case Anisotropy::Filter4x:
-        return 4U;
-    case Anisotropy::Filter8x:
-        return 8U;
-    case Anisotropy::Filter16x:
-        return 16U;
-    }
-}
-
 } // Anonymous namespace
 
 std::array<float, 4> TSCEntry::BorderColor() const noexcept {
@@ -78,7 +62,18 @@ std::array<float, 4> TSCEntry::BorderColor() const noexcept {
 }
 
 float TSCEntry::MaxAnisotropy() const noexcept {
-    return static_cast<float>(std::max(1U << max_anisotropy, SettingsMinimumAnisotropy()));
+    if (max_anisotropy == 0 && mipmap_filter != TextureMipmapFilter::Linear) {
+        return 1.0f;
+    }
+    const auto anisotropic_settings = Settings::values.max_anisotropy.GetValue();
+    u32 added_anisotropic{};
+    if (anisotropic_settings == 0) {
+        added_anisotropic = Settings::values.resolution_info.up_scale >>
+                            Settings::values.resolution_info.down_shift;
+    } else {
+        added_anisotropic = Settings::values.max_anisotropy.GetValue() - 1U;
+    }
+    return static_cast<float>(1U << (max_anisotropy + added_anisotropic));
 }
 
 } // namespace Tegra::Texture

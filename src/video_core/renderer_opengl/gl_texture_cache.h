@@ -15,6 +15,10 @@
 #include "video_core/texture_cache/image_view_base.h"
 #include "video_core/texture_cache/texture_cache_base.h"
 
+namespace Settings {
+struct ResolutionScalingInfo;
+}
+
 namespace OpenGL {
 
 class Device;
@@ -78,9 +82,11 @@ public:
 
     ImageBufferMap DownloadStagingBuffer(size_t size);
 
+    u64 GetDeviceLocalMemory() const;
+
     void CopyImage(Image& dst, Image& src, std::span<const VideoCommon::ImageCopy> copies);
 
-    void ConvertImage(Framebuffer* dst, ImageView& dst_view, ImageView& src_view) {
+    void ConvertImage(Framebuffer* dst, ImageView& dst_view, ImageView& src_view, bool rescaled) {
         UNIMPLEMENTED();
     }
 
@@ -109,6 +115,12 @@ public:
     }
 
     bool HasNativeASTC() const noexcept;
+
+    void TickFrame() {}
+
+    StateTracker& GetStateTracker() {
+        return state_tracker;
+    }
 
 private:
     struct StagingBuffers {
@@ -149,6 +161,10 @@ private:
     OGLTextureView null_image_view_cube;
 
     std::array<GLuint, Shader::NUM_TEXTURE_TYPES> null_image_views{};
+
+    std::array<OGLFramebuffer, 3> rescale_draw_fbos;
+    std::array<OGLFramebuffer, 3> rescale_read_fbos;
+    const Settings::ResolutionScalingInfo& resolution;
 };
 
 class Image : public VideoCommon::ImageBase {
@@ -157,6 +173,7 @@ class Image : public VideoCommon::ImageBase {
 public:
     explicit Image(TextureCacheRuntime&, const VideoCommon::ImageInfo& info, GPUVAddr gpu_addr,
                    VAddr cpu_addr);
+    explicit Image(const VideoCommon::NullImageParams&);
 
     ~Image();
 
@@ -174,7 +191,7 @@ public:
     GLuint StorageHandle() noexcept;
 
     GLuint Handle() const noexcept {
-        return texture.handle;
+        return current_texture;
     }
 
     GLuint GlFormat() const noexcept {
@@ -185,16 +202,25 @@ public:
         return gl_type;
     }
 
+    bool ScaleUp(bool ignore = false);
+
+    bool ScaleDown(bool ignore = false);
+
 private:
     void CopyBufferToImage(const VideoCommon::BufferImageCopy& copy, size_t buffer_offset);
 
     void CopyImageToBuffer(const VideoCommon::BufferImageCopy& copy, size_t buffer_offset);
 
+    void Scale(bool up_scale);
+
     OGLTexture texture;
+    OGLTexture upscaled_backup;
     OGLTextureView store_view;
     GLenum gl_internal_format = GL_NONE;
     GLenum gl_format = GL_NONE;
     GLenum gl_type = GL_NONE;
+    TextureCacheRuntime* runtime{};
+    GLuint current_texture{};
 };
 
 class ImageView : public VideoCommon::ImageViewBase {
@@ -206,7 +232,15 @@ public:
                        const VideoCommon::ImageViewInfo&, GPUVAddr);
     explicit ImageView(TextureCacheRuntime&, const VideoCommon::ImageInfo& info,
                        const VideoCommon::ImageViewInfo& view_info);
-    explicit ImageView(TextureCacheRuntime&, const VideoCommon::NullImageParams&);
+    explicit ImageView(TextureCacheRuntime&, const VideoCommon::NullImageViewParams&);
+
+    ~ImageView();
+
+    ImageView(const ImageView&) = delete;
+    ImageView& operator=(const ImageView&) = delete;
+
+    ImageView(ImageView&&) = default;
+    ImageView& operator=(ImageView&&) = default;
 
     [[nodiscard]] GLuint StorageView(Shader::TextureType texture_type,
                                      Shader::ImageFormat image_format);
@@ -276,6 +310,14 @@ public:
     explicit Framebuffer(TextureCacheRuntime&, std::span<ImageView*, NUM_RT> color_buffers,
                          ImageView* depth_buffer, const VideoCommon::RenderTargets& key);
 
+    ~Framebuffer();
+
+    Framebuffer(const Framebuffer&) = delete;
+    Framebuffer& operator=(const Framebuffer&) = delete;
+
+    Framebuffer(Framebuffer&&) = default;
+    Framebuffer& operator=(Framebuffer&&) = default;
+
     [[nodiscard]] GLuint Handle() const noexcept {
         return framebuffer.handle;
     }
@@ -293,7 +335,7 @@ struct TextureCacheParams {
     static constexpr bool ENABLE_VALIDATION = true;
     static constexpr bool FRAMEBUFFER_BLITS = true;
     static constexpr bool HAS_EMULATED_COPIES = true;
-    static constexpr bool HAS_DEVICE_MEMORY_INFO = false;
+    static constexpr bool HAS_DEVICE_MEMORY_INFO = true;
 
     using Runtime = OpenGL::TextureCacheRuntime;
     using Image = OpenGL::Image;

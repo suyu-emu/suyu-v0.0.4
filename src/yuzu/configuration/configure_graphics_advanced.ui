@@ -125,27 +125,32 @@
             <widget class="QComboBox" name="anisotropic_filtering_combobox">
              <item>
               <property name="text">
+               <string>Automatic</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
                <string>Default</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>2x (WILL BREAK THINGS)</string>
+               <string>2x</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>4x (WILL BREAK THINGS)</string>
+               <string>4x</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>8x (WILL BREAK THINGS)</string>
+               <string>8x</string>
               </property>
              </item>
              <item>
               <property name="text">
-               <string>16x (WILL BREAK THINGS)</string>
+               <string>16x</string>
               </property>
              </item>
             </widget>
