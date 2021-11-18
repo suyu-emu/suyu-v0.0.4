@@ -396,6 +396,10 @@ OGLTexture MakeImage(const VideoCommon::ImageInfo& info, GLenum gl_internal_form
     UNREACHABLE_MSG("Invalid image format={}", format);
     return GL_R32UI;
 }
+
+[[nodiscard]] u32 NextPow2(u32 value) {
+    return 1U << (32U - std::countl_zero(value - 1U));
+}
 } // Anonymous namespace
 
 ImageBufferMap::~ImageBufferMap() {
@@ -1304,7 +1308,7 @@ void FormatConversionPass::ConvertImage(Image& dst_image, Image& src_image,
         const u32 copy_size = region.width * region.height * region.depth * img_bpp;
         if (pbo_size < copy_size) {
             intermediate_pbo.Create();
-            pbo_size = copy_size;
+            pbo_size = NextPow2(copy_size);
             glNamedBufferData(intermediate_pbo.handle, pbo_size, nullptr, GL_STREAM_COPY);
         }
         // Copy from source to PBO
