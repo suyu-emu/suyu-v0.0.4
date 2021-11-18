@@ -396,6 +396,10 @@ OGLTexture MakeImage(const VideoCommon::ImageInfo& info, GLenum gl_internal_form
     UNREACHABLE_MSG("Invalid image format={}", format);
     return GL_R32UI;
 }
+
+[[nodiscard]] u32 NextPow2(u32 value) {
+    return 1U << (32U - std::countl_zero(value - 1U));
+}
 } // Anonymous namespace
 
 ImageBufferMap::~ImageBufferMap() {
@@ -522,6 +526,12 @@ void TextureCacheRuntime::CopyImage(Image& dst_image, Image& src_image,
     }
 }
 
+void TextureCacheRuntime::ConvertImage(Image& dst, Image& src,
+                                       std::span<const VideoCommon::ImageCopy> copies) {
+    LOG_DEBUG(Render_OpenGL, "Converting {} to {}", src.info.format, dst.info.format);
+    format_conversion_pass.ConvertImage(dst, src, copies);
+}
+
 bool TextureCacheRuntime::CanImageBeCopied(const Image& dst, const Image& src) {
     if (dst.info.type == ImageType::e3D && dst.info.format == PixelFormat::BC4_UNORM) {
         return false;
@@ -538,7 +548,7 @@ void TextureCacheRuntime::EmulateCopyImage(Image& dst, Image& src,
         ASSERT(src.info.type == ImageType::e3D);
         util_shaders.CopyBC4(dst, src, copies);
     } else if (IsPixelFormatBGR(dst.info.format) || IsPixelFormatBGR(src.info.format)) {
-        bgr_copy_pass.CopyBGR(dst, src, copies);
+        format_conversion_pass.ConvertImage(dst, src, copies);
     } else {
         UNREACHABLE();
     }
@@ -1286,35 +1296,37 @@ Framebuffer::Framebuffer(TextureCacheRuntime& runtime, std::span<ImageView*, NUM
 
 Framebuffer::~Framebuffer() = default;
 
-void BGRCopyPass::CopyBGR(Image& dst_image, Image& src_image,
-                          std::span<const VideoCommon::ImageCopy> copies) {
-    static constexpr VideoCommon::Offset3D zero_offset{0, 0, 0};
+void FormatConversionPass::ConvertImage(Image& dst_image, Image& src_image,
+                                        std::span<const VideoCommon::ImageCopy> copies) {
+    const GLenum dst_target = ImageTarget(dst_image.info);
+    const GLenum src_target = ImageTarget(src_image.info);
     const u32 img_bpp = BytesPerBlock(src_image.info.format);
     for (const ImageCopy& copy : copies) {
-        ASSERT(copy.src_offset == zero_offset);
-        ASSERT(copy.dst_offset == zero_offset);
-        const u32 num_src_layers = static_cast<u32>(copy.src_subresource.num_layers);
-        const u32 copy_size = copy.extent.width * copy.extent.height * num_src_layers * img_bpp;
-        if (bgr_pbo_size < copy_size) {
-            bgr_pbo.Create();
-            bgr_pbo_size = copy_size;
-            glNamedBufferData(bgr_pbo.handle, bgr_pbo_size, nullptr, GL_STREAM_COPY);
+        const auto src_origin = MakeCopyOrigin(copy.src_offset, copy.src_subresource, src_target);
+        const auto dst_origin = MakeCopyOrigin(copy.dst_offset, copy.dst_subresource, dst_target);
+        const auto region = MakeCopyRegion(copy.extent, copy.dst_subresource, dst_target);
+        const u32 copy_size = region.width * region.height * region.depth * img_bpp;
+        if (pbo_size < copy_size) {
+            intermediate_pbo.Create();
+            pbo_size = NextPow2(copy_size);
+            glNamedBufferData(intermediate_pbo.handle, pbo_size, nullptr, GL_STREAM_COPY);
         }
         // Copy from source to PBO
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
         glPixelStorei(GL_PACK_ROW_LENGTH, copy.extent.width);
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, bgr_pbo.handle);
-        glGetTextureSubImage(src_image.Handle(), 0, 0, 0, 0, copy.extent.width, copy.extent.height,
-                             num_src_layers, src_image.GlFormat(), src_image.GlType(),
-                             static_cast<GLsizei>(bgr_pbo_size), nullptr);
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, intermediate_pbo.handle);
+        glGetTextureSubImage(src_image.Handle(), src_origin.level, src_origin.x, src_origin.y,
+                             src_origin.z, region.width, region.height, region.depth,
+                             src_image.GlFormat(), src_image.GlType(),
+                             static_cast<GLsizei>(pbo_size), nullptr);
 
         // Copy from PBO to destination in desired GL format
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         glPixelStorei(GL_UNPACK_ROW_LENGTH, copy.extent.width);
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, bgr_pbo.handle);
-        glTextureSubImage3D(dst_image.Handle(), 0, 0, 0, 0, copy.extent.width, copy.extent.height,
-                            copy.dst_subresource.num_layers, dst_image.GlFormat(),
-                            dst_image.GlType(), nullptr);
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, intermediate_pbo.handle);
+        glTextureSubImage3D(dst_image.Handle(), dst_origin.level, dst_origin.x, dst_origin.y,
+                            dst_origin.z, region.width, region.height, region.depth,
+                            dst_image.GlFormat(), dst_image.GlType(), nullptr);
     }
 }
 
