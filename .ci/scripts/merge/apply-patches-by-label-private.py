@@ -25,7 +25,7 @@ def check_individual(repo_id, pr_id):
 
 def merge_pr(pn, ref):
     print("Matched PR# %s" % pn)
-    print(subprocess.check_output(["git", "fetch", "https://%sdev.azure.com/%s/_git/%s" % (user, org, repo), ref, "-f"]))
+    print(subprocess.check_output(["git", "fetch", "https://%sdev.azure.com/%s/_git/%s" % (user, org, repo), ref, "-f", "--no-recurse-submodules"]))
     print(subprocess.check_output(["git", "merge", "--squash", 'origin/' + ref.replace('refs/heads/','')]))
     print(subprocess.check_output(["git", "commit", "-m\"Merge %s PR %s\"" % (tagline, pn)]))
 

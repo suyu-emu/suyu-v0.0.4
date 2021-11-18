@@ -25,7 +25,7 @@ def do_page(page):
             if (check_individual(pr["labels"])):
                 pn = pr["number"]
                 print("Matched PR# %s" % pn)
-                print(subprocess.check_output(["git", "fetch", "https://github.com/yuzu-emu/yuzu.git", "pull/%s/head:pr-%s" % (pn, pn), "-f"]))
+                print(subprocess.check_output(["git", "fetch", "https://github.com/yuzu-emu/yuzu.git", "pull/%s/head:pr-%s" % (pn, pn), "-f", "--no-recurse-submodules"]))
                 print(subprocess.check_output(["git", "merge", "--squash", "pr-%s" % pn]))
                 print(subprocess.check_output(["git", "commit", "-m\"Merge %s PR %s\"" % (tagline, pn)]))
 
