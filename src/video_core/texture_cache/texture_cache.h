@@ -475,6 +475,7 @@ void TextureCache<P>::BlitImage(const Tegra::Engines::Fermi2D::Surface& dst,
     const BlitImages images = GetBlitImages(dst, src);
     const ImageId dst_id = images.dst_id;
     const ImageId src_id = images.src_id;
+
     PrepareImage(src_id, false, false);
     PrepareImage(dst_id, true, false);
 
@@ -1094,12 +1095,8 @@ typename TextureCache<P>::BlitImages TextureCache<P>::GetBlitImages(
         if (GetFormatType(dst_info.format) != GetFormatType(src_info.format)) {
             continue;
         }
-        if (!dst_id) {
-            dst_id = InsertImage(dst_info, dst_addr, RelaxedOptions{});
-        }
-        if (!src_id) {
-            src_id = InsertImage(src_info, src_addr, RelaxedOptions{});
-        }
+        src_id = FindOrInsertImage(src_info, src_addr);
+        dst_id = FindOrInsertImage(dst_info, dst_addr);
     } while (has_deleted_images);
     return BlitImages{
         .dst_id = dst_id,
