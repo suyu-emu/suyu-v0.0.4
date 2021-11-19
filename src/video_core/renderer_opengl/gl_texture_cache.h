@@ -164,8 +164,8 @@ private:
 
     std::array<GLuint, Shader::NUM_TEXTURE_TYPES> null_image_views{};
 
-    std::array<OGLFramebuffer, 3> rescale_draw_fbos;
-    std::array<OGLFramebuffer, 3> rescale_read_fbos;
+    std::array<OGLFramebuffer, 4> rescale_draw_fbos;
+    std::array<OGLFramebuffer, 4> rescale_read_fbos;
     const Settings::ResolutionScalingInfo& resolution;
 };
 
