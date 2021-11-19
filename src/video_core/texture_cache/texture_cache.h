@@ -759,7 +759,8 @@ ImageId TextureCache<P>::FindImage(const ImageInfo& info, GPUVAddr gpu_addr,
             return ImageId{};
         }
     }
-    const bool broken_views = runtime.HasBrokenTextureViewFormats();
+    const bool broken_views =
+        runtime.HasBrokenTextureViewFormats() || True(options & RelaxedOptions::ForceBrokenViews);
     const bool native_bgr = runtime.HasNativeBgr();
     ImageId image_id;
     const auto lambda = [&](ImageId existing_image_id, ImageBase& existing_image) {
@@ -1096,7 +1097,12 @@ typename TextureCache<P>::BlitImages TextureCache<P>::GetBlitImages(
             continue;
         }
         src_id = FindOrInsertImage(src_info, src_addr);
-        dst_id = FindOrInsertImage(dst_info, dst_addr);
+        RelaxedOptions dst_options{};
+        if (src_info.num_samples > 1) {
+            // it's a resolve, we must enforce the same format.
+            dst_options = RelaxedOptions::ForceBrokenViews;
+        }
+        dst_id = FindOrInsertImage(dst_info, dst_addr, dst_options);
     } while (has_deleted_images);
     return BlitImages{
         .dst_id = dst_id,
