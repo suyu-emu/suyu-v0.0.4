@@ -887,6 +887,16 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
             return blit_image_helper.ConvertD24S8ToABGR8(dst, src_view, up_scale, down_shift);
         }
         break;
+    case PixelFormat::B10G11R11_FLOAT:
+        if (src_view.format == PixelFormat::S8_UINT_D24_UNORM) {
+            return blit_image_helper.ConvertD24S8ToB10G11R11(dst, src_view, up_scale, down_shift);
+        }
+        break;
+    case PixelFormat::R16G16_UNORM:
+        if (src_view.format == PixelFormat::S8_UINT_D24_UNORM) {
+            return blit_image_helper.ConvertD24S8ToR16G16(dst, src_view, up_scale, down_shift);
+        }
+        break;
     case PixelFormat::R32_FLOAT:
         if (src_view.format == PixelFormat::D32_FLOAT) {
             return blit_image_helper.ConvertD32ToR32(dst, src_view, up_scale, down_shift);

@@ -12,6 +12,8 @@ set(SHADER_FILES
     block_linear_unswizzle_3d.comp
     convert_abgr8_to_d24s8.frag
     convert_d24s8_to_abgr8.frag
+    convert_d24s8_to_b10g11r11.frag
+    convert_d24s8_to_r16g16.frag
     convert_depth_to_float.frag
     convert_float_to_depth.frag
     full_screen_triangle.vert
