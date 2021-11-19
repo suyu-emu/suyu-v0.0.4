@@ -881,6 +881,12 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
             return blit_image_helper.ConvertD16ToR16(dst, src_view, up_scale, down_shift);
         }
         break;
+    case PixelFormat::A8B8G8R8_UNORM:
+    case PixelFormat::B8G8R8A8_UNORM:
+        if (src_view.format == PixelFormat::S8_UINT_D24_UNORM) {
+            return blit_image_helper.ConvertD24S8ToABGR8(dst, src_view, up_scale, down_shift);
+        }
+        break;
     case PixelFormat::R32_FLOAT:
         if (src_view.format == PixelFormat::D32_FLOAT) {
             return blit_image_helper.ConvertD32ToR32(dst, src_view, up_scale, down_shift);
@@ -889,6 +895,12 @@ void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, Im
     case PixelFormat::D16_UNORM:
         if (src_view.format == PixelFormat::R16_UNORM) {
             return blit_image_helper.ConvertR16ToD16(dst, src_view, up_scale, down_shift);
+        }
+        break;
+    case PixelFormat::S8_UINT_D24_UNORM:
+        if (src_view.format == PixelFormat::A8B8G8R8_UNORM ||
+            src_view.format == PixelFormat::B8G8R8A8_UNORM) {
+            return blit_image_helper.ConvertABGR8ToD24S8(dst, src_view, up_scale, down_shift);
         }
         break;
     case PixelFormat::D32_FLOAT:
