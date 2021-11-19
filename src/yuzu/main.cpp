@@ -3117,14 +3117,14 @@ void GMainWindow::UpdateFilterText() {
 void GMainWindow::UpdateAAText() {
     const auto aa_mode = Settings::values.anti_aliasing.GetValue();
     switch (aa_mode) {
-    case Settings::AntiAliasing::Fxaa:
-        aa_status_button->setText(tr("FXAA"));
-        break;
     case Settings::AntiAliasing::None:
         aa_status_button->setText(tr("NO AA"));
         break;
-    default:
+    case Settings::AntiAliasing::Fxaa:
         aa_status_button->setText(tr("FXAA"));
+        break;
+    default:
+        aa_status_button->setText(tr("NO AA"));
         break;
     }
 }
