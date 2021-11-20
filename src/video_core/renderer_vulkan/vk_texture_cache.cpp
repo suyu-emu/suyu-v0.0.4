@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "common/bit_cast.h"
+#include "common/bit_util.h"
 #include "common/settings.h"
 
 #include "video_core/engines/fermi_2d.h"
@@ -775,16 +776,12 @@ bool TextureCacheRuntime::ShouldReinterpret(Image& dst, Image& src) {
     return false;
 }
 
-[[nodiscard]] size_t NextPow2(size_t value) {
-    return static_cast<size_t>(1ULL << ((8U * sizeof(size_t)) - std::countl_zero(value - 1U)));
-}
-
 VkBuffer TextureCacheRuntime::GetTemporaryBuffer(size_t needed_size) {
     const auto level = (8 * sizeof(size_t)) - std::countl_zero(needed_size - 1ULL);
     if (buffer_commits[level]) {
         return *buffers[level];
     }
-    const auto new_size = NextPow2(needed_size);
+    const auto new_size = Common::NextPow2(needed_size);
     VkBufferUsageFlags flags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
                                VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT |
                                VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
