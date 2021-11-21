@@ -779,6 +779,11 @@ bool TextureCacheRuntime::ShouldReinterpret(Image& dst, Image& src) {
         !device.IsExtShaderStencilExportSupported()) {
         return true;
     }
+    if (VideoCore::Surface::GetFormatType(src.info.format) ==
+            VideoCore::Surface::SurfaceType::DepthStencil &&
+        !device.IsExtShaderStencilExportSupported()) {
+        return true;
+    }
     if (dst.info.format == PixelFormat::D32_FLOAT_S8_UINT ||
         src.info.format == PixelFormat::D32_FLOAT_S8_UINT) {
         return true;
