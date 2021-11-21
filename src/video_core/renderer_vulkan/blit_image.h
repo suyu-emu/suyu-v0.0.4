@@ -80,9 +80,6 @@ private:
 
     void ConvertColorToDepthPipeline(vk::Pipeline& pipeline, VkRenderPass renderpass);
 
-    void ConvertPipelineEx(vk::Pipeline& pipeline, VkRenderPass renderpass,
-                           vk::ShaderModule& module, bool is_target_depth, bool single_texture);
-
     void ConvertPipelineColorTargetEx(vk::Pipeline& pipeline, VkRenderPass renderpass,
                                       vk::ShaderModule& module, bool single_texture);
 
