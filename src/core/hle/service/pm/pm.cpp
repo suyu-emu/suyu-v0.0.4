@@ -95,13 +95,13 @@ public:
 private:
     void GetProcessId(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
-        const auto title_id = rp.PopRaw<u64>();
+        const auto program_id = rp.PopRaw<u64>();
 
-        LOG_DEBUG(Service_PM, "called, title_id={:016X}", title_id);
+        LOG_DEBUG(Service_PM, "called, program_id={:016X}", program_id);
 
         const auto process =
-            SearchProcessList(kernel.GetProcessList(), [title_id](const auto& proc) {
-                return proc->GetProgramID() == title_id;
+            SearchProcessList(kernel.GetProcessList(), [program_id](const auto& proc) {
+                return proc->GetProgramID() == program_id;
             });
 
         if (!process.has_value()) {
@@ -128,13 +128,13 @@ public:
     explicit Info(Core::System& system_, const std::vector<Kernel::KProcess*>& process_list_)
         : ServiceFramework{system_, "pm:info"}, process_list{process_list_} {
         static const FunctionInfo functions[] = {
-            {0, &Info::GetTitleId, "GetTitleId"},
+            {0, &Info::GetProgramId, "GetProgramId"},
         };
         RegisterHandlers(functions);
     }
 
 private:
-    void GetTitleId(Kernel::HLERequestContext& ctx) {
+    void GetProgramId(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto process_id = rp.PopRaw<u64>();
 
