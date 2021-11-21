@@ -220,24 +220,6 @@ public:
         return "Unknown";
     }
 
-    bool IsYAxis(u8 index) {
-        if (!sdl_controller) {
-            return false;
-        }
-
-        const auto& binding_left_y =
-            SDL_GameControllerGetBindForAxis(sdl_controller.get(), SDL_CONTROLLER_AXIS_LEFTY);
-        const auto& binding_right_y =
-            SDL_GameControllerGetBindForAxis(sdl_controller.get(), SDL_CONTROLLER_AXIS_RIGHTY);
-        if (index == binding_left_y.value.axis) {
-            return true;
-        }
-        if (index == binding_right_y.value.axis) {
-            return true;
-        }
-        return false;
-    }
-
 private:
     std::string guid;
     int port;
@@ -376,11 +358,6 @@ void SDLDriver::HandleGameControllerEvent(const SDL_Event& event) {
     case SDL_JOYAXISMOTION: {
         if (const auto joystick = GetSDLJoystickBySDLID(event.jaxis.which)) {
             const PadIdentifier identifier = joystick->GetPadIdentifier();
-            // Vertical axis is inverted on nintendo compared to SDL
-            if (joystick->IsYAxis(event.jaxis.axis)) {
-                SetAxis(identifier, event.jaxis.axis, -event.jaxis.value / 32767.0f);
-                break;
-            }
             SetAxis(identifier, event.jaxis.axis, event.jaxis.value / 32767.0f);
         }
         break;
