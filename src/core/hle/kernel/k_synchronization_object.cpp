@@ -17,19 +17,10 @@ namespace Kernel {
 namespace {
 
 class ThreadQueueImplForKSynchronizationObjectWait final : public KThreadQueueWithoutEndWait {
-private:
-    using ThreadListNode = KSynchronizationObject::ThreadListNode;
-
-private:
-    KSynchronizationObject** m_objects;
-    ThreadListNode* m_nodes;
-    s32 m_count;
-
 public:
     ThreadQueueImplForKSynchronizationObjectWait(KernelCore& kernel_, KSynchronizationObject** o,
-                                                 ThreadListNode* n, s32 c)
-        : KThreadQueueWithoutEndWait(kernel_), m_objects(o), m_nodes(n), m_count(c) { // ...
-    }
+                                                 KSynchronizationObject::ThreadListNode* n, s32 c)
+        : KThreadQueueWithoutEndWait(kernel_), m_objects(o), m_nodes(n), m_count(c) {}
 
     virtual void NotifyAvailable(KThread* waiting_thread, KSynchronizationObject* signaled_object,
                                  ResultCode wait_result) override {
@@ -68,6 +59,11 @@ public:
         // Invoke the base cancel wait handler.
         KThreadQueue::CancelWait(waiting_thread, wait_result, cancel_timer_task);
     }
+
+private:
+    KSynchronizationObject** m_objects;
+    KSynchronizationObject::ThreadListNode* m_nodes;
+    s32 m_count;
 };
 
 } // namespace

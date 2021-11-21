@@ -87,9 +87,6 @@ bool UpdateIfEqual(Core::System& system, s32* out, VAddr address, s32 value, s32
 }
 
 class ThreadQueueImplForKAddressArbiter final : public KThreadQueue {
-private:
-    KAddressArbiter::ThreadTree* m_tree;
-
 public:
     explicit ThreadQueueImplForKAddressArbiter(KernelCore& kernel_, KAddressArbiter::ThreadTree* t)
         : KThreadQueue(kernel_), m_tree(t) {}
@@ -105,6 +102,9 @@ public:
         // Invoke the base cancel wait handler.
         KThreadQueue::CancelWait(waiting_thread, wait_result, cancel_timer_task);
     }
+
+private:
+    KAddressArbiter::ThreadTree* m_tree;
 };
 
 } // namespace

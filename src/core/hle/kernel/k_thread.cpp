@@ -68,13 +68,9 @@ public:
 };
 
 class ThreadQueueImplForKThreadSetProperty final : public KThreadQueue {
-private:
-    KThread::WaiterList* m_wait_list;
-
 public:
     explicit ThreadQueueImplForKThreadSetProperty(KernelCore& kernel_, KThread::WaiterList* wl)
-        : KThreadQueue(kernel_), m_wait_list(wl) { // ...
-    }
+        : KThreadQueue(kernel_), m_wait_list(wl) {}
 
     virtual void CancelWait(KThread* waiting_thread, ResultCode wait_result,
                             bool cancel_timer_task) override {
@@ -84,6 +80,9 @@ public:
         // Invoke the base cancel wait handler.
         KThreadQueue::CancelWait(waiting_thread, wait_result, cancel_timer_task);
     }
+
+private:
+    KThread::WaiterList* m_wait_list;
 };
 
 } // namespace

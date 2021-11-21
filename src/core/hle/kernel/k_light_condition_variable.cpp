@@ -13,10 +13,6 @@ namespace Kernel {
 namespace {
 
 class ThreadQueueImplForKLightConditionVariable final : public KThreadQueue {
-private:
-    KThread::WaiterList* m_wait_list;
-    bool m_allow_terminating_thread;
-
 public:
     ThreadQueueImplForKLightConditionVariable(KernelCore& kernel_, KThread::WaiterList* wl,
                                               bool term)
@@ -35,6 +31,10 @@ public:
         // Invoke the base cancel wait handler.
         KThreadQueue::CancelWait(waiting_thread, wait_result, cancel_timer_task);
     }
+
+private:
+    KThread::WaiterList* m_wait_list;
+    bool m_allow_terminating_thread;
 };
 
 } // namespace

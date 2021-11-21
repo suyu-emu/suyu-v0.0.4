@@ -12,7 +12,7 @@ namespace Kernel {
 class KThreadQueue {
 public:
     explicit KThreadQueue(KernelCore& kernel_) : kernel{kernel_} {}
-    virtual ~KThreadQueue(){};
+    virtual ~KThreadQueue() = default;
 
     virtual void NotifyAvailable(KThread* waiting_thread, KSynchronizationObject* signaled_object,
                                  ResultCode wait_result);

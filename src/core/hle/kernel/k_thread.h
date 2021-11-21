@@ -199,7 +199,7 @@ public:
         synced_index = index;
     }
 
-    constexpr s32 GetSyncedIndex() const {
+    [[nodiscard]] constexpr s32 GetSyncedIndex() const {
         return synced_index;
     }
 
@@ -207,7 +207,7 @@ public:
         wait_result = wait_res;
     }
 
-    constexpr ResultCode GetWaitResult() const {
+    [[nodiscard]] constexpr ResultCode GetWaitResult() const {
         return wait_result;
     }
 
