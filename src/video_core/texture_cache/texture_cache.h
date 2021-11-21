@@ -1847,7 +1847,18 @@ void TextureCache<P>::CopyImage(ImageId dst_id, ImageId src_id, std::vector<Imag
             .height = std::min(dst_view.size.height, src_view.size.height),
             .depth = std::min(dst_view.size.depth, src_view.size.depth),
         };
-        UNIMPLEMENTED_IF(copy.extent != expected_size);
+        const Extent3D scaled_extent = [is_rescaled, expected_size]() {
+            if (!is_rescaled) {
+                return expected_size;
+            }
+            const auto& resolution = Settings::values.resolution_info;
+            return Extent3D{
+                .width = resolution.ScaleUp(expected_size.width),
+                .height = resolution.ScaleUp(expected_size.height),
+                .depth = expected_size.depth,
+            };
+        }();
+        UNIMPLEMENTED_IF(copy.extent != scaled_extent);
 
         runtime.ConvertImage(dst_framebuffer, dst_view, src_view);
     }
