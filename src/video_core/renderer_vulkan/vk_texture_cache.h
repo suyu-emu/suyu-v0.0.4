@@ -139,6 +139,8 @@ public:
         return std::exchange(initialized, true);
     }
 
+    bool IsRescaled() const noexcept;
+
     bool ScaleUp(bool ignore = false);
 
     bool ScaleDown(bool ignore = false);
@@ -213,6 +215,8 @@ public:
         return buffer_size;
     }
 
+    [[nodiscard]] bool IsRescaled() const noexcept;
+
 private:
     struct StorageViews {
         std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> signeds;
@@ -222,6 +226,8 @@ private:
     [[nodiscard]] vk::ImageView MakeView(VkFormat vk_format, VkImageAspectFlags aspect_mask);
 
     const Device* device = nullptr;
+    const Image* src_image{};
+
     std::array<vk::ImageView, Shader::NUM_TEXTURE_TYPES> image_views;
     std::unique_ptr<StorageViews> storage_views;
     vk::ImageView depth_view;

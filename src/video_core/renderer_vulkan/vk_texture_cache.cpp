@@ -797,9 +797,9 @@ VkBuffer TextureCacheRuntime::GetTemporaryBuffer(size_t needed_size) {
         return *buffers[level];
     }
     const auto new_size = Common::NextPow2(needed_size);
-    VkBufferUsageFlags flags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
-                               VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT |
-                               VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
+    static constexpr VkBufferUsageFlags flags =
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+        VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
     buffers[level] = device.GetLogical().CreateBuffer({
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .pNext = nullptr,
@@ -1329,6 +1329,10 @@ void Image::DownloadMemory(const StagingBufferRef& map, std::span<const BufferIm
     }
 }
 
+bool Image::IsRescaled() const noexcept {
+    return True(flags & ImageFlagBits::Rescaled);
+}
+
 bool Image::ScaleUp(bool ignore) {
     if (True(flags & ImageFlagBits::Rescaled)) {
         return false;
@@ -1469,7 +1473,8 @@ bool Image::BlitScaleHelper(bool scale_up) {
 ImageView::ImageView(TextureCacheRuntime& runtime, const VideoCommon::ImageViewInfo& info,
                      ImageId image_id_, Image& image)
     : VideoCommon::ImageViewBase{info, image.info, image_id_}, device{&runtime.device},
-      image_handle{image.Handle()}, samples{ConvertSampleCount(image.info.num_samples)} {
+      src_image{&image}, image_handle{image.Handle()},
+      samples(ConvertSampleCount(image.info.num_samples)) {
     using Shader::TextureType;
 
     const VkImageAspectFlags aspect_mask = ImageViewAspectMask(info);
@@ -1605,6 +1610,13 @@ VkImageView ImageView::StorageView(Shader::TextureType texture_type,
     }
     view = MakeView(Format(image_format), VK_IMAGE_ASPECT_COLOR_BIT);
     return *view;
+}
+
+bool ImageView::IsRescaled() const noexcept {
+    if (!src_image) {
+        return false;
+    }
+    return src_image->IsRescaled();
 }
 
 vk::ImageView ImageView::MakeView(VkFormat vk_format, VkImageAspectFlags aspect_mask) {
