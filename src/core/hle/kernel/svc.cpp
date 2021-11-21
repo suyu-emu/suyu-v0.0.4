@@ -1169,6 +1169,8 @@ static u32 GetCurrentProcessorNumber32(Core::System& system) {
     return GetCurrentProcessorNumber(system);
 }
 
+namespace {
+
 constexpr bool IsValidSharedMemoryPermission(Svc::MemoryPermission perm) {
     switch (perm) {
     case Svc::MemoryPermission::Read:
@@ -1179,7 +1181,7 @@ constexpr bool IsValidSharedMemoryPermission(Svc::MemoryPermission perm) {
     }
 }
 
-constexpr bool IsValidRemoteSharedMemoryPermission(Svc::MemoryPermission perm) {
+[[maybe_unused]] constexpr bool IsValidRemoteSharedMemoryPermission(Svc::MemoryPermission perm) {
     return IsValidSharedMemoryPermission(perm) || perm == Svc::MemoryPermission::DontCare;
 }
 
@@ -1194,6 +1196,8 @@ constexpr bool IsValidProcessMemoryPermission(Svc::MemoryPermission perm) {
         return false;
     }
 }
+
+} // Anonymous namespace
 
 static ResultCode MapSharedMemory(Core::System& system, Handle shmem_handle, VAddr address,
                                   u64 size, Svc::MemoryPermission map_perm) {
@@ -1499,9 +1503,13 @@ static void ExitProcess32(Core::System& system) {
     ExitProcess(system);
 }
 
-static constexpr bool IsValidVirtualCoreId(int32_t core_id) {
+namespace {
+
+constexpr bool IsValidVirtualCoreId(int32_t core_id) {
     return (0 <= core_id && core_id < static_cast<int32_t>(Core::Hardware::NUM_CPU_CORES));
 }
+
+} // Anonymous namespace
 
 /// Creates a new thread
 static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr entry_point, u64 arg,
@@ -1886,7 +1894,9 @@ static ResultCode ResetSignal32(Core::System& system, Handle handle) {
     return ResetSignal(system, handle);
 }
 
-static constexpr bool IsValidTransferMemoryPermission(MemoryPermission perm) {
+namespace {
+
+constexpr bool IsValidTransferMemoryPermission(MemoryPermission perm) {
     switch (perm) {
     case MemoryPermission::None:
     case MemoryPermission::Read:
@@ -1896,6 +1906,8 @@ static constexpr bool IsValidTransferMemoryPermission(MemoryPermission perm) {
         return false;
     }
 }
+
+} // Anonymous namespace
 
 /// Creates a TransferMemory object
 static ResultCode CreateTransferMemory(Core::System& system, Handle* out, VAddr address, u64 size,
