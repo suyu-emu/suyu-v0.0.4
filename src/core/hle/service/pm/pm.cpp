@@ -134,6 +134,9 @@ public:
         : ServiceFramework{system_, "pm:info"}, process_list{process_list_} {
         static const FunctionInfo functions[] = {
             {0, &Info::GetProgramId, "GetProgramId"},
+            {65000, &Info::AtmosphereGetProcessId, "AtmosphereGetProcessId"},
+            {65001, nullptr, "AtmosphereHasLaunchedProgram"},
+            {65002, nullptr, "AtmosphereGetProcessInfo"},
         };
         RegisterHandlers(functions);
     }
@@ -158,6 +161,27 @@ private:
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(ResultSuccess);
         rb.Push((*process)->GetProgramID());
+    }
+
+    void AtmosphereGetProcessId(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto program_id = rp.PopRaw<u64>();
+
+        LOG_DEBUG(Service_PM, "called, program_id={:016X}", program_id);
+
+        const auto process = SearchProcessList(process_list, [program_id](const auto& proc) {
+            return proc->GetProgramID() == program_id;
+        });
+
+        if (!process.has_value()) {
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ResultProcessNotFound);
+            return;
+        }
+
+        IPC::ResponseBuilder rb{ctx, 4};
+        rb.Push(ResultSuccess);
+        rb.Push((*process)->GetProcessID());
     }
 
     const std::vector<Kernel::KProcess*>& process_list;
