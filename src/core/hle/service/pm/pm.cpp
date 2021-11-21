@@ -13,7 +13,12 @@ namespace Service::PM {
 
 namespace {
 
-constexpr ResultCode ERROR_PROCESS_NOT_FOUND{ErrorModule::PM, 1};
+constexpr ResultCode ResultProcessNotFound{ErrorModule::PM, 1};
+[[maybe_unused]] constexpr ResultCode ResultAlreadyStarted{ErrorModule::PM, 2};
+[[maybe_unused]] constexpr ResultCode ResultNotTerminated{ErrorModule::PM, 3};
+[[maybe_unused]] constexpr ResultCode ResultDebugHookInUse{ErrorModule::PM, 4};
+[[maybe_unused]] constexpr ResultCode ResultApplicationRunning{ErrorModule::PM, 5};
+[[maybe_unused]] constexpr ResultCode ResultInvalidSize{ErrorModule::PM, 6};
 
 constexpr u64 NO_PROCESS_FOUND_PID{0};
 
@@ -106,7 +111,7 @@ private:
 
         if (!process.has_value()) {
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ERROR_PROCESS_NOT_FOUND);
+            rb.Push(ResultProcessNotFound);
             return;
         }
 
@@ -146,7 +151,7 @@ private:
 
         if (!process.has_value()) {
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ERROR_PROCESS_NOT_FOUND);
+            rb.Push(ResultProcessNotFound);
             return;
         }
 
