@@ -475,6 +475,7 @@ void TextureCache<P>::BlitImage(const Tegra::Engines::Fermi2D::Surface& dst,
     const BlitImages images = GetBlitImages(dst, src);
     const ImageId dst_id = images.dst_id;
     const ImageId src_id = images.src_id;
+
     PrepareImage(src_id, false, false);
     PrepareImage(dst_id, true, false);
 
@@ -758,7 +759,8 @@ ImageId TextureCache<P>::FindImage(const ImageInfo& info, GPUVAddr gpu_addr,
             return ImageId{};
         }
     }
-    const bool broken_views = runtime.HasBrokenTextureViewFormats();
+    const bool broken_views =
+        runtime.HasBrokenTextureViewFormats() || True(options & RelaxedOptions::ForceBrokenViews);
     const bool native_bgr = runtime.HasNativeBgr();
     ImageId image_id;
     const auto lambda = [&](ImageId existing_image_id, ImageBase& existing_image) {
@@ -1094,12 +1096,13 @@ typename TextureCache<P>::BlitImages TextureCache<P>::GetBlitImages(
         if (GetFormatType(dst_info.format) != GetFormatType(src_info.format)) {
             continue;
         }
-        if (!dst_id) {
-            dst_id = InsertImage(dst_info, dst_addr, RelaxedOptions{});
+        RelaxedOptions find_options{};
+        if (src_info.num_samples > 1) {
+            // it's a resolve, we must enforce the same format.
+            find_options = RelaxedOptions::ForceBrokenViews;
         }
-        if (!src_id) {
-            src_id = InsertImage(src_info, src_addr, RelaxedOptions{});
-        }
+        src_id = FindOrInsertImage(src_info, src_addr, find_options);
+        dst_id = FindOrInsertImage(dst_info, dst_addr, find_options);
     } while (has_deleted_images);
     return BlitImages{
         .dst_id = dst_id,
@@ -1759,8 +1762,8 @@ void TextureCache<P>::CopyImage(ImageId dst_id, ImageId src_id, std::vector<Imag
     }
     UNIMPLEMENTED_IF(dst.info.type != ImageType::e2D);
     UNIMPLEMENTED_IF(src.info.type != ImageType::e2D);
-    if constexpr (HAS_PIXEL_FORMAT_CONVERSIONS) {
-        return runtime.ConvertImage(dst, src, copies);
+    if (runtime.ShouldReinterpret(dst, src)) {
+        return runtime.ReinterpretImage(dst, src, copies);
     }
     for (const ImageCopy& copy : copies) {
         UNIMPLEMENTED_IF(copy.dst_subresource.num_layers != 1);
