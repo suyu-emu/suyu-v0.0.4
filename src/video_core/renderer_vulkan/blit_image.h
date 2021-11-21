@@ -76,6 +76,8 @@ private:
 
     [[nodiscard]] VkPipeline FindOrEmplaceDepthStencilPipeline(const BlitImagePipelineKey& key);
 
+    void ConvertPipeline(vk::Pipeline& pipeline, VkRenderPass renderpass, bool is_target_depth);
+
     void ConvertDepthToColorPipeline(vk::Pipeline& pipeline, VkRenderPass renderpass);
 
     void ConvertColorToDepthPipeline(vk::Pipeline& pipeline, VkRenderPass renderpass);
