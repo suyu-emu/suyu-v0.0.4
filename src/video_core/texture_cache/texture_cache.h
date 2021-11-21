@@ -1849,7 +1849,7 @@ void TextureCache<P>::CopyImage(ImageId dst_id, ImageId src_id, std::vector<Imag
         };
         UNIMPLEMENTED_IF(copy.extent != expected_size);
 
-        runtime.ConvertImage(dst_framebuffer, dst_view, src_view, is_rescaled);
+        runtime.ConvertImage(dst_framebuffer, dst_view, src_view);
     }
 }
 

@@ -65,7 +65,7 @@ public:
 
     void ReinterpretImage(Image& dst, Image& src, std::span<const VideoCommon::ImageCopy> copies);
 
-    void ConvertImage(Framebuffer* dst, ImageView& dst_view, ImageView& src_view, bool rescaled);
+    void ConvertImage(Framebuffer* dst, ImageView& dst_view, ImageView& src_view);
 
     bool CanAccelerateImageUpload(Image&) const noexcept {
         return false;
@@ -191,6 +191,8 @@ public:
     [[nodiscard]] VkImageView StorageView(Shader::TextureType texture_type,
                                           Shader::ImageFormat image_format);
 
+    [[nodiscard]] bool IsRescaled() const noexcept;
+
     [[nodiscard]] VkImageView Handle(Shader::TextureType texture_type) const noexcept {
         return *image_views[static_cast<size_t>(texture_type)];
     }
@@ -214,8 +216,6 @@ public:
     [[nodiscard]] u32 BufferSize() const noexcept {
         return buffer_size;
     }
-
-    [[nodiscard]] bool IsRescaled() const noexcept;
 
 private:
     struct StorageViews {

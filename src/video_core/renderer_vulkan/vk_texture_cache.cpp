@@ -1057,37 +1057,33 @@ void TextureCacheRuntime::BlitImage(Framebuffer* dst_framebuffer, ImageView& dst
     });
 }
 
-void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, ImageView& src_view,
-                                       bool rescaled) {
-    const u32 up_scale = rescaled ? resolution.up_scale : 1;
-    const u32 down_shift = rescaled ? resolution.down_shift : 0;
+void TextureCacheRuntime::ConvertImage(Framebuffer* dst, ImageView& dst_view, ImageView& src_view) {
     switch (dst_view.format) {
     case PixelFormat::R16_UNORM:
         if (src_view.format == PixelFormat::D16_UNORM) {
-            return blit_image_helper.ConvertD16ToR16(dst, src_view, up_scale, down_shift);
+            return blit_image_helper.ConvertD16ToR16(dst, src_view);
         }
         break;
     case PixelFormat::A8B8G8R8_UNORM:
         if (src_view.format == PixelFormat::S8_UINT_D24_UNORM) {
-            return blit_image_helper.ConvertD24S8ToABGR8(dst, src_view, up_scale, down_shift);
+            return blit_image_helper.ConvertD24S8ToABGR8(dst, src_view);
         }
         break;
     case PixelFormat::R32_FLOAT:
         if (src_view.format == PixelFormat::D32_FLOAT) {
-            return blit_image_helper.ConvertD32ToR32(dst, src_view, up_scale, down_shift);
+            return blit_image_helper.ConvertD32ToR32(dst, src_view);
         }
         break;
     case PixelFormat::D16_UNORM:
         if (src_view.format == PixelFormat::R16_UNORM) {
-            return blit_image_helper.ConvertR16ToD16(dst, src_view, up_scale, down_shift);
+            return blit_image_helper.ConvertR16ToD16(dst, src_view);
         }
         break;
     case PixelFormat::S8_UINT_D24_UNORM:
-        return blit_image_helper.ConvertABGR8ToD24S8(dst, src_view, up_scale, down_shift);
-        break;
+        return blit_image_helper.ConvertABGR8ToD24S8(dst, src_view);
     case PixelFormat::D32_FLOAT:
         if (src_view.format == PixelFormat::R32_FLOAT) {
-            return blit_image_helper.ConvertR32ToD32(dst, src_view, up_scale, down_shift);
+            return blit_image_helper.ConvertR32ToD32(dst, src_view);
         }
         break;
     default:
