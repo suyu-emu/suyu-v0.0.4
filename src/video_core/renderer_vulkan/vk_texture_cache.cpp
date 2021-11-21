@@ -787,9 +787,9 @@ VkBuffer TextureCacheRuntime::GetTemporaryBuffer(size_t needed_size) {
         return *buffers[level];
     }
     const auto new_size = Common::NextPow2(needed_size);
-    VkBufferUsageFlags flags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
-                               VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT |
-                               VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
+    static constexpr VkBufferUsageFlags flags =
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+        VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
     buffers[level] = device.GetLogical().CreateBuffer({
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .pNext = nullptr,
