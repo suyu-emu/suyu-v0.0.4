@@ -80,11 +80,14 @@ private:
 
     void ConvertColorToDepthPipeline(vk::Pipeline& pipeline, VkRenderPass renderpass);
 
+    void ConvertPipelineEx(vk::Pipeline& pipeline, VkRenderPass renderpass,
+                           vk::ShaderModule& module, bool single_texture, bool is_target_depth);
+
     void ConvertPipelineColorTargetEx(vk::Pipeline& pipeline, VkRenderPass renderpass,
-                                      vk::ShaderModule& module, bool single_texture);
+                                      vk::ShaderModule& module);
 
     void ConvertPipelineDepthTargetEx(vk::Pipeline& pipeline, VkRenderPass renderpass,
-                                      vk::ShaderModule& module, bool single_texture);
+                                      vk::ShaderModule& module);
 
     const Device& device;
     VKScheduler& scheduler;
