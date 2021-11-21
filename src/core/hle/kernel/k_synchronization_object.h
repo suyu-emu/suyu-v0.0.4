@@ -35,18 +35,18 @@ public:
 
     [[nodiscard]] std::vector<KThread*> GetWaitingThreadsForDebugging() const;
 
-    void LinkNode(ThreadListNode* node) {
+    void LinkNode(ThreadListNode* node_) {
         // Link the node to the list.
         if (thread_list_tail == nullptr) {
-            thread_list_head = node;
+            thread_list_head = node_;
         } else {
-            thread_list_tail->next = node;
+            thread_list_tail->next = node_;
         }
 
-        thread_list_tail = node;
+        thread_list_tail = node_;
     }
 
-    void UnlinkNode(ThreadListNode* node) {
+    void UnlinkNode(ThreadListNode* node_) {
         // Unlink the node from the list.
         ThreadListNode* prev_ptr =
             reinterpret_cast<ThreadListNode*>(std::addressof(thread_list_head));
@@ -58,13 +58,13 @@ public:
             prev_ptr = prev_ptr->next;
             tail_prev = prev_val;
             prev_val = prev_ptr;
-        } while (prev_ptr != node);
+        } while (prev_ptr != node_);
 
-        if (thread_list_tail == node) {
+        if (thread_list_tail == node_) {
             thread_list_tail = tail_prev;
         }
 
-        prev->next = node->next;
+        prev->next = node_->next;
     }
 
 protected:
