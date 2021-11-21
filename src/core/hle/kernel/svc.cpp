@@ -1183,6 +1183,18 @@ constexpr bool IsValidRemoteSharedMemoryPermission(Svc::MemoryPermission perm) {
     return IsValidSharedMemoryPermission(perm) || perm == Svc::MemoryPermission::DontCare;
 }
 
+constexpr bool IsValidProcessMemoryPermission(Svc::MemoryPermission perm) {
+    switch (perm) {
+    case Svc::MemoryPermission::None:
+    case Svc::MemoryPermission::Read:
+    case Svc::MemoryPermission::ReadWrite:
+    case Svc::MemoryPermission::ReadExecute:
+        return true;
+    default:
+        return false;
+    }
+}
+
 static ResultCode MapSharedMemory(Core::System& system, Handle shmem_handle, VAddr address,
                                   u64 size, Svc::MemoryPermission map_perm) {
     LOG_TRACE(Kernel_SVC,
@@ -1260,6 +1272,34 @@ static ResultCode UnmapSharedMemory(Core::System& system, Handle shmem_handle, V
 static ResultCode UnmapSharedMemory32(Core::System& system, Handle shmem_handle, u32 address,
                                       u32 size) {
     return UnmapSharedMemory(system, shmem_handle, address, size);
+}
+
+static ResultCode SetProcessMemoryPermission(Core::System& system, Handle process_handle,
+                                             VAddr address, u64 size, Svc::MemoryPermission perm) {
+    LOG_TRACE(Kernel_SVC,
+              "called, process_handle=0x{:X}, addr=0x{:X}, size=0x{:X}, permissions=0x{:08X}",
+              process_handle, address, size, perm);
+
+    // Validate the address/size.
+    R_UNLESS(Common::IsAligned(address, PageSize), ResultInvalidAddress);
+    R_UNLESS(Common::IsAligned(size, PageSize), ResultInvalidSize);
+    R_UNLESS(size > 0, ResultInvalidSize);
+    R_UNLESS((address < address + size), ResultInvalidCurrentMemory);
+
+    // Validate the memory permission.
+    R_UNLESS(IsValidProcessMemoryPermission(perm), ResultInvalidNewMemoryPermission);
+
+    // Get the process from its handle.
+    KScopedAutoObject process =
+        system.CurrentProcess()->GetHandleTable().GetObject<KProcess>(process_handle);
+    R_UNLESS(process.IsNotNull(), ResultInvalidHandle);
+
+    // Validate that the address is in range.
+    auto& page_table = process->PageTable();
+    R_UNLESS(page_table.Contains(address, size), ResultInvalidCurrentMemory);
+
+    // Set the memory permission.
+    return page_table.SetProcessMemoryPermission(address, size, ConvertToKMemoryPermission(perm));
 }
 
 static ResultCode QueryProcessMemory(Core::System& system, VAddr memory_info_address,
@@ -2588,7 +2628,7 @@ static const FunctionDef SVC_Table_64[] = {
     {0x70, nullptr, "CreatePort"},
     {0x71, nullptr, "ManageNamedPort"},
     {0x72, nullptr, "ConnectToPort"},
-    {0x73, nullptr, "SetProcessMemoryPermission"},
+    {0x73, SvcWrap64<SetProcessMemoryPermission>, "SetProcessMemoryPermission"},
     {0x74, nullptr, "MapProcessMemory"},
     {0x75, nullptr, "UnmapProcessMemory"},
     {0x76, SvcWrap64<QueryProcessMemory>, "QueryProcessMemory"},
