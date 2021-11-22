@@ -41,6 +41,10 @@ enum class LoadCallbackStage;
 class RendererBase;
 } // namespace VideoCore
 
+namespace TasInput {
+enum class TasState;
+}
+
 class EmuThread final : public QThread {
     Q_OBJECT
 
@@ -203,6 +207,7 @@ signals:
     void ExecuteProgramSignal(std::size_t program_index);
     void ExitSignal();
     void MouseActivity();
+    void TasPlaybackStateChanged();
 
 private:
     void TouchBeginEvent(const QTouchEvent* event);
@@ -236,6 +241,7 @@ private:
     QWidget* child_widget = nullptr;
 
     bool first_frame = false;
+    TasInput::TasState last_tas_state;
 
     std::array<std::size_t, 16> touch_ids{};
 
