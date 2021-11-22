@@ -98,6 +98,9 @@ public:
             return;
 
         case Dynarmic::A64::InstructionCacheOperation::InvalidateAllToPoU:
+            parent.ClearInstructionCache();
+            return;
+
         case Dynarmic::A64::InstructionCacheOperation::InvalidateAllToPoUInnerSharable:
         default:
             LOG_DEBUG(Core_ARM, "Unprocesseed instruction cache operation");
