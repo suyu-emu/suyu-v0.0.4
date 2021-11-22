@@ -320,7 +320,7 @@ GRenderWindow::~GRenderWindow() {
 
 void GRenderWindow::OnFrameDisplayed() {
     input_subsystem->GetTas()->UpdateThread();
-    TasInput::TasState new_tas_state = std::get<0>(input_subsystem->GetTas()->GetStatus());
+    const TasInput::TasState new_tas_state = std::get<0>(input_subsystem->GetTas()->GetStatus());
 
     if (!first_frame) {
         last_tas_state = new_tas_state;

@@ -2831,7 +2831,7 @@ void GMainWindow::OnTasRecord() {
     if (!emulation_running) {
         return;
     }
-    bool is_recording = input_subsystem->GetTas()->Record();
+    const bool is_recording = input_subsystem->GetTas()->Record();
     if (!is_recording) {
         const auto res =
             QMessageBox::question(this, tr("TAS Recording"), tr("Overwrite file of player 1?"),
@@ -3042,7 +3042,7 @@ void GMainWindow::OnTasStateChanged() {
     bool is_running = false;
     bool is_recording = false;
     if (emulation_running) {
-        TasInput::TasState tas_status = std::get<0>(input_subsystem->GetTas()->GetStatus());
+        const TasInput::TasState tas_status = std::get<0>(input_subsystem->GetTas()->GetStatus());
         is_running = tas_status == TasInput::TasState::Running;
         is_recording = tas_status == TasInput::TasState::Recording;
     }
