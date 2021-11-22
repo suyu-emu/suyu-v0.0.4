@@ -2845,7 +2845,6 @@ void GMainWindow::OnTasReset() {
     input_subsystem->GetTas()->Reset();
 }
 
-
 void GMainWindow::OnConfigurePerGame() {
     const u64 title_id = system->GetCurrentProcessProgramID();
     OpenPerGameConfiguration(title_id, game_path.toStdString());
