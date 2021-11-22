@@ -88,22 +88,21 @@ public:
 
     void InstructionCacheOperationRaised(Dynarmic::A64::InstructionCacheOperation op,
                                          VAddr value) override {
-        constexpr u64 ICACHE_LINE_SIZE = 64;
-        u64 cache_line_start;
-
         switch (op) {
-        case Dynarmic::A64::InstructionCacheOperation::InvalidateByVAToPoU:
-            cache_line_start = value & ~(ICACHE_LINE_SIZE - 1);
-            parent.InvalidateCacheRange(cache_line_start, ICACHE_LINE_SIZE);
-            return;
+        case Dynarmic::A64::InstructionCacheOperation::InvalidateByVAToPoU: {
+            static constexpr u64 ICACHE_LINE_SIZE = 64;
 
+            const u64 cache_line_start = value & ~(ICACHE_LINE_SIZE - 1);
+            parent.InvalidateCacheRange(cache_line_start, ICACHE_LINE_SIZE);
+            break;
+        }
         case Dynarmic::A64::InstructionCacheOperation::InvalidateAllToPoU:
             parent.ClearInstructionCache();
-            return;
-
+            break;
         case Dynarmic::A64::InstructionCacheOperation::InvalidateAllToPoUInnerSharable:
         default:
-            LOG_DEBUG(Core_ARM, "Unprocesseed instruction cache operation");
+            LOG_DEBUG(Core_ARM, "Unprocesseed instruction cache operation: {}", op);
+            break;
         }
     }
 
