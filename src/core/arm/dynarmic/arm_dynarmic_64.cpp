@@ -86,6 +86,24 @@ public:
                   num_instructions, MemoryReadCode(pc));
     }
 
+    void InstructionCacheOperationRaised(Dynarmic::A64::InstructionCacheOperation op,
+                                         VAddr value) override {
+        constexpr u64 ICACHE_LINE_SIZE = 64;
+        u64 cache_line_start;
+
+        switch (op) {
+        case Dynarmic::A64::InstructionCacheOperation::InvalidateByVAToPoU:
+            cache_line_start = value & ~(ICACHE_LINE_SIZE - 1);
+            parent.InvalidateCacheRange(cache_line_start, ICACHE_LINE_SIZE);
+            return;
+
+        case Dynarmic::A64::InstructionCacheOperation::InvalidateAllToPoU:
+        case Dynarmic::A64::InstructionCacheOperation::InvalidateAllToPoUInnerSharable:
+        default:
+            LOG_DEBUG(Core_ARM, "Unprocesseed instruction cache operation");
+        }
+    }
+
     void ExceptionRaised(u64 pc, Dynarmic::A64::Exception exception) override {
         switch (exception) {
         case Dynarmic::A64::Exception::WaitForInterrupt:
