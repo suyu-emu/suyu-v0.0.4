@@ -33,14 +33,14 @@ class InputSubsystem;
 enum class MouseButton;
 } // namespace InputCommon
 
+namespace InputCommon::TasInput {
+enum class TasState;
+} // namespace InputCommon::TasInput
+
 namespace VideoCore {
 enum class LoadCallbackStage;
 class RendererBase;
 } // namespace VideoCore
-
-namespace TasInput {
-enum class TasState;
-}
 
 class EmuThread final : public QThread {
     Q_OBJECT
@@ -245,7 +245,7 @@ private:
     QWidget* child_widget = nullptr;
 
     bool first_frame = false;
-    TasInput::TasState last_tas_state;
+    InputCommon::TasInput::TasState last_tas_state;
 
     std::array<std::size_t, 16> touch_ids{};
 

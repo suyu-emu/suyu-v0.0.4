@@ -2992,9 +2992,10 @@ void GMainWindow::OnTasStateChanged() {
     bool is_running = false;
     bool is_recording = false;
     if (emulation_running) {
-        const TasInput::TasState tas_status = std::get<0>(input_subsystem->GetTas()->GetStatus());
-        is_running = tas_status == TasInput::TasState::Running;
-        is_recording = tas_status == TasInput::TasState::Recording;
+        const InputCommon::TasInput::TasState tas_status =
+            std::get<0>(input_subsystem->GetTas()->GetStatus());
+        is_running = tas_status == InputCommon::TasInput::TasState::Running;
+        is_recording = tas_status == InputCommon::TasInput::TasState::Recording;
     }
 
     ui->action_TAS_Start->setText(is_running ? tr("&Stop Running") : tr("&Start"));
