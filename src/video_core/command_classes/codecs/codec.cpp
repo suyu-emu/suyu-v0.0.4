@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cstdio>
 #include <fstream>
 #include <vector>
@@ -63,15 +64,16 @@ Codec::~Codec() {
 #ifdef LIBVA_FOUND
 // List all the currently loaded Linux modules
 static std::vector<std::string> ListLinuxKernelModules() {
+    using FILEPtr = std::unique_ptr<FILE, decltype(&std::fclose)>;
+    auto module_listing = FILEPtr{fopen("/proc/modules", "rt"), std::fclose};
     std::vector<std::string> modules{};
-    auto module_listing = fopen("/proc/modules", "rt");
-    char* buffer = nullptr;
-    size_t buf_len = 0;
     if (!module_listing) {
         LOG_WARNING(Service_NVDRV, "Could not open /proc/modules to collect available modules");
         return modules;
     }
-    while (getline(&buffer, &buf_len, module_listing) != -1) {
+    char* buffer = nullptr;
+    size_t buf_len = 0;
+    while (getline(&buffer, &buf_len, module_listing.get()) != -1) {
         // format for the module listing file (sysfs)
         // <name> <module_size> <depended_by_count> <depended_by_names> <status> <load_address>
         auto line = std::string(buffer);
@@ -80,12 +82,9 @@ static std::vector<std::string> ListLinuxKernelModules() {
         if (name_pos == std::string::npos) {
             continue;
         }
-        modules.push_back(line.erase(name_pos + 1));
+        modules.push_back(line.erase(name_pos));
     }
-    if (buffer) {
-        free(buffer);
-    }
-    fclose(module_listing);
+    free(buffer);
     return modules;
 }
 #endif
@@ -98,17 +97,12 @@ bool Codec::CreateGpuAvDevice() {
         "amdgpu",
     };
     AVDictionary* hwdevice_options = nullptr;
-    auto loaded_modules = ListLinuxKernelModules();
+    const auto loaded_modules = ListLinuxKernelModules();
     av_dict_set(&hwdevice_options, "connection_type", "drm", 0);
     for (const auto& driver : VAAPI_DRIVERS) {
-        bool found = false;
         // first check if the target driver is loaded in the kernel
-        for (const auto& module : loaded_modules) {
-            if (module == driver) {
-                found = true;
-                break;
-            }
-        }
+        bool found = std::any_of(loaded_modules.begin(), loaded_modules.end(),
+                                 [&driver](const auto& module) { return module == driver; });
         if (!found) {
             LOG_DEBUG(Service_NVDRV, "Kernel driver {} is not loaded, trying the next one", driver);
             continue;
