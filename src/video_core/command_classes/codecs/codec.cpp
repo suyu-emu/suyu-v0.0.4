@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <cstdio>
 #include <fstream>
 #include <vector>
 #include "common/assert.h"
@@ -59,6 +60,36 @@ Codec::~Codec() {
     av_buffer_unref(&av_gpu_decoder);
 }
 
+#ifdef LIBVA_FOUND
+// List all the currently loaded Linux modules
+static std::vector<std::string> ListLinuxKernelModules() {
+    std::vector<std::string> modules{};
+    auto module_listing = fopen("/proc/modules", "rt");
+    char* buffer = nullptr;
+    size_t buf_len = 0;
+    if (!module_listing) {
+        LOG_WARNING(Service_NVDRV, "Could not open /proc/modules to collect available modules");
+        return modules;
+    }
+    while (getline(&buffer, &buf_len, module_listing) != -1) {
+        // format for the module listing file (sysfs)
+        // <name> <module_size> <depended_by_count> <depended_by_names> <status> <load_address>
+        auto line = std::string(buffer);
+        // we are only interested in module names
+        auto name_pos = line.find_first_of(" ");
+        if (name_pos == std::string::npos) {
+            continue;
+        }
+        modules.push_back(line.erase(name_pos + 1));
+    }
+    if (buffer) {
+        free(buffer);
+    }
+    fclose(module_listing);
+    return modules;
+}
+#endif
+
 bool Codec::CreateGpuAvDevice() {
 #if defined(LIBVA_FOUND)
     static constexpr std::array<const char*, 3> VAAPI_DRIVERS = {
@@ -67,8 +98,21 @@ bool Codec::CreateGpuAvDevice() {
         "amdgpu",
     };
     AVDictionary* hwdevice_options = nullptr;
+    auto loaded_modules = ListLinuxKernelModules();
     av_dict_set(&hwdevice_options, "connection_type", "drm", 0);
     for (const auto& driver : VAAPI_DRIVERS) {
+        bool found = false;
+        // first check if the target driver is loaded in the kernel
+        for (const auto& module : loaded_modules) {
+            if (module == driver) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            LOG_DEBUG(Service_NVDRV, "Kernel driver {} is not loaded, trying the next one", driver);
+            continue;
+        }
         av_dict_set(&hwdevice_options, "kernel_driver", driver, 0);
         const int hwdevice_error = av_hwdevice_ctx_create(&av_gpu_decoder, AV_HWDEVICE_TYPE_VAAPI,
                                                           nullptr, hwdevice_options, 0);
@@ -85,11 +129,12 @@ bool Codec::CreateGpuAvDevice() {
 #endif
     static constexpr auto HW_CONFIG_METHOD = AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX;
     static constexpr std::array GPU_DECODER_TYPES{
+#ifdef linux
+        AV_HWDEVICE_TYPE_VDPAU,
+#endif
         AV_HWDEVICE_TYPE_CUDA,
 #ifdef _WIN32
         AV_HWDEVICE_TYPE_D3D11VA,
-#else
-        AV_HWDEVICE_TYPE_VDPAU,
 #endif
     };
     for (const auto& type : GPU_DECODER_TYPES) {
