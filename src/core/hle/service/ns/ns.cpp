@@ -12,6 +12,7 @@
 #include "core/hle/service/ns/errors.h"
 #include "core/hle/service/ns/language.h"
 #include "core/hle/service/ns/ns.h"
+#include "core/hle/service/ns/pdm_qry.h"
 #include "core/hle/service/ns/pl_u.h"
 #include "core/hle/service/set/set.h"
 
@@ -737,6 +738,8 @@ void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system
     std::make_shared<NS_DEV>(system)->InstallAsService(service_manager);
     std::make_shared<NS_SU>(system)->InstallAsService(service_manager);
     std::make_shared<NS_VM>(system)->InstallAsService(service_manager);
+
+    std::make_shared<PDM_QRY>(system)->InstallAsService(service_manager);
 
     std::make_shared<PL_U>(system)->InstallAsService(service_manager);
 }
