@@ -794,6 +794,10 @@ public:
 class KScopedDisableDispatch {
 public:
     [[nodiscard]] explicit KScopedDisableDispatch(KernelCore& kernel_) : kernel{kernel_} {
+        // If we are shutting down the kernel, none of this is relevant anymore.
+        if (kernel.IsShuttingDown()) {
+            return;
+        }
         GetCurrentThread(kernel).DisableDispatch();
     }
 

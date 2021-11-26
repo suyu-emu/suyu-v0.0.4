@@ -376,11 +376,21 @@ void KScheduler::ClearSchedulerUpdateNeeded(KernelCore& kernel) {
 }
 
 void KScheduler::DisableScheduling(KernelCore& kernel) {
+    // If we are shutting down the kernel, none of this is relevant anymore.
+    if (kernel.IsShuttingDown()) {
+        return;
+    }
+
     ASSERT(GetCurrentThreadPointer(kernel)->GetDisableDispatchCount() >= 0);
     GetCurrentThreadPointer(kernel)->DisableDispatch();
 }
 
 void KScheduler::EnableScheduling(KernelCore& kernel, u64 cores_needing_scheduling) {
+    // If we are shutting down the kernel, none of this is relevant anymore.
+    if (kernel.IsShuttingDown()) {
+        return;
+    }
+
     ASSERT(GetCurrentThreadPointer(kernel)->GetDisableDispatchCount() >= 1);
 
     if (GetCurrentThreadPointer(kernel)->GetDisableDispatchCount() > 1) {

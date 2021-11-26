@@ -1089,6 +1089,11 @@ s32 GetCurrentCoreId(KernelCore& kernel) {
 }
 
 KScopedDisableDispatch::~KScopedDisableDispatch() {
+    // If we are shutting down the kernel, none of this is relevant anymore.
+    if (kernel.IsShuttingDown()) {
+        return;
+    }
+
     if (GetCurrentThread(kernel).GetDisableDispatchCount() <= 1) {
         auto scheduler = kernel.CurrentScheduler();
 

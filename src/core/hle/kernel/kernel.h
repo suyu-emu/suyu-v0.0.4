@@ -274,6 +274,8 @@ public:
 
     bool IsMulticore() const;
 
+    bool IsShuttingDown() const;
+
     void EnterSVCProfile();
 
     void ExitSVCProfile();

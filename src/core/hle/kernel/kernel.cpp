@@ -14,6 +14,7 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/microprofile.h"
+#include "common/scope_exit.h"
 #include "common/thread.h"
 #include "common/thread_worker.h"
 #include "core/arm/arm_interface.h"
@@ -90,6 +91,9 @@ struct KernelCore::Impl {
     }
 
     void Shutdown() {
+        is_shutting_down.store(true, std::memory_order_relaxed);
+        SCOPE_EXIT({ is_shutting_down.store(false, std::memory_order_relaxed); });
+
         process_list.clear();
 
         // Close all open server ports.
@@ -338,7 +342,16 @@ struct KernelCore::Impl {
         is_phantom_mode_for_singlecore = value;
     }
 
+    bool IsShuttingDown() const {
+        return is_shutting_down.load(std::memory_order_relaxed);
+    }
+
     KThread* GetCurrentEmuThread() {
+        // If we are shutting down the kernel, none of this is relevant anymore.
+        if (IsShuttingDown()) {
+            return {};
+        }
+
         const auto thread_id = GetCurrentHostThreadID();
         if (thread_id >= Core::Hardware::NUM_CPU_CORES) {
             return GetHostDummyThread();
@@ -754,6 +767,7 @@ struct KernelCore::Impl {
     std::vector<std::unique_ptr<KThread>> dummy_threads;
 
     bool is_multicore{};
+    std::atomic_bool is_shutting_down{};
     bool is_phantom_mode_for_singlecore{};
     u32 single_core_thread_id{};
 
@@ -1064,6 +1078,10 @@ void KernelCore::Suspend(bool in_suspention) {
 
 bool KernelCore::IsMulticore() const {
     return impl->is_multicore;
+}
+
+bool KernelCore::IsShuttingDown() const {
+    return impl->IsShuttingDown();
 }
 
 void KernelCore::ExceptionalExit() {
