@@ -48,6 +48,7 @@ enum class ThreadType : u32 {
     Kernel = 1,
     HighPriority = 2,
     User = 3,
+    Dummy = 100, // Special thread type for emulation purposes only
 };
 DECLARE_ENUM_FLAG_OPERATORS(ThreadType);
 

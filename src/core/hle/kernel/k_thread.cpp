@@ -113,6 +113,8 @@ ResultCode KThread::Initialize(KThreadFunction func, uintptr_t arg, VAddr user_s
         [[fallthrough]];
     case ThreadType::HighPriority:
         [[fallthrough]];
+    case ThreadType::Dummy:
+        [[fallthrough]];
     case ThreadType::User:
         ASSERT(((owner == nullptr) ||
                 (owner->GetCoreMask() | (1ULL << virt_core)) == owner->GetCoreMask()));
@@ -248,7 +250,7 @@ ResultCode KThread::InitializeThread(KThread* thread, KThreadFunction func, uint
 }
 
 ResultCode KThread::InitializeDummyThread(KThread* thread) {
-    return thread->Initialize({}, {}, {}, DefaultThreadPriority, 3, {}, ThreadType::Main);
+    return thread->Initialize({}, {}, {}, DefaultThreadPriority, 3, {}, ThreadType::Dummy);
 }
 
 ResultCode KThread::InitializeIdleThread(Core::System& system, KThread* thread, s32 virt_core) {
