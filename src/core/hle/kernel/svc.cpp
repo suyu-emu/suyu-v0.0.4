@@ -308,11 +308,17 @@ static ResultCode ConnectToNamedPort32(Core::System& system, Handle* out_handle,
 
 /// Makes a blocking IPC call to an OS service.
 static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
-
     auto& kernel = system.Kernel();
 
     // Create the wait queue.
     KThreadQueue wait_queue(kernel);
+
+    // Get the client session from its handle.
+    KScopedAutoObject session =
+        kernel.CurrentProcess()->GetHandleTable().GetObject<KClientSession>(handle);
+    R_UNLESS(session.IsNotNull(), ResultInvalidHandle);
+
+    LOG_TRACE(Kernel_SVC, "called handle=0x{:08X}({})", handle, session->GetName());
 
     auto thread = kernel.CurrentScheduler()->GetCurrentThread();
     {
@@ -321,15 +327,7 @@ static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
         // This is a synchronous request, so we should wait for our request to complete.
         GetCurrentThread(kernel).BeginWait(std::addressof(wait_queue));
         GetCurrentThread(kernel).SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::IPC);
-
-        {
-            KScopedAutoObject session =
-                kernel.CurrentProcess()->GetHandleTable().GetObject<KClientSession>(handle);
-            R_UNLESS(session.IsNotNull(), ResultInvalidHandle);
-            LOG_TRACE(Kernel_SVC, "called handle=0x{:08X}({})", handle, session->GetName());
-            session->SendSyncRequest(&GetCurrentThread(kernel), system.Memory(),
-                                     system.CoreTiming());
-        }
+        session->SendSyncRequest(&GetCurrentThread(kernel), system.Memory(), system.CoreTiming());
     }
 
     return thread->GetWaitResult();
