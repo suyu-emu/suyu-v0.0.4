@@ -251,13 +251,11 @@ struct KernelCore::Impl {
                     KScopedSchedulerLock lock(kernel);
                     global_scheduler_context->PreemptThreads();
                 }
-                const auto time_interval = std::chrono::nanoseconds{
-                    Core::Timing::msToCycles(std::chrono::milliseconds(10))};
+                const auto time_interval = std::chrono::nanoseconds{std::chrono::milliseconds(10)};
                 system.CoreTiming().ScheduleEvent(time_interval, preemption_event);
             });
 
-        const auto time_interval =
-            std::chrono::nanoseconds{Core::Timing::msToCycles(std::chrono::milliseconds(10))};
+        const auto time_interval = std::chrono::nanoseconds{std::chrono::milliseconds(10)};
         system.CoreTiming().ScheduleEvent(time_interval, preemption_event);
     }
 
