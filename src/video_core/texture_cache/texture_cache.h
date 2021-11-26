@@ -1088,19 +1088,23 @@ typename TextureCache<P>::BlitImages TextureCache<P>::GetBlitImages(
     ImageId src_id;
     do {
         has_deleted_images = false;
-        dst_id = FindImage(dst_info, dst_addr, FIND_OPTIONS);
         src_id = FindImage(src_info, src_addr, FIND_OPTIONS);
-        const ImageBase* const dst_image = dst_id ? &slot_images[dst_id] : nullptr;
         const ImageBase* const src_image = src_id ? &slot_images[src_id] : nullptr;
-        DeduceBlitImages(dst_info, src_info, dst_image, src_image);
-        ASSERT(GetFormatType(dst_info.format) == GetFormatType(src_info.format));
-        RelaxedOptions find_options{};
-        if (src_info.num_samples > 1) {
-            // it's a resolve, we must enforce the same format.
-            find_options = RelaxedOptions::ForceBrokenViews;
+        if (src_image && src_image->info.num_samples > 1) {
+            RelaxedOptions find_options{FIND_OPTIONS | RelaxedOptions::ForceBrokenViews};
+            src_id = FindOrInsertImage(src_info, src_addr, find_options);
+            dst_id = FindOrInsertImage(dst_info, dst_addr, find_options);
+            if (has_deleted_images) {
+                continue;
+            }
         }
-        src_id = FindOrInsertImage(src_info, src_addr, find_options);
-        dst_id = FindOrInsertImage(dst_info, dst_addr, find_options);
+        dst_id = FindImage(dst_info, dst_addr, FIND_OPTIONS);
+        if (!src_id) {
+            src_id = InsertImage(src_info, src_addr, RelaxedOptions{});
+        }
+        if (!dst_id) {
+            dst_id = InsertImage(dst_info, dst_addr, RelaxedOptions{});
+        }
     } while (has_deleted_images);
     return BlitImages{
         .dst_id = dst_id,
