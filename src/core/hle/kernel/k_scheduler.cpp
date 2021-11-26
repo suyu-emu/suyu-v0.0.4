@@ -240,8 +240,8 @@ void KScheduler::OnThreadPriorityChanged(KernelCore& kernel, KThread* thread, s3
 
     // If the thread is runnable, we want to change its priority in the queue.
     if (thread->GetRawState() == ThreadState::Runnable) {
-        GetPriorityQueue(kernel).ChangePriority(
-            old_priority, thread == kernel.CurrentScheduler()->GetCurrentThread(), thread);
+        GetPriorityQueue(kernel).ChangePriority(old_priority,
+                                                thread == kernel.GetCurrentEmuThread(), thread);
         IncrementScheduledCount(thread);
         SetSchedulerUpdateNeeded(kernel);
     }
@@ -360,7 +360,7 @@ void KScheduler::RotateScheduledQueue(s32 cpu_core_id, s32 priority) {
 }
 
 bool KScheduler::CanSchedule(KernelCore& kernel) {
-    return kernel.CurrentScheduler()->GetCurrentThread()->GetDisableDispatchCount() <= 1;
+    return kernel.GetCurrentEmuThread()->GetDisableDispatchCount() <= 1;
 }
 
 bool KScheduler::IsSchedulerUpdateNeeded(const KernelCore& kernel) {
