@@ -30,20 +30,17 @@ class System;
 
 namespace InputCommon {
 class InputSubsystem;
-}
-
-namespace MouseInput {
 enum class MouseButton;
-}
+} // namespace InputCommon
+
+namespace InputCommon::TasInput {
+enum class TasState;
+} // namespace InputCommon::TasInput
 
 namespace VideoCore {
 enum class LoadCallbackStage;
 class RendererBase;
 } // namespace VideoCore
-
-namespace TasInput {
-enum class TasState;
-}
 
 class EmuThread final : public QThread {
     Q_OBJECT
@@ -161,15 +158,22 @@ public:
 
     void resizeEvent(QResizeEvent* event) override;
 
+    /// Converts a Qt keybard key into NativeKeyboard key
+    static int QtKeyToSwitchKey(Qt::Key qt_keys);
+
+    /// Converts a Qt modifier keys into NativeKeyboard modifier keys
+    static int QtModifierToSwitchModifier(Qt::KeyboardModifiers qt_modifiers);
+
     void keyPressEvent(QKeyEvent* event) override;
     void keyReleaseEvent(QKeyEvent* event) override;
 
     /// Converts a Qt mouse button into MouseInput mouse button
-    static MouseInput::MouseButton QtButtonToMouseButton(Qt::MouseButton button);
+    static InputCommon::MouseButton QtButtonToMouseButton(Qt::MouseButton button);
 
     void mousePressEvent(QMouseEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
+    void wheelEvent(QWheelEvent* event) override;
 
     bool event(QEvent* event) override;
 
@@ -214,7 +218,7 @@ private:
     void TouchUpdateEvent(const QTouchEvent* event);
     void TouchEndEvent();
 
-    bool TouchStart(const QTouchEvent::TouchPoint& touch_point);
+    void TouchStart(const QTouchEvent::TouchPoint& touch_point);
     bool TouchUpdate(const QTouchEvent::TouchPoint& touch_point);
     bool TouchExist(std::size_t id, const QList<QTouchEvent::TouchPoint>& touch_points) const;
 
@@ -241,7 +245,7 @@ private:
     QWidget* child_widget = nullptr;
 
     bool first_frame = false;
-    TasInput::TasState last_tas_state;
+    InputCommon::TasInput::TasState last_tas_state;
 
     std::array<std::size_t, 16> touch_ids{};
 

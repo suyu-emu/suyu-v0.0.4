@@ -5,16 +5,21 @@
 #pragma once
 
 #include <array>
-#include "common/bit_field.h"
+
 #include "common/common_types.h"
 #include "common/quaternion.h"
-#include "core/frontend/input.h"
+#include "core/hid/hid_types.h"
 #include "core/hle/service/hid/controllers/controller_base.h"
+#include "core/hle/service/hid/ring_lifo.h"
+
+namespace Core::HID {
+class EmulatedConsole;
+} // namespace Core::HID
 
 namespace Service::HID {
 class Controller_ConsoleSixAxis final : public ControllerBase {
 public:
-    explicit Controller_ConsoleSixAxis(Core::System& system_);
+    explicit Controller_ConsoleSixAxis(Core::HID::HIDCore& hid_core_);
     ~Controller_ConsoleSixAxis() override;
 
     // Called when the controller is initialized
@@ -26,9 +31,6 @@ public:
     // When the controller is requesting an update for the shared memory
     void OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* data, size_t size) override;
 
-    // Called when input devices should be loaded
-    void OnLoadInputDevices() override;
-
     // Called on InitializeSevenSixAxisSensor
     void SetTransferMemoryPointer(u8* t_mem);
 
@@ -38,43 +40,31 @@ public:
 private:
     struct SevenSixAxisState {
         INSERT_PADDING_WORDS(4); // unused
-        s64_le sampling_number{};
-        s64_le sampling_number2{};
+        s64 sampling_number{};
         u64 unknown{};
         Common::Vec3f accel{};
         Common::Vec3f gyro{};
         Common::Quaternion<f32> quaternion{};
     };
-    static_assert(sizeof(SevenSixAxisState) == 0x50, "SevenSixAxisState is an invalid size");
+    static_assert(sizeof(SevenSixAxisState) == 0x48, "SevenSixAxisState is an invalid size");
 
-    struct SevenSixAxisMemory {
-        CommonHeader header{};
-        std::array<SevenSixAxisState, 0x21> sevensixaxis_states{};
-    };
-    static_assert(sizeof(SevenSixAxisMemory) == 0xA70, "SevenSixAxisMemory is an invalid size");
-
+    // This is nn::hid::detail::ConsoleSixAxisSensorSharedMemoryFormat
     struct ConsoleSharedMemory {
-        u64_le sampling_number{};
+        u64 sampling_number{};
         bool is_seven_six_axis_sensor_at_rest{};
+        INSERT_PADDING_BYTES(4); // padding
         f32 verticalization_error{};
         Common::Vec3f gyro_bias{};
     };
     static_assert(sizeof(ConsoleSharedMemory) == 0x20, "ConsoleSharedMemory is an invalid size");
 
-    struct MotionDevice {
-        Common::Vec3f accel;
-        Common::Vec3f gyro;
-        Common::Vec3f rotation;
-        std::array<Common::Vec3f, 3> orientation;
-        Common::Quaternion<f32> quaternion;
-    };
+    Lifo<SevenSixAxisState, 0x21> seven_sixaxis_lifo{};
+    static_assert(sizeof(seven_sixaxis_lifo) == 0xA70, "SevenSixAxisState is an invalid size");
 
-    using MotionArray =
-        std::array<std::unique_ptr<Input::MotionDevice>, Settings::NativeMotion::NUM_MOTIONS_HID>;
-    MotionArray motions;
+    Core::HID::EmulatedConsole* console;
     u8* transfer_memory = nullptr;
     bool is_transfer_memory_set = false;
     ConsoleSharedMemory console_six_axis{};
-    SevenSixAxisMemory seven_six_axis{};
+    SevenSixAxisState next_seven_sixaxis_state{};
 };
 } // namespace Service::HID

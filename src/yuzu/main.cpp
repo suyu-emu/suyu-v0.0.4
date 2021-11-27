@@ -26,6 +26,8 @@
 #include "core/frontend/applets/controller.h"
 #include "core/frontend/applets/general_frontend.h"
 #include "core/frontend/applets/software_keyboard.h"
+#include "core/hid/emulated_controller.h"
+#include "core/hid/hid_core.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/applet_ae.h"
 #include "core/hle/service/am/applet_oe.h"
@@ -106,8 +108,8 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "core/loader/loader.h"
 #include "core/perf_stats.h"
 #include "core/telemetry_session.h"
+#include "input_common/drivers/tas_input.h"
 #include "input_common/main.h"
-#include "input_common/tas/tas_input.h"
 #include "ui_main.h"
 #include "util/overlay_dialog.h"
 #include "video_core/gpu.h"
@@ -226,6 +228,9 @@ GMainWindow::GMainWindow()
 
     ConnectMenuEvents();
     ConnectWidgetEvents();
+
+    system->HIDCore().ReloadInputDevices();
+    controller_dialog->refreshConfiguration();
 
     const auto branch_name = std::string(Common::g_scm_branch);
     const auto description = std::string(Common::g_scm_desc);
@@ -829,15 +834,16 @@ void GMainWindow::InitializeWidgets() {
     dock_status_button->setFocusPolicy(Qt::NoFocus);
     connect(dock_status_button, &QPushButton::clicked, [&] {
         const bool is_docked = Settings::values.use_docked_mode.GetValue();
-        auto& controller_type = Settings::values.players.GetValue()[0].controller_type;
+        auto* player_1 = system->HIDCore().GetEmulatedController(Core::HID::NpadIdType::Player1);
+        auto* handheld = system->HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
 
-        if (!is_docked && controller_type == Settings::ControllerType::Handheld) {
+        if (!is_docked && handheld->IsConnected()) {
             QMessageBox::warning(this, tr("Invalid config detected"),
                                  tr("Handheld controller can't be used on docked mode. Pro "
                                     "controller will be selected."));
-            controller_type = Settings::ControllerType::ProController;
-            ConfigureDialog configure_dialog(this, hotkey_registry, input_subsystem.get(), *system);
-            configure_dialog.ApplyConfiguration();
+            handheld->Disconnect();
+            player_1->SetNpadStyleIndex(Core::HID::NpadStyleIndex::ProController);
+            player_1->Connect();
             controller_dialog->refreshConfiguration();
         }
 
@@ -922,7 +928,7 @@ void GMainWindow::InitializeDebugWidgets() {
     waitTreeWidget->hide();
     debug_menu->addAction(waitTreeWidget->toggleViewAction());
 
-    controller_dialog = new ControllerDialog(this, input_subsystem.get());
+    controller_dialog = new ControllerDialog(system->HIDCore(), input_subsystem, this);
     controller_dialog->hide();
     debug_menu->addAction(controller_dialog->toggleViewAction());
 
@@ -1373,8 +1379,6 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
                                           : fmt::format("{:016X}", title_id);
         Config per_game_config(*system, config_file_name, Config::ConfigType::PerGameConfig);
     }
-
-    ConfigureVibration::SetAllVibrationDevices();
 
     // Disable fps limit toggle when booting a new title
     Settings::values.disable_fps_limit.SetValue(false);
@@ -2708,7 +2712,6 @@ void GMainWindow::OnConfigure() {
 
         ShowTelemetryCallout();
     }
-    controller_dialog->refreshConfiguration();
     InitializeHotkeys();
 
     if (UISettings::values.theme != old_theme) {
@@ -2741,6 +2744,7 @@ void GMainWindow::OnConfigure() {
     }
 
     UpdateStatusButtons();
+    controller_dialog->refreshConfiguration();
 }
 
 void GMainWindow::OnConfigureTas() {
@@ -2971,11 +2975,11 @@ void GMainWindow::UpdateWindowTitle(std::string_view title_name, std::string_vie
 QString GMainWindow::GetTasStateDescription() const {
     auto [tas_status, current_tas_frame, total_tas_frames] = input_subsystem->GetTas()->GetStatus();
     switch (tas_status) {
-    case TasInput::TasState::Running:
+    case InputCommon::TasInput::TasState::Running:
         return tr("TAS state: Running %1/%2").arg(current_tas_frame).arg(total_tas_frames);
-    case TasInput::TasState::Recording:
+    case InputCommon::TasInput::TasState::Recording:
         return tr("TAS state: Recording %1").arg(total_tas_frames);
-    case TasInput::TasState::Stopped:
+    case InputCommon::TasInput::TasState::Stopped:
         return tr("TAS state: Idle %1/%2").arg(current_tas_frame).arg(total_tas_frames);
     default:
         return tr("TAS State: Invalid");
@@ -2986,9 +2990,10 @@ void GMainWindow::OnTasStateChanged() {
     bool is_running = false;
     bool is_recording = false;
     if (emulation_running) {
-        const TasInput::TasState tas_status = std::get<0>(input_subsystem->GetTas()->GetStatus());
-        is_running = tas_status == TasInput::TasState::Running;
-        is_recording = tas_status == TasInput::TasState::Recording;
+        const InputCommon::TasInput::TasState tas_status =
+            std::get<0>(input_subsystem->GetTas()->GetStatus());
+        is_running = tas_status == InputCommon::TasInput::TasState::Running;
+        is_recording = tas_status == InputCommon::TasInput::TasState::Recording;
     }
 
     ui->action_TAS_Start->setText(is_running ? tr("&Stop Running") : tr("&Start"));
@@ -3371,6 +3376,8 @@ void GMainWindow::closeEvent(QCloseEvent* event) {
     UpdateUISettings();
     game_list->SaveInterfaceLayout();
     hotkey_registry.SaveHotkeys();
+    controller_dialog->UnloadController();
+    system->HIDCore().UnloadInputDevices();
 
     // Shutdown session if the emu thread is active...
     if (emu_thread != nullptr) {

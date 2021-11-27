@@ -82,7 +82,6 @@ ConfigureInputAdvanced::ConfigureInputAdvanced(QWidget* parent)
 
     connect(ui->debug_configure, &QPushButton::clicked, this,
             [this] { CallDebugControllerDialog(); });
-    connect(ui->mouse_advanced, &QPushButton::clicked, this, [this] { CallMouseConfigDialog(); });
     connect(ui->touchscreen_advanced, &QPushButton::clicked, this,
             [this] { CallTouchscreenConfigDialog(); });
     connect(ui->buttonMotionTouch, &QPushButton::clicked, this,
@@ -131,6 +130,7 @@ void ConfigureInputAdvanced::ApplyConfiguration() {
         static_cast<float>(ui->mouse_panning_sensitivity->value());
     Settings::values.touchscreen.enabled = ui->touchscreen_enabled->isChecked();
     Settings::values.enable_raw_input = ui->enable_raw_input->isChecked();
+    Settings::values.enable_udp_controller = ui->enable_udp_controller->isChecked();
 }
 
 void ConfigureInputAdvanced::LoadConfiguration() {
@@ -161,6 +161,7 @@ void ConfigureInputAdvanced::LoadConfiguration() {
     ui->mouse_panning_sensitivity->setValue(Settings::values.mouse_panning_sensitivity.GetValue());
     ui->touchscreen_enabled->setChecked(Settings::values.touchscreen.enabled);
     ui->enable_raw_input->setChecked(Settings::values.enable_raw_input.GetValue());
+    ui->enable_udp_controller->setChecked(Settings::values.enable_udp_controller.GetValue());
 
     UpdateUIEnabled();
 }
@@ -178,7 +179,8 @@ void ConfigureInputAdvanced::RetranslateUI() {
 }
 
 void ConfigureInputAdvanced::UpdateUIEnabled() {
-    ui->mouse_advanced->setEnabled(ui->mouse_enabled->isChecked());
     ui->debug_configure->setEnabled(ui->debug_enabled->isChecked());
     ui->touchscreen_advanced->setEnabled(ui->touchscreen_enabled->isChecked());
+    ui->mouse_panning->setEnabled(!ui->mouse_enabled->isChecked());
+    ui->mouse_panning_sensitivity->setEnabled(!ui->mouse_enabled->isChecked());
 }

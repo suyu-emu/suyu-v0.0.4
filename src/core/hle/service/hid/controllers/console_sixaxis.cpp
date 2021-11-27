@@ -4,13 +4,18 @@
 
 #include "common/settings.h"
 #include "core/core_timing.h"
+#include "core/hid/emulated_console.h"
+#include "core/hid/hid_core.h"
 #include "core/hle/service/hid/controllers/console_sixaxis.h"
 
 namespace Service::HID {
 constexpr std::size_t SHARED_MEMORY_OFFSET = 0x3C200;
 
-Controller_ConsoleSixAxis::Controller_ConsoleSixAxis(Core::System& system_)
-    : ControllerBase{system_} {}
+Controller_ConsoleSixAxis::Controller_ConsoleSixAxis(Core::HID::HIDCore& hid_core_)
+    : ControllerBase{hid_core_} {
+    console = hid_core.GetEmulatedConsole();
+}
+
 Controller_ConsoleSixAxis::~Controller_ConsoleSixAxis() = default;
 
 void Controller_ConsoleSixAxis::OnInit() {}
@@ -19,44 +24,31 @@ void Controller_ConsoleSixAxis::OnRelease() {}
 
 void Controller_ConsoleSixAxis::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* data,
                                          std::size_t size) {
-    seven_six_axis.header.timestamp = core_timing.GetCPUTicks();
-    seven_six_axis.header.total_entry_count = 17;
-
     if (!IsControllerActivated() || !is_transfer_memory_set) {
-        seven_six_axis.header.entry_count = 0;
-        seven_six_axis.header.last_entry_index = 0;
+        seven_sixaxis_lifo.buffer_count = 0;
+        seven_sixaxis_lifo.buffer_tail = 0;
         return;
     }
-    seven_six_axis.header.entry_count = 16;
 
-    const auto& last_entry =
-        seven_six_axis.sevensixaxis_states[seven_six_axis.header.last_entry_index];
-    seven_six_axis.header.last_entry_index = (seven_six_axis.header.last_entry_index + 1) % 17;
-    auto& cur_entry = seven_six_axis.sevensixaxis_states[seven_six_axis.header.last_entry_index];
-
-    cur_entry.sampling_number = last_entry.sampling_number + 1;
-    cur_entry.sampling_number2 = cur_entry.sampling_number;
+    const auto& last_entry = seven_sixaxis_lifo.ReadCurrentEntry().state;
+    next_seven_sixaxis_state.sampling_number = last_entry.sampling_number + 1;
 
     // Try to read sixaxis sensor states
-    MotionDevice motion_device{};
-    const auto& device = motions[0];
-    if (device) {
-        std::tie(motion_device.accel, motion_device.gyro, motion_device.rotation,
-                 motion_device.orientation, motion_device.quaternion) = device->GetStatus();
-        console_six_axis.is_seven_six_axis_sensor_at_rest = motion_device.gyro.Length2() < 0.0001f;
-    }
+    const auto motion_status = console->GetMotion();
 
-    cur_entry.accel = motion_device.accel;
+    console_six_axis.is_seven_six_axis_sensor_at_rest = motion_status.is_at_rest;
+
+    next_seven_sixaxis_state.accel = motion_status.accel;
     // Zero gyro values as they just mess up with the camera
     // Note: Probably a correct sensivity setting must be set
-    cur_entry.gyro = {};
-    cur_entry.quaternion = {
+    next_seven_sixaxis_state.gyro = {};
+    next_seven_sixaxis_state.quaternion = {
         {
-            motion_device.quaternion.xyz.y,
-            motion_device.quaternion.xyz.x,
-            -motion_device.quaternion.w,
+            motion_status.quaternion.xyz.y,
+            motion_status.quaternion.xyz.x,
+            -motion_status.quaternion.w,
         },
-        -motion_device.quaternion.xyz.z,
+        -motion_status.quaternion.xyz.z,
     };
 
     console_six_axis.sampling_number++;
@@ -67,14 +59,8 @@ void Controller_ConsoleSixAxis::OnUpdate(const Core::Timing::CoreTiming& core_ti
     // Update console six axis shared memory
     std::memcpy(data + SHARED_MEMORY_OFFSET, &console_six_axis, sizeof(console_six_axis));
     // Update seven six axis transfer memory
-    std::memcpy(transfer_memory, &seven_six_axis, sizeof(seven_six_axis));
-}
-
-void Controller_ConsoleSixAxis::OnLoadInputDevices() {
-    const auto player = Settings::values.players.GetValue()[0];
-    std::transform(player.motions.begin() + Settings::NativeMotion::MOTION_HID_BEGIN,
-                   player.motions.begin() + Settings::NativeMotion::MOTION_HID_END, motions.begin(),
-                   Input::CreateDevice<Input::MotionDevice>);
+    seven_sixaxis_lifo.WriteNextEntry(next_seven_sixaxis_state);
+    std::memcpy(transfer_memory, &seven_sixaxis_lifo, sizeof(seven_sixaxis_lifo));
 }
 
 void Controller_ConsoleSixAxis::SetTransferMemoryPointer(u8* t_mem) {
@@ -83,8 +69,7 @@ void Controller_ConsoleSixAxis::SetTransferMemoryPointer(u8* t_mem) {
 }
 
 void Controller_ConsoleSixAxis::ResetTimestamp() {
-    auto& cur_entry = seven_six_axis.sevensixaxis_states[seven_six_axis.header.last_entry_index];
-    cur_entry.sampling_number = 0;
-    cur_entry.sampling_number2 = 0;
+    seven_sixaxis_lifo.buffer_count = 0;
+    seven_sixaxis_lifo.buffer_tail = 0;
 }
 } // namespace Service::HID

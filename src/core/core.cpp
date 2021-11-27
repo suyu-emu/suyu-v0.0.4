@@ -27,6 +27,7 @@
 #include "core/file_sys/vfs_concat.h"
 #include "core/file_sys/vfs_real.h"
 #include "core/hardware_interrupt_manager.h"
+#include "core/hid/hid_core.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/kernel.h"
@@ -126,7 +127,7 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
 
 struct System::Impl {
     explicit Impl(System& system)
-        : kernel{system}, fs_controller{system}, memory{system},
+        : kernel{system}, fs_controller{system}, memory{system}, hid_core{},
           cpu_manager{system}, reporter{system}, applet_manager{system}, time_manager{system} {}
 
     SystemResultStatus Run() {
@@ -391,6 +392,7 @@ struct System::Impl {
     std::unique_ptr<Hardware::InterruptManager> interrupt_manager;
     std::unique_ptr<Core::DeviceMemory> device_memory;
     Core::Memory::Memory memory;
+    Core::HID::HIDCore hid_core;
     CpuManager cpu_manager;
     std::atomic_bool is_powered_on{};
     bool exit_lock = false;
@@ -615,6 +617,14 @@ const Kernel::KernelCore& System::Kernel() const {
     return impl->kernel;
 }
 
+HID::HIDCore& System::HIDCore() {
+    return impl->hid_core;
+}
+
+const HID::HIDCore& System::HIDCore() const {
+    return impl->hid_core;
+}
+
 Timing::CoreTiming& System::CoreTiming() {
     return impl->core_timing;
 }
@@ -825,8 +835,6 @@ void System::ApplySettings() {
     if (IsPoweredOn()) {
         Renderer().RefreshBaseSettings();
     }
-
-    Service::HID::ReloadInputDevices();
 }
 
 } // namespace Core
