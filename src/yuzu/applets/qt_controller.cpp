@@ -517,15 +517,11 @@ void QtControllerSelectorDialog::UpdateControllerState(std::size_t player_index)
 
     if (controller->GetNpadStyleIndex(true) == controller_type &&
         controller->IsConnected(true) == player_connected) {
-        // Set vibration devices in the event that the input device has changed.
-        ConfigureVibration::SetVibrationDevices(player_index);
         return;
     }
 
     // Disconnect the controller first.
     UpdateController(controller, controller_type, false);
-
-    ConfigureVibration::SetVibrationDevices(player_index);
 
     // Handheld
     if (player_index == 0) {
