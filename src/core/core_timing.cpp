@@ -46,7 +46,7 @@ void CoreTiming::ThreadEntry(CoreTiming& instance) {
     constexpr char name[] = "yuzu:HostTiming";
     MicroProfileOnThreadCreate(name);
     Common::SetCurrentThreadName(name);
-    Common::SetCurrentThreadPriority(Common::ThreadPriority::VeryHigh);
+    Common::SetCurrentThreadPriority(Common::ThreadPriority::Critical);
     instance.on_thread_init();
     instance.ThreadLoop();
     MicroProfileOnThreadExit();
