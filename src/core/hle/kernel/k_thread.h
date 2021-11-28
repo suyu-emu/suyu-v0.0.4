@@ -453,10 +453,6 @@ public:
         return per_core_priority_queue_entry[core];
     }
 
-    void SetSleepingQueue(KThreadQueue* q) {
-        sleeping_queue = q;
-    }
-
     [[nodiscard]] bool IsKernelThread() const {
         return GetActiveCore() == 3;
     }
@@ -604,7 +600,7 @@ public:
     }
 
     void ClearWaitQueue() {
-        sleeping_queue = nullptr;
+        wait_queue = nullptr;
     }
 
     void BeginWait(KThreadQueue* queue);
@@ -715,7 +711,7 @@ private:
     s64 schedule_count{};
     s64 last_scheduled_tick{};
     std::array<QueueEntry, Core::Hardware::NUM_CPU_CORES> per_core_priority_queue_entry{};
-    KThreadQueue* sleeping_queue{};
+    KThreadQueue* wait_queue{};
     WaiterList waiter_list{};
     WaiterList pinned_waiter_list{};
     KThread* lock_owner{};

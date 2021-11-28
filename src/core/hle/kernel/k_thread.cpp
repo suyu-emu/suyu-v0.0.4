@@ -161,7 +161,7 @@ ResultCode KThread::Initialize(KThreadFunction func, uintptr_t arg, VAddr user_s
     base_priority = prio;
 
     // Initialize sleeping queue.
-    sleeping_queue = nullptr;
+    wait_queue = nullptr;
 
     // Set suspend flags.
     suspend_request_flags = 0;
@@ -333,7 +333,7 @@ void KThread::OnTimer() {
 
     // If we're waiting, cancel the wait.
     if (GetState() == ThreadState::Waiting) {
-        sleeping_queue->CancelWait(this, ResultTimedOut, false);
+        wait_queue->CancelWait(this, ResultTimedOut, false);
     }
 }
 
@@ -570,7 +570,7 @@ ResultCode KThread::SetCoreMask(s32 core_id_, u64 v_affinity_mask) {
     }
 
     // Update the pinned waiter list.
-    ThreadQueueImplForKThreadSetProperty wait_queue(kernel, std::addressof(pinned_waiter_list));
+    ThreadQueueImplForKThreadSetProperty wait_queue_(kernel, std::addressof(pinned_waiter_list));
     {
         bool retry_update{};
         do {
@@ -605,7 +605,7 @@ ResultCode KThread::SetCoreMask(s32 core_id_, u64 v_affinity_mask) {
 
                     // Wait until the thread isn't pinned any more.
                     pinned_waiter_list.push_back(GetCurrentThread(kernel));
-                    GetCurrentThread(kernel).BeginWait(std::addressof(wait_queue));
+                    GetCurrentThread(kernel).BeginWait(std::addressof(wait_queue_));
                 } else {
                     // If the thread isn't pinned, release the scheduler lock and retry until it's
                     // not current.
@@ -663,7 +663,7 @@ void KThread::WaitCancel() {
     // Check if we're waiting and cancellable.
     if (this->GetState() == ThreadState::Waiting && cancellable) {
         wait_cancelled = false;
-        sleeping_queue->CancelWait(this, ResultCancelled, true);
+        wait_queue->CancelWait(this, ResultCancelled, true);
     } else {
         // Otherwise, note that we cancelled a wait.
         wait_cancelled = true;
@@ -1002,7 +1002,7 @@ ResultCode KThread::Sleep(s64 timeout) {
     ASSERT(this == GetCurrentThreadPointer(kernel));
     ASSERT(timeout > 0);
 
-    ThreadQueueImplForKThreadSleep wait_queue(kernel);
+    ThreadQueueImplForKThreadSleep wait_queue_(kernel);
     {
         // Setup the scheduling lock and sleep.
         KScopedSchedulerLockAndSleep slp(kernel, this, timeout);
@@ -1014,7 +1014,7 @@ ResultCode KThread::Sleep(s64 timeout) {
         }
 
         // Wait for the sleep to end.
-        this->BeginWait(std::addressof(wait_queue));
+        this->BeginWait(std::addressof(wait_queue_));
         SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::Sleep);
     }
 
@@ -1026,7 +1026,7 @@ void KThread::BeginWait(KThreadQueue* queue) {
     SetState(ThreadState::Waiting);
 
     // Set our wait queue.
-    sleeping_queue = queue;
+    wait_queue = queue;
 }
 
 void KThread::NotifyAvailable(KSynchronizationObject* signaled_object, ResultCode wait_result_) {
@@ -1035,7 +1035,7 @@ void KThread::NotifyAvailable(KSynchronizationObject* signaled_object, ResultCod
 
     // If we're waiting, notify our queue that we're available.
     if (GetState() == ThreadState::Waiting) {
-        sleeping_queue->NotifyAvailable(this, signaled_object, wait_result_);
+        wait_queue->NotifyAvailable(this, signaled_object, wait_result_);
     }
 }
 
@@ -1045,7 +1045,7 @@ void KThread::EndWait(ResultCode wait_result_) {
 
     // If we're waiting, notify our queue that we're available.
     if (GetState() == ThreadState::Waiting) {
-        sleeping_queue->EndWait(this, wait_result_);
+        wait_queue->EndWait(this, wait_result_);
     }
 }
 
@@ -1055,7 +1055,7 @@ void KThread::CancelWait(ResultCode wait_result_, bool cancel_timer_task) {
 
     // If we're waiting, notify our queue that we're available.
     if (GetState() == ThreadState::Waiting) {
-        sleeping_queue->CancelWait(this, wait_result_, cancel_timer_task);
+        wait_queue->CancelWait(this, wait_result_, cancel_timer_task);
     }
 }
 
