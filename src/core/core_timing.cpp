@@ -226,6 +226,7 @@ std::optional<s64> CoreTiming::Advance() {
         event_mutex.unlock();
 
         if (const auto event_type{evt.type.lock()}) {
+            std::unique_lock<std::mutex> lk(event_type->guard);
             event_type->callback(evt.user_data, std::chrono::nanoseconds{static_cast<s64>(
                                                     GetGlobalTimeNs().count() - evt.time)});
         }
