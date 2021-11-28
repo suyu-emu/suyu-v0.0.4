@@ -152,6 +152,8 @@ add_executable(yuzu
     main.ui
     uisettings.cpp
     uisettings.h
+    util/controller_navigation.cpp
+    util/controller_navigation.h
     util/limitable_input_dialog.cpp
     util/limitable_input_dialog.h
     util/overlay_dialog.cpp
