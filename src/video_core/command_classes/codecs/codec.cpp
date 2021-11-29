@@ -23,14 +23,17 @@ namespace Tegra {
 namespace {
 constexpr AVPixelFormat PREFERRED_GPU_FMT = AV_PIX_FMT_NV12;
 constexpr AVPixelFormat PREFERRED_CPU_FMT = AV_PIX_FMT_YUV420P;
-constexpr std::array PREFERRED_GPU_DECODERS = {AV_HWDEVICE_TYPE_CUDA,
+constexpr std::array PREFERRED_GPU_DECODERS = {
+    AV_HWDEVICE_TYPE_CUDA,
 #ifdef _WIN32
-                                               AV_HWDEVICE_TYPE_D3D11VA, AV_HWDEVICE_TYPE_DXVA2,
-#elif linux
-                                               AV_HWDEVICE_TYPE_VDPAU,
+    AV_HWDEVICE_TYPE_D3D11VA,
+    AV_HWDEVICE_TYPE_DXVA2,
+#elif defined(__linux__)
+    AV_HWDEVICE_TYPE_VDPAU,
 #endif
-                                               // last resort for Linux Flatpak (w/ NVIDIA)
-                                               AV_HWDEVICE_TYPE_VULKAN};
+    // last resort for Linux Flatpak (w/ NVIDIA)
+    AV_HWDEVICE_TYPE_VULKAN,
+};
 
 void AVPacketDeleter(AVPacket* ptr) {
     av_packet_free(&ptr);
@@ -72,12 +75,13 @@ Codec::~Codec() {
 // List all the currently available hwcontext in ffmpeg
 static std::vector<AVHWDeviceType> ListSupportedContexts() {
     std::vector<AVHWDeviceType> contexts{};
-    enum AVHWDeviceType current_device_type = AV_HWDEVICE_TYPE_NONE;
+    AVHWDeviceType current_device_type = AV_HWDEVICE_TYPE_NONE;
     do {
         current_device_type = av_hwdevice_iterate_types(current_device_type);
         // filter out VA-API since we will try that first if supported
-        if (current_device_type != AV_HWDEVICE_TYPE_VAAPI)
+        if (current_device_type != AV_HWDEVICE_TYPE_VAAPI) {
             contexts.push_back(current_device_type);
+        }
     } while (current_device_type != AV_HWDEVICE_TYPE_NONE);
     return contexts;
 }
