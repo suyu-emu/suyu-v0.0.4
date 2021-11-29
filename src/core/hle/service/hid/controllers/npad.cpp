@@ -635,7 +635,7 @@ void Controller_NPad::OnMotionUpdate(const Core::Timing::CoreTiming& core_timing
             // This buffer only is updated on handheld on HW
             npad.sixaxis_handheld_lifo.WriteNextEntry(sixaxis_handheld_state);
         } else {
-            // Hanheld doesn't update this buffer on HW
+            // Handheld doesn't update this buffer on HW
             npad.sixaxis_fullkey_lifo.WriteNextEntry(sixaxis_fullkey_state);
         }
 
