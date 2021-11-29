@@ -77,7 +77,7 @@ public:
      * Contains all input data related to external devices that aren't necesarily a controller
      * This includes devices such as the keyboard or mouse
      */
-    EmulatedDevices();
+    explicit EmulatedDevices();
     ~EmulatedDevices();
 
     YUZU_NON_COPYABLE(EmulatedDevices);

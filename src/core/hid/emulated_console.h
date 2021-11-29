@@ -80,7 +80,7 @@ public:
     /**
      * Contains all input data within the emulated switch console tablet such as touch and motion
      */
-    EmulatedConsole();
+    explicit EmulatedConsole();
     ~EmulatedConsole();
 
     YUZU_NON_COPYABLE(EmulatedConsole);
