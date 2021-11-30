@@ -139,7 +139,6 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
     DisableUnsupportedPlayers();
 
     for (std::size_t player_index = 0; player_index < NUM_PLAYERS; ++player_index) {
-        system.HIDCore().GetEmulatedControllerByIndex(player_index)->EnableConfiguration();
         SetEmulatedControllers(player_index);
     }
 
@@ -205,9 +204,6 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
     // If all the parameters are met AND only allows a single player,
     // stop the constructor here as we do not need to continue.
     if (CheckIfParametersMet() && parameters.enable_single_mode) {
-        for (std::size_t player_index = 0; player_index < NUM_PLAYERS; ++player_index) {
-            system.HIDCore().GetEmulatedControllerByIndex(player_index)->DisableConfiguration();
-        }
         return;
     }
 
@@ -221,7 +217,9 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
     resize(0, 0);
 }
 
-QtControllerSelectorDialog::~QtControllerSelectorDialog() = default;
+QtControllerSelectorDialog::~QtControllerSelectorDialog() {
+    system.HIDCore().DisableAllControllerConfiguration();
+}
 
 int QtControllerSelectorDialog::exec() {
     if (parameters_met && parameters.enable_single_mode) {
@@ -237,12 +235,11 @@ void QtControllerSelectorDialog::ApplyConfiguration() {
 
     Settings::values.vibration_enabled.SetValue(ui->vibrationGroup->isChecked());
     Settings::values.motion_enabled.SetValue(ui->motionGroup->isChecked());
-    for (std::size_t player_index = 0; player_index < NUM_PLAYERS; ++player_index) {
-        system.HIDCore().GetEmulatedControllerByIndex(player_index)->DisableConfiguration();
-    }
 }
 
 void QtControllerSelectorDialog::LoadConfiguration() {
+    system.HIDCore().EnableAllControllerConfiguration();
+
     const auto* handheld = system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
     for (std::size_t index = 0; index < NUM_PLAYERS; ++index) {
         const auto* controller = system.HIDCore().GetEmulatedControllerByIndex(index);
