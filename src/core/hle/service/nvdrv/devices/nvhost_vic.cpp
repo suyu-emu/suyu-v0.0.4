@@ -21,7 +21,7 @@ NvResult nvhost_vic::Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& i
     case 0x0:
         switch (command.cmd) {
         case 0x1:
-            return Submit(input, output);
+            return Submit(fd, input, output);
         case 0x2:
             return GetSyncpoint(input, output);
         case 0x3:
@@ -62,10 +62,15 @@ NvResult nvhost_vic::Ioctl3(DeviceFD fd, Ioctl command, const std::vector<u8>& i
     return NvResult::NotImplemented;
 }
 
-void nvhost_vic::OnOpen(DeviceFD fd) {}
+void nvhost_vic::OnOpen(DeviceFD fd) {
+    static u32 next_id{};
+    fd_to_id[fd] = next_id++;
+}
 
 void nvhost_vic::OnClose(DeviceFD fd) {
-    system.GPU().ClearCdmaInstance();
+    if (fd_to_id.find(fd) != fd_to_id.end()) {
+        system.GPU().ClearCdmaInstance(fd_to_id[fd]);
+    }
 }
 
 } // namespace Service::Nvidia::Devices
