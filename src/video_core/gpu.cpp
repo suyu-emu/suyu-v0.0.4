@@ -333,8 +333,8 @@ struct GPU::Impl {
             return;
         }
 
-        if (cdma_pushers.find(id) == cdma_pushers.end()) {
-            cdma_pushers[id] = std::make_unique<Tegra::CDmaPusher>(gpu);
+        if (!cdma_pushers.contains(id)) {
+            cdma_pushers.insert_or_assign(id, std::make_unique<Tegra::CDmaPusher>(gpu));
         }
 
         // SubmitCommandBuffer would make the nvdec operations async, this is not currently working
@@ -345,8 +345,9 @@ struct GPU::Impl {
 
     /// Frees the CDMAPusher instance to free up resources
     void ClearCdmaInstance(u32 id) {
-        if (cdma_pushers.find(id) != cdma_pushers.end()) {
-            cdma_pushers.erase(id);
+        const auto iter = cdma_pushers.find(id);
+        if (iter != cdma_pushers.end()) {
+            cdma_pushers.erase(iter);
         }
     }
 
