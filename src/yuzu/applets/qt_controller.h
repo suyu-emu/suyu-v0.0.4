@@ -7,7 +7,6 @@
 #include <array>
 #include <memory>
 #include <QDialog>
-#include "core/core.h"
 #include "core/frontend/applets/controller.h"
 
 class GMainWindow;
@@ -32,8 +31,9 @@ class System;
 }
 
 namespace Core::HID {
+class HIDCore;
 enum class NpadStyleIndex : u8;
-}
+} // namespace Core::HID
 
 class QtControllerSelectorDialog final : public QDialog {
     Q_OBJECT
