@@ -1,3 +1,7 @@
+// Copyright 2021 yuzu Emulator Project
+// Licensed under GPLv2 or any later version
+// Refer to the license.txt file included.
+
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/hle/kernel/k_client_port.h"
