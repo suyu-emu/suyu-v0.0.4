@@ -5,8 +5,8 @@
 #include <string_view>
 
 #include "shader_recompiler/backend/bindings.h"
-#include "shader_recompiler/backend/glasm/emit_context.h"
 #include "shader_recompiler/backend/glasm/emit_glasm.h"
+#include "shader_recompiler/backend/glasm/glasm_emit_context.h"
 #include "shader_recompiler/frontend/ir/program.h"
 #include "shader_recompiler/profile.h"
 #include "shader_recompiler/runtime_info.h"
