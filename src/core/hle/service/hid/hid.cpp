@@ -975,35 +975,35 @@ void Hid::SetNpadJoyAssignmentModeSingleByDefault(Kernel::HLERequestContext& ctx
     const auto parameters{rp.PopRaw<Parameters>()};
 
     applet_resource->GetController<Controller_NPad>(HidController::NPad)
-        .SetNpadMode(parameters.npad_id, Controller_NPad::NpadJoyAssignmentMode::Single);
+        .SetNpadMode(parameters.npad_id, Controller_NPad::NpadJoyDeviceType::Left,
+                     Controller_NPad::NpadJoyAssignmentMode::Single);
 
-    LOG_WARNING(Service_HID, "(STUBBED) called, npad_id={}, applet_resource_user_id={}",
-                parameters.npad_id, parameters.applet_resource_user_id);
+    LOG_INFO(Service_HID, "called, npad_id={}, applet_resource_user_id={}", parameters.npad_id,
+             parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
 }
 
 void Hid::SetNpadJoyAssignmentModeSingle(Kernel::HLERequestContext& ctx) {
-    // TODO: Check the differences between this and SetNpadJoyAssignmentModeSingleByDefault
     IPC::RequestParser rp{ctx};
     struct Parameters {
         Core::HID::NpadIdType npad_id;
         INSERT_PADDING_WORDS_NOINIT(1);
         u64 applet_resource_user_id;
-        u64 npad_joy_device_type;
+        Controller_NPad::NpadJoyDeviceType npad_joy_device_type;
     };
     static_assert(sizeof(Parameters) == 0x18, "Parameters has incorrect size.");
 
     const auto parameters{rp.PopRaw<Parameters>()};
 
     applet_resource->GetController<Controller_NPad>(HidController::NPad)
-        .SetNpadMode(parameters.npad_id, Controller_NPad::NpadJoyAssignmentMode::Single);
+        .SetNpadMode(parameters.npad_id, parameters.npad_joy_device_type,
+                     Controller_NPad::NpadJoyAssignmentMode::Single);
 
-    LOG_WARNING(Service_HID,
-                "(STUBBED) called, npad_id={}, applet_resource_user_id={}, npad_joy_device_type={}",
-                parameters.npad_id, parameters.applet_resource_user_id,
-                parameters.npad_joy_device_type);
+    LOG_INFO(Service_HID, "called, npad_id={}, applet_resource_user_id={}, npad_joy_device_type={}",
+             parameters.npad_id, parameters.applet_resource_user_id,
+             parameters.npad_joy_device_type);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -1021,10 +1021,10 @@ void Hid::SetNpadJoyAssignmentModeDual(Kernel::HLERequestContext& ctx) {
     const auto parameters{rp.PopRaw<Parameters>()};
 
     applet_resource->GetController<Controller_NPad>(HidController::NPad)
-        .SetNpadMode(parameters.npad_id, Controller_NPad::NpadJoyAssignmentMode::Dual);
+        .SetNpadMode(parameters.npad_id, {}, Controller_NPad::NpadJoyAssignmentMode::Dual);
 
-    LOG_WARNING(Service_HID, "(STUBBED) called, npad_id={}, applet_resource_user_id={}",
-                parameters.npad_id, parameters.applet_resource_user_id);
+    LOG_INFO(Service_HID, "called, npad_id={}, applet_resource_user_id={}", parameters.npad_id,
+             parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
