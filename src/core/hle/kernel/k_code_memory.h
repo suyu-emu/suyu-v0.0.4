@@ -22,15 +22,6 @@ class KCodeMemory final
     : public KAutoObjectWithSlabHeapAndContainer<KCodeMemory, KAutoObjectWithList> {
     KERNEL_AUTOOBJECT_TRAITS(KCodeMemory, KAutoObject);
 
-private:
-    KPageLinkedList m_page_group;
-    KProcess* m_owner;
-    VAddr m_address;
-    KLightLock m_lock;
-    bool m_is_initialized;
-    bool m_is_owner_mapped;
-    bool m_is_mapped;
-
 public:
     explicit KCodeMemory(KernelCore& kernel_);
 
@@ -56,5 +47,15 @@ public:
     size_t GetSize() const {
         return m_is_initialized ? m_page_group.GetNumPages() * PageSize : 0;
     }
+
+private:
+    KPageLinkedList m_page_group;
+    KProcess* m_owner;
+    VAddr m_address;
+    KLightLock m_lock;
+    bool m_is_initialized;
+    bool m_is_owner_mapped;
+    bool m_is_mapped;
 };
+
 } // namespace Kernel
