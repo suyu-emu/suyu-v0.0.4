@@ -293,8 +293,8 @@ Hid::Hid(Core::System& system_)
         {132, &Hid::EnableUnintendedHomeButtonInputProtection, "EnableUnintendedHomeButtonInputProtection"},
         {133, nullptr, "SetNpadJoyAssignmentModeSingleWithDestination"},
         {134, &Hid::SetNpadAnalogStickUseCenterClamp, "SetNpadAnalogStickUseCenterClamp"},
-        {135, nullptr, "SetNpadCaptureButtonAssignment"},
-        {136, nullptr, "ClearNpadCaptureButtonAssignment"},
+        {135, &Hid::SetNpadCaptureButtonAssignment, "SetNpadCaptureButtonAssignment"},
+        {136, &Hid::ClearNpadCaptureButtonAssignment, "ClearNpadCaptureButtonAssignment"},
         {200, &Hid::GetVibrationDeviceInfo, "GetVibrationDeviceInfo"},
         {201, &Hid::SendVibrationValue, "SendVibrationValue"},
         {202, &Hid::GetActualVibrationValue, "GetActualVibrationValue"},
@@ -1181,6 +1181,37 @@ void Hid::SetNpadAnalogStickUseCenterClamp(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_HID,
                 "(STUBBED) called, analog_stick_use_center_clamp={}, applet_resource_user_id={}",
                 parameters.analog_stick_use_center_clamp, parameters.applet_resource_user_id);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void Hid::SetNpadCaptureButtonAssignment(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    struct Parameters {
+        Core::HID::NpadStyleSet npad_styleset;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
+        Core::HID::NpadButton button;
+    };
+    static_assert(sizeof(Parameters) == 0x18, "Parameters has incorrect size.");
+
+    const auto parameters{rp.PopRaw<Parameters>()};
+
+    LOG_WARNING(Service_HID,
+                "(STUBBED) called, npad_styleset={}, applet_resource_user_id={}, button={}",
+                parameters.npad_styleset, parameters.applet_resource_user_id, parameters.button);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void Hid::ClearNpadCaptureButtonAssignment(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+
+    LOG_WARNING(Service_HID, "(STUBBED) called, applet_resource_user_id={}",
+                applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
