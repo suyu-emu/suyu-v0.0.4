@@ -16,10 +16,15 @@ class ThreadQueueImplForKLightLock final : public KThreadQueue {
 public:
     explicit ThreadQueueImplForKLightLock(KernelCore& kernel_) : KThreadQueue(kernel_) {}
 
-    virtual void CancelWait([[maybe_unused]] KThread* waiting_thread,
-                            [[maybe_unused]] ResultCode wait_result,
-                            [[maybe_unused]] bool cancel_timer_task) override {
-        // Do nothing, waiting to acquire a light lock cannot be canceled.
+    virtual void CancelWait(KThread* waiting_thread, ResultCode wait_result,
+                            bool cancel_timer_task) override {
+        // Remove the thread as a waiter from its owner.
+        if (KThread* owner = waiting_thread->GetLockOwner(); owner != nullptr) {
+            owner->RemoveWaiter(waiting_thread);
+        }
+
+        // Invoke the base cancel wait handler.
+        KThreadQueue::CancelWait(waiting_thread, wait_result, cancel_timer_task);
     }
 };
 
@@ -64,7 +69,7 @@ bool KLightLock::LockSlowPath(uintptr_t _owner, uintptr_t _cur_thread) {
         }
 
         // Add the current thread as a waiter on the owner.
-        KThread* owner_thread = reinterpret_cast<KThread*>(_owner & ~1ul);
+        KThread* owner_thread = reinterpret_cast<KThread*>(_owner & ~1ULL);
         cur_thread->SetAddressKey(reinterpret_cast<uintptr_t>(std::addressof(tag)));
         owner_thread->AddWaiter(cur_thread);
 
