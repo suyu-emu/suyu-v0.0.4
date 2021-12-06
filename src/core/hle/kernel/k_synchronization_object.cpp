@@ -22,8 +22,8 @@ public:
                                                  KSynchronizationObject::ThreadListNode* n, s32 c)
         : KThreadQueueWithoutEndWait(kernel_), m_objects(o), m_nodes(n), m_count(c) {}
 
-    virtual void NotifyAvailable(KThread* waiting_thread, KSynchronizationObject* signaled_object,
-                                 ResultCode wait_result) override {
+    void NotifyAvailable(KThread* waiting_thread, KSynchronizationObject* signaled_object,
+                         ResultCode wait_result) override {
         // Determine the sync index, and unlink all nodes.
         s32 sync_index = -1;
         for (auto i = 0; i < m_count; ++i) {
