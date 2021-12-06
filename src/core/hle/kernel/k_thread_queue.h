@@ -29,7 +29,7 @@ class KThreadQueueWithoutEndWait : public KThreadQueue {
 public:
     explicit KThreadQueueWithoutEndWait(KernelCore& kernel_) : KThreadQueue(kernel_) {}
 
-    virtual void EndWait(KThread* waiting_thread, ResultCode wait_result) override final;
+    void EndWait(KThread* waiting_thread, ResultCode wait_result) override final;
 };
 
 } // namespace Kernel
