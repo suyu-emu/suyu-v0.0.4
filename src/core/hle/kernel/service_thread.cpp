@@ -97,7 +97,13 @@ void ServiceThread::Impl::QueueSyncRequest(KSession& session,
     condition.notify_one();
 }
 
-ServiceThread::Impl::~Impl() = default;
+ServiceThread::Impl::~Impl() {
+    condition.notify_all();
+    for (auto& thread : threads) {
+        thread.request_stop();
+        thread.join();
+    }
+}
 
 ServiceThread::ServiceThread(KernelCore& kernel, std::size_t num_threads, const std::string& name)
     : impl{std::make_unique<Impl>(kernel, num_threads, name)} {}
