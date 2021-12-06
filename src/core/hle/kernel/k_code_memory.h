@@ -16,7 +16,12 @@
 
 namespace Kernel {
 
-enum class CodeMemoryOperation : u32 { Map = 0, MapToOwner = 1, Unmap = 2, UnmapFromOwner = 3, };
+enum class CodeMemoryOperation : u32 {
+    Map = 0,
+    MapToOwner = 1,
+    Unmap = 2,
+    UnmapFromOwner = 3,
+};
 
 class KCodeMemory final
     : public KAutoObjectWithSlabHeapAndContainer<KCodeMemory, KAutoObjectWithList> {
