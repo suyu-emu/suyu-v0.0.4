@@ -970,7 +970,6 @@ ResultCode KPageTable::UnlockForDeviceAddressSpace(VAddr addr, std::size_t size)
 }
 
 ResultCode KPageTable::LockForCodeMemory(VAddr addr, std::size_t size) {
-
     std::lock_guard lock{page_table_lock};
 
     KMemoryPermission new_perm = KMemoryPermission::NotMapped | KMemoryPermission::KernelReadWrite;
@@ -998,7 +997,6 @@ ResultCode KPageTable::LockForCodeMemory(VAddr addr, std::size_t size) {
 }
 
 ResultCode KPageTable::UnlockForCodeMemory(VAddr addr, std::size_t size) {
-
     std::lock_guard lock{page_table_lock};
 
     KMemoryPermission new_perm = KMemoryPermission::UserReadWrite;
@@ -1318,7 +1316,6 @@ ResultCode KPageTable::CheckMemoryState(size_t* out_blocks_needed, VAddr addr, s
                                         KMemoryState state_mask, KMemoryState state,
                                         KMemoryPermission perm_mask, KMemoryPermission perm,
                                         KMemoryAttribute attr_mask, KMemoryAttribute attr) const {
-
     // Get information about the first block.
     const VAddr last_addr = addr + size - 1;
     KMemoryBlockManager::const_iterator it{block_manager->FindIterator(addr)};
