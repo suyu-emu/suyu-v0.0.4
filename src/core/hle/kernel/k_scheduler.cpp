@@ -391,10 +391,12 @@ void KScheduler::EnableScheduling(KernelCore& kernel, u64 cores_needing_scheduli
         return;
     }
 
-    ASSERT(GetCurrentThreadPointer(kernel)->GetDisableDispatchCount() >= 1);
+    auto* current_thread = GetCurrentThreadPointer(kernel);
 
-    if (GetCurrentThreadPointer(kernel)->GetDisableDispatchCount() > 1) {
-        GetCurrentThreadPointer(kernel)->EnableDispatch();
+    ASSERT(current_thread->GetDisableDispatchCount() >= 1);
+
+    if (current_thread->GetDisableDispatchCount() > 1) {
+        current_thread->EnableDispatch();
     } else {
         RescheduleCores(kernel, cores_needing_scheduling);
     }
