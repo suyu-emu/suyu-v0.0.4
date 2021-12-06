@@ -11,8 +11,8 @@
 #include "core/hle/kernel/k_page_linked_list.h"
 #include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/k_process.h"
-#include "core/hle/kernel/svc_types.h"
 #include "core/hle/kernel/slab_helpers.h"
+#include "core/hle/kernel/svc_types.h"
 #include "core/hle/result.h"
 
 namespace Kernel {
