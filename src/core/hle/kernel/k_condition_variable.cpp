@@ -240,7 +240,7 @@ void KConditionVariable::SignalImpl(KThread* thread) {
 
 void KConditionVariable::Signal(u64 cv_key, s32 count) {
     // Perform signaling.
-    int num_waiters = 0;
+    s32 num_waiters{};
     {
         KScopedSchedulerLock sl(kernel);
 
@@ -257,7 +257,7 @@ void KConditionVariable::Signal(u64 cv_key, s32 count) {
 
         // If we have no waiters, clear the has waiter flag.
         if (it == thread_tree.end() || it->GetConditionVariableKey() != cv_key) {
-            const u32 has_waiter_flag = 0;
+            const u32 has_waiter_flag{};
             WriteToUser(system, cv_key, std::addressof(has_waiter_flag));
         }
     }
