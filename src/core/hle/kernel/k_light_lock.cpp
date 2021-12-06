@@ -16,8 +16,8 @@ class ThreadQueueImplForKLightLock final : public KThreadQueue {
 public:
     explicit ThreadQueueImplForKLightLock(KernelCore& kernel_) : KThreadQueue(kernel_) {}
 
-    virtual void CancelWait(KThread* waiting_thread, ResultCode wait_result,
-                            bool cancel_timer_task) override {
+    void CancelWait(KThread* waiting_thread, ResultCode wait_result,
+                    bool cancel_timer_task) override {
         // Remove the thread as a waiter from its owner.
         if (KThread* owner = waiting_thread->GetLockOwner(); owner != nullptr) {
             owner->RemoveWaiter(waiting_thread);

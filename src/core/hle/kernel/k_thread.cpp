@@ -72,8 +72,8 @@ public:
     explicit ThreadQueueImplForKThreadSetProperty(KernelCore& kernel_, KThread::WaiterList* wl)
         : KThreadQueue(kernel_), m_wait_list(wl) {}
 
-    virtual void CancelWait(KThread* waiting_thread, ResultCode wait_result,
-                            bool cancel_timer_task) override {
+    void CancelWait(KThread* waiting_thread, ResultCode wait_result,
+                    bool cancel_timer_task) override {
         // Remove the thread from the wait list.
         m_wait_list->erase(m_wait_list->iterator_to(*waiting_thread));
 

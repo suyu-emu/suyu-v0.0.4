@@ -46,8 +46,8 @@ public:
         KThreadQueue::EndWait(waiting_thread, wait_result);
     }
 
-    virtual void CancelWait(KThread* waiting_thread, ResultCode wait_result,
-                            bool cancel_timer_task) override {
+    void CancelWait(KThread* waiting_thread, ResultCode wait_result,
+                    bool cancel_timer_task) override {
         // Remove all nodes from our list.
         for (auto i = 0; i < m_count; ++i) {
             m_objects[i]->UnlinkNode(std::addressof(m_nodes[i]));

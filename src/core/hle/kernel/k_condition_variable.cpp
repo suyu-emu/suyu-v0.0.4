@@ -63,8 +63,8 @@ public:
     explicit ThreadQueueImplForKConditionVariableWaitForAddress(KernelCore& kernel_)
         : KThreadQueue(kernel_) {}
 
-    virtual void CancelWait(KThread* waiting_thread, ResultCode wait_result,
-                            bool cancel_timer_task) override {
+    void CancelWait(KThread* waiting_thread, ResultCode wait_result,
+                    bool cancel_timer_task) override {
         // Remove the thread as a waiter from its owner.
         waiting_thread->GetLockOwner()->RemoveWaiter(waiting_thread);
 
@@ -82,8 +82,8 @@ public:
         KernelCore& kernel_, KConditionVariable::ThreadTree* t)
         : KThreadQueue(kernel_), m_tree(t) {}
 
-    virtual void CancelWait(KThread* waiting_thread, ResultCode wait_result,
-                            bool cancel_timer_task) override {
+    void CancelWait(KThread* waiting_thread, ResultCode wait_result,
+                    bool cancel_timer_task) override {
         // Remove the thread as a waiter from its owner.
         if (KThread* owner = waiting_thread->GetLockOwner(); owner != nullptr) {
             owner->RemoveWaiter(waiting_thread);

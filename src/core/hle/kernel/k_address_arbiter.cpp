@@ -91,8 +91,8 @@ public:
     explicit ThreadQueueImplForKAddressArbiter(KernelCore& kernel_, KAddressArbiter::ThreadTree* t)
         : KThreadQueue(kernel_), m_tree(t) {}
 
-    virtual void CancelWait(KThread* waiting_thread, ResultCode wait_result,
-                            bool cancel_timer_task) override {
+    void CancelWait(KThread* waiting_thread, ResultCode wait_result,
+                    bool cancel_timer_task) override {
         // If the thread is waiting on an address arbiter, remove it from the tree.
         if (waiting_thread->IsWaitingForAddressArbiter()) {
             m_tree->erase(m_tree->iterator_to(*waiting_thread));
