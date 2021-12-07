@@ -46,7 +46,7 @@ public:
     KProcess* GetOwner() const {
         return m_owner;
     }
-    VAddr GetSourceAddress() {
+    VAddr GetSourceAddress() const {
         return m_address;
     }
     size_t GetSize() const {
