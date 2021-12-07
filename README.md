@@ -17,7 +17,7 @@ It is written in C++ with portability in mind, and we actively maintain builds f
             alt="Azure Mainline CI Build Status">
     </a>
     <a href="https://discord.com/invite/u77vRWY">
-        <img src="https://img.shields.io/discord/398318088170242053?color=%237289DA&label=yuzu&logo=discord&logoColor=white"
+        <img src="https://img.shields.io/discord/398318088170242053?color=5865F2&label=yuzu&logo=discord&logoColor=white"
             alt="Discord">
     </a>
 </p>
