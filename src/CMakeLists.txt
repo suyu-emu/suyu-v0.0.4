@@ -24,6 +24,7 @@ if (MSVC)
     # /W3                 - Level 3 warnings
     # /MP                 - Multi-threaded compilation
     # /Zi                 - Output debugging information
+    # /Zm                 - Specifies the precompiled header memory allocation limit
     # /Zo                 - Enhanced debug info for optimized builds
     # /permissive-        - Enables stricter C++ standards conformance checks
     # /EHsc               - C++-only exception handling semantics
@@ -36,6 +37,7 @@ if (MSVC)
     add_compile_options(
         /MP
         /Zi
+        /Zm200
         /Zo
         /permissive-
         /EHsc
