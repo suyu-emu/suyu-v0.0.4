@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "shader_recompiler/backend/bindings.h"
-#include "shader_recompiler/backend/glsl/emit_context.h"
+#include "shader_recompiler/backend/glsl/glsl_emit_context.h"
 #include "shader_recompiler/frontend/ir/program.h"
 #include "shader_recompiler/profile.h"
 #include "shader_recompiler/runtime_info.h"
