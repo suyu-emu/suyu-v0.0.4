@@ -54,13 +54,13 @@ public:
     }
 
 private:
-    KPageLinkedList m_page_group;
-    KProcess* m_owner;
-    VAddr m_address;
+    KPageLinkedList m_page_group{};
+    KProcess* m_owner{};
+    VAddr m_address{};
     KLightLock m_lock;
-    bool m_is_initialized;
-    bool m_is_owner_mapped;
-    bool m_is_mapped;
+    bool m_is_initialized{};
+    bool m_is_owner_mapped{};
+    bool m_is_mapped{};
 };
 
 } // namespace Kernel
