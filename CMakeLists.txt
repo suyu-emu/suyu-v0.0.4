@@ -514,7 +514,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 endif()
 if (NOT YUZU_USE_BUNDLED_FFMPEG)
     # Use system installed FFmpeg
-    find_package(FFmpeg QUIET COMPONENTS ${FFmpeg_COMPONENTS})
+    find_package(FFmpeg 4.3 QUIET COMPONENTS ${FFmpeg_COMPONENTS})
 
     if (FFmpeg_FOUND)
         # Overwrite aggregate defines from FFmpeg module to avoid over-linking libraries.
@@ -527,7 +527,7 @@ if (NOT YUZU_USE_BUNDLED_FFMPEG)
             set(FFmpeg_INCLUDE_DIR ${FFmpeg_INCLUDE_DIR} ${FFmpeg_INCLUDE_${COMPONENT}} CACHE PATH "Path to FFmpeg headers" FORCE)
         endforeach()
     else()
-        message(WARNING "FFmpeg not found, falling back to externals")
+        message(WARNING "FFmpeg not found or too old, falling back to externals")
         set(YUZU_USE_BUNDLED_FFMPEG ON)
     endif()
 endif()
@@ -615,7 +615,7 @@ if (YUZU_USE_BUNDLED_FFMPEG)
             set(FFmpeg_HWACCEL_FLAGS --disable-vaapi)
         endif()
 
-        if (FFNVCODEC_FOUND AND CUDA_FOUND)
+        if (FFNVCODEC_FOUND)
             list(APPEND FFmpeg_HWACCEL_FLAGS
                 --enable-cuvid
                 --enable-ffnvcodec
@@ -623,21 +623,20 @@ if (YUZU_USE_BUNDLED_FFMPEG)
                 --enable-hwaccel=h264_nvdec
                 --enable-hwaccel=vp8_nvdec
                 --enable-hwaccel=vp9_nvdec
-                --extra-cflags=-I${CUDA_INCLUDE_DIRS}
             )
-            list(APPEND FFmpeg_HWACCEL_LIBRARIES
-                ${FFNVCODEC_LIBRARIES}
-                ${CUDA_LIBRARIES}
-            )
-            list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS
-                ${FFNVCODEC_INCLUDE_DIRS}
-                ${CUDA_INCLUDE_DIRS}
-            )
-            list(APPEND FFmpeg_HWACCEL_LDFLAGS
-                ${FFNVCODEC_LDFLAGS}
-                ${CUDA_LDFLAGS}
-            )
+            list(APPEND FFmpeg_HWACCEL_LIBRARIES ${FFNVCODEC_LIBRARIES})
+            list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS ${FFNVCODEC_INCLUDE_DIRS})
+            list(APPEND FFmpeg_HWACCEL_LDFLAGS ${FFNVCODEC_LDFLAGS})
             message(STATUS "ffnvcodec libraries version ${FFNVCODEC_VERSION} found")
+            # ffnvenc could load CUDA libraries at the runtime using dlopen/dlsym or LoadLibrary/GetProcAddress
+            # here we handle the hard-linking senario where CUDA is linked during compilation
+            if (CUDA_FOUND)
+                list(APPEND FFmpeg_HWACCEL_FLAGS --extra-cflags=-I${CUDA_INCLUDE_DIRS})
+                list(APPEND FFmpeg_HWACCEL_LIBRARIES ${CUDA_LIBRARIES})
+                list(APPEND FFmpeg_HWACCEL_INCLUDE_DIRS ${CUDA_INCLUDE_DIRS})
+                list(APPEND FFmpeg_HWACCEL_LDFLAGS ${CUDA_LDFLAGS})
+                message(STATUS "CUDA libraries found, hard-linking will be performed")
+            endif(CUDA_FOUND)
         endif()
 
         if (VDPAU_FOUND)
