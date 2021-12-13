@@ -15,7 +15,7 @@
 
 namespace InputCommon::TasInput {
 
-enum TasAxes : u8 {
+enum class Tas::TasAxis : u8 {
     StickX,
     StickY,
     SubstickX,
@@ -205,10 +205,10 @@ void Tas::UpdateThread() {
                 const int button = static_cast<int>(i);
                 SetButton(identifier, button, button_status);
             }
-            SetAxis(identifier, TasAxes::StickX, command.l_axis.x);
-            SetAxis(identifier, TasAxes::StickY, command.l_axis.y);
-            SetAxis(identifier, TasAxes::SubstickX, command.r_axis.x);
-            SetAxis(identifier, TasAxes::SubstickY, command.r_axis.y);
+            SetTasAxis(identifier, TasAxis::StickX, command.l_axis.x);
+            SetTasAxis(identifier, TasAxis::StickY, command.l_axis.y);
+            SetTasAxis(identifier, TasAxis::SubstickX, command.r_axis.x);
+            SetTasAxis(identifier, TasAxis::SubstickY, command.r_axis.y);
         }
     } else {
         is_running = Settings::values.tas_loop.GetValue();
@@ -265,6 +265,10 @@ std::string Tas::WriteCommandButtons(u64 buttons) const {
 
 std::string Tas::WriteCommandAxis(TasAnalog analog) const {
     return fmt::format("{};{}", analog.x * 32767, analog.y * 32767);
+}
+
+void Tas::SetTasAxis(const PadIdentifier& identifier, TasAxis axis, f32 value) {
+    SetAxis(identifier, static_cast<int>(axis), value);
 }
 
 void Tas::StartStop() {

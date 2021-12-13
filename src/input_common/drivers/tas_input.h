@@ -128,6 +128,8 @@ public:
     std::tuple<TasState, size_t, size_t> GetStatus() const;
 
 private:
+    enum class TasAxis : u8;
+
     struct TASCommand {
         u64 buttons{};
         TasAnalog l_axis{};
@@ -181,6 +183,9 @@ private:
      * @return A string with the value of the axis to be written to the file
      */
     std::string WriteCommandAxis(TasAnalog data) const;
+
+    /// Sets an axis for a particular pad to the given value.
+    void SetTasAxis(const PadIdentifier& identifier, TasAxis axis, f32 value);
 
     size_t script_length{0};
     bool is_recording{false};
