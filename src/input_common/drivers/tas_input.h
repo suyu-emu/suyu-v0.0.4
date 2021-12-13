@@ -5,11 +5,11 @@
 #pragma once
 
 #include <array>
+#include <string>
+#include <vector>
 
 #include "common/common_types.h"
-#include "common/settings_input.h"
 #include "input_common/input_engine.h"
-#include "input_common/main.h"
 
 /*
 To play back TAS scripts on Yuzu, select the folder with scripts in the configuration menu below
