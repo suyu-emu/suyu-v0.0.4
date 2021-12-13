@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 #include <cstring>
-#include <regex>
 #include <fmt/format.h>
 
 #include "common/fs/file.h"
@@ -93,7 +92,6 @@ void Tas::LoadTasFile(size_t player_index, size_t file_index) {
         if (line.empty()) {
             continue;
         }
-        std::smatch m;
 
         std::stringstream linestream(line);
         std::string segment;
