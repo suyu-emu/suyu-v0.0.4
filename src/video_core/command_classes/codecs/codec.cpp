@@ -257,9 +257,6 @@ void Codec::Decode() {
         final_frame->format = PREFERRED_GPU_FMT;
         const int ret = av_hwframe_transfer_data(final_frame.get(), initial_frame.get(), 0);
         ASSERT_MSG(!ret, "av_hwframe_transfer_data error {}", ret);
-        // null the hw frame context to prevent the buffer from being deleted
-        // and leaving a dangling reference in the av_codec_ctx
-        initial_frame->hw_frames_ctx = nullptr;
     } else {
         final_frame = std::move(initial_frame);
     }

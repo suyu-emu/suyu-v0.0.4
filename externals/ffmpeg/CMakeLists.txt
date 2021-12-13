@@ -17,7 +17,7 @@ if (NOT WIN32)
     endif()
 
     set(FFmpeg_PREFIX ${PROJECT_SOURCE_DIR}/externals/ffmpeg/ffmpeg)
-    set(FFmpeg_BUILD_DIR ${PROJECT_BINARY_DIR}/externals/ffmpeg)
+    set(FFmpeg_BUILD_DIR ${PROJECT_BINARY_DIR}/externals/ffmpeg-build)
     set(FFmpeg_MAKEFILE ${FFmpeg_BUILD_DIR}/Makefile)
     make_directory(${FFmpeg_BUILD_DIR})
 
