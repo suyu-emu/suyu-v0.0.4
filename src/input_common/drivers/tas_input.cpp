@@ -244,7 +244,7 @@ u64 Tas::ReadCommandButtons(const std::string& line) const {
     std::string button_line;
     u64 buttons = 0;
     while (std::getline(button_text, button_line, ';')) {
-        for (auto [text, tas_button] : text_to_tas_button) {
+        for (const auto& [text, tas_button] : text_to_tas_button) {
             if (text == button_line) {
                 buttons |= static_cast<u64>(tas_button);
                 break;
@@ -256,7 +256,7 @@ u64 Tas::ReadCommandButtons(const std::string& line) const {
 
 std::string Tas::WriteCommandButtons(u64 buttons) const {
     std::string returns;
-    for (auto [text_button, tas_button] : text_to_tas_button) {
+    for (const auto& [text_button, tas_button] : text_to_tas_button) {
         if ((buttons & static_cast<u64>(tas_button)) != 0) {
             returns += fmt::format("{};", text_button);
         }
