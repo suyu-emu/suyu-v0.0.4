@@ -403,10 +403,11 @@ SDLDriver::SDLDriver(const std::string& input_engine_) : InputEngine(input_engin
 
     // Use hidapi driver for joycons. This will allow joycons to be detected as a GameController and
     // not a generic one
-    SDL_SetHint("SDL_JOYSTICK_HIDAPI_JOY_CONS", "1");
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS, "1");
 
-    // Turn off Pro controller home led
-    SDL_SetHint("SDL_JOYSTICK_HIDAPI_SWITCH_HOME_LED", "0");
+    // Disable hidapi driver for xbox. Already default on Windows, this causes conflict with native
+    // driver on Linux.
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_XBOX, "0");
 
     // If the frontend is going to manage the event loop, then we don't start one here
     start_thread = SDL_WasInit(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) == 0;
