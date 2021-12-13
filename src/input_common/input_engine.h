@@ -102,9 +102,7 @@ struct InputIdentifier {
 
 class InputEngine {
 public:
-    explicit InputEngine(const std::string& input_engine_) : input_engine(input_engine_) {
-        callback_list.clear();
-    }
+    explicit InputEngine(const std::string& input_engine_) : input_engine(input_engine_) {}
 
     virtual ~InputEngine() = default;
 
