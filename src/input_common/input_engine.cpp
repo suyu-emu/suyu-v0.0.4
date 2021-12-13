@@ -170,19 +170,19 @@ BasicMotion InputEngine::GetMotion(const PadIdentifier& identifier, int motion) 
 }
 
 void InputEngine::ResetButtonState() {
-    for (std::pair<PadIdentifier, ControllerData> controller : controller_list) {
-        for (std::pair<int, bool> button : controller.second.buttons) {
+    for (const auto& controller : controller_list) {
+        for (const auto& button : controller.second.buttons) {
             SetButton(controller.first, button.first, false);
         }
-        for (std::pair<int, bool> button : controller.second.hat_buttons) {
+        for (const auto& button : controller.second.hat_buttons) {
             SetHatButton(controller.first, button.first, false);
         }
     }
 }
 
 void InputEngine::ResetAnalogState() {
-    for (std::pair<PadIdentifier, ControllerData> controller : controller_list) {
-        for (std::pair<int, float> axis : controller.second.axes) {
+    for (const auto& controller : controller_list) {
+        for (const auto& axis : controller.second.axes) {
             SetAxis(controller.first, axis.first, 0.0);
         }
     }
@@ -190,7 +190,7 @@ void InputEngine::ResetAnalogState() {
 
 void InputEngine::TriggerOnButtonChange(const PadIdentifier& identifier, int button, bool value) {
     std::lock_guard lock{mutex_callback};
-    for (const std::pair<int, InputIdentifier> poller_pair : callback_list) {
+    for (const auto& poller_pair : callback_list) {
         const InputIdentifier& poller = poller_pair.second;
         if (!IsInputIdentifierEqual(poller, identifier, EngineInputType::Button, button)) {
             continue;
@@ -218,7 +218,7 @@ void InputEngine::TriggerOnButtonChange(const PadIdentifier& identifier, int but
 
 void InputEngine::TriggerOnHatButtonChange(const PadIdentifier& identifier, int button, u8 value) {
     std::lock_guard lock{mutex_callback};
-    for (const std::pair<int, InputIdentifier> poller_pair : callback_list) {
+    for (const auto& poller_pair : callback_list) {
         const InputIdentifier& poller = poller_pair.second;
         if (!IsInputIdentifierEqual(poller, identifier, EngineInputType::HatButton, button)) {
             continue;
@@ -247,7 +247,7 @@ void InputEngine::TriggerOnHatButtonChange(const PadIdentifier& identifier, int 
 
 void InputEngine::TriggerOnAxisChange(const PadIdentifier& identifier, int axis, f32 value) {
     std::lock_guard lock{mutex_callback};
-    for (const std::pair<int, InputIdentifier> poller_pair : callback_list) {
+    for (const auto& poller_pair : callback_list) {
         const InputIdentifier& poller = poller_pair.second;
         if (!IsInputIdentifierEqual(poller, identifier, EngineInputType::Analog, axis)) {
             continue;
@@ -274,7 +274,7 @@ void InputEngine::TriggerOnAxisChange(const PadIdentifier& identifier, int axis,
 void InputEngine::TriggerOnBatteryChange(const PadIdentifier& identifier,
                                          [[maybe_unused]] BatteryLevel value) {
     std::lock_guard lock{mutex_callback};
-    for (const std::pair<int, InputIdentifier> poller_pair : callback_list) {
+    for (const auto& poller_pair : callback_list) {
         const InputIdentifier& poller = poller_pair.second;
         if (!IsInputIdentifierEqual(poller, identifier, EngineInputType::Battery, 0)) {
             continue;
@@ -288,7 +288,7 @@ void InputEngine::TriggerOnBatteryChange(const PadIdentifier& identifier,
 void InputEngine::TriggerOnMotionChange(const PadIdentifier& identifier, int motion,
                                         const BasicMotion& value) {
     std::lock_guard lock{mutex_callback};
-    for (const std::pair<int, InputIdentifier> poller_pair : callback_list) {
+    for (const auto& poller_pair : callback_list) {
         const InputIdentifier& poller = poller_pair.second;
         if (!IsInputIdentifierEqual(poller, identifier, EngineInputType::Motion, motion)) {
             continue;
