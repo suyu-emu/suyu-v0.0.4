@@ -190,7 +190,7 @@ protected:
     void SetHatButton(const PadIdentifier& identifier, int button, u8 value);
     void SetAxis(const PadIdentifier& identifier, int axis, f32 value);
     void SetBattery(const PadIdentifier& identifier, BatteryLevel value);
-    void SetMotion(const PadIdentifier& identifier, int motion, BasicMotion value);
+    void SetMotion(const PadIdentifier& identifier, int motion, const BasicMotion& value);
 
     virtual std::string GetHatButtonName([[maybe_unused]] u8 direction_value) const {
         return "Unknown";
@@ -209,7 +209,8 @@ private:
     void TriggerOnHatButtonChange(const PadIdentifier& identifier, int button, u8 value);
     void TriggerOnAxisChange(const PadIdentifier& identifier, int button, f32 value);
     void TriggerOnBatteryChange(const PadIdentifier& identifier, BatteryLevel value);
-    void TriggerOnMotionChange(const PadIdentifier& identifier, int motion, BasicMotion value);
+    void TriggerOnMotionChange(const PadIdentifier& identifier, int motion,
+                               const BasicMotion& value);
 
     bool IsInputIdentifierEqual(const InputIdentifier& input_identifier,
                                 const PadIdentifier& identifier, EngineInputType type,

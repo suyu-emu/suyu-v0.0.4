@@ -91,7 +91,7 @@ void InputEngine::SetBattery(const PadIdentifier& identifier, BatteryLevel value
     TriggerOnBatteryChange(identifier, value);
 }
 
-void InputEngine::SetMotion(const PadIdentifier& identifier, int motion, BasicMotion value) {
+void InputEngine::SetMotion(const PadIdentifier& identifier, int motion, const BasicMotion& value) {
     {
         std::lock_guard lock{mutex};
         ControllerData& controller = controller_list.at(identifier);
@@ -286,7 +286,7 @@ void InputEngine::TriggerOnBatteryChange(const PadIdentifier& identifier,
 }
 
 void InputEngine::TriggerOnMotionChange(const PadIdentifier& identifier, int motion,
-                                        BasicMotion value) {
+                                        const BasicMotion& value) {
     std::lock_guard lock{mutex_callback};
     for (const std::pair<int, InputIdentifier> poller_pair : callback_list) {
         const InputIdentifier& poller = poller_pair.second;

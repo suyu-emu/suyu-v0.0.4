@@ -88,7 +88,7 @@ public:
         return true;
     }
 
-    BasicMotion GetMotion() {
+    const BasicMotion& GetMotion() const {
         return motion;
     }
 
@@ -367,7 +367,7 @@ void SDLDriver::HandleGameControllerEvent(const SDL_Event& event) {
             if (joystick->UpdateMotion(event.csensor)) {
                 const PadIdentifier identifier = joystick->GetPadIdentifier();
                 SetMotion(identifier, 0, joystick->GetMotion());
-            };
+            }
         }
         break;
     }
