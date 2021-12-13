@@ -65,7 +65,7 @@ Tas::Tas(const std::string& input_engine_) : InputCommon::InputEngine(input_engi
 
 Tas::~Tas() {
     Stop();
-};
+}
 
 void Tas::LoadTasFiles() {
     script_length = 0;
