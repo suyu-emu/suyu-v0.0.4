@@ -138,36 +138,36 @@ public:
     /// Used for automapping features
     virtual std::vector<Common::ParamPackage> GetInputDevices() const {
         return {};
-    };
+    }
 
     /// Retrieves the button mappings for the given device
     virtual InputCommon::ButtonMapping GetButtonMappingForDevice(
         [[maybe_unused]] const Common::ParamPackage& params) {
         return {};
-    };
+    }
 
     /// Retrieves the analog mappings for the given device
     virtual InputCommon::AnalogMapping GetAnalogMappingForDevice(
         [[maybe_unused]] const Common::ParamPackage& params) {
         return {};
-    };
+    }
 
     /// Retrieves the motion mappings for the given device
     virtual InputCommon::MotionMapping GetMotionMappingForDevice(
         [[maybe_unused]] const Common::ParamPackage& params) {
         return {};
-    };
+    }
 
     /// Retrieves the name of the given input.
     virtual Common::Input::ButtonNames GetUIName(
         [[maybe_unused]] const Common::ParamPackage& params) const {
         return Common::Input::ButtonNames::Engine;
-    };
+    }
 
     /// Retrieves the index number of the given hat button direction
     virtual u8 GetHatButtonId([[maybe_unused]] const std::string& direction_name) const {
         return 0;
-    };
+    }
 
     void PreSetController(const PadIdentifier& identifier);
     void PreSetButton(const PadIdentifier& identifier, int button);
