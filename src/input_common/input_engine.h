@@ -207,7 +207,7 @@ private:
 
     void TriggerOnButtonChange(const PadIdentifier& identifier, int button, bool value);
     void TriggerOnHatButtonChange(const PadIdentifier& identifier, int button, u8 value);
-    void TriggerOnAxisChange(const PadIdentifier& identifier, int button, f32 value);
+    void TriggerOnAxisChange(const PadIdentifier& identifier, int axis, f32 value);
     void TriggerOnBatteryChange(const PadIdentifier& identifier, BatteryLevel value);
     void TriggerOnMotionChange(const PadIdentifier& identifier, int motion,
                                const BasicMotion& value);
