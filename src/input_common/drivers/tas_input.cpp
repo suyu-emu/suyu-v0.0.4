@@ -93,27 +93,29 @@ void Tas::LoadTasFile(size_t player_index, size_t file_index) {
             continue;
         }
 
-        std::istringstream linestream(line);
-        std::string segment;
-        std::vector<std::string> seglist;
-
-        while (std::getline(linestream, segment, ' ')) {
-            seglist.push_back(segment);
+        std::vector<std::string> seg_list;
+        {
+            std::istringstream line_stream(line);
+            std::string segment;
+            while (std::getline(line_stream, segment, ' ')) {
+                seg_list.push_back(std::move(segment));
+            }
         }
 
-        if (seglist.size() < 4) {
+        if (seg_list.size() < 4) {
             continue;
         }
 
-        while (frame_no < std::stoi(seglist.at(0))) {
-            commands[player_index].push_back({});
+        const auto num_frames = std::stoi(seg_list[0]);
+        while (frame_no < num_frames) {
+            commands[player_index].emplace_back();
             frame_no++;
         }
 
         TASCommand command = {
-            .buttons = ReadCommandButtons(seglist.at(1)),
-            .l_axis = ReadCommandAxis(seglist.at(2)),
-            .r_axis = ReadCommandAxis(seglist.at(3)),
+            .buttons = ReadCommandButtons(seg_list[1]),
+            .l_axis = ReadCommandAxis(seg_list[2]),
+            .r_axis = ReadCommandAxis(seg_list[3]),
         };
         commands[player_index].push_back(command);
         frame_no++;
@@ -223,22 +225,23 @@ void Tas::ClearInput() {
 }
 
 TasAnalog Tas::ReadCommandAxis(const std::string& line) const {
-    std::stringstream linestream(line);
-    std::string segment;
-    std::vector<std::string> seglist;
-
-    while (std::getline(linestream, segment, ';')) {
-        seglist.push_back(segment);
+    std::vector<std::string> seg_list;
+    {
+        std::istringstream line_stream(line);
+        std::string segment;
+        while (std::getline(line_stream, segment, ';')) {
+            seg_list.push_back(std::move(segment));
+        }
     }
 
-    const float x = std::stof(seglist.at(0)) / 32767.0f;
-    const float y = std::stof(seglist.at(1)) / 32767.0f;
+    const float x = std::stof(seg_list.at(0)) / 32767.0f;
+    const float y = std::stof(seg_list.at(1)) / 32767.0f;
 
     return {x, y};
 }
 
 u64 Tas::ReadCommandButtons(const std::string& line) const {
-    std::stringstream button_text(line);
+    std::istringstream button_text(line);
     std::string button_line;
     u64 buttons = 0;
     while (std::getline(button_text, button_line, ';')) {
