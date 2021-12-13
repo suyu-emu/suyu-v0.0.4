@@ -673,7 +673,7 @@ public:
     }
 
     virtual Common::Input::VibrationError SetVibration(
-        Common::Input::VibrationStatus vibration_status) {
+        const Common::Input::VibrationStatus& vibration_status) {
         return input_engine->SetRumble(identifier, vibration_status);
     }
 

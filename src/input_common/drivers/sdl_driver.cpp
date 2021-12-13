@@ -491,8 +491,9 @@ std::vector<Common::ParamPackage> SDLDriver::GetInputDevices() const {
     }
     return devices;
 }
-Common::Input::VibrationError SDLDriver::SetRumble(const PadIdentifier& identifier,
-                                                   const Common::Input::VibrationStatus vibration) {
+
+Common::Input::VibrationError SDLDriver::SetRumble(
+    const PadIdentifier& identifier, const Common::Input::VibrationStatus& vibration) {
     const auto joystick =
         GetSDLJoystickByGUID(identifier.guid.Format(), static_cast<int>(identifier.port));
     const auto process_amplitude_exp = [](f32 amplitude, f32 factor) {
@@ -526,6 +527,7 @@ Common::Input::VibrationError SDLDriver::SetRumble(const PadIdentifier& identifi
 
     return Common::Input::VibrationError::None;
 }
+
 Common::ParamPackage SDLDriver::BuildAnalogParamPackageForButton(int port, std::string guid,
                                                                  s32 axis, float value) const {
     Common::ParamPackage params{};

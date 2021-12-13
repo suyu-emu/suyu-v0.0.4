@@ -325,8 +325,8 @@ bool GCAdapter::GetGCEndpoint(libusb_device* device) {
     return true;
 }
 
-Common::Input::VibrationError GCAdapter::SetRumble(const PadIdentifier& identifier,
-                                                   const Common::Input::VibrationStatus vibration) {
+Common::Input::VibrationError GCAdapter::SetRumble(
+    const PadIdentifier& identifier, const Common::Input::VibrationStatus& vibration) {
     const auto mean_amplitude = (vibration.low_amplitude + vibration.high_amplitude) * 0.5f;
     const auto processed_amplitude =
         static_cast<u8>((mean_amplitude + std::pow(mean_amplitude, 0.3f)) * 0.5f * 0x8);

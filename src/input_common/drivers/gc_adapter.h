@@ -28,7 +28,7 @@ public:
     ~GCAdapter() override;
 
     Common::Input::VibrationError SetRumble(
-        const PadIdentifier& identifier, const Common::Input::VibrationStatus vibration) override;
+        const PadIdentifier& identifier, const Common::Input::VibrationStatus& vibration) override;
 
     /// Used for automapping features
     std::vector<Common::ParamPackage> GetInputDevices() const override;

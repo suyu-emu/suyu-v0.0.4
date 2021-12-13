@@ -119,7 +119,7 @@ public:
     // Sets rumble to a controller
     virtual Common::Input::VibrationError SetRumble(
         [[maybe_unused]] const PadIdentifier& identifier,
-        [[maybe_unused]] const Common::Input::VibrationStatus vibration) {
+        [[maybe_unused]] const Common::Input::VibrationStatus& vibration) {
         return Common::Input::VibrationError::NotSupported;
     }
 
