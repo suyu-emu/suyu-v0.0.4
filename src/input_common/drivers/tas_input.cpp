@@ -238,13 +238,13 @@ TasAnalog Tas::ReadCommandAxis(const std::string& line) const {
     return {x, y};
 }
 
-u64 Tas::ReadCommandButtons(const std::string& data) const {
-    std::stringstream button_text(data);
-    std::string line;
+u64 Tas::ReadCommandButtons(const std::string& line) const {
+    std::stringstream button_text(line);
+    std::string button_line;
     u64 buttons = 0;
-    while (std::getline(button_text, line, ';')) {
+    while (std::getline(button_text, button_line, ';')) {
         for (auto [text, tas_button] : text_to_tas_button) {
-            if (text == line) {
+            if (text == button_line) {
                 buttons |= static_cast<u64>(tas_button);
                 break;
             }
