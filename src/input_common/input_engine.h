@@ -116,9 +116,7 @@ public:
 
     // Sets a led pattern for a controller
     virtual void SetLeds([[maybe_unused]] const PadIdentifier& identifier,
-                         [[maybe_unused]] const Common::Input::LedStatus led_status) {
-        return;
-    }
+                         [[maybe_unused]] const Common::Input::LedStatus led_status) {}
 
     // Sets rumble to a controller
     virtual Common::Input::VibrationError SetRumble(
