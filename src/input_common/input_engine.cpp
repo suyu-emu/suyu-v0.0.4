@@ -342,7 +342,7 @@ const std::string& InputEngine::GetEngineName() const {
 
 int InputEngine::SetCallback(InputIdentifier input_identifier) {
     std::lock_guard lock{mutex_callback};
-    callback_list.insert_or_assign(last_callback_key, input_identifier);
+    callback_list.insert_or_assign(last_callback_key, std::move(input_identifier));
     return last_callback_key++;
 }
 
