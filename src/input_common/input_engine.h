@@ -139,19 +139,19 @@ public:
     }
 
     /// Retrieves the button mappings for the given device
-    virtual InputCommon::ButtonMapping GetButtonMappingForDevice(
+    virtual ButtonMapping GetButtonMappingForDevice(
         [[maybe_unused]] const Common::ParamPackage& params) {
         return {};
     }
 
     /// Retrieves the analog mappings for the given device
-    virtual InputCommon::AnalogMapping GetAnalogMappingForDevice(
+    virtual AnalogMapping GetAnalogMappingForDevice(
         [[maybe_unused]] const Common::ParamPackage& params) {
         return {};
     }
 
     /// Retrieves the motion mappings for the given device
-    virtual InputCommon::MotionMapping GetMotionMappingForDevice(
+    virtual MotionMapping GetMotionMappingForDevice(
         [[maybe_unused]] const Common::ParamPackage& params) {
         return {};
     }
