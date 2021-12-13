@@ -387,7 +387,7 @@ void SDLDriver::CloseJoysticks() {
     joystick_map.clear();
 }
 
-SDLDriver::SDLDriver(const std::string& input_engine_) : InputEngine(input_engine_) {
+SDLDriver::SDLDriver(std::string input_engine_) : InputEngine(std::move(input_engine_)) {
     if (!Settings::values.enable_raw_input) {
         // Disable raw input. When enabled this setting causes SDL to die when a web applet opens
         SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, "0");

@@ -19,19 +19,19 @@ using SDL_GameController = struct _SDL_GameController;
 using SDL_Joystick = struct _SDL_Joystick;
 using SDL_JoystickID = s32;
 
+namespace InputCommon {
+
+class SDLJoystick;
+
 using ButtonBindings =
     std::array<std::pair<Settings::NativeButton::Values, SDL_GameControllerButton>, 17>;
 using ZButtonBindings =
     std::array<std::pair<Settings::NativeButton::Values, SDL_GameControllerAxis>, 2>;
 
-namespace InputCommon {
-
-class SDLJoystick;
-
-class SDLDriver : public InputCommon::InputEngine {
+class SDLDriver : public InputEngine {
 public:
     /// Initializes and registers SDL device factories
-    SDLDriver(const std::string& input_engine_);
+    explicit SDLDriver(std::string input_engine_);
 
     /// Unregisters SDL device factories and shut them down.
     ~SDLDriver() override;
