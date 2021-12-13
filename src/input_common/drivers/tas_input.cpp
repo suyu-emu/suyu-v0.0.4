@@ -85,7 +85,7 @@ void Tas::LoadTasFile(size_t player_index, size_t file_index) {
         Common::FS::GetYuzuPath(Common::FS::YuzuPath::TASDir) /
             fmt::format("script{}-{}.txt", file_index, player_index + 1),
         Common::FS::FileType::BinaryFile);
-    std::stringstream command_line(file);
+    std::istringstream command_line(file);
     std::string line;
     int frame_no = 0;
     while (std::getline(command_line, line, '\n')) {
@@ -93,7 +93,7 @@ void Tas::LoadTasFile(size_t player_index, size_t file_index) {
             continue;
         }
 
-        std::stringstream linestream(line);
+        std::istringstream linestream(line);
         std::string segment;
         std::vector<std::string> seglist;
 
