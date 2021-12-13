@@ -130,6 +130,12 @@ bool Codec::CreateGpuAvDevice() {
             }
             if (config->methods & HW_CONFIG_METHOD && config->device_type == type) {
                 av_codec_ctx->pix_fmt = config->pix_fmt;
+                if (config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_FRAMES_CTX) {
+                    // skip zero-copy decoders, we don't currently support them
+                    LOG_DEBUG(Service_NVDRV, "Skipping decoder {} with unsupported capability {}.",
+                              av_hwdevice_get_type_name(type), config->methods);
+                    continue;
+                }
                 LOG_INFO(Service_NVDRV, "Using {} GPU decoder", av_hwdevice_get_type_name(type));
                 return true;
             }
@@ -251,6 +257,9 @@ void Codec::Decode() {
         final_frame->format = PREFERRED_GPU_FMT;
         const int ret = av_hwframe_transfer_data(final_frame.get(), initial_frame.get(), 0);
         ASSERT_MSG(!ret, "av_hwframe_transfer_data error {}", ret);
+        // null the hw frame context to prevent the buffer from being deleted
+        // and leaving a dangling reference in the av_codec_ctx
+        initial_frame->hw_frames_ctx = nullptr;
     } else {
         final_frame = std::move(initial_frame);
     }
