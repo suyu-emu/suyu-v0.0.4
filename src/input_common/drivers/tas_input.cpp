@@ -78,9 +78,8 @@ void Tas::LoadTasFiles() {
 }
 
 void Tas::LoadTasFile(size_t player_index, size_t file_index) {
-    if (!commands[player_index].empty()) {
-        commands[player_index].clear();
-    }
+    commands[player_index].clear();
+
     std::string file = Common::FS::ReadStringFromFile(
         Common::FS::GetYuzuPath(Common::FS::YuzuPath::TASDir) /
             fmt::format("script{}-{}.txt", file_index, player_index + 1),
