@@ -23,15 +23,15 @@ struct PadIdentifier {
     friend constexpr bool operator==(const PadIdentifier&, const PadIdentifier&) = default;
 };
 
-// Basic motion data containing data from the sensors and a timestamp in microsecons
+// Basic motion data containing data from the sensors and a timestamp in microseconds
 struct BasicMotion {
-    float gyro_x;
-    float gyro_y;
-    float gyro_z;
-    float accel_x;
-    float accel_y;
-    float accel_z;
-    u64 delta_timestamp;
+    float gyro_x{};
+    float gyro_y{};
+    float gyro_z{};
+    float accel_x{};
+    float accel_y{};
+    float accel_z{};
+    u64 delta_timestamp{};
 };
 
 // Stages of a battery charge
@@ -202,7 +202,7 @@ private:
         std::unordered_map<int, u8> hat_buttons;
         std::unordered_map<int, float> axes;
         std::unordered_map<int, BasicMotion> motions;
-        BatteryLevel battery;
+        BatteryLevel battery{};
     };
 
     void TriggerOnButtonChange(const PadIdentifier& identifier, int button, bool value);

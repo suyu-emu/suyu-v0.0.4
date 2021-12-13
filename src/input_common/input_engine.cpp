@@ -10,41 +10,31 @@ namespace InputCommon {
 
 void InputEngine::PreSetController(const PadIdentifier& identifier) {
     std::lock_guard lock{mutex};
-    if (!controller_list.contains(identifier)) {
-        controller_list.insert_or_assign(identifier, ControllerData{});
-    }
+    controller_list.try_emplace(identifier);
 }
 
 void InputEngine::PreSetButton(const PadIdentifier& identifier, int button) {
     std::lock_guard lock{mutex};
     ControllerData& controller = controller_list.at(identifier);
-    if (!controller.buttons.contains(button)) {
-        controller.buttons.insert_or_assign(button, false);
-    }
+    controller.buttons.try_emplace(button, false);
 }
 
 void InputEngine::PreSetHatButton(const PadIdentifier& identifier, int button) {
     std::lock_guard lock{mutex};
     ControllerData& controller = controller_list.at(identifier);
-    if (!controller.hat_buttons.contains(button)) {
-        controller.hat_buttons.insert_or_assign(button, u8{0});
-    }
+    controller.hat_buttons.try_emplace(button, u8{0});
 }
 
 void InputEngine::PreSetAxis(const PadIdentifier& identifier, int axis) {
     std::lock_guard lock{mutex};
     ControllerData& controller = controller_list.at(identifier);
-    if (!controller.axes.contains(axis)) {
-        controller.axes.insert_or_assign(axis, 0.0f);
-    }
+    controller.axes.try_emplace(axis, 0.0f);
 }
 
 void InputEngine::PreSetMotion(const PadIdentifier& identifier, int motion) {
     std::lock_guard lock{mutex};
     ControllerData& controller = controller_list.at(identifier);
-    if (!controller.motions.contains(motion)) {
-        controller.motions.insert_or_assign(motion, BasicMotion{});
-    }
+    controller.motions.try_emplace(motion);
 }
 
 void InputEngine::SetButton(const PadIdentifier& identifier, int button, bool value) {
