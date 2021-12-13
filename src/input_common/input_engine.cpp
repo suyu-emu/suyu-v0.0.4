@@ -104,68 +104,76 @@ void InputEngine::SetMotion(const PadIdentifier& identifier, int motion, const B
 
 bool InputEngine::GetButton(const PadIdentifier& identifier, int button) const {
     std::lock_guard lock{mutex};
-    if (!controller_list.contains(identifier)) {
+    const auto controller_iter = controller_list.find(identifier);
+    if (controller_iter == controller_list.cend()) {
         LOG_ERROR(Input, "Invalid identifier guid={}, pad={}, port={}", identifier.guid.Format(),
                   identifier.pad, identifier.port);
         return false;
     }
-    ControllerData controller = controller_list.at(identifier);
-    if (!controller.buttons.contains(button)) {
+    const ControllerData& controller = controller_iter->second;
+    const auto button_iter = controller.buttons.find(button);
+    if (button_iter == controller.buttons.cend()) {
         LOG_ERROR(Input, "Invalid button {}", button);
         return false;
     }
-    return controller.buttons.at(button);
+    return button_iter->second;
 }
 
 bool InputEngine::GetHatButton(const PadIdentifier& identifier, int button, u8 direction) const {
     std::lock_guard lock{mutex};
-    if (!controller_list.contains(identifier)) {
+    const auto controller_iter = controller_list.find(identifier);
+    if (controller_iter == controller_list.cend()) {
         LOG_ERROR(Input, "Invalid identifier guid={}, pad={}, port={}", identifier.guid.Format(),
                   identifier.pad, identifier.port);
         return false;
     }
-    ControllerData controller = controller_list.at(identifier);
-    if (!controller.hat_buttons.contains(button)) {
+    const ControllerData& controller = controller_iter->second;
+    const auto hat_iter = controller.hat_buttons.find(button);
+    if (hat_iter == controller.hat_buttons.cend()) {
         LOG_ERROR(Input, "Invalid hat button {}", button);
         return false;
     }
-    return (controller.hat_buttons.at(button) & direction) != 0;
+    return (hat_iter->second & direction) != 0;
 }
 
 f32 InputEngine::GetAxis(const PadIdentifier& identifier, int axis) const {
     std::lock_guard lock{mutex};
-    if (!controller_list.contains(identifier)) {
+    const auto controller_iter = controller_list.find(identifier);
+    if (controller_iter == controller_list.cend()) {
         LOG_ERROR(Input, "Invalid identifier guid={}, pad={}, port={}", identifier.guid.Format(),
                   identifier.pad, identifier.port);
         return 0.0f;
     }
-    ControllerData controller = controller_list.at(identifier);
-    if (!controller.axes.contains(axis)) {
+    const ControllerData& controller = controller_iter->second;
+    const auto axis_iter = controller.axes.find(axis);
+    if (axis_iter == controller.axes.cend()) {
         LOG_ERROR(Input, "Invalid axis {}", axis);
         return 0.0f;
     }
-    return controller.axes.at(axis);
+    return axis_iter->second;
 }
 
 BatteryLevel InputEngine::GetBattery(const PadIdentifier& identifier) const {
     std::lock_guard lock{mutex};
-    if (!controller_list.contains(identifier)) {
+    const auto controller_iter = controller_list.find(identifier);
+    if (controller_iter == controller_list.cend()) {
         LOG_ERROR(Input, "Invalid identifier guid={}, pad={}, port={}", identifier.guid.Format(),
                   identifier.pad, identifier.port);
         return BatteryLevel::Charging;
     }
-    ControllerData controller = controller_list.at(identifier);
+    const ControllerData& controller = controller_iter->second;
     return controller.battery;
 }
 
 BasicMotion InputEngine::GetMotion(const PadIdentifier& identifier, int motion) const {
     std::lock_guard lock{mutex};
-    if (!controller_list.contains(identifier)) {
+    const auto controller_iter = controller_list.find(identifier);
+    if (controller_iter == controller_list.cend()) {
         LOG_ERROR(Input, "Invalid identifier guid={}, pad={}, port={}", identifier.guid.Format(),
                   identifier.pad, identifier.port);
         return {};
     }
-    ControllerData controller = controller_list.at(identifier);
+    const ControllerData& controller = controller_iter->second;
     return controller.motions.at(motion);
 }
 
