@@ -266,7 +266,7 @@ class OutputDevice {
 public:
     virtual ~OutputDevice() = default;
 
-    virtual void SetLED([[maybe_unused]] LedStatus led_status) {}
+    virtual void SetLED([[maybe_unused]] const LedStatus& led_status) {}
 
     virtual VibrationError SetVibration([[maybe_unused]] const VibrationStatus& vibration_status) {
         return VibrationError::NotSupported;
