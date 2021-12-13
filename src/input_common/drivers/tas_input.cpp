@@ -121,16 +121,17 @@ void Tas::LoadTasFile(size_t player_index, size_t file_index) {
     LOG_INFO(Input, "TAS file loaded! {} frames", frame_no);
 }
 
-void Tas::WriteTasFile(std::u8string file_name) {
+void Tas::WriteTasFile(std::u8string_view file_name) {
     std::string output_text;
     for (size_t frame = 0; frame < record_commands.size(); frame++) {
         const TASCommand& line = record_commands[frame];
         output_text += fmt::format("{} {} {} {}\n", frame, WriteCommandButtons(line.buttons),
                                    WriteCommandAxis(line.l_axis), WriteCommandAxis(line.r_axis));
     }
-    const auto bytes_written = Common::FS::WriteStringToFile(
-        Common::FS::GetYuzuPath(Common::FS::YuzuPath::TASDir) / file_name,
-        Common::FS::FileType::TextFile, output_text);
+
+    const auto tas_file_name = Common::FS::GetYuzuPath(Common::FS::YuzuPath::TASDir) / file_name;
+    const auto bytes_written =
+        Common::FS::WriteStringToFile(tas_file_name, Common::FS::FileType::TextFile, output_text);
     if (bytes_written == output_text.size()) {
         LOG_INFO(Input, "TAS file written to file!");
     } else {
@@ -252,7 +253,7 @@ u64 Tas::ReadCommandButtons(const std::string& line) const {
 }
 
 std::string Tas::WriteCommandButtons(u64 buttons) const {
-    std::string returns = "";
+    std::string returns;
     for (auto [text_button, tas_button] : text_to_tas_button) {
         if ((buttons & static_cast<u64>(tas_button)) != 0) {
             returns += fmt::format("{};", text_button);

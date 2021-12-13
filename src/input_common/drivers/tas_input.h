@@ -150,7 +150,7 @@ private:
      * Writes a TAS file from the recorded commands
      * @param file_name Name of the file to be written
      */
-    void WriteTasFile(std::u8string file_name);
+    void WriteTasFile(std::u8string_view file_name);
 
     /**
      * Parses a string containing the axis values. X and Y have a range from -32767 to 32767
