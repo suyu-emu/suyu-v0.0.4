@@ -227,7 +227,7 @@ struct CallbackStatus {
 
 // Triggered once every input change
 struct InputCallback {
-    std::function<void(CallbackStatus)> on_change;
+    std::function<void(const CallbackStatus&)> on_change;
 };
 
 /// An abstract class template for an input device (a button, an analog input, etc.).
@@ -247,7 +247,7 @@ public:
     }
 
     // Triggers the function set in the callback
-    void TriggerOnChange(CallbackStatus status) {
+    void TriggerOnChange(const CallbackStatus& status) {
         if (callback.on_change) {
             callback.on_change(status);
         }
