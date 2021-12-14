@@ -81,10 +81,10 @@ enum class TasState {
     Stopped,
 };
 
-class Tas final : public InputCommon::InputEngine {
+class Tas final : public InputEngine {
 public:
-    explicit Tas(const std::string& input_engine_);
-    ~Tas();
+    explicit Tas(std::string input_engine_);
+    ~Tas() override;
 
     /**
      * Changes the input status that will be stored in each frame

@@ -668,12 +668,12 @@ public:
     explicit OutputFromIdentifier(PadIdentifier identifier_, InputEngine* input_engine_)
         : identifier(identifier_), input_engine(input_engine_) {}
 
-    virtual void SetLED(Common::Input::LedStatus led_status) {
+    virtual void SetLED(const Common::Input::LedStatus& led_status) {
         input_engine->SetLeds(identifier, led_status);
     }
 
     virtual Common::Input::VibrationError SetVibration(
-        Common::Input::VibrationStatus vibration_status) {
+        const Common::Input::VibrationStatus& vibration_status) {
         return input_engine->SetRumble(identifier, vibration_status);
     }
 
