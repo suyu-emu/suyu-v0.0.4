@@ -236,14 +236,10 @@ public:
     virtual ~InputDevice() = default;
 
     // Request input device to update if necessary
-    virtual void SoftUpdate() {
-        return;
-    }
+    virtual void SoftUpdate() {}
 
     // Force input device to update data regardless of the current state
-    virtual void ForceUpdate() {
-        return;
-    }
+    virtual void ForceUpdate() {}
 
     // Sets the function to be triggered when input changes
     void SetCallback(InputCallback callback_) {
