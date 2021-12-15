@@ -192,7 +192,7 @@ if (NOT WIN32)
 else(WIN32)
     # Use yuzu FFmpeg binaries
     set(FFmpeg_EXT_NAME "ffmpeg-4.4")
-    set(FFmpeg_PATH "${CMAKE_BINARY_DIR}/externals/${FFmpeg_EXT_NAME}" PARENT_SCOPE)
+    set(FFmpeg_PATH "${CMAKE_BINARY_DIR}/externals/${FFmpeg_EXT_NAME}")
     download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "")
     set(FFmpeg_FOUND YES)
     set(FFmpeg_INCLUDE_DIR "${FFmpeg_PATH}/include" CACHE PATH "Path to FFmpeg headers" FORCE)
@@ -200,10 +200,15 @@ else(WIN32)
     set(FFmpeg_LDFLAGS "" CACHE STRING "FFmpeg linker flags" FORCE)
     set(FFmpeg_DLL_DIR "${FFmpeg_PATH}/bin" CACHE PATH "Path to FFmpeg dll's" FORCE)
     set(FFmpeg_LIBRARIES
-        ${FFmpeg_LIBRARY_DIR}/swscale.lib
-        ${FFmpeg_LIBRARY_DIR}/avcodec.lib
-        ${FFmpeg_LIBRARY_DIR}/avutil.lib
-        CACHE PATH "Paths to FFmpeg libraries" FORCE)
+    ${FFmpeg_LIBRARY_DIR}/swscale.lib
+    ${FFmpeg_LIBRARY_DIR}/avcodec.lib
+    ${FFmpeg_LIBRARY_DIR}/avutil.lib
+    CACHE PATH "Paths to FFmpeg libraries" FORCE)
+    # exported variables
+    set(FFmpeg_PATH "${FFmpeg_PATH}" PARENT_SCOPE)
+    set(FFmpeg_LDFLAGS "${FFmpeg_LDFLAGS}" PARENT_SCOPE)
+    set(FFmpeg_LIBRARIES "${FFmpeg_LIBRARIES}" PARENT_SCOPE)
+    set(FFmpeg_INCLUDE_DIR "${FFmpeg_INCLUDE_DIR}" PARENT_SCOPE)
 endif(WIN32)
 
 unset(FFmpeg_COMPONENTS)
