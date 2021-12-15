@@ -121,8 +121,3 @@ if (NOT opus_FOUND)
     message(STATUS "opus 1.3 or newer not found, falling back to externals")
     add_subdirectory(opus EXCLUDE_FROM_ALL)
 endif()
-
-# FFMpeg
-if (YUZU_USE_BUNDLED_FFMPEG)
-    add_subdirectory(ffmpeg)
-endif()

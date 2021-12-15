@@ -34,12 +34,12 @@
 [submodule "opus"]
 	path = externals/opus/opus
 	url = https://github.com/xiph/opus.git
+[submodule "ffmpeg"]
+	path = externals/ffmpeg
+	url = https://git.ffmpeg.org/ffmpeg.git
 [submodule "SDL"]
 	path = externals/SDL
 	url = https://github.com/libsdl-org/SDL.git
 [submodule "externals/cpp-httplib"]
 	path = externals/cpp-httplib
 	url = https://github.com/yhirose/cpp-httplib.git
-[submodule "externals/ffmpeg/ffmpeg"]
-	path = externals/ffmpeg/ffmpeg
-	url = https://git.ffmpeg.org/ffmpeg.git
