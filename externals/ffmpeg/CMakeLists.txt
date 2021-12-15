@@ -192,7 +192,7 @@ if (NOT WIN32)
 else(WIN32)
     # Use yuzu FFmpeg binaries
     set(FFmpeg_EXT_NAME "ffmpeg-4.4")
-    set(FFmpeg_PATH "${CMAKE_BINARY_DIR}/externals/${FFmpeg_EXT_NAME}")
+    set(FFmpeg_PATH "${CMAKE_BINARY_DIR}/externals/${FFmpeg_EXT_NAME}" PARENT_SCOPE)
     download_bundled_external("ffmpeg/" ${FFmpeg_EXT_NAME} "")
     set(FFmpeg_FOUND YES)
     set(FFmpeg_INCLUDE_DIR "${FFmpeg_PATH}/include" CACHE PATH "Path to FFmpeg headers" FORCE)

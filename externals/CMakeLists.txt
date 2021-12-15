@@ -125,4 +125,5 @@ endif()
 # FFMpeg
 if (YUZU_USE_BUNDLED_FFMPEG)
     add_subdirectory(ffmpeg)
+    set(FFmpeg_PATH "${FFmpeg_PATH}" PARENT_SCOPE)
 endif()
