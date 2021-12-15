@@ -670,7 +670,7 @@ void EmulatedController::SetTrigger(const Common::Input::CallbackStatus& callbac
     const auto trigger_value = TransformToTrigger(callback);
 
     // Only read trigger values that have the same uuid or are pressed once
-    if (controller.stick_values[index].uuid != uuid) {
+    if (controller.trigger_values[index].uuid != uuid) {
         if (!trigger_value.pressed.value) {
             return;
         }
@@ -686,7 +686,7 @@ void EmulatedController::SetTrigger(const Common::Input::CallbackStatus& callbac
         return;
     }
 
-    const auto trigger = controller.trigger_values[index];
+    const auto& trigger = controller.trigger_values[index];
 
     switch (index) {
     case Settings::NativeTrigger::LTrigger:
