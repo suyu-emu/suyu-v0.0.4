@@ -1301,8 +1301,8 @@ bool GMainWindow::LoadROM(const QString& filename, u64 program_id, std::size_t p
         case Core::SystemResultStatus::ErrorVideoCore:
             QMessageBox::critical(
                 this, tr("An error occurred initializing the video core."),
-                tr("yuzu has encountered an error while running the video core, "
-                   "this is usually caused by outdated GPU drivers, including integrated ones. "
+                tr("yuzu has encountered an error while running the video core. "
+                   "This is usually caused by outdated GPU drivers, including integrated ones. "
                    "Please see the log for more details. "
                    "For more information on accessing the log, please see the following page: "
                    "<a href='https://yuzu-emu.org/help/reference/log-files/'>"
