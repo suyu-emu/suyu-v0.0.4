@@ -1137,8 +1137,13 @@ typename TextureCache<P>::BlitImages TextureCache<P>::GetBlitImages(
     } while (has_deleted_images);
     const ImageBase& src_image = slot_images[src_id];
     const ImageBase& dst_image = slot_images[dst_id];
+    const bool native_bgr = runtime.HasNativeBgr();
     if (GetFormatType(dst_info.format) != GetFormatType(dst_image.info.format) ||
-        GetFormatType(src_info.format) != GetFormatType(src_image.info.format)) {
+        GetFormatType(src_info.format) != GetFormatType(src_image.info.format) ||
+        !VideoCore::Surface::IsViewCompatible(dst_info.format, dst_image.info.format, false,
+                                              native_bgr) ||
+        !VideoCore::Surface::IsViewCompatible(src_info.format, src_image.info.format, false,
+                                              native_bgr)) {
         // Make sure the images match the expected format.
         do {
             has_deleted_images = false;
