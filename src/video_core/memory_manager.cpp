@@ -16,9 +16,12 @@
 
 namespace Tegra {
 
+std::atomic<size_t> MemoryManager::unique_identifier_generator{};
+
 MemoryManager::MemoryManager(Core::System& system_, u64 address_space_bits_, u64 page_bits_)
     : system{system_}, address_space_bits{address_space_bits_}, page_bits{page_bits_}, entries{},
-      page_table{address_space_bits, address_space_bits + page_bits - 38, page_bits} {
+      page_table{address_space_bits, address_space_bits + page_bits - 38, page_bits},
+      unique_identifier{unique_identifier_generator.fetch_add(1, std::memory_order_acq_rel)} {
     address_space_size = 1ULL << address_space_bits;
     allocate_start = address_space_bits > 32 ? 1ULL << 32 : 0;
     page_size = 1ULL << page_bits;

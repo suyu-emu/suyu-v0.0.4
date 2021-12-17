@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <map>
 #include <optional>
 #include <vector>
@@ -25,6 +26,10 @@ public:
     explicit MemoryManager(Core::System& system_, u64 address_space_bits_ = 40,
                            u64 page_bits_ = 16);
     ~MemoryManager();
+
+    size_t GetID() const {
+        return unique_identifier;
+    }
 
     /// Binds a renderer to the memory manager.
     void BindRasterizer(VideoCore::RasterizerInterface* rasterizer);
@@ -140,6 +145,10 @@ private:
     void SetEntry(size_t position, EntryType entry);
 
     Common::MultiLevelPageTable<u32> page_table;
+
+    const size_t unique_identifier;
+
+    static std::atomic<size_t> unique_identifier_generator;
 };
 
 } // namespace Tegra
