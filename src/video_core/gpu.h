@@ -83,6 +83,7 @@ enum class DepthFormat : u32 {
     S8_UINT_Z24_UNORM = 0x14,
     D24X8_UNORM = 0x15,
     D24S8_UNORM = 0x16,
+    S8_UINT = 0x17,
     D24C8_UNORM = 0x18,
     D32_FLOAT_S8X24_UINT = 0x19,
 };
@@ -241,10 +242,10 @@ public:
     void PushGPUEntries(Tegra::CommandList&& entries);
 
     /// Push GPU command buffer entries to be processed
-    void PushCommandBuffer(Tegra::ChCommandHeaderList& entries);
+    void PushCommandBuffer(u32 id, Tegra::ChCommandHeaderList& entries);
 
     /// Frees the CDMAPusher instance to free up resources
-    void ClearCdmaInstance();
+    void ClearCdmaInstance(u32 id);
 
     /// Swap buffers (render frame)
     void SwapBuffers(const Tegra::FramebufferConfig* framebuffer);

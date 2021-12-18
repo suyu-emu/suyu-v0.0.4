@@ -90,9 +90,6 @@ add_executable(yuzu
     configuration/configure_motion_touch.cpp
     configuration/configure_motion_touch.h
     configuration/configure_motion_touch.ui
-    configuration/configure_mouse_advanced.cpp
-    configuration/configure_mouse_advanced.h
-    configuration/configure_mouse_advanced.ui
     configuration/configure_per_game.cpp
     configuration/configure_per_game.h
     configuration/configure_per_game.ui
@@ -155,6 +152,8 @@ add_executable(yuzu
     main.ui
     uisettings.cpp
     uisettings.h
+    util/controller_navigation.cpp
+    util/controller_navigation.h
     util/limitable_input_dialog.cpp
     util/limitable_input_dialog.h
     util/overlay_dialog.cpp

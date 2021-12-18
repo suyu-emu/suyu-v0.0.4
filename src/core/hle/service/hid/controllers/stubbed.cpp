@@ -5,11 +5,12 @@
 #include <cstring>
 #include "common/common_types.h"
 #include "core/core_timing.h"
+#include "core/hid/hid_core.h"
 #include "core/hle/service/hid/controllers/stubbed.h"
 
 namespace Service::HID {
 
-Controller_Stubbed::Controller_Stubbed(Core::System& system_) : ControllerBase{system_} {}
+Controller_Stubbed::Controller_Stubbed(Core::HID::HIDCore& hid_core_) : ControllerBase{hid_core_} {}
 Controller_Stubbed::~Controller_Stubbed() = default;
 
 void Controller_Stubbed::OnInit() {}
@@ -31,10 +32,9 @@ void Controller_Stubbed::OnUpdate(const Core::Timing::CoreTiming& core_timing, u
     std::memcpy(data + common_offset, &header, sizeof(CommonHeader));
 }
 
-void Controller_Stubbed::OnLoadInputDevices() {}
-
 void Controller_Stubbed::SetCommonHeaderOffset(std::size_t off) {
     common_offset = off;
     smart_update = true;
 }
+
 } // namespace Service::HID

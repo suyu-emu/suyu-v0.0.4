@@ -89,6 +89,10 @@ namespace Core::Hardware {
 class InterruptManager;
 }
 
+namespace Core::HID {
+class HIDCore;
+}
+
 namespace Core {
 
 class ARM_Interface;
@@ -204,9 +208,6 @@ public:
     /// Gets an ARM interface to the CPU core that is currently running
     [[nodiscard]] const ARM_Interface& CurrentArmInterface() const;
 
-    /// Gets the index of the currently running CPU core
-    [[nodiscard]] std::size_t CurrentCoreIndex() const;
-
     /// Gets the physical core for the CPU core that is currently running
     [[nodiscard]] Kernel::PhysicalCore& CurrentPhysicalCore();
 
@@ -284,6 +285,12 @@ public:
 
     /// Provides a constant reference to the kernel instance.
     [[nodiscard]] const Kernel::KernelCore& Kernel() const;
+
+    /// Gets a mutable reference to the HID interface.
+    [[nodiscard]] HID::HIDCore& HIDCore();
+
+    /// Gets an immutable reference to the HID interface.
+    [[nodiscard]] const HID::HIDCore& HIDCore() const;
 
     /// Provides a reference to the internal PerfStats instance.
     [[nodiscard]] Core::PerfStats& GetPerfStats();

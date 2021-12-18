@@ -6,8 +6,12 @@
 #include <thread>
 
 #include "common/assert.h"
+#include "common/param_package.h"
 #include "common/string_util.h"
 #include "core/core.h"
+#include "core/hid/emulated_controller.h"
+#include "core/hid/hid_core.h"
+#include "core/hid/hid_types.h"
 #include "core/hle/lock.h"
 #include "core/hle/service/hid/controllers/npad.h"
 #include "core/hle/service/hid/hid.h"
@@ -23,49 +27,32 @@
 
 namespace {
 
-constexpr std::size_t HANDHELD_INDEX = 8;
-
-constexpr std::array<std::array<bool, 4>, 8> led_patterns{{
-    {true, false, false, false},
-    {true, true, false, false},
-    {true, true, true, false},
-    {true, true, true, true},
-    {true, false, false, true},
-    {true, false, true, false},
-    {true, false, true, true},
-    {false, true, true, false},
-}};
-
-void UpdateController(Settings::ControllerType controller_type, std::size_t npad_index,
-                      bool connected, Core::System& system) {
-    if (!system.IsPoweredOn()) {
-        return;
+void UpdateController(Core::HID::EmulatedController* controller,
+                      Core::HID::NpadStyleIndex controller_type, bool connected) {
+    if (controller->IsConnected(true)) {
+        controller->Disconnect();
     }
-
-    auto& npad =
-        system.ServiceManager()
-            .GetService<Service::HID::Hid>("hid")
-            ->GetAppletResource()
-            ->GetController<Service::HID::Controller_NPad>(Service::HID::HidController::NPad);
-
-    npad.UpdateControllerAt(npad.MapSettingsTypeToNPad(controller_type), npad_index, connected);
+    controller->SetNpadStyleIndex(controller_type);
+    if (connected) {
+        controller->Connect();
+    }
 }
 
 // Returns true if the given controller type is compatible with the given parameters.
-bool IsControllerCompatible(Settings::ControllerType controller_type,
+bool IsControllerCompatible(Core::HID::NpadStyleIndex controller_type,
                             Core::Frontend::ControllerParameters parameters) {
     switch (controller_type) {
-    case Settings::ControllerType::ProController:
+    case Core::HID::NpadStyleIndex::ProController:
         return parameters.allow_pro_controller;
-    case Settings::ControllerType::DualJoyconDetached:
+    case Core::HID::NpadStyleIndex::JoyconDual:
         return parameters.allow_dual_joycons;
-    case Settings::ControllerType::LeftJoycon:
+    case Core::HID::NpadStyleIndex::JoyconLeft:
         return parameters.allow_left_joycon;
-    case Settings::ControllerType::RightJoycon:
+    case Core::HID::NpadStyleIndex::JoyconRight:
         return parameters.allow_right_joycon;
-    case Settings::ControllerType::Handheld:
+    case Core::HID::NpadStyleIndex::Handheld:
         return parameters.enable_single_mode && parameters.allow_handheld;
-    case Settings::ControllerType::GameCube:
+    case Core::HID::NpadStyleIndex::GameCube:
         return parameters.allow_gamecube_controller;
     default:
         return false;
@@ -196,7 +183,7 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
             connect(emulated_controllers[i], qOverload<int>(&QComboBox::currentIndexChanged),
                     [this, i](int index) {
                         UpdateDockedState(GetControllerTypeFromIndex(index, i) ==
-                                          Settings::ControllerType::Handheld);
+                                          Core::HID::NpadStyleIndex::Handheld);
                     });
         }
     }
@@ -230,7 +217,9 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
     resize(0, 0);
 }
 
-QtControllerSelectorDialog::~QtControllerSelectorDialog() = default;
+QtControllerSelectorDialog::~QtControllerSelectorDialog() {
+    system.HIDCore().DisableAllControllerConfiguration();
+}
 
 int QtControllerSelectorDialog::exec() {
     if (parameters_met && parameters.enable_single_mode) {
@@ -249,17 +238,20 @@ void QtControllerSelectorDialog::ApplyConfiguration() {
 }
 
 void QtControllerSelectorDialog::LoadConfiguration() {
+    system.HIDCore().EnableAllControllerConfiguration();
+
+    const auto* handheld = system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
     for (std::size_t index = 0; index < NUM_PLAYERS; ++index) {
+        const auto* controller = system.HIDCore().GetEmulatedControllerByIndex(index);
         const auto connected =
-            Settings::values.players.GetValue()[index].connected ||
-            (index == 0 && Settings::values.players.GetValue()[HANDHELD_INDEX].connected);
+            controller->IsConnected(true) || (index == 0 && handheld->IsConnected(true));
         player_groupboxes[index]->setChecked(connected);
         connected_controller_checkboxes[index]->setChecked(connected);
-        emulated_controllers[index]->setCurrentIndex(GetIndexFromControllerType(
-            Settings::values.players.GetValue()[index].controller_type, index));
+        emulated_controllers[index]->setCurrentIndex(
+            GetIndexFromControllerType(controller->GetNpadStyleIndex(true), index));
     }
 
-    UpdateDockedState(Settings::values.players.GetValue()[HANDHELD_INDEX].connected);
+    UpdateDockedState(handheld->IsConnected(true));
 
     ui->vibrationGroup->setChecked(Settings::values.vibration_enabled.GetValue());
     ui->motionGroup->setChecked(Settings::values.motion_enabled.GetValue());
@@ -415,33 +407,33 @@ void QtControllerSelectorDialog::SetEmulatedControllers(std::size_t player_index
     emulated_controllers[player_index]->clear();
 
     pairs.emplace_back(emulated_controllers[player_index]->count(),
-                       Settings::ControllerType::ProController);
+                       Core::HID::NpadStyleIndex::ProController);
     emulated_controllers[player_index]->addItem(tr("Pro Controller"));
 
     pairs.emplace_back(emulated_controllers[player_index]->count(),
-                       Settings::ControllerType::DualJoyconDetached);
+                       Core::HID::NpadStyleIndex::JoyconDual);
     emulated_controllers[player_index]->addItem(tr("Dual Joycons"));
 
     pairs.emplace_back(emulated_controllers[player_index]->count(),
-                       Settings::ControllerType::LeftJoycon);
+                       Core::HID::NpadStyleIndex::JoyconLeft);
     emulated_controllers[player_index]->addItem(tr("Left Joycon"));
 
     pairs.emplace_back(emulated_controllers[player_index]->count(),
-                       Settings::ControllerType::RightJoycon);
+                       Core::HID::NpadStyleIndex::JoyconRight);
     emulated_controllers[player_index]->addItem(tr("Right Joycon"));
 
     if (player_index == 0) {
         pairs.emplace_back(emulated_controllers[player_index]->count(),
-                           Settings::ControllerType::Handheld);
+                           Core::HID::NpadStyleIndex::Handheld);
         emulated_controllers[player_index]->addItem(tr("Handheld"));
     }
 
     pairs.emplace_back(emulated_controllers[player_index]->count(),
-                       Settings::ControllerType::GameCube);
+                       Core::HID::NpadStyleIndex::GameCube);
     emulated_controllers[player_index]->addItem(tr("GameCube Controller"));
 }
 
-Settings::ControllerType QtControllerSelectorDialog::GetControllerTypeFromIndex(
+Core::HID::NpadStyleIndex QtControllerSelectorDialog::GetControllerTypeFromIndex(
     int index, std::size_t player_index) const {
     const auto& pairs = index_controller_type_pairs[player_index];
 
@@ -449,13 +441,13 @@ Settings::ControllerType QtControllerSelectorDialog::GetControllerTypeFromIndex(
                                  [index](const auto& pair) { return pair.first == index; });
 
     if (it == pairs.end()) {
-        return Settings::ControllerType::ProController;
+        return Core::HID::NpadStyleIndex::ProController;
     }
 
     return it->second;
 }
 
-int QtControllerSelectorDialog::GetIndexFromControllerType(Settings::ControllerType type,
+int QtControllerSelectorDialog::GetIndexFromControllerType(Core::HID::NpadStyleIndex type,
                                                            std::size_t player_index) const {
     const auto& pairs = index_controller_type_pairs[player_index];
 
@@ -479,16 +471,16 @@ void QtControllerSelectorDialog::UpdateControllerIcon(std::size_t player_index) 
     const QString stylesheet = [this, player_index] {
         switch (GetControllerTypeFromIndex(emulated_controllers[player_index]->currentIndex(),
                                            player_index)) {
-        case Settings::ControllerType::ProController:
-        case Settings::ControllerType::GameCube:
+        case Core::HID::NpadStyleIndex::ProController:
+        case Core::HID::NpadStyleIndex::GameCube:
             return QStringLiteral("image: url(:/controller/applet_pro_controller%0); ");
-        case Settings::ControllerType::DualJoyconDetached:
+        case Core::HID::NpadStyleIndex::JoyconDual:
             return QStringLiteral("image: url(:/controller/applet_dual_joycon%0); ");
-        case Settings::ControllerType::LeftJoycon:
+        case Core::HID::NpadStyleIndex::JoyconLeft:
             return QStringLiteral("image: url(:/controller/applet_joycon_left%0); ");
-        case Settings::ControllerType::RightJoycon:
+        case Core::HID::NpadStyleIndex::JoyconRight:
             return QStringLiteral("image: url(:/controller/applet_joycon_right%0); ");
-        case Settings::ControllerType::Handheld:
+        case Core::HID::NpadStyleIndex::Handheld:
             return QStringLiteral("image: url(:/controller/applet_handheld%0); ");
         default:
             return QString{};
@@ -516,54 +508,38 @@ void QtControllerSelectorDialog::UpdateControllerIcon(std::size_t player_index) 
 }
 
 void QtControllerSelectorDialog::UpdateControllerState(std::size_t player_index) {
-    auto& player = Settings::values.players.GetValue()[player_index];
+    auto* controller = system.HIDCore().GetEmulatedControllerByIndex(player_index);
 
     const auto controller_type = GetControllerTypeFromIndex(
         emulated_controllers[player_index]->currentIndex(), player_index);
     const auto player_connected = player_groupboxes[player_index]->isChecked() &&
-                                  controller_type != Settings::ControllerType::Handheld;
+                                  controller_type != Core::HID::NpadStyleIndex::Handheld;
 
-    if (player.controller_type == controller_type && player.connected == player_connected) {
-        // Set vibration devices in the event that the input device has changed.
-        ConfigureVibration::SetVibrationDevices(player_index);
+    if (controller->GetNpadStyleIndex(true) == controller_type &&
+        controller->IsConnected(true) == player_connected) {
         return;
     }
 
     // Disconnect the controller first.
-    UpdateController(controller_type, player_index, false, system);
-
-    player.controller_type = controller_type;
-    player.connected = player_connected;
-
-    ConfigureVibration::SetVibrationDevices(player_index);
+    UpdateController(controller, controller_type, false);
 
     // Handheld
     if (player_index == 0) {
-        auto& handheld = Settings::values.players.GetValue()[HANDHELD_INDEX];
-        if (controller_type == Settings::ControllerType::Handheld) {
-            handheld = player;
+        if (controller_type == Core::HID::NpadStyleIndex::Handheld) {
+            auto* handheld =
+                system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
+            UpdateController(handheld, Core::HID::NpadStyleIndex::Handheld,
+                             player_groupboxes[player_index]->isChecked());
         }
-        handheld.connected = player_groupboxes[player_index]->isChecked() &&
-                             controller_type == Settings::ControllerType::Handheld;
-        UpdateController(Settings::ControllerType::Handheld, 8, handheld.connected, system);
     }
 
-    if (!player.connected) {
-        return;
-    }
-
-    // This emulates a delay between disconnecting and reconnecting controllers as some games
-    // do not respond to a change in controller type if it was instantaneous.
-    using namespace std::chrono_literals;
-    std::this_thread::sleep_for(60ms);
-
-    UpdateController(controller_type, player_index, player_connected, system);
+    UpdateController(controller, controller_type, player_connected);
 }
 
 void QtControllerSelectorDialog::UpdateLEDPattern(std::size_t player_index) {
     if (!player_groupboxes[player_index]->isChecked() ||
         GetControllerTypeFromIndex(emulated_controllers[player_index]->currentIndex(),
-                                   player_index) == Settings::ControllerType::Handheld) {
+                                   player_index) == Core::HID::NpadStyleIndex::Handheld) {
         led_patterns_boxes[player_index][0]->setChecked(false);
         led_patterns_boxes[player_index][1]->setChecked(false);
         led_patterns_boxes[player_index][2]->setChecked(false);
@@ -571,10 +547,12 @@ void QtControllerSelectorDialog::UpdateLEDPattern(std::size_t player_index) {
         return;
     }
 
-    led_patterns_boxes[player_index][0]->setChecked(led_patterns[player_index][0]);
-    led_patterns_boxes[player_index][1]->setChecked(led_patterns[player_index][1]);
-    led_patterns_boxes[player_index][2]->setChecked(led_patterns[player_index][2]);
-    led_patterns_boxes[player_index][3]->setChecked(led_patterns[player_index][3]);
+    const auto* controller = system.HIDCore().GetEmulatedControllerByIndex(player_index);
+    const auto led_pattern = controller->GetLedPattern();
+    led_patterns_boxes[player_index][0]->setChecked(led_pattern.position1);
+    led_patterns_boxes[player_index][1]->setChecked(led_pattern.position2);
+    led_patterns_boxes[player_index][2]->setChecked(led_pattern.position3);
+    led_patterns_boxes[player_index][3]->setChecked(led_pattern.position4);
 }
 
 void QtControllerSelectorDialog::UpdateBorderColor(std::size_t player_index) {
@@ -654,10 +632,9 @@ void QtControllerSelectorDialog::DisableUnsupportedPlayers() {
     }
 
     for (std::size_t index = max_supported_players; index < NUM_PLAYERS; ++index) {
+        auto* controller = system.HIDCore().GetEmulatedControllerByIndex(index);
         // Disconnect any unsupported players here and disable or hide them if applicable.
-        Settings::values.players.GetValue()[index].connected = false;
-        UpdateController(Settings::values.players.GetValue()[index].controller_type, index, false,
-                         system);
+        UpdateController(controller, controller->GetNpadStyleIndex(true), false);
         // Hide the player widgets when max_supported_controllers is less than or equal to 4.
         if (max_supported_players <= 4) {
             player_widgets[index]->hide();

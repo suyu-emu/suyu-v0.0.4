@@ -177,6 +177,7 @@ public slots:
     void WebBrowserOpenWebPage(const std::string& main_url, const std::string& additional_args,
                                bool is_local);
     void OnAppFocusStateChanged(Qt::ApplicationState state);
+    void OnTasStateChanged();
 
 private:
     void RegisterMetaTypes();
@@ -190,6 +191,7 @@ private:
 
     void ConnectWidgetEvents();
     void ConnectMenuEvents();
+    void UpdateMenuState();
 
     void PreventOSSleep();
     void AllowOSSleep();
@@ -239,7 +241,9 @@ private:
 
 private slots:
     void OnStartGame();
+    void OnRestartGame();
     void OnPauseGame();
+    void OnPauseContinueGame();
     void OnStopGame();
     void OnMenuReportCompatibility();
     void OnOpenModsPage();
@@ -268,6 +272,9 @@ private slots:
     void OnMenuRecentFile();
     void OnConfigure();
     void OnConfigureTas();
+    void OnTasStartStop();
+    void OnTasRecord();
+    void OnTasReset();
     void OnConfigurePerGame();
     void OnLoadAmiibo();
     void OnOpenYuzuFolder();
@@ -290,6 +297,9 @@ private slots:
     void OnMouseActivity();
 
 private:
+    /// Updates an action's shortcut and text to reflect an updated hotkey from the hotkey registry.
+    void LinkActionShortcut(QAction* action, const QString& action_name);
+
     void RemoveBaseContent(u64 program_id, const QString& entry_type);
     void RemoveUpdateContent(u64 program_id, const QString& entry_type);
     void RemoveAddOnContent(u64 program_id, const QString& entry_type);
@@ -313,6 +323,7 @@ private:
     void OpenURL(const QUrl& url);
     void LoadTranslation();
     void OpenPerGameConfiguration(u64 title_id, const std::string& file_name);
+
     QString GetTasStateDescription() const;
 
     std::unique_ptr<Ui::MainWindow> ui;

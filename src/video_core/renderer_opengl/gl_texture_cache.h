@@ -84,9 +84,13 @@ public:
 
     u64 GetDeviceLocalMemory() const;
 
+    bool ShouldReinterpret([[maybe_unused]] Image& dst, [[maybe_unused]] Image& src) {
+        return true;
+    }
+
     void CopyImage(Image& dst, Image& src, std::span<const VideoCommon::ImageCopy> copies);
 
-    void ConvertImage(Image& dst, Image& src, std::span<const VideoCommon::ImageCopy> copies);
+    void ReinterpretImage(Image& dst, Image& src, std::span<const VideoCommon::ImageCopy> copies);
 
     void ConvertImage(Framebuffer* dst, ImageView& dst_view, ImageView& src_view, bool rescaled) {
         UNIMPLEMENTED();
@@ -164,8 +168,8 @@ private:
 
     std::array<GLuint, Shader::NUM_TEXTURE_TYPES> null_image_views{};
 
-    std::array<OGLFramebuffer, 3> rescale_draw_fbos;
-    std::array<OGLFramebuffer, 3> rescale_read_fbos;
+    std::array<OGLFramebuffer, 4> rescale_draw_fbos;
+    std::array<OGLFramebuffer, 4> rescale_read_fbos;
     const Settings::ResolutionScalingInfo& resolution;
 };
 
@@ -221,6 +225,7 @@ private:
     GLenum gl_internal_format = GL_NONE;
     GLenum gl_format = GL_NONE;
     GLenum gl_type = GL_NONE;
+    GLsizei gl_num_levels{};
     TextureCacheRuntime* runtime{};
     GLuint current_texture{};
 };
@@ -338,7 +343,6 @@ struct TextureCacheParams {
     static constexpr bool FRAMEBUFFER_BLITS = true;
     static constexpr bool HAS_EMULATED_COPIES = true;
     static constexpr bool HAS_DEVICE_MEMORY_INFO = true;
-    static constexpr bool HAS_PIXEL_FORMAT_CONVERSIONS = true;
 
     using Runtime = OpenGL::TextureCacheRuntime;
     using Image = OpenGL::Image;

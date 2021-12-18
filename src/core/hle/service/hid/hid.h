@@ -60,21 +60,23 @@ public:
 private:
     template <typename T>
     void MakeController(HidController controller) {
-        controllers[static_cast<std::size_t>(controller)] = std::make_unique<T>(system);
+        controllers[static_cast<std::size_t>(controller)] = std::make_unique<T>(system.HIDCore());
     }
     template <typename T>
     void MakeControllerWithServiceContext(HidController controller) {
         controllers[static_cast<std::size_t>(controller)] =
-            std::make_unique<T>(system, service_context);
+            std::make_unique<T>(system.HIDCore(), service_context);
     }
 
     void GetSharedMemoryHandle(Kernel::HLERequestContext& ctx);
     void UpdateControllers(std::uintptr_t user_data, std::chrono::nanoseconds ns_late);
+    void UpdateMouseKeyboard(std::uintptr_t user_data, std::chrono::nanoseconds ns_late);
     void UpdateMotion(std::uintptr_t user_data, std::chrono::nanoseconds ns_late);
 
     KernelHelpers::ServiceContext& service_context;
 
     std::shared_ptr<Core::Timing::EventType> pad_update_event;
+    std::shared_ptr<Core::Timing::EventType> mouse_keyboard_update_event;
     std::shared_ptr<Core::Timing::EventType> motion_update_event;
 
     std::array<std::unique_ptr<ControllerBase>, static_cast<size_t>(HidController::MaxControllers)>
@@ -134,6 +136,8 @@ private:
     void IsUnintendedHomeButtonInputProtectionEnabled(Kernel::HLERequestContext& ctx);
     void EnableUnintendedHomeButtonInputProtection(Kernel::HLERequestContext& ctx);
     void SetNpadAnalogStickUseCenterClamp(Kernel::HLERequestContext& ctx);
+    void SetNpadCaptureButtonAssignment(Kernel::HLERequestContext& ctx);
+    void ClearNpadCaptureButtonAssignment(Kernel::HLERequestContext& ctx);
     void GetVibrationDeviceInfo(Kernel::HLERequestContext& ctx);
     void SendVibrationValue(Kernel::HLERequestContext& ctx);
     void GetActualVibrationValue(Kernel::HLERequestContext& ctx);
@@ -161,37 +165,10 @@ private:
     void GetNpadCommunicationMode(Kernel::HLERequestContext& ctx);
     void SetTouchScreenConfiguration(Kernel::HLERequestContext& ctx);
 
-    enum class VibrationDeviceType : u32 {
-        Unknown = 0,
-        LinearResonantActuator = 1,
-        GcErm = 2,
-    };
-
-    enum class VibrationDevicePosition : u32 {
-        None = 0,
-        Left = 1,
-        Right = 2,
-    };
-
-    enum class VibrationGcErmCommand : u64 {
-        Stop = 0,
-        Start = 1,
-        StopHard = 2,
-    };
-
-    struct VibrationDeviceInfo {
-        VibrationDeviceType type{};
-        VibrationDevicePosition position{};
-    };
-    static_assert(sizeof(VibrationDeviceInfo) == 0x8, "VibrationDeviceInfo has incorrect size.");
-
     std::shared_ptr<IAppletResource> applet_resource;
 
     KernelHelpers::ServiceContext service_context;
 };
-
-/// Reload input devices. Used when input configuration changed
-void ReloadInputDevices();
 
 /// Registers all HID services with the specified service manager.
 void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system);

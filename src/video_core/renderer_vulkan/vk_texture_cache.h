@@ -61,6 +61,10 @@ public:
 
     void CopyImage(Image& dst, Image& src, std::span<const VideoCommon::ImageCopy> copies);
 
+    bool ShouldReinterpret(Image& dst, Image& src);
+
+    void ReinterpretImage(Image& dst, Image& src, std::span<const VideoCommon::ImageCopy> copies);
+
     void ConvertImage(Framebuffer* dst, ImageView& dst_view, ImageView& src_view, bool rescaled);
 
     bool CanAccelerateImageUpload(Image&) const noexcept {
@@ -82,6 +86,8 @@ public:
         return true;
     }
 
+    [[nodiscard]] VkBuffer GetTemporaryBuffer(size_t needed_size);
+
     const Device& device;
     VKScheduler& scheduler;
     MemoryAllocator& memory_allocator;
@@ -90,6 +96,10 @@ public:
     ASTCDecoderPass& astc_decoder_pass;
     RenderPassCache& render_pass_cache;
     const Settings::ResolutionScalingInfo& resolution;
+
+    constexpr static size_t indexing_slots = 8 * sizeof(size_t);
+    std::array<vk::Buffer, indexing_slots> buffers{};
+    std::array<std::unique_ptr<MemoryCommit>, indexing_slots> buffer_commits{};
 };
 
 class Image : public VideoCommon::ImageBase {
@@ -174,6 +184,8 @@ public:
 
     [[nodiscard]] VkImageView StencilView();
 
+    [[nodiscard]] VkImageView ColorView();
+
     [[nodiscard]] VkImageView StorageView(Shader::TextureType texture_type,
                                           Shader::ImageFormat image_format);
 
@@ -214,6 +226,7 @@ private:
     std::unique_ptr<StorageViews> storage_views;
     vk::ImageView depth_view;
     vk::ImageView stencil_view;
+    vk::ImageView color_view;
     VkImage image_handle = VK_NULL_HANDLE;
     VkImageView render_target = VK_NULL_HANDLE;
     VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT;
@@ -316,7 +329,6 @@ struct TextureCacheParams {
     static constexpr bool FRAMEBUFFER_BLITS = false;
     static constexpr bool HAS_EMULATED_COPIES = false;
     static constexpr bool HAS_DEVICE_MEMORY_INFO = true;
-    static constexpr bool HAS_PIXEL_FORMAT_CONVERSIONS = false;
 
     using Runtime = Vulkan::TextureCacheRuntime;
     using Image = Vulkan::Image;

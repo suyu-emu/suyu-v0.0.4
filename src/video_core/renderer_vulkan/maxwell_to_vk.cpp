@@ -162,7 +162,7 @@ struct FormatTuple {
     {VK_FORMAT_UNDEFINED},                                     // R16_SINT
     {VK_FORMAT_R16G16_UNORM, Attachable | Storage},            // R16G16_UNORM
     {VK_FORMAT_R16G16_SFLOAT, Attachable | Storage},           // R16G16_FLOAT
-    {VK_FORMAT_UNDEFINED},                                     // R16G16_UINT
+    {VK_FORMAT_R16G16_UINT, Attachable | Storage},             // R16G16_UINT
     {VK_FORMAT_R16G16_SINT, Attachable | Storage},             // R16G16_SINT
     {VK_FORMAT_R16G16_SNORM, Attachable | Storage},            // R16G16_SNORM
     {VK_FORMAT_UNDEFINED},                                     // R32G32B32_FLOAT
@@ -176,8 +176,8 @@ struct FormatTuple {
     {VK_FORMAT_R32_UINT, Attachable | Storage},                // R32_UINT
     {VK_FORMAT_R32_SINT, Attachable | Storage},                // R32_SINT
     {VK_FORMAT_ASTC_8x8_UNORM_BLOCK},                          // ASTC_2D_8X8_UNORM
-    {VK_FORMAT_UNDEFINED},                                     // ASTC_2D_8X5_UNORM
-    {VK_FORMAT_UNDEFINED},                                     // ASTC_2D_5X4_UNORM
+    {VK_FORMAT_ASTC_8x5_UNORM_BLOCK},                          // ASTC_2D_8X5_UNORM
+    {VK_FORMAT_ASTC_5x4_UNORM_BLOCK},                          // ASTC_2D_5X4_UNORM
     {VK_FORMAT_B8G8R8A8_SRGB, Attachable},                     // B8G8R8A8_SRGB
     {VK_FORMAT_BC1_RGBA_SRGB_BLOCK},                           // BC1_RGBA_SRGB
     {VK_FORMAT_BC2_SRGB_BLOCK},                                // BC2_SRGB
@@ -207,6 +207,9 @@ struct FormatTuple {
     // Depth formats
     {VK_FORMAT_D32_SFLOAT, Attachable}, // D32_FLOAT
     {VK_FORMAT_D16_UNORM, Attachable},  // D16_UNORM
+
+    // Stencil formats
+    {VK_FORMAT_S8_UINT, Attachable}, // S8_UINT
 
     // DepthStencil formats
     {VK_FORMAT_D24_UNORM_S8_UINT, Attachable},  // D24_UNORM_S8_UINT

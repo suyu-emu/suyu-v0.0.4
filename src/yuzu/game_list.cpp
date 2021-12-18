@@ -17,6 +17,7 @@
 #include <fmt/format.h>
 #include "common/common_types.h"
 #include "common/logging/log.h"
+#include "core/core.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
 #include "yuzu/compatibility_list.h"
@@ -25,6 +26,7 @@
 #include "yuzu/game_list_worker.h"
 #include "yuzu/main.h"
 #include "yuzu/uisettings.h"
+#include "yuzu/util/controller_navigation.h"
 
 GameListSearchField::KeyReleaseEater::KeyReleaseEater(GameList* gamelist, QObject* parent)
     : QObject(parent), gamelist{gamelist} {}
@@ -171,13 +173,17 @@ void GameList::OnItemExpanded(const QModelIndex& item) {
     const bool is_dir = type == GameListItemType::CustomDir || type == GameListItemType::SdmcDir ||
                         type == GameListItemType::UserNandDir ||
                         type == GameListItemType::SysNandDir;
-
-    if (!is_dir) {
+    const bool is_fave = type == GameListItemType::Favorites;
+    if (!is_dir && !is_fave) {
         return;
     }
-
-    UISettings::values.game_dirs[item.data(GameListDir::GameDirRole).toInt()].expanded =
-        tree_view->isExpanded(item);
+    const bool is_expanded = tree_view->isExpanded(item);
+    if (is_fave) {
+        UISettings::values.favorites_expanded = is_expanded;
+        return;
+    }
+    const int item_dir_index = item.data(GameListDir::GameDirRole).toInt();
+    UISettings::values.game_dirs[item_dir_index].expanded = is_expanded;
 }
 
 // Event in order to filter the gamelist after editing the searchfield
@@ -312,6 +318,7 @@ GameList::GameList(FileSys::VirtualFilesystem vfs, FileSys::ManualContentProvide
     this->main_window = parent;
     layout = new QVBoxLayout;
     tree_view = new QTreeView;
+    controller_navigation = new ControllerNavigation(system.HIDCore(), this);
     search_field = new GameListSearchField(this);
     item_model = new QStandardItemModel(tree_view);
     tree_view->setModel(item_model);
@@ -341,6 +348,18 @@ GameList::GameList(FileSys::VirtualFilesystem vfs, FileSys::ManualContentProvide
     connect(tree_view, &QTreeView::customContextMenuRequested, this, &GameList::PopupContextMenu);
     connect(tree_view, &QTreeView::expanded, this, &GameList::OnItemExpanded);
     connect(tree_view, &QTreeView::collapsed, this, &GameList::OnItemExpanded);
+    connect(controller_navigation, &ControllerNavigation::TriggerKeyboardEvent,
+            [this](Qt::Key key) {
+                // Avoid pressing buttons while playing
+                if (system.IsPoweredOn()) {
+                    return;
+                }
+                if (!this->isActiveWindow()) {
+                    return;
+                }
+                QKeyEvent* event = new QKeyEvent(QEvent::KeyPress, key, Qt::NoModifier);
+                QCoreApplication::postEvent(tree_view, event);
+            });
 
     // We must register all custom types with the Qt Automoc system so that we are able to use
     // it with signals/slots. In this case, QList falls under the umbrells of custom types.
@@ -353,7 +372,12 @@ GameList::GameList(FileSys::VirtualFilesystem vfs, FileSys::ManualContentProvide
     setLayout(layout);
 }
 
+void GameList::UnloadController() {
+    controller_navigation->UnloadController();
+}
+
 GameList::~GameList() {
+    UnloadController();
     emit ShouldCancelWorker();
 }
 
@@ -438,10 +462,13 @@ void GameList::DonePopulating(const QStringList& watch_list) {
     emit ShowList(!IsEmpty());
 
     item_model->invisibleRootItem()->appendRow(new GameListAddDir());
+
+    // Add favorites row
     item_model->invisibleRootItem()->insertRow(0, new GameListFavorites());
     tree_view->setRowHidden(0, item_model->invisibleRootItem()->index(),
                             UISettings::values.favorited_ids.size() == 0);
-    tree_view->expand(item_model->invisibleRootItem()->child(0)->index());
+    tree_view->setExpanded(item_model->invisibleRootItem()->child(0)->index(),
+                           UISettings::values.favorites_expanded.GetValue());
     for (const auto id : UISettings::values.favorited_ids) {
         AddFavorite(id);
     }

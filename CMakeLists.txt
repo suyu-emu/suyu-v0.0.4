@@ -57,7 +57,7 @@ function(check_submodules_present)
         string(REGEX REPLACE "path *= *" "" module ${module})
         if (NOT EXISTS "${PROJECT_SOURCE_DIR}/${module}/.git")
             message(FATAL_ERROR "Git submodule ${module} not found. "
-                    "Please run: git submodule update --init --recursive")
+                    "Please run: \ngit submodule update --init --recursive")
         endif()
     endforeach()
 endfunction()
@@ -131,7 +131,7 @@ add_definitions(-DBOOST_ASIO_DISABLE_CONCEPTS)
 if (MSVC)
     add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/std:c++latest>)
 
-    # cubeb and boost still make use of deprecated result_of.
+    # boost still makes use of deprecated result_of.
     add_definitions(-D_HAS_DEPRECATED_RESULT_OF)
 else()
     set(CMAKE_CXX_STANDARD 20)
@@ -167,7 +167,7 @@ macro(yuzu_find_packages)
     set(REQUIRED_LIBS
     #    Cmake Pkg Prefix  Version     Conan Pkg
         "Catch2            2.13.7      catch2/2.13.7"
-        "fmt               8.0         fmt/8.0.0"
+        "fmt               8.0.1       fmt/8.0.1"
         "lz4               1.8         lz4/1.9.2"
         "nlohmann_json     3.8         nlohmann_json/3.8.0"
         "ZLIB              1.2         zlib/1.2.11"
@@ -370,7 +370,7 @@ if (ENABLE_SDL2)
     if (YUZU_USE_BUNDLED_SDL2)
         # Detect toolchain and platform
         if ((MSVC_VERSION GREATER_EQUAL 1920 AND MSVC_VERSION LESS 1940) AND ARCHITECTURE_x86_64)
-            set(SDL2_VER "SDL2-2.0.16")
+            set(SDL2_VER "SDL2-2.0.18")
         else()
             message(FATAL_ERROR "No bundled SDL2 binaries for your toolchain. Disable YUZU_USE_BUNDLED_SDL2 and provide your own.")
         endif()
@@ -390,7 +390,7 @@ if (ENABLE_SDL2)
     elseif (YUZU_USE_EXTERNAL_SDL2)
         message(STATUS "Using SDL2 from externals.")
     else()
-        find_package(SDL2 2.0.16 REQUIRED)
+        find_package(SDL2 2.0.18 REQUIRED)
 
         # Some installations don't set SDL2_LIBRARIES
         if("${SDL2_LIBRARIES}" STREQUAL "")

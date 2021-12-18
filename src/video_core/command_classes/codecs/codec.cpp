@@ -2,6 +2,8 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <cstdio>
 #include <fstream>
 #include <vector>
 #include "common/assert.h"
@@ -15,12 +17,28 @@
 
 extern "C" {
 #include <libavutil/opt.h>
+#ifdef LIBVA_FOUND
+// for querying VAAPI driver information
+#include <libavutil/hwcontext_vaapi.h>
+#endif
 }
 
 namespace Tegra {
 namespace {
 constexpr AVPixelFormat PREFERRED_GPU_FMT = AV_PIX_FMT_NV12;
 constexpr AVPixelFormat PREFERRED_CPU_FMT = AV_PIX_FMT_YUV420P;
+constexpr std::array PREFERRED_GPU_DECODERS = {
+    AV_HWDEVICE_TYPE_CUDA,
+#ifdef _WIN32
+    AV_HWDEVICE_TYPE_D3D11VA,
+    AV_HWDEVICE_TYPE_DXVA2,
+#elif defined(__linux__)
+    AV_HWDEVICE_TYPE_VAAPI,
+    AV_HWDEVICE_TYPE_VDPAU,
+#endif
+    // last resort for Linux Flatpak (w/ NVIDIA)
+    AV_HWDEVICE_TYPE_VULKAN,
+};
 
 void AVPacketDeleter(AVPacket* ptr) {
     av_packet_free(&ptr);
@@ -59,46 +77,50 @@ Codec::~Codec() {
     av_buffer_unref(&av_gpu_decoder);
 }
 
+// List all the currently available hwcontext in ffmpeg
+static std::vector<AVHWDeviceType> ListSupportedContexts() {
+    std::vector<AVHWDeviceType> contexts{};
+    AVHWDeviceType current_device_type = AV_HWDEVICE_TYPE_NONE;
+    do {
+        current_device_type = av_hwdevice_iterate_types(current_device_type);
+        contexts.push_back(current_device_type);
+    } while (current_device_type != AV_HWDEVICE_TYPE_NONE);
+    return contexts;
+}
+
 bool Codec::CreateGpuAvDevice() {
-#if defined(LIBVA_FOUND)
-    static constexpr std::array<const char*, 3> VAAPI_DRIVERS = {
-        "i915",
-        "iHD",
-        "amdgpu",
-    };
-    AVDictionary* hwdevice_options = nullptr;
-    av_dict_set(&hwdevice_options, "connection_type", "drm", 0);
-    for (const auto& driver : VAAPI_DRIVERS) {
-        av_dict_set(&hwdevice_options, "kernel_driver", driver, 0);
-        const int hwdevice_error = av_hwdevice_ctx_create(&av_gpu_decoder, AV_HWDEVICE_TYPE_VAAPI,
-                                                          nullptr, hwdevice_options, 0);
-        if (hwdevice_error >= 0) {
-            LOG_INFO(Service_NVDRV, "Using VA-API with {}", driver);
-            av_dict_free(&hwdevice_options);
-            av_codec_ctx->pix_fmt = AV_PIX_FMT_VAAPI;
-            return true;
-        }
-        LOG_DEBUG(Service_NVDRV, "VA-API av_hwdevice_ctx_create failed {}", hwdevice_error);
-    }
-    LOG_DEBUG(Service_NVDRV, "VA-API av_hwdevice_ctx_create failed for all drivers");
-    av_dict_free(&hwdevice_options);
-#endif
     static constexpr auto HW_CONFIG_METHOD = AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX;
-    static constexpr std::array GPU_DECODER_TYPES{
-        AV_HWDEVICE_TYPE_CUDA,
-#ifdef _WIN32
-        AV_HWDEVICE_TYPE_D3D11VA,
-#else
-        AV_HWDEVICE_TYPE_VDPAU,
-#endif
-    };
-    for (const auto& type : GPU_DECODER_TYPES) {
+    static const auto supported_contexts = ListSupportedContexts();
+    for (const auto& type : PREFERRED_GPU_DECODERS) {
+        if (std::none_of(supported_contexts.begin(), supported_contexts.end(),
+                         [&type](const auto& context) { return context == type; })) {
+            LOG_DEBUG(Service_NVDRV, "{} explicitly unsupported", av_hwdevice_get_type_name(type));
+            continue;
+        }
         const int hwdevice_res = av_hwdevice_ctx_create(&av_gpu_decoder, type, nullptr, nullptr, 0);
         if (hwdevice_res < 0) {
             LOG_DEBUG(Service_NVDRV, "{} av_hwdevice_ctx_create failed {}",
                       av_hwdevice_get_type_name(type), hwdevice_res);
             continue;
         }
+#ifdef LIBVA_FOUND
+        if (type == AV_HWDEVICE_TYPE_VAAPI) {
+            // we need to determine if this is an impersonated VAAPI driver
+            AVHWDeviceContext* hwctx =
+                static_cast<AVHWDeviceContext*>(static_cast<void*>(av_gpu_decoder->data));
+            AVVAAPIDeviceContext* vactx = static_cast<AVVAAPIDeviceContext*>(hwctx->hwctx);
+            const char* vendor_name = vaQueryVendorString(vactx->display);
+            if (strstr(vendor_name, "VDPAU backend")) {
+                // VDPAU impersonated VAAPI impl's are super buggy, we need to skip them
+                LOG_DEBUG(Service_NVDRV, "Skipping vdapu impersonated VAAPI driver");
+                continue;
+            } else {
+                // according to some user testing, certain vaapi driver (Intel?) could be buggy
+                // so let's log the driver name which may help the developers/supporters
+                LOG_DEBUG(Service_NVDRV, "Using VAAPI driver: {}", vendor_name);
+            }
+        }
+#endif
         for (int i = 0;; i++) {
             const AVCodecHWConfig* config = avcodec_get_hw_config(av_codec, i);
             if (!config) {

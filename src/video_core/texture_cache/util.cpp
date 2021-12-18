@@ -1151,6 +1151,7 @@ bool IsSubresource(const ImageInfo& candidate, const ImageBase& image, GPUVAddr 
 
 void DeduceBlitImages(ImageInfo& dst_info, ImageInfo& src_info, const ImageBase* dst,
                       const ImageBase* src) {
+    const auto original_dst_format = dst_info.format;
     if (src && GetFormatType(src->info.format) != SurfaceType::ColorTexture) {
         src_info.format = src->info.format;
     }
@@ -1161,7 +1162,13 @@ void DeduceBlitImages(ImageInfo& dst_info, ImageInfo& src_info, const ImageBase*
         dst_info.format = src->info.format;
     }
     if (dst && GetFormatType(dst->info.format) != SurfaceType::ColorTexture) {
-        src_info.format = dst->info.format;
+        if (src) {
+            if (GetFormatType(src->info.format) == SurfaceType::ColorTexture) {
+                dst_info.format = original_dst_format;
+            }
+        } else {
+            src_info.format = dst->info.format;
+        }
     }
 }
 

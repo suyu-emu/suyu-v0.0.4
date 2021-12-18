@@ -132,11 +132,23 @@ add_library(core STATIC
     frontend/emu_window.h
     frontend/framebuffer_layout.cpp
     frontend/framebuffer_layout.h
-    frontend/input_interpreter.cpp
-    frontend/input_interpreter.h
-    frontend/input.h
     hardware_interrupt_manager.cpp
     hardware_interrupt_manager.h
+    hid/emulated_console.cpp
+    hid/emulated_console.h
+    hid/emulated_controller.cpp
+    hid/emulated_controller.h
+    hid/emulated_devices.cpp
+    hid/emulated_devices.h
+    hid/hid_core.cpp
+    hid/hid_core.h
+    hid/hid_types.h
+    hid/input_converter.cpp
+    hid/input_converter.h
+    hid/input_interpreter.cpp
+    hid/input_interpreter.h
+    hid/motion_input.cpp
+    hid/motion_input.h
     hle/api_version.h
     hle/ipc.h
     hle/ipc_helpers.h
@@ -167,12 +179,15 @@ add_library(core STATIC
     hle/kernel/k_client_port.h
     hle/kernel/k_client_session.cpp
     hle/kernel/k_client_session.h
+    hle/kernel/k_code_memory.cpp
+    hle/kernel/k_code_memory.h
     hle/kernel/k_condition_variable.cpp
     hle/kernel/k_condition_variable.h
     hle/kernel/k_event.cpp
     hle/kernel/k_event.h
     hle/kernel/k_handle_table.cpp
     hle/kernel/k_handle_table.h
+    hle/kernel/k_light_condition_variable.cpp
     hle/kernel/k_light_condition_variable.h
     hle/kernel/k_light_lock.cpp
     hle/kernel/k_light_lock.h
@@ -225,6 +240,7 @@ add_library(core STATIC
     hle/kernel/k_system_control.h
     hle/kernel/k_thread.cpp
     hle/kernel/k_thread.h
+    hle/kernel/k_thread_queue.cpp
     hle/kernel/k_thread_queue.h
     hle/kernel/k_trace.h
     hle/kernel/k_transfer_memory.cpp
@@ -396,12 +412,15 @@ add_library(core STATIC
     hle/service/glue/glue.h
     hle/service/glue/glue_manager.cpp
     hle/service/glue/glue_manager.h
+    hle/service/glue/notif.cpp
+    hle/service/glue/notif.h
     hle/service/grc/grc.cpp
     hle/service/grc/grc.h
     hle/service/hid/hid.cpp
     hle/service/hid/hid.h
     hle/service/hid/irs.cpp
     hle/service/hid/irs.h
+    hle/service/hid/ring_lifo.h
     hle/service/hid/xcd.cpp
     hle/service/hid/xcd.h
     hle/service/hid/errors.h
@@ -466,6 +485,8 @@ add_library(core STATIC
     hle/service/ns/language.h
     hle/service/ns/ns.cpp
     hle/service/ns/ns.h
+    hle/service/ns/pdm_qry.cpp
+    hle/service/ns/pdm_qry.h
     hle/service/ns/pl_u.cpp
     hle/service/ns/pl_u.h
     hle/service/nvdrv/devices/nvdevice.h
