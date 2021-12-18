@@ -1129,6 +1129,19 @@ std::vector<const char*> Device::LoadExtensions(bool requires_surface) {
             khr_pipeline_executable_properties = true;
         }
     }
+    if (has_ext_primitive_topology_list_restart) {
+        VkPhysicalDevicePrimitiveTopologyListRestartFeaturesEXT primitive_topology_list_restart{};
+        primitive_topology_list_restart.sType =
+            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIMITIVE_TOPOLOGY_LIST_RESTART_FEATURES_EXT;
+        primitive_topology_list_restart.pNext = nullptr;
+        features.pNext = &primitive_topology_list_restart;
+        physical.GetFeatures2KHR(features);
+
+        is_topology_list_restart_supported =
+            primitive_topology_list_restart.primitiveTopologyListRestart;
+        is_patch_list_restart_supported =
+            primitive_topology_list_restart.primitiveTopologyPatchListRestart;
+    }
     if (has_khr_image_format_list && has_khr_swapchain_mutable_format) {
         extensions.push_back(VK_KHR_IMAGE_FORMAT_LIST_EXTENSION_NAME);
         extensions.push_back(VK_KHR_SWAPCHAIN_MUTABLE_FORMAT_EXTENSION_NAME);
@@ -1143,18 +1156,6 @@ std::vector<const char*> Device::LoadExtensions(bool requires_surface) {
         physical.GetProperties2KHR(physical_properties);
 
         max_push_descriptors = push_descriptor.maxPushDescriptors;
-    }
-    if (has_ext_primitive_topology_list_restart) {
-        VkPhysicalDevicePrimitiveTopologyListRestartFeaturesEXT primitive_topology_list_restart{};
-        primitive_topology_list_restart.sType =
-            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRIMITIVE_TOPOLOGY_LIST_RESTART_FEATURES_EXT;
-        primitive_topology_list_restart.pNext = nullptr;
-        physical_properties.pNext = &primitive_topology_list_restart;
-        physical.GetProperties2KHR(physical_properties);
-        is_topology_list_restart_supported =
-            primitive_topology_list_restart.primitiveTopologyListRestart;
-        is_patch_list_restart_supported =
-            primitive_topology_list_restart.primitiveTopologyPatchListRestart;
     }
     return extensions;
 }

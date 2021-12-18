@@ -238,14 +238,19 @@ public:
         return khr_workgroup_memory_explicit_layout;
     }
 
-    /// Returns true if the device supports VK_EXT_index_type_uint8.
-    bool IsExtIndexTypeUint8Supported() const {
-        return ext_index_type_uint8;
+    /// Returns true if the device supports VK_EXT_primitive_topology_list_restart.
+    bool IsTopologyListPrimitiveRestartSupported() const {
+        return is_topology_list_restart_supported;
     }
 
     /// Returns true if the device supports VK_EXT_primitive_topology_list_restart.
-    bool IsExtPrimitiveTopologyListRestartSupported() const {
-        return ext_primitive_topology_list_restart;
+    bool IsPatchListPrimitiveRestartSupported() const {
+        return is_patch_list_restart_supported;
+    }
+
+    /// Returns true if the device supports VK_EXT_index_type_uint8.
+    bool IsExtIndexTypeUint8Supported() const {
+        return ext_index_type_uint8;
     }
 
     /// Returns true if the device supports VK_EXT_sampler_filter_minmax.
@@ -419,8 +424,6 @@ private:
     bool khr_pipeline_executable_properties{};   ///< Support for executable properties.
     bool khr_swapchain_mutable_format{};         ///< Support for VK_KHR_swapchain_mutable_format.
     bool ext_index_type_uint8{};                 ///< Support for VK_EXT_index_type_uint8.
-    bool ext_primitive_topology_list_restart{};  ///< Support for
-                                                 ///< VK_EXT_primitive_topology_list_restart.
     bool ext_sampler_filter_minmax{};            ///< Support for VK_EXT_sampler_filter_minmax.
     bool ext_depth_range_unrestricted{};         ///< Support for VK_EXT_depth_range_unrestricted.
     bool ext_shader_viewport_index_layer{}; ///< Support for VK_EXT_shader_viewport_index_layer.

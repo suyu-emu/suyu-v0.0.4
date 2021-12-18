@@ -605,8 +605,11 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .flags = 0,
         .topology = input_assembly_topology,
         .primitiveRestartEnable = key.state.primitive_restart_enable != 0 &&
-                                  (device.IsExtPrimitiveTopologyListRestartSupported() ||
-                                   SupportsPrimitiveRestart(input_assembly_topology)),
+                                  ((input_assembly_topology != VK_PRIMITIVE_TOPOLOGY_PATCH_LIST &&
+                                    device.IsTopologyListPrimitiveRestartSupported()) ||
+                                   SupportsPrimitiveRestart(input_assembly_topology) ||
+                                   (input_assembly_topology == VK_PRIMITIVE_TOPOLOGY_PATCH_LIST &&
+                                    device.IsPatchListPrimitiveRestartSupported())),
     };
     const VkPipelineTessellationStateCreateInfo tessellation_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO,
