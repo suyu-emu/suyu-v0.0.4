@@ -605,7 +605,8 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .flags = 0,
         .topology = input_assembly_topology,
         .primitiveRestartEnable = key.state.primitive_restart_enable != 0 &&
-                                  SupportsPrimitiveRestart(input_assembly_topology),
+                                  (device.IsExtPrimitiveTopologyListRestartSupported() ||
+                                   SupportsPrimitiveRestart(input_assembly_topology)),
     };
     const VkPipelineTessellationStateCreateInfo tessellation_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO,
@@ -613,7 +614,6 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .flags = 0,
         .patchControlPoints = key.state.patch_control_points_minus_one.Value() + 1,
     };
-
     std::array<VkViewportSwizzleNV, Maxwell::NumViewports> swizzles;
     std::ranges::transform(key.state.viewport_swizzles, swizzles.begin(), UnpackViewportSwizzle);
     const VkPipelineViewportSwizzleStateCreateInfoNV swizzle_ci{

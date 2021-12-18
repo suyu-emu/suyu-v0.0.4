@@ -243,6 +243,11 @@ public:
         return ext_index_type_uint8;
     }
 
+    /// Returns true if the device supports VK_EXT_primitive_topology_list_restart.
+    bool IsExtPrimitiveTopologyListRestartSupported() const {
+        return ext_primitive_topology_list_restart;
+    }
+
     /// Returns true if the device supports VK_EXT_sampler_filter_minmax.
     bool IsExtSamplerFilterMinmaxSupported() const {
         return ext_sampler_filter_minmax;
@@ -401,6 +406,9 @@ private:
     bool is_shader_int16_supported{};           ///< Support for int16.
     bool is_shader_storage_image_multisample{}; ///< Support for image operations on MSAA images.
     bool is_blit_depth_stencil_supported{};     ///< Support for blitting from and to depth stencil.
+    bool is_topology_list_restart_supported{};  ///< Support for primitive restart with list
+                                                ///< topologies.
+    bool is_patch_list_restart_supported{};     ///< Support for primitive restart with list patch.
     bool nv_viewport_swizzle{};                 ///< Support for VK_NV_viewport_swizzle.
     bool nv_viewport_array2{};                  ///< Support for VK_NV_viewport_array2.
     bool nv_geometry_shader_passthrough{};      ///< Support for VK_NV_geometry_shader_passthrough.
@@ -411,6 +419,8 @@ private:
     bool khr_pipeline_executable_properties{};   ///< Support for executable properties.
     bool khr_swapchain_mutable_format{};         ///< Support for VK_KHR_swapchain_mutable_format.
     bool ext_index_type_uint8{};                 ///< Support for VK_EXT_index_type_uint8.
+    bool ext_primitive_topology_list_restart{};  ///< Support for
+                                                 ///< VK_EXT_primitive_topology_list_restart.
     bool ext_sampler_filter_minmax{};            ///< Support for VK_EXT_sampler_filter_minmax.
     bool ext_depth_range_unrestricted{};         ///< Support for VK_EXT_depth_range_unrestricted.
     bool ext_shader_viewport_index_layer{}; ///< Support for VK_EXT_shader_viewport_index_layer.
