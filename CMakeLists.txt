@@ -508,7 +508,7 @@ set(FFmpeg_COMPONENTS
     avutil
     swscale)
 
-if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+if (UNIX AND NOT APPLE)
     Include(FindPkgConfig REQUIRED)
     pkg_check_modules(LIBVA libva)
 endif()
