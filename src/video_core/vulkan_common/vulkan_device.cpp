@@ -271,7 +271,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             .tessellationShader = true,
             .sampleRateShading = true,
             .dualSrcBlend = true,
-            .logicOp = false,
+            .logicOp = true,
             .multiDrawIndirect = false,
             .drawIndirectFirstInstance = false,
             .depthClamp = true,
