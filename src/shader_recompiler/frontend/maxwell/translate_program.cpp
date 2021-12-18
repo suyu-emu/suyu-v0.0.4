@@ -128,6 +128,42 @@ void AddNVNStorageBuffers(IR::Program& program) {
         });
     }
 }
+
+bool IsLegacyAttribute(IR::Attribute attribute) {
+    return (attribute >= IR::Attribute::ColorFrontDiffuseR &&
+            attribute <= IR::Attribute::ColorBackSpecularA) ||
+           attribute == IR::Attribute::FogCoordinate ||
+           (attribute >= IR::Attribute::FixedFncTexture0S &&
+            attribute <= IR::Attribute::FixedFncTexture9Q);
+}
+
+std::map<IR::Attribute, IR::Attribute> GenerateLegacyToGenericMappings(
+    const VaryingState& state, std::queue<IR::Attribute> ununsed_generics) {
+    std::map<IR::Attribute, IR::Attribute> mapping;
+    for (size_t index = 0; index < 4; ++index) {
+        auto attr = IR::Attribute::ColorFrontDiffuseR + index * 4;
+        if (state.AnyComponent(attr)) {
+            for (size_t i = 0; i < 4; ++i) {
+                mapping.insert({attr + i, ununsed_generics.front() + i});
+            }
+            ununsed_generics.pop();
+        }
+    }
+    if (state[IR::Attribute::FogCoordinate]) {
+        mapping.insert({IR::Attribute::FogCoordinate, ununsed_generics.front()});
+        ununsed_generics.pop();
+    }
+    for (size_t index = 0; index < IR::NUM_FIXEDFNCTEXTURE; ++index) {
+        auto attr = IR::Attribute::FixedFncTexture0S + index * 4;
+        if (state.AnyComponent(attr)) {
+            for (size_t i = 0; i < 4; ++i) {
+                mapping.insert({attr + i, ununsed_generics.front() + i});
+            }
+            ununsed_generics.pop();
+        }
+    }
+    return mapping;
+}
 } // Anonymous namespace
 
 IR::Program TranslateProgram(ObjectPool<IR::Inst>& inst_pool, ObjectPool<IR::Block>& block_pool,
@@ -225,42 +261,6 @@ IR::Program MergeDualVertexPrograms(IR::Program& vertex_a, IR::Program& vertex_b
     }
     Optimization::CollectShaderInfoPass(env_vertex_b, result);
     return result;
-}
-
-bool IsLegacyAttribute(IR::Attribute attribute) {
-    return (attribute >= IR::Attribute::ColorFrontDiffuseR &&
-            attribute <= IR::Attribute::ColorBackSpecularA) ||
-           attribute == IR::Attribute::FogCoordinate ||
-           (attribute >= IR::Attribute::FixedFncTexture0S &&
-            attribute <= IR::Attribute::FixedFncTexture9Q);
-}
-
-std::map<IR::Attribute, IR::Attribute> GenerateLegacyToGenericMappings(
-    const VaryingState& state, std::queue<IR::Attribute> ununsed_generics) {
-    std::map<IR::Attribute, IR::Attribute> mapping;
-    for (size_t index = 0; index < 4; ++index) {
-        auto attr = IR::Attribute::ColorFrontDiffuseR + index * 4;
-        if (state.AnyComponent(attr)) {
-            for (size_t i = 0; i < 4; ++i) {
-                mapping.insert({attr + i, ununsed_generics.front() + i});
-            }
-            ununsed_generics.pop();
-        }
-    }
-    if (state[IR::Attribute::FogCoordinate]) {
-        mapping.insert({IR::Attribute::FogCoordinate, ununsed_generics.front()});
-        ununsed_generics.pop();
-    }
-    for (size_t index = 0; index < IR::NUM_FIXED_FNC_TEXTURES; ++index) {
-        auto attr = IR::Attribute::FixedFncTexture0S + index * 4;
-        if (state.AnyComponent(attr)) {
-            for (size_t i = 0; i < 4; ++i) {
-                mapping.insert({attr + i, ununsed_generics.front() + i});
-            }
-            ununsed_generics.pop();
-        }
-    }
-    return mapping;
 }
 
 void ConvertLegacyToGeneric(IR::Program& program, const Shader::RuntimeInfo& runtime_info) {
