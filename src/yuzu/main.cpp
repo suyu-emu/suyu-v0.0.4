@@ -2574,7 +2574,7 @@ void GMainWindow::ShowFullscreen() {
 
         render_window->hide();
         render_window->setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
-        const auto screen_geometry = QApplication::desktop()->screenGeometry(this);
+        const auto screen_geometry = QApplication::desktop()->screenGeometry(render_window);
         render_window->setGeometry(screen_geometry.x(), screen_geometry.y(),
                                    screen_geometry.width(), screen_geometry.height() + 1);
         render_window->raise();
