@@ -2546,39 +2546,30 @@ void GMainWindow::ToggleFullscreen() {
 }
 
 void GMainWindow::ShowFullscreen() {
+    const auto show_fullscreen = [](QWidget* window) {
+        if (Settings::values.fullscreen_mode.GetValue() == Settings::FullscreenMode::Exclusive) {
+            window->showFullScreen();
+            return;
+        }
+        window->hide();
+        window->setWindowFlags(window->windowFlags() | Qt::FramelessWindowHint);
+        const auto screen_geometry = QApplication::desktop()->screenGeometry(window);
+        window->setGeometry(screen_geometry.x(), screen_geometry.y(), screen_geometry.width(),
+                            screen_geometry.height() + 1);
+        window->raise();
+        window->showNormal();
+    };
+
     if (ui->action_Single_Window_Mode->isChecked()) {
         UISettings::values.geometry = saveGeometry();
 
         ui->menubar->hide();
         statusBar()->hide();
 
-        if (Settings::values.fullscreen_mode.GetValue() == Settings::FullscreenMode::Exclusive) {
-            showFullScreen();
-            return;
-        }
-
-        hide();
-        setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
-        const auto screen_geometry = QApplication::desktop()->screenGeometry(this);
-        setGeometry(screen_geometry.x(), screen_geometry.y(), screen_geometry.width(),
-                    screen_geometry.height() + 1);
-        raise();
-        showNormal();
+        show_fullscreen(this);
     } else {
         UISettings::values.renderwindow_geometry = render_window->saveGeometry();
-
-        if (Settings::values.fullscreen_mode.GetValue() == Settings::FullscreenMode::Exclusive) {
-            render_window->showFullScreen();
-            return;
-        }
-
-        render_window->hide();
-        render_window->setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
-        const auto screen_geometry = QApplication::desktop()->screenGeometry(this);
-        render_window->setGeometry(screen_geometry.x(), screen_geometry.y(),
-                                   screen_geometry.width(), screen_geometry.height() + 1);
-        render_window->raise();
-        render_window->showNormal();
+        show_fullscreen(render_window);
     }
 }
 
