@@ -6,9 +6,9 @@ set -e
 
 ccache -s
 
-mkdir -p "$HOME/.conan/"
-cp -rv /home/yuzu/.conan/profiles/ "$HOME/.conan/"
-cp -rv /home/yuzu/.conan/settings.yml "$HOME/.conan/"
+mkdir -p "$HOME/.conan/profiles"
+wget -nc "https://github.com/yuzu-emu/build-environments/raw/master/linux-mingw/default" -O "$HOME/.conan/profiles/default"
+wget -nc "https://github.com/yuzu-emu/build-environments/raw/master/linux-mingw/settings.yml" -O "$HOME/.conan/settings.yml"
 
 mkdir -p build && cd build
 export LDFLAGS="-fuse-ld=lld"
