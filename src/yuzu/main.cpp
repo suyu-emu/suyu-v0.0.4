@@ -1236,11 +1236,58 @@ void GMainWindow::OnDisplayTitleBars(bool show) {
     }
 }
 
+#ifdef __linux__
+static std::optional<QDBusObjectPath> HoldWakeLockLinux(u32 window_id = 0) {
+    if (!QDBusConnection::sessionBus().isConnected()) {
+        return {};
+    }
+    // reference: https://flatpak.github.io/xdg-desktop-portal/#gdbus-org.freedesktop.portal.Inhibit
+    QDBusInterface xdp(QString::fromLatin1("org.freedesktop.portal.Desktop"),
+                       QString::fromLatin1("/org/freedesktop/portal/desktop"),
+                       QString::fromLatin1("org.freedesktop.portal.Inhibit"));
+    if (!xdp.isValid()) {
+        LOG_WARNING(Frontend, "Couldn't connect to XDP D-Bus endpoint");
+        return {};
+    }
+    QVariantMap options = {};
+    //: TRANSLATORS: This string is shown to the user to explain why yuzu needs to prevent the
+    //: computer from sleeping
+    options.insert(QString::fromLatin1("reason"),
+                   QCoreApplication::translate("GMainWindow", "yuzu is running a game"));
+    // 0x4: Suspend lock; 0x8: Idle lock
+    QDBusReply<QDBusObjectPath> reply =
+        xdp.call(QString::fromLatin1("Inhibit"),
+                 QString::fromLatin1("x11:") + QString::number(window_id, 16), 12U, options);
+
+    if (reply.isValid()) {
+        return reply.value();
+    }
+    LOG_WARNING(Frontend, "Couldn't read Inhibit reply from XDP: {}",
+                reply.error().message().toStdString());
+    return {};
+}
+
+static void ReleaseWakeLockLinux(QDBusObjectPath lock) {
+    if (!QDBusConnection::sessionBus().isConnected()) {
+        return;
+    }
+    QDBusInterface unlocker(QString::fromLatin1("org.freedesktop.portal.Desktop"), lock.path(),
+                            QString::fromLatin1("org.freedesktop.portal.Request"));
+    unlocker.call(QString::fromLatin1("Close"));
+}
+#endif // __linux__
+
 void GMainWindow::PreventOSSleep() {
 #ifdef _WIN32
     SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED);
 #elif defined(HAVE_SDL2)
     SDL_DisableScreenSaver();
+#ifdef __linux__
+    auto reply = HoldWakeLockLinux(winId());
+    if (reply) {
+        wake_lock = std::move(reply.value());
+    }
+#endif
 #endif
 }
 
@@ -1249,6 +1296,11 @@ void GMainWindow::AllowOSSleep() {
     SetThreadExecutionState(ES_CONTINUOUS);
 #elif defined(HAVE_SDL2)
     SDL_EnableScreenSaver();
+#ifdef __linux__
+    if (!wake_lock.path().isEmpty()) {
+        ReleaseWakeLockLinux(wake_lock);
+    }
+#endif
 #endif
 }
 
