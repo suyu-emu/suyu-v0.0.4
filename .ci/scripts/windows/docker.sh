@@ -2,19 +2,24 @@
 
 set -e
 
-cd /yuzu
+#cd /yuzu
 
 ccache -s
 
-mkdir build || true && cd build
-LDFLAGS="-fuse-ld=lld"
+mkdir -p "$HOME/.conan/"
+cp -rv /home/yuzu/.conan/profiles/ "$HOME/.conan/"
+cp -rv /home/yuzu/.conan/settings.yml "$HOME/.conan/"
+
+mkdir -p build && cd build
+export LDFLAGS="-fuse-ld=lld"
 # -femulated-tls required due to an incompatibility between GCC and Clang
 # TODO(lat9nq): If this is widespread, we probably need to add this to CMakeLists where appropriate
+export CFLAGS="-femulated-tls"
+export CXXFLAGS="${CFLAGS}"
 cmake .. \
     -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_CXX_FLAGS="-femulated-tls" \
-    -DCMAKE_TOOLCHAIN_FILE="$(pwd)/../CMakeModules/MinGWClangCross.cmake" \
-    -DDISPLAY_VERSION=$1 \
+    -DCMAKE_TOOLCHAIN_FILE="${PWD}/../CMakeModules/MinGWClangCross.cmake" \
+    -DDISPLAY_VERSION="$1" \
     -DENABLE_COMPATIBILITY_LIST_DOWNLOAD=ON \
     -DENABLE_QT_TRANSLATION=ON \
     -DUSE_CCACHE=ON \
