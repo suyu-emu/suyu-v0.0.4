@@ -1,3 +1,6 @@
+
+#include <algorithm>
+
 #include "video_core/control/channel_state.h"
 #include "video_core/control/channel_state_cache.h"
 #include "video_core/engines/kepler_compute.h"
@@ -27,15 +30,16 @@ void ChannelSetupCaches<P>::CreateChannel(struct Tegra::Control::ChannelState& c
     if (current_channel_id != UNSET_CHANNEL) {
         channel_state = &channel_storage[current_channel_id];
     }
+    active_channel_ids.push_back(new_id);
     auto as_it = address_spaces.find(channel.memory_manager->GetID());
     if (as_it != address_spaces.end()) {
-      as_it->second.ref_count++;
-      return;
+        as_it->second.ref_count++;
+        return;
     }
     AddresSpaceRef new_gpu_mem_ref{
-      .ref_count = 1,
-      .storage_id = address_spaces.size(),
-      .gpu_memory = channel.memory_manager.get(),
+        .ref_count = 1,
+        .storage_id = address_spaces.size(),
+        .gpu_memory = channel.memory_manager.get(),
     };
     address_spaces.emplace(channel.memory_manager->GetID(), new_gpu_mem_ref);
     OnGPUASRegister(channel.memory_manager->GetID());
@@ -73,7 +77,8 @@ void ChannelSetupCaches<P>::EraseChannel(s32 id) {
     } else if (current_channel_id != UNSET_CHANNEL) {
         channel_state = &channel_storage[current_channel_id];
     }
+    active_channel_ids.erase(
+        std::find(active_channel_ids.begin(), active_channel_ids.end(), this_id));
 }
-
 
 } // namespace VideoCommon

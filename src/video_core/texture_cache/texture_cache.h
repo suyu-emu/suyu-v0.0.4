@@ -41,9 +41,6 @@ TextureCache<P>::TextureCache(Runtime& runtime_, VideoCore::RasterizerInterface&
     sampler_descriptor.mipmap_filter.Assign(Tegra::Texture::TextureMipmapFilter::Linear);
     sampler_descriptor.cubemap_anisotropy.Assign(1);
 
-    // Setup channels
-    current_channel_id = UNSET_CHANNEL;
-
     // Make sure the first index is reserved for the null resources
     // This way the null resource becomes a compile time constant
     void(slot_images.insert(NullImageParams{}));
@@ -886,13 +883,15 @@ void TextureCache<P>::InvalidateScale(Image& image) {
     }
     image.image_view_ids.clear();
     image.image_view_infos.clear();
-    auto& channel_info = channel_storage[image.channel];
-    if constexpr (ENABLE_VALIDATION) {
-        std::ranges::fill(channel_info.graphics_image_view_ids, CORRUPT_ID);
-        std::ranges::fill(channel_info.compute_image_view_ids, CORRUPT_ID);
+    for (size_t c : active_channel_ids) {
+        auto& channel_info = channel_storage[c];
+        if constexpr (ENABLE_VALIDATION) {
+            std::ranges::fill(channel_info.graphics_image_view_ids, CORRUPT_ID);
+            std::ranges::fill(channel_info.compute_image_view_ids, CORRUPT_ID);
+        }
+        channel_info.graphics_image_table.Invalidate();
+        channel_info.compute_image_table.Invalidate();
     }
-    channel_info.graphics_image_table.Invalidate();
-    channel_info.compute_image_table.Invalidate();
     has_deleted_images = true;
 }
 
@@ -1690,26 +1689,30 @@ void TextureCache<P>::DeleteImage(ImageId image_id, bool immediate_delete) {
     if (alloc_images.empty()) {
         image_allocs_table.erase(alloc_it);
     }
-    for (auto& this_state : channel_storage) {
+    for (size_t c : active_channel_ids) {
+        auto& channel_info = channel_storage[c];
         if constexpr (ENABLE_VALIDATION) {
-            std::ranges::fill(this_state.graphics_image_view_ids, CORRUPT_ID);
-            std::ranges::fill(this_state.compute_image_view_ids, CORRUPT_ID);
+            std::ranges::fill(channel_info.graphics_image_view_ids, CORRUPT_ID);
+            std::ranges::fill(channel_info.compute_image_view_ids, CORRUPT_ID);
         }
-        this_state.graphics_image_table.Invalidate();
-        this_state.compute_image_table.Invalidate();
+        channel_info.graphics_image_table.Invalidate();
+        channel_info.compute_image_table.Invalidate();
     }
     has_deleted_images = true;
 }
 
 template <class P>
 void TextureCache<P>::RemoveImageViewReferences(std::span<const ImageViewId> removed_views) {
-    auto it = channel_state->image_views.begin();
-    while (it != channel_state->image_views.end()) {
-        const auto found = std::ranges::find(removed_views, it->second);
-        if (found != removed_views.end()) {
-            it = channel_state->image_views.erase(it);
-        } else {
-            ++it;
+    for (size_t c : active_channel_ids) {
+        auto& channel_info = channel_storage[c];
+        auto it = channel_info.image_views.begin();
+        while (it != channel_info.image_views.end()) {
+            const auto found = std::ranges::find(removed_views, it->second);
+            if (found != removed_views.end()) {
+                it = channel_info.image_views.erase(it);
+            } else {
+                ++it;
+            }
         }
     }
 }

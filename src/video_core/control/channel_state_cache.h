@@ -72,6 +72,7 @@ protected:
     std::deque<P> channel_storage;
     std::deque<size_t> free_channel_ids;
     std::unordered_map<s32, size_t> channel_map;
+    std::vector<size_t> active_channel_ids;
     struct AddresSpaceRef {
         size_t ref_count;
         size_t storage_id;
