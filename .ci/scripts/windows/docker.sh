@@ -4,7 +4,7 @@ set -e
 
 #cd /yuzu
 
-ccache -s
+ccache -sv
 
 mkdir -p "$HOME/.conan/profiles"
 wget -nc "https://github.com/yuzu-emu/build-environments/raw/master/linux-mingw/default" -O "$HOME/.conan/profiles/default"
@@ -28,7 +28,7 @@ cmake .. \
     -GNinja
 ninja yuzu yuzu-cmd
 
-ccache -s
+ccache -sv
 
 echo "Tests skipped"
 #ctest -VV -C Release
