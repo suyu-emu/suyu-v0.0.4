@@ -86,7 +86,7 @@ void EmitGetAttribute(EmitContext& ctx, IR::Inst& inst, IR::Attribute attr, Scal
     }
     switch (attr) {
     case IR::Attribute::PrimitiveId:
-        ctx.Add("MOV.S {}.x,primitive.id;", inst);
+        ctx.Add("MOV.F {}.x,primitive.id;", inst);
         break;
     case IR::Attribute::PositionX:
     case IR::Attribute::PositionY:
@@ -113,13 +113,13 @@ void EmitGetAttribute(EmitContext& ctx, IR::Inst& inst, IR::Attribute attr, Scal
         ctx.Add("MOV.F {}.x,vertex.tesscoord.{};", inst, swizzle);
         break;
     case IR::Attribute::InstanceId:
-        ctx.Add("MOV.S {}.x,{}.instance;", inst, ctx.attrib_name);
+        ctx.Add("MOV.F {}.x,{}.instance;", inst, ctx.attrib_name);
         break;
     case IR::Attribute::VertexId:
-        ctx.Add("MOV.S {}.x,{}.id;", inst, ctx.attrib_name);
+        ctx.Add("MOV.F {}.x,{}.id;", inst, ctx.attrib_name);
         break;
     case IR::Attribute::FrontFace:
-        ctx.Add("CMP.S {}.x,{}.facing.x,0,-1;", inst, ctx.attrib_name);
+        ctx.Add("CMP.F {}.x,{}.facing.x,0,-1;", inst, ctx.attrib_name);
         break;
     default:
         throw NotImplementedException("Get attribute {}", attr);
