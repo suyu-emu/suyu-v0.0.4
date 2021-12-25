@@ -251,7 +251,7 @@ public:
 void Room::RoomImpl::ServerLoop() {
     while (state != State::Closed) {
         ENetEvent event;
-        if (enet_host_service(server, &event, 50) > 0) {
+        if (enet_host_service(server, &event, 16) > 0) {
             switch (event.type) {
             case ENET_EVENT_TYPE_RECEIVE:
                 switch (event.packet->data[0]) {
@@ -599,7 +599,7 @@ bool Room::RoomImpl::HasModPermission(const ENetPeer* client) const {
     if (sending_member == members.end()) {
         return false;
     }
-    if (room_information.enable_citra_mods &&
+    if (room_information.enable_yuzu_mods &&
         sending_member->user_data.moderator) { // Community moderator
 
         return true;
@@ -1014,7 +1014,7 @@ bool Room::Create(const std::string& name, const std::string& description,
                   const u32 max_connections, const std::string& host_username,
                   const std::string& preferred_game, u64 preferred_game_id,
                   std::unique_ptr<VerifyUser::Backend> verify_backend,
-                  const Room::BanList& ban_list, bool enable_citra_mods) {
+                  const Room::BanList& ban_list, bool enable_yuzu_mods) {
     ENetAddress address;
     address.host = ENET_HOST_ANY;
     if (!server_address.empty()) {
@@ -1037,7 +1037,7 @@ bool Room::Create(const std::string& name, const std::string& description,
     room_impl->room_information.preferred_game = preferred_game;
     room_impl->room_information.preferred_game_id = preferred_game_id;
     room_impl->room_information.host_username = host_username;
-    room_impl->room_information.enable_citra_mods = enable_citra_mods;
+    room_impl->room_information.enable_yuzu_mods = enable_yuzu_mods;
     room_impl->password = password;
     room_impl->verify_backend = std::move(verify_backend);
     room_impl->username_ban_list = ban_list.first;

@@ -29,9 +29,9 @@
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
-#include "core/network/network.h"
-#include "core/network/network_interface.h"
-#include "core/network/sockets.h"
+#include "core/internal_network/network.h"
+#include "core/internal_network/network_interface.h"
+#include "core/internal_network/sockets.h"
 
 namespace Network {
 

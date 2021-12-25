@@ -1,4 +1,6 @@
 add_library(core STATIC
+    announce_multiplayer_session.cpp
+    announce_multiplayer_session.h
     arm/arm_interface.h
     arm/arm_interface.cpp
     arm/cpu_interrupt_handler.cpp
@@ -741,11 +743,11 @@ add_library(core STATIC
     memory/dmnt_cheat_vm.h
     memory.cpp
     memory.h
-    network/network.cpp
-    network/network.h
-    network/network_interface.cpp
-    network/network_interface.h
-    network/sockets.h
+    internal_network/network.cpp
+    internal_network/network.h
+    internal_network/network_interface.cpp
+    internal_network/network_interface.h
+    internal_network/sockets.h
     perf_stats.cpp
     perf_stats.h
     reporter.cpp
@@ -780,7 +782,7 @@ endif()
 
 create_target_directory_groups(core)
 
-target_link_libraries(core PUBLIC common PRIVATE audio_core video_core)
+target_link_libraries(core PUBLIC common PRIVATE audio_core network video_core)
 target_link_libraries(core PUBLIC Boost::boost PRIVATE fmt::fmt nlohmann_json::nlohmann_json mbedtls Opus::Opus)
 if (MINGW)
     target_link_libraries(core PRIVATE ${MSWSOCK_LIBRARY})

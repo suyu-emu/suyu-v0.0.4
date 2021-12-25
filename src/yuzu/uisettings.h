@@ -102,6 +102,19 @@ struct Values {
 
     Settings::Setting<uint32_t> callout_flags{0, "calloutFlags"};
 
+    // multiplayer settings
+    QString nickname;
+    QString ip;
+    QString port;
+    QString room_nickname;
+    QString room_name;
+    quint32 max_player;
+    QString room_port;
+    uint host_type;
+    qulonglong game_id;
+    QString room_description;
+    std::pair<std::vector<std::string>, std::vector<std::string>> ban_list;
+
     // logging
     Settings::Setting<bool> show_console{false, "showConsole"};
 

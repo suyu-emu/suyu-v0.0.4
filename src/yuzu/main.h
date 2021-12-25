@@ -11,6 +11,7 @@
 #include <QTimer>
 #include <QTranslator>
 
+#include "common/announce_multiplayer_room.h"
 #include "common/common_types.h"
 #include "yuzu/compatibility_list.h"
 #include "yuzu/hotkeys.h"
@@ -22,6 +23,7 @@
 #endif
 
 class Config;
+class ClickableLabel;
 class EmuThread;
 class GameList;
 class GImageInfo;
@@ -31,6 +33,7 @@ class MicroProfileDialog;
 class ProfilerWidget;
 class ControllerDialog;
 class QLabel;
+class MultiplayerState;
 class QPushButton;
 class QProgressDialog;
 class WaitTreeWidget;
@@ -199,6 +202,8 @@ private:
     void ConnectWidgetEvents();
     void ConnectMenuEvents();
     void UpdateMenuState();
+
+    MultiplayerState* multiplayer_state = nullptr;
 
     void PreventOSSleep();
     void AllowOSSleep();

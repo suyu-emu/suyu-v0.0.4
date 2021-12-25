@@ -43,14 +43,15 @@
 #include "core/hle/service/service.h"
 #include "core/hle/service/sm/sm.h"
 #include "core/hle/service/time/time_manager.h"
+#include "core/internal_network/network.h"
 #include "core/loader/loader.h"
 #include "core/memory.h"
 #include "core/memory/cheat_engine.h"
-#include "core/network/network.h"
 #include "core/perf_stats.h"
 #include "core/reporter.h"
 #include "core/telemetry_session.h"
 #include "core/tools/freezer.h"
+#include "network/network.h"
 #include "video_core/renderer_base.h"
 #include "video_core/video_core.h"
 
@@ -315,6 +316,15 @@ struct System::Impl {
         GetAndResetPerfStats();
         perf_stats->BeginSystemFrame();
 
+        std::string name = "Unknown Game";
+        const Loader::ResultStatus res{app_loader->ReadTitle(name)};
+        if (auto room_member = Network::GetRoomMember().lock()) {
+            Network::GameInfo game_info;
+            game_info.name = name;
+            game_info.id = program_id;
+            room_member->SendGameInfo(game_info);
+        }
+
         status = SystemResultStatus::Success;
         return status;
     }
@@ -361,6 +371,11 @@ struct System::Impl {
         kernel.Shutdown();
         memory.Reset();
         applet_manager.ClearAll();
+
+        if (auto room_member = Network::GetRoomMember().lock()) {
+            Network::GameInfo game_info{};
+            room_member->SendGameInfo(game_info);
+        }
 
         LOG_DEBUG(Core, "Shutdown OK");
     }

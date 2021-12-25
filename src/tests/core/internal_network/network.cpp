@@ -3,8 +3,8 @@
 
 #include <catch2/catch.hpp>
 
-#include "core/network/network.h"
-#include "core/network/sockets.h"
+#include "core/internal_network/network.h"
+#include "core/internal_network/sockets.h"
 
 TEST_CASE("Network::Errors", "[core]") {
     Network::NetworkInstance network_instance; // initialize network

@@ -41,6 +41,7 @@ add_custom_command(OUTPUT scm_rev.cpp
 add_library(common STATIC
     algorithm.h
     alignment.h
+    announce_multiplayer_room.h
     assert.cpp
     assert.h
     atomic_helpers.h

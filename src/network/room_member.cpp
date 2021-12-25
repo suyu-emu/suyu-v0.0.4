@@ -86,7 +86,7 @@ public:
      * @params password The password for the room
      * the server to assign one for us.
      */
-    void SendJoinRequest(const std::string& nickname, const std::string& console_id_hash,
+    void SendJoinRequest(const std::string& nickname_, const std::string& console_id_hash,
                          const MacAddress& preferred_mac = NoPreferredMac,
                          const std::string& password = "", const std::string& token = "");
 
@@ -159,7 +159,7 @@ void RoomMember::RoomMemberImpl::MemberLoop() {
     while (IsConnected()) {
         std::lock_guard lock(network_mutex);
         ENetEvent event;
-        if (enet_host_service(client, &event, 100) > 0) {
+        if (enet_host_service(client, &event, 16) > 0) {
             switch (event.type) {
             case ENET_EVENT_TYPE_RECEIVE:
                 switch (event.packet->data[0]) {
@@ -251,16 +251,17 @@ void RoomMember::RoomMemberImpl::MemberLoop() {
                 break;
             }
         }
+        std::list<Packet> packets;
         {
-            std::lock_guard lock(send_list_mutex);
-            for (const auto& packet : send_list) {
-                ENetPacket* enetPacket = enet_packet_create(packet.GetData(), packet.GetDataSize(),
-                                                            ENET_PACKET_FLAG_RELIABLE);
-                enet_peer_send(server, 0, enetPacket);
-            }
-            enet_host_flush(client);
-            send_list.clear();
+            std::lock_guard send_lock(send_list_mutex);
+            packets.swap(send_list);
         }
+        for (const auto& packet : packets) {
+            ENetPacket* enetPacket = enet_packet_create(packet.GetData(), packet.GetDataSize(),
+                                                        ENET_PACKET_FLAG_RELIABLE);
+            enet_peer_send(server, 0, enetPacket);
+        }
+        enet_host_flush(client);
     }
     Disconnect();
 };
@@ -274,14 +275,14 @@ void RoomMember::RoomMemberImpl::Send(Packet&& packet) {
     send_list.push_back(std::move(packet));
 }
 
-void RoomMember::RoomMemberImpl::SendJoinRequest(const std::string& nickname,
+void RoomMember::RoomMemberImpl::SendJoinRequest(const std::string& nickname_,
                                                  const std::string& console_id_hash,
                                                  const MacAddress& preferred_mac,
                                                  const std::string& password,
                                                  const std::string& token) {
     Packet packet;
     packet << static_cast<u8>(IdJoinRequest);
-    packet << nickname;
+    packet << nickname_;
     packet << console_id_hash;
     packet << preferred_mac;
     packet << network_version;
