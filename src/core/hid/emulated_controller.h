@@ -101,6 +101,8 @@ struct ControllerStatus {
     VibrationValues vibration_values{};
 
     // Data for HID serices
+    HomeButtonState home_button_state{};
+    CaptureButtonState capture_button_state{};
     NpadButtonState npad_button_state{};
     DebugPadButton debug_pad_button_state{};
     AnalogSticks analog_stick_state{};
@@ -261,7 +263,13 @@ public:
     /// Returns the latest battery status from the controller with parameters
     BatteryValues GetBatteryValues() const;
 
-    /// Returns the latest status of button input for the npad service
+    /// Returns the latest status of button input for the hid::HomeButton service
+    HomeButtonState GetHomeButtons() const;
+
+    /// Returns the latest status of button input for the hid::CaptureButton service
+    CaptureButtonState GetCaptureButtons() const;
+
+    /// Returns the latest status of button input for the hid::Npad service
     NpadButtonState GetNpadButtons() const;
 
     /// Returns the latest status of button input for the debug pad service
