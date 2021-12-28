@@ -29,7 +29,7 @@ struct FuncTraits<ReturnType_ (*)(Args...)> {
     template <size_t I>
     using ArgType = std::tuple_element_t<I, std::tuple<Args...>>;
 };
-    
+
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4702) // Ignore unreachable code warning
