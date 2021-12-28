@@ -17,7 +17,6 @@
 #include "core/frontend/emu_window.h"
 #include "core/hardware_interrupt_manager.h"
 #include "core/hle/service/nvdrv/nvdata.h"
-#include "core/hle/service/nvflinger/buffer_queue.h"
 #include "core/perf_stats.h"
 #include "video_core/cdma_pusher.h"
 #include "video_core/dma_pusher.h"
