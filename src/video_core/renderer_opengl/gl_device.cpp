@@ -182,17 +182,12 @@ Device::Device() {
         shader_backend = Settings::ShaderBackend::GLSL;
     }
 
-    if (shader_backend == Settings::ShaderBackend::GLSL && is_nvidia &&
-        !Settings::values.renderer_debug) {
+    if (shader_backend == Settings::ShaderBackend::GLSL && is_nvidia) {
         const std::string_view driver_version = version.substr(13);
         const int version_major =
             std::atoi(driver_version.substr(0, driver_version.find(".")).data());
-
         if (version_major >= 495) {
-            LOG_WARNING(Render_OpenGL, "NVIDIA drivers 495 and later causes significant problems "
-                                       "with yuzu. Forcing GLASM as a mitigation.");
-            shader_backend = Settings::ShaderBackend::GLASM;
-            use_assembly_shaders = true;
+            has_cbuf_ftou_bug = true;
         }
     }
 
