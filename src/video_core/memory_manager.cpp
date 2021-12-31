@@ -265,7 +265,8 @@ size_t MemoryManager::BytesToMapEnd(GPUVAddr gpu_addr) const noexcept {
     return it->second - (gpu_addr - it->first);
 }
 
-void MemoryManager::ReadBlock(GPUVAddr gpu_src_addr, void* dest_buffer, std::size_t size) const {
+void MemoryManager::ReadBlockImpl(GPUVAddr gpu_src_addr, void* dest_buffer, std::size_t size,
+                                  bool is_safe) const {
     std::size_t remaining_size{size};
     std::size_t page_index{gpu_src_addr >> page_bits};
     std::size_t page_offset{gpu_src_addr & page_mask};
@@ -276,32 +277,12 @@ void MemoryManager::ReadBlock(GPUVAddr gpu_src_addr, void* dest_buffer, std::siz
 
         if (const auto page_addr{GpuToCpuAddress(page_index << page_bits)}; page_addr) {
             const auto src_addr{*page_addr + page_offset};
-
-            // Flush must happen on the rasterizer interface, such that memory is always synchronous
-            // when it is read (even when in asynchronous GPU mode). Fixes Dead Cells title menu.
-            rasterizer->FlushRegion(src_addr, copy_amount);
-            system.Memory().ReadBlockUnsafe(src_addr, dest_buffer, copy_amount);
-        }
-
-        page_index++;
-        page_offset = 0;
-        dest_buffer = static_cast<u8*>(dest_buffer) + copy_amount;
-        remaining_size -= copy_amount;
-    }
-}
-
-void MemoryManager::ReadBlockUnsafe(GPUVAddr gpu_src_addr, void* dest_buffer,
-                                    const std::size_t size) const {
-    std::size_t remaining_size{size};
-    std::size_t page_index{gpu_src_addr >> page_bits};
-    std::size_t page_offset{gpu_src_addr & page_mask};
-
-    while (remaining_size > 0) {
-        const std::size_t copy_amount{
-            std::min(static_cast<std::size_t>(page_size) - page_offset, remaining_size)};
-
-        if (const auto page_addr{GpuToCpuAddress(page_index << page_bits)}; page_addr) {
-            const auto src_addr{*page_addr + page_offset};
+            if (is_safe) {
+                // Flush must happen on the rasterizer interface, such that memory is always
+                // synchronous when it is read (even when in asynchronous GPU mode).
+                // Fixes Dead Cells title menu.
+                rasterizer->FlushRegion(src_addr, copy_amount);
+            }
             system.Memory().ReadBlockUnsafe(src_addr, dest_buffer, copy_amount);
         } else {
             std::memset(dest_buffer, 0, copy_amount);
@@ -314,7 +295,17 @@ void MemoryManager::ReadBlockUnsafe(GPUVAddr gpu_src_addr, void* dest_buffer,
     }
 }
 
-void MemoryManager::WriteBlock(GPUVAddr gpu_dest_addr, const void* src_buffer, std::size_t size) {
+void MemoryManager::ReadBlock(GPUVAddr gpu_src_addr, void* dest_buffer, std::size_t size) const {
+    ReadBlockImpl(gpu_src_addr, dest_buffer, size, true);
+}
+
+void MemoryManager::ReadBlockUnsafe(GPUVAddr gpu_src_addr, void* dest_buffer,
+                                    const std::size_t size) const {
+    ReadBlockImpl(gpu_src_addr, dest_buffer, size, false);
+}
+
+void MemoryManager::WriteBlockImpl(GPUVAddr gpu_dest_addr, const void* src_buffer, std::size_t size,
+                                   bool is_safe) {
     std::size_t remaining_size{size};
     std::size_t page_index{gpu_dest_addr >> page_bits};
     std::size_t page_offset{gpu_dest_addr & page_mask};
@@ -326,9 +317,11 @@ void MemoryManager::WriteBlock(GPUVAddr gpu_dest_addr, const void* src_buffer, s
         if (const auto page_addr{GpuToCpuAddress(page_index << page_bits)}; page_addr) {
             const auto dest_addr{*page_addr + page_offset};
 
-            // Invalidate must happen on the rasterizer interface, such that memory is always
-            // synchronous when it is written (even when in asynchronous GPU mode).
-            rasterizer->InvalidateRegion(dest_addr, copy_amount);
+            if (is_safe) {
+                // Invalidate must happen on the rasterizer interface, such that memory is always
+                // synchronous when it is written (even when in asynchronous GPU mode).
+                rasterizer->InvalidateRegion(dest_addr, copy_amount);
+            }
             system.Memory().WriteBlockUnsafe(dest_addr, src_buffer, copy_amount);
         }
 
@@ -339,26 +332,13 @@ void MemoryManager::WriteBlock(GPUVAddr gpu_dest_addr, const void* src_buffer, s
     }
 }
 
+void MemoryManager::WriteBlock(GPUVAddr gpu_dest_addr, const void* src_buffer, std::size_t size) {
+    WriteBlockImpl(gpu_dest_addr, src_buffer, size, true);
+}
+
 void MemoryManager::WriteBlockUnsafe(GPUVAddr gpu_dest_addr, const void* src_buffer,
                                      std::size_t size) {
-    std::size_t remaining_size{size};
-    std::size_t page_index{gpu_dest_addr >> page_bits};
-    std::size_t page_offset{gpu_dest_addr & page_mask};
-
-    while (remaining_size > 0) {
-        const std::size_t copy_amount{
-            std::min(static_cast<std::size_t>(page_size) - page_offset, remaining_size)};
-
-        if (const auto page_addr{GpuToCpuAddress(page_index << page_bits)}; page_addr) {
-            const auto dest_addr{*page_addr + page_offset};
-            system.Memory().WriteBlockUnsafe(dest_addr, src_buffer, copy_amount);
-        }
-
-        page_index++;
-        page_offset = 0;
-        src_buffer = static_cast<const u8*>(src_buffer) + copy_amount;
-        remaining_size -= copy_amount;
-    }
+    WriteBlockImpl(gpu_dest_addr, src_buffer, size, false);
 }
 
 void MemoryManager::FlushRegion(GPUVAddr gpu_addr, size_t size) const {
