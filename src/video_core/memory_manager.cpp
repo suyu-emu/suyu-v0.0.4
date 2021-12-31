@@ -73,12 +73,12 @@ void MemoryManager::Unmap(GPUVAddr gpu_addr, std::size_t size) {
     }
     const auto submapped_ranges = GetSubmappedRange(gpu_addr, size);
 
-    for (const auto& map : submapped_ranges) {
+    for (const auto& [map_addr, map_size] : submapped_ranges) {
         // Flush and invalidate through the GPU interface, to be asynchronous if possible.
-        const std::optional<VAddr> cpu_addr = GpuToCpuAddress(map.first);
+        const std::optional<VAddr> cpu_addr = GpuToCpuAddress(map_addr);
         ASSERT(cpu_addr);
 
-        rasterizer->UnmapMemory(*cpu_addr, map.second);
+        rasterizer->UnmapMemory(*cpu_addr, map_size);
     }
 
     UpdateRange(gpu_addr, PageEntry::State::Unmapped, size);
@@ -274,8 +274,8 @@ void MemoryManager::ReadBlockImpl(GPUVAddr gpu_src_addr, void* dest_buffer, std:
     while (remaining_size > 0) {
         const std::size_t copy_amount{
             std::min(static_cast<std::size_t>(page_size) - page_offset, remaining_size)};
-
-        if (const auto page_addr{GpuToCpuAddress(page_index << page_bits)}; page_addr) {
+        const auto page_addr{GpuToCpuAddress(page_index << page_bits)};
+        if (page_addr && *page_addr != 0) {
             const auto src_addr{*page_addr + page_offset};
             if (is_safe) {
                 // Flush must happen on the rasterizer interface, such that memory is always
@@ -313,8 +313,8 @@ void MemoryManager::WriteBlockImpl(GPUVAddr gpu_dest_addr, const void* src_buffe
     while (remaining_size > 0) {
         const std::size_t copy_amount{
             std::min(static_cast<std::size_t>(page_size) - page_offset, remaining_size)};
-
-        if (const auto page_addr{GpuToCpuAddress(page_index << page_bits)}; page_addr) {
+        const auto page_addr{GpuToCpuAddress(page_index << page_bits)};
+        if (page_addr && *page_addr != 0) {
             const auto dest_addr{*page_addr + page_offset};
 
             if (is_safe) {
@@ -415,15 +415,15 @@ std::vector<std::pair<GPUVAddr, std::size_t>> MemoryManager::GetSubmappedRange(
     size_t page_offset{gpu_addr & page_mask};
     std::optional<std::pair<GPUVAddr, std::size_t>> last_segment{};
     std::optional<VAddr> old_page_addr{};
-    const auto extend_size = [this, &last_segment, &page_index](std::size_t bytes) {
+    const auto extend_size = [&last_segment, &page_index, &page_offset](std::size_t bytes) {
         if (!last_segment) {
-            GPUVAddr new_base_addr = page_index << page_bits;
+            const GPUVAddr new_base_addr = (page_index << page_bits) + page_offset;
             last_segment = {new_base_addr, bytes};
         } else {
             last_segment->second += bytes;
         }
     };
-    const auto split = [this, &last_segment, &result] {
+    const auto split = [&last_segment, &result] {
         if (last_segment) {
             result.push_back(*last_segment);
             last_segment = std::nullopt;
@@ -432,7 +432,7 @@ std::vector<std::pair<GPUVAddr, std::size_t>> MemoryManager::GetSubmappedRange(
     while (remaining_size > 0) {
         const size_t num_bytes{std::min(page_size - page_offset, remaining_size)};
         const auto page_addr{GpuToCpuAddress(page_index << page_bits)};
-        if (!page_addr) {
+        if (!page_addr || *page_addr == 0) {
             split();
         } else if (old_page_addr) {
             if (*old_page_addr + page_size != *page_addr) {
