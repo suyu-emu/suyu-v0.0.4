@@ -480,12 +480,20 @@ void TextureCache<P>::UnmapMemory(VAddr cpu_addr, size_t size) {
 }
 
 template <class P>
-void TextureCache<P>::UnmapGPUMemory(GPUVAddr gpu_addr, size_t size) {
+void TextureCache<P>::UnmapGPUMemory(size_t as_id, GPUVAddr gpu_addr, size_t size) {
     std::vector<ImageId> deleted_images;
-    ForEachImageInRegionGPU(gpu_addr, size,
+    ForEachImageInRegionGPU(as_id, gpu_addr, size,
                             [&](ImageId id, Image&) { deleted_images.push_back(id); });
     for (const ImageId id : deleted_images) {
         Image& image = slot_images[id];
+        if (True(image.flags & ImageFlagBits::CpuModified)) {
+            return;
+        }
+        image.flags |= ImageFlagBits::CpuModified;
+        if (True(image.flags & ImageFlagBits::Tracked)) {
+            UntrackImage(image, id);
+        }
+        /*
         if (True(image.flags & ImageFlagBits::Remapped)) {
             continue;
         }
@@ -493,6 +501,7 @@ void TextureCache<P>::UnmapGPUMemory(GPUVAddr gpu_addr, size_t size) {
         if (True(image.flags & ImageFlagBits::Tracked)) {
             UntrackImage(image, id);
         }
+        */
     }
 }
 
@@ -1322,13 +1331,19 @@ void TextureCache<P>::ForEachImageInRegion(VAddr cpu_addr, size_t size, Func&& f
 
 template <class P>
 template <typename Func>
-void TextureCache<P>::ForEachImageInRegionGPU(GPUVAddr gpu_addr, size_t size, Func&& func) {
+void TextureCache<P>::ForEachImageInRegionGPU(size_t as_id, GPUVAddr gpu_addr, size_t size,
+                                              Func&& func) {
     using FuncReturn = typename std::invoke_result<Func, ImageId, Image&>::type;
     static constexpr bool BOOL_BREAK = std::is_same_v<FuncReturn, bool>;
     boost::container::small_vector<ImageId, 8> images;
-    ForEachGPUPage(gpu_addr, size, [this, &images, gpu_addr, size, func](u64 page) {
-        const auto it = channel_state->gpu_page_table->find(page);
-        if (it == channel_state->gpu_page_table->end()) {
+    auto storage_id = getStorageID(as_id);
+    if (!storage_id) {
+        return;
+    }
+    auto& gpu_page_table = gpu_page_table_storage[*storage_id];
+    ForEachGPUPage(gpu_addr, size, [this, gpu_page_table, &images, gpu_addr, size, func](u64 page) {
+        const auto it = gpu_page_table.find(page);
+        if (it == gpu_page_table.end()) {
             if constexpr (BOOL_BREAK) {
                 return false;
             } else {

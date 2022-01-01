@@ -379,10 +379,10 @@ void RasterizerOpenGL::UnmapMemory(VAddr addr, u64 size) {
     shader_cache.OnCPUWrite(addr, size);
 }
 
-void RasterizerOpenGL::ModifyGPUMemory(GPUVAddr addr, u64 size) {
+void RasterizerOpenGL::ModifyGPUMemory(size_t as_id, GPUVAddr addr, u64 size) {
     {
         std::scoped_lock lock{texture_cache.mutex};
-        texture_cache.UnmapGPUMemory(addr, size);
+        texture_cache.UnmapGPUMemory(as_id, addr, size);
     }
 }
 

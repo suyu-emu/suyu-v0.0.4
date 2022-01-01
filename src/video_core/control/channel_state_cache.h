@@ -3,6 +3,7 @@
 #include <deque>
 #include <limits>
 #include <mutex>
+#include <optional>
 #include <unordered_map>
 
 #include "common/common_types.h"
@@ -57,6 +58,15 @@ public:
         std::unique_lock<std::mutex> lk(config_mutex);
         const auto ref = address_spaces.find(id);
         return ref->second.gpu_memory;
+    }
+
+    std::optional<size_t> getStorageID(size_t id) const {
+        std::unique_lock<std::mutex> lk(config_mutex);
+        const auto ref = address_spaces.find(id);
+        if (ref == address_spaces.end()) {
+            return std::nullopt;
+        }
+        return ref->second.storage_id;
     }
 
 protected:

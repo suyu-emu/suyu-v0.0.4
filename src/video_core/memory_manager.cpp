@@ -59,10 +59,19 @@ GPUVAddr MemoryManager::PageTableOp(GPUVAddr gpu_addr, [[maybe_unused]] VAddr cp
     }
     for (u64 offset{}; offset < size; offset += page_size) {
         const GPUVAddr current_gpu_addr = gpu_addr + offset;
+        [[maybe_unused]] const auto current_entry_type = GetEntry(current_gpu_addr);
         SetEntry(current_gpu_addr, entry_type);
+        if (current_entry_type != entry_type) {
+            rasterizer->ModifyGPUMemory(unique_identifier, gpu_addr, page_size);
+        }
         if constexpr (entry_type == EntryType::Mapped) {
             const VAddr current_cpu_addr = cpu_addr + offset;
             const auto index = PageEntryIndex(current_gpu_addr);
+            const u32 sub_value = static_cast<u32>(current_cpu_addr >> 12ULL);
+            if (current_entry_type == entry_type && sub_value != page_table[index]) {
+                rasterizer->InvalidateRegion(static_cast<VAddr>(page_table[index]) << 12ULL,
+                                             page_size);
+            }
             page_table[index] = static_cast<u32>(current_cpu_addr >> 12ULL);
         }
         remaining_size -= page_size;
@@ -168,7 +177,7 @@ std::optional<VAddr> MemoryManager::GpuToCpuAddress(GPUVAddr addr, std::size_t s
     const size_t page_last{(addr + size + page_size - 1) >> page_bits};
     while (page_index < page_last) {
         const auto page_addr{GpuToCpuAddress(page_index << page_bits)};
-        if (page_addr && *page_addr != 0) {
+        if (page_addr) {
             return page_addr;
         }
         ++page_index;

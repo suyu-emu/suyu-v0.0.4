@@ -118,6 +118,8 @@ public:
 
     void ReleaseChannel(Control::ChannelState& to_release);
 
+    void InitAddressSpace(Tegra::MemoryManager& memory_manager);
+
     /// Request a host GPU memory flush from the CPU.
     [[nodiscard]] u64 RequestFlush(VAddr addr, std::size_t size);
 

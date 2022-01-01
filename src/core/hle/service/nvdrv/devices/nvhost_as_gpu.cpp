@@ -16,6 +16,7 @@
 #include "core/hle/service/nvdrv/devices/nvhost_gpu.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
 #include "video_core/control/channel_state.h"
+#include "video_core/gpu.h"
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
 
@@ -24,6 +25,7 @@ namespace Service::Nvidia::Devices {
 nvhost_as_gpu::nvhost_as_gpu(Core::System& system_, Module& module_, NvCore::Container& core)
     : nvdevice{system_}, module{module_}, container{core}, nvmap{core.GetNvMapFile()}, vm{},
       gmmu{} {}
+
 nvhost_as_gpu::~nvhost_as_gpu() = default;
 
 NvResult nvhost_as_gpu::Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
@@ -132,6 +134,7 @@ NvResult nvhost_as_gpu::AllocAsEx(const std::vector<u8>& input, std::vector<u8>&
     vm.big_page_allocator = std::make_unique<VM::Allocator>(start_big_pages, end_big_pages);
 
     gmmu = std::make_shared<Tegra::MemoryManager>(system, 40, VM::PAGE_SIZE_BITS);
+    system.GPU().InitAddressSpace(*gmmu);
     vm.initialised = true;
 
     return NvResult::Success;

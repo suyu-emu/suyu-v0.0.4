@@ -173,7 +173,7 @@ public:
     void UnmapMemory(VAddr cpu_addr, size_t size);
 
     /// Remove images in a region
-    void UnmapGPUMemory(GPUVAddr gpu_addr, size_t size);
+    void UnmapGPUMemory(size_t as_id, GPUVAddr gpu_addr, size_t size);
 
     /// Blit an image with the given parameters
     void BlitImage(const Tegra::Engines::Fermi2D::Surface& dst,
@@ -309,7 +309,7 @@ private:
     void ForEachImageInRegion(VAddr cpu_addr, size_t size, Func&& func);
 
     template <typename Func>
-    void ForEachImageInRegionGPU(GPUVAddr gpu_addr, size_t size, Func&& func);
+    void ForEachImageInRegionGPU(size_t as_id, GPUVAddr gpu_addr, size_t size, Func&& func);
 
     template <typename Func>
     void ForEachSparseImageInRegion(GPUVAddr gpu_addr, size_t size, Func&& func);

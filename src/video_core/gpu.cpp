@@ -73,6 +73,10 @@ struct GPU::Impl {
         rasterizer->InitializeChannel(to_init);
     }
 
+    void InitAddressSpace(Tegra::MemoryManager& memory_manager) {
+        memory_manager.BindRasterizer(rasterizer);
+    }
+
     void ReleaseChannel(Control::ChannelState& to_release) {
         UNIMPLEMENTED();
     }
@@ -450,6 +454,10 @@ void GPU::BindChannel(s32 channel_id) {
 
 void GPU::ReleaseChannel(Control::ChannelState& to_release) {
     impl->ReleaseChannel(to_release);
+}
+
+void GPU::InitAddressSpace(Tegra::MemoryManager& memory_manager) {
+    impl->InitAddressSpace(memory_manager);
 }
 
 void GPU::BindRenderer(std::unique_ptr<VideoCore::RendererBase> renderer) {
