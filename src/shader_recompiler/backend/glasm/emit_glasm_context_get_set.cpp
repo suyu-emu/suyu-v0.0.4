@@ -126,6 +126,22 @@ void EmitGetAttribute(EmitContext& ctx, IR::Inst& inst, IR::Attribute attr, Scal
     }
 }
 
+void EmitGetAttributeU32(EmitContext& ctx, IR::Inst& inst, IR::Attribute attr, ScalarU32) {
+    switch (attr) {
+    case IR::Attribute::PrimitiveId:
+        ctx.Add("MOV.S {}.x,primitive.id;", inst);
+        break;
+    case IR::Attribute::InstanceId:
+        ctx.Add("MOV.S {}.x,{}.instance;", inst, ctx.attrib_name);
+        break;
+    case IR::Attribute::VertexId:
+        ctx.Add("MOV.S {}.x,{}.id;", inst, ctx.attrib_name);
+        break;
+    default:
+        throw NotImplementedException("Get U32 attribute {}", attr);
+    }
+}
+
 void EmitSetAttribute(EmitContext& ctx, IR::Attribute attr, ScalarF32 value,
                       [[maybe_unused]] ScalarU32 vertex) {
     const u32 element{static_cast<u32>(attr) % 4};
