@@ -597,6 +597,7 @@ struct Values {
     BasicSetting<std::string> program_args{std::string(), "program_args"};
     BasicSetting<bool> dump_exefs{false, "dump_exefs"};
     BasicSetting<bool> dump_nso{false, "dump_nso"};
+    BasicSetting<bool> dump_shaders{false, "dump_shaders"};
     BasicSetting<bool> enable_fs_access_log{false, "enable_fs_access_log"};
     BasicSetting<bool> reporting_services{false, "reporting_services"};
     BasicSetting<bool> quest_flag{false, "quest_flag"};
