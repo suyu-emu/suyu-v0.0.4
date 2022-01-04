@@ -312,6 +312,12 @@ struct GPU::Impl {
         cpu_context->MakeCurrent();
     }
 
+    void NotifyShutdown() {
+        std::unique_lock lk{sync_mutex};
+        shutting_down.store(true, std::memory_order::relaxed);
+        sync_cv.notify_all();
+    }
+
     /// Obtain the CPU Context
     void ObtainContext() {
         cpu_context->MakeCurrent();
@@ -857,6 +863,10 @@ void GPU::RendererFrameEndNotify() {
 
 void GPU::Start() {
     impl->Start();
+}
+
+void GPU::NotifyShutdown() {
+    impl->NotifyShutdown();
 }
 
 void GPU::ObtainContext() {
