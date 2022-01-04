@@ -5,7 +5,6 @@
 #pragma once
 
 #include <memory>
-#include <stop_token>
 
 #include "common/bit_field.h"
 #include "common/common_types.h"
@@ -210,7 +209,7 @@ public:
     [[nodiscard]] const VideoCore::ShaderNotify& ShaderNotify() const;
 
     /// Allows the CPU/NvFlinger to wait on the GPU before presenting a frame.
-    void WaitFence(u32 syncpoint_id, u32 value, std::stop_token stop_token = {});
+    void WaitFence(u32 syncpoint_id, u32 value);
 
     void IncrementSyncPoint(u32 syncpoint_id);
 
