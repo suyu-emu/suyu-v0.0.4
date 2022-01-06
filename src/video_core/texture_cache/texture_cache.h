@@ -1758,6 +1758,7 @@ void TextureCache<P>::SynchronizeAliases(ImageId image_id) {
     boost::container::small_vector<const AliasedImage*, 1> aliased_images;
     Image& image = slot_images[image_id];
     bool any_rescaled = True(image.flags & ImageFlagBits::Rescaled);
+    bool any_modified = True(image.flags & ImageFlagBits::GpuModified);
     u64 most_recent_tick = image.modification_tick;
     for (const AliasedImage& aliased : image.aliased_images) {
         ImageBase& aliased_image = slot_images[aliased.id];
@@ -1765,9 +1766,7 @@ void TextureCache<P>::SynchronizeAliases(ImageId image_id) {
             most_recent_tick = std::max(most_recent_tick, aliased_image.modification_tick);
             aliased_images.push_back(&aliased);
             any_rescaled |= True(aliased_image.flags & ImageFlagBits::Rescaled);
-            if (True(aliased_image.flags & ImageFlagBits::GpuModified)) {
-                image.flags |= ImageFlagBits::GpuModified;
-            }
+            any_modified |= True(aliased_image.flags & ImageFlagBits::GpuModified);
         }
     }
     if (aliased_images.empty()) {
@@ -1782,6 +1781,9 @@ void TextureCache<P>::SynchronizeAliases(ImageId image_id) {
         }
     }
     image.modification_tick = most_recent_tick;
+    if (any_modified) {
+        image.flags |= ImageFlagBits::GpuModified;
+    }
     std::ranges::sort(aliased_images, [this](const AliasedImage* lhs, const AliasedImage* rhs) {
         const ImageBase& lhs_image = slot_images[lhs->id];
         const ImageBase& rhs_image = slot_images[rhs->id];
