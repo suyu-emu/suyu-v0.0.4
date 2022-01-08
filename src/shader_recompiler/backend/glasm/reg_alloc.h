@@ -235,7 +235,7 @@ struct fmt::formatter<Shader::Backend::GLASM::ScalarU32> {
         case Shader::Backend::GLASM::Type::U64:
             break;
         }
-        throw Shader::InvalidArgument("Invalid value type {}", value.type);
+        throw Shader::InvalidArgument("Invalid value type {}", static_cast<u32>(value.type));
     }
 };
 
@@ -256,7 +256,7 @@ struct fmt::formatter<Shader::Backend::GLASM::ScalarS32> {
         case Shader::Backend::GLASM::Type::U64:
             break;
         }
-        throw Shader::InvalidArgument("Invalid value type {}", value.type);
+        throw Shader::InvalidArgument("Invalid value type {}", static_cast<u32>(value.type));
     }
 };
 
@@ -277,7 +277,7 @@ struct fmt::formatter<Shader::Backend::GLASM::ScalarF32> {
         case Shader::Backend::GLASM::Type::U64:
             break;
         }
-        throw Shader::InvalidArgument("Invalid value type {}", value.type);
+        throw Shader::InvalidArgument("Invalid value type {}", static_cast<u32>(value.type));
     }
 };
 
@@ -298,6 +298,6 @@ struct fmt::formatter<Shader::Backend::GLASM::ScalarF64> {
         case Shader::Backend::GLASM::Type::U64:
             return fmt::format_to(ctx.out(), "{}", Common::BitCast<f64>(value.imm_u64));
         }
-        throw Shader::InvalidArgument("Invalid value type {}", value.type);
+        throw Shader::InvalidArgument("Invalid value type {}", static_cast<u32>(value.type));
     }
 };

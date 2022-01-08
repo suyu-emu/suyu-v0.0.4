@@ -6,10 +6,23 @@
 
 #include <algorithm>
 #include <string_view>
+#include <type_traits>
 
-#include <fmt/core.h>
+#include <fmt/format.h>
 
 #include "common/logging/types.h"
+
+// adapted from https://github.com/fmtlib/fmt/issues/2704
+// a generic formatter for enum classes (<= 32 bits)
+#if FMT_VERSION >= 80100
+template <typename T>
+struct fmt::formatter<T, std::enable_if_t<std::is_enum_v<T>, char>> : formatter<u32> {
+    template <typename FormatContext>
+    auto format(const T& value, FormatContext& ctx) -> decltype(ctx.out()) {
+        return fmt::formatter<u32>::format(static_cast<u32>(value), ctx);
+    }
+};
+#endif
 
 namespace Common::Log {
 

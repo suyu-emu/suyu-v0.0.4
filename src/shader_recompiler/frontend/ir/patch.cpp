@@ -13,14 +13,14 @@ bool IsGeneric(Patch patch) noexcept {
 
 u32 GenericPatchIndex(Patch patch) {
     if (!IsGeneric(patch)) {
-        throw InvalidArgument("Patch {} is not generic", patch);
+        throw InvalidArgument("Patch {} is not generic", static_cast<u64>(patch));
     }
     return (static_cast<u32>(patch) - static_cast<u32>(Patch::Component0)) / 4;
 }
 
 u32 GenericPatchElement(Patch patch) {
     if (!IsGeneric(patch)) {
-        throw InvalidArgument("Patch {} is not generic", patch);
+        throw InvalidArgument("Patch {} is not generic", static_cast<u64>(patch));
     }
     return (static_cast<u32>(patch) - static_cast<u32>(Patch::Component0)) % 4;
 }
