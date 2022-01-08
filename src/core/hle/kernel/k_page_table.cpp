@@ -837,24 +837,36 @@ ResultCode KPageTable::SetMemoryPermission(VAddr addr, std::size_t size,
     return ResultSuccess;
 }
 
-ResultCode KPageTable::SetMemoryAttribute(VAddr addr, std::size_t size, KMemoryAttribute mask,
-                                          KMemoryAttribute value) {
+ResultCode KPageTable::SetMemoryAttribute(VAddr addr, std::size_t size, u32 mask, u32 attr) {
+    const size_t num_pages = size / PageSize;
+    ASSERT((static_cast<KMemoryAttribute>(mask) | KMemoryAttribute::SetMask) ==
+           KMemoryAttribute::SetMask);
+
+    // Lock the table.
     std::lock_guard lock{page_table_lock};
 
-    KMemoryState state{};
-    KMemoryPermission perm{};
-    KMemoryAttribute attribute{};
-
-    CASCADE_CODE(CheckMemoryState(
-        &state, &perm, &attribute, nullptr, addr, size, KMemoryState::FlagCanChangeAttribute,
+    // Verify we can change the memory attribute.
+    KMemoryState old_state;
+    KMemoryPermission old_perm;
+    KMemoryAttribute old_attr;
+    size_t num_allocator_blocks;
+    constexpr auto AttributeTestMask =
+        ~(KMemoryAttribute::SetMask | KMemoryAttribute::DeviceShared);
+    R_TRY(this->CheckMemoryState(
+        std::addressof(old_state), std::addressof(old_perm), std::addressof(old_attr),
+        std::addressof(num_allocator_blocks), addr, size, KMemoryState::FlagCanChangeAttribute,
         KMemoryState::FlagCanChangeAttribute, KMemoryPermission::None, KMemoryPermission::None,
-        KMemoryAttribute::LockedAndIpcLocked, KMemoryAttribute::None,
-        KMemoryAttribute::DeviceSharedAndUncached));
+        AttributeTestMask, KMemoryAttribute::None, ~AttributeTestMask));
 
-    attribute = attribute & ~mask;
-    attribute = attribute | (mask & value);
+    // Determine the new attribute.
+    const auto new_attr = ((old_attr & static_cast<KMemoryAttribute>(~mask)) |
+                           static_cast<KMemoryAttribute>(attr & mask));
 
-    block_manager->Update(addr, size / PageSize, state, perm, attribute);
+    // Perform operation.
+    this->Operate(addr, num_pages, old_perm, OperationType::ChangePermissionsAndRefresh);
+
+    // Update the blocks.
+    block_manager->Update(addr, num_pages, old_state, old_perm, new_attr);
 
     return ResultSuccess;
 }

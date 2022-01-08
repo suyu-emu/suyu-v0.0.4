@@ -48,8 +48,7 @@ public:
     ResultCode ReserveTransferMemory(VAddr addr, std::size_t size, KMemoryPermission perm);
     ResultCode ResetTransferMemory(VAddr addr, std::size_t size);
     ResultCode SetMemoryPermission(VAddr addr, std::size_t size, Svc::MemoryPermission perm);
-    ResultCode SetMemoryAttribute(VAddr addr, std::size_t size, KMemoryAttribute mask,
-                                  KMemoryAttribute value);
+    ResultCode SetMemoryAttribute(VAddr addr, std::size_t size, u32 mask, u32 attr);
     ResultCode SetMaxHeapSize(std::size_t size);
     ResultCode SetHeapSize(VAddr* out, std::size_t size);
     ResultVal<VAddr> AllocateAndMapMemory(std::size_t needed_num_pages, std::size_t align,
