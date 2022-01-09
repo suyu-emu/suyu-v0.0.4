@@ -713,49 +713,60 @@ ResultCode KPageTable::UnmapPages(VAddr addr, KPageLinkedList& page_linked_list,
 }
 
 ResultCode KPageTable::SetProcessMemoryPermission(VAddr addr, std::size_t size,
-                                                  KMemoryPermission perm) {
+                                                  Svc::MemoryPermission svc_perm) {
+    const size_t num_pages = size / PageSize;
 
+    // Lock the table.
     std::lock_guard lock{page_table_lock};
 
-    KMemoryState prev_state{};
-    KMemoryPermission prev_perm{};
+    // Verify we can change the memory permission.
+    KMemoryState old_state;
+    KMemoryPermission old_perm;
+    size_t num_allocator_blocks;
+    R_TRY(this->CheckMemoryState(std::addressof(old_state), std::addressof(old_perm), nullptr,
+                                 std::addressof(num_allocator_blocks), addr, size,
+                                 KMemoryState::FlagCode, KMemoryState::FlagCode,
+                                 KMemoryPermission::None, KMemoryPermission::None,
+                                 KMemoryAttribute::All, KMemoryAttribute::None));
 
-    CASCADE_CODE(CheckMemoryState(
-        &prev_state, &prev_perm, nullptr, nullptr, addr, size, KMemoryState::FlagCode,
-        KMemoryState::FlagCode, KMemoryPermission::None, KMemoryPermission::None,
-        KMemoryAttribute::Mask, KMemoryAttribute::None, KMemoryAttribute::IpcAndDeviceMapped));
+    // Determine new perm/state.
+    const KMemoryPermission new_perm = ConvertToKMemoryPermission(svc_perm);
+    KMemoryState new_state = old_state;
+    const bool is_w = (new_perm & KMemoryPermission::UserWrite) == KMemoryPermission::UserWrite;
+    const bool is_x = (new_perm & KMemoryPermission::UserExecute) == KMemoryPermission::UserExecute;
+    const bool was_x =
+        (old_perm & KMemoryPermission::UserExecute) == KMemoryPermission::UserExecute;
+    ASSERT(!(is_w && is_x));
 
-    KMemoryState state{prev_state};
-
-    // Ensure state is mutable if permission allows write
-    if ((perm & KMemoryPermission::Write) != KMemoryPermission::None) {
-        if (prev_state == KMemoryState::Code) {
-            state = KMemoryState::CodeData;
-        } else if (prev_state == KMemoryState::AliasCode) {
-            state = KMemoryState::AliasCodeData;
-        } else {
+    if (is_w) {
+        switch (old_state) {
+        case KMemoryState::Code:
+            new_state = KMemoryState::CodeData;
+            break;
+        case KMemoryState::AliasCode:
+            new_state = KMemoryState::AliasCodeData;
+            break;
+        default:
             UNREACHABLE();
         }
     }
 
-    // Return early if there is nothing to change
-    if (state == prev_state && perm == prev_perm) {
-        return ResultSuccess;
-    }
+    // Succeed if there's nothing to do.
+    R_SUCCEED_IF(old_perm == new_perm && old_state == new_state);
 
-    if ((prev_perm & KMemoryPermission::Execute) != (perm & KMemoryPermission::Execute)) {
+    // Perform mapping operation.
+    const auto operation =
+        was_x ? OperationType::ChangePermissionsAndRefresh : OperationType::ChangePermissions;
+    R_TRY(Operate(addr, num_pages, new_perm, operation));
+
+    // Update the blocks.
+    block_manager->Update(addr, num_pages, new_state, new_perm, KMemoryAttribute::None);
+
+    // Ensure cache coherency, if we're setting pages as executable.
+    if (is_x) {
         // Memory execution state is changing, invalidate CPU cache range
         system.InvalidateCpuInstructionCacheRange(addr, size);
     }
-
-    const std::size_t num_pages{size / PageSize};
-    const OperationType operation{(perm & KMemoryPermission::Execute) != KMemoryPermission::None
-                                      ? OperationType::ChangePermissionsAndRefresh
-                                      : OperationType::ChangePermissions};
-
-    CASCADE_CODE(Operate(addr, num_pages, perm, operation));
-
-    block_manager->Update(addr, num_pages, state, perm);
 
     return ResultSuccess;
 }

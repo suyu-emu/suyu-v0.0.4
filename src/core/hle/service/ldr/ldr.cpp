@@ -14,6 +14,7 @@
 #include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/k_system_control.h"
 #include "core/hle/kernel/svc_results.h"
+#include "core/hle/kernel/svc_types.h"
 #include "core/hle/service/ldr/ldr.h"
 #include "core/hle/service/service.h"
 #include "core/loader/nro.h"
@@ -397,12 +398,12 @@ public:
                  nro_header.segment_headers[DATA_INDEX].memory_size);
 
         CASCADE_CODE(process->PageTable().SetProcessMemoryPermission(
-            text_start, ro_start - text_start, Kernel::KMemoryPermission::ReadAndExecute));
+            text_start, ro_start - text_start, Kernel::Svc::MemoryPermission::ReadExecute));
         CASCADE_CODE(process->PageTable().SetProcessMemoryPermission(
-            ro_start, data_start - ro_start, Kernel::KMemoryPermission::Read));
+            ro_start, data_start - ro_start, Kernel::Svc::MemoryPermission::Read));
 
         return process->PageTable().SetProcessMemoryPermission(
-            data_start, bss_end_addr - data_start, Kernel::KMemoryPermission::UserReadWrite);
+            data_start, bss_end_addr - data_start, Kernel::Svc::MemoryPermission::ReadWrite);
     }
 
     void LoadModule(Kernel::HLERequestContext& ctx) {

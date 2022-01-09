@@ -43,7 +43,8 @@ public:
     ResultCode MapPages(VAddr addr, KPageLinkedList& page_linked_list, KMemoryState state,
                         KMemoryPermission perm);
     ResultCode UnmapPages(VAddr addr, KPageLinkedList& page_linked_list, KMemoryState state);
-    ResultCode SetProcessMemoryPermission(VAddr addr, std::size_t size, KMemoryPermission perm);
+    ResultCode SetProcessMemoryPermission(VAddr addr, std::size_t size,
+                                          Svc::MemoryPermission svc_perm);
     KMemoryInfo QueryInfo(VAddr addr);
     ResultCode ReserveTransferMemory(VAddr addr, std::size_t size, KMemoryPermission perm);
     ResultCode ResetTransferMemory(VAddr addr, std::size_t size);

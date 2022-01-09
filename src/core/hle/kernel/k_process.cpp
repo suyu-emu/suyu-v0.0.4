@@ -541,16 +541,16 @@ void KProcess::FreeTLSRegion(VAddr tls_address) {
 
 void KProcess::LoadModule(CodeSet code_set, VAddr base_addr) {
     const auto ReprotectSegment = [&](const CodeSet::Segment& segment,
-                                      KMemoryPermission permission) {
+                                      Svc::MemoryPermission permission) {
         page_table->SetProcessMemoryPermission(segment.addr + base_addr, segment.size, permission);
     };
 
     kernel.System().Memory().WriteBlock(*this, base_addr, code_set.memory.data(),
                                         code_set.memory.size());
 
-    ReprotectSegment(code_set.CodeSegment(), KMemoryPermission::ReadAndExecute);
-    ReprotectSegment(code_set.RODataSegment(), KMemoryPermission::Read);
-    ReprotectSegment(code_set.DataSegment(), KMemoryPermission::UserReadWrite);
+    ReprotectSegment(code_set.CodeSegment(), Svc::MemoryPermission::ReadExecute);
+    ReprotectSegment(code_set.RODataSegment(), Svc::MemoryPermission::Read);
+    ReprotectSegment(code_set.DataSegment(), Svc::MemoryPermission::ReadWrite);
 }
 
 bool KProcess::IsSignaled() const {

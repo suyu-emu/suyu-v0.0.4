@@ -1309,6 +1309,8 @@ static ResultCode SetProcessMemoryPermission(Core::System& system, Handle proces
     R_UNLESS(Common::IsAligned(size, PageSize), ResultInvalidSize);
     R_UNLESS(size > 0, ResultInvalidSize);
     R_UNLESS((address < address + size), ResultInvalidCurrentMemory);
+    R_UNLESS(address == static_cast<uintptr_t>(address), ResultInvalidCurrentMemory);
+    R_UNLESS(size == static_cast<size_t>(size), ResultInvalidCurrentMemory);
 
     // Validate the memory permission.
     R_UNLESS(IsValidProcessMemoryPermission(perm), ResultInvalidNewMemoryPermission);
@@ -1323,7 +1325,7 @@ static ResultCode SetProcessMemoryPermission(Core::System& system, Handle proces
     R_UNLESS(page_table.Contains(address, size), ResultInvalidCurrentMemory);
 
     // Set the memory permission.
-    return page_table.SetProcessMemoryPermission(address, size, ConvertToKMemoryPermission(perm));
+    return page_table.SetProcessMemoryPermission(address, size, perm);
 }
 
 static ResultCode MapProcessMemory(Core::System& system, VAddr dst_address, Handle process_handle,
