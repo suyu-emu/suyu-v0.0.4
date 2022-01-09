@@ -2,7 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include "core/hid/emulated_controller.h"
+#include "core/hid/emulated_devices.h"
 #include "core/hid/hid_core.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_readable_event.h"
@@ -13,9 +13,7 @@ namespace Service::HID {
 RingController::RingController(Core::HID::HIDCore& hid_core_,
                                KernelHelpers::ServiceContext& service_context_)
     : HidbusBase(service_context_) {
-    // Use the horizontal axis of left stick for emulating input
-    // There is no point on adding a frontend implementation since Ring Fit Adventure doesn't work
-    input = hid_core_.GetEmulatedController(Core::HID::NpadIdType::Player1);
+    input = hid_core_.GetEmulatedDevices();
 }
 
 RingController::~RingController() = default;
@@ -40,6 +38,8 @@ void RingController::OnUpdate() {
     if (!polling_mode_enabled || !is_transfer_memory_set) {
         return;
     }
+
+    // TODO: Increment multitasking counters from motion and sensor data
 
     switch (polling_mode) {
     case JoyPollingMode::SixAxisSensorEnable: {
@@ -74,9 +74,8 @@ RingController::RingConData RingController::GetSensorValue() const {
         .data = 0,
     };
 
-    const f32 stick_value = static_cast<f32>(input->GetSticks().left.x) / 32767.0f;
-
-    ringcon_sensor_value.data = static_cast<s16>(stick_value * range) + idle_value;
+    const f32 force_value = input->GetRingSensorForce().force * range;
+    ringcon_sensor_value.data = static_cast<s16>(force_value) + idle_value;
 
     return ringcon_sensor_value;
 }
@@ -105,6 +104,8 @@ std::vector<u8> RingController::GetReply() const {
         return GetReadRepCountReply();
     case RingConCommands::ReadTotalPushCount:
         return GetReadTotalPushCountReply();
+    case RingConCommands::ResetRepCount:
+        return GetResetRepCountReply();
     case RingConCommands::SaveCalData:
         return GetSaveDataReply();
     default:
@@ -119,36 +120,9 @@ bool RingController::SetCommand(const std::vector<u8>& data) {
         return false;
     }
 
-    // There must be a better way to do this
-    const u32 command_id =
-        u32{data[0]} + (u32{data[1]} << 8) + (u32{data[2]} << 16) + (u32{data[3]} << 24);
-    static constexpr std::array supported_commands = {
-        RingConCommands::GetFirmwareVersion,
-        RingConCommands::ReadId,
-        RingConCommands::c20105,
-        RingConCommands::ReadUnkCal,
-        RingConCommands::ReadFactoryCal,
-        RingConCommands::ReadUserCal,
-        RingConCommands::ReadRepCount,
-        RingConCommands::ReadTotalPushCount,
-        RingConCommands::SaveCalData,
-    };
+    std::memcpy(&command, data.data(), sizeof(RingConCommands));
 
-    for (RingConCommands cmd : supported_commands) {
-        if (command_id == static_cast<u32>(cmd)) {
-            return ExcecuteCommand(cmd, data);
-        }
-    }
-
-    LOG_ERROR(Service_HID, "Command not implemented {}", command_id);
-    command = RingConCommands::Error;
-    // Signal a reply to avoid softlocking
-    send_command_asyc_event->GetWritableEvent().Signal();
-    return false;
-}
-
-bool RingController::ExcecuteCommand(RingConCommands cmd, const std::vector<u8>& data) {
-    switch (cmd) {
+    switch (command) {
     case RingConCommands::GetFirmwareVersion:
     case RingConCommands::ReadId:
     case RingConCommands::c20105:
@@ -158,23 +132,27 @@ bool RingController::ExcecuteCommand(RingConCommands cmd, const std::vector<u8>&
     case RingConCommands::ReadRepCount:
     case RingConCommands::ReadTotalPushCount:
         ASSERT_MSG(data.size() == 0x4, "data.size is not 0x4 bytes");
-        command = cmd;
-        send_command_asyc_event->GetWritableEvent().Signal();
+        send_command_async_event->GetWritableEvent().Signal();
+        return true;
+    case RingConCommands::ResetRepCount:
+        ASSERT_MSG(data.size() == 0x4, "data.size is not 0x4 bytes");
+        total_rep_count = 0;
+        send_command_async_event->GetWritableEvent().Signal();
         return true;
     case RingConCommands::SaveCalData: {
         ASSERT_MSG(data.size() == 0x14, "data.size is not 0x14 bytes");
 
         SaveCalData save_info{};
-        std::memcpy(&save_info, &data, sizeof(SaveCalData));
+        std::memcpy(&save_info, data.data(), sizeof(SaveCalData));
         user_calibration = save_info.calibration;
-
-        command = cmd;
-        send_command_asyc_event->GetWritableEvent().Signal();
+        send_command_async_event->GetWritableEvent().Signal();
         return true;
     }
     default:
-        LOG_ERROR(Service_HID, "Command not implemented {}", cmd);
+        LOG_ERROR(Service_HID, "Command not implemented {}", command);
         command = RingConCommands::Error;
+        // Signal a reply to avoid softlocking the game
+        send_command_async_event->GetWritableEvent().Signal();
         return false;
     }
 }
@@ -240,25 +218,27 @@ std::vector<u8> RingController::GetReadUserCalReply() const {
 }
 
 std::vector<u8> RingController::GetReadRepCountReply() const {
-    // The values are hardcoded from a real joycon
     const GetThreeByteReply reply{
         .status = DataValid::Valid,
-        .data = {30, 0, 0},
-        .crc = GetCrcValue({30, 0, 0, 0}),
+        .data = {total_rep_count, 0, 0},
+        .crc = GetCrcValue({total_rep_count, 0, 0, 0}),
     };
 
     return GetDataVector(reply);
 }
 
 std::vector<u8> RingController::GetReadTotalPushCountReply() const {
-    // The values are hardcoded from a real joycon
     const GetThreeByteReply reply{
         .status = DataValid::Valid,
-        .data = {30, 0, 0},
-        .crc = GetCrcValue({30, 0, 0, 0}),
+        .data = {total_push_count, 0, 0},
+        .crc = GetCrcValue({total_push_count, 0, 0, 0}),
     };
 
     return GetDataVector(reply);
+}
+
+std::vector<u8> RingController::GetResetRepCountReply() const {
+    return GetReadRepCountReply();
 }
 
 std::vector<u8> RingController::GetSaveDataReply() const {

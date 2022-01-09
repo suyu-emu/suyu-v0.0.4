@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
@@ -190,6 +191,7 @@ void HidBus::IsExternalDeviceConnected(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
         rb.Push(is_attached);
+        return;
     }
 
     LOG_ERROR(Service_HID, "Invalid handle");
@@ -217,7 +219,7 @@ void HidBus::Initialize(Kernel::HLERequestContext& ctx) {
         const auto entry_index = devices[device_index.value()].handle.internal_index;
         auto& cur_entry = hidbus_status.entries[entry_index];
 
-        if (bus_handle_.internal_index == 0) {
+        if (bus_handle_.internal_index == 0 && Settings::values.enable_ring_controller) {
             MakeDevice<RingController>(bus_handle_);
             devices[device_index.value()].is_device_initializated = true;
             devices[device_index.value()].device->ActivateDevice();

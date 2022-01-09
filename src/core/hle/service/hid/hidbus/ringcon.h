@@ -10,7 +10,7 @@
 #include "core/hle/service/hid/hidbus/hidbus_base.h"
 
 namespace Core::HID {
-class EmulatedController;
+class EmulatedDevices;
 } // namespace Core::HID
 
 namespace Service::HID {
@@ -43,6 +43,7 @@ private:
     static constexpr s16 idle_deadzone = 120;
     static constexpr s16 range = 2500;
 
+    // Most missing command names are leftovers from other firmware versions
     enum class RingConCommands : u32 {
         GetFirmwareVersion = 0x00020000,
         ReadId = 0x00020100,
@@ -60,10 +61,10 @@ private:
         ReadUserCal = 0x00021A04,
         ReadRepCount = 0x00023104,
         ReadTotalPushCount = 0x00023204,
-        Unknown9 = 0x04013104,
-        Unknown10 = 0x04011104,
-        Unknown11 = 0x04011204,
-        Unknown12 = 0x04011304,
+        ResetRepCount = 0x04013104,
+        Unknown8 = 0x04011104,
+        Unknown9 = 0x04011204,
+        Unknown10 = 0x04011304,
         SaveCalData = 0x10011A04,
         Error = 0xFFFFFFFF,
     };
@@ -180,9 +181,6 @@ private:
     };
     static_assert(sizeof(RingConData) == 0x8, "RingConData is an invalid size");
 
-    // Executes the command requested
-    bool ExcecuteCommand(RingConCommands cmd, const std::vector<u8>& data);
-
     // Returns RingConData struct with pressure sensor values
     RingConData GetSensorValue() const;
 
@@ -204,11 +202,14 @@ private:
     // Returns 20 byte reply with user calibration values
     std::vector<u8> GetReadUserCalReply() const;
 
-    // (STUBBED) Returns 8 byte reply
+    // Returns 8 byte reply
     std::vector<u8> GetReadRepCountReply() const;
 
-    // (STUBBED) Returns 8 byte reply
+    // Returns 8 byte reply
     std::vector<u8> GetReadTotalPushCountReply() const;
+
+    // Returns 8 byte reply
+    std::vector<u8> GetResetRepCountReply() const;
 
     // Returns 4 byte save data reply
     std::vector<u8> GetSaveDataReply() const;
@@ -224,6 +225,12 @@ private:
     std::vector<u8> GetDataVector(const T& reply) const;
 
     RingConCommands command{RingConCommands::Error};
+
+    // These counters are used in multitasking mode while the switch is sleeping
+    // Total steps taken
+    u8 total_rep_count = 0;
+    // Total times the ring was pushed
+    u8 total_push_count = 0;
 
     const u8 device_id = 0x20;
     const FirmwareVersion version = {
@@ -242,6 +249,6 @@ private:
         .zero = {.value = idle_value, .crc = 225},
     };
 
-    Core::HID::EmulatedController* input;
+    Core::HID::EmulatedDevices* input;
 };
 } // namespace Service::HID
