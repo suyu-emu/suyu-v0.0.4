@@ -325,7 +325,7 @@ public:
         for (std::size_t retry = 0; retry < MAXIMUM_MAP_RETRIES; retry++) {
             auto& page_table{process->PageTable()};
             const VAddr addr{GetRandomMapRegion(page_table, size)};
-            const ResultCode result{page_table.MapProcessCodeMemory(addr, baseAddress, size)};
+            const ResultCode result{page_table.MapCodeMemory(addr, baseAddress, size)};
 
             if (result == Kernel::ResultInvalidCurrentMemory) {
                 continue;
@@ -351,12 +351,12 @@ public:
 
             if (bss_size) {
                 auto block_guard = detail::ScopeExit([&] {
-                    page_table.UnmapProcessCodeMemory(addr + nro_size, bss_addr, bss_size);
-                    page_table.UnmapProcessCodeMemory(addr, nro_addr, nro_size);
+                    page_table.UnmapCodeMemory(addr + nro_size, bss_addr, bss_size);
+                    page_table.UnmapCodeMemory(addr, nro_addr, nro_size);
                 });
 
                 const ResultCode result{
-                    page_table.MapProcessCodeMemory(addr + nro_size, bss_addr, bss_size)};
+                    page_table.MapCodeMemory(addr + nro_size, bss_addr, bss_size)};
 
                 if (result == Kernel::ResultInvalidCurrentMemory) {
                     continue;
@@ -530,16 +530,15 @@ public:
     ResultCode UnmapNro(const NROInfo& info) {
         // Each region must be unmapped separately to validate memory state
         auto& page_table{system.CurrentProcess()->PageTable()};
-        CASCADE_CODE(page_table.UnmapProcessCodeMemory(info.nro_address + info.text_size +
-                                                           info.ro_size + info.data_size,
-                                                       info.bss_address, info.bss_size));
-        CASCADE_CODE(page_table.UnmapProcessCodeMemory(
-            info.nro_address + info.text_size + info.ro_size,
-            info.src_addr + info.text_size + info.ro_size, info.data_size));
-        CASCADE_CODE(page_table.UnmapProcessCodeMemory(
-            info.nro_address + info.text_size, info.src_addr + info.text_size, info.ro_size));
-        CASCADE_CODE(
-            page_table.UnmapProcessCodeMemory(info.nro_address, info.src_addr, info.text_size));
+        CASCADE_CODE(page_table.UnmapCodeMemory(info.nro_address + info.text_size + info.ro_size +
+                                                    info.data_size,
+                                                info.bss_address, info.bss_size));
+        CASCADE_CODE(page_table.UnmapCodeMemory(info.nro_address + info.text_size + info.ro_size,
+                                                info.src_addr + info.text_size + info.ro_size,
+                                                info.data_size));
+        CASCADE_CODE(page_table.UnmapCodeMemory(info.nro_address + info.text_size,
+                                                info.src_addr + info.text_size, info.ro_size));
+        CASCADE_CODE(page_table.UnmapCodeMemory(info.nro_address, info.src_addr, info.text_size));
         return ResultSuccess;
     }
 

@@ -298,7 +298,7 @@ ResultCode KPageTable::MapProcessCode(VAddr addr, std::size_t num_pages, KMemory
     return ResultSuccess;
 }
 
-ResultCode KPageTable::MapProcessCodeMemory(VAddr dst_addr, VAddr src_addr, std::size_t size) {
+ResultCode KPageTable::MapCodeMemory(VAddr dst_addr, VAddr src_addr, std::size_t size) {
     std::lock_guard lock{page_table_lock};
 
     const std::size_t num_pages{size / PageSize};
@@ -335,7 +335,7 @@ ResultCode KPageTable::MapProcessCodeMemory(VAddr dst_addr, VAddr src_addr, std:
     return ResultSuccess;
 }
 
-ResultCode KPageTable::UnmapProcessCodeMemory(VAddr dst_addr, VAddr src_addr, std::size_t size) {
+ResultCode KPageTable::UnmapCodeMemory(VAddr dst_addr, VAddr src_addr, std::size_t size) {
     std::lock_guard lock{page_table_lock};
 
     if (!size) {
