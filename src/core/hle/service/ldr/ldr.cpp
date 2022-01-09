@@ -530,9 +530,13 @@ public:
     ResultCode UnmapNro(const NROInfo& info) {
         // Each region must be unmapped separately to validate memory state
         auto& page_table{system.CurrentProcess()->PageTable()};
-        CASCADE_CODE(page_table.UnmapCodeMemory(info.nro_address + info.text_size + info.ro_size +
-                                                    info.data_size,
-                                                info.bss_address, info.bss_size));
+
+        if (info.bss_size != 0) {
+            CASCADE_CODE(page_table.UnmapCodeMemory(info.nro_address + info.text_size +
+                                                        info.ro_size + info.data_size,
+                                                    info.bss_address, info.bss_size));
+        }
+
         CASCADE_CODE(page_table.UnmapCodeMemory(info.nro_address + info.text_size + info.ro_size,
                                                 info.src_addr + info.text_size + info.ro_size,
                                                 info.data_size));
