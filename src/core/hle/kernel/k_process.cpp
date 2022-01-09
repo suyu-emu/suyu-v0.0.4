@@ -509,7 +509,7 @@ VAddr KProcess::CreateTLSRegion() {
     const VAddr tls_page_addr{page_table
                                   ->AllocateAndMapMemory(1, PageSize, true, start, size / PageSize,
                                                          KMemoryState::ThreadLocal,
-                                                         KMemoryPermission::ReadAndWrite,
+                                                         KMemoryPermission::UserReadWrite,
                                                          tls_map_addr)
                                   .ValueOr(0)};
 
@@ -550,7 +550,7 @@ void KProcess::LoadModule(CodeSet code_set, VAddr base_addr) {
 
     ReprotectSegment(code_set.CodeSegment(), KMemoryPermission::ReadAndExecute);
     ReprotectSegment(code_set.RODataSegment(), KMemoryPermission::Read);
-    ReprotectSegment(code_set.DataSegment(), KMemoryPermission::ReadAndWrite);
+    ReprotectSegment(code_set.DataSegment(), KMemoryPermission::UserReadWrite);
 }
 
 bool KProcess::IsSignaled() const {
@@ -587,7 +587,7 @@ ResultCode KProcess::AllocateMainThreadStack(std::size_t stack_size) {
     CASCADE_RESULT(main_thread_stack_top,
                    page_table->AllocateAndMapMemory(
                        main_thread_stack_size / PageSize, PageSize, false, start, size / PageSize,
-                       KMemoryState::Stack, KMemoryPermission::ReadAndWrite));
+                       KMemoryState::Stack, KMemoryPermission::UserReadWrite));
 
     main_thread_stack_top += main_thread_stack_size;
 

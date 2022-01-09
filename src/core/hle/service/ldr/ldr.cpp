@@ -402,7 +402,7 @@ public:
             ro_start, data_start - ro_start, Kernel::KMemoryPermission::Read));
 
         return process->PageTable().SetProcessMemoryPermission(
-            data_start, bss_end_addr - data_start, Kernel::KMemoryPermission::ReadAndWrite);
+            data_start, bss_end_addr - data_start, Kernel::KMemoryPermission::UserReadWrite);
     }
 
     void LoadModule(Kernel::HLERequestContext& ctx) {
