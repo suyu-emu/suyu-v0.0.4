@@ -192,9 +192,9 @@ public:
 
     void TrySuspend();
 
-    void Continue();
+    void UpdateState();
 
-    void Suspend();
+    void Continue();
 
     constexpr void SetSyncedIndex(s32 index) {
         synced_index = index;

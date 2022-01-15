@@ -417,12 +417,7 @@ void KThread::Pin(s32 current_core) {
                                          static_cast<u32>(ThreadState::SuspendShift)));
 
         // Update our state.
-        const ThreadState old_state = thread_state;
-        thread_state = static_cast<ThreadState>(GetSuspendFlags() |
-                                                static_cast<u32>(old_state & ThreadState::Mask));
-        if (thread_state != old_state) {
-            KScheduler::OnThreadStateChanged(kernel, this, old_state);
-        }
+        UpdateState();
     }
 
     // TODO(bunnei): Update our SVC access permissions.
@@ -463,20 +458,13 @@ void KThread::Unpin() {
     }
 
     // Allow performing thread suspension (if termination hasn't been requested).
-    {
+    if (!IsTerminationRequested()) {
         // Update our allow flags.
-        if (!IsTerminationRequested()) {
-            suspend_allowed_flags |= (1 << (static_cast<u32>(SuspendType::Thread) +
-                                            static_cast<u32>(ThreadState::SuspendShift)));
-        }
+        suspend_allowed_flags |= (1 << (static_cast<u32>(SuspendType::Thread) +
+                                        static_cast<u32>(ThreadState::SuspendShift)));
 
         // Update our state.
-        const ThreadState old_state = thread_state;
-        thread_state = static_cast<ThreadState>(GetSuspendFlags() |
-                                                static_cast<u32>(old_state & ThreadState::Mask));
-        if (thread_state != old_state) {
-            KScheduler::OnThreadStateChanged(kernel, this, old_state);
-        }
+        UpdateState();
     }
 
     // TODO(bunnei): Update our SVC access permissions.
@@ -689,12 +677,7 @@ void KThread::Resume(SuspendType type) {
         ~(1u << (static_cast<u32>(ThreadState::SuspendShift) + static_cast<u32>(type)));
 
     // Update our state.
-    const ThreadState old_state = thread_state;
-    thread_state = static_cast<ThreadState>(GetSuspendFlags() |
-                                            static_cast<u32>(old_state & ThreadState::Mask));
-    if (thread_state != old_state) {
-        KScheduler::OnThreadStateChanged(kernel, this, old_state);
-    }
+    this->UpdateState();
 }
 
 void KThread::WaitCancel() {
@@ -721,19 +704,22 @@ void KThread::TrySuspend() {
     ASSERT(GetNumKernelWaiters() == 0);
 
     // Perform the suspend.
-    Suspend();
+    this->UpdateState();
 }
 
-void KThread::Suspend() {
+void KThread::UpdateState() {
     ASSERT(kernel.GlobalSchedulerContext().IsLocked());
-    ASSERT(IsSuspendRequested());
 
     // Set our suspend flags in state.
     const auto old_state = thread_state;
-    thread_state = static_cast<ThreadState>(GetSuspendFlags()) | (old_state & ThreadState::Mask);
+    const auto new_state =
+        static_cast<ThreadState>(this->GetSuspendFlags()) | (old_state & ThreadState::Mask);
+    thread_state = new_state;
 
     // Note the state change in scheduler.
-    KScheduler::OnThreadStateChanged(kernel, this, old_state);
+    if (new_state != old_state) {
+        KScheduler::OnThreadStateChanged(kernel, this, old_state);
+    }
 }
 
 void KThread::Continue() {
@@ -998,13 +984,16 @@ ResultCode KThread::Run() {
 
         // If the current thread has been asked to suspend, suspend it and retry.
         if (GetCurrentThread(kernel).IsSuspended()) {
-            GetCurrentThread(kernel).Suspend();
+            GetCurrentThread(kernel).UpdateState();
             continue;
         }
 
         // If we're not a kernel thread and we've been asked to suspend, suspend ourselves.
-        if (IsUserThread() && IsSuspended()) {
-            Suspend();
+        if (KProcess* owner = this->GetOwnerProcess(); owner != nullptr) {
+            if (IsUserThread() && IsSuspended()) {
+                this->UpdateState();
+            }
+            owner->IncrementThreadCount();
         }
 
         // Set our state and finish.
@@ -1028,6 +1017,10 @@ void KThread::Exit() {
     // Perform termination.
     {
         KScopedSchedulerLock sl{kernel};
+
+        // Disallow all suspension.
+        suspend_allowed_flags = 0;
+        this->UpdateState();
 
         // Disallow all suspension.
         suspend_allowed_flags = 0;
