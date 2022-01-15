@@ -248,7 +248,9 @@ public:
         return !IsOutsideASLRRegion(address, size);
     }
     constexpr PAddr GetPhysicalAddr(VAddr addr) {
-        return page_table_impl.backing_addr[addr >> PageBits] + addr;
+        const auto backing_addr = page_table_impl.backing_addr[addr >> PageBits];
+        ASSERT(backing_addr);
+        return backing_addr + addr;
     }
     constexpr bool Contains(VAddr addr) const {
         return address_space_start <= addr && addr <= address_space_end - 1;
