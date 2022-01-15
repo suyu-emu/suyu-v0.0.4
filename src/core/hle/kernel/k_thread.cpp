@@ -30,6 +30,7 @@
 #include "core/hle/kernel/k_system_control.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/k_thread_queue.h"
+#include "core/hle/kernel/k_worker_task_manager.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/svc_results.h"
 #include "core/hle/kernel/time_manager.h"
@@ -332,7 +333,7 @@ void KThread::Finalize() {
     }
 
     // Perform inherited finalization.
-    KAutoObjectWithSlabHeapAndContainer<KThread, KSynchronizationObject>::Finalize();
+    KSynchronizationObject::Finalize();
 }
 
 bool KThread::IsSignaled() const {
@@ -376,9 +377,26 @@ void KThread::StartTermination() {
 
     // Register terminated dpc flag.
     RegisterDpc(DpcFlag::Terminated);
+}
+
+void KThread::FinishTermination() {
+    // Ensure that the thread is not executing on any core.
+    if (parent != nullptr) {
+        for (std::size_t i = 0; i < static_cast<std::size_t>(Core::Hardware::NUM_CPU_CORES); ++i) {
+            KThread* core_thread{};
+            do {
+                core_thread = kernel.Scheduler(i).GetCurrentThread();
+            } while (core_thread == this);
+        }
+    }
 
     // Close the thread.
     this->Close();
+}
+
+void KThread::DoWorkerTaskImpl() {
+    // Finish the termination that was begun by Exit().
+    this->FinishTermination();
 }
 
 void KThread::Pin(s32 current_core) {
@@ -1027,6 +1045,9 @@ void KThread::Exit() {
 
         // Start termination.
         StartTermination();
+
+        // Register the thread as a work task.
+        KWorkerTaskManager::AddTask(kernel, KWorkerTaskManager::WorkerType::Exit, this);
     }
 }
 
