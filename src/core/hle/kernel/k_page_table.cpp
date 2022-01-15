@@ -276,22 +276,23 @@ ResultCode KPageTable::InitializeForProcess(FileSys::ProgramAddressSpaceType as_
 
 ResultCode KPageTable::MapProcessCode(VAddr addr, std::size_t num_pages, KMemoryState state,
                                       KMemoryPermission perm) {
-    std::lock_guard lock{page_table_lock};
-
     const u64 size{num_pages * PageSize};
 
-    if (!CanContain(addr, size, state)) {
-        return ResultInvalidCurrentMemory;
-    }
+    // Validate the mapping request.
+    R_UNLESS(this->CanContain(addr, size, state), ResultInvalidCurrentMemory);
 
-    if (IsRegionMapped(addr, size)) {
-        return ResultInvalidCurrentMemory;
-    }
+    // Lock the table.
+    std::lock_guard lock{page_table_lock};
+
+    // Verify that the destination memory is unmapped.
+    R_TRY(this->CheckMemoryState(addr, size, KMemoryState::All, KMemoryState::Free,
+                                 KMemoryPermission::None, KMemoryPermission::None,
+                                 KMemoryAttribute::None, KMemoryAttribute::None));
 
     KPageLinkedList page_linked_list;
-    CASCADE_CODE(system.Kernel().MemoryManager().Allocate(page_linked_list, num_pages, memory_pool,
-                                                          allocation_option));
-    CASCADE_CODE(Operate(addr, num_pages, page_linked_list, OperationType::MapGroup));
+    R_TRY(system.Kernel().MemoryManager().Allocate(page_linked_list, num_pages, memory_pool,
+                                                   allocation_option));
+    R_TRY(Operate(addr, num_pages, page_linked_list, OperationType::MapGroup));
 
     block_manager->Update(addr, num_pages, state, perm);
 
