@@ -799,12 +799,11 @@ ResultCode KPageTable::ResetTransferMemory(VAddr addr, std::size_t size) {
 
     KMemoryState state{};
 
-    CASCADE_CODE(
-        CheckMemoryState(&state, nullptr, nullptr, nullptr, addr, size,
-                         KMemoryState::FlagCanTransfer | KMemoryState::FlagReferenceCounted,
-                         KMemoryState::FlagCanTransfer | KMemoryState::FlagReferenceCounted,
-                         KMemoryPermission::None, KMemoryPermission::None, KMemoryAttribute::Mask,
-                         KMemoryAttribute::Locked, KMemoryAttribute::IpcAndDeviceMapped));
+    R_TRY(CheckMemoryState(&state, nullptr, nullptr, nullptr, addr, size,
+                           KMemoryState::FlagCanTransfer | KMemoryState::FlagReferenceCounted,
+                           KMemoryState::FlagCanTransfer | KMemoryState::FlagReferenceCounted,
+                           KMemoryPermission::None, KMemoryPermission::None, KMemoryAttribute::Mask,
+                           KMemoryAttribute::Locked, KMemoryAttribute::IpcAndDeviceMapped));
 
     block_manager->Update(addr, size / PageSize, state, KMemoryPermission::UserReadWrite);
     return ResultSuccess;
