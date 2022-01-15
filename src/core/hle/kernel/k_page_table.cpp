@@ -860,8 +860,9 @@ ResultCode KPageTable::SetMemoryAttribute(VAddr addr, std::size_t size, u32 mask
         AttributeTestMask, KMemoryAttribute::None, ~AttributeTestMask));
 
     // Determine the new attribute.
-    const auto new_attr = ((old_attr & static_cast<KMemoryAttribute>(~mask)) |
-                           static_cast<KMemoryAttribute>(attr & mask));
+    const KMemoryAttribute new_attr =
+        static_cast<KMemoryAttribute>(((old_attr & static_cast<KMemoryAttribute>(~mask)) |
+                                       static_cast<KMemoryAttribute>(attr & mask)));
 
     // Perform operation.
     this->Operate(addr, num_pages, old_perm, OperationType::ChangePermissionsAndRefresh);
