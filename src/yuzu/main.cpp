@@ -1008,25 +1008,6 @@ void GMainWindow::InitializeHotkeys() {
             ToggleFullscreen();
         }
     });
-    connect_shortcut(QStringLiteral("Toggle Speed Limit"), [&] {
-        Settings::values.use_speed_limit.SetValue(!Settings::values.use_speed_limit.GetValue());
-        UpdateStatusBar();
-    });
-    constexpr u16 SPEED_LIMIT_STEP = 5;
-    connect_shortcut(QStringLiteral("Increase Speed Limit"), [&] {
-        if (Settings::values.speed_limit.GetValue() < 9999 - SPEED_LIMIT_STEP) {
-            Settings::values.speed_limit.SetValue(SPEED_LIMIT_STEP +
-                                                  Settings::values.speed_limit.GetValue());
-            UpdateStatusBar();
-        }
-    });
-    connect_shortcut(QStringLiteral("Decrease Speed Limit"), [&] {
-        if (Settings::values.speed_limit.GetValue() > SPEED_LIMIT_STEP) {
-            Settings::values.speed_limit.SetValue(Settings::values.speed_limit.GetValue() -
-                                                  SPEED_LIMIT_STEP);
-            UpdateStatusBar();
-        }
-    });
     connect_shortcut(QStringLiteral("Change Docked Mode"), [&] {
         Settings::values.use_docked_mode.SetValue(!Settings::values.use_docked_mode.GetValue());
         OnDockedModeChanged(!Settings::values.use_docked_mode.GetValue(),
