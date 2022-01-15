@@ -1178,7 +1178,7 @@ VAddr KPageTable::AllocateVirtualMemory(VAddr start, std::size_t region_num_page
 
 ResultCode KPageTable::Operate(VAddr addr, std::size_t num_pages, const KPageLinkedList& page_group,
                                OperationType operation) {
-    std::lock_guard lock{page_table_lock};
+    ASSERT(this->IsLockedByCurrentThread());
 
     ASSERT(Common::IsAligned(addr, PageSize));
     ASSERT(num_pages > 0);
@@ -1203,7 +1203,7 @@ ResultCode KPageTable::Operate(VAddr addr, std::size_t num_pages, const KPageLin
 
 ResultCode KPageTable::Operate(VAddr addr, std::size_t num_pages, KMemoryPermission perm,
                                OperationType operation, PAddr map_addr) {
-    std::lock_guard lock{page_table_lock};
+    ASSERT(this->IsLockedByCurrentThread());
 
     ASSERT(num_pages > 0);
     ASSERT(Common::IsAligned(addr, PageSize));
