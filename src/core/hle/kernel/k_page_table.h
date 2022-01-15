@@ -87,7 +87,6 @@ private:
     ResultCode MapPages(VAddr addr, const KPageLinkedList& page_linked_list,
                         KMemoryPermission perm);
     ResultCode UnmapPages(VAddr addr, const KPageLinkedList& page_linked_list);
-    void MapPhysicalMemory(KPageLinkedList& page_linked_list, VAddr start, VAddr end);
     bool IsRegionMapped(VAddr address, u64 size);
     bool IsRegionContiguous(VAddr addr, u64 size) const;
     void AddRegionToPages(VAddr start, std::size_t num_pages, KPageLinkedList& page_linked_list);
@@ -147,6 +146,7 @@ private:
     }
 
     std::recursive_mutex page_table_lock;
+    std::mutex map_physical_memory_lock;
     std::unique_ptr<KMemoryBlockManager> block_manager;
 
 public:

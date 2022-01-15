@@ -395,39 +395,12 @@ ResultCode KPageTable::UnmapProcessMemory(VAddr dst_addr, std::size_t size,
 
     return ResultSuccess;
 }
-void KPageTable::MapPhysicalMemory(KPageLinkedList& page_linked_list, VAddr start, VAddr end) {
-    auto node{page_linked_list.Nodes().begin()};
-    PAddr map_addr{node->GetAddress()};
-    std::size_t src_num_pages{node->GetNumPages()};
-
-    block_manager->IterateForRange(start, end, [&](const KMemoryInfo& info) {
-        if (info.state != KMemoryState::Free) {
-            return;
-        }
-
-        std::size_t dst_num_pages{GetSizeInRange(info, start, end) / PageSize};
-        VAddr dst_addr{GetAddressInRange(info, start)};
-
-        while (dst_num_pages) {
-            if (!src_num_pages) {
-                node = std::next(node);
-                map_addr = node->GetAddress();
-                src_num_pages = node->GetNumPages();
-            }
-
-            const std::size_t num_pages{std::min(src_num_pages, dst_num_pages)};
-            Operate(dst_addr, num_pages, KMemoryPermission::UserReadWrite, OperationType::Map,
-                    map_addr);
-
-            dst_addr += num_pages * PageSize;
-            map_addr += num_pages * PageSize;
-            src_num_pages -= num_pages;
-            dst_num_pages -= num_pages;
-        }
-    });
-}
 
 ResultCode KPageTable::MapPhysicalMemory(VAddr addr, std::size_t size) {
+    // Lock the physical memory lock.
+    std::lock_guard phys_lk(map_physical_memory_lock);
+
+    // Lock the table.
     std::lock_guard lock{page_table_lock};
 
     std::size_t mapped_size{};
@@ -463,7 +436,35 @@ ResultCode KPageTable::MapPhysicalMemory(VAddr addr, std::size_t size) {
     // We succeeded, so commit the memory reservation.
     memory_reservation.Commit();
 
-    MapPhysicalMemory(page_linked_list, addr, end_addr);
+    // Map the memory.
+    auto node{page_linked_list.Nodes().begin()};
+    PAddr map_addr{node->GetAddress()};
+    std::size_t src_num_pages{node->GetNumPages()};
+    block_manager->IterateForRange(addr, end_addr, [&](const KMemoryInfo& info) {
+        if (info.state != KMemoryState::Free) {
+            return;
+        }
+
+        std::size_t dst_num_pages{GetSizeInRange(info, addr, end_addr) / PageSize};
+        VAddr dst_addr{GetAddressInRange(info, addr)};
+
+        while (dst_num_pages) {
+            if (!src_num_pages) {
+                node = std::next(node);
+                map_addr = node->GetAddress();
+                src_num_pages = node->GetNumPages();
+            }
+
+            const std::size_t num_pages{std::min(src_num_pages, dst_num_pages)};
+            Operate(dst_addr, num_pages, KMemoryPermission::UserReadWrite, OperationType::Map,
+                    map_addr);
+
+            dst_addr += num_pages * PageSize;
+            map_addr += num_pages * PageSize;
+            src_num_pages -= num_pages;
+            dst_num_pages -= num_pages;
+        }
+    });
 
     mapped_physical_memory_size += remaining_size;
 
@@ -503,23 +504,8 @@ ResultCode KPageTable::UnmapPhysicalMemory(VAddr addr, std::size_t size) {
         return ResultSuccess;
     }
 
-    CASCADE_CODE(UnmapMemory(addr, size));
-
-    auto process{system.Kernel().CurrentProcess()};
-    process->GetResourceLimit()->Release(LimitableResource::PhysicalMemory, mapped_size);
-    mapped_physical_memory_size -= mapped_size;
-
-    return ResultSuccess;
-}
-
-ResultCode KPageTable::UnmapMemory(VAddr addr, std::size_t size) {
-    std::lock_guard lock{page_table_lock};
-
-    const VAddr end_addr{addr + size};
-    ResultCode result{ResultSuccess};
-    KPageLinkedList page_linked_list;
-
     // Unmap each region within the range
+    KPageLinkedList page_linked_list;
     block_manager->IterateForRange(addr, end_addr, [&](const KMemoryInfo& info) {
         if (info.state == KMemoryState::Normal) {
             const std::size_t block_size{GetSizeInRange(info, addr, end_addr)};
@@ -535,7 +521,6 @@ ResultCode KPageTable::UnmapMemory(VAddr addr, std::size_t size) {
             }
         }
     });
-
     if (result.IsError()) {
         return result;
     }
@@ -545,6 +530,10 @@ ResultCode KPageTable::UnmapMemory(VAddr addr, std::size_t size) {
                                          allocation_option);
 
     block_manager->Update(addr, num_pages, KMemoryState::Free);
+
+    auto process{system.Kernel().CurrentProcess()};
+    process->GetResourceLimit()->Release(LimitableResource::PhysicalMemory, mapped_size);
+    mapped_physical_memory_size -= mapped_size;
 
     return ResultSuccess;
 }
