@@ -885,6 +885,9 @@ ResultCode KPageTable::SetMaxHeapSize(std::size_t size) {
 }
 
 ResultCode KPageTable::SetHeapSize(VAddr* out, std::size_t size) {
+    // Lock the physical memory lock.
+    std::lock_guard phys_lk(map_physical_memory_lock);
+
     // Try to perform a reduction in heap, instead of an extension.
     VAddr cur_address{};
     std::size_t allocation_size{};
@@ -1014,12 +1017,12 @@ ResultVal<VAddr> KPageTable::AllocateAndMapMemory(std::size_t needed_num_pages, 
     }
 
     if (is_map_only) {
-        CASCADE_CODE(Operate(addr, needed_num_pages, perm, OperationType::Map, map_addr));
+        R_TRY(Operate(addr, needed_num_pages, perm, OperationType::Map, map_addr));
     } else {
         KPageLinkedList page_group;
-        CASCADE_CODE(system.Kernel().MemoryManager().Allocate(page_group, needed_num_pages,
-                                                              memory_pool, allocation_option));
-        CASCADE_CODE(Operate(addr, needed_num_pages, page_group, OperationType::MapGroup));
+        R_TRY(system.Kernel().MemoryManager().Allocate(page_group, needed_num_pages, memory_pool,
+                                                       allocation_option));
+        R_TRY(Operate(addr, needed_num_pages, page_group, OperationType::MapGroup));
     }
 
     block_manager->Update(addr, needed_num_pages, state, perm);
