@@ -549,7 +549,7 @@ ResultCode KPageTable::UnmapMemory(VAddr addr, std::size_t size) {
     return ResultSuccess;
 }
 
-ResultCode KPageTable::Map(VAddr dst_addr, VAddr src_addr, std::size_t size) {
+ResultCode KPageTable::MapMemory(VAddr dst_addr, VAddr src_addr, std::size_t size) {
     std::lock_guard lock{page_table_lock};
 
     KMemoryState src_state{};
@@ -588,7 +588,7 @@ ResultCode KPageTable::Map(VAddr dst_addr, VAddr src_addr, std::size_t size) {
     return ResultSuccess;
 }
 
-ResultCode KPageTable::Unmap(VAddr dst_addr, VAddr src_addr, std::size_t size) {
+ResultCode KPageTable::UnmapMemory(VAddr dst_addr, VAddr src_addr, std::size_t size) {
     std::lock_guard lock{page_table_lock};
 
     KMemoryState src_state{};

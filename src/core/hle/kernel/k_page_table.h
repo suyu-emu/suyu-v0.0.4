@@ -37,9 +37,8 @@ public:
                                   VAddr src_addr);
     ResultCode MapPhysicalMemory(VAddr addr, std::size_t size);
     ResultCode UnmapPhysicalMemory(VAddr addr, std::size_t size);
-    ResultCode UnmapMemory(VAddr addr, std::size_t size);
-    ResultCode Map(VAddr dst_addr, VAddr src_addr, std::size_t size);
-    ResultCode Unmap(VAddr dst_addr, VAddr src_addr, std::size_t size);
+    ResultCode MapMemory(VAddr dst_addr, VAddr src_addr, std::size_t size);
+    ResultCode UnmapMemory(VAddr dst_addr, VAddr src_addr, std::size_t size);
     ResultCode MapPages(VAddr addr, KPageLinkedList& page_linked_list, KMemoryState state,
                         KMemoryPermission perm);
     ResultCode UnmapPages(VAddr addr, KPageLinkedList& page_linked_list, KMemoryState state);
