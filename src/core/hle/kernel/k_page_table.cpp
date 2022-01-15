@@ -782,12 +782,12 @@ ResultCode KPageTable::ReserveTransferMemory(VAddr addr, std::size_t size, KMemo
     KMemoryState state{};
     KMemoryAttribute attribute{};
 
-    CASCADE_CODE(CheckMemoryState(
-        &state, nullptr, &attribute, nullptr, addr, size,
-        KMemoryState::FlagCanTransfer | KMemoryState::FlagReferenceCounted,
-        KMemoryState::FlagCanTransfer | KMemoryState::FlagReferenceCounted, KMemoryPermission::All,
-        KMemoryPermission::UserReadWrite, KMemoryAttribute::Mask, KMemoryAttribute::None,
-        KMemoryAttribute::IpcAndDeviceMapped));
+    R_TRY(CheckMemoryState(&state, nullptr, &attribute, nullptr, addr, size,
+                           KMemoryState::FlagCanTransfer | KMemoryState::FlagReferenceCounted,
+                           KMemoryState::FlagCanTransfer | KMemoryState::FlagReferenceCounted,
+                           KMemoryPermission::All, KMemoryPermission::UserReadWrite,
+                           KMemoryAttribute::Mask, KMemoryAttribute::None,
+                           KMemoryAttribute::IpcAndDeviceMapped));
 
     block_manager->Update(addr, size / PageSize, state, perm, attribute | KMemoryAttribute::Locked);
 
