@@ -150,7 +150,7 @@ u64 BufferCacheRuntime::GetDeviceMemoryUsage() const {
     if (GLAD_GL_NVX_gpu_memory_info) {
         GLint cur_avail_mem_kb = 0;
         glGetIntegerv(GL_GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, &cur_avail_mem_kb);
-        return static_cast<u64>(cur_avail_mem_kb) * 1_KiB;
+        return device_access_memory - static_cast<u64>(cur_avail_mem_kb) * 1_KiB;
     }
     return 2_GiB;
 }

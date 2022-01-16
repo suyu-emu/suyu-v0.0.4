@@ -29,11 +29,11 @@ enum class ImageFlagBits : u32 {
     Sparse = 1 << 9,      ///< Image has non continous submemory.
 
     // Garbage Collection Flags
-    BadOverlap = 1 << 10,  ///< This image overlaps other but doesn't fit, has higher
-                           ///< garbage collection priority
-    Alias = 1 << 11,       ///< This image has aliases and has priority on garbage
-                           ///< collection
-    GCProtected = 1 << 12, ///< Protected from low-tier GC as they are costy to load back.
+    BadOverlap = 1 << 10, ///< This image overlaps other but doesn't fit, has higher
+                          ///< garbage collection priority
+    Alias = 1 << 11,      ///< This image has aliases and has priority on garbage
+                          ///< collection
+    CostlyLoad = 1 << 12, ///< Protected from low-tier GC as it is costly to load back.
 
     // Rescaler
     Rescaled = 1 << 13,

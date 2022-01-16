@@ -1211,7 +1211,7 @@ Image::Image(TextureCacheRuntime& runtime_, const ImageInfo& info_, GPUVAddr gpu
         } else {
             flags |= VideoCommon::ImageFlagBits::Converted;
         }
-        flags |= VideoCommon::ImageFlagBits::GCProtected;
+        flags |= VideoCommon::ImageFlagBits::CostlyLoad;
     }
     if (runtime->device.HasDebuggingToolAttached()) {
         original_image.SetObjectNameEXT(VideoCommon::Name(*this).c_str());

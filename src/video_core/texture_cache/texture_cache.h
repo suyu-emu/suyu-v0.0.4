@@ -53,17 +53,16 @@ TextureCache<P>::TextureCache(Runtime& runtime_, VideoCore::RasterizerInterface&
         const s64 device_memory = static_cast<s64>(runtime.GetDeviceLocalMemory());
         const s64 min_spacing_expected = device_memory - 1_GiB - 512_MiB;
         const s64 min_spacing_critical = device_memory - 1_GiB;
-        const s64 mem_tresshold = std::min(device_memory, TARGET_THRESHOLD);
-        const s64 min_vacancy_expected = (6 * mem_tresshold) / 10;
-        const s64 min_vacancy_critical = (3 * mem_tresshold) / 10;
+        const s64 mem_threshold = std::min(device_memory, TARGET_THRESHOLD);
+        const s64 min_vacancy_expected = (6 * mem_threshold) / 10;
+        const s64 min_vacancy_critical = (3 * mem_threshold) / 10;
         expected_memory = static_cast<u64>(
             std::max(std::min(device_memory - min_vacancy_expected, min_spacing_expected),
                      DEFAULT_EXPECTED_MEMORY));
         critical_memory = static_cast<u64>(
             std::max(std::min(device_memory - min_vacancy_critical, min_spacing_critical),
                      DEFAULT_CRITICAL_MEMORY));
-        minimum_memory = static_cast<u64>((device_memory - mem_tresshold) / 2);
-        LOG_CRITICAL(Debug, "Available Memory: {}", device_memory / 1_MiB);
+        minimum_memory = static_cast<u64>((device_memory - mem_threshold) / 2);
     } else {
         expected_memory = DEFAULT_EXPECTED_MEMORY + 512_MiB;
         critical_memory = DEFAULT_CRITICAL_MEMORY + 1_GiB;
@@ -73,11 +72,12 @@ TextureCache<P>::TextureCache(Runtime& runtime_, VideoCore::RasterizerInterface&
 
 template <class P>
 void TextureCache<P>::RunGarbageCollector() {
-    const bool high_priority_mode = total_used_memory >= expected_memory;
-    const bool aggressive_mode = total_used_memory >= critical_memory;
-    const u64 ticks_to_destroy = aggressive_mode ? 10ULL : high_priority_mode ? 25ULL : 100ULL;
-    size_t num_iterations = aggressive_mode ? 300 : (high_priority_mode ? 50 : 10);
-    const auto clean_up = [this, &num_iterations, high_priority_mode](ImageId image_id) {
+    bool high_priority_mode = total_used_memory >= expected_memory;
+    bool aggressive_mode = total_used_memory >= critical_memory;
+    const u64 ticks_to_destroy = aggressive_mode ? 10ULL : high_priority_mode ? 25ULL : 50ULL;
+    size_t num_iterations = aggressive_mode ? 40 : (high_priority_mode ? 20 : 10);
+    const auto clean_up = [this, &num_iterations, &high_priority_mode,
+                           &aggressive_mode](ImageId image_id) {
         if (num_iterations == 0) {
             return true;
         }
@@ -85,7 +85,8 @@ void TextureCache<P>::RunGarbageCollector() {
         auto& image = slot_images[image_id];
         const bool must_download =
             image.IsSafeDownload() && False(image.flags & ImageFlagBits::BadOverlap);
-        if (!high_priority_mode && must_download) {
+        if (!high_priority_mode &&
+            (must_download || True(image.flags & ImageFlagBits::CostlyLoad))) {
             return false;
         }
         if (must_download) {
@@ -100,6 +101,18 @@ void TextureCache<P>::RunGarbageCollector() {
         }
         UnregisterImage(image_id);
         DeleteImage(image_id, image.scale_tick > frame_tick + 5);
+        if (total_used_memory < critical_memory) {
+            if (aggressive_mode) {
+                // Sink the aggresiveness.
+                num_iterations >>= 2;
+                aggressive_mode = false;
+                return false;
+            }
+            if (high_priority_mode && total_used_memory < expected_memory) {
+                num_iterations >>= 1;
+                high_priority_mode = false;
+            }
+        }
         return false;
     };
     lru_cache.ForEachItemBelow(frame_tick - ticks_to_destroy, clean_up);
@@ -120,7 +133,6 @@ void TextureCache<P>::TickFrame() {
     runtime.TickFrame();
     critical_gc = 0;
     ++frame_tick;
-    LOG_CRITICAL(Debug, "Current memory: {}", total_used_memory / 1_MiB);
 }
 
 template <class P>

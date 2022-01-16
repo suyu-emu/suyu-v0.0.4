@@ -513,7 +513,7 @@ u64 TextureCacheRuntime::GetDeviceMemoryUsage() const {
     if (GLAD_GL_NVX_gpu_memory_info) {
         GLint cur_avail_mem_kb = 0;
         glGetIntegerv(GL_GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, &cur_avail_mem_kb);
-        return static_cast<u64>(cur_avail_mem_kb) * 1_KiB;
+        return device_access_memory - static_cast<u64>(cur_avail_mem_kb) * 1_KiB;
     }
     return 2_GiB;
 }
@@ -695,7 +695,7 @@ Image::Image(TextureCacheRuntime& runtime_, const VideoCommon::ImageInfo& info_,
     }
     if (IsConverted(runtime->device, info.format, info.type)) {
         flags |= ImageFlagBits::Converted;
-        flags |= ImageFlagBits::GCProtected;
+        flags |= ImageFlagBits::CostlyLoad;
         gl_internal_format = IsPixelFormatSRGB(info.format) ? GL_SRGB8_ALPHA8 : GL_RGBA8;
         gl_format = GL_RGBA;
         gl_type = GL_UNSIGNED_INT_8_8_8_8_REV;
