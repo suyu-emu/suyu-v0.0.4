@@ -60,8 +60,6 @@ class TextureCache {
     static constexpr bool HAS_DEVICE_MEMORY_INFO = P::HAS_DEVICE_MEMORY_INFO;
 
     static constexpr s64 TARGET_THRESHOLD = 4_GiB;
-    static constexpr s64 MIN_VACANCY_EXPECTED = (6 * TARGET_THRESHOLD) / 10;
-    static constexpr s64 MIN_VACANCY_CRITICAL = (3 * TARGET_THRESHOLD) / 10;
     static constexpr s64 DEFAULT_EXPECTED_MEMORY = 1_GiB + 125_MiB;
     static constexpr s64 DEFAULT_CRITICAL_MEMORY = 1_GiB + 625_MiB;
     static constexpr size_t GC_EMERGENCY_COUNTS = 2;
