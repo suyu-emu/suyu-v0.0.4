@@ -743,7 +743,7 @@ void Config::ReadUIValues() {
     qt_config->beginGroup(QStringLiteral("UI"));
 
     UISettings::values.theme =
-        ReadSetting(QStringLiteral("theme"), QString::fromUtf8(UISettings::themes[0].second))
+        ReadSetting(QStringLiteral("theme"), QString::fromUtf8(UISettings::themes[3].second))
             .toString();
     ReadBasicSetting(UISettings::values.enable_discord_presence);
     ReadBasicSetting(UISettings::values.select_user_on_boot);
@@ -1271,7 +1271,7 @@ void Config::SaveUIValues() {
     qt_config->beginGroup(QStringLiteral("UI"));
 
     WriteSetting(QStringLiteral("theme"), UISettings::values.theme,
-                 QString::fromUtf8(UISettings::themes[0].second));
+                 QString::fromUtf8(UISettings::themes[3].second));
     WriteBasicSetting(UISettings::values.enable_discord_presence);
     WriteBasicSetting(UISettings::values.select_user_on_boot);
 
