@@ -50,14 +50,21 @@ TextureCache<P>::TextureCache(Runtime& runtime_, VideoCore::RasterizerInterface&
     void(slot_samplers.insert(runtime, sampler_descriptor));
 
     if constexpr (HAS_DEVICE_MEMORY_INFO) {
-        const auto device_memory = runtime.GetDeviceLocalMemory();
-        const u64 possible_expected_memory = (device_memory * 4) / 10;
-        const u64 possible_critical_memory = (device_memory * 7) / 10;
-        expected_memory = std::max(possible_expected_memory, DEFAULT_EXPECTED_MEMORY - 256_MiB);
-        critical_memory = std::max(possible_critical_memory, DEFAULT_CRITICAL_MEMORY - 512_MiB);
-        minimum_memory = 0;
+        const s64 device_memory = static_cast<s64>(runtime.GetDeviceLocalMemory());
+        const s64 min_spacing_expected = device_memory - 1_GiB - 512_MiB;
+        const s64 min_spacing_critical = device_memory - 1_GiB;
+        const s64 mem_tresshold = std::min(device_memory, TARGET_THRESHOLD);
+        const s64 min_vacancy_expected = (6 * mem_tresshold) / 10;
+        const s64 min_vacancy_critical = (3 * mem_tresshold) / 10;
+        expected_memory = static_cast<u64>(
+            std::max(std::min(device_memory - min_vacancy_expected, min_spacing_expected),
+                     DEFAULT_EXPECTED_MEMORY));
+        critical_memory = static_cast<u64>(
+            std::max(std::min(device_memory - min_vacancy_critical, min_spacing_critical),
+                     DEFAULT_CRITICAL_MEMORY));
+        minimum_memory = static_cast<u64>((device_memory - mem_tresshold) / 2);
+        LOG_CRITICAL(Debug, "Available Memory: {}", device_memory / 1_MiB);
     } else {
-        // On OpenGL we can be more conservatives as the driver takes care.
         expected_memory = DEFAULT_EXPECTED_MEMORY + 512_MiB;
         critical_memory = DEFAULT_CRITICAL_MEMORY + 1_GiB;
         minimum_memory = 0;
@@ -76,7 +83,8 @@ void TextureCache<P>::RunGarbageCollector() {
         }
         --num_iterations;
         auto& image = slot_images[image_id];
-        const bool must_download = image.IsSafeDownload();
+        const bool must_download =
+            image.IsSafeDownload() && False(image.flags & ImageFlagBits::BadOverlap);
         if (!high_priority_mode && must_download) {
             return false;
         }
@@ -99,6 +107,10 @@ void TextureCache<P>::RunGarbageCollector() {
 
 template <class P>
 void TextureCache<P>::TickFrame() {
+    // If we can obtain the memory info, use it instead of the estimate.
+    if (runtime.CanReportMemoryUsage()) {
+        total_used_memory = runtime.GetDeviceMemoryUsage();
+    }
     if (total_used_memory > minimum_memory) {
         RunGarbageCollector();
     }
@@ -106,7 +118,9 @@ void TextureCache<P>::TickFrame() {
     sentenced_framebuffers.Tick();
     sentenced_image_view.Tick();
     runtime.TickFrame();
+    critical_gc = 0;
     ++frame_tick;
+    LOG_CRITICAL(Debug, "Current memory: {}", total_used_memory / 1_MiB);
 }
 
 template <class P>
@@ -1052,6 +1066,11 @@ ImageId TextureCache<P>::JoinImages(const ImageInfo& info, GPUVAddr gpu_addr, VA
 
     for (const ImageId overlap_id : overlap_ids) {
         Image& overlap = slot_images[overlap_id];
+        if (True(overlap.flags & ImageFlagBits::GpuModified)) {
+            new_image.flags |= ImageFlagBits::GpuModified;
+            new_image.modification_tick =
+                std::max(overlap.modification_tick, new_image.modification_tick);
+        }
         if (overlap.info.num_samples != new_image.info.num_samples) {
             LOG_WARNING(HW_GPU, "Copying between images with different samples is not implemented");
         } else {
@@ -1414,6 +1433,10 @@ void TextureCache<P>::RegisterImage(ImageId image_id) {
         tentative_size = EstimatedDecompressedSize(tentative_size, image.info.format);
     }
     total_used_memory += Common::AlignUp(tentative_size, 1024);
+    if (total_used_memory > critical_memory && critical_gc < GC_EMERGENCY_COUNTS) {
+        RunGarbageCollector();
+        critical_gc++;
+    }
     image.lru_index = lru_cache.Insert(image_id, frame_tick);
 
     ForEachGPUPage(image.gpu_addr, image.guest_size_bytes,
@@ -1704,6 +1727,9 @@ void TextureCache<P>::SynchronizeAliases(ImageId image_id) {
             most_recent_tick = std::max(most_recent_tick, aliased_image.modification_tick);
             aliased_images.push_back(&aliased);
             any_rescaled |= True(aliased_image.flags & ImageFlagBits::Rescaled);
+            if (True(aliased_image.flags & ImageFlagBits::GpuModified)) {
+                image.flags |= ImageFlagBits::GpuModified;
+            }
         }
     }
     if (aliased_images.empty()) {
