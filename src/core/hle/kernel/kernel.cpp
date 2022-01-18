@@ -37,6 +37,7 @@
 #include "core/hle/kernel/k_shared_memory.h"
 #include "core/hle/kernel/k_slab_heap.h"
 #include "core/hle/kernel/k_thread.h"
+#include "core/hle/kernel/k_worker_task_manager.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/physical_core.h"
 #include "core/hle/kernel/service_thread.h"
@@ -797,6 +798,8 @@ struct KernelCore::Impl {
 
     std::array<u64, Core::Hardware::NUM_CPU_CORES> svc_ticks{};
 
+    KWorkerTaskManager worker_task_manager;
+
     // System context
     Core::System& system;
 };
@@ -1135,6 +1138,14 @@ Init::KSlabResourceCounts& KernelCore::SlabResourceCounts() {
 
 const Init::KSlabResourceCounts& KernelCore::SlabResourceCounts() const {
     return impl->slab_resource_counts;
+}
+
+KWorkerTaskManager& KernelCore::WorkerTaskManager() {
+    return impl->worker_task_manager;
+}
+
+const KWorkerTaskManager& KernelCore::WorkerTaskManager() const {
+    return impl->worker_task_manager;
 }
 
 bool KernelCore::IsPhantomModeForSingleCore() const {
