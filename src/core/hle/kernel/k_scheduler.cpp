@@ -739,6 +739,11 @@ void KScheduler::ScheduleImpl() {
         next_thread = idle_thread;
     }
 
+    // We never want to schedule a dummy thread, as these are only used by host threads for locking.
+    if (next_thread->GetThreadType() == ThreadType::Dummy) {
+        next_thread = idle_thread;
+    }
+
     // If we're not actually switching thread, there's nothing to do.
     if (next_thread == current_thread.load()) {
         previous_thread->EnableDispatch();
