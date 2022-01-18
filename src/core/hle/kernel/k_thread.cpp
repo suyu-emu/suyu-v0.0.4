@@ -1097,6 +1097,11 @@ void KThread::EndWait(ResultCode wait_result_) {
     // Lock the scheduler.
     KScopedSchedulerLock sl(kernel);
 
+    // Dummy threads are just used by host threads for locking, and will never have a wait_queue.
+    if (thread_type == ThreadType::Dummy) {
+        return;
+    }
+
     // If we're waiting, notify our queue that we're available.
     if (GetState() == ThreadState::Waiting) {
         wait_queue->EndWait(this, wait_result_);
