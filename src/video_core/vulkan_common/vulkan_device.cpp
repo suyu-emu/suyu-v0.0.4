@@ -598,10 +598,10 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
     logical = vk::Device::Create(physical, queue_cis, extensions, first_next, dld);
 
-    is_integrated = (properties.deviceType & VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU) != 0;
-    is_virtual = (properties.deviceType & VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU) != 0;
-    is_non_gpu = (properties.deviceType & VK_PHYSICAL_DEVICE_TYPE_OTHER) != 0 ||
-                 (properties.deviceType & VK_PHYSICAL_DEVICE_TYPE_CPU) != 0;
+    is_integrated = properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU;
+    is_virtual = properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU;
+    is_non_gpu = properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_OTHER ||
+                 properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_CPU;
 
     CollectPhysicalMemoryInfo();
     CollectTelemetryParameters();
@@ -1298,7 +1298,7 @@ void Device::CollectPhysicalMemoryInfo() {
     u64 local_memory = 0;
     for (size_t element = 0; element < num_properties; ++element) {
         const bool is_heap_local =
-            mem_properties.memoryHeaps[element].flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT != 0;
+            (mem_properties.memoryHeaps[element].flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT) != 0;
         if (!is_integrated && !is_heap_local) {
             continue;
         }
@@ -1319,7 +1319,6 @@ void Device::CollectPhysicalMemoryInfo() {
     const s64 available_memory = static_cast<s64>(device_access_memory - device_initial_usage);
     device_access_memory = static_cast<u64>(std::max<s64>(
         std::min<s64>(available_memory - 8_GiB, 4_GiB), static_cast<s64>(local_memory)));
-    device_initial_usage = 0;
 }
 
 void Device::CollectToolingInfo() {
