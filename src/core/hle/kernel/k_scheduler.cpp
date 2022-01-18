@@ -741,6 +741,7 @@ void KScheduler::ScheduleImpl() {
 
     // We never want to schedule a dummy thread, as these are only used by host threads for locking.
     if (next_thread->GetThreadType() == ThreadType::Dummy) {
+        ASSERT_MSG(false, "Dummy threads should never be scheduled!");
         next_thread = idle_thread;
     }
 

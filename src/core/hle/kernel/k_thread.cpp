@@ -106,7 +106,7 @@ KThread::~KThread() = default;
 ResultCode KThread::Initialize(KThreadFunction func, uintptr_t arg, VAddr user_stack_top, s32 prio,
                                s32 virt_core, KProcess* owner, ThreadType type) {
     // Assert parameters are valid.
-    ASSERT((type == ThreadType::Main) ||
+    ASSERT((type == ThreadType::Main) || (type == ThreadType::Dummy) ||
            (Svc::HighestThreadPriority <= prio && prio <= Svc::LowestThreadPriority));
     ASSERT((owner != nullptr) || (type != ThreadType::User));
     ASSERT(0 <= virt_core && virt_core < static_cast<s32>(Common::BitSize<u64>()));
@@ -262,7 +262,7 @@ ResultCode KThread::InitializeThread(KThread* thread, KThreadFunction func, uint
 }
 
 ResultCode KThread::InitializeDummyThread(KThread* thread) {
-    return thread->Initialize({}, {}, {}, DefaultThreadPriority, 3, {}, ThreadType::Dummy);
+    return thread->Initialize({}, {}, {}, DummyThreadPriority, 3, {}, ThreadType::Dummy);
 }
 
 ResultCode KThread::InitializeIdleThread(Core::System& system, KThread* thread, s32 virt_core) {
@@ -1099,6 +1099,7 @@ void KThread::EndWait(ResultCode wait_result_) {
 
     // Dummy threads are just used by host threads for locking, and will never have a wait_queue.
     if (thread_type == ThreadType::Dummy) {
+        ASSERT_MSG(false, "Dummy threads should never call EndWait!");
         return;
     }
 
