@@ -171,13 +171,8 @@ ResultCode KServerSession::CompleteSyncRequest(HLERequestContext& context) {
         convert_to_domain = false;
     }
 
-    // Some service requests require the thread to block
-    {
-        KScopedSchedulerLock lock(kernel);
-        if (!context.IsThreadWaiting()) {
-            context.GetThread().EndWait(result);
-        }
-    }
+    // The calling thread is waiting for this request to complete, so wake it up.
+    context.GetThread().EndWait(result);
 
     return result;
 }
