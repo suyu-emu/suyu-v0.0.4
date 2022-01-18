@@ -140,7 +140,7 @@ ResultCode KThread::Initialize(KThreadFunction func, uintptr_t arg, VAddr user_s
         UNREACHABLE_MSG("KThread::Initialize: Unknown ThreadType {}", static_cast<u32>(type));
         break;
     }
-    thread_type_for_debugging = type;
+    thread_type = type;
 
     // Set the ideal core ID and affinity mask.
     virtual_ideal_core_id = virt_core;
