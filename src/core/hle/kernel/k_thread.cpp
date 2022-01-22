@@ -106,7 +106,7 @@ KThread::~KThread() = default;
 ResultCode KThread::Initialize(KThreadFunction func, uintptr_t arg, VAddr user_stack_top, s32 prio,
                                s32 virt_core, KProcess* owner, ThreadType type) {
     // Assert parameters are valid.
-    ASSERT((type == ThreadType::Main) ||
+    ASSERT((type == ThreadType::Main) || (type == ThreadType::Dummy) ||
            (Svc::HighestThreadPriority <= prio && prio <= Svc::LowestThreadPriority));
     ASSERT((owner != nullptr) || (type != ThreadType::User));
     ASSERT(0 <= virt_core && virt_core < static_cast<s32>(Common::BitSize<u64>()));
@@ -140,7 +140,7 @@ ResultCode KThread::Initialize(KThreadFunction func, uintptr_t arg, VAddr user_s
         UNREACHABLE_MSG("KThread::Initialize: Unknown ThreadType {}", static_cast<u32>(type));
         break;
     }
-    thread_type_for_debugging = type;
+    thread_type = type;
 
     // Set the ideal core ID and affinity mask.
     virtual_ideal_core_id = virt_core;
@@ -262,7 +262,7 @@ ResultCode KThread::InitializeThread(KThread* thread, KThreadFunction func, uint
 }
 
 ResultCode KThread::InitializeDummyThread(KThread* thread) {
-    return thread->Initialize({}, {}, {}, DefaultThreadPriority, 3, {}, ThreadType::Dummy);
+    return thread->Initialize({}, {}, {}, DummyThreadPriority, 3, {}, ThreadType::Dummy);
 }
 
 ResultCode KThread::InitializeIdleThread(Core::System& system, KThread* thread, s32 virt_core) {
@@ -1075,12 +1075,46 @@ ResultCode KThread::Sleep(s64 timeout) {
     return ResultSuccess;
 }
 
+void KThread::IfDummyThreadTryWait() {
+    if (!IsDummyThread()) {
+        return;
+    }
+
+    if (GetState() != ThreadState::Waiting) {
+        return;
+    }
+
+    // Block until we can grab the lock.
+    KScopedSpinLock lk{dummy_wait_lock};
+}
+
+void KThread::IfDummyThreadBeginWait() {
+    if (!IsDummyThread()) {
+        return;
+    }
+
+    // Ensure the thread will block when IfDummyThreadTryWait is called.
+    dummy_wait_lock.Lock();
+}
+
+void KThread::IfDummyThreadEndWait() {
+    if (!IsDummyThread()) {
+        return;
+    }
+
+    // Ensure the thread will no longer block.
+    dummy_wait_lock.Unlock();
+}
+
 void KThread::BeginWait(KThreadQueue* queue) {
     // Set our state as waiting.
     SetState(ThreadState::Waiting);
 
     // Set our wait queue.
     wait_queue = queue;
+
+    // Special case for dummy threads to ensure they block.
+    IfDummyThreadBeginWait();
 }
 
 void KThread::NotifyAvailable(KSynchronizationObject* signaled_object, ResultCode wait_result_) {
@@ -1099,7 +1133,16 @@ void KThread::EndWait(ResultCode wait_result_) {
 
     // If we're waiting, notify our queue that we're available.
     if (GetState() == ThreadState::Waiting) {
+        if (wait_queue == nullptr) {
+            // This should never happen, but avoid a hard crash below to get this logged.
+            ASSERT_MSG(false, "wait_queue is nullptr!");
+            return;
+        }
+
         wait_queue->EndWait(this, wait_result_);
+
+        // Special case for dummy threads to wakeup if necessary.
+        IfDummyThreadEndWait();
     }
 }
 

@@ -406,6 +406,9 @@ void KScheduler::EnableScheduling(KernelCore& kernel, u64 cores_needing_scheduli
     } else {
         RescheduleCores(kernel, cores_needing_scheduling);
     }
+
+    // Special case to ensure dummy threads that are waiting block.
+    current_thread->IfDummyThreadTryWait();
 }
 
 u64 KScheduler::UpdateHighestPriorityThreads(KernelCore& kernel) {
@@ -736,6 +739,12 @@ void KScheduler::ScheduleImpl() {
 
     // We never want to schedule a null thread, so use the idle thread if we don't have a next.
     if (next_thread == nullptr) {
+        next_thread = idle_thread;
+    }
+
+    // We never want to schedule a dummy thread, as these are only used by host threads for locking.
+    if (next_thread->GetThreadType() == ThreadType::Dummy) {
+        ASSERT_MSG(false, "Dummy threads should never be scheduled!");
         next_thread = idle_thread;
     }
 
