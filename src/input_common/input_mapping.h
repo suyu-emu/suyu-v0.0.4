@@ -20,7 +20,7 @@ public:
     void BeginMapping(Polling::InputType type);
 
     /// Returns an input event with mapping information from the input_queue
-    [[nodiscard]] const Common::ParamPackage GetNextInput();
+    [[nodiscard]] Common::ParamPackage GetNextInput();
 
     /**
      * Registers mapping input data from the driver

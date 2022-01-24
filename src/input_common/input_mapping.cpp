@@ -19,7 +19,7 @@ void MappingFactory::BeginMapping(Polling::InputType type) {
     second_axis = -1;
 }
 
-[[nodiscard]] const Common::ParamPackage MappingFactory::GetNextInput() {
+Common::ParamPackage MappingFactory::GetNextInput() {
     Common::ParamPackage input;
     input_queue.Pop(input);
     return input;

@@ -394,7 +394,7 @@ void InputSubsystem::BeginMapping(Polling::InputType type) {
     impl->mapping_factory->BeginMapping(type);
 }
 
-const Common::ParamPackage InputSubsystem::GetNextInput() const {
+Common::ParamPackage InputSubsystem::GetNextInput() const {
     return impl->mapping_factory->GetNextInput();
 }
 
