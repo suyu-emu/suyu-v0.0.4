@@ -56,7 +56,7 @@ void MappingFactory::StopMapping() {
 void MappingFactory::RegisterButton(const MappingData& data) {
     Common::ParamPackage new_input;
     new_input.Set("engine", data.engine);
-    if (data.pad.guid != Common::UUID{}) {
+    if (data.pad.guid.IsValid()) {
         new_input.Set("guid", data.pad.guid.Format());
     }
     new_input.Set("port", static_cast<int>(data.pad.port));
@@ -92,7 +92,7 @@ void MappingFactory::RegisterButton(const MappingData& data) {
 void MappingFactory::RegisterStick(const MappingData& data) {
     Common::ParamPackage new_input;
     new_input.Set("engine", data.engine);
-    if (data.pad.guid != Common::UUID{}) {
+    if (data.pad.guid.IsValid()) {
         new_input.Set("guid", data.pad.guid.Format());
     }
     new_input.Set("port", static_cast<int>(data.pad.port));
@@ -137,7 +137,7 @@ void MappingFactory::RegisterStick(const MappingData& data) {
 void MappingFactory::RegisterMotion(const MappingData& data) {
     Common::ParamPackage new_input;
     new_input.Set("engine", data.engine);
-    if (data.pad.guid != Common::UUID{}) {
+    if (data.pad.guid.IsValid()) {
         new_input.Set("guid", data.pad.guid.Format());
     }
     new_input.Set("port", static_cast<int>(data.pad.port));
