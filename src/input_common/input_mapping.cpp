@@ -9,7 +9,7 @@
 
 namespace InputCommon {
 
-MappingFactory::MappingFactory() {}
+MappingFactory::MappingFactory() = default;
 
 void MappingFactory::BeginMapping(Polling::InputType type) {
     is_enabled = true;
