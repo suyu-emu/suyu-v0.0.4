@@ -89,7 +89,7 @@ struct UpdateCallback {
 
 // Triggered if data changed on the controller and the engine is on configuring mode
 struct MappingCallback {
-    std::function<void(MappingData)> on_data;
+    std::function<void(const MappingData&)> on_data;
 };
 
 // Input Identifier of data source

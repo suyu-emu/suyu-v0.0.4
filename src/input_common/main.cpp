@@ -27,7 +27,7 @@ namespace InputCommon {
 struct InputSubsystem::Impl {
     void Initialize() {
         mapping_factory = std::make_shared<MappingFactory>();
-        MappingCallback mapping_callback{[this](MappingData data) { RegisterInput(data); }};
+        MappingCallback mapping_callback{[this](const MappingData& data) { RegisterInput(data); }};
 
         keyboard = std::make_shared<Keyboard>("keyboard");
         keyboard->SetMappingCallback(mapping_callback);
@@ -284,7 +284,7 @@ struct InputSubsystem::Impl {
 #endif
     }
 
-    void RegisterInput(MappingData data) {
+    void RegisterInput(const MappingData& data) {
         mapping_factory->RegisterInput(data);
     }
 
