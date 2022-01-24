@@ -3,7 +3,13 @@
 // Refer to the license.txt file included
 
 #pragma once
+
+#include "common/param_package.h"
 #include "common/threadsafe_queue.h"
+
+namespace InputCommon::Polling {
+enum class InputType;
+}
 
 namespace InputCommon {
 class InputEngine;

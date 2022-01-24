@@ -2,7 +2,6 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included
 
-#include "common/common_types.h"
 #include "common/settings.h"
 #include "input_common/input_engine.h"
 #include "input_common/input_mapping.h"
