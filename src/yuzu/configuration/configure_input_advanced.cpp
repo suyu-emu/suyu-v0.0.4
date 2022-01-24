@@ -131,6 +131,7 @@ void ConfigureInputAdvanced::ApplyConfiguration() {
     Settings::values.touchscreen.enabled = ui->touchscreen_enabled->isChecked();
     Settings::values.enable_raw_input = ui->enable_raw_input->isChecked();
     Settings::values.enable_udp_controller = ui->enable_udp_controller->isChecked();
+    Settings::values.controller_navigation = ui->controller_navigation->isChecked();
 }
 
 void ConfigureInputAdvanced::LoadConfiguration() {
@@ -162,6 +163,7 @@ void ConfigureInputAdvanced::LoadConfiguration() {
     ui->touchscreen_enabled->setChecked(Settings::values.touchscreen.enabled);
     ui->enable_raw_input->setChecked(Settings::values.enable_raw_input.GetValue());
     ui->enable_udp_controller->setChecked(Settings::values.enable_udp_controller.GetValue());
+    ui->controller_navigation->setChecked(Settings::values.controller_navigation.GetValue());
 
     UpdateUIEnabled();
 }
