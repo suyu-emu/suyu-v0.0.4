@@ -16,7 +16,7 @@
 
 // Pad Identifier of data source
 struct PadIdentifier {
-    Common::UUID guid{};
+    Common::UUID guid{Common::INVALID_UUID};
     std::size_t port{};
     std::size_t pad{};
 
