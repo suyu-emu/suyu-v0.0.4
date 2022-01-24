@@ -349,8 +349,8 @@ PadIdentifier UDPClient::GetPadIdentifier(std::size_t pad_index) const {
 }
 
 Common::UUID UDPClient::GetHostUUID(const std::string& host) const {
-    const auto ip = boost::asio::ip::address_v4::from_string(host);
-    const auto hex_host = fmt::format("{:06x}", ip.to_ulong());
+    const auto ip = boost::asio::ip::make_address_v4(host);
+    const auto hex_host = fmt::format("{:06x}", ip.to_uint());
     return Common::UUID{hex_host};
 }
 
