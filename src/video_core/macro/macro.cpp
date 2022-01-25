@@ -24,8 +24,7 @@ void MacroEngine::AddCode(u32 method, u32 data) {
     uploaded_macro_code[method].push_back(data);
 }
 
-void MacroEngine::Execute(Engines::Maxwell3D& maxwell3d, u32 method,
-                          const std::vector<u32>& parameters) {
+void MacroEngine::Execute(u32 method, const std::vector<u32>& parameters) {
     auto compiled_macro = macro_cache.find(method);
     if (compiled_macro != macro_cache.end()) {
         const auto& cache_info = compiled_macro->second;
