@@ -5,12 +5,15 @@
 #include <array>
 #include <vector>
 #include "video_core/engines/maxwell_3d.h"
+#include "video_core/macro/macro.h"
 #include "video_core/macro/macro_hle.h"
 #include "video_core/rasterizer_interface.h"
 
 namespace Tegra {
-
 namespace {
+
+using HLEFunction = void (*)(Engines::Maxwell3D& maxwell3d, const std::vector<u32>& parameters);
+
 // HLE'd functions
 void HLE_771BB18C62444DA0(Engines::Maxwell3D& maxwell3d, const std::vector<u32>& parameters) {
     const u32 instance_count = parameters[2] & maxwell3d.GetRegisterValue(0xD1B);
@@ -77,13 +80,27 @@ void HLE_0217920100488FF7(Engines::Maxwell3D& maxwell3d, const std::vector<u32>&
     maxwell3d.CallMethodFromMME(0x8e5, 0x0);
     maxwell3d.mme_draw.current_mode = Engines::Maxwell3D::MMEDrawMode::Undefined;
 }
-} // Anonymous namespace
 
 constexpr std::array<std::pair<u64, HLEFunction>, 3> hle_funcs{{
     {0x771BB18C62444DA0, &HLE_771BB18C62444DA0},
     {0x0D61FC9FAAC9FCAD, &HLE_0D61FC9FAAC9FCAD},
     {0x0217920100488FF7, &HLE_0217920100488FF7},
 }};
+
+class HLEMacroImpl final : public CachedMacro {
+public:
+    explicit HLEMacroImpl(Engines::Maxwell3D& maxwell3d_, HLEFunction func_)
+        : maxwell3d{maxwell3d_}, func{func_} {}
+
+    void Execute(const std::vector<u32>& parameters, u32 method) override {
+        func(maxwell3d, parameters);
+    }
+
+private:
+    Engines::Maxwell3D& maxwell3d;
+    HLEFunction func;
+};
+} // Anonymous namespace
 
 HLEMacro::HLEMacro(Engines::Maxwell3D& maxwell3d_) : maxwell3d{maxwell3d_} {}
 HLEMacro::~HLEMacro() = default;
@@ -95,15 +112,6 @@ std::optional<std::unique_ptr<CachedMacro>> HLEMacro::GetHLEProgram(u64 hash) co
         return std::nullopt;
     }
     return std::make_unique<HLEMacroImpl>(maxwell3d, it->second);
-}
-
-HLEMacroImpl::~HLEMacroImpl() = default;
-
-HLEMacroImpl::HLEMacroImpl(Engines::Maxwell3D& maxwell3d_, HLEFunction func_)
-    : maxwell3d{maxwell3d_}, func{func_} {}
-
-void HLEMacroImpl::Execute(const std::vector<u32>& parameters, u32 method) {
-    func(maxwell3d, parameters);
 }
 
 } // namespace Tegra
