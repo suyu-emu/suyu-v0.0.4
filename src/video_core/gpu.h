@@ -12,9 +12,6 @@
 #include "video_core/framebuffer_config.h"
 
 namespace Core {
-namespace Frontend {
-class EmuWindow;
-}
 class System;
 } // namespace Core
 
@@ -25,7 +22,6 @@ class ShaderNotify;
 
 namespace Tegra {
 class DmaPusher;
-class CDmaPusher;
 struct CommandList;
 
 enum class RenderTargetFormat : u32 {
@@ -88,15 +84,9 @@ enum class DepthFormat : u32 {
     D32_FLOAT_S8X24_UINT = 0x19,
 };
 
-struct CommandListHeader;
-class DebugContext;
-
 namespace Engines {
-class Fermi2D;
 class Maxwell3D;
-class MaxwellDMA;
 class KeplerCompute;
-class KeplerMemory;
 } // namespace Engines
 
 enum class EngineID {
