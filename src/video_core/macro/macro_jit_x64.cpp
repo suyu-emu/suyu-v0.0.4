@@ -102,7 +102,6 @@ private:
 
     bool is_delay_slot{};
     u32 pc{};
-    std::optional<u32> delayed_pc;
 
     const std::vector<u32>& code;
     Engines::Maxwell3D& maxwell3d;
