@@ -2,12 +2,13 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <cstring>
 #include <optional>
+
 #include <boost/container_hash/hash.hpp>
+
 #include "common/assert.h"
-#include "common/logging/log.h"
 #include "common/settings.h"
-#include "video_core/engines/maxwell_3d.h"
 #include "video_core/macro/macro.h"
 #include "video_core/macro/macro_hle.h"
 #include "video_core/macro/macro_interpreter.h"
