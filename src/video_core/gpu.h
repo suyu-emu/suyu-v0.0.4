@@ -190,12 +190,6 @@ public:
     /// Returns a const reference to the GPU DMA pusher.
     [[nodiscard]] const Tegra::DmaPusher& DmaPusher() const;
 
-    /// Returns a reference to the GPU CDMA pusher.
-    [[nodiscard]] Tegra::CDmaPusher& CDmaPusher();
-
-    /// Returns a const reference to the GPU CDMA pusher.
-    [[nodiscard]] const Tegra::CDmaPusher& CDmaPusher() const;
-
     /// Returns a reference to the underlying renderer.
     [[nodiscard]] VideoCore::RendererBase& Renderer();
 
