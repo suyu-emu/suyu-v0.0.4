@@ -65,10 +65,9 @@ void MacroEngine::Execute(u32 method, const std::vector<u32>& parameters) {
             cache_info.lle_program = Compile(code);
         }
 
-        auto hle_program = hle_macros->GetHLEProgram(cache_info.hash);
-        if (hle_program.has_value()) {
+        if (auto hle_program = hle_macros->GetHLEProgram(cache_info.hash)) {
             cache_info.has_hle_program = true;
-            cache_info.hle_program = std::move(hle_program.value());
+            cache_info.hle_program = std::move(hle_program);
             cache_info.hle_program->Execute(parameters, method);
         } else {
             cache_info.lle_program->Execute(parameters, method);

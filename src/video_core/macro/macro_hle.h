@@ -5,7 +5,6 @@
 #pragma once
 
 #include <memory>
-#include <optional>
 #include "common/common_types.h"
 
 namespace Tegra {
@@ -19,7 +18,9 @@ public:
     explicit HLEMacro(Engines::Maxwell3D& maxwell3d_);
     ~HLEMacro();
 
-    std::optional<std::unique_ptr<CachedMacro>> GetHLEProgram(u64 hash) const;
+    // Allocates and returns a cached macro if the hash matches a known function.
+    // Returns nullptr otherwise.
+    [[nodiscard]] std::unique_ptr<CachedMacro> GetHLEProgram(u64 hash) const;
 
 private:
     Engines::Maxwell3D& maxwell3d;

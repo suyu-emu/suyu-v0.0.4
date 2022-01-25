@@ -105,11 +105,11 @@ private:
 HLEMacro::HLEMacro(Engines::Maxwell3D& maxwell3d_) : maxwell3d{maxwell3d_} {}
 HLEMacro::~HLEMacro() = default;
 
-std::optional<std::unique_ptr<CachedMacro>> HLEMacro::GetHLEProgram(u64 hash) const {
+std::unique_ptr<CachedMacro> HLEMacro::GetHLEProgram(u64 hash) const {
     const auto it = std::find_if(hle_funcs.cbegin(), hle_funcs.cend(),
                                  [hash](const auto& pair) { return pair.first == hash; });
     if (it == hle_funcs.end()) {
-        return std::nullopt;
+        return nullptr;
     }
     return std::make_unique<HLEMacroImpl>(maxwell3d, it->second);
 }
