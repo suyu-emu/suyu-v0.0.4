@@ -40,6 +40,10 @@ const std::bitset<32> PERSISTENT_REGISTERS = Common::X64::BuildRegSet({
 // Arbitrarily chosen based on current booting games.
 constexpr size_t MAX_CODE_SIZE = 0x10000;
 
+std::bitset<32> PersistentCallerSavedRegs() {
+    return PERSISTENT_REGISTERS & Common::X64::ABI_ALL_CALLER_SAVED;
+}
+
 class MacroJITx64Impl final : public Xbyak::CodeGenerator, public CachedMacro {
 public:
     explicit MacroJITx64Impl(Engines::Maxwell3D& maxwell3d_, const std::vector<u32>& code_)
@@ -70,7 +74,6 @@ private:
     void Compile_Send(Xbyak::Reg32 value);
 
     Macro::Opcode GetOpCode() const;
-    std::bitset<32> PersistentCallerSavedRegs() const;
 
     struct JITState {
         Engines::Maxwell3D* maxwell3d{};
@@ -673,10 +676,6 @@ void MacroJITx64Impl::Compile_ProcessResult(Macro::ResultOperation operation, u3
 Macro::Opcode MacroJITx64Impl::GetOpCode() const {
     ASSERT(pc < code.size());
     return {code[pc]};
-}
-
-std::bitset<32> MacroJITx64Impl::PersistentCallerSavedRegs() const {
-    return PERSISTENT_REGISTERS & Common::X64::ABI_ALL_CALLER_SAVED;
 }
 } // Anonymous namespace
 
