@@ -59,6 +59,7 @@ struct GPU::Impl {
         maxwell_3d->BindRasterizer(rasterizer);
         fermi_2d->BindRasterizer(rasterizer);
         kepler_compute->BindRasterizer(rasterizer);
+        kepler_memory->BindRasterizer(rasterizer);
         maxwell_dma->BindRasterizer(rasterizer);
     }
 
