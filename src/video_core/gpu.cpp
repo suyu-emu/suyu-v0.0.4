@@ -503,8 +503,15 @@ struct GPU::Impl {
         case BufferMethods::SemaphoreAddressHigh:
         case BufferMethods::SemaphoreAddressLow:
         case BufferMethods::SemaphoreSequence:
-        case BufferMethods::UnkCacheFlush:
-        case BufferMethods::WrcacheFlush:
+            break;
+        case BufferMethods::UnkCacheFlush: {
+            rasterizer->SyncGuestHost();
+            break;
+        }
+        case BufferMethods::WrcacheFlush: {
+            rasterizer->SignalReference();
+            break;
+        }
         case BufferMethods::FenceValue:
             break;
         case BufferMethods::RefCnt:
@@ -514,7 +521,7 @@ struct GPU::Impl {
             ProcessFenceActionMethod();
             break;
         case BufferMethods::WaitForInterrupt:
-            ProcessWaitForInterruptMethod();
+            rasterizer->WaitForIdle();
             break;
         case BufferMethods::SemaphoreTrigger: {
             ProcessSemaphoreTriggerMethod();
