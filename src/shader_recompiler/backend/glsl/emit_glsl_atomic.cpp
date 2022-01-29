@@ -105,6 +105,13 @@ void EmitSharedAtomicExchange64(EmitContext& ctx, IR::Inst& inst, std::string_vi
             pointer_offset, value, pointer_offset, value);
 }
 
+void EmitSharedAtomicExchange32x2(EmitContext& ctx, IR::Inst& inst, std::string_view pointer_offset,
+                                  std::string_view value) {
+    LOG_WARNING(Shader_GLSL, "Int64 atomics not supported, fallback to non-atomic");
+    ctx.AddU32x2("{}=uvec2(smem[{}>>2],smem[({}+4)>>2]);", inst, pointer_offset, pointer_offset);
+    ctx.Add("smem[{}>>2]={}.x;smem[({}+4)>>2]={}.y;", pointer_offset, value, pointer_offset, value);
+}
+
 void EmitStorageAtomicIAdd32(EmitContext& ctx, IR::Inst& inst, const IR::Value& binding,
                              const IR::Value& offset, std::string_view value) {
     ctx.AddU32("{}=atomicAdd({}_ssbo{}[{}>>2],{});", inst, ctx.stage_name, binding.U32(),
@@ -265,6 +272,51 @@ void EmitStorageAtomicExchange64(EmitContext& ctx, IR::Inst& inst, const IR::Val
                ctx.stage_name, binding.U32(), ctx.var_alloc.Consume(offset), value);
 }
 
+void EmitStorageAtomicIAdd32x2(EmitContext& ctx, IR::Inst& inst, const IR::Value& binding,
+                               const IR::Value& offset, std::string_view value) {
+    throw NotImplementedException("GLSL Instrucion");
+}
+
+void EmitStorageAtomicSMin32x2(EmitContext& ctx, IR::Inst& inst, const IR::Value& binding,
+                               const IR::Value& offset, std::string_view value) {
+    throw NotImplementedException("GLSL Instrucion");
+}
+
+void EmitStorageAtomicUMin32x2(EmitContext& ctx, IR::Inst& inst, const IR::Value& binding,
+                               const IR::Value& offset, std::string_view value) {
+    throw NotImplementedException("GLSL Instrucion");
+}
+
+void EmitStorageAtomicSMax32x2(EmitContext& ctx, IR::Inst& inst, const IR::Value& binding,
+                               const IR::Value& offset, std::string_view value) {
+    throw NotImplementedException("GLSL Instrucion");
+}
+
+void EmitStorageAtomicUMax32x2(EmitContext& ctx, IR::Inst& inst, const IR::Value& binding,
+                               const IR::Value& offset, std::string_view value) {
+    throw NotImplementedException("GLSL Instrucion");
+}
+
+void EmitStorageAtomicAnd32x2(EmitContext& ctx, IR::Inst& inst, const IR::Value& binding,
+                              const IR::Value& offset, std::string_view value) {
+    throw NotImplementedException("GLSL Instrucion");
+}
+
+void EmitStorageAtomicOr32x2(EmitContext& ctx, IR::Inst& inst, const IR::Value& binding,
+                             const IR::Value& offset, std::string_view value) {
+    throw NotImplementedException("GLSL Instrucion");
+}
+
+void EmitStorageAtomicXor32x2(EmitContext& ctx, IR::Inst& inst, const IR::Value& binding,
+                              const IR::Value& offset, std::string_view value) {
+    throw NotImplementedException("GLSL Instrucion");
+}
+
+void EmitStorageAtomicExchange32x2(EmitContext& ctx, IR::Inst& inst, const IR::Value& binding,
+                                   const IR::Value& offset, std::string_view value) {
+    throw NotImplementedException("GLSL Instrucion");
+}
+
 void EmitStorageAtomicAddF32(EmitContext& ctx, IR::Inst& inst, const IR::Value& binding,
                              const IR::Value& offset, std::string_view value) {
     SsboCasFunctionF32(ctx, inst, binding, offset, value, "CasFloatAdd");
@@ -385,6 +437,50 @@ void EmitGlobalAtomicXor64(EmitContext&) {
 }
 
 void EmitGlobalAtomicExchange64(EmitContext&) {
+    throw NotImplementedException("GLSL Instrucion");
+}
+
+void EmitGlobalAtomicIAdd32x2(EmitContext&) {
+    throw NotImplementedException("GLSL Instrucion");
+}
+
+void EmitGlobalAtomicSMin32x2(EmitContext&) {
+    throw NotImplementedException("GLSL Instrucion");
+}
+
+void EmitGlobalAtomicUMin32x2(EmitContext&) {
+    throw NotImplementedException("GLSL Instrucion");
+}
+
+void EmitGlobalAtomicSMax32x2(EmitContext&) {
+    throw NotImplementedException("GLSL Instrucion");
+}
+
+void EmitGlobalAtomicUMax32x2(EmitContext&) {
+    throw NotImplementedException("GLSL Instrucion");
+}
+
+void EmitGlobalAtomicInc32x2(EmitContext&) {
+    throw NotImplementedException("GLSL Instrucion");
+}
+
+void EmitGlobalAtomicDec32x2(EmitContext&) {
+    throw NotImplementedException("GLSL Instrucion");
+}
+
+void EmitGlobalAtomicAnd32x2(EmitContext&) {
+    throw NotImplementedException("GLSL Instrucion");
+}
+
+void EmitGlobalAtomicOr32x2(EmitContext&) {
+    throw NotImplementedException("GLSL Instrucion");
+}
+
+void EmitGlobalAtomicXor32x2(EmitContext&) {
+    throw NotImplementedException("GLSL Instrucion");
+}
+
+void EmitGlobalAtomicExchange32x2(EmitContext&) {
     throw NotImplementedException("GLSL Instrucion");
 }
 
