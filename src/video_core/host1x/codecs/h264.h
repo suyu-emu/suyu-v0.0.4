@@ -11,7 +11,11 @@
 #include "video_core/host1x/nvdec_common.h"
 
 namespace Tegra {
-class GPU;
+
+namespace Host1x {
+class Host1x;
+} // namespace Host1x
+
 namespace Decoder {
 
 class H264BitWriter {
@@ -55,7 +59,7 @@ private:
 
 class H264 {
 public:
-    explicit H264(GPU& gpu);
+    explicit H264(Host1x::Host1x& host1x);
     ~H264();
 
     /// Compose the H264 frame for FFmpeg decoding
@@ -64,7 +68,7 @@ public:
 
 private:
     std::vector<u8> frame;
-    GPU& gpu;
+    Host1x::Host1x& host1x;
 
     struct H264ParameterSet {
         s32 log2_max_pic_order_cnt_lsb_minus4; ///< 0x00

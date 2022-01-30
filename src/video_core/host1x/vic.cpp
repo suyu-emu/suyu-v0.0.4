@@ -19,7 +19,7 @@ extern "C" {
 #include "common/logging/log.h"
 
 #include "video_core/engines/maxwell_3d.h"
-#include "video_core/gpu.h"
+#include "video_core/host1x/host1x.h"
 #include "video_core/host1x/nvdec.h"
 #include "video_core/host1x/vic.h"
 #include "video_core/memory_manager.h"
@@ -49,8 +49,8 @@ union VicConfig {
     BitField<46, 14, u64_le> surface_height_minus1;
 };
 
-Vic::Vic(GPU& gpu_, std::shared_ptr<Nvdec> nvdec_processor_)
-    : gpu(gpu_),
+Vic::Vic(Host1x& host1x_, std::shared_ptr<Nvdec> nvdec_processor_)
+    : host1x(host1x_),
       nvdec_processor(std::move(nvdec_processor_)), converted_frame_buffer{nullptr, av_free} {}
 
 Vic::~Vic() = default;
@@ -81,7 +81,7 @@ void Vic::Execute() {
         LOG_ERROR(Service_NVDRV, "VIC Luma address not set.");
         return;
     }
-    const VicConfig config{gpu.MemoryManager().Read<u64>(config_struct_address + 0x20)};
+    const VicConfig config{host1x.MemoryManager().Read<u64>(config_struct_address + 0x20)};
     const AVFramePtr frame_ptr = nvdec_processor->GetFrame();
     const auto* frame = frame_ptr.get();
     if (!frame) {
@@ -159,12 +159,12 @@ void Vic::WriteRGBFrame(const AVFrame* frame, const VicConfig& config) {
         Texture::SwizzleSubrect(width, height, width * 4, width, 4, luma_buffer.data(),
                                 converted_frame_buf_addr, block_height, 0, 0);
 
-        gpu.MemoryManager().WriteBlock(output_surface_luma_address, luma_buffer.data(), size);
+        host1x.MemoryManager().WriteBlock(output_surface_luma_address, luma_buffer.data(), size);
     } else {
         // send pitch linear frame
         const size_t linear_size = width * height * 4;
-        gpu.MemoryManager().WriteBlock(output_surface_luma_address, converted_frame_buf_addr,
-                                       linear_size);
+        host1x.MemoryManager().WriteBlock(output_surface_luma_address, converted_frame_buf_addr,
+                                          linear_size);
     }
 }
 
@@ -192,8 +192,8 @@ void Vic::WriteYUVFrame(const AVFrame* frame, const VicConfig& config) {
             luma_buffer[dst + x] = luma_src[src + x];
         }
     }
-    gpu.MemoryManager().WriteBlock(output_surface_luma_address, luma_buffer.data(),
-                                   luma_buffer.size());
+    host1x.MemoryManager().WriteBlock(output_surface_luma_address, luma_buffer.data(),
+                                      luma_buffer.size());
 
     // Chroma
     const std::size_t half_height = frame_height / 2;
@@ -234,8 +234,8 @@ void Vic::WriteYUVFrame(const AVFrame* frame, const VicConfig& config) {
         ASSERT(false);
         break;
     }
-    gpu.MemoryManager().WriteBlock(output_surface_chroma_address, chroma_buffer.data(),
-                                   chroma_buffer.size());
+    host1x.MemoryManager().WriteBlock(output_surface_chroma_address, chroma_buffer.data(),
+                                      chroma_buffer.size());
 }
 
 } // namespace Host1x

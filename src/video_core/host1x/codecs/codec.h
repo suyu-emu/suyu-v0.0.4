@@ -21,7 +21,6 @@ extern "C" {
 }
 
 namespace Tegra {
-class GPU;
 
 void AVFrameDeleter(AVFrame* ptr);
 using AVFramePtr = std::unique_ptr<AVFrame, decltype(&AVFrameDeleter)>;
@@ -32,9 +31,13 @@ class VP8;
 class VP9;
 } // namespace Decoder
 
+namespace Host1x {
+class Host1x;
+} // namespace Host1x
+
 class Codec {
 public:
-    explicit Codec(GPU& gpu, const Host1x::NvdecCommon::NvdecRegisters& regs);
+    explicit Codec(Host1x::Host1x& host1x, const Host1x::NvdecCommon::NvdecRegisters& regs);
     ~Codec();
 
     /// Initialize the codec, returning success or failure
@@ -69,7 +72,7 @@ private:
     AVCodecContext* av_codec_ctx{nullptr};
     AVBufferRef* av_gpu_decoder{nullptr};
 
-    GPU& gpu;
+    Host1x::Host1x& host1x;
     const Host1x::NvdecCommon::NvdecRegisters& state;
     std::unique_ptr<Decoder::H264> h264_decoder;
     std::unique_ptr<Decoder::VP8> vp8_decoder;

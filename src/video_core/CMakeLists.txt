@@ -56,6 +56,8 @@ add_library(video_core STATIC
     host1x/codecs/vp9_types.h
     host1x/control.cpp
     host1x/control.h
+    host1x/host1x.cpp
+    host1x/host1x.h
     host1x/nvdec.cpp
     host1x/nvdec.h
     host1x/nvdec_common.h

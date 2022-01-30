@@ -4,8 +4,8 @@
 #include <bit>
 #include "video_core/cdma_pusher.h"
 #include "video_core/engines/maxwell_3d.h"
-#include "video_core/gpu.h"
 #include "video_core/host1x/control.h"
+#include "video_core/host1x/host1x.h"
 #include "video_core/host1x/nvdec.h"
 #include "video_core/host1x/nvdec_common.h"
 #include "video_core/host1x/sync_manager.h"
@@ -13,11 +13,11 @@
 #include "video_core/memory_manager.h"
 
 namespace Tegra {
-CDmaPusher::CDmaPusher(GPU& gpu_)
-    : gpu{gpu_}, nvdec_processor(std::make_shared<Host1x::Nvdec>(gpu)),
-      vic_processor(std::make_unique<Host1x::Vic>(gpu, nvdec_processor)),
-      host1x_processor(std::make_unique<Host1x::Control>(gpu)),
-      sync_manager(std::make_unique<Host1x::SyncptIncrManager>(gpu)) {}
+CDmaPusher::CDmaPusher(Host1x::Host1x& host1x_)
+    : host1x{host1x_}, nvdec_processor(std::make_shared<Host1x::Nvdec>(host1x)),
+      vic_processor(std::make_unique<Host1x::Vic>(host1x, nvdec_processor)),
+      host1x_processor(std::make_unique<Host1x::Control>(host1x)),
+      sync_manager(std::make_unique<Host1x::SyncptIncrManager>(host1x)) {}
 
 CDmaPusher::~CDmaPusher() = default;
 

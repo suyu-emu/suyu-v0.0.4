@@ -8,8 +8,12 @@
 #include <memory>
 
 namespace Tegra {
-class GPU;
-}
+
+namespace Host1x {
+class Host1x;
+} // namespace Host1x
+
+} // namespace Tegra
 
 namespace Service::Nvidia::NvCore {
 
@@ -20,7 +24,7 @@ struct ContainerImpl;
 
 class Container {
 public:
-    Container(Tegra::GPU& gpu_);
+    Container(Tegra::Host1x::Host1x& host1x);
     ~Container();
 
     NvMap& GetNvMapFile();

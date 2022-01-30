@@ -7,6 +7,7 @@
 #include "common/logging/log.h"
 #include "core/hle/service/nvdrv/core/nvmap.h"
 #include "core/memory.h"
+#include "video_core/host1x/host1x.h"
 
 using Core::Memory::YUZU_PAGESIZE;
 
@@ -61,7 +62,7 @@ NvResult NvMap::Handle::Duplicate(bool internal_session) {
     return NvResult::Success;
 }
 
-NvMap::NvMap() = default;
+NvMap::NvMap(Tegra::Host1x::Host1x& host1x_) : host1x{host1x_} {}
 
 void NvMap::AddHandle(std::shared_ptr<Handle> handle_description) {
     std::scoped_lock lock(handles_lock);
@@ -77,12 +78,11 @@ void NvMap::UnmapHandle(Handle& handle_description) {
     }
 
     // Free and unmap the handle from the SMMU
-    /*
-    state.soc->smmu.Unmap(handle_description.pin_virt_address,
-    static_cast<u32>(handle_description.aligned_size));
-    smmuAllocator.Free(handle_description.pin_virt_address,
-    static_cast<u32>(handle_description.aligned_size)); handle_description.pin_virt_address = 0;
-    */
+    host1x.MemoryManager().Unmap(static_cast<GPUVAddr>(handle_description.pin_virt_address),
+                                 handle_description.aligned_size);
+    host1x.Allocator().Free(handle_description.pin_virt_address,
+                            static_cast<u32>(handle_description.aligned_size));
+    handle_description.pin_virt_address = 0;
 }
 
 bool NvMap::TryRemoveHandle(const Handle& handle_description) {
@@ -131,12 +131,9 @@ VAddr NvMap::GetHandleAddress(Handle::Id handle) {
 }
 
 u32 NvMap::PinHandle(NvMap::Handle::Id handle) {
-    UNIMPLEMENTED_MSG("pinning");
-    return 0;
-    /*
     auto handle_description{GetHandle(handle)};
-    if (!handle_description)
-        [[unlikely]] return 0;
+    if (!handle_description) [[unlikely]]
+        return 0;
 
     std::scoped_lock lock(handle_description->mutex);
     if (!handle_description->pins) {
@@ -157,8 +154,10 @@ u32 NvMap::PinHandle(NvMap::Handle::Id handle) {
 
         // If not then allocate some space and map it
         u32 address{};
+        auto& smmu_allocator = host1x.Allocator();
+        auto& smmu_memory_manager = host1x.MemoryManager();
         while (!(address =
-    smmuAllocator.Allocate(static_cast<u32>(handle_description->aligned_size)))) {
+                     smmu_allocator.Allocate(static_cast<u32>(handle_description->aligned_size)))) {
             // Free handles until the allocation succeeds
             std::scoped_lock queueLock(unmap_queue_lock);
             if (auto freeHandleDesc{unmap_queue.front()}) {
@@ -172,19 +171,16 @@ u32 NvMap::PinHandle(NvMap::Handle::Id handle) {
             }
         }
 
-        state.soc->smmu.Map(address, handle_description->GetPointer(),
-                            static_cast<u32>(handle_description->aligned_size));
+        smmu_memory_manager.Map(static_cast<GPUVAddr>(address), handle_description->address,
+                                handle_description->aligned_size);
         handle_description->pin_virt_address = address;
     }
 
     handle_description->pins++;
     return handle_description->pin_virt_address;
-    */
 }
 
 void NvMap::UnpinHandle(Handle::Id handle) {
-    UNIMPLEMENTED_MSG("Unpinning");
-    /*
     auto handle_description{GetHandle(handle)};
     if (!handle_description)
         return;
@@ -199,7 +195,6 @@ void NvMap::UnpinHandle(Handle::Id handle) {
         unmap_queue.push_back(handle_description);
         handle_description->unmap_queue_entry = std::prev(unmap_queue.end());
     }
-    */
 }
 
 std::optional<NvMap::FreeInfo> NvMap::FreeHandle(Handle::Id handle, bool internal_session) {

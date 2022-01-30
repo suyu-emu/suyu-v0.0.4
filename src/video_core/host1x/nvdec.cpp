@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/assert.h"
-#include "video_core/gpu.h"
+#include "video_core/host1x/host1x.h"
 #include "video_core/host1x/nvdec.h"
 
 namespace Tegra::Host1x {
@@ -10,7 +10,8 @@ namespace Tegra::Host1x {
 #define NVDEC_REG_INDEX(field_name)                                                                \
     (offsetof(NvdecCommon::NvdecRegisters, field_name) / sizeof(u64))
 
-Nvdec::Nvdec(GPU& gpu_) : gpu(gpu_), state{}, codec(std::make_unique<Codec>(gpu, state)) {}
+Nvdec::Nvdec(Host1x& host1x_)
+    : host1x(host1x_), state{}, codec(std::make_unique<Codec>(host1x, state)) {}
 
 Nvdec::~Nvdec() = default;
 

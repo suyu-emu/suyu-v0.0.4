@@ -11,12 +11,16 @@
 #include "video_core/host1x/nvdec_common.h"
 
 namespace Tegra {
-class GPU;
+
+namespace Host1x {
+class Host1x;
+} // namespace Host1x
+
 namespace Decoder {
 
 class VP8 {
 public:
-    explicit VP8(GPU& gpu);
+    explicit VP8(Host1x::Host1x& host1x);
     ~VP8();
 
     /// Compose the VP8 frame for FFmpeg decoding
@@ -25,7 +29,7 @@ public:
 
 private:
     std::vector<u8> frame;
-    GPU& gpu;
+    Host1x::Host1x& host1x;
 
     struct VP8PictureInfo {
         INSERT_PADDING_WORDS_NOINIT(14);

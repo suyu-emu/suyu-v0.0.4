@@ -3,13 +3,12 @@
 // Refer to the license.txt file included.
 
 #include "common/assert.h"
-#include "video_core/gpu.h"
 #include "video_core/host1x/control.h"
 #include "video_core/host1x/host1x.h"
 
 namespace Tegra::Host1x {
 
-Control::Control(GPU& gpu_) : gpu(gpu_) {}
+Control::Control(Host1x& host1x_) : host1x(host1x_) {}
 
 Control::~Control() = default;
 
@@ -29,7 +28,7 @@ void Control::ProcessMethod(Method method, u32 argument) {
 }
 
 void Control::Execute(u32 data) {
-    gpu.Host1x().GetSyncpointManager().WaitHost(data, syncpoint_value);
+    host1x.GetSyncpointManager().WaitHost(data, syncpoint_value);
 }
 
 } // namespace Tegra::Host1x

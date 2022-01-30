@@ -8,10 +8,10 @@
 #include "common/common_types.h"
 
 namespace Tegra {
-class GPU;
 
 namespace Host1x {
 
+class Host1x;
 class Nvdec;
 
 class Control {
@@ -22,7 +22,7 @@ public:
         WaitSyncpt32 = 0x50,
     };
 
-    explicit Control(GPU& gpu);
+    explicit Control(Host1x& host1x);
     ~Control();
 
     /// Writes the method into the state, Invoke Execute() if encountered
@@ -33,7 +33,7 @@ private:
     void Execute(u32 data);
 
     u32 syncpoint_value{};
-    GPU& gpu;
+    Host1x& host1x;
 };
 
 } // namespace Host1x

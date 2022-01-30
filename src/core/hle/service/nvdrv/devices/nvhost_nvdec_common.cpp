@@ -13,6 +13,7 @@
 #include "core/hle/service/nvdrv/core/syncpoint_manager.h"
 #include "core/hle/service/nvdrv/devices/nvhost_nvdec_common.h"
 #include "core/memory.h"
+#include "video_core/host1x/host1x.h"
 #include "video_core/memory_manager.h"
 #include "video_core/renderer_base.h"
 
@@ -140,29 +141,8 @@ NvResult nvhost_nvdec_common::MapBuffer(const std::vector<u8>& input, std::vecto
 
     SliceVectors(input, cmd_buffer_handles, params.num_entries, sizeof(IoctlMapBuffer));
 
-    auto& gpu = system.GPU();
-
     for (auto& cmd_buffer : cmd_buffer_handles) {
-        auto object{nvmap.GetHandle(cmd_buffer.map_handle)};
-        if (!object) {
-            LOG_ERROR(Service_NVDRV, "invalid cmd_buffer nvmap_handle={:X}", cmd_buffer.map_handle);
-            std::memcpy(output.data(), &params, output.size());
-            return NvResult::InvalidState;
-        }
-        if (object->dma_map_addr == 0) {
-            // NVDEC and VIC memory is in the 32-bit address space
-            // MapAllocate32 will attempt to map a lower 32-bit value in the shared gpu memory space
-            const GPUVAddr low_addr =
-                gpu.MemoryManager().MapAllocate32(object->address, object->size);
-            object->dma_map_addr = static_cast<u32>(low_addr);
-            // Ensure that the dma_map_addr is indeed in the lower 32-bit address space.
-            ASSERT(object->dma_map_addr == low_addr);
-        }
-        if (!object->dma_map_addr) {
-            LOG_ERROR(Service_NVDRV, "failed to map size={}", object->size);
-        } else {
-            cmd_buffer.map_address = static_cast<u32_le>(object->dma_map_addr);
-        }
+        cmd_buffer.map_address = nvmap.PinHandle(cmd_buffer.map_handle);
     }
     std::memcpy(output.data(), &params, sizeof(IoctlMapBuffer));
     std::memcpy(output.data() + sizeof(IoctlMapBuffer), cmd_buffer_handles.data(),
@@ -172,11 +152,16 @@ NvResult nvhost_nvdec_common::MapBuffer(const std::vector<u8>& input, std::vecto
 }
 
 NvResult nvhost_nvdec_common::UnmapBuffer(const std::vector<u8>& input, std::vector<u8>& output) {
-    // This is intntionally stubbed.
-    // Skip unmapping buffers here, as to not break the continuity of the VP9 reference frame
-    // addresses, and risk invalidating data before the async GPU thread is done with it
+    IoctlMapBuffer params{};
+    std::memcpy(&params, input.data(), sizeof(IoctlMapBuffer));
+    std::vector<MapBufferEntry> cmd_buffer_handles(params.num_entries);
+
+    SliceVectors(input, cmd_buffer_handles, params.num_entries, sizeof(IoctlMapBuffer));
+    for (auto& cmd_buffer : cmd_buffer_handles) {
+        nvmap.UnpinHandle(cmd_buffer.map_handle);
+    }
+
     std::memset(output.data(), 0, output.size());
-    LOG_DEBUG(Service_NVDRV, "(STUBBED) called");
     return NvResult::Success;
 }
 

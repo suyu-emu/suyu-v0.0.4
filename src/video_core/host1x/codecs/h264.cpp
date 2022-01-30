@@ -5,8 +5,8 @@
 #include <bit>
 
 #include "common/settings.h"
-#include "video_core/gpu.h"
 #include "video_core/host1x/codecs/h264.h"
+#include "video_core/host1x/host1x.h"
 #include "video_core/memory_manager.h"
 
 namespace Tegra::Decoder {
@@ -24,19 +24,20 @@ constexpr std::array<u8, 16> zig_zag_scan{
 };
 } // Anonymous namespace
 
-H264::H264(GPU& gpu_) : gpu(gpu_) {}
+H264::H264(Host1x::Host1x& host1x_) : host1x{host1x_} {}
 
 H264::~H264() = default;
 
 const std::vector<u8>& H264::ComposeFrame(const Host1x::NvdecCommon::NvdecRegisters& state,
                                           bool is_first_frame) {
     H264DecoderContext context;
-    gpu.MemoryManager().ReadBlock(state.picture_info_offset, &context, sizeof(H264DecoderContext));
+    host1x.MemoryManager().ReadBlock(state.picture_info_offset, &context,
+                                     sizeof(H264DecoderContext));
 
     const s64 frame_number = context.h264_parameter_set.frame_number.Value();
     if (!is_first_frame && frame_number != 0) {
         frame.resize(context.stream_len);
-        gpu.MemoryManager().ReadBlock(state.frame_bitstream_offset, frame.data(), frame.size());
+        host1x.MemoryManager().ReadBlock(state.frame_bitstream_offset, frame.data(), frame.size());
         return frame;
     }
 
@@ -155,8 +156,8 @@ const std::vector<u8>& H264::ComposeFrame(const Host1x::NvdecCommon::NvdecRegist
     frame.resize(encoded_header.size() + context.stream_len);
     std::memcpy(frame.data(), encoded_header.data(), encoded_header.size());
 
-    gpu.MemoryManager().ReadBlock(state.frame_bitstream_offset,
-                                  frame.data() + encoded_header.size(), context.stream_len);
+    host1x.MemoryManager().ReadBlock(state.frame_bitstream_offset,
+                                     frame.data() + encoded_header.size(), context.stream_len);
 
     return frame;
 }

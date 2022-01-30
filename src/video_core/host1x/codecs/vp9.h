@@ -12,7 +12,11 @@
 #include "video_core/host1x/nvdec_common.h"
 
 namespace Tegra {
-class GPU;
+
+namespace Host1x {
+class Host1x;
+} // namespace Host1x
+
 namespace Decoder {
 
 /// The VpxRangeEncoder, and VpxBitStreamWriter classes are used to compose the
@@ -106,7 +110,7 @@ private:
 
 class VP9 {
 public:
-    explicit VP9(GPU& gpu_);
+    explicit VP9(Host1x::Host1x& host1x);
     ~VP9();
 
     VP9(const VP9&) = delete;
@@ -176,7 +180,7 @@ private:
     [[nodiscard]] std::vector<u8> ComposeCompressedHeader();
     [[nodiscard]] VpxBitStreamWriter ComposeUncompressedHeader();
 
-    GPU& gpu;
+    Host1x::Host1x& host1x;
     std::vector<u8> frame;
 
     std::array<s8, 4> loop_filter_ref_deltas{};

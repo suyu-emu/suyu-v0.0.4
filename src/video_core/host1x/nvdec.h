@@ -9,13 +9,14 @@
 #include "video_core/host1x/codecs/codec.h"
 
 namespace Tegra {
-class GPU;
 
 namespace Host1x {
 
+class Host1x;
+
 class Nvdec {
 public:
-    explicit Nvdec(GPU& gpu);
+    explicit Nvdec(Host1x& host1x);
     ~Nvdec();
 
     /// Writes the method into the state, Invoke Execute() if encountered
@@ -28,7 +29,7 @@ private:
     /// Invoke codec to decode a frame
     void Execute();
 
-    GPU& gpu;
+    Host1x& host1x;
     NvdecCommon::NvdecRegisters state;
     std::unique_ptr<Codec> codec;
 };

@@ -12,10 +12,9 @@
 
 namespace Tegra {
 
-class GPU;
-
 namespace Host1x {
 class Control;
+class Host1x;
 class Nvdec;
 class SyncptIncrManager;
 class Vic;
@@ -91,7 +90,7 @@ enum class ThiMethod : u32 {
 
 class CDmaPusher {
 public:
-    explicit CDmaPusher(GPU& gpu_);
+    explicit CDmaPusher(Host1x::Host1x& host1x);
     ~CDmaPusher();
 
     /// Process the command entry
@@ -104,7 +103,7 @@ private:
     /// Write arguments value to the ThiRegisters member at the specified offset
     void ThiStateWrite(ThiRegisters& state, u32 offset, u32 argument);
 
-    GPU& gpu;
+    Host1x::Host1x& host1x;
     std::shared_ptr<Tegra::Host1x::Nvdec> nvdec_processor;
     std::unique_ptr<Tegra::Host1x::Vic> vic_processor;
     std::unique_ptr<Tegra::Host1x::Control> host1x_processor;

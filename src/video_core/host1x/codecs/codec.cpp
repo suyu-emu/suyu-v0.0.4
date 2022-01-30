@@ -6,11 +6,11 @@
 #include <vector>
 #include "common/assert.h"
 #include "common/settings.h"
-#include "video_core/gpu.h"
 #include "video_core/host1x/codecs/codec.h"
 #include "video_core/host1x/codecs/h264.h"
 #include "video_core/host1x/codecs/vp8.h"
 #include "video_core/host1x/codecs/vp9.h"
+#include "video_core/host1x/host1x.h"
 #include "video_core/memory_manager.h"
 
 extern "C" {
@@ -73,10 +73,10 @@ void AVFrameDeleter(AVFrame* ptr) {
     av_frame_free(&ptr);
 }
 
-Codec::Codec(GPU& gpu_, const Host1x::NvdecCommon::NvdecRegisters& regs)
-    : gpu(gpu_), state{regs}, h264_decoder(std::make_unique<Decoder::H264>(gpu)),
-      vp8_decoder(std::make_unique<Decoder::VP8>(gpu)),
-      vp9_decoder(std::make_unique<Decoder::VP9>(gpu)) {}
+Codec::Codec(Host1x::Host1x& host1x_, const Host1x::NvdecCommon::NvdecRegisters& regs)
+    : host1x(host1x_), state{regs}, h264_decoder(std::make_unique<Decoder::H264>(host1x)),
+      vp8_decoder(std::make_unique<Decoder::VP8>(host1x)),
+      vp9_decoder(std::make_unique<Decoder::VP9>(host1x)) {}
 
 Codec::~Codec() {
     if (!initialized) {

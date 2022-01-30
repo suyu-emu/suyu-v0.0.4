@@ -3,14 +3,13 @@
 
 #include <algorithm>
 #include "sync_manager.h"
-#include "video_core/gpu.h"
 #include "video_core/host1x/host1x.h"
 #include "video_core/host1x/syncpoint_manager.h"
 
 namespace Tegra {
 namespace Host1x {
 
-SyncptIncrManager::SyncptIncrManager(GPU& gpu_) : gpu(gpu_) {}
+SyncptIncrManager::SyncptIncrManager(Host1x& host1x_) : host1x(host1x_) {}
 SyncptIncrManager::~SyncptIncrManager() = default;
 
 void SyncptIncrManager::Increment(u32 id) {
@@ -40,7 +39,7 @@ void SyncptIncrManager::IncrementAllDone() {
         if (!increments[done_count].complete) {
             break;
         }
-        auto& syncpoint_manager = gpu.Host1x().GetSyncpointManager();
+        auto& syncpoint_manager = host1x.GetSyncpointManager();
         syncpoint_manager.IncrementGuest(increments[done_count].syncpt_id);
         syncpoint_manager.IncrementHost(increments[done_count].syncpt_id);
     }

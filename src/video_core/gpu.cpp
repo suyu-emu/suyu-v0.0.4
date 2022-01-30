@@ -83,19 +83,11 @@ struct GPU::Impl {
         UNIMPLEMENTED();
     }
 
-    void CreateHost1xChannel() {
-        if (host1x_channel) {
-            return;
-        }
-        host1x_channel = CreateChannel(0);
-        host1x_channel->memory_manager = std::make_shared<Tegra::MemoryManager>(system);
-        InitChannel(*host1x_channel);
-    }
-
     /// Binds a renderer to the GPU.
     void BindRenderer(std::unique_ptr<VideoCore::RendererBase> renderer_) {
         renderer = std::move(renderer_);
         rasterizer = renderer->ReadRasterizer();
+        host1x.MemoryManager().BindRasterizer(rasterizer);
     }
 
     /// Flush all current written commands into the host GPU for execution.
@@ -171,12 +163,6 @@ struct GPU::Impl {
     [[nodiscard]] const Engines::KeplerCompute& KeplerCompute() const {
         ASSERT(current_channel);
         return *current_channel->kepler_compute;
-    }
-
-    /// Returns a reference to the GPU memory manager.
-    [[nodiscard]] Tegra::MemoryManager& MemoryManager() {
-        CreateHost1xChannel();
-        return *host1x_channel->memory_manager;
     }
 
     /// Returns a reference to the GPU DMA pusher.
@@ -299,7 +285,7 @@ struct GPU::Impl {
         }
 
         if (!cdma_pushers.contains(id)) {
-            cdma_pushers.insert_or_assign(id, std::make_unique<Tegra::CDmaPusher>(gpu));
+            cdma_pushers.insert_or_assign(id, std::make_unique<Tegra::CDmaPusher>(host1x));
         }
 
         // SubmitCommandBuffer would make the nvdec operations async, this is not currently working
@@ -389,7 +375,6 @@ struct GPU::Impl {
     VideoCore::RasterizerInterface* rasterizer = nullptr;
     const bool use_nvdec;
 
-    std::shared_ptr<Control::ChannelState> host1x_channel;
     s32 new_channel_id{1};
     /// Shader build notifier
     std::unique_ptr<VideoCore::ShaderNotify> shader_notify;
@@ -508,14 +493,6 @@ Engines::KeplerCompute& GPU::KeplerCompute() {
 
 const Engines::KeplerCompute& GPU::KeplerCompute() const {
     return impl->KeplerCompute();
-}
-
-Tegra::MemoryManager& GPU::MemoryManager() {
-    return impl->MemoryManager();
-}
-
-const Tegra::MemoryManager& GPU::MemoryManager() const {
-    return impl->MemoryManager();
 }
 
 Tegra::DmaPusher& GPU::DmaPusher() {

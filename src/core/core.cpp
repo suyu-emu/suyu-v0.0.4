@@ -216,7 +216,7 @@ struct System::Impl {
 
         telemetry_session = std::make_unique<Core::TelemetrySession>();
 
-        host1x_core = std::make_unique<Tegra::Host1x::Host1x>();
+        host1x_core = std::make_unique<Tegra::Host1x::Host1x>(system);
         gpu_core = VideoCore::CreateGPU(emu_window, system);
         if (!gpu_core) {
             return SystemResultStatus::ErrorVideoCore;

@@ -10,10 +10,10 @@
 struct SwsContext;
 
 namespace Tegra {
-class GPU;
 
 namespace Host1x {
 
+class Host1x;
 class Nvdec;
 union VicConfig;
 
@@ -28,7 +28,7 @@ public:
         SetOutputSurfaceChromaUnusedOffset = 0x1ca
     };
 
-    explicit Vic(GPU& gpu, std::shared_ptr<Nvdec> nvdec_processor);
+    explicit Vic(Host1x& host1x, std::shared_ptr<Nvdec> nvdec_processor);
 
     ~Vic();
 
@@ -42,7 +42,7 @@ private:
 
     void WriteYUVFrame(const AVFrame* frame, const VicConfig& config);
 
-    GPU& gpu;
+    Host1x& host1x;
     std::shared_ptr<Tegra::Host1x::Nvdec> nvdec_processor;
 
     /// Avoid reallocation of the following buffers every frame, as their

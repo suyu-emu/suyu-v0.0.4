@@ -15,6 +15,14 @@
 #include "common/common_types.h"
 #include "core/hle/service/nvdrv/nvdata.h"
 
+namespace Tegra {
+
+namespace Host1x {
+class Host1x;
+} // namespace Host1x
+
+} // namespace Tegra
+
 namespace Service::Nvidia::NvCore {
 /**
  * @brief The nvmap core class holds the global state for nvmap and provides methods to manage
@@ -90,15 +98,17 @@ public:
     };
 
 private:
-    std::list<std::shared_ptr<Handle>> unmap_queue;
-    std::mutex unmap_queue_lock; //!< Protects access to `unmap_queue`
+    std::list<std::shared_ptr<Handle>> unmap_queue{};
+    std::mutex unmap_queue_lock{}; //!< Protects access to `unmap_queue`
 
-    std::unordered_map<Handle::Id, std::shared_ptr<Handle>> handles; //!< Main owning map of handles
+    std::unordered_map<Handle::Id, std::shared_ptr<Handle>>
+        handles{};           //!< Main owning map of handles
     std::mutex handles_lock; //!< Protects access to `handles`
 
     static constexpr u32 HandleIdIncrement{
         4}; //!< Each new handle ID is an increment of 4 from the previous
     std::atomic<u32> next_handle_id{HandleIdIncrement};
+    Tegra::Host1x::Host1x& host1x;
 
     void AddHandle(std::shared_ptr<Handle> handle);
 
@@ -125,7 +135,7 @@ public:
         bool was_uncached; //!< If the handle was allocated as uncached
     };
 
-    NvMap();
+    NvMap(Tegra::Host1x::Host1x& host1x);
 
     /**
      * @brief Creates an unallocated handle of the given size

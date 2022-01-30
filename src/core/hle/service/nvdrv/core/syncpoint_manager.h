@@ -10,14 +10,18 @@
 #include "core/hle/service/nvdrv/nvdata.h"
 
 namespace Tegra {
-class GPU;
-}
+
+namespace Host1x {
+class Host1x;
+} // namespace Host1x
+
+} // namespace Tegra
 
 namespace Service::Nvidia::NvCore {
 
 class SyncpointManager final {
 public:
-    explicit SyncpointManager(Tegra::GPU& gpu_);
+    explicit SyncpointManager(Tegra::Host1x::Host1x& host1x);
     ~SyncpointManager();
 
     /**
@@ -78,7 +82,7 @@ private:
 
     std::array<Syncpoint, MaxSyncPoints> syncpoints{};
 
-    Tegra::GPU& gpu;
+    Tegra::Host1x::Host1x& host1x;
 };
 
 } // namespace Service::Nvidia::NvCore

@@ -3,16 +3,16 @@
 
 #include "common/assert.h"
 #include "core/hle/service/nvdrv/core/syncpoint_manager.h"
-#include "video_core/gpu.h"
+#include "video_core/host1x/host1x.h"
 
 namespace Service::Nvidia::NvCore {
 
-SyncpointManager::SyncpointManager(Tegra::GPU& gpu_) : gpu{gpu_} {}
+SyncpointManager::SyncpointManager(Tegra::Host1x::Host1x& host1x_) : host1x{host1x_} {}
 
 SyncpointManager::~SyncpointManager() = default;
 
 u32 SyncpointManager::RefreshSyncpoint(u32 syncpoint_id) {
-    syncpoints[syncpoint_id].min = gpu.GetSyncpointValue(syncpoint_id);
+    syncpoints[syncpoint_id].min = host1x.GetSyncpointManager().GetHostSyncpointValue(syncpoint_id);
     return GetSyncpointMin(syncpoint_id);
 }
 

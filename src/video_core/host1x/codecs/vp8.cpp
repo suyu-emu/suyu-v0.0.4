@@ -3,18 +3,18 @@
 
 #include <vector>
 
-#include "video_core/gpu.h"
 #include "video_core/host1x/codecs/vp8.h"
+#include "video_core/host1x/host1x.h"
 #include "video_core/memory_manager.h"
 
 namespace Tegra::Decoder {
-VP8::VP8(GPU& gpu_) : gpu(gpu_) {}
+VP8::VP8(Host1x::Host1x& host1x_) : host1x{host1x_} {}
 
 VP8::~VP8() = default;
 
 const std::vector<u8>& VP8::ComposeFrame(const Host1x::NvdecCommon::NvdecRegisters& state) {
     VP8PictureInfo info;
-    gpu.MemoryManager().ReadBlock(state.picture_info_offset, &info, sizeof(VP8PictureInfo));
+    host1x.MemoryManager().ReadBlock(state.picture_info_offset, &info, sizeof(VP8PictureInfo));
 
     const bool is_key_frame = info.key_frame == 1u;
     const auto bitstream_size = static_cast<size_t>(info.vld_buffer_size);
@@ -45,7 +45,7 @@ const std::vector<u8>& VP8::ComposeFrame(const Host1x::NvdecCommon::NvdecRegiste
         frame[9] = static_cast<u8>(((info.frame_height >> 8) & 0x3f));
     }
     const u64 bitstream_offset = state.frame_bitstream_offset;
-    gpu.MemoryManager().ReadBlock(bitstream_offset, frame.data() + header_size, bitstream_size);
+    host1x.MemoryManager().ReadBlock(bitstream_offset, frame.data() + header_size, bitstream_size);
 
     return frame;
 }

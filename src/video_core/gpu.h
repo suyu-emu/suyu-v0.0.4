@@ -153,12 +153,6 @@ public:
     /// Returns a reference to the KeplerCompute GPU engine.
     [[nodiscard]] const Engines::KeplerCompute& KeplerCompute() const;
 
-    /// Returns a reference to the GPU memory manager.
-    [[nodiscard]] Tegra::MemoryManager& MemoryManager();
-
-    /// Returns a const reference to the GPU memory manager.
-    [[nodiscard]] const Tegra::MemoryManager& MemoryManager() const;
-
     /// Returns a reference to the GPU DMA pusher.
     [[nodiscard]] Tegra::DmaPusher& DmaPusher();
 

@@ -6,18 +6,18 @@
 #include "core/hle/service/nvdrv/core/container.h"
 #include "core/hle/service/nvdrv/core/nvmap.h"
 #include "core/hle/service/nvdrv/core/syncpoint_manager.h"
-#include "video_core/gpu.h"
+#include "video_core/host1x/host1x.h"
 
 namespace Service::Nvidia::NvCore {
 
 struct ContainerImpl {
-    ContainerImpl(Tegra::GPU& gpu_) : file{}, manager{gpu_} {}
+    ContainerImpl(Tegra::Host1x::Host1x& host1x_) : file{host1x_}, manager{host1x_} {}
     NvMap file;
     SyncpointManager manager;
 };
 
-Container::Container(Tegra::GPU& gpu_) {
-    impl = std::make_unique<ContainerImpl>(gpu_);
+Container::Container(Tegra::Host1x::Host1x& host1x_) {
+    impl = std::make_unique<ContainerImpl>(host1x_);
 }
 
 Container::~Container() = default;

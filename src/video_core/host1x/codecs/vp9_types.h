@@ -9,7 +9,6 @@
 #include "common/common_types.h"
 
 namespace Tegra {
-class GPU;
 
 namespace Decoder {
 struct Vp9FrameDimensions {

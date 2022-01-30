@@ -9,9 +9,9 @@
 
 namespace Tegra {
 
-class GPU;
-
 namespace Host1x {
+
+class Host1x;
 
 struct SyncptIncr {
     u32 id;
@@ -25,7 +25,7 @@ struct SyncptIncr {
 
 class SyncptIncrManager {
 public:
-    explicit SyncptIncrManager(GPU& gpu);
+    explicit SyncptIncrManager(Host1x& host1x);
     ~SyncptIncrManager();
 
     /// Add syncpoint id and increment all
@@ -45,7 +45,7 @@ private:
     std::mutex increment_lock;
     u32 current_id{};
 
-    GPU& gpu;
+    Host1x& host1x;
 };
 
 } // namespace Host1x

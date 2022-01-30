@@ -4,8 +4,8 @@
 #include <algorithm> // for std::copy
 #include <numeric>
 #include "common/assert.h"
-#include "video_core/gpu.h"
 #include "video_core/host1x/codecs/vp9.h"
+#include "video_core/host1x/host1x.h"
 #include "video_core/memory_manager.h"
 
 namespace Tegra::Decoder {
@@ -236,7 +236,7 @@ constexpr std::array<u8, 254> map_lut{
 }
 } // Anonymous namespace
 
-VP9::VP9(GPU& gpu_) : gpu{gpu_} {}
+VP9::VP9(Host1x::Host1x& host1x_) : host1x{host1x_} {}
 
 VP9::~VP9() = default;
 
@@ -357,7 +357,7 @@ void VP9::WriteMvProbabilityUpdate(VpxRangeEncoder& writer, u8 new_prob, u8 old_
 
 Vp9PictureInfo VP9::GetVp9PictureInfo(const Host1x::NvdecCommon::NvdecRegisters& state) {
     PictureInfo picture_info;
-    gpu.MemoryManager().ReadBlock(state.picture_info_offset, &picture_info, sizeof(PictureInfo));
+    host1x.MemoryManager().ReadBlock(state.picture_info_offset, &picture_info, sizeof(PictureInfo));
     Vp9PictureInfo vp9_info = picture_info.Convert();
 
     InsertEntropy(state.vp9_entropy_probs_offset, vp9_info.entropy);
@@ -372,17 +372,17 @@ Vp9PictureInfo VP9::GetVp9PictureInfo(const Host1x::NvdecCommon::NvdecRegisters&
 
 void VP9::InsertEntropy(u64 offset, Vp9EntropyProbs& dst) {
     EntropyProbs entropy;
-    gpu.MemoryManager().ReadBlock(offset, &entropy, sizeof(EntropyProbs));
+    host1x.MemoryManager().ReadBlock(offset, &entropy, sizeof(EntropyProbs));
     entropy.Convert(dst);
 }
 
 Vp9FrameContainer VP9::GetCurrentFrame(const Host1x::NvdecCommon::NvdecRegisters& state) {
     Vp9FrameContainer current_frame{};
     {
-        gpu.SyncGuestHost();
+        // gpu.SyncGuestHost(); epic, why?
         current_frame.info = GetVp9PictureInfo(state);
         current_frame.bit_stream.resize(current_frame.info.bitstream_size);
-        gpu.MemoryManager().ReadBlock(state.frame_bitstream_offset, current_frame.bit_stream.data(),
+        host1x.MemoryManager().ReadBlock(state.frame_bitstream_offset, current_frame.bit_stream.data(),
                                       current_frame.info.bitstream_size);
     }
     if (!next_frame.bit_stream.empty()) {
