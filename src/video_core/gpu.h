@@ -171,15 +171,6 @@ public:
     /// Returns a const reference to the shader notifier.
     [[nodiscard]] const VideoCore::ShaderNotify& ShaderNotify() const;
 
-    /// Allows the CPU/NvFlinger to wait on the GPU before presenting a frame.
-    void WaitFence(u32 syncpoint_id, u32 value);
-
-    void IncrementSyncPoint(u32 syncpoint_id);
-
-    [[nodiscard]] u32 GetSyncpointValue(u32 syncpoint_id) const;
-
-    void RegisterSyncptInterrupt(u32 syncpoint_id, u32 value);
-
     [[nodiscard]] u64 GetTicks() const;
 
     [[nodiscard]] bool IsAsync() const;

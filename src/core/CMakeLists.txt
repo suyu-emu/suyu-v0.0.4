@@ -138,8 +138,6 @@ add_library(core STATIC
     frontend/emu_window.h
     frontend/framebuffer_layout.cpp
     frontend/framebuffer_layout.h
-    hardware_interrupt_manager.cpp
-    hardware_interrupt_manager.h
     hid/emulated_console.cpp
     hid/emulated_console.h
     hid/emulated_controller.cpp

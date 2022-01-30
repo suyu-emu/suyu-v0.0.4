@@ -14,7 +14,6 @@
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/frontend/emu_window.h"
-#include "core/hardware_interrupt_manager.h"
 #include "core/hle/service/nvdrv/nvdata.h"
 #include "core/perf_stats.h"
 #include "video_core/cdma_pusher.h"
@@ -35,8 +34,6 @@
 #include "video_core/shader_notify.h"
 
 namespace Tegra {
-
-MICROPROFILE_DEFINE(GPU_wait, "GPU", "Wait for the GPU", MP_RGB(128, 128, 192));
 
 struct GPU::Impl {
     explicit Impl(GPU& gpu_, Core::System& system_, bool is_async_, bool use_nvdec_)
@@ -197,30 +194,6 @@ struct GPU::Impl {
         return *shader_notify;
     }
 
-    /// Allows the CPU/NvFlinger to wait on the GPU before presenting a frame.
-    void WaitFence(u32 syncpoint_id, u32 value) {
-        if (syncpoint_id == UINT32_MAX) {
-            return;
-        }
-        MICROPROFILE_SCOPE(GPU_wait);
-        host1x.GetSyncpointManager().WaitHost(syncpoint_id, value);
-    }
-
-    void IncrementSyncPoint(u32 syncpoint_id) {
-        host1x.GetSyncpointManager().IncrementHost(syncpoint_id);
-    }
-
-    [[nodiscard]] u32 GetSyncpointValue(u32 syncpoint_id) const {
-        return host1x.GetSyncpointManager().GetHostSyncpointValue(syncpoint_id);
-    }
-
-    void RegisterSyncptInterrupt(u32 syncpoint_id, u32 value) {
-        auto& syncpoint_manager = host1x.GetSyncpointManager();
-        syncpoint_manager.RegisterHostAction(syncpoint_id, value, [this, syncpoint_id, value]() {
-            TriggerCpuInterrupt(syncpoint_id, value);
-        });
-    }
-
     [[nodiscard]] u64 GetTicks() const {
         // This values were reversed engineered by fincs from NVN
         // The gpu clock is reported in units of 385/625 nanoseconds
@@ -320,11 +293,6 @@ struct GPU::Impl {
     /// Notify rasterizer that any caches of the specified region should be flushed and invalidated
     void FlushAndInvalidateRegion(VAddr addr, u64 size) {
         gpu_thread.FlushAndInvalidateRegion(addr, size);
-    }
-
-    void TriggerCpuInterrupt(u32 syncpoint_id, u32 value) const {
-        auto& interrupt_manager = system.InterruptManager();
-        interrupt_manager.GPUInterruptSyncpt(syncpoint_id, value);
     }
 
     void RequestSwapBuffers(const Tegra::FramebufferConfig* framebuffer,
@@ -522,22 +490,6 @@ const VideoCore::ShaderNotify& GPU::ShaderNotify() const {
 void GPU::RequestSwapBuffers(const Tegra::FramebufferConfig* framebuffer,
                              Service::Nvidia::NvFence* fences, size_t num_fences) {
     impl->RequestSwapBuffers(framebuffer, fences, num_fences);
-}
-
-void GPU::WaitFence(u32 syncpoint_id, u32 value) {
-    impl->WaitFence(syncpoint_id, value);
-}
-
-void GPU::IncrementSyncPoint(u32 syncpoint_id) {
-    impl->IncrementSyncPoint(syncpoint_id);
-}
-
-u32 GPU::GetSyncpointValue(u32 syncpoint_id) const {
-    return impl->GetSyncpointValue(syncpoint_id);
-}
-
-void GPU::RegisterSyncptInterrupt(u32 syncpoint_id, u32 value) {
-    impl->RegisterSyncptInterrupt(syncpoint_id, value);
 }
 
 u64 GPU::GetTicks() const {

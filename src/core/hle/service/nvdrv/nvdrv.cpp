@@ -33,23 +33,6 @@ EventInterface::EventInterface(Module& module_) : module{module_}, guard{}, on_s
 
 EventInterface::~EventInterface() = default;
 
-void EventInterface::RegisterForSignal(Devices::nvhost_ctrl* device) {
-    std::unique_lock<std::mutex> lk(guard);
-    on_signal.push_back(device);
-}
-
-void EventInterface::UnregisterForSignal(Devices::nvhost_ctrl* device) {
-    std::unique_lock<std::mutex> lk(guard);
-    on_signal.remove(device);
-}
-
-void EventInterface::Signal(u32 syncpoint_id, u32 value) {
-    std::unique_lock<std::mutex> lk(guard);
-    for (auto* device : on_signal) {
-        device->SignalNvEvent(syncpoint_id, value);
-    }
-}
-
 Kernel::KEvent* EventInterface::CreateEvent(std::string name) {
     Kernel::KEvent* new_event = module.service_context.CreateEvent(std::move(name));
     return new_event;
@@ -219,10 +202,6 @@ NvResult Module::Close(DeviceFD fd) {
     open_files.erase(itr);
 
     return NvResult::Success;
-}
-
-void Module::SignalSyncpt(const u32 syncpoint_id, const u32 value) {
-    events_interface.Signal(syncpoint_id, value);
 }
 
 NvResult Module::QueryEvent(DeviceFD fd, u32 event_id, Kernel::KEvent*& event) {

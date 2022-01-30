@@ -14,6 +14,7 @@
 #include "video_core/control/channel_state.h"
 #include "video_core/engines/puller.h"
 #include "video_core/gpu.h"
+#include "video_core/host1x/host1x.h"
 
 namespace Service::Nvidia::Devices {
 namespace {
@@ -31,7 +32,8 @@ nvhost_gpu::nvhost_gpu(Core::System& system_, EventInterface& events_interface_,
       syncpoint_manager{core_.GetSyncpointManager()}, nvmap{core.GetNvMapFile()},
       channel_state{system.GPU().AllocateChannel()} {
     channel_fence.id = syncpoint_manager.AllocateSyncpoint();
-    channel_fence.value = system_.GPU().GetSyncpointValue(channel_fence.id);
+    channel_fence.value =
+        system_.Host1x().GetSyncpointManager().GetGuestSyncpointValue(channel_fence.id);
     sm_exception_breakpoint_int_report_event =
         events_interface.CreateEvent("GpuChannelSMExceptionBreakpointInt");
     sm_exception_breakpoint_pause_report_event =
@@ -189,7 +191,8 @@ NvResult nvhost_gpu::AllocGPFIFOEx2(const std::vector<u8>& input, std::vector<u8
     }
 
     system.GPU().InitChannel(*channel_state);
-    channel_fence.value = system.GPU().GetSyncpointValue(channel_fence.id);
+    channel_fence.value =
+        system.Host1x().GetSyncpointManager().GetGuestSyncpointValue(channel_fence.id);
 
     params.fence_out = channel_fence;
 

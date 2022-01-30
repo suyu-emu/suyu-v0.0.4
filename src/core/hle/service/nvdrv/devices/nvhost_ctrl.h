@@ -56,8 +56,6 @@ public:
     };
     static_assert(sizeof(SyncpointEventValue) == sizeof(u32));
 
-    void SignalNvEvent(u32 syncpoint_id, u32 value);
-
 private:
     struct InternalEvent {
         // Mask representing registered events

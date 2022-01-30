@@ -91,10 +91,6 @@ namespace Core::Timing {
 class CoreTiming;
 }
 
-namespace Core::Hardware {
-class InterruptManager;
-}
-
 namespace Core::HID {
 class HIDCore;
 }
@@ -304,12 +300,6 @@ public:
 
     /// Provides a constant reference to the core timing instance.
     [[nodiscard]] const Timing::CoreTiming& CoreTiming() const;
-
-    /// Provides a reference to the interrupt manager instance.
-    [[nodiscard]] Core::Hardware::InterruptManager& InterruptManager();
-
-    /// Provides a constant reference to the interrupt manager instance.
-    [[nodiscard]] const Core::Hardware::InterruptManager& InterruptManager() const;
 
     /// Provides a reference to the kernel instance.
     [[nodiscard]] Kernel::KernelCore& Kernel();

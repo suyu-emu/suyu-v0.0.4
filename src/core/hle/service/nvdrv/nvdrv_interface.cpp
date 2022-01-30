@@ -15,10 +15,6 @@
 
 namespace Service::Nvidia {
 
-void NVDRV::SignalGPUInterruptSyncpt(const u32 syncpoint_id, const u32 value) {
-    nvdrv->SignalSyncpt(syncpoint_id, value);
-}
-
 void NVDRV::Open(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_NVDRV, "called");
     IPC::ResponseBuilder rb{ctx, 4};

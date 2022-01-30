@@ -49,11 +49,6 @@ public:
     EventInterface(Module& module_);
     ~EventInterface();
 
-    void RegisterForSignal(Devices::nvhost_ctrl*);
-    void UnregisterForSignal(Devices::nvhost_ctrl*);
-
-    void Signal(u32 syncpoint_id, u32 value);
-
     Kernel::KEvent* CreateEvent(std::string name);
 
     void FreeEvent(Kernel::KEvent* event);
@@ -95,8 +90,6 @@ public:
 
     /// Closes a device file descriptor and returns operation success.
     NvResult Close(DeviceFD fd);
-
-    void SignalSyncpt(const u32 syncpoint_id, const u32 value);
 
     NvResult QueryEvent(DeviceFD fd, u32 event_id, Kernel::KEvent*& event);
 

@@ -458,10 +458,6 @@ void RasterizerVulkan::SignalSemaphore(GPUVAddr addr, u32 value) {
 }
 
 void RasterizerVulkan::SignalSyncPoint(u32 value) {
-    if (!gpu.IsAsync()) {
-        gpu.IncrementSyncPoint(value);
-        return;
-    }
     fence_manager.SignalSyncPoint(value);
 }
 

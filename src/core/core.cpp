@@ -27,7 +27,6 @@
 #include "core/file_sys/savedata_factory.h"
 #include "core/file_sys/vfs_concat.h"
 #include "core/file_sys/vfs_real.h"
-#include "core/hardware_interrupt_manager.h"
 #include "core/hid/hid_core.h"
 #include "core/hle/kernel/k_memory_manager.h"
 #include "core/hle/kernel/k_process.h"
@@ -226,7 +225,6 @@ struct System::Impl {
 
         service_manager = std::make_shared<Service::SM::ServiceManager>(kernel);
         services = std::make_unique<Service::Services>(service_manager, system);
-        interrupt_manager = std::make_unique<Hardware::InterruptManager>(system);
 
         // Initialize time manager, which must happen after kernel is created
         time_manager.Initialize();
@@ -454,7 +452,6 @@ struct System::Impl {
     std::unique_ptr<Loader::AppLoader> app_loader;
     std::unique_ptr<Tegra::GPU> gpu_core;
     std::unique_ptr<Tegra::Host1x::Host1x> host1x_core;
-    std::unique_ptr<Hardware::InterruptManager> interrupt_manager;
     std::unique_ptr<Core::DeviceMemory> device_memory;
     std::unique_ptr<AudioCore::AudioCore> audio_core;
     Core::Memory::Memory memory;
@@ -678,14 +675,6 @@ Tegra::Host1x::Host1x& System::Host1x() {
 
 const Tegra::Host1x::Host1x& System::Host1x() const {
     return *impl->host1x_core;
-}
-
-Core::Hardware::InterruptManager& System::InterruptManager() {
-    return *impl->interrupt_manager;
-}
-
-const Core::Hardware::InterruptManager& System::InterruptManager() const {
-    return *impl->interrupt_manager;
 }
 
 VideoCore::RendererBase& System::Renderer() {

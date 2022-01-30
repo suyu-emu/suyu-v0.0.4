@@ -77,12 +77,9 @@ NvResult nvhost_ctrl::Ioctl3(DeviceFD fd, Ioctl command, const std::vector<u8>& 
     return NvResult::NotImplemented;
 }
 
-void nvhost_ctrl::OnOpen(DeviceFD fd) {
-    events_interface.RegisterForSignal(this);
-}
-void nvhost_ctrl::OnClose(DeviceFD fd) {
-    events_interface.UnregisterForSignal(this);
-}
+void nvhost_ctrl::OnOpen(DeviceFD fd) {}
+
+void nvhost_ctrl::OnClose(DeviceFD fd) {}
 
 NvResult nvhost_ctrl::NvOsGetConfigU32(const std::vector<u8>& input, std::vector<u8>& output) {
     IocGetConfigParams params{};
@@ -393,23 +390,6 @@ u32 nvhost_ctrl::FindFreeNvEvent(u32 syncpoint_id) {
 
     LOG_CRITICAL(Service_NVDRV, "Failed to allocate an event");
     return 0;
-}
-
-void nvhost_ctrl::SignalNvEvent(u32 syncpoint_id, u32 value) {
-    u64 signal_mask = events_mask;
-    while (signal_mask != 0) {
-        const u64 event_id = std::countr_zero(signal_mask);
-        signal_mask &= ~(1ULL << event_id);
-        auto& event = events[event_id];
-        if (event.assigned_syncpt != syncpoint_id || event.assigned_value != value) {
-            continue;
-        }
-        if (event.status.exchange(EventState::Signalling, std::memory_order_acq_rel) ==
-            EventState::Waiting) {
-            event.kevent->GetWritableEvent().Signal();
-        }
-        event.status.store(EventState::Signalled, std::memory_order_release);
-    }
 }
 
 } // namespace Service::Nvidia::Devices

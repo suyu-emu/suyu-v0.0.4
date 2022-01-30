@@ -396,10 +396,6 @@ void RasterizerOpenGL::SignalSemaphore(GPUVAddr addr, u32 value) {
 }
 
 void RasterizerOpenGL::SignalSyncPoint(u32 value) {
-    if (!gpu.IsAsync()) {
-        gpu.IncrementSyncPoint(value);
-        return;
-    }
     fence_manager.SignalSyncPoint(value);
 }
 
