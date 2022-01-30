@@ -37,24 +37,32 @@ enum class SubmissionMode : u32 {
 // Note that, traditionally, methods are treated as 4-byte addressable locations, and hence
 // their numbers are written down multiplied by 4 in Docs. Here we are not multiply by 4.
 // So the values you see in docs might be multiplied by 4.
+// Register documentation:
+// https://github.com/NVIDIA/open-gpu-doc/blob/ab27fc22db5de0d02a4cabe08e555663b62db4d4/classes/host/cla26f.h
+//
+// Register Description (approx):
+// https://github.com/NVIDIA/open-gpu-doc/blob/ab27fc22db5de0d02a4cabe08e555663b62db4d4/manuals/volta/gv100/dev_pbdma.ref.txt
 enum class BufferMethods : u32 {
     BindObject = 0x0,
+    Illegal = 0x1,
     Nop = 0x2,
     SemaphoreAddressHigh = 0x4,
     SemaphoreAddressLow = 0x5,
-    SemaphoreSequence = 0x6,
-    SemaphoreTrigger = 0x7,
-    NotifyIntr = 0x8,
+    SemaphoreSequencePayload = 0x6,
+    SemaphoreOperation = 0x7,
+    NonStallInterrupt = 0x8,
     WrcacheFlush = 0x9,
-    Unk28 = 0xA,
-    UnkCacheFlush = 0xB,
+    MemOpA = 0xA,
+    MemOpB = 0xB,
+    MemOpC = 0xC,
+    MemOpD = 0xD,
     RefCnt = 0x14,
     SemaphoreAcquire = 0x1A,
     SemaphoreRelease = 0x1B,
-    FenceValue = 0x1C,
-    FenceAction = 0x1D,
-    WaitForInterrupt = 0x1E,
-    Unk7c = 0x1F,
+    SyncpointPayload = 0x1C,
+    SyncpointOperation = 0x1D,
+    WaitForIdle = 0x1E,
+    CRCCheck = 0x1F,
     Yield = 0x20,
     NonPullerMethods = 0x40,
 };

@@ -8,8 +8,8 @@
 
 #include "common/common_types.h"
 #include "common/stream.h"
-#include "video_core/command_classes/codecs/vp9_types.h"
-#include "video_core/command_classes/nvdec_common.h"
+#include "video_core/host1x/codecs/vp9_types.h"
+#include "video_core/host1x/nvdec_common.h"
 
 namespace Tegra {
 class GPU;
@@ -117,7 +117,7 @@ public:
 
     /// Composes the VP9 frame from the GPU state information.
     /// Based on the official VP9 spec documentation
-    void ComposeFrame(const NvdecCommon::NvdecRegisters& state);
+    void ComposeFrame(const Host1x::NvdecCommon::NvdecRegisters& state);
 
     /// Returns true if the most recent frame was a hidden frame.
     [[nodiscard]] bool WasFrameHidden() const {
@@ -162,13 +162,15 @@ private:
     void WriteMvProbabilityUpdate(VpxRangeEncoder& writer, u8 new_prob, u8 old_prob);
 
     /// Returns VP9 information from NVDEC provided offset and size
-    [[nodiscard]] Vp9PictureInfo GetVp9PictureInfo(const NvdecCommon::NvdecRegisters& state);
+    [[nodiscard]] Vp9PictureInfo GetVp9PictureInfo(
+        const Host1x::NvdecCommon::NvdecRegisters& state);
 
     /// Read and convert NVDEC provided entropy probs to Vp9EntropyProbs struct
     void InsertEntropy(u64 offset, Vp9EntropyProbs& dst);
 
     /// Returns frame to be decoded after buffering
-    [[nodiscard]] Vp9FrameContainer GetCurrentFrame(const NvdecCommon::NvdecRegisters& state);
+    [[nodiscard]] Vp9FrameContainer GetCurrentFrame(
+        const Host1x::NvdecCommon::NvdecRegisters& state);
 
     /// Use NVDEC providied information to compose the headers for the current frame
     [[nodiscard]] std::vector<u8> ComposeCompressedHeader();

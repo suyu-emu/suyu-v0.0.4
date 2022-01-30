@@ -11,6 +11,9 @@ struct SwsContext;
 
 namespace Tegra {
 class GPU;
+
+namespace Host1x {
+
 class Nvdec;
 union VicConfig;
 
@@ -40,7 +43,7 @@ private:
     void WriteYUVFrame(const AVFrame* frame, const VicConfig& config);
 
     GPU& gpu;
-    std::shared_ptr<Tegra::Nvdec> nvdec_processor;
+    std::shared_ptr<Tegra::Host1x::Nvdec> nvdec_processor;
 
     /// Avoid reallocation of the following buffers every frame, as their
     /// size does not change during a stream
@@ -57,5 +60,7 @@ private:
     s32 scaler_width{};
     s32 scaler_height{};
 };
+
+} // namespace Host1x
 
 } // namespace Tegra

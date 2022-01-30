@@ -18,14 +18,17 @@ extern "C" {
 #include "common/bit_field.h"
 #include "common/logging/log.h"
 
-#include "video_core/command_classes/nvdec.h"
-#include "video_core/command_classes/vic.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/gpu.h"
+#include "video_core/host1x/nvdec.h"
+#include "video_core/host1x/vic.h"
 #include "video_core/memory_manager.h"
 #include "video_core/textures/decoders.h"
 
 namespace Tegra {
+
+namespace Host1x {
+
 namespace {
 enum class VideoPixelFormat : u64_le {
     RGBA8 = 0x1f,
@@ -234,5 +237,7 @@ void Vic::WriteYUVFrame(const AVFrame* frame, const VicConfig& config) {
     gpu.MemoryManager().WriteBlock(output_surface_chroma_address, chroma_buffer.data(),
                                    chroma_buffer.size());
 }
+
+} // namespace Host1x
 
 } // namespace Tegra

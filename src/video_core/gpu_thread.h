@@ -135,6 +135,8 @@ public:
 
     void OnCommandListEnd();
 
+    void TickGPU();
+
 private:
     /// Pushes a command to be executed by the GPU thread
     u64 PushCommand(CommandData&& command_data, bool block = false);

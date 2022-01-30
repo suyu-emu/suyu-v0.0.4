@@ -11,6 +11,8 @@
 #include "common/common_types.h"
 #include "video_core/delayed_destruction_ring.h"
 #include "video_core/gpu.h"
+#include "video_core/host1x/host1x.h"
+#include "video_core/host1x/syncpoint_manager.h"
 #include "video_core/rasterizer_interface.h"
 
 namespace VideoCommon {
@@ -72,6 +74,7 @@ public:
     }
 
     void SignalSyncPoint(u32 value) {
+        syncpoint_manager.IncrementGuest(value);
         TryReleasePendingFences();
         const bool should_flush = ShouldFlush();
         CommitAsyncFlushes();
@@ -96,7 +99,7 @@ public:
                 auto payload = current_fence->GetPayload();
                 std::memcpy(address, &payload, sizeof(payload));
             } else {
-                gpu.IncrementSyncPoint(current_fence->GetPayload());
+                syncpoint_manager.IncrementHost(current_fence->GetPayload());
             }
             PopFence();
         }
@@ -106,8 +109,8 @@ protected:
     explicit FenceManager(VideoCore::RasterizerInterface& rasterizer_, Tegra::GPU& gpu_,
                           TTextureCache& texture_cache_, TTBufferCache& buffer_cache_,
                           TQueryCache& query_cache_)
-        : rasterizer{rasterizer_}, gpu{gpu_}, texture_cache{texture_cache_},
-          buffer_cache{buffer_cache_}, query_cache{query_cache_} {}
+        : rasterizer{rasterizer_}, gpu{gpu_}, syncpoint_manager{gpu.Host1x().GetSyncpointManager()},
+          texture_cache{texture_cache_}, buffer_cache{buffer_cache_}, query_cache{query_cache_} {}
 
     virtual ~FenceManager() = default;
 
@@ -125,6 +128,7 @@ protected:
 
     VideoCore::RasterizerInterface& rasterizer;
     Tegra::GPU& gpu;
+    Tegra::Host1x::SyncpointManager& syncpoint_manager;
     TTextureCache& texture_cache;
     TTBufferCache& buffer_cache;
     TQueryCache& query_cache;
@@ -142,7 +146,7 @@ private:
                 const auto payload = current_fence->GetPayload();
                 std::memcpy(address, &payload, sizeof(payload));
             } else {
-                gpu.IncrementSyncPoint(current_fence->GetPayload());
+                syncpoint_manager.IncrementHost(current_fence->GetPayload());
             }
             PopFence();
         }

@@ -28,6 +28,8 @@
 #include "video_core/engines/maxwell_dma.h"
 #include "video_core/gpu.h"
 #include "video_core/gpu_thread.h"
+#include "video_core/host1x/host1x.h"
+#include "video_core/host1x/syncpoint_manager.h"
 #include "video_core/memory_manager.h"
 #include "video_core/renderer_base.h"
 #include "video_core/shader_notify.h"
@@ -38,7 +40,7 @@ MICROPROFILE_DEFINE(GPU_wait, "GPU", "Wait for the GPU", MP_RGB(128, 128, 192));
 
 struct GPU::Impl {
     explicit Impl(GPU& gpu_, Core::System& system_, bool is_async_, bool use_nvdec_)
-        : gpu{gpu_}, system{system_}, use_nvdec{use_nvdec_},
+        : gpu{gpu_}, system{system_}, host1x{system.Host1x()}, use_nvdec{use_nvdec_},
           shader_notify{std::make_unique<VideoCore::ShaderNotify>()}, is_async{is_async_},
           gpu_thread{system_, is_async_}, scheduler{std::make_unique<Control::Scheduler>(gpu)} {}
 
@@ -115,31 +117,35 @@ struct GPU::Impl {
     }
 
     /// Request a host GPU memory flush from the CPU.
-    [[nodiscard]] u64 RequestFlush(VAddr addr, std::size_t size) {
-        std::unique_lock lck{flush_request_mutex};
-        const u64 fence = ++last_flush_fence;
-        flush_requests.emplace_back(fence, addr, size);
+    template <typename Func>
+    [[nodiscard]] u64 RequestSyncOperation(Func&& action) {
+        std::unique_lock lck{sync_request_mutex};
+        const u64 fence = ++last_sync_fence;
+        sync_requests.emplace_back(action);
         return fence;
     }
 
     /// Obtains current flush request fence id.
-    [[nodiscard]] u64 CurrentFlushRequestFence() const {
-        return current_flush_fence.load(std::memory_order_relaxed);
+    [[nodiscard]] u64 CurrentSyncRequestFence() const {
+        return current_sync_fence.load(std::memory_order_relaxed);
+    }
+
+    void WaitForSyncOperation(const u64 fence) {
+        std::unique_lock lck{sync_request_mutex};
+        sync_request_cv.wait(lck, [this, fence] { return CurrentSyncRequestFence() >= fence; });
     }
 
     /// Tick pending requests within the GPU.
     void TickWork() {
-        std::unique_lock lck{flush_request_mutex};
-        while (!flush_requests.empty()) {
-            auto& request = flush_requests.front();
-            const u64 fence = request.fence;
-            const VAddr addr = request.addr;
-            const std::size_t size = request.size;
-            flush_requests.pop_front();
-            flush_request_mutex.unlock();
-            rasterizer->FlushRegion(addr, size);
-            current_flush_fence.store(fence);
-            flush_request_mutex.lock();
+        std::unique_lock lck{sync_request_mutex};
+        while (!sync_requests.empty()) {
+            auto request = std::move(sync_requests.front());
+            sync_requests.pop_front();
+            sync_request_mutex.unlock();
+            request();
+            current_sync_fence.fetch_add(1, std::memory_order_release);
+            sync_request_mutex.lock();
+            sync_request_cv.notify_all();
         }
     }
 
@@ -207,78 +213,26 @@ struct GPU::Impl {
 
     /// Allows the CPU/NvFlinger to wait on the GPU before presenting a frame.
     void WaitFence(u32 syncpoint_id, u32 value) {
-        // Synced GPU, is always in sync
-        if (!is_async) {
-            return;
-        }
         if (syncpoint_id == UINT32_MAX) {
-            // TODO: Research what this does.
-            LOG_ERROR(HW_GPU, "Waiting for syncpoint -1 not implemented");
             return;
         }
         MICROPROFILE_SCOPE(GPU_wait);
-        std::unique_lock lock{sync_mutex};
-        sync_cv.wait(lock, [=, this] {
-            if (shutting_down.load(std::memory_order_relaxed)) {
-                // We're shutting down, ensure no threads continue to wait for the next syncpoint
-                return true;
-            }
-            return syncpoints.at(syncpoint_id).load() >= value;
-        });
+        host1x.GetSyncpointManager().WaitHost(syncpoint_id, value);
     }
 
     void IncrementSyncPoint(u32 syncpoint_id) {
-        auto& syncpoint = syncpoints.at(syncpoint_id);
-        syncpoint++;
-        std::scoped_lock lock{sync_mutex};
-        sync_cv.notify_all();
-        auto& interrupt = syncpt_interrupts.at(syncpoint_id);
-        if (!interrupt.empty()) {
-            u32 value = syncpoint.load();
-            auto it = interrupt.begin();
-            while (it != interrupt.end()) {
-                if (value >= *it) {
-                    TriggerCpuInterrupt(syncpoint_id, *it);
-                    it = interrupt.erase(it);
-                    continue;
-                }
-                it++;
-            }
-        }
+        host1x.GetSyncpointManager().IncrementHost(syncpoint_id);
     }
 
     [[nodiscard]] u32 GetSyncpointValue(u32 syncpoint_id) const {
-        return syncpoints.at(syncpoint_id).load();
+        return host1x.GetSyncpointManager().GetHostSyncpointValue(syncpoint_id);
     }
 
     void RegisterSyncptInterrupt(u32 syncpoint_id, u32 value) {
-        std::scoped_lock lock{sync_mutex};
-        u32 current_value = syncpoints.at(syncpoint_id).load();
-        if ((static_cast<s32>(current_value) - static_cast<s32>(value)) >= 0) {
+        auto& syncpoint_manager = host1x.GetSyncpointManager();
+        syncpoint_manager.RegisterHostAction(syncpoint_id, value, [this, syncpoint_id, value]() {
             TriggerCpuInterrupt(syncpoint_id, value);
-            return;
-        }
-        auto& interrupt = syncpt_interrupts.at(syncpoint_id);
-        bool contains = std::any_of(interrupt.begin(), interrupt.end(),
-                                    [value](u32 in_value) { return in_value == value; });
-        if (contains) {
-            return;
-        }
-        interrupt.emplace_back(value);
-    }
-
-    [[nodiscard]] bool CancelSyncptInterrupt(u32 syncpoint_id, u32 value) {
-        std::scoped_lock lock{sync_mutex};
-        auto& interrupt = syncpt_interrupts.at(syncpoint_id);
-        const auto iter =
-            std::find_if(interrupt.begin(), interrupt.end(),
-                         [value](u32 interrupt_value) { return value == interrupt_value; });
-
-        if (iter == interrupt.end()) {
-            return false;
-        }
-        interrupt.erase(iter);
-        return true;
+        });
     }
 
     [[nodiscard]] u64 GetTicks() const {
@@ -387,8 +341,48 @@ struct GPU::Impl {
         interrupt_manager.GPUInterruptSyncpt(syncpoint_id, value);
     }
 
+    void RequestSwapBuffers(const Tegra::FramebufferConfig* framebuffer,
+                            Service::Nvidia::NvFence* fences, size_t num_fences) {
+        size_t current_request_counter{};
+        {
+            std::unique_lock<std::mutex> lk(request_swap_mutex);
+            if (free_swap_counters.empty()) {
+                current_request_counter = request_swap_counters.size();
+                request_swap_counters.emplace_back(num_fences);
+            } else {
+                current_request_counter = free_swap_counters.front();
+                request_swap_counters[current_request_counter] = num_fences;
+                free_swap_counters.pop_front();
+            }
+        }
+        const auto wait_fence =
+            RequestSyncOperation([this, current_request_counter, framebuffer, fences, num_fences] {
+                auto& syncpoint_manager = host1x.GetSyncpointManager();
+                if (num_fences == 0) {
+                    renderer->SwapBuffers(framebuffer);
+                }
+                const auto executer = [this, current_request_counter,
+                                       framebuffer_copy = *framebuffer]() {
+                    {
+                        std::unique_lock<std::mutex> lk(request_swap_mutex);
+                        if (--request_swap_counters[current_request_counter] != 0) {
+                            return;
+                        }
+                        free_swap_counters.push_back(current_request_counter);
+                    }
+                    renderer->SwapBuffers(&framebuffer_copy);
+                };
+                for (size_t i = 0; i < num_fences; i++) {
+                    syncpoint_manager.RegisterGuestAction(fences[i].id, fences[i].value, executer);
+                }
+            });
+        gpu_thread.TickGPU();
+        WaitForSyncOperation(wait_fence);
+    }
+
     GPU& gpu;
     Core::System& system;
+    Host1x::Host1x& host1x;
 
     std::map<u32, std::unique_ptr<Tegra::CDmaPusher>> cdma_pushers;
     std::unique_ptr<VideoCore::RendererBase> renderer;
@@ -411,18 +405,11 @@ struct GPU::Impl {
 
     std::condition_variable sync_cv;
 
-    struct FlushRequest {
-        explicit FlushRequest(u64 fence_, VAddr addr_, std::size_t size_)
-            : fence{fence_}, addr{addr_}, size{size_} {}
-        u64 fence;
-        VAddr addr;
-        std::size_t size;
-    };
-
-    std::list<FlushRequest> flush_requests;
-    std::atomic<u64> current_flush_fence{};
-    u64 last_flush_fence{};
-    std::mutex flush_request_mutex;
+    std::list<std::function<void(void)>> sync_requests;
+    std::atomic<u64> current_sync_fence{};
+    u64 last_sync_fence{};
+    std::mutex sync_request_mutex;
+    std::condition_variable sync_request_cv;
 
     const bool is_async;
 
@@ -433,6 +420,10 @@ struct GPU::Impl {
     std::unordered_map<s32, std::shared_ptr<Tegra::Control::ChannelState>> channels;
     Tegra::Control::ChannelState* current_channel;
     s32 bound_channel{-1};
+
+    std::deque<size_t> free_swap_counters;
+    std::deque<size_t> request_swap_counters;
+    std::mutex request_swap_mutex;
 };
 
 GPU::GPU(Core::System& system, bool is_async, bool use_nvdec)
@@ -477,15 +468,30 @@ void GPU::OnCommandListEnd() {
 }
 
 u64 GPU::RequestFlush(VAddr addr, std::size_t size) {
-    return impl->RequestFlush(addr, size);
+    return impl->RequestSyncOperation(
+        [this, addr, size]() { impl->rasterizer->FlushRegion(addr, size); });
 }
 
-u64 GPU::CurrentFlushRequestFence() const {
-    return impl->CurrentFlushRequestFence();
+u64 GPU::CurrentSyncRequestFence() const {
+    return impl->CurrentSyncRequestFence();
+}
+
+void GPU::WaitForSyncOperation(u64 fence) {
+    return impl->WaitForSyncOperation(fence);
 }
 
 void GPU::TickWork() {
     impl->TickWork();
+}
+
+/// Gets a mutable reference to the Host1x interface
+Host1x::Host1x& GPU::Host1x() {
+    return impl->host1x;
+}
+
+/// Gets an immutable reference to the Host1x interface.
+const Host1x::Host1x& GPU::Host1x() const {
+    return impl->host1x;
 }
 
 Engines::Maxwell3D& GPU::Maxwell3D() {
@@ -536,6 +542,11 @@ const VideoCore::ShaderNotify& GPU::ShaderNotify() const {
     return impl->ShaderNotify();
 }
 
+void GPU::RequestSwapBuffers(const Tegra::FramebufferConfig* framebuffer,
+                             Service::Nvidia::NvFence* fences, size_t num_fences) {
+    impl->RequestSwapBuffers(framebuffer, fences, num_fences);
+}
+
 void GPU::WaitFence(u32 syncpoint_id, u32 value) {
     impl->WaitFence(syncpoint_id, value);
 }
@@ -550,10 +561,6 @@ u32 GPU::GetSyncpointValue(u32 syncpoint_id) const {
 
 void GPU::RegisterSyncptInterrupt(u32 syncpoint_id, u32 value) {
     impl->RegisterSyncptInterrupt(syncpoint_id, value);
-}
-
-bool GPU::CancelSyncptInterrupt(u32 syncpoint_id, u32 value) {
-    return impl->CancelSyncptInterrupt(syncpoint_id, value);
 }
 
 u64 GPU::GetTicks() const {

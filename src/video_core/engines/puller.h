@@ -141,7 +141,6 @@ private:
     void ProcessSemaphoreAcquire();
     void ProcessSemaphoreRelease();
     void ProcessSemaphoreTriggerMethod();
-    void ProcessWaitForInterruptMethod();
     [[nodiscard]] bool ExecuteMethodOnEngine(u32 method);
 
     /// Mapping of command subchannels to their bound engine ids

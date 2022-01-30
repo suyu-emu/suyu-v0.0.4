@@ -18,6 +18,7 @@
 #include "core/hle/service/nvdrv/core/syncpoint_manager.h"
 #include "core/hle/service/nvdrv/devices/nvhost_ctrl.h"
 #include "video_core/gpu.h"
+#include "video_core/host1x/host1x.h"
 
 namespace Service::Nvidia::Devices {
 
@@ -129,7 +130,7 @@ NvResult nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector
         return NvResult::Success;
     }
 
-    auto& gpu = system.GPU();
+    auto& host1x_syncpoint_manager = system.Host1x().GetSyncpointManager();
     const u32 target_value = params.fence.value;
 
     auto lock = NvEventsLock();
@@ -149,7 +150,7 @@ NvResult nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector
         if (events[slot].fails > 2) {
             {
                 auto lk = system.StallProcesses();
-                gpu.WaitFence(fence_id, target_value);
+                host1x_syncpoint_manager.WaitHost(fence_id, target_value);
                 system.UnstallProcesses();
             }
             params.value.raw = target_value;
@@ -198,7 +199,15 @@ NvResult nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector
     }
     params.value.raw |= slot;
 
-    gpu.RegisterSyncptInterrupt(fence_id, target_value);
+    event.wait_handle =
+        host1x_syncpoint_manager.RegisterHostAction(fence_id, target_value, [this, slot]() {
+            auto& event = events[slot];
+            if (event.status.exchange(EventState::Signalling, std::memory_order_acq_rel) ==
+                EventState::Waiting) {
+                event.kevent->GetWritableEvent().Signal();
+            }
+            event.status.store(EventState::Signalled, std::memory_order_release);
+        });
     return NvResult::Timeout;
 }
 
@@ -288,8 +297,10 @@ NvResult nvhost_ctrl::IocCtrlClearEventWait(const std::vector<u8>& input, std::v
     auto& event = events[event_id];
     if (event.status.exchange(EventState::Cancelling, std::memory_order_acq_rel) ==
         EventState::Waiting) {
-        system.GPU().CancelSyncptInterrupt(event.assigned_syncpt, event.assigned_value);
+        auto& host1x_syncpoint_manager = system.Host1x().GetSyncpointManager();
+        host1x_syncpoint_manager.DeregisterHostAction(event.assigned_syncpt, event.wait_handle);
         syncpoint_manager.RefreshSyncpoint(event.assigned_syncpt);
+        event.wait_handle = {};
     }
     event.fails++;
     event.status.store(EventState::Cancelled, std::memory_order_release);

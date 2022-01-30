@@ -8,7 +8,11 @@
 #include "common/common_types.h"
 
 namespace Tegra {
+
 class GPU;
+
+namespace Host1x {
+
 struct SyncptIncr {
     u32 id;
     u32 class_id;
@@ -43,5 +47,7 @@ private:
 
     GPU& gpu;
 };
+
+} // namespace Host1x
 
 } // namespace Tegra

@@ -74,6 +74,9 @@ class TimeManager;
 namespace Tegra {
 class DebugContext;
 class GPU;
+namespace Host1x {
+class Host1x;
+} // namespace Host1x
 } // namespace Tegra
 
 namespace VideoCore {
@@ -259,6 +262,12 @@ public:
 
     /// Gets an immutable reference to the GPU interface.
     [[nodiscard]] const Tegra::GPU& GPU() const;
+
+    /// Gets a mutable reference to the Host1x interface
+    [[nodiscard]] Tegra::Host1x::Host1x& Host1x();
+
+    /// Gets an immutable reference to the Host1x interface.
+    [[nodiscard]] const Tegra::Host1x::Host1x& Host1x() const;
 
     /// Gets a mutable reference to the renderer.
     [[nodiscard]] VideoCore::RendererBase& Renderer();

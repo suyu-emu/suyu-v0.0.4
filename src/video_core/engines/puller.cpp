@@ -68,11 +68,6 @@ void Puller::ProcessFenceActionMethod() {
     }
 }
 
-void Puller::ProcessWaitForInterruptMethod() {
-    // TODO(bunnei) ImplementMe
-    LOG_WARNING(HW_GPU, "(STUBBED) called");
-}
-
 void Puller::ProcessSemaphoreTriggerMethod() {
     const auto semaphoreOperationMask = 0xF;
     const auto op =
@@ -91,29 +86,33 @@ void Puller::ProcessSemaphoreTriggerMethod() {
         block.timestamp = gpu.GetTicks();
         memory_manager.WriteBlock(regs.semaphore_address.SemaphoreAddress(), &block, sizeof(block));
     } else {
-        const u32 word{memory_manager.Read<u32>(regs.semaphore_address.SemaphoreAddress())};
-        if ((op == GpuSemaphoreOperation::AcquireEqual && word == regs.semaphore_sequence) ||
-            (op == GpuSemaphoreOperation::AcquireGequal &&
-             static_cast<s32>(word - regs.semaphore_sequence) > 0) ||
-            (op == GpuSemaphoreOperation::AcquireMask && (word & regs.semaphore_sequence))) {
-            // Nothing to do in this case
-        } else {
+        do {
+            const u32 word{memory_manager.Read<u32>(regs.semaphore_address.SemaphoreAddress())};
             regs.acquire_source = true;
             regs.acquire_value = regs.semaphore_sequence;
             if (op == GpuSemaphoreOperation::AcquireEqual) {
                 regs.acquire_active = true;
                 regs.acquire_mode = false;
+                if (word != regs.acquire_value) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                    continue;
+                }
             } else if (op == GpuSemaphoreOperation::AcquireGequal) {
                 regs.acquire_active = true;
                 regs.acquire_mode = true;
+                if (word < regs.acquire_value) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                    continue;
+                }
             } else if (op == GpuSemaphoreOperation::AcquireMask) {
-                // TODO(kemathe) The acquire mask operation waits for a value that, ANDed with
-                // semaphore_sequence, gives a non-0 result
-                LOG_ERROR(HW_GPU, "Invalid semaphore operation AcquireMask not implemented");
+                if (word & regs.semaphore_sequence == 0) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                    continue;
+                }
             } else {
                 LOG_ERROR(HW_GPU, "Invalid semaphore operation");
             }
-        }
+        } while (false);
     }
 }
 
@@ -124,6 +123,7 @@ void Puller::ProcessSemaphoreRelease() {
 void Puller::ProcessSemaphoreAcquire() {
     const u32 word = memory_manager.Read<u32>(regs.semaphore_address.SemaphoreAddress());
     const auto value = regs.semaphore_acquire;
+    std::this_thread::sleep_for(std::chrono::milliseconds(5));
     if (word != value) {
         regs.acquire_active = true;
         regs.acquire_value = value;
@@ -146,32 +146,39 @@ void Puller::CallPullerMethod(const MethodCall& method_call) {
     case BufferMethods::Nop:
     case BufferMethods::SemaphoreAddressHigh:
     case BufferMethods::SemaphoreAddressLow:
-    case BufferMethods::SemaphoreSequence:
-    case BufferMethods::UnkCacheFlush:
+    case BufferMethods::SemaphoreSequencePayload:
     case BufferMethods::WrcacheFlush:
-    case BufferMethods::FenceValue:
+    case BufferMethods::SyncpointPayload:
         break;
     case BufferMethods::RefCnt:
         rasterizer->SignalReference();
         break;
-    case BufferMethods::FenceAction:
+    case BufferMethods::SyncpointOperation:
         ProcessFenceActionMethod();
         break;
-    case BufferMethods::WaitForInterrupt:
-        ProcessWaitForInterruptMethod();
+    case BufferMethods::WaitForIdle:
+        rasterizer->WaitForIdle();
         break;
-    case BufferMethods::SemaphoreTrigger: {
+    case BufferMethods::SemaphoreOperation: {
         ProcessSemaphoreTriggerMethod();
         break;
     }
-    case BufferMethods::NotifyIntr: {
-        // TODO(Kmather73): Research and implement this method.
-        LOG_ERROR(HW_GPU, "Special puller engine method NotifyIntr not implemented");
+    case BufferMethods::NonStallInterrupt: {
+        LOG_ERROR(HW_GPU, "Special puller engine method NonStallInterrupt not implemented");
         break;
     }
-    case BufferMethods::Unk28: {
-        // TODO(Kmather73): Research and implement this method.
-        LOG_ERROR(HW_GPU, "Special puller engine method Unk28 not implemented");
+    case BufferMethods::MemOpA: {
+        LOG_ERROR(HW_GPU, "Memory Operation A");
+        break;
+    }
+    case BufferMethods::MemOpB: {
+        // Implement this better.
+        rasterizer->SyncGuestHost();
+        break;
+    }
+    case BufferMethods::MemOpC:
+    case BufferMethods::MemOpD: {
+        LOG_ERROR(HW_GPU, "Memory Operation C,D");
         break;
     }
     case BufferMethods::SemaphoreAcquire: {

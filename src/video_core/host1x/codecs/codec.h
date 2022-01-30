@@ -6,8 +6,8 @@
 #include <memory>
 #include <string_view>
 #include <queue>
-
-#include "video_core/command_classes/nvdec_common.h"
+#include "common/common_types.h"
+#include "video_core/host1x/nvdec_common.h"
 
 extern "C" {
 #if defined(__GNUC__) || defined(__clang__)
@@ -34,14 +34,14 @@ class VP9;
 
 class Codec {
 public:
-    explicit Codec(GPU& gpu, const NvdecCommon::NvdecRegisters& regs);
+    explicit Codec(GPU& gpu, const Host1x::NvdecCommon::NvdecRegisters& regs);
     ~Codec();
 
     /// Initialize the codec, returning success or failure
     void Initialize();
 
     /// Sets NVDEC video stream codec
-    void SetTargetCodec(NvdecCommon::VideoCodec codec);
+    void SetTargetCodec(Host1x::NvdecCommon::VideoCodec codec);
 
     /// Call decoders to construct headers, decode AVFrame with ffmpeg
     void Decode();
@@ -50,7 +50,7 @@ public:
     [[nodiscard]] AVFramePtr GetCurrentFrame();
 
     /// Returns the value of current_codec
-    [[nodiscard]] NvdecCommon::VideoCodec GetCurrentCodec() const;
+    [[nodiscard]] Host1x::NvdecCommon::VideoCodec GetCurrentCodec() const;
 
     /// Return name of the current codec
     [[nodiscard]] std::string_view GetCurrentCodecName() const;
@@ -63,14 +63,14 @@ private:
     bool CreateGpuAvDevice();
 
     bool initialized{};
-    NvdecCommon::VideoCodec current_codec{NvdecCommon::VideoCodec::None};
+    Host1x::NvdecCommon::VideoCodec current_codec{Host1x::NvdecCommon::VideoCodec::None};
 
     const AVCodec* av_codec{nullptr};
     AVCodecContext* av_codec_ctx{nullptr};
     AVBufferRef* av_gpu_decoder{nullptr};
 
     GPU& gpu;
-    const NvdecCommon::NvdecRegisters& state;
+    const Host1x::NvdecCommon::NvdecRegisters& state;
     std::unique_ptr<Decoder::H264> h264_decoder;
     std::unique_ptr<Decoder::VP8> vp8_decoder;
     std::unique_ptr<Decoder::VP9> vp9_decoder;

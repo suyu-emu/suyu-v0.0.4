@@ -50,7 +50,7 @@ void nvdisp_disp0::flip(u32 buffer_handle, u32 offset, android::PixelFormat form
                                                stride, format, transform, crop_rect};
 
     system.GetPerfStats().EndSystemFrame();
-    system.GPU().SwapBuffers(&framebuffer);
+    system.GPU().RequestSwapBuffers(&framebuffer, nullptr, 0);
     system.SpeedLimiter().DoSpeedLimiting(system.CoreTiming().GetGlobalTimeUs());
     system.GetPerfStats().BeginSystemFrame();
 }

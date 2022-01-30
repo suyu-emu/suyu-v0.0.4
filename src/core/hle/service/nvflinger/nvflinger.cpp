@@ -24,6 +24,8 @@
 #include "core/hle/service/vi/layer/vi_layer.h"
 #include "core/hle/service/vi/vi_results.h"
 #include "video_core/gpu.h"
+#include "video_core/host1x/host1x.h"
+#include "video_core/host1x/syncpoint_manager.h"
 
 namespace Service::NVFlinger {
 
@@ -267,12 +269,12 @@ void NVFlinger::Compose() {
             return; // We are likely shutting down
         }
 
-        auto& gpu = system.GPU();
+        auto& syncpoint_manager = system.Host1x().GetSyncpointManager();
         const auto& multi_fence = buffer.fence;
         guard->unlock();
         for (u32 fence_id = 0; fence_id < multi_fence.num_fences; fence_id++) {
             const auto& fence = multi_fence.fences[fence_id];
-            gpu.WaitFence(fence.id, fence.value);
+            syncpoint_manager.WaitGuest(fence.id, fence.value);
         }
         guard->lock();
 
@@ -284,6 +286,7 @@ void NVFlinger::Compose() {
         auto nvdisp = nvdrv->GetDevice<Nvidia::Devices::nvdisp_disp0>(disp_fd);
         ASSERT(nvdisp);
 
+        guard->unlock();
         Common::Rectangle<int> crop_rect{
             static_cast<int>(buffer.crop.Left()), static_cast<int>(buffer.crop.Top()),
             static_cast<int>(buffer.crop.Right()), static_cast<int>(buffer.crop.Bottom())};
@@ -291,6 +294,8 @@ void NVFlinger::Compose() {
         nvdisp->flip(igbp_buffer.BufferId(), igbp_buffer.Offset(), igbp_buffer.ExternalFormat(),
                      igbp_buffer.Width(), igbp_buffer.Height(), igbp_buffer.Stride(),
                      static_cast<android::BufferTransformFlags>(buffer.transform), crop_rect);
+
+        guard->lock();
 
         swap_interval = buffer.swap_interval;
 

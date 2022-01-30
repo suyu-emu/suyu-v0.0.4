@@ -8,7 +8,7 @@
 #include "common/bit_field.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
-#include "video_core/command_classes/nvdec_common.h"
+#include "video_core/host1x/nvdec_common.h"
 
 namespace Tegra {
 class GPU;
@@ -59,8 +59,8 @@ public:
     ~H264();
 
     /// Compose the H264 frame for FFmpeg decoding
-    [[nodiscard]] const std::vector<u8>& ComposeFrame(const NvdecCommon::NvdecRegisters& state,
-                                                      bool is_first_frame = false);
+    [[nodiscard]] const std::vector<u8>& ComposeFrame(
+        const Host1x::NvdecCommon::NvdecRegisters& state, bool is_first_frame = false);
 
 private:
     std::vector<u8> frame;

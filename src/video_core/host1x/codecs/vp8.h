@@ -8,7 +8,7 @@
 
 #include "common/common_funcs.h"
 #include "common/common_types.h"
-#include "video_core/command_classes/nvdec_common.h"
+#include "video_core/host1x/nvdec_common.h"
 
 namespace Tegra {
 class GPU;
@@ -20,7 +20,8 @@ public:
     ~VP8();
 
     /// Compose the VP8 frame for FFmpeg decoding
-    [[nodiscard]] const std::vector<u8>& ComposeFrame(const NvdecCommon::NvdecRegisters& state);
+    [[nodiscard]] const std::vector<u8>& ComposeFrame(
+        const Host1x::NvdecCommon::NvdecRegisters& state);
 
 private:
     std::vector<u8> frame;

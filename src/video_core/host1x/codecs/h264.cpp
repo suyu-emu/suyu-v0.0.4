@@ -5,8 +5,8 @@
 #include <bit>
 
 #include "common/settings.h"
-#include "video_core/command_classes/codecs/h264.h"
 #include "video_core/gpu.h"
+#include "video_core/host1x/codecs/h264.h"
 #include "video_core/memory_manager.h"
 
 namespace Tegra::Decoder {
@@ -28,7 +28,7 @@ H264::H264(GPU& gpu_) : gpu(gpu_) {}
 
 H264::~H264() = default;
 
-const std::vector<u8>& H264::ComposeFrame(const NvdecCommon::NvdecRegisters& state,
+const std::vector<u8>& H264::ComposeFrame(const Host1x::NvdecCommon::NvdecRegisters& state,
                                           bool is_first_frame) {
     H264DecoderContext context;
     gpu.MemoryManager().ReadBlock(state.picture_info_offset, &context, sizeof(H264DecoderContext));

@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "common/assert.h"
-#include "video_core/command_classes/nvdec.h"
 #include "video_core/gpu.h"
+#include "video_core/host1x/nvdec.h"
 
-namespace Tegra {
+namespace Tegra::Host1x {
 
 #define NVDEC_REG_INDEX(field_name)                                                                \
     (offsetof(NvdecCommon::NvdecRegisters, field_name) / sizeof(u64))
@@ -44,4 +44,4 @@ void Nvdec::Execute() {
     }
 }
 
-} // namespace Tegra
+} // namespace Tegra::Host1x

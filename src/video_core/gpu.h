@@ -93,6 +93,10 @@ namespace Control {
 struct ChannelState;
 }
 
+namespace Host1x {
+class Host1x;
+} // namespace Host1x
+
 class MemoryManager;
 
 class GPU final {
@@ -124,10 +128,18 @@ public:
     [[nodiscard]] u64 RequestFlush(VAddr addr, std::size_t size);
 
     /// Obtains current flush request fence id.
-    [[nodiscard]] u64 CurrentFlushRequestFence() const;
+    [[nodiscard]] u64 CurrentSyncRequestFence() const;
+
+    void WaitForSyncOperation(u64 fence);
 
     /// Tick pending requests within the GPU.
     void TickWork();
+
+    /// Gets a mutable reference to the Host1x interface
+    [[nodiscard]] Host1x::Host1x& Host1x();
+
+    /// Gets an immutable reference to the Host1x interface.
+    [[nodiscard]] const Host1x::Host1x& Host1x() const;
 
     /// Returns a reference to the Maxwell3D GPU engine.
     [[nodiscard]] Engines::Maxwell3D& Maxwell3D();
@@ -174,8 +186,6 @@ public:
 
     void RegisterSyncptInterrupt(u32 syncpoint_id, u32 value);
 
-    bool CancelSyncptInterrupt(u32 syncpoint_id, u32 value);
-
     [[nodiscard]] u64 GetTicks() const;
 
     [[nodiscard]] bool IsAsync() const;
@@ -183,6 +193,9 @@ public:
     [[nodiscard]] bool UseNvdec() const;
 
     void RendererFrameEndNotify();
+
+    void RequestSwapBuffers(const Tegra::FramebufferConfig* framebuffer,
+                            Service::Nvidia::NvFence* fences, size_t num_fences);
 
     /// Performs any additional setup necessary in order to begin GPU emulation.
     /// This can be used to launch any necessary threads and register any necessary

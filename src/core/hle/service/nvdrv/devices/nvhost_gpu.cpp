@@ -210,10 +210,10 @@ NvResult nvhost_gpu::AllocateObjectContext(const std::vector<u8>& input, std::ve
 
 static std::vector<Tegra::CommandHeader> BuildWaitCommandList(NvFence fence) {
     return {
-        Tegra::BuildCommandHeader(Tegra::BufferMethods::FenceValue, 1,
+        Tegra::BuildCommandHeader(Tegra::BufferMethods::SyncpointPayload, 1,
                                   Tegra::SubmissionMode::Increasing),
         {fence.value},
-        Tegra::BuildCommandHeader(Tegra::BufferMethods::FenceAction, 1,
+        Tegra::BuildCommandHeader(Tegra::BufferMethods::SyncpointOperation, 1,
                                   Tegra::SubmissionMode::Increasing),
         BuildFenceAction(Tegra::Engines::Puller::FenceOperation::Acquire, fence.id),
     };
@@ -222,12 +222,12 @@ static std::vector<Tegra::CommandHeader> BuildWaitCommandList(NvFence fence) {
 static std::vector<Tegra::CommandHeader> BuildIncrementCommandList(NvFence fence,
                                                                    u32 add_increment) {
     std::vector<Tegra::CommandHeader> result{
-        Tegra::BuildCommandHeader(Tegra::BufferMethods::FenceValue, 1,
+        Tegra::BuildCommandHeader(Tegra::BufferMethods::SyncpointPayload, 1,
                                   Tegra::SubmissionMode::Increasing),
         {}};
 
     for (u32 count = 0; count < add_increment; ++count) {
-        result.emplace_back(Tegra::BuildCommandHeader(Tegra::BufferMethods::FenceAction, 1,
+        result.emplace_back(Tegra::BuildCommandHeader(Tegra::BufferMethods::SyncpointOperation, 1,
                                                       Tegra::SubmissionMode::Increasing));
         result.emplace_back(
             BuildFenceAction(Tegra::Engines::Puller::FenceOperation::Increment, fence.id));
@@ -239,7 +239,7 @@ static std::vector<Tegra::CommandHeader> BuildIncrementCommandList(NvFence fence
 static std::vector<Tegra::CommandHeader> BuildIncrementWithWfiCommandList(NvFence fence,
                                                                           u32 add_increment) {
     std::vector<Tegra::CommandHeader> result{
-        Tegra::BuildCommandHeader(Tegra::BufferMethods::WaitForInterrupt, 1,
+        Tegra::BuildCommandHeader(Tegra::BufferMethods::WaitForIdle, 1,
                                   Tegra::SubmissionMode::Increasing),
         {}};
     const std::vector<Tegra::CommandHeader> increment{

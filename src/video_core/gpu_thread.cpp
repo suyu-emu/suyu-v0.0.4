@@ -93,8 +93,12 @@ void ThreadManager::FlushRegion(VAddr addr, u64 size) {
     }
     auto& gpu = system.GPU();
     u64 fence = gpu.RequestFlush(addr, size);
+    TickGPU();
+    gpu.WaitForSyncOperation(fence);
+}
+
+void ThreadManager::TickGPU() {
     PushCommand(GPUTickCommand(), true);
-    ASSERT(fence <= gpu.CurrentFlushRequestFence());
 }
 
 void ThreadManager::InvalidateRegion(VAddr addr, u64 size) {

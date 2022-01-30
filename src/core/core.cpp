@@ -51,6 +51,7 @@
 #include "core/telemetry_session.h"
 #include "core/tools/freezer.h"
 #include "network/network.h"
+#include "video_core/host1x/host1x.h"
 #include "video_core/renderer_base.h"
 #include "video_core/video_core.h"
 
@@ -215,6 +216,7 @@ struct System::Impl {
 
         telemetry_session = std::make_unique<Core::TelemetrySession>();
 
+        host1x_core = std::make_unique<Tegra::Host1x::Host1x>();
         gpu_core = VideoCore::CreateGPU(emu_window, system);
         if (!gpu_core) {
             return SystemResultStatus::ErrorVideoCore;
@@ -373,6 +375,7 @@ struct System::Impl {
         app_loader.reset();
         audio_core.reset();
         gpu_core.reset();
+        host1x_core.reset();
         perf_stats.reset();
         kernel.Shutdown();
         memory.Reset();
@@ -450,6 +453,7 @@ struct System::Impl {
     /// AppLoader used to load the current executing application
     std::unique_ptr<Loader::AppLoader> app_loader;
     std::unique_ptr<Tegra::GPU> gpu_core;
+    std::unique_ptr<Tegra::Host1x::Host1x> host1x_core;
     std::unique_ptr<Hardware::InterruptManager> interrupt_manager;
     std::unique_ptr<Core::DeviceMemory> device_memory;
     std::unique_ptr<AudioCore::AudioCore> audio_core;
@@ -666,6 +670,14 @@ Tegra::GPU& System::GPU() {
 
 const Tegra::GPU& System::GPU() const {
     return *impl->gpu_core;
+}
+
+Tegra::Host1x::Host1x& System::Host1x() {
+    return *impl->host1x_core;
+}
+
+const Tegra::Host1x::Host1x& System::Host1x() const {
+    return *impl->host1x_core;
 }
 
 Core::Hardware::InterruptManager& System::InterruptManager() {

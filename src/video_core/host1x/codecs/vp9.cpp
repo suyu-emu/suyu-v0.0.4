@@ -4,8 +4,8 @@
 #include <algorithm> // for std::copy
 #include <numeric>
 #include "common/assert.h"
-#include "video_core/command_classes/codecs/vp9.h"
 #include "video_core/gpu.h"
+#include "video_core/host1x/codecs/vp9.h"
 #include "video_core/memory_manager.h"
 
 namespace Tegra::Decoder {
@@ -355,7 +355,7 @@ void VP9::WriteMvProbabilityUpdate(VpxRangeEncoder& writer, u8 new_prob, u8 old_
     }
 }
 
-Vp9PictureInfo VP9::GetVp9PictureInfo(const NvdecCommon::NvdecRegisters& state) {
+Vp9PictureInfo VP9::GetVp9PictureInfo(const Host1x::NvdecCommon::NvdecRegisters& state) {
     PictureInfo picture_info;
     gpu.MemoryManager().ReadBlock(state.picture_info_offset, &picture_info, sizeof(PictureInfo));
     Vp9PictureInfo vp9_info = picture_info.Convert();
@@ -376,7 +376,7 @@ void VP9::InsertEntropy(u64 offset, Vp9EntropyProbs& dst) {
     entropy.Convert(dst);
 }
 
-Vp9FrameContainer VP9::GetCurrentFrame(const NvdecCommon::NvdecRegisters& state) {
+Vp9FrameContainer VP9::GetCurrentFrame(const Host1x::NvdecCommon::NvdecRegisters& state) {
     Vp9FrameContainer current_frame{};
     {
         gpu.SyncGuestHost();
@@ -769,7 +769,7 @@ VpxBitStreamWriter VP9::ComposeUncompressedHeader() {
     return uncomp_writer;
 }
 
-void VP9::ComposeFrame(const NvdecCommon::NvdecRegisters& state) {
+void VP9::ComposeFrame(const Host1x::NvdecCommon::NvdecRegisters& state) {
     std::vector<u8> bitstream;
     {
         Vp9FrameContainer curr_frame = GetCurrentFrame(state);

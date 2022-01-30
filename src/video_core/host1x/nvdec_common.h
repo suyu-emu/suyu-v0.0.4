@@ -7,7 +7,7 @@
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 
-namespace Tegra::NvdecCommon {
+namespace Tegra::Host1x::NvdecCommon {
 
 enum class VideoCodec : u64 {
     None = 0x0,
@@ -94,4 +94,4 @@ ASSERT_REG_POSITION(vp9_curr_frame_mvs_offset, 0x176);
 
 #undef ASSERT_REG_POSITION
 
-} // namespace Tegra::NvdecCommon
+} // namespace Tegra::Host1x::NvdecCommon

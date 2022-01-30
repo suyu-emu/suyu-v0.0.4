@@ -6,10 +6,12 @@
 #include <memory>
 #include <vector>
 #include "common/common_types.h"
-#include "video_core/command_classes/codecs/codec.h"
+#include "video_core/host1x/codecs/codec.h"
 
 namespace Tegra {
 class GPU;
+
+namespace Host1x {
 
 class Nvdec {
 public:
@@ -30,4 +32,7 @@ private:
     NvdecCommon::NvdecRegisters state;
     std::unique_ptr<Codec> codec;
 };
+
+} // namespace Host1x
+
 } // namespace Tegra

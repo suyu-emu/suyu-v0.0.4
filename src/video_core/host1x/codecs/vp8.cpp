@@ -3,8 +3,8 @@
 
 #include <vector>
 
-#include "video_core/command_classes/codecs/vp8.h"
 #include "video_core/gpu.h"
+#include "video_core/host1x/codecs/vp8.h"
 #include "video_core/memory_manager.h"
 
 namespace Tegra::Decoder {
@@ -12,7 +12,7 @@ VP8::VP8(GPU& gpu_) : gpu(gpu_) {}
 
 VP8::~VP8() = default;
 
-const std::vector<u8>& VP8::ComposeFrame(const NvdecCommon::NvdecRegisters& state) {
+const std::vector<u8>& VP8::ComposeFrame(const Host1x::NvdecCommon::NvdecRegisters& state) {
     VP8PictureInfo info;
     gpu.MemoryManager().ReadBlock(state.picture_info_offset, &info, sizeof(VP8PictureInfo));
 
