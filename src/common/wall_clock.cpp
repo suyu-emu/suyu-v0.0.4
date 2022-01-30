@@ -73,8 +73,8 @@ std::unique_ptr<WallClock> CreateBestMatchingClock(u32 emulated_cpu_frequency,
         rtsc_frequency = EstimateRDTSCFrequency();
     }
 
-    // Fallback to StandardWallClock if rtsc period is higher than a nano second
-    if (rtsc_frequency <= 1000000000) {
+    // Fallback to StandardWallClock if the hardware TSC does not have nanosecond precision.
+    if (rtsc_frequency <= WallClock::NS_RATIO) {
         return std::make_unique<StandardWallClock>(emulated_cpu_frequency,
                                                    emulated_clock_frequency);
     } else {

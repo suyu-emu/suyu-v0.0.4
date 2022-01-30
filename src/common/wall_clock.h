@@ -13,6 +13,10 @@ namespace Common {
 
 class WallClock {
 public:
+    static constexpr u64 NS_RATIO = 1'000'000'000;
+    static constexpr u64 US_RATIO = 1'000'000;
+    static constexpr u64 MS_RATIO = 1'000;
+
     virtual ~WallClock() = default;
 
     /// Returns current wall time in nanoseconds
