@@ -59,6 +59,7 @@ struct GPU::Impl {
         maxwell_3d->BindRasterizer(rasterizer);
         fermi_2d->BindRasterizer(rasterizer);
         kepler_compute->BindRasterizer(rasterizer);
+        kepler_memory->BindRasterizer(rasterizer);
         maxwell_dma->BindRasterizer(rasterizer);
     }
 
@@ -502,8 +503,13 @@ struct GPU::Impl {
         case BufferMethods::SemaphoreAddressHigh:
         case BufferMethods::SemaphoreAddressLow:
         case BufferMethods::SemaphoreSequence:
+            break;
         case BufferMethods::UnkCacheFlush:
+            rasterizer->SyncGuestHost();
+            break;
         case BufferMethods::WrcacheFlush:
+            rasterizer->SignalReference();
+            break;
         case BufferMethods::FenceValue:
             break;
         case BufferMethods::RefCnt:
@@ -513,7 +519,7 @@ struct GPU::Impl {
             ProcessFenceActionMethod();
             break;
         case BufferMethods::WaitForInterrupt:
-            ProcessWaitForInterruptMethod();
+            rasterizer->WaitForIdle();
             break;
         case BufferMethods::SemaphoreTrigger: {
             ProcessSemaphoreTriggerMethod();
