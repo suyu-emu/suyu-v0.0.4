@@ -1308,7 +1308,7 @@ void ConfigureInputPlayer::HandleClick(
     }
     button->setFocus();
 
-    input_setter = new_input_setter;
+    input_setter = std::move(new_input_setter);
 
     input_subsystem->BeginMapping(type);
 
