@@ -497,10 +497,11 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                                 param.Set("invert_y", invert_str);
                                 emulated_controller->SetStickParam(analog_id, param);
                             }
-                            for (int sub_button_id = 0; sub_button_id < ANALOG_SUB_BUTTONS_NUM;
-                                 ++sub_button_id) {
-                                analog_map_buttons[analog_id][sub_button_id]->setText(
-                                    AnalogToText(param, analog_sub_buttons[sub_button_id]));
+                            for (int analog_sub_button_id = 0;
+                                 analog_sub_button_id < ANALOG_SUB_BUTTONS_NUM;
+                                 ++analog_sub_button_id) {
+                                analog_map_buttons[analog_id][analog_sub_button_id]->setText(
+                                    AnalogToText(param, analog_sub_buttons[analog_sub_button_id]));
                             }
                         });
                         context_menu.exec(analog_map_buttons[analog_id][sub_button_id]->mapToGlobal(
