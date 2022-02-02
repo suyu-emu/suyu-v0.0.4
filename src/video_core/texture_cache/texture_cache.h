@@ -1736,19 +1736,7 @@ void TextureCache<P>::SynchronizeAliases(ImageId image_id) {
             continue;
         }
         ScaleUp(aliased_image);
-
-        const bool both_2d{image.info.type == ImageType::e2D &&
-                           aliased_image.info.type == ImageType::e2D};
-        auto copies = aliased->copies;
-        for (auto copy : copies) {
-            copy.extent.width = std::max<u32>(
-                (copy.extent.width * resolution.up_scale) >> resolution.down_shift, 1);
-            if (both_2d) {
-                copy.extent.height = std::max<u32>(
-                    (copy.extent.height * resolution.up_scale) >> resolution.down_shift, 1);
-            }
-        }
-        CopyImage(image_id, aliased->id, copies);
+        CopyImage(image_id, aliased->id, aliased->copies);
     }
 }
 
