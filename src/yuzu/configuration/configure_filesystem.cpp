@@ -14,7 +14,7 @@
 ConfigureFilesystem::ConfigureFilesystem(QWidget* parent)
     : QWidget(parent), ui(std::make_unique<Ui::ConfigureFilesystem>()) {
     ui->setupUi(this);
-    this->setConfiguration();
+    SetConfiguration();
 
     connect(ui->nand_directory_button, &QToolButton::pressed, this,
             [this] { SetDirectory(DirectoryTarget::NAND, ui->nand_directory_edit); });
@@ -38,7 +38,7 @@ ConfigureFilesystem::ConfigureFilesystem(QWidget* parent)
 
 ConfigureFilesystem::~ConfigureFilesystem() = default;
 
-void ConfigureFilesystem::setConfiguration() {
+void ConfigureFilesystem::SetConfiguration() {
     ui->nand_directory_edit->setText(
         QString::fromStdString(Common::FS::GetYuzuPathString(Common::FS::YuzuPath::NANDDir)));
     ui->sdmc_directory_edit->setText(
@@ -60,7 +60,7 @@ void ConfigureFilesystem::setConfiguration() {
     UpdateEnabledControls();
 }
 
-void ConfigureFilesystem::applyConfiguration() {
+void ConfigureFilesystem::ApplyConfiguration() {
     Common::FS::SetYuzuPath(Common::FS::YuzuPath::NANDDir,
                             ui->nand_directory_edit->text().toStdString());
     Common::FS::SetYuzuPath(Common::FS::YuzuPath::SDMCDir,
@@ -143,6 +143,6 @@ void ConfigureFilesystem::UpdateEnabledControls() {
                                          !ui->gamecard_current_game->isChecked());
 }
 
-void ConfigureFilesystem::retranslateUi() {
+void ConfigureFilesystem::RetranslateUI() {
     ui->retranslateUi(this);
 }
