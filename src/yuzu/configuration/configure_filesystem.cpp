@@ -38,6 +38,14 @@ ConfigureFilesystem::ConfigureFilesystem(QWidget* parent)
 
 ConfigureFilesystem::~ConfigureFilesystem() = default;
 
+void ConfigureFilesystem::changeEvent(QEvent* event) {
+    if (event->type() == QEvent::LanguageChange) {
+        RetranslateUI();
+    }
+
+    QWidget::changeEvent(event);
+}
+
 void ConfigureFilesystem::SetConfiguration() {
     ui->nand_directory_edit->setText(
         QString::fromStdString(Common::FS::GetYuzuPathString(Common::FS::YuzuPath::NANDDir)));
