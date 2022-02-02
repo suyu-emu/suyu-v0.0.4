@@ -343,7 +343,7 @@ template <bool has_blacklists>
 void TextureCache<P>::FillImageViews(DescriptorTable<TICEntry>& table,
                                      std::span<ImageViewId> cached_image_view_ids,
                                      std::span<ImageViewInOut> views) {
-    bool has_blacklisted;
+    bool has_blacklisted = false;
     do {
         has_deleted_images = false;
         if constexpr (has_blacklists) {
