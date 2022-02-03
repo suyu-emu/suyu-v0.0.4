@@ -5,12 +5,12 @@
 #pragma once
 
 #include <memory>
-#include <mutex>
 
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/page_table.h"
 #include "core/file_sys/program_metadata.h"
+#include "core/hle/kernel/k_light_lock.h"
 #include "core/hle/kernel/k_memory_block.h"
 #include "core/hle/kernel/k_memory_manager.h"
 #include "core/hle/result.h"
@@ -147,11 +147,12 @@ private:
     }
 
     bool IsLockedByCurrentThread() const {
-        return true;
+        return general_lock.IsLockedByCurrentThread();
     }
 
-    std::recursive_mutex page_table_lock;
-    std::mutex map_physical_memory_lock;
+    mutable KLightLock general_lock;
+    mutable KLightLock map_physical_memory_lock;
+
     std::unique_ptr<KMemoryBlockManager> block_manager;
 
 public:
@@ -210,7 +211,7 @@ public:
         return alias_code_region_end - alias_code_region_start;
     }
     size_t GetNormalMemorySize() {
-        std::lock_guard lk(page_table_lock);
+        KScopedLightLock lk(general_lock);
         return GetHeapSize() + mapped_physical_memory_size;
     }
     constexpr std::size_t GetAddressSpaceWidth() const {
@@ -252,7 +253,9 @@ public:
     constexpr bool IsInsideASLRRegion(VAddr address, std::size_t size) const {
         return !IsOutsideASLRRegion(address, size);
     }
-    constexpr PAddr GetPhysicalAddr(VAddr addr) {
+
+    PAddr GetPhysicalAddr(VAddr addr) {
+        ASSERT(IsLockedByCurrentThread());
         const auto backing_addr = page_table_impl.backing_addr[addr >> PageBits];
         ASSERT(backing_addr);
         return backing_addr + addr;
