@@ -204,7 +204,7 @@ void EmulatedController::ReloadInput() {
         if (!button_devices[index]) {
             continue;
         }
-        const auto uuid = Common::UUID{button_params[index].Get("guid", "")};
+        const auto uuid = Common::NewUUID{button_params[index].Get("guid", "")};
         button_devices[index]->SetCallback({
             .on_change =
                 [this, index, uuid](const Common::Input::CallbackStatus& callback) {
@@ -218,7 +218,7 @@ void EmulatedController::ReloadInput() {
         if (!stick_devices[index]) {
             continue;
         }
-        const auto uuid = Common::UUID{stick_params[index].Get("guid", "")};
+        const auto uuid = Common::NewUUID{stick_params[index].Get("guid", "")};
         stick_devices[index]->SetCallback({
             .on_change =
                 [this, index, uuid](const Common::Input::CallbackStatus& callback) {
@@ -232,7 +232,7 @@ void EmulatedController::ReloadInput() {
         if (!trigger_devices[index]) {
             continue;
         }
-        const auto uuid = Common::UUID{trigger_params[index].Get("guid", "")};
+        const auto uuid = Common::NewUUID{trigger_params[index].Get("guid", "")};
         trigger_devices[index]->SetCallback({
             .on_change =
                 [this, index, uuid](const Common::Input::CallbackStatus& callback) {
@@ -269,7 +269,8 @@ void EmulatedController::ReloadInput() {
     }
 
     // Use a common UUID for TAS
-    const auto tas_uuid = Common::UUID{0x0, 0x7A5};
+    static constexpr Common::NewUUID TAS_UUID = Common::NewUUID{
+        {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x7, 0xA5, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}};
 
     // Register TAS devices. No need to force update
     for (std::size_t index = 0; index < tas_button_devices.size(); ++index) {
@@ -278,8 +279,8 @@ void EmulatedController::ReloadInput() {
         }
         tas_button_devices[index]->SetCallback({
             .on_change =
-                [this, index, tas_uuid](const Common::Input::CallbackStatus& callback) {
-                    SetButton(callback, index, tas_uuid);
+                [this, index](const Common::Input::CallbackStatus& callback) {
+                    SetButton(callback, index, TAS_UUID);
                 },
         });
     }
@@ -290,8 +291,8 @@ void EmulatedController::ReloadInput() {
         }
         tas_stick_devices[index]->SetCallback({
             .on_change =
-                [this, index, tas_uuid](const Common::Input::CallbackStatus& callback) {
-                    SetStick(callback, index, tas_uuid);
+                [this, index](const Common::Input::CallbackStatus& callback) {
+                    SetStick(callback, index, TAS_UUID);
                 },
         });
     }
@@ -489,7 +490,7 @@ void EmulatedController::SetMotionParam(std::size_t index, Common::ParamPackage 
 }
 
 void EmulatedController::SetButton(const Common::Input::CallbackStatus& callback, std::size_t index,
-                                   Common::UUID uuid) {
+                                   Common::NewUUID uuid) {
     if (index >= controller.button_values.size()) {
         return;
     }
@@ -638,7 +639,7 @@ void EmulatedController::SetButton(const Common::Input::CallbackStatus& callback
 }
 
 void EmulatedController::SetStick(const Common::Input::CallbackStatus& callback, std::size_t index,
-                                  Common::UUID uuid) {
+                                  Common::NewUUID uuid) {
     if (index >= controller.stick_values.size()) {
         return;
     }
@@ -688,7 +689,7 @@ void EmulatedController::SetStick(const Common::Input::CallbackStatus& callback,
 }
 
 void EmulatedController::SetTrigger(const Common::Input::CallbackStatus& callback,
-                                    std::size_t index, Common::UUID uuid) {
+                                    std::size_t index, Common::NewUUID uuid) {
     if (index >= controller.trigger_values.size()) {
         return;
     }

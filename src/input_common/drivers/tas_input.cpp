@@ -50,7 +50,7 @@ constexpr std::array<std::pair<std::string_view, TasButton>, 18> text_to_tas_but
 Tas::Tas(std::string input_engine_) : InputEngine(std::move(input_engine_)) {
     for (size_t player_index = 0; player_index < PLAYER_NUMBER; player_index++) {
         PadIdentifier identifier{
-            .guid = Common::UUID{},
+            .guid = Common::NewUUID{},
             .port = player_index,
             .pad = 0,
         };
@@ -203,7 +203,7 @@ void Tas::UpdateThread() {
             }
 
             PadIdentifier identifier{
-                .guid = Common::UUID{},
+                .guid = Common::NewUUID{},
                 .port = player_index,
                 .pad = 0,
             };
