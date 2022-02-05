@@ -8,7 +8,7 @@
 #include <vector>
 #include "common/bit_field.h"
 #include "common/common_funcs.h"
-#include "common/uuid.h"
+#include "common/new_uuid.h"
 #include "core/hle/result.h"
 #include "core/hle/service/mii/types.h"
 
@@ -29,7 +29,7 @@ enum class SourceFlag : u32 {
 DECLARE_ENUM_FLAG_OPERATORS(SourceFlag);
 
 struct MiiInfo {
-    Common::UUID uuid;
+    Common::NewUUID uuid;
     std::array<char16_t, 11> name;
     u8 font_region;
     u8 favorite_color;
@@ -192,7 +192,7 @@ struct MiiStoreData {
 
     MiiStoreData();
     MiiStoreData(const Name& name, const MiiStoreBitFields& bit_fields,
-                 const Common::UUID& user_id);
+                 const Common::NewUUID& user_id);
 
     // This corresponds to the above structure MiiStoreBitFields. I did it like this because the
     // BitField<> type makes this (and any thing that contains it) not trivially copyable, which is
@@ -202,7 +202,7 @@ struct MiiStoreData {
         static_assert(sizeof(MiiStoreBitFields) == sizeof(data), "data field has incorrect size.");
 
         Name name{};
-        Common::UUID uuid{Common::INVALID_UUID};
+        Common::NewUUID uuid{};
     } data;
 
     u16 data_crc{};
@@ -326,7 +326,7 @@ public:
     ResultCode GetIndex(const MiiInfo& info, u32& index);
 
 private:
-    const Common::UUID user_id{Common::INVALID_UUID};
+    const Common::NewUUID user_id{};
     u64 update_counter{};
 };
 

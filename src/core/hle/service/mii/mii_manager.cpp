@@ -118,16 +118,6 @@ u16 GenerateCrc16(const void* data, std::size_t size) {
     return Common::swap16(static_cast<u16>(crc));
 }
 
-Common::UUID GenerateValidUUID() {
-    auto uuid{Common::UUID::Generate()};
-
-    // Bit 7 must be set, and bit 6 unset for the UUID to be valid
-    uuid.uuid[1] &= 0xFFFFFFFFFFFFFF3FULL;
-    uuid.uuid[1] |= 0x0000000000000080ULL;
-
-    return uuid;
-}
-
 template <typename T>
 T GetRandomValue(T min, T max) {
     std::random_device device;
@@ -141,7 +131,8 @@ T GetRandomValue(T max) {
     return GetRandomValue<T>({}, max);
 }
 
-MiiStoreData BuildRandomStoreData(Age age, Gender gender, Race race, const Common::UUID& user_id) {
+MiiStoreData BuildRandomStoreData(Age age, Gender gender, Race race,
+                                  const Common::NewUUID& user_id) {
     MiiStoreBitFields bf{};
 
     if (gender == Gender::All) {
@@ -320,7 +311,7 @@ MiiStoreData BuildRandomStoreData(Age age, Gender gender, Race race, const Commo
     return {DefaultMiiName, bf, user_id};
 }
 
-MiiStoreData BuildDefaultStoreData(const DefaultMii& info, const Common::UUID& user_id) {
+MiiStoreData BuildDefaultStoreData(const DefaultMii& info, const Common::NewUUID& user_id) {
     MiiStoreBitFields bf{};
 
     bf.font_region.Assign(info.font_region);
@@ -381,13 +372,13 @@ MiiStoreData BuildDefaultStoreData(const DefaultMii& info, const Common::UUID& u
 MiiStoreData::MiiStoreData() = default;
 
 MiiStoreData::MiiStoreData(const MiiStoreData::Name& name, const MiiStoreBitFields& bit_fields,
-                           const Common::UUID& user_id) {
+                           const Common::NewUUID& user_id) {
     data.name = name;
-    data.uuid = GenerateValidUUID();
+    data.uuid = Common::NewUUID::MakeRandomRFC4122V4();
 
     std::memcpy(data.data.data(), &bit_fields, sizeof(MiiStoreBitFields));
     data_crc = GenerateCrc16(data.data.data(), sizeof(data));
-    device_crc = GenerateCrc16(&user_id, sizeof(Common::UUID));
+    device_crc = GenerateCrc16(&user_id, sizeof(Common::NewUUID));
 }
 
 MiiManager::MiiManager() : user_id{Service::Account::ProfileManager().GetLastOpenedUser()} {}

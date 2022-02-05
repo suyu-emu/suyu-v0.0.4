@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "common/uuid.h"
+#include "common/new_uuid.h"
 #include "core/hle/service/time/clock_types.h"
 
 namespace Core {
@@ -18,11 +18,11 @@ public:
     SteadyClockCore() = default;
     virtual ~SteadyClockCore() = default;
 
-    const Common::UUID& GetClockSourceId() const {
+    const Common::NewUUID& GetClockSourceId() const {
         return clock_source_id;
     }
 
-    void SetClockSourceId(const Common::UUID& value) {
+    void SetClockSourceId(const Common::NewUUID& value) {
         clock_source_id = value;
     }
 
@@ -49,7 +49,7 @@ public:
     }
 
 private:
-    Common::UUID clock_source_id{Common::UUID::Generate()};
+    Common::NewUUID clock_source_id{Common::NewUUID::MakeRandom()};
     bool is_initialized{};
 };
 

@@ -5,7 +5,7 @@
 #pragma once
 
 #include "common/common_types.h"
-#include "common/uuid.h"
+#include "common/new_uuid.h"
 #include "core/hle/kernel/k_shared_memory.h"
 #include "core/hle/service/time/clock_types.h"
 
@@ -52,7 +52,7 @@ public:
     };
     static_assert(sizeof(Format) == 0xd8, "Format is an invalid size");
 
-    void SetupStandardSteadyClock(const Common::UUID& clock_source_id,
+    void SetupStandardSteadyClock(const Common::NewUUID& clock_source_id,
                                   Clock::TimeSpanType current_time_point);
     void UpdateLocalSystemClockContext(const Clock::SystemClockContext& context);
     void UpdateNetworkSystemClockContext(const Clock::SystemClockContext& context);

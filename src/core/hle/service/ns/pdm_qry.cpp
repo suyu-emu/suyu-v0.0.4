@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "common/logging/log.h"
-#include "common/uuid.h"
+#include "common/new_uuid.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/service/ns/pdm_qry.h"
 #include "core/hle/service/service.h"
@@ -49,7 +49,7 @@ void PDM_QRY::QueryPlayStatisticsByApplicationIdAndUserAccountId(Kernel::HLERequ
     const auto unknown = rp.Pop<bool>();
     rp.Pop<u8>(); // Padding
     const auto application_id = rp.Pop<u64>();
-    const auto user_account_uid = rp.PopRaw<Common::UUID>();
+    const auto user_account_uid = rp.PopRaw<Common::NewUUID>();
 
     // TODO(German77): Read statistics of the game
     PlayStatistics statistics{
@@ -59,7 +59,7 @@ void PDM_QRY::QueryPlayStatisticsByApplicationIdAndUserAccountId(Kernel::HLERequ
 
     LOG_WARNING(Service_NS,
                 "(STUBBED) called. unknown={}. application_id=0x{:016X}, user_account_uid=0x{}",
-                unknown, application_id, user_account_uid.Format());
+                unknown, application_id, user_account_uid.RawString());
 
     IPC::ResponseBuilder rb{ctx, 12};
     rb.Push(ResultSuccess);

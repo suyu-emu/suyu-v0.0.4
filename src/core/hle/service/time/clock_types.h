@@ -6,7 +6,7 @@
 
 #include "common/common_funcs.h"
 #include "common/common_types.h"
-#include "common/uuid.h"
+#include "common/new_uuid.h"
 #include "core/hle/service/time/errors.h"
 #include "core/hle/service/time/time_zone_types.h"
 
@@ -21,7 +21,7 @@ enum class TimeType : u8 {
 /// https://switchbrew.org/wiki/Glue_services#SteadyClockTimePoint
 struct SteadyClockTimePoint {
     s64 time_point;
-    Common::UUID clock_source_id;
+    Common::NewUUID clock_source_id;
 
     ResultCode GetSpanBetween(SteadyClockTimePoint other, s64& span) const {
         span = 0;
@@ -36,7 +36,7 @@ struct SteadyClockTimePoint {
     }
 
     static SteadyClockTimePoint GetRandom() {
-        return {0, Common::UUID::Generate()};
+        return {0, Common::NewUUID::MakeRandom()};
     }
 };
 static_assert(sizeof(SteadyClockTimePoint) == 0x18, "SteadyClockTimePoint is incorrect size");
@@ -45,7 +45,7 @@ static_assert(std::is_trivially_copyable_v<SteadyClockTimePoint>,
 
 struct SteadyClockContext {
     u64 internal_offset;
-    Common::UUID steady_time_point;
+    Common::NewUUID steady_time_point;
 };
 static_assert(sizeof(SteadyClockContext) == 0x18, "SteadyClockContext is incorrect size");
 static_assert(std::is_trivially_copyable_v<SteadyClockContext>,
