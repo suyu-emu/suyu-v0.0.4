@@ -177,6 +177,7 @@ private:
         std::list<std::shared_ptr<Mapping>> mappings;
         u32 page_size;
         bool sparse;
+        bool big_pages;
     };
 
     std::map<u64, std::shared_ptr<Mapping>>

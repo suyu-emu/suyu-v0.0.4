@@ -10,21 +10,26 @@
 
 #include "common/common_types.h"
 #include "common/multi_level_page_table.h"
+#include "common/virtual_buffer.h"
 
 namespace VideoCore {
 class RasterizerInterface;
 }
 
 namespace Core {
+class DeviceMemory;
+namespace Memory {
+class Memory;
+} // namespace Memory
 class System;
-}
+} // namespace Core
 
 namespace Tegra {
 
 class MemoryManager final {
 public:
     explicit MemoryManager(Core::System& system_, u64 address_space_bits_ = 40,
-                           u64 page_bits_ = 16);
+                           u64 big_page_bits_ = 16, u64 page_bits_ = 12);
     ~MemoryManager();
 
     size_t GetID() const {
@@ -93,12 +98,8 @@ public:
     std::vector<std::pair<GPUVAddr, std::size_t>> GetSubmappedRange(GPUVAddr gpu_addr,
                                                                     std::size_t size) const;
 
-    GPUVAddr Map(GPUVAddr gpu_addr, VAddr cpu_addr, std::size_t size);
-    GPUVAddr MapSparse(GPUVAddr gpu_addr, std::size_t size);
-    [[nodiscard]] GPUVAddr MapAllocate(VAddr cpu_addr, std::size_t size, std::size_t align);
-    [[nodiscard]] GPUVAddr MapAllocate32(VAddr cpu_addr, std::size_t size);
-    [[nodiscard]] std::optional<GPUVAddr> AllocateFixed(GPUVAddr gpu_addr, std::size_t size);
-    [[nodiscard]] GPUVAddr Allocate(std::size_t size, std::size_t align);
+    GPUVAddr Map(GPUVAddr gpu_addr, VAddr cpu_addr, std::size_t size, bool is_big_pages = true);
+    GPUVAddr MapSparse(GPUVAddr gpu_addr, std::size_t size, bool is_big_pages = true);
     void Unmap(GPUVAddr gpu_addr, std::size_t size);
 
     void FlushRegion(GPUVAddr gpu_addr, size_t size) const;
@@ -107,25 +108,41 @@ private:
     [[nodiscard]] std::optional<GPUVAddr> FindFreeRange(std::size_t size, std::size_t align,
                                                         bool start_32bit_address = false) const;
 
-    void ReadBlockImpl(GPUVAddr gpu_src_addr, void* dest_buffer, std::size_t size,
-                       bool is_safe) const;
-    void WriteBlockImpl(GPUVAddr gpu_dest_addr, const void* src_buffer, std::size_t size,
-                        bool is_safe);
+    template <bool is_big_pages, typename FuncMapped, typename FuncReserved, typename FuncUnmapped>
+    inline void MemoryOperation(GPUVAddr gpu_src_addr, std::size_t size, FuncMapped&& func_mapped,
+                                FuncReserved&& func_reserved, FuncUnmapped&& func_unmapped) const;
 
+    template <bool is_safe>
+    void ReadBlockImpl(GPUVAddr gpu_src_addr, void* dest_buffer, std::size_t size) const;
+
+    template <bool is_safe>
+    void WriteBlockImpl(GPUVAddr gpu_dest_addr, const void* src_buffer, std::size_t size);
+
+    template <bool is_big_page>
     [[nodiscard]] inline std::size_t PageEntryIndex(GPUVAddr gpu_addr) const {
-        return (gpu_addr >> page_bits) & page_table_mask;
+        if constexpr (is_big_page) {
+            return (gpu_addr >> big_page_bits) & big_page_table_mask;
+        } else {
+            return (gpu_addr >> page_bits) & page_table_mask;
+        }
     }
 
     Core::System& system;
+    Core::Memory::Memory& memory;
+    Core::DeviceMemory& device_memory;
 
     const u64 address_space_bits;
     const u64 page_bits;
     u64 address_space_size;
-    u64 allocate_start;
     u64 page_size;
     u64 page_mask;
     u64 page_table_mask;
     static constexpr u64 cpu_page_bits{12};
+
+    const u64 big_page_bits;
+    u64 big_page_size;
+    u64 big_page_mask;
+    u64 big_page_table_mask;
 
     VideoCore::RasterizerInterface* rasterizer = nullptr;
 
@@ -136,15 +153,23 @@ private:
     };
 
     std::vector<u64> entries;
+    std::vector<u64> big_entries;
 
     template <EntryType entry_type>
     GPUVAddr PageTableOp(GPUVAddr gpu_addr, [[maybe_unused]] VAddr cpu_addr, size_t size);
 
-    EntryType GetEntry(size_t position) const;
+    template <EntryType entry_type>
+    GPUVAddr BigPageTableOp(GPUVAddr gpu_addr, [[maybe_unused]] VAddr cpu_addr, size_t size);
 
-    void SetEntry(size_t position, EntryType entry);
+    template <bool is_big_page>
+    inline EntryType GetEntry(size_t position) const;
+
+    template <bool is_big_page>
+    inline void SetEntry(size_t position, EntryType entry);
 
     Common::MultiLevelPageTable<u32> page_table;
+    Common::VirtualBuffer<u32> big_page_table_cpu;
+    Common::VirtualBuffer<u32> big_page_table_physical;
 
     const size_t unique_identifier;
 

@@ -133,7 +133,8 @@ NvResult nvhost_as_gpu::AllocAsEx(const std::vector<u8>& input, std::vector<u8>&
     const u64 end_big_pages{(vm.va_range_end - vm.va_range_split) >> vm.big_page_size_bits};
     vm.big_page_allocator = std::make_unique<VM::Allocator>(start_big_pages, end_big_pages);
 
-    gmmu = std::make_shared<Tegra::MemoryManager>(system, 40, VM::PAGE_SIZE_BITS);
+    gmmu = std::make_shared<Tegra::MemoryManager>(system, 40, vm.big_page_size_bits,
+                                                  VM::PAGE_SIZE_BITS);
     system.GPU().InitAddressSpace(*gmmu);
     vm.initialised = true;
 
@@ -189,6 +190,7 @@ NvResult nvhost_as_gpu::AllocateSpace(const std::vector<u8>& input, std::vector<
         .size = size,
         .page_size = params.page_size,
         .sparse = (params.flags & MappingFlags::Sparse) != MappingFlags::None,
+        .big_pages = params.page_size != VM::YUZU_PAGESIZE,
     };
 
     std::memcpy(output.data(), &params, output.size());
@@ -209,7 +211,7 @@ void nvhost_as_gpu::FreeMappingLocked(u64 offset) {
     // Sparse mappings shouldn't be fully unmapped, just returned to their sparse state
     // Only FreeSpace can unmap them fully
     if (mapping->sparse_alloc)
-        gmmu->MapSparse(offset, mapping->size);
+        gmmu->MapSparse(offset, mapping->size, mapping->big_page);
     else
         gmmu->Unmap(offset, mapping->size);
 
@@ -294,8 +296,9 @@ NvResult nvhost_as_gpu::Remap(const std::vector<u8>& input, std::vector<u8>& out
             return NvResult::BadValue;
         }
 
+        const bool use_big_pages = alloc->second.big_pages;
         if (!entry.handle) {
-            gmmu->MapSparse(virtual_address, size);
+            gmmu->MapSparse(virtual_address, size, use_big_pages);
         } else {
             auto handle{nvmap.GetHandle(entry.handle)};
             if (!handle) {
@@ -306,7 +309,7 @@ NvResult nvhost_as_gpu::Remap(const std::vector<u8>& input, std::vector<u8>& out
                 handle->address +
                 (static_cast<u64>(entry.handle_offset_big_pages) << vm.big_page_size_bits))};
 
-            gmmu->Map(virtual_address, cpu_address, size);
+            gmmu->Map(virtual_address, cpu_address, size, use_big_pages);
         }
     }
 
@@ -345,7 +348,7 @@ NvResult nvhost_as_gpu::MapBufferEx(const std::vector<u8>& input, std::vector<u8
             u64 gpu_address{static_cast<u64>(params.offset + params.buffer_offset)};
             VAddr cpu_address{mapping->ptr + params.buffer_offset};
 
-            gmmu->Map(gpu_address, cpu_address, params.mapping_size);
+            gmmu->Map(gpu_address, cpu_address, params.mapping_size, mapping->big_page);
 
             return NvResult::Success;
         } catch ([[maybe_unused]] const std::out_of_range& e) {
@@ -363,6 +366,17 @@ NvResult nvhost_as_gpu::MapBufferEx(const std::vector<u8>& input, std::vector<u8
     VAddr cpu_address{static_cast<VAddr>(handle->address + params.buffer_offset)};
     u64 size{params.mapping_size ? params.mapping_size : handle->orig_size};
 
+    bool big_page{[&]() {
+        if (Common::IsAligned(handle->align, vm.big_page_size))
+            return true;
+        else if (Common::IsAligned(handle->align, VM::YUZU_PAGESIZE))
+            return false;
+        else {
+            UNREACHABLE();
+            return false;
+        }
+    }()};
+
     if ((params.flags & MappingFlags::Fixed) != MappingFlags::None) {
         auto alloc{allocation_map.upper_bound(params.offset)};
 
@@ -372,23 +386,14 @@ NvResult nvhost_as_gpu::MapBufferEx(const std::vector<u8>& input, std::vector<u8
             return NvResult::BadValue;
         }
 
-        gmmu->Map(params.offset, cpu_address, size);
+        const bool use_big_pages = alloc->second.big_pages && big_page;
+        gmmu->Map(params.offset, cpu_address, size, use_big_pages);
 
-        auto mapping{std::make_shared<Mapping>(cpu_address, params.offset, size, true, false,
-                                               alloc->second.sparse)};
+        auto mapping{std::make_shared<Mapping>(cpu_address, params.offset, size, true,
+                                               use_big_pages, alloc->second.sparse)};
         alloc->second.mappings.push_back(mapping);
         mapping_map[params.offset] = mapping;
     } else {
-        bool big_page{[&]() {
-            if (Common::IsAligned(handle->align, vm.big_page_size))
-                return true;
-            else if (Common::IsAligned(handle->align, VM::YUZU_PAGESIZE))
-                return false;
-            else {
-                UNREACHABLE();
-                return false;
-            }
-        }()};
 
         auto& allocator{big_page ? *vm.big_page_allocator : *vm.small_page_allocator};
         u32 page_size{big_page ? vm.big_page_size : VM::YUZU_PAGESIZE};
@@ -402,7 +407,7 @@ NvResult nvhost_as_gpu::MapBufferEx(const std::vector<u8>& input, std::vector<u8
             return NvResult::InsufficientMemory;
         }
 
-        gmmu->Map(params.offset, cpu_address, size);
+        gmmu->Map(params.offset, cpu_address, Common::AlignUp(size, page_size), big_page);
 
         auto mapping{
             std::make_shared<Mapping>(cpu_address, params.offset, size, false, big_page, false)};
@@ -439,7 +444,7 @@ NvResult nvhost_as_gpu::UnmapBuffer(const std::vector<u8>& input, std::vector<u8
         // Sparse mappings shouldn't be fully unmapped, just returned to their sparse state
         // Only FreeSpace can unmap them fully
         if (mapping->sparse_alloc) {
-            gmmu->MapSparse(params.offset, mapping->size);
+            gmmu->MapSparse(params.offset, mapping->size, mapping->big_page);
         } else {
             gmmu->Unmap(params.offset, mapping->size);
         }

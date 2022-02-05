@@ -19,6 +19,9 @@ MultiLevelPageTable<BaseAddr>::MultiLevelPageTable(std::size_t address_space_bit
                                                    std::size_t page_bits_)
     : address_space_bits{address_space_bits_},
       first_level_bits{first_level_bits_}, page_bits{page_bits_} {
+    if (page_bits == 0) {
+      return;
+    }
     first_level_shift = address_space_bits - first_level_bits;
     first_level_chunk_size = (1ULL << (first_level_shift - page_bits)) * sizeof(BaseAddr);
     alloc_size = (1ULL << (address_space_bits - page_bits)) * sizeof(BaseAddr);
