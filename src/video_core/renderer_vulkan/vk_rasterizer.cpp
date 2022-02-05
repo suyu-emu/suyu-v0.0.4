@@ -247,8 +247,15 @@ void RasterizerVulkan::Clear() {
     }
     UpdateViewportsState(regs);
 
+    VkRect2D default_scissor;
+    default_scissor.offset.x = 0;
+    default_scissor.offset.y = 0;
+    default_scissor.extent.width = std::numeric_limits<s32>::max();
+    default_scissor.extent.height = std::numeric_limits<s32>::max();
+
     VkClearRect clear_rect{
-        .rect = GetScissorState(regs, 0, up_scale, down_shift),
+        .rect = regs.clear_flags.scissor ? GetScissorState(regs, 0, up_scale, down_shift)
+                                         : default_scissor,
         .baseArrayLayer = regs.clear_buffers.layer,
         .layerCount = 1,
     };
