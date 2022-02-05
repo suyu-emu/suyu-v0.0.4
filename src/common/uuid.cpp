@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <bit>
+#include <optional>
 #include <random>
 
 #include <fmt/format.h>
@@ -18,7 +19,7 @@ namespace {
 constexpr size_t RawStringSize = sizeof(UUID) * 2;
 constexpr size_t FormattedStringSize = RawStringSize + 4;
 
-u8 HexCharToByte(char c) {
+std::optional<u8> HexCharToByte(char c) {
     if (c >= '0' && c <= '9') {
         return static_cast<u8>(c - '0');
     }
@@ -29,15 +30,19 @@ u8 HexCharToByte(char c) {
         return static_cast<u8>(c - 'A' + 10);
     }
     ASSERT_MSG(false, "{} is not a hexadecimal digit!", c);
-    return u8{0};
+    return std::nullopt;
 }
 
 std::array<u8, 0x10> ConstructFromRawString(std::string_view raw_string) {
     std::array<u8, 0x10> uuid;
 
     for (size_t i = 0; i < RawStringSize; i += 2) {
-        uuid[i / 2] =
-            static_cast<u8>((HexCharToByte(raw_string[i]) << 4) | HexCharToByte(raw_string[i + 1]));
+        const auto upper = HexCharToByte(raw_string[i]);
+        const auto lower = HexCharToByte(raw_string[i + 1]);
+        if (!upper || !lower) {
+            return {};
+        }
+        uuid[i / 2] = static_cast<u8>((*upper << 4) | *lower);
     }
 
     return uuid;
@@ -52,40 +57,60 @@ std::array<u8, 0x10> ConstructFromFormattedString(std::string_view formatted_str
     const auto* str = formatted_string.data();
 
     for (; i < 4; ++i) {
-        uuid[i] = static_cast<u8>((HexCharToByte(*(str++)) << 4));
-        uuid[i] |= HexCharToByte(*(str++));
+        const auto upper = HexCharToByte(*(str++));
+        const auto lower = HexCharToByte(*(str++));
+        if (!upper || !lower) {
+            return {};
+        }
+        uuid[i] = static_cast<u8>((*upper << 4) | *lower);
     }
 
     // Process the next 4 characters.
     ++str;
 
     for (; i < 6; ++i) {
-        uuid[i] = static_cast<u8>((HexCharToByte(*(str++)) << 4));
-        uuid[i] |= HexCharToByte(*(str++));
+        const auto upper = HexCharToByte(*(str++));
+        const auto lower = HexCharToByte(*(str++));
+        if (!upper || !lower) {
+            return {};
+        }
+        uuid[i] = static_cast<u8>((*upper << 4) | *lower);
     }
 
     // Process the next 4 characters.
     ++str;
 
     for (; i < 8; ++i) {
-        uuid[i] = static_cast<u8>((HexCharToByte(*(str++)) << 4));
-        uuid[i] |= HexCharToByte(*(str++));
+        const auto upper = HexCharToByte(*(str++));
+        const auto lower = HexCharToByte(*(str++));
+        if (!upper || !lower) {
+            return {};
+        }
+        uuid[i] = static_cast<u8>((*upper << 4) | *lower);
     }
 
     // Process the next 4 characters.
     ++str;
 
     for (; i < 10; ++i) {
-        uuid[i] = static_cast<u8>((HexCharToByte(*(str++)) << 4));
-        uuid[i] |= HexCharToByte(*(str++));
+        const auto upper = HexCharToByte(*(str++));
+        const auto lower = HexCharToByte(*(str++));
+        if (!upper || !lower) {
+            return {};
+        }
+        uuid[i] = static_cast<u8>((*upper << 4) | *lower);
     }
 
     // Process the last 12 characters.
     ++str;
 
     for (; i < 16; ++i) {
-        uuid[i] = static_cast<u8>((HexCharToByte(*(str++)) << 4));
-        uuid[i] |= HexCharToByte(*(str++));
+        const auto upper = HexCharToByte(*(str++));
+        const auto lower = HexCharToByte(*(str++));
+        if (!upper || !lower) {
+            return {};
+        }
+        uuid[i] = static_cast<u8>((*upper << 4) | *lower);
     }
 
     return uuid;
