@@ -83,6 +83,9 @@ struct NewUUID {
      */
     size_t Hash() const noexcept;
 
+    /// DO NOT USE. Copies the contents of the UUID into a u128.
+    u128 AsU128() const;
+
     /**
      * Creates a default UUID "yuzu Default UID".
      *

@@ -144,6 +144,12 @@ size_t NewUUID::Hash() const noexcept {
     return hash ^ std::rotl(temp, 1);
 }
 
+u128 NewUUID::AsU128() const {
+    u128 uuid_old;
+    std::memcpy(&uuid_old, uuid.data(), sizeof(NewUUID));
+    return uuid_old;
+}
+
 NewUUID NewUUID::MakeRandom() {
     std::random_device device;
 
