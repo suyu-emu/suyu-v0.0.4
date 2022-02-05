@@ -19,21 +19,21 @@
 #include "yuzu/util/controller_navigation.h"
 
 namespace {
-QString FormatUserEntryText(const QString& username, Common::NewUUID uuid) {
+QString FormatUserEntryText(const QString& username, Common::UUID uuid) {
     return QtProfileSelectionDialog::tr(
                "%1\n%2", "%1 is the profile username, %2 is the formatted UUID (e.g. "
                          "00112233-4455-6677-8899-AABBCCDDEEFF))")
         .arg(username, QString::fromStdString(uuid.FormattedString()));
 }
 
-QString GetImagePath(Common::NewUUID uuid) {
+QString GetImagePath(Common::UUID uuid) {
     const auto path =
         Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir) /
         fmt::format("system/save/8000000000000010/su/avators/{}.jpg", uuid.FormattedString());
     return QString::fromStdString(Common::FS::PathToUTF8String(path));
 }
 
-QPixmap GetIcon(Common::NewUUID uuid) {
+QPixmap GetIcon(Common::UUID uuid) {
     QPixmap icon{GetImagePath(uuid)};
 
     if (!icon) {
@@ -163,11 +163,11 @@ QtProfileSelector::QtProfileSelector(GMainWindow& parent) {
 QtProfileSelector::~QtProfileSelector() = default;
 
 void QtProfileSelector::SelectProfile(
-    std::function<void(std::optional<Common::NewUUID>)> callback_) const {
+    std::function<void(std::optional<Common::UUID>)> callback_) const {
     callback = std::move(callback_);
     emit MainWindowSelectProfile();
 }
 
-void QtProfileSelector::MainWindowFinishedSelection(std::optional<Common::NewUUID> uuid) {
+void QtProfileSelector::MainWindowFinishedSelection(std::optional<Common::UUID> uuid) {
     callback(uuid);
 }

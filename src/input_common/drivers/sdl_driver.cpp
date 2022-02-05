@@ -120,7 +120,7 @@ public:
      */
     const PadIdentifier GetPadIdentifier() const {
         return {
-            .guid = Common::NewUUID{guid},
+            .guid = Common::UUID{guid},
             .port = static_cast<std::size_t>(port),
             .pad = 0,
         };

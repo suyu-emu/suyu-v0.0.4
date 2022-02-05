@@ -10,8 +10,8 @@
 #include <unordered_map>
 #include <utility>
 #include "common/logging/log.h"
-#include "common/new_uuid.h"
 #include "common/param_package.h"
+#include "common/uuid.h"
 
 namespace Common::Input {
 
@@ -97,7 +97,7 @@ struct AnalogStatus {
 
 // Button data
 struct ButtonStatus {
-    Common::NewUUID uuid{};
+    Common::UUID uuid{};
     bool value{};
     bool inverted{};
     bool toggle{};
@@ -109,7 +109,7 @@ using BatteryStatus = BatteryLevel;
 
 // Analog and digital joystick data
 struct StickStatus {
-    Common::NewUUID uuid{};
+    Common::UUID uuid{};
     AnalogStatus x{};
     AnalogStatus y{};
     bool left{};
@@ -120,7 +120,7 @@ struct StickStatus {
 
 // Analog and digital trigger data
 struct TriggerStatus {
-    Common::NewUUID uuid{};
+    Common::UUID uuid{};
     AnalogStatus analog{};
     ButtonStatus pressed{};
 };

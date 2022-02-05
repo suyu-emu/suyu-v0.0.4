@@ -126,7 +126,7 @@ private:
     struct ClientConnection {
         ClientConnection();
         ~ClientConnection();
-        Common::NewUUID uuid{"00000000-0000-0000-0000-00007F000001"};
+        Common::UUID uuid{"00000000-0000-0000-0000-00007F000001"};
         std::string host{"127.0.0.1"};
         u16 port{26760};
         s8 active{-1};
@@ -148,7 +148,7 @@ private:
     void OnPadData(Response::PadData, std::size_t client);
     void StartCommunication(std::size_t client, const std::string& host, u16 port);
     PadIdentifier GetPadIdentifier(std::size_t pad_index) const;
-    Common::NewUUID GetHostUUID(const std::string& host) const;
+    Common::UUID GetHostUUID(const std::string& host) const;
 
     Common::Input::ButtonNames GetUIButtonName(const Common::ParamPackage& params) const;
 

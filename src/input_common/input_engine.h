@@ -10,13 +10,13 @@
 
 #include "common/common_types.h"
 #include "common/input.h"
-#include "common/new_uuid.h"
 #include "common/param_package.h"
+#include "common/uuid.h"
 #include "input_common/main.h"
 
 // Pad Identifier of data source
 struct PadIdentifier {
-    Common::NewUUID guid{};
+    Common::UUID guid{};
     std::size_t port{};
     std::size_t pad{};
 

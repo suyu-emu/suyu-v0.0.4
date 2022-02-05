@@ -7,8 +7,8 @@
 #include "common/bit_field.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
-#include "common/new_uuid.h"
 #include "common/point.h"
+#include "common/uuid.h"
 
 namespace Core::HID {
 

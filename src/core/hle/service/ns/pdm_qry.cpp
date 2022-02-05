@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "common/logging/log.h"
-#include "common/new_uuid.h"
+#include "common/uuid.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/service/ns/pdm_qry.h"
 #include "core/hle/service/service.h"
@@ -49,7 +49,7 @@ void PDM_QRY::QueryPlayStatisticsByApplicationIdAndUserAccountId(Kernel::HLERequ
     const auto unknown = rp.Pop<bool>();
     rp.Pop<u8>(); // Padding
     const auto application_id = rp.Pop<u64>();
-    const auto user_account_uid = rp.PopRaw<Common::NewUUID>();
+    const auto user_account_uid = rp.PopRaw<Common::UUID>();
 
     // TODO(German77): Read statistics of the game
     PlayStatistics statistics{

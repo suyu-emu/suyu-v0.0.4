@@ -691,7 +691,7 @@ private:
 std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateButtonDevice(
     const Common::ParamPackage& params) {
     const PadIdentifier identifier = {
-        .guid = Common::NewUUID{params.Get("guid", "")},
+        .guid = Common::UUID{params.Get("guid", "")},
         .port = static_cast<std::size_t>(params.Get("port", 0)),
         .pad = static_cast<std::size_t>(params.Get("pad", 0)),
     };
@@ -714,7 +714,7 @@ std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateButtonDevice(
 std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateHatButtonDevice(
     const Common::ParamPackage& params) {
     const PadIdentifier identifier = {
-        .guid = Common::NewUUID{params.Get("guid", "")},
+        .guid = Common::UUID{params.Get("guid", "")},
         .port = static_cast<std::size_t>(params.Get("port", 0)),
         .pad = static_cast<std::size_t>(params.Get("pad", 0)),
     };
@@ -736,7 +736,7 @@ std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateStickDevice(
     const auto range = std::clamp(params.Get("range", 1.0f), 0.25f, 1.50f);
     const auto threshold = std::clamp(params.Get("threshold", 0.5f), 0.0f, 1.0f);
     const PadIdentifier identifier = {
-        .guid = Common::NewUUID{params.Get("guid", "")},
+        .guid = Common::UUID{params.Get("guid", "")},
         .port = static_cast<std::size_t>(params.Get("port", 0)),
         .pad = static_cast<std::size_t>(params.Get("pad", 0)),
     };
@@ -768,7 +768,7 @@ std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateStickDevice(
 std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateAnalogDevice(
     const Common::ParamPackage& params) {
     const PadIdentifier identifier = {
-        .guid = Common::NewUUID{params.Get("guid", "")},
+        .guid = Common::UUID{params.Get("guid", "")},
         .port = static_cast<std::size_t>(params.Get("port", 0)),
         .pad = static_cast<std::size_t>(params.Get("pad", 0)),
     };
@@ -789,7 +789,7 @@ std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateAnalogDevice(
 std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateTriggerDevice(
     const Common::ParamPackage& params) {
     const PadIdentifier identifier = {
-        .guid = Common::NewUUID{params.Get("guid", "")},
+        .guid = Common::UUID{params.Get("guid", "")},
         .port = static_cast<std::size_t>(params.Get("port", 0)),
         .pad = static_cast<std::size_t>(params.Get("pad", 0)),
     };
@@ -820,7 +820,7 @@ std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateTouchDevice(
     const auto range = std::clamp(params.Get("range", 1.0f), 0.25f, 1.50f);
     const auto threshold = std::clamp(params.Get("threshold", 0.5f), 0.0f, 1.0f);
     const PadIdentifier identifier = {
-        .guid = Common::NewUUID{params.Get("guid", "")},
+        .guid = Common::UUID{params.Get("guid", "")},
         .port = static_cast<std::size_t>(params.Get("port", 0)),
         .pad = static_cast<std::size_t>(params.Get("pad", 0)),
     };
@@ -857,7 +857,7 @@ std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateTouchDevice(
 std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateBatteryDevice(
     const Common::ParamPackage& params) {
     const PadIdentifier identifier = {
-        .guid = Common::NewUUID{params.Get("guid", "")},
+        .guid = Common::UUID{params.Get("guid", "")},
         .port = static_cast<std::size_t>(params.Get("port", 0)),
         .pad = static_cast<std::size_t>(params.Get("pad", 0)),
     };
@@ -869,7 +869,7 @@ std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateBatteryDevice(
 std::unique_ptr<Common::Input::InputDevice> InputFactory::CreateMotionDevice(
     Common::ParamPackage params) {
     const PadIdentifier identifier = {
-        .guid = Common::NewUUID{params.Get("guid", "")},
+        .guid = Common::UUID{params.Get("guid", "")},
         .port = static_cast<std::size_t>(params.Get("port", 0)),
         .pad = static_cast<std::size_t>(params.Get("pad", 0)),
     };
@@ -963,7 +963,7 @@ OutputFactory::OutputFactory(std::shared_ptr<InputEngine> input_engine_)
 std::unique_ptr<Common::Input::OutputDevice> OutputFactory::Create(
     const Common::ParamPackage& params) {
     const PadIdentifier identifier = {
-        .guid = Common::NewUUID{params.Get("guid", "")},
+        .guid = Common::UUID{params.Get("guid", "")},
         .port = static_cast<std::size_t>(params.Get("port", 0)),
         .pad = static_cast<std::size_t>(params.Get("pad", 0)),
     };

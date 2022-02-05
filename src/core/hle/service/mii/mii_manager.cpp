@@ -131,8 +131,7 @@ T GetRandomValue(T max) {
     return GetRandomValue<T>({}, max);
 }
 
-MiiStoreData BuildRandomStoreData(Age age, Gender gender, Race race,
-                                  const Common::NewUUID& user_id) {
+MiiStoreData BuildRandomStoreData(Age age, Gender gender, Race race, const Common::UUID& user_id) {
     MiiStoreBitFields bf{};
 
     if (gender == Gender::All) {
@@ -311,7 +310,7 @@ MiiStoreData BuildRandomStoreData(Age age, Gender gender, Race race,
     return {DefaultMiiName, bf, user_id};
 }
 
-MiiStoreData BuildDefaultStoreData(const DefaultMii& info, const Common::NewUUID& user_id) {
+MiiStoreData BuildDefaultStoreData(const DefaultMii& info, const Common::UUID& user_id) {
     MiiStoreBitFields bf{};
 
     bf.font_region.Assign(info.font_region);
@@ -372,13 +371,13 @@ MiiStoreData BuildDefaultStoreData(const DefaultMii& info, const Common::NewUUID
 MiiStoreData::MiiStoreData() = default;
 
 MiiStoreData::MiiStoreData(const MiiStoreData::Name& name, const MiiStoreBitFields& bit_fields,
-                           const Common::NewUUID& user_id) {
+                           const Common::UUID& user_id) {
     data.name = name;
-    data.uuid = Common::NewUUID::MakeRandomRFC4122V4();
+    data.uuid = Common::UUID::MakeRandomRFC4122V4();
 
     std::memcpy(data.data.data(), &bit_fields, sizeof(MiiStoreBitFields));
     data_crc = GenerateCrc16(data.data.data(), sizeof(data));
-    device_crc = GenerateCrc16(&user_id, sizeof(Common::NewUUID));
+    device_crc = GenerateCrc16(&user_id, sizeof(Common::UUID));
 }
 
 MiiManager::MiiManager() : user_id{Service::Account::ProfileManager().GetLastOpenedUser()} {}

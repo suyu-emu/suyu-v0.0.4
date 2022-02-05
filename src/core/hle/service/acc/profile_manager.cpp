@@ -16,11 +16,11 @@
 namespace Service::Account {
 
 namespace FS = Common::FS;
-using Common::NewUUID;
+using Common::UUID;
 
 struct UserRaw {
-    NewUUID uuid{};
-    NewUUID uuid2{};
+    UUID uuid{};
+    UUID uuid2{};
     u64 timestamp{};
     ProfileUsername username{};
     ProfileData extra_data{};
@@ -45,7 +45,7 @@ ProfileManager::ProfileManager() {
 
     // Create an user if none are present
     if (user_count == 0) {
-        CreateNewUser(NewUUID::MakeRandom(), "yuzu");
+        CreateNewUser(UUID::MakeRandom(), "yuzu");
     }
 
     auto current =
@@ -97,7 +97,7 @@ ResultCode ProfileManager::AddUser(const ProfileInfo& user) {
 
 /// Create a new user on the system. If the uuid of the user already exists, the user is not
 /// created.
-ResultCode ProfileManager::CreateNewUser(NewUUID uuid, const ProfileUsername& username) {
+ResultCode ProfileManager::CreateNewUser(UUID uuid, const ProfileUsername& username) {
     if (user_count == MAX_USERS) {
         return ERROR_TOO_MANY_USERS;
     }
@@ -124,7 +124,7 @@ ResultCode ProfileManager::CreateNewUser(NewUUID uuid, const ProfileUsername& us
 /// Creates a new user on the system. This function allows a much simpler method of registration
 /// specifically by allowing an std::string for the username. This is required specifically since
 /// we're loading a string straight from the config
-ResultCode ProfileManager::CreateNewUser(NewUUID uuid, const std::string& username) {
+ResultCode ProfileManager::CreateNewUser(UUID uuid, const std::string& username) {
     ProfileUsername username_output{};
 
     if (username.size() > username_output.size()) {
@@ -135,7 +135,7 @@ ResultCode ProfileManager::CreateNewUser(NewUUID uuid, const std::string& userna
     return CreateNewUser(uuid, username_output);
 }
 
-std::optional<NewUUID> ProfileManager::GetUser(std::size_t index) const {
+std::optional<UUID> ProfileManager::GetUser(std::size_t index) const {
     if (index >= MAX_USERS) {
         return std::nullopt;
     }
@@ -144,7 +144,7 @@ std::optional<NewUUID> ProfileManager::GetUser(std::size_t index) const {
 }
 
 /// Returns a users profile index based on their user id.
-std::optional<std::size_t> ProfileManager::GetUserIndex(const NewUUID& uuid) const {
+std::optional<std::size_t> ProfileManager::GetUserIndex(const UUID& uuid) const {
     if (uuid.IsInvalid()) {
         return std::nullopt;
     }
@@ -176,7 +176,7 @@ bool ProfileManager::GetProfileBase(std::optional<std::size_t> index, ProfileBas
 }
 
 /// Returns the data structure used by the switch when GetProfileBase is called on acc:*
-bool ProfileManager::GetProfileBase(NewUUID uuid, ProfileBase& profile) const {
+bool ProfileManager::GetProfileBase(UUID uuid, ProfileBase& profile) const {
     const auto idx = GetUserIndex(uuid);
     return GetProfileBase(idx, profile);
 }
@@ -203,7 +203,7 @@ std::size_t ProfileManager::GetOpenUserCount() const {
 }
 
 /// Checks if a user id exists in our profile manager
-bool ProfileManager::UserExists(NewUUID uuid) const {
+bool ProfileManager::UserExists(UUID uuid) const {
     return GetUserIndex(uuid).has_value();
 }
 
@@ -215,7 +215,7 @@ bool ProfileManager::UserExistsIndex(std::size_t index) const {
 }
 
 /// Opens a specific user
-void ProfileManager::OpenUser(NewUUID uuid) {
+void ProfileManager::OpenUser(UUID uuid) {
     const auto idx = GetUserIndex(uuid);
     if (!idx) {
         return;
@@ -226,7 +226,7 @@ void ProfileManager::OpenUser(NewUUID uuid) {
 }
 
 /// Closes a specific user
-void ProfileManager::CloseUser(NewUUID uuid) {
+void ProfileManager::CloseUser(UUID uuid) {
     const auto idx = GetUserIndex(uuid);
     if (!idx) {
         return;
@@ -253,12 +253,12 @@ UserIDArray ProfileManager::GetOpenUsers() const {
         return Common::InvalidUUID;
     });
     std::stable_partition(output.begin(), output.end(),
-                          [](const NewUUID& uuid) { return uuid.IsValid(); });
+                          [](const UUID& uuid) { return uuid.IsValid(); });
     return output;
 }
 
 /// Returns the last user which was opened
-NewUUID ProfileManager::GetLastOpenedUser() const {
+UUID ProfileManager::GetLastOpenedUser() const {
     return last_opened_user;
 }
 
@@ -273,7 +273,7 @@ bool ProfileManager::GetProfileBaseAndData(std::optional<std::size_t> index, Pro
 }
 
 /// Return the users profile base and the unknown arbitary data.
-bool ProfileManager::GetProfileBaseAndData(NewUUID uuid, ProfileBase& profile,
+bool ProfileManager::GetProfileBaseAndData(UUID uuid, ProfileBase& profile,
                                            ProfileData& data) const {
     const auto idx = GetUserIndex(uuid);
     return GetProfileBaseAndData(idx, profile, data);
@@ -292,7 +292,7 @@ bool ProfileManager::CanSystemRegisterUser() const {
     // emulate qlaunch. Update this to dynamically change.
 }
 
-bool ProfileManager::RemoveUser(NewUUID uuid) {
+bool ProfileManager::RemoveUser(UUID uuid) {
     const auto index = GetUserIndex(uuid);
     if (!index) {
         return false;
@@ -304,7 +304,7 @@ bool ProfileManager::RemoveUser(NewUUID uuid) {
     return true;
 }
 
-bool ProfileManager::SetProfileBase(NewUUID uuid, const ProfileBase& profile_new) {
+bool ProfileManager::SetProfileBase(UUID uuid, const ProfileBase& profile_new) {
     const auto index = GetUserIndex(uuid);
     if (!index || profile_new.user_uuid.IsInvalid()) {
         return false;
@@ -318,7 +318,7 @@ bool ProfileManager::SetProfileBase(NewUUID uuid, const ProfileBase& profile_new
     return true;
 }
 
-bool ProfileManager::SetProfileBaseAndData(Common::NewUUID uuid, const ProfileBase& profile_new,
+bool ProfileManager::SetProfileBaseAndData(Common::UUID uuid, const ProfileBase& profile_new,
                                            const ProfileData& data_new) {
     const auto index = GetUserIndex(uuid);
     if (index.has_value() && SetProfileBase(uuid, profile_new)) {
@@ -336,14 +336,14 @@ void ProfileManager::ParseUserSaveFile() {
 
     if (!save.IsOpen()) {
         LOG_WARNING(Service_ACC, "Failed to load profile data from save data... Generating new "
-                                 "user 'yuzu' with random NewUUID.");
+                                 "user 'yuzu' with random UUID.");
         return;
     }
 
     ProfileDataRaw data;
     if (!save.ReadObject(data)) {
         LOG_WARNING(Service_ACC, "profiles.dat is smaller than expected... Generating new user "
-                                 "'yuzu' with random NewUUID.");
+                                 "'yuzu' with random UUID.");
         return;
     }
 

@@ -11,9 +11,9 @@ namespace Core::Frontend {
 ProfileSelectApplet::~ProfileSelectApplet() = default;
 
 void DefaultProfileSelectApplet::SelectProfile(
-    std::function<void(std::optional<Common::NewUUID>)> callback) const {
+    std::function<void(std::optional<Common::UUID>)> callback) const {
     Service::Account::ProfileManager manager;
-    callback(manager.GetUser(Settings::values.current_user.GetValue()).value_or(Common::NewUUID{}));
+    callback(manager.GetUser(Settings::values.current_user.GetValue()).value_or(Common::UUID{}));
     LOG_INFO(Service_ACC, "called, selecting current user instead of prompting...");
 }
 

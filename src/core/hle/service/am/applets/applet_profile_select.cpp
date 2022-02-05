@@ -54,11 +54,10 @@ void ProfileSelect::Execute() {
         return;
     }
 
-    frontend.SelectProfile(
-        [this](std::optional<Common::NewUUID> uuid) { SelectionComplete(uuid); });
+    frontend.SelectProfile([this](std::optional<Common::UUID> uuid) { SelectionComplete(uuid); });
 }
 
-void ProfileSelect::SelectionComplete(std::optional<Common::NewUUID> uuid) {
+void ProfileSelect::SelectionComplete(std::optional<Common::UUID> uuid) {
     UserSelectionOutput output{};
 
     if (uuid.has_value() && uuid->IsValid()) {

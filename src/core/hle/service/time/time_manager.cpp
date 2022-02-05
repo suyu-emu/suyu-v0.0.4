@@ -45,7 +45,7 @@ struct TimeManager::Impl final {
           time_zone_content_manager{system} {
 
         const auto system_time{Clock::TimeSpanType::FromSeconds(GetExternalRtcValue())};
-        SetupStandardSteadyClock(system, Common::NewUUID::MakeRandom(), system_time, {}, {});
+        SetupStandardSteadyClock(system, Common::UUID::MakeRandom(), system_time, {}, {});
         SetupStandardLocalSystemClock(system, {}, system_time.ToSeconds());
 
         Clock::SystemClockContext clock_context{};
@@ -132,7 +132,7 @@ struct TimeManager::Impl final {
         return 0;
     }
 
-    void SetupStandardSteadyClock(Core::System& system_, Common::NewUUID clock_source_id,
+    void SetupStandardSteadyClock(Core::System& system_, Common::UUID clock_source_id,
                                   Clock::TimeSpanType setup_value,
                                   Clock::TimeSpanType internal_offset, bool is_rtc_reset_detected) {
         standard_steady_clock_core.SetClockSourceId(clock_source_id);

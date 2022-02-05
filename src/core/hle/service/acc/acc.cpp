@@ -39,7 +39,7 @@ constexpr ResultCode ERR_FAILED_SAVE_DATA{ErrorModule::Account, 100};
 // Thumbnails are hard coded to be at least this size
 constexpr std::size_t THUMBNAIL_SIZE = 0x24000;
 
-static std::filesystem::path GetImagePath(const Common::NewUUID& uuid) {
+static std::filesystem::path GetImagePath(const Common::UUID& uuid) {
     return Common::FS::GetYuzuPath(Common::FS::YuzuPath::NANDDir) /
            fmt::format("system/save/8000000000000010/su/avators/{}.jpg", uuid.FormattedString());
 }
@@ -51,7 +51,7 @@ static constexpr u32 SanitizeJPEGSize(std::size_t size) {
 
 class IManagerForSystemService final : public ServiceFramework<IManagerForSystemService> {
 public:
-    explicit IManagerForSystemService(Core::System& system_, Common::NewUUID)
+    explicit IManagerForSystemService(Core::System& system_, Common::UUID)
         : ServiceFramework{system_, "IManagerForSystemService"} {
         // clang-format off
         static const FunctionInfo functions[] = {
@@ -87,7 +87,7 @@ public:
 // 3.0.0+
 class IFloatingRegistrationRequest final : public ServiceFramework<IFloatingRegistrationRequest> {
 public:
-    explicit IFloatingRegistrationRequest(Core::System& system_, Common::NewUUID)
+    explicit IFloatingRegistrationRequest(Core::System& system_, Common::UUID)
         : ServiceFramework{system_, "IFloatingRegistrationRequest"} {
         // clang-format off
         static const FunctionInfo functions[] = {
@@ -112,7 +112,7 @@ public:
 
 class IAdministrator final : public ServiceFramework<IAdministrator> {
 public:
-    explicit IAdministrator(Core::System& system_, Common::NewUUID)
+    explicit IAdministrator(Core::System& system_, Common::UUID)
         : ServiceFramework{system_, "IAdministrator"} {
         // clang-format off
         static const FunctionInfo functions[] = {
@@ -170,7 +170,7 @@ public:
 
 class IAuthorizationRequest final : public ServiceFramework<IAuthorizationRequest> {
 public:
-    explicit IAuthorizationRequest(Core::System& system_, Common::NewUUID)
+    explicit IAuthorizationRequest(Core::System& system_, Common::UUID)
         : ServiceFramework{system_, "IAuthorizationRequest"} {
         // clang-format off
         static const FunctionInfo functions[] = {
@@ -189,7 +189,7 @@ public:
 
 class IOAuthProcedure final : public ServiceFramework<IOAuthProcedure> {
 public:
-    explicit IOAuthProcedure(Core::System& system_, Common::NewUUID)
+    explicit IOAuthProcedure(Core::System& system_, Common::UUID)
         : ServiceFramework{system_, "IOAuthProcedure"} {
         // clang-format off
         static const FunctionInfo functions[] = {
@@ -208,7 +208,7 @@ public:
 // 3.0.0+
 class IOAuthProcedureForExternalNsa final : public ServiceFramework<IOAuthProcedureForExternalNsa> {
 public:
-    explicit IOAuthProcedureForExternalNsa(Core::System& system_, Common::NewUUID)
+    explicit IOAuthProcedureForExternalNsa(Core::System& system_, Common::UUID)
         : ServiceFramework{system_, "IOAuthProcedureForExternalNsa"} {
         // clang-format off
         static const FunctionInfo functions[] = {
@@ -231,7 +231,7 @@ public:
 class IOAuthProcedureForNintendoAccountLinkage final
     : public ServiceFramework<IOAuthProcedureForNintendoAccountLinkage> {
 public:
-    explicit IOAuthProcedureForNintendoAccountLinkage(Core::System& system_, Common::NewUUID)
+    explicit IOAuthProcedureForNintendoAccountLinkage(Core::System& system_, Common::UUID)
         : ServiceFramework{system_, "IOAuthProcedureForNintendoAccountLinkage"} {
         // clang-format off
         static const FunctionInfo functions[] = {
@@ -252,7 +252,7 @@ public:
 
 class INotifier final : public ServiceFramework<INotifier> {
 public:
-    explicit INotifier(Core::System& system_, Common::NewUUID)
+    explicit INotifier(Core::System& system_, Common::UUID)
         : ServiceFramework{system_, "INotifier"} {
         // clang-format off
         static const FunctionInfo functions[] = {
@@ -267,7 +267,7 @@ public:
 class IProfileCommon : public ServiceFramework<IProfileCommon> {
 public:
     explicit IProfileCommon(Core::System& system_, const char* name, bool editor_commands,
-                            Common::NewUUID user_id_, ProfileManager& profile_manager_)
+                            Common::UUID user_id_, ProfileManager& profile_manager_)
         : ServiceFramework{system_, name}, profile_manager{profile_manager_}, user_id{user_id_} {
         static const FunctionInfo functions[] = {
             {0, &IProfileCommon::Get, "Get"},
@@ -435,26 +435,26 @@ protected:
     }
 
     ProfileManager& profile_manager;
-    Common::NewUUID user_id{}; ///< The user id this profile refers to.
+    Common::UUID user_id{}; ///< The user id this profile refers to.
 };
 
 class IProfile final : public IProfileCommon {
 public:
-    explicit IProfile(Core::System& system_, Common::NewUUID user_id_,
+    explicit IProfile(Core::System& system_, Common::UUID user_id_,
                       ProfileManager& profile_manager_)
         : IProfileCommon{system_, "IProfile", false, user_id_, profile_manager_} {}
 };
 
 class IProfileEditor final : public IProfileCommon {
 public:
-    explicit IProfileEditor(Core::System& system_, Common::NewUUID user_id_,
+    explicit IProfileEditor(Core::System& system_, Common::UUID user_id_,
                             ProfileManager& profile_manager_)
         : IProfileCommon{system_, "IProfileEditor", true, user_id_, profile_manager_} {}
 };
 
 class ISessionObject final : public ServiceFramework<ISessionObject> {
 public:
-    explicit ISessionObject(Core::System& system_, Common::NewUUID)
+    explicit ISessionObject(Core::System& system_, Common::UUID)
         : ServiceFramework{system_, "ISessionObject"} {
         // clang-format off
         static const FunctionInfo functions[] = {
@@ -468,7 +468,7 @@ public:
 
 class IGuestLoginRequest final : public ServiceFramework<IGuestLoginRequest> {
 public:
-    explicit IGuestLoginRequest(Core::System& system_, Common::NewUUID)
+    explicit IGuestLoginRequest(Core::System& system_, Common::UUID)
         : ServiceFramework{system_, "IGuestLoginRequest"} {
         // clang-format off
         static const FunctionInfo functions[] = {
@@ -514,7 +514,7 @@ protected:
 
 class IManagerForApplication final : public ServiceFramework<IManagerForApplication> {
 public:
-    explicit IManagerForApplication(Core::System& system_, Common::NewUUID user_id_)
+    explicit IManagerForApplication(Core::System& system_, Common::UUID user_id_)
         : ServiceFramework{system_, "IManagerForApplication"},
           ensure_token_id{std::make_shared<EnsureTokenIdCacheAsyncInterface>(system)},
           user_id{user_id_} {
@@ -587,14 +587,14 @@ private:
     }
 
     std::shared_ptr<EnsureTokenIdCacheAsyncInterface> ensure_token_id{};
-    Common::NewUUID user_id{};
+    Common::UUID user_id{};
 };
 
 // 6.0.0+
 class IAsyncNetworkServiceLicenseKindContext final
     : public ServiceFramework<IAsyncNetworkServiceLicenseKindContext> {
 public:
-    explicit IAsyncNetworkServiceLicenseKindContext(Core::System& system_, Common::NewUUID)
+    explicit IAsyncNetworkServiceLicenseKindContext(Core::System& system_, Common::UUID)
         : ServiceFramework{system_, "IAsyncNetworkServiceLicenseKindContext"} {
         // clang-format off
         static const FunctionInfo functions[] = {
@@ -614,7 +614,7 @@ public:
 class IOAuthProcedureForUserRegistration final
     : public ServiceFramework<IOAuthProcedureForUserRegistration> {
 public:
-    explicit IOAuthProcedureForUserRegistration(Core::System& system_, Common::NewUUID)
+    explicit IOAuthProcedureForUserRegistration(Core::System& system_, Common::UUID)
         : ServiceFramework{system_, "IOAuthProcedureForUserRegistration"} {
         // clang-format off
         static const FunctionInfo functions[] = {
@@ -638,8 +638,7 @@ public:
 
 class DAUTH_O final : public ServiceFramework<DAUTH_O> {
 public:
-    explicit DAUTH_O(Core::System& system_, Common::NewUUID)
-        : ServiceFramework{system_, "dauth:o"} {
+    explicit DAUTH_O(Core::System& system_, Common::UUID) : ServiceFramework{system_, "dauth:o"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "EnsureAuthenticationTokenCacheAsync"},
@@ -663,7 +662,7 @@ public:
 // 6.0.0+
 class IAsyncResult final : public ServiceFramework<IAsyncResult> {
 public:
-    explicit IAsyncResult(Core::System& system_, Common::NewUUID)
+    explicit IAsyncResult(Core::System& system_, Common::UUID)
         : ServiceFramework{system_, "IAsyncResult"} {
         // clang-format off
         static const FunctionInfo functions[] = {
@@ -687,7 +686,7 @@ void Module::Interface::GetUserCount(Kernel::HLERequestContext& ctx) {
 
 void Module::Interface::GetUserExistence(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    Common::NewUUID user_id = rp.PopRaw<Common::NewUUID>();
+    Common::UUID user_id = rp.PopRaw<Common::UUID>();
     LOG_DEBUG(Service_ACC, "called user_id=0x{}", user_id.RawString());
 
     IPC::ResponseBuilder rb{ctx, 3};
@@ -713,12 +712,12 @@ void Module::Interface::GetLastOpenedUser(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_ACC, "called");
     IPC::ResponseBuilder rb{ctx, 6};
     rb.Push(ResultSuccess);
-    rb.PushRaw<Common::NewUUID>(profile_manager->GetLastOpenedUser());
+    rb.PushRaw<Common::UUID>(profile_manager->GetLastOpenedUser());
 }
 
 void Module::Interface::GetProfile(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    Common::NewUUID user_id = rp.PopRaw<Common::NewUUID>();
+    Common::UUID user_id = rp.PopRaw<Common::UUID>();
     LOG_DEBUG(Service_ACC, "called user_id=0x{}", user_id.RawString());
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
@@ -832,7 +831,7 @@ void Module::Interface::InitializeApplicationInfoV2(Kernel::HLERequestContext& c
 
 void Module::Interface::GetProfileEditor(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    Common::NewUUID user_id = rp.PopRaw<Common::NewUUID>();
+    Common::UUID user_id = rp.PopRaw<Common::UUID>();
 
     LOG_DEBUG(Service_ACC, "called, user_id=0x{}", user_id.RawString());
 
@@ -874,7 +873,7 @@ void Module::Interface::ListOpenContextStoredUsers(Kernel::HLERequestContext& ct
 
 void Module::Interface::StoreSaveDataThumbnailApplication(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    const auto uuid = rp.PopRaw<Common::NewUUID>();
+    const auto uuid = rp.PopRaw<Common::UUID>();
 
     LOG_WARNING(Service_ACC, "(STUBBED) called, uuid=0x{}", uuid.RawString());
 
@@ -887,7 +886,7 @@ void Module::Interface::StoreSaveDataThumbnailApplication(Kernel::HLERequestCont
 
 void Module::Interface::StoreSaveDataThumbnailSystem(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    const auto uuid = rp.PopRaw<Common::NewUUID>();
+    const auto uuid = rp.PopRaw<Common::UUID>();
     const auto tid = rp.Pop<u64_le>();
 
     LOG_WARNING(Service_ACC, "(STUBBED) called, uuid=0x{}, tid={:016X}", uuid.RawString(), tid);
@@ -895,7 +894,7 @@ void Module::Interface::StoreSaveDataThumbnailSystem(Kernel::HLERequestContext& 
 }
 
 void Module::Interface::StoreSaveDataThumbnail(Kernel::HLERequestContext& ctx,
-                                               const Common::NewUUID& uuid, const u64 tid) {
+                                               const Common::UUID& uuid, const u64 tid) {
     IPC::ResponseBuilder rb{ctx, 2};
 
     if (tid == 0) {

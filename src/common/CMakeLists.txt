@@ -99,8 +99,6 @@ add_library(common STATIC
     microprofile.cpp
     microprofile.h
     microprofileui.h
-    new_uuid.cpp
-    new_uuid.h
     nvidia_flags.cpp
     nvidia_flags.h
     page_table.cpp

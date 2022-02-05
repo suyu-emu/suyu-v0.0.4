@@ -55,7 +55,7 @@ constexpr u32 LAUNCH_PARAMETER_ACCOUNT_PRESELECTED_USER_MAGIC = 0xC79497CA;
 struct LaunchParameterAccountPreselectedUser {
     u32_le magic;
     u32_le is_account_selected;
-    Common::NewUUID current_user;
+    Common::UUID current_user;
     INSERT_PADDING_BYTES(0x70);
 };
 static_assert(sizeof(LaunchParameterAccountPreselectedUser) == 0x88);

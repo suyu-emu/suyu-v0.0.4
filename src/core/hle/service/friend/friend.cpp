@@ -4,7 +4,7 @@
 
 #include <queue>
 #include "common/logging/log.h"
-#include "common/new_uuid.h"
+#include "common/uuid.h"
 #include "core/core.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/k_event.h"
@@ -170,7 +170,7 @@ private:
     void GetPlayHistoryRegistrationKey(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto local_play = rp.Pop<bool>();
-        const auto uuid = rp.PopRaw<Common::NewUUID>();
+        const auto uuid = rp.PopRaw<Common::UUID>();
 
         LOG_WARNING(Service_Friend, "(STUBBED) called, local_play={}, uuid=0x{}", local_play,
                     uuid.RawString());
@@ -182,7 +182,7 @@ private:
     void GetFriendList(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto friend_offset = rp.Pop<u32>();
-        const auto uuid = rp.PopRaw<Common::NewUUID>();
+        const auto uuid = rp.PopRaw<Common::UUID>();
         [[maybe_unused]] const auto filter = rp.PopRaw<SizedFriendFilter>();
         const auto pid = rp.Pop<u64>();
         LOG_WARNING(Service_Friend, "(STUBBED) called, offset={}, uuid=0x{}, pid={}", friend_offset,
@@ -202,7 +202,7 @@ private:
 
 class INotificationService final : public ServiceFramework<INotificationService> {
 public:
-    explicit INotificationService(Core::System& system_, Common::NewUUID uuid_)
+    explicit INotificationService(Core::System& system_, Common::UUID uuid_)
         : ServiceFramework{system_, "INotificationService"}, uuid{uuid_},
           service_context{system_, "INotificationService"} {
         // clang-format off
@@ -293,7 +293,7 @@ private:
         bool has_received_friend_request;
     };
 
-    Common::NewUUID uuid;
+    Common::UUID uuid;
     KernelHelpers::ServiceContext service_context;
 
     Kernel::KEvent* notification_event;
@@ -310,7 +310,7 @@ void Module::Interface::CreateFriendService(Kernel::HLERequestContext& ctx) {
 
 void Module::Interface::CreateNotificationService(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    auto uuid = rp.PopRaw<Common::NewUUID>();
+    auto uuid = rp.PopRaw<Common::UUID>();
 
     LOG_DEBUG(Service_Friend, "called, uuid=0x{}", uuid.RawString());
 

@@ -153,7 +153,7 @@ signals:
 
     void ErrorDisplayFinished();
 
-    void ProfileSelectorFinishedSelection(std::optional<Common::NewUUID> uuid);
+    void ProfileSelectorFinishedSelection(std::optional<Common::UUID> uuid);
 
     void SoftwareKeyboardSubmitNormalText(Service::AM::Applets::SwkbdResult result,
                                           std::u16string submitted_text, bool confirmed);

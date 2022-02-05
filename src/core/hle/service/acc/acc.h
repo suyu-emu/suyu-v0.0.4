@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "common/new_uuid.h"
+#include "common/uuid.h"
 #include "core/hle/service/glue/glue_manager.h"
 #include "core/hle/service/service.h"
 
@@ -43,7 +43,7 @@ public:
 
     private:
         ResultCode InitializeApplicationInfoBase();
-        void StoreSaveDataThumbnail(Kernel::HLERequestContext& ctx, const Common::NewUUID& uuid,
+        void StoreSaveDataThumbnail(Kernel::HLERequestContext& ctx, const Common::UUID& uuid,
                                     const u64 tid);
 
         enum class ApplicationType : u32_le {

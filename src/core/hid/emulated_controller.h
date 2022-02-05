@@ -354,7 +354,7 @@ private:
      * @param index Button ID of the to be updated
      */
     void SetButton(const Common::Input::CallbackStatus& callback, std::size_t index,
-                   Common::NewUUID uuid);
+                   Common::UUID uuid);
 
     /**
      * Updates the analog stick status of the controller
@@ -362,7 +362,7 @@ private:
      * @param index stick ID of the to be updated
      */
     void SetStick(const Common::Input::CallbackStatus& callback, std::size_t index,
-                  Common::NewUUID uuid);
+                  Common::UUID uuid);
 
     /**
      * Updates the trigger status of the controller
@@ -370,7 +370,7 @@ private:
      * @param index trigger ID of the to be updated
      */
     void SetTrigger(const Common::Input::CallbackStatus& callback, std::size_t index,
-                    Common::NewUUID uuid);
+                    Common::UUID uuid);
 
     /**
      * Updates the motion status of the controller
