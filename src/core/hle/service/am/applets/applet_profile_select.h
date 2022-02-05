@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "common/common_funcs.h"
-#include "common/uuid.h"
+#include "common/new_uuid.h"
 #include "core/hle/result.h"
 #include "core/hle/service/am/applets/applets.h"
 
@@ -27,7 +27,7 @@ static_assert(sizeof(UserSelectionConfig) == 0xA0, "UserSelectionConfig has inco
 
 struct UserSelectionOutput {
     u64 result;
-    u128 uuid_selected;
+    Common::NewUUID uuid_selected;
 };
 static_assert(sizeof(UserSelectionOutput) == 0x18, "UserSelectionOutput has incorrect size.");
 
@@ -44,7 +44,7 @@ public:
     void ExecuteInteractive() override;
     void Execute() override;
 
-    void SelectionComplete(std::optional<Common::UUID> uuid);
+    void SelectionComplete(std::optional<Common::NewUUID> uuid);
 
 private:
     const Core::Frontend::ProfileSelectApplet& frontend;

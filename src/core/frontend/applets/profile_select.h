@@ -6,7 +6,7 @@
 
 #include <functional>
 #include <optional>
-#include "common/uuid.h"
+#include "common/new_uuid.h"
 
 namespace Core::Frontend {
 
@@ -14,12 +14,13 @@ class ProfileSelectApplet {
 public:
     virtual ~ProfileSelectApplet();
 
-    virtual void SelectProfile(std::function<void(std::optional<Common::UUID>)> callback) const = 0;
+    virtual void SelectProfile(
+        std::function<void(std::optional<Common::NewUUID>)> callback) const = 0;
 };
 
 class DefaultProfileSelectApplet final : public ProfileSelectApplet {
 public:
-    void SelectProfile(std::function<void(std::optional<Common::UUID>)> callback) const override;
+    void SelectProfile(std::function<void(std::optional<Common::NewUUID>)> callback) const override;
 };
 
 } // namespace Core::Frontend

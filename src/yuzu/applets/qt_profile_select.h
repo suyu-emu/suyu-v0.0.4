@@ -66,13 +66,14 @@ public:
     explicit QtProfileSelector(GMainWindow& parent);
     ~QtProfileSelector() override;
 
-    void SelectProfile(std::function<void(std::optional<Common::UUID>)> callback_) const override;
+    void SelectProfile(
+        std::function<void(std::optional<Common::NewUUID>)> callback_) const override;
 
 signals:
     void MainWindowSelectProfile() const;
 
 private:
-    void MainWindowFinishedSelection(std::optional<Common::UUID> uuid);
+    void MainWindowFinishedSelection(std::optional<Common::NewUUID> uuid);
 
-    mutable std::function<void(std::optional<Common::UUID>)> callback;
+    mutable std::function<void(std::optional<Common::NewUUID>)> callback;
 };
