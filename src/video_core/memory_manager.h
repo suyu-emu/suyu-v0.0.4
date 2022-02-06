@@ -105,9 +105,6 @@ public:
     void FlushRegion(GPUVAddr gpu_addr, size_t size) const;
 
 private:
-    [[nodiscard]] std::optional<GPUVAddr> FindFreeRange(std::size_t size, std::size_t align,
-                                                        bool start_32bit_address = false) const;
-
     template <bool is_big_pages, typename FuncMapped, typename FuncReserved, typename FuncUnmapped>
     inline void MemoryOperation(GPUVAddr gpu_src_addr, std::size_t size, FuncMapped&& func_mapped,
                                 FuncReserved&& func_reserved, FuncUnmapped&& func_unmapped) const;
@@ -126,6 +123,9 @@ private:
             return (gpu_addr >> page_bits) & page_table_mask;
         }
     }
+
+    inline bool IsBigPageContinous(size_t big_page_index) const;
+    inline void SetBigPageContinous(size_t big_page_index, bool value);
 
     Core::System& system;
     Core::Memory::Memory& memory;
@@ -169,7 +169,10 @@ private:
 
     Common::MultiLevelPageTable<u32> page_table;
     Common::VirtualBuffer<u32> big_page_table_cpu;
-    Common::VirtualBuffer<u32> big_page_table_physical;
+
+    std::vector<u64> big_page_continous;
+
+    constexpr static size_t continous_bits = 64;
 
     const size_t unique_identifier;
 
