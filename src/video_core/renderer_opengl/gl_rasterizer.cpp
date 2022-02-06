@@ -215,6 +215,9 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
     if (!pipeline) {
         return;
     }
+
+    gpu.TickWork();
+
     std::scoped_lock lock{buffer_cache.mutex, texture_cache.mutex};
     pipeline->SetEngine(maxwell3d, gpu_memory);
     pipeline->Configure(is_indexed);
@@ -272,6 +275,7 @@ void RasterizerOpenGL::DispatchCompute() {
     if (!pipeline) {
         return;
     }
+    pipeline->SetEngine(kepler_compute, gpu_memory);
     pipeline->Configure();
     const auto& qmd{kepler_compute->launch_description};
     glDispatchCompute(qmd.grid_dim_x, qmd.grid_dim_y, qmd.grid_dim_z);
