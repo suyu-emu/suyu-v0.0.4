@@ -242,6 +242,9 @@ void Maxwell3D::ProcessMethodCall(u32 method, u32 argument, u32 nonshadow_argume
         return;
     case MAXWELL3D_REG_INDEX(fragment_barrier):
         return rasterizer->FragmentBarrier();
+    case MAXWELL3D_REG_INDEX(invalidate_texture_data_cache):
+        rasterizer->InvalidateGPUCache();
+        return rasterizer->WaitForIdle();
     case MAXWELL3D_REG_INDEX(tiled_cache_barrier):
         return rasterizer->TiledCacheBarrier();
     }
@@ -472,10 +475,25 @@ void Maxwell3D::ProcessQueryGet() {
 
     switch (regs.query.query_get.operation) {
     case Regs::QueryOperation::Release:
-        if (regs.query.query_get.fence == 1) {
-            rasterizer->SignalSemaphore(regs.query.QueryAddress(), regs.query.query_sequence);
+        if (regs.query.query_get.fence == 1 || regs.query.query_get.short_query != 0) {
+            const GPUVAddr sequence_address{regs.query.QueryAddress()};
+            const u32 payload = regs.query.query_sequence;
+            std::function<void()> operation([this, sequence_address, payload] {
+                memory_manager.Write<u32>(sequence_address, payload);
+            });
+            rasterizer->SignalFence(std::move(operation));
         } else {
-            StampQueryResult(regs.query.query_sequence, regs.query.query_get.short_query == 0);
+            struct LongQueryResult {
+                u64_le value;
+                u64_le timestamp;
+            };
+            const GPUVAddr sequence_address{regs.query.QueryAddress()};
+            const u32 payload = regs.query.query_sequence;
+            std::function<void()> operation([this, sequence_address, payload] {
+                LongQueryResult query_result{payload, system.GPU().GetTicks()};
+                memory_manager.WriteBlock(sequence_address, &query_result, sizeof(query_result));
+            });
+            rasterizer->SignalFence(std::move(operation));
         }
         break;
     case Regs::QueryOperation::Acquire:

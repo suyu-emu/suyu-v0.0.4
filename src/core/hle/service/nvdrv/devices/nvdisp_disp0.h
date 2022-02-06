@@ -38,7 +38,8 @@ public:
     /// Performs a screen flip, drawing the buffer pointed to by the handle.
     void flip(u32 buffer_handle, u32 offset, android::PixelFormat format, u32 width, u32 height,
               u32 stride, android::BufferTransformFlags transform,
-              const Common::Rectangle<int>& crop_rect);
+              const Common::Rectangle<int>& crop_rect,
+              std::array<Service::Nvidia::NvFence, 4>& fences, u32 num_fences);
 
     Kernel::KEvent* QueryEvent(u32 event_id) override;
 

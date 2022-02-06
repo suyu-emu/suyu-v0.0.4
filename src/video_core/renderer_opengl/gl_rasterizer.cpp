@@ -358,7 +358,7 @@ void RasterizerOpenGL::OnCPUWrite(VAddr addr, u64 size) {
     }
 }
 
-void RasterizerOpenGL::SyncGuestHost() {
+void RasterizerOpenGL::InvalidateGPUCache() {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
     shader_cache.SyncGuestHost();
     {
@@ -386,13 +386,12 @@ void RasterizerOpenGL::ModifyGPUMemory(size_t as_id, GPUVAddr addr, u64 size) {
     }
 }
 
-void RasterizerOpenGL::SignalSemaphore(GPUVAddr addr, u32 value) {
-    if (!gpu.IsAsync()) {
-        gpu_memory->Write<u32>(addr, value);
-        return;
-    }
-    auto paddr = gpu_memory->GetPointer(addr);
-    fence_manager.SignalSemaphore(paddr, value);
+void RasterizerOpenGL::SignalFence(std::function<void()>&& func) {
+    fence_manager.SignalFence(std::move(func));
+}
+
+void RasterizerOpenGL::SyncOperation(std::function<void()>&& func) {
+    fence_manager.SyncOperation(std::move(func));
 }
 
 void RasterizerOpenGL::SignalSyncPoint(u32 value) {
@@ -400,16 +399,10 @@ void RasterizerOpenGL::SignalSyncPoint(u32 value) {
 }
 
 void RasterizerOpenGL::SignalReference() {
-    if (!gpu.IsAsync()) {
-        return;
-    }
     fence_manager.SignalOrdering();
 }
 
 void RasterizerOpenGL::ReleaseFences() {
-    if (!gpu.IsAsync()) {
-        return;
-    }
     fence_manager.WaitPendingFences();
 }
 
@@ -426,6 +419,7 @@ void RasterizerOpenGL::WaitForIdle() {
 }
 
 void RasterizerOpenGL::FragmentBarrier() {
+    glTextureBarrier();
     glMemoryBarrier(GL_FRAMEBUFFER_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT);
 }
 

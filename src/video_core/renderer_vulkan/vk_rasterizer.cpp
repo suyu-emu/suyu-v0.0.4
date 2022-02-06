@@ -428,7 +428,7 @@ void RasterizerVulkan::OnCPUWrite(VAddr addr, u64 size) {
     }
 }
 
-void RasterizerVulkan::SyncGuestHost() {
+void RasterizerVulkan::InvalidateGPUCache() {
     pipeline_cache.SyncGuestHost();
     {
         std::scoped_lock lock{buffer_cache.mutex};
@@ -455,13 +455,12 @@ void RasterizerVulkan::ModifyGPUMemory(size_t as_id, GPUVAddr addr, u64 size) {
     }
 }
 
-void RasterizerVulkan::SignalSemaphore(GPUVAddr addr, u32 value) {
-    if (!gpu.IsAsync()) {
-        gpu_memory->Write<u32>(addr, value);
-        return;
-    }
-    auto paddr = gpu_memory->GetPointer(addr);
-    fence_manager.SignalSemaphore(paddr, value);
+void RasterizerVulkan::SignalFence(std::function<void()>&& func) {
+    fence_manager.SignalFence(std::move(func));
+}
+
+void RasterizerVulkan::SyncOperation(std::function<void()>&& func) {
+    fence_manager.SyncOperation(std::move(func));
 }
 
 void RasterizerVulkan::SignalSyncPoint(u32 value) {
@@ -469,16 +468,10 @@ void RasterizerVulkan::SignalSyncPoint(u32 value) {
 }
 
 void RasterizerVulkan::SignalReference() {
-    if (!gpu.IsAsync()) {
-        return;
-    }
     fence_manager.SignalOrdering();
 }
 
 void RasterizerVulkan::ReleaseFences() {
-    if (!gpu.IsAsync()) {
-        return;
-    }
     fence_manager.WaitPendingFences();
 }
 

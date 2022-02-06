@@ -76,10 +76,11 @@ public:
     bool MustFlushRegion(VAddr addr, u64 size) override;
     void InvalidateRegion(VAddr addr, u64 size) override;
     void OnCPUWrite(VAddr addr, u64 size) override;
-    void SyncGuestHost() override;
+    void InvalidateGPUCache() override;
     void UnmapMemory(VAddr addr, u64 size) override;
     void ModifyGPUMemory(size_t as_id, GPUVAddr addr, u64 size) override;
-    void SignalSemaphore(GPUVAddr addr, u32 value) override;
+    void SignalFence(std::function<void()>&& func) override;
+    void SyncOperation(std::function<void()>&& func) override;
     void SignalSyncPoint(u32 value) override;
     void SignalReference() override;
     void ReleaseFences() override;

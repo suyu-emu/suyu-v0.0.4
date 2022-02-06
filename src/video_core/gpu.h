@@ -110,7 +110,7 @@ public:
     /// Flush all current written commands into the host GPU for execution.
     void FlushCommands();
     /// Synchronizes CPU writes with Host GPU memory.
-    void SyncGuestHost();
+    void InvalidateGPUCache();
     /// Signal the ending of command list.
     void OnCommandListEnd();
 
@@ -180,7 +180,7 @@ public:
     void RendererFrameEndNotify();
 
     void RequestSwapBuffers(const Tegra::FramebufferConfig* framebuffer,
-                            Service::Nvidia::NvFence* fences, size_t num_fences);
+                            std::array<Service::Nvidia::NvFence, 4>& fences, size_t num_fences);
 
     /// Performs any additional setup necessary in order to begin GPU emulation.
     /// This can be used to launch any necessary threads and register any necessary

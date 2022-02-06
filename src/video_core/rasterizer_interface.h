@@ -62,7 +62,10 @@ public:
     virtual void DisableGraphicsUniformBuffer(size_t stage, u32 index) = 0;
 
     /// Signal a GPU based semaphore as a fence
-    virtual void SignalSemaphore(GPUVAddr addr, u32 value) = 0;
+    virtual void SignalFence(std::function<void()>&& func) = 0;
+
+    /// Send an operation to be done after a certain amount of flushes.
+    virtual void SyncOperation(std::function<void()>&& func) = 0;
 
     /// Signal a GPU based syncpoint as a fence
     virtual void SignalSyncPoint(u32 value) = 0;
@@ -89,7 +92,7 @@ public:
     virtual void OnCPUWrite(VAddr addr, u64 size) = 0;
 
     /// Sync memory between guest and host.
-    virtual void SyncGuestHost() = 0;
+    virtual void InvalidateGPUCache() = 0;
 
     /// Unmap memory range
     virtual void UnmapMemory(VAddr addr, u64 size) = 0;

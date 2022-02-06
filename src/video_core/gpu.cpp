@@ -93,16 +93,13 @@ struct GPU::Impl {
     }
 
     /// Synchronizes CPU writes with Host GPU memory.
-    void SyncGuestHost() {
-        rasterizer->SyncGuestHost();
+    void InvalidateGPUCache() {
+        rasterizer->InvalidateGPUCache();
     }
 
     /// Signal the ending of command list.
     void OnCommandListEnd() {
-        if (is_async) {
-            // This command only applies to asynchronous GPU mode
-            gpu_thread.OnCommandListEnd();
-        }
+        gpu_thread.OnCommandListEnd();
     }
 
     /// Request a host GPU memory flush from the CPU.
@@ -296,7 +293,7 @@ struct GPU::Impl {
     }
 
     void RequestSwapBuffers(const Tegra::FramebufferConfig* framebuffer,
-                            Service::Nvidia::NvFence* fences, size_t num_fences) {
+                            std::array<Service::Nvidia::NvFence, 4>& fences, size_t num_fences) {
         size_t current_request_counter{};
         {
             std::unique_lock<std::mutex> lk(request_swap_mutex);
@@ -412,8 +409,8 @@ void GPU::FlushCommands() {
     impl->FlushCommands();
 }
 
-void GPU::SyncGuestHost() {
-    impl->SyncGuestHost();
+void GPU::InvalidateGPUCache() {
+    impl->InvalidateGPUCache();
 }
 
 void GPU::OnCommandListEnd() {
@@ -488,7 +485,7 @@ const VideoCore::ShaderNotify& GPU::ShaderNotify() const {
 }
 
 void GPU::RequestSwapBuffers(const Tegra::FramebufferConfig* framebuffer,
-                             Service::Nvidia::NvFence* fences, size_t num_fences) {
+                             std::array<Service::Nvidia::NvFence, 4>& fences, size_t num_fences) {
     impl->RequestSwapBuffers(framebuffer, fences, num_fences);
 }
 

@@ -269,17 +269,6 @@ void NVFlinger::Compose() {
             return; // We are likely shutting down
         }
 
-        auto& syncpoint_manager = system.Host1x().GetSyncpointManager();
-        const auto& multi_fence = buffer.fence;
-        guard->unlock();
-        for (u32 fence_id = 0; fence_id < multi_fence.num_fences; fence_id++) {
-            const auto& fence = multi_fence.fences[fence_id];
-            syncpoint_manager.WaitGuest(fence.id, fence.value);
-        }
-        guard->lock();
-
-        MicroProfileFlip();
-
         // Now send the buffer to the GPU for drawing.
         // TODO(Subv): Support more than just disp0. The display device selection is probably based
         // on which display we're drawing (Default, Internal, External, etc)
@@ -293,8 +282,10 @@ void NVFlinger::Compose() {
 
         nvdisp->flip(igbp_buffer.BufferId(), igbp_buffer.Offset(), igbp_buffer.ExternalFormat(),
                      igbp_buffer.Width(), igbp_buffer.Height(), igbp_buffer.Stride(),
-                     static_cast<android::BufferTransformFlags>(buffer.transform), crop_rect);
+                     static_cast<android::BufferTransformFlags>(buffer.transform), crop_rect,
+                     buffer.fence.fences, buffer.fence.num_fences);
 
+        MicroProfileFlip();
         guard->lock();
 
         swap_interval = buffer.swap_interval;

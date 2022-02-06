@@ -98,7 +98,7 @@ void ThreadManager::FlushRegion(VAddr addr, u64 size) {
 }
 
 void ThreadManager::TickGPU() {
-    PushCommand(GPUTickCommand(), true);
+    PushCommand(GPUTickCommand());
 }
 
 void ThreadManager::InvalidateRegion(VAddr addr, u64 size) {

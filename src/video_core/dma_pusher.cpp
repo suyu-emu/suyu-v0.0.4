@@ -24,8 +24,6 @@ MICROPROFILE_DEFINE(DispatchCalls, "GPU", "Execute command buffer", MP_RGB(128, 
 void DmaPusher::DispatchCalls() {
     MICROPROFILE_SCOPE(DispatchCalls);
 
-    gpu.SyncGuestHost();
-
     dma_pushbuffer_subindex = 0;
 
     dma_state.is_last_call = true;
@@ -36,7 +34,6 @@ void DmaPusher::DispatchCalls() {
         }
     }
     gpu.FlushCommands();
-    gpu.SyncGuestHost();
     gpu.OnCommandListEnd();
 }
 

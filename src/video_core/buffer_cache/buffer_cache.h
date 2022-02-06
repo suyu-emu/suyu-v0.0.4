@@ -826,6 +826,19 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
     const bool is_accuracy_normal =
         Settings::values.gpu_accuracy.GetValue() == Settings::GPUAccuracy::Normal;
 
+    auto it = committed_ranges.begin();
+    while (it != committed_ranges.end()) {
+        auto& current_intervals = *it;
+        auto next_it = std::next(it);
+        while (next_it != committed_ranges.end()) {
+            for (auto& interval : *next_it) {
+                current_intervals.subtract(interval);
+            }
+            next_it++;
+        }
+        it++;
+    }
+
     boost::container::small_vector<std::pair<BufferCopy, BufferId>, 1> downloads;
     u64 total_size_bytes = 0;
     u64 largest_copy = 0;

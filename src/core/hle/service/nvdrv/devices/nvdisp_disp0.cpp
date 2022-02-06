@@ -40,7 +40,8 @@ void nvdisp_disp0::OnClose(DeviceFD fd) {}
 
 void nvdisp_disp0::flip(u32 buffer_handle, u32 offset, android::PixelFormat format, u32 width,
                         u32 height, u32 stride, android::BufferTransformFlags transform,
-                        const Common::Rectangle<int>& crop_rect) {
+                        const Common::Rectangle<int>& crop_rect,
+                        std::array<Service::Nvidia::NvFence, 4>& fences, u32 num_fences) {
     const VAddr addr = nvmap.GetHandleAddress(buffer_handle);
     LOG_TRACE(Service,
               "Drawing from address {:X} offset {:08X} Width {} Height {} Stride {} Format {}",
@@ -50,7 +51,7 @@ void nvdisp_disp0::flip(u32 buffer_handle, u32 offset, android::PixelFormat form
                                                stride, format, transform, crop_rect};
 
     system.GetPerfStats().EndSystemFrame();
-    system.GPU().RequestSwapBuffers(&framebuffer, nullptr, 0);
+    system.GPU().RequestSwapBuffers(&framebuffer, fences, num_fences);
     system.SpeedLimiter().DoSpeedLimiting(system.CoreTiming().GetGlobalTimeUs());
     system.GetPerfStats().BeginSystemFrame();
 }

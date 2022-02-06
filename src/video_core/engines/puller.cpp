@@ -79,12 +79,15 @@ void Puller::ProcessSemaphoreTriggerMethod() {
             u64 timestamp;
         };
 
-        Block block{};
-        block.sequence = regs.semaphore_sequence;
-        // TODO(Kmather73): Generate a real GPU timestamp and write it here instead of
-        // CoreTiming
-        block.timestamp = gpu.GetTicks();
-        memory_manager.WriteBlock(regs.semaphore_address.SemaphoreAddress(), &block, sizeof(block));
+        const GPUVAddr sequence_address{regs.semaphore_address.SemaphoreAddress()};
+        const u32 payload = regs.semaphore_sequence;
+        std::function<void()> operation([this, sequence_address, payload] {
+            Block block{};
+            block.sequence = payload;
+            block.timestamp = gpu.GetTicks();
+            memory_manager.WriteBlock(sequence_address, &block, sizeof(block));
+        });
+        rasterizer->SignalFence(std::move(operation));
     } else {
         do {
             const u32 word{memory_manager.Read<u32>(regs.semaphore_address.SemaphoreAddress())};
@@ -94,6 +97,7 @@ void Puller::ProcessSemaphoreTriggerMethod() {
                 regs.acquire_active = true;
                 regs.acquire_mode = false;
                 if (word != regs.acquire_value) {
+                    rasterizer->ReleaseFences();
                     std::this_thread::sleep_for(std::chrono::milliseconds(1));
                     continue;
                 }
@@ -101,11 +105,13 @@ void Puller::ProcessSemaphoreTriggerMethod() {
                 regs.acquire_active = true;
                 regs.acquire_mode = true;
                 if (word < regs.acquire_value) {
+                    rasterizer->ReleaseFences();
                     std::this_thread::sleep_for(std::chrono::milliseconds(1));
                     continue;
                 }
             } else if (op == GpuSemaphoreOperation::AcquireMask) {
-                if (word & regs.semaphore_sequence == 0) {
+                if (word && regs.semaphore_sequence == 0) {
+                    rasterizer->ReleaseFences();
                     std::this_thread::sleep_for(std::chrono::milliseconds(1));
                     continue;
                 }
@@ -117,16 +123,23 @@ void Puller::ProcessSemaphoreTriggerMethod() {
 }
 
 void Puller::ProcessSemaphoreRelease() {
-    rasterizer->SignalSemaphore(regs.semaphore_address.SemaphoreAddress(), regs.semaphore_release);
+    const GPUVAddr sequence_address{regs.semaphore_address.SemaphoreAddress()};
+    const u32 payload = regs.semaphore_release;
+    std::function<void()> operation([this, sequence_address, payload] {
+        memory_manager.Write<u32>(sequence_address, payload);
+    });
+    rasterizer->SignalFence(std::move(operation));
 }
 
 void Puller::ProcessSemaphoreAcquire() {
-    const u32 word = memory_manager.Read<u32>(regs.semaphore_address.SemaphoreAddress());
+    u32 word = memory_manager.Read<u32>(regs.semaphore_address.SemaphoreAddress());
     const auto value = regs.semaphore_acquire;
-    std::this_thread::sleep_for(std::chrono::milliseconds(5));
-    if (word != value) {
+    while (word != value) {
         regs.acquire_active = true;
         regs.acquire_value = value;
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        rasterizer->ReleaseFences();
+        word = memory_manager.Read<u32>(regs.semaphore_address.SemaphoreAddress());
         // TODO(kemathe73) figure out how to do the acquire_timeout
         regs.acquire_mode = false;
         regs.acquire_source = false;
@@ -147,9 +160,9 @@ void Puller::CallPullerMethod(const MethodCall& method_call) {
     case BufferMethods::SemaphoreAddressHigh:
     case BufferMethods::SemaphoreAddressLow:
     case BufferMethods::SemaphoreSequencePayload:
-    case BufferMethods::WrcacheFlush:
     case BufferMethods::SyncpointPayload:
         break;
+    case BufferMethods::WrcacheFlush:
     case BufferMethods::RefCnt:
         rasterizer->SignalReference();
         break;
@@ -173,7 +186,7 @@ void Puller::CallPullerMethod(const MethodCall& method_call) {
     }
     case BufferMethods::MemOpB: {
         // Implement this better.
-        rasterizer->SyncGuestHost();
+        rasterizer->InvalidateGPUCache();
         break;
     }
     case BufferMethods::MemOpC:
