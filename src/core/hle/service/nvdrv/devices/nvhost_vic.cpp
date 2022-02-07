@@ -12,7 +12,7 @@ namespace Service::Nvidia::Devices {
 u32 nvhost_vic::next_id{};
 
 nvhost_vic::nvhost_vic(Core::System& system_, NvCore::Container& core)
-    : nvhost_nvdec_common{system_, core} {}
+    : nvhost_nvdec_common{system_, core, NvCore::ChannelType::VIC} {}
 
 nvhost_vic::~nvhost_vic() = default;
 

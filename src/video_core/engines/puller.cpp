@@ -59,6 +59,7 @@ void Puller::ProcessFenceActionMethod() {
     case Puller::FenceOperation::Acquire:
         // UNIMPLEMENTED_MSG("Channel Scheduling pending.");
         // WaitFence(regs.fence_action.syncpoint_id, regs.fence_value);
+        rasterizer->ReleaseFences();
         break;
     case Puller::FenceOperation::Increment:
         rasterizer->SignalSyncPoint(regs.fence_action.syncpoint_id);
@@ -73,19 +74,11 @@ void Puller::ProcessSemaphoreTriggerMethod() {
     const auto op =
         static_cast<GpuSemaphoreOperation>(regs.semaphore_trigger & semaphoreOperationMask);
     if (op == GpuSemaphoreOperation::WriteLong) {
-        struct Block {
-            u32 sequence;
-            u32 zeros = 0;
-            u64 timestamp;
-        };
-
         const GPUVAddr sequence_address{regs.semaphore_address.SemaphoreAddress()};
         const u32 payload = regs.semaphore_sequence;
         std::function<void()> operation([this, sequence_address, payload] {
-            Block block{};
-            block.sequence = payload;
-            block.timestamp = gpu.GetTicks();
-            memory_manager.WriteBlock(sequence_address, &block, sizeof(block));
+            memory_manager.Write<u64>(sequence_address + sizeof(u64), gpu.GetTicks());
+            memory_manager.Write<u64>(sequence_address, payload);
         });
         rasterizer->SignalFence(std::move(operation));
     } else {
@@ -98,7 +91,6 @@ void Puller::ProcessSemaphoreTriggerMethod() {
                 regs.acquire_mode = false;
                 if (word != regs.acquire_value) {
                     rasterizer->ReleaseFences();
-                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
                     continue;
                 }
             } else if (op == GpuSemaphoreOperation::AcquireGequal) {
@@ -106,13 +98,11 @@ void Puller::ProcessSemaphoreTriggerMethod() {
                 regs.acquire_mode = true;
                 if (word < regs.acquire_value) {
                     rasterizer->ReleaseFences();
-                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
                     continue;
                 }
             } else if (op == GpuSemaphoreOperation::AcquireMask) {
                 if (word && regs.semaphore_sequence == 0) {
                     rasterizer->ReleaseFences();
-                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
                     continue;
                 }
             } else {
@@ -128,7 +118,7 @@ void Puller::ProcessSemaphoreRelease() {
     std::function<void()> operation([this, sequence_address, payload] {
         memory_manager.Write<u32>(sequence_address, payload);
     });
-    rasterizer->SignalFence(std::move(operation));
+    rasterizer->SyncOperation(std::move(operation));
 }
 
 void Puller::ProcessSemaphoreAcquire() {

@@ -6,6 +6,7 @@
 #include <vector>
 #include "common/common_types.h"
 #include "common/swap.h"
+#include "core/hle/service/nvdrv/core/syncpoint_manager.h"
 #include "core/hle/service/nvdrv/devices/nvdevice.h"
 
 namespace Service::Nvidia {
@@ -13,14 +14,14 @@ namespace Service::Nvidia {
 namespace NvCore {
 class Container;
 class NvMap;
-class SyncpointManager;
 } // namespace NvCore
 
 namespace Devices {
 
 class nvhost_nvdec_common : public nvdevice {
 public:
-    explicit nvhost_nvdec_common(Core::System& system_, NvCore::Container& core);
+    explicit nvhost_nvdec_common(Core::System& system_, NvCore::Container& core,
+                                 NvCore::ChannelType channel_type);
     ~nvhost_nvdec_common() override;
 
 protected:
@@ -121,6 +122,7 @@ protected:
     NvCore::Container& core;
     NvCore::SyncpointManager& syncpoint_manager;
     NvCore::NvMap& nvmap;
+    NvCore::ChannelType channel_type;
     std::array<u32, MaxSyncPoints> device_syncpoints{};
 };
 }; // namespace Devices

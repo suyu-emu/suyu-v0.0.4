@@ -112,17 +112,23 @@ NvResult nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector
     }
 
     if (params.fence.value == 0) {
-        params.value.raw = syncpoint_manager.GetSyncpointMin(fence_id);
+        if (!syncpoint_manager.IsSyncpointAllocated(params.fence.id)) {
+            LOG_WARNING(Service_NVDRV,
+                        "Unallocated syncpt_id={}, threshold={}, timeout={}, is_allocation={}",
+                        params.fence.id, params.fence.value, params.timeout, is_allocation);
+        } else {
+            params.value.raw = syncpoint_manager.ReadSyncpointMinValue(fence_id);
+        }
         return NvResult::Success;
     }
 
-    if (syncpoint_manager.IsSyncpointExpired(fence_id, params.fence.value)) {
-        params.value.raw = syncpoint_manager.GetSyncpointMin(fence_id);
+    if (syncpoint_manager.IsFenceSignalled(params.fence)) {
+        params.value.raw = syncpoint_manager.ReadSyncpointMinValue(fence_id);
         return NvResult::Success;
     }
 
-    if (const auto new_value = syncpoint_manager.RefreshSyncpoint(fence_id);
-        syncpoint_manager.IsSyncpointExpired(fence_id, params.fence.value)) {
+    if (const auto new_value = syncpoint_manager.UpdateMin(fence_id);
+        syncpoint_manager.IsFenceSignalled(params.fence)) {
         params.value.raw = new_value;
         return NvResult::Success;
     }
@@ -296,7 +302,7 @@ NvResult nvhost_ctrl::IocCtrlClearEventWait(const std::vector<u8>& input, std::v
         EventState::Waiting) {
         auto& host1x_syncpoint_manager = system.Host1x().GetSyncpointManager();
         host1x_syncpoint_manager.DeregisterHostAction(event.assigned_syncpt, event.wait_handle);
-        syncpoint_manager.RefreshSyncpoint(event.assigned_syncpt);
+        syncpoint_manager.UpdateMin(event.assigned_syncpt);
         event.wait_handle = {};
     }
     event.fails++;

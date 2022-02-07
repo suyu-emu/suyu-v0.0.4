@@ -48,9 +48,10 @@ std::size_t WriteVectors(std::vector<u8>& dst, const std::vector<T>& src, std::s
 
 std::unordered_map<DeviceFD, u32> nvhost_nvdec_common::fd_to_id{};
 
-nvhost_nvdec_common::nvhost_nvdec_common(Core::System& system_, NvCore::Container& core_)
-    : nvdevice{system_}, core{core_},
-      syncpoint_manager{core.GetSyncpointManager()}, nvmap{core.GetNvMapFile()} {}
+nvhost_nvdec_common::nvhost_nvdec_common(Core::System& system_, NvCore::Container& core_,
+                                         NvCore::ChannelType channel_type_)
+    : nvdevice{system_}, core{core_}, syncpoint_manager{core.GetSyncpointManager()},
+      nvmap{core.GetNvMapFile()}, channel_type{channel_type_} {}
 nvhost_nvdec_common::~nvhost_nvdec_common() = default;
 
 NvResult nvhost_nvdec_common::SetNVMAPfd(const std::vector<u8>& input) {
@@ -88,7 +89,7 @@ NvResult nvhost_nvdec_common::Submit(DeviceFD fd, const std::vector<u8>& input,
         for (std::size_t i = 0; i < syncpt_increments.size(); i++) {
             const SyncptIncr& syncpt_incr = syncpt_increments[i];
             fence_thresholds[i] =
-                syncpoint_manager.IncreaseSyncpoint(syncpt_incr.id, syncpt_incr.increments);
+                syncpoint_manager.IncrementSyncpointMaxExt(syncpt_incr.id, syncpt_incr.increments);
         }
     }
     for (const auto& cmd_buffer : command_buffers) {
@@ -116,10 +117,8 @@ NvResult nvhost_nvdec_common::GetSyncpoint(const std::vector<u8>& input, std::ve
     std::memcpy(&params, input.data(), sizeof(IoctlGetSyncpoint));
     LOG_DEBUG(Service_NVDRV, "called GetSyncpoint, id={}", params.param);
 
-    if (device_syncpoints[params.param] == 0 && system.GPU().UseNvdec()) {
-        device_syncpoints[params.param] = syncpoint_manager.AllocateSyncpoint();
-    }
-    params.value = device_syncpoints[params.param];
+    const u32 id{NvCore::SyncpointManager::channel_syncpoints[static_cast<u32>(channel_type)]};
+    params.value = id;
     std::memcpy(output.data(), &params, sizeof(IoctlGetSyncpoint));
 
     return NvResult::Success;

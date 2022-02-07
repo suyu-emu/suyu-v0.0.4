@@ -13,7 +13,7 @@ namespace Service::Nvidia::Devices {
 u32 nvhost_nvdec::next_id{};
 
 nvhost_nvdec::nvhost_nvdec(Core::System& system_, NvCore::Container& core)
-    : nvhost_nvdec_common{system_, core} {}
+    : nvhost_nvdec_common{system_, core, NvCore::ChannelType::NvDec} {}
 nvhost_nvdec::~nvhost_nvdec() = default;
 
 NvResult nvhost_nvdec::Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,

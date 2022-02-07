@@ -274,16 +274,24 @@ void MaxwellDMA::FastCopyBlockLinearToPitch() {
 void MaxwellDMA::ReleaseSemaphore() {
     const auto type = regs.launch_dma.semaphore_type;
     const GPUVAddr address = regs.semaphore.address;
+    const u32 payload = regs.semaphore.payload;
     switch (type) {
     case LaunchDMA::SemaphoreType::NONE:
         break;
-    case LaunchDMA::SemaphoreType::RELEASE_ONE_WORD_SEMAPHORE:
-        memory_manager.Write<u32>(address, regs.semaphore.payload);
+    case LaunchDMA::SemaphoreType::RELEASE_ONE_WORD_SEMAPHORE: {
+        std::function<void()> operation(
+            [this, address, payload] { memory_manager.Write<u32>(address, payload); });
+        rasterizer->SignalFence(std::move(operation));
         break;
-    case LaunchDMA::SemaphoreType::RELEASE_FOUR_WORD_SEMAPHORE:
-        memory_manager.Write<u64>(address, static_cast<u64>(regs.semaphore.payload));
-        memory_manager.Write<u64>(address + 8, system.GPU().GetTicks());
+    }
+    case LaunchDMA::SemaphoreType::RELEASE_FOUR_WORD_SEMAPHORE: {
+        std::function<void()> operation([this, address, payload] {
+            memory_manager.Write<u64>(address + sizeof(u64), system.GPU().GetTicks());
+            memory_manager.Write<u64>(address, payload);
+        });
+        rasterizer->SignalFence(std::move(operation));
         break;
+    }
     default:
         ASSERT_MSG(false, "Unknown semaphore type: {}", static_cast<u32>(type.Value()));
     }

@@ -453,18 +453,10 @@ void Maxwell3D::ProcessFirmwareCall4() {
 }
 
 void Maxwell3D::StampQueryResult(u64 payload, bool long_query) {
-    struct LongQueryResult {
-        u64_le value;
-        u64_le timestamp;
-    };
-    static_assert(sizeof(LongQueryResult) == 16, "LongQueryResult has wrong size");
     const GPUVAddr sequence_address{regs.query.QueryAddress()};
     if (long_query) {
-        // Write the 128-bit result structure in long mode. Note: We emulate an infinitely fast
-        // GPU, this command may actually take a while to complete in real hardware due to GPU
-        // wait queues.
-        LongQueryResult query_result{payload, system.GPU().GetTicks()};
-        memory_manager.WriteBlock(sequence_address, &query_result, sizeof(query_result));
+        memory_manager.Write<u64>(sequence_address + sizeof(u64), system.GPU().GetTicks());
+        memory_manager.Write<u64>(sequence_address, payload);
     } else {
         memory_manager.Write<u32>(sequence_address, static_cast<u32>(payload));
     }
@@ -493,10 +485,10 @@ void Maxwell3D::ProcessQueryGet() {
             const GPUVAddr sequence_address{regs.query.QueryAddress()};
             const u32 payload = regs.query.query_sequence;
             std::function<void()> operation([this, sequence_address, payload] {
-                LongQueryResult query_result{payload, system.GPU().GetTicks()};
-                memory_manager.WriteBlock(sequence_address, &query_result, sizeof(query_result));
+                memory_manager.Write<u64>(sequence_address + sizeof(u64), system.GPU().GetTicks());
+                memory_manager.Write<u64>(sequence_address, payload);
             });
-            rasterizer->SignalFence(std::move(operation));
+            rasterizer->SyncOperation(std::move(operation));
         }
         break;
     case Regs::QueryOperation::Acquire:
