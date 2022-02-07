@@ -284,6 +284,9 @@ private slots:
     void OnTasStartStop();
     void OnTasRecord();
     void OnTasReset();
+    void OnToggleDockedMode();
+    void OnToggleGpuAccuracy();
+    void OnToggleAdaptingFilter();
     void OnConfigurePerGame();
     void OnLoadAmiibo();
     void OnOpenYuzuFolder();
