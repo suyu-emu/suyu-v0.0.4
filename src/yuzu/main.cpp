@@ -2915,8 +2915,7 @@ void GMainWindow::OnLoadAmiibo() {
     Service::SM::ServiceManager& sm = system->ServiceManager();
     auto nfc = sm.GetService<Service::NFP::Module::Interface>("nfp:user");
     if (nfc == nullptr) {
-        QMessageBox::warning(this, tr("Error"),
-                             tr("The current game is not looking for amiibos"));
+        QMessageBox::warning(this, tr("Error"), tr("The current game is not looking for amiibos"));
         return;
     }
     const auto nfc_state = nfc->GetCurrentState();

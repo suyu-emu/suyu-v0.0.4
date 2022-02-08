@@ -20,7 +20,6 @@ namespace ErrCodes {
 constexpr ResultCode DeviceNotFound(ErrorModule::NFP, 64);
 constexpr ResultCode WrongDeviceState(ErrorModule::NFP, 73);
 constexpr ResultCode ApplicationAreaIsNotInitialized(ErrorModule::NFP, 128);
-constexpr ResultCode NoApplicationArea(ErrorModule::NFP, 152);
 constexpr ResultCode ApplicationAreaExist(ErrorModule::NFP, 168);
 } // namespace ErrCodes
 
@@ -97,7 +96,7 @@ void IUser::ListDevices(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
-    rb.Push(devices.size());
+    rb.Push(static_cast<s32>(devices.size()));
 }
 
 void IUser::StartDetection(Kernel::HLERequestContext& ctx) {
@@ -184,7 +183,8 @@ void IUser::OpenApplicationArea(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto device_handle{rp.Pop<u64>()};
     const auto access_id{rp.Pop<u32>()};
-    LOG_INFO(Service_NFP, "called, device_handle={}, access_id={}", device_handle, access_id);
+    LOG_WARNING(Service_NFP, "(STUBBED) called, device_handle={}, access_id={}", device_handle,
+                access_id);
 
     // TODO(german77): Loop through all interfaces
     if (device_handle == nfp_interface.GetHandle()) {
@@ -212,7 +212,7 @@ void IUser::GetApplicationArea(Kernel::HLERequestContext& ctx) {
         ctx.WriteBuffer(data);
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(result);
-        rb.PushRaw<u32>(data.size());
+        rb.Push(static_cast<u32>(data.size()));
         return;
     }
 
@@ -226,7 +226,8 @@ void IUser::SetApplicationArea(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto device_handle{rp.Pop<u64>()};
     const auto data{ctx.ReadBuffer()};
-    LOG_INFO(Service_NFP, "called, device_handle={}, data_size={}", device_handle, data.size());
+    LOG_WARNING(Service_NFP, "(STUBBED) called, device_handle={}, data_size={}", device_handle,
+                data.size());
 
     // TODO(german77): Loop through all interfaces
     if (device_handle == nfp_interface.GetHandle()) {
@@ -247,8 +248,8 @@ void IUser::CreateApplicationArea(Kernel::HLERequestContext& ctx) {
     const auto device_handle{rp.Pop<u64>()};
     const auto access_id{rp.Pop<u32>()};
     const auto data{ctx.ReadBuffer()};
-    LOG_INFO(Service_NFP, "called, device_handle={}, data_size={}, access_id={}", device_handle,
-             access_id, data.size());
+    LOG_WARNING(Service_NFP, "(STUBBED) called, device_handle={}, data_size={}, access_id={}",
+                device_handle, access_id, data.size());
 
     // TODO(german77): Loop through all interfaces
     if (device_handle == nfp_interface.GetHandle()) {
@@ -338,7 +339,7 @@ void IUser::GetModelInfo(Kernel::HLERequestContext& ctx) {
         const auto result = nfp_interface.GetModelInfo(model_info);
         ctx.WriteBuffer(model_info);
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ResultSuccess);
+        rb.Push(result);
         return;
     }
 
@@ -488,7 +489,7 @@ bool Module::Interface::LoadAmiibo(const std::vector<u8>& buffer) {
         return false;
     }
 
-    LOG_INFO(Service_NFP, "New Amiibo detected");
+    LOG_INFO(Service_NFP, "Amiibo detected");
     std::memcpy(&amiibo, buffer.data(), sizeof(amiibo));
 
     if (!IsAmiiboValid()) {
@@ -510,21 +511,21 @@ void Module::Interface::CloseAmiibo() {
 }
 
 bool Module::Interface::IsAmiiboValid() const {
-    LOG_INFO(Service_NFP, "uuid_lock=0x{0:x}", amiibo.uuid_lock);
-    LOG_INFO(Service_NFP, "compability_container=0x{0:x}", amiibo.compability_container);
-    LOG_INFO(Service_NFP, "crypto_init=0x{0:x}", amiibo.crypto_init);
-    LOG_INFO(Service_NFP, "write_count={}", amiibo.write_count);
+    LOG_DEBUG(Service_NFP, "uuid_lock=0x{0:x}", amiibo.uuid_lock);
+    LOG_DEBUG(Service_NFP, "compability_container=0x{0:x}", amiibo.compability_container);
+    LOG_DEBUG(Service_NFP, "crypto_init=0x{0:x}", amiibo.crypto_init);
+    LOG_DEBUG(Service_NFP, "write_count={}", amiibo.write_count);
 
-    LOG_INFO(Service_NFP, "character_id=0x{0:x}", amiibo.model_info.character_id);
-    LOG_INFO(Service_NFP, "character_variant={}", amiibo.model_info.character_variant);
-    LOG_INFO(Service_NFP, "amiibo_type={}", amiibo.model_info.amiibo_type);
-    LOG_INFO(Service_NFP, "model_number=0x{0:x}", amiibo.model_info.model_number);
-    LOG_INFO(Service_NFP, "series={}", amiibo.model_info.series);
-    LOG_INFO(Service_NFP, "fixed_value=0x{0:x}", amiibo.model_info.fixed);
+    LOG_DEBUG(Service_NFP, "character_id=0x{0:x}", amiibo.model_info.character_id);
+    LOG_DEBUG(Service_NFP, "character_variant={}", amiibo.model_info.character_variant);
+    LOG_DEBUG(Service_NFP, "amiibo_type={}", amiibo.model_info.amiibo_type);
+    LOG_DEBUG(Service_NFP, "model_number=0x{0:x}", amiibo.model_info.model_number);
+    LOG_DEBUG(Service_NFP, "series={}", amiibo.model_info.series);
+    LOG_DEBUG(Service_NFP, "fixed_value=0x{0:x}", amiibo.model_info.fixed);
 
-    LOG_INFO(Service_NFP, "tag_dynamic_lock=0x{0:x}", amiibo.tag_dynamic_lock);
-    LOG_INFO(Service_NFP, "tag_CFG0=0x{0:x}", amiibo.tag_CFG0);
-    LOG_INFO(Service_NFP, "tag_CFG1=0x{0:x}", amiibo.tag_CFG1);
+    LOG_DEBUG(Service_NFP, "tag_dynamic_lock=0x{0:x}", amiibo.tag_dynamic_lock);
+    LOG_DEBUG(Service_NFP, "tag_CFG0=0x{0:x}", amiibo.tag_CFG0);
+    LOG_DEBUG(Service_NFP, "tag_CFG1=0x{0:x}", amiibo.tag_CFG1);
 
     // Check against all know constants on an amiibo binary
     if (amiibo.uuid_lock != 0xE00F) {
@@ -701,7 +702,7 @@ ResultCode Module::Interface::OpenApplicationArea(u32 access_id) {
         is_application_area_initialized = true;
     }
     if (!is_application_area_initialized) {
-        LOG_ERROR(Service_NFP, "Application area is not initialized");
+        LOG_WARNING(Service_NFP, "Application area is not initialized");
         return ErrCodes::ApplicationAreaIsNotInitialized;
     }
     return ResultSuccess;
