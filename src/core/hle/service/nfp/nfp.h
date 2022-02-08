@@ -53,11 +53,43 @@ enum class MountTarget : u32 {
     All,
 };
 
+enum class AmiiboType : u8 {
+    Figure,
+    Card,
+    Yarn,
+};
+
+enum class AmiiboSeries : u8 {
+    SuperSmashBros,
+    SuperMario,
+    ChibiRobo,
+    YoshiWoollyWorld,
+    Splatoon,
+    AnimalCrossing,
+    EightBitMario,
+    Skylanders,
+    Unknown8,
+    TheLegendOfZelda,
+    ShovelKnight,
+    Unknown11,
+    Kiby,
+    Pokemon,
+    MarioSportsSuperstars,
+    MonsterHunter,
+    BoxBoy,
+    Pikmin,
+    FireEmblem,
+    Metroid,
+    Others,
+    MegaMan,
+    Diablo
+};
+
 struct TagInfo {
     std::array<u8, 10> uuid;
     u8 uuid_length;
     INSERT_PADDING_BYTES(0x15);
-    u32 protocol;
+    s32 protocol;
     u32 tag_type;
     INSERT_PADDING_BYTES(0x30);
 };
@@ -77,10 +109,13 @@ static_assert(sizeof(CommonInfo) == 0x40, "CommonInfo is an invalid size");
 struct ModelInfo {
     u16 character_id;
     u8 character_variant;
-    u8 figure_type;
+    AmiiboType amiibo_type;
     u16 model_number;
-    u8 series;
-    INSERT_PADDING_BYTES(0x39);
+    AmiiboSeries series;
+    u8 fixed;                   // Must be 02
+    INSERT_PADDING_BYTES(0x4);  // Unknown
+    INSERT_PADDING_BYTES(0x20); // Probably a SHA256-(HMAC?) hash
+    INSERT_PADDING_BYTES(0x14); // SHA256-HMAC
 };
 static_assert(sizeof(ModelInfo) == 0x40, "ModelInfo is an invalid size");
 
@@ -105,11 +140,21 @@ public:
 
         struct AmiiboFile {
             std::array<u8, 10> uuid;
-            INSERT_PADDING_BYTES(0x4); // Compability container
-            INSERT_PADDING_BYTES(0x46);
-            ModelInfo model_info;
+            u16 uuid_lock;               // Must be 0F E0
+            u32 compability_container;   // Must be F1 10 FF EE
+            u16 crypto_init;             // Must be A5 XX
+            u16 write_count;             // Number of times the amiibo has been written?
+            INSERT_PADDING_BYTES(0x20);  // System crypts
+            INSERT_PADDING_BYTES(0x20);  // SHA256-(HMAC?) hash
+            ModelInfo model_info;        // This struct is bigger than documentation
+            INSERT_PADDING_BYTES(0xC);   // SHA256-HMAC
+            INSERT_PADDING_BYTES(0x114); // section 1 encrypted buffer
+            INSERT_PADDING_BYTES(0x54);  // section 2 encrypted buffer
+            u32 tag_dynamic_lock;        // Must be 01 00 0F XX
+            u32 tag_CFG0;                // Must be 00 00 00 04
+            u32 tag_CFG1;                // Must be 50 00 00 00
         };
-        static_assert(sizeof(AmiiboFile) == 0x94, "AmiiboFile is an invalid size");
+        static_assert(sizeof(AmiiboFile) == 0x214, "AmiiboFile is an invalid size");
 
         void CreateUserInterface(Kernel::HLERequestContext& ctx);
         bool LoadAmiibo(const std::vector<u8>& buffer);
@@ -118,7 +163,7 @@ public:
         void Initialize();
         void Finalize();
 
-        ResultCode StartDetection();
+        ResultCode StartDetection(s32 protocol_);
         ResultCode StopDetection();
         ResultCode Mount();
         ResultCode Unmount();
@@ -144,6 +189,12 @@ public:
         std::shared_ptr<Module> module;
 
     private:
+        /// Validates that the amiibo file is not corrupted
+        bool IsAmiiboValid() const;
+        bool AmiiboApplicationDataExist(u32 access_id) const;
+        const std::vector<u8> LoadAmiiboApplicationData(u32 access_id) const;
+        void SaveAmiiboApplicationData(u32 access_id, const std::vector<u8>& data) const;
+
         const Core::HID::NpadIdType npad_id;
 
         DeviceState device_state{DeviceState::Unaviable};
@@ -151,7 +202,7 @@ public:
         Kernel::KEvent* activate_event;
         Kernel::KEvent* deactivate_event;
         AmiiboFile amiibo{};
-        u16 write_counter{};
+        s32 protocol;
         bool is_application_area_initialized{};
         u32 application_area_id;
         std::vector<u8> application_area_data;

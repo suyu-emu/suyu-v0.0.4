@@ -108,7 +108,7 @@ void IUser::StartDetection(Kernel::HLERequestContext& ctx) {
 
     // TODO(german77): Loop through all interfaces
     if (device_handle == nfp_interface.GetHandle()) {
-        const auto result = nfp_interface.StartDetection();
+        const auto result = nfp_interface.StartDetection(nfp_protocol);
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(result);
         return;
@@ -209,7 +209,6 @@ void IUser::GetApplicationArea(Kernel::HLERequestContext& ctx) {
     if (device_handle == nfp_interface.GetHandle()) {
         std::vector<u8> data{};
         const auto result = nfp_interface.GetApplicationArea(data);
-
         ctx.WriteBuffer(data);
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(result);
@@ -232,7 +231,6 @@ void IUser::SetApplicationArea(Kernel::HLERequestContext& ctx) {
     // TODO(german77): Loop through all interfaces
     if (device_handle == nfp_interface.GetHandle()) {
         const auto result = nfp_interface.SetApplicationArea(data);
-
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(result);
         return;
@@ -255,7 +253,6 @@ void IUser::CreateApplicationArea(Kernel::HLERequestContext& ctx) {
     // TODO(german77): Loop through all interfaces
     if (device_handle == nfp_interface.GetHandle()) {
         const auto result = nfp_interface.CreateApplicationArea(access_id, data);
-
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(result);
         return;
@@ -390,7 +387,7 @@ void IUser::AttachDeactivateEvent(Kernel::HLERequestContext& ctx) {
 }
 
 void IUser::GetState(Kernel::HLERequestContext& ctx) {
-    LOG_INFO(Service_NFC, "called");
+    LOG_DEBUG(Service_NFC, "called");
 
     IPC::ResponseBuilder rb{ctx, 3, 0};
     rb.Push(ResultSuccess);
@@ -400,7 +397,7 @@ void IUser::GetState(Kernel::HLERequestContext& ctx) {
 void IUser::GetDeviceState(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto device_handle{rp.Pop<u64>()};
-    LOG_INFO(Service_NFP, "called, device_handle={}", device_handle);
+    LOG_DEBUG(Service_NFP, "called, device_handle={}", device_handle);
 
     // TODO(german77): Loop through all interfaces
     if (device_handle == nfp_interface.GetHandle()) {
@@ -419,7 +416,7 @@ void IUser::GetDeviceState(Kernel::HLERequestContext& ctx) {
 void IUser::GetNpadId(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto device_handle{rp.Pop<u64>()};
-    LOG_INFO(Service_NFP, "called, device_handle={}", device_handle);
+    LOG_DEBUG(Service_NFP, "called, device_handle={}", device_handle);
 
     // TODO(german77): Loop through all interfaces
     if (device_handle == nfp_interface.GetHandle()) {
@@ -438,7 +435,7 @@ void IUser::GetNpadId(Kernel::HLERequestContext& ctx) {
 void IUser::GetApplicationAreaSize(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto device_handle{rp.Pop<u64>()};
-    LOG_INFO(Service_NFP, "called, device_handle={}", device_handle);
+    LOG_DEBUG(Service_NFP, "called, device_handle={}", device_handle);
 
     // TODO(german77): Loop through all interfaces
     if (device_handle == nfp_interface.GetHandle()) {
@@ -493,6 +490,11 @@ bool Module::Interface::LoadAmiibo(const std::vector<u8>& buffer) {
 
     LOG_INFO(Service_NFP, "New Amiibo detected");
     std::memcpy(&amiibo, buffer.data(), sizeof(amiibo));
+
+    if (!IsAmiiboValid()) {
+        return false;
+    }
+
     device_state = DeviceState::TagFound;
     activate_event->GetWritableEvent().Signal();
     return true;
@@ -501,11 +503,52 @@ bool Module::Interface::LoadAmiibo(const std::vector<u8>& buffer) {
 void Module::Interface::CloseAmiibo() {
     LOG_INFO(Service_NFP, "Remove amiibo");
     device_state = DeviceState::TagRemoved;
-    write_counter = 0;
     is_application_area_initialized = false;
     application_area_id = 0;
     application_area_data.clear();
     deactivate_event->GetWritableEvent().Signal();
+}
+
+bool Module::Interface::IsAmiiboValid() const {
+    LOG_INFO(Service_NFP, "uuid_lock=0x{0:x}", amiibo.uuid_lock);
+    LOG_INFO(Service_NFP, "compability_container=0x{0:x}", amiibo.compability_container);
+    LOG_INFO(Service_NFP, "crypto_init=0x{0:x}", amiibo.crypto_init);
+    LOG_INFO(Service_NFP, "write_count={}", amiibo.write_count);
+
+    LOG_INFO(Service_NFP, "character_id=0x{0:x}", amiibo.model_info.character_id);
+    LOG_INFO(Service_NFP, "character_variant={}", amiibo.model_info.character_variant);
+    LOG_INFO(Service_NFP, "amiibo_type={}", amiibo.model_info.amiibo_type);
+    LOG_INFO(Service_NFP, "model_number=0x{0:x}", amiibo.model_info.model_number);
+    LOG_INFO(Service_NFP, "series={}", amiibo.model_info.series);
+    LOG_INFO(Service_NFP, "fixed_value=0x{0:x}", amiibo.model_info.fixed);
+
+    LOG_INFO(Service_NFP, "tag_dynamic_lock=0x{0:x}", amiibo.tag_dynamic_lock);
+    LOG_INFO(Service_NFP, "tag_CFG0=0x{0:x}", amiibo.tag_CFG0);
+    LOG_INFO(Service_NFP, "tag_CFG1=0x{0:x}", amiibo.tag_CFG1);
+
+    // Check against all know constants on an amiibo binary
+    if (amiibo.uuid_lock != 0xE00F) {
+        return false;
+    }
+    if (amiibo.compability_container != 0xEEFF10F1UL) {
+        return false;
+    }
+    if ((amiibo.crypto_init & 0xFF) != 0xA5) {
+        return false;
+    }
+    if (amiibo.model_info.fixed != 0x02) {
+        return false;
+    }
+    if ((amiibo.tag_dynamic_lock & 0xFFFFFF) != 0x0F0001) {
+        return false;
+    }
+    if (amiibo.tag_CFG0 != 0x04000000UL) {
+        return false;
+    }
+    if (amiibo.tag_CFG1 != 0x5F) {
+        return false;
+    }
+    return true;
 }
 
 Kernel::KReadableEvent& Module::Interface::GetActivateEvent() const {
@@ -522,13 +565,12 @@ void Module::Interface::Initialize() {
 
 void Module::Interface::Finalize() {
     device_state = DeviceState::Unaviable;
-    write_counter = 0;
     is_application_area_initialized = false;
     application_area_id = 0;
     application_area_data.clear();
 }
 
-ResultCode Module::Interface::StartDetection() {
+ResultCode Module::Interface::StartDetection(s32 protocol_) {
     auto npad_device = system.HIDCore().GetEmulatedController(npad_id);
 
     // TODO(german77): Add callback for when nfc data is available
@@ -536,6 +578,7 @@ ResultCode Module::Interface::StartDetection() {
     if (device_state == DeviceState::Initialized || device_state == DeviceState::TagRemoved) {
         npad_device->SetPollingMode(Common::Input::PollingMode::NFC);
         device_state = DeviceState::SearchingForTag;
+        protocol = protocol_;
         return ResultSuccess;
     }
 
@@ -589,8 +632,8 @@ ResultCode Module::Interface::GetTagInfo(TagInfo& tag_info) const {
         tag_info = {
             .uuid = amiibo.uuid,
             .uuid_length = static_cast<u8>(amiibo.uuid.size()),
-            .protocol = 0xFFFFFFFF, // TODO(ogniK): Figure out actual values
-            .tag_type = 0xFFFFFFFF,
+            .protocol = protocol,
+            .tag_type = static_cast<u32>(amiibo.model_info.amiibo_type),
         };
         return ResultSuccess;
     }
@@ -610,7 +653,7 @@ ResultCode Module::Interface::GetCommonInfo(CommonInfo& common_info) const {
         .last_write_year = 2022,
         .last_write_month = 2,
         .last_write_day = 7,
-        .write_counter = write_counter,
+        .write_counter = amiibo.write_count,
         .version = 1,
         .application_area_size = ApplicationAreaSize,
     };
@@ -652,11 +695,11 @@ ResultCode Module::Interface::OpenApplicationArea(u32 access_id) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
         return ErrCodes::WrongDeviceState;
     }
-    // if (AmiiboApplicationDataExist(access_id)) {
-    //    application_area_data = LoadAmiiboApplicationData(access_id);
-    //    application_area_id = access_id;
-    //    is_application_area_initialized = true;
-    // }
+    if (AmiiboApplicationDataExist(access_id)) {
+        application_area_data = LoadAmiiboApplicationData(access_id);
+        application_area_id = access_id;
+        is_application_area_initialized = true;
+    }
     if (!is_application_area_initialized) {
         LOG_ERROR(Service_NFP, "Application area is not initialized");
         return ErrCodes::ApplicationAreaIsNotInitialized;
@@ -689,8 +732,7 @@ ResultCode Module::Interface::SetApplicationArea(const std::vector<u8>& data) {
         return ErrCodes::ApplicationAreaIsNotInitialized;
     }
     application_area_data = data;
-    write_counter++;
-    // SaveAmiiboApplicationData(application_area_id,application_area_data);
+    SaveAmiiboApplicationData(application_area_id, application_area_data);
     return ResultSuccess;
 }
 
@@ -699,19 +741,30 @@ ResultCode Module::Interface::CreateApplicationArea(u32 access_id, const std::ve
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
         return ErrCodes::WrongDeviceState;
     }
-    // if (AmiiboApplicationDataExist(access_id)) {
-    //    LOG_ERROR(Service_NFP, "Application area already exist");
-    //    return ErrCodes::ApplicationAreaExist;
-    // }
-    // if (LoadAmiiboApplicationData(access_id,data)) {
-    //    is_application_area_initialized = true;
-    //    application_area_id = access_id;
-    // }
+    if (AmiiboApplicationDataExist(access_id)) {
+        LOG_ERROR(Service_NFP, "Application area already exist");
+        return ErrCodes::ApplicationAreaExist;
+    }
     application_area_data = data;
     application_area_id = access_id;
-    write_counter = 0;
-    // SaveAmiiboApplicationData(application_area_id,application_area_data);
+    SaveAmiiboApplicationData(application_area_id, application_area_data);
     return ResultSuccess;
+}
+
+bool Module::Interface::AmiiboApplicationDataExist(u32 access_id) const {
+    // TODO(german77): Check if file exist
+    return false;
+}
+
+const std::vector<u8> Module::Interface::LoadAmiiboApplicationData(u32 access_id) const {
+    // TODO(german77): Read file
+    std::vector<u8> data(ApplicationAreaSize);
+    return data;
+}
+
+void Module::Interface::SaveAmiiboApplicationData(u32 access_id,
+                                                  const std::vector<u8>& data) const {
+    // TODO(german77): Save file
 }
 
 u64 Module::Interface::GetHandle() const {
