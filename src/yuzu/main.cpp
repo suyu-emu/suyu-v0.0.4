@@ -980,7 +980,7 @@ void GMainWindow::InitializeHotkeys() {
     hotkey_registry.LoadHotkeys();
 
     LinkActionShortcut(ui->action_Load_File, QStringLiteral("Load File"));
-    LinkActionShortcut(ui->action_Load_Amiibo, QStringLiteral("Load Amiibo"));
+    LinkActionShortcut(ui->action_Load_Amiibo, QStringLiteral("Load/Remove Amiibo"));
     LinkActionShortcut(ui->action_Exit, QStringLiteral("Exit yuzu"));
     LinkActionShortcut(ui->action_Restart, QStringLiteral("Restart Emulation"));
     LinkActionShortcut(ui->action_Pause, QStringLiteral("Continue/Pause Emulation"));
@@ -2909,6 +2909,25 @@ void GMainWindow::OnLoadAmiibo() {
         return;
     }
     if (is_amiibo_file_select_active) {
+        return;
+    }
+
+    Service::SM::ServiceManager& sm = system->ServiceManager();
+    auto nfc = sm.GetService<Service::NFP::Module::Interface>("nfp:user");
+    if (nfc == nullptr) {
+        QMessageBox::warning(this, tr("Error"),
+                             tr("The current game is not looking for amiibos"));
+        return;
+    }
+    const auto nfc_state = nfc->GetCurrentState();
+    if (nfc_state == Service::NFP::DeviceState::TagFound ||
+        nfc_state == Service::NFP::DeviceState::TagMounted) {
+        nfc->CloseAmiibo();
+        return;
+    }
+
+    if (nfc_state != Service::NFP::DeviceState::SearchingForTag) {
+        QMessageBox::warning(this, tr("Error"), tr("The current game is not looking for amiibos"));
         return;
     }
 
