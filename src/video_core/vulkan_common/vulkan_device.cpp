@@ -350,7 +350,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             .sampleRateShading = true,
             .dualSrcBlend = true,
             .logicOp = true,
-            .multiDrawIndirect = false,
+            .multiDrawIndirect = true,
             .drawIndirectFirstInstance = false,
             .depthClamp = true,
             .depthBiasClamp = true,

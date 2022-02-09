@@ -180,7 +180,8 @@ RasterizerVulkan::RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra
 
 RasterizerVulkan::~RasterizerVulkan() = default;
 
-void RasterizerVulkan::Draw(bool is_indexed, u32 instance_count) {
+template <typename Func>
+void RasterizerVulkan::PrepareDraw(bool is_indexed, Func&& draw_func) {
     MICROPROFILE_SCOPE(Vulkan_Drawing);
 
     SCOPE_EXIT({ gpu.TickWork(); });
@@ -201,20 +202,48 @@ void RasterizerVulkan::Draw(bool is_indexed, u32 instance_count) {
 
     UpdateDynamicStates();
 
-    const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
-    const u32 num_instances{instance_count};
-    const DrawParams draw_params{MakeDrawParams(draw_state, num_instances, is_indexed)};
-    scheduler.Record([draw_params](vk::CommandBuffer cmdbuf) {
-        if (draw_params.is_indexed) {
-            cmdbuf.DrawIndexed(draw_params.num_vertices, draw_params.num_instances,
-                               draw_params.first_index, draw_params.base_vertex,
-                               draw_params.base_instance);
-        } else {
-            cmdbuf.Draw(draw_params.num_vertices, draw_params.num_instances,
-                        draw_params.base_vertex, draw_params.base_instance);
-        }
-    });
+    draw_func();
+
     EndTransformFeedback();
+}
+
+void RasterizerVulkan::Draw(bool is_indexed, u32 instance_count) {
+    PrepareDraw(is_indexed, [this, is_indexed, instance_count] {
+        const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
+        const u32 num_instances{instance_count};
+        const DrawParams draw_params{MakeDrawParams(draw_state, num_instances, is_indexed)};
+        scheduler.Record([draw_params](vk::CommandBuffer cmdbuf) {
+            if (draw_params.is_indexed) {
+                cmdbuf.DrawIndexed(draw_params.num_vertices, draw_params.num_instances,
+                                   draw_params.first_index, draw_params.base_vertex,
+                                   draw_params.base_instance);
+            } else {
+                cmdbuf.Draw(draw_params.num_vertices, draw_params.num_instances,
+                            draw_params.base_vertex, draw_params.base_instance);
+            }
+        });
+    });
+}
+
+void RasterizerVulkan::DrawIndirect(bool is_indexed) {
+    PrepareDraw(is_indexed, [this, is_indexed] {
+        const auto params = maxwell3d->draw_manager->GetIndirectParams();
+        const auto [buffer, offset] = buffer_cache.ObtainBuffer(
+            params.start_address, static_cast<u32>(params.buffer_size), true, false);
+        scheduler.Record([buffer_obj = buffer->Handle(), offset,
+                          max_draw_counts = params.max_draw_counts, stride = params.stride,
+                          is_indexed](vk::CommandBuffer cmdbuf) {
+            if (is_indexed) {
+                cmdbuf.DrawIndexedIndirectCount(buffer_obj, offset + 4ULL, buffer_obj, offset,
+                                                static_cast<u32>(max_draw_counts),
+                                                static_cast<u32>(stride));
+            } else {
+                cmdbuf.DrawIndirectCount(buffer_obj, offset + 4ULL, buffer_obj, offset,
+                                         static_cast<u32>(max_draw_counts),
+                                         static_cast<u32>(stride));
+            }
+        });
+    });
 }
 
 void RasterizerVulkan::Clear(u32 layer_count) {

@@ -17,6 +17,8 @@ public:
     /// Write multiple values to the register identified by method.
     virtual void CallMultiMethod(u32 method, const u32* base_start, u32 amount,
                                  u32 methods_pending) = 0;
+
+    GPUVAddr current_dma_segment;
 };
 
 } // namespace Tegra::Engines

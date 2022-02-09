@@ -65,6 +65,7 @@ public:
     ~RasterizerVulkan() override;
 
     void Draw(bool is_indexed, u32 instance_count) override;
+    void DrawIndirect(bool is_indexed) override;
     void Clear(u32 layer_count) override;
     void DispatchCompute() override;
     void ResetCounter(VideoCore::QueryType type) override;
@@ -113,6 +114,9 @@ private:
     static constexpr size_t MAX_IMAGE_VIEWS = MAX_TEXTURES + MAX_IMAGES;
 
     static constexpr VkDeviceSize DEFAULT_BUFFER_SIZE = 4 * sizeof(float);
+
+    template <typename Func>
+    void PrepareDraw(bool is_indexed, Func&&);
 
     void FlushWork();
 

@@ -53,42 +53,43 @@ void HLE_0217920100488FF7(Engines::Maxwell3D& maxwell3d, const std::vector<u32>&
 
 // Multidraw Indirect
 void HLE_3F5E74B9C9A50164(Engines::Maxwell3D& maxwell3d, const std::vector<u32>& parameters) {
-    SCOPE_EXIT({
-        // Clean everything.
-        maxwell3d.regs.vertex_id_base = 0x0;
-        maxwell3d.CallMethod(0x8e3, 0x640, true);
-        maxwell3d.CallMethod(0x8e4, 0x0, true);
-        maxwell3d.CallMethod(0x8e5, 0x0, true);
-        maxwell3d.dirty.flags[VideoCommon::Dirty::IndexBuffer] = true;
-    });
     const u32 start_indirect = parameters[0];
     const u32 end_indirect = parameters[1];
     if (start_indirect >= end_indirect) {
         // Nothing to do.
         return;
     }
-    const u32 padding = parameters[3];
-    const std::size_t max_draws = parameters[4];
+    const auto topology =
+        static_cast<Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology>(parameters[2]);
+    const u32 padding = parameters[3]; // padding is in words
 
+    // size of each indirect segment
     const u32 indirect_words = 5 + padding;
-    const std::size_t first_draw = start_indirect;
-    const std::size_t effective_draws = end_indirect - start_indirect;
-    const std::size_t last_draw = start_indirect + std::min(effective_draws, max_draws);
-
-    for (std::size_t index = first_draw; index < last_draw; index++) {
+    const u32 stride = indirect_words * sizeof(u32);
+    const GPUVAddr start_address = maxwell3d.current_dma_segment + 4 * sizeof(u32);
+    const std::size_t draw_count = end_indirect - start_indirect;
+    u32 lowest_first = std::numeric_limits<u32>::max();
+    u32 highest_limit = std::numeric_limits<u32>::min();
+    for (std::size_t index = 0; index < draw_count; index++) {
         const std::size_t base = index * indirect_words + 5;
-        const u32 base_vertex = parameters[base + 3];
-        const u32 base_instance = parameters[base + 4];
-        maxwell3d.regs.vertex_id_base = base_vertex;
-        maxwell3d.CallMethod(0x8e3, 0x640, true);
-        maxwell3d.CallMethod(0x8e4, base_vertex, true);
-        maxwell3d.CallMethod(0x8e5, base_instance, true);
-        maxwell3d.dirty.flags[VideoCommon::Dirty::IndexBuffer] = true;
-        maxwell3d.draw_manager->DrawIndex(
-            static_cast<Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology>(parameters[2]),
-            parameters[base + 2], parameters[base], base_vertex, base_instance,
-            parameters[base + 1]);
+        const u32 count = parameters[base];
+        const u32 first_index = parameters[base + 2];
+        lowest_first = std::min(lowest_first, first_index);
+        highest_limit = std::max(highest_limit, first_index + count);
     }
+
+    const u32 base_vertex = parameters[8];
+    const u32 base_instance = parameters[9];
+    maxwell3d.CallMethod(0x8e3, 0x640, true);
+    maxwell3d.CallMethod(0x8e4, base_vertex, true);
+    maxwell3d.CallMethod(0x8e5, base_instance, true);
+    auto& params = maxwell3d.draw_manager->GetIndirectParams();
+    params.start_address = start_address;
+    params.buffer_size = sizeof(u32) + stride * draw_count;
+    params.max_draw_counts = draw_count;
+    params.stride = stride;
+    maxwell3d.dirty.flags[VideoCommon::Dirty::IndexBuffer] = true;
+    maxwell3d.draw_manager->DrawIndexedIndirect(topology, 0, highest_limit);
 }
 
 // Multi-layer Clear

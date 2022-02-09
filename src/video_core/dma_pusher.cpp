@@ -61,7 +61,7 @@ bool DmaPusher::Step() {
     } else {
         const CommandListHeader command_list_header{
             command_list.command_lists[dma_pushbuffer_subindex++]};
-        const GPUVAddr dma_get = command_list_header.addr;
+        dma_state.dma_get = command_list_header.addr;
 
         if (dma_pushbuffer_subindex >= command_list.command_lists.size()) {
             // We've gone through the current list, remove it from the queue
@@ -75,11 +75,11 @@ bool DmaPusher::Step() {
 
         // Push buffer non-empty, read a word
         command_headers.resize_destructive(command_list_header.size);
-        if (Settings::IsGPULevelHigh()) {
-            memory_manager.ReadBlock(dma_get, command_headers.data(),
+        if (Settings::IsGPULevelExtreme()) {
+            memory_manager.ReadBlock(dma_state.dma_get, command_headers.data(),
                                      command_list_header.size * sizeof(u32));
         } else {
-            memory_manager.ReadBlockUnsafe(dma_get, command_headers.data(),
+            memory_manager.ReadBlockUnsafe(dma_state.dma_get, command_headers.data(),
                                            command_list_header.size * sizeof(u32));
         }
         ProcessCommands(command_headers);
@@ -174,8 +174,10 @@ void DmaPusher::CallMultiMethod(const u32* base_start, u32 num_methods) const {
         puller.CallMultiMethod(dma_state.method, dma_state.subchannel, base_start, num_methods,
                                dma_state.method_count);
     } else {
-        subchannels[dma_state.subchannel]->CallMultiMethod(dma_state.method, base_start,
-                                                           num_methods, dma_state.method_count);
+        auto subchannel = subchannels[dma_state.subchannel];
+        subchannel->current_dma_segment = dma_state.dma_get;
+        subchannel->CallMultiMethod(dma_state.method, base_start, num_methods,
+                                    dma_state.method_count);
     }
 }
 

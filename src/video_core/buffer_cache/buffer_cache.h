@@ -170,6 +170,9 @@ public:
     void BindComputeTextureBuffer(size_t tbo_index, GPUVAddr gpu_addr, u32 size, PixelFormat format,
                                   bool is_written, bool is_image);
 
+    [[nodiscard]] std::pair<Buffer*, u32> ObtainBuffer(GPUVAddr gpu_addr, u32 size,
+                                                       bool synchronize, bool mark_as_written);
+
     void FlushCachedWrites();
 
     /// Return true when there are uncommitted buffers to be downloaded
@@ -788,6 +791,25 @@ void BufferCache<P>::BindComputeTextureBuffer(size_t tbo_index, GPUVAddr gpu_add
         image_compute_texture_buffers |= (is_image ? 1U : 0U) << tbo_index;
     }
     compute_texture_buffers[tbo_index] = GetTextureBufferBinding(gpu_addr, size, format);
+}
+
+template <class P>
+std::pair<typename P::Buffer*, u32> BufferCache<P>::ObtainBuffer(GPUVAddr gpu_addr, u32 size,
+                                                                 bool synchronize,
+                                                                 bool mark_as_written) {
+    const std::optional<VAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
+    if (!cpu_addr) {
+        return {&slot_buffers[NULL_BUFFER_ID], 0};
+    }
+    const BufferId buffer_id = FindBuffer(*cpu_addr, size);
+    Buffer& buffer = slot_buffers[buffer_id];
+    if (synchronize) {
+        SynchronizeBuffer(buffer, *cpu_addr, size);
+    }
+    if (mark_as_written) {
+        MarkWrittenBuffer(buffer_id, *cpu_addr, size);
+    }
+    return {&buffer, buffer.Offset(*cpu_addr)};
 }
 
 template <class P>

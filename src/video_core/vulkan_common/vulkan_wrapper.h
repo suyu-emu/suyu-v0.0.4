@@ -213,6 +213,8 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdDispatch vkCmdDispatch{};
     PFN_vkCmdDraw vkCmdDraw{};
     PFN_vkCmdDrawIndexed vkCmdDrawIndexed{};
+    PFN_vkCmdDrawIndirectCount vkCmdDrawIndirectCount{};
+    PFN_vkCmdDrawIndexedIndirectCount vkCmdDrawIndexedIndirectCount{};
     PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabelEXT{};
     PFN_vkCmdEndQuery vkCmdEndQuery{};
     PFN_vkCmdEndRenderPass vkCmdEndRenderPass{};
@@ -1017,6 +1019,19 @@ public:
                      u32 first_instance) const noexcept {
         dld->vkCmdDrawIndexed(handle, index_count, instance_count, first_index, vertex_offset,
                               first_instance);
+    }
+
+    void DrawIndirectCount(VkBuffer src_buffer, VkDeviceSize src_offset, VkBuffer count_buffer,
+                           VkDeviceSize count_offset, u32 draw_count, u32 stride) const noexcept {
+        dld->vkCmdDrawIndirectCount(handle, src_buffer, src_offset, count_buffer, count_offset,
+                                    draw_count, stride);
+    }
+
+    void DrawIndexedIndirectCount(VkBuffer src_buffer, VkDeviceSize src_offset,
+                                  VkBuffer count_buffer, VkDeviceSize count_offset, u32 draw_count,
+                                  u32 stride) const noexcept {
+        dld->vkCmdDrawIndexedIndirectCount(handle, src_buffer, src_offset, count_buffer,
+                                           count_offset, draw_count, stride);
     }
 
     void ClearAttachments(Span<VkClearAttachment> attachments,
