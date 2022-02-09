@@ -29,7 +29,6 @@ ResultCode KCodeMemory::Initialize(Core::DeviceMemory& device_memory, VAddr addr
     auto& page_table = m_owner->PageTable();
 
     // Construct the page group.
-    KMemoryInfo kBlockInfo = page_table.QueryInfo(addr);
     m_page_group = KPageLinkedList(addr, Common::DivideUp(size, PageSize));
 
     // Lock the memory.
