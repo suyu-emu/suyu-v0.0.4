@@ -33,7 +33,10 @@ public:
     };
 
     struct IndirectParams {
-        GPUVAddr start_address;
+        bool is_indexed;
+        bool include_count;
+        GPUVAddr count_start_address;
+        GPUVAddr indirect_start_address;
         size_t buffer_size;
         size_t max_draw_counts;
         size_t stride;

@@ -43,7 +43,7 @@ public:
     virtual void Draw(bool is_indexed, u32 instance_count) = 0;
 
     /// Dispatches an indirect draw invocation
-    virtual void DrawIndirect(bool is_indexed) {}
+    virtual void DrawIndirect() {}
 
     /// Clear the current framebuffer
     virtual void Clear(u32 layer_count) = 0;

@@ -213,8 +213,10 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdDispatch vkCmdDispatch{};
     PFN_vkCmdDraw vkCmdDraw{};
     PFN_vkCmdDrawIndexed vkCmdDrawIndexed{};
-    PFN_vkCmdDrawIndirectCount vkCmdDrawIndirectCount{};
-    PFN_vkCmdDrawIndexedIndirectCount vkCmdDrawIndexedIndirectCount{};
+    PFN_vkCmdDrawIndirect vkCmdDrawIndirect{};
+    PFN_vkCmdDrawIndexedIndirect vkCmdDrawIndexedIndirect{};
+    PFN_vkCmdDrawIndirectCountKHR vkCmdDrawIndirectCountKHR{};
+    PFN_vkCmdDrawIndexedIndirectCountKHR vkCmdDrawIndexedIndirectCountKHR{};
     PFN_vkCmdEndDebugUtilsLabelEXT vkCmdEndDebugUtilsLabelEXT{};
     PFN_vkCmdEndQuery vkCmdEndQuery{};
     PFN_vkCmdEndRenderPass vkCmdEndRenderPass{};
@@ -1021,17 +1023,27 @@ public:
                               first_instance);
     }
 
+    void DrawIndirect(VkBuffer src_buffer, VkDeviceSize src_offset, u32 draw_count,
+                      u32 stride) const noexcept {
+        dld->vkCmdDrawIndirect(handle, src_buffer, src_offset, draw_count, stride);
+    }
+
+    void DrawIndexedIndirect(VkBuffer src_buffer, VkDeviceSize src_offset, u32 draw_count,
+                             u32 stride) const noexcept {
+        dld->vkCmdDrawIndexedIndirect(handle, src_buffer, src_offset, draw_count, stride);
+    }
+
     void DrawIndirectCount(VkBuffer src_buffer, VkDeviceSize src_offset, VkBuffer count_buffer,
                            VkDeviceSize count_offset, u32 draw_count, u32 stride) const noexcept {
-        dld->vkCmdDrawIndirectCount(handle, src_buffer, src_offset, count_buffer, count_offset,
-                                    draw_count, stride);
+        dld->vkCmdDrawIndirectCountKHR(handle, src_buffer, src_offset, count_buffer, count_offset,
+                                       draw_count, stride);
     }
 
     void DrawIndexedIndirectCount(VkBuffer src_buffer, VkDeviceSize src_offset,
                                   VkBuffer count_buffer, VkDeviceSize count_offset, u32 draw_count,
                                   u32 stride) const noexcept {
-        dld->vkCmdDrawIndexedIndirectCount(handle, src_buffer, src_offset, count_buffer,
-                                           count_offset, draw_count, stride);
+        dld->vkCmdDrawIndexedIndirectCountKHR(handle, src_buffer, src_offset, count_buffer,
+                                              count_offset, draw_count, stride);
     }
 
     void ClearAttachments(Span<VkClearAttachment> attachments,

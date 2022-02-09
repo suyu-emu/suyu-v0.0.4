@@ -171,7 +171,9 @@ public:
                                   bool is_written, bool is_image);
 
     [[nodiscard]] std::pair<Buffer*, u32> ObtainBuffer(GPUVAddr gpu_addr, u32 size,
-                                                       bool synchronize, bool mark_as_written);
+                                                       bool synchronize = true,
+                                                       bool mark_as_written = false,
+                                                       bool discard_downloads = false);
 
     void FlushCachedWrites();
 
@@ -202,6 +204,14 @@ public:
 
     /// Return true when a CPU region is modified from the CPU
     [[nodiscard]] bool IsRegionCpuModified(VAddr addr, size_t size);
+
+    void SetDrawIndirect(const Tegra::Engines::DrawManager::IndirectParams* current_draw_indirect_) {
+        current_draw_indirect = current_draw_indirect_;
+    }
+
+    [[nodiscard]] std::pair<Buffer*, u32> GetDrawIndirectCount();
+
+    [[nodiscard]] std::pair<Buffer*, u32> GetDrawIndirectBuffer();
 
     std::mutex mutex;
     Runtime& runtime;
@@ -275,6 +285,8 @@ private:
 
     void BindHostVertexBuffers();
 
+    void BindHostDrawIndirectBuffers();
+
     void BindHostGraphicsUniformBuffers(size_t stage);
 
     void BindHostGraphicsUniformBuffer(size_t stage, u32 index, u32 binding_index, bool needs_bind);
@@ -300,6 +312,8 @@ private:
     void UpdateVertexBuffers();
 
     void UpdateVertexBuffer(u32 index);
+
+    void UpdateDrawIndirect();
 
     void UpdateUniformBuffers(size_t stage);
 
@@ -340,6 +354,8 @@ private:
 
     bool SynchronizeBufferImpl(Buffer& buffer, VAddr cpu_addr, u32 size);
 
+    bool SynchronizeBufferNoModified(Buffer& buffer, VAddr cpu_addr, u32 size);
+
     void UploadMemory(Buffer& buffer, u64 total_size_bytes, u64 largest_copy,
                       std::span<BufferCopy> copies);
 
@@ -375,6 +391,8 @@ private:
     SlotVector<Buffer> slot_buffers;
     DelayedDestructionRing<Buffer, 8> delayed_destruction_ring;
 
+    const Tegra::Engines::DrawManager::IndirectParams* current_draw_indirect{};
+
     u32 last_index_count = 0;
 
     Binding index_buffer;
@@ -383,6 +401,8 @@ private:
     std::array<std::array<Binding, NUM_STORAGE_BUFFERS>, NUM_STAGES> storage_buffers;
     std::array<std::array<TextureBufferBinding, NUM_TEXTURE_BUFFERS>, NUM_STAGES> texture_buffers;
     std::array<Binding, NUM_TRANSFORM_FEEDBACK_BUFFERS> transform_feedback_buffers;
+    Binding count_buffer_binding;
+    Binding indirect_buffer_binding;
 
     std::array<Binding, NUM_COMPUTE_UNIFORM_BUFFERS> compute_uniform_buffers;
     std::array<Binding, NUM_STORAGE_BUFFERS> compute_storage_buffers;
@@ -422,6 +442,7 @@ private:
 
     std::vector<BufferId> cached_write_buffer_ids;
 
+    IntervalSet discarded_ranges;
     IntervalSet uncommitted_ranges;
     IntervalSet common_ranges;
     std::deque<IntervalSet> committed_ranges;
@@ -579,13 +600,17 @@ bool BufferCache<P>::DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 am
     }};
 
     boost::container::small_vector<IntervalType, 4> tmp_intervals;
+    const bool is_high_accuracy =
+        Settings::values.gpu_accuracy.GetValue() == Settings::GPUAccuracy::High;
     auto mirror = [&](VAddr base_address, VAddr base_address_end) {
         const u64 size = base_address_end - base_address;
         const VAddr diff = base_address - *cpu_src_address;
         const VAddr new_base_address = *cpu_dest_address + diff;
         const IntervalType add_interval{new_base_address, new_base_address + size};
-        uncommitted_ranges.add(add_interval);
         tmp_intervals.push_back(add_interval);
+        if (is_high_accuracy) {
+            uncommitted_ranges.add(add_interval);
+        }
     };
     ForEachWrittenRange(*cpu_src_address, amount, mirror);
     // This subtraction in this order is important for overlapping copies.
@@ -677,6 +702,9 @@ void BufferCache<P>::BindHostGeometryBuffers(bool is_indexed) {
     }
     BindHostVertexBuffers();
     BindHostTransformFeedbackBuffers();
+    if (current_draw_indirect) {
+        BindHostDrawIndirectBuffers();
+    }
 }
 
 template <class P>
@@ -796,7 +824,8 @@ void BufferCache<P>::BindComputeTextureBuffer(size_t tbo_index, GPUVAddr gpu_add
 template <class P>
 std::pair<typename P::Buffer*, u32> BufferCache<P>::ObtainBuffer(GPUVAddr gpu_addr, u32 size,
                                                                  bool synchronize,
-                                                                 bool mark_as_written) {
+                                                                 bool mark_as_written,
+                                                                 bool discard_downloads) {
     const std::optional<VAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
     if (!cpu_addr) {
         return {&slot_buffers[NULL_BUFFER_ID], 0};
@@ -804,10 +833,16 @@ std::pair<typename P::Buffer*, u32> BufferCache<P>::ObtainBuffer(GPUVAddr gpu_ad
     const BufferId buffer_id = FindBuffer(*cpu_addr, size);
     Buffer& buffer = slot_buffers[buffer_id];
     if (synchronize) {
-        SynchronizeBuffer(buffer, *cpu_addr, size);
+        // SynchronizeBuffer(buffer, *cpu_addr, size);
+        SynchronizeBufferNoModified(buffer, *cpu_addr, size);
     }
     if (mark_as_written) {
         MarkWrittenBuffer(buffer_id, *cpu_addr, size);
+    }
+    if (discard_downloads) {
+        IntervalType interval{*cpu_addr, size};
+        ClearDownload(interval);
+        discarded_ranges.subtract(interval);
     }
     return {&buffer, buffer.Offset(*cpu_addr)};
 }
@@ -827,10 +862,6 @@ bool BufferCache<P>::HasUncommittedFlushes() const noexcept {
 
 template <class P>
 void BufferCache<P>::AccumulateFlushes() {
-    if (Settings::values.gpu_accuracy.GetValue() != Settings::GPUAccuracy::High) {
-        uncommitted_ranges.clear();
-        return;
-    }
     if (uncommitted_ranges.empty()) {
         return;
     }
@@ -845,12 +876,15 @@ bool BufferCache<P>::ShouldWaitAsyncFlushes() const noexcept {
 template <class P>
 void BufferCache<P>::CommitAsyncFlushesHigh() {
     AccumulateFlushes();
+
+    for (const auto& interval : discarded_ranges) {
+        common_ranges.subtract(interval);
+    }
+
     if (committed_ranges.empty()) {
         return;
     }
     MICROPROFILE_SCOPE(GPU_DownloadMemory);
-    const bool is_accuracy_normal =
-        Settings::values.gpu_accuracy.GetValue() == Settings::GPUAccuracy::Normal;
 
     auto it = committed_ranges.begin();
     while (it != committed_ranges.end()) {
@@ -875,9 +909,6 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
             ForEachBufferInRange(cpu_addr, size, [&](BufferId buffer_id, Buffer& buffer) {
                 buffer.ForEachDownloadRangeAndClear(
                     cpu_addr, size, [&](u64 range_offset, u64 range_size) {
-                        if (is_accuracy_normal) {
-                            return;
-                        }
                         const VAddr buffer_addr = buffer.CpuAddr();
                         const auto add_download = [&](VAddr start, VAddr end) {
                             const u64 new_offset = start - buffer_addr;
@@ -891,7 +922,7 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
                                 buffer_id,
                             });
                             // Align up to avoid cache conflicts
-                            constexpr u64 align = 256ULL;
+                            constexpr u64 align = 8ULL;
                             constexpr u64 mask = ~(align - 1ULL);
                             total_size_bytes += (new_size + align - 1) & mask;
                             largest_copy = std::max(largest_copy, new_size);
@@ -942,12 +973,7 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
 
 template <class P>
 void BufferCache<P>::CommitAsyncFlushes() {
-    if (Settings::values.gpu_accuracy.GetValue() == Settings::GPUAccuracy::High) {
-        CommitAsyncFlushesHigh();
-    } else {
-        uncommitted_ranges.clear();
-        committed_ranges.clear();
-    }
+    CommitAsyncFlushesHigh();
 }
 
 template <class P>
@@ -1061,6 +1087,19 @@ void BufferCache<P>::BindHostVertexBuffers() {
         const u32 offset = buffer.Offset(binding.cpu_addr);
         runtime.BindVertexBuffer(index, buffer, offset, binding.size, stride);
     }
+}
+
+template <class P>
+void BufferCache<P>::BindHostDrawIndirectBuffers() {
+    const auto bind_buffer = [this](const Binding& binding) {
+        Buffer& buffer = slot_buffers[binding.buffer_id];
+        TouchBuffer(buffer, binding.buffer_id);
+        SynchronizeBuffer(buffer, binding.cpu_addr, binding.size);
+    };
+    if (current_draw_indirect->include_count) {
+        bind_buffer(count_buffer_binding);
+    }
+    bind_buffer(indirect_buffer_binding);
 }
 
 template <class P>
@@ -1294,6 +1333,9 @@ void BufferCache<P>::DoUpdateGraphicsBuffers(bool is_indexed) {
             UpdateStorageBuffers(stage);
             UpdateTextureBuffers(stage);
         }
+        if (current_draw_indirect) {
+            UpdateDrawIndirect();
+        }
     } while (has_deleted_buffers);
 }
 
@@ -1381,6 +1423,27 @@ void BufferCache<P>::UpdateVertexBuffer(u32 index) {
         .size = size,
         .buffer_id = FindBuffer(*cpu_addr, size),
     };
+}
+
+template <class P>
+void BufferCache<P>::UpdateDrawIndirect() {
+    const auto update = [this](GPUVAddr gpu_addr, size_t size, Binding& binding) {
+        const std::optional<VAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
+        if (!cpu_addr) {
+            binding = NULL_BINDING;
+            return;
+        }
+        binding = Binding{
+            .cpu_addr = *cpu_addr,
+            .size = static_cast<u32>(size),
+            .buffer_id = FindBuffer(*cpu_addr, static_cast<u32>(size)),
+        };
+    };
+    if (current_draw_indirect->include_count) {
+        update(current_draw_indirect->count_start_address, sizeof(u32), count_buffer_binding);
+    }
+    update(current_draw_indirect->indirect_start_address, current_draw_indirect->buffer_size,
+           indirect_buffer_binding);
 }
 
 template <class P>
@@ -1705,6 +1768,51 @@ bool BufferCache<P>::SynchronizeBufferImpl(Buffer& buffer, VAddr cpu_addr, u32 s
 }
 
 template <class P>
+bool BufferCache<P>::SynchronizeBufferNoModified(Buffer& buffer, VAddr cpu_addr, u32 size) {
+    boost::container::small_vector<BufferCopy, 4> copies;
+    u64 total_size_bytes = 0;
+    u64 largest_copy = 0;
+    IntervalSet found_sets{};
+    auto make_copies = [&] {
+        for (auto& interval : found_sets) {
+            const std::size_t sub_size = interval.upper() - interval.lower();
+            const VAddr cpu_addr = interval.lower();
+            copies.push_back(BufferCopy{
+                .src_offset = total_size_bytes,
+                .dst_offset = cpu_addr - buffer.CpuAddr(),
+                .size = sub_size,
+            });
+            total_size_bytes += sub_size;
+            largest_copy = std::max(largest_copy, sub_size);
+        }
+        const std::span<BufferCopy> copies_span(copies.data(), copies.size());
+        UploadMemory(buffer, total_size_bytes, largest_copy, copies_span);
+    };
+    buffer.ForEachUploadRange(cpu_addr, size, [&](u64 range_offset, u64 range_size) {
+        const VAddr base_adr = buffer.CpuAddr() + range_offset;
+        const VAddr end_adr = base_adr + range_size;
+        const IntervalType add_interval{base_adr, end_adr};
+        found_sets.add(add_interval);
+    });
+    if (found_sets.empty()) {
+        return true;
+    }
+    const IntervalType search_interval{cpu_addr, cpu_addr + size};
+    auto it = common_ranges.lower_bound(search_interval);
+    auto it_end = common_ranges.upper_bound(search_interval);
+    if (it == common_ranges.end()) {
+        make_copies();
+        return false;
+    }
+    while (it != it_end) {
+        found_sets.subtract(*it);
+        it++;
+    }
+    make_copies();
+    return false;
+}
+
+template <class P>
 void BufferCache<P>::UploadMemory(Buffer& buffer, u64 total_size_bytes, u64 largest_copy,
                                   std::span<BufferCopy> copies) {
     if constexpr (USE_MEMORY_MAPS) {
@@ -1961,6 +2069,18 @@ bool BufferCache<P>::HasFastUniformBufferBound(size_t stage, u32 binding_index) 
         // Only OpenGL has fast uniform buffers
         return false;
     }
+}
+
+template <class P>
+std::pair<typename BufferCache<P>::Buffer*, u32> BufferCache<P>::GetDrawIndirectCount() {
+    auto& buffer = slot_buffers[count_buffer_binding.buffer_id];
+    return std::make_pair(&buffer, buffer.Offset(count_buffer_binding.cpu_addr));
+}
+
+template <class P>
+std::pair<typename BufferCache<P>::Buffer*, u32> BufferCache<P>::GetDrawIndirectBuffer() {
+    auto& buffer = slot_buffers[indirect_buffer_binding.buffer_id];
+    return std::make_pair(&buffer, buffer.Offset(indirect_buffer_binding.cpu_addr));
 }
 
 } // namespace VideoCommon

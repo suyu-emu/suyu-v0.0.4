@@ -351,7 +351,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             .dualSrcBlend = true,
             .logicOp = true,
             .multiDrawIndirect = true,
-            .drawIndirectFirstInstance = false,
+            .drawIndirectFirstInstance = true,
             .depthClamp = true,
             .depthBiasClamp = true,
             .fillModeNonSolid = true,
@@ -1024,6 +1024,8 @@ void Device::CheckSuitability(bool requires_swapchain) const {
         std::make_pair(features.vertexPipelineStoresAndAtomics, "vertexPipelineStoresAndAtomics"),
         std::make_pair(features.imageCubeArray, "imageCubeArray"),
         std::make_pair(features.independentBlend, "independentBlend"),
+        std::make_pair(features.multiDrawIndirect, "multiDrawIndirect"),
+        std::make_pair(features.drawIndirectFirstInstance, "drawIndirectFirstInstance"),
         std::make_pair(features.depthClamp, "depthClamp"),
         std::make_pair(features.samplerAnisotropy, "samplerAnisotropy"),
         std::make_pair(features.largePoints, "largePoints"),
@@ -1117,6 +1119,7 @@ std::vector<const char*> Device::LoadExtensions(bool requires_surface) {
         test(khr_spirv_1_4, VK_KHR_SPIRV_1_4_EXTENSION_NAME, true);
         test(khr_push_descriptor, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME, true);
         test(has_khr_shader_float16_int8, VK_KHR_SHADER_FLOAT16_INT8_EXTENSION_NAME, false);
+        test(khr_draw_indirect_count, VK_KHR_DRAW_INDIRECT_COUNT_EXTENSION_NAME, true);
         test(ext_depth_range_unrestricted, VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME, true);
         test(ext_index_type_uint8, VK_EXT_INDEX_TYPE_UINT8_EXTENSION_NAME, true);
         test(has_ext_primitive_topology_list_restart,

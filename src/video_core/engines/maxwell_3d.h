@@ -3066,6 +3066,15 @@ public:
 
     std::unique_ptr<DrawManager> draw_manager;
     friend class DrawManager;
+    
+    std::vector<u8> inline_index_draw_indexes;
+    std::vector<GPUVAddr> macro_addresses;
+
+    Core::System& system;
+    MemoryManager& memory_manager;
+
+    /// Handles a write to the CLEAR_BUFFERS register.
+    void ProcessClearBuffers(u32 layer_count);
 
 private:
     void InitializeRegisterDefaults();
@@ -3125,9 +3134,6 @@ private:
 
     /// Returns a query's value or an empty object if the value will be deferred through a cache.
     std::optional<u64> GetQueryResult();
-
-    Core::System& system;
-    MemoryManager& memory_manager;
 
     VideoCore::RasterizerInterface* rasterizer = nullptr;
 

@@ -130,11 +130,15 @@ void Maxwell3D::ProcessMacro(u32 method, const u32* base_start, u32 amount, bool
     }
 
     macro_params.insert(macro_params.end(), base_start, base_start + amount);
+    for (size_t i = 0; i < amount; i++) {
+        macro_addresses.push_back(current_dma_segment + i * sizeof(u32));
+    }
 
     // Call the macro when there are no more parameters in the command buffer
     if (is_last_call) {
         CallMacroMethod(executing_macro, macro_params);
         macro_params.clear();
+        macro_addresses.clear();
     }
 }
 

@@ -216,7 +216,7 @@ void DrawManager::ProcessDrawIndirect(bool draw_indexed) {
     UpdateTopology();
 
     if (maxwell3d->ShouldExecute()) {
-        maxwell3d->rasterizer->DrawIndirect(draw_indexed);
+        maxwell3d->rasterizer->DrawIndirect();
     }
 }
 } // namespace Tegra::Engines

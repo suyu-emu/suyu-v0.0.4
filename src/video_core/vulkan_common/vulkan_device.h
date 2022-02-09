@@ -451,6 +451,7 @@ private:
     bool nv_viewport_swizzle{};                 ///< Support for VK_NV_viewport_swizzle.
     bool nv_viewport_array2{};                  ///< Support for VK_NV_viewport_array2.
     bool nv_geometry_shader_passthrough{};      ///< Support for VK_NV_geometry_shader_passthrough.
+    bool khr_draw_indirect_count{};             ///< Support for VK_KHR_draw_indirect_count.
     bool khr_uniform_buffer_standard_layout{};  ///< Support for scalar uniform buffer layouts.
     bool khr_spirv_1_4{};                       ///< Support for VK_KHR_spirv_1_4.
     bool khr_workgroup_memory_explicit_layout{}; ///< Support for explicit workgroup layouts.

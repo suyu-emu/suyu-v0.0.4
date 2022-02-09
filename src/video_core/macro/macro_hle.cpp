@@ -9,6 +9,7 @@
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/macro/macro.h"
 #include "video_core/macro/macro_hle.h"
+#include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
 
 namespace Tegra {
@@ -24,15 +25,14 @@ void HLE_771BB18C62444DA0(Engines::Maxwell3D& maxwell3d, const std::vector<u32>&
         parameters[4], parameters[1], parameters[3], parameters[5], instance_count);
 }
 
-void HLE_0D61FC9FAAC9FCAD(Engines::Maxwell3D& maxwell3d, const std::vector<u32>& parameters) {
+void HLE_DrawArraysIndirect(Engines::Maxwell3D& maxwell3d, const std::vector<u32>& parameters) {
     const u32 instance_count = (maxwell3d.GetRegisterValue(0xD1B) & parameters[2]);
     maxwell3d.draw_manager->DrawArray(
         static_cast<Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology>(parameters[0]),
         parameters[3], parameters[1], parameters[4], instance_count);
 }
 
-void HLE_0217920100488FF7(Engines::Maxwell3D& maxwell3d, const std::vector<u32>& parameters) {
-    const u32 instance_count = (maxwell3d.GetRegisterValue(0xD1B) & parameters[2]);
+void HLE_DrawIndexedIndirect(Engines::Maxwell3D& maxwell3d, const std::vector<u32>& parameters) {
     const u32 element_base = parameters[4];
     const u32 base_instance = parameters[5];
     maxwell3d.regs.vertex_id_base = element_base;
@@ -41,9 +41,18 @@ void HLE_0217920100488FF7(Engines::Maxwell3D& maxwell3d, const std::vector<u32>&
     maxwell3d.CallMethod(0x8e4, element_base, true);
     maxwell3d.CallMethod(0x8e5, base_instance, true);
 
-    maxwell3d.draw_manager->DrawIndex(
-        static_cast<Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology>(parameters[0]),
-        parameters[3], parameters[1], element_base, base_instance, instance_count);
+    auto& params = maxwell3d.draw_manager->GetIndirectParams();
+    params.is_indexed = true;
+    params.include_count = false;
+    params.count_start_address = 0;
+    params.indirect_start_address = maxwell3d.macro_addresses[1];
+    params.buffer_size = 5 * sizeof(u32);
+    params.max_draw_counts = 1;
+    params.stride = 0;
+
+    maxwell3d.draw_manager->DrawIndexedIndirect(
+        static_cast<Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology>(parameters[0]), 0,
+        1U << 18);
 
     maxwell3d.regs.vertex_id_base = 0x0;
     maxwell3d.CallMethod(0x8e3, 0x640, true);
@@ -51,8 +60,9 @@ void HLE_0217920100488FF7(Engines::Maxwell3D& maxwell3d, const std::vector<u32>&
     maxwell3d.CallMethod(0x8e5, 0x0, true);
 }
 
-// Multidraw Indirect
-void HLE_3F5E74B9C9A50164(Engines::Maxwell3D& maxwell3d, const std::vector<u32>& parameters) {
+// Multidraw Indixed Indirect
+void HLE_MultiDrawIndexedIndirect(Engines::Maxwell3D& maxwell3d,
+                                  const std::vector<u32>& parameters) {
     const u32 start_indirect = parameters[0];
     const u32 end_indirect = parameters[1];
     if (start_indirect >= end_indirect) {
@@ -66,7 +76,6 @@ void HLE_3F5E74B9C9A50164(Engines::Maxwell3D& maxwell3d, const std::vector<u32>&
     // size of each indirect segment
     const u32 indirect_words = 5 + padding;
     const u32 stride = indirect_words * sizeof(u32);
-    const GPUVAddr start_address = maxwell3d.current_dma_segment + 4 * sizeof(u32);
     const std::size_t draw_count = end_indirect - start_indirect;
     u32 lowest_first = std::numeric_limits<u32>::max();
     u32 highest_limit = std::numeric_limits<u32>::min();
@@ -80,12 +89,16 @@ void HLE_3F5E74B9C9A50164(Engines::Maxwell3D& maxwell3d, const std::vector<u32>&
 
     const u32 base_vertex = parameters[8];
     const u32 base_instance = parameters[9];
+    maxwell3d.regs.vertex_id_base = base_vertex;
     maxwell3d.CallMethod(0x8e3, 0x640, true);
     maxwell3d.CallMethod(0x8e4, base_vertex, true);
     maxwell3d.CallMethod(0x8e5, base_instance, true);
     auto& params = maxwell3d.draw_manager->GetIndirectParams();
-    params.start_address = start_address;
-    params.buffer_size = sizeof(u32) + stride * draw_count;
+    params.is_indexed = true;
+    params.include_count = true;
+    params.count_start_address = maxwell3d.macro_addresses[4];
+    params.indirect_start_address = maxwell3d.macro_addresses[5];
+    params.buffer_size = stride * draw_count;
     params.max_draw_counts = draw_count;
     params.stride = stride;
     maxwell3d.dirty.flags[VideoCommon::Dirty::IndexBuffer] = true;
@@ -93,7 +106,7 @@ void HLE_3F5E74B9C9A50164(Engines::Maxwell3D& maxwell3d, const std::vector<u32>&
 }
 
 // Multi-layer Clear
-void HLE_EAD26C3E2109B06B(Engines::Maxwell3D& maxwell3d, const std::vector<u32>& parameters) {
+void HLE_MultiLayerClear(Engines::Maxwell3D& maxwell3d, const std::vector<u32>& parameters) {
     ASSERT(parameters.size() == 1);
 
     const Engines::Maxwell3D::Regs::ClearSurface clear_params{parameters[0]};
@@ -107,10 +120,10 @@ void HLE_EAD26C3E2109B06B(Engines::Maxwell3D& maxwell3d, const std::vector<u32>&
 
 constexpr std::array<std::pair<u64, HLEFunction>, 5> hle_funcs{{
     {0x771BB18C62444DA0, &HLE_771BB18C62444DA0},
-    {0x0D61FC9FAAC9FCAD, &HLE_0D61FC9FAAC9FCAD},
-    {0x0217920100488FF7, &HLE_0217920100488FF7},
-    {0x3F5E74B9C9A50164, &HLE_3F5E74B9C9A50164},
-    {0xEAD26C3E2109B06B, &HLE_EAD26C3E2109B06B},
+    {0x0D61FC9FAAC9FCAD, &HLE_DrawArraysIndirect},
+    {0x0217920100488FF7, &HLE_DrawIndexedIndirect},
+    {0x3F5E74B9C9A50164, &HLE_MultiDrawIndexedIndirect},
+    {0xEAD26C3E2109B06B, &HLE_MultiLayerClear},
 }};
 
 class HLEMacroImpl final : public CachedMacro {

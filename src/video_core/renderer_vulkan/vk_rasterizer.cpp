@@ -225,25 +225,40 @@ void RasterizerVulkan::Draw(bool is_indexed, u32 instance_count) {
     });
 }
 
-void RasterizerVulkan::DrawIndirect(bool is_indexed) {
-    PrepareDraw(is_indexed, [this, is_indexed] {
-        const auto params = maxwell3d->draw_manager->GetIndirectParams();
-        const auto [buffer, offset] = buffer_cache.ObtainBuffer(
-            params.start_address, static_cast<u32>(params.buffer_size), true, false);
-        scheduler.Record([buffer_obj = buffer->Handle(), offset,
-                          max_draw_counts = params.max_draw_counts, stride = params.stride,
-                          is_indexed](vk::CommandBuffer cmdbuf) {
-            if (is_indexed) {
-                cmdbuf.DrawIndexedIndirectCount(buffer_obj, offset + 4ULL, buffer_obj, offset,
-                                                static_cast<u32>(max_draw_counts),
-                                                static_cast<u32>(stride));
+void RasterizerVulkan::DrawIndirect() {
+    const auto& params = maxwell3d->draw_manager->GetIndirectParams();
+    buffer_cache.SetDrawIndirect(&params);
+    PrepareDraw(params.is_indexed, [this, &params] {
+        const auto [buffer, offset] = buffer_cache.GetDrawIndirectBuffer();
+        if (params.include_count) {
+            const auto [draw_buffer, offset_base] = buffer_cache.GetDrawIndirectCount();
+            scheduler.Record([draw_buffer_obj = draw_buffer->Handle(),
+                              buffer_obj = buffer->Handle(), offset_base, offset,
+                              params](vk::CommandBuffer cmdbuf) {
+                if (params.is_indexed) {
+                    cmdbuf.DrawIndexedIndirectCount(
+                        buffer_obj, offset, draw_buffer_obj, offset_base,
+                        static_cast<u32>(params.max_draw_counts), static_cast<u32>(params.stride));
+                } else {
+                    cmdbuf.DrawIndirectCount(buffer_obj, offset, draw_buffer_obj, offset_base,
+                                             static_cast<u32>(params.max_draw_counts),
+                                             static_cast<u32>(params.stride));
+                }
+            });
+            return;
+        }
+        scheduler.Record([buffer_obj = buffer->Handle(), offset, params](vk::CommandBuffer cmdbuf) {
+            if (params.is_indexed) {
+                cmdbuf.DrawIndexedIndirect(buffer_obj, offset,
+                                           static_cast<u32>(params.max_draw_counts),
+                                           static_cast<u32>(params.stride));
             } else {
-                cmdbuf.DrawIndirectCount(buffer_obj, offset + 4ULL, buffer_obj, offset,
-                                         static_cast<u32>(max_draw_counts),
-                                         static_cast<u32>(stride));
+                cmdbuf.DrawIndirect(buffer_obj, offset, static_cast<u32>(params.max_draw_counts),
+                                    static_cast<u32>(params.stride));
             }
         });
     });
+    buffer_cache.SetDrawIndirect(nullptr);
 }
 
 void RasterizerVulkan::Clear(u32 layer_count) {
@@ -425,9 +440,6 @@ void RasterizerVulkan::FlushRegion(VAddr addr, u64 size) {
 
 bool RasterizerVulkan::MustFlushRegion(VAddr addr, u64 size) {
     std::scoped_lock lock{texture_cache.mutex, buffer_cache.mutex};
-    if (!Settings::IsGPULevelHigh()) {
-        return buffer_cache.IsRegionGpuModified(addr, size);
-    }
     return texture_cache.IsRegionGpuModified(addr, size) ||
            buffer_cache.IsRegionGpuModified(addr, size);
 }

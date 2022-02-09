@@ -94,8 +94,10 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdDispatch);
     X(vkCmdDraw);
     X(vkCmdDrawIndexed);
-    X(vkCmdDrawIndirectCount);
-    X(vkCmdDrawIndexedIndirectCount);
+    X(vkCmdDrawIndirect);
+    X(vkCmdDrawIndexedIndirect);
+    X(vkCmdDrawIndirectCountKHR);
+    X(vkCmdDrawIndexedIndirectCountKHR);
     X(vkCmdEndQuery);
     X(vkCmdEndRenderPass);
     X(vkCmdEndTransformFeedbackEXT);
