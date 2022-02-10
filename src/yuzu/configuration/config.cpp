@@ -65,12 +65,14 @@ const std::array<int, 2> Config::default_stick_mod = {
 // This must be in alphabetical order according to action name as it must have the same order as
 // UISetting::values.shortcuts, which is alphabetically ordered.
 // clang-format off
-const std::array<UISettings::Shortcut, 20> Config::default_hotkeys{{
+const std::array<UISettings::Shortcut, 22> Config::default_hotkeys{{
     {QStringLiteral("Audio Mute/Unmute"),        QStringLiteral("Main Window"), {QStringLiteral("Ctrl+M"),  QStringLiteral("Home+Dpad_Right"), Qt::WindowShortcut}},
     {QStringLiteral("Audio Volume Down"),        QStringLiteral("Main Window"), {QStringLiteral("-"),       QStringLiteral("Home+Dpad_Down"), Qt::ApplicationShortcut}},
     {QStringLiteral("Audio Volume Up"),          QStringLiteral("Main Window"), {QStringLiteral("+"),       QStringLiteral("Home+Dpad_Up"), Qt::ApplicationShortcut}},
     {QStringLiteral("Capture Screenshot"),       QStringLiteral("Main Window"), {QStringLiteral("Ctrl+P"),  QStringLiteral("Screenshot"), Qt::WidgetWithChildrenShortcut}},
+    {QStringLiteral("Change Adapting Filter"),   QStringLiteral("Main Window"), {QStringLiteral("F8"),      QStringLiteral("Home+L"), Qt::ApplicationShortcut}},
     {QStringLiteral("Change Docked Mode"),       QStringLiteral("Main Window"), {QStringLiteral("F10"),     QStringLiteral("Home+X"), Qt::ApplicationShortcut}},
+    {QStringLiteral("Change GPU Accuracy"),      QStringLiteral("Main Window"), {QStringLiteral("F9"),      QStringLiteral("Home+R"), Qt::ApplicationShortcut}},
     {QStringLiteral("Continue/Pause Emulation"), QStringLiteral("Main Window"), {QStringLiteral("F4"),      QStringLiteral("Home+Plus"), Qt::WindowShortcut}},
     {QStringLiteral("Exit Fullscreen"),          QStringLiteral("Main Window"), {QStringLiteral("Esc"),     QStringLiteral(""), Qt::WindowShortcut}},
     {QStringLiteral("Exit yuzu"),                QStringLiteral("Main Window"), {QStringLiteral("Ctrl+Q"),  QStringLiteral("Home+Minus"), Qt::WindowShortcut}},
@@ -767,6 +769,7 @@ void Config::ReadUIValues() {
     ReadBasicSetting(UISettings::values.callout_flags);
     ReadBasicSetting(UISettings::values.show_console);
     ReadBasicSetting(UISettings::values.pause_when_in_background);
+    ReadBasicSetting(UISettings::values.mute_when_in_background);
     ReadBasicSetting(UISettings::values.hide_mouse);
 
     qt_config->endGroup();
@@ -1295,6 +1298,7 @@ void Config::SaveUIValues() {
     WriteBasicSetting(UISettings::values.callout_flags);
     WriteBasicSetting(UISettings::values.show_console);
     WriteBasicSetting(UISettings::values.pause_when_in_background);
+    WriteBasicSetting(UISettings::values.mute_when_in_background);
     WriteBasicSetting(UISettings::values.hide_mouse);
 
     qt_config->endGroup();
