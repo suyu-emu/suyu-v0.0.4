@@ -479,7 +479,7 @@ void Module::Interface::CreateUserInterface(Kernel::HLERequestContext& ctx) {
 }
 
 bool Module::Interface::LoadAmiibo(const std::vector<u8>& buffer) {
-    if (buffer.size() < sizeof(AmiiboFile)) {
+    if (buffer.size() < sizeof(NTAG215File)) {
         LOG_ERROR(Service_NFP, "Wrong file size");
         return false;
     }
@@ -490,11 +490,14 @@ bool Module::Interface::LoadAmiibo(const std::vector<u8>& buffer) {
     }
 
     LOG_INFO(Service_NFP, "Amiibo detected");
-    std::memcpy(&amiibo, buffer.data(), sizeof(amiibo));
+    std::memcpy(&tag_data, buffer.data(), sizeof(tag_data));
 
     if (!IsAmiiboValid()) {
         return false;
     }
+
+    // This value can't be dumped from a tag. Generate it
+    tag_data.PWD = GetTagPassword(tag_data.uuid);
 
     device_state = DeviceState::TagFound;
     activate_event->GetWritableEvent().Signal();
@@ -511,42 +514,43 @@ void Module::Interface::CloseAmiibo() {
 }
 
 bool Module::Interface::IsAmiiboValid() const {
-    LOG_DEBUG(Service_NFP, "uuid_lock=0x{0:x}", amiibo.uuid_lock);
-    LOG_DEBUG(Service_NFP, "compability_container=0x{0:x}", amiibo.compability_container);
-    LOG_DEBUG(Service_NFP, "crypto_init=0x{0:x}", amiibo.crypto_init);
-    LOG_DEBUG(Service_NFP, "write_count={}", amiibo.write_count);
+    const auto& amiibo_data = tag_data.user_memory;
+    LOG_DEBUG(Service_NFP, "uuid_lock=0x{0:x}", tag_data.lock_bytes);
+    LOG_DEBUG(Service_NFP, "compability_container=0x{0:x}", tag_data.compability_container);
+    LOG_DEBUG(Service_NFP, "crypto_init=0x{0:x}", amiibo_data.crypto_init);
+    LOG_DEBUG(Service_NFP, "write_count={}", amiibo_data.write_count);
 
-    LOG_DEBUG(Service_NFP, "character_id=0x{0:x}", amiibo.model_info.character_id);
-    LOG_DEBUG(Service_NFP, "character_variant={}", amiibo.model_info.character_variant);
-    LOG_DEBUG(Service_NFP, "amiibo_type={}", amiibo.model_info.amiibo_type);
-    LOG_DEBUG(Service_NFP, "model_number=0x{0:x}", amiibo.model_info.model_number);
-    LOG_DEBUG(Service_NFP, "series={}", amiibo.model_info.series);
-    LOG_DEBUG(Service_NFP, "fixed_value=0x{0:x}", amiibo.model_info.fixed);
+    LOG_DEBUG(Service_NFP, "character_id=0x{0:x}", amiibo_data.model_info.character_id);
+    LOG_DEBUG(Service_NFP, "character_variant={}", amiibo_data.model_info.character_variant);
+    LOG_DEBUG(Service_NFP, "amiibo_type={}", amiibo_data.model_info.amiibo_type);
+    LOG_DEBUG(Service_NFP, "model_number=0x{0:x}", amiibo_data.model_info.model_number);
+    LOG_DEBUG(Service_NFP, "series={}", amiibo_data.model_info.series);
+    LOG_DEBUG(Service_NFP, "fixed_value=0x{0:x}", amiibo_data.model_info.fixed);
 
-    LOG_DEBUG(Service_NFP, "tag_dynamic_lock=0x{0:x}", amiibo.tag_dynamic_lock);
-    LOG_DEBUG(Service_NFP, "tag_CFG0=0x{0:x}", amiibo.tag_CFG0);
-    LOG_DEBUG(Service_NFP, "tag_CFG1=0x{0:x}", amiibo.tag_CFG1);
+    LOG_DEBUG(Service_NFP, "tag_dynamic_lock=0x{0:x}", tag_data.dynamic_lock);
+    LOG_DEBUG(Service_NFP, "tag_CFG0=0x{0:x}", tag_data.CFG0);
+    LOG_DEBUG(Service_NFP, "tag_CFG1=0x{0:x}", tag_data.CFG1);
 
     // Check against all know constants on an amiibo binary
-    if (amiibo.uuid_lock != 0xE00F) {
+    if (tag_data.lock_bytes != 0xE00F) {
         return false;
     }
-    if (amiibo.compability_container != 0xEEFF10F1UL) {
+    if (tag_data.compability_container != 0xEEFF10F1U) {
         return false;
     }
-    if ((amiibo.crypto_init & 0xFF) != 0xA5) {
+    if ((amiibo_data.crypto_init & 0xFF) != 0xA5) {
         return false;
     }
-    if (amiibo.model_info.fixed != 0x02) {
+    if (amiibo_data.model_info.fixed != 0x02) {
         return false;
     }
-    if ((amiibo.tag_dynamic_lock & 0xFFFFFF) != 0x0F0001) {
+    if ((tag_data.dynamic_lock & 0xFFFFFF) != 0x0F0001) {
         return false;
     }
-    if (amiibo.tag_CFG0 != 0x04000000UL) {
+    if (tag_data.CFG0 != 0x04000000U) {
         return false;
     }
-    if (amiibo.tag_CFG1 != 0x5F) {
+    if (tag_data.CFG1 != 0x5F) {
         return false;
     }
     return true;
@@ -629,12 +633,11 @@ ResultCode Module::Interface::Unmount() {
 
 ResultCode Module::Interface::GetTagInfo(TagInfo& tag_info) const {
     if (device_state == DeviceState::TagFound || device_state == DeviceState::TagMounted) {
-        // Read this data from the amiibo save file
         tag_info = {
-            .uuid = amiibo.uuid,
-            .uuid_length = static_cast<u8>(amiibo.uuid.size()),
+            .uuid = tag_data.uuid,
+            .uuid_length = static_cast<u8>(tag_data.uuid.size()),
             .protocol = protocol,
-            .tag_type = static_cast<u32>(amiibo.model_info.amiibo_type),
+            .tag_type = static_cast<u32>(tag_data.user_memory.model_info.amiibo_type),
         };
         return ResultSuccess;
     }
@@ -654,7 +657,7 @@ ResultCode Module::Interface::GetCommonInfo(CommonInfo& common_info) const {
         .last_write_year = 2022,
         .last_write_month = 2,
         .last_write_day = 7,
-        .write_counter = amiibo.write_count,
+        .write_counter = tag_data.user_memory.write_count,
         .version = 1,
         .application_area_size = ApplicationAreaSize,
     };
@@ -667,7 +670,7 @@ ResultCode Module::Interface::GetModelInfo(ModelInfo& model_info) const {
         return ErrCodes::WrongDeviceState;
     }
 
-    model_info = amiibo.model_info;
+    model_info = tag_data.user_memory.model_info;
     return ResultSuccess;
 }
 
@@ -757,7 +760,7 @@ bool Module::Interface::AmiiboApplicationDataExist(u32 access_id) const {
     return false;
 }
 
-const std::vector<u8> Module::Interface::LoadAmiiboApplicationData(u32 access_id) const {
+std::vector<u8> Module::Interface::LoadAmiiboApplicationData(u32 access_id) const {
     // TODO(german77): Read file
     std::vector<u8> data(ApplicationAreaSize);
     return data;
@@ -779,6 +782,15 @@ DeviceState Module::Interface::GetCurrentState() const {
 
 Core::HID::NpadIdType Module::Interface::GetNpadId() const {
     return npad_id;
+}
+
+u32 Module::Interface::GetTagPassword(const TagUuid& uuid) const {
+    // Verifiy that the generated password is correct
+    u32 password = 0xAA ^ (uuid[1] ^ uuid[3]);
+    password &= (0x55 ^ (uuid[2] ^ uuid[4])) << 8;
+    password &= (0xAA ^ (uuid[3] ^ uuid[5])) << 16;
+    password &= (0x55 ^ (uuid[4] ^ uuid[6])) << 24;
+    return password;
 }
 
 void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system) {

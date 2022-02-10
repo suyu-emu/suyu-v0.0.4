@@ -7,6 +7,7 @@
 #include <array>
 #include <vector>
 
+#include "common/common_funcs.h"
 #include "core/hle/service/kernel_helpers.h"
 #include "core/hle/service/mii/mii_manager.h"
 #include "core/hle/service/service.h"
@@ -85,8 +86,10 @@ enum class AmiiboSeries : u8 {
     Diablo
 };
 
+using TagUuid = std::array<u8, 10>;
+
 struct TagInfo {
-    std::array<u8, 10> uuid;
+    TagUuid uuid;
     u8 uuid_length;
     INSERT_PADDING_BYTES(0x15);
     s32 protocol;
@@ -138,10 +141,7 @@ public:
                            const char* name);
         ~Interface() override;
 
-        struct AmiiboFile {
-            std::array<u8, 10> uuid;
-            u16 uuid_lock;               // Must be 0F E0
-            u32 compability_container;   // Must be F1 10 FF EE
+        struct EncryptedAmiiboFile {
             u16 crypto_init;             // Must be A5 XX
             u16 write_count;             // Number of times the amiibo has been written?
             INSERT_PADDING_BYTES(0x20);  // System crypts
@@ -150,11 +150,22 @@ public:
             INSERT_PADDING_BYTES(0xC);   // SHA256-HMAC
             INSERT_PADDING_BYTES(0x114); // section 1 encrypted buffer
             INSERT_PADDING_BYTES(0x54);  // section 2 encrypted buffer
-            u32 tag_dynamic_lock;        // Must be 01 00 0F XX
-            u32 tag_CFG0;                // Must be 00 00 00 04
-            u32 tag_CFG1;                // Must be 50 00 00 00
         };
-        static_assert(sizeof(AmiiboFile) == 0x214, "AmiiboFile is an invalid size");
+        static_assert(sizeof(EncryptedAmiiboFile) == 0x1F8, "AmiiboFile is an invalid size");
+
+        struct NTAG215File {
+            TagUuid uuid;                    // Unique serial number
+            u16 lock_bytes;                  // Set defined pages as read only
+            u32 compability_container;       // Defines available memory
+            EncryptedAmiiboFile user_memory; // Writable data
+            u32 dynamic_lock;                // Dynamic lock
+            u32 CFG0;                        // Defines memory protected by password
+            u32 CFG1;                        // Defines number of verification attempts
+            u32 PWD;                         // Password to allow write access
+            u16 PACK;                        // Password acknowledge reply
+            u16 RFUI;                        // Reserved for future use
+        };
+        static_assert(sizeof(NTAG215File) == 0x21C, "NTAG215File is an invalid size");
 
         void CreateUserInterface(Kernel::HLERequestContext& ctx);
         bool LoadAmiibo(const std::vector<u8>& buffer);
@@ -191,9 +202,13 @@ public:
     private:
         /// Validates that the amiibo file is not corrupted
         bool IsAmiiboValid() const;
+
         bool AmiiboApplicationDataExist(u32 access_id) const;
-        const std::vector<u8> LoadAmiiboApplicationData(u32 access_id) const;
+        std::vector<u8> LoadAmiiboApplicationData(u32 access_id) const;
         void SaveAmiiboApplicationData(u32 access_id, const std::vector<u8>& data) const;
+
+        /// return password needed to allow write access to protected memory
+        u32 GetTagPassword(const TagUuid& uuid) const;
 
         const Core::HID::NpadIdType npad_id;
 
@@ -201,7 +216,7 @@ public:
         KernelHelpers::ServiceContext service_context;
         Kernel::KEvent* activate_event;
         Kernel::KEvent* deactivate_event;
-        AmiiboFile amiibo{};
+        NTAG215File tag_data{};
         s32 protocol;
         bool is_application_area_initialized{};
         u32 application_area_id;
