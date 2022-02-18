@@ -39,6 +39,11 @@ constexpr std::array DEPTH16_UNORM_STENCIL8_UINT{
     VK_FORMAT_D32_SFLOAT_S8_UINT,
     VK_FORMAT_UNDEFINED,
 };
+
+constexpr std::array B5G6R5_UNORM_PACK16{
+    VK_FORMAT_R5G6B5_UNORM_PACK16,
+    VK_FORMAT_UNDEFINED,
+};
 } // namespace Alternatives
 
 enum class NvidiaArchitecture {
@@ -87,6 +92,8 @@ constexpr const VkFormat* GetFormatAlternatives(VkFormat format) {
         return Alternatives::DEPTH24_UNORM_STENCIL8_UINT.data();
     case VK_FORMAT_D16_UNORM_S8_UINT:
         return Alternatives::DEPTH16_UNORM_STENCIL8_UINT.data();
+    case VK_FORMAT_B5G6R5_UNORM_PACK16:
+        return Alternatives::B5G6R5_UNORM_PACK16.data();
     default:
         return nullptr;
     }
@@ -639,6 +646,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
 
     const bool is_intel_windows = driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS;
+    const bool is_intel_anv = driver_id == VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA;
     if (ext_vertex_input_dynamic_state && is_intel_windows) {
         LOG_WARNING(Render_Vulkan, "Blacklisting Intel for VK_EXT_vertex_input_dynamic_state");
         ext_vertex_input_dynamic_state = false;
@@ -651,6 +659,10 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     if (is_intel_windows) {
         LOG_WARNING(Render_Vulkan, "Intel proprietary drivers do not support MSAA image blits");
         cant_blit_msaa = true;
+    }
+    if (is_intel_anv) {
+        LOG_WARNING(Render_Vulkan, "ANV driver does not support native BGR format");
+        must_emulate_bgr565 = true;
     }
 
     supports_d24_depth =
