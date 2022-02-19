@@ -681,9 +681,8 @@ ResultCode KPageTable::UnmapPages(VAddr addr, const KPageLinkedList& page_linked
     VAddr cur_addr{addr};
 
     for (const auto& node : page_linked_list.Nodes()) {
-        const std::size_t num_pages{(addr - cur_addr) / PageSize};
-        if (const auto result{
-                Operate(addr, num_pages, KMemoryPermission::None, OperationType::Unmap)};
+        if (const auto result{Operate(cur_addr, node.GetNumPages(), KMemoryPermission::None,
+                                      OperationType::Unmap)};
             result.IsError()) {
             return result;
         }
