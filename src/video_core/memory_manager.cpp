@@ -134,11 +134,15 @@ GPUVAddr MemoryManager::BigPageTableOp(GPUVAddr gpu_addr, [[maybe_unused]] VAddr
             big_page_table_cpu[index] = sub_value;
             const bool is_continous = ([&] {
                 uintptr_t base_ptr{
-                    reinterpret_cast<uintptr_t>(memory.GetPointer(current_cpu_addr))};
+                    reinterpret_cast<uintptr_t>(memory.GetPointerSilent(current_cpu_addr))};
+                if (base_ptr == 0) {
+                    return false;
+                }
                 for (VAddr start_cpu = current_cpu_addr + page_size;
                      start_cpu < current_cpu_addr + big_page_size; start_cpu += page_size) {
                     base_ptr += page_size;
-                    if (base_ptr != reinterpret_cast<uintptr_t>(memory.GetPointer(start_cpu))) {
+                    auto next_ptr = reinterpret_cast<uintptr_t>(memory.GetPointerSilent(start_cpu));
+                    if (next_ptr == 0 || base_ptr != next_ptr) {
                         return false;
                     }
                 }
@@ -359,7 +363,7 @@ void MemoryManager::ReadBlockImpl(GPUVAddr gpu_src_addr, void* dest_buffer,
         if constexpr (is_safe) {
             rasterizer->FlushRegion(cpu_addr_base, copy_amount);
         }
-        if (!IsBigPageContinous(page_index)) {
+        if (!IsBigPageContinous(page_index)) [[unlikely]] {
             memory.ReadBlockUnsafe(cpu_addr_base, dest_buffer, copy_amount);
         } else {
             u8* physical = memory.GetPointer(cpu_addr_base);
@@ -407,7 +411,7 @@ void MemoryManager::WriteBlockImpl(GPUVAddr gpu_dest_addr, const void* src_buffe
         if constexpr (is_safe) {
             rasterizer->InvalidateRegion(cpu_addr_base, copy_amount);
         }
-        if (!IsBigPageContinous(page_index)) {
+        if (!IsBigPageContinous(page_index)) [[unlikely]] {
             memory.WriteBlockUnsafe(cpu_addr_base, src_buffer, copy_amount);
         } else {
             u8* physical = memory.GetPointer(cpu_addr_base);
