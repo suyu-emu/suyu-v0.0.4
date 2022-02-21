@@ -354,6 +354,10 @@ public:
         return cant_blit_msaa;
     }
 
+    bool MustEmulateBGR565() const {
+        return must_emulate_bgr565;
+    }
+
 private:
     /// Checks if the physical device is suitable.
     void CheckSuitability(bool requires_swapchain) const;
@@ -448,6 +452,7 @@ private:
     bool has_nsight_graphics{};             ///< Has Nsight Graphics attached
     bool supports_d24_depth{};              ///< Supports D24 depth buffers.
     bool cant_blit_msaa{};                  ///< Does not support MSAA<->MSAA blitting.
+    bool must_emulate_bgr565{};             ///< Emulates BGR565 by swizzling RGB565 format.
 
     // Telemetry parameters
     std::string vendor_name;                       ///< Device's driver name.
