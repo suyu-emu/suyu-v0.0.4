@@ -43,7 +43,7 @@ Kernel::KEvent* ServiceContext::CreateEvent(std::string&& name) {
     }
 
     // Initialize the event.
-    event->Initialize(std::move(name));
+    event->Initialize(std::move(name), process);
 
     // Commit the thread reservation.
     event_reservation.Commit();
