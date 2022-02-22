@@ -165,6 +165,7 @@ add_library(core STATIC
     hle/kernel/hle_ipc.h
     hle/kernel/init/init_slab_setup.cpp
     hle/kernel/init/init_slab_setup.h
+    hle/kernel/initial_process.h
     hle/kernel/k_address_arbiter.cpp
     hle/kernel/k_address_arbiter.h
     hle/kernel/k_address_space_info.cpp
