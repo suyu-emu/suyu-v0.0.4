@@ -152,6 +152,7 @@ add_library(core STATIC
     hle/api_version.h
     hle/ipc.h
     hle/ipc_helpers.h
+    hle/kernel/board/nintendo/nx/k_memory_layout.h
     hle/kernel/board/nintendo/nx/k_system_control.cpp
     hle/kernel/board/nintendo/nx/k_system_control.h
     hle/kernel/board/nintendo/nx/secure_monitor.h
