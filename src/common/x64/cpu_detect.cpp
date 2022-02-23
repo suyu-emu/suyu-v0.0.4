@@ -1,7 +1,9 @@
 // Copyright 2013 Dolphin Emulator Project / 2015 Citra Emulator Project / 2022 Yuzu Emulator
 // Project Licensed under GPLv2 or any later version Refer to the license.txt file included.
 
+#include <array>
 #include <cstring>
+#include <span>
 #include "common/bit_util.h"
 #include "common/common_types.h"
 #include "common/x64/cpu_detect.h"
@@ -17,7 +19,7 @@
 // clang-format on
 #endif
 
-static inline void __cpuidex(int info[4], int function_id, int subfunction_id) {
+static inline void __cpuidex(const std::span<u32, 4> info, u32 function_id, u32 subfunction_id) {
 #if defined(__DragonFly__) || defined(__FreeBSD__)
     // Despite the name, this is just do_cpuid() with ECX as second input.
     cpuid_count((u_int)function_id, (u_int)subfunction_id, (u_int*)info);
@@ -30,7 +32,7 @@ static inline void __cpuidex(int info[4], int function_id, int subfunction_id) {
 #endif
 }
 
-static inline void __cpuid(int info[4], int function_id) {
+static inline void __cpuid(const std::span<u32, 4> info, u32 function_id) {
     return __cpuidex(info, function_id, 0);
 }
 
@@ -52,16 +54,16 @@ static CPUCaps Detect() {
     // Assumes the CPU supports the CPUID instruction. Those that don't would likely not support
     // yuzu at all anyway
 
-    int cpu_id[4];
-    memset(caps.brand_string, 0, sizeof(caps.brand_string));
+    std::array<u32, 4> cpu_id;
+    std::memset(caps.brand_string, 0, sizeof(caps.brand_string));
 
     // Detect CPU's CPUID capabilities and grab CPU string
     __cpuid(cpu_id, 0x00000000);
     u32 max_std_fn = cpu_id[0]; // EAX
 
-    std::memcpy(&caps.brand_string[0], &cpu_id[1], sizeof(int));
-    std::memcpy(&caps.brand_string[4], &cpu_id[3], sizeof(int));
-    std::memcpy(&caps.brand_string[8], &cpu_id[2], sizeof(int));
+    std::memcpy(&caps.brand_string[0], &cpu_id[1], sizeof(u32));
+    std::memcpy(&caps.brand_string[4], &cpu_id[3], sizeof(u32));
+    std::memcpy(&caps.brand_string[8], &cpu_id[2], sizeof(u32));
     if (cpu_id[1] == 0x756e6547 && cpu_id[2] == 0x6c65746e && cpu_id[3] == 0x49656e69)
         caps.manufacturer = Manufacturer::Intel;
     else if (cpu_id[1] == 0x68747541 && cpu_id[2] == 0x444d4163 && cpu_id[3] == 0x69746e65)
@@ -76,7 +78,7 @@ static CPUCaps Detect() {
     u32 max_ex_fn = cpu_id[0];
 
     // Set reasonable default brand string even if brand string not available
-    strcpy(caps.cpu_string, caps.brand_string);
+    std::strcpy(caps.cpu_string, caps.brand_string);
 
     // Detect family and other miscellaneous features
     if (max_std_fn >= 1) {
@@ -119,11 +121,11 @@ static CPUCaps Detect() {
     if (max_ex_fn >= 0x80000004) {
         // Extract CPU model string
         __cpuid(cpu_id, 0x80000002);
-        std::memcpy(caps.cpu_string, cpu_id, sizeof(cpu_id));
+        std::memcpy(caps.cpu_string, cpu_id.data(), sizeof(cpu_id));
         __cpuid(cpu_id, 0x80000003);
-        std::memcpy(caps.cpu_string + 16, cpu_id, sizeof(cpu_id));
+        std::memcpy(caps.cpu_string + 16, cpu_id.data(), sizeof(cpu_id));
         __cpuid(cpu_id, 0x80000004);
-        std::memcpy(caps.cpu_string + 32, cpu_id, sizeof(cpu_id));
+        std::memcpy(caps.cpu_string + 32, cpu_id.data(), sizeof(cpu_id));
     }
 
     if (max_ex_fn >= 0x80000001) {
