@@ -1,8 +1,8 @@
-// Copyright 2013 Dolphin Emulator Project / 2015 Citra Emulator Project
-// Licensed under GPLv2 or any later version
-// Refer to the license.txt file included.
+// Copyright 2013 Dolphin Emulator Project / 2015 Citra Emulator Project / 2022 Yuzu Emulator
+// Project Licensed under GPLv2 or any later version Refer to the license.txt file included.
 
 #include <cstring>
+#include "common/bit_util.h"
 #include "common/common_types.h"
 #include "common/x64/cpu_detect.h"
 
@@ -81,29 +81,22 @@ static CPUCaps Detect() {
     // Detect family and other miscellaneous features
     if (max_std_fn >= 1) {
         __cpuid(cpu_id, 0x00000001);
-        if ((cpu_id[3] >> 25) & 1)
-            caps.sse = true;
-        if ((cpu_id[3] >> 26) & 1)
-            caps.sse2 = true;
-        if ((cpu_id[2]) & 1)
-            caps.sse3 = true;
-        if ((cpu_id[2] >> 9) & 1)
-            caps.ssse3 = true;
-        if ((cpu_id[2] >> 19) & 1)
-            caps.sse4_1 = true;
-        if ((cpu_id[2] >> 20) & 1)
-            caps.sse4_2 = true;
-        if ((cpu_id[2] >> 25) & 1)
-            caps.aes = true;
+        caps.sse = Common::Bit<25>(cpu_id[3]);
+        caps.sse2 = Common::Bit<26>(cpu_id[3]);
+        caps.sse3 = Common::Bit<0>(cpu_id[2]);
+        caps.ssse3 = Common::Bit<9>(cpu_id[2]);
+        caps.sse4_1 = Common::Bit<19>(cpu_id[2]);
+        caps.sse4_2 = Common::Bit<20>(cpu_id[2]);
+        caps.aes = Common::Bit<25>(cpu_id[2]);
 
         // AVX support requires 3 separate checks:
         //  - Is the AVX bit set in CPUID?
         //  - Is the XSAVE bit set in CPUID?
         //  - XGETBV result has the XCR bit set.
-        if (((cpu_id[2] >> 28) & 1) && ((cpu_id[2] >> 27) & 1)) {
+        if (Common::Bit<28>(cpu_id[2]) && Common::Bit<27>(cpu_id[2])) {
             if ((_xgetbv(_XCR_XFEATURE_ENABLED_MASK) & 0x6) == 0x6) {
                 caps.avx = true;
-                if ((cpu_id[2] >> 12) & 1)
+                if (Common::Bit<12>(cpu_id[2]))
                     caps.fma = true;
             }
         }
@@ -111,15 +104,13 @@ static CPUCaps Detect() {
         if (max_std_fn >= 7) {
             __cpuidex(cpu_id, 0x00000007, 0x00000000);
             // Can't enable AVX2 unless the XSAVE/XGETBV checks above passed
-            if ((cpu_id[1] >> 5) & 1)
-                caps.avx2 = caps.avx;
-            if ((cpu_id[1] >> 3) & 1)
-                caps.bmi1 = true;
-            if ((cpu_id[1] >> 8) & 1)
-                caps.bmi2 = true;
+            caps.avx2 = caps.avx && Common::Bit<5>(cpu_id[1]);
+            caps.bmi1 = Common::Bit<3>(cpu_id[1]);
+            caps.bmi2 = Common::Bit<8>(cpu_id[1]);
             // Checks for AVX512F, AVX512CD, AVX512VL, AVX512DQ, AVX512BW (Intel Skylake-X/SP)
-            if ((cpu_id[1] >> 16) & 1 && (cpu_id[1] >> 28) & 1 && (cpu_id[1] >> 31) & 1 &&
-                (cpu_id[1] >> 17) & 1 && (cpu_id[1] >> 30) & 1) {
+            if (Common::Bit<16>(cpu_id[1]) && Common::Bit<28>(cpu_id[1]) &&
+                Common::Bit<31>(cpu_id[1]) && Common::Bit<17>(cpu_id[1]) &&
+                Common::Bit<30>(cpu_id[1])) {
                 caps.avx512 = caps.avx2;
             }
         }
@@ -138,15 +129,12 @@ static CPUCaps Detect() {
     if (max_ex_fn >= 0x80000001) {
         // Check for more features
         __cpuid(cpu_id, 0x80000001);
-        if ((cpu_id[2] >> 16) & 1)
-            caps.fma4 = true;
+        caps.fma4 = Common::Bit<16>(cpu_id[2]);
     }
 
     if (max_ex_fn >= 0x80000007) {
         __cpuid(cpu_id, 0x80000007);
-        if (cpu_id[3] & (1 << 8)) {
-            caps.invariant_tsc = true;
-        }
+        caps.invariant_tsc = Common::Bit<8>(cpu_id[3]);
     }
 
     if (max_std_fn >= 0x16) {
