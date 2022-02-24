@@ -3,25 +3,32 @@
 
 #pragma once
 
+#include <string_view>
 #include "common/common_types.h"
 
 namespace Common {
 
-enum class Manufacturer : u8 {
-    Intel = 0,
-    AMD = 1,
-    Hygon = 2,
-    Unknown = 3,
-};
-
 /// x86/x64 CPU capabilities that may be detected by this module
 struct CPUCaps {
+
+    enum class Manufacturer : u8 {
+        Unknown = 0,
+        Intel = 1,
+        AMD = 2,
+        Hygon = 3,
+    };
+
+    static Manufacturer ParseManufacturer(std::string_view brand_string);
+
     Manufacturer manufacturer;
-    char cpu_string[0x21];
-    char brand_string[0x41];
+    char brand_string[13];
+
+    char cpu_string[48];
+
     u32 base_frequency;
     u32 max_frequency;
     u32 bus_frequency;
+
     bool sse : 1;
     bool sse2 : 1;
     bool sse3 : 1;

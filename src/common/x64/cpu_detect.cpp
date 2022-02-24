@@ -3,7 +3,9 @@
 
 #include <array>
 #include <cstring>
+#include <iterator>
 #include <span>
+#include <string_view>
 #include "common/bit_util.h"
 #include "common/common_types.h"
 #include "common/x64/cpu_detect.h"
@@ -47,6 +49,17 @@ static inline u64 _xgetbv(u32 index) {
 
 namespace Common {
 
+CPUCaps::Manufacturer CPUCaps::ParseManufacturer(std::string_view brand_string) {
+    if (brand_string == "GenuineIntel") {
+        return Manufacturer::Intel;
+    } else if (brand_string == "AuthenticAMD") {
+        return Manufacturer::AMD;
+    } else if (brand_string == "HygonGenuine") {
+        return Manufacturer::Hygon;
+    }
+    return Manufacturer::Unknown;
+}
+
 // Detects the various CPU features
 static CPUCaps Detect() {
     CPUCaps caps = {};
@@ -55,30 +68,24 @@ static CPUCaps Detect() {
     // yuzu at all anyway
 
     std::array<u32, 4> cpu_id;
-    std::memset(caps.brand_string, 0, sizeof(caps.brand_string));
 
-    // Detect CPU's CPUID capabilities and grab CPU string
+    // Detect CPU's CPUID capabilities and grab manufacturer string
     __cpuid(cpu_id, 0x00000000);
-    u32 max_std_fn = cpu_id[0]; // EAX
+    const u32 max_std_fn = cpu_id[0]; // EAX
 
+    std::memset(caps.brand_string, 0, std::size(caps.brand_string));
     std::memcpy(&caps.brand_string[0], &cpu_id[1], sizeof(u32));
     std::memcpy(&caps.brand_string[4], &cpu_id[3], sizeof(u32));
     std::memcpy(&caps.brand_string[8], &cpu_id[2], sizeof(u32));
-    if (cpu_id[1] == 0x756e6547 && cpu_id[2] == 0x6c65746e && cpu_id[3] == 0x49656e69)
-        caps.manufacturer = Manufacturer::Intel;
-    else if (cpu_id[1] == 0x68747541 && cpu_id[2] == 0x444d4163 && cpu_id[3] == 0x69746e65)
-        caps.manufacturer = Manufacturer::AMD;
-    else if (cpu_id[1] == 0x6f677948 && cpu_id[2] == 0x656e6975 && cpu_id[3] == 0x6e65476e)
-        caps.manufacturer = Manufacturer::Hygon;
-    else
-        caps.manufacturer = Manufacturer::Unknown;
+
+    caps.manufacturer = CPUCaps::ParseManufacturer(caps.brand_string);
+
+    // Set reasonable default cpu string even if brand string not available
+    std::strncpy(caps.cpu_string, caps.brand_string, std::size(caps.brand_string));
 
     __cpuid(cpu_id, 0x80000000);
 
-    u32 max_ex_fn = cpu_id[0];
-
-    // Set reasonable default brand string even if brand string not available
-    std::strcpy(caps.cpu_string, caps.brand_string);
+    const u32 max_ex_fn = cpu_id[0];
 
     // Detect family and other miscellaneous features
     if (max_std_fn >= 1) {
