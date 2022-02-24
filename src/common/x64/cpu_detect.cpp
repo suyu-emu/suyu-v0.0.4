@@ -138,6 +138,7 @@ static CPUCaps Detect() {
     if (max_ex_fn >= 0x80000001) {
         // Check for more features
         __cpuid(cpu_id, 0x80000001);
+        caps.lzcnt = Common::Bit<5>(cpu_id[2]);
         caps.fma4 = Common::Bit<16>(cpu_id[2]);
     }
 
