@@ -102,8 +102,8 @@ private:
                        OperationType operation);
     ResultCode Operate(VAddr addr, std::size_t num_pages, KMemoryPermission perm,
                        OperationType operation, PAddr map_addr = 0);
-    constexpr VAddr GetRegionAddress(KMemoryState state) const;
-    constexpr std::size_t GetRegionSize(KMemoryState state) const;
+    VAddr GetRegionAddress(KMemoryState state) const;
+    std::size_t GetRegionSize(KMemoryState state) const;
 
     ResultCode CheckMemoryStateContiguous(std::size_t* out_blocks_needed, VAddr addr,
                                           std::size_t size, KMemoryState state_mask,

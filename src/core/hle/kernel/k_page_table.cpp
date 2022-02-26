@@ -1547,7 +1547,7 @@ ResultCode KPageTable::Operate(VAddr addr, std::size_t num_pages, KMemoryPermiss
     return ResultSuccess;
 }
 
-constexpr VAddr KPageTable::GetRegionAddress(KMemoryState state) const {
+VAddr KPageTable::GetRegionAddress(KMemoryState state) const {
     switch (state) {
     case KMemoryState::Free:
     case KMemoryState::Kernel:
@@ -1583,7 +1583,7 @@ constexpr VAddr KPageTable::GetRegionAddress(KMemoryState state) const {
     }
 }
 
-constexpr std::size_t KPageTable::GetRegionSize(KMemoryState state) const {
+std::size_t KPageTable::GetRegionSize(KMemoryState state) const {
     switch (state) {
     case KMemoryState::Free:
     case KMemoryState::Kernel:
