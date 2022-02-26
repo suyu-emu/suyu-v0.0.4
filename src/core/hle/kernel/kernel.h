@@ -41,6 +41,7 @@ class KClientSession;
 class KEvent;
 class KHandleTable;
 class KLinkedListNode;
+class KMemoryLayout;
 class KMemoryManager;
 class KPort;
 class KProcess;
@@ -349,6 +350,9 @@ public:
 
     /// Gets the current worker task manager, used for dispatching KThread/KProcess tasks.
     const KWorkerTaskManager& WorkerTaskManager() const;
+
+    /// Gets the memory layout.
+    const KMemoryLayout& MemoryLayout() const;
 
 private:
     friend class KProcess;

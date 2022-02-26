@@ -310,6 +310,8 @@ private:
     bool is_kernel{};
     bool is_aslr_enabled{};
 
+    u32 heap_fill_value{};
+
     KMemoryManager::Pool memory_pool{KMemoryManager::Pool::Application};
     KMemoryManager::Direction allocation_option{KMemoryManager::Direction::FromFront};
 
