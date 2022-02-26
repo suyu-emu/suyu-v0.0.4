@@ -254,8 +254,7 @@ public:
         return !IsOutsideASLRRegion(address, size);
     }
 
-    PAddr GetPhysicalAddr(VAddr addr) {
-        ASSERT(IsLockedByCurrentThread());
+    PAddr GetPhysicalAddr(VAddr addr) const {
         const auto backing_addr = page_table_impl.backing_addr[addr >> PageBits];
         ASSERT(backing_addr);
         return backing_addr + addr;
