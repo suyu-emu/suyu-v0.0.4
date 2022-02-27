@@ -616,8 +616,6 @@ struct KernelCore::Impl {
 
     void InitializeMemoryLayout() {
         const auto system_pool = memory_layout.GetKernelSystemPoolRegionPhysicalExtents();
-        const auto applet_pool = memory_layout.GetKernelAppletPoolRegionPhysicalExtents();
-        const auto application_pool = memory_layout.GetKernelApplicationPoolRegionPhysicalExtents();
 
         // Initialize the memory manager.
         memory_manager = std::make_unique<KMemoryManager>(system);
