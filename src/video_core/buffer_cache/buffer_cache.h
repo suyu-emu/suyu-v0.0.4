@@ -1574,7 +1574,11 @@ void BufferCache<P>::MarkWrittenBuffer(BufferId buffer_id, VAddr cpu_addr, u32 s
     if (!is_async) {
         return;
     }
-    uncommitted_ranges.add(base_interval);
+    const bool is_high_accuracy =
+        Settings::values.gpu_accuracy.GetValue() == Settings::GPUAccuracy::High;
+    if (is_high_accuracy) {
+        uncommitted_ranges.add(base_interval);
+    }
 }
 
 template <class P>

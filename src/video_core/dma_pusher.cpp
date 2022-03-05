@@ -94,10 +94,10 @@ void DmaPusher::ProcessCommands(std::span<const CommandHeader> commands) {
 
         if (dma_state.method_count) {
             // Data word of methods command
+            dma_state.dma_word_offset = static_cast<u32>(index * sizeof(u32));
             if (dma_state.non_incrementing) {
                 const u32 max_write = static_cast<u32>(
                     std::min<std::size_t>(index + dma_state.method_count, commands.size()) - index);
-                dma_state.dma_word_offset = static_cast<u32>(index * sizeof(u32));
                 CallMultiMethod(&command_header.argument, max_write);
                 dma_state.method_count -= max_write;
                 dma_state.is_last_call = true;
@@ -133,6 +133,8 @@ void DmaPusher::ProcessCommands(std::span<const CommandHeader> commands) {
             case SubmissionMode::Inline:
                 dma_state.method = command_header.method;
                 dma_state.subchannel = command_header.subchannel;
+                dma_state.dma_word_offset = static_cast<u64>(
+                    -static_cast<s64>(dma_state.dma_get)); // negate to set address as 0
                 CallMethod(command_header.arg_count);
                 dma_state.non_incrementing = true;
                 dma_increment_once = false;
@@ -165,8 +167,9 @@ void DmaPusher::CallMethod(u32 argument) const {
             dma_state.method_count,
         });
     } else {
-        subchannels[dma_state.subchannel]->CallMethod(dma_state.method, argument,
-                                                      dma_state.is_last_call);
+        auto subchannel = subchannels[dma_state.subchannel];
+        subchannel->current_dma_segment = dma_state.dma_get + dma_state.dma_word_offset;
+        subchannel->CallMethod(dma_state.method, argument, dma_state.is_last_call);
     }
 }
 

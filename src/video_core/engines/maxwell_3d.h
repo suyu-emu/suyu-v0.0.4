@@ -3068,10 +3068,14 @@ public:
     friend class DrawManager;
     
     std::vector<u8> inline_index_draw_indexes;
-    std::vector<GPUVAddr> macro_addresses;
 
-    Core::System& system;
-    MemoryManager& memory_manager;
+    GPUVAddr getMacroAddress(size_t index) const {
+        return macro_addresses[index];
+    }
+
+    void RefreshParameters();
+
+    u32 GetMaxCurrentVertices();
 
     /// Handles a write to the CLEAR_BUFFERS register.
     void ProcessClearBuffers(u32 layer_count);
@@ -3135,6 +3139,9 @@ private:
     /// Returns a query's value or an empty object if the value will be deferred through a cache.
     std::optional<u64> GetQueryResult();
 
+    Core::System& system;
+    MemoryManager& memory_manager;
+
     VideoCore::RasterizerInterface* rasterizer = nullptr;
 
     /// Start offsets of each macro in macro_memory
@@ -3151,6 +3158,14 @@ private:
     Upload::State upload_state;
 
     bool execute_on{true};
+
+    std::array<bool, Regs::NUM_REGS> draw_command{};
+    std::vector<u32> deferred_draw_method;
+    enum class DrawMode : u32 { General = 0, Instance, InlineIndex };
+    DrawMode draw_mode{DrawMode::General};
+    bool draw_indexed{};
+    std::vector<std::pair<GPUVAddr, size_t>> macro_segments;
+    std::vector<GPUVAddr> macro_addresses;
 };
 
 #define ASSERT_REG_POSITION(field_name, position)                                                  \

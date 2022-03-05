@@ -133,13 +133,50 @@ void Maxwell3D::ProcessMacro(u32 method, const u32* base_start, u32 amount, bool
     for (size_t i = 0; i < amount; i++) {
         macro_addresses.push_back(current_dma_segment + i * sizeof(u32));
     }
+    macro_segments.emplace_back(current_dma_segment, amount);
 
     // Call the macro when there are no more parameters in the command buffer
     if (is_last_call) {
         CallMacroMethod(executing_macro, macro_params);
         macro_params.clear();
         macro_addresses.clear();
+        macro_segments.clear();
     }
+}
+
+void Maxwell3D::RefreshParameters() {
+    size_t current_index = 0;
+    for (auto& segment : macro_segments) {
+        if (segment.first == 0) {
+            current_index += segment.second;
+            continue;
+        }
+        memory_manager.ReadBlock(segment.first, &macro_params[current_index],
+                                 sizeof(u32) * segment.second);
+        current_index += segment.second;
+    }
+}
+
+u32 Maxwell3D::GetMaxCurrentVertices() {
+    u32 num_vertices = 0;
+    for (size_t index = 0; index < Regs::NumVertexArrays; ++index) {
+        const auto& array = regs.vertex_streams[index];
+        if (array.enable == 0) {
+            continue;
+        }
+        const auto& attribute = regs.vertex_attrib_format[index];
+        if (attribute.constant) {
+            num_vertices = std::max(num_vertices, 1U);
+            continue;
+        }
+        const auto& limit = regs.vertex_stream_limits[index];
+        const GPUVAddr gpu_addr_begin = array.Address();
+        const GPUVAddr gpu_addr_end = limit.Address() + 1;
+        const u32 address_size = static_cast<u32>(gpu_addr_end - gpu_addr_begin);
+        num_vertices = std::max(
+            num_vertices, address_size / std::max(attribute.SizeInBytes(), array.stride.Value()));
+    }
+    return num_vertices;
 }
 
 u32 Maxwell3D::ProcessShadowRam(u32 method, u32 argument) {

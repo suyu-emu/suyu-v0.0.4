@@ -56,6 +56,8 @@ public:
     void DrawIndex(PrimitiveTopology topology, u32 index_first, u32 index_count, u32 base_index,
                    u32 base_instance, u32 num_instances);
 
+    void DrawArrayIndirect(PrimitiveTopology topology);
+
     void DrawIndexedIndirect(PrimitiveTopology topology, u32 index_first, u32 index_count);
 
     const State& GetDrawState() const {
