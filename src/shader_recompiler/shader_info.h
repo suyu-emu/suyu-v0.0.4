@@ -61,8 +61,10 @@ struct TextureBufferDescriptor {
     bool has_secondary;
     u32 cbuf_index;
     u32 cbuf_offset;
+    u32 shift_left;
     u32 secondary_cbuf_index;
     u32 secondary_cbuf_offset;
+    u32 secondary_shift_left;
     u32 count;
     u32 size_shift;
 };
@@ -85,8 +87,10 @@ struct TextureDescriptor {
     bool has_secondary;
     u32 cbuf_index;
     u32 cbuf_offset;
+    u32 shift_left;
     u32 secondary_cbuf_index;
     u32 secondary_cbuf_offset;
+    u32 secondary_shift_left;
     u32 count;
     u32 size_shift;
 };
