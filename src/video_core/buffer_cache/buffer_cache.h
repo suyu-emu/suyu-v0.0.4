@@ -350,7 +350,7 @@ private:
 
     void NotifyBufferDeletion();
 
-    [[nodiscard]] Binding StorageBufferBinding(GPUVAddr ssbo_addr) const;
+    [[nodiscard]] Binding StorageBufferBinding(GPUVAddr ssbo_addr, bool is_written = false) const;
 
     [[nodiscard]] TextureBufferBinding GetTextureBufferBinding(GPUVAddr gpu_addr, u32 size,
                                                                PixelFormat format);
@@ -725,7 +725,7 @@ void BufferCache<P>::BindGraphicsStorageBuffer(size_t stage, size_t ssbo_index, 
 
     const auto& cbufs = maxwell3d->state.shader_stages[stage];
     const GPUVAddr ssbo_addr = cbufs.const_buffers[cbuf_index].address + cbuf_offset;
-    storage_buffers[stage][ssbo_index] = StorageBufferBinding(ssbo_addr);
+    storage_buffers[stage][ssbo_index] = StorageBufferBinding(ssbo_addr, is_written);
 }
 
 template <class P>
@@ -765,7 +765,7 @@ void BufferCache<P>::BindComputeStorageBuffer(size_t ssbo_index, u32 cbuf_index,
 
     const auto& cbufs = launch_desc.const_buffer_config;
     const GPUVAddr ssbo_addr = cbufs[cbuf_index].Address() + cbuf_offset;
-    compute_storage_buffers[ssbo_index] = StorageBufferBinding(ssbo_addr);
+    compute_storage_buffers[ssbo_index] = StorageBufferBinding(ssbo_addr, is_written);
 }
 
 template <class P>
@@ -1242,16 +1242,19 @@ void BufferCache<P>::BindHostComputeTextureBuffers() {
 
 template <class P>
 void BufferCache<P>::DoUpdateGraphicsBuffers(bool is_indexed) {
-    if (is_indexed) {
-        UpdateIndexBuffer();
-    }
-    UpdateVertexBuffers();
-    UpdateTransformFeedbackBuffers();
-    for (size_t stage = 0; stage < NUM_STAGES; ++stage) {
-        UpdateUniformBuffers(stage);
-        UpdateStorageBuffers(stage);
-        UpdateTextureBuffers(stage);
-    }
+    do {
+        has_deleted_buffers = false;
+        if (is_indexed) {
+            UpdateIndexBuffer();
+        }
+        UpdateVertexBuffers();
+        UpdateTransformFeedbackBuffers();
+        for (size_t stage = 0; stage < NUM_STAGES; ++stage) {
+            UpdateUniformBuffers(stage);
+            UpdateStorageBuffers(stage);
+            UpdateTextureBuffers(stage);
+        }
+    } while (has_deleted_buffers);
 }
 
 template <class P>
@@ -1557,6 +1560,8 @@ BufferId BufferCache<P>::CreateBuffer(VAddr cpu_addr, u32 wanted_size) {
     const OverlapResult overlap = ResolveOverlaps(cpu_addr, wanted_size);
     const u32 size = static_cast<u32>(overlap.end - overlap.begin);
     const BufferId new_buffer_id = slot_buffers.insert(runtime, rasterizer, overlap.begin, size);
+    auto& new_buffer = slot_buffers[new_buffer_id];
+    runtime.ClearBuffer(new_buffer, 0, new_buffer.SizeBytes(), 0);
     for (const BufferId overlap_id : overlap.ids) {
         JoinOverlap(new_buffer_id, overlap_id, !overlap.has_stream_leap);
     }
@@ -1831,16 +1836,18 @@ void BufferCache<P>::NotifyBufferDeletion() {
 }
 
 template <class P>
-typename BufferCache<P>::Binding BufferCache<P>::StorageBufferBinding(GPUVAddr ssbo_addr) const {
+typename BufferCache<P>::Binding BufferCache<P>::StorageBufferBinding(GPUVAddr ssbo_addr,
+                                                                      bool is_written) const {
     const GPUVAddr gpu_addr = gpu_memory->Read<u64>(ssbo_addr);
     const u32 size = gpu_memory->Read<u32>(ssbo_addr + 8);
     const std::optional<VAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
     if (!cpu_addr || size == 0) {
         return NULL_BINDING;
     }
+    const VAddr cpu_end = Common::AlignUp(*cpu_addr + size, Core::Memory::YUZU_PAGESIZE);
     const Binding binding{
         .cpu_addr = *cpu_addr,
-        .size = size,
+        .size = is_written ? size : static_cast<u32>(cpu_end - *cpu_addr),
         .buffer_id = BufferId{},
     };
     return binding;
