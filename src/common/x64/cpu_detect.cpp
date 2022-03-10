@@ -21,7 +21,7 @@
 // clang-format on
 #endif
 
-static inline void __cpuidex(const std::span<u32, 4> info, u32 function_id, u32 subfunction_id) {
+static inline void __cpuidex(int info[4], u32 function_id, u32 subfunction_id) {
 #if defined(__DragonFly__) || defined(__FreeBSD__)
     // Despite the name, this is just do_cpuid() with ECX as second input.
     cpuid_count((u_int)function_id, (u_int)subfunction_id, (u_int*)info);
@@ -34,7 +34,7 @@ static inline void __cpuidex(const std::span<u32, 4> info, u32 function_id, u32 
 #endif
 }
 
-static inline void __cpuid(const std::span<u32, 4> info, u32 function_id) {
+static inline void __cpuid(int info[4], u32 function_id) {
     return __cpuidex(info, function_id, 0);
 }
 
@@ -67,7 +67,7 @@ static CPUCaps Detect() {
     // Assumes the CPU supports the CPUID instruction. Those that don't would likely not support
     // yuzu at all anyway
 
-    std::array<u32, 4> cpu_id;
+    int cpu_id[4];
 
     // Detect CPU's CPUID capabilities and grab manufacturer string
     __cpuid(cpu_id, 0x00000000);
@@ -128,11 +128,11 @@ static CPUCaps Detect() {
     if (max_ex_fn >= 0x80000004) {
         // Extract CPU model string
         __cpuid(cpu_id, 0x80000002);
-        std::memcpy(caps.cpu_string, cpu_id.data(), sizeof(cpu_id));
+        std::memcpy(caps.cpu_string, cpu_id, sizeof(cpu_id));
         __cpuid(cpu_id, 0x80000003);
-        std::memcpy(caps.cpu_string + 16, cpu_id.data(), sizeof(cpu_id));
+        std::memcpy(caps.cpu_string + 16, cpu_id, sizeof(cpu_id));
         __cpuid(cpu_id, 0x80000004);
-        std::memcpy(caps.cpu_string + 32, cpu_id.data(), sizeof(cpu_id));
+        std::memcpy(caps.cpu_string + 32, cpu_id, sizeof(cpu_id));
     }
 
     if (max_ex_fn >= 0x80000001) {
