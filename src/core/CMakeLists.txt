@@ -207,6 +207,7 @@ add_library(core STATIC
     hle/kernel/k_memory_region.h
     hle/kernel/k_memory_region_type.h
     hle/kernel/k_page_bitmap.h
+    hle/kernel/k_page_buffer.h
     hle/kernel/k_page_heap.cpp
     hle/kernel/k_page_heap.h
     hle/kernel/k_page_linked_list.h
