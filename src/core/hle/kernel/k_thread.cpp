@@ -326,6 +326,9 @@ void KThread::Finalize() {
         }
     }
 
+    // Release host emulation members.
+    host_context.reset();
+
     // Perform inherited finalization.
     KSynchronizationObject::Finalize();
 }
