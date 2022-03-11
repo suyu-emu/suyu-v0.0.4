@@ -49,6 +49,9 @@ void KServerSession::Destroy() {
     parent->OnServerClosed();
 
     parent->Close();
+
+    // Release host emulation members.
+    manager.reset();
 }
 
 void KServerSession::OnClientClosed() {
