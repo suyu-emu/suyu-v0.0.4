@@ -245,6 +245,8 @@ add_library(core STATIC
     hle/kernel/k_system_control.h
     hle/kernel/k_thread.cpp
     hle/kernel/k_thread.h
+    hle/kernel/k_thread_local_page.cpp
+    hle/kernel/k_thread_local_page.h
     hle/kernel/k_thread_queue.cpp
     hle/kernel/k_thread_queue.h
     hle/kernel/k_trace.h
