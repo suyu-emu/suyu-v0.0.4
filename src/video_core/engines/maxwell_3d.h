@@ -1581,6 +1581,7 @@ private:
     Upload::State upload_state;
 
     bool execute_on{true};
+    bool use_topology_override{false};
 };
 
 #define ASSERT_REG_POSITION(field_name, position)                                                  \

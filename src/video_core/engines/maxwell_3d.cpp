@@ -214,6 +214,9 @@ void Maxwell3D::ProcessMethodCall(u32 method, u32 argument, u32 nonshadow_argume
         regs.index_array.first = regs.small_index.first;
         dirty.flags[VideoCommon::Dirty::IndexBuffer] = true;
         return DrawArrays();
+    case MAXWELL3D_REG_INDEX(topology_override):
+        use_topology_override = true;
+        return;
     case MAXWELL3D_REG_INDEX(clear_buffers):
         return ProcessClearBuffers();
     case MAXWELL3D_REG_INDEX(query.query_get):
@@ -367,7 +370,7 @@ void Maxwell3D::CallMethodFromMME(u32 method, u32 method_argument) {
 }
 
 void Maxwell3D::ProcessTopologyOverride() {
-    if (regs.draw.topology != regs.topology_override) {
+    if (use_topology_override) {
         regs.draw.topology.Assign(regs.topology_override);
     }
 }
