@@ -7,6 +7,7 @@
 #include "common/assert.h"
 #include "core/core.h"
 #include "core/core_timing.h"
+#include "video_core/dirty_flags.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/gpu.h"
 #include "video_core/memory_manager.h"
@@ -211,6 +212,7 @@ void Maxwell3D::ProcessMethodCall(u32 method, u32 argument, u32 nonshadow_argume
     case MAXWELL3D_REG_INDEX(small_index):
         regs.index_array.count = regs.small_index.count;
         regs.index_array.first = regs.small_index.first;
+        dirty.flags[VideoCommon::Dirty::IndexBuffer] = true;
         return DrawArrays();
     case MAXWELL3D_REG_INDEX(clear_buffers):
         return ProcessClearBuffers();
