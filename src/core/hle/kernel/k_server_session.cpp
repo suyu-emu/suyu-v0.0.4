@@ -98,7 +98,12 @@ ResultCode KServerSession::HandleDomainSyncRequest(Kernel::HLERequestContext& co
             UNREACHABLE();
             return ResultSuccess; // Ignore error if asserts are off
         }
-        return manager->DomainHandler(object_id - 1)->HandleSyncRequest(*this, context);
+        if (auto strong_ptr = manager->DomainHandler(object_id - 1).lock()) {
+            return strong_ptr->HandleSyncRequest(*this, context);
+        } else {
+            UNREACHABLE();
+            return ResultSuccess;
+        }
 
     case IPC::DomainMessageHeader::CommandType::CloseVirtualHandle: {
         LOG_DEBUG(IPC, "CloseVirtualHandle, object_id=0x{:08X}", object_id);

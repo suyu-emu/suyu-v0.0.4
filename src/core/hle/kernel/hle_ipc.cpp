@@ -45,7 +45,7 @@ bool SessionRequestManager::HasSessionRequestHandler(const HLERequestContext& co
             LOG_CRITICAL(IPC, "object_id {} is too big!", object_id);
             return false;
         }
-        return DomainHandler(object_id - 1) != nullptr;
+        return DomainHandler(object_id - 1).lock() != nullptr;
     } else {
         return session_handler != nullptr;
     }
