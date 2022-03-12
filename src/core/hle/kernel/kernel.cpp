@@ -283,15 +283,16 @@ struct KernelCore::Impl {
 
     // Gets the dummy KThread for the caller, allocating a new one if this is the first time
     KThread* GetHostDummyThread() {
-        auto make_thread = [this]() {
-            KThread* thread = KThread::Create(system.Kernel());
+        auto initialize = [this](KThread* thread) {
             ASSERT(KThread::InitializeDummyThread(thread).IsSuccess());
             thread->SetName(fmt::format("DummyThread:{}", GetHostThreadId()));
             return thread;
         };
 
-        thread_local KThread* saved_thread = make_thread();
-        return saved_thread;
+        thread_local auto raw_thread = KThread(system.Kernel());
+        thread_local auto thread = initialize(&raw_thread);
+
+        return thread;
     }
 
     /// Registers a CPU core thread by allocating a host thread ID for it
