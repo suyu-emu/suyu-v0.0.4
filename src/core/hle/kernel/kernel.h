@@ -43,6 +43,7 @@ class KHandleTable;
 class KLinkedListNode;
 class KMemoryLayout;
 class KMemoryManager;
+class KPageBuffer;
 class KPort;
 class KProcess;
 class KResourceLimit;
@@ -52,6 +53,7 @@ class KSession;
 class KSharedMemory;
 class KSharedMemoryInfo;
 class KThread;
+class KThreadLocalPage;
 class KTransferMemory;
 class KWorkerTaskManager;
 class KWritableEvent;
@@ -239,12 +241,6 @@ public:
     /// Gets the virtual memory manager for the kernel.
     const KMemoryManager& MemoryManager() const;
 
-    /// Gets the slab heap allocated for user space pages.
-    KSlabHeap<Page>& GetUserSlabHeapPages();
-
-    /// Gets the slab heap allocated for user space pages.
-    const KSlabHeap<Page>& GetUserSlabHeapPages() const;
-
     /// Gets the shared memory object for HID services.
     Kernel::KSharedMemory& GetHidSharedMem();
 
@@ -336,6 +332,10 @@ public:
             return slab_heap_container->writeable_event;
         } else if constexpr (std::is_same_v<T, KCodeMemory>) {
             return slab_heap_container->code_memory;
+        } else if constexpr (std::is_same_v<T, KPageBuffer>) {
+            return slab_heap_container->page_buffer;
+        } else if constexpr (std::is_same_v<T, KThreadLocalPage>) {
+            return slab_heap_container->thread_local_page;
         }
     }
 
@@ -397,6 +397,8 @@ private:
         KSlabHeap<KTransferMemory> transfer_memory;
         KSlabHeap<KWritableEvent> writeable_event;
         KSlabHeap<KCodeMemory> code_memory;
+        KSlabHeap<KPageBuffer> page_buffer;
+        KSlabHeap<KThreadLocalPage> thread_local_page;
     };
 
     std::unique_ptr<SlabHeapContainer> slab_heap_container;

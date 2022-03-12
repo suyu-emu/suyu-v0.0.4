@@ -76,7 +76,7 @@ struct KernelCore::Impl {
         // Initialize kernel memory and resources.
         InitializeSystemResourceLimit(kernel, system.CoreTiming());
         InitializeMemoryLayout();
-        InitializePageSlab();
+        Init::InitializeKPageBufferSlabHeap(system);
         InitializeSchedulers();
         InitializeSuspendThreads();
         InitializePreemption(kernel);
@@ -660,22 +660,6 @@ struct KernelCore::Impl {
                                     time_phys_addr, time_size, "Time:SharedMemory");
     }
 
-    void InitializePageSlab() {
-        // Allocate slab heaps
-        user_slab_heap_pages =
-            std::make_unique<KSlabHeap<Page>>(KSlabHeap<Page>::AllocationType::Guest);
-
-        // TODO(ameerj): This should be derived, not hardcoded within the kernel
-        constexpr u64 user_slab_heap_size{0x3de000};
-        // Reserve slab heaps
-        ASSERT(
-            system_resource_limit->Reserve(LimitableResource::PhysicalMemory, user_slab_heap_size));
-        // Initialize slab heap
-        user_slab_heap_pages->Initialize(
-            system.DeviceMemory().GetPointer(Core::DramMemoryMap::SlabHeapBase),
-            user_slab_heap_size);
-    }
-
     KClientPort* CreateNamedServicePort(std::string name) {
         auto search = service_interface_factory.find(name);
         if (search == service_interface_factory.end()) {
@@ -756,7 +740,6 @@ struct KernelCore::Impl {
 
     // Kernel memory management
     std::unique_ptr<KMemoryManager> memory_manager;
-    std::unique_ptr<KSlabHeap<Page>> user_slab_heap_pages;
 
     // Shared memory for services
     Kernel::KSharedMemory* hid_shared_mem{};
@@ -1029,14 +1012,6 @@ KMemoryManager& KernelCore::MemoryManager() {
 
 const KMemoryManager& KernelCore::MemoryManager() const {
     return *impl->memory_manager;
-}
-
-KSlabHeap<Page>& KernelCore::GetUserSlabHeapPages() {
-    return *impl->user_slab_heap_pages;
-}
-
-const KSlabHeap<Page>& KernelCore::GetUserSlabHeapPages() const {
-    return *impl->user_slab_heap_pages;
 }
 
 Kernel::KSharedMemory& KernelCore::GetHidSharedMem() {
