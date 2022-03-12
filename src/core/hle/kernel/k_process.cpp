@@ -404,9 +404,6 @@ void KProcess::PrepareForTermination() {
 }
 
 void KProcess::Finalize() {
-    // Finalize the handle table and close any open handles.
-    handle_table.Finalize();
-
     // Free all shared memory infos.
     {
         auto it = shared_memory_list.begin();
@@ -430,6 +427,9 @@ void KProcess::Finalize() {
         resource_limit->Close();
         resource_limit = nullptr;
     }
+
+    // Finalize the page table.
+    page_table.reset();
 
     // Perform inherited finalization.
     KAutoObjectWithSlabHeapAndContainer<KProcess, KWorkerTask>::Finalize();
