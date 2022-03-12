@@ -27,10 +27,7 @@ namespace Kernel {
 
 KServerSession::KServerSession(KernelCore& kernel_) : KSynchronizationObject{kernel_} {}
 
-KServerSession::~KServerSession() {
-    // Ensure that the global list tracking server sessions does not hold on to a reference.
-    kernel.UnregisterServerSession(this);
-}
+KServerSession::~KServerSession() = default;
 
 void KServerSession::Initialize(KSession* parent_session_, std::string&& name_,
                                 std::shared_ptr<SessionRequestManager> manager_) {

@@ -107,16 +107,6 @@ struct KernelCore::Impl {
         for (auto* server_port : server_ports_) {
             server_port->Close();
         }
-        // Close all open server sessions.
-        std::unordered_set<KServerSession*> server_sessions_;
-        {
-            std::lock_guard lk(server_sessions_lock);
-            server_sessions_ = server_sessions;
-            server_sessions.clear();
-        }
-        for (auto* server_session : server_sessions_) {
-            server_session->Close();
-        }
 
         // Ensure that the object list container is finalized and properly shutdown.
         object_list_container.Finalize();
@@ -697,7 +687,6 @@ struct KernelCore::Impl {
     }
 
     std::mutex server_ports_lock;
-    std::mutex server_sessions_lock;
     std::mutex registered_objects_lock;
     std::mutex registered_in_use_objects_lock;
 
@@ -728,7 +717,6 @@ struct KernelCore::Impl {
     std::unordered_map<std::string, ServiceInterfaceFactory> service_interface_factory;
     NamedPortTable named_ports;
     std::unordered_set<KServerPort*> server_ports;
-    std::unordered_set<KServerSession*> server_sessions;
     std::unordered_set<KAutoObject*> registered_objects;
     std::unordered_set<KAutoObject*> registered_in_use_objects;
 
@@ -930,16 +918,6 @@ void KernelCore::RegisterNamedService(std::string name, ServiceInterfaceFactory&
 
 KClientPort* KernelCore::CreateNamedServicePort(std::string name) {
     return impl->CreateNamedServicePort(std::move(name));
-}
-
-void KernelCore::RegisterServerSession(KServerSession* server_session) {
-    std::lock_guard lk(impl->server_sessions_lock);
-    impl->server_sessions.insert(server_session);
-}
-
-void KernelCore::UnregisterServerSession(KServerSession* server_session) {
-    std::lock_guard lk(impl->server_sessions_lock);
-    impl->server_sessions.erase(server_session);
 }
 
 void KernelCore::RegisterKernelObject(KAutoObject* object) {
