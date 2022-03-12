@@ -182,8 +182,8 @@ struct KernelCore::Impl {
         {
             std::lock_guard lk(registered_objects_lock);
             if (registered_objects.size()) {
-                LOG_WARNING(Kernel, "{} kernel objects were dangling on shutdown!",
-                            registered_objects.size());
+                LOG_DEBUG(Kernel, "{} kernel objects were dangling on shutdown!",
+                          registered_objects.size());
                 registered_objects.clear();
             }
         }
