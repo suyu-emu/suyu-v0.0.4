@@ -52,7 +52,7 @@ namespace Kernel {
 
 struct KernelCore::Impl {
     explicit Impl(Core::System& system_, KernelCore& kernel_)
-        : time_manager{system_}, object_list_container{kernel_},
+        : time_manager{system_},
           service_threads_manager{1, "yuzu:ServiceThreadsManager"}, system{system_} {}
 
     void SetMulticore(bool is_multi) {
@@ -60,6 +60,7 @@ struct KernelCore::Impl {
     }
 
     void Initialize(KernelCore& kernel) {
+        global_object_list_container = std::make_unique<KAutoObjectWithListContainer>(kernel);
         global_scheduler_context = std::make_unique<Kernel::GlobalSchedulerContext>(kernel);
         global_handle_table = std::make_unique<Kernel::KHandleTable>(kernel);
         global_handle_table->Initialize(KHandleTable::MaxTableSize);
@@ -107,9 +108,6 @@ struct KernelCore::Impl {
         for (auto* server_port : server_ports_) {
             server_port->Close();
         }
-
-        // Ensure that the object list container is finalized and properly shutdown.
-        object_list_container.Finalize();
 
         // Ensures all service threads gracefully shutdown.
         ClearServiceThreads();
@@ -189,6 +187,10 @@ struct KernelCore::Impl {
                 registered_objects.clear();
             }
         }
+
+        // Ensure that the object list container is finalized and properly shutdown.
+        global_object_list_container->Finalize();
+        global_object_list_container.reset();
     }
 
     void InitializePhysicalCores() {
@@ -710,7 +712,7 @@ struct KernelCore::Impl {
     // stores all the objects in place.
     std::unique_ptr<KHandleTable> global_handle_table;
 
-    KAutoObjectWithListContainer object_list_container;
+    std::unique_ptr<KAutoObjectWithListContainer> global_object_list_container;
 
     /// Map of named ports managed by the kernel, which can be retrieved using
     /// the ConnectToPort SVC.
@@ -886,11 +888,11 @@ const Core::ExclusiveMonitor& KernelCore::GetExclusiveMonitor() const {
 }
 
 KAutoObjectWithListContainer& KernelCore::ObjectListContainer() {
-    return impl->object_list_container;
+    return *impl->global_object_list_container;
 }
 
 const KAutoObjectWithListContainer& KernelCore::ObjectListContainer() const {
-    return impl->object_list_container;
+    return *impl->global_object_list_container;
 }
 
 void KernelCore::InvalidateAllInstructionCaches() {
