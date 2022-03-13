@@ -1155,6 +1155,8 @@ void Config::SaveCpuValues() {
         WriteBasicSetting(Settings::values.cpuopt_misc_ir);
         WriteBasicSetting(Settings::values.cpuopt_reduce_misalign_checks);
         WriteBasicSetting(Settings::values.cpuopt_fastmem);
+        WriteBasicSetting(Settings::values.cpuopt_fastmem_exclusives);
+        WriteBasicSetting(Settings::values.cpuopt_recompile_exclusives);
     }
 
     qt_config->endGroup();
