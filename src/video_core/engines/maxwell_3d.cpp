@@ -377,6 +377,8 @@ void Maxwell3D::ProcessTopologyOverride() {
 
     switch (regs.topology_override) {
     case PrimitiveTopologyOverride::None:
+        topology = regs.draw.topology;
+        break;
     case PrimitiveTopologyOverride::Points:
         topology = PrimitiveTopology::Points;
         break;
