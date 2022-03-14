@@ -367,6 +367,20 @@ public:
             Patches = 0xe,
         };
 
+        enum class PrimitiveTopologyOverride : u32 {
+            None = 0x0,
+            Points = 0x1,
+            Lines = 0x2,
+            LineStrip = 0x3,
+            Triangles = 0x4,
+            TriangleStrip = 0x5,
+            LinesAdjacency = 0xa,
+            LineStripAdjacency = 0xb,
+            TrianglesAdjacency = 0xc,
+            TriangleStripAdjacency = 0xd,
+            Patches = 0xe,
+        };
+
         enum class IndexFormat : u32 {
             UnsignedByte = 0x0,
             UnsignedShort = 0x1,
@@ -1251,7 +1265,7 @@ public:
 
                 INSERT_PADDING_WORDS_NOINIT(0xC);
 
-                PrimitiveTopology topology_override;
+                PrimitiveTopologyOverride topology_override;
 
                 INSERT_PADDING_WORDS_NOINIT(0x12);
 
