@@ -367,6 +367,8 @@ public:
             Patches = 0xe,
         };
 
+        // Constants as from NVC0_3D_UNK1970_D3D
+        // https://gitlab.freedesktop.org/mesa/mesa/-/blob/main/src/gallium/drivers/nouveau/nvc0/nvc0_3d.xml.h#L1598
         enum class PrimitiveTopologyOverride : u32 {
             None = 0x0,
             Points = 0x1,
