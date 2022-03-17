@@ -6,7 +6,7 @@
 
 #include <functional>
 
-#include "core/hle/service/mii/mii_manager.h"
+#include "core/hle/service/mii/types.h"
 
 namespace Core::Frontend {
 
