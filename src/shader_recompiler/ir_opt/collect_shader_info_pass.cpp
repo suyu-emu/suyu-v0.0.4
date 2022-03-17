@@ -29,6 +29,46 @@ void AddConstantBufferDescriptor(Info& info, u32 index, u32 count) {
                  });
 }
 
+void AddRegisterIndexedLdc(Info& info) {
+    info.uses_cbuf_indirect = true;
+
+    // The shader can use any possible constant buffer
+    info.constant_buffer_mask = (1 << Info::MAX_CBUFS) - 1;
+
+    auto& cbufs{info.constant_buffer_descriptors};
+    cbufs.clear();
+    for (u32 i = 0; i < Info::MAX_CBUFS; i++) {
+        cbufs.push_back(ConstantBufferDescriptor{.index = i, .count = 1});
+
+        // The shader can use any possible access size
+        info.constant_buffer_used_sizes[i] = 0x10'000;
+    }
+}
+
+u32 GetElementSize(IR::Type& used_type, Shader::IR::Opcode opcode) {
+    switch (opcode) {
+    case IR::Opcode::GetCbufU8:
+    case IR::Opcode::GetCbufS8:
+        used_type |= IR::Type::U8;
+        return 1;
+    case IR::Opcode::GetCbufU16:
+    case IR::Opcode::GetCbufS16:
+        used_type |= IR::Type::U16;
+        return 2;
+    case IR::Opcode::GetCbufU32:
+        used_type |= IR::Type::U32;
+        return 4;
+    case IR::Opcode::GetCbufF32:
+        used_type |= IR::Type::F32;
+        return 4;
+    case IR::Opcode::GetCbufU32x2:
+        used_type |= IR::Type::U32x2;
+        return 8;
+    default:
+        throw InvalidArgument("Invalid opcode {}", opcode);
+    }
+}
+
 void GetPatch(Info& info, IR::Patch patch) {
     if (!IR::IsGeneric(patch)) {
         throw NotImplementedException("Reading non-generic patch {}", patch);
@@ -463,42 +503,18 @@ void VisitUsages(Info& info, IR::Inst& inst) {
     case IR::Opcode::GetCbufU32x2: {
         const IR::Value index{inst.Arg(0)};
         const IR::Value offset{inst.Arg(1)};
-        if (!index.IsImmediate()) {
-            throw NotImplementedException("Constant buffer with non-immediate index");
-        }
-        AddConstantBufferDescriptor(info, index.U32(), 1);
-        u32 element_size{};
-        switch (inst.GetOpcode()) {
-        case IR::Opcode::GetCbufU8:
-        case IR::Opcode::GetCbufS8:
-            info.used_constant_buffer_types |= IR::Type::U8;
-            element_size = 1;
-            break;
-        case IR::Opcode::GetCbufU16:
-        case IR::Opcode::GetCbufS16:
-            info.used_constant_buffer_types |= IR::Type::U16;
-            element_size = 2;
-            break;
-        case IR::Opcode::GetCbufU32:
-            info.used_constant_buffer_types |= IR::Type::U32;
-            element_size = 4;
-            break;
-        case IR::Opcode::GetCbufF32:
-            info.used_constant_buffer_types |= IR::Type::F32;
-            element_size = 4;
-            break;
-        case IR::Opcode::GetCbufU32x2:
-            info.used_constant_buffer_types |= IR::Type::U32x2;
-            element_size = 8;
-            break;
-        default:
-            break;
-        }
-        u32& size{info.constant_buffer_used_sizes[index.U32()]};
-        if (offset.IsImmediate()) {
-            size = Common::AlignUp(std::max(size, offset.U32() + element_size), 16u);
+        if (index.IsImmediate()) {
+            AddConstantBufferDescriptor(info, index.U32(), 1);
+            u32 element_size = GetElementSize(info.used_constant_buffer_types, inst.GetOpcode());
+            u32& size{info.constant_buffer_used_sizes[index.U32()]};
+            if (offset.IsImmediate()) {
+                size = Common::AlignUp(std::max(size, offset.U32() + element_size), 16u);
+            } else {
+                size = 0x10'000;
+            }
         } else {
-            size = 0x10'000;
+            AddRegisterIndexedLdc(info);
+            GetElementSize(info.used_indirect_cbuf_types, inst.GetOpcode());
         }
         break;
     }
