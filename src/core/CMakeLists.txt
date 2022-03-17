@@ -308,6 +308,7 @@ add_library(core STATIC
     hle/service/am/applets/applet_general_backend.h
     hle/service/am/applets/applet_mii_edit.cpp
     hle/service/am/applets/applet_mii_edit.h
+    hle/service/am/applets/applet_mii_edit_types.h
     hle/service/am/applets/applet_profile_select.cpp
     hle/service/am/applets/applet_profile_select.h
     hle/service/am/applets/applet_software_keyboard.cpp

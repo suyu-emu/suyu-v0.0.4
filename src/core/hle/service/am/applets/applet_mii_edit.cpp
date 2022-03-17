@@ -8,6 +8,7 @@
 #include "core/frontend/applets/mii_edit.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applets/applet_mii_edit.h"
+#include "core/hle/service/mii/mii_manager.h"
 #include "core/reporter.h"
 
 namespace Service::AM::Applets {
@@ -89,7 +90,7 @@ void MiiEdit::DisplayCompleted(const Core::Frontend::MiiParameters& parameters) 
 
     std::vector<u8> reply(sizeof(AppletOutputForCharInfoEditing));
     output_data = {
-        .result = ResultSuccess,
+        .result = 0,
         .mii_data = parameters.mii_data,
     };
 
