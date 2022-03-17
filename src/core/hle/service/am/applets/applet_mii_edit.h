@@ -63,11 +63,11 @@ struct AppletOutputForCharInfoEditing {
 static_assert(sizeof(AppletOutputForCharInfoEditing) == 0x80,
               "AppletOutputForCharInfoEditing has incorrect size.");
 
-class Mii final : public Applet {
+class MiiEdit final : public Applet {
 public:
-    explicit Mii(Core::System& system_, LibraryAppletMode applet_mode_,
-                 const Core::Frontend::MiiApplet& frontend_);
-    ~Mii() override;
+    explicit MiiEdit(Core::System& system_, LibraryAppletMode applet_mode_,
+                     const Core::Frontend::MiiEditApplet& frontend_);
+    ~MiiEdit() override;
 
     void Initialize() override;
 
@@ -79,7 +79,7 @@ public:
     void DisplayCompleted(const Core::Frontend::MiiParameters& parameters);
 
 private:
-    const Core::Frontend::MiiApplet& frontend;
+    const Core::Frontend::MiiEditApplet& frontend;
     MiiAppletInput input_data{};
     AppletOutputForCharInfoEditing output_data{};
 

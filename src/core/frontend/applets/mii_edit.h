@@ -15,16 +15,16 @@ struct MiiParameters {
     Service::Mii::MiiInfo mii_data{};
 };
 
-class MiiApplet {
+class MiiEditApplet {
 public:
-    virtual ~MiiApplet();
+    virtual ~MiiEditApplet();
 
     virtual void ShowMii(const MiiParameters& parameters,
                          const std::function<void(const Core::Frontend::MiiParameters& parameters)>
                              callback) const = 0;
 };
 
-class DefaultMiiApplet final : public MiiApplet {
+class DefaultMiiEditApplet final : public MiiEditApplet {
 public:
     void ShowMii(const MiiParameters& parameters,
                  const std::function<void(const Core::Frontend::MiiParameters& parameters)>

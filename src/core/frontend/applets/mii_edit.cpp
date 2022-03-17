@@ -3,16 +3,17 @@
 // Refer to the license.txt file included.
 
 #include "common/logging/log.h"
-#include "core/frontend/applets/mii.h"
+#include "core/frontend/applets/mii_edit.h"
 
 namespace Core::Frontend {
 
-MiiApplet::~MiiApplet() = default;
+MiiEditApplet::~MiiEditApplet() = default;
 
-void DefaultMiiApplet::ShowMii(
+void DefaultMiiEditApplet::ShowMii(
     const MiiParameters& parameters,
     const std::function<void(const Core::Frontend::MiiParameters& parameters)> callback) const {
-    LOG_INFO(Service_HID, "(STUBBED) called");
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
     callback(parameters);
 }
 

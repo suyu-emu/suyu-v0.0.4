@@ -5,19 +5,20 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/core.h"
-#include "core/frontend/applets/mii.h"
+#include "core/frontend/applets/mii_edit.h"
 #include "core/hle/service/am/am.h"
-#include "core/hle/service/am/applets/applet_mii.h"
+#include "core/hle/service/am/applets/applet_mii_edit.h"
+#include "core/reporter.h"
 
 namespace Service::AM::Applets {
 
-Mii::Mii(Core::System& system_, LibraryAppletMode applet_mode_,
-         const Core::Frontend::MiiApplet& frontend_)
+MiiEdit::MiiEdit(Core::System& system_, LibraryAppletMode applet_mode_,
+                 const Core::Frontend::MiiEditApplet& frontend_)
     : Applet{system_, applet_mode_}, frontend{frontend_}, system{system_} {}
 
-Mii::~Mii() = default;
+MiiEdit::~MiiEdit() = default;
 
-void Mii::Initialize() {
+void MiiEdit::Initialize() {
     is_complete = false;
 
     const auto storage = broker.PopNormalDataToApplet();
@@ -29,19 +30,19 @@ void Mii::Initialize() {
     std::memcpy(&input_data, data.data(), sizeof(MiiAppletInput));
 }
 
-bool Mii::TransactionComplete() const {
+bool MiiEdit::TransactionComplete() const {
     return is_complete;
 }
 
-ResultCode Mii::GetStatus() const {
+ResultCode MiiEdit::GetStatus() const {
     return ResultSuccess;
 }
 
-void Mii::ExecuteInteractive() {
+void MiiEdit::ExecuteInteractive() {
     UNREACHABLE_MSG("Unexpected interactive applet data!");
 }
 
-void Mii::Execute() {
+void MiiEdit::Execute() {
     if (is_complete) {
         return;
     }
@@ -83,7 +84,7 @@ void Mii::Execute() {
     }
 }
 
-void Mii::DisplayCompleted(const Core::Frontend::MiiParameters& parameters) {
+void MiiEdit::DisplayCompleted(const Core::Frontend::MiiParameters& parameters) {
     is_complete = true;
 
     std::vector<u8> reply(sizeof(AppletOutputForCharInfoEditing));
