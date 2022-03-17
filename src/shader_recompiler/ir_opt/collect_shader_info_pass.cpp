@@ -30,6 +30,8 @@ void AddConstantBufferDescriptor(Info& info, u32 index, u32 count) {
 }
 
 void AddRegisterIndexedLdc(Info& info) {
+    info.uses_cbuf_indirect = true;
+
     // The shader can use any possible constant buffer
     info.constant_buffer_mask = (1 << Info::MAX_CBUFS) - 1;
 
