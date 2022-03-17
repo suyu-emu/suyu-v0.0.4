@@ -6,29 +6,18 @@
 
 #include <functional>
 
-#include "core/hle/service/mii/types.h"
-
 namespace Core::Frontend {
-
-struct MiiParameters {
-    bool is_editable;
-    Service::Mii::MiiInfo mii_data{};
-};
 
 class MiiEditApplet {
 public:
     virtual ~MiiEditApplet();
 
-    virtual void ShowMii(const MiiParameters& parameters,
-                         const std::function<void(const Core::Frontend::MiiParameters& parameters)>
-                             callback) const = 0;
+    virtual void ShowMiiEdit(const std::function<void()>& callback) const = 0;
 };
 
 class DefaultMiiEditApplet final : public MiiEditApplet {
 public:
-    void ShowMii(const MiiParameters& parameters,
-                 const std::function<void(const Core::Frontend::MiiParameters& parameters)>
-                     callback) const override;
+    void ShowMiiEdit(const std::function<void()>& callback) const override;
 };
 
 } // namespace Core::Frontend

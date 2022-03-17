@@ -9,12 +9,10 @@ namespace Core::Frontend {
 
 MiiEditApplet::~MiiEditApplet() = default;
 
-void DefaultMiiEditApplet::ShowMii(
-    const MiiParameters& parameters,
-    const std::function<void(const Core::Frontend::MiiParameters& parameters)> callback) const {
+void DefaultMiiEditApplet::ShowMiiEdit(const std::function<void()>& callback) const {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
-    callback(parameters);
+    callback();
 }
 
 } // namespace Core::Frontend
