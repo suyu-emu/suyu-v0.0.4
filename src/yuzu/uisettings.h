@@ -114,6 +114,7 @@ struct Values {
 
     bool configuration_applied;
     bool reset_to_defaults;
+    bool disable_web_applet{};
 };
 
 extern Values values;
