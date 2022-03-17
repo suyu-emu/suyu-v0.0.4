@@ -177,6 +177,7 @@ struct Info {
 
     IR::Type used_constant_buffer_types{};
     IR::Type used_storage_buffer_types{};
+    IR::Type used_indirect_cbuf_types{};
 
     u32 constant_buffer_mask{};
     std::array<u32, MAX_CBUFS> constant_buffer_used_sizes{};

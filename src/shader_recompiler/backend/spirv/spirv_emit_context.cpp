@@ -994,7 +994,7 @@ void EmitContext::DefineConstantBuffers(const Info& info, u32& binding) {
         }
         return;
     }
-    IR::Type types{info.used_constant_buffer_types};
+    IR::Type types{info.used_constant_buffer_types | info.used_indirect_cbuf_types};
     if (True(types & IR::Type::U8)) {
         if (profile.support_int8) {
             DefineConstBuffers(*this, info, &UniformDefinitions::U8, binding, U8, 'u', sizeof(u8));
@@ -1032,7 +1032,6 @@ void EmitContext::DefineConstantBufferIndirectFunctions(const Info& info) {
     if (!info.uses_cbuf_indirect) {
         return;
     }
-
     const auto make_accessor{[&](Id buffer_type, Id UniformDefinitions::*member_ptr) {
         const Id func_type{TypeFunction(buffer_type, U32[1], U32[1])};
         const Id func{OpFunction(buffer_type, spv::FunctionControlMask::MaskNone, func_type)};
@@ -1050,10 +1049,8 @@ void EmitContext::DefineConstantBufferIndirectFunctions(const Info& info) {
             buf_labels[i] = OpLabel();
             buf_literals[i] = Sirit::Literal{i};
         }
-
         OpSelectionMerge(merge_label, spv::SelectionControlMask::MaskNone);
         OpSwitch(binding, buf_labels[0], buf_literals, buf_labels);
-
         for (u32 i = 0; i < Info::MAX_CBUFS; i++) {
             AddLabel(buf_labels[i]);
             const Id cbuf{cbufs[i].*member_ptr};
@@ -1061,16 +1058,12 @@ void EmitContext::DefineConstantBufferIndirectFunctions(const Info& info) {
             const Id result{OpLoad(buffer_type, access_chain)};
             OpReturnValue(result);
         }
-
         AddLabel(merge_label);
         OpUnreachable();
         OpFunctionEnd();
-
         return func;
     }};
-
-    IR::Type types{info.used_constant_buffer_types};
-
+    IR::Type types{info.used_indirect_cbuf_types};
     if (True(types & IR::Type::U8)) {
         load_const_func_u8 = make_accessor(U8, &UniformDefinitions::U8);
     }

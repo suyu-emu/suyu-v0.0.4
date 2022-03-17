@@ -125,7 +125,6 @@ std::optional<OutAttr> OutputAttrPointer(EmitContext& ctx, IR::Attribute attr) {
 Id GetCbuf(EmitContext& ctx, Id result_type, Id UniformDefinitions::*member_ptr, u32 element_size,
            const IR::Value& binding, const IR::Value& offset, const Id indirect_func) {
     Id buffer_offset;
-
     const Id uniform_type{ctx.uniform_types.*member_ptr};
     if (offset.IsImmediate()) {
         // Hardware been proved to read the aligned offset (e.g. LDC.U32 at 6 will read offset 4)
@@ -138,16 +137,12 @@ Id GetCbuf(EmitContext& ctx, Id result_type, Id UniformDefinitions::*member_ptr,
     } else {
         buffer_offset = ctx.Def(offset);
     }
-
-    if (binding.IsImmediate()) {
-        const Id cbuf{ctx.cbufs[binding.U32()].*member_ptr};
-        const Id access_chain{
-            ctx.OpAccessChain(uniform_type, cbuf, ctx.u32_zero_value, buffer_offset)};
-        return ctx.OpLoad(result_type, access_chain);
-    } else {
-        const std::array<Id, 2> arguments{ctx.Def(binding), buffer_offset};
-        return ctx.OpFunctionCall(result_type, indirect_func, arguments);
+    if (!binding.IsImmediate()) {
+        return ctx.OpFunctionCall(result_type, indirect_func, ctx.Def(binding), buffer_offset);
     }
+    const Id cbuf{ctx.cbufs[binding.U32()].*member_ptr};
+    const Id access_chain{ctx.OpAccessChain(uniform_type, cbuf, ctx.u32_zero_value, buffer_offset)};
+    return ctx.OpLoad(result_type, access_chain);
 }
 
 Id GetCbufU32(EmitContext& ctx, const IR::Value& binding, const IR::Value& offset) {
