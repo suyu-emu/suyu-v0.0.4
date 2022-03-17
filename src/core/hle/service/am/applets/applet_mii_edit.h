@@ -27,14 +27,17 @@ public:
     void ExecuteInteractive() override;
     void Execute() override;
 
-    void DisplayCompleted(const Core::Frontend::MiiParameters& parameters);
+    void MiiEditOutput(MiiEditResult result, s32 index);
+
+    void MiiEditOutputForCharInfoEditing(MiiEditResult result, const MiiEditCharInfo& char_info);
 
 private:
     const Core::Frontend::MiiEditApplet& frontend;
     Core::System& system;
 
-    MiiAppletInput input_data{};
-    AppletOutputForCharInfoEditing output_data{};
+    MiiEditAppletInputCommon applet_input_common{};
+    MiiEditAppletInputV3 applet_input_v3{};
+    MiiEditAppletInputV4 applet_input_v4{};
 
     bool is_complete{false};
 };

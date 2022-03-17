@@ -20,15 +20,44 @@ MiiEdit::MiiEdit(Core::System& system_, LibraryAppletMode applet_mode_,
 MiiEdit::~MiiEdit() = default;
 
 void MiiEdit::Initialize() {
-    is_complete = false;
+    // Note: MiiEdit is not initialized with common arguments.
+    //       Instead, it is initialized by an AppletInput storage with size 0x100 bytes.
+    //       Do NOT call Applet::Initialize() here.
 
     const auto storage = broker.PopNormalDataToApplet();
     ASSERT(storage != nullptr);
 
-    const auto data = storage->GetData();
-    ASSERT(data.size() == sizeof(MiiAppletInput));
+    const auto applet_input_data = storage->GetData();
+    ASSERT(applet_input_data.size() >= sizeof(MiiEditAppletInputCommon));
 
-    std::memcpy(&input_data, data.data(), sizeof(MiiAppletInput));
+    std::memcpy(&applet_input_common, applet_input_data.data(), sizeof(MiiEditAppletInputCommon));
+
+    LOG_INFO(Service_AM,
+             "Initializing MiiEdit Applet with MiiEditAppletVersion={} and MiiEditAppletMode={}",
+             applet_input_common.version, applet_input_common.applet_mode);
+
+    switch (applet_input_common.version) {
+    case MiiEditAppletVersion::Version3:
+        ASSERT(applet_input_data.size() ==
+               sizeof(MiiEditAppletInputCommon) + sizeof(MiiEditAppletInputV3));
+        std::memcpy(&applet_input_v3, applet_input_data.data() + sizeof(MiiEditAppletInputCommon),
+                    sizeof(MiiEditAppletInputV3));
+        break;
+    case MiiEditAppletVersion::Version4:
+        ASSERT(applet_input_data.size() ==
+               sizeof(MiiEditAppletInputCommon) + sizeof(MiiEditAppletInputV4));
+        std::memcpy(&applet_input_v4, applet_input_data.data() + sizeof(MiiEditAppletInputCommon),
+                    sizeof(MiiEditAppletInputV4));
+        break;
+    default:
+        UNIMPLEMENTED_MSG("Unknown MiiEditAppletVersion={} with size={}",
+                          applet_input_common.version, applet_input_data.size());
+        ASSERT(applet_input_data.size() >=
+               sizeof(MiiEditAppletInputCommon) + sizeof(MiiEditAppletInputV4));
+        std::memcpy(&applet_input_v4, applet_input_data.data() + sizeof(MiiEditAppletInputCommon),
+                    sizeof(MiiEditAppletInputV4));
+        break;
+    }
 }
 
 bool MiiEdit::TransactionComplete() const {
@@ -40,7 +69,7 @@ ResultCode MiiEdit::GetStatus() const {
 }
 
 void MiiEdit::ExecuteInteractive() {
-    UNREACHABLE_MSG("Unexpected interactive applet data!");
+    UNREACHABLE_MSG("Attempted to call interactive execution on non-interactive applet.");
 }
 
 void MiiEdit::Execute() {
@@ -48,54 +77,63 @@ void MiiEdit::Execute() {
         return;
     }
 
-    const auto callback = [this](const Core::Frontend::MiiParameters& parameters) {
-        DisplayCompleted(parameters);
-    };
+    // This is a default stub for each of the MiiEdit applet modes.
+    switch (applet_input_common.applet_mode) {
+    case MiiEditAppletMode::ShowMiiEdit:
+    case MiiEditAppletMode::AppendMii:
+    case MiiEditAppletMode::AppendMiiImage:
+    case MiiEditAppletMode::UpdateMiiImage:
+        MiiEditOutput(MiiEditResult::Success, 0);
+        break;
+    case MiiEditAppletMode::CreateMii:
+    case MiiEditAppletMode::EditMii: {
+        Service::Mii::MiiManager mii_manager;
 
-    switch (input_data.applet_mode) {
-    case MiiAppletMode::ShowMiiEdit: {
-        Service::Mii::MiiManager manager;
-        Core::Frontend::MiiParameters params{
-            .is_editable = false,
-            .mii_data = input_data.mii_char_info.mii_data,
+        const MiiEditCharInfo char_info{
+            .mii_info{applet_input_common.applet_mode == MiiEditAppletMode::EditMii
+                          ? applet_input_v4.char_info.mii_info
+                          : mii_manager.BuildDefault(0)},
         };
-        frontend.ShowMii(params, callback);
-        break;
-    }
-    case MiiAppletMode::EditMii: {
-        Service::Mii::MiiManager manager;
-        Core::Frontend::MiiParameters params{
-            .is_editable = true,
-            .mii_data = input_data.mii_char_info.mii_data,
-        };
-        frontend.ShowMii(params, callback);
-        break;
-    }
-    case MiiAppletMode::CreateMii: {
-        Service::Mii::MiiManager manager;
-        Core::Frontend::MiiParameters params{
-            .is_editable = true,
-            .mii_data = manager.BuildDefault(0),
-        };
-        frontend.ShowMii(params, callback);
+
+        MiiEditOutputForCharInfoEditing(MiiEditResult::Success, char_info);
         break;
     }
     default:
-        UNIMPLEMENTED_MSG("Unimplemented LibAppletMiiEdit mode={:02X}!", input_data.applet_mode);
+        UNIMPLEMENTED_MSG("Unknown MiiEditAppletMode={}", applet_input_common.applet_mode);
+
+        MiiEditOutput(MiiEditResult::Success, 0);
+        break;
     }
 }
 
-void MiiEdit::DisplayCompleted(const Core::Frontend::MiiParameters& parameters) {
-    is_complete = true;
-
-    std::vector<u8> reply(sizeof(AppletOutputForCharInfoEditing));
-    output_data = {
-        .result = 0,
-        .mii_data = parameters.mii_data,
+void MiiEdit::MiiEditOutput(MiiEditResult result, s32 index) {
+    const MiiEditAppletOutput applet_output{
+        .result{result},
+        .index{index},
     };
 
-    std::memcpy(reply.data(), &output_data, sizeof(AppletOutputForCharInfoEditing));
-    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::move(reply)));
+    std::vector<u8> out_data(sizeof(MiiEditAppletOutput));
+    std::memcpy(out_data.data(), &applet_output, sizeof(MiiEditAppletOutput));
+
+    is_complete = true;
+
+    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::move(out_data)));
+    broker.SignalStateChanged();
+}
+
+void MiiEdit::MiiEditOutputForCharInfoEditing(MiiEditResult result,
+                                              const MiiEditCharInfo& char_info) {
+    const MiiEditAppletOutputForCharInfoEditing applet_output{
+        .result{result},
+        .char_info{char_info},
+    };
+
+    std::vector<u8> out_data(sizeof(MiiEditAppletOutputForCharInfoEditing));
+    std::memcpy(out_data.data(), &applet_output, sizeof(MiiEditAppletOutputForCharInfoEditing));
+
+    is_complete = true;
+
+    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::move(out_data)));
     broker.SignalStateChanged();
 }
 
