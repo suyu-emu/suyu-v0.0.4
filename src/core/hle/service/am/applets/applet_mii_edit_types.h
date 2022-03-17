@@ -12,8 +12,13 @@
 
 namespace Service::AM::Applets {
 
+enum class MiiEditAppletVersion : s32 {
+    Version3 = 0x3, // 1.0.0 - 10.1.1
+    Version4 = 0x4, // 10.2.0+
+};
+
 // This is nn::mii::AppletMode
-enum class MiiAppletMode : u32 {
+enum class MiiEditAppletMode : u32 {
     ShowMiiEdit = 0,
     AppendMii = 1,
     AppendMiiImage = 2,
@@ -22,41 +27,57 @@ enum class MiiAppletMode : u32 {
     EditMii = 5,
 };
 
-struct MiiCharInfo {
-    Service::Mii::MiiInfo mii_data{};
-    INSERT_PADDING_BYTES(0x28);
+enum class MiiEditResult : u32 {
+    Success,
+    Cancel,
 };
-static_assert(sizeof(MiiCharInfo) == 0x80, "MiiCharInfo has incorrect size.");
 
-// This is nn::mii::AppletInput
-struct MiiAppletInput {
-    s32 version{};
-    MiiAppletMode applet_mode{};
+struct MiiEditCharInfo {
+    Service::Mii::MiiInfo mii_info{};
+};
+static_assert(sizeof(MiiEditCharInfo) == 0x58, "MiiEditCharInfo has incorrect size.");
+
+struct MiiEditAppletInputCommon {
+    MiiEditAppletVersion version{};
+    MiiEditAppletMode applet_mode{};
+};
+static_assert(sizeof(MiiEditAppletInputCommon) == 0x8,
+              "MiiEditAppletInputCommon has incorrect size.");
+
+struct MiiEditAppletInputV3 {
     u32 special_mii_key_code{};
-    union {
-        std::array<Common::UUID, 8> valid_uuid;
-        MiiCharInfo mii_char_info;
-    };
-    Common::UUID used_uuid;
+    std::array<Common::UUID, 8> valid_uuids{};
+    Common::UUID used_uuid{};
     INSERT_PADDING_BYTES(0x64);
 };
-static_assert(sizeof(MiiAppletInput) == 0x100, "MiiAppletInput has incorrect size.");
+static_assert(sizeof(MiiEditAppletInputV3) == 0x100 - sizeof(MiiEditAppletInputCommon),
+              "MiiEditAppletInputV3 has incorrect size.");
+
+struct MiiEditAppletInputV4 {
+    u32 special_mii_key_code{};
+    MiiEditCharInfo char_info{};
+    INSERT_PADDING_BYTES(0x28);
+    Common::UUID used_uuid{};
+    INSERT_PADDING_BYTES(0x64);
+};
+static_assert(sizeof(MiiEditAppletInputV4) == 0x100 - sizeof(MiiEditAppletInputCommon),
+              "MiiEditAppletInputV4 has incorrect size.");
 
 // This is nn::mii::AppletOutput
-struct MiiAppletOutput {
-    u32 result{};
+struct MiiEditAppletOutput {
+    MiiEditResult result{};
     s32 index{};
     INSERT_PADDING_BYTES(0x18);
 };
-static_assert(sizeof(MiiAppletOutput) == 0x20, "MiiAppletOutput has incorrect size.");
+static_assert(sizeof(MiiEditAppletOutput) == 0x20, "MiiEditAppletOutput has incorrect size.");
 
 // This is nn::mii::AppletOutputForCharInfoEditing
-struct AppletOutputForCharInfoEditing {
-    u32 result{};
-    Service::Mii::MiiInfo mii_data{};
+struct MiiEditAppletOutputForCharInfoEditing {
+    MiiEditResult result{};
+    MiiEditCharInfo char_info{};
     INSERT_PADDING_BYTES(0x24);
 };
-static_assert(sizeof(AppletOutputForCharInfoEditing) == 0x80,
-              "AppletOutputForCharInfoEditing has incorrect size.");
+static_assert(sizeof(MiiEditAppletOutputForCharInfoEditing) == 0x80,
+              "MiiEditAppletOutputForCharInfoEditing has incorrect size.");
 
 } // namespace Service::AM::Applets
