@@ -61,7 +61,7 @@ void ConfigureDebug::SetConfiguration() {
     ui->extended_logging->setChecked(Settings::values.extended_logging.GetValue());
 
 #ifdef YUZU_USE_QT_WEB_ENGINE
-    ui->disable_web_applet->setChecked(UISettings::values.disable_web_applet);
+    ui->disable_web_applet->setChecked(UISettings::values.disable_web_applet.GetValue());
 #else
     ui->disable_web_applet->setEnabled(false);
     ui->disable_web_applet->setText(QString::fromUtf8("Web applet not compiled"));

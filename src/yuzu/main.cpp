@@ -653,7 +653,8 @@ void GMainWindow::WebBrowserOpenWebPage(const std::string& main_url,
         const auto result = QMessageBox::warning(
             this, tr("Disable Web Applet"),
             tr("Disabling the web applet can lead to undefined behavior and should only be used "
-               "with Super Mario 3D All-Stars. Are you sure you want to disable the web applet?"),
+               "with Super Mario 3D All-Stars. Are you sure you want to disable the web "
+               "applet?\n(This can be re-enabled in the Debug settings.)"),
             QMessageBox::Yes | QMessageBox::No);
         if (result == QMessageBox::Yes) {
             UISettings::values.disable_web_applet = true;
