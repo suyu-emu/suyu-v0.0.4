@@ -4,6 +4,7 @@
 
 #include <string>
 
+#include "common/error.h"
 #include "common/logging/log.h"
 #include "common/thread.h"
 #ifdef __APPLE__

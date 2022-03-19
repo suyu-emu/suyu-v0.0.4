@@ -18,6 +18,7 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include "common/scope_exit.h"
 
 #endif // ^^^ Linux ^^^
 

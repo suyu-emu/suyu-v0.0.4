@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <filesystem>
 #include <map>
 #include <optional>
 #include <string>
@@ -14,10 +15,6 @@
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "core/crypto/partition_data_manager.h"
-
-namespace std::filesystem {
-class path;
-}
 
 namespace Common::FS {
 class IOFile;

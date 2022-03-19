@@ -8,6 +8,8 @@
 
 #if _MSC_VER
 #include <intrin.h>
+#else
+#include <cstring>
 #endif
 
 namespace Common {
