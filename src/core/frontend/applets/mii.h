@@ -6,7 +6,6 @@
 
 #include <functional>
 
-#include "core/hle/result.h"
 #include "core/hle/service/mii/mii_manager.h"
 
 namespace Core::Frontend {

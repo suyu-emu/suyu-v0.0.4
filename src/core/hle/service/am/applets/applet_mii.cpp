@@ -8,7 +8,6 @@
 #include "core/frontend/applets/mii.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applets/applet_mii.h"
-#include "core/reporter.h"
 
 namespace Service::AM::Applets {
 

@@ -10,7 +10,6 @@
 #include "common/hex_util.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
-#include "common/string_util.h"
 #include "core/core.h"
 #include "core/file_sys/common_funcs.h"
 #include "core/file_sys/content_archive.h"
