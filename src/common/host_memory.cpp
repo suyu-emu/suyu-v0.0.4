@@ -27,7 +27,6 @@
 #include "common/assert.h"
 #include "common/host_memory.h"
 #include "common/logging/log.h"
-#include "common/scope_exit.h"
 
 namespace Common {
 

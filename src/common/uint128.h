@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <cstring>
 #include <utility>
 
 #ifdef _MSC_VER

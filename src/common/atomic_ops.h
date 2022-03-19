@@ -4,9 +4,6 @@
 
 #pragma once
 
-#include <cstring>
-#include <memory>
-
 #include "common/common_types.h"
 
 #if _MSC_VER
