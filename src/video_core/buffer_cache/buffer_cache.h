@@ -11,7 +11,6 @@
 #include <mutex>
 #include <numeric>
 #include <span>
-#include <unordered_map>
 #include <vector>
 
 #include <boost/container/small_vector.hpp>
@@ -22,7 +21,6 @@
 #include "common/literals.h"
 #include "common/lru_cache.h"
 #include "common/microprofile.h"
-#include "common/scope_exit.h"
 #include "common/settings.h"
 #include "core/memory.h"
 #include "video_core/buffer_cache/buffer_base.h"
