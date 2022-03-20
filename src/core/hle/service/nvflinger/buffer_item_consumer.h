@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <memory>
 
 #include "common/common_types.h"
@@ -19,7 +20,8 @@ class BufferItem;
 class BufferItemConsumer final : public ConsumerBase {
 public:
     explicit BufferItemConsumer(std::unique_ptr<BufferQueueConsumer> consumer);
-    Status AcquireBuffer(BufferItem* item, u64 present_when_ns, bool wait_for_fence = true);
+    Status AcquireBuffer(BufferItem* item, std::chrono::nanoseconds present_when,
+                         bool wait_for_fence = true);
     Status ReleaseBuffer(const BufferItem& item, Fence& release_fence);
 };
 

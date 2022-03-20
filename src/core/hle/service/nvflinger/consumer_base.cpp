@@ -52,14 +52,14 @@ void ConsumerBase::OnBuffersReleased() {
 
 void ConsumerBase::OnSidebandStreamChanged() {}
 
-Status ConsumerBase::AcquireBufferLocked(BufferItem* item, u64 present_when_ns,
+Status ConsumerBase::AcquireBufferLocked(BufferItem* item, std::chrono::nanoseconds present_when,
                                          u64 max_frame_number) {
     if (is_abandoned) {
         LOG_ERROR(Service_NVFlinger, "consumer is abandoned!");
         return Status::NoInit;
     }
 
-    Status err = consumer->AcquireBuffer(item, present_when_ns, max_frame_number);
+    Status err = consumer->AcquireBuffer(item, present_when, max_frame_number);
     if (err != Status::NoError) {
         return err;
     }

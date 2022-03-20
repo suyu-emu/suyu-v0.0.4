@@ -240,7 +240,7 @@ void NVFlinger::Compose() {
         VI::Layer& layer = display.GetLayer(0);
 
         android::BufferItem buffer{};
-        const auto status = layer.GetConsumer().AcquireBuffer(&buffer, 0, false);
+        const auto status = layer.GetConsumer().AcquireBuffer(&buffer, {}, false);
 
         if (status != android::Status::NoError) {
             continue;

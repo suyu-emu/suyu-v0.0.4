@@ -17,7 +17,8 @@ BufferQueueConsumer::BufferQueueConsumer(std::shared_ptr<BufferQueueCore> core_)
 
 BufferQueueConsumer::~BufferQueueConsumer() = default;
 
-Status BufferQueueConsumer::AcquireBuffer(BufferItem* out_buffer, s64 expected_presenst_ns,
+Status BufferQueueConsumer::AcquireBuffer(BufferItem* out_buffer,
+                                          std::chrono::nanoseconds expected_present,
                                           u64 max_frame_number) {
     s32 num_dropped_buffers{};
 
@@ -26,12 +27,10 @@ Status BufferQueueConsumer::AcquireBuffer(BufferItem* out_buffer, s64 expected_p
         std::unique_lock lock(core->mutex);
 
         // Check that the consumer doesn't currently have the maximum number of buffers acquired.
-        s32 num_acquired_buffers{};
-        for (const auto& slot : slots) {
-            if (slot.buffer_state == BufferState::Acquired) {
-                ++num_acquired_buffers;
-            }
-        }
+        const s32 num_acquired_buffers{
+            static_cast<s32>(std::count_if(slots.begin(), slots.end(), [](const auto& slot) {
+                return slot.buffer_state == BufferState::Acquired;
+            }))};
 
         if (num_acquired_buffers >= core->max_acquired_buffer_count + 1) {
             LOG_ERROR(Service_NVFlinger, "max acquired buffer count reached: {} (max {})",
@@ -46,8 +45,8 @@ Status BufferQueueConsumer::AcquireBuffer(BufferItem* out_buffer, s64 expected_p
 
         auto front(core->queue.begin());
 
-        // If expected_presenst_ns is specified, we may not want to return a buffer yet.
-        if (expected_presenst_ns != 0) {
+        // If expected_present is specified, we may not want to return a buffer yet.
+        if (expected_present.count() != 0) {
             constexpr auto MAX_REASONABLE_NSEC = 1000000000LL; // 1 second
 
             // The expected_presenst_ns argument indicates when the buffer is expected to be
@@ -63,17 +62,17 @@ Status BufferQueueConsumer::AcquireBuffer(BufferItem* out_buffer, s64 expected_p
 
                 // If entry[1] is timely, drop entry[0] (and repeat).
                 const auto desired_present = buffer_item.timestamp;
-                if (desired_present < expected_presenst_ns - MAX_REASONABLE_NSEC ||
-                    desired_present > expected_presenst_ns) {
+                if (desired_present < expected_present.count() - MAX_REASONABLE_NSEC ||
+                    desired_present > expected_present.count()) {
                     // This buffer is set to display in the near future, or desired_present is
                     // garbage.
                     LOG_DEBUG(Service_NVFlinger, "nodrop desire={} expect={}", desired_present,
-                              expected_presenst_ns);
+                              expected_present.count());
                     break;
                 }
 
                 LOG_DEBUG(Service_NVFlinger, "drop desire={} expect={} size={}", desired_present,
-                          expected_presenst_ns, core->queue.size());
+                          expected_present.count(), core->queue.size());
 
                 if (core->StillTracking(&*front)) {
                     // Front buffer is still in mSlots, so mark the slot as free
@@ -89,19 +88,20 @@ Status BufferQueueConsumer::AcquireBuffer(BufferItem* out_buffer, s64 expected_p
 
             // See if the front buffer is ready to be acquired.
             const auto desired_present = front->timestamp;
-            const auto buffer_is_due = desired_present <= expected_presenst_ns ||
-                                       desired_present > expected_presenst_ns + MAX_REASONABLE_NSEC;
+            const auto buffer_is_due =
+                desired_present <= expected_present.count() ||
+                desired_present > expected_present.count() + MAX_REASONABLE_NSEC;
             const auto consumer_is_ready =
                 max_frame_number > 0 ? front->frame_number <= max_frame_number : true;
 
             if (!buffer_is_due || !consumer_is_ready) {
                 LOG_DEBUG(Service_NVFlinger, "defer desire={} expect={}", desired_present,
-                          expected_presenst_ns);
+                          expected_present.count());
                 return Status::PresentLater;
             }
 
             LOG_DEBUG(Service_NVFlinger, "accept desire={} expect={}", desired_present,
-                      expected_presenst_ns);
+                      expected_present.count());
         }
 
         const auto slot = front->slot;

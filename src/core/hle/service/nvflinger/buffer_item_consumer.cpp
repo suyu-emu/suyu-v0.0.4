@@ -15,7 +15,7 @@ namespace Service::android {
 BufferItemConsumer::BufferItemConsumer(std::unique_ptr<BufferQueueConsumer> consumer_)
     : ConsumerBase{std::move(consumer_)} {}
 
-Status BufferItemConsumer::AcquireBuffer(BufferItem* item, u64 present_when_ns,
+Status BufferItemConsumer::AcquireBuffer(BufferItem* item, std::chrono::nanoseconds present_when,
                                          bool wait_for_fence) {
     if (!item) {
         return Status::BadValue;
@@ -23,7 +23,7 @@ Status BufferItemConsumer::AcquireBuffer(BufferItem* item, u64 present_when_ns,
 
     std::unique_lock lock(mutex);
 
-    if (const auto status = AcquireBufferLocked(item, present_when_ns); status != Status::NoError) {
+    if (const auto status = AcquireBufferLocked(item, present_when); status != Status::NoError) {
         if (status != Status::NoBufferAvailable) {
             LOG_ERROR(Service_NVFlinger, "Failed to acquire buffer: {}", status);
         }

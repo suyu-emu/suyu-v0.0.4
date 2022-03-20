@@ -7,6 +7,7 @@
 #pragma once
 
 #include <array>
+#include <chrono>
 #include <memory>
 #include <mutex>
 
@@ -34,7 +35,8 @@ protected:
     virtual void OnSidebandStreamChanged() override;
 
     void FreeBufferLocked(s32 slot_index);
-    Status AcquireBufferLocked(BufferItem* item, u64 present_when_ns, u64 max_frame_number = 0);
+    Status AcquireBufferLocked(BufferItem* item, std::chrono::nanoseconds present_when,
+                               u64 max_frame_number = 0);
     Status ReleaseBufferLocked(s32 slot, const std::shared_ptr<GraphicBuffer> graphic_buffer);
     bool StillTracking(s32 slot, const std::shared_ptr<GraphicBuffer> graphic_buffer);
     Status AddReleaseFenceLocked(s32 slot, const std::shared_ptr<GraphicBuffer> graphic_buffer,
