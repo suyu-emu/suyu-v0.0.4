@@ -642,34 +642,34 @@ Status BufferQueueProducer::Query(NativeWindow what, s32* out_value) {
         return Status::NoInit;
     }
 
-    s32 value{};
+    u32 value{};
     switch (what) {
     case NativeWindow::Width:
-        value = static_cast<s32>(core->default_width);
+        value = core->default_width;
         break;
     case NativeWindow::Height:
-        value = static_cast<s32>(core->default_height);
+        value = core->default_height;
         break;
     case NativeWindow::Format:
-        value = static_cast<s32>(core->default_buffer_format);
+        value = static_cast<u32>(core->default_buffer_format);
         break;
     case NativeWindow::MinUndequeedBuffers:
         value = core->GetMinUndequeuedBufferCountLocked(false);
         break;
     case NativeWindow::StickyTransform:
-        value = static_cast<s32>(sticky_transform);
+        value = sticky_transform;
         break;
     case NativeWindow::ConsumerRunningBehind:
         value = (core->queue.size() > 1);
         break;
     case NativeWindow::ConsumerUsageBits:
-        value = static_cast<s32>(core->consumer_usage_bit);
+        value = core->consumer_usage_bit;
         break;
     case NativeWindow::BufferAge:
         if (core->buffer_age > INT32_MAX) {
             value = 0;
         } else {
-            value = static_cast<s32>(core->buffer_age);
+            value = static_cast<u32>(core->buffer_age);
         }
         break;
     default:
@@ -679,7 +679,7 @@ Status BufferQueueProducer::Query(NativeWindow what, s32* out_value) {
 
     LOG_DEBUG(Service_NVFlinger, "what = {}, value = {}", what, value);
 
-    *out_value = value;
+    *out_value = static_cast<s32>(value);
 
     return Status::NoError;
 }
@@ -917,12 +917,12 @@ void BufferQueueProducer::Transact(Kernel::HLERequestContext& ctx, TransactionId
         status = SetBufferCount(buffer_count);
         break;
     }
-    case TransactionId::GetBufferHistory: {
+    case TransactionId::GetBufferHistory:
         LOG_WARNING(Service_NVFlinger, "(STUBBED) called, transaction=GetBufferHistory");
         break;
-    }
     default:
-        ASSERT_MSG(false, "Unimplemented");
+        ASSERT_MSG(false, "Unimplemented TransactionId {}", code);
+        break;
     }
 
     parcel_out.Write(status);
