@@ -20,7 +20,7 @@ struct NvFence {
     s32 id;
     u32 value;
 };
-static_assert(sizeof(NvFence) == 8, "Fence has wrong size");
+static_assert(sizeof(NvFence) == 8, "NvFence has wrong size");
 
 enum class NvResult : u32 {
     Success = 0x0,
