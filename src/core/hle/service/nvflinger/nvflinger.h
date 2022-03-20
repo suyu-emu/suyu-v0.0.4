@@ -8,7 +8,6 @@
 #include <mutex>
 #include <optional>
 #include <thread>
-#include <unordered_map>
 #include <vector>
 
 #include "common/common_types.h"
