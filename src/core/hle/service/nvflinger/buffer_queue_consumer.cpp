@@ -49,7 +49,7 @@ Status BufferQueueConsumer::AcquireBuffer(BufferItem* out_buffer,
         if (expected_present.count() != 0) {
             constexpr auto MAX_REASONABLE_NSEC = 1000000000LL; // 1 second
 
-            // The expected_presenst_ns argument indicates when the buffer is expected to be
+            // The expected_present argument indicates when the buffer is expected to be
             // presented on-screen.
             while (core->queue.size() > 1 && !core->queue[0].is_auto_timestamp) {
                 const auto& buffer_item{core->queue[1]};
