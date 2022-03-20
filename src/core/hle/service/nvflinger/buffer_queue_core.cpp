@@ -17,7 +17,7 @@ BufferQueueCore::BufferQueueCore() : lock{mutex, std::defer_lock} {
 }
 
 void BufferQueueCore::NotifyShutdown() {
-    std::unique_lock<std::mutex> lk(mutex);
+    std::unique_lock lk(mutex);
 
     is_shutting_down = true;
 
@@ -124,7 +124,7 @@ bool BufferQueueCore::StillTracking(const BufferItem* item) const {
 
 void BufferQueueCore::WaitWhileAllocatingLocked() const {
     while (is_allocating) {
-        std::unique_lock<std::mutex> lk(mutex);
+        std::unique_lock lk(mutex);
         is_allocating_condition.wait(lk);
     }
 }
