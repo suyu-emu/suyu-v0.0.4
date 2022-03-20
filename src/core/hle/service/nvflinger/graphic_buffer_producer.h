@@ -48,7 +48,6 @@ private:
 #pragma pack(pop)
 static_assert(sizeof(QueueBufferInput) == 84, "QueueBufferInput has wrong size");
 
-#pragma pack(push, 1)
 struct QueueBufferOutput final {
     QueueBufferOutput();
 
@@ -72,7 +71,6 @@ private:
     u32 transform_hint{};
     u32 num_pending_buffers{};
 };
-#pragma pack(pop)
 static_assert(sizeof(QueueBufferOutput) == 16, "QueueBufferOutput has wrong size");
 
 } // namespace Service::android
