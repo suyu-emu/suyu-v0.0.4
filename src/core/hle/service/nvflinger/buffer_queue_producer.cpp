@@ -229,12 +229,10 @@ Status BufferQueueProducer::WaitForFreeSlotThenRelock(bool async, s32* found,
 
 Status BufferQueueProducer::DequeueBuffer(s32* out_slot, Fence* out_fence, bool async, u32 width,
                                           u32 height, PixelFormat format, u32 usage) {
-    { BufferQueueCore::AutoLock lock(core); }
-
     LOG_DEBUG(Service_NVFlinger, "async={} w={} h={} format={}, usage={}", async ? "true" : "false",
               width, height, format, usage);
 
-    if ((width && !height) || (!width && height)) {
+    if ((width != 0 && height == 0) || (width == 0 && height != 0)) {
         LOG_ERROR(Service_NVFlinger, "invalid size: w={} h={}", width, height);
         return Status::BadValue;
     }
