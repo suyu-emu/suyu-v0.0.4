@@ -8,8 +8,8 @@
 
 #include "common/common_funcs.h"
 #include "common/common_types.h"
+#include "common/math_util.h"
 #include "core/hle/service/nvflinger/ui/fence.h"
-#include "core/hle/service/nvflinger/ui/rect.h"
 #include "core/hle/service/nvflinger/window.h"
 
 namespace Service::android {
@@ -20,7 +20,7 @@ class Parcel;
 struct QueueBufferInput final {
     explicit QueueBufferInput(Parcel& parcel);
 
-    void Deflate(s64* timestamp_, bool* is_auto_timestamp_, Rect* crop_,
+    void Deflate(s64* timestamp_, bool* is_auto_timestamp_, Common::Rectangle<s32>* crop_,
                  NativeWindowScalingMode* scaling_mode_, NativeWindowTransform* transform_,
                  u32* sticky_transform_, bool* async_, s32* swap_interval_, Fence* fence_) const {
         *timestamp_ = timestamp;
@@ -37,7 +37,7 @@ struct QueueBufferInput final {
 private:
     s64 timestamp{};
     s32 is_auto_timestamp{};
-    Rect crop{};
+    Common::Rectangle<s32> crop{};
     NativeWindowScalingMode scaling_mode{};
     NativeWindowTransform transform{};
     u32 sticky_transform{};

@@ -441,7 +441,7 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
                                         QueueBufferOutput* output) {
     s64 timestamp{};
     bool is_auto_timestamp{};
-    Rect crop;
+    Common::Rectangle<s32> crop;
     NativeWindowScalingMode scaling_mode{};
     NativeWindowTransform transform;
     u32 sticky_transform_{};
@@ -509,9 +509,9 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
                   crop.Bottom(), transform, scaling_mode);
 
         const std::shared_ptr<GraphicBuffer>& graphic_buffer(slots[slot].graphic_buffer);
-        Rect buffer_rect(graphic_buffer->Width(), graphic_buffer->Height());
-        Rect cropped_rect;
-        crop.Intersect(buffer_rect, &cropped_rect);
+        Common::Rectangle<s32> buffer_rect(graphic_buffer->Width(), graphic_buffer->Height());
+        Common::Rectangle<s32> cropped_rect;
+        [[maybe_unused]] const bool unused = crop.Intersect(buffer_rect, &cropped_rect);
 
         if (cropped_rect != crop) {
             LOG_ERROR(Service_NVFlinger, "crop rect is not contained within the buffer in slot {}",

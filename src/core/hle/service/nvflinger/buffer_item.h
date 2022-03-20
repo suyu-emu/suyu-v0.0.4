@@ -9,8 +9,8 @@
 #include <memory>
 
 #include "common/common_types.h"
+#include "common/math_util.h"
 #include "core/hle/service/nvflinger/ui/fence.h"
-#include "core/hle/service/nvflinger/ui/rect.h"
 #include "core/hle/service/nvflinger/window.h"
 
 namespace Service::android {
@@ -23,7 +23,7 @@ public:
 
     std::shared_ptr<GraphicBuffer> graphic_buffer;
     Fence fence;
-    Rect crop;
+    Common::Rectangle<s32> crop;
     NativeWindowTransform transform{};
     u32 scaling_mode{};
     s64 timestamp{};
