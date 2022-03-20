@@ -10,7 +10,7 @@
 #include "common/common_types.h"
 #include "core/hle/service/nvflinger/pixel_format.h"
 
-namespace android {
+namespace Service::android {
 
 class GraphicBuffer final {
 public:
@@ -97,4 +97,4 @@ private:
 };
 static_assert(sizeof(GraphicBuffer) == 0x16C, "GraphicBuffer has wrong size");
 
-} // namespace android
+} // namespace Service::android

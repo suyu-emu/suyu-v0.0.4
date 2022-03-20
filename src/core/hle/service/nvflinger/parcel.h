@@ -10,7 +10,7 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 
-namespace android {
+namespace Service::android {
 
 class Parcel final {
 public:
@@ -168,4 +168,4 @@ private:
     std::size_t write_index = sizeof(Header);
 };
 
-} // namespace android
+} // namespace Service::android

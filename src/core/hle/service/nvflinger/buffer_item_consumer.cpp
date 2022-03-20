@@ -10,7 +10,7 @@
 #include "core/hle/service/nvflinger/buffer_item_consumer.h"
 #include "core/hle/service/nvflinger/buffer_queue_consumer.h"
 
-namespace android {
+namespace Service::android {
 
 BufferItemConsumer::BufferItemConsumer(std::unique_ptr<BufferQueueConsumer> consumer_)
     : ConsumerBase{std::move(consumer_)} {}
@@ -56,4 +56,4 @@ Status BufferItemConsumer::ReleaseBuffer(const BufferItem& item, Fence& release_
     return Status::NoError;
 }
 
-} // namespace android
+} // namespace Service::android

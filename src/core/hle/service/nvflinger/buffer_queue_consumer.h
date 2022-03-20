@@ -12,7 +12,7 @@
 #include "core/hle/service/nvflinger/buffer_queue_defs.h"
 #include "core/hle/service/nvflinger/status.h"
 
-namespace android {
+namespace Service::android {
 
 class BufferItem;
 class BufferQueueCore;
@@ -33,4 +33,4 @@ private:
     BufferQueueDefs::SlotsType& slots;
 };
 
-} // namespace android
+} // namespace Service::android

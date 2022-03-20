@@ -31,7 +31,7 @@ namespace Service::KernelHelpers {
 class ServiceContext;
 } // namespace Service::KernelHelpers
 
-namespace android {
+namespace Service::android {
 
 class BufferQueueCore;
 class IProducerListener;
@@ -80,4 +80,4 @@ private:
     std::condition_variable callback_condition;
 };
 
-} // namespace android
+} // namespace Service::android

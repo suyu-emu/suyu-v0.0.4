@@ -6,7 +6,7 @@
 
 #pragma once
 
-namespace android {
+namespace Service::android {
 
 class BufferItem;
 
@@ -23,4 +23,4 @@ public:
     virtual void OnSidebandStreamChanged() = 0;
 };
 
-}; // namespace android
+}; // namespace Service::android

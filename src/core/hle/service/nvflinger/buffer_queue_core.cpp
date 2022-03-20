@@ -8,12 +8,9 @@
 
 #include "core/hle/service/nvflinger/buffer_queue_core.h"
 
-namespace android {
+namespace Service::android {
 
-BufferQueueCore::BufferQueueCore() : lock{mutex} {
-    // This is locked on creation, so unlock.
-    lock.unlock();
-
+BufferQueueCore::BufferQueueCore() : lock{mutex, std::defer_lock} {
     for (s32 slot = 0; slot < BufferQueueDefs::NUM_BUFFER_SLOTS; ++slot) {
         free_slots.insert(slot);
     }
@@ -132,4 +129,4 @@ void BufferQueueCore::WaitWhileAllocatingLocked() const {
     }
 }
 
-} // namespace android
+} // namespace Service::android

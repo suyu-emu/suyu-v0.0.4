@@ -23,7 +23,7 @@
 #include "core/hle/service/nvflinger/window.h"
 #include "core/hle/service/vi/vi.h"
 
-namespace android {
+namespace Service::android {
 
 BufferQueueProducer::BufferQueueProducer(Service::KernelHelpers::ServiceContext& service_context_,
                                          std::shared_ptr<BufferQueueCore> buffer_queue_core_)
@@ -936,4 +936,4 @@ Kernel::KReadableEvent& BufferQueueProducer::GetNativeHandle() {
     return buffer_wait_event->GetReadableEvent();
 }
 
-} // namespace android
+} // namespace Service::android

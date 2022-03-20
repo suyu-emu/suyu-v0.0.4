@@ -12,7 +12,7 @@
 #include "core/hle/service/nvflinger/ui/rect.h"
 #include "core/hle/service/nvflinger/window.h"
 
-namespace android {
+namespace Service::android {
 
 class Parcel;
 
@@ -75,4 +75,4 @@ private:
 #pragma pack(pop)
 static_assert(sizeof(QueueBufferOutput) == 16, "QueueBufferOutput has wrong size");
 
-} // namespace android
+} // namespace Service::android

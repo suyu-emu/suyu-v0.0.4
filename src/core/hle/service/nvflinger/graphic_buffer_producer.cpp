@@ -9,7 +9,7 @@
 #include "core/hle/service/nvflinger/graphic_buffer_producer.h"
 #include "core/hle/service/nvflinger/parcel.h"
 
-namespace android {
+namespace Service::android {
 
 QueueBufferInput::QueueBufferInput(Parcel& parcel) {
     parcel.ReadFlattened(*this);
@@ -17,4 +17,4 @@ QueueBufferInput::QueueBufferInput(Parcel& parcel) {
 
 QueueBufferOutput::QueueBufferOutput() = default;
 
-} // namespace android
+} // namespace Service::android

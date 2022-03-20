@@ -323,12 +323,12 @@ void RendererOpenGL::ConfigureFramebufferTexture(TextureInfo& texture,
 
     GLint internal_format;
     switch (framebuffer.pixel_format) {
-    case android::PixelFormat::Rgba8888:
+    case Service::android::PixelFormat::Rgba8888:
         internal_format = GL_RGBA8;
         texture.gl_format = GL_RGBA;
         texture.gl_type = GL_UNSIGNED_INT_8_8_8_8_REV;
         break;
-    case android::PixelFormat::Rgb565:
+    case Service::android::PixelFormat::Rgb565:
         internal_format = GL_RGB565;
         texture.gl_format = GL_RGB;
         texture.gl_type = GL_UNSIGNED_SHORT_5_6_5;
@@ -464,8 +464,8 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     const auto& texcoords = screen_info.display_texcoords;
     auto left = texcoords.left;
     auto right = texcoords.right;
-    if (framebuffer_transform_flags != android::BufferTransformFlags::Unset) {
-        if (framebuffer_transform_flags == android::BufferTransformFlags::FlipV) {
+    if (framebuffer_transform_flags != Service::android::BufferTransformFlags::Unset) {
+        if (framebuffer_transform_flags == Service::android::BufferTransformFlags::FlipV) {
             // Flip the framebuffer vertically
             left = texcoords.right;
             right = texcoords.left;

@@ -5,7 +5,7 @@
 
 #include "common/common_types.h"
 
-namespace android {
+namespace Service::android {
 
 enum class BufferTransformFlags : u32 {
     /// No transform flags are set
@@ -22,4 +22,4 @@ enum class BufferTransformFlags : u32 {
     Rotate270 = 0x07,
 };
 
-} // namespace android
+} // namespace Service::android

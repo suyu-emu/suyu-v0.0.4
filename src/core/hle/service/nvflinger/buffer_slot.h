@@ -11,7 +11,7 @@
 #include "common/common_types.h"
 #include "core/hle/service/nvflinger/ui/fence.h"
 
-namespace android {
+namespace Service::android {
 
 class GraphicBuffer;
 
@@ -36,4 +36,4 @@ struct BufferSlot final {
     bool is_preallocated{};
 };
 
-} // namespace android
+} // namespace Service::android

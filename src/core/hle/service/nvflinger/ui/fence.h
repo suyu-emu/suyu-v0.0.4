@@ -11,7 +11,7 @@
 #include "common/common_types.h"
 #include "core/hle/service/nvdrv/nvdata.h"
 
-namespace android {
+namespace Service::android {
 
 class Fence {
 public:
@@ -29,4 +29,4 @@ public:
 };
 static_assert(sizeof(Fence) == 36, "Fence has wrong size");
 
-} // namespace android
+} // namespace Service::android

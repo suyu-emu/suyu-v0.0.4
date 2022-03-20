@@ -19,7 +19,7 @@
 #include "core/hle/service/nvflinger/status.h"
 #include "core/hle/service/nvflinger/window.h"
 
-namespace android {
+namespace Service::android {
 
 class IConsumerListener;
 class IProducerListener;
@@ -95,4 +95,4 @@ private:
     bool is_shutting_down{};
 };
 
-} // namespace android
+} // namespace Service::android

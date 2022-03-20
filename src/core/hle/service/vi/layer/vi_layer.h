@@ -8,11 +8,11 @@
 
 #include "common/common_types.h"
 
-namespace android {
+namespace Service::android {
 class BufferItemConsumer;
 class BufferQueueCore;
 class BufferQueueProducer;
-} // namespace android
+} // namespace Service::android
 
 namespace Service::VI {
 

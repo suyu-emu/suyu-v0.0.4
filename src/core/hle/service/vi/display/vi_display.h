@@ -15,7 +15,7 @@ namespace Kernel {
 class KEvent;
 }
 
-namespace android {
+namespace Service::android {
 class BufferQueueProducer;
 }
 

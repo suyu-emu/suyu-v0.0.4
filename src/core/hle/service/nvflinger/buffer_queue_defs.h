@@ -11,11 +11,11 @@
 #include "common/common_types.h"
 #include "core/hle/service/nvflinger/buffer_slot.h"
 
-namespace android::BufferQueueDefs {
+namespace Service::android::BufferQueueDefs {
 
 // BufferQueue will keep track of at most this value of buffers.
 constexpr s32 NUM_BUFFER_SLOTS = 64;
 
 using SlotsType = std::array<BufferSlot, NUM_BUFFER_SLOTS>;
 
-} // namespace android::BufferQueueDefs
+} // namespace Service::android::BufferQueueDefs

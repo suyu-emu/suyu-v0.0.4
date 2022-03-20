@@ -11,7 +11,7 @@
 
 #include "common/common_types.h"
 
-namespace android {
+namespace Service::android {
 
 class Rect final {
 public:
@@ -72,4 +72,4 @@ private:
 };
 static_assert(sizeof(Rect) == 16, "Rect has wrong size");
 
-} // namespace android
+} // namespace Service::android

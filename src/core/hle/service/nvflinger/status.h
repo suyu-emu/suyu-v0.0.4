@@ -6,7 +6,7 @@
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 
-namespace android {
+namespace Service::android {
 
 enum class Status : s32 {
     None = 0,
@@ -25,4 +25,4 @@ enum class Status : s32 {
 };
 DECLARE_ENUM_FLAG_OPERATORS(Status);
 
-} // namespace android
+} // namespace Service::android

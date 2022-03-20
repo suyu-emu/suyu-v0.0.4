@@ -12,7 +12,7 @@
 #include "core/hle/service/nvflinger/consumer_base.h"
 #include "core/hle/service/nvflinger/ui/graphic_buffer.h"
 
-namespace android {
+namespace Service::android {
 
 ConsumerBase::ConsumerBase(std::unique_ptr<BufferQueueConsumer> consumer_)
     : consumer{std::move(consumer_)} {}
@@ -126,4 +126,4 @@ bool ConsumerBase::StillTracking(s32 slot, const std::shared_ptr<GraphicBuffer> 
             slots[slot].graphic_buffer->Handle() == graphic_buffer->Handle());
 }
 
-} // namespace android
+} // namespace Service::android

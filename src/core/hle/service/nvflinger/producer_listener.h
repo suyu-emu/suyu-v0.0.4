@@ -6,11 +6,11 @@
 
 #pragma once
 
-namespace android {
+namespace Service::android {
 
 class IProducerListener {
 public:
     virtual void OnBufferReleased() = 0;
 };
 
-} // namespace android
+} // namespace Service::android

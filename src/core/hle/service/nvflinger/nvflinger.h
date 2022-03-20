@@ -37,10 +37,10 @@ class Display;
 class Layer;
 } // namespace Service::VI
 
-namespace android {
+namespace Service::android {
 class BufferQueueCore;
 class BufferQueueProducer;
-} // namespace android
+} // namespace Service::android
 
 namespace Service::NVFlinger {
 

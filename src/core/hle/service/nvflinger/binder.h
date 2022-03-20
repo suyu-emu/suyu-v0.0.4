@@ -13,7 +13,7 @@ class HLERequestContext;
 class KReadableEvent;
 } // namespace Kernel
 
-namespace android {
+namespace Service::android {
 
 enum class TransactionId {
     RequestBuffer = 1,
@@ -39,4 +39,4 @@ public:
     virtual Kernel::KReadableEvent& GetNativeHandle() = 0;
 };
 
-} // namespace android
+} // namespace Service::android

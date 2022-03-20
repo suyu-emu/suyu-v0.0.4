@@ -10,7 +10,7 @@
 #include "core/hle/service/nvflinger/buffer_queue_core.h"
 #include "core/hle/service/nvflinger/producer_listener.h"
 
-namespace android {
+namespace Service::android {
 
 BufferQueueConsumer::BufferQueueConsumer(std::shared_ptr<BufferQueueCore> core_)
     : core{std::move(core_)}, slots{core->slots} {}
@@ -222,4 +222,4 @@ Status BufferQueueConsumer::Connect(std::shared_ptr<IConsumerListener> consumer_
     return Status::NoError;
 }
 
-} // namespace android
+} // namespace Service::android

@@ -15,7 +15,7 @@
 #include "core/hle/service/nvflinger/consumer_listener.h"
 #include "core/hle/service/nvflinger/status.h"
 
-namespace android {
+namespace Service::android {
 
 class BufferItem;
 class BufferQueueConsumer;
@@ -56,4 +56,4 @@ protected:
     mutable std::mutex mutex;
 };
 
-} // namespace android
+} // namespace Service::android

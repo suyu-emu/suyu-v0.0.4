@@ -12,7 +12,7 @@
 #include "core/hle/service/nvflinger/consumer_base.h"
 #include "core/hle/service/nvflinger/status.h"
 
-namespace android {
+namespace Service::android {
 
 class BufferItem;
 
@@ -23,4 +23,4 @@ public:
     Status ReleaseBuffer(const BufferItem& item, Fence& release_fence);
 };
 
-} // namespace android
+} // namespace Service::android

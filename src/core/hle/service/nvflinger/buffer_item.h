@@ -13,7 +13,7 @@
 #include "core/hle/service/nvflinger/ui/rect.h"
 #include "core/hle/service/nvflinger/window.h"
 
-namespace android {
+namespace Service::android {
 
 class GraphicBuffer;
 
@@ -43,4 +43,4 @@ public:
     s32 swap_interval{};
 };
 
-} // namespace android
+} // namespace Service::android

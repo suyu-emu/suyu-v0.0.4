@@ -6,7 +6,7 @@
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 
-namespace android {
+namespace Service::android {
 
 /// Attributes queryable with Query
 enum class NativeWindow : s32 {
@@ -50,4 +50,4 @@ enum class NativeWindowTransform : u32 {
 };
 DECLARE_ENUM_FLAG_OPERATORS(NativeWindowTransform);
 
-} // namespace android
+} // namespace Service::android

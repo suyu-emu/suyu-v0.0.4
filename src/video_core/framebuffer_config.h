@@ -20,8 +20,8 @@ struct FramebufferConfig {
     u32 width{};
     u32 height{};
     u32 stride{};
-    android::PixelFormat pixel_format{};
-    android::BufferTransformFlags transform_flags{};
+    Service::android::PixelFormat pixel_format{};
+    Service::android::BufferTransformFlags transform_flags{};
     Common::Rectangle<int> crop_rect;
 };
 

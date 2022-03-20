@@ -5,7 +5,7 @@
 
 #include "common/common_types.h"
 
-namespace android {
+namespace Service::android {
 
 enum class PixelFormat : u32 {
     NoFormat = 0,
@@ -18,4 +18,4 @@ enum class PixelFormat : u32 {
     Rgba4444 = 7,
 };
 
-} // namespace android
+} // namespace Service::android
