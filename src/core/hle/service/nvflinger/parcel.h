@@ -89,7 +89,8 @@ public:
         [[maybe_unused]] const u32 unknown = Read<u32>();
         const u32 length = Read<u32>();
 
-        std::u16string token{};
+        std::u16string token;
+        token.reserve(length + 1);
 
         for (u32 ch = 0; ch < length + 1; ++ch) {
             token.push_back(ReadUnaligned<u16>());
