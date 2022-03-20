@@ -117,7 +117,8 @@ Status ConsumerBase::ReleaseBufferLocked(s32 slot,
     return err;
 }
 
-bool ConsumerBase::StillTracking(s32 slot, const std::shared_ptr<GraphicBuffer> graphic_buffer) {
+bool ConsumerBase::StillTracking(s32 slot,
+                                 const std::shared_ptr<GraphicBuffer> graphic_buffer) const {
     if (slot < 0 || slot >= BufferQueueDefs::NUM_BUFFER_SLOTS) {
         return false;
     }

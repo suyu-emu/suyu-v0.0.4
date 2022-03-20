@@ -38,7 +38,7 @@ protected:
     Status AcquireBufferLocked(BufferItem* item, std::chrono::nanoseconds present_when,
                                u64 max_frame_number = 0);
     Status ReleaseBufferLocked(s32 slot, const std::shared_ptr<GraphicBuffer> graphic_buffer);
-    bool StillTracking(s32 slot, const std::shared_ptr<GraphicBuffer> graphic_buffer);
+    bool StillTracking(s32 slot, const std::shared_ptr<GraphicBuffer> graphic_buffer) const;
     Status AddReleaseFenceLocked(s32 slot, const std::shared_ptr<GraphicBuffer> graphic_buffer,
                                  const Fence& fence);
 
