@@ -16,6 +16,8 @@ BufferQueueCore::BufferQueueCore() : lock{mutex, std::defer_lock} {
     }
 }
 
+BufferQueueCore::~BufferQueueCore() = default;
+
 void BufferQueueCore::NotifyShutdown() {
     std::unique_lock lk(mutex);
 

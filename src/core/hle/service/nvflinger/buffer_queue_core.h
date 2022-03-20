@@ -32,6 +32,7 @@ public:
     static constexpr s32 INVALID_BUFFER_SLOT = BufferItem::INVALID_BUFFER_SLOT;
 
     BufferQueueCore();
+    ~BufferQueueCore();
 
     void NotifyShutdown();
 
