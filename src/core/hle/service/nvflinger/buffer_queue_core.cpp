@@ -116,10 +116,10 @@ void BufferQueueCore::FreeAllBuffersLocked() {
     }
 }
 
-bool BufferQueueCore::StillTracking(const BufferItem* item) const {
-    const BufferSlot& slot = slots[item->slot];
+bool BufferQueueCore::StillTracking(const BufferItem& item) const {
+    const BufferSlot& slot = slots[item.slot];
 
-    return (slot.graphic_buffer != nullptr) && (item->graphic_buffer == slot.graphic_buffer);
+    return (slot.graphic_buffer != nullptr) && (item.graphic_buffer == slot.graphic_buffer);
 }
 
 void BufferQueueCore::WaitWhileAllocatingLocked() const {

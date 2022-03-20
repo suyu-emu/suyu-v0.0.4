@@ -45,7 +45,7 @@ private:
     s32 GetPreallocatedBufferCountLocked() const;
     void FreeBufferLocked(s32 slot);
     void FreeAllBuffersLocked();
-    bool StillTracking(const BufferItem* item) const;
+    bool StillTracking(const BufferItem& item) const;
     void WaitWhileAllocatingLocked() const;
 
 private:

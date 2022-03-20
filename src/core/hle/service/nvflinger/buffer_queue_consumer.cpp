@@ -74,7 +74,7 @@ Status BufferQueueConsumer::AcquireBuffer(BufferItem* out_buffer,
                 LOG_DEBUG(Service_NVFlinger, "drop desire={} expect={} size={}", desired_present,
                           expected_present.count(), core->queue.size());
 
-                if (core->StillTracking(&*front)) {
+                if (core->StillTracking(*front)) {
                     // Front buffer is still in mSlots, so mark the slot as free
                     slots[front->slot].buffer_state = BufferState::Free;
                     core->free_buffers.push_back(front->slot);
@@ -110,7 +110,7 @@ Status BufferQueueConsumer::AcquireBuffer(BufferItem* out_buffer,
         LOG_DEBUG(Service_NVFlinger, "acquiring slot={}", slot);
 
         // If the front buffer is still being tracked, update its slot state
-        if (core->StillTracking(&*front)) {
+        if (core->StillTracking(*front)) {
             slots[slot].acquire_called = true;
             slots[slot].needs_cleanup_on_release = false;
             slots[slot].buffer_state = BufferState::Acquired;

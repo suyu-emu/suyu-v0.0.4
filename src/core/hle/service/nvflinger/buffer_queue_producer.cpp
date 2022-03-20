@@ -554,7 +554,7 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
             if (front->is_droppable) {
                 // If the front queued buffer is still being tracked, we first
                 // mark it as freed
-                if (core->StillTracking(&*front)) {
+                if (core->StillTracking(*front)) {
                     slots[front->slot].buffer_state = BufferState::Free;
                     core->free_buffers.push_front(front->slot);
                 }
