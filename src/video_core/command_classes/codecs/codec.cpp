@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
-#include <cstdio>
 #include <fstream>
 #include <vector>
 #include "common/assert.h"
