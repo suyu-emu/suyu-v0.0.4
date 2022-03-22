@@ -57,6 +57,18 @@ AVPixelFormat GetGpuFormat(AVCodecContext* av_codec_ctx, const AVPixelFormat* pi
     av_codec_ctx->pix_fmt = PREFERRED_CPU_FMT;
     return PREFERRED_CPU_FMT;
 }
+
+// List all the currently available hwcontext in ffmpeg
+std::vector<AVHWDeviceType> ListSupportedContexts() {
+    std::vector<AVHWDeviceType> contexts{};
+    AVHWDeviceType current_device_type = AV_HWDEVICE_TYPE_NONE;
+    do {
+        current_device_type = av_hwdevice_iterate_types(current_device_type);
+        contexts.push_back(current_device_type);
+    } while (current_device_type != AV_HWDEVICE_TYPE_NONE);
+    return contexts;
+}
+
 } // namespace
 
 void AVFrameDeleter(AVFrame* ptr) {
@@ -75,17 +87,6 @@ Codec::~Codec() {
     // Free libav memory
     avcodec_free_context(&av_codec_ctx);
     av_buffer_unref(&av_gpu_decoder);
-}
-
-// List all the currently available hwcontext in ffmpeg
-static std::vector<AVHWDeviceType> ListSupportedContexts() {
-    std::vector<AVHWDeviceType> contexts{};
-    AVHWDeviceType current_device_type = AV_HWDEVICE_TYPE_NONE;
-    do {
-        current_device_type = av_hwdevice_iterate_types(current_device_type);
-        contexts.push_back(current_device_type);
-    } while (current_device_type != AV_HWDEVICE_TYPE_NONE);
-    return contexts;
 }
 
 bool Codec::CreateGpuAvDevice() {
@@ -128,15 +129,19 @@ bool Codec::CreateGpuAvDevice() {
                           av_codec->name, av_hwdevice_get_type_name(type));
                 break;
             }
-            if (config->methods & HW_CONFIG_METHOD && config->device_type == type) {
-                av_codec_ctx->pix_fmt = config->pix_fmt;
-                if (config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_FRAMES_CTX) {
+            if ((config->methods & HW_CONFIG_METHOD) != 0 && config->device_type == type) {
+#if defined(__unix__)
+                // Some linux decoding backends are reported to crash with this config method
+                // TODO(ameerj): Properly support this method
+                if ((config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_FRAMES_CTX) != 0) {
                     // skip zero-copy decoders, we don't currently support them
                     LOG_DEBUG(Service_NVDRV, "Skipping decoder {} with unsupported capability {}.",
                               av_hwdevice_get_type_name(type), config->methods);
                     continue;
                 }
+#endif
                 LOG_INFO(Service_NVDRV, "Using {} GPU decoder", av_hwdevice_get_type_name(type));
+                av_codec_ctx->pix_fmt = config->pix_fmt;
                 return true;
             }
         }
