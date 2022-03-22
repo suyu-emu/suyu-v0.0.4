@@ -98,6 +98,8 @@ bool Codec::CreateGpuAvDevice() {
             LOG_DEBUG(Service_NVDRV, "{} explicitly unsupported", av_hwdevice_get_type_name(type));
             continue;
         }
+        // Avoid memory leak from not cleaning up after av_hwdevice_ctx_create
+        av_buffer_unref(&av_gpu_decoder);
         const int hwdevice_res = av_hwdevice_ctx_create(&av_gpu_decoder, type, nullptr, nullptr, 0);
         if (hwdevice_res < 0) {
             LOG_DEBUG(Service_NVDRV, "{} av_hwdevice_ctx_create failed {}",
