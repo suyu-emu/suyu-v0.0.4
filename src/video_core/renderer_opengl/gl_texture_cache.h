@@ -10,6 +10,7 @@
 #include <glad/glad.h>
 
 #include "shader_recompiler/shader_info.h"
+#include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/util_shaders.h"
 #include "video_core/texture_cache/image_view_base.h"
@@ -21,7 +22,6 @@ struct ResolutionScalingInfo;
 
 namespace OpenGL {
 
-class Device;
 class ProgramManager;
 class StateTracker;
 
@@ -83,7 +83,15 @@ public:
 
     ImageBufferMap DownloadStagingBuffer(size_t size);
 
-    u64 GetDeviceLocalMemory() const;
+    u64 GetDeviceLocalMemory() const {
+        return device_access_memory;
+    }
+
+    u64 GetDeviceMemoryUsage() const;
+
+    bool CanReportMemoryUsage() const {
+        return device.CanReportMemoryUsage();
+    }
 
     bool ShouldReinterpret([[maybe_unused]] Image& dst, [[maybe_unused]] Image& src) {
         return true;
@@ -172,6 +180,7 @@ private:
     std::array<OGLFramebuffer, 4> rescale_draw_fbos;
     std::array<OGLFramebuffer, 4> rescale_read_fbos;
     const Settings::ResolutionScalingInfo& resolution;
+    u64 device_access_memory;
 };
 
 class Image : public VideoCommon::ImageBase {

@@ -89,6 +89,8 @@ public:
     void BindImageBuffer(Buffer& buffer, u32 offset, u32 size,
                          VideoCore::Surface::PixelFormat format);
 
+    u64 GetDeviceMemoryUsage() const;
+
     void BindFastUniformBuffer(size_t stage, u32 binding_index, u32 size) {
         const GLuint handle = fast_uniforms[stage][binding_index].handle;
         const GLsizeiptr gl_size = static_cast<GLsizeiptr>(size);
@@ -151,6 +153,14 @@ public:
         use_storage_buffers = use_storage_buffers_;
     }
 
+    u64 GetDeviceLocalMemory() const {
+        return device_access_memory;
+    }
+
+    bool CanReportMemoryUsage() const {
+        return device.CanReportMemoryUsage();
+    }
+
 private:
     static constexpr std::array PABO_LUT{
         GL_VERTEX_PROGRAM_PARAMETER_BUFFER_NV,          GL_TESS_CONTROL_PROGRAM_PARAMETER_BUFFER_NV,
@@ -184,6 +194,8 @@ private:
     std::array<OGLBuffer, VideoCommon::NUM_COMPUTE_UNIFORM_BUFFERS> copy_compute_uniforms;
 
     u32 index_buffer_offset = 0;
+
+    u64 device_access_memory;
 };
 
 struct BufferCacheParams {

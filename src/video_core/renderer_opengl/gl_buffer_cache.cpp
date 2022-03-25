@@ -135,6 +135,20 @@ BufferCacheRuntime::BufferCacheRuntime(const Device& device_)
         buffer.Create();
         glNamedBufferData(buffer.handle, 0x10'000, nullptr, GL_STREAM_COPY);
     }
+
+    device_access_memory = [this]() -> u64 {
+        if (device.CanReportMemoryUsage()) {
+            return device.GetCurrentDedicatedVideoMemory() + 512_MiB;
+        }
+        return 2_GiB; // Return minimum requirements
+    }();
+}
+
+u64 BufferCacheRuntime::GetDeviceMemoryUsage() const {
+    if (device.CanReportMemoryUsage()) {
+        return device_access_memory - device.GetCurrentDedicatedVideoMemory();
+    }
+    return 2_GiB;
 }
 
 void BufferCacheRuntime::CopyBuffer(Buffer& dst_buffer, Buffer& src_buffer,

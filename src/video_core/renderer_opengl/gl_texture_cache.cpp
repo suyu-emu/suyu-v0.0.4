@@ -484,6 +484,13 @@ TextureCacheRuntime::TextureCacheRuntime(const Device& device_, ProgramManager& 
             rescale_read_fbos[i].Create();
         }
     }
+
+    device_access_memory = [this]() -> u64 {
+        if (device.CanReportMemoryUsage()) {
+            return device.GetCurrentDedicatedVideoMemory() + 512_MiB;
+        }
+        return 2_GiB; // Return minimum requirements
+    }();
 }
 
 TextureCacheRuntime::~TextureCacheRuntime() = default;
@@ -500,13 +507,11 @@ ImageBufferMap TextureCacheRuntime::DownloadStagingBuffer(size_t size) {
     return download_buffers.RequestMap(size, false);
 }
 
-u64 TextureCacheRuntime::GetDeviceLocalMemory() const {
-    if (GLAD_GL_NVX_gpu_memory_info) {
-        GLint cur_avail_mem_kb = 0;
-        glGetIntegerv(GL_GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, &cur_avail_mem_kb);
-        return static_cast<u64>(cur_avail_mem_kb) * 1_KiB;
+u64 TextureCacheRuntime::GetDeviceMemoryUsage() const {
+    if (device.CanReportMemoryUsage()) {
+        return device_access_memory - device.GetCurrentDedicatedVideoMemory();
     }
-    return 2_GiB; // Return minimum requirements
+    return 2_GiB;
 }
 
 void TextureCacheRuntime::CopyImage(Image& dst_image, Image& src_image,
@@ -686,6 +691,7 @@ Image::Image(TextureCacheRuntime& runtime_, const VideoCommon::ImageInfo& info_,
     }
     if (IsConverted(runtime->device, info.format, info.type)) {
         flags |= ImageFlagBits::Converted;
+        flags |= ImageFlagBits::CostlyLoad;
         gl_internal_format = IsPixelFormatSRGB(info.format) ? GL_SRGB8_ALPHA8 : GL_RGBA8;
         gl_format = GL_RGBA;
         gl_type = GL_UNSIGNED_INT_8_8_8_8_REV;
