@@ -12,6 +12,7 @@
 #include "core/file_sys/program_metadata.h"
 #include "core/hle/kernel/k_light_lock.h"
 #include "core/hle/kernel/k_memory_block.h"
+#include "core/hle/kernel/k_memory_layout.h"
 #include "core/hle/kernel/k_memory_manager.h"
 #include "core/hle/result.h"
 
@@ -161,6 +162,12 @@ private:
 
     bool IsLockedByCurrentThread() const {
         return general_lock.IsLockedByCurrentThread();
+    }
+
+    bool IsHeapPhysicalAddress(const KMemoryLayout& layout, PAddr phys_addr) {
+        ASSERT(this->IsLockedByCurrentThread());
+
+        return layout.IsHeapPhysicalAddress(cached_physical_heap_region, phys_addr);
     }
 
     mutable KLightLock general_lock;
@@ -322,6 +329,7 @@ private:
     bool is_aslr_enabled{};
 
     u32 heap_fill_value{};
+    const KMemoryRegion* cached_physical_heap_region{};
 
     KMemoryManager::Pool memory_pool{KMemoryManager::Pool::Application};
     KMemoryManager::Direction allocation_option{KMemoryManager::Direction::FromFront};
