@@ -54,7 +54,7 @@
              </item>
              <item>
               <property name="text">
-               <string>Paranoid</string>
+               <string>Paranoid (disables most optimizations)</string>
               </property>
              </item>
             </widget>
