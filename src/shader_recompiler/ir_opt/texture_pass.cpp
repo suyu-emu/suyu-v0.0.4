@@ -174,20 +174,41 @@ bool IsTextureInstruction(const IR::Inst& inst) {
     return IndexedInstruction(inst) != IR::Opcode::Void;
 }
 
-std::optional<ConstBufferAddr> TryGetConstBuffer(const IR::Inst* inst);
+std::optional<ConstBufferAddr> TryGetConstBuffer(const IR::Inst* inst, Environment& env);
 
-std::optional<ConstBufferAddr> Track(const IR::Value& value) {
-    return IR::BreadthFirstSearch(value, TryGetConstBuffer);
+std::optional<ConstBufferAddr> Track(const IR::Value& value, Environment& env) {
+    return IR::BreadthFirstSearch(
+        value, [&env](const IR::Inst* inst) { return TryGetConstBuffer(inst, env); });
 }
 
-std::optional<ConstBufferAddr> TryGetConstBuffer(const IR::Inst* inst) {
+std::optional<u32> TryGetConstant(IR::Value& value, Environment& env) {
+    const IR::Inst* inst = value.InstRecursive();
+    if (inst->GetOpcode() != IR::Opcode::GetCbufU32) {
+        return std::nullopt;
+    }
+    const IR::Value index{inst->Arg(0)};
+    const IR::Value offset{inst->Arg(1)};
+    if (!index.IsImmediate()) {
+        return std::nullopt;
+    }
+    if (!offset.IsImmediate()) {
+        return std::nullopt;
+    }
+    const auto index_number = index.U32();
+    if (index_number != 1) {
+        return std::nullopt;
+    }
+    const auto offset_number = offset.U32();
+    return env.ReadCbufValue(index_number, offset_number);
+}
+
+std::optional<ConstBufferAddr> TryGetConstBuffer(const IR::Inst* inst, Environment& env) {
     switch (inst->GetOpcode()) {
     default:
         return std::nullopt;
-    case IR::Opcode::BitwiseXor32:
     case IR::Opcode::BitwiseOr32: {
-        std::optional lhs{Track(inst->Arg(0))};
-        std::optional rhs{Track(inst->Arg(1))};
+        std::optional lhs{Track(inst->Arg(0), env)};
+        std::optional rhs{Track(inst->Arg(1), env)};
         if (!lhs || !rhs) {
             return std::nullopt;
         }
@@ -217,9 +238,38 @@ std::optional<ConstBufferAddr> TryGetConstBuffer(const IR::Inst* inst) {
         if (!shift.IsImmediate()) {
             return std::nullopt;
         }
-        std::optional lhs{Track(inst->Arg(0))};
+        std::optional lhs{Track(inst->Arg(0), env)};
         if (lhs) {
             lhs->shift_left = shift.U32();
+        }
+        return lhs;
+        break;
+    }
+    case IR::Opcode::BitwiseAnd32: {
+        IR::Value op1{inst->Arg(0)};
+        IR::Value op2{inst->Arg(1)};
+        if (op1.IsImmediate()) {
+            std::swap(op1, op2);
+        }
+        if (!op2.IsImmediate() && !op1.IsImmediate()) {
+            do {
+                auto try_index = TryGetConstant(op1, env);
+                if (try_index) {
+                    op1 = op2;
+                    op2 = IR::Value{*try_index};
+                    break;
+                }
+                auto try_index_2 = TryGetConstant(op2, env);
+                if (try_index_2) {
+                    op2 = IR::Value{*try_index_2};
+                    break;
+                }
+                return std::nullopt;
+            } while (false);
+        }
+        std::optional lhs{Track(op1, env)};
+        if (lhs) {
+            lhs->shift_left = std::countr_zero(op2.U32());
         }
         return lhs;
         break;
@@ -279,7 +329,7 @@ std::optional<ConstBufferAddr> TryGetConstBuffer(const IR::Inst* inst) {
 TextureInst MakeInst(Environment& env, IR::Block* block, IR::Inst& inst) {
     ConstBufferAddr addr;
     if (IsBindless(inst)) {
-        const std::optional<ConstBufferAddr> track_addr{Track(inst.Arg(0))};
+        const std::optional<ConstBufferAddr> track_addr{Track(inst.Arg(0), env)};
         if (!track_addr) {
             throw NotImplementedException("Failed to track bindless texture constant buffer");
         }
