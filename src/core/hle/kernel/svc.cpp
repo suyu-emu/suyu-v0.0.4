@@ -1664,7 +1664,7 @@ static ResultCode UnmapProcessCodeMemory(Core::System& system, Handle process_ha
         return ResultInvalidAddress;
     }
 
-    if (size == 0 || Common::Is4KBAligned(size)) {
+    if (size == 0 || !Common::Is4KBAligned(size)) {
         LOG_ERROR(Kernel_SVC, "Size is zero or not page-aligned (size=0x{:016X}).", size);
         return ResultInvalidSize;
     }
