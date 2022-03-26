@@ -72,6 +72,10 @@ public:
     ResultCode UnlockForDeviceAddressSpace(VAddr addr, std::size_t size);
     ResultCode LockForCodeMemory(VAddr addr, std::size_t size);
     ResultCode UnlockForCodeMemory(VAddr addr, std::size_t size);
+    ResultCode MakeAndOpenPageGroup(KPageLinkedList* out, VAddr address, size_t num_pages,
+                                    KMemoryState state_mask, KMemoryState state,
+                                    KMemoryPermission perm_mask, KMemoryPermission perm,
+                                    KMemoryAttribute attr_mask, KMemoryAttribute attr);
 
     Common::PageTable& PageTableImpl() {
         return page_table_impl;
@@ -159,6 +163,8 @@ private:
         return this->CheckMemoryState(nullptr, addr, size, state_mask, state, perm_mask, perm,
                                       attr_mask, attr, ignore_attr);
     }
+
+    ResultCode MakePageGroup(KPageLinkedList& pg, VAddr addr, size_t num_pages);
 
     bool IsLockedByCurrentThread() const {
         return general_lock.IsLockedByCurrentThread();

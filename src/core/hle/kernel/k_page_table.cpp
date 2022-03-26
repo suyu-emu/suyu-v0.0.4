@@ -486,6 +486,58 @@ VAddr KPageTable::FindFreeArea(VAddr region_start, std::size_t region_num_pages,
     return address;
 }
 
+ResultCode KPageTable::MakePageGroup(KPageLinkedList& pg, VAddr addr, size_t num_pages) {
+    ASSERT(this->IsLockedByCurrentThread());
+
+    const size_t size = num_pages * PageSize;
+
+    // We're making a new group, not adding to an existing one.
+    R_UNLESS(pg.Empty(), ResultInvalidCurrentMemory);
+
+    // Begin traversal.
+    Common::PageTable::TraversalContext context;
+    Common::PageTable::TraversalEntry next_entry;
+    R_UNLESS(page_table_impl.BeginTraversal(next_entry, context, addr), ResultInvalidCurrentMemory);
+
+    // Prepare tracking variables.
+    PAddr cur_addr = next_entry.phys_addr;
+    size_t cur_size = next_entry.block_size - (cur_addr & (next_entry.block_size - 1));
+    size_t tot_size = cur_size;
+
+    // Iterate, adding to group as we go.
+    const auto& memory_layout = system.Kernel().MemoryLayout();
+    while (tot_size < size) {
+        R_UNLESS(page_table_impl.ContinueTraversal(next_entry, context),
+                 ResultInvalidCurrentMemory);
+
+        if (next_entry.phys_addr != (cur_addr + cur_size)) {
+            const size_t cur_pages = cur_size / PageSize;
+
+            R_UNLESS(IsHeapPhysicalAddress(memory_layout, cur_addr), ResultInvalidCurrentMemory);
+            R_TRY(pg.AddBlock(cur_addr, cur_pages));
+
+            cur_addr = next_entry.phys_addr;
+            cur_size = next_entry.block_size;
+        } else {
+            cur_size += next_entry.block_size;
+        }
+
+        tot_size += next_entry.block_size;
+    }
+
+    // Ensure we add the right amount for the last block.
+    if (tot_size > size) {
+        cur_size -= (tot_size - size);
+    }
+
+    // Add the last block.
+    const size_t cur_pages = cur_size / PageSize;
+    R_UNLESS(IsHeapPhysicalAddress(memory_layout, cur_addr), ResultInvalidCurrentMemory);
+    R_TRY(pg.AddBlock(cur_addr, cur_pages));
+
+    return ResultSuccess;
+}
+
 ResultCode KPageTable::UnmapProcessMemory(VAddr dst_addr, std::size_t size,
                                           KPageTable& src_page_table, VAddr src_addr) {
     KScopedLightLock lk(general_lock);
@@ -1219,6 +1271,31 @@ ResultCode KPageTable::UnmapPages(VAddr address, std::size_t num_pages, KMemoryS
 
     // Update the blocks.
     block_manager->Update(address, num_pages, KMemoryState::Free, KMemoryPermission::None);
+
+    return ResultSuccess;
+}
+
+ResultCode KPageTable::MakeAndOpenPageGroup(KPageLinkedList* out, VAddr address, size_t num_pages,
+                                            KMemoryState state_mask, KMemoryState state,
+                                            KMemoryPermission perm_mask, KMemoryPermission perm,
+                                            KMemoryAttribute attr_mask, KMemoryAttribute attr) {
+    // Ensure that the page group isn't null.
+    ASSERT(out != nullptr);
+
+    // Make sure that the region we're mapping is valid for the table.
+    const size_t size = num_pages * PageSize;
+    R_UNLESS(this->Contains(address, size), ResultInvalidCurrentMemory);
+
+    // Lock the table.
+    KScopedLightLock lk(general_lock);
+
+    // Check if state allows us to create the group.
+    R_TRY(this->CheckMemoryState(address, size, state_mask | KMemoryState::FlagReferenceCounted,
+                                 state | KMemoryState::FlagReferenceCounted, perm_mask, perm,
+                                 attr_mask, attr));
+
+    // Create a new page group for the region.
+    R_TRY(this->MakePageGroup(*out, address, num_pages));
 
     return ResultSuccess;
 }
