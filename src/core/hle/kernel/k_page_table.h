@@ -164,6 +164,17 @@ private:
                                       attr_mask, attr, ignore_attr);
     }
 
+    ResultCode LockMemoryAndOpen(KPageLinkedList* out_pg, PAddr* out_paddr, VAddr addr, size_t size,
+                                 KMemoryState state_mask, KMemoryState state,
+                                 KMemoryPermission perm_mask, KMemoryPermission perm,
+                                 KMemoryAttribute attr_mask, KMemoryAttribute attr,
+                                 KMemoryPermission new_perm, KMemoryAttribute lock_attr);
+    ResultCode UnlockMemory(VAddr addr, size_t size, KMemoryState state_mask, KMemoryState state,
+                            KMemoryPermission perm_mask, KMemoryPermission perm,
+                            KMemoryAttribute attr_mask, KMemoryAttribute attr,
+                            KMemoryPermission new_perm, KMemoryAttribute lock_attr,
+                            const KPageLinkedList* pg);
+
     ResultCode MakePageGroup(KPageLinkedList& pg, VAddr addr, size_t num_pages);
 
     bool IsLockedByCurrentThread() const {
@@ -174,6 +185,14 @@ private:
         ASSERT(this->IsLockedByCurrentThread());
 
         return layout.IsHeapPhysicalAddress(cached_physical_heap_region, phys_addr);
+    }
+
+    bool GetPhysicalAddressLocked(PAddr* out, VAddr virt_addr) const {
+        ASSERT(this->IsLockedByCurrentThread());
+
+        *out = GetPhysicalAddr(virt_addr);
+
+        return *out != 0;
     }
 
     mutable KLightLock general_lock;
