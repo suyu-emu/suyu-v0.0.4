@@ -1682,57 +1682,21 @@ ResultCode KPageTable::UnlockForDeviceAddressSpace(VAddr addr, std::size_t size)
 }
 
 ResultCode KPageTable::LockForCodeMemory(VAddr addr, std::size_t size) {
-    KScopedLightLock lk(general_lock);
-
-    KMemoryPermission new_perm = KMemoryPermission::NotMapped | KMemoryPermission::KernelReadWrite;
-
-    KMemoryPermission old_perm{};
-
-    if (const ResultCode result{CheckMemoryState(
-            nullptr, &old_perm, nullptr, nullptr, addr, size, KMemoryState::FlagCanCodeMemory,
-            KMemoryState::FlagCanCodeMemory, KMemoryPermission::All,
-            KMemoryPermission::UserReadWrite, KMemoryAttribute::All, KMemoryAttribute::None)};
-        result.IsError()) {
-        return result;
-    }
-
-    new_perm = (new_perm != KMemoryPermission::None) ? new_perm : old_perm;
-
-    block_manager->UpdateLock(
-        addr, size / PageSize,
-        [](KMemoryBlockManager::iterator block, KMemoryPermission permission) {
-            block->ShareToDevice(permission);
-        },
-        new_perm);
-
-    return ResultSuccess;
+    return this->LockMemoryAndOpen(
+        nullptr, nullptr, addr, size, KMemoryState::FlagCanCodeMemory,
+        KMemoryState::FlagCanCodeMemory, KMemoryPermission::All, KMemoryPermission::UserReadWrite,
+        KMemoryAttribute::All, KMemoryAttribute::None,
+        static_cast<KMemoryPermission>(KMemoryPermission::NotMapped |
+                                       KMemoryPermission::KernelReadWrite),
+        KMemoryAttribute::Locked);
 }
 
 ResultCode KPageTable::UnlockForCodeMemory(VAddr addr, std::size_t size) {
-    KScopedLightLock lk(general_lock);
-
-    KMemoryPermission new_perm = KMemoryPermission::UserReadWrite;
-
-    KMemoryPermission old_perm{};
-
-    if (const ResultCode result{CheckMemoryState(
-            nullptr, &old_perm, nullptr, nullptr, addr, size, KMemoryState::FlagCanCodeMemory,
-            KMemoryState::FlagCanCodeMemory, KMemoryPermission::None, KMemoryPermission::None,
-            KMemoryAttribute::All, KMemoryAttribute::Locked)};
-        result.IsError()) {
-        return result;
-    }
-
-    new_perm = (new_perm != KMemoryPermission::None) ? new_perm : old_perm;
-
-    block_manager->UpdateLock(
-        addr, size / PageSize,
-        [](KMemoryBlockManager::iterator block, KMemoryPermission permission) {
-            block->UnshareToDevice(permission);
-        },
-        new_perm);
-
-    return ResultSuccess;
+    return this->UnlockMemory(addr, size, KMemoryState::FlagCanCodeMemory,
+                              KMemoryState::FlagCanCodeMemory, KMemoryPermission::None,
+                              KMemoryPermission::None, KMemoryAttribute::All,
+                              KMemoryAttribute::Locked, KMemoryPermission::UserReadWrite,
+                              KMemoryAttribute::Locked, nullptr);
 }
 
 ResultCode KPageTable::InitializeMemoryLayout(VAddr start, VAddr end) {
