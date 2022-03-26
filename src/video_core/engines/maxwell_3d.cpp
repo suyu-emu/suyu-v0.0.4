@@ -219,6 +219,8 @@ void Maxwell3D::ProcessMethodCall(u32 method, u32 argument, u32 nonshadow_argume
         regs.index_array.count = regs.small_index_2.count;
         regs.index_array.first = regs.small_index_2.first;
         dirty.flags[VideoCommon::Dirty::IndexBuffer] = true;
+        // a macro calls this one over and over, should it increase instancing?
+        // Used by Hades and likely other Vulkan games.
         return DrawArrays();
     case MAXWELL3D_REG_INDEX(topology_override):
         use_topology_override = true;
