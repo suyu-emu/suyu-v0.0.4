@@ -1408,8 +1408,8 @@ static ResultCode UnmapProcessMemory(Core::System& system, VAddr dst_address, Ha
 }
 
 static ResultCode CreateCodeMemory(Core::System& system, Handle* out, VAddr address, size_t size) {
-    LOG_TRACE(Kernel_SVC, "called, handle_out={}, address=0x{:X}, size=0x{:X}",
-              static_cast<void*>(out), address, size);
+    LOG_TRACE(Kernel_SVC, "called, address=0x{:X}, size=0x{:X}", address, size);
+
     // Get kernel instance.
     auto& kernel = system.Kernel();
 
