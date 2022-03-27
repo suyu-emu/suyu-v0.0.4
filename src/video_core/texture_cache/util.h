@@ -56,6 +56,10 @@ struct OverlapResult {
                                                            SubresourceBase base, u32 up_scale = 1,
                                                            u32 down_shift = 0);
 
+[[nodiscard]] std::vector<ImageCopy> MakeReinterpretImageCopies(const ImageInfo& src,
+                                                                u32 up_scale = 1,
+                                                                u32 down_shift = 0);
+
 [[nodiscard]] bool IsValidEntry(const Tegra::MemoryManager& gpu_memory, const TICEntry& config);
 
 [[nodiscard]] std::vector<BufferImageCopy> UnswizzleImage(Tegra::MemoryManager& gpu_memory,
@@ -88,6 +92,9 @@ void SwizzleImage(Tegra::MemoryManager& gpu_memory, GPUVAddr gpu_addr, const Ima
 [[nodiscard]] bool IsPitchLinearSameSize(const ImageInfo& lhs, const ImageInfo& rhs,
                                          bool strict_size) noexcept;
 
+[[nodiscard]] bool IsBlockLinearSizeCompatibleBPPRelaxed(const ImageInfo& lhs, const ImageInfo& rhs,
+                                                         u32 lhs_level, u32 rhs_level) noexcept;
+
 [[nodiscard]] std::optional<OverlapResult> ResolveOverlap(const ImageInfo& new_info,
                                                           GPUVAddr gpu_addr, VAddr cpu_addr,
                                                           const ImageBase& overlap,
@@ -105,6 +112,9 @@ void SwizzleImage(Tegra::MemoryManager& gpu_memory, GPUVAddr gpu_addr, const Ima
 [[nodiscard]] bool IsSubresource(const ImageInfo& candidate, const ImageBase& image,
                                  GPUVAddr candidate_addr, RelaxedOptions options, bool broken_views,
                                  bool native_bgr);
+
+[[nodiscard]] bool IsSubCopy(const ImageInfo& candidate, const ImageBase& image,
+                             GPUVAddr candidate_addr);
 
 void DeduceBlitImages(ImageInfo& dst_info, ImageInfo& src_info, const ImageBase* dst,
                       const ImageBase* src);
