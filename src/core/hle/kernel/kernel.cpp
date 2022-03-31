@@ -61,6 +61,7 @@ struct KernelCore::Impl {
         global_scheduler_context = std::make_unique<Kernel::GlobalSchedulerContext>(kernel);
         global_handle_table = std::make_unique<Kernel::KHandleTable>(kernel);
         global_handle_table->Initialize(KHandleTable::MaxTableSize);
+        default_service_thread = CreateServiceThread(kernel, "DefaultServiceThread");
 
         is_phantom_mode_for_singlecore = false;
 
@@ -677,6 +678,12 @@ struct KernelCore::Impl {
 
     void ReleaseServiceThread(std::weak_ptr<Kernel::ServiceThread> service_thread) {
         if (auto strong_ptr = service_thread.lock()) {
+            if (strong_ptr == default_service_thread.lock()) {
+                // Nothing to do here, the service is using default_service_thread, which will be
+                // released on shutdown.
+                return;
+            }
+
             service_threads_manager.QueueWork(
                 [this, strong_ptr{std::move(strong_ptr)}]() { service_threads.erase(strong_ptr); });
         }
@@ -739,7 +746,8 @@ struct KernelCore::Impl {
     std::unique_ptr<KMemoryLayout> memory_layout;
 
     // Threads used for services
-    std::unordered_set<std::shared_ptr<Kernel::ServiceThread>> service_threads;
+    std::unordered_set<std::shared_ptr<ServiceThread>> service_threads;
+    std::weak_ptr<ServiceThread> default_service_thread;
     Common::ThreadWorker service_threads_manager;
 
     std::array<KThread*, Core::Hardware::NUM_CPU_CORES> suspend_threads;
@@ -1063,6 +1071,10 @@ void KernelCore::ExitSVCProfile() {
 
 std::weak_ptr<Kernel::ServiceThread> KernelCore::CreateServiceThread(const std::string& name) {
     return impl->CreateServiceThread(*this, name);
+}
+
+std::weak_ptr<Kernel::ServiceThread> KernelCore::GetDefaultServiceThread() const {
+    return impl->default_service_thread;
 }
 
 void KernelCore::ReleaseServiceThread(std::weak_ptr<Kernel::ServiceThread> service_thread) {
