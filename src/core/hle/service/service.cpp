@@ -91,8 +91,9 @@ namespace Service {
 }
 
 ServiceFrameworkBase::ServiceFrameworkBase(Core::System& system_, const char* service_name_,
-                                           u32 max_sessions_, InvokerFn* handler_invoker_)
-    : SessionRequestHandler(system_.Kernel(), service_name_), system{system_},
+                                           ServiceThreadType thread_type, u32 max_sessions_,
+                                           InvokerFn* handler_invoker_)
+    : SessionRequestHandler(system_.Kernel(), service_name_, thread_type), system{system_},
       service_name{service_name_}, max_sessions{max_sessions_}, handler_invoker{handler_invoker_} {}
 
 ServiceFrameworkBase::~ServiceFrameworkBase() {
