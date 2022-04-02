@@ -49,6 +49,7 @@ ConfigurePerGameAddons::ConfigurePerGameAddons(Core::System& system_, QWidget* p
 
     tree_view->header()->setStretchLastSection(false);
     tree_view->header()->setSectionResizeMode(0, QHeaderView::ResizeMode::Stretch);
+    tree_view->header()->setMinimumSectionSize(150);
 
     // We must register all custom types with the Qt Automoc system so that we are able to use it
     // with signals/slots. In this case, QList falls under the umbrella of custom types.
