@@ -193,6 +193,9 @@ void MemoryManager::Unmap(GPUVAddr gpu_addr, std::size_t size) {
 }
 
 std::optional<VAddr> MemoryManager::GpuToCpuAddress(GPUVAddr gpu_addr) const {
+    if (gpu_addr >= address_space_size) [[unlikely]] {
+        return std::nullopt;
+    }
     if (GetEntry<true>(gpu_addr) != EntryType::Mapped) [[unlikely]] {
         if (GetEntry<false>(gpu_addr) != EntryType::Mapped) {
             return std::nullopt;
