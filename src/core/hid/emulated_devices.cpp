@@ -169,7 +169,7 @@ void EmulatedDevices::SetKeyboardButton(const Common::Input::CallbackStatus& cal
     if (index >= device_status.keyboard_values.size()) {
         return;
     }
-    std::lock_guard lock{mutex};
+    std::unique_lock lock{mutex};
     bool value_changed = false;
     const auto new_status = TransformToButton(callback);
     auto& current_status = device_status.keyboard_values[index];
@@ -201,6 +201,7 @@ void EmulatedDevices::SetKeyboardButton(const Common::Input::CallbackStatus& cal
     }
 
     if (is_configuring) {
+        lock.unlock();
         TriggerOnChange(DeviceTriggerType::Keyboard);
         return;
     }
@@ -208,6 +209,7 @@ void EmulatedDevices::SetKeyboardButton(const Common::Input::CallbackStatus& cal
     // Index should be converted from NativeKeyboard to KeyboardKeyIndex
     UpdateKey(index, current_status.value);
 
+    lock.unlock();
     TriggerOnChange(DeviceTriggerType::Keyboard);
 }
 
@@ -227,7 +229,7 @@ void EmulatedDevices::SetKeyboardModifier(const Common::Input::CallbackStatus& c
     if (index >= device_status.keyboard_moddifier_values.size()) {
         return;
     }
-    std::lock_guard lock{mutex};
+    std::unique_lock lock{mutex};
     bool value_changed = false;
     const auto new_status = TransformToButton(callback);
     auto& current_status = device_status.keyboard_moddifier_values[index];
@@ -259,6 +261,7 @@ void EmulatedDevices::SetKeyboardModifier(const Common::Input::CallbackStatus& c
     }
 
     if (is_configuring) {
+        lock.unlock();
         TriggerOnChange(DeviceTriggerType::KeyboardModdifier);
         return;
     }
@@ -289,6 +292,7 @@ void EmulatedDevices::SetKeyboardModifier(const Common::Input::CallbackStatus& c
         break;
     }
 
+    lock.unlock();
     TriggerOnChange(DeviceTriggerType::KeyboardModdifier);
 }
 
@@ -297,7 +301,7 @@ void EmulatedDevices::SetMouseButton(const Common::Input::CallbackStatus& callba
     if (index >= device_status.mouse_button_values.size()) {
         return;
     }
-    std::lock_guard lock{mutex};
+    std::unique_lock lock{mutex};
     bool value_changed = false;
     const auto new_status = TransformToButton(callback);
     auto& current_status = device_status.mouse_button_values[index];
@@ -329,6 +333,7 @@ void EmulatedDevices::SetMouseButton(const Common::Input::CallbackStatus& callba
     }
 
     if (is_configuring) {
+        lock.unlock();
         TriggerOnChange(DeviceTriggerType::Mouse);
         return;
     }
@@ -351,6 +356,7 @@ void EmulatedDevices::SetMouseButton(const Common::Input::CallbackStatus& callba
         break;
     }
 
+    lock.unlock();
     TriggerOnChange(DeviceTriggerType::Mouse);
 }
 
@@ -359,13 +365,14 @@ void EmulatedDevices::SetMouseAnalog(const Common::Input::CallbackStatus& callba
     if (index >= device_status.mouse_analog_values.size()) {
         return;
     }
-    std::lock_guard lock{mutex};
+    std::unique_lock lock{mutex};
     const auto analog_value = TransformToAnalog(callback);
 
     device_status.mouse_analog_values[index] = analog_value;
 
     if (is_configuring) {
         device_status.mouse_position_state = {};
+        lock.unlock();
         TriggerOnChange(DeviceTriggerType::Mouse);
         return;
     }
@@ -379,17 +386,19 @@ void EmulatedDevices::SetMouseAnalog(const Common::Input::CallbackStatus& callba
         break;
     }
 
+    lock.unlock();
     TriggerOnChange(DeviceTriggerType::Mouse);
 }
 
 void EmulatedDevices::SetMouseStick(const Common::Input::CallbackStatus& callback) {
-    std::lock_guard lock{mutex};
+    std::unique_lock lock{mutex};
     const auto touch_value = TransformToTouch(callback);
 
     device_status.mouse_stick_value = touch_value;
 
     if (is_configuring) {
         device_status.mouse_position_state = {};
+        lock.unlock();
         TriggerOnChange(DeviceTriggerType::Mouse);
         return;
     }
@@ -397,42 +406,52 @@ void EmulatedDevices::SetMouseStick(const Common::Input::CallbackStatus& callbac
     device_status.mouse_position_state.x = touch_value.x.value;
     device_status.mouse_position_state.y = touch_value.y.value;
 
+    lock.unlock();
     TriggerOnChange(DeviceTriggerType::Mouse);
 }
 
 KeyboardValues EmulatedDevices::GetKeyboardValues() const {
+    std::lock_guard lock{mutex};
     return device_status.keyboard_values;
 }
 
 KeyboardModifierValues EmulatedDevices::GetKeyboardModdifierValues() const {
+    std::lock_guard lock{mutex};
     return device_status.keyboard_moddifier_values;
 }
 
 MouseButtonValues EmulatedDevices::GetMouseButtonsValues() const {
+    std::lock_guard lock{mutex};
     return device_status.mouse_button_values;
 }
 
 KeyboardKey EmulatedDevices::GetKeyboard() const {
+    std::lock_guard lock{mutex};
     return device_status.keyboard_state;
 }
 
 KeyboardModifier EmulatedDevices::GetKeyboardModifier() const {
+    std::lock_guard lock{mutex};
     return device_status.keyboard_moddifier_state;
 }
 
 MouseButton EmulatedDevices::GetMouseButtons() const {
+    std::lock_guard lock{mutex};
     return device_status.mouse_button_state;
 }
 
 MousePosition EmulatedDevices::GetMousePosition() const {
+    std::lock_guard lock{mutex};
     return device_status.mouse_position_state;
 }
 
 AnalogStickState EmulatedDevices::GetMouseWheel() const {
+    std::lock_guard lock{mutex};
     return device_status.mouse_wheel_state;
 }
 
 void EmulatedDevices::TriggerOnChange(DeviceTriggerType type) {
+    std::lock_guard lock{callback_mutex};
     for (const auto& poller_pair : callback_list) {
         const InterfaceUpdateCallback& poller = poller_pair.second;
         if (poller.on_change) {
@@ -442,13 +461,13 @@ void EmulatedDevices::TriggerOnChange(DeviceTriggerType type) {
 }
 
 int EmulatedDevices::SetCallback(InterfaceUpdateCallback update_callback) {
-    std::lock_guard lock{mutex};
+    std::lock_guard lock{callback_mutex};
     callback_list.insert_or_assign(last_callback_key, std::move(update_callback));
     return last_callback_key++;
 }
 
 void EmulatedDevices::DeleteCallback(int key) {
-    std::lock_guard lock{mutex};
+    std::lock_guard lock{callback_mutex};
     const auto& iterator = callback_list.find(key);
     if (iterator == callback_list.end()) {
         LOG_ERROR(Input, "Tried to delete non-existent callback {}", key);

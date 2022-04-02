@@ -200,6 +200,7 @@ private:
     MouseStickDevice mouse_stick_device;
 
     mutable std::mutex mutex;
+    mutable std::mutex callback_mutex;
     std::unordered_map<int, InterfaceUpdateCallback> callback_list;
     int last_callback_key = 0;
 
