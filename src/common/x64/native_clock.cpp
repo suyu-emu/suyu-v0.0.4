@@ -16,15 +16,17 @@
 
 namespace Common {
 
-inline u64 FencedRDTSC() {
 #ifdef _MSC_VER
+__forceinline static u64 FencedRDTSC() {
     _mm_lfence();
     _ReadWriteBarrier();
     const u64 result = __rdtsc();
     _mm_lfence();
     _ReadWriteBarrier();
     return result;
+}
 #else
+static u64 FencedRDTSC() {
     u64 result;
     asm volatile("lfence\n\t"
                  "rdtsc\n\t"
@@ -35,8 +37,8 @@ inline u64 FencedRDTSC() {
                  :
                  : "rdx", "memory", "cc");
     return result;
-#endif
 }
+#endif
 
 u64 EstimateRDTSCFrequency() {
     // Discard the first result measuring the rdtsc.
