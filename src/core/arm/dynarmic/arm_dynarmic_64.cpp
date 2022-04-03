@@ -130,9 +130,7 @@ public:
     }
 
     void AddTicks(u64 ticks) override {
-        if (parent.uses_wall_clock) {
-            return;
-        }
+        ASSERT_MSG(!parent.uses_wall_clock, "This should never happen - dynarmic ticking disabled");
 
         // Divide the number of ticks by the amount of CPU cores. TODO(Subv): This yields only a
         // rough approximation of the amount of executed ticks in the system, it may be thrown off
@@ -147,12 +145,8 @@ public:
     }
 
     u64 GetTicksRemaining() override {
-        if (parent.uses_wall_clock) {
-            if (!parent.interrupt_handlers[parent.core_index].IsInterrupted()) {
-                return minimum_run_cycles;
-            }
-            return 0U;
-        }
+        ASSERT_MSG(!parent.uses_wall_clock, "This should never happen - dynarmic ticking disabled");
+
         return std::max<s64>(parent.system.CoreTiming().GetDowncount(), 0);
     }
 
@@ -208,6 +202,7 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable* 
 
     // Timing
     config.wall_clock_cntpct = uses_wall_clock;
+    config.enable_cycle_counting = !uses_wall_clock;
 
     // Code cache size
     config.code_cache_size = 512_MiB;
@@ -284,13 +279,13 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable* 
 
 void ARM_Dynarmic_64::Run() {
     while (true) {
-        jit->Run();
+        const auto hr = jit->Run();
         if (!svc_called) {
             break;
         }
         svc_called = false;
         Kernel::Svc::Call(system, svc_swi);
-        if (shutdown) {
+        if (shutdown || Has(hr, Dynarmic::HaltReason::UserDefined2)) {
             break;
         }
     }
@@ -383,6 +378,10 @@ void ARM_Dynarmic_64::LoadContext(const ThreadContext64& ctx) {
 void ARM_Dynarmic_64::PrepareReschedule() {
     jit->HaltExecution();
     shutdown = true;
+}
+
+void ARM_Dynarmic_64::SignalInterrupt() {
+    jit->HaltExecution(Dynarmic::HaltReason::UserDefined2);
 }
 
 void ARM_Dynarmic_64::ClearInstructionCache() {
