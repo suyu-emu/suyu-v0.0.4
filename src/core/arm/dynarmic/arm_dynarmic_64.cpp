@@ -26,6 +26,9 @@ namespace Core {
 using Vector = Dynarmic::A64::Vector;
 using namespace Common::Literals;
 
+constexpr Dynarmic::HaltReason break_loop = Dynarmic::HaltReason::UserDefined2;
+constexpr Dynarmic::HaltReason svc_call = Dynarmic::HaltReason::UserDefined3;
+
 class DynarmicCallbacks64 : public Dynarmic::A64::UserCallbacks {
 public:
     explicit DynarmicCallbacks64(ARM_Dynarmic_64& parent_)
@@ -105,7 +108,7 @@ public:
             break;
         }
 
-        parent.jit->HaltExecution();
+        parent.jit->HaltExecution(Dynarmic::HaltReason::CacheInvalidation);
     }
 
     void ExceptionRaised(u64 pc, Dynarmic::A64::Exception exception) override {
@@ -124,9 +127,8 @@ public:
     }
 
     void CallSVC(u32 swi) override {
-        parent.svc_called = true;
         parent.svc_swi = swi;
-        parent.jit->HaltExecution();
+        parent.jit->HaltExecution(svc_call);
     }
 
     void AddTicks(u64 ticks) override {
@@ -280,12 +282,10 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable* 
 void ARM_Dynarmic_64::Run() {
     while (true) {
         const auto hr = jit->Run();
-        if (!svc_called) {
-            break;
+        if (Has(hr, svc_call)) {
+            Kernel::Svc::Call(system, svc_swi);
         }
-        svc_called = false;
-        Kernel::Svc::Call(system, svc_swi);
-        if (shutdown || Has(hr, Dynarmic::HaltReason::UserDefined2)) {
+        if (Has(hr, break_loop)) {
             break;
         }
     }
@@ -376,12 +376,11 @@ void ARM_Dynarmic_64::LoadContext(const ThreadContext64& ctx) {
 }
 
 void ARM_Dynarmic_64::PrepareReschedule() {
-    jit->HaltExecution();
-    shutdown = true;
+    jit->HaltExecution(break_loop);
 }
 
 void ARM_Dynarmic_64::SignalInterrupt() {
-    jit->HaltExecution(Dynarmic::HaltReason::UserDefined2);
+    jit->HaltExecution(break_loop);
 }
 
 void ARM_Dynarmic_64::ClearInstructionCache() {

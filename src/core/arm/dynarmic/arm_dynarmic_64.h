@@ -78,9 +78,6 @@ private:
 
     // SVC callback
     u32 svc_swi{};
-    bool svc_called{};
-
-    bool shutdown{};
 };
 
 } // namespace Core
