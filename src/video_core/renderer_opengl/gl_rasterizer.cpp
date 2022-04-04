@@ -561,8 +561,9 @@ void RasterizerOpenGL::SyncViewport() {
         flags[Dirty::FrontFace] = false;
 
         GLenum mode = MaxwellToGL::FrontFace(regs.front_face);
-        if (regs.screen_y_control.triangle_rast_flip != 0 &&
-            regs.viewport_transform[0].scale_y < 0.0f) {
+        if ((regs.screen_y_control.triangle_rast_flip != 0 &&
+             regs.viewport_transform[0].scale_y < 0.0f) ||
+            regs.viewport_transform[0].scale_z < 0.0f) {
             switch (mode) {
             case GL_CW:
                 mode = GL_CCW;
