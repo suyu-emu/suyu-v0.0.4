@@ -557,13 +557,19 @@ void RasterizerOpenGL::SyncViewport() {
     const bool dirty_viewport = flags[Dirty::Viewports] || rescale_viewports;
     const bool dirty_clip_control = flags[Dirty::ClipControl];
 
-    if (dirty_clip_control || flags[Dirty::FrontFace]) {
+    if (dirty_viewport || dirty_clip_control || flags[Dirty::FrontFace]) {
         flags[Dirty::FrontFace] = false;
 
         GLenum mode = MaxwellToGL::FrontFace(regs.front_face);
-        if ((regs.screen_y_control.triangle_rast_flip != 0 &&
-             regs.viewport_transform[0].scale_y < 0.0f) ||
-            regs.viewport_transform[0].scale_z < 0.0f) {
+        bool flip_faces = false;
+        if (regs.screen_y_control.triangle_rast_flip != 0 &&
+            regs.viewport_transform[0].scale_y < 0.0f) {
+            flip_faces = !flip_faces;
+        }
+        if (regs.viewport_transform[0].scale_z < 0.0f) {
+            flip_faces = !flip_faces;
+        }
+        if (flip_faces) {
             switch (mode) {
             case GL_CW:
                 mode = GL_CCW;
