@@ -114,7 +114,8 @@ private:
                            Kernel::HLERequestContext& ctx);
 
     explicit ServiceFrameworkBase(Core::System& system_, const char* service_name_,
-                                  u32 max_sessions_, InvokerFn* handler_invoker_);
+                                  ServiceThreadType thread_type, u32 max_sessions_,
+                                  InvokerFn* handler_invoker_);
     ~ServiceFrameworkBase() override;
 
     void RegisterHandlersBase(const FunctionInfoBase* functions, std::size_t n);
@@ -176,14 +177,17 @@ protected:
     /**
      * Initializes the handler with no functions installed.
      *
-     * @param system_       The system context to construct this service under.
+     * @param system_ The system context to construct this service under.
      * @param service_name_ Name of the service.
-     * @param max_sessions_ Maximum number of sessions that can be
-     *                      connected to this service at the same time.
+     * @param thread_type Specifies the thread type for this service. If this is set to CreateNew,
+     *                    it creates a new thread for it, otherwise this uses the default thread.
+     * @param max_sessions_ Maximum number of sessions that can be connected to this service at the
+     * same time.
      */
     explicit ServiceFramework(Core::System& system_, const char* service_name_,
+                              ServiceThreadType thread_type = ServiceThreadType::Default,
                               u32 max_sessions_ = ServerSessionCountMax)
-        : ServiceFrameworkBase(system_, service_name_, max_sessions_, Invoker) {}
+        : ServiceFrameworkBase(system_, service_name_, thread_type, max_sessions_, Invoker) {}
 
     /// Registers handlers in the service.
     template <std::size_t N>
