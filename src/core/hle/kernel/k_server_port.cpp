@@ -62,6 +62,9 @@ void KServerPort::Destroy() {
 
     // Close our reference to our parent.
     parent->Close();
+
+    // Release host emulation members.
+    session_handler.reset();
 }
 
 bool KServerPort::IsSignaled() const {
