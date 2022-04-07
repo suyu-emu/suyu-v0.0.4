@@ -153,6 +153,7 @@ ResultVal<Kernel::KClientSession*> SM::GetServiceImpl(Kernel::HLERequestContext&
     auto& port = port_result.Unwrap();
     SCOPE_EXIT({ port->GetClientPort().Close(); });
 
+    kernel.RegisterServerObject(&port->GetServerPort());
 
     // Create a new session.
     Kernel::KClientSession* session{};
