@@ -411,47 +411,47 @@ void EmulatedDevices::SetMouseStick(const Common::Input::CallbackStatus& callbac
 }
 
 KeyboardValues EmulatedDevices::GetKeyboardValues() const {
-    std::lock_guard lock{mutex};
+    std::scoped_lock lock{mutex};
     return device_status.keyboard_values;
 }
 
 KeyboardModifierValues EmulatedDevices::GetKeyboardModdifierValues() const {
-    std::lock_guard lock{mutex};
+    std::scoped_lock lock{mutex};
     return device_status.keyboard_moddifier_values;
 }
 
 MouseButtonValues EmulatedDevices::GetMouseButtonsValues() const {
-    std::lock_guard lock{mutex};
+    std::scoped_lock lock{mutex};
     return device_status.mouse_button_values;
 }
 
 KeyboardKey EmulatedDevices::GetKeyboard() const {
-    std::lock_guard lock{mutex};
+    std::scoped_lock lock{mutex};
     return device_status.keyboard_state;
 }
 
 KeyboardModifier EmulatedDevices::GetKeyboardModifier() const {
-    std::lock_guard lock{mutex};
+    std::scoped_lock lock{mutex};
     return device_status.keyboard_moddifier_state;
 }
 
 MouseButton EmulatedDevices::GetMouseButtons() const {
-    std::lock_guard lock{mutex};
+    std::scoped_lock lock{mutex};
     return device_status.mouse_button_state;
 }
 
 MousePosition EmulatedDevices::GetMousePosition() const {
-    std::lock_guard lock{mutex};
+    std::scoped_lock lock{mutex};
     return device_status.mouse_position_state;
 }
 
 AnalogStickState EmulatedDevices::GetMouseWheel() const {
-    std::lock_guard lock{mutex};
+    std::scoped_lock lock{mutex};
     return device_status.mouse_wheel_state;
 }
 
 void EmulatedDevices::TriggerOnChange(DeviceTriggerType type) {
-    std::lock_guard lock{callback_mutex};
+    std::scoped_lock lock{callback_mutex};
     for (const auto& poller_pair : callback_list) {
         const InterfaceUpdateCallback& poller = poller_pair.second;
         if (poller.on_change) {
@@ -461,13 +461,13 @@ void EmulatedDevices::TriggerOnChange(DeviceTriggerType type) {
 }
 
 int EmulatedDevices::SetCallback(InterfaceUpdateCallback update_callback) {
-    std::lock_guard lock{callback_mutex};
+    std::scoped_lock lock{callback_mutex};
     callback_list.insert_or_assign(last_callback_key, std::move(update_callback));
     return last_callback_key++;
 }
 
 void EmulatedDevices::DeleteCallback(int key) {
-    std::lock_guard lock{callback_mutex};
+    std::scoped_lock lock{callback_mutex};
     const auto& iterator = callback_list.find(key);
     if (iterator == callback_list.end()) {
         LOG_ERROR(Input, "Tried to delete non-existent callback {}", key);
