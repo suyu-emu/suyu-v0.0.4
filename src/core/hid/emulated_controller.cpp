@@ -1173,17 +1173,22 @@ DebugPadButton EmulatedController::GetDebugPadButtons() const {
 }
 
 AnalogSticks EmulatedController::GetSticks() const {
-    std::scoped_lock lock{mutex};
+    std::unique_lock lock{mutex};
+
     if (is_configuring) {
         return {};
     }
+
     // Some drivers like stick from buttons need constant refreshing
     for (auto& device : stick_devices) {
         if (!device) {
             continue;
         }
+        lock.unlock();
         device->SoftUpdate();
+        lock.lock();
     }
+
     return controller.analog_stick_state;
 }
 
@@ -1196,15 +1201,20 @@ NpadGcTriggerState EmulatedController::GetTriggers() const {
 }
 
 MotionState EmulatedController::GetMotions() const {
-    std::scoped_lock lock{mutex};
+    std::unique_lock lock{mutex};
+
+    // Some drivers like mouse motion need constant refreshing
     if (force_update_motion) {
         for (auto& device : motion_devices) {
             if (!device) {
                 continue;
             }
+            lock.unlock();
             device->ForceUpdate();
+            lock.lock();
         }
     }
+
     return controller.motion_state;
 }
 
