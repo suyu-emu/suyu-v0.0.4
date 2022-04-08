@@ -346,7 +346,8 @@ ResultCode KPageTable::MapCodeMemory(VAddr dst_address, VAddr src_address, std::
     return ResultSuccess;
 }
 
-ResultCode KPageTable::UnmapCodeMemory(VAddr dst_address, VAddr src_address, std::size_t size) {
+ResultCode KPageTable::UnmapCodeMemory(VAddr dst_address, VAddr src_address, std::size_t size,
+                                       ICacheInvalidationStrategy icache_invalidation_strategy) {
     // Validate the mapping request.
     R_UNLESS(this->CanContain(dst_address, size, KMemoryState::AliasCode),
              ResultInvalidMemoryRegion);
@@ -396,7 +397,11 @@ ResultCode KPageTable::UnmapCodeMemory(VAddr dst_address, VAddr src_address, std
     bool reprotected_pages = false;
     SCOPE_EXIT({
         if (reprotected_pages && any_code_pages) {
-            system.InvalidateCpuInstructionCacheRange(dst_address, size);
+            if (icache_invalidation_strategy == ICacheInvalidationStrategy::InvalidateRange) {
+                system.InvalidateCpuInstructionCacheRange(dst_address, size);
+            } else {
+                system.InvalidateCpuInstructionCaches();
+            }
         }
     });
 
@@ -562,6 +567,8 @@ ResultCode KPageTable::UnmapProcessMemory(VAddr dst_addr, std::size_t size,
     // Apply the memory block update.
     block_manager->Update(dst_addr, num_pages, KMemoryState::Free, KMemoryPermission::None,
                           KMemoryAttribute::None);
+
+    system.InvalidateCpuInstructionCaches();
 
     return ResultSuccess;
 }
