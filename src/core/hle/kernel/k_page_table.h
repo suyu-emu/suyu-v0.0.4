@@ -26,6 +26,8 @@ class KMemoryBlockManager;
 
 class KPageTable final {
 public:
+    enum class ICacheInvalidationStrategy : u32 { InvalidateRange, InvalidateAll };
+
     YUZU_NON_COPYABLE(KPageTable);
     YUZU_NON_MOVEABLE(KPageTable);
 
@@ -38,7 +40,8 @@ public:
     ResultCode MapProcessCode(VAddr addr, std::size_t pages_count, KMemoryState state,
                               KMemoryPermission perm);
     ResultCode MapCodeMemory(VAddr dst_address, VAddr src_address, std::size_t size);
-    ResultCode UnmapCodeMemory(VAddr dst_address, VAddr src_address, std::size_t size);
+    ResultCode UnmapCodeMemory(VAddr dst_address, VAddr src_address, std::size_t size,
+                               ICacheInvalidationStrategy icache_invalidation_strategy);
     ResultCode UnmapProcessMemory(VAddr dst_addr, std::size_t size, KPageTable& src_page_table,
                                   VAddr src_addr);
     ResultCode MapPhysicalMemory(VAddr addr, std::size_t size);
