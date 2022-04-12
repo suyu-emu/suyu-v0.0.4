@@ -6,6 +6,8 @@
 
 #include <array>
 #include <atomic>
+#include <condition_variable>
+#include <mutex>
 #include <span>
 #include <string>
 #include <utility>
@@ -257,11 +259,11 @@ public:
     [[nodiscard]] std::shared_ptr<Common::Fiber>& GetHostContext();
 
     [[nodiscard]] ThreadState GetState() const {
-        return thread_state & ThreadState::Mask;
+        return thread_state.load(std::memory_order_relaxed) & ThreadState::Mask;
     }
 
     [[nodiscard]] ThreadState GetRawState() const {
-        return thread_state;
+        return thread_state.load(std::memory_order_relaxed);
     }
 
     void SetState(ThreadState state);
@@ -643,7 +645,6 @@ public:
     // blocking as needed.
 
     void IfDummyThreadTryWait();
-    void IfDummyThreadBeginWait();
     void IfDummyThreadEndWait();
 
 private:
@@ -764,12 +765,13 @@ private:
     bool resource_limit_release_hint{};
     StackParameters stack_parameters{};
     Common::SpinLock context_guard{};
-    KSpinLock dummy_wait_lock{};
 
     // For emulation
     std::shared_ptr<Common::Fiber> host_context{};
     bool is_single_core{};
     ThreadType thread_type{};
+    std::mutex dummy_wait_lock;
+    std::condition_variable dummy_wait_cv;
 
     // For debugging
     std::vector<KSynchronizationObject*> wait_objects_for_debugging;
