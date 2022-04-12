@@ -3654,10 +3654,8 @@ void GMainWindow::UpdateUITheme() {
 
     QPalette new_pal(qApp->palette());
     if (UISettings::IsDarkTheme()) {
-        new_pal.setColor(QPalette::Text, QColor(255, 255, 255, 255));
         new_pal.setColor(QPalette::Link, QColor(0, 190, 255, 255));
     } else {
-        new_pal.setColor(QPalette::Text, QColor(0, 0, 0, 255));
         new_pal.setColor(QPalette::Link, QColor(0, 140, 200, 255));
     }
     qApp->setPalette(new_pal);
