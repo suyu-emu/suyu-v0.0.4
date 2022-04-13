@@ -232,7 +232,7 @@ void ARM_Dynarmic_32::Run() {
         if (Has(hr, svc_call)) {
             Kernel::Svc::Call(system, svc_swi);
         }
-        if (Has(hr, break_loop)) {
+        if (Has(hr, break_loop) || !uses_wall_clock) {
             break;
         }
     }
