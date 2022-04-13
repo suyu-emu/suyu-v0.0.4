@@ -460,6 +460,8 @@ add_library(core STATIC
     hle/service/hid/controllers/touchscreen.h
     hle/service/hid/controllers/xpad.cpp
     hle/service/hid/controllers/xpad.h
+    hle/service/jit/jit_context.cpp
+    hle/service/jit/jit_context.h
     hle/service/jit/jit.cpp
     hle/service/jit/jit.h
     hle/service/lbl/lbl.cpp
