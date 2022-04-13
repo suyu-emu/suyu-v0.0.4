@@ -22,7 +22,8 @@ struct EmptyStruct {};
  */
 template <typename VaType, VaType UnmappedVa, typename PaType, PaType UnmappedPa,
           bool PaContigSplit, size_t AddressSpaceBits, typename ExtraBlockInfo = EmptyStruct>
-requires AddressSpaceValid<VaType, AddressSpaceBits> class FlatAddressSpaceMap {
+requires AddressSpaceValid<VaType, AddressSpaceBits>
+class FlatAddressSpaceMap {
 private:
     std::function<void(VaType, VaType)>
         unmapCallback{}; //!< Callback called when the mappings in an region have changed
@@ -40,8 +41,8 @@ protected:
 
         Block() = default;
 
-        Block(VaType virt, PaType phys, ExtraBlockInfo extraInfo)
-            : virt(virt), phys(phys), extraInfo(extraInfo) {}
+        Block(VaType virt_, PaType phys_, ExtraBlockInfo extraInfo_)
+            : virt(virt_), phys(phys_), extraInfo(extraInfo_) {}
 
         constexpr bool Valid() {
             return virt != UnmappedVa;
@@ -102,7 +103,8 @@ public:
  * initial, fast linear pass and a subsequent slower pass that iterates until it finds a free block
  */
 template <typename VaType, VaType UnmappedVa, size_t AddressSpaceBits>
-requires AddressSpaceValid<VaType, AddressSpaceBits> class FlatAllocator
+requires AddressSpaceValid<VaType, AddressSpaceBits>
+class FlatAllocator
     : public FlatAddressSpaceMap<VaType, UnmappedVa, bool, false, false, AddressSpaceBits> {
 private:
     using Base = FlatAddressSpaceMap<VaType, UnmappedVa, bool, false, false, AddressSpaceBits>;

@@ -204,12 +204,12 @@ NvResult nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector
 
     event.wait_handle =
         host1x_syncpoint_manager.RegisterHostAction(fence_id, target_value, [this, slot]() {
-            auto& event = events[slot];
-            if (event.status.exchange(EventState::Signalling, std::memory_order_acq_rel) ==
+            auto& event_ = events[slot];
+            if (event_.status.exchange(EventState::Signalling, std::memory_order_acq_rel) ==
                 EventState::Waiting) {
-                event.kevent->GetWritableEvent().Signal();
+                event_.kevent->GetWritableEvent().Signal();
             }
-            event.status.store(EventState::Signalled, std::memory_order_release);
+            event_.status.store(EventState::Signalled, std::memory_order_release);
         });
     return NvResult::Timeout;
 }

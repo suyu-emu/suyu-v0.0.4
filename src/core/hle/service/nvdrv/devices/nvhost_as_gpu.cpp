@@ -188,6 +188,7 @@ NvResult nvhost_as_gpu::AllocateSpace(const std::vector<u8>& input, std::vector<
 
     allocation_map[params.offset] = {
         .size = size,
+        .mappings{},
         .page_size = params.page_size,
         .sparse = (params.flags & MappingFlags::Sparse) != MappingFlags::None,
         .big_pages = params.page_size != VM::YUZU_PAGESIZE,
@@ -474,11 +475,13 @@ void nvhost_as_gpu::GetVARegionsImpl(IoctlGetVaRegions& params) {
         VaRegion{
             .offset = vm.small_page_allocator->vaStart << VM::PAGE_SIZE_BITS,
             .page_size = VM::YUZU_PAGESIZE,
+            ._pad0_{},
             .pages = vm.small_page_allocator->vaLimit - vm.small_page_allocator->vaStart,
         },
         VaRegion{
             .offset = vm.big_page_allocator->vaStart << vm.big_page_size_bits,
             .page_size = vm.big_page_size,
+            ._pad0_{},
             .pages = vm.big_page_allocator->vaLimit - vm.big_page_allocator->vaStart,
         },
     };

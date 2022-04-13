@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <list>
 #include <memory>
 #include <mutex>

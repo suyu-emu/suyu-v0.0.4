@@ -13,7 +13,8 @@
 using Core::Memory::YUZU_PAGESIZE;
 
 namespace Service::Nvidia::NvCore {
-NvMap::Handle::Handle(u64 size, Id id) : size(size), aligned_size(size), orig_size(size), id(id) {
+NvMap::Handle::Handle(u64 size_, Id id_)
+    : size(size_), aligned_size(size), orig_size(size), id(id_) {
     flags.raw = 0;
 }
 
@@ -21,19 +22,21 @@ NvResult NvMap::Handle::Alloc(Flags pFlags, u32 pAlign, u8 pKind, u64 pAddress) 
     std::scoped_lock lock(mutex);
 
     // Handles cannot be allocated twice
-    if (allocated)
+    if (allocated) {
         return NvResult::AccessDenied;
+    }
 
     flags = pFlags;
     kind = pKind;
     align = pAlign < YUZU_PAGESIZE ? YUZU_PAGESIZE : pAlign;
 
     // This flag is only applicable for handles with an address passed
-    if (pAddress)
-        flags.keep_uncached_after_free = 0;
-    else
+    if (pAddress) {
+        flags.keep_uncached_after_free.Assign(0);
+    } else {
         LOG_CRITICAL(Service_NVDRV,
                      "Mapping nvmap handles without a CPU side address is unimplemented!");
+    }
 
     size = Common::AlignUp(size, YUZU_PAGESIZE);
     aligned_size = Common::AlignUp(size, align);
@@ -48,17 +51,19 @@ NvResult NvMap::Handle::Alloc(Flags pFlags, u32 pAlign, u8 pKind, u64 pAddress) 
 
 NvResult NvMap::Handle::Duplicate(bool internal_session) {
     // Unallocated handles cannot be duplicated as duplication requires memory accounting (in HOS)
-    if (!allocated) [[unlikely]]
+    if (!allocated) [[unlikely]] {
         return NvResult::BadValue;
+    }
 
     std::scoped_lock lock(mutex);
 
     // If we internally use FromId the duplication tracking of handles won't work accurately due to
     // us not implementing per-process handle refs.
-    if (internal_session)
+    if (internal_session) {
         internal_dupes++;
-    else
+    } else {
         dupes++;
+    }
 
     return NvResult::Success;
 }
@@ -92,8 +97,9 @@ bool NvMap::TryRemoveHandle(const Handle& handle_description) {
         std::scoped_lock lock(handles_lock);
 
         auto it{handles.find(handle_description.id)};
-        if (it != handles.end())
+        if (it != handles.end()) {
             handles.erase(it);
+        }
 
         return true;
     } else {
@@ -102,8 +108,9 @@ bool NvMap::TryRemoveHandle(const Handle& handle_description) {
 }
 
 NvResult NvMap::CreateHandle(u64 size, std::shared_ptr<NvMap::Handle>& result_out) {
-    if (!size) [[unlikely]]
+    if (!size) [[unlikely]] {
         return NvResult::BadValue;
+    }
 
     u32 id{next_handle_id.fetch_add(HandleIdIncrement, std::memory_order_relaxed)};
     auto handle_description{std::make_shared<Handle>(size, id)};
@@ -133,8 +140,9 @@ VAddr NvMap::GetHandleAddress(Handle::Id handle) {
 
 u32 NvMap::PinHandle(NvMap::Handle::Id handle) {
     auto handle_description{GetHandle(handle)};
-    if (!handle_description) [[unlikely]]
+    if (!handle_description) [[unlikely]] {
         return 0;
+    }
 
     std::scoped_lock lock(handle_description->mutex);
     if (!handle_description->pins) {
@@ -183,8 +191,9 @@ u32 NvMap::PinHandle(NvMap::Handle::Id handle) {
 
 void NvMap::UnpinHandle(Handle::Id handle) {
     auto handle_description{GetHandle(handle)};
-    if (!handle_description)
+    if (!handle_description) {
         return;
+    }
 
     std::scoped_lock lock(handle_description->mutex);
     if (--handle_description->pins < 0) {
@@ -226,12 +235,13 @@ std::optional<NvMap::FreeInfo> NvMap::FreeHandle(Handle::Id handle, bool interna
 
         // Try to remove the shared ptr to the handle from the map, if nothing else is using the
         // handle then it will now be freed when `handle_description` goes out of scope
-        if (TryRemoveHandle(*handle_description))
+        if (TryRemoveHandle(*handle_description)) {
             LOG_DEBUG(Service_NVDRV, "Removed nvmap handle: {}", handle);
-        else
+        } else {
             LOG_DEBUG(Service_NVDRV,
                       "Tried to free nvmap handle: {} but didn't as it still has duplicates",
                       handle);
+        }
 
         freeInfo = {
             .address = handle_description->address,

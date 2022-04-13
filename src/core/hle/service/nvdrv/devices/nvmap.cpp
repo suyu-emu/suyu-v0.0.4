@@ -269,7 +269,7 @@ NvResult nvmap::IocFree(const std::vector<u8>& input, std::vector<u8>& output) {
         params.address = freeInfo->address;
         params.size = static_cast<u32>(freeInfo->size);
         params.flags.raw = 0;
-        params.flags.map_uncached = freeInfo->was_uncached;
+        params.flags.map_uncached.Assign(freeInfo->was_uncached);
     } else {
         // This is possible when there's internel dups or other duplicates.
     }

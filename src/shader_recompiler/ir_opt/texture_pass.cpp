@@ -269,7 +269,7 @@ std::optional<ConstBufferAddr> TryGetConstBuffer(const IR::Inst* inst, Environme
         }
         std::optional lhs{Track(op1, env)};
         if (lhs) {
-            lhs->shift_left = std::countr_zero(op2.U32());
+            lhs->shift_left = static_cast<u32>(std::countr_zero(op2.U32()));
         }
         return lhs;
         break;

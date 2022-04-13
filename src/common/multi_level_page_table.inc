@@ -30,7 +30,7 @@ MultiLevelPageTable<BaseAddr>::MultiLevelPageTable(std::size_t address_space_bit
 #ifdef _WIN32
     void* base{VirtualAlloc(nullptr, alloc_size, MEM_RESERVE, PAGE_READWRITE)};
 #else
-    void* base{mmap(nullptr, alloc_size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0)};
+    void* base{mmap(nullptr, alloc_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0)};
 
     if (base == MAP_FAILED) {
         base = nullptr;
