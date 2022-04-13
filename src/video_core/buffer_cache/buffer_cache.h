@@ -1316,12 +1316,16 @@ void BufferCache<P>::UpdateVertexBuffer(u32 index) {
     const GPUVAddr gpu_addr_begin = array.StartAddress();
     const GPUVAddr gpu_addr_end = limit.LimitAddress() + 1;
     const std::optional<VAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr_begin);
-    const u32 address_size = static_cast<u32>(gpu_addr_end - gpu_addr_begin);
-    const u32 size = address_size; // TODO: Analyze stride and number of vertices
-    if (array.enable == 0 || size == 0 || !cpu_addr) {
+    u32 address_size = static_cast<u32>(
+        std::min(gpu_addr_end - gpu_addr_begin, static_cast<u64>(std::numeric_limits<u32>::max())));
+    if (array.enable == 0 || address_size == 0 || !cpu_addr) {
         vertex_buffers[index] = NULL_BINDING;
         return;
     }
+    if (!gpu_memory->IsWithinGPUAddressRange(gpu_addr_end)) {
+        address_size = gpu_memory->MaxContinousRange(gpu_addr_begin, address_size);
+    }
+    const u32 size = address_size; // TODO: Analyze stride and number of vertices
     vertex_buffers[index] = Binding{
         .cpu_addr = *cpu_addr,
         .size = size,

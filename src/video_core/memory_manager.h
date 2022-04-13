@@ -110,6 +110,10 @@ public:
 
     size_t MaxContinousRange(GPUVAddr gpu_addr, size_t size) const;
 
+    bool IsWithinGPUAddressRange(GPUVAddr gpu_addr) const {
+        return gpu_addr < address_space_size;
+    }
+
 private:
     template <bool is_big_pages, typename FuncMapped, typename FuncReserved, typename FuncUnmapped>
     inline void MemoryOperation(GPUVAddr gpu_src_addr, std::size_t size, FuncMapped&& func_mapped,
