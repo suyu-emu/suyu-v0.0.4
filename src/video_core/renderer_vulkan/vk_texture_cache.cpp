@@ -592,7 +592,7 @@ void TryTransformSwizzleIfNeeded(PixelFormat format, std::array<SwizzleSource, 4
     case PixelFormat::A5B5G5R1_UNORM:
         std::ranges::transform(swizzle, swizzle.begin(), SwapSpecial);
         break;
-    case PixelFormat::R4G4_UNORM:
+    case PixelFormat::G4R4_UNORM:
         std::ranges::transform(swizzle, swizzle.begin(), SwapGreenRed);
         break;
     default:
