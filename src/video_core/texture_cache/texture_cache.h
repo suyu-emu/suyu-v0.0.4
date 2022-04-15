@@ -357,6 +357,7 @@ void TextureCache<P>::UpdateRenderTargets(bool is_clear) {
         (maxwell3d->regs.render_area.width * up_scale) >> down_shift,
         (maxwell3d->regs.render_area.height * up_scale) >> down_shift,
     };
+    render_targets.is_rescaled = is_rescaling;
 
     flags[Dirty::DepthBiasGlobal] = true;
 }
@@ -1962,6 +1963,7 @@ std::pair<FramebufferId, ImageViewId> TextureCache<P>::RenderTargetFromImage(
         .color_buffer_ids = {color_view_id},
         .depth_buffer_id = depth_view_id,
         .size = {extent.width >> samples_x, extent.height >> samples_y},
+        .is_rescaled = is_rescaled,
     });
     return {framebuffer_id, view_id};
 }
