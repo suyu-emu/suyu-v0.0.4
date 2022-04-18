@@ -51,8 +51,12 @@ std::unordered_map<DeviceFD, u32> nvhost_nvdec_common::fd_to_id{};
 nvhost_nvdec_common::nvhost_nvdec_common(Core::System& system_, NvCore::Container& core_,
                                          NvCore::ChannelType channel_type_)
     : nvdevice{system_}, core{core_}, syncpoint_manager{core.GetSyncpointManager()},
-      nvmap{core.GetNvMapFile()}, channel_type{channel_type_} {}
-nvhost_nvdec_common::~nvhost_nvdec_common() = default;
+      nvmap{core.GetNvMapFile()}, channel_type{channel_type_} {
+    channel_syncpoint = syncpoint_manager.AllocateSyncpoint(false);
+}
+nvhost_nvdec_common::~nvhost_nvdec_common() {
+    syncpoint_manager.FreeSyncpoint(channel_syncpoint);
+}
 
 NvResult nvhost_nvdec_common::SetNVMAPfd(const std::vector<u8>& input) {
     IoctlSetNvmapFD params{};
@@ -117,8 +121,8 @@ NvResult nvhost_nvdec_common::GetSyncpoint(const std::vector<u8>& input, std::ve
     std::memcpy(&params, input.data(), sizeof(IoctlGetSyncpoint));
     LOG_DEBUG(Service_NVDRV, "called GetSyncpoint, id={}", params.param);
 
-    const u32 id{NvCore::SyncpointManager::channel_syncpoints[static_cast<u32>(channel_type)]};
-    params.value = id;
+    // const u32 id{NvCore::SyncpointManager::channel_syncpoints[static_cast<u32>(channel_type)]};
+    params.value = channel_syncpoint;
     std::memcpy(output.data(), &params, sizeof(IoctlGetSyncpoint));
 
     return NvResult::Success;
@@ -174,6 +178,10 @@ NvResult nvhost_nvdec_common::SetSubmitTimeout(const std::vector<u8>& input,
 Kernel::KEvent* nvhost_nvdec_common::QueryEvent(u32 event_id) {
     LOG_CRITICAL(Service_NVDRV, "Unknown HOSTX1 Event {}", event_id);
     return nullptr;
+}
+
+void nvhost_nvdec_common::Reset() {
+    fd_to_id.clear();
 }
 
 } // namespace Service::Nvidia::Devices

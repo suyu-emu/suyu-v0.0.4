@@ -55,6 +55,12 @@ u32 SyncpointManager::AllocateSyncpoint(bool clientManaged) {
     return ReserveSyncpoint(FindFreeSyncpoint(), clientManaged);
 }
 
+void SyncpointManager::FreeSyncpoint(u32 id) {
+    std::lock_guard lock(reservation_lock);
+    ASSERT(syncpoints.at(id).reserved);
+    syncpoints.at(id).reserved = false;
+}
+
 bool SyncpointManager::IsSyncpointAllocated(u32 id) {
     return (id <= SyncpointCount) && syncpoints[id].reserved;
 }

@@ -43,6 +43,7 @@ nvhost_gpu::~nvhost_gpu() {
     events_interface.FreeEvent(sm_exception_breakpoint_int_report_event);
     events_interface.FreeEvent(sm_exception_breakpoint_pause_report_event);
     events_interface.FreeEvent(error_notifier_event);
+    syncpoint_manager.FreeSyncpoint(channel_syncpoint);
 }
 
 NvResult nvhost_gpu::Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
