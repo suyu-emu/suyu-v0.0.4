@@ -147,7 +147,7 @@ void RendererVulkan::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
     const auto recreate_swapchain = [&] {
         if (!has_been_recreated) {
             has_been_recreated = true;
-            scheduler.WaitWorker();
+            scheduler.Finish();
         }
         const Layout::FramebufferLayout layout = render_window.GetFramebufferLayout();
         swapchain.Create(layout.width, layout.height, is_srgb);
