@@ -32,7 +32,7 @@ public:
     static_assert(sizeof(TouchScreenConfigurationForNx) == 0x17,
                   "TouchScreenConfigurationForNx is an invalid size");
 
-    explicit Controller_Touchscreen(Core::HID::HIDCore& hid_core_);
+    explicit Controller_Touchscreen(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_);
     ~Controller_Touchscreen() override;
 
     // Called when the controller is initialized
@@ -42,7 +42,7 @@ public:
     void OnRelease() override;
 
     // When the controller is requesting an update for the shared memory
-    void OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* data, std::size_t size) override;
+    void OnUpdate(const Core::Timing::CoreTiming& core_timing) override;
 
 private:
     static constexpr std::size_t MAX_FINGERS = 16;
@@ -56,11 +56,17 @@ private:
     };
     static_assert(sizeof(TouchScreenState) == 0x290, "TouchScreenState is an invalid size");
 
-    // This is nn::hid::detail::TouchScreenLifo
-    Lifo<TouchScreenState, hid_entry_count> touch_screen_lifo{};
-    static_assert(sizeof(touch_screen_lifo) == 0x2C38, "touch_screen_lifo is an invalid size");
-    TouchScreenState next_state{};
+    struct TouchSharedMemory {
+        // This is nn::hid::detail::TouchScreenLifo
+        Lifo<TouchScreenState, hid_entry_count> touch_screen_lifo{};
+        static_assert(sizeof(touch_screen_lifo) == 0x2C38, "touch_screen_lifo is an invalid size");
+        INSERT_PADDING_WORDS(0xF2);
+    };
+    static_assert(sizeof(TouchSharedMemory) == 0x3000, "TouchSharedMemory is an invalid size");
 
+    TouchSharedMemory* shared_memory;
+
+    TouchScreenState next_state{};
     std::array<Core::HID::TouchFinger, MAX_FINGERS> fingers;
     Core::HID::EmulatedConsole* console;
 };

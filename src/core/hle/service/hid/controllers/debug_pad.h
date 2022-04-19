@@ -17,7 +17,7 @@ struct AnalogStickState;
 namespace Service::HID {
 class Controller_DebugPad final : public ControllerBase {
 public:
-    explicit Controller_DebugPad(Core::HID::HIDCore& hid_core_);
+    explicit Controller_DebugPad(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_);
     ~Controller_DebugPad() override;
 
     // Called when the controller is initialized
@@ -27,7 +27,7 @@ public:
     void OnRelease() override;
 
     // When the controller is requesting an update for the shared memory
-    void OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* data, std::size_t size) override;
+    void OnUpdate(const Core::Timing::CoreTiming& core_timing) override;
 
 private:
     // This is nn::hid::DebugPadAttribute
@@ -49,11 +49,17 @@ private:
     };
     static_assert(sizeof(DebugPadState) == 0x20, "DebugPadState is an invalid state");
 
-    // This is nn::hid::detail::DebugPadLifo
-    Lifo<DebugPadState, hid_entry_count> debug_pad_lifo{};
-    static_assert(sizeof(debug_pad_lifo) == 0x2C8, "debug_pad_lifo is an invalid size");
-    DebugPadState next_state{};
+    struct DebugPadSharedMemory {
+        // This is nn::hid::detail::DebugPadLifo
+        Lifo<DebugPadState, hid_entry_count> debug_pad_lifo{};
+        static_assert(sizeof(debug_pad_lifo) == 0x2C8, "debug_pad_lifo is an invalid size");
+        INSERT_PADDING_WORDS(0x4E);
+    };
+    static_assert(sizeof(DebugPadSharedMemory) == 0x400, "DebugPadSharedMemory is an invalid size");
 
+    DebugPadSharedMemory* shared_memory;
+
+    DebugPadState next_state{};
     Core::HID::EmulatedController* controller;
 };
 } // namespace Service::HID

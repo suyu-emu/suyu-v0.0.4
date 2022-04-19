@@ -9,7 +9,7 @@
 namespace Service::HID {
 class Controller_Stubbed final : public ControllerBase {
 public:
-    explicit Controller_Stubbed(Core::HID::HIDCore& hid_core_);
+    explicit Controller_Stubbed(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_);
     ~Controller_Stubbed() override;
 
     // Called when the controller is initialized
@@ -19,7 +19,7 @@ public:
     void OnRelease() override;
 
     // When the controller is requesting an update for the shared memory
-    void OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* data, std::size_t size) override;
+    void OnUpdate(const Core::Timing::CoreTiming& core_timing) override;
 
     void SetCommonHeaderOffset(std::size_t off);
 
@@ -32,6 +32,7 @@ private:
     };
     static_assert(sizeof(CommonHeader) == 0x20, "CommonHeader is an invalid size");
 
+    u8* raw_shared_memory;
     bool smart_update{};
     std::size_t common_offset{};
 };
