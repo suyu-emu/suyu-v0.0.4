@@ -31,10 +31,10 @@ public:
 private:
     // This is nn::hid::detail::KeyboardState
     struct KeyboardState {
-        s64 sampling_number;
-        Core::HID::KeyboardModifier modifier;
-        Core::HID::KeyboardAttribute attribute;
-        Core::HID::KeyboardKey key;
+        s64 sampling_number{};
+        Core::HID::KeyboardModifier modifier{};
+        Core::HID::KeyboardAttribute attribute{};
+        Core::HID::KeyboardKey key{};
     };
     static_assert(sizeof(KeyboardState) == 0x30, "KeyboardState is an invalid size");
 
@@ -46,8 +46,8 @@ private:
     };
     static_assert(sizeof(KeyboardSharedMemory) == 0x400, "KeyboardSharedMemory is an invalid size");
 
-    KeyboardSharedMemory* shared_memory;
     KeyboardState next_state{};
-    Core::HID::EmulatedDevices* emulated_devices;
+    KeyboardSharedMemory* shared_memory = nullptr;
+    Core::HID::EmulatedDevices* emulated_devices = nullptr;
 };
 } // namespace Service::HID

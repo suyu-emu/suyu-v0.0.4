@@ -37,9 +37,9 @@ private:
     };
     static_assert(sizeof(MouseSharedMemory) == 0x400, "MouseSharedMemory is an invalid size");
 
-    MouseSharedMemory* shared_memory;
     Core::HID::MouseState next_state{};
     Core::HID::AnalogStickState last_mouse_wheel_state{};
-    Core::HID::EmulatedDevices* emulated_devices;
+    MouseSharedMemory* shared_memory = nullptr;
+    Core::HID::EmulatedDevices* emulated_devices = nullptr;
 };
 } // namespace Service::HID

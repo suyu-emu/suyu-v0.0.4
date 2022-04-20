@@ -15,8 +15,8 @@ Controller_ConsoleSixAxis::Controller_ConsoleSixAxis(Core::HID::HIDCore& hid_cor
     console = hid_core.GetEmulatedConsole();
     static_assert(SHARED_MEMORY_OFFSET + sizeof(ConsoleSharedMemory) < shared_memory_size,
                   "ConsoleSharedMemory is bigger than the shared memory");
-    shared_memory =
-        std::construct_at(reinterpret_cast<ConsoleSharedMemory*>(raw_shared_memory_ + SHARED_MEMORY_OFFSET));
+    shared_memory = std::construct_at(
+        reinterpret_cast<ConsoleSharedMemory*>(raw_shared_memory_ + SHARED_MEMORY_OFFSET));
 }
 
 Controller_ConsoleSixAxis::~Controller_ConsoleSixAxis() = default;

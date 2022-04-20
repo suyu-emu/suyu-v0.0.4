@@ -16,7 +16,8 @@ Controller_Mouse::Controller_Mouse(Core::HID::HIDCore& hid_core_, u8* raw_shared
     : ControllerBase{hid_core_} {
     static_assert(SHARED_MEMORY_OFFSET + sizeof(MouseSharedMemory) < shared_memory_size,
                   "MouseSharedMemory is bigger than the shared memory");
-    shared_memory = std::construct_at(reinterpret_cast<MouseSharedMemory*>(raw_shared_memory_ + SHARED_MEMORY_OFFSET));
+    shared_memory = std::construct_at(
+        reinterpret_cast<MouseSharedMemory*>(raw_shared_memory_ + SHARED_MEMORY_OFFSET));
     emulated_devices = hid_core.GetEmulatedDevices();
 }
 

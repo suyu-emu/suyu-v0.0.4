@@ -66,19 +66,19 @@ private:
 
     // This is nn::hid::GestureState
     struct GestureState {
-        s64 sampling_number;
-        s64 detection_count;
-        GestureType type;
-        GestureDirection direction;
-        Common::Point<s32> pos;
-        Common::Point<s32> delta;
-        f32 vel_x;
-        f32 vel_y;
-        GestureAttribute attributes;
-        f32 scale;
-        f32 rotation_angle;
-        s32 point_count;
-        std::array<Common::Point<s32>, 4> points;
+        s64 sampling_number{};
+        s64 detection_count{};
+        GestureType type{GestureType::Idle};
+        GestureDirection direction{GestureDirection::None};
+        Common::Point<s32> pos{};
+        Common::Point<s32> delta{};
+        f32 vel_x{};
+        f32 vel_y{};
+        GestureAttribute attributes{};
+        f32 scale{};
+        f32 rotation_angle{};
+        s32 point_count{};
+        std::array<Common::Point<s32>, 4> points{};
     };
     static_assert(sizeof(GestureState) == 0x60, "GestureState is an invalid size");
 
@@ -142,9 +142,9 @@ private:
     // Returns the average distance, angle and middle point of the active fingers
     GestureProperties GetGestureProperties();
 
-    GestureSharedMemory* shared_memory;
     GestureState next_state{};
-    Core::HID::EmulatedConsole* console;
+    GestureSharedMemory* shared_memory = nullptr;
+    Core::HID::EmulatedConsole* console = nullptr;
 
     std::array<Core::HID::TouchFinger, MAX_POINTS> fingers{};
     GestureProperties last_gesture{};

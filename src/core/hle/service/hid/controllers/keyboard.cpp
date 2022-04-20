@@ -16,8 +16,8 @@ Controller_Keyboard::Controller_Keyboard(Core::HID::HIDCore& hid_core_, u8* raw_
     : ControllerBase{hid_core_} {
     static_assert(SHARED_MEMORY_OFFSET + sizeof(KeyboardSharedMemory) < shared_memory_size,
                   "KeyboardSharedMemory is bigger than the shared memory");
-    shared_memory =
-        std::construct_at(reinterpret_cast<KeyboardSharedMemory*>(raw_shared_memory_ + SHARED_MEMORY_OFFSET));
+    shared_memory = std::construct_at(
+        reinterpret_cast<KeyboardSharedMemory*>(raw_shared_memory_ + SHARED_MEMORY_OFFSET));
     emulated_devices = hid_core.GetEmulatedDevices();
 }
 

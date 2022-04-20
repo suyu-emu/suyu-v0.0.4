@@ -14,7 +14,8 @@ Controller_XPad::Controller_XPad(Core::HID::HIDCore& hid_core_, u8* raw_shared_m
     : ControllerBase{hid_core_} {
     static_assert(SHARED_MEMORY_OFFSET + sizeof(XpadSharedMemory) < shared_memory_size,
                   "XpadSharedMemory is bigger than the shared memory");
-    shared_memory = std::construct_at(reinterpret_cast<XpadSharedMemory*>(raw_shared_memory_ + SHARED_MEMORY_OFFSET));
+    shared_memory = std::construct_at(
+        reinterpret_cast<XpadSharedMemory*>(raw_shared_memory_ + SHARED_MEMORY_OFFSET));
 }
 Controller_XPad::~Controller_XPad() = default;
 

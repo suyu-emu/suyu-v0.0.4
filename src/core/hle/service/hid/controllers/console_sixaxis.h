@@ -61,13 +61,13 @@ private:
     Lifo<SevenSixAxisState, 0x21> seven_sixaxis_lifo{};
     static_assert(sizeof(seven_sixaxis_lifo) == 0xA70, "SevenSixAxisState is an invalid size");
 
-    ConsoleSharedMemory* shared_memory;
-
-    Core::HID::EmulatedConsole* console;
+    SevenSixAxisState next_seven_sixaxis_state{};
     u8* transfer_memory = nullptr;
+    ConsoleSharedMemory* shared_memory = nullptr;
+    Core::HID::EmulatedConsole* console = nullptr;
+
     bool is_transfer_memory_set = false;
     u64 last_saved_timestamp{};
     u64 last_global_timestamp{};
-    SevenSixAxisState next_seven_sixaxis_state{};
 };
 } // namespace Service::HID

@@ -20,7 +20,8 @@ Controller_Touchscreen::Controller_Touchscreen(Core::HID::HIDCore& hid_core_,
     : ControllerBase{hid_core_} {
     static_assert(SHARED_MEMORY_OFFSET + sizeof(TouchSharedMemory) < shared_memory_size,
                   "TouchSharedMemory is bigger than the shared memory");
-    shared_memory = std::construct_at(reinterpret_cast<TouchSharedMemory*>(raw_shared_memory_ + SHARED_MEMORY_OFFSET));
+    shared_memory = std::construct_at(
+        reinterpret_cast<TouchSharedMemory*>(raw_shared_memory_ + SHARED_MEMORY_OFFSET));
     console = hid_core.GetEmulatedConsole();
 }
 

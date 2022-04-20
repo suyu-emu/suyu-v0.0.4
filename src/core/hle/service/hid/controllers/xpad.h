@@ -90,11 +90,11 @@ private:
 
     // This is nn::hid::detail::BasicXpadState
     struct BasicXpadState {
-        s64 sampling_number;
-        BasicXpadAttributeSet attributes;
-        BasicXpadButtonSet pad_states;
-        Core::HID::AnalogStickState l_stick;
-        Core::HID::AnalogStickState r_stick;
+        s64 sampling_number{};
+        BasicXpadAttributeSet attributes{};
+        BasicXpadButtonSet pad_states{};
+        Core::HID::AnalogStickState l_stick{};
+        Core::HID::AnalogStickState r_stick{};
     };
     static_assert(sizeof(BasicXpadState) == 0x20, "BasicXpadState is an invalid size");
 
@@ -106,7 +106,7 @@ private:
     };
     static_assert(sizeof(XpadSharedMemory) == 0x400, "XpadSharedMemory is an invalid size");
 
-    XpadSharedMemory* shared_memory;
     BasicXpadState next_state{};
+    XpadSharedMemory* shared_memory = nullptr;
 };
 } // namespace Service::HID

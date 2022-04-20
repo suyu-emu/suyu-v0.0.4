@@ -41,11 +41,11 @@ private:
 
     // This is nn::hid::DebugPadState
     struct DebugPadState {
-        s64 sampling_number;
-        DebugPadAttribute attribute;
-        Core::HID::DebugPadButton pad_state;
-        Core::HID::AnalogStickState r_stick;
-        Core::HID::AnalogStickState l_stick;
+        s64 sampling_number{};
+        DebugPadAttribute attribute{};
+        Core::HID::DebugPadButton pad_state{};
+        Core::HID::AnalogStickState r_stick{};
+        Core::HID::AnalogStickState l_stick{};
     };
     static_assert(sizeof(DebugPadState) == 0x20, "DebugPadState is an invalid state");
 
@@ -57,9 +57,8 @@ private:
     };
     static_assert(sizeof(DebugPadSharedMemory) == 0x400, "DebugPadSharedMemory is an invalid size");
 
-    DebugPadSharedMemory* shared_memory;
-
     DebugPadState next_state{};
-    Core::HID::EmulatedController* controller;
+    DebugPadSharedMemory* shared_memory = nullptr;
+    Core::HID::EmulatedController* controller = nullptr;
 };
 } // namespace Service::HID

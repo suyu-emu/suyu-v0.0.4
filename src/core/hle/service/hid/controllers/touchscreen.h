@@ -25,7 +25,7 @@ public:
 
     // This is nn::hid::TouchScreenConfigurationForNx
     struct TouchScreenConfigurationForNx {
-        TouchScreenModeForNx mode;
+        TouchScreenModeForNx mode{TouchScreenModeForNx::UseSystemSetting};
         INSERT_PADDING_BYTES_NOINIT(0x7);
         INSERT_PADDING_BYTES_NOINIT(0xF); // Reserved
     };
@@ -49,10 +49,10 @@ private:
 
     // This is nn::hid::TouchScreenState
     struct TouchScreenState {
-        s64 sampling_number;
-        s32 entry_count;
+        s64 sampling_number{};
+        s32 entry_count{};
         INSERT_PADDING_BYTES(4); // Reserved
-        std::array<Core::HID::TouchState, MAX_FINGERS> states;
+        std::array<Core::HID::TouchState, MAX_FINGERS> states{};
     };
     static_assert(sizeof(TouchScreenState) == 0x290, "TouchScreenState is an invalid size");
 
@@ -64,10 +64,10 @@ private:
     };
     static_assert(sizeof(TouchSharedMemory) == 0x3000, "TouchSharedMemory is an invalid size");
 
-    TouchSharedMemory* shared_memory;
-
     TouchScreenState next_state{};
-    std::array<Core::HID::TouchFinger, MAX_FINGERS> fingers;
-    Core::HID::EmulatedConsole* console;
+    TouchSharedMemory* shared_memory = nullptr;
+    Core::HID::EmulatedConsole* console = nullptr;
+
+    std::array<Core::HID::TouchFinger, MAX_FINGERS> fingers{};
 };
 } // namespace Service::HID

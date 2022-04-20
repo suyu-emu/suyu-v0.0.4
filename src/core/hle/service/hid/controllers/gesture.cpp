@@ -27,8 +27,8 @@ Controller_Gesture::Controller_Gesture(Core::HID::HIDCore& hid_core_, u8* raw_sh
     : ControllerBase(hid_core_) {
     static_assert(SHARED_MEMORY_OFFSET + sizeof(GestureSharedMemory) < shared_memory_size,
                   "GestureSharedMemory is bigger than the shared memory");
-    shared_memory =
-        std::construct_at(reinterpret_cast<GestureSharedMemory*>(raw_shared_memory_ + SHARED_MEMORY_OFFSET));
+    shared_memory = std::construct_at(
+        reinterpret_cast<GestureSharedMemory*>(raw_shared_memory_ + SHARED_MEMORY_OFFSET));
     console = hid_core.GetEmulatedConsole();
 }
 Controller_Gesture::~Controller_Gesture() = default;

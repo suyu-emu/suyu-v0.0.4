@@ -25,14 +25,14 @@ public:
 
 private:
     struct CommonHeader {
-        s64 timestamp;
-        s64 total_entry_count;
-        s64 last_entry_index;
-        s64 entry_count;
+        s64 timestamp{};
+        s64 total_entry_count{};
+        s64 last_entry_index{};
+        s64 entry_count{};
     };
     static_assert(sizeof(CommonHeader) == 0x20, "CommonHeader is an invalid size");
 
-    u8* raw_shared_memory;
+    u8* raw_shared_memory = nullptr;
     bool smart_update{};
     std::size_t common_offset{};
 };

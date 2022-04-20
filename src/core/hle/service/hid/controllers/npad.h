@@ -187,7 +187,7 @@ public:
     static bool IsDeviceHandleValid(const Core::HID::VibrationDeviceHandle& device_handle);
 
 private:
-    static const std::size_t NPAD_COUNT = 10;
+    static constexpr std::size_t NPAD_COUNT = 10;
 
     // This is nn::hid::detail::ColorAttribute
     enum class ColorAttribute : u32 {
@@ -470,9 +470,9 @@ private:
     };
 
     struct NpadControllerData {
-        Core::HID::EmulatedController* device;
         Kernel::KEvent* styleset_changed_event{};
-        NpadInternalState* shared_memory;
+        NpadInternalState* shared_memory = nullptr;
+        Core::HID::EmulatedController* device = nullptr;
 
         std::array<VibrationData, 2> vibration{};
         bool unintended_home_button_input_protection{};
@@ -502,8 +502,7 @@ private:
         SixAxisSensorState sixaxis_dual_right_state{};
         SixAxisSensorState sixaxis_left_lifo_state{};
         SixAxisSensorState sixaxis_right_lifo_state{};
-
-        int callback_key;
+        int callback_key{};
     };
 
     void ControllerUpdate(Core::HID::ControllerTriggerType type, std::size_t controller_idx);
