@@ -411,7 +411,7 @@ if (CONAN_REQUIRED_LIBS)
     endif()
     include(${CMAKE_BINARY_DIR}/conan.cmake)
 
-    conan_check(VERSION 1.41.0 REQUIRED)
+    conan_check(VERSION 1.45.0 REQUIRED)
 
     # Manually add iconv to fix a dep conflict between qt and sdl2
     # We don't need to add it through find_package or anything since the other two can find it just fine
