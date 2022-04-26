@@ -988,7 +988,7 @@ void ConfigureInputPlayer::UpdateUI() {
             slider_value = static_cast<int>(param.Get("deadzone", 0.15f) * 100);
             deadzone_label->setText(tr("Deadzone: %1%").arg(slider_value));
             deadzone_slider->setValue(slider_value);
-            range_spinbox->setValue(static_cast<int>(param.Get("range", 1.0f) * 100));
+            range_spinbox->setValue(static_cast<int>(param.Get("range", 0.95f) * 100));
         } else {
             slider_value = static_cast<int>(param.Get("modifier_scale", 0.5f) * 100);
             modifier_label->setText(tr("Modifier Range: %1%").arg(slider_value));
