@@ -2,7 +2,11 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <fmt/format.h>
+#ifdef _WIN32
 #include <libusb.h>
+#else
+#include <libusb-1.0/libusb.h>
+#endif
 
 #include "common/logging/log.h"
 #include "common/param_package.h"
