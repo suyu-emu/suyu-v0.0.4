@@ -319,7 +319,7 @@ public:
     }
 
 private:
-    // TODO: Replace this with std::expected once it is standardized in the STL.
+    // TODO (Morph): Replace this with C++23 std::expected.
     Common::Expected<T, ResultCode> expected;
 };
 
