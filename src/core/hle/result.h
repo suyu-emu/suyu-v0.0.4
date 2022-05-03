@@ -181,7 +181,7 @@ public:
     consteval ResultRange(ErrorModule module, u32 description_start, u32 description_end_)
         : code{module, description_start}, description_end{description_end_} {}
 
-    [[nodiscard]] consteval operator ResultCode() const {
+    [[nodiscard]] constexpr operator ResultCode() const {
         return code;
     }
 
@@ -231,6 +231,8 @@ public:
     constexpr ResultVal() : expected{} {}
 
     constexpr ResultVal(ResultCode code) : expected{Common::Unexpected(code)} {}
+
+    constexpr ResultVal(ResultRange range) : expected{Common::Unexpected(range)} {}
 
     template <typename U>
     constexpr ResultVal(U&& val) : expected{std::forward<U>(val)} {}
