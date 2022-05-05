@@ -3,7 +3,9 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cstring>
+
 #include "common/assert.h"
 #include "common/bit_field.h"
 #include "common/common_types.h"
@@ -547,7 +549,9 @@ void Controller_NPad::OnMotionUpdate(const Core::Timing::CoreTiming& core_timing
 
         const auto set_motion_state = [&](SixAxisSensorState& state,
                                           const Core::HID::ControllerMotion& hid_state) {
+            using namespace std::literals::chrono_literals;
             static constexpr SixAxisSensorState default_motion_state = {
+                .delta_time = std::chrono::nanoseconds(5ms).count(),
                 .accel = {0, 0, -1.0f},
                 .orientation =
                     {
@@ -566,6 +570,7 @@ void Controller_NPad::OnMotionUpdate(const Core::Timing::CoreTiming& core_timing
                 return;
             }
             state.attribute.is_connected.Assign(1);
+            state.delta_time = std::chrono::nanoseconds(5ms).count();
             state.accel = hid_state.accel;
             state.gyro = hid_state.gyro;
             state.rotation = hid_state.rotation;
