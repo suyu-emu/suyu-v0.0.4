@@ -1581,7 +1581,7 @@ void GMainWindow::StoreRecentFile(const QString& filename) {
 
 void GMainWindow::UpdateRecentFiles() {
     const int num_recent_files =
-        std::min(UISettings::values.recent_files.size(), max_recent_files_item);
+        std::min(static_cast<int>(UISettings::values.recent_files.size()), max_recent_files_item);
 
     for (int i = 0; i < num_recent_files; i++) {
         const QString text = QStringLiteral("&%1. %2").arg(i + 1).arg(
@@ -3319,7 +3319,7 @@ void GMainWindow::CenterMouseCursor() {
     const int center_x = render_window->width() / 2;
     const int center_y = render_window->height() / 2;
 
-    QCursor::setPos(mapToGlobal({center_x, center_y}));
+    QCursor::setPos(mapToGlobal(QPoint{center_x, center_y}));
 }
 
 void GMainWindow::OnMouseActivity() {
