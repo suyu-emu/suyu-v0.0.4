@@ -1,5 +1,8 @@
 #!/bin/bash -ex
 
+# SPDX-FileCopyrightText: 2019 yuzu Emulator Project
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 mkdir -p "ccache"  || true
 chmod a+x ./.ci/scripts/linux/docker.sh
 # the UID for the container yuzu user is 1027

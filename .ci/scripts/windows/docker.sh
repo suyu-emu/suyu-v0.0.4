@@ -1,5 +1,8 @@
 #!/bin/bash -ex
 
+# SPDX-FileCopyrightText: 2019 yuzu Emulator Project
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 set -e
 
 #cd /yuzu

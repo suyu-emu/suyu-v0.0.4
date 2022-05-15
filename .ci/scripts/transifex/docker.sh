@@ -1,5 +1,8 @@
 #!/bin/bash -e
 
+# SPDX-FileCopyrightText: 2021 yuzu Emulator Project
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 # Setup RC file for tx
 cat << EOF > ~/.transifexrc
 [https://www.transifex.com]

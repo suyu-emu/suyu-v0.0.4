@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2019 yuzu Emulator Project
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 param($BUILD_NAME)
 
 $GITDATE = $(git show -s --date=short --format='%ad') -replace "-", ""
@@ -40,7 +43,7 @@ mkdir $MSVC_SOURCE
 mkdir "artifacts"
 
 # Build a tar.xz for the source of the release
-Copy-Item .\license.txt -Destination $MSVC_SOURCE
+Copy-Item .\LICENSE.txt -Destination $MSVC_SOURCE
 Copy-Item .\README.md -Destination $MSVC_SOURCE
 Copy-Item .\CMakeLists.txt -Destination $MSVC_SOURCE
 Copy-Item .\src -Recurse -Destination $MSVC_SOURCE

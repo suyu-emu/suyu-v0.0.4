@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2019 yuzu Emulator Project
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 # Checks to see if the specified pull request # has the specified tag
 # Usage: python check-label-presence.py <Pull Request ID> <Name of Label>
 
