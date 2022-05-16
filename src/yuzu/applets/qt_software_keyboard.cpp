@@ -411,11 +411,11 @@ void QtSoftwareKeyboardDialog::ShowTextCheckDialog(
             break;
         }
 
-        const auto& text = ui->topOSK->currentIndex() == 1 ? ui->text_edit_osk->toPlainText()
-                                                           : ui->line_edit_osk->text();
-        std::u16string text_s = Common::U16StringFromBuffer(text.utf16(), text.size());
+        const auto text = ui->topOSK->currentIndex() == 1 ? ui->text_edit_osk->toPlainText()
+                                                          : ui->line_edit_osk->text();
+        auto text_str = Common::U16StringFromBuffer(text.utf16(), text.size());
 
-        emit SubmitNormalText(SwkbdResult::Ok, std::move(text_s), true);
+        emit SubmitNormalText(SwkbdResult::Ok, std::move(text_str), true);
         break;
     }
     }
@@ -1119,11 +1119,11 @@ void QtSoftwareKeyboardDialog::NormalKeyboardButtonClicked(QPushButton* button) 
     }
 
     if (button == ui->button_ok || button == ui->button_ok_shift || button == ui->button_ok_num) {
-        const auto& text = ui->topOSK->currentIndex() == 1 ? ui->text_edit_osk->toPlainText()
-                                                           : ui->line_edit_osk->text();
-        std::u16string text_s = Common::U16StringFromBuffer(text.utf16(), text.size());
+        const auto text = ui->topOSK->currentIndex() == 1 ? ui->text_edit_osk->toPlainText()
+                                                          : ui->line_edit_osk->text();
+        auto text_str = Common::U16StringFromBuffer(text.utf16(), text.size());
 
-        emit SubmitNormalText(SwkbdResult::Ok, std::move(text_s));
+        emit SubmitNormalText(SwkbdResult::Ok, std::move(text_str));
         return;
     }
 
@@ -1189,8 +1189,8 @@ void QtSoftwareKeyboardDialog::InlineKeyboardButtonClicked(QPushButton* button) 
         return;
     }
 
-    InlineTextInsertString(
-        Common::U16StringFromBuffer(button->text().utf16(), button->text().size()));
+    const auto button_text = button->text();
+    InlineTextInsertString(Common::U16StringFromBuffer(button_text.utf16(), button_text.size()));
 
     // Revert the keyboard to lowercase if the shift key is active.
     if (bottom_osk_index == BottomOSKIndex::UpperCase && !caps_lock_enabled) {
@@ -1283,11 +1283,11 @@ void QtSoftwareKeyboardDialog::TranslateButtonPress(Core::HID::NpadButton button
         if (is_inline) {
             emit SubmitInlineText(SwkbdReplyType::DecidedCancel, current_text, cursor_position);
         } else {
-            const auto& text = ui->topOSK->currentIndex() == 1 ? ui->text_edit_osk->toPlainText()
-                                                               : ui->line_edit_osk->text();
-            std::u16string text_s = Common::U16StringFromBuffer(text.utf16(), text.size());
+            const auto text = ui->topOSK->currentIndex() == 1 ? ui->text_edit_osk->toPlainText()
+                                                              : ui->line_edit_osk->text();
+            auto text_str = Common::U16StringFromBuffer(text.utf16(), text.size());
 
-            emit SubmitNormalText(SwkbdResult::Cancel, std::move(text_s));
+            emit SubmitNormalText(SwkbdResult::Cancel, std::move(text_str));
         }
         break;
     case Core::HID::NpadButton::Y:
