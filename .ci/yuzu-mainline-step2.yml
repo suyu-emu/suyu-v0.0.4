@@ -47,7 +47,7 @@ stages:
     timeoutInMinutes: 120
     displayName: 'msvc'
     pool:
-      vmImage: windows-2022
+      vmImage: windows-2019
     steps:
     - template: ./templates/sync-source.yml
       parameters:
