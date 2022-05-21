@@ -582,6 +582,7 @@ void Controller_NPad::OnMotionUpdate(const Core::Timing::CoreTiming& core_timing
             UNREACHABLE();
             break;
         case Core::HID::NpadStyleIndex::ProController:
+        case Core::HID::NpadStyleIndex::Pokeball:
             set_motion_state(sixaxis_fullkey_state, motion_state[0]);
             break;
         case Core::HID::NpadStyleIndex::Handheld:
@@ -1007,96 +1008,47 @@ ResultCode Controller_NPad::DisconnectNpad(Core::HID::NpadIdType npad_id) {
     WriteEmptyEntry(shared_memory);
     return ResultSuccess;
 }
-
-ResultCode Controller_NPad::SetGyroscopeZeroDriftMode(Core::HID::SixAxisSensorHandle sixaxis_handle,
-                                                      GyroscopeZeroDriftMode drift_mode) {
+ResultCode Controller_NPad::SetGyroscopeZeroDriftMode(
+    const Core::HID::SixAxisSensorHandle& sixaxis_handle, GyroscopeZeroDriftMode drift_mode) {
     if (!IsDeviceHandleValid(sixaxis_handle)) {
         LOG_ERROR(Service_HID, "Invalid handle");
         return NpadInvalidHandle;
     }
 
-    auto& controller = GetControllerFromHandle(sixaxis_handle);
-    switch (sixaxis_handle.npad_type) {
-    case Core::HID::NpadStyleIndex::ProController:
-        controller.sixaxis_fullkey.gyroscope_zero_drift_mode = drift_mode;
-        break;
-    case Core::HID::NpadStyleIndex::Handheld:
-        controller.sixaxis_handheld.gyroscope_zero_drift_mode = drift_mode;
-        break;
-    case Core::HID::NpadStyleIndex::JoyconDual:
-    case Core::HID::NpadStyleIndex::GameCube:
-    case Core::HID::NpadStyleIndex::Pokeball:
-        if (sixaxis_handle.device_index == Core::HID::DeviceIndex::Left) {
-            controller.sixaxis_dual_left.gyroscope_zero_drift_mode = drift_mode;
-            break;
-        }
-        controller.sixaxis_dual_right.gyroscope_zero_drift_mode = drift_mode;
-        break;
-    case Core::HID::NpadStyleIndex::JoyconLeft:
-        controller.sixaxis_left.gyroscope_zero_drift_mode = drift_mode;
-        break;
-    case Core::HID::NpadStyleIndex::JoyconRight:
-        controller.sixaxis_right.gyroscope_zero_drift_mode = drift_mode;
-        break;
-    default:
-        LOG_ERROR(Service_HID, "Invalid Npad type {}", sixaxis_handle.npad_type);
-        return NpadInvalidHandle;
-    }
+    auto& sixaxis = GetSixaxisState(sixaxis_handle);
+    sixaxis.gyroscope_zero_drift_mode = drift_mode;
 
     return ResultSuccess;
 }
 
-ResultCode Controller_NPad::GetGyroscopeZeroDriftMode(Core::HID::SixAxisSensorHandle sixaxis_handle,
-                                                      GyroscopeZeroDriftMode& drift_mode) const {
+ResultCode Controller_NPad::GetGyroscopeZeroDriftMode(
+    const Core::HID::SixAxisSensorHandle& sixaxis_handle,
+    GyroscopeZeroDriftMode& drift_mode) const {
     if (!IsDeviceHandleValid(sixaxis_handle)) {
         LOG_ERROR(Service_HID, "Invalid handle");
         return NpadInvalidHandle;
     }
 
-    auto& controller = GetControllerFromHandle(sixaxis_handle);
-    switch (sixaxis_handle.npad_type) {
-    case Core::HID::NpadStyleIndex::ProController:
-        drift_mode = controller.sixaxis_fullkey.gyroscope_zero_drift_mode;
-        break;
-    case Core::HID::NpadStyleIndex::Handheld:
-        drift_mode = controller.sixaxis_handheld.gyroscope_zero_drift_mode;
-        break;
-    case Core::HID::NpadStyleIndex::JoyconDual:
-    case Core::HID::NpadStyleIndex::GameCube:
-    case Core::HID::NpadStyleIndex::Pokeball:
-        if (sixaxis_handle.device_index == Core::HID::DeviceIndex::Left) {
-            drift_mode = controller.sixaxis_dual_left.gyroscope_zero_drift_mode;
-            break;
-        }
-        drift_mode = controller.sixaxis_dual_right.gyroscope_zero_drift_mode;
-        break;
-    case Core::HID::NpadStyleIndex::JoyconLeft:
-        drift_mode = controller.sixaxis_left.gyroscope_zero_drift_mode;
-        break;
-    case Core::HID::NpadStyleIndex::JoyconRight:
-        drift_mode = controller.sixaxis_right.gyroscope_zero_drift_mode;
-        break;
-    default:
-        LOG_ERROR(Service_HID, "Invalid Npad type {}", sixaxis_handle.npad_type);
-        return NpadInvalidHandle;
-    }
+    const auto& sixaxis = GetSixaxisState(sixaxis_handle);
+    drift_mode = sixaxis.gyroscope_zero_drift_mode;
 
     return ResultSuccess;
 }
 
-ResultCode Controller_NPad::IsSixAxisSensorAtRest(Core::HID::SixAxisSensorHandle sixaxis_handle,
-                                                  bool& is_at_rest) const {
+ResultCode Controller_NPad::IsSixAxisSensorAtRest(
+    const Core::HID::SixAxisSensorHandle& sixaxis_handle, bool& is_at_rest) const {
     if (!IsDeviceHandleValid(sixaxis_handle)) {
         LOG_ERROR(Service_HID, "Invalid handle");
         return NpadInvalidHandle;
     }
+
     const auto& controller = GetControllerFromHandle(sixaxis_handle);
     is_at_rest = controller.sixaxis_at_rest;
     return ResultSuccess;
 }
 
 ResultCode Controller_NPad::IsFirmwareUpdateAvailableForSixAxisSensor(
-    Core::HID::SixAxisSensorHandle sixaxis_handle, bool& is_firmware_available) const {
+    const Core::HID::SixAxisSensorHandle& sixaxis_handle, bool& is_firmware_available) const {
     if (!IsDeviceHandleValid(sixaxis_handle)) {
         LOG_ERROR(Service_HID, "Invalid handle");
         return NpadInvalidHandle;
@@ -1107,7 +1059,7 @@ ResultCode Controller_NPad::IsFirmwareUpdateAvailableForSixAxisSensor(
     return ResultSuccess;
 }
 
-ResultCode Controller_NPad::SetSixAxisEnabled(Core::HID::SixAxisSensorHandle sixaxis_handle,
+ResultCode Controller_NPad::SetSixAxisEnabled(const Core::HID::SixAxisSensorHandle& sixaxis_handle,
                                               bool sixaxis_status) {
     if (!IsDeviceHandleValid(sixaxis_handle)) {
         LOG_ERROR(Service_HID, "Invalid handle");
@@ -1119,82 +1071,32 @@ ResultCode Controller_NPad::SetSixAxisEnabled(Core::HID::SixAxisSensorHandle six
 }
 
 ResultCode Controller_NPad::IsSixAxisSensorFusionEnabled(
-    Core::HID::SixAxisSensorHandle sixaxis_handle, bool& is_fusion_enabled) const {
+    const Core::HID::SixAxisSensorHandle& sixaxis_handle, bool& is_fusion_enabled) const {
     if (!IsDeviceHandleValid(sixaxis_handle)) {
         LOG_ERROR(Service_HID, "Invalid handle");
         return NpadInvalidHandle;
     }
 
-    auto& controller = GetControllerFromHandle(sixaxis_handle);
-    switch (sixaxis_handle.npad_type) {
-    case Core::HID::NpadStyleIndex::ProController:
-        is_fusion_enabled = controller.sixaxis_fullkey.is_fusion_enabled;
-        break;
-    case Core::HID::NpadStyleIndex::Handheld:
-        is_fusion_enabled = controller.sixaxis_handheld.is_fusion_enabled;
-        break;
-    case Core::HID::NpadStyleIndex::JoyconDual:
-    case Core::HID::NpadStyleIndex::GameCube:
-    case Core::HID::NpadStyleIndex::Pokeball:
-        if (sixaxis_handle.device_index == Core::HID::DeviceIndex::Left) {
-            is_fusion_enabled = controller.sixaxis_dual_left.is_fusion_enabled;
-            break;
-        }
-        is_fusion_enabled = controller.sixaxis_dual_right.is_fusion_enabled;
-        break;
-    case Core::HID::NpadStyleIndex::JoyconLeft:
-        is_fusion_enabled = controller.sixaxis_left.is_fusion_enabled;
-        break;
-    case Core::HID::NpadStyleIndex::JoyconRight:
-        is_fusion_enabled = controller.sixaxis_right.is_fusion_enabled;
-        break;
-    default:
-        LOG_ERROR(Service_HID, "Invalid Npad type {}", sixaxis_handle.npad_type);
-        return NpadInvalidHandle;
-    }
+    const auto& sixaxis = GetSixaxisState(sixaxis_handle);
+    is_fusion_enabled = sixaxis.is_fusion_enabled;
 
     return ResultSuccess;
 }
-ResultCode Controller_NPad::SetSixAxisFusionEnabled(Core::HID::SixAxisSensorHandle sixaxis_handle,
-                                                    bool is_fusion_enabled) {
+ResultCode Controller_NPad::SetSixAxisFusionEnabled(
+    const Core::HID::SixAxisSensorHandle& sixaxis_handle, bool is_fusion_enabled) {
     if (!IsDeviceHandleValid(sixaxis_handle)) {
         LOG_ERROR(Service_HID, "Invalid handle");
         return NpadInvalidHandle;
     }
 
-    auto& controller = GetControllerFromHandle(sixaxis_handle);
-    switch (sixaxis_handle.npad_type) {
-    case Core::HID::NpadStyleIndex::ProController:
-        controller.sixaxis_fullkey.is_fusion_enabled = is_fusion_enabled;
-        break;
-    case Core::HID::NpadStyleIndex::Handheld:
-        controller.sixaxis_handheld.is_fusion_enabled = is_fusion_enabled;
-        break;
-    case Core::HID::NpadStyleIndex::JoyconDual:
-    case Core::HID::NpadStyleIndex::GameCube:
-    case Core::HID::NpadStyleIndex::Pokeball:
-        if (sixaxis_handle.device_index == Core::HID::DeviceIndex::Left) {
-            controller.sixaxis_dual_left.is_fusion_enabled = is_fusion_enabled;
-            break;
-        }
-        controller.sixaxis_dual_right.is_fusion_enabled = is_fusion_enabled;
-        break;
-    case Core::HID::NpadStyleIndex::JoyconLeft:
-        controller.sixaxis_left.is_fusion_enabled = is_fusion_enabled;
-        break;
-    case Core::HID::NpadStyleIndex::JoyconRight:
-        controller.sixaxis_right.is_fusion_enabled = is_fusion_enabled;
-        break;
-    default:
-        LOG_ERROR(Service_HID, "Invalid Npad type {}", sixaxis_handle.npad_type);
-        return NpadInvalidHandle;
-    }
+    auto& sixaxis = GetSixaxisState(sixaxis_handle);
+    sixaxis.is_fusion_enabled = is_fusion_enabled;
 
     return ResultSuccess;
 }
 
 ResultCode Controller_NPad::SetSixAxisFusionParameters(
-    Core::HID::SixAxisSensorHandle sixaxis_handle,
+    const Core::HID::SixAxisSensorHandle& sixaxis_handle,
     Core::HID::SixAxisSensorFusionParameters sixaxis_fusion_parameters) {
     if (!IsDeviceHandleValid(sixaxis_handle)) {
         LOG_ERROR(Service_HID, "Invalid handle");
@@ -1205,72 +1107,22 @@ ResultCode Controller_NPad::SetSixAxisFusionParameters(
         return InvalidSixAxisFusionRange;
     }
 
-    auto& controller = GetControllerFromHandle(sixaxis_handle);
-    switch (sixaxis_handle.npad_type) {
-    case Core::HID::NpadStyleIndex::ProController:
-        controller.sixaxis_fullkey.fusion = sixaxis_fusion_parameters;
-        break;
-    case Core::HID::NpadStyleIndex::Handheld:
-        controller.sixaxis_handheld.fusion = sixaxis_fusion_parameters;
-        break;
-    case Core::HID::NpadStyleIndex::JoyconDual:
-    case Core::HID::NpadStyleIndex::GameCube:
-    case Core::HID::NpadStyleIndex::Pokeball:
-        if (sixaxis_handle.device_index == Core::HID::DeviceIndex::Left) {
-            controller.sixaxis_dual_left.fusion = sixaxis_fusion_parameters;
-            break;
-        }
-        controller.sixaxis_dual_right.fusion = sixaxis_fusion_parameters;
-        break;
-    case Core::HID::NpadStyleIndex::JoyconLeft:
-        controller.sixaxis_left.fusion = sixaxis_fusion_parameters;
-        break;
-    case Core::HID::NpadStyleIndex::JoyconRight:
-        controller.sixaxis_right.fusion = sixaxis_fusion_parameters;
-        break;
-    default:
-        LOG_ERROR(Service_HID, "Invalid Npad type {}", sixaxis_handle.npad_type);
-        return NpadInvalidHandle;
-    }
+    auto& sixaxis = GetSixaxisState(sixaxis_handle);
+    sixaxis.fusion = sixaxis_fusion_parameters;
 
     return ResultSuccess;
 }
 
 ResultCode Controller_NPad::GetSixAxisFusionParameters(
-    Core::HID::SixAxisSensorHandle sixaxis_handle,
+    const Core::HID::SixAxisSensorHandle& sixaxis_handle,
     Core::HID::SixAxisSensorFusionParameters& parameters) const {
     if (!IsDeviceHandleValid(sixaxis_handle)) {
         LOG_ERROR(Service_HID, "Invalid handle");
         return NpadInvalidHandle;
     }
 
-    const auto& controller = GetControllerFromHandle(sixaxis_handle);
-    switch (sixaxis_handle.npad_type) {
-    case Core::HID::NpadStyleIndex::ProController:
-        parameters = controller.sixaxis_fullkey.fusion;
-        break;
-    case Core::HID::NpadStyleIndex::Handheld:
-        parameters = controller.sixaxis_handheld.fusion;
-        break;
-    case Core::HID::NpadStyleIndex::JoyconDual:
-    case Core::HID::NpadStyleIndex::GameCube:
-    case Core::HID::NpadStyleIndex::Pokeball:
-        if (sixaxis_handle.device_index == Core::HID::DeviceIndex::Left) {
-            parameters = controller.sixaxis_dual_left.fusion;
-            break;
-        }
-        parameters = controller.sixaxis_dual_right.fusion;
-        break;
-    case Core::HID::NpadStyleIndex::JoyconLeft:
-        parameters = controller.sixaxis_left.fusion;
-        break;
-    case Core::HID::NpadStyleIndex::JoyconRight:
-        parameters = controller.sixaxis_right.fusion;
-        break;
-    default:
-        LOG_ERROR(Service_HID, "Invalid Npad type {}", sixaxis_handle.npad_type);
-        return NpadInvalidHandle;
-    }
+    const auto& sixaxis = GetSixaxisState(sixaxis_handle);
+    parameters = sixaxis.fusion;
 
     return ResultSuccess;
 }
@@ -1545,6 +1397,52 @@ const Controller_NPad::NpadControllerData& Controller_NPad::GetControllerFromNpa
     }
     const auto npad_index = Core::HID::NpadIdTypeToIndex(npad_id);
     return controller_data[npad_index];
+}
+
+Controller_NPad::SixaxisParameters& Controller_NPad::GetSixaxisState(
+    const Core::HID::SixAxisSensorHandle& sixaxis_handle) {
+    auto& controller = GetControllerFromHandle(sixaxis_handle);
+    switch (sixaxis_handle.npad_type) {
+    case Core::HID::NpadStyleIndex::ProController:
+    case Core::HID::NpadStyleIndex::Pokeball:
+        return controller.sixaxis_fullkey;
+    case Core::HID::NpadStyleIndex::Handheld:
+        return controller.sixaxis_handheld;
+    case Core::HID::NpadStyleIndex::JoyconDual:
+        if (sixaxis_handle.device_index == Core::HID::DeviceIndex::Left) {
+            return controller.sixaxis_dual_left;
+        }
+        return controller.sixaxis_dual_right;
+    case Core::HID::NpadStyleIndex::JoyconLeft:
+        return controller.sixaxis_left;
+    case Core::HID::NpadStyleIndex::JoyconRight:
+        return controller.sixaxis_right;
+    default:
+        return controller.sixaxis_unknown;
+    }
+}
+
+const Controller_NPad::SixaxisParameters& Controller_NPad::GetSixaxisState(
+    const Core::HID::SixAxisSensorHandle& sixaxis_handle) const {
+    const auto& controller = GetControllerFromHandle(sixaxis_handle);
+    switch (sixaxis_handle.npad_type) {
+    case Core::HID::NpadStyleIndex::ProController:
+    case Core::HID::NpadStyleIndex::Pokeball:
+        return controller.sixaxis_fullkey;
+    case Core::HID::NpadStyleIndex::Handheld:
+        return controller.sixaxis_handheld;
+    case Core::HID::NpadStyleIndex::JoyconDual:
+        if (sixaxis_handle.device_index == Core::HID::DeviceIndex::Left) {
+            return controller.sixaxis_dual_left;
+        }
+        return controller.sixaxis_dual_right;
+    case Core::HID::NpadStyleIndex::JoyconLeft:
+        return controller.sixaxis_left;
+    case Core::HID::NpadStyleIndex::JoyconRight:
+        return controller.sixaxis_right;
+    default:
+        return controller.sixaxis_unknown;
+    }
 }
 
 } // namespace Service::HID
