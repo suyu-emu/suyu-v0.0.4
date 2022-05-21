@@ -174,7 +174,8 @@ public:
     void ConnectAllDisconnectedControllers();
     void ClearAllControllers();
 
-    void MergeSingleJoyAsDualJoy(Core::HID::NpadIdType npad_id_1, Core::HID::NpadIdType npad_id_2);
+    ResultCode MergeSingleJoyAsDualJoy(Core::HID::NpadIdType npad_id_1,
+                                       Core::HID::NpadIdType npad_id_2);
     void StartLRAssignmentMode();
     void StopLRAssignmentMode();
     ResultCode SwapNpadAssignment(Core::HID::NpadIdType npad_id_1, Core::HID::NpadIdType npad_id_2);

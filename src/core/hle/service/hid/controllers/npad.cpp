@@ -1275,77 +1275,66 @@ ResultCode Controller_NPad::GetSixAxisFusionParameters(
     return ResultSuccess;
 }
 
-void Controller_NPad::MergeSingleJoyAsDualJoy(Core::HID::NpadIdType npad_id_1,
-                                              Core::HID::NpadIdType npad_id_2) {
+ResultCode Controller_NPad::MergeSingleJoyAsDualJoy(Core::HID::NpadIdType npad_id_1,
+                                                    Core::HID::NpadIdType npad_id_2) {
     if (!IsNpadIdValid(npad_id_1) || !IsNpadIdValid(npad_id_2)) {
         LOG_ERROR(Service_HID, "Invalid NpadIdType npad_id_1:{}, npad_id_2:{}", npad_id_1,
                   npad_id_2);
-        return;
+        return InvalidNpadId;
     }
     auto& controller_1 = GetControllerFromNpadIdType(npad_id_1);
     auto& controller_2 = GetControllerFromNpadIdType(npad_id_2);
-    const auto controller_style_1 = controller_1.device->GetNpadStyleIndex();
-    const auto controller_style_2 = controller_2.device->GetNpadStyleIndex();
-    bool merge_controllers = false;
+    auto controller_style_1 = controller_1.device->GetNpadStyleIndex();
+    auto controller_style_2 = controller_2.device->GetNpadStyleIndex();
 
-    // If the controllers at both npad indices form a pair of left and right joycons, merge them.
-    // Otherwise, do nothing.
+    // Simplify this code by converting dualjoycon with only a side connected to single joycons
+    if (controller_style_1 == Core::HID::NpadStyleIndex::JoyconDual) {
+        if (controller_1.is_dual_left_connected && !controller_1.is_dual_right_connected) {
+            controller_style_1 = Core::HID::NpadStyleIndex::JoyconLeft;
+        }
+        if (!controller_1.is_dual_left_connected && controller_1.is_dual_right_connected) {
+            controller_style_1 = Core::HID::NpadStyleIndex::JoyconRight;
+        }
+    }
+    if (controller_style_2 == Core::HID::NpadStyleIndex::JoyconDual) {
+        if (controller_2.is_dual_left_connected && !controller_2.is_dual_right_connected) {
+            controller_style_2 = Core::HID::NpadStyleIndex::JoyconLeft;
+        }
+        if (!controller_2.is_dual_left_connected && controller_2.is_dual_right_connected) {
+            controller_style_2 = Core::HID::NpadStyleIndex::JoyconRight;
+        }
+    }
+
+    // Invalid merge errors
+    if (controller_style_1 == Core::HID::NpadStyleIndex::JoyconDual ||
+        controller_style_2 == Core::HID::NpadStyleIndex::JoyconDual) {
+        return NpadIsDualJoycon;
+    }
     if (controller_style_1 == Core::HID::NpadStyleIndex::JoyconLeft &&
+        controller_style_2 == Core::HID::NpadStyleIndex::JoyconLeft) {
+        return NpadIsSameType;
+    }
+    if (controller_style_1 == Core::HID::NpadStyleIndex::JoyconRight &&
         controller_style_2 == Core::HID::NpadStyleIndex::JoyconRight) {
-        merge_controllers = true;
-    }
-    if (controller_style_2 == Core::HID::NpadStyleIndex::JoyconLeft &&
-        controller_style_1 == Core::HID::NpadStyleIndex::JoyconRight) {
-        merge_controllers = true;
-    }
-    if (controller_style_1 == Core::HID::NpadStyleIndex::JoyconDual &&
-        controller_style_2 == Core::HID::NpadStyleIndex::JoyconRight &&
-        controller_1.is_dual_left_connected && !controller_1.is_dual_right_connected) {
-        merge_controllers = true;
-    }
-    if (controller_style_1 == Core::HID::NpadStyleIndex::JoyconDual &&
-        controller_style_2 == Core::HID::NpadStyleIndex::JoyconLeft &&
-        !controller_1.is_dual_left_connected && controller_1.is_dual_right_connected) {
-        merge_controllers = true;
-    }
-    if (controller_style_2 == Core::HID::NpadStyleIndex::JoyconDual &&
-        controller_style_1 == Core::HID::NpadStyleIndex::JoyconRight &&
-        controller_2.is_dual_left_connected && !controller_2.is_dual_right_connected) {
-        merge_controllers = true;
-    }
-    if (controller_style_2 == Core::HID::NpadStyleIndex::JoyconDual &&
-        controller_style_1 == Core::HID::NpadStyleIndex::JoyconLeft &&
-        !controller_2.is_dual_left_connected && controller_2.is_dual_right_connected) {
-        merge_controllers = true;
-    }
-    if (controller_style_1 == Core::HID::NpadStyleIndex::JoyconDual &&
-        controller_style_2 == Core::HID::NpadStyleIndex::JoyconDual &&
-        controller_1.is_dual_left_connected && !controller_1.is_dual_right_connected &&
-        !controller_2.is_dual_left_connected && controller_2.is_dual_right_connected) {
-        merge_controllers = true;
-    }
-    if (controller_style_1 == Core::HID::NpadStyleIndex::JoyconDual &&
-        controller_style_2 == Core::HID::NpadStyleIndex::JoyconDual &&
-        !controller_1.is_dual_left_connected && controller_1.is_dual_right_connected &&
-        controller_2.is_dual_left_connected && !controller_2.is_dual_right_connected) {
-        merge_controllers = true;
+        return NpadIsSameType;
     }
 
-    if (merge_controllers) {
-        // Disconnect the joycon at the second id and connect the dual joycon at the first index.
-        DisconnectNpad(npad_id_2);
-        controller_1.is_dual_left_connected = true;
-        controller_1.is_dual_right_connected = true;
-        AddNewControllerAt(Core::HID::NpadStyleIndex::JoyconDual, npad_id_1);
-        return;
+    // These exceptions are handled as if they where dual joycon
+    if (controller_style_1 != Core::HID::NpadStyleIndex::JoyconLeft &&
+        controller_style_1 != Core::HID::NpadStyleIndex::JoyconRight) {
+        return NpadIsDualJoycon;
     }
-    LOG_WARNING(Service_HID,
-                "Controllers can't be merged npad_id_1:{}, npad_id_2:{}, type_1:{}, type_2:{}, "
-                "dual_1(left/right):{}/{}, dual_2(left/right):{}/{}",
-                npad_id_1, npad_id_2, controller_1.device->GetNpadStyleIndex(),
-                controller_2.device->GetNpadStyleIndex(), controller_1.is_dual_left_connected,
-                controller_1.is_dual_right_connected, controller_2.is_dual_left_connected,
-                controller_2.is_dual_right_connected);
+    if (controller_style_2 != Core::HID::NpadStyleIndex::JoyconLeft &&
+        controller_style_2 != Core::HID::NpadStyleIndex::JoyconRight) {
+        return NpadIsDualJoycon;
+    }
+
+    // Disconnect the joycon at the second id and connect the dual joycon at the first index.
+    DisconnectNpad(npad_id_2);
+    controller_1.is_dual_left_connected = true;
+    controller_1.is_dual_right_connected = true;
+    AddNewControllerAt(Core::HID::NpadStyleIndex::JoyconDual, npad_id_1);
+    return ResultSuccess;
 }
 
 void Controller_NPad::StartLRAssignmentMode() {
