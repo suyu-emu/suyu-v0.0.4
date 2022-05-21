@@ -141,7 +141,7 @@ public:
     void UpdateControllerAt(Core::HID::NpadStyleIndex controller, Core::HID::NpadIdType npad_id,
                             bool connected);
 
-    void DisconnectNpad(Core::HID::NpadIdType npad_id);
+    ResultCode DisconnectNpad(Core::HID::NpadIdType npad_id);
 
     ResultCode SetGyroscopeZeroDriftMode(Core::HID::SixAxisSensorHandle sixaxis_handle,
                                          GyroscopeZeroDriftMode drift_mode);
@@ -163,10 +163,11 @@ public:
     ResultCode GetSixAxisFusionParameters(
         Core::HID::SixAxisSensorHandle sixaxis_handle,
         Core::HID::SixAxisSensorFusionParameters& parameters) const;
-    Core::HID::LedPattern GetLedPattern(Core::HID::NpadIdType npad_id);
-    bool IsUnintendedHomeButtonInputProtectionEnabled(Core::HID::NpadIdType npad_id) const;
-    void SetUnintendedHomeButtonInputProtectionEnabled(bool is_protection_enabled,
-                                                       Core::HID::NpadIdType npad_id);
+    ResultCode GetLedPattern(Core::HID::NpadIdType npad_id, Core::HID::LedPattern& pattern) const;
+    ResultCode IsUnintendedHomeButtonInputProtectionEnabled(Core::HID::NpadIdType npad_id,
+                                                            bool& is_enabled) const;
+    ResultCode SetUnintendedHomeButtonInputProtectionEnabled(bool is_protection_enabled,
+                                                             Core::HID::NpadIdType npad_id);
     void SetAnalogStickUseCenterClamp(bool use_center_clamp);
     void ClearAllConnectedControllers();
     void DisconnectAllConnectedControllers();
@@ -176,7 +177,7 @@ public:
     void MergeSingleJoyAsDualJoy(Core::HID::NpadIdType npad_id_1, Core::HID::NpadIdType npad_id_2);
     void StartLRAssignmentMode();
     void StopLRAssignmentMode();
-    bool SwapNpadAssignment(Core::HID::NpadIdType npad_id_1, Core::HID::NpadIdType npad_id_2);
+    ResultCode SwapNpadAssignment(Core::HID::NpadIdType npad_id_1, Core::HID::NpadIdType npad_id_2);
 
     // Logical OR for all buttons presses on all controllers
     // Specifically for cheat engine and other features.

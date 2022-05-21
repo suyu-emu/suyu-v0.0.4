@@ -9,6 +9,7 @@ namespace Service::HID {
 
 constexpr ResultCode NpadInvalidHandle{ErrorModule::HID, 100};
 constexpr ResultCode InvalidSixAxisFusionRange{ErrorModule::HID, 423};
+constexpr ResultCode InvalidNpadId{ErrorModule::HID, 709};
 constexpr ResultCode NpadNotConnected{ErrorModule::HID, 710};
 
 } // namespace Service::HID

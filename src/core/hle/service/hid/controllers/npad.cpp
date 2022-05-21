@@ -672,6 +672,12 @@ std::size_t Controller_NPad::GetSupportedNpadIdTypesSize() const {
 }
 
 void Controller_NPad::SetHoldType(NpadJoyHoldType joy_hold_type) {
+    if (joy_hold_type != NpadJoyHoldType::Horizontal &&
+        joy_hold_type != NpadJoyHoldType::Vertical) {
+        LOG_ERROR(Service_HID, "Npad joy hold type needs to be valid, joy_hold_type={}",
+                  joy_hold_type);
+        return;
+    }
     hold_type = joy_hold_type;
 }
 
@@ -957,10 +963,10 @@ void Controller_NPad::UpdateControllerAt(Core::HID::NpadStyleIndex type,
     InitNewlyAddedController(npad_id);
 }
 
-void Controller_NPad::DisconnectNpad(Core::HID::NpadIdType npad_id) {
+ResultCode Controller_NPad::DisconnectNpad(Core::HID::NpadIdType npad_id) {
     if (!IsNpadIdValid(npad_id)) {
         LOG_ERROR(Service_HID, "Invalid NpadIdType npad_id:{}", npad_id);
-        return;
+        return InvalidNpadId;
     }
 
     LOG_DEBUG(Service_HID, "Npad disconnected {}", npad_id);
@@ -997,6 +1003,7 @@ void Controller_NPad::DisconnectNpad(Core::HID::NpadIdType npad_id) {
     controller.device->Disconnect();
     SignalStyleSetChangedEvent(npad_id);
     WriteEmptyEntry(shared_memory);
+    return ResultSuccess;
 }
 
 ResultCode Controller_NPad::SetGyroscopeZeroDriftMode(Core::HID::SixAxisSensorHandle sixaxis_handle,
@@ -1349,17 +1356,17 @@ void Controller_NPad::StopLRAssignmentMode() {
     is_in_lr_assignment_mode = false;
 }
 
-bool Controller_NPad::SwapNpadAssignment(Core::HID::NpadIdType npad_id_1,
-                                         Core::HID::NpadIdType npad_id_2) {
+ResultCode Controller_NPad::SwapNpadAssignment(Core::HID::NpadIdType npad_id_1,
+                                               Core::HID::NpadIdType npad_id_2) {
     if (!IsNpadIdValid(npad_id_1) || !IsNpadIdValid(npad_id_2)) {
         LOG_ERROR(Service_HID, "Invalid NpadIdType npad_id_1:{}, npad_id_2:{}", npad_id_1,
                   npad_id_2);
-        return false;
+        return InvalidNpadId;
     }
     if (npad_id_1 == Core::HID::NpadIdType::Handheld ||
         npad_id_2 == Core::HID::NpadIdType::Handheld || npad_id_1 == Core::HID::NpadIdType::Other ||
         npad_id_2 == Core::HID::NpadIdType::Other) {
-        return true;
+        return ResultSuccess;
     }
     const auto& controller_1 = GetControllerFromNpadIdType(npad_id_1).device;
     const auto& controller_2 = GetControllerFromNpadIdType(npad_id_2).device;
@@ -1369,46 +1376,49 @@ bool Controller_NPad::SwapNpadAssignment(Core::HID::NpadIdType npad_id_1,
     const auto is_connected_2 = controller_2->IsConnected();
 
     if (!IsControllerSupported(type_index_1) && is_connected_1) {
-        return false;
+        return NpadNotConnected;
     }
     if (!IsControllerSupported(type_index_2) && is_connected_2) {
-        return false;
+        return NpadNotConnected;
     }
 
     UpdateControllerAt(type_index_2, npad_id_1, is_connected_2);
     UpdateControllerAt(type_index_1, npad_id_2, is_connected_1);
 
-    return true;
+    return ResultSuccess;
 }
 
-Core::HID::LedPattern Controller_NPad::GetLedPattern(Core::HID::NpadIdType npad_id) {
+ResultCode Controller_NPad::GetLedPattern(Core::HID::NpadIdType npad_id,
+                                          Core::HID::LedPattern& pattern) const {
     if (!IsNpadIdValid(npad_id)) {
         LOG_ERROR(Service_HID, "Invalid NpadIdType npad_id:{}", npad_id);
-        return Core::HID::LedPattern{0, 0, 0, 0};
+        return InvalidNpadId;
     }
     const auto& controller = GetControllerFromNpadIdType(npad_id).device;
-    return controller->GetLedPattern();
+    pattern = controller->GetLedPattern();
+    return ResultSuccess;
 }
 
-bool Controller_NPad::IsUnintendedHomeButtonInputProtectionEnabled(
-    Core::HID::NpadIdType npad_id) const {
+ResultCode Controller_NPad::IsUnintendedHomeButtonInputProtectionEnabled(
+    Core::HID::NpadIdType npad_id, bool& is_valid) const {
     if (!IsNpadIdValid(npad_id)) {
         LOG_ERROR(Service_HID, "Invalid NpadIdType npad_id:{}", npad_id);
-        // Return the default value
-        return false;
+        return InvalidNpadId;
     }
     const auto& controller = GetControllerFromNpadIdType(npad_id);
-    return controller.unintended_home_button_input_protection;
+    is_valid = controller.unintended_home_button_input_protection;
+    return ResultSuccess;
 }
 
-void Controller_NPad::SetUnintendedHomeButtonInputProtectionEnabled(bool is_protection_enabled,
-                                                                    Core::HID::NpadIdType npad_id) {
+ResultCode Controller_NPad::SetUnintendedHomeButtonInputProtectionEnabled(
+    bool is_protection_enabled, Core::HID::NpadIdType npad_id) {
     if (!IsNpadIdValid(npad_id)) {
         LOG_ERROR(Service_HID, "Invalid NpadIdType npad_id:{}", npad_id);
-        return;
+        return InvalidNpadId;
     }
     auto& controller = GetControllerFromNpadIdType(npad_id);
     controller.unintended_home_button_input_protection = is_protection_enabled;
+    return ResultSuccess;
 }
 
 void Controller_NPad::SetAnalogStickUseCenterClamp(bool use_center_clamp) {
