@@ -262,7 +262,7 @@ Hid::Hid(Core::System& system_)
         {86, nullptr, "StoreSixAxisSensorCalibrationParameter"},
         {87, &Hid::LoadSixAxisSensorCalibrationParameter, "LoadSixAxisSensorCalibrationParameter"},
         {88, &Hid::GetSixAxisSensorIcInformation, "GetSixAxisSensorIcInformation"},
-        {89, nullptr, "ResetIsSixAxisSensorDeviceNewlyAssigned"},
+        {89, &Hid::ResetIsSixAxisSensorDeviceNewlyAssigned, "ResetIsSixAxisSensorDeviceNewlyAssigned"},
         {91, &Hid::ActivateGesture, "ActivateGesture"},
         {100, &Hid::SetSupportedNpadStyleSet, "SetSupportedNpadStyleSet"},
         {101, &Hid::GetSupportedNpadStyleSet, "GetSupportedNpadStyleSet"},
@@ -925,6 +925,31 @@ void Hid::GetSixAxisSensorIcInformation(Kernel::HLERequestContext& ctx) {
     if (result.IsSuccess()) {
         ctx.WriteBuffer(ic_information);
     }
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
+}
+
+void Hid::ResetIsSixAxisSensorDeviceNewlyAssigned(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    struct Parameters {
+        Core::HID::SixAxisSensorHandle sixaxis_handle;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
+    };
+    static_assert(sizeof(Parameters) == 0x10, "Parameters has incorrect size.");
+
+    const auto parameters{rp.PopRaw<Parameters>()};
+
+    auto& controller = GetAppletResource()->GetController<Controller_NPad>(HidController::NPad);
+    const auto result =
+        controller.ResetIsSixAxisSensorDeviceNewlyAssigned(parameters.sixaxis_handle);
+
+    LOG_WARNING(
+        Service_HID,
+        "(STUBBED) called, npad_type={}, npad_id={}, device_index={}, applet_resource_user_id={}",
+        parameters.sixaxis_handle.npad_type, parameters.sixaxis_handle.npad_id,
+        parameters.sixaxis_handle.device_index, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(result);

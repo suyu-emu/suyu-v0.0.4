@@ -169,6 +169,7 @@ void Controller_NPad::InitNewlyAddedController(Core::HID::NpadIdType npad_id) {
         shared_memory->system_properties.use_plus.Assign(1);
         shared_memory->system_properties.use_minus.Assign(1);
         shared_memory->applet_nfc_xcd.applet_footer.type = AppletFooterUiType::SwitchProController;
+        shared_memory->sixaxis_fullkey_properties.is_newly_assigned.Assign(1);
         break;
     case Core::HID::NpadStyleIndex::Handheld:
         shared_memory->style_tag.handheld.Assign(1);
@@ -181,16 +182,19 @@ void Controller_NPad::InitNewlyAddedController(Core::HID::NpadIdType npad_id) {
         shared_memory->assignment_mode = NpadJoyAssignmentMode::Dual;
         shared_memory->applet_nfc_xcd.applet_footer.type =
             AppletFooterUiType::HandheldJoyConLeftJoyConRight;
+        shared_memory->sixaxis_handheld_properties.is_newly_assigned.Assign(1);
         break;
     case Core::HID::NpadStyleIndex::JoyconDual:
         shared_memory->style_tag.joycon_dual.Assign(1);
         if (controller.is_dual_left_connected) {
             shared_memory->device_type.joycon_left.Assign(1);
             shared_memory->system_properties.use_minus.Assign(1);
+            shared_memory->sixaxis_dual_left_properties.is_newly_assigned.Assign(1);
         }
         if (controller.is_dual_right_connected) {
             shared_memory->device_type.joycon_right.Assign(1);
             shared_memory->system_properties.use_plus.Assign(1);
+            shared_memory->sixaxis_dual_right_properties.is_newly_assigned.Assign(1);
         }
         shared_memory->system_properties.use_directional_buttons.Assign(1);
         shared_memory->system_properties.is_vertical.Assign(1);
@@ -209,6 +213,7 @@ void Controller_NPad::InitNewlyAddedController(Core::HID::NpadIdType npad_id) {
         shared_memory->system_properties.is_horizontal.Assign(1);
         shared_memory->system_properties.use_minus.Assign(1);
         shared_memory->applet_nfc_xcd.applet_footer.type = AppletFooterUiType::JoyLeftHorizontal;
+        shared_memory->sixaxis_left_properties.is_newly_assigned.Assign(1);
         break;
     case Core::HID::NpadStyleIndex::JoyconRight:
         shared_memory->style_tag.joycon_right.Assign(1);
@@ -216,6 +221,7 @@ void Controller_NPad::InitNewlyAddedController(Core::HID::NpadIdType npad_id) {
         shared_memory->system_properties.is_horizontal.Assign(1);
         shared_memory->system_properties.use_plus.Assign(1);
         shared_memory->applet_nfc_xcd.applet_footer.type = AppletFooterUiType::JoyRightHorizontal;
+        shared_memory->sixaxis_right_properties.is_newly_assigned.Assign(1);
         break;
     case Core::HID::NpadStyleIndex::GameCube:
         shared_memory->style_tag.gamecube.Assign(1);
@@ -226,6 +232,7 @@ void Controller_NPad::InitNewlyAddedController(Core::HID::NpadIdType npad_id) {
     case Core::HID::NpadStyleIndex::Pokeball:
         shared_memory->style_tag.palma.Assign(1);
         shared_memory->device_type.palma.Assign(1);
+        shared_memory->sixaxis_fullkey_properties.is_newly_assigned.Assign(1);
         break;
     case Core::HID::NpadStyleIndex::NES:
         shared_memory->style_tag.lark.Assign(1);
@@ -997,6 +1004,12 @@ ResultCode Controller_NPad::DisconnectNpad(Core::HID::NpadIdType npad_id) {
     shared_memory->device_type.raw = 0;
     shared_memory->system_properties.raw = 0;
     shared_memory->button_properties.raw = 0;
+    shared_memory->sixaxis_fullkey_properties.raw = 0;
+    shared_memory->sixaxis_handheld_properties.raw = 0;
+    shared_memory->sixaxis_dual_left_properties.raw = 0;
+    shared_memory->sixaxis_dual_right_properties.raw = 0;
+    shared_memory->sixaxis_left_properties.raw = 0;
+    shared_memory->sixaxis_right_properties.raw = 0;
     shared_memory->battery_level_dual = 0;
     shared_memory->battery_level_left = 0;
     shared_memory->battery_level_right = 0;
@@ -1069,8 +1082,8 @@ ResultCode Controller_NPad::IsFirmwareUpdateAvailableForSixAxisSensor(
         return is_valid;
     }
 
-    // We don't support joycon firmware updates
-    is_firmware_available = false;
+    const auto& sixaxis_properties = GetSixaxisProperties(sixaxis_handle);
+    is_firmware_available = sixaxis_properties.is_firmware_update_available != 0;
     return ResultSuccess;
 }
 
@@ -1127,6 +1140,20 @@ ResultCode Controller_NPad::GetSixAxisSensorIcInformation(
     // TODO: Request this data to the controller. On error return 0xd8ca
     const auto& sixaxis = GetSixaxisState(sixaxis_handle);
     ic_information = sixaxis.ic_information;
+    return ResultSuccess;
+}
+
+ResultCode Controller_NPad::ResetIsSixAxisSensorDeviceNewlyAssigned(
+    const Core::HID::SixAxisSensorHandle& sixaxis_handle) {
+    const auto is_valid = VerifyValidSixAxisSensorHandle(sixaxis_handle);
+    if (is_valid.IsError()) {
+        LOG_ERROR(Service_HID, "Invalid handle, error_code={}", is_valid.raw);
+        return is_valid;
+    }
+
+    auto& sixaxis_properties = GetSixaxisProperties(sixaxis_handle);
+    sixaxis_properties.is_newly_assigned.Assign(0);
+
     return ResultSuccess;
 }
 
@@ -1475,6 +1502,52 @@ const Controller_NPad::NpadControllerData& Controller_NPad::GetControllerFromNpa
     }
     const auto npad_index = Core::HID::NpadIdTypeToIndex(npad_id);
     return controller_data[npad_index];
+}
+
+Core::HID::SixAxisSensorProperties& Controller_NPad::GetSixaxisProperties(
+    const Core::HID::SixAxisSensorHandle& sixaxis_handle) {
+    auto& controller = GetControllerFromHandle(sixaxis_handle);
+    switch (sixaxis_handle.npad_type) {
+    case Core::HID::NpadStyleIndex::ProController:
+    case Core::HID::NpadStyleIndex::Pokeball:
+        return controller.shared_memory->sixaxis_fullkey_properties;
+    case Core::HID::NpadStyleIndex::Handheld:
+        return controller.shared_memory->sixaxis_handheld_properties;
+    case Core::HID::NpadStyleIndex::JoyconDual:
+        if (sixaxis_handle.device_index == Core::HID::DeviceIndex::Left) {
+            return controller.shared_memory->sixaxis_dual_left_properties;
+        }
+        return controller.shared_memory->sixaxis_dual_right_properties;
+    case Core::HID::NpadStyleIndex::JoyconLeft:
+        return controller.shared_memory->sixaxis_left_properties;
+    case Core::HID::NpadStyleIndex::JoyconRight:
+        return controller.shared_memory->sixaxis_right_properties;
+    default:
+        return controller.shared_memory->sixaxis_fullkey_properties;
+    }
+}
+
+const Core::HID::SixAxisSensorProperties& Controller_NPad::GetSixaxisProperties(
+    const Core::HID::SixAxisSensorHandle& sixaxis_handle) const {
+    const auto& controller = GetControllerFromHandle(sixaxis_handle);
+    switch (sixaxis_handle.npad_type) {
+    case Core::HID::NpadStyleIndex::ProController:
+    case Core::HID::NpadStyleIndex::Pokeball:
+        return controller.shared_memory->sixaxis_fullkey_properties;
+    case Core::HID::NpadStyleIndex::Handheld:
+        return controller.shared_memory->sixaxis_handheld_properties;
+    case Core::HID::NpadStyleIndex::JoyconDual:
+        if (sixaxis_handle.device_index == Core::HID::DeviceIndex::Left) {
+            return controller.shared_memory->sixaxis_dual_left_properties;
+        }
+        return controller.shared_memory->sixaxis_dual_right_properties;
+    case Core::HID::NpadStyleIndex::JoyconLeft:
+        return controller.shared_memory->sixaxis_left_properties;
+    case Core::HID::NpadStyleIndex::JoyconRight:
+        return controller.shared_memory->sixaxis_right_properties;
+    default:
+        return controller.shared_memory->sixaxis_fullkey_properties;
+    }
 }
 
 Controller_NPad::SixaxisParameters& Controller_NPad::GetSixaxisState(

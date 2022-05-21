@@ -498,6 +498,16 @@ struct SixAxisSensorFusionParameters {
 static_assert(sizeof(SixAxisSensorFusionParameters) == 8,
               "SixAxisSensorFusionParameters is an invalid size");
 
+// This is nn::hid::server::SixAxisSensorProperties
+struct SixAxisSensorProperties {
+    union {
+        u8 raw{};
+        BitField<0, 1, u8> is_newly_assigned;
+        BitField<1, 1, u8> is_firmware_update_available;
+    };
+};
+static_assert(sizeof(SixAxisSensorProperties) == 1, "SixAxisSensorProperties is an invalid size");
+
 // This is nn::hid::SixAxisSensorCalibrationParameter
 struct SixAxisSensorCalibrationParameter {
     std::array<u8, 0x744> unknown_data{};

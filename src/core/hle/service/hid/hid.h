@@ -117,6 +117,7 @@ private:
     void IsSixAxisSensorUnalteredPassthroughEnabled(Kernel::HLERequestContext& ctx);
     void LoadSixAxisSensorCalibrationParameter(Kernel::HLERequestContext& ctx);
     void GetSixAxisSensorIcInformation(Kernel::HLERequestContext& ctx);
+    void ResetIsSixAxisSensorDeviceNewlyAssigned(Kernel::HLERequestContext& ctx);
     void ActivateGesture(Kernel::HLERequestContext& ctx);
     void SetSupportedNpadStyleSet(Kernel::HLERequestContext& ctx);
     void GetSupportedNpadStyleSet(Kernel::HLERequestContext& ctx);

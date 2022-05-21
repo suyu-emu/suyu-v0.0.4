@@ -161,6 +161,8 @@ public:
     ResultCode GetSixAxisSensorIcInformation(
         const Core::HID::SixAxisSensorHandle& sixaxis_handle,
         Core::HID::SixAxisSensorIcInformation& ic_information) const;
+    ResultCode ResetIsSixAxisSensorDeviceNewlyAssigned(
+        const Core::HID::SixAxisSensorHandle& sixaxis_handle);
     ResultCode SetSixAxisEnabled(const Core::HID::SixAxisSensorHandle& sixaxis_handle,
                                  bool sixaxis_status);
     ResultCode IsSixAxisSensorFusionEnabled(const Core::HID::SixAxisSensorHandle& sixaxis_handle,
@@ -464,9 +466,13 @@ private:
         NpadLuciaType lucia_type{};
         NpadLagonType lagon_type{};
         NpadLagerType lager_type{};
-        // FW 13.x Investigate there is some sort of bitflag related to joycons
-        INSERT_PADDING_BYTES(0x4);
-        INSERT_PADDING_BYTES(0xc08); // Unknown
+        Core::HID::SixAxisSensorProperties sixaxis_fullkey_properties;
+        Core::HID::SixAxisSensorProperties sixaxis_handheld_properties;
+        Core::HID::SixAxisSensorProperties sixaxis_dual_left_properties;
+        Core::HID::SixAxisSensorProperties sixaxis_dual_right_properties;
+        Core::HID::SixAxisSensorProperties sixaxis_left_properties;
+        Core::HID::SixAxisSensorProperties sixaxis_right_properties;
+        INSERT_PADDING_BYTES(0xc06); // Unknown
     };
     static_assert(sizeof(NpadInternalState) == 0x5000, "NpadInternalState is an invalid size");
 
@@ -539,6 +545,10 @@ private:
     NpadControllerData& GetControllerFromNpadIdType(Core::HID::NpadIdType npad_id);
     const NpadControllerData& GetControllerFromNpadIdType(Core::HID::NpadIdType npad_id) const;
 
+    Core::HID::SixAxisSensorProperties& GetSixaxisProperties(
+        const Core::HID::SixAxisSensorHandle& device_handle);
+    const Core::HID::SixAxisSensorProperties& GetSixaxisProperties(
+        const Core::HID::SixAxisSensorHandle& device_handle) const;
     SixaxisParameters& GetSixaxisState(const Core::HID::SixAxisSensorHandle& device_handle);
     const SixaxisParameters& GetSixaxisState(
         const Core::HID::SixAxisSensorHandle& device_handle) const;
