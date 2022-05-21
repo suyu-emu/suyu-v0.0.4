@@ -1026,15 +1026,16 @@ void Hid::SetNpadJoyAssignmentModeSingleByDefault(Kernel::HLERequestContext& ctx
 
     const auto parameters{rp.PopRaw<Parameters>()};
 
-    applet_resource->GetController<Controller_NPad>(HidController::NPad)
-        .SetNpadMode(parameters.npad_id, Controller_NPad::NpadJoyDeviceType::Left,
-                     Controller_NPad::NpadJoyAssignmentMode::Single);
+    auto& controller = GetAppletResource()->GetController<Controller_NPad>(HidController::NPad);
+    const auto result =
+        controller.SetNpadMode(parameters.npad_id, Controller_NPad::NpadJoyDeviceType::Left,
+                               Controller_NPad::NpadJoyAssignmentMode::Single);
 
     LOG_INFO(Service_HID, "called, npad_id={}, applet_resource_user_id={}", parameters.npad_id,
              parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
 }
 
 void Hid::SetNpadJoyAssignmentModeSingle(Kernel::HLERequestContext& ctx) {
@@ -1049,16 +1050,16 @@ void Hid::SetNpadJoyAssignmentModeSingle(Kernel::HLERequestContext& ctx) {
 
     const auto parameters{rp.PopRaw<Parameters>()};
 
-    applet_resource->GetController<Controller_NPad>(HidController::NPad)
-        .SetNpadMode(parameters.npad_id, parameters.npad_joy_device_type,
-                     Controller_NPad::NpadJoyAssignmentMode::Single);
+    auto& controller = GetAppletResource()->GetController<Controller_NPad>(HidController::NPad);
+    const auto result = controller.SetNpadMode(parameters.npad_id, parameters.npad_joy_device_type,
+                                               Controller_NPad::NpadJoyAssignmentMode::Single);
 
     LOG_INFO(Service_HID, "called, npad_id={}, applet_resource_user_id={}, npad_joy_device_type={}",
              parameters.npad_id, parameters.applet_resource_user_id,
              parameters.npad_joy_device_type);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
 }
 
 void Hid::SetNpadJoyAssignmentModeDual(Kernel::HLERequestContext& ctx) {
@@ -1072,14 +1073,15 @@ void Hid::SetNpadJoyAssignmentModeDual(Kernel::HLERequestContext& ctx) {
 
     const auto parameters{rp.PopRaw<Parameters>()};
 
-    applet_resource->GetController<Controller_NPad>(HidController::NPad)
-        .SetNpadMode(parameters.npad_id, {}, Controller_NPad::NpadJoyAssignmentMode::Dual);
+    auto& controller = GetAppletResource()->GetController<Controller_NPad>(HidController::NPad);
+    const auto result = controller.SetNpadMode(parameters.npad_id, {},
+                                               Controller_NPad::NpadJoyAssignmentMode::Dual);
 
     LOG_INFO(Service_HID, "called, npad_id={}, applet_resource_user_id={}", parameters.npad_id,
              parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(ResultSuccess);
+    rb.Push(result);
 }
 
 void Hid::MergeSingleJoyAsDualJoy(Kernel::HLERequestContext& ctx) {
