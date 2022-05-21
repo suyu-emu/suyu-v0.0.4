@@ -56,11 +56,22 @@ bool Controller_NPad::IsDeviceHandleValid(const Core::HID::VibrationDeviceHandle
     return npad_id && npad_type && device_index;
 }
 
-bool Controller_NPad::IsDeviceHandleValid(const Core::HID::SixAxisSensorHandle& device_handle) {
+ResultCode Controller_NPad::VerifyValidSixAxisSensorHandle(
+    const Core::HID::SixAxisSensorHandle& device_handle) {
     const auto npad_id = IsNpadIdValid(static_cast<Core::HID::NpadIdType>(device_handle.npad_id));
-    const bool npad_type = device_handle.npad_type < Core::HID::NpadStyleIndex::MaxNpadType;
+    if (!npad_id) {
+        return InvalidNpadId;
+    }
     const bool device_index = device_handle.device_index < Core::HID::DeviceIndex::MaxDeviceIndex;
-    return npad_id && npad_type && device_index;
+    if (!device_index) {
+        return NpadDeviceIndexOutOfRange;
+    }
+    // This doesn't get validaded on nnsdk
+    const bool npad_type = device_handle.npad_type < Core::HID::NpadStyleIndex::MaxNpadType;
+    if (!npad_type) {
+        return NpadInvalidHandle;
+    }
+    return ResultSuccess;
 }
 
 Controller_NPad::Controller_NPad(Core::HID::HIDCore& hid_core_, u8* raw_shared_memory_,
@@ -1010,9 +1021,10 @@ ResultCode Controller_NPad::DisconnectNpad(Core::HID::NpadIdType npad_id) {
 }
 ResultCode Controller_NPad::SetGyroscopeZeroDriftMode(
     const Core::HID::SixAxisSensorHandle& sixaxis_handle, GyroscopeZeroDriftMode drift_mode) {
-    if (!IsDeviceHandleValid(sixaxis_handle)) {
-        LOG_ERROR(Service_HID, "Invalid handle");
-        return NpadInvalidHandle;
+    const auto is_valid = VerifyValidSixAxisSensorHandle(sixaxis_handle);
+    if (is_valid.IsError()) {
+        LOG_ERROR(Service_HID, "Invalid handle, error_code={}", is_valid.raw);
+        return is_valid;
     }
 
     auto& sixaxis = GetSixaxisState(sixaxis_handle);
@@ -1024,9 +1036,10 @@ ResultCode Controller_NPad::SetGyroscopeZeroDriftMode(
 ResultCode Controller_NPad::GetGyroscopeZeroDriftMode(
     const Core::HID::SixAxisSensorHandle& sixaxis_handle,
     GyroscopeZeroDriftMode& drift_mode) const {
-    if (!IsDeviceHandleValid(sixaxis_handle)) {
-        LOG_ERROR(Service_HID, "Invalid handle");
-        return NpadInvalidHandle;
+    const auto is_valid = VerifyValidSixAxisSensorHandle(sixaxis_handle);
+    if (is_valid.IsError()) {
+        LOG_ERROR(Service_HID, "Invalid handle, error_code={}", is_valid.raw);
+        return is_valid;
     }
 
     const auto& sixaxis = GetSixaxisState(sixaxis_handle);
@@ -1037,9 +1050,10 @@ ResultCode Controller_NPad::GetGyroscopeZeroDriftMode(
 
 ResultCode Controller_NPad::IsSixAxisSensorAtRest(
     const Core::HID::SixAxisSensorHandle& sixaxis_handle, bool& is_at_rest) const {
-    if (!IsDeviceHandleValid(sixaxis_handle)) {
-        LOG_ERROR(Service_HID, "Invalid handle");
-        return NpadInvalidHandle;
+    const auto is_valid = VerifyValidSixAxisSensorHandle(sixaxis_handle);
+    if (is_valid.IsError()) {
+        LOG_ERROR(Service_HID, "Invalid handle, error_code={}", is_valid.raw);
+        return is_valid;
     }
 
     const auto& controller = GetControllerFromHandle(sixaxis_handle);
@@ -1049,9 +1063,10 @@ ResultCode Controller_NPad::IsSixAxisSensorAtRest(
 
 ResultCode Controller_NPad::IsFirmwareUpdateAvailableForSixAxisSensor(
     const Core::HID::SixAxisSensorHandle& sixaxis_handle, bool& is_firmware_available) const {
-    if (!IsDeviceHandleValid(sixaxis_handle)) {
-        LOG_ERROR(Service_HID, "Invalid handle");
-        return NpadInvalidHandle;
+    const auto is_valid = VerifyValidSixAxisSensorHandle(sixaxis_handle);
+    if (is_valid.IsError()) {
+        LOG_ERROR(Service_HID, "Invalid handle, error_code={}", is_valid.raw);
+        return is_valid;
     }
 
     // We don't support joycon firmware updates
@@ -1061,10 +1076,12 @@ ResultCode Controller_NPad::IsFirmwareUpdateAvailableForSixAxisSensor(
 
 ResultCode Controller_NPad::SetSixAxisEnabled(const Core::HID::SixAxisSensorHandle& sixaxis_handle,
                                               bool sixaxis_status) {
-    if (!IsDeviceHandleValid(sixaxis_handle)) {
-        LOG_ERROR(Service_HID, "Invalid handle");
-        return NpadInvalidHandle;
+    const auto is_valid = VerifyValidSixAxisSensorHandle(sixaxis_handle);
+    if (is_valid.IsError()) {
+        LOG_ERROR(Service_HID, "Invalid handle, error_code={}", is_valid.raw);
+        return is_valid;
     }
+
     auto& controller = GetControllerFromHandle(sixaxis_handle);
     controller.sixaxis_sensor_enabled = sixaxis_status;
     return ResultSuccess;
@@ -1072,9 +1089,10 @@ ResultCode Controller_NPad::SetSixAxisEnabled(const Core::HID::SixAxisSensorHand
 
 ResultCode Controller_NPad::IsSixAxisSensorFusionEnabled(
     const Core::HID::SixAxisSensorHandle& sixaxis_handle, bool& is_fusion_enabled) const {
-    if (!IsDeviceHandleValid(sixaxis_handle)) {
-        LOG_ERROR(Service_HID, "Invalid handle");
-        return NpadInvalidHandle;
+    const auto is_valid = VerifyValidSixAxisSensorHandle(sixaxis_handle);
+    if (is_valid.IsError()) {
+        LOG_ERROR(Service_HID, "Invalid handle, error_code={}", is_valid.raw);
+        return is_valid;
     }
 
     const auto& sixaxis = GetSixaxisState(sixaxis_handle);
@@ -1084,9 +1102,10 @@ ResultCode Controller_NPad::IsSixAxisSensorFusionEnabled(
 }
 ResultCode Controller_NPad::SetSixAxisFusionEnabled(
     const Core::HID::SixAxisSensorHandle& sixaxis_handle, bool is_fusion_enabled) {
-    if (!IsDeviceHandleValid(sixaxis_handle)) {
-        LOG_ERROR(Service_HID, "Invalid handle");
-        return NpadInvalidHandle;
+    const auto is_valid = VerifyValidSixAxisSensorHandle(sixaxis_handle);
+    if (is_valid.IsError()) {
+        LOG_ERROR(Service_HID, "Invalid handle, error_code={}", is_valid.raw);
+        return is_valid;
     }
 
     auto& sixaxis = GetSixaxisState(sixaxis_handle);
@@ -1098,10 +1117,12 @@ ResultCode Controller_NPad::SetSixAxisFusionEnabled(
 ResultCode Controller_NPad::SetSixAxisFusionParameters(
     const Core::HID::SixAxisSensorHandle& sixaxis_handle,
     Core::HID::SixAxisSensorFusionParameters sixaxis_fusion_parameters) {
-    if (!IsDeviceHandleValid(sixaxis_handle)) {
-        LOG_ERROR(Service_HID, "Invalid handle");
-        return NpadInvalidHandle;
+    const auto is_valid = VerifyValidSixAxisSensorHandle(sixaxis_handle);
+    if (is_valid.IsError()) {
+        LOG_ERROR(Service_HID, "Invalid handle, error_code={}", is_valid.raw);
+        return is_valid;
     }
+
     const auto param1 = sixaxis_fusion_parameters.parameter1;
     if (param1 < 0.0f || param1 > 1.0f) {
         return InvalidSixAxisFusionRange;
@@ -1116,9 +1137,10 @@ ResultCode Controller_NPad::SetSixAxisFusionParameters(
 ResultCode Controller_NPad::GetSixAxisFusionParameters(
     const Core::HID::SixAxisSensorHandle& sixaxis_handle,
     Core::HID::SixAxisSensorFusionParameters& parameters) const {
-    if (!IsDeviceHandleValid(sixaxis_handle)) {
-        LOG_ERROR(Service_HID, "Invalid handle");
-        return NpadInvalidHandle;
+    const auto is_valid = VerifyValidSixAxisSensorHandle(sixaxis_handle);
+    if (is_valid.IsError()) {
+        LOG_ERROR(Service_HID, "Invalid handle, error_code={}", is_valid.raw);
+        return is_valid;
     }
 
     const auto& sixaxis = GetSixaxisState(sixaxis_handle);

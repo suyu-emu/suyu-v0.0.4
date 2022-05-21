@@ -185,8 +185,9 @@ public:
     Core::HID::NpadButton GetAndResetPressState();
 
     static bool IsNpadIdValid(Core::HID::NpadIdType npad_id);
-    static bool IsDeviceHandleValid(const Core::HID::SixAxisSensorHandle& device_handle);
     static bool IsDeviceHandleValid(const Core::HID::VibrationDeviceHandle& device_handle);
+    static ResultCode VerifyValidSixAxisSensorHandle(
+        const Core::HID::SixAxisSensorHandle& device_handle);
 
 private:
     static constexpr std::size_t NPAD_COUNT = 10;
