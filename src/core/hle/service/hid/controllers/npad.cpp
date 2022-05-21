@@ -66,7 +66,7 @@ ResultCode Controller_NPad::VerifyValidSixAxisSensorHandle(
     if (!device_index) {
         return NpadDeviceIndexOutOfRange;
     }
-    // This doesn't get validaded on nnsdk
+    // This doesn't get validated on nnsdk
     const bool npad_type = device_handle.npad_type < Core::HID::NpadStyleIndex::MaxNpadType;
     if (!npad_type) {
         return NpadInvalidHandle;
@@ -1097,6 +1097,36 @@ ResultCode Controller_NPad::IsSixAxisSensorUnalteredPassthroughEnabled(
 
     const auto& sixaxis = GetSixaxisState(sixaxis_handle);
     is_enabled = sixaxis.unaltered_passtrough;
+    return ResultSuccess;
+}
+
+ResultCode Controller_NPad::LoadSixAxisSensorCalibrationParameter(
+    const Core::HID::SixAxisSensorHandle& sixaxis_handle,
+    Core::HID::SixAxisSensorCalibrationParameter& calibration) const {
+    const auto is_valid = VerifyValidSixAxisSensorHandle(sixaxis_handle);
+    if (is_valid.IsError()) {
+        LOG_ERROR(Service_HID, "Invalid handle, error_code={}", is_valid.raw);
+        return is_valid;
+    }
+
+    // TODO: Request this data to the controller. On error return 0xd8ca
+    const auto& sixaxis = GetSixaxisState(sixaxis_handle);
+    calibration = sixaxis.calibration;
+    return ResultSuccess;
+}
+
+ResultCode Controller_NPad::GetSixAxisSensorIcInformation(
+    const Core::HID::SixAxisSensorHandle& sixaxis_handle,
+    Core::HID::SixAxisSensorIcInformation& ic_information) const {
+    const auto is_valid = VerifyValidSixAxisSensorHandle(sixaxis_handle);
+    if (is_valid.IsError()) {
+        LOG_ERROR(Service_HID, "Invalid handle, error_code={}", is_valid.raw);
+        return is_valid;
+    }
+
+    // TODO: Request this data to the controller. On error return 0xd8ca
+    const auto& sixaxis = GetSixaxisState(sixaxis_handle);
+    ic_information = sixaxis.ic_information;
     return ResultSuccess;
 }
 

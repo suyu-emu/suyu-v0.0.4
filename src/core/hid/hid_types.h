@@ -498,6 +498,39 @@ struct SixAxisSensorFusionParameters {
 static_assert(sizeof(SixAxisSensorFusionParameters) == 8,
               "SixAxisSensorFusionParameters is an invalid size");
 
+// This is nn::hid::SixAxisSensorCalibrationParameter
+struct SixAxisSensorCalibrationParameter {
+    std::array<u8, 0x744> unknown_data{};
+};
+static_assert(sizeof(SixAxisSensorCalibrationParameter) == 0x744,
+              "SixAxisSensorCalibrationParameter is an invalid size");
+
+// This is nn::hid::SixAxisSensorIcInformation
+struct SixAxisSensorIcInformation {
+    f32 angular_rate{2000.0f}; // dps
+    std::array<f32, 6> unknown_gyro_data1{
+        -10.0f, -10.0f, -10.0f, 10.0f, 10.0f, 10.0f,
+    }; // dps
+    std::array<f32, 9> unknown_gyro_data2{
+        0.95f, -0.003f, -0.003f, -0.003f, 0.95f, -0.003f, -0.003f, -0.003f, 0.95f,
+    };
+    std::array<f32, 9> unknown_gyro_data3{
+        1.05f, 0.003f, 0.003f, 0.003f, 1.05f, 0.003f, 0.003f, 0.003f, 1.05f,
+    };
+    f32 acceleration_range{8.0f}; // g force
+    std::array<f32, 6> unknown_accel_data1{
+        -0.0612f, -0.0612f, -0.0612f, 0.0612f, 0.0612f, 0.0612f,
+    }; // g force
+    std::array<f32, 9> unknown_accel_data2{
+        0.95f, -0.003f, -0.003f, -0.003f, 0.95f, -0.003f, -0.003f, -0.003f, 0.95f,
+    };
+    std::array<f32, 9> unknown_accel_data3{
+        1.05f, 0.003f, 0.003f, 0.003f, 1.05f, 0.003f, 0.003f, 0.003f, 1.05f,
+    };
+};
+static_assert(sizeof(SixAxisSensorIcInformation) == 0xC8,
+              "SixAxisSensorIcInformation is an invalid size");
+
 // This is nn::hid::VibrationDeviceHandle
 struct VibrationDeviceHandle {
     NpadStyleIndex npad_type{NpadStyleIndex::None};
