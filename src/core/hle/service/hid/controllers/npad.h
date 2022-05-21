@@ -151,6 +151,10 @@ public:
                                      bool& is_at_rest) const;
     ResultCode IsFirmwareUpdateAvailableForSixAxisSensor(
         const Core::HID::SixAxisSensorHandle& sixaxis_handle, bool& is_firmware_available) const;
+    ResultCode EnableSixAxisSensorUnalteredPassthrough(
+        const Core::HID::SixAxisSensorHandle& sixaxis_handle, bool is_enabled);
+    ResultCode IsSixAxisSensorUnalteredPassthroughEnabled(
+        const Core::HID::SixAxisSensorHandle& sixaxis_handle, bool& is_enabled) const;
     ResultCode SetSixAxisEnabled(const Core::HID::SixAxisSensorHandle& sixaxis_handle,
                                  bool sixaxis_status);
     ResultCode IsSixAxisSensorFusionEnabled(const Core::HID::SixAxisSensorHandle& sixaxis_handle,
@@ -468,6 +472,7 @@ private:
 
     struct SixaxisParameters {
         bool is_fusion_enabled{true};
+        bool unaltered_passtrough{false};
         Core::HID::SixAxisSensorFusionParameters fusion{};
         GyroscopeZeroDriftMode gyroscope_zero_drift_mode{GyroscopeZeroDriftMode::Standard};
     };

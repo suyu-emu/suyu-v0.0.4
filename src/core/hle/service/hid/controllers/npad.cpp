@@ -1074,6 +1074,32 @@ ResultCode Controller_NPad::IsFirmwareUpdateAvailableForSixAxisSensor(
     return ResultSuccess;
 }
 
+ResultCode Controller_NPad::EnableSixAxisSensorUnalteredPassthrough(
+    const Core::HID::SixAxisSensorHandle& sixaxis_handle, bool is_enabled) {
+    const auto is_valid = VerifyValidSixAxisSensorHandle(sixaxis_handle);
+    if (is_valid.IsError()) {
+        LOG_ERROR(Service_HID, "Invalid handle, error_code={}", is_valid.raw);
+        return is_valid;
+    }
+
+    auto& sixaxis = GetSixaxisState(sixaxis_handle);
+    sixaxis.unaltered_passtrough = is_enabled;
+    return ResultSuccess;
+}
+
+ResultCode Controller_NPad::IsSixAxisSensorUnalteredPassthroughEnabled(
+    const Core::HID::SixAxisSensorHandle& sixaxis_handle, bool& is_enabled) const {
+    const auto is_valid = VerifyValidSixAxisSensorHandle(sixaxis_handle);
+    if (is_valid.IsError()) {
+        LOG_ERROR(Service_HID, "Invalid handle, error_code={}", is_valid.raw);
+        return is_valid;
+    }
+
+    const auto& sixaxis = GetSixaxisState(sixaxis_handle);
+    is_enabled = sixaxis.unaltered_passtrough;
+    return ResultSuccess;
+}
+
 ResultCode Controller_NPad::SetSixAxisEnabled(const Core::HID::SixAxisSensorHandle& sixaxis_handle,
                                               bool sixaxis_status) {
     const auto is_valid = VerifyValidSixAxisSensorHandle(sixaxis_handle);

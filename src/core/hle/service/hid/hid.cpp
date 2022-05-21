@@ -257,8 +257,8 @@ Hid::Hid(Core::System& system_)
         {81, &Hid::ResetGyroscopeZeroDriftMode, "ResetGyroscopeZeroDriftMode"},
         {82, &Hid::IsSixAxisSensorAtRest, "IsSixAxisSensorAtRest"},
         {83, &Hid::IsFirmwareUpdateAvailableForSixAxisSensor, "IsFirmwareUpdateAvailableForSixAxisSensor"},
-        {84, nullptr, "EnableSixAxisSensorUnalteredPassthrough"},
-        {85, nullptr, "IsSixAxisSensorUnalteredPassthroughEnabled"},
+        {84, &Hid::EnableSixAxisSensorUnalteredPassthrough, "EnableSixAxisSensorUnalteredPassthrough"},
+        {85, &Hid::IsSixAxisSensorUnalteredPassthroughEnabled, "IsSixAxisSensorUnalteredPassthroughEnabled"},
         {86, nullptr, "StoreSixAxisSensorCalibrationParameter"},
         {87, nullptr, "LoadSixAxisSensorCalibrationParameter"},
         {88, nullptr, "GetSixAxisSensorIcInformation"},
@@ -815,6 +815,59 @@ void Hid::IsFirmwareUpdateAvailableForSixAxisSensor(Kernel::HLERequestContext& c
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(result);
     rb.Push(is_firmware_available);
+}
+
+void Hid::EnableSixAxisSensorUnalteredPassthrough(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    struct Parameters {
+        bool enabled;
+        Core::HID::SixAxisSensorHandle sixaxis_handle;
+        u64 applet_resource_user_id;
+    };
+    static_assert(sizeof(Parameters) == 0x10, "Parameters has incorrect size.");
+
+    const auto parameters{rp.PopRaw<Parameters>()};
+
+    auto& controller = GetAppletResource()->GetController<Controller_NPad>(HidController::NPad);
+    const auto result = controller.EnableSixAxisSensorUnalteredPassthrough(
+        parameters.sixaxis_handle, parameters.enabled);
+
+    LOG_WARNING(Service_HID,
+                "(STUBBED) called, enabled={}, npad_type={}, npad_id={}, device_index={}, "
+                "applet_resource_user_id={}",
+                parameters.enabled, parameters.sixaxis_handle.npad_type,
+                parameters.sixaxis_handle.npad_id, parameters.sixaxis_handle.device_index,
+                parameters.applet_resource_user_id);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
+}
+
+void Hid::IsSixAxisSensorUnalteredPassthroughEnabled(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    struct Parameters {
+        Core::HID::SixAxisSensorHandle sixaxis_handle;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        u64 applet_resource_user_id;
+    };
+    static_assert(sizeof(Parameters) == 0x10, "Parameters has incorrect size.");
+
+    const auto parameters{rp.PopRaw<Parameters>()};
+
+    bool is_unaltered_sisxaxis_enabled{};
+    auto& controller = GetAppletResource()->GetController<Controller_NPad>(HidController::NPad);
+    const auto result = controller.IsSixAxisSensorUnalteredPassthroughEnabled(
+        parameters.sixaxis_handle, is_unaltered_sisxaxis_enabled);
+
+    LOG_WARNING(
+        Service_HID,
+        "(STUBBED) called, npad_type={}, npad_id={}, device_index={}, applet_resource_user_id={}",
+        parameters.sixaxis_handle.npad_type, parameters.sixaxis_handle.npad_id,
+        parameters.sixaxis_handle.device_index, parameters.applet_resource_user_id);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(result);
+    rb.Push(is_unaltered_sisxaxis_enabled);
 }
 
 void Hid::ActivateGesture(Kernel::HLERequestContext& ctx) {

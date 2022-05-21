@@ -113,6 +113,8 @@ private:
     void ResetGyroscopeZeroDriftMode(Kernel::HLERequestContext& ctx);
     void IsSixAxisSensorAtRest(Kernel::HLERequestContext& ctx);
     void IsFirmwareUpdateAvailableForSixAxisSensor(Kernel::HLERequestContext& ctx);
+    void EnableSixAxisSensorUnalteredPassthrough(Kernel::HLERequestContext& ctx);
+    void IsSixAxisSensorUnalteredPassthroughEnabled(Kernel::HLERequestContext& ctx);
     void ActivateGesture(Kernel::HLERequestContext& ctx);
     void SetSupportedNpadStyleSet(Kernel::HLERequestContext& ctx);
     void GetSupportedNpadStyleSet(Kernel::HLERequestContext& ctx);
