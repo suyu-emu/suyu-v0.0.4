@@ -566,7 +566,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
 
     VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR workgroup_layout;
-    if (khr_workgroup_memory_explicit_layout) {
+    if (khr_workgroup_memory_explicit_layout && is_shader_int16_supported) {
         workgroup_layout = {
             .sType =
                 VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_FEATURES_KHR,
@@ -577,6 +577,11 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             .workgroupMemoryExplicitLayout16BitAccess = VK_TRUE,
         };
         SetNext(next, workgroup_layout);
+    } else if (khr_workgroup_memory_explicit_layout) {
+        // TODO(lat9nq): Find a proper fix for this
+        LOG_WARNING(Render_Vulkan, "Disabling VK_KHR_workgroup_memory_explicit_layout due to a "
+                                   "yuzu bug when host driver does not support 16-bit integers");
+        khr_workgroup_memory_explicit_layout = false;
     }
 
     VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR executable_properties;
