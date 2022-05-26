@@ -116,8 +116,8 @@ void ConfigurePerGame::HandleApplyButtonClicked() {
     ApplyConfiguration();
 }
 
-void ConfigurePerGame::LoadFromFile(FileSys::VirtualFile file) {
-    this->file = std::move(file);
+void ConfigurePerGame::LoadFromFile(FileSys::VirtualFile file_) {
+    file = std::move(file_);
     LoadConfiguration();
 }
 

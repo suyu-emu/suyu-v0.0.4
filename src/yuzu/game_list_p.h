@@ -348,7 +348,7 @@ public:
     explicit GameListSearchField(GameList* parent = nullptr);
 
     QString filterText() const;
-    void setFilterResult(int visible, int total);
+    void setFilterResult(int visible_, int total_);
 
     void clear();
     void setFocus();

@@ -46,7 +46,7 @@ public:
     /// Save all button configurations to settings file
     void ApplyConfiguration();
 
-    void LoadFromFile(FileSys::VirtualFile file);
+    void LoadFromFile(FileSys::VirtualFile file_);
 
 private:
     void changeEvent(QEvent* event) override;

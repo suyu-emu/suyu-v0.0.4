@@ -80,9 +80,9 @@ bool GameListSearchField::KeyReleaseEater::eventFilter(QObject* obj, QEvent* eve
     return QObject::eventFilter(obj, event);
 }
 
-void GameListSearchField::setFilterResult(int visible, int total) {
-    this->visible = visible;
-    this->total = total;
+void GameListSearchField::setFilterResult(int visible_, int total_) {
+    visible = visible_;
+    total = total_;
 
     label_filter_result->setText(tr("%1 of %n result(s)", "", total).arg(visible));
 }
