@@ -5,7 +5,14 @@ cd /yuzu
 ccache -s
 
 mkdir build || true && cd build
-cmake .. -G Ninja -DDISPLAY_VERSION=$1 -DCMAKE_TOOLCHAIN_FILE="$(pwd)/../CMakeModules/MinGWCross.cmake" -DUSE_CCACHE=ON -DENABLE_COMPATIBILITY_LIST_DOWNLOAD=ON -DCMAKE_BUILD_TYPE=Release -DENABLE_QT_TRANSLATION=ON
+cmake .. \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_TOOLCHAIN_FILE="$(pwd)/../CMakeModules/MinGWCross.cmake" \
+    -DDISPLAY_VERSION=$1 \
+    -DENABLE_COMPATIBILITY_LIST_DOWNLOAD=ON \
+    -DENABLE_QT_TRANSLATION=ON \
+    -DUSE_CCACHE=ON \
+    -GNinja \
 ninja
 
 ccache -s
