@@ -49,7 +49,6 @@ if (NOT MSVC)
     target_compile_options(audio_core PRIVATE
         -Werror=conversion
         -Werror=ignored-qualifiers
-        -Werror=unused-parameter
 
         $<$<CXX_COMPILER_ID:GNU>:-Werror=unused-but-set-parameter>
         $<$<CXX_COMPILER_ID:GNU>:-Werror=unused-but-set-variable>
