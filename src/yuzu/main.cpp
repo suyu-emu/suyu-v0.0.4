@@ -299,6 +299,8 @@ GMainWindow::GMainWindow()
     MigrateConfigFiles();
 
     if (!CheckVulkan()) {
+        config->Save();
+
         QMessageBox::warning(this, tr("Broken Vulkan Installation Detected"), tr(""));
     }
     if (UISettings::values.has_broken_vulkan) {
