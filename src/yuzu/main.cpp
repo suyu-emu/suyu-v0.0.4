@@ -301,7 +301,12 @@ GMainWindow::GMainWindow()
     if (!CheckVulkan()) {
         config->Save();
 
-        QMessageBox::warning(this, tr("Broken Vulkan Installation Detected"), tr(""));
+        QMessageBox::warning(
+            this, tr("Broken Vulkan Installation Detected"),
+            tr("Vulkan initialization failed on the previous boot.<br><br>Click <a "
+               "href='https://yuzu-emu.org/wiki/faq/"
+               "#yuzu-starts-with-the-error-broken-vulkan-installation-detected'>here for "
+               "instructions to fix the issue</a>."));
     }
     if (UISettings::values.has_broken_vulkan) {
         Settings::values.renderer_backend = Settings::RendererBackend::OpenGL;
