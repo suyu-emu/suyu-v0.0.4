@@ -40,7 +40,6 @@ public:
     u32 GetPSTATE() const override;
     void SetPSTATE(u32 pstate) override;
     void Run() override;
-    void Step() override;
     VAddr GetTlsAddress() const override;
     void SetTlsAddress(VAddr address) override;
     void SetTPIDR_EL0(u64 value) override;
@@ -88,6 +87,9 @@ private:
 
     // SVC callback
     u32 svc_swi{};
+
+    // Debug restart address
+    u64 breakpoint_pc{};
 };
 
 } // namespace Core
