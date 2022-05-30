@@ -64,6 +64,7 @@ ConfigureGraphics::ConfigureGraphics(const Core::System& system_, QWidget* paren
 
         if (RetrieveVulkanDevices()) {
             ui->api->setEnabled(true);
+            ui->button_check_vulkan->hide();
 
             for (const auto& device : vulkan_devices) {
                 ui->device->addItem(device);
@@ -355,9 +356,6 @@ bool ConfigureGraphics::RetrieveVulkanDevices() try {
         const std::string name = vk::PhysicalDevice(device, dld).GetProperties().deviceName;
         vulkan_devices.push_back(QString::fromStdString(name));
     }
-
-    UISettings::values.has_broken_vulkan = false;
-    ui->button_check_vulkan->setVisible(false);
 
     return true;
 } catch (const Vulkan::vk::Exception& exception) {

@@ -299,11 +299,7 @@ GMainWindow::GMainWindow()
     MigrateConfigFiles();
 
     if (!CheckVulkan()) {
-        QMessageBox::warning(
-            this, tr("Broken Vulkan Installation Detected"),
-            tr("Vulkan initialization failed on the previous boot. Please update your graphics "
-               "driver, then re-check your Vulkan installation by accessing the Graphics "
-               "configuration and clicking \"Check for Working Vulkan\"."));
+        QMessageBox::warning(this, tr("Broken Vulkan Installation Detected"), tr(""));
     }
     if (UISettings::values.has_broken_vulkan) {
         Settings::values.renderer_backend = Settings::RendererBackend::OpenGL;
@@ -2786,6 +2782,10 @@ void GMainWindow::OnConfigure() {
 
     if (UISettings::values.hide_mouse) {
         mouse_hide_timer.start();
+    }
+
+    if (!UISettings::values.has_broken_vulkan) {
+        renderer_status_button->setEnabled(!emulation_running);
     }
 
     UpdateStatusButtons();

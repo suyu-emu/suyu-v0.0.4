@@ -1,6 +1,8 @@
+// SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
-#include <exception>
 #include <filesystem>
 #include <fstream>
 #include "common/fs/fs.h"
@@ -42,8 +44,8 @@ bool CheckVulkan() {
 
     } catch (const Vulkan::vk::Exception& exception) {
         LOG_ERROR(Frontend, "Failed to initialize Vulkan: {}", exception.what());
-        UISettings::values.has_broken_vulkan = true;
-        return false;
+        // Don't set has_broken_vulkan to true here: we care when loading Vulkan crashes the
+        // application, not when we can handle it.
     }
 
     std::filesystem::remove(temp_file_loc);
