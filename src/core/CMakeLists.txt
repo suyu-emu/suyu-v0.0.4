@@ -768,6 +768,9 @@ create_target_directory_groups(core)
 
 target_link_libraries(core PUBLIC common PRIVATE audio_core video_core)
 target_link_libraries(core PUBLIC Boost::boost PRIVATE fmt::fmt nlohmann_json::nlohmann_json mbedtls Opus::Opus)
+if (MINGW)
+    target_link_libraries(core PRIVATE ${MSWSOCK_LIBRARY})
+endif()
 
 if (ENABLE_WEB_SERVICE)
     target_compile_definitions(core PRIVATE -DENABLE_WEB_SERVICE)

@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <algorithm>
 #include <mutex>
 #include <thread>
 
@@ -84,31 +85,31 @@ public:
         return active_thread;
     }
 
-    bool IsStepping() const {
-        return stepping;
-    }
-
 private:
     void InitializeServer(u16 port) {
         using boost::asio::ip::tcp;
 
         LOG_INFO(Debug_GDBStub, "Starting server on port {}...", port);
 
-        // Initialize the listening socket and accept a new client.
-        tcp::endpoint endpoint{boost::asio::ip::address_v4::loopback(), port};
-        tcp::acceptor acceptor{io_context, endpoint};
-        client_socket = acceptor.accept();
-
         // Run the connection thread.
-        connection_thread = std::jthread([&](std::stop_token stop_token) {
+        connection_thread = std::jthread([&, port](std::stop_token stop_token) {
             try {
+                // Initialize the listening socket and accept a new client.
+                tcp::endpoint endpoint{boost::asio::ip::address_v4::loopback(), port};
+                tcp::acceptor acceptor{io_context, endpoint};
+
+                acceptor.async_accept(client_socket, [](const auto&) {});
+                io_context.run_one();
+                io_context.restart();
+
+                if (stop_token.stop_requested()) {
+                    return;
+                }
+
                 ThreadLoop(stop_token);
             } catch (const std::exception& ex) {
                 LOG_CRITICAL(Debug_GDBStub, "Stopping server: {}", ex.what());
             }
-
-            client_socket.shutdown(client_socket.shutdown_both);
-            client_socket.close();
         });
     }
 
@@ -129,8 +130,7 @@ private:
         AllCoreStop();
 
         // Set the active thread.
-        active_thread = ThreadList()[0];
-        active_thread->Resume(Kernel::SuspendType::Debug);
+        UpdateActiveThread();
 
         // Set up the frontend.
         frontend->Connected();
@@ -142,7 +142,7 @@ private:
 
     void PipeData(std::span<const u8> data) {
         AllCoreStop();
-        active_thread->Resume(Kernel::SuspendType::Debug);
+        UpdateActiveThread();
         frontend->Stopped(active_thread);
     }
 
@@ -156,18 +156,22 @@ private:
                     stopped = true;
                 }
                 AllCoreStop();
-                active_thread = ThreadList()[0];
-                active_thread->Resume(Kernel::SuspendType::Debug);
+                UpdateActiveThread();
                 frontend->Stopped(active_thread);
                 break;
             }
             case DebuggerAction::Continue:
-                stepping = false;
+                active_thread->SetStepState(Kernel::StepState::NotStepping);
                 ResumeInactiveThreads();
                 AllCoreResume();
                 break;
-            case DebuggerAction::StepThread:
-                stepping = true;
+            case DebuggerAction::StepThreadUnlocked:
+                active_thread->SetStepState(Kernel::StepState::StepPending);
+                ResumeInactiveThreads();
+                AllCoreResume();
+                break;
+            case DebuggerAction::StepThreadLocked:
+                active_thread->SetStepState(Kernel::StepState::StepPending);
                 SuspendInactiveThreads();
                 AllCoreResume();
                 break;
@@ -212,8 +216,18 @@ private:
         for (auto* thread : ThreadList()) {
             if (thread != active_thread) {
                 thread->Resume(Kernel::SuspendType::Debug);
+                thread->SetStepState(Kernel::StepState::NotStepping);
             }
         }
+    }
+
+    void UpdateActiveThread() {
+        const auto& threads{ThreadList()};
+        if (std::find(threads.begin(), threads.end(), active_thread) == threads.end()) {
+            active_thread = threads[0];
+        }
+        active_thread->Resume(Kernel::SuspendType::Debug);
+        active_thread->SetStepState(Kernel::StepState::NotStepping);
     }
 
     const std::vector<Kernel::KThread*>& ThreadList() {
@@ -233,7 +247,6 @@ private:
 
     Kernel::KThread* active_thread;
     bool stopped;
-    bool stepping;
 
     std::array<u8, 4096> client_data;
 };
@@ -250,10 +263,6 @@ Debugger::~Debugger() = default;
 
 bool Debugger::NotifyThreadStopped(Kernel::KThread* thread) {
     return impl && impl->NotifyThreadStopped(thread);
-}
-
-bool Debugger::IsStepping() const {
-    return impl && impl->IsStepping();
 }
 
 } // namespace Core

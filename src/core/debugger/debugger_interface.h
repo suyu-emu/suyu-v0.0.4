@@ -16,10 +16,11 @@ class KThread;
 namespace Core {
 
 enum class DebuggerAction {
-    Interrupt,         // Stop emulation as soon as possible.
-    Continue,          // Resume emulation.
-    StepThread,        // Step the currently-active thread.
-    ShutdownEmulation, // Shut down the emulator.
+    Interrupt,          ///< Stop emulation as soon as possible.
+    Continue,           ///< Resume emulation.
+    StepThreadLocked,   ///< Step the currently-active thread without resuming others.
+    StepThreadUnlocked, ///< Step the currently-active thread and resume others.
+    ShutdownEmulation,  ///< Shut down the emulator.
 };
 
 class DebuggerBackend {

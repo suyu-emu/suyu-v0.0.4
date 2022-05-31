@@ -39,7 +39,6 @@ public:
     void SetVectorReg(int index, u128 value) override;
     u32 GetPSTATE() const override;
     void SetPSTATE(u32 pstate) override;
-    void Run() override;
     VAddr GetTlsAddress() const override;
     void SetTlsAddress(VAddr address) override;
     void SetTPIDR_EL0(u64 value) override;
@@ -62,6 +61,11 @@ public:
                                                                const ThreadContext64& ctx);
 
     std::vector<BacktraceEntry> GetBacktrace() const override;
+
+protected:
+    Dynarmic::HaltReason RunJit() override;
+    Dynarmic::HaltReason StepJit() override;
+    u32 GetSvcNumber() const override;
 
 private:
     std::shared_ptr<Dynarmic::A64::Jit> MakeJit(Common::PageTable* page_table,
@@ -87,9 +91,6 @@ private:
 
     // SVC callback
     u32 svc_swi{};
-
-    // Debug restart address
-    u64 breakpoint_pc{};
 };
 
 } // namespace Core

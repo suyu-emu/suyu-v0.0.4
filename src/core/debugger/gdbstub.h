@@ -28,6 +28,7 @@ public:
 private:
     void ProcessData(std::vector<DebuggerAction>& actions);
     void ExecuteCommand(std::string_view packet, std::vector<DebuggerAction>& actions);
+    void HandleVCont(std::string_view command, std::vector<DebuggerAction>& actions);
     void HandleQuery(std::string_view command);
     std::vector<char>::const_iterator CommandEnd() const;
     std::optional<std::string> DetachCommand();
@@ -42,6 +43,7 @@ private:
     std::unique_ptr<GDBStubArch> arch;
     std::vector<char> current_command;
     std::map<VAddr, u32> replaced_instructions;
+    bool no_ack{};
 };
 
 } // namespace Core
