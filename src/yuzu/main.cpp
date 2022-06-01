@@ -3152,7 +3152,7 @@ void GMainWindow::OnTasStateChanged() {
 }
 
 void GMainWindow::UpdateStatusBar() {
-    if (emu_thread == nullptr) {
+    if (emu_thread == nullptr || !system->IsPoweredOn()) {
         status_bar_update_timer.stop();
         return;
     }

@@ -9,6 +9,7 @@
 #include "core/arm/arm_interface.h"
 #include "core/arm/symbols.h"
 #include "core/core.h"
+#include "core/debugger/debugger.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/loader/loader.h"
 #include "core/memory.h"
@@ -86,6 +87,10 @@ void ARM_Interface::LogBacktrace() const {
         LOG_ERROR(Core_ARM, "{:20}{:016X}    {:016X}    {:016X}    {}", entry.module, entry.address,
                   entry.original_address, entry.offset, entry.name);
     }
+}
+
+bool ARM_Interface::ShouldStep() const {
+    return system.DebuggerEnabled() && system.GetDebugger().IsStepping();
 }
 
 } // namespace Core

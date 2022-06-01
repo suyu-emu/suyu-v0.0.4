@@ -66,9 +66,6 @@ public:
     /// Runs the CPU until an event happens
     virtual void Run() = 0;
 
-    /// Step CPU by one instruction
-    virtual void Step() = 0;
-
     /// Clear all instruction cache
     virtual void ClearInstructionCache() = 0;
 
@@ -193,6 +190,8 @@ public:
     virtual std::vector<BacktraceEntry> GetBacktrace() const = 0;
 
     void LogBacktrace() const;
+
+    bool ShouldStep() const;
 
 protected:
     /// System context that this ARM interface is running under.
