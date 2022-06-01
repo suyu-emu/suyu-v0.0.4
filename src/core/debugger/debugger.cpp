@@ -50,7 +50,7 @@ public:
         InitializeServer(port);
     }
 
-    ~DebuggerImpl() {
+    ~DebuggerImpl() override {
         ShutdownServer();
     }
 

@@ -19,7 +19,7 @@ class System;
 class GDBStub : public DebuggerFrontend {
 public:
     explicit GDBStub(DebuggerBackend& backend, Core::System& system);
-    ~GDBStub();
+    ~GDBStub() override;
 
     void Connected() override;
     void Stopped(Kernel::KThread* thread) override;
