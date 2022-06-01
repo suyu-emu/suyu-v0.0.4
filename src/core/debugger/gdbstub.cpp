@@ -358,8 +358,8 @@ std::optional<std::string> GDBStub::DetachCommand() {
 }
 
 u8 GDBStub::CalculateChecksum(std::string_view data) {
-    return static_cast<u8>(
-        std::accumulate(data.begin(), data.end(), u8{0}, [](u8 lhs, u8 rhs) { return lhs + rhs; }));
+    return std::accumulate(data.begin(), data.end(), u8{0},
+                           [](u8 lhs, u8 rhs) { return static_cast<u8>(lhs + rhs); });
 }
 
 void GDBStub::SendReply(std::string_view data) {
