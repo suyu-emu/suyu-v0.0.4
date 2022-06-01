@@ -24,6 +24,8 @@ enum class DebuggerAction {
 
 class DebuggerBackend {
 public:
+    virtual ~DebuggerBackend() = default;
+
     /**
      * Can be invoked from a callback to synchronously wait for more data.
      * Will return as soon as least one byte is received. Reads up to 4096 bytes.
@@ -50,6 +52,8 @@ public:
 class DebuggerFrontend {
 public:
     explicit DebuggerFrontend(DebuggerBackend& backend_) : backend{backend_} {}
+
+    virtual ~DebuggerFrontend() = default;
 
     /**
      * Called after the client has successfully connected to the port.
