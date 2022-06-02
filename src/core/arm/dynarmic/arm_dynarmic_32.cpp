@@ -26,10 +26,6 @@ namespace Core {
 
 using namespace Common::Literals;
 
-constexpr Dynarmic::HaltReason break_loop = Dynarmic::HaltReason::UserDefined2;
-constexpr Dynarmic::HaltReason svc_call = Dynarmic::HaltReason::UserDefined3;
-constexpr Dynarmic::HaltReason breakpoint = Dynarmic::HaltReason::UserDefined4;
-
 class DynarmicCallbacks32 : public Dynarmic::A32::UserCallbacks {
 public:
     explicit DynarmicCallbacks32(ARM_Dynarmic_32& parent_)
@@ -82,8 +78,8 @@ public:
 
     void ExceptionRaised(u32 pc, Dynarmic::A32::Exception exception) override {
         if (parent.system.DebuggerEnabled()) {
-            parent.breakpoint_pc = pc;
-            parent.jit.load()->HaltExecution(breakpoint);
+            parent.jit.load()->Regs()[15] = pc;
+            parent.jit.load()->HaltExecution(ARM_Interface::breakpoint);
             return;
         }
 
@@ -95,7 +91,7 @@ public:
 
     void CallSVC(u32 swi) override {
         parent.svc_swi = swi;
-        parent.jit.load()->HaltExecution(svc_call);
+        parent.jit.load()->HaltExecution(ARM_Interface::svc_call);
     }
 
     void AddTicks(u64 ticks) override {
@@ -240,35 +236,16 @@ std::shared_ptr<Dynarmic::A32::Jit> ARM_Dynarmic_32::MakeJit(Common::PageTable* 
     return std::make_unique<Dynarmic::A32::Jit>(config);
 }
 
-void ARM_Dynarmic_32::Run() {
-    while (true) {
-        const auto hr = ShouldStep() ? jit.load()->Step() : jit.load()->Run();
-        if (Has(hr, svc_call)) {
-            Kernel::Svc::Call(system, svc_swi);
-        }
+Dynarmic::HaltReason ARM_Dynarmic_32::RunJit() {
+    return jit.load()->Run();
+}
 
-        // Check to see if breakpoint is triggered.
-        // Recheck step condition in case stop is no longer desired.
-        Kernel::KThread* current_thread = system.Kernel().GetCurrentEmuThread();
-        if (Has(hr, breakpoint)) {
-            jit.load()->Regs()[15] = breakpoint_pc;
+Dynarmic::HaltReason ARM_Dynarmic_32::StepJit() {
+    return jit.load()->Step();
+}
 
-            if (system.GetDebugger().NotifyThreadStopped(current_thread)) {
-                current_thread->RequestSuspend(Kernel::SuspendType::Debug);
-            }
-            break;
-        }
-        if (ShouldStep()) {
-            // When stepping, this should be the only thread running.
-            ASSERT(system.GetDebugger().NotifyThreadStopped(current_thread));
-            current_thread->RequestSuspend(Kernel::SuspendType::Debug);
-            break;
-        }
-
-        if (Has(hr, break_loop) || !uses_wall_clock) {
-            break;
-        }
-    }
+u32 ARM_Dynarmic_32::GetSvcNumber() const {
+    return svc_swi;
 }
 
 ARM_Dynarmic_32::ARM_Dynarmic_32(System& system_, CPUInterrupts& interrupt_handlers_,

@@ -6,8 +6,7 @@
 #include <optional>
 #include <thread>
 
-#include <boost/asio.hpp>
-#include <boost/process/async_pipe.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include "common/hex_util.h"
 #include "common/logging/log.h"
@@ -114,6 +113,11 @@ void GDBStub::ExecuteCommand(std::string_view packet, std::vector<DebuggerAction
         return;
     }
 
+    if (packet.starts_with("vCont")) {
+        HandleVCont(packet.substr(5), actions);
+        return;
+    }
+
     std::string_view command{packet.substr(1, packet.size())};
 
     switch (packet[0]) {
@@ -122,6 +126,8 @@ void GDBStub::ExecuteCommand(std::string_view packet, std::vector<DebuggerAction
         s64 thread_id{strtoll(command.data() + 1, nullptr, 16)};
         if (thread_id >= 1) {
             thread = GetThreadByID(thread_id);
+        } else {
+            thread = backend.GetActiveThread();
         }
 
         if (thread) {
@@ -141,6 +147,7 @@ void GDBStub::ExecuteCommand(std::string_view packet, std::vector<DebuggerAction
         }
         break;
     }
+    case 'Q':
     case 'q':
         HandleQuery(command);
         break;
@@ -204,7 +211,7 @@ void GDBStub::ExecuteCommand(std::string_view packet, std::vector<DebuggerAction
         break;
     }
     case 's':
-        actions.push_back(DebuggerAction::StepThread);
+        actions.push_back(DebuggerAction::StepThreadLocked);
         break;
     case 'C':
     case 'c':
@@ -248,12 +255,47 @@ void GDBStub::ExecuteCommand(std::string_view packet, std::vector<DebuggerAction
     }
 }
 
+static std::string_view GetThreadWaitReason(const Kernel::KThread* thread) {
+    switch (thread->GetWaitReasonForDebugging()) {
+    case Kernel::ThreadWaitReasonForDebugging::Sleep:
+        return "Sleep";
+    case Kernel::ThreadWaitReasonForDebugging::IPC:
+        return "IPC";
+    case Kernel::ThreadWaitReasonForDebugging::Synchronization:
+        return "Synchronization";
+    case Kernel::ThreadWaitReasonForDebugging::ConditionVar:
+        return "ConditionVar";
+    case Kernel::ThreadWaitReasonForDebugging::Arbitration:
+        return "Arbitration";
+    case Kernel::ThreadWaitReasonForDebugging::Suspended:
+        return "Suspended";
+    default:
+        return "Unknown";
+    }
+}
+
+static std::string GetThreadState(const Kernel::KThread* thread) {
+    switch (thread->GetState()) {
+    case Kernel::ThreadState::Initialized:
+        return "Initialized";
+    case Kernel::ThreadState::Waiting:
+        return fmt::format("Waiting ({})", GetThreadWaitReason(thread));
+    case Kernel::ThreadState::Runnable:
+        return "Runnable";
+    case Kernel::ThreadState::Terminated:
+        return "Terminated";
+    default:
+        return "Unknown";
+    }
+}
+
 void GDBStub::HandleQuery(std::string_view command) {
     if (command.starts_with("TStatus")) {
         // no tracepoint support
         SendReply("T0");
     } else if (command.starts_with("Supported")) {
-        SendReply("PacketSize=4000;qXfer:features:read+;qXfer:threads:read+;qXfer:libraries:read+");
+        SendReply("PacketSize=4000;qXfer:features:read+;qXfer:threads:read+;qXfer:libraries:read+;"
+                  "vContSupported+;QStartNoAckMode+");
     } else if (command.starts_with("Xfer:features:read:target.xml:")) {
         const auto offset{command.substr(30)};
         const auto amount{command.substr(command.find(',') + 1)};
@@ -297,15 +339,54 @@ void GDBStub::HandleQuery(std::string_view command) {
 
         const auto& threads = system.GlobalSchedulerContext().GetThreadList();
         for (const auto& thread : threads) {
-            buffer +=
-                fmt::format(R"(<thread id="{:x}" core="{:d}" name="Thread {:d}"/>)",
-                            thread->GetThreadID(), thread->GetActiveCore(), thread->GetThreadID());
+            buffer += fmt::format(R"(<thread id="{:x}" core="{:d}" name="Thread {:d}">{}</thread>)",
+                                  thread->GetThreadID(), thread->GetActiveCore(),
+                                  thread->GetThreadID(), GetThreadState(thread));
         }
 
         buffer += "</threads>";
         SendReply(buffer);
+    } else if (command.starts_with("Attached")) {
+        SendReply("0");
+    } else if (command.starts_with("StartNoAckMode")) {
+        no_ack = true;
+        SendReply(GDB_STUB_REPLY_OK);
     } else {
         SendReply(GDB_STUB_REPLY_EMPTY);
+    }
+}
+
+void GDBStub::HandleVCont(std::string_view command, std::vector<DebuggerAction>& actions) {
+    if (command == "?") {
+        // Continuing and stepping are supported
+        // (signal is ignored, but required for GDB to use vCont)
+        SendReply("vCont;c;C;s;S");
+        return;
+    }
+
+    Kernel::KThread* stepped_thread{nullptr};
+    bool lock_execution{true};
+
+    std::vector<std::string> entries;
+    boost::split(entries, command.substr(1), boost::is_any_of(";"));
+    for (const auto& thread_action : entries) {
+        std::vector<std::string> parts;
+        boost::split(parts, thread_action, boost::is_any_of(":"));
+
+        if (parts.size() == 1 && (parts[0] == "c" || parts[0].starts_with("C"))) {
+            lock_execution = false;
+        }
+        if (parts.size() == 2 && (parts[0] == "s" || parts[0].starts_with("S"))) {
+            stepped_thread = GetThreadByID(strtoll(parts[1].data(), nullptr, 16));
+        }
+    }
+
+    if (stepped_thread) {
+        backend.SetActiveThread(stepped_thread);
+        actions.push_back(lock_execution ? DebuggerAction::StepThreadLocked
+                                         : DebuggerAction::StepThreadUnlocked);
+    } else {
+        actions.push_back(DebuggerAction::Continue);
     }
 }
 
@@ -374,6 +455,10 @@ void GDBStub::SendReply(std::string_view data) {
 }
 
 void GDBStub::SendStatus(char status) {
+    if (no_ack) {
+        return;
+    }
+
     std::array<u8, 1> buf = {static_cast<u8>(status)};
     LOG_TRACE(Debug_GDBStub, "Writing status: {}", status);
     backend.WriteToClient(buf);

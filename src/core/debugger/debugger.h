@@ -35,11 +35,6 @@ public:
      */
     bool NotifyThreadStopped(Kernel::KThread* thread);
 
-    /**
-     * Returns whether a step is in progress.
-     */
-    bool IsStepping() const;
-
 private:
     std::unique_ptr<DebuggerImpl> impl;
 };
