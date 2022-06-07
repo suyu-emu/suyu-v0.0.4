@@ -6,9 +6,13 @@
 
 #include "common/settings.h"
 
-void assert_handle_failure() {
-    if (Settings::values.use_debug_asserts) {
-        Crash();
+void assert_check_condition(bool cond, std::function<void()>&& on_failure) {
+    if (!cond) {
+        on_failure();
+
+        if (Settings::values.use_debug_asserts) {
+            Crash();
+        }
     }
 }
 
