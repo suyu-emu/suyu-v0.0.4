@@ -11,3 +11,8 @@ void assert_handle_failure() {
         Crash();
     }
 }
+
+[[noreturn]] void unreachable_impl() {
+    Crash();
+    throw std::runtime_error("Unreachable code");
+}
