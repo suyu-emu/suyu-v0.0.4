@@ -229,6 +229,7 @@ int main(int argc, char** argv) {
     while (emu_window->IsOpen()) {
         emu_window->WaitEvent();
     }
+    system.DetachDebugger();
     void(system.Pause());
     system.Shutdown();
 

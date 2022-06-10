@@ -1545,6 +1545,7 @@ void GMainWindow::ShutdownGame() {
 
     AllowOSSleep();
 
+    system->DetachDebugger();
     discord_rpc->Pause();
     emu_thread->RequestStop();
 
