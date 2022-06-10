@@ -217,7 +217,15 @@ int main(int argc, char** argv) {
             [](VideoCore::LoadCallbackStage, size_t value, size_t total) {});
     }
 
+    system.RegisterExitCallback([&] {
+        // Just exit right away.
+        exit(0);
+    });
+
     void(system.Run());
+    if (system.DebuggerEnabled()) {
+        system.InitializeDebugger();
+    }
     while (emu_window->IsOpen()) {
         emu_window->WaitEvent();
     }
