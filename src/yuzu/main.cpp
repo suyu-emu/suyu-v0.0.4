@@ -52,7 +52,6 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #define QT_NO_OPENGL
 #include <QClipboard>
 #include <QDesktopServices>
-#include <QDesktopWidget>
 #include <QFile>
 #include <QFileDialog>
 #include <QInputDialog>
@@ -60,6 +59,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include <QProgressBar>
 #include <QProgressDialog>
 #include <QPushButton>
+#include <QScreen>
 #include <QShortcut>
 #include <QStatusBar>
 #include <QString>
@@ -1044,7 +1044,7 @@ void GMainWindow::InitializeHotkeys() {
 
 void GMainWindow::SetDefaultUIGeometry() {
     // geometry: 53% of the window contents are in the upper screen half, 47% in the lower half
-    const QRect screenRect = QApplication::desktop()->screenGeometry(this);
+    const QRect screenRect = QGuiApplication::primaryScreen()->geometry();
 
     const int w = screenRect.width() * 2 / 3;
     const int h = screenRect.height() * 2 / 3;
@@ -2627,6 +2627,18 @@ void GMainWindow::ToggleFullscreen() {
     }
 }
 
+// We're going to return the screen that the given window has the most pixels on
+static QScreen* GuessCurrentScreen(QWidget* window) {
+    const QList<QScreen*> screens = QGuiApplication::screens();
+    return *std::max_element(
+        screens.cbegin(), screens.cend(), [window](const QScreen* left, const QScreen* right) {
+            const QSize left_size = left->geometry().intersected(window->geometry()).size();
+            const QSize right_size = right->geometry().intersected(window->geometry()).size();
+            return (left_size.height() * left_size.width()) <
+                   (right_size.height() * right_size.width());
+        });
+}
+
 void GMainWindow::ShowFullscreen() {
     const auto show_fullscreen = [](QWidget* window) {
         if (Settings::values.fullscreen_mode.GetValue() == Settings::FullscreenMode::Exclusive) {
@@ -2635,7 +2647,7 @@ void GMainWindow::ShowFullscreen() {
         }
         window->hide();
         window->setWindowFlags(window->windowFlags() | Qt::FramelessWindowHint);
-        const auto screen_geometry = QApplication::desktop()->screenGeometry(window);
+        const auto screen_geometry = GuessCurrentScreen(window)->geometry();
         window->setGeometry(screen_geometry.x(), screen_geometry.y(), screen_geometry.width(),
                             screen_geometry.height() + 1);
         window->raise();
