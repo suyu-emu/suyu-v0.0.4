@@ -198,6 +198,34 @@ static void RemoveCachedContents() {
     Common::FS::RemoveDirRecursively(offline_system_data);
 }
 
+static void LogRuntimes() {
+#ifdef _MSC_VER
+    // It is possible that the name of the dll will change.
+    // vcruntime140.dll is for 2015 and onwards
+    constexpr char runtime_dll_name[] = "vcruntime140.dll";
+    UINT sz = GetFileVersionInfoSizeA(runtime_dll_name, nullptr);
+    bool runtime_version_inspection_worked = false;
+    if (sz > 0) {
+        std::vector<u8> buf(sz);
+        if (GetFileVersionInfoA(runtime_dll_name, 0, sz, buf.data())) {
+            VS_FIXEDFILEINFO* pvi;
+            sz = sizeof(VS_FIXEDFILEINFO);
+            if (VerQueryValueA(buf.data(), "\\", reinterpret_cast<LPVOID*>(&pvi), &sz)) {
+                if (pvi->dwSignature == VS_FFI_SIGNATURE) {
+                    runtime_version_inspection_worked = true;
+                    LOG_INFO(Frontend, "MSVC Compiler: {} Runtime: {}.{}.{}.{}", _MSC_VER,
+                             pvi->dwProductVersionMS >> 16, pvi->dwProductVersionMS & 0xFFFF,
+                             pvi->dwProductVersionLS >> 16, pvi->dwProductVersionLS & 0xFFFF);
+                }
+            }
+        }
+    }
+    if (!runtime_version_inspection_worked) {
+        LOG_INFO(Frontend, "Unable to inspect {}", runtime_dll_name);
+    }
+#endif
+}
+
 static QString PrettyProductName() {
 #ifdef _WIN32
     // After Windows 10 Version 2004, Microsoft decided to switch to a different notation: 20H2
@@ -268,6 +296,7 @@ GMainWindow::GMainWindow()
     const auto yuzu_build_version = override_build.empty() ? yuzu_build : override_build;
 
     LOG_INFO(Frontend, "yuzu Version: {}", yuzu_build_version);
+    LogRuntimes();
 #ifdef ARCHITECTURE_x86_64
     const auto& caps = Common::GetCPUCaps();
     std::string cpu_string = caps.cpu_string;
