@@ -682,6 +682,12 @@ void Config::ReadRendererValues() {
     ReadGlobalSetting(Settings::values.bg_green);
     ReadGlobalSetting(Settings::values.bg_blue);
 
+    if (!global && UISettings::values.has_broken_vulkan &&
+        Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::Vulkan &&
+        !Settings::values.renderer_backend.UsingGlobal()) {
+        Settings::values.renderer_backend.SetGlobal(true);
+    }
+
     if (global) {
         ReadBasicSetting(Settings::values.renderer_debug);
         ReadBasicSetting(Settings::values.renderer_shader_feedback);
@@ -801,6 +807,7 @@ void Config::ReadUIValues() {
     ReadBasicSetting(UISettings::values.pause_when_in_background);
     ReadBasicSetting(UISettings::values.mute_when_in_background);
     ReadBasicSetting(UISettings::values.hide_mouse);
+    ReadBasicSetting(UISettings::values.has_broken_vulkan);
     ReadBasicSetting(UISettings::values.disable_web_applet);
 
     qt_config->endGroup();
@@ -1348,6 +1355,7 @@ void Config::SaveUIValues() {
     WriteBasicSetting(UISettings::values.pause_when_in_background);
     WriteBasicSetting(UISettings::values.mute_when_in_background);
     WriteBasicSetting(UISettings::values.hide_mouse);
+    WriteBasicSetting(UISettings::values.has_broken_vulkan);
     WriteBasicSetting(UISettings::values.disable_web_applet);
 
     qt_config->endGroup();
