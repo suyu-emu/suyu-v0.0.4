@@ -212,7 +212,9 @@ struct KernelCore::Impl {
         system_resource_limit = KResourceLimit::Create(system.Kernel());
         system_resource_limit->Initialize(&core_timing);
 
-        const auto [total_size, kernel_size] = memory_layout->GetTotalAndKernelMemorySizes();
+        const auto sizes{memory_layout->GetTotalAndKernelMemorySizes()};
+        const auto total_size{sizes.first};
+        const auto kernel_size{sizes.second};
 
         // If setting the default system values fails, then something seriously wrong has occurred.
         ASSERT(system_resource_limit->SetLimitValue(LimitableResource::PhysicalMemory, total_size)
