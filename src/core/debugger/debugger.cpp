@@ -96,7 +96,7 @@ private:
         connection_thread = std::jthread([&, port](std::stop_token stop_token) {
             try {
                 // Initialize the listening socket and accept a new client.
-                tcp::endpoint endpoint{boost::asio::ip::address_v4::loopback(), port};
+                tcp::endpoint endpoint{boost::asio::ip::address_v4::any(), port};
                 tcp::acceptor acceptor{io_context, endpoint};
 
                 acceptor.async_accept(client_socket, [](const auto&) {});
