@@ -42,6 +42,16 @@ static std::span<const u8> ReceiveInto(Readable& r, Buffer& buffer) {
     return received_data;
 }
 
+enum class SignalType {
+    Stopped,
+    ShuttingDown,
+};
+
+struct SignalInfo {
+    SignalType type;
+    Kernel::KThread* thread;
+};
+
 namespace Core {
 
 class DebuggerImpl : public DebuggerBackend {
@@ -56,7 +66,7 @@ public:
         ShutdownServer();
     }
 
-    bool NotifyThreadStopped(Kernel::KThread* thread) {
+    bool SignalDebugger(SignalInfo signal_info) {
         std::scoped_lock lk{connection_lock};
 
         if (stopped) {
@@ -64,9 +74,13 @@ public:
             // It should be ignored.
             return false;
         }
-        stopped = true;
 
-        boost::asio::write(signal_pipe, boost::asio::buffer(&thread, sizeof(thread)));
+        // Set up the state.
+        stopped = true;
+        info = signal_info;
+
+        // Write a single byte into the pipe to wake up the debug interface.
+        boost::asio::write(signal_pipe, boost::asio::buffer(&stopped, sizeof(stopped)));
         return true;
     }
 
@@ -124,7 +138,7 @@ private:
         Common::SetCurrentThreadName("yuzu:Debugger");
 
         // Set up the client signals for new data.
-        AsyncReceiveInto(signal_pipe, active_thread, [&](auto d) { PipeData(d); });
+        AsyncReceiveInto(signal_pipe, pipe_data, [&](auto d) { PipeData(d); });
         AsyncReceiveInto(client_socket, client_data, [&](auto d) { ClientData(d); });
 
         // Stop the emulated CPU.
@@ -142,9 +156,28 @@ private:
     }
 
     void PipeData(std::span<const u8> data) {
-        AllCoreStop();
-        UpdateActiveThread();
-        frontend->Stopped(active_thread);
+        switch (info.type) {
+        case SignalType::Stopped:
+            // Stop emulation.
+            AllCoreStop();
+
+            // Notify the client.
+            active_thread = info.thread;
+            UpdateActiveThread();
+            frontend->Stopped(active_thread);
+
+            break;
+        case SignalType::ShuttingDown:
+            frontend->ShuttingDown();
+
+            // Wait for emulation to shut down gracefully now.
+            suspend.reset();
+            signal_pipe.close();
+            client_socket.shutdown(boost::asio::socket_base::shutdown_both);
+            LOG_INFO(Debug_GDBStub, "Shut down server");
+
+            break;
+        }
     }
 
     void ClientData(std::span<const u8> data) {
@@ -246,7 +279,9 @@ private:
     boost::asio::ip::tcp::socket client_socket;
     std::optional<std::unique_lock<std::mutex>> suspend;
 
+    SignalInfo info;
     Kernel::KThread* active_thread;
+    bool pipe_data;
     bool stopped;
 
     std::array<u8, 4096> client_data;
@@ -263,7 +298,13 @@ Debugger::Debugger(Core::System& system, u16 port) {
 Debugger::~Debugger() = default;
 
 bool Debugger::NotifyThreadStopped(Kernel::KThread* thread) {
-    return impl && impl->NotifyThreadStopped(thread);
+    return impl && impl->SignalDebugger(SignalInfo{SignalType::Stopped, thread});
+}
+
+void Debugger::NotifyShutdown() {
+    if (impl) {
+        impl->SignalDebugger(SignalInfo{SignalType::ShuttingDown, nullptr});
+    }
 }
 
 } // namespace Core

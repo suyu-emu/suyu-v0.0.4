@@ -493,6 +493,12 @@ void System::Shutdown() {
     impl->Shutdown();
 }
 
+void System::DetachDebugger() {
+    if (impl->debugger) {
+        impl->debugger->NotifyShutdown();
+    }
+}
+
 std::unique_lock<std::mutex> System::StallCPU() {
     return impl->StallCPU();
 }
