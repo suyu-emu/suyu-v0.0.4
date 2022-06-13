@@ -67,17 +67,19 @@ public:
     }
 
     bool SignalDebugger(SignalInfo signal_info) {
-        std::scoped_lock lk{connection_lock};
+        {
+            std::scoped_lock lk{connection_lock};
 
-        if (stopped) {
-            // Do not notify the debugger about another event.
-            // It should be ignored.
-            return false;
+            if (stopped) {
+                // Do not notify the debugger about another event.
+                // It should be ignored.
+                return false;
+            }
+
+            // Set up the state.
+            stopped = true;
+            info = signal_info;
         }
-
-        // Set up the state.
-        stopped = true;
-        info = signal_info;
 
         // Write a single byte into the pipe to wake up the debug interface.
         boost::asio::write(signal_pipe, boost::asio::buffer(&stopped, sizeof(stopped)));
@@ -141,9 +143,6 @@ private:
         AsyncReceiveInto(signal_pipe, pipe_data, [&](auto d) { PipeData(d); });
         AsyncReceiveInto(client_socket, client_data, [&](auto d) { ClientData(d); });
 
-        // Stop the emulated CPU.
-        AllCoreStop();
-
         // Set the active thread.
         UpdateActiveThread();
 
@@ -159,7 +158,7 @@ private:
         switch (info.type) {
         case SignalType::Stopped:
             // Stop emulation.
-            AllCoreStop();
+            PauseEmulation();
 
             // Notify the client.
             active_thread = info.thread;
@@ -171,7 +170,6 @@ private:
             frontend->ShuttingDown();
 
             // Wait for emulation to shut down gracefully now.
-            suspend.reset();
             signal_pipe.close();
             client_socket.shutdown(boost::asio::socket_base::shutdown_both);
             LOG_INFO(Debug_GDBStub, "Shut down server");
@@ -189,32 +187,29 @@ private:
                     std::scoped_lock lk{connection_lock};
                     stopped = true;
                 }
-                AllCoreStop();
+                PauseEmulation();
                 UpdateActiveThread();
                 frontend->Stopped(active_thread);
                 break;
             }
             case DebuggerAction::Continue:
-                active_thread->SetStepState(Kernel::StepState::NotStepping);
-                ResumeInactiveThreads();
-                AllCoreResume();
+                MarkResumed([&] { ResumeEmulation(); });
                 break;
             case DebuggerAction::StepThreadUnlocked:
-                active_thread->SetStepState(Kernel::StepState::StepPending);
-                ResumeInactiveThreads();
-                AllCoreResume();
+                MarkResumed([&] {
+                    active_thread->SetStepState(Kernel::StepState::StepPending);
+                    active_thread->Resume(Kernel::SuspendType::Debug);
+                    ResumeEmulation(active_thread);
+                });
                 break;
-            case DebuggerAction::StepThreadLocked:
-                active_thread->SetStepState(Kernel::StepState::StepPending);
-                SuspendInactiveThreads();
-                AllCoreResume();
+            case DebuggerAction::StepThreadLocked: {
+                MarkResumed([&] {
+                    active_thread->SetStepState(Kernel::StepState::StepPending);
+                    active_thread->Resume(Kernel::SuspendType::Debug);
+                });
                 break;
+            }
             case DebuggerAction::ShutdownEmulation: {
-                // Suspend all threads and release any locks held
-                active_thread->RequestSuspend(Kernel::SuspendType::Debug);
-                SuspendInactiveThreads();
-                AllCoreResume();
-
                 // Spawn another thread that will exit after shutdown,
                 // to avoid a deadlock
                 Core::System* system_ref{&system};
@@ -226,33 +221,33 @@ private:
         }
     }
 
-    void AllCoreStop() {
-        if (!suspend) {
-            suspend = system.StallCPU();
+    void PauseEmulation() {
+        // Put all threads to sleep on next scheduler round.
+        for (auto* thread : ThreadList()) {
+            thread->RequestSuspend(Kernel::SuspendType::Debug);
+        }
+
+        // Signal an interrupt so that scheduler will fire.
+        system.Kernel().InterruptAllPhysicalCores();
+    }
+
+    void ResumeEmulation(Kernel::KThread* except = nullptr) {
+        // Wake up all threads.
+        for (auto* thread : ThreadList()) {
+            if (thread == except) {
+                continue;
+            }
+
+            thread->SetStepState(Kernel::StepState::NotStepping);
+            thread->Resume(Kernel::SuspendType::Debug);
         }
     }
 
-    void AllCoreResume() {
+    template <typename Callback>
+    void MarkResumed(Callback&& cb) {
+        std::scoped_lock lk{connection_lock};
         stopped = false;
-        system.UnstallCPU();
-        suspend.reset();
-    }
-
-    void SuspendInactiveThreads() {
-        for (auto* thread : ThreadList()) {
-            if (thread != active_thread) {
-                thread->RequestSuspend(Kernel::SuspendType::Debug);
-            }
-        }
-    }
-
-    void ResumeInactiveThreads() {
-        for (auto* thread : ThreadList()) {
-            if (thread != active_thread) {
-                thread->Resume(Kernel::SuspendType::Debug);
-                thread->SetStepState(Kernel::StepState::NotStepping);
-            }
-        }
+        cb();
     }
 
     void UpdateActiveThread() {
@@ -260,8 +255,6 @@ private:
         if (std::find(threads.begin(), threads.end(), active_thread) == threads.end()) {
             active_thread = threads[0];
         }
-        active_thread->Resume(Kernel::SuspendType::Debug);
-        active_thread->SetStepState(Kernel::StepState::NotStepping);
     }
 
     const std::vector<Kernel::KThread*>& ThreadList() {
@@ -277,7 +270,6 @@ private:
     boost::asio::io_context io_context;
     boost::process::async_pipe signal_pipe;
     boost::asio::ip::tcp::socket client_socket;
-    std::optional<std::unique_lock<std::mutex>> suspend;
 
     SignalInfo info;
     Kernel::KThread* active_thread;
