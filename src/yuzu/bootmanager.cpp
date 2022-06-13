@@ -127,7 +127,7 @@ void EmuThread::run() {
 class OpenGLSharedContext : public Core::Frontend::GraphicsContext {
 public:
     /// Create the original context that should be shared from
-    explicit OpenGLSharedContext(QSurface* surface) : surface(surface) {
+    explicit OpenGLSharedContext(QSurface* surface_) : surface{surface_} {
         QSurfaceFormat format;
         format.setVersion(4, 6);
         format.setProfile(QSurfaceFormat::CompatibilityProfile);
