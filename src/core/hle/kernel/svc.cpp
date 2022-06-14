@@ -2982,7 +2982,6 @@ static const FunctionDef* GetSVCInfo64(u32 func_num) {
 }
 
 void Call(Core::System& system, u32 immediate) {
-    system.ExitDynarmicProfile();
     auto& kernel = system.Kernel();
     kernel.EnterSVCProfile();
 
@@ -3007,8 +3006,6 @@ void Call(Core::System& system, u32 immediate) {
         auto* host_context = thread->GetHostContext().get();
         host_context->Rewind();
     }
-
-    system.EnterDynarmicProfile();
 }
 
 } // namespace Kernel::Svc
