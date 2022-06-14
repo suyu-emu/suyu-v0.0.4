@@ -934,8 +934,7 @@ void GMainWindow::InitializeWidgets() {
             Settings::values.renderer_backend.SetValue(Settings::RendererBackend::Vulkan);
         } else {
             Settings::values.renderer_backend.SetValue(Settings::RendererBackend::OpenGL);
-            const auto filter = Settings::values.scaling_filter.GetValue();
-            if (filter == Settings::ScalingFilter::Fsr) {
+            if (Settings::values.scaling_filter.GetValue() == Settings::ScalingFilter::Fsr) {
                 Settings::values.scaling_filter.SetValue(Settings::ScalingFilter::NearestNeighbor);
                 UpdateFilterText();
             }
@@ -1508,7 +1507,7 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
 
     // Register an ExecuteProgram callback such that Core can execute a sub-program
     system->RegisterExecuteProgramCallback(
-        [this](std::size_t program_index) { render_window->ExecuteProgram(program_index); });
+        [this](std::size_t program_index_) { render_window->ExecuteProgram(program_index_); });
 
     // Register an Exit callback such that Core can exit the currently running application.
     system->RegisterExitCallback([this]() { render_window->Exit(); });
