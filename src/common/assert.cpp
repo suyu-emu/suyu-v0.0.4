@@ -6,8 +6,13 @@
 
 #include "common/settings.h"
 
-void assert_handle_failure() {
+void assert_fail_impl() {
     if (Settings::values.use_debug_asserts) {
         Crash();
     }
+}
+
+[[noreturn]] void unreachable_impl() {
+    Crash();
+    throw std::runtime_error("Unreachable code");
 }
