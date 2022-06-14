@@ -333,7 +333,7 @@ void ASTCDecoderPass::Assemble(Image& image, const StagingBufferRef& map,
             const VkImageMemoryBarrier image_barrier{
                 .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
                 .pNext = nullptr,
-                .srcAccessMask = is_initialized ? VK_ACCESS_SHADER_WRITE_BIT : VkAccessFlags{},
+                .srcAccessMask = is_initialized ? VK_ACCESS_SHADER_WRITE_BIT : VkAccessFlagBits{},
                 .dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT,
                 .oldLayout = is_initialized ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_UNDEFINED,
                 .newLayout = VK_IMAGE_LAYOUT_GENERAL,
