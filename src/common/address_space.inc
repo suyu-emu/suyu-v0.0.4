@@ -30,9 +30,9 @@
         FlatAllocator<VaType, UnmappedVa, AddressSpaceBits>
 
 namespace Common {
-MAP_MEMBER_CONST()::FlatAddressSpaceMap(VaType vaLimit,
-                                        std::function<void(VaType, VaType)> unmapCallback)
-    : unmapCallback(std::move(unmapCallback)), vaLimit(vaLimit) {
+MAP_MEMBER_CONST()::FlatAddressSpaceMap(VaType vaLimit_,
+                                        std::function<void(VaType, VaType)> unmapCallback_)
+    : unmapCallback(std::move(unmapCallback_)), vaLimit(vaLimit_) {
     if (vaLimit > VaMaximum)
         UNREACHABLE_MSG("Invalid VA limit!");
 }
@@ -261,8 +261,8 @@ MAP_MEMBER(void)::UnmapLocked(VaType virt, VaType size) {
         unmapCallback(virt, size);
 }
 
-ALLOC_MEMBER_CONST()::FlatAllocator(VaType vaStart, VaType vaLimit)
-    : Base(vaLimit), currentLinearAllocEnd(vaStart), vaStart(vaStart) {}
+ALLOC_MEMBER_CONST()::FlatAllocator(VaType vaStart_, VaType vaLimit)
+    : Base(vaLimit), currentLinearAllocEnd(vaStart_), vaStart(vaStart_) {}
 
 ALLOC_MEMBER(VaType)::Allocate(VaType size) {
     std::scoped_lock lock(this->blockMutex);
