@@ -619,7 +619,6 @@ bool MemoryManager::IsContinousRange(GPUVAddr gpu_addr, std::size_t size) const 
 }
 
 bool MemoryManager::IsFullyMappedRange(GPUVAddr gpu_addr, std::size_t size) const {
-    std::optional<VAddr> old_page_addr{};
     bool result{true};
     auto fail = [&]([[maybe_unused]] std::size_t page_index, [[maybe_unused]] std::size_t offset,
                     [[maybe_unused]] std::size_t copy_amount) {

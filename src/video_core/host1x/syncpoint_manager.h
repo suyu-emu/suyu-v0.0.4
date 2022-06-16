@@ -49,9 +49,9 @@ public:
                               expected_value, func);
     }
 
-    void DeregisterGuestAction(u32 syncpoint_id,ActionHandle& handle);
+    void DeregisterGuestAction(u32 syncpoint_id, ActionHandle& handle);
 
-    void DeregisterHostAction(u32 syncpoint_id,ActionHandle& handle);
+    void DeregisterHostAction(u32 syncpoint_id, ActionHandle& handle);
 
     void IncrementGuest(u32 syncpoint_id);
 
