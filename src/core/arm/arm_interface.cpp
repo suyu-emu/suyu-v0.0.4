@@ -95,7 +95,7 @@ void ARM_Interface::Run() {
     using Kernel::SuspendType;
 
     while (true) {
-        Kernel::KThread* current_thread{system.Kernel().CurrentScheduler()->GetCurrentThread()};
+        Kernel::KThread* current_thread{Kernel::GetCurrentThreadPointer(system.Kernel())};
         Dynarmic::HaltReason hr{};
 
         // Notify the debugger and go to sleep if a step was performed
