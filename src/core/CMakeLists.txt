@@ -158,6 +158,7 @@ add_library(core STATIC
     hid/input_converter.h
     hid/input_interpreter.cpp
     hid/input_interpreter.h
+    hid/irs_types.h
     hid/motion_input.cpp
     hid/motion_input.h
     hle/api_version.h
