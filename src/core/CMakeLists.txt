@@ -478,6 +478,20 @@ add_library(core STATIC
     hle/service/hid/hidbus/starlink.h
     hle/service/hid/hidbus/stubbed.cpp
     hle/service/hid/hidbus/stubbed.h
+    hle/service/hid/irsensor/clustering_processor.cpp
+    hle/service/hid/irsensor/clustering_processor.h
+    hle/service/hid/irsensor/image_transfer_processor.cpp
+    hle/service/hid/irsensor/image_transfer_processor.h
+    hle/service/hid/irsensor/ir_led_processor.cpp
+    hle/service/hid/irsensor/ir_led_processor.h
+    hle/service/hid/irsensor/moment_processor.cpp
+    hle/service/hid/irsensor/moment_processor.h
+    hle/service/hid/irsensor/pointing_processor.cpp
+    hle/service/hid/irsensor/pointing_processor.h
+    hle/service/hid/irsensor/processor_base.cpp
+    hle/service/hid/irsensor/processor_base.h
+    hle/service/hid/irsensor/tera_plugin_processor.cpp
+    hle/service/hid/irsensor/tera_plugin_processor.h
     hle/service/jit/jit_context.cpp
     hle/service/jit/jit_context.h
     hle/service/jit/jit.cpp
