@@ -8,7 +8,7 @@
 #include "core/hid/irs_types.h"
 #include "core/hle/service/hid/irsensor/processor_base.h"
 
-namespace Service::HID {
+namespace Service::IRS {
 class MomentProcessor final : public ProcessorBase {
 public:
     explicit MomentProcessor(Core::IrSensor::DeviceFormat& device_format);
@@ -58,4 +58,4 @@ private:
     Core::IrSensor::DeviceFormat& device;
 };
 
-} // namespace Service::HID
+} // namespace Service::IRS

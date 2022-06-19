@@ -25,6 +25,7 @@ function(copy_yuzu_Qt5_deps target_dir)
             Qt5Gui$<$<CONFIG:Debug>:d>.*
             Qt5Widgets$<$<CONFIG:Debug>:d>.*
             Qt5Multimedia$<$<CONFIG:Debug>:d>.*
+            Qt5Network$<$<CONFIG:Debug>:d>.*
         )
 
         if (YUZU_USE_QT_WEB_ENGINE)

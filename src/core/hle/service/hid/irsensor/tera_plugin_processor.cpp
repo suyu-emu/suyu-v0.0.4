@@ -3,14 +3,12 @@
 
 #include "core/hle/service/hid/irsensor/tera_plugin_processor.h"
 
-namespace Service::HID {
+namespace Service::IRS {
 TeraPluginProcessor::TeraPluginProcessor(Core::IrSensor::DeviceFormat& device_format)
     : device(device_format) {
     device.mode = Core::IrSensor::IrSensorMode::TeraPluginProcessor;
     device.camera_status = Core::IrSensor::IrCameraStatus::Unconnected;
     device.camera_internal_status = Core::IrSensor::IrCameraInternalStatus::Stopped;
-    device.state.start = 0;
-    device.state.count = 0;
 }
 
 TeraPluginProcessor::~TeraPluginProcessor() = default;
@@ -28,4 +26,4 @@ void TeraPluginProcessor::SetConfig(Core::IrSensor::PackedTeraPluginProcessorCon
     current_config.unknown_3 = config.unknown_3;
 }
 
-} // namespace Service::HID
+} // namespace Service::IRS

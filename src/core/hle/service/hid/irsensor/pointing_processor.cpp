@@ -3,14 +3,12 @@
 
 #include "core/hle/service/hid/irsensor/pointing_processor.h"
 
-namespace Service::HID {
+namespace Service::IRS {
 PointingProcessor::PointingProcessor(Core::IrSensor::DeviceFormat& device_format)
     : device(device_format) {
     device.mode = Core::IrSensor::IrSensorMode::PointingProcessorMarker;
     device.camera_status = Core::IrSensor::IrCameraStatus::Unconnected;
     device.camera_internal_status = Core::IrSensor::IrCameraInternalStatus::Stopped;
-    device.state.start = 0;
-    device.state.count = 0;
 }
 
 PointingProcessor::~PointingProcessor() = default;
@@ -25,4 +23,4 @@ void PointingProcessor::SetConfig(Core::IrSensor::PackedPointingProcessorConfig 
     current_config.window_of_interest = config.window_of_interest;
 }
 
-} // namespace Service::HID
+} // namespace Service::IRS

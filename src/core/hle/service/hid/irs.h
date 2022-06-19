@@ -16,7 +16,7 @@ namespace Core::HID {
 class EmulatedController;
 } // namespace Core::HID
 
-namespace Service::HID {
+namespace Service::IRS {
 
 class IRS final : public ServiceFramework<IRS> {
 public:
@@ -114,4 +114,4 @@ public:
     ~IRS_SYS() override;
 };
 
-} // namespace Service::HID
+} // namespace Service::IRS

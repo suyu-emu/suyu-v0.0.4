@@ -18,7 +18,11 @@ constexpr Result NpadIsSameType{ErrorModule::HID, 602};
 constexpr Result InvalidNpadId{ErrorModule::HID, 709};
 constexpr Result NpadNotConnected{ErrorModule::HID, 710};
 
+} // namespace Service::HID
+
+namespace Service::IRS {
+
 constexpr ResultCode InvalidProcessorState{ErrorModule::Irsensor, 78};
 constexpr ResultCode InvalidIrCameraHandle{ErrorModule::Irsensor, 204};
 
-} // namespace Service::HID
+} // namespace Service::IRS

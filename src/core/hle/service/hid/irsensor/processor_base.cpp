@@ -3,7 +3,7 @@
 
 #include "core/hle/service/hid/irsensor/processor_base.h"
 
-namespace Service::HID {
+namespace Service::IRS {
 
 ProcessorBase::ProcessorBase() {}
 ProcessorBase::~ProcessorBase() = default;
@@ -64,4 +64,4 @@ std::size_t ProcessorBase::GetDataHeight(
     }
 }
 
-} // namespace Service::HID
+} // namespace Service::IRS

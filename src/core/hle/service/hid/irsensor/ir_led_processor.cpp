@@ -3,14 +3,12 @@
 
 #include "core/hle/service/hid/irsensor/ir_led_processor.h"
 
-namespace Service::HID {
+namespace Service::IRS {
 IrLedProcessor::IrLedProcessor(Core::IrSensor::DeviceFormat& device_format)
     : device(device_format) {
     device.mode = Core::IrSensor::IrSensorMode::IrLedProcessor;
     device.camera_status = Core::IrSensor::IrCameraStatus::Unconnected;
     device.camera_internal_status = Core::IrSensor::IrCameraInternalStatus::Stopped;
-    device.state.start = 0;
-    device.state.count = 0;
 }
 
 IrLedProcessor::~IrLedProcessor() = default;
@@ -26,4 +24,4 @@ void IrLedProcessor::SetConfig(Core::IrSensor::PackedIrLedProcessorConfig config
         static_cast<Core::IrSensor::CameraLightTarget>(config.light_target);
 }
 
-} // namespace Service::HID
+} // namespace Service::IRS

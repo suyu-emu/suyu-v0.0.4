@@ -11,7 +11,7 @@ namespace Core::HID {
 class EmulatedController;
 } // namespace Core::HID
 
-namespace Service::HID {
+namespace Service::IRS {
 class ImageTransferProcessor final : public ProcessorBase {
 public:
     explicit ImageTransferProcessor(Core::HID::HIDCore& hid_core_,
@@ -70,4 +70,4 @@ private:
     u8* transfer_memory = nullptr;
     bool is_transfer_memory_set = false;
 };
-} // namespace Service::HID
+} // namespace Service::IRS

@@ -201,11 +201,11 @@ struct PackedClusteringProcessorConfig {
     PackedMcuVersion required_mcu_version;
     u32 pixel_count_min;
     u32 pixel_count_max;
-    u32 object_intensity_min;
+    u8 object_intensity_min;
     bool is_external_light_filter_enabled;
     INSERT_PADDING_BYTES(2);
 };
-static_assert(sizeof(PackedClusteringProcessorConfig) == 0x30,
+static_assert(sizeof(PackedClusteringProcessorConfig) == 0x28,
               "PackedClusteringProcessorConfig is an invalid size");
 
 // This is nn::irsensor::PackedImageTransferProcessorConfig
@@ -273,12 +273,9 @@ struct HandAnalysisConfig {
 };
 static_assert(sizeof(HandAnalysisConfig) == 0x4, "HandAnalysisConfig is an invalid size");
 
-// This is nn::irsensor::detail::ProcessorState
+// This is nn::irsensor::detail::ProcessorState contents are different for each processor
 struct ProcessorState {
-    u64 start{};
-    u32 count{};
-    INSERT_PADDING_BYTES(4);
-    std::array<u8, 0xE10> processor_raw_data{};
+    std::array<u8, 0xE20> processor_raw_data{};
 };
 static_assert(sizeof(ProcessorState) == 0xE20, "ProcessorState is an invalid size");
 

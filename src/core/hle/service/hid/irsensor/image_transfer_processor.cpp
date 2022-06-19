@@ -5,7 +5,7 @@
 #include "core/hid/hid_core.h"
 #include "core/hle/service/hid/irsensor/image_transfer_processor.h"
 
-namespace Service::HID {
+namespace Service::IRS {
 ImageTransferProcessor::ImageTransferProcessor(Core::HID::HIDCore& hid_core_,
                                                Core::IrSensor::DeviceFormat& device_format,
                                                std::size_t npad_index)
@@ -21,8 +21,6 @@ ImageTransferProcessor::ImageTransferProcessor(Core::HID::HIDCore& hid_core_,
     device.mode = Core::IrSensor::IrSensorMode::ImageTransferProcessor;
     device.camera_status = Core::IrSensor::IrCameraStatus::Unconnected;
     device.camera_internal_status = Core::IrSensor::IrCameraInternalStatus::Stopped;
-    device.state.start = 0;
-    device.state.count = 0;
 }
 
 ImageTransferProcessor::~ImageTransferProcessor() {
@@ -33,8 +31,6 @@ void ImageTransferProcessor::StartProcessor() {
     is_active = true;
     device.camera_status = Core::IrSensor::IrCameraStatus::Available;
     device.camera_internal_status = Core::IrSensor::IrCameraInternalStatus::Ready;
-    device.state.start = 0;
-    device.state.count = 1;
     processor_state.sampling_number = 0;
     processor_state.ambient_noise_level = Core::IrSensor::CameraAmbientNoiseLevel::Low;
 }
@@ -151,4 +147,4 @@ Core::IrSensor::ImageTransferProcessorState ImageTransferProcessor::GetState(
     return processor_state;
 }
 
-} // namespace Service::HID
+} // namespace Service::IRS

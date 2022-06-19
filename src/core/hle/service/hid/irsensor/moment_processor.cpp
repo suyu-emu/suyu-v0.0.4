@@ -3,14 +3,12 @@
 
 #include "core/hle/service/hid/irsensor/moment_processor.h"
 
-namespace Service::HID {
+namespace Service::IRS {
 MomentProcessor::MomentProcessor(Core::IrSensor::DeviceFormat& device_format)
     : device(device_format) {
     device.mode = Core::IrSensor::IrSensorMode::MomentProcessor;
     device.camera_status = Core::IrSensor::IrCameraStatus::Unconnected;
     device.camera_internal_status = Core::IrSensor::IrCameraInternalStatus::Stopped;
-    device.state.start = 0;
-    device.state.count = 0;
 }
 
 MomentProcessor::~MomentProcessor() = default;
@@ -33,4 +31,4 @@ void MomentProcessor::SetConfig(Core::IrSensor::PackedMomentProcessorConfig conf
     current_config.preprocess_intensity_threshold = config.preprocess_intensity_threshold;
 }
 
-} // namespace Service::HID
+} // namespace Service::IRS

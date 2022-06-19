@@ -6,7 +6,7 @@
 #include "common/common_types.h"
 #include "core/hid/irs_types.h"
 
-namespace Service::HID {
+namespace Service::IRS {
 class ProcessorBase {
 public:
     explicit ProcessorBase();
@@ -30,4 +30,4 @@ protected:
 
     bool is_active{false};
 };
-} // namespace Service::HID
+} // namespace Service::IRS
