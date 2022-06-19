@@ -838,7 +838,7 @@ void GRenderWindow::InitializeCamera() {
     camera_timer = std::make_unique<QTimer>();
     connect(camera_timer.get(), &QTimer::timeout, [this] { RequestCameraCapture(); });
     // This timer should be dependent of camera resolution 5ms for every 100 pixels
-    camera_timer->start(100);
+    camera_timer->start(50);
 }
 
 void GRenderWindow::FinalizeCamera() {

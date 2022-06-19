@@ -446,6 +446,7 @@ add_library(core STATIC
     hle/service/hid/hidbus.h
     hle/service/hid/irs.cpp
     hle/service/hid/irs.h
+    hle/service/hid/irs_ring_lifo.h
     hle/service/hid/ring_lifo.h
     hle/service/hid/xcd.cpp
     hle/service/hid/xcd.h

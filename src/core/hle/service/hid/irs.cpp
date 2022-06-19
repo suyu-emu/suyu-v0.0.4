@@ -166,7 +166,7 @@ void IRS::RunClusteringProcessor(Kernel::HLERequestContext& ctx) {
 
     if (result.IsSuccess()) {
         auto& device = GetIrCameraSharedMemoryDeviceEntry(parameters.camera_handle);
-        MakeProcessor<ClusteringProcessor>(parameters.camera_handle, device);
+        MakeProcessorWithCoreContext<ClusteringProcessor>(parameters.camera_handle, device);
         auto& image_transfer_processor =
             GetProcessor<ClusteringProcessor>(parameters.camera_handle);
         image_transfer_processor.SetConfig(parameters.processor_config);
