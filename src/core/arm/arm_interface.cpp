@@ -119,16 +119,23 @@ void ARM_Interface::Run() {
         }
         system.ExitDynarmicProfile();
 
-        // Notify the debugger and go to sleep if a breakpoint was hit.
-        if (Has(hr, breakpoint)) {
+        // Notify the debugger and go to sleep if a breakpoint was hit,
+        // or if the thread is unable to continue for any reason.
+        if (Has(hr, breakpoint) || Has(hr, no_execute)) {
             RewindBreakpointInstruction();
-            system.GetDebugger().NotifyThreadStopped(current_thread);
-            current_thread->RequestSuspend(SuspendType::Debug);
+            if (system.DebuggerEnabled()) {
+                system.GetDebugger().NotifyThreadStopped(current_thread);
+            }
+            current_thread->RequestSuspend(Kernel::SuspendType::Debug);
             break;
         }
+
+        // Notify the debugger and go to sleep if a watchpoint was hit.
         if (Has(hr, watchpoint)) {
             RewindBreakpointInstruction();
-            system.GetDebugger().NotifyThreadWatchpoint(current_thread, *HaltedWatchpoint());
+            if (system.DebuggerEnabled()) {
+                system.GetDebugger().NotifyThreadWatchpoint(current_thread, *HaltedWatchpoint());
+            }
             current_thread->RequestSuspend(SuspendType::Debug);
             break;
         }
