@@ -692,6 +692,9 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, Handle
         // 6.0.0+
         TotalPhysicalMemoryAvailableWithoutSystemResource = 21,
         TotalPhysicalMemoryUsedWithoutSystemResource = 22,
+
+        // Homebrew only
+        MesosphereCurrentProcess = 65001,
     };
 
     const auto info_id_type = static_cast<GetInfoType>(info_id);
@@ -912,6 +915,17 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, Handle
 
         // Get the idle tick count.
         *result = system.Kernel().CurrentScheduler()->GetIdleThread()->GetCpuTime();
+        return ResultSuccess;
+    }
+    case GetInfoType::MesosphereCurrentProcess: {
+        R_UNLESS(handle == InvalidHandle, ResultInvalidHandle);
+        R_UNLESS(info_sub_id == 0, ResultInvalidCombination);
+
+        KProcess* const current_process = system.Kernel().CurrentProcess();
+        Handle process_handle{};
+        R_TRY(current_process->GetHandleTable().Add(&process_handle, current_process));
+
+        *result = process_handle;
         return ResultSuccess;
     }
     default:
