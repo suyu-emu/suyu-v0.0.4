@@ -1,12 +1,27 @@
 #!/bin/bash -ex
 
+set -e
+
 cd /yuzu
 
 ccache -s
 
 mkdir build || true && cd build
-cmake .. -G Ninja -DDISPLAY_VERSION=$1 -DCMAKE_TOOLCHAIN_FILE="$(pwd)/../CMakeModules/MinGWCross.cmake" -DUSE_CCACHE=ON -DENABLE_COMPATIBILITY_LIST_DOWNLOAD=ON -DCMAKE_BUILD_TYPE=Release -DENABLE_QT_TRANSLATION=ON
-ninja
+LDFLAGS="-fuse-ld=lld"
+# -femulated-tls required due to an incompatibility between GCC and Clang
+# TODO(lat9nq): If this is widespread, we probably need to add this to CMakeLists where appropriate
+cmake .. \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_CXX_FLAGS="-femulated-tls" \
+    -DCMAKE_TOOLCHAIN_FILE="$(pwd)/../CMakeModules/MinGWClangCross.cmake" \
+    -DDISPLAY_VERSION=$1 \
+    -DENABLE_COMPATIBILITY_LIST_DOWNLOAD=ON \
+    -DENABLE_QT_TRANSLATION=ON \
+    -DUSE_CCACHE=ON \
+    -DYUZU_USE_BUNDLED_SDL2=OFF \
+    -DYUZU_USE_EXTERNAL_SDL2=OFF \
+    -GNinja
+ninja yuzu yuzu-cmd
 
 ccache -s
 
