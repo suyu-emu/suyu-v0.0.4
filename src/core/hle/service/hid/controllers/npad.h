@@ -81,6 +81,7 @@ public:
         Dual = 0,
         Single = 1,
         None = 2,
+        MaxActivationMode = 3,
     };
 
     // This is nn::hid::NpadCommunicationMode
@@ -196,7 +197,7 @@ public:
     Core::HID::NpadButton GetAndResetPressState();
 
     static bool IsNpadIdValid(Core::HID::NpadIdType npad_id);
-    static bool IsDeviceHandleValid(const Core::HID::VibrationDeviceHandle& device_handle);
+    static Result IsDeviceHandleValid(const Core::HID::VibrationDeviceHandle& device_handle);
     static Result VerifyValidSixAxisSensorHandle(
         const Core::HID::SixAxisSensorHandle& device_handle);
 
