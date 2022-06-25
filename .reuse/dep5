@@ -2,7 +2,8 @@ Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Comment: It is best to use this file to record copyright information about
          generated, binary and third party files
 
-Files: dist/icons/controller/*.png
+Files: dist/english_plurals/*
+       dist/icons/controller/*.png
        dist/icons/overlay/*.png
        dist/languages/*
        dist/qt_themes/*/icons/index.theme
