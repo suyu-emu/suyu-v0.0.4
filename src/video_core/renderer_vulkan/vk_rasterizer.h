@@ -156,7 +156,7 @@ private:
     BufferCacheRuntime buffer_cache_runtime;
     BufferCache buffer_cache;
     PipelineCache pipeline_cache;
-    VKQueryCache query_cache;
+    QueryCache query_cache;
     AccelerateDMA accelerate_dma;
     FenceManager fence_manager;
 

@@ -44,7 +44,7 @@ void InnerFence::Wait() {
 
 FenceManager::FenceManager(VideoCore::RasterizerInterface& rasterizer_, Tegra::GPU& gpu_,
                            TextureCache& texture_cache_, BufferCache& buffer_cache_,
-                           VKQueryCache& query_cache_, const Device& device_, Scheduler& scheduler_)
+                           QueryCache& query_cache_, const Device& device_, Scheduler& scheduler_)
     : GenericFenceManager{rasterizer_, gpu_, texture_cache_, buffer_cache_, query_cache_},
       scheduler{scheduler_} {}
 

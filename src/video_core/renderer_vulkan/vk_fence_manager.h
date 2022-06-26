@@ -20,7 +20,7 @@ class RasterizerInterface;
 namespace Vulkan {
 
 class Device;
-class VKQueryCache;
+class QueryCache;
 class Scheduler;
 
 class InnerFence : public VideoCommon::FenceBase {
@@ -41,14 +41,13 @@ private:
 };
 using Fence = std::shared_ptr<InnerFence>;
 
-using GenericFenceManager =
-    VideoCommon::FenceManager<Fence, TextureCache, BufferCache, VKQueryCache>;
+using GenericFenceManager = VideoCommon::FenceManager<Fence, TextureCache, BufferCache, QueryCache>;
 
 class FenceManager final : public GenericFenceManager {
 public:
     explicit FenceManager(VideoCore::RasterizerInterface& rasterizer, Tegra::GPU& gpu,
                           TextureCache& texture_cache, BufferCache& buffer_cache,
-                          VKQueryCache& query_cache, const Device& device, Scheduler& scheduler);
+                          QueryCache& query_cache, const Device& device, Scheduler& scheduler);
 
 protected:
     Fence CreateFence(u32 value, bool is_stubbed) override;
