@@ -75,7 +75,6 @@ struct KernelCore::Impl {
         InitializeSystemResourceLimit(kernel, system.CoreTiming());
         InitializeMemoryLayout();
         Init::InitializeKPageBufferSlabHeap(system);
-        InitializeSchedulers();
         InitializeShutdownThreads();
         InitializePreemption(kernel);
 
@@ -148,7 +147,6 @@ struct KernelCore::Impl {
                 shutdown_threads[core_id] = nullptr;
             }
 
-            schedulers[core_id]->Finalize();
             schedulers[core_id].reset();
         }
 
@@ -195,14 +193,8 @@ struct KernelCore::Impl {
         exclusive_monitor =
             Core::MakeExclusiveMonitor(system.Memory(), Core::Hardware::NUM_CPU_CORES);
         for (u32 i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
-            schedulers[i] = std::make_unique<Kernel::KScheduler>(system, i);
+            schedulers[i] = std::make_unique<Kernel::KScheduler>(system.Kernel());
             cores.emplace_back(i, system, *schedulers[i], interrupts);
-        }
-    }
-
-    void InitializeSchedulers() {
-        for (u32 i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
-            cores[i].Scheduler().Initialize();
         }
     }
 

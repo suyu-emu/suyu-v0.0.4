@@ -5,6 +5,7 @@
 
 #include <array>
 #include <atomic>
+#include <csetjmp>
 #include <functional>
 #include <memory>
 #include <thread>
@@ -47,10 +48,14 @@ public:
         gpu_barrier->Sync();
     }
 
+    void WaitForAndHandleInterrupt();
     void Initialize();
     void Shutdown();
 
-    std::function<void()> GetGuestThreadStartFunc() {
+    std::function<void()> GetGuestActivateFunc() {
+        return [this] { GuestActivateFunction(); };
+    }
+    std::function<void()> GetGuestThreadFunc() {
         return [this] { GuestThreadFunction(); };
     }
     std::function<void()> GetIdleThreadStartFunc() {
@@ -67,21 +72,22 @@ public:
     }
 
 private:
+    void GuestActivateFunction();
     void GuestThreadFunction();
-    void GuestRewindFunction();
     void IdleThreadFunction();
     void ShutdownThreadFunction();
 
+    void MultiCoreGuestActivate();
     void MultiCoreRunGuestThread();
     void MultiCoreRunGuestLoop();
-    void MultiCoreRunIdleThread();
 
+    void SingleCoreGuestActivate();
     void SingleCoreRunGuestThread();
     void SingleCoreRunGuestLoop();
-    void SingleCoreRunIdleThread();
 
     static void ThreadStart(std::stop_token stop_token, CpuManager& cpu_manager, std::size_t core);
 
+    void HandleInterrupt();
     void ShutdownThread();
     void RunThread(std::size_t core);
 

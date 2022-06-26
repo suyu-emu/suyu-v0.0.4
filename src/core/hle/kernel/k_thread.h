@@ -110,6 +110,7 @@ void SetCurrentThread(KernelCore& kernel, KThread* thread);
 [[nodiscard]] KThread* GetCurrentThreadPointer(KernelCore& kernel);
 [[nodiscard]] KThread& GetCurrentThread(KernelCore& kernel);
 [[nodiscard]] s32 GetCurrentCoreId(KernelCore& kernel);
+size_t CaptureBacktrace(void** buffer, size_t max);
 
 class KThread final : public KAutoObjectWithSlabHeapAndContainer<KThread, KWorkerTask>,
                       public boost::intrusive::list_base_hook<> {
@@ -413,6 +414,9 @@ public:
 
     [[nodiscard]] static Result InitializeDummyThread(KThread* thread);
 
+    [[nodiscard]] static Result InitializeMainThread(Core::System& system, KThread* thread,
+                                                     s32 virt_core);
+
     [[nodiscard]] static Result InitializeIdleThread(Core::System& system, KThread* thread,
                                                      s32 virt_core);
 
@@ -435,6 +439,7 @@ public:
         bool is_pinned;
         s32 disable_count;
         KThread* cur_thread;
+        std::atomic<bool> m_lock;
     };
 
     [[nodiscard]] StackParameters& GetStackParameters() {
