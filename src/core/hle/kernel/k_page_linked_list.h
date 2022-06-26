@@ -72,7 +72,7 @@ public:
         return this_node == nodes.end() && other_node == other.nodes.end();
     }
 
-    ResultCode AddBlock(u64 address, u64 num_pages) {
+    Result AddBlock(u64 address, u64 num_pages) {
         if (!num_pages) {
             return ResultSuccess;
         }

@@ -65,9 +65,9 @@ public:
     }
 
     PAddr AllocateAndOpenContinuous(size_t num_pages, size_t align_pages, u32 option);
-    ResultCode AllocateAndOpen(KPageLinkedList* out, size_t num_pages, u32 option);
-    ResultCode AllocateAndOpenForProcess(KPageLinkedList* out, size_t num_pages, u32 option,
-                                         u64 process_id, u8 fill_pattern);
+    Result AllocateAndOpen(KPageLinkedList* out, size_t num_pages, u32 option);
+    Result AllocateAndOpenForProcess(KPageLinkedList* out, size_t num_pages, u32 option,
+                                     u64 process_id, u8 fill_pattern);
 
     static constexpr size_t MaxManagerCount = 10;
 
@@ -262,8 +262,8 @@ private:
         }
     }
 
-    ResultCode AllocatePageGroupImpl(KPageLinkedList* out, size_t num_pages, Pool pool,
-                                     Direction dir, bool random);
+    Result AllocatePageGroupImpl(KPageLinkedList* out, size_t num_pages, Pool pool, Direction dir,
+                                 bool random);
 
 private:
     Core::System& system;

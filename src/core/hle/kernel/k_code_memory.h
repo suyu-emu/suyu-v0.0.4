@@ -29,13 +29,13 @@ class KCodeMemory final
 public:
     explicit KCodeMemory(KernelCore& kernel_);
 
-    ResultCode Initialize(Core::DeviceMemory& device_memory, VAddr address, size_t size);
+    Result Initialize(Core::DeviceMemory& device_memory, VAddr address, size_t size);
     void Finalize();
 
-    ResultCode Map(VAddr address, size_t size);
-    ResultCode Unmap(VAddr address, size_t size);
-    ResultCode MapToOwner(VAddr address, size_t size, Svc::MemoryPermission perm);
-    ResultCode UnmapFromOwner(VAddr address, size_t size);
+    Result Map(VAddr address, size_t size);
+    Result Unmap(VAddr address, size_t size);
+    Result MapToOwner(VAddr address, size_t size, Svc::MemoryPermission perm);
+    Result UnmapFromOwner(VAddr address, size_t size);
 
     bool IsInitialized() const {
         return m_is_initialized;
