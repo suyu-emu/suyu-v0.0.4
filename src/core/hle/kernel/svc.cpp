@@ -917,6 +917,7 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, Handle
         *result = system.Kernel().CurrentScheduler()->GetIdleThread()->GetCpuTime();
         return ResultSuccess;
     }
+    case GetInfoType::MesosphereCurrentProcess: {
         // Verify the input handle is invalid.
         R_UNLESS(handle == InvalidHandle, ResultInvalidHandle);
 
@@ -933,9 +934,10 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, Handle
 
         // Set the output.
         *result = tmp;
-        
+
         // We succeeded.
         return ResultSuccess;
+    }
     default:
         LOG_ERROR(Kernel_SVC, "Unimplemented svcGetInfo id=0x{:016X}", info_id);
         return ResultInvalidEnumValue;
