@@ -19,8 +19,7 @@ KSharedMemory::~KSharedMemory() {
 }
 
 Result KSharedMemory::Initialize(Core::DeviceMemory& device_memory_, KProcess* owner_process_,
-                                 KPageLinkedList&& page_list_,
-                                 Svc::MemoryPermission owner_permission_,
+                                 KPageGroup&& page_list_, Svc::MemoryPermission owner_permission_,
                                  Svc::MemoryPermission user_permission_, PAddr physical_address_,
                                  std::size_t size_, std::string name_) {
     // Set members.

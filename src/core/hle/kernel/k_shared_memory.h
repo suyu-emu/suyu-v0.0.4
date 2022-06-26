@@ -9,7 +9,7 @@
 #include "common/common_types.h"
 #include "core/device_memory.h"
 #include "core/hle/kernel/k_memory_block.h"
-#include "core/hle/kernel/k_page_linked_list.h"
+#include "core/hle/kernel/k_page_group.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/slab_helpers.h"
 #include "core/hle/result.h"
@@ -27,7 +27,7 @@ public:
     ~KSharedMemory() override;
 
     Result Initialize(Core::DeviceMemory& device_memory_, KProcess* owner_process_,
-                      KPageLinkedList&& page_list_, Svc::MemoryPermission owner_permission_,
+                      KPageGroup&& page_list_, Svc::MemoryPermission owner_permission_,
                       Svc::MemoryPermission user_permission_, PAddr physical_address_,
                       std::size_t size_, std::string name_);
 
@@ -77,7 +77,7 @@ public:
 private:
     Core::DeviceMemory* device_memory;
     KProcess* owner_process{};
-    KPageLinkedList page_list;
+    KPageGroup page_list;
     Svc::MemoryPermission owner_permission{};
     Svc::MemoryPermission user_permission{};
     PAddr physical_address{};

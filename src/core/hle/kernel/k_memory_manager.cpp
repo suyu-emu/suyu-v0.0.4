@@ -11,7 +11,7 @@
 #include "core/device_memory.h"
 #include "core/hle/kernel/initial_process.h"
 #include "core/hle/kernel/k_memory_manager.h"
-#include "core/hle/kernel/k_page_linked_list.h"
+#include "core/hle/kernel/k_page_group.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/svc_results.h"
 
@@ -208,7 +208,7 @@ PAddr KMemoryManager::AllocateAndOpenContinuous(size_t num_pages, size_t align_p
     return allocated_block;
 }
 
-Result KMemoryManager::AllocatePageGroupImpl(KPageLinkedList* out, size_t num_pages, Pool pool,
+Result KMemoryManager::AllocatePageGroupImpl(KPageGroup* out, size_t num_pages, Pool pool,
                                              Direction dir, bool random) {
     // Choose a heap based on our page size request.
     const s32 heap_index = KPageHeap::GetBlockIndex(num_pages);
@@ -257,7 +257,7 @@ Result KMemoryManager::AllocatePageGroupImpl(KPageLinkedList* out, size_t num_pa
     return ResultSuccess;
 }
 
-Result KMemoryManager::AllocateAndOpen(KPageLinkedList* out, size_t num_pages, u32 option) {
+Result KMemoryManager::AllocateAndOpen(KPageGroup* out, size_t num_pages, u32 option) {
     ASSERT(out != nullptr);
     ASSERT(out->GetNumPages() == 0);
 
@@ -293,7 +293,7 @@ Result KMemoryManager::AllocateAndOpen(KPageLinkedList* out, size_t num_pages, u
     return ResultSuccess;
 }
 
-Result KMemoryManager::AllocateAndOpenForProcess(KPageLinkedList* out, size_t num_pages, u32 option,
+Result KMemoryManager::AllocateAndOpenForProcess(KPageGroup* out, size_t num_pages, u32 option,
                                                  u64 process_id, u8 fill_pattern) {
     ASSERT(out != nullptr);
     ASSERT(out->GetNumPages() == 0);
@@ -370,12 +370,12 @@ void KMemoryManager::Close(PAddr address, size_t num_pages) {
     }
 }
 
-void KMemoryManager::Close(const KPageLinkedList& pg) {
+void KMemoryManager::Close(const KPageGroup& pg) {
     for (const auto& node : pg.Nodes()) {
         Close(node.GetAddress(), node.GetNumPages());
     }
 }
-void KMemoryManager::Open(const KPageLinkedList& pg) {
+void KMemoryManager::Open(const KPageGroup& pg) {
     for (const auto& node : pg.Nodes()) {
         Open(node.GetAddress(), node.GetNumPages());
     }

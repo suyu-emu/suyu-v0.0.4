@@ -12,7 +12,7 @@
 
 namespace Kernel {
 
-class KPageLinkedList final {
+class KPageGroup final {
 public:
     class Node final {
     public:
@@ -36,8 +36,8 @@ public:
     };
 
 public:
-    KPageLinkedList() = default;
-    KPageLinkedList(u64 address, u64 num_pages) {
+    KPageGroup() = default;
+    KPageGroup(u64 address, u64 num_pages) {
         ASSERT(AddBlock(address, num_pages).IsSuccess());
     }
 
@@ -57,7 +57,7 @@ public:
         return num_pages;
     }
 
-    bool IsEqual(KPageLinkedList& other) const {
+    bool IsEqual(KPageGroup& other) const {
         auto this_node = nodes.begin();
         auto other_node = other.nodes.begin();
         while (this_node != nodes.end() && other_node != other.nodes.end()) {

@@ -9,7 +9,7 @@
 #include "core/hle/kernel/k_address_space_info.h"
 #include "core/hle/kernel/k_memory_block.h"
 #include "core/hle/kernel/k_memory_block_manager.h"
-#include "core/hle/kernel/k_page_linked_list.h"
+#include "core/hle/kernel/k_page_group.h"
 #include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_resource_limit.h"
@@ -271,7 +271,7 @@ Result KPageTable::MapProcessCode(VAddr addr, std::size_t num_pages, KMemoryStat
     R_TRY(this->CheckMemoryState(addr, size, KMemoryState::All, KMemoryState::Free,
                                  KMemoryPermission::None, KMemoryPermission::None,
                                  KMemoryAttribute::None, KMemoryAttribute::None));
-    KPageLinkedList pg;
+    KPageGroup pg;
     R_TRY(system.Kernel().MemoryManager().AllocateAndOpen(
         &pg, num_pages,
         KMemoryManager::EncodeOption(KMemoryManager::Pool::Application, allocation_option)));
@@ -313,7 +313,7 @@ Result KPageTable::MapCodeMemory(VAddr dst_address, VAddr src_address, std::size
         const std::size_t num_pages = size / PageSize;
 
         // Create page groups for the memory being mapped.
-        KPageLinkedList pg;
+        KPageGroup pg;
         AddRegionToPages(src_address, num_pages, pg);
 
         // Reprotect the source as kernel-read/not mapped.
@@ -489,7 +489,7 @@ VAddr KPageTable::FindFreeArea(VAddr region_start, std::size_t region_num_pages,
     return address;
 }
 
-Result KPageTable::MakePageGroup(KPageLinkedList& pg, VAddr addr, size_t num_pages) {
+Result KPageTable::MakePageGroup(KPageGroup& pg, VAddr addr, size_t num_pages) {
     ASSERT(this->IsLockedByCurrentThread());
 
     const size_t size = num_pages * PageSize;
@@ -541,7 +541,7 @@ Result KPageTable::MakePageGroup(KPageLinkedList& pg, VAddr addr, size_t num_pag
     return ResultSuccess;
 }
 
-bool KPageTable::IsValidPageGroup(const KPageLinkedList& pg_ll, VAddr addr, size_t num_pages) {
+bool KPageTable::IsValidPageGroup(const KPageGroup& pg_ll, VAddr addr, size_t num_pages) {
     ASSERT(this->IsLockedByCurrentThread());
 
     const size_t size = num_pages * PageSize;
@@ -721,7 +721,7 @@ Result KPageTable::MapPhysicalMemory(VAddr address, std::size_t size) {
             R_UNLESS(memory_reservation.Succeeded(), ResultLimitReached);
 
             // Allocate pages for the new memory.
-            KPageLinkedList pg;
+            KPageGroup pg;
             R_TRY(system.Kernel().MemoryManager().AllocateAndOpenForProcess(
                 &pg, (size - mapped_size) / PageSize,
                 KMemoryManager::EncodeOption(memory_pool, allocation_option), 0, 0));
@@ -972,7 +972,7 @@ Result KPageTable::UnmapPhysicalMemory(VAddr address, std::size_t size) {
     }
 
     // Make a page group for the unmap region.
-    KPageLinkedList pg;
+    KPageGroup pg;
     {
         auto& impl = this->PageTableImpl();
 
@@ -1147,7 +1147,7 @@ Result KPageTable::MapMemory(VAddr dst_addr, VAddr src_addr, std::size_t size) {
         return ResultInvalidCurrentMemory;
     }
 
-    KPageLinkedList page_linked_list;
+    KPageGroup page_linked_list;
     const std::size_t num_pages{size / PageSize};
 
     AddRegionToPages(src_addr, num_pages, page_linked_list);
@@ -1188,8 +1188,8 @@ Result KPageTable::UnmapMemory(VAddr dst_addr, VAddr src_addr, std::size_t size)
                                   KMemoryPermission::None, KMemoryAttribute::Mask,
                                   KMemoryAttribute::None, KMemoryAttribute::IpcAndDeviceMapped));
 
-    KPageLinkedList src_pages;
-    KPageLinkedList dst_pages;
+    KPageGroup src_pages;
+    KPageGroup dst_pages;
     const std::size_t num_pages{size / PageSize};
 
     AddRegionToPages(src_addr, num_pages, src_pages);
@@ -1215,7 +1215,7 @@ Result KPageTable::UnmapMemory(VAddr dst_addr, VAddr src_addr, std::size_t size)
     return ResultSuccess;
 }
 
-Result KPageTable::MapPages(VAddr addr, const KPageLinkedList& page_linked_list,
+Result KPageTable::MapPages(VAddr addr, const KPageGroup& page_linked_list,
                             KMemoryPermission perm) {
     ASSERT(this->IsLockedByCurrentThread());
 
@@ -1239,7 +1239,7 @@ Result KPageTable::MapPages(VAddr addr, const KPageLinkedList& page_linked_list,
     return ResultSuccess;
 }
 
-Result KPageTable::MapPages(VAddr address, KPageLinkedList& page_linked_list, KMemoryState state,
+Result KPageTable::MapPages(VAddr address, KPageGroup& page_linked_list, KMemoryState state,
                             KMemoryPermission perm) {
     // Check that the map is in range.
     const std::size_t num_pages{page_linked_list.GetNumPages()};
@@ -1303,7 +1303,7 @@ Result KPageTable::MapPages(VAddr* out_addr, std::size_t num_pages, std::size_t 
     return ResultSuccess;
 }
 
-Result KPageTable::UnmapPages(VAddr addr, const KPageLinkedList& page_linked_list) {
+Result KPageTable::UnmapPages(VAddr addr, const KPageGroup& page_linked_list) {
     ASSERT(this->IsLockedByCurrentThread());
 
     VAddr cur_addr{addr};
@@ -1321,7 +1321,7 @@ Result KPageTable::UnmapPages(VAddr addr, const KPageLinkedList& page_linked_lis
     return ResultSuccess;
 }
 
-Result KPageTable::UnmapPages(VAddr addr, KPageLinkedList& page_linked_list, KMemoryState state) {
+Result KPageTable::UnmapPages(VAddr addr, KPageGroup& page_linked_list, KMemoryState state) {
     // Check that the unmap is in range.
     const std::size_t num_pages{page_linked_list.GetNumPages()};
     const std::size_t size{num_pages * PageSize};
@@ -1368,7 +1368,7 @@ Result KPageTable::UnmapPages(VAddr address, std::size_t num_pages, KMemoryState
     return ResultSuccess;
 }
 
-Result KPageTable::MakeAndOpenPageGroup(KPageLinkedList* out, VAddr address, size_t num_pages,
+Result KPageTable::MakeAndOpenPageGroup(KPageGroup* out, VAddr address, size_t num_pages,
                                         KMemoryState state_mask, KMemoryState state,
                                         KMemoryPermission perm_mask, KMemoryPermission perm,
                                         KMemoryAttribute attr_mask, KMemoryAttribute attr) {
@@ -1641,7 +1641,7 @@ Result KPageTable::SetHeapSize(VAddr* out, std::size_t size) {
     R_UNLESS(memory_reservation.Succeeded(), ResultLimitReached);
 
     // Allocate pages for the heap extension.
-    KPageLinkedList pg;
+    KPageGroup pg;
     R_TRY(system.Kernel().MemoryManager().AllocateAndOpen(
         &pg, allocation_size / PageSize,
         KMemoryManager::EncodeOption(memory_pool, allocation_option)));
@@ -1716,7 +1716,7 @@ ResultVal<VAddr> KPageTable::AllocateAndMapMemory(std::size_t needed_num_pages, 
     if (is_map_only) {
         R_TRY(Operate(addr, needed_num_pages, perm, OperationType::Map, map_addr));
     } else {
-        KPageLinkedList page_group;
+        KPageGroup page_group;
         R_TRY(system.Kernel().MemoryManager().AllocateAndOpenForProcess(
             &page_group, needed_num_pages,
             KMemoryManager::EncodeOption(memory_pool, allocation_option), 0, 0));
@@ -1774,7 +1774,7 @@ Result KPageTable::UnlockForDeviceAddressSpace(VAddr addr, std::size_t size) {
     return ResultSuccess;
 }
 
-Result KPageTable::LockForCodeMemory(KPageLinkedList* out, VAddr addr, std::size_t size) {
+Result KPageTable::LockForCodeMemory(KPageGroup* out, VAddr addr, std::size_t size) {
     return this->LockMemoryAndOpen(
         out, nullptr, addr, size, KMemoryState::FlagCanCodeMemory, KMemoryState::FlagCanCodeMemory,
         KMemoryPermission::All, KMemoryPermission::UserReadWrite, KMemoryAttribute::All,
@@ -1784,7 +1784,7 @@ Result KPageTable::LockForCodeMemory(KPageLinkedList* out, VAddr addr, std::size
         KMemoryAttribute::Locked);
 }
 
-Result KPageTable::UnlockForCodeMemory(VAddr addr, std::size_t size, const KPageLinkedList& pg) {
+Result KPageTable::UnlockForCodeMemory(VAddr addr, std::size_t size, const KPageGroup& pg) {
     return this->UnlockMemory(
         addr, size, KMemoryState::FlagCanCodeMemory, KMemoryState::FlagCanCodeMemory,
         KMemoryPermission::None, KMemoryPermission::None, KMemoryAttribute::All,
@@ -1816,7 +1816,7 @@ bool KPageTable::IsRegionContiguous(VAddr addr, u64 size) const {
 }
 
 void KPageTable::AddRegionToPages(VAddr start, std::size_t num_pages,
-                                  KPageLinkedList& page_linked_list) {
+                                  KPageGroup& page_linked_list) {
     VAddr addr{start};
     while (addr < start + (num_pages * PageSize)) {
         const PAddr paddr{GetPhysicalAddr(addr)};
@@ -1835,7 +1835,7 @@ VAddr KPageTable::AllocateVirtualMemory(VAddr start, std::size_t region_num_page
                                        IsKernel() ? 1 : 4);
 }
 
-Result KPageTable::Operate(VAddr addr, std::size_t num_pages, const KPageLinkedList& page_group,
+Result KPageTable::Operate(VAddr addr, std::size_t num_pages, const KPageGroup& page_group,
                            OperationType operation) {
     ASSERT(this->IsLockedByCurrentThread());
 
@@ -2119,8 +2119,8 @@ Result KPageTable::CheckMemoryState(KMemoryState* out_state, KMemoryPermission* 
     return ResultSuccess;
 }
 
-Result KPageTable::LockMemoryAndOpen(KPageLinkedList* out_pg, PAddr* out_paddr, VAddr addr,
-                                     size_t size, KMemoryState state_mask, KMemoryState state,
+Result KPageTable::LockMemoryAndOpen(KPageGroup* out_pg, PAddr* out_paddr, VAddr addr, size_t size,
+                                     KMemoryState state_mask, KMemoryState state,
                                      KMemoryPermission perm_mask, KMemoryPermission perm,
                                      KMemoryAttribute attr_mask, KMemoryAttribute attr,
                                      KMemoryPermission new_perm, KMemoryAttribute lock_attr) {
@@ -2181,7 +2181,7 @@ Result KPageTable::UnlockMemory(VAddr addr, size_t size, KMemoryState state_mask
                                 KMemoryState state, KMemoryPermission perm_mask,
                                 KMemoryPermission perm, KMemoryAttribute attr_mask,
                                 KMemoryAttribute attr, KMemoryPermission new_perm,
-                                KMemoryAttribute lock_attr, const KPageLinkedList* pg) {
+                                KMemoryAttribute lock_attr, const KPageGroup* pg) {
     // Validate basic preconditions.
     ASSERT((attr_mask & lock_attr) == lock_attr);
     ASSERT((attr & lock_attr) == lock_attr);

@@ -7,7 +7,7 @@
 #include "core/device_memory.h"
 #include "core/hle/kernel/k_auto_object.h"
 #include "core/hle/kernel/k_light_lock.h"
-#include "core/hle/kernel/k_page_linked_list.h"
+#include "core/hle/kernel/k_page_group.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/slab_helpers.h"
 #include "core/hle/kernel/svc_types.h"
@@ -53,7 +53,7 @@ public:
     }
 
 private:
-    KPageLinkedList m_page_group{};
+    KPageGroup m_page_group{};
     KProcess* m_owner{};
     VAddr m_address{};
     KLightLock m_lock;
