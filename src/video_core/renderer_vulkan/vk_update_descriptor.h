@@ -28,10 +28,10 @@ struct DescriptorUpdateEntry {
     };
 };
 
-class VKUpdateDescriptorQueue final {
+class UpdateDescriptorQueue final {
 public:
-    explicit VKUpdateDescriptorQueue(const Device& device_, Scheduler& scheduler_);
-    ~VKUpdateDescriptorQueue();
+    explicit UpdateDescriptorQueue(const Device& device_, Scheduler& scheduler_);
+    ~UpdateDescriptorQueue();
 
     void TickFrame();
 

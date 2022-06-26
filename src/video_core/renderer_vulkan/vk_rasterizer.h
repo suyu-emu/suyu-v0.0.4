@@ -146,7 +146,7 @@ private:
 
     StagingBufferPool staging_pool;
     DescriptorPool descriptor_pool;
-    VKUpdateDescriptorQueue update_descriptor_queue;
+    UpdateDescriptorQueue update_descriptor_queue;
     BlitImageHelper blit_image;
     ASTCDecoderPass astc_decoder_pass;
     RenderPassCache render_pass_cache;

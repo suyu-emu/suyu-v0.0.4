@@ -202,7 +202,7 @@ ComputePass::~ComputePass() = default;
 
 Uint8Pass::Uint8Pass(const Device& device_, Scheduler& scheduler_, DescriptorPool& descriptor_pool,
                      StagingBufferPool& staging_buffer_pool_,
-                     VKUpdateDescriptorQueue& update_descriptor_queue_)
+                     UpdateDescriptorQueue& update_descriptor_queue_)
     : ComputePass(device_, descriptor_pool, INPUT_OUTPUT_DESCRIPTOR_SET_BINDINGS,
                   INPUT_OUTPUT_DESCRIPTOR_UPDATE_TEMPLATE, INPUT_OUTPUT_BANK_INFO, {},
                   VULKAN_UINT8_COMP_SPV),
@@ -244,7 +244,7 @@ std::pair<VkBuffer, VkDeviceSize> Uint8Pass::Assemble(u32 num_vertices, VkBuffer
 QuadIndexedPass::QuadIndexedPass(const Device& device_, Scheduler& scheduler_,
                                  DescriptorPool& descriptor_pool_,
                                  StagingBufferPool& staging_buffer_pool_,
-                                 VKUpdateDescriptorQueue& update_descriptor_queue_)
+                                 UpdateDescriptorQueue& update_descriptor_queue_)
     : ComputePass(device_, descriptor_pool_, INPUT_OUTPUT_DESCRIPTOR_SET_BINDINGS,
                   INPUT_OUTPUT_DESCRIPTOR_UPDATE_TEMPLATE, INPUT_OUTPUT_BANK_INFO,
                   COMPUTE_PUSH_CONSTANT_RANGE<sizeof(u32) * 2>, VULKAN_QUAD_INDEXED_COMP_SPV),
@@ -306,7 +306,7 @@ std::pair<VkBuffer, VkDeviceSize> QuadIndexedPass::Assemble(
 ASTCDecoderPass::ASTCDecoderPass(const Device& device_, Scheduler& scheduler_,
                                  DescriptorPool& descriptor_pool_,
                                  StagingBufferPool& staging_buffer_pool_,
-                                 VKUpdateDescriptorQueue& update_descriptor_queue_,
+                                 UpdateDescriptorQueue& update_descriptor_queue_,
                                  MemoryAllocator& memory_allocator_)
     : ComputePass(device_, descriptor_pool_, ASTC_DESCRIPTOR_SET_BINDINGS,
                   ASTC_PASS_DESCRIPTOR_UPDATE_TEMPLATE_ENTRY, ASTC_BANK_INFO,

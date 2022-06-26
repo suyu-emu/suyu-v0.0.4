@@ -29,7 +29,7 @@ class Scheduler;
 class ComputePipeline {
 public:
     explicit ComputePipeline(const Device& device, DescriptorPool& descriptor_pool,
-                             VKUpdateDescriptorQueue& update_descriptor_queue,
+                             UpdateDescriptorQueue& update_descriptor_queue,
                              Common::ThreadWorker* thread_worker,
                              PipelineStatistics* pipeline_statistics,
                              VideoCore::ShaderNotify* shader_notify, const Shader::Info& info,
@@ -46,7 +46,7 @@ public:
 
 private:
     const Device& device;
-    VKUpdateDescriptorQueue& update_descriptor_queue;
+    UpdateDescriptorQueue& update_descriptor_queue;
     Shader::Info info;
 
     VideoCommon::ComputeUniformBufferSizes uniform_buffer_sizes{};

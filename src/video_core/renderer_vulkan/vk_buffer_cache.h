@@ -59,7 +59,7 @@ class BufferCacheRuntime {
 public:
     explicit BufferCacheRuntime(const Device& device_, MemoryAllocator& memory_manager_,
                                 Scheduler& scheduler_, StagingBufferPool& staging_pool_,
-                                VKUpdateDescriptorQueue& update_descriptor_queue_,
+                                UpdateDescriptorQueue& update_descriptor_queue_,
                                 DescriptorPool& descriptor_pool);
 
     void Finish();
@@ -126,7 +126,7 @@ private:
     MemoryAllocator& memory_allocator;
     Scheduler& scheduler;
     StagingBufferPool& staging_pool;
-    VKUpdateDescriptorQueue& update_descriptor_queue;
+    UpdateDescriptorQueue& update_descriptor_queue;
 
     vk::Buffer quad_array_lut;
     MemoryCommit quad_array_lut_commit;

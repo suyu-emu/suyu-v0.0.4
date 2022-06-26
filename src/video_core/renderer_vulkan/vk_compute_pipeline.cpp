@@ -25,7 +25,7 @@ using Shader::Backend::SPIRV::RESCALING_LAYOUT_WORDS_OFFSET;
 using Tegra::Texture::TexturePair;
 
 ComputePipeline::ComputePipeline(const Device& device_, DescriptorPool& descriptor_pool,
-                                 VKUpdateDescriptorQueue& update_descriptor_queue_,
+                                 UpdateDescriptorQueue& update_descriptor_queue_,
                                  Common::ThreadWorker* thread_worker,
                                  PipelineStatistics* pipeline_statistics,
                                  VideoCore::ShaderNotify* shader_notify, const Shader::Info& info_,

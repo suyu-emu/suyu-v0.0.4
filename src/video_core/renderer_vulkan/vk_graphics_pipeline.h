@@ -63,7 +63,7 @@ class PipelineStatistics;
 class RenderPassCache;
 class RescalingPushConstant;
 class Scheduler;
-class VKUpdateDescriptorQueue;
+class UpdateDescriptorQueue;
 
 class GraphicsPipeline {
     static constexpr size_t NUM_STAGES = Tegra::Engines::Maxwell3D::Regs::MaxShaderStage;
@@ -73,7 +73,7 @@ public:
         Tegra::Engines::Maxwell3D& maxwell3d, Tegra::MemoryManager& gpu_memory,
         Scheduler& scheduler, BufferCache& buffer_cache, TextureCache& texture_cache,
         VideoCore::ShaderNotify* shader_notify, const Device& device,
-        DescriptorPool& descriptor_pool, VKUpdateDescriptorQueue& update_descriptor_queue,
+        DescriptorPool& descriptor_pool, UpdateDescriptorQueue& update_descriptor_queue,
         Common::ThreadWorker* worker_thread, PipelineStatistics* pipeline_statistics,
         RenderPassCache& render_pass_cache, const GraphicsPipelineCacheKey& key,
         std::array<vk::ShaderModule, NUM_STAGES> stages,
@@ -126,7 +126,7 @@ private:
     TextureCache& texture_cache;
     BufferCache& buffer_cache;
     Scheduler& scheduler;
-    VKUpdateDescriptorQueue& update_descriptor_queue;
+    UpdateDescriptorQueue& update_descriptor_queue;
 
     void (*configure_func)(GraphicsPipeline*, bool){};
 

@@ -82,7 +82,7 @@ class PipelineStatistics;
 class RasterizerVulkan;
 class RenderPassCache;
 class Scheduler;
-class VKUpdateDescriptorQueue;
+class UpdateDescriptorQueue;
 
 using VideoCommon::ShaderInfo;
 
@@ -104,7 +104,7 @@ public:
                            Tegra::Engines::KeplerCompute& kepler_compute,
                            Tegra::MemoryManager& gpu_memory, const Device& device,
                            Scheduler& scheduler, DescriptorPool& descriptor_pool,
-                           VKUpdateDescriptorQueue& update_descriptor_queue,
+                           UpdateDescriptorQueue& update_descriptor_queue,
                            RenderPassCache& render_pass_cache, BufferCache& buffer_cache,
                            TextureCache& texture_cache, VideoCore::ShaderNotify& shader_notify_);
     ~PipelineCache();
@@ -140,7 +140,7 @@ private:
     const Device& device;
     Scheduler& scheduler;
     DescriptorPool& descriptor_pool;
-    VKUpdateDescriptorQueue& update_descriptor_queue;
+    UpdateDescriptorQueue& update_descriptor_queue;
     RenderPassCache& render_pass_cache;
     BufferCache& buffer_cache;
     TextureCache& texture_cache;
