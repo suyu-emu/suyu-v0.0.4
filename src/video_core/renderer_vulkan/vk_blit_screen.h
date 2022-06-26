@@ -36,7 +36,7 @@ class Device;
 class FSR;
 class RasterizerVulkan;
 class Scheduler;
-class VKSwapchain;
+class Swapchain;
 
 struct ScreenInfo {
     VkImageView image_view{};
@@ -48,9 +48,8 @@ struct ScreenInfo {
 class BlitScreen {
 public:
     explicit BlitScreen(Core::Memory::Memory& cpu_memory, Core::Frontend::EmuWindow& render_window,
-                        const Device& device, MemoryAllocator& memory_manager,
-                        VKSwapchain& swapchain, Scheduler& scheduler,
-                        const ScreenInfo& screen_info);
+                        const Device& device, MemoryAllocator& memory_manager, Swapchain& swapchain,
+                        Scheduler& scheduler, const ScreenInfo& screen_info);
     ~BlitScreen();
 
     void Recreate();
@@ -108,7 +107,7 @@ private:
     Core::Frontend::EmuWindow& render_window;
     const Device& device;
     MemoryAllocator& memory_allocator;
-    VKSwapchain& swapchain;
+    Swapchain& swapchain;
     Scheduler& scheduler;
     const std::size_t image_count;
     const ScreenInfo& screen_info;

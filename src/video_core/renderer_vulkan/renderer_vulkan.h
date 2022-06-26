@@ -71,7 +71,7 @@ private:
     MemoryAllocator memory_allocator;
     StateTracker state_tracker;
     Scheduler scheduler;
-    VKSwapchain swapchain;
+    Swapchain swapchain;
     BlitScreen blit_screen;
     RasterizerVulkan rasterizer;
 };
