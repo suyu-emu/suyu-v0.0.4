@@ -158,7 +158,7 @@ private:
     PipelineCache pipeline_cache;
     VKQueryCache query_cache;
     AccelerateDMA accelerate_dma;
-    VKFenceManager fence_manager;
+    FenceManager fence_manager;
 
     vk::Event wfi_event;
 

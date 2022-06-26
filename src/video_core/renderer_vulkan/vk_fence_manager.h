@@ -44,12 +44,11 @@ using Fence = std::shared_ptr<InnerFence>;
 using GenericFenceManager =
     VideoCommon::FenceManager<Fence, TextureCache, BufferCache, VKQueryCache>;
 
-class VKFenceManager final : public GenericFenceManager {
+class FenceManager final : public GenericFenceManager {
 public:
-    explicit VKFenceManager(VideoCore::RasterizerInterface& rasterizer, Tegra::GPU& gpu,
-                            TextureCache& texture_cache, BufferCache& buffer_cache,
-                            VKQueryCache& query_cache, const Device& device,
-                            VKScheduler& scheduler);
+    explicit FenceManager(VideoCore::RasterizerInterface& rasterizer, Tegra::GPU& gpu,
+                          TextureCache& texture_cache, BufferCache& buffer_cache,
+                          VKQueryCache& query_cache, const Device& device, VKScheduler& scheduler);
 
 protected:
     Fence CreateFence(u32 value, bool is_stubbed) override;
