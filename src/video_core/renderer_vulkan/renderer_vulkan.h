@@ -72,7 +72,7 @@ private:
     StateTracker state_tracker;
     VKScheduler scheduler;
     VKSwapchain swapchain;
-    VKBlitScreen blit_screen;
+    BlitScreen blit_screen;
     RasterizerVulkan rasterizer;
 };
 

@@ -45,13 +45,13 @@ struct VKScreenInfo {
     bool is_srgb{};
 };
 
-class VKBlitScreen {
+class BlitScreen {
 public:
-    explicit VKBlitScreen(Core::Memory::Memory& cpu_memory,
-                          Core::Frontend::EmuWindow& render_window, const Device& device,
-                          MemoryAllocator& memory_manager, VKSwapchain& swapchain,
-                          VKScheduler& scheduler, const VKScreenInfo& screen_info);
-    ~VKBlitScreen();
+    explicit BlitScreen(Core::Memory::Memory& cpu_memory, Core::Frontend::EmuWindow& render_window,
+                        const Device& device, MemoryAllocator& memory_manager,
+                        VKSwapchain& swapchain, VKScheduler& scheduler,
+                        const VKScreenInfo& screen_info);
+    ~BlitScreen();
 
     void Recreate();
 
