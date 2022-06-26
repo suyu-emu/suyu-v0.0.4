@@ -215,8 +215,8 @@ ConfigureFuncPtr ConfigureFunc(const std::array<vk::ShaderModule, NUM_STAGES>& m
 } // Anonymous namespace
 
 GraphicsPipeline::GraphicsPipeline(
-    Tegra::Engines::Maxwell3D& maxwell3d_, Tegra::MemoryManager& gpu_memory_,
-    VKScheduler& scheduler_, BufferCache& buffer_cache_, TextureCache& texture_cache_,
+    Tegra::Engines::Maxwell3D& maxwell3d_, Tegra::MemoryManager& gpu_memory_, Scheduler& scheduler_,
+    BufferCache& buffer_cache_, TextureCache& texture_cache_,
     VideoCore::ShaderNotify* shader_notify, const Device& device_, DescriptorPool& descriptor_pool,
     VKUpdateDescriptorQueue& update_descriptor_queue_, Common::ThreadWorker* worker_thread,
     PipelineStatistics* pipeline_statistics, RenderPassCache& render_pass_cache,

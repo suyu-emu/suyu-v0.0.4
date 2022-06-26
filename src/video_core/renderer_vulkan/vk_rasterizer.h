@@ -38,7 +38,7 @@ class Maxwell3D;
 
 namespace Vulkan {
 
-struct VKScreenInfo;
+struct ScreenInfo;
 
 class StateTracker;
 
@@ -58,9 +58,9 @@ class RasterizerVulkan final : public VideoCore::RasterizerAccelerated {
 public:
     explicit RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
                               Tegra::MemoryManager& gpu_memory_, Core::Memory::Memory& cpu_memory_,
-                              VKScreenInfo& screen_info_, const Device& device_,
+                              ScreenInfo& screen_info_, const Device& device_,
                               MemoryAllocator& memory_allocator_, StateTracker& state_tracker_,
-                              VKScheduler& scheduler_);
+                              Scheduler& scheduler_);
     ~RasterizerVulkan() override;
 
     void Draw(bool is_indexed, bool is_instanced) override;
@@ -138,11 +138,11 @@ private:
     Tegra::Engines::Maxwell3D& maxwell3d;
     Tegra::Engines::KeplerCompute& kepler_compute;
 
-    VKScreenInfo& screen_info;
+    ScreenInfo& screen_info;
     const Device& device;
     MemoryAllocator& memory_allocator;
     StateTracker& state_tracker;
-    VKScheduler& scheduler;
+    Scheduler& scheduler;
 
     StagingBufferPool staging_pool;
     DescriptorPool descriptor_pool;

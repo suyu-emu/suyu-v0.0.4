@@ -26,7 +26,7 @@ constexpr VkQueryType GetTarget(QueryType type) {
 
 } // Anonymous namespace
 
-QueryPool::QueryPool(const Device& device_, VKScheduler& scheduler, QueryType type_)
+QueryPool::QueryPool(const Device& device_, Scheduler& scheduler, QueryType type_)
     : ResourcePool{scheduler.GetMasterSemaphore(), GROW_STEP}, device{device_}, type{type_} {}
 
 QueryPool::~QueryPool() = default;
@@ -67,7 +67,7 @@ void QueryPool::Reserve(std::pair<VkQueryPool, u32> query) {
 
 VKQueryCache::VKQueryCache(VideoCore::RasterizerInterface& rasterizer_,
                            Tegra::Engines::Maxwell3D& maxwell3d_, Tegra::MemoryManager& gpu_memory_,
-                           const Device& device_, VKScheduler& scheduler_)
+                           const Device& device_, Scheduler& scheduler_)
     : QueryCacheBase{rasterizer_, maxwell3d_, gpu_memory_}, device{device_}, scheduler{scheduler_},
       query_pools{
           QueryPool{device_, scheduler_, QueryType::SamplesPassed},

@@ -262,7 +262,7 @@ bool GraphicsPipelineCacheKey::operator==(const GraphicsPipelineCacheKey& rhs) c
 PipelineCache::PipelineCache(RasterizerVulkan& rasterizer_, Tegra::Engines::Maxwell3D& maxwell3d_,
                              Tegra::Engines::KeplerCompute& kepler_compute_,
                              Tegra::MemoryManager& gpu_memory_, const Device& device_,
-                             VKScheduler& scheduler_, DescriptorPool& descriptor_pool_,
+                             Scheduler& scheduler_, DescriptorPool& descriptor_pool_,
                              VKUpdateDescriptorQueue& update_descriptor_queue_,
                              RenderPassCache& render_pass_cache_, BufferCache& buffer_cache_,
                              TextureCache& texture_cache_, VideoCore::ShaderNotify& shader_notify_)

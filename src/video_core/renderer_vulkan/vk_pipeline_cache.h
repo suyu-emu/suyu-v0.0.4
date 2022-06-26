@@ -81,7 +81,7 @@ class Device;
 class PipelineStatistics;
 class RasterizerVulkan;
 class RenderPassCache;
-class VKScheduler;
+class Scheduler;
 class VKUpdateDescriptorQueue;
 
 using VideoCommon::ShaderInfo;
@@ -103,7 +103,7 @@ public:
     explicit PipelineCache(RasterizerVulkan& rasterizer, Tegra::Engines::Maxwell3D& maxwell3d,
                            Tegra::Engines::KeplerCompute& kepler_compute,
                            Tegra::MemoryManager& gpu_memory, const Device& device,
-                           VKScheduler& scheduler, DescriptorPool& descriptor_pool,
+                           Scheduler& scheduler, DescriptorPool& descriptor_pool,
                            VKUpdateDescriptorQueue& update_descriptor_queue,
                            RenderPassCache& render_pass_cache, BufferCache& buffer_cache,
                            TextureCache& texture_cache, VideoCore::ShaderNotify& shader_notify_);
@@ -138,7 +138,7 @@ private:
                                                            bool build_in_parallel);
 
     const Device& device;
-    VKScheduler& scheduler;
+    Scheduler& scheduler;
     DescriptorPool& descriptor_pool;
     VKUpdateDescriptorQueue& update_descriptor_queue;
     RenderPassCache& render_pass_cache;

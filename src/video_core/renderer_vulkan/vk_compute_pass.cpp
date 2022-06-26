@@ -200,8 +200,8 @@ ComputePass::ComputePass(const Device& device_, DescriptorPool& descriptor_pool,
 
 ComputePass::~ComputePass() = default;
 
-Uint8Pass::Uint8Pass(const Device& device_, VKScheduler& scheduler_,
-                     DescriptorPool& descriptor_pool, StagingBufferPool& staging_buffer_pool_,
+Uint8Pass::Uint8Pass(const Device& device_, Scheduler& scheduler_, DescriptorPool& descriptor_pool,
+                     StagingBufferPool& staging_buffer_pool_,
                      VKUpdateDescriptorQueue& update_descriptor_queue_)
     : ComputePass(device_, descriptor_pool, INPUT_OUTPUT_DESCRIPTOR_SET_BINDINGS,
                   INPUT_OUTPUT_DESCRIPTOR_UPDATE_TEMPLATE, INPUT_OUTPUT_BANK_INFO, {},
@@ -241,7 +241,7 @@ std::pair<VkBuffer, VkDeviceSize> Uint8Pass::Assemble(u32 num_vertices, VkBuffer
     return {staging.buffer, staging.offset};
 }
 
-QuadIndexedPass::QuadIndexedPass(const Device& device_, VKScheduler& scheduler_,
+QuadIndexedPass::QuadIndexedPass(const Device& device_, Scheduler& scheduler_,
                                  DescriptorPool& descriptor_pool_,
                                  StagingBufferPool& staging_buffer_pool_,
                                  VKUpdateDescriptorQueue& update_descriptor_queue_)
@@ -303,7 +303,7 @@ std::pair<VkBuffer, VkDeviceSize> QuadIndexedPass::Assemble(
     return {staging.buffer, staging.offset};
 }
 
-ASTCDecoderPass::ASTCDecoderPass(const Device& device_, VKScheduler& scheduler_,
+ASTCDecoderPass::ASTCDecoderPass(const Device& device_, Scheduler& scheduler_,
                                  DescriptorPool& descriptor_pool_,
                                  StagingBufferPool& staging_buffer_pool_,
                                  VKUpdateDescriptorQueue& update_descriptor_queue_,

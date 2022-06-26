@@ -120,8 +120,8 @@ struct BlitScreen::BufferData {
 
 BlitScreen::BlitScreen(Core::Memory::Memory& cpu_memory_, Core::Frontend::EmuWindow& render_window_,
                        const Device& device_, MemoryAllocator& memory_allocator_,
-                       VKSwapchain& swapchain_, VKScheduler& scheduler_,
-                       const VKScreenInfo& screen_info_)
+                       VKSwapchain& swapchain_, Scheduler& scheduler_,
+                       const ScreenInfo& screen_info_)
     : cpu_memory{cpu_memory_}, render_window{render_window_}, device{device_},
       memory_allocator{memory_allocator_}, swapchain{swapchain_}, scheduler{scheduler_},
       image_count{swapchain.GetImageCount()}, screen_info{screen_info_} {

@@ -23,13 +23,13 @@ class CachedQuery;
 class Device;
 class HostCounter;
 class VKQueryCache;
-class VKScheduler;
+class Scheduler;
 
 using CounterStream = VideoCommon::CounterStreamBase<VKQueryCache, HostCounter>;
 
 class QueryPool final : public ResourcePool {
 public:
-    explicit QueryPool(const Device& device, VKScheduler& scheduler, VideoCore::QueryType type);
+    explicit QueryPool(const Device& device, Scheduler& scheduler, VideoCore::QueryType type);
     ~QueryPool() override;
 
     std::pair<VkQueryPool, u32> Commit();
@@ -54,7 +54,7 @@ class VKQueryCache final
 public:
     explicit VKQueryCache(VideoCore::RasterizerInterface& rasterizer_,
                           Tegra::Engines::Maxwell3D& maxwell3d_, Tegra::MemoryManager& gpu_memory_,
-                          const Device& device_, VKScheduler& scheduler_);
+                          const Device& device_, Scheduler& scheduler_);
     ~VKQueryCache();
 
     std::pair<VkQueryPool, u32> AllocateQuery(VideoCore::QueryType type);
@@ -65,13 +65,13 @@ public:
         return device;
     }
 
-    VKScheduler& GetScheduler() const noexcept {
+    Scheduler& GetScheduler() const noexcept {
         return scheduler;
     }
 
 private:
     const Device& device;
-    VKScheduler& scheduler;
+    Scheduler& scheduler;
     std::array<QueryPool, VideoCore::NumQueryTypes> query_pools;
 };
 

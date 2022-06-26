@@ -91,7 +91,7 @@ ComputePipeline::ComputePipeline(const Device& device_, DescriptorPool& descript
 }
 
 void ComputePipeline::Configure(Tegra::Engines::KeplerCompute& kepler_compute,
-                                Tegra::MemoryManager& gpu_memory, VKScheduler& scheduler,
+                                Tegra::MemoryManager& gpu_memory, Scheduler& scheduler,
                                 BufferCache& buffer_cache, TextureCache& texture_cache) {
     update_descriptor_queue.Acquire();
 

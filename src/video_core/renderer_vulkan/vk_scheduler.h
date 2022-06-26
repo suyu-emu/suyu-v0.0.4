@@ -26,10 +26,10 @@ class VKQueryCache;
 
 /// The scheduler abstracts command buffer and fence management with an interface that's able to do
 /// OpenGL-like operations on Vulkan command buffers.
-class VKScheduler {
+class Scheduler {
 public:
-    explicit VKScheduler(const Device& device, StateTracker& state_tracker);
-    ~VKScheduler();
+    explicit Scheduler(const Device& device, StateTracker& state_tracker);
+    ~Scheduler();
 
     /// Sends the current execution context to the GPU.
     void Flush(VkSemaphore signal_semaphore = nullptr, VkSemaphore wait_semaphore = nullptr);

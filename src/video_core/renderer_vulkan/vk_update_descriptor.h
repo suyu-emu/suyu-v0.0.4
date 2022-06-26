@@ -10,7 +10,7 @@
 namespace Vulkan {
 
 class Device;
-class VKScheduler;
+class Scheduler;
 
 struct DescriptorUpdateEntry {
     struct Empty {};
@@ -30,7 +30,7 @@ struct DescriptorUpdateEntry {
 
 class VKUpdateDescriptorQueue final {
 public:
-    explicit VKUpdateDescriptorQueue(const Device& device_, VKScheduler& scheduler_);
+    explicit VKUpdateDescriptorQueue(const Device& device_, Scheduler& scheduler_);
     ~VKUpdateDescriptorQueue();
 
     void TickFrame();
@@ -71,7 +71,7 @@ public:
 
 private:
     const Device& device;
-    VKScheduler& scheduler;
+    Scheduler& scheduler;
 
     DescriptorUpdateEntry* payload_cursor = nullptr;
     const DescriptorUpdateEntry* upload_start = nullptr;

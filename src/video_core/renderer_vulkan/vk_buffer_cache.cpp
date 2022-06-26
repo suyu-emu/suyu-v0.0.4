@@ -124,7 +124,7 @@ VkBufferView Buffer::View(u32 offset, u32 size, VideoCore::Surface::PixelFormat 
 }
 
 BufferCacheRuntime::BufferCacheRuntime(const Device& device_, MemoryAllocator& memory_allocator_,
-                                       VKScheduler& scheduler_, StagingBufferPool& staging_pool_,
+                                       Scheduler& scheduler_, StagingBufferPool& staging_pool_,
                                        VKUpdateDescriptorQueue& update_descriptor_queue_,
                                        DescriptorPool& descriptor_pool)
     : device{device_}, memory_allocator{memory_allocator_}, scheduler{scheduler_},

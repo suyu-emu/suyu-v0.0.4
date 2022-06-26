@@ -11,10 +11,10 @@
 
 namespace Vulkan {
 
-InnerFence::InnerFence(VKScheduler& scheduler_, u32 payload_, bool is_stubbed_)
+InnerFence::InnerFence(Scheduler& scheduler_, u32 payload_, bool is_stubbed_)
     : FenceBase{payload_, is_stubbed_}, scheduler{scheduler_} {}
 
-InnerFence::InnerFence(VKScheduler& scheduler_, GPUVAddr address_, u32 payload_, bool is_stubbed_)
+InnerFence::InnerFence(Scheduler& scheduler_, GPUVAddr address_, u32 payload_, bool is_stubbed_)
     : FenceBase{address_, payload_, is_stubbed_}, scheduler{scheduler_} {}
 
 InnerFence::~InnerFence() = default;
@@ -44,8 +44,7 @@ void InnerFence::Wait() {
 
 FenceManager::FenceManager(VideoCore::RasterizerInterface& rasterizer_, Tegra::GPU& gpu_,
                            TextureCache& texture_cache_, BufferCache& buffer_cache_,
-                           VKQueryCache& query_cache_, const Device& device_,
-                           VKScheduler& scheduler_)
+                           VKQueryCache& query_cache_, const Device& device_, Scheduler& scheduler_)
     : GenericFenceManager{rasterizer_, gpu_, texture_cache_, buffer_cache_, query_cache_},
       scheduler{scheduler_} {}
 

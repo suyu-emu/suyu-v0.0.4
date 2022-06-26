@@ -15,11 +15,11 @@ struct FramebufferLayout;
 namespace Vulkan {
 
 class Device;
-class VKScheduler;
+class Scheduler;
 
 class VKSwapchain {
 public:
-    explicit VKSwapchain(VkSurfaceKHR surface, const Device& device, VKScheduler& scheduler,
+    explicit VKSwapchain(VkSurfaceKHR surface, const Device& device, Scheduler& scheduler,
                          u32 width, u32 height, bool srgb);
     ~VKSwapchain();
 
@@ -94,7 +94,7 @@ private:
 
     const VkSurfaceKHR surface;
     const Device& device;
-    VKScheduler& scheduler;
+    Scheduler& scheduler;
 
     vk::SwapchainKHR swapchain;
 

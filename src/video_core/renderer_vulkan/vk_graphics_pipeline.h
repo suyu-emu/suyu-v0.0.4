@@ -62,7 +62,7 @@ class Device;
 class PipelineStatistics;
 class RenderPassCache;
 class RescalingPushConstant;
-class VKScheduler;
+class Scheduler;
 class VKUpdateDescriptorQueue;
 
 class GraphicsPipeline {
@@ -71,7 +71,7 @@ class GraphicsPipeline {
 public:
     explicit GraphicsPipeline(
         Tegra::Engines::Maxwell3D& maxwell3d, Tegra::MemoryManager& gpu_memory,
-        VKScheduler& scheduler, BufferCache& buffer_cache, TextureCache& texture_cache,
+        Scheduler& scheduler, BufferCache& buffer_cache, TextureCache& texture_cache,
         VideoCore::ShaderNotify* shader_notify, const Device& device,
         DescriptorPool& descriptor_pool, VKUpdateDescriptorQueue& update_descriptor_queue,
         Common::ThreadWorker* worker_thread, PipelineStatistics* pipeline_statistics,
@@ -125,7 +125,7 @@ private:
     const Device& device;
     TextureCache& texture_cache;
     BufferCache& buffer_cache;
-    VKScheduler& scheduler;
+    Scheduler& scheduler;
     VKUpdateDescriptorQueue& update_descriptor_queue;
 
     void (*configure_func)(GraphicsPipeline*, bool){};
