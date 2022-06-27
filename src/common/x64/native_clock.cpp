@@ -90,7 +90,7 @@ u64 NativeClock::GetRTSC() {
     } while (!time_point.compare_exchange_weak(
         current_time_point, new_time_point, std::memory_order_release, std::memory_order_acquire));
     /// The clock cannot be more precise than the guest timer, remove the lower bits
-    return new_time_point.accumulated_ticks & inaccuracy_mask;
+    return new_time_point.accumulated_ticks;
 }
 
 void NativeClock::Pause(bool is_paused) {
