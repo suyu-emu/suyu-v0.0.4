@@ -207,6 +207,19 @@ void NvMap::UnpinHandle(Handle::Id handle) {
     }
 }
 
+void NvMap::DuplicateHandle(Handle::Id handle) {
+    auto handle_description{GetHandle(handle)};
+    if (!handle_description) {
+        LOG_CRITICAL(Service_NVDRV, "Unregistered handle!");
+        return;
+    }
+
+    auto result = handle_description->Duplicate(false);
+    if (result != NvResult::Success) {
+        LOG_CRITICAL(Service_NVDRV, "Could not duplicate handle!");
+    }
+}
+
 std::optional<NvMap::FreeInfo> NvMap::FreeHandle(Handle::Id handle, bool internal_session) {
     std::weak_ptr<Handle> hWeak{GetHandle(handle)};
     FreeInfo freeInfo;
@@ -254,7 +267,7 @@ std::optional<NvMap::FreeInfo> NvMap::FreeHandle(Handle::Id handle, bool interna
 
     // Handle hasn't been freed from memory, set address to 0 to mark that the handle wasn't freed
     if (!hWeak.expired()) {
-        LOG_ERROR(Service_NVDRV, "nvmap handle: {} wasn't freed as it is still in use", handle);
+        LOG_DEBUG(Service_NVDRV, "nvmap handle: {} wasn't freed as it is still in use", handle);
         freeInfo.address = 0;
     }
 
