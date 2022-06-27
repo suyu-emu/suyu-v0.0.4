@@ -72,7 +72,7 @@ void CoreTiming::Shutdown() {
     is_paused = true;
     shutting_down = true;
     {
-        std::unique_lock<std::mutex> main_lock(event_mutex);
+        std::unique_lock main_lock(event_mutex);
         event_cv.notify_all();
         wait_pause_cv.notify_all();
     }
@@ -85,7 +85,7 @@ void CoreTiming::Shutdown() {
 }
 
 void CoreTiming::Pause(bool is_paused_) {
-    std::unique_lock<std::mutex> main_lock(event_mutex);
+    std::unique_lock main_lock(event_mutex);
     if (is_paused_ == paused_state.load(std::memory_order_relaxed)) {
         return;
     }
@@ -100,7 +100,7 @@ void CoreTiming::Pause(bool is_paused_) {
 }
 
 void CoreTiming::SyncPause(bool is_paused_) {
-    std::unique_lock<std::mutex> main_lock(event_mutex);
+    std::unique_lock main_lock(event_mutex);
     if (is_paused_ == paused_state.load(std::memory_order_relaxed)) {
         return;
     }
@@ -127,7 +127,7 @@ bool CoreTiming::IsRunning() const {
 }
 
 bool CoreTiming::HasPendingEvents() const {
-    std::unique_lock<std::mutex> main_lock(event_mutex);
+    std::unique_lock main_lock(event_mutex);
     return !event_queue.empty();
 }
 
@@ -135,7 +135,7 @@ void CoreTiming::ScheduleEvent(std::chrono::nanoseconds ns_into_future,
                                const std::shared_ptr<EventType>& event_type,
                                std::uintptr_t user_data) {
 
-    std::unique_lock<std::mutex> main_lock(event_mutex);
+    std::unique_lock main_lock(event_mutex);
     const u64 timeout = static_cast<u64>((GetGlobalTimeNs() + ns_into_future).count());
 
     event_queue.emplace_back(Event{timeout, event_fifo_id++, user_data, event_type});
@@ -149,7 +149,7 @@ void CoreTiming::ScheduleEvent(std::chrono::nanoseconds ns_into_future,
 
 void CoreTiming::UnscheduleEvent(const std::shared_ptr<EventType>& event_type,
                                  std::uintptr_t user_data) {
-    std::unique_lock<std::mutex> main_lock(event_mutex);
+    std::unique_lock main_lock(event_mutex);
     const auto itr = std::remove_if(event_queue.begin(), event_queue.end(), [&](const Event& e) {
         return e.type.lock().get() == event_type.get() && e.user_data == user_data;
     });
@@ -197,12 +197,12 @@ u64 CoreTiming::GetClockTicks() const {
 }
 
 void CoreTiming::ClearPendingEvents() {
-    std::unique_lock<std::mutex> main_lock(event_mutex);
+    std::unique_lock main_lock(event_mutex);
     event_queue.clear();
 }
 
 void CoreTiming::RemoveEvent(const std::shared_ptr<EventType>& event_type) {
-    std::unique_lock<std::mutex> main_lock(event_mutex);
+    std::unique_lock main_lock(event_mutex);
 
     const auto itr = std::remove_if(event_queue.begin(), event_queue.end(), [&](const Event& e) {
         return e.type.lock().get() == event_type.get();
@@ -218,7 +218,7 @@ void CoreTiming::RemoveEvent(const std::shared_ptr<EventType>& event_type) {
 std::optional<s64> CoreTiming::Advance() {
     global_timer = GetGlobalTimeNs().count();
 
-    std::unique_lock<std::mutex> main_lock(event_mutex);
+    std::unique_lock main_lock(event_mutex);
     while (!event_queue.empty() && event_queue.front().time <= global_timer) {
         Event evt = std::move(event_queue.front());
         std::pop_heap(event_queue.begin(), event_queue.end(), std::greater<>());
@@ -226,7 +226,7 @@ std::optional<s64> CoreTiming::Advance() {
         event_mutex.unlock();
 
         if (const auto event_type{evt.type.lock()}) {
-            std::unique_lock<std::mutex> lk(event_type->guard);
+            std::unique_lock lk(event_type->guard);
             event_type->callback(evt.user_data, std::chrono::nanoseconds{static_cast<s64>(
                                                     GetGlobalTimeNs().count() - evt.time)});
         }
@@ -252,15 +252,15 @@ void CoreTiming::ThreadLoop() {
             if (next_time) {
                 if (*next_time > 0) {
                     std::chrono::nanoseconds next_time_ns = std::chrono::nanoseconds(*next_time);
-                    std::unique_lock<std::mutex> main_lock(event_mutex);
+                    std::unique_lock main_lock(event_mutex);
                     event_cv.wait_for(main_lock, next_time_ns, predicate);
                 }
             } else {
-                std::unique_lock<std::mutex> main_lock(event_mutex);
+                std::unique_lock main_lock(event_mutex);
                 event_cv.wait(main_lock, predicate);
             }
         }
-        std::unique_lock<std::mutex> main_lock(event_mutex);
+        std::unique_lock main_lock(event_mutex);
         pause_count++;
         if (pause_count == worker_threads.size()) {
             clock->Pause(true);
