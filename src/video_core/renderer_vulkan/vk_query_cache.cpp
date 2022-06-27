@@ -66,7 +66,7 @@ void QueryPool::Reserve(std::pair<VkQueryPool, u32> query) {
 }
 
 QueryCache::QueryCache(VideoCore::RasterizerInterface& rasterizer_, const Device& device_,
-                           Scheduler& scheduler_)
+                       Scheduler& scheduler_)
     : QueryCacheBase{rasterizer_}, device{device_}, scheduler{scheduler_},
       query_pools{
           QueryPool{device_, scheduler_, QueryType::SamplesPassed},

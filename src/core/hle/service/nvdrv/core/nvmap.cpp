@@ -41,21 +41,17 @@ NvResult NvMap::Handle::Alloc(Flags pFlags, u32 pAlign, u8 pKind, u64 pAddress) 
     size = Common::AlignUp(size, YUZU_PAGESIZE);
     aligned_size = Common::AlignUp(size, align);
     address = pAddress;
-
-    // TODO: pin init
-
     allocated = true;
 
     return NvResult::Success;
 }
 
 NvResult NvMap::Handle::Duplicate(bool internal_session) {
+    std::scoped_lock lock(mutex);
     // Unallocated handles cannot be duplicated as duplication requires memory accounting (in HOS)
     if (!allocated) [[unlikely]] {
         return NvResult::BadValue;
     }
-
-    std::scoped_lock lock(mutex);
 
     // If we internally use FromId the duplication tracking of handles won't work accurately due to
     // us not implementing per-process handle refs.
