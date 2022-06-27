@@ -207,14 +207,14 @@ void NvMap::UnpinHandle(Handle::Id handle) {
     }
 }
 
-void NvMap::DuplicateHandle(Handle::Id handle) {
+void NvMap::DuplicateHandle(Handle::Id handle, bool internal_session) {
     auto handle_description{GetHandle(handle)};
     if (!handle_description) {
         LOG_CRITICAL(Service_NVDRV, "Unregistered handle!");
         return;
     }
 
-    auto result = handle_description->Duplicate(false);
+    auto result = handle_description->Duplicate(internal_session);
     if (result != NvResult::Success) {
         LOG_CRITICAL(Service_NVDRV, "Could not duplicate handle!");
     }

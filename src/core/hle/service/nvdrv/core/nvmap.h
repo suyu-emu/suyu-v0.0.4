@@ -165,7 +165,7 @@ public:
     /**
      * @brief Tries to duplicate a handle
      */
-    void DuplicateHandle(Handle::Id handle);
+    void DuplicateHandle(Handle::Id handle, bool internal_session = false);
 
     /**
      * @brief Tries to free a handle and remove a single dupe

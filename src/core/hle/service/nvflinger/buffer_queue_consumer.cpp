@@ -136,7 +136,7 @@ Status BufferQueueConsumer::ReleaseBuffer(s32 slot, u64 frame_number, const Fenc
 
         slots[slot].buffer_state = BufferState::Free;
 
-        nvmap.FreeHandle(slots[slot].graphic_buffer->BufferId(), false);
+        nvmap.FreeHandle(slots[slot].graphic_buffer->BufferId(), true);
 
         listener = core->connected_producer_listener;
 

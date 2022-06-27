@@ -532,7 +532,7 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
         item.is_droppable = core->dequeue_buffer_cannot_block || async;
         item.swap_interval = swap_interval;
 
-        nvmap.DuplicateHandle(item.graphic_buffer->BufferId());
+        nvmap.DuplicateHandle(item.graphic_buffer->BufferId(), true);
 
         sticky_transform = sticky_transform_;
 
