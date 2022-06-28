@@ -142,9 +142,9 @@ DrawParams MakeDrawParams(const Maxwell& regs, u32 num_instances, bool is_instan
 
 RasterizerVulkan::RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
                                    Tegra::MemoryManager& gpu_memory_,
-                                   Core::Memory::Memory& cpu_memory_, VKScreenInfo& screen_info_,
+                                   Core::Memory::Memory& cpu_memory_, ScreenInfo& screen_info_,
                                    const Device& device_, MemoryAllocator& memory_allocator_,
-                                   StateTracker& state_tracker_, VKScheduler& scheduler_)
+                                   StateTracker& state_tracker_, Scheduler& scheduler_)
     : RasterizerAccelerated{cpu_memory_}, gpu{gpu_},
       gpu_memory{gpu_memory_}, maxwell3d{gpu.Maxwell3D()}, kepler_compute{gpu.KeplerCompute()},
       screen_info{screen_info_}, device{device_}, memory_allocator{memory_allocator_},

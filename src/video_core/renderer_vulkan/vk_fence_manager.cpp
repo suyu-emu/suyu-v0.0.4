@@ -11,10 +11,10 @@
 
 namespace Vulkan {
 
-InnerFence::InnerFence(VKScheduler& scheduler_, u32 payload_, bool is_stubbed_)
+InnerFence::InnerFence(Scheduler& scheduler_, u32 payload_, bool is_stubbed_)
     : FenceBase{payload_, is_stubbed_}, scheduler{scheduler_} {}
 
-InnerFence::InnerFence(VKScheduler& scheduler_, GPUVAddr address_, u32 payload_, bool is_stubbed_)
+InnerFence::InnerFence(Scheduler& scheduler_, GPUVAddr address_, u32 payload_, bool is_stubbed_)
     : FenceBase{address_, payload_, is_stubbed_}, scheduler{scheduler_} {}
 
 InnerFence::~InnerFence() = default;
@@ -42,30 +42,29 @@ void InnerFence::Wait() {
     scheduler.Wait(wait_tick);
 }
 
-VKFenceManager::VKFenceManager(VideoCore::RasterizerInterface& rasterizer_, Tegra::GPU& gpu_,
-                               TextureCache& texture_cache_, BufferCache& buffer_cache_,
-                               VKQueryCache& query_cache_, const Device& device_,
-                               VKScheduler& scheduler_)
+FenceManager::FenceManager(VideoCore::RasterizerInterface& rasterizer_, Tegra::GPU& gpu_,
+                           TextureCache& texture_cache_, BufferCache& buffer_cache_,
+                           QueryCache& query_cache_, const Device& device_, Scheduler& scheduler_)
     : GenericFenceManager{rasterizer_, gpu_, texture_cache_, buffer_cache_, query_cache_},
       scheduler{scheduler_} {}
 
-Fence VKFenceManager::CreateFence(u32 value, bool is_stubbed) {
+Fence FenceManager::CreateFence(u32 value, bool is_stubbed) {
     return std::make_shared<InnerFence>(scheduler, value, is_stubbed);
 }
 
-Fence VKFenceManager::CreateFence(GPUVAddr addr, u32 value, bool is_stubbed) {
+Fence FenceManager::CreateFence(GPUVAddr addr, u32 value, bool is_stubbed) {
     return std::make_shared<InnerFence>(scheduler, addr, value, is_stubbed);
 }
 
-void VKFenceManager::QueueFence(Fence& fence) {
+void FenceManager::QueueFence(Fence& fence) {
     fence->Queue();
 }
 
-bool VKFenceManager::IsFenceSignaled(Fence& fence) const {
+bool FenceManager::IsFenceSignaled(Fence& fence) const {
     return fence->IsSignaled();
 }
 
-void VKFenceManager::WaitFence(Fence& fence) {
+void FenceManager::WaitFence(Fence& fence) {
     fence->Wait();
 }
 
