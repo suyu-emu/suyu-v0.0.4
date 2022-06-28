@@ -132,7 +132,7 @@ private:
     /// Clear all pending events. This should ONLY be done on exit.
     void ClearPendingEvents();
 
-    static void ThreadEntry(CoreTiming& instance);
+    static void ThreadEntry(CoreTiming& instance, size_t id);
     void ThreadLoop();
 
     std::unique_ptr<Common::WallClock> clock;
@@ -145,6 +145,7 @@ private:
     // accomodated by the standard adaptor class.
     std::vector<Event> event_queue;
     u64 event_fifo_id = 0;
+    std::atomic<size_t> pending_events{};
 
     std::shared_ptr<EventType> ev_lost;
     std::atomic<bool> has_started{};
@@ -156,6 +157,7 @@ private:
     std::condition_variable wait_pause_cv;
     std::condition_variable wait_signal_cv;
     mutable std::mutex event_mutex;
+    mutable std::mutex sequence_mutex;
 
     std::atomic<bool> paused_state{};
     bool is_paused{};
