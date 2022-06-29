@@ -830,6 +830,10 @@ void GRenderWindow::InitializeCamera() {
     camera->unload();
     camera->setCaptureMode(QCamera::CaptureViewfinder);
     camera->load();
+    camera->start();
+
+    pending_camera_snapshots = 0;
+    is_virtual_camera = false;
 
     camera_timer = std::make_unique<QTimer>();
     connect(camera_timer.get(), &QTimer::timeout, [this] { RequestCameraCapture(); });
@@ -851,11 +855,17 @@ void GRenderWindow::RequestCameraCapture() {
         return;
     }
 
-    // Idealy one should only call capture but Qt refuses to take a second capture without
-    // stopping the camera
-    camera->stop();
-    camera->start();
+    // If the camera doesn't capture, test for virtual cameras
+    if (pending_camera_snapshots > 5) {
+        is_virtual_camera = true;
+    }
+    // Virtual cameras like obs need to reset the camera every capture
+    if (is_virtual_camera) {
+        camera->stop();
+        camera->start();
+    }
 
+    pending_camera_snapshots++;
     camera_capture->capture();
 }
 
@@ -870,6 +880,7 @@ void GRenderWindow::OnCameraCapture(int requestId, const QImage& img) {
     camera_data.resize(camera_width * camera_height);
     std::memcpy(camera_data.data(), converted.bits(), camera_width * camera_height * sizeof(u32));
     input_subsystem->GetCamera()->SetCameraData(camera_width, camera_height, camera_data);
+    pending_camera_snapshots = 0;
 }
 
 bool GRenderWindow::event(QEvent* event) {

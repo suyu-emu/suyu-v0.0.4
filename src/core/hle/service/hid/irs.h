@@ -57,7 +57,7 @@ private:
     void StopImageProcessorAsync(Kernel::HLERequestContext& ctx);
     void ActivateIrsensorWithFunctionLevel(Kernel::HLERequestContext& ctx);
 
-    ResultCode IsIrCameraHandleValid(const Core::IrSensor::IrCameraHandle& camera_handle) const;
+    Result IsIrCameraHandleValid(const Core::IrSensor::IrCameraHandle& camera_handle) const;
     Core::IrSensor::DeviceFormat& GetIrCameraSharedMemoryDeviceEntry(
         const Core::IrSensor::IrCameraHandle& camera_handle);
 

@@ -240,6 +240,8 @@ private:
     bool first_frame = false;
     InputCommon::TasInput::TasState last_tas_state;
 
+    bool is_virtual_camera;
+    int pending_camera_snapshots;
     std::unique_ptr<QCamera> camera;
     std::unique_ptr<QCameraImageCapture> camera_capture;
     std::unique_ptr<QTimer> camera_timer;

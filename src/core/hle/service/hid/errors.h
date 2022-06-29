@@ -22,7 +22,7 @@ constexpr Result NpadNotConnected{ErrorModule::HID, 710};
 
 namespace Service::IRS {
 
-constexpr ResultCode InvalidProcessorState{ErrorModule::Irsensor, 78};
-constexpr ResultCode InvalidIrCameraHandle{ErrorModule::Irsensor, 204};
+constexpr Result InvalidProcessorState{ErrorModule::Irsensor, 78};
+constexpr Result InvalidIrCameraHandle{ErrorModule::Irsensor, 204};
 
 } // namespace Service::IRS

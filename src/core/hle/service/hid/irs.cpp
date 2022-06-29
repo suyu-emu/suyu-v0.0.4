@@ -529,7 +529,7 @@ void IRS::ActivateIrsensorWithFunctionLevel(Kernel::HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
-ResultCode IRS::IsIrCameraHandleValid(const Core::IrSensor::IrCameraHandle& camera_handle) const {
+Result IRS::IsIrCameraHandleValid(const Core::IrSensor::IrCameraHandle& camera_handle) const {
     if (camera_handle.npad_id >
         static_cast<u8>(NpadIdTypeToIndex(Core::HID::NpadIdType::Handheld))) {
         return InvalidIrCameraHandle;

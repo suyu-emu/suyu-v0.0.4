@@ -39,8 +39,8 @@ void ConfigureCamera::PreviewCamera() {
     for (const QCameraInfo& cameraInfo : cameras) {
         if (input_devices[index] == cameraInfo.deviceName().toStdString() ||
             input_devices[index] == "Auto") {
-            LOG_ERROR(Frontend, "Selected Camera {} {}", cameraInfo.description().toStdString(),
-                      cameraInfo.deviceName().toStdString());
+            LOG_INFO(Frontend, "Selected Camera {} {}", cameraInfo.description().toStdString(),
+                     cameraInfo.deviceName().toStdString());
             camera = std::make_unique<QCamera>(cameraInfo);
             camera_found = true;
             break;
@@ -62,12 +62,23 @@ void ConfigureCamera::PreviewCamera() {
     camera->unload();
     camera->setCaptureMode(QCamera::CaptureViewfinder);
     camera->load();
+    camera->start();
+
+    pending_snapshots = 0;
+    is_virtual_camera = false;
 
     camera_timer = std::make_unique<QTimer>();
     connect(camera_timer.get(), &QTimer::timeout, [this] {
-        camera->stop();
-        camera->start();
-
+        // If the camera doesn't capture, test for virtual cameras
+        if (pending_snapshots > 5) {
+            is_virtual_camera = true;
+        }
+        // Virtual cameras like obs need to reset the camera every capture
+        if (is_virtual_camera) {
+            camera->stop();
+            camera->start();
+        }
+        pending_snapshots++;
         camera_capture->capture();
     });
 
@@ -75,10 +86,11 @@ void ConfigureCamera::PreviewCamera() {
 }
 
 void ConfigureCamera::DisplayCapturedFrame(int requestId, const QImage& img) {
-    LOG_ERROR(Frontend, "ImageCaptured {} {}", img.width(), img.height());
+    LOG_INFO(Frontend, "ImageCaptured {} {}", img.width(), img.height());
     const auto converted = img.scaled(320, 240, Qt::AspectRatioMode::IgnoreAspectRatio,
                                       Qt::TransformationMode::SmoothTransformation);
     ui->preview_box->setPixmap(QPixmap::fromImage(converted));
+    pending_snapshots = 0;
 }
 
 void ConfigureCamera::changeEvent(QEvent* event) {
