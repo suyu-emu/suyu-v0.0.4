@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: GPLv3 or later
-// Copyright © 2021 Skyline Team and Contributors (https://github.com/skyline-emu/)
+// SPDX-FileCopyrightText: 2021 Skyline Team and Contributors
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "common/address_space.h"
 #include "common/assert.h"
