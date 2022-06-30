@@ -284,8 +284,8 @@ MAP_MEMBER(void)::UnmapLocked(VaType virt, VaType size) {
         unmap_callback(virt, size);
 }
 
-ALLOC_MEMBER_CONST()::FlatAllocator(VaType va_start_, VaType va_limit_)
-    : Base{va_limit_}, va_start{va_start_}, current_linear_alloc_end{va_start_} {}
+ALLOC_MEMBER_CONST()::FlatAllocator(VaType virt_start_, VaType va_limit_)
+    : Base{va_limit_}, virt_start{virt_start_}, current_linear_alloc_end{virt_start_} {}
 
 ALLOC_MEMBER(VaType)::Allocate(VaType size) {
     std::scoped_lock lock(this->block_mutex);

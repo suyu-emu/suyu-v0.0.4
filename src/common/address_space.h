@@ -116,7 +116,7 @@ private:
     using Base = FlatAddressSpaceMap<VaType, UnmappedVa, bool, false, false, AddressSpaceBits>;
 
 public:
-    explicit FlatAllocator(VaType va_start, VaType va_limit = Base::VaMaximum);
+    explicit FlatAllocator(VaType virt_start, VaType va_limit = Base::VaMaximum);
 
     /**
      * @brief Allocates a region in the AS of the given size and returns its address
@@ -134,12 +134,12 @@ public:
     void Free(VaType virt, VaType size);
 
     VaType GetVAStart() const {
-        return va_start;
+        return virt_start;
     }
 
 private:
     /// The base VA of the allocator, no allocations will be below this
-    VaType va_start;
+    VaType virt_start;
 
     /**
      * The end address for the initial linear allocation pass
