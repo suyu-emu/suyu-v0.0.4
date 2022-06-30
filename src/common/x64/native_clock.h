@@ -37,12 +37,8 @@ private:
         } inner;
     };
 
-    /// value used to reduce the native clocks accuracy as some apss rely on
-    /// undefined behavior where the level of accuracy in the clock shouldn't
-    /// be higher.
-    static constexpr u64 inaccuracy_mask = ~(UINT64_C(0x400) - 1);
-
     TimePoint time_point;
+
     // factors
     u64 clock_rtsc_factor{};
     u64 cpu_rtsc_factor{};
