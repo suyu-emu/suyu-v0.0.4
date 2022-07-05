@@ -4,7 +4,7 @@
 cp license.txt "$DIR_NAME"
 cp README.md "$DIR_NAME"
 
-if [[ "x${NO_SOURCE_PACK}" == "x" ]]; then
+if [[ -z "${NO_SOURCE_PACK}" ]]; then
   tar -cJvf "${REV_NAME}-source.tar.xz" src externals CMakeLists.txt README.md license.txt
   cp -v "${REV_NAME}-source.tar.xz" "$DIR_NAME"
 fi

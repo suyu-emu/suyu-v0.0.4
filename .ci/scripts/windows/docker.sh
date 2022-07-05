@@ -14,8 +14,7 @@ mkdir -p build && cd build
 export LDFLAGS="-fuse-ld=lld"
 # -femulated-tls required due to an incompatibility between GCC and Clang
 # TODO(lat9nq): If this is widespread, we probably need to add this to CMakeLists where appropriate
-export CFLAGS="-femulated-tls"
-export CXXFLAGS="${CFLAGS}"
+export CXXFLAGS="-femulated-tls"
 cmake .. \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_TOOLCHAIN_FILE="${PWD}/../CMakeModules/MinGWClangCross.cmake" \
