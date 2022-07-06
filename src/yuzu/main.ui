@@ -120,20 +120,6 @@
     <addaction name="menu_Reset_Window_Size"/>
     <addaction name="menu_View_Debugging"/>
    </widget>
-   <widget class="QMenu" name="menu_Multiplayer">
-    <property name="enabled">
-     <bool>true</bool>
-    </property>
-    <property name="title">
-     <string>Multiplayer</string>
-    </property>
-    <addaction name="action_View_Lobby"/>
-    <addaction name="action_Start_Room"/>
-    <addaction name="action_Connect_To_Room"/>
-    <addaction name="separator"/>
-    <addaction name="action_Show_Room"/>
-    <addaction name="action_Leave_Room"/>
-   </widget>
    <widget class="QMenu" name="menu_Tools">
     <property name="title">
      <string>&amp;Tools</string>
