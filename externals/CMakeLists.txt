@@ -73,6 +73,10 @@ if (YUZU_USE_EXTERNAL_SDL2)
     add_library(SDL2 ALIAS SDL2-static)
 endif()
 
+# ENet
+add_subdirectory(enet)
+target_include_directories(enet INTERFACE ./enet/include)
+
 # Cubeb
 if(ENABLE_CUBEB)
     set(BUILD_TESTS OFF CACHE BOOL "")

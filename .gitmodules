@@ -1,3 +1,6 @@
+[submodule "enet"]
+    path = externals/enet
+    url = https://github.com/lsalzman/enet.git
 [submodule "inih"]
     path = externals/inih/inih
     url = https://github.com/benhoyt/inih.git
