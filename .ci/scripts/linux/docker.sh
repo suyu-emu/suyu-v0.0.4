@@ -3,8 +3,6 @@
 # Exit on error, rather than continuing with the rest of the script.
 set -e
 
-cd /yuzu
-
 ccache -s
 
 mkdir build || true && cd build
@@ -19,15 +17,16 @@ cmake .. \
       -DENABLE_QT_TRANSLATION=ON \
       -DUSE_DISCORD_PRESENCE=ON \
       -DYUZU_ENABLE_COMPATIBILITY_REPORTING=${ENABLE_COMPATIBILITY_REPORTING:-"OFF"} \
-      -DYUZU_USE_BUNDLED_FFMPEG=ON
+      -DYUZU_USE_BUNDLED_FFMPEG=ON \
+      -GNinja
 
-make -j$(nproc)
+ninja
 
 ccache -s
 
 ctest -VV -C Release
 
-make install DESTDIR=AppDir
+DESTDIR="$PWD/AppDir" ninja install
 rm -vf AppDir/usr/bin/yuzu-cmd AppDir/usr/bin/yuzu-tester
 
 # Download tools needed to build an AppImage

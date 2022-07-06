@@ -2,19 +2,23 @@
 
 set -e
 
-cd /yuzu
+#cd /yuzu
 
-ccache -s
+ccache -sv
 
-mkdir build || true && cd build
-LDFLAGS="-fuse-ld=lld"
+mkdir -p "$HOME/.conan/profiles"
+wget -c "https://github.com/yuzu-emu/build-environments/raw/master/linux-mingw/default" -O "$HOME/.conan/profiles/default"
+wget -c "https://github.com/yuzu-emu/build-environments/raw/master/linux-mingw/settings.yml" -O "$HOME/.conan/settings.yml"
+
+mkdir -p build && cd build
+export LDFLAGS="-fuse-ld=lld"
 # -femulated-tls required due to an incompatibility between GCC and Clang
 # TODO(lat9nq): If this is widespread, we probably need to add this to CMakeLists where appropriate
+export CXXFLAGS="-femulated-tls"
 cmake .. \
     -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_CXX_FLAGS="-femulated-tls" \
-    -DCMAKE_TOOLCHAIN_FILE="$(pwd)/../CMakeModules/MinGWClangCross.cmake" \
-    -DDISPLAY_VERSION=$1 \
+    -DCMAKE_TOOLCHAIN_FILE="${PWD}/../CMakeModules/MinGWClangCross.cmake" \
+    -DDISPLAY_VERSION="$1" \
     -DENABLE_COMPATIBILITY_LIST_DOWNLOAD=ON \
     -DENABLE_QT_TRANSLATION=ON \
     -DUSE_CCACHE=ON \
@@ -23,7 +27,7 @@ cmake .. \
     -GNinja
 ninja yuzu yuzu-cmd
 
-ccache -s
+ccache -sv
 
 echo "Tests skipped"
 #ctest -VV -C Release
