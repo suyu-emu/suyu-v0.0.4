@@ -42,14 +42,6 @@ void CpuManager::Shutdown() {
     }
 }
 
-void CpuManager::GuestActivateFunction() {
-    if (is_multicore) {
-        MultiCoreGuestActivate();
-    } else {
-        SingleCoreGuestActivate();
-    }
-}
-
 void CpuManager::GuestThreadFunction() {
     if (is_multicore) {
         MultiCoreRunGuestThread();
@@ -58,21 +50,16 @@ void CpuManager::GuestThreadFunction() {
     }
 }
 
-void CpuManager::ShutdownThreadFunction() {
-    ShutdownThread();
+void CpuManager::IdleThreadFunction() {
+    if (is_multicore) {
+        MultiCoreRunIdleThread();
+    } else {
+        SingleCoreRunIdleThread();
+    }
 }
 
-void CpuManager::WaitForAndHandleInterrupt() {
-    auto& kernel = system.Kernel();
-    auto& physical_core = kernel.CurrentPhysicalCore();
-
-    ASSERT(Kernel::GetCurrentThread(kernel).GetDisableDispatchCount() == 1);
-
-    if (!physical_core.IsInterrupted()) {
-        physical_core.Idle();
-    }
-
-    HandleInterrupt();
+void CpuManager::ShutdownThreadFunction() {
+    ShutdownThread();
 }
 
 void CpuManager::HandleInterrupt() {
@@ -86,26 +73,10 @@ void CpuManager::HandleInterrupt() {
 ///                             MultiCore                                   ///
 ///////////////////////////////////////////////////////////////////////////////
 
-void CpuManager::MultiCoreGuestActivate() {
-    // Similar to the HorizonKernelMain callback in HOS
-    auto& kernel = system.Kernel();
-    auto* scheduler = kernel.CurrentScheduler();
-
-    scheduler->Activate();
-    UNREACHABLE();
-}
-
 void CpuManager::MultiCoreRunGuestThread() {
     // Similar to UserModeThreadStarter in HOS
     auto& kernel = system.Kernel();
-    auto* thread = kernel.GetCurrentEmuThread();
-    thread->EnableDispatch();
-
-    MultiCoreRunGuestLoop();
-}
-
-void CpuManager::MultiCoreRunGuestLoop() {
-    auto& kernel = system.Kernel();
+    kernel.CurrentScheduler()->OnThreadStart();
 
     while (true) {
         auto* physical_core = &kernel.CurrentPhysicalCore();
@@ -118,17 +89,105 @@ void CpuManager::MultiCoreRunGuestLoop() {
     }
 }
 
+void CpuManager::MultiCoreRunIdleThread() {
+    // Not accurate to HOS. Remove this entire method when singlecore is removed.
+    // See notes in KScheduler::ScheduleImpl for more information about why this
+    // is inaccurate.
+
+    auto& kernel = system.Kernel();
+    kernel.CurrentScheduler()->OnThreadStart();
+
+    while (true) {
+        auto& physical_core = kernel.CurrentPhysicalCore();
+        if (!physical_core.IsInterrupted()) {
+            physical_core.Idle();
+        }
+
+        HandleInterrupt();
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 ///                             SingleCore                                   ///
 ///////////////////////////////////////////////////////////////////////////////
 
-void CpuManager::SingleCoreGuestActivate() {}
+void CpuManager::SingleCoreRunGuestThread() {
+    auto& kernel = system.Kernel();
+    kernel.CurrentScheduler()->OnThreadStart();
 
-void CpuManager::SingleCoreRunGuestThread() {}
+    while (true) {
+        auto* physical_core = &kernel.CurrentPhysicalCore();
+        if (!physical_core->IsInterrupted()) {
+            physical_core->Run();
+            physical_core = &kernel.CurrentPhysicalCore();
+        }
 
-void CpuManager::SingleCoreRunGuestLoop() {}
+        kernel.SetIsPhantomModeForSingleCore(true);
+        system.CoreTiming().Advance();
+        kernel.SetIsPhantomModeForSingleCore(false);
 
-void CpuManager::PreemptSingleCore(bool from_running_enviroment) {}
+        PreemptSingleCore();
+        HandleInterrupt();
+    }
+}
+
+void CpuManager::SingleCoreRunIdleThread() {
+    auto& kernel = system.Kernel();
+    kernel.CurrentScheduler()->OnThreadStart();
+
+    while (true) {
+        PreemptSingleCore(false);
+        system.CoreTiming().AddTicks(1000U);
+        idle_count++;
+        HandleInterrupt();
+    }
+}
+
+void CpuManager::PreemptSingleCore(bool from_running_environment) {
+    {
+        auto& kernel = system.Kernel();
+        auto& scheduler = kernel.Scheduler(current_core);
+
+        Kernel::KThread* current_thread = scheduler.GetSchedulerCurrentThread();
+        if (idle_count >= 4 || from_running_environment) {
+            if (!from_running_environment) {
+                system.CoreTiming().Idle();
+                idle_count = 0;
+            }
+            kernel.SetIsPhantomModeForSingleCore(true);
+            system.CoreTiming().Advance();
+            kernel.SetIsPhantomModeForSingleCore(false);
+        }
+        current_core.store((current_core + 1) % Core::Hardware::NUM_CPU_CORES);
+        system.CoreTiming().ResetTicks();
+        scheduler.Unload(scheduler.GetSchedulerCurrentThread());
+
+        auto& next_scheduler = kernel.Scheduler(current_core);
+
+        // Disable dispatch. We're about to preempt this thread.
+        Kernel::KScopedDisableDispatch dd{kernel};
+        Common::Fiber::YieldTo(current_thread->GetHostContext(), *next_scheduler.GetSwitchFiber());
+    }
+
+    // We've now been scheduled again, and we may have exchanged schedulers.
+    // Reload the scheduler in case it's different.
+    {
+        auto& scheduler = system.Kernel().Scheduler(current_core);
+        scheduler.Reload(scheduler.GetSchedulerCurrentThread());
+        if (!scheduler.IsIdle()) {
+            idle_count = 0;
+        }
+    }
+}
+
+void CpuManager::GuestActivate() {
+    // Similar to the HorizonKernelMain callback in HOS
+    auto& kernel = system.Kernel();
+    auto* scheduler = kernel.CurrentScheduler();
+
+    scheduler->Activate();
+    UNREACHABLE();
+}
 
 void CpuManager::ShutdownThread() {
     auto& kernel = system.Kernel();
@@ -168,20 +227,11 @@ void CpuManager::RunThread(std::size_t core) {
     }
 
     auto& kernel = system.Kernel();
+    auto& scheduler = *kernel.CurrentScheduler();
+    auto* thread = scheduler.GetSchedulerCurrentThread();
+    Kernel::SetCurrentThread(kernel, thread);
 
-    auto* main_thread = Kernel::KThread::Create(kernel);
-    main_thread->SetName(fmt::format("MainThread:{}", core));
-    ASSERT(Kernel::KThread::InitializeMainThread(system, main_thread, static_cast<s32>(core))
-               .IsSuccess());
-
-    auto* idle_thread = Kernel::KThread::Create(kernel);
-    ASSERT(Kernel::KThread::InitializeIdleThread(system, idle_thread, static_cast<s32>(core))
-               .IsSuccess());
-
-    kernel.SetCurrentEmuThread(main_thread);
-    kernel.CurrentScheduler()->Initialize(idle_thread);
-
-    Common::Fiber::YieldTo(data.host_context, *main_thread->GetHostContext());
+    Common::Fiber::YieldTo(data.host_context, *thread->GetHostContext());
 }
 
 } // namespace Core

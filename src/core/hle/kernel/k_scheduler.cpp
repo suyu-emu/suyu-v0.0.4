@@ -28,9 +28,9 @@ static void IncrementScheduledCount(Kernel::KThread* thread) {
 }
 
 KScheduler::KScheduler(KernelCore& kernel_) : kernel{kernel_} {
-    m_idle_stack = std::make_shared<Common::Fiber>([this] {
+    m_switch_fiber = std::make_shared<Common::Fiber>([this] {
         while (true) {
-            ScheduleImplOffStack();
+            ScheduleImplFiber();
         }
     });
 
@@ -60,9 +60,9 @@ void KScheduler::DisableScheduling(KernelCore& kernel) {
 void KScheduler::EnableScheduling(KernelCore& kernel, u64 cores_needing_scheduling) {
     ASSERT(GetCurrentThread(kernel).GetDisableDispatchCount() >= 1);
 
-    auto* scheduler = kernel.CurrentScheduler();
+    auto* scheduler{kernel.CurrentScheduler()};
 
-    if (!scheduler) {
+    if (!scheduler || kernel.IsPhantomModeForSingleCore()) {
         // HACK: we cannot schedule from this thread, it is not a core thread
         RescheduleCores(kernel, cores_needing_scheduling);
         if (GetCurrentThread(kernel).GetDisableDispatchCount() == 1) {
@@ -125,9 +125,9 @@ void KScheduler::RescheduleCurrentCoreImpl() {
     }
 }
 
-void KScheduler::Initialize(KThread* idle_thread) {
+void KScheduler::Initialize(KThread* main_thread, KThread* idle_thread, s32 core_id) {
     // Set core ID/idle thread/interrupt task manager.
-    m_core_id = GetCurrentCoreId(kernel);
+    m_core_id = core_id;
     m_idle_thread = idle_thread;
     // m_state.idle_thread_stack = m_idle_thread->GetStackTop();
     // m_state.interrupt_task_manager = &kernel.GetInterruptTaskManager();
@@ -142,10 +142,10 @@ void KScheduler::Initialize(KThread* idle_thread) {
     // Bind interrupt handler.
     // kernel.GetInterruptManager().BindHandler(
     //     GetSchedulerInterruptHandler(kernel), KInterruptName::Scheduler, m_core_id,
-    //     KInterruptController::PriorityLevel_Scheduler, false, false);
+    //     KInterruptController::PriorityLevel::Scheduler, false, false);
 
     // Set the current thread.
-    m_current_thread = GetCurrentThreadPointer(kernel);
+    m_current_thread = main_thread;
 }
 
 void KScheduler::Activate() {
@@ -154,6 +154,10 @@ void KScheduler::Activate() {
     // m_state.should_count_idle = KTargetSystem::IsDebugMode();
     m_is_active = true;
     RescheduleCurrentCore();
+}
+
+void KScheduler::OnThreadStart() {
+    GetCurrentThread(kernel).EnableDispatch();
 }
 
 u64 KScheduler::UpdateHighestPriorityThread(KThread* highest_thread) {
@@ -372,37 +376,30 @@ void KScheduler::ScheduleImpl() {
     }
 
     // The highest priority thread is not the same as the current thread.
-    // Switch to the idle thread stack and continue executing from there.
-    m_idle_cur_thread = cur_thread;
-    m_idle_highest_priority_thread = highest_priority_thread;
-    Common::Fiber::YieldTo(cur_thread->host_context, *m_idle_stack);
+    // Jump to the switcher and continue executing from there.
+    m_switch_cur_thread = cur_thread;
+    m_switch_highest_priority_thread = highest_priority_thread;
+    m_switch_from_schedule = true;
+    Common::Fiber::YieldTo(cur_thread->host_context, *m_switch_fiber);
 
     // Returning from ScheduleImpl occurs after this thread has been scheduled again.
 }
 
-void KScheduler::ScheduleImplOffStack() {
-    KThread* const cur_thread{m_idle_cur_thread};
-    KThread* highest_priority_thread{m_idle_highest_priority_thread};
+void KScheduler::ScheduleImplFiber() {
+    KThread* const cur_thread{m_switch_cur_thread};
+    KThread* highest_priority_thread{m_switch_highest_priority_thread};
 
-    // Get a reference to the current thread's stack parameters.
-    auto& sp{cur_thread->GetStackParameters()};
+    // If we're not coming from scheduling (i.e., we came from SC preemption),
+    // we should restart the scheduling loop directly. Not accurate to HOS.
+    if (!m_switch_from_schedule) {
+        goto retry;
+    }
+
+    // Mark that we are not coming from scheduling anymore.
+    m_switch_from_schedule = false;
 
     // Save the original thread context.
-    {
-        auto& physical_core = kernel.System().CurrentPhysicalCore();
-        auto& cpu_core = physical_core.ArmInterface();
-        cpu_core.SaveContext(cur_thread->GetContext32());
-        cpu_core.SaveContext(cur_thread->GetContext64());
-        // Save the TPIDR_EL0 system register in case it was modified.
-        cur_thread->SetTPIDR_EL0(cpu_core.GetTPIDR_EL0());
-        cpu_core.ClearExclusiveState();
-    }
-
-    // Check if the thread is terminated by checking the DPC flags.
-    if ((sp.dpc_flags & static_cast<u32>(DpcFlag::Terminated)) == 0) {
-        // The thread isn't terminated, so we want to unlock it.
-        sp.m_lock.store(false, std::memory_order_seq_cst);
-    }
+    Unload(cur_thread);
 
     // The current thread's context has been entirely taken care of.
     // Now we want to loop until we successfully switch the thread context.
@@ -411,62 +408,39 @@ void KScheduler::ScheduleImplOffStack() {
         // Check if the highest priority thread is null.
         if (!highest_priority_thread) {
             // The next thread is nullptr!
-            // Switch to nullptr. This will actually switch to the idle thread.
-            SwitchThread(nullptr);
 
-            // We've switched to the idle thread, so we want to process interrupt tasks until we
-            // schedule a non-idle thread.
-            while (!m_state.interrupt_task_runnable) {
-                // Check if we need scheduling.
-                if (m_state.needs_scheduling.load(std::memory_order_seq_cst)) {
-                    goto retry;
-                }
+            // Switch to the idle thread. Note: HOS treats idling as a special case for
+            // performance. This is not *required* for yuzu's purposes, and for singlecore
+            // compatibility, we can just move the logic that would go here into the execution
+            // of the idle thread. If we ever remove singlecore, we should implement this
+            // accurately to HOS.
+            highest_priority_thread = m_idle_thread;
+        }
 
-                // Clear the previous thread.
-                m_state.prev_thread = nullptr;
-
-                // Wait for an interrupt before checking again.
-                kernel.System().GetCpuManager().WaitForAndHandleInterrupt();
+        // We want to try to lock the highest priority thread's context.
+        // Try to take it.
+        while (!highest_priority_thread->context_guard.try_lock()) {
+            // The highest priority thread's context is already locked.
+            // Check if we need scheduling. If we don't, we can retry directly.
+            if (m_state.needs_scheduling.load(std::memory_order_seq_cst)) {
+                // If we do, another core is interfering, and we must start again.
+                goto retry;
             }
+        }
 
-            // Execute any pending interrupt tasks.
-            // m_state.interrupt_task_manager->DoTasks();
+        // It's time to switch the thread.
+        // Switch to the highest priority thread.
+        SwitchThread(highest_priority_thread);
 
-            // Clear the interrupt task thread as runnable.
-            m_state.interrupt_task_runnable = false;
-
-            // Retry the scheduling loop.
+        // Check if we need scheduling. If we do, then we can't complete the switch and should
+        // retry.
+        if (m_state.needs_scheduling.load(std::memory_order_seq_cst)) {
+            // Our switch failed.
+            // We should unlock the thread context, and then retry.
+            highest_priority_thread->context_guard.unlock();
             goto retry;
         } else {
-            // We want to try to lock the highest priority thread's context.
-            // Try to take it.
-            bool expected{false};
-            while (!highest_priority_thread->stack_parameters.m_lock.compare_exchange_strong(
-                expected, true, std::memory_order_seq_cst)) {
-                // The highest priority thread's context is already locked.
-                // Check if we need scheduling. If we don't, we can retry directly.
-                if (m_state.needs_scheduling.load(std::memory_order_seq_cst)) {
-                    // If we do, another core is interfering, and we must start again.
-                    goto retry;
-                }
-                expected = false;
-            }
-
-            // It's time to switch the thread.
-            // Switch to the highest priority thread.
-            SwitchThread(highest_priority_thread);
-
-            // Check if we need scheduling. If we do, then we can't complete the switch and should
-            // retry.
-            if (m_state.needs_scheduling.load(std::memory_order_seq_cst)) {
-                // Our switch failed.
-                // We should unlock the thread context, and then retry.
-                highest_priority_thread->stack_parameters.m_lock.store(false,
-                                                                       std::memory_order_seq_cst);
-                goto retry;
-            } else {
-                break;
-            }
+            break;
         }
 
     retry:
@@ -480,18 +454,35 @@ void KScheduler::ScheduleImplOffStack() {
     }
 
     // Reload the guest thread context.
-    {
-        auto& cpu_core = kernel.System().CurrentArmInterface();
-        cpu_core.LoadContext(highest_priority_thread->GetContext32());
-        cpu_core.LoadContext(highest_priority_thread->GetContext64());
-        cpu_core.SetTlsAddress(highest_priority_thread->GetTLSAddress());
-        cpu_core.SetTPIDR_EL0(highest_priority_thread->GetTPIDR_EL0());
-        cpu_core.LoadWatchpointArray(highest_priority_thread->GetOwnerProcess()->GetWatchpoints());
-        cpu_core.ClearExclusiveState();
-    }
+    Reload(highest_priority_thread);
 
     // Reload the host thread.
-    Common::Fiber::YieldTo(m_idle_stack, *highest_priority_thread->host_context);
+    Common::Fiber::YieldTo(m_switch_fiber, *highest_priority_thread->host_context);
+}
+
+void KScheduler::Unload(KThread* thread) {
+    auto& cpu_core = kernel.System().ArmInterface(m_core_id);
+    cpu_core.SaveContext(thread->GetContext32());
+    cpu_core.SaveContext(thread->GetContext64());
+    // Save the TPIDR_EL0 system register in case it was modified.
+    thread->SetTPIDR_EL0(cpu_core.GetTPIDR_EL0());
+    cpu_core.ClearExclusiveState();
+
+    // Check if the thread is terminated by checking the DPC flags.
+    if ((thread->GetStackParameters().dpc_flags & static_cast<u32>(DpcFlag::Terminated)) == 0) {
+        // The thread isn't terminated, so we want to unlock it.
+        thread->context_guard.unlock();
+    }
+}
+
+void KScheduler::Reload(KThread* thread) {
+    auto& cpu_core = kernel.System().ArmInterface(m_core_id);
+    cpu_core.LoadContext(thread->GetContext32());
+    cpu_core.LoadContext(thread->GetContext64());
+    cpu_core.SetTlsAddress(thread->GetTLSAddress());
+    cpu_core.SetTPIDR_EL0(thread->GetTPIDR_EL0());
+    cpu_core.LoadWatchpointArray(thread->GetOwnerProcess()->GetWatchpoints());
+    cpu_core.ClearExclusiveState();
 }
 
 void KScheduler::ClearPreviousThread(KernelCore& kernel, KThread* thread) {

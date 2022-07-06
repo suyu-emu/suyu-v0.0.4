@@ -41,8 +41,11 @@ public:
     explicit KScheduler(KernelCore& kernel);
     ~KScheduler();
 
-    void Initialize(KThread* idle_thread);
+    void Initialize(KThread* main_thread, KThread* idle_thread, s32 core_id);
     void Activate();
+    void OnThreadStart();
+    void Unload(KThread* thread);
+    void Reload(KThread* thread);
 
     void SetInterruptTaskRunnable();
     void RequestScheduleOnInterrupt();
@@ -53,6 +56,14 @@ public:
 
     KThread* GetIdleThread() const {
         return m_idle_thread;
+    }
+
+    bool IsIdle() const {
+        return m_current_thread.load() == m_idle_thread;
+    }
+
+    std::shared_ptr<Common::Fiber> GetSwitchFiber() {
+        return m_switch_fiber;
     }
 
     KThread* GetPreviousThread() const {
@@ -69,7 +80,7 @@ public:
 
     // Static public API.
     static bool CanSchedule(KernelCore& kernel) {
-        return kernel.GetCurrentEmuThread()->GetDisableDispatchCount() == 0;
+        return GetCurrentThread(kernel).GetDisableDispatchCount() == 0;
     }
     static bool IsSchedulerLockedByCurrentThread(KernelCore& kernel) {
         return kernel.GlobalSchedulerContext().scheduler_lock.IsLockedByCurrentThread();
@@ -113,7 +124,7 @@ private:
 
     // Instanced private API.
     void ScheduleImpl();
-    void ScheduleImplOffStack();
+    void ScheduleImplFiber();
     void SwitchThread(KThread* next_thread);
 
     void Schedule();
@@ -147,9 +158,10 @@ private:
     KThread* m_idle_thread{nullptr};
     std::atomic<KThread*> m_current_thread{nullptr};
 
-    std::shared_ptr<Common::Fiber> m_idle_stack{};
-    KThread* m_idle_cur_thread{};
-    KThread* m_idle_highest_priority_thread{};
+    std::shared_ptr<Common::Fiber> m_switch_fiber{};
+    KThread* m_switch_cur_thread{};
+    KThread* m_switch_highest_priority_thread{};
+    bool m_switch_from_schedule{};
 };
 
 class KScopedSchedulerLock : public KScopedLock<KScheduler::LockType> {

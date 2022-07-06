@@ -268,7 +268,7 @@ Result KThread::InitializeMainThread(Core::System& system, KThread* thread, s32 
 
 Result KThread::InitializeIdleThread(Core::System& system, KThread* thread, s32 virt_core) {
     return InitializeThread(thread, {}, {}, {}, IdleThreadPriority, virt_core, {}, ThreadType::Main,
-                            abort);
+                            system.GetCpuManager().GetIdleThreadStartFunc());
 }
 
 Result KThread::InitializeHighPriorityThread(Core::System& system, KThread* thread,
@@ -1204,8 +1204,9 @@ KScopedDisableDispatch::~KScopedDisableDispatch() {
         return;
     }
 
-    // Skip the reschedule if single-core, as dispatch tracking is disabled here.
+    // Skip the reschedule if single-core.
     if (!Settings::values.use_multi_core.GetValue()) {
+        GetCurrentThread(kernel).EnableDispatch();
         return;
     }
 

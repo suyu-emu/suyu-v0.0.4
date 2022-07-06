@@ -64,8 +64,6 @@ struct KernelCore::Impl {
 
         is_phantom_mode_for_singlecore = false;
 
-        InitializePhysicalCores();
-
         // Derive the initial memory layout from the emulated board
         Init::InitializeSlabResourceCounts(kernel);
         DeriveInitialMemoryLayout();
@@ -77,6 +75,7 @@ struct KernelCore::Impl {
         Init::InitializeKPageBufferSlabHeap(system);
         InitializeShutdownThreads();
         InitializePreemption(kernel);
+        InitializePhysicalCores();
 
         RegisterHostThread();
     }
@@ -193,8 +192,21 @@ struct KernelCore::Impl {
         exclusive_monitor =
             Core::MakeExclusiveMonitor(system.Memory(), Core::Hardware::NUM_CPU_CORES);
         for (u32 i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
+            const s32 core{static_cast<s32>(i)};
+
             schedulers[i] = std::make_unique<Kernel::KScheduler>(system.Kernel());
             cores.emplace_back(i, system, *schedulers[i], interrupts);
+
+            auto* main_thread{Kernel::KThread::Create(system.Kernel())};
+            main_thread->SetName(fmt::format("MainThread:{}", core));
+            main_thread->SetCurrentCore(core);
+            ASSERT(Kernel::KThread::InitializeMainThread(system, main_thread, core).IsSuccess());
+
+            auto* idle_thread{Kernel::KThread::Create(system.Kernel())};
+            idle_thread->SetCurrentCore(core);
+            ASSERT(Kernel::KThread::InitializeIdleThread(system, idle_thread, core).IsSuccess());
+
+            schedulers[i]->Initialize(main_thread, idle_thread, core);
         }
     }
 
@@ -1093,10 +1105,11 @@ void KernelCore::Suspend(bool suspended) {
 }
 
 void KernelCore::ShutdownCores() {
+    KScopedSchedulerLock lk{*this};
+
     for (auto* thread : impl->shutdown_threads) {
         void(thread->Run());
     }
-    InterruptAllPhysicalCores();
 }
 
 bool KernelCore::IsMulticore() const {
