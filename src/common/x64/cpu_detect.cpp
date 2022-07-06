@@ -170,8 +170,11 @@ static CPUCaps Detect() {
         // The CPU model can be detected to use the values from turbostat
         // https://github.com/torvalds/linux/blob/master/tools/power/x86/turbostat/turbostat.c#L5569
         // but it's easier to just estimate the TSC tick rate for these cases.
-        caps.tsc_frequency = static_cast<u64>(caps.crystal_frequency) *
-                             caps.tsc_crystal_ratio_numerator / caps.tsc_crystal_ratio_denominator;
+        if (caps.tsc_crystal_ratio_denominator) {
+            caps.tsc_frequency = static_cast<u64>(caps.crystal_frequency) *
+                                 caps.tsc_crystal_ratio_numerator /
+                                 caps.tsc_crystal_ratio_denominator;
+        }
     }
 
     if (max_std_fn >= 0x16) {
