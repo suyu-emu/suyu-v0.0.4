@@ -49,6 +49,7 @@ public:
 
     void SetInterruptTaskRunnable();
     void RequestScheduleOnInterrupt();
+    void PreemptSingleCore();
 
     u64 GetIdleCount() {
         return m_state.idle_count;
@@ -60,10 +61,6 @@ public:
 
     bool IsIdle() const {
         return m_current_thread.load() == m_idle_thread;
-    }
-
-    std::shared_ptr<Common::Fiber> GetSwitchFiber() {
-        return m_switch_fiber;
     }
 
     KThread* GetPreviousThread() const {

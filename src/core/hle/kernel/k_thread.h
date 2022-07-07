@@ -110,7 +110,6 @@ void SetCurrentThread(KernelCore& kernel, KThread* thread);
 [[nodiscard]] KThread* GetCurrentThreadPointer(KernelCore& kernel);
 [[nodiscard]] KThread& GetCurrentThread(KernelCore& kernel);
 [[nodiscard]] s32 GetCurrentCoreId(KernelCore& kernel);
-size_t CaptureBacktrace(void** buffer, size_t max);
 
 class KThread final : public KAutoObjectWithSlabHeapAndContainer<KThread, KWorkerTask>,
                       public boost::intrusive::list_base_hook<> {

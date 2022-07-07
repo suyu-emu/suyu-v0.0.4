@@ -144,39 +144,25 @@ void CpuManager::SingleCoreRunIdleThread() {
 }
 
 void CpuManager::PreemptSingleCore(bool from_running_environment) {
-    {
-        auto& kernel = system.Kernel();
-        auto& scheduler = kernel.Scheduler(current_core);
+    auto& kernel = system.Kernel();
 
-        Kernel::KThread* current_thread = scheduler.GetSchedulerCurrentThread();
-        if (idle_count >= 4 || from_running_environment) {
-            if (!from_running_environment) {
-                system.CoreTiming().Idle();
-                idle_count = 0;
-            }
-            kernel.SetIsPhantomModeForSingleCore(true);
-            system.CoreTiming().Advance();
-            kernel.SetIsPhantomModeForSingleCore(false);
+    if (idle_count >= 4 || from_running_environment) {
+        if (!from_running_environment) {
+            system.CoreTiming().Idle();
+            idle_count = 0;
         }
-        current_core.store((current_core + 1) % Core::Hardware::NUM_CPU_CORES);
-        system.CoreTiming().ResetTicks();
-        scheduler.Unload(scheduler.GetSchedulerCurrentThread());
-
-        auto& next_scheduler = kernel.Scheduler(current_core);
-
-        // Disable dispatch. We're about to preempt this thread.
-        Kernel::KScopedDisableDispatch dd{kernel};
-        Common::Fiber::YieldTo(current_thread->GetHostContext(), *next_scheduler.GetSwitchFiber());
+        kernel.SetIsPhantomModeForSingleCore(true);
+        system.CoreTiming().Advance();
+        kernel.SetIsPhantomModeForSingleCore(false);
     }
+    current_core.store((current_core + 1) % Core::Hardware::NUM_CPU_CORES);
+    system.CoreTiming().ResetTicks();
+    kernel.Scheduler(current_core).PreemptSingleCore();
 
     // We've now been scheduled again, and we may have exchanged schedulers.
     // Reload the scheduler in case it's different.
-    {
-        auto& scheduler = system.Kernel().Scheduler(current_core);
-        scheduler.Reload(scheduler.GetSchedulerCurrentThread());
-        if (!scheduler.IsIdle()) {
-            idle_count = 0;
-        }
+    if (!kernel.Scheduler(current_core).IsIdle()) {
+        idle_count = 0;
     }
 }
 

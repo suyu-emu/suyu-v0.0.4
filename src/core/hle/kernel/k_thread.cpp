@@ -1204,12 +1204,6 @@ KScopedDisableDispatch::~KScopedDisableDispatch() {
         return;
     }
 
-    // Skip the reschedule if single-core.
-    if (!Settings::values.use_multi_core.GetValue()) {
-        GetCurrentThread(kernel).EnableDispatch();
-        return;
-    }
-
     if (GetCurrentThread(kernel).GetDisableDispatchCount() <= 1) {
         auto scheduler = kernel.CurrentScheduler();
 

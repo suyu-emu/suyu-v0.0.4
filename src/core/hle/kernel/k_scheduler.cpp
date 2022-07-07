@@ -103,7 +103,20 @@ void KScheduler::ScheduleOnInterrupt() {
     GetCurrentThread(kernel).EnableDispatch();
 }
 
+void KScheduler::PreemptSingleCore() {
+    GetCurrentThread(kernel).DisableDispatch();
+
+    auto* thread = GetCurrentThreadPointer(kernel);
+    auto& previous_scheduler = kernel.Scheduler(thread->GetCurrentCore());
+    previous_scheduler.Unload(thread);
+
+    Common::Fiber::YieldTo(thread->GetHostContext(), *m_switch_fiber);
+
+    GetCurrentThread(kernel).EnableDispatch();
+}
+
 void KScheduler::RescheduleCurrentCore() {
+    ASSERT(!kernel.IsPhantomModeForSingleCore());
     ASSERT(GetCurrentThread(kernel).GetDisableDispatchCount() == 1);
 
     GetCurrentThread(kernel).EnableDispatch();
