@@ -121,11 +121,11 @@ public:
                    const u64 /*game_id*/, const std::string& /*game_name*/) override {}
     WebService::WebResult Update() override {
         return WebService::WebResult{WebService::WebResult::Code::NoWebservice,
-                                     "WebService is missing"};
+                                     "WebService is missing", ""};
     }
     WebService::WebResult Register() override {
         return WebService::WebResult{WebService::WebResult::Code::NoWebservice,
-                                     "WebService is missing"};
+                                     "WebService is missing", ""};
     }
     void ClearPlayers() override {}
     RoomList GetRoomList() override {

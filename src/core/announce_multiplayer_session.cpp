@@ -34,10 +34,10 @@ WebService::WebResult AnnounceMultiplayerSession::Register() {
     std::shared_ptr<Network::Room> room = Network::GetRoom().lock();
     if (!room) {
         return WebService::WebResult{WebService::WebResult::Code::LibError,
-                                     "Network is not initialized"};
+                                     "Network is not initialized", ""};
     }
     if (room->GetState() != Network::Room::State::Open) {
-        return WebService::WebResult{WebService::WebResult::Code::LibError, "Room is not open"};
+        return WebService::WebResult{WebService::WebResult::Code::LibError, "Room is not open", ""};
     }
     UpdateBackendData(room);
     WebService::WebResult result = backend->Register();
@@ -47,7 +47,7 @@ WebService::WebResult AnnounceMultiplayerSession::Register() {
     LOG_INFO(WebService, "Room has been registered");
     room->SetVerifyUID(result.returned_data);
     registered = true;
-    return WebService::WebResult{WebService::WebResult::Code::Success};
+    return WebService::WebResult{WebService::WebResult::Code::Success, "", ""};
 }
 
 void AnnounceMultiplayerSession::Start() {
