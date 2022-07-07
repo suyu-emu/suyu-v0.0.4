@@ -317,7 +317,9 @@ struct System::Impl {
         perf_stats->BeginSystemFrame();
 
         std::string name = "Unknown Game";
-        const Loader::ResultStatus res{app_loader->ReadTitle(name)};
+        if (app_loader->ReadTitle(name) != Loader::ResultStatus::Success) {
+            LOG_ERROR(Core, "Failed to read title for ROM (Error {})", load_result);
+        }
         if (auto room_member = Network::GetRoomMember().lock()) {
             Network::GameInfo game_info;
             game_info.name = name;
