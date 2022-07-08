@@ -112,7 +112,7 @@ WebService::WebResult RoomJson::Update() {
     if (room_id.empty()) {
         LOG_ERROR(WebService, "Room must be registered to be updated");
         return WebService::WebResult{WebService::WebResult::Code::LibError,
-                                     "Room is not registered"};
+                                     "Room is not registered", ""};
     }
     nlohmann::json json{{"players", room.members}};
     return client.PostJson(fmt::format("/lobby/{}", room_id), json.dump(), false);
