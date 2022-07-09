@@ -258,7 +258,13 @@ Result KThread::InitializeThread(KThread* thread, KThreadFunction func, uintptr_
 }
 
 Result KThread::InitializeDummyThread(KThread* thread) {
-    return thread->Initialize({}, {}, {}, DummyThreadPriority, 3, {}, ThreadType::Dummy);
+    // Initialize the thread.
+    R_TRY(thread->Initialize({}, {}, {}, DummyThreadPriority, 3, {}, ThreadType::Dummy));
+
+    // Initialize emulation parameters.
+    thread->stack_parameters.disable_count = 0;
+
+    return ResultSuccess;
 }
 
 Result KThread::InitializeMainThread(Core::System& system, KThread* thread, s32 virt_core) {

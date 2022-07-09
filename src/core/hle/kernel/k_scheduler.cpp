@@ -70,6 +70,7 @@ void KScheduler::EnableScheduling(KernelCore& kernel, u64 cores_needing_scheduli
             GetCurrentThread(kernel).IfDummyThreadTryWait();
         }
         GetCurrentThread(kernel).EnableDispatch();
+        ASSERT(GetCurrentThread(kernel).GetState() != ThreadState::Waiting);
         return;
     }
 
