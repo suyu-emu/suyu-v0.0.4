@@ -3852,19 +3852,9 @@ void GMainWindow::SetDiscordEnabled([[maybe_unused]] bool state) {
 
 int main(int argc, char* argv[]) {
     bool has_broken_vulkan = false;
-#ifdef _WIN32
-    char variable_contents[32];
-    const DWORD startup_check_var =
-        GetEnvironmentVariable(STARTUP_CHECK_ENV_VAR, variable_contents, 32);
-    const std::string variable_contents_s{variable_contents};
-    if (startup_check_var > 0 && variable_contents_s == "ON") {
-        CheckVulkan();
+    if (StartupChecks(argv[0], &has_broken_vulkan)) {
         return 0;
     }
-    StartupChecks(argv[0], &has_broken_vulkan);
-#elif YUZU_UNIX
-#error "Unimplemented"
-#endif
 
     Common::DetachedTasks detached_tasks;
     MicroProfileOnThreadCreate("Frontend");
