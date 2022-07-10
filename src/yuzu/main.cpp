@@ -115,7 +115,6 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "video_core/shader_notify.h"
 #include "yuzu/about_dialog.h"
 #include "yuzu/bootmanager.h"
-#include "yuzu/check_vulkan.h"
 #include "yuzu/compatdb.h"
 #include "yuzu/compatibility_list.h"
 #include "yuzu/configuration/config.h"
@@ -131,6 +130,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/install_dialog.h"
 #include "yuzu/loading_screen.h"
 #include "yuzu/main.h"
+#include "yuzu/startup_checks.h"
 #include "yuzu/uisettings.h"
 
 using namespace Common::Literals;
