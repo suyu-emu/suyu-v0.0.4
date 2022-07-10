@@ -20,8 +20,9 @@
 namespace Core::Timing {
 
 /// A callback that may be scheduled for a particular core timing event.
-using TimedCallback =
-    std::function<void(std::uintptr_t user_data, std::chrono::nanoseconds ns_late)>;
+using TimedCallback = std::function<std::optional<std::chrono::nanoseconds>(
+    std::uintptr_t user_data, s64 time, std::chrono::nanoseconds ns_late)>;
+using PauseCallback = std::function<void(bool paused)>;
 
 /// Contains the characteristics of a particular event.
 struct EventType {
@@ -93,7 +94,15 @@ public:
 
     /// Schedules an event in core timing
     void ScheduleEvent(std::chrono::nanoseconds ns_into_future,
-                       const std::shared_ptr<EventType>& event_type, std::uintptr_t user_data = 0);
+                       const std::shared_ptr<EventType>& event_type, std::uintptr_t user_data = 0,
+                       bool absolute_time = false);
+
+    /// Schedules an event which will automatically re-schedule itself with the given time, until
+    /// unscheduled
+    void ScheduleLoopingEvent(std::chrono::nanoseconds start_time,
+                              std::chrono::nanoseconds resched_time,
+                              const std::shared_ptr<EventType>& event_type,
+                              std::uintptr_t user_data = 0, bool absolute_time = false);
 
     void UnscheduleEvent(const std::shared_ptr<EventType>& event_type, std::uintptr_t user_data);
 
@@ -125,6 +134,9 @@ public:
     /// Checks for events manually and returns time in nanoseconds for next event, threadsafe.
     std::optional<s64> Advance();
 
+    /// Register a callback function to be called when coretiming pauses.
+    void RegisterPauseCallback(PauseCallback&& callback);
+
 private:
     struct Event;
 
@@ -136,7 +148,7 @@ private:
 
     std::unique_ptr<Common::WallClock> clock;
 
-    u64 global_timer = 0;
+    s64 global_timer = 0;
 
     // The queue is a min-heap using std::make_heap/push_heap/pop_heap.
     // We don't use std::priority_queue because we need to be able to serialize, unserialize and
@@ -162,10 +174,13 @@ private:
     bool shutting_down{};
     bool is_multicore{};
     size_t pause_count{};
+    s64 pause_end_time{};
 
     /// Cycle timing
     u64 ticks{};
     s64 downcount{};
+
+    std::vector<PauseCallback> pause_callbacks{};
 };
 
 /// Creates a core timing event with the given name and callback.
