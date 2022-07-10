@@ -14,17 +14,12 @@
 #endif
 
 #include <cstdio>
-#include <filesystem>
-#include <fstream>
-#include "common/fs/fs.h"
-#include "common/fs/path_util.h"
-#include "common/logging/log.h"
 #include "video_core/vulkan_common/vulkan_instance.h"
 #include "video_core/vulkan_common/vulkan_library.h"
 #include "yuzu/startup_checks.h"
-#include "yuzu/uisettings.h"
 
 void CheckVulkan() {
+    // Just start the Vulkan loader, this will crash if something is wrong
     try {
         Vulkan::vk::InstanceDispatch dld;
         const Common::DynamicLibrary library = Vulkan::OpenLibrary();
@@ -32,7 +27,7 @@ void CheckVulkan() {
             Vulkan::CreateInstance(library, dld, VK_API_VERSION_1_0);
 
     } catch (const Vulkan::vk::Exception& exception) {
-        LOG_ERROR(Frontend, "Failed to initialize Vulkan: {}", exception.what());
+        std::fprintf(stderr, "Failed to initialize Vulkan: %s\n", exception.what());
     }
 }
 
@@ -63,7 +58,7 @@ bool StartupChecks(const char* arg0, bool* has_broken_vulkan) {
         return false;
     }
 
-    // wait until the processs exits
+    // Wait until the processs exits and get exit code from it
     DWORD exit_code = STILL_ACTIVE;
     while (exit_code == STILL_ACTIVE) {
         const int err = GetExitCodeProcess(process_info.hProcess, &exit_code);
@@ -73,6 +68,7 @@ bool StartupChecks(const char* arg0, bool* has_broken_vulkan) {
         }
     }
 
+    // Vulkan is broken if the child crashed (return value is not zero)
     *has_broken_vulkan = (exit_code != 0);
 
     if (CloseHandle(process_info.hProcess) == 0) {
@@ -93,6 +89,7 @@ bool StartupChecks(const char* arg0, bool* has_broken_vulkan) {
         return false;
     }
 
+    // Get exit code from child process
     int status;
     const int r_val = wait(&status);
     if (r_val == -1) {
@@ -100,6 +97,7 @@ bool StartupChecks(const char* arg0, bool* has_broken_vulkan) {
         std::fprintf(stderr, "wait failed with error %d\n", err);
         return false;
     }
+    // Vulkan is broken if the child crashed (return value is not zero)
     *has_broken_vulkan = (status != 0);
 #endif
     return false;
@@ -115,7 +113,6 @@ bool SpawnChild(const char* arg0, PROCESS_INFORMATION* pi) {
     char p_name[255];
     std::strncpy(p_name, arg0, 255);
 
-    // TODO: use argv[0] instead of yuzu.exe
     const bool process_created = CreateProcessA(nullptr,       // lpApplicationName
                                                 p_name,        // lpCommandLine
                                                 nullptr,       // lpProcessAttributes
