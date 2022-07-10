@@ -73,14 +73,14 @@ NVFlinger::NVFlinger(Core::System& system_, HosBinderDriverServer& hos_binder_dr
             const auto lock_guard = Lock();
             Compose();
 
-            return std::chrono::nanoseconds(GetNextTicks()) - ns_late;
+            return std::max(std::chrono::nanoseconds::zero(),
+                            std::chrono::nanoseconds(GetNextTicks()) - ns_late);
         });
 
     if (system.IsMulticore()) {
         vsync_thread = std::jthread([this](std::stop_token token) { SplitVSync(token); });
     } else {
-        system.CoreTiming().ScheduleLoopingEvent(std::chrono::nanoseconds(0), frame_ns,
-                                                 composition_event);
+        system.CoreTiming().ScheduleLoopingEvent(frame_ns, frame_ns, composition_event);
     }
 }
 

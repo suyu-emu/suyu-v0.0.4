@@ -245,8 +245,7 @@ struct KernelCore::Impl {
             });
 
         const auto time_interval = std::chrono::nanoseconds{std::chrono::milliseconds(10)};
-        system.CoreTiming().ScheduleLoopingEvent(std::chrono::nanoseconds(0), time_interval,
-                                                 preemption_event);
+        system.CoreTiming().ScheduleLoopingEvent(time_interval, time_interval, preemption_event);
     }
 
     void InitializeShutdownThreads() {

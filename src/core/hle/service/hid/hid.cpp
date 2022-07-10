@@ -97,11 +97,10 @@ IAppletResource::IAppletResource(Core::System& system_,
             return std::nullopt;
         });
 
-    system.CoreTiming().ScheduleLoopingEvent(std::chrono::nanoseconds(0), pad_update_ns,
-                                             pad_update_event);
-    system.CoreTiming().ScheduleLoopingEvent(std::chrono::nanoseconds(0), mouse_keyboard_update_ns,
+    system.CoreTiming().ScheduleLoopingEvent(pad_update_ns, pad_update_ns, pad_update_event);
+    system.CoreTiming().ScheduleLoopingEvent(mouse_keyboard_update_ns, mouse_keyboard_update_ns,
                                              mouse_keyboard_update_event);
-    system.CoreTiming().ScheduleLoopingEvent(std::chrono::nanoseconds(0), motion_update_ns,
+    system.CoreTiming().ScheduleLoopingEvent(motion_update_ns, motion_update_ns,
                                              motion_update_event);
 
     system.HIDCore().ReloadInputDevices();

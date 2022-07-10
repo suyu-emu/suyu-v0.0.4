@@ -189,7 +189,7 @@ void CheatEngine::Initialize() {
             FrameCallback(user_data, ns_late);
             return std::nullopt;
         });
-    core_timing.ScheduleLoopingEvent(std::chrono::nanoseconds(0), CHEAT_ENGINE_NS, event);
+    core_timing.ScheduleLoopingEvent(CHEAT_ENGINE_NS, CHEAT_ENGINE_NS, event);
 
     metadata.process_id = system.CurrentProcess()->GetProcessID();
     metadata.title_id = system.GetCurrentProcessProgramID();

@@ -57,7 +57,7 @@ HidBus::HidBus(Core::System& system_)
             return std::nullopt;
         });
 
-    system_.CoreTiming().ScheduleLoopingEvent(std::chrono::nanoseconds(0), hidbus_update_ns,
+    system_.CoreTiming().ScheduleLoopingEvent(hidbus_update_ns, hidbus_update_ns,
                                               hidbus_update_event);
 }
 
