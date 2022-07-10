@@ -3853,6 +3853,21 @@ void GMainWindow::SetDiscordEnabled([[maybe_unused]] bool state) {
 #endif
 
 int main(int argc, char* argv[]) {
+#ifdef _WIN32
+    char variable_contents[32];
+    const DWORD startup_check_var =
+        GetEnvironmentVariable(STARTUP_CHECK_ENV_VAR, variable_contents, 32);
+    if (startup_check_var != 0) {
+        std::fprintf(stderr, "perform statup checks\n");
+        CheckVulkan();
+        return 0;
+    } else {
+        std::fprintf(stderr, "%d\n", StartupChecks());
+    }
+#elif YUZU_UNIX
+#error "Unimplemented"
+#endif
+
     Common::DetachedTasks detached_tasks;
     MicroProfileOnThreadCreate("Frontend");
     SCOPE_EXIT({ MicroProfileShutdown(); });

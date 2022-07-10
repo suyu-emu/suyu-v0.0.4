@@ -3,4 +3,7 @@
 
 #pragma once
 
+constexpr char STARTUP_CHECK_ENV_VAR[] = "YUZU_DO_STARTUP_CHECKS";
+
 bool CheckVulkan();
+bool StartupChecks();
