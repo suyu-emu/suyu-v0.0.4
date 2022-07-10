@@ -234,17 +234,18 @@ struct KernelCore::Impl {
 
     void InitializePreemption(KernelCore& kernel) {
         preemption_event = Core::Timing::CreateEvent(
-            "PreemptionCallback", [this, &kernel](std::uintptr_t, std::chrono::nanoseconds) {
+            "PreemptionCallback",
+            [this, &kernel](std::uintptr_t, s64 time,
+                            std::chrono::nanoseconds) -> std::optional<std::chrono::nanoseconds> {
                 {
                     KScopedSchedulerLock lock(kernel);
                     global_scheduler_context->PreemptThreads();
                 }
-                const auto time_interval = std::chrono::nanoseconds{std::chrono::milliseconds(10)};
-                system.CoreTiming().ScheduleEvent(time_interval, preemption_event);
+                return std::nullopt;
             });
 
         const auto time_interval = std::chrono::nanoseconds{std::chrono::milliseconds(10)};
-        system.CoreTiming().ScheduleEvent(time_interval, preemption_event);
+        system.CoreTiming().ScheduleLoopingEvent(time_interval, time_interval, preemption_event);
     }
 
     void InitializeShutdownThreads() {

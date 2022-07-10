@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <limits>
+#include <optional>
 #include <vector>
 
 #include "audio_core/audio_out.h"
@@ -88,9 +89,12 @@ AudioRenderer::AudioRenderer(Core::Timing::CoreTiming& core_timing_, Core::Memor
     stream = audio_out->OpenStream(
         core_timing, params.sample_rate, AudioCommon::STREAM_NUM_CHANNELS,
         fmt::format("AudioRenderer-Instance{}", instance_number), std::move(release_callback));
-    process_event = Core::Timing::CreateEvent(
-        fmt::format("AudioRenderer-Instance{}-Process", instance_number),
-        [this](std::uintptr_t, std::chrono::nanoseconds) { ReleaseAndQueueBuffers(); });
+    process_event =
+        Core::Timing::CreateEvent(fmt::format("AudioRenderer-Instance{}-Process", instance_number),
+                                  [this](std::uintptr_t, s64, std::chrono::nanoseconds) {
+                                      ReleaseAndQueueBuffers();
+                                      return std::nullopt;
+                                  });
     for (s32 i = 0; i < NUM_BUFFERS; ++i) {
         QueueMixedBuffer(i);
     }
