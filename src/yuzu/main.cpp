@@ -138,6 +138,10 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/uisettings.h"
 #include "yuzu/util/clickable_label.h"
 
+#ifdef YUZU_DBGHELP
+#include "yuzu/mini_dump.h"
+#endif
+
 using namespace Common::Literals;
 
 #ifdef USE_DISCORD_PRESENCE
@@ -269,10 +273,9 @@ bool GMainWindow::CheckDarkMode() {
 #endif // __linux__
 }
 
-GMainWindow::GMainWindow(bool has_broken_vulkan)
+GMainWindow::GMainWindow(std::unique_ptr<Config> config_, bool has_broken_vulkan)
     : ui{std::make_unique<Ui::MainWindow>()}, system{std::make_unique<Core::System>()},
-      input_subsystem{std::make_shared<InputCommon::InputSubsystem>()},
-      config{std::make_unique<Config>(*system)},
+      input_subsystem{std::make_shared<InputCommon::InputSubsystem>()}, config{std::move(config_)},
       vfs{std::make_shared<FileSys::RealVfsFilesystem>()},
       provider{std::make_unique<FileSys::ManualContentProvider>()} {
 #ifdef __linux__
@@ -1637,7 +1640,8 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
         const auto config_file_name = title_id == 0
                                           ? Common::FS::PathToUTF8String(file_path.filename())
                                           : fmt::format("{:016X}", title_id);
-        Config per_game_config(*system, config_file_name, Config::ConfigType::PerGameConfig);
+        Config per_game_config(config_file_name, Config::ConfigType::PerGameConfig);
+        system->ApplySettings();
     }
 
     // Save configurations
@@ -2981,7 +2985,7 @@ void GMainWindow::OnConfigure() {
 
         Settings::values.disabled_addons.clear();
 
-        config = std::make_unique<Config>(*system);
+        config = std::make_unique<Config>();
         UISettings::values.reset_to_defaults = false;
 
         UISettings::values.game_dirs = std::move(old_game_dirs);
@@ -3042,6 +3046,7 @@ void GMainWindow::OnConfigure() {
 
     UpdateStatusButtons();
     controller_dialog->refreshConfiguration();
+    system->ApplySettings();
 }
 
 void GMainWindow::OnConfigureTas() {
@@ -4082,7 +4087,22 @@ void GMainWindow::changeEvent(QEvent* event) {
 #endif
 
 int main(int argc, char* argv[]) {
+    std::unique_ptr<Config> config = std::make_unique<Config>();
     bool has_broken_vulkan = false;
+    bool is_child = false;
+    if (CheckEnvVars(&is_child)) {
+        return 0;
+    }
+
+#ifdef YUZU_DBGHELP
+    PROCESS_INFORMATION pi;
+    if (!is_child && Settings::values.create_crash_dumps.GetValue() && SpawnDebuggee(argv[0], pi)) {
+        config.reset(nullptr);
+        DebugDebuggee(pi);
+        return 0;
+    }
+#endif
+
     if (StartupChecks(argv[0], &has_broken_vulkan)) {
         return 0;
     }
@@ -4135,7 +4155,7 @@ int main(int argc, char* argv[]) {
     // generating shaders
     setlocale(LC_ALL, "C");
 
-    GMainWindow main_window{has_broken_vulkan};
+    GMainWindow main_window{std::move(config), has_broken_vulkan};
     // After settings have been loaded by GMainWindow, apply the filter
     main_window.show();
 
