@@ -252,7 +252,7 @@ static QString PrettyProductName() {
     return QSysInfo::prettyProductName();
 }
 
-GMainWindow::GMainWindow()
+GMainWindow::GMainWindow(bool has_broken_vulkan)
     : ui{std::make_unique<Ui::MainWindow>()}, system{std::make_unique<Core::System>()},
       input_subsystem{std::make_shared<InputCommon::InputSubsystem>()},
       config{std::make_unique<Config>(*system)},
@@ -352,17 +352,15 @@ GMainWindow::GMainWindow()
 
     MigrateConfigFiles();
 
-    if (!CheckVulkan()) {
-        config->Save();
+    if (has_broken_vulkan) {
+        UISettings::values.has_broken_vulkan = true;
 
-        QMessageBox::warning(
-            this, tr("Broken Vulkan Installation Detected"),
-            tr("Vulkan initialization failed on the previous boot.<br><br>Click <a "
-               "href='https://yuzu-emu.org/wiki/faq/"
-               "#yuzu-starts-with-the-error-broken-vulkan-installation-detected'>here for "
-               "instructions to fix the issue</a>."));
-    }
-    if (UISettings::values.has_broken_vulkan) {
+        QMessageBox::warning(this, tr("Broken Vulkan Installation Detected"),
+                             tr("Vulkan initialization failed during boot.<br><br>Click <a "
+                                "href='https://yuzu-emu.org/wiki/faq/"
+                                "#yuzu-starts-with-the-error-broken-vulkan-installation-detected'>"
+                                "here for instructions to fix the issue</a>."));
+
         Settings::values.renderer_backend = Settings::RendererBackend::OpenGL;
 
         renderer_status_button->setDisabled(true);
@@ -3853,17 +3851,17 @@ void GMainWindow::SetDiscordEnabled([[maybe_unused]] bool state) {
 #endif
 
 int main(int argc, char* argv[]) {
+    bool has_broken_vulkan = false;
 #ifdef _WIN32
     char variable_contents[32];
     const DWORD startup_check_var =
         GetEnvironmentVariable(STARTUP_CHECK_ENV_VAR, variable_contents, 32);
-    if (startup_check_var != 0) {
-        std::fprintf(stderr, "perform statup checks\n");
+    const std::string variable_contents_s{variable_contents};
+    if (startup_check_var > 0 && variable_contents_s == "ON") {
         CheckVulkan();
         return 0;
-    } else {
-        std::fprintf(stderr, "%d\n", StartupChecks());
     }
+    StartupChecks(argv[0], &has_broken_vulkan);
 #elif YUZU_UNIX
 #error "Unimplemented"
 #endif
@@ -3907,7 +3905,7 @@ int main(int argc, char* argv[]) {
     // generating shaders
     setlocale(LC_ALL, "C");
 
-    GMainWindow main_window{};
+    GMainWindow main_window{has_broken_vulkan};
     // After settings have been loaded by GMainWindow, apply the filter
     main_window.show();
 
