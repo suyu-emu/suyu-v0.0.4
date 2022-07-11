@@ -19,10 +19,10 @@
 #include "yuzu/uisettings.h"
 #include "yuzu/util/clickable_label.h"
 
-MultiplayerState::MultiplayerState(QWidget* parent, QStandardItemModel* game_list_model,
-                                   QAction* leave_room, QAction* show_room)
-    : QWidget(parent), game_list_model(game_list_model), leave_room(leave_room),
-      show_room(show_room) {
+MultiplayerState::MultiplayerState(QWidget* parent, QStandardItemModel* game_list_model_,
+                                   QAction* leave_room_, QAction* show_room_)
+    : QWidget(parent), game_list_model(game_list_model_), leave_room(leave_room_),
+      show_room(show_room_) {
     if (auto member = Network::GetRoomMember().lock()) {
         // register the network structs to use in slots and signals
         state_callback_handle = member->BindOnStateChanged(

@@ -148,9 +148,9 @@ class LobbyMember {
 public:
     LobbyMember() = default;
     LobbyMember(const LobbyMember& other) = default;
-    explicit LobbyMember(QString username, QString nickname, u64 title_id, QString game_name)
-        : username(std::move(username)), nickname(std::move(nickname)), title_id(title_id),
-          game_name(std::move(game_name)) {}
+    explicit LobbyMember(QString username_, QString nickname_, u64 title_id_, QString game_name_)
+        : username(std::move(username_)), nickname(std::move(nickname_)), title_id(title_id_),
+          game_name(std::move(game_name_)) {}
     ~LobbyMember() = default;
 
     QString GetName() const {

@@ -877,8 +877,8 @@ void Room::RoomImpl::HandleWifiPacket(const ENetEvent* event) {
     } else { // Send the data only to the destination client
         std::lock_guard lock(member_mutex);
         auto member = std::find_if(members.begin(), members.end(),
-                                   [destination_address](const Member& member) -> bool {
-                                       return member.mac_address == destination_address;
+                                   [destination_address](const Member& member_entry) -> bool {
+                                       return member_entry.mac_address == destination_address;
                                    });
         if (member != members.end()) {
             enet_peer_send(member->peer, 0, enet_packet);
@@ -955,10 +955,10 @@ void Room::RoomImpl::HandleGameNamePacket(const ENetEvent* event) {
 
     {
         std::lock_guard lock(member_mutex);
-        auto member =
-            std::find_if(members.begin(), members.end(), [event](const Member& member) -> bool {
-                return member.peer == event->peer;
-            });
+        auto member = std::find_if(members.begin(), members.end(),
+                                   [event](const Member& member_entry) -> bool {
+                                       return member_entry.peer == event->peer;
+                                   });
         if (member != members.end()) {
             member->game_info = game_info;
 
@@ -982,9 +982,10 @@ void Room::RoomImpl::HandleClientDisconnection(ENetPeer* client) {
     std::string nickname, username, ip;
     {
         std::lock_guard lock(member_mutex);
-        auto member = std::find_if(members.begin(), members.end(), [client](const Member& member) {
-            return member.peer == client;
-        });
+        auto member =
+            std::find_if(members.begin(), members.end(), [client](const Member& member_entry) {
+                return member_entry.peer == client;
+            });
         if (member != members.end()) {
             nickname = member->nickname;
             username = member->user_data.username;

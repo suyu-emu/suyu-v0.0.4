@@ -11,7 +11,7 @@
 
 namespace AnnounceMultiplayerRoom {
 
-void to_json(nlohmann::json& json, const Room::Member& member) {
+static void to_json(nlohmann::json& json, const Room::Member& member) {
     if (!member.username.empty()) {
         json["username"] = member.username;
     }
@@ -23,7 +23,7 @@ void to_json(nlohmann::json& json, const Room::Member& member) {
     json["gameId"] = member.game_id;
 }
 
-void from_json(const nlohmann::json& json, Room::Member& member) {
+static void from_json(const nlohmann::json& json, Room::Member& member) {
     member.nickname = json.at("nickname").get<std::string>();
     member.game_name = json.at("gameName").get<std::string>();
     member.game_id = json.at("gameId").get<u64>();
@@ -36,7 +36,7 @@ void from_json(const nlohmann::json& json, Room::Member& member) {
     }
 }
 
-void to_json(nlohmann::json& json, const Room& room) {
+static void to_json(nlohmann::json& json, const Room& room) {
     json["port"] = room.port;
     json["name"] = room.name;
     if (!room.description.empty()) {
@@ -53,7 +53,7 @@ void to_json(nlohmann::json& json, const Room& room) {
     }
 }
 
-void from_json(const nlohmann::json& json, Room& room) {
+static void from_json(const nlohmann::json& json, Room& room) {
     room.verify_UID = json.at("externalGuid").get<std::string>();
     room.ip = json.at("address").get<std::string>();
     room.name = json.at("name").get<std::string>();
