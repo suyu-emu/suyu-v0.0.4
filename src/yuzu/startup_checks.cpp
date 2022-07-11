@@ -34,11 +34,10 @@ void CheckVulkan() {
 bool StartupChecks(const char* arg0, bool* has_broken_vulkan) {
 #ifdef _WIN32
     // Check environment variable to see if we are the child
-    char variable_contents[32];
+    char variable_contents[8];
     const DWORD startup_check_var =
-        GetEnvironmentVariable(STARTUP_CHECK_ENV_VAR, variable_contents, 32);
-    const std::string variable_contents_s{variable_contents};
-    if (startup_check_var > 0 && variable_contents_s == "ON") {
+        GetEnvironmentVariableA(STARTUP_CHECK_ENV_VAR, variable_contents, 8);
+    if (startup_check_var > 0 && std::strncmp(variable_contents, "ON", 8) == 0) {
         CheckVulkan();
         return true;
     }
