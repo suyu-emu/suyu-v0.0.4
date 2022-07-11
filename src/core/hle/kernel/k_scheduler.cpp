@@ -63,14 +63,8 @@ void KScheduler::EnableScheduling(KernelCore& kernel, u64 cores_needing_scheduli
     auto* scheduler{kernel.CurrentScheduler()};
 
     if (!scheduler || kernel.IsPhantomModeForSingleCore()) {
-        // HACK: we cannot schedule from this thread, it is not a core thread
-        RescheduleCores(kernel, cores_needing_scheduling);
-        if (GetCurrentThread(kernel).GetDisableDispatchCount() == 1) {
-            // Special case to ensure dummy threads that are waiting block
-            GetCurrentThread(kernel).IfDummyThreadTryWait();
-        }
-        GetCurrentThread(kernel).EnableDispatch();
-        ASSERT(GetCurrentThread(kernel).GetState() != ThreadState::Waiting);
+        KScheduler::RescheduleCores(kernel, cores_needing_scheduling);
+        KScheduler::RescheduleCurrentHLEThread(kernel);
         return;
     }
 
@@ -81,6 +75,17 @@ void KScheduler::EnableScheduling(KernelCore& kernel, u64 cores_needing_scheduli
     } else {
         scheduler->RescheduleCurrentCore();
     }
+}
+
+void KScheduler::RescheduleCurrentHLEThread(KernelCore& kernel) {
+    // HACK: we cannot schedule from this thread, it is not a core thread
+    ASSERT(GetCurrentThread(kernel).GetDisableDispatchCount() == 1);
+
+    // Special case to ensure dummy threads that are waiting block
+    GetCurrentThread(kernel).IfDummyThreadTryWait();
+
+    ASSERT(GetCurrentThread(kernel).GetState() != ThreadState::Waiting);
+    GetCurrentThread(kernel).EnableDispatch();
 }
 
 u64 KScheduler::UpdateHighestPriorityThreads(KernelCore& kernel) {

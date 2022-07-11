@@ -1106,6 +1106,8 @@ void KThread::IfDummyThreadTryWait() {
         return;
     }
 
+    ASSERT(!kernel.IsPhantomModeForSingleCore());
+
     // Block until we are no longer waiting.
     std::unique_lock lk(dummy_wait_lock);
     dummy_wait_cv.wait(
@@ -1211,10 +1213,12 @@ KScopedDisableDispatch::~KScopedDisableDispatch() {
     }
 
     if (GetCurrentThread(kernel).GetDisableDispatchCount() <= 1) {
-        auto scheduler = kernel.CurrentScheduler();
+        auto* scheduler = kernel.CurrentScheduler();
 
-        if (scheduler) {
+        if (scheduler && !kernel.IsPhantomModeForSingleCore()) {
             scheduler->RescheduleCurrentCore();
+        } else {
+            KScheduler::RescheduleCurrentHLEThread(kernel);
         }
     } else {
         GetCurrentThread(kernel).EnableDispatch();

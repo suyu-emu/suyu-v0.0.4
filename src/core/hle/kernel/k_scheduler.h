@@ -119,6 +119,8 @@ private:
     }
     static u64 UpdateHighestPriorityThreadsImpl(KernelCore& kernel);
 
+    static void RescheduleCurrentHLEThread(KernelCore& kernel);
+
     // Instanced private API.
     void ScheduleImpl();
     void ScheduleImplFiber();
