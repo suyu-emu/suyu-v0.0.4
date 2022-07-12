@@ -58,13 +58,11 @@ bool StartupChecks(const char* arg0, bool* has_broken_vulkan) {
     }
 
     // Wait until the processs exits and get exit code from it
+    WaitForSingleObject(process_info.hProcess, INFINITE);
     DWORD exit_code = STILL_ACTIVE;
-    while (exit_code == STILL_ACTIVE) {
-        const int err = GetExitCodeProcess(process_info.hProcess, &exit_code);
-        if (err == 0) {
-            std::fprintf(stderr, "GetExitCodeProcess failed with error %d\n", GetLastError());
-            break;
-        }
+    const int err = GetExitCodeProcess(process_info.hProcess, &exit_code);
+    if (err == 0) {
+        std::fprintf(stderr, "GetExitCodeProcess failed with error %d\n", GetLastError());
     }
 
     // Vulkan is broken if the child crashed (return value is not zero)
@@ -75,6 +73,11 @@ bool StartupChecks(const char* arg0, bool* has_broken_vulkan) {
     }
     if (CloseHandle(process_info.hThread) == 0) {
         std::fprintf(stderr, "CloseHandle failed with error %d\n", GetLastError());
+    }
+
+    if (!SetEnvironmentVariableA(STARTUP_CHECK_ENV_VAR, nullptr)) {
+        std::fprintf(stderr, "SetEnvironmentVariableA failed to clear %s with error %d\n",
+                     STARTUP_CHECK_ENV_VAR, GetLastError());
     }
 
 #elif defined(YUZU_UNIX)
