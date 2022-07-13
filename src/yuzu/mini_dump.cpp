@@ -1,8 +1,8 @@
 #include <cstdio>
+#include <cstring>
 #include <ctime>
 #include <filesystem>
 #include <windows.h>
-#include "common/logging/log.h"
 #include "yuzu/mini_dump.h"
 #include "yuzu/startup_checks.h"
 
@@ -11,8 +11,6 @@
 
 void CreateMiniDump(HANDLE process_handle, DWORD process_id, MINIDUMP_EXCEPTION_INFORMATION* info,
                     EXCEPTION_POINTERS* pep) {
-    LOG_INFO(Core, "called");
-
     char file_name[255];
     const std::time_t the_time = std::time(nullptr);
     std::strftime(file_name, 255, "yuzu-crash-%Y%m%d%H%M%S.dmp", std::localtime(&the_time));
@@ -29,16 +27,50 @@ void CreateMiniDump(HANDLE process_handle, DWORD process_id, MINIDUMP_EXCEPTION_
                                                          dump_type, (pep != 0) ? info : 0, 0, 0);
 
         if (!write_dump_status) {
-            LOG_ERROR(Core, "MiniDumpWriteDump failed. Error: {}", GetLastError());
+            std::fprintf(stderr, "MiniDumpWriteDump failed. Error: %d\n", GetLastError());
         } else {
-            LOG_INFO(Core, "Minidump created.");
+            std::fprintf(stderr, "MiniDump created: %s\n", file_name);
         }
 
         // Close the file
         CloseHandle(file_handle);
 
     } else {
-        LOG_ERROR(Core, "CreateFile failed. Error: {}", GetLastError());
+        std::fprintf(stderr, "CreateFile failed. Error: %d\n", GetLastError());
+    }
+}
+
+void DumpFromDebugEvent(DEBUG_EVENT& deb_ev, PROCESS_INFORMATION& pi) {
+    EXCEPTION_RECORD& record = deb_ev.u.Exception.ExceptionRecord;
+
+    HANDLE thread_handle = OpenThread(THREAD_GET_CONTEXT, false, deb_ev.dwThreadId);
+    if (thread_handle == nullptr) {
+        std::fprintf(stderr, "OpenThread failed (%d)\n", GetLastError());
+    }
+
+    // Get child process context
+    CONTEXT context;
+    std::memset(&context, 0, sizeof(context));
+    context.ContextFlags = CONTEXT_ALL;
+    if (!GetThreadContext(thread_handle, &context)) {
+        std::fprintf(stderr, "GetThreadContext failed (%d)\n", GetLastError());
+        return;
+    }
+
+    // Create exception pointers for minidump
+    EXCEPTION_POINTERS ep;
+    ep.ExceptionRecord = &record;
+    ep.ContextRecord = &context;
+
+    MINIDUMP_EXCEPTION_INFORMATION info;
+    info.ThreadId = deb_ev.dwThreadId;
+    info.ExceptionPointers = &ep;
+    info.ClientPointers = false;
+
+    CreateMiniDump(pi.hProcess, pi.dwProcessId, &info, &ep);
+
+    if (CloseHandle(thread_handle) == 0) {
+        std::fprintf(stderr, "error: CloseHandle(thread_handle) failed (%d)\n", GetLastError());
     }
 }
 
@@ -68,6 +100,8 @@ bool SpawnDebuggee(const char* arg0, PROCESS_INFORMATION& pi) {
 
 void DebugDebuggee(PROCESS_INFORMATION& pi) {
     DEBUG_EVENT deb_ev;
+    const std::time_t start_time = std::time(nullptr);
+    //~ bool seen_nonzero_thread_exit = false;
 
     while (deb_ev.dwDebugEventCode != EXIT_PROCESS_DEBUG_EVENT) {
         const bool wait_success = WaitForDebugEvent(&deb_ev, INFINITE);
@@ -87,48 +121,56 @@ void DebugDebuggee(PROCESS_INFORMATION& pi) {
         case UNLOAD_DLL_DEBUG_EVENT:
             ContinueDebugEvent(deb_ev.dwProcessId, deb_ev.dwThreadId, DBG_CONTINUE);
             break;
-        case EXCEPTION_DEBUG_EVENT:
+            //~ case EXIT_THREAD_DEBUG_EVENT: {
+            //~ const DWORD& exit_code = deb_ev.u.ExitThread.dwExitCode;
+
+            //~ // Generate a crash dump on the first abnormal thread exit.
+            //~ // We don't want to generate on every abnormal thread exit since ALL the other
+            // threads ~ // in the application will follow by exiting with the same code. ~ if
+            //(!seen_nonzero_thread_exit && exit_code != 0) { ~ seen_nonzero_thread_exit = true; ~
+            // std::fprintf(stderr, ~ "Creating MiniDump on first non-zero thread exit: code
+            // 0x%08x\n", ~ exit_code);
+            //~ DumpFromDebugEvent(deb_ev, pi);
+            //~ }
+            //~ ContinueDebugEvent(deb_ev.dwProcessId, deb_ev.dwThreadId, DBG_CONTINUE);
+            //~ break;
+        //~ }
+        case EXCEPTION_DEBUG_EVENT: {
             EXCEPTION_RECORD& record = deb_ev.u.Exception.ExceptionRecord;
+            const std::time_t now = std::time(nullptr);
+            const std::time_t delta = now - start_time;
 
-            std::fprintf(stderr, "ExceptionCode: 0x%08x %s\n", record.ExceptionCode,
-                         ExceptionName(record.ExceptionCode));
+            if (ExceptionName(record.ExceptionCode) == nullptr) {
+                int record_count = 0;
+                EXCEPTION_RECORD* next_record = &deb_ev.u.Exception.ExceptionRecord;
+                while (next_record != nullptr) {
+                    std::fprintf(stderr,
+                                 "[%d] code(%d): 0x%08x\n\tflags: %08x %s\n\taddress: "
+                                 "0x%08x\n\tparameters: %d\n",
+                                 delta, record_count, next_record->ExceptionCode,
+                                 next_record->ExceptionFlags,
+                                 next_record->ExceptionFlags == EXCEPTION_NONCONTINUABLE
+                                     ? "noncontinuable"
+                                     : "",
+                                 next_record->ExceptionAddress, next_record->NumberParameters);
+                    for (int i = 0; i < static_cast<int>(next_record->NumberParameters); i++) {
+                        std::fprintf(stderr, "\t\t%0d: 0x%08x\n", i,
+                                     next_record->ExceptionInformation[i]);
+                    }
+
+                    record_count++;
+                    next_record = next_record->ExceptionRecord;
+                }
+            }
+            // We want to generate a crash dump if we are seeing the same exception again.
             if (!deb_ev.u.Exception.dwFirstChance) {
-                HANDLE thread_handle = OpenThread(THREAD_ALL_ACCESS, false, deb_ev.dwThreadId);
-                if (thread_handle == nullptr) {
-                    std::fprintf(stderr, "OpenThread failed (%d)\n", GetLastError());
-                }
-                if (SuspendThread(thread_handle) == (DWORD)-1) {
-                    std::fprintf(stderr, "SuspendThread failed (%d)\n", GetLastError());
-                }
-
-                CONTEXT context;
-                std::memset(&context, 0, sizeof(context));
-                context.ContextFlags = CONTEXT_ALL;
-                if (!GetThreadContext(thread_handle, &context)) {
-                    std::fprintf(stderr, "GetThreadContext failed (%d)\n", GetLastError());
-                    break;
-                }
-
-                EXCEPTION_POINTERS ep;
-                ep.ExceptionRecord = &record;
-                ep.ContextRecord = &context;
-
-                MINIDUMP_EXCEPTION_INFORMATION info;
-                info.ThreadId = deb_ev.dwThreadId;
-                info.ExceptionPointers = &ep;
-                info.ClientPointers = false;
-
-                CreateMiniDump(pi.hProcess, pi.dwProcessId, &info, &ep);
-
-                std::fprintf(stderr, "previous thread suspend count: %d\n",
-                             ResumeThread(thread_handle));
-                if (CloseHandle(thread_handle) == 0) {
-                    std::fprintf(stderr, "error: CloseHandle(thread_handle) failed (%d)\n",
-                                 GetLastError());
-                }
+                std::fprintf(stderr, "Creating MiniDump on ExceptionCode: 0x%08x %s\n",
+                             record.ExceptionCode, ExceptionName(record.ExceptionCode));
+                DumpFromDebugEvent(deb_ev, pi);
             }
             ContinueDebugEvent(deb_ev.dwProcessId, deb_ev.dwThreadId, DBG_EXCEPTION_NOT_HANDLED);
             break;
+        }
         }
     }
 }

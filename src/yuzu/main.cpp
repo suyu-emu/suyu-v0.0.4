@@ -4097,6 +4097,7 @@ int main(int argc, char* argv[]) {
 #ifdef YUZU_DBGHELP
     PROCESS_INFORMATION pi;
     if (!is_child && Settings::values.create_crash_dumps.GetValue() && SpawnDebuggee(argv[0], pi)) {
+        // Delete the config object so that it doesn't save when the program exits
         config.reset(nullptr);
         DebugDebuggee(pi);
         return 0;
