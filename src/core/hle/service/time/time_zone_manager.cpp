@@ -1076,4 +1076,36 @@ Result TimeZoneManager::GetDeviceLocationName(LocationName& value) const {
     return ResultSuccess;
 }
 
+Result TimeZoneManager::GetTotalLocationNameCount(s32& count) const {
+    if (!is_initialized) {
+        return ERROR_UNINITIALIZED_CLOCK;
+    }
+    count = static_cast<u32>(total_location_name_count);
+
+    return ResultSuccess;
+}
+
+Result TimeZoneManager::GetTimeZoneRuleVersion(u128& version) const {
+    if (!is_initialized) {
+        return ERROR_UNINITIALIZED_CLOCK;
+    }
+    version = time_zone_rule_version;
+
+    return ResultSuccess;
+}
+
+Result TimeZoneManager::LoadLocationNameList(std::vector<LocationName>& values) const {
+    if (!is_initialized) {
+        return ERROR_UNINITIALIZED_CLOCK;
+    }
+
+    for (const auto& name : total_location_names) {
+        LocationName entry{};
+        std::memcpy(entry.data(), name.c_str(), name.size());
+        values.push_back(entry);
+    }
+
+    return ResultSuccess;
+}
+
 } // namespace Service::Time::TimeZone

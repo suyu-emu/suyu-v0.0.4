@@ -103,7 +103,7 @@ struct TimeManager::Impl final {
 
     void SetupTimeZoneManager(std::string location_name,
                               Clock::SteadyClockTimePoint time_zone_updated_time_point,
-                              std::size_t total_location_name_count, u128 time_zone_rule_version,
+                              std::vector<std::string> location_names, u128 time_zone_rule_version,
                               FileSys::VirtualFile& vfs_file) {
         if (time_zone_content_manager.GetTimeZoneManager().SetDeviceLocationNameWithTimeZoneRule(
                 location_name, vfs_file) != ResultSuccess) {
@@ -113,7 +113,8 @@ struct TimeManager::Impl final {
 
         time_zone_content_manager.GetTimeZoneManager().SetUpdatedTime(time_zone_updated_time_point);
         time_zone_content_manager.GetTimeZoneManager().SetTotalLocationNameCount(
-            total_location_name_count);
+            location_names.size());
+        time_zone_content_manager.GetTimeZoneManager().SetLocationNames(location_names);
         time_zone_content_manager.GetTimeZoneManager().SetTimeZoneRuleVersion(
             time_zone_rule_version);
         time_zone_content_manager.GetTimeZoneManager().MarkAsInitialized();
@@ -283,10 +284,10 @@ void TimeManager::UpdateLocalSystemClockTime(s64 posix_time) {
 
 void TimeManager::SetupTimeZoneManager(std::string location_name,
                                        Clock::SteadyClockTimePoint time_zone_updated_time_point,
-                                       std::size_t total_location_name_count,
+                                       std::vector<std::string> location_names,
                                        u128 time_zone_rule_version,
                                        FileSys::VirtualFile& vfs_file) {
-    impl->SetupTimeZoneManager(location_name, time_zone_updated_time_point,
-                               total_location_name_count, time_zone_rule_version, vfs_file);
+    impl->SetupTimeZoneManager(location_name, time_zone_updated_time_point, location_names,
+                               time_zone_rule_version, vfs_file);
 }
 } // namespace Service::Time

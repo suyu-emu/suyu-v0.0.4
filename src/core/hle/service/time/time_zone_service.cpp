@@ -15,10 +15,10 @@ ITimeZoneService::ITimeZoneService(Core::System& system_,
     static const FunctionInfo functions[] = {
         {0, &ITimeZoneService::GetDeviceLocationName, "GetDeviceLocationName"},
         {1, nullptr, "SetDeviceLocationName"},
-        {2, nullptr, "GetTotalLocationNameCount"},
-        {3, nullptr, "LoadLocationNameList"},
+        {2, &ITimeZoneService::GetTotalLocationNameCount, "GetTotalLocationNameCount"},
+        {3, &ITimeZoneService::LoadLocationNameList, "LoadLocationNameList"},
         {4, &ITimeZoneService::LoadTimeZoneRule, "LoadTimeZoneRule"},
-        {5, nullptr, "GetTimeZoneRuleVersion"},
+        {5, &ITimeZoneService::GetTimeZoneRuleVersion, "GetTimeZoneRuleVersion"},
         {6, nullptr, "GetDeviceLocationNameAndUpdatedTime"},
         {100, &ITimeZoneService::ToCalendarTime, "ToCalendarTime"},
         {101, &ITimeZoneService::ToCalendarTimeWithMyRule, "ToCalendarTimeWithMyRule"},
@@ -43,6 +43,57 @@ void ITimeZoneService::GetDeviceLocationName(HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, (sizeof(location_name) / 4) + 2};
     rb.Push(ResultSuccess);
     rb.PushRaw(location_name);
+}
+
+void ITimeZoneService::GetTotalLocationNameCount(HLERequestContext& ctx) {
+    LOG_DEBUG(Service_Time, "called");
+
+    s32 count{};
+    if (const Result result{
+            time_zone_content_manager.GetTimeZoneManager().GetTotalLocationNameCount(count)};
+        result != ResultSuccess) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(result);
+        return;
+    }
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(count);
+}
+
+void ITimeZoneService::LoadLocationNameList(HLERequestContext& ctx) {
+    LOG_DEBUG(Service_Time, "called");
+
+    std::vector<TimeZone::LocationName> location_names{};
+    if (const Result result{
+            time_zone_content_manager.GetTimeZoneManager().LoadLocationNameList(location_names)};
+        result != ResultSuccess) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(result);
+        return;
+    }
+
+    ctx.WriteBuffer(location_names);
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push(static_cast<s32>(location_names.size()));
+}
+void ITimeZoneService::GetTimeZoneRuleVersion(HLERequestContext& ctx) {
+    LOG_DEBUG(Service_Time, "called");
+
+    u128 rule_version{};
+    if (const Result result{
+            time_zone_content_manager.GetTimeZoneManager().GetTimeZoneRuleVersion(rule_version)};
+        result != ResultSuccess) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(result);
+        return;
+    }
+
+    IPC::ResponseBuilder rb{ctx, 6};
+    rb.Push(ResultSuccess);
+    rb.PushRaw(rule_version);
 }
 
 void ITimeZoneService::LoadTimeZoneRule(HLERequestContext& ctx) {

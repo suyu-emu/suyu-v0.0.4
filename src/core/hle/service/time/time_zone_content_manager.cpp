@@ -82,8 +82,8 @@ void TimeZoneContentManager::Initialize(TimeManager& time_manager) {
         GetTimeZoneInfoFile(timezone_setting, vfs_file) == ResultSuccess) {
         const auto time_point{
             time_manager.GetStandardSteadyClockCore().GetCurrentTimePoint(system)};
-        time_manager.SetupTimeZoneManager(timezone_setting, time_point, location_name_cache.size(),
-                                          {}, vfs_file);
+        time_manager.SetupTimeZoneManager(timezone_setting, time_point, location_name_cache, {},
+                                          vfs_file);
     } else {
         time_zone_manager.MarkAsInitialized();
     }
