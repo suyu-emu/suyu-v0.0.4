@@ -13,7 +13,7 @@
 
 namespace Network {
 
-constexpr u32 network_version = 4; ///< The version of this Room and RoomMember
+constexpr u32 network_version = 1; ///< The version of this Room and RoomMember
 
 constexpr u16 DefaultRoomPort = 24872;
 

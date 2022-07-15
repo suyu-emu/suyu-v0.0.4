@@ -716,6 +716,11 @@ add_library(core STATIC
     hle/service/vi/vi_u.h
     hle/service/wlan/wlan.cpp
     hle/service/wlan/wlan.h
+    internal_network/network.cpp
+    internal_network/network.h
+    internal_network/network_interface.cpp
+    internal_network/network_interface.h
+    internal_network/sockets.h
     loader/deconstructed_rom_directory.cpp
     loader/deconstructed_rom_directory.h
     loader/elf.cpp
@@ -743,11 +748,6 @@ add_library(core STATIC
     memory/dmnt_cheat_vm.h
     memory.cpp
     memory.h
-    internal_network/network.cpp
-    internal_network/network.h
-    internal_network/network_interface.cpp
-    internal_network/network_interface.h
-    internal_network/sockets.h
     perf_stats.cpp
     perf_stats.h
     reporter.cpp

@@ -56,7 +56,7 @@ Lobby::Lobby(QWidget* parent, QStandardItemModel* list,
     ui->room_list->setContextMenuPolicy(Qt::CustomContextMenu);
 
     ui->nickname->setValidator(validation.GetNickname());
-    ui->nickname->setText(UISettings::values.nickname);
+    ui->nickname->setText(UISettings::values.multiplayer_nickname.GetValue());
     if (ui->nickname->text().isEmpty() && !Settings::values.yuzu_username.GetValue().empty()) {
         // Use yuzu Web Service user name as nickname by default
         ui->nickname->setText(QString::fromStdString(Settings::values.yuzu_username.GetValue()));
@@ -154,9 +154,11 @@ void Lobby::OnJoinRoom(const QModelIndex& source) {
     QFuture<void> f = QtConcurrent::run([nickname, ip, port, password, verify_UID] {
         std::string token;
 #ifdef ENABLE_WEB_SERVICE
-        if (!Settings::values.yuzu_username.empty() && !Settings::values.yuzu_token.empty()) {
-            WebService::Client client(Settings::values.web_api_url, Settings::values.yuzu_username,
-                                      Settings::values.yuzu_token);
+        if (!Settings::values.yuzu_username.GetValue().empty() &&
+            !Settings::values.yuzu_token.GetValue().empty()) {
+            WebService::Client client(Settings::values.web_api_url.GetValue(),
+                                      Settings::values.yuzu_username.GetValue(),
+                                      Settings::values.yuzu_token.GetValue());
             token = client.GetExternalJWT(verify_UID).returned_data;
             if (token.empty()) {
                 LOG_ERROR(WebService, "Could not get external JWT, verification may fail");
@@ -175,9 +177,11 @@ void Lobby::OnJoinRoom(const QModelIndex& source) {
     // TODO(jroweboy): disable widgets and display a connecting while we wait
 
     // Save settings
-    UISettings::values.nickname = ui->nickname->text();
-    UISettings::values.ip = proxy->data(connection_index, LobbyItemHost::HostIPRole).toString();
-    UISettings::values.port = proxy->data(connection_index, LobbyItemHost::HostPortRole).toString();
+    UISettings::values.multiplayer_nickname = ui->nickname->text();
+    UISettings::values.multiplayer_ip =
+        proxy->data(connection_index, LobbyItemHost::HostIPRole).toString();
+    UISettings::values.multiplayer_port =
+        proxy->data(connection_index, LobbyItemHost::HostPortRole).toInt();
 }
 
 void Lobby::ResetModel() {

@@ -32,15 +32,15 @@ DirectConnectWindow::DirectConnectWindow(QWidget* parent)
     connect(watcher, &QFutureWatcher<void>::finished, this, &DirectConnectWindow::OnConnection);
 
     ui->nickname->setValidator(validation.GetNickname());
-    ui->nickname->setText(UISettings::values.nickname);
+    ui->nickname->setText(UISettings::values.multiplayer_nickname.GetValue());
     if (ui->nickname->text().isEmpty() && !Settings::values.yuzu_username.GetValue().empty()) {
         // Use yuzu Web Service user name as nickname by default
         ui->nickname->setText(QString::fromStdString(Settings::values.yuzu_username.GetValue()));
     }
     ui->ip->setValidator(validation.GetIP());
-    ui->ip->setText(UISettings::values.ip);
+    ui->ip->setText(UISettings::values.multiplayer_ip.GetValue());
     ui->port->setValidator(validation.GetPort());
-    ui->port->setText(UISettings::values.port);
+    ui->port->setText(QString::number(UISettings::values.multiplayer_port.GetValue()));
 
     // TODO(jroweboy): Show or hide the connection options based on the current value of the combo
     // box. Add this back in when the traversal server support is added.
@@ -86,16 +86,18 @@ void DirectConnectWindow::Connect() {
     }
 
     // Store settings
-    UISettings::values.nickname = ui->nickname->text();
-    UISettings::values.ip = ui->ip->text();
-    UISettings::values.port = (ui->port->isModified() && !ui->port->text().isEmpty())
-                                  ? ui->port->text()
-                                  : UISettings::values.port;
+    UISettings::values.multiplayer_nickname = ui->nickname->text();
+    UISettings::values.multiplayer_ip = ui->ip->text();
+    if (ui->port->isModified() && !ui->port->text().isEmpty()) {
+        UISettings::values.multiplayer_port = ui->port->text().toInt();
+    } else {
+        UISettings::values.multiplayer_port = UISettings::values.multiplayer_port.GetDefault();
+    }
 
     // attempt to connect in a different thread
     QFuture<void> f = QtConcurrent::run([&] {
         if (auto room_member = Network::GetRoomMember().lock()) {
-            auto port = UISettings::values.port.toUInt();
+            auto port = UISettings::values.multiplayer_port.GetValue();
             room_member->Join(ui->nickname->text().toStdString(), "",
                               ui->ip->text().toStdString().c_str(), port, 0,
                               Network::NoPreferredMac, ui->password->text().toStdString().c_str());

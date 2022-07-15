@@ -51,23 +51,24 @@ HostRoomWindow::HostRoomWindow(QWidget* parent, QStandardItemModel* list,
     connect(ui->host, &QPushButton::clicked, this, &HostRoomWindow::Host);
 
     // Restore the settings:
-    ui->username->setText(UISettings::values.room_nickname);
+    ui->username->setText(UISettings::values.multiplayer_room_nickname.GetValue());
     if (ui->username->text().isEmpty() && !Settings::values.yuzu_username.GetValue().empty()) {
         // Use yuzu Web Service user name as nickname by default
         ui->username->setText(QString::fromStdString(Settings::values.yuzu_username.GetValue()));
     }
-    ui->room_name->setText(UISettings::values.room_name);
-    ui->port->setText(UISettings::values.room_port);
-    ui->max_player->setValue(UISettings::values.max_player);
-    int index = UISettings::values.host_type;
+    ui->room_name->setText(UISettings::values.multiplayer_room_name.GetValue());
+    ui->port->setText(QString::number(UISettings::values.multiplayer_room_port.GetValue()));
+    ui->max_player->setValue(UISettings::values.multiplayer_max_player.GetValue());
+    int index = UISettings::values.multiplayer_host_type.GetValue();
     if (index < ui->host_type->count()) {
         ui->host_type->setCurrentIndex(index);
     }
-    index = ui->game_list->findData(UISettings::values.game_id, GameListItemPath::ProgramIdRole);
+    index = ui->game_list->findData(UISettings::values.multiplayer_game_id.GetValue(),
+                                    GameListItemPath::ProgramIdRole);
     if (index != -1) {
         ui->game_list->setCurrentIndex(index);
     }
-    ui->room_description->setText(UISettings::values.room_description);
+    ui->room_description->setText(UISettings::values.multiplayer_room_description.GetValue());
 }
 
 HostRoomWindow::~HostRoomWindow() = default;
@@ -91,7 +92,8 @@ std::unique_ptr<Network::VerifyUser::Backend> HostRoomWindow::CreateVerifyBacken
     std::unique_ptr<Network::VerifyUser::Backend> verify_backend;
     if (use_validation) {
 #ifdef ENABLE_WEB_SERVICE
-        verify_backend = std::make_unique<WebService::VerifyUserJWT>(Settings::values.web_api_url);
+        verify_backend =
+            std::make_unique<WebService::VerifyUserJWT>(Settings::values.web_api_url.GetValue());
 #else
         verify_backend = std::make_unique<Network::VerifyUser::NullBackend>();
 #endif
@@ -137,7 +139,7 @@ void HostRoomWindow::Host() {
         const bool is_public = ui->host_type->currentIndex() == 0;
         Network::Room::BanList ban_list{};
         if (ui->load_ban_list->isChecked()) {
-            ban_list = UISettings::values.ban_list;
+            ban_list = UISettings::values.multiplayer_ban_list;
         }
         if (auto room = Network::GetRoom().lock()) {
             bool created = room->Create(
@@ -181,8 +183,9 @@ void HostRoomWindow::Host() {
         std::string token;
 #ifdef ENABLE_WEB_SERVICE
         if (is_public) {
-            WebService::Client client(Settings::values.web_api_url, Settings::values.yuzu_username,
-                                      Settings::values.yuzu_token);
+            WebService::Client client(Settings::values.web_api_url.GetValue(),
+                                      Settings::values.yuzu_username.GetValue(),
+                                      Settings::values.yuzu_token.GetValue());
             if (auto room = Network::GetRoom().lock()) {
                 token = client.GetExternalJWT(room->GetVerifyUID()).returned_data;
             }
@@ -198,17 +201,19 @@ void HostRoomWindow::Host() {
                      Network::NoPreferredMac, password, token);
 
         // Store settings
-        UISettings::values.room_nickname = ui->username->text();
-        UISettings::values.room_name = ui->room_name->text();
-        UISettings::values.game_id =
+        UISettings::values.multiplayer_room_nickname = ui->username->text();
+        UISettings::values.multiplayer_room_name = ui->room_name->text();
+        UISettings::values.multiplayer_game_id =
             ui->game_list->currentData(GameListItemPath::ProgramIdRole).toLongLong();
-        UISettings::values.max_player = ui->max_player->value();
+        UISettings::values.multiplayer_max_player = ui->max_player->value();
 
-        UISettings::values.host_type = ui->host_type->currentIndex();
-        UISettings::values.room_port = (ui->port->isModified() && !ui->port->text().isEmpty())
-                                           ? ui->port->text()
-                                           : QString::number(Network::DefaultRoomPort);
-        UISettings::values.room_description = ui->room_description->toPlainText();
+        UISettings::values.multiplayer_host_type = ui->host_type->currentIndex();
+        if (ui->port->isModified() && !ui->port->text().isEmpty()) {
+            UISettings::values.multiplayer_room_port = ui->port->text().toInt();
+        } else {
+            UISettings::values.multiplayer_room_port = Network::DefaultRoomPort;
+        }
+        UISettings::values.multiplayer_room_description = ui->room_description->toPlainText();
         ui->host->setEnabled(true);
         close();
     }

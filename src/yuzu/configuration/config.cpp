@@ -585,48 +585,6 @@ void Config::ReadMiscellaneousValues() {
     qt_config->endGroup();
 }
 
-void Config::ReadMultiplayerValues() {
-    qt_config->beginGroup(QStringLiteral("Multiplayer"));
-
-    UISettings::values.nickname = ReadSetting(QStringLiteral("nickname"), QString{}).toString();
-    UISettings::values.ip = ReadSetting(QStringLiteral("ip"), QString{}).toString();
-    UISettings::values.port =
-        ReadSetting(QStringLiteral("port"), Network::DefaultRoomPort).toString();
-    UISettings::values.room_nickname =
-        ReadSetting(QStringLiteral("room_nickname"), QString{}).toString();
-    UISettings::values.room_name = ReadSetting(QStringLiteral("room_name"), QString{}).toString();
-    UISettings::values.room_port =
-        ReadSetting(QStringLiteral("room_port"), QStringLiteral("24872")).toString();
-    bool ok;
-    UISettings::values.host_type = ReadSetting(QStringLiteral("host_type"), 0).toUInt(&ok);
-    if (!ok) {
-        UISettings::values.host_type = 0;
-    }
-    UISettings::values.max_player = ReadSetting(QStringLiteral("max_player"), 8).toUInt();
-    UISettings::values.game_id = ReadSetting(QStringLiteral("game_id"), 0).toULongLong();
-    UISettings::values.room_description =
-        ReadSetting(QStringLiteral("room_description"), QString{}).toString();
-    // Read ban list back
-    int size = qt_config->beginReadArray(QStringLiteral("username_ban_list"));
-    UISettings::values.ban_list.first.resize(size);
-    for (int i = 0; i < size; ++i) {
-        qt_config->setArrayIndex(i);
-        UISettings::values.ban_list.first[i] =
-            ReadSetting(QStringLiteral("username")).toString().toStdString();
-    }
-    qt_config->endArray();
-    size = qt_config->beginReadArray(QStringLiteral("ip_ban_list"));
-    UISettings::values.ban_list.second.resize(size);
-    for (int i = 0; i < size; ++i) {
-        qt_config->setArrayIndex(i);
-        UISettings::values.ban_list.second[i] =
-            ReadSetting(QStringLiteral("ip")).toString().toStdString();
-    }
-    qt_config->endArray();
-
-    qt_config->endGroup();
-}
-
 void Config::ReadPathValues() {
     qt_config->beginGroup(QStringLiteral("Paths"));
 
@@ -904,6 +862,42 @@ void Config::ReadWebServiceValues() {
     qt_config->endGroup();
 }
 
+void Config::ReadMultiplayerValues() {
+    qt_config->beginGroup(QStringLiteral("Multiplayer"));
+
+    ReadBasicSetting(UISettings::values.multiplayer_nickname);
+    ReadBasicSetting(UISettings::values.multiplayer_ip);
+    ReadBasicSetting(UISettings::values.multiplayer_port);
+    ReadBasicSetting(UISettings::values.multiplayer_room_nickname);
+    ReadBasicSetting(UISettings::values.multiplayer_room_name);
+    ReadBasicSetting(UISettings::values.multiplayer_room_port);
+    ReadBasicSetting(UISettings::values.multiplayer_host_type);
+    ReadBasicSetting(UISettings::values.multiplayer_port);
+    ReadBasicSetting(UISettings::values.multiplayer_max_player);
+    ReadBasicSetting(UISettings::values.multiplayer_game_id);
+    ReadBasicSetting(UISettings::values.multiplayer_room_description);
+
+    // Read ban list back
+    int size = qt_config->beginReadArray(QStringLiteral("username_ban_list"));
+    UISettings::values.multiplayer_ban_list.first.resize(size);
+    for (int i = 0; i < size; ++i) {
+        qt_config->setArrayIndex(i);
+        UISettings::values.multiplayer_ban_list.first[i] =
+            ReadSetting(QStringLiteral("username")).toString().toStdString();
+    }
+    qt_config->endArray();
+    size = qt_config->beginReadArray(QStringLiteral("ip_ban_list"));
+    UISettings::values.multiplayer_ban_list.second.resize(size);
+    for (int i = 0; i < size; ++i) {
+        qt_config->setArrayIndex(i);
+        UISettings::values.multiplayer_ban_list.second[i] =
+            ReadSetting(QStringLiteral("ip")).toString().toStdString();
+    }
+    qt_config->endArray();
+
+    qt_config->endGroup();
+}
+
 void Config::ReadValues() {
     if (global) {
         ReadControlValues();
@@ -920,6 +914,7 @@ void Config::ReadValues() {
     ReadRendererValues();
     ReadAudioValues();
     ReadSystemValues();
+    ReadMultiplayerValues();
 }
 
 void Config::SavePlayerValue(std::size_t player_index) {
@@ -1069,6 +1064,7 @@ void Config::SaveValues() {
     SaveRendererValues();
     SaveAudioValues();
     SaveSystemValues();
+    SaveMultiplayerValues();
 }
 
 void Config::SaveAudioValues() {
@@ -1201,40 +1197,6 @@ void Config::SaveMiscellaneousValues() {
 
     WriteBasicSetting(Settings::values.log_filter);
     WriteBasicSetting(Settings::values.use_dev_keys);
-
-    qt_config->endGroup();
-}
-
-void Config::SaveMultiplayerValues() {
-    qt_config->beginGroup(QStringLiteral("Multiplayer"));
-
-    WriteSetting(QStringLiteral("nickname"), UISettings::values.nickname, QString{});
-    WriteSetting(QStringLiteral("ip"), UISettings::values.ip, QString{});
-    WriteSetting(QStringLiteral("port"), UISettings::values.port, Network::DefaultRoomPort);
-    WriteSetting(QStringLiteral("room_nickname"), UISettings::values.room_nickname, QString{});
-    WriteSetting(QStringLiteral("room_name"), UISettings::values.room_name, QString{});
-    WriteSetting(QStringLiteral("room_port"), UISettings::values.room_port,
-                 QStringLiteral("24872"));
-    WriteSetting(QStringLiteral("host_type"), UISettings::values.host_type, 0);
-    WriteSetting(QStringLiteral("max_player"), UISettings::values.max_player, 8);
-    WriteSetting(QStringLiteral("game_id"), UISettings::values.game_id, 0);
-    WriteSetting(QStringLiteral("room_description"), UISettings::values.room_description,
-                 QString{});
-    // Write ban list
-    qt_config->beginWriteArray(QStringLiteral("username_ban_list"));
-    for (std::size_t i = 0; i < UISettings::values.ban_list.first.size(); ++i) {
-        qt_config->setArrayIndex(static_cast<int>(i));
-        WriteSetting(QStringLiteral("username"),
-                     QString::fromStdString(UISettings::values.ban_list.first[i]));
-    }
-    qt_config->endArray();
-    qt_config->beginWriteArray(QStringLiteral("ip_ban_list"));
-    for (std::size_t i = 0; i < UISettings::values.ban_list.second.size(); ++i) {
-        qt_config->setArrayIndex(static_cast<int>(i));
-        WriteSetting(QStringLiteral("ip"),
-                     QString::fromStdString(UISettings::values.ban_list.second[i]));
-    }
-    qt_config->endArray();
 
     qt_config->endGroup();
 }
@@ -1486,6 +1448,40 @@ void Config::SaveWebServiceValues() {
     WriteBasicSetting(Settings::values.web_api_url);
     WriteBasicSetting(Settings::values.yuzu_username);
     WriteBasicSetting(Settings::values.yuzu_token);
+
+    qt_config->endGroup();
+}
+
+void Config::SaveMultiplayerValues() {
+    qt_config->beginGroup(QStringLiteral("Multiplayer"));
+
+    WriteBasicSetting(UISettings::values.multiplayer_nickname);
+    WriteBasicSetting(UISettings::values.multiplayer_ip);
+    WriteBasicSetting(UISettings::values.multiplayer_port);
+    WriteBasicSetting(UISettings::values.multiplayer_room_nickname);
+    WriteBasicSetting(UISettings::values.multiplayer_room_name);
+    WriteBasicSetting(UISettings::values.multiplayer_room_port);
+    WriteBasicSetting(UISettings::values.multiplayer_host_type);
+    WriteBasicSetting(UISettings::values.multiplayer_port);
+    WriteBasicSetting(UISettings::values.multiplayer_max_player);
+    WriteBasicSetting(UISettings::values.multiplayer_game_id);
+    WriteBasicSetting(UISettings::values.multiplayer_room_description);
+
+    // Write ban list
+    qt_config->beginWriteArray(QStringLiteral("username_ban_list"));
+    for (std::size_t i = 0; i < UISettings::values.multiplayer_ban_list.first.size(); ++i) {
+        qt_config->setArrayIndex(static_cast<int>(i));
+        WriteSetting(QStringLiteral("username"),
+                     QString::fromStdString(UISettings::values.multiplayer_ban_list.first[i]));
+    }
+    qt_config->endArray();
+    qt_config->beginWriteArray(QStringLiteral("ip_ban_list"));
+    for (std::size_t i = 0; i < UISettings::values.multiplayer_ban_list.second.size(); ++i) {
+        qt_config->setArrayIndex(static_cast<int>(i));
+        WriteSetting(QStringLiteral("ip"),
+                     QString::fromStdString(UISettings::values.multiplayer_ban_list.second[i]));
+    }
+    qt_config->endArray();
 
     qt_config->endGroup();
 }
