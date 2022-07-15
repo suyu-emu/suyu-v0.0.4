@@ -356,7 +356,7 @@ if(ENABLE_QT)
         find_package(Qt5 ${QT_VERSION} REQUIRED COMPONENTS Widgets Concurrent ${QT_PREFIX_HINT} ${YUZU_QT_NO_CMAKE_SYSTEM_PATH})
     endif()
     if (YUZU_USE_QT_WEB_ENGINE)
-        find_package(Qt5 COMPONENTS WebEngineCore WebEngineWidgets)
+        find_package(Qt5 REQUIRED COMPONENTS WebEngineCore WebEngineWidgets)
     endif()
 
     if (ENABLE_QT_TRANSLATION)
