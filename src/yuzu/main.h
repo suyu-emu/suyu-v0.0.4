@@ -244,6 +244,7 @@ private:
     bool ConfirmChangeGame();
     bool ConfirmForceLockedExit();
     void RequestGameExit();
+    void RequestGameResume();
     void closeEvent(QCloseEvent* event) override;
 
 private slots:

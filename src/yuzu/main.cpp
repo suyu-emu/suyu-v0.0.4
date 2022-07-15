@@ -1131,6 +1131,7 @@ void GMainWindow::OnAppFocusStateChanged(Qt::ApplicationState state) {
             OnPauseGame();
         } else if (!emu_thread->IsRunning() && auto_paused && state == Qt::ApplicationActive) {
             auto_paused = false;
+            RequestGameResume();
             OnStartGame();
         }
     }
@@ -2570,6 +2571,7 @@ void GMainWindow::OnPauseContinueGame() {
         if (emu_thread->IsRunning()) {
             OnPauseGame();
         } else {
+            RequestGameResume();
             OnStartGame();
         }
     }
@@ -3746,6 +3748,21 @@ void GMainWindow::RequestGameExit() {
 
     if (applet_ae != nullptr && !has_signalled) {
         applet_ae->GetMessageQueue()->RequestExit();
+    }
+}
+
+void GMainWindow::RequestGameResume() {
+    auto& sm{system->ServiceManager()};
+    auto applet_oe = sm.GetService<Service::AM::AppletOE>("appletOE");
+    auto applet_ae = sm.GetService<Service::AM::AppletAE>("appletAE");
+
+    if (applet_oe != nullptr) {
+        applet_oe->GetMessageQueue()->RequestResume();
+        return;
+    }
+
+    if (applet_ae != nullptr) {
+        applet_ae->GetMessageQueue()->RequestResume();
     }
 }
 
