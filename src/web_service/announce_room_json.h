@@ -24,10 +24,7 @@ public:
                             const u32 max_player, const u32 net_version, const bool has_password,
                             const std::string& preferred_game,
                             const u64 preferred_game_id) override;
-    void AddPlayer(const std::string& username_, const std::string& nickname_,
-                   const std::string& avatar_url,
-                   const AnnounceMultiplayerRoom::MacAddress& mac_address, const u64 game_id,
-                   const std::string& game_name) override;
+    void AddPlayer(const AnnounceMultiplayerRoom::Member& member) override;
     WebResult Update() override;
     WebResult Register() override;
     void ClearPlayers() override;

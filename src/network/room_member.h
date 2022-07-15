@@ -9,10 +9,14 @@
 #include <string>
 #include <vector>
 #include <boost/serialization/vector.hpp>
+#include "common/announce_multiplayer_room.h"
 #include "common/common_types.h"
 #include "network/room.h"
 
 namespace Network {
+
+using AnnounceMultiplayerRoom::GameInfo;
+using AnnounceMultiplayerRoom::RoomInformation;
 
 /// Information about the received WiFi packets.
 /// Acts as our own 802.11 header.

@@ -15,27 +15,40 @@ namespace AnnounceMultiplayerRoom {
 
 using MacAddress = std::array<u8, 6>;
 
+struct Member {
+    std::string username;
+    std::string nickname;
+    std::string display_name;
+    std::string avatar_url;
+    MacAddress mac_address;
+    std::string game_name;
+    u64 game_id;
+};
+
+struct RoomInformation {
+    std::string name;           ///< Name of the server
+    std::string description;    ///< Server description
+    u32 member_slots;           ///< Maximum number of members in this room
+    u16 port;                   ///< The port of this room
+    std::string preferred_game; ///< Game to advertise that you want to play
+    u64 preferred_game_id;      ///< Title ID for the advertised game
+    std::string host_username;  ///< Forum username of the host
+    bool enable_yuzu_mods;      ///< Allow yuzu Moderators to moderate on this room
+};
+
+struct GameInfo {
+    std::string name{""};
+    u64 id{0};
+};
+
 struct Room {
-    struct Member {
-        std::string username;
-        std::string nickname;
-        std::string avatar_url;
-        MacAddress mac_address;
-        std::string game_name;
-        u64 game_id;
-    };
+    RoomInformation information;
+
     std::string id;
     std::string verify_UID; ///< UID used for verification
-    std::string name;
-    std::string description;
-    std::string owner;
     std::string ip;
-    u16 port;
-    u32 max_player;
     u32 net_version;
     bool has_password;
-    std::string preferred_game;
-    u64 preferred_game_id;
 
     std::vector<Member> members;
 };
@@ -71,9 +84,7 @@ public:
      * @param game_id The title id of the game the player plays
      * @param game_name The name of the game the player plays
      */
-    virtual void AddPlayer(const std::string& username, const std::string& nickname,
-                           const std::string& avatar_url, const MacAddress& mac_address,
-                           const u64 game_id, const std::string& game_name) = 0;
+    virtual void AddPlayer(const Member& member) = 0;
 
     /**
      * Updates the data in the announce service. Re-register the room when required.
@@ -116,9 +127,7 @@ public:
                             const u16 /*port*/, const u32 /*max_player*/, const u32 /*net_version*/,
                             const bool /*has_password*/, const std::string& /*preferred_game*/,
                             const u64 /*preferred_game_id*/) override {}
-    void AddPlayer(const std::string& /*username*/, const std::string& /*nickname*/,
-                   const std::string& /*avatar_url*/, const MacAddress& /*mac_address*/,
-                   const u64 /*game_id*/, const std::string& /*game_name*/) override {}
+    void AddPlayer(const Member& /*member*/) override {}
     WebService::WebResult Update() override {
         return WebService::WebResult{WebService::WebResult::Code::NoWebservice,
                                      "WebService is missing", ""};

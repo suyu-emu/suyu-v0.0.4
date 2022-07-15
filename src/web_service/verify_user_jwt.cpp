@@ -2,8 +2,16 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <system_error>
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+#endif
 #include <jwt/jwt.hpp>
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+
+#include <system_error>
 #include "common/logging/log.h"
 #include "web_service/verify_user_jwt.h"
 #include "web_service/web_backend.h"

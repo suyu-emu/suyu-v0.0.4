@@ -1066,8 +1066,8 @@ Room::BanList Room::GetBanList() const {
     return {room_impl->username_ban_list, room_impl->ip_ban_list};
 }
 
-std::vector<Room::Member> Room::GetRoomMemberList() const {
-    std::vector<Room::Member> member_list;
+std::vector<Member> Room::GetRoomMemberList() const {
+    std::vector<Member> member_list;
     std::lock_guard lock(room_impl->member_mutex);
     for (const auto& member_impl : room_impl->members) {
         Member member;
@@ -1076,7 +1076,8 @@ std::vector<Room::Member> Room::GetRoomMemberList() const {
         member.display_name = member_impl.user_data.display_name;
         member.avatar_url = member_impl.user_data.avatar_url;
         member.mac_address = member_impl.mac_address;
-        member.game_info = member_impl.game_info;
+        member.game_name = member_impl.game_info.name;
+        member.game_id = member_impl.game_info.id;
         member_list.push_back(member);
     }
     return member_list;

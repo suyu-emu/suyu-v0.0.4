@@ -11,7 +11,7 @@
 
 namespace AnnounceMultiplayerRoom {
 
-static void to_json(nlohmann::json& json, const Room::Member& member) {
+static void to_json(nlohmann::json& json, const Member& member) {
     if (!member.username.empty()) {
         json["username"] = member.username;
     }
@@ -23,7 +23,7 @@ static void to_json(nlohmann::json& json, const Room::Member& member) {
     json["gameId"] = member.game_id;
 }
 
-static void from_json(const nlohmann::json& json, Room::Member& member) {
+static void from_json(const nlohmann::json& json, Member& member) {
     member.nickname = json.at("nickname").get<std::string>();
     member.game_name = json.at("gameName").get<std::string>();
     member.game_id = json.at("gameId").get<u64>();
@@ -37,14 +37,14 @@ static void from_json(const nlohmann::json& json, Room::Member& member) {
 }
 
 static void to_json(nlohmann::json& json, const Room& room) {
-    json["port"] = room.port;
-    json["name"] = room.name;
-    if (!room.description.empty()) {
-        json["description"] = room.description;
+    json["port"] = room.information.port;
+    json["name"] = room.information.name;
+    if (!room.information.description.empty()) {
+        json["description"] = room.information.description;
     }
-    json["preferredGameName"] = room.preferred_game;
-    json["preferredGameId"] = room.preferred_game_id;
-    json["maxPlayers"] = room.max_player;
+    json["preferredGameName"] = room.information.preferred_game;
+    json["preferredGameId"] = room.information.preferred_game_id;
+    json["maxPlayers"] = room.information.member_slots;
     json["netVersion"] = room.net_version;
     json["hasPassword"] = room.has_password;
     if (room.members.size() > 0) {
@@ -56,22 +56,22 @@ static void to_json(nlohmann::json& json, const Room& room) {
 static void from_json(const nlohmann::json& json, Room& room) {
     room.verify_UID = json.at("externalGuid").get<std::string>();
     room.ip = json.at("address").get<std::string>();
-    room.name = json.at("name").get<std::string>();
+    room.information.name = json.at("name").get<std::string>();
     try {
-        room.description = json.at("description").get<std::string>();
+        room.information.description = json.at("description").get<std::string>();
     } catch (const nlohmann::detail::out_of_range&) {
-        room.description = "";
-        LOG_DEBUG(Network, "Room \'{}\' doesn't contain a description", room.name);
+        room.information.description = "";
+        LOG_DEBUG(Network, "Room \'{}\' doesn't contain a description", room.information.name);
     }
-    room.owner = json.at("owner").get<std::string>();
-    room.port = json.at("port").get<u16>();
-    room.preferred_game = json.at("preferredGameName").get<std::string>();
-    room.preferred_game_id = json.at("preferredGameId").get<u64>();
-    room.max_player = json.at("maxPlayers").get<u32>();
+    room.information.host_username = json.at("owner").get<std::string>();
+    room.information.port = json.at("port").get<u16>();
+    room.information.preferred_game = json.at("preferredGameName").get<std::string>();
+    room.information.preferred_game_id = json.at("preferredGameId").get<u64>();
+    room.information.member_slots = json.at("maxPlayers").get<u32>();
     room.net_version = json.at("netVersion").get<u32>();
     room.has_password = json.at("hasPassword").get<bool>();
     try {
-        room.members = json.at("players").get<std::vector<Room::Member>>();
+        room.members = json.at("players").get<std::vector<Member>>();
     } catch (const nlohmann::detail::out_of_range& e) {
         LOG_DEBUG(Network, "Out of range {}", e.what());
     }
@@ -85,26 +85,16 @@ void RoomJson::SetRoomInformation(const std::string& name, const std::string& de
                                   const u16 port, const u32 max_player, const u32 net_version,
                                   const bool has_password, const std::string& preferred_game,
                                   const u64 preferred_game_id) {
-    room.name = name;
-    room.description = description;
-    room.port = port;
-    room.max_player = max_player;
+    room.information.name = name;
+    room.information.description = description;
+    room.information.port = port;
+    room.information.member_slots = max_player;
     room.net_version = net_version;
     room.has_password = has_password;
-    room.preferred_game = preferred_game;
-    room.preferred_game_id = preferred_game_id;
+    room.information.preferred_game = preferred_game;
+    room.information.preferred_game_id = preferred_game_id;
 }
-void RoomJson::AddPlayer(const std::string& username_, const std::string& nickname_,
-                         const std::string& avatar_url,
-                         const AnnounceMultiplayerRoom::MacAddress& mac_address, const u64 game_id,
-                         const std::string& game_name) {
-    AnnounceMultiplayerRoom::Room::Member member;
-    member.username = username_;
-    member.nickname = nickname_;
-    member.avatar_url = avatar_url;
-    member.mac_address = mac_address;
-    member.game_id = game_id;
-    member.game_name = game_name;
+void RoomJson::AddPlayer(const AnnounceMultiplayerRoom::Member& member) {
     room.members.push_back(member);
 }
 

@@ -8,10 +8,16 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include "common/announce_multiplayer_room.h"
 #include "common/common_types.h"
 #include "network/verify_user.h"
 
 namespace Network {
+
+using AnnounceMultiplayerRoom::GameInfo;
+using AnnounceMultiplayerRoom::MacAddress;
+using AnnounceMultiplayerRoom::Member;
+using AnnounceMultiplayerRoom::RoomInformation;
 
 constexpr u32 network_version = 1; ///< The version of this Room and RoomMember
 
@@ -24,23 +30,6 @@ static constexpr u32 MaxConcurrentConnections = 254;
 
 constexpr std::size_t NumChannels = 1; // Number of channels used for the connection
 
-struct RoomInformation {
-    std::string name;           ///< Name of the server
-    std::string description;    ///< Server description
-    u32 member_slots;           ///< Maximum number of members in this room
-    u16 port;                   ///< The port of this room
-    std::string preferred_game; ///< Game to advertise that you want to play
-    u64 preferred_game_id;      ///< Title ID for the advertised game
-    std::string host_username;  ///< Forum username of the host
-    bool enable_yuzu_mods;      ///< Allow yuzu Moderators to moderate on this room
-};
-
-struct GameInfo {
-    std::string name{""};
-    u64 id{0};
-};
-
-using MacAddress = std::array<u8, 6>;
 /// A special MAC address that tells the room we're joining to assign us a MAC address
 /// automatically.
 constexpr MacAddress NoPreferredMac = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
@@ -93,15 +82,6 @@ public:
     enum class State : u8 {
         Open,   ///< The room is open and ready to accept connections.
         Closed, ///< The room is not opened and can not accept connections.
-    };
-
-    struct Member {
-        std::string nickname;     ///< The nickname of the member.
-        std::string username;     ///< The web services username of the member. Can be empty.
-        std::string display_name; ///< The web services display name of the member. Can be empty.
-        std::string avatar_url;   ///< Url to the member's avatar. Can be empty.
-        GameInfo game_info;       ///< The current game of the member
-        MacAddress mac_address;   ///< The assigned mac address of the member.
     };
 
     Room();

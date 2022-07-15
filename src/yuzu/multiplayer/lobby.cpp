@@ -214,7 +214,7 @@ void Lobby::OnRefreshLobby() {
         for (int r = 0; r < game_list->rowCount(); ++r) {
             auto index = game_list->index(r, 0);
             auto game_id = game_list->data(index, GameListItemPath::ProgramIdRole).toULongLong();
-            if (game_id != 0 && room.preferred_game_id == game_id) {
+            if (game_id != 0 && room.information.preferred_game_id == game_id) {
                 smdh_icon = game_list->data(index, Qt::DecorationRole).value<QPixmap>();
             }
         }
@@ -231,20 +231,21 @@ void Lobby::OnRefreshLobby() {
         auto first_item = new LobbyItem();
         auto row = QList<QStandardItem*>({
             first_item,
-            new LobbyItemName(room.has_password, QString::fromStdString(room.name)),
-            new LobbyItemGame(room.preferred_game_id, QString::fromStdString(room.preferred_game),
-                              smdh_icon),
-            new LobbyItemHost(QString::fromStdString(room.owner), QString::fromStdString(room.ip),
-                              room.port, QString::fromStdString(room.verify_UID)),
-            new LobbyItemMemberList(members, room.max_player),
+            new LobbyItemName(room.has_password, QString::fromStdString(room.information.name)),
+            new LobbyItemGame(room.information.preferred_game_id,
+                              QString::fromStdString(room.information.preferred_game), smdh_icon),
+            new LobbyItemHost(QString::fromStdString(room.information.host_username),
+                              QString::fromStdString(room.ip), room.information.port,
+                              QString::fromStdString(room.verify_UID)),
+            new LobbyItemMemberList(members, room.information.member_slots),
         });
         model->appendRow(row);
         // To make the rows expandable, add the member data as a child of the first column of the
         // rows with people in them and have qt set them to colspan after the model is finished
         // resetting
-        if (!room.description.empty()) {
+        if (!room.information.description.empty()) {
             first_item->appendRow(
-                new LobbyItemDescription(QString::fromStdString(room.description)));
+                new LobbyItemDescription(QString::fromStdString(room.information.description)));
         }
         if (!room.members.empty()) {
             first_item->appendRow(new LobbyItemExpandedMemberList(members));
