@@ -1498,6 +1498,8 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
     if (!LoadROM(filename, program_id, program_index))
         return;
 
+    system->SetShuttingDown(false);
+
     // Create and start the emulation thread
     emu_thread = std::make_unique<EmuThread>(*system);
     emit EmulationStarting(emu_thread.get());
@@ -1588,6 +1590,7 @@ void GMainWindow::ShutdownGame() {
 
     AllowOSSleep();
 
+    system->SetShuttingDown(true);
     system->DetachDebugger();
     discord_rpc->Pause();
     emu_thread->RequestStop();

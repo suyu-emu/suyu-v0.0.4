@@ -8,6 +8,7 @@
 #include <memory>
 #include <utility>
 
+#include "audio_core/audio_core.h"
 #include "common/fs/fs.h"
 #include "common/logging/log.h"
 #include "common/microprofile.h"
@@ -140,6 +141,8 @@ struct System::Impl {
         core_timing.SyncPause(false);
         is_paused = false;
 
+        audio_core->PauseSinks(false);
+
         return status;
     }
 
@@ -147,11 +150,18 @@ struct System::Impl {
         std::unique_lock<std::mutex> lk(suspend_guard);
         status = SystemResultStatus::Success;
 
+        audio_core->PauseSinks(true);
+
         core_timing.SyncPause(true);
         kernel.Suspend(true);
         is_paused = true;
 
         return status;
+    }
+
+    bool IsPaused() const {
+        std::unique_lock lk(suspend_guard);
+        return is_paused;
     }
 
     std::unique_lock<std::mutex> StallProcesses() {
@@ -213,6 +223,8 @@ struct System::Impl {
         if (!gpu_core) {
             return SystemResultStatus::ErrorVideoCore;
         }
+
+        audio_core = std::make_unique<AudioCore::AudioCore>(system);
 
         service_manager = std::make_shared<Service::SM::ServiceManager>(kernel);
         services = std::make_unique<Service::Services>(service_manager, system);
@@ -290,7 +302,7 @@ struct System::Impl {
             if (Settings::values.gamecard_current_game) {
                 fs_controller.SetGameCard(GetGameFileFromPath(virtual_filesystem, filepath));
             } else if (!Settings::values.gamecard_path.GetValue().empty()) {
-                const auto gamecard_path = Settings::values.gamecard_path.GetValue();
+                const auto& gamecard_path = Settings::values.gamecard_path.GetValue();
                 fs_controller.SetGameCard(GetGameFileFromPath(virtual_filesystem, gamecard_path));
             }
         }
@@ -308,6 +320,8 @@ struct System::Impl {
     }
 
     void Shutdown() {
+        SetShuttingDown(true);
+
         // Log last frame performance stats if game was loded
         if (perf_stats) {
             const auto perf_results = GetAndResetPerfStats();
@@ -333,14 +347,15 @@ struct System::Impl {
         kernel.ShutdownCores();
         cpu_manager.Shutdown();
         debugger.reset();
+        kernel.CloseServices();
         services.reset();
         service_manager.reset();
         cheat_engine.reset();
         telemetry_session.reset();
-        cpu_manager.Shutdown();
         time_manager.Shutdown();
         core_timing.Shutdown();
         app_loader.reset();
+        audio_core.reset();
         gpu_core.reset();
         perf_stats.reset();
         kernel.Shutdown();
@@ -348,6 +363,14 @@ struct System::Impl {
         applet_manager.ClearAll();
 
         LOG_DEBUG(Core, "Shutdown OK");
+    }
+
+    bool IsShuttingDown() const {
+        return is_shutting_down;
+    }
+
+    void SetShuttingDown(bool shutting_down) {
+        is_shutting_down = shutting_down;
     }
 
     Loader::ResultStatus GetGameName(std::string& out) const {
@@ -392,8 +415,9 @@ struct System::Impl {
         return perf_stats->GetAndResetStats(core_timing.GetGlobalTimeUs());
     }
 
-    std::mutex suspend_guard;
+    mutable std::mutex suspend_guard;
     bool is_paused{};
+    std::atomic<bool> is_shutting_down{};
 
     Timing::CoreTiming core_timing;
     Kernel::KernelCore kernel;
@@ -407,6 +431,7 @@ struct System::Impl {
     std::unique_ptr<Tegra::GPU> gpu_core;
     std::unique_ptr<Hardware::InterruptManager> interrupt_manager;
     std::unique_ptr<Core::DeviceMemory> device_memory;
+    std::unique_ptr<AudioCore::AudioCore> audio_core;
     Core::Memory::Memory memory;
     Core::HID::HIDCore hid_core;
     CpuManager cpu_manager;
@@ -479,6 +504,10 @@ SystemResultStatus System::Pause() {
     return impl->Pause();
 }
 
+bool System::IsPaused() const {
+    return impl->IsPaused();
+}
+
 void System::InvalidateCpuInstructionCaches() {
     impl->kernel.InvalidateAllInstructionCaches();
 }
@@ -489,6 +518,14 @@ void System::InvalidateCpuInstructionCacheRange(VAddr addr, std::size_t size) {
 
 void System::Shutdown() {
     impl->Shutdown();
+}
+
+bool System::IsShuttingDown() const {
+    return impl->IsShuttingDown();
+}
+
+void System::SetShuttingDown(bool shutting_down) {
+    impl->SetShuttingDown(shutting_down);
 }
 
 void System::DetachDebugger() {
@@ -638,6 +675,14 @@ HID::HIDCore& System::HIDCore() {
 
 const HID::HIDCore& System::HIDCore() const {
     return impl->hid_core;
+}
+
+AudioCore::AudioCore& System::AudioCore() {
+    return *impl->audio_core;
+}
+
+const AudioCore::AudioCore& System::AudioCore() const {
+    return *impl->audio_core;
 }
 
 Timing::CoreTiming& System::CoreTiming() {
