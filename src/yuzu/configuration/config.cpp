@@ -143,8 +143,8 @@ void Config::ReadBasicSetting(Settings::Setting<std::string>& setting) {
     }
 }
 
-template <typename Type>
-void Config::ReadBasicSetting(Settings::Setting<Type>& setting) {
+template <typename Type, bool ranged>
+void Config::ReadBasicSetting(Settings::Setting<Type, ranged>& setting) {
     const QString name = QString::fromStdString(setting.GetLabel());
     const Type default_value = setting.GetDefault();
     if (qt_config->value(name + QStringLiteral("/default"), false).toBool()) {
@@ -164,16 +164,16 @@ void Config::WriteBasicSetting(const Settings::Setting<std::string>& setting) {
     qt_config->setValue(name, QString::fromStdString(value));
 }
 
-template <typename Type>
-void Config::WriteBasicSetting(const Settings::Setting<Type>& setting) {
+template <typename Type, bool ranged>
+void Config::WriteBasicSetting(const Settings::Setting<Type, ranged>& setting) {
     const QString name = QString::fromStdString(setting.GetLabel());
     const Type value = setting.GetValue();
     qt_config->setValue(name + QStringLiteral("/default"), value == setting.GetDefault());
     qt_config->setValue(name, value);
 }
 
-template <typename Type>
-void Config::WriteGlobalSetting(const Settings::SwitchableSetting<Type>& setting) {
+template <typename Type, bool ranged>
+void Config::WriteGlobalSetting(const Settings::SwitchableSetting<Type, ranged>& setting) {
     const QString name = QString::fromStdString(setting.GetLabel());
     const Type& value = setting.GetValue(global);
     if (!global) {
@@ -1421,8 +1421,8 @@ QVariant Config::ReadSetting(const QString& name, const QVariant& default_value)
     return result;
 }
 
-template <typename Type>
-void Config::ReadGlobalSetting(Settings::SwitchableSetting<Type>& setting) {
+template <typename Type, bool ranged>
+void Config::ReadGlobalSetting(Settings::SwitchableSetting<Type, ranged>& setting) {
     QString name = QString::fromStdString(setting.GetLabel());
     const bool use_global = qt_config->value(name + QStringLiteral("/use_global"), true).toBool();
     setting.SetGlobal(use_global);
