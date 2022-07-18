@@ -15,30 +15,28 @@ namespace AnnounceMultiplayerRoom {
 
 using MacAddress = std::array<u8, 6>;
 
+struct GameInfo {
+    std::string name{""};
+    u64 id{0};
+};
+
 struct Member {
     std::string username;
     std::string nickname;
     std::string display_name;
     std::string avatar_url;
     MacAddress mac_address;
-    std::string game_name;
-    u64 game_id;
+    GameInfo game;
 };
 
 struct RoomInformation {
-    std::string name;           ///< Name of the server
-    std::string description;    ///< Server description
-    u32 member_slots;           ///< Maximum number of members in this room
-    u16 port;                   ///< The port of this room
-    std::string preferred_game; ///< Game to advertise that you want to play
-    u64 preferred_game_id;      ///< Title ID for the advertised game
-    std::string host_username;  ///< Forum username of the host
-    bool enable_yuzu_mods;      ///< Allow yuzu Moderators to moderate on this room
-};
-
-struct GameInfo {
-    std::string name{""};
-    u64 id{0};
+    std::string name;          ///< Name of the server
+    std::string description;   ///< Server description
+    u32 member_slots;          ///< Maximum number of members in this room
+    u16 port;                  ///< The port of this room
+    GameInfo preferred_game;   ///< Game to advertise that you want to play
+    std::string host_username; ///< Forum username of the host
+    bool enable_yuzu_mods;     ///< Allow yuzu Moderators to moderate on this room
 };
 
 struct Room {
@@ -75,8 +73,7 @@ public:
      */
     virtual void SetRoomInformation(const std::string& name, const std::string& description,
                                     const u16 port, const u32 max_player, const u32 net_version,
-                                    const bool has_password, const std::string& preferred_game,
-                                    const u64 preferred_game_id) = 0;
+                                    const bool has_password, const GameInfo& preferred_game) = 0;
     /**
      * Adds a player information to the data that gets announced
      * @param nickname The nickname of the player
@@ -125,8 +122,8 @@ public:
     ~NullBackend() = default;
     void SetRoomInformation(const std::string& /*name*/, const std::string& /*description*/,
                             const u16 /*port*/, const u32 /*max_player*/, const u32 /*net_version*/,
-                            const bool /*has_password*/, const std::string& /*preferred_game*/,
-                            const u64 /*preferred_game_id*/) override {}
+                            const bool /*has_password*/,
+                            const GameInfo& /*preferred_game*/) override {}
     void AddPlayer(const Member& /*member*/) override {}
     WebService::WebResult Update() override {
         return WebService::WebResult{WebService::WebResult::Code::NoWebservice,

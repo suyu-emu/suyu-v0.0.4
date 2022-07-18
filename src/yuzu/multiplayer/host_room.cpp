@@ -132,21 +132,24 @@ void HostRoomWindow::Host() {
         }
         ui->host->setDisabled(true);
 
-        auto game_name = ui->game_list->currentData(Qt::DisplayRole).toString();
-        auto game_id = ui->game_list->currentData(GameListItemPath::ProgramIdRole).toLongLong();
-        auto port = ui->port->isModified() ? ui->port->text().toInt() : Network::DefaultRoomPort;
-        auto password = ui->password->text().toStdString();
+        const AnnounceMultiplayerRoom::GameInfo game{
+            .name = ui->game_list->currentData(Qt::DisplayRole).toString().toStdString(),
+            .id = ui->game_list->currentData(GameListItemPath::ProgramIdRole).toULongLong(),
+        };
+        const auto port =
+            ui->port->isModified() ? ui->port->text().toInt() : Network::DefaultRoomPort;
+        const auto password = ui->password->text().toStdString();
         const bool is_public = ui->host_type->currentIndex() == 0;
         Network::Room::BanList ban_list{};
         if (ui->load_ban_list->isChecked()) {
             ban_list = UISettings::values.multiplayer_ban_list;
         }
         if (auto room = Network::GetRoom().lock()) {
-            bool created = room->Create(
-                ui->room_name->text().toStdString(),
-                ui->room_description->toPlainText().toStdString(), "", port, password,
-                ui->max_player->value(), Settings::values.yuzu_username.GetValue(),
-                game_name.toStdString(), game_id, CreateVerifyBackend(is_public), ban_list);
+            const bool created =
+                room->Create(ui->room_name->text().toStdString(),
+                             ui->room_description->toPlainText().toStdString(), "", port, password,
+                             ui->max_player->value(), Settings::values.yuzu_username.GetValue(),
+                             game, CreateVerifyBackend(is_public), ban_list);
             if (!created) {
                 NetworkMessage::ErrorManager::ShowError(
                     NetworkMessage::ErrorManager::COULD_NOT_CREATE_ROOM);

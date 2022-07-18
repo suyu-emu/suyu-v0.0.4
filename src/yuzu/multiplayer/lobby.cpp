@@ -214,7 +214,7 @@ void Lobby::OnRefreshLobby() {
         for (int r = 0; r < game_list->rowCount(); ++r) {
             auto index = game_list->index(r, 0);
             auto game_id = game_list->data(index, GameListItemPath::ProgramIdRole).toULongLong();
-            if (game_id != 0 && room.information.preferred_game_id == game_id) {
+            if (game_id != 0 && room.information.preferred_game.id == game_id) {
                 smdh_icon = game_list->data(index, Qt::DecorationRole).value<QPixmap>();
             }
         }
@@ -223,8 +223,8 @@ void Lobby::OnRefreshLobby() {
         for (auto member : room.members) {
             QVariant var;
             var.setValue(LobbyMember{QString::fromStdString(member.username),
-                                     QString::fromStdString(member.nickname), member.game_id,
-                                     QString::fromStdString(member.game_name)});
+                                     QString::fromStdString(member.nickname), member.game.id,
+                                     QString::fromStdString(member.game.name)});
             members.append(var);
         }
 
@@ -232,8 +232,9 @@ void Lobby::OnRefreshLobby() {
         auto row = QList<QStandardItem*>({
             first_item,
             new LobbyItemName(room.has_password, QString::fromStdString(room.information.name)),
-            new LobbyItemGame(room.information.preferred_game_id,
-                              QString::fromStdString(room.information.preferred_game), smdh_icon),
+            new LobbyItemGame(room.information.preferred_game.id,
+                              QString::fromStdString(room.information.preferred_game.name),
+                              smdh_icon),
             new LobbyItemHost(QString::fromStdString(room.information.host_username),
                               QString::fromStdString(room.ip), room.information.port,
                               QString::fromStdString(room.verify_UID)),

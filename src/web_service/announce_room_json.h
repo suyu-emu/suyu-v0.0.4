@@ -22,8 +22,7 @@ public:
     ~RoomJson() = default;
     void SetRoomInformation(const std::string& name, const std::string& description, const u16 port,
                             const u32 max_player, const u32 net_version, const bool has_password,
-                            const std::string& preferred_game,
-                            const u64 preferred_game_id) override;
+                            const AnnounceMultiplayerRoom::GameInfo& preferred_game) override;
     void AddPlayer(const AnnounceMultiplayerRoom::Member& member) override;
     WebResult Update() override;
     WebResult Register() override;

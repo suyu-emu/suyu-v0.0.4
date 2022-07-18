@@ -303,7 +303,7 @@ void RoomMember::RoomMemberImpl::HandleRoomInformationPacket(const ENetEvent* ev
     packet >> info.description;
     packet >> info.member_slots;
     packet >> info.port;
-    packet >> info.preferred_game;
+    packet >> info.preferred_game.name;
     packet >> info.host_username;
     room_information.name = info.name;
     room_information.description = info.description;

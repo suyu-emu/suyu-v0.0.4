@@ -19,14 +19,14 @@ static void to_json(nlohmann::json& json, const Member& member) {
     if (!member.avatar_url.empty()) {
         json["avatarUrl"] = member.avatar_url;
     }
-    json["gameName"] = member.game_name;
-    json["gameId"] = member.game_id;
+    json["gameName"] = member.game.name;
+    json["gameId"] = member.game.id;
 }
 
 static void from_json(const nlohmann::json& json, Member& member) {
     member.nickname = json.at("nickname").get<std::string>();
-    member.game_name = json.at("gameName").get<std::string>();
-    member.game_id = json.at("gameId").get<u64>();
+    member.game.name = json.at("gameName").get<std::string>();
+    member.game.id = json.at("gameId").get<u64>();
     try {
         member.username = json.at("username").get<std::string>();
         member.avatar_url = json.at("avatarUrl").get<std::string>();
@@ -42,8 +42,8 @@ static void to_json(nlohmann::json& json, const Room& room) {
     if (!room.information.description.empty()) {
         json["description"] = room.information.description;
     }
-    json["preferredGameName"] = room.information.preferred_game;
-    json["preferredGameId"] = room.information.preferred_game_id;
+    json["preferredGameName"] = room.information.preferred_game.name;
+    json["preferredGameId"] = room.information.preferred_game.id;
     json["maxPlayers"] = room.information.member_slots;
     json["netVersion"] = room.net_version;
     json["hasPassword"] = room.has_password;
@@ -65,8 +65,8 @@ static void from_json(const nlohmann::json& json, Room& room) {
     }
     room.information.host_username = json.at("owner").get<std::string>();
     room.information.port = json.at("port").get<u16>();
-    room.information.preferred_game = json.at("preferredGameName").get<std::string>();
-    room.information.preferred_game_id = json.at("preferredGameId").get<u64>();
+    room.information.preferred_game.name = json.at("preferredGameName").get<std::string>();
+    room.information.preferred_game.id = json.at("preferredGameId").get<u64>();
     room.information.member_slots = json.at("maxPlayers").get<u32>();
     room.net_version = json.at("netVersion").get<u32>();
     room.has_password = json.at("hasPassword").get<bool>();
@@ -83,8 +83,8 @@ namespace WebService {
 
 void RoomJson::SetRoomInformation(const std::string& name, const std::string& description,
                                   const u16 port, const u32 max_player, const u32 net_version,
-                                  const bool has_password, const std::string& preferred_game,
-                                  const u64 preferred_game_id) {
+                                  const bool has_password,
+                                  const AnnounceMultiplayerRoom::GameInfo& preferred_game) {
     room.information.name = name;
     room.information.description = description;
     room.information.port = port;
@@ -92,7 +92,6 @@ void RoomJson::SetRoomInformation(const std::string& name, const std::string& de
     room.net_version = net_version;
     room.has_password = has_password;
     room.information.preferred_game = preferred_game;
-    room.information.preferred_game_id = preferred_game_id;
 }
 void RoomJson::AddPlayer(const AnnounceMultiplayerRoom::Member& member) {
     room.members.push_back(member);

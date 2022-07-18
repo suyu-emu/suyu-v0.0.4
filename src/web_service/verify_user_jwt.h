@@ -10,6 +10,8 @@
 
 namespace WebService {
 
+std::string GetPublicKey(const std::string& host);
+
 class VerifyUserJWT final : public Network::VerifyUser::Backend {
 public:
     VerifyUserJWT(const std::string& host);

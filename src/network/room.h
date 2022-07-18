@@ -125,8 +125,7 @@ public:
                 const std::string& server = "", u16 server_port = DefaultRoomPort,
                 const std::string& password = "",
                 const u32 max_connections = MaxConcurrentConnections,
-                const std::string& host_username = "", const std::string& preferred_game = "",
-                u64 preferred_game_id = 0,
+                const std::string& host_username = "", const GameInfo = {},
                 std::unique_ptr<VerifyUser::Backend> verify_backend = nullptr,
                 const BanList& ban_list = {}, bool enable_yuzu_mods = false);
 

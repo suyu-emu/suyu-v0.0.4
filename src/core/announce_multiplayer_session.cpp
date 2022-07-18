@@ -89,10 +89,10 @@ AnnounceMultiplayerSession::~AnnounceMultiplayerSession() {
 void AnnounceMultiplayerSession::UpdateBackendData(std::shared_ptr<Network::Room> room) {
     Network::RoomInformation room_information = room->GetRoomInformation();
     std::vector<AnnounceMultiplayerRoom::Member> memberlist = room->GetRoomMemberList();
-    backend->SetRoomInformation(
-        room_information.name, room_information.description, room_information.port,
-        room_information.member_slots, Network::network_version, room->HasPassword(),
-        room_information.preferred_game, room_information.preferred_game_id);
+    backend->SetRoomInformation(room_information.name, room_information.description,
+                                room_information.port, room_information.member_slots,
+                                Network::network_version, room->HasPassword(),
+                                room_information.preferred_game);
     backend->ClearPlayers();
     for (const auto& member : memberlist) {
         backend->AddPlayer(member);

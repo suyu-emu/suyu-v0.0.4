@@ -811,7 +811,7 @@ void Room::RoomImpl::BroadcastRoomInformation() {
     packet << room_information.description;
     packet << room_information.member_slots;
     packet << room_information.port;
-    packet << room_information.preferred_game;
+    packet << room_information.preferred_game.name;
     packet << room_information.host_username;
 
     packet << static_cast<u32>(members.size());
@@ -1013,7 +1013,7 @@ Room::~Room() = default;
 bool Room::Create(const std::string& name, const std::string& description,
                   const std::string& server_address, u16 server_port, const std::string& password,
                   const u32 max_connections, const std::string& host_username,
-                  const std::string& preferred_game, u64 preferred_game_id,
+                  const GameInfo preferred_game,
                   std::unique_ptr<VerifyUser::Backend> verify_backend,
                   const Room::BanList& ban_list, bool enable_yuzu_mods) {
     ENetAddress address;
@@ -1036,7 +1036,6 @@ bool Room::Create(const std::string& name, const std::string& description,
     room_impl->room_information.member_slots = max_connections;
     room_impl->room_information.port = server_port;
     room_impl->room_information.preferred_game = preferred_game;
-    room_impl->room_information.preferred_game_id = preferred_game_id;
     room_impl->room_information.host_username = host_username;
     room_impl->room_information.enable_yuzu_mods = enable_yuzu_mods;
     room_impl->password = password;
@@ -1076,8 +1075,7 @@ std::vector<Member> Room::GetRoomMemberList() const {
         member.display_name = member_impl.user_data.display_name;
         member.avatar_url = member_impl.user_data.avatar_url;
         member.mac_address = member_impl.mac_address;
-        member.game_name = member_impl.game_info.name;
-        member.game_id = member_impl.game_info.id;
+        member.game = member_impl.game_info;
         member_list.push_back(member);
     }
     return member_list;

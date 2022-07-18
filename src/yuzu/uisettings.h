@@ -105,12 +105,12 @@ struct Values {
     // multiplayer settings
     Settings::Setting<QString> multiplayer_nickname{QStringLiteral("yuzu"), "nickname"};
     Settings::Setting<QString> multiplayer_ip{{}, "ip"};
-    Settings::SwitchableSetting<uint> multiplayer_port{24872, 0, 65535, "port"};
+    Settings::SwitchableSetting<uint, true> multiplayer_port{24872, 0, 65535, "port"};
     Settings::Setting<QString> multiplayer_room_nickname{{}, "room_nickname"};
     Settings::Setting<QString> multiplayer_room_name{{}, "room_name"};
-    Settings::SwitchableSetting<uint> multiplayer_max_player{8, 0, 8, "max_player"};
-    Settings::SwitchableSetting<uint> multiplayer_room_port{24872, 0, 65535, "room_port"};
-    Settings::SwitchableSetting<uint> multiplayer_host_type{0, 0, 1, "host_type"};
+    Settings::SwitchableSetting<uint, true> multiplayer_max_player{8, 0, 8, "max_player"};
+    Settings::SwitchableSetting<uint, true> multiplayer_room_port{24872, 0, 65535, "room_port"};
+    Settings::SwitchableSetting<uint, true> multiplayer_host_type{0, 0, 1, "host_type"};
     Settings::Setting<qulonglong> multiplayer_game_id{{}, "game_id"};
     Settings::Setting<QString> multiplayer_room_description{{}, "room_description"};
     std::pair<std::vector<std::string>, std::vector<std::string>> multiplayer_ban_list;
