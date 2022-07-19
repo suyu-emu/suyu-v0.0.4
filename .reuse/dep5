@@ -31,30 +31,57 @@ Copyright: 2013 Colin Duquesnoy
            2019 Daniel Cosmo Pizetta
 License: CC-BY-4.0
 
+Files: dist/qt_themes/default/icons/256x256/plus_folder.png
+       dist/qt_themes/default/icons/48x48/bad_folder.png
+       dist/qt_themes/default/icons/48x48/chip.png
+       dist/qt_themes/default/icons/48x48/folder.png
+       dist/qt_themes/default/icons/48x48/star.png
+       dist/qt_themes/qdarkstyle/icons/256x256/plus_folder.png
+       dist/qt_themes/qdarkstyle/icons/48x48/bad_folder.png
+       dist/qt_themes/qdarkstyle/icons/48x48/chip.png
+       dist/qt_themes/qdarkstyle/icons/48x48/folder.png
+       dist/qt_themes/qdarkstyle/icons/48x48/star.png
+Copyright: Refactoring UI Inc.
+License: MIT
+Comment: https://github.com/tailwindlabs/heroicons
+
+Files: dist/qt_themes/colorful/icons/16x16/lock.png
+       dist/qt_themes/colorful/icons/256x256/plus_folder.png
+       dist/qt_themes/colorful/icons/48x48/bad_folder.png
+       dist/qt_themes/colorful/icons/48x48/chip.png
+       dist/qt_themes/colorful/icons/48x48/folder.png
+       dist/qt_themes/colorful_dark/icons/16x16/lock.png
+Copyright: Icons8
+License: MIT
+Comment: https://github.com/icons8/flat-color-icons
+
 Files: dist/qt_themes/*/icons/16x16/connected.png
        dist/qt_themes/*/icons/16x16/connected_notification.png
        dist/qt_themes/*/icons/16x16/disconnected.png
-       dist/qt_themes/*/icons/16x16/lock.png
-       dist/qt_themes/*/icons/48x48/bad_folder.png
-       dist/qt_themes/*/icons/48x48/chip.png
-       dist/qt_themes/*/icons/48x48/folder.png
-       dist/qt_themes/*/icons/48x48/no_avatar.png
-       dist/qt_themes/*/icons/48x48/sd_card.png
-       dist/qt_themes/*/icons/48x48/star.png
-       dist/qt_themes/*/icons/256x256/plus_folder.png
-       dist/qt_themes/colorful/icons/48x48/list-add.png
+Copyright: GNOME Project
+License: CC-BY-SA-3.0
+Comment: connected_notification and disconnected are modified
+
+Files: dist/qt_themes/*/icons/48x48/no_avatar.png
+Copyright: Ionic (http://ionic.io/)
+License: MIT
+
+
+Files: dist/qt_themes/*/icons/48x48/sd_card.png
+       dist/qt_themes/colorful/icons/48x48/star.png
        dist/qt_themes/default/icons/16x16/checked.png
        dist/qt_themes/default/icons/16x16/failed.png
-Copyright: https://icons8.com
-License: CC-BY-ND-3.0
+Copyright: SVG Repo
+License: CC0-1.0
 
 Files: dist/qt_themes/*/icons/16x16/view-refresh.png
+       dist/qt_themes/default/icons/16x16/lock.png
+       dist/qt_themes/qdarkstyle/icons/16x16/lock.png
 Copyright: Google, Inc.
 License: Apache-2.0
 
-Files: dist/qt_themes/default/icons/48x48/list-add.png
-       dist/qt_themes/qdarkstyle/icons/48x48/list-add.png
-Copyright: BreadFish64
+Files: dist/qt_themes/*/icons/48x48/list-add.png
+Copyright: Docteh
 License: CC0-1.0
 
 Files: externals/getopt/getopt.c
