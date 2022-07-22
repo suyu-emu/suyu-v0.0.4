@@ -11,7 +11,6 @@ cmake .. \
       -DCMAKE_CXX_COMPILER=/usr/lib/ccache/clang++ \
       -DCMAKE_C_COMPILER=/usr/lib/ccache/clang \
       -DCMAKE_INSTALL_PREFIX="/usr" \
-      -DCMAKE_TOOLCHAIN_FILE=${VCPKG_TOOLCHAIN_FILE} \
       -DDISPLAY_VERSION=$1 \
       -DENABLE_COMPATIBILITY_LIST_DOWNLOAD=ON \
       -DENABLE_QT_TRANSLATION=ON \

@@ -35,6 +35,16 @@ option(YUZU_USE_BUNDLED_OPUS "Compile bundled opus" ON)
 
 option(YUZU_TESTS "Compile tests" ON)
 
+option(YUZU_USE_BUNDLED_VCPKG "Use vcpkg for yuzu dependencies" OFF)
+
+if (YUZU_USE_BUNDLED_VCPKG)
+    include(${CMAKE_SOURCE_DIR}/externals/vcpkg/scripts/buildsystems/vcpkg.cmake)
+elseif(NOT "$ENV{VCPKG_TOOLCHAIN_FILE}" STREQUAL "")
+    # Disable manifest mode (use vcpkg classic mode) when using a custom vcpkg installation
+    option(VCPKG_MANIFEST_MODE "")
+    include("$ENV{VCPKG_TOOLCHAIN_FILE}")
+endif()
+
 # Default to a Release build
 get_property(IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if (NOT IS_MULTI_CONFIG AND NOT CMAKE_BUILD_TYPE)

@@ -40,3 +40,6 @@
 [submodule "externals/ffmpeg/ffmpeg"]
 	path = externals/ffmpeg/ffmpeg
 	url = https://git.ffmpeg.org/ffmpeg.git
+[submodule "externals/vcpkg"]
+	path = externals/vcpkg
+	url = https://github.com/Microsoft/vcpkg.git
