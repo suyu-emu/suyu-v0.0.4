@@ -6,10 +6,6 @@ set -e
 
 ccache -sv
 
-mkdir -p "$HOME/.conan/profiles"
-wget -c "https://github.com/yuzu-emu/build-environments/raw/master/linux-mingw/default" -O "$HOME/.conan/profiles/default"
-wget -c "https://github.com/yuzu-emu/build-environments/raw/master/linux-mingw/settings.yml" -O "$HOME/.conan/settings.yml"
-
 mkdir -p build && cd build
 export LDFLAGS="-fuse-ld=lld"
 # -femulated-tls required due to an incompatibility between GCC and Clang
@@ -24,6 +20,7 @@ cmake .. \
     -DUSE_CCACHE=ON \
     -DYUZU_USE_BUNDLED_SDL2=OFF \
     -DYUZU_USE_EXTERNAL_SDL2=OFF \
+    -DYUZU_TESTS=OFF \
     -GNinja
 ninja yuzu yuzu-cmd
 
