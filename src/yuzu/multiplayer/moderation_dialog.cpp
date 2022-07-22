@@ -17,13 +17,13 @@ enum {
 };
 }
 
-ModerationDialog::ModerationDialog(QWidget* parent)
-    : QDialog(parent), ui(std::make_unique<Ui::ModerationDialog>()) {
+ModerationDialog::ModerationDialog(Network::RoomNetwork& room_network_, QWidget* parent)
+    : QDialog(parent), ui(std::make_unique<Ui::ModerationDialog>()), room_network{room_network_} {
     ui->setupUi(this);
 
     qRegisterMetaType<Network::Room::BanList>();
 
-    if (auto member = Network::GetRoomMember().lock()) {
+    if (auto member = room_network.GetRoomMember().lock()) {
         callback_handle_status_message = member->BindOnStatusMessageReceived(
             [this](const Network::StatusMessageEntry& status_message) {
                 emit StatusMessageReceived(status_message);
@@ -56,20 +56,20 @@ ModerationDialog::ModerationDialog(QWidget* parent)
 
 ModerationDialog::~ModerationDialog() {
     if (callback_handle_status_message) {
-        if (auto room = Network::GetRoomMember().lock()) {
+        if (auto room = room_network.GetRoomMember().lock()) {
             room->Unbind(callback_handle_status_message);
         }
     }
 
     if (callback_handle_ban_list) {
-        if (auto room = Network::GetRoomMember().lock()) {
+        if (auto room = room_network.GetRoomMember().lock()) {
             room->Unbind(callback_handle_ban_list);
         }
     }
 }
 
 void ModerationDialog::LoadBanList() {
-    if (auto room = Network::GetRoomMember().lock()) {
+    if (auto room = room_network.GetRoomMember().lock()) {
         ui->refresh->setEnabled(false);
         ui->refresh->setText(tr("Refreshing"));
         ui->unban->setEnabled(false);
@@ -98,7 +98,7 @@ void ModerationDialog::PopulateBanList(const Network::Room::BanList& ban_list) {
 }
 
 void ModerationDialog::SendUnbanRequest(const QString& subject) {
-    if (auto room = Network::GetRoomMember().lock()) {
+    if (auto room = room_network.GetRoomMember().lock()) {
         room->SendModerationRequest(Network::IdModUnban, subject.toStdString());
     }
 }

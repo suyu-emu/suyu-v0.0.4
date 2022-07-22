@@ -23,9 +23,11 @@
 #endif
 
 Lobby::Lobby(QWidget* parent, QStandardItemModel* list,
-             std::shared_ptr<Core::AnnounceMultiplayerSession> session)
+             std::shared_ptr<Core::AnnounceMultiplayerSession> session,
+             Network::RoomNetwork& room_network_)
     : QDialog(parent, Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint),
-      ui(std::make_unique<Ui::Lobby>()), announce_multiplayer_session(session) {
+      ui(std::make_unique<Ui::Lobby>()),
+      announce_multiplayer_session(session), room_network{room_network_} {
     ui->setupUi(this);
 
     // setup the watcher for background connections
@@ -113,7 +115,7 @@ void Lobby::OnExpandRoom(const QModelIndex& index) {
 }
 
 void Lobby::OnJoinRoom(const QModelIndex& source) {
-    if (const auto member = Network::GetRoomMember().lock()) {
+    if (const auto member = room_network.GetRoomMember().lock()) {
         // Prevent the user from trying to join a room while they are already joining.
         if (member->GetState() == Network::RoomMember::State::Joining) {
             return;
@@ -151,7 +153,7 @@ void Lobby::OnJoinRoom(const QModelIndex& source) {
         proxy->data(connection_index, LobbyItemHost::HostVerifyUIDRole).toString().toStdString();
 
     // attempt to connect in a different thread
-    QFuture<void> f = QtConcurrent::run([nickname, ip, port, password, verify_UID] {
+    QFuture<void> f = QtConcurrent::run([nickname, ip, port, password, verify_UID, this] {
         std::string token;
 #ifdef ENABLE_WEB_SERVICE
         if (!Settings::values.yuzu_username.GetValue().empty() &&
@@ -167,7 +169,7 @@ void Lobby::OnJoinRoom(const QModelIndex& source) {
             }
         }
 #endif
-        if (auto room_member = Network::GetRoomMember().lock()) {
+        if (auto room_member = room_network.GetRoomMember().lock()) {
             room_member->Join(nickname, "", ip.c_str(), port, 0, Network::NoPreferredMac, password,
                               token);
         }

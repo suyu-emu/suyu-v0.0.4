@@ -20,7 +20,8 @@ namespace Core {
 // Time between room is announced to web_service
 static constexpr std::chrono::seconds announce_time_interval(15);
 
-AnnounceMultiplayerSession::AnnounceMultiplayerSession() {
+AnnounceMultiplayerSession::AnnounceMultiplayerSession(Network::RoomNetwork& room_network_)
+    : room_network{room_network_} {
 #ifdef ENABLE_WEB_SERVICE
     backend = std::make_unique<WebService::RoomJson>(Settings::values.web_api_url.GetValue(),
                                                      Settings::values.yuzu_username.GetValue(),
@@ -31,7 +32,7 @@ AnnounceMultiplayerSession::AnnounceMultiplayerSession() {
 }
 
 WebService::WebResult AnnounceMultiplayerSession::Register() {
-    std::shared_ptr<Network::Room> room = Network::GetRoom().lock();
+    std::shared_ptr<Network::Room> room = room_network.GetRoom().lock();
     if (!room) {
         return WebService::WebResult{WebService::WebResult::Code::LibError,
                                      "Network is not initialized", ""};
@@ -120,7 +121,7 @@ void AnnounceMultiplayerSession::AnnounceMultiplayerLoop() {
     std::future<WebService::WebResult> future;
     while (!shutdown_event.WaitUntil(update_time)) {
         update_time += announce_time_interval;
-        std::shared_ptr<Network::Room> room = Network::GetRoom().lock();
+        std::shared_ptr<Network::Room> room = room_network.GetRoom().lock();
         if (!room) {
             break;
         }

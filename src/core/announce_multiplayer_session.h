@@ -16,7 +16,8 @@
 
 namespace Network {
 class Room;
-}
+class RoomNetwork;
+} // namespace Network
 
 namespace Core {
 
@@ -28,7 +29,7 @@ namespace Core {
 class AnnounceMultiplayerSession {
 public:
     using CallbackHandle = std::shared_ptr<std::function<void(const WebService::WebResult&)>>;
-    AnnounceMultiplayerSession();
+    AnnounceMultiplayerSession(Network::RoomNetwork& room_network_);
     ~AnnounceMultiplayerSession();
 
     /**
@@ -79,6 +80,9 @@ public:
     void UpdateCredentials();
 
 private:
+    void UpdateBackendData(std::shared_ptr<Network::Room> room);
+    void AnnounceMultiplayerLoop();
+
     Common::Event shutdown_event;
     std::mutex callback_mutex;
     std::set<CallbackHandle> error_callbacks;
@@ -89,8 +93,7 @@ private:
 
     std::atomic_bool registered = false; ///< Whether the room has been registered
 
-    void UpdateBackendData(std::shared_ptr<Network::Room> room);
-    void AnnounceMultiplayerLoop();
+    Network::RoomNetwork& room_network;
 };
 
 } // namespace Core

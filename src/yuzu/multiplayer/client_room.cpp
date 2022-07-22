@@ -19,13 +19,14 @@
 #include "yuzu/multiplayer/moderation_dialog.h"
 #include "yuzu/multiplayer/state.h"
 
-ClientRoomWindow::ClientRoomWindow(QWidget* parent)
+ClientRoomWindow::ClientRoomWindow(QWidget* parent, Network::RoomNetwork& room_network_)
     : QDialog(parent, Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint),
-      ui(std::make_unique<Ui::ClientRoom>()) {
+      ui(std::make_unique<Ui::ClientRoom>()), room_network{room_network_} {
     ui->setupUi(this);
+    ui->chat->Initialize(&room_network);
 
     // setup the callbacks for network updates
-    if (auto member = Network::GetRoomMember().lock()) {
+    if (auto member = room_network.GetRoomMember().lock()) {
         member->BindOnRoomInformationChanged(
             [this](const Network::RoomInformation& info) { emit RoomInformationChanged(info); });
         member->BindOnStateChanged(
@@ -44,7 +45,7 @@ ClientRoomWindow::ClientRoomWindow(QWidget* parent)
     ui->disconnect->setDefault(false);
     ui->disconnect->setAutoDefault(false);
     connect(ui->moderation, &QPushButton::clicked, [this] {
-        ModerationDialog dialog(this);
+        ModerationDialog dialog(room_network, this);
         dialog.exec();
     });
     ui->moderation->setDefault(false);
@@ -91,7 +92,7 @@ void ClientRoomWindow::Disconnect() {
 }
 
 void ClientRoomWindow::UpdateView() {
-    if (auto member = Network::GetRoomMember().lock()) {
+    if (auto member = room_network.GetRoomMember().lock()) {
         if (member->IsConnected()) {
             ui->chat->Enable();
             ui->disconnect->setEnabled(true);

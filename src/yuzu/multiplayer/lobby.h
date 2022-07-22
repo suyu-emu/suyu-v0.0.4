@@ -30,7 +30,8 @@ class Lobby : public QDialog {
 
 public:
     explicit Lobby(QWidget* parent, QStandardItemModel* list,
-                   std::shared_ptr<Core::AnnounceMultiplayerSession> session);
+                   std::shared_ptr<Core::AnnounceMultiplayerSession> session,
+                   Network::RoomNetwork& room_network_);
     ~Lobby() override;
 
     /**
@@ -94,6 +95,7 @@ private:
     std::weak_ptr<Core::AnnounceMultiplayerSession> announce_multiplayer_session;
     QFutureWatcher<void>* watcher;
     Validation validation;
+    Network::RoomNetwork& room_network;
 };
 
 /**

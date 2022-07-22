@@ -20,10 +20,11 @@
 #include "yuzu/util/clickable_label.h"
 
 MultiplayerState::MultiplayerState(QWidget* parent, QStandardItemModel* game_list_model_,
-                                   QAction* leave_room_, QAction* show_room_)
+                                   QAction* leave_room_, QAction* show_room_,
+                                   Network::RoomNetwork& room_network_)
     : QWidget(parent), game_list_model(game_list_model_), leave_room(leave_room_),
-      show_room(show_room_) {
-    if (auto member = Network::GetRoomMember().lock()) {
+      show_room(show_room_), room_network{room_network_} {
+    if (auto member = room_network.GetRoomMember().lock()) {
         // register the network structs to use in slots and signals
         state_callback_handle = member->BindOnStateChanged(
             [this](const Network::RoomMember::State& state) { emit NetworkStateChanged(state); });
@@ -37,7 +38,7 @@ MultiplayerState::MultiplayerState(QWidget* parent, QStandardItemModel* game_lis
     qRegisterMetaType<Network::RoomMember::State>();
     qRegisterMetaType<Network::RoomMember::Error>();
     qRegisterMetaType<WebService::WebResult>();
-    announce_multiplayer_session = std::make_shared<Core::AnnounceMultiplayerSession>();
+    announce_multiplayer_session = std::make_shared<Core::AnnounceMultiplayerSession>(room_network);
     announce_multiplayer_session->BindErrorCallback(
         [this](const WebService::WebResult& result) { emit AnnounceFailed(result); });
     connect(this, &MultiplayerState::AnnounceFailed, this, &MultiplayerState::OnAnnounceFailed);
@@ -61,13 +62,13 @@ MultiplayerState::MultiplayerState(QWidget* parent, QStandardItemModel* game_lis
 
 MultiplayerState::~MultiplayerState() {
     if (state_callback_handle) {
-        if (auto member = Network::GetRoomMember().lock()) {
+        if (auto member = room_network.GetRoomMember().lock()) {
             member->Unbind(state_callback_handle);
         }
     }
 
     if (error_callback_handle) {
-        if (auto member = Network::GetRoomMember().lock()) {
+        if (auto member = room_network.GetRoomMember().lock()) {
             member->Unbind(error_callback_handle);
         }
     }
@@ -205,14 +206,15 @@ static void BringWidgetToFront(QWidget* widget) {
 
 void MultiplayerState::OnViewLobby() {
     if (lobby == nullptr) {
-        lobby = new Lobby(this, game_list_model, announce_multiplayer_session);
+        lobby = new Lobby(this, game_list_model, announce_multiplayer_session, room_network);
     }
     BringWidgetToFront(lobby);
 }
 
 void MultiplayerState::OnCreateRoom() {
     if (host_room == nullptr) {
-        host_room = new HostRoomWindow(this, game_list_model, announce_multiplayer_session);
+        host_room =
+            new HostRoomWindow(this, game_list_model, announce_multiplayer_session, room_network);
     }
     BringWidgetToFront(host_room);
 }
@@ -220,9 +222,9 @@ void MultiplayerState::OnCreateRoom() {
 bool MultiplayerState::OnCloseRoom() {
     if (!NetworkMessage::WarnCloseRoom())
         return false;
-    if (auto room = Network::GetRoom().lock()) {
+    if (auto room = room_network.GetRoom().lock()) {
         // if you are in a room, leave it
-        if (auto member = Network::GetRoomMember().lock()) {
+        if (auto member = room_network.GetRoomMember().lock()) {
             member->Leave();
             LOG_DEBUG(Frontend, "Left the room (as a client)");
         }
@@ -257,10 +259,10 @@ void MultiplayerState::HideNotification() {
 }
 
 void MultiplayerState::OnOpenNetworkRoom() {
-    if (auto member = Network::GetRoomMember().lock()) {
+    if (auto member = room_network.GetRoomMember().lock()) {
         if (member->IsConnected()) {
             if (client_room == nullptr) {
-                client_room = new ClientRoomWindow(this);
+                client_room = new ClientRoomWindow(this, room_network);
                 connect(client_room, &ClientRoomWindow::ShowNotification, this,
                         &MultiplayerState::ShowNotification);
             }
@@ -275,7 +277,7 @@ void MultiplayerState::OnOpenNetworkRoom() {
 
 void MultiplayerState::OnDirectConnectToRoom() {
     if (direct_connect == nullptr) {
-        direct_connect = new DirectConnectWindow(this);
+        direct_connect = new DirectConnectWindow(room_network, this);
     }
     BringWidgetToFront(direct_connect);
 }

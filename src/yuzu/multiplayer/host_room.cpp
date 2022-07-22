@@ -27,9 +27,11 @@
 #endif
 
 HostRoomWindow::HostRoomWindow(QWidget* parent, QStandardItemModel* list,
-                               std::shared_ptr<Core::AnnounceMultiplayerSession> session)
+                               std::shared_ptr<Core::AnnounceMultiplayerSession> session,
+                               Network::RoomNetwork& room_network_)
     : QDialog(parent, Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint),
-      ui(std::make_unique<Ui::HostRoom>()), announce_multiplayer_session(session) {
+      ui(std::make_unique<Ui::HostRoom>()),
+      announce_multiplayer_session(session), room_network{room_network_} {
     ui->setupUi(this);
 
     // set up validation for all of the fields
@@ -120,7 +122,7 @@ void HostRoomWindow::Host() {
         NetworkMessage::ErrorManager::ShowError(NetworkMessage::ErrorManager::GAME_NOT_SELECTED);
         return;
     }
-    if (auto member = Network::GetRoomMember().lock()) {
+    if (auto member = room_network.GetRoomMember().lock()) {
         if (member->GetState() == Network::RoomMember::State::Joining) {
             return;
         } else if (member->IsConnected()) {
@@ -144,7 +146,7 @@ void HostRoomWindow::Host() {
         if (ui->load_ban_list->isChecked()) {
             ban_list = UISettings::values.multiplayer_ban_list;
         }
-        if (auto room = Network::GetRoom().lock()) {
+        if (auto room = room_network.GetRoom().lock()) {
             const bool created =
                 room->Create(ui->room_name->text().toStdString(),
                              ui->room_description->toPlainText().toStdString(), "", port, password,
@@ -173,7 +175,7 @@ void HostRoomWindow::Host() {
                             QString::fromStdString(result.result_string),
                         QMessageBox::Ok);
                     ui->host->setEnabled(true);
-                    if (auto room = Network::GetRoom().lock()) {
+                    if (auto room = room_network.GetRoom().lock()) {
                         room->Destroy();
                     }
                     return;
@@ -189,7 +191,7 @@ void HostRoomWindow::Host() {
             WebService::Client client(Settings::values.web_api_url.GetValue(),
                                       Settings::values.yuzu_username.GetValue(),
                                       Settings::values.yuzu_token.GetValue());
-            if (auto room = Network::GetRoom().lock()) {
+            if (auto room = room_network.GetRoom().lock()) {
                 token = client.GetExternalJWT(room->GetVerifyUID()).returned_data;
             }
             if (token.empty()) {

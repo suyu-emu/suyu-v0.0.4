@@ -273,7 +273,7 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
     SetDiscordEnabled(UISettings::values.enable_discord_presence.GetValue());
     discord_rpc->Update();
 
-    Network::Init();
+    system->GetRoomNetwork().Init();
 
     RegisterMetaTypes();
 
@@ -463,7 +463,7 @@ GMainWindow::~GMainWindow() {
     if (render_window->parent() == nullptr) {
         delete render_window;
     }
-    Network::Shutdown();
+    system->GetRoomNetwork().Shutdown();
 }
 
 void GMainWindow::RegisterMetaTypes() {
@@ -828,7 +828,7 @@ void GMainWindow::InitializeWidgets() {
     });
 
     multiplayer_state = new MultiplayerState(this, game_list->GetModel(), ui->action_Leave_Room,
-                                             ui->action_Show_Room);
+                                             ui->action_Show_Room, system->GetRoomNetwork());
     multiplayer_state->setVisible(false);
 
     // Create status bar

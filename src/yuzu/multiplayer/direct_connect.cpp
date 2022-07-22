@@ -21,9 +21,9 @@
 
 enum class ConnectionType : u8 { TraversalServer, IP };
 
-DirectConnectWindow::DirectConnectWindow(QWidget* parent)
+DirectConnectWindow::DirectConnectWindow(Network::RoomNetwork& room_network_, QWidget* parent)
     : QDialog(parent, Qt::WindowTitleHint | Qt::WindowCloseButtonHint | Qt::WindowSystemMenuHint),
-      ui(std::make_unique<Ui::DirectConnect>()) {
+      ui(std::make_unique<Ui::DirectConnect>()), room_network{room_network_} {
 
     ui->setupUi(this);
 
@@ -58,7 +58,7 @@ void DirectConnectWindow::Connect() {
         NetworkMessage::ErrorManager::ShowError(NetworkMessage::ErrorManager::USERNAME_NOT_VALID);
         return;
     }
-    if (const auto member = Network::GetRoomMember().lock()) {
+    if (const auto member = room_network.GetRoomMember().lock()) {
         // Prevent the user from trying to join a room while they are already joining.
         if (member->GetState() == Network::RoomMember::State::Joining) {
             return;
@@ -96,7 +96,7 @@ void DirectConnectWindow::Connect() {
 
     // attempt to connect in a different thread
     QFuture<void> f = QtConcurrent::run([&] {
-        if (auto room_member = Network::GetRoomMember().lock()) {
+        if (auto room_member = room_network.GetRoomMember().lock()) {
             auto port = UISettings::values.multiplayer_port.GetValue();
             room_member->Join(ui->nickname->text().toStdString(), "",
                               ui->ip->text().toStdString().c_str(), port, 0,
@@ -121,7 +121,7 @@ void DirectConnectWindow::EndConnecting() {
 void DirectConnectWindow::OnConnection() {
     EndConnecting();
 
-    if (auto room_member = Network::GetRoomMember().lock()) {
+    if (auto room_member = room_network.GetRoomMember().lock()) {
         if (room_member->GetState() == Network::RoomMember::State::Joined ||
             room_member->GetState() == Network::RoomMember::State::Moderator) {
 

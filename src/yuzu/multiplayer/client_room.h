@@ -14,7 +14,7 @@ class ClientRoomWindow : public QDialog {
     Q_OBJECT
 
 public:
-    explicit ClientRoomWindow(QWidget* parent);
+    explicit ClientRoomWindow(QWidget* parent, Network::RoomNetwork& room_network_);
     ~ClientRoomWindow();
 
     void RetranslateUi();
@@ -36,4 +36,5 @@ private:
 
     QStandardItemModel* player_list;
     std::unique_ptr<Ui::ClientRoom> ui;
+    Network::RoomNetwork& room_network;
 };

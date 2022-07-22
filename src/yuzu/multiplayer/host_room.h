@@ -35,7 +35,8 @@ class HostRoomWindow : public QDialog {
 
 public:
     explicit HostRoomWindow(QWidget* parent, QStandardItemModel* list,
-                            std::shared_ptr<Core::AnnounceMultiplayerSession> session);
+                            std::shared_ptr<Core::AnnounceMultiplayerSession> session,
+                            Network::RoomNetwork& room_network_);
     ~HostRoomWindow();
 
     /**
@@ -54,6 +55,7 @@ private:
     QStandardItemModel* game_list;
     ComboBoxProxyModel* proxy;
     Validation validation;
+    Network::RoomNetwork& room_network;
 };
 
 /**

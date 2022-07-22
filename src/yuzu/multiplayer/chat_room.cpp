@@ -28,7 +28,8 @@
 
 class ChatMessage {
 public:
-    explicit ChatMessage(const Network::ChatEntry& chat, QTime ts = {}) {
+    explicit ChatMessage(const Network::ChatEntry& chat, Network::RoomNetwork& room_network,
+                         QTime ts = {}) {
         /// Convert the time to their default locale defined format
         QLocale locale;
         timestamp = locale.toString(ts.isValid() ? ts : QTime::currentTime(), QLocale::ShortFormat);
@@ -38,7 +39,7 @@ public:
 
         // Check for user pings
         QString cur_nickname, cur_username;
-        if (auto room = Network::GetRoomMember().lock()) {
+        if (auto room = room_network.GetRoomMember().lock()) {
             cur_nickname = QString::fromStdString(room->GetNickname());
             cur_username = QString::fromStdString(room->GetUsername());
         }
@@ -173,20 +174,6 @@ ChatRoom::ChatRoom(QWidget* parent) : QWidget(parent), ui(std::make_unique<Ui::C
     qRegisterMetaType<Network::RoomInformation>();
     qRegisterMetaType<Network::RoomMember::State>();
 
-    // setup the callbacks for network updates
-    if (auto member = Network::GetRoomMember().lock()) {
-        member->BindOnChatMessageRecieved(
-            [this](const Network::ChatEntry& chat) { emit ChatReceived(chat); });
-        member->BindOnStatusMessageReceived(
-            [this](const Network::StatusMessageEntry& status_message) {
-                emit StatusMessageReceived(status_message);
-            });
-        connect(this, &ChatRoom::ChatReceived, this, &ChatRoom::OnChatReceive);
-        connect(this, &ChatRoom::StatusMessageReceived, this, &ChatRoom::OnStatusMessageReceive);
-    } else {
-        // TODO (jroweboy) network was not initialized?
-    }
-
     // Connect all the widgets to the appropriate events
     connect(ui->player_view, &QTreeView::customContextMenuRequested, this,
             &ChatRoom::PopupContextMenu);
@@ -196,6 +183,21 @@ ChatRoom::ChatRoom(QWidget* parent) : QWidget(parent), ui(std::make_unique<Ui::C
 }
 
 ChatRoom::~ChatRoom() = default;
+
+void ChatRoom::Initialize(Network::RoomNetwork* room_network_) {
+    room_network = room_network_;
+    // setup the callbacks for network updates
+    if (auto member = room_network->GetRoomMember().lock()) {
+        member->BindOnChatMessageRecieved(
+            [this](const Network::ChatEntry& chat) { emit ChatReceived(chat); });
+        member->BindOnStatusMessageReceived(
+            [this](const Network::StatusMessageEntry& status_message) {
+                emit StatusMessageReceived(status_message);
+            });
+        connect(this, &ChatRoom::ChatReceived, this, &ChatRoom::OnChatReceive);
+        connect(this, &ChatRoom::StatusMessageReceived, this, &ChatRoom::OnStatusMessageReceive);
+    }
+}
 
 void ChatRoom::SetModPerms(bool is_mod) {
     has_mod_perms = is_mod;
@@ -219,7 +221,7 @@ void ChatRoom::AppendChatMessage(const QString& msg) {
 }
 
 void ChatRoom::SendModerationRequest(Network::RoomMessageTypes type, const std::string& nickname) {
-    if (auto room = Network::GetRoomMember().lock()) {
+    if (auto room = room_network->GetRoomMember().lock()) {
         auto members = room->GetMemberInformation();
         auto it = std::find_if(members.begin(), members.end(),
                                [&nickname](const Network::RoomMember::MemberInformation& member) {
@@ -239,7 +241,7 @@ bool ChatRoom::ValidateMessage(const std::string& msg) {
 
 void ChatRoom::OnRoomUpdate(const Network::RoomInformation& info) {
     // TODO(B3N30): change title
-    if (auto room_member = Network::GetRoomMember().lock()) {
+    if (auto room_member = room_network->GetRoomMember().lock()) {
         SetPlayerList(room_member->GetMemberInformation());
     }
 }
@@ -258,7 +260,7 @@ void ChatRoom::OnChatReceive(const Network::ChatEntry& chat) {
     if (!ValidateMessage(chat.message)) {
         return;
     }
-    if (auto room = Network::GetRoomMember().lock()) {
+    if (auto room = room_network->GetRoomMember().lock()) {
         // get the id of the player
         auto members = room->GetMemberInformation();
         auto it = std::find_if(members.begin(), members.end(),
@@ -276,7 +278,7 @@ void ChatRoom::OnChatReceive(const Network::ChatEntry& chat) {
             return;
         }
         auto player = std::distance(members.begin(), it);
-        ChatMessage m(chat);
+        ChatMessage m(chat, *room_network);
         if (m.ContainsPing()) {
             emit UserPinged();
         }
@@ -315,7 +317,7 @@ void ChatRoom::OnStatusMessageReceive(const Network::StatusMessageEntry& status_
 }
 
 void ChatRoom::OnSendChat() {
-    if (auto room = Network::GetRoomMember().lock()) {
+    if (auto room = room_network->GetRoomMember().lock()) {
         if (room->GetState() != Network::RoomMember::State::Joined &&
             room->GetState() != Network::RoomMember::State::Moderator) {
 
@@ -339,7 +341,7 @@ void ChatRoom::OnSendChat() {
             LOG_INFO(Network, "Cannot find self in the player list when sending a message.");
         }
         auto player = std::distance(members.begin(), it);
-        ChatMessage m(chat);
+        ChatMessage m(chat, *room_network);
         room->SendChatMessage(message);
         AppendChatMessage(m.GetPlayerChatMessage(player));
         ui->chat_message->clear();
@@ -433,7 +435,7 @@ void ChatRoom::PopupContextMenu(const QPoint& menu_location) {
     }
 
     std::string cur_nickname;
-    if (auto room = Network::GetRoomMember().lock()) {
+    if (auto room = room_network->GetRoomMember().lock()) {
         cur_nickname = room->GetNickname();
     }
 

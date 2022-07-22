@@ -20,7 +20,7 @@ class MultiplayerState : public QWidget {
 
 public:
     explicit MultiplayerState(QWidget* parent, QStandardItemModel* game_list, QAction* leave_room,
-                              QAction* show_room);
+                              QAction* show_room, Network::RoomNetwork& room_network_);
     ~MultiplayerState();
 
     /**
@@ -87,6 +87,7 @@ private:
     Network::RoomMember::CallbackHandle<Network::RoomMember::Error> error_callback_handle;
 
     bool show_notification = false;
+    Network::RoomNetwork& room_network;
 };
 
 Q_DECLARE_METATYPE(WebService::WebResult);
