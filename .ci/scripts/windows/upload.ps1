@@ -25,6 +25,9 @@ $env:BUILD_UPDATE = $MSVC_SEVENZIP
 
 $BUILD_DIR = ".\build\bin\Release"
 
+# Cleanup unneeded data in submodules
+git submodule foreach git clean -fxd
+
 # Upload debugging symbols
 mkdir pdb
 Get-ChildItem "$BUILD_DIR\" -Recurse -Filter "*.pdb" | Copy-Item -destination .\pdb
