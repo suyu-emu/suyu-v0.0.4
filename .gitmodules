@@ -34,9 +34,12 @@
 [submodule "SDL"]
 	path = externals/SDL
 	url = https://github.com/libsdl-org/SDL.git
-[submodule "externals/cpp-httplib"]
+[submodule "cpp-httplib"]
 	path = externals/cpp-httplib
 	url = https://github.com/yhirose/cpp-httplib.git
-[submodule "externals/ffmpeg/ffmpeg"]
+[submodule "ffmpeg"]
 	path = externals/ffmpeg/ffmpeg
 	url = https://git.ffmpeg.org/ffmpeg.git
+[submodule "vcpkg"]
+	path = externals/vcpkg
+	url = https://github.com/Microsoft/vcpkg.git
