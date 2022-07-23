@@ -359,7 +359,7 @@ int main(int argc, char** argv) {
     system.TelemetrySession().AddField(Common::Telemetry::FieldType::App, "Frontend", "SDL");
 
     if (use_multiplayer) {
-        if (auto member = Network::GetRoomMember().lock()) {
+        if (auto member = system.GetRoomNetwork().GetRoomMember().lock()) {
             member->BindOnChatMessageRecieved(OnMessageReceived);
             member->BindOnStatusMessageReceived(OnStatusMessageReceived);
             member->BindOnStateChanged(OnStateChanged);
