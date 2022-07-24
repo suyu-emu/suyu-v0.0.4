@@ -36,7 +36,7 @@ struct Lifo {
     }
 
     void WriteNextEntry(const State& new_state) {
-        if (buffer_count < max_buffer_size) {
+        if (buffer_count < static_cast<s64>(max_buffer_size)) {
             buffer_count++;
         }
         sampling_number++;

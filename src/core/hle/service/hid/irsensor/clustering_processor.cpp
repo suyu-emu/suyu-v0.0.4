@@ -127,10 +127,10 @@ ClusteringProcessor::ClusteringData ClusteringProcessor::GetClusterProperties(st
         };
 
         for (const auto new_point : new_points) {
-            if (new_point.x < 0 || new_point.x >= width) {
+            if (new_point.x >= width) {
                 continue;
             }
-            if (new_point.y < 0 || new_point.y >= height) {
+            if (new_point.y >= height) {
                 continue;
             }
             if (GetPixel(data, new_point.x, new_point.y) < current_config.object_intensity_min) {
@@ -169,12 +169,14 @@ ClusteringProcessor::ClusteringData ClusteringProcessor::GetPixelProperties(
 
 ClusteringProcessor::ClusteringData ClusteringProcessor::MergeCluster(
     const ClusteringData a, const ClusteringData b) const {
-    const u32 pixel_count = a.pixel_count + b.pixel_count;
+    const f32 a_pixel_count = static_cast<f32>(a.pixel_count);
+    const f32 b_pixel_count = static_cast<f32>(b.pixel_count);
+    const f32 pixel_count = a_pixel_count + b_pixel_count;
     const f32 average_intensitiy =
-        (a.average_intensity * a.pixel_count + b.average_intensity * b.pixel_count) / pixel_count;
+        (a.average_intensity * a_pixel_count + b.average_intensity * b_pixel_count) / pixel_count;
     const Core::IrSensor::IrsCentroid centroid = {
-        .x = (a.centroid.x * a.pixel_count + b.centroid.x * b.pixel_count) / pixel_count,
-        .y = (a.centroid.y * a.pixel_count + b.centroid.y * b.pixel_count) / pixel_count,
+        .x = (a.centroid.x * a_pixel_count + b.centroid.x * b_pixel_count) / pixel_count,
+        .y = (a.centroid.y * a_pixel_count + b.centroid.y * b_pixel_count) / pixel_count,
     };
     s16 bound_start_x = a.bound.x < b.bound.x ? a.bound.x : b.bound.x;
     s16 bound_start_y = a.bound.y < b.bound.y ? a.bound.y : b.bound.y;
@@ -186,16 +188,16 @@ ClusteringProcessor::ClusteringData ClusteringProcessor::MergeCluster(
     const Core::IrSensor::IrsRect bound = {
         .x = bound_start_x,
         .y = bound_start_y,
-        .width = a_bound_end_x > b_bound_end_x ? a_bound_end_x - bound_start_x
-                                               : b_bound_end_x - bound_start_x,
-        .height = a_bound_end_y > b_bound_end_y ? a_bound_end_y - bound_start_y
-                                                : b_bound_end_y - bound_start_y,
+        .width = a_bound_end_x > b_bound_end_x ? static_cast<s16>(a_bound_end_x - bound_start_x)
+                                               : static_cast<s16>(b_bound_end_x - bound_start_x),
+        .height = a_bound_end_y > b_bound_end_y ? static_cast<s16>(a_bound_end_y - bound_start_y)
+                                                : static_cast<s16>(b_bound_end_y - bound_start_y),
     };
 
     return {
         .average_intensity = average_intensitiy,
         .centroid = centroid,
-        .pixel_count = pixel_count,
+        .pixel_count = static_cast<u32>(pixel_count),
         .bound = bound,
     };
 }
