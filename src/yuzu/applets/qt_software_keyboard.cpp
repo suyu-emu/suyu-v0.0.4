@@ -1401,6 +1401,10 @@ void QtSoftwareKeyboardDialog::MoveButtonDirection(Direction direction) {
         }
     };
 
+    // Store the initial row and column.
+    const auto initial_row = row;
+    const auto initial_column = column;
+
     switch (bottom_osk_index) {
     case BottomOSKIndex::LowerCase:
     case BottomOSKIndex::UpperCase: {
@@ -1411,6 +1415,11 @@ void QtSoftwareKeyboardDialog::MoveButtonDirection(Direction direction) {
         auto* curr_button = keyboard_buttons[index][row][column];
 
         while (!curr_button || !curr_button->isEnabled() || curr_button == prev_button) {
+            // If we returned back to where we started from, break the loop.
+            if (row == initial_row && column == initial_column) {
+                break;
+            }
+
             move_direction(NUM_ROWS_NORMAL, NUM_COLUMNS_NORMAL);
             curr_button = keyboard_buttons[index][row][column];
         }
@@ -1425,6 +1434,11 @@ void QtSoftwareKeyboardDialog::MoveButtonDirection(Direction direction) {
         auto* curr_button = numberpad_buttons[row][column];
 
         while (!curr_button || !curr_button->isEnabled() || curr_button == prev_button) {
+            // If we returned back to where we started from, break the loop.
+            if (row == initial_row && column == initial_column) {
+                break;
+            }
+
             move_direction(NUM_ROWS_NUMPAD, NUM_COLUMNS_NUMPAD);
             curr_button = numberpad_buttons[row][column];
         }
