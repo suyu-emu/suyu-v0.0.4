@@ -213,9 +213,9 @@ QtSoftwareKeyboardDialog::QtSoftwareKeyboardDialog(
             ui->button_ok_num,
         },
         {
-            nullptr,
+            ui->button_left_optional_num,
             ui->button_0_num,
-            nullptr,
+            ui->button_right_optional_num,
             ui->button_ok_num,
         },
     }};
@@ -330,7 +330,9 @@ QtSoftwareKeyboardDialog::QtSoftwareKeyboardDialog(
         ui->button_7_num,
         ui->button_8_num,
         ui->button_9_num,
+        ui->button_left_optional_num,
         ui->button_0_num,
+        ui->button_right_optional_num,
     };
 
     SetupMouseHover();
@@ -341,6 +343,9 @@ QtSoftwareKeyboardDialog::QtSoftwareKeyboardDialog(
 
     ui->label_header->setText(QString::fromStdU16String(initialize_parameters.header_text));
     ui->label_sub->setText(QString::fromStdU16String(initialize_parameters.sub_text));
+
+    ui->button_left_optional_num->setText(QChar{initialize_parameters.left_optional_symbol_key});
+    ui->button_right_optional_num->setText(QChar{initialize_parameters.right_optional_symbol_key});
 
     current_text = initialize_parameters.initial_text;
     cursor_position = initialize_parameters.initial_cursor_position;
@@ -932,6 +937,15 @@ void QtSoftwareKeyboardDialog::DisableKeyboardButtons() {
                 button->setEnabled(true);
             }
         }
+
+        const auto enable_left_optional = initialize_parameters.left_optional_symbol_key != '\0';
+        const auto enable_right_optional = initialize_parameters.right_optional_symbol_key != '\0';
+
+        ui->button_left_optional_num->setEnabled(enable_left_optional);
+        ui->button_left_optional_num->setVisible(enable_left_optional);
+
+        ui->button_right_optional_num->setEnabled(enable_right_optional);
+        ui->button_right_optional_num->setVisible(enable_right_optional);
         break;
     }
     }
@@ -1019,7 +1033,10 @@ bool QtSoftwareKeyboardDialog::ValidateInputText(const QString& input_text) {
     }
 
     if (bottom_osk_index == BottomOSKIndex::NumberPad &&
-        std::any_of(input_text.begin(), input_text.end(), [](QChar c) { return !c.isDigit(); })) {
+        std::any_of(input_text.begin(), input_text.end(), [this](QChar c) {
+            return !c.isDigit() && c != QChar{initialize_parameters.left_optional_symbol_key} &&
+                   c != QChar{initialize_parameters.right_optional_symbol_key};
+        })) {
         return false;
     }
 
