@@ -11,7 +11,7 @@
 #include "common/logging/log.h"
 #include "common/settings.h"
 #include "common/string_util.h"
-#include "core/network/network_interface.h"
+#include "core/internal_network/network_interface.h"
 
 #ifdef _WIN32
 #include <iphlpapi.h>

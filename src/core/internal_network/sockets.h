@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
 #include <utility>
 
@@ -12,7 +13,7 @@
 #endif
 
 #include "common/common_types.h"
-#include "core/network/network.h"
+#include "core/internal_network/network.h"
 
 // TODO: C++20 Replace std::vector usages with std::span
 
