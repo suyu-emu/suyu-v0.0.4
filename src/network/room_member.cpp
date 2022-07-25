@@ -280,13 +280,13 @@ void RoomMember::RoomMemberImpl::SendJoinRequest(const std::string& nickname_,
                                                  const std::string& password,
                                                  const std::string& token) {
     Packet packet;
-    packet << static_cast<u8>(IdJoinRequest);
-    packet << nickname_;
-    packet << console_id_hash;
-    packet << preferred_mac;
-    packet << network_version;
-    packet << password;
-    packet << token;
+    packet.Write(static_cast<u8>(IdJoinRequest));
+    packet.Write(nickname_);
+    packet.Write(console_id_hash);
+    packet.Write(preferred_mac);
+    packet.Write(network_version);
+    packet.Write(password);
+    packet.Write(token);
     Send(std::move(packet));
 }
 
@@ -298,12 +298,12 @@ void RoomMember::RoomMemberImpl::HandleRoomInformationPacket(const ENetEvent* ev
     packet.IgnoreBytes(sizeof(u8)); // Ignore the message type
 
     RoomInformation info{};
-    packet >> info.name;
-    packet >> info.description;
-    packet >> info.member_slots;
-    packet >> info.port;
-    packet >> info.preferred_game.name;
-    packet >> info.host_username;
+    packet.Read(info.name);
+    packet.Read(info.description);
+    packet.Read(info.member_slots);
+    packet.Read(info.port);
+    packet.Read(info.preferred_game.name);
+    packet.Read(info.host_username);
     room_information.name = info.name;
     room_information.description = info.description;
     room_information.member_slots = info.member_slots;
@@ -312,17 +312,17 @@ void RoomMember::RoomMemberImpl::HandleRoomInformationPacket(const ENetEvent* ev
     room_information.host_username = info.host_username;
 
     u32 num_members;
-    packet >> num_members;
+    packet.Read(num_members);
     member_information.resize(num_members);
 
     for (auto& member : member_information) {
-        packet >> member.nickname;
-        packet >> member.mac_address;
-        packet >> member.game_info.name;
-        packet >> member.game_info.id;
-        packet >> member.username;
-        packet >> member.display_name;
-        packet >> member.avatar_url;
+        packet.Read(member.nickname);
+        packet.Read(member.mac_address);
+        packet.Read(member.game_info.name);
+        packet.Read(member.game_info.id);
+        packet.Read(member.username);
+        packet.Read(member.display_name);
+        packet.Read(member.avatar_url);
 
         {
             std::lock_guard lock(username_mutex);
@@ -342,7 +342,7 @@ void RoomMember::RoomMemberImpl::HandleJoinPacket(const ENetEvent* event) {
     packet.IgnoreBytes(sizeof(u8)); // Ignore the message type
 
     // Parse the MAC Address from the packet
-    packet >> mac_address;
+    packet.Read(mac_address);
 }
 
 void RoomMember::RoomMemberImpl::HandleWifiPackets(const ENetEvent* event) {
@@ -355,14 +355,14 @@ void RoomMember::RoomMemberImpl::HandleWifiPackets(const ENetEvent* event) {
 
     // Parse the WifiPacket from the packet
     u8 frame_type;
-    packet >> frame_type;
+    packet.Read(frame_type);
     WifiPacket::PacketType type = static_cast<WifiPacket::PacketType>(frame_type);
 
     wifi_packet.type = type;
-    packet >> wifi_packet.channel;
-    packet >> wifi_packet.transmitter_address;
-    packet >> wifi_packet.destination_address;
-    packet >> wifi_packet.data;
+    packet.Read(wifi_packet.channel);
+    packet.Read(wifi_packet.transmitter_address);
+    packet.Read(wifi_packet.destination_address);
+    packet.Read(wifi_packet.data);
 
     Invoke<WifiPacket>(wifi_packet);
 }
@@ -375,9 +375,9 @@ void RoomMember::RoomMemberImpl::HandleChatPacket(const ENetEvent* event) {
     packet.IgnoreBytes(sizeof(u8));
 
     ChatEntry chat_entry{};
-    packet >> chat_entry.nickname;
-    packet >> chat_entry.username;
-    packet >> chat_entry.message;
+    packet.Read(chat_entry.nickname);
+    packet.Read(chat_entry.username);
+    packet.Read(chat_entry.message);
     Invoke<ChatEntry>(chat_entry);
 }
 
@@ -390,10 +390,10 @@ void RoomMember::RoomMemberImpl::HandleStatusMessagePacket(const ENetEvent* even
 
     StatusMessageEntry status_message_entry{};
     u8 type{};
-    packet >> type;
+    packet.Read(type);
     status_message_entry.type = static_cast<StatusMessageTypes>(type);
-    packet >> status_message_entry.nickname;
-    packet >> status_message_entry.username;
+    packet.Read(status_message_entry.nickname);
+    packet.Read(status_message_entry.username);
     Invoke<StatusMessageEntry>(status_message_entry);
 }
 
@@ -405,8 +405,8 @@ void RoomMember::RoomMemberImpl::HandleModBanListResponsePacket(const ENetEvent*
     packet.IgnoreBytes(sizeof(u8));
 
     Room::BanList ban_list = {};
-    packet >> ban_list.first;
-    packet >> ban_list.second;
+    packet.Read(ban_list.first);
+    packet.Read(ban_list.second);
     Invoke<Room::BanList>(ban_list);
 }
 
@@ -586,19 +586,19 @@ bool RoomMember::IsConnected() const {
 
 void RoomMember::SendWifiPacket(const WifiPacket& wifi_packet) {
     Packet packet;
-    packet << static_cast<u8>(IdWifiPacket);
-    packet << static_cast<u8>(wifi_packet.type);
-    packet << wifi_packet.channel;
-    packet << wifi_packet.transmitter_address;
-    packet << wifi_packet.destination_address;
-    packet << wifi_packet.data;
+    packet.Write(static_cast<u8>(IdWifiPacket));
+    packet.Write(static_cast<u8>(wifi_packet.type));
+    packet.Write(wifi_packet.channel);
+    packet.Write(wifi_packet.transmitter_address);
+    packet.Write(wifi_packet.destination_address);
+    packet.Write(wifi_packet.data);
     room_member_impl->Send(std::move(packet));
 }
 
 void RoomMember::SendChatMessage(const std::string& message) {
     Packet packet;
-    packet << static_cast<u8>(IdChatMessage);
-    packet << message;
+    packet.Write(static_cast<u8>(IdChatMessage));
+    packet.Write(message);
     room_member_impl->Send(std::move(packet));
 }
 
@@ -608,9 +608,9 @@ void RoomMember::SendGameInfo(const GameInfo& game_info) {
         return;
 
     Packet packet;
-    packet << static_cast<u8>(IdSetGameInfo);
-    packet << game_info.name;
-    packet << game_info.id;
+    packet.Write(static_cast<u8>(IdSetGameInfo));
+    packet.Write(game_info.name);
+    packet.Write(game_info.id);
     room_member_impl->Send(std::move(packet));
 }
 
@@ -621,8 +621,8 @@ void RoomMember::SendModerationRequest(RoomMessageTypes type, const std::string&
         return;
 
     Packet packet;
-    packet << static_cast<u8>(type);
-    packet << nickname;
+    packet.Write(static_cast<u8>(type));
+    packet.Write(nickname);
     room_member_impl->Send(std::move(packet));
 }
 
@@ -631,7 +631,7 @@ void RoomMember::RequestBanList() {
         return;
 
     Packet packet;
-    packet << static_cast<u8>(IdModGetBanList);
+    packet.Write(static_cast<u8>(IdModGetBanList));
     room_member_impl->Send(std::move(packet));
 }
 

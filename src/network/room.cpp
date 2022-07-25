@@ -7,6 +7,7 @@
 #include <mutex>
 #include <random>
 #include <regex>
+#include <shared_mutex>
 #include <sstream>
 #include <thread>
 #include "common/logging/log.h"
@@ -43,9 +44,8 @@ public:
         ENetPeer* peer; ///< The remote peer.
     };
     using MemberList = std::vector<Member>;
-    MemberList members;              ///< Information about the members of this room
-    mutable std::mutex member_mutex; ///< Mutex for locking the members list
-    /// This should be a std::shared_mutex as soon as C++17 is supported
+    MemberList members;                     ///< Information about the members of this room
+    mutable std::shared_mutex member_mutex; ///< Mutex for locking the members list
 
     UsernameBanList username_ban_list; ///< List of banned usernames
     IPBanList ip_ban_list;             ///< List of banned IP addresses
@@ -311,22 +311,22 @@ void Room::RoomImpl::HandleJoinRequest(const ENetEvent* event) {
     packet.Append(event->packet->data, event->packet->dataLength);
     packet.IgnoreBytes(sizeof(u8)); // Ignore the message type
     std::string nickname;
-    packet >> nickname;
+    packet.Read(nickname);
 
     std::string console_id_hash;
-    packet >> console_id_hash;
+    packet.Read(console_id_hash);
 
     MacAddress preferred_mac;
-    packet >> preferred_mac;
+    packet.Read(preferred_mac);
 
     u32 client_version;
-    packet >> client_version;
+    packet.Read(client_version);
 
     std::string pass;
-    packet >> pass;
+    packet.Read(pass);
 
     std::string token;
-    packet >> token;
+    packet.Read(token);
 
     if (pass != password) {
         SendWrongPassword(event->peer);
@@ -387,9 +387,9 @@ void Room::RoomImpl::HandleJoinRequest(const ENetEvent* event) {
         }
 
         // Check IP ban
-        char ip_raw[256];
-        enet_address_get_host_ip(&event->peer->address, ip_raw, sizeof(ip_raw) - 1);
-        ip = ip_raw;
+        std::array<char, 256> ip_raw{};
+        enet_address_get_host_ip(&event->peer->address, ip_raw.data(), sizeof(ip_raw) - 1);
+        ip = ip_raw.data();
 
         if (std::find(ip_ban_list.begin(), ip_ban_list.end(), ip) != ip_ban_list.end()) {
             SendUserBanned(event->peer);
@@ -425,7 +425,7 @@ void Room::RoomImpl::HandleModKickPacket(const ENetEvent* event) {
     packet.IgnoreBytes(sizeof(u8)); // Ignore the message type
 
     std::string nickname;
-    packet >> nickname;
+    packet.Read(nickname);
 
     std::string username, ip;
     {
@@ -443,9 +443,9 @@ void Room::RoomImpl::HandleModKickPacket(const ENetEvent* event) {
 
         username = target_member->user_data.username;
 
-        char ip_raw[256];
-        enet_address_get_host_ip(&target_member->peer->address, ip_raw, sizeof(ip_raw) - 1);
-        ip = ip_raw;
+        std::array<char, 256> ip_raw{};
+        enet_address_get_host_ip(&target_member->peer->address, ip_raw.data(), sizeof(ip_raw) - 1);
+        ip = ip_raw.data();
 
         enet_peer_disconnect(target_member->peer, 0);
         members.erase(target_member);
@@ -467,7 +467,7 @@ void Room::RoomImpl::HandleModBanPacket(const ENetEvent* event) {
     packet.IgnoreBytes(sizeof(u8)); // Ignore the message type
 
     std::string nickname;
-    packet >> nickname;
+    packet.Read(nickname);
 
     std::string username, ip;
     {
@@ -486,9 +486,9 @@ void Room::RoomImpl::HandleModBanPacket(const ENetEvent* event) {
         nickname = target_member->nickname;
         username = target_member->user_data.username;
 
-        char ip_raw[256];
-        enet_address_get_host_ip(&target_member->peer->address, ip_raw, sizeof(ip_raw) - 1);
-        ip = ip_raw;
+        std::array<char, 256> ip_raw{};
+        enet_address_get_host_ip(&target_member->peer->address, ip_raw.data(), sizeof(ip_raw) - 1);
+        ip = ip_raw.data();
 
         enet_peer_disconnect(target_member->peer, 0);
         members.erase(target_member);
@@ -528,7 +528,7 @@ void Room::RoomImpl::HandleModUnbanPacket(const ENetEvent* event) {
     packet.IgnoreBytes(sizeof(u8)); // Ignore the message type
 
     std::string address;
-    packet >> address;
+    packet.Read(address);
 
     bool unbanned = false;
     {
@@ -613,7 +613,7 @@ bool Room::RoomImpl::HasModPermission(const ENetPeer* client) const {
 
 void Room::RoomImpl::SendNameCollision(ENetPeer* client) {
     Packet packet;
-    packet << static_cast<u8>(IdNameCollision);
+    packet.Write(static_cast<u8>(IdNameCollision));
 
     ENetPacket* enet_packet =
         enet_packet_create(packet.GetData(), packet.GetDataSize(), ENET_PACKET_FLAG_RELIABLE);
@@ -623,7 +623,7 @@ void Room::RoomImpl::SendNameCollision(ENetPeer* client) {
 
 void Room::RoomImpl::SendMacCollision(ENetPeer* client) {
     Packet packet;
-    packet << static_cast<u8>(IdMacCollision);
+    packet.Write(static_cast<u8>(IdMacCollision));
 
     ENetPacket* enet_packet =
         enet_packet_create(packet.GetData(), packet.GetDataSize(), ENET_PACKET_FLAG_RELIABLE);
@@ -633,7 +633,7 @@ void Room::RoomImpl::SendMacCollision(ENetPeer* client) {
 
 void Room::RoomImpl::SendConsoleIdCollision(ENetPeer* client) {
     Packet packet;
-    packet << static_cast<u8>(IdConsoleIdCollision);
+    packet.Write(static_cast<u8>(IdConsoleIdCollision));
 
     ENetPacket* enet_packet =
         enet_packet_create(packet.GetData(), packet.GetDataSize(), ENET_PACKET_FLAG_RELIABLE);
@@ -643,7 +643,7 @@ void Room::RoomImpl::SendConsoleIdCollision(ENetPeer* client) {
 
 void Room::RoomImpl::SendWrongPassword(ENetPeer* client) {
     Packet packet;
-    packet << static_cast<u8>(IdWrongPassword);
+    packet.Write(static_cast<u8>(IdWrongPassword));
 
     ENetPacket* enet_packet =
         enet_packet_create(packet.GetData(), packet.GetDataSize(), ENET_PACKET_FLAG_RELIABLE);
@@ -653,7 +653,7 @@ void Room::RoomImpl::SendWrongPassword(ENetPeer* client) {
 
 void Room::RoomImpl::SendRoomIsFull(ENetPeer* client) {
     Packet packet;
-    packet << static_cast<u8>(IdRoomIsFull);
+    packet.Write(static_cast<u8>(IdRoomIsFull));
 
     ENetPacket* enet_packet =
         enet_packet_create(packet.GetData(), packet.GetDataSize(), ENET_PACKET_FLAG_RELIABLE);
@@ -663,8 +663,8 @@ void Room::RoomImpl::SendRoomIsFull(ENetPeer* client) {
 
 void Room::RoomImpl::SendVersionMismatch(ENetPeer* client) {
     Packet packet;
-    packet << static_cast<u8>(IdVersionMismatch);
-    packet << network_version;
+    packet.Write(static_cast<u8>(IdVersionMismatch));
+    packet.Write(network_version);
 
     ENetPacket* enet_packet =
         enet_packet_create(packet.GetData(), packet.GetDataSize(), ENET_PACKET_FLAG_RELIABLE);
@@ -674,8 +674,8 @@ void Room::RoomImpl::SendVersionMismatch(ENetPeer* client) {
 
 void Room::RoomImpl::SendJoinSuccess(ENetPeer* client, MacAddress mac_address) {
     Packet packet;
-    packet << static_cast<u8>(IdJoinSuccess);
-    packet << mac_address;
+    packet.Write(static_cast<u8>(IdJoinSuccess));
+    packet.Write(mac_address);
     ENetPacket* enet_packet =
         enet_packet_create(packet.GetData(), packet.GetDataSize(), ENET_PACKET_FLAG_RELIABLE);
     enet_peer_send(client, 0, enet_packet);
@@ -684,8 +684,8 @@ void Room::RoomImpl::SendJoinSuccess(ENetPeer* client, MacAddress mac_address) {
 
 void Room::RoomImpl::SendJoinSuccessAsMod(ENetPeer* client, MacAddress mac_address) {
     Packet packet;
-    packet << static_cast<u8>(IdJoinSuccessAsMod);
-    packet << mac_address;
+    packet.Write(static_cast<u8>(IdJoinSuccessAsMod));
+    packet.Write(mac_address);
     ENetPacket* enet_packet =
         enet_packet_create(packet.GetData(), packet.GetDataSize(), ENET_PACKET_FLAG_RELIABLE);
     enet_peer_send(client, 0, enet_packet);
@@ -694,7 +694,7 @@ void Room::RoomImpl::SendJoinSuccessAsMod(ENetPeer* client, MacAddress mac_addre
 
 void Room::RoomImpl::SendUserKicked(ENetPeer* client) {
     Packet packet;
-    packet << static_cast<u8>(IdHostKicked);
+    packet.Write(static_cast<u8>(IdHostKicked));
 
     ENetPacket* enet_packet =
         enet_packet_create(packet.GetData(), packet.GetDataSize(), ENET_PACKET_FLAG_RELIABLE);
@@ -704,7 +704,7 @@ void Room::RoomImpl::SendUserKicked(ENetPeer* client) {
 
 void Room::RoomImpl::SendUserBanned(ENetPeer* client) {
     Packet packet;
-    packet << static_cast<u8>(IdHostBanned);
+    packet.Write(static_cast<u8>(IdHostBanned));
 
     ENetPacket* enet_packet =
         enet_packet_create(packet.GetData(), packet.GetDataSize(), ENET_PACKET_FLAG_RELIABLE);
@@ -714,7 +714,7 @@ void Room::RoomImpl::SendUserBanned(ENetPeer* client) {
 
 void Room::RoomImpl::SendModPermissionDenied(ENetPeer* client) {
     Packet packet;
-    packet << static_cast<u8>(IdModPermissionDenied);
+    packet.Write(static_cast<u8>(IdModPermissionDenied));
 
     ENetPacket* enet_packet =
         enet_packet_create(packet.GetData(), packet.GetDataSize(), ENET_PACKET_FLAG_RELIABLE);
@@ -724,7 +724,7 @@ void Room::RoomImpl::SendModPermissionDenied(ENetPeer* client) {
 
 void Room::RoomImpl::SendModNoSuchUser(ENetPeer* client) {
     Packet packet;
-    packet << static_cast<u8>(IdModNoSuchUser);
+    packet.Write(static_cast<u8>(IdModNoSuchUser));
 
     ENetPacket* enet_packet =
         enet_packet_create(packet.GetData(), packet.GetDataSize(), ENET_PACKET_FLAG_RELIABLE);
@@ -734,11 +734,11 @@ void Room::RoomImpl::SendModNoSuchUser(ENetPeer* client) {
 
 void Room::RoomImpl::SendModBanListResponse(ENetPeer* client) {
     Packet packet;
-    packet << static_cast<u8>(IdModBanListResponse);
+    packet.Write(static_cast<u8>(IdModBanListResponse));
     {
         std::lock_guard lock(ban_list_mutex);
-        packet << username_ban_list;
-        packet << ip_ban_list;
+        packet.Write(username_ban_list);
+        packet.Write(ip_ban_list);
     }
 
     ENetPacket* enet_packet =
@@ -749,7 +749,7 @@ void Room::RoomImpl::SendModBanListResponse(ENetPeer* client) {
 
 void Room::RoomImpl::SendCloseMessage() {
     Packet packet;
-    packet << static_cast<u8>(IdCloseRoom);
+    packet.Write(static_cast<u8>(IdCloseRoom));
     std::lock_guard lock(member_mutex);
     if (!members.empty()) {
         ENetPacket* enet_packet =
@@ -767,10 +767,10 @@ void Room::RoomImpl::SendCloseMessage() {
 void Room::RoomImpl::SendStatusMessage(StatusMessageTypes type, const std::string& nickname,
                                        const std::string& username, const std::string& ip) {
     Packet packet;
-    packet << static_cast<u8>(IdStatusMessage);
-    packet << static_cast<u8>(type);
-    packet << nickname;
-    packet << username;
+    packet.Write(static_cast<u8>(IdStatusMessage));
+    packet.Write(static_cast<u8>(type));
+    packet.Write(nickname);
+    packet.Write(username);
     std::lock_guard lock(member_mutex);
     if (!members.empty()) {
         ENetPacket* enet_packet =
@@ -805,25 +805,25 @@ void Room::RoomImpl::SendStatusMessage(StatusMessageTypes type, const std::strin
 
 void Room::RoomImpl::BroadcastRoomInformation() {
     Packet packet;
-    packet << static_cast<u8>(IdRoomInformation);
-    packet << room_information.name;
-    packet << room_information.description;
-    packet << room_information.member_slots;
-    packet << room_information.port;
-    packet << room_information.preferred_game.name;
-    packet << room_information.host_username;
+    packet.Write(static_cast<u8>(IdRoomInformation));
+    packet.Write(room_information.name);
+    packet.Write(room_information.description);
+    packet.Write(room_information.member_slots);
+    packet.Write(room_information.port);
+    packet.Write(room_information.preferred_game.name);
+    packet.Write(room_information.host_username);
 
-    packet << static_cast<u32>(members.size());
+    packet.Write(static_cast<u32>(members.size()));
     {
         std::lock_guard lock(member_mutex);
         for (const auto& member : members) {
-            packet << member.nickname;
-            packet << member.mac_address;
-            packet << member.game_info.name;
-            packet << member.game_info.id;
-            packet << member.user_data.username;
-            packet << member.user_data.display_name;
-            packet << member.user_data.avatar_url;
+            packet.Write(member.nickname);
+            packet.Write(member.mac_address);
+            packet.Write(member.game_info.name);
+            packet.Write(member.game_info.id);
+            packet.Write(member.user_data.username);
+            packet.Write(member.user_data.display_name);
+            packet.Write(member.user_data.avatar_url);
         }
     }
 
@@ -853,7 +853,7 @@ void Room::RoomImpl::HandleWifiPacket(const ENetEvent* event) {
     in_packet.IgnoreBytes(sizeof(u8));         // WifiPacket Channel
     in_packet.IgnoreBytes(sizeof(MacAddress)); // WifiPacket Transmitter Address
     MacAddress destination_address;
-    in_packet >> destination_address;
+    in_packet.Read(destination_address);
 
     Packet out_packet;
     out_packet.Append(event->packet->data, event->packet->dataLength);
@@ -899,7 +899,7 @@ void Room::RoomImpl::HandleChatPacket(const ENetEvent* event) {
 
     in_packet.IgnoreBytes(sizeof(u8)); // Ignore the message type
     std::string message;
-    in_packet >> message;
+    in_packet.Read(message);
     auto CompareNetworkAddress = [event](const Member member) -> bool {
         return member.peer == event->peer;
     };
@@ -914,10 +914,10 @@ void Room::RoomImpl::HandleChatPacket(const ENetEvent* event) {
     message.resize(std::min(static_cast<u32>(message.size()), MaxMessageSize));
 
     Packet out_packet;
-    out_packet << static_cast<u8>(IdChatMessage);
-    out_packet << sending_member->nickname;
-    out_packet << sending_member->user_data.username;
-    out_packet << message;
+    out_packet.Write(static_cast<u8>(IdChatMessage));
+    out_packet.Write(sending_member->nickname);
+    out_packet.Write(sending_member->user_data.username);
+    out_packet.Write(message);
 
     ENetPacket* enet_packet = enet_packet_create(out_packet.GetData(), out_packet.GetDataSize(),
                                                  ENET_PACKET_FLAG_RELIABLE);
@@ -949,8 +949,8 @@ void Room::RoomImpl::HandleGameNamePacket(const ENetEvent* event) {
 
     in_packet.IgnoreBytes(sizeof(u8)); // Ignore the message type
     GameInfo game_info;
-    in_packet >> game_info.name;
-    in_packet >> game_info.id;
+    in_packet.Read(game_info.name);
+    in_packet.Read(game_info.id);
 
     {
         std::lock_guard lock(member_mutex);
@@ -989,9 +989,9 @@ void Room::RoomImpl::HandleClientDisconnection(ENetPeer* client) {
             nickname = member->nickname;
             username = member->user_data.username;
 
-            char ip_raw[256];
-            enet_address_get_host_ip(&member->peer->address, ip_raw, sizeof(ip_raw) - 1);
-            ip = ip_raw;
+            std::array<char, 256> ip_raw{};
+            enet_address_get_host_ip(&member->peer->address, ip_raw.data(), sizeof(ip_raw) - 1);
+            ip = ip_raw.data();
 
             members.erase(member);
         }

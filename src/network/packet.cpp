@@ -65,80 +65,80 @@ Packet::operator bool() const {
     return is_valid;
 }
 
-Packet& Packet::operator>>(bool& out_data) {
+Packet& Packet::Read(bool& out_data) {
     u8 value{};
-    if (*this >> value) {
+    if (Read(value)) {
         out_data = (value != 0);
     }
     return *this;
 }
 
-Packet& Packet::operator>>(s8& out_data) {
+Packet& Packet::Read(s8& out_data) {
     Read(&out_data, sizeof(out_data));
     return *this;
 }
 
-Packet& Packet::operator>>(u8& out_data) {
+Packet& Packet::Read(u8& out_data) {
     Read(&out_data, sizeof(out_data));
     return *this;
 }
 
-Packet& Packet::operator>>(s16& out_data) {
+Packet& Packet::Read(s16& out_data) {
     s16 value{};
     Read(&value, sizeof(value));
     out_data = ntohs(value);
     return *this;
 }
 
-Packet& Packet::operator>>(u16& out_data) {
+Packet& Packet::Read(u16& out_data) {
     u16 value{};
     Read(&value, sizeof(value));
     out_data = ntohs(value);
     return *this;
 }
 
-Packet& Packet::operator>>(s32& out_data) {
+Packet& Packet::Read(s32& out_data) {
     s32 value{};
     Read(&value, sizeof(value));
     out_data = ntohl(value);
     return *this;
 }
 
-Packet& Packet::operator>>(u32& out_data) {
+Packet& Packet::Read(u32& out_data) {
     u32 value{};
     Read(&value, sizeof(value));
     out_data = ntohl(value);
     return *this;
 }
 
-Packet& Packet::operator>>(s64& out_data) {
+Packet& Packet::Read(s64& out_data) {
     s64 value{};
     Read(&value, sizeof(value));
     out_data = ntohll(value);
     return *this;
 }
 
-Packet& Packet::operator>>(u64& out_data) {
+Packet& Packet::Read(u64& out_data) {
     u64 value{};
     Read(&value, sizeof(value));
     out_data = ntohll(value);
     return *this;
 }
 
-Packet& Packet::operator>>(float& out_data) {
+Packet& Packet::Read(float& out_data) {
     Read(&out_data, sizeof(out_data));
     return *this;
 }
 
-Packet& Packet::operator>>(double& out_data) {
+Packet& Packet::Read(double& out_data) {
     Read(&out_data, sizeof(out_data));
     return *this;
 }
 
-Packet& Packet::operator>>(char* out_data) {
+Packet& Packet::Read(char* out_data) {
     // First extract string length
     u32 length = 0;
-    *this >> length;
+    Read(length);
 
     if ((length > 0) && CheckSize(length)) {
         // Then extract characters
@@ -152,10 +152,10 @@ Packet& Packet::operator>>(char* out_data) {
     return *this;
 }
 
-Packet& Packet::operator>>(std::string& out_data) {
+Packet& Packet::Read(std::string& out_data) {
     // First extract string length
     u32 length = 0;
-    *this >> length;
+    Read(length);
 
     out_data.clear();
     if ((length > 0) && CheckSize(length)) {
@@ -169,71 +169,71 @@ Packet& Packet::operator>>(std::string& out_data) {
     return *this;
 }
 
-Packet& Packet::operator<<(bool in_data) {
-    *this << static_cast<u8>(in_data);
+Packet& Packet::Write(bool in_data) {
+    Write(static_cast<u8>(in_data));
     return *this;
 }
 
-Packet& Packet::operator<<(s8 in_data) {
+Packet& Packet::Write(s8 in_data) {
     Append(&in_data, sizeof(in_data));
     return *this;
 }
 
-Packet& Packet::operator<<(u8 in_data) {
+Packet& Packet::Write(u8 in_data) {
     Append(&in_data, sizeof(in_data));
     return *this;
 }
 
-Packet& Packet::operator<<(s16 in_data) {
+Packet& Packet::Write(s16 in_data) {
     s16 toWrite = htons(in_data);
     Append(&toWrite, sizeof(toWrite));
     return *this;
 }
 
-Packet& Packet::operator<<(u16 in_data) {
+Packet& Packet::Write(u16 in_data) {
     u16 toWrite = htons(in_data);
     Append(&toWrite, sizeof(toWrite));
     return *this;
 }
 
-Packet& Packet::operator<<(s32 in_data) {
+Packet& Packet::Write(s32 in_data) {
     s32 toWrite = htonl(in_data);
     Append(&toWrite, sizeof(toWrite));
     return *this;
 }
 
-Packet& Packet::operator<<(u32 in_data) {
+Packet& Packet::Write(u32 in_data) {
     u32 toWrite = htonl(in_data);
     Append(&toWrite, sizeof(toWrite));
     return *this;
 }
 
-Packet& Packet::operator<<(s64 in_data) {
+Packet& Packet::Write(s64 in_data) {
     s64 toWrite = htonll(in_data);
     Append(&toWrite, sizeof(toWrite));
     return *this;
 }
 
-Packet& Packet::operator<<(u64 in_data) {
+Packet& Packet::Write(u64 in_data) {
     u64 toWrite = htonll(in_data);
     Append(&toWrite, sizeof(toWrite));
     return *this;
 }
 
-Packet& Packet::operator<<(float in_data) {
+Packet& Packet::Write(float in_data) {
     Append(&in_data, sizeof(in_data));
     return *this;
 }
 
-Packet& Packet::operator<<(double in_data) {
+Packet& Packet::Write(double in_data) {
     Append(&in_data, sizeof(in_data));
     return *this;
 }
 
-Packet& Packet::operator<<(const char* in_data) {
+Packet& Packet::Write(const char* in_data) {
     // First insert string length
     u32 length = static_cast<u32>(std::strlen(in_data));
-    *this << length;
+    Write(length);
 
     // Then insert characters
     Append(in_data, length * sizeof(char));
@@ -241,10 +241,10 @@ Packet& Packet::operator<<(const char* in_data) {
     return *this;
 }
 
-Packet& Packet::operator<<(const std::string& in_data) {
+Packet& Packet::Write(const std::string& in_data) {
     // First insert string length
     u32 length = static_cast<u32>(in_data.size());
-    *this << length;
+    Write(length);
 
     // Then insert characters
     if (length > 0)

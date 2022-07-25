@@ -63,43 +63,43 @@ public:
 
     explicit operator bool() const;
 
-    /// Overloads of operator >> to read data from the packet
-    Packet& operator>>(bool& out_data);
-    Packet& operator>>(s8& out_data);
-    Packet& operator>>(u8& out_data);
-    Packet& operator>>(s16& out_data);
-    Packet& operator>>(u16& out_data);
-    Packet& operator>>(s32& out_data);
-    Packet& operator>>(u32& out_data);
-    Packet& operator>>(s64& out_data);
-    Packet& operator>>(u64& out_data);
-    Packet& operator>>(float& out_data);
-    Packet& operator>>(double& out_data);
-    Packet& operator>>(char* out_data);
-    Packet& operator>>(std::string& out_data);
+    /// Overloads of read function to read data from the packet
+    Packet& Read(bool& out_data);
+    Packet& Read(s8& out_data);
+    Packet& Read(u8& out_data);
+    Packet& Read(s16& out_data);
+    Packet& Read(u16& out_data);
+    Packet& Read(s32& out_data);
+    Packet& Read(u32& out_data);
+    Packet& Read(s64& out_data);
+    Packet& Read(u64& out_data);
+    Packet& Read(float& out_data);
+    Packet& Read(double& out_data);
+    Packet& Read(char* out_data);
+    Packet& Read(std::string& out_data);
     template <typename T>
-    Packet& operator>>(std::vector<T>& out_data);
+    Packet& Read(std::vector<T>& out_data);
     template <typename T, std::size_t S>
-    Packet& operator>>(std::array<T, S>& out_data);
+    Packet& Read(std::array<T, S>& out_data);
 
-    /// Overloads of operator << to write data into the packet
-    Packet& operator<<(bool in_data);
-    Packet& operator<<(s8 in_data);
-    Packet& operator<<(u8 in_data);
-    Packet& operator<<(s16 in_data);
-    Packet& operator<<(u16 in_data);
-    Packet& operator<<(s32 in_data);
-    Packet& operator<<(u32 in_data);
-    Packet& operator<<(s64 in_data);
-    Packet& operator<<(u64 in_data);
-    Packet& operator<<(float in_data);
-    Packet& operator<<(double in_data);
-    Packet& operator<<(const char* in_data);
-    Packet& operator<<(const std::string& in_data);
+    /// Overloads of write function to write data into the packet
+    Packet& Write(bool in_data);
+    Packet& Write(s8 in_data);
+    Packet& Write(u8 in_data);
+    Packet& Write(s16 in_data);
+    Packet& Write(u16 in_data);
+    Packet& Write(s32 in_data);
+    Packet& Write(u32 in_data);
+    Packet& Write(s64 in_data);
+    Packet& Write(u64 in_data);
+    Packet& Write(float in_data);
+    Packet& Write(double in_data);
+    Packet& Write(const char* in_data);
+    Packet& Write(const std::string& in_data);
     template <typename T>
-    Packet& operator<<(const std::vector<T>& in_data);
+    Packet& Write(const std::vector<T>& in_data);
     template <typename T, std::size_t S>
-    Packet& operator<<(const std::array<T, S>& data);
+    Packet& Write(const std::array<T, S>& data);
 
 private:
     /**
@@ -117,47 +117,47 @@ private:
 };
 
 template <typename T>
-Packet& Packet::operator>>(std::vector<T>& out_data) {
+Packet& Packet::Read(std::vector<T>& out_data) {
     // First extract the size
     u32 size = 0;
-    *this >> size;
+    Read(size);
     out_data.resize(size);
 
     // Then extract the data
     for (std::size_t i = 0; i < out_data.size(); ++i) {
         T character;
-        *this >> character;
+        Read(character);
         out_data[i] = character;
     }
     return *this;
 }
 
 template <typename T, std::size_t S>
-Packet& Packet::operator>>(std::array<T, S>& out_data) {
+Packet& Packet::Read(std::array<T, S>& out_data) {
     for (std::size_t i = 0; i < out_data.size(); ++i) {
         T character;
-        *this >> character;
+        Read(character);
         out_data[i] = character;
     }
     return *this;
 }
 
 template <typename T>
-Packet& Packet::operator<<(const std::vector<T>& in_data) {
+Packet& Packet::Write(const std::vector<T>& in_data) {
     // First insert the size
-    *this << static_cast<u32>(in_data.size());
+    Write(static_cast<u32>(in_data.size()));
 
     // Then insert the data
     for (std::size_t i = 0; i < in_data.size(); ++i) {
-        *this << in_data[i];
+        Write(in_data[i]);
     }
     return *this;
 }
 
 template <typename T, std::size_t S>
-Packet& Packet::operator<<(const std::array<T, S>& in_data) {
+Packet& Packet::Write(const std::array<T, S>& in_data) {
     for (std::size_t i = 0; i < in_data.size(); ++i) {
-        *this << in_data[i];
+        Write(in_data[i]);
     }
     return *this;
 }

@@ -74,14 +74,18 @@ MultiplayerState::~MultiplayerState() {
 }
 
 void MultiplayerState::Close() {
-    if (host_room)
+    if (host_room) {
         host_room->close();
-    if (direct_connect)
+    }
+    if (direct_connect) {
         direct_connect->close();
-    if (client_room)
+    }
+    if (client_room) {
         client_room->close();
-    if (lobby)
+    }
+    if (lobby) {
         lobby->close();
+    }
 }
 
 void MultiplayerState::retranslateUi() {
