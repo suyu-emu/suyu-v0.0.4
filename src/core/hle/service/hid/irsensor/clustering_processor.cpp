@@ -53,13 +53,11 @@ void ClusteringProcessor::OnControllerUpdate(Core::HID::ControllerTriggerType ty
 
     RemoveLowIntensityData(filtered_image);
 
-    const std::size_t window_start_x =
-        static_cast<std::size_t>(current_config.window_of_interest.x);
-    const std::size_t window_start_y =
-        static_cast<std::size_t>(current_config.window_of_interest.y);
-    const std::size_t window_end_x =
+    const auto window_start_x = static_cast<std::size_t>(current_config.window_of_interest.x);
+    const auto window_start_y = static_cast<std::size_t>(current_config.window_of_interest.y);
+    const auto window_end_x =
         window_start_x + static_cast<std::size_t>(current_config.window_of_interest.width);
-    const std::size_t window_end_y =
+    const auto window_end_y =
         window_start_y + static_cast<std::size_t>(current_config.window_of_interest.height);
 
     for (std::size_t y = window_start_y; y < window_end_y; y++) {
@@ -76,7 +74,7 @@ void ClusteringProcessor::OnControllerUpdate(Core::HID::ControllerTriggerType ty
                 continue;
             }
             // Cluster object limit reached
-            if (next_state.object_count >= 0x10) {
+            if (next_state.object_count >= next_state.data.size()) {
                 continue;
             }
             next_state.data[next_state.object_count] = cluster;
@@ -105,10 +103,11 @@ void ClusteringProcessor::RemoveLowIntensityData(std::vector<u8>& data) {
 ClusteringProcessor::ClusteringData ClusteringProcessor::GetClusterProperties(std::vector<u8>& data,
                                                                               std::size_t x,
                                                                               std::size_t y) {
-    std::queue<Common::Point<std::size_t>> search_points{};
+    using DataPoint = Common::Point<std::size_t>;
+    std::queue<DataPoint> search_points{};
     ClusteringData current_cluster = GetPixelProperties(data, x, y);
     SetPixel(data, x, y, 0);
-    search_points.push({x, y});
+    search_points.emplace<DataPoint>({x, y});
 
     while (!search_points.empty()) {
         const auto point = search_points.front();
@@ -119,8 +118,8 @@ ClusteringProcessor::ClusteringData ClusteringProcessor::GetClusterProperties(st
             continue;
         }
 
-        std::array<Common::Point<std::size_t>, 4> new_points{
-            Common::Point<std::size_t>{point.x - 1, point.y},
+        std::array<DataPoint, 4> new_points{
+            DataPoint{point.x - 1, point.y},
             {point.x, point.y - 1},
             {point.x + 1, point.y},
             {point.x, point.y + 1},
@@ -139,7 +138,7 @@ ClusteringProcessor::ClusteringData ClusteringProcessor::GetClusterProperties(st
             const ClusteringData cluster = GetPixelProperties(data, new_point.x, new_point.y);
             current_cluster = MergeCluster(current_cluster, cluster);
             SetPixel(data, new_point.x, new_point.y, 0);
-            search_points.push({new_point.x, new_point.y});
+            search_points.emplace<DataPoint>({new_point.x, new_point.y});
         }
     }
 
@@ -172,7 +171,7 @@ ClusteringProcessor::ClusteringData ClusteringProcessor::MergeCluster(
     const f32 a_pixel_count = static_cast<f32>(a.pixel_count);
     const f32 b_pixel_count = static_cast<f32>(b.pixel_count);
     const f32 pixel_count = a_pixel_count + b_pixel_count;
-    const f32 average_intensitiy =
+    const f32 average_intensity =
         (a.average_intensity * a_pixel_count + b.average_intensity * b_pixel_count) / pixel_count;
     const Core::IrSensor::IrsCentroid centroid = {
         .x = (a.centroid.x * a_pixel_count + b.centroid.x * b_pixel_count) / pixel_count,
@@ -195,7 +194,7 @@ ClusteringProcessor::ClusteringData ClusteringProcessor::MergeCluster(
     };
 
     return {
-        .average_intensity = average_intensitiy,
+        .average_intensity = average_intensity,
         .centroid = centroid,
         .pixel_count = static_cast<u32>(pixel_count),
         .bound = bound,
@@ -217,7 +216,8 @@ void ClusteringProcessor::SetPixel(std::vector<u8>& data, std::size_t x, std::si
 }
 
 void ClusteringProcessor::SetDefaultConfig() {
-    current_config.camera_config.exposure_time = 200000;
+    using namespace std::literals::chrono_literals;
+    current_config.camera_config.exposure_time = std::chrono::microseconds(200ms).count();
     current_config.camera_config.gain = 2;
     current_config.camera_config.is_negative_used = false;
     current_config.camera_config.light_target = Core::IrSensor::CameraLightTarget::BrightLeds;
@@ -228,7 +228,7 @@ void ClusteringProcessor::SetDefaultConfig() {
         .height = height,
     };
     current_config.pixel_count_min = 3;
-    current_config.pixel_count_max = 0x12C00;
+    current_config.pixel_count_max = static_cast<u32>(GetDataSize(format));
     current_config.is_external_light_filter_enabled = true;
     current_config.object_intensity_min = 150;
 
