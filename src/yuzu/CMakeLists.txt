@@ -208,7 +208,7 @@ add_executable(yuzu
     yuzu.rc
 )
 
-if (WIN32 AND NOT ("${DBGHELP_LIBRARY}" STREQUAL "DBGHELP_LIBRARY-NOTFOUND"))
+if (WIN32 AND YUZU_CRASH_DUMPS)
     target_sources(yuzu PRIVATE
         mini_dump.cpp
         mini_dump.h
