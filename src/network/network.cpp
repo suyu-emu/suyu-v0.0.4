@@ -10,8 +10,8 @@
 namespace Network {
 
 RoomNetwork::RoomNetwork() {
-    g_room = std::make_shared<Room>();
-    g_room_member = std::make_shared<RoomMember>();
+    m_room = std::make_shared<Room>();
+    m_room_member = std::make_shared<RoomMember>();
 }
 
 bool RoomNetwork::Init() {
@@ -19,30 +19,30 @@ bool RoomNetwork::Init() {
         LOG_ERROR(Network, "Error initalizing ENet");
         return false;
     }
-    g_room = std::make_shared<Room>();
-    g_room_member = std::make_shared<RoomMember>();
+    m_room = std::make_shared<Room>();
+    m_room_member = std::make_shared<RoomMember>();
     LOG_DEBUG(Network, "initialized OK");
     return true;
 }
 
 std::weak_ptr<Room> RoomNetwork::GetRoom() {
-    return g_room;
+    return m_room;
 }
 
 std::weak_ptr<RoomMember> RoomNetwork::GetRoomMember() {
-    return g_room_member;
+    return m_room_member;
 }
 
 void RoomNetwork::Shutdown() {
-    if (g_room_member) {
-        if (g_room_member->IsConnected())
-            g_room_member->Leave();
-        g_room_member.reset();
+    if (m_room_member) {
+        if (m_room_member->IsConnected())
+            m_room_member->Leave();
+        m_room_member.reset();
     }
-    if (g_room) {
-        if (g_room->GetState() == Room::State::Open)
-            g_room->Destroy();
-        g_room.reset();
+    if (m_room) {
+        if (m_room->GetState() == Room::State::Open)
+            m_room->Destroy();
+        m_room.reset();
     }
     enet_deinitialize();
     LOG_DEBUG(Network, "shutdown OK");

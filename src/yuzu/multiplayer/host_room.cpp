@@ -163,7 +163,7 @@ void HostRoomWindow::Host() {
         // Start the announce session if they chose Public
         if (is_public) {
             if (auto session = announce_multiplayer_session.lock()) {
-                // Register the room first to ensure verify_UID is present when we connect
+                // Register the room first to ensure verify_uid is present when we connect
                 WebService::WebResult result = session->Register();
                 if (result.result_code != WebService::WebResult::Code::Success) {
                     QMessageBox::warning(

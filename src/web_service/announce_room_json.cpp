@@ -54,7 +54,7 @@ static void to_json(nlohmann::json& json, const Room& room) {
 }
 
 static void from_json(const nlohmann::json& json, Room& room) {
-    room.verify_UID = json.at("externalGuid").get<std::string>();
+    room.verify_uid = json.at("externalGuid").get<std::string>();
     room.ip = json.at("address").get<std::string>();
     room.information.name = json.at("name").get<std::string>();
     try {
@@ -116,7 +116,7 @@ WebService::WebResult RoomJson::Register() {
     auto reply_json = nlohmann::json::parse(result.returned_data);
     room = reply_json.get<AnnounceMultiplayerRoom::Room>();
     room_id = reply_json.at("id").get<std::string>();
-    return WebService::WebResult{WebService::WebResult::Code::Success, "", room.verify_UID};
+    return WebService::WebResult{WebService::WebResult::Code::Success, "", room.verify_uid};
 }
 
 void RoomJson::ClearPlayers() {

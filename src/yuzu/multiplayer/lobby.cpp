@@ -149,11 +149,11 @@ void Lobby::OnJoinRoom(const QModelIndex& source) {
     const std::string ip =
         proxy->data(connection_index, LobbyItemHost::HostIPRole).toString().toStdString();
     int port = proxy->data(connection_index, LobbyItemHost::HostPortRole).toInt();
-    const std::string verify_UID =
+    const std::string verify_uid =
         proxy->data(connection_index, LobbyItemHost::HostVerifyUIDRole).toString().toStdString();
 
     // attempt to connect in a different thread
-    QFuture<void> f = QtConcurrent::run([nickname, ip, port, password, verify_UID, this] {
+    QFuture<void> f = QtConcurrent::run([nickname, ip, port, password, verify_uid, this] {
         std::string token;
 #ifdef ENABLE_WEB_SERVICE
         if (!Settings::values.yuzu_username.GetValue().empty() &&
@@ -161,7 +161,7 @@ void Lobby::OnJoinRoom(const QModelIndex& source) {
             WebService::Client client(Settings::values.web_api_url.GetValue(),
                                       Settings::values.yuzu_username.GetValue(),
                                       Settings::values.yuzu_token.GetValue());
-            token = client.GetExternalJWT(verify_UID).returned_data;
+            token = client.GetExternalJWT(verify_uid).returned_data;
             if (token.empty()) {
                 LOG_ERROR(WebService, "Could not get external JWT, verification may fail");
             } else {
@@ -239,7 +239,7 @@ void Lobby::OnRefreshLobby() {
                               smdh_icon),
             new LobbyItemHost(QString::fromStdString(room.information.host_username),
                               QString::fromStdString(room.ip), room.information.port,
-                              QString::fromStdString(room.verify_UID)),
+                              QString::fromStdString(room.verify_uid)),
             new LobbyItemMemberList(members, room.information.member_slots),
         });
         model->appendRow(row);

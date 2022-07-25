@@ -25,11 +25,11 @@ public:
 
     /**
      * Verifies the given token and loads the information into a UserData struct.
-     * @param verify_UID A GUID that may be used for verification.
+     * @param verify_uid A GUID that may be used for verification.
      * @param token A token that contains user data and verification data. The format and content is
      * decided by backends.
      */
-    virtual UserData LoadUserData(const std::string& verify_UID, const std::string& token) = 0;
+    virtual UserData LoadUserData(const std::string& verify_uid, const std::string& token) = 0;
 };
 
 /**
@@ -40,7 +40,7 @@ class NullBackend final : public Backend {
 public:
     ~NullBackend();
 
-    UserData LoadUserData(const std::string& verify_UID, const std::string& token) override;
+    UserData LoadUserData(const std::string& verify_uid, const std::string& token) override;
 };
 
 } // namespace Network::VerifyUser

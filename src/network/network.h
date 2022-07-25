@@ -27,8 +27,8 @@ public:
     void Shutdown();
 
 private:
-    std::shared_ptr<RoomMember> g_room_member; ///< RoomMember (Client) for network games
-    std::shared_ptr<Room> g_room;              ///< Room (Server) for network games
+    std::shared_ptr<RoomMember> m_room_member; ///< RoomMember (Client) for network games
+    std::shared_ptr<Room> m_room;              ///< Room (Server) for network games
 };
 
 } // namespace Network

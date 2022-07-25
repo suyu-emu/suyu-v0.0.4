@@ -29,8 +29,8 @@ public:
     std::atomic<State> state{State::Closed}; ///< Current state of the room.
     RoomInformation room_information;        ///< Information about this room.
 
-    std::string verify_UID;              ///< A GUID which may be used for verfication.
-    mutable std::mutex verify_UID_mutex; ///< Mutex for verify_UID
+    std::string verify_uid;              ///< A GUID which may be used for verfication.
+    mutable std::mutex verify_uid_mutex; ///< Mutex for verify_uid
 
     std::string password; ///< The password required to connect to this room.
 
@@ -369,8 +369,8 @@ void Room::RoomImpl::HandleJoinRequest(const ENetEvent* event) {
 
     std::string uid;
     {
-        std::lock_guard lock(verify_UID_mutex);
-        uid = verify_UID;
+        std::lock_guard lock(verify_uid_mutex);
+        uid = verify_uid;
     }
     member.user_data = verify_backend->LoadUserData(uid, token);
 
@@ -1056,8 +1056,8 @@ const RoomInformation& Room::GetRoomInformation() const {
 }
 
 std::string Room::GetVerifyUID() const {
-    std::lock_guard lock(room_impl->verify_UID_mutex);
-    return room_impl->verify_UID;
+    std::lock_guard lock(room_impl->verify_uid_mutex);
+    return room_impl->verify_uid;
 }
 
 Room::BanList Room::GetBanList() const {
@@ -1086,8 +1086,8 @@ bool Room::HasPassword() const {
 }
 
 void Room::SetVerifyUID(const std::string& uid) {
-    std::lock_guard lock(room_impl->verify_UID_mutex);
-    room_impl->verify_UID = uid;
+    std::lock_guard lock(room_impl->verify_uid_mutex);
+    room_impl->verify_uid = uid;
 }
 
 void Room::Destroy() {

@@ -416,8 +416,9 @@ void RoomMember::RoomMemberImpl::Disconnect() {
     room_information.member_slots = 0;
     room_information.name.clear();
 
-    if (!server)
+    if (!server) {
         return;
+    }
     enet_peer_disconnect(server, 0);
 
     ENetEvent event;
@@ -483,8 +484,9 @@ template <typename T>
 void RoomMember::RoomMemberImpl::Invoke(const T& data) {
     std::lock_guard lock(callback_mutex);
     CallbackSet<T> callback_set = callbacks.Get<T>();
-    for (auto const& callback : callback_set)
+    for (auto const& callback : callback_set) {
         (*callback)(data);
+    }
 }
 
 template <typename T>

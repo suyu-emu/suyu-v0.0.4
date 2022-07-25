@@ -123,11 +123,11 @@ public:
     static const int HostVerifyUIDRole = Qt::UserRole + 4;
 
     LobbyItemHost() = default;
-    explicit LobbyItemHost(QString username, QString ip, u16 port, QString verify_UID) {
+    explicit LobbyItemHost(QString username, QString ip, u16 port, QString verify_uid) {
         setData(username, HostUsernameRole);
         setData(ip, HostIPRole);
         setData(port, HostPortRole);
-        setData(verify_UID, HostVerifyUIDRole);
+        setData(verify_uid, HostVerifyUIDRole);
     }
 
     QVariant data(int role) const override {

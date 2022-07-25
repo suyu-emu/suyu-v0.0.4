@@ -35,9 +35,9 @@ std::string GetPublicKey(const std::string& host) {
 
 VerifyUserJWT::VerifyUserJWT(const std::string& host) : pub_key(GetPublicKey(host)) {}
 
-Network::VerifyUser::UserData VerifyUserJWT::LoadUserData(const std::string& verify_UID,
+Network::VerifyUser::UserData VerifyUserJWT::LoadUserData(const std::string& verify_uid,
                                                           const std::string& token) {
-    const std::string audience = fmt::format("external-{}", verify_UID);
+    const std::string audience = fmt::format("external-{}", verify_uid);
     using namespace jwt::params;
     std::error_code error;
     auto decoded =

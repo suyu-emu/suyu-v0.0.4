@@ -43,7 +43,7 @@ struct Room {
     RoomInformation information;
 
     std::string id;
-    std::string verify_UID; ///< UID used for verification
+    std::string verify_uid; ///< UID used for verification
     std::string ip;
     u32 net_version;
     bool has_password;

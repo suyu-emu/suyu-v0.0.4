@@ -17,7 +17,7 @@ public:
     VerifyUserJWT(const std::string& host);
     ~VerifyUserJWT() = default;
 
-    Network::VerifyUser::UserData LoadUserData(const std::string& verify_UID,
+    Network::VerifyUser::UserData LoadUserData(const std::string& verify_uid,
                                                const std::string& token) override;
 
 private:
