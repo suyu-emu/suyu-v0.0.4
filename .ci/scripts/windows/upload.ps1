@@ -54,6 +54,10 @@ Copy-Item .\CMakeModules -Recurse -Destination $MSVC_SOURCE
 if ("$env:GITHUB_ACTIONS" -eq "true") {
     echo "Hello GitHub Actions"
 
+    # With vcpkg we now have a few more dll files
+    ls .\build\bin\*.dll
+    cp .\build\bin\*.dll .\artifacts\
+
     # Hopefully there is an exe in either .\build\bin or .\build\bin\Release
     cp .\build\bin\yuzu*.exe .\artifacts\
     Copy-Item "$BUILD_DIR\*" -Destination "artifacts" -Recurse
@@ -109,6 +113,3 @@ Get-ChildItem . -Filter "*.zip" | Copy-Item -destination "artifacts"
 Get-ChildItem . -Filter "*.7z" | Copy-Item -destination "artifacts"
 Get-ChildItem . -Filter "*.tar.xz" | Copy-Item -destination "artifacts"
 }
-# Extra items
-git status
-cp .\build\src\common\scm_rev.cpp .\artifacts
