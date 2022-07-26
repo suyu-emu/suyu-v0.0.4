@@ -51,6 +51,9 @@ mkdir -p AppDir/usr/optional/libgcc_s
 # Deploy yuzu's needed dependencies
 ./linuxdeploy-x86_64.AppImage --appdir AppDir --plugin qt
 
+# Workaround for libQt5MultimediaGstTools indirectly requiring libwayland-client and breaking Vulkan usage on end-user systems
+find AppDir -type f -regex '.*libwayland-client\.so.*' -delete -print
+
 # Workaround for building yuzu with GCC 10 but also trying to distribute it to Ubuntu 18.04 et al.
 # See https://github.com/darealshinji/AppImageKit-checkrt
 cp exec-x86_64.so AppDir/usr/optional/exec.so
