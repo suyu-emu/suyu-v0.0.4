@@ -42,7 +42,7 @@
 	url = https://github.com/yhirose/cpp-httplib.git
 [submodule "ffmpeg"]
 	path = externals/ffmpeg/ffmpeg
-	url = https://git.ffmpeg.org/ffmpeg.git
+	url = https://github.com/FFmpeg/FFmpeg.git
 [submodule "vcpkg"]
 	path = externals/vcpkg
 	url = https://github.com/Microsoft/vcpkg.git
