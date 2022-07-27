@@ -386,6 +386,8 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
     SDL_EnableScreenSaver();
 #endif
 
+    SetupPrepareForSleep();
+
     Common::Log::Start();
 
     QStringList args = QApplication::arguments();
@@ -1323,6 +1325,43 @@ void GMainWindow::OnDisplayTitleBars(bool show) {
             widget->setTitleBarWidget(new QWidget());
             if (old != nullptr)
                 delete old;
+        }
+    }
+}
+
+void GMainWindow::SetupPrepareForSleep() {
+#ifdef __linux__
+    auto bus = QDBusConnection::systemBus();
+    if (bus.isConnected()) {
+        const bool success = bus.connect(
+            QStringLiteral("org.freedesktop.login1"), QStringLiteral("/org/freedesktop/login1"),
+            QStringLiteral("org.freedesktop.login1.Manager"), QStringLiteral("PrepareForSleep"),
+            QStringLiteral("b"), this, SLOT(OnPrepareForSleep(bool)));
+
+        if (!success) {
+            LOG_WARNING(Frontend, "Couldn't register PrepareForSleep signal");
+        }
+    } else {
+        LOG_WARNING(Frontend, "QDBusConnection system bus is not connected");
+    }
+#endif // __linux__
+}
+
+void GMainWindow::OnPrepareForSleep(bool prepare_sleep) {
+    if (emu_thread == nullptr) {
+        return;
+    }
+
+    if (prepare_sleep) {
+        if (emu_thread->IsRunning()) {
+            auto_paused = true;
+            OnPauseGame();
+        }
+    } else {
+        if (!emu_thread->IsRunning() && auto_paused) {
+            auto_paused = false;
+            RequestGameResume();
+            OnStartGame();
         }
     }
 }
