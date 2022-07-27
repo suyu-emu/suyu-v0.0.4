@@ -1,11 +1,14 @@
 #!/bin/bash -ex
 
+# SPDX-FileCopyrightText: 2019 yuzu Emulator Project
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 # Copy documentation
-cp license.txt "$DIR_NAME"
+cp LICENSE.txt "$DIR_NAME"
 cp README.md "$DIR_NAME"
 
 if [[ -z "${NO_SOURCE_PACK}" ]]; then
-  tar -cJvf "${REV_NAME}-source.tar.xz" src externals CMakeLists.txt README.md license.txt
+  tar -cJvf "${REV_NAME}-source.tar.xz" src externals CMakeLists.txt README.md LICENSE.txt
   cp -v "${REV_NAME}-source.tar.xz" "$DIR_NAME"
 fi
 

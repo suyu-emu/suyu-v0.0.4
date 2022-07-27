@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2013 Citra Emulator Project
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 # Build directory
 [Bb]uild/
 doc-build/

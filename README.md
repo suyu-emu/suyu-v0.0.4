@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2018 yuzu Emulator Project
+SPDX-License-Identifier: GPL-2.0-or-later
+-->
+
 <h1 align="center">
   <br>
   <a href="https://yuzu-emu.org/"><img src="https://raw.githubusercontent.com/yuzu-emu/yuzu-assets/master/icons/icon.png" alt="yuzu" width="200"></a>
@@ -77,6 +82,6 @@ If you wish to support us a different way, please join our [Discord](https://dis
 
 ## License
 
-yuzu is licensed under the GPLv3 (or any later version). Refer to the [license.txt](https://github.com/yuzu-emu/yuzu/blob/master/license.txt) file.
+yuzu is licensed under the GPLv3 (or any later version). Refer to the [LICENSE.txt](https://github.com/yuzu-emu/yuzu/blob/master/LICENSE.txt) file.
 
 The [Skyline-Emulator Team](https://github.com/skyline-emu/skyline) may choose to use the code from these contributors under the GPL-3.0-or-later OR MPL-2.0: [FernandoS27](https://github.com/FernandoS27), [lioncash](https://github.com/lioncash), [bunnei](https://github.com/bunnei), [ReinUsesLisp](https://github.com/ReinUsesLisp), [Morph1984](https://github.com/Morph1984), [ogniK5377](https://github.com/ogniK5377), [german77](https://github.com/german77), [ameerj](https://github.com/ameerj), [Kelebek1](https://github.com/Kelebek1) and [lat9nq](https://github.com/lat9nq)
