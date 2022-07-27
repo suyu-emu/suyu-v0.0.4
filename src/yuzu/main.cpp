@@ -8,6 +8,10 @@
 #ifdef __APPLE__
 #include <unistd.h> // for chdir
 #endif
+#ifdef __linux__
+#include <csignal>
+#include <sys/socket.h>
+#endif
 
 // VFS includes must be before glad as they will conflict with Windows file api, which uses defines.
 #include "applets/qt_controller.h"
@@ -259,6 +263,10 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
       config{std::make_unique<Config>(*system)},
       vfs{std::make_shared<FileSys::RealVfsFilesystem>()},
       provider{std::make_unique<FileSys::ManualContentProvider>()} {
+#ifdef __linux__
+    SetupSigInterrupts();
+#endif
+
     Common::Log::Initialize();
     LoadTranslation();
 
@@ -462,7 +470,13 @@ GMainWindow::~GMainWindow() {
     if (render_window->parent() == nullptr) {
         delete render_window;
     }
+
     system->GetRoomNetwork().Shutdown();
+
+#ifdef __linux__
+    ::close(sig_interrupt_fds[0]);
+    ::close(sig_interrupt_fds[1]);
+#endif
 }
 
 void GMainWindow::RegisterMetaTypes() {
@@ -1351,6 +1365,52 @@ static void ReleaseWakeLockLinux(QDBusObjectPath lock) {
     QDBusInterface unlocker(QString::fromLatin1("org.freedesktop.portal.Desktop"), lock.path(),
                             QString::fromLatin1("org.freedesktop.portal.Request"));
     unlocker.call(QString::fromLatin1("Close"));
+}
+
+std::array<int, 3> GMainWindow::sig_interrupt_fds{0, 0, 0};
+
+void GMainWindow::SetupSigInterrupts() {
+    if (sig_interrupt_fds[2] == 1) {
+        return;
+    }
+    socketpair(AF_UNIX, SOCK_STREAM, 0, sig_interrupt_fds.data());
+    sig_interrupt_fds[2] = 1;
+
+    struct sigaction sa;
+    sa.sa_handler = &GMainWindow::HandleSigInterrupt;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_RESETHAND;
+    sigaction(SIGINT, &sa, nullptr);
+    sigaction(SIGTERM, &sa, nullptr);
+
+    sig_interrupt_notifier = new QSocketNotifier(sig_interrupt_fds[1], QSocketNotifier::Read, this);
+    connect(sig_interrupt_notifier, &QSocketNotifier::activated, this,
+            &GMainWindow::OnSigInterruptNotifierActivated);
+    connect(this, &GMainWindow::SigInterrupt, this, &GMainWindow::close);
+}
+
+void GMainWindow::HandleSigInterrupt(int sig) {
+    if (sig == SIGINT) {
+        exit(1);
+    }
+
+    // Calling into Qt directly from a signal handler is not safe,
+    // so wake up a QSocketNotifier with this hacky write call instead.
+    char a = 1;
+    int ret = write(sig_interrupt_fds[0], &a, sizeof(a));
+    (void)ret;
+}
+
+void GMainWindow::OnSigInterruptNotifierActivated() {
+    sig_interrupt_notifier->setEnabled(false);
+
+    char a;
+    int ret = read(sig_interrupt_fds[1], &a, sizeof(a));
+    (void)ret;
+
+    sig_interrupt_notifier->setEnabled(true);
+
+    emit SigInterrupt();
 }
 #endif // __linux__
 
