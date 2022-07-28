@@ -1,8 +1,3 @@
-<!--
-SPDX-FileCopyrightText: 2016 MerryMage
-SPDX-License-Identifier: GPL-2.0-or-later
--->
-
 ---
 name: Bug Report / Feature Request
 about: Tech support does not belong here. You should only file an issue here if you think you have experienced an actual bug with yuzu or you are requesting a feature you believe would make yuzu better.
@@ -37,7 +32,6 @@ When submitting an issue, please check the following:
   - For emulation inaccuracies, a test-case (if able).
 
 -->
-
 
 
 
