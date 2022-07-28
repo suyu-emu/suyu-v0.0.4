@@ -41,20 +41,18 @@ Files: dist/qt_themes/*/icons/16x16/connected.png
        dist/qt_themes/*/icons/48x48/sd_card.png
        dist/qt_themes/*/icons/48x48/star.png
        dist/qt_themes/*/icons/256x256/plus_folder.png
-       dist/qt_themes/colorful/icons/48x48/plus.png
+       dist/qt_themes/colorful/icons/48x48/list-add.png
        dist/qt_themes/default/icons/16x16/checked.png
        dist/qt_themes/default/icons/16x16/failed.png
 Copyright: https://icons8.com
 License: CC-BY-ND-3.0
 
-Files: dist/qt_themes/*/icons/16x16/refresh.png
-       dist/qt_themes/*/icons/16x16/view-refresh.png
+Files: dist/qt_themes/*/icons/16x16/view-refresh.png
 Copyright: Google, Inc.
 License: Apache-2.0
 
-Files: dist/qt_themes/default/icons/48x48/plus.png
-       dist/qt_themes/qdarkstyle/icons/48x48/plus.png
-       dist/qt_themes/qdarkstyle_midnight_blue/icons/48x48/plus.png
+Files: dist/qt_themes/default/icons/48x48/list-add.png
+       dist/qt_themes/qdarkstyle/icons/48x48/list-add.png
 Copyright: BreadFish64
 License: CC0-1.0
 
