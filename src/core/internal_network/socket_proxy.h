@@ -25,7 +25,7 @@ public:
     // Avoid closing sockets implicitly
     ProxySocket& operator=(ProxySocket&&) noexcept = delete;
 
-    void HandleProxyPacket(const ProxyPacket& packet);
+    void HandleProxyPacket(const ProxyPacket& packet) override;
 
     Errno Initialize(Domain domain, Type type, Protocol socket_protocol) override;
 
