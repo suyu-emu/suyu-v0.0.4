@@ -40,6 +40,8 @@ option(YUZU_TESTS "Compile tests" ON)
 
 option(YUZU_USE_BUNDLED_VCPKG "Use vcpkg for yuzu dependencies" OFF)
 
+option(YUZU_CHECK_SUBMODULES "Check if submodules are present" ON)
+
 if (YUZU_USE_BUNDLED_VCPKG)
     include(${CMAKE_SOURCE_DIR}/externals/vcpkg/scripts/buildsystems/vcpkg.cmake)
 elseif(NOT "$ENV{VCPKG_TOOLCHAIN_FILE}" STREQUAL "")
@@ -77,7 +79,7 @@ function(check_submodules_present)
     endforeach()
 endfunction()
 
-if(EXISTS ${PROJECT_SOURCE_DIR}/.gitmodules)
+if(EXISTS ${PROJECT_SOURCE_DIR}/.gitmodules AND YUZU_CHECK_SUBMODULES)
     check_submodules_present()
 endif()
 configure_file(${PROJECT_SOURCE_DIR}/dist/compatibility_list/compatibility_list.qrc
