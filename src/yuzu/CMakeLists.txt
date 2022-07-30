@@ -214,7 +214,7 @@ if (WIN32 AND YUZU_CRASH_DUMPS)
         mini_dump.h
     )
 
-    target_link_libraries(yuzu PUBLIC ${DBGHELP_LIBRARY})
+    target_link_libraries(yuzu PRIVATE ${DBGHELP_LIBRARY})
     target_compile_definitions(yuzu PRIVATE -DYUZU_DBGHELP)
 endif()
 
