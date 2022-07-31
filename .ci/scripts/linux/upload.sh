@@ -20,7 +20,9 @@ fi
 mkdir "$DIR_NAME"
 
 cp build/bin/yuzu-cmd "$DIR_NAME"
-cp build/bin/yuzu "$DIR_NAME"
+if [ "${RELEASE_NAME}" != "early-access" ] && [ "${RELEASE_NAME}" != "mainline" ]; then
+    cp build/bin/yuzu "$DIR_NAME"
+fi
 
 # Build an AppImage
 cd build
@@ -31,6 +33,11 @@ chmod 755 appimagetool-x86_64.AppImage
 # if FUSE is not available, then fallback to extract and run
 if ! ./appimagetool-x86_64.AppImage --version; then
     export APPIMAGE_EXTRACT_AND_RUN=1
+fi
+
+# Don't let AppImageLauncher ask to integrate EA
+if [ "${RELEASE_NAME}" = "mainline" ] || [ "${RELEASE_NAME}" = "early-access" ]; then
+    echo "X-AppImage-Integrate=false" >> AppDir/org.yuzu_emu.yuzu.desktop
 fi
 
 if [ "${RELEASE_NAME}" = "mainline" ]; then
