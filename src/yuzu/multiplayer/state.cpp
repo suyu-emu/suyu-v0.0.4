@@ -249,6 +249,7 @@ void MultiplayerState::ShowNotification() {
         return; // Do not show notification if the chat window currently has focus
     show_notification = true;
     QApplication::alert(nullptr);
+    QApplication::beep();
     status_icon->setPixmap(QIcon::fromTheme(QStringLiteral("connected_notification")).pixmap(16));
     status_text->setText(tr("New Messages Received"));
 }

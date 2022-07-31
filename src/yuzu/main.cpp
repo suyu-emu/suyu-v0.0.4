@@ -896,8 +896,8 @@ void GMainWindow::InitializeWidgets() {
     }
 
     // TODO (flTobi): Add the widget when multiplayer is fully implemented
-    // statusBar()->addPermanentWidget(multiplayer_state->GetStatusText(), 0);
-    // statusBar()->addPermanentWidget(multiplayer_state->GetStatusIcon(), 0);
+    statusBar()->addPermanentWidget(multiplayer_state->GetStatusText(), 0);
+    statusBar()->addPermanentWidget(multiplayer_state->GetStatusIcon(), 0);
 
     tas_label = new QLabel();
     tas_label->setObjectName(QStringLiteral("TASlabel"));
