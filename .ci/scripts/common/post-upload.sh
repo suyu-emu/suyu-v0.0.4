@@ -8,7 +8,8 @@ cp LICENSE.txt "$DIR_NAME"
 cp README.md "$DIR_NAME"
 
 if [[ -z "${NO_SOURCE_PACK}" ]]; then
-  tar -cJvf "${REV_NAME}-source.tar.xz" src externals CMakeLists.txt README.md LICENSE.txt
+  git clone --depth 1 file://$(readlink -e .) ${REV_NAME}-source
+  tar -cJvf "${REV_NAME}-source.tar.xz" ${REV_NAME}-source
   cp -v "${REV_NAME}-source.tar.xz" "$DIR_NAME"
 fi
 
