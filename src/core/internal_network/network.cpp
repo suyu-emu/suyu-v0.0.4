@@ -352,8 +352,8 @@ std::optional<IPv4Address> GetHostIPv4Address() {
         return {};
     }
 
-    char ip_addr[16] = {};
-    ASSERT(inet_ntop(AF_INET, &interface->ip_address, ip_addr, sizeof(ip_addr)) != nullptr);
+    std::array<char, 16> ip_addr = {};
+    ASSERT(inet_ntop(AF_INET, &interface->ip_address, ip_addr.data(), sizeof(ip_addr)) != nullptr);
     return TranslateIPv4(interface->ip_address);
 }
 
@@ -402,9 +402,9 @@ Socket::Socket(Socket&& rhs) noexcept {
 }
 
 template <typename T>
-Errno Socket::SetSockOpt(SOCKET _fd, int option, T value) {
+Errno Socket::SetSockOpt(SOCKET fd_, int option, T value) {
     const int result =
-        setsockopt(_fd, SOL_SOCKET, option, reinterpret_cast<const char*>(&value), sizeof(value));
+        setsockopt(fd_, SOL_SOCKET, option, reinterpret_cast<const char*>(&value), sizeof(value));
     if (result != SOCKET_ERROR) {
         return Errno::SUCCESS;
     }

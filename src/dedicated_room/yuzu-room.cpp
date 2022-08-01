@@ -44,28 +44,30 @@
 #endif
 
 static void PrintHelp(const char* argv0) {
-    std::cout << "Usage: " << argv0
-              << " [options] <filename>\n"
-                 "--room-name         The name of the room\n"
-                 "--room-description  The room description\n"
-                 "--port              The port used for the room\n"
-                 "--max_members       The maximum number of players for this room\n"
-                 "--password          The password for the room\n"
-                 "--preferred-game    The preferred game for this room\n"
-                 "--preferred-game-id The preferred game-id for this room\n"
-                 "--username          The username used for announce\n"
-                 "--token             The token used for announce\n"
-                 "--web-api-url       yuzu Web API url\n"
-                 "--ban-list-file     The file for storing the room ban list\n"
-                 "--log-file          The file for storing the room log\n"
-                 "--enable-yuzu-mods Allow yuzu Community Moderators to moderate on your room\n"
-                 "-h, --help          Display this help and exit\n"
-                 "-v, --version       Output version information and exit\n";
+    LOG_INFO(Network,
+             "Usage: {}"
+             " [options] <filename>\n"
+             "--room-name         The name of the room\n"
+             "--room-description  The room description\n"
+             "--port              The port used for the room\n"
+             "--max_members       The maximum number of players for this room\n"
+             "--password          The password for the room\n"
+             "--preferred-game    The preferred game for this room\n"
+             "--preferred-game-id The preferred game-id for this room\n"
+             "--username          The username used for announce\n"
+             "--token             The token used for announce\n"
+             "--web-api-url       yuzu Web API url\n"
+             "--ban-list-file     The file for storing the room ban list\n"
+             "--log-file          The file for storing the room log\n"
+             "--enable-yuzu-mods Allow yuzu Community Moderators to moderate on your room\n"
+             "-h, --help          Display this help and exit\n"
+             "-v, --version       Output version information and exit\n",
+             argv0);
 }
 
 static void PrintVersion() {
-    std::cout << "yuzu dedicated room " << Common::g_scm_branch << " " << Common::g_scm_desc
-              << " Libnetwork: " << Network::network_version << std::endl;
+    LOG_INFO(Network, "yuzu dedicated room {} {} Libnetwork: {}", Common::g_scm_branch,
+             Common::g_scm_desc, Network::network_version);
 }
 
 /// The magic text at the beginning of a yuzu-room ban list file.
@@ -76,7 +78,7 @@ static constexpr char token_delimiter{':'};
 static std::string UsernameFromDisplayToken(const std::string& display_token) {
     std::size_t outlen;
 
-    std::array<unsigned char, 512> output;
+    std::array<unsigned char, 512> output{};
     mbedtls_base64_decode(output.data(), output.size(), &outlen,
                           reinterpret_cast<const unsigned char*>(display_token.c_str()),
                           display_token.length());
@@ -87,7 +89,7 @@ static std::string UsernameFromDisplayToken(const std::string& display_token) {
 static std::string TokenFromDisplayToken(const std::string& display_token) {
     std::size_t outlen;
 
-    std::array<unsigned char, 512> output;
+    std::array<unsigned char, 512> output{};
     mbedtls_base64_decode(output.data(), output.size(), &outlen,
                           reinterpret_cast<const unsigned char*>(display_token.c_str()),
                           display_token.length());
@@ -99,13 +101,13 @@ static Network::Room::BanList LoadBanList(const std::string& path) {
     std::ifstream file;
     Common::FS::OpenFileStream(file, path, std::ios_base::in);
     if (!file || file.eof()) {
-        std::cout << "Could not open ban list!\n\n";
+        LOG_ERROR(Network, "Could not open ban list!");
         return {};
     }
     std::string magic;
     std::getline(file, magic);
     if (magic != BanListMagic) {
-        std::cout << "Ban list is not valid!\n\n";
+        LOG_ERROR(Network, "Ban list is not valid!");
         return {};
     }
 
@@ -137,7 +139,7 @@ static void SaveBanList(const Network::Room::BanList& ban_list, const std::strin
     std::ofstream file;
     Common::FS::OpenFileStream(file, path, std::ios_base::out);
     if (!file) {
-        std::cout << "Could not save ban list!\n\n";
+        LOG_ERROR(Network, "Could not save ban list!");
         return;
     }
 
@@ -153,8 +155,6 @@ static void SaveBanList(const Network::Room::BanList& ban_list, const std::strin
     for (const auto& ip : ban_list.second) {
         file << ip << "\n";
     }
-
-    file.flush();
 }
 
 static void InitializeLogging(const std::string& log_file) {
@@ -201,6 +201,8 @@ int main(int argc, char** argv) {
         {"version", no_argument, 0, 'v'},
         {0, 0, 0, 0},
     };
+
+    InitializeLogging(log_file);
 
     while (optind < argc) {
         int arg = getopt_long(argc, argv, "n:d:p:m:w:g:u:t:a:i:l:hv", long_options, &option_index);
@@ -256,52 +258,53 @@ int main(int argc, char** argv) {
     }
 
     if (room_name.empty()) {
-        std::cout << "room name is empty!\n\n";
+        LOG_ERROR(Network, "Room name is empty!");
         PrintHelp(argv[0]);
         return -1;
     }
     if (preferred_game.empty()) {
-        std::cout << "preferred game is empty!\n\n";
+        LOG_ERROR(Network, "Preferred game is empty!");
         PrintHelp(argv[0]);
         return -1;
     }
     if (preferred_game_id == 0) {
-        std::cout << "preferred-game-id not set!\nThis should get set to allow users to find your "
-                     "room.\nSet with --preferred-game-id id\n\n";
+        LOG_ERROR(Network,
+                  "preferred-game-id not set!\nThis should get set to allow users to find your "
+                  "room.\nSet with --preferred-game-id id");
     }
     if (max_members > Network::MaxConcurrentConnections || max_members < 2) {
-        std::cout << "max_members needs to be in the range 2 - "
-                  << Network::MaxConcurrentConnections << "!\n\n";
+        LOG_ERROR(Network, "max_members needs to be in the range 2 - {}!",
+                  Network::MaxConcurrentConnections);
         PrintHelp(argv[0]);
         return -1;
     }
-    if (port > 65535) {
-        std::cout << "port needs to be in the range 0 - 65535!\n\n";
+    if (port > UINT16_MAX) {
+        LOG_ERROR(Network, "Port needs to be in the range 0 - 65535!");
         PrintHelp(argv[0]);
         return -1;
     }
     if (ban_list_file.empty()) {
-        std::cout << "Ban list file not set!\nThis should get set to load and save room ban "
-                     "list.\nSet with --ban-list-file <file>\n\n";
+        LOG_ERROR(Network, "Ban list file not set!\nThis should get set to load and save room ban "
+                           "list.\nSet with --ban-list-file <file>");
     }
     bool announce = true;
     if (token.empty() && announce) {
         announce = false;
-        std::cout << "token is empty: Hosting a private room\n\n";
+        LOG_INFO(Network, "Token is empty: Hosting a private room");
     }
     if (web_api_url.empty() && announce) {
         announce = false;
-        std::cout << "endpoint url is empty: Hosting a private room\n\n";
+        LOG_INFO(Network, "Endpoint url is empty: Hosting a private room");
     }
     if (announce) {
         if (username.empty()) {
-            std::cout << "Hosting a public room\n\n";
+            LOG_INFO(Network, "Hosting a public room");
             Settings::values.web_api_url = web_api_url;
             Settings::values.yuzu_username = UsernameFromDisplayToken(token);
             username = Settings::values.yuzu_username.GetValue();
             Settings::values.yuzu_token = TokenFromDisplayToken(token);
         } else {
-            std::cout << "Hosting a public room\n\n";
+            LOG_INFO(Network, "Hosting a public room");
             Settings::values.web_api_url = web_api_url;
             Settings::values.yuzu_username = username;
             Settings::values.yuzu_token = token;
@@ -309,10 +312,8 @@ int main(int argc, char** argv) {
     }
     if (!announce && enable_yuzu_mods) {
         enable_yuzu_mods = false;
-        std::cout << "Can not enable yuzu Moderators for private rooms\n\n";
+        LOG_INFO(Network, "Can not enable yuzu Moderators for private rooms");
     }
-
-    InitializeLogging(log_file);
 
     // Load the ban list
     Network::Room::BanList ban_list;
@@ -326,27 +327,26 @@ int main(int argc, char** argv) {
         verify_backend =
             std::make_unique<WebService::VerifyUserJWT>(Settings::values.web_api_url.GetValue());
 #else
-        std::cout
-            << "yuzu Web Services is not available with this build: validation is disabled.\n\n";
+        LOG_INFO(Network,
+                 "yuzu Web Services is not available with this build: validation is disabled.");
         verify_backend = std::make_unique<Network::VerifyUser::NullBackend>();
 #endif
     } else {
         verify_backend = std::make_unique<Network::VerifyUser::NullBackend>();
     }
 
-    Core::System system{};
-    auto& network = system.GetRoomNetwork();
+    Network::RoomNetwork network{};
     network.Init();
-    if (std::shared_ptr<Network::Room> room = network.GetRoom().lock()) {
+    if (auto room = network.GetRoom().lock()) {
         AnnounceMultiplayerRoom::GameInfo preferred_game_info{.name = preferred_game,
                                                               .id = preferred_game_id};
         if (!room->Create(room_name, room_description, "", port, password, max_members, username,
                           preferred_game_info, std::move(verify_backend), ban_list,
                           enable_yuzu_mods)) {
-            std::cout << "Failed to create room: \n\n";
+            LOG_INFO(Network, "Failed to create room: ");
             return -1;
         }
-        std::cout << "Room is open. Close with Q+Enter...\n\n";
+        LOG_INFO(Network, "Room is open. Close with Q+Enter...");
         auto announce_session = std::make_unique<Core::AnnounceMultiplayerSession>(network);
         if (announce) {
             announce_session->Start();

@@ -381,6 +381,7 @@ void IGeneralService::GetCurrentIpAddress(Kernel::HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
     rb.PushRaw(*ipv4);
 }
+
 void IGeneralService::CreateTemporaryNetworkProfile(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_NIFM, "called");
 

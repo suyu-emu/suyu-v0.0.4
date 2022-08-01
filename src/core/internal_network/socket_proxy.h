@@ -14,7 +14,7 @@ namespace Network {
 
 class ProxySocket : public SocketBase {
 public:
-    ProxySocket(RoomNetwork& room_network_) noexcept;
+    explicit ProxySocket(RoomNetwork& room_network_) noexcept;
     ~ProxySocket() override;
 
     ProxySocket(const ProxySocket&) = delete;
@@ -82,6 +82,7 @@ public:
 
     bool IsOpened() const override;
 
+private:
     bool broadcast = false;
     bool closed = false;
     u32 send_timeout = 0;

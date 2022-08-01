@@ -32,7 +32,7 @@ public:
         std::unique_ptr<SocketBase> socket;
         SockAddrIn sockaddr_in;
     };
-    virtual ~SocketBase() {}
+    virtual ~SocketBase() = default;
 
     virtual SocketBase& operator=(const SocketBase&) = delete;
 
@@ -89,11 +89,7 @@ public:
 
     virtual void HandleProxyPacket(const ProxyPacket& packet) = 0;
 
-#if defined(_WIN32)
     SOCKET fd = INVALID_SOCKET;
-#elif YUZU_UNIX
-    int fd = -1;
-#endif
 };
 
 class Socket : public SocketBase {

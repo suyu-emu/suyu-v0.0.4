@@ -30,19 +30,19 @@ void ProxySocket::HandleProxyPacket(const ProxyPacket& packet) {
         closed) {
         return;
     }
-    std::lock_guard<std::mutex> guard(packets_mutex);
+    std::lock_guard guard(packets_mutex);
     received_packets.push(packet);
 }
 
 template <typename T>
-Errno ProxySocket::SetSockOpt(SOCKET _fd, int option, T value) {
+Errno ProxySocket::SetSockOpt(SOCKET fd_, int option, T value) {
     socket_options[option] = reinterpret_cast<const char*>(&value);
     return Errno::SUCCESS;
 }
 
 Errno ProxySocket::Initialize(Domain domain, Type type, Protocol socket_protocol) {
     protocol = socket_protocol;
-    socket_options[0x1008] = reinterpret_cast<const char*>(&type);
+    SetSockOpt(fd, SO_TYPE, type);
 
     return Errno::SUCCESS;
 }
@@ -101,7 +101,7 @@ std::pair<s32, Errno> ProxySocket::RecvFrom(int flags, std::vector<u8>& message,
     ASSERT(message.size() < static_cast<size_t>(std::numeric_limits<int>::max()));
 
     {
-        std::lock_guard<std::mutex> guard(packets_mutex);
+        std::lock_guard guard(packets_mutex);
         if (received_packets.size() > 0) {
             return ReceivePacket(flags, message, addr, message.size());
         }
@@ -115,7 +115,7 @@ std::pair<s32, Errno> ProxySocket::RecvFrom(int flags, std::vector<u8>& message,
         return {-1, Errno::AGAIN};
     }
 
-    std::lock_guard<std::mutex> guard(packets_mutex);
+    std::lock_guard guard(packets_mutex);
     if (received_packets.size() > 0) {
         return ReceivePacket(flags, message, addr, message.size());
     }
