@@ -1618,6 +1618,9 @@ ImageView::ImageView(TextureCacheRuntime&, const VideoCommon::NullImageViewParam
 ImageView::~ImageView() = default;
 
 VkImageView ImageView::DepthView() {
+    if (!image_handle) {
+        return VK_NULL_HANDLE;
+    }
     if (depth_view) {
         return *depth_view;
     }
@@ -1627,6 +1630,9 @@ VkImageView ImageView::DepthView() {
 }
 
 VkImageView ImageView::StencilView() {
+    if (!image_handle) {
+        return VK_NULL_HANDLE;
+    }
     if (stencil_view) {
         return *stencil_view;
     }
@@ -1636,6 +1642,9 @@ VkImageView ImageView::StencilView() {
 }
 
 VkImageView ImageView::ColorView() {
+    if (!image_handle) {
+        return VK_NULL_HANDLE;
+    }
     if (color_view) {
         return *color_view;
     }
@@ -1645,6 +1654,9 @@ VkImageView ImageView::ColorView() {
 
 VkImageView ImageView::StorageView(Shader::TextureType texture_type,
                                    Shader::ImageFormat image_format) {
+    if (!image_handle) {
+        return VK_NULL_HANDLE;
+    }
     if (image_format == Shader::ImageFormat::Typeless) {
         return Handle(texture_type);
     }
