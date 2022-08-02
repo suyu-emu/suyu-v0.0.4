@@ -143,13 +143,17 @@ void CoreTiming::ScheduleLoopingEvent(std::chrono::nanoseconds start_time,
                                       std::chrono::nanoseconds resched_time,
                                       const std::shared_ptr<EventType>& event_type,
                                       std::uintptr_t user_data, bool absolute_time) {
-    std::scoped_lock scope{basic_lock};
-    const auto next_time{absolute_time ? start_time : GetGlobalTimeNs() + start_time};
+    {
+        std::scoped_lock scope{basic_lock};
+        const auto next_time{absolute_time ? start_time : GetGlobalTimeNs() + start_time};
 
-    event_queue.emplace_back(
-        Event{next_time.count(), event_fifo_id++, user_data, event_type, resched_time.count()});
+        event_queue.emplace_back(
+            Event{next_time.count(), event_fifo_id++, user_data, event_type, resched_time.count()});
 
-    std::push_heap(event_queue.begin(), event_queue.end(), std::greater<>());
+        std::push_heap(event_queue.begin(), event_queue.end(), std::greater<>());
+    }
+
+    event.Set();
 }
 
 void CoreTiming::UnscheduleEvent(const std::shared_ptr<EventType>& event_type,
