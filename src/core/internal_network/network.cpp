@@ -346,15 +346,16 @@ NetworkInstance::~NetworkInstance() {
 }
 
 std::optional<IPv4Address> GetHostIPv4Address() {
-    const auto interface = Network::GetSelectedNetworkInterface();
-    if (!interface.has_value()) {
+    const auto network_interface = Network::GetSelectedNetworkInterface();
+    if (!network_interface.has_value()) {
         LOG_ERROR(Network, "GetSelectedNetworkInterface returned no interface");
         return {};
     }
 
     std::array<char, 16> ip_addr = {};
-    ASSERT(inet_ntop(AF_INET, &interface->ip_address, ip_addr.data(), sizeof(ip_addr)) != nullptr);
-    return TranslateIPv4(interface->ip_address);
+    ASSERT(inet_ntop(AF_INET, &network_interface->ip_address, ip_addr.data(), sizeof(ip_addr)) !=
+           nullptr);
+    return TranslateIPv4(network_interface->ip_address);
 }
 
 std::pair<s32, Errno> Poll(std::vector<PollFD>& pollfds, s32 timeout) {
