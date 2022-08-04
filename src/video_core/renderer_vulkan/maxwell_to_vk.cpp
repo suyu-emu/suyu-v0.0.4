@@ -317,195 +317,204 @@ VkPrimitiveTopology PrimitiveTopology([[maybe_unused]] const Device& device,
     }
 }
 
-VkFormat VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttribute::Size size) {
-    switch (type) {
-    case Maxwell::VertexAttribute::Type::UnsignedNorm:
-        switch (size) {
-        case Maxwell::VertexAttribute::Size::Size_8:
-            return VK_FORMAT_R8_UNORM;
-        case Maxwell::VertexAttribute::Size::Size_8_8:
-            return VK_FORMAT_R8G8_UNORM;
-        case Maxwell::VertexAttribute::Size::Size_8_8_8:
-            return VK_FORMAT_R8G8B8_UNORM;
-        case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
-            return VK_FORMAT_R8G8B8A8_UNORM;
-        case Maxwell::VertexAttribute::Size::Size_16:
-            return VK_FORMAT_R16_UNORM;
-        case Maxwell::VertexAttribute::Size::Size_16_16:
-            return VK_FORMAT_R16G16_UNORM;
-        case Maxwell::VertexAttribute::Size::Size_16_16_16:
-            return VK_FORMAT_R16G16B16_UNORM;
-        case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
-            return VK_FORMAT_R16G16B16A16_UNORM;
-        case Maxwell::VertexAttribute::Size::Size_10_10_10_2:
-            return VK_FORMAT_A2B10G10R10_UNORM_PACK32;
-        default:
+VkFormat VertexFormat(const Device& device, Maxwell::VertexAttribute::Type type,
+                      Maxwell::VertexAttribute::Size size) {
+    const VkFormat format{([&]() {
+        switch (type) {
+        case Maxwell::VertexAttribute::Type::UnsignedNorm:
+            switch (size) {
+            case Maxwell::VertexAttribute::Size::Size_8:
+                return VK_FORMAT_R8_UNORM;
+            case Maxwell::VertexAttribute::Size::Size_8_8:
+                return VK_FORMAT_R8G8_UNORM;
+            case Maxwell::VertexAttribute::Size::Size_8_8_8:
+                return VK_FORMAT_R8G8B8_UNORM;
+            case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
+                return VK_FORMAT_R8G8B8A8_UNORM;
+            case Maxwell::VertexAttribute::Size::Size_16:
+                return VK_FORMAT_R16_UNORM;
+            case Maxwell::VertexAttribute::Size::Size_16_16:
+                return VK_FORMAT_R16G16_UNORM;
+            case Maxwell::VertexAttribute::Size::Size_16_16_16:
+                return VK_FORMAT_R16G16B16_UNORM;
+            case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
+                return VK_FORMAT_R16G16B16A16_UNORM;
+            case Maxwell::VertexAttribute::Size::Size_10_10_10_2:
+                return VK_FORMAT_A2B10G10R10_UNORM_PACK32;
+            default:
+                break;
+            }
+            break;
+        case Maxwell::VertexAttribute::Type::SignedNorm:
+            switch (size) {
+            case Maxwell::VertexAttribute::Size::Size_8:
+                return VK_FORMAT_R8_SNORM;
+            case Maxwell::VertexAttribute::Size::Size_8_8:
+                return VK_FORMAT_R8G8_SNORM;
+            case Maxwell::VertexAttribute::Size::Size_8_8_8:
+                return VK_FORMAT_R8G8B8_SNORM;
+            case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
+                return VK_FORMAT_R8G8B8A8_SNORM;
+            case Maxwell::VertexAttribute::Size::Size_16:
+                return VK_FORMAT_R16_SNORM;
+            case Maxwell::VertexAttribute::Size::Size_16_16:
+                return VK_FORMAT_R16G16_SNORM;
+            case Maxwell::VertexAttribute::Size::Size_16_16_16:
+                return VK_FORMAT_R16G16B16_SNORM;
+            case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
+                return VK_FORMAT_R16G16B16A16_SNORM;
+            case Maxwell::VertexAttribute::Size::Size_10_10_10_2:
+                return VK_FORMAT_A2B10G10R10_SNORM_PACK32;
+            default:
+                break;
+            }
+            break;
+        case Maxwell::VertexAttribute::Type::UnsignedScaled:
+            switch (size) {
+            case Maxwell::VertexAttribute::Size::Size_8:
+                return VK_FORMAT_R8_USCALED;
+            case Maxwell::VertexAttribute::Size::Size_8_8:
+                return VK_FORMAT_R8G8_USCALED;
+            case Maxwell::VertexAttribute::Size::Size_8_8_8:
+                return VK_FORMAT_R8G8B8_USCALED;
+            case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
+                return VK_FORMAT_R8G8B8A8_USCALED;
+            case Maxwell::VertexAttribute::Size::Size_16:
+                return VK_FORMAT_R16_USCALED;
+            case Maxwell::VertexAttribute::Size::Size_16_16:
+                return VK_FORMAT_R16G16_USCALED;
+            case Maxwell::VertexAttribute::Size::Size_16_16_16:
+                return VK_FORMAT_R16G16B16_USCALED;
+            case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
+                return VK_FORMAT_R16G16B16A16_USCALED;
+            case Maxwell::VertexAttribute::Size::Size_10_10_10_2:
+                return VK_FORMAT_A2B10G10R10_USCALED_PACK32;
+            default:
+                break;
+            }
+            break;
+        case Maxwell::VertexAttribute::Type::SignedScaled:
+            switch (size) {
+            case Maxwell::VertexAttribute::Size::Size_8:
+                return VK_FORMAT_R8_SSCALED;
+            case Maxwell::VertexAttribute::Size::Size_8_8:
+                return VK_FORMAT_R8G8_SSCALED;
+            case Maxwell::VertexAttribute::Size::Size_8_8_8:
+                return VK_FORMAT_R8G8B8_SSCALED;
+            case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
+                return VK_FORMAT_R8G8B8A8_SSCALED;
+            case Maxwell::VertexAttribute::Size::Size_16:
+                return VK_FORMAT_R16_SSCALED;
+            case Maxwell::VertexAttribute::Size::Size_16_16:
+                return VK_FORMAT_R16G16_SSCALED;
+            case Maxwell::VertexAttribute::Size::Size_16_16_16:
+                return VK_FORMAT_R16G16B16_SSCALED;
+            case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
+                return VK_FORMAT_R16G16B16A16_SSCALED;
+            case Maxwell::VertexAttribute::Size::Size_10_10_10_2:
+                return VK_FORMAT_A2B10G10R10_SSCALED_PACK32;
+            default:
+                break;
+            }
+            break;
+        case Maxwell::VertexAttribute::Type::UnsignedInt:
+            switch (size) {
+            case Maxwell::VertexAttribute::Size::Size_8:
+                return VK_FORMAT_R8_UINT;
+            case Maxwell::VertexAttribute::Size::Size_8_8:
+                return VK_FORMAT_R8G8_UINT;
+            case Maxwell::VertexAttribute::Size::Size_8_8_8:
+                return VK_FORMAT_R8G8B8_UINT;
+            case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
+                return VK_FORMAT_R8G8B8A8_UINT;
+            case Maxwell::VertexAttribute::Size::Size_16:
+                return VK_FORMAT_R16_UINT;
+            case Maxwell::VertexAttribute::Size::Size_16_16:
+                return VK_FORMAT_R16G16_UINT;
+            case Maxwell::VertexAttribute::Size::Size_16_16_16:
+                return VK_FORMAT_R16G16B16_UINT;
+            case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
+                return VK_FORMAT_R16G16B16A16_UINT;
+            case Maxwell::VertexAttribute::Size::Size_32:
+                return VK_FORMAT_R32_UINT;
+            case Maxwell::VertexAttribute::Size::Size_32_32:
+                return VK_FORMAT_R32G32_UINT;
+            case Maxwell::VertexAttribute::Size::Size_32_32_32:
+                return VK_FORMAT_R32G32B32_UINT;
+            case Maxwell::VertexAttribute::Size::Size_32_32_32_32:
+                return VK_FORMAT_R32G32B32A32_UINT;
+            case Maxwell::VertexAttribute::Size::Size_10_10_10_2:
+                return VK_FORMAT_A2B10G10R10_UINT_PACK32;
+            default:
+                break;
+            }
+            break;
+        case Maxwell::VertexAttribute::Type::SignedInt:
+            switch (size) {
+            case Maxwell::VertexAttribute::Size::Size_8:
+                return VK_FORMAT_R8_SINT;
+            case Maxwell::VertexAttribute::Size::Size_8_8:
+                return VK_FORMAT_R8G8_SINT;
+            case Maxwell::VertexAttribute::Size::Size_8_8_8:
+                return VK_FORMAT_R8G8B8_SINT;
+            case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
+                return VK_FORMAT_R8G8B8A8_SINT;
+            case Maxwell::VertexAttribute::Size::Size_16:
+                return VK_FORMAT_R16_SINT;
+            case Maxwell::VertexAttribute::Size::Size_16_16:
+                return VK_FORMAT_R16G16_SINT;
+            case Maxwell::VertexAttribute::Size::Size_16_16_16:
+                return VK_FORMAT_R16G16B16_SINT;
+            case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
+                return VK_FORMAT_R16G16B16A16_SINT;
+            case Maxwell::VertexAttribute::Size::Size_32:
+                return VK_FORMAT_R32_SINT;
+            case Maxwell::VertexAttribute::Size::Size_32_32:
+                return VK_FORMAT_R32G32_SINT;
+            case Maxwell::VertexAttribute::Size::Size_32_32_32:
+                return VK_FORMAT_R32G32B32_SINT;
+            case Maxwell::VertexAttribute::Size::Size_32_32_32_32:
+                return VK_FORMAT_R32G32B32A32_SINT;
+            case Maxwell::VertexAttribute::Size::Size_10_10_10_2:
+                return VK_FORMAT_A2B10G10R10_SINT_PACK32;
+            default:
+                break;
+            }
+            break;
+        case Maxwell::VertexAttribute::Type::Float:
+            switch (size) {
+            case Maxwell::VertexAttribute::Size::Size_16:
+                return VK_FORMAT_R16_SFLOAT;
+            case Maxwell::VertexAttribute::Size::Size_16_16:
+                return VK_FORMAT_R16G16_SFLOAT;
+            case Maxwell::VertexAttribute::Size::Size_16_16_16:
+                return VK_FORMAT_R16G16B16_SFLOAT;
+            case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
+                return VK_FORMAT_R16G16B16A16_SFLOAT;
+            case Maxwell::VertexAttribute::Size::Size_32:
+                return VK_FORMAT_R32_SFLOAT;
+            case Maxwell::VertexAttribute::Size::Size_32_32:
+                return VK_FORMAT_R32G32_SFLOAT;
+            case Maxwell::VertexAttribute::Size::Size_32_32_32:
+                return VK_FORMAT_R32G32B32_SFLOAT;
+            case Maxwell::VertexAttribute::Size::Size_32_32_32_32:
+                return VK_FORMAT_R32G32B32A32_SFLOAT;
+            case Maxwell::VertexAttribute::Size::Size_11_11_10:
+                return VK_FORMAT_B10G11R11_UFLOAT_PACK32;
+            default:
+                break;
+            }
             break;
         }
-        break;
-    case Maxwell::VertexAttribute::Type::SignedNorm:
-        switch (size) {
-        case Maxwell::VertexAttribute::Size::Size_8:
-            return VK_FORMAT_R8_SNORM;
-        case Maxwell::VertexAttribute::Size::Size_8_8:
-            return VK_FORMAT_R8G8_SNORM;
-        case Maxwell::VertexAttribute::Size::Size_8_8_8:
-            return VK_FORMAT_R8G8B8_SNORM;
-        case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
-            return VK_FORMAT_R8G8B8A8_SNORM;
-        case Maxwell::VertexAttribute::Size::Size_16:
-            return VK_FORMAT_R16_SNORM;
-        case Maxwell::VertexAttribute::Size::Size_16_16:
-            return VK_FORMAT_R16G16_SNORM;
-        case Maxwell::VertexAttribute::Size::Size_16_16_16:
-            return VK_FORMAT_R16G16B16_SNORM;
-        case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
-            return VK_FORMAT_R16G16B16A16_SNORM;
-        case Maxwell::VertexAttribute::Size::Size_10_10_10_2:
-            return VK_FORMAT_A2B10G10R10_SNORM_PACK32;
-        default:
-            break;
-        }
-        break;
-    case Maxwell::VertexAttribute::Type::UnsignedScaled:
-        switch (size) {
-        case Maxwell::VertexAttribute::Size::Size_8:
-            return VK_FORMAT_R8_USCALED;
-        case Maxwell::VertexAttribute::Size::Size_8_8:
-            return VK_FORMAT_R8G8_USCALED;
-        case Maxwell::VertexAttribute::Size::Size_8_8_8:
-            return VK_FORMAT_R8G8B8_USCALED;
-        case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
-            return VK_FORMAT_R8G8B8A8_USCALED;
-        case Maxwell::VertexAttribute::Size::Size_16:
-            return VK_FORMAT_R16_USCALED;
-        case Maxwell::VertexAttribute::Size::Size_16_16:
-            return VK_FORMAT_R16G16_USCALED;
-        case Maxwell::VertexAttribute::Size::Size_16_16_16:
-            return VK_FORMAT_R16G16B16_USCALED;
-        case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
-            return VK_FORMAT_R16G16B16A16_USCALED;
-        case Maxwell::VertexAttribute::Size::Size_10_10_10_2:
-            return VK_FORMAT_A2B10G10R10_USCALED_PACK32;
-        default:
-            break;
-        }
-        break;
-    case Maxwell::VertexAttribute::Type::SignedScaled:
-        switch (size) {
-        case Maxwell::VertexAttribute::Size::Size_8:
-            return VK_FORMAT_R8_SSCALED;
-        case Maxwell::VertexAttribute::Size::Size_8_8:
-            return VK_FORMAT_R8G8_SSCALED;
-        case Maxwell::VertexAttribute::Size::Size_8_8_8:
-            return VK_FORMAT_R8G8B8_SSCALED;
-        case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
-            return VK_FORMAT_R8G8B8A8_SSCALED;
-        case Maxwell::VertexAttribute::Size::Size_16:
-            return VK_FORMAT_R16_SSCALED;
-        case Maxwell::VertexAttribute::Size::Size_16_16:
-            return VK_FORMAT_R16G16_SSCALED;
-        case Maxwell::VertexAttribute::Size::Size_16_16_16:
-            return VK_FORMAT_R16G16B16_SSCALED;
-        case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
-            return VK_FORMAT_R16G16B16A16_SSCALED;
-        case Maxwell::VertexAttribute::Size::Size_10_10_10_2:
-            return VK_FORMAT_A2B10G10R10_SSCALED_PACK32;
-        default:
-            break;
-        }
-        break;
-    case Maxwell::VertexAttribute::Type::UnsignedInt:
-        switch (size) {
-        case Maxwell::VertexAttribute::Size::Size_8:
-            return VK_FORMAT_R8_UINT;
-        case Maxwell::VertexAttribute::Size::Size_8_8:
-            return VK_FORMAT_R8G8_UINT;
-        case Maxwell::VertexAttribute::Size::Size_8_8_8:
-            return VK_FORMAT_R8G8B8_UINT;
-        case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
-            return VK_FORMAT_R8G8B8A8_UINT;
-        case Maxwell::VertexAttribute::Size::Size_16:
-            return VK_FORMAT_R16_UINT;
-        case Maxwell::VertexAttribute::Size::Size_16_16:
-            return VK_FORMAT_R16G16_UINT;
-        case Maxwell::VertexAttribute::Size::Size_16_16_16:
-            return VK_FORMAT_R16G16B16_UINT;
-        case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
-            return VK_FORMAT_R16G16B16A16_UINT;
-        case Maxwell::VertexAttribute::Size::Size_32:
-            return VK_FORMAT_R32_UINT;
-        case Maxwell::VertexAttribute::Size::Size_32_32:
-            return VK_FORMAT_R32G32_UINT;
-        case Maxwell::VertexAttribute::Size::Size_32_32_32:
-            return VK_FORMAT_R32G32B32_UINT;
-        case Maxwell::VertexAttribute::Size::Size_32_32_32_32:
-            return VK_FORMAT_R32G32B32A32_UINT;
-        case Maxwell::VertexAttribute::Size::Size_10_10_10_2:
-            return VK_FORMAT_A2B10G10R10_UINT_PACK32;
-        default:
-            break;
-        }
-        break;
-    case Maxwell::VertexAttribute::Type::SignedInt:
-        switch (size) {
-        case Maxwell::VertexAttribute::Size::Size_8:
-            return VK_FORMAT_R8_SINT;
-        case Maxwell::VertexAttribute::Size::Size_8_8:
-            return VK_FORMAT_R8G8_SINT;
-        case Maxwell::VertexAttribute::Size::Size_8_8_8:
-            return VK_FORMAT_R8G8B8_SINT;
-        case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
-            return VK_FORMAT_R8G8B8A8_SINT;
-        case Maxwell::VertexAttribute::Size::Size_16:
-            return VK_FORMAT_R16_SINT;
-        case Maxwell::VertexAttribute::Size::Size_16_16:
-            return VK_FORMAT_R16G16_SINT;
-        case Maxwell::VertexAttribute::Size::Size_16_16_16:
-            return VK_FORMAT_R16G16B16_SINT;
-        case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
-            return VK_FORMAT_R16G16B16A16_SINT;
-        case Maxwell::VertexAttribute::Size::Size_32:
-            return VK_FORMAT_R32_SINT;
-        case Maxwell::VertexAttribute::Size::Size_32_32:
-            return VK_FORMAT_R32G32_SINT;
-        case Maxwell::VertexAttribute::Size::Size_32_32_32:
-            return VK_FORMAT_R32G32B32_SINT;
-        case Maxwell::VertexAttribute::Size::Size_32_32_32_32:
-            return VK_FORMAT_R32G32B32A32_SINT;
-        case Maxwell::VertexAttribute::Size::Size_10_10_10_2:
-            return VK_FORMAT_A2B10G10R10_SINT_PACK32;
-        default:
-            break;
-        }
-        break;
-    case Maxwell::VertexAttribute::Type::Float:
-        switch (size) {
-        case Maxwell::VertexAttribute::Size::Size_16:
-            return VK_FORMAT_R16_SFLOAT;
-        case Maxwell::VertexAttribute::Size::Size_16_16:
-            return VK_FORMAT_R16G16_SFLOAT;
-        case Maxwell::VertexAttribute::Size::Size_16_16_16:
-            return VK_FORMAT_R16G16B16_SFLOAT;
-        case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
-            return VK_FORMAT_R16G16B16A16_SFLOAT;
-        case Maxwell::VertexAttribute::Size::Size_32:
-            return VK_FORMAT_R32_SFLOAT;
-        case Maxwell::VertexAttribute::Size::Size_32_32:
-            return VK_FORMAT_R32G32_SFLOAT;
-        case Maxwell::VertexAttribute::Size::Size_32_32_32:
-            return VK_FORMAT_R32G32B32_SFLOAT;
-        case Maxwell::VertexAttribute::Size::Size_32_32_32_32:
-            return VK_FORMAT_R32G32B32A32_SFLOAT;
-        case Maxwell::VertexAttribute::Size::Size_11_11_10:
-            return VK_FORMAT_B10G11R11_UFLOAT_PACK32;
-        default:
-            break;
-        }
-        break;
+        return VK_FORMAT_UNDEFINED;
+    })()};
+
+    if (format == VK_FORMAT_UNDEFINED) {
+        UNIMPLEMENTED_MSG("Unimplemented vertex format of type={} and size={}", type, size);
     }
-    UNIMPLEMENTED_MSG("Unimplemented vertex format of type={} and size={}", type, size);
-    return {};
+
+    return device.GetSupportedFormat(format, VK_FORMAT_FEATURE_VERTEX_BUFFER_BIT,
+                                     FormatType::Buffer);
 }
 
 VkCompareOp ComparisonOp(Maxwell::ComparisonOp comparison) {
