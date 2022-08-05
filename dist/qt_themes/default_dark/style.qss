@@ -14,11 +14,9 @@ QPushButton#TogglableStatusBarButton {
     text-align: center;
 }
 
-/*
 QPushButton#TogglableStatusBarButton:checked {
-    color: #000000;
+    color: palette(text);
 }
-*/
 
 QPushButton#TogglableStatusBarButton:hover {
     border: 1px solid #76797C;
@@ -41,7 +39,7 @@ QPushButton#RendererStatusBarButton:checked {
 }
 
 QPushButton#RendererStatusBarButton:!checked {
-    color: #0066ff;
+    color: #00ccdd;
 }
 
 QPushButton#GPUStatusBarButton {
@@ -57,16 +55,16 @@ QPushButton#GPUStatusBarButton:hover {
 }
 
 QPushButton#GPUStatusBarButton:checked {
-    color: #b06020;
+    color: #ff8040;
 }
 
 QPushButton#GPUStatusBarButton:!checked {
-    color: #109010;
+    color: #40dd40;
 }
 
 QPushButton#DockingStatusBarButton {
     min-width: 0px;
-    /*color: #000000;*/
+    color: palette(text);
     border: 1px solid transparent;
     background-color: transparent;
     padding: 0px 3px 0px 3px;
