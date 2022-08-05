@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2021 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "common/thread.h"
 #include "core/hid/emulated_controller.h"
 #include "core/hid/input_converter.h"
 
@@ -948,6 +949,9 @@ bool EmulatedController::TestVibration(std::size_t device_index) {
 
     // Send a slight vibration to test for rumble support
     output_devices[device_index]->SetVibration(test_vibration);
+
+    // Wait for about 15ms to ensure the controller is ready for the stop command
+    std::this_thread::sleep_for(std::chrono::milliseconds(15));
 
     // Stop any vibration and return the result
     return output_devices[device_index]->SetVibration(zero_vibration) ==
