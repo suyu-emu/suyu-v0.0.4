@@ -84,17 +84,18 @@ void EmulatedController::ReloadFromSettings() {
         motion_params[index] = Common::ParamPackage(player.motions[index]);
     }
 
+    controller.colors_state.fullkey = {
+        .body = GetNpadColor(player.body_color_left),
+        .button = GetNpadColor(player.button_color_left),
+    };
     controller.colors_state.left = {
-        .body = player.body_color_left,
-        .button = player.button_color_left,
+        .body = GetNpadColor(player.body_color_left),
+        .button = GetNpadColor(player.button_color_left),
     };
-
-    controller.colors_state.right = {
-        .body = player.body_color_right,
-        .button = player.button_color_right,
+    controller.colors_state.left = {
+        .body = GetNpadColor(player.body_color_right),
+        .button = GetNpadColor(player.button_color_right),
     };
-
-    controller.colors_state.fullkey = controller.colors_state.left;
 
     // Other or debug controller should always be a pro controller
     if (npad_id_type != NpadIdType::Other) {
@@ -1308,6 +1309,15 @@ BatteryLevelState EmulatedController::GetBattery() const {
 const CameraState& EmulatedController::GetCamera() const {
     std::scoped_lock lock{mutex};
     return controller.camera_state;
+}
+
+NpadColor EmulatedController::GetNpadColor(u32 color) {
+    return {
+        .r = static_cast<u8>((color >> 16) & 0xFF),
+        .g = static_cast<u8>((color >> 8) & 0xFF),
+        .b = static_cast<u8>(color & 0xFF),
+        .a = 0xff,
+    };
 }
 
 void EmulatedController::TriggerOnChange(ControllerTriggerType type, bool is_npad_service_update) {
