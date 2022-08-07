@@ -3,11 +3,12 @@
 
 #include <memory>
 
-#include "core/hle/ipc_helpers.h"
-#include "core/hle/result.h"
-#include "core/hle/service/ldn/errors.h"
+#include "core/core.h"
 #include "core/hle/service/ldn/ldn.h"
-#include "core/hle/service/sm/sm.h"
+#include "core/internal_network/network.h"
+#include "core/internal_network/network_interface.h"
+
+#undef CreateEvent
 
 namespace Service::LDN {
 
@@ -96,81 +97,393 @@ public:
     }
 };
 
-class IUserLocalCommunicationService final
-    : public ServiceFramework<IUserLocalCommunicationService> {
-public:
-    explicit IUserLocalCommunicationService(Core::System& system_)
-        : ServiceFramework{system_, "IUserLocalCommunicationService"} {
-        // clang-format off
+IUserLocalCommunicationService::IUserLocalCommunicationService(Core::System& system_)
+    : ServiceFramework{system_, "IUserLocalCommunicationService", ServiceThreadType::CreateNew},
+      service_context{system, "IUserLocalCommunicationService"}, room_network{
+                                                                     system_.GetRoomNetwork()} {
+    // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IUserLocalCommunicationService::GetState, "GetState"},
-            {1, nullptr, "GetNetworkInfo"},
+            {1, &IUserLocalCommunicationService::GetNetworkInfo, "GetNetworkInfo"},
             {2, nullptr, "GetIpv4Address"},
-            {3, nullptr, "GetDisconnectReason"},
-            {4, nullptr, "GetSecurityParameter"},
-            {5, nullptr, "GetNetworkConfig"},
-            {100, nullptr, "AttachStateChangeEvent"},
-            {101, nullptr, "GetNetworkInfoLatestUpdate"},
-            {102, nullptr, "Scan"},
-            {103, nullptr, "ScanPrivate"},
+            {3, &IUserLocalCommunicationService::GetDisconnectReason, "GetDisconnectReason"},
+            {4, &IUserLocalCommunicationService::GetSecurityParameter, "GetSecurityParameter"},
+            {5, &IUserLocalCommunicationService::GetNetworkConfig, "GetNetworkConfig"},
+            {100, &IUserLocalCommunicationService::AttachStateChangeEvent, "AttachStateChangeEvent"},
+            {101, &IUserLocalCommunicationService::GetNetworkInfoLatestUpdate, "GetNetworkInfoLatestUpdate"},
+            {102, &IUserLocalCommunicationService::Scan, "Scan"},
+            {103, &IUserLocalCommunicationService::ScanPrivate, "ScanPrivate"},
             {104, nullptr, "SetWirelessControllerRestriction"},
-            {200, nullptr, "OpenAccessPoint"},
-            {201, nullptr, "CloseAccessPoint"},
-            {202, nullptr, "CreateNetwork"},
-            {203, nullptr, "CreateNetworkPrivate"},
-            {204, nullptr, "DestroyNetwork"},
+            {200, &IUserLocalCommunicationService::OpenAccessPoint, "OpenAccessPoint"},
+            {201, &IUserLocalCommunicationService::CloseAccessPoint, "CloseAccessPoint"},
+            {202, &IUserLocalCommunicationService::CreateNetwork, "CreateNetwork"},
+            {203, &IUserLocalCommunicationService::CreateNetworkPrivate, "CreateNetworkPrivate"},
+            {204, &IUserLocalCommunicationService::DestroyNetwork, "DestroyNetwork"},
             {205, nullptr, "Reject"},
-            {206, nullptr, "SetAdvertiseData"},
-            {207, nullptr, "SetStationAcceptPolicy"},
-            {208, nullptr, "AddAcceptFilterEntry"},
+            {206, &IUserLocalCommunicationService::SetAdvertiseData, "SetAdvertiseData"},
+            {207, &IUserLocalCommunicationService::SetStationAcceptPolicy, "SetStationAcceptPolicy"},
+            {208, &IUserLocalCommunicationService::AddAcceptFilterEntry, "AddAcceptFilterEntry"},
             {209, nullptr, "ClearAcceptFilter"},
-            {300, nullptr, "OpenStation"},
-            {301, nullptr, "CloseStation"},
-            {302, nullptr, "Connect"},
+            {300, &IUserLocalCommunicationService::OpenStation, "OpenStation"},
+            {301, &IUserLocalCommunicationService::CloseStation, "CloseStation"},
+            {302, &IUserLocalCommunicationService::Connect, "Connect"},
             {303, nullptr, "ConnectPrivate"},
-            {304, nullptr, "Disconnect"},
-            {400, nullptr, "Initialize"},
-            {401, nullptr, "Finalize"},
-            {402, &IUserLocalCommunicationService::Initialize2, "Initialize2"}, // 7.0.0+
+            {304, &IUserLocalCommunicationService::Disconnect, "Disconnect"},
+            {400, &IUserLocalCommunicationService::Initialize, "Initialize"},
+            {401, &IUserLocalCommunicationService::Finalize, "Finalize"},
+            {402, &IUserLocalCommunicationService::Initialize2, "Initialize2"},
         };
-        // clang-format on
+    // clang-format on
 
-        RegisterHandlers(functions);
-    }
+    RegisterHandlers(functions);
 
-    void GetState(Kernel::HLERequestContext& ctx) {
-        LOG_WARNING(Service_LDN, "(STUBBED) called");
+    state_change_event =
+        service_context.CreateEvent("IUserLocalCommunicationService:StateChangeEvent");
+}
 
-        IPC::ResponseBuilder rb{ctx, 3};
+IUserLocalCommunicationService::~IUserLocalCommunicationService() {
+    service_context.CloseEvent(state_change_event);
+}
 
-        // Indicate a network error, as we do not actually emulate LDN
-        rb.Push(static_cast<u32>(State::Error));
+void IUserLocalCommunicationService::OnEventFired() {
+    state_change_event->GetWritableEvent().Signal();
+}
 
-        rb.Push(ResultSuccess);
-    }
+void IUserLocalCommunicationService::GetState(Kernel::HLERequestContext& ctx) {
+    State state = State::Error;
+    LOG_WARNING(Service_LDN, "(STUBBED) called, state = {}", state);
 
-    void Initialize2(Kernel::HLERequestContext& ctx) {
-        LOG_DEBUG(Service_LDN, "called");
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.PushEnum(state);
+}
 
-        is_initialized = true;
+void IUserLocalCommunicationService::GetNetworkInfo(Kernel::HLERequestContext& ctx) {
+    const auto write_buffer_size = ctx.GetWriteBufferSize();
 
+    if (write_buffer_size != sizeof(NetworkInfo)) {
+        LOG_ERROR(Service_LDN, "Invalid buffer size {}", write_buffer_size);
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ERROR_DISABLED);
+        rb.Push(ResultBadInput);
+        return;
     }
 
-private:
-    enum class State {
-        None,
-        Initialized,
-        AccessPointOpened,
-        AccessPointCreated,
-        StationOpened,
-        StationConnected,
-        Error,
-    };
+    NetworkInfo networkInfo{};
+    const auto rc = ResultSuccess;
+    if (rc.IsError()) {
+        LOG_ERROR(Service_LDN, "NetworkInfo is not valid {}", rc.raw);
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(rc);
+        return;
+    }
 
-    bool is_initialized{};
-};
+    LOG_WARNING(Service_LDN, "(STUBBED) called, ssid='{}', nodes={}",
+                networkInfo.common.ssid.GetStringValue(), networkInfo.ldn.node_count);
+
+    ctx.WriteBuffer<NetworkInfo>(networkInfo);
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(rc);
+}
+
+void IUserLocalCommunicationService::GetDisconnectReason(Kernel::HLERequestContext& ctx) {
+    const auto disconnect_reason = DisconnectReason::None;
+
+    LOG_WARNING(Service_LDN, "(STUBBED) called, disconnect_reason={}", disconnect_reason);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.PushEnum(disconnect_reason);
+}
+
+void IUserLocalCommunicationService::GetSecurityParameter(Kernel::HLERequestContext& ctx) {
+    SecurityParameter security_parameter;
+    NetworkInfo info;
+    const Result rc = ResultSuccess;
+
+    if (rc.IsError()) {
+        LOG_ERROR(Service_LDN, "NetworkInfo is not valid {}", rc.raw);
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(rc);
+        return;
+    }
+
+    security_parameter.session_id = info.network_id.session_id;
+    std::memcpy(security_parameter.data.data(), info.ldn.security_parameter.data(),
+                sizeof(SecurityParameter::data));
+
+    LOG_WARNING(Service_LDN, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 10};
+    rb.Push(rc);
+    rb.PushRaw<SecurityParameter>(security_parameter);
+}
+
+void IUserLocalCommunicationService::GetNetworkConfig(Kernel::HLERequestContext& ctx) {
+    NetworkConfig config;
+    NetworkInfo info;
+    const Result rc = ResultSuccess;
+
+    if (rc.IsError()) {
+        LOG_ERROR(Service_LDN, "NetworkConfig is not valid {}", rc.raw);
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(rc);
+        return;
+    }
+
+    config.intent_id = info.network_id.intent_id;
+    config.channel = info.common.channel;
+    config.node_count_max = info.ldn.node_count_max;
+    config.local_communication_version = info.ldn.nodes[0].local_communication_version;
+
+    LOG_WARNING(Service_LDN,
+                "(STUBBED) called, intent_id={}/{}, channel={}, node_count_max={}, "
+                "local_communication_version={}",
+                config.intent_id.local_communication_id, config.intent_id.scene_id, config.channel,
+                config.node_count_max, config.local_communication_version);
+
+    IPC::ResponseBuilder rb{ctx, 10};
+    rb.Push(rc);
+    rb.PushRaw<NetworkConfig>(config);
+}
+
+void IUserLocalCommunicationService::AttachStateChangeEvent(Kernel::HLERequestContext& ctx) {
+    LOG_INFO(Service_LDN, "called");
+
+    IPC::ResponseBuilder rb{ctx, 2, 1};
+    rb.Push(ResultSuccess);
+    rb.PushCopyObjects(state_change_event->GetReadableEvent());
+}
+
+void IUserLocalCommunicationService::GetNetworkInfoLatestUpdate(Kernel::HLERequestContext& ctx) {
+    const std::size_t network_buffer_size = ctx.GetWriteBufferSize(0);
+    const std::size_t node_buffer_count = ctx.GetWriteBufferSize(1) / sizeof(NodeLatestUpdate);
+
+    if (node_buffer_count == 0 || network_buffer_size != sizeof(NetworkInfo)) {
+        LOG_ERROR(Service_LDN, "Invalid buffer size {}, {}", network_buffer_size,
+                  node_buffer_count);
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultBadInput);
+        return;
+    }
+
+    NetworkInfo info;
+    std::vector<NodeLatestUpdate> latest_update{};
+    latest_update.resize(node_buffer_count);
+
+    const auto rc = ResultSuccess;
+    if (rc.IsError()) {
+        LOG_ERROR(Service_LDN, "NetworkInfo is not valid {}", rc.raw);
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(rc);
+        return;
+    }
+
+    LOG_WARNING(Service_LDN, "(STUBBED) called, ssid='{}', nodes={}",
+                info.common.ssid.GetStringValue(), info.ldn.node_count);
+
+    ctx.WriteBuffer(info, 0);
+    ctx.WriteBuffer(latest_update, 1);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IUserLocalCommunicationService::Scan(Kernel::HLERequestContext& ctx) {
+    ScanImpl(ctx);
+}
+
+void IUserLocalCommunicationService::ScanPrivate(Kernel::HLERequestContext& ctx) {
+    ScanImpl(ctx, true);
+}
+
+void IUserLocalCommunicationService::ScanImpl(Kernel::HLERequestContext& ctx, bool is_private) {
+    IPC::RequestParser rp{ctx};
+    const auto channel{rp.PopEnum<WifiChannel>()};
+    const auto scan_filter{rp.PopRaw<ScanFilter>()};
+
+    const std::size_t network_info_size = ctx.GetWriteBufferSize() / sizeof(NetworkInfo);
+
+    if (network_info_size == 0) {
+        LOG_ERROR(Service_LDN, "Invalid buffer size {}", network_info_size);
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultBadInput);
+        return;
+    }
+
+    u16 count = 0;
+    std::vector<NetworkInfo> networks_info{};
+    networks_info.resize(network_info_size);
+
+    LOG_WARNING(Service_LDN,
+                "(STUBBED) called, channel={}, filter_scan_flag={}, filter_network_type={}",
+                channel, scan_filter.flag, scan_filter.network_type);
+
+    ctx.WriteBuffer(networks_info);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(ResultSuccess);
+    rb.Push<u32>(count);
+}
+
+void IUserLocalCommunicationService::OpenAccessPoint(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_LDN, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IUserLocalCommunicationService::CloseAccessPoint(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_LDN, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IUserLocalCommunicationService::CreateNetwork(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_LDN, "(STUBBED) called");
+
+    CreateNetworkImpl(ctx, false);
+}
+
+void IUserLocalCommunicationService::CreateNetworkPrivate(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_LDN, "(STUBBED) called");
+
+    CreateNetworkImpl(ctx, true);
+}
+
+void IUserLocalCommunicationService::CreateNetworkImpl(Kernel::HLERequestContext& ctx,
+                                                       bool is_private) {
+    IPC::RequestParser rp{ctx};
+
+    const auto security_config{rp.PopRaw<SecurityConfig>()};
+    [[maybe_unused]] const auto security_parameter{is_private ? rp.PopRaw<SecurityParameter>()
+                                                              : SecurityParameter{}};
+    const auto user_config{rp.PopRaw<UserConfig>()};
+    rp.Pop<u32>(); // Padding
+    const auto network_Config{rp.PopRaw<NetworkConfig>()};
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+void IUserLocalCommunicationService::DestroyNetwork(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_LDN, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IUserLocalCommunicationService::SetAdvertiseData(Kernel::HLERequestContext& ctx) {
+    std::vector<u8> read_buffer = ctx.ReadBuffer();
+
+    LOG_WARNING(Service_LDN, "(STUBBED) called, size {}", read_buffer.size());
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IUserLocalCommunicationService::SetStationAcceptPolicy(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_LDN, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IUserLocalCommunicationService::AddAcceptFilterEntry(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_LDN, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IUserLocalCommunicationService::OpenStation(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_LDN, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IUserLocalCommunicationService::CloseStation(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_LDN, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IUserLocalCommunicationService::Connect(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_LDN, "(STUBBED) called");
+
+    IPC::RequestParser rp{ctx};
+
+    [[maybe_unused]] const auto securityConfig{rp.PopRaw<SecurityConfig>()};
+    const auto user_config{rp.PopRaw<UserConfig>()};
+    const auto local_communication_version{rp.Pop<u32>()};
+    [[maybe_unused]] const auto option{rp.Pop<u32>()};
+
+    std::vector<u8> read_buffer = ctx.ReadBuffer();
+    NetworkInfo networkInfo{};
+
+    if (read_buffer.size() != sizeof(NetworkInfo)) {
+        LOG_ERROR(Frontend, "NetworkInfo doesn't match read_buffer size!");
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ResultBadInput);
+        return;
+    }
+
+    std::memcpy(&networkInfo, read_buffer.data(), read_buffer.size());
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IUserLocalCommunicationService::Disconnect(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_LDN, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+void IUserLocalCommunicationService::Initialize(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_LDN, "(STUBBED) called");
+
+    const auto rc = InitializeImpl(ctx);
+    if (rc.IsError()) {
+        LOG_ERROR(Service_LDN, "Network isn't initialized, rc={}", rc.raw);
+    }
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(rc);
+}
+
+void IUserLocalCommunicationService::Finalize(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_LDN, "(STUBBED) called");
+
+    is_initialized = false;
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void IUserLocalCommunicationService::Initialize2(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_LDN, "(STUBBED) called");
+
+    const auto rc = InitializeImpl(ctx);
+    if (rc.IsError()) {
+        LOG_ERROR(Service_LDN, "Network isn't initialized, rc={}", rc.raw);
+    }
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(rc);
+}
+
+Result IUserLocalCommunicationService::InitializeImpl(Kernel::HLERequestContext& ctx) {
+    const auto network_interface = Network::GetSelectedNetworkInterface();
+    if (!network_interface) {
+        return ResultAirplaneModeEnabled;
+    }
+
+    is_initialized = true;
+    // TODO (flTobi): Change this to ResultSuccess when LDN is fully implemented
+    return ResultAirplaneModeEnabled;
+}
 
 class LDNS final : public ServiceFramework<LDNS> {
 public:
@@ -273,7 +586,7 @@ public:
         LOG_WARNING(Service_LDN, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(ERROR_DISABLED);
+        rb.Push(ResultDisabled);
     }
 };
 
