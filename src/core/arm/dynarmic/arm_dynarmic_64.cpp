@@ -183,7 +183,7 @@ public:
 
     u64 GetTicksRemaining() override {
         if (parent.uses_wall_clock) {
-            if (!parent.interrupt_handlers[parent.core_index].IsInterrupted()) {
+            if (!IsInterrupted()) {
                 return minimum_run_cycles;
             }
             return 0U;
@@ -215,6 +215,10 @@ public:
         parent.SaveContext(parent.breakpoint_context);
         parent.breakpoint_context.pc = pc;
         parent.jit.load()->HaltExecution(hr);
+    }
+
+    bool IsInterrupted() {
+        return parent.system.Kernel().PhysicalCore(parent.core_index).IsInterrupted();
     }
 
     ARM_Dynarmic_64& parent;
