@@ -54,7 +54,6 @@ public:
 
     void CreateNetwork(Kernel::HLERequestContext& ctx);
     void CreateNetworkPrivate(Kernel::HLERequestContext& ctx);
-    void CreateNetworkImpl(Kernel::HLERequestContext& ctx, bool is_private);
 
     void DestroyNetwork(Kernel::HLERequestContext& ctx);
 

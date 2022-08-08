@@ -1,6 +1,5 @@
-// Copyright 2022 yuzu emulator team
-// Licensed under GPLv2 or any later version
-// Refer to the license.txt file included.
+// SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
 
@@ -31,14 +30,6 @@ enum class NodeStateChange : u8 {
     Disconnect,
     DisconnectAndConnect,
 };
-
-inline NodeStateChange operator|(NodeStateChange a, NodeStateChange b) {
-    return static_cast<NodeStateChange>(static_cast<u8>(a) | static_cast<u8>(b));
-}
-
-inline NodeStateChange operator|=(NodeStateChange& a, NodeStateChange b) {
-    return a = a | b;
-}
 
 enum class ScanFilterFlag : u32 {
     None = 0,
@@ -135,10 +126,7 @@ struct SessionId {
     u64 high;
     u64 low;
 
-public:
-    bool operator==(const SessionId& b) const {
-        return (low == b.low) && (high == b.high);
-    }
+    bool operator==(const SessionId&) const = default;
 };
 static_assert(sizeof(SessionId) == 0x10, "SessionId is an invalid size");
 
@@ -160,7 +148,6 @@ struct Ssid {
     u8 length;
     std::array<char, SsidLengthMax + 1> raw;
 
-public:
     std::string GetStringValue() const {
         return std::string(raw.data(), length);
     }
@@ -173,7 +160,6 @@ struct Ipv4Address {
         std::array<u8, 4> bytes;
     };
 
-public:
     std::string GetStringValue() const {
         return fmt::format("{}.{}.{}.{}", bytes[3], bytes[2], bytes[1], bytes[0]);
     }

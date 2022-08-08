@@ -8,6 +8,7 @@
 #include "core/internal_network/network.h"
 #include "core/internal_network/network_interface.h"
 
+// This is defined by synchapi.h and conflicts with ServiceContext::CreateEvent
 #undef CreateEvent
 
 namespace Service::LDN {
@@ -168,7 +169,7 @@ void IUserLocalCommunicationService::GetNetworkInfo(Kernel::HLERequestContext& c
         return;
     }
 
-    NetworkInfo networkInfo{};
+    NetworkInfo network_info{};
     const auto rc = ResultSuccess;
     if (rc.IsError()) {
         LOG_ERROR(Service_LDN, "NetworkInfo is not valid {}", rc.raw);
@@ -178,9 +179,9 @@ void IUserLocalCommunicationService::GetNetworkInfo(Kernel::HLERequestContext& c
     }
 
     LOG_WARNING(Service_LDN, "(STUBBED) called, ssid='{}', nodes={}",
-                networkInfo.common.ssid.GetStringValue(), networkInfo.ldn.node_count);
+                network_info.common.ssid.GetStringValue(), network_info.ldn.node_count);
 
-    ctx.WriteBuffer<NetworkInfo>(networkInfo);
+    ctx.WriteBuffer<NetworkInfo>(network_info);
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(rc);
 }
@@ -267,8 +268,7 @@ void IUserLocalCommunicationService::GetNetworkInfoLatestUpdate(Kernel::HLEReque
     }
 
     NetworkInfo info;
-    std::vector<NodeLatestUpdate> latest_update{};
-    latest_update.resize(node_buffer_count);
+    std::vector<NodeLatestUpdate> latest_update(node_buffer_count);
 
     const auto rc = ResultSuccess;
     if (rc.IsError()) {
@@ -311,14 +311,13 @@ void IUserLocalCommunicationService::ScanImpl(Kernel::HLERequestContext& ctx, bo
     }
 
     u16 count = 0;
-    std::vector<NetworkInfo> networks_info{};
-    networks_info.resize(network_info_size);
+    std::vector<NetworkInfo> network_infos(network_info_size);
 
     LOG_WARNING(Service_LDN,
                 "(STUBBED) called, channel={}, filter_scan_flag={}, filter_network_type={}",
                 channel, scan_filter.flag, scan_filter.network_type);
 
-    ctx.WriteBuffer(networks_info);
+    ctx.WriteBuffer(network_infos);
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
@@ -340,31 +339,39 @@ void IUserLocalCommunicationService::CloseAccessPoint(Kernel::HLERequestContext&
 }
 
 void IUserLocalCommunicationService::CreateNetwork(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_LDN, "(STUBBED) called");
-
-    CreateNetworkImpl(ctx, false);
-}
-
-void IUserLocalCommunicationService::CreateNetworkPrivate(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_LDN, "(STUBBED) called");
-
-    CreateNetworkImpl(ctx, true);
-}
-
-void IUserLocalCommunicationService::CreateNetworkImpl(Kernel::HLERequestContext& ctx,
-                                                       bool is_private) {
     IPC::RequestParser rp{ctx};
+    struct Parameters {
+        SecurityConfig security_config;
+        UserConfig user_config;
+        INSERT_PADDING_WORDS_NOINIT(1);
+        NetworkConfig network_config;
+    };
+    static_assert(sizeof(Parameters) == 0x98, "Parameters has incorrect size.");
 
-    const auto security_config{rp.PopRaw<SecurityConfig>()};
-    [[maybe_unused]] const auto security_parameter{is_private ? rp.PopRaw<SecurityParameter>()
-                                                              : SecurityParameter{}};
-    const auto user_config{rp.PopRaw<UserConfig>()};
-    rp.Pop<u32>(); // Padding
-    const auto network_Config{rp.PopRaw<NetworkConfig>()};
+    LOG_WARNING(Service_LDN, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
 }
+
+void IUserLocalCommunicationService::CreateNetworkPrivate(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    struct Parameters {
+        SecurityConfig security_config;
+        SecurityParameter security_parameter;
+        UserConfig user_config;
+        NetworkConfig network_config;
+    };
+    static_assert(sizeof(Parameters) == 0xB8, "Parameters has incorrect size.");
+
+    const auto parameters{rp.PopRaw<Parameters>()};
+
+    LOG_WARNING(Service_LDN, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
 void IUserLocalCommunicationService::DestroyNetwork(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_LDN, "(STUBBED) called");
 
@@ -413,14 +420,18 @@ void IUserLocalCommunicationService::Connect(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_LDN, "(STUBBED) called");
 
     IPC::RequestParser rp{ctx};
+    struct Parameters {
+        SecurityConfig security_config;
+        UserConfig user_config;
+        u32 local_communication_version;
+        u32 option;
+    };
+    static_assert(sizeof(Parameters) == 0x7C, "Parameters has incorrect size.");
 
-    [[maybe_unused]] const auto securityConfig{rp.PopRaw<SecurityConfig>()};
-    const auto user_config{rp.PopRaw<UserConfig>()};
-    const auto local_communication_version{rp.Pop<u32>()};
-    [[maybe_unused]] const auto option{rp.Pop<u32>()};
+    const auto parameters{rp.PopRaw<Parameters>()};
 
-    std::vector<u8> read_buffer = ctx.ReadBuffer();
-    NetworkInfo networkInfo{};
+    const std::vector<u8> read_buffer = ctx.ReadBuffer();
+    NetworkInfo network_info{};
 
     if (read_buffer.size() != sizeof(NetworkInfo)) {
         LOG_ERROR(Frontend, "NetworkInfo doesn't match read_buffer size!");
@@ -429,7 +440,7 @@ void IUserLocalCommunicationService::Connect(Kernel::HLERequestContext& ctx) {
         return;
     }
 
-    std::memcpy(&networkInfo, read_buffer.data(), read_buffer.size());
+    std::memcpy(&network_info, read_buffer.data(), read_buffer.size());
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -445,9 +456,6 @@ void IUserLocalCommunicationService::Initialize(Kernel::HLERequestContext& ctx) 
     LOG_WARNING(Service_LDN, "(STUBBED) called");
 
     const auto rc = InitializeImpl(ctx);
-    if (rc.IsError()) {
-        LOG_ERROR(Service_LDN, "Network isn't initialized, rc={}", rc.raw);
-    }
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(rc);
@@ -466,9 +474,6 @@ void IUserLocalCommunicationService::Initialize2(Kernel::HLERequestContext& ctx)
     LOG_WARNING(Service_LDN, "(STUBBED) called");
 
     const auto rc = InitializeImpl(ctx);
-    if (rc.IsError()) {
-        LOG_ERROR(Service_LDN, "Network isn't initialized, rc={}", rc.raw);
-    }
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(rc);
@@ -477,6 +482,7 @@ void IUserLocalCommunicationService::Initialize2(Kernel::HLERequestContext& ctx)
 Result IUserLocalCommunicationService::InitializeImpl(Kernel::HLERequestContext& ctx) {
     const auto network_interface = Network::GetSelectedNetworkInterface();
     if (!network_interface) {
+        LOG_ERROR(Service_LDN, "No network interface is set");
         return ResultAirplaneModeEnabled;
     }
 
