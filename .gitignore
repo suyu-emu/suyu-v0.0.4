@@ -7,7 +7,7 @@ doc-build/
 
 # Generated source files
 src/common/scm_rev.cpp
-.travis.descriptor.json
+dist/english_plurals/generated_en.ts
 
 # Project/editor files
 *.swp
