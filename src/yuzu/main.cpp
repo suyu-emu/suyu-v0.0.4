@@ -4072,6 +4072,15 @@ int main(int argc, char* argv[]) {
     QCoreApplication::setAttribute(Qt::AA_DontCheckOpenGLContextThreadAffinity);
     QApplication app(argc, argv);
 
+    // Workaround for QTBUG-85409, for Suzhou numerals the number 1 is actually \u3021
+    // so we can see if we get \u3008 instead
+    // TL;DR all other number formats are consecutive in unicode code points
+    // This bug is fixed in Qt6, specifically 6.0.0-alpha1
+    const QLocale locale = QLocale::system();
+    if (QStringLiteral("\u3008") == locale.toString(1)) {
+        QLocale::setDefault(QLocale::system().name());
+    }
+
     // Qt changes the locale and causes issues in float conversion using std::to_string() when
     // generating shaders
     setlocale(LC_ALL, "C");
