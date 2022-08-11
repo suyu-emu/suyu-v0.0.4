@@ -42,14 +42,10 @@ mkdir $RELEASE_DIST
 mkdir $MSVC_SOURCE
 mkdir "artifacts"
 
+$CURRENT_DIR = Convert-Path .
+
 # Build a tar.xz for the source of the release
-Copy-Item .\LICENSE.txt -Destination $MSVC_SOURCE
-Copy-Item .\README.md -Destination $MSVC_SOURCE
-Copy-Item .\CMakeLists.txt -Destination $MSVC_SOURCE
-Copy-Item .\src -Recurse -Destination $MSVC_SOURCE
-Copy-Item .\externals -Recurse -Destination $MSVC_SOURCE
-Copy-Item .\dist -Recurse -Destination $MSVC_SOURCE
-Copy-Item .\CMakeModules -Recurse -Destination $MSVC_SOURCE
+git clone --depth 1 file://$CURRENT_DIR $MSVC_SOURCE
 7z a -r -ttar $MSVC_SOURCE_TAR $MSVC_SOURCE
 7z a -r -txz $MSVC_SOURCE_TARXZ $MSVC_SOURCE_TAR
 
