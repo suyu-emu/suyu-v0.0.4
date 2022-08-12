@@ -251,6 +251,7 @@ private:
     bool ConfirmForceLockedExit();
     void RequestGameExit();
     void RequestGameResume();
+    void changeEvent(QEvent* event) override;
     void closeEvent(QCloseEvent* event) override;
 
 #ifdef __linux__
@@ -347,6 +348,7 @@ private:
     void OpenURL(const QUrl& url);
     void LoadTranslation();
     void OpenPerGameConfiguration(u64 title_id, const std::string& file_name);
+    bool CheckDarkMode();
 
     QString GetTasStateDescription() const;
 
@@ -391,6 +393,9 @@ private:
     bool auto_muted = false;
     QTimer mouse_hide_timer;
     QTimer mouse_center_timer;
+
+    QString startup_icon_theme;
+    bool os_dark_mode = false;
 
     // FS
     std::shared_ptr<FileSys::VfsFilesystem> vfs;
