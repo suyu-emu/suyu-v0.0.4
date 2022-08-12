@@ -257,7 +257,7 @@ static QString PrettyProductName() {
     return QSysInfo::prettyProductName();
 }
 
-bool GMainWindow::check_dark_mode() {
+bool GMainWindow::CheckDarkMode() {
 #ifdef __linux__
     const QPalette test_palette(qApp->palette());
     const QColor text_color = test_palette.color(QPalette::Active, QPalette::Text);
@@ -287,7 +287,7 @@ GMainWindow::GMainWindow(bool has_broken_vulkan)
     statusBar()->hide();
 
     // Check dark mode before a theme is loaded
-    os_dark_mode = check_dark_mode();
+    os_dark_mode = CheckDarkMode();
     startup_icon_theme = QIcon::themeName();
     // fallback can only be set once, colorful theme icons are okay on both light/dark
     QIcon::setFallbackThemeName(QStringLiteral("colorful"));
@@ -3979,7 +3979,7 @@ void GMainWindow::UpdateUITheme() {
         QIcon::setThemeName(current_theme == QStringLiteral("colorful") ? current_theme
                                                                         : startup_icon_theme);
         QIcon::setThemeSearchPaths(theme_paths);
-        if (check_dark_mode()) {
+        if (CheckDarkMode()) {
             current_theme = QStringLiteral("default_dark");
         }
     } else {
