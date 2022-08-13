@@ -7,6 +7,7 @@
 #include <vector>
 #include <queue>
 
+#include "common/common_funcs.h"
 #include "core/internal_network/sockets.h"
 #include "network/network.h"
 
@@ -14,16 +15,11 @@ namespace Network {
 
 class ProxySocket : public SocketBase {
 public:
+    YUZU_NON_COPYABLE(ProxySocket);
+    YUZU_NON_MOVEABLE(ProxySocket);
+
     explicit ProxySocket(RoomNetwork& room_network_) noexcept;
     ~ProxySocket() override;
-
-    ProxySocket(const ProxySocket&) = delete;
-    ProxySocket& operator=(const ProxySocket&) = delete;
-
-    ProxySocket(ProxySocket&& rhs) noexcept;
-
-    // Avoid closing sockets implicitly
-    ProxySocket& operator=(ProxySocket&&) noexcept = delete;
 
     void HandleProxyPacket(const ProxyPacket& packet) override;
 
@@ -87,7 +83,6 @@ private:
     bool closed = false;
     u32 send_timeout = 0;
     u32 receive_timeout = 0;
-    std::map<int, const char*> socket_options;
     bool is_bound = false;
     SockAddrIn local_endpoint{};
     bool blocking = true;

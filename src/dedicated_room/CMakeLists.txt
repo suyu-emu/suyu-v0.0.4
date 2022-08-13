@@ -4,8 +4,8 @@
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/CMakeModules)
 
 add_executable(yuzu-room
-    yuzu-room.cpp
-    yuzu-room.rc
+    yuzu_room.cpp
+    yuzu_room.rc
 )
 
 create_target_directory_groups(yuzu-room)

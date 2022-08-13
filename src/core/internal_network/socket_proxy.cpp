@@ -14,10 +14,6 @@ namespace Network {
 
 ProxySocket::ProxySocket(RoomNetwork& room_network_) noexcept : room_network{room_network_} {}
 
-ProxySocket::ProxySocket(ProxySocket&& rhs) noexcept : room_network{rhs.room_network} {
-    fd = std::exchange(rhs.fd, INVALID_SOCKET);
-}
-
 ProxySocket::~ProxySocket() {
     if (fd == INVALID_SOCKET) {
         return;
@@ -36,7 +32,6 @@ void ProxySocket::HandleProxyPacket(const ProxyPacket& packet) {
 
 template <typename T>
 Errno ProxySocket::SetSockOpt(SOCKET fd_, int option, T value) {
-    socket_options[option] = reinterpret_cast<const char*>(&value);
     return Errno::SUCCESS;
 }
 
@@ -100,27 +95,36 @@ std::pair<s32, Errno> ProxySocket::RecvFrom(int flags, std::vector<u8>& message,
     ASSERT(flags == 0);
     ASSERT(message.size() < static_cast<size_t>(std::numeric_limits<int>::max()));
 
-    {
-        std::lock_guard guard(packets_mutex);
-        if (received_packets.size() > 0) {
-            return ReceivePacket(flags, message, addr, message.size());
+    const auto timestamp = std::chrono::steady_clock::now();
+
+    while (true) {
+        {
+            std::lock_guard guard(packets_mutex);
+            if (received_packets.size() > 0) {
+                return ReceivePacket(flags, message, addr, message.size());
+            }
+        }
+
+        if (!blocking) {
+            return {-1, Errno::AGAIN};
+        }
+
+        // TODO: break if socket connection is lost
+
+        std::this_thread::yield();
+
+        if (receive_timeout == 0) {
+            continue;
+        }
+
+        const auto time_diff = std::chrono::steady_clock::now() - timestamp;
+        const auto time_diff_ms =
+            std::chrono::duration_cast<std::chrono::milliseconds>(time_diff).count();
+
+        if (time_diff_ms > receive_timeout) {
+            return {-1, Errno::TIMEDOUT};
         }
     }
-
-    if (blocking) {
-        if (receive_timeout > 0) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(receive_timeout));
-        }
-    } else {
-        return {-1, Errno::AGAIN};
-    }
-
-    std::lock_guard guard(packets_mutex);
-    if (received_packets.size() > 0) {
-        return ReceivePacket(flags, message, addr, message.size());
-    }
-
-    return {-1, Errno::TIMEDOUT};
 }
 
 std::pair<s32, Errno> ProxySocket::ReceivePacket(int flags, std::vector<u8>& message,
