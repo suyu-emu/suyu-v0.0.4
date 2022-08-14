@@ -20,6 +20,9 @@ constexpr u32 GOB_SIZE_Y_SHIFT = 3;
 constexpr u32 GOB_SIZE_Z_SHIFT = 0;
 constexpr u32 GOB_SIZE_SHIFT = GOB_SIZE_X_SHIFT + GOB_SIZE_Y_SHIFT + GOB_SIZE_Z_SHIFT;
 
+constexpr u32 SWIZZLE_X_BITS = 0b100101111;
+constexpr u32 SWIZZLE_Y_BITS = 0b011010000;
+
 using SwizzleTable = std::array<std::array<u32, GOB_SIZE_X>, GOB_SIZE_Y>;
 
 /**
