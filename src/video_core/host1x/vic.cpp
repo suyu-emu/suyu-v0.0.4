@@ -156,8 +156,9 @@ void Vic::WriteRGBFrame(const AVFrame* frame, const VicConfig& config) {
         const u32 block_height = static_cast<u32>(config.block_linear_height_log2);
         const auto size = Texture::CalculateSize(true, 4, width, height, 1, block_height, 0);
         luma_buffer.resize(size);
-        Texture::SwizzleSubrect(width, height, width * 4, width, 4, luma_buffer.data(),
-                                converted_frame_buf_addr, block_height, 0, 0);
+        std::span<const u8> frame_buff(converted_frame_buf_addr, 4 * width * height);
+        Texture::SwizzleSubrect(luma_buffer, frame_buff, 4, width, height, 1,
+                                0, 0, width, height, block_height, 0, width * 4);
 
         host1x.MemoryManager().WriteBlock(output_surface_luma_address, luma_buffer.data(), size);
     } else {

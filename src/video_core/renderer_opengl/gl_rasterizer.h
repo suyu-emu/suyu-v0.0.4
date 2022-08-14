@@ -99,7 +99,7 @@ public:
                                const Tegra::Engines::Fermi2D::Config& copy_config) override;
     Tegra::Engines::AccelerateDMAInterface& AccessAccelerateDMA() override;
     void AccelerateInlineToMemory(GPUVAddr address, size_t copy_size,
-                                  std::span<u8> memory) override;
+                                  std::span<const u8> memory) override;
     bool AccelerateDisplay(const Tegra::FramebufferConfig& config, VAddr framebuffer_addr,
                            u32 pixel_stride) override;
     void LoadDiskResources(u64 title_id, std::stop_token stop_loading,

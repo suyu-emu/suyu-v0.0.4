@@ -239,8 +239,6 @@ void Maxwell3D::ProcessMethodCall(u32 method, u32 argument, u32 nonshadow_argume
         return upload_state.ProcessExec(regs.exec_upload.linear != 0);
     case MAXWELL3D_REG_INDEX(data_upload):
         upload_state.ProcessData(argument, is_last_call);
-        if (is_last_call) {
-        }
         return;
     case MAXWELL3D_REG_INDEX(fragment_barrier):
         return rasterizer->FragmentBarrier();
@@ -316,6 +314,9 @@ void Maxwell3D::CallMultiMethod(u32 method, const u32* base_start, u32 amount,
     case MAXWELL3D_REG_INDEX(const_buffer.cb_data) + 15:
         ProcessCBMultiData(base_start, amount);
         break;
+    case MAXWELL3D_REG_INDEX(data_upload):
+        upload_state.ProcessData(base_start, static_cast<size_t>(amount));
+        return;
     default:
         for (std::size_t i = 0; i < amount; i++) {
             CallMethod(method, base_start[i], methods_pending - static_cast<u32>(i) <= 1);

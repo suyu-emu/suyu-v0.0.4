@@ -462,6 +462,97 @@ void MemoryManager::FlushRegion(GPUVAddr gpu_addr, size_t size) const {
     MemoryOperation<true>(gpu_addr, size, mapped_big, do_nothing, flush_short_pages);
 }
 
+bool MemoryManager::IsMemoryDirty(GPUVAddr gpu_addr, size_t size) const {
+    bool result = false;
+    auto do_nothing = [&]([[maybe_unused]] std::size_t page_index,
+                          [[maybe_unused]] std::size_t offset,
+                          [[maybe_unused]] std::size_t copy_amount) { return false; };
+
+    auto mapped_normal = [&](std::size_t page_index, std::size_t offset, std::size_t copy_amount) {
+        const VAddr cpu_addr_base =
+            (static_cast<VAddr>(page_table[page_index]) << cpu_page_bits) + offset;
+        result |= rasterizer->MustFlushRegion(cpu_addr_base, copy_amount);
+        return result;
+    };
+    auto mapped_big = [&](std::size_t page_index, std::size_t offset, std::size_t copy_amount) {
+        const VAddr cpu_addr_base =
+            (static_cast<VAddr>(big_page_table_cpu[page_index]) << cpu_page_bits) + offset;
+        result |= rasterizer->MustFlushRegion(cpu_addr_base, copy_amount);
+        return result;
+    };
+    auto check_short_pages = [&](std::size_t page_index, std::size_t offset,
+                                 std::size_t copy_amount) {
+        GPUVAddr base = (page_index << big_page_bits) + offset;
+        MemoryOperation<false>(base, copy_amount, mapped_normal, do_nothing, do_nothing);
+        return result;
+    };
+    MemoryOperation<true>(gpu_addr, size, mapped_big, do_nothing, check_short_pages);
+    return result;
+}
+
+size_t MemoryManager::MaxContinousRange(GPUVAddr gpu_addr, size_t size) const {
+    std::optional<VAddr> old_page_addr{};
+    size_t range_so_far = 0;
+    bool result{false};
+    auto fail = [&]([[maybe_unused]] std::size_t page_index, [[maybe_unused]] std::size_t offset,
+                    std::size_t copy_amount) {
+        result = true;
+        return true;
+    };
+    auto short_check = [&](std::size_t page_index, std::size_t offset, std::size_t copy_amount) {
+        const VAddr cpu_addr_base =
+            (static_cast<VAddr>(page_table[page_index]) << cpu_page_bits) + offset;
+        if (old_page_addr && *old_page_addr != cpu_addr_base) {
+            result = true;
+            return true;
+        }
+        range_so_far += copy_amount;
+        old_page_addr = {cpu_addr_base + copy_amount};
+        return false;
+    };
+    auto big_check = [&](std::size_t page_index, std::size_t offset, std::size_t copy_amount) {
+        const VAddr cpu_addr_base =
+            (static_cast<VAddr>(big_page_table_cpu[page_index]) << cpu_page_bits) + offset;
+        if (old_page_addr && *old_page_addr != cpu_addr_base) {
+            return true;
+        }
+        range_so_far += copy_amount;
+        old_page_addr = {cpu_addr_base + copy_amount};
+        return false;
+    };
+    auto check_short_pages = [&](std::size_t page_index, std::size_t offset,
+                                 std::size_t copy_amount) {
+        GPUVAddr base = (page_index << big_page_bits) + offset;
+        MemoryOperation<false>(base, copy_amount, short_check, fail, fail);
+        return result;
+    };
+    MemoryOperation<true>(gpu_addr, size, big_check, fail, check_short_pages);
+    return range_so_far;
+}
+
+void MemoryManager::InvalidateRegion(GPUVAddr gpu_addr, size_t size) const {
+    auto do_nothing = [&]([[maybe_unused]] std::size_t page_index,
+                          [[maybe_unused]] std::size_t offset,
+                          [[maybe_unused]] std::size_t copy_amount) {};
+
+    auto mapped_normal = [&](std::size_t page_index, std::size_t offset, std::size_t copy_amount) {
+        const VAddr cpu_addr_base =
+            (static_cast<VAddr>(page_table[page_index]) << cpu_page_bits) + offset;
+        rasterizer->InvalidateRegion(cpu_addr_base, copy_amount);
+    };
+    auto mapped_big = [&](std::size_t page_index, std::size_t offset, std::size_t copy_amount) {
+        const VAddr cpu_addr_base =
+            (static_cast<VAddr>(big_page_table_cpu[page_index]) << cpu_page_bits) + offset;
+        rasterizer->InvalidateRegion(cpu_addr_base, copy_amount);
+    };
+    auto invalidate_short_pages = [&](std::size_t page_index, std::size_t offset,
+                                      std::size_t copy_amount) {
+        GPUVAddr base = (page_index << big_page_bits) + offset;
+        MemoryOperation<false>(base, copy_amount, mapped_normal, do_nothing, do_nothing);
+    };
+    MemoryOperation<true>(gpu_addr, size, mapped_big, do_nothing, invalidate_short_pages);
+}
+
 void MemoryManager::CopyBlock(GPUVAddr gpu_dest_addr, GPUVAddr gpu_src_addr, std::size_t size) {
     std::vector<u8> tmp_buffer(size);
     ReadBlock(gpu_src_addr, tmp_buffer.data(), size);

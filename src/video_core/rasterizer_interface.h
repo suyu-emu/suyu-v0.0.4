@@ -129,7 +129,7 @@ public:
     [[nodiscard]] virtual Tegra::Engines::AccelerateDMAInterface& AccessAccelerateDMA() = 0;
 
     virtual void AccelerateInlineToMemory(GPUVAddr address, size_t copy_size,
-                                          std::span<u8> memory) = 0;
+                                          std::span<const u8> memory) = 0;
 
     /// Attempt to use a faster method to display the framebuffer to screen
     [[nodiscard]] virtual bool AccelerateDisplay(const Tegra::FramebufferConfig& config,

@@ -126,7 +126,7 @@ public:
 
     void DownloadMemory(VAddr cpu_addr, u64 size);
 
-    bool InlineMemory(VAddr dest_address, size_t copy_size, std::span<u8> inlined_buffer);
+    bool InlineMemory(VAddr dest_address, size_t copy_size, std::span<const u8> inlined_buffer);
 
     void BindGraphicsUniformBuffer(size_t stage, u32 index, GPUVAddr gpu_addr, u32 size);
 
@@ -1685,7 +1685,7 @@ void BufferCache<P>::MappedUploadMemory(Buffer& buffer, u64 total_size_bytes,
 
 template <class P>
 bool BufferCache<P>::InlineMemory(VAddr dest_address, size_t copy_size,
-                                  std::span<u8> inlined_buffer) {
+                                  std::span<const u8> inlined_buffer) {
     const bool is_dirty = IsRegionRegistered(dest_address, copy_size);
     if (!is_dirty) {
         return false;

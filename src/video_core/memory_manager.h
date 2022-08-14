@@ -104,6 +104,12 @@ public:
 
     void FlushRegion(GPUVAddr gpu_addr, size_t size) const;
 
+    void InvalidateRegion(GPUVAddr gpu_addr, size_t size) const;
+
+    bool IsMemoryDirty(GPUVAddr gpu_addr, size_t size) const;
+
+    size_t MaxContinousRange(GPUVAddr gpu_addr, size_t size) const;
+
 private:
     template <bool is_big_pages, typename FuncMapped, typename FuncReserved, typename FuncUnmapped>
     inline void MemoryOperation(GPUVAddr gpu_src_addr, std::size_t size, FuncMapped&& func_mapped,
