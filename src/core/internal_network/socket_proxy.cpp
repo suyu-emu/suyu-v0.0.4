@@ -32,6 +32,7 @@ void ProxySocket::HandleProxyPacket(const ProxyPacket& packet) {
 
 template <typename T>
 Errno ProxySocket::SetSockOpt(SOCKET fd_, int option, T value) {
+    LOG_DEBUG(Network, "(STUBBED) called");
     return Errno::SUCCESS;
 }
 
@@ -95,8 +96,12 @@ std::pair<s32, Errno> ProxySocket::RecvFrom(int flags, std::vector<u8>& message,
     ASSERT(flags == 0);
     ASSERT(message.size() < static_cast<size_t>(std::numeric_limits<int>::max()));
 
+    // TODO (flTobi): Verify the timeout behavior and break when connection is lost
     const auto timestamp = std::chrono::steady_clock::now();
-
+    // When receive_timeout is set to zero, the socket is supposed to wait indefinitely until a
+    // packet arrives. In order to prevent lost packets from hanging the emulation thread, we set
+    // the timeout to 5s instead
+    const auto timeout = receive_timeout == 0 ? 5000 : receive_timeout;
     while (true) {
         {
             std::lock_guard guard(packets_mutex);
@@ -109,19 +114,13 @@ std::pair<s32, Errno> ProxySocket::RecvFrom(int flags, std::vector<u8>& message,
             return {-1, Errno::AGAIN};
         }
 
-        // TODO: break if socket connection is lost
-
         std::this_thread::yield();
-
-        if (receive_timeout == 0) {
-            continue;
-        }
 
         const auto time_diff = std::chrono::steady_clock::now() - timestamp;
         const auto time_diff_ms =
             std::chrono::duration_cast<std::chrono::milliseconds>(time_diff).count();
 
-        if (time_diff_ms > receive_timeout) {
+        if (time_diff_ms > timeout) {
             return {-1, Errno::TIMEDOUT};
         }
     }
