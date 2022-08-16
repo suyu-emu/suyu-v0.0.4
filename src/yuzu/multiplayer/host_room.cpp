@@ -12,7 +12,7 @@
 #include <QtConcurrent/QtConcurrentRun>
 #include "common/logging/log.h"
 #include "common/settings.h"
-#include "core/announce_multiplayer_session.h"
+#include "network/announce_multiplayer_session.h"
 #include "ui_host_room.h"
 #include "yuzu/game_list_p.h"
 #include "yuzu/main.h"

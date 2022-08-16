@@ -9,7 +9,7 @@
 #include <QSortFilterProxyModel>
 #include <QStandardItemModel>
 #include "common/announce_multiplayer_room.h"
-#include "core/announce_multiplayer_session.h"
+#include "network/announce_multiplayer_session.h"
 #include "network/network.h"
 #include "yuzu/multiplayer/validation.h"
 
