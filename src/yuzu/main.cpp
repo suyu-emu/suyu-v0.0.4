@@ -492,8 +492,6 @@ GMainWindow::~GMainWindow() {
         delete render_window;
     }
 
-    system->GetRoomNetwork().Shutdown();
-
 #ifdef __linux__
     ::close(sig_interrupt_fds[0]);
     ::close(sig_interrupt_fds[1]);
@@ -3831,6 +3829,7 @@ void GMainWindow::closeEvent(QCloseEvent* event) {
 
     render_window->close();
     multiplayer_state->Close();
+    system->GetRoomNetwork().Shutdown();
 
     QWidget::closeEvent(event);
 }
