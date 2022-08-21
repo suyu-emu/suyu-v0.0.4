@@ -369,8 +369,8 @@ bool MemoryManager::IsGranularRange(GPUVAddr gpu_addr, std::size_t size) const {
     if (!cpu_addr) {
         return false;
     }
-    const std::size_t page{(*cpu_addr & Core::Memory::PAGE_MASK) + size};
-    return page <= Core::Memory::PAGE_SIZE;
+    const std::size_t page{(*cpu_addr & Core::Memory::YUZU_PAGEMASK) + size};
+    return page <= Core::Memory::YUZU_PAGESIZE;
 }
 
 bool MemoryManager::IsContinousRange(GPUVAddr gpu_addr, std::size_t size) const {
