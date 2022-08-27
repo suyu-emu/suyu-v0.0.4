@@ -103,7 +103,7 @@ public:
 
     /**
      * Extracts a ProxyPacket from a received ENet packet.
-     * @param event The  ENet event that was received.
+     * @param event The ENet event that was received.
      */
     void HandleProxyPackets(const ENetEvent* event);
 
@@ -315,6 +315,7 @@ void RoomMember::RoomMemberImpl::HandleRoomInformationPacket(const ENetEvent* ev
         packet.Read(member.fake_ip);
         packet.Read(member.game_info.name);
         packet.Read(member.game_info.id);
+        packet.Read(member.game_info.version);
         packet.Read(member.username);
         packet.Read(member.display_name);
         packet.Read(member.avatar_url);
@@ -622,6 +623,7 @@ void RoomMember::SendGameInfo(const GameInfo& game_info) {
     packet.Write(static_cast<u8>(IdSetGameInfo));
     packet.Write(game_info.name);
     packet.Write(game_info.id);
+    packet.Write(game_info.version);
     room_member_impl->Send(std::move(packet));
 }
 

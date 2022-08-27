@@ -122,19 +122,22 @@ public:
     static const int UsernameRole = Qt::UserRole + 2;
     static const int AvatarUrlRole = Qt::UserRole + 3;
     static const int GameNameRole = Qt::UserRole + 4;
+    static const int GameVersionRole = Qt::UserRole + 5;
 
     PlayerListItem() = default;
     explicit PlayerListItem(const std::string& nickname, const std::string& username,
-                            const std::string& avatar_url, const std::string& game_name) {
+                            const std::string& avatar_url,
+                            const AnnounceMultiplayerRoom::GameInfo& game_info) {
         setEditable(false);
         setData(QString::fromStdString(nickname), NicknameRole);
         setData(QString::fromStdString(username), UsernameRole);
         setData(QString::fromStdString(avatar_url), AvatarUrlRole);
-        if (game_name.empty()) {
+        if (game_info.name.empty()) {
             setData(QObject::tr("Not playing a game"), GameNameRole);
         } else {
-            setData(QString::fromStdString(game_name), GameNameRole);
+            setData(QString::fromStdString(game_info.name), GameNameRole);
         }
+        setData(QString::fromStdString(game_info.version), GameVersionRole);
     }
 
     QVariant data(int role) const override {
@@ -149,7 +152,15 @@ public:
         } else {
             name = QStringLiteral("%1 (%2)").arg(nickname, username);
         }
-        return QStringLiteral("%1\n      %2").arg(name, data(GameNameRole).toString());
+        const QString version = data(GameVersionRole).toString();
+        QString version_string;
+        if (version.isEmpty()) {
+            version_string = QString{};
+        } else {
+            version_string = QStringLiteral("(%1)").arg(version);
+        }
+        return QStringLiteral("%1\n      %2 %3")
+            .arg(name, data(GameNameRole).toString(), version_string);
     }
 };
 
@@ -366,7 +377,7 @@ void ChatRoom::SetPlayerList(const Network::RoomMember::MemberList& member_list)
         if (member.nickname.empty())
             continue;
         QStandardItem* name_item = new PlayerListItem(member.nickname, member.username,
-                                                      member.avatar_url, member.game_info.name);
+                                                      member.avatar_url, member.game_info);
 
 #ifdef ENABLE_WEB_SERVICE
         if (!icon_cache.count(member.avatar_url) && !member.avatar_url.empty()) {
