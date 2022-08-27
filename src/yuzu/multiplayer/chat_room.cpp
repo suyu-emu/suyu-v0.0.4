@@ -178,6 +178,10 @@ ChatRoom::ChatRoom(QWidget* parent) : QWidget(parent), ui(std::make_unique<Ui::C
 
     ui->chat_history->document()->setMaximumBlockCount(max_chat_lines);
 
+    auto font = ui->chat_history->font();
+    font.setPointSizeF(10);
+    ui->chat_history->setFont(font);
+
     // register the network structs to use in slots and signals
     qRegisterMetaType<Network::ChatEntry>();
     qRegisterMetaType<Network::StatusMessageEntry>();
