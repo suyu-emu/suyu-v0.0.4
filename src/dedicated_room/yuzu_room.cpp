@@ -75,6 +75,17 @@ static constexpr char BanListMagic[] = "YuzuRoom-BanList-1";
 
 static constexpr char token_delimiter{':'};
 
+static void PadToken(std::string& token) {
+    const auto remainder = token.size() % 3;
+    if (remainder == 0) {
+        return;
+    }
+
+    for (size_t i = 0; i < (3 - remainder); i++) {
+        token.push_back('=');
+    }
+}
+
 static std::string UsernameFromDisplayToken(const std::string& display_token) {
     std::size_t outlen;
 
@@ -300,6 +311,7 @@ int main(int argc, char** argv) {
         if (username.empty()) {
             LOG_INFO(Network, "Hosting a public room");
             Settings::values.web_api_url = web_api_url;
+            PadToken(token);
             Settings::values.yuzu_username = UsernameFromDisplayToken(token);
             username = Settings::values.yuzu_username.GetValue();
             Settings::values.yuzu_token = TokenFromDisplayToken(token);
