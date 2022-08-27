@@ -159,7 +159,7 @@ void RoomMember::RoomMemberImpl::MemberLoop() {
     while (IsConnected()) {
         std::lock_guard lock(network_mutex);
         ENetEvent event;
-        if (enet_host_service(client, &event, 100) > 0) {
+        if (enet_host_service(client, &event, 5) > 0) {
             switch (event.type) {
             case ENET_EVENT_TYPE_RECEIVE:
                 switch (event.packet->data[0]) {
