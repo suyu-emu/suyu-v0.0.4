@@ -145,26 +145,19 @@ struct NetworkId {
 static_assert(sizeof(NetworkId) == 0x20, "NetworkId is an invalid size");
 
 struct Ssid {
-    u8 length;
-    std::array<char, SsidLengthMax + 1> raw;
+    u8 length{};
+    std::array<char, SsidLengthMax + 1> raw{};
 
-    Ssid() {
-        length = 0;
-        std::memset(raw.data(), 0, raw.size());
-    }
+    Ssid() = default;
 
-    Ssid(std::string data) {
+    explicit Ssid(std::string_view data) {
         length = static_cast<u8>(std::min(data.size(), SsidLengthMax));
-        std::memcpy(raw.data(), data.data(), length);
+        data.copy(raw.data(), length);
         raw[length] = 0;
     }
 
     std::string GetStringValue() const {
-        return std::string(raw.data(), length);
-    }
-
-    bool operator==(const Ssid& b) const {
-        return (length == b.length) && (std::memcmp(raw.data(), b.raw.data(), length) == 0);
+        return std::string(raw.data());
     }
 };
 static_assert(sizeof(Ssid) == 0x22, "Ssid is an invalid size");

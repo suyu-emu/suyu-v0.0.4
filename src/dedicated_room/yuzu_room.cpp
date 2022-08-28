@@ -76,12 +76,7 @@ static constexpr char BanListMagic[] = "YuzuRoom-BanList-1";
 static constexpr char token_delimiter{':'};
 
 static void PadToken(std::string& token) {
-    const auto remainder = token.size() % 3;
-    if (remainder == 0) {
-        return;
-    }
-
-    for (size_t i = 0; i < (3 - remainder); i++) {
+    while (token.size() % 4 != 0) {
         token.push_back('=');
     }
 }
