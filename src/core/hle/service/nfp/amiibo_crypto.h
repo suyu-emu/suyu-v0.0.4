@@ -55,9 +55,6 @@ struct DerivedKeys {
 };
 static_assert(sizeof(DerivedKeys) == 0x30, "DerivedKeys is an invalid size");
 
-/// Converts mii data from nintendo 3ds format to nintendo switch format
-Service::Mii::MiiInfo AmiiboRegisterInfoToMii(const AmiiboRegisterInfo& register_info);
-
 /// Validates that the amiibo file is not corrupted
 bool IsAmiiboValid(const EncryptedNTAG215File& ntag_file);
 

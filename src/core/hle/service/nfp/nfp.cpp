@@ -24,6 +24,7 @@ constexpr Result DeviceNotFound(ErrorModule::NFP, 64);
 constexpr Result WrongDeviceState(ErrorModule::NFP, 73);
 constexpr Result NfcDisabled(ErrorModule::NFP, 80);
 constexpr Result WriteAmiiboFailed(ErrorModule::NFP, 88);
+constexpr Result TagRemoved(ErrorModule::NFP, 97);
 constexpr Result ApplicationAreaIsNotInitialized(ErrorModule::NFP, 128);
 constexpr Result WrongApplicationAreaId(ErrorModule::NFP, 152);
 constexpr Result ApplicationAreaExist(ErrorModule::NFP, 168);
@@ -57,7 +58,7 @@ IUser::IUser(Module::Interface& nfp_interface_, Core::System& system_)
         {21, &IUser::GetNpadId, "GetNpadId"},
         {22, &IUser::GetApplicationAreaSize, "GetApplicationAreaSize"},
         {23, &IUser::AttachAvailabilityChangeEvent, "AttachAvailabilityChangeEvent"},
-        {24, nullptr, "RecreateApplicationArea"},
+        {24, &IUser::RecreateApplicationArea, "RecreateApplicationArea"},
     };
     RegisterHandlers(functions);
 
@@ -597,6 +598,34 @@ void IUser::AttachAvailabilityChangeEvent(Kernel::HLERequestContext& ctx) {
     rb.PushCopyObjects(availability_change_event->GetReadableEvent());
 }
 
+void IUser::RecreateApplicationArea(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto device_handle{rp.Pop<u64>()};
+    const auto access_id{rp.Pop<u32>()};
+    const auto data{ctx.ReadBuffer()};
+    LOG_WARNING(Service_NFP, "(STUBBED) called, device_handle={}, data_size={}, access_id={}",
+                device_handle, access_id, data.size());
+
+    if (state == State::NonInitialized) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ErrCodes::NfcDisabled);
+        return;
+    }
+
+    // TODO(german77): Loop through all interfaces
+    if (device_handle == nfp_interface.GetHandle()) {
+        const auto result = nfp_interface.RecreateApplicationArea(access_id, data);
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(result);
+        return;
+    }
+
+    LOG_ERROR(Service_NFP, "Handle not found, device_handle={}", device_handle);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ErrCodes::DeviceNotFound);
+}
+
 Module::Interface::Interface(std::shared_ptr<Module> module_, Core::System& system_,
                              const char* name)
     : ServiceFramework{system_, name}, module{std::move(module_)},
@@ -621,14 +650,14 @@ bool Module::Interface::LoadAmiiboFile(const std::string& filename) {
                                          Common::FS::FileType::BinaryFile};
 
     if (!amiibo_file.IsOpen()) {
-        LOG_ERROR(Core, "Amiibo is already on use");
+        LOG_ERROR(Service_NFP, "Amiibo is already on use");
         return false;
     }
 
     // Workaround for files with missing password data
     std::array<u8, sizeof(EncryptedNTAG215File)> buffer{};
     if (amiibo_file.Read(buffer) < tag_size_without_password) {
-        LOG_ERROR(Core, "Failed to read amiibo file");
+        LOG_ERROR(Service_NFP, "Failed to read amiibo file");
         return false;
     }
     memcpy(&encrypted_tag_data, buffer.data(), sizeof(EncryptedNTAG215File));
@@ -759,12 +788,12 @@ Result Module::Interface::Flush() {
     bool is_character_equal = tmp_encrypted_tag_data.user_memory.model_info.character_id ==
                               tag_data.model_info.character_id;
     if (!is_uuid_equal || !is_character_equal) {
-        LOG_ERROR(Core, "Not the same amiibo");
+        LOG_ERROR(Service_NFP, "Not the same amiibo");
         return ErrCodes::WriteAmiiboFailed;
     }
 
     if (!AmiiboCrypto::EncodeAmiibo(tag_data, encrypted_tag_data)) {
-        LOG_ERROR(Core, "Failed to encode data");
+        LOG_ERROR(Service_NFP, "Failed to encode data");
         return ErrCodes::WriteAmiiboFailed;
     }
 
@@ -830,13 +859,13 @@ Result Module::Interface::GetCommonInfo(CommonInfo& common_info) const {
         return ErrCodes::WrongDeviceState;
     }
 
-    if (is_data_decoded) {
+    if (is_data_decoded && tag_data.settings.settings.amiibo_initialized != 0) {
         const auto& settings = tag_data.settings;
         // TODO: Validate this data
         common_info = {
-            .last_write_year = static_cast<u16>(settings.write_date.year.Value()),
-            .last_write_month = static_cast<u8>(settings.write_date.month.Value()),
-            .last_write_day = static_cast<u8>(settings.write_date.day.Value()),
+            .last_write_year = settings.write_date.GetYear(),
+            .last_write_month = settings.write_date.GetMonth(),
+            .last_write_day = settings.write_date.GetDay(),
             .write_counter = settings.crc_counter,
             .version = 1,
             .application_area_size = sizeof(ApplicationArea),
@@ -877,10 +906,15 @@ Result Module::Interface::GetModelInfo(ModelInfo& model_info) const {
 Result Module::Interface::GetRegisterInfo(RegisterInfo& register_info) const {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
+        if (device_state == DeviceState::TagRemoved) {
+            return ErrCodes::TagRemoved;
+        }
         return ErrCodes::WrongDeviceState;
     }
 
-    if (is_data_decoded) {
+    Service::Mii::MiiManager manager;
+
+    if (is_data_decoded && tag_data.settings.settings.amiibo_initialized != 0) {
         const auto& settings = tag_data.settings;
 
         // Amiibo name is u16 while the register info is u8. Figure out how to handle this properly
@@ -891,10 +925,10 @@ Result Module::Interface::GetRegisterInfo(RegisterInfo& register_info) const {
 
         // TODO: Validate this data
         register_info = {
-            .mii_char_info = AmiiboCrypto::AmiiboRegisterInfoToMii(tag_data.owner_mii),
-            .first_write_year = static_cast<u16>(settings.init_date.year.Value()),
-            .first_write_month = static_cast<u8>(settings.init_date.month.Value()),
-            .first_write_day = static_cast<u8>(settings.init_date.day.Value()),
+            .mii_char_info = manager.ConvertV3ToCharInfo(tag_data.owner_mii),
+            .first_write_year = settings.init_date.GetYear(),
+            .first_write_month = settings.init_date.GetMonth(),
+            .first_write_day = settings.init_date.GetDay(),
             .amiibo_name = amiibo_name,
             .unknown = {},
         };
@@ -903,7 +937,6 @@ Result Module::Interface::GetRegisterInfo(RegisterInfo& register_info) const {
     }
 
     // Generate a generic answer
-    Service::Mii::MiiManager manager;
     register_info = {
         .mii_char_info = manager.BuildDefault(0),
         .first_write_year = 2022,
@@ -918,6 +951,9 @@ Result Module::Interface::GetRegisterInfo(RegisterInfo& register_info) const {
 Result Module::Interface::OpenApplicationArea(u32 access_id) {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
+        if (device_state == DeviceState::TagRemoved) {
+            return ErrCodes::TagRemoved;
+        }
         return ErrCodes::WrongDeviceState;
     }
 
@@ -944,6 +980,9 @@ Result Module::Interface::OpenApplicationArea(u32 access_id) {
 Result Module::Interface::GetApplicationArea(ApplicationArea& data) const {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
+        if (device_state == DeviceState::TagRemoved) {
+            return ErrCodes::TagRemoved;
+        }
         return ErrCodes::WrongDeviceState;
     }
 
@@ -960,6 +999,9 @@ Result Module::Interface::GetApplicationArea(ApplicationArea& data) const {
 Result Module::Interface::SetApplicationArea(const std::vector<u8>& data) {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
+        if (device_state == DeviceState::TagRemoved) {
+            return ErrCodes::TagRemoved;
+        }
         return ErrCodes::WrongDeviceState;
     }
 
@@ -980,12 +1022,35 @@ Result Module::Interface::SetApplicationArea(const std::vector<u8>& data) {
 Result Module::Interface::CreateApplicationArea(u32 access_id, const std::vector<u8>& data) {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
+        if (device_state == DeviceState::TagRemoved) {
+            return ErrCodes::TagRemoved;
+        }
         return ErrCodes::WrongDeviceState;
     }
 
     if (tag_data.settings.settings.appdata_initialized != 0) {
         LOG_ERROR(Service_NFP, "Application area already exist");
         return ErrCodes::ApplicationAreaExist;
+    }
+
+    if (data.size() != sizeof(ApplicationArea)) {
+        LOG_ERROR(Service_NFP, "Wrong data size {}", data.size());
+        return ResultUnknown;
+    }
+
+    std::memcpy(&tag_data.application_area, data.data(), sizeof(ApplicationArea));
+    tag_data.application_area_id = access_id;
+
+    return ResultSuccess;
+}
+
+Result Module::Interface::RecreateApplicationArea(u32 access_id, const std::vector<u8>& data) {
+    if (device_state != DeviceState::TagMounted) {
+        LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
+        if (device_state == DeviceState::TagRemoved) {
+            return ErrCodes::TagRemoved;
+        }
+        return ErrCodes::WrongDeviceState;
     }
 
     if (data.size() != sizeof(ApplicationArea)) {

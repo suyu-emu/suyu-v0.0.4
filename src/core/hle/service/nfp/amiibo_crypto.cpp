@@ -16,76 +16,6 @@
 
 namespace Service::NFP::AmiiboCrypto {
 
-Service::Mii::MiiInfo AmiiboRegisterInfoToMii(const AmiiboRegisterInfo& mii_info) {
-
-    Service::Mii::MiiManager manager;
-    auto mii = manager.BuildDefault(0);
-
-    // TODO: We are ignoring a bunch of data from the amiibo mii
-
-    mii.gender = static_cast<u8>(mii_info.mii_information.gender);
-    mii.favorite_color = static_cast<u8>(mii_info.mii_information.favorite_color);
-    memcpy(mii.name.data(), mii_info.mii_name.data(), 10);
-    mii.height = mii_info.height;
-    mii.build = mii_info.build;
-
-    mii.faceline_type = mii_info.appearance_bits1.face_shape;
-    mii.faceline_color = mii_info.appearance_bits1.skin_color;
-    mii.faceline_wrinkle = mii_info.appearance_bits2.wrinkles;
-    mii.faceline_make = mii_info.appearance_bits2.makeup;
-
-    mii.hair_type = mii_info.hair_style;
-    mii.hair_color = mii_info.appearance_bits3.hair_color;
-    mii.hair_flip = mii_info.appearance_bits3.flip_hair;
-
-    mii.eye_type = static_cast<u8>(mii_info.appearance_bits4.eye_type);
-    mii.eye_color = static_cast<u8>(mii_info.appearance_bits4.eye_color);
-    mii.eye_scale = static_cast<u8>(mii_info.appearance_bits4.eye_scale);
-    mii.eye_aspect = static_cast<u8>(mii_info.appearance_bits4.eye_vertical_stretch);
-    mii.eye_rotate = static_cast<u8>(mii_info.appearance_bits4.eye_rotation);
-    mii.eye_x = static_cast<u8>(mii_info.appearance_bits4.eye_spacing);
-    mii.eye_y = static_cast<u8>(mii_info.appearance_bits4.eye_y_position);
-
-    mii.eyebrow_type = static_cast<u8>(mii_info.appearance_bits5.eyebrow_style);
-    mii.eyebrow_color = static_cast<u8>(mii_info.appearance_bits5.eyebrow_color);
-    mii.eyebrow_scale = static_cast<u8>(mii_info.appearance_bits5.eyebrow_scale);
-    mii.eyebrow_aspect = static_cast<u8>(mii_info.appearance_bits5.eyebrow_yscale);
-    mii.eyebrow_rotate = static_cast<u8>(mii_info.appearance_bits5.eyebrow_rotation);
-    mii.eyebrow_x = static_cast<u8>(mii_info.appearance_bits5.eyebrow_spacing);
-    mii.eyebrow_y = static_cast<u8>(mii_info.appearance_bits5.eyebrow_y_position);
-
-    mii.nose_type = static_cast<u8>(mii_info.appearance_bits6.nose_type);
-    mii.nose_scale = static_cast<u8>(mii_info.appearance_bits6.nose_scale);
-    mii.nose_y = static_cast<u8>(mii_info.appearance_bits6.nose_y_position);
-
-    mii.mouth_type = static_cast<u8>(mii_info.appearance_bits7.mouth_type);
-    mii.mouth_color = static_cast<u8>(mii_info.appearance_bits7.mouth_color);
-    mii.mouth_scale = static_cast<u8>(mii_info.appearance_bits7.mouth_scale);
-    mii.mouth_aspect = static_cast<u8>(mii_info.appearance_bits7.mouth_horizontal_stretch);
-    mii.mouth_y = static_cast<u8>(mii_info.appearance_bits8.mouth_y_position);
-
-    mii.mustache_type = static_cast<u8>(mii_info.appearance_bits8.mustache_type);
-    mii.mustache_scale = static_cast<u8>(mii_info.appearance_bits9.mustache_scale);
-    mii.mustache_y = static_cast<u8>(mii_info.appearance_bits9.mustache_y_position);
-
-    mii.beard_type = static_cast<u8>(mii_info.appearance_bits9.bear_type);
-    mii.beard_color = static_cast<u8>(mii_info.appearance_bits9.facial_hair_color);
-
-    mii.glasses_type = static_cast<u8>(mii_info.appearance_bits10.glasses_type);
-    mii.glasses_color = static_cast<u8>(mii_info.appearance_bits10.glasses_color);
-    mii.glasses_scale = static_cast<u8>(mii_info.appearance_bits10.glasses_scale);
-    mii.glasses_y = static_cast<u8>(mii_info.appearance_bits10.glasses_y_position);
-
-    mii.mole_type = static_cast<u8>(mii_info.appearance_bits11.mole_enabled);
-    mii.mole_scale = static_cast<u8>(mii_info.appearance_bits11.mole_scale);
-    mii.mole_x = static_cast<u8>(mii_info.appearance_bits11.mole_x_position);
-    mii.mole_y = static_cast<u8>(mii_info.appearance_bits11.mole_y_position);
-
-    // TODO: Validate mii data
-
-    return mii;
-}
-
 bool IsAmiiboValid(const EncryptedNTAG215File& ntag_file) {
     const auto& amiibo_data = ntag_file.user_memory;
     LOG_DEBUG(Service_NFP, "uuid_lock=0x{0:x}", ntag_file.static_lock);
@@ -126,9 +56,8 @@ bool IsAmiiboValid(const EncryptedNTAG215File& ntag_file) {
     if (amiibo_data.model_info.constant_value != 0x02) {
         return false;
     }
-    if ((ntag_file.dynamic_lock & 0xFFFFFF) != 0x0F0001) {
-        return false;
-    }
+    // dynamic_lock value apparently is not constant
+    // ntag_file.dynamic_lock == 0x0F0001
     if (ntag_file.CFG0 != 0x04000000U) {
         return false;
     }
@@ -348,16 +277,16 @@ bool LoadKeys(InternalKey& locked_secret, InternalKey& unfixed_info) {
                                        Common::FS::FileType::BinaryFile};
 
     if (!keys_file.IsOpen()) {
-        LOG_ERROR(Core, "No keys detected");
+        LOG_ERROR(Service_NFP, "No keys detected");
         return false;
     }
 
     if (keys_file.Read(unfixed_info) != 1) {
-        LOG_ERROR(Core, "Failed to read unfixed_info");
+        LOG_ERROR(Service_NFP, "Failed to read unfixed_info");
         return false;
     }
     if (keys_file.Read(locked_secret) != 1) {
-        LOG_ERROR(Core, "Failed to read locked-secret");
+        LOG_ERROR(Service_NFP, "Failed to read locked-secret");
         return false;
     }
 

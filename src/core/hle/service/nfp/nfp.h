@@ -55,7 +55,7 @@ struct ModelInfo {
 static_assert(sizeof(ModelInfo) == 0x40, "ModelInfo is an invalid size");
 
 struct RegisterInfo {
-    Service::Mii::MiiInfo mii_char_info;
+    Service::Mii::CharInfo mii_char_info;
     u16 first_write_year;
     u8 first_write_month;
     u8 first_write_day;
@@ -96,6 +96,7 @@ public:
         Result GetApplicationArea(ApplicationArea& data) const;
         Result SetApplicationArea(const std::vector<u8>& data);
         Result CreateApplicationArea(u32 access_id, const std::vector<u8>& data);
+        Result RecreateApplicationArea(u32 access_id, const std::vector<u8>& data);
 
         u64 GetHandle() const;
         DeviceState GetCurrentState() const;
@@ -152,6 +153,7 @@ private:
     void GetNpadId(Kernel::HLERequestContext& ctx);
     void GetApplicationAreaSize(Kernel::HLERequestContext& ctx);
     void AttachAvailabilityChangeEvent(Kernel::HLERequestContext& ctx);
+    void RecreateApplicationArea(Kernel::HLERequestContext& ctx);
 
     KernelHelpers::ServiceContext service_context;
 
