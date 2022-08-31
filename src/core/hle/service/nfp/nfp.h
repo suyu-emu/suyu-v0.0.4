@@ -22,6 +22,8 @@ enum class NpadIdType : u32;
 } // namespace Core::HID
 
 namespace Service::NFP {
+using AmiiboName = std::array<char, (amiibo_name_length * 4) + 1>;
+
 struct TagInfo {
     TagUuid uuid;
     u8 uuid_length;
@@ -59,9 +61,9 @@ struct RegisterInfo {
     u16 first_write_year;
     u8 first_write_month;
     u8 first_write_day;
-    std::array<u8, 0xA + 1> amiibo_name;
-    u8 unknown;
-    INSERT_PADDING_BYTES(0x98);
+    AmiiboName amiibo_name;
+    u8 font_region;
+    INSERT_PADDING_BYTES(0x7A);
 };
 static_assert(sizeof(RegisterInfo) == 0x100, "RegisterInfo is an invalid size");
 
@@ -109,6 +111,8 @@ public:
         std::shared_ptr<Module> module;
 
     private:
+        AmiiboName GetAmiiboName(const AmiiboSettings& settings) const;
+
         const Core::HID::NpadIdType npad_id;
 
         bool is_data_decoded{};

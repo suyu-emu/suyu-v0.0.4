@@ -8,6 +8,8 @@
 #include "core/hle/service/mii/types.h"
 
 namespace Service::NFP {
+static constexpr std::size_t amiibo_name_length = 0xA;
+
 enum class ServiceType : u32 {
     User,
     Debug,
@@ -76,16 +78,16 @@ using HashData = std::array<u8, 0x20>;
 using ApplicationArea = std::array<u8, 0xD8>;
 
 struct AmiiboDate {
-    u16_be raw_date{};
+    u16 raw_date{};
 
     u16 GetYear() const {
-        return ((raw_date & 0xFE00) >> 9) + 2000;
+        return static_cast<u16>(((raw_date & 0xFE00) >> 9) + 2000);
     }
     u8 GetMonth() const {
-        return ((raw_date & 0x01E0) >> 5) - 1;
+        return static_cast<u8>(((raw_date & 0x01E0) >> 5) - 1);
     }
     u8 GetDay() const {
-        return raw_date & 0x001F;
+        return static_cast<u8>(raw_date & 0x001F);
     }
 };
 static_assert(sizeof(AmiiboDate) == 2, "AmiiboDate is an invalid size");
@@ -107,7 +109,7 @@ struct AmiiboSettings {
     AmiiboDate init_date;
     AmiiboDate write_date;
     u32_be crc;
-    std::array<u16_be, 0xA> amiibo_name; // UTF-16 text
+    std::array<u16_be, amiibo_name_length> amiibo_name; // UTF-16 text
 };
 static_assert(sizeof(AmiiboSettings) == 0x20, "AmiiboSettings is an invalid size");
 

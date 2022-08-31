@@ -443,8 +443,9 @@ CharInfo MiiManager::ConvertV3ToCharInfo(Ver3StoreData mii_v3) const {
     mii.height = mii_v3.height;
     mii.build = mii_v3.build;
 
+    memset(mii.name.data(), 0, sizeof(mii.name));
+    memcpy(mii.name.data(), mii_v3.mii_name.data(), sizeof(mii_v3.mii_name));
     mii.font_region = mii_v3.region_information.character_set;
-    memcpy(mii.name.data(), mii_v3.mii_name.data(), 10);
 
     mii.faceline_type = mii_v3.appearance_bits1.face_shape;
     mii.faceline_color = mii_v3.appearance_bits1.skin_color;

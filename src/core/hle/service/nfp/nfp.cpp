@@ -7,6 +7,7 @@
 #include "common/fs/file.h"
 #include "common/fs/path_util.h"
 #include "common/logging/log.h"
+#include "common/string_util.h"
 #include "core/core.h"
 #include "core/hid/emulated_controller.h"
 #include "core/hid/hid_core.h"
@@ -917,20 +918,14 @@ Result Module::Interface::GetRegisterInfo(RegisterInfo& register_info) const {
     if (is_data_decoded && tag_data.settings.settings.amiibo_initialized != 0) {
         const auto& settings = tag_data.settings;
 
-        // Amiibo name is u16 while the register info is u8. Figure out how to handle this properly
-        std::array<u8, 11> amiibo_name{};
-        for (std::size_t i = 0; i < sizeof(amiibo_name) - 1; ++i) {
-            amiibo_name[i] = static_cast<u8>(settings.amiibo_name[i]);
-        }
-
         // TODO: Validate this data
         register_info = {
             .mii_char_info = manager.ConvertV3ToCharInfo(tag_data.owner_mii),
             .first_write_year = settings.init_date.GetYear(),
             .first_write_month = settings.init_date.GetMonth(),
             .first_write_day = settings.init_date.GetDay(),
-            .amiibo_name = amiibo_name,
-            .unknown = {},
+            .amiibo_name = GetAmiiboName(settings),
+            .font_region = {},
         };
 
         return ResultSuccess;
@@ -943,7 +938,7 @@ Result Module::Interface::GetRegisterInfo(RegisterInfo& register_info) const {
         .first_write_month = 2,
         .first_write_day = 7,
         .amiibo_name = {'Y', 'u', 'z', 'u', 'A', 'm', 'i', 'i', 'b', 'o', 0},
-        .unknown = {},
+        .font_region = {},
     };
     return ResultSuccess;
 }
@@ -1075,6 +1070,22 @@ DeviceState Module::Interface::GetCurrentState() const {
 
 Core::HID::NpadIdType Module::Interface::GetNpadId() const {
     return npad_id;
+}
+
+AmiiboName Module::Interface::GetAmiiboName(const AmiiboSettings& settings) const {
+    std::array<char16_t, amiibo_name_length> settings_amiibo_name{};
+    AmiiboName amiibo_name{};
+
+    // Convert from big endian to little endian
+    for (std::size_t i = 0; i < amiibo_name_length; i++) {
+        settings_amiibo_name[i] = static_cast<u16>(settings.amiibo_name[i]);
+    }
+
+    // Convert from utf16 to utf8
+    const auto amiibo_name_utf8 = Common::UTF16ToUTF8(settings_amiibo_name.data());
+    memcpy(amiibo_name.data(), amiibo_name_utf8.data(), amiibo_name_utf8.size());
+
+    return amiibo_name;
 }
 
 void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system) {
