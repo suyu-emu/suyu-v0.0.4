@@ -63,6 +63,7 @@ OPCODE(SampleId,                                            U32,                
 OPCODE(IsHelperInvocation,                                  U1,                                                                                             )
 OPCODE(YDirection,                                          F32,                                                                                            )
 OPCODE(ResolutionDownFactor,                                F32,                                                                                            )
+OPCODE(RenderArea,                                          F32x4,                                                                                          )
 
 // Undefined
 OPCODE(UndefU1,                                             U1,                                                                                             )

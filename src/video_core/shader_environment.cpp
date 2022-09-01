@@ -191,6 +191,8 @@ void GenericEnvironment::Serialize(std::ofstream& file) const {
         .write(reinterpret_cast<const char*>(&start_address), sizeof(start_address))
         .write(reinterpret_cast<const char*>(&cached_lowest), sizeof(cached_lowest))
         .write(reinterpret_cast<const char*>(&cached_highest), sizeof(cached_highest))
+        .write(reinterpret_cast<const char*>(&viewport_transform_state),
+               sizeof(viewport_transform_state))
         .write(reinterpret_cast<const char*>(&stage), sizeof(stage))
         .write(reinterpret_cast<const char*>(code.data()), code_size);
     for (const auto& [key, type] : texture_types) {
@@ -311,6 +313,12 @@ Shader::TextureType GraphicsEnvironment::ReadTextureType(u32 handle) {
     return ReadTextureTypeImpl(regs.tic.Address(), regs.tic.limit, via_header_index, handle);
 }
 
+u32 GraphicsEnvironment::ReadViewportTransformState() {
+    const auto& regs{maxwell3d->regs};
+    viewport_transform_state = regs.viewport_transform_enabled;
+    return viewport_transform_state;
+}
+
 ComputeEnvironment::ComputeEnvironment(Tegra::Engines::KeplerCompute& kepler_compute_,
                                        Tegra::MemoryManager& gpu_memory_, GPUVAddr program_base_,
                                        u32 start_address_)
@@ -342,6 +350,10 @@ Shader::TextureType ComputeEnvironment::ReadTextureType(u32 handle) {
     return ReadTextureTypeImpl(regs.tic.Address(), regs.tic.limit, qmd.linked_tsc != 0, handle);
 }
 
+u32 ComputeEnvironment::ReadViewportTransformState() {
+    return viewport_transform_state;
+}
+
 void FileEnvironment::Deserialize(std::ifstream& file) {
     u64 code_size{};
     u64 num_texture_types{};
@@ -354,6 +366,7 @@ void FileEnvironment::Deserialize(std::ifstream& file) {
         .read(reinterpret_cast<char*>(&start_address), sizeof(start_address))
         .read(reinterpret_cast<char*>(&read_lowest), sizeof(read_lowest))
         .read(reinterpret_cast<char*>(&read_highest), sizeof(read_highest))
+        .read(reinterpret_cast<char*>(&viewport_transform_state), sizeof(viewport_transform_state))
         .read(reinterpret_cast<char*>(&stage), sizeof(stage));
     code = std::make_unique<u64[]>(Common::DivCeil(code_size, sizeof(u64)));
     file.read(reinterpret_cast<char*>(code.get()), code_size);
@@ -409,6 +422,10 @@ Shader::TextureType FileEnvironment::ReadTextureType(u32 handle) {
         throw Shader::LogicError("Uncached read texture type");
     }
     return it->second;
+}
+
+u32 FileEnvironment::ReadViewportTransformState() {
+    return viewport_transform_state;
 }
 
 u32 FileEnvironment::LocalMemorySize() const {

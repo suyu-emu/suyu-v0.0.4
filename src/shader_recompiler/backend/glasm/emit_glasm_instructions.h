@@ -73,6 +73,7 @@ void EmitSampleId(EmitContext& ctx, IR::Inst& inst);
 void EmitIsHelperInvocation(EmitContext& ctx, IR::Inst& inst);
 void EmitYDirection(EmitContext& ctx, IR::Inst& inst);
 void EmitResolutionDownFactor(EmitContext& ctx, IR::Inst& inst);
+void EmitRenderArea(EmitContext& ctx, IR::Inst& inst);
 void EmitLoadLocal(EmitContext& ctx, IR::Inst& inst, ScalarU32 word_offset);
 void EmitWriteLocal(EmitContext& ctx, ScalarU32 word_offset, ScalarU32 value);
 void EmitUndefU1(EmitContext& ctx, IR::Inst& inst);
