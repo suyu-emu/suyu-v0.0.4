@@ -1069,7 +1069,9 @@ DeviceState Module::Interface::GetCurrentState() const {
 }
 
 Core::HID::NpadIdType Module::Interface::GetNpadId() const {
-    return npad_id;
+    // Return first connected npad id as a workaround for lack of a single nfc interface per
+    // controller
+    return system.HIDCore().GetFirstNpadId();
 }
 
 AmiiboName Module::Interface::GetAmiiboName(const AmiiboSettings& settings) const {
