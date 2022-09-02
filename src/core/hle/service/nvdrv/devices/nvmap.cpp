@@ -198,7 +198,7 @@ NvResult nvmap::IocParam(const std::vector<u8>& input, std::vector<u8>& output) 
     IocParamParams params;
     std::memcpy(&params, input.data(), sizeof(params));
 
-    LOG_WARNING(Service_NVDRV, "(STUBBED) called type={}", params.param);
+    LOG_DEBUG(Service_NVDRV, "(STUBBED) called type={}", params.param);
 
     auto object = GetObject(params.handle);
     if (!object) {
@@ -243,7 +243,7 @@ NvResult nvmap::IocFree(const std::vector<u8>& input, std::vector<u8>& output) {
     IocFreeParams params;
     std::memcpy(&params, input.data(), sizeof(params));
 
-    LOG_WARNING(Service_NVDRV, "(STUBBED) called");
+    LOG_DEBUG(Service_NVDRV, "(STUBBED) called");
 
     auto itr = handles.find(params.handle);
     if (itr == handles.end()) {
