@@ -235,6 +235,7 @@ static void LogRuntimes() {
         LOG_INFO(Frontend, "Unable to inspect {}", runtime_dll_name);
     }
 #endif
+    LOG_INFO(Frontend, "Qt Compile: {} Runtime: {}", QT_VERSION_STR, qVersion());
 }
 
 static QString PrettyProductName() {
