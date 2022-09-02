@@ -17,8 +17,9 @@ class HostRoom;
 }
 
 namespace Core {
+class System;
 class AnnounceMultiplayerSession;
-}
+} // namespace Core
 
 class ConnectionError;
 class ComboBoxProxyModel;
@@ -35,7 +36,7 @@ class HostRoomWindow : public QDialog {
 public:
     explicit HostRoomWindow(QWidget* parent, QStandardItemModel* list,
                             std::shared_ptr<Core::AnnounceMultiplayerSession> session,
-                            Network::RoomNetwork& room_network_);
+                            Core::System& system_);
     ~HostRoomWindow();
 
     /**
@@ -54,6 +55,7 @@ private:
     QStandardItemModel* game_list;
     ComboBoxProxyModel* proxy;
     Validation validation;
+    Core::System& system;
     Network::RoomNetwork& room_network;
 };
 
