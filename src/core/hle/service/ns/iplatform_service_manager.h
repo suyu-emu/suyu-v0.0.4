@@ -36,10 +36,10 @@ constexpr std::array<std::pair<FontArchives, const char*>, 7> SHARED_FONTS{
 void DecryptSharedFontToTTF(const std::vector<u32>& input, std::vector<u8>& output);
 void EncryptSharedFont(const std::vector<u32>& input, std::vector<u8>& output, std::size_t& offset);
 
-class PL_U final : public ServiceFramework<PL_U> {
+class IPlatformServiceManager final : public ServiceFramework<IPlatformServiceManager> {
 public:
-    explicit PL_U(Core::System& system_);
-    ~PL_U() override;
+    explicit IPlatformServiceManager(Core::System& system_, const char* service_name_);
+    ~IPlatformServiceManager() override;
 
 private:
     void RequestLoad(Kernel::HLERequestContext& ctx);

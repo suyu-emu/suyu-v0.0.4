@@ -20,7 +20,7 @@
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/physical_memory.h"
 #include "core/hle/service/filesystem/filesystem.h"
-#include "core/hle/service/ns/pl_u.h"
+#include "core/hle/service/ns/iplatform_service_manager.h"
 
 namespace Service::NS {
 
@@ -99,7 +99,7 @@ static u32 GetU32Swapped(const u8* data) {
     return Common::swap32(value);
 }
 
-struct PL_U::Impl {
+struct IPlatformServiceManager::Impl {
     const FontRegion& GetSharedFontRegion(std::size_t index) const {
         if (index >= shared_font_regions.size() || shared_font_regions.empty()) {
             // No font fallback
@@ -134,16 +134,16 @@ struct PL_U::Impl {
     std::vector<FontRegion> shared_font_regions;
 };
 
-PL_U::PL_U(Core::System& system_)
-    : ServiceFramework{system_, "pl:u"}, impl{std::make_unique<Impl>()} {
+IPlatformServiceManager::IPlatformServiceManager(Core::System& system_, const char* service_name_)
+    : ServiceFramework{system_, service_name_}, impl{std::make_unique<Impl>()} {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {0, &PL_U::RequestLoad, "RequestLoad"},
-        {1, &PL_U::GetLoadState, "GetLoadState"},
-        {2, &PL_U::GetSize, "GetSize"},
-        {3, &PL_U::GetSharedMemoryAddressOffset, "GetSharedMemoryAddressOffset"},
-        {4, &PL_U::GetSharedMemoryNativeHandle, "GetSharedMemoryNativeHandle"},
-        {5, &PL_U::GetSharedFontInOrderOfPriority, "GetSharedFontInOrderOfPriority"},
+        {0, &IPlatformServiceManager::RequestLoad, "RequestLoad"},
+        {1, &IPlatformServiceManager::GetLoadState, "GetLoadState"},
+        {2, &IPlatformServiceManager::GetSize, "GetSize"},
+        {3, &IPlatformServiceManager::GetSharedMemoryAddressOffset, "GetSharedMemoryAddressOffset"},
+        {4, &IPlatformServiceManager::GetSharedMemoryNativeHandle, "GetSharedMemoryNativeHandle"},
+        {5, &IPlatformServiceManager::GetSharedFontInOrderOfPriority, "GetSharedFontInOrderOfPriority"},
         {6, nullptr, "GetSharedFontInOrderOfPriorityForSystem"},
         {100, nullptr, "RequestApplicationFunctionAuthorization"},
         {101, nullptr, "RequestApplicationFunctionAuthorizationByProcessId"},
@@ -206,9 +206,9 @@ PL_U::PL_U(Core::System& system_)
     }
 }
 
-PL_U::~PL_U() = default;
+IPlatformServiceManager::~IPlatformServiceManager() = default;
 
-void PL_U::RequestLoad(Kernel::HLERequestContext& ctx) {
+void IPlatformServiceManager::RequestLoad(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const u32 shared_font_type{rp.Pop<u32>()};
     // Games don't call this so all fonts should be loaded
@@ -218,7 +218,7 @@ void PL_U::RequestLoad(Kernel::HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
-void PL_U::GetLoadState(Kernel::HLERequestContext& ctx) {
+void IPlatformServiceManager::GetLoadState(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const u32 font_id{rp.Pop<u32>()};
     LOG_DEBUG(Service_NS, "called, font_id={}", font_id);
@@ -228,7 +228,7 @@ void PL_U::GetLoadState(Kernel::HLERequestContext& ctx) {
     rb.Push<u32>(static_cast<u32>(LoadState::Done));
 }
 
-void PL_U::GetSize(Kernel::HLERequestContext& ctx) {
+void IPlatformServiceManager::GetSize(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const u32 font_id{rp.Pop<u32>()};
     LOG_DEBUG(Service_NS, "called, font_id={}", font_id);
@@ -238,7 +238,7 @@ void PL_U::GetSize(Kernel::HLERequestContext& ctx) {
     rb.Push<u32>(impl->GetSharedFontRegion(font_id).size);
 }
 
-void PL_U::GetSharedMemoryAddressOffset(Kernel::HLERequestContext& ctx) {
+void IPlatformServiceManager::GetSharedMemoryAddressOffset(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const u32 font_id{rp.Pop<u32>()};
     LOG_DEBUG(Service_NS, "called, font_id={}", font_id);
@@ -248,7 +248,7 @@ void PL_U::GetSharedMemoryAddressOffset(Kernel::HLERequestContext& ctx) {
     rb.Push<u32>(impl->GetSharedFontRegion(font_id).offset);
 }
 
-void PL_U::GetSharedMemoryNativeHandle(Kernel::HLERequestContext& ctx) {
+void IPlatformServiceManager::GetSharedMemoryNativeHandle(Kernel::HLERequestContext& ctx) {
     // Map backing memory for the font data
     LOG_DEBUG(Service_NS, "called");
 
@@ -261,7 +261,7 @@ void PL_U::GetSharedMemoryNativeHandle(Kernel::HLERequestContext& ctx) {
     rb.PushCopyObjects(&kernel.GetFontSharedMem());
 }
 
-void PL_U::GetSharedFontInOrderOfPriority(Kernel::HLERequestContext& ctx) {
+void IPlatformServiceManager::GetSharedFontInOrderOfPriority(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const u64 language_code{rp.Pop<u64>()}; // TODO(ogniK): Find out what this is used for
     LOG_DEBUG(Service_NS, "called, language_code={:X}", language_code);
