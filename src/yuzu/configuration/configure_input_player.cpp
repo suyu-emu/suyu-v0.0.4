@@ -382,6 +382,12 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                             button_map[button_id]->setText(ButtonToText(param));
                             emulated_controller->SetButtonParam(button_id, param);
                         });
+                        context_menu.addAction(tr("Toggle axis"), [&] {
+                            const bool toggle_value = !param.Get("toggle", false);
+                            param.Set("toggle", toggle_value);
+                            button_map[button_id]->setText(ButtonToText(param));
+                            emulated_controller->SetButtonParam(button_id, param);
+                        });
                         context_menu.addAction(tr("Set threshold"), [&] {
                             const int button_threshold =
                                 static_cast<int>(param.Get("threshold", 0.5f) * 100.0f);
