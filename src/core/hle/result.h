@@ -135,6 +135,14 @@ union Result {
     [[nodiscard]] constexpr bool IsFailure() const {
         return !IsSuccess();
     }
+
+    [[nodiscard]] constexpr u32 GetInnerValue() const {
+        return static_cast<u32>(module.Value()) | (description << module.bits);
+    }
+
+    [[nodiscard]] constexpr bool Includes(Result result) const {
+        return GetInnerValue() == result.GetInnerValue();
+    }
 };
 static_assert(std::is_trivial_v<Result>);
 
