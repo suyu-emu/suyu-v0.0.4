@@ -45,24 +45,6 @@ enum class MemoryRegion : u16 {
     BASE = 3,
 };
 
-/**
- * Indicates the status of a Process instance.
- *
- * @note These match the values as used by kernel,
- *       so new entries should only be added if RE
- *       shows that a new value has been introduced.
- */
-enum class ProcessStatus {
-    Created,
-    CreatedWithDebuggerAttached,
-    Running,
-    WaitingForDebuggerToAttach,
-    DebuggerAttached,
-    Exiting,
-    Exited,
-    DebugBreak,
-};
-
 enum class ProcessActivity : u32 {
     Runnable,
     Paused,
@@ -88,6 +70,17 @@ class KProcess final : public KAutoObjectWithSlabHeapAndContainer<KProcess, KWor
 public:
     explicit KProcess(KernelCore& kernel_);
     ~KProcess() override;
+
+    enum class State {
+        Created = Svc::ProcessState_Created,
+        CreatedAttached = Svc::ProcessState_CreatedAttached,
+        Running = Svc::ProcessState_Running,
+        Crashed = Svc::ProcessState_Crashed,
+        RunningAttached = Svc::ProcessState_RunningAttached,
+        Terminating = Svc::ProcessState_Terminating,
+        Terminated = Svc::ProcessState_Terminated,
+        DebugBreak = Svc::ProcessState_DebugBreak,
+    };
 
     enum : u64 {
         /// Lowest allowed process ID for a kernel initial process.
@@ -163,8 +156,8 @@ public:
     }
 
     /// Gets the current status of the process
-    ProcessStatus GetStatus() const {
-        return status;
+    State GetState() const {
+        return state;
     }
 
     /// Gets the unique ID that identifies this particular process.
@@ -415,10 +408,7 @@ private:
         pinned_threads[core_id] = nullptr;
     }
 
-    /// Changes the process status. If the status is different
-    /// from the current process status, then this will trigger
-    /// a process signal.
-    void ChangeStatus(ProcessStatus new_status);
+    void ChangeState(State new_state);
 
     /// Allocates the main thread stack for the process, given the stack size in bytes.
     Result AllocateMainThreadStack(std::size_t stack_size);
@@ -427,7 +417,7 @@ private:
     std::unique_ptr<KPageTable> page_table;
 
     /// Current status of the process
-    ProcessStatus status{};
+    State state{};
 
     /// The ID of this process
     u64 process_id = 0;

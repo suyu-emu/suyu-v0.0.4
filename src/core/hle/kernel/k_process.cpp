@@ -72,7 +72,7 @@ Result KProcess::Initialize(KProcess* process, Core::System& system, std::string
 
     process->name = std::move(process_name);
     process->resource_limit = res_limit;
-    process->status = ProcessStatus::Created;
+    process->state = State::Created;
     process->program_id = 0;
     process->process_id = type == ProcessType::KernelInternal ? kernel.CreateNewKernelProcessID()
                                                               : kernel.CreateNewUserProcessID();
@@ -289,7 +289,7 @@ Result KProcess::Reset() {
     KScopedSchedulerLock sl{kernel};
 
     // Validate that we're in a state that we can reset.
-    R_UNLESS(status != ProcessStatus::Exited, ResultInvalidState);
+    R_UNLESS(state != State::Terminated, ResultInvalidState);
     R_UNLESS(is_signaled, ResultInvalidState);
 
     // Clear signaled.
@@ -304,8 +304,8 @@ Result KProcess::SetActivity(ProcessActivity activity) {
     KScopedSchedulerLock sl{kernel};
 
     // Validate our state.
-    R_UNLESS(status != ProcessStatus::Exiting, ResultInvalidState);
-    R_UNLESS(status != ProcessStatus::Exited, ResultInvalidState);
+    R_UNLESS(state != State::Terminating, ResultInvalidState);
+    R_UNLESS(state != State::Terminated, ResultInvalidState);
 
     // Either pause or resume.
     if (activity == ProcessActivity::Paused) {
@@ -411,13 +411,13 @@ void KProcess::Run(s32 main_thread_priority, u64 stack_size) {
     const std::size_t heap_capacity{memory_usage_capacity - (main_thread_stack_size + image_size)};
     ASSERT(!page_table->SetMaxHeapSize(heap_capacity).IsError());
 
-    ChangeStatus(ProcessStatus::Running);
+    ChangeState(State::Running);
 
     SetupMainThread(kernel.System(), *this, main_thread_priority, main_thread_stack_top);
 }
 
 void KProcess::PrepareForTermination() {
-    ChangeStatus(ProcessStatus::Exiting);
+    ChangeState(State::Terminating);
 
     const auto stop_threads = [this](const std::vector<KThread*>& in_thread_list) {
         for (auto* thread : in_thread_list) {
@@ -445,7 +445,7 @@ void KProcess::PrepareForTermination() {
                                 main_thread_stack_size + image_size);
     }
 
-    ChangeStatus(ProcessStatus::Exited);
+    ChangeState(State::Terminated);
 }
 
 void KProcess::Finalize() {
@@ -652,12 +652,12 @@ KProcess::KProcess(KernelCore& kernel_)
 
 KProcess::~KProcess() = default;
 
-void KProcess::ChangeStatus(ProcessStatus new_status) {
-    if (status == new_status) {
+void KProcess::ChangeState(State new_state) {
+    if (state == new_state) {
         return;
     }
 
-    status = new_status;
+    state = new_state;
     is_signaled = true;
     NotifyAvailable();
 }
