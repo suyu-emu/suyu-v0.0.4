@@ -1648,7 +1648,7 @@ Result KPageTable::SetHeapSize(VAddr* out, std::size_t size) {
 
     // Clear all the newly allocated pages.
     for (const auto& it : pg.Nodes()) {
-        std::memset(system.DeviceMemory().GetPointer(it.GetAddress()), heap_fill_value,
+        std::memset(system.DeviceMemory().GetPointer<void>(it.GetAddress()), heap_fill_value,
                     it.GetSize());
     }
 
@@ -1805,9 +1805,9 @@ bool KPageTable::IsRegionMapped(VAddr address, u64 size) {
 }
 
 bool KPageTable::IsRegionContiguous(VAddr addr, u64 size) const {
-    auto start_ptr = system.Memory().GetPointer(addr);
+    auto start_ptr = system.DeviceMemory().GetPointer<u8>(addr);
     for (u64 offset{}; offset < size; offset += PageSize) {
-        if (start_ptr != system.Memory().GetPointer(addr + offset)) {
+        if (start_ptr != system.DeviceMemory().GetPointer<u8>(addr + offset)) {
             return false;
         }
         start_ptr += PageSize;
