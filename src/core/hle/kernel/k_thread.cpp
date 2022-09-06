@@ -30,6 +30,7 @@
 #include "core/hle/kernel/k_worker_task_manager.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/svc_results.h"
+#include "core/hle/kernel/svc_types.h"
 #include "core/hle/result.h"
 #include "core/memory.h"
 
@@ -38,6 +39,9 @@
 #endif
 
 namespace {
+
+constexpr inline s32 TerminatingThreadPriority = Kernel::Svc::SystemThreadPriorityHighest - 1;
+
 static void ResetThreadContext32(Core::ARM_Interface::ThreadContext32& context, u32 stack_top,
                                  u32 entry_point, u32 arg) {
     context = {};
@@ -1071,6 +1075,78 @@ void KThread::Exit() {
     }
 
     UNREACHABLE_MSG("KThread::Exit() would return");
+}
+
+Result KThread::Terminate() {
+    ASSERT(this != GetCurrentThreadPointer(kernel));
+
+    // Request the thread terminate if it hasn't already.
+    if (const auto new_state = this->RequestTerminate(); new_state != ThreadState::Terminated) {
+        // If the thread isn't terminated, wait for it to terminate.
+        s32 index;
+        KSynchronizationObject* objects[] = {this};
+        R_TRY(KSynchronizationObject::Wait(kernel, std::addressof(index), objects, 1,
+                                           Svc::WaitInfinite));
+    }
+
+    return ResultSuccess;
+}
+
+ThreadState KThread::RequestTerminate() {
+    ASSERT(this != GetCurrentThreadPointer(kernel));
+
+    KScopedSchedulerLock sl{kernel};
+
+    // Determine if this is the first termination request.
+    const bool first_request = [&]() -> bool {
+        // Perform an atomic compare-and-swap from false to true.
+        bool expected = false;
+        return termination_requested.compare_exchange_strong(expected, true);
+    }();
+
+    // If this is the first request, start termination procedure.
+    if (first_request) {
+        // If the thread is in initialized state, just change state to terminated.
+        if (this->GetState() == ThreadState::Initialized) {
+            thread_state = ThreadState::Terminated;
+            return ThreadState::Terminated;
+        }
+
+        // Register the terminating dpc.
+        this->RegisterDpc(DpcFlag::Terminating);
+
+        // If the thread is pinned, unpin it.
+        if (this->GetStackParameters().is_pinned) {
+            this->GetOwnerProcess()->UnpinThread(this);
+        }
+
+        // If the thread is suspended, continue it.
+        if (this->IsSuspended()) {
+            suspend_allowed_flags = 0;
+            this->UpdateState();
+        }
+
+        // Change the thread's priority to be higher than any system thread's.
+        if (this->GetBasePriority() >= Svc::SystemThreadPriorityHighest) {
+            this->SetBasePriority(TerminatingThreadPriority);
+        }
+
+        // If the thread is runnable, send a termination interrupt to other cores.
+        if (this->GetState() == ThreadState::Runnable) {
+            if (const u64 core_mask =
+                    physical_affinity_mask.GetAffinityMask() & ~(1ULL << GetCurrentCoreId(kernel));
+                core_mask != 0) {
+                Kernel::KInterruptManager::SendInterProcessorInterrupt(kernel, core_mask);
+            }
+        }
+
+        // Wake up the thread.
+        if (this->GetState() == ThreadState::Waiting) {
+            wait_queue->CancelWait(this, ResultTerminationRequested, true);
+        }
+    }
+
+    return this->GetState();
 }
 
 Result KThread::Sleep(s64 timeout) {

@@ -36,4 +36,12 @@ void HandleInterrupt(KernelCore& kernel, s32 core_id) {
     kernel.CurrentScheduler()->RequestScheduleOnInterrupt();
 }
 
+void SendInterProcessorInterrupt(KernelCore& kernel, u64 core_mask) {
+    for (std::size_t core_id = 0; core_id < Core::Hardware::NUM_CPU_CORES; ++core_id) {
+        if (core_mask & (1ULL << core_id)) {
+            kernel.PhysicalCore(core_id).Interrupt();
+        }
+    }
+}
+
 } // namespace Kernel::KInterruptManager
