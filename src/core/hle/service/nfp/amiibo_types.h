@@ -137,10 +137,10 @@ struct EncryptedAmiiboFile {
     u16 write_counter;                     // Number of times the amiibo has been written?
     INSERT_PADDING_BYTES(0x1);             // Unknown 1
     AmiiboSettings settings;               // Encrypted amiibo settings
-    HashData locked_hash;                  // Hash
+    HashData hmac_tag;                     // Hash
     AmiiboModelInfo model_info;            // Encrypted amiibo model info
     HashData keygen_salt;                  // Salt
-    HashData unfixed_hash;                 // Hash
+    HashData hmac_data;                    // Hash
     Service::Mii::Ver3StoreData owner_mii; // Encrypted Mii data
     u64_be title_id;                       // Encrypted Game id
     u16_be applicaton_write_counter;       // Encrypted Counter
@@ -155,7 +155,7 @@ struct NTAG215File {
     std::array<u8, 0x2> uuid2;
     u16 static_lock;           // Set defined pages as read only
     u32 compability_container; // Defines available memory
-    HashData unfixed_hash;     // Hash
+    HashData hmac_data;        // Hash
     u8 constant_value;         // Must be A5
     u16 write_counter;         // Number of times the amiibo has been written?
     INSERT_PADDING_BYTES(0x1); // Unknown 1
@@ -167,7 +167,7 @@ struct NTAG215File {
     std::array<u8, 0x2> unknown;
     HashData hash;                    // Probably a SHA256-HMAC hash?
     ApplicationArea application_area; // Encrypted Game data
-    HashData locked_hash;             // Hash
+    HashData hmac_tag;                // Hash
     std::array<u8, 0x8> uuid;
     AmiiboModelInfo model_info;
     HashData keygen_salt;     // Salt

@@ -10,23 +10,23 @@
 struct mbedtls_md_context_t;
 
 namespace Service::NFP::AmiiboCrypto {
-constexpr std::size_t HMAC_POS_DATA = 0x8;
-constexpr std::size_t HMAC_POS_TAG = 0x1B4;
+// Byte locations in Service::NFP::NTAG215File
+constexpr std::size_t HMAC_DATA_START = 0x8;
+constexpr std::size_t SETTINGS_START = 0x2c;
+constexpr std::size_t WRITE_COUNTER_START = 0x29;
+constexpr std::size_t HMAC_TAG_START = 0x1B4;
+constexpr std::size_t UUID_START = 0x1D4;
+constexpr std::size_t DYNAMIC_LOCK_START = 0x208;
 
 using HmacKey = std::array<u8, 0x10>;
 using DrgbOutput = std::array<u8, 0x20>;
 
 struct HashSeed {
-    union {
-        std::array<u8, 0x40> raw;
-        struct {
-            u16 magic;
-            std::array<u8, 0xE> padding;
-            std::array<u8, 0x8> uuid1;
-            std::array<u8, 0x8> uuid2;
-            std::array<u8, 0x20> keygen_salt;
-        } data;
-    };
+    u16 magic;
+    std::array<u8, 0xE> padding;
+    std::array<u8, 0x8> uuid1;
+    std::array<u8, 0x8> uuid2;
+    std::array<u8, 0x20> keygen_salt;
 };
 static_assert(sizeof(HashSeed) == 0x40, "HashSeed is an invalid size");
 
@@ -71,12 +71,11 @@ u32 GetTagPassword(const TagUuid& uuid);
 HashSeed GetSeed(const NTAG215File& data);
 
 // Middle step on the generation of derived keys
-void PreGenerateKey(const InternalKey& key, const HashSeed& seed, u8* output,
-                    std::size_t& outputLen);
+std::vector<u8> GenerateInternalKey(const InternalKey& key, const HashSeed& seed);
 
 // Initializes mbedtls context
 void CryptoInit(CryptoCtx& ctx, mbedtls_md_context_t& hmac_ctx, const HmacKey& hmac_key,
-                const u8* seed, std::size_t seed_size);
+                const std::vector<u8>& seed);
 
 // Feeds data to mbedtls context to generate the derived key
 void CryptoStep(CryptoCtx& ctx, mbedtls_md_context_t& hmac_ctx, DrgbOutput& output);

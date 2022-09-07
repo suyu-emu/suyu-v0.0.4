@@ -70,10 +70,10 @@ bool IsAmiiboValid(const EncryptedNTAG215File& ntag_file) {
 NTAG215File NfcDataToEncodedData(const EncryptedNTAG215File& nfc_data) {
     NTAG215File encoded_data{};
 
-    memcpy(encoded_data.uuid2.data(), nfc_data.uuid.data() + 0x8, 2);
+    memcpy(encoded_data.uuid2.data(), nfc_data.uuid.data() + 0x8, sizeof(encoded_data.uuid2));
     encoded_data.static_lock = nfc_data.static_lock;
     encoded_data.compability_container = nfc_data.compability_container;
-    encoded_data.unfixed_hash = nfc_data.user_memory.unfixed_hash;
+    encoded_data.hmac_data = nfc_data.user_memory.hmac_data;
     encoded_data.constant_value = nfc_data.user_memory.constant_value;
     encoded_data.write_counter = nfc_data.user_memory.write_counter;
     encoded_data.settings = nfc_data.user_memory.settings;
@@ -84,8 +84,8 @@ NTAG215File NfcDataToEncodedData(const EncryptedNTAG215File& nfc_data) {
     encoded_data.unknown = nfc_data.user_memory.unknown;
     encoded_data.hash = nfc_data.user_memory.hash;
     encoded_data.application_area = nfc_data.user_memory.application_area;
-    encoded_data.locked_hash = nfc_data.user_memory.locked_hash;
-    memcpy(encoded_data.uuid.data(), nfc_data.uuid.data(), 8);
+    encoded_data.hmac_tag = nfc_data.user_memory.hmac_tag;
+    memcpy(encoded_data.uuid.data(), nfc_data.uuid.data(), sizeof(encoded_data.uuid));
     encoded_data.model_info = nfc_data.user_memory.model_info;
     encoded_data.keygen_salt = nfc_data.user_memory.keygen_salt;
     encoded_data.dynamic_lock = nfc_data.dynamic_lock;
@@ -99,11 +99,11 @@ NTAG215File NfcDataToEncodedData(const EncryptedNTAG215File& nfc_data) {
 EncryptedNTAG215File EncodedDataToNfcData(const NTAG215File& encoded_data) {
     EncryptedNTAG215File nfc_data{};
 
-    memcpy(nfc_data.uuid.data() + 0x8, encoded_data.uuid2.data(), 2);
-    memcpy(nfc_data.uuid.data(), encoded_data.uuid.data(), 8);
+    memcpy(nfc_data.uuid.data() + 0x8, encoded_data.uuid2.data(), sizeof(encoded_data.uuid2));
+    memcpy(nfc_data.uuid.data(), encoded_data.uuid.data(), sizeof(encoded_data.uuid));
     nfc_data.static_lock = encoded_data.static_lock;
     nfc_data.compability_container = encoded_data.compability_container;
-    nfc_data.user_memory.unfixed_hash = encoded_data.unfixed_hash;
+    nfc_data.user_memory.hmac_data = encoded_data.hmac_data;
     nfc_data.user_memory.constant_value = encoded_data.constant_value;
     nfc_data.user_memory.write_counter = encoded_data.write_counter;
     nfc_data.user_memory.settings = encoded_data.settings;
@@ -114,7 +114,7 @@ EncryptedNTAG215File EncodedDataToNfcData(const NTAG215File& encoded_data) {
     nfc_data.user_memory.unknown = encoded_data.unknown;
     nfc_data.user_memory.hash = encoded_data.hash;
     nfc_data.user_memory.application_area = encoded_data.application_area;
-    nfc_data.user_memory.locked_hash = encoded_data.locked_hash;
+    nfc_data.user_memory.hmac_tag = encoded_data.hmac_tag;
     nfc_data.user_memory.model_info = encoded_data.model_info;
     nfc_data.user_memory.keygen_salt = encoded_data.keygen_salt;
     nfc_data.dynamic_lock = encoded_data.dynamic_lock;
@@ -136,60 +136,53 @@ u32 GetTagPassword(const TagUuid& uuid) {
 
 HashSeed GetSeed(const NTAG215File& data) {
     HashSeed seed{
-        .data =
-            {
-                .magic = data.write_counter,
-                .padding = {},
-                .uuid1 = {},
-                .uuid2 = {},
-                .keygen_salt = data.keygen_salt,
-            },
+        .magic = data.write_counter,
+        .padding = {},
+        .uuid1 = {},
+        .uuid2 = {},
+        .keygen_salt = data.keygen_salt,
     };
 
     // Copy the first 8 bytes of uuid
-    memcpy(seed.data.uuid1.data(), data.uuid.data(), sizeof(seed.data.uuid1));
-    memcpy(seed.data.uuid2.data(), data.uuid.data(), sizeof(seed.data.uuid2));
+    memcpy(seed.uuid1.data(), data.uuid.data(), sizeof(seed.uuid1));
+    memcpy(seed.uuid2.data(), data.uuid.data(), sizeof(seed.uuid2));
 
     return seed;
 }
 
-void PreGenerateKey(const InternalKey& key, const HashSeed& seed, u8* output,
-                    std::size_t& outputLen) {
-    std::size_t index = 0;
+std::vector<u8> GenerateInternalKey(const InternalKey& key, const HashSeed& seed) {
+    const std::size_t seedPart1Len = sizeof(key.magic_bytes) - key.magic_length;
+    const std::size_t string_size = key.type_string.size();
+    std::vector<u8> output(string_size + seedPart1Len);
 
     // Copy whole type string
-    memccpy(output + index, key.type_string.data(), '\0', key.type_string.size());
-    index += key.type_string.size();
+    memccpy(output.data(), key.type_string.data(), '\0', string_size);
 
     // Append (16 - magic_length) from the input seed
-    std::size_t seedPart1Len = 16 - key.magic_length;
-    memcpy(output + index, &seed, seedPart1Len);
-    index += seedPart1Len;
+    memcpy(output.data() + string_size, &seed, seedPart1Len);
 
     // Append all bytes from magicBytes
-    memcpy(output + index, &key.magic_bytes, key.magic_length);
-    index += key.magic_length;
+    output.insert(output.end(), key.magic_bytes.begin(),
+                  key.magic_bytes.begin() + key.magic_length);
 
-    // Seed 16 bytes at +0x10
-    memcpy(output + index, &seed.raw[0x10], 16);
-    index += 16;
+    output.insert(output.end(), seed.uuid1.begin(), seed.uuid1.end());
+    output.insert(output.end(), seed.uuid2.begin(), seed.uuid2.end());
 
-    // 32 bytes at +0x20 from input seed xored with xor pad
-    for (std::size_t i = 0; i < 32; i++)
-        output[index + i] = seed.raw[i + 32] ^ key.xor_pad[i];
-    index += 32;
+    for (std::size_t i = 0; i < sizeof(seed.keygen_salt); i++) {
+        output.emplace_back(static_cast<u8>(seed.keygen_salt[i] ^ key.xor_pad[i]));
+    }
 
-    outputLen = index;
+    return output;
 }
 
 void CryptoInit(CryptoCtx& ctx, mbedtls_md_context_t& hmac_ctx, const HmacKey& hmac_key,
-                const u8* seed, std::size_t seed_size) {
+                const std::vector<u8>& seed) {
 
     // Initialize context
     ctx.used = false;
     ctx.counter = 0;
-    ctx.buffer_size = sizeof(ctx.counter) + seed_size;
-    memcpy(ctx.buffer.data() + sizeof(u16), seed, seed_size);
+    ctx.buffer_size = sizeof(ctx.counter) + seed.size();
+    memcpy(ctx.buffer.data() + sizeof(u16), seed.data(), seed.size());
 
     // Initialize HMAC context
     mbedtls_md_init(&hmac_ctx);
@@ -217,18 +210,15 @@ void CryptoStep(CryptoCtx& ctx, mbedtls_md_context_t& hmac_ctx, DrgbOutput& outp
 }
 
 DerivedKeys GenerateKey(const InternalKey& key, const NTAG215File& data) {
-    constexpr std::size_t OUTPUT_SIZE = 512;
     const auto seed = GetSeed(data);
 
     // Generate internal seed
-    u8 internal_key[OUTPUT_SIZE];
-    std::size_t internal_key_lenght = 0;
-    PreGenerateKey(key, seed, internal_key, internal_key_lenght);
+    const std::vector<u8> internal_key = GenerateInternalKey(key, seed);
 
     // Initialize context
     CryptoCtx ctx{};
     mbedtls_md_context_t hmac_ctx;
-    CryptoInit(ctx, hmac_ctx, key.hmac_key, internal_key, internal_key_lenght);
+    CryptoInit(ctx, hmac_ctx, key.hmac_key, internal_key);
 
     // Generate derived keys
     DerivedKeys derived_keys{};
@@ -246,27 +236,34 @@ DerivedKeys GenerateKey(const InternalKey& key, const NTAG215File& data) {
 void Cipher(const DerivedKeys& keys, const NTAG215File& in_data, NTAG215File& out_data) {
     mbedtls_aes_context aes;
     std::size_t nc_off = 0;
-    std::array<u8, 0x10> nonce_counter{};
-    std::array<u8, 0x10> stream_block{};
+    std::array<u8, sizeof(keys.aes_iv)> nonce_counter{};
+    std::array<u8, sizeof(keys.aes_iv)> stream_block{};
 
-    mbedtls_aes_setkey_enc(&aes, keys.aes_key.data(), 128);
-    memcpy(nonce_counter.data(), keys.aes_iv.data(), sizeof(nonce_counter));
+    const auto aes_key_size = static_cast<u32>(keys.aes_key.size() * 8);
+    mbedtls_aes_setkey_enc(&aes, keys.aes_key.data(), aes_key_size);
+    memcpy(nonce_counter.data(), keys.aes_iv.data(), sizeof(keys.aes_iv));
 
-    std::array<u8, sizeof(NTAG215File)> in_data_byes{};
-    std::array<u8, sizeof(NTAG215File)> out_data_bytes{};
-    memcpy(in_data_byes.data(), &in_data, sizeof(NTAG215File));
-    memcpy(out_data_bytes.data(), &out_data, sizeof(NTAG215File));
+    constexpr std::size_t encrypted_data_size = HMAC_TAG_START - SETTINGS_START;
+    mbedtls_aes_crypt_ctr(&aes, encrypted_data_size, &nc_off, nonce_counter.data(),
+                          stream_block.data(),
+                          reinterpret_cast<const unsigned char*>(&in_data.settings),
+                          reinterpret_cast<unsigned char*>(&out_data.settings));
 
-    mbedtls_aes_crypt_ctr(&aes, 0x188, &nc_off, nonce_counter.data(), stream_block.data(),
-                          in_data_byes.data() + 0x2c, out_data_bytes.data() + 0x2c);
+    // Copy the rest of the data directly
+    out_data.uuid2 = in_data.uuid2;
+    out_data.static_lock = in_data.static_lock;
+    out_data.compability_container = in_data.compability_container;
 
-    memcpy(out_data_bytes.data(), in_data_byes.data(), 0x008);
-    // Data signature NOT copied
-    memcpy(out_data_bytes.data() + 0x028, in_data_byes.data() + 0x028, 0x004);
-    // Tag signature NOT copied
-    memcpy(out_data_bytes.data() + 0x1D4, in_data_byes.data() + 0x1D4, 0x048);
+    out_data.constant_value = in_data.constant_value;
+    out_data.write_counter = in_data.write_counter;
 
-    memcpy(&out_data, out_data_bytes.data(), sizeof(NTAG215File));
+    out_data.uuid = in_data.uuid;
+    out_data.model_info = in_data.model_info;
+    out_data.keygen_salt = in_data.keygen_salt;
+    out_data.dynamic_lock = in_data.dynamic_lock;
+    out_data.CFG0 = in_data.CFG0;
+    out_data.CFG1 = in_data.CFG1;
+    out_data.password = in_data.password;
 }
 
 bool LoadKeys(InternalKey& locked_secret, InternalKey& unfixed_info) {
@@ -309,26 +306,26 @@ bool DecodeAmiibo(const EncryptedNTAG215File& encrypted_tag_data, NTAG215File& t
     // Decrypt
     Cipher(data_keys, encoded_data, tag_data);
 
-    std::array<u8, sizeof(NTAG215File)> out{};
-    memcpy(out.data(), &tag_data, sizeof(NTAG215File));
-
     // Regenerate tag HMAC. Note: order matters, data HMAC depends on tag HMAC!
+    constexpr std::size_t input_length = DYNAMIC_LOCK_START - UUID_START;
     mbedtls_md_hmac(mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), tag_keys.hmac_key.data(),
-                    sizeof(HmacKey), out.data() + 0x1D4, 0x34, out.data() + HMAC_POS_TAG);
+                    sizeof(HmacKey), reinterpret_cast<const unsigned char*>(&tag_data.uuid),
+                    input_length, reinterpret_cast<unsigned char*>(&tag_data.hmac_tag));
 
     // Regenerate data HMAC
+    constexpr std::size_t input_length2 = DYNAMIC_LOCK_START - WRITE_COUNTER_START;
     mbedtls_md_hmac(mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), data_keys.hmac_key.data(),
-                    sizeof(HmacKey), out.data() + 0x29, 0x1DF, out.data() + HMAC_POS_DATA);
+                    sizeof(HmacKey),
+                    reinterpret_cast<const unsigned char*>(&tag_data.write_counter), input_length2,
+                    reinterpret_cast<unsigned char*>(&tag_data.hmac_data));
 
-    memcpy(&tag_data, out.data(), sizeof(NTAG215File));
-
-    if (memcmp(tag_data.unfixed_hash.data(), encrypted_tag_data.user_memory.unfixed_hash.data(),
-               32) != 0) {
+    if (tag_data.hmac_data != encrypted_tag_data.user_memory.hmac_data) {
+        LOG_ERROR(Service_NFP, "hmac_data doesn't match");
         return false;
     }
 
-    if (memcmp(tag_data.locked_hash.data(), encrypted_tag_data.user_memory.locked_hash.data(),
-               32) != 0) {
+    if (tag_data.hmac_tag != encrypted_tag_data.user_memory.hmac_tag) {
+        LOG_ERROR(Service_NFP, "hmac_tag doesn't match");
         return false;
     }
 
@@ -347,13 +344,14 @@ bool EncodeAmiibo(const NTAG215File& tag_data, EncryptedNTAG215File& encrypted_t
     const auto data_keys = GenerateKey(unfixed_info, tag_data);
     const auto tag_keys = GenerateKey(locked_secret, tag_data);
 
-    std::array<u8, sizeof(NTAG215File)> plain{};
-    std::array<u8, sizeof(NTAG215File)> cipher{};
-    memcpy(plain.data(), &tag_data, sizeof(NTAG215File));
+    NTAG215File encoded_tag_data{};
 
     // Generate tag HMAC
+    constexpr std::size_t input_length = DYNAMIC_LOCK_START - UUID_START;
+    constexpr std::size_t input_length2 = HMAC_TAG_START - WRITE_COUNTER_START;
     mbedtls_md_hmac(mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), tag_keys.hmac_key.data(),
-                    sizeof(HmacKey), plain.data() + 0x1D4, 0x34, cipher.data() + HMAC_POS_TAG);
+                    sizeof(HmacKey), reinterpret_cast<const unsigned char*>(&tag_data.uuid),
+                    input_length, reinterpret_cast<unsigned char*>(&encoded_tag_data.hmac_tag));
 
     // Init mbedtls HMAC context
     mbedtls_md_context_t ctx;
@@ -362,17 +360,18 @@ bool EncodeAmiibo(const NTAG215File& tag_data, EncryptedNTAG215File& encrypted_t
 
     // Generate data HMAC
     mbedtls_md_hmac_starts(&ctx, data_keys.hmac_key.data(), sizeof(HmacKey));
-    mbedtls_md_hmac_update(&ctx, plain.data() + 0x029, 0x18B);        // Data
-    mbedtls_md_hmac_update(&ctx, cipher.data() + HMAC_POS_TAG, 0x20); // Tag HMAC
-    mbedtls_md_hmac_update(&ctx, plain.data() + 0x1D4, 0x34);
-    mbedtls_md_hmac_finish(&ctx, cipher.data() + HMAC_POS_DATA);
+    mbedtls_md_hmac_update(&ctx, reinterpret_cast<const unsigned char*>(&tag_data.write_counter),
+                           input_length2); // Data
+    mbedtls_md_hmac_update(&ctx, reinterpret_cast<unsigned char*>(&encoded_tag_data.hmac_tag),
+                           sizeof(HashData)); // Tag HMAC
+    mbedtls_md_hmac_update(&ctx, reinterpret_cast<const unsigned char*>(&tag_data.uuid),
+                           input_length);
+    mbedtls_md_hmac_finish(&ctx, reinterpret_cast<unsigned char*>(&encoded_tag_data.hmac_data));
 
     // HMAC cleanup
     mbedtls_md_free(&ctx);
 
     // Encrypt
-    NTAG215File encoded_tag_data{};
-    memcpy(&encoded_tag_data, cipher.data(), sizeof(NTAG215File));
     Cipher(data_keys, tag_data, encoded_tag_data);
 
     // Convert back to hardware
