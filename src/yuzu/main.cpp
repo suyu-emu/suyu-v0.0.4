@@ -1296,6 +1296,7 @@ void GMainWindow::ConnectMenuEvents() {
             &MultiplayerState::OnDirectConnectToRoom);
     connect(ui->action_Show_Room, &QAction::triggered, multiplayer_state,
             &MultiplayerState::OnOpenNetworkRoom);
+    connect(multiplayer_state, &MultiplayerState::SaveConfig, this, &GMainWindow::OnSaveConfig);
 
     // Tools
     connect_menu(ui->action_Rederive, std::bind(&GMainWindow::OnReinitializeKeys, this,
@@ -1336,6 +1337,8 @@ void GMainWindow::UpdateMenuState() {
     } else {
         ui->action_Pause->setText(tr("&Pause"));
     }
+
+    multiplayer_state->UpdateNotificationStatus();
 }
 
 void GMainWindow::OnDisplayTitleBars(bool show) {
@@ -2764,6 +2767,11 @@ void GMainWindow::OnExecuteProgram(std::size_t program_index) {
 
 void GMainWindow::OnExit() {
     OnStopGame();
+}
+
+void GMainWindow::OnSaveConfig() {
+    system->ApplySettings();
+    config->Save();
 }
 
 void GMainWindow::ErrorDisplayDisplayError(QString error_code, QString error_text) {

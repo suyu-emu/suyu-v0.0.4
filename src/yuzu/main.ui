@@ -265,7 +265,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Browse Public Game Lobby</string>
+    <string>&amp;Browse Public Game Lobby</string>
    </property>
   </action>
   <action name="action_Start_Room">
@@ -273,7 +273,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Create Room</string>
+    <string>&amp;Create Room</string>
    </property>
   </action>
   <action name="action_Leave_Room">
@@ -281,12 +281,12 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Leave Room</string>
+    <string>&amp;Leave Room</string>
    </property>
   </action>
   <action name="action_Connect_To_Room">
    <property name="text">
-    <string>Direct Connect to Room</string>
+    <string>&amp;Direct Connect to Room</string>
    </property>
   </action>
   <action name="action_Show_Room">
@@ -294,7 +294,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Show Current Room</string>
+    <string>&amp;Show Current Room</string>
    </property>
   </action>
   <action name="action_Fullscreen">
