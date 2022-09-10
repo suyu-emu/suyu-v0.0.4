@@ -66,18 +66,16 @@ public:
     void PauseSinks(bool pausing) const;
 
     /**
-     * Get the size of the current stream queue.
+     * Toggle NVDEC state, used to avoid stall in playback.
      *
-     * @return Current stream queue size.
+     * @param active - Set true if nvdec is active, otherwise false.
      */
-    u32 GetStreamQueue() const;
+    void SetNVDECActive(bool active);
 
     /**
-     * Get the size of the current stream queue.
-     *
-     * @param size - New stream size.
+     * Get NVDEC state.
      */
-    void SetStreamQueue(u32 size);
+    bool IsNVDECActive() const;
 
 private:
     /**
@@ -93,8 +91,8 @@ private:
     std::unique_ptr<Sink::Sink> input_sink;
     /// The ADSP in the sysmodule
     std::unique_ptr<AudioRenderer::ADSP::ADSP> adsp;
-    /// Current size of the stream queue
-    std::atomic<u32> estimated_queue{0};
+    /// Is NVDec currently active?
+    bool nvdec_active{false};
 };
 
 } // namespace AudioCore
