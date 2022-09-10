@@ -9,8 +9,10 @@
 #include "common/common_types.h"
 #include "common/page_table.h"
 #include "core/file_sys/program_metadata.h"
+#include "core/hle/kernel/k_dynamic_resource_manager.h"
 #include "core/hle/kernel/k_light_lock.h"
 #include "core/hle/kernel/k_memory_block.h"
+#include "core/hle/kernel/k_memory_block_manager.h"
 #include "core/hle/kernel/k_memory_layout.h"
 #include "core/hle/kernel/k_memory_manager.h"
 #include "core/hle/result.h"
@@ -34,7 +36,12 @@ public:
     ~KPageTable();
 
     Result InitializeForProcess(FileSys::ProgramAddressSpaceType as_type, bool enable_aslr,
-                                VAddr code_addr, std::size_t code_size, KMemoryManager::Pool pool);
+                                VAddr code_addr, std::size_t code_size,
+                                KMemoryBlockSlabManager* mem_block_slab_manager,
+                                KMemoryManager::Pool pool);
+
+    void Finalize();
+
     Result MapProcessCode(VAddr addr, std::size_t pages_count, KMemoryState state,
                           KMemoryPermission perm);
     Result MapCodeMemory(VAddr dst_address, VAddr src_address, std::size_t size);
@@ -58,8 +65,6 @@ public:
     Result UnmapPages(VAddr address, std::size_t num_pages, KMemoryState state);
     Result SetProcessMemoryPermission(VAddr addr, std::size_t size, Svc::MemoryPermission svc_perm);
     KMemoryInfo QueryInfo(VAddr addr);
-    Result ReserveTransferMemory(VAddr addr, std::size_t size, KMemoryPermission perm);
-    Result ResetTransferMemory(VAddr addr, std::size_t size);
     Result SetMemoryPermission(VAddr addr, std::size_t size, Svc::MemoryPermission perm);
     Result SetMemoryAttribute(VAddr addr, std::size_t size, u32 mask, u32 attr);
     Result SetMaxHeapSize(std::size_t size);
@@ -68,7 +73,6 @@ public:
                                           bool is_map_only, VAddr region_start,
                                           std::size_t region_num_pages, KMemoryState state,
                                           KMemoryPermission perm, PAddr map_addr = 0);
-    Result LockForDeviceAddressSpace(VAddr addr, std::size_t size);
     Result UnlockForDeviceAddressSpace(VAddr addr, std::size_t size);
     Result LockForCodeMemory(KPageGroup* out, VAddr addr, std::size_t size);
     Result UnlockForCodeMemory(VAddr addr, std::size_t size, const KPageGroup& pg);
@@ -96,17 +100,14 @@ private:
         ChangePermissionsAndRefresh,
     };
 
-    static constexpr KMemoryAttribute DefaultMemoryIgnoreAttr = KMemoryAttribute::DontCareMask |
-                                                                KMemoryAttribute::IpcLocked |
-                                                                KMemoryAttribute::DeviceShared;
+    static constexpr KMemoryAttribute DefaultMemoryIgnoreAttr =
+        KMemoryAttribute::IpcLocked | KMemoryAttribute::DeviceShared;
 
-    Result InitializeMemoryLayout(VAddr start, VAddr end);
     Result MapPages(VAddr addr, const KPageGroup& page_linked_list, KMemoryPermission perm);
     Result MapPages(VAddr* out_addr, std::size_t num_pages, std::size_t alignment, PAddr phys_addr,
                     bool is_pa_valid, VAddr region_start, std::size_t region_num_pages,
                     KMemoryState state, KMemoryPermission perm);
     Result UnmapPages(VAddr addr, const KPageGroup& page_linked_list);
-    bool IsRegionMapped(VAddr address, u64 size);
     bool IsRegionContiguous(VAddr addr, u64 size) const;
     void AddRegionToPages(VAddr start, std::size_t num_pages, KPageGroup& page_linked_list);
     KMemoryInfo QueryInfoImpl(VAddr addr);
@@ -193,8 +194,6 @@ private:
 
     mutable KLightLock general_lock;
     mutable KLightLock map_physical_memory_lock;
-
-    std::unique_ptr<KMemoryBlockManager> block_manager;
 
 public:
     constexpr VAddr GetAddressSpaceStart() const {
@@ -346,8 +345,12 @@ private:
     std::size_t max_physical_memory_size{};
     std::size_t address_space_width{};
 
+    KMemoryBlockManager memory_block_manager;
+
     bool is_kernel{};
     bool is_aslr_enabled{};
+
+    KMemoryBlockSlabManager* memory_block_slab_manager{};
 
     u32 heap_fill_value{};
     const KMemoryRegion* cached_physical_heap_region{};
