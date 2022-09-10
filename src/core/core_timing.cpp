@@ -40,7 +40,17 @@ struct CoreTiming::Event {
 CoreTiming::CoreTiming()
     : clock{Common::CreateBestMatchingClock(Hardware::BASE_CLOCK_RATE, Hardware::CNTFREQ)} {}
 
-CoreTiming::~CoreTiming() = default;
+CoreTiming::~CoreTiming() {
+    paused = true;
+    shutting_down = true;
+    pause_event.Set();
+    event.Set();
+    if (timer_thread) {
+        timer_thread->join();
+    }
+    timer_thread.reset();
+    has_started = false;
+}
 
 void CoreTiming::ThreadEntry(CoreTiming& instance) {
     constexpr char name[] = "HostTiming";
@@ -65,17 +75,8 @@ void CoreTiming::Initialize(std::function<void()>&& on_thread_init_) {
     }
 }
 
-void CoreTiming::Shutdown() {
-    paused = true;
-    shutting_down = true;
-    pause_event.Set();
-    event.Set();
-    if (timer_thread) {
-        timer_thread->join();
-    }
-    ClearPendingEvents();
-    timer_thread.reset();
-    has_started = false;
+void CoreTiming::ClearPendingEvents() {
+    event_queue.clear();
 }
 
 void CoreTiming::Pause(bool is_paused) {
@@ -194,10 +195,6 @@ u64 CoreTiming::GetClockTicks() const {
         return clock->GetClockCycles();
     }
     return CpuCyclesToClockCycles(ticks);
-}
-
-void CoreTiming::ClearPendingEvents() {
-    event_queue.clear();
 }
 
 void CoreTiming::RemoveEvent(const std::shared_ptr<EventType>& event_type) {
