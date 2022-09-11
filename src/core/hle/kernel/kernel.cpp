@@ -108,10 +108,6 @@ struct KernelCore::Impl {
         next_user_process_id = KProcess::ProcessIDMin;
         next_thread_id = 1;
 
-        for (auto& core : cores) {
-            core = nullptr;
-        }
-
         global_handle_table->Finalize();
         global_handle_table.reset();
 
@@ -365,11 +361,6 @@ struct KernelCore::Impl {
     static inline thread_local KThread* current_thread{nullptr};
 
     KThread* GetCurrentEmuThread() {
-        // If we are shutting down the kernel, none of this is relevant anymore.
-        if (IsShuttingDown()) {
-            return {};
-        }
-
         const auto thread_id = GetCurrentHostThreadID();
         if (thread_id >= Core::Hardware::NUM_CPU_CORES) {
             return GetHostDummyThread();
