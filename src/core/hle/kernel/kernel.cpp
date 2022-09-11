@@ -74,8 +74,8 @@ struct KernelCore::Impl {
         InitializeMemoryLayout();
         Init::InitializeKPageBufferSlabHeap(system);
         InitializeShutdownThreads();
-        InitializePreemption(kernel);
         InitializePhysicalCores();
+        InitializePreemption(kernel);
 
         // Initialize the Dynamic Slab Heaps.
         {
