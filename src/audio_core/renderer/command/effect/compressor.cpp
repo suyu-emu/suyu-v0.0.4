@@ -33,7 +33,7 @@ static void SetCompressorEffectParameter(const CompressorInfo::ParameterVersion2
 
 static void InitializeCompressorEffect(const CompressorInfo::ParameterVersion2& params,
                                        CompressorInfo::State& state) {
-    std::memset(&state, 0, sizeof(CompressorInfo::State));
+    state = {};
 
     state.unk_00 = 0;
     state.unk_04 = 1.0f;
