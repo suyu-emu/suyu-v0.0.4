@@ -103,8 +103,7 @@ static void ApplyCompressorEffect(CompressorInfo::ParameterVersion2& params,
     } else {
         for (s16 channel = 0; channel < params.channel_count; channel++) {
             if (params.inputs[channel] != params.outputs[channel]) {
-                std::memcpy((char*)output_buffers[channel].data(),
-                            (char*)input_buffers[channel].data(),
+                std::memcpy(output_buffers[channel].data(), input_buffers[channel].data(),
                             output_buffers[channel].size_bytes());
             }
         }
