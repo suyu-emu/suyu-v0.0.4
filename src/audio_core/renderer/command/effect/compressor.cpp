@@ -11,7 +11,7 @@
 
 namespace AudioCore::AudioRenderer {
 
-static void SetCompressorEffectParameter(CompressorInfo::ParameterVersion2& params,
+static void SetCompressorEffectParameter(const CompressorInfo::ParameterVersion2& params,
                                          CompressorInfo::State& state) {
     const auto ratio{1.0f / params.compressor_ratio};
     auto makeup_gain{0.0f};
@@ -31,7 +31,7 @@ static void SetCompressorEffectParameter(CompressorInfo::ParameterVersion2& para
     state.unk_20 = c;
 }
 
-static void InitializeCompressorEffect(CompressorInfo::ParameterVersion2& params,
+static void InitializeCompressorEffect(const CompressorInfo::ParameterVersion2& params,
                                        CompressorInfo::State& state) {
     std::memset(&state, 0, sizeof(CompressorInfo::State));
 
@@ -42,7 +42,7 @@ static void InitializeCompressorEffect(CompressorInfo::ParameterVersion2& params
     SetCompressorEffectParameter(params, state);
 }
 
-static void ApplyCompressorEffect(CompressorInfo::ParameterVersion2& params,
+static void ApplyCompressorEffect(const CompressorInfo::ParameterVersion2& params,
                                   CompressorInfo::State& state, bool enabled,
                                   std::vector<std::span<const s32>> input_buffers,
                                   std::vector<std::span<s32>> output_buffers, u32 sample_count) {
