@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <span>
+#include <string_view>
 
 #include "audio_core/audio_render_manager.h"
 
@@ -23,20 +23,12 @@ namespace AudioRenderer {
 class AudioDevice {
 public:
     struct AudioDeviceName {
-        std::array<char, 0x100> name;
+        std::array<char, 0x100> name{};
 
-        AudioDeviceName(const char* name_) {
-            std::strncpy(name.data(), name_, name.size());
+        constexpr AudioDeviceName(std::string_view name_) {
+            name_.copy(name.data(), name.size() - 1);
         }
     };
-
-    std::array<AudioDeviceName, 4> usb_device_names{"AudioStereoJackOutput",
-                                                    "AudioBuiltInSpeakerOutput", "AudioTvOutput",
-                                                    "AudioUsbDeviceOutput"};
-    std::array<AudioDeviceName, 3> device_names{"AudioStereoJackOutput",
-                                                "AudioBuiltInSpeakerOutput", "AudioTvOutput"};
-    std::array<AudioDeviceName, 3> output_device_names{"AudioBuiltInSpeakerOutput", "AudioTvOutput",
-                                                       "AudioExternalOutput"};
 
     explicit AudioDevice(Core::System& system, u64 applet_resource_user_id, u32 revision);
 

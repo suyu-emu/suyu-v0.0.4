@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <array>
+#include <span>
+
 #include "audio_core/audio_core.h"
 #include "audio_core/common/feature_support.h"
 #include "audio_core/renderer/audio_device.h"
@@ -9,6 +12,25 @@
 
 namespace AudioCore::AudioRenderer {
 
+constexpr std::array usb_device_names{
+    AudioDevice::AudioDeviceName{"AudioStereoJackOutput"},
+    AudioDevice::AudioDeviceName{"AudioBuiltInSpeakerOutput"},
+    AudioDevice::AudioDeviceName{"AudioTvOutput"},
+    AudioDevice::AudioDeviceName{"AudioUsbDeviceOutput"},
+};
+
+constexpr std::array device_names{
+    AudioDevice::AudioDeviceName{"AudioStereoJackOutput"},
+    AudioDevice::AudioDeviceName{"AudioBuiltInSpeakerOutput"},
+    AudioDevice::AudioDeviceName{"AudioTvOutput"},
+};
+
+constexpr std::array output_device_names{
+    AudioDevice::AudioDeviceName{"AudioBuiltInSpeakerOutput"},
+    AudioDevice::AudioDeviceName{"AudioTvOutput"},
+    AudioDevice::AudioDeviceName{"AudioExternalOutput"},
+};
+
 AudioDevice::AudioDevice(Core::System& system, const u64 applet_resource_user_id_,
                          const u32 revision)
     : output_sink{system.AudioCore().GetOutputSink()},
@@ -16,7 +38,7 @@ AudioDevice::AudioDevice(Core::System& system, const u64 applet_resource_user_id
 
 u32 AudioDevice::ListAudioDeviceName(std::vector<AudioDeviceName>& out_buffer,
                                      const size_t max_count) {
-    std::span<AudioDeviceName> names{};
+    std::span<const AudioDeviceName> names{};
 
     if (CheckFeatureSupported(SupportTags::AudioUsbDeviceOutput, user_revision)) {
         names = usb_device_names;
