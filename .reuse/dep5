@@ -6,6 +6,7 @@ Files: dist/english_plurals/*
        dist/icons/controller/*.png
        dist/icons/overlay/*.png
        dist/languages/*
+       dist/qt_themes/*/icons/48x48/sd_card.png
        dist/qt_themes/*/icons/index.theme
        dist/qt_themes/default/style.qss
 Copyright: yuzu Emulator Project
@@ -66,9 +67,7 @@ Files: dist/qt_themes/*/icons/48x48/no_avatar.png
 Copyright: Ionic (http://ionic.io/)
 License: MIT
 
-
-Files: dist/qt_themes/*/icons/48x48/sd_card.png
-       dist/qt_themes/colorful/icons/48x48/star.png
+Files: dist/qt_themes/colorful/icons/48x48/star.png
        dist/qt_themes/default/icons/16x16/checked.png
        dist/qt_themes/default/icons/16x16/failed.png
 Copyright: SVG Repo
