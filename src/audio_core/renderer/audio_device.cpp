@@ -37,7 +37,7 @@ AudioDevice::AudioDevice(Core::System& system, const u64 applet_resource_user_id
       applet_resource_user_id{applet_resource_user_id_}, user_revision{revision} {}
 
 u32 AudioDevice::ListAudioDeviceName(std::vector<AudioDeviceName>& out_buffer,
-                                     const size_t max_count) {
+                                     const size_t max_count) const {
     std::span<const AudioDeviceName> names{};
 
     if (CheckFeatureSupported(SupportTags::AudioUsbDeviceOutput, user_revision)) {
@@ -46,7 +46,7 @@ u32 AudioDevice::ListAudioDeviceName(std::vector<AudioDeviceName>& out_buffer,
         names = device_names;
     }
 
-    u32 out_count{static_cast<u32>(std::min(max_count, names.size()))};
+    const u32 out_count{static_cast<u32>(std::min(max_count, names.size()))};
     for (u32 i = 0; i < out_count; i++) {
         out_buffer.push_back(names[i]);
     }
@@ -54,8 +54,8 @@ u32 AudioDevice::ListAudioDeviceName(std::vector<AudioDeviceName>& out_buffer,
 }
 
 u32 AudioDevice::ListAudioOutputDeviceName(std::vector<AudioDeviceName>& out_buffer,
-                                           const size_t max_count) {
-    u32 out_count{static_cast<u32>(std::min(max_count, output_device_names.size()))};
+                                           const size_t max_count) const {
+    const u32 out_count{static_cast<u32>(std::min(max_count, output_device_names.size()))};
 
     for (u32 i = 0; i < out_count; i++) {
         out_buffer.push_back(output_device_names[i]);
@@ -67,7 +67,7 @@ void AudioDevice::SetDeviceVolumes(const f32 volume) {
     output_sink.SetDeviceVolume(volume);
 }
 
-f32 AudioDevice::GetDeviceVolume([[maybe_unused]] std::string_view name) {
+f32 AudioDevice::GetDeviceVolume([[maybe_unused]] std::string_view name) const {
     return output_sink.GetDeviceVolume();
 }
 

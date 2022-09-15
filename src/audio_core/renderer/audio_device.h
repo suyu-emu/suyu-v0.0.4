@@ -39,7 +39,7 @@ public:
      * @param max_count  - Maximum number of devices to write (count of out_buffer).
      * @return Number of device names written.
      */
-    u32 ListAudioDeviceName(std::vector<AudioDeviceName>& out_buffer, size_t max_count);
+    u32 ListAudioDeviceName(std::vector<AudioDeviceName>& out_buffer, size_t max_count) const;
 
     /**
      * Get a list of the available output devices.
@@ -49,7 +49,7 @@ public:
      * @param max_count  - Maximum number of devices to write (count of out_buffer).
      * @return Number of device names written.
      */
-    u32 ListAudioOutputDeviceName(std::vector<AudioDeviceName>& out_buffer, size_t max_count);
+    u32 ListAudioOutputDeviceName(std::vector<AudioDeviceName>& out_buffer, size_t max_count) const;
 
     /**
      * Set the volume of all streams in the backend sink.
@@ -65,7 +65,7 @@ public:
      * @param name - Name of the device to check. Unused.
      * @return Volume of the device.
      */
-    f32 GetDeviceVolume(std::string_view name);
+    f32 GetDeviceVolume(std::string_view name) const;
 
 private:
     /// Backend output sink for the device
