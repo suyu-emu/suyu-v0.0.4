@@ -73,7 +73,7 @@ public:
      * @param name - Name of the device to check. Unused.
      * @return Volume of the device.
      */
-    f32 GetDeviceVolume(std::string_view name);
+    f32 GetDeviceVolume(std::string_view name) const;
 
 private:
     /// Backend output sink for the device

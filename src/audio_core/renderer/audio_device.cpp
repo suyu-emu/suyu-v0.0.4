@@ -45,7 +45,7 @@ void AudioDevice::SetDeviceVolumes(const f32 volume) {
     output_sink.SetDeviceVolume(volume);
 }
 
-f32 AudioDevice::GetDeviceVolume([[maybe_unused]] std::string_view name) {
+f32 AudioDevice::GetDeviceVolume([[maybe_unused]] std::string_view name) const {
     return output_sink.GetDeviceVolume();
 }
 
