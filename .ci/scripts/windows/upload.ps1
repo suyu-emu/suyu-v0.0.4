@@ -65,8 +65,8 @@ if ("$env:GITHUB_ACTIONS" -eq "true") {
     # None of the other GHA builds are including source, so commenting out today
     #Copy-Item $MSVC_SOURCE_TARXZ -Destination "artifacts"
 
-    # Are debug symbols important?
-    # cp .\build\bin\yuzu*.pdb .\pdb\
+    # Debugging symbols
+    cp .\build\bin\yuzu*.pdb .\artifacts\
 
     # Write out a tag BUILD_TAG to environment for the Upload step
     # We're getting ${{ github.event.number }} as $env:PR_NUMBER"
