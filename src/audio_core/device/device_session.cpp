@@ -73,7 +73,7 @@ void DeviceSession::Stop() {
     }
 }
 
-void DeviceSession::AppendBuffers(std::span<AudioBuffer> buffers) const {
+void DeviceSession::AppendBuffers(std::span<const AudioBuffer> buffers) const {
     for (size_t i = 0; i < buffers.size(); i++) {
         Sink::SinkBuffer new_buffer{
             .frames = buffers[i].size / (channel_count * sizeof(s16)),
@@ -93,14 +93,14 @@ void DeviceSession::AppendBuffers(std::span<AudioBuffer> buffers) const {
     }
 }
 
-void DeviceSession::ReleaseBuffer(AudioBuffer& buffer) const {
+void DeviceSession::ReleaseBuffer(const AudioBuffer& buffer) const {
     if (type == Sink::StreamType::In) {
         auto samples{stream->ReleaseBuffer(buffer.size / sizeof(s16))};
         system.Memory().WriteBlockUnsafe(buffer.samples, samples.data(), buffer.size);
     }
 }
 
-bool DeviceSession::IsBufferConsumed(AudioBuffer& buffer) const {
+bool DeviceSession::IsBufferConsumed(const AudioBuffer& buffer) const {
     return played_sample_count >= buffer.end_timestamp;
 }
 

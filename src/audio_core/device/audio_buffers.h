@@ -93,7 +93,7 @@ public:
      *
      * @return Is the buffer was released.
      */
-    bool ReleaseBuffers(Core::Timing::CoreTiming& core_timing, DeviceSession& session) {
+    bool ReleaseBuffers(const Core::Timing::CoreTiming& core_timing, const DeviceSession& session) {
         std::scoped_lock l{lock};
         bool buffer_released{false};
         while (registered_count > 0) {
