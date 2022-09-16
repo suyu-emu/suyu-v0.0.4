@@ -36,7 +36,7 @@ public:
      *
      * @param buffer - The new buffer.
      */
-    void AppendBuffer(AudioBuffer& buffer) {
+    void AppendBuffer(const AudioBuffer& buffer) {
         std::scoped_lock l{lock};
         buffers[appended_index] = buffer;
         appended_count++;

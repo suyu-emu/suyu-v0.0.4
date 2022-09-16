@@ -114,12 +114,14 @@ bool System::AppendBuffer(const AudioInBuffer& buffer, const u64 tag) {
     }
 
     const auto timestamp{buffers.GetNextTimestamp()};
-    AudioBuffer new_buffer{.start_timestamp = timestamp,
-                           .end_timestamp = timestamp + buffer.size / (channel_count * sizeof(s16)),
-                           .played_timestamp = 0,
-                           .samples = buffer.samples,
-                           .tag = tag,
-                           .size = buffer.size};
+    const AudioBuffer new_buffer{
+        .start_timestamp = timestamp,
+        .end_timestamp = timestamp + buffer.size / (channel_count * sizeof(s16)),
+        .played_timestamp = 0,
+        .samples = buffer.samples,
+        .tag = tag,
+        .size = buffer.size,
+    };
 
     buffers.AppendBuffer(new_buffer);
     RegisterBuffers();
