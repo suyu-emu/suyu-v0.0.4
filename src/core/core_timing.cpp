@@ -134,13 +134,17 @@ void CoreTiming::ScheduleLoopingEvent(std::chrono::nanoseconds start_time,
                                       std::chrono::nanoseconds resched_time,
                                       const std::shared_ptr<EventType>& event_type,
                                       std::uintptr_t user_data, bool absolute_time) {
-    std::scoped_lock scope{basic_lock};
-    const auto next_time{absolute_time ? start_time : GetGlobalTimeNs() + start_time};
+    {
+        std::scoped_lock scope{basic_lock};
+        const auto next_time{absolute_time ? start_time : GetGlobalTimeNs() + start_time};
 
-    event_queue.emplace_back(
-        Event{next_time.count(), event_fifo_id++, user_data, event_type, resched_time.count()});
+        event_queue.emplace_back(
+            Event{next_time.count(), event_fifo_id++, user_data, event_type, resched_time.count()});
 
-    std::push_heap(event_queue.begin(), event_queue.end(), std::greater<>());
+        std::push_heap(event_queue.begin(), event_queue.end(), std::greater<>());
+    }
+
+    event.Set();
 }
 
 void CoreTiming::UnscheduleEvent(const std::shared_ptr<EventType>& event_type,
@@ -229,16 +233,16 @@ std::optional<s64> CoreTiming::Advance() {
             basic_lock.lock();
 
             if (evt.reschedule_time != 0) {
-                // If this event was scheduled into a pause, its time now is going to be way behind.
-                // Re-set this event to continue from the end of the pause.
-                auto next_time{evt.time + evt.reschedule_time};
-                if (evt.time < pause_end_time) {
-                    next_time = pause_end_time + evt.reschedule_time;
-                }
-
                 const auto next_schedule_time{new_schedule_time.has_value()
                                                   ? new_schedule_time.value().count()
                                                   : evt.reschedule_time};
+
+                // If this event was scheduled into a pause, its time now is going to be way behind.
+                // Re-set this event to continue from the end of the pause.
+                auto next_time{evt.time + next_schedule_time};
+                if (evt.time < pause_end_time) {
+                    next_time = pause_end_time + next_schedule_time;
+                }
 
                 event_queue.emplace_back(
                     Event{next_time, event_fifo_id++, evt.user_data, evt.type, next_schedule_time});
@@ -250,8 +254,7 @@ std::optional<s64> CoreTiming::Advance() {
     }
 
     if (!event_queue.empty()) {
-        const s64 next_time = event_queue.front().time - global_timer;
-        return next_time;
+        return event_queue.front().time;
     } else {
         return std::nullopt;
     }
@@ -264,11 +267,29 @@ void CoreTiming::ThreadLoop() {
             paused_set = false;
             const auto next_time = Advance();
             if (next_time) {
-                if (*next_time > 0) {
-                    std::chrono::nanoseconds next_time_ns = std::chrono::nanoseconds(*next_time);
-                    event.WaitFor(next_time_ns);
+                // There are more events left in the queue, wait until the next event.
+                const auto wait_time = *next_time - GetGlobalTimeNs().count();
+                if (wait_time > 0) {
+                    // Assume a timer resolution of 1ms.
+                    static constexpr s64 TimerResolutionNS = 1000000;
+
+                    // Sleep in discrete intervals of the timer resolution, and spin the rest.
+                    const auto sleep_time = wait_time - (wait_time % TimerResolutionNS);
+                    if (sleep_time > 0) {
+                        event.WaitFor(std::chrono::nanoseconds(sleep_time));
+                    }
+
+                    while (!paused && !event.IsSet() && GetGlobalTimeNs().count() < *next_time) {
+                        // Yield to reduce thread starvation.
+                        std::this_thread::yield();
+                    }
+
+                    if (event.IsSet()) {
+                        event.Reset();
+                    }
                 }
             } else {
+                // Queue is empty, wait until another event is scheduled and signals us to continue.
                 wait_set = true;
                 event.Wait();
             }
