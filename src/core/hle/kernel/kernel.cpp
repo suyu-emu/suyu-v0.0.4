@@ -24,6 +24,7 @@
 #include "core/hardware_properties.h"
 #include "core/hle/kernel/init/init_slab_setup.h"
 #include "core/hle/kernel/k_client_port.h"
+#include "core/hle/kernel/k_dynamic_resource_manager.h"
 #include "core/hle/kernel/k_handle_table.h"
 #include "core/hle/kernel/k_memory_layout.h"
 #include "core/hle/kernel/k_memory_manager.h"
@@ -75,6 +76,14 @@ struct KernelCore::Impl {
         InitializeShutdownThreads();
         InitializePreemption(kernel);
         InitializePhysicalCores();
+
+        // Initialize the Dynamic Slab Heaps.
+        {
+            const auto& pt_heap_region = memory_layout->GetPageTableHeapRegion();
+            ASSERT(pt_heap_region.GetEndAddress() != 0);
+
+            InitializeResourceManagers(pt_heap_region.GetAddress(), pt_heap_region.GetSize());
+        }
 
         RegisterHostThread();
     }
@@ -255,6 +264,18 @@ struct KernelCore::Impl {
 
         const auto time_interval = std::chrono::nanoseconds{std::chrono::milliseconds(10)};
         system.CoreTiming().ScheduleLoopingEvent(time_interval, time_interval, preemption_event);
+    }
+
+    void InitializeResourceManagers(VAddr address, size_t size) {
+        dynamic_page_manager = std::make_unique<KDynamicPageManager>();
+        memory_block_heap = std::make_unique<KMemoryBlockSlabHeap>();
+        app_memory_block_manager = std::make_unique<KMemoryBlockSlabManager>();
+
+        dynamic_page_manager->Initialize(address, size);
+        static constexpr size_t ApplicationMemoryBlockSlabHeapSize = 20000;
+        memory_block_heap->Initialize(dynamic_page_manager.get(),
+                                      ApplicationMemoryBlockSlabHeapSize);
+        app_memory_block_manager->Initialize(nullptr, memory_block_heap.get());
     }
 
     void InitializeShutdownThreads() {
@@ -770,6 +791,11 @@ struct KernelCore::Impl {
     // Kernel memory management
     std::unique_ptr<KMemoryManager> memory_manager;
 
+    // Dynamic slab managers
+    std::unique_ptr<KDynamicPageManager> dynamic_page_manager;
+    std::unique_ptr<KMemoryBlockSlabHeap> memory_block_heap;
+    std::unique_ptr<KMemoryBlockSlabManager> app_memory_block_manager;
+
     // Shared memory for services
     Kernel::KSharedMemory* hid_shared_mem{};
     Kernel::KSharedMemory* font_shared_mem{};
@@ -1039,6 +1065,14 @@ KMemoryManager& KernelCore::MemoryManager() {
 
 const KMemoryManager& KernelCore::MemoryManager() const {
     return *impl->memory_manager;
+}
+
+KMemoryBlockSlabManager& KernelCore::GetApplicationMemoryBlockManager() {
+    return *impl->app_memory_block_manager;
+}
+
+const KMemoryBlockSlabManager& KernelCore::GetApplicationMemoryBlockManager() const {
+    return *impl->app_memory_block_manager;
 }
 
 Kernel::KSharedMemory& KernelCore::GetHidSharedMem() {

@@ -37,6 +37,7 @@ class KClientSession;
 class KEvent;
 class KHandleTable;
 class KLinkedListNode;
+class KMemoryBlockSlabManager;
 class KMemoryLayout;
 class KMemoryManager;
 class KPageBuffer;
@@ -237,6 +238,12 @@ public:
 
     /// Gets the virtual memory manager for the kernel.
     const KMemoryManager& MemoryManager() const;
+
+    /// Gets the application memory block manager for the kernel.
+    KMemoryBlockSlabManager& GetApplicationMemoryBlockManager();
+
+    /// Gets the application memory block manager for the kernel.
+    const KMemoryBlockSlabManager& GetApplicationMemoryBlockManager() const;
 
     /// Gets the shared memory object for HID services.
     Kernel::KSharedMemory& GetHidSharedMem();

@@ -356,9 +356,9 @@ Result KProcess::LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std:
         return ResultLimitReached;
     }
     // Initialize proces address space
-    if (const Result result{page_table->InitializeForProcess(metadata.GetAddressSpaceType(), false,
-                                                             0x8000000, code_size,
-                                                             KMemoryManager::Pool::Application)};
+    if (const Result result{page_table->InitializeForProcess(
+            metadata.GetAddressSpaceType(), false, 0x8000000, code_size,
+            &kernel.GetApplicationMemoryBlockManager(), KMemoryManager::Pool::Application)};
         result.IsError()) {
         return result;
     }
