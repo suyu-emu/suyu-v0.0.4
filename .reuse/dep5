@@ -52,6 +52,8 @@ Files: dist/qt_themes/colorful/icons/16x16/lock.png
        dist/qt_themes/colorful/icons/48x48/chip.png
        dist/qt_themes/colorful/icons/48x48/folder.png
        dist/qt_themes/colorful_dark/icons/16x16/lock.png
+       dist/qt_themes/colorful/icons/16x16/info.png
+       dist/qt_themes/colorful/icons/16x16/sync.png
 Copyright: Icons8
 License: MIT
 Comment: https://github.com/icons8/flat-color-icons
@@ -68,8 +70,8 @@ Copyright: Ionic (http://ionic.io/)
 License: MIT
 
 Files: dist/qt_themes/colorful/icons/48x48/star.png
-       dist/qt_themes/default/icons/16x16/checked.png
-       dist/qt_themes/default/icons/16x16/failed.png
+       dist/qt_themes/colorful/icons/16x16/checked.png
+       dist/qt_themes/colorful/icons/16x16/failed.png
 Copyright: SVG Repo
 License: CC0-1.0
 
