@@ -4086,7 +4086,8 @@ int main(int argc, char* argv[]) {
     }
 #endif
 
-    if (StartupChecks(argv[0], &has_broken_vulkan)) {
+    if (StartupChecks(argv[0], &has_broken_vulkan,
+                      Settings::values.perform_vulkan_check.GetValue())) {
         return 0;
     }
 
