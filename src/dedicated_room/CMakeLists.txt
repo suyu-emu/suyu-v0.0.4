@@ -10,13 +10,13 @@ add_executable(yuzu-room
 
 create_target_directory_groups(yuzu-room)
 
-target_link_libraries(yuzu-room PRIVATE common core network)
+target_link_libraries(yuzu-room PRIVATE common network)
 if (ENABLE_WEB_SERVICE)
     target_compile_definitions(yuzu-room PRIVATE -DENABLE_WEB_SERVICE)
     target_link_libraries(yuzu-room PRIVATE web_service)
 endif()
 
-target_link_libraries(yuzu-room PRIVATE mbedtls)
+target_link_libraries(yuzu-room PRIVATE mbedtls mbedcrypto)
 if (MSVC)
     target_link_libraries(yuzu-room PRIVATE getopt)
 endif()

@@ -3,6 +3,9 @@
 
 #pragma once
 
+#include <chrono>
+#include <memory>
+#include <optional>
 #include <span>
 
 #include "audio_core/common/common.h"
@@ -11,9 +14,13 @@
 
 namespace Core {
 class System;
-}
+namespace Timing {
+struct EventType;
+} // namespace Timing
+} // namespace Core
 
 namespace AudioCore {
+
 namespace Sink {
 class SinkStream;
 struct SinkBuffer;
@@ -55,22 +62,23 @@ public:
      *
      * @param buffers - The buffers to play.
      */
-    void AppendBuffers(std::span<AudioBuffer> buffers) const;
+    void AppendBuffers(std::span<const AudioBuffer> buffers) const;
 
     /**
      * (Audio In only) Pop samples from the backend, and write them back to this buffer's address.
      *
      * @param buffer - The buffer to write to.
      */
-    void ReleaseBuffer(AudioBuffer& buffer) const;
+    void ReleaseBuffer(const AudioBuffer& buffer) const;
 
     /**
      * Check if the buffer for the given tag has been consumed by the backend.
      *
-     * @param tag - Unqiue tag of the buffer to check.
+     * @param buffer - the buffer to check.
+     *
      * @return true if the buffer has been consumed, otherwise false.
      */
-    bool IsBufferConsumed(u64 tag) const;
+    bool IsBufferConsumed(const AudioBuffer& buffer) const;
 
     /**
      * Start this device session, starting the backend stream.
@@ -96,6 +104,16 @@ public:
      */
     u64 GetPlayedSampleCount() const;
 
+    /*
+     * CoreTiming callback to increment played_sample_count over time.
+     */
+    std::optional<std::chrono::nanoseconds> ThreadFunc();
+
+    /*
+     * Set the size of the ring buffer.
+     */
+    void SetRingSize(u32 ring_size);
+
 private:
     /// System
     Core::System& system;
@@ -118,9 +136,13 @@ private:
     /// Applet resource user id of this device session
     u64 applet_resource_user_id{};
     /// Total number of samples played by this device session
-    u64 played_sample_count{};
+    std::atomic<u64> played_sample_count{};
+    /// Event increasing the played sample count every 5ms
+    std::shared_ptr<Core::Timing::EventType> thread_event;
     /// Is this session initialised?
     bool initialized{};
+    /// Buffer queue
+    std::vector<AudioBuffer> buffer_queue{};
 };
 
 } // namespace AudioCore

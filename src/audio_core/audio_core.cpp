@@ -47,22 +47,12 @@ AudioRenderer::ADSP::ADSP& AudioCore::GetADSP() {
     return *adsp;
 }
 
-void AudioCore::PauseSinks(const bool pausing) const {
-    if (pausing) {
-        output_sink->PauseStreams();
-        input_sink->PauseStreams();
-    } else {
-        output_sink->UnpauseStreams();
-        input_sink->UnpauseStreams();
-    }
+void AudioCore::SetNVDECActive(bool active) {
+    nvdec_active = active;
 }
 
-u32 AudioCore::GetStreamQueue() const {
-    return estimated_queue.load();
-}
-
-void AudioCore::SetStreamQueue(u32 size) {
-    estimated_queue.store(size);
+bool AudioCore::IsNVDECActive() const {
+    return nvdec_active;
 }
 
 } // namespace AudioCore

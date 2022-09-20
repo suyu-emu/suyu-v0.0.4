@@ -17,7 +17,7 @@ namespace AudioCore {
 
 class AudioManager;
 /**
- * Main audio class, sotred inside the core, and holding the audio manager, all sinks, and the ADSP.
+ * Main audio class, stored inside the core, and holding the audio manager, all sinks, and the ADSP.
  */
 class AudioCore {
 public:
@@ -58,26 +58,16 @@ public:
     AudioRenderer::ADSP::ADSP& GetADSP();
 
     /**
-     * Pause the sink. Called from the core.
+     * Toggle NVDEC state, used to avoid stall in playback.
      *
-     * @param pausing - Is this pause due to an actual pause, or shutdown?
-     *                  Unfortunately, shutdown also pauses streams, which can cause issues.
+     * @param active - Set true if nvdec is active, otherwise false.
      */
-    void PauseSinks(bool pausing) const;
+    void SetNVDECActive(bool active);
 
     /**
-     * Get the size of the current stream queue.
-     *
-     * @return Current stream queue size.
+     * Get NVDEC state.
      */
-    u32 GetStreamQueue() const;
-
-    /**
-     * Get the size of the current stream queue.
-     *
-     * @param size - New stream size.
-     */
-    void SetStreamQueue(u32 size);
+    bool IsNVDECActive() const;
 
 private:
     /**
@@ -93,8 +83,8 @@ private:
     std::unique_ptr<Sink::Sink> input_sink;
     /// The ADSP in the sysmodule
     std::unique_ptr<AudioRenderer::ADSP::ADSP> adsp;
-    /// Current size of the stream queue
-    std::atomic<u32> estimated_queue{0};
+    /// Is NVDec currently active?
+    bool nvdec_active{false};
 };
 
 } // namespace AudioCore

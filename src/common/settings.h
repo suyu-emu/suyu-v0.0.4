@@ -446,6 +446,7 @@ struct Values {
                                                           ShaderBackend::SPIRV, "shader_backend"};
     SwitchableSetting<bool> use_asynchronous_shaders{false, "use_asynchronous_shaders"};
     SwitchableSetting<bool> use_fast_gpu_time{true, "use_fast_gpu_time"};
+    SwitchableSetting<bool> use_pessimistic_flushes{false, "use_pessimistic_flushes"};
 
     SwitchableSetting<u8> bg_red{0, "bg_red"};
     SwitchableSetting<u8> bg_green{0, "bg_green"};
@@ -529,6 +530,7 @@ struct Values {
     Setting<bool> use_debug_asserts{false, "use_debug_asserts"};
     Setting<bool> use_auto_stub{false, "use_auto_stub"};
     Setting<bool> enable_all_controllers{false, "enable_all_controllers"};
+    Setting<bool> create_crash_dumps{false, "create_crash_dumps"};
 
     // Miscellaneous
     Setting<std::string> log_filter{"*:Info", "log_filter"};

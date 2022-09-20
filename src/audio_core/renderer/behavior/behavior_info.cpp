@@ -34,7 +34,7 @@ void BehaviorInfo::ClearError() {
     error_count = 0;
 }
 
-void BehaviorInfo::AppendError(ErrorInfo& error) {
+void BehaviorInfo::AppendError(const ErrorInfo& error) {
     LOG_ERROR(Service_Audio, "Error during RequestUpdate, reporting code {:04X} address {:08X}",
               error.error_code.raw, error.address);
     if (error_count < MaxErrors) {
@@ -42,14 +42,16 @@ void BehaviorInfo::AppendError(ErrorInfo& error) {
     }
 }
 
-void BehaviorInfo::CopyErrorInfo(std::span<ErrorInfo> out_errors, u32& out_count) {
-    auto error_count_{std::min(error_count, MaxErrors)};
-    std::memset(out_errors.data(), 0, MaxErrors * sizeof(ErrorInfo));
+void BehaviorInfo::CopyErrorInfo(std::span<ErrorInfo> out_errors, u32& out_count) const {
+    out_count = std::min(error_count, MaxErrors);
 
-    for (size_t i = 0; i < error_count_; i++) {
-        out_errors[i] = errors[i];
+    for (size_t i = 0; i < MaxErrors; i++) {
+        if (i < out_count) {
+            out_errors[i] = errors[i];
+        } else {
+            out_errors[i] = {};
+        }
     }
-    out_count = error_count_;
 }
 
 void BehaviorInfo::UpdateFlags(const Flags flags_) {

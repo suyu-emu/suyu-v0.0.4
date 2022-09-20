@@ -27,11 +27,12 @@ void System::Finalize() {
     buffer_event->GetWritableEvent().Signal();
 }
 
-std::string_view System::GetDefaultOutputDeviceName() {
+std::string_view System::GetDefaultOutputDeviceName() const {
     return "DeviceOut";
 }
 
-Result System::IsConfigValid(std::string_view device_name, const AudioOutParameter& in_params) {
+Result System::IsConfigValid(std::string_view device_name,
+                             const AudioOutParameter& in_params) const {
     if ((device_name.size() > 0) && (device_name != GetDefaultOutputDeviceName())) {
         return Service::Audio::ERR_INVALID_DEVICE_NAME;
     }
@@ -92,6 +93,7 @@ Result System::Start() {
     std::vector<AudioBuffer> buffers_to_flush{};
     buffers.RegisterBuffers(buffers_to_flush);
     session->AppendBuffers(buffers_to_flush);
+    session->SetRingSize(static_cast<u32>(buffers_to_flush.size()));
 
     return ResultSuccess;
 }
@@ -111,8 +113,15 @@ bool System::AppendBuffer(const AudioOutBuffer& buffer, u64 tag) {
         return false;
     }
 
-    AudioBuffer new_buffer{
-        .played_timestamp = 0, .samples = buffer.samples, .tag = tag, .size = buffer.size};
+    const auto timestamp{buffers.GetNextTimestamp()};
+    const AudioBuffer new_buffer{
+        .start_timestamp = timestamp,
+        .end_timestamp = timestamp + buffer.size / (channel_count * sizeof(s16)),
+        .played_timestamp = 0,
+        .samples = buffer.samples,
+        .tag = tag,
+        .size = buffer.size,
+    };
 
     buffers.AppendBuffer(new_buffer);
     RegisterBuffers();
@@ -192,11 +201,11 @@ void System::SetVolume(const f32 volume_) {
     session->SetVolume(volume_);
 }
 
-bool System::ContainsAudioBuffer(const u64 tag) {
+bool System::ContainsAudioBuffer(const u64 tag) const {
     return buffers.ContainsBuffer(tag);
 }
 
-u32 System::GetBufferCount() {
+u32 System::GetBufferCount() const {
     return buffers.GetAppendedRegisteredCount();
 }
 

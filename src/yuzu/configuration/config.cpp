@@ -15,8 +15,7 @@
 
 namespace FS = Common::FS;
 
-Config::Config(Core::System& system_, const std::string& config_name, ConfigType config_type)
-    : type(config_type), system{system_} {
+Config::Config(const std::string& config_name, ConfigType config_type) : type(config_type) {
     global = config_type == ConfigType::GlobalConfig;
 
     Initialize(config_name);
@@ -546,6 +545,7 @@ void Config::ReadDebuggingValues() {
     ReadBasicSetting(Settings::values.use_debug_asserts);
     ReadBasicSetting(Settings::values.use_auto_stub);
     ReadBasicSetting(Settings::values.enable_all_controllers);
+    ReadBasicSetting(Settings::values.create_crash_dumps);
 
     qt_config->endGroup();
 }
@@ -684,6 +684,7 @@ void Config::ReadRendererValues() {
     ReadGlobalSetting(Settings::values.shader_backend);
     ReadGlobalSetting(Settings::values.use_asynchronous_shaders);
     ReadGlobalSetting(Settings::values.use_fast_gpu_time);
+    ReadGlobalSetting(Settings::values.use_pessimistic_flushes);
     ReadGlobalSetting(Settings::values.bg_red);
     ReadGlobalSetting(Settings::values.bg_green);
     ReadGlobalSetting(Settings::values.bg_blue);
@@ -1160,6 +1161,7 @@ void Config::SaveDebuggingValues() {
     WriteBasicSetting(Settings::values.use_debug_asserts);
     WriteBasicSetting(Settings::values.disable_macro_jit);
     WriteBasicSetting(Settings::values.enable_all_controllers);
+    WriteBasicSetting(Settings::values.create_crash_dumps);
 
     qt_config->endGroup();
 }
@@ -1300,6 +1302,7 @@ void Config::SaveRendererValues() {
                  Settings::values.shader_backend.UsingGlobal());
     WriteGlobalSetting(Settings::values.use_asynchronous_shaders);
     WriteGlobalSetting(Settings::values.use_fast_gpu_time);
+    WriteGlobalSetting(Settings::values.use_pessimistic_flushes);
     WriteGlobalSetting(Settings::values.bg_red);
     WriteGlobalSetting(Settings::values.bg_green);
     WriteGlobalSetting(Settings::values.bg_blue);
@@ -1545,7 +1548,6 @@ void Config::Reload() {
     ReadValues();
     // To apply default value changes
     SaveValues();
-    system.ApplySettings();
 }
 
 void Config::Save() {

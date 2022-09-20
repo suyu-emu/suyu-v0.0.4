@@ -56,7 +56,7 @@ class NodeStates {
          *
          * @return The current stack position.
          */
-        u32 Count() {
+        u32 Count() const {
             return pos;
         }
 
@@ -83,7 +83,7 @@ class NodeStates {
          *
          * @return The node on the top of the stack.
          */
-        u32 top() {
+        u32 top() const {
             return stack[pos - 1];
         }
 
@@ -112,11 +112,11 @@ public:
     /**
      * Initialize the node states.
      *
-     * @param buffer           - The workbuffer to use. Unused.
+     * @param buffer_          - The workbuffer to use. Unused.
      * @param node_buffer_size - The size of the workbuffer. Unused.
      * @param count            - The number of nodes in the graph.
      */
-    void Initialize(std::span<u8> nodes, u64 node_buffer_size, u32 count);
+    void Initialize(std::span<u8> buffer_, u64 node_buffer_size, u32 count);
 
     /**
      * Sort the graph. Only calls DepthFirstSearch.

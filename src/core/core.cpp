@@ -141,16 +141,12 @@ struct System::Impl {
         core_timing.SyncPause(false);
         is_paused = false;
 
-        audio_core->PauseSinks(false);
-
         return status;
     }
 
     SystemResultStatus Pause() {
         std::unique_lock<std::mutex> lk(suspend_guard);
         status = SystemResultStatus::Success;
-
-        audio_core->PauseSinks(true);
 
         core_timing.SyncPause(true);
         kernel.Suspend(true);
@@ -319,10 +315,19 @@ struct System::Impl {
         if (app_loader->ReadTitle(name) != Loader::ResultStatus::Success) {
             LOG_ERROR(Core, "Failed to read title for ROM (Error {})", load_result);
         }
+
+        std::string title_version;
+        const FileSys::PatchManager pm(program_id, system.GetFileSystemController(),
+                                       system.GetContentProvider());
+        const auto metadata = pm.GetControlMetadata();
+        if (metadata.first != nullptr) {
+            title_version = metadata.first->GetVersionString();
+        }
         if (auto room_member = room_network.GetRoomMember().lock()) {
             Network::GameInfo game_info;
             game_info.name = name;
             game_info.id = program_id;
+            game_info.version = title_version;
             room_member->SendGameInfo(game_info);
         }
 

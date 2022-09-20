@@ -19,7 +19,7 @@ find_package(Git QUIET)
 
 add_custom_command(OUTPUT scm_rev.cpp
     COMMAND ${CMAKE_COMMAND}
-      -DSRC_DIR=${CMAKE_SOURCE_DIR}
+      -DSRC_DIR=${PROJECT_SOURCE_DIR}
       -DBUILD_REPOSITORY=${BUILD_REPOSITORY}
       -DTITLE_BAR_FORMAT_IDLE=${TITLE_BAR_FORMAT_IDLE}
       -DTITLE_BAR_FORMAT_RUNNING=${TITLE_BAR_FORMAT_RUNNING}
@@ -31,13 +31,13 @@ add_custom_command(OUTPUT scm_rev.cpp
       -DGIT_BRANCH=${GIT_BRANCH}
       -DBUILD_FULLNAME=${BUILD_FULLNAME}
       -DGIT_EXECUTABLE=${GIT_EXECUTABLE}
-      -P ${CMAKE_SOURCE_DIR}/CMakeModules/GenerateSCMRev.cmake
+      -P ${PROJECT_SOURCE_DIR}/CMakeModules/GenerateSCMRev.cmake
     DEPENDS
       # Check that the scm_rev files haven't changed
       "${CMAKE_CURRENT_SOURCE_DIR}/scm_rev.cpp.in"
       "${CMAKE_CURRENT_SOURCE_DIR}/scm_rev.h"
       # technically we should regenerate if the git version changed, but its not worth the effort imo
-      "${CMAKE_SOURCE_DIR}/CMakeModules/GenerateSCMRev.cmake"
+      "${PROJECT_SOURCE_DIR}/CMakeModules/GenerateSCMRev.cmake"
     VERBATIM
 )
 
@@ -166,6 +166,7 @@ if(ARCHITECTURE_x86_64)
             x64/xbyak_abi.h
             x64/xbyak_util.h
     )
+    target_link_libraries(common PRIVATE xbyak)
 endif()
 
 if (MSVC)
@@ -189,7 +190,7 @@ endif()
 create_target_directory_groups(common)
 
 target_link_libraries(common PUBLIC ${Boost_LIBRARIES} fmt::fmt microprofile Threads::Threads)
-target_link_libraries(common PRIVATE lz4::lz4 xbyak)
+target_link_libraries(common PRIVATE lz4::lz4)
 if (TARGET zstd::zstd)
   target_link_libraries(common PRIVATE zstd::zstd)
 else()

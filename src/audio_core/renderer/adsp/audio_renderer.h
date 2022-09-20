@@ -52,7 +52,7 @@ public:
     /**
      * Send a message from the host to the AudioRenderer.
      *
-     * @param message_ - The message to send to the AudioRenderer.
+     * @param message - The message to send to the AudioRenderer.
      */
     void HostSendMessage(RenderMessage message);
 
@@ -66,7 +66,7 @@ public:
     /**
      * Send a message from the AudioRenderer to the host.
      *
-     * @param message_ - The message to send to the host.
+     * @param message - The message to send to the host.
      */
     void ADSPSendMessage(RenderMessage message);
 
@@ -91,7 +91,7 @@ public:
      * @param session_id - The session id to get (0 or 1).
      * @param buffer     - The command buffer to set.
      */
-    void SetCommandBuffer(u32 session_id, CommandBuffer& buffer);
+    void SetCommandBuffer(u32 session_id, const CommandBuffer& buffer);
 
     /**
      * Get the total render time taken for the last command lists sent.
@@ -163,7 +163,7 @@ public:
     /**
      * Start the AudioRenderer.
      *
-     * @param The mailbox to use for this session.
+     * @param mailbox The mailbox to use for this session.
      */
     void Start(AudioRenderer_Mailbox* mailbox);
 

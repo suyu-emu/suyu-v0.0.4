@@ -46,7 +46,7 @@ public:
      * @param out_count - Output size of the required workbuffer.
      * @return Result code.
      */
-    Result GetWorkBufferSize(const AudioRendererParameterInternal& params, u64& out_count);
+    Result GetWorkBufferSize(const AudioRendererParameterInternal& params, u64& out_count) const;
 
     /**
      * Get a new session id.
@@ -60,14 +60,14 @@ public:
      *
      * @return The number of active sessions.
      */
-    u32 GetSessionCount();
+    u32 GetSessionCount() const;
 
     /**
      * Add a renderer system to the manager.
-     * The system will be reguarly called to generate commands for the AudioRenderer.
+     * The system will be regularly called to generate commands for the AudioRenderer.
      *
      * @param system - The system to add.
-     * @return True if the system was sucessfully added, otherwise false.
+     * @return True if the system was successfully added, otherwise false.
      */
     bool AddSystem(System& system);
 
@@ -75,7 +75,7 @@ public:
      * Remove a renderer system from the manager.
      *
      * @param system - The system to remove.
-     * @return True if the system was sucessfully removed, otherwise false.
+     * @return True if the system was successfully removed, otherwise false.
      */
     bool RemoveSystem(System& system);
 
@@ -94,7 +94,7 @@ private:
     /// Number of active renderers
     u32 session_count{};
     /// Lock for interacting with the sessions
-    std::mutex session_lock{};
+    mutable std::mutex session_lock{};
     /// Regularly generates commands from the registered systems for the AudioRenderer
     std::unique_ptr<SystemManager> system_manager{};
 };

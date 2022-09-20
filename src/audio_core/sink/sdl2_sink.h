@@ -32,8 +32,7 @@ public:
      *                          May differ from the device's channel count.
      * @param name            - Name of this stream.
      * @param type            - Type of this stream, render/in/out.
-     * @param event           - Audio render only, a signal used to prevent the renderer running too
-     *                          fast.
+     *
      * @return A pointer to the created SinkStream
      */
     SinkStream* AcquireSinkStream(Core::System& system, u32 system_channels,
@@ -44,22 +43,12 @@ public:
      *
      * @param stream - The stream to close.
      */
-    void CloseStream(const SinkStream* stream) override;
+    void CloseStream(SinkStream* stream) override;
 
     /**
      * Close all streams.
      */
     void CloseStreams() override;
-
-    /**
-     * Pause all streams.
-     */
-    void PauseStreams() override;
-
-    /**
-     * Unpause all streams.
-     */
-    void UnpauseStreams() override;
 
     /**
      * Get the device volume. Set from calls to the IAudioDevice service.
@@ -92,7 +81,7 @@ private:
 };
 
 /**
- * Get a list of conencted devices from Cubeb.
+ * Get a list of connected devices from SDL.
  *
  * @param capture - Return input (capture) devices if true, otherwise output devices.
  */

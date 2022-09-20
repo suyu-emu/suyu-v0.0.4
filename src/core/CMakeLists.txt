@@ -2,16 +2,8 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 add_library(core STATIC
-    announce_multiplayer_session.cpp
-    announce_multiplayer_session.h
     arm/arm_interface.h
     arm/arm_interface.cpp
-    arm/dynarmic/arm_dynarmic_32.cpp
-    arm/dynarmic/arm_dynarmic_32.h
-    arm/dynarmic/arm_dynarmic_64.cpp
-    arm/dynarmic/arm_dynarmic_64.h
-    arm/dynarmic/arm_dynarmic_cp15.cpp
-    arm/dynarmic/arm_dynarmic_cp15.h
     arm/dynarmic/arm_exclusive_monitor.cpp
     arm/dynarmic/arm_exclusive_monitor.h
     arm/exclusive_monitor.cpp
@@ -527,6 +519,9 @@ add_library(core STATIC
     hle/service/ncm/ncm.h
     hle/service/nfc/nfc.cpp
     hle/service/nfc/nfc.h
+    hle/service/nfp/amiibo_crypto.cpp
+    hle/service/nfp/amiibo_crypto.h
+    hle/service/nfp/amiibo_types.h
     hle/service/nfp/nfp.cpp
     hle/service/nfp/nfp.h
     hle/service/nfp/nfp_user.cpp
@@ -540,14 +535,14 @@ add_library(core STATIC
     hle/service/npns/npns.cpp
     hle/service/npns/npns.h
     hle/service/ns/errors.h
+    hle/service/ns/iplatform_service_manager.cpp
+    hle/service/ns/iplatform_service_manager.h
     hle/service/ns/language.cpp
     hle/service/ns/language.h
     hle/service/ns/ns.cpp
     hle/service/ns/ns.h
     hle/service/ns/pdm_qry.cpp
     hle/service/ns/pdm_qry.h
-    hle/service/ns/pl_u.cpp
-    hle/service/ns/pl_u.h
     hle/service/nvdrv/devices/nvdevice.h
     hle/service/nvdrv/devices/nvdisp_disp0.cpp
     hle/service/nvdrv/devices/nvdisp_disp0.h

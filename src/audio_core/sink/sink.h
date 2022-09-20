@@ -32,22 +32,12 @@ public:
      *
      * @param stream - The stream to close.
      */
-    virtual void CloseStream(const SinkStream* stream) = 0;
+    virtual void CloseStream(SinkStream* stream) = 0;
 
     /**
      * Close all streams.
      */
     virtual void CloseStreams() = 0;
-
-    /**
-     * Pause all streams.
-     */
-    virtual void PauseStreams() = 0;
-
-    /**
-     * Unpause all streams.
-     */
-    virtual void UnpauseStreams() = 0;
 
     /**
      * Create a new sink stream, kept within this sink, with a pointer returned for use.
@@ -58,8 +48,7 @@ public:
      *                          May differ from the device's channel count.
      * @param name            - Name of this stream.
      * @param type            - Type of this stream, render/in/out.
-     * @param event           - Audio render only, a signal used to prevent the renderer running too
-     *                          fast.
+     *
      * @return A pointer to the created SinkStream
      */
     virtual SinkStream* AcquireSinkStream(Core::System& system, u32 system_channels,

@@ -51,7 +51,7 @@ CommandBuffer& AudioRenderer_Mailbox::GetCommandBuffer(const s32 session_id) {
     return command_buffers[session_id];
 }
 
-void AudioRenderer_Mailbox::SetCommandBuffer(const u32 session_id, CommandBuffer& buffer) {
+void AudioRenderer_Mailbox::SetCommandBuffer(const u32 session_id, const CommandBuffer& buffer) {
     command_buffers[session_id] = buffer;
 }
 
@@ -106,9 +106,6 @@ void AudioRenderer::Start(AudioRenderer_Mailbox* mailbox_) {
 
     mailbox = mailbox_;
     thread = std::thread(&AudioRenderer::ThreadFunc, this);
-    for (auto& stream : streams) {
-        stream->Start();
-    }
     running = true;
 }
 
@@ -130,6 +127,7 @@ void AudioRenderer::CreateSinkStreams() {
         std::string name{fmt::format("ADSP_RenderStream-{}", i)};
         streams[i] =
             sink.AcquireSinkStream(system, channels, name, ::AudioCore::Sink::StreamType::Render);
+        streams[i]->SetRingSize(4);
     }
 }
 
@@ -196,11 +194,6 @@ void AudioRenderer::ThreadFunc() {
                         MICROPROFILE_SCOPE(Audio_Renderer);
                         render_times_taken[index] =
                             command_list_processor.Process(index) - start_time;
-                    }
-
-                    if (index == 0) {
-                        auto stream{command_list_processor.GetOutputSinkStream()};
-                        system.AudioCore().SetStreamQueue(stream->GetQueueSize());
                     }
 
                     const auto end_time{system.CoreTiming().GetClockTicks()};

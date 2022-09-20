@@ -11,11 +11,32 @@ stages:
 - stage: build
   displayName: 'build'
   jobs:
-  - job: build
+  - job: linux
     timeoutInMinutes: 120
-    displayName: 'windows-msvc'
+    displayName: 'linux'
     pool:
-      vmImage: windows-2019
+      vmImage: ubuntu-latest
+    strategy:
+      maxParallel: 10
+      matrix:
+        linux:
+          BuildSuffix: 'linux'
+          ScriptFolder: 'linux'
+    steps:
+    - template: ./templates/sync-source.yml
+      parameters:
+        artifactSource: $(parameters.artifactSource)
+        needSubmodules: 'true'
+    - template: ./templates/build-single.yml
+      parameters:
+        artifactSource: 'false'
+        cache: $(parameters.cache)
+        version: $(DisplayVersion)
+  - job: msvc
+    timeoutInMinutes: 120
+    displayName: 'windows'
+    pool:
+      vmImage: windows-2022
     steps:
     - template: ./templates/sync-source.yml
       parameters:

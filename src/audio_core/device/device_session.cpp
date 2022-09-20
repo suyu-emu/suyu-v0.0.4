@@ -7,11 +7,20 @@
 #include "audio_core/device/device_session.h"
 #include "audio_core/sink/sink_stream.h"
 #include "core/core.h"
+#include "core/core_timing.h"
 #include "core/memory.h"
 
 namespace AudioCore {
 
-DeviceSession::DeviceSession(Core::System& system_) : system{system_} {}
+using namespace std::literals;
+constexpr auto INCREMENT_TIME{5ms};
+
+DeviceSession::DeviceSession(Core::System& system_)
+    : system{system_}, thread_event{Core::Timing::CreateEvent(
+                           "AudioOutSampleTick",
+                           [this](std::uintptr_t, s64 time, std::chrono::nanoseconds) {
+                               return ThreadFunc();
+                           })} {}
 
 DeviceSession::~DeviceSession() {
     Finalize();
@@ -50,25 +59,26 @@ void DeviceSession::Finalize() {
 }
 
 void DeviceSession::Start() {
-    stream->SetPlayedSampleCount(played_sample_count);
-    stream->Start();
+    if (stream) {
+        stream->Start();
+        system.CoreTiming().ScheduleLoopingEvent(std::chrono::nanoseconds::zero(), INCREMENT_TIME,
+                                                 thread_event);
+    }
 }
 
 void DeviceSession::Stop() {
     if (stream) {
-        played_sample_count = stream->GetPlayedSampleCount();
         stream->Stop();
+        system.CoreTiming().UnscheduleEvent(thread_event, {});
     }
 }
 
-void DeviceSession::AppendBuffers(std::span<AudioBuffer> buffers) const {
-    auto& memory{system.Memory()};
-
-    for (size_t i = 0; i < buffers.size(); i++) {
+void DeviceSession::AppendBuffers(std::span<const AudioBuffer> buffers) const {
+    for (const auto& buffer : buffers) {
         Sink::SinkBuffer new_buffer{
-            .frames = buffers[i].size / (channel_count * sizeof(s16)),
+            .frames = buffer.size / (channel_count * sizeof(s16)),
             .frames_played = 0,
-            .tag = buffers[i].tag,
+            .tag = buffer.tag,
             .consumed = false,
         };
 
@@ -76,26 +86,22 @@ void DeviceSession::AppendBuffers(std::span<AudioBuffer> buffers) const {
             std::vector<s16> samples{};
             stream->AppendBuffer(new_buffer, samples);
         } else {
-            std::vector<s16> samples(buffers[i].size / sizeof(s16));
-            memory.ReadBlockUnsafe(buffers[i].samples, samples.data(), buffers[i].size);
+            std::vector<s16> samples(buffer.size / sizeof(s16));
+            system.Memory().ReadBlockUnsafe(buffer.samples, samples.data(), buffer.size);
             stream->AppendBuffer(new_buffer, samples);
         }
     }
 }
 
-void DeviceSession::ReleaseBuffer(AudioBuffer& buffer) const {
+void DeviceSession::ReleaseBuffer(const AudioBuffer& buffer) const {
     if (type == Sink::StreamType::In) {
-        auto& memory{system.Memory()};
         auto samples{stream->ReleaseBuffer(buffer.size / sizeof(s16))};
-        memory.WriteBlockUnsafe(buffer.samples, samples.data(), buffer.size);
+        system.Memory().WriteBlockUnsafe(buffer.samples, samples.data(), buffer.size);
     }
 }
 
-bool DeviceSession::IsBufferConsumed(u64 tag) const {
-    if (stream) {
-        return stream->IsBufferConsumed(tag);
-    }
-    return true;
+bool DeviceSession::IsBufferConsumed(const AudioBuffer& buffer) const {
+    return played_sample_count >= buffer.end_timestamp;
 }
 
 void DeviceSession::SetVolume(f32 volume) const {
@@ -105,10 +111,22 @@ void DeviceSession::SetVolume(f32 volume) const {
 }
 
 u64 DeviceSession::GetPlayedSampleCount() const {
-    if (stream) {
-        return stream->GetPlayedSampleCount();
+    return played_sample_count;
+}
+
+std::optional<std::chrono::nanoseconds> DeviceSession::ThreadFunc() {
+    // Add 5ms of samples at a 48K sample rate.
+    played_sample_count += 48'000 * INCREMENT_TIME / 1s;
+    if (type == Sink::StreamType::Out) {
+        system.AudioCore().GetAudioManager().SetEvent(Event::Type::AudioOutManager, true);
+    } else {
+        system.AudioCore().GetAudioManager().SetEvent(Event::Type::AudioInManager, true);
     }
-    return 0;
+    return std::nullopt;
+}
+
+void DeviceSession::SetRingSize(u32 ring_size) {
+    stream->SetRingSize(ring_size);
 }
 
 } // namespace AudioCore

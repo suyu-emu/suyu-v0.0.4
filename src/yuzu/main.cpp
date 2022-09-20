@@ -138,6 +138,10 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/uisettings.h"
 #include "yuzu/util/clickable_label.h"
 
+#ifdef YUZU_DBGHELP
+#include "yuzu/mini_dump.h"
+#endif
+
 using namespace Common::Literals;
 
 #ifdef USE_DISCORD_PRESENCE
@@ -269,10 +273,9 @@ bool GMainWindow::CheckDarkMode() {
 #endif // __linux__
 }
 
-GMainWindow::GMainWindow(bool has_broken_vulkan)
+GMainWindow::GMainWindow(std::unique_ptr<Config> config_, bool has_broken_vulkan)
     : ui{std::make_unique<Ui::MainWindow>()}, system{std::make_unique<Core::System>()},
-      input_subsystem{std::make_shared<InputCommon::InputSubsystem>()},
-      config{std::make_unique<Config>(*system)},
+      input_subsystem{std::make_shared<InputCommon::InputSubsystem>()}, config{std::move(config_)},
       vfs{std::make_shared<FileSys::RealVfsFilesystem>()},
       provider{std::make_unique<FileSys::ManualContentProvider>()} {
 #ifdef __linux__
@@ -860,7 +863,7 @@ void GMainWindow::InitializeWidgets() {
     });
 
     multiplayer_state = new MultiplayerState(this, game_list->GetModel(), ui->action_Leave_Room,
-                                             ui->action_Show_Room, system->GetRoomNetwork());
+                                             ui->action_Show_Room, *system);
     multiplayer_state->setVisible(false);
 
     // Create status bar
@@ -1637,7 +1640,8 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
         const auto config_file_name = title_id == 0
                                           ? Common::FS::PathToUTF8String(file_path.filename())
                                           : fmt::format("{:016X}", title_id);
-        Config per_game_config(*system, config_file_name, Config::ConfigType::PerGameConfig);
+        Config per_game_config(config_file_name, Config::ConfigType::PerGameConfig);
+        system->ApplySettings();
     }
 
     // Save configurations
@@ -2981,7 +2985,7 @@ void GMainWindow::OnConfigure() {
 
         Settings::values.disabled_addons.clear();
 
-        config = std::make_unique<Config>(*system);
+        config = std::make_unique<Config>();
         UISettings::values.reset_to_defaults = false;
 
         UISettings::values.game_dirs = std::move(old_game_dirs);
@@ -3042,6 +3046,7 @@ void GMainWindow::OnConfigure() {
 
     UpdateStatusButtons();
     controller_dialog->refreshConfiguration();
+    system->ApplySettings();
 }
 
 void GMainWindow::OnConfigureTas() {
@@ -3254,26 +3259,7 @@ void GMainWindow::LoadAmiibo(const QString& filename) {
         return;
     }
 
-    QFile nfc_file{filename};
-    if (!nfc_file.open(QIODevice::ReadOnly)) {
-        QMessageBox::warning(this, tr("Error opening Amiibo data file"),
-                             tr("Unable to open Amiibo file \"%1\" for reading.").arg(filename));
-        return;
-    }
-
-    const u64 nfc_file_size = nfc_file.size();
-    std::vector<u8> buffer(nfc_file_size);
-    const u64 read_size = nfc_file.read(reinterpret_cast<char*>(buffer.data()), nfc_file_size);
-    if (nfc_file_size != read_size) {
-        QMessageBox::warning(this, tr("Error reading Amiibo data file"),
-                             tr("Unable to fully read Amiibo data. Expected to read %1 bytes, but "
-                                "was only able to read %2 bytes.")
-                                 .arg(nfc_file_size)
-                                 .arg(read_size));
-        return;
-    }
-
-    if (!nfc->LoadAmiibo(buffer)) {
+    if (!nfc->LoadAmiibo(filename.toStdString())) {
         QMessageBox::warning(this, tr("Error loading Amiibo data"),
                              tr("Unable to load Amiibo data."));
     }
@@ -4082,7 +4068,24 @@ void GMainWindow::changeEvent(QEvent* event) {
 #endif
 
 int main(int argc, char* argv[]) {
+    std::unique_ptr<Config> config = std::make_unique<Config>();
     bool has_broken_vulkan = false;
+    bool is_child = false;
+    if (CheckEnvVars(&is_child)) {
+        return 0;
+    }
+
+#ifdef YUZU_DBGHELP
+    PROCESS_INFORMATION pi;
+    if (!is_child && Settings::values.create_crash_dumps.GetValue() &&
+        MiniDump::SpawnDebuggee(argv[0], pi)) {
+        // Delete the config object so that it doesn't save when the program exits
+        config.reset(nullptr);
+        MiniDump::DebugDebuggee(pi);
+        return 0;
+    }
+#endif
+
     if (StartupChecks(argv[0], &has_broken_vulkan)) {
         return 0;
     }
@@ -4135,7 +4138,7 @@ int main(int argc, char* argv[]) {
     // generating shaders
     setlocale(LC_ALL, "C");
 
-    GMainWindow main_window{has_broken_vulkan};
+    GMainWindow main_window{std::move(config), has_broken_vulkan};
     // After settings have been loaded by GMainWindow, apply the filter
     main_window.show();
 
