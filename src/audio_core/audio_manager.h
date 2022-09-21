@@ -14,14 +14,6 @@
 
 namespace AudioCore {
 
-namespace AudioOut {
-class Manager;
-}
-
-namespace AudioIn {
-class Manager;
-}
-
 /**
  * The AudioManager's main purpose is to wait for buffer events for the audio in and out managers,
  * and call an associated callback to release buffers.

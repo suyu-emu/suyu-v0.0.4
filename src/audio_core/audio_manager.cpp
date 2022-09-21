@@ -1,9 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include "audio_core/audio_in_manager.h"
 #include "audio_core/audio_manager.h"
-#include "audio_core/audio_out_manager.h"
 #include "core/core.h"
 
 namespace AudioCore {
