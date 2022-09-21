@@ -25,7 +25,7 @@ Result AudioManager::SetOutManager(BufferEventFunc buffer_func) {
 
     const auto index{events.GetManagerIndex(Event::Type::AudioOutManager)};
     if (buffer_events[index] == nullptr) {
-        buffer_events[index] = buffer_func;
+        buffer_events[index] = std::move(buffer_func);
         needs_update = true;
         events.SetAudioEvent(Event::Type::AudioOutManager, true);
     }
@@ -41,7 +41,7 @@ Result AudioManager::SetInManager(BufferEventFunc buffer_func) {
 
     const auto index{events.GetManagerIndex(Event::Type::AudioInManager)};
     if (buffer_events[index] == nullptr) {
-        buffer_events[index] = buffer_func;
+        buffer_events[index] = std::move(buffer_func);
         needs_update = true;
         events.SetAudioEvent(Event::Type::AudioInManager, true);
     }
