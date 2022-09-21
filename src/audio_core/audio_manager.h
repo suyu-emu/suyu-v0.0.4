@@ -76,8 +76,6 @@ private:
      */
     void ThreadFunc();
 
-    /// Have sessions started playing?
-    bool sessions_started{};
     /// Is the main thread running?
     std::atomic<bool> running{};
     /// Unused
