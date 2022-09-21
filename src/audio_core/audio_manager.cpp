@@ -58,19 +58,21 @@ void AudioManager::ThreadFunc() {
     running = true;
 
     while (running) {
-        auto timed_out{events.Wait(l, std::chrono::seconds(2))};
+        const auto timed_out{events.Wait(l, std::chrono::seconds(2))};
 
         if (events.CheckAudioEventSet(Event::Type::Max)) {
             break;
         }
 
         for (size_t i = 0; i < buffer_events.size(); i++) {
-            if (events.CheckAudioEventSet(Event::Type(i)) || timed_out) {
+            const auto event_type = static_cast<Event::Type>(i);
+
+            if (events.CheckAudioEventSet(event_type) || timed_out) {
                 if (buffer_events[i]) {
                     buffer_events[i]();
                 }
             }
-            events.SetAudioEvent(Event::Type(i), false);
+            events.SetAudioEvent(event_type, false);
         }
     }
 }
