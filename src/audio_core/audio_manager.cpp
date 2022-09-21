@@ -3,6 +3,7 @@
 
 #include "audio_core/audio_manager.h"
 #include "core/core.h"
+#include "core/hle/service/audio/errors.h"
 
 namespace AudioCore {
 

@@ -10,7 +10,8 @@
 #include <thread>
 
 #include "audio_core/audio_event.h"
-#include "core/hle/service/audio/errors.h"
+
+union Result;
 
 namespace AudioCore {
 
