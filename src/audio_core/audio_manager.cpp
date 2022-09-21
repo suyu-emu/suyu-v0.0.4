@@ -8,7 +8,7 @@
 
 namespace AudioCore {
 
-AudioManager::AudioManager(Core::System& system_) : system{system_} {
+AudioManager::AudioManager() {
     thread = std::jthread([this]() { ThreadFunc(); });
 }
 
