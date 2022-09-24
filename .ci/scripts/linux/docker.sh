@@ -35,11 +35,11 @@ rm -vf AppDir/usr/bin/yuzu-cmd AppDir/usr/bin/yuzu-tester
 # Download tools needed to build an AppImage
 wget -nc https://github.com/yuzu-emu/ext-linux-bin/raw/main/appimage/linuxdeploy-x86_64.AppImage
 wget -nc https://github.com/yuzu-emu/ext-linux-bin/raw/main/appimage/linuxdeploy-plugin-qt-x86_64.AppImage
-wget -nc https://github.com/yuzu-emu/ext-linux-bin/raw/main/appimage/AppRun-patched-x86_64
+wget -nc https://raw.githubusercontent.com/yuzu-emu/AppImageKit-checkrt/old/AppRun.sh
 wget -nc https://github.com/yuzu-emu/ext-linux-bin/raw/main/appimage/exec-x86_64.so
 # Set executable bit
 chmod 755 \
-    AppRun-patched-x86_64 \
+    AppRun.sh \
     exec-x86_64.so \
     linuxdeploy-x86_64.AppImage \
     linuxdeploy-plugin-qt-x86_64.AppImage
@@ -60,6 +60,6 @@ find AppDir -type f -regex '.*libwayland-client\.so.*' -delete -print
 # Workaround for building yuzu with GCC 10 but also trying to distribute it to Ubuntu 18.04 et al.
 # See https://github.com/darealshinji/AppImageKit-checkrt
 cp exec-x86_64.so AppDir/usr/optional/exec.so
-cp AppRun-patched-x86_64 AppDir/AppRun
+cp AppRun.sh AppDir/AppRun
 cp --dereference /usr/lib/x86_64-linux-gnu/libstdc++.so.6 AppDir/usr/optional/libstdc++/libstdc++.so.6
 cp --dereference /lib/x86_64-linux-gnu/libgcc_s.so.1 AppDir/usr/optional/libgcc_s/libgcc_s.so.1
