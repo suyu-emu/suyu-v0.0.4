@@ -27,7 +27,7 @@ enum class DeviceState : u32 {
     TagFound,
     TagRemoved,
     TagMounted,
-    Unaviable,
+    Unavailable,
     Finalized,
 };
 
@@ -36,6 +36,7 @@ enum class ModelType : u32 {
 };
 
 enum class MountTarget : u32 {
+    None,
     Rom,
     Ram,
     All,
@@ -76,18 +77,36 @@ enum class AmiiboSeries : u8 {
 using TagUuid = std::array<u8, 10>;
 using HashData = std::array<u8, 0x20>;
 using ApplicationArea = std::array<u8, 0xD8>;
+using AmiiboName = std::array<char, (amiibo_name_length * 4) + 1>;
 
 struct AmiiboDate {
-    u16 raw_date{};
+    u16_be raw_date{};
+
+    u16 DateRaw() const {
+        return static_cast<u16>(raw_date);
+    }
 
     u16 GetYear() const {
-        return static_cast<u16>(((raw_date & 0xFE00) >> 9) + 2000);
+        return static_cast<u16>(((DateRaw() & 0xFE00) >> 9) + 2000);
     }
     u8 GetMonth() const {
-        return static_cast<u8>(((raw_date & 0x01E0) >> 5) - 1);
+        return static_cast<u8>(((DateRaw() & 0x01E0) >> 5) - 1);
     }
     u8 GetDay() const {
-        return static_cast<u8>(raw_date & 0x001F);
+        return static_cast<u8>(DateRaw() & 0x001F);
+    }
+
+    void SetYear(u16 year) {
+        raw_date = DateRaw() & ~0xFE00;
+        raw_date |= static_cast<u16_be>((year - 2000) << 9);
+    }
+    void SetMonth(u8 month) {
+        raw_date = DateRaw() & ~0x01E0;
+        raw_date |= static_cast<u16_be>((month + 1) << 5);
+    }
+    void SetDay(u8 day) {
+        raw_date = DateRaw() & ~0x001F;
+        raw_date |= static_cast<u16_be>(day);
     }
 };
 static_assert(sizeof(AmiiboDate) == 2, "AmiiboDate is an invalid size");
@@ -134,7 +153,7 @@ static_assert(sizeof(NTAG215Password) == 0x8, "NTAG215Password is an invalid siz
 #pragma pack(1)
 struct EncryptedAmiiboFile {
     u8 constant_value;                     // Must be A5
-    u16 write_counter;                     // Number of times the amiibo has been written?
+    u16_be write_counter;                  // Number of times the amiibo has been written?
     INSERT_PADDING_BYTES(0x1);             // Unknown 1
     AmiiboSettings settings;               // Encrypted amiibo settings
     HashData hmac_tag;                     // Hash
@@ -157,7 +176,7 @@ struct NTAG215File {
     u32 compability_container; // Defines available memory
     HashData hmac_data;        // Hash
     u8 constant_value;         // Must be A5
-    u16 write_counter;         // Number of times the amiibo has been written?
+    u16_be write_counter;      // Number of times the amiibo has been written?
     INSERT_PADDING_BYTES(0x1); // Unknown 1
     AmiiboSettings settings;
     Service::Mii::Ver3StoreData owner_mii; // Encrypted Mii data
@@ -193,5 +212,51 @@ struct EncryptedNTAG215File {
 static_assert(sizeof(EncryptedNTAG215File) == 0x21C, "EncryptedNTAG215File is an invalid size");
 static_assert(std::is_trivially_copyable_v<EncryptedNTAG215File>,
               "EncryptedNTAG215File must be trivially copyable.");
+
+struct TagInfo {
+    TagUuid uuid;
+    u8 uuid_length;
+    INSERT_PADDING_BYTES(0x15);
+    s32 protocol;
+    u32 tag_type;
+    INSERT_PADDING_BYTES(0x30);
+};
+static_assert(sizeof(TagInfo) == 0x58, "TagInfo is an invalid size");
+
+struct WriteDate {
+    u16 year;
+    u8 month;
+    u8 day;
+};
+static_assert(sizeof(WriteDate) == 0x4, "WriteDate is an invalid size");
+
+struct CommonInfo {
+    WriteDate last_write_date;
+    u16 write_counter;
+    u8 version;
+    INSERT_PADDING_BYTES(0x1);
+    u32 application_area_size;
+    INSERT_PADDING_BYTES(0x34);
+};
+static_assert(sizeof(CommonInfo) == 0x40, "CommonInfo is an invalid size");
+
+struct ModelInfo {
+    u16 character_id;
+    u8 character_variant;
+    AmiiboType amiibo_type;
+    u16 model_number;
+    AmiiboSeries series;
+    INSERT_PADDING_BYTES(0x39); // Unknown
+};
+static_assert(sizeof(ModelInfo) == 0x40, "ModelInfo is an invalid size");
+
+struct RegisterInfo {
+    Service::Mii::CharInfo mii_char_info;
+    WriteDate creation_date;
+    AmiiboName amiibo_name;
+    u8 font_region;
+    INSERT_PADDING_BYTES(0x7A);
+};
+static_assert(sizeof(RegisterInfo) == 0x100, "RegisterInfo is an invalid size");
 
 } // namespace Service::NFP

@@ -20,13 +20,13 @@ bool IsAmiiboValid(const EncryptedNTAG215File& ntag_file) {
     const auto& amiibo_data = ntag_file.user_memory;
     LOG_DEBUG(Service_NFP, "uuid_lock=0x{0:x}", ntag_file.static_lock);
     LOG_DEBUG(Service_NFP, "compability_container=0x{0:x}", ntag_file.compability_container);
-    LOG_INFO(Service_NFP, "write_count={}", amiibo_data.write_counter);
+    LOG_DEBUG(Service_NFP, "write_count={}", static_cast<u16>(amiibo_data.write_counter));
 
-    LOG_INFO(Service_NFP, "character_id=0x{0:x}", amiibo_data.model_info.character_id);
-    LOG_INFO(Service_NFP, "character_variant={}", amiibo_data.model_info.character_variant);
-    LOG_INFO(Service_NFP, "amiibo_type={}", amiibo_data.model_info.amiibo_type);
-    LOG_INFO(Service_NFP, "model_number=0x{0:x}", amiibo_data.model_info.model_number);
-    LOG_INFO(Service_NFP, "series={}", amiibo_data.model_info.series);
+    LOG_DEBUG(Service_NFP, "character_id=0x{0:x}", amiibo_data.model_info.character_id);
+    LOG_DEBUG(Service_NFP, "character_variant={}", amiibo_data.model_info.character_variant);
+    LOG_DEBUG(Service_NFP, "amiibo_type={}", amiibo_data.model_info.amiibo_type);
+    LOG_DEBUG(Service_NFP, "model_number=0x{0:x}", amiibo_data.model_info.model_number);
+    LOG_DEBUG(Service_NFP, "series={}", amiibo_data.model_info.series);
     LOG_DEBUG(Service_NFP, "fixed_value=0x{0:x}", amiibo_data.model_info.constant_value);
 
     LOG_DEBUG(Service_NFP, "tag_dynamic_lock=0x{0:x}", ntag_file.dynamic_lock);

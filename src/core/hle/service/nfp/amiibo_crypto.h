@@ -5,7 +5,7 @@
 
 #include <array>
 
-#include "core/hle/service/nfp/amiibo_types.h"
+#include "core/hle/service/nfp/nfp_types.h"
 
 struct mbedtls_md_context_t;
 
@@ -22,7 +22,7 @@ using HmacKey = std::array<u8, 0x10>;
 using DrgbOutput = std::array<u8, 0x20>;
 
 struct HashSeed {
-    u16 magic;
+    u16_be magic;
     std::array<u8, 0xE> padding;
     std::array<u8, 0x8> uuid1;
     std::array<u8, 0x8> uuid2;
