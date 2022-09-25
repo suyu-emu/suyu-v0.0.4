@@ -768,7 +768,7 @@ public:
         return input_engine->SetCameraFormat(identifier, camera_format);
     }
 
-    Common::Input::NfcState SupportsNfc() override {
+    Common::Input::NfcState SupportsNfc() const override {
         return input_engine->SupportsNfc(identifier);
     }
 

@@ -291,7 +291,7 @@ Common::Input::NfcStatus TransformToNfc(const Common::Input::CallbackStatus& cal
     Common::Input::NfcStatus nfc{};
     switch (callback.type) {
     case Common::Input::InputType::Nfc:
-        nfc = callback.nfc_status;
+        return callback.nfc_status;
         break;
     default:
         LOG_ERROR(Input, "Conversion from type {} to NFC not implemented", callback.type);

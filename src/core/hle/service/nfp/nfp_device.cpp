@@ -42,10 +42,11 @@ NfpDevice::NfpDevice(Core::HID::NpadIdType npad_id_, Core::System& system_,
 }
 
 NfpDevice::~NfpDevice() {
-    if (is_controller_set) {
-        npad_device->DeleteCallback(callback_key);
-        is_controller_set = false;
+    if (!is_controller_set) {
+        return;
     }
+    npad_device->DeleteCallback(callback_key);
+    is_controller_set = false;
 };
 
 void NfpDevice::NpadUpdate(Core::HID::ControllerTriggerType type) {
@@ -453,7 +454,7 @@ Result NfpDevice::SetApplicationArea(const std::vector<u8>& data) {
     return ResultSuccess;
 }
 
-Result NfpDevice::CreateApplicationArea(u32 access_id, const std::vector<u8>& data) {
+Result NfpDevice::CreateApplicationArea(u32 access_id, std::span<const u8> data) {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {
@@ -470,7 +471,7 @@ Result NfpDevice::CreateApplicationArea(u32 access_id, const std::vector<u8>& da
     return RecreateApplicationArea(access_id, data);
 }
 
-Result NfpDevice::RecreateApplicationArea(u32 access_id, const std::vector<u8>& data) {
+Result NfpDevice::RecreateApplicationArea(u32 access_id, std::span<const u8> data) {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {

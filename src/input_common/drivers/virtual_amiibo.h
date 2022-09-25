@@ -39,7 +39,7 @@ public:
     Common::Input::PollingError SetPollingMode(
         const PadIdentifier& identifier_, const Common::Input::PollingMode polling_mode_) override;
 
-    Common::Input::NfcState SupportsNfc(const PadIdentifier& identifier_) override;
+    Common::Input::NfcState SupportsNfc(const PadIdentifier& identifier_) const override;
 
     Common::Input::NfcState WriteNfcData(const PadIdentifier& identifier_,
                                          const std::vector<u8>& data) override;

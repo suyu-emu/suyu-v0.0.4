@@ -5,6 +5,7 @@
 
 #include <array>
 
+#include "common/swap.h"
 #include "core/hle/service/mii/types.h"
 
 namespace Service::NFP {
@@ -80,33 +81,33 @@ using ApplicationArea = std::array<u8, 0xD8>;
 using AmiiboName = std::array<char, (amiibo_name_length * 4) + 1>;
 
 struct AmiiboDate {
-    u16_be raw_date{};
+    u16 raw_date{};
 
-    u16 DateRaw() const {
-        return static_cast<u16>(raw_date);
+    u16 GetValue() const {
+        return Common::swap16(raw_date);
     }
 
     u16 GetYear() const {
-        return static_cast<u16>(((DateRaw() & 0xFE00) >> 9) + 2000);
+        return static_cast<u16>(((GetValue() & 0xFE00) >> 9) + 2000);
     }
     u8 GetMonth() const {
-        return static_cast<u8>(((DateRaw() & 0x01E0) >> 5) - 1);
+        return static_cast<u8>(((GetValue() & 0x01E0) >> 5) - 1);
     }
     u8 GetDay() const {
-        return static_cast<u8>(DateRaw() & 0x001F);
+        return static_cast<u8>(GetValue() & 0x001F);
     }
 
     void SetYear(u16 year) {
-        raw_date = DateRaw() & ~0xFE00;
-        raw_date |= static_cast<u16_be>((year - 2000) << 9);
+        const u16 year_converted = static_cast<u16>((year - 2000) << 9);
+        raw_date = Common::swap16((GetValue() & ~0xFE00) | year_converted);
     }
     void SetMonth(u8 month) {
-        raw_date = DateRaw() & ~0x01E0;
-        raw_date |= static_cast<u16_be>((month + 1) << 5);
+        const u16 month_converted = static_cast<u16>((month + 1) << 5);
+        raw_date = Common::swap16((GetValue() & ~0x01E0) | month_converted);
     }
     void SetDay(u8 day) {
-        raw_date = DateRaw() & ~0x001F;
-        raw_date |= static_cast<u16_be>(day);
+        const u16 day_converted = static_cast<u16>(day);
+        raw_date = Common::swap16((GetValue() & ~0x001F) | day_converted);
     }
 };
 static_assert(sizeof(AmiiboDate) == 2, "AmiiboDate is an invalid size");

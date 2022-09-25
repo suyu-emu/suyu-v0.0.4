@@ -56,8 +56,8 @@ public:
     Result OpenApplicationArea(u32 access_id);
     Result GetApplicationArea(std::vector<u8>& data) const;
     Result SetApplicationArea(const std::vector<u8>& data);
-    Result CreateApplicationArea(u32 access_id, const std::vector<u8>& data);
-    Result RecreateApplicationArea(u32 access_id, const std::vector<u8>& data);
+    Result CreateApplicationArea(u32 access_id, std::span<const u8> data);
+    Result RecreateApplicationArea(u32 access_id, std::span<const u8> data);
     Result DeleteApplicationArea();
 
     u64 GetHandle() const;

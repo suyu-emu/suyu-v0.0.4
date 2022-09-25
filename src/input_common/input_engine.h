@@ -129,7 +129,8 @@ public:
     }
 
     // Request nfc data from a controller
-    virtual Common::Input::NfcState SupportsNfc([[maybe_unused]] const PadIdentifier& identifier) {
+    virtual Common::Input::NfcState SupportsNfc(
+        [[maybe_unused]] const PadIdentifier& identifier) const {
         return Common::Input::NfcState::NotSupported;
     }
 

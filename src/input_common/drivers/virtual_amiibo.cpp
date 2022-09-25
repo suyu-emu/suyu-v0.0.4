@@ -20,7 +20,7 @@ constexpr PadIdentifier identifier = {
 
 VirtualAmiibo::VirtualAmiibo(std::string input_engine_) : InputEngine(std::move(input_engine_)) {}
 
-VirtualAmiibo::~VirtualAmiibo() {}
+VirtualAmiibo::~VirtualAmiibo() = default;
 
 Common::Input::PollingError VirtualAmiibo::SetPollingMode(
     [[maybe_unused]] const PadIdentifier& identifier_,
@@ -41,7 +41,7 @@ Common::Input::PollingError VirtualAmiibo::SetPollingMode(
 }
 
 Common::Input::NfcState VirtualAmiibo::SupportsNfc(
-    [[maybe_unused]] const PadIdentifier& identifier_) {
+    [[maybe_unused]] const PadIdentifier& identifier_) const {
     return Common::Input::NfcState::Success;
 }
 

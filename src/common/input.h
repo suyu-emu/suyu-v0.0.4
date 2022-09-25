@@ -332,7 +332,7 @@ public:
         return CameraError::NotSupported;
     }
 
-    virtual NfcState SupportsNfc() {
+    virtual NfcState SupportsNfc() const {
         return NfcState::NotSupported;
     }
 
