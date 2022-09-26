@@ -671,19 +671,23 @@ private:
         IPC::RequestParser rp{ctx};
         const u64 display_id = rp.Pop<u64>();
 
-        LOG_WARNING(Service_VI, "(STUBBED) called. display_id=0x{:016X}", display_id);
+        LOG_DEBUG(Service_VI, "called. display_id={}", display_id);
 
         const auto vsync_event = nv_flinger.FindVsyncEvent(display_id);
-        if (!vsync_event) {
-            LOG_ERROR(Service_VI, "Vsync event was not found for display_id={}", display_id);
+        if (vsync_event.Failed()) {
+            const auto result = vsync_event.Code();
+            if (result == ResultNotFound) {
+                LOG_ERROR(Service_VI, "Vsync event was not found for display_id={}", display_id);
+            }
+
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ResultNotFound);
+            rb.Push(result);
             return;
         }
 
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(ResultSuccess);
-        rb.PushCopyObjects(vsync_event);
+        rb.PushCopyObjects(*vsync_event);
     }
 
     void ConvertScalingMode(Kernel::HLERequestContext& ctx) {
