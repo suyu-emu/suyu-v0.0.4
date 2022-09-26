@@ -22,6 +22,9 @@
 #include "core/hle/service/nfp/nfp_device.h"
 #include "core/hle/service/nfp/nfp_result.h"
 #include "core/hle/service/nfp/nfp_user.h"
+#include "core/hle/service/time/time_manager.h"
+#include "core/hle/service/time/time_zone_content_manager.h"
+#include "core/hle/service/time/time_zone_types.h"
 
 namespace Service::NFP {
 NfpDevice::NfpDevice(Core::HID::NpadIdType npad_id_, Core::System& system_,
@@ -39,6 +42,9 @@ NfpDevice::NfpDevice(Core::HID::NpadIdType npad_id_, Core::System& system_,
     };
     is_controller_set = true;
     callback_key = npad_device->SetCallback(engine_callback);
+
+    auto& standard_steady_clock{system.GetTimeManager().GetStandardSteadyClockCore()};
+    current_posix_time = standard_steady_clock.GetCurrentTimePoint(system).time_point;
 }
 
 NfpDevice::~NfpDevice() {
@@ -98,6 +104,7 @@ bool NfpDevice::LoadAmiibo(const std::vector<u8>& data) {
     }
 
     device_state = DeviceState::TagFound;
+    deactivate_event->GetReadableEvent().Clear();
     activate_event->GetWritableEvent().Signal();
     return true;
 }
@@ -112,6 +119,7 @@ void NfpDevice::CloseAmiibo() {
     device_state = DeviceState::TagRemoved;
     encrypted_tag_data = {};
     tag_data = {};
+    activate_event->GetReadableEvent().Clear();
     deactivate_event->GetWritableEvent().Signal();
 }
 
@@ -140,8 +148,6 @@ void NfpDevice::Finalize() {
 }
 
 Result NfpDevice::StartDetection(s32 protocol_) {
-    // TODO(german77): Add callback for when nfc data is available
-
     if (device_state == DeviceState::Initialized || device_state == DeviceState::TagRemoved) {
         npad_device->SetPollingMode(Common::Input::PollingMode::NFC);
         device_state = DeviceState::SearchingForTag;
@@ -172,11 +178,9 @@ Result NfpDevice::StopDetection() {
 Result NfpDevice::Flush() {
     auto& settings = tag_data.settings;
 
-    if (settings.write_date.raw_date != settings.write_date.raw_date) {
-        // TODO: Read current system date
-        settings.write_date.SetYear(2022);
-        settings.write_date.SetMonth(9);
-        settings.write_date.SetDay(9);
+    const auto& current_date = GetAmiiboDate(current_posix_time);
+    if (settings.write_date.raw_date != current_date.raw_date) {
+        settings.write_date = current_date;
         settings.crc_counter++;
         // TODO: Find how to calculate the crc check
         // settings.crc = CalculateCRC(settings);
@@ -239,10 +243,10 @@ Result NfpDevice::GetTagInfo(TagInfo& tag_info) const {
     }
 
     tag_info = {
-        .uuid = encrypted_tag_data.uuid,
-        .uuid_length = static_cast<u8>(encrypted_tag_data.uuid.size()),
-        .protocol = protocol,
-        .tag_type = static_cast<u32>(encrypted_tag_data.user_memory.model_info.amiibo_type),
+        .uuid = encrypted_tag_data.uuid.uid,
+        .uuid_length = static_cast<u8>(encrypted_tag_data.uuid.uid.size()),
+        .protocol = 1,
+        .tag_type = 2,
     };
 
     return ResultSuccess;
@@ -255,8 +259,6 @@ Result NfpDevice::GetCommonInfo(CommonInfo& common_info) const {
     }
 
     const auto& settings = tag_data.settings;
-    const u32 application_area_size =
-        tag_data.settings.settings.appdata_initialized == 0 ? 0 : sizeof(ApplicationArea);
 
     // TODO: Validate this data
     common_info = {
@@ -267,8 +269,8 @@ Result NfpDevice::GetCommonInfo(CommonInfo& common_info) const {
                 settings.write_date.GetDay(),
             },
         .write_counter = tag_data.write_counter,
-        .version = 1,
-        .application_area_size = application_area_size,
+        .version = 0,
+        .application_area_size = sizeof(ApplicationArea),
     };
     return ResultSuccess;
 }
@@ -334,13 +336,8 @@ Result NfpDevice::SetNicknameAndOwner(const AmiiboName& amiibo_name) {
     Service::Mii::MiiManager manager;
     auto& settings = tag_data.settings;
 
-    // TODO: Read current system date
-    settings.init_date.SetYear(2022);
-    settings.init_date.SetMonth(9);
-    settings.init_date.SetDay(9);
-    settings.write_date.SetYear(2022);
-    settings.write_date.SetMonth(9);
-    settings.write_date.SetDay(9);
+    settings.init_date = GetAmiiboDate(current_posix_time);
+    settings.write_date = GetAmiiboDate(current_posix_time);
     settings.crc_counter++;
     // TODO: Find how to calculate the crc check
     // settings.crc = CalculateCRC(settings);
@@ -568,6 +565,25 @@ void NfpDevice::SetAmiiboName(AmiiboSettings& settings, const AmiiboName& amiibo
     for (std::size_t i = 0; i < amiibo_name_length; i++) {
         settings.amiibo_name[i] = static_cast<u16_be>(settings_amiibo_name[i]);
     }
+}
+
+AmiiboDate NfpDevice::GetAmiiboDate(s64 posix_time) const {
+    const auto& time_zone_manager =
+        system.GetTimeManager().GetTimeZoneContentManager().GetTimeZoneManager();
+    Time::TimeZone::CalendarInfo calendar_info{};
+    AmiiboDate amiibo_date{};
+
+    amiibo_date.SetYear(2000);
+    amiibo_date.SetMonth(1);
+    amiibo_date.SetDay(1);
+
+    if (time_zone_manager.ToCalendarTime({}, posix_time, calendar_info) == ResultSuccess) {
+        amiibo_date.SetYear(calendar_info.time.year);
+        amiibo_date.SetMonth(calendar_info.time.month);
+        amiibo_date.SetDay(calendar_info.time.day);
+    }
+
+    return amiibo_date;
 }
 
 } // namespace Service::NFP

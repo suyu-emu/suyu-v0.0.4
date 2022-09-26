@@ -24,6 +24,7 @@ public:
     CharInfo BuildDefault(std::size_t index);
     CharInfo ConvertV3ToCharInfo(const Ver3StoreData& mii_v3) const;
     Ver3StoreData ConvertCharInfoToV3(const CharInfo& mii) const;
+    bool ValidateV3Info(const Ver3StoreData& mii_v3) const;
     ResultVal<std::vector<MiiInfoElement>> GetDefault(SourceFlag source_flag);
     Result GetIndex(const CharInfo& info, u32& index);
 

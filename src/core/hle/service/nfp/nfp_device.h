@@ -75,6 +75,7 @@ private:
 
     AmiiboName GetAmiiboName(const AmiiboSettings& settings) const;
     void SetAmiiboName(AmiiboSettings& settings, const AmiiboName& amiibo_name);
+    AmiiboDate GetAmiiboDate(s64 posix_time) const;
 
     bool is_controller_set{};
     int callback_key;
@@ -88,6 +89,7 @@ private:
 
     bool is_data_moddified{};
     s32 protocol{};
+    s64 current_posix_time{};
     DeviceState device_state{DeviceState::Unavailable};
 
     NTAG215File tag_data{};

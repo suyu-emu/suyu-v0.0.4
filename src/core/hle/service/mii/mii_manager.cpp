@@ -431,8 +431,7 @@ CharInfo MiiManager::ConvertV3ToCharInfo(const Ver3StoreData& mii_v3) const {
     Service::Mii::MiiManager manager;
     auto mii = manager.BuildDefault(0);
 
-    // Check if mii data exist
-    if (mii_v3.version == 0) {
+    if (!ValidateV3Info(mii_v3)) {
         return mii;
     }
 
@@ -574,6 +573,71 @@ Ver3StoreData MiiManager::ConvertCharInfoToV3(const CharInfo& mii) const {
     // TODO: Validate mii_v3 data
 
     return mii_v3;
+}
+
+bool MiiManager::ValidateV3Info(const Ver3StoreData& mii_v3) const {
+    bool is_valid = mii_v3.version == 0 || mii_v3.version == 3;
+
+    is_valid = is_valid && (mii_v3.mii_name[0] != 0);
+
+    is_valid = is_valid && (mii_v3.mii_information.birth_month < 13);
+    is_valid = is_valid && (mii_v3.mii_information.birth_day < 32);
+    is_valid = is_valid && (mii_v3.mii_information.favorite_color < 12);
+    is_valid = is_valid && (mii_v3.height < 128);
+    is_valid = is_valid && (mii_v3.build < 128);
+
+    is_valid = is_valid && (mii_v3.appearance_bits1.face_shape < 12);
+    is_valid = is_valid && (mii_v3.appearance_bits1.skin_color < 7);
+    is_valid = is_valid && (mii_v3.appearance_bits2.wrinkles < 12);
+    is_valid = is_valid && (mii_v3.appearance_bits2.makeup < 12);
+
+    is_valid = is_valid && (mii_v3.hair_style < 132);
+    is_valid = is_valid && (mii_v3.appearance_bits3.hair_color < 8);
+
+    is_valid = is_valid && (mii_v3.appearance_bits4.eye_type < 60);
+    is_valid = is_valid && (mii_v3.appearance_bits4.eye_color < 6);
+    is_valid = is_valid && (mii_v3.appearance_bits4.eye_scale < 8);
+    is_valid = is_valid && (mii_v3.appearance_bits4.eye_vertical_stretch < 7);
+    is_valid = is_valid && (mii_v3.appearance_bits4.eye_rotation < 8);
+    is_valid = is_valid && (mii_v3.appearance_bits4.eye_spacing < 13);
+    is_valid = is_valid && (mii_v3.appearance_bits4.eye_y_position < 19);
+
+    is_valid = is_valid && (mii_v3.appearance_bits5.eyebrow_style < 25);
+    is_valid = is_valid && (mii_v3.appearance_bits5.eyebrow_color < 8);
+    is_valid = is_valid && (mii_v3.appearance_bits5.eyebrow_scale < 9);
+    is_valid = is_valid && (mii_v3.appearance_bits5.eyebrow_yscale < 7);
+    is_valid = is_valid && (mii_v3.appearance_bits5.eyebrow_rotation < 12);
+    is_valid = is_valid && (mii_v3.appearance_bits5.eyebrow_spacing < 12);
+    is_valid = is_valid && (mii_v3.appearance_bits5.eyebrow_y_position < 19);
+
+    is_valid = is_valid && (mii_v3.appearance_bits6.nose_type < 18);
+    is_valid = is_valid && (mii_v3.appearance_bits6.nose_scale < 9);
+    is_valid = is_valid && (mii_v3.appearance_bits6.nose_y_position < 19);
+
+    is_valid = is_valid && (mii_v3.appearance_bits7.mouth_type < 36);
+    is_valid = is_valid && (mii_v3.appearance_bits7.mouth_color < 5);
+    is_valid = is_valid && (mii_v3.appearance_bits7.mouth_scale < 9);
+    is_valid = is_valid && (mii_v3.appearance_bits7.mouth_horizontal_stretch < 7);
+    is_valid = is_valid && (mii_v3.appearance_bits8.mouth_y_position < 19);
+
+    is_valid = is_valid && (mii_v3.appearance_bits8.mustache_type < 6);
+    is_valid = is_valid && (mii_v3.appearance_bits9.mustache_scale < 7);
+    is_valid = is_valid && (mii_v3.appearance_bits9.mustache_y_position < 17);
+
+    is_valid = is_valid && (mii_v3.appearance_bits9.bear_type < 6);
+    is_valid = is_valid && (mii_v3.appearance_bits9.facial_hair_color < 8);
+
+    is_valid = is_valid && (mii_v3.appearance_bits10.glasses_type < 9);
+    is_valid = is_valid && (mii_v3.appearance_bits10.glasses_color < 6);
+    is_valid = is_valid && (mii_v3.appearance_bits10.glasses_scale < 8);
+    is_valid = is_valid && (mii_v3.appearance_bits10.glasses_y_position < 21);
+
+    is_valid = is_valid && (mii_v3.appearance_bits11.mole_enabled < 2);
+    is_valid = is_valid && (mii_v3.appearance_bits11.mole_scale < 9);
+    is_valid = is_valid && (mii_v3.appearance_bits11.mole_x_position < 17);
+    is_valid = is_valid && (mii_v3.appearance_bits11.mole_y_position < 31);
+
+    return is_valid;
 }
 
 ResultVal<std::vector<MiiInfoElement>> MiiManager::GetDefault(SourceFlag source_flag) {

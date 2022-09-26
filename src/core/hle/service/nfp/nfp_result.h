@@ -17,5 +17,6 @@ constexpr Result ApplicationAreaIsNotInitialized(ErrorModule::NFP, 128);
 constexpr Result CorruptedData(ErrorModule::NFP, 144);
 constexpr Result WrongApplicationAreaId(ErrorModule::NFP, 152);
 constexpr Result ApplicationAreaExist(ErrorModule::NFP, 168);
+constexpr Result NotAnAmiibo(ErrorModule::NFP, 178);
 
 } // namespace Service::NFP

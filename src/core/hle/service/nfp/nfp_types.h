@@ -75,10 +75,18 @@ enum class AmiiboSeries : u8 {
     Diablo,
 };
 
-using TagUuid = std::array<u8, 10>;
+using UniqueSerialNumber = std::array<u8, 7>;
+using LockBytes = std::array<u8, 2>;
 using HashData = std::array<u8, 0x20>;
 using ApplicationArea = std::array<u8, 0xD8>;
 using AmiiboName = std::array<char, (amiibo_name_length * 4) + 1>;
+
+struct TagUuid {
+    UniqueSerialNumber uid;
+    u8 nintendo_id;
+    LockBytes lock_bytes;
+};
+static_assert(sizeof(TagUuid) == 10, "TagUuid is an invalid size");
 
 struct AmiiboDate {
     u16 raw_date{};
@@ -91,7 +99,7 @@ struct AmiiboDate {
         return static_cast<u16>(((GetValue() & 0xFE00) >> 9) + 2000);
     }
     u8 GetMonth() const {
-        return static_cast<u8>(((GetValue() & 0x01E0) >> 5) - 1);
+        return static_cast<u8>((GetValue() & 0x01E0) >> 5);
     }
     u8 GetDay() const {
         return static_cast<u8>(GetValue() & 0x001F);
@@ -102,7 +110,7 @@ struct AmiiboDate {
         raw_date = Common::swap16((GetValue() & ~0xFE00) | year_converted);
     }
     void SetMonth(u8 month) {
-        const u16 month_converted = static_cast<u16>((month + 1) << 5);
+        const u16 month_converted = static_cast<u16>(month << 5);
         raw_date = Common::swap16((GetValue() & ~0x01E0) | month_converted);
     }
     void SetDay(u8 day) {
@@ -137,7 +145,7 @@ struct AmiiboModelInfo {
     u16 character_id;
     u8 character_variant;
     AmiiboType amiibo_type;
-    u16 model_number;
+    u16_be model_number;
     AmiiboSeries series;
     u8 constant_value;         // Must be 02
     INSERT_PADDING_BYTES(0x4); // Unknown
@@ -172,7 +180,7 @@ struct EncryptedAmiiboFile {
 static_assert(sizeof(EncryptedAmiiboFile) == 0x1F8, "AmiiboFile is an invalid size");
 
 struct NTAG215File {
-    std::array<u8, 0x2> uuid2;
+    LockBytes lock_bytes;      // Tag UUID
     u16 static_lock;           // Set defined pages as read only
     u32 compability_container; // Defines available memory
     HashData hmac_data;        // Hash
@@ -188,7 +196,8 @@ struct NTAG215File {
     HashData hash;                    // Probably a SHA256-HMAC hash?
     ApplicationArea application_area; // Encrypted Game data
     HashData hmac_tag;                // Hash
-    std::array<u8, 0x8> uuid;
+    UniqueSerialNumber uid;           // Unique serial number
+    u8 nintendo_id;                   // Tag UUID
     AmiiboModelInfo model_info;
     HashData keygen_salt;     // Salt
     u32 dynamic_lock;         // Dynamic lock
@@ -215,7 +224,8 @@ static_assert(std::is_trivially_copyable_v<EncryptedNTAG215File>,
               "EncryptedNTAG215File must be trivially copyable.");
 
 struct TagInfo {
-    TagUuid uuid;
+    UniqueSerialNumber uuid;
+    INSERT_PADDING_BYTES(0x3);
     u8 uuid_length;
     INSERT_PADDING_BYTES(0x15);
     s32 protocol;
