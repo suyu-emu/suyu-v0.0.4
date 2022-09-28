@@ -189,7 +189,7 @@ void IUser::Mount(Kernel::HLERequestContext& ctx) {
         return;
     }
 
-    const auto result = device.value()->Mount();
+    const auto result = device.value()->Mount(mount_target);
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(result);
 }

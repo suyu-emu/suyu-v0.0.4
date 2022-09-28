@@ -40,7 +40,7 @@ public:
 
     Result StartDetection(s32 protocol_);
     Result StopDetection();
-    Result Mount();
+    Result Mount(MountTarget mount_target);
     Result Unmount();
     Result Flush();
 
@@ -55,7 +55,7 @@ public:
 
     Result OpenApplicationArea(u32 access_id);
     Result GetApplicationArea(std::vector<u8>& data) const;
-    Result SetApplicationArea(const std::vector<u8>& data);
+    Result SetApplicationArea(std::span<const u8> data);
     Result CreateApplicationArea(u32 access_id, std::span<const u8> data);
     Result RecreateApplicationArea(u32 access_id, std::span<const u8> data);
     Result DeleteApplicationArea();
@@ -70,7 +70,7 @@ public:
 
 private:
     void NpadUpdate(Core::HID::ControllerTriggerType type);
-    bool LoadAmiibo(const std::vector<u8>& data);
+    bool LoadAmiibo(std::span<const u8> data);
     void CloseAmiibo();
 
     AmiiboName GetAmiiboName(const AmiiboSettings& settings) const;
@@ -88,8 +88,10 @@ private:
     Kernel::KEvent* availability_change_event = nullptr;
 
     bool is_data_moddified{};
+    bool is_app_area_open{};
     s32 protocol{};
     s64 current_posix_time{};
+    MountTarget mount_target{MountTarget::None};
     DeviceState device_state{DeviceState::Unavailable};
 
     NTAG215File tag_data{};

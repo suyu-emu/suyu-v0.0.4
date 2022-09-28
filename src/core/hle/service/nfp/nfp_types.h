@@ -75,6 +75,22 @@ enum class AmiiboSeries : u8 {
     Diablo,
 };
 
+enum class TagType : u32 {
+    None,
+    Type1, // ISO14443A RW 96-2k bytes 106kbit/s
+    Type2, // ISO14443A RW/RO 540 bytes 106kbit/s
+    Type3, // Sony Felica RW/RO 2k bytes 212kbit/s
+    Type4, // ISO14443A RW/RO 4k-32k bytes 424kbit/s
+    Type5, // ISO15693 RW/RO 540 bytes 106kbit/s
+};
+
+enum class TagProtocol : u32 {
+    None,
+    TypeA, // ISO14443A
+    TypeB, // ISO14443B
+    TypeF, // Sony Felica
+};
+
 using UniqueSerialNumber = std::array<u8, 7>;
 using LockBytes = std::array<u8, 2>;
 using HashData = std::array<u8, 0x20>;
@@ -174,7 +190,7 @@ struct EncryptedAmiiboFile {
     u16_be applicaton_write_counter;       // Encrypted Counter
     u32_be application_area_id;            // Encrypted Game id
     std::array<u8, 0x2> unknown;
-    HashData hash;                    // Probably a SHA256-HMAC hash?
+    std::array<u32, 0x8> unknown2;
     ApplicationArea application_area; // Encrypted Game data
 };
 static_assert(sizeof(EncryptedAmiiboFile) == 0x1F8, "AmiiboFile is an invalid size");
@@ -193,7 +209,7 @@ struct NTAG215File {
     u16_be applicaton_write_counter; // Encrypted Counter
     u32_be application_area_id;
     std::array<u8, 0x2> unknown;
-    HashData hash;                    // Probably a SHA256-HMAC hash?
+    std::array<u32, 0x8> unknown2;
     ApplicationArea application_area; // Encrypted Game data
     HashData hmac_tag;                // Hash
     UniqueSerialNumber uid;           // Unique serial number
@@ -228,8 +244,8 @@ struct TagInfo {
     INSERT_PADDING_BYTES(0x3);
     u8 uuid_length;
     INSERT_PADDING_BYTES(0x15);
-    s32 protocol;
-    u32 tag_type;
+    TagProtocol protocol;
+    TagType tag_type;
     INSERT_PADDING_BYTES(0x30);
 };
 static_assert(sizeof(TagInfo) == 0x58, "TagInfo is an invalid size");

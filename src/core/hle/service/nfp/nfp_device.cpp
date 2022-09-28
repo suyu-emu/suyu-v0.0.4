@@ -85,7 +85,7 @@ void NfpDevice::NpadUpdate(Core::HID::ControllerTriggerType type) {
     }
 }
 
-bool NfpDevice::LoadAmiibo(const std::vector<u8>& data) {
+bool NfpDevice::LoadAmiibo(std::span<const u8> data) {
     if (device_state != DeviceState::SearchingForTag) {
         LOG_ERROR(Service_NFP, "Game is not looking for amiibos, current state {}", device_state);
         return false;
@@ -176,6 +176,19 @@ Result NfpDevice::StopDetection() {
 }
 
 Result NfpDevice::Flush() {
+    if (device_state != DeviceState::TagMounted) {
+        LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
+        if (device_state == DeviceState::TagRemoved) {
+            return TagRemoved;
+        }
+        return WrongDeviceState;
+    }
+
+    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+        LOG_ERROR(Service_NFP, "Amiibo is read only", device_state);
+        return WrongDeviceState;
+    }
+
     auto& settings = tag_data.settings;
 
     const auto& current_date = GetAmiiboDate(current_posix_time);
@@ -206,7 +219,7 @@ Result NfpDevice::Flush() {
     return ResultSuccess;
 }
 
-Result NfpDevice::Mount() {
+Result NfpDevice::Mount(MountTarget mount_target_) {
     if (device_state != DeviceState::TagFound) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
         return WrongDeviceState;
@@ -218,6 +231,7 @@ Result NfpDevice::Mount() {
     }
 
     device_state = DeviceState::TagMounted;
+    mount_target = mount_target_;
     return ResultSuccess;
 }
 
@@ -233,6 +247,9 @@ Result NfpDevice::Unmount() {
     }
 
     device_state = DeviceState::TagFound;
+    mount_target = MountTarget::None;
+    is_app_area_open = false;
+
     return ResultSuccess;
 }
 
@@ -245,8 +262,8 @@ Result NfpDevice::GetTagInfo(TagInfo& tag_info) const {
     tag_info = {
         .uuid = encrypted_tag_data.uuid.uid,
         .uuid_length = static_cast<u8>(encrypted_tag_data.uuid.uid.size()),
-        .protocol = 1,
-        .tag_type = 2,
+        .protocol = TagProtocol::TypeA,
+        .tag_type = TagType::Type2,
     };
 
     return ResultSuccess;
@@ -255,6 +272,14 @@ Result NfpDevice::GetTagInfo(TagInfo& tag_info) const {
 Result NfpDevice::GetCommonInfo(CommonInfo& common_info) const {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
+        if (device_state == DeviceState::TagRemoved) {
+            return TagRemoved;
+        }
+        return WrongDeviceState;
+    }
+
+    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+        LOG_ERROR(Service_NFP, "Amiibo is read only", device_state);
         return WrongDeviceState;
     }
 
@@ -301,6 +326,11 @@ Result NfpDevice::GetRegisterInfo(RegisterInfo& register_info) const {
         return WrongDeviceState;
     }
 
+    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+        LOG_ERROR(Service_NFP, "Amiibo is read only", device_state);
+        return WrongDeviceState;
+    }
+
     if (tag_data.settings.settings.amiibo_initialized == 0) {
         return RegistrationIsNotInitialized;
     }
@@ -333,6 +363,11 @@ Result NfpDevice::SetNicknameAndOwner(const AmiiboName& amiibo_name) {
         return WrongDeviceState;
     }
 
+    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+        LOG_ERROR(Service_NFP, "Amiibo is read only", device_state);
+        return WrongDeviceState;
+    }
+
     Service::Mii::MiiManager manager;
     auto& settings = tag_data.settings;
 
@@ -350,6 +385,19 @@ Result NfpDevice::SetNicknameAndOwner(const AmiiboName& amiibo_name) {
 }
 
 Result NfpDevice::RestoreAmiibo() {
+    if (device_state != DeviceState::TagMounted) {
+        LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
+        if (device_state == DeviceState::TagRemoved) {
+            return TagRemoved;
+        }
+        return WrongDeviceState;
+    }
+
+    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+        LOG_ERROR(Service_NFP, "Amiibo is read only", device_state);
+        return WrongDeviceState;
+    }
+
     // TODO: Load amiibo from backup on system
     LOG_ERROR(Service_NFP, "Not Implemented");
     return ResultSuccess;
@@ -385,6 +433,11 @@ Result NfpDevice::OpenApplicationArea(u32 access_id) {
         return WrongDeviceState;
     }
 
+    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+        LOG_ERROR(Service_NFP, "Amiibo is read only", device_state);
+        return WrongDeviceState;
+    }
+
     if (tag_data.settings.settings.appdata_initialized.Value() == 0) {
         LOG_WARNING(Service_NFP, "Application area is not initialized");
         return ApplicationAreaIsNotInitialized;
@@ -395,6 +448,8 @@ Result NfpDevice::OpenApplicationArea(u32 access_id) {
         return WrongApplicationAreaId;
     }
 
+    is_app_area_open = true;
+
     return ResultSuccess;
 }
 
@@ -404,6 +459,16 @@ Result NfpDevice::GetApplicationArea(std::vector<u8>& data) const {
         if (device_state == DeviceState::TagRemoved) {
             return TagRemoved;
         }
+        return WrongDeviceState;
+    }
+
+    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+        LOG_ERROR(Service_NFP, "Amiibo is read only", device_state);
+        return WrongDeviceState;
+    }
+
+    if (!is_app_area_open) {
+        LOG_ERROR(Service_NFP, "Application area is not open");
         return WrongDeviceState;
     }
 
@@ -422,12 +487,22 @@ Result NfpDevice::GetApplicationArea(std::vector<u8>& data) const {
     return ResultSuccess;
 }
 
-Result NfpDevice::SetApplicationArea(const std::vector<u8>& data) {
+Result NfpDevice::SetApplicationArea(std::span<const u8> data) {
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {
             return TagRemoved;
         }
+        return WrongDeviceState;
+    }
+
+    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+        LOG_ERROR(Service_NFP, "Amiibo is read only", device_state);
+        return WrongDeviceState;
+    }
+
+    if (!is_app_area_open) {
+        LOG_ERROR(Service_NFP, "Application area is not open");
         return WrongDeviceState;
     }
 
@@ -442,8 +517,10 @@ Result NfpDevice::SetApplicationArea(const std::vector<u8>& data) {
     }
 
     Common::TinyMT rng{};
-    rng.GenerateRandomBytes(tag_data.application_area.data(), sizeof(ApplicationArea));
     std::memcpy(tag_data.application_area.data(), data.data(), data.size());
+    // HW seems to fill excess data with garbage
+    rng.GenerateRandomBytes(tag_data.application_area.data() + data.size(),
+                            sizeof(ApplicationArea) - data.size());
 
     tag_data.applicaton_write_counter++;
     is_data_moddified = true;
@@ -477,6 +554,11 @@ Result NfpDevice::RecreateApplicationArea(u32 access_id, std::span<const u8> dat
         return WrongDeviceState;
     }
 
+    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+        LOG_ERROR(Service_NFP, "Amiibo is read only", device_state);
+        return WrongDeviceState;
+    }
+
     if (data.size() > sizeof(ApplicationArea)) {
         LOG_ERROR(Service_NFP, "Wrong data size {}", data.size());
         return ResultUnknown;
@@ -505,6 +587,11 @@ Result NfpDevice::DeleteApplicationArea() {
         if (device_state == DeviceState::TagRemoved) {
             return TagRemoved;
         }
+        return WrongDeviceState;
+    }
+
+    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+        LOG_ERROR(Service_NFP, "Amiibo is read only", device_state);
         return WrongDeviceState;
     }
 

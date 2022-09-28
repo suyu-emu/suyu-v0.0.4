@@ -58,8 +58,9 @@ bool IsAmiiboValid(const EncryptedNTAG215File& ntag_file) {
     if (amiibo_data.model_info.constant_value != 0x02) {
         return false;
     }
-    // dynamic_lock value apparently is not constant
-    // ntag_file.dynamic_lock == 0x0F0001
+    if ((ntag_file.dynamic_lock & 0xFFFFFF) != 0x0F0001U) {
+        return false;
+    }
     if (ntag_file.CFG0 != 0x04000000U) {
         return false;
     }
@@ -85,7 +86,7 @@ NTAG215File NfcDataToEncodedData(const EncryptedNTAG215File& nfc_data) {
     encoded_data.applicaton_write_counter = nfc_data.user_memory.applicaton_write_counter;
     encoded_data.application_area_id = nfc_data.user_memory.application_area_id;
     encoded_data.unknown = nfc_data.user_memory.unknown;
-    encoded_data.hash = nfc_data.user_memory.hash;
+    encoded_data.unknown2 = nfc_data.user_memory.unknown2;
     encoded_data.application_area = nfc_data.user_memory.application_area;
     encoded_data.hmac_tag = nfc_data.user_memory.hmac_tag;
     encoded_data.lock_bytes = nfc_data.uuid.lock_bytes;
@@ -116,7 +117,7 @@ EncryptedNTAG215File EncodedDataToNfcData(const NTAG215File& encoded_data) {
     nfc_data.user_memory.applicaton_write_counter = encoded_data.applicaton_write_counter;
     nfc_data.user_memory.application_area_id = encoded_data.application_area_id;
     nfc_data.user_memory.unknown = encoded_data.unknown;
-    nfc_data.user_memory.hash = encoded_data.hash;
+    nfc_data.user_memory.unknown2 = encoded_data.unknown2;
     nfc_data.user_memory.application_area = encoded_data.application_area;
     nfc_data.user_memory.hmac_tag = encoded_data.hmac_tag;
     nfc_data.user_memory.model_info = encoded_data.model_info;
@@ -181,7 +182,6 @@ std::vector<u8> GenerateInternalKey(const InternalKey& key, const HashSeed& seed
 
 void CryptoInit(CryptoCtx& ctx, mbedtls_md_context_t& hmac_ctx, const HmacKey& hmac_key,
                 const std::vector<u8>& seed) {
-
     // Initialize context
     ctx.used = false;
     ctx.counter = 0;
