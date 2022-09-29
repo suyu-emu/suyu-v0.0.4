@@ -442,8 +442,15 @@ CharInfo MiiManager::ConvertV3ToCharInfo(const Ver3StoreData& mii_v3) const {
     mii.height = mii_v3.height;
     mii.build = mii_v3.build;
 
-    memset(mii.name.data(), 0, mii.name.size());
-    memcpy(mii.name.data(), mii_v3.mii_name.data(), mii_v3.mii_name.size());
+    // Copy name until string terminator
+    mii.name = {};
+    for (std::size_t index = 0; index < mii.name.size() - 1; index++) {
+        mii.name[index] = mii_v3.mii_name[index];
+        if (mii.name[index] == 0) {
+            break;
+        }
+    }
+
     mii.font_region = mii_v3.region_information.character_set;
 
     mii.faceline_type = mii_v3.appearance_bits1.face_shape;
@@ -515,7 +522,15 @@ Ver3StoreData MiiManager::ConvertCharInfoToV3(const CharInfo& mii) const {
     mii_v3.height = mii.height;
     mii_v3.build = mii.build;
 
-    memcpy(mii_v3.mii_name.data(), mii.name.data(), mii.name.size());
+    // Copy name until string terminator
+    mii_v3.mii_name = {};
+    for (std::size_t index = 0; index < mii.name.size() - 1; index++) {
+        mii_v3.mii_name[index] = mii.name[index];
+        if (mii_v3.mii_name[index] == 0) {
+            break;
+        }
+    }
+
     mii_v3.region_information.character_set.Assign(mii.font_region);
 
     mii_v3.appearance_bits1.face_shape.Assign(mii.faceline_type);
