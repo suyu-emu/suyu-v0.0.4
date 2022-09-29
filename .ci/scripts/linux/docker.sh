@@ -33,16 +33,14 @@ DESTDIR="$PWD/AppDir" ninja install
 rm -vf AppDir/usr/bin/yuzu-cmd AppDir/usr/bin/yuzu-tester
 
 # Download tools needed to build an AppImage
-wget -nc https://github.com/yuzu-emu/ext-linux-bin/raw/main/appimage/linuxdeploy-x86_64.AppImage
-wget -nc https://github.com/yuzu-emu/ext-linux-bin/raw/main/appimage/linuxdeploy-plugin-qt-x86_64.AppImage
+wget -nc https://raw.githubusercontent.com/lat9nq/deploy/main/linux/deploy-linux.sh
 wget -nc https://raw.githubusercontent.com/yuzu-emu/AppImageKit-checkrt/old/AppRun.sh
 wget -nc https://github.com/yuzu-emu/ext-linux-bin/raw/main/appimage/exec-x86_64.so
 # Set executable bit
 chmod 755 \
+    deploy-linux.sh \
     AppRun.sh \
     exec-x86_64.so \
-    linuxdeploy-x86_64.AppImage \
-    linuxdeploy-plugin-qt-x86_64.AppImage
 
 # Workaround for https://github.com/AppImage/AppImageKit/issues/828
 export APPIMAGE_EXTRACT_AND_RUN=1
@@ -52,7 +50,7 @@ mkdir -p AppDir/usr/optional/libstdc++
 mkdir -p AppDir/usr/optional/libgcc_s
 
 # Deploy yuzu's needed dependencies
-./linuxdeploy-x86_64.AppImage --appdir AppDir --plugin qt
+DEPLOY_QT=1 ./deploy-linux.sh AppDir/usr/bin/yuzu AppDir
 
 # Workaround for libQt5MultimediaGstTools indirectly requiring libwayland-client and breaking Vulkan usage on end-user systems
 find AppDir -type f -regex '.*libwayland-client\.so.*' -delete -print
