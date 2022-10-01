@@ -33,7 +33,7 @@ DESTDIR="$PWD/AppDir" ninja install
 rm -vf AppDir/usr/bin/yuzu-cmd AppDir/usr/bin/yuzu-tester
 
 # Download tools needed to build an AppImage
-wget -nc https://raw.githubusercontent.com/lat9nq/deploy/main/linux/deploy-linux.sh
+wget -nc https://raw.githubusercontent.com/yuzu-emu/ext-linux-bin/main/gcc/deploy-linux.sh
 wget -nc https://raw.githubusercontent.com/yuzu-emu/AppImageKit-checkrt/old/AppRun.sh
 wget -nc https://github.com/yuzu-emu/ext-linux-bin/raw/main/appimage/exec-x86_64.so
 # Set executable bit
