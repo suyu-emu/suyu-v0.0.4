@@ -31,6 +31,8 @@ enum class NodeStateChange : u8 {
     DisconnectAndConnect,
 };
 
+DECLARE_ENUM_FLAG_OPERATORS(NodeStateChange)
+
 enum class ScanFilterFlag : u32 {
     None = 0,
     LocalCommunicationId = 1 << 0,
@@ -100,13 +102,13 @@ enum class AcceptPolicy : u8 {
 
 enum class WifiChannel : s16 {
     Default = 0,
-    wifi24_1 = 1,
-    wifi24_6 = 6,
-    wifi24_11 = 11,
-    wifi50_36 = 36,
-    wifi50_40 = 40,
-    wifi50_44 = 44,
-    wifi50_48 = 48,
+    Wifi24_1 = 1,
+    Wifi24_6 = 6,
+    Wifi24_11 = 11,
+    Wifi50_36 = 36,
+    Wifi50_40 = 40,
+    Wifi50_44 = 44,
+    Wifi50_48 = 48,
 };
 
 enum class LinkLevel : s8 {
@@ -114,6 +116,11 @@ enum class LinkLevel : s8 {
     Low,
     Good,
     Excellent,
+};
+
+enum class NodeStatus : u8 {
+    Disconnected,
+    Connected,
 };
 
 struct NodeLatestUpdate {
@@ -150,7 +157,7 @@ struct Ssid {
 
     Ssid() = default;
 
-    explicit Ssid(std::string_view data) {
+    constexpr explicit Ssid(std::string_view data) {
         length = static_cast<u8>(std::min(data.size(), SsidLengthMax));
         data.copy(raw.data(), length);
         raw[length] = 0;
@@ -159,19 +166,18 @@ struct Ssid {
     std::string GetStringValue() const {
         return std::string(raw.data());
     }
+
+    bool operator==(const Ssid& b) const {
+        return (length == b.length) && (std::memcmp(raw.data(), b.raw.data(), length) == 0);
+    }
+
+    bool operator!=(const Ssid& b) const {
+        return !operator==(b);
+    }
 };
 static_assert(sizeof(Ssid) == 0x22, "Ssid is an invalid size");
 
-struct Ipv4Address {
-    union {
-        u32 raw{};
-        std::array<u8, 4> bytes;
-    };
-
-    std::string GetStringValue() const {
-        return fmt::format("{}.{}.{}.{}", bytes[3], bytes[2], bytes[1], bytes[0]);
-    }
-};
+using Ipv4Address = std::array<u8, 4>;
 static_assert(sizeof(Ipv4Address) == 0x4, "Ipv4Address is an invalid size");
 
 struct MacAddress {
@@ -180,6 +186,14 @@ struct MacAddress {
     friend bool operator==(const MacAddress& lhs, const MacAddress& rhs) = default;
 };
 static_assert(sizeof(MacAddress) == 0x6, "MacAddress is an invalid size");
+
+struct MACAddressHash {
+    size_t operator()(const MacAddress& address) const {
+        u64 value{};
+        std::memcpy(&value, address.raw.data(), sizeof(address.raw));
+        return value;
+    }
+};
 
 struct ScanFilter {
     NetworkId network_id;
