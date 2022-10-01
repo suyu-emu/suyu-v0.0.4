@@ -429,17 +429,11 @@ void MacroJITx64Impl::Compile_Branch(Macro::Opcode opcode) {
             Xbyak::Label handle_post_exit{};
             Xbyak::Label skip{};
             jmp(skip, T_NEAR);
-            if (opcode.is_exit) {
-                L(handle_post_exit);
-                // Execute 1 instruction
-                mov(BRANCH_HOLDER, end_of_code);
-                // Jump to next instruction to skip delay slot check
-                jmp(labels[jump_address], T_NEAR);
-            } else {
-                L(handle_post_exit);
-                xor_(BRANCH_HOLDER, BRANCH_HOLDER);
-                jmp(labels[jump_address], T_NEAR);
-            }
+
+            L(handle_post_exit);
+            xor_(BRANCH_HOLDER, BRANCH_HOLDER);
+            jmp(labels[jump_address], T_NEAR);
+
             L(skip);
             mov(BRANCH_HOLDER, handle_post_exit);
             jmp(delay_skip[pc], T_NEAR);
