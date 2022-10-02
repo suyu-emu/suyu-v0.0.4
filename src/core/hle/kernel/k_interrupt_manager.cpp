@@ -11,25 +11,22 @@
 namespace Kernel::KInterruptManager {
 
 void HandleInterrupt(KernelCore& kernel, s32 core_id) {
-    auto* process = kernel.CurrentProcess();
-    if (!process) {
-        return;
-    }
-
     // Acknowledge the interrupt.
     kernel.PhysicalCore(core_id).ClearInterrupt();
 
     auto& current_thread = GetCurrentThread(kernel);
 
-    // If the user disable count is set, we may need to pin the current thread.
-    if (current_thread.GetUserDisableCount() && !process->GetPinnedThread(core_id)) {
-        KScopedSchedulerLock sl{kernel};
+    if (auto* process = kernel.CurrentProcess(); process) {
+        // If the user disable count is set, we may need to pin the current thread.
+        if (current_thread.GetUserDisableCount() && !process->GetPinnedThread(core_id)) {
+            KScopedSchedulerLock sl{kernel};
 
-        // Pin the current thread.
-        process->PinCurrentThread(core_id);
+            // Pin the current thread.
+            process->PinCurrentThread(core_id);
 
-        // Set the interrupt flag for the thread.
-        GetCurrentThread(kernel).SetInterruptFlag();
+            // Set the interrupt flag for the thread.
+            GetCurrentThread(kernel).SetInterruptFlag();
+        }
     }
 
     // Request interrupt scheduling.
