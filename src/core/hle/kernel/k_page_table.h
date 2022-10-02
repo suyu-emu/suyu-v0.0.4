@@ -88,11 +88,11 @@ public:
                                 KMemoryAttribute attr_mask, KMemoryAttribute attr);
 
     Common::PageTable& PageTableImpl() {
-        return m_page_table_impl;
+        return *m_page_table_impl;
     }
 
     const Common::PageTable& PageTableImpl() const {
-        return m_page_table_impl;
+        return *m_page_table_impl;
     }
 
     bool CanContain(VAddr addr, size_t size, KMemoryState state) const;
@@ -303,7 +303,7 @@ public:
         return IsKernel() ? 1 : 4;
     }
     PAddr GetPhysicalAddr(VAddr addr) const {
-        const auto backing_addr = m_page_table_impl.backing_addr[addr >> PageBits];
+        const auto backing_addr = m_page_table_impl->backing_addr[addr >> PageBits];
         ASSERT(backing_addr);
         return backing_addr + addr;
     }
@@ -365,7 +365,7 @@ private:
     KMemoryManager::Pool m_memory_pool{KMemoryManager::Pool::Application};
     KMemoryManager::Direction m_allocation_option{KMemoryManager::Direction::FromFront};
 
-    Common::PageTable m_page_table_impl;
+    std::unique_ptr<Common::PageTable> m_page_table_impl;
 
     Core::System& m_system;
 };

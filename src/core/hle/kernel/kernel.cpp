@@ -95,6 +95,15 @@ struct KernelCore::Impl {
         }
     }
 
+    void CloseCurrentProcess() {
+        (*current_process).Finalize();
+        // current_process->Close();
+        // TODO: The current process should be destroyed based on accurate ref counting after
+        // calling Close(). Adding a manual Destroy() call instead to avoid a memory leak.
+        (*current_process).Destroy();
+        current_process = nullptr;
+    }
+
     void Shutdown() {
         is_shutting_down.store(true, std::memory_order_relaxed);
         SCOPE_EXIT({ is_shutting_down.store(false, std::memory_order_relaxed); });
@@ -157,15 +166,7 @@ struct KernelCore::Impl {
             }
         }
 
-        // Shutdown all processes.
-        if (current_process) {
-            (*current_process).Finalize();
-            // current_process->Close();
-            // TODO: The current process should be destroyed based on accurate ref counting after
-            // calling Close(). Adding a manual Destroy() call instead to avoid a memory leak.
-            (*current_process).Destroy();
-            current_process = nullptr;
-        }
+        CloseCurrentProcess();
 
         // Track kernel objects that were not freed on shutdown
         {
@@ -868,6 +869,10 @@ KProcess* KernelCore::CurrentProcess() {
 
 const KProcess* KernelCore::CurrentProcess() const {
     return impl->current_process;
+}
+
+void KernelCore::CloseCurrentProcess() {
+    impl->CloseCurrentProcess();
 }
 
 const std::vector<KProcess*>& KernelCore::GetProcessList() const {

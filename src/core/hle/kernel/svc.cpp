@@ -933,7 +933,7 @@ static Result GetInfo(Core::System& system, u64* result, u64 info_id, Handle han
             return ResultSuccess;
 
         case GetInfoType::UserExceptionContextAddr:
-            *result = process->GetTLSRegionAddress();
+            *result = process->GetProcessLocalRegionAddress();
             return ResultSuccess;
 
         case GetInfoType::TotalPhysicalMemoryAvailableWithoutSystemResource:

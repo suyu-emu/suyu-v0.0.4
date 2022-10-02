@@ -256,16 +256,21 @@ Result KPageTable::InitializeForProcess(FileSys::ProgramAddressSpaceType as_type
     m_mapped_physical_memory_size = 0;
     m_memory_pool = pool;
 
-    m_page_table_impl.Resize(m_address_space_width, PageBits);
+    m_page_table_impl = std::make_unique<Common::PageTable>();
+    m_page_table_impl->Resize(m_address_space_width, PageBits);
 
     return m_memory_block_manager.Initialize(m_address_space_start, m_address_space_end,
                                              m_memory_block_slab_manager);
 }
 
 void KPageTable::Finalize() {
+    // Finalize memory blocks.
     m_memory_block_manager.Finalize(m_memory_block_slab_manager, [&](VAddr addr, u64 size) {
-        m_system.Memory().UnmapRegion(m_page_table_impl, addr, size);
+        m_system.Memory().UnmapRegion(*m_page_table_impl, addr, size);
     });
+
+    // Close the backing page table, as the destructor is not called for guest objects.
+    m_page_table_impl.reset();
 }
 
 Result KPageTable::MapProcessCode(VAddr addr, size_t num_pages, KMemoryState state,
@@ -514,7 +519,7 @@ Result KPageTable::MakePageGroup(KPageGroup& pg, VAddr addr, size_t num_pages) {
     // Begin traversal.
     Common::PageTable::TraversalContext context;
     Common::PageTable::TraversalEntry next_entry;
-    R_UNLESS(m_page_table_impl.BeginTraversal(next_entry, context, addr),
+    R_UNLESS(m_page_table_impl->BeginTraversal(next_entry, context, addr),
              ResultInvalidCurrentMemory);
 
     // Prepare tracking variables.
@@ -525,7 +530,7 @@ Result KPageTable::MakePageGroup(KPageGroup& pg, VAddr addr, size_t num_pages) {
     // Iterate, adding to group as we go.
     const auto& memory_layout = m_system.Kernel().MemoryLayout();
     while (tot_size < size) {
-        R_UNLESS(m_page_table_impl.ContinueTraversal(next_entry, context),
+        R_UNLESS(m_page_table_impl->ContinueTraversal(next_entry, context),
                  ResultInvalidCurrentMemory);
 
         if (next_entry.phys_addr != (cur_addr + cur_size)) {
@@ -588,7 +593,7 @@ bool KPageTable::IsValidPageGroup(const KPageGroup& pg_ll, VAddr addr, size_t nu
     // Begin traversal.
     Common::PageTable::TraversalContext context;
     Common::PageTable::TraversalEntry next_entry;
-    if (!m_page_table_impl.BeginTraversal(next_entry, context, addr)) {
+    if (!m_page_table_impl->BeginTraversal(next_entry, context, addr)) {
         return false;
     }
 
@@ -599,7 +604,7 @@ bool KPageTable::IsValidPageGroup(const KPageGroup& pg_ll, VAddr addr, size_t nu
 
     // Iterate, comparing expected to actual.
     while (tot_size < size) {
-        if (!m_page_table_impl.ContinueTraversal(next_entry, context)) {
+        if (!m_page_table_impl->ContinueTraversal(next_entry, context)) {
             return false;
         }
 
@@ -2042,7 +2047,7 @@ Result KPageTable::Operate(VAddr addr, size_t num_pages, const KPageGroup& page_
 
         switch (operation) {
         case OperationType::MapGroup:
-            m_system.Memory().MapMemoryRegion(m_page_table_impl, addr, size, node.GetAddress());
+            m_system.Memory().MapMemoryRegion(*m_page_table_impl, addr, size, node.GetAddress());
             break;
         default:
             ASSERT(false);
@@ -2064,12 +2069,12 @@ Result KPageTable::Operate(VAddr addr, size_t num_pages, KMemoryPermission perm,
 
     switch (operation) {
     case OperationType::Unmap:
-        m_system.Memory().UnmapRegion(m_page_table_impl, addr, num_pages * PageSize);
+        m_system.Memory().UnmapRegion(*m_page_table_impl, addr, num_pages * PageSize);
         break;
     case OperationType::Map: {
         ASSERT(map_addr);
         ASSERT(Common::IsAligned(map_addr, PageSize));
-        m_system.Memory().MapMemoryRegion(m_page_table_impl, addr, num_pages * PageSize, map_addr);
+        m_system.Memory().MapMemoryRegion(*m_page_table_impl, addr, num_pages * PageSize, map_addr);
         break;
     }
     case OperationType::ChangePermissions:

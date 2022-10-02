@@ -13,6 +13,7 @@
 #include "core/hle/kernel/k_auto_object.h"
 #include "core/hle/kernel/k_condition_variable.h"
 #include "core/hle/kernel/k_handle_table.h"
+#include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/kernel/k_thread_local_page.h"
 #include "core/hle/kernel/k_worker_task.h"
@@ -31,7 +32,6 @@ class ProgramMetadata;
 namespace Kernel {
 
 class KernelCore;
-class KPageTable;
 class KResourceLimit;
 class KThread;
 class KSharedMemoryInfo;
@@ -107,12 +107,12 @@ public:
 
     /// Gets a reference to the process' page table.
     KPageTable& PageTable() {
-        return *page_table;
+        return page_table;
     }
 
     /// Gets const a reference to the process' page table.
     const KPageTable& PageTable() const {
-        return *page_table;
+        return page_table;
     }
 
     /// Gets a reference to the process' handle table.
@@ -150,9 +150,8 @@ public:
         return address_arbiter.WaitForAddress(address, arb_type, value, timeout);
     }
 
-    /// Gets the address to the process' dedicated TLS region.
-    VAddr GetTLSRegionAddress() const {
-        return tls_region_address;
+    VAddr GetProcessLocalRegionAddress() const {
+        return plr_address;
     }
 
     /// Gets the current status of the process
@@ -279,18 +278,18 @@ public:
     }
 
     /// Retrieves the total physical memory available to this process in bytes.
-    u64 GetTotalPhysicalMemoryAvailable() const;
+    u64 GetTotalPhysicalMemoryAvailable();
 
     /// Retrieves the total physical memory available to this process in bytes,
     /// without the size of the personal system resource heap added to it.
-    u64 GetTotalPhysicalMemoryAvailableWithoutSystemResource() const;
+    u64 GetTotalPhysicalMemoryAvailableWithoutSystemResource();
 
     /// Retrieves the total physical memory used by this process in bytes.
-    u64 GetTotalPhysicalMemoryUsed() const;
+    u64 GetTotalPhysicalMemoryUsed();
 
     /// Retrieves the total physical memory used by this process in bytes,
     /// without the size of the personal system resource heap added to it.
-    u64 GetTotalPhysicalMemoryUsedWithoutSystemResource() const;
+    u64 GetTotalPhysicalMemoryUsedWithoutSystemResource();
 
     /// Gets the list of all threads created with this process as their owner.
     std::list<KThread*>& GetThreadList() {
@@ -413,8 +412,10 @@ private:
     /// Allocates the main thread stack for the process, given the stack size in bytes.
     Result AllocateMainThreadStack(std::size_t stack_size);
 
+    void FinalizeHandleTable();
+
     /// Memory manager for this process
-    std::unique_ptr<KPageTable> page_table;
+    KPageTable page_table;
 
     /// Current status of the process
     State state{};
@@ -432,6 +433,8 @@ private:
 
     /// Resource limit descriptor for this process
     KResourceLimit* resource_limit{};
+
+    VAddr system_resource_address{};
 
     /// The ideal CPU core for this process, threads are scheduled on this core by default.
     u8 ideal_core = 0;
@@ -459,7 +462,7 @@ private:
     KConditionVariable condition_var;
 
     /// Address indicating the location of the process' dedicated TLS region.
-    VAddr tls_region_address = 0;
+    VAddr plr_address = 0;
 
     /// Random values for svcGetInfo RandomEntropy
     std::array<u64, RANDOM_ENTROPY_SIZE> random_entropy{};
@@ -485,8 +488,12 @@ private:
     /// Schedule count of this process
     s64 schedule_count{};
 
+    size_t memory_release_hint{};
+
     bool is_signaled{};
     bool is_suspended{};
+    bool is_immortal{};
+    bool is_handle_table_initialized{};
     bool is_initialized{};
 
     std::atomic<u16> num_running_threads{};

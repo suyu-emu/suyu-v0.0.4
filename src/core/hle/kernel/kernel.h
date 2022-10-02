@@ -131,6 +131,9 @@ public:
     /// Retrieves a const pointer to the current process.
     const KProcess* CurrentProcess() const;
 
+    /// Closes the current process.
+    void CloseCurrentProcess();
+
     /// Retrieves the list of processes.
     const std::vector<KProcess*>& GetProcessList() const;
 
