@@ -346,6 +346,20 @@ void SvcWrap64(Core::System& system) {
     FuncReturn(system, retval);
 }
 
+// Used by CreateSession
+template <Result func(Core::System&, Handle*, Handle*, u32, u64)>
+void SvcWrap64(Core::System& system) {
+    Handle param_1 = 0;
+    Handle param_2 = 0;
+    const u32 retval = func(system, &param_1, &param_2, static_cast<u32>(Param(system, 2)),
+                            static_cast<u32>(Param(system, 3)))
+                           .raw;
+
+    system.CurrentArmInterface().SetReg(1, param_1);
+    system.CurrentArmInterface().SetReg(2, param_2);
+    FuncReturn(system, retval);
+}
+
 // Used by WaitForAddress
 template <Result func(Core::System&, u64, Svc::ArbitrationType, s32, s64)>
 void SvcWrap64(Core::System& system) {

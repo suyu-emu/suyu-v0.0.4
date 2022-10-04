@@ -29,6 +29,7 @@
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_scoped_resource_reservation.h"
+#include "core/hle/kernel/k_session.h"
 #include "core/hle/kernel/k_shared_memory.h"
 #include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/kernel/k_thread.h"
@@ -254,6 +255,93 @@ static Result UnmapMemory(Core::System& system, VAddr dst_addr, VAddr src_addr, 
 
 static Result UnmapMemory32(Core::System& system, u32 dst_addr, u32 src_addr, u32 size) {
     return UnmapMemory(system, dst_addr, src_addr, size);
+}
+
+template <typename T>
+Result CreateSession(Core::System& system, Handle* out_server, Handle* out_client, u64 name) {
+    auto& process = *system.CurrentProcess();
+    auto& handle_table = process.GetHandleTable();
+
+    // Declare the session we're going to allocate.
+    T* session;
+
+    // Reserve a new session from the process resource limit.
+    // FIXME: LimitableResource_SessionCountMax
+    KScopedResourceReservation session_reservation(&process, LimitableResource::Sessions);
+    if (session_reservation.Succeeded()) {
+        session = T::Create(system.Kernel());
+    } else {
+        return ResultLimitReached;
+
+        // // We couldn't reserve a session. Check that we support dynamically expanding the
+        // // resource limit.
+        // R_UNLESS(process.GetResourceLimit() ==
+        //          &system.Kernel().GetSystemResourceLimit(), ResultLimitReached);
+        // R_UNLESS(KTargetSystem::IsDynamicResourceLimitsEnabled(), ResultLimitReached());
+
+        // // Try to allocate a session from unused slab memory.
+        // session = T::CreateFromUnusedSlabMemory();
+        // R_UNLESS(session != nullptr, ResultLimitReached);
+        // ON_RESULT_FAILURE { session->Close(); };
+
+        // // If we're creating a KSession, we want to add two KSessionRequests to the heap, to
+        // // prevent request exhaustion.
+        // // NOTE: Nintendo checks if session->DynamicCast<KSession *>() != nullptr, but there's
+        // // no reason to not do this statically.
+        // if constexpr (std::same_as<T, KSession>) {
+        //     for (size_t i = 0; i < 2; i++) {
+        //         KSessionRequest* request = KSessionRequest::CreateFromUnusedSlabMemory();
+        //         R_UNLESS(request != nullptr, ResultLimitReached);
+        //         request->Close();
+        //     }
+        // }
+
+        // We successfully allocated a session, so add the object we allocated to the resource
+        // limit.
+        // system.Kernel().GetSystemResourceLimit().Reserve(LimitableResource::Sessions, 1);
+    }
+
+    // Check that we successfully created a session.
+    R_UNLESS(session != nullptr, ResultOutOfResource);
+
+    // Initialize the session.
+    session->Initialize(nullptr, fmt::format("{}", name));
+
+    // Commit the session reservation.
+    session_reservation.Commit();
+
+    // Ensure that we clean up the session (and its only references are handle table) on function
+    // end.
+    SCOPE_EXIT({
+        session->GetClientSession().Close();
+        session->GetServerSession().Close();
+    });
+
+    // Register the session.
+    T::Register(system.Kernel(), session);
+
+    // Add the server session to the handle table.
+    R_TRY(handle_table.Add(out_server, &session->GetServerSession()));
+
+    // Add the client session to the handle table. */
+    const auto result = handle_table.Add(out_client, &session->GetClientSession());
+
+    if (!R_SUCCEEDED(result)) {
+        // Ensure that we maintaing a clean handle state on exit.
+        handle_table.Remove(*out_server);
+    }
+
+    return result;
+}
+
+static Result CreateSession(Core::System& system, Handle* out_server, Handle* out_client,
+                            u32 is_light, u64 name) {
+    if (is_light) {
+        // return CreateSession<KLightSession>(system, out_server, out_client, name);
+        return ResultUnknown;
+    } else {
+        return CreateSession<KSession>(system, out_server, out_client, name);
+    }
 }
 
 /// Connect to an OS service given the port name, returns the handle to the port to out
@@ -2860,7 +2948,7 @@ static const FunctionDef SVC_Table_64[] = {
     {0x3D, SvcWrap64<ChangeKernelTraceState>, "ChangeKernelTraceState"},
     {0x3E, nullptr, "Unknown3e"},
     {0x3F, nullptr, "Unknown3f"},
-    {0x40, nullptr, "CreateSession"},
+    {0x40, SvcWrap64<CreateSession>, "CreateSession"},
     {0x41, nullptr, "AcceptSession"},
     {0x42, nullptr, "ReplyAndReceiveLight"},
     {0x43, nullptr, "ReplyAndReceive"},
