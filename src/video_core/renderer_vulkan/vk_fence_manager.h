@@ -25,8 +25,7 @@ class Scheduler;
 
 class InnerFence : public VideoCommon::FenceBase {
 public:
-    explicit InnerFence(Scheduler& scheduler_, u32 payload_, bool is_stubbed_);
-    explicit InnerFence(Scheduler& scheduler_, GPUVAddr address_, u32 payload_, bool is_stubbed_);
+    explicit InnerFence(Scheduler& scheduler_, bool is_stubbed_);
     ~InnerFence();
 
     void Queue();
@@ -50,8 +49,7 @@ public:
                           QueryCache& query_cache, const Device& device, Scheduler& scheduler);
 
 protected:
-    Fence CreateFence(u32 value, bool is_stubbed) override;
-    Fence CreateFence(GPUVAddr addr, u32 value, bool is_stubbed) override;
+    Fence CreateFence(bool is_stubbed) override;
     void QueueFence(Fence& fence) override;
     bool IsFenceSignaled(Fence& fence) const override;
     void WaitFence(Fence& fence) override;

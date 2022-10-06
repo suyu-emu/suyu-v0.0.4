@@ -3,21 +3,26 @@
 
 #pragma once
 
+#include <deque>
 #include <vector>
 #include "common/common_types.h"
 #include "common/swap.h"
+#include "core/hle/service/nvdrv/core/syncpoint_manager.h"
 #include "core/hle/service/nvdrv/devices/nvdevice.h"
 
 namespace Service::Nvidia {
-class SyncpointManager;
+
+namespace NvCore {
+class Container;
+class NvMap;
+} // namespace NvCore
 
 namespace Devices {
-class nvmap;
 
 class nvhost_nvdec_common : public nvdevice {
 public:
-    explicit nvhost_nvdec_common(Core::System& system_, std::shared_ptr<nvmap> nvmap_dev_,
-                                 SyncpointManager& syncpoint_manager_);
+    explicit nvhost_nvdec_common(Core::System& system_, NvCore::Container& core,
+                                 NvCore::ChannelType channel_type);
     ~nvhost_nvdec_common() override;
 
 protected:
@@ -110,11 +115,15 @@ protected:
     NvResult UnmapBuffer(const std::vector<u8>& input, std::vector<u8>& output);
     NvResult SetSubmitTimeout(const std::vector<u8>& input, std::vector<u8>& output);
 
-    std::unordered_map<DeviceFD, u32> fd_to_id{};
+    Kernel::KEvent* QueryEvent(u32 event_id) override;
+
+    u32 channel_syncpoint;
     s32_le nvmap_fd{};
     u32_le submit_timeout{};
-    std::shared_ptr<nvmap> nvmap_dev;
-    SyncpointManager& syncpoint_manager;
+    NvCore::Container& core;
+    NvCore::SyncpointManager& syncpoint_manager;
+    NvCore::NvMap& nvmap;
+    NvCore::ChannelType channel_type;
     std::array<u32, MaxSyncPoints> device_syncpoints{};
 };
 }; // namespace Devices

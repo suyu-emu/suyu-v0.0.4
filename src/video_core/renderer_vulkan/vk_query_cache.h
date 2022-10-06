@@ -52,9 +52,8 @@ private:
 class QueryCache final
     : public VideoCommon::QueryCacheBase<QueryCache, CachedQuery, CounterStream, HostCounter> {
 public:
-    explicit QueryCache(VideoCore::RasterizerInterface& rasterizer_,
-                        Tegra::Engines::Maxwell3D& maxwell3d_, Tegra::MemoryManager& gpu_memory_,
-                        const Device& device_, Scheduler& scheduler_);
+    explicit QueryCache(VideoCore::RasterizerInterface& rasterizer_, const Device& device_,
+                        Scheduler& scheduler_);
     ~QueryCache();
 
     std::pair<VkQueryPool, u32> AllocateQuery(VideoCore::QueryType type);

@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: 2021 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2021 Skyline Team and Contributors
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
 
@@ -78,11 +79,15 @@ enum class NvResult : u32 {
     ModuleNotPresent = 0xA000E,
 };
 
+// obtained from
+// https://github.com/skyline-emu/skyline/blob/nvdec-dev/app/src/main/cpp/skyline/services/nvdrv/devices/nvhost/ctrl.h#L47
 enum class EventState {
-    Free = 0,
-    Registered = 1,
-    Waiting = 2,
-    Busy = 3,
+    Available = 0,
+    Waiting = 1,
+    Cancelling = 2,
+    Signalling = 3,
+    Signalled = 4,
+    Cancelled = 5,
 };
 
 union Ioctl {

@@ -138,8 +138,6 @@ add_library(core STATIC
     frontend/emu_window.h
     frontend/framebuffer_layout.cpp
     frontend/framebuffer_layout.h
-    hardware_interrupt_manager.cpp
-    hardware_interrupt_manager.h
     hid/emulated_console.cpp
     hid/emulated_console.h
     hid/emulated_controller.cpp
@@ -550,6 +548,12 @@ add_library(core STATIC
     hle/service/ns/ns.h
     hle/service/ns/pdm_qry.cpp
     hle/service/ns/pdm_qry.h
+    hle/service/nvdrv/core/container.cpp
+    hle/service/nvdrv/core/container.h
+    hle/service/nvdrv/core/nvmap.cpp
+    hle/service/nvdrv/core/nvmap.h
+    hle/service/nvdrv/core/syncpoint_manager.cpp
+    hle/service/nvdrv/core/syncpoint_manager.h
     hle/service/nvdrv/devices/nvdevice.h
     hle/service/nvdrv/devices/nvdisp_disp0.cpp
     hle/service/nvdrv/devices/nvdisp_disp0.h
@@ -578,8 +582,6 @@ add_library(core STATIC
     hle/service/nvdrv/nvdrv_interface.h
     hle/service/nvdrv/nvmemp.cpp
     hle/service/nvdrv/nvmemp.h
-    hle/service/nvdrv/syncpoint_manager.cpp
-    hle/service/nvdrv/syncpoint_manager.h
     hle/service/nvflinger/binder.h
     hle/service/nvflinger/buffer_item.h
     hle/service/nvflinger/buffer_item_consumer.cpp

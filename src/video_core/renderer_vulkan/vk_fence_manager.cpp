@@ -11,11 +11,8 @@
 
 namespace Vulkan {
 
-InnerFence::InnerFence(Scheduler& scheduler_, u32 payload_, bool is_stubbed_)
-    : FenceBase{payload_, is_stubbed_}, scheduler{scheduler_} {}
-
-InnerFence::InnerFence(Scheduler& scheduler_, GPUVAddr address_, u32 payload_, bool is_stubbed_)
-    : FenceBase{address_, payload_, is_stubbed_}, scheduler{scheduler_} {}
+InnerFence::InnerFence(Scheduler& scheduler_, bool is_stubbed_)
+    : FenceBase{is_stubbed_}, scheduler{scheduler_} {}
 
 InnerFence::~InnerFence() = default;
 
@@ -48,12 +45,8 @@ FenceManager::FenceManager(VideoCore::RasterizerInterface& rasterizer_, Tegra::G
     : GenericFenceManager{rasterizer_, gpu_, texture_cache_, buffer_cache_, query_cache_},
       scheduler{scheduler_} {}
 
-Fence FenceManager::CreateFence(u32 value, bool is_stubbed) {
-    return std::make_shared<InnerFence>(scheduler, value, is_stubbed);
-}
-
-Fence FenceManager::CreateFence(GPUVAddr addr, u32 value, bool is_stubbed) {
-    return std::make_shared<InnerFence>(scheduler, addr, value, is_stubbed);
+Fence FenceManager::CreateFence(bool is_stubbed) {
+    return std::make_shared<InnerFence>(scheduler, is_stubbed);
 }
 
 void FenceManager::QueueFence(Fence& fence) {

@@ -517,7 +517,6 @@ void SwizzleBlockLinearImage(Tegra::MemoryManager& gpu_memory, GPUVAddr gpu_addr
     const u32 host_bytes_per_layer = num_blocks_per_layer * bytes_per_block;
 
     UNIMPLEMENTED_IF(info.tile_width_spacing > 0);
-
     UNIMPLEMENTED_IF(copy.image_offset.x != 0);
     UNIMPLEMENTED_IF(copy.image_offset.y != 0);
     UNIMPLEMENTED_IF(copy.image_offset.z != 0);
@@ -755,7 +754,7 @@ bool IsValidEntry(const Tegra::MemoryManager& gpu_memory, const TICEntry& config
     if (address == 0) {
         return false;
     }
-    if (address > (1ULL << 48)) {
+    if (address >= (1ULL << 40)) {
         return false;
     }
     if (gpu_memory.GpuToCpuAddress(address).has_value()) {

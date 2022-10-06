@@ -551,6 +551,11 @@ struct Memory::Impl {
             []() {});
     }
 
+    [[nodiscard]] u8* GetPointerSilent(const VAddr vaddr) const {
+        return GetPointerImpl(
+            vaddr, []() {}, []() {});
+    }
+
     /**
      * Reads a particular data type out of memory at the given virtual address.
      *
@@ -684,6 +689,10 @@ bool Memory::IsValidVirtualAddressRange(VAddr base, u64 size) const {
 
 u8* Memory::GetPointer(VAddr vaddr) {
     return impl->GetPointer(vaddr);
+}
+
+u8* Memory::GetPointerSilent(VAddr vaddr) {
+    return impl->GetPointerSilent(vaddr);
 }
 
 const u8* Memory::GetPointer(VAddr vaddr) const {

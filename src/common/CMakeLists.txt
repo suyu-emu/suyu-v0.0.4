@@ -17,6 +17,8 @@ endif ()
 include(GenerateSCMRev)
 
 add_library(common STATIC
+    address_space.cpp
+    address_space.h
     algorithm.h
     alignment.h
     announce_multiplayer_room.h
@@ -81,6 +83,8 @@ add_library(common STATIC
     microprofile.cpp
     microprofile.h
     microprofileui.h
+    multi_level_page_table.cpp
+    multi_level_page_table.h
     nvidia_flags.cpp
     nvidia_flags.h
     page_table.cpp
