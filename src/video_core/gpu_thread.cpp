@@ -19,7 +19,7 @@ namespace VideoCommon::GPUThread {
 static void RunThread(std::stop_token stop_token, Core::System& system,
                       VideoCore::RendererBase& renderer, Core::Frontend::GraphicsContext& context,
                       Tegra::DmaPusher& dma_pusher, SynchState& state) {
-    std::string name = "yuzu:GPU";
+    std::string name = "GPU";
     MicroProfileOnThreadCreate(name.c_str());
     SCOPE_EXIT({ MicroProfileOnThreadExit(); });
 
