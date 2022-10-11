@@ -323,7 +323,7 @@ Result CreateSession(Core::System& system, Handle* out_server, Handle* out_clien
     // Add the server session to the handle table.
     R_TRY(handle_table.Add(out_server, &session->GetServerSession()));
 
-    // Add the client session to the handle table. */
+    // Add the client session to the handle table.
     const auto result = handle_table.Add(out_client, &session->GetClientSession());
 
     if (!R_SUCCEEDED(result)) {
@@ -383,7 +383,8 @@ static Result ConnectToNamedPort(Core::System& system, Handle* out, VAddr port_n
 
     // Create a session.
     KClientSession* session{};
-    R_TRY(port->CreateSession(std::addressof(session)));
+    R_TRY(port->CreateSession(std::addressof(session),
+                              std::make_shared<SessionRequestManager>(kernel)));
     port->Close();
 
     // Register the session in the table, close the extra reference.
@@ -401,7 +402,7 @@ static Result ConnectToNamedPort32(Core::System& system, Handle* out_handle,
     return ConnectToNamedPort(system, out_handle, port_name_address);
 }
 
-/// Makes a blocking IPC call to an OS service.
+/// Makes a blocking IPC call to a service.
 static Result SendSyncRequest(Core::System& system, Handle handle) {
     auto& kernel = system.Kernel();
 
@@ -415,20 +416,73 @@ static Result SendSyncRequest(Core::System& system, Handle handle) {
 
     LOG_TRACE(Kernel_SVC, "called handle=0x{:08X}({})", handle, session->GetName());
 
-    {
-        KScopedSchedulerLock lock(kernel);
-
-        // This is a synchronous request, so we should wait for our request to complete.
-        GetCurrentThread(kernel).BeginWait(std::addressof(wait_queue));
-        GetCurrentThread(kernel).SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::IPC);
-        session->SendSyncRequest(&GetCurrentThread(kernel), system.Memory(), system.CoreTiming());
-    }
-
-    return GetCurrentThread(kernel).GetWaitResult();
+    return session->SendSyncRequest();
 }
 
 static Result SendSyncRequest32(Core::System& system, Handle handle) {
     return SendSyncRequest(system, handle);
+}
+
+static Result ReplyAndReceive(Core::System& system, s32* out_index, Handle* handles,
+                              s32 num_handles, Handle reply_target, s64 timeout_ns) {
+    auto& kernel = system.Kernel();
+    auto& handle_table = GetCurrentThread(kernel).GetOwnerProcess()->GetHandleTable();
+
+    // Convert handle list to object table.
+    std::vector<KSynchronizationObject*> objs(num_handles);
+    R_UNLESS(
+        handle_table.GetMultipleObjects<KSynchronizationObject>(objs.data(), handles, num_handles),
+        ResultInvalidHandle);
+
+    // Ensure handles are closed when we're done.
+    SCOPE_EXIT({
+        for (auto i = 0; i < num_handles; ++i) {
+            objs[i]->Close();
+        }
+    });
+
+    // Reply to the target, if one is specified.
+    if (reply_target != InvalidHandle) {
+        KScopedAutoObject session = handle_table.GetObject<KServerSession>(reply_target);
+        R_UNLESS(session.IsNotNull(), ResultInvalidHandle);
+
+        // If we fail to reply, we want to set the output index to -1.
+        // ON_RESULT_FAILURE { *out_index = -1; };
+
+        // Send the reply.
+        // R_TRY(session->SendReply());
+
+        Result rc = session->SendReply();
+        if (!R_SUCCEEDED(rc)) {
+            *out_index = -1;
+            return rc;
+        }
+    }
+
+    // Wait for a message.
+    while (true) {
+        // Wait for an object.
+        s32 index;
+        Result result = KSynchronizationObject::Wait(kernel, &index, objs.data(),
+                                                     static_cast<s32>(objs.size()), timeout_ns);
+        if (result == ResultTimedOut) {
+            return result;
+        }
+
+        // Receive the request.
+        if (R_SUCCEEDED(result)) {
+            KServerSession* session = objs[index]->DynamicCast<KServerSession*>();
+            if (session != nullptr) {
+                result = session->ReceiveRequest();
+                if (result == ResultNotFound) {
+                    continue;
+                }
+            }
+        }
+
+        *out_index = index;
+        return result;
+    }
 }
 
 /// Get the ID for the specified thread.
@@ -2951,7 +3005,7 @@ static const FunctionDef SVC_Table_64[] = {
     {0x40, SvcWrap64<CreateSession>, "CreateSession"},
     {0x41, nullptr, "AcceptSession"},
     {0x42, nullptr, "ReplyAndReceiveLight"},
-    {0x43, nullptr, "ReplyAndReceive"},
+    {0x43, SvcWrap64<ReplyAndReceive>, "ReplyAndReceive"},
     {0x44, nullptr, "ReplyAndReceiveWithUserBuffer"},
     {0x45, SvcWrap64<CreateEvent>, "CreateEvent"},
     {0x46, nullptr, "MapIoRegion"},

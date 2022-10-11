@@ -8,6 +8,7 @@
 #include "core/core.h"
 #include "core/hle/kernel/svc_types.h"
 #include "core/hle/result.h"
+#include "core/memory.h"
 
 namespace Kernel {
 
@@ -357,6 +358,23 @@ void SvcWrap64(Core::System& system) {
 
     system.CurrentArmInterface().SetReg(1, param_1);
     system.CurrentArmInterface().SetReg(2, param_2);
+    FuncReturn(system, retval);
+}
+
+// Used by ReplyAndReceive
+template <Result func(Core::System&, s32*, Handle*, s32, Handle, s64)>
+void SvcWrap64(Core::System& system) {
+    s32 param_1 = 0;
+    s32 num_handles = static_cast<s32>(Param(system, 2));
+
+    std::vector<Handle> handles(num_handles);
+    system.Memory().ReadBlock(Param(system, 1), handles.data(), num_handles * sizeof(Handle));
+
+    const u32 retval = func(system, &param_1, handles.data(), num_handles,
+                            static_cast<s32>(Param(system, 3)), static_cast<s64>(Param(system, 4)))
+                           .raw;
+
+    system.CurrentArmInterface().SetReg(1, param_1);
     FuncReturn(system, retval);
 }
 
