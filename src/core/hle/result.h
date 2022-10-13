@@ -402,9 +402,8 @@ constexpr bool EvaluateResultFailure(const Result& r) {
 }
 
 template <typename T>
-constexpr void UpdateCurrentResultReference(T result_reference, Result result) {
-    ASSERT(false);
-}
+constexpr void UpdateCurrentResultReference(T result_reference, Result result) = delete;
+// Intentionally not defined
 
 template <>
 constexpr void UpdateCurrentResultReference<Result&>(Result& result_reference, Result result) {
@@ -412,7 +411,7 @@ constexpr void UpdateCurrentResultReference<Result&>(Result& result_reference, R
 }
 
 template <>
-constexpr void UpdateCurrentResultReference<Result>(Result result_reference, Result result) {}
+constexpr void UpdateCurrentResultReference<const Result>(Result result_reference, Result result) {}
 } // namespace ResultImpl
 
 #define DECLARE_CURRENT_RESULT_REFERENCE_AND_STORAGE(COUNTER_VALUE)                                \
