@@ -35,7 +35,6 @@
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/k_thread_queue.h"
 #include "core/hle/kernel/k_transfer_memory.h"
-#include "core/hle/kernel/k_writable_event.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/physical_core.h"
 #include "core/hle/kernel/svc.h"
@@ -2445,11 +2444,11 @@ static Result SignalEvent(Core::System& system, Handle event_handle) {
     // Get the current handle table.
     const KHandleTable& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
 
-    // Get the writable event.
-    KScopedAutoObject writable_event = handle_table.GetObject<KWritableEvent>(event_handle);
-    R_UNLESS(writable_event.IsNotNull(), ResultInvalidHandle);
+    // Get the event.
+    KScopedAutoObject event = handle_table.GetObject<KEvent>(event_handle);
+    R_UNLESS(event.IsNotNull(), ResultInvalidHandle);
 
-    return writable_event->Signal();
+    return event->Signal();
 }
 
 static Result SignalEvent32(Core::System& system, Handle event_handle) {
@@ -2464,9 +2463,9 @@ static Result ClearEvent(Core::System& system, Handle event_handle) {
 
     // Try to clear the writable event.
     {
-        KScopedAutoObject writable_event = handle_table.GetObject<KWritableEvent>(event_handle);
-        if (writable_event.IsNotNull()) {
-            return writable_event->Clear();
+        KScopedAutoObject event = handle_table.GetObject<KEvent>(event_handle);
+        if (event.IsNotNull()) {
+            return event->Clear();
         }
     }
 
@@ -2504,24 +2503,24 @@ static Result CreateEvent(Core::System& system, Handle* out_write, Handle* out_r
     R_UNLESS(event != nullptr, ResultOutOfResource);
 
     // Initialize the event.
-    event->Initialize("CreateEvent", kernel.CurrentProcess());
+    event->Initialize(kernel.CurrentProcess());
 
     // Commit the thread reservation.
     event_reservation.Commit();
 
     // Ensure that we clean up the event (and its only references are handle table) on function end.
     SCOPE_EXIT({
-        event->GetWritableEvent().Close();
         event->GetReadableEvent().Close();
+        event->Close();
     });
 
     // Register the event.
     KEvent::Register(kernel, event);
 
-    // Add the writable event to the handle table.
-    R_TRY(handle_table.Add(out_write, std::addressof(event->GetWritableEvent())));
+    // Add the event to the handle table.
+    R_TRY(handle_table.Add(out_write, event));
 
-    // Add the writable event to the handle table.
+    // Ensure that we maintaing a clean handle state on exit.
     auto handle_guard = SCOPE_GUARD({ handle_table.Remove(*out_write); });
 
     // Add the readable event to the handle table.
