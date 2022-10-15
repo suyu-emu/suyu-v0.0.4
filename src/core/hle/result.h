@@ -470,9 +470,6 @@ constexpr inline Result __TmpCurrentResultReference = ResultSuccess;
 #define R_UNLESS(expr, res)                                                                        \
     {                                                                                              \
         if (!(expr)) {                                                                             \
-            if (res.IsError()) {                                                                   \
-                LOG_ERROR(Kernel, "Failed with result: {}", res.raw);                              \
-            }                                                                                      \
             R_THROW(res);                                                                          \
         }                                                                                          \
     }

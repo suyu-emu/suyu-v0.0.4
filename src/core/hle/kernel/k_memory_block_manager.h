@@ -35,7 +35,7 @@ private:
             R_UNLESS(m_blocks[m_index + i] != nullptr, ResultOutOfResource);
         }
 
-        return ResultSuccess;
+        R_SUCCEED();
     }
 
 public:

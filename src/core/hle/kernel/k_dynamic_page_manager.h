@@ -65,7 +65,7 @@ public:
             m_page_bitmap.SetBit(i);
         }
 
-        return ResultSuccess;
+        R_SUCCEED();
     }
 
     VAddr GetAddress() const {

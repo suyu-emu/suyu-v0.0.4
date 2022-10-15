@@ -57,9 +57,9 @@ public:
                     KMemoryPermission perm);
     Result MapPages(VAddr* out_addr, size_t num_pages, size_t alignment, PAddr phys_addr,
                     KMemoryState state, KMemoryPermission perm) {
-        return this->MapPages(out_addr, num_pages, alignment, phys_addr, true,
-                              this->GetRegionAddress(state), this->GetRegionSize(state) / PageSize,
-                              state, perm);
+        R_RETURN(this->MapPages(out_addr, num_pages, alignment, phys_addr, true,
+                                this->GetRegionAddress(state),
+                                this->GetRegionSize(state) / PageSize, state, perm));
     }
     Result UnmapPages(VAddr addr, KPageGroup& page_linked_list, KMemoryState state);
     Result UnmapPages(VAddr address, size_t num_pages, KMemoryState state);
@@ -137,8 +137,8 @@ private:
                                       KMemoryState state, KMemoryPermission perm_mask,
                                       KMemoryPermission perm, KMemoryAttribute attr_mask,
                                       KMemoryAttribute attr) const {
-        return this->CheckMemoryStateContiguous(nullptr, addr, size, state_mask, state, perm_mask,
-                                                perm, attr_mask, attr);
+        R_RETURN(this->CheckMemoryStateContiguous(nullptr, addr, size, state_mask, state, perm_mask,
+                                                  perm, attr_mask, attr));
     }
 
     Result CheckMemoryState(const KMemoryInfo& info, KMemoryState state_mask, KMemoryState state,
@@ -155,15 +155,16 @@ private:
                             KMemoryPermission perm_mask, KMemoryPermission perm,
                             KMemoryAttribute attr_mask, KMemoryAttribute attr,
                             KMemoryAttribute ignore_attr = DefaultMemoryIgnoreAttr) const {
-        return CheckMemoryState(nullptr, nullptr, nullptr, out_blocks_needed, addr, size,
-                                state_mask, state, perm_mask, perm, attr_mask, attr, ignore_attr);
+        R_RETURN(CheckMemoryState(nullptr, nullptr, nullptr, out_blocks_needed, addr, size,
+                                  state_mask, state, perm_mask, perm, attr_mask, attr,
+                                  ignore_attr));
     }
     Result CheckMemoryState(VAddr addr, size_t size, KMemoryState state_mask, KMemoryState state,
                             KMemoryPermission perm_mask, KMemoryPermission perm,
                             KMemoryAttribute attr_mask, KMemoryAttribute attr,
                             KMemoryAttribute ignore_attr = DefaultMemoryIgnoreAttr) const {
-        return this->CheckMemoryState(nullptr, addr, size, state_mask, state, perm_mask, perm,
-                                      attr_mask, attr, ignore_attr);
+        R_RETURN(this->CheckMemoryState(nullptr, addr, size, state_mask, state, perm_mask, perm,
+                                        attr_mask, attr, ignore_attr));
     }
 
     Result LockMemoryAndOpen(KPageGroup* out_pg, PAddr* out_paddr, VAddr addr, size_t size,

@@ -23,7 +23,7 @@ Result KMemoryBlockManager::Initialize(VAddr st, VAddr nd, KMemoryBlockSlabManag
                             KMemoryState::Free, KMemoryPermission::None, KMemoryAttribute::None);
     m_memory_block_tree.insert(*start_block);
 
-    return ResultSuccess;
+    R_SUCCEED();
 }
 
 void KMemoryBlockManager::Finalize(KMemoryBlockSlabManager* slab_manager,

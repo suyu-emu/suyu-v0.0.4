@@ -138,16 +138,16 @@ public:
     }
 
     Result WaitConditionVariable(VAddr address, u64 cv_key, u32 tag, s64 ns) {
-        return condition_var.Wait(address, cv_key, tag, ns);
+        R_RETURN(condition_var.Wait(address, cv_key, tag, ns));
     }
 
     Result SignalAddressArbiter(VAddr address, Svc::SignalType signal_type, s32 value, s32 count) {
-        return address_arbiter.SignalToAddress(address, signal_type, value, count);
+        R_RETURN(address_arbiter.SignalToAddress(address, signal_type, value, count));
     }
 
     Result WaitAddressArbiter(VAddr address, Svc::ArbitrationType arb_type, s32 value,
                               s64 timeout) {
-        return address_arbiter.WaitForAddress(address, arb_type, value, timeout);
+        R_RETURN(address_arbiter.WaitForAddress(address, arb_type, value, timeout));
     }
 
     VAddr GetProcessLocalRegionAddress() const {
@@ -407,12 +407,18 @@ private:
         pinned_threads[core_id] = nullptr;
     }
 
+    void FinalizeHandleTable() {
+        // Finalize the table.
+        handle_table.Finalize();
+
+        // Note that the table is finalized.
+        is_handle_table_initialized = false;
+    }
+
     void ChangeState(State new_state);
 
     /// Allocates the main thread stack for the process, given the stack size in bytes.
     Result AllocateMainThreadStack(std::size_t stack_size);
-
-    void FinalizeHandleTable();
 
     /// Memory manager for this process
     KPageTable page_table;

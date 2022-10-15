@@ -245,7 +245,7 @@ Result KThread::Initialize(KThreadFunction func, uintptr_t arg, VAddr user_stack
         }
     }
 
-    return ResultSuccess;
+    R_SUCCEED();
 }
 
 Result KThread::InitializeThread(KThread* thread, KThreadFunction func, uintptr_t arg,
@@ -258,7 +258,7 @@ Result KThread::InitializeThread(KThread* thread, KThreadFunction func, uintptr_
     thread->host_context = std::make_shared<Common::Fiber>(std::move(init_func));
     thread->is_single_core = !Settings::values.use_multi_core.GetValue();
 
-    return ResultSuccess;
+    R_SUCCEED();
 }
 
 Result KThread::InitializeDummyThread(KThread* thread) {
@@ -268,31 +268,32 @@ Result KThread::InitializeDummyThread(KThread* thread) {
     // Initialize emulation parameters.
     thread->stack_parameters.disable_count = 0;
 
-    return ResultSuccess;
+    R_SUCCEED();
 }
 
 Result KThread::InitializeMainThread(Core::System& system, KThread* thread, s32 virt_core) {
-    return InitializeThread(thread, {}, {}, {}, IdleThreadPriority, virt_core, {}, ThreadType::Main,
-                            system.GetCpuManager().GetGuestActivateFunc());
+    R_RETURN(InitializeThread(thread, {}, {}, {}, IdleThreadPriority, virt_core, {},
+                              ThreadType::Main, system.GetCpuManager().GetGuestActivateFunc()));
 }
 
 Result KThread::InitializeIdleThread(Core::System& system, KThread* thread, s32 virt_core) {
-    return InitializeThread(thread, {}, {}, {}, IdleThreadPriority, virt_core, {}, ThreadType::Main,
-                            system.GetCpuManager().GetIdleThreadStartFunc());
+    R_RETURN(InitializeThread(thread, {}, {}, {}, IdleThreadPriority, virt_core, {},
+                              ThreadType::Main, system.GetCpuManager().GetIdleThreadStartFunc()));
 }
 
 Result KThread::InitializeHighPriorityThread(Core::System& system, KThread* thread,
                                              KThreadFunction func, uintptr_t arg, s32 virt_core) {
-    return InitializeThread(thread, func, arg, {}, {}, virt_core, nullptr, ThreadType::HighPriority,
-                            system.GetCpuManager().GetShutdownThreadStartFunc());
+    R_RETURN(InitializeThread(thread, func, arg, {}, {}, virt_core, nullptr,
+                              ThreadType::HighPriority,
+                              system.GetCpuManager().GetShutdownThreadStartFunc()));
 }
 
 Result KThread::InitializeUserThread(Core::System& system, KThread* thread, KThreadFunction func,
                                      uintptr_t arg, VAddr user_stack_top, s32 prio, s32 virt_core,
                                      KProcess* owner) {
     system.Kernel().GlobalSchedulerContext().AddThread(thread);
-    return InitializeThread(thread, func, arg, user_stack_top, prio, virt_core, owner,
-                            ThreadType::User, system.GetCpuManager().GetGuestThreadFunc());
+    R_RETURN(InitializeThread(thread, func, arg, user_stack_top, prio, virt_core, owner,
+                              ThreadType::User, system.GetCpuManager().GetGuestThreadFunc()));
 }
 
 void KThread::PostDestroy(uintptr_t arg) {
@@ -542,7 +543,7 @@ Result KThread::GetCoreMask(s32* out_ideal_core, u64* out_affinity_mask) {
     *out_ideal_core = virtual_ideal_core_id;
     *out_affinity_mask = virtual_affinity_mask;
 
-    return ResultSuccess;
+    R_SUCCEED();
 }
 
 Result KThread::GetPhysicalCoreMask(s32* out_ideal_core, u64* out_affinity_mask) {
@@ -558,7 +559,7 @@ Result KThread::GetPhysicalCoreMask(s32* out_ideal_core, u64* out_affinity_mask)
         *out_affinity_mask = original_physical_affinity_mask.GetAffinityMask();
     }
 
-    return ResultSuccess;
+    R_SUCCEED();
 }
 
 Result KThread::SetCoreMask(s32 core_id_, u64 v_affinity_mask) {
@@ -670,7 +671,7 @@ Result KThread::SetCoreMask(s32 core_id_, u64 v_affinity_mask) {
         } while (retry_update);
     }
 
-    return ResultSuccess;
+    R_SUCCEED();
 }
 
 void KThread::SetBasePriority(s32 value) {
@@ -843,7 +844,7 @@ Result KThread::SetActivity(Svc::ThreadActivity activity) {
         } while (thread_is_current);
     }
 
-    return ResultSuccess;
+    R_SUCCEED();
 }
 
 Result KThread::GetThreadContext3(std::vector<u8>& out) {
@@ -878,7 +879,7 @@ Result KThread::GetThreadContext3(std::vector<u8>& out) {
         }
     }
 
-    return ResultSuccess;
+    R_SUCCEED();
 }
 
 void KThread::AddWaiterImpl(KThread* thread) {
@@ -1042,7 +1043,7 @@ Result KThread::Run() {
         // Set our state and finish.
         SetState(ThreadState::Runnable);
 
-        return ResultSuccess;
+        R_SUCCEED();
     }
 }
 
@@ -1089,7 +1090,7 @@ Result KThread::Terminate() {
                                            Svc::WaitInfinite));
     }
 
-    return ResultSuccess;
+    R_SUCCEED();
 }
 
 ThreadState KThread::RequestTerminate() {
@@ -1162,7 +1163,7 @@ Result KThread::Sleep(s64 timeout) {
         // Check if the thread should terminate.
         if (this->IsTerminationRequested()) {
             slp.CancelSleep();
-            return ResultTerminationRequested;
+            R_THROW(ResultTerminationRequested);
         }
 
         // Wait for the sleep to end.
@@ -1170,7 +1171,7 @@ Result KThread::Sleep(s64 timeout) {
         SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::Sleep);
     }
 
-    return ResultSuccess;
+    R_SUCCEED();
 }
 
 void KThread::IfDummyThreadTryWait() {
