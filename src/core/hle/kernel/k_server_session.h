@@ -12,6 +12,7 @@
 
 #include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/kernel/k_light_lock.h"
+#include "core/hle/kernel/k_session_request.h"
 #include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/result.h"
 
@@ -94,7 +95,7 @@ public:
     }
 
     /// TODO: flesh these out to match the real kernel
-    Result OnRequest();
+    Result OnRequest(KSessionRequest* request);
     Result SendReply();
     Result ReceiveRequest();
 
@@ -122,9 +123,8 @@ private:
     KSession* parent{};
 
     /// List of threads which are pending a reply.
-    /// FIXME: KSessionRequest
-    std::list<KThread*> m_thread_request_list;
-    KThread* m_current_thread_request{};
+    boost::intrusive::list<KSessionRequest> m_request_list;
+    KSessionRequest* m_current_request;
 
     KLightLock m_lock;
 };
