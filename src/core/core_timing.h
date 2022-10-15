@@ -134,6 +134,8 @@ private:
     static void ThreadEntry(CoreTiming& instance);
     void ThreadLoop();
 
+    void Reset();
+
     std::unique_ptr<Common::WallClock> clock;
 
     s64 global_timer = 0;

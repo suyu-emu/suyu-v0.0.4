@@ -41,15 +41,7 @@ CoreTiming::CoreTiming()
     : clock{Common::CreateBestMatchingClock(Hardware::BASE_CLOCK_RATE, Hardware::CNTFREQ)} {}
 
 CoreTiming::~CoreTiming() {
-    paused = true;
-    shutting_down = true;
-    pause_event.Set();
-    event.Set();
-    if (timer_thread) {
-        timer_thread->join();
-    }
-    timer_thread.reset();
-    has_started = false;
+    Reset();
 }
 
 void CoreTiming::ThreadEntry(CoreTiming& instance) {
@@ -63,6 +55,7 @@ void CoreTiming::ThreadEntry(CoreTiming& instance) {
 }
 
 void CoreTiming::Initialize(std::function<void()>&& on_thread_init_) {
+    Reset();
     on_thread_init = std::move(on_thread_init_);
     event_fifo_id = 0;
     shutting_down = false;
@@ -302,6 +295,18 @@ void CoreTiming::ThreadLoop() {
         pause_event.Wait();
         clock->Pause(false);
     }
+}
+
+void CoreTiming::Reset() {
+    paused = true;
+    shutting_down = true;
+    pause_event.Set();
+    event.Set();
+    if (timer_thread) {
+        timer_thread->join();
+    }
+    timer_thread.reset();
+    has_started = false;
 }
 
 std::chrono::nanoseconds CoreTiming::GetGlobalTimeNs() const {

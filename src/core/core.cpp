@@ -155,6 +155,24 @@ struct System::Impl {
 
         // Create default implementations of applets if one is not provided.
         applet_manager.SetDefaultAppletsIfMissing();
+
+        is_async_gpu = Settings::values.use_asynchronous_gpu_emulation.GetValue();
+
+        kernel.SetMulticore(is_multicore);
+        cpu_manager.SetMulticore(is_multicore);
+        cpu_manager.SetAsyncGpu(is_async_gpu);
+    }
+
+    void ReinitializeIfNecessary(System& system) {
+        if (is_multicore == Settings::values.use_multi_core.GetValue()) {
+            return;
+        }
+
+        LOG_DEBUG(Kernel, "Re-initializing");
+
+        is_multicore = Settings::values.use_multi_core.GetValue();
+
+        Initialize(system);
     }
 
     SystemResultStatus Run() {
@@ -205,11 +223,8 @@ struct System::Impl {
     SystemResultStatus SetupForMainProcess(System& system, Frontend::EmuWindow& emu_window) {
         LOG_DEBUG(Core, "initialized OK");
 
-        is_async_gpu = Settings::values.use_asynchronous_gpu_emulation.GetValue();
-
-        kernel.SetMulticore(is_multicore);
-        cpu_manager.SetMulticore(is_multicore);
-        cpu_manager.SetAsyncGpu(is_async_gpu);
+        // Setting changes may require a full system reinitialization (e.g., disabling multicore).
+        ReinitializeIfNecessary(system);
 
         kernel.Initialize();
         cpu_manager.Initialize();
