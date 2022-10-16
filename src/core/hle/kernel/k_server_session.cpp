@@ -22,7 +22,6 @@
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/k_thread_queue.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/service_thread.h"
 #include "core/memory.h"
 
 namespace Kernel {
@@ -74,101 +73,17 @@ bool KServerSession::IsSignaled() const {
     return !m_request_list.empty() && m_current_request == nullptr;
 }
 
-void KServerSession::AppendDomainHandler(SessionRequestHandlerPtr handler) {
-    manager->AppendDomainHandler(std::move(handler));
-}
-
-std::size_t KServerSession::NumDomainRequestHandlers() const {
-    return manager->DomainHandlerCount();
-}
-
-Result KServerSession::HandleDomainSyncRequest(Kernel::HLERequestContext& context) {
-    if (!context.HasDomainMessageHeader()) {
-        return ResultSuccess;
-    }
-
-    // Set domain handlers in HLE context, used for domain objects (IPC interfaces) as inputs
-    context.SetSessionRequestManager(manager);
-
-    // If there is a DomainMessageHeader, then this is CommandType "Request"
-    const auto& domain_message_header = context.GetDomainMessageHeader();
-    const u32 object_id{domain_message_header.object_id};
-    switch (domain_message_header.command) {
-    case IPC::DomainMessageHeader::CommandType::SendMessage:
-        if (object_id > manager->DomainHandlerCount()) {
-            LOG_CRITICAL(IPC,
-                         "object_id {} is too big! This probably means a recent service call "
-                         "to {} needed to return a new interface!",
-                         object_id, name);
-            ASSERT(false);
-            return ResultSuccess; // Ignore error if asserts are off
-        }
-        if (auto strong_ptr = manager->DomainHandler(object_id - 1).lock()) {
-            return strong_ptr->HandleSyncRequest(*this, context);
-        } else {
-            ASSERT(false);
-            return ResultSuccess;
-        }
-
-    case IPC::DomainMessageHeader::CommandType::CloseVirtualHandle: {
-        LOG_DEBUG(IPC, "CloseVirtualHandle, object_id=0x{:08X}", object_id);
-
-        manager->CloseDomainHandler(object_id - 1);
-
-        IPC::ResponseBuilder rb{context, 2};
-        rb.Push(ResultSuccess);
-        return ResultSuccess;
-    }
-    }
-
-    LOG_CRITICAL(IPC, "Unknown domain command={}", domain_message_header.command.Value());
-    ASSERT(false);
-    return ResultSuccess;
-}
-
 Result KServerSession::QueueSyncRequest(KThread* thread, Core::Memory::Memory& memory) {
     u32* cmd_buf{reinterpret_cast<u32*>(memory.GetPointer(thread->GetTLSAddress()))};
     auto context = std::make_shared<HLERequestContext>(kernel, memory, this, thread);
 
     context->PopulateFromIncomingCommandBuffer(kernel.CurrentProcess()->GetHandleTable(), cmd_buf);
 
-    // Ensure we have a session request handler
-    if (manager->HasSessionRequestHandler(*context)) {
-        if (auto strong_ptr = manager->GetServiceThread().lock()) {
-            strong_ptr->QueueSyncRequest(*parent, std::move(context));
-        } else {
-            ASSERT_MSG(false, "strong_ptr is nullptr!");
-        }
-    } else {
-        ASSERT_MSG(false, "handler is invalid!");
-    }
-
-    return ResultSuccess;
+    return manager->QueueSyncRequest(parent, std::move(context));
 }
 
 Result KServerSession::CompleteSyncRequest(HLERequestContext& context) {
-    Result result = ResultSuccess;
-
-    // If the session has been converted to a domain, handle the domain request
-    if (manager->HasSessionRequestHandler(context)) {
-        if (IsDomain() && context.HasDomainMessageHeader()) {
-            result = HandleDomainSyncRequest(context);
-            // If there is no domain header, the regular session handler is used
-        } else if (manager->HasSessionHandler()) {
-            // If this ServerSession has an associated HLE handler, forward the request to it.
-            result = manager->SessionHandler().HandleSyncRequest(*this, context);
-        }
-    } else {
-        ASSERT_MSG(false, "Session handler is invalid, stubbing response!");
-        IPC::ResponseBuilder rb(context, 2);
-        rb.Push(ResultSuccess);
-    }
-
-    if (convert_to_domain) {
-        ASSERT_MSG(!IsDomain(), "ServerSession is already a domain instance.");
-        manager->ConvertToDomain();
-        convert_to_domain = false;
-    }
+    Result result = manager->CompleteSyncRequest(this, context);
 
     // The calling thread is waiting for this request to complete, so wake it up.
     context.GetThread().EndWait(result);
