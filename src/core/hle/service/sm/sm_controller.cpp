@@ -15,10 +15,9 @@
 namespace Service::SM {
 
 void Controller::ConvertCurrentObjectToDomain(Kernel::HLERequestContext& ctx) {
-    ASSERT_MSG(!ctx.Session()->GetSessionRequestManager()->IsDomain(),
-               "Session is already a domain");
+    ASSERT_MSG(!ctx.GetManager()->IsDomain(), "Session is already a domain");
     LOG_DEBUG(Service, "called, server_session={}", ctx.Session()->GetId());
-    ctx.Session()->GetSessionRequestManager()->ConvertToDomainOnRequestEnd();
+    ctx.GetManager()->ConvertToDomainOnRequestEnd();
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
@@ -29,12 +28,13 @@ void Controller::CloneCurrentObject(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service, "called");
 
     auto& process = *ctx.GetThread().GetOwnerProcess();
-    auto& parent_session = *ctx.Session()->GetParent();
-    auto& session_manager = parent_session.GetServerSession().GetSessionRequestManager();
-    auto& session_handler = session_manager->SessionHandler();
+    auto session_manager = ctx.GetManager();
 
     // FIXME: this is duplicated from the SVC, it should just call it instead
     // once this is a proper process
+
+    // Declare the session we're going to allocate.
+    Kernel::KSession* session;
 
     // Reserve a new session from the process resource limit.
     Kernel::KScopedResourceReservation session_reservation(&process,
@@ -42,17 +42,18 @@ void Controller::CloneCurrentObject(Kernel::HLERequestContext& ctx) {
     ASSERT(session_reservation.Succeeded());
 
     // Create the session.
-    Kernel::KSession* session = Kernel::KSession::Create(system.Kernel());
+    session = Kernel::KSession::Create(system.Kernel());
     ASSERT(session != nullptr);
 
     // Initialize the session.
-    session->Initialize(nullptr, parent_session.GetName(), session_manager);
+    session->Initialize(nullptr, "");
 
     // Commit the session reservation.
     session_reservation.Commit();
 
-    // Register the session.
-    session_handler.ClientConnected(&session->GetServerSession());
+    // Register with manager.
+    session_manager->SessionHandler().RegisterSession(&session->GetServerSession(),
+                                                      session_manager);
 
     // We succeeded.
     IPC::ResponseBuilder rb{ctx, 2, 0, 1, IPC::ResponseBuilder::Flags::AlwaysMoveHandles};
