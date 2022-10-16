@@ -3280,7 +3280,7 @@ void GMainWindow::LoadAmiibo(const QString& filename) {
         QMessageBox::warning(this, title, tr("The current game is not looking for amiibos"));
         break;
     case InputCommon::VirtualAmiibo::Info::Unknown:
-        QMessageBox::warning(this, title, tr("An unkown error occured"));
+        QMessageBox::warning(this, title, tr("An unknown error occurred"));
         break;
     default:
         break;
