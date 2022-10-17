@@ -230,8 +230,7 @@ std::vector<std::string> ListSDLSinkDevices(bool capture) {
 
     const int device_count = SDL_GetNumAudioDevices(capture);
     for (int i = 0; i < device_count; ++i) {
-        const char* name = SDL_GetAudioDeviceName(i, capture);
-        if (name != nullptr) {
+        if (const char* name = SDL_GetAudioDeviceName(i, capture)) {
             device_list.emplace_back(name);
         }
     }
