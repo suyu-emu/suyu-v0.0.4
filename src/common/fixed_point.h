@@ -4,8 +4,7 @@
 // From: https://github.com/eteran/cpp-utilities/blob/master/fixed/include/cpp-utilities/fixed.h
 // See also: http://stackoverflow.com/questions/79677/whats-the-best-way-to-do-fixed-point-math
 
-#ifndef FIXED_H_
-#define FIXED_H_
+#pragma once
 
 #if __cplusplus >= 201402L
 #define CONSTEXPR14 constexpr
@@ -702,5 +701,3 @@ constexpr bool operator!=(Number lhs, FixedPoint<I, F> rhs) {
 } // namespace Common
 
 #undef CONSTEXPR14
-
-#endif
