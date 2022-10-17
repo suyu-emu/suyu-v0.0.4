@@ -3,14 +3,6 @@
 # SPDX-FileCopyrightText: 2021 yuzu Emulator Project
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Setup RC file for tx
-cat << EOF > ~/.transifexrc
-[https://www.transifex.com]
-rest_hostname = https://rest.api.transifex.com
-token         = $TRANSIFEX_API_TOKEN
-EOF
-
-
 set -x
 
 echo -e "\e[1m\e[33mBuild tools information:\e[0m"
