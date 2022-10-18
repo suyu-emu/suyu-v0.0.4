@@ -267,7 +267,7 @@ public:
     static constexpr base_type one = base_type(1) << fractional_bits;
 
 public: // constructors
-    FixedPoint() = default;
+    constexpr FixedPoint() = default;
 
     constexpr FixedPoint(const FixedPoint&) = default;
     constexpr FixedPoint& operator=(const FixedPoint&) = default;
@@ -463,7 +463,7 @@ public:
     }
 
 public:
-    base_type data_;
+    base_type data_{};
 };
 
 // if we have the same fractional portion, but differing integer portions, we trivially upgrade the
