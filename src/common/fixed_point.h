@@ -269,7 +269,7 @@ public:
 public: // constructors
     FixedPoint() = default;
     FixedPoint(const FixedPoint&) = default;
-    FixedPoint(FixedPoint&&) = default;
+    FixedPoint(FixedPoint&&) noexcept = default;
     FixedPoint& operator=(const FixedPoint&) = default;
 
     template <IsArithmetic Number>
@@ -454,7 +454,7 @@ public: // conversion to basic types
     }
 
 public:
-    constexpr void swap(FixedPoint& rhs) {
+    constexpr void swap(FixedPoint& rhs) noexcept {
         using std::swap;
         swap(data_, rhs.data_);
     }
