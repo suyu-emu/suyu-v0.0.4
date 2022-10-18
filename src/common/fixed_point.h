@@ -268,9 +268,12 @@ public:
 
 public: // constructors
     FixedPoint() = default;
-    FixedPoint(const FixedPoint&) = default;
-    FixedPoint(FixedPoint&&) noexcept = default;
-    FixedPoint& operator=(const FixedPoint&) = default;
+
+    constexpr FixedPoint(const FixedPoint&) = default;
+    constexpr FixedPoint& operator=(const FixedPoint&) = default;
+
+    constexpr FixedPoint(FixedPoint&&) noexcept = default;
+    constexpr FixedPoint& operator=(FixedPoint&&) noexcept = default;
 
     template <IsArithmetic Number>
     constexpr FixedPoint(Number n) : data_(static_cast<base_type>(n * one)) {}
