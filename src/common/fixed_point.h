@@ -301,29 +301,7 @@ public:
     }
 
 public: // comparison operators
-    constexpr bool operator==(FixedPoint rhs) const {
-        return data_ == rhs.data_;
-    }
-
-    constexpr bool operator!=(FixedPoint rhs) const {
-        return data_ != rhs.data_;
-    }
-
-    constexpr bool operator<(FixedPoint rhs) const {
-        return data_ < rhs.data_;
-    }
-
-    constexpr bool operator>(FixedPoint rhs) const {
-        return data_ > rhs.data_;
-    }
-
-    constexpr bool operator<=(FixedPoint rhs) const {
-        return data_ <= rhs.data_;
-    }
-
-    constexpr bool operator>=(FixedPoint rhs) const {
-        return data_ >= rhs.data_;
-    }
+    friend constexpr auto operator<=>(FixedPoint lhs, FixedPoint rhs) = default;
 
 public: // unary operators
     constexpr bool operator!() const {
