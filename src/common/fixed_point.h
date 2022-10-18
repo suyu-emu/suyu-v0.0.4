@@ -411,7 +411,7 @@ public: // conversion to basic types
         return static_cast<int>((data_ & integer_mask) >> fractional_bits);
     }
 
-    constexpr unsigned int to_uint() const {
+    constexpr unsigned int to_uint() {
         round_up();
         return static_cast<unsigned int>((data_ & integer_mask) >> fractional_bits);
     }
@@ -425,7 +425,7 @@ public: // conversion to basic types
         return static_cast<int>((data_ & integer_mask) >> fractional_bits);
     }
 
-    constexpr int64_t to_long_floor() {
+    constexpr int64_t to_long_floor() const {
         return static_cast<int64_t>((data_ & integer_mask) >> fractional_bits);
     }
 
