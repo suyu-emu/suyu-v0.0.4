@@ -304,11 +304,11 @@ public: // comparison operators
     friend constexpr auto operator<=>(FixedPoint lhs, FixedPoint rhs) = default;
 
 public: // unary operators
-    constexpr bool operator!() const {
+    [[nodiscard]] constexpr bool operator!() const {
         return !data_;
     }
 
-    constexpr FixedPoint operator~() const {
+    [[nodiscard]] constexpr FixedPoint operator~() const {
         // NOTE(eteran): this will often appear to "just negate" the value
         // that is not an error, it is because -x == (~x+1)
         // and that "+1" is adding an infinitesimally small fraction to the
@@ -316,11 +316,11 @@ public: // unary operators
         return FixedPoint::from_base(~data_);
     }
 
-    constexpr FixedPoint operator-() const {
+    [[nodiscard]] constexpr FixedPoint operator-() const {
         return FixedPoint::from_base(-data_);
     }
 
-    constexpr FixedPoint operator+() const {
+    [[nodiscard]] constexpr FixedPoint operator+() const {
         return FixedPoint::from_base(+data_);
     }
 
@@ -406,42 +406,42 @@ public: // conversion to basic types
         data_ += (data_ & fractional_mask) >> 1;
     }
 
-    constexpr int to_int() {
+    [[nodiscard]] constexpr int to_int() {
         round_up();
         return static_cast<int>((data_ & integer_mask) >> fractional_bits);
     }
 
-    constexpr unsigned int to_uint() {
+    [[nodiscard]] constexpr unsigned int to_uint() {
         round_up();
         return static_cast<unsigned int>((data_ & integer_mask) >> fractional_bits);
     }
 
-    constexpr int64_t to_long() {
+    [[nodiscard]] constexpr int64_t to_long() {
         round_up();
         return static_cast<int64_t>((data_ & integer_mask) >> fractional_bits);
     }
 
-    constexpr int to_int_floor() const {
+    [[nodiscard]] constexpr int to_int_floor() const {
         return static_cast<int>((data_ & integer_mask) >> fractional_bits);
     }
 
-    constexpr int64_t to_long_floor() const {
+    [[nodiscard]] constexpr int64_t to_long_floor() const {
         return static_cast<int64_t>((data_ & integer_mask) >> fractional_bits);
     }
 
-    constexpr unsigned int to_uint_floor() const {
+    [[nodiscard]] constexpr unsigned int to_uint_floor() const {
         return static_cast<unsigned int>((data_ & integer_mask) >> fractional_bits);
     }
 
-    constexpr float to_float() const {
+    [[nodiscard]] constexpr float to_float() const {
         return static_cast<float>(data_) / FixedPoint::one;
     }
 
-    constexpr double to_double() const {
+    [[nodiscard]] constexpr double to_double() const {
         return static_cast<double>(data_) / FixedPoint::one;
     }
 
-    constexpr base_type to_raw() const {
+    [[nodiscard]] constexpr base_type to_raw() const {
         return data_;
     }
 
@@ -449,7 +449,7 @@ public: // conversion to basic types
         data_ &= fractional_mask;
     }
 
-    constexpr base_type get_frac() const {
+    [[nodiscard]] constexpr base_type get_frac() const {
         return data_ & fractional_mask;
     }
 
