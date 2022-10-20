@@ -325,9 +325,15 @@ template <bool is_big_pages, typename FuncMapped, typename FuncReserved, typenam
 inline void MemoryManager::MemoryOperation(GPUVAddr gpu_src_addr, std::size_t size,
                                            FuncMapped&& func_mapped, FuncReserved&& func_reserved,
                                            FuncUnmapped&& func_unmapped) const {
-    static constexpr bool BOOL_BREAK_MAPPED = std::is_same_v<FuncMapped, bool>;
-    static constexpr bool BOOL_BREAK_RESERVED = std::is_same_v<FuncReserved, bool>;
-    static constexpr bool BOOL_BREAK_UNMAPPED = std::is_same_v<FuncUnmapped, bool>;
+    using FuncMappedReturn =
+        typename std::invoke_result<FuncMapped, std::size_t, std::size_t, std::size_t>::type;
+    using FuncReservedReturn =
+        typename std::invoke_result<FuncReserved, std::size_t, std::size_t, std::size_t>::type;
+    using FuncUnmappedReturn =
+        typename std::invoke_result<FuncUnmapped, std::size_t, std::size_t, std::size_t>::type;
+    static constexpr bool BOOL_BREAK_MAPPED = std::is_same_v<FuncMappedReturn, bool>;
+    static constexpr bool BOOL_BREAK_RESERVED = std::is_same_v<FuncReservedReturn, bool>;
+    static constexpr bool BOOL_BREAK_UNMAPPED = std::is_same_v<FuncUnmappedReturn, bool>;
     u64 used_page_size;
     u64 used_page_mask;
     u64 used_page_bits;
@@ -568,6 +574,47 @@ size_t MemoryManager::MaxContinousRange(GPUVAddr gpu_addr, size_t size) const {
         return result;
     };
     MemoryOperation<true>(gpu_addr, size, big_check, fail, check_short_pages);
+    return range_so_far;
+}
+
+size_t MemoryManager::GetMemoryLayoutSize(GPUVAddr gpu_addr) const {
+    PTEKind base_kind = GetPageKind(gpu_addr);
+    if (base_kind == PTEKind::INVALID) {
+        return 0;
+    }
+    size_t range_so_far = 0;
+    bool result{false};
+    auto fail = [&]([[maybe_unused]] std::size_t page_index, [[maybe_unused]] std::size_t offset,
+                    std::size_t copy_amount) {
+        result = true;
+        return true;
+    };
+    auto short_check = [&](std::size_t page_index, std::size_t offset, std::size_t copy_amount) {
+        PTEKind base_kind_other = GetKind<false>((page_index << page_bits) + offset);
+        if (base_kind != base_kind_other) {
+            result = true;
+            return true;
+        }
+        range_so_far += copy_amount;
+        return false;
+    };
+    auto big_check = [&](std::size_t page_index, std::size_t offset, std::size_t copy_amount) {
+        PTEKind base_kind_other = GetKind<true>((page_index << big_page_bits) + offset);
+        if (base_kind != base_kind_other) {
+            result = true;
+            return true;
+        }
+        range_so_far += copy_amount;
+        return false;
+    };
+    auto check_short_pages = [&](std::size_t page_index, std::size_t offset,
+                                 std::size_t copy_amount) {
+        GPUVAddr base = (page_index << big_page_bits) + offset;
+        MemoryOperation<false>(base, copy_amount, short_check, fail, fail);
+        return result;
+    };
+    MemoryOperation<true>(gpu_addr, address_space_size - gpu_addr, big_check, fail,
+                          check_short_pages);
     return range_so_far;
 }
 

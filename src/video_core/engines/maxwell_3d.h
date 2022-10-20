@@ -3077,6 +3077,8 @@ public:
 
     u32 GetMaxCurrentVertices();
 
+    size_t EstimateIndexBufferSize();
+
     /// Handles a write to the CLEAR_BUFFERS register.
     void ProcessClearBuffers(u32 layer_count);
 

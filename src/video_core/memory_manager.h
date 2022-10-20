@@ -118,6 +118,8 @@ public:
 
     PTEKind GetPageKind(GPUVAddr gpu_addr) const;
 
+    size_t GetMemoryLayoutSize(GPUVAddr gpu_addr) const;
+
 private:
     template <bool is_big_pages, typename FuncMapped, typename FuncReserved, typename FuncUnmapped>
     inline void MemoryOperation(GPUVAddr gpu_src_addr, std::size_t size, FuncMapped&& func_mapped,

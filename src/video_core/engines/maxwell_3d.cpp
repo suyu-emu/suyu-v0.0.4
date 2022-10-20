@@ -179,6 +179,13 @@ u32 Maxwell3D::GetMaxCurrentVertices() {
     return num_vertices;
 }
 
+size_t Maxwell3D::EstimateIndexBufferSize() {
+    GPUVAddr start_address = regs.index_buffer.StartAddress();
+    GPUVAddr end_address = regs.index_buffer.EndAddress();
+    return std::min<size_t>(memory_manager.GetMemoryLayoutSize(start_address),
+                            static_cast<size_t>(end_address - start_address));
+}
+
 u32 Maxwell3D::ProcessShadowRam(u32 method, u32 argument) {
     // Keep track of the register value in shadow_state when requested.
     const auto control = shadow_state.shadow_ram_control;

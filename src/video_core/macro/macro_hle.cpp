@@ -163,12 +163,16 @@ public:
             maxwell3d.RefreshParameters();
             minimum_limit = std::max(parameters[3], minimum_limit);
         }
-
-        const u32 base_vertex = parameters[8];
-        const u32 base_instance = parameters[9];
-        maxwell3d.regs.vertex_id_base = base_vertex;
+        const u32 estimate = static_cast<u32>(maxwell3d.EstimateIndexBufferSize());
+        const u32 base_size = std::max(minimum_limit, estimate);
+        const u32 element_base = parameters[4];
+        const u32 base_instance = parameters[5];
+        maxwell3d.regs.index_buffer.first = 0;
+        maxwell3d.regs.index_buffer.count = base_size; // Use a fixed size, just for mapping
+        maxwell3d.regs.draw.topology.Assign(topology);
+        maxwell3d.dirty.flags[VideoCommon::Dirty::IndexBuffer] = true;
         maxwell3d.CallMethod(0x8e3, 0x640, true);
-        maxwell3d.CallMethod(0x8e4, base_vertex, true);
+        maxwell3d.CallMethod(0x8e4, element_base, true);
         maxwell3d.CallMethod(0x8e5, base_instance, true);
         auto& params = maxwell3d.draw_manager->GetIndirectParams();
         params.is_indexed = true;
@@ -179,7 +183,7 @@ public:
         params.max_draw_counts = 1;
         params.stride = 0;
         maxwell3d.dirty.flags[VideoCommon::Dirty::IndexBuffer] = true;
-        maxwell3d.draw_manager->DrawIndexedIndirect(topology, 0, minimum_limit);
+        maxwell3d.draw_manager->DrawIndexedIndirect(topology, 0, base_size);
         maxwell3d.CallMethod(0x8e3, 0x640, true);
         maxwell3d.CallMethod(0x8e4, 0x0, true);
         maxwell3d.CallMethod(0x8e5, 0x0, true);
@@ -271,9 +275,11 @@ public:
         if (check_limit) {
             minimum_limit = std::max(highest_limit, minimum_limit);
         }
+        const u32 estimate = static_cast<u32>(maxwell3d.EstimateIndexBufferSize());
+        const u32 base_size = std::max(minimum_limit, estimate);
 
         maxwell3d.regs.index_buffer.first = 0;
-        maxwell3d.regs.index_buffer.count = std::max(highest_limit, minimum_limit);
+        maxwell3d.regs.index_buffer.count = std::max(highest_limit, base_size);
         maxwell3d.dirty.flags[VideoCommon::Dirty::IndexBuffer] = true;
         auto& params = maxwell3d.draw_manager->GetIndirectParams();
         params.is_indexed = true;
