@@ -75,6 +75,7 @@ if (MSVC)
         /we4555 # Expression has no effect; expected expression with side-effect
         /we4826 # Conversion from 'type1' to 'type2' is sign-extended. This may cause unexpected runtime behavior.
         /we5038 # data member 'member1' will be initialized after data member 'member2'
+        /we5233 # explicit lambda capture 'identifier' is not used
         /we5245 # 'function': unreferenced function with internal linkage has been removed
 
         /wd4100 # 'identifier': unreferenced formal parameter
