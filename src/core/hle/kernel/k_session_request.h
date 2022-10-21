@@ -280,7 +280,7 @@ public:
 
 private:
     // NOTE: This is public and virtual in Nintendo's kernel.
-    void Finalize() {
+    void Finalize() override {
         m_mappings.Finalize();
 
         if (m_thread) {
