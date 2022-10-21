@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <array>
+
 #include "core/hle/kernel/k_auto_object.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_memory_block.h"
@@ -148,7 +150,7 @@ public:
 
     private:
         KernelCore& kernel;
-        Mapping m_static_mappings[NumStaticMappings];
+        std::array<Mapping, NumStaticMappings> m_static_mappings;
         Mapping* m_mappings{};
         u8 m_num_send{};
         u8 m_num_recv{};
