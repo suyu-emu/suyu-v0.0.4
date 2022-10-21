@@ -157,6 +157,12 @@ if (MSVC)
   target_compile_options(common PRIVATE
     /W4
     /WX
+
+    /we4242 # 'identifier': conversion from 'type1' to 'type2', possible loss of data
+    /we4244 # 'conversion': conversion from 'type1' to 'type2', possible loss of data
+    /we4245 # 'conversion': conversion from 'type1' to 'type2', signed/unsigned mismatch
+    /we4254 # 'operator': conversion from 'type1:field_bits' to 'type2:field_bits', possible loss of data
+    /we4800 # Implicit conversion from 'type' to bool. Possible information loss
   )
 else()
   target_compile_options(common PRIVATE

@@ -248,7 +248,6 @@ if (MSVC)
         /we4245 # 'conversion' : conversion from 'type1' to 'type2', signed/unsigned mismatch
         /we4254 # 'operator': conversion from 'type1:field_bits' to 'type2:field_bits', possible loss of data
         /we4800 # Implicit conversion from 'type' to bool. Possible information loss
-        /we4826 # Conversion from 'type1' to 'type2' is sign-extended. This may cause unexpected runtime behavior.
     )
 else()
     target_compile_options(shader_recompiler PRIVATE

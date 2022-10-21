@@ -76,6 +76,7 @@ if (MSVC)
         /we4549 # 'operator1': operator before comma has no effect; did you intend 'operator2'?
         /we4555 # Expression has no effect; expected expression with side-effect
         /we4715 # 'function': not all control paths return a value
+        /we4826 # Conversion from 'type1' to 'type2' is sign-extended. This may cause unexpected runtime behavior.
         /we4834 # Discarding return value of function with 'nodiscard' attribute
         /we5038 # data member 'member1' will be initialized after data member 'member2'
         /we5245 # 'function': unreferenced function with internal linkage has been removed
