@@ -100,16 +100,9 @@ if (MSVC)
 else()
     add_compile_options(
         -Werror=all
-        -Werror=array-bounds
         -Werror=extra
-        -Werror=implicit-fallthrough
         -Werror=missing-declarations
-        -Werror=missing-field-initializers
-        -Werror=reorder
         -Werror=shadow
-        -Werror=sign-compare
-        -Werror=switch
-        -Werror=uninitialized
         -Werror=unused
 
         -Wno-attributes

@@ -48,12 +48,7 @@ if (MSVC)
     )
 else()
     target_compile_options(input_common PRIVATE
-        -Werror
         -Werror=conversion
-        -Werror=ignored-qualifiers
-        $<$<CXX_COMPILER_ID:GNU>:-Werror=unused-but-set-parameter>
-        $<$<CXX_COMPILER_ID:GNU>:-Werror=unused-but-set-variable>
-        -Werror=unused-variable
     )
 endif()
 

@@ -778,15 +778,10 @@ if (MSVC)
 else()
     target_compile_options(core PRIVATE
         -Werror=conversion
-        -Werror=ignored-qualifiers
-
-        $<$<CXX_COMPILER_ID:GNU>:-Werror=class-memaccess>
-        $<$<CXX_COMPILER_ID:GNU>:-Werror=unused-but-set-parameter>
-        $<$<CXX_COMPILER_ID:GNU>:-Werror=unused-but-set-variable>
-
-        $<$<CXX_COMPILER_ID:Clang>:-fsized-deallocation>
 
         -Wno-sign-conversion
+
+        $<$<CXX_COMPILER_ID:Clang>:-fsized-deallocation>
     )
 endif()
 
