@@ -199,6 +199,8 @@ private:
     /// End a transform feedback
     void EndTransformFeedback();
 
+    void BindInlineIndexBuffer();
+
     Tegra::GPU& gpu;
 
     const Device& device;
