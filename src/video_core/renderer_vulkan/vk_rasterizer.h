@@ -64,7 +64,7 @@ public:
                               StateTracker& state_tracker_, Scheduler& scheduler_);
     ~RasterizerVulkan() override;
 
-    void Draw(bool is_indexed, bool is_instanced) override;
+    void Draw(bool is_indexed, u32 instance_count) override;
     void Clear() override;
     void DispatchCompute() override;
     void ResetCounter(VideoCore::QueryType type) override;
