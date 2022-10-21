@@ -52,8 +52,7 @@ public:
         };
 
     public:
-        explicit SessionMappings(KernelCore& kernel_)
-            : kernel(kernel_), m_mappings(nullptr), m_num_send(), m_num_recv(), m_num_exch() {}
+        explicit SessionMappings(KernelCore& kernel_) : kernel(kernel_) {}
 
         void Initialize() {}
         void Finalize();
@@ -150,16 +149,14 @@ public:
     private:
         KernelCore& kernel;
         Mapping m_static_mappings[NumStaticMappings];
-        Mapping* m_mappings;
-        u8 m_num_send;
-        u8 m_num_recv;
-        u8 m_num_exch;
+        Mapping* m_mappings{};
+        u8 m_num_send{};
+        u8 m_num_recv{};
+        u8 m_num_exch{};
     };
 
 public:
-    explicit KSessionRequest(KernelCore& kernel_)
-        : KAutoObject(kernel_), m_mappings(kernel_), m_thread(nullptr), m_server(nullptr),
-          m_event(nullptr) {}
+    explicit KSessionRequest(KernelCore& kernel_) : KAutoObject(kernel_), m_mappings(kernel_) {}
 
     static KSessionRequest* Create(KernelCore& kernel) {
         KSessionRequest* req = KSessionRequest::Allocate(kernel);
@@ -297,11 +294,11 @@ private:
 
 private:
     SessionMappings m_mappings;
-    KThread* m_thread;
-    KProcess* m_server;
-    KEvent* m_event;
-    uintptr_t m_address;
-    size_t m_size;
+    KThread* m_thread{};
+    KProcess* m_server{};
+    KEvent* m_event{};
+    uintptr_t m_address{};
+    size_t m_size{};
 };
 
 } // namespace Kernel
