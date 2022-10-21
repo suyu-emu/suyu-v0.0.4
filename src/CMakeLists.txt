@@ -60,13 +60,9 @@ if (MSVC)
         /W3
         /WX
 
-        /we4018 # 'expression': signed/unsigned mismatch
         /we4062 # Enumerator 'identifier' in a switch of enum 'enumeration' is not handled
-        /we4101 # 'identifier': unreferenced local variable
         /we4189 # 'identifier': local variable is initialized but not referenced
         /we4265 # 'class': class has virtual functions, but destructor is not virtual
-        /we4267 # 'var': conversion from 'size_t' to 'type', possible loss of data
-        /we4305 # 'context': truncation from 'type1' to 'type2'
         /we4388 # 'expression': signed/unsigned mismatch
         /we4389 # 'operator': signed/unsigned mismatch
         /we4456 # Declaration of 'identifier' hides previous local declaration
@@ -77,9 +73,7 @@ if (MSVC)
         /we4547 # 'operator': operator before comma has no effect; expected operator with side-effect
         /we4549 # 'operator1': operator before comma has no effect; did you intend 'operator2'?
         /we4555 # Expression has no effect; expected expression with side-effect
-        /we4715 # 'function': not all control paths return a value
         /we4826 # Conversion from 'type1' to 'type2' is sign-extended. This may cause unexpected runtime behavior.
-        /we4834 # Discarding return value of function with 'nodiscard' attribute
         /we5038 # data member 'member1' will be initialized after data member 'member2'
         /we5245 # 'function': unreferenced function with internal linkage has been removed
     )
