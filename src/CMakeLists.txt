@@ -110,13 +110,13 @@ else()
         -Werror=sign-compare
         -Werror=switch
         -Werror=uninitialized
-        -Werror=unused-function
-        -Werror=unused-result
-        -Werror=unused-variable
+        -Werror=unused
 
         -Wno-attributes
         -Wno-invalid-offsetof
         -Wno-unused-parameter
+
+        $<$<CXX_COMPILER_ID:Clang>:-Wno-unused-private-field>
     )
 
     if (ARCHITECTURE_x86_64)
