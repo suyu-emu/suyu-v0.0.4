@@ -58,6 +58,8 @@ if (MSVC)
 
         # Warnings
         /W3
+        /WX
+
         /we4018 # 'expression': signed/unsigned mismatch
         /we4062 # Enumerator 'identifier' in a switch of enum 'enumeration' is not handled
         /we4101 # 'identifier': unreferenced local variable

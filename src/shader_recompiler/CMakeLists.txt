@@ -241,7 +241,6 @@ target_link_libraries(shader_recompiler PUBLIC common fmt::fmt sirit)
 if (MSVC)
     target_compile_options(shader_recompiler PRIVATE
         /W4
-        /WX
 
         /we4242 # 'identifier': conversion from 'type1' to 'type2', possible loss of data
         /we4244 # 'argument' : conversion from 'type1' to 'type2', possible loss of data (floating-point)

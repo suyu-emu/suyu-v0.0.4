@@ -39,7 +39,6 @@ add_library(input_common STATIC
 if (MSVC)
     target_compile_options(input_common PRIVATE
         /W4
-        /WX
 
         /we4242 # 'identifier': conversion from 'type1' to 'type2', possible loss of data
         /we4244 # 'conversion': conversion from 'type1' to 'type2', possible loss of data
