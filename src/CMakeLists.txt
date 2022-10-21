@@ -110,6 +110,7 @@ else()
         -Wno-invalid-offsetof
         -Wno-unused-parameter
 
+        $<$<CXX_COMPILER_ID:Clang>:-Wno-braced-scalar-init>
         $<$<CXX_COMPILER_ID:Clang>:-Wno-unused-private-field>
     )
 
