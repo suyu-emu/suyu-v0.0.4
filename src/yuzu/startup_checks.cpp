@@ -135,7 +135,8 @@ bool SpawnChild(const char* arg0, PROCESS_INFORMATION* pi, int flags) {
     startup_info.cb = sizeof(startup_info);
 
     char p_name[255];
-    std::strncpy(p_name, arg0, 255);
+    std::strncpy(p_name, arg0, 254);
+    p_name[254] = '\0';
 
     const bool process_created = CreateProcessA(nullptr,       // lpApplicationName
                                                 p_name,        // lpCommandLine
