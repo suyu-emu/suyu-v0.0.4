@@ -99,8 +99,9 @@ if (MSVC)
     set(CMAKE_EXE_LINKER_FLAGS_RELEASE "/DEBUG /MANIFEST:NO /INCREMENTAL:NO /OPT:REF,ICF" CACHE STRING "" FORCE)
 else()
     add_compile_options(
-        -Wall
+        -Werror=all
         -Werror=array-bounds
+        -Werror=extra
         -Werror=implicit-fallthrough
         -Werror=missing-declarations
         -Werror=missing-field-initializers
@@ -112,8 +113,7 @@ else()
         -Werror=unused-function
         -Werror=unused-result
         -Werror=unused-variable
-        -Wextra
-        -Wmissing-declarations
+
         -Wno-attributes
         -Wno-invalid-offsetof
         -Wno-unused-parameter
