@@ -1048,6 +1048,7 @@ bool EmulatedController::HasNfc() const {
     case NpadStyleIndex::JoyconRight:
     case NpadStyleIndex::JoyconDual:
     case NpadStyleIndex::ProController:
+    case NpadStyleIndex::Handheld:
         break;
     default:
         return false;
