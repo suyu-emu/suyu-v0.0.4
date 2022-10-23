@@ -81,8 +81,8 @@ void KScheduler::RescheduleCurrentHLEThread(KernelCore& kernel) {
     // HACK: we cannot schedule from this thread, it is not a core thread
     ASSERT(GetCurrentThread(kernel).GetDisableDispatchCount() == 1);
 
-    // Special case to ensure dummy threads that are waiting block
-    GetCurrentThread(kernel).IfDummyThreadTryWait();
+    // Ensure dummy threads that are waiting block.
+    GetCurrentThread(kernel).DummyThreadBeginWait();
 
     ASSERT(GetCurrentThread(kernel).GetState() != ThreadState::Waiting);
     GetCurrentThread(kernel).EnableDispatch();
@@ -314,6 +314,16 @@ u64 KScheduler::UpdateHighestPriorityThreadsImpl(KernelCore& kernel) {
         idle_cores &= ~(1ULL << core_id);
     }
 
+    // HACK: any waiting dummy threads can wake up now.
+    kernel.GlobalSchedulerContext().WakeupWaitingDummyThreads();
+
+    // HACK: if we are a dummy thread, and we need to go sleep, indicate
+    // that for when the lock is released.
+    KThread* const cur_thread = GetCurrentThreadPointer(kernel);
+    if (cur_thread->IsDummyThread() && cur_thread->GetState() != ThreadState::Runnable) {
+        cur_thread->RequestDummyThreadWait();
+    }
+
     return cores_needing_scheduling;
 }
 
@@ -531,11 +541,23 @@ void KScheduler::OnThreadStateChanged(KernelCore& kernel, KThread* thread, Threa
         GetPriorityQueue(kernel).Remove(thread);
         IncrementScheduledCount(thread);
         SetSchedulerUpdateNeeded(kernel);
+
+        if (thread->IsDummyThread()) {
+            // HACK: if this is a dummy thread, it should no longer wake up when the
+            // scheduler lock is released.
+            kernel.GlobalSchedulerContext().UnregisterDummyThreadForWakeup(thread);
+        }
     } else if (cur_state == ThreadState::Runnable) {
         // If we're now runnable, then we weren't previously, and we should add.
         GetPriorityQueue(kernel).PushBack(thread);
         IncrementScheduledCount(thread);
         SetSchedulerUpdateNeeded(kernel);
+
+        if (thread->IsDummyThread()) {
+            // HACK: if this is a dummy thread, it should wake up when the scheduler
+            // lock is released.
+            kernel.GlobalSchedulerContext().RegisterDummyThreadForWakeup(thread);
+        }
     }
 }
 

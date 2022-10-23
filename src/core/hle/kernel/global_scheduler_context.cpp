@@ -49,4 +49,26 @@ bool GlobalSchedulerContext::IsLocked() const {
     return scheduler_lock.IsLockedByCurrentThread();
 }
 
+void GlobalSchedulerContext::RegisterDummyThreadForWakeup(KThread* thread) {
+    ASSERT(IsLocked());
+
+    woken_dummy_threads.insert(thread);
+}
+
+void GlobalSchedulerContext::UnregisterDummyThreadForWakeup(KThread* thread) {
+    ASSERT(IsLocked());
+
+    woken_dummy_threads.erase(thread);
+}
+
+void GlobalSchedulerContext::WakeupWaitingDummyThreads() {
+    ASSERT(IsLocked());
+
+    for (auto* thread : woken_dummy_threads) {
+        thread->DummyThreadEndWait();
+    }
+
+    woken_dummy_threads.clear();
+}
+
 } // namespace Kernel
