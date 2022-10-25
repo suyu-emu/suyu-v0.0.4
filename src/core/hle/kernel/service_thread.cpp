@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <functional>
+#include <map>
 #include <mutex>
 #include <thread>
 #include <vector>
@@ -37,8 +38,7 @@ private:
 
     std::jthread m_thread;
     std::mutex m_session_mutex;
-    std::vector<KServerSession*> m_sessions;
-    std::vector<std::shared_ptr<SessionRequestManager>> m_managers;
+    std::map<KServerSession*, std::shared_ptr<SessionRequestManager>> m_sessions;
     KEvent* m_wakeup_event;
     KProcess* m_process;
     std::atomic<bool> m_shutdown_requested;
@@ -51,19 +51,21 @@ void ServiceThread::Impl::WaitAndProcessImpl() {
     std::vector<std::shared_ptr<SessionRequestManager>> managers;
 
     {
-        // Lock to get the list.
+        // Lock to get the set.
         std::scoped_lock lk{m_session_mutex};
 
-        // Resize to the needed quantity.
-        objs.resize(m_sessions.size() + 1);
-        managers.resize(m_managers.size());
+        // Reserve the needed quantity.
+        objs.reserve(m_sessions.size() + 1);
+        managers.reserve(m_sessions.size());
 
         // Copy to our local list.
-        std::copy(m_sessions.begin(), m_sessions.end(), objs.begin());
-        std::copy(m_managers.begin(), m_managers.end(), managers.begin());
+        for (const auto& [session, manager] : m_sessions) {
+            objs.push_back(session);
+            managers.push_back(manager);
+        }
 
         // Insert the wakeup event at the end.
-        objs.back() = &m_wakeup_event->GetReadableEvent();
+        objs.push_back(&m_wakeup_event->GetReadableEvent());
     }
 
     // Wait on the list of sessions.
@@ -116,17 +118,11 @@ void ServiceThread::Impl::WaitAndProcessImpl() {
 void ServiceThread::Impl::SessionClosed(KServerSession* server_session,
                                         std::shared_ptr<SessionRequestManager> manager) {
     {
-        // Lock to get the list.
+        // Lock to get the set.
         std::scoped_lock lk{m_session_mutex};
 
-        // Get the index of the session.
-        const auto index =
-            std::find(m_sessions.begin(), m_sessions.end(), server_session) - m_sessions.begin();
-        ASSERT(index < static_cast<s64>(m_sessions.size()));
-
-        // Remove the session and its manager.
-        m_sessions.erase(m_sessions.begin() + index);
-        m_managers.erase(m_managers.begin() + index);
+        // Erase the session.
+        ASSERT(m_sessions.erase(server_session) == 1);
     }
 
     // Close our reference to the server session.
@@ -149,12 +145,11 @@ void ServiceThread::Impl::RegisterServerSession(KServerSession* server_session,
     server_session->Open();
 
     {
-        // Lock to get the list.
+        // Lock to get the set.
         std::scoped_lock lk{m_session_mutex};
 
         // Insert the session and manager.
-        m_sessions.push_back(server_session);
-        m_managers.push_back(manager);
+        m_sessions[server_session] = manager;
     }
 
     // Signal the wakeup event.
@@ -171,9 +166,12 @@ ServiceThread::Impl::~Impl() {
     m_session_mutex.lock();
 
     // Close all remaining sessions.
-    for (size_t i = 0; i < m_sessions.size(); i++) {
-        m_sessions[i]->Close();
+    for (const auto& [server_session, manager] : m_sessions) {
+        server_session->Close();
     }
+
+    // Destroy remaining managers.
+    m_sessions.clear();
 
     // Close event.
     m_wakeup_event->GetReadableEvent().Close();
