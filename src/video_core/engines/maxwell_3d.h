@@ -1739,14 +1739,11 @@ public:
             Footprint_1x1_Virtual = 2,
         };
 
-        struct InlineIndex4x8Align {
+        struct InlineIndex4x8 {
             union {
                 BitField<0, 30, u32> count;
                 BitField<30, 2, u32> start;
             };
-        };
-
-        struct InlineIndex4x8Index {
             union {
                 BitField<0, 8, u32> index0;
                 BitField<8, 8, u32> index1;
@@ -2836,8 +2833,7 @@ public:
                 u32 depth_write_enabled;                                               ///< 0x12E8
                 u32 alpha_test_enabled;                                                ///< 0x12EC
                 INSERT_PADDING_BYTES_NOINIT(0x10);
-                InlineIndex4x8Align inline_index_4x8_align;                            ///< 0x1300
-                InlineIndex4x8Index inline_index_4x8_index;                            ///< 0x1304
+                InlineIndex4x8 inline_index_4x8;                                       ///< 0x1300
                 D3DCullMode d3d_cull_mode;                                             ///< 0x1308
                 ComparisonOp depth_test_func;                                          ///< 0x130C
                 f32 alpha_test_ref;                                                    ///< 0x1310
@@ -3048,8 +3044,6 @@ public:
         };
 
         std::array<ShaderStageInfo, Regs::MaxShaderStage> shader_stages;
-
-        u32 current_instance = 0; ///< Current instance to be used to simulate instanced rendering.
     };
 
     State state{};
@@ -3064,11 +3058,6 @@ public:
     void CallMultiMethod(u32 method, const u32* base_start, u32 amount,
                          u32 methods_pending) override;
 
-    /// Write the value to the register identified by method.
-    void CallMethodFromMME(u32 method, u32 method_argument);
-
-    void FlushMMEInlineDraw();
-
     bool ShouldExecute() const {
         return execute_on;
     }
@@ -3081,21 +3070,6 @@ public:
         return *rasterizer;
     }
 
-    enum class MMEDrawMode : u32 {
-        Undefined,
-        Array,
-        Indexed,
-    };
-
-    struct MMEDrawState {
-        MMEDrawMode current_mode{MMEDrawMode::Undefined};
-        u32 current_count{};
-        u32 instance_count{};
-        bool instance_mode{};
-        bool gl_begin_consume{};
-        u32 gl_end_count{};
-    } mme_draw;
-
     struct DirtyState {
         using Flags = std::bitset<std::numeric_limits<u8>::max()>;
         using Table = std::array<u8, Regs::NUM_REGS>;
@@ -3104,6 +3078,8 @@ public:
         Flags flags;
         Tables tables{};
     } dirty;
+
+    std::vector<u8> inline_index_draw_indexes;
 
 private:
     void InitializeRegisterDefaults();
@@ -3164,14 +3140,10 @@ private:
     /// Handles a write to the CB_BIND register.
     void ProcessCBBind(size_t stage_index);
 
-    /// Handles a write to the VERTEX_END_GL register, triggering a draw.
-    void DrawArrays();
-
     /// Handles use of topology overrides (e.g., to avoid using a topology assigned from a macro)
     void ProcessTopologyOverride();
 
-    // Handles a instance drawcall from MME
-    void StepInstance(MMEDrawMode expected_mode, u32 count);
+    void ProcessDeferredDraw();
 
     /// Returns a query's value or an empty object if the value will be deferred through a cache.
     std::optional<u64> GetQueryResult();
@@ -3183,8 +3155,6 @@ private:
 
     /// Start offsets of each macro in macro_memory
     std::array<u32, 0x80> macro_positions{};
-
-    std::array<bool, Regs::NUM_REGS> mme_inline{};
 
     /// Macro method that is currently being executed / being fed parameters.
     u32 executing_macro = 0;
@@ -3198,6 +3168,9 @@ private:
 
     bool execute_on{true};
     bool use_topology_override{false};
+
+    std::array<bool, Regs::NUM_REGS> draw_command{};
+    std::vector<u32> deferred_draw_method;
 };
 
 #define ASSERT_REG_POSITION(field_name, position)                                                  \
@@ -3402,8 +3375,7 @@ ASSERT_REG_POSITION(alpha_to_coverage_dither, 0x12E0);
 ASSERT_REG_POSITION(blend_per_target_enabled, 0x12E4);
 ASSERT_REG_POSITION(depth_write_enabled, 0x12E8);
 ASSERT_REG_POSITION(alpha_test_enabled, 0x12EC);
-ASSERT_REG_POSITION(inline_index_4x8_align, 0x1300);
-ASSERT_REG_POSITION(inline_index_4x8_index, 0x1304);
+ASSERT_REG_POSITION(inline_index_4x8, 0x1300);
 ASSERT_REG_POSITION(d3d_cull_mode, 0x1308);
 ASSERT_REG_POSITION(depth_test_func, 0x130C);
 ASSERT_REG_POSITION(alpha_test_ref, 0x1310);
