@@ -868,7 +868,7 @@ bool Controller_NPad::VibrateControllerAtIndex(Core::HID::NpadIdType npad_id,
         return false;
     }
 
-    if (!controller.device->IsVibrationEnabled()) {
+    if (!controller.device->IsVibrationEnabled(device_index)) {
         if (controller.vibration[device_index].latest_vibration_value.low_amplitude != 0.0f ||
             controller.vibration[device_index].latest_vibration_value.high_amplitude != 0.0f) {
             // Send an empty vibration to stop any vibrations.
@@ -1001,7 +1001,7 @@ void Controller_NPad::InitializeVibrationDeviceAtIndex(Core::HID::NpadIdType npa
     }
 
     controller.vibration[device_index].device_mounted =
-        controller.device->TestVibration(device_index);
+        controller.device->IsVibrationEnabled(device_index);
 }
 
 void Controller_NPad::SetPermitVibrationSession(bool permit_vibration_session) {
