@@ -103,7 +103,7 @@ void ServiceThread::Impl::WaitAndProcessImpl() {
     Result service_rc = manager->CompleteSyncRequest(server_session, *context);
 
     // Reply to the client.
-    rc = server_session->SendReply(true);
+    rc = server_session->SendReplyHLE();
 
     if (rc == ResultSessionClosed || service_rc == IPC::ERR_REMOTE_PROCESS_DEAD) {
         SessionClosed(server_session, manager);

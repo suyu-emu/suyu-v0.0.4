@@ -33,16 +33,13 @@ void Controller::CloneCurrentObject(Kernel::HLERequestContext& ctx) {
     // FIXME: this is duplicated from the SVC, it should just call it instead
     // once this is a proper process
 
-    // Declare the session we're going to allocate.
-    Kernel::KSession* session;
-
     // Reserve a new session from the process resource limit.
     Kernel::KScopedResourceReservation session_reservation(&process,
                                                            Kernel::LimitableResource::Sessions);
     ASSERT(session_reservation.Succeeded());
 
     // Create the session.
-    session = Kernel::KSession::Create(system.Kernel());
+    Kernel::KSession* session = Kernel::KSession::Create(system.Kernel());
     ASSERT(session != nullptr);
 
     // Initialize the session.

@@ -55,6 +55,10 @@ public:
     Result ReceiveRequest(std::shared_ptr<HLERequestContext>* out_context = nullptr,
                           std::weak_ptr<SessionRequestManager> manager = {});
 
+    Result SendReplyHLE() {
+        return SendReply(true);
+    }
+
 private:
     /// Frees up waiting client sessions when this server session is about to die
     void CleanupRequests();
