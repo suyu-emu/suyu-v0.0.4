@@ -15,6 +15,7 @@
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_scoped_resource_reservation.h"
 #include "core/hle/kernel/k_system_control.h"
+#include "core/hle/kernel/k_system_resource.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/svc_results.h"
 #include "core/memory.h"
@@ -49,9 +50,10 @@ KPageTable::KPageTable(Core::System& system_)
 KPageTable::~KPageTable() = default;
 
 Result KPageTable::InitializeForProcess(FileSys::ProgramAddressSpaceType as_type, bool enable_aslr,
-                                        VAddr code_addr, size_t code_size,
-                                        KMemoryBlockSlabManager* mem_block_slab_manager,
-                                        KMemoryManager::Pool pool) {
+                                        bool enable_das_merge, bool from_back,
+                                        KMemoryManager::Pool pool, VAddr code_addr,
+                                        size_t code_size, KSystemResource* system_resource,
+                                        KResourceLimit* resource_limit) {
 
     const auto GetSpaceStart = [this](KAddressSpaceInfo::Type type) {
         return KAddressSpaceInfo::GetAddressSpaceStart(m_address_space_width, type);
@@ -116,7 +118,9 @@ Result KPageTable::InitializeForProcess(FileSys::ProgramAddressSpaceType as_type
     m_address_space_start = start;
     m_address_space_end = end;
     m_is_kernel = false;
-    m_memory_block_slab_manager = mem_block_slab_manager;
+    m_memory_block_slab_manager = system_resource->GetMemoryBlockSlabManagerPointer();
+    m_block_info_manager = system_resource->GetBlockInfoManagerPointer();
+    m_resource_limit = resource_limit;
 
     // Determine the region we can place our undetermineds in
     VAddr alloc_start{};

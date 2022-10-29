@@ -23,7 +23,10 @@ class System;
 
 namespace Kernel {
 
+class KBlockInfoManager;
 class KMemoryBlockManager;
+class KResourceLimit;
+class KSystemResource;
 
 class KPageTable final {
 public:
@@ -36,9 +39,9 @@ public:
     ~KPageTable();
 
     Result InitializeForProcess(FileSys::ProgramAddressSpaceType as_type, bool enable_aslr,
-                                VAddr code_addr, size_t code_size,
-                                KMemoryBlockSlabManager* mem_block_slab_manager,
-                                KMemoryManager::Pool pool);
+                                bool enable_das_merge, bool from_back, KMemoryManager::Pool pool,
+                                VAddr code_addr, size_t code_size, KSystemResource* system_resource,
+                                KResourceLimit* resource_limit);
 
     void Finalize();
 
@@ -74,9 +77,9 @@ public:
                                           KMemoryState state, KMemoryPermission perm,
                                           PAddr map_addr = 0);
 
-    Result LockForMapDeviceAddressSpace(VAddr address, size_t size, KMemoryPermission perm,
-                                        bool is_aligned);
-    Result LockForUnmapDeviceAddressSpace(VAddr address, size_t size);
+    Result LockForMapDeviceAddressSpace(bool* out_is_io, VAddr address, size_t size,
+                                        KMemoryPermission perm, bool is_aligned, bool check_heap);
+    Result LockForUnmapDeviceAddressSpace(VAddr address, size_t size, bool check_heap);
 
     Result UnlockForDeviceAddressSpace(VAddr addr, size_t size);
 
@@ -99,11 +102,13 @@ public:
 
 private:
     enum class OperationType : u32 {
-        Map,
-        MapGroup,
-        Unmap,
-        ChangePermissions,
-        ChangePermissionsAndRefresh,
+        Map = 0,
+        MapFirst = 1,
+        MapGroup = 2,
+        Unmap = 3,
+        ChangePermissions = 4,
+        ChangePermissionsAndRefresh = 5,
+        Separate = 6,
     };
 
     static constexpr KMemoryAttribute DefaultMemoryIgnoreAttr =
@@ -198,6 +203,10 @@ private:
 
         return *out != 0;
     }
+
+    // HACK: These will be removed once we automatically manage page reference counts.
+    void HACK_OpenPages(PAddr phys_addr, size_t num_pages);
+    void HACK_ClosePages(VAddr virt_addr, size_t num_pages);
 
     mutable KLightLock m_general_lock;
     mutable KLightLock m_map_physical_memory_lock;
@@ -347,20 +356,27 @@ private:
     VAddr m_alias_code_region_start{};
     VAddr m_alias_code_region_end{};
 
-    size_t m_mapped_physical_memory_size{};
     size_t m_max_heap_size{};
-    size_t m_max_physical_memory_size{};
+    size_t m_mapped_physical_memory_size{};
+    size_t m_mapped_unsafe_physical_memory{};
+    size_t m_mapped_insecure_memory{};
+    size_t m_mapped_ipc_server_memory{};
     size_t m_address_space_width{};
 
     KMemoryBlockManager m_memory_block_manager;
+    u32 m_allocate_option{};
 
     bool m_is_kernel{};
     bool m_enable_aslr{};
     bool m_enable_device_address_space_merge{};
 
     KMemoryBlockSlabManager* m_memory_block_slab_manager{};
+    KBlockInfoManager* m_block_info_manager{};
+    KResourceLimit* m_resource_limit{};
 
     u32 m_heap_fill_value{};
+    u32 m_ipc_fill_value{};
+    u32 m_stack_fill_value{};
     const KMemoryRegion* m_cached_physical_heap_region{};
 
     KMemoryManager::Pool m_memory_pool{KMemoryManager::Pool::Application};
