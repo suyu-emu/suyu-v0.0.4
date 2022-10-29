@@ -947,6 +947,9 @@ Result KPageTable::SetupForIpcServer(VAddr* out_addr, size_t size, VAddr src_add
 
     ON_RESULT_FAILURE {
         if (cur_mapped_addr != dst_addr) {
+            // HACK: Manually close the pages.
+            HACK_ClosePages(dst_addr, (cur_mapped_addr - dst_addr) / PageSize);
+
             ASSERT(Operate(dst_addr, (cur_mapped_addr - dst_addr) / PageSize,
                            KMemoryPermission::None, OperationType::Unmap)
                        .IsSuccess());
@@ -1022,6 +1025,9 @@ Result KPageTable::SetupForIpcServer(VAddr* out_addr, size_t size, VAddr src_add
         // Map the page.
         R_TRY(Operate(cur_mapped_addr, 1, test_perm, OperationType::Map, start_partial_page));
 
+        // HACK: Manually open the pages.
+        HACK_OpenPages(start_partial_page, 1);
+
         // Update tracking extents.
         cur_mapped_addr += PageSize;
         cur_block_addr += PageSize;
@@ -1050,6 +1056,9 @@ Result KPageTable::SetupForIpcServer(VAddr* out_addr, size_t size, VAddr src_add
             R_TRY(Operate(cur_mapped_addr, cur_block_size / PageSize, test_perm, OperationType::Map,
                           cur_block_addr));
 
+            // HACK: Manually open the pages.
+            HACK_OpenPages(cur_block_addr, cur_block_size / PageSize);
+
             // Update tracking extents.
             cur_mapped_addr += cur_block_size;
             cur_block_addr = next_entry.phys_addr;
@@ -1068,6 +1077,9 @@ Result KPageTable::SetupForIpcServer(VAddr* out_addr, size_t size, VAddr src_add
         // Map the last block.
         R_TRY(Operate(cur_mapped_addr, last_block_size / PageSize, test_perm, OperationType::Map,
                       cur_block_addr));
+
+        // HACK: Manually open the pages.
+        HACK_OpenPages(cur_block_addr, last_block_size / PageSize);
 
         // Update tracking extents.
         cur_mapped_addr += last_block_size;
@@ -1100,6 +1112,9 @@ Result KPageTable::SetupForIpcServer(VAddr* out_addr, size_t size, VAddr src_add
 
         // Map the page.
         R_TRY(Operate(cur_mapped_addr, 1, test_perm, OperationType::Map, end_partial_page));
+
+        // HACK: Manually open the pages.
+        HACK_OpenPages(end_partial_page, 1);
     }
 
     // Update memory blocks to reflect our changes
@@ -1201,6 +1216,9 @@ Result KPageTable::CleanupForIpcServer(VAddr address, size_t size, KMemoryState 
     const VAddr aligned_end = Common::AlignUp((address) + size, PageSize);
     const size_t aligned_size = aligned_end - aligned_start;
     const size_t aligned_num_pages = aligned_size / PageSize;
+
+    // HACK: Manually close the pages.
+    HACK_ClosePages(aligned_start, aligned_num_pages);
 
     // Unmap the pages.
     R_TRY(Operate(aligned_start, aligned_num_pages, KMemoryPermission::None, OperationType::Unmap));
