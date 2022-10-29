@@ -196,6 +196,7 @@ add_library(core STATIC
     hle/kernel/k_dynamic_slab_heap.h
     hle/kernel/k_event.cpp
     hle/kernel/k_event.h
+    hle/kernel/k_event_info.h
     hle/kernel/k_handle_table.cpp
     hle/kernel/k_handle_table.h
     hle/kernel/k_interrupt_manager.cpp
