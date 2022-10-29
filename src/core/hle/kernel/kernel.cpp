@@ -454,6 +454,9 @@ struct KernelCore::Impl {
         ASSERT(memory_layout->GetVirtualMemoryRegionTree().Insert(
             misc_region_start, misc_region_size, KMemoryRegionType_KernelMisc));
 
+        // Determine if we'll use extra thread resources.
+        const bool use_extra_resources = KSystemControl::Init::ShouldIncreaseThreadResourceLimit();
+
         // Setup the stack region.
         constexpr size_t StackRegionSize = 14_MiB;
         constexpr size_t StackRegionAlign = KernelAslrAlignment;
@@ -464,7 +467,8 @@ struct KernelCore::Impl {
             stack_region_start, StackRegionSize, KMemoryRegionType_KernelStack));
 
         // Determine the size of the resource region.
-        const size_t resource_region_size = memory_layout->GetResourceRegionSizeForInit();
+        const size_t resource_region_size =
+            memory_layout->GetResourceRegionSizeForInit(use_extra_resources);
 
         // Determine the size of the slab region.
         const size_t slab_region_size =
