@@ -258,6 +258,8 @@ add_library(core STATIC
     hle/kernel/k_synchronization_object.cpp
     hle/kernel/k_synchronization_object.h
     hle/kernel/k_system_control.h
+    hle/kernel/k_system_resource.cpp
+    hle/kernel/k_system_resource.h
     hle/kernel/k_thread.cpp
     hle/kernel/k_thread.h
     hle/kernel/k_thread_local_page.cpp
