@@ -384,7 +384,6 @@ static Result ConnectToNamedPort(Core::System& system, Handle* out, VAddr port_n
     // Create a session.
     KClientSession* session{};
     R_TRY(port->CreateSession(std::addressof(session)));
-    port->Close();
 
     kernel.RegisterNamedServiceHandler(port_name, &port->GetParent()->GetServerPort());
 

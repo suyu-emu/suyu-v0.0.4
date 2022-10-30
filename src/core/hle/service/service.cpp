@@ -101,7 +101,9 @@ ServiceFrameworkBase::~ServiceFrameworkBase() {
     const auto guard = LockService();
 
     if (named_port != nullptr) {
-        named_port->Close();
+        named_port->GetClientPort().Close();
+        named_port->GetServerPort().Close();
+        named_port = nullptr;
     }
 }
 

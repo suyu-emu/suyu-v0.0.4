@@ -204,14 +204,6 @@ public:
     /// Accepts a session on a port created by CreateNamedServicePort.
     void RegisterNamedServiceHandler(std::string name, KServerPort* server_port);
 
-    /// Registers a server session or port with the gobal emulation state, to be freed on shutdown.
-    /// This is necessary because we do not emulate processes for HLE sessions and ports.
-    void RegisterServerObject(KAutoObject* server_object);
-
-    /// Unregisters a server session or port previously registered with RegisterServerSession when
-    /// it was destroyed during the current emulation session.
-    void UnregisterServerObject(KAutoObject* server_object);
-
     /// Registers all kernel objects with the global emulation state, this is purely for tracking
     /// leaks after emulation has been shutdown.
     void RegisterKernelObject(KAutoObject* object);
