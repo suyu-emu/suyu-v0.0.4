@@ -72,6 +72,7 @@ void EmitSetOFlag(EmitContext& ctx);
 Id EmitWorkgroupId(EmitContext& ctx);
 Id EmitLocalInvocationId(EmitContext& ctx);
 Id EmitInvocationId(EmitContext& ctx);
+Id EmitInvocationInfo(EmitContext& ctx);
 Id EmitSampleId(EmitContext& ctx);
 Id EmitIsHelperInvocation(EmitContext& ctx);
 Id EmitYDirection(EmitContext& ctx);

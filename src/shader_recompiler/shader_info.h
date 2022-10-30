@@ -127,6 +127,7 @@ struct Info {
     bool uses_workgroup_id{};
     bool uses_local_invocation_id{};
     bool uses_invocation_id{};
+    bool uses_invocation_info{};
     bool uses_sample_id{};
     bool uses_is_helper_invocation{};
     bool uses_subgroup_invocation_id{};

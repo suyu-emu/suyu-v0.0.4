@@ -1325,6 +1325,10 @@ void EmitContext::DefineInputs(const IR::Program& program) {
     if (info.uses_invocation_id) {
         invocation_id = DefineInput(*this, U32[1], false, spv::BuiltIn::InvocationId);
     }
+    if (info.uses_invocation_info &&
+        (stage == Shader::Stage::TessellationControl || stage == Shader::Stage::TessellationEval)) {
+        patch_vertices_in = DefineInput(*this, U32[1], false, spv::BuiltIn::PatchVertices);
+    }
     if (info.uses_sample_id) {
         sample_id = DefineInput(*this, U32[1], false, spv::BuiltIn::SampleId);
     }

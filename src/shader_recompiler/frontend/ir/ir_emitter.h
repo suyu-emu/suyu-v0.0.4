@@ -97,6 +97,7 @@ public:
     [[nodiscard]] U32 LocalInvocationIdZ();
 
     [[nodiscard]] U32 InvocationId();
+    [[nodiscard]] U32 InvocationInfo();
     [[nodiscard]] U32 SampleId();
     [[nodiscard]] U1 IsHelperInvocation();
     [[nodiscard]] F32 YDirection();
