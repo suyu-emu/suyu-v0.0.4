@@ -336,6 +336,8 @@ struct KernelCore::Impl {
         return this_id;
     }
 
+    static inline thread_local bool is_phantom_mode_for_singlecore{false};
+
     bool IsPhantomModeForSingleCore() const {
         return is_phantom_mode_for_singlecore;
     }
@@ -800,7 +802,6 @@ struct KernelCore::Impl {
 
     bool is_multicore{};
     std::atomic_bool is_shutting_down{};
-    bool is_phantom_mode_for_singlecore{};
     u32 single_core_thread_id{};
 
     std::array<u64, Core::Hardware::NUM_CPU_CORES> svc_ticks{};
