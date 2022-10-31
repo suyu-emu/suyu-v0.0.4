@@ -23,7 +23,13 @@ constexpr Result ERR_INVALID_NAME(ErrorModule::SM, 6);
 constexpr Result ERR_SERVICE_NOT_REGISTERED(ErrorModule::SM, 7);
 
 ServiceManager::ServiceManager(Kernel::KernelCore& kernel_) : kernel{kernel_} {}
-ServiceManager::~ServiceManager() = default;
+
+ServiceManager::~ServiceManager() {
+    for (auto& [name, port] : service_ports) {
+        port->GetClientPort().Close();
+        port->GetServerPort().Close();
+    }
+}
 
 void ServiceManager::InvokeControlRequest(Kernel::HLERequestContext& context) {
     controller_interface->InvokeRequest(context);
@@ -57,7 +63,11 @@ Result ServiceManager::RegisterService(std::string name, u32 max_sessions,
         return ERR_ALREADY_REGISTERED;
     }
 
-    registered_services.emplace(std::move(name), handler);
+    auto* port = Kernel::KPort::Create(kernel);
+    port->Initialize(ServerSessionCountMax, false, name);
+
+    service_ports.emplace(name, port);
+    registered_services.emplace(name, handler);
 
     return ResultSuccess;
 }
@@ -72,23 +82,20 @@ Result ServiceManager::UnregisterService(const std::string& name) {
     }
 
     registered_services.erase(iter);
+    service_ports.erase(name);
+
     return ResultSuccess;
 }
 
 ResultVal<Kernel::KPort*> ServiceManager::GetServicePort(const std::string& name) {
     CASCADE_CODE(ValidateServiceName(name));
-    auto it = registered_services.find(name);
-    if (it == registered_services.end()) {
+    auto it = service_ports.find(name);
+    if (it == service_ports.end()) {
         LOG_ERROR(Service_SM, "Server is not registered! service={}", name);
         return ERR_SERVICE_NOT_REGISTERED;
     }
 
-    auto* port = Kernel::KPort::Create(kernel);
-
-    port->Initialize(ServerSessionCountMax, false, name);
-    auto handler = it->second;
-
-    return port;
+    return it->second;
 }
 
 /**
@@ -153,10 +160,6 @@ ResultVal<Kernel::KClientSession*> SM::GetServiceImpl(Kernel::HLERequestContext&
         return port_result.Code();
     }
     auto& port = port_result.Unwrap();
-    SCOPE_EXIT({
-        port->GetClientPort().Close();
-        port->GetServerPort().Close();
-    });
 
     // Create a new session.
     Kernel::KClientSession* session{};

@@ -119,12 +119,14 @@ void ServiceFrameworkBase::InstallAsService(SM::ServiceManager& service_manager)
 Kernel::KClientPort& ServiceFrameworkBase::CreatePort() {
     const auto guard = LockService();
 
-    ASSERT(!service_registered);
+    if (named_port == nullptr) {
+        ASSERT(!service_registered);
 
-    named_port = Kernel::KPort::Create(kernel);
-    named_port->Initialize(max_sessions, false, service_name);
+        named_port = Kernel::KPort::Create(kernel);
+        named_port->Initialize(max_sessions, false, service_name);
 
-    service_registered = true;
+        service_registered = true;
+    }
 
     return named_port->GetClientPort();
 }

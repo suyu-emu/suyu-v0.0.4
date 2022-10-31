@@ -79,6 +79,7 @@ private:
 
     /// Map of registered services, retrieved using GetServicePort.
     std::unordered_map<std::string, Kernel::SessionRequestHandlerPtr> registered_services;
+    std::unordered_map<std::string, Kernel::KPort*> service_ports;
 
     /// Kernel context
     Kernel::KernelCore& kernel;
