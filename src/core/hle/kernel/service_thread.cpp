@@ -193,7 +193,7 @@ ServiceThread::Impl::Impl(KernelCore& kernel_, const std::string& service_name)
                          KProcess::ProcessType::KernelInternal, kernel.GetSystemResourceLimit());
 
     // Reserve a new event from the process resource limit
-    KScopedResourceReservation event_reservation(m_process, LimitableResource::Events);
+    KScopedResourceReservation event_reservation(m_process, LimitableResource::EventCountMax);
     ASSERT(event_reservation.Succeeded());
 
     // Initialize event.
@@ -204,7 +204,7 @@ ServiceThread::Impl::Impl(KernelCore& kernel_, const std::string& service_name)
     event_reservation.Commit();
 
     // Reserve a new thread from the process resource limit
-    KScopedResourceReservation thread_reservation(m_process, LimitableResource::Threads);
+    KScopedResourceReservation thread_reservation(m_process, LimitableResource::ThreadCountMax);
     ASSERT(thread_reservation.Succeeded());
 
     // Initialize thread.

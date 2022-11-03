@@ -50,7 +50,7 @@ Result KEvent::Clear() {
 void KEvent::PostDestroy(uintptr_t arg) {
     // Release the event count resource the owner process holds.
     KProcess* owner = reinterpret_cast<KProcess*>(arg);
-    owner->GetResourceLimit()->Release(LimitableResource::Events, 1);
+    owner->GetResourceLimit()->Release(LimitableResource::EventCountMax, 1);
     owner->Close();
 }
 
