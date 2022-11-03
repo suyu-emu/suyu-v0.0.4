@@ -1109,15 +1109,27 @@ void KernelCore::Suspend(bool suspended) {
     const bool should_suspend{exception_exited || suspended};
     const auto activity = should_suspend ? ProcessActivity::Paused : ProcessActivity::Runnable;
 
-    for (auto* process : GetProcessList()) {
-        process->SetActivity(activity);
+    std::vector<KScopedAutoObject<KThread>> process_threads;
+    {
+        KScopedSchedulerLock sl{*this};
 
-        if (should_suspend) {
-            // Wait for execution to stop
+        if (auto* process = CurrentProcess(); process != nullptr) {
+            process->SetActivity(activity);
+
+            if (!should_suspend) {
+                // Runnable now; no need to wait.
+                return;
+            }
+
             for (auto* thread : process->GetThreadList()) {
-                thread->WaitUntilSuspended();
+                process_threads.emplace_back(thread);
             }
         }
+    }
+
+    // Wait for execution to stop.
+    for (auto& thread : process_threads) {
+        thread->WaitUntilSuspended();
     }
 }
 
