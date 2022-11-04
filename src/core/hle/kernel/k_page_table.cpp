@@ -79,10 +79,6 @@ public:
     }
 };
 
-} // namespace
-
-namespace {
-
 using namespace Common::Literals;
 
 constexpr size_t GetAddressSpaceWidthFromType(FileSys::ProgramAddressSpaceType as_type) {
@@ -784,10 +780,9 @@ Result KPageTable::SetupForIpcClient(PageLinkedList* page_list, size_t* out_bloc
     R_UNLESS(this->Contains(address, size), ResultInvalidCurrentMemory);
 
     // Get the source permission.
-    const auto src_perm = static_cast<KMemoryPermission>(
-        (test_perm == KMemoryPermission::UserReadWrite)
-            ? KMemoryPermission::KernelReadWrite | KMemoryPermission::NotMapped
-            : KMemoryPermission::UserRead);
+    const auto src_perm = (test_perm == KMemoryPermission::UserReadWrite)
+                              ? KMemoryPermission::KernelReadWrite | KMemoryPermission::NotMapped
+                              : KMemoryPermission::UserRead;
 
     // Get aligned extents.
     const VAddr aligned_src_start = Common::AlignDown((address), PageSize);
@@ -1162,10 +1157,9 @@ Result KPageTable::SetupForIpc(VAddr* out_dst_addr, size_t size, VAddr src_addr,
     const size_t src_map_size = src_map_end - src_map_start;
 
     // Ensure that we clean up appropriately if we fail after this.
-    const auto src_perm = static_cast<KMemoryPermission>(
-        (test_perm == KMemoryPermission::UserReadWrite)
-            ? KMemoryPermission::KernelReadWrite | KMemoryPermission::NotMapped
-            : KMemoryPermission::UserRead);
+    const auto src_perm = (test_perm == KMemoryPermission::UserReadWrite)
+                              ? KMemoryPermission::KernelReadWrite | KMemoryPermission::NotMapped
+                              : KMemoryPermission::UserRead;
     ON_RESULT_FAILURE {
         if (src_map_end > src_map_start) {
             src_page_table.CleanupForIpcClientOnServerSetupFailure(
@@ -2735,8 +2729,7 @@ Result KPageTable::LockForIpcUserBuffer(PAddr* out, VAddr address, size_t size) 
         nullptr, out, address, size, KMemoryState::FlagCanIpcUserBuffer,
         KMemoryState::FlagCanIpcUserBuffer, KMemoryPermission::All,
         KMemoryPermission::UserReadWrite, KMemoryAttribute::All, KMemoryAttribute::None,
-        static_cast<KMemoryPermission>(KMemoryPermission::NotMapped |
-                                       KMemoryPermission::KernelReadWrite),
+        KMemoryPermission::NotMapped | KMemoryPermission::KernelReadWrite,
         KMemoryAttribute::Locked));
 }
 
@@ -2752,9 +2745,7 @@ Result KPageTable::LockForCodeMemory(KPageGroup* out, VAddr addr, size_t size) {
     R_RETURN(this->LockMemoryAndOpen(
         out, nullptr, addr, size, KMemoryState::FlagCanCodeMemory, KMemoryState::FlagCanCodeMemory,
         KMemoryPermission::All, KMemoryPermission::UserReadWrite, KMemoryAttribute::All,
-        KMemoryAttribute::None,
-        static_cast<KMemoryPermission>(KMemoryPermission::NotMapped |
-                                       KMemoryPermission::KernelReadWrite),
+        KMemoryAttribute::None, KMemoryPermission::NotMapped | KMemoryPermission::KernelReadWrite,
         KMemoryAttribute::Locked));
 }
 
