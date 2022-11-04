@@ -53,7 +53,7 @@ using VideoCommon::FileEnvironment;
 using VideoCommon::GenericEnvironment;
 using VideoCommon::GraphicsEnvironment;
 
-constexpr u32 CACHE_VERSION = 6;
+constexpr u32 CACHE_VERSION = 7;
 
 template <typename Container>
 auto MakeSpan(Container& container) {
