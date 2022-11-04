@@ -85,6 +85,8 @@ protected:
     u32 cached_highest = 0;
     u32 initial_offset = 0;
 
+    u32 viewport_transform_state = 1;
+
     bool has_unbound_instructions = false;
 };
 
@@ -101,6 +103,8 @@ public:
     u32 ReadCbufValue(u32 cbuf_index, u32 cbuf_offset) override;
 
     Shader::TextureType ReadTextureType(u32 handle) override;
+
+    u32 ReadViewportTransformState() override;
 
 private:
     Tegra::Engines::Maxwell3D* maxwell3d{};
@@ -119,6 +123,8 @@ public:
     u32 ReadCbufValue(u32 cbuf_index, u32 cbuf_offset) override;
 
     Shader::TextureType ReadTextureType(u32 handle) override;
+
+    u32 ReadViewportTransformState() override;
 
 private:
     Tegra::Engines::KeplerCompute* kepler_compute{};
@@ -143,6 +149,8 @@ public:
 
     [[nodiscard]] Shader::TextureType ReadTextureType(u32 handle) override;
 
+    [[nodiscard]] u32 ReadViewportTransformState() override;
+
     [[nodiscard]] u32 LocalMemorySize() const override;
 
     [[nodiscard]] u32 SharedMemorySize() const override;
@@ -164,6 +172,7 @@ private:
     u32 read_lowest{};
     u32 read_highest{};
     u32 initial_offset{};
+    u32 viewport_transform_state = 1;
 };
 
 void SerializePipeline(std::span<const char> key, std::span<const GenericEnvironment* const> envs,

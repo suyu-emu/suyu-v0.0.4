@@ -378,6 +378,14 @@ F32 IREmitter::ResolutionDownFactor() {
     return Inst<F32>(Opcode::ResolutionDownFactor);
 }
 
+F32 IREmitter::RenderAreaWidth() {
+    return F32(CompositeExtract(Inst<Value>(Opcode::RenderArea), 0));
+}
+
+F32 IREmitter::RenderAreaHeight() {
+    return F32(CompositeExtract(Inst<Value>(Opcode::RenderArea), 1));
+}
+
 U32 IREmitter::LaneId() {
     return Inst<U32>(Opcode::LaneId);
 }
