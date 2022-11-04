@@ -683,11 +683,11 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
     if (!state_tracker.TouchViewports()) {
         return;
     }
-    if (!regs.viewport_transform_enabled) {
-        const auto x = static_cast<float>(regs.render_area.x);
-        const auto y = static_cast<float>(regs.render_area.y);
-        const auto width = static_cast<float>(regs.render_area.width);
-        const auto height = static_cast<float>(regs.render_area.height);
+    if (!regs.viewport_scale_offset_enbled) {
+        const auto x = static_cast<float>(regs.surface_clip.x);
+        const auto y = static_cast<float>(regs.surface_clip.y);
+        const auto width = static_cast<float>(regs.surface_clip.width);
+        const auto height = static_cast<float>(regs.surface_clip.height);
         VkViewport viewport{
             .x = x,
             .y = y,

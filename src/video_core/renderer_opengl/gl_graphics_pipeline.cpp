@@ -504,8 +504,8 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
             }
         }
         if (info.uses_render_area) {
-            const auto render_area_width(static_cast<GLfloat>(regs.render_area.width));
-            const auto render_area_height(static_cast<GLfloat>(regs.render_area.height));
+            const auto render_area_width(static_cast<GLfloat>(regs.surface_clip.width));
+            const auto render_area_height(static_cast<GLfloat>(regs.surface_clip.height));
             if (use_assembly) {
                 glProgramLocalParameter4fARB(AssemblyStage(stage), 1, render_area_width,
                                              render_area_height, 0.0f, 0.0f);

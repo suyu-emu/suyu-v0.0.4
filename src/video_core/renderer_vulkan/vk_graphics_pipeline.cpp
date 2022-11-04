@@ -444,8 +444,8 @@ void GraphicsPipeline::ConfigureImpl(bool is_indexed) {
         const auto& info{stage_infos[0]};
         if (info.uses_render_area) {
             render_area.uses_render_area = true;
-            render_area.words = {static_cast<float>(regs.render_area.width),
-                                 static_cast<float>(regs.render_area.height)};
+            render_area.words = {static_cast<float>(regs.surface_clip.width),
+                                 static_cast<float>(regs.surface_clip.height)};
         }
     }};
     if constexpr (Spec::enabled_stages[0]) {
