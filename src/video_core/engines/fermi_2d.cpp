@@ -3,17 +3,25 @@
 
 #include "common/assert.h"
 #include "common/logging/log.h"
+#include "common/microprofile.h"
 #include "video_core/engines/fermi_2d.h"
-#include "video_core/memory_manager.h"
+#include "video_core/engines/sw_blitter/blitter.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/surface.h"
+#include "video_core/textures/decoders.h"
+
+MICROPROFILE_DECLARE(GPU_BlitEngine);
+MICROPROFILE_DEFINE(GPU_BlitEngine, "GPU", "Blit Engine", MP_RGB(224, 224, 128));
 
 using VideoCore::Surface::BytesPerBlock;
 using VideoCore::Surface::PixelFormatFromRenderTargetFormat;
 
 namespace Tegra::Engines {
 
-Fermi2D::Fermi2D() {
+using namespace Texture;
+
+Fermi2D::Fermi2D(MemoryManager& memory_manager_) {
+    sw_blitter = std::make_unique<Blitter::SoftwareBlitEngine>(memory_manager_);
     // Nvidia's OpenGL driver seems to assume these values
     regs.src.depth = 1;
     regs.dst.depth = 1;
@@ -42,6 +50,7 @@ void Fermi2D::CallMultiMethod(u32 method, const u32* base_start, u32 amount, u32
 }
 
 void Fermi2D::Blit() {
+    MICROPROFILE_SCOPE(GPU_BlitEngine);
     LOG_DEBUG(HW_GPU, "called. source address=0x{:x}, destination address=0x{:x}",
               regs.src.Address(), regs.dst.Address());
 
@@ -52,9 +61,12 @@ void Fermi2D::Blit() {
     UNIMPLEMENTED_IF_MSG(regs.clip_enable != 0, "Clipped blit enabled");
 
     const auto& args = regs.pixels_from_memory;
+    constexpr s64 null_derivate = 1ULL << 32;
     Config config{
         .operation = regs.operation,
         .filter = args.sample_mode.filter,
+        .must_accelerate = args.du_dx != null_derivate || args.dv_dy != null_derivate ||
+                           args.sample_mode.filter == Filter::Bilinear,
         .dst_x0 = args.dst_x0,
         .dst_y0 = args.dst_y0,
         .dst_x1 = args.dst_x0 + args.dst_width,
@@ -78,8 +90,9 @@ void Fermi2D::Blit() {
         config.src_x1 -= config.src_x0;
         config.src_x0 = 0;
     }
+
     if (!rasterizer->AccelerateSurfaceCopy(src, regs.dst, config)) {
-        UNIMPLEMENTED();
+        sw_blitter->Blit(src, regs.dst, config);
     }
 }
 
