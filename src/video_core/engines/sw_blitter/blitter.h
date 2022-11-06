@@ -13,7 +13,7 @@ namespace Tegra::Engines::Blitter {
 
 class SoftwareBlitEngine {
 public:
-    SoftwareBlitEngine(MemoryManager& memory_manager_);
+    explicit SoftwareBlitEngine(MemoryManager& memory_manager_);
     ~SoftwareBlitEngine();
 
     bool Blit(Fermi2D::Surface& src, Fermi2D::Surface& dst, Fermi2D::Config& copy_config);

@@ -139,7 +139,7 @@ struct R32B32G32A32_FLOATTraits {
         ComponentType::FLOAT, ComponentType::FLOAT, ComponentType::FLOAT, ComponentType::FLOAT};
     static constexpr std::array<size_t, num_components> component_sizes = {32, 32, 32, 32};
     static constexpr std::array<Swizzle, num_components> component_swizzle = {
-        Swizzle::A, Swizzle::G, Swizzle::B, Swizzle::R};
+        Swizzle::R, Swizzle::B, Swizzle::G, Swizzle::A};
 };
 
 struct R32G32B32A32_SINTTraits {
@@ -148,7 +148,7 @@ struct R32G32B32A32_SINTTraits {
         ComponentType::SINT, ComponentType::SINT, ComponentType::SINT, ComponentType::SINT};
     static constexpr std::array<size_t, num_components> component_sizes = {32, 32, 32, 32};
     static constexpr std::array<Swizzle, num_components> component_swizzle = {
-        Swizzle::A, Swizzle::B, Swizzle::G, Swizzle::R};
+        Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::A};
 };
 
 struct R32G32B32A32_UINTTraits {
@@ -157,7 +157,7 @@ struct R32G32B32A32_UINTTraits {
         ComponentType::UINT, ComponentType::UINT, ComponentType::UINT, ComponentType::UINT};
     static constexpr std::array<size_t, num_components> component_sizes = {32, 32, 32, 32};
     static constexpr std::array<Swizzle, num_components> component_swizzle = {
-        Swizzle::A, Swizzle::B, Swizzle::G, Swizzle::R};
+        Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::A};
 };
 
 struct R16G16B16A16_UNORMTraits {
@@ -166,7 +166,7 @@ struct R16G16B16A16_UNORMTraits {
         ComponentType::UNORM, ComponentType::UNORM, ComponentType::UNORM, ComponentType::UNORM};
     static constexpr std::array<size_t, num_components> component_sizes = {16, 16, 16, 16};
     static constexpr std::array<Swizzle, num_components> component_swizzle = {
-        Swizzle::A, Swizzle::B, Swizzle::G, Swizzle::R};
+        Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::A};
 };
 
 struct R16G16B16A16_SNORMTraits {
@@ -175,7 +175,7 @@ struct R16G16B16A16_SNORMTraits {
         ComponentType::SNORM, ComponentType::SNORM, ComponentType::SNORM, ComponentType::SNORM};
     static constexpr std::array<size_t, num_components> component_sizes = {16, 16, 16, 16};
     static constexpr std::array<Swizzle, num_components> component_swizzle = {
-        Swizzle::A, Swizzle::B, Swizzle::G, Swizzle::R};
+        Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::A};
 };
 
 struct R16G16B16A16_SINTTraits {
@@ -184,7 +184,7 @@ struct R16G16B16A16_SINTTraits {
         ComponentType::SINT, ComponentType::SINT, ComponentType::SINT, ComponentType::SINT};
     static constexpr std::array<size_t, num_components> component_sizes = {16, 16, 16, 16};
     static constexpr std::array<Swizzle, num_components> component_swizzle = {
-        Swizzle::A, Swizzle::B, Swizzle::G, Swizzle::R};
+        Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::A};
 };
 
 struct R16G16B16A16_UINTTraits {
@@ -193,7 +193,7 @@ struct R16G16B16A16_UINTTraits {
         ComponentType::UINT, ComponentType::UINT, ComponentType::UINT, ComponentType::UINT};
     static constexpr std::array<size_t, num_components> component_sizes = {16, 16, 16, 16};
     static constexpr std::array<Swizzle, num_components> component_swizzle = {
-        Swizzle::A, Swizzle::B, Swizzle::G, Swizzle::R};
+        Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::A};
 };
 
 struct R16G16B16A16_FLOATTraits {
@@ -202,7 +202,7 @@ struct R16G16B16A16_FLOATTraits {
         ComponentType::FLOAT, ComponentType::FLOAT, ComponentType::FLOAT, ComponentType::FLOAT};
     static constexpr std::array<size_t, num_components> component_sizes = {16, 16, 16, 16};
     static constexpr std::array<Swizzle, num_components> component_swizzle = {
-        Swizzle::A, Swizzle::B, Swizzle::G, Swizzle::R};
+        Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::A};
 };
 
 struct R32G32_FLOATTraits {
@@ -210,8 +210,8 @@ struct R32G32_FLOATTraits {
     static constexpr std::array<ComponentType, num_components> component_types = {
         ComponentType::FLOAT, ComponentType::FLOAT};
     static constexpr std::array<size_t, num_components> component_sizes = {32, 32};
-    static constexpr std::array<Swizzle, num_components> component_swizzle = {Swizzle::G,
-                                                                              Swizzle::R};
+    static constexpr std::array<Swizzle, num_components> component_swizzle = {Swizzle::R,
+                                                                              Swizzle::G};
 };
 
 struct R32G32_SINTTraits {
@@ -219,8 +219,8 @@ struct R32G32_SINTTraits {
     static constexpr std::array<ComponentType, num_components> component_types = {
         ComponentType::SINT, ComponentType::SINT};
     static constexpr std::array<size_t, num_components> component_sizes = {32, 32};
-    static constexpr std::array<Swizzle, num_components> component_swizzle = {Swizzle::G,
-                                                                              Swizzle::R};
+    static constexpr std::array<Swizzle, num_components> component_swizzle = {Swizzle::R,
+                                                                              Swizzle::G};
 };
 
 struct R32G32_UINTTraits {
@@ -228,8 +228,8 @@ struct R32G32_UINTTraits {
     static constexpr std::array<ComponentType, num_components> component_types = {
         ComponentType::UINT, ComponentType::UINT};
     static constexpr std::array<size_t, num_components> component_sizes = {32, 32};
-    static constexpr std::array<Swizzle, num_components> component_swizzle = {Swizzle::G,
-                                                                              Swizzle::R};
+    static constexpr std::array<Swizzle, num_components> component_swizzle = {Swizzle::R,
+                                                                              Swizzle::G};
 };
 
 struct R16G16B16X16_FLOATTraits {
@@ -238,7 +238,7 @@ struct R16G16B16X16_FLOATTraits {
         ComponentType::FLOAT, ComponentType::FLOAT, ComponentType::FLOAT, ComponentType::FLOAT};
     static constexpr std::array<size_t, num_components> component_sizes = {16, 16, 16, 16};
     static constexpr std::array<Swizzle, num_components> component_swizzle = {
-        Swizzle::None, Swizzle::B, Swizzle::G, Swizzle::R};
+        Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::None};
 };
 
 struct A8R8G8B8_UNORMTraits {
@@ -247,7 +247,7 @@ struct A8R8G8B8_UNORMTraits {
         ComponentType::UNORM, ComponentType::UNORM, ComponentType::UNORM, ComponentType::UNORM};
     static constexpr std::array<size_t, num_components> component_sizes = {8, 8, 8, 8};
     static constexpr std::array<Swizzle, num_components> component_swizzle = {
-        Swizzle::B, Swizzle::G, Swizzle::R, Swizzle::A};
+        Swizzle::A, Swizzle::R, Swizzle::G, Swizzle::B};
 };
 
 struct A8R8G8B8_SRGBTraits {
@@ -256,25 +256,25 @@ struct A8R8G8B8_SRGBTraits {
         ComponentType::SRGB, ComponentType::SRGB, ComponentType::SRGB, ComponentType::SRGB};
     static constexpr std::array<size_t, num_components> component_sizes = {8, 8, 8, 8};
     static constexpr std::array<Swizzle, num_components> component_swizzle = {
-        Swizzle::B, Swizzle::G, Swizzle::R, Swizzle::A};
+        Swizzle::A, Swizzle::R, Swizzle::G, Swizzle::B};
 };
 
 struct A2B10G10R10_UNORMTraits {
     static constexpr size_t num_components = 4;
     static constexpr std::array<ComponentType, num_components> component_types = {
         ComponentType::UNORM, ComponentType::UNORM, ComponentType::UNORM, ComponentType::UNORM};
-    static constexpr std::array<size_t, num_components> component_sizes = {10, 10, 10, 2};
+    static constexpr std::array<size_t, num_components> component_sizes = {2, 10, 10, 10};
     static constexpr std::array<Swizzle, num_components> component_swizzle = {
-        Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::A};
+        Swizzle::A, Swizzle::B, Swizzle::G, Swizzle::R};
 };
 
 struct A2B10G10R10_UINTTraits {
     static constexpr size_t num_components = 4;
     static constexpr std::array<ComponentType, num_components> component_types = {
         ComponentType::UINT, ComponentType::UINT, ComponentType::UINT, ComponentType::UINT};
-    static constexpr std::array<size_t, num_components> component_sizes = {10, 10, 10, 2};
+    static constexpr std::array<size_t, num_components> component_sizes = {2, 10, 10, 10};
     static constexpr std::array<Swizzle, num_components> component_swizzle = {
-        Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::A};
+        Swizzle::A, Swizzle::B, Swizzle::G, Swizzle::R};
 };
 
 struct A8B8G8R8_UNORMTraits {
@@ -283,7 +283,7 @@ struct A8B8G8R8_UNORMTraits {
         ComponentType::UNORM, ComponentType::UNORM, ComponentType::UNORM, ComponentType::UNORM};
     static constexpr std::array<size_t, num_components> component_sizes = {8, 8, 8, 8};
     static constexpr std::array<Swizzle, num_components> component_swizzle = {
-        Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::A};
+        Swizzle::A, Swizzle::B, Swizzle::G, Swizzle::R};
 };
 
 struct A8B8G8R8_SRGBTraits {
@@ -292,7 +292,7 @@ struct A8B8G8R8_SRGBTraits {
         ComponentType::SRGB, ComponentType::SRGB, ComponentType::SRGB, ComponentType::SRGB};
     static constexpr std::array<size_t, num_components> component_sizes = {8, 8, 8, 8};
     static constexpr std::array<Swizzle, num_components> component_swizzle = {
-        Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::A};
+        Swizzle::A, Swizzle::B, Swizzle::G, Swizzle::R};
 };
 
 struct A8B8G8R8_SNORMTraits {
@@ -301,7 +301,7 @@ struct A8B8G8R8_SNORMTraits {
         ComponentType::SNORM, ComponentType::SNORM, ComponentType::SNORM, ComponentType::SNORM};
     static constexpr std::array<size_t, num_components> component_sizes = {8, 8, 8, 8};
     static constexpr std::array<Swizzle, num_components> component_swizzle = {
-        Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::A};
+        Swizzle::A, Swizzle::B, Swizzle::G, Swizzle::R};
 };
 
 struct A8B8G8R8_SINTTraits {
@@ -310,7 +310,7 @@ struct A8B8G8R8_SINTTraits {
         ComponentType::SINT, ComponentType::SINT, ComponentType::SINT, ComponentType::SINT};
     static constexpr std::array<size_t, num_components> component_sizes = {8, 8, 8, 8};
     static constexpr std::array<Swizzle, num_components> component_swizzle = {
-        Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::A};
+        Swizzle::A, Swizzle::B, Swizzle::G, Swizzle::R};
 };
 
 struct A8B8G8R8_UINTTraits {
@@ -319,7 +319,7 @@ struct A8B8G8R8_UINTTraits {
         ComponentType::UINT, ComponentType::UINT, ComponentType::UINT, ComponentType::UINT};
     static constexpr std::array<size_t, num_components> component_sizes = {8, 8, 8, 8};
     static constexpr std::array<Swizzle, num_components> component_swizzle = {
-        Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::A};
+        Swizzle::A, Swizzle::B, Swizzle::G, Swizzle::R};
 };
 
 struct R16G16_UNORMTraits {
@@ -327,8 +327,8 @@ struct R16G16_UNORMTraits {
     static constexpr std::array<ComponentType, num_components> component_types = {
         ComponentType::UNORM, ComponentType::UNORM};
     static constexpr std::array<size_t, num_components> component_sizes = {16, 16};
-    static constexpr std::array<Swizzle, num_components> component_swizzle = {Swizzle::G,
-                                                                              Swizzle::R};
+    static constexpr std::array<Swizzle, num_components> component_swizzle = {Swizzle::R,
+                                                                              Swizzle::G};
 };
 
 struct R16G16_SNORMTraits {
@@ -336,8 +336,8 @@ struct R16G16_SNORMTraits {
     static constexpr std::array<ComponentType, num_components> component_types = {
         ComponentType::SNORM, ComponentType::SNORM};
     static constexpr std::array<size_t, num_components> component_sizes = {16, 16};
-    static constexpr std::array<Swizzle, num_components> component_swizzle = {Swizzle::G,
-                                                                              Swizzle::R};
+    static constexpr std::array<Swizzle, num_components> component_swizzle = {Swizzle::R,
+                                                                              Swizzle::G};
 };
 
 struct R16G16_SINTTraits {
@@ -345,8 +345,8 @@ struct R16G16_SINTTraits {
     static constexpr std::array<ComponentType, num_components> component_types = {
         ComponentType::SINT, ComponentType::SINT};
     static constexpr std::array<size_t, num_components> component_sizes = {16, 16};
-    static constexpr std::array<Swizzle, num_components> component_swizzle = {Swizzle::G,
-                                                                              Swizzle::R};
+    static constexpr std::array<Swizzle, num_components> component_swizzle = {Swizzle::R,
+                                                                              Swizzle::G};
 };
 
 struct R16G16_UINTTraits {
@@ -354,8 +354,8 @@ struct R16G16_UINTTraits {
     static constexpr std::array<ComponentType, num_components> component_types = {
         ComponentType::UINT, ComponentType::UINT};
     static constexpr std::array<size_t, num_components> component_sizes = {16, 16};
-    static constexpr std::array<Swizzle, num_components> component_swizzle = {Swizzle::G,
-                                                                              Swizzle::R};
+    static constexpr std::array<Swizzle, num_components> component_swizzle = {Swizzle::R,
+                                                                              Swizzle::G};
 };
 
 struct R16G16_FLOATTraits {
@@ -363,17 +363,17 @@ struct R16G16_FLOATTraits {
     static constexpr std::array<ComponentType, num_components> component_types = {
         ComponentType::FLOAT, ComponentType::FLOAT};
     static constexpr std::array<size_t, num_components> component_sizes = {16, 16};
-    static constexpr std::array<Swizzle, num_components> component_swizzle = {Swizzle::G,
-                                                                              Swizzle::R};
+    static constexpr std::array<Swizzle, num_components> component_swizzle = {Swizzle::R,
+                                                                              Swizzle::G};
 };
 
 struct B10G11R11_FLOATTraits {
     static constexpr size_t num_components = 3;
     static constexpr std::array<ComponentType, num_components> component_types = {
         ComponentType::FLOAT, ComponentType::FLOAT, ComponentType::FLOAT};
-    static constexpr std::array<size_t, num_components> component_sizes = {11, 11, 10};
+    static constexpr std::array<size_t, num_components> component_sizes = {10, 11, 11};
     static constexpr std::array<Swizzle, num_components> component_swizzle = {
-        Swizzle::R, Swizzle::G, Swizzle::B};
+        Swizzle::B, Swizzle::G, Swizzle::R};
 };
 
 struct R32_SINTTraits {
@@ -400,22 +400,40 @@ struct R32_FLOATTraits {
     static constexpr std::array<Swizzle, num_components> component_swizzle = {Swizzle::R};
 };
 
+struct X8R8G8B8_UNORMTraits {
+    static constexpr size_t num_components = 4;
+    static constexpr std::array<ComponentType, num_components> component_types = {
+        ComponentType::UNORM, ComponentType::UNORM, ComponentType::UNORM, ComponentType::UNORM};
+    static constexpr std::array<size_t, num_components> component_sizes = {8, 8, 8, 8};
+    static constexpr std::array<Swizzle, num_components> component_swizzle = {
+        Swizzle::None, Swizzle::R, Swizzle::G, Swizzle::B};
+};
+
+struct X8R8G8B8_SRGBTraits {
+    static constexpr size_t num_components = 4;
+    static constexpr std::array<ComponentType, num_components> component_types = {
+        ComponentType::SRGB, ComponentType::SRGB, ComponentType::SRGB, ComponentType::SRGB};
+    static constexpr std::array<size_t, num_components> component_sizes = {8, 8, 8, 8};
+    static constexpr std::array<Swizzle, num_components> component_swizzle = {
+        Swizzle::None, Swizzle::R, Swizzle::G, Swizzle::B};
+};
+
 struct R5G6B5_UNORMTraits {
     static constexpr size_t num_components = 3;
     static constexpr std::array<ComponentType, num_components> component_types = {
         ComponentType::UNORM, ComponentType::UNORM, ComponentType::UNORM};
     static constexpr std::array<size_t, num_components> component_sizes = {5, 6, 5};
     static constexpr std::array<Swizzle, num_components> component_swizzle = {
-        Swizzle::B, Swizzle::G, Swizzle::R};
+        Swizzle::R, Swizzle::G, Swizzle::B};
 };
 
 struct A1R5G5B5_UNORMTraits {
     static constexpr size_t num_components = 4;
     static constexpr std::array<ComponentType, num_components> component_types = {
         ComponentType::UNORM, ComponentType::UNORM, ComponentType::UNORM, ComponentType::UNORM};
-    static constexpr std::array<size_t, num_components> component_sizes = {5, 5, 5, 1};
+    static constexpr std::array<size_t, num_components> component_sizes = {1, 5, 5, 5};
     static constexpr std::array<Swizzle, num_components> component_swizzle = {
-        Swizzle::B, Swizzle::G, Swizzle::R, Swizzle::A};
+        Swizzle::A, Swizzle::R, Swizzle::G, Swizzle::B};
 };
 
 struct R8G8_UNORMTraits {
@@ -423,8 +441,8 @@ struct R8G8_UNORMTraits {
     static constexpr std::array<ComponentType, num_components> component_types = {
         ComponentType::UNORM, ComponentType::UNORM};
     static constexpr std::array<size_t, num_components> component_sizes = {8, 8};
-    static constexpr std::array<Swizzle, num_components> component_swizzle = {Swizzle::G,
-                                                                              Swizzle::R};
+    static constexpr std::array<Swizzle, num_components> component_swizzle = {Swizzle::R,
+                                                                              Swizzle::G};
 };
 
 struct R8G8_SNORMTraits {
@@ -432,8 +450,8 @@ struct R8G8_SNORMTraits {
     static constexpr std::array<ComponentType, num_components> component_types = {
         ComponentType::SNORM, ComponentType::SNORM};
     static constexpr std::array<size_t, num_components> component_sizes = {8, 8};
-    static constexpr std::array<Swizzle, num_components> component_swizzle = {Swizzle::G,
-                                                                              Swizzle::R};
+    static constexpr std::array<Swizzle, num_components> component_swizzle = {Swizzle::R,
+                                                                              Swizzle::G};
 };
 
 struct R8G8_SINTTraits {
@@ -441,8 +459,8 @@ struct R8G8_SINTTraits {
     static constexpr std::array<ComponentType, num_components> component_types = {
         ComponentType::SINT, ComponentType::SINT};
     static constexpr std::array<size_t, num_components> component_sizes = {8, 8};
-    static constexpr std::array<Swizzle, num_components> component_swizzle = {Swizzle::G,
-                                                                              Swizzle::R};
+    static constexpr std::array<Swizzle, num_components> component_swizzle = {Swizzle::R,
+                                                                              Swizzle::G};
 };
 
 struct R8G8_UINTTraits {
@@ -450,8 +468,8 @@ struct R8G8_UINTTraits {
     static constexpr std::array<ComponentType, num_components> component_types = {
         ComponentType::UINT, ComponentType::UINT};
     static constexpr std::array<size_t, num_components> component_sizes = {8, 8};
-    static constexpr std::array<Swizzle, num_components> component_swizzle = {Swizzle::G,
-                                                                              Swizzle::R};
+    static constexpr std::array<Swizzle, num_components> component_swizzle = {Swizzle::R,
+                                                                              Swizzle::G};
 };
 
 struct R16_UNORMTraits {
@@ -611,7 +629,7 @@ private:
             constexpr size_t fp16_mantissa_bits = 10;
             constexpr size_t mantissa_mask =
                 ~((1ULL << (fp32_mantissa_bits - fp16_mantissa_bits)) - 1ULL);
-            tmp = tmp & mantissa_mask;
+            tmp = tmp & static_cast<u32>(mantissa_mask);
             // TODO: force the exponent within the range of half float. Not needed in UNORM / SNORM
             return std::bit_cast<f32>(tmp);
         };
@@ -624,12 +642,13 @@ private:
         };
         const auto calculate_snorm = [&]() {
             return static_cast<f32>(
-                static_cast<f64>(sign_extend(value, component_sizes[which_component])) /
-                ((1ULL << (component_sizes[which_component] - 1ULL)) - 1ULL));
+                static_cast<f32>(sign_extend(value, component_sizes[which_component])) /
+                static_cast<f32>((1ULL << (component_sizes[which_component] - 1ULL)) - 1ULL));
         };
         const auto calculate_unorm = [&]() {
-            return static_cast<f32>(static_cast<f32>(value) /
-                                    ((1ULL << (component_sizes[which_component])) - 1ULL));
+            return static_cast<f32>(
+                static_cast<f32>(value) /
+                static_cast<f32>((1ULL << (component_sizes[which_component])) - 1ULL));
         };
         if constexpr (component_types[which_component] == ComponentType::SNORM) {
             out_component = calculate_snorm();
@@ -688,14 +707,15 @@ private:
             return tmp_value >> shift_towards;
         };
         const auto calculate_unorm = [&]() {
-            return static_cast<u32>(static_cast<f32>(in_component) *
-                                    ((1ULL << (component_sizes[which_component])) - 1ULL));
+            return static_cast<u32>(
+                static_cast<f32>(in_component) *
+                static_cast<f32>((1ULL << (component_sizes[which_component])) - 1ULL));
         };
         if constexpr (component_types[which_component] == ComponentType::SNORM ||
                       component_types[which_component] == ComponentType::SNORM_FORCE_FP16) {
-            s32 tmp_word =
-                static_cast<s32>(static_cast<f64>(in_component) *
-                                 ((1ULL << (component_sizes[which_component] - 1ULL)) - 1ULL));
+            s32 tmp_word = static_cast<s32>(
+                static_cast<f32>(in_component) *
+                static_cast<f32>((1ULL << (component_sizes[which_component] - 1ULL)) - 1ULL));
             insert_to_word(tmp_word);
 
         } else if constexpr (component_types[which_component] == ComponentType::UNORM ||
@@ -714,11 +734,12 @@ private:
                 insert_to_word(tmp_word);
             } else if constexpr (component_sizes[which_component] == 16) {
                 static constexpr u32 sign_mask = 0x8000;
-                static constexpr u32 mantissa_mask = 0x8000;
+                static constexpr u32 mantissa_mask = 0x03ff;
+                static constexpr u32 exponent_mask = 0x7c00;
                 const u32 tmp_word = std::bit_cast<u32>(in_component);
                 const u32 half = ((tmp_word >> 16) & sign_mask) |
-                                 ((((tmp_word & 0x7f800000) - 0x38000000) >> 13) & 0x7c00) |
-                                 ((tmp_word >> 13) & 0x03ff);
+                                 ((((tmp_word & 0x7f800000) - 0x38000000) >> 13) & exponent_mask) |
+                                 ((tmp_word >> 13) & mantissa_mask);
                 insert_to_word(half);
             } else {
                 insert_to_word(to_fp_n(in_component, component_sizes[which_component],
@@ -740,7 +761,7 @@ private:
     }
 
 public:
-    void ConvertTo(std::span<u8> input, std::span<f32> output) override {
+    void ConvertTo(std::span<const u8> input, std::span<f32> output) override {
         const size_t num_pixels = output.size() / components_per_ir_rep;
         for (size_t pixel = 0; pixel < num_pixels; pixel++) {
             std::array<u32, total_words_per_pixel> words{};
@@ -790,11 +811,11 @@ public:
         }
     }
 
-    void ConvertFrom(std::span<f32> input, std::span<u8> output) override {
+    void ConvertFrom(std::span<const f32> input, std::span<u8> output) override {
         const size_t num_pixels = output.size() / total_bytes_per_pixel;
         for (size_t pixel = 0; pixel < num_pixels; pixel++) {
-            std::span<f32> old_components(&input[pixel * components_per_ir_rep],
-                                          components_per_ir_rep);
+            std::span<const f32> old_components(&input[pixel * components_per_ir_rep],
+                                                components_per_ir_rep);
             std::array<u32, total_words_per_pixel> words{};
             if constexpr (component_swizzle[0] != Swizzle::None) {
                 ConvertFromComponent<0>(words[bound_words[0]],
@@ -827,7 +848,7 @@ public:
     }
 
     ConverterImpl() = default;
-    ~ConverterImpl() = default;
+    ~ConverterImpl() override = default;
 };
 
 struct ConverterFactory::ConverterFactoryImpl {
@@ -850,13 +871,15 @@ Converter* ConverterFactory::GetFormatConverter(RenderTargetFormat format) {
 
 class NullConverter : public Converter {
 public:
-    void ConvertTo([[maybe_unused]] std::span<u8> input, std::span<f32> output) override {
+    void ConvertTo([[maybe_unused]] std::span<const u8> input, std::span<f32> output) override {
         std::fill(output.begin(), output.end(), 0.0f);
     }
-    void ConvertFrom([[maybe_unused]] std::span<f32> input, std::span<u8> output) override {
+    void ConvertFrom([[maybe_unused]] std::span<const f32> input, std::span<u8> output) override {
         const u8 fill_value = 0U;
         std::fill(output.begin(), output.end(), fill_value);
     }
+    NullConverter() = default;
+    ~NullConverter() = default;
 };
 
 Converter* ConverterFactory::BuildConverter(RenderTargetFormat format) {
@@ -1009,6 +1032,16 @@ Converter* ConverterFactory::BuildConverter(RenderTargetFormat format) {
     case RenderTargetFormat::R32_FLOAT:
         return impl->converters_cache
             .emplace(format, std::make_unique<ConverterImpl<R32_FLOATTraits>>())
+            .first->second.get();
+        break;
+    case RenderTargetFormat::X8R8G8B8_UNORM:
+        return impl->converters_cache
+            .emplace(format, std::make_unique<ConverterImpl<X8R8G8B8_UNORMTraits>>())
+            .first->second.get();
+        break;
+    case RenderTargetFormat::X8R8G8B8_SRGB:
+        return impl->converters_cache
+            .emplace(format, std::make_unique<ConverterImpl<X8R8G8B8_SRGBTraits>>())
             .first->second.get();
         break;
     case RenderTargetFormat::R5G6B5_UNORM:

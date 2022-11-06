@@ -62,11 +62,15 @@ void Fermi2D::Blit() {
 
     const auto& args = regs.pixels_from_memory;
     constexpr s64 null_derivate = 1ULL << 32;
+    Surface src = regs.src;
+    const auto bytes_per_pixel = BytesPerBlock(PixelFormatFromRenderTargetFormat(src.format));
+    const bool delegate_to_gpu = src.width > 512 && src.height > 512 && bytes_per_pixel <= 8 &&
+                                 src.format != regs.dst.format;
     Config config{
         .operation = regs.operation,
         .filter = args.sample_mode.filter,
-        .must_accelerate = args.du_dx != null_derivate || args.dv_dy != null_derivate ||
-                           args.sample_mode.filter == Filter::Bilinear,
+        .must_accelerate =
+            args.du_dx != null_derivate || args.dv_dy != null_derivate || delegate_to_gpu,
         .dst_x0 = args.dst_x0,
         .dst_y0 = args.dst_y0,
         .dst_x1 = args.dst_x0 + args.dst_width,
@@ -76,8 +80,7 @@ void Fermi2D::Blit() {
         .src_x1 = static_cast<s32>((args.du_dx * args.dst_width + args.src_x0) >> 32),
         .src_y1 = static_cast<s32>((args.dv_dy * args.dst_height + args.src_y0) >> 32),
     };
-    Surface src = regs.src;
-    const auto bytes_per_pixel = BytesPerBlock(PixelFormatFromRenderTargetFormat(src.format));
+
     const auto need_align_to_pitch =
         src.linear == Tegra::Engines::Fermi2D::MemoryLayout::Pitch &&
         static_cast<s32>(src.width) == config.src_x1 &&

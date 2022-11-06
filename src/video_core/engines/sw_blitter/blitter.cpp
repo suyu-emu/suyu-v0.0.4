@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include <algorithm>
+#include <cmath>
 #include <vector>
 
 #include "video_core/engines/sw_blitter/blitter.h"
@@ -22,8 +24,10 @@ using namespace Texture;
 
 namespace {
 
-void NeighrestNeighbor(std::span<u8> input, std::span<u8> output, u32 src_width, u32 src_height,
-                       u32 dst_width, u32 dst_height, size_t bpp) {
+constexpr size_t ir_components = 4;
+
+void NeighrestNeighbor(std::span<const u8> input, std::span<u8> output, u32 src_width,
+                       u32 src_height, u32 dst_width, u32 dst_height, size_t bpp) {
     const size_t dx_du = std::llround((static_cast<f64>(src_width) / dst_width) * (1ULL << 32));
     const size_t dy_dv = std::llround((static_cast<f64>(src_height) / dst_height) * (1ULL << 32));
     size_t src_y = 0;
@@ -40,7 +44,7 @@ void NeighrestNeighbor(std::span<u8> input, std::span<u8> output, u32 src_width,
     }
 }
 
-void NeighrestNeighborFast(std::span<f32> input, std::span<f32> output, u32 src_width,
+void NeighrestNeighborFast(std::span<const f32> input, std::span<f32> output, u32 src_width,
                            u32 src_height, u32 dst_width, u32 dst_height) {
     const size_t dx_du = std::llround((static_cast<f64>(src_width) / dst_width) * (1ULL << 32));
     const size_t dy_dv = std::llround((static_cast<f64>(src_height) / dst_height) * (1ULL << 32));
@@ -48,44 +52,62 @@ void NeighrestNeighborFast(std::span<f32> input, std::span<f32> output, u32 src_
     for (u32 y = 0; y < dst_height; y++) {
         size_t src_x = 0;
         for (u32 x = 0; x < dst_width; x++) {
-            const size_t read_from = ((src_y * src_width + src_x) >> 32) * 4;
-            const size_t write_to = (y * dst_width + x) * 4;
+            const size_t read_from = ((src_y * src_width + src_x) >> 32) * ir_components;
+            const size_t write_to = (y * dst_width + x) * ir_components;
 
-            std::memcpy(&output[write_to], &input[read_from], sizeof(f32) * 4);
+            std::memcpy(&output[write_to], &input[read_from], sizeof(f32) * ir_components);
             src_x += dx_du;
         }
         src_y += dy_dv;
     }
 }
 
-/*
-void Bilinear(std::span<f32> input, std::span<f32> output, size_t src_width,
-                       size_t src_height, size_t dst_width, size_t dst_height) {
-    const auto inv_lerp = [](u32 coord, u32 end) { return
-static_cast<f32>(std::min(std::max(static_cast<s32>(coord), 0), end - 1)) / (end); };
-
-
+void Bilinear(std::span<const f32> input, std::span<f32> output, size_t src_width,
+              size_t src_height, size_t dst_width, size_t dst_height) {
+    const auto bilinear_sample = [](std::span<const f32> x0_y0, std::span<const f32> x1_y0,
+                                    std::span<const f32> x0_y1, std::span<const f32> x1_y1,
+                                    f32 weight_x, f32 weight_y) {
+        std::array<f32, ir_components> result{};
+        for (size_t i = 0; i < ir_components; i++) {
+            const f32 a = std::lerp(x0_y0[i], x1_y0[i], weight_x);
+            const f32 b = std::lerp(x0_y1[i], x1_y1[i], weight_x);
+            result[i] = std::lerp(a, b, weight_y);
+        }
+        return result;
+    };
+    const f32 dx_du =
+        dst_width > 1 ? static_cast<f32>(src_width - 1) / static_cast<f32>(dst_width - 1) : 0.f;
+    const f32 dy_dv =
+        dst_height > 1 ? static_cast<f32>(src_height - 1) / static_cast<f32>(dst_height - 1) : 0.f;
     for (u32 y = 0; y < dst_height; y++) {
-        const f32 ty_0 = inv_lerp(y, dst_extent_y);
-        const f32 ty_1 = inv_lerp(y + 1, dst_extent_y);
         for (u32 x = 0; x < dst_width; x++) {
-            const f32 tx_0 = inv_lerp(x, dst_extent_x);
-            const f32 tx_1 = inv_lerp(x + 1, dst_extent_x);
-            const std::array<f32, 4> get_pixel = [&](f32 tx, f32 ty, u32 width, u32 height) {
-                std::array<f32, 4> result{};
+            const f32 x_low = std::floor(static_cast<f32>(x) * dx_du);
+            const f32 y_low = std::floor(static_cast<f32>(y) * dy_dv);
+            const f32 x_high = std::ceil(static_cast<f32>(x) * dx_du);
+            const f32 y_high = std::ceil(static_cast<f32>(y) * dy_dv);
+            const f32 weight_x = (static_cast<f32>(x) * dx_du) - x_low;
+            const f32 weight_y = (static_cast<f32>(y) * dy_dv) - y_low;
 
-                return (std::llround(width * tx) + std::llround(height * ty) * width) * 4;
+            const auto read_src = [&](f32 in_x, f32 in_y) {
+                const size_t read_from =
+                    ((static_cast<size_t>(in_x) * src_width + static_cast<size_t>(in_y)) >> 32) *
+                    ir_components;
+                return std::span<const f32>(&input[read_from], ir_components);
             };
-            std::array<f32, 4> result{};
 
-            const size_t read_from = get_pixel(src_width, src_height);
-            const size_t write_to = get_pixel(tx_0, ty_0, dst_width, dst_height);
+            auto x0_y0 = read_src(x_low, y_low);
+            auto x1_y0 = read_src(x_high, y_low);
+            auto x0_y1 = read_src(x_low, y_high);
+            auto x1_y1 = read_src(x_high, y_high);
 
-            std::memcpy(&output[write_to], &input[read_from], bpp);
+            const auto result = bilinear_sample(x0_y0, x1_y0, x0_y1, x1_y1, weight_x, weight_y);
+
+            const size_t write_to = (y * dst_width + x) * ir_components;
+
+            std::memcpy(&output[write_to], &result, sizeof(f32) * ir_components);
         }
     }
 }
-*/
 
 } // namespace
 
@@ -107,8 +129,6 @@ SoftwareBlitEngine::~SoftwareBlitEngine() = default;
 
 bool SoftwareBlitEngine::Blit(Fermi2D::Surface& src, Fermi2D::Surface& dst,
                               Fermi2D::Config& config) {
-    UNIMPLEMENTED_IF(config.filter == Fermi2D::Filter::Bilinear);
-
     const auto get_surface_size = [](Fermi2D::Surface& surface, u32 bytes_per_pixel) {
         if (surface.linear == Fermi2D::MemoryLayout::BlockLinear) {
             return CalculateSize(true, bytes_per_pixel, surface.width, surface.height,
@@ -116,9 +136,9 @@ bool SoftwareBlitEngine::Blit(Fermi2D::Surface& src, Fermi2D::Surface& dst,
         }
         return static_cast<size_t>(surface.pitch * surface.height);
     };
-    const auto process_pitch_linear = [](bool unpack, std::span<u8> input, std::span<u8> output,
-                                         u32 extent_x, u32 extent_y, u32 pitch, u32 x0, u32 y0,
-                                         size_t bpp) {
+    const auto process_pitch_linear = [](bool unpack, std::span<const u8> input,
+                                         std::span<u8> output, u32 extent_x, u32 extent_y,
+                                         u32 pitch, u32 x0, u32 y0, size_t bpp) {
         const size_t base_offset = x0 * bpp;
         const size_t copy_size = extent_x * bpp;
         for (u32 y = y0; y < extent_y; y++) {
@@ -157,12 +177,17 @@ bool SoftwareBlitEngine::Blit(Fermi2D::Surface& src, Fermi2D::Surface& dst,
 
     const auto convertion_phase_ir = [&]() {
         auto* input_converter = impl->converter_factory.GetFormatConverter(src.format);
-        impl->intermediate_src.resize((src_copy_size / src_bytes_per_pixel) * 4);
-        impl->intermediate_dst.resize((dst_copy_size / dst_bytes_per_pixel) * 4);
+        impl->intermediate_src.resize((src_copy_size / src_bytes_per_pixel) * ir_components);
+        impl->intermediate_dst.resize((dst_copy_size / dst_bytes_per_pixel) * ir_components);
         input_converter->ConvertTo(impl->src_buffer, impl->intermediate_src);
 
-        NeighrestNeighborFast(impl->intermediate_src, impl->intermediate_dst, src_extent_x,
-                              src_extent_y, dst_extent_x, dst_extent_y);
+        if (config.filter != Fermi2D::Filter::Bilinear) {
+            NeighrestNeighborFast(impl->intermediate_src, impl->intermediate_dst, src_extent_x,
+                                  src_extent_y, dst_extent_x, dst_extent_y);
+        } else {
+            Bilinear(impl->intermediate_src, impl->intermediate_dst, src_extent_x, src_extent_y,
+                     dst_extent_x, dst_extent_y);
+        }
 
         auto* output_converter = impl->converter_factory.GetFormatConverter(dst.format);
         output_converter->ConvertFrom(impl->intermediate_dst, impl->dst_buffer);
@@ -183,7 +208,7 @@ bool SoftwareBlitEngine::Blit(Fermi2D::Surface& src, Fermi2D::Surface& dst,
 
     // Conversion Phase
     if (no_passthrough) {
-        if (src.format != dst.format) {
+        if (src.format != dst.format || config.filter == Fermi2D::Filter::Bilinear) {
             convertion_phase_ir();
         } else {
             convertion_phase_same_format();
