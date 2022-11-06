@@ -133,13 +133,13 @@ constexpr std::array<f32, 256> RGB_TO_SRGB_LUT = {
 
 } // namespace
 
-struct R32B32G32A32_FLOATTraits {
+struct R32G32B32A32_FLOATTraits {
     static constexpr size_t num_components = 4;
     static constexpr std::array<ComponentType, num_components> component_types = {
         ComponentType::FLOAT, ComponentType::FLOAT, ComponentType::FLOAT, ComponentType::FLOAT};
     static constexpr std::array<size_t, num_components> component_sizes = {32, 32, 32, 32};
     static constexpr std::array<Swizzle, num_components> component_swizzle = {
-        Swizzle::R, Swizzle::B, Swizzle::G, Swizzle::A};
+        Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::A};
 };
 
 struct R32G32B32A32_SINTTraits {
@@ -158,6 +158,33 @@ struct R32G32B32A32_UINTTraits {
     static constexpr std::array<size_t, num_components> component_sizes = {32, 32, 32, 32};
     static constexpr std::array<Swizzle, num_components> component_swizzle = {
         Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::A};
+};
+
+struct R32G32B32X32_FLOATTraits {
+    static constexpr size_t num_components = 4;
+    static constexpr std::array<ComponentType, num_components> component_types = {
+        ComponentType::FLOAT, ComponentType::FLOAT, ComponentType::FLOAT, ComponentType::FLOAT};
+    static constexpr std::array<size_t, num_components> component_sizes = {32, 32, 32, 32};
+    static constexpr std::array<Swizzle, num_components> component_swizzle = {
+        Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::None};
+};
+
+struct R32G32B32X32_SINTTraits {
+    static constexpr size_t num_components = 4;
+    static constexpr std::array<ComponentType, num_components> component_types = {
+        ComponentType::SINT, ComponentType::SINT, ComponentType::SINT, ComponentType::SINT};
+    static constexpr std::array<size_t, num_components> component_sizes = {32, 32, 32, 32};
+    static constexpr std::array<Swizzle, num_components> component_swizzle = {
+        Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::None};
+};
+
+struct R32G32B32X32_UINTTraits {
+    static constexpr size_t num_components = 4;
+    static constexpr std::array<ComponentType, num_components> component_types = {
+        ComponentType::UINT, ComponentType::UINT, ComponentType::UINT, ComponentType::UINT};
+    static constexpr std::array<size_t, num_components> component_sizes = {32, 32, 32, 32};
+    static constexpr std::array<Swizzle, num_components> component_swizzle = {
+        Swizzle::R, Swizzle::G, Swizzle::B, Swizzle::None};
 };
 
 struct R16G16B16A16_UNORMTraits {
@@ -275,6 +302,15 @@ struct A2B10G10R10_UINTTraits {
     static constexpr std::array<size_t, num_components> component_sizes = {2, 10, 10, 10};
     static constexpr std::array<Swizzle, num_components> component_swizzle = {
         Swizzle::A, Swizzle::B, Swizzle::G, Swizzle::R};
+};
+
+struct A2R10G10B10_UNORMTraits {
+    static constexpr size_t num_components = 4;
+    static constexpr std::array<ComponentType, num_components> component_types = {
+        ComponentType::UNORM, ComponentType::UNORM, ComponentType::UNORM, ComponentType::UNORM};
+    static constexpr std::array<size_t, num_components> component_sizes = {2, 10, 10, 10};
+    static constexpr std::array<Swizzle, num_components> component_swizzle = {
+        Swizzle::A, Swizzle::R, Swizzle::G, Swizzle::B};
 };
 
 struct A8B8G8R8_UNORMTraits {
@@ -542,6 +578,33 @@ struct R8_UINTTraits {
         ComponentType::UINT};
     static constexpr std::array<size_t, num_components> component_sizes = {8};
     static constexpr std::array<Swizzle, num_components> component_swizzle = {Swizzle::R};
+};
+
+struct X1R5G5B5_UNORMTraits {
+    static constexpr size_t num_components = 4;
+    static constexpr std::array<ComponentType, num_components> component_types = {
+        ComponentType::UNORM, ComponentType::UNORM, ComponentType::UNORM, ComponentType::UNORM};
+    static constexpr std::array<size_t, num_components> component_sizes = {1, 5, 5, 5};
+    static constexpr std::array<Swizzle, num_components> component_swizzle = {
+        Swizzle::None, Swizzle::R, Swizzle::G, Swizzle::B};
+};
+
+struct X8B8G8R8_UNORMTraits {
+    static constexpr size_t num_components = 4;
+    static constexpr std::array<ComponentType, num_components> component_types = {
+        ComponentType::UNORM, ComponentType::UNORM, ComponentType::UNORM, ComponentType::UNORM};
+    static constexpr std::array<size_t, num_components> component_sizes = {8, 8, 8, 8};
+    static constexpr std::array<Swizzle, num_components> component_swizzle = {
+        Swizzle::None, Swizzle::B, Swizzle::G, Swizzle::R};
+};
+
+struct X8B8G8R8_SRGBTraits {
+    static constexpr size_t num_components = 4;
+    static constexpr std::array<ComponentType, num_components> component_types = {
+        ComponentType::SRGB, ComponentType::SRGB, ComponentType::SRGB, ComponentType::SRGB};
+    static constexpr std::array<size_t, num_components> component_sizes = {8, 8, 8, 8};
+    static constexpr std::array<Swizzle, num_components> component_swizzle = {
+        Swizzle::None, Swizzle::B, Swizzle::G, Swizzle::R};
 };
 
 template <class ConverterTraits>
@@ -884,9 +947,9 @@ public:
 
 Converter* ConverterFactory::BuildConverter(RenderTargetFormat format) {
     switch (format) {
-    case RenderTargetFormat::R32B32G32A32_FLOAT:
+    case RenderTargetFormat::R32G32B32A32_FLOAT:
         return impl->converters_cache
-            .emplace(format, std::make_unique<ConverterImpl<R32B32G32A32_FLOATTraits>>())
+            .emplace(format, std::make_unique<ConverterImpl<R32G32B32A32_FLOATTraits>>())
             .first->second.get();
         break;
     case RenderTargetFormat::R32G32B32A32_SINT:
@@ -897,6 +960,21 @@ Converter* ConverterFactory::BuildConverter(RenderTargetFormat format) {
     case RenderTargetFormat::R32G32B32A32_UINT:
         return impl->converters_cache
             .emplace(format, std::make_unique<ConverterImpl<R32G32B32A32_UINTTraits>>())
+            .first->second.get();
+        break;
+    case RenderTargetFormat::R32G32B32X32_FLOAT:
+        return impl->converters_cache
+            .emplace(format, std::make_unique<ConverterImpl<R32G32B32X32_FLOATTraits>>())
+            .first->second.get();
+        break;
+    case RenderTargetFormat::R32G32B32X32_SINT:
+        return impl->converters_cache
+            .emplace(format, std::make_unique<ConverterImpl<R32G32B32X32_SINTTraits>>())
+            .first->second.get();
+        break;
+    case RenderTargetFormat::R32G32B32X32_UINT:
+        return impl->converters_cache
+            .emplace(format, std::make_unique<ConverterImpl<R32G32B32X32_UINTTraits>>())
             .first->second.get();
         break;
     case RenderTargetFormat::R16G16B16A16_UNORM:
@@ -962,6 +1040,11 @@ Converter* ConverterFactory::BuildConverter(RenderTargetFormat format) {
     case RenderTargetFormat::A2B10G10R10_UINT:
         return impl->converters_cache
             .emplace(format, std::make_unique<ConverterImpl<A2B10G10R10_UINTTraits>>())
+            .first->second.get();
+        break;
+    case RenderTargetFormat::A2R10G10B10_UNORM:
+        return impl->converters_cache
+            .emplace(format, std::make_unique<ConverterImpl<A2R10G10B10_UNORMTraits>>())
             .first->second.get();
         break;
     case RenderTargetFormat::A8B8G8R8_UNORM:
@@ -1117,6 +1200,21 @@ Converter* ConverterFactory::BuildConverter(RenderTargetFormat format) {
     case RenderTargetFormat::R8_UINT:
         return impl->converters_cache
             .emplace(format, std::make_unique<ConverterImpl<R8_UINTTraits>>())
+            .first->second.get();
+        break;
+    case RenderTargetFormat::X1R5G5B5_UNORM:
+        return impl->converters_cache
+            .emplace(format, std::make_unique<ConverterImpl<X1R5G5B5_UNORMTraits>>())
+            .first->second.get();
+        break;
+    case RenderTargetFormat::X8B8G8R8_UNORM:
+        return impl->converters_cache
+            .emplace(format, std::make_unique<ConverterImpl<X8B8G8R8_UNORMTraits>>())
+            .first->second.get();
+        break;
+    case RenderTargetFormat::X8B8G8R8_SRGB:
+        return impl->converters_cache
+            .emplace(format, std::make_unique<ConverterImpl<X8B8G8R8_SRGBTraits>>())
             .first->second.get();
         break;
     default: {
