@@ -197,6 +197,7 @@ struct FixedPipelineState {
         BitField<14, 1, u32> smooth_lines;
         BitField<15, 1, u32> alpha_to_coverage_enabled;
         BitField<16, 1, u32> alpha_to_one_enabled;
+        BitField<17, 3, Tegra::Engines::Maxwell3D::EngineHint> app_stage;
     };
     std::array<u8, Maxwell::NumRenderTargets> color_formats;
 

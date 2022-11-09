@@ -118,7 +118,8 @@ public:
 
     PTEKind GetPageKind(GPUVAddr gpu_addr) const;
 
-    size_t GetMemoryLayoutSize(GPUVAddr gpu_addr) const;
+    size_t GetMemoryLayoutSize(GPUVAddr gpu_addr,
+                               size_t max_size = std::numeric_limits<size_t>::max()) const;
 
 private:
     template <bool is_big_pages, typename FuncMapped, typename FuncReserved, typename FuncUnmapped>

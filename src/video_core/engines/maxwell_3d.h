@@ -3020,6 +3020,23 @@ public:
     /// Store temporary hw register values, used by some calls to restore state after a operation
     Regs shadow_state;
 
+    // None Engine
+    enum class EngineHint : u32 {
+        None = 0x0,
+        OnHLEMacro = 0x1,
+    };
+
+    EngineHint engine_state{EngineHint::None};
+
+    enum class HLEReplaceName : u32 {
+        BaseVertex = 0x0,
+        BaseInstance = 0x1,
+    };
+
+    void setHLEReplacementName(u32 bank, u32 offset, HLEReplaceName name);
+
+    std::unordered_map<u64, HLEReplaceName> replace_table;
+
     static_assert(sizeof(Regs) == Regs::NUM_REGS * sizeof(u32), "Maxwell3D Regs has wrong size");
     static_assert(std::is_trivially_copyable_v<Regs>, "Maxwell3D Regs must be trivially copyable");
 

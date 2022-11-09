@@ -577,7 +577,7 @@ size_t MemoryManager::MaxContinousRange(GPUVAddr gpu_addr, size_t size) const {
     return range_so_far;
 }
 
-size_t MemoryManager::GetMemoryLayoutSize(GPUVAddr gpu_addr) const {
+size_t MemoryManager::GetMemoryLayoutSize(GPUVAddr gpu_addr, size_t max_size) const {
     PTEKind base_kind = GetPageKind(gpu_addr);
     if (base_kind == PTEKind::INVALID) {
         return 0;
@@ -596,6 +596,10 @@ size_t MemoryManager::GetMemoryLayoutSize(GPUVAddr gpu_addr) const {
             return true;
         }
         range_so_far += copy_amount;
+        if (range_so_far >= max_size) {
+            result = true;
+            return true;
+        }
         return false;
     };
     auto big_check = [&](std::size_t page_index, std::size_t offset, std::size_t copy_amount) {
@@ -605,6 +609,10 @@ size_t MemoryManager::GetMemoryLayoutSize(GPUVAddr gpu_addr) const {
             return true;
         }
         range_so_far += copy_amount;
+        if (range_so_far >= max_size) {
+            result = true;
+            return true;
+        }
         return false;
     };
     auto check_short_pages = [&](std::size_t page_index, std::size_t offset,

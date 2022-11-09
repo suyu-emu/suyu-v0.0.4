@@ -182,8 +182,14 @@ u32 Maxwell3D::GetMaxCurrentVertices() {
 size_t Maxwell3D::EstimateIndexBufferSize() {
     GPUVAddr start_address = regs.index_buffer.StartAddress();
     GPUVAddr end_address = regs.index_buffer.EndAddress();
-    return std::min<size_t>(memory_manager.GetMemoryLayoutSize(start_address),
-                            static_cast<size_t>(end_address - start_address));
+    constexpr std::array<size_t, 4> max_sizes = {
+        std::numeric_limits<u8>::max(), std::numeric_limits<u16>::max(),
+        std::numeric_limits<u32>::max(), std::numeric_limits<u32>::max()};
+    const size_t byte_size = regs.index_buffer.FormatSizeInBytes();
+    return std::min<size_t>(
+        memory_manager.GetMemoryLayoutSize(start_address, byte_size * max_sizes[byte_size]) /
+            byte_size,
+        static_cast<size_t>(end_address - start_address));
 }
 
 u32 Maxwell3D::ProcessShadowRam(u32 method, u32 argument) {
@@ -570,6 +576,11 @@ Texture::TSCEntry Maxwell3D::GetTSCEntry(u32 tsc_index) const {
 u32 Maxwell3D::GetRegisterValue(u32 method) const {
     ASSERT_MSG(method < Regs::NUM_REGS, "Invalid Maxwell3D register");
     return regs.reg_array[method];
+}
+
+void Maxwell3D::setHLEReplacementName(u32 bank, u32 offset, HLEReplaceName name) {
+    const u64 key = (static_cast<u64>(bank) << 32) | offset;
+    replace_table.emplace(key, name);
 }
 
 } // namespace Tegra::Engines

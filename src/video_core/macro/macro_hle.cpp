@@ -14,26 +14,29 @@
 #include "video_core/rasterizer_interface.h"
 
 namespace Tegra {
+
+using Maxwell = Engines::Maxwell3D;
+
 namespace {
 
-bool IsTopologySafe(Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology topology) {
+bool IsTopologySafe(Maxwell::Regs::PrimitiveTopology topology) {
     switch (topology) {
-    case Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology::Points:
-    case Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology::Lines:
-    case Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology::LineLoop:
-    case Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology::LineStrip:
-    case Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology::Triangles:
-    case Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology::TriangleStrip:
-    case Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology::TriangleFan:
-    case Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology::LinesAdjacency:
-    case Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology::LineStripAdjacency:
-    case Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology::TrianglesAdjacency:
-    case Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology::TriangleStripAdjacency:
-    case Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology::Patches:
+    case Maxwell::Regs::PrimitiveTopology::Points:
+    case Maxwell::Regs::PrimitiveTopology::Lines:
+    case Maxwell::Regs::PrimitiveTopology::LineLoop:
+    case Maxwell::Regs::PrimitiveTopology::LineStrip:
+    case Maxwell::Regs::PrimitiveTopology::Triangles:
+    case Maxwell::Regs::PrimitiveTopology::TriangleStrip:
+    case Maxwell::Regs::PrimitiveTopology::TriangleFan:
+    case Maxwell::Regs::PrimitiveTopology::LinesAdjacency:
+    case Maxwell::Regs::PrimitiveTopology::LineStripAdjacency:
+    case Maxwell::Regs::PrimitiveTopology::TrianglesAdjacency:
+    case Maxwell::Regs::PrimitiveTopology::TriangleStripAdjacency:
+    case Maxwell::Regs::PrimitiveTopology::Patches:
         return true;
-    case Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology::Quads:
-    case Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology::QuadStrip:
-    case Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology::Polygon:
+    case Maxwell::Regs::PrimitiveTopology::Quads:
+    case Maxwell::Regs::PrimitiveTopology::QuadStrip:
+    case Maxwell::Regs::PrimitiveTopology::Polygon:
     default:
         return false;
     }
@@ -82,8 +85,7 @@ public:
         : HLEMacroImpl(maxwell3d_), extended(extended_) {}
 
     void Execute(const std::vector<u32>& parameters, [[maybe_unused]] u32 method) override {
-        auto topology =
-            static_cast<Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology>(parameters[0]);
+        auto topology = static_cast<Maxwell::Regs::PrimitiveTopology>(parameters[0]);
         if (!IsTopologySafe(topology)) {
             Fallback(parameters);
             return;
@@ -99,18 +101,16 @@ public:
         params.stride = 0;
 
         if (extended) {
-            maxwell3d.CallMethod(0x8e3, 0x640, true);
-            maxwell3d.CallMethod(0x8e4, parameters[4], true);
+            maxwell3d.engine_state = Maxwell::EngineHint::OnHLEMacro;
+            maxwell3d.setHLEReplacementName(0, 0x640, Maxwell::HLEReplaceName::BaseInstance);
         }
 
         maxwell3d.draw_manager->DrawArrayIndirect(topology);
 
         if (extended) {
-            maxwell3d.CallMethod(0x8e3, 0x640, true);
-            maxwell3d.CallMethod(0x8e4, 0, true);
+            maxwell3d.engine_state = Maxwell::EngineHint::None;
+            maxwell3d.replace_table.clear();
         }
-        maxwell3d.regs.vertex_buffer.first = 0;
-        maxwell3d.regs.vertex_buffer.count = 0;
     }
 
 private:
@@ -134,13 +134,18 @@ private:
 
         const u32 base_instance = parameters[4];
         if (extended) {
-            maxwell3d.CallMethod(0x8e3, 0x640, true);
-            maxwell3d.CallMethod(0x8e4, base_instance, true);
+            maxwell3d.engine_state = Maxwell::EngineHint::OnHLEMacro;
+            maxwell3d.setHLEReplacementName(0, 0x640, Maxwell::HLEReplaceName::BaseInstance);
         }
 
         maxwell3d.draw_manager->DrawArray(
             static_cast<Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology>(parameters[0]),
             vertex_first, vertex_count, base_instance, instance_count);
+
+        if (extended) {
+            maxwell3d.engine_state = Maxwell::EngineHint::None;
+            maxwell3d.replace_table.clear();
+        }
     }
 
     bool extended;
@@ -151,8 +156,7 @@ public:
     explicit HLE_DrawIndexedIndirect(Engines::Maxwell3D& maxwell3d_) : HLEMacroImpl(maxwell3d_) {}
 
     void Execute(const std::vector<u32>& parameters, [[maybe_unused]] u32 method) override {
-        auto topology =
-            static_cast<Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology>(parameters[0]);
+        auto topology = static_cast<Maxwell::Regs::PrimitiveTopology>(parameters[0]);
         if (!IsTopologySafe(topology)) {
             Fallback(parameters);
             return;
@@ -164,16 +168,12 @@ public:
             minimum_limit = std::max(parameters[3], minimum_limit);
         }
         const u32 estimate = static_cast<u32>(maxwell3d.EstimateIndexBufferSize());
-        const u32 base_size = std::max(minimum_limit, estimate);
-        const u32 element_base = parameters[4];
-        const u32 base_instance = parameters[5];
-        maxwell3d.regs.index_buffer.first = 0;
-        maxwell3d.regs.index_buffer.count = base_size; // Use a fixed size, just for mapping
+        const u32 base_size = std::max<u32>(minimum_limit, estimate);
         maxwell3d.regs.draw.topology.Assign(topology);
         maxwell3d.dirty.flags[VideoCommon::Dirty::IndexBuffer] = true;
-        maxwell3d.CallMethod(0x8e3, 0x640, true);
-        maxwell3d.CallMethod(0x8e4, element_base, true);
-        maxwell3d.CallMethod(0x8e5, base_instance, true);
+        maxwell3d.engine_state = Maxwell::EngineHint::OnHLEMacro;
+        maxwell3d.setHLEReplacementName(0, 0x640, Maxwell::HLEReplaceName::BaseVertex);
+        maxwell3d.setHLEReplacementName(0, 0x644, Maxwell::HLEReplaceName::BaseInstance);
         auto& params = maxwell3d.draw_manager->GetIndirectParams();
         params.is_indexed = true;
         params.include_count = false;
@@ -184,9 +184,8 @@ public:
         params.stride = 0;
         maxwell3d.dirty.flags[VideoCommon::Dirty::IndexBuffer] = true;
         maxwell3d.draw_manager->DrawIndexedIndirect(topology, 0, base_size);
-        maxwell3d.CallMethod(0x8e3, 0x640, true);
-        maxwell3d.CallMethod(0x8e4, 0x0, true);
-        maxwell3d.CallMethod(0x8e5, 0x0, true);
+        maxwell3d.engine_state = Maxwell::EngineHint::None;
+        maxwell3d.replace_table.clear();
     }
 
 private:
@@ -197,18 +196,17 @@ private:
         const u32 base_instance = parameters[5];
         maxwell3d.regs.vertex_id_base = element_base;
         maxwell3d.dirty.flags[VideoCommon::Dirty::IndexBuffer] = true;
-        maxwell3d.CallMethod(0x8e3, 0x640, true);
-        maxwell3d.CallMethod(0x8e4, element_base, true);
-        maxwell3d.CallMethod(0x8e5, base_instance, true);
+        maxwell3d.engine_state = Maxwell::EngineHint::OnHLEMacro;
+        maxwell3d.setHLEReplacementName(0, 0x640, Maxwell::HLEReplaceName::BaseVertex);
+        maxwell3d.setHLEReplacementName(0, 0x644, Maxwell::HLEReplaceName::BaseInstance);
 
         maxwell3d.draw_manager->DrawIndex(
             static_cast<Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology>(parameters[0]),
             parameters[3], parameters[1], element_base, base_instance, instance_count);
 
         maxwell3d.regs.vertex_id_base = 0x0;
-        maxwell3d.CallMethod(0x8e3, 0x640, true);
-        maxwell3d.CallMethod(0x8e4, 0x0, true);
-        maxwell3d.CallMethod(0x8e5, 0x0, true);
+        maxwell3d.engine_state = Maxwell::EngineHint::None;
+        maxwell3d.replace_table.clear();
     }
 
     u32 minimum_limit{1 << 18};
@@ -238,8 +236,7 @@ public:
         : HLEMacroImpl(maxwell3d_) {}
 
     void Execute(const std::vector<u32>& parameters, [[maybe_unused]] u32 method) override {
-        const auto topology =
-            static_cast<Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology>(parameters[2]);
+        const auto topology = static_cast<Maxwell::Regs::PrimitiveTopology>(parameters[2]);
         if (!IsTopologySafe(topology)) {
             Fallback(parameters);
             return;
@@ -277,9 +274,6 @@ public:
         }
         const u32 estimate = static_cast<u32>(maxwell3d.EstimateIndexBufferSize());
         const u32 base_size = std::max(minimum_limit, estimate);
-
-        maxwell3d.regs.index_buffer.first = 0;
-        maxwell3d.regs.index_buffer.count = std::max(highest_limit, base_size);
         maxwell3d.dirty.flags[VideoCommon::Dirty::IndexBuffer] = true;
         auto& params = maxwell3d.draw_manager->GetIndirectParams();
         params.is_indexed = true;
@@ -290,7 +284,12 @@ public:
         params.max_draw_counts = draw_count;
         params.stride = stride;
         maxwell3d.dirty.flags[VideoCommon::Dirty::IndexBuffer] = true;
-        maxwell3d.draw_manager->DrawIndexedIndirect(topology, 0, highest_limit);
+        maxwell3d.engine_state = Maxwell::EngineHint::OnHLEMacro;
+        maxwell3d.setHLEReplacementName(0, 0x640, Maxwell::HLEReplaceName::BaseVertex);
+        maxwell3d.setHLEReplacementName(0, 0x644, Maxwell::HLEReplaceName::BaseInstance);
+        maxwell3d.draw_manager->DrawIndexedIndirect(topology, 0, base_size);
+        maxwell3d.engine_state = Maxwell::EngineHint::None;
+        maxwell3d.replace_table.clear();
     }
 
 private:
@@ -299,9 +298,8 @@ private:
             // Clean everything.
             // Clean everything.
             maxwell3d.regs.vertex_id_base = 0x0;
-            maxwell3d.CallMethod(0x8e3, 0x640, true);
-            maxwell3d.CallMethod(0x8e4, 0x0, true);
-            maxwell3d.CallMethod(0x8e5, 0x0, true);
+            maxwell3d.engine_state = Maxwell::EngineHint::None;
+            maxwell3d.replace_table.clear();
         });
         maxwell3d.RefreshParameters();
         const u32 start_indirect = parameters[0];
@@ -310,8 +308,7 @@ private:
             // Nothing to do.
             return;
         }
-        const auto topology =
-            static_cast<Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology>(parameters[2]);
+        const auto topology = static_cast<Maxwell::Regs::PrimitiveTopology>(parameters[2]);
         maxwell3d.regs.draw.topology.Assign(topology);
         const u32 padding = parameters[3];
         const std::size_t max_draws = parameters[4];
@@ -326,9 +323,9 @@ private:
             const u32 base_vertex = parameters[base + 3];
             const u32 base_instance = parameters[base + 4];
             maxwell3d.regs.vertex_id_base = base_vertex;
-            maxwell3d.CallMethod(0x8e3, 0x640, true);
-            maxwell3d.CallMethod(0x8e4, base_vertex, true);
-            maxwell3d.CallMethod(0x8e5, base_instance, true);
+            maxwell3d.engine_state = Maxwell::EngineHint::OnHLEMacro;
+            maxwell3d.setHLEReplacementName(0, 0x640, Maxwell::HLEReplaceName::BaseVertex);
+            maxwell3d.setHLEReplacementName(0, 0x644, Maxwell::HLEReplaceName::BaseInstance);
             maxwell3d.dirty.flags[VideoCommon::Dirty::IndexBuffer] = true;
             maxwell3d.draw_manager->DrawIndex(topology, parameters[base + 2], parameters[base],
                                               base_vertex, base_instance, parameters[base + 1]);
