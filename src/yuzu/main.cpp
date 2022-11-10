@@ -362,7 +362,7 @@ GMainWindow::GMainWindow(std::unique_ptr<Config> config_, bool has_broken_vulkan
     }
     LOG_INFO(Frontend, "Host CPU: {}", cpu_string);
 #endif
-    LOG_INFO(Frontend, "Host CPU thread count: {}", processor_count);
+    LOG_INFO(Frontend, "Host CPU Threads: {}", processor_count);
     LOG_INFO(Frontend, "Host OS: {}", PrettyProductName().toStdString());
     LOG_INFO(Frontend, "Host RAM: {:.2f} GiB",
              Common::GetMemInfo().TotalPhysicalMemory / f64{1_GiB});
