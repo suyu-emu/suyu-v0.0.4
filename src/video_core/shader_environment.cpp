@@ -352,7 +352,7 @@ Shader::TexturePixelFormat GraphicsEnvironment::ReadTexturePixelFormat(u32 handl
 
 u32 GraphicsEnvironment::ReadViewportTransformState() {
     const auto& regs{maxwell3d->regs};
-    viewport_transform_state = regs.viewport_scale_offset_enbled;
+    viewport_transform_state = regs.viewport_scale_offset_enabled;
     return viewport_transform_state;
 }
 

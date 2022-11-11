@@ -7,11 +7,11 @@
 
 #include <boost/container/small_vector.hpp>
 
-#include "common/settings.h"
 #include "shader_recompiler/environment.h"
 #include "shader_recompiler/frontend/ir/basic_block.h"
 #include "shader_recompiler/frontend/ir/breadth_first_search.h"
 #include "shader_recompiler/frontend/ir/ir_emitter.h"
+#include "shader_recompiler/host_translate_info.h"
 #include "shader_recompiler/ir_opt/passes.h"
 #include "shader_recompiler/shader_info.h"
 
@@ -461,7 +461,7 @@ void PatchImageSampleImplicitLod(IR::Block& block, IR::Inst& inst) {
                         ir.FPRecip(ir.ConvertUToF(32, 32, ir.CompositeExtract(texture_size, 1))))));
 }
 
-void PathTexelFetch(IR::Block& block, IR::Inst& inst, TexturePixelFormat pixel_format) {
+void PatchTexelFetch(IR::Block& block, IR::Inst& inst, TexturePixelFormat pixel_format) {
     const auto it{IR::Block::InstructionList::s_iterator_to(inst)};
     IR::IREmitter ir{block, IR::Block::InstructionList::s_iterator_to(inst)};
     auto get_max_value = [pixel_format]() -> float {
@@ -494,7 +494,7 @@ void PathTexelFetch(IR::Block& block, IR::Inst& inst, TexturePixelFormat pixel_f
 }
 } // Anonymous namespace
 
-void TexturePass(Environment& env, IR::Program& program) {
+void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo& host_info) {
     TextureInstVector to_replace;
     for (IR::Block* const block : program.post_order_blocks) {
         for (IR::Inst& inst : block->Instructions()) {
@@ -639,11 +639,11 @@ void TexturePass(Environment& env, IR::Program& program) {
             inst->SetArg(0, IR::Value{});
         }
 
-        if (Settings::values.renderer_backend.GetValue() == Settings::RendererBackend::OpenGL &&
-            inst->GetOpcode() == IR::Opcode::ImageFetch && flags.type == TextureType::Buffer) {
+        if (!host_info.support_snorm_render_buffer && inst->GetOpcode() == IR::Opcode::ImageFetch &&
+            flags.type == TextureType::Buffer) {
             const auto pixel_format = ReadTexturePixelFormat(env, cbuf);
             if (pixel_format != TexturePixelFormat::OTHER) {
-                PathTexelFetch(*texture_inst.block, *texture_inst.inst, pixel_format);
+                PatchTexelFetch(*texture_inst.block, *texture_inst.inst, pixel_format);
             }
         }
     }

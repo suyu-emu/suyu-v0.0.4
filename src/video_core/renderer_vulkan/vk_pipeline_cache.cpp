@@ -325,6 +325,7 @@ PipelineCache::PipelineCache(RasterizerVulkan& rasterizer_, const Device& device
         .support_int64 = device.IsShaderInt64Supported(),
         .needs_demote_reorder = driver_id == VK_DRIVER_ID_AMD_PROPRIETARY_KHR ||
                                 driver_id == VK_DRIVER_ID_AMD_OPEN_SOURCE_KHR,
+        .support_snorm_render_buffer = true,
     };
 }
 
