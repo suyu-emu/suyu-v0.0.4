@@ -512,6 +512,18 @@ Id EmitInvocationId(EmitContext& ctx) {
     return ctx.OpLoad(ctx.U32[1], ctx.invocation_id);
 }
 
+Id EmitInvocationInfo(EmitContext& ctx) {
+    switch (ctx.stage) {
+    case Stage::TessellationControl:
+    case Stage::TessellationEval:
+        return ctx.OpShiftLeftLogical(ctx.U32[1], ctx.OpLoad(ctx.U32[1], ctx.patch_vertices_in),
+                                      ctx.Const(16u));
+    default:
+        LOG_WARNING(Shader, "(STUBBED) called");
+        return ctx.Const(0x00ff0000u);
+    }
+}
+
 Id EmitSampleId(EmitContext& ctx) {
     return ctx.OpLoad(ctx.U32[1], ctx.sample_id);
 }

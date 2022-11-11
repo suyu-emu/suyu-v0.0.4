@@ -379,6 +379,18 @@ void EmitInvocationId(EmitContext& ctx, IR::Inst& inst) {
     ctx.Add("MOV.S {}.x,primitive_invocation.x;", inst);
 }
 
+void EmitInvocationInfo(EmitContext& ctx, IR::Inst& inst) {
+    switch (ctx.stage) {
+    case Stage::TessellationControl:
+    case Stage::TessellationEval:
+        ctx.Add("SHL.U {}.x,primitive.vertexcount,16;", inst);
+        break;
+    default:
+        LOG_WARNING(Shader, "(STUBBED) called");
+        ctx.Add("MOV.S {}.x,0x00ff0000;", inst);
+    }
+}
+
 void EmitSampleId(EmitContext& ctx, IR::Inst& inst) {
     ctx.Add("MOV.S {}.x,fragment.sampleid.x;", inst);
 }
