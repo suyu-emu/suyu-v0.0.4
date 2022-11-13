@@ -99,6 +99,13 @@ enum class TagProtocol : u32 {
     All = 0xFFFFFFFFU,
 };
 
+enum class CabinetMode : u8 {
+    StartNicknameAndOwnerSettings,
+    StartGameDataEraser,
+    StartRestorer,
+    StartFormatter,
+};
+
 using UniqueSerialNumber = std::array<u8, 7>;
 using LockBytes = std::array<u8, 2>;
 using HashData = std::array<u8, 0x20>;

@@ -26,6 +26,7 @@
 #include "configuration/configure_tas.h"
 #include "core/file_sys/vfs.h"
 #include "core/file_sys/vfs_real.h"
+#include "core/frontend/applets/cabinet.h"
 #include "core/frontend/applets/controller.h"
 #include "core/frontend/applets/general_frontend.h"
 #include "core/frontend/applets/mii_edit.h"
@@ -1547,6 +1548,7 @@ bool GMainWindow::LoadROM(const QString& filename, u64 program_id, std::size_t p
     system->SetFilesystem(vfs);
 
     system->SetAppletFrontendSet({
+        nullptr,                                       // Amiibo Manager
         std::make_unique<QtControllerSelector>(*this), // Controller Selector
         std::make_unique<QtErrorDisplay>(*this),       // Error Display
         nullptr,                                       // Mii Editor
