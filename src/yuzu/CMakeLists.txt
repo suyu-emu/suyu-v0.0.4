@@ -18,6 +18,9 @@ add_executable(yuzu
     about_dialog.cpp
     about_dialog.h
     aboutdialog.ui
+    applets/qt_amiibo_manager.cpp
+    applets/qt_amiibo_manager.h
+    applets/qt_amiibo_manager.ui
     applets/qt_controller.cpp
     applets/qt_controller.h
     applets/qt_controller.ui
