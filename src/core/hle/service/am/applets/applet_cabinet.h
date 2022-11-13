@@ -31,18 +31,21 @@ enum class CabinetAppletVersion : s32 {
 
 enum class CabinetResult : u8 {
     Cancel,
-    Success,
+    TagInfo = 1 << 1,
+    RegisterInfo = 1 << 2,
+    All = TagInfo | RegisterInfo,
 };
 
 // This is nn::nfp::AmiiboSettingsStartParam
 struct AmiiboSettingsStartParam {
     u64 device_handle;
     std::array<u8, 0x20> param_1;
-    std::array<u8, 0x1> param_2;
+    u8 param_2;
 };
 static_assert(sizeof(AmiiboSettingsStartParam) == 0x30,
               "AmiiboSettingsStartParam is an invalid size");
 
+#pragma pack(1)
 // This is nn::nfp::StartParamForAmiiboSettings
 struct StartParamForAmiiboSettings {
     u8 param_1;
@@ -53,7 +56,7 @@ struct StartParamForAmiiboSettings {
     Service::NFP::TagInfo tag_info;
     Service::NFP::RegisterInfo register_info;
     std::array<u8, 0x20> amiibo_settings_3;
-    INSERT_PADDING_BYTES(0x20);
+    INSERT_PADDING_BYTES(0x24);
 };
 static_assert(sizeof(StartParamForAmiiboSettings) == 0x1A8,
               "StartParamForAmiiboSettings is an invalid size");
@@ -67,8 +70,9 @@ struct ReturnValueForAmiiboSettings {
     Service::NFP::RegisterInfo register_info;
     INSERT_PADDING_BYTES(0x24);
 };
-static_assert(sizeof(ReturnValueForAmiiboSettings) == 0x190,
+static_assert(sizeof(ReturnValueForAmiiboSettings) == 0x188,
               "ReturnValueForAmiiboSettings is an invalid size");
+#pragma pack()
 
 class Cabinet final : public Applet {
 public:

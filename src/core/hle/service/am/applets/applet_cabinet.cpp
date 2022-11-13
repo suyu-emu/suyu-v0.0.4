@@ -32,7 +32,7 @@ void Cabinet::Initialize() {
 
     LOG_INFO(Service_HID, "Initializing Cabinet Applet.");
 
-    LOG_ERROR(Service_HID,
+    LOG_DEBUG(Service_HID,
               "Initializing Applet with common_args: arg_version={}, lib_version={}, "
               "play_startup_sound={}, size={}, system_tick={}, theme_color={}",
               common_args.arguments_version, common_args.library_version,
@@ -111,14 +111,14 @@ void Cabinet::DisplayCompleted(bool apply_changes, const std::string& amiibo_nam
         Cancel();
     }
 
-    if (nfp_device->GetCurrentState() != Service::NFP::DeviceState::TagFound) {
+    if (nfp_device->GetCurrentState() == Service::NFP::DeviceState::TagFound) {
         nfp_device->Mount(Service::NFP::MountTarget::All);
     }
 
     switch (applet_input_common.applet_mode) {
     case Service::NFP::CabinetMode::StartNicknameAndOwnerSettings: {
         Service::NFP::AmiiboName name{};
-        memccpy(name.data(), amiibo_name.data(), 0, name.size());
+        memcpy(name.data(), amiibo_name.data(), std::min(amiibo_name.size(), name.size() - 1));
         nfp_device->SetNicknameAndOwner(name);
         break;
     }
@@ -137,10 +137,18 @@ void Cabinet::DisplayCompleted(bool apply_changes, const std::string& amiibo_nam
     }
 
     applet_output.device_handle = applet_input_common.device_handle;
-    applet_output.result = CabinetResult::Success;
-    nfp_device->GetRegisterInfo(applet_output.register_info);
-    nfp_device->GetTagInfo(applet_output.tag_info);
+    applet_output.result = CabinetResult::Cancel;
+    const auto reg_result = nfp_device->GetRegisterInfo(applet_output.register_info);
+    const auto tag_result = nfp_device->GetTagInfo(applet_output.tag_info);
     nfp_device->Finalize();
+
+    if (reg_result.IsSuccess() && tag_result.IsSuccess()) {
+        applet_output.result = CabinetResult::All;
+    } else if (reg_result.IsSuccess()) {
+        applet_output.result = CabinetResult::RegisterInfo;
+    } else if (tag_result.IsSuccess()) {
+        applet_output.result = CabinetResult::TagInfo;
+    }
 
     std::vector<u8> out_data(sizeof(ReturnValueForAmiiboSettings));
     std::memcpy(out_data.data(), &applet_output, sizeof(ReturnValueForAmiiboSettings));
