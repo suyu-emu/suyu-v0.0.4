@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>QtAmiiboManagerDialog</class>
- <widget class="QDialog" name="QtAmiiboManagerDialog">
+ <class>QtAmiiboSettingsDialog</class>
+ <widget class="QDialog" name="QtAmiiboSettingsDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Amiibo Manager</string>
+   <string>Amiibo Settings</string>
   </property>
   <property name="styleSheet">
    <string notr="true"/>
@@ -121,8 +121,11 @@
          </property>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_2">
-           <property name="leftMargin">
+           <property name="spacing">
             <number>20</number>
+           </property>
+           <property name="leftMargin">
+            <number>15</number>
            </property>
            <property name="rightMargin">
             <number>15</number>
@@ -152,7 +155,7 @@
            <item>
             <layout class="QVBoxLayout" name="verticalLayout_4">
              <property name="leftMargin">
-              <number>20</number>
+              <number>0</number>
              </property>
              <property name="topMargin">
               <number>8</number>
@@ -478,13 +481,13 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>QtAmiiboManagerDialog</receiver>
+   <receiver>QtAmiiboSettingsDialog</receiver>
    <slot>accept()</slot>
   </connection>
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>QtAmiiboManagerDialog</receiver>
+   <receiver>QtAmiiboSettingsDialog</receiver>
    <slot>reject()</slot>
   </connection>
  </connections>

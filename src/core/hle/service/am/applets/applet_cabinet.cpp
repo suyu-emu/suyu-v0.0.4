@@ -98,7 +98,7 @@ void Cabinet::Execute() {
     }
 }
 
-void Cabinet::DisplayCompleted(bool apply_changes, const std::string& amiibo_name) {
+void Cabinet::DisplayCompleted(bool apply_changes, std::string_view amiibo_name) {
     Service::Mii::MiiManager manager;
     ReturnValueForAmiiboSettings applet_output{};
 
@@ -118,7 +118,7 @@ void Cabinet::DisplayCompleted(bool apply_changes, const std::string& amiibo_nam
     switch (applet_input_common.applet_mode) {
     case Service::NFP::CabinetMode::StartNicknameAndOwnerSettings: {
         Service::NFP::AmiiboName name{};
-        memcpy(name.data(), amiibo_name.data(), std::min(amiibo_name.size(), name.size() - 1));
+        std::memcpy(name.data(), amiibo_name.data(), std::min(amiibo_name.size(), name.size() - 1));
         nfp_device->SetNicknameAndOwner(name);
         break;
     }
@@ -142,12 +142,12 @@ void Cabinet::DisplayCompleted(bool apply_changes, const std::string& amiibo_nam
     const auto tag_result = nfp_device->GetTagInfo(applet_output.tag_info);
     nfp_device->Finalize();
 
-    if (reg_result.IsSuccess() && tag_result.IsSuccess()) {
-        applet_output.result = CabinetResult::All;
-    } else if (reg_result.IsSuccess()) {
-        applet_output.result = CabinetResult::RegisterInfo;
-    } else if (tag_result.IsSuccess()) {
-        applet_output.result = CabinetResult::TagInfo;
+    if (reg_result.IsSuccess()) {
+        applet_output.result |= CabinetResult::RegisterInfo;
+    }
+
+    if (tag_result.IsSuccess()) {
+        applet_output.result |= CabinetResult::TagInfo;
     }
 
     std::vector<u8> out_data(sizeof(ReturnValueForAmiiboSettings));

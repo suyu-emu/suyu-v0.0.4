@@ -12,17 +12,17 @@
 #include "core/hle/service/nfp/nfp_result.h"
 #include "input_common/drivers/virtual_amiibo.h"
 #include "input_common/main.h"
-#include "ui_qt_amiibo_manager.h"
+#include "ui_qt_amiibo_settings.h"
 #include "web_service/web_backend.h"
-#include "yuzu/applets/qt_amiibo_manager.h"
+#include "yuzu/applets/qt_amiibo_settings.h"
 #include "yuzu/main.h"
 
-QtAmiiboManagerDialog::QtAmiiboManagerDialog(QWidget* parent,
-                                             Core::Frontend::CabinetParameters parameters_,
-                                             InputCommon::InputSubsystem* input_subsystem_,
-                                             std::shared_ptr<Service::NFP::NfpDevice> nfp_device_)
-    : QDialog(parent), ui(std::make_unique<Ui::QtAmiiboManagerDialog>()),
-      input_subsystem{input_subsystem_}, nfp_device{nfp_device_},
+QtAmiiboSettingsDialog::QtAmiiboSettingsDialog(QWidget* parent,
+                                               Core::Frontend::CabinetParameters parameters_,
+                                               InputCommon::InputSubsystem* input_subsystem_,
+                                               std::shared_ptr<Service::NFP::NfpDevice> nfp_device_)
+    : QDialog(parent), ui(std::make_unique<Ui::QtAmiiboSettingsDialog>()),
+      input_subsystem{input_subsystem_}, nfp_device{std::move(nfp_device_)},
       parameters(std::move(parameters_)) {
     ui->setupUi(this);
 
@@ -31,20 +31,20 @@ QtAmiiboManagerDialog::QtAmiiboManagerDialog(QWidget* parent,
     resize(0, 0);
 }
 
-QtAmiiboManagerDialog::~QtAmiiboManagerDialog() = default;
+QtAmiiboSettingsDialog::~QtAmiiboSettingsDialog() = default;
 
-int QtAmiiboManagerDialog::exec() {
+int QtAmiiboSettingsDialog::exec() {
     if (!is_initalized) {
         return QDialog::Rejected;
     }
     return QDialog::exec();
 }
 
-std::string QtAmiiboManagerDialog::GetName() {
+std::string QtAmiiboSettingsDialog::GetName() const {
     return ui->amiiboCustomNameValue->text().toStdString();
 }
 
-void QtAmiiboManagerDialog::LoadInfo() {
+void QtAmiiboSettingsDialog::LoadInfo() {
     if (input_subsystem->GetVirtualAmiibo()->ReloadAmiibo() !=
         InputCommon::VirtualAmiibo::Info::Success) {
         return;
@@ -56,29 +56,41 @@ void QtAmiiboManagerDialog::LoadInfo() {
     }
     nfp_device->Mount(Service::NFP::MountTarget::All);
 
-    Service::NFP::ModelInfo model_info{};
-    const auto model_result = nfp_device->GetModelInfo(model_info);
-
-    if (model_result.IsSuccess()) {
-        const auto amiibo_id =
-            fmt::format("{:04x}{:02x}{:02x}{:04x}{:02x}02", Common::swap16(model_info.character_id),
-                        model_info.character_variant, model_info.amiibo_type,
-                        model_info.model_number, model_info.series);
-        LOG_ERROR(Input, "{}", amiibo_id);
-        LoadAmiiboApiInfo(amiibo_id);
-    }
-
+    LoadAmiiboInfo();
     LoadAmiiboData();
     LoadAmiiboGameInfo();
 
     ui->amiiboDirectoryValue->setText(
         QString::fromStdString(input_subsystem->GetVirtualAmiibo()->GetLastFilePath()));
 
-    SetManagerDescription();
+    SetSettingsDescription();
     is_initalized = true;
 }
 
-void QtAmiiboManagerDialog::LoadAmiiboApiInfo(std::string amiibo_id) {
+void QtAmiiboSettingsDialog::LoadAmiiboInfo() {
+    Service::NFP::ModelInfo model_info{};
+    const auto model_result = nfp_device->GetModelInfo(model_info);
+
+    if (model_result.IsFailure()) {
+        ui->amiiboImageLabel->setVisible(false);
+        ui->amiiboInfoGroup->setVisible(false);
+        return;
+    }
+
+    const auto amiibo_id =
+        fmt::format("{:04x}{:02x}{:02x}{:04x}{:02x}02", Common::swap16(model_info.character_id),
+                    model_info.character_variant, model_info.amiibo_type, model_info.model_number,
+                    model_info.series);
+
+    LOG_DEBUG(Frontend, "Loading amiibo id {}", amiibo_id);
+    // Note: This function is not being used until we host the images on our server
+    // LoadAmiiboApiInfo(amiibo_id);
+    ui->amiiboImageLabel->setVisible(false);
+    ui->amiiboInfoGroup->setVisible(false);
+}
+
+void QtAmiiboSettingsDialog::LoadAmiiboApiInfo(std::string_view amiibo_id) {
+    // TODO: Host this data on our website
     WebService::Client client{"https://amiiboapi.com", {}, {}};
     WebService::Client image_client{"https://raw.githubusercontent.com", {}, {}};
     const auto url_path = fmt::format("/api/amiibo/?id={}", amiibo_id);
@@ -124,7 +136,7 @@ void QtAmiiboManagerDialog::LoadAmiiboApiInfo(std::string amiibo_id) {
     ui->amiiboImageLabel->setPixmap(pixmap);
 }
 
-void QtAmiiboManagerDialog::LoadAmiiboData() {
+void QtAmiiboSettingsDialog::LoadAmiiboData() {
     Service::NFP::RegisterInfo register_info{};
     Service::NFP::CommonInfo common_info{};
     const auto register_result = nfp_device->GetRegisterInfo(register_info);
@@ -166,7 +178,7 @@ void QtAmiiboManagerDialog::LoadAmiiboData() {
     ui->modificationDateValue->setDate(modification_date);
 }
 
-void QtAmiiboManagerDialog::LoadAmiiboGameInfo() {
+void QtAmiiboSettingsDialog::LoadAmiiboGameInfo() {
     u32 application_area_id{};
     const auto application_result = nfp_device->GetApplicationAreaId(application_area_id);
 
@@ -179,27 +191,27 @@ void QtAmiiboManagerDialog::LoadAmiiboGameInfo() {
     SetGameDataName(application_area_id);
 }
 
-void QtAmiiboManagerDialog::SetGameDataName(u32 application_area_id) {
-    const std::array<std::pair<u32, QString>, 12> game_name_list = {
+void QtAmiiboSettingsDialog::SetGameDataName(u32 application_area_id) {
+    static constexpr std::array<std::pair<u32, const char*>, 12> game_name_list = {
         // 3ds, wii u
-        std::pair<u32, QString>{0x10110E00, QStringLiteral("Super Smash Bros (3DS/WiiU)")},
-        {0x00132600, QStringLiteral("Mario & Luigi: Paper Jam")},
-        {0x0014F000, QStringLiteral("Animal Crossing: Happy Home Designer")},
-        {0x00152600, QStringLiteral("Chibi-Robo!: Zip Lash")},
-        {0x10161f00, QStringLiteral("Mario Party 10")},
-        {0x1019C800, QStringLiteral("The Legend of Zelda: Twilight Princess HD")},
+        std::pair<u32, const char*>{0x10110E00, "Super Smash Bros (3DS/WiiU)"},
+        {0x00132600, "Mario & Luigi: Paper Jam"},
+        {0x0014F000, "Animal Crossing: Happy Home Designer"},
+        {0x00152600, "Chibi-Robo!: Zip Lash"},
+        {0x10161f00, "Mario Party 10"},
+        {0x1019C800, "The Legend of Zelda: Twilight Princess HD"},
         // switch
-        {0x10162B00, QStringLiteral("Splatoon 2")},
-        {0x1016e100, QStringLiteral("Shovel Knight: Treasure Trove")},
-        {0x1019C800, QStringLiteral("The Legend of Zelda: Breath of the Wild")},
-        {0x34F80200, QStringLiteral("Super Smash Bros. Ultimate")},
-        {0x38600500, QStringLiteral("Splatoon 3")},
-        {0x3B440400, QStringLiteral("The Legend of Zelda: Link's Awakening")},
+        {0x10162B00, "Splatoon 2"},
+        {0x1016e100, "Shovel Knight: Treasure Trove"},
+        {0x1019C800, "The Legend of Zelda: Breath of the Wild"},
+        {0x34F80200, "Super Smash Bros. Ultimate"},
+        {0x38600500, "Splatoon 3"},
+        {0x3B440400, "The Legend of Zelda: Link's Awakening"},
     };
 
     for (const auto& [game_id, game_name] : game_name_list) {
         if (application_area_id == game_id) {
-            ui->gameIdValue->setText(game_name);
+            ui->gameIdValue->setText(QString::fromStdString(game_name));
             return;
         }
     }
@@ -208,11 +220,11 @@ void QtAmiiboManagerDialog::SetGameDataName(u32 application_area_id) {
     ui->gameIdValue->setText(QString::fromStdString(application_area_string));
 }
 
-void QtAmiiboManagerDialog::SetManagerDescription() {
+void QtAmiiboSettingsDialog::SetSettingsDescription() {
     switch (parameters.mode) {
     case Service::NFP::CabinetMode::StartFormatter:
         ui->cabinetActionDescriptionLabel->setText(
-            tr("The following amiibo data will be formated:"));
+            tr("The following amiibo data will be formatted:"));
         break;
     case Service::NFP::CabinetMode::StartGameDataEraser:
         ui->cabinetActionDescriptionLabel->setText(tr("The following game data will removed:"));
@@ -221,27 +233,28 @@ void QtAmiiboManagerDialog::SetManagerDescription() {
         ui->cabinetActionDescriptionLabel->setText(tr("Set nickname and owner:"));
         break;
     case Service::NFP::CabinetMode::StartRestorer:
-        ui->cabinetActionDescriptionLabel->setText(tr("Do you wish to restore this amiibo:"));
+        ui->cabinetActionDescriptionLabel->setText(tr("Do you wish to restore this amiibo?"));
         break;
     }
 }
 
-QtAmiiboManager::QtAmiiboManager(GMainWindow& parent) {
-    connect(this, &QtAmiiboManager::MainWindowShowAmiiboManager, &parent,
-            &GMainWindow::AmiiboManagerShowDialog, Qt::QueuedConnection);
-    connect(&parent, &GMainWindow::AmiiboManagerFinished, this,
-            &QtAmiiboManager::MainWindowFinished, Qt::QueuedConnection);
+QtAmiiboSettings::QtAmiiboSettings(GMainWindow& parent) {
+    connect(this, &QtAmiiboSettings::MainWindowShowAmiiboSettings, &parent,
+            &GMainWindow::AmiiboSettingsShowDialog, Qt::QueuedConnection);
+    connect(&parent, &GMainWindow::AmiiboSettingsFinished, this,
+            &QtAmiiboSettings::MainWindowFinished, Qt::QueuedConnection);
 }
 
-QtAmiiboManager::~QtAmiiboManager() = default;
+QtAmiiboSettings::~QtAmiiboSettings() = default;
 
-void QtAmiiboManager::ShowCabinetApplet(std::function<void(bool, const std::string&)> callback_,
-                                        const Core::Frontend::CabinetParameters& parameters,
-                                        std::shared_ptr<Service::NFP::NfpDevice> nfp_device) const {
+void QtAmiiboSettings::ShowCabinetApplet(
+    const Core::Frontend::CabinetCallback& callback_,
+    const Core::Frontend::CabinetParameters& parameters,
+    std::shared_ptr<Service::NFP::NfpDevice> nfp_device) const {
     callback = std::move(callback_);
-    emit MainWindowShowAmiiboManager(parameters, nfp_device);
+    emit MainWindowShowAmiiboSettings(parameters, nfp_device);
 }
 
-void QtAmiiboManager::MainWindowFinished(bool is_success, std::string name) {
+void QtAmiiboSettings::MainWindowFinished(bool is_success, const std::string& name) {
     callback(is_success, name);
 }

@@ -109,7 +109,7 @@ VirtualAmiibo::Info VirtualAmiibo::CloseAmiibo() {
     return Info::Success;
 }
 
-std::string VirtualAmiibo::GetLastFilePath() {
+std::string VirtualAmiibo::GetLastFilePath() const {
     return file_path;
 }
 

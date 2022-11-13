@@ -148,7 +148,7 @@ void NfpDevice::Finalize() {
     device_state = DeviceState::Unavailable;
 }
 
-Result NfpDevice::StartDetection([[maybe_unused]] TagProtocol allowed_protocol) {
+Result NfpDevice::StartDetection(TagProtocol allowed_protocol) {
     if (device_state != DeviceState::Initialized && device_state != DeviceState::TagRemoved) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
         return WrongDeviceState;
@@ -475,6 +475,8 @@ Result NfpDevice::OpenApplicationArea(u32 access_id) {
 }
 
 Result NfpDevice::GetApplicationAreaId(u32& application_area_id) const {
+    application_area_id = {};
+
     if (device_state != DeviceState::TagMounted) {
         LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
         if (device_state == DeviceState::TagRemoved) {

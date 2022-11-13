@@ -50,7 +50,7 @@ public:
     Info ReloadAmiibo();
     Info CloseAmiibo();
 
-    std::string GetLastFilePath();
+    std::string GetLastFilePath() const;
 
 private:
     static constexpr std::size_t amiibo_size = 0x21C;

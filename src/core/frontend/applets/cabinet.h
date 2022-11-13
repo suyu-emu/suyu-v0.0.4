@@ -18,18 +18,19 @@ struct CabinetParameters {
     Service::NFP::CabinetMode mode;
 };
 
+using CabinetCallback = std::function<void(bool, const std::string&)>;
+
 class CabinetApplet {
 public:
     virtual ~CabinetApplet();
-    virtual void ShowCabinetApplet(std::function<void(bool, const std::string&)> callback,
+    virtual void ShowCabinetApplet(const CabinetCallback& callback,
                                    const CabinetParameters& parameters,
                                    std::shared_ptr<Service::NFP::NfpDevice> nfp_device) const = 0;
 };
 
 class DefaultCabinetApplet final : public CabinetApplet {
 public:
-    void ShowCabinetApplet(std::function<void(bool, const std::string&)> callback,
-                           const CabinetParameters& parameters,
+    void ShowCabinetApplet(const CabinetCallback& callback, const CabinetParameters& parameters,
                            std::shared_ptr<Service::NFP::NfpDevice> nfp_device) const override;
 };
 

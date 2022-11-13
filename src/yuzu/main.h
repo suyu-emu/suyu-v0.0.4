@@ -154,7 +154,7 @@ signals:
 
     void UpdateInstallProgress();
 
-    void AmiiboManagerFinished(bool is_success, std::string name);
+    void AmiiboSettingsFinished(bool is_success, const std::string& name);
 
     void ControllerSelectorReconfigureFinished();
 
@@ -177,8 +177,8 @@ public slots:
     void OnExecuteProgram(std::size_t program_index);
     void OnExit();
     void OnSaveConfig();
-    void AmiiboManagerShowDialog(const Core::Frontend::CabinetParameters& parameters,
-                                 std::shared_ptr<Service::NFP::NfpDevice> nfp_device);
+    void AmiiboSettingsShowDialog(const Core::Frontend::CabinetParameters& parameters,
+                                  std::shared_ptr<Service::NFP::NfpDevice> nfp_device);
     void ControllerSelectorReconfigureControllers(
         const Core::Frontend::ControllerParameters& parameters);
     void SoftwareKeyboardInitialize(

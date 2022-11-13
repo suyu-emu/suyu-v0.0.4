@@ -11,7 +11,7 @@ namespace Core::Frontend {
 CabinetApplet::~CabinetApplet() = default;
 
 void DefaultCabinetApplet::ShowCabinetApplet(
-    std::function<void(bool, const std::string&)> callback, const CabinetParameters& parameters,
+    const CabinetCallback& callback, const CabinetParameters& parameters,
     std::shared_ptr<Service::NFP::NfpDevice> nfp_device) const {
     LOG_WARNING(Service_AM, "(STUBBED) called");
     callback(false, {});

@@ -15,7 +15,7 @@
 #endif
 
 // VFS includes must be before glad as they will conflict with Windows file api, which uses defines.
-#include "applets/qt_amiibo_manager.h"
+#include "applets/qt_amiibo_settings.h"
 #include "applets/qt_controller.h"
 #include "applets/qt_error.h"
 #include "applets/qt_profile_select.h"
@@ -577,19 +577,19 @@ void GMainWindow::RegisterMetaTypes() {
     qRegisterMetaType<Core::SystemResultStatus>("Core::SystemResultStatus");
 }
 
-void GMainWindow::AmiiboManagerShowDialog(const Core::Frontend::CabinetParameters& parameters,
-                                          std::shared_ptr<Service::NFP::NfpDevice> nfp_device) {
-    QtAmiiboManagerDialog dialog(this, parameters, input_subsystem.get(), nfp_device);
+void GMainWindow::AmiiboSettingsShowDialog(const Core::Frontend::CabinetParameters& parameters,
+                                           std::shared_ptr<Service::NFP::NfpDevice> nfp_device) {
+    QtAmiiboSettingsDialog dialog(this, parameters, input_subsystem.get(), nfp_device);
 
     dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint |
                           Qt::WindowTitleHint | Qt::WindowSystemMenuHint);
     dialog.setWindowModality(Qt::WindowModal);
     if (dialog.exec() == QDialog::Rejected) {
-        emit AmiiboManagerFinished(false, {});
+        emit AmiiboSettingsFinished(false, {});
         return;
     }
 
-    emit AmiiboManagerFinished(true, dialog.GetName());
+    emit AmiiboSettingsFinished(true, dialog.GetName());
 }
 
 void GMainWindow::ControllerSelectorReconfigureControllers(
@@ -1569,7 +1569,7 @@ bool GMainWindow::LoadROM(const QString& filename, u64 program_id, std::size_t p
     system->SetFilesystem(vfs);
 
     system->SetAppletFrontendSet({
-        std::make_unique<QtAmiiboManager>(*this),      // Amiibo Manager
+        std::make_unique<QtAmiiboSettings>(*this),     // Amiibo Settings
         std::make_unique<QtControllerSelector>(*this), // Controller Selector
         std::make_unique<QtErrorDisplay>(*this),       // Error Display
         nullptr,                                       // Mii Editor

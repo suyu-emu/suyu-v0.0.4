@@ -25,16 +25,17 @@ class NfpDevice;
 
 namespace Service::AM::Applets {
 
-enum class CabinetAppletVersion : s32 {
+enum class CabinetAppletVersion : u32 {
     Version1 = 0x1,
 };
 
 enum class CabinetResult : u8 {
-    Cancel,
+    Cancel = 0,
     TagInfo = 1 << 1,
     RegisterInfo = 1 << 2,
     All = TagInfo | RegisterInfo,
 };
+DECLARE_ENUM_FLAG_OPERATORS(CabinetResult)
 
 // This is nn::nfp::AmiiboSettingsStartParam
 struct AmiiboSettingsStartParam {
@@ -45,7 +46,7 @@ struct AmiiboSettingsStartParam {
 static_assert(sizeof(AmiiboSettingsStartParam) == 0x30,
               "AmiiboSettingsStartParam is an invalid size");
 
-#pragma pack(1)
+#pragma pack(push, 1)
 // This is nn::nfp::StartParamForAmiiboSettings
 struct StartParamForAmiiboSettings {
     u8 param_1;
@@ -72,7 +73,7 @@ struct ReturnValueForAmiiboSettings {
 };
 static_assert(sizeof(ReturnValueForAmiiboSettings) == 0x188,
               "ReturnValueForAmiiboSettings is an invalid size");
-#pragma pack()
+#pragma pack(pop)
 
 class Cabinet final : public Applet {
 public:
@@ -86,7 +87,7 @@ public:
     Result GetStatus() const override;
     void ExecuteInteractive() override;
     void Execute() override;
-    void DisplayCompleted(bool apply_changes, const std::string& amiibo_name);
+    void DisplayCompleted(bool apply_changes, std::string_view amiibo_name);
     void Cancel();
 
 private:
