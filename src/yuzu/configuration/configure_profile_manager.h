@@ -10,7 +10,9 @@
 #include <QList>
 #include <QWidget>
 
-#include "common/uuid.h"
+namespace Common {
+struct UUID;
+}
 
 namespace Core {
 class System;
@@ -37,7 +39,7 @@ public:
     explicit ConfigureProfileManagerDeleteDialog(QWidget* parent);
     ~ConfigureProfileManagerDeleteDialog();
 
-    void SetInfo(const QString username, const Common::UUID uuid,
+    void SetInfo(const QString& username, const Common::UUID& uuid,
                  std::function<void()> accept_callback);
 
 private:
@@ -68,7 +70,7 @@ private:
     void AddUser();
     void RenameUser();
     void ConfirmDeleteUser();
-    void DeleteUser(const Common::UUID uuid);
+    void DeleteUser(const Common::UUID& uuid);
     void SetUserImage();
 
     QVBoxLayout* layout;
@@ -76,7 +78,7 @@ private:
     QStandardItemModel* item_model;
     QGraphicsScene* scene;
 
-    std::unique_ptr<ConfigureProfileManagerDeleteDialog> confirm_dialog;
+    ConfigureProfileManagerDeleteDialog* confirm_dialog;
 
     std::vector<QList<QStandardItem*>> list_items;
 

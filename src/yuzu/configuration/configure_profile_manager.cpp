@@ -115,7 +115,7 @@ ConfigureProfileManager::ConfigureProfileManager(const Core::System& system_, QW
             &ConfigureProfileManager::ConfirmDeleteUser);
     connect(ui->pm_set_image, &QPushButton::clicked, this, &ConfigureProfileManager::SetUserImage);
 
-    confirm_dialog = std::make_unique<ConfigureProfileManagerDeleteDialog>(this);
+    confirm_dialog = new ConfigureProfileManagerDeleteDialog(this);
 
     scene = new QGraphicsScene;
     ui->current_user_icon->setScene(scene);
@@ -246,7 +246,7 @@ void ConfigureProfileManager::ConfirmDeleteUser() {
     confirm_dialog->show();
 }
 
-void ConfigureProfileManager::DeleteUser(const Common::UUID uuid) {
+void ConfigureProfileManager::DeleteUser(const Common::UUID& uuid) {
     if (Settings::values.current_user.GetValue() == tree_view->currentIndex().row()) {
         Settings::values.current_user = 0;
     }
@@ -324,7 +324,7 @@ void ConfigureProfileManager::SetUserImage() {
 }
 
 ConfigureProfileManagerDeleteDialog::ConfigureProfileManagerDeleteDialog(QWidget* parent)
-    : QDialog(parent) {
+    : QDialog{parent} {
     auto dialog_vbox_layout = new QVBoxLayout(this);
     dialog_button_box =
         new QDialogButtonBox(QDialogButtonBox::Yes | QDialogButtonBox::No, Qt::Horizontal, parent);
@@ -354,7 +354,7 @@ ConfigureProfileManagerDeleteDialog::ConfigureProfileManagerDeleteDialog(QWidget
 
 ConfigureProfileManagerDeleteDialog::~ConfigureProfileManagerDeleteDialog() = default;
 
-void ConfigureProfileManagerDeleteDialog::SetInfo(const QString username, const Common::UUID uuid,
+void ConfigureProfileManagerDeleteDialog::SetInfo(const QString& username, const Common::UUID& uuid,
                                                   std::function<void()> accept_callback) {
     label_info->setText(
         tr("Name: %1\nUUID: %2").arg(username, QString::fromStdString(uuid.FormattedString())));
