@@ -1129,7 +1129,6 @@ public:
             Tegra::RenderTargetFormat format;
             TileMode tile_mode;
             union {
-                u32 depth_volume;
                 BitField<0, 16, u32> depth;
                 BitField<16, 1, u32> volume;
             };
@@ -3087,6 +3086,9 @@ public:
 
     std::vector<u8> inline_index_draw_indexes;
 
+    /// Handles a write to the CLEAR_BUFFERS register.
+    void ProcessClearBuffers(u32 layer_count);
+
 private:
     void InitializeRegisterDefaults();
 
@@ -3120,9 +3122,6 @@ private:
 
     /// Handles firmware blob 4
     void ProcessFirmwareCall4();
-
-    /// Handles a write to the CLEAR_BUFFERS register.
-    void ProcessClearBuffers();
 
     /// Handles a write to the QUERY_GET register.
     void ProcessQueryGet();
