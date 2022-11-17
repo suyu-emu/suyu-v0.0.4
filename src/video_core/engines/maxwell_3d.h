@@ -1129,6 +1129,7 @@ public:
             Tegra::RenderTargetFormat format;
             TileMode tile_mode;
             union {
+                u32 depth_volume;
                 BitField<0, 16, u32> depth;
                 BitField<16, 1, u32> volume;
             };
