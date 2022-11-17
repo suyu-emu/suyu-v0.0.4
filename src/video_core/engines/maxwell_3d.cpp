@@ -157,6 +157,21 @@ void Maxwell3D::RefreshParameters() {
     }
 }
 
+bool Maxwell3D::AnyParametersDirty() {
+    size_t current_index = 0;
+    for (auto& segment : macro_segments) {
+        if (segment.first == 0) {
+            current_index += segment.second;
+            continue;
+        }
+        if (memory_manager.IsMemoryDirty(segment.first, sizeof(u32) * segment.second)) {
+            return true;
+        }
+        current_index += segment.second;
+    }
+    return false;
+}
+
 u32 Maxwell3D::GetMaxCurrentVertices() {
     u32 num_vertices = 0;
     for (size_t index = 0; index < Regs::NumVertexArrays; ++index) {

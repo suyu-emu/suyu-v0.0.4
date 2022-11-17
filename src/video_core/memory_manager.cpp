@@ -25,7 +25,8 @@ MemoryManager::MemoryManager(Core::System& system_, u64 address_space_bits_, u64
       address_space_bits{address_space_bits_}, page_bits{page_bits_}, big_page_bits{big_page_bits_},
       entries{}, big_entries{}, page_table{address_space_bits, address_space_bits + page_bits - 38,
                                            page_bits != big_page_bits ? page_bits : 0},
-      unique_identifier{unique_identifier_generator.fetch_add(1, std::memory_order_acq_rel)} {
+      kind_map{PTEKind::INVALID}, unique_identifier{unique_identifier_generator.fetch_add(
+                                      1, std::memory_order_acq_rel)} {
     address_space_size = 1ULL << address_space_bits;
     page_size = 1ULL << page_bits;
     page_mask = page_size - 1ULL;
@@ -41,11 +42,7 @@ MemoryManager::MemoryManager(Core::System& system_, u64 address_space_bits_, u64
     big_entries.resize(big_page_table_size / 32, 0);
     big_page_table_cpu.resize(big_page_table_size);
     big_page_continous.resize(big_page_table_size / continous_bits, 0);
-    std::array<PTEKind, 32> kind_valus;
-    kind_valus.fill(PTEKind::INVALID);
-    big_kinds.resize(big_page_table_size / 32, kind_valus);
     entries.resize(page_table_size / 32, 0);
-    kinds.resize(page_table_size / 32, kind_valus);
 }
 
 MemoryManager::~MemoryManager() = default;
@@ -83,38 +80,7 @@ void MemoryManager::SetEntry(size_t position, MemoryManager::EntryType entry) {
 }
 
 PTEKind MemoryManager::GetPageKind(GPUVAddr gpu_addr) const {
-    auto entry = GetEntry<true>(gpu_addr);
-    if (entry == EntryType::Mapped || entry == EntryType::Reserved) [[likely]] {
-        return GetKind<true>(gpu_addr);
-    } else {
-        return GetKind<false>(gpu_addr);
-    }
-}
-
-template <bool is_big_page>
-PTEKind MemoryManager::GetKind(size_t position) const {
-    if constexpr (is_big_page) {
-        position = position >> big_page_bits;
-        const size_t sub_index = position % 32;
-        return big_kinds[position / 32][sub_index];
-    } else {
-        position = position >> page_bits;
-        const size_t sub_index = position % 32;
-        return kinds[position / 32][sub_index];
-    }
-}
-
-template <bool is_big_page>
-void MemoryManager::SetKind(size_t position, PTEKind kind) {
-    if constexpr (is_big_page) {
-        position = position >> big_page_bits;
-        const size_t sub_index = position % 32;
-        big_kinds[position / 32][sub_index] = kind;
-    } else {
-        position = position >> page_bits;
-        const size_t sub_index = position % 32;
-        kinds[position / 32][sub_index] = kind;
-    }
+    return kind_map.GetValueAt(gpu_addr);
 }
 
 inline bool MemoryManager::IsBigPageContinous(size_t big_page_index) const {
@@ -141,7 +107,6 @@ GPUVAddr MemoryManager::PageTableOp(GPUVAddr gpu_addr, [[maybe_unused]] VAddr cp
         const GPUVAddr current_gpu_addr = gpu_addr + offset;
         [[maybe_unused]] const auto current_entry_type = GetEntry<false>(current_gpu_addr);
         SetEntry<false>(current_gpu_addr, entry_type);
-        SetKind<false>(current_gpu_addr, kind);
         if (current_entry_type != entry_type) {
             rasterizer->ModifyGPUMemory(unique_identifier, gpu_addr, page_size);
         }
@@ -153,6 +118,7 @@ GPUVAddr MemoryManager::PageTableOp(GPUVAddr gpu_addr, [[maybe_unused]] VAddr cp
         }
         remaining_size -= page_size;
     }
+    kind_map.Map(gpu_addr, gpu_addr + size, kind);
     return gpu_addr;
 }
 
@@ -164,7 +130,6 @@ GPUVAddr MemoryManager::BigPageTableOp(GPUVAddr gpu_addr, [[maybe_unused]] VAddr
         const GPUVAddr current_gpu_addr = gpu_addr + offset;
         [[maybe_unused]] const auto current_entry_type = GetEntry<true>(current_gpu_addr);
         SetEntry<true>(current_gpu_addr, entry_type);
-        SetKind<true>(current_gpu_addr, kind);
         if (current_entry_type != entry_type) {
             rasterizer->ModifyGPUMemory(unique_identifier, gpu_addr, big_page_size);
         }
@@ -193,6 +158,7 @@ GPUVAddr MemoryManager::BigPageTableOp(GPUVAddr gpu_addr, [[maybe_unused]] VAddr
         }
         remaining_size -= big_page_size;
     }
+    kind_map.Map(gpu_addr, gpu_addr + size, kind);
     return gpu_addr;
 }
 
@@ -578,52 +544,7 @@ size_t MemoryManager::MaxContinousRange(GPUVAddr gpu_addr, size_t size) const {
 }
 
 size_t MemoryManager::GetMemoryLayoutSize(GPUVAddr gpu_addr, size_t max_size) const {
-    PTEKind base_kind = GetPageKind(gpu_addr);
-    if (base_kind == PTEKind::INVALID) {
-        return 0;
-    }
-    size_t range_so_far = 0;
-    bool result{false};
-    auto fail = [&]([[maybe_unused]] std::size_t page_index, [[maybe_unused]] std::size_t offset,
-                    std::size_t copy_amount) {
-        result = true;
-        return true;
-    };
-    auto short_check = [&](std::size_t page_index, std::size_t offset, std::size_t copy_amount) {
-        PTEKind base_kind_other = GetKind<false>((page_index << page_bits) + offset);
-        if (base_kind != base_kind_other) {
-            result = true;
-            return true;
-        }
-        range_so_far += copy_amount;
-        if (range_so_far >= max_size) {
-            result = true;
-            return true;
-        }
-        return false;
-    };
-    auto big_check = [&](std::size_t page_index, std::size_t offset, std::size_t copy_amount) {
-        PTEKind base_kind_other = GetKind<true>((page_index << big_page_bits) + offset);
-        if (base_kind != base_kind_other) {
-            result = true;
-            return true;
-        }
-        range_so_far += copy_amount;
-        if (range_so_far >= max_size) {
-            result = true;
-            return true;
-        }
-        return false;
-    };
-    auto check_short_pages = [&](std::size_t page_index, std::size_t offset,
-                                 std::size_t copy_amount) {
-        GPUVAddr base = (page_index << big_page_bits) + offset;
-        MemoryOperation<false>(base, copy_amount, short_check, fail, fail);
-        return result;
-    };
-    MemoryOperation<true>(gpu_addr, address_space_size - gpu_addr, big_check, fail,
-                          check_short_pages);
-    return range_so_far;
+    return kind_map.GetContinousSizeFrom(gpu_addr);
 }
 
 void MemoryManager::InvalidateRegion(GPUVAddr gpu_addr, size_t size) const {

@@ -10,6 +10,7 @@
 
 #include "common/common_types.h"
 #include "common/multi_level_page_table.h"
+#include "common/range_map.h"
 #include "common/virtual_buffer.h"
 #include "video_core/pte_kind.h"
 
@@ -186,16 +187,8 @@ private:
     template <bool is_big_page>
     inline void SetEntry(size_t position, EntryType entry);
 
-    std::vector<std::array<PTEKind, 32>> kinds;
-    std::vector<std::array<PTEKind, 32>> big_kinds;
-
-    template <bool is_big_page>
-    inline PTEKind GetKind(size_t position) const;
-
-    template <bool is_big_page>
-    inline void SetKind(size_t position, PTEKind kind);
-
     Common::MultiLevelPageTable<u32> page_table;
+    Common::RangeMap<GPUVAddr, PTEKind> kind_map;
     Common::VirtualBuffer<u32> big_page_table_cpu;
 
     std::vector<u64> big_page_continous;

@@ -3092,6 +3092,8 @@ public:
 
     void RefreshParameters();
 
+    bool AnyParametersDirty();
+
     u32 GetMaxCurrentVertices();
 
     size_t EstimateIndexBufferSize();
