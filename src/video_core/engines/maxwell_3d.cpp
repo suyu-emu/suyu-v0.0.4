@@ -4,6 +4,7 @@
 #include <cstring>
 #include <optional>
 #include "common/assert.h"
+#include "common/settings.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "video_core/dirty_flags.h"
@@ -13,6 +14,7 @@
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/textures/texture.h"
+
 
 namespace Tegra::Engines {
 
@@ -134,6 +136,8 @@ void Maxwell3D::ProcessMacro(u32 method, const u32* base_start, u32 amount, bool
         macro_addresses.push_back(current_dma_segment + i * sizeof(u32));
     }
     macro_segments.emplace_back(current_dma_segment, amount);
+    current_macro_dirty |= current_dirty;
+    current_dirty = false;
 
     // Call the macro when there are no more parameters in the command buffer
     if (is_last_call) {
@@ -141,10 +145,14 @@ void Maxwell3D::ProcessMacro(u32 method, const u32* base_start, u32 amount, bool
         macro_params.clear();
         macro_addresses.clear();
         macro_segments.clear();
+        current_macro_dirty = false;
     }
 }
 
-void Maxwell3D::RefreshParameters() {
+void Maxwell3D::RefreshParametersImpl() {
+    if (!Settings::IsGPULevelHigh()) {
+        return;
+    }
     size_t current_index = 0;
     for (auto& segment : macro_segments) {
         if (segment.first == 0) {
@@ -155,21 +163,6 @@ void Maxwell3D::RefreshParameters() {
                                  sizeof(u32) * segment.second);
         current_index += segment.second;
     }
-}
-
-bool Maxwell3D::AnyParametersDirty() {
-    size_t current_index = 0;
-    for (auto& segment : macro_segments) {
-        if (segment.first == 0) {
-            current_index += segment.second;
-            continue;
-        }
-        if (memory_manager.IsMemoryDirty(segment.first, sizeof(u32) * segment.second)) {
-            return true;
-        }
-        current_index += segment.second;
-    }
-    return false;
 }
 
 u32 Maxwell3D::GetMaxCurrentVertices() {
@@ -332,7 +325,6 @@ void Maxwell3D::CallMethod(u32 method, u32 method_argument, bool is_last_call) {
 
     const u32 argument = ProcessShadowRam(method, method_argument);
     ProcessDirtyRegisters(method, argument);
-
     ProcessMethodCall(method, argument, method_argument, is_last_call);
 }
 

@@ -12,6 +12,7 @@
 #include "common/assert.h"
 #include "common/fs/fs.h"
 #include "common/fs/path_util.h"
+#include "common/microprofile.h"
 #include "common/settings.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/macro/macro.h"
@@ -21,6 +22,8 @@
 #ifdef ARCHITECTURE_x86_64
 #include "video_core/macro/macro_jit_x64.h"
 #endif
+
+MICROPROFILE_DEFINE(MacroHLE, "GPU", "Execute macro hle", MP_RGB(128, 192, 192));
 
 namespace Tegra {
 
@@ -60,6 +63,7 @@ void MacroEngine::Execute(u32 method, const std::vector<u32>& parameters) {
     if (compiled_macro != macro_cache.end()) {
         const auto& cache_info = compiled_macro->second;
         if (cache_info.has_hle_program) {
+            MICROPROFILE_SCOPE(MacroHLE);
             cache_info.hle_program->Execute(parameters, method);
         } else {
             maxwell3d.RefreshParameters();
@@ -106,6 +110,7 @@ void MacroEngine::Execute(u32 method, const std::vector<u32>& parameters) {
         if (auto hle_program = hle_macros->GetHLEProgram(cache_info.hash)) {
             cache_info.has_hle_program = true;
             cache_info.hle_program = std::move(hle_program);
+            MICROPROFILE_SCOPE(MacroHLE);
             cache_info.hle_program->Execute(parameters, method);
         } else {
             maxwell3d.RefreshParameters();

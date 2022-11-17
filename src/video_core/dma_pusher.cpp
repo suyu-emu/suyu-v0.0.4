@@ -77,11 +77,20 @@ bool DmaPusher::Step() {
         command_headers.resize_destructive(command_list_header.size);
         constexpr u32 MacroRegistersStart = 0xE00;
         if (dma_state.method < MacroRegistersStart) {
-            memory_manager.ReadBlock(dma_state.dma_get, command_headers.data(),
-                                     command_list_header.size * sizeof(u32));
+            if (Settings::IsGPULevelHigh()) {
+                memory_manager.ReadBlock(dma_state.dma_get, command_headers.data(),
+                                         command_list_header.size * sizeof(u32));
+            } else {
+                memory_manager.ReadBlockUnsafe(dma_state.dma_get, command_headers.data(),
+                                               command_list_header.size * sizeof(u32));
+            }
         } else {
-            memory_manager.ReadBlockUnsafe(dma_state.dma_get, command_headers.data(),
-                                           command_list_header.size * sizeof(u32));
+            const size_t copy_size = command_list_header.size * sizeof(u32);
+            if (subchannels[dma_state.subchannel]) {
+                subchannels[dma_state.subchannel]->current_dirty =
+                    memory_manager.IsMemoryDirty(dma_state.dma_get, copy_size);
+            }
+            memory_manager.ReadBlockUnsafe(dma_state.dma_get, command_headers.data(), copy_size);
         }
         ProcessCommands(command_headers);
     }

@@ -170,11 +170,6 @@ public:
     void BindComputeTextureBuffer(size_t tbo_index, GPUVAddr gpu_addr, u32 size, PixelFormat format,
                                   bool is_written, bool is_image);
 
-    [[nodiscard]] std::pair<Buffer*, u32> ObtainBuffer(GPUVAddr gpu_addr, u32 size,
-                                                       bool synchronize = true,
-                                                       bool mark_as_written = false,
-                                                       bool discard_downloads = false);
-
     void FlushCachedWrites();
 
     /// Return true when there are uncommitted buffers to be downloaded
@@ -354,8 +349,6 @@ private:
 
     bool SynchronizeBufferImpl(Buffer& buffer, VAddr cpu_addr, u32 size);
 
-    bool SynchronizeBufferNoModified(Buffer& buffer, VAddr cpu_addr, u32 size);
-
     void UploadMemory(Buffer& buffer, u64 total_size_bytes, u64 largest_copy,
                       std::span<BufferCopy> copies);
 
@@ -442,7 +435,6 @@ private:
 
     std::vector<BufferId> cached_write_buffer_ids;
 
-    IntervalSet discarded_ranges;
     IntervalSet uncommitted_ranges;
     IntervalSet common_ranges;
     std::deque<IntervalSet> committed_ranges;
@@ -600,17 +592,13 @@ bool BufferCache<P>::DMACopy(GPUVAddr src_address, GPUVAddr dest_address, u64 am
     }};
 
     boost::container::small_vector<IntervalType, 4> tmp_intervals;
-    const bool is_high_accuracy =
-        Settings::values.gpu_accuracy.GetValue() == Settings::GPUAccuracy::High;
     auto mirror = [&](VAddr base_address, VAddr base_address_end) {
         const u64 size = base_address_end - base_address;
         const VAddr diff = base_address - *cpu_src_address;
         const VAddr new_base_address = *cpu_dest_address + diff;
         const IntervalType add_interval{new_base_address, new_base_address + size};
+        uncommitted_ranges.add(add_interval);
         tmp_intervals.push_back(add_interval);
-        if (is_high_accuracy) {
-            uncommitted_ranges.add(add_interval);
-        }
     };
     ForEachWrittenRange(*cpu_src_address, amount, mirror);
     // This subtraction in this order is important for overlapping copies.
@@ -822,32 +810,6 @@ void BufferCache<P>::BindComputeTextureBuffer(size_t tbo_index, GPUVAddr gpu_add
 }
 
 template <class P>
-std::pair<typename P::Buffer*, u32> BufferCache<P>::ObtainBuffer(GPUVAddr gpu_addr, u32 size,
-                                                                 bool synchronize,
-                                                                 bool mark_as_written,
-                                                                 bool discard_downloads) {
-    const std::optional<VAddr> cpu_addr = gpu_memory->GpuToCpuAddress(gpu_addr);
-    if (!cpu_addr) {
-        return {&slot_buffers[NULL_BUFFER_ID], 0};
-    }
-    const BufferId buffer_id = FindBuffer(*cpu_addr, size);
-    Buffer& buffer = slot_buffers[buffer_id];
-    if (synchronize) {
-        // SynchronizeBuffer(buffer, *cpu_addr, size);
-        SynchronizeBufferNoModified(buffer, *cpu_addr, size);
-    }
-    if (mark_as_written) {
-        MarkWrittenBuffer(buffer_id, *cpu_addr, size);
-    }
-    if (discard_downloads) {
-        IntervalType interval{*cpu_addr, size};
-        ClearDownload(interval);
-        discarded_ranges.subtract(interval);
-    }
-    return {&buffer, buffer.Offset(*cpu_addr)};
-}
-
-template <class P>
 void BufferCache<P>::FlushCachedWrites() {
     for (const BufferId buffer_id : cached_write_buffer_ids) {
         slot_buffers[buffer_id].FlushCachedWrites();
@@ -862,6 +824,10 @@ bool BufferCache<P>::HasUncommittedFlushes() const noexcept {
 
 template <class P>
 void BufferCache<P>::AccumulateFlushes() {
+    if (Settings::values.gpu_accuracy.GetValue() != Settings::GPUAccuracy::High) {
+        uncommitted_ranges.clear();
+        return;
+    }
     if (uncommitted_ranges.empty()) {
         return;
     }
@@ -877,14 +843,12 @@ template <class P>
 void BufferCache<P>::CommitAsyncFlushesHigh() {
     AccumulateFlushes();
 
-    for (const auto& interval : discarded_ranges) {
-        common_ranges.subtract(interval);
-    }
-
     if (committed_ranges.empty()) {
         return;
     }
     MICROPROFILE_SCOPE(GPU_DownloadMemory);
+    const bool is_accuracy_normal =
+        Settings::values.gpu_accuracy.GetValue() == Settings::GPUAccuracy::Normal;
 
     auto it = committed_ranges.begin();
     while (it != committed_ranges.end()) {
@@ -909,6 +873,9 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
             ForEachBufferInRange(cpu_addr, size, [&](BufferId buffer_id, Buffer& buffer) {
                 buffer.ForEachDownloadRangeAndClear(
                     cpu_addr, size, [&](u64 range_offset, u64 range_size) {
+                        if (is_accuracy_normal) {
+                            return;
+                        }
                         const VAddr buffer_addr = buffer.CpuAddr();
                         const auto add_download = [&](VAddr start, VAddr end) {
                             const u64 new_offset = start - buffer_addr;
@@ -973,7 +940,12 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
 
 template <class P>
 void BufferCache<P>::CommitAsyncFlushes() {
-    CommitAsyncFlushesHigh();
+    if (Settings::values.gpu_accuracy.GetValue() == Settings::GPUAccuracy::High) {
+        CommitAsyncFlushesHigh();
+    } else {
+        uncommitted_ranges.clear();
+        committed_ranges.clear();
+    }
 }
 
 template <class P>
@@ -1353,7 +1325,7 @@ void BufferCache<P>::UpdateIndexBuffer() {
     const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
     const auto& index_array = draw_state.index_buffer;
     auto& flags = maxwell3d->dirty.flags;
-    if (!flags[Dirty::IndexBuffer] && last_index_count == index_array.count) {
+    if (!flags[Dirty::IndexBuffer]) {
         return;
     }
     flags[Dirty::IndexBuffer] = false;
@@ -1574,11 +1546,7 @@ void BufferCache<P>::MarkWrittenBuffer(BufferId buffer_id, VAddr cpu_addr, u32 s
     if (!is_async) {
         return;
     }
-    const bool is_high_accuracy =
-        Settings::values.gpu_accuracy.GetValue() == Settings::GPUAccuracy::High;
-    if (is_high_accuracy) {
-        uncommitted_ranges.add(base_interval);
-    }
+    uncommitted_ranges.add(base_interval);
 }
 
 template <class P>
@@ -1768,51 +1736,6 @@ bool BufferCache<P>::SynchronizeBufferImpl(Buffer& buffer, VAddr cpu_addr, u32 s
     }
     const std::span<BufferCopy> copies_span(copies.data(), copies.size());
     UploadMemory(buffer, total_size_bytes, largest_copy, copies_span);
-    return false;
-}
-
-template <class P>
-bool BufferCache<P>::SynchronizeBufferNoModified(Buffer& buffer, VAddr cpu_addr, u32 size) {
-    boost::container::small_vector<BufferCopy, 4> copies;
-    u64 total_size_bytes = 0;
-    u64 largest_copy = 0;
-    IntervalSet found_sets{};
-    auto make_copies = [&] {
-        for (auto& interval : found_sets) {
-            const std::size_t sub_size = interval.upper() - interval.lower();
-            const VAddr cpu_addr = interval.lower();
-            copies.push_back(BufferCopy{
-                .src_offset = total_size_bytes,
-                .dst_offset = cpu_addr - buffer.CpuAddr(),
-                .size = sub_size,
-            });
-            total_size_bytes += sub_size;
-            largest_copy = std::max(largest_copy, sub_size);
-        }
-        const std::span<BufferCopy> copies_span(copies.data(), copies.size());
-        UploadMemory(buffer, total_size_bytes, largest_copy, copies_span);
-    };
-    buffer.ForEachUploadRange(cpu_addr, size, [&](u64 range_offset, u64 range_size) {
-        const VAddr base_adr = buffer.CpuAddr() + range_offset;
-        const VAddr end_adr = base_adr + range_size;
-        const IntervalType add_interval{base_adr, end_adr};
-        found_sets.add(add_interval);
-    });
-    if (found_sets.empty()) {
-        return true;
-    }
-    const IntervalType search_interval{cpu_addr, cpu_addr + size};
-    auto it = common_ranges.lower_bound(search_interval);
-    auto it_end = common_ranges.upper_bound(search_interval);
-    if (it == common_ranges.end()) {
-        make_copies();
-        return false;
-    }
-    while (it != it_end) {
-        found_sets.subtract(*it);
-        it++;
-    }
-    make_copies();
     return false;
 }
 
