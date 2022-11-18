@@ -1956,6 +1956,7 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
     }
     default:
         UNIMPLEMENTED();
+        break;
     }
 
     const QString qpath = QString::fromStdString(Common::FS::PathToUTF8String(path));
@@ -3199,6 +3200,7 @@ void GMainWindow::OnToggleGpuAccuracy() {
     case Settings::GPUAccuracy::Extreme:
     default: {
         Settings::values.gpu_accuracy.SetValue(Settings::GPUAccuracy::High);
+        break;
     }
     }
 
@@ -3531,6 +3533,7 @@ void GMainWindow::UpdateGPUAccuracyButton() {
     default: {
         gpu_accuracy_button->setText(tr("GPU ERROR"));
         gpu_accuracy_button->setChecked(true);
+        break;
     }
     }
 }
