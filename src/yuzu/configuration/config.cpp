@@ -186,7 +186,7 @@ void Config::WriteGlobalSetting(const Settings::SwitchableSetting<Type, ranged>&
 
 void Config::ReadPlayerValue(std::size_t player_index) {
     const QString player_prefix = [this, player_index] {
-        if (type == ConfigType::InputProfile) {
+        if (type == ConfigType::InputProfile && global) {
             return QString{};
         } else {
             return QStringLiteral("player_%1_").arg(player_index);
@@ -244,6 +244,14 @@ void Config::ReadPlayerValue(std::size_t player_index) {
                 ->value(QStringLiteral("%1button_color_right").arg(player_prefix),
                         Settings::JOYCON_BUTTONS_NEON_RED)
                 .toUInt();
+
+        // This only applies to per-game configs
+        if (!global) {
+            player.profile_name =
+                qt_config->value(QStringLiteral("%1profile_name").arg(player_prefix), QString{})
+                    .toString()
+                    .toStdString();
+        }
     }
 
     for (int i = 0; i < Settings::NativeButton::NumButtons; ++i) {
@@ -386,6 +394,7 @@ void Config::ReadAudioValues() {
 }
 
 void Config::ReadControlValues() {
+    Settings::values.players.SetGlobal(global);
     qt_config->beginGroup(QStringLiteral("Controls"));
 
     for (std::size_t p = 0; p < Settings::values.players.GetValue().size(); ++p) {
@@ -904,7 +913,6 @@ void Config::ReadMultiplayerValues() {
 
 void Config::ReadValues() {
     if (global) {
-        ReadControlValues();
         ReadDataStorageValues();
         ReadDebuggingValues();
         ReadDisabledAddOnValues();
@@ -913,6 +921,7 @@ void Config::ReadValues() {
         ReadWebServiceValues();
         ReadMiscellaneousValues();
     }
+    ReadControlValues();
     ReadCoreValues();
     ReadCpuValues();
     ReadRendererValues();
@@ -923,7 +932,7 @@ void Config::ReadValues() {
 
 void Config::SavePlayerValue(std::size_t player_index) {
     const QString player_prefix = [this, player_index] {
-        if (type == ConfigType::InputProfile) {
+        if (type == ConfigType::InputProfile && global) {
             return QString{};
         } else {
             return QStringLiteral("player_%1_").arg(player_index);
@@ -951,6 +960,12 @@ void Config::SavePlayerValue(std::size_t player_index) {
                      player.button_color_left, Settings::JOYCON_BUTTONS_NEON_BLUE);
         WriteSetting(QStringLiteral("%1button_color_right").arg(player_prefix),
                      player.button_color_right, Settings::JOYCON_BUTTONS_NEON_RED);
+
+        // This only applies to per-game configs
+        if (!global) {
+            WriteSetting(QStringLiteral("%1profile_name").arg(player_prefix),
+                         QString::fromStdString(player.profile_name), QString{});
+        }
     }
 
     for (int i = 0; i < Settings::NativeButton::NumButtons; ++i) {
@@ -1054,7 +1069,6 @@ void Config::SaveIrCameraValues() {
 
 void Config::SaveValues() {
     if (global) {
-        SaveControlValues();
         SaveDataStorageValues();
         SaveDebuggingValues();
         SaveDisabledAddOnValues();
@@ -1063,6 +1077,7 @@ void Config::SaveValues() {
         SaveWebServiceValues();
         SaveMiscellaneousValues();
     }
+    SaveControlValues();
     SaveCoreValues();
     SaveCpuValues();
     SaveRendererValues();
@@ -1085,6 +1100,7 @@ void Config::SaveAudioValues() {
 }
 
 void Config::SaveControlValues() {
+    Settings::values.players.SetGlobal(global);
     qt_config->beginGroup(QStringLiteral("Controls"));
 
     for (std::size_t p = 0; p < Settings::values.players.GetValue().size(); ++p) {
