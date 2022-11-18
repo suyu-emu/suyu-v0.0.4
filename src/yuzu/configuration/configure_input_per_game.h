@@ -11,10 +11,6 @@ namespace Core {
 class System;
 }
 
-namespace InputCommon {
-class InputSubsystem;
-}
-
 namespace Ui {
 class ConfigureInputPerGame;
 }
@@ -27,18 +23,20 @@ class ConfigureInputPerGame : public QWidget {
 public:
     explicit ConfigureInputPerGame(Core::System& system_, QWidget* parent = nullptr);
 
-    /// Initializes the input dialog with the given input subsystem.
-    // void Initialize(InputCommon::InputSubsystem* input_subsystem_, std::size_t max_players = 8);
-
-    /// Save configurations to settings file.
+    /// Load and Save configurations to settings file.
     void ApplyConfiguration();
 
 private:
     /// Load configuration from settings file.
     void LoadConfiguration();
 
+    /// Save configuration to settings file.
+    void SaveConfiguration();
+
     std::unique_ptr<Ui::ConfigureInputPerGame> ui;
     std::unique_ptr<InputProfiles> profiles;
+
+    std::array<QComboBox*, 8> profile_comboboxes;
 
     Core::System& system;
 };
