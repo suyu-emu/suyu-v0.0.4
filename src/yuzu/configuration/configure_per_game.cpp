@@ -50,7 +50,7 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id_, const std::st
     general_tab = std::make_unique<ConfigureGeneral>(system_, this);
     graphics_tab = std::make_unique<ConfigureGraphics>(system_, this);
     graphics_advanced_tab = std::make_unique<ConfigureGraphicsAdvanced>(system_, this);
-    input_tab = std::make_unique<ConfigureInputPerGame>(system_, this);
+    input_tab = std::make_unique<ConfigureInputPerGame>(system_, game_config.get(), this);
     system_tab = std::make_unique<ConfigureSystem>(system_, this);
 
     ui->setupUi(this);

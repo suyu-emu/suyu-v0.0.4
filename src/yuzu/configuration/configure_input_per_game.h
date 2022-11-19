@@ -7,21 +7,23 @@
 
 #include <QWidget>
 
+#include "ui_configure_input_per_game.h"
+#include "yuzu/configuration/input_profiles.h"
+
+class QComboBox;
+
 namespace Core {
 class System;
-}
+} // namespace Core
 
-namespace Ui {
-class ConfigureInputPerGame;
-}
-
-class InputProfiles;
+class Config;
 
 class ConfigureInputPerGame : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ConfigureInputPerGame(Core::System& system_, QWidget* parent = nullptr);
+    explicit ConfigureInputPerGame(Core::System& system_, Config* config_,
+                                   QWidget* parent = nullptr);
 
     /// Load and Save configurations to settings file.
     void ApplyConfiguration();
@@ -39,4 +41,5 @@ private:
     std::array<QComboBox*, 8> profile_comboboxes;
 
     Core::System& system;
+    Config* config;
 };

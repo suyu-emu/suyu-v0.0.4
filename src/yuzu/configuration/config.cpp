@@ -124,6 +124,10 @@ void Config::Initialize(const std::string& config_name) {
     }
 }
 
+bool Config::IsCustomConfig() {
+    return type == ConfigType::PerGameConfig;
+}
+
 /* {Read,Write}BasicSetting and WriteGlobalSetting templates must be defined here before their
  * usages later in this file. This allows explicit definition of some types that don't work
  * nicely with the general version.
@@ -186,7 +190,7 @@ void Config::WriteGlobalSetting(const Settings::SwitchableSetting<Type, ranged>&
 
 void Config::ReadPlayerValue(std::size_t player_index) {
     const QString player_prefix = [this, player_index] {
-        if (type == ConfigType::InputProfile && global) {
+        if (type == ConfigType::InputProfile) {
             return QString{};
         } else {
             return QStringLiteral("player_%1_").arg(player_index);
@@ -194,8 +198,20 @@ void Config::ReadPlayerValue(std::size_t player_index) {
     }();
 
     auto& player = Settings::values.players.GetValue()[player_index];
+    if (IsCustomConfig()) {
+        const auto profile_name =
+            qt_config->value(QStringLiteral("%1profile_name").arg(player_prefix), QString{})
+                .toString()
+                .toStdString();
+        if (profile_name.empty()) {
+            // Use the global input config
+            player = Settings::values.players.GetValue(true)[player_index];
+            return;
+        }
+        player.profile_name = profile_name;
+    }
 
-    if (player_prefix.isEmpty()) {
+    if (player_prefix.isEmpty() && Settings::IsConfiguringGlobal()) {
         const auto controller = static_cast<Settings::ControllerType>(
             qt_config
                 ->value(QStringLiteral("%1type").arg(player_prefix),
@@ -244,14 +260,6 @@ void Config::ReadPlayerValue(std::size_t player_index) {
                 ->value(QStringLiteral("%1button_color_right").arg(player_prefix),
                         Settings::JOYCON_BUTTONS_NEON_RED)
                 .toUInt();
-
-        // This only applies to per-game configs
-        if (!global) {
-            player.profile_name =
-                qt_config->value(QStringLiteral("%1profile_name").arg(player_prefix), QString{})
-                    .toString()
-                    .toStdString();
-        }
     }
 
     for (int i = 0; i < Settings::NativeButton::NumButtons; ++i) {
@@ -394,11 +402,27 @@ void Config::ReadAudioValues() {
 }
 
 void Config::ReadControlValues() {
-    Settings::values.players.SetGlobal(global);
     qt_config->beginGroup(QStringLiteral("Controls"));
 
+    Settings::values.players.SetGlobal(!IsCustomConfig());
     for (std::size_t p = 0; p < Settings::values.players.GetValue().size(); ++p) {
         ReadPlayerValue(p);
+    }
+    ReadGlobalSetting(Settings::values.use_docked_mode);
+
+    // Disable docked mode if handheld is selected
+    const auto controller_type = Settings::values.players.GetValue()[0].controller_type;
+    if (controller_type == Settings::ControllerType::Handheld) {
+        Settings::values.use_docked_mode.SetGlobal(!IsCustomConfig());
+        Settings::values.use_docked_mode.SetValue(false);
+    }
+
+    ReadGlobalSetting(Settings::values.vibration_enabled);
+    ReadGlobalSetting(Settings::values.enable_accurate_vibrations);
+    ReadGlobalSetting(Settings::values.motion_enabled);
+    if (IsCustomConfig()) {
+        qt_config->endGroup();
+        return;
     }
     ReadDebugValues();
     ReadKeyboardValues();
@@ -420,18 +444,6 @@ void Config::ReadControlValues() {
     ReadBasicSetting(Settings::values.tas_enable);
     ReadBasicSetting(Settings::values.tas_loop);
     ReadBasicSetting(Settings::values.pause_tas_on_load);
-
-    ReadGlobalSetting(Settings::values.use_docked_mode);
-
-    // Disable docked mode if handheld is selected
-    const auto controller_type = Settings::values.players.GetValue()[0].controller_type;
-    if (controller_type == Settings::ControllerType::Handheld) {
-        Settings::values.use_docked_mode.SetValue(false);
-    }
-
-    ReadGlobalSetting(Settings::values.vibration_enabled);
-    ReadGlobalSetting(Settings::values.enable_accurate_vibrations);
-    ReadGlobalSetting(Settings::values.motion_enabled);
 
     ReadBasicSetting(Settings::values.controller_navigation);
 
@@ -932,7 +944,7 @@ void Config::ReadValues() {
 
 void Config::SavePlayerValue(std::size_t player_index) {
     const QString player_prefix = [this, player_index] {
-        if (type == ConfigType::InputProfile && global) {
+        if (type == ConfigType::InputProfile) {
             return QString{};
         } else {
             return QStringLiteral("player_%1_").arg(player_index);
@@ -940,12 +952,20 @@ void Config::SavePlayerValue(std::size_t player_index) {
     }();
 
     const auto& player = Settings::values.players.GetValue()[player_index];
+    if (IsCustomConfig()) {
+        if (player.profile_name.empty()) {
+            // No custom profile selected
+            return;
+        }
+        WriteSetting(QStringLiteral("%1profile_name").arg(player_prefix),
+                     QString::fromStdString(player.profile_name), QString{});
+    }
 
     WriteSetting(QStringLiteral("%1type").arg(player_prefix),
                  static_cast<u8>(player.controller_type),
                  static_cast<u8>(Settings::ControllerType::ProController));
 
-    if (!player_prefix.isEmpty()) {
+    if (!player_prefix.isEmpty() || !Settings::IsConfiguringGlobal()) {
         WriteSetting(QStringLiteral("%1connected").arg(player_prefix), player.connected,
                      player_index == 0);
         WriteSetting(QStringLiteral("%1vibration_enabled").arg(player_prefix),
@@ -960,12 +980,6 @@ void Config::SavePlayerValue(std::size_t player_index) {
                      player.button_color_left, Settings::JOYCON_BUTTONS_NEON_BLUE);
         WriteSetting(QStringLiteral("%1button_color_right").arg(player_prefix),
                      player.button_color_right, Settings::JOYCON_BUTTONS_NEON_RED);
-
-        // This only applies to per-game configs
-        if (!global) {
-            WriteSetting(QStringLiteral("%1profile_name").arg(player_prefix),
-                         QString::fromStdString(player.profile_name), QString{});
-        }
     }
 
     for (int i = 0; i < Settings::NativeButton::NumButtons; ++i) {
@@ -1100,11 +1114,15 @@ void Config::SaveAudioValues() {
 }
 
 void Config::SaveControlValues() {
-    Settings::values.players.SetGlobal(global);
     qt_config->beginGroup(QStringLiteral("Controls"));
 
+    Settings::values.players.SetGlobal(!IsCustomConfig());
     for (std::size_t p = 0; p < Settings::values.players.GetValue().size(); ++p) {
         SavePlayerValue(p);
+    }
+    if (IsCustomConfig()) {
+        qt_config->endGroup();
+        return;
     }
     SaveDebugValues();
     SaveMouseValues();
@@ -1587,6 +1605,13 @@ void Config::ReadControlPlayerValue(std::size_t player_index) {
 void Config::SaveControlPlayerValue(std::size_t player_index) {
     qt_config->beginGroup(QStringLiteral("Controls"));
     SavePlayerValue(player_index);
+    qt_config->endGroup();
+}
+
+void Config::ClearControlPlayerValues() {
+    qt_config->beginGroup(QStringLiteral("Controls"));
+    // If key is an empty string, all keys in the current group() are removed.
+    qt_config->remove(QString{});
     qt_config->endGroup();
 }
 

@@ -1669,6 +1669,7 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
                                           ? Common::FS::PathToUTF8String(file_path.filename())
                                           : fmt::format("{:016X}", title_id);
         Config per_game_config(config_file_name, Config::ConfigType::PerGameConfig);
+        system->HIDCore().ReloadInputDevices();
         system->ApplySettings();
     }
 
