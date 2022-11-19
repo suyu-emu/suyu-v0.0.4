@@ -11,8 +11,11 @@ endif()
 
 add_library(video_core STATIC
     buffer_cache/buffer_base.h
+    buffer_cache/buffer_cache_base.h
     buffer_cache/buffer_cache.cpp
     buffer_cache/buffer_cache.h
+    buffer_cache/memory_tracker_base.h
+    buffer_cache/word_manager.h
     cache_types.h
     cdma_pusher.cpp
     cdma_pusher.h
@@ -104,6 +107,7 @@ add_library(video_core STATIC
     renderer_null/renderer_null.h
     renderer_opengl/blit_image.cpp
     renderer_opengl/blit_image.h
+    renderer_opengl/gl_buffer_cache_base.cpp
     renderer_opengl/gl_buffer_cache.cpp
     renderer_opengl/gl_buffer_cache.h
     renderer_opengl/gl_compute_pipeline.cpp
@@ -154,6 +158,7 @@ add_library(video_core STATIC
     renderer_vulkan/renderer_vulkan.cpp
     renderer_vulkan/vk_blit_screen.cpp
     renderer_vulkan/vk_blit_screen.h
+    renderer_vulkan/vk_buffer_cache_base.cpp
     renderer_vulkan/vk_buffer_cache.cpp
     renderer_vulkan/vk_buffer_cache.h
     renderer_vulkan/vk_command_pool.cpp
