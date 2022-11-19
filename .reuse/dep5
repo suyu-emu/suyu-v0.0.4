@@ -132,10 +132,6 @@ Files: vcpkg.json
 Copyright: 2022 yuzu Emulator Project
 License: GPL-3.0-or-later
 
-Files: .github/ISSUE_TEMPLATE/config.yml
-Copyright: 2020 tgsm <doodrabbit@hotmail.com>
-License: GPL-2.0-or-later
-
-Files: .github/ISSUE_TEMPLATE/bug-report-feature-request.md
-Copyright: 2016 MerryMage
+Files: .github/ISSUE_TEMPLATE/*
+Copyright: 2022 yuzu Emulator Project
 License: GPL-2.0-or-later
