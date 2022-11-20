@@ -208,7 +208,7 @@ public:
 
     [[nodiscard]] std::pair<Buffer*, u32> GetDrawIndirectBuffer();
 
-    std::mutex mutex;
+    std::recursive_mutex mutex;
     Runtime& runtime;
 
 private:

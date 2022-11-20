@@ -352,46 +352,60 @@ void RasterizerOpenGL::DisableGraphicsUniformBuffer(size_t stage, u32 index) {
 
 void RasterizerOpenGL::FlushAll() {}
 
-void RasterizerOpenGL::FlushRegion(VAddr addr, u64 size) {
+void RasterizerOpenGL::FlushRegion(VAddr addr, u64 size, VideoCommon::CacheType which) {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
     if (addr == 0 || size == 0) {
         return;
     }
-    {
+    if (bool(which & VideoCommon::CacheType::TextureCache)) {
         std::scoped_lock lock{texture_cache.mutex};
         texture_cache.DownloadMemory(addr, size);
     }
-    {
+    if ((bool(which & VideoCommon::CacheType::BufferCache))) {
         std::scoped_lock lock{buffer_cache.mutex};
         buffer_cache.DownloadMemory(addr, size);
     }
-    query_cache.FlushRegion(addr, size);
-}
-
-bool RasterizerOpenGL::MustFlushRegion(VAddr addr, u64 size) {
-    std::scoped_lock lock{buffer_cache.mutex, texture_cache.mutex};
-    if (!Settings::IsGPULevelHigh()) {
-        return buffer_cache.IsRegionGpuModified(addr, size);
+    if ((bool(which & VideoCommon::CacheType::QueryCache))) {
+        query_cache.FlushRegion(addr, size);
     }
-    return texture_cache.IsRegionGpuModified(addr, size) ||
-           buffer_cache.IsRegionGpuModified(addr, size);
 }
 
-void RasterizerOpenGL::InvalidateRegion(VAddr addr, u64 size) {
+bool RasterizerOpenGL::MustFlushRegion(VAddr addr, u64 size, VideoCommon::CacheType which) {
+    if ((bool(which & VideoCommon::CacheType::BufferCache))) {
+        std::scoped_lock lock{buffer_cache.mutex};
+        if (buffer_cache.IsRegionGpuModified(addr, size)) {
+            return true;
+        }
+    }
+    if (!Settings::IsGPULevelHigh()) {
+        return false;
+    }
+    if (bool(which & VideoCommon::CacheType::TextureCache)) {
+        std::scoped_lock lock{texture_cache.mutex};
+        return texture_cache.IsRegionGpuModified(addr, size);
+    }
+    return false;
+}
+
+void RasterizerOpenGL::InvalidateRegion(VAddr addr, u64 size, VideoCommon::CacheType which) {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
     if (addr == 0 || size == 0) {
         return;
     }
-    {
+    if (bool(which & VideoCommon::CacheType::TextureCache)) {
         std::scoped_lock lock{texture_cache.mutex};
         texture_cache.WriteMemory(addr, size);
     }
-    {
+    if (bool(which & VideoCommon::CacheType::BufferCache)) {
         std::scoped_lock lock{buffer_cache.mutex};
         buffer_cache.WriteMemory(addr, size);
     }
-    shader_cache.InvalidateRegion(addr, size);
-    query_cache.InvalidateRegion(addr, size);
+    if (bool(which & VideoCommon::CacheType::ShaderCache)) {
+        shader_cache.InvalidateRegion(addr, size);
+    }
+    if (bool(which & VideoCommon::CacheType::QueryCache)) {
+        query_cache.InvalidateRegion(addr, size);
+    }
 }
 
 void RasterizerOpenGL::OnCPUWrite(VAddr addr, u64 size) {
@@ -458,11 +472,12 @@ void RasterizerOpenGL::ReleaseFences() {
     fence_manager.WaitPendingFences();
 }
 
-void RasterizerOpenGL::FlushAndInvalidateRegion(VAddr addr, u64 size) {
+void RasterizerOpenGL::FlushAndInvalidateRegion(VAddr addr, u64 size,
+                                                VideoCommon::CacheType which) {
     if (Settings::IsGPULevelExtreme()) {
-        FlushRegion(addr, size);
+        FlushRegion(addr, size, which);
     }
-    InvalidateRegion(addr, size);
+    InvalidateRegion(addr, size, which);
 }
 
 void RasterizerOpenGL::WaitForIdle() {
@@ -531,7 +546,7 @@ void RasterizerOpenGL::AccelerateInlineToMemory(GPUVAddr address, size_t copy_si
     }
     gpu_memory->WriteBlockUnsafe(address, memory.data(), copy_size);
     {
-        std::unique_lock<std::mutex> lock{buffer_cache.mutex};
+        std::unique_lock<std::recursive_mutex> lock{buffer_cache.mutex};
         if (!buffer_cache.InlineMemory(*cpu_addr, copy_size, memory)) {
             buffer_cache.WriteMemory(*cpu_addr, copy_size);
         }

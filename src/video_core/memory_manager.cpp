@@ -356,8 +356,8 @@ inline void MemoryManager::MemoryOperation(GPUVAddr gpu_src_addr, std::size_t si
 }
 
 template <bool is_safe>
-void MemoryManager::ReadBlockImpl(GPUVAddr gpu_src_addr, void* dest_buffer,
-                                  std::size_t size) const {
+void MemoryManager::ReadBlockImpl(GPUVAddr gpu_src_addr, void* dest_buffer, std::size_t size,
+                                  [[maybe_unused]] VideoCommon::CacheType which) const {
     auto set_to_zero = [&]([[maybe_unused]] std::size_t page_index,
                            [[maybe_unused]] std::size_t offset, std::size_t copy_amount) {
         std::memset(dest_buffer, 0, copy_amount);
@@ -367,7 +367,7 @@ void MemoryManager::ReadBlockImpl(GPUVAddr gpu_src_addr, void* dest_buffer,
         const VAddr cpu_addr_base =
             (static_cast<VAddr>(page_table[page_index]) << cpu_page_bits) + offset;
         if constexpr (is_safe) {
-            rasterizer->FlushRegion(cpu_addr_base, copy_amount);
+            rasterizer->FlushRegion(cpu_addr_base, copy_amount, which);
         }
         u8* physical = memory.GetPointer(cpu_addr_base);
         std::memcpy(dest_buffer, physical, copy_amount);
@@ -377,7 +377,7 @@ void MemoryManager::ReadBlockImpl(GPUVAddr gpu_src_addr, void* dest_buffer,
         const VAddr cpu_addr_base =
             (static_cast<VAddr>(big_page_table_cpu[page_index]) << cpu_page_bits) + offset;
         if constexpr (is_safe) {
-            rasterizer->FlushRegion(cpu_addr_base, copy_amount);
+            rasterizer->FlushRegion(cpu_addr_base, copy_amount, which);
         }
         if (!IsBigPageContinous(page_index)) [[unlikely]] {
             memory.ReadBlockUnsafe(cpu_addr_base, dest_buffer, copy_amount);
@@ -395,18 +395,19 @@ void MemoryManager::ReadBlockImpl(GPUVAddr gpu_src_addr, void* dest_buffer,
     MemoryOperation<true>(gpu_src_addr, size, mapped_big, set_to_zero, read_short_pages);
 }
 
-void MemoryManager::ReadBlock(GPUVAddr gpu_src_addr, void* dest_buffer, std::size_t size) const {
-    ReadBlockImpl<true>(gpu_src_addr, dest_buffer, size);
+void MemoryManager::ReadBlock(GPUVAddr gpu_src_addr, void* dest_buffer, std::size_t size,
+                              VideoCommon::CacheType which) const {
+    ReadBlockImpl<true>(gpu_src_addr, dest_buffer, size, which);
 }
 
 void MemoryManager::ReadBlockUnsafe(GPUVAddr gpu_src_addr, void* dest_buffer,
                                     const std::size_t size) const {
-    ReadBlockImpl<false>(gpu_src_addr, dest_buffer, size);
+    ReadBlockImpl<false>(gpu_src_addr, dest_buffer, size, VideoCommon::CacheType::None);
 }
 
 template <bool is_safe>
-void MemoryManager::WriteBlockImpl(GPUVAddr gpu_dest_addr, const void* src_buffer,
-                                   std::size_t size) {
+void MemoryManager::WriteBlockImpl(GPUVAddr gpu_dest_addr, const void* src_buffer, std::size_t size,
+                                   [[maybe_unused]] VideoCommon::CacheType which) {
     auto just_advance = [&]([[maybe_unused]] std::size_t page_index,
                             [[maybe_unused]] std::size_t offset, std::size_t copy_amount) {
         src_buffer = static_cast<const u8*>(src_buffer) + copy_amount;
@@ -415,7 +416,7 @@ void MemoryManager::WriteBlockImpl(GPUVAddr gpu_dest_addr, const void* src_buffe
         const VAddr cpu_addr_base =
             (static_cast<VAddr>(page_table[page_index]) << cpu_page_bits) + offset;
         if constexpr (is_safe) {
-            rasterizer->InvalidateRegion(cpu_addr_base, copy_amount);
+            rasterizer->InvalidateRegion(cpu_addr_base, copy_amount, which);
         }
         u8* physical = memory.GetPointer(cpu_addr_base);
         std::memcpy(physical, src_buffer, copy_amount);
@@ -425,7 +426,7 @@ void MemoryManager::WriteBlockImpl(GPUVAddr gpu_dest_addr, const void* src_buffe
         const VAddr cpu_addr_base =
             (static_cast<VAddr>(big_page_table_cpu[page_index]) << cpu_page_bits) + offset;
         if constexpr (is_safe) {
-            rasterizer->InvalidateRegion(cpu_addr_base, copy_amount);
+            rasterizer->InvalidateRegion(cpu_addr_base, copy_amount, which);
         }
         if (!IsBigPageContinous(page_index)) [[unlikely]] {
             memory.WriteBlockUnsafe(cpu_addr_base, src_buffer, copy_amount);
@@ -443,16 +444,18 @@ void MemoryManager::WriteBlockImpl(GPUVAddr gpu_dest_addr, const void* src_buffe
     MemoryOperation<true>(gpu_dest_addr, size, mapped_big, just_advance, write_short_pages);
 }
 
-void MemoryManager::WriteBlock(GPUVAddr gpu_dest_addr, const void* src_buffer, std::size_t size) {
-    WriteBlockImpl<true>(gpu_dest_addr, src_buffer, size);
+void MemoryManager::WriteBlock(GPUVAddr gpu_dest_addr, const void* src_buffer, std::size_t size,
+                               VideoCommon::CacheType which) {
+    WriteBlockImpl<true>(gpu_dest_addr, src_buffer, size, which);
 }
 
 void MemoryManager::WriteBlockUnsafe(GPUVAddr gpu_dest_addr, const void* src_buffer,
                                      std::size_t size) {
-    WriteBlockImpl<false>(gpu_dest_addr, src_buffer, size);
+    WriteBlockImpl<false>(gpu_dest_addr, src_buffer, size, VideoCommon::CacheType::None);
 }
 
-void MemoryManager::FlushRegion(GPUVAddr gpu_addr, size_t size) const {
+void MemoryManager::FlushRegion(GPUVAddr gpu_addr, size_t size,
+                                VideoCommon::CacheType which) const {
     auto do_nothing = [&]([[maybe_unused]] std::size_t page_index,
                           [[maybe_unused]] std::size_t offset,
                           [[maybe_unused]] std::size_t copy_amount) {};
@@ -460,12 +463,12 @@ void MemoryManager::FlushRegion(GPUVAddr gpu_addr, size_t size) const {
     auto mapped_normal = [&](std::size_t page_index, std::size_t offset, std::size_t copy_amount) {
         const VAddr cpu_addr_base =
             (static_cast<VAddr>(page_table[page_index]) << cpu_page_bits) + offset;
-        rasterizer->FlushRegion(cpu_addr_base, copy_amount);
+        rasterizer->FlushRegion(cpu_addr_base, copy_amount, which);
     };
     auto mapped_big = [&](std::size_t page_index, std::size_t offset, std::size_t copy_amount) {
         const VAddr cpu_addr_base =
             (static_cast<VAddr>(big_page_table_cpu[page_index]) << cpu_page_bits) + offset;
-        rasterizer->FlushRegion(cpu_addr_base, copy_amount);
+        rasterizer->FlushRegion(cpu_addr_base, copy_amount, which);
     };
     auto flush_short_pages = [&](std::size_t page_index, std::size_t offset,
                                  std::size_t copy_amount) {
@@ -475,7 +478,8 @@ void MemoryManager::FlushRegion(GPUVAddr gpu_addr, size_t size) const {
     MemoryOperation<true>(gpu_addr, size, mapped_big, do_nothing, flush_short_pages);
 }
 
-bool MemoryManager::IsMemoryDirty(GPUVAddr gpu_addr, size_t size) const {
+bool MemoryManager::IsMemoryDirty(GPUVAddr gpu_addr, size_t size,
+                                  VideoCommon::CacheType which) const {
     bool result = false;
     auto do_nothing = [&]([[maybe_unused]] std::size_t page_index,
                           [[maybe_unused]] std::size_t offset,
@@ -484,13 +488,13 @@ bool MemoryManager::IsMemoryDirty(GPUVAddr gpu_addr, size_t size) const {
     auto mapped_normal = [&](std::size_t page_index, std::size_t offset, std::size_t copy_amount) {
         const VAddr cpu_addr_base =
             (static_cast<VAddr>(page_table[page_index]) << cpu_page_bits) + offset;
-        result |= rasterizer->MustFlushRegion(cpu_addr_base, copy_amount);
+        result |= rasterizer->MustFlushRegion(cpu_addr_base, copy_amount, which);
         return result;
     };
     auto mapped_big = [&](std::size_t page_index, std::size_t offset, std::size_t copy_amount) {
         const VAddr cpu_addr_base =
             (static_cast<VAddr>(big_page_table_cpu[page_index]) << cpu_page_bits) + offset;
-        result |= rasterizer->MustFlushRegion(cpu_addr_base, copy_amount);
+        result |= rasterizer->MustFlushRegion(cpu_addr_base, copy_amount, which);
         return result;
     };
     auto check_short_pages = [&](std::size_t page_index, std::size_t offset,
@@ -547,7 +551,8 @@ size_t MemoryManager::GetMemoryLayoutSize(GPUVAddr gpu_addr, size_t max_size) co
     return kind_map.GetContinousSizeFrom(gpu_addr);
 }
 
-void MemoryManager::InvalidateRegion(GPUVAddr gpu_addr, size_t size) const {
+void MemoryManager::InvalidateRegion(GPUVAddr gpu_addr, size_t size,
+                                     VideoCommon::CacheType which) const {
     auto do_nothing = [&]([[maybe_unused]] std::size_t page_index,
                           [[maybe_unused]] std::size_t offset,
                           [[maybe_unused]] std::size_t copy_amount) {};
@@ -555,12 +560,12 @@ void MemoryManager::InvalidateRegion(GPUVAddr gpu_addr, size_t size) const {
     auto mapped_normal = [&](std::size_t page_index, std::size_t offset, std::size_t copy_amount) {
         const VAddr cpu_addr_base =
             (static_cast<VAddr>(page_table[page_index]) << cpu_page_bits) + offset;
-        rasterizer->InvalidateRegion(cpu_addr_base, copy_amount);
+        rasterizer->InvalidateRegion(cpu_addr_base, copy_amount, which);
     };
     auto mapped_big = [&](std::size_t page_index, std::size_t offset, std::size_t copy_amount) {
         const VAddr cpu_addr_base =
             (static_cast<VAddr>(big_page_table_cpu[page_index]) << cpu_page_bits) + offset;
-        rasterizer->InvalidateRegion(cpu_addr_base, copy_amount);
+        rasterizer->InvalidateRegion(cpu_addr_base, copy_amount, which);
     };
     auto invalidate_short_pages = [&](std::size_t page_index, std::size_t offset,
                                       std::size_t copy_amount) {
@@ -570,14 +575,15 @@ void MemoryManager::InvalidateRegion(GPUVAddr gpu_addr, size_t size) const {
     MemoryOperation<true>(gpu_addr, size, mapped_big, do_nothing, invalidate_short_pages);
 }
 
-void MemoryManager::CopyBlock(GPUVAddr gpu_dest_addr, GPUVAddr gpu_src_addr, std::size_t size) {
+void MemoryManager::CopyBlock(GPUVAddr gpu_dest_addr, GPUVAddr gpu_src_addr, std::size_t size,
+                              VideoCommon::CacheType which) {
     std::vector<u8> tmp_buffer(size);
-    ReadBlock(gpu_src_addr, tmp_buffer.data(), size);
+    ReadBlock(gpu_src_addr, tmp_buffer.data(), size, which);
 
     // The output block must be flushed in case it has data modified from the GPU.
     // Fixes NPC geometry in Zombie Panic in Wonderland DX
-    FlushRegion(gpu_dest_addr, size);
-    WriteBlock(gpu_dest_addr, tmp_buffer.data(), size);
+    FlushRegion(gpu_dest_addr, size, which);
+    WriteBlock(gpu_dest_addr, tmp_buffer.data(), size, which);
 }
 
 bool MemoryManager::IsGranularRange(GPUVAddr gpu_addr, std::size_t size) const {
