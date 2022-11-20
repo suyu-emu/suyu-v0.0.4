@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <span>
 #include <vector>
 
 #include "common/common_types.h"
@@ -36,7 +37,7 @@ public:
     void Initialize();
     void Finalize();
 
-    Result StartDetection(s32 protocol_);
+    Result StartDetection(TagProtocol allowed_protocol);
     Result StopDetection();
     Result Mount(MountTarget mount_target);
     Result Unmount();
@@ -52,6 +53,7 @@ public:
     Result DeleteAllData();
 
     Result OpenApplicationArea(u32 access_id);
+    Result GetApplicationAreaId(u32& application_area_id) const;
     Result GetApplicationArea(std::vector<u8>& data) const;
     Result SetApplicationArea(std::span<const u8> data);
     Result CreateApplicationArea(u32 access_id, std::span<const u8> data);
@@ -87,7 +89,7 @@ private:
 
     bool is_data_moddified{};
     bool is_app_area_open{};
-    s32 protocol{};
+    TagProtocol allowed_protocols{};
     s64 current_posix_time{};
     MountTarget mount_target{MountTarget::None};
     DeviceState device_state{DeviceState::Unavailable};
