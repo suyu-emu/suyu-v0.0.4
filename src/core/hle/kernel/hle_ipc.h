@@ -313,6 +313,18 @@ public:
     /// Helper function to get the size of the output buffer
     [[nodiscard]] std::size_t GetWriteBufferSize(std::size_t buffer_index = 0) const;
 
+    /// Helper function to derive the number of elements able to be contained in the read buffer
+    template <typename T>
+    [[nodiscard]] std::size_t GetReadBufferNumElements(std::size_t buffer_index = 0) const {
+        return GetReadBufferSize(buffer_index) / sizeof(T);
+    }
+
+    /// Helper function to derive the number of elements able to be contained in the write buffer
+    template <typename T>
+    [[nodiscard]] std::size_t GetWriteBufferNumElements(std::size_t buffer_index = 0) const {
+        return GetWriteBufferSize(buffer_index) / sizeof(T);
+    }
+
     /// Helper function to test whether the input buffer at buffer_index can be read
     [[nodiscard]] bool CanReadBuffer(std::size_t buffer_index = 0) const;
 
