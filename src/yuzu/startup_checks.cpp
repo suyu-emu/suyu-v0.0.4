@@ -4,11 +4,14 @@
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
 #ifdef _WIN32
-#include <cstring> // for memset, strncpy
+#include <cstring> // for memset, strncpy, strncmp
 #include <processthreadsapi.h>
 #include <windows.h>
 #elif defined(YUZU_UNIX)
+#include <cstring> // for strncmp
 #include <errno.h>
+#include <spawn.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #endif
@@ -51,6 +54,13 @@ bool CheckEnvVars(bool* is_child) {
     } else if (!SetEnvironmentVariableA(IS_CHILD_ENV_VAR, ENV_VAR_ENABLED_TEXT)) {
         std::fprintf(stderr, "SetEnvironmentVariableA failed to set %s with error %lu\n",
                      IS_CHILD_ENV_VAR, GetLastError());
+        return true;
+    }
+#elif defined(YUZU_UNIX)
+    const char* startup_check_var = getenv(STARTUP_CHECK_ENV_VAR);
+    if (startup_check_var != nullptr &&
+        std::strncmp(startup_check_var, ENV_VAR_ENABLED_TEXT, 8) == 0) {
+        CheckVulkan();
         return true;
     }
 #endif
@@ -101,20 +111,22 @@ bool StartupChecks(const char* arg0, bool* has_broken_vulkan, bool perform_vulka
     }
 
 #elif defined(YUZU_UNIX)
+    const int env_var_set = setenv(STARTUP_CHECK_ENV_VAR, ENV_VAR_ENABLED_TEXT, 1);
+    if (env_var_set == -1) {
+        const int err = errno;
+        std::fprintf(stderr, "setenv failed to set %s with error %d\n", STARTUP_CHECK_ENV_VAR, err);
+        return false;
+    }
+
     if (perform_vulkan_check) {
-        const pid_t pid = fork();
-        if (pid == 0) {
-            CheckVulkan();
-            return true;
-        } else if (pid == -1) {
-            const int err = errno;
-            std::fprintf(stderr, "fork failed with error %d\n", err);
+        const pid_t pid = SpawnChild(arg0);
+        if (pid == -1) {
             return false;
         }
 
         // Get exit code from child process
         int status;
-        const int r_val = wait(&status);
+        const int r_val = waitpid(pid, &status, 0);
         if (r_val == -1) {
             const int err = errno;
             std::fprintf(stderr, "wait failed with error %d\n", err);
@@ -122,6 +134,13 @@ bool StartupChecks(const char* arg0, bool* has_broken_vulkan, bool perform_vulka
         }
         // Vulkan is broken if the child crashed (return value is not zero)
         *has_broken_vulkan = (status != 0);
+    }
+
+    const int env_var_cleared = unsetenv(STARTUP_CHECK_ENV_VAR);
+    if (env_var_cleared == -1) {
+        const int err = errno;
+        std::fprintf(stderr, "unsetenv failed to clear %s with error %d\n", STARTUP_CHECK_ENV_VAR,
+                     err);
     }
 #endif
     return false;
@@ -155,5 +174,24 @@ bool SpawnChild(const char* arg0, PROCESS_INFORMATION* pi, int flags) {
     }
 
     return true;
+}
+#elif defined(YUZU_UNIX)
+pid_t SpawnChild(const char* arg0) {
+    const pid_t pid = fork();
+
+    if (pid == -1) {
+        // error
+        const int err = errno;
+        std::fprintf(stderr, "fork failed with error %d\n", err);
+        return pid;
+    } else if (pid == 0) {
+        // child
+        execl(arg0, arg0, nullptr);
+        const int err = errno;
+        std::fprintf(stderr, "execl failed with error %d\n", err);
+        return -1;
+    }
+
+    return pid;
 }
 #endif
