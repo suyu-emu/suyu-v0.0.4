@@ -315,7 +315,7 @@ target_link_libraries(yuzu PRIVATE common core input_common network video_core)
 target_link_libraries(yuzu PRIVATE Boost::boost glad Qt${QT_MAJOR_VERSION}::Widgets)
 target_link_libraries(yuzu PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
 
-target_include_directories(yuzu PRIVATE ../../externals/Vulkan-Headers/include)
+target_link_libraries(yuzu PRIVATE Vulkan::Headers)
 if (NOT WIN32)
     target_include_directories(yuzu PRIVATE ${Qt${QT_MAJOR_VERSION}Gui_PRIVATE_INCLUDE_DIRS})
 endif()
@@ -351,7 +351,7 @@ if (USE_DISCORD_PRESENCE)
         discord_impl.cpp
         discord_impl.h
     )
-    target_link_libraries(yuzu PRIVATE discord-rpc)
+    target_link_libraries(yuzu PRIVATE DiscordRPC::discord-rpc)
     target_compile_definitions(yuzu PRIVATE -DUSE_DISCORD_PRESENCE)
 endif()
 
@@ -408,7 +408,7 @@ if (NOT APPLE)
 endif()
 
 if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
-    target_link_libraries(yuzu PRIVATE dynarmic)
+    target_link_libraries(yuzu PRIVATE dynarmic::dynarmic)
 endif()
 
 if (YUZU_USE_PRECOMPILED_HEADERS)
