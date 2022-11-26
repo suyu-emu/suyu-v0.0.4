@@ -126,6 +126,7 @@ private:
 
         const u32 vertex_first = parameters[3];
         const u32 vertex_count = parameters[1];
+        
 
         if (maxwell3d.AnyParametersDirty() &&
             maxwell3d.GetMaxCurrentVertices() < vertex_first + vertex_count) {
@@ -135,6 +136,7 @@ private:
 
         const u32 base_instance = parameters[4];
         if (extended) {
+            maxwell3d.regs.global_base_instance_index = base_instance;
             maxwell3d.engine_state = Maxwell::EngineHint::OnHLEMacro;
             maxwell3d.setHLEReplacementName(0, 0x640, Maxwell::HLEReplaceName::BaseInstance);
         }
@@ -144,6 +146,7 @@ private:
             vertex_first, vertex_count, base_instance, instance_count);
 
         if (extended) {
+            maxwell3d.regs.global_base_instance_index = 0;
             maxwell3d.engine_state = Maxwell::EngineHint::None;
             maxwell3d.replace_table.clear();
         }

@@ -3123,6 +3123,8 @@ private:
 
     void ProcessDirtyRegisters(u32 method, u32 argument);
 
+    void ConsumeSinkImpl() override;
+
     void ProcessMethodCall(u32 method, u32 argument, u32 nonshadow_argument, bool is_last_call);
 
     /// Retrieves information about a specific TIC entry from the TIC buffer.
@@ -3171,6 +3173,8 @@ private:
     std::optional<u64> GetQueryResult();
 
     void RefreshParametersImpl();
+
+    bool IsMethodExecutable(u32 method);
 
     Core::System& system;
     MemoryManager& memory_manager;
