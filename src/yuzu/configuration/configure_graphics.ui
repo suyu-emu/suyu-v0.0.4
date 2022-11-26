@@ -529,12 +529,12 @@
                </property>
                <item>
                 <property name="text">
-                 <string>Use global FSR Sharpening</string>
+                 <string>Use global FSR Sharpness</string>
                 </property>
                </item>
                <item>
                 <property name="text">
-                 <string>Set FSR Sharpening</string>
+                 <string>Set FSR Sharpness</string>
                 </property>
                </item>
               </widget>
@@ -548,7 +548,7 @@
                 </sizepolicy>
                </property>
                <property name="text">
-                <string>FSR Sharpening:</string>
+                <string>FSR Sharpness:</string>
                </property>
               </widget>
              </item>
