@@ -48,6 +48,7 @@ void LogSettings() {
     log_setting("CPU_Accuracy", values.cpu_accuracy.GetValue());
     log_setting("Renderer_UseResolutionScaling", values.resolution_setup.GetValue());
     log_setting("Renderer_ScalingFilter", values.scaling_filter.GetValue());
+    log_setting("Renderer_FSRSlider", values.fsr_sharpening_slider.GetValue());
     log_setting("Renderer_AntiAliasing", values.anti_aliasing.GetValue());
     log_setting("Renderer_UseSpeedLimit", values.use_speed_limit.GetValue());
     log_setting("Renderer_SpeedLimit", values.speed_limit.GetValue());
@@ -181,6 +182,7 @@ void RestoreGlobalState(bool is_powered_on) {
     values.cpuopt_unsafe_ignore_global_monitor.SetGlobal(true);
 
     // Renderer
+    values.fsr_sharpening_slider.SetGlobal(true);
     values.renderer_backend.SetGlobal(true);
     values.vulkan_device.SetGlobal(true);
     values.aspect_ratio.SetGlobal(true);

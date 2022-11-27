@@ -63,6 +63,11 @@ ConfigureGraphics::ConfigureGraphics(const Core::System& system_, QWidget* paren
         ui->api_widget->isEnabled());
     ui->bg_label->setVisible(Settings::IsConfiguringGlobal());
     ui->bg_combobox->setVisible(!Settings::IsConfiguringGlobal());
+
+    connect(ui->fsr_sharpening_slider, &QSlider::valueChanged, this,
+            &ConfigureGraphics::SetFSRIndicatorText);
+    ui->fsr_sharpening_combobox->setVisible(!Settings::IsConfiguringGlobal());
+    ui->fsr_sharpening_label->setVisible(Settings::IsConfiguringGlobal());
 }
 
 void ConfigureGraphics::UpdateDeviceSelection(int device) {
@@ -110,6 +115,7 @@ void ConfigureGraphics::SetConfiguration() {
             static_cast<int>(Settings::values.resolution_setup.GetValue()));
         ui->scaling_filter_combobox->setCurrentIndex(
             static_cast<int>(Settings::values.scaling_filter.GetValue()));
+        ui->fsr_sharpening_slider->setValue(Settings::values.fsr_sharpening_slider.GetValue());
         ui->anti_aliasing_combobox->setCurrentIndex(
             static_cast<int>(Settings::values.anti_aliasing.GetValue()));
     } else {
@@ -147,6 +153,15 @@ void ConfigureGraphics::SetConfiguration() {
         ConfigurationShared::SetHighlight(ui->anti_aliasing_label,
                                           !Settings::values.anti_aliasing.UsingGlobal());
 
+        ui->fsr_sharpening_combobox->setCurrentIndex(
+            Settings::values.fsr_sharpening_slider.UsingGlobal() ? 0 : 1);
+        ui->fsr_sharpening_slider->setEnabled(
+            !Settings::values.fsr_sharpening_slider.UsingGlobal());
+        ui->fsr_sharpening_value->setEnabled(!Settings::values.fsr_sharpening_slider.UsingGlobal());
+        ConfigurationShared::SetHighlight(ui->fsr_sharpening_layout,
+                                          !Settings::values.fsr_sharpening_slider.UsingGlobal());
+        ui->fsr_sharpening_slider->setValue(Settings::values.fsr_sharpening_slider.GetValue());
+
         ui->bg_combobox->setCurrentIndex(Settings::values.bg_red.UsingGlobal() ? 0 : 1);
         ui->bg_button->setEnabled(!Settings::values.bg_red.UsingGlobal());
         ConfigurationShared::SetHighlight(ui->bg_layout, !Settings::values.bg_red.UsingGlobal());
@@ -155,6 +170,12 @@ void ConfigureGraphics::SetConfiguration() {
                                                 Settings::values.bg_green.GetValue(),
                                                 Settings::values.bg_blue.GetValue()));
     UpdateAPILayout();
+    SetFSRIndicatorText(ui->fsr_sharpening_slider->sliderPosition());
+}
+
+void ConfigureGraphics::SetFSRIndicatorText(int percentage) {
+    ui->fsr_sharpening_value->setText(
+        tr("%1%", "FSR sharpening percentage (e.g. 50%)").arg(100 - (percentage / 2)));
 }
 
 void ConfigureGraphics::ApplyConfiguration() {
@@ -210,6 +231,7 @@ void ConfigureGraphics::ApplyConfiguration() {
         if (Settings::values.anti_aliasing.UsingGlobal()) {
             Settings::values.anti_aliasing.SetValue(anti_aliasing);
         }
+        Settings::values.fsr_sharpening_slider.SetValue(ui->fsr_sharpening_slider->value());
     } else {
         if (ui->resolution_combobox->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
             Settings::values.resolution_setup.SetGlobal(true);
@@ -268,6 +290,13 @@ void ConfigureGraphics::ApplyConfiguration() {
             Settings::values.bg_red.SetValue(static_cast<u8>(bg_color.red()));
             Settings::values.bg_green.SetValue(static_cast<u8>(bg_color.green()));
             Settings::values.bg_blue.SetValue(static_cast<u8>(bg_color.blue()));
+        }
+
+        if (ui->fsr_sharpening_combobox->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
+            Settings::values.fsr_sharpening_slider.SetGlobal(true);
+        } else {
+            Settings::values.fsr_sharpening_slider.SetGlobal(false);
+            Settings::values.fsr_sharpening_slider.SetValue(ui->fsr_sharpening_slider->value());
         }
     }
 }
@@ -380,6 +409,7 @@ void ConfigureGraphics::SetupPerGameUI() {
         ui->aspect_ratio_combobox->setEnabled(Settings::values.aspect_ratio.UsingGlobal());
         ui->resolution_combobox->setEnabled(Settings::values.resolution_setup.UsingGlobal());
         ui->scaling_filter_combobox->setEnabled(Settings::values.scaling_filter.UsingGlobal());
+        ui->fsr_sharpening_slider->setEnabled(Settings::values.fsr_sharpening_slider.UsingGlobal());
         ui->anti_aliasing_combobox->setEnabled(Settings::values.anti_aliasing.UsingGlobal());
         ui->use_asynchronous_gpu_emulation->setEnabled(
             Settings::values.use_asynchronous_gpu_emulation.UsingGlobal());
@@ -387,6 +417,7 @@ void ConfigureGraphics::SetupPerGameUI() {
         ui->accelerate_astc->setEnabled(Settings::values.accelerate_astc.UsingGlobal());
         ui->use_disk_shader_cache->setEnabled(Settings::values.use_disk_shader_cache.UsingGlobal());
         ui->bg_button->setEnabled(Settings::values.bg_red.UsingGlobal());
+        ui->fsr_slider_layout->setEnabled(Settings::values.fsr_sharpening_slider.UsingGlobal());
 
         return;
     }
@@ -395,6 +426,13 @@ void ConfigureGraphics::SetupPerGameUI() {
         ui->bg_button->setEnabled(index == 1);
         ConfigurationShared::SetHighlight(ui->bg_layout, index == 1);
     });
+
+    connect(ui->fsr_sharpening_combobox, qOverload<int>(&QComboBox::activated), this,
+            [this](int index) {
+                ui->fsr_sharpening_slider->setEnabled(index == 1);
+                ui->fsr_sharpening_value->setEnabled(index == 1);
+                ConfigurationShared::SetHighlight(ui->fsr_sharpening_layout, index == 1);
+            });
 
     ConfigurationShared::SetColoredTristate(
         ui->use_disk_shader_cache, Settings::values.use_disk_shader_cache, use_disk_shader_cache);
