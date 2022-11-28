@@ -63,7 +63,7 @@ void SyncpointManager::FreeSyncpoint(u32 id) {
     syncpoint.reserved = false;
 }
 
-bool SyncpointManager::IsSyncpointAllocated(u32 id) {
+bool SyncpointManager::IsSyncpointAllocated(u32 id) const {
     return (id <= SyncpointCount) && syncpoints[id].reserved;
 }
 
@@ -72,7 +72,7 @@ bool SyncpointManager::HasSyncpointExpired(u32 id, u32 threshold) const {
 
     if (!syncpoint.reserved) {
         ASSERT(false);
-        return 0;
+        return false;
     }
 
     // If the interface manages counters then we don't keep track of the maximum value as it handles
