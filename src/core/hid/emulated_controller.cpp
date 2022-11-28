@@ -146,27 +146,27 @@ void EmulatedController::LoadDevices() {
 
     std::transform(button_params.begin() + Settings::NativeButton::BUTTON_HID_BEGIN,
                    button_params.begin() + Settings::NativeButton::BUTTON_NS_END,
-                   button_devices.begin(), Common::Input::CreateDevice<Common::Input::InputDevice>);
+                   button_devices.begin(), Common::Input::CreateInputDevice);
     std::transform(stick_params.begin() + Settings::NativeAnalog::STICK_HID_BEGIN,
                    stick_params.begin() + Settings::NativeAnalog::STICK_HID_END,
-                   stick_devices.begin(), Common::Input::CreateDevice<Common::Input::InputDevice>);
+                   stick_devices.begin(), Common::Input::CreateInputDevice);
     std::transform(motion_params.begin() + Settings::NativeMotion::MOTION_HID_BEGIN,
                    motion_params.begin() + Settings::NativeMotion::MOTION_HID_END,
-                   motion_devices.begin(), Common::Input::CreateDevice<Common::Input::InputDevice>);
+                   motion_devices.begin(), Common::Input::CreateInputDevice);
     std::transform(trigger_params.begin(), trigger_params.end(), trigger_devices.begin(),
-                   Common::Input::CreateDevice<Common::Input::InputDevice>);
+                   Common::Input::CreateInputDevice);
     std::transform(battery_params.begin(), battery_params.end(), battery_devices.begin(),
-                   Common::Input::CreateDevice<Common::Input::InputDevice>);
-    camera_devices = Common::Input::CreateDevice<Common::Input::InputDevice>(camera_params);
-    nfc_devices = Common::Input::CreateDevice<Common::Input::InputDevice>(nfc_params);
+                   Common::Input::CreateInputDevice);
+    camera_devices = Common::Input::CreateInputDevice(camera_params);
+    nfc_devices = Common::Input::CreateInputDevice(nfc_params);
     std::transform(output_params.begin(), output_params.end(), output_devices.begin(),
-                   Common::Input::CreateDevice<Common::Input::OutputDevice>);
+                   Common::Input::CreateOutputDevice);
 
     // Initialize TAS devices
     std::transform(tas_button_params.begin(), tas_button_params.end(), tas_button_devices.begin(),
-                   Common::Input::CreateDevice<Common::Input::InputDevice>);
+                   Common::Input::CreateInputDevice);
     std::transform(tas_stick_params.begin(), tas_stick_params.end(), tas_stick_devices.begin(),
-                   Common::Input::CreateDevice<Common::Input::InputDevice>);
+                   Common::Input::CreateInputDevice);
 }
 
 void EmulatedController::LoadTASParams() {
