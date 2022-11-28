@@ -69,8 +69,7 @@ private:
 std::unique_ptr<Common::Input::InputDevice> TouchFromButton::Create(
     const Common::ParamPackage& params) {
     const std::string null_engine = Common::ParamPackage{{"engine", "null"}}.Serialize();
-    auto button = Common::Input::CreateDeviceFromString<Common::Input::InputDevice>(
-        params.Get("button", null_engine));
+    auto button = Common::Input::CreateInputDeviceFromString(params.Get("button", null_engine));
     const float x = params.Get("x", 0.0f) / 1280.0f;
     const float y = params.Get("y", 0.0f) / 720.0f;
     return std::make_unique<TouchFromButtonDevice>(std::move(button), x, y);

@@ -318,16 +318,11 @@ private:
 std::unique_ptr<Common::Input::InputDevice> StickFromButton::Create(
     const Common::ParamPackage& params) {
     const std::string null_engine = Common::ParamPackage{{"engine", "null"}}.Serialize();
-    auto up = Common::Input::CreateDeviceFromString<Common::Input::InputDevice>(
-        params.Get("up", null_engine));
-    auto down = Common::Input::CreateDeviceFromString<Common::Input::InputDevice>(
-        params.Get("down", null_engine));
-    auto left = Common::Input::CreateDeviceFromString<Common::Input::InputDevice>(
-        params.Get("left", null_engine));
-    auto right = Common::Input::CreateDeviceFromString<Common::Input::InputDevice>(
-        params.Get("right", null_engine));
-    auto modifier = Common::Input::CreateDeviceFromString<Common::Input::InputDevice>(
-        params.Get("modifier", null_engine));
+    auto up = Common::Input::CreateInputDeviceFromString(params.Get("up", null_engine));
+    auto down = Common::Input::CreateInputDeviceFromString(params.Get("down", null_engine));
+    auto left = Common::Input::CreateInputDeviceFromString(params.Get("left", null_engine));
+    auto right = Common::Input::CreateInputDeviceFromString(params.Get("right", null_engine));
+    auto modifier = Common::Input::CreateInputDeviceFromString(params.Get("modifier", null_engine));
     auto modifier_scale = params.Get("modifier_scale", 0.5f);
     auto modifier_angle = params.Get("modifier_angle", 5.5f);
     return std::make_unique<Stick>(std::move(up), std::move(down), std::move(left),
