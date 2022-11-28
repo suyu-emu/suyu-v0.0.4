@@ -417,12 +417,12 @@ std::unique_ptr<InputDeviceType> CreateDeviceFromString(const std::string& param
 }
 
 /**
- * Create an input device from given paramters.
+ * Create an input device from given parameters.
  * @tparam InputDeviceType the type of input devices to create
- * @param A ParamPackage that contains all parameters for creating the device
+ * @param package A ParamPackage that contains all parameters for creating the device
  */
 template <typename InputDeviceType>
-std::unique_ptr<InputDeviceType> CreateDevice(const Common::ParamPackage package) {
+std::unique_ptr<InputDeviceType> CreateDevice(const ParamPackage& package) {
     const std::string engine = package.Get("engine", "null");
     const auto& factory_list = Impl::FactoryList<InputDeviceType>::list;
     const auto pair = factory_list.find(engine);
