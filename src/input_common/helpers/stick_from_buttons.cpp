@@ -294,6 +294,15 @@ public:
     }
 
 private:
+    static constexpr Common::Input::AnalogProperties properties{
+        .deadzone = 0.0f,
+        .range = 1.0f,
+        .threshold = 0.5f,
+        .offset = 0.0f,
+        .inverted = false,
+        .toggle = false,
+    };
+
     Button up;
     Button down;
     Button left;
@@ -311,7 +320,6 @@ private:
     float last_x_axis_value{};
     float last_y_axis_value{};
     Common::Input::ButtonStatus modifier_status{};
-    const Common::Input::AnalogProperties properties{0.0f, 1.0f, 0.5f, 0.0f, false};
     std::chrono::time_point<std::chrono::steady_clock> last_update;
 };
 
