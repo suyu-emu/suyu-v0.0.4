@@ -19,6 +19,7 @@ namespace Settings {
 enum class RendererBackend : u32 {
     OpenGL = 0,
     Vulkan = 1,
+    Null = 2,
 };
 
 enum class ShaderBackend : u32 {
@@ -411,7 +412,7 @@ struct Values {
 
     // Renderer
     SwitchableSetting<RendererBackend, true> renderer_backend{
-        RendererBackend::Vulkan, RendererBackend::OpenGL, RendererBackend::Vulkan, "backend"};
+        RendererBackend::Vulkan, RendererBackend::OpenGL, RendererBackend::Null, "backend"};
     Setting<bool> renderer_debug{false, "debug"};
     Setting<bool> renderer_shader_feedback{false, "shader_feedback"};
     Setting<bool> enable_nsight_aftermath{false, "nsight_aftermath"};

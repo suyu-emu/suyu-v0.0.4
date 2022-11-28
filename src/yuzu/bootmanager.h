@@ -218,6 +218,7 @@ private:
 
     bool InitializeOpenGL();
     bool InitializeVulkan();
+    void InitializeNull();
     bool LoadOpenGL();
     QStringList GetUnsupportedGLExtensions() const;
 
