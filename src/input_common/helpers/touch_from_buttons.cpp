@@ -59,11 +59,19 @@ public:
     }
 
 private:
+    static constexpr Common::Input::AnalogProperties properties{
+        .deadzone = 0.0f,
+        .range = 1.0f,
+        .threshold = 0.5f,
+        .offset = 0.0f,
+        .inverted = false,
+        .toggle = false,
+    };
+
     Button button;
     bool last_button_value;
     const float x;
     const float y;
-    const Common::Input::AnalogProperties properties{0.0f, 1.0f, 0.5f, 0.0f, false};
 };
 
 std::unique_ptr<Common::Input::InputDevice> TouchFromButton::Create(
