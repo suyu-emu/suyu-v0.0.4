@@ -4037,7 +4037,6 @@ void GMainWindow::UpdateUITheme() {
     const QString default_theme =
         QString::fromUtf8(UISettings::themes[static_cast<size_t>(Config::default_theme)].second);
     QString current_theme = UISettings::values.theme;
-    QStringList theme_paths(default_theme_paths);
 
     if (current_theme.isEmpty()) {
         current_theme = default_theme;
@@ -4050,7 +4049,7 @@ void GMainWindow::UpdateUITheme() {
     if (current_theme == QStringLiteral("default") || current_theme == QStringLiteral("colorful")) {
         QIcon::setThemeName(current_theme == QStringLiteral("colorful") ? current_theme
                                                                         : startup_icon_theme);
-        QIcon::setThemeSearchPaths(theme_paths);
+        QIcon::setThemeSearchPaths(QStringList(default_theme_paths));
         if (CheckDarkMode()) {
             current_theme = QStringLiteral("default_dark");
         }
