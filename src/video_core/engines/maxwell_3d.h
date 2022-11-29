@@ -184,7 +184,7 @@ public:
                 default:
                     // Thresholds begin at 0x10 (1 << 4)
                     // Threshold is in the range 0x1 to 0x13
-                    return 1 << (4 + threshold.Value() - 1);
+                    return 1U << (4 + threshold.Value() - 1);
                 }
             }
         };
@@ -822,11 +822,11 @@ public:
         struct CompressionThresholdSamples {
             u32 samples;
 
-            u32 Samples() {
+            u32 Samples() const {
                 if (samples == 0) {
                     return 0;
                 }
-                return 1 << (samples - 1);
+                return 1U << (samples - 1);
             }
         };
 
