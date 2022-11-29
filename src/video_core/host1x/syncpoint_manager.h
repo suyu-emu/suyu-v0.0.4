@@ -36,16 +36,14 @@ public:
 
     template <typename Func>
     ActionHandle RegisterGuestAction(u32 syncpoint_id, u32 expected_value, Func&& action) {
-        std::function<void()> func(action);
         return RegisterAction(syncpoints_guest[syncpoint_id], guest_action_storage[syncpoint_id],
-                              expected_value, std::move(func));
+                              expected_value, std::move(action));
     }
 
     template <typename Func>
     ActionHandle RegisterHostAction(u32 syncpoint_id, u32 expected_value, Func&& action) {
-        std::function<void()> func(action);
         return RegisterAction(syncpoints_host[syncpoint_id], host_action_storage[syncpoint_id],
-                              expected_value, std::move(func));
+                              expected_value, std::move(action));
     }
 
     void DeregisterGuestAction(u32 syncpoint_id, const ActionHandle& handle);
