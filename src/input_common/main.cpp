@@ -318,6 +318,12 @@ struct InputSubsystem::Impl {
 #endif
     }
 
+    void PumpEvents() const {
+#ifdef HAVE_SDL2
+        sdl->PumpEvents();
+#endif
+    }
+
     void RegisterInput(const MappingData& data) {
         mapping_factory->RegisterInput(data);
     }
@@ -464,6 +470,10 @@ Common::ParamPackage InputSubsystem::GetNextInput() const {
 void InputSubsystem::StopMapping() const {
     impl->EndConfiguration();
     impl->mapping_factory->StopMapping();
+}
+
+void InputSubsystem::PumpEvents() const {
+    impl->PumpEvents();
 }
 
 std::string GenerateKeyboardParam(int key_code) {
