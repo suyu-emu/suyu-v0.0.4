@@ -69,7 +69,6 @@ if (YUZU_USE_EXTERNAL_SDL2)
     set(SDL_SHARED OFF)
 
     add_subdirectory(SDL EXCLUDE_FROM_ALL)
-    add_library(SDL2 ALIAS SDL2-static)
 endif()
 
 # ENet

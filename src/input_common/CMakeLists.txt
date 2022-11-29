@@ -55,7 +55,11 @@ if (ENABLE_SDL2)
         drivers/sdl_driver.cpp
         drivers/sdl_driver.h
     )
-    target_link_libraries(input_common PRIVATE SDL2)
+    if (YUZU_USE_EXTERNAL_SDL2)
+        target_link_libraries(input_common PRIVATE SDL2-static)
+    else()
+        target_link_libraries(input_common PRIVATE SDL2)
+    endif()
     target_compile_definitions(input_common PRIVATE HAVE_SDL2)
 endif()
 

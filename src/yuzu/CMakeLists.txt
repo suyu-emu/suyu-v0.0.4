@@ -387,7 +387,11 @@ if (YUZU_USE_BUNDLED_QT AND QT_VERSION VERSION_LESS 6)
 endif()
 
 if (ENABLE_SDL2)
-    target_link_libraries(yuzu PRIVATE SDL2)
+    if (YUZU_USE_EXTERNAL_SDL2)
+        target_link_libraries(yuzu PRIVATE SDL2-static)
+    else()
+        target_link_libraries(yuzu PRIVATE SDL2)
+    endif()
     target_compile_definitions(yuzu PRIVATE HAVE_SDL2)
 endif()
 
