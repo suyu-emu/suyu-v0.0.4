@@ -66,6 +66,20 @@ elseif(NOT "$ENV{VCPKG_TOOLCHAIN_FILE}" STREQUAL "")
     include("$ENV{VCPKG_TOOLCHAIN_FILE}")
 endif()
 
+if (YUZU_USE_PRECOMPILED_HEADERS)
+    if (MSVC AND CCACHE)
+        # buildcache does not properly cache PCH files, leading to compilation errors.
+        # See https://github.com/mbitsnbites/buildcache/discussions/230
+        message(WARNING "buildcache does not properly support Precompiled Headers. Disabling PCH")
+        set(YUZU_USE_PRECOMPILED_HEADERS OFF)
+    endif()
+endif()
+if (YUZU_USE_PRECOMPILED_HEADERS)
+    message(STATUS "Using Precompiled Headers.")
+    set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
+endif()
+
+
 # Default to a Release build
 get_property(IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if (NOT IS_MULTI_CONFIG AND NOT CMAKE_BUILD_TYPE)

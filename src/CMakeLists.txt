@@ -152,10 +152,6 @@ else()
     endif()
 endif()
 
-if (YUZU_USE_PRECOMPILED_HEADERS)
-    set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
-endif()
-
 add_subdirectory(common)
 add_subdirectory(core)
 add_subdirectory(audio_core)
