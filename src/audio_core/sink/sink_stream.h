@@ -6,6 +6,7 @@
 #include <array>
 #include <atomic>
 #include <memory>
+#include <mutex>
 #include <span>
 #include <vector>
 
@@ -240,8 +241,8 @@ private:
     f32 system_volume{1.0f};
     /// Set via IAudioDevice service calls
     f32 device_volume{1.0f};
-    /// True if coretiming has been stalled
-    bool stalled{false};
+    std::mutex stall_guard;
+    std::unique_lock<std::mutex> stalled_lock;
 };
 
 using SinkStreamPtr = std::unique_ptr<SinkStream>;
