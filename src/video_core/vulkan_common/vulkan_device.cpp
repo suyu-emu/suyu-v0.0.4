@@ -1058,7 +1058,7 @@ std::vector<const char*> Device::LoadExtensions(bool requires_surface) {
         test(has_ext_transform_feedback, VK_EXT_TRANSFORM_FEEDBACK_EXTENSION_NAME, false);
         test(has_ext_custom_border_color, VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME, false);
         test(has_ext_extended_dynamic_state, VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME, false);
-        test(has_ext_subgroup_size_control, VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME, false);
+        test(has_ext_subgroup_size_control, VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME, true);
         test(has_ext_provoking_vertex, VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME, false);
         test(has_ext_vertex_input_dynamic_state, VK_EXT_VERTEX_INPUT_DYNAMIC_STATE_EXTENSION_NAME,
              false);
