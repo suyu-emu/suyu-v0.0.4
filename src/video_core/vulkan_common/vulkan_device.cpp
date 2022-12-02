@@ -973,9 +973,25 @@ void Device::CheckSuitability(bool requires_swapchain) const {
     robustness2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT;
     robustness2.pNext = &variable_pointers;
 
+    VkPhysicalDeviceTimelineSemaphoreFeatures timeline_semaphore{};
+    timeline_semaphore.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES;
+    timeline_semaphore.pNext = &robustness2;
+
+    VkPhysicalDevice16BitStorageFeatures bit16_storage{};
+    bit16_storage.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_16BIT_STORAGE_FEATURES;
+    bit16_storage.pNext = &timeline_semaphore;
+
+    VkPhysicalDevice8BitStorageFeatures bit8_storage{};
+    bit8_storage.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_8BIT_STORAGE_FEATURES;
+    bit8_storage.pNext = &bit16_storage;
+
+    VkPhysicalDeviceHostQueryResetFeatures host_query_reset{};
+    host_query_reset.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES;
+    host_query_reset.pNext = &bit8_storage;
+
     VkPhysicalDeviceFeatures2KHR features2{};
     features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-    features2.pNext = &robustness2;
+    features2.pNext = &host_query_reset;
 
     physical.GetFeatures2KHR(features2);
 
@@ -1011,6 +1027,13 @@ void Device::CheckSuitability(bool requires_swapchain) const {
         std::make_pair(robustness2.robustImageAccess2, "robustImageAccess2"),
         std::make_pair(robustness2.nullDescriptor, "nullDescriptor"),
         std::make_pair(demote.shaderDemoteToHelperInvocation, "shaderDemoteToHelperInvocation"),
+        std::make_pair(timeline_semaphore.timelineSemaphore, "timelineSemaphore"),
+        std::make_pair(bit16_storage.storageBuffer16BitAccess, "storageBuffer16BitAccess"),
+        std::make_pair(bit16_storage.uniformAndStorageBuffer16BitAccess,
+                       "uniformAndStorageBuffer16BitAccess"),
+        std::make_pair(bit8_storage.uniformAndStorageBuffer8BitAccess,
+                       "uniformAndStorageBuffer8BitAccess"),
+        std::make_pair(host_query_reset.hostQueryReset, "hostQueryReset"),
     };
 
     bool has_all_required_features = true;
