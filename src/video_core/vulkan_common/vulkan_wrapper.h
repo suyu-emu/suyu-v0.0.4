@@ -297,7 +297,7 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkGetPipelineExecutablePropertiesKHR vkGetPipelineExecutablePropertiesKHR{};
     PFN_vkGetPipelineExecutableStatisticsKHR vkGetPipelineExecutableStatisticsKHR{};
     PFN_vkGetQueryPoolResults vkGetQueryPoolResults{};
-    PFN_vkGetSemaphoreCounterValueKHR vkGetSemaphoreCounterValueKHR{};
+    PFN_vkGetSemaphoreCounterValue vkGetSemaphoreCounterValue{};
     PFN_vkMapMemory vkMapMemory{};
     PFN_vkQueueSubmit vkQueueSubmit{};
     PFN_vkResetFences vkResetFences{};
@@ -308,7 +308,7 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkUpdateDescriptorSetWithTemplateKHR vkUpdateDescriptorSetWithTemplateKHR{};
     PFN_vkUpdateDescriptorSets vkUpdateDescriptorSets{};
     PFN_vkWaitForFences vkWaitForFences{};
-    PFN_vkWaitSemaphoresKHR vkWaitSemaphoresKHR{};
+    PFN_vkWaitSemaphores vkWaitSemaphores{};
 };
 
 /// Loads instance agnostic function pointers.
@@ -766,7 +766,7 @@ public:
 
     [[nodiscard]] u64 GetCounter() const {
         u64 value;
-        Check(dld->vkGetSemaphoreCounterValueKHR(owner, handle, &value));
+        Check(dld->vkGetSemaphoreCounterValue(owner, handle, &value));
         return value;
     }
 
@@ -778,15 +778,15 @@ public:
      * @return        True on successful wait, false on timeout
      */
     bool Wait(u64 value, u64 timeout = std::numeric_limits<u64>::max()) const {
-        const VkSemaphoreWaitInfoKHR wait_info{
-            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO_KHR,
+        const VkSemaphoreWaitInfo wait_info{
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO,
             .pNext = nullptr,
             .flags = 0,
             .semaphoreCount = 1,
             .pSemaphores = &handle,
             .pValues = &value,
         };
-        const VkResult result = dld->vkWaitSemaphoresKHR(owner, &wait_info, timeout);
+        const VkResult result = dld->vkWaitSemaphores(owner, &wait_info, timeout);
         switch (result) {
         case VK_SUCCESS:
             return true;

@@ -180,7 +180,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkGetQueryPoolResults);
     X(vkGetPipelineExecutablePropertiesKHR);
     X(vkGetPipelineExecutableStatisticsKHR);
-    X(vkGetSemaphoreCounterValueKHR);
+    X(vkGetSemaphoreCounterValue);
     X(vkMapMemory);
     X(vkQueueSubmit);
     X(vkResetFences);
@@ -191,7 +191,14 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkUpdateDescriptorSetWithTemplateKHR);
     X(vkUpdateDescriptorSets);
     X(vkWaitForFences);
-    X(vkWaitSemaphoresKHR);
+    X(vkWaitSemaphores);
+
+    // Support for timeline semaphores is mandatory in Vulkan 1.2
+    if (!dld.vkGetSemaphoreCounterValue) {
+        Proc(dld.vkGetSemaphoreCounterValue, dld, "vkGetSemaphoreCounterValue", device);
+        Proc(dld.vkWaitForFences, dld, "vkWaitForFencesKHR", device);
+        Proc(dld.vkWaitSemaphores, dld, "vkWaitSemaphoresKHR", device);
+    }
 #undef X
 }
 
