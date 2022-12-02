@@ -399,8 +399,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const void* first_next = &features2;
     void** next = &features2.pNext;
 
-    VkPhysicalDeviceTimelineSemaphoreFeaturesKHR timeline_semaphore{
-        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES_KHR,
+    VkPhysicalDeviceTimelineSemaphoreFeatures timeline_semaphore{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES,
         .pNext = nullptr,
         .timelineSemaphore = true,
     };
