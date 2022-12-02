@@ -130,7 +130,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCreateComputePipelines);
     X(vkCreateDescriptorPool);
     X(vkCreateDescriptorSetLayout);
-    X(vkCreateDescriptorUpdateTemplateKHR);
+    X(vkCreateDescriptorUpdateTemplate);
     X(vkCreateEvent);
     X(vkCreateFence);
     X(vkCreateFramebuffer);
@@ -149,7 +149,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkDestroyCommandPool);
     X(vkDestroyDescriptorPool);
     X(vkDestroyDescriptorSetLayout);
-    X(vkDestroyDescriptorUpdateTemplateKHR);
+    X(vkDestroyDescriptorUpdateTemplate);
     X(vkDestroyEvent);
     X(vkDestroyFence);
     X(vkDestroyFramebuffer);
@@ -188,7 +188,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkSetDebugUtilsObjectNameEXT);
     X(vkSetDebugUtilsObjectTagEXT);
     X(vkUnmapMemory);
-    X(vkUpdateDescriptorSetWithTemplateKHR);
+    X(vkUpdateDescriptorSetWithTemplate);
     X(vkUpdateDescriptorSets);
     X(vkWaitForFences);
     X(vkWaitSemaphores);
@@ -366,9 +366,9 @@ void Destroy(VkDevice device, VkDescriptorSetLayout handle, const DeviceDispatch
     dld.vkDestroyDescriptorSetLayout(device, handle, nullptr);
 }
 
-void Destroy(VkDevice device, VkDescriptorUpdateTemplateKHR handle,
+void Destroy(VkDevice device, VkDescriptorUpdateTemplate handle,
              const DeviceDispatch& dld) noexcept {
-    dld.vkDestroyDescriptorUpdateTemplateKHR(device, handle, nullptr);
+    dld.vkDestroyDescriptorUpdateTemplate(device, handle, nullptr);
 }
 
 void Destroy(VkDevice device, VkDeviceMemory handle, const DeviceDispatch& dld) noexcept {
@@ -744,11 +744,11 @@ CommandPool Device::CreateCommandPool(const VkCommandPoolCreateInfo& ci) const {
     return CommandPool(object, handle, *dld);
 }
 
-DescriptorUpdateTemplateKHR Device::CreateDescriptorUpdateTemplateKHR(
-    const VkDescriptorUpdateTemplateCreateInfoKHR& ci) const {
-    VkDescriptorUpdateTemplateKHR object;
-    Check(dld->vkCreateDescriptorUpdateTemplateKHR(handle, &ci, nullptr, &object));
-    return DescriptorUpdateTemplateKHR(object, handle, *dld);
+DescriptorUpdateTemplate Device::CreateDescriptorUpdateTemplate(
+    const VkDescriptorUpdateTemplateCreateInfo& ci) const {
+    VkDescriptorUpdateTemplate object;
+    Check(dld->vkCreateDescriptorUpdateTemplate(handle, &ci, nullptr, &object));
+    return DescriptorUpdateTemplate(object, handle, *dld);
 }
 
 QueryPool Device::CreateQueryPool(const VkQueryPoolCreateInfo& ci) const {

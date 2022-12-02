@@ -247,7 +247,7 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCreateComputePipelines vkCreateComputePipelines{};
     PFN_vkCreateDescriptorPool vkCreateDescriptorPool{};
     PFN_vkCreateDescriptorSetLayout vkCreateDescriptorSetLayout{};
-    PFN_vkCreateDescriptorUpdateTemplateKHR vkCreateDescriptorUpdateTemplateKHR{};
+    PFN_vkCreateDescriptorUpdateTemplate vkCreateDescriptorUpdateTemplate{};
     PFN_vkCreateEvent vkCreateEvent{};
     PFN_vkCreateFence vkCreateFence{};
     PFN_vkCreateFramebuffer vkCreateFramebuffer{};
@@ -266,7 +266,7 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkDestroyCommandPool vkDestroyCommandPool{};
     PFN_vkDestroyDescriptorPool vkDestroyDescriptorPool{};
     PFN_vkDestroyDescriptorSetLayout vkDestroyDescriptorSetLayout{};
-    PFN_vkDestroyDescriptorUpdateTemplateKHR vkDestroyDescriptorUpdateTemplateKHR{};
+    PFN_vkDestroyDescriptorUpdateTemplate vkDestroyDescriptorUpdateTemplate{};
     PFN_vkDestroyEvent vkDestroyEvent{};
     PFN_vkDestroyFence vkDestroyFence{};
     PFN_vkDestroyFramebuffer vkDestroyFramebuffer{};
@@ -305,7 +305,7 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT{};
     PFN_vkSetDebugUtilsObjectTagEXT vkSetDebugUtilsObjectTagEXT{};
     PFN_vkUnmapMemory vkUnmapMemory{};
-    PFN_vkUpdateDescriptorSetWithTemplateKHR vkUpdateDescriptorSetWithTemplateKHR{};
+    PFN_vkUpdateDescriptorSetWithTemplate vkUpdateDescriptorSetWithTemplate{};
     PFN_vkUpdateDescriptorSets vkUpdateDescriptorSets{};
     PFN_vkWaitForFences vkWaitForFences{};
     PFN_vkWaitSemaphores vkWaitSemaphores{};
@@ -327,7 +327,7 @@ void Destroy(VkDevice, VkBufferView, const DeviceDispatch&) noexcept;
 void Destroy(VkDevice, VkCommandPool, const DeviceDispatch&) noexcept;
 void Destroy(VkDevice, VkDescriptorPool, const DeviceDispatch&) noexcept;
 void Destroy(VkDevice, VkDescriptorSetLayout, const DeviceDispatch&) noexcept;
-void Destroy(VkDevice, VkDescriptorUpdateTemplateKHR, const DeviceDispatch&) noexcept;
+void Destroy(VkDevice, VkDescriptorUpdateTemplate, const DeviceDispatch&) noexcept;
 void Destroy(VkDevice, VkDeviceMemory, const DeviceDispatch&) noexcept;
 void Destroy(VkDevice, VkEvent, const DeviceDispatch&) noexcept;
 void Destroy(VkDevice, VkFence, const DeviceDispatch&) noexcept;
@@ -559,7 +559,7 @@ private:
 
 using DebugUtilsMessenger = Handle<VkDebugUtilsMessengerEXT, VkInstance, InstanceDispatch>;
 using DescriptorSetLayout = Handle<VkDescriptorSetLayout, VkDevice, DeviceDispatch>;
-using DescriptorUpdateTemplateKHR = Handle<VkDescriptorUpdateTemplateKHR, VkDevice, DeviceDispatch>;
+using DescriptorUpdateTemplate = Handle<VkDescriptorUpdateTemplate, VkDevice, DeviceDispatch>;
 using Pipeline = Handle<VkPipeline, VkDevice, DeviceDispatch>;
 using PipelineLayout = Handle<VkPipelineLayout, VkDevice, DeviceDispatch>;
 using QueryPool = Handle<VkQueryPool, VkDevice, DeviceDispatch>;
@@ -840,8 +840,8 @@ public:
 
     CommandPool CreateCommandPool(const VkCommandPoolCreateInfo& ci) const;
 
-    DescriptorUpdateTemplateKHR CreateDescriptorUpdateTemplateKHR(
-        const VkDescriptorUpdateTemplateCreateInfoKHR& ci) const;
+    DescriptorUpdateTemplate CreateDescriptorUpdateTemplate(
+        const VkDescriptorUpdateTemplateCreateInfo& ci) const;
 
     QueryPool CreateQueryPool(const VkQueryPoolCreateInfo& ci) const;
 
@@ -869,9 +869,9 @@ public:
     void UpdateDescriptorSets(Span<VkWriteDescriptorSet> writes,
                               Span<VkCopyDescriptorSet> copies) const noexcept;
 
-    void UpdateDescriptorSet(VkDescriptorSet set, VkDescriptorUpdateTemplateKHR update_template,
+    void UpdateDescriptorSet(VkDescriptorSet set, VkDescriptorUpdateTemplate update_template,
                              const void* data) const noexcept {
-        dld->vkUpdateDescriptorSetWithTemplateKHR(handle, set, update_template, data);
+        dld->vkUpdateDescriptorSetWithTemplate(handle, set, update_template, data);
     }
 
     VkResult AcquireNextImageKHR(VkSwapchainKHR swapchain, u64 timeout, VkSemaphore semaphore,
@@ -980,7 +980,7 @@ public:
                                      dynamic_offsets.size(), dynamic_offsets.data());
     }
 
-    void PushDescriptorSetWithTemplateKHR(VkDescriptorUpdateTemplateKHR update_template,
+    void PushDescriptorSetWithTemplateKHR(VkDescriptorUpdateTemplate update_template,
                                           VkPipelineLayout layout, u32 set,
                                           const void* data) const noexcept {
         dld->vkCmdPushDescriptorSetWithTemplateKHR(handle, update_template, layout, set, data);

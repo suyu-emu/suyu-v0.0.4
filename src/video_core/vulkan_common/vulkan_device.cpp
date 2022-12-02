@@ -80,7 +80,6 @@ constexpr std::array REQUIRED_EXTENSIONS{
 
     // Core in 1.2, but required due to use of extension methods,
     // and well-supported by drivers
-    VK_KHR_DESCRIPTOR_UPDATE_TEMPLATE_EXTENSION_NAME,
     VK_EXT_HOST_QUERY_RESET_EXTENSION_NAME,
 #ifdef _WIN32
     VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME,
