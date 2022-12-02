@@ -301,7 +301,7 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkMapMemory vkMapMemory{};
     PFN_vkQueueSubmit vkQueueSubmit{};
     PFN_vkResetFences vkResetFences{};
-    PFN_vkResetQueryPoolEXT vkResetQueryPoolEXT{};
+    PFN_vkResetQueryPool vkResetQueryPool{};
     PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT{};
     PFN_vkSetDebugUtilsObjectTagEXT vkSetDebugUtilsObjectTagEXT{};
     PFN_vkUnmapMemory vkUnmapMemory{};
@@ -884,8 +884,8 @@ public:
         return dld->vkDeviceWaitIdle(handle);
     }
 
-    void ResetQueryPoolEXT(VkQueryPool query_pool, u32 first, u32 count) const noexcept {
-        dld->vkResetQueryPoolEXT(handle, query_pool, first, count);
+    void ResetQueryPool(VkQueryPool query_pool, u32 first, u32 count) const noexcept {
+        dld->vkResetQueryPool(handle, query_pool, first, count);
     }
 
     VkResult GetQueryResults(VkQueryPool query_pool, u32 first, u32 count, std::size_t data_size,

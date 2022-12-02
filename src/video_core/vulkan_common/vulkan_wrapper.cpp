@@ -184,7 +184,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkMapMemory);
     X(vkQueueSubmit);
     X(vkResetFences);
-    X(vkResetQueryPoolEXT);
+    X(vkResetQueryPool);
     X(vkSetDebugUtilsObjectNameEXT);
     X(vkSetDebugUtilsObjectTagEXT);
     X(vkUnmapMemory);
@@ -198,6 +198,11 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
         Proc(dld.vkGetSemaphoreCounterValue, dld, "vkGetSemaphoreCounterValue", device);
         Proc(dld.vkWaitForFences, dld, "vkWaitForFencesKHR", device);
         Proc(dld.vkWaitSemaphores, dld, "vkWaitSemaphoresKHR", device);
+    }
+
+    // Support for host query reset is mandatory in Vulkan 1.2
+    if (!dld.vkResetQueryPool) {
+        Proc(dld.vkResetQueryPool, dld, "vkResetQueryPoolEXT", device);
     }
 #undef X
 }

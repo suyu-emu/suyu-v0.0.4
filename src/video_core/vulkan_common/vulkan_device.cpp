@@ -77,10 +77,6 @@ enum class NvidiaArchitecture {
 constexpr std::array REQUIRED_EXTENSIONS{
     VK_EXT_VERTEX_ATTRIBUTE_DIVISOR_EXTENSION_NAME,
     VK_EXT_ROBUSTNESS_2_EXTENSION_NAME,
-
-    // Core in 1.2, but required due to use of extension methods,
-    // and well-supported by drivers
-    VK_EXT_HOST_QUERY_RESET_EXTENSION_NAME,
 #ifdef _WIN32
     VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME,
 #endif
@@ -438,8 +434,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     };
     SetNext(next, robustness2);
 
-    VkPhysicalDeviceHostQueryResetFeaturesEXT host_query_reset{
-        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES_EXT,
+    VkPhysicalDeviceHostQueryResetFeatures host_query_reset{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES,
         .pNext = nullptr,
         .hostQueryReset = true,
     };
