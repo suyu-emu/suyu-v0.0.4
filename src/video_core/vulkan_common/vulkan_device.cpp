@@ -980,7 +980,7 @@ void Device::CheckSuitability(bool requires_swapchain) const {
     physical.GetFeatures2KHR(features2);
 
     const VkPhysicalDeviceFeatures& features{features2.features};
-    std::vector feature_report{
+    std::array feature_report{
         std::make_pair(features.robustBufferAccess, "robustBufferAccess"),
         std::make_pair(features.vertexPipelineStoresAndAtomics, "vertexPipelineStoresAndAtomics"),
         std::make_pair(features.imageCubeArray, "imageCubeArray"),
@@ -996,6 +996,7 @@ void Device::CheckSuitability(bool requires_swapchain) const {
         std::make_pair(features.tessellationShader, "tessellationShader"),
         std::make_pair(features.sampleRateShading, "sampleRateShading"),
         std::make_pair(features.dualSrcBlend, "dualSrcBlend"),
+        std::make_pair(features.logicOp, "logicOp"),
         std::make_pair(features.occlusionQueryPrecise, "occlusionQueryPrecise"),
         std::make_pair(features.fragmentStoresAndAtomics, "fragmentStoresAndAtomics"),
         std::make_pair(features.shaderImageGatherExtended, "shaderImageGatherExtended"),
