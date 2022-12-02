@@ -406,8 +406,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     };
     SetNext(next, timeline_semaphore);
 
-    VkPhysicalDevice16BitStorageFeaturesKHR bit16_storage{
-        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_16BIT_STORAGE_FEATURES_KHR,
+    VkPhysicalDevice16BitStorageFeatures bit16_storage{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_16BIT_STORAGE_FEATURES,
         .pNext = nullptr,
         .storageBuffer16BitAccess = true,
         .uniformAndStorageBuffer16BitAccess = true,
