@@ -195,8 +195,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
 
     // Support for timeline semaphores is mandatory in Vulkan 1.2
     if (!dld.vkGetSemaphoreCounterValue) {
-        Proc(dld.vkGetSemaphoreCounterValue, dld, "vkGetSemaphoreCounterValue", device);
-        Proc(dld.vkWaitForFences, dld, "vkWaitForFencesKHR", device);
+        Proc(dld.vkGetSemaphoreCounterValue, dld, "vkGetSemaphoreCounterValueKHR", device);
         Proc(dld.vkWaitSemaphores, dld, "vkWaitSemaphoresKHR", device);
     }
 
