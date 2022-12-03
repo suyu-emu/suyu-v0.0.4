@@ -31,6 +31,7 @@ add_library(audio_core STATIC
     out/audio_out.h
     out/audio_out_system.cpp
     out/audio_out_system.h
+    precompiled_headers.h
     renderer/adsp/adsp.cpp
     renderer/adsp/adsp.h
     renderer/adsp/audio_renderer.cpp
@@ -232,4 +233,8 @@ if(ENABLE_SDL2)
         target_link_libraries(audio_core PRIVATE SDL2)
     endif()
     target_compile_definitions(audio_core PRIVATE HAVE_SDL2)
+endif()
+
+if (YUZU_USE_PRECOMPILED_HEADERS)
+    target_precompile_headers(audio_core PRIVATE precompiled_headers.h)
 endif()

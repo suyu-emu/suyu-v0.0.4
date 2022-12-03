@@ -37,6 +37,7 @@ add_library(common STATIC
     cache_management.cpp
     cache_management.h
     common_funcs.h
+    common_precompiled_headers.h
     common_types.h
     concepts.h
     div_ceil.h
@@ -95,6 +96,7 @@ add_library(common STATIC
     param_package.h
     parent_of_member.h
     point.h
+    precompiled_headers.h
     quaternion.h
     reader_writer_queue.h
     ring_buffer.h
@@ -182,4 +184,8 @@ if (TARGET zstd::zstd)
 else()
   target_link_libraries(common PRIVATE
     $<IF:$<TARGET_EXISTS:zstd::libzstd_shared>,zstd::libzstd_shared,zstd::libzstd_static>)
+endif()
+
+if (YUZU_USE_PRECOMPILED_HEADERS)
+    target_precompile_headers(common PRIVATE precompiled_headers.h)
 endif()
