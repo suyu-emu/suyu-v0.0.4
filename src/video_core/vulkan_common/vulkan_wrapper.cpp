@@ -235,12 +235,13 @@ bool Load(VkInstance instance, InstanceDispatch& dld) noexcept {
     X(vkCreateDebugUtilsMessengerEXT);
     X(vkDestroyDebugUtilsMessengerEXT);
     X(vkDestroySurfaceKHR);
-    X(vkGetPhysicalDeviceFeatures2KHR);
-    X(vkGetPhysicalDeviceProperties2KHR);
+    X(vkGetPhysicalDeviceFeatures2);
+    X(vkGetPhysicalDeviceProperties2);
     X(vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
     X(vkGetPhysicalDeviceSurfaceFormatsKHR);
     X(vkGetPhysicalDeviceSurfacePresentModesKHR);
     X(vkGetPhysicalDeviceSurfaceSupportKHR);
+    X(vkGetPhysicalDeviceToolProperties);
     X(vkGetSwapchainImagesKHR);
     X(vkQueuePresentKHR);
 
@@ -868,20 +869,20 @@ VkPhysicalDeviceProperties PhysicalDevice::GetProperties() const noexcept {
     return properties;
 }
 
-void PhysicalDevice::GetProperties2KHR(VkPhysicalDeviceProperties2KHR& properties) const noexcept {
-    dld->vkGetPhysicalDeviceProperties2KHR(physical_device, &properties);
+void PhysicalDevice::GetProperties2(VkPhysicalDeviceProperties2& properties) const noexcept {
+    dld->vkGetPhysicalDeviceProperties2(physical_device, &properties);
 }
 
 VkPhysicalDeviceFeatures PhysicalDevice::GetFeatures() const noexcept {
-    VkPhysicalDeviceFeatures2KHR features2;
-    features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2_KHR;
+    VkPhysicalDeviceFeatures2 features2;
+    features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
     features2.pNext = nullptr;
-    dld->vkGetPhysicalDeviceFeatures2KHR(physical_device, &features2);
+    dld->vkGetPhysicalDeviceFeatures2(physical_device, &features2);
     return features2.features;
 }
 
-void PhysicalDevice::GetFeatures2KHR(VkPhysicalDeviceFeatures2KHR& features) const noexcept {
-    dld->vkGetPhysicalDeviceFeatures2KHR(physical_device, &features);
+void PhysicalDevice::GetFeatures2(VkPhysicalDeviceFeatures2& features) const noexcept {
+    dld->vkGetPhysicalDeviceFeatures2(physical_device, &features);
 }
 
 VkFormatProperties PhysicalDevice::GetFormatProperties(VkFormat format) const noexcept {
@@ -903,6 +904,18 @@ std::vector<VkQueueFamilyProperties> PhysicalDevice::GetQueueFamilyProperties() 
     dld->vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &num, nullptr);
     std::vector<VkQueueFamilyProperties> properties(num);
     dld->vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &num, properties.data());
+    return properties;
+}
+
+std::vector<VkPhysicalDeviceToolProperties> PhysicalDevice::GetPhysicalDeviceToolProperties()
+    const {
+    u32 num = 0;
+    if (!dld->vkGetPhysicalDeviceToolProperties) {
+        return {};
+    }
+    dld->vkGetPhysicalDeviceToolProperties(physical_device, &num, nullptr);
+    std::vector<VkPhysicalDeviceToolProperties> properties(num);
+    dld->vkGetPhysicalDeviceToolProperties(physical_device, &num, properties.data());
     return properties;
 }
 

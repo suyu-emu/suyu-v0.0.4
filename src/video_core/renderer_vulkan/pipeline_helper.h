@@ -129,7 +129,7 @@ private:
     const Device* device{};
     bool is_compute{};
     boost::container::small_vector<VkDescriptorSetLayoutBinding, 32> bindings;
-    boost::container::small_vector<VkDescriptorUpdateTemplateEntryKHR, 32> entries;
+    boost::container::small_vector<VkDescriptorUpdateTemplateEntry, 32> entries;
     u32 binding{};
     u32 num_descriptors{};
     size_t offset{};

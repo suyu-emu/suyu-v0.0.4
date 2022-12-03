@@ -168,12 +168,13 @@ struct InstanceDispatch {
     PFN_vkEnumerateDeviceExtensionProperties vkEnumerateDeviceExtensionProperties{};
     PFN_vkEnumeratePhysicalDevices vkEnumeratePhysicalDevices{};
     PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr{};
-    PFN_vkGetPhysicalDeviceFeatures2KHR vkGetPhysicalDeviceFeatures2KHR{};
+    PFN_vkGetPhysicalDeviceFeatures2 vkGetPhysicalDeviceFeatures2{};
     PFN_vkGetPhysicalDeviceFormatProperties vkGetPhysicalDeviceFormatProperties{};
     PFN_vkGetPhysicalDeviceMemoryProperties vkGetPhysicalDeviceMemoryProperties{};
     PFN_vkGetPhysicalDeviceMemoryProperties2 vkGetPhysicalDeviceMemoryProperties2{};
     PFN_vkGetPhysicalDeviceProperties vkGetPhysicalDeviceProperties{};
-    PFN_vkGetPhysicalDeviceProperties2KHR vkGetPhysicalDeviceProperties2KHR{};
+    PFN_vkGetPhysicalDeviceProperties2 vkGetPhysicalDeviceProperties2{};
+    PFN_vkGetPhysicalDeviceToolProperties vkGetPhysicalDeviceToolProperties{};
     PFN_vkGetPhysicalDeviceQueueFamilyProperties vkGetPhysicalDeviceQueueFamilyProperties{};
     PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR vkGetPhysicalDeviceSurfaceCapabilitiesKHR{};
     PFN_vkGetPhysicalDeviceSurfaceFormatsKHR vkGetPhysicalDeviceSurfaceFormatsKHR{};
@@ -910,17 +911,19 @@ public:
 
     VkPhysicalDeviceProperties GetProperties() const noexcept;
 
-    void GetProperties2KHR(VkPhysicalDeviceProperties2KHR&) const noexcept;
+    void GetProperties2(VkPhysicalDeviceProperties2&) const noexcept;
 
     VkPhysicalDeviceFeatures GetFeatures() const noexcept;
 
-    void GetFeatures2KHR(VkPhysicalDeviceFeatures2KHR&) const noexcept;
+    void GetFeatures2(VkPhysicalDeviceFeatures2&) const noexcept;
 
     VkFormatProperties GetFormatProperties(VkFormat) const noexcept;
 
     std::vector<VkExtensionProperties> EnumerateDeviceExtensionProperties() const;
 
     std::vector<VkQueueFamilyProperties> GetQueueFamilyProperties() const;
+
+    std::vector<VkPhysicalDeviceToolProperties> GetPhysicalDeviceToolProperties() const;
 
     bool GetSurfaceSupportKHR(u32 queue_family_index, VkSurfaceKHR) const;
 
