@@ -3,6 +3,10 @@
 
 cmake_minimum_required(VERSION 3.22)
 
+# Dynarmic has cmake_minimum_required(3.12) and we may want to override
+# some of its variables, which is only possible in 3.13+
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/cmake-modules")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/find-modules")
@@ -71,7 +75,8 @@ if (YUZU_USE_PRECOMPILED_HEADERS)
         # buildcache does not properly cache PCH files, leading to compilation errors.
         # See https://github.com/mbitsnbites/buildcache/discussions/230
         message(WARNING "buildcache does not properly support Precompiled Headers. Disabling PCH")
-        set(YUZU_USE_PRECOMPILED_HEADERS OFF)
+        set(DYNARMIC_USE_PRECOMPILED_HEADERS OFF CACHE BOOL "" FORCE)
+        set(YUZU_USE_PRECOMPILED_HEADERS OFF CACHE BOOL "" FORCE)
     endif()
 endif()
 if (YUZU_USE_PRECOMPILED_HEADERS)
@@ -444,7 +449,7 @@ if (TARGET Boost::boost)
 endif()
 
 # Ensure libusb is properly configured (based on dolphin libusb include)
-if(NOT APPLE AND NOT YUZU_USE_BUNDLED_LIBUSB)
+if(NOT YUZU_USE_BUNDLED_LIBUSB)
     find_package(PkgConfig)
     if (PKG_CONFIG_FOUND AND NOT CMAKE_SYSTEM_NAME MATCHES "DragonFly|FreeBSD")
         pkg_check_modules(LIBUSB QUIET libusb-1.0>=1.0.24)
@@ -454,7 +459,8 @@ if(NOT APPLE AND NOT YUZU_USE_BUNDLED_LIBUSB)
 
     if (LIBUSB_FOUND)
         add_library(usb INTERFACE)
-        target_include_directories(usb INTERFACE "${LIBUSB_INCLUDE_DIRS}")
+        target_include_directories(usb INTERFACE "${LIBUSB_INCLUDEDIR}" "${LIBUSB_INCLUDE_DIRS}")
+        target_link_directories(usb INTERFACE "${LIBUSB_LIBRARY_DIRS}")
         target_link_libraries(usb INTERFACE "${LIBUSB_LIBRARIES}")
     else()
         message(WARNING "libusb not found, falling back to externals")
