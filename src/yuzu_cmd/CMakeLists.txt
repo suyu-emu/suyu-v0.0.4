@@ -46,8 +46,9 @@ target_include_directories(yuzu-cmd PRIVATE ${RESOURCES_DIR})
 target_include_directories(yuzu-cmd PRIVATE ../../externals/Vulkan-Headers/include)
 
 if (YUZU_USE_EXTERNAL_SDL2)
-    target_compile_definitions(yuzu-cmd PRIVATE -DYUZU_USE_EXTERNAL_SDL2)
-    target_include_directories(yuzu-cmd PRIVATE ${PROJECT_BINARY_DIR}/externals/SDL/include)
+    target_link_libraries(yuzu-cmd PRIVATE SDL2-static)
+else()
+    target_link_libraries(yuzu-cmd PRIVATE SDL2)
 endif()
 
 if(UNIX AND NOT APPLE)

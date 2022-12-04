@@ -12,9 +12,6 @@ endif()
 
 # Dynarmic
 if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
-    if (ARCHITECTURE_arm64)
-       set(DYNARMIC_FRONTENDS "A32")
-    endif()
     set(DYNARMIC_NO_BUNDLED_FMT ON)
     set(DYNARMIC_IGNORE_ASSERTS ON CACHE BOOL "" FORCE)
     add_subdirectory(dynarmic)
@@ -72,6 +69,7 @@ if (YUZU_USE_EXTERNAL_SDL2)
     endif()
 
     add_subdirectory(SDL EXCLUDE_FROM_ALL)
+    target_link_directories(SDL2-static INTERFACE "${SDL2_BINARY_DIR}")
 endif()
 
 # ENet
