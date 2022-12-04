@@ -7,7 +7,7 @@ include(DownloadExternals)
 
 # xbyak
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
-    add_subdirectory(xbyak)
+    add_subdirectory(xbyak EXCLUDE_FROM_ALL)
 endif()
 
 # Dynarmic
