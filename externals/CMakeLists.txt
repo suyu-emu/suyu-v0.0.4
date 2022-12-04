@@ -69,7 +69,6 @@ if (YUZU_USE_EXTERNAL_SDL2)
     endif()
 
     add_subdirectory(SDL EXCLUDE_FROM_ALL)
-    target_link_directories(SDL2-static INTERFACE "${SDL2_BINARY_DIR}")
 endif()
 
 # ENet

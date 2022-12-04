@@ -38,7 +38,7 @@ target_link_libraries(yuzu-cmd PRIVATE inih glad)
 if (MSVC)
     target_link_libraries(yuzu-cmd PRIVATE getopt)
 endif()
-target_link_libraries(yuzu-cmd PRIVATE ${PLATFORM_LIBRARIES} SDL2 Threads::Threads)
+target_link_libraries(yuzu-cmd PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
 
 create_resource("../../dist/yuzu.bmp" "yuzu_cmd/yuzu_icon.h" "yuzu_icon")
 target_include_directories(yuzu-cmd PRIVATE ${RESOURCES_DIR})
