@@ -50,8 +50,13 @@ enum : u8 {
     DepthBiasEnable,
     StateEnable,
     LogicOp,
+    LogicOpEnable,
+    DepthClampEnable,
 
     Blending,
+    BlendEnable,
+    BlendEquations,
+    ColorMask,
     ViewportSwizzles,
 
     Last,
@@ -144,6 +149,14 @@ public:
         return Exchange(Dirty::DepthBiasEnable, false);
     }
 
+    bool TouchLogicOpEnable() {
+        return Exchange(Dirty::LogicOpEnable, false);
+    }
+
+    bool TouchDepthClampEnable() {
+        return Exchange(Dirty::DepthClampEnable, false);
+    }
+
     bool TouchDepthCompareOp() {
         return Exchange(Dirty::DepthCompareOp, false);
     }
@@ -154,6 +167,22 @@ public:
 
     bool TouchStencilOp() {
         return Exchange(Dirty::StencilOp, false);
+    }
+
+    bool TouchBlending() {
+        return Exchange(Dirty::Blending, false);
+    }
+
+    bool TouchBlendEnable() {
+        return Exchange(Dirty::BlendEnable, false);
+    }
+
+    bool TouchBlendEquations() {
+        return Exchange(Dirty::BlendEquations, false);
+    }
+
+    bool TouchColorMask() {
+        return Exchange(Dirty::ColorMask, false);
     }
 
     bool TouchStencilTestEnable() {

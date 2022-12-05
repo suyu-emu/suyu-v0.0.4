@@ -489,9 +489,11 @@ void GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling,
         if (bind_pipeline) {
             cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *pipeline);
         }
-        cmdbuf.PushConstants(*pipeline_layout, VK_SHADER_STAGE_ALL_GRAPHICS,
-                             RESCALING_LAYOUT_WORDS_OFFSET, sizeof(rescaling_data),
-                             rescaling_data.data());
+        if (is_rescaling) {
+            cmdbuf.PushConstants(*pipeline_layout, VK_SHADER_STAGE_ALL_GRAPHICS,
+                                RESCALING_LAYOUT_WORDS_OFFSET, sizeof(rescaling_data),
+                                rescaling_data.data());
+        }
         if (update_rescaling) {
             const f32 config_down_factor{Settings::values.resolution_info.down_factor};
             const f32 scale_down_factor{is_rescaling ? config_down_factor : 1.0f};
@@ -524,9 +526,8 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
     FixedPipelineState::DynamicState dynamic{};
     if (!key.state.extended_dynamic_state) {
         dynamic = key.state.dynamic_state;
-    }
-    if (!key.state.extended_dynamic_state_2) {
-        dynamic.raw2 = key.state.dynamic_state.raw2;
+    } else {
+        dynamic.raw1 = key.state.dynamic_state.raw1;
     }
     static_vector<VkVertexInputBindingDescription, 32> vertex_bindings;
     static_vector<VkVertexInputBindingDivisorDescriptionEXT, 32> vertex_binding_divisors;
@@ -564,7 +565,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
                 instanced ? VK_VERTEX_INPUT_RATE_INSTANCE : VK_VERTEX_INPUT_RATE_VERTEX;
             vertex_bindings.push_back({
                 .binding = static_cast<u32>(index),
-                .stride = dynamic.vertex_strides[index],
+                .stride = key.state.vertex_strides[index],
                 .inputRate = rate,
             });
             if (instanced) {
@@ -675,7 +676,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .pNext = nullptr,
         .flags = 0,
         .depthClampEnable =
-            static_cast<VkBool32>(key.state.depth_clamp_disabled == 0 ? VK_TRUE : VK_FALSE),
+            static_cast<VkBool32>(dynamic.depth_clamp_disabled == 0 ? VK_TRUE : VK_FALSE),
         .rasterizerDiscardEnable =
             static_cast<VkBool32>(dynamic.rasterize_enable == 0 ? VK_TRUE : VK_FALSE),
         .polygonMode =
@@ -785,13 +786,13 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .logicOpEnable = key.state.logic_op_enable != 0,
+        .logicOpEnable = dynamic.logic_op_enable != 0,
         .logicOp = static_cast<VkLogicOp>(dynamic.logic_op.Value()),
         .attachmentCount = static_cast<u32>(cb_attachments.size()),
         .pAttachments = cb_attachments.data(),
         .blendConstants = {},
     };
-    static_vector<VkDynamicState, 23> dynamic_states{
+    static_vector<VkDynamicState, 28> dynamic_states{
         VK_DYNAMIC_STATE_VIEWPORT,           VK_DYNAMIC_STATE_SCISSOR,
         VK_DYNAMIC_STATE_DEPTH_BIAS,         VK_DYNAMIC_STATE_BLEND_CONSTANTS,
         VK_DYNAMIC_STATE_DEPTH_BOUNDS,       VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK,
@@ -824,6 +825,21 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         }
         if (key.state.extended_dynamic_state_2_extra) {
             dynamic_states.push_back(VK_DYNAMIC_STATE_LOGIC_OP_EXT);
+        }
+        if (key.state.extended_dynamic_state_3_blend) {
+            static constexpr std::array extended3{
+                VK_DYNAMIC_STATE_COLOR_BLEND_ENABLE_EXT,
+                VK_DYNAMIC_STATE_COLOR_BLEND_EQUATION_EXT,
+                VK_DYNAMIC_STATE_COLOR_WRITE_MASK_EXT,
+            };
+            dynamic_states.insert(dynamic_states.end(), extended3.begin(), extended3.end());
+        }
+        if (key.state.extended_dynamic_state_3_enables) {
+            static constexpr std::array extended3{
+                VK_DYNAMIC_STATE_DEPTH_CLAMP_ENABLE_EXT,
+                VK_DYNAMIC_STATE_LOGIC_OP_ENABLE_EXT,
+            };
+            dynamic_states.insert(dynamic_states.end(), extended3.begin(), extended3.end());
         }
     }
     const VkPipelineDynamicStateCreateInfo dynamic_state_ci{

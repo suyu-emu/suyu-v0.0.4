@@ -237,6 +237,8 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdSetPrimitiveRestartEnableEXT vkCmdSetPrimitiveRestartEnableEXT{};
     PFN_vkCmdSetRasterizerDiscardEnableEXT vkCmdSetRasterizerDiscardEnableEXT{};
     PFN_vkCmdSetDepthBiasEnableEXT vkCmdSetDepthBiasEnableEXT{};
+    PFN_vkCmdSetLogicOpEnableEXT vkCmdSetLogicOpEnableEXT{};
+    PFN_vkCmdSetDepthClampEnableEXT vkCmdSetDepthClampEnableEXT{};
     PFN_vkCmdSetEvent vkCmdSetEvent{};
     PFN_vkCmdSetFrontFaceEXT vkCmdSetFrontFaceEXT{};
     PFN_vkCmdSetPatchControlPointsEXT vkCmdSetPatchControlPointsEXT{};
@@ -251,6 +253,9 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdSetStencilWriteMask vkCmdSetStencilWriteMask{};
     PFN_vkCmdSetVertexInputEXT vkCmdSetVertexInputEXT{};
     PFN_vkCmdSetViewport vkCmdSetViewport{};
+    PFN_vkCmdSetColorWriteMaskEXT vkCmdSetColorWriteMaskEXT{};
+    PFN_vkCmdSetColorBlendEnableEXT vkCmdSetColorBlendEnableEXT{};
+    PFN_vkCmdSetColorBlendEquationEXT vkCmdSetColorBlendEquationEXT{};
     PFN_vkCmdWaitEvents vkCmdWaitEvents{};
     PFN_vkCreateBuffer vkCreateBuffer{};
     PFN_vkCreateBufferView vkCreateBufferView{};
@@ -1236,6 +1241,14 @@ public:
         dld->vkCmdSetDepthBiasEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
     }
 
+    void SetLogicOpEnableEXT(bool enable) const noexcept {
+        dld->vkCmdSetLogicOpEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
+    }
+
+    void SetDepthClampEnableEXT(bool enable) const noexcept {
+        dld->vkCmdSetDepthClampEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
+    }
+
     void SetFrontFaceEXT(VkFrontFace front_face) const noexcept {
         dld->vkCmdSetFrontFaceEXT(handle, front_face);
     }
@@ -1246,6 +1259,18 @@ public:
 
     void SetPatchControlPointsEXT(uint32_t patch_control_points) const noexcept {
         dld->vkCmdSetPatchControlPointsEXT(handle, patch_control_points);
+    }
+
+    void SetColorWriteMaskEXT(u32 first, Span<VkColorComponentFlags> masks) const noexcept {
+        dld->vkCmdSetColorWriteMaskEXT(handle, first, masks.size(), masks.data());
+    }
+
+    void SetColorBlendEnableEXT(u32 first, Span<VkBool32> enables) const noexcept {
+        dld->vkCmdSetColorBlendEnableEXT(handle, first, enables.size(), enables.data());
+    }
+
+    void SetColorBlendEquationEXT(u32 first, Span<VkColorBlendEquationEXT> equations) const noexcept {
+        dld->vkCmdSetColorBlendEquationEXT(handle, first, equations.size(), equations.data());
     }
 
     void SetLineWidth(float line_width) const noexcept {

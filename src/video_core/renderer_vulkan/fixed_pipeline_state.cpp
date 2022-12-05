@@ -56,22 +56,16 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     extended_dynamic_state.Assign(features.has_extended_dynamic_state ? 1 : 0);
     extended_dynamic_state_2.Assign(features.has_extended_dynamic_state_2 ? 1 : 0);
     extended_dynamic_state_2_extra.Assign(features.has_extended_dynamic_state_2_extra ? 1 : 0);
-    extended_dynamic_state_3.Assign(features.has_extended_dynamic_state_3 ? 1 : 0);
+    extended_dynamic_state_3_blend.Assign(features.has_extended_dynamic_state_3_blend ? 1 : 0);
+    extended_dynamic_state_3_enables.Assign(features.has_extended_dynamic_state_3_enables ? 1 : 0);
     dynamic_vertex_input.Assign(features.has_dynamic_vertex_input ? 1 : 0);
     xfb_enabled.Assign(regs.transform_feedback_enabled != 0);
-    depth_clamp_disabled.Assign(regs.viewport_clip_control.geometry_clip ==
-                                    Maxwell::ViewportClipControl::GeometryClip::Passthrough ||
-                                regs.viewport_clip_control.geometry_clip ==
-                                    Maxwell::ViewportClipControl::GeometryClip::FrustumXYZ ||
-                                regs.viewport_clip_control.geometry_clip ==
-                                    Maxwell::ViewportClipControl::GeometryClip::FrustumZ);
     ndc_minus_one_to_one.Assign(regs.depth_mode == Maxwell::DepthMode::MinusOneToOne ? 1 : 0);
     polygon_mode.Assign(PackPolygonMode(regs.polygon_mode_front));
     tessellation_primitive.Assign(static_cast<u32>(regs.tessellation.params.domain_type.Value()));
     tessellation_spacing.Assign(static_cast<u32>(regs.tessellation.params.spacing.Value()));
     tessellation_clockwise.Assign(regs.tessellation.params.output_primitives.Value() ==
                                   Maxwell::Tessellation::OutputPrimitives::Triangles_CW);
-    logic_op_enable.Assign(regs.logic_op.enable != 0 ? 1 : 0);
     patch_control_points_minus_one.Assign(regs.patch_vertices - 1);
     topology.Assign(topology_);
     msaa_mode.Assign(regs.anti_alias_samples_mode);
@@ -138,12 +132,6 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
             }
         }
     }
-    if (maxwell3d.dirty.flags[Dirty::Blending]) {
-        maxwell3d.dirty.flags[Dirty::Blending] = false;
-        for (size_t index = 0; index < attachments.size(); ++index) {
-            attachments[index].Refresh(regs, index);
-        }
-    }
     if (maxwell3d.dirty.flags[Dirty::ViewportSwizzles]) {
         maxwell3d.dirty.flags[Dirty::ViewportSwizzles] = false;
         const auto& transform = regs.viewport_transform;
@@ -155,11 +143,22 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     dynamic_state.raw2 = 0;
     if (!extended_dynamic_state) {
         dynamic_state.Refresh(regs);
+        std::ranges::transform(regs.vertex_streams, vertex_strides.begin(), [](const auto& array) {
+            return static_cast<u16>(array.stride.Value());
+        });
     }
     if (!extended_dynamic_state_2_extra) {
         dynamic_state.Refresh2(regs, topology, extended_dynamic_state_2);
     }
-    if (!extended_dynamic_state_3) {
+    if (!extended_dynamic_state_3_blend) {
+        if (maxwell3d.dirty.flags[Dirty::Blending]) {
+            maxwell3d.dirty.flags[Dirty::Blending] = false;
+            for (size_t index = 0; index < attachments.size(); ++index) {
+                attachments[index].Refresh(regs, index);
+            }
+        }
+    }
+    if (!extended_dynamic_state_3_enables) {
         dynamic_state.Refresh3(regs);
     }
     if (xfb_enabled) {
@@ -177,12 +176,11 @@ void FixedPipelineState::BlendingAttachment::Refresh(const Maxwell& regs, size_t
     mask_a.Assign(mask.A);
 
     // TODO: C++20 Use templated lambda to deduplicate code
+    if (!regs.blend.enable[index]) {
+        return;
+    }
 
-    if (!regs.blend_per_target_enabled) {
-        if (!regs.blend.enable[index]) {
-            return;
-        }
-        const auto& src = regs.blend;
+    const auto setup_blend = [&]<typename T>(const T& src) {
         equation_rgb.Assign(PackBlendEquation(src.color_op));
         equation_a.Assign(PackBlendEquation(src.alpha_op));
         factor_source_rgb.Assign(PackBlendFactor(src.color_source));
@@ -190,20 +188,13 @@ void FixedPipelineState::BlendingAttachment::Refresh(const Maxwell& regs, size_t
         factor_source_a.Assign(PackBlendFactor(src.alpha_source));
         factor_dest_a.Assign(PackBlendFactor(src.alpha_dest));
         enable.Assign(1);
-        return;
-    }
+    };
 
-    if (!regs.blend.enable[index]) {
+    if (!regs.blend_per_target_enabled) {
+        setup_blend(regs.blend);
         return;
     }
-    const auto& src = regs.blend_per_target[index];
-    equation_rgb.Assign(PackBlendEquation(src.color_op));
-    equation_a.Assign(PackBlendEquation(src.alpha_op));
-    factor_source_rgb.Assign(PackBlendFactor(src.color_source));
-    factor_dest_rgb.Assign(PackBlendFactor(src.color_dest));
-    factor_source_a.Assign(PackBlendFactor(src.alpha_source));
-    factor_dest_a.Assign(PackBlendFactor(src.alpha_dest));
-    enable.Assign(1);
+    setup_blend(regs.blend_per_target[index]);
 }
 
 void FixedPipelineState::DynamicState::Refresh(const Maxwell& regs) {
@@ -236,12 +227,11 @@ void FixedPipelineState::DynamicState::Refresh(const Maxwell& regs) {
     depth_test_func.Assign(PackComparisonOp(regs.depth_test_func));
     cull_face.Assign(PackCullFace(regs.gl_cull_face));
     cull_enable.Assign(regs.gl_cull_test_enabled != 0 ? 1 : 0);
-    std::ranges::transform(regs.vertex_streams, vertex_strides.begin(), [](const auto& array) {
-        return static_cast<u16>(array.stride.Value());
-    });
 }
 
-void FixedPipelineState::DynamicState::Refresh2(const Maxwell& regs, Maxwell::PrimitiveTopology topology_, bool base_feautures_supported) {
+void FixedPipelineState::DynamicState::Refresh2(const Maxwell& regs,
+                                                Maxwell::PrimitiveTopology topology_,
+                                                bool base_feautures_supported) {
     logic_op.Assign(PackLogicOp(regs.logic_op.op));
 
     if (base_feautures_supported) {
@@ -260,7 +250,15 @@ void FixedPipelineState::DynamicState::Refresh2(const Maxwell& regs, Maxwell::Pr
     depth_bias_enable.Assign(enabled_lut[POLYGON_OFFSET_ENABLE_LUT[topology_index]] != 0 ? 1 : 0);
 }
 
-void FixedPipelineState::DynamicState::Refresh3(const Maxwell&) {}
+void FixedPipelineState::DynamicState::Refresh3(const Maxwell& regs) {
+    logic_op_enable.Assign(regs.logic_op.enable != 0 ? 1 : 0);
+    depth_clamp_disabled.Assign(regs.viewport_clip_control.geometry_clip ==
+                                    Maxwell::ViewportClipControl::GeometryClip::Passthrough ||
+                                regs.viewport_clip_control.geometry_clip ==
+                                    Maxwell::ViewportClipControl::GeometryClip::FrustumXYZ ||
+                                regs.viewport_clip_control.geometry_clip ==
+                                    Maxwell::ViewportClipControl::GeometryClip::FrustumZ);
+}
 
 size_t FixedPipelineState::Hash() const noexcept {
     const u64 hash = Common::CityHash64(reinterpret_cast<const char*>(this), Size());

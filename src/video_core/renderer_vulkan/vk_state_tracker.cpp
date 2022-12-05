@@ -48,7 +48,13 @@ Flags MakeInvalidationFlags() {
         PrimitiveRestartEnable,
         RasterizerDiscardEnable,
         DepthBiasEnable,
+        LogicOpEnable,
+        DepthClampEnable,
         LogicOp,
+        Blending,
+        ColorMask,
+        BlendEquations,
+        BlendEnable,
     };
     Flags flags{};
     for (const int flag : INVALIDATION_FLAGS) {
@@ -128,6 +134,8 @@ void SetupDirtyStateEnable(Tables& tables) {
     setup(OFF(polygon_offset_point_enable), DepthBiasEnable);
     setup(OFF(polygon_offset_line_enable), DepthBiasEnable);
     setup(OFF(polygon_offset_fill_enable), DepthBiasEnable);
+    setup(OFF(logic_op.enable), LogicOpEnable);
+    setup(OFF(viewport_clip_control.geometry_clip), DepthClampEnable);
 }
 
 void SetupDirtyDepthCompareOp(Tables& tables) {
@@ -157,10 +165,16 @@ void SetupDirtyStencilOp(Tables& tables) {
 
 void SetupDirtyBlending(Tables& tables) {
     tables[0][OFF(color_mask_common)] = Blending;
+    tables[1][OFF(color_mask_common)] = ColorMask;
     tables[0][OFF(blend_per_target_enabled)] = Blending;
+    tables[1][OFF(blend_per_target_enabled)] = BlendEquations;
     FillBlock(tables[0], OFF(color_mask), NUM(color_mask), Blending);
+    FillBlock(tables[1], OFF(color_mask), NUM(color_mask), ColorMask);
     FillBlock(tables[0], OFF(blend), NUM(blend), Blending);
+    FillBlock(tables[1], OFF(blend), NUM(blend), BlendEquations);
+    FillBlock(tables[1], OFF(blend.enable), NUM(blend.enable), BlendEnable);
     FillBlock(tables[0], OFF(blend_per_target), NUM(blend_per_target), Blending);
+    FillBlock(tables[1], OFF(blend_per_target), NUM(blend_per_target), BlendEquations);
 }
 
 void SetupDirtySpecialOps(Tables& tables) {

@@ -356,7 +356,8 @@ PipelineCache::PipelineCache(RasterizerVulkan& rasterizer_, const Device& device
         .has_extended_dynamic_state = device.IsExtExtendedDynamicStateSupported(),
         .has_extended_dynamic_state_2 = device.IsExtExtendedDynamicState2Supported(),
         .has_extended_dynamic_state_2_extra = device.IsExtExtendedDynamicState2ExtrasSupported(),
-        .has_extended_dynamic_state_3 = device.IsExtExtendedDynamicState3Supported(),
+        .has_extended_dynamic_state_3_blend = device.IsExtExtendedDynamicState3BlendingSupported(),
+        .has_extended_dynamic_state_3_enables = device.IsExtExtendedDynamicState3EnablesSupported(),
         .has_dynamic_vertex_input = device.IsExtVertexInputDynamicStateSupported(),
     };
 }
@@ -456,8 +457,10 @@ void PipelineCache::LoadDiskResources(u64 title_id, std::stop_token stop_loading
                 dynamic_features.has_extended_dynamic_state_2 ||
             (key.state.extended_dynamic_state_2_extra != 0) !=
                 dynamic_features.has_extended_dynamic_state_2_extra ||
-            (key.state.extended_dynamic_state_3 != 0) !=
-                dynamic_features.has_extended_dynamic_state_3 ||
+            (key.state.extended_dynamic_state_3_blend != 0) !=
+                dynamic_features.has_extended_dynamic_state_3_blend ||
+            (key.state.extended_dynamic_state_3_enables != 0) !=
+                dynamic_features.has_extended_dynamic_state_3_enables ||
             (key.state.dynamic_vertex_input != 0) != dynamic_features.has_dynamic_vertex_input) {
             return;
         }

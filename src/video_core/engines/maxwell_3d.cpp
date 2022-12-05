@@ -124,7 +124,6 @@ void Maxwell3D::InitializeRegisterDefaults() {
     regs.gl_front_face = Maxwell3D::Regs::FrontFace::ClockWise;
     regs.polygon_mode_back = Maxwell3D::Regs::PolygonMode::Fill;
     regs.polygon_mode_front = Maxwell3D::Regs::PolygonMode::Fill;
-    regs.logic_op.op = Maxwell3D::Regs::LogicOp::Op::Clear;
 
     shadow_state = regs;
 }

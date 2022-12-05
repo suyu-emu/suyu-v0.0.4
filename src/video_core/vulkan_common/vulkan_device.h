@@ -288,16 +288,26 @@ public:
 
     /// Returns true if the device supports VK_EXT_extended_dynamic_state2.
     bool IsExtExtendedDynamicState2Supported() const {
-        return ext_extended_dynamic_state2;
+        return ext_extended_dynamic_state_2;
     }
 
     bool IsExtExtendedDynamicState2ExtrasSupported() const {
-        return ext_extended_dynamic_state2_extra;
+        return ext_extended_dynamic_state_2_extra;
     }
 
     /// Returns true if the device supports VK_EXT_extended_dynamic_state3.
     bool IsExtExtendedDynamicState3Supported() const {
-        return ext_extended_dynamic_state3;
+        return ext_extended_dynamic_state_3;
+    }
+
+    /// Returns true if the device supports VK_EXT_extended_dynamic_state3.
+    bool IsExtExtendedDynamicState3BlendingSupported() const {
+        return ext_extended_dynamic_state_3_blend;
+    }
+
+    /// Returns true if the device supports VK_EXT_extended_dynamic_state3.
+    bool IsExtExtendedDynamicState3EnablesSupported() const {
+        return ext_extended_dynamic_state_3_enables;
     }
 
     /// Returns true if the device supports VK_EXT_line_rasterization.
@@ -482,9 +492,11 @@ private:
     bool ext_transform_feedback{};          ///< Support for VK_EXT_transform_feedback.
     bool ext_custom_border_color{};         ///< Support for VK_EXT_custom_border_color.
     bool ext_extended_dynamic_state{};      ///< Support for VK_EXT_extended_dynamic_state.
-    bool ext_extended_dynamic_state2{};      ///< Support for VK_EXT_extended_dynamic_state2.
-    bool ext_extended_dynamic_state2_extra{}; ///< Support for VK_EXT_extended_dynamic_state2.
-    bool ext_extended_dynamic_state3{};      ///< Support for VK_EXT_extended_dynamic_state3.
+    bool ext_extended_dynamic_state_2{};      ///< Support for VK_EXT_extended_dynamic_state2.
+    bool ext_extended_dynamic_state_2_extra{}; ///< Support for VK_EXT_extended_dynamic_state2.
+    bool ext_extended_dynamic_state_3{};      ///< Support for VK_EXT_extended_dynamic_state3.
+    bool ext_extended_dynamic_state_3_blend{};      ///< Support for VK_EXT_extended_dynamic_state3.
+    bool ext_extended_dynamic_state_3_enables{};      ///< Support for VK_EXT_extended_dynamic_state3.
     bool ext_line_rasterization{};          ///< Support for VK_EXT_line_rasterization.
     bool ext_vertex_input_dynamic_state{};  ///< Support for VK_EXT_vertex_input_dynamic_state.
     bool ext_shader_stencil_export{};       ///< Support for VK_EXT_shader_stencil_export.

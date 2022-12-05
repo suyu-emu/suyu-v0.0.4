@@ -698,9 +698,16 @@ void RasterizerVulkan::UpdateDynamicStates() {
                 UpdateRasterizerDiscardEnable(regs);
                 UpdateDepthBiasEnable(regs);
             }
+            if (device.IsExtExtendedDynamicState3EnablesSupported()) {
+                UpdateLogicOpEnable(regs);
+                UpdateDepthClampEnable(regs);
+            }
         }
         if (device.IsExtExtendedDynamicState2ExtrasSupported()) {
             UpdateLogicOp(regs);
+        }
+        if (device.IsExtExtendedDynamicState3Supported()) {
+            UpdateBlending(regs);
         }
     }
 }
@@ -970,7 +977,30 @@ void RasterizerVulkan::UpdateDepthBiasEnable(Tegra::Engines::Maxwell3D::Regs& re
     };
     const u32 topology_index = static_cast<u32>(maxwell3d->draw_manager->GetDrawState().topology);
     const u32 enable = enabled_lut[POLYGON_OFFSET_ENABLE_LUT[topology_index]];
-    scheduler.Record([enable](vk::CommandBuffer cmdbuf) { cmdbuf.SetDepthBiasEnableEXT(enable); });
+    scheduler.Record([enable](vk::CommandBuffer cmdbuf) { cmdbuf.SetDepthBiasEnableEXT(enable != 0); });
+}
+
+void RasterizerVulkan::UpdateLogicOpEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchLogicOpEnable()) {
+        return;
+    }
+    scheduler.Record([enable = regs.logic_op.enable](vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetLogicOpEnableEXT(enable != 0);
+    });
+}
+
+void RasterizerVulkan::UpdateDepthClampEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchDepthClampEnable()) {
+        return;
+    }
+    bool is_enabled = !(regs.viewport_clip_control.geometry_clip ==
+                                 Maxwell::ViewportClipControl::GeometryClip::Passthrough ||
+                             regs.viewport_clip_control.geometry_clip ==
+                                 Maxwell::ViewportClipControl::GeometryClip::FrustumXYZ ||
+                             regs.viewport_clip_control.geometry_clip ==
+                                 Maxwell::ViewportClipControl::GeometryClip::FrustumZ);
+    scheduler.Record(
+        [is_enabled](vk::CommandBuffer cmdbuf) { cmdbuf.SetDepthClampEnableEXT(is_enabled); });
 }
 
 void RasterizerVulkan::UpdateDepthCompareOp(Tegra::Engines::Maxwell3D::Regs& regs) {
@@ -1039,6 +1069,68 @@ void RasterizerVulkan::UpdateLogicOp(Tegra::Engines::Maxwell3D::Regs& regs) {
     }
     auto op = static_cast<VkLogicOp>(static_cast<u32>(regs.logic_op.op) - 0x1500);
     scheduler.Record([op](vk::CommandBuffer cmdbuf) { cmdbuf.SetLogicOpEXT(op); });
+}
+
+void RasterizerVulkan::UpdateBlending(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchBlending()) {
+        return;
+    }
+
+    if (state_tracker.TouchColorMask()) {
+        std::array<VkColorComponentFlags, Maxwell::NumRenderTargets> setup_masks{};
+        for (size_t index = 0; index < Maxwell::NumRenderTargets; index++) {
+            const auto& mask = regs.color_mask[regs.color_mask_common ? 0 : index];
+            auto& current = setup_masks[index];
+            if (mask.R) {
+                current |= VK_COLOR_COMPONENT_R_BIT;
+            }
+            if (mask.G) {
+                current |= VK_COLOR_COMPONENT_G_BIT;
+            }
+            if (mask.B) {
+                current |= VK_COLOR_COMPONENT_B_BIT;
+            }
+            if (mask.A) {
+                current |= VK_COLOR_COMPONENT_A_BIT;
+            }
+        }
+        scheduler.Record([setup_masks](vk::CommandBuffer cmdbuf) {
+            cmdbuf.SetColorWriteMaskEXT(0, setup_masks);
+        });
+    }
+
+    if (state_tracker.TouchBlendEnable()) {
+        std::array<VkBool32, Maxwell::NumRenderTargets> setup_enables{};
+        std::ranges::transform(
+            regs.blend.enable, setup_enables.begin(),
+            [&](const auto& is_enabled) { return is_enabled != 0 ? VK_TRUE : VK_FALSE; });
+        scheduler.Record([setup_enables](vk::CommandBuffer cmdbuf) {
+            cmdbuf.SetColorBlendEnableEXT(0, setup_enables);
+        });
+    }
+
+    if (state_tracker.TouchBlendEquations()) {
+        std::array<VkColorBlendEquationEXT, Maxwell::NumRenderTargets> setup_blends{};
+        for (size_t index = 0; index < Maxwell::NumRenderTargets; index++) {
+            const auto blend_setup = [&]<typename T>(const T& guest_blend) {
+                auto& host_blend = setup_blends[index];
+                host_blend.srcColorBlendFactor = MaxwellToVK::BlendFactor(guest_blend.color_source);
+                host_blend.dstColorBlendFactor = MaxwellToVK::BlendFactor(guest_blend.color_dest);
+                host_blend.colorBlendOp = MaxwellToVK::BlendEquation(guest_blend.color_op);
+                host_blend.srcAlphaBlendFactor = MaxwellToVK::BlendFactor(guest_blend.alpha_source);
+                host_blend.dstAlphaBlendFactor = MaxwellToVK::BlendFactor(guest_blend.alpha_dest);
+                host_blend.alphaBlendOp = MaxwellToVK::BlendEquation(guest_blend.alpha_op);
+            };
+            if (!regs.blend_per_target_enabled) {
+                blend_setup(regs.blend);
+                continue;
+            }
+            blend_setup(regs.blend_per_target[index]);
+        }
+        scheduler.Record([setup_blends](vk::CommandBuffer cmdbuf) {
+            cmdbuf.SetColorBlendEquationEXT(0, setup_blends);
+        });
+    }
 }
 
 void RasterizerVulkan::UpdateStencilTestEnable(Tegra::Engines::Maxwell3D::Regs& regs) {

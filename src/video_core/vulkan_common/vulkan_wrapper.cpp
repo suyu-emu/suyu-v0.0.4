@@ -125,6 +125,8 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdSetPrimitiveRestartEnableEXT);
     X(vkCmdSetRasterizerDiscardEnableEXT);
     X(vkCmdSetDepthBiasEnableEXT);
+    X(vkCmdSetLogicOpEnableEXT);
+    X(vkCmdSetDepthClampEnableEXT);
     X(vkCmdSetFrontFaceEXT);
     X(vkCmdSetLogicOpEXT);
     X(vkCmdSetPatchControlPointsEXT);
@@ -133,6 +135,9 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdSetStencilOpEXT);
     X(vkCmdSetStencilTestEnableEXT);
     X(vkCmdSetVertexInputEXT);
+    X(vkCmdSetColorWriteMaskEXT);
+    X(vkCmdSetColorBlendEnableEXT);
+    X(vkCmdSetColorBlendEquationEXT);
     X(vkCmdResolveImage);
     X(vkCreateBuffer);
     X(vkCreateBufferView);

@@ -21,7 +21,8 @@ struct DynamicFeatures {
     bool has_extended_dynamic_state;
     bool has_extended_dynamic_state_2;
     bool has_extended_dynamic_state_2_extra;
-    bool has_extended_dynamic_state_3;
+    bool has_extended_dynamic_state_3_blend;
+    bool has_extended_dynamic_state_3_enables;
     bool has_dynamic_vertex_input;
 };
 
@@ -147,6 +148,8 @@ struct FixedPipelineState {
             BitField<4, 1, u32> depth_bias_enable;
             BitField<5, 1, u32> rasterize_enable;
             BitField<6, 4, u32> logic_op;
+            BitField<10, 1, u32> logic_op_enable;
+            BitField<11, 1, u32> depth_clamp_disabled;
         };
         union {
             u32 raw2;
@@ -159,8 +162,6 @@ struct FixedPipelineState {
             BitField<28, 1, u32> front_face;
             BitField<29, 3, u32> depth_test_func;
         };
-        // Vertex stride is a 12 bits value, we have 4 bits to spare per element
-        std::array<u16, Maxwell::NumVertexArrays> vertex_strides;
 
         void Refresh(const Maxwell& regs);
         void Refresh2(const Maxwell& regs, Maxwell::PrimitiveTopology topology, bool base_feautures_supported);
@@ -184,17 +185,16 @@ struct FixedPipelineState {
         BitField<0, 1, u32> extended_dynamic_state;
         BitField<1, 1, u32> extended_dynamic_state_2;
         BitField<2, 1, u32> extended_dynamic_state_2_extra;
-        BitField<3, 1, u32> extended_dynamic_state_3;
-        BitField<4, 1, u32> dynamic_vertex_input;
-        BitField<5, 1, u32> xfb_enabled;
-        BitField<6, 1, u32> depth_clamp_disabled;
+        BitField<3, 1, u32> extended_dynamic_state_3_blend;
+        BitField<4, 1, u32> extended_dynamic_state_3_enables;
+        BitField<5, 1, u32> dynamic_vertex_input;
+        BitField<6, 1, u32> xfb_enabled;
         BitField<7, 1, u32> ndc_minus_one_to_one;
         BitField<8, 2, u32> polygon_mode;
         BitField<10, 2, u32> tessellation_primitive;
         BitField<12, 2, u32> tessellation_spacing;
         BitField<14, 1, u32> tessellation_clockwise;
-        BitField<15, 1, u32> logic_op_enable;
-        BitField<16, 5, u32> patch_control_points_minus_one;
+        BitField<15, 5, u32> patch_control_points_minus_one;
 
         BitField<24, 4, Maxwell::PrimitiveTopology> topology;
         BitField<28, 4, Tegra::Texture::MsaaMode> msaa_mode;
@@ -217,16 +217,19 @@ struct FixedPipelineState {
 
     u32 alpha_test_ref;
     u32 point_size;
-    std::array<BlendingAttachment, Maxwell::NumRenderTargets> attachments;
     std::array<u16, Maxwell::NumViewports> viewport_swizzles;
     union {
         u64 attribute_types; // Used with VK_EXT_vertex_input_dynamic_state
         u64 enabled_divisors;
     };
-    std::array<VertexAttribute, Maxwell::NumVertexAttributes> attributes;
-    std::array<u32, Maxwell::NumVertexArrays> binding_divisors;
 
     DynamicState dynamic_state;
+    std::array<BlendingAttachment, Maxwell::NumRenderTargets> attachments;
+    std::array<VertexAttribute, Maxwell::NumVertexAttributes> attributes;
+    std::array<u32, Maxwell::NumVertexArrays> binding_divisors;
+    // Vertex stride is a 12 bits value, we have 4 bits to spare per element
+    std::array<u16, Maxwell::NumVertexArrays> vertex_strides;
+
     VideoCommon::TransformFeedbackState xfb_state;
 
     void Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFeatures& features);
@@ -244,17 +247,17 @@ struct FixedPipelineState {
             // When transform feedback is enabled, use the whole struct
             return sizeof(*this);
         }
-        if (dynamic_vertex_input && extended_dynamic_state_2) {
+        if (dynamic_vertex_input && extended_dynamic_state_3_blend) {
             // Exclude dynamic state and attributes
-            return offsetof(FixedPipelineState, attributes);
-        }
-        if (extended_dynamic_state_2_extra) {
-            // Exclude dynamic state
             return offsetof(FixedPipelineState, dynamic_state);
+        }
+        if (dynamic_vertex_input) {
+            // Exclude dynamic state
+            return offsetof(FixedPipelineState, attributes);
         }
         if (extended_dynamic_state) {
             // Exclude dynamic state
-            return offsetof(FixedPipelineState, dynamic_state.raw2);
+            return offsetof(FixedPipelineState, vertex_strides);
         }
         // Default
         return offsetof(FixedPipelineState, xfb_state);
