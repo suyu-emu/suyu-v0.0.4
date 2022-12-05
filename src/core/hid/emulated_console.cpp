@@ -37,7 +37,7 @@ void EmulatedConsole::SetTouchParams() {
         touchscreen_param.Set("axis_x", i * 2);
         touchscreen_param.Set("axis_y", (i * 2) + 1);
         touchscreen_param.Set("button", i);
-        touch_params[index++] = touchscreen_param;
+        touch_params[index++] = std::move(touchscreen_param);
     }
 
     const auto button_index =
@@ -59,7 +59,7 @@ void EmulatedConsole::SetTouchParams() {
         touch_button_params.Set("button", params.Serialize());
         touch_button_params.Set("x", x);
         touch_button_params.Set("y", y);
-        touch_params[index] = touch_button_params;
+        touch_params[index] = std::move(touch_button_params);
         index++;
     }
 }
@@ -131,7 +131,7 @@ Common::ParamPackage EmulatedConsole::GetMotionParam() const {
 }
 
 void EmulatedConsole::SetMotionParam(Common::ParamPackage param) {
-    motion_params = param;
+    motion_params = std::move(param);
     ReloadInput();
 }
 
@@ -284,7 +284,7 @@ void EmulatedConsole::TriggerOnChange(ConsoleTriggerType type) {
 
 int EmulatedConsole::SetCallback(ConsoleUpdateCallback update_callback) {
     std::scoped_lock lock{callback_mutex};
-    callback_list.insert_or_assign(last_callback_key, update_callback);
+    callback_list.insert_or_assign(last_callback_key, std::move(update_callback));
     return last_callback_key++;
 }
 
