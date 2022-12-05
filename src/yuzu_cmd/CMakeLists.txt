@@ -34,7 +34,7 @@ add_executable(yuzu-cmd
 create_target_directory_groups(yuzu-cmd)
 
 target_link_libraries(yuzu-cmd PRIVATE common core input_common)
-target_link_libraries(yuzu-cmd PRIVATE inih glad)
+target_link_libraries(yuzu-cmd PRIVATE inih::INIReader glad)
 if (MSVC)
     target_link_libraries(yuzu-cmd PRIVATE getopt)
 endif()
@@ -43,7 +43,7 @@ target_link_libraries(yuzu-cmd PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
 create_resource("../../dist/yuzu.bmp" "yuzu_cmd/yuzu_icon.h" "yuzu_icon")
 target_include_directories(yuzu-cmd PRIVATE ${RESOURCES_DIR})
 
-target_include_directories(yuzu-cmd PRIVATE ../../externals/Vulkan-Headers/include)
+target_link_libraries(yuzu-cmd PRIVATE Vulkan::Headers)
 
 if (YUZU_USE_EXTERNAL_SDL2)
     target_link_libraries(yuzu-cmd PRIVATE SDL2-static)

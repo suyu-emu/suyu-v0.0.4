@@ -264,8 +264,7 @@ target_link_options(video_core PRIVATE ${FFmpeg_LDFLAGS})
 
 add_dependencies(video_core host_shaders)
 target_include_directories(video_core PRIVATE ${HOST_SHADERS_INCLUDE})
-target_include_directories(video_core PRIVATE sirit ../../externals/Vulkan-Headers/include)
-target_link_libraries(video_core PRIVATE sirit)
+target_link_libraries(video_core PRIVATE sirit Vulkan::Headers)
 
 if (ENABLE_NSIGHT_AFTERMATH)
     if (NOT DEFINED ENV{NSIGHT_AFTERMATH_SDK})
@@ -305,11 +304,11 @@ if (ARCHITECTURE_x86_64)
         macro/macro_jit_x64.cpp
         macro/macro_jit_x64.h
     )
-    target_link_libraries(video_core PUBLIC xbyak)
+    target_link_libraries(video_core PUBLIC xbyak::xbyak)
 endif()
 
 if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
-    target_link_libraries(video_core PRIVATE dynarmic)
+    target_link_libraries(video_core PRIVATE dynarmic::dynarmic)
 endif()
 
 if (YUZU_USE_PRECOMPILED_HEADERS)
