@@ -424,8 +424,7 @@ void EmulatedController::RestoreConfig() {
     ReloadFromSettings();
 }
 
-std::vector<Common::ParamPackage> EmulatedController::GetMappedDevices(
-    EmulatedDeviceIndex device_index) const {
+std::vector<Common::ParamPackage> EmulatedController::GetMappedDevices() const {
     std::vector<Common::ParamPackage> devices;
     for (const auto& param : button_params) {
         if (!param.Has("engine")) {
