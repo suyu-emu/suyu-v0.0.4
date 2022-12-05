@@ -31,8 +31,6 @@ CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" "${MSV
 
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 
-option(YUZU_USE_BUNDLED_LIBUSB "Compile bundled libusb" OFF)
-
 option(YUZU_USE_BUNDLED_FFMPEG "Download/Build bundled FFmpeg" "${WIN32}")
 
 option(YUZU_USE_QT_MULTIMEDIA "Use QtMultimedia for Camera" OFF)
@@ -202,6 +200,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 find_package(enet 1.3)
 find_package(fmt 9 REQUIRED)
 find_package(inih)
+find_package(libusb 1.0.24)
 find_package(lz4 REQUIRED)
 find_package(nlohmann_json 3.8 REQUIRED)
 find_package(Opus 1.3)
@@ -459,26 +458,6 @@ endif()
 if (TARGET Boost::boost)
     set_target_properties(Boost::boost PROPERTIES IMPORTED_GLOBAL TRUE)
     add_library(boost ALIAS Boost::boost)
-endif()
-
-# Ensure libusb is properly configured (based on dolphin libusb include)
-if(NOT YUZU_USE_BUNDLED_LIBUSB)
-    find_package(PkgConfig)
-    if (PKG_CONFIG_FOUND AND NOT CMAKE_SYSTEM_NAME MATCHES "DragonFly|FreeBSD")
-        pkg_check_modules(LIBUSB QUIET libusb-1.0>=1.0.24)
-    else()
-        find_package(LibUSB)
-    endif()
-
-    if (LIBUSB_FOUND)
-        add_library(usb INTERFACE)
-        target_include_directories(usb INTERFACE "${LIBUSB_INCLUDEDIR}" "${LIBUSB_INCLUDE_DIRS}")
-        target_link_directories(usb INTERFACE "${LIBUSB_LIBRARY_DIRS}")
-        target_link_libraries(usb INTERFACE "${LIBUSB_LIBRARIES}")
-    else()
-        message(WARNING "libusb not found, falling back to externals")
-        set(YUZU_USE_BUNDLED_LIBUSB ON)
-    endif()
 endif()
 
 # List of all FFmpeg components required
