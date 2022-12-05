@@ -576,8 +576,6 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             .pNext = nullptr,
             .extendedDynamicState2 = VK_TRUE,
             .extendedDynamicState2LogicOp = ext_extended_dynamic_state2_extra ? VK_TRUE : VK_FALSE,
-            .extendedDynamicState2PatchControlPoints =
-                ext_extended_dynamic_state2_extra ? VK_TRUE : VK_FALSE,
         };
         SetNext(next, dynamic_state2);
     } else {
@@ -1330,8 +1328,7 @@ std::vector<const char*> Device::LoadExtensions(bool requires_surface) {
             extensions.push_back(VK_EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME);
             ext_extended_dynamic_state2 = true;
             ext_extended_dynamic_state2_extra =
-                extended_dynamic_state2.extendedDynamicState2LogicOp &&
-                extended_dynamic_state2.extendedDynamicState2PatchControlPoints;
+                extended_dynamic_state2.extendedDynamicState2LogicOp;
         }
     }
     if (has_ext_extended_dynamic_state3) {

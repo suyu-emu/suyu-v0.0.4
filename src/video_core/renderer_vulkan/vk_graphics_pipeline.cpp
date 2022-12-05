@@ -628,7 +628,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .pNext = nullptr,
         .flags = 0,
         .topology = input_assembly_topology,
-        .primitiveRestartEnable = key.state.dynamic_state.primitive_restart_enable != 0 &&
+        .primitiveRestartEnable = dynamic.primitive_restart_enable != 0 &&
                                   ((input_assembly_topology != VK_PRIMITIVE_TOPOLOGY_PATCH_LIST &&
                                     device.IsTopologyListPrimitiveRestartSupported()) ||
                                    SupportsPrimitiveRestart(input_assembly_topology) ||
@@ -786,12 +786,12 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .pNext = nullptr,
         .flags = 0,
         .logicOpEnable = key.state.logic_op_enable != 0,
-        .logicOp = static_cast<VkLogicOp>(key.state.logic_op.Value()),
+        .logicOp = static_cast<VkLogicOp>(dynamic.logic_op.Value()),
         .attachmentCount = static_cast<u32>(cb_attachments.size()),
         .pAttachments = cb_attachments.data(),
         .blendConstants = {},
     };
-    static_vector<VkDynamicState, 22> dynamic_states{
+    static_vector<VkDynamicState, 23> dynamic_states{
         VK_DYNAMIC_STATE_VIEWPORT,           VK_DYNAMIC_STATE_SCISSOR,
         VK_DYNAMIC_STATE_DEPTH_BIAS,         VK_DYNAMIC_STATE_BLEND_CONSTANTS,
         VK_DYNAMIC_STATE_DEPTH_BOUNDS,       VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK,
@@ -821,6 +821,9 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
                 VK_DYNAMIC_STATE_RASTERIZER_DISCARD_ENABLE_EXT,
             };
             dynamic_states.insert(dynamic_states.end(), extended2.begin(), extended2.end());
+        }
+        if (key.state.extended_dynamic_state_2_extra) {
+            dynamic_states.push_back(VK_DYNAMIC_STATE_LOGIC_OP_EXT);
         }
     }
     const VkPipelineDynamicStateCreateInfo dynamic_state_ci{

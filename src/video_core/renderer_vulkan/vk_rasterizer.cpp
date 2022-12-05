@@ -680,7 +680,6 @@ void RasterizerVulkan::UpdateDynamicStates() {
     UpdateLineWidth(regs);
     if (device.IsExtExtendedDynamicStateSupported()) {
         UpdateCullMode(regs);
-
         UpdateDepthCompareOp(regs);
         UpdateFrontFace(regs);
         UpdateStencilOp(regs);
@@ -699,6 +698,9 @@ void RasterizerVulkan::UpdateDynamicStates() {
                 UpdateRasterizerDiscardEnable(regs);
                 UpdateDepthBiasEnable(regs);
             }
+        }
+        if (device.IsExtExtendedDynamicState2ExtrasSupported()) {
+            UpdateLogicOp(regs);
         }
     }
 }
@@ -1026,6 +1028,17 @@ void RasterizerVulkan::UpdateStencilOp(Tegra::Engines::Maxwell3D::Regs& regs) {
                                    MaxwellToVK::ComparisonOp(compare));
         });
     }
+}
+
+void RasterizerVulkan::UpdateLogicOp(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!regs.logic_op.enable) {
+        return;
+    }
+    if (!state_tracker.TouchLogicOp()) {
+        return;
+    }
+    auto op = static_cast<VkLogicOp>(static_cast<u32>(regs.logic_op.op) - 0x1500);
+    scheduler.Record([op](vk::CommandBuffer cmdbuf) { cmdbuf.SetLogicOpEXT(op); });
 }
 
 void RasterizerVulkan::UpdateStencilTestEnable(Tegra::Engines::Maxwell3D::Regs& regs) {

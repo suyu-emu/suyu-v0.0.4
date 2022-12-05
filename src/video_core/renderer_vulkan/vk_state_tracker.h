@@ -49,6 +49,7 @@ enum : u8 {
     RasterizerDiscardEnable,
     DepthBiasEnable,
     StateEnable,
+    LogicOp,
 
     Blending,
     ViewportSwizzles,
@@ -157,6 +158,10 @@ public:
 
     bool TouchStencilTestEnable() {
         return Exchange(Dirty::StencilTestEnable, false);
+    }
+
+    bool TouchLogicOp() {
+        return Exchange(Dirty::LogicOp, false);
     }
 
     bool ChangePrimitiveTopology(Maxwell::PrimitiveTopology new_topology) {

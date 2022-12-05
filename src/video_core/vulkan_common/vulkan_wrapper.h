@@ -239,6 +239,8 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdSetDepthBiasEnableEXT vkCmdSetDepthBiasEnableEXT{};
     PFN_vkCmdSetEvent vkCmdSetEvent{};
     PFN_vkCmdSetFrontFaceEXT vkCmdSetFrontFaceEXT{};
+    PFN_vkCmdSetPatchControlPointsEXT vkCmdSetPatchControlPointsEXT{};
+    PFN_vkCmdSetLogicOpEXT vkCmdSetLogicOpEXT{};
     PFN_vkCmdSetLineWidth vkCmdSetLineWidth{};
     PFN_vkCmdSetPrimitiveTopologyEXT vkCmdSetPrimitiveTopologyEXT{};
     PFN_vkCmdSetScissor vkCmdSetScissor{};
@@ -1236,6 +1238,14 @@ public:
 
     void SetFrontFaceEXT(VkFrontFace front_face) const noexcept {
         dld->vkCmdSetFrontFaceEXT(handle, front_face);
+    }
+
+    void SetLogicOpEXT(VkLogicOp logic_op) const noexcept {
+        dld->vkCmdSetLogicOpEXT(handle, logic_op);
+    }
+
+    void SetPatchControlPointsEXT(uint32_t patch_control_points) const noexcept {
+        dld->vkCmdSetPatchControlPointsEXT(handle, patch_control_points);
     }
 
     void SetLineWidth(float line_width) const noexcept {

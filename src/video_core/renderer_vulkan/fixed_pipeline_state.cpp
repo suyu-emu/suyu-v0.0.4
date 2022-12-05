@@ -55,6 +55,7 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     raw1 = 0;
     extended_dynamic_state.Assign(features.has_extended_dynamic_state ? 1 : 0);
     extended_dynamic_state_2.Assign(features.has_extended_dynamic_state_2 ? 1 : 0);
+    extended_dynamic_state_2_extra.Assign(features.has_extended_dynamic_state_2_extra ? 1 : 0);
     extended_dynamic_state_3.Assign(features.has_extended_dynamic_state_3 ? 1 : 0);
     dynamic_vertex_input.Assign(features.has_dynamic_vertex_input ? 1 : 0);
     xfb_enabled.Assign(regs.transform_feedback_enabled != 0);
@@ -66,13 +67,12 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
                                     Maxwell::ViewportClipControl::GeometryClip::FrustumZ);
     ndc_minus_one_to_one.Assign(regs.depth_mode == Maxwell::DepthMode::MinusOneToOne ? 1 : 0);
     polygon_mode.Assign(PackPolygonMode(regs.polygon_mode_front));
-    patch_control_points_minus_one.Assign(regs.patch_vertices - 1);
     tessellation_primitive.Assign(static_cast<u32>(regs.tessellation.params.domain_type.Value()));
     tessellation_spacing.Assign(static_cast<u32>(regs.tessellation.params.spacing.Value()));
     tessellation_clockwise.Assign(regs.tessellation.params.output_primitives.Value() ==
                                   Maxwell::Tessellation::OutputPrimitives::Triangles_CW);
     logic_op_enable.Assign(regs.logic_op.enable != 0 ? 1 : 0);
-    logic_op.Assign(PackLogicOp(regs.logic_op.op));
+    patch_control_points_minus_one.Assign(regs.patch_vertices - 1);
     topology.Assign(topology_);
     msaa_mode.Assign(regs.anti_alias_samples_mode);
 
@@ -156,8 +156,8 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFe
     if (!extended_dynamic_state) {
         dynamic_state.Refresh(regs);
     }
-    if (!extended_dynamic_state_2) {
-        dynamic_state.Refresh2(regs, topology);
+    if (!extended_dynamic_state_2_extra) {
+        dynamic_state.Refresh2(regs, topology, extended_dynamic_state_2);
     }
     if (!extended_dynamic_state_3) {
         dynamic_state.Refresh3(regs);
@@ -241,7 +241,13 @@ void FixedPipelineState::DynamicState::Refresh(const Maxwell& regs) {
     });
 }
 
-void FixedPipelineState::DynamicState::Refresh2(const Maxwell& regs, Maxwell::PrimitiveTopology topology_) {
+void FixedPipelineState::DynamicState::Refresh2(const Maxwell& regs, Maxwell::PrimitiveTopology topology_, bool base_feautures_supported) {
+    logic_op.Assign(PackLogicOp(regs.logic_op.op));
+
+    if (base_feautures_supported) {
+        return;
+    }
+
     const std::array enabled_lut{
         regs.polygon_offset_point_enable,
         regs.polygon_offset_line_enable,

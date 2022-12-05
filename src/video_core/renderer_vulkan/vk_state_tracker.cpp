@@ -48,6 +48,7 @@ Flags MakeInvalidationFlags() {
         PrimitiveRestartEnable,
         RasterizerDiscardEnable,
         DepthBiasEnable,
+        LogicOp,
     };
     Flags flags{};
     for (const int flag : INVALIDATION_FLAGS) {
@@ -162,6 +163,10 @@ void SetupDirtyBlending(Tables& tables) {
     FillBlock(tables[0], OFF(blend_per_target), NUM(blend_per_target), Blending);
 }
 
+void SetupDirtySpecialOps(Tables& tables) {
+    tables[0][OFF(logic_op.op)] = LogicOp;
+}
+
 void SetupDirtyViewportSwizzles(Tables& tables) {
     static constexpr size_t swizzle_offset = 6;
     for (size_t index = 0; index < Regs::NumViewports; ++index) {
@@ -210,6 +215,7 @@ void StateTracker::SetupTables(Tegra::Control::ChannelState& channel_state) {
     SetupDirtyViewportSwizzles(tables);
     SetupDirtyVertexAttributes(tables);
     SetupDirtyVertexBindings(tables);
+    SetupDirtySpecialOps(tables);
 }
 
 void StateTracker::ChangeChannel(Tegra::Control::ChannelState& channel_state) {

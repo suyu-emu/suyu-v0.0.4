@@ -454,6 +454,8 @@ void PipelineCache::LoadDiskResources(u64 title_id, std::stop_token stop_loading
                 dynamic_features.has_extended_dynamic_state ||
             (key.state.extended_dynamic_state_2 != 0) !=
                 dynamic_features.has_extended_dynamic_state_2 ||
+            (key.state.extended_dynamic_state_2_extra != 0) !=
+                dynamic_features.has_extended_dynamic_state_2_extra ||
             (key.state.extended_dynamic_state_3 != 0) !=
                 dynamic_features.has_extended_dynamic_state_3 ||
             (key.state.dynamic_vertex_input != 0) != dynamic_features.has_dynamic_vertex_input) {

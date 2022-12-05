@@ -146,6 +146,7 @@ struct FixedPipelineState {
             BitField<3, 1, u32> primitive_restart_enable;
             BitField<4, 1, u32> depth_bias_enable;
             BitField<5, 1, u32> rasterize_enable;
+            BitField<6, 4, u32> logic_op;
         };
         union {
             u32 raw2;
@@ -162,7 +163,7 @@ struct FixedPipelineState {
         std::array<u16, Maxwell::NumVertexArrays> vertex_strides;
 
         void Refresh(const Maxwell& regs);
-        void Refresh2(const Maxwell& regs, Maxwell::PrimitiveTopology topology);
+        void Refresh2(const Maxwell& regs, Maxwell::PrimitiveTopology topology, bool base_feautures_supported);
         void Refresh3(const Maxwell& regs);
 
         Maxwell::ComparisonOp DepthTestFunc() const noexcept {
@@ -182,18 +183,19 @@ struct FixedPipelineState {
         u32 raw1;
         BitField<0, 1, u32> extended_dynamic_state;
         BitField<1, 1, u32> extended_dynamic_state_2;
-        BitField<2, 1, u32> extended_dynamic_state_3;
-        BitField<3, 1, u32> dynamic_vertex_input;
-        BitField<4, 1, u32> xfb_enabled;
-        BitField<5, 1, u32> depth_clamp_disabled;
-        BitField<6, 1, u32> ndc_minus_one_to_one;
-        BitField<7, 2, u32> polygon_mode;
-        BitField<9, 5, u32> patch_control_points_minus_one;
-        BitField<14, 2, u32> tessellation_primitive;
-        BitField<16, 2, u32> tessellation_spacing;
-        BitField<18, 1, u32> tessellation_clockwise;
-        BitField<19, 1, u32> logic_op_enable;
-        BitField<20, 4, u32> logic_op;
+        BitField<2, 1, u32> extended_dynamic_state_2_extra;
+        BitField<3, 1, u32> extended_dynamic_state_3;
+        BitField<4, 1, u32> dynamic_vertex_input;
+        BitField<5, 1, u32> xfb_enabled;
+        BitField<6, 1, u32> depth_clamp_disabled;
+        BitField<7, 1, u32> ndc_minus_one_to_one;
+        BitField<8, 2, u32> polygon_mode;
+        BitField<10, 2, u32> tessellation_primitive;
+        BitField<12, 2, u32> tessellation_spacing;
+        BitField<14, 1, u32> tessellation_clockwise;
+        BitField<15, 1, u32> logic_op_enable;
+        BitField<16, 5, u32> patch_control_points_minus_one;
+
         BitField<24, 4, Maxwell::PrimitiveTopology> topology;
         BitField<28, 4, Tegra::Texture::MsaaMode> msaa_mode;
     };
@@ -246,7 +248,7 @@ struct FixedPipelineState {
             // Exclude dynamic state and attributes
             return offsetof(FixedPipelineState, attributes);
         }
-        if (extended_dynamic_state_2) {
+        if (extended_dynamic_state_2_extra) {
             // Exclude dynamic state
             return offsetof(FixedPipelineState, dynamic_state);
         }
