@@ -680,15 +680,25 @@ void RasterizerVulkan::UpdateDynamicStates() {
     UpdateLineWidth(regs);
     if (device.IsExtExtendedDynamicStateSupported()) {
         UpdateCullMode(regs);
-        UpdateDepthBoundsTestEnable(regs);
-        UpdateDepthTestEnable(regs);
-        UpdateDepthWriteEnable(regs);
+
         UpdateDepthCompareOp(regs);
         UpdateFrontFace(regs);
         UpdateStencilOp(regs);
-        UpdateStencilTestEnable(regs);
+
         if (device.IsExtVertexInputDynamicStateSupported()) {
             UpdateVertexInput(regs);
+        }
+
+        if (state_tracker.TouchStateEnable()) {
+            UpdateDepthBoundsTestEnable(regs);
+            UpdateDepthTestEnable(regs);
+            UpdateDepthWriteEnable(regs);
+            UpdateStencilTestEnable(regs);
+            if (device.IsExtExtendedDynamicState2Supported()) {
+                UpdatePrimitiveRestartEnable(regs);
+                UpdateRasterizerDiscardEnable(regs);
+                UpdateDepthBiasEnable(regs);
+            }
         }
     }
 }
@@ -907,6 +917,58 @@ void RasterizerVulkan::UpdateDepthWriteEnable(Tegra::Engines::Maxwell3D::Regs& r
     scheduler.Record([enable = regs.depth_write_enabled](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetDepthWriteEnableEXT(enable);
     });
+}
+
+void RasterizerVulkan::UpdatePrimitiveRestartEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchPrimitiveRestartEnable()) {
+        return;
+    }
+    scheduler.Record([enable = regs.primitive_restart.enabled](vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetPrimitiveRestartEnableEXT(enable);
+    });
+}
+
+void RasterizerVulkan::UpdateRasterizerDiscardEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchRasterizerDiscardEnable()) {
+        return;
+    }
+    scheduler.Record([disable = regs.rasterize_enable](vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetRasterizerDiscardEnableEXT(disable == 0);
+    });
+}
+
+void RasterizerVulkan::UpdateDepthBiasEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchDepthBiasEnable()) {
+        return;
+    }
+    constexpr size_t POINT = 0;
+    constexpr size_t LINE = 1;
+    constexpr size_t POLYGON = 2;
+    constexpr std::array POLYGON_OFFSET_ENABLE_LUT = {
+        POINT,   // Points
+        LINE,    // Lines
+        LINE,    // LineLoop
+        LINE,    // LineStrip
+        POLYGON, // Triangles
+        POLYGON, // TriangleStrip
+        POLYGON, // TriangleFan
+        POLYGON, // Quads
+        POLYGON, // QuadStrip
+        POLYGON, // Polygon
+        LINE,    // LinesAdjacency
+        LINE,    // LineStripAdjacency
+        POLYGON, // TrianglesAdjacency
+        POLYGON, // TriangleStripAdjacency
+        POLYGON, // Patches
+    };
+    const std::array enabled_lut{
+        regs.polygon_offset_point_enable,
+        regs.polygon_offset_line_enable,
+        regs.polygon_offset_fill_enable,
+    };
+    const u32 topology_index = static_cast<u32>(maxwell3d->draw_manager->GetDrawState().topology);
+    const u32 enable = enabled_lut[POLYGON_OFFSET_ENABLE_LUT[topology_index]];
+    scheduler.Record([enable](vk::CommandBuffer cmdbuf) { cmdbuf.SetDepthBiasEnableEXT(enable); });
 }
 
 void RasterizerVulkan::UpdateDepthCompareOp(Tegra::Engines::Maxwell3D::Regs& regs) {

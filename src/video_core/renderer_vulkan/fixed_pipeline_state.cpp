@@ -48,23 +48,16 @@ void RefreshXfbState(VideoCommon::TransformFeedbackState& state, const Maxwell& 
 }
 } // Anonymous namespace
 
-void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d,
-                                 bool has_extended_dynamic_state, bool has_dynamic_vertex_input) {
+void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFeatures& features) {
     const Maxwell& regs = maxwell3d.regs;
     const auto topology_ = maxwell3d.draw_manager->GetDrawState().topology;
-    const std::array enabled_lut{
-        regs.polygon_offset_point_enable,
-        regs.polygon_offset_line_enable,
-        regs.polygon_offset_fill_enable,
-    };
-    const u32 topology_index = static_cast<u32>(topology_);
 
     raw1 = 0;
-    extended_dynamic_state.Assign(has_extended_dynamic_state ? 1 : 0);
-    dynamic_vertex_input.Assign(has_dynamic_vertex_input ? 1 : 0);
+    extended_dynamic_state.Assign(features.has_extended_dynamic_state ? 1 : 0);
+    extended_dynamic_state_2.Assign(features.has_extended_dynamic_state_2 ? 1 : 0);
+    extended_dynamic_state_3.Assign(features.has_extended_dynamic_state_3 ? 1 : 0);
+    dynamic_vertex_input.Assign(features.has_dynamic_vertex_input ? 1 : 0);
     xfb_enabled.Assign(regs.transform_feedback_enabled != 0);
-    primitive_restart_enable.Assign(regs.primitive_restart.enabled != 0 ? 1 : 0);
-    depth_bias_enable.Assign(enabled_lut[POLYGON_OFFSET_ENABLE_LUT[topology_index]] != 0 ? 1 : 0);
     depth_clamp_disabled.Assign(regs.viewport_clip_control.geometry_clip ==
                                     Maxwell::ViewportClipControl::GeometryClip::Passthrough ||
                                 regs.viewport_clip_control.geometry_clip ==
@@ -84,7 +77,7 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d,
     msaa_mode.Assign(regs.anti_alias_samples_mode);
 
     raw2 = 0;
-    rasterize_enable.Assign(regs.rasterize_enable != 0 ? 1 : 0);
+
     const auto test_func =
         regs.alpha_test_enabled != 0 ? regs.alpha_test_func : Maxwell::ComparisonOp::Always_GL;
     alpha_test_func.Assign(PackComparisonOp(test_func));
@@ -106,7 +99,7 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d,
     point_size = Common::BitCast<u32>(regs.point_size);
 
     if (maxwell3d.dirty.flags[Dirty::VertexInput]) {
-        if (has_dynamic_vertex_input) {
+        if (features.has_dynamic_vertex_input) {
             // Dirty flag will be reset by the command buffer update
             static constexpr std::array LUT{
                 0u, // Invalid
@@ -158,8 +151,16 @@ void FixedPipelineState::Refresh(Tegra::Engines::Maxwell3D& maxwell3d,
             return static_cast<u16>(viewport.swizzle.raw);
         });
     }
+    dynamic_state.raw1 = 0;
+    dynamic_state.raw2 = 0;
     if (!extended_dynamic_state) {
         dynamic_state.Refresh(regs);
+    }
+    if (!extended_dynamic_state_2) {
+        dynamic_state.Refresh2(regs, topology);
+    }
+    if (!extended_dynamic_state_3) {
+        dynamic_state.Refresh3(regs);
     }
     if (xfb_enabled) {
         RefreshXfbState(xfb_state, regs);
@@ -212,8 +213,6 @@ void FixedPipelineState::DynamicState::Refresh(const Maxwell& regs) {
         packed_front_face = 1 - packed_front_face;
     }
 
-    raw1 = 0;
-    raw2 = 0;
     front.action_stencil_fail.Assign(PackStencilOp(regs.stencil_front_op.fail));
     front.action_depth_fail.Assign(PackStencilOp(regs.stencil_front_op.zfail));
     front.action_depth_pass.Assign(PackStencilOp(regs.stencil_front_op.zpass));
@@ -241,6 +240,21 @@ void FixedPipelineState::DynamicState::Refresh(const Maxwell& regs) {
         return static_cast<u16>(array.stride.Value());
     });
 }
+
+void FixedPipelineState::DynamicState::Refresh2(const Maxwell& regs, Maxwell::PrimitiveTopology topology_) {
+    const std::array enabled_lut{
+        regs.polygon_offset_point_enable,
+        regs.polygon_offset_line_enable,
+        regs.polygon_offset_fill_enable,
+    };
+    const u32 topology_index = static_cast<u32>(topology_);
+
+    rasterize_enable.Assign(regs.rasterize_enable != 0 ? 1 : 0);
+    primitive_restart_enable.Assign(regs.primitive_restart.enabled != 0 ? 1 : 0);
+    depth_bias_enable.Assign(enabled_lut[POLYGON_OFFSET_ENABLE_LUT[topology_index]] != 0 ? 1 : 0);
+}
+
+void FixedPipelineState::DynamicState::Refresh3(const Maxwell&) {}
 
 size_t FixedPipelineState::Hash() const noexcept {
     const u64 hash = Common::CityHash64(reinterpret_cast<const char*>(this), Size());

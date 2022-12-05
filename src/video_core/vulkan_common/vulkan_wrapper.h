@@ -234,6 +234,9 @@ struct DeviceDispatch : InstanceDispatch {
     PFN_vkCmdSetDepthCompareOpEXT vkCmdSetDepthCompareOpEXT{};
     PFN_vkCmdSetDepthTestEnableEXT vkCmdSetDepthTestEnableEXT{};
     PFN_vkCmdSetDepthWriteEnableEXT vkCmdSetDepthWriteEnableEXT{};
+    PFN_vkCmdSetPrimitiveRestartEnableEXT vkCmdSetPrimitiveRestartEnableEXT{};
+    PFN_vkCmdSetRasterizerDiscardEnableEXT vkCmdSetRasterizerDiscardEnableEXT{};
+    PFN_vkCmdSetDepthBiasEnableEXT vkCmdSetDepthBiasEnableEXT{};
     PFN_vkCmdSetEvent vkCmdSetEvent{};
     PFN_vkCmdSetFrontFaceEXT vkCmdSetFrontFaceEXT{};
     PFN_vkCmdSetLineWidth vkCmdSetLineWidth{};
@@ -1217,6 +1220,18 @@ public:
 
     void SetDepthWriteEnableEXT(bool enable) const noexcept {
         dld->vkCmdSetDepthWriteEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
+    }
+
+    void SetPrimitiveRestartEnableEXT(bool enable) const noexcept {
+        dld->vkCmdSetPrimitiveRestartEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
+    }
+
+    void SetRasterizerDiscardEnableEXT(bool enable) const noexcept {
+        dld->vkCmdSetRasterizerDiscardEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
+    }
+
+    void SetDepthBiasEnableEXT(bool enable) const noexcept {
+        dld->vkCmdSetDepthBiasEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
     }
 
     void SetFrontFaceEXT(VkFrontFace front_face) const noexcept {

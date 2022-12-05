@@ -45,6 +45,10 @@ enum : u8 {
     FrontFace,
     StencilOp,
     StencilTestEnable,
+    PrimitiveRestartEnable,
+    RasterizerDiscardEnable,
+    DepthBiasEnable,
+    StateEnable,
 
     Blending,
     ViewportSwizzles,
@@ -111,6 +115,10 @@ public:
         return Exchange(Dirty::CullMode, false);
     }
 
+    bool TouchStateEnable() {
+        return Exchange(Dirty::StateEnable, false);
+    }
+
     bool TouchDepthBoundsTestEnable() {
         return Exchange(Dirty::DepthBoundsEnable, false);
     }
@@ -121,6 +129,18 @@ public:
 
     bool TouchDepthWriteEnable() {
         return Exchange(Dirty::DepthWriteEnable, false);
+    }
+
+    bool TouchPrimitiveRestartEnable() {
+        return Exchange(Dirty::PrimitiveRestartEnable, false);
+    }
+
+    bool TouchRasterizerDiscardEnable() {
+        return Exchange(Dirty::RasterizerDiscardEnable, false);
+    }
+
+    bool TouchDepthBiasEnable() {
+        return Exchange(Dirty::DepthBiasEnable, false);
     }
 
     bool TouchDepthCompareOp() {

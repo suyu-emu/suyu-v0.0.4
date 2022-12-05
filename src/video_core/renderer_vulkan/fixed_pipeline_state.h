@@ -17,6 +17,14 @@ namespace Vulkan {
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
+struct DynamicFeatures {
+    bool has_extended_dynamic_state;
+    bool has_extended_dynamic_state_2;
+    bool has_extended_dynamic_state_2_extra;
+    bool has_extended_dynamic_state_3;
+    bool has_dynamic_vertex_input;
+};
+
 struct FixedPipelineState {
     static u32 PackComparisonOp(Maxwell::ComparisonOp op) noexcept;
     static Maxwell::ComparisonOp UnpackComparisonOp(u32 packed) noexcept;
@@ -133,6 +141,14 @@ struct FixedPipelineState {
     struct DynamicState {
         union {
             u32 raw1;
+            BitField<0, 2, u32> cull_face;
+            BitField<2, 1, u32> cull_enable;
+            BitField<3, 1, u32> primitive_restart_enable;
+            BitField<4, 1, u32> depth_bias_enable;
+            BitField<5, 1, u32> rasterize_enable;
+        };
+        union {
+            u32 raw2;
             StencilFace<0> front;
             StencilFace<12> back;
             BitField<24, 1, u32> stencil_enable;
@@ -142,15 +158,12 @@ struct FixedPipelineState {
             BitField<28, 1, u32> front_face;
             BitField<29, 3, u32> depth_test_func;
         };
-        union {
-            u32 raw2;
-            BitField<0, 2, u32> cull_face;
-            BitField<2, 1, u32> cull_enable;
-        };
         // Vertex stride is a 12 bits value, we have 4 bits to spare per element
         std::array<u16, Maxwell::NumVertexArrays> vertex_strides;
 
         void Refresh(const Maxwell& regs);
+        void Refresh2(const Maxwell& regs, Maxwell::PrimitiveTopology topology);
+        void Refresh3(const Maxwell& regs);
 
         Maxwell::ComparisonOp DepthTestFunc() const noexcept {
             return UnpackComparisonOp(depth_test_func);
@@ -168,10 +181,10 @@ struct FixedPipelineState {
     union {
         u32 raw1;
         BitField<0, 1, u32> extended_dynamic_state;
-        BitField<1, 1, u32> dynamic_vertex_input;
-        BitField<2, 1, u32> xfb_enabled;
-        BitField<3, 1, u32> primitive_restart_enable;
-        BitField<4, 1, u32> depth_bias_enable;
+        BitField<1, 1, u32> extended_dynamic_state_2;
+        BitField<2, 1, u32> extended_dynamic_state_3;
+        BitField<3, 1, u32> dynamic_vertex_input;
+        BitField<4, 1, u32> xfb_enabled;
         BitField<5, 1, u32> depth_clamp_disabled;
         BitField<6, 1, u32> ndc_minus_one_to_one;
         BitField<7, 2, u32> polygon_mode;
@@ -186,7 +199,6 @@ struct FixedPipelineState {
     };
     union {
         u32 raw2;
-        BitField<0, 1, u32> rasterize_enable;
         BitField<1, 3, u32> alpha_test_func;
         BitField<4, 1, u32> early_z;
         BitField<5, 1, u32> depth_enabled;
@@ -215,8 +227,7 @@ struct FixedPipelineState {
     DynamicState dynamic_state;
     VideoCommon::TransformFeedbackState xfb_state;
 
-    void Refresh(Tegra::Engines::Maxwell3D& maxwell3d, bool has_extended_dynamic_state,
-                 bool has_dynamic_vertex_input);
+    void Refresh(Tegra::Engines::Maxwell3D& maxwell3d, DynamicFeatures& features);
 
     size_t Hash() const noexcept;
 
@@ -231,13 +242,17 @@ struct FixedPipelineState {
             // When transform feedback is enabled, use the whole struct
             return sizeof(*this);
         }
-        if (dynamic_vertex_input) {
+        if (dynamic_vertex_input && extended_dynamic_state_2) {
             // Exclude dynamic state and attributes
             return offsetof(FixedPipelineState, attributes);
         }
-        if (extended_dynamic_state) {
+        if (extended_dynamic_state_2) {
             // Exclude dynamic state
             return offsetof(FixedPipelineState, dynamic_state);
+        }
+        if (extended_dynamic_state) {
+            // Exclude dynamic state
+            return offsetof(FixedPipelineState, dynamic_state.raw2);
         }
         // Default
         return offsetof(FixedPipelineState, xfb_state);

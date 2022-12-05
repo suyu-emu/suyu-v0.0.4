@@ -139,6 +139,9 @@ private:
     void UpdateDepthTestEnable(Tegra::Engines::Maxwell3D::Regs& regs);
     void UpdateDepthWriteEnable(Tegra::Engines::Maxwell3D::Regs& regs);
     void UpdateDepthCompareOp(Tegra::Engines::Maxwell3D::Regs& regs);
+    void UpdatePrimitiveRestartEnable(Tegra::Engines::Maxwell3D::Regs& regs);
+    void UpdateRasterizerDiscardEnable(Tegra::Engines::Maxwell3D::Regs& regs);
+    void UpdateDepthBiasEnable(Tegra::Engines::Maxwell3D::Regs& regs);
     void UpdateFrontFace(Tegra::Engines::Maxwell3D::Regs& regs);
     void UpdateStencilOp(Tegra::Engines::Maxwell3D::Regs& regs);
     void UpdateStencilTestEnable(Tegra::Engines::Maxwell3D::Regs& regs);

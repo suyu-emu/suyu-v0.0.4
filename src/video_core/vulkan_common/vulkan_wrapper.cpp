@@ -122,6 +122,9 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdSetDepthCompareOpEXT);
     X(vkCmdSetDepthTestEnableEXT);
     X(vkCmdSetDepthWriteEnableEXT);
+    X(vkCmdSetPrimitiveRestartEnableEXT);
+    X(vkCmdSetRasterizerDiscardEnableEXT);
+    X(vkCmdSetDepthBiasEnableEXT);
     X(vkCmdSetFrontFaceEXT);
     X(vkCmdSetLineWidth);
     X(vkCmdSetPrimitiveTopologyEXT);

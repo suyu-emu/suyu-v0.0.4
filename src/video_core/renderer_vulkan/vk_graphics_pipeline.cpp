@@ -525,6 +525,9 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
     if (!key.state.extended_dynamic_state) {
         dynamic = key.state.dynamic_state;
     }
+    if (!key.state.extended_dynamic_state_2) {
+        dynamic.raw2 = key.state.dynamic_state.raw2;
+    }
     static_vector<VkVertexInputBindingDescription, 32> vertex_bindings;
     static_vector<VkVertexInputBindingDivisorDescriptionEXT, 32> vertex_binding_divisors;
     static_vector<VkVertexInputAttributeDescription, 32> vertex_attributes;
@@ -625,7 +628,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .pNext = nullptr,
         .flags = 0,
         .topology = input_assembly_topology,
-        .primitiveRestartEnable = key.state.primitive_restart_enable != 0 &&
+        .primitiveRestartEnable = key.state.dynamic_state.primitive_restart_enable != 0 &&
                                   ((input_assembly_topology != VK_PRIMITIVE_TOPOLOGY_PATCH_LIST &&
                                     device.IsTopologyListPrimitiveRestartSupported()) ||
                                    SupportsPrimitiveRestart(input_assembly_topology) ||
@@ -674,13 +677,13 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .depthClampEnable =
             static_cast<VkBool32>(key.state.depth_clamp_disabled == 0 ? VK_TRUE : VK_FALSE),
         .rasterizerDiscardEnable =
-            static_cast<VkBool32>(key.state.rasterize_enable == 0 ? VK_TRUE : VK_FALSE),
+            static_cast<VkBool32>(dynamic.rasterize_enable == 0 ? VK_TRUE : VK_FALSE),
         .polygonMode =
             MaxwellToVK::PolygonMode(FixedPipelineState::UnpackPolygonMode(key.state.polygon_mode)),
         .cullMode = static_cast<VkCullModeFlags>(
             dynamic.cull_enable ? MaxwellToVK::CullFace(dynamic.CullFace()) : VK_CULL_MODE_NONE),
         .frontFace = MaxwellToVK::FrontFace(dynamic.FrontFace()),
-        .depthBiasEnable = key.state.depth_bias_enable,
+        .depthBiasEnable = (dynamic.depth_bias_enable == 0 ? VK_TRUE : VK_FALSE),
         .depthBiasConstantFactor = 0.0f,
         .depthBiasClamp = 0.0f,
         .depthBiasSlopeFactor = 0.0f,
@@ -788,7 +791,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .pAttachments = cb_attachments.data(),
         .blendConstants = {},
     };
-    static_vector<VkDynamicState, 19> dynamic_states{
+    static_vector<VkDynamicState, 22> dynamic_states{
         VK_DYNAMIC_STATE_VIEWPORT,           VK_DYNAMIC_STATE_SCISSOR,
         VK_DYNAMIC_STATE_DEPTH_BIAS,         VK_DYNAMIC_STATE_BLEND_CONSTANTS,
         VK_DYNAMIC_STATE_DEPTH_BOUNDS,       VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK,
@@ -811,6 +814,14 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
             dynamic_states.push_back(VK_DYNAMIC_STATE_VERTEX_INPUT_EXT);
         }
         dynamic_states.insert(dynamic_states.end(), extended.begin(), extended.end());
+        if (key.state.extended_dynamic_state_2) {
+            static constexpr std::array extended2{
+                VK_DYNAMIC_STATE_DEPTH_BIAS_ENABLE_EXT,
+                VK_DYNAMIC_STATE_PRIMITIVE_RESTART_ENABLE_EXT,
+                VK_DYNAMIC_STATE_RASTERIZER_DISCARD_ENABLE_EXT,
+            };
+            dynamic_states.insert(dynamic_states.end(), extended2.begin(), extended2.end());
+        }
     }
     const VkPipelineDynamicStateCreateInfo dynamic_state_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
