@@ -199,7 +199,7 @@ void EmulatedConsole::SetTouch(const Common::Input::CallbackStatus& callback, st
 
     if (is_new_input) {
         touch_value.pressed.value = true;
-        touch_value.id = static_cast<u32>(index);
+        touch_value.id = static_cast<int>(index);
     }
 
     touch_value.x = touch_input.x;
