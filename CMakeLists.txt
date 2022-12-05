@@ -214,7 +214,7 @@ if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
 endif()
 
 if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
-    find_package(dynarmic 6.2.4)
+    find_package(dynarmic 6.4.0)
 endif()
 
 if (ENABLE_CUBEB)
