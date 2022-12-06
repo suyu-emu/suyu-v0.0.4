@@ -61,8 +61,8 @@ public:
 
     // Used by error applet
     void SaveErrorReport(u64 title_id, Result result,
-                         std::optional<std::string> custom_text_main = {},
-                         std::optional<std::string> custom_text_detail = {}) const;
+                         const std::optional<std::string>& custom_text_main = {},
+                         const std::optional<std::string>& custom_text_detail = {}) const;
 
     void SaveFSAccessLog(std::string_view log_message) const;
 

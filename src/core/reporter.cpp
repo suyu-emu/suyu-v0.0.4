@@ -339,8 +339,8 @@ void Reporter::SavePlayReport(PlayReportType type, u64 title_id, std::vector<std
 }
 
 void Reporter::SaveErrorReport(u64 title_id, Result result,
-                               std::optional<std::string> custom_text_main,
-                               std::optional<std::string> custom_text_detail) const {
+                               const std::optional<std::string>& custom_text_main,
+                               const std::optional<std::string>& custom_text_detail) const {
     if (!IsReportingEnabled()) {
         return;
     }
@@ -354,8 +354,8 @@ void Reporter::SaveErrorReport(u64 title_id, Result result,
     out["backtrace"] = GetBacktraceData(system);
 
     out["error_custom_text"] = {
-        {"main", *custom_text_main},
-        {"detail", *custom_text_detail},
+        {"main", custom_text_main.value_or("")},
+        {"detail", custom_text_detail.value_or("")},
     };
 
     SaveToFile(std::move(out), GetPath("error_report", title_id, timestamp));
