@@ -69,6 +69,7 @@ public:
     ~RasterizerOpenGL() override;
 
     void Draw(bool is_indexed, u32 instance_count) override;
+    void DrawIndirect() override;
     void Clear(u32 layer_count) override;
     void DispatchCompute() override;
     void ResetCounter(VideoCore::QueryType type) override;
@@ -120,6 +121,9 @@ private:
     static constexpr size_t MAX_TEXTURES = 192;
     static constexpr size_t MAX_IMAGES = 48;
     static constexpr size_t MAX_IMAGE_VIEWS = MAX_TEXTURES + MAX_IMAGES;
+
+    template <typename Func>
+    void PrepareDraw(bool is_indexed, Func&&);
 
     /// Syncs state to match guest's
     void SyncState();

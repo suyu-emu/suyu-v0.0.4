@@ -202,7 +202,8 @@ void RasterizerOpenGL::Clear(u32 layer_count) {
     ++num_queued_commands;
 }
 
-void RasterizerOpenGL::Draw(bool is_indexed, u32 instance_count) {
+template <typename Func>
+void RasterizerOpenGL::PrepareDraw(bool is_indexed, Func&& draw_func) {
     MICROPROFILE_SCOPE(OpenGL_Drawing);
 
     SCOPE_EXIT({ gpu.TickWork(); });
@@ -226,46 +227,95 @@ void RasterizerOpenGL::Draw(bool is_indexed, u32 instance_count) {
     const GLenum primitive_mode = MaxwellToGL::PrimitiveTopology(draw_state.topology);
     BeginTransformFeedback(pipeline, primitive_mode);
 
-    const GLuint base_instance = static_cast<GLuint>(draw_state.base_instance);
-    const GLsizei num_instances = static_cast<GLsizei>(instance_count);
-    if (is_indexed) {
-        const GLint base_vertex = static_cast<GLint>(draw_state.base_index);
-        const GLsizei num_vertices = static_cast<GLsizei>(draw_state.index_buffer.count);
-        const GLvoid* const offset = buffer_cache_runtime.IndexOffset();
-        const GLenum format = MaxwellToGL::IndexFormat(draw_state.index_buffer.format);
-        if (num_instances == 1 && base_instance == 0 && base_vertex == 0) {
-            glDrawElements(primitive_mode, num_vertices, format, offset);
-        } else if (num_instances == 1 && base_instance == 0) {
-            glDrawElementsBaseVertex(primitive_mode, num_vertices, format, offset, base_vertex);
-        } else if (base_vertex == 0 && base_instance == 0) {
-            glDrawElementsInstanced(primitive_mode, num_vertices, format, offset, num_instances);
-        } else if (base_vertex == 0) {
-            glDrawElementsInstancedBaseInstance(primitive_mode, num_vertices, format, offset,
-                                                num_instances, base_instance);
-        } else if (base_instance == 0) {
-            glDrawElementsInstancedBaseVertex(primitive_mode, num_vertices, format, offset,
-                                              num_instances, base_vertex);
-        } else {
-            glDrawElementsInstancedBaseVertexBaseInstance(primitive_mode, num_vertices, format,
-                                                          offset, num_instances, base_vertex,
-                                                          base_instance);
-        }
-    } else {
-        const GLint base_vertex = static_cast<GLint>(draw_state.vertex_buffer.first);
-        const GLsizei num_vertices = static_cast<GLsizei>(draw_state.vertex_buffer.count);
-        if (num_instances == 1 && base_instance == 0) {
-            glDrawArrays(primitive_mode, base_vertex, num_vertices);
-        } else if (base_instance == 0) {
-            glDrawArraysInstanced(primitive_mode, base_vertex, num_vertices, num_instances);
-        } else {
-            glDrawArraysInstancedBaseInstance(primitive_mode, base_vertex, num_vertices,
-                                              num_instances, base_instance);
-        }
-    }
+    draw_func(primitive_mode);
+
     EndTransformFeedback();
 
     ++num_queued_commands;
     has_written_global_memory |= pipeline->WritesGlobalMemory();
+}
+
+void RasterizerOpenGL::Draw(bool is_indexed, u32 instance_count) {
+    PrepareDraw(is_indexed, [this, is_indexed, instance_count](GLenum primitive_mode) {
+        const auto& draw_state = maxwell3d->draw_manager->GetDrawState();
+        const GLuint base_instance = static_cast<GLuint>(draw_state.base_instance);
+        const GLsizei num_instances = static_cast<GLsizei>(instance_count);
+        if (is_indexed) {
+            const GLint base_vertex = static_cast<GLint>(draw_state.base_index);
+            const GLsizei num_vertices = static_cast<GLsizei>(draw_state.index_buffer.count);
+            const GLvoid* const offset = buffer_cache_runtime.IndexOffset();
+            const GLenum format = MaxwellToGL::IndexFormat(draw_state.index_buffer.format);
+            if (num_instances == 1 && base_instance == 0 && base_vertex == 0) {
+                glDrawElements(primitive_mode, num_vertices, format, offset);
+            } else if (num_instances == 1 && base_instance == 0) {
+                glDrawElementsBaseVertex(primitive_mode, num_vertices, format, offset, base_vertex);
+            } else if (base_vertex == 0 && base_instance == 0) {
+                glDrawElementsInstanced(primitive_mode, num_vertices, format, offset,
+                                        num_instances);
+            } else if (base_vertex == 0) {
+                glDrawElementsInstancedBaseInstance(primitive_mode, num_vertices, format, offset,
+                                                    num_instances, base_instance);
+            } else if (base_instance == 0) {
+                glDrawElementsInstancedBaseVertex(primitive_mode, num_vertices, format, offset,
+                                                  num_instances, base_vertex);
+            } else {
+                glDrawElementsInstancedBaseVertexBaseInstance(primitive_mode, num_vertices, format,
+                                                              offset, num_instances, base_vertex,
+                                                              base_instance);
+            }
+        } else {
+            const GLint base_vertex = static_cast<GLint>(draw_state.vertex_buffer.first);
+            const GLsizei num_vertices = static_cast<GLsizei>(draw_state.vertex_buffer.count);
+            if (num_instances == 1 && base_instance == 0) {
+                glDrawArrays(primitive_mode, base_vertex, num_vertices);
+            } else if (base_instance == 0) {
+                glDrawArraysInstanced(primitive_mode, base_vertex, num_vertices, num_instances);
+            } else {
+                glDrawArraysInstancedBaseInstance(primitive_mode, base_vertex, num_vertices,
+                                                  num_instances, base_instance);
+            }
+        }
+    });
+}
+
+void RasterizerOpenGL::DrawIndirect() {
+    const auto& params = maxwell3d->draw_manager->GetIndirectParams();
+    buffer_cache.SetDrawIndirect(&params);
+    PrepareDraw(params.is_indexed, [this, &params](GLenum primitive_mode) {
+        const auto [buffer, offset] = buffer_cache.GetDrawIndirectBuffer();
+        const GLvoid* const gl_offset =
+            reinterpret_cast<const GLvoid*>(static_cast<uintptr_t>(offset));
+        glBindBuffer(GL_DRAW_INDIRECT_BUFFER, buffer->Handle());
+        if (params.include_count) {
+            const auto [draw_buffer, offset_base] = buffer_cache.GetDrawIndirectCount();
+            glBindBuffer(GL_PARAMETER_BUFFER, draw_buffer->Handle());
+
+            if (params.is_indexed) {
+                const GLenum format = MaxwellToGL::IndexFormat(maxwell3d->regs.index_buffer.format);
+                glMultiDrawElementsIndirectCount(primitive_mode, format, gl_offset,
+                                                 static_cast<GLintptr>(offset_base),
+                                                 static_cast<GLsizei>(params.max_draw_counts),
+                                                 static_cast<GLsizei>(params.stride));
+            } else {
+                glMultiDrawArraysIndirectCount(primitive_mode, gl_offset,
+                                               static_cast<GLintptr>(offset_base),
+                                               static_cast<GLsizei>(params.max_draw_counts),
+                                               static_cast<GLsizei>(params.stride));
+            }
+            return;
+        }
+        if (params.is_indexed) {
+            const GLenum format = MaxwellToGL::IndexFormat(maxwell3d->regs.index_buffer.format);
+            glMultiDrawElementsIndirect(primitive_mode, format, gl_offset,
+                                        static_cast<GLsizei>(params.max_draw_counts),
+                                        static_cast<GLsizei>(params.stride));
+        } else {
+            glMultiDrawArraysIndirect(primitive_mode, gl_offset,
+                                      static_cast<GLsizei>(params.max_draw_counts),
+                                      static_cast<GLsizei>(params.stride));
+        }
+    });
+    buffer_cache.SetDrawIndirect(nullptr);
 }
 
 void RasterizerOpenGL::DispatchCompute() {
