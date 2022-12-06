@@ -201,6 +201,22 @@ struct SimpleVertexSpec {
     static constexpr bool has_images = false;
 };
 
+struct SimpleStorageSpec {
+    static constexpr std::array<bool, 5> enabled_stages{true, false, false, false, true};
+    static constexpr bool has_storage_buffers = true;
+    static constexpr bool has_texture_buffers = false;
+    static constexpr bool has_image_buffers = false;
+    static constexpr bool has_images = false;
+};
+
+struct SimpleImageSpec {
+    static constexpr std::array<bool, 5> enabled_stages{true, false, false, false, true};
+    static constexpr bool has_storage_buffers = false;
+    static constexpr bool has_texture_buffers = false;
+    static constexpr bool has_image_buffers = false;
+    static constexpr bool has_images = true;
+};
+
 struct DefaultSpec {
     static constexpr std::array<bool, 5> enabled_stages{true, true, true, true, true};
     static constexpr bool has_storage_buffers = true;
@@ -211,7 +227,7 @@ struct DefaultSpec {
 
 ConfigureFuncPtr ConfigureFunc(const std::array<vk::ShaderModule, NUM_STAGES>& modules,
                                const std::array<Shader::Info, NUM_STAGES>& infos) {
-    return FindSpec<SimpleVertexSpec, SimpleVertexFragmentSpec, DefaultSpec>(modules, infos);
+    return FindSpec<SimpleVertexSpec, SimpleVertexFragmentSpec, SimpleStorageSpec, SimpleImageSpec, DefaultSpec>(modules, infos);
 }
 } // Anonymous namespace
 
