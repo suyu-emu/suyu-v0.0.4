@@ -600,6 +600,21 @@ void RasterizerVulkan::TickFrame() {
     }
 }
 
+bool RasterizerVulkan::AccelerateConditionalRendering() {
+    if (Settings::IsGPULevelHigh()) {
+        // TODO(Blinkhawk): Reimplement Host conditional rendering.
+        return false;
+    }
+    // Medium / Low Hack: stub any checks on queries writen into the buffer cache.
+    const GPUVAddr condition_address{maxwell3d->regs.render_enable.Address()};
+    Maxwell::ReportSemaphore::Compare cmp;
+    if (gpu_memory->IsMemoryDirty(condition_address, sizeof(cmp),
+                                  VideoCommon::CacheType::BufferCache)) {
+        return true;
+    }
+    return false;
+}
+
 bool RasterizerVulkan::AccelerateSurfaceCopy(const Tegra::Engines::Fermi2D::Surface& src,
                                              const Tegra::Engines::Fermi2D::Surface& dst,
                                              const Tegra::Engines::Fermi2D::Config& copy_config) {
@@ -995,7 +1010,8 @@ void RasterizerVulkan::UpdateDepthBiasEnable(Tegra::Engines::Maxwell3D::Regs& re
     };
     const u32 topology_index = static_cast<u32>(maxwell3d->draw_manager->GetDrawState().topology);
     const u32 enable = enabled_lut[POLYGON_OFFSET_ENABLE_LUT[topology_index]];
-    scheduler.Record([enable](vk::CommandBuffer cmdbuf) { cmdbuf.SetDepthBiasEnableEXT(enable != 0); });
+    scheduler.Record(
+        [enable](vk::CommandBuffer cmdbuf) { cmdbuf.SetDepthBiasEnableEXT(enable != 0); });
 }
 
 void RasterizerVulkan::UpdateLogicOpEnable(Tegra::Engines::Maxwell3D::Regs& regs) {
@@ -1012,11 +1028,11 @@ void RasterizerVulkan::UpdateDepthClampEnable(Tegra::Engines::Maxwell3D::Regs& r
         return;
     }
     bool is_enabled = !(regs.viewport_clip_control.geometry_clip ==
-                                 Maxwell::ViewportClipControl::GeometryClip::Passthrough ||
-                             regs.viewport_clip_control.geometry_clip ==
-                                 Maxwell::ViewportClipControl::GeometryClip::FrustumXYZ ||
-                             regs.viewport_clip_control.geometry_clip ==
-                                 Maxwell::ViewportClipControl::GeometryClip::FrustumZ);
+                            Maxwell::ViewportClipControl::GeometryClip::Passthrough ||
+                        regs.viewport_clip_control.geometry_clip ==
+                            Maxwell::ViewportClipControl::GeometryClip::FrustumXYZ ||
+                        regs.viewport_clip_control.geometry_clip ==
+                            Maxwell::ViewportClipControl::GeometryClip::FrustumZ);
     scheduler.Record(
         [is_enabled](vk::CommandBuffer cmdbuf) { cmdbuf.SetDepthClampEnableEXT(is_enabled); });
 }

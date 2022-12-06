@@ -16,7 +16,6 @@
 #include "video_core/rasterizer_interface.h"
 #include "video_core/textures/texture.h"
 
-
 namespace Tegra::Engines {
 
 using VideoCore::QueryType;
@@ -538,13 +537,17 @@ void Maxwell3D::ProcessQueryGet() {
 void Maxwell3D::ProcessQueryCondition() {
     const GPUVAddr condition_address{regs.render_enable.Address()};
     switch (regs.render_enable_override) {
-    case Regs::RenderEnable::Override::AlwaysRender:
+    case Regs::RenderEnable::Override::AlwaysRender: {
         execute_on = true;
         break;
     case Regs::RenderEnable::Override::NeverRender:
         execute_on = false;
         break;
-    case Regs::RenderEnable::Override::UseRenderEnable:
+    case Regs::RenderEnable::Override::UseRenderEnable: {
+        if (rasterizer->AccelerateConditionalRendering()) {
+            execute_on = true;
+            return;
+        }
         switch (regs.render_enable.mode) {
         case Regs::RenderEnable::Mode::True: {
             execute_on = true;
@@ -582,6 +585,8 @@ void Maxwell3D::ProcessQueryCondition() {
         }
         break;
     }
+    }
+    }
 }
 
 void Maxwell3D::ProcessCounterReset() {
@@ -618,7 +623,8 @@ std::optional<u64> Maxwell3D::GetQueryResult() {
 }
 
 void Maxwell3D::ProcessCBBind(size_t stage_index) {
-    // Bind the buffer currently in CB_ADDRESS to the specified index in the desired shader stage.
+    // Bind the buffer currently in CB_ADDRESS to the specified index in the desired shader
+    // stage.
     const auto& bind_data = regs.bind_groups[stage_index];
     auto& buffer = state.shader_stages[stage_index].const_buffers[bind_data.shader_slot];
     buffer.enabled = bind_data.valid.Value() != 0;
