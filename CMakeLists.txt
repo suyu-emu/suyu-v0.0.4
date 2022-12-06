@@ -432,23 +432,13 @@ if (ENABLE_SDL2)
         set(SDL2_LIBRARY "${SDL2_PREFIX}/lib/x64/SDL2.lib" CACHE PATH "Path to SDL2 library")
         set(SDL2_DLL_DIR "${SDL2_PREFIX}/lib/x64/" CACHE PATH "Path to SDL2.dll")
 
-        add_library(SDL2 INTERFACE)
-        target_link_libraries(SDL2 INTERFACE "${SDL2_LIBRARY}")
-        target_include_directories(SDL2 INTERFACE "${SDL2_INCLUDE_DIR}")
+        add_library(SDL2::SDL2 INTERFACE IMPORTED)
+        target_link_libraries(SDL2::SDL2 INTERFACE "${SDL2_LIBRARY}")
+        target_include_directories(SDL2::SDL2 INTERFACE "${SDL2_INCLUDE_DIR}")
     elseif (YUZU_USE_EXTERNAL_SDL2)
         message(STATUS "Using SDL2 from externals.")
     else()
         find_package(SDL2 2.0.18 REQUIRED)
-
-        # Some installations don't set SDL2_LIBRARIES
-        if("${SDL2_LIBRARIES}" STREQUAL "")
-            message(WARNING "SDL2_LIBRARIES wasn't set, manually setting to SDL2::SDL2")
-            set(SDL2_LIBRARIES "SDL2::SDL2")
-        endif()
-
-        include_directories(SYSTEM ${SDL2_INCLUDE_DIRS})
-        add_library(SDL2 INTERFACE)
-        target_link_libraries(SDL2 INTERFACE "${SDL2_LIBRARIES}")
     endif()
 endif()
 
