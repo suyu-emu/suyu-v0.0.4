@@ -400,6 +400,7 @@ struct Values {
     Setting<bool> cpuopt_fastmem{true, "cpuopt_fastmem"};
     Setting<bool> cpuopt_fastmem_exclusives{true, "cpuopt_fastmem_exclusives"};
     Setting<bool> cpuopt_recompile_exclusives{true, "cpuopt_recompile_exclusives"};
+    Setting<bool> cpuopt_ignore_memory_aborts{true, "cpuopt_ignore_memory_aborts"};
 
     SwitchableSetting<bool> cpuopt_unsafe_unfuse_fma{true, "cpuopt_unsafe_unfuse_fma"};
     SwitchableSetting<bool> cpuopt_unsafe_reduce_fp_error{true, "cpuopt_unsafe_reduce_fp_error"};
