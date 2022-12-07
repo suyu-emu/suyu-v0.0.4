@@ -1487,6 +1487,9 @@ std::vector<const char*> Device::LoadExtensions(bool requires_surface) {
 
         max_push_descriptors = push_descriptor.maxPushDescriptors;
     }
+
+    has_null_descriptor = true;
+
     return extensions;
 }
 
