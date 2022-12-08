@@ -46,6 +46,11 @@ void DrawManager::ProcessMethodCall(u32 method, u32 argument) {
         SetInlineIndexBuffer(regs.inline_index_4x8.index2);
         SetInlineIndexBuffer(regs.inline_index_4x8.index3);
         break;
+    case MAXWELL3D_REG_INDEX(vertex_array_instance_first):
+    case MAXWELL3D_REG_INDEX(vertex_array_instance_subsequent): {
+        LOG_WARNING(HW_GPU, "(STUBBED) called");
+        break;
+    }
     default:
         break;
     }
