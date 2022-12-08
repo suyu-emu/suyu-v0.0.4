@@ -46,9 +46,6 @@ void DrawManager::ProcessMethodCall(u32 method, u32 argument) {
         SetInlineIndexBuffer(regs.inline_index_4x8.index2);
         SetInlineIndexBuffer(regs.inline_index_4x8.index3);
         break;
-    case MAXWELL3D_REG_INDEX(topology_override):
-        use_topology_override = true;
-        break;
     default:
         break;
     }
@@ -156,25 +153,28 @@ void DrawManager::DrawIndexSmall(u32 argument) {
     ProcessDraw(true, 1);
 }
 
-void DrawManager::ProcessTopologyOverride() {
-    if (!use_topology_override)
-        return;
-
+void DrawManager::UpdateTopology() {
     const auto& regs{maxwell3d->regs};
-    switch (regs.topology_override) {
-    case PrimitiveTopologyOverride::None:
+    switch (regs.primitive_topology_control) {
+    case PrimitiveTopologyControl::UseInBeginMethods:
         break;
-    case PrimitiveTopologyOverride::Points:
-        draw_state.topology = PrimitiveTopology::Points;
-        break;
-    case PrimitiveTopologyOverride::Lines:
-        draw_state.topology = PrimitiveTopology::Lines;
-        break;
-    case PrimitiveTopologyOverride::LineStrip:
-        draw_state.topology = PrimitiveTopology::LineStrip;
-        break;
-    default:
-        draw_state.topology = static_cast<PrimitiveTopology>(regs.topology_override);
+    case PrimitiveTopologyControl::UseSeparateState:
+        switch (regs.topology_override) {
+        case PrimitiveTopologyOverride::None:
+            break;
+        case PrimitiveTopologyOverride::Points:
+            draw_state.topology = PrimitiveTopology::Points;
+            break;
+        case PrimitiveTopologyOverride::Lines:
+            draw_state.topology = PrimitiveTopology::Lines;
+            break;
+        case PrimitiveTopologyOverride::LineStrip:
+            draw_state.topology = PrimitiveTopology::LineStrip;
+            break;
+        default:
+            draw_state.topology = static_cast<PrimitiveTopology>(regs.topology_override);
+            break;
+        }
         break;
     }
 }
@@ -183,7 +183,7 @@ void DrawManager::ProcessDraw(bool draw_indexed, u32 instance_count) {
     LOG_TRACE(HW_GPU, "called, topology={}, count={}", draw_state.topology.Value(),
               draw_indexed ? draw_state.index_buffer.count : draw_state.vertex_buffer.count);
 
-    ProcessTopologyOverride();
+    UpdateTopology();
 
     if (maxwell3d->ShouldExecute())
         maxwell3d->rasterizer->Draw(draw_indexed, instance_count);
