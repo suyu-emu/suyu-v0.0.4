@@ -52,12 +52,15 @@ void DrawManager::ProcessMethodCall(u32 method, u32 argument) {
 }
 
 void DrawManager::Clear(u32 layer_count) {
-    maxwell3d->rasterizer->Clear(layer_count);
+    if (maxwell3d->ShouldExecute()) {
+        maxwell3d->rasterizer->Clear(layer_count);
+    }
 }
 
 void DrawManager::DrawDeferred() {
-    if (draw_state.draw_mode != DrawMode::Instance || draw_state.instance_count == 0)
+    if (draw_state.draw_mode != DrawMode::Instance || draw_state.instance_count == 0) {
         return;
+    }
     DrawEnd(draw_state.instance_count + 1, true);
     draw_state.instance_count = 0;
 }
@@ -112,8 +115,9 @@ void DrawManager::DrawEnd(u32 instance_count, bool force_draw) {
     const auto& regs{maxwell3d->regs};
     switch (draw_state.draw_mode) {
     case DrawMode::Instance:
-        if (!force_draw)
+        if (!force_draw) {
             break;
+        }
         [[fallthrough]];
     case DrawMode::General:
         draw_state.base_instance = regs.global_base_instance_index;
@@ -185,7 +189,8 @@ void DrawManager::ProcessDraw(bool draw_indexed, u32 instance_count) {
 
     UpdateTopology();
 
-    if (maxwell3d->ShouldExecute())
+    if (maxwell3d->ShouldExecute()) {
         maxwell3d->rasterizer->Draw(draw_indexed, instance_count);
+    }
 }
 } // namespace Tegra::Engines
