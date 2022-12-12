@@ -310,7 +310,9 @@ VkPrimitiveTopology PrimitiveTopology([[maybe_unused]] const Device& device,
     case Maxwell::PrimitiveTopology::TriangleFan:
         return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
     case Maxwell::PrimitiveTopology::Quads:
-        // TODO(Rodrigo): Use VK_PRIMITIVE_TOPOLOGY_QUAD_LIST_EXT whenever it releases
+    case Maxwell::PrimitiveTopology::QuadStrip:
+        // TODO: Use VK_PRIMITIVE_TOPOLOGY_QUAD_LIST_EXT/VK_PRIMITIVE_TOPOLOGY_QUAD_STRIP_EXT
+        // whenever it releases
         return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     case Maxwell::PrimitiveTopology::Patches:
         return VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
