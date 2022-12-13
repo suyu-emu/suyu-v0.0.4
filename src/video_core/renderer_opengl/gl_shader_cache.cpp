@@ -174,6 +174,7 @@ ShaderCache::ShaderCache(RasterizerOpenGL& rasterizer_, Core::Frontend::EmuWindo
       texture_cache{texture_cache_}, buffer_cache{buffer_cache_}, program_manager{program_manager_},
       state_tracker{state_tracker_}, shader_notify{shader_notify_},
       use_asynchronous_shaders{device.UseAsynchronousShaders()},
+      strict_context_required{device.StrictContextRequired()},
       profile{
           .supported_spirv = 0x00010000,
 
@@ -255,9 +256,14 @@ void ShaderCache::LoadDiskResources(u64 title_id, std::stop_token stop_loading,
     }
     shader_cache_filename = base_dir / "opengl.bin";
 
-    if (!workers) {
+    if (!workers && !strict_context_required) {
         workers = CreateWorkers();
     }
+    std::optional<Context> strict_context;
+    if (strict_context_required) {
+        strict_context.emplace(emu_window);
+    }
+
     struct {
         std::mutex mutex;
         size_t total{};
@@ -265,44 +271,49 @@ void ShaderCache::LoadDiskResources(u64 title_id, std::stop_token stop_loading,
         bool has_loaded{};
     } state;
 
+    const auto queue_work{[&](Common::UniqueFunction<void, Context*>&& work) {
+        if (strict_context_required) {
+            work(&strict_context.value());
+        } else {
+            workers->QueueWork(std::move(work));
+        }
+    }};
     const auto load_compute{[&](std::ifstream& file, FileEnvironment env) {
         ComputePipelineKey key;
         file.read(reinterpret_cast<char*>(&key), sizeof(key));
-        workers->QueueWork(
-            [this, key, env = std::move(env), &state, &callback](Context* ctx) mutable {
-                ctx->pools.ReleaseContents();
-                auto pipeline{CreateComputePipeline(ctx->pools, key, env)};
-                std::scoped_lock lock{state.mutex};
-                if (pipeline) {
-                    compute_cache.emplace(key, std::move(pipeline));
-                }
-                ++state.built;
-                if (state.has_loaded) {
-                    callback(VideoCore::LoadCallbackStage::Build, state.built, state.total);
-                }
-            });
+        queue_work([this, key, env = std::move(env), &state, &callback](Context* ctx) mutable {
+            ctx->pools.ReleaseContents();
+            auto pipeline{CreateComputePipeline(ctx->pools, key, env)};
+            std::scoped_lock lock{state.mutex};
+            if (pipeline) {
+                compute_cache.emplace(key, std::move(pipeline));
+            }
+            ++state.built;
+            if (state.has_loaded) {
+                callback(VideoCore::LoadCallbackStage::Build, state.built, state.total);
+            }
+        });
         ++state.total;
     }};
     const auto load_graphics{[&](std::ifstream& file, std::vector<FileEnvironment> envs) {
         GraphicsPipelineKey key;
         file.read(reinterpret_cast<char*>(&key), sizeof(key));
-        workers->QueueWork(
-            [this, key, envs = std::move(envs), &state, &callback](Context* ctx) mutable {
-                boost::container::static_vector<Shader::Environment*, 5> env_ptrs;
-                for (auto& env : envs) {
-                    env_ptrs.push_back(&env);
-                }
-                ctx->pools.ReleaseContents();
-                auto pipeline{CreateGraphicsPipeline(ctx->pools, key, MakeSpan(env_ptrs), false)};
-                std::scoped_lock lock{state.mutex};
-                if (pipeline) {
-                    graphics_cache.emplace(key, std::move(pipeline));
-                }
-                ++state.built;
-                if (state.has_loaded) {
-                    callback(VideoCore::LoadCallbackStage::Build, state.built, state.total);
-                }
-            });
+        queue_work([this, key, envs = std::move(envs), &state, &callback](Context* ctx) mutable {
+            boost::container::static_vector<Shader::Environment*, 5> env_ptrs;
+            for (auto& env : envs) {
+                env_ptrs.push_back(&env);
+            }
+            ctx->pools.ReleaseContents();
+            auto pipeline{CreateGraphicsPipeline(ctx->pools, key, MakeSpan(env_ptrs), false)};
+            std::scoped_lock lock{state.mutex};
+            if (pipeline) {
+                graphics_cache.emplace(key, std::move(pipeline));
+            }
+            ++state.built;
+            if (state.has_loaded) {
+                callback(VideoCore::LoadCallbackStage::Build, state.built, state.total);
+            }
+        });
         ++state.total;
     }};
     LoadPipelines(stop_loading, shader_cache_filename, CACHE_VERSION, load_compute, load_graphics);
@@ -314,6 +325,9 @@ void ShaderCache::LoadDiskResources(u64 title_id, std::stop_token stop_loading,
     state.has_loaded = true;
     lock.unlock();
 
+    if (strict_context_required) {
+        return;
+    }
     workers->WaitForRequests(stop_loading);
     if (!use_asynchronous_shaders) {
         workers.reset();

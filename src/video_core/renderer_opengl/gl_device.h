@@ -173,6 +173,10 @@ public:
         return can_report_memory;
     }
 
+    bool StrictContextRequired() const {
+        return strict_context_required;
+    }
+
 private:
     static bool TestVariableAoffi();
     static bool TestPreciseBug();
@@ -216,6 +220,7 @@ private:
     bool has_cbuf_ftou_bug{};
     bool has_bool_ref_bug{};
     bool can_report_memory{};
+    bool strict_context_required{};
 
     std::string vendor_name;
 };

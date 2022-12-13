@@ -126,9 +126,11 @@ Device::Device() {
     const bool is_intel = vendor_name == "Intel";
 
 #ifdef __unix__
-    const bool is_linux = true;
+    constexpr bool is_linux = true;
+    const bool is_wayland = strcasecmp(getenv("XDG_SESSION_TYPE"), "wayland") == 0;
 #else
-    const bool is_linux = false;
+    constexpr bool is_linux = false;
+    constexpr bool is_wayland = false;
 #endif
 
     bool disable_fast_buffer_sub_data = false;
@@ -194,9 +196,11 @@ Device::Device() {
     }
 
     // Blocks AMD and Intel OpenGL drivers on Windows from using asynchronous shader compilation.
+    // Blocks EGL on Wayland from using asynchronous shader compilation.
     use_asynchronous_shaders = Settings::values.use_asynchronous_shaders.GetValue() &&
-                               !(is_amd || (is_intel && !is_linux));
+                               !(is_amd || (is_intel && !is_linux)) && !is_wayland;
     use_driver_cache = is_nvidia;
+    strict_context_required = is_wayland;
 
     LOG_INFO(Render_OpenGL, "Renderer_VariableAOFFI: {}", has_variable_aoffi);
     LOG_INFO(Render_OpenGL, "Renderer_ComponentIndexingBug: {}", has_component_indexing_bug);

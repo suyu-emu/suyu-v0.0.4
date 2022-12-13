@@ -61,8 +61,6 @@ void EmuThread::run() {
 
     // Main process has been loaded. Make the context current to this thread and begin GPU and CPU
     // execution.
-    gpu.Start();
-
     gpu.ObtainContext();
 
     emit LoadProgress(VideoCore::LoadCallbackStage::Prepare, 0, 0);
@@ -77,6 +75,7 @@ void EmuThread::run() {
     emit LoadProgress(VideoCore::LoadCallbackStage::Complete, 0, 0);
 
     gpu.ReleaseContext();
+    gpu.Start();
 
     system.GetCpuManager().OnGpuReady();
 
