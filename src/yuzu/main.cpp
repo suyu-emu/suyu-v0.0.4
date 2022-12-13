@@ -1792,12 +1792,14 @@ void GMainWindow::ShutdownGame() {
     discord_rpc->Pause();
 
     RequestGameExit();
-    emu_thread->RequestStop();
 
     emit EmulationStopping();
 
     // Wait for emulation thread to complete and delete it
-    emu_thread->wait();
+    if (!emu_thread->wait(5000)) {
+        emu_thread->ForceStop();
+        emu_thread->wait();
+    }
     emu_thread = nullptr;
 
     emulation_running = false;

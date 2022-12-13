@@ -11,7 +11,6 @@
 #include <QImage>
 #include <QStringList>
 #include <QThread>
-#include <QTimer>
 #include <QTouchEvent>
 #include <QWidget>
 
@@ -85,17 +84,9 @@ public:
     }
 
     /**
-     * Requests for the emulation thread to stop running
+     * Requests for the emulation thread to immediately stop running
      */
-    void RequestStop() {
-        QTimer::singleShot(5000, this, &EmuThread::ForceStop);
-    }
-
-private slots:
     void ForceStop() {
-        if (!IsRunning()) {
-            return;
-        }
         LOG_WARNING(Frontend, "Force stopping EmuThread");
         stop_source.request_stop();
         SetRunning(false);
