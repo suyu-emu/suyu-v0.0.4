@@ -314,6 +314,8 @@ GRenderWindow::GRenderWindow(GMainWindow* parent, EmuThread* emu_thread_,
     input_subsystem->Initialize();
     this->setMouseTracking(true);
 
+    strict_context_required = QGuiApplication::platformName() == QStringLiteral("wayland");
+
     connect(this, &GRenderWindow::FirstFrameDisplayed, parent, &GMainWindow::OnLoadComplete);
     connect(this, &GRenderWindow::ExecuteProgramSignal, parent, &GMainWindow::OnExecuteProgram,
             Qt::QueuedConnection);

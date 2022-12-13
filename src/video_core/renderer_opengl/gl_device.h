@@ -5,6 +5,7 @@
 
 #include <cstddef>
 #include "common/common_types.h"
+#include "core/frontend/emu_window.h"
 #include "shader_recompiler/stage.h"
 
 namespace Settings {
@@ -15,7 +16,7 @@ namespace OpenGL {
 
 class Device {
 public:
-    explicit Device();
+    explicit Device(Core::Frontend::EmuWindow& emu_window);
 
     [[nodiscard]] std::string GetVendorName() const;
 

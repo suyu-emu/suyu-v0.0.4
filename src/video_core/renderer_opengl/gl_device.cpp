@@ -112,7 +112,7 @@ bool IsASTCSupported() {
 }
 } // Anonymous namespace
 
-Device::Device() {
+Device::Device(Core::Frontend::EmuWindow& emu_window) {
     if (!GLAD_GL_VERSION_4_6) {
         LOG_ERROR(Render_OpenGL, "OpenGL 4.6 is not available");
         throw std::runtime_error{"Insufficient version"};
@@ -127,10 +127,8 @@ Device::Device() {
 
 #ifdef __unix__
     constexpr bool is_linux = true;
-    const bool is_wayland = strcasecmp(getenv("XDG_SESSION_TYPE"), "wayland") == 0;
 #else
     constexpr bool is_linux = false;
-    constexpr bool is_wayland = false;
 #endif
 
     bool disable_fast_buffer_sub_data = false;
@@ -195,12 +193,12 @@ Device::Device() {
         }
     }
 
+    strict_context_required = emu_window.StrictContextRequired();
     // Blocks AMD and Intel OpenGL drivers on Windows from using asynchronous shader compilation.
     // Blocks EGL on Wayland from using asynchronous shader compilation.
     use_asynchronous_shaders = Settings::values.use_asynchronous_shaders.GetValue() &&
-                               !(is_amd || (is_intel && !is_linux)) && !is_wayland;
+                               !(is_amd || (is_intel && !is_linux)) && !strict_context_required;
     use_driver_cache = is_nvidia;
-    strict_context_required = is_wayland;
 
     LOG_INFO(Render_OpenGL, "Renderer_VariableAOFFI: {}", has_variable_aoffi);
     LOG_INFO(Render_OpenGL, "Renderer_ComponentIndexingBug: {}", has_component_indexing_bug);
