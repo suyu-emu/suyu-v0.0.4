@@ -223,6 +223,7 @@ class RenderWidget : public QWidget {
 public:
     explicit RenderWidget(GRenderWindow* parent) : QWidget(parent), render_window(parent) {
         setAttribute(Qt::WA_NativeWindow);
+        setAttribute(Qt::WA_DontCreateNativeAncestors);
         setAttribute(Qt::WA_PaintOnScreen);
     }
 
