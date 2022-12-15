@@ -815,8 +815,15 @@ static Result GetInfo(Core::System& system, u64* result, u64 info_id, Handle han
         // 6.0.0+
         TotalPhysicalMemoryAvailableWithoutSystemResource = 21,
         TotalPhysicalMemoryUsedWithoutSystemResource = 22,
+        // 10.0.0+
+        IsApplication = 23,
+        // 13.0.0+
+        FreeThreadCount = 24,
+        // 14.0.0+
+        IsSvcPermitted = 26,
 
         // Homebrew only
+        MesosphereMeta = 65000,
         MesosphereCurrentProcess = 65001,
     };
 
@@ -840,7 +847,9 @@ static Result GetInfo(Core::System& system, u64* result, u64 info_id, Handle han
     case GetInfoType::TitleId:
     case GetInfoType::UserExceptionContextAddr:
     case GetInfoType::TotalPhysicalMemoryAvailableWithoutSystemResource:
-    case GetInfoType::TotalPhysicalMemoryUsedWithoutSystemResource: {
+    case GetInfoType::TotalPhysicalMemoryUsedWithoutSystemResource:
+    case GetInfoType::IsApplication:
+    case GetInfoType::FreeThreadCount: {
         if (info_sub_id != 0) {
             LOG_ERROR(Kernel_SVC, "Info sub id is non zero! info_id={}, info_sub_id={}", info_id,
                       info_sub_id);
@@ -927,6 +936,10 @@ static Result GetInfo(Core::System& system, u64* result, u64 info_id, Handle han
 
         case GetInfoType::TotalPhysicalMemoryUsedWithoutSystemResource:
             *result = process->GetTotalPhysicalMemoryUsedWithoutSystemResource();
+            return ResultSuccess;
+
+        case GetInfoType::FreeThreadCount:
+            *result = process->GetFreeThreadCount();
             return ResultSuccess;
 
         default:
