@@ -2917,7 +2917,8 @@ static QScreen* GuessCurrentScreen(QWidget* window) {
 
 bool GMainWindow::UsingExclusiveFullscreen() {
     return Settings::values.fullscreen_mode.GetValue() == Settings::FullscreenMode::Exclusive ||
-           QGuiApplication::platformName() == QStringLiteral("wayland");
+           QGuiApplication::platformName() == QStringLiteral("wayland") ||
+           QGuiApplication::platformName() == QStringLiteral("wayland-egl");
 }
 
 void GMainWindow::ShowFullscreen() {
