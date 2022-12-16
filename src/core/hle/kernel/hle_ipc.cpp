@@ -167,6 +167,9 @@ void HLERequestContext::ParseCommandBuffer(const KHandleTable& handle_table, u32
         }
         if (incoming) {
             // Populate the object lists with the data in the IPC request.
+            incoming_copy_handles.reserve(handle_descriptor_header->num_handles_to_copy);
+            incoming_move_handles.reserve(handle_descriptor_header->num_handles_to_move);
+
             for (u32 handle = 0; handle < handle_descriptor_header->num_handles_to_copy; ++handle) {
                 incoming_copy_handles.push_back(rp.Pop<Handle>());
             }
@@ -180,6 +183,11 @@ void HLERequestContext::ParseCommandBuffer(const KHandleTable& handle_table, u32
             rp.Skip(handle_descriptor_header->num_handles_to_move, false);
         }
     }
+
+    buffer_x_desciptors.reserve(command_header->num_buf_x_descriptors);
+    buffer_a_desciptors.reserve(command_header->num_buf_a_descriptors);
+    buffer_b_desciptors.reserve(command_header->num_buf_b_descriptors);
+    buffer_w_desciptors.reserve(command_header->num_buf_w_descriptors);
 
     for (u32 i = 0; i < command_header->num_buf_x_descriptors; ++i) {
         buffer_x_desciptors.push_back(rp.PopRaw<IPC::BufferDescriptorX>());
