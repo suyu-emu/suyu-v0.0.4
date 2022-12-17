@@ -658,8 +658,7 @@ void RasterizerVulkan::BeginTransformFeedback() {
         return;
     }
     UNIMPLEMENTED_IF(regs.IsShaderConfigEnabled(Maxwell::ShaderType::TessellationInit) ||
-                     regs.IsShaderConfigEnabled(Maxwell::ShaderType::Tessellation) ||
-                     regs.IsShaderConfigEnabled(Maxwell::ShaderType::Geometry));
+                     regs.IsShaderConfigEnabled(Maxwell::ShaderType::Tessellation));
     scheduler.Record(
         [](vk::CommandBuffer cmdbuf) { cmdbuf.BeginTransformFeedbackEXT(0, 0, nullptr, nullptr); });
 }
