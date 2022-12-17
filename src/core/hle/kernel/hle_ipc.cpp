@@ -326,25 +326,23 @@ Result HLERequestContext::WriteToOutgoingCommandBuffer(KThread& requesting_threa
 }
 
 std::vector<u8> HLERequestContext::ReadBuffer(std::size_t buffer_index) const {
-    std::vector<u8> buffer{};
     const bool is_buffer_a{BufferDescriptorA().size() > buffer_index &&
                            BufferDescriptorA()[buffer_index].Size()};
-
     if (is_buffer_a) {
         ASSERT_OR_EXECUTE_MSG(
-            BufferDescriptorA().size() > buffer_index, { return buffer; },
+            BufferDescriptorA().size() > buffer_index, { return {}; },
             "BufferDescriptorA invalid buffer_index {}", buffer_index);
-        buffer.resize(BufferDescriptorA()[buffer_index].Size());
+        std::vector<u8> buffer(BufferDescriptorA()[buffer_index].Size());
         memory.ReadBlock(BufferDescriptorA()[buffer_index].Address(), buffer.data(), buffer.size());
+        return buffer;
     } else {
         ASSERT_OR_EXECUTE_MSG(
-            BufferDescriptorX().size() > buffer_index, { return buffer; },
+            BufferDescriptorX().size() > buffer_index, { return {}; },
             "BufferDescriptorX invalid buffer_index {}", buffer_index);
-        buffer.resize(BufferDescriptorX()[buffer_index].Size());
+        std::vector<u8> buffer(BufferDescriptorX()[buffer_index].Size());
         memory.ReadBlock(BufferDescriptorX()[buffer_index].Address(), buffer.data(), buffer.size());
+        return buffer;
     }
-
-    return buffer;
 }
 
 std::size_t HLERequestContext::WriteBuffer(const void* buffer, std::size_t size,
