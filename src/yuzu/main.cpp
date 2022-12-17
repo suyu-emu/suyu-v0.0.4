@@ -1498,7 +1498,7 @@ void GMainWindow::SetupSigInterrupts() {
 
 void GMainWindow::HandleSigInterrupt(int sig) {
     if (sig == SIGINT) {
-        exit(1);
+        _exit(1);
     }
 
     // Calling into Qt directly from a signal handler is not safe,
