@@ -243,8 +243,6 @@ private:
     InputCommon::TasInput::TasState last_tas_state;
 
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && YUZU_USE_QT_MULTIMEDIA
-    static constexpr std::size_t CAMERA_WIDTH = 320;
-    static constexpr std::size_t CAMERA_HEIGHT = 240;
     bool is_virtual_camera;
     int pending_camera_snapshots;
     std::vector<u32> camera_data;
