@@ -19,8 +19,12 @@ public:
     void Initialize();
     void Finalize();
 
-    s64 GetCount() {
+    s64 GetCount() const {
         return GetTick();
+    }
+
+    void RegisterTask(KTimerTask* task, s64 time_from_now) {
+        this->RegisterAbsoluteTask(task, GetTick() + time_from_now);
     }
 
     void RegisterAbsoluteTask(KTimerTask* task, s64 task_time) {
@@ -38,7 +42,7 @@ private:
     void EnableInterrupt(s64 wakeup_time);
     void DisableInterrupt();
     bool GetInterruptEnabled();
-    s64 GetTick();
+    s64 GetTick() const;
     void DoTask();
 
 private:

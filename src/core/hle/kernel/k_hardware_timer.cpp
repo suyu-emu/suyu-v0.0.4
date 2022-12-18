@@ -5,15 +5,13 @@
 #include "core/core_timing.h"
 #include "core/hle/kernel/k_hardware_timer.h"
 #include "core/hle/kernel/k_scheduler.h"
-#include "core/hle/kernel/time_manager.h"
 
 namespace Kernel {
 
 void KHardwareTimer::Initialize() {
     // Create the timing callback to register with CoreTiming.
     m_event_type = Core::Timing::CreateEvent(
-        "KHardwareTimer::Callback",
-        [this](std::uintptr_t timer_handle, s64, std::chrono::nanoseconds) {
+        "KHardwareTimer::Callback", [](std::uintptr_t timer_handle, s64, std::chrono::nanoseconds) {
             reinterpret_cast<KHardwareTimer*>(timer_handle)->DoTask();
             return std::nullopt;
         });
@@ -21,6 +19,7 @@ void KHardwareTimer::Initialize() {
 
 void KHardwareTimer::Finalize() {
     this->DisableInterrupt();
+    m_event_type.reset();
 }
 
 void KHardwareTimer::DoTask() {
@@ -64,7 +63,7 @@ void KHardwareTimer::DisableInterrupt() {
     m_wakeup_time = std::numeric_limits<s64>::max();
 }
 
-s64 KHardwareTimer::GetTick() {
+s64 KHardwareTimer::GetTick() const {
     return m_kernel.System().CoreTiming().GetGlobalTimeNs().count();
 }
 
