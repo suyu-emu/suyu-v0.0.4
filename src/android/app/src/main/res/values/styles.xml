@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Inherit from the material theme -->
+    <style name="CitraBase" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <!-- Main theme colors -->
+        <!-- Branding color for the app bar -->
+        <item name="colorPrimary">@color/citra_orange</item>
+        <!-- Darker variant for the status bar and contextual app bars -->
+        <item name="colorPrimaryDark">@color/citra_orange_dark</item>
+        <item name="colorAccent">@color/citra_accent</item>
+
+        <item name="titleTextColor">@color/citra_logo_text_color</item>
+
+        <!-- Enable window content transitions -->
+        <item name="android:windowContentTransitions">true</item>
+        <item name="android:windowAllowEnterTransitionOverlap">true</item>
+        <item name="android:windowAllowReturnTransitionOverlap">true</item>
+
+        <item name="android:colorControlHighlight">?attr/colorAccent</item>
+    </style>
+
+    <!-- Same as above, but use default action bar, and mandate margins. -->
+    <style name="CitraSettingsBase" parent="Theme.AppCompat.DayNight">
+        <item name="colorPrimary">@color/citra_orange</item>
+        <item name="colorPrimaryDark">@color/citra_orange_dark</item>
+        <item name="colorAccent">@color/citra_accent</item>
+    </style>
+
+    <!-- Inherit from the Base Citra Dialog Theme -->
+    <style name="CitraEmulationBase" parent="Theme.AppCompat.DayNight">
+        <item name="colorPrimary">@color/citra_orange</item>
+        <item name="colorPrimaryDark">@color/citra_orange_dark</item>
+        <item name="colorAccent">@color/citra_accent</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+
+        <item name="android:windowBackground">@android:color/black</item>
+
+        <!-- Enable window content transitions -->
+        <item name="android:windowContentTransitions">true</item>
+        <item name="android:windowAllowEnterTransitionOverlap">true</item>
+        <item name="android:windowAllowReturnTransitionOverlap">true</item>
+    </style>
+
+    <!-- Inherit from a base file picker theme that handles day/night -->
+    <style name="FilePickerTheme" parent="FilePickerBaseTheme">
+        <item name="colorPrimary">@color/citra_orange</item>
+        <item name="colorPrimaryDark">@color/citra_orange_dark</item>
+        <item name="colorAccent">@color/citra_accent</item>
+        <item name="android:windowBackground">@color/card_view_background</item>
+
+        <!-- Need to set this also to style create folder dialog -->
+        <item name="alertDialogTheme">@style/FilePickerAlertDialogTheme</item>
+
+        <item name="nnf_list_item_divider">@drawable/gamelist_divider</item>
+        <item name="nnf_toolbarTheme">@style/ThemeOverlay.AppCompat.DayNight.ActionBar</item>
+    </style>
+
+    <style name="FilePickerAlertDialogTheme" parent="Theme.AppCompat.DayNight.Dialog.Alert">
+        <item name="colorPrimary">@color/citra_orange</item>
+        <item name="colorPrimaryDark">@color/citra_orange_dark</item>
+        <item name="colorAccent">@color/citra_accent</item>
+    </style>
+
+</resources>
