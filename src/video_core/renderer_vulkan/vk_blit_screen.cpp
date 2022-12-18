@@ -76,10 +76,18 @@ struct ScreenRectVertex {
 
 constexpr std::array<f32, 4 * 4> MakeOrthographicMatrix(f32 width, f32 height) {
     // clang-format off
+#ifdef ANDROID
+    // Android renders in portrait, so rotate the matrix.
+    return { 0.f,          2.f / width, 0.f, 0.f,
+            -2.f / height, 0.f,         0.f, 0.f,
+             0.f,          0.f,         1.f, 0.f,
+             1.f,         -1.f,         0.f, 1.f};
+#else
     return { 2.f / width, 0.f,          0.f, 0.f,
              0.f,         2.f / height, 0.f, 0.f,
              0.f,         0.f,          1.f, 0.f,
             -1.f,        -1.f,          0.f, 1.f};
+#endif // ANDROID
     // clang-format on
 }
 
