@@ -78,6 +78,7 @@ add_library(common STATIC
     logging/types.h
     lz4_compression.cpp
     lz4_compression.h
+    make_unique_for_overwrite.h
     math_util.h
     memory_detect.cpp
     memory_detect.h
