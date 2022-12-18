@@ -266,7 +266,12 @@ void Swapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities, bo
 
     images = swapchain.GetImages();
     image_count = static_cast<u32>(images.size());
+#ifdef ANDROID
+    // Android is already ordered the same as Switch.
+    image_view_format = srgb ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM;
+#else
     image_view_format = srgb ? VK_FORMAT_B8G8R8A8_SRGB : VK_FORMAT_B8G8R8A8_UNORM;
+#endif
 }
 
 void Swapchain::CreateSemaphores() {

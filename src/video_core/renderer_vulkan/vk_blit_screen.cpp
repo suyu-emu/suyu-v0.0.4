@@ -449,7 +449,12 @@ void BlitScreen::DrawToSwapchain(Frame* frame, const Tegra::FramebufferConfig& f
     if (const std::size_t swapchain_images = swapchain.GetImageCount();
         swapchain_images != image_count || current_srgb != is_srgb) {
         current_srgb = is_srgb;
+#ifdef ANDROID
+        // Android is already ordered the same as Switch.
+        image_view_format = current_srgb ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM;
+#else
         image_view_format = current_srgb ? VK_FORMAT_B8G8R8A8_SRGB : VK_FORMAT_B8G8R8A8_UNORM;
+#endif
         image_count = swapchain_images;
         Recreate();
     }
