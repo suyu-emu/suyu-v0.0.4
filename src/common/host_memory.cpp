@@ -11,6 +11,10 @@
 
 #elif defined(__linux__) || defined(__FreeBSD__) // ^^^ Windows ^^^ vvv Linux vvv
 
+#ifdef ANDROID
+#include <android/sharedmem.h>
+#endif
+
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
@@ -366,17 +370,20 @@ public:
         }
 
         // Backing memory initialization
-#if defined(__FreeBSD__) && __FreeBSD__ < 13
+#ifdef ANDROID
+        fd = ASharedMemory_create("HostMemory", backing_size);
+#elif defined(__FreeBSD__) && __FreeBSD__ < 13
         // XXX Drop after FreeBSD 12.* reaches EOL on 2024-06-30
         fd = shm_open(SHM_ANON, O_RDWR, 0600);
 #else
         fd = memfd_create("HostMemory", 0);
 #endif
-        if (fd == -1) {
+        if (fd < 0) {
             LOG_CRITICAL(HW_Memory, "memfd_create failed: {}", strerror(errno));
             throw std::bad_alloc{};
         }
 
+#ifndef ANDROID
         // Defined to extend the file with zeros
         int ret = ftruncate(fd, backing_size);
         if (ret != 0) {
@@ -384,6 +391,7 @@ public:
                          strerror(errno));
             throw std::bad_alloc{};
         }
+#endif
 
         backing_base = static_cast<u8*>(
             mmap(nullptr, backing_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0));
