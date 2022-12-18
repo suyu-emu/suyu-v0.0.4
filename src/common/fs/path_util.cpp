@@ -95,6 +95,13 @@ private:
 
         yuzu_path_cache = yuzu_path / CACHE_DIR;
         yuzu_path_config = yuzu_path / CONFIG_DIR;
+#elif ANDROID
+        // On Android internal storage is mounted as "/sdcard"
+        if (Exists("/sdcard")) {
+            yuzu_path = "/sdcard/yuzu-emu";
+            yuzu_path_cache = yuzu_path / CACHE_DIR;
+            yuzu_path_config = yuzu_path / CONFIG_DIR;
+        }
 #else
         yuzu_path = GetCurrentDir() / PORTABLE_DIR;
 
