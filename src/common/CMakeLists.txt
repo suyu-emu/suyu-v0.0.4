@@ -102,6 +102,7 @@ add_library(common STATIC
     ${CMAKE_CURRENT_BINARY_DIR}/scm_rev.cpp
     scm_rev.h
     scope_exit.h
+    scratch_buffer.h
     settings.cpp
     settings.h
     settings_input.cpp
