@@ -293,7 +293,11 @@ PipelineCache::PipelineCache(RasterizerVulkan& rasterizer_, const Device& device
     profile = Shader::Profile{
         .supported_spirv = device.SupportedSpirvVersion(),
         .unified_descriptor_binding = true,
+#ifdef ANDROID
+        .support_descriptor_aliasing = false,
+#else
         .support_descriptor_aliasing = true,
+#endif
         .support_int8 = device.IsInt8Supported(),
         .support_int16 = device.IsShaderInt16Supported(),
         .support_int64 = device.IsShaderInt64Supported(),
