@@ -42,7 +42,7 @@ OverlayDialog::OverlayDialog(QWidget* parent, Core::System& system, const QStrin
     MoveAndResizeWindow();
 
     // TODO (Morph): Remove this when InputInterpreter no longer relies on the HID backend
-    if (system.IsPoweredOn()) {
+    if (system.IsPoweredOn() && !ui->buttonsDialog->isHidden()) {
         input_interpreter = std::make_unique<InputInterpreter>(system);
 
         StartInputThread();
@@ -85,6 +85,7 @@ void OverlayDialog::InitializeRegularTextDialog(const QString& title_text, const
 
     if (ui->button_cancel->isHidden() && ui->button_ok_label->isHidden()) {
         ui->buttonsDialog->hide();
+        return;
     }
 
     connect(
@@ -136,6 +137,7 @@ void OverlayDialog::InitializeRichTextDialog(const QString& title_text, const QS
 
     if (ui->button_cancel_rich->isHidden() && ui->button_ok_rich->isHidden()) {
         ui->buttonsRichDialog->hide();
+        return;
     }
 
     connect(
