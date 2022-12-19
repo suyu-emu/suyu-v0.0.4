@@ -19,16 +19,16 @@ public:
     ScratchBuffer() = default;
 
     explicit ScratchBuffer(size_t initial_capacity)
-        : last_requested_size{initial_capacity}, capacity{initial_capacity},
+        : last_requested_size{initial_capacity}, buffer_capacity{initial_capacity},
           buffer{Common::make_unique_for_overwrite<T[]>(initial_capacity)} {}
 
     ~ScratchBuffer() = default;
 
     /// This will only grow the buffer's capacity if size is greater than the current capacity.
     void resize(size_t size) {
-        if (size > capacity) {
-            capacity = size;
-            buffer = Common::make_unique_for_overwrite<T[]>(capacity);
+        if (size > buffer_capacity) {
+            buffer_capacity = size;
+            buffer = Common::make_unique_for_overwrite<T[]>(buffer_capacity);
         }
         last_requested_size = size;
     }
@@ -65,9 +65,13 @@ public:
         return last_requested_size;
     }
 
+    [[nodiscard]] size_t capacity() const noexcept {
+        return buffer_capacity;
+    }
+
 private:
     size_t last_requested_size{};
-    size_t capacity{};
+    size_t buffer_capacity{};
     std::unique_ptr<T[]> buffer{};
 };
 
