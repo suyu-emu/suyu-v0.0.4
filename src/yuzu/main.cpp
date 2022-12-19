@@ -1550,8 +1550,9 @@ void GMainWindow::AllowOSSleep() {
 
 bool GMainWindow::LoadROM(const QString& filename, u64 program_id, std::size_t program_index) {
     // Shutdown previous session if the emu thread is still active...
-    if (emu_thread != nullptr)
+    if (emu_thread != nullptr) {
         ShutdownGame();
+    }
 
     if (!render_window->InitRenderTarget()) {
         return false;
@@ -1779,7 +1780,7 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
     OnStartGame();
 }
 
-void GMainWindow::ShutdownGame() {
+void GMainWindow::OnShutdownBegin() {
     if (!emulation_running) {
         return;
     }
@@ -1802,12 +1803,40 @@ void GMainWindow::ShutdownGame() {
 
     emit EmulationStopping();
 
-    // Wait for emulation thread to complete and delete it
-    if (system->DebuggerEnabled() || !emu_thread->wait(5000)) {
+    shutdown_timer.setSingleShot(true);
+    shutdown_timer.start(system->DebuggerEnabled() ? 0 : 5000);
+    connect(&shutdown_timer, &QTimer::timeout, this, &GMainWindow::OnEmulationStopTimeExpired);
+    connect(emu_thread.get(), &QThread::finished, this, &GMainWindow::OnEmulationStopped);
+
+    // Disable everything to prevent anything from being triggered here
+    ui->action_Pause->setEnabled(false);
+    ui->action_Restart->setEnabled(false);
+    ui->action_Stop->setEnabled(false);
+}
+
+void GMainWindow::OnShutdownBeginDialog() {
+    shutdown_dialog =
+        new OverlayDialog(render_window, *system, QString{}, tr("Closing software..."), QString{},
+                          QString{}, Qt::AlignHCenter | Qt::AlignVCenter);
+    shutdown_dialog->open();
+}
+
+void GMainWindow::OnEmulationStopTimeExpired() {
+    if (emu_thread) {
         emu_thread->ForceStop();
-        emu_thread->wait();
     }
+}
+
+void GMainWindow::OnEmulationStopped() {
+    shutdown_timer.stop();
+    emu_thread->disconnect();
+    emu_thread->wait();
     emu_thread = nullptr;
+
+    if (shutdown_dialog) {
+        shutdown_dialog->deleteLater();
+        shutdown_dialog = nullptr;
+    }
 
     emulation_running = false;
 
@@ -1854,6 +1883,20 @@ void GMainWindow::ShutdownGame() {
 
     // When closing the game, destroy the GLWindow to clear the context after the game is closed
     render_window->ReleaseRenderTarget();
+
+    Settings::RestoreGlobalState(system->IsPoweredOn());
+    system->HIDCore().ReloadInputDevices();
+    UpdateStatusButtons();
+}
+
+void GMainWindow::ShutdownGame() {
+    if (!emulation_running) {
+        return;
+    }
+
+    OnShutdownBegin();
+    OnEmulationStopTimeExpired();
+    OnEmulationStopped();
 }
 
 void GMainWindow::StoreRecentFile(const QString& filename) {
@@ -2956,11 +2999,8 @@ void GMainWindow::OnStopGame() {
         return;
     }
 
-    ShutdownGame();
-
-    Settings::RestoreGlobalState(system->IsPoweredOn());
-    system->HIDCore().ReloadInputDevices();
-    UpdateStatusButtons();
+    OnShutdownBegin();
+    OnShutdownBeginDialog();
 }
 
 void GMainWindow::OnLoadComplete() {
@@ -4047,10 +4087,6 @@ void GMainWindow::closeEvent(QCloseEvent* event) {
     // Shutdown session if the emu thread is active...
     if (emu_thread != nullptr) {
         ShutdownGame();
-
-        Settings::RestoreGlobalState(system->IsPoweredOn());
-        system->HIDCore().ReloadInputDevices();
-        UpdateStatusButtons();
     }
 
     render_window->close();
