@@ -83,6 +83,10 @@ void OverlayDialog::InitializeRegularTextDialog(const QString& title_text, const
         ui->button_ok_label->setEnabled(false);
     }
 
+    if (ui->button_cancel->isHidden() && ui->button_ok_label->isHidden()) {
+        ui->buttonsDialog->hide();
+    }
+
     connect(
         ui->button_cancel, &QPushButton::clicked, this,
         [this](bool) {
@@ -128,6 +132,10 @@ void OverlayDialog::InitializeRichTextDialog(const QString& title_text, const QS
     if (right_button_text.isEmpty()) {
         ui->button_ok_rich->hide();
         ui->button_ok_rich->setEnabled(false);
+    }
+
+    if (ui->button_cancel_rich->isHidden() && ui->button_ok_rich->isHidden()) {
+        ui->buttonsRichDialog->hide();
     }
 
     connect(
