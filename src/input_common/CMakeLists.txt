@@ -51,8 +51,13 @@ endif()
 
 if (ENABLE_SDL2)
     target_sources(input_common PRIVATE
+        drivers/joycon.cpp
+        drivers/joycon.h
         drivers/sdl_driver.cpp
         drivers/sdl_driver.h
+        helpers/joycon_driver.cpp
+        helpers/joycon_driver.h
+        helpers/joycon_protocol/joycon_types.h
     )
     target_link_libraries(input_common PRIVATE SDL2::SDL2)
     target_compile_definitions(input_common PRIVATE HAVE_SDL2)
