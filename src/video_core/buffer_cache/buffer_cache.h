@@ -1926,7 +1926,7 @@ std::span<const u8> BufferCache<P>::ImmediateBufferWithData(VAddr cpu_addr, size
 
 template <class P>
 std::span<u8> BufferCache<P>::ImmediateBuffer(size_t wanted_capacity) {
-    immediate_buffer_alloc.resize(wanted_capacity);
+    immediate_buffer_alloc.resize_destructive(wanted_capacity);
     return std::span<u8>(immediate_buffer_alloc.data(), wanted_capacity);
 }
 

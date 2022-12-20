@@ -74,7 +74,7 @@ bool DmaPusher::Step() {
         }
 
         // Push buffer non-empty, read a word
-        command_headers.resize(command_list_header.size);
+        command_headers.resize_destructive(command_list_header.size);
         if (Settings::IsGPULevelHigh()) {
             memory_manager.ReadBlock(dma_get, command_headers.data(),
                                      command_list_header.size * sizeof(u32));

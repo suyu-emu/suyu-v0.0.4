@@ -184,8 +184,8 @@ void MaxwellDMA::CopyBlockLinearToPitch() {
     const size_t src_size =
         CalculateSize(true, bytes_per_pixel, width, height, depth, block_height, block_depth);
 
-    read_buffer.resize(src_size);
-    write_buffer.resize(dst_size);
+    read_buffer.resize_destructive(src_size);
+    write_buffer.resize_destructive(dst_size);
 
     memory_manager.ReadBlock(regs.offset_in, read_buffer.data(), src_size);
     memory_manager.ReadBlock(regs.offset_out, write_buffer.data(), dst_size);
@@ -231,8 +231,8 @@ void MaxwellDMA::CopyPitchToBlockLinear() {
         CalculateSize(true, bytes_per_pixel, width, height, depth, block_height, block_depth);
     const size_t src_size = static_cast<size_t>(regs.pitch_in) * regs.line_count;
 
-    read_buffer.resize(src_size);
-    write_buffer.resize(dst_size);
+    read_buffer.resize_destructive(src_size);
+    write_buffer.resize_destructive(dst_size);
 
     memory_manager.ReadBlock(regs.offset_in, read_buffer.data(), src_size);
     if (Settings::IsGPULevelExtreme()) {
@@ -261,8 +261,8 @@ void MaxwellDMA::FastCopyBlockLinearToPitch() {
     pos_x = pos_x % x_in_gob;
     pos_y = pos_y % 8;
 
-    read_buffer.resize(src_size);
-    write_buffer.resize(dst_size);
+    read_buffer.resize_destructive(src_size);
+    write_buffer.resize_destructive(dst_size);
 
     if (Settings::IsGPULevelExtreme()) {
         memory_manager.ReadBlock(regs.offset_in + offset, read_buffer.data(), src_size);
@@ -321,10 +321,10 @@ void MaxwellDMA::CopyBlockLinearToBlockLinear() {
     const u32 pitch = x_elements * bytes_per_pixel;
     const size_t mid_buffer_size = pitch * regs.line_count;
 
-    read_buffer.resize(src_size);
-    write_buffer.resize(dst_size);
+    read_buffer.resize_destructive(src_size);
+    write_buffer.resize_destructive(dst_size);
 
-    intermediate_buffer.resize(mid_buffer_size);
+    intermediate_buffer.resize_destructive(mid_buffer_size);
 
     memory_manager.ReadBlock(regs.offset_in, read_buffer.data(), src_size);
     memory_manager.ReadBlock(regs.offset_out, write_buffer.data(), dst_size);

@@ -25,7 +25,20 @@ public:
     ~ScratchBuffer() = default;
 
     /// This will only grow the buffer's capacity if size is greater than the current capacity.
+    /// The previously held data will remain intact.
     void resize(size_t size) {
+        if (size > buffer_capacity) {
+            auto new_buffer = Common::make_unique_for_overwrite<T[]>(size);
+            std::move(buffer.get(), buffer.get() + buffer_capacity, new_buffer.get());
+            buffer = std::move(new_buffer);
+            buffer_capacity = size;
+        }
+        last_requested_size = size;
+    }
+
+    /// This will only grow the buffer's capacity if size is greater than the current capacity.
+    /// The previously held data will be destroyed if a reallocation occurs.
+    void resize_destructive(size_t size) {
         if (size > buffer_capacity) {
             buffer_capacity = size;
             buffer = Common::make_unique_for_overwrite<T[]>(buffer_capacity);
@@ -58,6 +71,10 @@ public:
     }
 
     [[nodiscard]] T& operator[](size_t i) {
+        return buffer[i];
+    }
+
+    [[nodiscard]] const T& operator[](size_t i) const {
         return buffer[i];
     }
 

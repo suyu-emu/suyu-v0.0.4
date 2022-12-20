@@ -29,7 +29,7 @@ TEST_CASE("ScratchBuffer: Basic Test", "[common]") {
     }
 }
 
-TEST_CASE("ScratchBuffer: Resize Grow", "[common]") {
+TEST_CASE("ScratchBuffer: resize_destructive Grow", "[common]") {
     std::array<u8, 10> payload;
     payload.fill(66);
 
@@ -38,14 +38,86 @@ TEST_CASE("ScratchBuffer: Resize Grow", "[common]") {
     REQUIRE(buf.capacity() == payload.size());
 
     // Increasing the size should reallocate the buffer
-    buf.resize(payload.size() * 2);
+    buf.resize_destructive(payload.size() * 2);
     REQUIRE(buf.size() == payload.size() * 2);
     REQUIRE(buf.capacity() == payload.size() * 2);
 
     // Since the buffer is not value initialized, reading its data will be garbage
 }
 
-TEST_CASE("ScratchBuffer: Resize Shrink", "[common]") {
+TEST_CASE("ScratchBuffer: resize_destructive Shrink", "[common]") {
+    std::array<u8, 10> payload;
+    payload.fill(66);
+
+    ScratchBuffer<u8> buf(payload.size());
+    REQUIRE(buf.size() == payload.size());
+    REQUIRE(buf.capacity() == payload.size());
+
+    std::memcpy(buf.data(), payload.data(), payload.size());
+    for (size_t i = 0; i < payload.size(); ++i) {
+        REQUIRE(buf[i] == payload[i]);
+    }
+
+    // Decreasing the size should not cause a buffer reallocation
+    // This can be tested by ensuring the buffer capacity and data has not changed,
+    buf.resize_destructive(1U);
+    REQUIRE(buf.size() == 1U);
+    REQUIRE(buf.capacity() == payload.size());
+
+    for (size_t i = 0; i < payload.size(); ++i) {
+        REQUIRE(buf[i] == payload[i]);
+    }
+}
+
+TEST_CASE("ScratchBuffer: resize Grow u8", "[common]") {
+    std::array<u8, 10> payload;
+    payload.fill(66);
+
+    ScratchBuffer<u8> buf(payload.size());
+    REQUIRE(buf.size() == payload.size());
+    REQUIRE(buf.capacity() == payload.size());
+
+    std::memcpy(buf.data(), payload.data(), payload.size());
+    for (size_t i = 0; i < payload.size(); ++i) {
+        REQUIRE(buf[i] == payload[i]);
+    }
+
+    // Increasing the size should reallocate the buffer
+    buf.resize(payload.size() * 2);
+    REQUIRE(buf.size() == payload.size() * 2);
+    REQUIRE(buf.capacity() == payload.size() * 2);
+
+    // resize() keeps the previous data intact
+    for (size_t i = 0; i < payload.size(); ++i) {
+        REQUIRE(buf[i] == payload[i]);
+    }
+}
+
+TEST_CASE("ScratchBuffer: resize Grow u64", "[common]") {
+    std::array<u64, 10> payload;
+    payload.fill(6666);
+
+    ScratchBuffer<u64> buf(payload.size());
+    REQUIRE(buf.size() == payload.size());
+    REQUIRE(buf.capacity() == payload.size());
+
+    std::memcpy(buf.data(), payload.data(), payload.size() * sizeof(u64));
+    for (size_t i = 0; i < payload.size(); ++i) {
+        REQUIRE(buf[i] == payload[i]);
+    }
+
+    // Increasing the size should reallocate the buffer
+    buf.resize(payload.size() * 2);
+    REQUIRE(buf.size() == payload.size() * 2);
+    REQUIRE(buf.capacity() == payload.size() * 2);
+
+    // resize() keeps the previous data intact
+    for (size_t i = 0; i < payload.size(); ++i) {
+        REQUIRE(buf[i] == payload[i]);
+    }
+}
+
+TEST_CASE("ScratchBuffer: resize Shrink", "[common]") {
     std::array<u8, 10> payload;
     payload.fill(66);
 
