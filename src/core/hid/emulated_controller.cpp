@@ -93,6 +93,7 @@ void EmulatedController::ReloadFromSettings() {
         motion_params[index] = Common::ParamPackage(player.motions[index]);
     }
 
+    controller.color_values = {};
     controller.colors_state.fullkey = {
         .body = GetNpadColor(player.body_color_left),
         .button = GetNpadColor(player.button_color_left),
@@ -132,6 +133,11 @@ void EmulatedController::LoadDevices() {
     trigger_params[LeftIndex] = button_params[Settings::NativeButton::ZL];
     trigger_params[RightIndex] = button_params[Settings::NativeButton::ZR];
 
+    color_params[LeftIndex] = left_joycon;
+    color_params[RightIndex] = right_joycon;
+    color_params[LeftIndex].Set("color", true);
+    color_params[RightIndex].Set("color", true);
+
     battery_params[LeftIndex] = left_joycon;
     battery_params[RightIndex] = right_joycon;
     battery_params[LeftIndex].Set("battery", true);
@@ -160,6 +166,7 @@ void EmulatedController::LoadDevices() {
                            Common::Input::CreateInputDevice);
     std::ranges::transform(battery_params, battery_devices.begin(),
                            Common::Input::CreateInputDevice);
+    std::ranges::transform(color_params, color_devices.begin(), Common::Input::CreateInputDevice);
     camera_devices = Common::Input::CreateInputDevice(camera_params);
     ring_analog_device = Common::Input::CreateInputDevice(ring_params);
     nfc_devices = Common::Input::CreateInputDevice(nfc_params);
@@ -324,6 +331,19 @@ void EmulatedController::ReloadInput() {
         battery_devices[index]->ForceUpdate();
     }
 
+    for (std::size_t index = 0; index < color_devices.size(); ++index) {
+        if (!color_devices[index]) {
+            continue;
+        }
+        color_devices[index]->SetCallback({
+            .on_change =
+                [this, index](const Common::Input::CallbackStatus& callback) {
+                    SetColors(callback, index);
+                },
+        });
+        color_devices[index]->ForceUpdate();
+    }
+
     for (std::size_t index = 0; index < motion_devices.size(); ++index) {
         if (!motion_devices[index]) {
             continue;
@@ -429,6 +449,9 @@ void EmulatedController::UnloadInput() {
     for (auto& battery : battery_devices) {
         battery.reset();
     }
+    for (auto& color : color_devices) {
+        color.reset();
+    }
     for (auto& output : output_devices) {
         output.reset();
     }
@@ -457,6 +480,11 @@ void EmulatedController::EnableConfiguration() {
 
 void EmulatedController::DisableConfiguration() {
     is_configuring = false;
+
+    // Get Joycon colors before turning on the controller
+    for (const auto& color_device : color_devices) {
+        color_device->ForceUpdate();
+    }
 
     // Apply temporary npad type to the real controller
     if (tmp_npad_type != npad_type) {
@@ -924,6 +952,58 @@ void EmulatedController::SetMotion(const Common::Input::CallbackStatus& callback
 
     lock.unlock();
     TriggerOnChange(ControllerTriggerType::Motion, true);
+}
+
+void EmulatedController::SetColors(const Common::Input::CallbackStatus& callback,
+                                   std::size_t index) {
+    if (index >= controller.color_values.size()) {
+        return;
+    }
+    std::unique_lock lock{mutex};
+    controller.color_values[index] = TransformToColor(callback);
+
+    if (is_configuring) {
+        lock.unlock();
+        TriggerOnChange(ControllerTriggerType::Color, false);
+        return;
+    }
+
+    if (controller.color_values[index].body == 0) {
+        return;
+    }
+
+    controller.colors_state.fullkey = {
+        .body = GetNpadColor(controller.color_values[index].body),
+        .button = GetNpadColor(controller.color_values[index].buttons),
+    };
+    if (npad_type == NpadStyleIndex::ProController) {
+        controller.colors_state.left = {
+            .body = GetNpadColor(controller.color_values[index].left_grip),
+            .button = GetNpadColor(controller.color_values[index].buttons),
+        };
+        controller.colors_state.right = {
+            .body = GetNpadColor(controller.color_values[index].right_grip),
+            .button = GetNpadColor(controller.color_values[index].buttons),
+        };
+    } else {
+        switch (index) {
+        case LeftIndex:
+            controller.colors_state.left = {
+                .body = GetNpadColor(controller.color_values[index].body),
+                .button = GetNpadColor(controller.color_values[index].buttons),
+            };
+            break;
+        case RightIndex:
+            controller.colors_state.right = {
+                .body = GetNpadColor(controller.color_values[index].body),
+                .button = GetNpadColor(controller.color_values[index].buttons),
+            };
+            break;
+        }
+    }
+
+    lock.unlock();
+    TriggerOnChange(ControllerTriggerType::Color, true);
 }
 
 void EmulatedController::SetBattery(const Common::Input::CallbackStatus& callback,

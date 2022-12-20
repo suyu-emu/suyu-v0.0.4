@@ -335,7 +335,16 @@ void Joycons::OnBatteryUpdate(std::size_t port, Joycon::ControllerType type,
 }
 
 void Joycons::OnColorUpdate(std::size_t port, Joycon::ControllerType type,
-                            const Joycon::Color& value) {}
+                            const Joycon::Color& value) {
+    const auto identifier = GetIdentifier(port, type);
+    Common::Input::BodyColorStatus color{
+        .body = value.body,
+        .buttons = value.buttons,
+        .left_grip = value.left_grip,
+        .right_grip = value.right_grip,
+    };
+    SetColor(identifier, color);
+}
 
 void Joycons::OnButtonUpdate(std::size_t port, Joycon::ControllerType type, int id, bool value) {
     const auto identifier = GetIdentifier(port, type);

@@ -35,6 +35,8 @@ using ControllerMotionDevices =
     std::array<std::unique_ptr<Common::Input::InputDevice>, Settings::NativeMotion::NumMotions>;
 using TriggerDevices =
     std::array<std::unique_ptr<Common::Input::InputDevice>, Settings::NativeTrigger::NumTriggers>;
+using ColorDevices =
+    std::array<std::unique_ptr<Common::Input::InputDevice>, max_emulated_controllers>;
 using BatteryDevices =
     std::array<std::unique_ptr<Common::Input::InputDevice>, max_emulated_controllers>;
 using CameraDevices = std::unique_ptr<Common::Input::InputDevice>;
@@ -46,6 +48,7 @@ using ButtonParams = std::array<Common::ParamPackage, Settings::NativeButton::Nu
 using StickParams = std::array<Common::ParamPackage, Settings::NativeAnalog::NumAnalogs>;
 using ControllerMotionParams = std::array<Common::ParamPackage, Settings::NativeMotion::NumMotions>;
 using TriggerParams = std::array<Common::ParamPackage, Settings::NativeTrigger::NumTriggers>;
+using ColorParams = std::array<Common::ParamPackage, max_emulated_controllers>;
 using BatteryParams = std::array<Common::ParamPackage, max_emulated_controllers>;
 using CameraParams = Common::ParamPackage;
 using RingAnalogParams = Common::ParamPackage;
@@ -458,6 +461,13 @@ private:
     void SetMotion(const Common::Input::CallbackStatus& callback, std::size_t index);
 
     /**
+     * Updates the color status of the controller
+     * @param callback A CallbackStatus containing the color status
+     * @param index color ID of the to be updated
+     */
+    void SetColors(const Common::Input::CallbackStatus& callback, std::size_t index);
+
+    /**
      * Updates the battery status of the controller
      * @param callback A CallbackStatus containing the battery status
      * @param index battery ID of the to be updated
@@ -515,6 +525,7 @@ private:
     ControllerMotionParams motion_params;
     TriggerParams trigger_params;
     BatteryParams battery_params;
+    ColorParams color_params;
     CameraParams camera_params;
     RingAnalogParams ring_params;
     NfcParams nfc_params;
@@ -525,6 +536,7 @@ private:
     ControllerMotionDevices motion_devices;
     TriggerDevices trigger_devices;
     BatteryDevices battery_devices;
+    ColorDevices color_devices;
     CameraDevices camera_devices;
     RingAnalogDevice ring_analog_device;
     NfcDevices nfc_devices;
