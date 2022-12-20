@@ -8,6 +8,7 @@
 #include <span>
 #include <thread>
 
+#include "input_common/helpers/joycon_protocol/generic_functions.h"
 #include "input_common/helpers/joycon_protocol/joycon_types.h"
 
 namespace InputCommon::Joycon {
@@ -94,6 +95,7 @@ private:
     void ReadNfcIRMode(std::span<u8> buffer);
 
     // Protocol Features
+    std::unique_ptr<GenericProtocol> generic_protocol = nullptr;
 
     // Connection status
     bool is_connected{};

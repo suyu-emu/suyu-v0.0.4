@@ -59,6 +59,8 @@ if (ENABLE_SDL2)
         helpers/joycon_driver.h
         helpers/joycon_protocol/common_protocol.cpp
         helpers/joycon_protocol/common_protocol.h
+        helpers/joycon_protocol/generic_functions.cpp
+        helpers/joycon_protocol/generic_functions.h
         helpers/joycon_protocol/joycon_types.h
     )
     target_link_libraries(input_common PRIVATE SDL2::SDL2)

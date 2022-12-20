@@ -64,13 +64,24 @@ DriverResult JoyconDriver::InitializeDevice() {
     accelerometer_performance = Joycon::AccelerometerPerformance::HZ100;
 
     // Initialize HW Protocols
+    generic_protocol = std::make_unique<GenericProtocol>(hidapi_handle);
 
     // Get fixed joycon info
+    generic_protocol->GetVersionNumber(version);
+    generic_protocol->GetColor(color);
+    if (handle_device_type == ControllerType::Pro) {
+        // Some 3rd party controllers aren't pro controllers
+        generic_protocol->GetControllerType(device_type);
+    } else {
+        device_type = handle_device_type;
+    }
+    generic_protocol->GetSerialNumber(serial_number);
     supported_features = GetSupportedFeatures();
 
     // Get Calibration data
 
     // Set led status
+    generic_protocol->SetLedBlinkPattern(static_cast<u8>(1 + port));
 
     // Apply HW configuration
     SetPollingMode();
@@ -137,6 +148,9 @@ void JoyconDriver::OnNewData(std::span<u8> buffer) {
     case InputReport::SIMPLE_HID_MODE:
         ReadPassiveMode(buffer);
         break;
+    case InputReport::SUBCMD_REPLY:
+        LOG_DEBUG(Input, "Unhandled command reply");
+        break;
     default:
         LOG_ERROR(Input, "Report mode not Implemented {}", report_mode);
         break;
@@ -145,6 +159,30 @@ void JoyconDriver::OnNewData(std::span<u8> buffer) {
 
 void JoyconDriver::SetPollingMode() {
     disable_input_thread = true;
+
+    if (motion_enabled && supported_features.motion) {
+        generic_protocol->EnableImu(true);
+        generic_protocol->SetImuConfig(gyro_sensitivity, gyro_performance,
+                                       accelerometer_sensitivity, accelerometer_performance);
+    } else {
+        generic_protocol->EnableImu(false);
+    }
+
+    if (passive_enabled && supported_features.passive) {
+        const auto result = generic_protocol->EnablePassiveMode();
+        if (result == DriverResult::Success) {
+            disable_input_thread = false;
+            return;
+        }
+        LOG_ERROR(Input, "Error enabling passive mode");
+    }
+
+    // Default Mode
+    const auto result = generic_protocol->EnableActiveMode();
+    if (result != DriverResult::Success) {
+        LOG_ERROR(Input, "Error enabling active mode");
+    }
+
     disable_input_thread = false;
 }
 
@@ -257,15 +295,22 @@ bool JoyconDriver::IsPayloadCorrect(int status, std::span<const u8> buffer) {
 
 DriverResult JoyconDriver::SetVibration(const VibrationValue& vibration) {
     std::scoped_lock lock{mutex};
+    if (disable_input_thread) {
+        return DriverResult::HandleInUse;
+    }
     return DriverResult::NotSupported;
 }
 
 DriverResult JoyconDriver::SetLedConfig(u8 led_pattern) {
     std::scoped_lock lock{mutex};
-    return DriverResult::NotSupported;
+    if (disable_input_thread) {
+        return DriverResult::HandleInUse;
+    }
+    return generic_protocol->SetLedPattern(led_pattern);
 }
 
 DriverResult JoyconDriver::SetPasiveMode() {
+    std::scoped_lock lock{mutex};
     motion_enabled = false;
     hidbus_enabled = false;
     nfc_enabled = false;
@@ -275,7 +320,8 @@ DriverResult JoyconDriver::SetPasiveMode() {
 }
 
 DriverResult JoyconDriver::SetActiveMode() {
-    motion_enabled = false;
+    std::scoped_lock lock{mutex};
+    motion_enabled = true;
     hidbus_enabled = false;
     nfc_enabled = false;
     passive_enabled = false;
@@ -284,6 +330,7 @@ DriverResult JoyconDriver::SetActiveMode() {
 }
 
 DriverResult JoyconDriver::SetNfcMode() {
+    std::scoped_lock lock{mutex};
     motion_enabled = false;
     hidbus_enabled = false;
     nfc_enabled = true;
@@ -293,6 +340,7 @@ DriverResult JoyconDriver::SetNfcMode() {
 }
 
 DriverResult JoyconDriver::SetRingConMode() {
+    std::scoped_lock lock{mutex};
     motion_enabled = true;
     hidbus_enabled = true;
     nfc_enabled = false;
@@ -328,7 +376,7 @@ std::size_t JoyconDriver::GetDevicePort() const {
 
 ControllerType JoyconDriver::GetDeviceType() const {
     std::scoped_lock lock{mutex};
-    return handle_device_type;
+    return device_type;
 }
 
 ControllerType JoyconDriver::GetHandleDeviceType() const {
