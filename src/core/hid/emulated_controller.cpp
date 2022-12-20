@@ -139,6 +139,7 @@ void EmulatedController::LoadDevices() {
 
     camera_params = Common::ParamPackage{"engine:camera,camera:1"};
     nfc_params = Common::ParamPackage{"engine:virtual_amiibo,nfc:1"};
+    ring_params = Common::ParamPackage{"engine:joycon,axis_x:100,axis_y:101"};
 
     output_params[LeftIndex] = left_joycon;
     output_params[RightIndex] = right_joycon;
@@ -160,6 +161,7 @@ void EmulatedController::LoadDevices() {
     std::ranges::transform(battery_params, battery_devices.begin(),
                            Common::Input::CreateInputDevice);
     camera_devices = Common::Input::CreateInputDevice(camera_params);
+    ring_analog_device = Common::Input::CreateInputDevice(ring_params);
     nfc_devices = Common::Input::CreateInputDevice(nfc_params);
     std::ranges::transform(output_params, output_devices.begin(),
                            Common::Input::CreateOutputDevice);
@@ -343,6 +345,13 @@ void EmulatedController::ReloadInput() {
         camera_devices->ForceUpdate();
     }
 
+    if (ring_analog_device) {
+        ring_analog_device->SetCallback({
+            .on_change =
+                [this](const Common::Input::CallbackStatus& callback) { SetRingAnalog(callback); },
+        });
+    }
+
     if (nfc_devices) {
         if (npad_id_type == NpadIdType::Handheld || npad_id_type == NpadIdType::Player1) {
             nfc_devices->SetCallback({
@@ -436,6 +445,7 @@ void EmulatedController::UnloadInput() {
         stick.reset();
     }
     camera_devices.reset();
+    ring_analog_device.reset();
     nfc_devices.reset();
 }
 
@@ -501,6 +511,7 @@ void EmulatedController::SaveCurrentConfig() {
     for (std::size_t index = 0; index < player.motions.size(); ++index) {
         player.motions[index] = motion_params[index].Serialize();
     }
+    Settings::values.ringcon_analogs = ring_params.Serialize();
 }
 
 void EmulatedController::RestoreConfig() {
@@ -1005,6 +1016,24 @@ void EmulatedController::SetCamera(const Common::Input::CallbackStatus& callback
     TriggerOnChange(ControllerTriggerType::IrSensor, true);
 }
 
+void EmulatedController::SetRingAnalog(const Common::Input::CallbackStatus& callback) {
+    std::unique_lock lock{mutex};
+    const auto force_value = TransformToStick(callback);
+
+    controller.ring_analog_value = force_value.x;
+
+    if (is_configuring) {
+        lock.unlock();
+        TriggerOnChange(ControllerTriggerType::RingController, false);
+        return;
+    }
+
+    controller.ring_analog_state.force = force_value.x.value;
+
+    lock.unlock();
+    TriggerOnChange(ControllerTriggerType::RingController, true);
+}
+
 void EmulatedController::SetNfc(const Common::Input::CallbackStatus& callback) {
     std::unique_lock lock{mutex};
     controller.nfc_values = TransformToNfc(callback);
@@ -1102,6 +1131,15 @@ bool EmulatedController::SetCameraFormat(
     // Fallback to Qt camera if native device doesn't have support
     return camera_output_device->SetCameraFormat(static_cast<Common::Input::CameraFormat>(
                camera_format)) == Common::Input::CameraError::None;
+}
+
+Common::ParamPackage EmulatedController::GetRingParam() const {
+    return ring_params;
+}
+
+void EmulatedController::SetRingParam(Common::ParamPackage param) {
+    ring_params = std::move(param);
+    ReloadInput();
 }
 
 bool EmulatedController::HasNfc() const {
@@ -1395,6 +1433,10 @@ CameraValues EmulatedController::GetCameraValues() const {
     return controller.camera_values;
 }
 
+RingAnalogValue EmulatedController::GetRingSensorValues() const {
+    return controller.ring_analog_value;
+}
+
 HomeButtonState EmulatedController::GetHomeButtons() const {
     std::scoped_lock lock{mutex};
     if (is_configuring) {
@@ -1476,6 +1518,10 @@ BatteryLevelState EmulatedController::GetBattery() const {
 const CameraState& EmulatedController::GetCamera() const {
     std::scoped_lock lock{mutex};
     return controller.camera_state;
+}
+
+RingSensorForce EmulatedController::GetRingSensorForce() const {
+    return controller.ring_analog_state;
 }
 
 const NfcState& EmulatedController::GetNfc() const {
