@@ -13,6 +13,10 @@
 namespace InputCommon {
 
 Joycons::Joycons(const std::string& input_engine_) : InputEngine(input_engine_) {
+    // Avoid conflicting with SDL driver
+    if (!Settings::values.enable_joycon_driver) {
+        return;
+    }
     LOG_INFO(Input, "Joycon driver Initialization started");
     const int init_res = SDL_hid_init();
     if (init_res == 0) {
