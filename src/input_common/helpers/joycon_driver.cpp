@@ -66,6 +66,7 @@ DriverResult JoyconDriver::InitializeDevice() {
     // Initialize HW Protocols
     calibration_protocol = std::make_unique<CalibrationProtocol>(hidapi_handle);
     generic_protocol = std::make_unique<GenericProtocol>(hidapi_handle);
+    rumble_protocol = std::make_unique<RumbleProtocol>(hidapi_handle);
 
     // Get fixed joycon info
     generic_protocol->GetVersionNumber(version);
@@ -89,6 +90,10 @@ DriverResult JoyconDriver::InitializeDevice() {
 
     // Apply HW configuration
     SetPollingMode();
+
+    // Initialize joycon poller
+    joycon_poller = std::make_unique<JoyconPoller>(device_type, left_stick_calibration,
+                                                   right_stick_calibration, motion_calibration);
 
     // Start pooling for data
     is_connected = true;
@@ -142,15 +147,40 @@ void JoyconDriver::InputThread(std::stop_token stop_token) {
 void JoyconDriver::OnNewData(std::span<u8> buffer) {
     const auto report_mode = static_cast<InputReport>(buffer[0]);
 
+    // Packages can be a litte bit inconsistent. Average the delta time to provide a smoother motion
+    // experience
     switch (report_mode) {
     case InputReport::STANDARD_FULL_60HZ:
-        ReadActiveMode(buffer);
+    case InputReport::NFC_IR_MODE_60HZ:
+    case InputReport::SIMPLE_HID_MODE: {
+        const auto now = std::chrono::steady_clock::now();
+        const auto new_delta_time = static_cast<u64>(
+            std::chrono::duration_cast<std::chrono::microseconds>(now - last_update).count());
+        delta_time = ((delta_time * 8) + (new_delta_time * 2)) / 10;
+        last_update = now;
+        joycon_poller->UpdateColor(color);
+        break;
+    }
+    default:
+        break;
+    }
+
+    const MotionStatus motion_status{
+        .is_enabled = motion_enabled,
+        .delta_time = delta_time,
+        .gyro_sensitivity = gyro_sensitivity,
+        .accelerometer_sensitivity = accelerometer_sensitivity,
+    };
+
+    switch (report_mode) {
+    case InputReport::STANDARD_FULL_60HZ:
+        joycon_poller->ReadActiveMode(buffer, motion_status);
         break;
     case InputReport::NFC_IR_MODE_60HZ:
-        ReadNfcIRMode(buffer);
+        joycon_poller->ReadNfcIRMode(buffer, motion_status);
         break;
     case InputReport::SIMPLE_HID_MODE:
-        ReadPassiveMode(buffer);
+        joycon_poller->ReadPassiveMode(buffer);
         break;
     case InputReport::SUBCMD_REPLY:
         LOG_DEBUG(Input, "Unhandled command reply");
@@ -163,6 +193,8 @@ void JoyconDriver::OnNewData(std::span<u8> buffer) {
 
 void JoyconDriver::SetPollingMode() {
     disable_input_thread = true;
+
+    rumble_protocol->EnableRumble(vibration_enabled && supported_features.vibration);
 
     if (motion_enabled && supported_features.motion) {
         generic_protocol->EnableImu(true);
@@ -209,62 +241,6 @@ JoyconDriver::SupportedFeatures JoyconDriver::GetSupportedFeatures() {
     return features;
 }
 
-void JoyconDriver::ReadActiveMode(std::span<u8> buffer) {
-    InputReportActive data{};
-    memcpy(&data, buffer.data(), sizeof(InputReportActive));
-
-    // Packages can be a litte bit inconsistent. Average the delta time to provide a smoother motion
-    // experience
-    const auto now = std::chrono::steady_clock::now();
-    const auto new_delta_time =
-        std::chrono::duration_cast<std::chrono::microseconds>(now - last_update).count();
-    delta_time = static_cast<u64>((delta_time * 0.8f) + (new_delta_time * 0.2));
-    last_update = now;
-
-    switch (device_type) {
-    case Joycon::ControllerType::Left:
-        break;
-    case Joycon::ControllerType::Right:
-        break;
-    case Joycon::ControllerType::Pro:
-        break;
-    case Joycon::ControllerType::Grip:
-    case Joycon::ControllerType::Dual:
-    case Joycon::ControllerType::None:
-        break;
-    }
-
-    on_battery_data(data.battery_status);
-    on_color_data(color);
-}
-
-void JoyconDriver::ReadPassiveMode(std::span<u8> buffer) {
-    InputReportPassive data{};
-    memcpy(&data, buffer.data(), sizeof(InputReportPassive));
-
-    switch (device_type) {
-    case Joycon::ControllerType::Left:
-        break;
-    case Joycon::ControllerType::Right:
-        break;
-    case Joycon::ControllerType::Pro:
-        break;
-    case Joycon::ControllerType::Grip:
-    case Joycon::ControllerType::Dual:
-    case Joycon::ControllerType::None:
-        break;
-    }
-}
-
-void JoyconDriver::ReadNfcIRMode(std::span<u8> buffer) {
-    // This mode is compatible with the active mode
-    ReadActiveMode(buffer);
-
-    if (!nfc_enabled) {
-        return;
-    }
-}
-
 bool JoyconDriver::IsInputThreadValid() const {
     if (!is_connected) {
         return false;
@@ -302,7 +278,7 @@ DriverResult JoyconDriver::SetVibration(const VibrationValue& vibration) {
     if (disable_input_thread) {
         return DriverResult::HandleInUse;
     }
-    return DriverResult::NotSupported;
+    return rumble_protocol->SendVibration(vibration);
 }
 
 DriverResult JoyconDriver::SetLedConfig(u8 led_pattern) {
@@ -396,6 +372,10 @@ SerialNumber JoyconDriver::GetSerialNumber() const {
 SerialNumber JoyconDriver::GetHandleSerialNumber() const {
     std::scoped_lock lock{mutex};
     return handle_serial_number;
+}
+
+void JoyconDriver::SetCallbacks(const Joycon::JoyconCallbacks& callbacks) {
+    joycon_poller->SetCallbacks(callbacks);
 }
 
 Joycon::DriverResult JoyconDriver::GetDeviceType(SDL_hid_device_info* device_info,

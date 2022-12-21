@@ -64,6 +64,10 @@ if (ENABLE_SDL2)
         helpers/joycon_protocol/generic_functions.cpp
         helpers/joycon_protocol/generic_functions.h
         helpers/joycon_protocol/joycon_types.h
+        helpers/joycon_protocol/poller.cpp
+        helpers/joycon_protocol/poller.h
+        helpers/joycon_protocol/rumble.cpp
+        helpers/joycon_protocol/rumble.h
     )
     target_link_libraries(input_common PRIVATE SDL2::SDL2)
     target_compile_definitions(input_common PRIVATE HAVE_SDL2)

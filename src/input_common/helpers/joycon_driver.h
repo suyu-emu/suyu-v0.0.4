@@ -11,6 +11,8 @@
 #include "input_common/helpers/joycon_protocol/calibration.h"
 #include "input_common/helpers/joycon_protocol/generic_functions.h"
 #include "input_common/helpers/joycon_protocol/joycon_types.h"
+#include "input_common/helpers/joycon_protocol/poller.h"
+#include "input_common/helpers/joycon_protocol/rumble.h"
 
 namespace InputCommon::Joycon {
 
@@ -42,6 +44,8 @@ public:
     DriverResult SetNfcMode();
     DriverResult SetRingConMode();
 
+    void SetCallbacks(const Joycon::JoyconCallbacks& callbacks);
+
     // Returns device type from hidapi handle
     static Joycon::DriverResult GetDeviceType(SDL_hid_device_info* device_info,
                                               Joycon::ControllerType& controller_type);
@@ -49,14 +53,6 @@ public:
     // Returns serial number from hidapi handle
     static Joycon::DriverResult GetSerialNumber(SDL_hid_device_info* device_info,
                                                 Joycon::SerialNumber& serial_number);
-
-    std::function<void(Battery)> on_battery_data;
-    std::function<void(Color)> on_color_data;
-    std::function<void(int, bool)> on_button_data;
-    std::function<void(int, f32)> on_stick_data;
-    std::function<void(int, MotionData)> on_motion_data;
-    std::function<void(f32)> on_ring_data;
-    std::function<void(const std::vector<u8>&)> on_amiibo_data;
 
 private:
     struct SupportedFeatures {
@@ -86,18 +82,11 @@ private:
     /// Returns a list of supported features that can be enabled on this device
     SupportedFeatures GetSupportedFeatures();
 
-    /// Handles data from passive packages
-    void ReadPassiveMode(std::span<u8> buffer);
-
-    /// Handles data from active packages
-    void ReadActiveMode(std::span<u8> buffer);
-
-    /// Handles data from nfc or ir packages
-    void ReadNfcIRMode(std::span<u8> buffer);
-
     // Protocol Features
     std::unique_ptr<CalibrationProtocol> calibration_protocol = nullptr;
     std::unique_ptr<GenericProtocol> generic_protocol = nullptr;
+    std::unique_ptr<JoyconPoller> joycon_poller = nullptr;
+    std::unique_ptr<RumbleProtocol> rumble_protocol = nullptr;
 
     // Connection status
     bool is_connected{};

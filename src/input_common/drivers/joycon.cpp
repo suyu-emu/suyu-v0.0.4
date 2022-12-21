@@ -167,30 +167,31 @@ void Joycons::RegisterNewDevice(SDL_hid_device_info* device_info) {
     if (result == Joycon::DriverResult::Success) {
         LOG_WARNING(Input, "Initialize device");
 
-        std::function<void(Joycon::Battery)> on_battery_data;
-        std::function<void(Joycon::Color)> on_button_data;
-        std::function<void(int, f32)> on_stick_data;
-        std::function<void(int, std::array<u8, 6>)> on_motion_data;
-        std::function<void(s16)> on_ring_data;
-        std::function<void(const std::vector<u8>&)> on_amiibo_data;
-
         const std::size_t port = handle->GetDevicePort();
-        handle->on_battery_data = {
-            [this, port, type](Joycon::Battery value) { OnBatteryUpdate(port, type, value); }};
-        handle->on_color_data = {
-            [this, port, type](Joycon::Color value) { OnColorUpdate(port, type, value); }};
-        handle->on_button_data = {
-            [this, port, type](int id, bool value) { OnButtonUpdate(port, type, id, value); }};
-        handle->on_stick_data = {
-            [this, port, type](int id, f32 value) { OnStickUpdate(port, type, id, value); }};
-        handle->on_motion_data = {[this, port, type](int id, Joycon::MotionData value) {
-            OnMotionUpdate(port, type, id, value);
-        }};
-        handle->on_ring_data = {[this](f32 ring_data) { OnRingConUpdate(ring_data); }};
-        handle->on_amiibo_data = {[this, port](const std::vector<u8>& amiibo_data) {
-            OnAmiiboUpdate(port, amiibo_data);
-        }};
+        const Joycon::JoyconCallbacks callbacks{
+            .on_battery_data = {[this, port, type](Joycon::Battery value) {
+                OnBatteryUpdate(port, type, value);
+            }},
+            .on_color_data = {[this, port, type](Joycon::Color value) {
+                OnColorUpdate(port, type, value);
+            }},
+            .on_button_data = {[this, port, type](int id, bool value) {
+                OnButtonUpdate(port, type, id, value);
+            }},
+            .on_stick_data = {[this, port, type](int id, f32 value) {
+                OnStickUpdate(port, type, id, value);
+            }},
+            .on_motion_data = {[this, port, type](int id, const Joycon::MotionData& value) {
+                OnMotionUpdate(port, type, id, value);
+            }},
+            .on_ring_data = {[this](f32 ring_data) { OnRingConUpdate(ring_data); }},
+            .on_amiibo_data = {[this, port](const std::vector<u8>& amiibo_data) {
+                OnAmiiboUpdate(port, amiibo_data);
+            }},
+        };
+
         handle->InitializeDevice();
+        handle->SetCallbacks(callbacks);
     }
 }
 
@@ -235,7 +236,7 @@ Common::Input::VibrationError Joycons::SetVibration(
         .low_amplitude = vibration.low_amplitude,
         .low_frequency = vibration.low_frequency,
         .high_amplitude = vibration.high_amplitude,
-        .high_frequency = vibration.high_amplitude,
+        .high_frequency = vibration.high_frequency,
     };
     auto handle = GetHandle(identifier);
     if (handle == nullptr) {
