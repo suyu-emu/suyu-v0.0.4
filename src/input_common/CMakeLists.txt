@@ -57,6 +57,8 @@ if (ENABLE_SDL2)
         drivers/sdl_driver.h
         helpers/joycon_driver.cpp
         helpers/joycon_driver.h
+        helpers/joycon_protocol/calibration.cpp
+        helpers/joycon_protocol/calibration.h
         helpers/joycon_protocol/common_protocol.cpp
         helpers/joycon_protocol/common_protocol.h
         helpers/joycon_protocol/generic_functions.cpp

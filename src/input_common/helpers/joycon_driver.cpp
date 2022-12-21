@@ -64,6 +64,7 @@ DriverResult JoyconDriver::InitializeDevice() {
     accelerometer_performance = Joycon::AccelerometerPerformance::HZ100;
 
     // Initialize HW Protocols
+    calibration_protocol = std::make_unique<CalibrationProtocol>(hidapi_handle);
     generic_protocol = std::make_unique<GenericProtocol>(hidapi_handle);
 
     // Get fixed joycon info
@@ -79,6 +80,9 @@ DriverResult JoyconDriver::InitializeDevice() {
     supported_features = GetSupportedFeatures();
 
     // Get Calibration data
+    calibration_protocol->GetLeftJoyStickCalibration(left_stick_calibration);
+    calibration_protocol->GetRightJoyStickCalibration(right_stick_calibration);
+    calibration_protocol->GetImuCalibration(motion_calibration);
 
     // Set led status
     generic_protocol->SetLedBlinkPattern(static_cast<u8>(1 + port));
