@@ -46,9 +46,19 @@ public:
      */
     DriverResult GetImuCalibration(MotionCalibration& calibration);
 
+    /**
+     * Calculates on run time the proper calibration of the ring controller
+     * @returns RingCalibration of the ring sensor
+     */
+    DriverResult GetRingCalibration(RingCalibration& calibration, s16 current_value);
+
 private:
     void ValidateCalibration(JoyStickCalibration& calibration);
     void ValidateCalibration(MotionCalibration& calibration);
+
+    s16 ring_data_max = 0;
+    s16 ring_data_default = 0;
+    s16 ring_data_min = 0;
 };
 
 } // namespace InputCommon::Joycon

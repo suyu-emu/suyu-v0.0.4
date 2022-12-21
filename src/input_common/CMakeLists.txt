@@ -66,6 +66,8 @@ if (ENABLE_SDL2)
         helpers/joycon_protocol/joycon_types.h
         helpers/joycon_protocol/poller.cpp
         helpers/joycon_protocol/poller.h
+        helpers/joycon_protocol/ringcon.cpp
+        helpers/joycon_protocol/ringcon.h
         helpers/joycon_protocol/rumble.cpp
         helpers/joycon_protocol/rumble.h
     )

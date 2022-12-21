@@ -28,12 +28,14 @@ public:
     void ReadPassiveMode(std::span<u8> buffer);
 
     /// Handles data from active packages
-    void ReadActiveMode(std::span<u8> buffer, const MotionStatus& motion_status);
+    void ReadActiveMode(std::span<u8> buffer, const MotionStatus& motion_status,
+                        const RingStatus& ring_status);
 
     /// Handles data from nfc or ir packages
     void ReadNfcIRMode(std::span<u8> buffer, const MotionStatus& motion_status);
 
     void UpdateColor(const Color& color);
+    void UpdateRing(s16 value, const RingStatus& ring_status);
 
 private:
     void UpdateActiveLeftPadInput(const InputReportActive& input,

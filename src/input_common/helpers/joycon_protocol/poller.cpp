@@ -16,7 +16,8 @@ void JoyconPoller::SetCallbacks(const Joycon::JoyconCallbacks& callbacks_) {
     callbacks = std::move(callbacks_);
 }
 
-void JoyconPoller::ReadActiveMode(std::span<u8> buffer, const MotionStatus& motion_status) {
+void JoyconPoller::ReadActiveMode(std::span<u8> buffer, const MotionStatus& motion_status,
+                                  const RingStatus& ring_status) {
     InputReportActive data{};
     memcpy(&data, buffer.data(), sizeof(InputReportActive));
 
@@ -34,6 +35,10 @@ void JoyconPoller::ReadActiveMode(std::span<u8> buffer, const MotionStatus& moti
     case Joycon::ControllerType::Dual:
     case Joycon::ControllerType::None:
         break;
+    }
+
+    if (ring_status.is_enabled) {
+        UpdateRing(data.ring_input, ring_status);
     }
 
     callbacks.on_battery_data(data.battery_status);
@@ -62,11 +67,24 @@ void JoyconPoller::ReadPassiveMode(std::span<u8> buffer) {
 
 void JoyconPoller::ReadNfcIRMode(std::span<u8> buffer, const MotionStatus& motion_status) {
     // This mode is compatible with the active mode
-    ReadActiveMode(buffer, motion_status);
+    ReadActiveMode(buffer, motion_status, {});
 }
 
 void JoyconPoller::UpdateColor(const Color& color) {
     callbacks.on_color_data(color);
+}
+
+void JoyconPoller::UpdateRing(s16 value, const RingStatus& ring_status) {
+    float normalized_value = static_cast<float>(value - ring_status.default_value);
+    if (normalized_value > 0) {
+        normalized_value = normalized_value /
+                           static_cast<float>(ring_status.max_value - ring_status.default_value);
+    }
+    if (normalized_value < 0) {
+        normalized_value = normalized_value /
+                           static_cast<float>(ring_status.default_value - ring_status.min_value);
+    }
+    callbacks.on_ring_data(normalized_value);
 }
 
 void JoyconPoller::UpdateActiveLeftPadInput(const InputReportActive& input,

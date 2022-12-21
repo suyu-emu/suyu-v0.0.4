@@ -12,6 +12,7 @@
 #include "input_common/helpers/joycon_protocol/generic_functions.h"
 #include "input_common/helpers/joycon_protocol/joycon_types.h"
 #include "input_common/helpers/joycon_protocol/poller.h"
+#include "input_common/helpers/joycon_protocol/ringcon.h"
 #include "input_common/helpers/joycon_protocol/rumble.h"
 
 namespace InputCommon::Joycon {
@@ -86,6 +87,7 @@ private:
     std::unique_ptr<CalibrationProtocol> calibration_protocol = nullptr;
     std::unique_ptr<GenericProtocol> generic_protocol = nullptr;
     std::unique_ptr<JoyconPoller> joycon_poller = nullptr;
+    std::unique_ptr<RingConProtocol> ring_protocol = nullptr;
     std::unique_ptr<RumbleProtocol> rumble_protocol = nullptr;
 
     // Connection status
@@ -118,6 +120,7 @@ private:
     JoyStickCalibration left_stick_calibration{};
     JoyStickCalibration right_stick_calibration{};
     MotionCalibration motion_calibration{};
+    RingCalibration ring_calibration{};
 
     // Fixed joycon info
     FirmwareVersion version{};

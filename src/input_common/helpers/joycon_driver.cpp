@@ -52,12 +52,18 @@ DriverResult JoyconDriver::InitializeDevice() {
     error_counter = 0;
     hidapi_handle->packet_counter = 0;
 
+    // Reset external device status
+    starlink_connected = false;
+    ring_connected = false;
+    amiibo_detected = false;
+
     // Set HW default configuration
     vibration_enabled = true;
     motion_enabled = true;
     hidbus_enabled = false;
     nfc_enabled = false;
     passive_enabled = false;
+    irs_enabled = false;
     gyro_sensitivity = Joycon::GyroSensitivity::DPS2000;
     gyro_performance = Joycon::GyroPerformance::HZ833;
     accelerometer_sensitivity = Joycon::AccelerometerSensitivity::G8;
@@ -66,6 +72,7 @@ DriverResult JoyconDriver::InitializeDevice() {
     // Initialize HW Protocols
     calibration_protocol = std::make_unique<CalibrationProtocol>(hidapi_handle);
     generic_protocol = std::make_unique<GenericProtocol>(hidapi_handle);
+    ring_protocol = std::make_unique<RingConProtocol>(hidapi_handle);
     rumble_protocol = std::make_unique<RumbleProtocol>(hidapi_handle);
 
     // Get fixed joycon info
@@ -172,9 +179,23 @@ void JoyconDriver::OnNewData(std::span<u8> buffer) {
         .accelerometer_sensitivity = accelerometer_sensitivity,
     };
 
+    // TODO: Remove this when calibration is properly loaded and not calculated
+    if (ring_connected && report_mode == InputReport::STANDARD_FULL_60HZ) {
+        InputReportActive data{};
+        memcpy(&data, buffer.data(), sizeof(InputReportActive));
+        calibration_protocol->GetRingCalibration(ring_calibration, data.ring_input);
+    }
+
+    const RingStatus ring_status{
+        .is_enabled = ring_connected,
+        .default_value = ring_calibration.default_value,
+        .max_value = ring_calibration.max_value,
+        .min_value = ring_calibration.min_value,
+    };
+
     switch (report_mode) {
     case InputReport::STANDARD_FULL_60HZ:
-        joycon_poller->ReadActiveMode(buffer, motion_status);
+        joycon_poller->ReadActiveMode(buffer, motion_status, ring_status);
         break;
     case InputReport::NFC_IR_MODE_60HZ:
         joycon_poller->ReadNfcIRMode(buffer, motion_status);
@@ -202,6 +223,26 @@ void JoyconDriver::SetPollingMode() {
                                        accelerometer_sensitivity, accelerometer_performance);
     } else {
         generic_protocol->EnableImu(false);
+    }
+
+    if (ring_protocol->IsEnabled()) {
+        ring_connected = false;
+        ring_protocol->DisableRingCon();
+    }
+
+    if (hidbus_enabled && supported_features.hidbus) {
+        auto result = ring_protocol->EnableRingCon();
+        if (result == DriverResult::Success) {
+            result = ring_protocol->StartRingconPolling();
+        }
+        if (result == DriverResult::Success) {
+            ring_connected = true;
+            disable_input_thread = false;
+            return;
+        }
+        ring_connected = false;
+        ring_protocol->DisableRingCon();
+        LOG_ERROR(Input, "Error enabling Ringcon");
     }
 
     if (passive_enabled && supported_features.passive) {

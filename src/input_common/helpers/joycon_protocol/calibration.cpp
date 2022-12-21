@@ -128,6 +128,28 @@ DriverResult CalibrationProtocol::GetImuCalibration(MotionCalibration& calibrati
     return result;
 }
 
+DriverResult CalibrationProtocol::GetRingCalibration(RingCalibration& calibration,
+                                                     s16 current_value) {
+    // TODO: Get default calibration form ring itself
+    if (ring_data_max == 0 && ring_data_min == 0) {
+        ring_data_max = current_value + 800;
+        ring_data_min = current_value - 800;
+        ring_data_default = current_value;
+    }
+    if (ring_data_max < current_value) {
+        ring_data_max = current_value;
+    }
+    if (ring_data_min > current_value) {
+        ring_data_min = current_value;
+    }
+    calibration = {
+        .default_value = ring_data_default,
+        .max_value = ring_data_max,
+        .min_value = ring_data_min,
+    };
+    return DriverResult::Success;
+}
+
 void CalibrationProtocol::ValidateCalibration(JoyStickCalibration& calibration) {
     constexpr u16 DefaultStickCenter{2048};
     constexpr u16 DefaultStickRange{1740};
