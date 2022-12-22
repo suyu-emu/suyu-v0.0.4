@@ -64,6 +64,8 @@ if (ENABLE_SDL2)
         helpers/joycon_protocol/generic_functions.cpp
         helpers/joycon_protocol/generic_functions.h
         helpers/joycon_protocol/joycon_types.h
+        helpers/joycon_protocol/nfc.cpp
+        helpers/joycon_protocol/nfc.h
         helpers/joycon_protocol/poller.cpp
         helpers/joycon_protocol/poller.h
         helpers/joycon_protocol/ringcon.cpp

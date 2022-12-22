@@ -8,14 +8,15 @@
 #include <span>
 #include <thread>
 
-#include "input_common/helpers/joycon_protocol/calibration.h"
-#include "input_common/helpers/joycon_protocol/generic_functions.h"
 #include "input_common/helpers/joycon_protocol/joycon_types.h"
-#include "input_common/helpers/joycon_protocol/poller.h"
-#include "input_common/helpers/joycon_protocol/ringcon.h"
-#include "input_common/helpers/joycon_protocol/rumble.h"
 
 namespace InputCommon::Joycon {
+class CalibrationProtocol;
+class GenericProtocol;
+class NfcProtocol;
+class JoyconPoller;
+class RingConProtocol;
+class RumbleProtocol;
 
 class JoyconDriver final {
 public:
@@ -84,17 +85,18 @@ private:
     SupportedFeatures GetSupportedFeatures();
 
     // Protocol Features
-    std::unique_ptr<CalibrationProtocol> calibration_protocol = nullptr;
-    std::unique_ptr<GenericProtocol> generic_protocol = nullptr;
-    std::unique_ptr<JoyconPoller> joycon_poller = nullptr;
-    std::unique_ptr<RingConProtocol> ring_protocol = nullptr;
-    std::unique_ptr<RumbleProtocol> rumble_protocol = nullptr;
+    std::unique_ptr<CalibrationProtocol> calibration_protocol;
+    std::unique_ptr<GenericProtocol> generic_protocol;
+    std::unique_ptr<NfcProtocol> nfc_protocol;
+    std::unique_ptr<JoyconPoller> joycon_poller;
+    std::unique_ptr<RingConProtocol> ring_protocol;
+    std::unique_ptr<RumbleProtocol> rumble_protocol;
 
     // Connection status
     bool is_connected{};
     u64 delta_time;
     std::size_t error_counter{};
-    std::shared_ptr<JoyconHandle> hidapi_handle = nullptr;
+    std::shared_ptr<JoyconHandle> hidapi_handle;
     std::chrono::time_point<std::chrono::steady_clock> last_update;
 
     // External device status

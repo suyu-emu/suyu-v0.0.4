@@ -36,6 +36,7 @@ public:
 
     void UpdateColor(const Color& color);
     void UpdateRing(s16 value, const RingStatus& ring_status);
+    void updateAmiibo(const std::vector<u8>& amiibo_data);
 
 private:
     void UpdateActiveLeftPadInput(const InputReportActive& input,

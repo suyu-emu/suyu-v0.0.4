@@ -388,7 +388,9 @@ void Joycons::OnRingConUpdate(f32 ring_data) {
 
 void Joycons::OnAmiiboUpdate(std::size_t port, const std::vector<u8>& amiibo_data) {
     const auto identifier = GetIdentifier(port, Joycon::ControllerType::Right);
-    SetNfc(identifier, {Common::Input::NfcState::NewAmiibo, amiibo_data});
+    const auto nfc_state = amiibo_data.empty() ? Common::Input::NfcState::AmiiboRemoved
+                                               : Common::Input::NfcState::NewAmiibo;
+    SetNfc(identifier, {nfc_state, amiibo_data});
 }
 
 std::shared_ptr<Joycon::JoyconDriver> Joycons::GetHandle(PadIdentifier identifier) const {

@@ -144,7 +144,8 @@ void EmulatedController::LoadDevices() {
     battery_params[RightIndex].Set("battery", true);
 
     camera_params = Common::ParamPackage{"engine:camera,camera:1"};
-    nfc_params = Common::ParamPackage{"engine:virtual_amiibo,nfc:1"};
+    nfc_params = right_joycon;
+    nfc_params.Set("nfc", true);
     ring_params = Common::ParamPackage{"engine:joycon,axis_x:100,axis_y:101"};
 
     output_params[LeftIndex] = left_joycon;

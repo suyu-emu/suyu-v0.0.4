@@ -74,6 +74,10 @@ void JoyconPoller::UpdateColor(const Color& color) {
     callbacks.on_color_data(color);
 }
 
+void JoyconPoller::updateAmiibo(const std::vector<u8>& amiibo_data) {
+    callbacks.on_amiibo_data(amiibo_data);
+}
+
 void JoyconPoller::UpdateRing(s16 value, const RingStatus& ring_status) {
     float normalized_value = static_cast<float>(value - ring_status.default_value);
     if (normalized_value > 0) {

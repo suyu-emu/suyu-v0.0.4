@@ -5,6 +5,12 @@
 #include "common/swap.h"
 #include "common/thread.h"
 #include "input_common/helpers/joycon_driver.h"
+#include "input_common/helpers/joycon_protocol/calibration.h"
+#include "input_common/helpers/joycon_protocol/generic_functions.h"
+#include "input_common/helpers/joycon_protocol/nfc.h"
+#include "input_common/helpers/joycon_protocol/poller.h"
+#include "input_common/helpers/joycon_protocol/ringcon.h"
+#include "input_common/helpers/joycon_protocol/rumble.h"
 
 namespace InputCommon::Joycon {
 JoyconDriver::JoyconDriver(std::size_t port_) : port{port_} {
@@ -72,6 +78,7 @@ DriverResult JoyconDriver::InitializeDevice() {
     // Initialize HW Protocols
     calibration_protocol = std::make_unique<CalibrationProtocol>(hidapi_handle);
     generic_protocol = std::make_unique<GenericProtocol>(hidapi_handle);
+    nfc_protocol = std::make_unique<NfcProtocol>(hidapi_handle);
     ring_protocol = std::make_unique<RingConProtocol>(hidapi_handle);
     rumble_protocol = std::make_unique<RumbleProtocol>(hidapi_handle);
 
@@ -193,6 +200,25 @@ void JoyconDriver::OnNewData(std::span<u8> buffer) {
         .min_value = ring_calibration.min_value,
     };
 
+    if (nfc_protocol->IsEnabled()) {
+        if (amiibo_detected) {
+            if (!nfc_protocol->HasAmiibo()) {
+                joycon_poller->updateAmiibo({});
+                amiibo_detected = false;
+                return;
+            }
+        }
+
+        if (!amiibo_detected) {
+            std::vector<u8> data(0x21C);
+            const auto result = nfc_protocol->ScanAmiibo(data);
+            if (result == DriverResult::Success) {
+                joycon_poller->updateAmiibo(data);
+                amiibo_detected = true;
+            }
+        }
+    }
+
     switch (report_mode) {
     case InputReport::STANDARD_FULL_60HZ:
         joycon_poller->ReadActiveMode(buffer, motion_status, ring_status);
@@ -223,6 +249,24 @@ void JoyconDriver::SetPollingMode() {
                                        accelerometer_sensitivity, accelerometer_performance);
     } else {
         generic_protocol->EnableImu(false);
+    }
+
+    if (nfc_protocol->IsEnabled()) {
+        amiibo_detected = false;
+        nfc_protocol->DisableNfc();
+    }
+
+    if (nfc_enabled && supported_features.nfc) {
+        auto result = nfc_protocol->EnableNfc();
+        if (result == DriverResult::Success) {
+            result = nfc_protocol->StartNFCPollingMode();
+        }
+        if (result == DriverResult::Success) {
+            disable_input_thread = false;
+            return;
+        }
+        nfc_protocol->DisableNfc();
+        LOG_ERROR(Input, "Error enabling NFC");
     }
 
     if (ring_protocol->IsEnabled()) {
