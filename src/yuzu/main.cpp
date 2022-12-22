@@ -1815,9 +1815,8 @@ void GMainWindow::OnShutdownBegin() {
 }
 
 void GMainWindow::OnShutdownBeginDialog() {
-    shutdown_dialog =
-        new OverlayDialog(render_window, *system, QString{}, tr("Closing software..."), QString{},
-                          QString{}, Qt::AlignHCenter | Qt::AlignVCenter);
+    shutdown_dialog = new OverlayDialog(this, *system, QString{}, tr("Closing software..."),
+                                        QString{}, QString{}, Qt::AlignHCenter | Qt::AlignVCenter);
     shutdown_dialog->open();
 }
 
