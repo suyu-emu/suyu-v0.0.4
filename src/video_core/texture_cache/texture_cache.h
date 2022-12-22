@@ -96,7 +96,8 @@ void TextureCache<P>::RunGarbageCollector() {
             const auto copies = FullDownloadCopies(image.info);
             image.DownloadMemory(map, copies);
             runtime.Finish();
-            SwizzleImage(*gpu_memory, image.gpu_addr, image.info, copies, map.mapped_span);
+            SwizzleImage(*gpu_memory, image.gpu_addr, image.info, copies, map.mapped_span,
+                         swizzle_data_buffer);
         }
         if (True(image.flags & ImageFlagBits::Tracked)) {
             UntrackImage(image, image_id);
@@ -467,7 +468,8 @@ void TextureCache<P>::DownloadMemory(VAddr cpu_addr, size_t size) {
         const auto copies = FullDownloadCopies(image.info);
         image.DownloadMemory(map, copies);
         runtime.Finish();
-        SwizzleImage(*gpu_memory, image.gpu_addr, image.info, copies, map.mapped_span);
+        SwizzleImage(*gpu_memory, image.gpu_addr, image.info, copies, map.mapped_span,
+                     swizzle_data_buffer);
     }
 }
 
@@ -678,7 +680,8 @@ void TextureCache<P>::PopAsyncFlushes() {
     for (const ImageId image_id : download_ids) {
         const ImageBase& image = slot_images[image_id];
         const auto copies = FullDownloadCopies(image.info);
-        SwizzleImage(*gpu_memory, image.gpu_addr, image.info, copies, download_span);
+        SwizzleImage(*gpu_memory, image.gpu_addr, image.info, copies, download_span,
+                     swizzle_data_buffer);
         download_map.offset += image.unswizzled_size_bytes;
         download_span = download_span.subspan(image.unswizzled_size_bytes);
     }
