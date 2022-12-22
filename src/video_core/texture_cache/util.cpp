@@ -765,8 +765,9 @@ bool IsValidEntry(const Tegra::MemoryManager& gpu_memory, const TICEntry& config
 }
 
 std::vector<BufferImageCopy> UnswizzleImage(Tegra::MemoryManager& gpu_memory, GPUVAddr gpu_addr,
-                                            const ImageInfo& info, std::span<u8> output) {
-    const size_t guest_size_bytes = CalculateGuestSizeInBytes(info);
+                                            const ImageInfo& info, std::span<const u8> input,
+                                            std::span<u8> output) {
+    const size_t guest_size_bytes = input.size_bytes();
     const u32 bpp_log2 = BytesPerBlockLog2(info.format);
     const Extent3D size = info.size;
 
@@ -789,10 +790,6 @@ std::vector<BufferImageCopy> UnswizzleImage(Tegra::MemoryManager& gpu_memory, GP
             .image_extent = size,
         }};
     }
-    const auto input_data = std::make_unique<u8[]>(guest_size_bytes);
-    gpu_memory.ReadBlockUnsafe(gpu_addr, input_data.get(), guest_size_bytes);
-    const std::span<const u8> input(input_data.get(), guest_size_bytes);
-
     const LevelInfo level_info = MakeLevelInfo(info);
     const s32 num_layers = info.resources.layers;
     const s32 num_levels = info.resources.levels;

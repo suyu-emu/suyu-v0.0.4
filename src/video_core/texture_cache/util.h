@@ -59,6 +59,7 @@ struct OverlapResult {
 
 [[nodiscard]] std::vector<BufferImageCopy> UnswizzleImage(Tegra::MemoryManager& gpu_memory,
                                                           GPUVAddr gpu_addr, const ImageInfo& info,
+                                                          std::span<const u8> input,
                                                           std::span<u8> output);
 
 [[nodiscard]] BufferCopy UploadBufferCopy(Tegra::MemoryManager& gpu_memory, GPUVAddr gpu_addr,
