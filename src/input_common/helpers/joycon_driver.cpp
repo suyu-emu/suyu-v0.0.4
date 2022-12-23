@@ -396,7 +396,7 @@ DriverResult JoyconDriver::SetActiveMode() {
 
 DriverResult JoyconDriver::SetNfcMode() {
     std::scoped_lock lock{mutex};
-    motion_enabled = false;
+    motion_enabled = true;
     hidbus_enabled = false;
     nfc_enabled = true;
     passive_enabled = false;

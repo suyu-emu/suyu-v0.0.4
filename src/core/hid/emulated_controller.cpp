@@ -107,6 +107,8 @@ void EmulatedController::ReloadFromSettings() {
         .button = GetNpadColor(player.button_color_right),
     };
 
+    ring_params[0] = Common::ParamPackage(Settings::values.ringcon_analogs);
+
     // Other or debug controller should always be a pro controller
     if (npad_id_type != NpadIdType::Other) {
         SetNpadStyleIndex(MapSettingsTypeToNPad(player.controller_type));
@@ -144,14 +146,15 @@ void EmulatedController::LoadDevices() {
     battery_params[RightIndex].Set("battery", true);
 
     camera_params = Common::ParamPackage{"engine:camera,camera:1"};
-    nfc_params = right_joycon;
-    nfc_params.Set("nfc", true);
-    ring_params = Common::ParamPackage{"engine:joycon,axis_x:100,axis_y:101"};
+    ring_params[1] = Common::ParamPackage{"engine:joycon,axis_x:100,axis_y:101"};
+    nfc_params[0] = Common::ParamPackage{"engine:virtual_amiibo,nfc:1"};
+    nfc_params[1] = right_joycon;
+    nfc_params[1].Set("nfc", true);
 
     output_params[LeftIndex] = left_joycon;
     output_params[RightIndex] = right_joycon;
     output_params[2] = camera_params;
-    output_params[3] = nfc_params;
+    output_params[3] = nfc_params[0];
     output_params[LeftIndex].Set("output", true);
     output_params[RightIndex].Set("output", true);
     output_params[2].Set("output", true);
@@ -169,8 +172,9 @@ void EmulatedController::LoadDevices() {
                            Common::Input::CreateInputDevice);
     std::ranges::transform(color_params, color_devices.begin(), Common::Input::CreateInputDevice);
     camera_devices = Common::Input::CreateInputDevice(camera_params);
-    ring_analog_device = Common::Input::CreateInputDevice(ring_params);
-    nfc_devices = Common::Input::CreateInputDevice(nfc_params);
+    std::ranges::transform(ring_params, ring_analog_devices.begin(),
+                           Common::Input::CreateInputDevice);
+    std::ranges::transform(nfc_params, nfc_devices.begin(), Common::Input::CreateInputDevice);
     std::ranges::transform(output_params, output_devices.begin(),
                            Common::Input::CreateOutputDevice);
 
@@ -366,21 +370,26 @@ void EmulatedController::ReloadInput() {
         camera_devices->ForceUpdate();
     }
 
-    if (ring_analog_device) {
-        ring_analog_device->SetCallback({
+    for (std::size_t index = 0; index < ring_analog_devices.size(); ++index) {
+        if (!ring_analog_devices[index]) {
+            continue;
+        }
+        ring_analog_devices[index]->SetCallback({
             .on_change =
                 [this](const Common::Input::CallbackStatus& callback) { SetRingAnalog(callback); },
         });
+        ring_analog_devices[index]->ForceUpdate();
     }
 
-    if (nfc_devices) {
-        if (npad_id_type == NpadIdType::Handheld || npad_id_type == NpadIdType::Player1) {
-            nfc_devices->SetCallback({
-                .on_change =
-                    [this](const Common::Input::CallbackStatus& callback) { SetNfc(callback); },
-            });
-            nfc_devices->ForceUpdate();
+    for (std::size_t index = 0; index < nfc_devices.size(); ++index) {
+        if (!nfc_devices[index]) {
+            continue;
         }
+        nfc_devices[index]->SetCallback({
+            .on_change =
+                [this](const Common::Input::CallbackStatus& callback) { SetNfc(callback); },
+        });
+        nfc_devices[index]->ForceUpdate();
     }
 
     // Register TAS devices. No need to force update
@@ -469,8 +478,12 @@ void EmulatedController::UnloadInput() {
         stick.reset();
     }
     camera_devices.reset();
-    ring_analog_device.reset();
-    nfc_devices.reset();
+    for (auto& ring : ring_analog_devices) {
+        ring.reset();
+    }
+    for (auto& nfc : nfc_devices) {
+        nfc.reset();
+    }
 }
 
 void EmulatedController::EnableConfiguration() {
@@ -540,7 +553,9 @@ void EmulatedController::SaveCurrentConfig() {
     for (std::size_t index = 0; index < player.motions.size(); ++index) {
         player.motions[index] = motion_params[index].Serialize();
     }
-    Settings::values.ringcon_analogs = ring_params.Serialize();
+    if (npad_id_type == NpadIdType::Player1) {
+        Settings::values.ringcon_analogs = ring_params[0].Serialize();
+    }
 }
 
 void EmulatedController::RestoreConfig() {
@@ -1215,11 +1230,11 @@ bool EmulatedController::SetCameraFormat(
 }
 
 Common::ParamPackage EmulatedController::GetRingParam() const {
-    return ring_params;
+    return ring_params[0];
 }
 
 void EmulatedController::SetRingParam(Common::ParamPackage param) {
-    ring_params = std::move(param);
+    ring_params[0] = std::move(param);
     ReloadInput();
 }
 

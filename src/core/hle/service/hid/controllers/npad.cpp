@@ -337,6 +337,7 @@ void Controller_NPad::InitNewlyAddedController(Core::HID::NpadIdType npad_id) {
     controller.is_connected = true;
     controller.device->Connect();
     controller.device->SetLedPattern();
+    controller.device->SetPollingMode(Common::Input::PollingMode::Active);
     SignalStyleSetChangedEvent(npad_id);
     WriteEmptyEntry(controller.shared_memory);
 }

@@ -56,9 +56,6 @@ DriverResult RingConProtocol::StartRingconPolling() {
     SetBlocking();
 
     if (result == DriverResult::Success) {
-        result = WaitSetMCUMode(ReportMode::STANDARD_FULL_60HZ, MCUMode::Standby);
-    }
-    if (result == DriverResult::Success) {
         result = IsRingConnected(is_connected);
     }
     if (result == DriverResult::Success && is_connected) {

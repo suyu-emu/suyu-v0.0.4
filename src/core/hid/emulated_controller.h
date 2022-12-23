@@ -40,8 +40,10 @@ using ColorDevices =
 using BatteryDevices =
     std::array<std::unique_ptr<Common::Input::InputDevice>, max_emulated_controllers>;
 using CameraDevices = std::unique_ptr<Common::Input::InputDevice>;
-using RingAnalogDevice = std::unique_ptr<Common::Input::InputDevice>;
-using NfcDevices = std::unique_ptr<Common::Input::InputDevice>;
+using RingAnalogDevices =
+    std::array<std::unique_ptr<Common::Input::InputDevice>, max_emulated_controllers>;
+using NfcDevices =
+    std::array<std::unique_ptr<Common::Input::InputDevice>, max_emulated_controllers>;
 using OutputDevices = std::array<std::unique_ptr<Common::Input::OutputDevice>, output_devices_size>;
 
 using ButtonParams = std::array<Common::ParamPackage, Settings::NativeButton::NumButtons>;
@@ -51,8 +53,8 @@ using TriggerParams = std::array<Common::ParamPackage, Settings::NativeTrigger::
 using ColorParams = std::array<Common::ParamPackage, max_emulated_controllers>;
 using BatteryParams = std::array<Common::ParamPackage, max_emulated_controllers>;
 using CameraParams = Common::ParamPackage;
-using RingAnalogParams = Common::ParamPackage;
-using NfcParams = Common::ParamPackage;
+using RingAnalogParams = std::array<Common::ParamPackage, max_emulated_controllers>;
+using NfcParams = std::array<Common::ParamPackage, max_emulated_controllers>;
 using OutputParams = std::array<Common::ParamPackage, output_devices_size>;
 
 using ButtonValues = std::array<Common::Input::ButtonStatus, Settings::NativeButton::NumButtons>;
@@ -538,7 +540,7 @@ private:
     BatteryDevices battery_devices;
     ColorDevices color_devices;
     CameraDevices camera_devices;
-    RingAnalogDevice ring_analog_device;
+    RingAnalogDevices ring_analog_devices;
     NfcDevices nfc_devices;
     OutputDevices output_devices;
 
