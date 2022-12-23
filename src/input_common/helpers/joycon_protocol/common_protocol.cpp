@@ -6,7 +6,7 @@
 
 namespace InputCommon::Joycon {
 JoyconCommonProtocol::JoyconCommonProtocol(std::shared_ptr<JoyconHandle> hidapi_handle_)
-    : hidapi_handle{hidapi_handle_} {}
+    : hidapi_handle{std::move(hidapi_handle_)} {}
 
 u8 JoyconCommonProtocol::GetCounter() {
     hidapi_handle->packet_counter = (hidapi_handle->packet_counter + 1) & 0x0F;
@@ -256,7 +256,7 @@ DriverResult JoyconCommonProtocol::WaitSetMCUMode(ReportMode report_mode, MCUMod
 }
 
 // crc-8-ccitt / polynomial 0x07 look up table
-static constexpr uint8_t mcu_crc8_table[256] = {
+constexpr std::array<u8, 256> mcu_crc8_table = {
     0x00, 0x07, 0x0E, 0x09, 0x1C, 0x1B, 0x12, 0x15, 0x38, 0x3F, 0x36, 0x31, 0x24, 0x23, 0x2A, 0x2D,
     0x70, 0x77, 0x7E, 0x79, 0x6C, 0x6B, 0x62, 0x65, 0x48, 0x4F, 0x46, 0x41, 0x54, 0x53, 0x5A, 0x5D,
     0xE0, 0xE7, 0xEE, 0xE9, 0xFC, 0xFB, 0xF2, 0xF5, 0xD8, 0xDF, 0xD6, 0xD1, 0xC4, 0xC3, 0xCA, 0xCD,
@@ -278,7 +278,7 @@ u8 JoyconCommonProtocol::CalculateMCU_CRC8(u8* buffer, u8 size) const {
     u8 crc8 = 0x0;
 
     for (int i = 0; i < size; ++i) {
-        crc8 = mcu_crc8_table[(u8)(crc8 ^ buffer[i])];
+        crc8 = mcu_crc8_table[static_cast<u8>(crc8 ^ buffer[i])];
     }
     return crc8;
 }

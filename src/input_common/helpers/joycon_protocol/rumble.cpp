@@ -1,17 +1,20 @@
 // SPDX-FileCopyrightText: Copyright 2022 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <algorithm>
+#include <cmath>
+
 #include "common/logging/log.h"
 #include "input_common/helpers/joycon_protocol/rumble.h"
 
 namespace InputCommon::Joycon {
 
 RumbleProtocol::RumbleProtocol(std::shared_ptr<JoyconHandle> handle)
-    : JoyconCommonProtocol(handle) {}
+    : JoyconCommonProtocol(std::move(handle)) {}
 
 DriverResult RumbleProtocol::EnableRumble(bool is_enabled) {
     LOG_DEBUG(Input, "Enable Rumble");
-    const std::vector<u8> buffer{static_cast<u8>(is_enabled ? 1 : 0)};
+    const std::array<u8, 1> buffer{static_cast<u8>(is_enabled ? 1 : 0)};
     std::vector<u8> output;
     SetBlocking();
     const auto result = SendSubCommand(SubCommand::ENABLE_VIBRATION, buffer, output);
@@ -20,7 +23,7 @@ DriverResult RumbleProtocol::EnableRumble(bool is_enabled) {
 }
 
 DriverResult RumbleProtocol::SendVibration(const VibrationValue& vibration) {
-    std::vector<u8> buffer(sizeof(DefaultVibrationBuffer));
+    std::array<u8, sizeof(DefaultVibrationBuffer)> buffer{};
 
     if (vibration.high_amplitude <= 0.0f && vibration.low_amplitude <= 0.0f) {
         return SendVibrationReport(DefaultVibrationBuffer);
@@ -66,7 +69,7 @@ u8 RumbleProtocol::EncodeHighAmplitude(f32 amplitude) const {
     /* More information about these values can be found here:
      * https://github.com/dekuNukem/Nintendo_Switch_Reverse_Engineering/blob/master/rumble_data_table.md
      */
-    constexpr std::array<std::pair<f32, int>, 101> high_fequency_amplitude{
+    static constexpr std::array<std::pair<f32, int>, 101> high_fequency_amplitude{
         std::pair<f32, int>{0.0f, 0x0},
         {0.01f, 0x2},
         {0.012f, 0x4},
@@ -183,7 +186,7 @@ u16 RumbleProtocol::EncodeLowAmplitude(f32 amplitude) const {
     /* More information about these values can be found here:
      * https://github.com/dekuNukem/Nintendo_Switch_Reverse_Engineering/blob/master/rumble_data_table.md
      */
-    constexpr std::array<std::pair<f32, int>, 101> high_fequency_amplitude{
+    static constexpr std::array<std::pair<f32, int>, 101> high_fequency_amplitude{
         std::pair<f32, int>{0.0f, 0x0040},
         {0.01f, 0x8040},
         {0.012f, 0x0041},

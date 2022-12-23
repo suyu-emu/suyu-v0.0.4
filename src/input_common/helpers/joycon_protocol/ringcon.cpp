@@ -7,7 +7,7 @@
 namespace InputCommon::Joycon {
 
 RingConProtocol::RingConProtocol(std::shared_ptr<JoyconHandle> handle)
-    : JoyconCommonProtocol(handle) {}
+    : JoyconCommonProtocol(std::move(handle)) {}
 
 DriverResult RingConProtocol::EnableRingCon() {
     LOG_DEBUG(Input, "Enable Ringcon");
@@ -78,7 +78,7 @@ DriverResult RingConProtocol::IsRingConnected(bool& is_connected) {
     is_connected = false;
 
     do {
-        std::vector<u8> empty_data(0);
+        std::array<u8, 1> empty_data{};
         const auto result = SendSubCommand(SubCommand::UNKNOWN_RINGCON, empty_data, output);
 
         if (result != DriverResult::Success) {
@@ -101,11 +101,11 @@ DriverResult RingConProtocol::ConfigureRing() {
     std::vector<u8> output;
     std::size_t tries = 0;
 
+    static constexpr std::array<u8, 37> ring_config{
+        0x06, 0x03, 0x25, 0x06, 0x00, 0x00, 0x00, 0x00, 0x1C, 0x16, 0xED, 0x34, 0x36,
+        0x00, 0x00, 0x00, 0x0A, 0x64, 0x0B, 0xE6, 0xA9, 0x22, 0x00, 0x00, 0x04, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x90, 0xA8, 0xE1, 0x34, 0x36};
     do {
-        std::vector<u8> ring_config{0x06, 0x03, 0x25, 0x06, 0x00, 0x00, 0x00, 0x00, 0x1C, 0x16,
-                                    0xED, 0x34, 0x36, 0x00, 0x00, 0x00, 0x0A, 0x64, 0x0B, 0xE6,
-                                    0xA9, 0x22, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                    0x00, 0x00, 0x90, 0xA8, 0xE1, 0x34, 0x36};
         result = SendSubCommand(SubCommand::UNKNOWN_RINGCON3, ring_config, output);
 
         if (result != DriverResult::Success) {
@@ -116,13 +116,13 @@ DriverResult RingConProtocol::ConfigureRing() {
         }
     } while (output[14] != 0x5C);
 
-    std::vector<u8> ringcon_data{0x04, 0x01, 0x01, 0x02};
+    static constexpr std::array<u8, 4> ringcon_data{0x04, 0x01, 0x01, 0x02};
     result = SendSubCommand(SubCommand::UNKNOWN_RINGCON2, ringcon_data, output);
 
     return result;
 }
 
-bool RingConProtocol::IsEnabled() {
+bool RingConProtocol::IsEnabled() const {
     return is_enabled;
 }
 

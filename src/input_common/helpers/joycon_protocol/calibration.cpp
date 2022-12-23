@@ -9,7 +9,7 @@
 namespace InputCommon::Joycon {
 
 CalibrationProtocol::CalibrationProtocol(std::shared_ptr<JoyconHandle> handle)
-    : JoyconCommonProtocol(handle) {}
+    : JoyconCommonProtocol(std::move(handle)) {}
 
 DriverResult CalibrationProtocol::GetLeftJoyStickCalibration(JoyStickCalibration& calibration) {
     std::vector<u8> buffer;
@@ -136,12 +136,8 @@ DriverResult CalibrationProtocol::GetRingCalibration(RingCalibration& calibratio
         ring_data_min = current_value - 800;
         ring_data_default = current_value;
     }
-    if (ring_data_max < current_value) {
-        ring_data_max = current_value;
-    }
-    if (ring_data_min > current_value) {
-        ring_data_min = current_value;
-    }
+    ring_data_max = std::max(ring_data_max, current_value);
+    ring_data_min = std::min(ring_data_min, current_value);
     calibration = {
         .default_value = ring_data_default,
         .max_value = ring_data_max,

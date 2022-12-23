@@ -16,7 +16,7 @@ namespace InputCommon::Joycon {
 /// Joycon driver functions that easily implemented
 class GenericProtocol final : private JoyconCommonProtocol {
 public:
-    GenericProtocol(std::shared_ptr<JoyconHandle> handle);
+    explicit GenericProtocol(std::shared_ptr<JoyconHandle> handle);
 
     /// Enables passive mode. This mode only sends button data on change. Sticks will return digital
     /// data instead of analog. Motion will be disabled

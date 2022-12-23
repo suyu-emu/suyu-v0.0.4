@@ -17,7 +17,7 @@ namespace InputCommon::Joycon {
 
 class RumbleProtocol final : private JoyconCommonProtocol {
 public:
-    RumbleProtocol(std::shared_ptr<JoyconHandle> handle);
+    explicit RumbleProtocol(std::shared_ptr<JoyconHandle> handle);
 
     DriverResult EnableRumble(bool is_enabled);
 

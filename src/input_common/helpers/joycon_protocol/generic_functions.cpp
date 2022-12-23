@@ -7,7 +7,7 @@
 namespace InputCommon::Joycon {
 
 GenericProtocol::GenericProtocol(std::shared_ptr<JoyconHandle> handle)
-    : JoyconCommonProtocol(handle) {}
+    : JoyconCommonProtocol(std::move(handle)) {}
 
 DriverResult GenericProtocol::EnablePassiveMode() {
     SetBlocking();
@@ -43,7 +43,7 @@ DriverResult GenericProtocol::GetControllerType(ControllerType& controller_type)
 }
 
 DriverResult GenericProtocol::EnableImu(bool enable) {
-    const std::vector<u8> buffer{static_cast<u8>(enable ? 1 : 0)};
+    const std::array<u8, 1> buffer{static_cast<u8>(enable ? 1 : 0)};
     std::vector<u8> output;
     SetBlocking();
     const auto result = SendSubCommand(SubCommand::ENABLE_IMU, buffer, output);
@@ -54,8 +54,8 @@ DriverResult GenericProtocol::EnableImu(bool enable) {
 DriverResult GenericProtocol::SetImuConfig(GyroSensitivity gsen, GyroPerformance gfrec,
                                            AccelerometerSensitivity asen,
                                            AccelerometerPerformance afrec) {
-    const std::vector<u8> buffer{static_cast<u8>(gsen), static_cast<u8>(asen),
-                                 static_cast<u8>(gfrec), static_cast<u8>(afrec)};
+    const std::array<u8, 4> buffer{static_cast<u8>(gsen), static_cast<u8>(asen),
+                                   static_cast<u8>(gfrec), static_cast<u8>(afrec)};
     std::vector<u8> output;
     SetBlocking();
     const auto result = SendSubCommand(SubCommand::SET_IMU_SENSITIVITY, buffer, output);
@@ -115,7 +115,7 @@ DriverResult GenericProtocol::GetVersionNumber(FirmwareVersion& version) {
 }
 
 DriverResult GenericProtocol::SetHomeLight() {
-    const std::vector<u8> buffer{0x0f, 0xf0, 0x00};
+    static constexpr std::array<u8, 3> buffer{0x0f, 0xf0, 0x00};
     std::vector<u8> output;
     SetBlocking();
 
@@ -130,7 +130,7 @@ DriverResult GenericProtocol::SetLedBusy() {
 }
 
 DriverResult GenericProtocol::SetLedPattern(u8 leds) {
-    const std::vector<u8> buffer{leds};
+    const std::array<u8, 1> buffer{leds};
     std::vector<u8> output;
     SetBlocking();
 

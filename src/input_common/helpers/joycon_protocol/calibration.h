@@ -24,7 +24,7 @@ namespace InputCommon::Joycon {
 /// Driver functions related to retrieving calibration data from the device
 class CalibrationProtocol final : private JoyconCommonProtocol {
 public:
-    CalibrationProtocol(std::shared_ptr<JoyconHandle> handle);
+    explicit CalibrationProtocol(std::shared_ptr<JoyconHandle> handle);
 
     /**
      * Sends a request to obtain the left stick calibration from memory

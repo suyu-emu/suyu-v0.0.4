@@ -17,7 +17,7 @@ namespace InputCommon::Joycon {
 
 class NfcProtocol final : private JoyconCommonProtocol {
 public:
-    NfcProtocol(std::shared_ptr<JoyconHandle> handle);
+    explicit NfcProtocol(std::shared_ptr<JoyconHandle> handle);
 
     DriverResult EnableNfc();
 
@@ -29,7 +29,7 @@ public:
 
     bool HasAmiibo();
 
-    bool IsEnabled();
+    bool IsEnabled() const;
 
 private:
     struct TagFoundData {

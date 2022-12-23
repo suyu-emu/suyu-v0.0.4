@@ -17,7 +17,7 @@ namespace InputCommon::Joycon {
 
 class RingConProtocol final : private JoyconCommonProtocol {
 public:
-    RingConProtocol(std::shared_ptr<JoyconHandle> handle);
+    explicit RingConProtocol(std::shared_ptr<JoyconHandle> handle);
 
     DriverResult EnableRingCon();
 
@@ -25,7 +25,7 @@ public:
 
     DriverResult StartRingconPolling();
 
-    bool IsEnabled();
+    bool IsEnabled() const;
 
 private:
     DriverResult IsRingConnected(bool& is_connected);

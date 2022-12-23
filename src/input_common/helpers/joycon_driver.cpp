@@ -465,7 +465,7 @@ void JoyconDriver::SetCallbacks(const Joycon::JoyconCallbacks& callbacks) {
 
 Joycon::DriverResult JoyconDriver::GetDeviceType(SDL_hid_device_info* device_info,
                                                  ControllerType& controller_type) {
-    std::array<std::pair<u32, Joycon::ControllerType>, 4> supported_devices{
+    static constexpr std::array<std::pair<u32, Joycon::ControllerType>, 4> supported_devices{
         std::pair<u32, Joycon::ControllerType>{0x2006, Joycon::ControllerType::Left},
         {0x2007, Joycon::ControllerType::Right},
         {0x2009, Joycon::ControllerType::Pro},

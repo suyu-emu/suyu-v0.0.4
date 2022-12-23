@@ -7,7 +7,8 @@
 
 namespace InputCommon::Joycon {
 
-NfcProtocol::NfcProtocol(std::shared_ptr<JoyconHandle> handle) : JoyconCommonProtocol(handle) {}
+NfcProtocol::NfcProtocol(std::shared_ptr<JoyconHandle> handle)
+    : JoyconCommonProtocol(std::move(handle)) {}
 
 DriverResult NfcProtocol::EnableNfc() {
     LOG_INFO(Input, "Enable NFC");
@@ -160,9 +161,9 @@ DriverResult NfcProtocol::ReadTag(const TagFoundData& data) {
     std::vector<u8> output;
     std::size_t tries = 0;
 
-    std::string uuid_string = "";
+    std::string uuid_string;
     for (auto& content : data.uuid) {
-        uuid_string += " " + fmt::format("{:02x}", content);
+        uuid_string += fmt::format(" {:02x}", content);
     }
 
     LOG_INFO(Input, "Tag detected, type={}, uuid={}", data.type, uuid_string);
@@ -407,7 +408,7 @@ NFCReadBlockCommand NfcProtocol::GetReadBlockCommand(std::size_t pages) const {
     return {};
 }
 
-bool NfcProtocol::IsEnabled() {
+bool NfcProtocol::IsEnabled() const {
     return is_enabled;
 }
 

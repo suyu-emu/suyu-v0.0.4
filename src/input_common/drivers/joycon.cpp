@@ -316,7 +316,7 @@ void Joycons::OnBatteryUpdate(std::size_t port, Joycon::ControllerType type,
         return;
     }
 
-    Common::Input::BatteryLevel battery{value.status.Value()};
+    Common::Input::BatteryLevel battery{};
     switch (value.status) {
     case 0:
         battery = Common::Input::BatteryLevel::Empty;
