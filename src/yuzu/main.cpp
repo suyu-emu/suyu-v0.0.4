@@ -1710,6 +1710,11 @@ void GMainWindow::BootGame(const QString& filename, u64 program_id, std::size_t 
     system->RegisterExecuteProgramCallback(
         [this](std::size_t program_index_) { render_window->ExecuteProgram(program_index_); });
 
+    system->RegisterExitCallback([this] {
+        emu_thread->ForceStop();
+        render_window->Exit();
+    });
+
     connect(render_window, &GRenderWindow::Closed, this, &GMainWindow::OnStopGame);
     connect(render_window, &GRenderWindow::MouseActivity, this, &GMainWindow::OnMouseActivity);
     // BlockingQueuedConnection is important here, it makes sure we've finished refreshing our views
@@ -4143,6 +4148,10 @@ bool GMainWindow::ConfirmForceLockedExit() {
 }
 
 void GMainWindow::RequestGameExit() {
+    if (!system->IsPoweredOn()) {
+        return;
+    }
+
     auto& sm{system->ServiceManager()};
     auto applet_oe = sm.GetService<Service::AM::AppletOE>("appletOE");
     auto applet_ae = sm.GetService<Service::AM::AppletAE>("appletAE");
