@@ -107,6 +107,10 @@ public:
         return *m_page_table_impl;
     }
 
+    KBlockInfoManager* GetBlockInfoManager() {
+        return m_block_info_manager;
+    }
+
     bool CanContain(VAddr addr, size_t size, KMemoryState state) const;
 
 protected:
@@ -488,6 +492,7 @@ private:
     std::unique_ptr<Common::PageTable> m_page_table_impl;
 
     Core::System& m_system;
+    KernelCore& m_kernel;
 };
 
 } // namespace Kernel
