@@ -24,7 +24,7 @@ public:
 
 private:
     void Match(Kernel::HLERequestContext& ctx) {
-        const auto buffer = ctx.ReadBufferSpan();
+        const auto buffer = ctx.ReadBuffer();
         const auto text = Common::StringFromFixedZeroTerminatedBuffer(
             reinterpret_cast<const char*>(buffer.data()), buffer.size());
 
@@ -37,7 +37,7 @@ private:
     }
 
     void Filter(Kernel::HLERequestContext& ctx) {
-        const auto buffer = ctx.ReadBufferSpan();
+        const auto buffer = ctx.ReadBuffer();
         const auto text = Common::StringFromFixedZeroTerminatedBuffer(
             reinterpret_cast<const char*>(buffer.data()), buffer.size());
 

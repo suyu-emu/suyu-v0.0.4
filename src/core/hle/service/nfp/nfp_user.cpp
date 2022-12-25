@@ -290,7 +290,7 @@ void IUser::GetApplicationArea(Kernel::HLERequestContext& ctx) {
 void IUser::SetApplicationArea(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto device_handle{rp.Pop<u64>()};
-    const auto data{ctx.ReadBufferSpan()};
+    const auto data{ctx.ReadBuffer()};
     LOG_INFO(Service_NFP, "called, device_handle={}, data_size={}", device_handle, data.size());
 
     if (state == State::NonInitialized) {
@@ -370,7 +370,7 @@ void IUser::CreateApplicationArea(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto device_handle{rp.Pop<u64>()};
     const auto access_id{rp.Pop<u32>()};
-    const auto data{ctx.ReadBufferSpan()};
+    const auto data{ctx.ReadBuffer()};
     LOG_INFO(Service_NFP, "called, device_handle={}, data_size={}, access_id={}", device_handle,
              access_id, data.size());
 
@@ -637,7 +637,7 @@ void IUser::RecreateApplicationArea(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto device_handle{rp.Pop<u64>()};
     const auto access_id{rp.Pop<u32>()};
-    const auto data{ctx.ReadBufferSpan()};
+    const auto data{ctx.ReadBuffer()};
     LOG_INFO(Service_NFP, "called, device_handle={}, data_size={}, access_id={}", device_handle,
              access_id, data.size());
 

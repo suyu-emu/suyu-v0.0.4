@@ -815,7 +815,7 @@ Status BufferQueueProducer::SetPreallocatedBuffer(s32 slot,
 
 void BufferQueueProducer::Transact(Kernel::HLERequestContext& ctx, TransactionId code, u32 flags) {
     Status status{Status::NoError};
-    InputParcel parcel_in{ctx.ReadBufferSpan()};
+    InputParcel parcel_in{ctx.ReadBuffer()};
     OutputParcel parcel_out{};
 
     switch (code) {

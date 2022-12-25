@@ -186,7 +186,7 @@ void BSD::Poll(Kernel::HLERequestContext& ctx) {
     ExecuteWork(ctx, PollWork{
                          .nfds = nfds,
                          .timeout = timeout,
-                         .read_buffer = ctx.ReadBufferSpan(),
+                         .read_buffer = ctx.ReadBuffer(),
                          .write_buffer = std::vector<u8>(ctx.GetWriteBufferSize()),
                      });
 }
@@ -208,7 +208,7 @@ void BSD::Bind(Kernel::HLERequestContext& ctx) {
     const s32 fd = rp.Pop<s32>();
 
     LOG_DEBUG(Service, "called. fd={} addrlen={}", fd, ctx.GetReadBufferSize());
-    BuildErrnoResponse(ctx, BindImpl(fd, ctx.ReadBufferSpan()));
+    BuildErrnoResponse(ctx, BindImpl(fd, ctx.ReadBuffer()));
 }
 
 void BSD::Connect(Kernel::HLERequestContext& ctx) {
@@ -219,7 +219,7 @@ void BSD::Connect(Kernel::HLERequestContext& ctx) {
 
     ExecuteWork(ctx, ConnectWork{
                          .fd = fd,
-                         .addr = ctx.ReadBufferSpan(),
+                         .addr = ctx.ReadBuffer(),
                      });
 }
 
@@ -311,7 +311,7 @@ void BSD::SetSockOpt(Kernel::HLERequestContext& ctx) {
     const u32 level = rp.Pop<u32>();
     const OptName optname = static_cast<OptName>(rp.Pop<u32>());
 
-    const auto buffer = ctx.ReadBufferSpan();
+    const auto buffer = ctx.ReadBuffer();
     const u8* optval = buffer.empty() ? nullptr : buffer.data();
     size_t optlen = buffer.size();
 
@@ -382,7 +382,7 @@ void BSD::Send(Kernel::HLERequestContext& ctx) {
     ExecuteWork(ctx, SendWork{
                          .fd = fd,
                          .flags = flags,
-                         .message = ctx.ReadBufferSpan(),
+                         .message = ctx.ReadBuffer(),
                      });
 }
 
@@ -397,8 +397,8 @@ void BSD::SendTo(Kernel::HLERequestContext& ctx) {
     ExecuteWork(ctx, SendToWork{
                          .fd = fd,
                          .flags = flags,
-                         .message = ctx.ReadBufferSpan(0),
-                         .addr = ctx.ReadBufferSpan(1),
+                         .message = ctx.ReadBuffer(0),
+                         .addr = ctx.ReadBuffer(1),
                      });
 }
 
@@ -411,7 +411,7 @@ void BSD::Write(Kernel::HLERequestContext& ctx) {
     ExecuteWork(ctx, SendWork{
                          .fd = fd,
                          .flags = 0,
-                         .message = ctx.ReadBufferSpan(),
+                         .message = ctx.ReadBuffer(),
                      });
 }
 

@@ -367,7 +367,7 @@ protected:
         IPC::RequestParser rp{ctx};
         const auto base = rp.PopRaw<ProfileBase>();
 
-        const auto user_data = ctx.ReadBufferSpan();
+        const auto user_data = ctx.ReadBuffer();
 
         LOG_DEBUG(Service_ACC, "called, username='{}', timestamp={:016X}, uuid=0x{}",
                   Common::StringFromFixedZeroTerminatedBuffer(
@@ -399,8 +399,8 @@ protected:
         IPC::RequestParser rp{ctx};
         const auto base = rp.PopRaw<ProfileBase>();
 
-        const auto user_data = ctx.ReadBufferSpan();
-        const auto image_data = ctx.ReadBufferSpan(1);
+        const auto user_data = ctx.ReadBuffer();
+        const auto image_data = ctx.ReadBuffer(1);
 
         LOG_DEBUG(Service_ACC, "called, username='{}', timestamp={:016X}, uuid=0x{}",
                   Common::StringFromFixedZeroTerminatedBuffer(

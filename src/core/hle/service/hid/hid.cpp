@@ -1026,7 +1026,7 @@ void Hid::SetSupportedNpadIdType(Kernel::HLERequestContext& ctx) {
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
     applet_resource->GetController<Controller_NPad>(HidController::NPad)
-        .SetSupportedNpadIdTypes(ctx.ReadBufferSpan());
+        .SetSupportedNpadIdTypes(ctx.ReadBuffer());
 
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
@@ -1564,8 +1564,8 @@ void Hid::SendVibrationValues(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    const auto handles = ctx.ReadBufferSpan(0);
-    const auto vibrations = ctx.ReadBufferSpan(1);
+    const auto handles = ctx.ReadBuffer(0);
+    const auto vibrations = ctx.ReadBuffer(1);
 
     std::vector<Core::HID::VibrationDeviceHandle> vibration_device_handles(
         handles.size() / sizeof(Core::HID::VibrationDeviceHandle));
@@ -2104,7 +2104,7 @@ void Hid::WritePalmaRgbLedPatternEntry(Kernel::HLERequestContext& ctx) {
     const auto connection_handle{rp.PopRaw<Controller_Palma::PalmaConnectionHandle>()};
     const auto unknown{rp.Pop<u64>()};
 
-    [[maybe_unused]] const auto buffer = ctx.ReadBufferSpan();
+    [[maybe_unused]] const auto buffer = ctx.ReadBuffer();
 
     LOG_WARNING(Service_HID, "(STUBBED) called, connection_handle={}, unknown={}",
                 connection_handle.npad_id, unknown);

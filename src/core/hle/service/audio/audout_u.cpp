@@ -105,7 +105,7 @@ private:
             LOG_ERROR(Service_Audio, "Input buffer is too small for an AudioOutBuffer!");
         }
 
-        const auto& in_buffer = ctx.ReadBufferSpan();
+        const auto& in_buffer = ctx.ReadBuffer();
         AudioOutBuffer buffer{};
         std::memcpy(&buffer, in_buffer.data(), sizeof(AudioOutBuffer));
 
@@ -264,7 +264,7 @@ void AudOutU::OpenAudioOut(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     auto in_params{rp.PopRaw<AudioOutParameter>()};
     auto applet_resource_user_id{rp.PopRaw<u64>()};
-    const auto device_name_data{ctx.ReadBufferSpan()};
+    const auto device_name_data{ctx.ReadBuffer()};
     auto device_name = Common::StringFromBuffer(device_name_data);
     auto handle{ctx.GetCopyHandle(0)};
 

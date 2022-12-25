@@ -94,7 +94,7 @@ public:
 private:
     void Log(Kernel::HLERequestContext& ctx) {
         std::size_t offset{};
-        const auto data = ctx.ReadBufferSpan();
+        const auto data = ctx.ReadBuffer();
 
         // This function only succeeds - Get that out of the way
         IPC::ResponseBuilder rb{ctx, 2};

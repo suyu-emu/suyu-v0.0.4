@@ -62,7 +62,7 @@ public:
         const auto parameters{rp.PopRaw<InputParameters>()};
 
         // Optional input/output buffers
-        const auto input_buffer{ctx.CanReadBuffer() ? ctx.ReadBufferSpan() : std::span<const u8>()};
+        const auto input_buffer{ctx.CanReadBuffer() ? ctx.ReadBuffer() : std::span<const u8>()};
         std::vector<u8> output_buffer(ctx.CanWriteBuffer() ? ctx.GetWriteBufferSize() : 0);
 
         // Function call prototype:
@@ -132,7 +132,7 @@ public:
         const auto command{rp.PopRaw<u64>()};
 
         // Optional input/output buffers
-        const auto input_buffer{ctx.CanReadBuffer() ? ctx.ReadBufferSpan() : std::span<const u8>()};
+        const auto input_buffer{ctx.CanReadBuffer() ? ctx.ReadBuffer() : std::span<const u8>()};
         std::vector<u8> output_buffer(ctx.CanWriteBuffer() ? ctx.GetWriteBufferSize() : 0);
 
         // Function call prototype:
@@ -176,7 +176,7 @@ public:
         IPC::RequestParser rp{ctx};
         const auto tmem_size{rp.PopRaw<u64>()};
         const auto tmem_handle{ctx.GetCopyHandle(0)};
-        const auto nro_plugin{ctx.ReadBufferSpan(1)};
+        const auto nro_plugin{ctx.ReadBuffer(1)};
 
         if (tmem_size == 0) {
             LOG_ERROR(Service_JIT, "attempted to load plugin with empty transfer memory");

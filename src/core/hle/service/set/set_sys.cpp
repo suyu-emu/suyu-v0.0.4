@@ -131,12 +131,12 @@ void SET_SYS::GetSettingsItemValueSize(Kernel::HLERequestContext& ctx) {
 
     // The category of the setting. This corresponds to the top-level keys of
     // system_settings.ini.
-    const auto setting_category_buf{ctx.ReadBufferSpan(0)};
+    const auto setting_category_buf{ctx.ReadBuffer(0)};
     const std::string setting_category{setting_category_buf.begin(), setting_category_buf.end()};
 
     // The name of the setting. This corresponds to the second-level keys of
     // system_settings.ini.
-    const auto setting_name_buf{ctx.ReadBufferSpan(1)};
+    const auto setting_name_buf{ctx.ReadBuffer(1)};
     const std::string setting_name{setting_name_buf.begin(), setting_name_buf.end()};
 
     auto settings{GetSettings()};
@@ -156,12 +156,12 @@ void SET_SYS::GetSettingsItemValue(Kernel::HLERequestContext& ctx) {
 
     // The category of the setting. This corresponds to the top-level keys of
     // system_settings.ini.
-    const auto setting_category_buf{ctx.ReadBufferSpan(0)};
+    const auto setting_category_buf{ctx.ReadBuffer(0)};
     const std::string setting_category{setting_category_buf.begin(), setting_category_buf.end()};
 
     // The name of the setting. This corresponds to the second-level keys of
     // system_settings.ini.
-    const auto setting_name_buf{ctx.ReadBufferSpan(1)};
+    const auto setting_name_buf{ctx.ReadBuffer(1)};
     const std::string setting_name{setting_name_buf.begin(), setting_name_buf.end()};
 
     auto settings{GetSettings()};

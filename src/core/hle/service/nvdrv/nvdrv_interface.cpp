@@ -27,7 +27,7 @@ void NVDRV::Open(Kernel::HLERequestContext& ctx) {
         return;
     }
 
-    const auto& buffer = ctx.ReadBufferSpan();
+    const auto& buffer = ctx.ReadBuffer();
     const std::string device_name(buffer.begin(), buffer.end());
 
     if (device_name == "/dev/nvhost-prof-gpu") {
@@ -64,7 +64,7 @@ void NVDRV::Ioctl1(Kernel::HLERequestContext& ctx) {
 
     // Check device
     std::vector<u8> output_buffer(ctx.GetWriteBufferSize(0));
-    const auto input_buffer = ctx.ReadBufferSpan(0);
+    const auto input_buffer = ctx.ReadBuffer(0);
 
     const auto nv_result = nvdrv->Ioctl1(fd, command, input_buffer, output_buffer);
     if (command.is_out != 0) {
@@ -88,8 +88,8 @@ void NVDRV::Ioctl2(Kernel::HLERequestContext& ctx) {
         return;
     }
 
-    const auto input_buffer = ctx.ReadBufferSpan(0);
-    const auto input_inlined_buffer = ctx.ReadBufferSpan(1);
+    const auto input_buffer = ctx.ReadBuffer(0);
+    const auto input_inlined_buffer = ctx.ReadBuffer(1);
     std::vector<u8> output_buffer(ctx.GetWriteBufferSize(0));
 
     const auto nv_result =
@@ -115,7 +115,7 @@ void NVDRV::Ioctl3(Kernel::HLERequestContext& ctx) {
         return;
     }
 
-    const auto input_buffer = ctx.ReadBufferSpan(0);
+    const auto input_buffer = ctx.ReadBuffer(0);
     std::vector<u8> output_buffer(ctx.GetWriteBufferSize(0));
     std::vector<u8> output_buffer_inline(ctx.GetWriteBufferSize(1));
 

@@ -412,7 +412,7 @@ public:
     }
 
     void SetAdvertiseData(Kernel::HLERequestContext& ctx) {
-        const auto read_buffer = ctx.ReadBufferSpan();
+        const auto read_buffer = ctx.ReadBuffer();
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(lan_discovery.SetAdvertiseData(read_buffer));
@@ -464,7 +464,7 @@ public:
                  parameters.security_config.passphrase_size,
                  parameters.security_config.security_mode, parameters.local_communication_version);
 
-        const auto read_buffer = ctx.ReadBufferSpan();
+        const auto read_buffer = ctx.ReadBuffer();
         if (read_buffer.size() != sizeof(NetworkInfo)) {
             LOG_ERROR(Frontend, "NetworkInfo doesn't match read_buffer size!");
             IPC::ResponseBuilder rb{ctx, 2};

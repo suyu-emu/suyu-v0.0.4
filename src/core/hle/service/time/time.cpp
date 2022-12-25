@@ -328,8 +328,8 @@ void Module::Interface::CalculateStandardUserSystemClockDifferenceByUser(
     Clock::ClockSnapshot snapshot_a;
     Clock::ClockSnapshot snapshot_b;
 
-    const auto snapshot_a_data = ctx.ReadBufferSpan(0);
-    const auto snapshot_b_data = ctx.ReadBufferSpan(1);
+    const auto snapshot_a_data = ctx.ReadBuffer(0);
+    const auto snapshot_b_data = ctx.ReadBuffer(1);
 
     std::memcpy(&snapshot_a, snapshot_a_data.data(), sizeof(Clock::ClockSnapshot));
     std::memcpy(&snapshot_b, snapshot_b_data.data(), sizeof(Clock::ClockSnapshot));
@@ -355,8 +355,8 @@ void Module::Interface::CalculateSpanBetween(Kernel::HLERequestContext& ctx) {
     Clock::ClockSnapshot snapshot_a;
     Clock::ClockSnapshot snapshot_b;
 
-    const auto snapshot_a_data = ctx.ReadBufferSpan(0);
-    const auto snapshot_b_data = ctx.ReadBufferSpan(1);
+    const auto snapshot_a_data = ctx.ReadBuffer(0);
+    const auto snapshot_b_data = ctx.ReadBuffer(1);
 
     std::memcpy(&snapshot_a, snapshot_a_data.data(), sizeof(Clock::ClockSnapshot));
     std::memcpy(&snapshot_b, snapshot_b_data.data(), sizeof(Clock::ClockSnapshot));

@@ -325,7 +325,7 @@ void IUser::SendCommandByPassThrough(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto device_handle{rp.Pop<u64>()};
     const auto timeout{rp.PopRaw<Time::Clock::TimeSpanType>()};
-    const auto command_data{ctx.ReadBufferSpan()};
+    const auto command_data{ctx.ReadBuffer()};
 
     LOG_INFO(Service_NFC, "(STUBBED) called, device_handle={}, timeout={}, data_size={}",
              device_handle, timeout.ToSeconds(), command_data.size());

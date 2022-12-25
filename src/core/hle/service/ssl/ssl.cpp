@@ -101,7 +101,7 @@ private:
     void ImportServerPki(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto certificate_format = rp.PopEnum<CertificateFormat>();
-        [[maybe_unused]] const auto pkcs_12_certificates = ctx.ReadBufferSpan(0);
+        [[maybe_unused]] const auto pkcs_12_certificates = ctx.ReadBuffer(0);
 
         constexpr u64 server_id = 0;
 
@@ -113,10 +113,10 @@ private:
     }
 
     void ImportClientPki(Kernel::HLERequestContext& ctx) {
-        [[maybe_unused]] const auto pkcs_12_certificate = ctx.ReadBufferSpan(0);
+        [[maybe_unused]] const auto pkcs_12_certificate = ctx.ReadBuffer(0);
         [[maybe_unused]] const auto ascii_password = [&ctx] {
             if (ctx.CanReadBuffer(1)) {
-                return ctx.ReadBufferSpan(1);
+                return ctx.ReadBuffer(1);
             }
 
             return std::span<const u8>{};

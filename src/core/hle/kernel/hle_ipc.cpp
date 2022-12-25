@@ -345,7 +345,7 @@ std::vector<u8> HLERequestContext::ReadBufferCopy(std::size_t buffer_index) cons
     }
 }
 
-std::span<const u8> HLERequestContext::ReadBufferSpan(std::size_t buffer_index) const {
+std::span<const u8> HLERequestContext::ReadBuffer(std::size_t buffer_index) const {
     const bool is_buffer_a{BufferDescriptorA().size() > buffer_index &&
                            BufferDescriptorA()[buffer_index].Size()};
     if (is_buffer_a) {
