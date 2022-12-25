@@ -168,7 +168,7 @@ void MFIUser::StopDetection(Kernel::HLERequestContext& ctx) {
 void MFIUser::Read(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto device_handle{rp.Pop<u64>()};
-    const auto buffer{ctx.ReadBuffer()};
+    const auto buffer{ctx.ReadBufferSpan()};
     const auto number_of_commands{ctx.GetReadBufferNumElements<NFP::MifareReadBlockParameter>()};
     std::vector<NFP::MifareReadBlockParameter> read_commands(number_of_commands);
 
@@ -209,7 +209,7 @@ void MFIUser::Read(Kernel::HLERequestContext& ctx) {
 void MFIUser::Write(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto device_handle{rp.Pop<u64>()};
-    const auto buffer{ctx.ReadBuffer()};
+    const auto buffer{ctx.ReadBufferSpan()};
     const auto number_of_commands{ctx.GetReadBufferNumElements<NFP::MifareWriteBlockParameter>()};
     std::vector<NFP::MifareWriteBlockParameter> write_commands(number_of_commands);
 

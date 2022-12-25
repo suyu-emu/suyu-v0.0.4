@@ -84,7 +84,7 @@ void ITimeZoneService::ToCalendarTime(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called, posix_time=0x{:016X}", posix_time);
 
     TimeZone::TimeZoneRule time_zone_rule{};
-    const auto buffer{ctx.ReadBuffer()};
+    const auto buffer{ctx.ReadBufferSpan()};
     std::memcpy(&time_zone_rule, buffer.data(), buffer.size());
 
     TimeZone::CalendarInfo calendar_info{};
@@ -128,7 +128,7 @@ void ITimeZoneService::ToPosixTime(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto calendar_time{rp.PopRaw<TimeZone::CalendarTime>()};
     TimeZone::TimeZoneRule time_zone_rule{};
-    std::memcpy(&time_zone_rule, ctx.ReadBuffer().data(), sizeof(TimeZone::TimeZoneRule));
+    std::memcpy(&time_zone_rule, ctx.ReadBufferSpan().data(), sizeof(TimeZone::TimeZoneRule));
 
     s64 posix_time{};
     if (const Result result{time_zone_content_manager.GetTimeZoneManager().ToPosixTime(

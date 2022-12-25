@@ -152,7 +152,7 @@ void Module::Interface::ThrowFatalWithCpuContext(Kernel::HLERequestContext& ctx)
     IPC::RequestParser rp(ctx);
     const auto error_code = rp.Pop<Result>();
     const auto fatal_type = rp.PopEnum<FatalType>();
-    const auto fatal_info = ctx.ReadBuffer();
+    const auto fatal_info = ctx.ReadBufferSpan();
     FatalInfo info{};
 
     ASSERT_MSG(fatal_info.size() == sizeof(FatalInfo), "Invalid fatal info buffer size!");

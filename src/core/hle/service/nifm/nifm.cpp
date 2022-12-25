@@ -414,7 +414,7 @@ void IGeneralService::CreateTemporaryNetworkProfile(Kernel::HLERequestContext& c
 
     ASSERT_MSG(ctx.GetReadBufferSize() == 0x17c, "SfNetworkProfileData is not the correct size");
     u128 uuid{};
-    auto buffer = ctx.ReadBuffer();
+    auto buffer = ctx.ReadBufferSpan();
     std::memcpy(&uuid, buffer.data() + 8, sizeof(u128));
 
     IPC::ResponseBuilder rb{ctx, 6, 0, 1};

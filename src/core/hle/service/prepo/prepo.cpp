@@ -57,13 +57,13 @@ private:
         IPC::RequestParser rp{ctx};
         const auto process_id = rp.PopRaw<u64>();
 
-        const auto data1 = ctx.ReadBuffer(0);
+        const auto data1 = ctx.ReadBufferSpan(0);
         const auto data2 = [&ctx] {
             if (ctx.CanReadBuffer(1)) {
-                return ctx.ReadBuffer(1);
+                return ctx.ReadBufferSpan(1);
             }
 
-            return std::vector<u8>{};
+            return std::span<const u8>{};
         }();
 
         LOG_DEBUG(Service_PREPO,
@@ -84,13 +84,13 @@ private:
         const auto user_id = rp.PopRaw<u128>();
         const auto process_id = rp.PopRaw<u64>();
 
-        const auto data1 = ctx.ReadBuffer(0);
+        const auto data1 = ctx.ReadBufferSpan(0);
         const auto data2 = [&ctx] {
             if (ctx.CanReadBuffer(1)) {
-                return ctx.ReadBuffer(1);
+                return ctx.ReadBufferSpan(1);
             }
 
-            return std::vector<u8>{};
+            return std::span<const u8>{};
         }();
 
         LOG_DEBUG(Service_PREPO,
@@ -136,13 +136,13 @@ private:
         IPC::RequestParser rp{ctx};
         const auto title_id = rp.PopRaw<u64>();
 
-        const auto data1 = ctx.ReadBuffer(0);
+        const auto data1 = ctx.ReadBufferSpan(0);
         const auto data2 = [&ctx] {
             if (ctx.CanReadBuffer(1)) {
-                return ctx.ReadBuffer(1);
+                return ctx.ReadBufferSpan(1);
             }
 
-            return std::vector<u8>{};
+            return std::span<const u8>{};
         }();
 
         LOG_DEBUG(Service_PREPO, "called, title_id={:016X}, data1_size={:016X}, data2_size={:016X}",
@@ -160,13 +160,13 @@ private:
         const auto user_id = rp.PopRaw<u128>();
         const auto title_id = rp.PopRaw<u64>();
 
-        const auto data1 = ctx.ReadBuffer(0);
+        const auto data1 = ctx.ReadBufferSpan(0);
         const auto data2 = [&ctx] {
             if (ctx.CanReadBuffer(1)) {
-                return ctx.ReadBuffer(1);
+                return ctx.ReadBufferSpan(1);
             }
 
-            return std::vector<u8>{};
+            return std::span<const u8>{};
         }();
 
         LOG_DEBUG(Service_PREPO,

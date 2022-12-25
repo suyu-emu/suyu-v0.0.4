@@ -72,7 +72,7 @@ private:
         IPC::RequestParser rp{ctx};
 
         const auto unknown_1 = rp.Pop<u64>();
-        [[maybe_unused]] const auto unknown_2 = ctx.ReadBuffer();
+        [[maybe_unused]] const auto unknown_2 = ctx.ReadBufferSpan();
 
         LOG_WARNING(Service_AOC, "(STUBBED) called, unknown_1={}", unknown_1);
 
@@ -84,7 +84,7 @@ private:
         IPC::RequestParser rp{ctx};
 
         const auto unknown_1 = rp.Pop<u64>();
-        [[maybe_unused]] const auto unknown_2 = ctx.ReadBuffer();
+        [[maybe_unused]] const auto unknown_2 = ctx.ReadBufferSpan();
 
         LOG_WARNING(Service_AOC, "(STUBBED) called, unknown_1={}", unknown_1);
 

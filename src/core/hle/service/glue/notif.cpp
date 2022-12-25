@@ -38,7 +38,7 @@ void NOTIF_A::RegisterAlarmSetting(Kernel::HLERequestContext& ctx) {
                "application_parameter_size is bigger than 0x400 bytes");
 
     AlarmSetting new_alarm{};
-    memcpy(&new_alarm, ctx.ReadBuffer(0).data(), sizeof(AlarmSetting));
+    memcpy(&new_alarm, ctx.ReadBufferSpan(0).data(), sizeof(AlarmSetting));
 
     // TODO: Count alarms per game id
     if (alarms.size() >= max_alarms) {
@@ -73,7 +73,7 @@ void NOTIF_A::UpdateAlarmSetting(Kernel::HLERequestContext& ctx) {
                "application_parameter_size is bigger than 0x400 bytes");
 
     AlarmSetting alarm_setting{};
-    memcpy(&alarm_setting, ctx.ReadBuffer(0).data(), sizeof(AlarmSetting));
+    memcpy(&alarm_setting, ctx.ReadBufferSpan(0).data(), sizeof(AlarmSetting));
 
     const auto alarm_it = GetAlarmFromId(alarm_setting.alarm_setting_id);
     if (alarm_it != alarms.end()) {

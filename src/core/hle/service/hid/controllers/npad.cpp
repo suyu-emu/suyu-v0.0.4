@@ -737,7 +737,7 @@ Core::HID::NpadStyleTag Controller_NPad::GetSupportedStyleSet() const {
     return hid_core.GetSupportedStyleTag();
 }
 
-void Controller_NPad::SetSupportedNpadIdTypes(u8* data, std::size_t length) {
+void Controller_NPad::SetSupportedNpadIdTypes(const u8* const data, std::size_t length) {
     ASSERT(length > 0 && (length % sizeof(u32)) == 0);
     supported_npad_id_types.clear();
     supported_npad_id_types.resize(length / sizeof(u32));

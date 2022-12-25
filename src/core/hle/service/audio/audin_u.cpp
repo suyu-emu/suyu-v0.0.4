@@ -98,7 +98,7 @@ private:
             LOG_ERROR(Service_Audio, "Input buffer is too small for an AudioInBuffer!");
         }
 
-        const auto& in_buffer = ctx.ReadBuffer();
+        const auto& in_buffer = ctx.ReadBufferSpan();
         AudioInBuffer buffer{};
         std::memcpy(&buffer, in_buffer.data(), sizeof(AudioInBuffer));
 
@@ -266,7 +266,7 @@ void AudInU::OpenAudioIn(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     auto in_params{rp.PopRaw<AudioInParameter>()};
     auto applet_resource_user_id{rp.PopRaw<u64>()};
-    const auto device_name_data{ctx.ReadBuffer()};
+    const auto device_name_data{ctx.ReadBufferSpan()};
     auto device_name = Common::StringFromBuffer(device_name_data);
     auto handle{ctx.GetCopyHandle(0)};
 
@@ -317,7 +317,7 @@ void AudInU::OpenAudioInProtocolSpecified(Kernel::HLERequestContext& ctx) {
     auto protocol_specified{rp.PopRaw<u64>()};
     auto in_params{rp.PopRaw<AudioInParameter>()};
     auto applet_resource_user_id{rp.PopRaw<u64>()};
-    const auto device_name_data{ctx.ReadBuffer()};
+    const auto device_name_data{ctx.ReadBufferSpan()};
     auto device_name = Common::StringFromBuffer(device_name_data);
     auto handle{ctx.GetCopyHandle(0)};
 

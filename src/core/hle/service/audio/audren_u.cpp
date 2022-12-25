@@ -112,7 +112,7 @@ private:
     void RequestUpdate(Kernel::HLERequestContext& ctx) {
         LOG_TRACE(Service_Audio, "called");
 
-        std::vector<u8> input{ctx.ReadBuffer(0)};
+        const auto input{ctx.ReadBufferSpan(0)};
 
         // These buffers are written manually to avoid an issue with WriteBuffer throwing errors for
         // checking size 0. Performance size is 0 for most games.
@@ -306,7 +306,7 @@ private:
         IPC::RequestParser rp{ctx};
         const f32 volume = rp.Pop<f32>();
 
-        const auto device_name_buffer = ctx.ReadBuffer();
+        const auto device_name_buffer = ctx.ReadBufferSpan();
         const std::string name = Common::StringFromBuffer(device_name_buffer);
 
         LOG_DEBUG(Service_Audio, "called. name={}, volume={}", name, volume);
@@ -320,7 +320,7 @@ private:
     }
 
     void GetAudioDeviceOutputVolume(Kernel::HLERequestContext& ctx) {
-        const auto device_name_buffer = ctx.ReadBuffer();
+        const auto device_name_buffer = ctx.ReadBufferSpan();
         const std::string name = Common::StringFromBuffer(device_name_buffer);
 
         LOG_DEBUG(Service_Audio, "called. Name={}", name);

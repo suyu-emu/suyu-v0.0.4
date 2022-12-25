@@ -74,7 +74,7 @@ private:
             ResetDecoderContext();
         }
 
-        if (!DecodeOpusData(consumed, sample_count, ctx.ReadBuffer(), samples, performance)) {
+        if (!DecodeOpusData(consumed, sample_count, ctx.ReadBufferSpan(), samples, performance)) {
             LOG_ERROR(Audio, "Failed to decode opus data");
             IPC::ResponseBuilder rb{ctx, 2};
             // TODO(ogniK): Use correct error code
@@ -93,7 +93,7 @@ private:
         ctx.WriteBuffer(samples);
     }
 
-    bool DecodeOpusData(u32& consumed, u32& sample_count, const std::vector<u8>& input,
+    bool DecodeOpusData(u32& consumed, u32& sample_count, std::span<const u8> input,
                         std::vector<opus_int16>& output, u64* out_performance_time) const {
         const auto start_time = std::chrono::steady_clock::now();
         const std::size_t raw_output_sz = output.size() * sizeof(opus_int16);
@@ -257,7 +257,7 @@ void HwOpus::GetWorkBufferSizeEx(Kernel::HLERequestContext& ctx) {
 
 void HwOpus::GetWorkBufferSizeForMultiStreamEx(Kernel::HLERequestContext& ctx) {
     OpusMultiStreamParametersEx param;
-    std::memcpy(&param, ctx.ReadBuffer().data(), ctx.GetReadBufferSize());
+    std::memcpy(&param, ctx.ReadBufferSpan().data(), ctx.GetReadBufferSize());
 
     const auto sample_rate = param.sample_rate;
     const auto channel_count = param.channel_count;

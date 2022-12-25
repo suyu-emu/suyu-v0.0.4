@@ -199,10 +199,10 @@ static std::pair<u32, s32> GetAddrInfoRequestImpl(Kernel::HLERequestContext& ctx
                 "called with ignored parameters: use_nsd_resolve={}, unknown={}, process_id={}",
                 parameters.use_nsd_resolve, parameters.unknown, parameters.process_id);
 
-    const auto host_buffer = ctx.ReadBuffer(0);
+    const auto host_buffer = ctx.ReadBufferSpan(0);
     const std::string host = Common::StringFromBuffer(host_buffer);
 
-    const auto service_buffer = ctx.ReadBuffer(1);
+    const auto service_buffer = ctx.ReadBufferSpan(1);
     const std::string service = Common::StringFromBuffer(service_buffer);
 
     addrinfo* addrinfo;

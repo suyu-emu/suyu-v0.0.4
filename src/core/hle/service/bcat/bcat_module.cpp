@@ -206,7 +206,7 @@ private:
         IPC::RequestParser rp{ctx};
         const auto title_id = rp.PopRaw<u64>();
 
-        const auto passphrase_raw = ctx.ReadBuffer();
+        const auto passphrase_raw = ctx.ReadBufferSpan();
 
         LOG_DEBUG(Service_BCAT, "called, title_id={:016X}, passphrase={}", title_id,
                   Common::HexToString(passphrase_raw));

@@ -95,7 +95,7 @@ public:
     void SetSupportedStyleSet(Core::HID::NpadStyleTag style_set);
     Core::HID::NpadStyleTag GetSupportedStyleSet() const;
 
-    void SetSupportedNpadIdTypes(u8* data, std::size_t length);
+    void SetSupportedNpadIdTypes(const u8* const data, std::size_t length);
     void GetSupportedNpadIdTypes(u32* data, std::size_t max_length);
     std::size_t GetSupportedNpadIdTypesSize() const;
 
