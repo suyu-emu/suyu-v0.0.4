@@ -325,7 +325,7 @@ Result HLERequestContext::WriteToOutgoingCommandBuffer(KThread& requesting_threa
     return ResultSuccess;
 }
 
-std::vector<u8> HLERequestContext::ReadBuffer(std::size_t buffer_index) const {
+std::vector<u8> HLERequestContext::ReadBufferCopy(std::size_t buffer_index) const {
     const bool is_buffer_a{BufferDescriptorA().size() > buffer_index &&
                            BufferDescriptorA()[buffer_index].Size()};
     if (is_buffer_a) {
