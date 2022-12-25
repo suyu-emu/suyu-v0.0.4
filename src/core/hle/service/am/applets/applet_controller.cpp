@@ -262,4 +262,9 @@ void Controller::ConfigurationComplete() {
     broker.SignalStateChanged();
 }
 
+Result Controller::RequestExit() {
+    this->ConfigurationComplete();
+    R_SUCCEED();
+}
+
 } // namespace Service::AM::Applets
