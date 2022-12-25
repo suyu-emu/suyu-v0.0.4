@@ -265,10 +265,6 @@ private:
     void CleanupForIpcClientOnServerSetupFailure(PageLinkedList* page_list, VAddr address,
                                                  size_t size, KMemoryPermission prot_perm);
 
-    // HACK: These will be removed once we automatically manage page reference counts.
-    void HACK_OpenPages(PAddr phys_addr, size_t num_pages);
-    void HACK_ClosePages(VAddr virt_addr, size_t num_pages);
-
     mutable KLightLock m_general_lock;
     mutable KLightLock m_map_physical_memory_lock;
 

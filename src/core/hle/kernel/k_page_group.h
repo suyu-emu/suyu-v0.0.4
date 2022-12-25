@@ -14,6 +14,7 @@
 namespace Kernel {
 
 class KBlockInfoManager;
+class KernelCore;
 class KPageGroup;
 
 class KBlockInfo {

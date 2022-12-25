@@ -941,9 +941,6 @@ Result KPageTable::SetupForIpcServer(VAddr* out_addr, size_t size, VAddr src_add
 
     ON_RESULT_FAILURE {
         if (cur_mapped_addr != dst_addr) {
-            // HACK: Manually close the pages.
-            HACK_ClosePages(dst_addr, (cur_mapped_addr - dst_addr) / PageSize);
-
             ASSERT(Operate(dst_addr, (cur_mapped_addr - dst_addr) / PageSize,
                            KMemoryPermission::None, OperationType::Unmap)
                        .IsSuccess());
@@ -1019,9 +1016,6 @@ Result KPageTable::SetupForIpcServer(VAddr* out_addr, size_t size, VAddr src_add
         // Map the page.
         R_TRY(Operate(cur_mapped_addr, 1, test_perm, OperationType::Map, start_partial_page));
 
-        // HACK: Manually open the pages.
-        HACK_OpenPages(start_partial_page, 1);
-
         // Update tracking extents.
         cur_mapped_addr += PageSize;
         cur_block_addr += PageSize;
@@ -1050,9 +1044,6 @@ Result KPageTable::SetupForIpcServer(VAddr* out_addr, size_t size, VAddr src_add
             R_TRY(Operate(cur_mapped_addr, cur_block_size / PageSize, test_perm, OperationType::Map,
                           cur_block_addr));
 
-            // HACK: Manually open the pages.
-            HACK_OpenPages(cur_block_addr, cur_block_size / PageSize);
-
             // Update tracking extents.
             cur_mapped_addr += cur_block_size;
             cur_block_addr = next_entry.phys_addr;
@@ -1071,9 +1062,6 @@ Result KPageTable::SetupForIpcServer(VAddr* out_addr, size_t size, VAddr src_add
         // Map the last block.
         R_TRY(Operate(cur_mapped_addr, last_block_size / PageSize, test_perm, OperationType::Map,
                       cur_block_addr));
-
-        // HACK: Manually open the pages.
-        HACK_OpenPages(cur_block_addr, last_block_size / PageSize);
 
         // Update tracking extents.
         cur_mapped_addr += last_block_size;
@@ -1106,9 +1094,6 @@ Result KPageTable::SetupForIpcServer(VAddr* out_addr, size_t size, VAddr src_add
 
         // Map the page.
         R_TRY(Operate(cur_mapped_addr, 1, test_perm, OperationType::Map, end_partial_page));
-
-        // HACK: Manually open the pages.
-        HACK_OpenPages(end_partial_page, 1);
     }
 
     // Update memory blocks to reflect our changes
@@ -1209,9 +1194,6 @@ Result KPageTable::CleanupForIpcServer(VAddr address, size_t size, KMemoryState 
     const VAddr aligned_end = Common::AlignUp((address) + size, PageSize);
     const size_t aligned_size = aligned_end - aligned_start;
     const size_t aligned_num_pages = aligned_size / PageSize;
-
-    // HACK: Manually close the pages.
-    HACK_ClosePages(aligned_start, aligned_num_pages);
 
     // Unmap the pages.
     R_TRY(Operate(aligned_start, aligned_num_pages, KMemoryPermission::None, OperationType::Unmap));
@@ -1500,17 +1482,6 @@ void KPageTable::CleanupForIpcClientOnServerSetupFailure([[maybe_unused]] PageLi
     }
 }
 
-void KPageTable::HACK_OpenPages(PAddr phys_addr, size_t num_pages) {
-    m_system.Kernel().MemoryManager().OpenFirst(phys_addr, num_pages);
-}
-
-void KPageTable::HACK_ClosePages(VAddr virt_addr, size_t num_pages) {
-    for (size_t index = 0; index < num_pages; ++index) {
-        const auto paddr = GetPhysicalAddr(virt_addr + (index * PageSize));
-        m_system.Kernel().MemoryManager().Close(paddr, 1);
-    }
-}
-
 Result KPageTable::MapPhysicalMemory(VAddr address, size_t size) {
     // Lock the physical memory lock.
     KScopedLightLock phys_lk(m_map_physical_memory_lock);
@@ -1679,9 +1650,6 @@ Result KPageTable::MapPhysicalMemory(VAddr address, size_t size) {
                                              last_unmap_address + 1 - cur_address) /
                                     PageSize;
 
-                                // HACK: Manually close the pages.
-                                HACK_ClosePages(cur_address, cur_pages);
-
                                 // Unmap.
                                 ASSERT(Operate(cur_address, cur_pages, KMemoryPermission::None,
                                                OperationType::Unmap)
@@ -1741,10 +1709,7 @@ Result KPageTable::MapPhysicalMemory(VAddr address, size_t size) {
                             // Map whatever we can.
                             const size_t cur_pages = std::min(pg_pages, map_pages);
                             R_TRY(Operate(cur_address, cur_pages, KMemoryPermission::UserReadWrite,
-                                          OperationType::Map, pg_phys_addr));
-
-                            // HACK: Manually open the pages.
-                            HACK_OpenPages(pg_phys_addr, cur_pages);
+                                          OperationType::MapFirst, pg_phys_addr));
 
                             // Advance.
                             cur_address += cur_pages * PageSize;
@@ -1886,9 +1851,6 @@ Result KPageTable::UnmapPhysicalMemory(VAddr address, size_t size) {
             const size_t cur_pages = std::min(VAddr(info.GetEndAddress()) - cur_address,
                                               last_address + 1 - cur_address) /
                                      PageSize;
-
-            // HACK: Manually close the pages.
-            HACK_ClosePages(cur_address, cur_pages);
 
             // Unmap.
             ASSERT(Operate(cur_address, cur_pages, KMemoryPermission::None, OperationType::Unmap)
@@ -2609,11 +2571,23 @@ ResultVal<VAddr> KPageTable::AllocateAndMapMemory(size_t needed_num_pages, size_
     if (is_map_only) {
         R_TRY(Operate(addr, needed_num_pages, perm, OperationType::Map, map_addr));
     } else {
-        KPageGroup page_group{m_kernel, m_block_info_manager};
-        R_TRY(m_system.Kernel().MemoryManager().AllocateForProcess(
-            &page_group, needed_num_pages,
-            KMemoryManager::EncodeOption(m_memory_pool, m_allocation_option), 0, 0));
-        R_TRY(Operate(addr, needed_num_pages, page_group, OperationType::MapGroup));
+        // Create a page group tohold the pages we allocate.
+        KPageGroup pg{m_kernel, m_block_info_manager};
+
+        R_TRY(m_system.Kernel().MemoryManager().AllocateAndOpen(
+            &pg, needed_num_pages,
+            KMemoryManager::EncodeOption(m_memory_pool, m_allocation_option)));
+
+        // Ensure that the page group is closed when we're done working with it.
+        SCOPE_EXIT({ pg.Close(); });
+
+        // Clear all pages.
+        for (const auto& it : pg) {
+            std::memset(m_system.DeviceMemory().GetPointer<void>(it.GetAddress()),
+                        m_heap_fill_value, it.GetSize());
+        }
+
+        R_TRY(Operate(addr, needed_num_pages, pg, OperationType::MapGroup));
     }
 
     // Update the blocks.
@@ -2794,19 +2768,28 @@ Result KPageTable::Operate(VAddr addr, size_t num_pages, const KPageGroup& page_
     ASSERT(num_pages > 0);
     ASSERT(num_pages == page_group.GetNumPages());
 
-    for (const auto& node : page_group) {
-        const size_t size{node.GetNumPages() * PageSize};
+    switch (operation) {
+    case OperationType::MapGroup: {
+        // We want to maintain a new reference to every page in the group.
+        KScopedPageGroup spg(page_group);
 
-        switch (operation) {
-        case OperationType::MapGroup:
+        for (const auto& node : page_group) {
+            const size_t size{node.GetNumPages() * PageSize};
+
+            // Map the pages.
             m_system.Memory().MapMemoryRegion(*m_page_table_impl, addr, size, node.GetAddress());
-            break;
-        default:
-            ASSERT(false);
-            break;
+
+            addr += size;
         }
 
-        addr += size;
+        // We succeeded! We want to persist the reference to the pages.
+        spg.CancelClose();
+
+        break;
+    }
+    default:
+        ASSERT(false);
+        break;
     }
 
     R_SUCCEED();
@@ -2821,13 +2804,29 @@ Result KPageTable::Operate(VAddr addr, size_t num_pages, KMemoryPermission perm,
     ASSERT(ContainsPages(addr, num_pages));
 
     switch (operation) {
-    case OperationType::Unmap:
+    case OperationType::Unmap: {
+        // Ensure that any pages we track close on exit.
+        KPageGroup pages_to_close{m_kernel, this->GetBlockInfoManager()};
+        SCOPE_EXIT({ pages_to_close.CloseAndReset(); });
+
+        this->AddRegionToPages(addr, num_pages, pages_to_close);
         m_system.Memory().UnmapRegion(*m_page_table_impl, addr, num_pages * PageSize);
         break;
+    }
+    case OperationType::MapFirst:
     case OperationType::Map: {
         ASSERT(map_addr);
         ASSERT(Common::IsAligned(map_addr, PageSize));
         m_system.Memory().MapMemoryRegion(*m_page_table_impl, addr, num_pages * PageSize, map_addr);
+
+        // Open references to pages, if we should.
+        if (IsHeapPhysicalAddress(m_kernel.MemoryLayout(), map_addr)) {
+            if (operation == OperationType::MapFirst) {
+                m_kernel.MemoryManager().OpenFirst(map_addr, num_pages);
+            } else {
+                m_kernel.MemoryManager().Open(map_addr, num_pages);
+            }
+        }
         break;
     }
     case OperationType::Separate: {
