@@ -1026,7 +1026,7 @@ void Hid::SetSupportedNpadIdType(Kernel::HLERequestContext& ctx) {
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
     applet_resource->GetController<Controller_NPad>(HidController::NPad)
-        .SetSupportedNpadIdTypes(ctx.ReadBufferSpan().data(), ctx.GetReadBufferSize());
+        .SetSupportedNpadIdTypes(ctx.ReadBufferSpan());
 
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 

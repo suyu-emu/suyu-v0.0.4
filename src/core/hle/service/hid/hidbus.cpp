@@ -351,7 +351,7 @@ void HidBus::GetExternalDeviceId(Kernel::HLERequestContext& ctx) {
 
 void HidBus::SendCommandAsync(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    const auto data = ctx.ReadBuffer();
+    const auto data = ctx.ReadBufferSpan();
     const auto bus_handle_{rp.PopRaw<BusHandle>()};
 
     LOG_DEBUG(Service_HID,
