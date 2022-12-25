@@ -7,6 +7,7 @@
 #include <functional>
 #include <memory>
 #include <optional>
+#include <span>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -272,6 +273,8 @@ public:
 
     /// Helper function to read a buffer using the appropriate buffer descriptor
     [[nodiscard]] std::vector<u8> ReadBuffer(std::size_t buffer_index = 0) const;
+
+    [[nodiscard]] std::span<const u8> ReadBufferSpan(std::size_t buffer_index = 0) const;
 
     /// Helper function to write a buffer using the appropriate buffer descriptor
     std::size_t WriteBuffer(const void* buffer, std::size_t size,
