@@ -190,7 +190,7 @@ private:
             return;
         }
 
-        const std::vector<u8> data = ctx.ReadBuffer();
+        const auto data = ctx.ReadBufferSpan();
 
         ASSERT_MSG(
             static_cast<s64>(data.size()) <= length,
@@ -337,7 +337,7 @@ public:
     void CreateFile(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
 
-        const auto file_buffer = ctx.ReadBuffer();
+        const auto file_buffer = ctx.ReadBufferSpan();
         const std::string name = Common::StringFromBuffer(file_buffer);
 
         const u64 file_mode = rp.Pop<u64>();
@@ -351,7 +351,7 @@ public:
     }
 
     void DeleteFile(Kernel::HLERequestContext& ctx) {
-        const auto file_buffer = ctx.ReadBuffer();
+        const auto file_buffer = ctx.ReadBufferSpan();
         const std::string name = Common::StringFromBuffer(file_buffer);
 
         LOG_DEBUG(Service_FS, "called. file={}", name);
@@ -361,7 +361,7 @@ public:
     }
 
     void CreateDirectory(Kernel::HLERequestContext& ctx) {
-        const auto file_buffer = ctx.ReadBuffer();
+        const auto file_buffer = ctx.ReadBufferSpan();
         const std::string name = Common::StringFromBuffer(file_buffer);
 
         LOG_DEBUG(Service_FS, "called. directory={}", name);
@@ -371,7 +371,7 @@ public:
     }
 
     void DeleteDirectory(Kernel::HLERequestContext& ctx) {
-        const auto file_buffer = ctx.ReadBuffer();
+        const auto file_buffer = ctx.ReadBufferSpan();
         const std::string name = Common::StringFromBuffer(file_buffer);
 
         LOG_DEBUG(Service_FS, "called. directory={}", name);
@@ -381,7 +381,7 @@ public:
     }
 
     void DeleteDirectoryRecursively(Kernel::HLERequestContext& ctx) {
-        const auto file_buffer = ctx.ReadBuffer();
+        const auto file_buffer = ctx.ReadBufferSpan();
         const std::string name = Common::StringFromBuffer(file_buffer);
 
         LOG_DEBUG(Service_FS, "called. directory={}", name);
@@ -391,7 +391,7 @@ public:
     }
 
     void CleanDirectoryRecursively(Kernel::HLERequestContext& ctx) {
-        const auto file_buffer = ctx.ReadBuffer();
+        const auto file_buffer = ctx.ReadBufferSpan();
         const std::string name = Common::StringFromBuffer(file_buffer);
 
         LOG_DEBUG(Service_FS, "called. Directory: {}", name);
@@ -401,11 +401,8 @@ public:
     }
 
     void RenameFile(Kernel::HLERequestContext& ctx) {
-        std::vector<u8> buffer = ctx.ReadBuffer(0);
-        const std::string src_name = Common::StringFromBuffer(buffer);
-
-        buffer = ctx.ReadBuffer(1);
-        const std::string dst_name = Common::StringFromBuffer(buffer);
+        const std::string src_name = Common::StringFromBuffer(ctx.ReadBufferSpan(0));
+        const std::string dst_name = Common::StringFromBuffer(ctx.ReadBufferSpan(1));
 
         LOG_DEBUG(Service_FS, "called. file '{}' to file '{}'", src_name, dst_name);
 
@@ -416,7 +413,7 @@ public:
     void OpenFile(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
 
-        const auto file_buffer = ctx.ReadBuffer();
+        const auto file_buffer = ctx.ReadBufferSpan();
         const std::string name = Common::StringFromBuffer(file_buffer);
 
         const auto mode = static_cast<FileSys::Mode>(rp.Pop<u32>());
@@ -440,7 +437,7 @@ public:
     void OpenDirectory(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
 
-        const auto file_buffer = ctx.ReadBuffer();
+        const auto file_buffer = ctx.ReadBufferSpan();
         const std::string name = Common::StringFromBuffer(file_buffer);
 
         // TODO(Subv): Implement this filter.
@@ -463,7 +460,7 @@ public:
     }
 
     void GetEntryType(Kernel::HLERequestContext& ctx) {
-        const auto file_buffer = ctx.ReadBuffer();
+        const auto file_buffer = ctx.ReadBufferSpan();
         const std::string name = Common::StringFromBuffer(file_buffer);
 
         LOG_DEBUG(Service_FS, "called. file={}", name);
@@ -504,7 +501,7 @@ public:
     }
 
     void GetFileTimeStampRaw(Kernel::HLERequestContext& ctx) {
-        const auto file_buffer = ctx.ReadBuffer();
+        const auto file_buffer = ctx.ReadBufferSpan();
         const std::string name = Common::StringFromBuffer(file_buffer);
 
         LOG_WARNING(Service_FS, "(Partial Implementation) called. file={}", name);
@@ -1086,7 +1083,7 @@ void FSP_SRV::GetGlobalAccessLogMode(Kernel::HLERequestContext& ctx) {
 }
 
 void FSP_SRV::OutputAccessLogToSdCard(Kernel::HLERequestContext& ctx) {
-    const auto raw = ctx.ReadBuffer();
+    const auto raw = ctx.ReadBufferSpan();
     auto log = Common::StringFromFixedZeroTerminatedBuffer(
         reinterpret_cast<const char*>(raw.data()), raw.size());
 
