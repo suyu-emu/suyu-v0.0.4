@@ -93,8 +93,7 @@ public:
     void SignalReference() override;
     void ReleaseFences() override;
     void FlushAndInvalidateRegion(
-        VAddr addr, u64 size,
-        VideoCommon::CacheType which = VideoCommon::CacheType::All) override;
+        VAddr addr, u64 size, VideoCommon::CacheType which = VideoCommon::CacheType::All) override;
     void WaitForIdle() override;
     void FragmentBarrier() override;
     void TiledCacheBarrier() override;

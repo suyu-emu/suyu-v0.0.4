@@ -227,7 +227,8 @@ struct DefaultSpec {
 
 ConfigureFuncPtr ConfigureFunc(const std::array<vk::ShaderModule, NUM_STAGES>& modules,
                                const std::array<Shader::Info, NUM_STAGES>& infos) {
-    return FindSpec<SimpleVertexSpec, SimpleVertexFragmentSpec, SimpleStorageSpec, SimpleImageSpec, DefaultSpec>(modules, infos);
+    return FindSpec<SimpleVertexSpec, SimpleVertexFragmentSpec, SimpleStorageSpec, SimpleImageSpec,
+                    DefaultSpec>(modules, infos);
 }
 } // Anonymous namespace
 
@@ -505,11 +506,9 @@ void GraphicsPipeline::ConfigureDraw(const RescalingPushConstant& rescaling,
         if (bind_pipeline) {
             cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, *pipeline);
         }
-        if (is_rescaling) {
-            cmdbuf.PushConstants(*pipeline_layout, VK_SHADER_STAGE_ALL_GRAPHICS,
-                                RESCALING_LAYOUT_WORDS_OFFSET, sizeof(rescaling_data),
-                                rescaling_data.data());
-        }
+        cmdbuf.PushConstants(*pipeline_layout, VK_SHADER_STAGE_ALL_GRAPHICS,
+                             RESCALING_LAYOUT_WORDS_OFFSET, sizeof(rescaling_data),
+                             rescaling_data.data());
         if (update_rescaling) {
             const f32 config_down_factor{Settings::values.resolution_info.down_factor};
             const f32 scale_down_factor{is_rescaling ? config_down_factor : 1.0f};

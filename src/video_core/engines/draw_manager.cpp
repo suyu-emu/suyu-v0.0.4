@@ -97,7 +97,8 @@ void DrawManager::DrawArrayIndirect(PrimitiveTopology topology) {
     ProcessDrawIndirect(true);
 }
 
-void DrawManager::DrawIndexedIndirect(PrimitiveTopology topology, u32 index_first, u32 index_count) {
+void DrawManager::DrawIndexedIndirect(PrimitiveTopology topology, u32 index_first,
+                                      u32 index_count) {
     const auto& regs{maxwell3d->regs};
     draw_state.topology = topology;
     draw_state.index_buffer = regs.index_buffer;

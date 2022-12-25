@@ -13,8 +13,8 @@ namespace Common {
 template <typename KeyTBase, typename ValueT>
 class RangeMap {
 private:
-    using KeyT = std::conditional_t<std::is_signed_v<KeyTBase>, typename KeyTBase,
-                                    std::make_signed_t<KeyTBase>>;
+    using KeyT =
+        std::conditional_t<std::is_signed_v<KeyTBase>, KeyTBase, std::make_signed_t<KeyTBase>>;
 
 public:
     explicit RangeMap(ValueT null_value_) : null_value{null_value_} {
@@ -56,8 +56,8 @@ public:
 
 private:
     using MapType = std::map<KeyT, ValueT>;
-    using IteratorType = MapType::iterator;
-    using ConstIteratorType = MapType::const_iterator;
+    using IteratorType = typename MapType::iterator;
+    using ConstIteratorType = typename MapType::const_iterator;
 
     size_t ContinousSizeInternal(KeyT address) const {
         const auto it = GetFirstElemnentBeforeOrOn(address);

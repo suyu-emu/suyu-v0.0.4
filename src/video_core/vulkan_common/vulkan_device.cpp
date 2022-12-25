@@ -587,11 +587,16 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         dynamic_state_3 = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_FEATURES_EXT,
             .pNext = nullptr,
-            .extendedDynamicState3DepthClampEnable = ext_extended_dynamic_state_3_enables ? VK_TRUE : VK_FALSE,
-            .extendedDynamicState3LogicOpEnable = ext_extended_dynamic_state_3_enables ? VK_TRUE : VK_FALSE,
-            .extendedDynamicState3ColorBlendEnable = ext_extended_dynamic_state_3_blend ? VK_TRUE : VK_FALSE,
-            .extendedDynamicState3ColorBlendEquation = ext_extended_dynamic_state_3_blend ? VK_TRUE : VK_FALSE,
-            .extendedDynamicState3ColorWriteMask = ext_extended_dynamic_state_3_blend ? VK_TRUE : VK_FALSE,
+            .extendedDynamicState3DepthClampEnable =
+                ext_extended_dynamic_state_3_enables ? VK_TRUE : VK_FALSE,
+            .extendedDynamicState3LogicOpEnable =
+                ext_extended_dynamic_state_3_enables ? VK_TRUE : VK_FALSE,
+            .extendedDynamicState3ColorBlendEnable =
+                ext_extended_dynamic_state_3_blend ? VK_TRUE : VK_FALSE,
+            .extendedDynamicState3ColorBlendEquation =
+                ext_extended_dynamic_state_3_blend ? VK_TRUE : VK_FALSE,
+            .extendedDynamicState3ColorWriteMask =
+                ext_extended_dynamic_state_3_blend ? VK_TRUE : VK_FALSE,
         };
         SetNext(next, dynamic_state_3);
     } else {
@@ -1342,14 +1347,17 @@ std::vector<const char*> Device::LoadExtensions(bool requires_surface) {
         features.pNext = &extended_dynamic_state_3;
         physical.GetFeatures2(features);
 
-        ext_extended_dynamic_state_3_blend = extended_dynamic_state_3.extendedDynamicState3ColorBlendEnable &&
+        ext_extended_dynamic_state_3_blend =
+            extended_dynamic_state_3.extendedDynamicState3ColorBlendEnable &&
             extended_dynamic_state_3.extendedDynamicState3ColorBlendEquation &&
             extended_dynamic_state_3.extendedDynamicState3ColorWriteMask;
 
-        ext_extended_dynamic_state_3_enables = extended_dynamic_state_3.extendedDynamicState3DepthClampEnable &&
+        ext_extended_dynamic_state_3_enables =
+            extended_dynamic_state_3.extendedDynamicState3DepthClampEnable &&
             extended_dynamic_state_3.extendedDynamicState3LogicOpEnable;
 
-        ext_extended_dynamic_state_3 = ext_extended_dynamic_state_3_blend || ext_extended_dynamic_state_3_enables;
+        ext_extended_dynamic_state_3 =
+            ext_extended_dynamic_state_3_blend || ext_extended_dynamic_state_3_enables;
         if (ext_extended_dynamic_state_3) {
             extensions.push_back(VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
         }

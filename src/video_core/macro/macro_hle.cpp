@@ -47,21 +47,7 @@ public:
     explicit HLEMacroImpl(Engines::Maxwell3D& maxwell3d_) : maxwell3d{maxwell3d_} {}
 
 protected:
-    void advanceCheck() {
-        current_value = (current_value + 1) % fibonacci_post;
-        check_limit = current_value == 0;
-        if (check_limit) {
-            const u32 new_fibonacci = fibonacci_pre + fibonacci_post;
-            fibonacci_pre = fibonacci_post;
-            fibonacci_post = new_fibonacci;
-        }
-    }
-
     Engines::Maxwell3D& maxwell3d;
-    u32 fibonacci_pre{89};
-    u32 fibonacci_post{144};
-    u32 current_value{fibonacci_post - 1};
-    bool check_limit{};
 };
 
 class HLE_771BB18C62444DA0 final : public HLEMacroImpl {
@@ -124,12 +110,13 @@ private:
         maxwell3d.RefreshParameters();
         const u32 instance_count = (maxwell3d.GetRegisterValue(0xD1B) & parameters[2]);
 
+        auto topology = static_cast<Maxwell::Regs::PrimitiveTopology>(parameters[0]);
         const u32 vertex_first = parameters[3];
         const u32 vertex_count = parameters[1];
-        
 
-        if (maxwell3d.AnyParametersDirty() &&
-            maxwell3d.GetMaxCurrentVertices() < vertex_first + vertex_count) {
+        if (!IsTopologySafe(topology) &&
+            static_cast<size_t>(maxwell3d.GetMaxCurrentVertices()) <
+                static_cast<size_t>(vertex_first) + static_cast<size_t>(vertex_count)) {
             ASSERT_MSG(false, "Faulty draw!");
             return;
         }
@@ -141,9 +128,8 @@ private:
             maxwell3d.setHLEReplacementName(0, 0x640, Maxwell::HLEReplaceName::BaseInstance);
         }
 
-        maxwell3d.draw_manager->DrawArray(
-            static_cast<Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology>(parameters[0]),
-            vertex_first, vertex_count, base_instance, instance_count);
+        maxwell3d.draw_manager->DrawArray(topology, vertex_first, vertex_count, base_instance,
+                                          instance_count);
 
         if (extended) {
             maxwell3d.regs.global_base_instance_index = 0;
@@ -166,13 +152,7 @@ public:
             return;
         }
 
-        advanceCheck();
-        if (check_limit) {
-            maxwell3d.RefreshParameters();
-            minimum_limit = std::max(parameters[3], minimum_limit);
-        }
         const u32 estimate = static_cast<u32>(maxwell3d.EstimateIndexBufferSize());
-        const u32 base_size = std::max<u32>(minimum_limit, estimate);
         const u32 element_base = parameters[4];
         const u32 base_instance = parameters[5];
         maxwell3d.regs.vertex_id_base = element_base;
@@ -191,7 +171,7 @@ public:
         params.max_draw_counts = 1;
         params.stride = 0;
         maxwell3d.dirty.flags[VideoCommon::Dirty::IndexBuffer] = true;
-        maxwell3d.draw_manager->DrawIndexedIndirect(topology, 0, base_size);
+        maxwell3d.draw_manager->DrawIndexedIndirect(topology, 0, estimate);
         maxwell3d.engine_state = Maxwell::EngineHint::None;
         maxwell3d.replace_table.clear();
         maxwell3d.regs.vertex_id_base = 0x0;
@@ -223,8 +203,6 @@ private:
         maxwell3d.engine_state = Maxwell::EngineHint::None;
         maxwell3d.replace_table.clear();
     }
-
-    u32 minimum_limit{1 << 18};
 };
 
 class HLE_MultiLayerClear final : public HLEMacroImpl {
@@ -257,10 +235,6 @@ public:
             return;
         }
 
-        advanceCheck();
-        if (check_limit) {
-            maxwell3d.RefreshParameters();
-        }
         const u32 start_indirect = parameters[0];
         const u32 end_indirect = parameters[1];
         if (start_indirect >= end_indirect) {
@@ -274,20 +248,7 @@ public:
         const u32 indirect_words = 5 + padding;
         const u32 stride = indirect_words * sizeof(u32);
         const std::size_t draw_count = end_indirect - start_indirect;
-        u32 lowest_first = std::numeric_limits<u32>::max();
-        u32 highest_limit = std::numeric_limits<u32>::min();
-        for (std::size_t index = 0; index < draw_count; index++) {
-            const std::size_t base = index * indirect_words + 5;
-            const u32 count = parameters[base];
-            const u32 first_index = parameters[base + 2];
-            lowest_first = std::min(lowest_first, first_index);
-            highest_limit = std::max(highest_limit, first_index + count);
-        }
-        if (check_limit) {
-            minimum_limit = std::max(highest_limit, minimum_limit);
-        }
         const u32 estimate = static_cast<u32>(maxwell3d.EstimateIndexBufferSize());
-        const u32 base_size = std::max(minimum_limit, estimate);
         maxwell3d.dirty.flags[VideoCommon::Dirty::IndexBuffer] = true;
         auto& params = maxwell3d.draw_manager->GetIndirectParams();
         params.is_indexed = true;
@@ -301,7 +262,7 @@ public:
         maxwell3d.engine_state = Maxwell::EngineHint::OnHLEMacro;
         maxwell3d.setHLEReplacementName(0, 0x640, Maxwell::HLEReplaceName::BaseVertex);
         maxwell3d.setHLEReplacementName(0, 0x644, Maxwell::HLEReplaceName::BaseInstance);
-        maxwell3d.draw_manager->DrawIndexedIndirect(topology, 0, base_size);
+        maxwell3d.draw_manager->DrawIndexedIndirect(topology, 0, estimate);
         maxwell3d.engine_state = Maxwell::EngineHint::None;
         maxwell3d.replace_table.clear();
     }
@@ -323,7 +284,6 @@ private:
             return;
         }
         const auto topology = static_cast<Maxwell::Regs::PrimitiveTopology>(parameters[2]);
-        maxwell3d.regs.draw.topology.Assign(topology);
         const u32 padding = parameters[3];
         const std::size_t max_draws = parameters[4];
 
@@ -345,8 +305,6 @@ private:
                                               base_vertex, base_instance, parameters[base + 1]);
         }
     }
-
-    u32 minimum_limit{1 << 12};
 };
 
 class HLE_C713C83D8F63CCF3 final : public HLEMacroImpl {
@@ -431,53 +389,53 @@ public:
 HLEMacro::HLEMacro(Engines::Maxwell3D& maxwell3d_) : maxwell3d{maxwell3d_} {
     builders.emplace(0x771BB18C62444DA0ULL,
                      std::function<std::unique_ptr<CachedMacro>(Engines::Maxwell3D&)>(
-                         [](Engines::Maxwell3D& maxwell3d) -> std::unique_ptr<CachedMacro> {
-                             return std::make_unique<HLE_771BB18C62444DA0>(maxwell3d);
+                         [](Engines::Maxwell3D& maxwell3d__) -> std::unique_ptr<CachedMacro> {
+                             return std::make_unique<HLE_771BB18C62444DA0>(maxwell3d__);
                          }));
     builders.emplace(0x0D61FC9FAAC9FCADULL,
                      std::function<std::unique_ptr<CachedMacro>(Engines::Maxwell3D&)>(
-                         [](Engines::Maxwell3D& maxwell3d) -> std::unique_ptr<CachedMacro> {
-                             return std::make_unique<HLE_DrawArraysIndirect>(maxwell3d);
+                         [](Engines::Maxwell3D& maxwell3d__) -> std::unique_ptr<CachedMacro> {
+                             return std::make_unique<HLE_DrawArraysIndirect>(maxwell3d__);
                          }));
     builders.emplace(0x8A4D173EB99A8603ULL,
                      std::function<std::unique_ptr<CachedMacro>(Engines::Maxwell3D&)>(
-                         [](Engines::Maxwell3D& maxwell3d) -> std::unique_ptr<CachedMacro> {
-                             return std::make_unique<HLE_DrawArraysIndirect>(maxwell3d, true);
+                         [](Engines::Maxwell3D& maxwell3d__) -> std::unique_ptr<CachedMacro> {
+                             return std::make_unique<HLE_DrawArraysIndirect>(maxwell3d__, true);
                          }));
     builders.emplace(0x0217920100488FF7ULL,
                      std::function<std::unique_ptr<CachedMacro>(Engines::Maxwell3D&)>(
-                         [](Engines::Maxwell3D& maxwell3d) -> std::unique_ptr<CachedMacro> {
-                             return std::make_unique<HLE_DrawIndexedIndirect>(maxwell3d);
+                         [](Engines::Maxwell3D& maxwell3d__) -> std::unique_ptr<CachedMacro> {
+                             return std::make_unique<HLE_DrawIndexedIndirect>(maxwell3d__);
                          }));
     builders.emplace(0x3F5E74B9C9A50164ULL,
                      std::function<std::unique_ptr<CachedMacro>(Engines::Maxwell3D&)>(
-                         [](Engines::Maxwell3D& maxwell3d) -> std::unique_ptr<CachedMacro> {
-                             return std::make_unique<HLE_MultiDrawIndexedIndirectCount>(maxwell3d);
+                         [](Engines::Maxwell3D& maxwell3d__) -> std::unique_ptr<CachedMacro> {
+                             return std::make_unique<HLE_MultiDrawIndexedIndirectCount>(maxwell3d__);
                          }));
     builders.emplace(0xEAD26C3E2109B06BULL,
                      std::function<std::unique_ptr<CachedMacro>(Engines::Maxwell3D&)>(
-                         [](Engines::Maxwell3D& maxwell3d) -> std::unique_ptr<CachedMacro> {
-                             return std::make_unique<HLE_MultiLayerClear>(maxwell3d);
+                         [](Engines::Maxwell3D& maxwell3d__) -> std::unique_ptr<CachedMacro> {
+                             return std::make_unique<HLE_MultiLayerClear>(maxwell3d__);
                          }));
     builders.emplace(0xC713C83D8F63CCF3ULL,
                      std::function<std::unique_ptr<CachedMacro>(Engines::Maxwell3D&)>(
-                         [](Engines::Maxwell3D& maxwell3d) -> std::unique_ptr<CachedMacro> {
-                             return std::make_unique<HLE_C713C83D8F63CCF3>(maxwell3d);
+                         [](Engines::Maxwell3D& maxwell3d__) -> std::unique_ptr<CachedMacro> {
+                             return std::make_unique<HLE_C713C83D8F63CCF3>(maxwell3d__);
                          }));
     builders.emplace(0xD7333D26E0A93EDEULL,
                      std::function<std::unique_ptr<CachedMacro>(Engines::Maxwell3D&)>(
-                         [](Engines::Maxwell3D& maxwell3d) -> std::unique_ptr<CachedMacro> {
-                             return std::make_unique<HLE_D7333D26E0A93EDE>(maxwell3d);
+                         [](Engines::Maxwell3D& maxwell3d__) -> std::unique_ptr<CachedMacro> {
+                             return std::make_unique<HLE_D7333D26E0A93EDE>(maxwell3d__);
                          }));
     builders.emplace(0xEB29B2A09AA06D38ULL,
                      std::function<std::unique_ptr<CachedMacro>(Engines::Maxwell3D&)>(
-                         [](Engines::Maxwell3D& maxwell3d) -> std::unique_ptr<CachedMacro> {
-                             return std::make_unique<HLE_BindShader>(maxwell3d);
+                         [](Engines::Maxwell3D& maxwell3d__) -> std::unique_ptr<CachedMacro> {
+                             return std::make_unique<HLE_BindShader>(maxwell3d__);
                          }));
     builders.emplace(0xDB1341DBEB4C8AF7ULL,
                      std::function<std::unique_ptr<CachedMacro>(Engines::Maxwell3D&)>(
-                         [](Engines::Maxwell3D& maxwell3d) -> std::unique_ptr<CachedMacro> {
-                             return std::make_unique<HLE_SetRasterBoundingBox>(maxwell3d);
+                         [](Engines::Maxwell3D& maxwell3d__) -> std::unique_ptr<CachedMacro> {
+                             return std::make_unique<HLE_SetRasterBoundingBox>(maxwell3d__);
                          }));
 }
 

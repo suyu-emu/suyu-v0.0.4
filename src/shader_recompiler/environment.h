@@ -36,8 +36,8 @@ public:
 
     [[nodiscard]] virtual bool HasHLEMacroState() const = 0;
 
-    [[nodiscard]] virtual std::optional<ReplaceConstant> GetReplaceConstBuffer(
-        u32 bank, u32 offset) = 0;
+    [[nodiscard]] virtual std::optional<ReplaceConstant> GetReplaceConstBuffer(u32 bank,
+                                                                               u32 offset) = 0;
 
     virtual void Dump(u64 hash) = 0;
 

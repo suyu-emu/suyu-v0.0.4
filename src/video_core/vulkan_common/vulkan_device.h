@@ -486,33 +486,33 @@ private:
     bool ext_sampler_filter_minmax{};            ///< Support for VK_EXT_sampler_filter_minmax.
     bool ext_depth_clip_control{};               ///< Support for VK_EXT_depth_clip_control
     bool ext_depth_range_unrestricted{};         ///< Support for VK_EXT_depth_range_unrestricted.
-    bool ext_shader_viewport_index_layer{}; ///< Support for VK_EXT_shader_viewport_index_layer.
-    bool ext_tooling_info{};                ///< Support for VK_EXT_tooling_info.
-    bool ext_subgroup_size_control{};       ///< Support for VK_EXT_subgroup_size_control.
-    bool ext_transform_feedback{};          ///< Support for VK_EXT_transform_feedback.
-    bool ext_custom_border_color{};         ///< Support for VK_EXT_custom_border_color.
-    bool ext_extended_dynamic_state{};      ///< Support for VK_EXT_extended_dynamic_state.
-    bool ext_extended_dynamic_state_2{};      ///< Support for VK_EXT_extended_dynamic_state2.
+    bool ext_shader_viewport_index_layer{};    ///< Support for VK_EXT_shader_viewport_index_layer.
+    bool ext_tooling_info{};                   ///< Support for VK_EXT_tooling_info.
+    bool ext_subgroup_size_control{};          ///< Support for VK_EXT_subgroup_size_control.
+    bool ext_transform_feedback{};             ///< Support for VK_EXT_transform_feedback.
+    bool ext_custom_border_color{};            ///< Support for VK_EXT_custom_border_color.
+    bool ext_extended_dynamic_state{};         ///< Support for VK_EXT_extended_dynamic_state.
+    bool ext_extended_dynamic_state_2{};       ///< Support for VK_EXT_extended_dynamic_state2.
     bool ext_extended_dynamic_state_2_extra{}; ///< Support for VK_EXT_extended_dynamic_state2.
-    bool ext_extended_dynamic_state_3{};      ///< Support for VK_EXT_extended_dynamic_state3.
-    bool ext_extended_dynamic_state_3_blend{};      ///< Support for VK_EXT_extended_dynamic_state3.
-    bool ext_extended_dynamic_state_3_enables{};      ///< Support for VK_EXT_extended_dynamic_state3.
-    bool ext_line_rasterization{};          ///< Support for VK_EXT_line_rasterization.
-    bool ext_vertex_input_dynamic_state{};  ///< Support for VK_EXT_vertex_input_dynamic_state.
-    bool ext_shader_stencil_export{};       ///< Support for VK_EXT_shader_stencil_export.
-    bool ext_shader_atomic_int64{};         ///< Support for VK_KHR_shader_atomic_int64.
-    bool ext_conservative_rasterization{};  ///< Support for VK_EXT_conservative_rasterization.
-    bool ext_provoking_vertex{};            ///< Support for VK_EXT_provoking_vertex.
-    bool ext_memory_budget{};               ///< Support for VK_EXT_memory_budget.
-    bool nv_device_diagnostics_config{};    ///< Support for VK_NV_device_diagnostics_config.
-    bool has_broken_cube_compatibility{};   ///< Has broken cube compatiblity bit
-    bool has_renderdoc{};                   ///< Has RenderDoc attached
-    bool has_nsight_graphics{};             ///< Has Nsight Graphics attached
-    bool supports_d24_depth{};              ///< Supports D24 depth buffers.
-    bool cant_blit_msaa{};                  ///< Does not support MSAA<->MSAA blitting.
-    bool must_emulate_bgr565{};             ///< Emulates BGR565 by swizzling RGB565 format.
-    u32 max_vertex_input_attributes{};      ///< Max vertex input attributes in pipeline
-    u32 max_vertex_input_bindings{};        ///< Max vertex input buffers in pipeline
+    bool ext_extended_dynamic_state_3{};       ///< Support for VK_EXT_extended_dynamic_state3.
+    bool ext_extended_dynamic_state_3_blend{}; ///< Support for VK_EXT_extended_dynamic_state3.
+    bool ext_extended_dynamic_state_3_enables{}; ///< Support for VK_EXT_extended_dynamic_state3.
+    bool ext_line_rasterization{};               ///< Support for VK_EXT_line_rasterization.
+    bool ext_vertex_input_dynamic_state{};       ///< Support for VK_EXT_vertex_input_dynamic_state.
+    bool ext_shader_stencil_export{};            ///< Support for VK_EXT_shader_stencil_export.
+    bool ext_shader_atomic_int64{};              ///< Support for VK_KHR_shader_atomic_int64.
+    bool ext_conservative_rasterization{};       ///< Support for VK_EXT_conservative_rasterization.
+    bool ext_provoking_vertex{};                 ///< Support for VK_EXT_provoking_vertex.
+    bool ext_memory_budget{};                    ///< Support for VK_EXT_memory_budget.
+    bool nv_device_diagnostics_config{};         ///< Support for VK_NV_device_diagnostics_config.
+    bool has_broken_cube_compatibility{};        ///< Has broken cube compatiblity bit
+    bool has_renderdoc{};                        ///< Has RenderDoc attached
+    bool has_nsight_graphics{};                  ///< Has Nsight Graphics attached
+    bool supports_d24_depth{};                   ///< Supports D24 depth buffers.
+    bool cant_blit_msaa{};                       ///< Does not support MSAA<->MSAA blitting.
+    bool must_emulate_bgr565{};                  ///< Emulates BGR565 by swizzling RGB565 format.
+    u32 max_vertex_input_attributes{};           ///< Max vertex input attributes in pipeline
+    u32 max_vertex_input_bindings{};             ///< Max vertex input buffers in pipeline
 
     // Telemetry parameters
     std::string vendor_name;                       ///< Device's driver name.

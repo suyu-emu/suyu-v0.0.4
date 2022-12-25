@@ -3086,7 +3086,7 @@ public:
 
     std::unique_ptr<DrawManager> draw_manager;
     friend class DrawManager;
-    
+
     std::vector<u8> inline_index_draw_indexes;
 
     GPUVAddr getMacroAddress(size_t index) const {

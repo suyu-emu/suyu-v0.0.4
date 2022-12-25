@@ -1269,7 +1269,8 @@ public:
         dld->vkCmdSetColorBlendEnableEXT(handle, first, enables.size(), enables.data());
     }
 
-    void SetColorBlendEquationEXT(u32 first, Span<VkColorBlendEquationEXT> equations) const noexcept {
+    void SetColorBlendEquationEXT(u32 first,
+                                  Span<VkColorBlendEquationEXT> equations) const noexcept {
         dld->vkCmdSetColorBlendEquationEXT(handle, first, equations.size(), equations.data());
     }
 

@@ -200,7 +200,8 @@ public:
     /// Return true when a CPU region is modified from the CPU
     [[nodiscard]] bool IsRegionCpuModified(VAddr addr, size_t size);
 
-    void SetDrawIndirect(const Tegra::Engines::DrawManager::IndirectParams* current_draw_indirect_) {
+    void SetDrawIndirect(
+        const Tegra::Engines::DrawManager::IndirectParams* current_draw_indirect_) {
         current_draw_indirect = current_draw_indirect_;
     }
 
