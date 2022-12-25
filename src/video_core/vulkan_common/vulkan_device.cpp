@@ -796,6 +796,16 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             ext_vertex_input_dynamic_state = false;
         }
     }
+    if (ext_extended_dynamic_state_2 && is_radv) {
+        const u32 version = (properties.driverVersion << 3) >> 3;
+        if (version < VK_MAKE_API_VERSION(0, 22, 3, 1)) {
+            LOG_WARNING(
+                Render_Vulkan,
+                "RADV versions older than 22.3.1 have broken VK_EXT_extended_dynamic_state2");
+            ext_extended_dynamic_state_2 = false;
+            ext_extended_dynamic_state_2_extra = false;
+        }
+    }
     sets_per_pool = 64;
 
     const bool is_amd =
