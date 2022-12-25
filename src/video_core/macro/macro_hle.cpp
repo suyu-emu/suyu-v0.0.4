@@ -410,7 +410,8 @@ HLEMacro::HLEMacro(Engines::Maxwell3D& maxwell3d_) : maxwell3d{maxwell3d_} {
     builders.emplace(0x3F5E74B9C9A50164ULL,
                      std::function<std::unique_ptr<CachedMacro>(Engines::Maxwell3D&)>(
                          [](Engines::Maxwell3D& maxwell3d__) -> std::unique_ptr<CachedMacro> {
-                             return std::make_unique<HLE_MultiDrawIndexedIndirectCount>(maxwell3d__);
+                             return std::make_unique<HLE_MultiDrawIndexedIndirectCount>(
+                                 maxwell3d__);
                          }));
     builders.emplace(0xEAD26C3E2109B06BULL,
                      std::function<std::unique_ptr<CachedMacro>(Engines::Maxwell3D&)>(

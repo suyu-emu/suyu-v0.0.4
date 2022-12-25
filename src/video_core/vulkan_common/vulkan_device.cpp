@@ -576,6 +576,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             .pNext = nullptr,
             .extendedDynamicState2 = VK_TRUE,
             .extendedDynamicState2LogicOp = ext_extended_dynamic_state_2_extra ? VK_TRUE : VK_FALSE,
+            .extendedDynamicState2PatchControlPoints = VK_FALSE,
         };
         SetNext(next, dynamic_state_2);
     } else {
@@ -587,8 +588,14 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         dynamic_state_3 = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_FEATURES_EXT,
             .pNext = nullptr,
+            .extendedDynamicState3TessellationDomainOrigin = VK_FALSE,
             .extendedDynamicState3DepthClampEnable =
                 ext_extended_dynamic_state_3_enables ? VK_TRUE : VK_FALSE,
+            .extendedDynamicState3PolygonMode = VK_FALSE,
+            .extendedDynamicState3RasterizationSamples = VK_FALSE,
+            .extendedDynamicState3SampleMask = VK_FALSE,
+            .extendedDynamicState3AlphaToCoverageEnable = VK_FALSE,
+            .extendedDynamicState3AlphaToOneEnable = VK_FALSE,
             .extendedDynamicState3LogicOpEnable =
                 ext_extended_dynamic_state_3_enables ? VK_TRUE : VK_FALSE,
             .extendedDynamicState3ColorBlendEnable =
@@ -597,6 +604,26 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
                 ext_extended_dynamic_state_3_blend ? VK_TRUE : VK_FALSE,
             .extendedDynamicState3ColorWriteMask =
                 ext_extended_dynamic_state_3_blend ? VK_TRUE : VK_FALSE,
+            .extendedDynamicState3RasterizationStream = VK_FALSE,
+            .extendedDynamicState3ConservativeRasterizationMode = VK_FALSE,
+            .extendedDynamicState3ExtraPrimitiveOverestimationSize = VK_FALSE,
+            .extendedDynamicState3DepthClipEnable = VK_FALSE,
+            .extendedDynamicState3SampleLocationsEnable = VK_FALSE,
+            .extendedDynamicState3ColorBlendAdvanced = VK_FALSE,
+            .extendedDynamicState3ProvokingVertexMode = VK_FALSE,
+            .extendedDynamicState3LineRasterizationMode = VK_FALSE,
+            .extendedDynamicState3LineStippleEnable = VK_FALSE,
+            .extendedDynamicState3DepthClipNegativeOneToOne = VK_FALSE,
+            .extendedDynamicState3ViewportWScalingEnable = VK_FALSE,
+            .extendedDynamicState3ViewportSwizzle = VK_FALSE,
+            .extendedDynamicState3CoverageToColorEnable = VK_FALSE,
+            .extendedDynamicState3CoverageToColorLocation = VK_FALSE,
+            .extendedDynamicState3CoverageModulationMode = VK_FALSE,
+            .extendedDynamicState3CoverageModulationTableEnable = VK_FALSE,
+            .extendedDynamicState3CoverageModulationTable = VK_FALSE,
+            .extendedDynamicState3CoverageReductionMode = VK_FALSE,
+            .extendedDynamicState3RepresentativeFragmentTestEnable = VK_FALSE,
+            .extendedDynamicState3ShadingRateImageEnable = VK_FALSE,
         };
         SetNext(next, dynamic_state_3);
     } else {

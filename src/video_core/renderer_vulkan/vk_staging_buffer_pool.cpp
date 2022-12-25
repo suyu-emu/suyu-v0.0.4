@@ -199,6 +199,9 @@ StagingBufferRef StagingBufferPool::GetStreamBuffer(size_t size) {
         .buffer = *stream_buffer,
         .offset = static_cast<VkDeviceSize>(offset),
         .mapped_span = std::span<u8>(stream_pointer + offset, size),
+        .usage{},
+        .log2_level{},
+        .index{},
     };
 }
 
