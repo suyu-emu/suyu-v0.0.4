@@ -459,23 +459,23 @@ SerialNumber JoyconDriver::GetHandleSerialNumber() const {
     return handle_serial_number;
 }
 
-void JoyconDriver::SetCallbacks(const Joycon::JoyconCallbacks& callbacks) {
+void JoyconDriver::SetCallbacks(const JoyconCallbacks& callbacks) {
     joycon_poller->SetCallbacks(callbacks);
 }
 
-Joycon::DriverResult JoyconDriver::GetDeviceType(SDL_hid_device_info* device_info,
-                                                 ControllerType& controller_type) {
-    static constexpr std::array<std::pair<u32, Joycon::ControllerType>, 4> supported_devices{
-        std::pair<u32, Joycon::ControllerType>{0x2006, Joycon::ControllerType::Left},
-        {0x2007, Joycon::ControllerType::Right},
-        {0x2009, Joycon::ControllerType::Pro},
-        {0x200E, Joycon::ControllerType::Grip},
+DriverResult JoyconDriver::GetDeviceType(SDL_hid_device_info* device_info,
+                                         ControllerType& controller_type) {
+    static constexpr std::array<std::pair<u32, ControllerType>, 4> supported_devices{
+        std::pair<u32, ControllerType>{0x2006, ControllerType::Left},
+        {0x2007, ControllerType::Right},
+        {0x2009, ControllerType::Pro},
+        {0x200E, ControllerType::Grip},
     };
     constexpr u16 nintendo_vendor_id = 0x057e;
 
-    controller_type = Joycon::ControllerType::None;
+    controller_type = ControllerType::None;
     if (device_info->vendor_id != nintendo_vendor_id) {
-        return Joycon::DriverResult::UnsupportedControllerType;
+        return DriverResult::UnsupportedControllerType;
     }
 
     for (const auto& [product_id, type] : supported_devices) {
@@ -487,10 +487,10 @@ Joycon::DriverResult JoyconDriver::GetDeviceType(SDL_hid_device_info* device_inf
     return Joycon::DriverResult::UnsupportedControllerType;
 }
 
-Joycon::DriverResult JoyconDriver::GetSerialNumber(SDL_hid_device_info* device_info,
-                                                   Joycon::SerialNumber& serial_number) {
+DriverResult JoyconDriver::GetSerialNumber(SDL_hid_device_info* device_info,
+                                           SerialNumber& serial_number) {
     if (device_info->serial_number == nullptr) {
-        return Joycon::DriverResult::Unknown;
+        return DriverResult::Unknown;
     }
     std::memcpy(&serial_number, device_info->serial_number, 15);
     return Joycon::DriverResult::Success;

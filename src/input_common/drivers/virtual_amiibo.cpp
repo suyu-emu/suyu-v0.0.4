@@ -22,7 +22,7 @@ VirtualAmiibo::VirtualAmiibo(std::string input_engine_) : InputEngine(std::move(
 
 VirtualAmiibo::~VirtualAmiibo() = default;
 
-Common::Input::PollingError VirtualAmiibo::SetPollingMode(
+Common::Input::DriverResult VirtualAmiibo::SetPollingMode(
     [[maybe_unused]] const PadIdentifier& identifier_,
     const Common::Input::PollingMode polling_mode_) {
     polling_mode = polling_mode_;
@@ -37,7 +37,7 @@ Common::Input::PollingError VirtualAmiibo::SetPollingMode(
         }
     }
 
-    return Common::Input::PollingError::None;
+    return Common::Input::DriverResult::Success;
 }
 
 Common::Input::NfcState VirtualAmiibo::SupportsNfc(
