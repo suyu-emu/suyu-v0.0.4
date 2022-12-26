@@ -27,17 +27,18 @@ Common::Input::DriverResult VirtualAmiibo::SetPollingMode(
     const Common::Input::PollingMode polling_mode_) {
     polling_mode = polling_mode_;
 
-    if (polling_mode == Common::Input::PollingMode::NFC) {
+    switch (polling_mode) {
+    case Common::Input::PollingMode::NFC:
         if (state == State::Initialized) {
             state = State::WaitingForAmiibo;
         }
-    } else {
+        return Common::Input::DriverResult::Success;
+    default:
         if (state == State::AmiiboIsOpen) {
             CloseAmiibo();
         }
+        return Common::Input::DriverResult::NotSupported;
     }
-
-    return Common::Input::DriverResult::Success;
 }
 
 Common::Input::NfcState VirtualAmiibo::SupportsNfc(

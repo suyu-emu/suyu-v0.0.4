@@ -238,7 +238,7 @@ void JoyconDriver::OnNewData(std::span<u8> buffer) {
     }
 }
 
-void JoyconDriver::SetPollingMode() {
+DriverResult JoyconDriver::SetPollingMode() {
     disable_input_thread = true;
 
     rumble_protocol->EnableRumble(vibration_enabled && supported_features.vibration);
@@ -263,7 +263,7 @@ void JoyconDriver::SetPollingMode() {
         }
         if (result == DriverResult::Success) {
             disable_input_thread = false;
-            return;
+            return result;
         }
         nfc_protocol->DisableNfc();
         LOG_ERROR(Input, "Error enabling NFC");
@@ -282,7 +282,7 @@ void JoyconDriver::SetPollingMode() {
         if (result == DriverResult::Success) {
             ring_connected = true;
             disable_input_thread = false;
-            return;
+            return result;
         }
         ring_connected = false;
         ring_protocol->DisableRingCon();
@@ -293,7 +293,7 @@ void JoyconDriver::SetPollingMode() {
         const auto result = generic_protocol->EnablePassiveMode();
         if (result == DriverResult::Success) {
             disable_input_thread = false;
-            return;
+            return result;
         }
         LOG_ERROR(Input, "Error enabling passive mode");
     }
@@ -305,6 +305,7 @@ void JoyconDriver::SetPollingMode() {
     }
 
     disable_input_thread = false;
+    return result;
 }
 
 JoyconDriver::SupportedFeatures JoyconDriver::GetSupportedFeatures() {
@@ -380,8 +381,7 @@ DriverResult JoyconDriver::SetPasiveMode() {
     hidbus_enabled = false;
     nfc_enabled = false;
     passive_enabled = true;
-    SetPollingMode();
-    return DriverResult::Success;
+    return SetPollingMode();
 }
 
 DriverResult JoyconDriver::SetActiveMode() {
@@ -390,28 +390,42 @@ DriverResult JoyconDriver::SetActiveMode() {
     hidbus_enabled = false;
     nfc_enabled = false;
     passive_enabled = false;
-    SetPollingMode();
-    return DriverResult::Success;
+    return SetPollingMode();
 }
 
 DriverResult JoyconDriver::SetNfcMode() {
     std::scoped_lock lock{mutex};
+
+    if (!supported_features.nfc) {
+        return DriverResult::NotSupported;
+    }
+
     motion_enabled = true;
     hidbus_enabled = false;
     nfc_enabled = true;
     passive_enabled = false;
-    SetPollingMode();
-    return DriverResult::Success;
+    return SetPollingMode();
 }
 
 DriverResult JoyconDriver::SetRingConMode() {
     std::scoped_lock lock{mutex};
+
+    if (!supported_features.hidbus) {
+        return DriverResult::NotSupported;
+    }
+
     motion_enabled = true;
     hidbus_enabled = true;
     nfc_enabled = false;
     passive_enabled = false;
-    SetPollingMode();
-    return DriverResult::Success;
+
+    const auto result = SetPollingMode();
+
+    if (!ring_connected) {
+        return DriverResult::NoDeviceDetected;
+    }
+
+    return result;
 }
 
 bool JoyconDriver::IsConnected() const {

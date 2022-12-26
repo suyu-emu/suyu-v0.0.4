@@ -73,7 +73,7 @@ private:
     void OnNewData(std::span<u8> buffer);
 
     /// Updates device configuration to enable or disable features
-    void SetPollingMode();
+    DriverResult SetPollingMode();
 
     /// Returns true if input thread is valid and doesn't need to be stopped
     bool IsInputThreadValid() const;
