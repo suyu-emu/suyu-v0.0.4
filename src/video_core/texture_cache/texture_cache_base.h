@@ -17,6 +17,7 @@
 #include "common/literals.h"
 #include "common/lru_cache.h"
 #include "common/polyfill_ranges.h"
+#include "common/scratch_buffer.h"
 #include "video_core/compatible_formats.h"
 #include "video_core/control/channel_state_cache.h"
 #include "video_core/delayed_destruction_ring.h"
@@ -368,7 +369,7 @@ private:
     void InvalidateScale(Image& image);
     bool ScaleUp(Image& image);
     bool ScaleDown(Image& image);
-    u64 GetScaledImageSizeBytes(ImageBase& image);
+    u64 GetScaledImageSizeBytes(const ImageBase& image);
 
     Runtime& runtime;
 
@@ -416,6 +417,9 @@ private:
     DelayedDestructionRing<Framebuffer, TICKS_TO_DESTROY> sentenced_framebuffers;
 
     std::unordered_map<GPUVAddr, ImageAllocId> image_allocs_table;
+
+    Common::ScratchBuffer<u8> swizzle_data_buffer;
+    Common::ScratchBuffer<u8> unswizzle_data_buffer;
 
     u64 modification_tick = 0;
     u64 frame_tick = 0;
