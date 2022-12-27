@@ -2711,7 +2711,7 @@ public:
                 u32 post_z_pixel_imask;                                                ///< 0x0F1C
                 INSERT_PADDING_BYTES_NOINIT(0x20);
                 ConstantColorRendering const_color_rendering;                          ///< 0x0F40
-                s32 stencil_back_ref;                                                  ///< 0x0F54
+                u32 stencil_back_ref;                                                  ///< 0x0F54
                 u32 stencil_back_mask;                                                 ///< 0x0F58
                 u32 stencil_back_func_mask;                                            ///< 0x0F5C
                 INSERT_PADDING_BYTES_NOINIT(0x14);
@@ -2835,9 +2835,9 @@ public:
                 Blend blend;                                                           ///< 0x133C
                 u32 stencil_enable;                                                    ///< 0x1380
                 StencilOp stencil_front_op;                                            ///< 0x1384
-                s32 stencil_front_ref;                                                 ///< 0x1394
-                s32 stencil_front_func_mask;                                           ///< 0x1398
-                s32 stencil_front_mask;                                                ///< 0x139C
+                u32 stencil_front_ref;                                                 ///< 0x1394
+                u32 stencil_front_func_mask;                                           ///< 0x1398
+                u32 stencil_front_mask;                                                ///< 0x139C
                 INSERT_PADDING_BYTES_NOINIT(0x4);
                 u32 draw_auto_start_byte_count;                                        ///< 0x13A4
                 PsSaturate frag_color_clamp;                                           ///< 0x13A8
