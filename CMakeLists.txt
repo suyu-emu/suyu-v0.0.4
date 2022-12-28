@@ -47,6 +47,8 @@ option(YUZU_TESTS "Compile tests" ON)
 
 option(YUZU_USE_PRECOMPILED_HEADERS "Use precompiled headers" ON)
 
+option(YUZU_ROOM "Compile LDN room server" ON)
+
 CMAKE_DEPENDENT_OPTION(YUZU_CRASH_DUMPS "Compile Windows crash dump (Minidump) support" OFF "WIN32" OFF)
 
 option(YUZU_USE_BUNDLED_VCPKG "Use vcpkg for yuzu dependencies" "${MSVC}")
