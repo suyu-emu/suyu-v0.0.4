@@ -215,24 +215,24 @@ find_package(ZLIB 1.2 REQUIRED)
 find_package(zstd 1.5 REQUIRED)
 
 if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
-    find_package(xbyak 6)
+    find_package(xbyak 6 QUIET)
 endif()
 
 if (ARCHITECTURE_x86_64 OR ARCHITECTURE_arm64)
-    find_package(dynarmic 6.4.0)
+    find_package(dynarmic 6.4.0 QUIET)
 endif()
 
 if (ENABLE_CUBEB)
-    find_package(cubeb)
+    find_package(cubeb QUIET)
 endif()
 
 if (USE_DISCORD_PRESENCE)
-    find_package(DiscordRPC)
+    find_package(DiscordRPC QUIET)
 endif()
 
 if (ENABLE_WEB_SERVICE)
-    find_package(cpp-jwt 1.4)
-    find_package(httplib 0.11)
+    find_package(cpp-jwt 1.4 QUIET)
+    find_package(httplib 0.11 QUIET)
 endif()
 
 if (YUZU_TESTS)
