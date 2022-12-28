@@ -18,7 +18,7 @@
 
 namespace InputCommon::Joycon {
 constexpr u32 MaxErrorCount = 50;
-constexpr u32 MaxBufferSize = 60;
+constexpr u32 MaxBufferSize = 368;
 constexpr u32 MaxResponseSize = 49;
 constexpr u32 MaxSubCommandResponseSize = 64;
 constexpr std::array<u8, 8> DefaultVibrationBuffer{0x0, 0x1, 0x40, 0x40, 0x0, 0x1, 0x40, 0x40};
@@ -273,6 +273,80 @@ enum class NFCTagType : u8 {
     Ntag215 = 0x01,
 };
 
+enum class IrsMode : u8 {
+    None = 0x02,
+    Moment = 0x03,
+    Dpd = 0x04,
+    Clustering = 0x06,
+    ImageTransfer = 0x07,
+    Silhouette = 0x08,
+    TeraImage = 0x09,
+    SilhouetteTeraImage = 0x0A,
+};
+
+enum class IrsResolution {
+    Size320x240,
+    Size160x120,
+    Size80x60,
+    Size40x30,
+    Size20x15,
+    None,
+};
+
+enum class IrsResolutionCode : u8 {
+    Size320x240 = 0x00, // Full pixel array
+    Size160x120 = 0x50, // Sensor Binning [2 X 2]
+    Size80x60 = 0x64,   // Sensor Binning [4 x 2] and Skipping [1 x 2]
+    Size40x30 = 0x69,   // Sensor Binning [4 x 2] and Skipping [2 x 4]
+    Size20x15 = 0x6A,   // Sensor Binning [4 x 2] and Skipping [4 x 4]
+};
+
+// Size of image divided by 300
+enum class IrsFragments : u8 {
+    Size20x15 = 0x00,
+    Size40x30 = 0x03,
+    Size80x60 = 0x0f,
+    Size160x120 = 0x3f,
+    Size320x240 = 0xFF,
+};
+
+enum class IrLeds : u8 {
+    BrightAndDim = 0x00,
+    Bright = 0x20,
+    Dim = 0x10,
+    None = 0x30,
+};
+
+enum class IrExLedFilter : u8 {
+    Disabled = 0x00,
+    Enabled = 0x03,
+};
+
+enum class IrImageFlip : u8 {
+    Normal = 0x00,
+    Inverted = 0x02,
+};
+
+enum class IrRegistersAddress : u16 {
+    UpdateTime = 0x0400,
+    FinalizeConfig = 0x0700,
+    LedFilter = 0x0e00,
+    Leds = 0x1000,
+    LedIntensitiyMSB = 0x1100,
+    LedIntensitiyLSB = 0x1200,
+    ImageFlip = 0x2d00,
+    Resolution = 0x2e00,
+    DigitalGainLSB = 0x2e01,
+    DigitalGainMSB = 0x2f01,
+    ExposureLSB = 0x3001,
+    ExposureMSB = 0x3101,
+    ExposureTime = 0x3201,
+    WhitePixelThreshold = 0x4301,
+    DenoiseSmoothing = 0x6701,
+    DenoiseEdge = 0x6801,
+    DenoiseColor = 0x6901,
+};
+
 enum class DriverResult {
     Success,
     WrongReply,
@@ -456,6 +530,36 @@ struct NFCRequestState {
 };
 static_assert(sizeof(NFCRequestState) == 0x26, "NFCRequestState is an invalid size");
 
+struct IrsConfigure {
+    MCUCommand command;
+    MCUSubCommand sub_command;
+    IrsMode irs_mode;
+    IrsFragments number_of_fragments;
+    u16 mcu_major_version;
+    u16 mcu_minor_version;
+    INSERT_PADDING_BYTES(0x1D);
+    u8 crc;
+};
+static_assert(sizeof(IrsConfigure) == 0x26, "IrsConfigure is an invalid size");
+
+#pragma pack(push, 1)
+struct IrsRegister {
+    IrRegistersAddress address;
+    u8 value;
+};
+static_assert(sizeof(IrsRegister) == 0x3, "IrsRegister is an invalid size");
+
+struct IrsWriteRegisters {
+    MCUCommand command;
+    MCUSubCommand sub_command;
+    u8 number_of_registers;
+    std::array<IrsRegister, 9> registers;
+    INSERT_PADDING_BYTES(0x7);
+    u8 crc;
+};
+static_assert(sizeof(IrsWriteRegisters) == 0x26, "IrsWriteRegisters is an invalid size");
+#pragma pack(pop)
+
 struct FirmwareVersion {
     u8 major;
     u8 minor;
@@ -490,6 +594,7 @@ struct JoyconCallbacks {
     std::function<void(int, const MotionData&)> on_motion_data;
     std::function<void(f32)> on_ring_data;
     std::function<void(const std::vector<u8>&)> on_amiibo_data;
+    std::function<void(const std::vector<u8>&, IrsResolution)> on_camera_data;
 };
 
 } // namespace InputCommon::Joycon

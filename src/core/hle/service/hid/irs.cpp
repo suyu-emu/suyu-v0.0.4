@@ -74,6 +74,8 @@ void IRS::DeactivateIrsensor(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_IRS, "(STUBBED) called, applet_resource_user_id={}",
                 applet_resource_user_id);
 
+    npad_device->SetPollingMode(Common::Input::PollingMode::Active);
+
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
 }
@@ -108,6 +110,7 @@ void IRS::StopImageProcessor(Kernel::HLERequestContext& ctx) {
     auto result = IsIrCameraHandleValid(parameters.camera_handle);
     if (result.IsSuccess()) {
         // TODO: Stop Image processor
+        npad_device->SetPollingMode(Common::Input::PollingMode::Active);
         result = ResultSuccess;
     }
 
@@ -139,6 +142,7 @@ void IRS::RunMomentProcessor(Kernel::HLERequestContext& ctx) {
         MakeProcessor<MomentProcessor>(parameters.camera_handle, device);
         auto& image_transfer_processor = GetProcessor<MomentProcessor>(parameters.camera_handle);
         image_transfer_processor.SetConfig(parameters.processor_config);
+        npad_device->SetPollingMode(Common::Input::PollingMode::IR);
     }
 
     IPC::ResponseBuilder rb{ctx, 2};
@@ -170,6 +174,7 @@ void IRS::RunClusteringProcessor(Kernel::HLERequestContext& ctx) {
         auto& image_transfer_processor =
             GetProcessor<ClusteringProcessor>(parameters.camera_handle);
         image_transfer_processor.SetConfig(parameters.processor_config);
+        npad_device->SetPollingMode(Common::Input::PollingMode::IR);
     }
 
     IPC::ResponseBuilder rb{ctx, 2};
@@ -219,6 +224,7 @@ void IRS::RunImageTransferProcessor(Kernel::HLERequestContext& ctx) {
             GetProcessor<ImageTransferProcessor>(parameters.camera_handle);
         image_transfer_processor.SetConfig(parameters.processor_config);
         image_transfer_processor.SetTransferMemoryPointer(transfer_memory);
+        npad_device->SetPollingMode(Common::Input::PollingMode::IR);
     }
 
     IPC::ResponseBuilder rb{ctx, 2};
@@ -294,6 +300,7 @@ void IRS::RunTeraPluginProcessor(Kernel::HLERequestContext& ctx) {
         auto& image_transfer_processor =
             GetProcessor<TeraPluginProcessor>(parameters.camera_handle);
         image_transfer_processor.SetConfig(parameters.processor_config);
+        npad_device->SetPollingMode(Common::Input::PollingMode::IR);
     }
 
     IPC::ResponseBuilder rb{ctx, 2};
@@ -343,6 +350,7 @@ void IRS::RunPointingProcessor(Kernel::HLERequestContext& ctx) {
         MakeProcessor<PointingProcessor>(camera_handle, device);
         auto& image_transfer_processor = GetProcessor<PointingProcessor>(camera_handle);
         image_transfer_processor.SetConfig(processor_config);
+        npad_device->SetPollingMode(Common::Input::PollingMode::IR);
     }
 
     IPC::ResponseBuilder rb{ctx, 2};
@@ -453,6 +461,7 @@ void IRS::RunImageTransferExProcessor(Kernel::HLERequestContext& ctx) {
             GetProcessor<ImageTransferProcessor>(parameters.camera_handle);
         image_transfer_processor.SetConfig(parameters.processor_config);
         image_transfer_processor.SetTransferMemoryPointer(transfer_memory);
+        npad_device->SetPollingMode(Common::Input::PollingMode::IR);
     }
 
     IPC::ResponseBuilder rb{ctx, 2};
@@ -479,6 +488,7 @@ void IRS::RunIrLedProcessor(Kernel::HLERequestContext& ctx) {
         MakeProcessor<IrLedProcessor>(camera_handle, device);
         auto& image_transfer_processor = GetProcessor<IrLedProcessor>(camera_handle);
         image_transfer_processor.SetConfig(processor_config);
+        npad_device->SetPollingMode(Common::Input::PollingMode::IR);
     }
 
     IPC::ResponseBuilder rb{ctx, 2};
@@ -504,6 +514,7 @@ void IRS::StopImageProcessorAsync(Kernel::HLERequestContext& ctx) {
     auto result = IsIrCameraHandleValid(parameters.camera_handle);
     if (result.IsSuccess()) {
         // TODO: Stop image processor async
+        npad_device->SetPollingMode(Common::Input::PollingMode::IR);
         result = ResultSuccess;
     }
 
