@@ -25,7 +25,7 @@ constexpr std::array<u32, 7> LOCALE_BLOCKLIST{
 };
 
 static bool IsValidLocale(u32 region_index, u32 language_index) {
-    return ((LOCALE_BLOCKLIST[region_index] >> language_index) & 1) == 0;
+    return ((LOCALE_BLOCKLIST.at(region_index) >> language_index) & 1) == 0;
 }
 
 ConfigureSystem::ConfigureSystem(Core::System& system_, QWidget* parent)
