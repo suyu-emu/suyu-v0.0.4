@@ -152,6 +152,6 @@ if (YUZU_USE_BUNDLED_FFMPEG)
 endif()
 
 # Vulkan-Headers
-if (NOT TARGET Vulkan::Headers)
+if (YUZU_USE_EXTERNAL_VULKAN_HEADERS)
     add_subdirectory(Vulkan-Headers EXCLUDE_FROM_ALL)
 endif()
