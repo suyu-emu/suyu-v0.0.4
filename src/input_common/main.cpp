@@ -5,7 +5,6 @@
 #include "common/input.h"
 #include "common/param_package.h"
 #include "input_common/drivers/camera.h"
-#include "input_common/drivers/gc_adapter.h"
 #include "input_common/drivers/keyboard.h"
 #include "input_common/drivers/mouse.h"
 #include "input_common/drivers/tas_input.h"
@@ -19,6 +18,10 @@
 #include "input_common/input_mapping.h"
 #include "input_common/input_poller.h"
 #include "input_common/main.h"
+
+#ifdef HAVE_LIBUSB
+#include "input_common/drivers/gc_adapter.h"
+#endif
 #ifdef HAVE_SDL2
 #include "input_common/drivers/sdl_driver.h"
 #endif
@@ -45,7 +48,9 @@ struct InputSubsystem::Impl {
         RegisterEngine("keyboard", keyboard);
         RegisterEngine("mouse", mouse);
         RegisterEngine("touch", touch_screen);
+#ifdef HAVE_LIBUSB
         RegisterEngine("gcpad", gcadapter);
+#endif
         RegisterEngine("cemuhookudp", udp_client);
         RegisterEngine("tas", tas_input);
         RegisterEngine("camera", camera);
@@ -72,7 +77,9 @@ struct InputSubsystem::Impl {
         UnregisterEngine(keyboard);
         UnregisterEngine(mouse);
         UnregisterEngine(touch_screen);
+#ifdef HAVE_LIBUSB
         UnregisterEngine(gcadapter);
+#endif
         UnregisterEngine(udp_client);
         UnregisterEngine(tas_input);
         UnregisterEngine(camera);
@@ -95,8 +102,10 @@ struct InputSubsystem::Impl {
         devices.insert(devices.end(), keyboard_devices.begin(), keyboard_devices.end());
         auto mouse_devices = mouse->GetInputDevices();
         devices.insert(devices.end(), mouse_devices.begin(), mouse_devices.end());
+#ifdef HAVE_LIBUSB
         auto gcadapter_devices = gcadapter->GetInputDevices();
         devices.insert(devices.end(), gcadapter_devices.begin(), gcadapter_devices.end());
+#endif
         auto udp_devices = udp_client->GetInputDevices();
         devices.insert(devices.end(), udp_devices.begin(), udp_devices.end());
 #ifdef HAVE_SDL2
@@ -119,9 +128,11 @@ struct InputSubsystem::Impl {
         if (engine == mouse->GetEngineName()) {
             return mouse;
         }
+#ifdef HAVE_LIBUSB
         if (engine == gcadapter->GetEngineName()) {
             return gcadapter;
         }
+#endif
         if (engine == udp_client->GetEngineName()) {
             return udp_client;
         }
@@ -194,9 +205,11 @@ struct InputSubsystem::Impl {
         if (engine == mouse->GetEngineName()) {
             return true;
         }
+#ifdef HAVE_LIBUSB
         if (engine == gcadapter->GetEngineName()) {
             return true;
         }
+#endif
         if (engine == udp_client->GetEngineName()) {
             return true;
         }
@@ -217,7 +230,9 @@ struct InputSubsystem::Impl {
     void BeginConfiguration() {
         keyboard->BeginConfiguration();
         mouse->BeginConfiguration();
+#ifdef HAVE_LIBUSB
         gcadapter->BeginConfiguration();
+#endif
         udp_client->BeginConfiguration();
 #ifdef HAVE_SDL2
         sdl->BeginConfiguration();
@@ -227,7 +242,9 @@ struct InputSubsystem::Impl {
     void EndConfiguration() {
         keyboard->EndConfiguration();
         mouse->EndConfiguration();
+#ifdef HAVE_LIBUSB
         gcadapter->EndConfiguration();
+#endif
         udp_client->EndConfiguration();
 #ifdef HAVE_SDL2
         sdl->EndConfiguration();
@@ -248,13 +265,16 @@ struct InputSubsystem::Impl {
 
     std::shared_ptr<Keyboard> keyboard;
     std::shared_ptr<Mouse> mouse;
-    std::shared_ptr<GCAdapter> gcadapter;
     std::shared_ptr<TouchScreen> touch_screen;
     std::shared_ptr<TasInput::Tas> tas_input;
     std::shared_ptr<CemuhookUDP::UDPClient> udp_client;
     std::shared_ptr<Camera> camera;
     std::shared_ptr<VirtualAmiibo> virtual_amiibo;
     std::shared_ptr<VirtualGamepad> virtual_gamepad;
+
+#ifdef HAVE_LIBUSB
+    std::shared_ptr<GCAdapter> gcadapter;
+#endif
 
 #ifdef HAVE_SDL2
     std::shared_ptr<SDLDriver> sdl;
