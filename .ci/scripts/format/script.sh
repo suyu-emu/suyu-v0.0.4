@@ -10,7 +10,7 @@ if grep -nrI '\s$' src *.yml *.txt *.md Doxyfile .gitignore .gitmodules .ci* dis
 fi
 
 # Default clang-format points to default 3.5 version one
-CLANG_FORMAT=clang-format-12
+CLANG_FORMAT=${CLANG_FORMAT:-clang-format-12}
 $CLANG_FORMAT --version
 
 if [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]; then
