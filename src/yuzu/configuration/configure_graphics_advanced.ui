@@ -112,10 +112,10 @@
         <item>
          <widget class="QCheckBox" name="use_vulkan_driver_pipeline_cache">
           <property name="toolTip">
-            <string>Enables GPU vendor-specific pipeline cache. This option can improve shader loading time significantly in cases where the Vulkan driver does not store pipeline cache files automatically.</string>
+            <string>Enables GPU vendor-specific pipeline cache. This option can improve shader loading time significantly in cases where the Vulkan driver does not store pipeline cache files internally.</string>
           </property>
           <property name="text">
-           <string>Use Vulkan pipeline cache (Hack)</string>
+           <string>Use Vulkan pipeline cache</string>
           </property>
          </widget>
         </item>
