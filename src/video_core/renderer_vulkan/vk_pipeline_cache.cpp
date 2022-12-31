@@ -365,7 +365,7 @@ PipelineCache::PipelineCache(RasterizerVulkan& rasterizer_, const Device& device
 }
 
 PipelineCache::~PipelineCache() {
-    if (use_vulkan_pipeline_cache) {
+    if (use_vulkan_pipeline_cache && !vulkan_pipeline_cache_filename.empty()) {
         SerializeVulkanPipelineCache(vulkan_pipeline_cache_filename, vulkan_pipeline_cache);
     }
 }
