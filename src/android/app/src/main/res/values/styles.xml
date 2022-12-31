@@ -1,16 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Custom button styles -->
+    <style name="InGameMenuOption" parent="Widget.Material3.Button.TextButton">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:gravity">center_vertical|left</item>
+        <item name="android:paddingLeft">32dp</item>
+        <item name="android:paddingRight">32dp</item>
+    </style>
 
     <!-- Inherit from the material theme -->
-    <style name="CitraBase" parent="Theme.AppCompat.DayNight.NoActionBar">
+    <style name="YuzuBase" parent="Theme.AppCompat.DayNight.NoActionBar">
         <!-- Main theme colors -->
+        <item name="colorSurface">@color/view_background</item>
+        <item name="colorOnSurface">@color/view_text</item>
         <!-- Branding color for the app bar -->
         <item name="colorPrimary">@color/citra_orange</item>
         <!-- Darker variant for the status bar and contextual app bars -->
         <item name="colorPrimaryDark">@color/citra_orange_dark</item>
         <item name="colorAccent">@color/citra_accent</item>
 
-        <item name="titleTextColor">@color/citra_logo_text_color</item>
+        <item name="titleTextColor">@color/yuzu_logo_text_color</item>
 
         <!-- Enable window content transitions -->
         <item name="android:windowContentTransitions">true</item>
@@ -21,20 +34,26 @@
     </style>
 
     <!-- Same as above, but use default action bar, and mandate margins. -->
-    <style name="CitraSettingsBase" parent="Theme.AppCompat.DayNight">
+    <style name="YuzuSettingsBase" parent="Theme.AppCompat.DayNight">
+        <item name="colorSurface">@color/view_background</item>
+        <item name="colorOnSurface">@color/view_text</item>
         <item name="colorPrimary">@color/citra_orange</item>
         <item name="colorPrimaryDark">@color/citra_orange_dark</item>
         <item name="colorAccent">@color/citra_accent</item>
     </style>
 
     <!-- Inherit from the Base Citra Dialog Theme -->
-    <style name="CitraEmulationBase" parent="Theme.AppCompat.DayNight">
+    <style name="YuzuEmulationBase" parent="Theme.AppCompat.DayNight">
+        <item name="colorSurface">@color/view_background</item>
+        <item name="colorOnSurface">@color/view_text</item>
         <item name="colorPrimary">@color/citra_orange</item>
         <item name="colorPrimaryDark">@color/citra_orange_dark</item>
         <item name="colorAccent">@color/citra_accent</item>
         <item name="android:windowTranslucentNavigation">true</item>
-
         <item name="android:windowBackground">@android:color/black</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
 
         <!-- Enable window content transitions -->
         <item name="android:windowContentTransitions">true</item>
@@ -44,10 +63,12 @@
 
     <!-- Inherit from a base file picker theme that handles day/night -->
     <style name="FilePickerTheme" parent="FilePickerBaseTheme">
+        <item name="colorSurface">@color/view_background</item>
+        <item name="colorOnSurface">@color/view_text</item>
         <item name="colorPrimary">@color/citra_orange</item>
         <item name="colorPrimaryDark">@color/citra_orange_dark</item>
         <item name="colorAccent">@color/citra_accent</item>
-        <item name="android:windowBackground">@color/card_view_background</item>
+        <item name="android:windowBackground">@color/view_background</item>
 
         <!-- Need to set this also to style create folder dialog -->
         <item name="alertDialogTheme">@style/FilePickerAlertDialogTheme</item>
@@ -57,9 +78,15 @@
     </style>
 
     <style name="FilePickerAlertDialogTheme" parent="Theme.AppCompat.DayNight.Dialog.Alert">
+        <item name="colorSurface">@color/view_background</item>
+        <item name="colorOnSurface">@color/view_text</item>
         <item name="colorPrimary">@color/citra_orange</item>
         <item name="colorPrimaryDark">@color/citra_orange_dark</item>
         <item name="colorAccent">@color/citra_accent</item>
     </style>
 
 </resources>
+
+
+
+

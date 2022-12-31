@@ -110,7 +110,7 @@ static Core::SystemResultStatus RunEmulation(const std::string& filepath) {
 
 extern "C" {
 
-void Java_org_citra_citra_1emu_NativeLibrary_SurfaceChanged(JNIEnv* env,
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_SurfaceChanged(JNIEnv* env,
                                                             [[maybe_unused]] jclass clazz,
                                                             jobject surf) {
     s_surf = ANativeWindow_fromSurface(env, surf);
@@ -122,7 +122,7 @@ void Java_org_citra_citra_1emu_NativeLibrary_SurfaceChanged(JNIEnv* env,
     LOG_INFO(Frontend, "surface changed");
 }
 
-void Java_org_citra_citra_1emu_NativeLibrary_SurfaceDestroyed(JNIEnv* env,
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_SurfaceDestroyed(JNIEnv* env,
                                                               [[maybe_unused]] jclass clazz) {
     ANativeWindow_release(s_surf);
     s_surf = nullptr;
@@ -131,32 +131,32 @@ void Java_org_citra_citra_1emu_NativeLibrary_SurfaceDestroyed(JNIEnv* env,
     }
 }
 
-void Java_org_citra_citra_1emu_NativeLibrary_DoFrame(JNIEnv* env, [[maybe_unused]] jclass clazz) {}
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_DoFrame(JNIEnv* env, [[maybe_unused]] jclass clazz) {}
 
-void Java_org_citra_citra_1emu_NativeLibrary_NotifyOrientationChange(JNIEnv* env,
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_NotifyOrientationChange(JNIEnv* env,
                                                                      [[maybe_unused]] jclass clazz,
                                                                      jint layout_option,
                                                                      jint rotation) {}
 
-void Java_org_citra_citra_1emu_NativeLibrary_SetUserDirectory(
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_SetUserDirectory(
     [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jclass clazz,
     [[maybe_unused]] jstring j_directory) {}
 
-void Java_org_citra_citra_1emu_NativeLibrary_UnPauseEmulation([[maybe_unused]] JNIEnv* env,
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_UnPauseEmulation([[maybe_unused]] JNIEnv* env,
                                                               [[maybe_unused]] jclass clazz) {}
 
-void Java_org_citra_citra_1emu_NativeLibrary_PauseEmulation([[maybe_unused]] JNIEnv* env,
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_PauseEmulation([[maybe_unused]] JNIEnv* env,
                                                             [[maybe_unused]] jclass clazz) {}
 
-void Java_org_citra_citra_1emu_NativeLibrary_StopEmulation([[maybe_unused]] JNIEnv* env,
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_StopEmulation([[maybe_unused]] JNIEnv* env,
                                                            [[maybe_unused]] jclass clazz) {}
 
-jboolean Java_org_citra_citra_1emu_NativeLibrary_IsRunning([[maybe_unused]] JNIEnv* env,
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_IsRunning([[maybe_unused]] JNIEnv* env,
                                                            [[maybe_unused]] jclass clazz) {
     return static_cast<jboolean>(!stop_run);
 }
 
-jboolean Java_org_citra_citra_1emu_NativeLibrary_onGamePadEvent([[maybe_unused]] JNIEnv* env,
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadEvent([[maybe_unused]] JNIEnv* env,
                                                                 [[maybe_unused]] jclass clazz,
                                                                 [[maybe_unused]] jstring j_device,
                                                                 jint j_button, jint action) {
@@ -164,7 +164,7 @@ jboolean Java_org_citra_citra_1emu_NativeLibrary_onGamePadEvent([[maybe_unused]]
     return static_cast<jboolean>(true);
 }
 
-jboolean Java_org_citra_citra_1emu_NativeLibrary_onGamePadMoveEvent([[maybe_unused]] JNIEnv* env,
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadMoveEvent([[maybe_unused]] JNIEnv* env,
                                                                     [[maybe_unused]] jclass clazz,
                                                                     jstring j_device, jint axis,
                                                                     jfloat x, jfloat y) {
@@ -183,83 +183,83 @@ jboolean Java_org_citra_citra_1emu_NativeLibrary_onGamePadMoveEvent([[maybe_unus
     return static_cast<jboolean>(false);
 }
 
-jboolean Java_org_citra_citra_1emu_NativeLibrary_onGamePadAxisEvent([[maybe_unused]] JNIEnv* env,
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadAxisEvent([[maybe_unused]] JNIEnv* env,
                                                                     [[maybe_unused]] jclass clazz,
                                                                     jstring j_device, jint axis_id,
                                                                     jfloat axis_val) {
     return {};
 }
 
-jboolean Java_org_citra_citra_1emu_NativeLibrary_onTouchEvent([[maybe_unused]] JNIEnv* env,
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchEvent([[maybe_unused]] JNIEnv* env,
                                                               [[maybe_unused]] jclass clazz,
                                                               jfloat x, jfloat y,
                                                               jboolean pressed) {
     return static_cast<jboolean>(emu_window->OnTouchEvent(x, y, pressed));
 }
 
-void Java_org_citra_citra_1emu_NativeLibrary_onTouchMoved([[maybe_unused]] JNIEnv* env,
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchMoved([[maybe_unused]] JNIEnv* env,
                                                           [[maybe_unused]] jclass clazz, jfloat x,
                                                           jfloat y) {
     emu_window->OnTouchMoved(x, y);
 }
 
-jintArray Java_org_citra_citra_1emu_NativeLibrary_GetIcon([[maybe_unused]] JNIEnv* env,
+jintArray Java_org_yuzu_yuzu_1emu_NativeLibrary_GetIcon([[maybe_unused]] JNIEnv* env,
                                                           [[maybe_unused]] jclass clazz,
                                                           [[maybe_unused]] jstring j_file) {
     return {};
 }
 
-jstring Java_org_citra_citra_1emu_NativeLibrary_GetTitle([[maybe_unused]] JNIEnv* env,
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_GetTitle([[maybe_unused]] JNIEnv* env,
                                                          [[maybe_unused]] jclass clazz,
                                                          [[maybe_unused]] jstring j_filename) {
     return env->NewStringUTF("");
 }
 
-jstring Java_org_citra_citra_1emu_NativeLibrary_GetDescription([[maybe_unused]] JNIEnv* env,
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_GetDescription([[maybe_unused]] JNIEnv* env,
                                                                [[maybe_unused]] jclass clazz,
                                                                jstring j_filename) {
     return j_filename;
 }
 
-jstring Java_org_citra_citra_1emu_NativeLibrary_GetGameId([[maybe_unused]] JNIEnv* env,
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_GetGameId([[maybe_unused]] JNIEnv* env,
                                                           [[maybe_unused]] jclass clazz,
                                                           jstring j_filename) {
     return j_filename;
 }
 
-jstring Java_org_citra_citra_1emu_NativeLibrary_GetRegions([[maybe_unused]] JNIEnv* env,
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_GetRegions([[maybe_unused]] JNIEnv* env,
                                                            [[maybe_unused]] jclass clazz,
                                                            [[maybe_unused]] jstring j_filename) {
     return env->NewStringUTF("");
 }
 
-jstring Java_org_citra_citra_1emu_NativeLibrary_GetCompany([[maybe_unused]] JNIEnv* env,
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_GetCompany([[maybe_unused]] JNIEnv* env,
                                                            [[maybe_unused]] jclass clazz,
                                                            [[maybe_unused]] jstring j_filename) {
     return env->NewStringUTF("");
 }
 
-jstring Java_org_citra_citra_1emu_NativeLibrary_GetGitRevision([[maybe_unused]] JNIEnv* env,
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_GetGitRevision([[maybe_unused]] JNIEnv* env,
                                                                [[maybe_unused]] jclass clazz) {
     return {};
 }
 
-void Java_org_citra_citra_1emu_NativeLibrary_CreateConfigFile
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_CreateConfigFile
     [[maybe_unused]] (JNIEnv* env, [[maybe_unused]] jclass clazz) {}
 
-jint Java_org_citra_citra_1emu_NativeLibrary_DefaultCPUCore([[maybe_unused]] JNIEnv* env,
+jint Java_org_yuzu_yuzu_1emu_NativeLibrary_DefaultCPUCore([[maybe_unused]] JNIEnv* env,
                                                             [[maybe_unused]] jclass clazz) {
     return {};
 }
 
-void Java_org_citra_citra_1emu_NativeLibrary_Run__Ljava_lang_String_2Ljava_lang_String_2Z(
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_Run__Ljava_lang_String_2Ljava_lang_String_2Z(
     [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jclass clazz, [[maybe_unused]] jstring j_file,
     [[maybe_unused]] jstring j_savestate, [[maybe_unused]] jboolean j_delete_savestate) {}
 
-void Java_org_citra_citra_1emu_NativeLibrary_ReloadSettings([[maybe_unused]] JNIEnv* env,
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_ReloadSettings([[maybe_unused]] JNIEnv* env,
                                                             [[maybe_unused]] jclass clazz) {}
 
-jstring Java_org_citra_citra_1emu_NativeLibrary_GetUserSetting([[maybe_unused]] JNIEnv* env,
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_GetUserSetting([[maybe_unused]] JNIEnv* env,
                                                                [[maybe_unused]] jclass clazz,
                                                                jstring j_game_id, jstring j_section,
                                                                jstring j_key) {
@@ -274,7 +274,7 @@ jstring Java_org_citra_citra_1emu_NativeLibrary_GetUserSetting([[maybe_unused]] 
     return env->NewStringUTF("");
 }
 
-void Java_org_citra_citra_1emu_NativeLibrary_SetUserSetting([[maybe_unused]] JNIEnv* env,
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_SetUserSetting([[maybe_unused]] JNIEnv* env,
                                                             [[maybe_unused]] jclass clazz,
                                                             jstring j_game_id, jstring j_section,
                                                             jstring j_key, jstring j_value) {
@@ -289,7 +289,7 @@ void Java_org_citra_citra_1emu_NativeLibrary_SetUserSetting([[maybe_unused]] JNI
     env->ReleaseStringUTFChars(j_value, value.data());
 }
 
-void Java_org_citra_citra_1emu_NativeLibrary_InitGameIni([[maybe_unused]] JNIEnv* env,
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_InitGameIni([[maybe_unused]] JNIEnv* env,
                                                          [[maybe_unused]] jclass clazz,
                                                          jstring j_game_id) {
     std::string_view game_id = env->GetStringUTFChars(j_game_id, 0);
@@ -297,7 +297,7 @@ void Java_org_citra_citra_1emu_NativeLibrary_InitGameIni([[maybe_unused]] JNIEnv
     env->ReleaseStringUTFChars(j_game_id, game_id.data());
 }
 
-jdoubleArray Java_org_citra_citra_1emu_NativeLibrary_GetPerfStats([[maybe_unused]] JNIEnv* env,
+jdoubleArray Java_org_yuzu_yuzu_1emu_NativeLibrary_GetPerfStats([[maybe_unused]] JNIEnv* env,
                                                                   [[maybe_unused]] jclass clazz) {
     jdoubleArray j_stats = env->NewDoubleArray(4);
 
@@ -314,10 +314,10 @@ jdoubleArray Java_org_citra_citra_1emu_NativeLibrary_GetPerfStats([[maybe_unused
     return j_stats;
 }
 
-void Java_org_citra_citra_1emu_utils_DirectoryInitialization_SetSysDirectory(
+void Java_org_yuzu_yuzu_1emu_utils_DirectoryInitialization_SetSysDirectory(
     [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jclass clazz, jstring j_path) {}
 
-void Java_org_citra_citra_1emu_NativeLibrary_Run__Ljava_lang_String_2([[maybe_unused]] JNIEnv* env,
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_Run__Ljava_lang_String_2([[maybe_unused]] JNIEnv* env,
                                                                       [[maybe_unused]] jclass clazz,
                                                                       jstring j_path) {
     const std::string path = GetJString(env, j_path);
@@ -333,7 +333,7 @@ void Java_org_citra_citra_1emu_NativeLibrary_Run__Ljava_lang_String_2([[maybe_un
     }
 }
 
-void Java_org_citra_citra_1emu_NativeLibrary_LogDeviceInfo([[maybe_unused]] JNIEnv* env,
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_LogDeviceInfo([[maybe_unused]] JNIEnv* env,
                                                            [[maybe_unused]] jclass clazz) {
     LOG_INFO(Frontend, "yuzu Version: {}-{}", Common::g_scm_branch, Common::g_scm_desc);
     LOG_INFO(Frontend, "Host OS: Android API level {}", android_get_device_api_level());
