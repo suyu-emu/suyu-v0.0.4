@@ -344,6 +344,7 @@ PipelineCache::PipelineCache(RasterizerVulkan& rasterizer_, const Device& device
             driver_id == VK_DRIVER_ID_AMD_PROPRIETARY || driver_id == VK_DRIVER_ID_AMD_OPEN_SOURCE,
         .support_snorm_render_buffer = true,
         .support_viewport_index_layer = device.IsExtShaderViewportIndexLayerSupported(),
+        .min_ssbo_alignment = static_cast<u32>(device.GetStorageBufferAlignment()),
     };
 
     if (device.GetMaxVertexInputAttributes() < Maxwell::NumVertexAttributes) {
