@@ -345,3 +345,7 @@ endif()
 if (YUZU_ENABLE_LTO)
   set_property(TARGET video_core PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
+
+if (ANDROID)
+    target_link_libraries(video_core PRIVATE adrenotools)
+endif()

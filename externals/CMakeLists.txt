@@ -147,3 +147,7 @@ endif()
 
 add_library(stb stb/stb_dxt.cpp)
 target_include_directories(stb PUBLIC ./stb)
+
+if (ANDROID)
+   add_subdirectory(libadrenotools)
+endif()

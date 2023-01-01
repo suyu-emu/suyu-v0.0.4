@@ -18,6 +18,10 @@
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
+#ifdef ANDROID
+#include <adrenotools/bcenabler.h>
+#endif
+
 namespace Vulkan {
 using namespace Common::Literals;
 namespace {
@@ -355,6 +359,32 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
 
     CollectPhysicalMemoryInfo();
     CollectToolingInfo();
+
+#ifdef ANDROID
+    if (is_adreno) {
+        LOG_WARNING(Render_Vulkan, "Adreno drivers have broken VK_EXT_extended_dynamic_state");
+        extensions.extended_dynamic_state = false;
+        loaded_extensions.erase(VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
+
+        // Patch the driver to enable BCn textures.
+        const auto major = (properties.properties.driverVersion >> 24) << 2;
+        const auto minor = (properties.properties.driverVersion >> 12) & 0xFFFU;
+        const auto vendor = properties.properties.vendorID;
+        const auto patch_status = adrenotools_get_bcn_type(major, minor, vendor);
+
+        if (patch_status == ADRENOTOOLS_BCN_PATCH) {
+            LOG_INFO(Render_Vulkan, "Patching Adreno driver to support BCn texture formats");
+            if (!adrenotools_patch_bcn(
+                    reinterpret_cast<void*>(dld.vkGetPhysicalDeviceFormatProperties))) {
+                LOG_ERROR(Render_Vulkan, "Patch failed! Driver code may now crash");
+            }
+        } else if (patch_status == ADRENOTOOLS_BCN_BLOB) {
+            LOG_INFO(Render_Vulkan, "Adreno driver supports BCn textures without patches");
+        } else {
+            LOG_WARNING(Render_Vulkan, "Adreno driver can't be patched to enable BCn textures");
+        }
+    }
+#endif // ANDROID
 
     if (is_nvidia) {
         const u32 nv_major_version = (properties.properties.driverVersion >> 22) & 0x3ff;
