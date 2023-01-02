@@ -5,10 +5,6 @@
 # some of its variables, which is only possible in 3.13+
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules")
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/externals/find-modules")
-include(DownloadExternals)
-
 # xbyak
 if ((ARCHITECTURE_x86 OR ARCHITECTURE_x86_64) AND NOT TARGET xbyak::xbyak)
     add_subdirectory(xbyak EXCLUDE_FROM_ALL)
