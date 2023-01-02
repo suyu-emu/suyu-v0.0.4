@@ -3,10 +3,6 @@
 
 cmake_minimum_required(VERSION 3.22)
 
-# Dynarmic has cmake_minimum_required(3.12) and we may want to override
-# some of its variables, which is only possible in 3.13+
-set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
-
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/cmake-modules")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/find-modules")
