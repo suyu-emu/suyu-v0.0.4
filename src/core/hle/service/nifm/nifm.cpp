@@ -207,6 +207,7 @@ public:
 
         event1 = CreateKEvent(service_context, "IRequest:Event1");
         event2 = CreateKEvent(service_context, "IRequest:Event2");
+        state = RequestState::NotSubmitted;
     }
 
     ~IRequest() override {
