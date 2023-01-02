@@ -104,6 +104,9 @@ void ConfigureGraphicsAdvanced::SetupPerGameUI() {
     ConfigurationShared::SetColoredTristate(ui->use_pessimistic_flushes,
                                             Settings::values.use_pessimistic_flushes,
                                             use_pessimistic_flushes);
+    ConfigurationShared::SetColoredTristate(ui->use_vulkan_driver_pipeline_cache,
+                                            Settings::values.use_vulkan_driver_pipeline_cache,
+                                            use_vulkan_driver_pipeline_cache);
     ConfigurationShared::SetColoredComboBox(
         ui->gpu_accuracy, ui->label_gpu_accuracy,
         static_cast<int>(Settings::values.gpu_accuracy.GetValue(true)));
