@@ -5,7 +5,7 @@
 include(FindPackageHandleStandardArgs)
 
 find_package(httplib QUIET CONFIG)
-if (httplib_FOUND)
+if (httplib_CONSIDERED_CONFIGS)
     find_package_handle_standard_args(httplib CONFIG_MODE)
 else()
     find_package(PkgConfig QUIET)

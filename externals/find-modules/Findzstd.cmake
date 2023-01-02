@@ -4,7 +4,7 @@
 include(FindPackageHandleStandardArgs)
 
 find_package(zstd QUIET CONFIG)
-if (zstd_FOUND)
+if (zstd_CONSIDERED_CONFIGS)
     find_package_handle_standard_args(zstd CONFIG_MODE)
 else()
     find_package(PkgConfig QUIET)

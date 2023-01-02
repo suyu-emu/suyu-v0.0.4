@@ -4,7 +4,7 @@
 include(FindPackageHandleStandardArgs)
 
 find_package(lz4 QUIET CONFIG)
-if (lz4_FOUND)
+if (lz4_CONSIDERED_CONFIGS)
     find_package_handle_standard_args(lz4 CONFIG_MODE)
 else()
     find_package(PkgConfig QUIET)
