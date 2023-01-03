@@ -351,12 +351,14 @@ std::optional<Shader::ReplaceConstant> GraphicsEnvironment::GetReplaceConstBuffe
     if (it == maxwell3d->replace_table.end()) {
         return std::nullopt;
     }
-    const auto converted_value = [](Tegra::Engines::Maxwell3D::HLEReplaceName name) {
+    const auto converted_value = [](Tegra::Engines::Maxwell3D::HLEReplacementAttributeType name) {
         switch (name) {
-        case Tegra::Engines::Maxwell3D::HLEReplaceName::BaseVertex:
+        case Tegra::Engines::Maxwell3D::HLEReplacementAttributeType::BaseVertex:
             return Shader::ReplaceConstant::BaseVertex;
-        case Tegra::Engines::Maxwell3D::HLEReplaceName::BaseInstance:
+        case Tegra::Engines::Maxwell3D::HLEReplacementAttributeType::BaseInstance:
             return Shader::ReplaceConstant::BaseInstance;
+        case Tegra::Engines::Maxwell3D::HLEReplacementAttributeType::DrawID:
+            return Shader::ReplaceConstant::DrawID;
         default:
             UNREACHABLE();
         }

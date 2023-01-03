@@ -431,21 +431,21 @@ void RasterizerVulkan::FlushRegion(VAddr addr, u64 size, VideoCommon::CacheType 
     if (addr == 0 || size == 0) {
         return;
     }
-    if (bool(which & VideoCommon::CacheType::TextureCache)) {
+    if (True(which & VideoCommon::CacheType::TextureCache)) {
         std::scoped_lock lock{texture_cache.mutex};
         texture_cache.DownloadMemory(addr, size);
     }
-    if ((bool(which & VideoCommon::CacheType::BufferCache))) {
+    if ((True(which & VideoCommon::CacheType::BufferCache))) {
         std::scoped_lock lock{buffer_cache.mutex};
         buffer_cache.DownloadMemory(addr, size);
     }
-    if ((bool(which & VideoCommon::CacheType::QueryCache))) {
+    if ((True(which & VideoCommon::CacheType::QueryCache))) {
         query_cache.FlushRegion(addr, size);
     }
 }
 
 bool RasterizerVulkan::MustFlushRegion(VAddr addr, u64 size, VideoCommon::CacheType which) {
-    if ((bool(which & VideoCommon::CacheType::BufferCache))) {
+    if ((True(which & VideoCommon::CacheType::BufferCache))) {
         std::scoped_lock lock{buffer_cache.mutex};
         if (buffer_cache.IsRegionGpuModified(addr, size)) {
             return true;
@@ -454,7 +454,7 @@ bool RasterizerVulkan::MustFlushRegion(VAddr addr, u64 size, VideoCommon::CacheT
     if (!Settings::IsGPULevelHigh()) {
         return false;
     }
-    if (bool(which & VideoCommon::CacheType::TextureCache)) {
+    if (True(which & VideoCommon::CacheType::TextureCache)) {
         std::scoped_lock lock{texture_cache.mutex};
         return texture_cache.IsRegionGpuModified(addr, size);
     }
@@ -465,18 +465,18 @@ void RasterizerVulkan::InvalidateRegion(VAddr addr, u64 size, VideoCommon::Cache
     if (addr == 0 || size == 0) {
         return;
     }
-    if (bool(which & VideoCommon::CacheType::TextureCache)) {
+    if (True(which & VideoCommon::CacheType::TextureCache)) {
         std::scoped_lock lock{texture_cache.mutex};
         texture_cache.WriteMemory(addr, size);
     }
-    if ((bool(which & VideoCommon::CacheType::BufferCache))) {
+    if ((True(which & VideoCommon::CacheType::BufferCache))) {
         std::scoped_lock lock{buffer_cache.mutex};
         buffer_cache.WriteMemory(addr, size);
     }
-    if ((bool(which & VideoCommon::CacheType::QueryCache))) {
+    if ((True(which & VideoCommon::CacheType::QueryCache))) {
         query_cache.InvalidateRegion(addr, size);
     }
-    if ((bool(which & VideoCommon::CacheType::ShaderCache))) {
+    if ((True(which & VideoCommon::CacheType::ShaderCache))) {
         pipeline_cache.InvalidateRegion(addr, size);
     }
 }
@@ -1050,7 +1050,7 @@ void RasterizerVulkan::UpdateDepthBiasEnable(Tegra::Engines::Maxwell3D::Regs& re
     constexpr size_t POINT = 0;
     constexpr size_t LINE = 1;
     constexpr size_t POLYGON = 2;
-    constexpr std::array POLYGON_OFFSET_ENABLE_LUT = {
+    static constexpr std::array POLYGON_OFFSET_ENABLE_LUT = {
         POINT,   // Points
         LINE,    // Lines
         LINE,    // LineLoop
@@ -1159,13 +1159,12 @@ void RasterizerVulkan::UpdateStencilOp(Tegra::Engines::Maxwell3D::Regs& regs) {
 }
 
 void RasterizerVulkan::UpdateLogicOp(Tegra::Engines::Maxwell3D::Regs& regs) {
-    if (!regs.logic_op.enable) {
-        return;
-    }
     if (!state_tracker.TouchLogicOp()) {
         return;
     }
-    auto op = static_cast<VkLogicOp>(static_cast<u32>(regs.logic_op.op) - 0x1500);
+    const auto op_value = static_cast<u32>(regs.logic_op.op);
+    auto op = op_value >= 0x1500 && op_value < 0x1510 ? static_cast<VkLogicOp>(op_value - 0x1500)
+                                                      : VK_LOGIC_OP_NO_OP;
     scheduler.Record([op](vk::CommandBuffer cmdbuf) { cmdbuf.SetLogicOpEXT(op); });
 }
 

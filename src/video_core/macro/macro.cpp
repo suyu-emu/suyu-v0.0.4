@@ -23,7 +23,7 @@
 #include "video_core/macro/macro_jit_x64.h"
 #endif
 
-MICROPROFILE_DEFINE(MacroHLE, "GPU", "Execute macro hle", MP_RGB(128, 192, 192));
+MICROPROFILE_DEFINE(MacroHLE, "GPU", "Execute macro HLE", MP_RGB(128, 192, 192));
 
 namespace Tegra {
 
