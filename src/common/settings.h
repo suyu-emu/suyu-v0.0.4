@@ -531,6 +531,7 @@ struct Values {
     Setting<bool> reporting_services{false, "reporting_services"};
     Setting<bool> quest_flag{false, "quest_flag"};
     Setting<bool> disable_macro_jit{false, "disable_macro_jit"};
+    Setting<bool> disable_macro_hle{false, "disable_macro_hle"};
     Setting<bool> extended_logging{false, "extended_logging"};
     Setting<bool> use_debug_asserts{false, "use_debug_asserts"};
     Setting<bool> use_auto_stub{false, "use_auto_stub"};
