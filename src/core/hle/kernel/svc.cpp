@@ -1485,7 +1485,7 @@ static Result MapProcessMemory(Core::System& system, VAddr dst_address, Handle p
              ResultInvalidMemoryRegion);
 
     // Create a new page group.
-    KPageGroup pg{system.Kernel(), dst_pt.GetBlockInfoManager()};
+    KPageGroup pg;
     R_TRY(src_pt.MakeAndOpenPageGroup(
         std::addressof(pg), src_address, size / PageSize, KMemoryState::FlagCanMapProcess,
         KMemoryState::FlagCanMapProcess, KMemoryPermission::None, KMemoryPermission::None,
