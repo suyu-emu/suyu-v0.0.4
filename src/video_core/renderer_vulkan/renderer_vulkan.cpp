@@ -110,7 +110,9 @@ RendererVulkan::RendererVulkan(Core::TelemetrySession& telemetry_session_,
                   screen_info),
       rasterizer(render_window, gpu, cpu_memory, screen_info, device, memory_allocator,
                  state_tracker, scheduler) {
-    turbo_mode.emplace(instance, dld);
+    if (Settings::values.renderer_force_max_clock.GetValue()) {
+        turbo_mode.emplace(instance, dld);
+    }
     Report();
 } catch (const vk::Exception& exception) {
     LOG_ERROR(Render_Vulkan, "Vulkan initialization failed with error: {}", exception.what());

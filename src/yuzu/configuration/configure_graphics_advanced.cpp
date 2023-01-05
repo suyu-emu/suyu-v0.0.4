@@ -25,6 +25,7 @@ void ConfigureGraphicsAdvanced::SetConfiguration() {
     ui->use_asynchronous_shaders->setEnabled(runtime_lock);
     ui->anisotropic_filtering_combobox->setEnabled(runtime_lock);
 
+    ui->renderer_force_max_clock->setChecked(Settings::values.renderer_force_max_clock.GetValue());
     ui->use_vsync->setChecked(Settings::values.use_vsync.GetValue());
     ui->use_asynchronous_shaders->setChecked(Settings::values.use_asynchronous_shaders.GetValue());
     ui->use_fast_gpu_time->setChecked(Settings::values.use_fast_gpu_time.GetValue());
@@ -37,6 +38,8 @@ void ConfigureGraphicsAdvanced::SetConfiguration() {
             Settings::values.max_anisotropy.GetValue());
     } else {
         ConfigurationShared::SetPerGameSetting(ui->gpu_accuracy, &Settings::values.gpu_accuracy);
+        ConfigurationShared::SetPerGameSetting(ui->renderer_force_max_clock,
+                                               &Settings::values.renderer_force_max_clock);
         ConfigurationShared::SetPerGameSetting(ui->anisotropic_filtering_combobox,
                                                &Settings::values.max_anisotropy);
         ConfigurationShared::SetHighlight(ui->label_gpu_accuracy,
@@ -48,6 +51,9 @@ void ConfigureGraphicsAdvanced::SetConfiguration() {
 
 void ConfigureGraphicsAdvanced::ApplyConfiguration() {
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.gpu_accuracy, ui->gpu_accuracy);
+    ConfigurationShared::ApplyPerGameSetting(&Settings::values.renderer_force_max_clock,
+                                             ui->renderer_force_max_clock,
+                                             renderer_force_max_clock);
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.max_anisotropy,
                                              ui->anisotropic_filtering_combobox);
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_vsync, ui->use_vsync, use_vsync);
@@ -76,6 +82,8 @@ void ConfigureGraphicsAdvanced::SetupPerGameUI() {
     // Disable if not global (only happens during game)
     if (Settings::IsConfiguringGlobal()) {
         ui->gpu_accuracy->setEnabled(Settings::values.gpu_accuracy.UsingGlobal());
+        ui->renderer_force_max_clock->setEnabled(
+            Settings::values.renderer_force_max_clock.UsingGlobal());
         ui->use_vsync->setEnabled(Settings::values.use_vsync.UsingGlobal());
         ui->use_asynchronous_shaders->setEnabled(
             Settings::values.use_asynchronous_shaders.UsingGlobal());
@@ -88,6 +96,9 @@ void ConfigureGraphicsAdvanced::SetupPerGameUI() {
         return;
     }
 
+    ConfigurationShared::SetColoredTristate(ui->renderer_force_max_clock,
+                                            Settings::values.renderer_force_max_clock,
+                                            renderer_force_max_clock);
     ConfigurationShared::SetColoredTristate(ui->use_vsync, Settings::values.use_vsync, use_vsync);
     ConfigurationShared::SetColoredTristate(ui->use_asynchronous_shaders,
                                             Settings::values.use_asynchronous_shaders,
