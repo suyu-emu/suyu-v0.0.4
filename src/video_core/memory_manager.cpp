@@ -46,7 +46,7 @@ MemoryManager::MemoryManager(Core::System& system_, u64 address_space_bits_, u64
     big_page_table_cpu.resize(big_page_table_size);
     big_page_continous.resize(big_page_table_size / continous_bits, 0);
     entries.resize(page_table_size / 32, 0);
-    if (!Settings::IsGPULevelExtreme()) {
+    if (!Settings::IsGPULevelExtreme() && Settings::IsFastmemEnabled()) {
         fastmem_arena = system.DeviceMemory().buffer.VirtualBasePointer();
     } else {
         fastmem_arena = nullptr;

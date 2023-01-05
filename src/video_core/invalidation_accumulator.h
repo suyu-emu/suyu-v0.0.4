@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <utility>
 #include <vector>
 
 #include "common/common_types.h"
@@ -26,8 +27,8 @@ public:
         if (address >= start_address && address + size <= last_collection) [[likely]] {
             return;
         }
-        size = (address + size + atomicy_side_mask) & atomicy_mask - address;
-        address = address & atomicy_mask;
+        size = ((address + size + atomicity_size_mask) & atomicity_mask) - address;
+        address = address & atomicity_mask;
         if (!has_collected) [[unlikely]] {
             reset_values();
             has_collected = true;
@@ -64,10 +65,10 @@ public:
     }
 
 private:
-    static constexpr size_t atomicy_bits = 5;
-    static constexpr size_t atomicy_size = 1ULL << atomicy_bits;
-    static constexpr size_t atomicy_side_mask = atomicy_size - 1;
-    static constexpr size_t atomicy_mask = ~atomicy_side_mask;
+    static constexpr size_t atomicity_bits = 5;
+    static constexpr size_t atomicity_size = 1ULL << atomicity_bits;
+    static constexpr size_t atomicity_size_mask = atomicity_size - 1;
+    static constexpr size_t atomicity_mask = ~atomicity_size_mask;
     GPUVAddr start_address{};
     GPUVAddr last_collection{};
     size_t accumulated_size{};

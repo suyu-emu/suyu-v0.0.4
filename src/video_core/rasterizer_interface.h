@@ -97,7 +97,7 @@ public:
                                   VideoCommon::CacheType which = VideoCommon::CacheType::All) = 0;
 
     virtual void InnerInvalidation(std::span<const std::pair<VAddr, std::size_t>> sequences) {
-        for (const auto [cpu_addr, size] : sequences) {
+        for (const auto& [cpu_addr, size] : sequences) {
             InvalidateRegion(cpu_addr, size);
         }
     }

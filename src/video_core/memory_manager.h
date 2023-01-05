@@ -107,7 +107,7 @@ public:
      * will be returned;
      */
     std::vector<std::pair<GPUVAddr, std::size_t>> GetSubmappedRange(GPUVAddr gpu_addr,
-                                                                 std::size_t size) const;
+                                                                    std::size_t size) const;
 
     GPUVAddr Map(GPUVAddr gpu_addr, VAddr cpu_addr, std::size_t size,
                  PTEKind kind = PTEKind::INVALID, bool is_big_pages = true);

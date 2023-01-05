@@ -123,7 +123,7 @@ void MaxwellDMA::Launch() {
                         convert_linear_2_blocklinear_addr(regs.offset_in + offset),
                         tmp_buffer.data(), tmp_buffer.size());
                     memory_manager.WriteBlockCached(regs.offset_out + offset, tmp_buffer.data(),
-                                              tmp_buffer.size());
+                                                    tmp_buffer.size());
                 }
             } else if (is_src_pitch && !is_dst_pitch) {
                 UNIMPLEMENTED_IF(regs.line_length_in % 16 != 0);
@@ -143,7 +143,7 @@ void MaxwellDMA::Launch() {
                     memory_manager.ReadBlockUnsafe(regs.offset_in, tmp_buffer.data(),
                                                    regs.line_length_in);
                     memory_manager.WriteBlockCached(regs.offset_out, tmp_buffer.data(),
-                                              regs.line_length_in);
+                                                    regs.line_length_in);
                 }
             }
         }

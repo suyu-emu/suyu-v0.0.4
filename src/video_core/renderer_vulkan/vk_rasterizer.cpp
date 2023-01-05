@@ -486,18 +486,18 @@ void RasterizerVulkan::InvalidateRegion(VAddr addr, u64 size, VideoCommon::Cache
 void RasterizerVulkan::InnerInvalidation(std::span<const std::pair<VAddr, std::size_t>> sequences) {
     {
         std::scoped_lock lock{texture_cache.mutex};
-        for (const auto [addr, size] : sequences) {
+        for (const auto& [addr, size] : sequences) {
             texture_cache.WriteMemory(addr, size);
         }
     }
     {
         std::scoped_lock lock{buffer_cache.mutex};
-        for (const auto [addr, size] : sequences) {
+        for (const auto& [addr, size] : sequences) {
             buffer_cache.WriteMemory(addr, size);
         }
     }
     {
-        for (const auto [addr, size] : sequences) {
+        for (const auto& [addr, size] : sequences) {
             query_cache.InvalidateRegion(addr, size);
             pipeline_cache.InvalidateRegion(addr, size);
         }
