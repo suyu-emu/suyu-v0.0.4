@@ -562,6 +562,7 @@ void Config::ReadDebuggingValues() {
     ReadBasicSetting(Settings::values.reporting_services);
     ReadBasicSetting(Settings::values.quest_flag);
     ReadBasicSetting(Settings::values.disable_macro_jit);
+    ReadBasicSetting(Settings::values.disable_macro_hle);
     ReadBasicSetting(Settings::values.extended_logging);
     ReadBasicSetting(Settings::values.use_debug_asserts);
     ReadBasicSetting(Settings::values.use_auto_stub);
@@ -1198,6 +1199,7 @@ void Config::SaveDebuggingValues() {
     WriteBasicSetting(Settings::values.quest_flag);
     WriteBasicSetting(Settings::values.use_debug_asserts);
     WriteBasicSetting(Settings::values.disable_macro_jit);
+    WriteBasicSetting(Settings::values.disable_macro_hle);
     WriteBasicSetting(Settings::values.enable_all_controllers);
     WriteBasicSetting(Settings::values.create_crash_dumps);
     WriteBasicSetting(Settings::values.perform_vulkan_check);

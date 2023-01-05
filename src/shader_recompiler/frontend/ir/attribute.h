@@ -219,6 +219,11 @@ enum class Attribute : u64 {
     FixedFncTexture9Q = 231,
     ViewportMask = 232,
     FrontFace = 255,
+
+    // Implementation attributes
+    BaseInstance = 256,
+    BaseVertex = 257,
+    DrawID = 258,
 };
 
 constexpr size_t NUM_GENERICS = 32;

@@ -272,6 +272,7 @@ public:
             };
 
             union {
+                u32 raw;
                 BitField<0, 1, Mode> mode;
                 BitField<4, 8, u32> pad;
             };
@@ -1217,10 +1218,12 @@ public:
 
         struct Window {
             union {
+                u32 raw_x;
                 BitField<0, 16, u32> x_min;
                 BitField<16, 16, u32> x_max;
             };
             union {
+                u32 raw_y;
                 BitField<0, 16, u32> y_min;
                 BitField<16, 16, u32> y_max;
             };
@@ -2708,7 +2711,7 @@ public:
                 u32 post_z_pixel_imask;                                                ///< 0x0F1C
                 INSERT_PADDING_BYTES_NOINIT(0x20);
                 ConstantColorRendering const_color_rendering;                          ///< 0x0F40
-                s32 stencil_back_ref;                                                  ///< 0x0F54
+                u32 stencil_back_ref;                                                  ///< 0x0F54
                 u32 stencil_back_mask;                                                 ///< 0x0F58
                 u32 stencil_back_func_mask;                                            ///< 0x0F5C
                 INSERT_PADDING_BYTES_NOINIT(0x14);
@@ -2832,9 +2835,9 @@ public:
                 Blend blend;                                                           ///< 0x133C
                 u32 stencil_enable;                                                    ///< 0x1380
                 StencilOp stencil_front_op;                                            ///< 0x1384
-                s32 stencil_front_ref;                                                 ///< 0x1394
-                s32 stencil_front_func_mask;                                           ///< 0x1398
-                s32 stencil_front_mask;                                                ///< 0x139C
+                u32 stencil_front_ref;                                                 ///< 0x1394
+                u32 stencil_front_func_mask;                                           ///< 0x1398
+                u32 stencil_front_mask;                                                ///< 0x139C
                 INSERT_PADDING_BYTES_NOINIT(0x4);
                 u32 draw_auto_start_byte_count;                                        ///< 0x13A4
                 PsSaturate frag_color_clamp;                                           ///< 0x13A8
@@ -3020,6 +3023,24 @@ public:
     /// Store temporary hw register values, used by some calls to restore state after a operation
     Regs shadow_state;
 
+    // None Engine
+    enum class EngineHint : u32 {
+        None = 0x0,
+        OnHLEMacro = 0x1,
+    };
+
+    EngineHint engine_state{EngineHint::None};
+
+    enum class HLEReplacementAttributeType : u32 {
+        BaseVertex = 0x0,
+        BaseInstance = 0x1,
+        DrawID = 0x2,
+    };
+
+    void SetHLEReplacementAttributeType(u32 bank, u32 offset, HLEReplacementAttributeType name);
+
+    std::unordered_map<u64, HLEReplacementAttributeType> replace_table;
+
     static_assert(sizeof(Regs) == Regs::NUM_REGS * sizeof(u32), "Maxwell3D Regs has wrong size");
     static_assert(std::is_trivially_copyable_v<Regs>, "Maxwell3D Regs must be trivially copyable");
 
@@ -3067,6 +3088,35 @@ public:
     std::unique_ptr<DrawManager> draw_manager;
     friend class DrawManager;
 
+    GPUVAddr GetMacroAddress(size_t index) const {
+        return macro_addresses[index];
+    }
+
+    void RefreshParameters() {
+        if (!current_macro_dirty) {
+            return;
+        }
+        RefreshParametersImpl();
+    }
+
+    bool AnyParametersDirty() const {
+        return current_macro_dirty;
+    }
+
+    u32 GetMaxCurrentVertices();
+
+    size_t EstimateIndexBufferSize();
+
+    /// Handles a write to the CLEAR_BUFFERS register.
+    void ProcessClearBuffers(u32 layer_count);
+
+    /// Handles a write to the CB_BIND register.
+    void ProcessCBBind(size_t stage_index);
+
+    /// Handles a write to the CB_DATA[i] register.
+    void ProcessCBData(u32 value);
+    void ProcessCBMultiData(const u32* start_base, u32 amount);
+
 private:
     void InitializeRegisterDefaults();
 
@@ -3075,6 +3125,8 @@ private:
     u32 ProcessShadowRam(u32 method, u32 argument);
 
     void ProcessDirtyRegisters(u32 method, u32 argument);
+
+    void ConsumeSinkImpl() override;
 
     void ProcessMethodCall(u32 method, u32 argument, u32 nonshadow_argument, bool is_last_call);
 
@@ -3116,15 +3168,12 @@ private:
     /// Handles writes to syncing register.
     void ProcessSyncPoint();
 
-    /// Handles a write to the CB_DATA[i] register.
-    void ProcessCBData(u32 value);
-    void ProcessCBMultiData(const u32* start_base, u32 amount);
-
-    /// Handles a write to the CB_BIND register.
-    void ProcessCBBind(size_t stage_index);
-
     /// Returns a query's value or an empty object if the value will be deferred through a cache.
     std::optional<u64> GetQueryResult();
+
+    void RefreshParametersImpl();
+
+    bool IsMethodExecutable(u32 method);
 
     Core::System& system;
     MemoryManager& memory_manager;
@@ -3145,6 +3194,10 @@ private:
     Upload::State upload_state;
 
     bool execute_on{true};
+
+    std::vector<std::pair<GPUVAddr, size_t>> macro_segments;
+    std::vector<GPUVAddr> macro_addresses;
+    bool current_macro_dirty{};
 };
 
 #define ASSERT_REG_POSITION(field_name, position)                                                  \

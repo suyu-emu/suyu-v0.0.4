@@ -16,6 +16,12 @@
 
 namespace Shader {
 
+enum class ReplaceConstant : u32 {
+    BaseInstance,
+    BaseVertex,
+    DrawID,
+};
+
 enum class TextureType : u32 {
     Color1D,
     ColorArray1D,

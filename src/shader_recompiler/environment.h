@@ -34,6 +34,11 @@ public:
 
     [[nodiscard]] virtual std::array<u32, 3> WorkgroupSize() const = 0;
 
+    [[nodiscard]] virtual bool HasHLEMacroState() const = 0;
+
+    [[nodiscard]] virtual std::optional<ReplaceConstant> GetReplaceConstBuffer(u32 bank,
+                                                                               u32 offset) = 0;
+
     virtual void Dump(u64 hash) = 0;
 
     [[nodiscard]] const ProgramHeader& SPH() const noexcept {
@@ -52,11 +57,16 @@ public:
         return start_address;
     }
 
+    [[nodiscard]] bool IsPropietaryDriver() const noexcept {
+        return is_propietary_driver;
+    }
+
 protected:
     ProgramHeader sph{};
     std::array<u32, 8> gp_passthrough_mask{};
     Stage stage{};
     u32 start_address{};
+    bool is_propietary_driver{};
 };
 
 } // namespace Shader

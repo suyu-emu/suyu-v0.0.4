@@ -27,10 +27,37 @@ using Flags = Maxwell3D::DirtyState::Flags;
 
 Flags MakeInvalidationFlags() {
     static constexpr int INVALIDATION_FLAGS[]{
-        Viewports,         Scissors,       DepthBias, BlendConstants,    DepthBounds,
-        StencilProperties, LineWidth,      CullMode,  DepthBoundsEnable, DepthTestEnable,
-        DepthWriteEnable,  DepthCompareOp, FrontFace, StencilOp,         StencilTestEnable,
-        VertexBuffers,     VertexInput,
+        Viewports,
+        Scissors,
+        DepthBias,
+        BlendConstants,
+        DepthBounds,
+        StencilProperties,
+        StencilReference,
+        StencilWriteMask,
+        StencilCompare,
+        LineWidth,
+        CullMode,
+        DepthBoundsEnable,
+        DepthTestEnable,
+        DepthWriteEnable,
+        DepthCompareOp,
+        FrontFace,
+        StencilOp,
+        StencilTestEnable,
+        VertexBuffers,
+        VertexInput,
+        StateEnable,
+        PrimitiveRestartEnable,
+        RasterizerDiscardEnable,
+        DepthBiasEnable,
+        LogicOpEnable,
+        DepthClampEnable,
+        LogicOp,
+        Blending,
+        ColorMask,
+        BlendEquations,
+        BlendEnable,
     };
     Flags flags{};
     for (const int flag : INVALIDATION_FLAGS) {
@@ -75,14 +102,17 @@ void SetupDirtyDepthBounds(Tables& tables) {
 }
 
 void SetupDirtyStencilProperties(Tables& tables) {
-    auto& table = tables[0];
-    table[OFF(stencil_two_side_enable)] = StencilProperties;
-    table[OFF(stencil_front_ref)] = StencilProperties;
-    table[OFF(stencil_front_mask)] = StencilProperties;
-    table[OFF(stencil_front_func_mask)] = StencilProperties;
-    table[OFF(stencil_back_ref)] = StencilProperties;
-    table[OFF(stencil_back_mask)] = StencilProperties;
-    table[OFF(stencil_back_func_mask)] = StencilProperties;
+    const auto setup = [&](size_t position, u8 flag) {
+        tables[0][position] = flag;
+        tables[1][position] = StencilProperties;
+    };
+    tables[0][OFF(stencil_two_side_enable)] = StencilProperties;
+    setup(OFF(stencil_front_ref), StencilReference);
+    setup(OFF(stencil_front_mask), StencilWriteMask);
+    setup(OFF(stencil_front_func_mask), StencilCompare);
+    setup(OFF(stencil_back_ref), StencilReference);
+    setup(OFF(stencil_back_mask), StencilWriteMask);
+    setup(OFF(stencil_back_func_mask), StencilCompare);
 }
 
 void SetupDirtyLineWidth(Tables& tables) {
@@ -96,16 +126,22 @@ void SetupDirtyCullMode(Tables& tables) {
     table[OFF(gl_cull_test_enabled)] = CullMode;
 }
 
-void SetupDirtyDepthBoundsEnable(Tables& tables) {
-    tables[0][OFF(depth_bounds_enable)] = DepthBoundsEnable;
-}
-
-void SetupDirtyDepthTestEnable(Tables& tables) {
-    tables[0][OFF(depth_test_enable)] = DepthTestEnable;
-}
-
-void SetupDirtyDepthWriteEnable(Tables& tables) {
-    tables[0][OFF(depth_write_enabled)] = DepthWriteEnable;
+void SetupDirtyStateEnable(Tables& tables) {
+    const auto setup = [&](size_t position, u8 flag) {
+        tables[0][position] = flag;
+        tables[1][position] = StateEnable;
+    };
+    setup(OFF(depth_bounds_enable), DepthBoundsEnable);
+    setup(OFF(depth_test_enable), DepthTestEnable);
+    setup(OFF(depth_write_enabled), DepthWriteEnable);
+    setup(OFF(stencil_enable), StencilTestEnable);
+    setup(OFF(primitive_restart.enabled), PrimitiveRestartEnable);
+    setup(OFF(rasterize_enable), RasterizerDiscardEnable);
+    setup(OFF(polygon_offset_point_enable), DepthBiasEnable);
+    setup(OFF(polygon_offset_line_enable), DepthBiasEnable);
+    setup(OFF(polygon_offset_fill_enable), DepthBiasEnable);
+    setup(OFF(logic_op.enable), LogicOpEnable);
+    setup(OFF(viewport_clip_control.geometry_clip), DepthClampEnable);
 }
 
 void SetupDirtyDepthCompareOp(Tables& tables) {
@@ -133,16 +169,22 @@ void SetupDirtyStencilOp(Tables& tables) {
     tables[1][OFF(stencil_two_side_enable)] = StencilOp;
 }
 
-void SetupDirtyStencilTestEnable(Tables& tables) {
-    tables[0][OFF(stencil_enable)] = StencilTestEnable;
-}
-
 void SetupDirtyBlending(Tables& tables) {
     tables[0][OFF(color_mask_common)] = Blending;
+    tables[1][OFF(color_mask_common)] = ColorMask;
     tables[0][OFF(blend_per_target_enabled)] = Blending;
+    tables[1][OFF(blend_per_target_enabled)] = BlendEquations;
     FillBlock(tables[0], OFF(color_mask), NUM(color_mask), Blending);
+    FillBlock(tables[1], OFF(color_mask), NUM(color_mask), ColorMask);
     FillBlock(tables[0], OFF(blend), NUM(blend), Blending);
+    FillBlock(tables[1], OFF(blend), NUM(blend), BlendEquations);
+    FillBlock(tables[1], OFF(blend.enable), NUM(blend.enable), BlendEnable);
     FillBlock(tables[0], OFF(blend_per_target), NUM(blend_per_target), Blending);
+    FillBlock(tables[1], OFF(blend_per_target), NUM(blend_per_target), BlendEquations);
+}
+
+void SetupDirtySpecialOps(Tables& tables) {
+    tables[0][OFF(logic_op.op)] = LogicOp;
 }
 
 void SetupDirtyViewportSwizzles(Tables& tables) {
@@ -185,17 +227,15 @@ void StateTracker::SetupTables(Tegra::Control::ChannelState& channel_state) {
     SetupDirtyStencilProperties(tables);
     SetupDirtyLineWidth(tables);
     SetupDirtyCullMode(tables);
-    SetupDirtyDepthBoundsEnable(tables);
-    SetupDirtyDepthTestEnable(tables);
-    SetupDirtyDepthWriteEnable(tables);
+    SetupDirtyStateEnable(tables);
     SetupDirtyDepthCompareOp(tables);
     SetupDirtyFrontFace(tables);
     SetupDirtyStencilOp(tables);
-    SetupDirtyStencilTestEnable(tables);
     SetupDirtyBlending(tables);
     SetupDirtyViewportSwizzles(tables);
     SetupDirtyVertexAttributes(tables);
     SetupDirtyVertexBindings(tables);
+    SetupDirtySpecialOps(tables);
 }
 
 void StateTracker::ChangeChannel(Tegra::Control::ChannelState& channel_state) {
@@ -204,6 +244,8 @@ void StateTracker::ChangeChannel(Tegra::Control::ChannelState& channel_state) {
 
 void StateTracker::InvalidateState() {
     flags->set();
+    current_topology = INVALID_TOPOLOGY;
+    stencil_reset = true;
 }
 
 StateTracker::StateTracker()

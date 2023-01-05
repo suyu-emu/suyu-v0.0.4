@@ -446,6 +446,12 @@ std::string NameOf(Attribute attribute) {
         return "ViewportMask";
     case Attribute::FrontFace:
         return "FrontFace";
+    case Attribute::BaseInstance:
+        return "BaseInstance";
+    case Attribute::BaseVertex:
+        return "BaseVertex";
+    case Attribute::DrawID:
+        return "DrawID";
     }
     return fmt::format("<reserved attribute {}>", static_cast<int>(attribute));
 }
