@@ -29,6 +29,8 @@ void ConfigureGraphicsAdvanced::SetConfiguration() {
     ui->use_asynchronous_shaders->setChecked(Settings::values.use_asynchronous_shaders.GetValue());
     ui->use_fast_gpu_time->setChecked(Settings::values.use_fast_gpu_time.GetValue());
     ui->use_pessimistic_flushes->setChecked(Settings::values.use_pessimistic_flushes.GetValue());
+    ui->use_vulkan_driver_pipeline_cache->setChecked(
+        Settings::values.use_vulkan_driver_pipeline_cache.GetValue());
 
     if (Settings::IsConfiguringGlobal()) {
         ui->gpu_accuracy->setCurrentIndex(
@@ -58,6 +60,9 @@ void ConfigureGraphicsAdvanced::ApplyConfiguration() {
                                              ui->use_fast_gpu_time, use_fast_gpu_time);
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_pessimistic_flushes,
                                              ui->use_pessimistic_flushes, use_pessimistic_flushes);
+    ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_vulkan_driver_pipeline_cache,
+                                             ui->use_vulkan_driver_pipeline_cache,
+                                             use_vulkan_driver_pipeline_cache);
 }
 
 void ConfigureGraphicsAdvanced::changeEvent(QEvent* event) {
@@ -82,6 +87,8 @@ void ConfigureGraphicsAdvanced::SetupPerGameUI() {
         ui->use_fast_gpu_time->setEnabled(Settings::values.use_fast_gpu_time.UsingGlobal());
         ui->use_pessimistic_flushes->setEnabled(
             Settings::values.use_pessimistic_flushes.UsingGlobal());
+        ui->use_vulkan_driver_pipeline_cache->setEnabled(
+            Settings::values.use_vulkan_driver_pipeline_cache.UsingGlobal());
         ui->anisotropic_filtering_combobox->setEnabled(
             Settings::values.max_anisotropy.UsingGlobal());
 
@@ -97,6 +104,9 @@ void ConfigureGraphicsAdvanced::SetupPerGameUI() {
     ConfigurationShared::SetColoredTristate(ui->use_pessimistic_flushes,
                                             Settings::values.use_pessimistic_flushes,
                                             use_pessimistic_flushes);
+    ConfigurationShared::SetColoredTristate(ui->use_vulkan_driver_pipeline_cache,
+                                            Settings::values.use_vulkan_driver_pipeline_cache,
+                                            use_vulkan_driver_pipeline_cache);
     ConfigurationShared::SetColoredComboBox(
         ui->gpu_accuracy, ui->label_gpu_accuracy,
         static_cast<int>(Settings::values.gpu_accuracy.GetValue(true)));

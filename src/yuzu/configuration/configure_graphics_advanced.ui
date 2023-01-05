@@ -110,6 +110,16 @@
          </widget>
         </item>
         <item>
+         <widget class="QCheckBox" name="use_vulkan_driver_pipeline_cache">
+          <property name="toolTip">
+            <string>Enables GPU vendor-specific pipeline cache. This option can improve shader loading time significantly in cases where the Vulkan driver does not store pipeline cache files internally.</string>
+          </property>
+          <property name="text">
+           <string>Use Vulkan pipeline cache</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QWidget" name="af_layout" native="true">
           <layout class="QHBoxLayout" name="horizontalLayout_1">
            <property name="leftMargin">

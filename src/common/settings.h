@@ -451,6 +451,8 @@ struct Values {
     SwitchableSetting<bool> use_asynchronous_shaders{false, "use_asynchronous_shaders"};
     SwitchableSetting<bool> use_fast_gpu_time{true, "use_fast_gpu_time"};
     SwitchableSetting<bool> use_pessimistic_flushes{false, "use_pessimistic_flushes"};
+    SwitchableSetting<bool> use_vulkan_driver_pipeline_cache{true,
+                                                             "use_vulkan_driver_pipeline_cache"};
 
     SwitchableSetting<u8> bg_red{0, "bg_red"};
     SwitchableSetting<u8> bg_green{0, "bg_green"};
