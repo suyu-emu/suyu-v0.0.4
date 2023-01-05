@@ -141,7 +141,7 @@ private:
     inline void MemoryOperation(GPUVAddr gpu_src_addr, std::size_t size, FuncMapped&& func_mapped,
                                 FuncReserved&& func_reserved, FuncUnmapped&& func_unmapped) const;
 
-    template <bool is_safe>
+    template <bool is_safe, bool use_fastmem>
     void ReadBlockImpl(GPUVAddr gpu_src_addr, void* dest_buffer, std::size_t size,
                        VideoCommon::CacheType which) const;
 
@@ -215,6 +215,7 @@ private:
 
     std::vector<u64> big_page_continous;
     std::vector<std::pair<VAddr, std::size_t>> page_stash{};
+    u8* fastmem_arena{};
 
     constexpr static size_t continous_bits = 64;
 

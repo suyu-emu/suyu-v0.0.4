@@ -6,6 +6,7 @@
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/core.h"
 #include "core/device_memory.h"
 #include "core/hle/kernel/k_page_table.h"
@@ -45,6 +46,11 @@ MemoryManager::MemoryManager(Core::System& system_, u64 address_space_bits_, u64
     big_page_table_cpu.resize(big_page_table_size);
     big_page_continous.resize(big_page_table_size / continous_bits, 0);
     entries.resize(page_table_size / 32, 0);
+    if (!Settings::IsGPULevelExtreme()) {
+        fastmem_arena = system.DeviceMemory().buffer.VirtualBasePointer();
+    } else {
+        fastmem_arena = nullptr;
+    }
 }
 
 MemoryManager::~MemoryManager() = default;
@@ -354,7 +360,7 @@ inline void MemoryManager::MemoryOperation(GPUVAddr gpu_src_addr, std::size_t si
     }
 }
 
-template <bool is_safe>
+template <bool is_safe, bool use_fastmem>
 void MemoryManager::ReadBlockImpl(GPUVAddr gpu_src_addr, void* dest_buffer, std::size_t size,
                                   [[maybe_unused]] VideoCommon::CacheType which) const {
     auto set_to_zero = [&]([[maybe_unused]] std::size_t page_index,
@@ -368,8 +374,12 @@ void MemoryManager::ReadBlockImpl(GPUVAddr gpu_src_addr, void* dest_buffer, std:
         if constexpr (is_safe) {
             rasterizer->FlushRegion(cpu_addr_base, copy_amount, which);
         }
-        u8* physical = memory.GetPointer(cpu_addr_base);
-        std::memcpy(dest_buffer, physical, copy_amount);
+        if constexpr (use_fastmem) {
+            std::memcpy(dest_buffer, &fastmem_arena[cpu_addr_base], copy_amount);
+        } else {
+            u8* physical = memory.GetPointer(cpu_addr_base);
+            std::memcpy(dest_buffer, physical, copy_amount);
+        }
         dest_buffer = static_cast<u8*>(dest_buffer) + copy_amount;
     };
     auto mapped_big = [&](std::size_t page_index, std::size_t offset, std::size_t copy_amount) {
@@ -378,11 +388,15 @@ void MemoryManager::ReadBlockImpl(GPUVAddr gpu_src_addr, void* dest_buffer, std:
         if constexpr (is_safe) {
             rasterizer->FlushRegion(cpu_addr_base, copy_amount, which);
         }
-        if (!IsBigPageContinous(page_index)) [[unlikely]] {
-            memory.ReadBlockUnsafe(cpu_addr_base, dest_buffer, copy_amount);
+        if constexpr (use_fastmem) {
+            std::memcpy(dest_buffer, &fastmem_arena[cpu_addr_base], copy_amount);
         } else {
-            u8* physical = memory.GetPointer(cpu_addr_base);
-            std::memcpy(dest_buffer, physical, copy_amount);
+            if (!IsBigPageContinous(page_index)) [[unlikely]] {
+                memory.ReadBlockUnsafe(cpu_addr_base, dest_buffer, copy_amount);
+            } else {
+                u8* physical = memory.GetPointer(cpu_addr_base);
+                std::memcpy(dest_buffer, physical, copy_amount);
+            }
         }
         dest_buffer = static_cast<u8*>(dest_buffer) + copy_amount;
     };
@@ -396,12 +410,20 @@ void MemoryManager::ReadBlockImpl(GPUVAddr gpu_src_addr, void* dest_buffer, std:
 
 void MemoryManager::ReadBlock(GPUVAddr gpu_src_addr, void* dest_buffer, std::size_t size,
                               VideoCommon::CacheType which) const {
-    ReadBlockImpl<true>(gpu_src_addr, dest_buffer, size, which);
+    if (fastmem_arena) [[likely]] {
+        ReadBlockImpl<true, true>(gpu_src_addr, dest_buffer, size, which);
+        return;
+    }
+    ReadBlockImpl<true, false>(gpu_src_addr, dest_buffer, size, which);
 }
 
 void MemoryManager::ReadBlockUnsafe(GPUVAddr gpu_src_addr, void* dest_buffer,
                                     const std::size_t size) const {
-    ReadBlockImpl<false>(gpu_src_addr, dest_buffer, size, VideoCommon::CacheType::None);
+    if (fastmem_arena) [[likely]] {
+        ReadBlockImpl<false, true>(gpu_src_addr, dest_buffer, size, VideoCommon::CacheType::None);
+        return;
+    }
+    ReadBlockImpl<false, false>(gpu_src_addr, dest_buffer, size, VideoCommon::CacheType::None);
 }
 
 template <bool is_safe>
