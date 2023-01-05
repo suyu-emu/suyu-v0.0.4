@@ -242,7 +242,7 @@ if (ENABLE_WEB_SERVICE)
 endif()
 
 if (YUZU_TESTS)
-    find_package(Catch2 2.13.7 REQUIRED)
+    find_package(Catch2 3.0.1 REQUIRED)
 endif()
 
 find_package(Boost 1.73.0 COMPONENTS context)
