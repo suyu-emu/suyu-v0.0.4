@@ -11,6 +11,7 @@
 #include "core/hle/kernel/k_page_table.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/memory.h"
+#include "video_core/invalidation_accumulator.h"
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_base.h"
@@ -26,7 +27,8 @@ MemoryManager::MemoryManager(Core::System& system_, u64 address_space_bits_, u64
       entries{}, big_entries{}, page_table{address_space_bits, address_space_bits + page_bits - 38,
                                            page_bits != big_page_bits ? page_bits : 0},
       kind_map{PTEKind::INVALID}, unique_identifier{unique_identifier_generator.fetch_add(
-                                      1, std::memory_order_acq_rel)} {
+                                      1, std::memory_order_acq_rel)},
+      accumulator{std::make_unique<VideoCommon::InvalidationAccumulator>()} {
     address_space_size = 1ULL << address_space_bits;
     page_size = 1ULL << page_bits;
     page_mask = page_size - 1ULL;
@@ -185,15 +187,12 @@ void MemoryManager::Unmap(GPUVAddr gpu_addr, std::size_t size) {
     if (size == 0) {
         return;
     }
-    const auto submapped_ranges = GetSubmappedRange(gpu_addr, size);
+    GetSubmappedRangeImpl<false>(gpu_addr, size, page_stash);
 
-    for (const auto& [map_addr, map_size] : submapped_ranges) {
-        // Flush and invalidate through the GPU interface, to be asynchronous if possible.
-        const std::optional<VAddr> cpu_addr = GpuToCpuAddress(map_addr);
-        ASSERT(cpu_addr);
-
-        rasterizer->UnmapMemory(*cpu_addr, map_size);
+    for (const auto& [map_addr, map_size] : page_stash) {
+        rasterizer->UnmapMemory(map_addr, map_size);
     }
+    page_stash.clear();
 
     BigPageTableOp<EntryType::Free>(gpu_addr, 0, size, PTEKind::INVALID);
     PageTableOp<EntryType::Free>(gpu_addr, 0, size, PTEKind::INVALID);
@@ -454,6 +453,12 @@ void MemoryManager::WriteBlockUnsafe(GPUVAddr gpu_dest_addr, const void* src_buf
     WriteBlockImpl<false>(gpu_dest_addr, src_buffer, size, VideoCommon::CacheType::None);
 }
 
+void MemoryManager::WriteBlockCached(GPUVAddr gpu_dest_addr, const void* src_buffer,
+                                     std::size_t size) {
+    WriteBlockImpl<false>(gpu_dest_addr, src_buffer, size, VideoCommon::CacheType::None);
+    accumulator->Add(gpu_dest_addr, size);
+}
+
 void MemoryManager::FlushRegion(GPUVAddr gpu_addr, size_t size,
                                 VideoCommon::CacheType which) const {
     auto do_nothing = [&]([[maybe_unused]] std::size_t page_index,
@@ -663,7 +668,17 @@ bool MemoryManager::IsFullyMappedRange(GPUVAddr gpu_addr, std::size_t size) cons
 std::vector<std::pair<GPUVAddr, std::size_t>> MemoryManager::GetSubmappedRange(
     GPUVAddr gpu_addr, std::size_t size) const {
     std::vector<std::pair<GPUVAddr, std::size_t>> result{};
-    std::optional<std::pair<GPUVAddr, std::size_t>> last_segment{};
+    GetSubmappedRangeImpl<true>(gpu_addr, size, result);
+    return result;
+}
+
+template <bool is_gpu_address>
+void MemoryManager::GetSubmappedRangeImpl(
+    GPUVAddr gpu_addr, std::size_t size,
+    std::vector<std::pair<std::conditional_t<is_gpu_address, GPUVAddr, VAddr>, std::size_t>>&
+        result) const {
+    std::optional<std::pair<std::conditional_t<is_gpu_address, GPUVAddr, VAddr>, std::size_t>>
+        last_segment{};
     std::optional<VAddr> old_page_addr{};
     const auto split = [&last_segment, &result]([[maybe_unused]] std::size_t page_index,
                                                 [[maybe_unused]] std::size_t offset,
@@ -685,8 +700,12 @@ std::vector<std::pair<GPUVAddr, std::size_t>> MemoryManager::GetSubmappedRange(
         }
         old_page_addr = {cpu_addr_base + copy_amount};
         if (!last_segment) {
-            const GPUVAddr new_base_addr = (page_index << big_page_bits) + offset;
-            last_segment = {new_base_addr, copy_amount};
+            if constexpr (is_gpu_address) {
+                const GPUVAddr new_base_addr = (page_index << big_page_bits) + offset;
+                last_segment = {new_base_addr, copy_amount};
+            } else {
+                last_segment = {cpu_addr_base, copy_amount};
+            }
         } else {
             last_segment->second += copy_amount;
         }
@@ -703,8 +722,12 @@ std::vector<std::pair<GPUVAddr, std::size_t>> MemoryManager::GetSubmappedRange(
         }
         old_page_addr = {cpu_addr_base + copy_amount};
         if (!last_segment) {
-            const GPUVAddr new_base_addr = (page_index << page_bits) + offset;
-            last_segment = {new_base_addr, copy_amount};
+            if constexpr (is_gpu_address) {
+                const GPUVAddr new_base_addr = (page_index << page_bits) + offset;
+                last_segment = {new_base_addr, copy_amount};
+            } else {
+                last_segment = {cpu_addr_base, copy_amount};
+            }
         } else {
             last_segment->second += copy_amount;
         }
@@ -715,7 +738,18 @@ std::vector<std::pair<GPUVAddr, std::size_t>> MemoryManager::GetSubmappedRange(
     };
     MemoryOperation<true>(gpu_addr, size, extend_size_big, split, do_short_pages);
     split(0, 0, 0);
-    return result;
+}
+
+void MemoryManager::FlushCaching() {
+    if (!accumulator->AnyAccumulated()) {
+        return;
+    }
+    accumulator->Callback([this](GPUVAddr addr, size_t size) {
+        GetSubmappedRangeImpl<false>(addr, size, page_stash);
+    });
+    rasterizer->InnerInvalidation(page_stash);
+    page_stash.clear();
+    accumulator->Clear();
 }
 
 } // namespace Tegra

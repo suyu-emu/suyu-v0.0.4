@@ -19,6 +19,10 @@ namespace VideoCore {
 class RasterizerInterface;
 }
 
+namespace VideoCommon {
+class InvalidationAccumulator;
+}
+
 namespace Core {
 class DeviceMemory;
 namespace Memory {
@@ -80,6 +84,7 @@ public:
      */
     void ReadBlockUnsafe(GPUVAddr gpu_src_addr, void* dest_buffer, std::size_t size) const;
     void WriteBlockUnsafe(GPUVAddr gpu_dest_addr, const void* src_buffer, std::size_t size);
+    void WriteBlockCached(GPUVAddr gpu_dest_addr, const void* src_buffer, std::size_t size);
 
     /**
      * Checks if a gpu region can be simply read with a pointer.
@@ -102,7 +107,7 @@ public:
      * will be returned;
      */
     std::vector<std::pair<GPUVAddr, std::size_t>> GetSubmappedRange(GPUVAddr gpu_addr,
-                                                                    std::size_t size) const;
+                                                                 std::size_t size) const;
 
     GPUVAddr Map(GPUVAddr gpu_addr, VAddr cpu_addr, std::size_t size,
                  PTEKind kind = PTEKind::INVALID, bool is_big_pages = true);
@@ -129,6 +134,8 @@ public:
     size_t GetMemoryLayoutSize(GPUVAddr gpu_addr,
                                size_t max_size = std::numeric_limits<size_t>::max()) const;
 
+    void FlushCaching();
+
 private:
     template <bool is_big_pages, typename FuncMapped, typename FuncReserved, typename FuncUnmapped>
     inline void MemoryOperation(GPUVAddr gpu_src_addr, std::size_t size, FuncMapped&& func_mapped,
@@ -153,6 +160,12 @@ private:
 
     inline bool IsBigPageContinous(size_t big_page_index) const;
     inline void SetBigPageContinous(size_t big_page_index, bool value);
+
+    template <bool is_gpu_address>
+    void GetSubmappedRangeImpl(
+        GPUVAddr gpu_addr, std::size_t size,
+        std::vector<std::pair<std::conditional_t<is_gpu_address, GPUVAddr, VAddr>, std::size_t>>&
+            result) const;
 
     Core::System& system;
     Core::Memory::Memory& memory;
@@ -201,10 +214,12 @@ private:
     Common::VirtualBuffer<u32> big_page_table_cpu;
 
     std::vector<u64> big_page_continous;
+    std::vector<std::pair<VAddr, std::size_t>> page_stash{};
 
     constexpr static size_t continous_bits = 64;
 
     const size_t unique_identifier;
+    std::unique_ptr<VideoCommon::InvalidationAccumulator> accumulator;
 
     static std::atomic<size_t> unique_identifier_generator;
 };
