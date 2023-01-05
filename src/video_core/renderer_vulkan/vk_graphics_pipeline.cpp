@@ -644,12 +644,15 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .pNext = nullptr,
         .flags = 0,
         .topology = input_assembly_topology,
-        .primitiveRestartEnable = dynamic.primitive_restart_enable != 0 &&
-                                  ((input_assembly_topology != VK_PRIMITIVE_TOPOLOGY_PATCH_LIST &&
-                                    device.IsTopologyListPrimitiveRestartSupported()) ||
-                                   SupportsPrimitiveRestart(input_assembly_topology) ||
-                                   (input_assembly_topology == VK_PRIMITIVE_TOPOLOGY_PATCH_LIST &&
-                                    device.IsPatchListPrimitiveRestartSupported())),
+        .primitiveRestartEnable =
+            dynamic.primitive_restart_enable != 0 &&
+                    ((input_assembly_topology != VK_PRIMITIVE_TOPOLOGY_PATCH_LIST &&
+                      device.IsTopologyListPrimitiveRestartSupported()) ||
+                     SupportsPrimitiveRestart(input_assembly_topology) ||
+                     (input_assembly_topology == VK_PRIMITIVE_TOPOLOGY_PATCH_LIST &&
+                      device.IsPatchListPrimitiveRestartSupported()))
+                ? VK_TRUE
+                : VK_FALSE,
     };
     const VkPipelineTessellationStateCreateInfo tessellation_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO,
@@ -699,7 +702,7 @@ void GraphicsPipeline::MakePipeline(VkRenderPass render_pass) {
         .cullMode = static_cast<VkCullModeFlags>(
             dynamic.cull_enable ? MaxwellToVK::CullFace(dynamic.CullFace()) : VK_CULL_MODE_NONE),
         .frontFace = MaxwellToVK::FrontFace(dynamic.FrontFace()),
-        .depthBiasEnable = (dynamic.depth_bias_enable == 0 ? VK_TRUE : VK_FALSE),
+        .depthBiasEnable = (dynamic.depth_bias_enable != 0 ? VK_TRUE : VK_FALSE),
         .depthBiasConstantFactor = 0.0f,
         .depthBiasClamp = 0.0f,
         .depthBiasSlopeFactor = 0.0f,
