@@ -136,9 +136,10 @@ private:
                                                            bool build_in_parallel);
 
     void SerializeVulkanPipelineCache(const std::filesystem::path& filename,
-                                      const vk::PipelineCache& pipeline_cache);
+                                      const vk::PipelineCache& pipeline_cache, u32 cache_version);
 
-    vk::PipelineCache LoadVulkanPipelineCache(const std::filesystem::path& filename);
+    vk::PipelineCache LoadVulkanPipelineCache(const std::filesystem::path& filename,
+                                              u32 expected_cache_version);
 
     const Device& device;
     Scheduler& scheduler;
