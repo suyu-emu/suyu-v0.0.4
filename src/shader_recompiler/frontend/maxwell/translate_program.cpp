@@ -172,7 +172,10 @@ std::map<IR::Attribute, IR::Attribute> GenerateLegacyToGenericMappings(
     return mapping;
 }
 
-void EmitGeometryPassthrough(IR::IREmitter& ir, const IR::Program& program, const Shader::VaryingState &passthrough_mask, bool passthrough_position, std::optional<IR::Attribute> passthrough_layer_attr) {
+void EmitGeometryPassthrough(IR::IREmitter& ir, const IR::Program& program,
+                             const Shader::VaryingState& passthrough_mask,
+                             bool passthrough_position,
+                             std::optional<IR::Attribute> passthrough_layer_attr) {
     for (u32 i = 0; i < program.output_vertices; i++) {
         // Assign generics from input
         for (u32 j = 0; j < 32; j++) {
@@ -198,7 +201,8 @@ void EmitGeometryPassthrough(IR::IREmitter& ir, const IR::Program& program, cons
 
         if (passthrough_layer_attr) {
             // Assign layer
-            ir.SetAttribute(IR::Attribute::Layer, ir.GetAttribute(*passthrough_layer_attr), ir.Imm32(0));
+            ir.SetAttribute(IR::Attribute::Layer, ir.GetAttribute(*passthrough_layer_attr),
+                            ir.Imm32(0));
         }
 
         // Emit vertex
@@ -209,21 +213,23 @@ void EmitGeometryPassthrough(IR::IREmitter& ir, const IR::Program& program, cons
 
 u32 GetOutputTopologyVertices(OutputTopology output_topology) {
     switch (output_topology) {
-        case OutputTopology::PointList:
-            return 1;
-        case OutputTopology::LineStrip:
-            return 2;
-        default:
-            return 3;
+    case OutputTopology::PointList:
+        return 1;
+    case OutputTopology::LineStrip:
+        return 2;
+    default:
+        return 3;
     }
 }
 
 void LowerGeometryPassthrough(const IR::Program& program, const HostTranslateInfo& host_info) {
-    for (IR::Block *const block : program.blocks) {
-        for (IR::Inst &inst : block->Instructions()) {
+    for (IR::Block* const block : program.blocks) {
+        for (IR::Inst& inst : block->Instructions()) {
             if (inst.GetOpcode() == IR::Opcode::Epilogue) {
                 IR::IREmitter ir{*block, IR::Block::InstructionList::s_iterator_to(inst)};
-                EmitGeometryPassthrough(ir, program, program.info.passthrough, program.info.passthrough.AnyComponent(IR::Attribute::PositionX), {});
+                EmitGeometryPassthrough(
+                    ir, program, program.info.passthrough,
+                    program.info.passthrough.AnyComponent(IR::Attribute::PositionX), {});
             }
         }
     }
@@ -407,7 +413,6 @@ IR::Program GenerateGeometryPassthrough(ObjectPool<IR::Inst>& inst_pool,
     program.output_topology = output_topology;
     program.output_vertices = GetOutputTopologyVertices(output_topology);
 
-
     program.is_geometry_passthrough = false;
     program.info.loads.mask = source_program.info.stores.mask;
     program.info.stores.mask = source_program.info.stores.mask;
@@ -420,7 +425,8 @@ IR::Program GenerateGeometryPassthrough(ObjectPool<IR::Inst>& inst_pool,
     node.data.block = current_block;
 
     IR::IREmitter ir{*current_block};
-    EmitGeometryPassthrough(ir, program, program.info.stores, true, source_program.info.emulated_layer);
+    EmitGeometryPassthrough(ir, program, program.info.stores, true,
+                            source_program.info.emulated_layer);
 
     IR::Block* return_block{block_pool.Create(inst_pool)};
     IR::IREmitter{*return_block}.Epilogue();

@@ -1941,7 +1941,8 @@ typename BufferCache<P>::Binding BufferCache<P>::StorageBufferBinding(GPUVAddr s
     const u32 alignment = runtime.GetStorageBufferAlignment();
 
     const GPUVAddr aligned_gpu_addr = Common::AlignDown(gpu_addr, alignment);
-    const u32 aligned_size = Common::AlignUp(static_cast<u32>(gpu_addr - aligned_gpu_addr) + size, alignment);
+    const u32 aligned_size =
+        Common::AlignUp(static_cast<u32>(gpu_addr - aligned_gpu_addr) + size, alignment);
 
     const std::optional<VAddr> cpu_addr = gpu_memory->GpuToCpuAddress(aligned_gpu_addr);
     if (!cpu_addr || size == 0) {

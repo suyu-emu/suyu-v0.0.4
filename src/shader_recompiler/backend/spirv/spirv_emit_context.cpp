@@ -729,7 +729,7 @@ void EmitContext::DefineAttributeMemAccess(const Info& info) {
                     else
                         return OpAccessChain(input_f32, input_position, u32_zero_value,
                                              masked_index);
-                }  else {
+                } else {
                     if (is_array)
                         return OpAccessChain(input_f32, input_position, vertex, masked_index);
                     else
@@ -1390,7 +1390,8 @@ void EmitContext::DefineInputs(const IR::Program& program) {
                            static_cast<unsigned>(spv::BuiltIn::Position));
             Decorate(input_position_struct, spv::Decoration::Block);
         } else {
-            const spv::BuiltIn built_in{is_fragment ? spv::BuiltIn::FragCoord : spv::BuiltIn::Position};
+            const spv::BuiltIn built_in{is_fragment ? spv::BuiltIn::FragCoord
+                                                    : spv::BuiltIn::Position};
             input_position = DefineInput(*this, F32[4], true, built_in);
 
             if (profile.support_geometry_shader_passthrough) {
