@@ -117,6 +117,8 @@ Errno TranslateNativeError(int e) {
         return Errno::NETUNREACH;
     case WSAEMSGSIZE:
         return Errno::MSGSIZE;
+    case WSAETIMEDOUT:
+        return Errno::TIMEDOUT;
     default:
         UNIMPLEMENTED_MSG("Unimplemented errno={}", e);
         return Errno::OTHER;
@@ -211,6 +213,8 @@ Errno TranslateNativeError(int e) {
         return Errno::NETUNREACH;
     case EMSGSIZE:
         return Errno::MSGSIZE;
+    case ETIMEDOUT:
+        return Errno::TIMEDOUT;
     default:
         UNIMPLEMENTED_MSG("Unimplemented errno={}", e);
         return Errno::OTHER;
@@ -226,7 +230,7 @@ Errno GetAndLogLastError() {
     int e = errno;
 #endif
     const Errno err = TranslateNativeError(e);
-    if (err == Errno::AGAIN) {
+    if (err == Errno::AGAIN || err == Errno::TIMEDOUT) {
         return err;
     }
     LOG_ERROR(Network, "Socket operation error: {}", Common::NativeErrorToString(e));
