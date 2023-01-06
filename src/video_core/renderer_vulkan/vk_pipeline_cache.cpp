@@ -793,7 +793,8 @@ vk::PipelineCache PipelineCache::LoadVulkanPipelineCache(const std::filesystem::
             return create_pipeline_cache(0, nullptr);
         }
 
-        const size_t cache_size = static_cast<size_t>(end) - magic_number.size();
+        static constexpr size_t header_size = magic_number.size() + sizeof(cache_version);
+        const size_t cache_size = static_cast<size_t>(end) - header_size;
         std::vector<char> cache_data(cache_size);
         file.read(cache_data.data(), cache_size);
 
