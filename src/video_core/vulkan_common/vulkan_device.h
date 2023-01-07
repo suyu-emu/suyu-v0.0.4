@@ -106,6 +106,8 @@ public:
         return driver_id;
     }
 
+    bool ShouldBoostClocks() const;
+
     /// Returns uniform buffer alignment requeriment.
     VkDeviceSize GetUniformBufferAlignment() const {
         return properties.limits.minUniformBufferOffsetAlignment;
