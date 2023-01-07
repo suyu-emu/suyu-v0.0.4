@@ -110,7 +110,7 @@ RendererVulkan::RendererVulkan(Core::TelemetrySession& telemetry_session_,
                   screen_info),
       rasterizer(render_window, gpu, cpu_memory, screen_info, device, memory_allocator,
                  state_tracker, scheduler) {
-    if (Settings::values.renderer_force_max_clock.GetValue()) {
+    if (Settings::values.renderer_force_max_clock.GetValue() && device.ShouldBoostClocks()) {
         turbo_mode.emplace(instance, dld);
     }
     Report();
