@@ -1520,8 +1520,12 @@ void Device::SetupFamilies(VkSurfaceKHR surface) {
         LOG_ERROR(Render_Vulkan, "Device lacks a present queue");
         throw vk::Exception(VK_ERROR_FEATURE_NOT_PRESENT);
     }
-    graphics_family = *graphics;
-    present_family = *present;
+    if (graphics) {
+        graphics_family = *graphics;
+    }
+    if (present) {
+        present_family = *present;
+    }
 }
 
 void Device::SetupFeatures() {
