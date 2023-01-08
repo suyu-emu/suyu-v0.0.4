@@ -310,8 +310,9 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool is_intel_anv = driver_id == VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA;
     const bool is_nvidia = driver_id == VK_DRIVER_ID_NVIDIA_PROPRIETARY;
     const bool is_mvk = driver_id == VK_DRIVER_ID_MOLTENVK;
+    const bool is_adreno = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
 
-    if (is_mvk && !is_suitable) {
+    if ((is_mvk || is_adreno) && !is_suitable) {
         LOG_WARNING(Render_Vulkan, "Unsuitable driver is MoltenVK, continuing anyway");
     } else if (!is_suitable) {
         throw vk::Exception(VK_ERROR_INCOMPATIBLE_DRIVER);
@@ -467,8 +468,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         LOG_WARNING(Render_Vulkan, "Intel proprietary drivers do not support MSAA image blits");
         cant_blit_msaa = true;
     }
-    if (is_intel_anv) {
-        LOG_WARNING(Render_Vulkan, "ANV driver does not support native BGR format");
+    if (is_intel_anv || is_adreno) {
+        LOG_WARNING(Render_Vulkan, "Driver does not support native BGR format");
         must_emulate_bgr565 = true;
     }
     if (extensions.push_descriptor && is_intel_anv) {
