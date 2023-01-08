@@ -270,6 +270,7 @@ void RasterizerVulkan::Clear(u32 layer_count) {
     MICROPROFILE_SCOPE(Vulkan_Clearing);
 
     FlushWork();
+    gpu_memory->FlushCaching();
 
     query_cache.UpdateCounters();
 
@@ -628,6 +629,7 @@ void RasterizerVulkan::TickFrame() {
 }
 
 bool RasterizerVulkan::AccelerateConditionalRendering() {
+    gpu_memory->FlushCaching();
     if (Settings::IsGPULevelHigh()) {
         // TODO(Blinkhawk): Reimplement Host conditional rendering.
         return false;
