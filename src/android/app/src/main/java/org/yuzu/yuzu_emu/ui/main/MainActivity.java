@@ -18,7 +18,6 @@ import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity;
 import org.yuzu.yuzu_emu.model.GameProvider;
 import org.yuzu.yuzu_emu.ui.platform.PlatformGamesFragment;
 import org.yuzu.yuzu_emu.utils.AddDirectoryHelper;
-import org.yuzu.yuzu_emu.utils.BillingManager;
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization;
 import org.yuzu.yuzu_emu.utils.FileBrowserHelper;
 import org.yuzu.yuzu_emu.utils.PermissionsHandler;
@@ -39,11 +38,6 @@ public final class MainActivity extends AppCompatActivity implements MainView {
     private PlatformGamesFragment mPlatformGamesFragment;
 
     private MainPresenter mPresenter = new MainPresenter(this);
-
-    // Singleton to manage user billing state
-    private static BillingManager mBillingManager;
-
-    private static MenuItem mPremiumButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,9 +64,6 @@ public final class MainActivity extends AppCompatActivity implements MainView {
             mPlatformGamesFragment = (PlatformGamesFragment) getSupportFragmentManager().getFragment(savedInstanceState, "mPlatformGamesFragment");
         }
         PicassoUtils.init();
-
-        // Setup billing manager, so we can globally query for Premium status
-        mBillingManager = new BillingManager(this);
 
         // Dismiss previous notifications (should not happen unless a crash occurred)
         EmulationActivity.tryDismissRunningNotification(this);
@@ -107,20 +98,8 @@ public final class MainActivity extends AppCompatActivity implements MainView {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_game_grid, menu);
-        mPremiumButton = menu.findItem(R.id.button_premium);
-
-        if (mBillingManager.isPremiumCached()) {
-            // User had premium in a previous session, hide upsell option
-            setPremiumButtonVisible(false);
-        }
 
         return true;
-    }
-
-    static public void setPremiumButtonVisible(boolean isVisible) {
-        if (mPremiumButton != null) {
-            mPremiumButton.setVisible(isVisible);
-        }
     }
 
     /**
@@ -155,15 +134,8 @@ public final class MainActivity extends AppCompatActivity implements MainView {
                     FileBrowserHelper.openDirectoryPicker(this,
                                                       MainPresenter.REQUEST_ADD_DIRECTORY,
                                                       R.string.select_game_folder,
-                                                      Arrays.asList("xci", "nsp", "cci", "3ds",
-                                                                    "cxi", "app", "3dsx", "cia",
-                                                                    "rar", "zip", "7z", "torrent",
-                                                                    "tar", "gz", "nro"));
-                    break;
-                case MainPresenter.REQUEST_INSTALL_CIA:
-                    FileBrowserHelper.openFilePicker(this, MainPresenter.REQUEST_INSTALL_CIA,
-                                                     R.string.install_cia_title,
-                                                     Collections.singletonList("cia"), true);
+                                                      Arrays.asList("nso", "nro", "nca", "xci",
+                                                                    "nsp", "kip"));
                     break;
             }
         } else {
@@ -191,12 +163,6 @@ public final class MainActivity extends AppCompatActivity implements MainView {
                     mPresenter.onDirectorySelected(FileBrowserHelper.getSelectedDirectory(result));
                 }
                 break;
-                case MainPresenter.REQUEST_INSTALL_CIA:
-                    // If the user picked a file, as opposed to just backing out.
-                    if (resultCode == MainActivity.RESULT_OK) {
-                        mPresenter.refeshGameList();
-                    }
-                    break;
         }
     }
 
@@ -247,21 +213,5 @@ public final class MainActivity extends AppCompatActivity implements MainView {
     protected void onDestroy() {
         EmulationActivity.tryDismissRunningNotification(this);
         super.onDestroy();
-    }
-
-    /**
-     * @return true if Premium subscription is currently active
-     */
-    public static boolean isPremiumActive() {
-        return mBillingManager.isPremiumActive();
-    }
-
-    /**
-     * Invokes the billing flow for Premium
-     *
-     * @param callback Optional callback, called once, on completion of billing
-     */
-    public static void invokePremiumBilling(Runnable callback) {
-        mBillingManager.invokePremiumBilling(callback);
     }
 }

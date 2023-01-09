@@ -14,14 +14,11 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.yuzu.yuzu_emu.R;
-import org.yuzu.yuzu_emu.dialogs.MotionAlertDialog;
 import org.yuzu.yuzu_emu.features.settings.model.FloatSetting;
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting;
 import org.yuzu.yuzu_emu.features.settings.model.StringSetting;
 import org.yuzu.yuzu_emu.features.settings.model.view.CheckBoxSetting;
 import org.yuzu.yuzu_emu.features.settings.model.view.DateTimeSetting;
-import org.yuzu.yuzu_emu.features.settings.model.view.InputBindingSetting;
-import org.yuzu.yuzu_emu.features.settings.model.view.PremiumSingleChoiceSetting;
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem;
 import org.yuzu.yuzu_emu.features.settings.model.view.SingleChoiceSetting;
 import org.yuzu.yuzu_emu.features.settings.model.view.SliderSetting;
@@ -30,13 +27,10 @@ import org.yuzu.yuzu_emu.features.settings.model.view.SubmenuSetting;
 import org.yuzu.yuzu_emu.features.settings.ui.viewholder.CheckBoxSettingViewHolder;
 import org.yuzu.yuzu_emu.features.settings.ui.viewholder.DateTimeViewHolder;
 import org.yuzu.yuzu_emu.features.settings.ui.viewholder.HeaderViewHolder;
-import org.yuzu.yuzu_emu.features.settings.ui.viewholder.InputBindingSettingViewHolder;
-import org.yuzu.yuzu_emu.features.settings.ui.viewholder.PremiumViewHolder;
 import org.yuzu.yuzu_emu.features.settings.ui.viewholder.SettingViewHolder;
 import org.yuzu.yuzu_emu.features.settings.ui.viewholder.SingleChoiceViewHolder;
 import org.yuzu.yuzu_emu.features.settings.ui.viewholder.SliderViewHolder;
 import org.yuzu.yuzu_emu.features.settings.ui.viewholder.SubmenuViewHolder;
-import org.yuzu.yuzu_emu.ui.main.MainActivity;
 import org.yuzu.yuzu_emu.utils.Log;
 
 import java.util.ArrayList;
@@ -87,17 +81,9 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
                 view = inflater.inflate(R.layout.list_item_setting, parent, false);
                 return new SubmenuViewHolder(view, this);
 
-            case SettingsItem.TYPE_INPUT_BINDING:
-                view = inflater.inflate(R.layout.list_item_setting, parent, false);
-                return new InputBindingSettingViewHolder(view, this, mContext);
-
             case SettingsItem.TYPE_DATETIME_SETTING:
                 view = inflater.inflate(R.layout.list_item_setting, parent, false);
                 return new DateTimeViewHolder(view, this);
-
-            case SettingsItem.TYPE_PREMIUM:
-                view = inflater.inflate(R.layout.premium_item_setting, parent, false);
-                return new PremiumViewHolder(view, this, mView);
 
             default:
                 Log.error("[SettingsAdapter] Invalid view type: " + viewType);
@@ -144,19 +130,6 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
         mView.onSettingChanged();
     }
 
-    public void onSingleChoiceClick(PremiumSingleChoiceSetting item) {
-        mClickedItem = item;
-
-        int value = getSelectionForSingleChoiceValue(item);
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(mView.getActivity());
-
-        builder.setTitle(item.getNameId());
-        builder.setSingleChoiceItems(item.getChoicesId(), value, this);
-
-        mDialog = builder.show();
-    }
-
     public void onSingleChoiceClick(SingleChoiceSetting item) {
         mClickedItem = item;
 
@@ -172,28 +145,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
     public void onSingleChoiceClick(SingleChoiceSetting item, int position) {
         mClickedPosition = position;
-
-        if (!item.isPremium() || MainActivity.isPremiumActive()) {
-            // Setting is either not Premium, or the user has Premium
-            onSingleChoiceClick(item);
-            return;
-        }
-
-        // User needs Premium, invoke the billing flow
-        MainActivity.invokePremiumBilling(() -> onSingleChoiceClick(item));
-    }
-
-    public void onSingleChoiceClick(PremiumSingleChoiceSetting item, int position) {
-        mClickedPosition = position;
-
-        if (!item.isPremium() || MainActivity.isPremiumActive()) {
-            // Setting is either not Premium, or the user has Premium
-            onSingleChoiceClick(item);
-            return;
-        }
-
-        // User needs Premium, invoke the billing flow
-        MainActivity.invokePremiumBilling(() -> onSingleChoiceClick(item));
+        onSingleChoiceClick(item);
     }
 
     public void onStringSingleChoiceClick(StringSingleChoiceSetting item) {
@@ -209,15 +161,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
     public void onStringSingleChoiceClick(StringSingleChoiceSetting item, int position) {
         mClickedPosition = position;
-
-        if (!item.isPremium() || MainActivity.isPremiumActive()) {
-            // Setting is either not Premium, or the user has Premium
-            onStringSingleChoiceClick(item);
-            return;
-        }
-
-        // User needs Premium, invoke the billing flow
-        MainActivity.invokePremiumBilling(() -> onStringSingleChoiceClick(item));
+        onStringSingleChoiceClick(item);
     }
 
     DialogInterface.OnClickListener defaultCancelListener = (dialog, which) -> closeDialog();
@@ -309,37 +253,6 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
         mView.loadSubMenu(item.getMenuKey());
     }
 
-    public void onInputBindingClick(final InputBindingSetting item, final int position) {
-        final MotionAlertDialog dialog = new MotionAlertDialog(mContext, item);
-        dialog.setTitle(R.string.input_binding);
-
-        int messageResId = R.string.input_binding_description;
-        if (item.IsAxisMappingSupported() && !item.IsTrigger()) {
-            // Use specialized message for axis left/right or up/down
-            if (item.IsHorizontalOrientation()) {
-                messageResId = R.string.input_binding_description_horizontal_axis;
-            } else {
-                messageResId = R.string.input_binding_description_vertical_axis;
-            }
-        }
-
-        dialog.setMessage(String.format(mContext.getString(messageResId), mContext.getString(item.getNameId())));
-        dialog.setButton(AlertDialog.BUTTON_NEGATIVE, mContext.getString(android.R.string.cancel), this);
-        dialog.setButton(AlertDialog.BUTTON_NEUTRAL, mContext.getString(R.string.clear), (dialogInterface, i) ->
-                item.removeOldMapping());
-        dialog.setOnDismissListener(dialog1 ->
-        {
-            StringSetting setting = new StringSetting(item.getKey(), item.getSection(), item.getValue());
-            notifyItemChanged(position);
-
-            mView.putSetting(setting);
-
-            mView.onSettingChanged();
-        });
-        dialog.setCanceledOnTouchOutside(false);
-        dialog.show();
-    }
-
     @Override
     public void onClick(DialogInterface dialog, int which) {
         if (mClickedItem instanceof SingleChoiceSetting) {
@@ -356,10 +269,6 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
                 mView.putSetting(setting);
             }
 
-            closeDialog();
-        } else if (mClickedItem instanceof PremiumSingleChoiceSetting) {
-            PremiumSingleChoiceSetting scSetting = (PremiumSingleChoiceSetting) mClickedItem;
-            scSetting.setSelectedValue(getValueForSingleChoiceSelection(scSetting, which));
             closeDialog();
         } else if (mClickedItem instanceof StringSingleChoiceSetting) {
             StringSingleChoiceSetting scSetting = (StringSingleChoiceSetting) mClickedItem;
@@ -436,37 +345,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
         }
     }
 
-    private int getValueForSingleChoiceSelection(PremiumSingleChoiceSetting item, int which) {
-        int valuesId = item.getValuesId();
-
-        if (valuesId > 0) {
-            int[] valuesArray = mContext.getResources().getIntArray(valuesId);
-            return valuesArray[which];
-        } else {
-            return which;
-        }
-    }
-
     private int getSelectionForSingleChoiceValue(SingleChoiceSetting item) {
-        int value = item.getSelectedValue();
-        int valuesId = item.getValuesId();
-
-        if (valuesId > 0) {
-            int[] valuesArray = mContext.getResources().getIntArray(valuesId);
-            for (int index = 0; index < valuesArray.length; index++) {
-                int current = valuesArray[index];
-                if (current == value) {
-                    return index;
-                }
-            }
-        } else {
-            return value;
-        }
-
-        return -1;
-    }
-
-    private int getSelectionForSingleChoiceValue(PremiumSingleChoiceSetting item) {
         int value = item.getSelectedValue();
         int valuesId = item.getValuesId();
 

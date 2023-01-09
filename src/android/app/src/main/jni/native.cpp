@@ -19,6 +19,7 @@
 #include "core/file_sys/vfs_real.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/perf_stats.h"
+#include "jni/config.h"
 #include "jni/emu_window/emu_window.h"
 #include "jni/id_cache.h"
 #include "video_core/rasterizer_interface.h"
@@ -66,6 +67,9 @@ static Core::SystemResultStatus RunEmulation(const std::string& filepath) {
         LOG_CRITICAL(Frontend, "failed to load: filepath empty!");
         return Core::SystemResultStatus::ErrorLoader;
     }
+
+    // Loads the configuration.
+    Config{};
 
     system_.Initialize();
     system_.ApplySettings();
@@ -245,7 +249,9 @@ jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_GetGitRevision([[maybe_unused]] JN
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_CreateConfigFile
-    [[maybe_unused]] (JNIEnv* env, [[maybe_unused]] jclass clazz) {}
+    [[maybe_unused]] (JNIEnv* env, [[maybe_unused]] jclass clazz) {
+    Config{};
+}
 
 jint Java_org_yuzu_yuzu_1emu_NativeLibrary_DefaultCPUCore([[maybe_unused]] JNIEnv* env,
                                                             [[maybe_unused]] jclass clazz) {
@@ -257,7 +263,9 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_Run__Ljava_lang_String_2Ljava_lang_St
     [[maybe_unused]] jstring j_savestate, [[maybe_unused]] jboolean j_delete_savestate) {}
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_ReloadSettings([[maybe_unused]] JNIEnv* env,
-                                                            [[maybe_unused]] jclass clazz) {}
+                                                            [[maybe_unused]] jclass clazz) {
+    Config{};
+}
 
 jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_GetUserSetting([[maybe_unused]] JNIEnv* env,
                                                                [[maybe_unused]] jclass clazz,

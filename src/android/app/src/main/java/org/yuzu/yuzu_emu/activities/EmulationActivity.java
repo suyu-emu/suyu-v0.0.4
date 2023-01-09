@@ -3,17 +3,13 @@ package org.yuzu.yuzu_emu.activities;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
-import android.util.SparseIntArray;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.SeekBar;
@@ -31,20 +27,14 @@ import androidx.fragment.app.FragmentManager;
 
 import org.yuzu.yuzu_emu.NativeLibrary;
 import org.yuzu.yuzu_emu.R;
-import org.yuzu.yuzu_emu.features.settings.model.view.InputBindingSetting;
-import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity;
-import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile;
 import org.yuzu.yuzu_emu.fragments.EmulationFragment;
 import org.yuzu.yuzu_emu.fragments.MenuFragment;
 import org.yuzu.yuzu_emu.utils.ControllerMappingHelper;
-import org.yuzu.yuzu_emu.utils.EmulationMenuSettings;
 import org.yuzu.yuzu_emu.utils.ForegroundService;
 
 import java.lang.annotation.Retention;
 import java.util.List;
 
-import static android.Manifest.permission.CAMERA;
-import static android.Manifest.permission.RECORD_AUDIO;
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 public final class EmulationActivity extends AppCompatActivity {
@@ -198,77 +188,6 @@ public final class EmulationActivity extends AppCompatActivity {
         }
     }
 
-    // Gets button presses
-    @Override
-    public boolean dispatchKeyEvent(KeyEvent event) {
-        if (mMenuVisible || event.getKeyCode() == KeyEvent.KEYCODE_BACK)
-        {
-            return super.dispatchKeyEvent(event);
-        }
-
-        int action;
-        int button = mPreferences.getInt(InputBindingSetting.getInputButtonKey(event.getKeyCode()), event.getKeyCode());
-
-        switch (event.getAction()) {
-            case KeyEvent.ACTION_DOWN:
-                // Handling the case where the back button is pressed.
-                if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-                    onBackPressed();
-                    return true;
-                }
-
-                // Normal key events.
-                action = NativeLibrary.ButtonState.PRESSED;
-                break;
-            case KeyEvent.ACTION_UP:
-                action = NativeLibrary.ButtonState.RELEASED;
-                break;
-            default:
-                return false;
-        }
-        InputDevice input = event.getDevice();
-
-        if (input == null) {
-            // Controller was disconnected
-            return false;
-        }
-
-        return NativeLibrary.onGamePadEvent(input.getDescriptor(), button, action);
-    }
-
-    private void toggleControls() {
-        final SharedPreferences.Editor editor = mPreferences.edit();
-        boolean[] enabledButtons = new boolean[14];
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.emulation_toggle_controls);
-
-        for (int i = 0; i < enabledButtons.length; i++) {
-            // Buttons that are disabled by default
-            boolean defaultValue = true;
-            switch (i) {
-                case 6: // ZL
-                case 7: // ZR
-                case 12: // C-stick
-                    defaultValue = false;
-                    break;
-            }
-
-            enabledButtons[i] = mPreferences.getBoolean("buttonToggle" + i, defaultValue);
-        }
-        builder.setMultiChoiceItems(R.array.n3dsButtons, enabledButtons,
-                (dialog, indexSelected, isChecked) -> editor
-                        .putBoolean("buttonToggle" + indexSelected, isChecked));
-        builder.setPositiveButton(android.R.string.ok, (dialogInterface, i) ->
-        {
-            editor.apply();
-
-            mEmulationFragment.refreshInputOverlay();
-        });
-
-        AlertDialog alertDialog = builder.create();
-        alertDialog.show();
-    }
-
     private void adjustScale() {
         LayoutInflater inflater = LayoutInflater.from(this);
         View view = inflater.inflate(R.layout.dialog_seekbar, null);
@@ -375,122 +294,6 @@ public final class EmulationActivity extends AppCompatActivity {
         }
 
         return super.dispatchTouchEvent(event);
-    }
-
-    @Override
-    public boolean dispatchGenericMotionEvent(MotionEvent event) {
-        if (mMenuVisible)
-        {
-            return false;
-        }
-
-        if (((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) == 0)) {
-            return super.dispatchGenericMotionEvent(event);
-        }
-
-        // Don't attempt to do anything if we are disconnecting a device.
-        if (event.getActionMasked() == MotionEvent.ACTION_CANCEL) {
-            return true;
-        }
-
-        InputDevice input = event.getDevice();
-        List<InputDevice.MotionRange> motions = input.getMotionRanges();
-
-        float[] axisValuesCirclePad = {0.0f, 0.0f};
-        float[] axisValuesCStick = {0.0f, 0.0f};
-        float[] axisValuesDPad = {0.0f, 0.0f};
-        boolean isTriggerPressedLMapped = false;
-        boolean isTriggerPressedRMapped = false;
-        boolean isTriggerPressedZLMapped = false;
-        boolean isTriggerPressedZRMapped = false;
-        boolean isTriggerPressedL = false;
-        boolean isTriggerPressedR = false;
-        boolean isTriggerPressedZL = false;
-        boolean isTriggerPressedZR = false;
-
-        for (InputDevice.MotionRange range : motions) {
-            int axis = range.getAxis();
-            float origValue = event.getAxisValue(axis);
-            float value = mControllerMappingHelper.scaleAxis(input, axis, origValue);
-            int nextMapping = mPreferences.getInt(InputBindingSetting.getInputAxisButtonKey(axis), -1);
-            int guestOrientation = mPreferences.getInt(InputBindingSetting.getInputAxisOrientationKey(axis), -1);
-
-            if (nextMapping == -1 || guestOrientation == -1) {
-                // Axis is unmapped
-                continue;
-            }
-
-            if ((value > 0.f && value < 0.1f) || (value < 0.f && value > -0.1f)) {
-                // Skip joystick wobble
-                value = 0.f;
-            }
-
-            if (nextMapping == NativeLibrary.ButtonType.STICK_LEFT) {
-                axisValuesCirclePad[guestOrientation] = value;
-            } else if (nextMapping == NativeLibrary.ButtonType.STICK_C) {
-                axisValuesCStick[guestOrientation] = value;
-            } else if (nextMapping == NativeLibrary.ButtonType.DPAD) {
-                axisValuesDPad[guestOrientation] = value;
-            } else if (nextMapping == NativeLibrary.ButtonType.TRIGGER_L) {
-                isTriggerPressedLMapped = true;
-                isTriggerPressedL = value != 0.f;
-            } else if (nextMapping == NativeLibrary.ButtonType.TRIGGER_R) {
-                isTriggerPressedRMapped = true;
-                isTriggerPressedR = value != 0.f;
-            } else if (nextMapping == NativeLibrary.ButtonType.BUTTON_ZL) {
-                isTriggerPressedZLMapped = true;
-                isTriggerPressedZL = value != 0.f;
-            } else if (nextMapping == NativeLibrary.ButtonType.BUTTON_ZR) {
-                isTriggerPressedZRMapped = true;
-                isTriggerPressedZR = value != 0.f;
-            }
-        }
-
-        // Circle-Pad and C-Stick status
-        NativeLibrary.onGamePadMoveEvent(input.getDescriptor(), NativeLibrary.ButtonType.STICK_LEFT, axisValuesCirclePad[0], axisValuesCirclePad[1]);
-        NativeLibrary.onGamePadMoveEvent(input.getDescriptor(), NativeLibrary.ButtonType.STICK_C, axisValuesCStick[0], axisValuesCStick[1]);
-
-        // Triggers L/R and ZL/ZR
-        if (isTriggerPressedLMapped) {
-            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, NativeLibrary.ButtonType.TRIGGER_L, isTriggerPressedL ? NativeLibrary.ButtonState.PRESSED : NativeLibrary.ButtonState.RELEASED);
-        }
-        if (isTriggerPressedRMapped) {
-            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, NativeLibrary.ButtonType.TRIGGER_R, isTriggerPressedR ? NativeLibrary.ButtonState.PRESSED : NativeLibrary.ButtonState.RELEASED);
-        }
-        if (isTriggerPressedZLMapped) {
-            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, NativeLibrary.ButtonType.BUTTON_ZL, isTriggerPressedZL ? NativeLibrary.ButtonState.PRESSED : NativeLibrary.ButtonState.RELEASED);
-        }
-        if (isTriggerPressedZRMapped) {
-            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, NativeLibrary.ButtonType.BUTTON_ZR, isTriggerPressedZR ? NativeLibrary.ButtonState.PRESSED : NativeLibrary.ButtonState.RELEASED);
-        }
-
-        // Work-around to allow D-pad axis to be bound to emulated buttons
-        if (axisValuesDPad[0] == 0.f) {
-            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, NativeLibrary.ButtonType.DPAD_LEFT, NativeLibrary.ButtonState.RELEASED);
-            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, NativeLibrary.ButtonType.DPAD_RIGHT, NativeLibrary.ButtonState.RELEASED);
-        }
-        if (axisValuesDPad[0] < 0.f) {
-            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, NativeLibrary.ButtonType.DPAD_LEFT, NativeLibrary.ButtonState.PRESSED);
-            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, NativeLibrary.ButtonType.DPAD_RIGHT, NativeLibrary.ButtonState.RELEASED);
-        }
-        if (axisValuesDPad[0] > 0.f) {
-            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, NativeLibrary.ButtonType.DPAD_LEFT, NativeLibrary.ButtonState.RELEASED);
-            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, NativeLibrary.ButtonType.DPAD_RIGHT, NativeLibrary.ButtonState.PRESSED);
-        }
-        if (axisValuesDPad[1] == 0.f) {
-            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, NativeLibrary.ButtonType.DPAD_UP, NativeLibrary.ButtonState.RELEASED);
-            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, NativeLibrary.ButtonType.DPAD_DOWN, NativeLibrary.ButtonState.RELEASED);
-        }
-        if (axisValuesDPad[1] < 0.f) {
-            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, NativeLibrary.ButtonType.DPAD_UP, NativeLibrary.ButtonState.PRESSED);
-            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, NativeLibrary.ButtonType.DPAD_DOWN, NativeLibrary.ButtonState.RELEASED);
-        }
-        if (axisValuesDPad[1] > 0.f) {
-            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, NativeLibrary.ButtonType.DPAD_UP, NativeLibrary.ButtonState.RELEASED);
-            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, NativeLibrary.ButtonType.DPAD_DOWN, NativeLibrary.ButtonState.PRESSED);
-        }
-
-        return true;
     }
 
     public boolean isActivityRecreated() {

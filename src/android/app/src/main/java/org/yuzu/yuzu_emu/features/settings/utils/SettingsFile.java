@@ -33,95 +33,23 @@ import java.util.TreeSet;
 public final class SettingsFile {
     public static final String FILE_NAME_CONFIG = "config";
 
-    public static final String KEY_CPU_JIT = "use_cpu_jit";
-
     public static final String KEY_DESIGN = "design";
 
-    public static final String KEY_PREMIUM = "premium";
-
-    public static final String KEY_HW_RENDERER = "use_hw_renderer";
-    public static final String KEY_HW_SHADER = "use_hw_shader";
-    public static final String KEY_SHADERS_ACCURATE_MUL = "shaders_accurate_mul";
-    public static final String KEY_USE_SHADER_JIT = "use_shader_jit";
-    public static final String KEY_USE_DISK_SHADER_CACHE = "use_disk_shader_cache";
-    public static final String KEY_USE_VSYNC = "use_vsync_new";
-    public static final String KEY_RESOLUTION_FACTOR = "resolution_factor";
-    public static final String KEY_FRAME_LIMIT_ENABLED = "use_frame_limit";
-    public static final String KEY_FRAME_LIMIT = "frame_limit";
-    public static final String KEY_BACKGROUND_RED = "bg_red";
-    public static final String KEY_BACKGROUND_BLUE = "bg_blue";
-    public static final String KEY_BACKGROUND_GREEN = "bg_green";
-    public static final String KEY_RENDER_3D = "render_3d";
-    public static final String KEY_FACTOR_3D = "factor_3d";
-    public static final String KEY_PP_SHADER_NAME = "pp_shader_name";
-    public static final String KEY_FILTER_MODE = "filter_mode";
-    public static final String KEY_TEXTURE_FILTER_NAME = "texture_filter_name";
-    public static final String KEY_USE_ASYNCHRONOUS_GPU_EMULATION = "use_asynchronous_gpu_emulation";
-
-    public static final String KEY_LAYOUT_OPTION = "layout_option";
-    public static final String KEY_SWAP_SCREEN = "swap_screen";
-    public static final String KEY_CARDBOARD_SCREEN_SIZE = "cardboard_screen_size";
-    public static final String KEY_CARDBOARD_X_SHIFT = "cardboard_x_shift";
-    public static final String KEY_CARDBOARD_Y_SHIFT = "cardboard_y_shift";
-
-    public static final String KEY_DUMP_TEXTURES = "dump_textures";
-    public static final String KEY_CUSTOM_TEXTURES = "custom_textures";
-    public static final String KEY_PRELOAD_TEXTURES = "preload_textures";
-
-    public static final String KEY_AUDIO_OUTPUT_ENGINE = "output_engine";
-    public static final String KEY_ENABLE_AUDIO_STRETCHING = "enable_audio_stretching";
-    public static final String KEY_VOLUME = "volume";
-    public static final String KEY_MIC_INPUT_TYPE = "mic_input_type";
-
-    public static final String KEY_USE_VIRTUAL_SD = "use_virtual_sd";
-
-    public static final String KEY_IS_NEW_3DS = "is_new_3ds";
-    public static final String KEY_REGION_VALUE = "region_value";
-    public static final String KEY_LANGUAGE = "language";
-
-    public static final String KEY_INIT_CLOCK = "init_clock";
-    public static final String KEY_INIT_TIME = "init_time";
-
-    public static final String KEY_BUTTON_A = "button_a";
-    public static final String KEY_BUTTON_B = "button_b";
-    public static final String KEY_BUTTON_X = "button_x";
-    public static final String KEY_BUTTON_Y = "button_y";
-    public static final String KEY_BUTTON_SELECT = "button_select";
-    public static final String KEY_BUTTON_START = "button_start";
-    public static final String KEY_BUTTON_UP = "button_up";
-    public static final String KEY_BUTTON_DOWN = "button_down";
-    public static final String KEY_BUTTON_LEFT = "button_left";
-    public static final String KEY_BUTTON_RIGHT = "button_right";
-    public static final String KEY_BUTTON_L = "button_l";
-    public static final String KEY_BUTTON_R = "button_r";
-    public static final String KEY_BUTTON_ZL = "button_zl";
-    public static final String KEY_BUTTON_ZR = "button_zr";
-    public static final String KEY_CIRCLEPAD_AXIS_VERTICAL = "circlepad_axis_vertical";
-    public static final String KEY_CIRCLEPAD_AXIS_HORIZONTAL = "circlepad_axis_horizontal";
-    public static final String KEY_CSTICK_AXIS_VERTICAL = "cstick_axis_vertical";
-    public static final String KEY_CSTICK_AXIS_HORIZONTAL = "cstick_axis_horizontal";
-    public static final String KEY_DPAD_AXIS_VERTICAL = "dpad_axis_vertical";
-    public static final String KEY_DPAD_AXIS_HORIZONTAL = "dpad_axis_horizontal";
-    public static final String KEY_CIRCLEPAD_UP = "circlepad_up";
-    public static final String KEY_CIRCLEPAD_DOWN = "circlepad_down";
-    public static final String KEY_CIRCLEPAD_LEFT = "circlepad_left";
-    public static final String KEY_CIRCLEPAD_RIGHT = "circlepad_right";
-    public static final String KEY_CSTICK_UP = "cstick_up";
-    public static final String KEY_CSTICK_DOWN = "cstick_down";
-    public static final String KEY_CSTICK_LEFT = "cstick_left";
-    public static final String KEY_CSTICK_RIGHT = "cstick_right";
-
-    public static final String KEY_CAMERA_OUTER_RIGHT_NAME = "camera_outer_right_name";
-    public static final String KEY_CAMERA_OUTER_RIGHT_CONFIG = "camera_outer_right_config";
-    public static final String KEY_CAMERA_OUTER_RIGHT_FLIP = "camera_outer_right_flip";
-    public static final String KEY_CAMERA_OUTER_LEFT_NAME = "camera_outer_left_name";
-    public static final String KEY_CAMERA_OUTER_LEFT_CONFIG = "camera_outer_left_config";
-    public static final String KEY_CAMERA_OUTER_LEFT_FLIP = "camera_outer_left_flip";
-    public static final String KEY_CAMERA_INNER_NAME = "camera_inner_name";
-    public static final String KEY_CAMERA_INNER_CONFIG = "camera_inner_config";
-    public static final String KEY_CAMERA_INNER_FLIP = "camera_inner_flip";
-
-    public static final String KEY_LOG_FILTER = "log_filter";
+    // CPU
+    public static final String KEY_CPU_ACCURACY = "cpu_accuracy";
+    // System
+    public static final String KEY_USE_DOCKED_MODE = "use_docked_mode";
+    public static final String KEY_REGION_INDEX = "region_index";
+    public static final String KEY_LANGUAGE_INDEX = "language_index";
+    public static final String KEY_RENDERER_BACKEND = "backend";
+    // Renderer
+    public static final String KEY_RENDERER_RESOLUTION = "resolution_setup";
+    public static final String KEY_RENDERER_ACCURACY = "gpu_accuracy";
+    public static final String KEY_RENDERER_ASYNCHRONOUS_SHADERS = "use_asynchronous_shaders";
+    public static final String KEY_RENDERER_USE_SPEED_LIMIT = "use_speed_limit";
+    public static final String KEY_RENDERER_SPEED_LIMIT = "speed_limit";
+    // Audio
+    public static final String KEY_AUDIO_VOLUME = "volume";
 
     private static BiMap<String, String> sectionsMap = new BiMap<>();
 

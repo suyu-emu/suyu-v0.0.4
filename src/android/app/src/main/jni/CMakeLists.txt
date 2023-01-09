@@ -1,4 +1,7 @@
 add_library(yuzu-android SHARED
+    config.cpp
+    config.h
+    default_ini.h
     emu_window/emu_window.cpp
     emu_window/emu_window.h
     id_cache.cpp

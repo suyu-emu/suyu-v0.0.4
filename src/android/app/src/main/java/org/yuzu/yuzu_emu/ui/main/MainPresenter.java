@@ -5,15 +5,12 @@ import android.os.SystemClock;
 import org.yuzu.yuzu_emu.BuildConfig;
 import org.yuzu.yuzu_emu.YuzuApplication;
 import org.yuzu.yuzu_emu.R;
-import org.yuzu.yuzu_emu.features.settings.model.Settings;
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile;
 import org.yuzu.yuzu_emu.model.GameDatabase;
 import org.yuzu.yuzu_emu.utils.AddDirectoryHelper;
 
 public final class MainPresenter {
     public static final int REQUEST_ADD_DIRECTORY = 1;
-    public static final int REQUEST_INSTALL_CIA = 2;
-
     private final MainView mView;
     private String mDirToAdd;
     private long mLastClickTime = 0;
@@ -48,14 +45,6 @@ public final class MainPresenter {
 
             case R.id.button_add_directory:
                 launchFileListActivity(REQUEST_ADD_DIRECTORY);
-                return true;
-
-            case R.id.button_install_cia:
-                launchFileListActivity(REQUEST_INSTALL_CIA);
-                return true;
-
-            case R.id.button_premium:
-                mView.launchSettingsActivity(Settings.SECTION_PREMIUM);
                 return true;
         }
 

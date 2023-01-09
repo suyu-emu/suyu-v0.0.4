@@ -29,7 +29,6 @@ import org.yuzu.yuzu_emu.overlay.InputOverlay;
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization;
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization.DirectoryInitializationState;
 import org.yuzu.yuzu_emu.utils.DirectoryStateReceiver;
-import org.yuzu.yuzu_emu.utils.EmulationMenuSettings;
 import org.yuzu.yuzu_emu.utils.Log;
 
 public final class EmulationFragment extends Fragment implements SurfaceHolder.Callback, Choreographer.FrameCallback {
