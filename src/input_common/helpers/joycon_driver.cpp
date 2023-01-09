@@ -540,11 +540,9 @@ void JoyconDriver::SetCallbacks(const JoyconCallbacks& callbacks) {
 
 DriverResult JoyconDriver::GetDeviceType(SDL_hid_device_info* device_info,
                                          ControllerType& controller_type) {
-    static constexpr std::array<std::pair<u32, ControllerType>, 4> supported_devices{
+    static constexpr std::array<std::pair<u32, ControllerType>, 2> supported_devices{
         std::pair<u32, ControllerType>{0x2006, ControllerType::Left},
         {0x2007, ControllerType::Right},
-        {0x2009, ControllerType::Pro},
-        {0x200E, ControllerType::Grip},
     };
     constexpr u16 nintendo_vendor_id = 0x057e;
 

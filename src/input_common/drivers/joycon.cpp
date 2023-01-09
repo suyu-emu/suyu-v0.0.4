@@ -44,12 +44,6 @@ void Joycons::Reset() {
         }
         device->Stop();
     }
-    for (const auto& device : pro_joycons) {
-        if (!device) {
-            continue;
-        }
-        device->Stop();
-    }
     SDL_hid_exit();
 }
 
@@ -63,11 +57,6 @@ void Joycons::Setup() {
     port = 0;
     for (auto& device : right_joycons) {
         PreSetController(GetIdentifier(port, Joycon::ControllerType::Right));
-        device = std::make_shared<Joycon::JoyconDriver>(port++);
-    }
-    port = 0;
-    for (auto& device : pro_joycons) {
-        PreSetController(GetIdentifier(port, Joycon::ControllerType::Pro));
         device = std::make_shared<Joycon::JoyconDriver>(port++);
     }
 
@@ -141,14 +130,6 @@ bool Joycons::IsDeviceNew(SDL_hid_device_info* device_info) const {
             }
         }
         break;
-    case Joycon::ControllerType::Pro:
-    case Joycon::ControllerType::Grip:
-        for (const auto& device : pro_joycons) {
-            if (is_handle_identical(device)) {
-                return false;
-            }
-        }
-        break;
     default:
         return false;
     }
@@ -214,13 +195,6 @@ std::shared_ptr<Joycon::JoyconDriver> Joycons::GetNextFreeHandle(
     }
     if (type == Joycon::ControllerType::Right) {
         for (const auto& device : right_joycons) {
-            if (!device->IsConnected()) {
-                return device;
-            }
-        }
-    }
-    if (type == Joycon::ControllerType::Pro || type == Joycon::ControllerType::Grip) {
-        for (const auto& device : pro_joycons) {
             if (!device->IsConnected()) {
                 return device;
             }
@@ -431,13 +405,6 @@ std::shared_ptr<Joycon::JoyconDriver> Joycons::GetHandle(PadIdentifier identifie
             }
         }
     }
-    if (type == Joycon::ControllerType::Pro || type == Joycon::ControllerType::Grip) {
-        for (const auto& device : pro_joycons) {
-            if (is_handle_active(device)) {
-                return device;
-            }
-        }
-    }
     return nullptr;
 }
 
@@ -473,9 +440,6 @@ std::vector<Common::ParamPackage> Joycons::GetInputDevices() const {
         add_entry(controller);
     }
     for (const auto& controller : right_joycons) {
-        add_entry(controller);
-    }
-    for (const auto& controller : pro_joycons) {
         add_entry(controller);
     }
 
