@@ -129,6 +129,10 @@ void UpdateRescalingInfo() {
         info.up_scale = 1;
         info.down_shift = 0;
         break;
+    case ResolutionSetup::Res3_2X:
+        info.up_scale = 3;
+        info.down_shift = 1;
+        break;
     case ResolutionSetup::Res2X:
         info.up_scale = 2;
         info.down_shift = 0;

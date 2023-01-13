@@ -366,6 +366,11 @@
              </item>
              <item>
               <property name="text">
+                  <string>1.5X (1080p/1620p) [EXPERIMENTAL]</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
                <string>2X (1440p/2160p)</string>
               </property>
              </item>
