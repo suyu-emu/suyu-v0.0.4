@@ -394,6 +394,16 @@
                <string>6X (4320p/6480p)</string>
               </property>
              </item>
+             <item>
+              <property name="text">
+               <string>7X (5040p/7560p)</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>8X (5760p/8640p)</string>
+              </property>
+             </item>
             </widget>
            </item>
           </layout>
