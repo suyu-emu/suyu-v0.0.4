@@ -94,49 +94,28 @@ static void SrcProcessFrame(std::span<s32> output, std::span<const s32> input,
     auto calculate_sample = [&state](std::span<const Common::FixedPoint<24, 8>> coeffs1,
                                      std::span<const Common::FixedPoint<24, 8>> coeffs2) -> s32 {
         auto output_index{state->history_output_index};
-        auto start_pos{output_index - state->history_start_index + 1U};
-        auto end_pos{10U};
+        u64 result{0};
 
-        if (start_pos < 10) {
-            end_pos = start_pos;
-        }
+        for (u32 coeff_index = 0; coeff_index < 10; coeff_index++) {
+            result += static_cast<u64>(state->history[output_index].to_raw()) *
+                      coeffs1[coeff_index].to_raw();
 
-        u64 prev_contrib{0};
-        u32 coeff_index{0};
-        for (; coeff_index < end_pos; coeff_index++, output_index--) {
-            prev_contrib += static_cast<u64>(state->history[output_index].to_raw()) *
-                            coeffs1[coeff_index].to_raw();
-        }
-
-        auto end_index{state->history_end_index};
-        for (; start_pos < 9; start_pos++, coeff_index++, end_index--) {
-            prev_contrib += static_cast<u64>(state->history[end_index].to_raw()) *
-                            coeffs1[coeff_index].to_raw();
+            output_index = output_index == state->history_start_index ? state->history_end_index
+                                                                      : output_index - 1;
         }
 
         output_index =
             static_cast<u16>((state->history_output_index + 1) % UpsamplerState::HistorySize);
-        start_pos = state->history_end_index - output_index + 1U;
-        end_pos = 10U;
 
-        if (start_pos < 10) {
-            end_pos = start_pos;
+        for (u32 coeff_index = 0; coeff_index < 10; coeff_index++) {
+            result += static_cast<u64>(state->history[output_index].to_raw()) *
+                      coeffs2[coeff_index].to_raw();
+
+            output_index = output_index == state->history_end_index ? state->history_start_index
+                                                                    : output_index + 1;
         }
 
-        u64 next_contrib{0};
-        coeff_index = 0;
-        for (; coeff_index < end_pos; coeff_index++, output_index++) {
-            next_contrib += static_cast<u64>(state->history[output_index].to_raw()) *
-                            coeffs2[coeff_index].to_raw();
-        }
-
-        auto start_index{state->history_start_index};
-        for (; start_pos < 9; start_pos++, start_index++, coeff_index++) {
-            next_contrib += static_cast<u64>(state->history[start_index].to_raw()) *
-                            coeffs2[coeff_index].to_raw();
-        }
-
-        return static_cast<s32>(((prev_contrib >> 15) + (next_contrib >> 15)) >> 8);
+        return static_cast<s32>(result >> (8 + 15));
     };
 
     switch (state->ratio.to_int_floor()) {
