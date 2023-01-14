@@ -12,8 +12,8 @@ IrsProtocol::IrsProtocol(std::shared_ptr<JoyconHandle> handle)
 
 DriverResult IrsProtocol::EnableIrs() {
     LOG_INFO(Input, "Enable IRS");
+    ScopedSetBlocking sb(this);
     DriverResult result{DriverResult::Success};
-    SetBlocking();
 
     if (result == DriverResult::Success) {
         result = SetReportMode(ReportMode::NFC_IR_MODE_60HZ);
@@ -49,14 +49,13 @@ DriverResult IrsProtocol::EnableIrs() {
 
     is_enabled = true;
 
-    SetNonBlocking();
     return result;
 }
 
 DriverResult IrsProtocol::DisableIrs() {
     LOG_DEBUG(Input, "Disable IRS");
+    ScopedSetBlocking sb(this);
     DriverResult result{DriverResult::Success};
-    SetBlocking();
 
     if (result == DriverResult::Success) {
         result = EnableMCU(false);
@@ -64,7 +63,6 @@ DriverResult IrsProtocol::DisableIrs() {
 
     is_enabled = false;
 
-    SetNonBlocking();
     return result;
 }
 
@@ -148,7 +146,7 @@ DriverResult IrsProtocol::ConfigureIrs() {
     };
     buf_image.resize((static_cast<u8>(fragments) + 1) * 300);
 
-    std::vector<u8> request_data(sizeof(IrsConfigure));
+    std::array<u8, sizeof(IrsConfigure)> request_data{};
     memcpy(request_data.data(), &irs_configuration, sizeof(IrsConfigure));
     request_data[37] = CalculateMCU_CRC8(request_data.data() + 1, 36);
     do {
@@ -191,7 +189,7 @@ DriverResult IrsProtocol::WriteRegistersStep1() {
         .crc = {},
     };
 
-    std::vector<u8> request_data(sizeof(IrsWriteRegisters));
+    std::array<u8, sizeof(IrsWriteRegisters)> request_data{};
     memcpy(request_data.data(), &irs_registers, sizeof(IrsWriteRegisters));
     request_data[37] = CalculateMCU_CRC8(request_data.data() + 1, 36);
 
@@ -208,7 +206,7 @@ DriverResult IrsProtocol::WriteRegistersStep1() {
 
         // First time we need to set the report mode
         if (result == DriverResult::Success && tries == 0) {
-            result = SendMcuCommand(SubCommand::SET_REPORT_MODE, mcu_request);
+            result = SendMCUCommand(SubCommand::SET_REPORT_MODE, mcu_request);
         }
         if (result == DriverResult::Success && tries == 0) {
             GetSubCommandResponse(SubCommand::SET_MCU_CONFIG, output);
@@ -250,7 +248,7 @@ DriverResult IrsProtocol::WriteRegistersStep2() {
         .crc = {},
     };
 
-    std::vector<u8> request_data(sizeof(IrsWriteRegisters));
+    std::array<u8, sizeof(IrsWriteRegisters)> request_data{};
     memcpy(request_data.data(), &irs_registers, sizeof(IrsWriteRegisters));
     request_data[37] = CalculateMCU_CRC8(request_data.data() + 1, 36);
     do {
@@ -272,7 +270,7 @@ DriverResult IrsProtocol::RequestFrame(u8 frame) {
     mcu_request[3] = frame;
     mcu_request[36] = CalculateMCU_CRC8(mcu_request.data(), 36);
     mcu_request[37] = 0xFF;
-    return SendMcuCommand(SubCommand::SET_REPORT_MODE, mcu_request);
+    return SendMCUCommand(SubCommand::SET_REPORT_MODE, mcu_request);
 }
 
 DriverResult IrsProtocol::ResendFrame(u8 frame) {
@@ -282,7 +280,7 @@ DriverResult IrsProtocol::ResendFrame(u8 frame) {
     mcu_request[3] = 0x0;
     mcu_request[36] = CalculateMCU_CRC8(mcu_request.data(), 36);
     mcu_request[37] = 0xFF;
-    return SendMcuCommand(SubCommand::SET_REPORT_MODE, mcu_request);
+    return SendMCUCommand(SubCommand::SET_REPORT_MODE, mcu_request);
 }
 
 std::vector<u8> IrsProtocol::GetImage() const {

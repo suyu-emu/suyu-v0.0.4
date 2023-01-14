@@ -99,7 +99,6 @@ private:
     std::string JoyconName(Joycon::ControllerType type) const;
 
     std::jthread scan_thread;
-    bool scan_thread_running{};
 
     // Joycon types are split by type to ease supporting dualjoycon configurations
     std::array<std::shared_ptr<Joycon::JoyconDriver>, MaxSupportedControllers> left_joycons{};

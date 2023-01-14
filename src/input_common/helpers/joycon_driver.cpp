@@ -123,7 +123,7 @@ DriverResult JoyconDriver::InitializeDevice() {
 }
 
 void JoyconDriver::InputThread(std::stop_token stop_token) {
-    LOG_INFO(Input, "JC Adapter input thread started");
+    LOG_INFO(Input, "Joycon Adapter input thread started");
     Common::SetCurrentThreadName("JoyconInput");
     input_thread_running = true;
 
@@ -157,7 +157,7 @@ void JoyconDriver::InputThread(std::stop_token stop_token) {
 
     is_connected = false;
     input_thread_running = false;
-    LOG_INFO(Input, "JC Adapter input thread stopped");
+    LOG_INFO(Input, "Joycon Adapter input thread stopped");
 }
 
 void JoyconDriver::OnNewData(std::span<u8> buffer) {
@@ -349,7 +349,7 @@ JoyconDriver::SupportedFeatures JoyconDriver::GetSupportedFeatures() {
 }
 
 bool JoyconDriver::IsInputThreadValid() const {
-    if (!is_connected) {
+    if (!is_connected.load()) {
         return false;
     }
     if (hidapi_handle->handle == nullptr) {
@@ -491,7 +491,7 @@ DriverResult JoyconDriver::SetRingConMode() {
 
 bool JoyconDriver::IsConnected() const {
     std::scoped_lock lock{mutex};
-    return is_connected;
+    return is_connected.load();
 }
 
 bool JoyconDriver::IsVibrationEnabled() const {
