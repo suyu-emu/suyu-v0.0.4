@@ -756,8 +756,7 @@ void Config::ReadShortcutValues() {
              {ReadSetting(QStringLiteral("KeySeq"), shortcut.keyseq).toString(),
               ReadSetting(QStringLiteral("Controller_KeySeq"), shortcut.controller_keyseq)
                   .toString(),
-              shortcut.context,
-              ReadSetting(QStringLiteral("Repeat"), shortcut.repeat).toBool()}});
+              shortcut.context, ReadSetting(QStringLiteral("Repeat"), shortcut.repeat).toBool()}});
         qt_config->endGroup();
         qt_config->endGroup();
     }

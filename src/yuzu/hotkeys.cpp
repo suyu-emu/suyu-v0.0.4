@@ -21,8 +21,7 @@ void HotkeyRegistry::SaveHotkeys() {
                 {hotkey.first, group.first,
                  UISettings::ContextualShortcut({hotkey.second.keyseq.toString(),
                                                  hotkey.second.controller_keyseq,
-                                                 hotkey.second.context,
-                                                 hotkey.second.repeat})});
+                                                 hotkey.second.context, hotkey.second.repeat})});
         }
     }
 }
