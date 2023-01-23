@@ -44,6 +44,8 @@ void ConfigureGeneral::SetConfiguration() {
     ui->toggle_background_pause->setChecked(UISettings::values.pause_when_in_background.GetValue());
     ui->toggle_background_mute->setChecked(UISettings::values.mute_when_in_background.GetValue());
     ui->toggle_hide_mouse->setChecked(UISettings::values.hide_mouse.GetValue());
+    ui->toggle_controller_applet_disabled->setEnabled(runtime_lock);
+    ui->toggle_controller_applet_disabled->setChecked(UISettings::values.controller_applet_disabled.GetValue());
 
     ui->toggle_speed_limit->setChecked(Settings::values.use_speed_limit.GetValue());
     ui->speed_limit->setValue(Settings::values.speed_limit.GetValue());
@@ -90,6 +92,7 @@ void ConfigureGeneral::ApplyConfiguration() {
         UISettings::values.pause_when_in_background = ui->toggle_background_pause->isChecked();
         UISettings::values.mute_when_in_background = ui->toggle_background_mute->isChecked();
         UISettings::values.hide_mouse = ui->toggle_hide_mouse->isChecked();
+        UISettings::values.controller_applet_disabled = ui->toggle_controller_applet_disabled->isChecked();
 
         // Guard if during game and set to game-specific value
         if (Settings::values.use_speed_limit.UsingGlobal()) {
@@ -136,6 +139,7 @@ void ConfigureGeneral::SetupPerGameUI() {
     ui->toggle_user_on_boot->setVisible(false);
     ui->toggle_background_pause->setVisible(false);
     ui->toggle_hide_mouse->setVisible(false);
+    ui->toggle_controller_applet_disabled->setVisible(false);
 
     ui->button_reset_defaults->setVisible(false);
 
