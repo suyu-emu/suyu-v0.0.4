@@ -214,8 +214,6 @@ public:
 
     void Continue();
 
-    void WaitUntilSuspended();
-
     constexpr void SetSyncedIndex(s32 index) {
         synced_index = index;
     }
