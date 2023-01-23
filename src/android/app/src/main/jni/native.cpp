@@ -17,6 +17,7 @@
 #include "core/cpu_manager.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/vfs_real.h"
+#include "core/hid/hid_core.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/perf_stats.h"
 #include "jni/config.h"
@@ -26,10 +27,139 @@
 
 namespace {
 
-ANativeWindow* s_surf{};
-std::unique_ptr<EmuWindow_Android> emu_window;
-std::atomic<bool> stop_run{true};
-Core::System system_;
+class EmulationSession final {
+public:
+    EmulationSession() = default;
+    ~EmulationSession() = default;
+
+    static EmulationSession& GetInstance() {
+        return s_instance;
+    }
+
+    const Core::System& System() const {
+        return system;
+    }
+
+    Core::System& System() {
+        return system;
+    }
+
+    const EmuWindow_Android& Window() const {
+        return *window;
+    }
+
+    EmuWindow_Android& Window() {
+        return *window;
+    }
+
+    ANativeWindow* NativeWindow() const {
+        return native_window;
+    }
+
+    void SetNativeWindow(ANativeWindow* native_window_) {
+        native_window = native_window_;
+    }
+
+    bool IsRunning() const {
+        return system.IsPoweredOn();
+    }
+
+    const Core::PerfStatsResults& PerfStats() const {
+        std::scoped_lock perf_stats_lock(perf_stats_mutex);
+        return perf_stats;
+    }
+
+    void SurfaceChanged() {
+        if (!IsRunning()) {
+            return;
+        }
+        window->OnSurfaceChanged(native_window);
+    }
+
+    Core::SystemResultStatus InitializeEmulation(const std::string& filepath) {
+        std::scoped_lock lock(mutex);
+
+        // Loads the configuration.
+        Config{};
+
+        // Create the render window.
+        window = std::make_unique<EmuWindow_Android>(&input_subsystem, native_window);
+
+        // Initialize system.
+        system.SetShuttingDown(false);
+        system.Initialize();
+        system.ApplySettings();
+        system.HIDCore().ReloadInputDevices();
+        system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
+        system.SetFilesystem(std::make_shared<FileSys::RealVfsFilesystem>());
+        system.GetFileSystemController().CreateFactories(*system.GetFilesystem());
+
+        // Load the ROM.
+        const Core::SystemResultStatus load_result{system.Load(EmulationSession::GetInstance().Window(), filepath)};
+        if (load_result != Core::SystemResultStatus::Success) {
+            return load_result;
+        }
+
+        // Complete initialization.
+        system.GPU().Start();
+        system.GetCpuManager().OnGpuReady();
+        system.RegisterExitCallback([&] { HaltEmulation(); });
+
+        return Core::SystemResultStatus::Success;
+    }
+
+    void ShutdownEmulation() {
+        std::scoped_lock lock(mutex);
+
+        // Unload user input.
+        system.HIDCore().UnloadInputDevices();
+
+        // Shutdown the main emulated process
+        system.DetachDebugger();
+        system.ShutdownMainProcess();
+        detached_tasks.WaitForAllTasks();
+
+        // Tear down the render window.
+        window.reset();
+    }
+
+    void HaltEmulation() {
+        cv.notify_one();
+    }
+
+    void RunEmulation() {
+        std::unique_lock lock(mutex);
+
+        void(system.Run());
+
+        if (system.DebuggerEnabled()) {
+            system.InitializeDebugger();
+        }
+
+        while (cv.wait_for(lock, std::chrono::seconds (1)) == std::cv_status::timeout) {
+            std::scoped_lock perf_stats_lock(perf_stats_mutex);
+            perf_stats = system.GetAndResetPerfStats();
+        }
+    }
+
+private:
+    static EmulationSession s_instance;
+
+    ANativeWindow* native_window{};
+
+    InputCommon::InputSubsystem input_subsystem;
+    Common::DetachedTasks detached_tasks;
+    Core::System system;
+
+    Core::PerfStatsResults perf_stats{};
+    mutable std::mutex perf_stats_mutex;
+
+    std::unique_ptr<EmuWindow_Android> window;
+    std::mutex mutex;
+    std::condition_variable_any cv;
+};
+
+/*static*/ EmulationSession EmulationSession::s_instance;
 
 std::string UTF16ToUTF8(std::u16string_view input) {
     std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
@@ -56,7 +186,6 @@ static Core::SystemResultStatus RunEmulation(const std::string& filepath) {
     Common::Log::Initialize();
     Common::Log::SetColorConsoleBackendEnabled(true);
     Common::Log::Start();
-    Common::DetachedTasks detached_tasks;
 
     MicroProfileOnThreadCreate("EmuThread");
     SCOPE_EXIT({ MicroProfileShutdown(); });
@@ -68,46 +197,13 @@ static Core::SystemResultStatus RunEmulation(const std::string& filepath) {
         return Core::SystemResultStatus::ErrorLoader;
     }
 
-    // Loads the configuration.
-    Config{};
-
-    system_.Initialize();
-    system_.ApplySettings();
-
-    InputCommon::InputSubsystem input_subsystem{};
-
-    emu_window = std::make_unique<EmuWindow_Android>(&input_subsystem, s_surf);
-
-    system_.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
-    system_.SetFilesystem(std::make_shared<FileSys::RealVfsFilesystem>());
-    system_.GetFileSystemController().CreateFactories(*system_.GetFilesystem());
-
-    const Core::SystemResultStatus load_result{system_.Load(*emu_window, filepath)};
-
-    if (load_result != Core::SystemResultStatus::Success) {
-        return load_result;
+    const auto result = EmulationSession::GetInstance().InitializeEmulation(filepath);
+    if (result != Core::SystemResultStatus::Success) {
+        return result;
     }
 
-    system_.GPU().Start();
-    system_.GetCpuManager().OnGpuReady();
-    system_.RegisterExitCallback([&] { exit(0); });
-
-    void(system_.Run());
-
-    if (system_.DebuggerEnabled()) {
-        system_.InitializeDebugger();
-    }
-
-    stop_run = false;
-    while (!stop_run) {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
-
-    system_.DetachDebugger();
-    void(system_.Pause());
-    system_.ShutdownMainProcess();
-
-    detached_tasks.WaitForAllTasks();
+    EmulationSession::GetInstance().RunEmulation();
+    EmulationSession::GetInstance().ShutdownEmulation();
 
     return Core::SystemResultStatus::Success;
 }
@@ -117,22 +213,15 @@ extern "C" {
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_SurfaceChanged(JNIEnv* env,
                                                             [[maybe_unused]] jclass clazz,
                                                             jobject surf) {
-    s_surf = ANativeWindow_fromSurface(env, surf);
-
-    if (emu_window) {
-        emu_window->OnSurfaceChanged(s_surf);
-    }
-
-    LOG_INFO(Frontend, "surface changed");
+    EmulationSession::GetInstance().SetNativeWindow(ANativeWindow_fromSurface(env, surf));
+    EmulationSession::GetInstance().SurfaceChanged();
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_SurfaceDestroyed(JNIEnv* env,
                                                               [[maybe_unused]] jclass clazz) {
-    ANativeWindow_release(s_surf);
-    s_surf = nullptr;
-    if (emu_window) {
-        emu_window->OnSurfaceChanged(s_surf);
-    }
+    ANativeWindow_release(EmulationSession::GetInstance().NativeWindow());
+    EmulationSession::GetInstance().SetNativeWindow(nullptr);
+    EmulationSession::GetInstance().SurfaceChanged();
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_DoFrame(JNIEnv* env, [[maybe_unused]] jclass clazz) {}
@@ -153,18 +242,22 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_PauseEmulation([[maybe_unused]] JNIEn
                                                             [[maybe_unused]] jclass clazz) {}
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_StopEmulation([[maybe_unused]] JNIEnv* env,
-                                                           [[maybe_unused]] jclass clazz) {}
+                                                           [[maybe_unused]] jclass clazz) {
+    EmulationSession::GetInstance().HaltEmulation();
+}
 
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_IsRunning([[maybe_unused]] JNIEnv* env,
                                                            [[maybe_unused]] jclass clazz) {
-    return static_cast<jboolean>(!stop_run);
+    return static_cast<jboolean>(EmulationSession::GetInstance().IsRunning());
 }
 
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadEvent([[maybe_unused]] JNIEnv* env,
                                                                 [[maybe_unused]] jclass clazz,
                                                                 [[maybe_unused]] jstring j_device,
                                                                 jint j_button, jint action) {
-    emu_window->OnGamepadEvent(j_button, action != 0);
+    if (EmulationSession::GetInstance().IsRunning()) {
+        EmulationSession::GetInstance().Window().OnGamepadEvent(j_button, action != 0);
+    }
     return static_cast<jboolean>(true);
 }
 
@@ -183,7 +276,10 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadMoveEvent([[maybe_unused
         x /= r;
         y /= r;
     }
-    emu_window->OnGamepadMoveEvent(x, y);
+
+    if (EmulationSession::GetInstance().IsRunning()) {
+        EmulationSession::GetInstance().Window().OnGamepadMoveEvent(x, y);
+    }
     return static_cast<jboolean>(false);
 }
 
@@ -198,13 +294,18 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchEvent([[maybe_unused]] JNI
                                                               [[maybe_unused]] jclass clazz,
                                                               jfloat x, jfloat y,
                                                               jboolean pressed) {
-    return static_cast<jboolean>(emu_window->OnTouchEvent(x, y, pressed));
+    if (EmulationSession::GetInstance().IsRunning()) {
+        return static_cast<jboolean>(EmulationSession::GetInstance().Window().OnTouchEvent(x, y, pressed));
+    }
+    return static_cast<jboolean>(false);
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchMoved([[maybe_unused]] JNIEnv* env,
                                                           [[maybe_unused]] jclass clazz, jfloat x,
                                                           jfloat y) {
-    emu_window->OnTouchMoved(x, y);
+    if (EmulationSession::GetInstance().IsRunning()) {
+        EmulationSession::GetInstance().Window().OnTouchMoved(x, y);
+    }
 }
 
 jintArray Java_org_yuzu_yuzu_1emu_NativeLibrary_GetIcon([[maybe_unused]] JNIEnv* env,
@@ -309,8 +410,8 @@ jdoubleArray Java_org_yuzu_yuzu_1emu_NativeLibrary_GetPerfStats([[maybe_unused]]
                                                                   [[maybe_unused]] jclass clazz) {
     jdoubleArray j_stats = env->NewDoubleArray(4);
 
-    if (!stop_run && system_.IsPoweredOn()) {
-        const auto results = system_.GetAndResetPerfStats();
+    if (EmulationSession::GetInstance().IsRunning()) {
+        const auto results = EmulationSession::GetInstance().PerfStats();
 
         // Converting the structure into an array makes it easier to pass it to the frontend
         double stats[4] = {results.system_fps, results.average_game_fps, results.frametime,
@@ -329,10 +430,6 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_Run__Ljava_lang_String_2([[maybe_unus
                                                                       [[maybe_unused]] jclass clazz,
                                                                       jstring j_path) {
     const std::string path = GetJString(env, j_path);
-
-    if (!stop_run) {
-        stop_run = true;
-    }
 
     const Core::SystemResultStatus result{RunEmulation(path)};
     if (result != Core::SystemResultStatus::Success) {
