@@ -159,11 +159,13 @@ public final class SettingsFragmentPresenter {
         Setting rendererBackend = rendererSection.getSetting(SettingsFile.KEY_RENDERER_BACKEND);
         Setting rendererAccuracy = rendererSection.getSetting(SettingsFile.KEY_RENDERER_ACCURACY);
         Setting rendererReolution = rendererSection.getSetting(SettingsFile.KEY_RENDERER_RESOLUTION);
+        Setting rendererAspectRation = rendererSection.getSetting(SettingsFile.KEY_RENDERER_ASPECT_RATIO);
         Setting rendererAsynchronousShaders = rendererSection.getSetting(SettingsFile.KEY_RENDERER_ASYNCHRONOUS_SHADERS);
 
         sl.add(new SingleChoiceSetting(SettingsFile.KEY_RENDERER_BACKEND, Settings.SECTION_RENDERER, R.string.renderer_api, 0, R.array.rendererApiNames, R.array.rendererApiValues, 0, rendererBackend));
         sl.add(new SingleChoiceSetting(SettingsFile.KEY_RENDERER_ACCURACY, Settings.SECTION_RENDERER, R.string.renderer_accuracy, 0, R.array.rendererAccuracyNames, R.array.rendererAccuracyValues, 1, rendererAccuracy));
         sl.add(new SingleChoiceSetting(SettingsFile.KEY_RENDERER_RESOLUTION, Settings.SECTION_RENDERER, R.string.renderer_resolution, 0, R.array.rendererResolutionNames, R.array.rendererResolutionValues, 2, rendererReolution));
+        sl.add(new SingleChoiceSetting(SettingsFile.KEY_RENDERER_ASPECT_RATIO, Settings.SECTION_RENDERER, R.string.renderer_aspect_ratio, 0, R.array.rendererAspectRatioNames, R.array.rendererAspectRatioValues, 0, rendererAspectRation));
         sl.add(new CheckBoxSetting(SettingsFile.KEY_RENDERER_ASYNCHRONOUS_SHADERS, Settings.SECTION_RENDERER, R.string.renderer_asynchronous_shaders, R.string.renderer_asynchronous_shaders_description, false, rendererAsynchronousShaders));
     }
 

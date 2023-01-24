@@ -28,6 +28,7 @@
     <string name="renderer_api">API</string>
     <string name="renderer_accuracy">Accuracy level</string>
     <string name="renderer_resolution">Resolution</string>
+    <string name="renderer_aspect_ratio">Aspect Ratio</string>
     <string name="renderer_asynchronous_shaders">Use asynchronous shaders</string>
     <string name="renderer_asynchronous_shaders_description">Compiles shaders asynchronously, which will reduce stutter but may introduce glitches.</string>
 

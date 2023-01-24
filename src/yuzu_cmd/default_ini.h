@@ -318,7 +318,7 @@ anti_aliasing =
 fullscreen_mode =
 
 # Aspect ratio
-# 0: Default (16:9), 1: Force 4:3, 2: Force 21:9, 3: Stretch to Window
+# 0: Default (16:9), 1: Force 4:3, 2: Force 21:9, 3: Force 16:10, 4: Stretch to Window
 aspect_ratio =
 
 # Anisotropic filtering

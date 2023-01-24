@@ -46,6 +46,9 @@ EmuWindow_Android::EmuWindow_Android(InputCommon::InputSubsystem* input_subsyste
     window_width = ANativeWindow_getWidth(surface_);
     window_height = ANativeWindow_getHeight(surface_);
 
+    // Ensures that we emulate with the correct aspect ratio.
+    UpdateCurrentFramebufferLayout(window_width, window_height);
+
     host_window = surface_;
     window_info.type = Core::Frontend::WindowSystemType::Android;
     window_info.render_surface = reinterpret_cast<void*>(host_window);
