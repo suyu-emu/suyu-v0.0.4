@@ -330,7 +330,7 @@ void KThread::Finalize() {
             KThread* const waiter = std::addressof(*it);
 
             // The thread shouldn't be a kernel waiter.
-            ASSERT(!IsKernelAddressKey(waiter->GetAddressKey()));
+            ASSERT(!waiter->GetAddressKeyIsKernel());
 
             // Clear the lock owner.
             waiter->SetLockOwner(nullptr);
@@ -884,7 +884,7 @@ void KThread::AddWaiterImpl(KThread* thread) {
     }
 
     // Keep track of how many kernel waiters we have.
-    if (IsKernelAddressKey(thread->GetAddressKey())) {
+    if (thread->GetAddressKeyIsKernel()) {
         ASSERT((num_kernel_waiters++) >= 0);
         KScheduler::SetSchedulerUpdateNeeded(kernel);
     }
@@ -898,7 +898,7 @@ void KThread::RemoveWaiterImpl(KThread* thread) {
     ASSERT(kernel.GlobalSchedulerContext().IsLocked());
 
     // Keep track of how many kernel waiters we have.
-    if (IsKernelAddressKey(thread->GetAddressKey())) {
+    if (thread->GetAddressKeyIsKernel()) {
         ASSERT((num_kernel_waiters--) > 0);
         KScheduler::SetSchedulerUpdateNeeded(kernel);
     }
@@ -974,7 +974,7 @@ KThread* KThread::RemoveWaiterByKey(s32* out_num_waiters, VAddr key) {
             KThread* thread = std::addressof(*it);
 
             // Keep track of how many kernel waiters we have.
-            if (IsKernelAddressKey(thread->GetAddressKey())) {
+            if (thread->GetAddressKeyIsKernel()) {
                 ASSERT((num_kernel_waiters--) > 0);
                 KScheduler::SetSchedulerUpdateNeeded(kernel);
             }
