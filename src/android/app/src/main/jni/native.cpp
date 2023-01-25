@@ -61,7 +61,7 @@ public:
     }
 
     bool IsRunning() const {
-        return system.IsPoweredOn();
+        return is_running.load(std::memory_order_relaxed);
     }
 
     const Core::PerfStatsResults& PerfStats() const {
@@ -95,7 +95,8 @@ public:
         system.GetFileSystemController().CreateFactories(*system.GetFilesystem());
 
         // Load the ROM.
-        const Core::SystemResultStatus load_result{system.Load(EmulationSession::GetInstance().Window(), filepath)};
+        const Core::SystemResultStatus load_result{
+            system.Load(EmulationSession::GetInstance().Window(), filepath)};
         if (load_result != Core::SystemResultStatus::Success) {
             return load_result;
         }
@@ -124,11 +125,14 @@ public:
     }
 
     void HaltEmulation() {
+        is_running.store(false, std::memory_order_relaxed);
         cv.notify_one();
     }
 
     void RunEmulation() {
         std::unique_lock lock(mutex);
+
+        is_running.store(true, std::memory_order_relaxed);
 
         void(system.Run());
 
@@ -136,7 +140,8 @@ public:
             system.InitializeDebugger();
         }
 
-        while (cv.wait_for(lock, std::chrono::seconds (1)) == std::cv_status::timeout) {
+        while (!cv.wait_for(lock, std::chrono::seconds(1),
+                            [&]() { return !is_running.load(std::memory_order_relaxed); })) {
             std::scoped_lock perf_stats_lock(perf_stats_mutex);
             perf_stats = system.GetAndResetPerfStats();
         }
@@ -157,6 +162,7 @@ private:
     std::unique_ptr<EmuWindow_Android> window;
     std::mutex mutex;
     std::condition_variable_any cv;
+    std::atomic_bool is_running{};
 };
 
 /*static*/ EmulationSession EmulationSession::s_instance;
@@ -211,14 +217,14 @@ static Core::SystemResultStatus RunEmulation(const std::string& filepath) {
 extern "C" {
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_SurfaceChanged(JNIEnv* env,
-                                                            [[maybe_unused]] jclass clazz,
-                                                            jobject surf) {
+                                                          [[maybe_unused]] jclass clazz,
+                                                          jobject surf) {
     EmulationSession::GetInstance().SetNativeWindow(ANativeWindow_fromSurface(env, surf));
     EmulationSession::GetInstance().SurfaceChanged();
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_SurfaceDestroyed(JNIEnv* env,
-                                                              [[maybe_unused]] jclass clazz) {
+                                                            [[maybe_unused]] jclass clazz) {
     ANativeWindow_release(EmulationSession::GetInstance().NativeWindow());
     EmulationSession::GetInstance().SetNativeWindow(nullptr);
     EmulationSession::GetInstance().SurfaceChanged();
@@ -227,34 +233,34 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_SurfaceDestroyed(JNIEnv* env,
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_DoFrame(JNIEnv* env, [[maybe_unused]] jclass clazz) {}
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_NotifyOrientationChange(JNIEnv* env,
-                                                                     [[maybe_unused]] jclass clazz,
-                                                                     jint layout_option,
-                                                                     jint rotation) {}
+                                                                   [[maybe_unused]] jclass clazz,
+                                                                   jint layout_option,
+                                                                   jint rotation) {}
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_SetUserDirectory(
-    [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jclass clazz,
-    [[maybe_unused]] jstring j_directory) {}
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_SetUserDirectory([[maybe_unused]] JNIEnv* env,
+                                                            [[maybe_unused]] jclass clazz,
+                                                            [[maybe_unused]] jstring j_directory) {}
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_UnPauseEmulation([[maybe_unused]] JNIEnv* env,
-                                                              [[maybe_unused]] jclass clazz) {}
-
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_PauseEmulation([[maybe_unused]] JNIEnv* env,
                                                             [[maybe_unused]] jclass clazz) {}
 
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_PauseEmulation([[maybe_unused]] JNIEnv* env,
+                                                          [[maybe_unused]] jclass clazz) {}
+
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_StopEmulation([[maybe_unused]] JNIEnv* env,
-                                                           [[maybe_unused]] jclass clazz) {
+                                                         [[maybe_unused]] jclass clazz) {
     EmulationSession::GetInstance().HaltEmulation();
 }
 
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_IsRunning([[maybe_unused]] JNIEnv* env,
-                                                           [[maybe_unused]] jclass clazz) {
+                                                         [[maybe_unused]] jclass clazz) {
     return static_cast<jboolean>(EmulationSession::GetInstance().IsRunning());
 }
 
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadEvent([[maybe_unused]] JNIEnv* env,
-                                                                [[maybe_unused]] jclass clazz,
-                                                                [[maybe_unused]] jstring j_device,
-                                                                jint j_button, jint action) {
+                                                              [[maybe_unused]] jclass clazz,
+                                                              [[maybe_unused]] jstring j_device,
+                                                              jint j_button, jint action) {
     if (EmulationSession::GetInstance().IsRunning()) {
         EmulationSession::GetInstance().Window().OnGamepadEvent(j_button, action != 0);
     }
@@ -262,9 +268,9 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadEvent([[maybe_unused]] J
 }
 
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadMoveEvent([[maybe_unused]] JNIEnv* env,
-                                                                    [[maybe_unused]] jclass clazz,
-                                                                    jstring j_device, jint axis,
-                                                                    jfloat x, jfloat y) {
+                                                                  [[maybe_unused]] jclass clazz,
+                                                                  jstring j_device, jint axis,
+                                                                  jfloat x, jfloat y) {
     // Clamp joystick movement to supported minimum and maximum.
     x = std::clamp(x, -1.f, 1.f);
     y = std::clamp(-y, -1.f, 1.f);
@@ -284,68 +290,68 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadMoveEvent([[maybe_unused
 }
 
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadAxisEvent([[maybe_unused]] JNIEnv* env,
-                                                                    [[maybe_unused]] jclass clazz,
-                                                                    jstring j_device, jint axis_id,
-                                                                    jfloat axis_val) {
+                                                                  [[maybe_unused]] jclass clazz,
+                                                                  jstring j_device, jint axis_id,
+                                                                  jfloat axis_val) {
     return {};
 }
 
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchEvent([[maybe_unused]] JNIEnv* env,
-                                                              [[maybe_unused]] jclass clazz,
-                                                              jfloat x, jfloat y,
-                                                              jboolean pressed) {
+                                                            [[maybe_unused]] jclass clazz, jfloat x,
+                                                            jfloat y, jboolean pressed) {
     if (EmulationSession::GetInstance().IsRunning()) {
-        return static_cast<jboolean>(EmulationSession::GetInstance().Window().OnTouchEvent(x, y, pressed));
+        return static_cast<jboolean>(
+            EmulationSession::GetInstance().Window().OnTouchEvent(x, y, pressed));
     }
     return static_cast<jboolean>(false);
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchMoved([[maybe_unused]] JNIEnv* env,
-                                                          [[maybe_unused]] jclass clazz, jfloat x,
-                                                          jfloat y) {
+                                                        [[maybe_unused]] jclass clazz, jfloat x,
+                                                        jfloat y) {
     if (EmulationSession::GetInstance().IsRunning()) {
         EmulationSession::GetInstance().Window().OnTouchMoved(x, y);
     }
 }
 
 jintArray Java_org_yuzu_yuzu_1emu_NativeLibrary_GetIcon([[maybe_unused]] JNIEnv* env,
-                                                          [[maybe_unused]] jclass clazz,
-                                                          [[maybe_unused]] jstring j_file) {
+                                                        [[maybe_unused]] jclass clazz,
+                                                        [[maybe_unused]] jstring j_file) {
     return {};
 }
 
 jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_GetTitle([[maybe_unused]] JNIEnv* env,
+                                                       [[maybe_unused]] jclass clazz,
+                                                       [[maybe_unused]] jstring j_filename) {
+    return env->NewStringUTF("");
+}
+
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_GetDescription([[maybe_unused]] JNIEnv* env,
+                                                             [[maybe_unused]] jclass clazz,
+                                                             jstring j_filename) {
+    return j_filename;
+}
+
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_GetGameId([[maybe_unused]] JNIEnv* env,
+                                                        [[maybe_unused]] jclass clazz,
+                                                        jstring j_filename) {
+    return j_filename;
+}
+
+jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_GetRegions([[maybe_unused]] JNIEnv* env,
                                                          [[maybe_unused]] jclass clazz,
                                                          [[maybe_unused]] jstring j_filename) {
     return env->NewStringUTF("");
 }
 
-jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_GetDescription([[maybe_unused]] JNIEnv* env,
-                                                               [[maybe_unused]] jclass clazz,
-                                                               jstring j_filename) {
-    return j_filename;
-}
-
-jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_GetGameId([[maybe_unused]] JNIEnv* env,
-                                                          [[maybe_unused]] jclass clazz,
-                                                          jstring j_filename) {
-    return j_filename;
-}
-
-jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_GetRegions([[maybe_unused]] JNIEnv* env,
-                                                           [[maybe_unused]] jclass clazz,
-                                                           [[maybe_unused]] jstring j_filename) {
-    return env->NewStringUTF("");
-}
-
 jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_GetCompany([[maybe_unused]] JNIEnv* env,
-                                                           [[maybe_unused]] jclass clazz,
-                                                           [[maybe_unused]] jstring j_filename) {
+                                                         [[maybe_unused]] jclass clazz,
+                                                         [[maybe_unused]] jstring j_filename) {
     return env->NewStringUTF("");
 }
 
 jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_GetGitRevision([[maybe_unused]] JNIEnv* env,
-                                                               [[maybe_unused]] jclass clazz) {
+                                                             [[maybe_unused]] jclass clazz) {
     return {};
 }
 
@@ -355,7 +361,7 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_CreateConfigFile
 }
 
 jint Java_org_yuzu_yuzu_1emu_NativeLibrary_DefaultCPUCore([[maybe_unused]] JNIEnv* env,
-                                                            [[maybe_unused]] jclass clazz) {
+                                                          [[maybe_unused]] jclass clazz) {
     return {};
 }
 
@@ -364,14 +370,14 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_Run__Ljava_lang_String_2Ljava_lang_St
     [[maybe_unused]] jstring j_savestate, [[maybe_unused]] jboolean j_delete_savestate) {}
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_ReloadSettings([[maybe_unused]] JNIEnv* env,
-                                                            [[maybe_unused]] jclass clazz) {
+                                                          [[maybe_unused]] jclass clazz) {
     Config{};
 }
 
 jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_GetUserSetting([[maybe_unused]] JNIEnv* env,
-                                                               [[maybe_unused]] jclass clazz,
-                                                               jstring j_game_id, jstring j_section,
-                                                               jstring j_key) {
+                                                             [[maybe_unused]] jclass clazz,
+                                                             jstring j_game_id, jstring j_section,
+                                                             jstring j_key) {
     std::string_view game_id = env->GetStringUTFChars(j_game_id, 0);
     std::string_view section = env->GetStringUTFChars(j_section, 0);
     std::string_view key = env->GetStringUTFChars(j_key, 0);
@@ -384,9 +390,9 @@ jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_GetUserSetting([[maybe_unused]] JN
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_SetUserSetting([[maybe_unused]] JNIEnv* env,
-                                                            [[maybe_unused]] jclass clazz,
-                                                            jstring j_game_id, jstring j_section,
-                                                            jstring j_key, jstring j_value) {
+                                                          [[maybe_unused]] jclass clazz,
+                                                          jstring j_game_id, jstring j_section,
+                                                          jstring j_key, jstring j_value) {
     std::string_view game_id = env->GetStringUTFChars(j_game_id, 0);
     std::string_view section = env->GetStringUTFChars(j_section, 0);
     std::string_view key = env->GetStringUTFChars(j_key, 0);
@@ -399,15 +405,15 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_SetUserSetting([[maybe_unused]] JNIEn
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_InitGameIni([[maybe_unused]] JNIEnv* env,
-                                                         [[maybe_unused]] jclass clazz,
-                                                         jstring j_game_id) {
+                                                       [[maybe_unused]] jclass clazz,
+                                                       jstring j_game_id) {
     std::string_view game_id = env->GetStringUTFChars(j_game_id, 0);
 
     env->ReleaseStringUTFChars(j_game_id, game_id.data());
 }
 
 jdoubleArray Java_org_yuzu_yuzu_1emu_NativeLibrary_GetPerfStats([[maybe_unused]] JNIEnv* env,
-                                                                  [[maybe_unused]] jclass clazz) {
+                                                                [[maybe_unused]] jclass clazz) {
     jdoubleArray j_stats = env->NewDoubleArray(4);
 
     if (EmulationSession::GetInstance().IsRunning()) {
@@ -427,8 +433,8 @@ void Java_org_yuzu_yuzu_1emu_utils_DirectoryInitialization_SetSysDirectory(
     [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jclass clazz, jstring j_path) {}
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_Run__Ljava_lang_String_2([[maybe_unused]] JNIEnv* env,
-                                                                      [[maybe_unused]] jclass clazz,
-                                                                      jstring j_path) {
+                                                                    [[maybe_unused]] jclass clazz,
+                                                                    jstring j_path) {
     const std::string path = GetJString(env, j_path);
 
     const Core::SystemResultStatus result{RunEmulation(path)};
@@ -439,7 +445,7 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_Run__Ljava_lang_String_2([[maybe_unus
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_LogDeviceInfo([[maybe_unused]] JNIEnv* env,
-                                                           [[maybe_unused]] jclass clazz) {
+                                                         [[maybe_unused]] jclass clazz) {
     LOG_INFO(Frontend, "yuzu Version: {}-{}", Common::g_scm_branch, Common::g_scm_desc);
     LOG_INFO(Frontend, "Host OS: Android API level {}", android_get_device_api_level());
 }
