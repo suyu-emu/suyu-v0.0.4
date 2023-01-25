@@ -2758,8 +2758,7 @@ void GMainWindow::OnMenuInstallToNAND() {
     ui->action_Install_File_NAND->setEnabled(false);
 
     install_progress = new QProgressDialog(QString{}, tr("Cancel"), 0, total_size, this);
-    install_progress->setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint &
-                                     ~Qt::WindowMaximizeButtonHint);
+    install_progress->setWindowFlags(windowFlags() & ~Qt::WindowMaximizeButtonHint);
     install_progress->setAttribute(Qt::WA_DeleteOnClose, true);
     install_progress->setFixedWidth(installDialog.GetMinimumWidth() + 40);
     install_progress->show();
@@ -4455,6 +4454,9 @@ int main(int argc, char* argv[]) {
         qputenv("DISPLAY", ":0");
     }
 #endif
+
+    // Disables the "?" button on all dialogs.
+    QCoreApplication::setAttribute(Qt::AA_DisableWindowContextHelpButton);
 
     // Enables the core to make the qt created contexts current on std::threads
     QCoreApplication::setAttribute(Qt::AA_DontCheckOpenGLContextThreadAffinity);
