@@ -4455,8 +4455,10 @@ int main(int argc, char* argv[]) {
     }
 #endif
 
-    // Disables the "?" button on all dialogs.
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    // Disables the "?" button on all dialogs. Disabled by default on Qt6.
     QCoreApplication::setAttribute(Qt::AA_DisableWindowContextHelpButton);
+#endif
 
     // Enables the core to make the qt created contexts current on std::threads
     QCoreApplication::setAttribute(Qt::AA_DontCheckOpenGLContextThreadAffinity);
