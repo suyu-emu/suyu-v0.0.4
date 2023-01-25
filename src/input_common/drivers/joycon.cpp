@@ -4,6 +4,7 @@
 #include <fmt/format.h>
 
 #include "common/param_package.h"
+#include "common/polyfill_ranges.h"
 #include "common/settings.h"
 #include "common/thread.h"
 #include "input_common/drivers/joycon.h"
