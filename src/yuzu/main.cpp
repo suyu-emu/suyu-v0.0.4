@@ -680,8 +680,10 @@ void GMainWindow::SoftwareKeyboardShowNormal() {
     const auto y = layout.screen.top;
     const auto w = layout.screen.GetWidth();
     const auto h = layout.screen.GetHeight();
+    const auto scale_ratio = devicePixelRatioF();
 
-    software_keyboard->ShowNormalKeyboard(render_window->mapToGlobal(QPoint(x, y)), QSize(w, h));
+    software_keyboard->ShowNormalKeyboard(render_window->mapToGlobal(QPoint(x, y) / scale_ratio),
+                                          QSize(w, h) / scale_ratio);
 }
 
 void GMainWindow::SoftwareKeyboardShowTextCheck(
@@ -714,9 +716,11 @@ void GMainWindow::SoftwareKeyboardShowInline(
                                                (1.0f - appear_parameters.key_top_scale_y))));
     const auto w = static_cast<int>(layout.screen.GetWidth() * appear_parameters.key_top_scale_x);
     const auto h = static_cast<int>(layout.screen.GetHeight() * appear_parameters.key_top_scale_y);
+    const auto scale_ratio = devicePixelRatioF();
 
     software_keyboard->ShowInlineKeyboard(std::move(appear_parameters),
-                                          render_window->mapToGlobal(QPoint(x, y)), QSize(w, h));
+                                          render_window->mapToGlobal(QPoint(x, y) / scale_ratio),
+                                          QSize(w, h) / scale_ratio);
 }
 
 void GMainWindow::SoftwareKeyboardHideInline() {
@@ -796,10 +800,11 @@ void GMainWindow::WebBrowserOpenWebPage(const std::string& main_url,
         }
 
         const auto& layout = render_window->GetFramebufferLayout();
-        web_browser_view.resize(layout.screen.GetWidth(), layout.screen.GetHeight());
-        web_browser_view.move(layout.screen.left, layout.screen.top + menuBar()->height());
-        web_browser_view.setZoomFactor(static_cast<qreal>(layout.screen.GetWidth()) /
-                                       static_cast<qreal>(Layout::ScreenUndocked::Width));
+        const auto scale_ratio = devicePixelRatioF();
+        web_browser_view.resize(layout.screen.GetWidth() / scale_ratio,
+                                layout.screen.GetHeight() / scale_ratio);
+        web_browser_view.move(layout.screen.left / scale_ratio,
+                              (layout.screen.top / scale_ratio) + menuBar()->height());
 
         web_browser_view.setFocus();
         web_browser_view.show();
