@@ -61,6 +61,7 @@ public:
     }
 
     bool IsRunning() const {
+        std::scoped_lock lock(mutex);
         return is_running;
     }
 
@@ -130,9 +131,10 @@ public:
     }
 
     void RunEmulation() {
-        std::unique_lock lock(mutex);
-
-        is_running = true;
+        {
+            std::scoped_lock lock(mutex);
+            is_running = true;
+        }
 
         void(system.Run());
 
@@ -140,9 +142,19 @@ public:
             system.InitializeDebugger();
         }
 
-        while (!cv.wait_for(lock, std::chrono::seconds(1), [&]() { return !is_running; })) {
-            std::scoped_lock perf_stats_lock(perf_stats_mutex);
-            perf_stats = system.GetAndResetPerfStats();
+        while (true) {
+            {
+                std::unique_lock lock(mutex);
+                if (cv.wait_for(lock, std::chrono::seconds(1), [&]() { return !is_running; })) {
+                    // Emulation halted.
+                    break;
+                }
+            }
+            {
+                // Refresh performance stats.
+                std::scoped_lock perf_stats_lock(perf_stats_mutex);
+                perf_stats = system.GetAndResetPerfStats();
+            }
         }
     }
 
@@ -156,12 +168,13 @@ private:
     Core::System system;
 
     Core::PerfStatsResults perf_stats{};
-    mutable std::mutex perf_stats_mutex;
 
     std::unique_ptr<EmuWindow_Android> window;
-    std::mutex mutex;
     std::condition_variable_any cv;
     bool is_running{};
+
+    mutable std::mutex perf_stats_mutex;
+    mutable std::mutex mutex;
 };
 
 /*static*/ EmulationSession EmulationSession::s_instance;
