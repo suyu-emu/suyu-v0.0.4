@@ -61,7 +61,7 @@ public:
     }
 
     bool IsRunning() const {
-        return is_running.load(std::memory_order_relaxed);
+        return is_running;
     }
 
     const Core::PerfStatsResults& PerfStats() const {
@@ -125,14 +125,14 @@ public:
     }
 
     void HaltEmulation() {
-        is_running.store(false, std::memory_order_relaxed);
+        is_running = false;
         cv.notify_one();
     }
 
     void RunEmulation() {
         std::unique_lock lock(mutex);
 
-        is_running.store(true, std::memory_order_relaxed);
+        is_running = true;
 
         void(system.Run());
 
@@ -140,8 +140,7 @@ public:
             system.InitializeDebugger();
         }
 
-        while (!cv.wait_for(lock, std::chrono::seconds(1),
-                            [&]() { return !is_running.load(std::memory_order_relaxed); })) {
+        while (!cv.wait_for(lock, std::chrono::seconds(1), [&]() { return !is_running; })) {
             std::scoped_lock perf_stats_lock(perf_stats_mutex);
             perf_stats = system.GetAndResetPerfStats();
         }
@@ -162,7 +161,7 @@ private:
     std::unique_ptr<EmuWindow_Android> window;
     std::mutex mutex;
     std::condition_variable_any cv;
-    std::atomic_bool is_running{};
+    bool is_running{};
 };
 
 /*static*/ EmulationSession EmulationSession::s_instance;
