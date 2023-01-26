@@ -126,6 +126,7 @@ public:
     }
 
     void HaltEmulation() {
+        std::scoped_lock lock(mutex);
         is_running = false;
         cv.notify_one();
     }
@@ -145,7 +146,8 @@ public:
         while (true) {
             {
                 std::unique_lock lock(mutex);
-                if (cv.wait_for(lock, std::chrono::seconds(1), [&]() { return !is_running; })) {
+                if (cv.wait_for(lock, std::chrono::milliseconds(100),
+                                [&]() { return !is_running; })) {
                     // Emulation halted.
                     break;
                 }
