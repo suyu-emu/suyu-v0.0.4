@@ -4400,6 +4400,46 @@ void GMainWindow::changeEvent(QEvent* event) {
 #undef main
 #endif
 
+static void SetHighDPIAttributes() {
+    // Create a temporary QApplication.
+    int temp_argc = 0;
+    char** temp_argv = nullptr;
+    QApplication temp{temp_argc, temp_argv};
+
+    // Get the current screen geometry.
+    const QScreen* primary_screen = QGuiApplication::primaryScreen();
+    if (primary_screen == nullptr) {
+        return;
+    }
+
+    const QRect screen_rect = primary_screen->geometry();
+    const int real_width = screen_rect.width();
+    const int real_height = screen_rect.height();
+    const float real_ratio = primary_screen->logicalDotsPerInch() / 96.0f;
+
+    // Recommended minimum width and height for proper window fit.
+    // Any screen with a lower resolution than this will still have a scale of 1.
+    constexpr float minimum_width = 1350.0f;
+    constexpr float minimum_height = 900.0f;
+
+    const float width_ratio = std::max(1.0f, real_width / minimum_width);
+    const float height_ratio = std::max(1.0f, real_height / minimum_height);
+
+    // Get the lower of the 2 ratios and truncate, this is the maximum integer scale.
+    const float max_ratio = std::trunc(std::min(width_ratio, height_ratio));
+
+    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+
+    if (max_ratio > real_ratio) {
+        QApplication::setHighDpiScaleFactorRoundingPolicy(
+            Qt::HighDpiScaleFactorRoundingPolicy::Round);
+    } else {
+        QApplication::setHighDpiScaleFactorRoundingPolicy(
+            Qt::HighDpiScaleFactorRoundingPolicy::Floor);
+    }
+}
+
 int main(int argc, char* argv[]) {
     std::unique_ptr<Config> config = std::make_unique<Config>();
     bool has_broken_vulkan = false;
@@ -4455,6 +4495,8 @@ int main(int argc, char* argv[]) {
     }
 #endif
 
+    SetHighDPIAttributes();
+
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     // Disables the "?" button on all dialogs. Disabled by default on Qt6.
     QCoreApplication::setAttribute(Qt::AA_DisableWindowContextHelpButton);
@@ -4462,6 +4504,7 @@ int main(int argc, char* argv[]) {
 
     // Enables the core to make the qt created contexts current on std::threads
     QCoreApplication::setAttribute(Qt::AA_DontCheckOpenGLContextThreadAffinity);
+
     QApplication app(argc, argv);
 
 #ifdef _WIN32
