@@ -4401,6 +4401,10 @@ void GMainWindow::changeEvent(QEvent* event) {
 #endif
 
 static void SetHighDPIAttributes() {
+#ifdef _WIN32
+    // For Windows, we want to avoid scaling artifacts on fractional scaling ratios.
+    // This is done by setting the optimal scaling policy for the primary screen.
+
     // Create a temporary QApplication.
     int temp_argc = 0;
     char** temp_argv = nullptr;
@@ -4428,9 +4432,6 @@ static void SetHighDPIAttributes() {
     // Get the lower of the 2 ratios and truncate, this is the maximum integer scale.
     const float max_ratio = std::trunc(std::min(width_ratio, height_ratio));
 
-    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-
     if (max_ratio > real_ratio) {
         QApplication::setHighDpiScaleFactorRoundingPolicy(
             Qt::HighDpiScaleFactorRoundingPolicy::Round);
@@ -4438,6 +4439,14 @@ static void SetHighDPIAttributes() {
         QApplication::setHighDpiScaleFactorRoundingPolicy(
             Qt::HighDpiScaleFactorRoundingPolicy::Floor);
     }
+#else
+    // Other OSes should be better than Windows at fractional scaling.
+    QApplication::setHighDpiScaleFactorRoundingPolicy(
+        Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
+#endif
+
+    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 }
 
 int main(int argc, char* argv[]) {
