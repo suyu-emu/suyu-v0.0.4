@@ -100,7 +100,26 @@ public:
      * @param size in bytes to be read
      * @returns output buffer containing the responce
      */
-    DriverResult ReadSPI(CalAddr addr, u8 size, std::vector<u8>& output);
+    DriverResult ReadSPI(SpiAddress addr, u8 size, std::vector<u8>& output);
+
+    template <typename Output>
+        requires(std::is_trivially_copyable_v<Output>)
+    DriverResult ReadSPI(SpiAddress addr, Output& output) {
+        std::vector<u8> buffer;
+        output = {};
+
+        const auto result = ReadSPI(addr, sizeof(Output), buffer);
+        if (result != DriverResult::Success) {
+            return result;
+        }
+
+        if (buffer.size() != sizeof(Output)) {
+            return DriverResult::WrongReply;
+        }
+
+        std::memcpy(&output, buffer.data(), sizeof(Output));
+        return DriverResult::Success;
+    }
 
     /**
      * Enables MCU chip on the joycon

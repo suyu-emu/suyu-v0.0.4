@@ -23,7 +23,7 @@ void JoyconCommonProtocol::SetNonBlocking() {
 
 DriverResult JoyconCommonProtocol::GetDeviceType(ControllerType& controller_type) {
     std::vector<u8> buffer;
-    const auto result = ReadSPI(CalAddr::DEVICE_TYPE, 1, buffer);
+    const auto result = ReadSPI(SpiAddress::DEVICE_TYPE, 1, buffer);
     controller_type = ControllerType::None;
 
     if (result == DriverResult::Success) {
@@ -148,7 +148,7 @@ DriverResult JoyconCommonProtocol::SendVibrationReport(std::span<const u8> buffe
     return SendData(local_buffer);
 }
 
-DriverResult JoyconCommonProtocol::ReadSPI(CalAddr addr, u8 size, std::vector<u8>& output) {
+DriverResult JoyconCommonProtocol::ReadSPI(SpiAddress addr, u8 size, std::vector<u8>& output) {
     constexpr std::size_t MaxTries = 10;
     std::size_t tries = 0;
     std::array<u8, 5> buffer = {0x00, 0x00, 0x00, 0x00, size};
