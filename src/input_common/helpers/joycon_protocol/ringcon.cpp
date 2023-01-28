@@ -70,7 +70,7 @@ DriverResult RingConProtocol::StartRingconPolling() {
 DriverResult RingConProtocol::IsRingConnected(bool& is_connected) {
     LOG_DEBUG(Input, "IsRingConnected");
     constexpr std::size_t max_tries = 28;
-    std::vector<u8> output;
+    SubCommandResponse output{};
     std::size_t tries = 0;
     is_connected = false;
 
@@ -84,7 +84,7 @@ DriverResult RingConProtocol::IsRingConnected(bool& is_connected) {
         if (tries++ >= max_tries) {
             return DriverResult::NoDeviceDetected;
         }
-    } while (output[16] != static_cast<u8>(ExternalDeviceId::RingController));
+    } while (output.external_device_id != ExternalDeviceId::RingController);
 
     is_connected = true;
     return DriverResult::Success;
