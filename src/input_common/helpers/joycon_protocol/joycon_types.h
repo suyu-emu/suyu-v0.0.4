@@ -26,13 +26,19 @@ constexpr std::array<u8, 8> DefaultVibrationBuffer{0x0, 0x1, 0x40, 0x40, 0x0, 0x
 using MacAddress = std::array<u8, 6>;
 using SerialNumber = std::array<u8, 15>;
 
-enum class ControllerType {
-    None,
-    Left,
-    Right,
-    Pro,
-    Grip,
-    Dual,
+enum class ControllerType : u8 {
+    None = 0x00,
+    Left = 0x01,
+    Right = 0x02,
+    Pro = 0x03,
+    Dual = 0x05, // TODO: Verify this id
+    LarkHvc1 = 0x07,
+    LarkHvc2 = 0x08,
+    LarkNesLeft = 0x09,
+    LarkNesRight = 0x0A,
+    Lucia = 0x0B,
+    Lagon = 0x0C,
+    Lager = 0x0D,
 };
 
 enum class PadAxes {
@@ -143,9 +149,10 @@ enum class SubCommand : u8 {
     ENABLE_VIBRATION = 0x48,
     GET_REGULATED_VOLTAGE = 0x50,
     SET_EXTERNAL_CONFIG = 0x58,
-    UNKNOWN_RINGCON = 0x59,
-    UNKNOWN_RINGCON2 = 0x5A,
-    UNKNOWN_RINGCON3 = 0x5C,
+    GET_EXTERNAL_DEVICE_INFO = 0x59,
+    ENABLE_EXTERNAL_POLLING = 0x5A,
+    DISABLE_EXTERNAL_POLLING = 0x5B,
+    SET_EXTERNAL_FORMAT_CONFIG = 0x5C,
 };
 
 enum class UsbSubCommand : u8 {
@@ -165,19 +172,25 @@ enum class CalibrationMagic : u8 {
 };
 
 enum class SpiAddress {
-    SERIAL_NUMBER = 0X6000,
-    DEVICE_TYPE = 0X6012,
-    COLOR_EXIST = 0X601B,
-    FACT_LEFT_DATA = 0X603d,
-    FACT_RIGHT_DATA = 0X6046,
-    COLOR_DATA = 0X6050,
-    FACT_IMU_DATA = 0X6020,
-    USER_LEFT_MAGIC = 0X8010,
-    USER_LEFT_DATA = 0X8012,
-    USER_RIGHT_MAGIC = 0X801B,
-    USER_RIGHT_DATA = 0X801D,
-    USER_IMU_MAGIC = 0X8026,
-    USER_IMU_DATA = 0X8028,
+    MAGIC = 0x0000,
+    MAC_ADDRESS = 0x0015,
+    PAIRING_INFO = 0x2000,
+    SHIPMENT = 0x5000,
+    SERIAL_NUMBER = 0x6000,
+    DEVICE_TYPE = 0x6012,
+    FORMAT_VERSION = 0x601B,
+    FACT_IMU_DATA = 0x6020,
+    FACT_LEFT_DATA = 0x603d,
+    FACT_RIGHT_DATA = 0x6046,
+    COLOR_DATA = 0x6050,
+    DESIGN_VARIATION = 0x605C,
+    SENSOR_DATA = 0x6080,
+    USER_LEFT_MAGIC = 0x8010,
+    USER_LEFT_DATA = 0x8012,
+    USER_RIGHT_MAGIC = 0x801B,
+    USER_RIGHT_DATA = 0x801D,
+    USER_IMU_MAGIC = 0x8026,
+    USER_IMU_DATA = 0x8028,
 };
 
 enum class ReportMode : u8 {
@@ -357,6 +370,11 @@ enum class IrRegistersAddress : u16 {
     DenoiseSmoothing = 0x6701,
     DenoiseEdge = 0x6801,
     DenoiseColor = 0x6901,
+};
+
+enum class ExternalDeviceId : u8 {
+    RingController = 0x20,
+    Starlink = 0x28,
 };
 
 enum class DriverResult {
@@ -605,9 +623,11 @@ static_assert(sizeof(FirmwareVersion) == 0x2, "FirmwareVersion is an invalid siz
 
 struct DeviceInfo {
     FirmwareVersion firmware;
+    std::array<u8, 2> unknown_1;
     MacAddress mac_address;
+    std::array<u8, 2> unknown_2;
 };
-static_assert(sizeof(DeviceInfo) == 0x8, "DeviceInfo is an invalid size");
+static_assert(sizeof(DeviceInfo) == 0xC, "DeviceInfo is an invalid size");
 
 struct MotionStatus {
     bool is_enabled;

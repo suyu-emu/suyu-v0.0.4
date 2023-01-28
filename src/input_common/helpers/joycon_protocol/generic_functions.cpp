@@ -38,7 +38,7 @@ DriverResult GenericProtocol::GetDeviceInfo(DeviceInfo& device_info) {
 
     device_info = {};
     if (result == DriverResult::Success) {
-        memcpy(&device_info, output.data(), sizeof(DeviceInfo));
+        memcpy(&device_info, output.data() + 15, sizeof(DeviceInfo));
     }
 
     return result;
