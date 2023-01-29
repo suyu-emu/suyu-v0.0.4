@@ -386,8 +386,10 @@ public:
         return Add(texture_buffer_descriptors, desc, [&desc](const auto& existing) {
             return desc.cbuf_index == existing.cbuf_index &&
                    desc.cbuf_offset == existing.cbuf_offset &&
+                   desc.shift_left == existing.shift_left &&
                    desc.secondary_cbuf_index == existing.secondary_cbuf_index &&
                    desc.secondary_cbuf_offset == existing.secondary_cbuf_offset &&
+                   desc.secondary_shift_left == existing.secondary_shift_left &&
                    desc.count == existing.count && desc.size_shift == existing.size_shift &&
                    desc.has_secondary == existing.has_secondary;
         });
@@ -405,15 +407,20 @@ public:
     }
 
     u32 Add(const TextureDescriptor& desc) {
-        return Add(texture_descriptors, desc, [&desc](const auto& existing) {
+        const u32 index{Add(texture_descriptors, desc, [&desc](const auto& existing) {
             return desc.type == existing.type && desc.is_depth == existing.is_depth &&
                    desc.has_secondary == existing.has_secondary &&
                    desc.cbuf_index == existing.cbuf_index &&
                    desc.cbuf_offset == existing.cbuf_offset &&
+                   desc.shift_left == existing.shift_left &&
                    desc.secondary_cbuf_index == existing.secondary_cbuf_index &&
                    desc.secondary_cbuf_offset == existing.secondary_cbuf_offset &&
+                   desc.secondary_shift_left == existing.secondary_shift_left &&
                    desc.count == existing.count && desc.size_shift == existing.size_shift;
-        });
+        })};
+        // TODO: Read this from TIC
+        texture_descriptors[index].is_multisample |= desc.is_multisample;
+        return index;
     }
 
     u32 Add(const ImageDescriptor& desc) {
