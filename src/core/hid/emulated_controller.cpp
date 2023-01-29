@@ -12,6 +12,7 @@
 namespace Core::HID {
 constexpr s32 HID_JOYSTICK_MAX = 0x7fff;
 constexpr s32 HID_TRIGGER_MAX = 0x7fff;
+constexpr u32 TURBO_BUTTON_DELAY = 4;
 // Use a common UUID for TAS and Virtual Gamepad
 constexpr Common::UUID TAS_UUID =
     Common::UUID{{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x7, 0xA5, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}};
@@ -447,6 +448,7 @@ void EmulatedController::ReloadInput() {
                 },
         });
     }
+    turbo_button_state = 0;
 }
 
 void EmulatedController::UnloadInput() {
@@ -687,6 +689,7 @@ void EmulatedController::SetButton(const Common::Input::CallbackStatus& callback
     }
 
     current_status.toggle = new_status.toggle;
+    current_status.turbo = new_status.turbo;
     current_status.uuid = uuid;
 
     // Update button status with current
@@ -1548,7 +1551,7 @@ NpadButtonState EmulatedController::GetNpadButtons() const {
     if (is_configuring) {
         return {};
     }
-    return controller.npad_button_state;
+    return {controller.npad_button_state.raw & GetTurboButtonMask()};
 }
 
 DebugPadButton EmulatedController::GetDebugPadButtons() const {
@@ -1656,4 +1659,74 @@ void EmulatedController::DeleteCallback(int key) {
     }
     callback_list.erase(iterator);
 }
+
+void EmulatedController::TurboButtonUpdate() {
+    turbo_button_state = (turbo_button_state + 1) % (TURBO_BUTTON_DELAY * 2);
+}
+
+NpadButton EmulatedController::GetTurboButtonMask() const {
+    // Apply no mask when disabled
+    if (turbo_button_state < TURBO_BUTTON_DELAY) {
+        return {NpadButton::All};
+    }
+
+    NpadButtonState button_mask{};
+    for (std::size_t index = 0; index < controller.button_values.size(); ++index) {
+        if (!controller.button_values[index].turbo) {
+            continue;
+        }
+
+        switch (index) {
+        case Settings::NativeButton::A:
+            button_mask.a.Assign(1);
+            break;
+        case Settings::NativeButton::B:
+            button_mask.b.Assign(1);
+            break;
+        case Settings::NativeButton::X:
+            button_mask.x.Assign(1);
+            break;
+        case Settings::NativeButton::Y:
+            button_mask.y.Assign(1);
+            break;
+        case Settings::NativeButton::L:
+            button_mask.l.Assign(1);
+            break;
+        case Settings::NativeButton::R:
+            button_mask.r.Assign(1);
+            break;
+        case Settings::NativeButton::ZL:
+            button_mask.zl.Assign(1);
+            break;
+        case Settings::NativeButton::ZR:
+            button_mask.zr.Assign(1);
+            break;
+        case Settings::NativeButton::DLeft:
+            button_mask.left.Assign(1);
+            break;
+        case Settings::NativeButton::DUp:
+            button_mask.up.Assign(1);
+            break;
+        case Settings::NativeButton::DRight:
+            button_mask.right.Assign(1);
+            break;
+        case Settings::NativeButton::DDown:
+            button_mask.down.Assign(1);
+            break;
+        case Settings::NativeButton::SL:
+            button_mask.left_sl.Assign(1);
+            button_mask.right_sl.Assign(1);
+            break;
+        case Settings::NativeButton::SR:
+            button_mask.left_sr.Assign(1);
+            button_mask.right_sr.Assign(1);
+            break;
+        default:
+            break;
+        }
+    }
+
+    return static_cast<NpadButton>(~button_mask.raw);
+}
+
 } // namespace Core::HID

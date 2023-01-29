@@ -428,6 +428,9 @@ void Controller_NPad::RequestPadStateUpdate(Core::HID::NpadIdType npad_id) {
         return;
     }
 
+    // This function is unique to yuzu for the turbo buttons to work properly
+    controller.device->TurboButtonUpdate();
+
     auto& pad_entry = controller.npad_pad_state;
     auto& trigger_entry = controller.npad_trigger_state;
     const auto button_state = controller.device->GetNpadButtons();
