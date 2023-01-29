@@ -355,21 +355,21 @@ TextureInst MakeInst(Environment& env, IR::Block* block, IR::Inst& inst) {
     };
 }
 
-TextureType ReadTextureType(Environment& env, const ConstBufferAddr& cbuf) {
+u32 GetTextureHandle(Environment& env, const ConstBufferAddr& cbuf) {
     const u32 secondary_index{cbuf.has_secondary ? cbuf.secondary_index : cbuf.index};
     const u32 secondary_offset{cbuf.has_secondary ? cbuf.secondary_offset : cbuf.offset};
     const u32 lhs_raw{env.ReadCbufValue(cbuf.index, cbuf.offset) << cbuf.shift_left};
     const u32 rhs_raw{env.ReadCbufValue(secondary_index, secondary_offset)
                       << cbuf.secondary_shift_left};
-    return env.ReadTextureType(lhs_raw | rhs_raw);
+    return lhs_raw | rhs_raw;
+}
+
+TextureType ReadTextureType(Environment& env, const ConstBufferAddr& cbuf) {
+    return env.ReadTextureType(GetTextureHandle(env, cbuf));
 }
 
 TexturePixelFormat ReadTexturePixelFormat(Environment& env, const ConstBufferAddr& cbuf) {
-    const u32 secondary_index{cbuf.has_secondary ? cbuf.secondary_index : cbuf.index};
-    const u32 secondary_offset{cbuf.has_secondary ? cbuf.secondary_offset : cbuf.offset};
-    const u32 lhs_raw{env.ReadCbufValue(cbuf.index, cbuf.offset)};
-    const u32 rhs_raw{env.ReadCbufValue(secondary_index, secondary_offset)};
-    return env.ReadTexturePixelFormat(lhs_raw | rhs_raw);
+    return env.ReadTexturePixelFormat(GetTextureHandle(env, cbuf));
 }
 
 class Descriptors {
