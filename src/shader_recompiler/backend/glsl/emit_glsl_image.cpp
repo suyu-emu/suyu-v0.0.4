@@ -414,7 +414,7 @@ void EmitImageGatherDref(EmitContext& ctx, IR::Inst& inst, const IR::Value& inde
 
 void EmitImageFetch(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
                     std::string_view coords, std::string_view offset, std::string_view lod,
-                    [[maybe_unused]] std::string_view ms) {
+                    std::string_view ms) {
     const auto info{inst.Flags<IR::TextureInstInfo>()};
     if (info.has_bias) {
         throw NotImplementedException("EmitImageFetch Bias texture samples");
@@ -431,18 +431,23 @@ void EmitImageFetch(EmitContext& ctx, IR::Inst& inst, const IR::Value& index,
         ctx.AddU1("{}=true;", *sparse_inst);
     }
     if (!sparse_inst || !supports_sparse) {
-        if (!offset.empty()) {
-            ctx.Add("{}=texelFetchOffset({},{},int({}),{});", texel, texture,
-                    CoordsCastToInt(coords, info), lod, CoordsCastToInt(offset, info));
+        const auto int_coords{CoordsCastToInt(coords, info)};
+        if (!ms.empty()) {
+            ctx.Add("{}=texelFetch({},{},int({}));", texel, texture, int_coords, ms);
+        } else if (!offset.empty()) {
+            ctx.Add("{}=texelFetchOffset({},{},int({}),{});", texel, texture, int_coords, lod,
+                    CoordsCastToInt(offset, info));
         } else {
             if (info.type == TextureType::Buffer) {
                 ctx.Add("{}=texelFetch({},int({}));", texel, texture, coords);
             } else {
-                ctx.Add("{}=texelFetch({},{},int({}));", texel, texture,
-                        CoordsCastToInt(coords, info), lod);
+                ctx.Add("{}=texelFetch({},{},int({}));", texel, texture, int_coords, lod);
             }
         }
         return;
+    }
+    if (!ms.empty()) {
+        throw NotImplementedException("EmitImageFetch Sparse MSAA samples");
     }
     if (!offset.empty()) {
         ctx.AddU1("{}=sparseTexelsResidentARB(sparseTexelFetchOffsetARB({},{},int({}),{},{}));",
