@@ -96,8 +96,7 @@ public:
         system.GetFileSystemController().CreateFactories(*system.GetFilesystem());
 
         // Load the ROM.
-        const Core::SystemResultStatus load_result{
-            system.Load(EmulationSession::GetInstance().Window(), filepath)};
+        load_result = system.Load(EmulationSession::GetInstance().Window(), filepath);
         if (load_result != Core::SystemResultStatus::Success) {
             return load_result;
         }
@@ -113,13 +112,18 @@ public:
     void ShutdownEmulation() {
         std::scoped_lock lock(mutex);
 
+        is_running = false;
+
         // Unload user input.
         system.HIDCore().UnloadInputDevices();
 
         // Shutdown the main emulated process
-        system.DetachDebugger();
-        system.ShutdownMainProcess();
-        detached_tasks.WaitForAllTasks();
+        if (load_result == Core::SystemResultStatus::Success) {
+            system.DetachDebugger();
+            system.ShutdownMainProcess();
+            detached_tasks.WaitForAllTasks();
+            load_result = Core::SystemResultStatus::ErrorNotInitialized;
+        }
 
         // Tear down the render window.
         window.reset();
@@ -174,6 +178,7 @@ private:
     std::unique_ptr<EmuWindow_Android> window;
     std::condition_variable_any cv;
     bool is_running{};
+    Core::SystemResultStatus load_result{Core::SystemResultStatus::ErrorNotInitialized};
 
     mutable std::mutex perf_stats_mutex;
     mutable std::mutex mutex;
@@ -217,13 +222,14 @@ static Core::SystemResultStatus RunEmulation(const std::string& filepath) {
         return Core::SystemResultStatus::ErrorLoader;
     }
 
+    SCOPE_EXIT({ EmulationSession::GetInstance().ShutdownEmulation(); });
+
     const auto result = EmulationSession::GetInstance().InitializeEmulation(filepath);
     if (result != Core::SystemResultStatus::Success) {
         return result;
     }
 
     EmulationSession::GetInstance().RunEmulation();
-    EmulationSession::GetInstance().ShutdownEmulation();
 
     return Core::SystemResultStatus::Success;
 }
