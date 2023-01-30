@@ -18,7 +18,7 @@ def check_individual(labels):
     return False
 
 def do_page(page):
-    url = 'https://api.github.com/repos/yuzu-emu/yuzu/pulls?page=%s' % page
+    url = f"https://api.github.com/repos/yuzu-emu/yuzu/pulls?page={page}"
     response = requests.get(url)
     response.raise_for_status()
     if (response.ok):
@@ -28,10 +28,10 @@ def do_page(page):
         for pr in j:
             if (check_individual(pr["labels"])):
                 pn = pr["number"]
-                print("Matched PR# %s" % pn)
-                print(subprocess.check_output(["git", "fetch", "https://github.com/yuzu-emu/yuzu.git", "pull/%s/head:pr-%s" % (pn, pn), "-f", "--no-recurse-submodules"]))
-                print(subprocess.check_output(["git", "merge", "--squash", "pr-%s" % pn]))
-                print(subprocess.check_output(["git", "commit", "-m\"Merge %s PR %s\"" % (tagline, pn)]))
+                print(f"Matched PR# {pn}")
+                print(subprocess.check_output(["git", "fetch", "https://github.com/yuzu-emu/yuzu.git", f"pull/{pn}/head:pr-{pn}", "-f", "--no-recurse-submodules"]))
+                print(subprocess.check_output(["git", "merge", "--squash", f"pr-{pn}"]))
+                print(subprocess.check_output(["git", "commit", f"-m\"Merge {tagline} PR {pn}\""]))
 
 try:
     for i in range(1,10):
