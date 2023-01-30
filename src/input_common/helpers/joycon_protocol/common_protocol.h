@@ -107,8 +107,8 @@ public:
      * @returns output object containing the responce
      */
     template <typename Output>
-    requires std::is_trivially_copyable_v<Output> DriverResult ReadSPI(SpiAddress addr,
-                                                                       Output& output) {
+        requires std::is_trivially_copyable_v<Output>
+    DriverResult ReadSPI(SpiAddress addr, Output& output) {
         std::array<u8, sizeof(Output)> buffer;
         output = {};
 
