@@ -307,7 +307,7 @@ void ShaderCache::LoadDiskResources(u64 title_id, std::stop_token stop_loading,
                 env_ptrs.push_back(&env);
             }
             ctx->pools.ReleaseContents();
-            auto pipeline{CreateGraphicsPipeline(ctx->pools, key, MakeSpan(env_ptrs), false)};
+            auto pipeline{CreateGraphicsPipeline(ctx->pools, key, MakeSpan(env_ptrs), false, true)};
             std::scoped_lock lock{state.mutex};
             if (pipeline) {
                 graphics_cache.emplace(key, std::move(pipeline));
@@ -439,7 +439,8 @@ std::unique_ptr<GraphicsPipeline> ShaderCache::CreateGraphicsPipeline() {
 
 std::unique_ptr<GraphicsPipeline> ShaderCache::CreateGraphicsPipeline(
     ShaderContext::ShaderPools& pools, const GraphicsPipelineKey& key,
-    std::span<Shader::Environment* const> envs, bool build_in_parallel) try {
+    std::span<Shader::Environment* const> envs, bool use_shader_workers,
+    bool force_context_flush) try {
     LOG_INFO(Render_OpenGL, "0x{:016x}", key.Hash());
     size_t env_index{};
     u32 total_storage_buffers{};
@@ -531,10 +532,10 @@ std::unique_ptr<GraphicsPipeline> ShaderCache::CreateGraphicsPipeline(
         }
         previous_program = &program;
     }
-    auto* const thread_worker{build_in_parallel ? workers.get() : nullptr};
+    auto* const thread_worker{use_shader_workers ? workers.get() : nullptr};
     return std::make_unique<GraphicsPipeline>(device, texture_cache, buffer_cache, program_manager,
                                               state_tracker, thread_worker, &shader_notify, sources,
-                                              sources_spirv, infos, key);
+                                              sources_spirv, infos, key, force_context_flush);
 
 } catch (Shader::Exception& exception) {
     LOG_ERROR(Render_OpenGL, "{}", exception.what());

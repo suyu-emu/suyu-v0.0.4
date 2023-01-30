@@ -50,7 +50,8 @@ private:
 
     std::unique_ptr<GraphicsPipeline> CreateGraphicsPipeline(
         ShaderContext::ShaderPools& pools, const GraphicsPipelineKey& key,
-        std::span<Shader::Environment* const> envs, bool build_in_parallel);
+        std::span<Shader::Environment* const> envs, bool use_shader_workers,
+        bool force_context_flush = false);
 
     std::unique_ptr<ComputePipeline> CreateComputePipeline(const ComputePipelineKey& key,
                                                            const VideoCommon::ShaderInfo* shader);
