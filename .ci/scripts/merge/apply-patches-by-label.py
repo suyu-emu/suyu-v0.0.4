@@ -20,6 +20,7 @@ def check_individual(labels):
 def do_page(page):
     url = 'https://api.github.com/repos/yuzu-emu/yuzu/pulls?page=%s' % page
     response = requests.get(url)
+    response.raise_for_status()
     if (response.ok):
         j = json.loads(response.content)
         if j == []:
@@ -33,7 +34,7 @@ def do_page(page):
                 print(subprocess.check_output(["git", "commit", "-m\"Merge %s PR %s\"" % (tagline, pn)]))
 
 try:
-    for i in range(1,30):
+    for i in range(1,10):
         do_page(i)
 except:
     traceback.print_exc(file=sys.stdout)
