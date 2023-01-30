@@ -2,14 +2,11 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Download all pull requests as patches that match a specific label
-# Usage: python download-patches-by-label.py <Label to Match> <Root Path Folder to DL to>
+# Usage: python apply-patches-by-label.py <Label to Match>
 
-import requests, sys, json, urllib3.request, shutil, subprocess, os, traceback
+import json, requests, subprocess, sys, traceback
 
 tagline = sys.argv[2]
-
-http = urllib3.PoolManager()
-dl_list = {}
 
 def check_individual(labels):
     for label in labels:
