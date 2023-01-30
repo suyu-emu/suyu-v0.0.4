@@ -58,7 +58,8 @@ private:
 
     std::unique_ptr<ComputePipeline> CreateComputePipeline(ShaderContext::ShaderPools& pools,
                                                            const ComputePipelineKey& key,
-                                                           Shader::Environment& env);
+                                                           Shader::Environment& env,
+                                                           bool force_context_flush = false);
 
     std::unique_ptr<ShaderWorker> CreateWorkers() const;
 
