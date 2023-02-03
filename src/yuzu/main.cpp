@@ -3973,7 +3973,7 @@ void GMainWindow::UpdateVolumeUI() {
     volume_slider->setValue(volume_value);
     if (Settings::values.audio_muted) {
         volume_button->setChecked(false);
-        volume_button->setText(tr("VOLUME: MUTE", "Volume percentage (e.g. 50%)"));
+        volume_button->setText(tr("VOLUME: MUTE"));
     } else {
         volume_button->setChecked(true);
         volume_button->setText(tr("VOLUME: %1%", "Volume percentage (e.g. 50%)").arg(volume_value));
