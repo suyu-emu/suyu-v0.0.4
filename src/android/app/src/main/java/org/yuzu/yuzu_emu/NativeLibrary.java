@@ -25,7 +25,9 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 
 import org.yuzu.yuzu_emu.activities.EmulationActivity;
+import org.yuzu.yuzu_emu.utils.DocumentsTree;
 import org.yuzu.yuzu_emu.utils.EmulationMenuSettings;
+import org.yuzu.yuzu_emu.utils.FileUtil;
 import org.yuzu.yuzu_emu.utils.Log;
 
 import java.lang.ref.WeakReference;
@@ -64,6 +66,20 @@ public final class NativeLibrary {
 
     private NativeLibrary() {
         // Disallows instantiation.
+    }
+
+    public static int openContentUri(String path, String openmode) {
+        if (DocumentsTree.isNativePath(path)) {
+            return YuzuApplication.documentsTree.openContentUri(path, openmode);
+        }
+        return FileUtil.openContentUri(YuzuApplication.getAppContext(), path, openmode);
+    }
+
+    public static long getSize(String path) {
+        if (DocumentsTree.isNativePath(path)) {
+            return YuzuApplication.documentsTree.getFileSize(path);
+        }
+        return FileUtil.getFileSize(YuzuApplication.getAppContext(), path);
     }
 
     /**
@@ -147,11 +163,7 @@ public final class NativeLibrary {
 
     public static native String GetGitRevision();
 
-    /**
-     * Sets the current working user directory
-     * If not set, it auto-detects a location
-     */
-    public static native void SetUserDirectory(String directory);
+    public static native void SetAppDirectory(String directory);
 
     // Create the config.ini file.
     public static native void CreateConfigFile();

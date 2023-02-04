@@ -1,12 +1,11 @@
 package org.yuzu.yuzu_emu.ui.main;
 
 import android.content.Intent;
-import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,15 +17,10 @@ import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity;
 import org.yuzu.yuzu_emu.model.GameProvider;
 import org.yuzu.yuzu_emu.ui.platform.PlatformGamesFragment;
 import org.yuzu.yuzu_emu.utils.AddDirectoryHelper;
-import org.yuzu.yuzu_emu.utils.DirectoryInitialization;
 import org.yuzu.yuzu_emu.utils.FileBrowserHelper;
-import org.yuzu.yuzu_emu.utils.PermissionsHandler;
 import org.yuzu.yuzu_emu.utils.PicassoUtils;
 import org.yuzu.yuzu_emu.utils.StartupHandler;
 import org.yuzu.yuzu_emu.utils.ThemeUtil;
-
-import java.util.Arrays;
-import java.util.Collections;
 
 /**
  * The main Activity of the Lollipop style UI. Manages several PlatformGamesFragments, which
@@ -54,12 +48,9 @@ public final class MainActivity extends AppCompatActivity implements MainView {
         mPresenter.onCreate();
 
         if (savedInstanceState == null) {
-            StartupHandler.HandleInit(this);
-            if (PermissionsHandler.hasWriteAccess(this)) {
-                mPlatformGamesFragment = new PlatformGamesFragment();
-                getSupportFragmentManager().beginTransaction().add(mFrameLayoutId, mPlatformGamesFragment)
-                        .commit();
-            }
+            StartupHandler.handleInit(this);
+            mPlatformGamesFragment = new PlatformGamesFragment();
+            getSupportFragmentManager().beginTransaction().add(mFrameLayoutId, mPlatformGamesFragment).commit();
         } else {
             mPlatformGamesFragment = (PlatformGamesFragment) getSupportFragmentManager().getFragment(savedInstanceState, "mPlatformGamesFragment");
         }
@@ -72,15 +63,13 @@ public final class MainActivity extends AppCompatActivity implements MainView {
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        if (PermissionsHandler.hasWriteAccess(this)) {
-            if (getSupportFragmentManager() == null) {
-                return;
-            }
-            if (outState == null) {
-                return;
-            }
-            getSupportFragmentManager().putFragment(outState, "mPlatformGamesFragment", mPlatformGamesFragment);
+        if (getSupportFragmentManager() == null) {
+            return;
         }
+        if (outState == null) {
+            return;
+        }
+        getSupportFragmentManager().putFragment(outState, "mPlatformGamesFragment", mPlatformGamesFragment);
     }
 
     @Override
@@ -119,27 +108,17 @@ public final class MainActivity extends AppCompatActivity implements MainView {
 
     @Override
     public void launchSettingsActivity(String menuTag) {
-        if (PermissionsHandler.hasWriteAccess(this)) {
-            SettingsActivity.launch(this, menuTag, "");
-        } else {
-            PermissionsHandler.checkWritePermission(this);
-        }
+        SettingsActivity.launch(this, menuTag, "");
     }
 
     @Override
     public void launchFileListActivity(int request) {
-        if (PermissionsHandler.hasWriteAccess(this)) {
-            switch (request) {
-                case MainPresenter.REQUEST_ADD_DIRECTORY:
-                    FileBrowserHelper.openDirectoryPicker(this,
-                                                      MainPresenter.REQUEST_ADD_DIRECTORY,
-                                                      R.string.select_game_folder,
-                                                      Arrays.asList("nso", "nro", "nca", "xci",
-                                                                    "nsp", "kip"));
-                    break;
-            }
-        } else {
-            PermissionsHandler.checkWritePermission(this);
+        switch (request) {
+            case MainPresenter.REQUEST_ADD_DIRECTORY:
+                FileBrowserHelper.openDirectoryPicker(this,
+                                                  MainPresenter.REQUEST_ADD_DIRECTORY,
+                                                  R.string.select_game_folder);
+                break;
         }
     }
 
@@ -155,6 +134,8 @@ public final class MainActivity extends AppCompatActivity implements MainView {
             case MainPresenter.REQUEST_ADD_DIRECTORY:
                 // If the user picked a file, as opposed to just backing out.
                 if (resultCode == MainActivity.RESULT_OK) {
+                    int takeFlags = (Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    getContentResolver().takePersistableUriPermission(Uri.parse(result.getDataString()), takeFlags);
                     // When a new directory is picked, we currently will reset the existing games
                     // database. This effectively means that only one game directory is supported.
                     // TODO(bunnei): Consider fixing this in the future, or removing code for this.
@@ -162,32 +143,6 @@ public final class MainActivity extends AppCompatActivity implements MainView {
                     // Add the new directory
                     mPresenter.onDirectorySelected(FileBrowserHelper.getSelectedDirectory(result));
                 }
-                break;
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION:
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    DirectoryInitialization.start(this);
-
-                    mPlatformGamesFragment = new PlatformGamesFragment();
-                    getSupportFragmentManager().beginTransaction().add(mFrameLayoutId, mPlatformGamesFragment)
-                            .commit();
-
-                    // Immediately prompt user to select a game directory on first boot
-                    if (mPresenter != null) {
-                        mPresenter.launchFileListActivity(MainPresenter.REQUEST_ADD_DIRECTORY);
-                    }
-                } else {
-                    Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)
-                            .show();
-                }
-                break;
-            default:
-                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
                 break;
         }
     }

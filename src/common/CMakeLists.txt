@@ -155,6 +155,14 @@ if (WIN32)
   target_link_libraries(common PRIVATE ntdll)
 endif()
 
+if(ANDROID)
+    target_sources(common
+        PRIVATE
+            fs/fs_android.cpp
+            fs/fs_android.h
+    )
+endif()
+
 if(ARCHITECTURE_x86_64)
     target_sources(common
         PRIVATE

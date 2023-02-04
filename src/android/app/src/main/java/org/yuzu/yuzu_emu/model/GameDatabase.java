@@ -5,8 +5,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
 
 import org.yuzu.yuzu_emu.NativeLibrary;
+import org.yuzu.yuzu_emu.utils.FileUtil;
 import org.yuzu.yuzu_emu.utils.Log;
 
 import java.io.File;
@@ -63,10 +65,12 @@ public final class GameDatabase extends SQLiteOpenHelper {
 
     private static final String SQL_DELETE_FOLDERS = "DROP TABLE IF EXISTS " + TABLE_NAME_FOLDERS;
     private static final String SQL_DELETE_GAMES = "DROP TABLE IF EXISTS " + TABLE_NAME_GAMES;
+    private final Context context;
 
     public GameDatabase(Context context) {
         // Superclass constructor builds a database or uses an existing one.
         super(context, "games.db", null, DB_VERSION);
+        this.context = context;
     }
 
     @Override
@@ -123,8 +127,6 @@ public final class GameDatabase extends SQLiteOpenHelper {
             File game = new File(gamePath);
 
             if (!game.exists()) {
-                Log.error("[GameDatabase] Game file no longer exists. Removing from the library: " +
-                        gamePath);
                 database.delete(TABLE_NAME_GAMES,
                         KEY_DB_ID + " = ?",
                         new String[]{Long.toString(fileCursor.getLong(COLUMN_DB_ID))});
@@ -150,9 +152,9 @@ public final class GameDatabase extends SQLiteOpenHelper {
         while (folderCursor.moveToNext()) {
             String folderPath = folderCursor.getString(FOLDER_COLUMN_PATH);
 
-            File folder = new File(folderPath);
+            Uri folderUri = Uri.parse(folderPath);
             // If the folder is empty because it no longer exists, remove it from the library.
-            if (!folder.exists()) {
+            if (FileUtil.listFiles(context, folderUri).length == 0) {
                 Log.error(
                         "[GameDatabase] Folder no longer exists. Removing from the library: " + folderPath);
                 database.delete(TABLE_NAME_FOLDERS,
@@ -160,7 +162,7 @@ public final class GameDatabase extends SQLiteOpenHelper {
                         new String[]{Long.toString(folderCursor.getLong(COLUMN_DB_ID))});
             }
 
-            addGamesRecursive(database, folder, allowedExtensions, 3);
+            this.addGamesRecursive(database, folderUri, allowedExtensions, 3);
         }
 
         fileCursor.close();
@@ -169,33 +171,27 @@ public final class GameDatabase extends SQLiteOpenHelper {
         database.close();
     }
 
-    private static void addGamesRecursive(SQLiteDatabase database, File parent, Set<String> allowedExtensions, int depth) {
+    private void addGamesRecursive(SQLiteDatabase database, Uri parent, Set<String> allowedExtensions, int depth) {
         if (depth <= 0) {
             return;
         }
 
-        File[] children = parent.listFiles();
-        if (children != null) {
-            for (File file : children) {
-                if (file.isHidden()) {
-                    continue;
-                }
+        MinimalDocumentFile[] children = FileUtil.listFiles(context, parent);
+        for (MinimalDocumentFile file : children) {
+            if (file.isDirectory()) {
+                Set<String> newExtensions = new HashSet<>(Arrays.asList(
+                        ".xci", ".nsp", ".nca", ".nro"));
+                this.addGamesRecursive(database, file.getUri(), newExtensions, depth - 1);
+            } else {
+                String filename = file.getUri().toString();
 
-                if (file.isDirectory()) {
-                    Set<String> newExtensions = new HashSet<>(Arrays.asList(
-                            ".xci", ".nsp", ".nca", ".nro"));
-                    addGamesRecursive(database, file, newExtensions, depth - 1);
-                } else {
-                    String filePath = file.getPath();
+                int extensionStart = filename.lastIndexOf('.');
+                if (extensionStart > 0) {
+                    String fileExtension = filename.substring(extensionStart);
 
-                    int extensionStart = filePath.lastIndexOf('.');
-                    if (extensionStart > 0) {
-                        String fileExtension = filePath.substring(extensionStart);
-
-                        // Check that the file has an extension we care about before trying to read out of it.
-                        if (allowedExtensions.contains(fileExtension.toLowerCase())) {
-                            attemptToAddGame(database, filePath);
-                        }
+                    // Check that the file has an extension we care about before trying to read out of it.
+                    if (allowedExtensions.contains(fileExtension.toLowerCase())) {
+                        attemptToAddGame(database, filename);
                     }
                 }
             }

@@ -32,7 +32,7 @@ android {
         // TODO If this is ever modified, change application_id in strings.xml
         applicationId "org.yuzu.yuzu_emu"
         minSdkVersion 28
-        targetSdkVersion 29
+        targetSdkVersion 31
         versionCode autoVersion
         versionName getVersion()
         ndk.abiFilters abiFilter
@@ -126,6 +126,7 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel:2.5.1'
     implementation 'androidx.fragment:fragment:1.5.3'
     implementation "androidx.slidingpanelayout:slidingpanelayout:1.2.0"
+    implementation "androidx.documentfile:documentfile:1.0.1"
     implementation 'com.google.android.material:material:1.6.1'
 
     // For loading huge screenshots from the disk.
@@ -138,9 +139,6 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
-
-    // Please don't upgrade the billing library as the newer version is not GPL-compatible
-    implementation 'com.android.billingclient:billing:2.0.3'
 }
 
 def getVersion() {

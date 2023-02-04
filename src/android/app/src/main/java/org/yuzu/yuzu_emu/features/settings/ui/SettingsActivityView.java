@@ -77,11 +77,6 @@ public interface SettingsActivityView {
     void hideLoading();
 
     /**
-     * Show a hint to the user that the app needs write to external storage access
-     */
-    void showPermissionNeededHint();
-
-    /**
      * Show a hint to the user that the app needs the external storage to be mounted
      */
     void showExternalStorageNotMountedHint();

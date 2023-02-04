@@ -78,9 +78,6 @@ public final class SettingsActivityPresenter {
                         if (directoryInitializationState == DirectoryInitializationState.YUZU_DIRECTORIES_INITIALIZED) {
                             mView.hideLoading();
                             loadSettingsUI();
-                        } else if (directoryInitializationState == DirectoryInitializationState.EXTERNAL_STORAGE_PERMISSION_NEEDED) {
-                            mView.showPermissionNeededHint();
-                            mView.hideLoading();
                         } else if (directoryInitializationState == DirectoryInitializationState.CANT_FIND_EXTERNAL_STORAGE) {
                             mView.showExternalStorageNotMountedHint();
                             mView.hideLoading();

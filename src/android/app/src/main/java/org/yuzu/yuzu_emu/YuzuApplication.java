@@ -11,11 +11,12 @@ import android.content.Context;
 import android.os.Build;
 
 import org.yuzu.yuzu_emu.model.GameDatabase;
+import org.yuzu.yuzu_emu.utils.DocumentsTree;
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization;
-import org.yuzu.yuzu_emu.utils.PermissionsHandler;
 
 public class YuzuApplication extends Application {
     public static GameDatabase databaseHelper;
+    public static DocumentsTree documentsTree;
     private static YuzuApplication application;
 
     private void createNotificationChannel() {
@@ -39,10 +40,9 @@ public class YuzuApplication extends Application {
     public void onCreate() {
         super.onCreate();
         application = this;
+        documentsTree = new DocumentsTree();
 
-        if (PermissionsHandler.hasWriteAccess(getApplicationContext())) {
-            DirectoryInitialization.start(getApplicationContext());
-        }
+        DirectoryInitialization.start(getApplicationContext());
 
         NativeLibrary.LogDeviceInfo();
         createNotificationChannel();

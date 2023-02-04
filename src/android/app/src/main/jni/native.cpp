@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #include <codecvt>
 #include <locale>
 #include <string>
@@ -7,6 +10,7 @@
 #include <android/native_window_jni.h>
 
 #include "common/detached_tasks.h"
+#include "common/fs/path_util.h"
 #include "common/logging/backend.h"
 #include "common/logging/log.h"
 #include "common/microprofile.h"
@@ -257,9 +261,11 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_NotifyOrientationChange(JNIEnv* env,
                                                                    jint layout_option,
                                                                    jint rotation) {}
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_SetUserDirectory([[maybe_unused]] JNIEnv* env,
-                                                            [[maybe_unused]] jclass clazz,
-                                                            [[maybe_unused]] jstring j_directory) {}
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_SetAppDirectory([[maybe_unused]] JNIEnv* env,
+                                                           [[maybe_unused]] jclass clazz,
+                                                           [[maybe_unused]] jstring j_directory) {
+    Common::FS::SetAppDirectory(GetJString(env, j_directory));
+}
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_UnPauseEmulation([[maybe_unused]] JNIEnv* env,
                                                             [[maybe_unused]] jclass clazz) {}

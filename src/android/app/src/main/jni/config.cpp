@@ -18,11 +18,8 @@
 
 namespace FS = Common::FS;
 
-const std::filesystem::path default_config_path =
-    FS::GetYuzuPath(FS::YuzuPath::ConfigDir) / "config.ini";
-
 Config::Config(std::optional<std::filesystem::path> config_path)
-    : config_loc{config_path.value_or(default_config_path)},
+    : config_loc{config_path.value_or(FS::GetYuzuPath(FS::YuzuPath::ConfigDir) / "config.ini")},
       config{std::make_unique<INIReader>(FS::PathToUTF8String(config_loc))} {
     Reload();
 }
@@ -66,8 +63,8 @@ void Config::ReadSetting(const std::string& group, Settings::Setting<bool>& sett
 
 template <typename Type, bool ranged>
 void Config::ReadSetting(const std::string& group, Settings::Setting<Type, ranged>& setting) {
-    setting = static_cast<Type>(config->GetInteger(group, setting.GetLabel(),
-                                                        static_cast<long>(setting.GetDefault())));
+    setting = static_cast<Type>(
+        config->GetInteger(group, setting.GetLabel(), static_cast<long>(setting.GetDefault())));
 }
 
 void Config::ReadValues() {
@@ -93,9 +90,9 @@ void Config::ReadValues() {
         for (int i = 0; i < num_touch_from_button_maps; ++i) {
             Settings::TouchFromButtonMap map;
             map.name = config->Get("ControlsGeneral",
-                                        std::string("touch_from_button_maps_") + std::to_string(i) +
-                                            std::string("_name"),
-                                        "default");
+                                   std::string("touch_from_button_maps_") + std::to_string(i) +
+                                       std::string("_name"),
+                                   "default");
             const int num_touch_maps = config->GetInteger(
                 "ControlsGeneral",
                 std::string("touch_from_button_maps_") + std::to_string(i) + std::string("_count"),
@@ -105,9 +102,9 @@ void Config::ReadValues() {
             for (int j = 0; j < num_touch_maps; ++j) {
                 std::string touch_mapping =
                     config->Get("ControlsGeneral",
-                                     std::string("touch_from_button_maps_") + std::to_string(i) +
-                                         std::string("_bind_") + std::to_string(j),
-                                     "");
+                                std::string("touch_from_button_maps_") + std::to_string(i) +
+                                    std::string("_bind_") + std::to_string(j),
+                                "");
                 map.buttons.emplace_back(std::move(touch_mapping));
             }
 
@@ -127,16 +124,16 @@ void Config::ReadValues() {
     ReadSetting("Data Storage", Settings::values.use_virtual_sd);
     FS::SetYuzuPath(FS::YuzuPath::NANDDir,
                     config->Get("Data Storage", "nand_directory",
-                                     FS::GetYuzuPathString(FS::YuzuPath::NANDDir)));
+                                FS::GetYuzuPathString(FS::YuzuPath::NANDDir)));
     FS::SetYuzuPath(FS::YuzuPath::SDMCDir,
                     config->Get("Data Storage", "sdmc_directory",
-                                     FS::GetYuzuPathString(FS::YuzuPath::SDMCDir)));
+                                FS::GetYuzuPathString(FS::YuzuPath::SDMCDir)));
     FS::SetYuzuPath(FS::YuzuPath::LoadDir,
                     config->Get("Data Storage", "load_directory",
-                                     FS::GetYuzuPathString(FS::YuzuPath::LoadDir)));
+                                FS::GetYuzuPathString(FS::YuzuPath::LoadDir)));
     FS::SetYuzuPath(FS::YuzuPath::DumpDir,
                     config->Get("Data Storage", "dump_directory",
-                                     FS::GetYuzuPathString(FS::YuzuPath::DumpDir)));
+                                FS::GetYuzuPathString(FS::YuzuPath::DumpDir)));
     ReadSetting("Data Storage", Settings::values.gamecard_inserted);
     ReadSetting("Data Storage", Settings::values.gamecard_current_game);
     ReadSetting("Data Storage", Settings::values.gamecard_path);

@@ -1,44 +1,38 @@
 package org.yuzu.yuzu_emu.utils;
 
-import android.content.Intent;
-import android.os.Bundle;
-import android.text.TextUtils;
-
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import androidx.appcompat.app.AlertDialog;
-import androidx.fragment.app.FragmentActivity;
 
 import org.yuzu.yuzu_emu.R;
-import org.yuzu.yuzu_emu.activities.EmulationActivity;
+import org.yuzu.yuzu_emu.YuzuApplication;
+import org.yuzu.yuzu_emu.ui.main.MainActivity;
+import org.yuzu.yuzu_emu.ui.main.MainPresenter;
 
 public final class StartupHandler {
-    private static void handlePermissionsCheck(FragmentActivity parent) {
-        // Ask the user to grant write permission if it's not already granted
-        PermissionsHandler.checkWritePermission(parent);
+    private static SharedPreferences mPreferences = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.getAppContext());
 
-        String start_file = "";
-        Bundle extras = parent.getIntent().getExtras();
-        if (extras != null) {
-            start_file = extras.getString("AutoStartFile");
-        }
-
-        if (!TextUtils.isEmpty(start_file)) {
-            // Start the emulation activity, send the ISO passed in and finish the main activity
-            Intent emulation_intent = new Intent(parent, EmulationActivity.class);
-            emulation_intent.putExtra("SelectedGame", start_file);
-            parent.startActivity(emulation_intent);
-            parent.finish();
-        }
+    private static void handleStartupPromptDismiss(MainActivity parent) {
+        parent.launchFileListActivity(MainPresenter.REQUEST_ADD_DIRECTORY);
     }
 
-    public static void HandleInit(FragmentActivity parent) {
-        if (PermissionsHandler.isFirstBoot(parent)) {
+    private static void markFirstBoot() {
+        final SharedPreferences.Editor editor = mPreferences.edit();
+        editor.putBoolean("FirstApplicationLaunch", false);
+        editor.apply();
+    }
+
+    public static void handleInit(MainActivity parent) {
+        if (mPreferences.getBoolean("FirstApplicationLaunch", true)) {
+            markFirstBoot();
+
             // Prompt user with standard first boot disclaimer
             new AlertDialog.Builder(parent)
                     .setTitle(R.string.app_name)
                     .setIcon(R.mipmap.ic_launcher)
                     .setMessage(parent.getResources().getString(R.string.app_disclaimer))
                     .setPositiveButton(android.R.string.ok, null)
-                    .setOnDismissListener(dialogInterface -> handlePermissionsCheck(parent))
+                    .setOnDismissListener(dialogInterface -> handleStartupPromptDismiss(parent))
                     .show();
         }
     }

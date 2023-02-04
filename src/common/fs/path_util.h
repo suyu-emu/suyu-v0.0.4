@@ -181,6 +181,14 @@ template <typename Path>
 #endif
 
 /**
+ * Sets the directory used for application storage. Used on Android where we do not know internal
+ * storage until informed by the frontend.
+ *
+ * @param app_directory Directory to use for application storage.
+ */
+void SetAppDirectory(const std::string& app_directory);
+
+/**
  * Gets the filesystem path associated with the YuzuPath enum.
  *
  * @param yuzu_path YuzuPath enum

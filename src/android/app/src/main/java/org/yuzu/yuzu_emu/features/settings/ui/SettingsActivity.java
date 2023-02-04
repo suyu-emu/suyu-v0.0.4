@@ -160,12 +160,6 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     }
 
     @Override
-    public void showPermissionNeededHint() {
-        Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)
-                .show();
-    }
-
-    @Override
     public void showExternalStorageNotMountedHint() {
         Toast.makeText(this, R.string.external_storage_not_mounted, Toast.LENGTH_SHORT)
                 .show();
