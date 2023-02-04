@@ -268,7 +268,7 @@ public:
     bool AddTicketPersonalized(Ticket raw);
 
     void ReloadKeys();
-    bool IsKeysLoaded() const;
+    bool AreKeysLoaded() const;
 
 private:
     KeyManager();

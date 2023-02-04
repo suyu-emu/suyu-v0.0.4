@@ -271,7 +271,7 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_SetAppDirectory(JNIEnv* env,
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_ReloadKeys(JNIEnv* env,
                                                           [[maybe_unused]] jclass clazz) {
     Core::Crypto::KeyManager::Instance().ReloadKeys();
-    return static_cast<jboolean>(Core::Crypto::KeyManager::Instance().IsKeysLoaded());
+    return static_cast<jboolean>(Core::Crypto::KeyManager::Instance().AreKeysLoaded());
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_UnPauseEmulation([[maybe_unused]] JNIEnv* env,

@@ -6,18 +6,22 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import org.yuzu.yuzu_emu.NativeLibrary;
 import org.yuzu.yuzu_emu.R;
 import org.yuzu.yuzu_emu.activities.EmulationActivity;
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity;
 import org.yuzu.yuzu_emu.model.GameProvider;
 import org.yuzu.yuzu_emu.ui.platform.PlatformGamesFragment;
 import org.yuzu.yuzu_emu.utils.AddDirectoryHelper;
+import org.yuzu.yuzu_emu.utils.DirectoryInitialization;
 import org.yuzu.yuzu_emu.utils.FileBrowserHelper;
+import org.yuzu.yuzu_emu.utils.FileUtil;
 import org.yuzu.yuzu_emu.utils.PicassoUtils;
 import org.yuzu.yuzu_emu.utils.StartupHandler;
 import org.yuzu.yuzu_emu.utils.ThemeUtil;
@@ -116,8 +120,13 @@ public final class MainActivity extends AppCompatActivity implements MainView {
         switch (request) {
             case MainPresenter.REQUEST_ADD_DIRECTORY:
                 FileBrowserHelper.openDirectoryPicker(this,
-                                                  MainPresenter.REQUEST_ADD_DIRECTORY,
-                                                  R.string.select_game_folder);
+                        MainPresenter.REQUEST_ADD_DIRECTORY,
+                        R.string.select_game_folder);
+                break;
+            case MainPresenter.REQUEST_INSTALL_KEYS:
+                FileBrowserHelper.openFilePicker(this,
+                        MainPresenter.REQUEST_INSTALL_KEYS,
+                        R.string.install_keys);
                 break;
         }
     }
@@ -132,7 +141,6 @@ public final class MainActivity extends AppCompatActivity implements MainView {
         super.onActivityResult(requestCode, resultCode, result);
         switch (requestCode) {
             case MainPresenter.REQUEST_ADD_DIRECTORY:
-                // If the user picked a file, as opposed to just backing out.
                 if (resultCode == MainActivity.RESULT_OK) {
                     int takeFlags = (Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     getContentResolver().takePersistableUriPermission(Uri.parse(result.getDataString()), takeFlags);
@@ -142,6 +150,22 @@ public final class MainActivity extends AppCompatActivity implements MainView {
                     getContentResolver().insert(GameProvider.URI_RESET, null);
                     // Add the new directory
                     mPresenter.onDirectorySelected(FileBrowserHelper.getSelectedDirectory(result));
+                }
+                break;
+
+            case MainPresenter.REQUEST_INSTALL_KEYS:
+                if (resultCode == MainActivity.RESULT_OK) {
+                    int takeFlags = (Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    getContentResolver().takePersistableUriPermission(Uri.parse(result.getDataString()), takeFlags);
+                    String dstPath = DirectoryInitialization.getUserDirectory() + "/keys/";
+                    if (FileUtil.copyUriToInternalStorage(this, result.getData(), dstPath, "prod.keys")) {
+                        if (NativeLibrary.ReloadKeys()) {
+                            Toast.makeText(this, R.string.install_keys_success, Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(this, R.string.install_keys_failure, Toast.LENGTH_SHORT).show();
+                            launchFileListActivity(MainPresenter.REQUEST_INSTALL_KEYS);
+                        }
+                    }
                 }
                 break;
         }

@@ -3,7 +3,7 @@
 
     <!-- General application strings -->
     <string name="app_name" translatable="false">yuzu</string>
-    <string name="app_disclaimer">This software will run games for the Nintendo Switch game console. No game titles are included.\n\nBefore you run, please place your rightfully owned Switch game files onto your device storage.</string>
+    <string name="app_disclaimer">This software will run games for the Nintendo Switch game console. No game titles or keys are included.&lt;br /&gt;&lt;br /&gt;Before you begin, please locate your <![CDATA[<b> prod.keys </b>]]> file on your device storage.&lt;br /&gt;&lt;br /&gt;<![CDATA[<a href="https://yuzu-emu.org/wiki/dumping-decryption-keys-from-a-switch-console/">Learn more</a>]]></string>
     <string name="app_notification_channel_name" translatable="false">yuzu</string>
     <string name="app_notification_channel_id" translatable="false">yuzu</string>
     <string name="app_notification_channel_description">yuzu Switch emulator notifications</string>
@@ -49,7 +49,9 @@
 
     <!-- Add Directory Screen-->
     <string name="select_game_folder">Select game folder</string>
-    <string name="install_cia_title">Install CIA</string>
+    <string name="install_keys">Install keys</string>
+    <string name="install_keys_success">Keys successfully installed</string>
+    <string name="install_keys_failure">Keys file (prod.keys) is invalid</string>
 
     <!-- Preferences Screen -->
     <string name="preferences_settings">Settings</string>

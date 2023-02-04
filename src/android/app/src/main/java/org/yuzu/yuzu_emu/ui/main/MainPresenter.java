@@ -11,6 +11,7 @@ import org.yuzu.yuzu_emu.utils.AddDirectoryHelper;
 
 public final class MainPresenter {
     public static final int REQUEST_ADD_DIRECTORY = 1;
+    public static final int REQUEST_INSTALL_KEYS = 2;
     private final MainView mView;
     private String mDirToAdd;
     private long mLastClickTime = 0;
@@ -45,6 +46,10 @@ public final class MainPresenter {
 
             case R.id.button_add_directory:
                 launchFileListActivity(REQUEST_ADD_DIRECTORY);
+                return true;
+
+            case R.id.button_install_keys:
+                launchFileListActivity(REQUEST_INSTALL_KEYS);
                 return true;
         }
 

@@ -14,9 +14,9 @@
                 android:title="@string/select_game_folder"
                 app:showAsAction="ifRoom" />
             <item
-                android:id="@+id/button_install_cia"
-                android:icon="@drawable/ic_cia_install"
-                android:title="@string/install_cia_title"
+                android:id="@+id/button_install_keys"
+                android:icon="@drawable/ic_install"
+                android:title="@string/install_keys"
                 app:showAsAction="ifRoom" />
         </menu>
     </item>

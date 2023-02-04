@@ -10,6 +10,15 @@ public final class FileBrowserHelper {
         activity.startActivityForResult(i, requestCode);
     }
 
+    public static void openFilePicker(FragmentActivity activity, int requestCode, int title) {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        intent.putExtra(Intent.EXTRA_TITLE, title);
+        intent.setType("*/*");
+        activity.startActivityForResult(intent, requestCode);
+    }
+
     public static String getSelectedDirectory(Intent result) {
         return result.getDataString();
     }

@@ -706,7 +706,7 @@ void KeyManager::LoadFromFile(const std::filesystem::path& file_path, bool is_ti
     }
 }
 
-bool KeyManager::IsKeysLoaded() const {
+bool KeyManager::AreKeysLoaded() const {
     return !s128_keys.empty() && !s256_keys.empty();
 }
 

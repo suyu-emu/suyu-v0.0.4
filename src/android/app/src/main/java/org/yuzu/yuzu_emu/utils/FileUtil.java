@@ -12,8 +12,9 @@ import androidx.documentfile.provider.DocumentFile;
 
 import org.yuzu.yuzu_emu.model.MinimalDocumentFile;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
@@ -241,6 +242,40 @@ public class FileUtil {
             closeQuietly(c);
         }
         return size;
+    }
+
+    public static boolean copyUriToInternalStorage(Context context, Uri sourceUri, String destinationParentPath, String destinationFilename) {
+        InputStream input = null;
+        FileOutputStream output = null;
+        try {
+            input = context.getContentResolver().openInputStream(sourceUri);
+            output = new FileOutputStream(destinationParentPath + "/" + destinationFilename);
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = input.read(buffer)) != -1) {
+                output.write(buffer, 0, len);
+            }
+            output.flush();
+            return true;
+        } catch (Exception e) {
+            Log.error("[FileUtil]: Cannot copy file, error: " + e.getMessage());
+        } finally {
+            if (input != null) {
+                try {
+                    input.close();
+                } catch (IOException e) {
+                    Log.error("[FileUtil]: Cannot close input file, error: " + e.getMessage());
+                }
+            }
+            if (output != null) {
+                try {
+                    output.close();
+                } catch (IOException e) {
+                    Log.error("[FileUtil]: Cannot close output file, error: " + e.getMessage());
+                }
+            }
+        }
+        return false;
     }
 
     public static boolean isRootTreeUri(Uri uri) {
