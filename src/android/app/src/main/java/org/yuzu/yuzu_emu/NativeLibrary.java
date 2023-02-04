@@ -496,20 +496,24 @@ public final class NativeLibrary {
         final int ShutdownRequested = 11;
         final int ErrorUnknown = 12;
 
+        int captionId = R.string.loader_error_invalid_format;
+        if (resultCode == ErrorLoader_ErrorEncrypted) {
+            captionId = R.string.loader_error_encrypted;
+        }
+
+        String formatedText = "Please follow the guides to redump your <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-cartridge-games\">game cartidges</a> or <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-installed-titles-eshop\">installed titles</a>.";
+        if (!ReloadKeys()) {
+            formatedText = "Please ensure your <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> file is installed so that games can be decrypted.";
+        }
         final EmulationActivity emulationActivity = sEmulationActivity.get();
         if (emulationActivity == null) {
             Log.warning("[NativeLibrary] EmulationActivity is null, can't exit.");
             return;
         }
 
-        int captionId = R.string.loader_error_invalid_format;
-        if (resultCode == ErrorLoader_ErrorEncrypted) {
-            captionId = R.string.loader_error_encrypted;
-        }
-
         AlertDialog.Builder builder = new AlertDialog.Builder(emulationActivity)
                 .setTitle(captionId)
-                .setMessage(Html.fromHtml("Please follow the guides to redump your <a href=\"https://citra-emu.org/wiki/dumping-game-cartridges/\">game cartidges</a> or <a href=\"https://citra-emu.org/wiki/dumping-installed-titles/\">installed titles</a>.", Html.FROM_HTML_MODE_LEGACY))
+                .setMessage(Html.fromHtml(formatedText, Html.FROM_HTML_MODE_LEGACY))
                 .setPositiveButton(android.R.string.ok, (dialog, whichButton) -> emulationActivity.finish())
                 .setOnDismissListener(dialogInterface -> emulationActivity.finish());
         emulationActivity.runOnUiThread(() -> {

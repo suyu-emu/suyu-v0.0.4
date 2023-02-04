@@ -62,7 +62,7 @@
 
     <!-- ROM loading errors -->
     <string name="loader_error_encrypted">Your ROM is encrypted</string>
-    <string name="loader_error_invalid_format">Invalid ROM format</string>
+    <string name="loader_error_invalid_format">Unable to load ROM</string>
 
     <!-- Emulation Menu -->
     <string name="emulation_exit">Exit Emulation</string>
