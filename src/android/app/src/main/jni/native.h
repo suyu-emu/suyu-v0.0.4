@@ -67,6 +67,9 @@ JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_SetAppDirectory(JNI
                                                                              jclass clazz,
                                                                              jstring j_directory);
 
+JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_ReloadKeys(JNIEnv* env,
+                                                                            jclass clazz);
+
 JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_utils_DirectoryInitialization_SetSysDirectory(
     JNIEnv* env, jclass clazz, jstring path_);
 

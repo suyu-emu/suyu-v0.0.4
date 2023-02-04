@@ -165,6 +165,8 @@ public final class NativeLibrary {
 
     public static native void SetAppDirectory(String directory);
 
+    public static native boolean ReloadKeys();
+
     // Create the config.ini file.
     public static native void CreateConfigFile();
 

@@ -19,6 +19,7 @@
 #include "common/settings.h"
 #include "core/core.h"
 #include "core/cpu_manager.h"
+#include "core/crypto/key_manager.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/vfs_real.h"
 #include "core/hid/hid_core.h"
@@ -261,10 +262,16 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_NotifyOrientationChange(JNIEnv* env,
                                                                    jint layout_option,
                                                                    jint rotation) {}
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_SetAppDirectory([[maybe_unused]] JNIEnv* env,
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_SetAppDirectory(JNIEnv* env,
                                                            [[maybe_unused]] jclass clazz,
-                                                           [[maybe_unused]] jstring j_directory) {
+                                                           jstring j_directory) {
     Common::FS::SetAppDirectory(GetJString(env, j_directory));
+}
+
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_ReloadKeys(JNIEnv* env,
+                                                          [[maybe_unused]] jclass clazz) {
+    Core::Crypto::KeyManager::Instance().ReloadKeys();
+    return static_cast<jboolean>(Core::Crypto::KeyManager::Instance().IsKeysLoaded());
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_UnPauseEmulation([[maybe_unused]] JNIEnv* env,
