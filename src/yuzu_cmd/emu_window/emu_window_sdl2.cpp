@@ -18,11 +18,11 @@
 
 EmuWindow_SDL2::EmuWindow_SDL2(InputCommon::InputSubsystem* input_subsystem_, Core::System& system_)
     : input_subsystem{input_subsystem_}, system{system_} {
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0) {
+    input_subsystem->Initialize();
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) < 0) {
         LOG_CRITICAL(Frontend, "Failed to initialize SDL2! Exiting...");
         exit(1);
     }
-    input_subsystem->Initialize();
     SDL_SetMainReady();
 }
 
