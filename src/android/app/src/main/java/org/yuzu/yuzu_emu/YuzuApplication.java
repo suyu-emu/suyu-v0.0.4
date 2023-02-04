@@ -45,7 +45,9 @@ public class YuzuApplication extends Application {
         DirectoryInitialization.start(getApplicationContext());
 
         NativeLibrary.LogDeviceInfo();
-        createNotificationChannel();
+
+        // TODO(bunnei): Disable notifications until we support app suspension.
+        //createNotificationChannel();
 
         databaseHelper = new GameDatabase(this);
     }

@@ -33,7 +33,6 @@ import org.yuzu.yuzu_emu.utils.ControllerMappingHelper;
 import org.yuzu.yuzu_emu.utils.ForegroundService;
 
 import java.lang.annotation.Retention;
-import java.util.List;
 
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
@@ -57,7 +56,8 @@ public final class EmulationActivity extends AppCompatActivity {
     private EmulationFragment mEmulationFragment;
     private SharedPreferences mPreferences;
     private ControllerMappingHelper mControllerMappingHelper;
-    private Intent foregroundService;
+    // TODO(bunnei): Disable notifications until we support app suspension.
+//    private Intent foregroundService;
     private boolean activityRecreated;
     private String mSelectedTitle;
     private String mPath;
@@ -73,12 +73,14 @@ public final class EmulationActivity extends AppCompatActivity {
     }
 
     public static void tryDismissRunningNotification(Activity activity) {
-        NotificationManagerCompat.from(activity).cancel(EMULATION_RUNNING_NOTIFICATION);
+        // TODO(bunnei): Disable notifications until we support app suspension.
+//        NotificationManagerCompat.from(activity).cancel(EMULATION_RUNNING_NOTIFICATION);
     }
 
     @Override
     protected void onDestroy() {
-        stopService(foregroundService);
+        // TODO(bunnei): Disable notifications until we support app suspension.
+//        stopService(foregroundService);
         super.onDestroy();
     }
 
@@ -131,8 +133,9 @@ public final class EmulationActivity extends AppCompatActivity {
         mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         // Start a foreground service to prevent the app from getting killed in the background
-        foregroundService = new Intent(EmulationActivity.this, ForegroundService.class);
-        startForegroundService(foregroundService);
+        // TODO(bunnei): Disable notifications until we support app suspension.
+//        foregroundService = new Intent(EmulationActivity.this, ForegroundService.class);
+//        startForegroundService(foregroundService);
     }
 
     @Override
