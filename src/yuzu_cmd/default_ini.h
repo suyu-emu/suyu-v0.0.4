@@ -14,6 +14,7 @@ const char* sdl2_config_file =
 # Escape characters $0 (for ':'), $1 (for ',') and $2 (for '$') can be used in values
 
 # Indicates if this player should be connected at boot
+# 0 (default): Disabled, 1: Enabled
 connected=
 
 # for button input, the following devices are available:
@@ -93,6 +94,18 @@ motionright=
 # Enable debug pad inputs to the guest
 # 0 (default): Disabled, 1: Enabled
 debug_pad_enabled =
+
+# Enable sdl raw input. Allows to configure up to 8 xinput controllers.
+# 0 (default): Disabled, 1: Enabled
+enable_raw_input =
+
+# Enable yuzu joycon driver instead of SDL drive.
+# 0: Disabled, 1 (default): Enabled
+enable_joycon_driver =
+
+# Emulates an analog input from buttons. Allowing to dial any angle.
+# 0 (default): Disabled, 1: Enabled
+emulate_analog_keyboard =
 
 # Whether to enable or disable vibration
 # 0: Disabled, 1 (default): Enabled
