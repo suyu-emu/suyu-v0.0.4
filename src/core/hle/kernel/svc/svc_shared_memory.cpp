@@ -67,11 +67,6 @@ Result MapSharedMemory(Core::System& system, Handle shmem_handle, VAddr address,
     return ResultSuccess;
 }
 
-Result MapSharedMemory32(Core::System& system, Handle shmem_handle, u32 address, u32 size,
-                         Svc::MemoryPermission map_perm) {
-    return MapSharedMemory(system, shmem_handle, address, size, map_perm);
-}
-
 Result UnmapSharedMemory(Core::System& system, Handle shmem_handle, VAddr address, u64 size) {
     // Validate the address/size.
     R_UNLESS(Common::IsAligned(address, PageSize), ResultInvalidAddress);
@@ -99,8 +94,40 @@ Result UnmapSharedMemory(Core::System& system, Handle shmem_handle, VAddr addres
     return ResultSuccess;
 }
 
-Result UnmapSharedMemory32(Core::System& system, Handle shmem_handle, u32 address, u32 size) {
-    return UnmapSharedMemory(system, shmem_handle, address, size);
+Result CreateSharedMemory(Core::System& system, Handle* out_handle, uint64_t size,
+                          MemoryPermission owner_perm, MemoryPermission remote_perm) {
+    UNIMPLEMENTED();
+    R_THROW(ResultNotImplemented);
+}
+
+Result MapSharedMemory64(Core::System& system, Handle shmem_handle, uint64_t address, uint64_t size,
+                         MemoryPermission map_perm) {
+    R_RETURN(MapSharedMemory(system, shmem_handle, address, size, map_perm));
+}
+
+Result UnmapSharedMemory64(Core::System& system, Handle shmem_handle, uint64_t address,
+                           uint64_t size) {
+    R_RETURN(UnmapSharedMemory(system, shmem_handle, address, size));
+}
+
+Result CreateSharedMemory64(Core::System& system, Handle* out_handle, uint64_t size,
+                            MemoryPermission owner_perm, MemoryPermission remote_perm) {
+    R_RETURN(CreateSharedMemory(system, out_handle, size, owner_perm, remote_perm));
+}
+
+Result MapSharedMemory64From32(Core::System& system, Handle shmem_handle, uint32_t address,
+                               uint32_t size, MemoryPermission map_perm) {
+    R_RETURN(MapSharedMemory(system, shmem_handle, address, size, map_perm));
+}
+
+Result UnmapSharedMemory64From32(Core::System& system, Handle shmem_handle, uint32_t address,
+                                 uint32_t size) {
+    R_RETURN(UnmapSharedMemory(system, shmem_handle, address, size));
+}
+
+Result CreateSharedMemory64From32(Core::System& system, Handle* out_handle, uint32_t size,
+                                  MemoryPermission owner_perm, MemoryPermission remote_perm) {
+    R_RETURN(CreateSharedMemory(system, out_handle, size, owner_perm, remote_perm));
 }
 
 } // namespace Kernel::Svc

@@ -10,11 +10,12 @@
 namespace Kernel::Svc {
 
 /// Gets system/memory information for the current process
-Result GetInfo(Core::System& system, u64* result, u64 info_id, Handle handle, u64 info_sub_id) {
+Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle handle,
+               u64 info_sub_id) {
     LOG_TRACE(Kernel_SVC, "called info_id=0x{:X}, info_sub_id=0x{:X}, handle=0x{:08X}", info_id,
               info_sub_id, handle);
 
-    const auto info_id_type = static_cast<InfoType>(info_id);
+    u32 info_id = static_cast<u32>(info_id_type);
 
     switch (info_id_type) {
     case InfoType::CoreMask:
@@ -267,16 +268,30 @@ Result GetInfo(Core::System& system, u64* result, u64 info_id, Handle handle, u6
     }
 }
 
-Result GetInfo32(Core::System& system, u32* result_low, u32* result_high, u32 sub_id_low,
-                 u32 info_id, u32 handle, u32 sub_id_high) {
-    const u64 sub_id{u64{sub_id_low} | (u64{sub_id_high} << 32)};
-    u64 res_value{};
+Result GetSystemInfo(Core::System& system, uint64_t* out, SystemInfoType info_type, Handle handle,
+                     uint64_t info_subtype) {
+    UNIMPLEMENTED();
+    R_THROW(ResultNotImplemented);
+}
 
-    const Result result{GetInfo(system, &res_value, info_id, handle, sub_id)};
-    *result_high = static_cast<u32>(res_value >> 32);
-    *result_low = static_cast<u32>(res_value & std::numeric_limits<u32>::max());
+Result GetInfo64(Core::System& system, uint64_t* out, InfoType info_type, Handle handle,
+                 uint64_t info_subtype) {
+    R_RETURN(GetInfo(system, out, info_type, handle, info_subtype));
+}
 
-    return result;
+Result GetSystemInfo64(Core::System& system, uint64_t* out, SystemInfoType info_type, Handle handle,
+                       uint64_t info_subtype) {
+    R_RETURN(GetSystemInfo(system, out, info_type, handle, info_subtype));
+}
+
+Result GetInfo64From32(Core::System& system, uint64_t* out, InfoType info_type, Handle handle,
+                       uint64_t info_subtype) {
+    R_RETURN(GetInfo(system, out, info_type, handle, info_subtype));
+}
+
+Result GetSystemInfo64From32(Core::System& system, uint64_t* out, SystemInfoType info_type,
+                             Handle handle, uint64_t info_subtype) {
+    R_RETURN(GetSystemInfo(system, out, info_type, handle, info_subtype));
 }
 
 } // namespace Kernel::Svc

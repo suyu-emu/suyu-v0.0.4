@@ -36,9 +36,30 @@ Result SetThreadActivity(Core::System& system, Handle thread_handle,
     return ResultSuccess;
 }
 
-Result SetThreadActivity32(Core::System& system, Handle thread_handle,
+Result SetProcessActivity(Core::System& system, Handle process_handle,
+                          ProcessActivity process_activity) {
+    UNIMPLEMENTED();
+    R_THROW(ResultNotImplemented);
+}
+
+Result SetThreadActivity64(Core::System& system, Handle thread_handle,
                            ThreadActivity thread_activity) {
     return SetThreadActivity(system, thread_handle, thread_activity);
+}
+
+Result SetProcessActivity64(Core::System& system, Handle process_handle,
+                            ProcessActivity process_activity) {
+    return SetProcessActivity(system, process_handle, process_activity);
+}
+
+Result SetThreadActivity64From32(Core::System& system, Handle thread_handle,
+                                 ThreadActivity thread_activity) {
+    return SetThreadActivity(system, thread_handle, thread_activity);
+}
+
+Result SetProcessActivity64From32(Core::System& system, Handle process_handle,
+                                  ProcessActivity process_activity) {
+    return SetProcessActivity(system, process_handle, process_activity);
 }
 
 } // namespace Kernel::Svc

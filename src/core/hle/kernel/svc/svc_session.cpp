@@ -90,14 +90,39 @@ Result CreateSession(Core::System& system, Handle* out_server, Handle* out_clien
 
 } // namespace
 
-Result CreateSession(Core::System& system, Handle* out_server, Handle* out_client, u32 is_light,
+Result CreateSession(Core::System& system, Handle* out_server, Handle* out_client, bool is_light,
                      u64 name) {
     if (is_light) {
         // return CreateSession<KLightSession>(system, out_server, out_client, name);
-        return ResultUnknown;
+        return ResultNotImplemented;
     } else {
         return CreateSession<KSession>(system, out_server, out_client, name);
     }
+}
+
+Result AcceptSession(Core::System& system, Handle* out_handle, Handle port_handle) {
+    UNIMPLEMENTED();
+    R_THROW(ResultNotImplemented);
+}
+
+Result CreateSession64(Core::System& system, Handle* out_server_session_handle,
+                       Handle* out_client_session_handle, bool is_light, uint64_t name) {
+    R_RETURN(CreateSession(system, out_server_session_handle, out_client_session_handle, is_light,
+                           name));
+}
+
+Result AcceptSession64(Core::System& system, Handle* out_handle, Handle port) {
+    R_RETURN(AcceptSession(system, out_handle, port));
+}
+
+Result CreateSession64From32(Core::System& system, Handle* out_server_session_handle,
+                             Handle* out_client_session_handle, bool is_light, uint32_t name) {
+    R_RETURN(CreateSession(system, out_server_session_handle, out_client_session_handle, is_light,
+                           name));
+}
+
+Result AcceptSession64From32(Core::System& system, Handle* out_handle, Handle port) {
+    R_RETURN(AcceptSession(system, out_handle, port));
 }
 
 } // namespace Kernel::Svc

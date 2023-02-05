@@ -144,10 +144,6 @@ Result SetMemoryAttribute(Core::System& system, VAddr address, u64 size, u32 mas
     return page_table.SetMemoryAttribute(address, size, mask, attr);
 }
 
-Result SetMemoryAttribute32(Core::System& system, u32 address, u32 size, u32 mask, u32 attr) {
-    return SetMemoryAttribute(system, address, size, mask, attr);
-}
-
 /// Maps a memory range into a different range.
 Result MapMemory(Core::System& system, VAddr dst_addr, VAddr src_addr, u64 size) {
     LOG_TRACE(Kernel_SVC, "called, dst_addr=0x{:X}, src_addr=0x{:X}, size=0x{:X}", dst_addr,
@@ -161,10 +157,6 @@ Result MapMemory(Core::System& system, VAddr dst_addr, VAddr src_addr, u64 size)
     }
 
     return page_table.MapMemory(dst_addr, src_addr, size);
-}
-
-Result MapMemory32(Core::System& system, u32 dst_addr, u32 src_addr, u32 size) {
-    return MapMemory(system, dst_addr, src_addr, size);
 }
 
 /// Unmaps a region that was previously mapped with svcMapMemory
@@ -182,8 +174,44 @@ Result UnmapMemory(Core::System& system, VAddr dst_addr, VAddr src_addr, u64 siz
     return page_table.UnmapMemory(dst_addr, src_addr, size);
 }
 
-Result UnmapMemory32(Core::System& system, u32 dst_addr, u32 src_addr, u32 size) {
-    return UnmapMemory(system, dst_addr, src_addr, size);
+Result SetMemoryPermission64(Core::System& system, uint64_t address, uint64_t size,
+                             MemoryPermission perm) {
+    R_RETURN(SetMemoryPermission(system, address, size, perm));
+}
+
+Result SetMemoryAttribute64(Core::System& system, uint64_t address, uint64_t size, uint32_t mask,
+                            uint32_t attr) {
+    R_RETURN(SetMemoryAttribute(system, address, size, mask, attr));
+}
+
+Result MapMemory64(Core::System& system, uint64_t dst_address, uint64_t src_address,
+                   uint64_t size) {
+    R_RETURN(MapMemory(system, dst_address, src_address, size));
+}
+
+Result UnmapMemory64(Core::System& system, uint64_t dst_address, uint64_t src_address,
+                     uint64_t size) {
+    R_RETURN(UnmapMemory(system, dst_address, src_address, size));
+}
+
+Result SetMemoryPermission64From32(Core::System& system, uint32_t address, uint32_t size,
+                                   MemoryPermission perm) {
+    R_RETURN(SetMemoryPermission(system, address, size, perm));
+}
+
+Result SetMemoryAttribute64From32(Core::System& system, uint32_t address, uint32_t size,
+                                  uint32_t mask, uint32_t attr) {
+    R_RETURN(SetMemoryAttribute(system, address, size, mask, attr));
+}
+
+Result MapMemory64From32(Core::System& system, uint32_t dst_address, uint32_t src_address,
+                         uint32_t size) {
+    R_RETURN(MapMemory(system, dst_address, src_address, size));
+}
+
+Result UnmapMemory64From32(Core::System& system, uint32_t dst_address, uint32_t src_address,
+                           uint32_t size) {
+    R_RETURN(UnmapMemory(system, dst_address, src_address, size));
 }
 
 } // namespace Kernel::Svc

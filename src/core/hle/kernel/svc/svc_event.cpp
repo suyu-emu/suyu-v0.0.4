@@ -24,10 +24,6 @@ Result SignalEvent(Core::System& system, Handle event_handle) {
     return event->Signal();
 }
 
-Result SignalEvent32(Core::System& system, Handle event_handle) {
-    return SignalEvent(system, event_handle);
-}
-
 Result ClearEvent(Core::System& system, Handle event_handle) {
     LOG_TRACE(Kernel_SVC, "called, event_handle=0x{:08X}", event_handle);
 
@@ -53,10 +49,6 @@ Result ClearEvent(Core::System& system, Handle event_handle) {
     LOG_ERROR(Kernel_SVC, "Event handle does not exist, event_handle=0x{:08X}", event_handle);
 
     return ResultInvalidHandle;
-}
-
-Result ClearEvent32(Core::System& system, Handle event_handle) {
-    return ClearEvent(system, event_handle);
 }
 
 Result CreateEvent(Core::System& system, Handle* out_write, Handle* out_read) {
@@ -104,8 +96,29 @@ Result CreateEvent(Core::System& system, Handle* out_write, Handle* out_read) {
     return ResultSuccess;
 }
 
-Result CreateEvent32(Core::System& system, Handle* out_write, Handle* out_read) {
-    return CreateEvent(system, out_write, out_read);
+Result SignalEvent64(Core::System& system, Handle event_handle) {
+    R_RETURN(SignalEvent(system, event_handle));
+}
+
+Result ClearEvent64(Core::System& system, Handle event_handle) {
+    R_RETURN(ClearEvent(system, event_handle));
+}
+
+Result CreateEvent64(Core::System& system, Handle* out_write_handle, Handle* out_read_handle) {
+    R_RETURN(CreateEvent(system, out_write_handle, out_read_handle));
+}
+
+Result SignalEvent64From32(Core::System& system, Handle event_handle) {
+    R_RETURN(SignalEvent(system, event_handle));
+}
+
+Result ClearEvent64From32(Core::System& system, Handle event_handle) {
+    R_RETURN(ClearEvent(system, event_handle));
+}
+
+Result CreateEvent64From32(Core::System& system, Handle* out_write_handle,
+                           Handle* out_read_handle) {
+    R_RETURN(CreateEvent(system, out_write_handle, out_read_handle));
 }
 
 } // namespace Kernel::Svc
