@@ -286,11 +286,14 @@ vulkan_device =
 # 0: 0.5x (360p/540p) [EXPERIMENTAL]
 # 1: 0.75x (540p/810p) [EXPERIMENTAL]
 # 2 (default): 1x (720p/1080p)
-# 3: 2x (1440p/2160p)
-# 4: 3x (2160p/3240p)
-# 5: 4x (2880p/4320p)
-# 6: 5x (3600p/5400p)
-# 7: 6x (4320p/6480p)
+# 3: 1.5x (1080p/1620p) [EXPERIMENTAL]
+# 4: 2x (1440p/2160p)
+# 5: 3x (2160p/3240p)
+# 6: 4x (2880p/4320p)
+# 7: 5x (3600p/5400p)
+# 8: 6x (4320p/6480p)
+# 9: 7x (5040p/7560p)
+# 10: 8x (5760/8640p)
 resolution_setup =
 
 # Pixel filter to use when up- or down-sampling rendered frames.
@@ -299,11 +302,11 @@ resolution_setup =
 # 2: Bicubic
 # 3: Gaussian
 # 4: ScaleForce
-# 5: AMD FidelityFX™️ Super Resolution [Vulkan Only]
+# 5: AMD FidelityFX™️ Super Resolution
 scaling_filter =
 
 # Anti-Aliasing (AA)
-# 0 (default): None, 1: FXAA
+# 0 (default): None, 1: FXAA, 2: SMAA
 anti_aliasing =
 
 # Whether to use fullscreen or borderless window mode
