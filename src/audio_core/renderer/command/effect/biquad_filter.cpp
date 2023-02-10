@@ -20,8 +20,8 @@ namespace AudioCore::AudioRenderer {
 void ApplyBiquadFilterFloat(std::span<s32> output, std::span<const s32> input,
                             std::array<s16, 3>& b_, std::array<s16, 2>& a_,
                             VoiceState::BiquadFilterState& state, const u32 sample_count) {
-    constexpr s64 min{std::numeric_limits<s32>::min()};
-    constexpr s64 max{std::numeric_limits<s32>::max()};
+    constexpr f64 min{std::numeric_limits<s32>::min()};
+    constexpr f64 max{std::numeric_limits<s32>::max()};
     std::array<f64, 3> b{Common::FixedPoint<50, 14>::from_base(b_[0]).to_double(),
                          Common::FixedPoint<50, 14>::from_base(b_[1]).to_double(),
                          Common::FixedPoint<50, 14>::from_base(b_[2]).to_double()};
@@ -34,7 +34,7 @@ void ApplyBiquadFilterFloat(std::span<s32> output, std::span<const s32> input,
         f64 in_sample{static_cast<f64>(input[i])};
         auto sample{in_sample * b[0] + s[0] * b[1] + s[1] * b[2] + s[2] * a[0] + s[3] * a[1]};
 
-        output[i] = static_cast<s32>(std::clamp(static_cast<s64>(sample), min, max));
+        output[i] = static_cast<s32>(std::clamp(sample, min, max));
 
         s[1] = s[0];
         s[0] = in_sample;
