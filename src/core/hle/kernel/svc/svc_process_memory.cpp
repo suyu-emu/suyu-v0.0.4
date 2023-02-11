@@ -271,4 +271,54 @@ Result UnmapProcessCodeMemory(Core::System& system, Handle process_handle, u64 d
                                       KPageTable::ICacheInvalidationStrategy::InvalidateAll);
 }
 
+Result SetProcessMemoryPermission64(Core::System& system, Handle process_handle, uint64_t address,
+                                    uint64_t size, MemoryPermission perm) {
+    R_RETURN(SetProcessMemoryPermission(system, process_handle, address, size, perm));
+}
+
+Result MapProcessMemory64(Core::System& system, uint64_t dst_address, Handle process_handle,
+                          uint64_t src_address, uint64_t size) {
+    R_RETURN(MapProcessMemory(system, dst_address, process_handle, src_address, size));
+}
+
+Result UnmapProcessMemory64(Core::System& system, uint64_t dst_address, Handle process_handle,
+                            uint64_t src_address, uint64_t size) {
+    R_RETURN(UnmapProcessMemory(system, dst_address, process_handle, src_address, size));
+}
+
+Result MapProcessCodeMemory64(Core::System& system, Handle process_handle, uint64_t dst_address,
+                              uint64_t src_address, uint64_t size) {
+    R_RETURN(MapProcessCodeMemory(system, process_handle, dst_address, src_address, size));
+}
+
+Result UnmapProcessCodeMemory64(Core::System& system, Handle process_handle, uint64_t dst_address,
+                                uint64_t src_address, uint64_t size) {
+    R_RETURN(UnmapProcessCodeMemory(system, process_handle, dst_address, src_address, size));
+}
+
+Result SetProcessMemoryPermission64From32(Core::System& system, Handle process_handle,
+                                          uint64_t address, uint64_t size, MemoryPermission perm) {
+    R_RETURN(SetProcessMemoryPermission(system, process_handle, address, size, perm));
+}
+
+Result MapProcessMemory64From32(Core::System& system, uint32_t dst_address, Handle process_handle,
+                                uint64_t src_address, uint32_t size) {
+    R_RETURN(MapProcessMemory(system, dst_address, process_handle, src_address, size));
+}
+
+Result UnmapProcessMemory64From32(Core::System& system, uint32_t dst_address, Handle process_handle,
+                                  uint64_t src_address, uint32_t size) {
+    R_RETURN(UnmapProcessMemory(system, dst_address, process_handle, src_address, size));
+}
+
+Result MapProcessCodeMemory64From32(Core::System& system, Handle process_handle,
+                                    uint64_t dst_address, uint64_t src_address, uint64_t size) {
+    R_RETURN(MapProcessCodeMemory(system, process_handle, dst_address, src_address, size));
+}
+
+Result UnmapProcessCodeMemory64From32(Core::System& system, Handle process_handle,
+                                      uint64_t dst_address, uint64_t src_address, uint64_t size) {
+    R_RETURN(UnmapProcessCodeMemory(system, process_handle, dst_address, src_address, size));
+}
+
 } // namespace Kernel::Svc

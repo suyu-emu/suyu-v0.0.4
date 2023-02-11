@@ -12,10 +12,10 @@
 namespace Kernel::Svc {
 
 /// Break program execution
-void Break(Core::System& system, u32 reason, u64 info1, u64 info2) {
+void Break(Core::System& system, BreakReason reason, u64 info1, u64 info2) {
     BreakReason break_reason =
-        static_cast<BreakReason>(reason & ~static_cast<u32>(BreakReason::NotificationOnlyFlag));
-    bool notification_only = (reason & static_cast<u32>(BreakReason::NotificationOnlyFlag)) != 0;
+        reason & static_cast<BreakReason>(~BreakReason::NotificationOnlyFlag);
+    bool notification_only = True(reason & BreakReason::NotificationOnlyFlag);
 
     bool has_dumped_buffer{};
     std::vector<u8> debug_buffer;
@@ -90,9 +90,9 @@ void Break(Core::System& system, u32 reason, u64 info1, u64 info2) {
         break;
     }
 
-    system.GetReporter().SaveSvcBreakReport(reason, notification_only, info1, info2,
-                                            has_dumped_buffer ? std::make_optional(debug_buffer)
-                                                              : std::nullopt);
+    system.GetReporter().SaveSvcBreakReport(
+        static_cast<u32>(reason), notification_only, info1, info2,
+        has_dumped_buffer ? std::make_optional(debug_buffer) : std::nullopt);
 
     if (!notification_only) {
         LOG_CRITICAL(
@@ -114,8 +114,24 @@ void Break(Core::System& system, u32 reason, u64 info1, u64 info2) {
     }
 }
 
-void Break32(Core::System& system, u32 reason, u32 info1, u32 info2) {
-    Break(system, reason, info1, info2);
+void ReturnFromException(Core::System& system, Result result) {
+    UNIMPLEMENTED();
+}
+
+void Break64(Core::System& system, BreakReason break_reason, uint64_t arg, uint64_t size) {
+    Break(system, break_reason, arg, size);
+}
+
+void Break64From32(Core::System& system, BreakReason break_reason, uint32_t arg, uint32_t size) {
+    Break(system, break_reason, arg, size);
+}
+
+void ReturnFromException64(Core::System& system, Result result) {
+    ReturnFromException(system, result);
+}
+
+void ReturnFromException64From32(Core::System& system, Result result) {
+    ReturnFromException(system, result);
 }
 
 } // namespace Kernel::Svc

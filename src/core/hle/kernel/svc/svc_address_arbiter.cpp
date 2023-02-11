@@ -75,12 +75,6 @@ Result WaitForAddress(Core::System& system, VAddr address, ArbitrationType arb_t
     return system.Kernel().CurrentProcess()->WaitAddressArbiter(address, arb_type, value, timeout);
 }
 
-Result WaitForAddress32(Core::System& system, u32 address, ArbitrationType arb_type, s32 value,
-                        u32 timeout_ns_low, u32 timeout_ns_high) {
-    const auto timeout = static_cast<s64>(timeout_ns_low | (u64{timeout_ns_high} << 32));
-    return WaitForAddress(system, address, arb_type, value, timeout);
-}
-
 // Signals to an address (via Address Arbiter)
 Result SignalToAddress(Core::System& system, VAddr address, SignalType signal_type, s32 value,
                        s32 count) {
@@ -105,8 +99,23 @@ Result SignalToAddress(Core::System& system, VAddr address, SignalType signal_ty
                                                                   count);
 }
 
-Result SignalToAddress32(Core::System& system, u32 address, SignalType signal_type, s32 value,
+Result WaitForAddress64(Core::System& system, VAddr address, ArbitrationType arb_type, s32 value,
+                        s64 timeout_ns) {
+    return WaitForAddress(system, address, arb_type, value, timeout_ns);
+}
+
+Result SignalToAddress64(Core::System& system, VAddr address, SignalType signal_type, s32 value,
                          s32 count) {
+    return SignalToAddress(system, address, signal_type, value, count);
+}
+
+Result WaitForAddress64From32(Core::System& system, u32 address, ArbitrationType arb_type,
+                              s32 value, s64 timeout_ns) {
+    return WaitForAddress(system, address, arb_type, value, timeout_ns);
+}
+
+Result SignalToAddress64From32(Core::System& system, u32 address, SignalType signal_type, s32 value,
+                               s32 count) {
     return SignalToAddress(system, address, signal_type, value, count);
 }
 

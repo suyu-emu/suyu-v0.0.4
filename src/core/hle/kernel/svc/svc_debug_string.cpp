@@ -8,18 +8,22 @@
 namespace Kernel::Svc {
 
 /// Used to output a message on a debug hardware unit - does nothing on a retail unit
-void OutputDebugString(Core::System& system, VAddr address, u64 len) {
-    if (len == 0) {
-        return;
-    }
+Result OutputDebugString(Core::System& system, VAddr address, u64 len) {
+    R_SUCCEED_IF(len == 0);
 
     std::string str(len, '\0');
     system.Memory().ReadBlock(address, str.data(), str.size());
     LOG_DEBUG(Debug_Emulated, "{}", str);
+
+    R_SUCCEED();
 }
 
-void OutputDebugString32(Core::System& system, u32 address, u32 len) {
-    OutputDebugString(system, address, len);
+Result OutputDebugString64(Core::System& system, uint64_t debug_str, uint64_t len) {
+    R_RETURN(OutputDebugString(system, debug_str, len));
+}
+
+Result OutputDebugString64From32(Core::System& system, uint32_t debug_str, uint32_t len) {
+    R_RETURN(OutputDebugString(system, debug_str, len));
 }
 
 } // namespace Kernel::Svc

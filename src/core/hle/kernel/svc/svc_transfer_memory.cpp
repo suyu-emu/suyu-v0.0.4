@@ -72,8 +72,46 @@ Result CreateTransferMemory(Core::System& system, Handle* out, VAddr address, u6
     return ResultSuccess;
 }
 
-Result CreateTransferMemory32(Core::System& system, Handle* out, u32 address, u32 size,
-                              MemoryPermission map_perm) {
-    return CreateTransferMemory(system, out, address, size, map_perm);
+Result MapTransferMemory(Core::System& system, Handle trmem_handle, uint64_t address, uint64_t size,
+                         MemoryPermission owner_perm) {
+    UNIMPLEMENTED();
+    R_THROW(ResultNotImplemented);
 }
+
+Result UnmapTransferMemory(Core::System& system, Handle trmem_handle, uint64_t address,
+                           uint64_t size) {
+    UNIMPLEMENTED();
+    R_THROW(ResultNotImplemented);
+}
+
+Result MapTransferMemory64(Core::System& system, Handle trmem_handle, uint64_t address,
+                           uint64_t size, MemoryPermission owner_perm) {
+    R_RETURN(MapTransferMemory(system, trmem_handle, address, size, owner_perm));
+}
+
+Result UnmapTransferMemory64(Core::System& system, Handle trmem_handle, uint64_t address,
+                             uint64_t size) {
+    R_RETURN(UnmapTransferMemory(system, trmem_handle, address, size));
+}
+
+Result CreateTransferMemory64(Core::System& system, Handle* out_handle, uint64_t address,
+                              uint64_t size, MemoryPermission map_perm) {
+    R_RETURN(CreateTransferMemory(system, out_handle, address, size, map_perm));
+}
+
+Result MapTransferMemory64From32(Core::System& system, Handle trmem_handle, uint32_t address,
+                                 uint32_t size, MemoryPermission owner_perm) {
+    R_RETURN(MapTransferMemory(system, trmem_handle, address, size, owner_perm));
+}
+
+Result UnmapTransferMemory64From32(Core::System& system, Handle trmem_handle, uint32_t address,
+                                   uint32_t size) {
+    R_RETURN(UnmapTransferMemory(system, trmem_handle, address, size));
+}
+
+Result CreateTransferMemory64From32(Core::System& system, Handle* out_handle, uint32_t address,
+                                    uint32_t size, MemoryPermission map_perm) {
+    R_RETURN(CreateTransferMemory(system, out_handle, address, size, map_perm));
+}
+
 } // namespace Kernel::Svc

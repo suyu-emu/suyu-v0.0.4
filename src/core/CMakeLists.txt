@@ -310,6 +310,7 @@ add_library(core STATIC
     hle/kernel/svc/svc_event.cpp
     hle/kernel/svc/svc_exception.cpp
     hle/kernel/svc/svc_info.cpp
+    hle/kernel/svc/svc_insecure_memory.cpp
     hle/kernel/svc/svc_interrupt_event.cpp
     hle/kernel/svc/svc_io_pool.cpp
     hle/kernel/svc/svc_ipc.cpp

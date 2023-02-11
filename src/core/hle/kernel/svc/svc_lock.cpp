@@ -27,10 +27,6 @@ Result ArbitrateLock(Core::System& system, Handle thread_handle, VAddr address, 
     return system.Kernel().CurrentProcess()->WaitForAddress(thread_handle, address, tag);
 }
 
-Result ArbitrateLock32(Core::System& system, Handle thread_handle, u32 address, u32 tag) {
-    return ArbitrateLock(system, thread_handle, address, tag);
-}
-
 /// Unlock a mutex
 Result ArbitrateUnlock(Core::System& system, VAddr address) {
     LOG_TRACE(Kernel_SVC, "called address=0x{:X}", address);
@@ -50,8 +46,21 @@ Result ArbitrateUnlock(Core::System& system, VAddr address) {
     return system.Kernel().CurrentProcess()->SignalToAddress(address);
 }
 
-Result ArbitrateUnlock32(Core::System& system, u32 address) {
-    return ArbitrateUnlock(system, address);
+Result ArbitrateLock64(Core::System& system, Handle thread_handle, uint64_t address, uint32_t tag) {
+    R_RETURN(ArbitrateLock(system, thread_handle, address, tag));
+}
+
+Result ArbitrateUnlock64(Core::System& system, uint64_t address) {
+    R_RETURN(ArbitrateUnlock(system, address));
+}
+
+Result ArbitrateLock64From32(Core::System& system, Handle thread_handle, uint32_t address,
+                             uint32_t tag) {
+    R_RETURN(ArbitrateLock(system, thread_handle, address, tag));
+}
+
+Result ArbitrateUnlock64From32(Core::System& system, uint32_t address) {
+    R_RETURN(ArbitrateUnlock(system, address));
 }
 
 } // namespace Kernel::Svc

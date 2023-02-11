@@ -47,12 +47,6 @@ Result WaitProcessWideKeyAtomic(Core::System& system, VAddr address, VAddr cv_ke
         address, Common::AlignDown(cv_key, sizeof(u32)), tag, timeout);
 }
 
-Result WaitProcessWideKeyAtomic32(Core::System& system, u32 address, u32 cv_key, u32 tag,
-                                  u32 timeout_ns_low, u32 timeout_ns_high) {
-    const auto timeout_ns = static_cast<s64>(timeout_ns_low | (u64{timeout_ns_high} << 32));
-    return WaitProcessWideKeyAtomic(system, address, cv_key, tag, timeout_ns);
-}
-
 /// Signal process wide key
 void SignalProcessWideKey(Core::System& system, VAddr cv_key, s32 count) {
     LOG_TRACE(Kernel_SVC, "called, cv_key=0x{:X}, count=0x{:08X}", cv_key, count);
@@ -62,7 +56,21 @@ void SignalProcessWideKey(Core::System& system, VAddr cv_key, s32 count) {
         Common::AlignDown(cv_key, sizeof(u32)), count);
 }
 
-void SignalProcessWideKey32(Core::System& system, u32 cv_key, s32 count) {
+Result WaitProcessWideKeyAtomic64(Core::System& system, uint64_t address, uint64_t cv_key,
+                                  uint32_t tag, int64_t timeout_ns) {
+    R_RETURN(WaitProcessWideKeyAtomic(system, address, cv_key, tag, timeout_ns));
+}
+
+void SignalProcessWideKey64(Core::System& system, uint64_t cv_key, int32_t count) {
+    SignalProcessWideKey(system, cv_key, count);
+}
+
+Result WaitProcessWideKeyAtomic64From32(Core::System& system, uint32_t address, uint32_t cv_key,
+                                        uint32_t tag, int64_t timeout_ns) {
+    R_RETURN(WaitProcessWideKeyAtomic(system, address, cv_key, tag, timeout_ns));
+}
+
+void SignalProcessWideKey64From32(Core::System& system, uint32_t cv_key, int32_t count) {
     SignalProcessWideKey(system, cv_key, count);
 }
 

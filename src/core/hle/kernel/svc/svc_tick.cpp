@@ -9,7 +9,7 @@
 namespace Kernel::Svc {
 
 /// This returns the total CPU ticks elapsed since the CPU was powered-on
-u64 GetSystemTick(Core::System& system) {
+int64_t GetSystemTick(Core::System& system) {
     LOG_TRACE(Kernel_SVC, "called");
 
     auto& core_timing = system.CoreTiming();
@@ -21,13 +21,15 @@ u64 GetSystemTick(Core::System& system) {
         core_timing.AddTicks(400U);
     }
 
-    return result;
+    return static_cast<int64_t>(result);
 }
 
-void GetSystemTick32(Core::System& system, u32* time_low, u32* time_high) {
-    const auto time = GetSystemTick(system);
-    *time_low = static_cast<u32>(time);
-    *time_high = static_cast<u32>(time >> 32);
+int64_t GetSystemTick64(Core::System& system) {
+    return GetSystemTick(system);
+}
+
+int64_t GetSystemTick64From32(Core::System& system) {
+    return GetSystemTick(system);
 }
 
 } // namespace Kernel::Svc

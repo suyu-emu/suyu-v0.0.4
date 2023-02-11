@@ -63,9 +63,60 @@ Result ConnectToNamedPort(Core::System& system, Handle* out, VAddr port_name_add
     return ResultSuccess;
 }
 
-Result ConnectToNamedPort32(Core::System& system, Handle* out_handle, u32 port_name_address) {
+Result CreatePort(Core::System& system, Handle* out_server, Handle* out_client,
+                  int32_t max_sessions, bool is_light, uintptr_t name) {
+    UNIMPLEMENTED();
+    R_THROW(ResultNotImplemented);
+}
 
-    return ConnectToNamedPort(system, out_handle, port_name_address);
+Result ConnectToPort(Core::System& system, Handle* out_handle, Handle port) {
+    UNIMPLEMENTED();
+    R_THROW(ResultNotImplemented);
+}
+
+Result ManageNamedPort(Core::System& system, Handle* out_server_handle, uint64_t name,
+                       int32_t max_sessions) {
+    UNIMPLEMENTED();
+    R_THROW(ResultNotImplemented);
+}
+
+Result ConnectToNamedPort64(Core::System& system, Handle* out_handle, uint64_t name) {
+    R_RETURN(ConnectToNamedPort(system, out_handle, name));
+}
+
+Result CreatePort64(Core::System& system, Handle* out_server_handle, Handle* out_client_handle,
+                    int32_t max_sessions, bool is_light, uint64_t name) {
+    R_RETURN(
+        CreatePort(system, out_server_handle, out_client_handle, max_sessions, is_light, name));
+}
+
+Result ManageNamedPort64(Core::System& system, Handle* out_server_handle, uint64_t name,
+                         int32_t max_sessions) {
+    R_RETURN(ManageNamedPort(system, out_server_handle, name, max_sessions));
+}
+
+Result ConnectToPort64(Core::System& system, Handle* out_handle, Handle port) {
+    R_RETURN(ConnectToPort(system, out_handle, port));
+}
+
+Result ConnectToNamedPort64From32(Core::System& system, Handle* out_handle, uint32_t name) {
+    R_RETURN(ConnectToNamedPort(system, out_handle, name));
+}
+
+Result CreatePort64From32(Core::System& system, Handle* out_server_handle,
+                          Handle* out_client_handle, int32_t max_sessions, bool is_light,
+                          uint32_t name) {
+    R_RETURN(
+        CreatePort(system, out_server_handle, out_client_handle, max_sessions, is_light, name));
+}
+
+Result ManageNamedPort64From32(Core::System& system, Handle* out_server_handle, uint32_t name,
+                               int32_t max_sessions) {
+    R_RETURN(ManageNamedPort(system, out_server_handle, name, max_sessions));
+}
+
+Result ConnectToPort64From32(Core::System& system, Handle* out_handle, Handle port) {
+    R_RETURN(ConnectToPort(system, out_handle, port));
 }
 
 } // namespace Kernel::Svc

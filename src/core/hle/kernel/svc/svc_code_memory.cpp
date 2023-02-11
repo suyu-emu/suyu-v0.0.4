@@ -63,12 +63,9 @@ Result CreateCodeMemory(Core::System& system, Handle* out, VAddr address, size_t
     return ResultSuccess;
 }
 
-Result CreateCodeMemory32(Core::System& system, Handle* out, u32 address, u32 size) {
-    return CreateCodeMemory(system, out, address, size);
-}
-
-Result ControlCodeMemory(Core::System& system, Handle code_memory_handle, u32 operation,
-                         VAddr address, size_t size, MemoryPermission perm) {
+Result ControlCodeMemory(Core::System& system, Handle code_memory_handle,
+                         CodeMemoryOperation operation, VAddr address, size_t size,
+                         MemoryPermission perm) {
 
     LOG_TRACE(Kernel_SVC,
               "called, code_memory_handle=0x{:X}, operation=0x{:X}, address=0x{:X}, size=0x{:X}, "
@@ -90,7 +87,7 @@ Result ControlCodeMemory(Core::System& system, Handle code_memory_handle, u32 op
     // This enables homebrew usage of these SVCs for JIT.
 
     // Perform the operation.
-    switch (static_cast<CodeMemoryOperation>(operation)) {
+    switch (operation) {
     case CodeMemoryOperation::Map: {
         // Check that the region is in range.
         R_UNLESS(
@@ -146,9 +143,26 @@ Result ControlCodeMemory(Core::System& system, Handle code_memory_handle, u32 op
     return ResultSuccess;
 }
 
-Result ControlCodeMemory32(Core::System& system, Handle code_memory_handle, u32 operation,
-                           u64 address, u64 size, MemoryPermission perm) {
-    return ControlCodeMemory(system, code_memory_handle, operation, address, size, perm);
+Result CreateCodeMemory64(Core::System& system, Handle* out_handle, uint64_t address,
+                          uint64_t size) {
+    R_RETURN(CreateCodeMemory(system, out_handle, address, size));
+}
+
+Result ControlCodeMemory64(Core::System& system, Handle code_memory_handle,
+                           CodeMemoryOperation operation, uint64_t address, uint64_t size,
+                           MemoryPermission perm) {
+    R_RETURN(ControlCodeMemory(system, code_memory_handle, operation, address, size, perm));
+}
+
+Result CreateCodeMemory64From32(Core::System& system, Handle* out_handle, uint32_t address,
+                                uint32_t size) {
+    R_RETURN(CreateCodeMemory(system, out_handle, address, size));
+}
+
+Result ControlCodeMemory64From32(Core::System& system, Handle code_memory_handle,
+                                 CodeMemoryOperation operation, uint64_t address, uint64_t size,
+                                 MemoryPermission perm) {
+    R_RETURN(ControlCodeMemory(system, code_memory_handle, operation, address, size, perm));
 }
 
 } // namespace Kernel::Svc

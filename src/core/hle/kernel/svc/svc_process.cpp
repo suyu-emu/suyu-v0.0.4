@@ -18,10 +18,6 @@ void ExitProcess(Core::System& system) {
     system.Exit();
 }
 
-void ExitProcess32(Core::System& system) {
-    ExitProcess(system);
-}
-
 /// Gets the ID of the specified process or a specified thread's owning process.
 Result GetProcessId(Core::System& system, u64* out_process_id, Handle handle) {
     LOG_DEBUG(Kernel_SVC, "called handle=0x{:08X}", handle);
@@ -54,17 +50,8 @@ Result GetProcessId(Core::System& system, u64* out_process_id, Handle handle) {
     return ResultSuccess;
 }
 
-Result GetProcessId32(Core::System& system, u32* out_process_id_low, u32* out_process_id_high,
-                      Handle handle) {
-    u64 out_process_id{};
-    const auto result = GetProcessId(system, &out_process_id, handle);
-    *out_process_id_low = static_cast<u32>(out_process_id);
-    *out_process_id_high = static_cast<u32>(out_process_id >> 32);
-    return result;
-}
-
-Result GetProcessList(Core::System& system, u32* out_num_processes, VAddr out_process_ids,
-                      u32 out_process_ids_size) {
+Result GetProcessList(Core::System& system, s32* out_num_processes, VAddr out_process_ids,
+                      int32_t out_process_ids_size) {
     LOG_DEBUG(Kernel_SVC, "called. out_process_ids=0x{:016X}, out_process_ids_size={}",
               out_process_ids, out_process_ids_size);
 
@@ -89,7 +76,8 @@ Result GetProcessList(Core::System& system, u32* out_num_processes, VAddr out_pr
     auto& memory = system.Memory();
     const auto& process_list = kernel.GetProcessList();
     const auto num_processes = process_list.size();
-    const auto copy_amount = std::min(std::size_t{out_process_ids_size}, num_processes);
+    const auto copy_amount =
+        std::min(static_cast<std::size_t>(out_process_ids_size), num_processes);
 
     for (std::size_t i = 0; i < copy_amount; ++i) {
         memory.Write64(out_process_ids, process_list[i]->GetProcessID());
@@ -100,8 +88,9 @@ Result GetProcessList(Core::System& system, u32* out_num_processes, VAddr out_pr
     return ResultSuccess;
 }
 
-Result GetProcessInfo(Core::System& system, u64* out, Handle process_handle, u32 type) {
-    LOG_DEBUG(Kernel_SVC, "called, handle=0x{:08X}, type=0x{:X}", process_handle, type);
+Result GetProcessInfo(Core::System& system, s64* out, Handle process_handle,
+                      ProcessInfoType info_type) {
+    LOG_DEBUG(Kernel_SVC, "called, handle=0x{:08X}, type=0x{:X}", process_handle, info_type);
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
     KScopedAutoObject process = handle_table.GetObject<KProcess>(process_handle);
@@ -111,14 +100,95 @@ Result GetProcessInfo(Core::System& system, u64* out, Handle process_handle, u32
         return ResultInvalidHandle;
     }
 
-    const auto info_type = static_cast<ProcessInfoType>(type);
     if (info_type != ProcessInfoType::ProcessState) {
-        LOG_ERROR(Kernel_SVC, "Expected info_type to be ProcessState but got {} instead", type);
+        LOG_ERROR(Kernel_SVC, "Expected info_type to be ProcessState but got {} instead",
+                  info_type);
         return ResultInvalidEnumValue;
     }
 
-    *out = static_cast<u64>(process->GetState());
+    *out = static_cast<s64>(process->GetState());
     return ResultSuccess;
+}
+
+Result CreateProcess(Core::System& system, Handle* out_handle, uint64_t parameters, uint64_t caps,
+                     int32_t num_caps) {
+    UNIMPLEMENTED();
+    R_THROW(ResultNotImplemented);
+}
+
+Result StartProcess(Core::System& system, Handle process_handle, int32_t priority, int32_t core_id,
+                    uint64_t main_thread_stack_size) {
+    UNIMPLEMENTED();
+    R_THROW(ResultNotImplemented);
+}
+
+Result TerminateProcess(Core::System& system, Handle process_handle) {
+    UNIMPLEMENTED();
+    R_THROW(ResultNotImplemented);
+}
+
+void ExitProcess64(Core::System& system) {
+    ExitProcess(system);
+}
+
+Result GetProcessId64(Core::System& system, uint64_t* out_process_id, Handle process_handle) {
+    R_RETURN(GetProcessId(system, out_process_id, process_handle));
+}
+
+Result GetProcessList64(Core::System& system, int32_t* out_num_processes, uint64_t out_process_ids,
+                        int32_t max_out_count) {
+    R_RETURN(GetProcessList(system, out_num_processes, out_process_ids, max_out_count));
+}
+
+Result CreateProcess64(Core::System& system, Handle* out_handle, uint64_t parameters, uint64_t caps,
+                       int32_t num_caps) {
+    R_RETURN(CreateProcess(system, out_handle, parameters, caps, num_caps));
+}
+
+Result StartProcess64(Core::System& system, Handle process_handle, int32_t priority,
+                      int32_t core_id, uint64_t main_thread_stack_size) {
+    R_RETURN(StartProcess(system, process_handle, priority, core_id, main_thread_stack_size));
+}
+
+Result TerminateProcess64(Core::System& system, Handle process_handle) {
+    R_RETURN(TerminateProcess(system, process_handle));
+}
+
+Result GetProcessInfo64(Core::System& system, int64_t* out_info, Handle process_handle,
+                        ProcessInfoType info_type) {
+    R_RETURN(GetProcessInfo(system, out_info, process_handle, info_type));
+}
+
+void ExitProcess64From32(Core::System& system) {
+    ExitProcess(system);
+}
+
+Result GetProcessId64From32(Core::System& system, uint64_t* out_process_id, Handle process_handle) {
+    R_RETURN(GetProcessId(system, out_process_id, process_handle));
+}
+
+Result GetProcessList64From32(Core::System& system, int32_t* out_num_processes,
+                              uint32_t out_process_ids, int32_t max_out_count) {
+    R_RETURN(GetProcessList(system, out_num_processes, out_process_ids, max_out_count));
+}
+
+Result CreateProcess64From32(Core::System& system, Handle* out_handle, uint32_t parameters,
+                             uint32_t caps, int32_t num_caps) {
+    R_RETURN(CreateProcess(system, out_handle, parameters, caps, num_caps));
+}
+
+Result StartProcess64From32(Core::System& system, Handle process_handle, int32_t priority,
+                            int32_t core_id, uint64_t main_thread_stack_size) {
+    R_RETURN(StartProcess(system, process_handle, priority, core_id, main_thread_stack_size));
+}
+
+Result TerminateProcess64From32(Core::System& system, Handle process_handle) {
+    R_RETURN(TerminateProcess(system, process_handle));
+}
+
+Result GetProcessInfo64From32(Core::System& system, int64_t* out_info, Handle process_handle,
+                              ProcessInfoType info_type) {
+    R_RETURN(GetProcessInfo(system, out_info, process_handle, info_type));
 }
 
 } // namespace Kernel::Svc
