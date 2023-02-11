@@ -107,7 +107,7 @@ constexpr FixedPoint<I, F> divide(
 
     using next_type = typename FixedPoint<I, F>::next_type;
     using base_type = typename FixedPoint<I, F>::base_type;
-    constexpr static size_t fractional_bits = FixedPoint<I, F>::fractional_bits;
+    constexpr size_t fractional_bits = FixedPoint<I, F>::fractional_bits;
 
     next_type t(numerator.to_raw());
     t <<= fractional_bits;
@@ -127,7 +127,7 @@ constexpr FixedPoint<I, F> divide(
 
     using unsigned_type = typename FixedPoint<I, F>::unsigned_type;
 
-    constexpr static int bits = FixedPoint<I, F>::total_bits;
+    constexpr int bits = FixedPoint<I, F>::total_bits;
 
     if (denominator == 0) {
         throw divide_by_zero();
@@ -198,7 +198,7 @@ constexpr FixedPoint<I, F> multiply(
     using next_type = typename FixedPoint<I, F>::next_type;
     using base_type = typename FixedPoint<I, F>::base_type;
 
-    constexpr static size_t fractional_bits = FixedPoint<I, F>::fractional_bits;
+    constexpr size_t fractional_bits = FixedPoint<I, F>::fractional_bits;
 
     next_type t(static_cast<next_type>(lhs.to_raw()) * static_cast<next_type>(rhs.to_raw()));
     t >>= fractional_bits;
@@ -216,9 +216,9 @@ constexpr FixedPoint<I, F> multiply(
 
     using base_type = typename FixedPoint<I, F>::base_type;
 
-    constexpr static size_t fractional_bits = FixedPoint<I, F>::fractional_bits;
-    constexpr static base_type integer_mask = FixedPoint<I, F>::integer_mask;
-    constexpr static base_type fractional_mask = FixedPoint<I, F>::fractional_mask;
+    constexpr size_t fractional_bits = FixedPoint<I, F>::fractional_bits;
+    constexpr base_type integer_mask = FixedPoint<I, F>::integer_mask;
+    constexpr base_type fractional_mask = FixedPoint<I, F>::fractional_mask;
 
     // more costly but doesn't need a larger type
     const base_type a_hi = (lhs.to_raw() & integer_mask) >> fractional_bits;
