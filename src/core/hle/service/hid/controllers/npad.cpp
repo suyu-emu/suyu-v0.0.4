@@ -439,9 +439,9 @@ void Controller_NPad::RequestPadStateUpdate(Core::HID::NpadIdType npad_id) {
     using btn = Core::HID::NpadButton;
     pad_entry.npad_buttons.raw = btn::None;
     if (controller_type != Core::HID::NpadStyleIndex::JoyconLeft) {
-        constexpr static btn right_button_mask = btn::A | btn::B | btn::X | btn::Y | btn::StickR | btn::R |
-                                          btn::ZR | btn::Plus | btn::StickRLeft | btn::StickRUp |
-                                          btn::StickRRight | btn::StickRDown;
+        constexpr static btn right_button_mask = btn::A | btn::B | btn::X | btn::Y | btn::StickR |
+                                                 btn::R | btn::ZR | btn::Plus | btn::StickRLeft |
+                                                 btn::StickRUp | btn::StickRRight | btn::StickRDown;
         pad_entry.npad_buttons.raw = button_state.raw & right_button_mask;
         pad_entry.r_stick = stick_state.right;
     }

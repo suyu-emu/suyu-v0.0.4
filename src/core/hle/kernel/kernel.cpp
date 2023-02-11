@@ -492,7 +492,8 @@ struct KernelCore::Impl {
         constexpr static size_t CodeRegionAlign = PageSize;
         constexpr static VAddr code_region_start =
             Common::AlignDown(code_start_virt_addr, CodeRegionAlign);
-        constexpr static VAddr code_region_end = Common::AlignUp(code_end_virt_addr, CodeRegionAlign);
+        constexpr static VAddr code_region_end =
+            Common::AlignUp(code_end_virt_addr, CodeRegionAlign);
         constexpr static size_t code_region_size = code_region_end - code_region_start;
         ASSERT(memory_layout->GetVirtualMemoryRegionTree().Insert(
             code_region_start, code_region_size, KMemoryRegionType_KernelCode));
