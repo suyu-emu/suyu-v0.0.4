@@ -134,7 +134,7 @@ Result KPageTable::InitializeForProcess(FileSys::ProgramAddressSpaceType as_type
     }
 
     // Set code regions and determine remaining
-    constexpr size_t RegionAlignment{2_MiB};
+    constexpr static size_t RegionAlignment{2_MiB};
     VAddr process_code_start{};
     VAddr process_code_end{};
     size_t stack_region_size{};
@@ -2624,7 +2624,7 @@ Result KPageTable::SetMemoryAttribute(VAddr addr, size_t size, u32 mask, u32 att
     KMemoryPermission old_perm;
     KMemoryAttribute old_attr;
     size_t num_allocator_blocks;
-    constexpr auto AttributeTestMask =
+    constexpr static auto AttributeTestMask =
         ~(KMemoryAttribute::SetMask | KMemoryAttribute::DeviceShared);
     R_TRY(this->CheckMemoryState(
         std::addressof(old_state), std::addressof(old_perm), std::addressof(old_attr),

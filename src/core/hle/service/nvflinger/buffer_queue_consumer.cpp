@@ -45,7 +45,7 @@ Status BufferQueueConsumer::AcquireBuffer(BufferItem* out_buffer,
 
     // If expected_present is specified, we may not want to return a buffer yet.
     if (expected_present.count() != 0) {
-        constexpr auto MAX_REASONABLE_NSEC = 1000000000LL; // 1 second
+        constexpr static auto MAX_REASONABLE_NSEC = 1000000000LL; // 1 second
 
         // The expected_present argument indicates when the buffer is expected to be presented
         // on-screen.

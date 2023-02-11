@@ -69,7 +69,7 @@ DriverResult RingConProtocol::StartRingconPolling() {
 
 DriverResult RingConProtocol::IsRingConnected(bool& is_connected) {
     LOG_DEBUG(Input, "IsRingConnected");
-    constexpr std::size_t max_tries = 28;
+    constexpr static std::size_t max_tries = 28;
     SubCommandResponse output{};
     std::size_t tries = 0;
     is_connected = false;

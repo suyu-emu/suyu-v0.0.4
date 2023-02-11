@@ -871,7 +871,7 @@ void Module::Interface::StoreSaveDataThumbnailApplication(Kernel::HLERequestCont
     // TODO(ogniK): Check if application ID is zero on acc initialize. As we don't have a reliable
     // way of confirming things like the TID, we're going to assume a non zero value for the time
     // being.
-    constexpr u64 tid{1};
+    constexpr static u64 tid{1};
     StoreSaveDataThumbnail(ctx, uuid, tid);
 }
 

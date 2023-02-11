@@ -75,7 +75,7 @@ bool DmaPusher::Step() {
 
         // Push buffer non-empty, read a word
         command_headers.resize_destructive(command_list_header.size);
-        constexpr u32 MacroRegistersStart = 0xE00;
+        constexpr static u32 MacroRegistersStart = 0xE00;
         if (dma_state.method < MacroRegistersStart) {
             if (Settings::IsGPULevelHigh()) {
                 memory_manager.ReadBlock(dma_state.dma_get, command_headers.data(),

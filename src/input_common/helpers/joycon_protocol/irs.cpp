@@ -131,7 +131,7 @@ DriverResult IrsProtocol::RequestImage(std::span<u8> buffer) {
 
 DriverResult IrsProtocol::ConfigureIrs() {
     LOG_DEBUG(Input, "Configure IRS");
-    constexpr std::size_t max_tries = 28;
+    constexpr static std::size_t max_tries = 28;
     SubCommandResponse output{};
     std::size_t tries = 0;
 
@@ -166,7 +166,7 @@ DriverResult IrsProtocol::ConfigureIrs() {
 DriverResult IrsProtocol::WriteRegistersStep1() {
     LOG_DEBUG(Input, "WriteRegistersStep1");
     DriverResult result{DriverResult::Success};
-    constexpr std::size_t max_tries = 28;
+    constexpr static std::size_t max_tries = 28;
     SubCommandResponse output{};
     std::size_t tries = 0;
 
@@ -226,7 +226,7 @@ DriverResult IrsProtocol::WriteRegistersStep1() {
 
 DriverResult IrsProtocol::WriteRegistersStep2() {
     LOG_DEBUG(Input, "WriteRegistersStep2");
-    constexpr std::size_t max_tries = 28;
+    constexpr static std::size_t max_tries = 28;
     SubCommandResponse output{};
     std::size_t tries = 0;
 

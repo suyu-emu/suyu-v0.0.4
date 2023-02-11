@@ -317,9 +317,9 @@ void PlayerControlPreview::DrawLeftController(QPainter& p, const QPointF center)
 
     // D-pad constants
     const QPointF dpad_center = center + QPoint(9, 14);
-    constexpr int dpad_distance = 23;
-    constexpr int dpad_radius = 11;
-    constexpr float dpad_arrow_size = 1.2f;
+    constexpr static int dpad_distance = 23;
+    constexpr static int dpad_radius = 11;
+    constexpr static float dpad_arrow_size = 1.2f;
 
     // D-pad buttons
     p.setPen(colors.outline);
@@ -439,9 +439,9 @@ void PlayerControlPreview::DrawRightController(QPainter& p, const QPointF center
 
     // Face buttons constants
     const QPointF face_center = center + QPoint(-9, -73);
-    constexpr int face_distance = 23;
-    constexpr int face_radius = 11;
-    constexpr float text_size = 1.1f;
+    constexpr static int face_distance = 23;
+    constexpr static int face_radius = 11;
+    constexpr static float text_size = 1.1f;
 
     // Face buttons
     p.setPen(colors.outline);
@@ -559,9 +559,9 @@ void PlayerControlPreview::DrawDualController(QPainter& p, const QPointF center)
 
     // Face buttons constants
     const QPointF face_center = center + QPoint(65, -65);
-    constexpr int face_distance = 20;
-    constexpr int face_radius = 10;
-    constexpr float text_size = 1.0f;
+    constexpr static int face_distance = 20;
+    constexpr static int face_radius = 10;
+    constexpr static float text_size = 1.0f;
 
     // Face buttons
     p.setPen(colors.outline);
@@ -581,9 +581,9 @@ void PlayerControlPreview::DrawDualController(QPainter& p, const QPointF center)
 
     // D-pad constants
     const QPointF dpad_center = center + QPoint(-65, 12);
-    constexpr int dpad_distance = 20;
-    constexpr int dpad_radius = 10;
-    constexpr float dpad_arrow_size = 1.1f;
+    constexpr static int dpad_distance = 20;
+    constexpr static int dpad_radius = 10;
+    constexpr static float dpad_arrow_size = 1.1f;
 
     // D-pad buttons
     p.setPen(colors.outline);
@@ -651,9 +651,9 @@ void PlayerControlPreview::DrawHandheldController(QPainter& p, const QPointF cen
 
     // Face buttons constants
     const QPointF face_center = center + QPoint(171, -41);
-    constexpr float face_distance = 12.8f;
-    constexpr float face_radius = 6.4f;
-    constexpr float text_size = 0.6f;
+    constexpr static float face_distance = 12.8f;
+    constexpr static float face_radius = 6.4f;
+    constexpr static float text_size = 0.6f;
 
     // Face buttons
     p.setPen(colors.outline);
@@ -673,9 +673,9 @@ void PlayerControlPreview::DrawHandheldController(QPainter& p, const QPointF cen
 
     // D-pad constants
     const QPointF dpad_center = center + QPoint(-171, 8);
-    constexpr float dpad_distance = 12.8f;
-    constexpr float dpad_radius = 6.4f;
-    constexpr float dpad_arrow_size = 0.68f;
+    constexpr static float dpad_distance = 12.8f;
+    constexpr static float dpad_radius = 6.4f;
+    constexpr static float dpad_arrow_size = 0.68f;
 
     // D-pad buttons
     p.setPen(colors.outline);
@@ -754,9 +754,9 @@ void PlayerControlPreview::DrawProController(QPainter& p, const QPointF center) 
 
     // Face buttons constants
     const QPointF face_center = center + QPoint(105, -56);
-    constexpr int face_distance = 31;
-    constexpr int face_radius = 15;
-    constexpr float text_size = 1.5f;
+    constexpr static int face_distance = 31;
+    constexpr static int face_radius = 15;
+    constexpr static float text_size = 1.5f;
 
     // Face buttons
     p.setPen(colors.outline);
@@ -846,7 +846,7 @@ void PlayerControlPreview::DrawGCController(QPainter& p, const QPointF center) {
     using namespace Settings::NativeButton;
 
     // Face buttons constants
-    constexpr float text_size = 1.1f;
+    constexpr static float text_size = 1.1f;
 
     // Face buttons
     p.setPen(colors.outline);
@@ -1497,7 +1497,7 @@ void PlayerControlPreview::DrawProBody(QPainter& p, const QPointF center) {
     std::array<QPointF, pro_left_handle.size() / 2> qleft_handle;
     std::array<QPointF, pro_left_handle.size() / 2> qright_handle;
     std::array<QPointF, pro_body.size()> qbody;
-    constexpr int radius1 = 32;
+    constexpr static int radius1 = 32;
 
     for (std::size_t point = 0; point < pro_left_handle.size() / 2; ++point) {
         const float left_x = pro_left_handle[point * 2 + 0];
@@ -1539,7 +1539,7 @@ void PlayerControlPreview::DrawGCBody(QPainter& p, const QPointF center) {
     std::array<QPointF, gc_body.size()> qbody;
     std::array<QPointF, 8> left_hex;
     std::array<QPointF, 8> right_hex;
-    constexpr float angle = 2 * 3.1415f / 8;
+    constexpr static float angle = 2 * 3.1415f / 8;
 
     for (std::size_t point = 0; point < gc_left_body.size() / 2; ++point) {
         const float body_x = gc_left_body[point * 2 + 0];
@@ -1676,9 +1676,9 @@ void PlayerControlPreview::DrawDualBody(QPainter& p, const QPointF center) {
     std::array<QPointF, left_joycon_slider_topview.size() / 2> qright_joycon_slider_topview;
     std::array<QPointF, left_joycon_topview.size() / 2> qleft_joycon_topview;
     std::array<QPointF, left_joycon_topview.size() / 2> qright_joycon_topview;
-    constexpr float size = 1.61f;
-    constexpr float size2 = 0.9f;
-    constexpr float offset = 209.3f;
+    constexpr static float size = 1.61f;
+    constexpr static float size2 = 0.9f;
+    constexpr static float offset = 209.3f;
 
     for (std::size_t point = 0; point < left_joycon_body.size() / 2; ++point) {
         const float body_x = left_joycon_body[point * 2 + 0];
@@ -1767,10 +1767,10 @@ void PlayerControlPreview::DrawLeftBody(QPainter& p, const QPointF center) {
     std::array<QPointF, left_joycon_slider.size() / 2> qleft_joycon_slider;
     std::array<QPointF, left_joycon_slider_topview.size() / 2> qleft_joycon_slider_topview;
     std::array<QPointF, left_joycon_topview.size() / 2> qleft_joycon_topview;
-    constexpr float size = 1.78f;
-    constexpr float size2 = 1.1115f;
-    constexpr float offset = 312.39f;
-    constexpr float offset2 = 335;
+    constexpr static float size = 1.78f;
+    constexpr static float size2 = 1.1115f;
+    constexpr static float offset = 312.39f;
+    constexpr static float offset2 = 335;
 
     for (std::size_t point = 0; point < left_joycon_body.size() / 2; ++point) {
         left_joycon[point] = center + QPointF(left_joycon_body[point * 2] * size + offset,
@@ -1867,10 +1867,10 @@ void PlayerControlPreview::DrawRightBody(QPainter& p, const QPointF center) {
     std::array<QPointF, left_joycon_slider.size() / 2> qright_joycon_slider;
     std::array<QPointF, left_joycon_slider_topview.size() / 2> qright_joycon_slider_topview;
     std::array<QPointF, left_joycon_topview.size() / 2> qright_joycon_topview;
-    constexpr float size = 1.78f;
-    constexpr float size2 = 1.1115f;
-    constexpr float offset = 312.39f;
-    constexpr float offset2 = 335;
+    constexpr static float size = 1.78f;
+    constexpr static float size2 = 1.1115f;
+    constexpr static float offset = 312.39f;
+    constexpr static float offset2 = 335;
 
     for (std::size_t point = 0; point < left_joycon_body.size() / 2; ++point) {
         right_joycon[point] = center + QPointF(-left_joycon_body[point * 2] * size - offset,
@@ -2068,8 +2068,8 @@ void PlayerControlPreview::DrawDualTriggers(QPainter& p, const QPointF center,
                                             const Common::Input::ButtonStatus& right_pressed) {
     std::array<QPointF, left_joycon_trigger.size() / 2> qleft_trigger;
     std::array<QPointF, left_joycon_trigger.size() / 2> qright_trigger;
-    constexpr float size = 1.62f;
-    constexpr float offset = 210.6f;
+    constexpr static float size = 1.62f;
+    constexpr static float offset = 210.6f;
     for (std::size_t point = 0; point < left_joycon_trigger.size() / 2; ++point) {
         const float left_trigger_x = left_joycon_trigger[point * 2 + 0];
         const float left_trigger_y = left_joycon_trigger[point * 2 + 1];
@@ -2097,7 +2097,7 @@ void PlayerControlPreview::DrawDualTriggersTopView(
     const Common::Input::ButtonStatus& right_pressed) {
     std::array<QPointF, left_joystick_L_topview.size() / 2> qleft_trigger;
     std::array<QPointF, left_joystick_L_topview.size() / 2> qright_trigger;
-    constexpr float size = 0.9f;
+    constexpr static float size = 0.9f;
 
     for (std::size_t point = 0; point < left_joystick_L_topview.size() / 2; ++point) {
         const float top_view_x = left_joystick_L_topview[point * 2 + 0];
@@ -2134,7 +2134,7 @@ void PlayerControlPreview::DrawDualZTriggersTopView(
     const Common::Input::ButtonStatus& right_pressed) {
     std::array<QPointF, left_joystick_ZL_topview.size() / 2> qleft_trigger;
     std::array<QPointF, left_joystick_ZL_topview.size() / 2> qright_trigger;
-    constexpr float size = 0.9f;
+    constexpr static float size = 0.9f;
 
     for (std::size_t point = 0; point < left_joystick_ZL_topview.size() / 2; ++point) {
         qleft_trigger[point] =
@@ -2167,8 +2167,8 @@ void PlayerControlPreview::DrawDualZTriggersTopView(
 void PlayerControlPreview::DrawLeftTriggers(QPainter& p, const QPointF center,
                                             const Common::Input::ButtonStatus& left_pressed) {
     std::array<QPointF, left_joycon_trigger.size() / 2> qleft_trigger;
-    constexpr float size = 1.78f;
-    constexpr float offset = 311.5f;
+    constexpr static float size = 1.78f;
+    constexpr static float offset = 311.5f;
 
     for (std::size_t point = 0; point < left_joycon_trigger.size() / 2; ++point) {
         qleft_trigger[point] = center + QPointF(left_joycon_trigger[point * 2] * size + offset,
@@ -2184,8 +2184,8 @@ void PlayerControlPreview::DrawLeftTriggers(QPainter& p, const QPointF center,
 void PlayerControlPreview::DrawLeftZTriggers(QPainter& p, const QPointF center,
                                              const Common::Input::ButtonStatus& left_pressed) {
     std::array<QPointF, left_joycon_sideview_zl.size() / 2> qleft_trigger;
-    constexpr float size = 1.1115f;
-    constexpr float offset2 = 335;
+    constexpr static float size = 1.1115f;
+    constexpr static float offset2 = 335;
 
     for (std::size_t point = 0; point < left_joycon_sideview_zl.size() / 2; ++point) {
         qleft_trigger[point] = center + QPointF(left_joycon_sideview_zl[point * 2] * size + offset2,
@@ -2241,8 +2241,8 @@ void PlayerControlPreview::DrawLeftZTriggersTopView(
 void PlayerControlPreview::DrawRightTriggers(QPainter& p, const QPointF center,
                                              const Common::Input::ButtonStatus& right_pressed) {
     std::array<QPointF, left_joycon_trigger.size() / 2> qright_trigger;
-    constexpr float size = 1.78f;
-    constexpr float offset = 311.5f;
+    constexpr static float size = 1.78f;
+    constexpr static float offset = 311.5f;
 
     for (std::size_t point = 0; point < left_joycon_trigger.size() / 2; ++point) {
         qright_trigger[point] = center + QPointF(-left_joycon_trigger[point * 2] * size - offset,
@@ -2258,8 +2258,8 @@ void PlayerControlPreview::DrawRightTriggers(QPainter& p, const QPointF center,
 void PlayerControlPreview::DrawRightZTriggers(QPainter& p, const QPointF center,
                                               const Common::Input::ButtonStatus& right_pressed) {
     std::array<QPointF, left_joycon_sideview_zl.size() / 2> qright_trigger;
-    constexpr float size = 1.1115f;
-    constexpr float offset2 = 335;
+    constexpr static float size = 1.1115f;
+    constexpr static float offset2 = 335;
 
     for (std::size_t point = 0; point < left_joycon_sideview_zl.size() / 2; ++point) {
         qright_trigger[point] =
@@ -2433,7 +2433,7 @@ void PlayerControlPreview::DrawRawJoystick(QPainter& p, QPointF center_left, QPo
 
 void PlayerControlPreview::DrawJoystickProperties(
     QPainter& p, const QPointF center, const Common::Input::AnalogProperties& properties) {
-    constexpr float size = 45.0f;
+    constexpr static float size = 45.0f;
     const float range = size * properties.range;
     const float deadzone = size * properties.deadzone;
 
@@ -2453,7 +2453,7 @@ void PlayerControlPreview::DrawJoystickProperties(
 
 void PlayerControlPreview::DrawJoystickDot(QPainter& p, const QPointF center,
                                            const Common::Input::StickStatus& stick, bool raw) {
-    constexpr float size = 45.0f;
+    constexpr static float size = 45.0f;
     const float range = size * stick.x.properties.range;
 
     if (raw) {

@@ -599,7 +599,7 @@ CalibrationConfigurationJob::CalibrationConfigurationJob(
         Status current_status{Status::Initialized};
         SocketCallback callback{[](Response::Version) {}, [](Response::PortInfo) {},
                                 [&](Response::PadData data) {
-                                    constexpr u16 CALIBRATION_THRESHOLD = 100;
+                                    constexpr static u16 CALIBRATION_THRESHOLD = 100;
 
                                     if (current_status == Status::Initialized) {
                                         // Receiving data means the communication is ready now

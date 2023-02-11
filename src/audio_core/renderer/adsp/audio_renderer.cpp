@@ -132,7 +132,7 @@ void AudioRenderer::CreateSinkStreams() {
 }
 
 void AudioRenderer::ThreadFunc() {
-    constexpr char name[]{"AudioRenderer"};
+    constexpr static char name[]{"AudioRenderer"};
     MicroProfileOnThreadCreate(name);
     Common::SetCurrentThreadName(name);
     Common::SetCurrentThreadPriority(Common::ThreadPriority::Critical);
@@ -144,7 +144,7 @@ void AudioRenderer::ThreadFunc() {
 
     mailbox->ADSPSendMessage(RenderMessage::AudioRenderer_InitializeOK);
 
-    constexpr u64 max_process_time{2'304'000ULL};
+    constexpr static u64 max_process_time{2'304'000ULL};
 
     while (true) {
         auto message{mailbox->ADSPWaitMessage()};

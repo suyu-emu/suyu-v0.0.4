@@ -94,7 +94,7 @@ bool SystemManager::Remove(System& system_) {
 }
 
 void SystemManager::ThreadFunc() {
-    constexpr char name[]{"AudioRenderSystemManager"};
+    constexpr static char name[]{"AudioRenderSystemManager"};
     MicroProfileOnThreadCreate(name);
     Common::SetCurrentThreadName(name);
     Common::SetCurrentThreadPriority(Common::ThreadPriority::High);

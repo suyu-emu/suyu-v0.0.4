@@ -237,7 +237,7 @@ void RendererOpenGL::LoadFBToScreenInfo(const Tegra::FramebufferConfig& framebuf
     screen_info.display_texture = screen_info.texture.resource.handle;
 
     // TODO(Rodrigo): Read this from HLE
-    constexpr u32 block_height_log2 = 4;
+    constexpr static u32 block_height_log2 = 4;
     const auto pixel_format{
         VideoCore::Surface::PixelFormatFromGPUPixelFormat(framebuffer.pixel_format)};
     const u32 bytes_per_pixel{VideoCore::Surface::BytesPerBlock(pixel_format)};
@@ -375,7 +375,7 @@ void RendererOpenGL::AddTelemetryFields() {
     LOG_INFO(Render_OpenGL, "GL_VENDOR: {}", gpu_vendor);
     LOG_INFO(Render_OpenGL, "GL_RENDERER: {}", gpu_model);
 
-    constexpr auto user_system = Common::Telemetry::FieldType::UserSystem;
+    constexpr static auto user_system = Common::Telemetry::FieldType::UserSystem;
     telemetry_session.AddField(user_system, "GPU_Vendor", std::string(gpu_vendor));
     telemetry_session.AddField(user_system, "GPU_Model", std::string(gpu_model));
     telemetry_session.AddField(user_system, "GPU_OpenGL_Version", std::string(gl_version));

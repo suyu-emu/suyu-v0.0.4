@@ -129,7 +129,7 @@ VAddr InitializeSlabHeap(Core::System& system, KMemoryLayout& memory_layout, VAd
 }
 
 size_t CalculateSlabHeapGapSize() {
-    constexpr size_t KernelSlabHeapGapSize = 2_MiB - 320_KiB;
+    constexpr static size_t KernelSlabHeapGapSize = 2_MiB - 320_KiB;
     static_assert(KernelSlabHeapGapSize <= KernelSlabHeapGapsSizeMax);
     return KernelSlabHeapGapSize;
 }
@@ -272,7 +272,7 @@ void KPageBufferSlabHeap::Initialize(Core::System& system) {
         kernel.GetSystemResourceLimit()->Reserve(LimitableResource::PhysicalMemoryMax, slab_size));
 
     // Allocate memory for the slab.
-    constexpr auto AllocateOption = KMemoryManager::EncodeOption(
+    constexpr static auto AllocateOption = KMemoryManager::EncodeOption(
         KMemoryManager::Pool::System, KMemoryManager::Direction::FromFront);
     const PAddr slab_address =
         kernel.MemoryManager().AllocateAndOpenContinuous(num_pages, 1, AllocateOption);

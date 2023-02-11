@@ -725,8 +725,8 @@ private:
 
         // TODO: Figure out what these are
 
-        constexpr s64 unknown_result_1 = 0;
-        constexpr s64 unknown_result_2 = 0;
+        constexpr static s64 unknown_result_1 = 0;
+        constexpr static s64 unknown_result_2 = 0;
 
         IPC::ResponseBuilder rb{ctx, 6};
         rb.Push(unknown_result_1);
@@ -740,8 +740,8 @@ private:
         const auto height = rp.Pop<u64>();
         LOG_DEBUG(Service_VI, "called width={}, height={}", width, height);
 
-        constexpr u64 base_size = 0x20000;
-        constexpr u64 alignment = 0x1000;
+        constexpr static u64 base_size = 0x20000;
+        constexpr static u64 alignment = 0x1000;
         const auto texture_size = width * height * 4;
         const auto out_size = (texture_size + base_size - 1) / base_size * base_size;
 

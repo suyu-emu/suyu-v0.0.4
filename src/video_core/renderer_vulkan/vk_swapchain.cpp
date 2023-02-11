@@ -53,7 +53,7 @@ VkPresentModeKHR ChooseSwapPresentMode(vk::Span<VkPresentModeKHR> modes) {
 }
 
 VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, u32 width, u32 height) {
-    constexpr auto undefined_size{std::numeric_limits<u32>::max()};
+    constexpr static auto undefined_size{std::numeric_limits<u32>::max()};
     if (capabilities.currentExtent.width != undefined_size) {
         return capabilities.currentExtent;
     }

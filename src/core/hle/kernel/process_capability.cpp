@@ -306,7 +306,7 @@ Result ProcessCapabilities::HandleMapRegionFlags(u32 flags, KPageTable& page_tab
 }
 
 Result ProcessCapabilities::HandleInterruptFlags(u32 flags) {
-    constexpr u32 interrupt_ignore_value = 0x3FF;
+    constexpr static u32 interrupt_ignore_value = 0x3FF;
     const u32 interrupt0 = (flags >> 12) & 0x3FF;
     const u32 interrupt1 = (flags >> 22) & 0x3FF;
 

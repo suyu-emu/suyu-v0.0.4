@@ -286,7 +286,7 @@ static constexpr int TransitionTime(int year, Rule rule, int offset) {
 }
 
 static bool ParsePosixName(const char* name, TimeZoneRule& rule) {
-    constexpr char default_rule[]{",M4.1.0,M10.5.0"};
+    constexpr static char default_rule[]{",M4.1.0,M10.5.0"};
     const char* std_name{name};
     int std_len{};
     int offset{};
@@ -512,8 +512,8 @@ static bool ParseTimeZoneBinary(TimeZoneRule& time_zone_rule, FileSys::VirtualFi
         return {};
     }
 
-    constexpr s32 time_zone_max_leaps{50};
-    constexpr s32 time_zone_max_chars{50};
+    constexpr static s32 time_zone_max_leaps{50};
+    constexpr static s32 time_zone_max_chars{50};
     if (!(0 <= header.leap_count && header.leap_count < time_zone_max_leaps &&
           0 < header.type_count && header.type_count < s32(time_zone_rule.ttis.size()) &&
           0 <= header.time_count && header.time_count < s32(time_zone_rule.ats.size()) &&
@@ -610,7 +610,7 @@ static bool ParseTimeZoneBinary(TimeZoneRule& time_zone_rule, FileSys::VirtualFi
     if (bytes_read < 0) {
         return {};
     }
-    constexpr s32 time_zone_name_max{255};
+    constexpr static s32 time_zone_name_max{255};
     if (bytes_read > (time_zone_name_max + 1)) {
         return {};
     }

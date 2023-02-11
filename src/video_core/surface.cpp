@@ -371,7 +371,7 @@ std::pair<u32, u32> GetASTCBlockSize(PixelFormat format) {
 }
 
 u64 EstimatedDecompressedSize(u64 base_size, PixelFormat format) {
-    constexpr u64 RGBA8_PIXEL_SIZE = 4;
+    constexpr static u64 RGBA8_PIXEL_SIZE = 4;
     const u64 base_block_size = static_cast<u64>(DefaultBlockWidth(format)) *
                                 static_cast<u64>(DefaultBlockHeight(format)) * RGBA8_PIXEL_SIZE;
     return (base_size * base_block_size) / BytesPerBlock(format);

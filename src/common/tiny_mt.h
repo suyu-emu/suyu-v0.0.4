@@ -223,7 +223,7 @@ public:
 
     float GenerateRandomF32() {
         // Floats have 24 bits of mantissa.
-        constexpr u32 MantissaBits = 24;
+        constexpr static u32 MantissaBits = 24;
         return static_cast<float>(GenerateRandomU24()) * (1.0f / (1U << MantissaBits));
     }
 
@@ -234,9 +234,9 @@ public:
         // Nintendo does not. They use (32 - 5) = 27 bits from the first rnd32()
         // call, and (32 - 6) bits from the second. We'll do what they do, but
         // There's not a clear reason why.
-        constexpr u32 MantissaBits = 53;
-        constexpr u32 Shift1st = (64 - MantissaBits) / 2;
-        constexpr u32 Shift2nd = (64 - MantissaBits) - Shift1st;
+        constexpr static u32 MantissaBits = 53;
+        constexpr static u32 Shift1st = (64 - MantissaBits) / 2;
+        constexpr static u32 Shift2nd = (64 - MantissaBits) - Shift1st;
 
         const u32 first = (this->GenerateRandomU32() >> Shift1st);
         const u32 second = (this->GenerateRandomU32() >> Shift2nd);

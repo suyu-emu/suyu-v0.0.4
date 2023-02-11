@@ -114,13 +114,13 @@ size_t KSystemControl::Init::GetAppletPoolSize() {
     }();
 
     // Return (possibly) adjusted size.
-    constexpr size_t ExtraSystemMemoryForAtmosphere = 33_MiB;
+    constexpr static size_t ExtraSystemMemoryForAtmosphere = 33_MiB;
     return base_pool_size - ExtraSystemMemoryForAtmosphere - KTraceBufferSize;
 }
 
 size_t KSystemControl::Init::GetMinimumNonSecureSystemPoolSize() {
     // Verify that our minimum is at least as large as Nintendo's.
-    constexpr size_t MinimumSize = RequiredNonSecureSystemMemorySize;
+    constexpr static size_t MinimumSize = RequiredNonSecureSystemMemorySize;
     static_assert(MinimumSize >= 0x29C8000);
 
     return MinimumSize;

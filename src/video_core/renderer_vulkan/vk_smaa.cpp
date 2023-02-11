@@ -55,8 +55,9 @@ std::pair<vk::Image, MemoryCommit> CreateWrappedImage(const Device& device,
 
 void TransitionImageLayout(vk::CommandBuffer& cmdbuf, VkImage image, VkImageLayout target_layout,
                            VkImageLayout source_layout = VK_IMAGE_LAYOUT_GENERAL) {
-    constexpr VkFlags flags{VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
-                            VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT};
+    constexpr static VkFlags flags{VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+                                   VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+                                   VK_ACCESS_SHADER_READ_BIT};
     const VkImageMemoryBarrier barrier{
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
         .pNext = nullptr,
@@ -152,7 +153,7 @@ vk::RenderPass CreateWrappedRenderPass(const Device& device, VkFormat format) {
         .finalLayout = VK_IMAGE_LAYOUT_GENERAL,
     };
 
-    constexpr VkAttachmentReference color_attachment_ref{
+    constexpr static VkAttachmentReference color_attachment_ref{
         .attachment = 0,
         .layout = VK_IMAGE_LAYOUT_GENERAL,
     };
@@ -170,7 +171,7 @@ vk::RenderPass CreateWrappedRenderPass(const Device& device, VkFormat format) {
         .pPreserveAttachments = nullptr,
     };
 
-    constexpr VkSubpassDependency dependency{
+    constexpr static VkSubpassDependency dependency{
         .srcSubpass = VK_SUBPASS_EXTERNAL,
         .dstSubpass = 0,
         .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
@@ -328,7 +329,7 @@ vk::Pipeline CreateWrappedPipeline(const Device& device, vk::RenderPass& renderp
         },
     }};
 
-    constexpr VkPipelineVertexInputStateCreateInfo vertex_input_ci{
+    constexpr static VkPipelineVertexInputStateCreateInfo vertex_input_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -338,7 +339,7 @@ vk::Pipeline CreateWrappedPipeline(const Device& device, vk::RenderPass& renderp
         .pVertexAttributeDescriptions = nullptr,
     };
 
-    constexpr VkPipelineInputAssemblyStateCreateInfo input_assembly_ci{
+    constexpr static VkPipelineInputAssemblyStateCreateInfo input_assembly_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -346,7 +347,7 @@ vk::Pipeline CreateWrappedPipeline(const Device& device, vk::RenderPass& renderp
         .primitiveRestartEnable = VK_FALSE,
     };
 
-    constexpr VkPipelineViewportStateCreateInfo viewport_state_ci{
+    constexpr static VkPipelineViewportStateCreateInfo viewport_state_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -356,7 +357,7 @@ vk::Pipeline CreateWrappedPipeline(const Device& device, vk::RenderPass& renderp
         .pScissors = nullptr,
     };
 
-    constexpr VkPipelineRasterizationStateCreateInfo rasterization_ci{
+    constexpr static VkPipelineRasterizationStateCreateInfo rasterization_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -372,7 +373,7 @@ vk::Pipeline CreateWrappedPipeline(const Device& device, vk::RenderPass& renderp
         .lineWidth = 1.0f,
     };
 
-    constexpr VkPipelineMultisampleStateCreateInfo multisampling_ci{
+    constexpr static VkPipelineMultisampleStateCreateInfo multisampling_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -384,7 +385,7 @@ vk::Pipeline CreateWrappedPipeline(const Device& device, vk::RenderPass& renderp
         .alphaToOneEnable = VK_FALSE,
     };
 
-    constexpr VkPipelineColorBlendAttachmentState color_blend_attachment{
+    constexpr static VkPipelineColorBlendAttachmentState color_blend_attachment{
         .blendEnable = VK_FALSE,
         .srcColorBlendFactor = VK_BLEND_FACTOR_ZERO,
         .dstColorBlendFactor = VK_BLEND_FACTOR_ZERO,
@@ -407,7 +408,7 @@ vk::Pipeline CreateWrappedPipeline(const Device& device, vk::RenderPass& renderp
         .blendConstants = {0.0f, 0.0f, 0.0f, 0.0f},
     };
 
-    constexpr std::array dynamic_states{
+    constexpr static std::array dynamic_states{
         VK_DYNAMIC_STATE_VIEWPORT,
         VK_DYNAMIC_STATE_SCISSOR,
     };
@@ -468,7 +469,7 @@ VkWriteDescriptorSet CreateWriteDescriptorSet(std::vector<VkDescriptorImageInfo>
 }
 
 void ClearColorImage(vk::CommandBuffer& cmdbuf, VkImage image) {
-    constexpr std::array<VkImageSubresourceRange, 1> subresources{{{
+    constexpr static std::array<VkImageSubresourceRange, 1> subresources{{{
         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
         .baseMipLevel = 0,
         .levelCount = 1,
@@ -528,8 +529,8 @@ SMAA::SMAA(const Device& device, MemoryAllocator& allocator, size_t image_count,
 }
 
 void SMAA::CreateImages() {
-    constexpr VkExtent2D area_extent{AREATEX_WIDTH, AREATEX_HEIGHT};
-    constexpr VkExtent2D search_extent{SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT};
+    constexpr static VkExtent2D area_extent{AREATEX_WIDTH, AREATEX_HEIGHT};
+    constexpr static VkExtent2D search_extent{SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT};
 
     std::tie(m_static_images[Area], m_static_buffer_commits[Area]) =
         CreateWrappedImage(m_device, m_allocator, area_extent, VK_FORMAT_R8G8_UNORM);
@@ -586,12 +587,12 @@ void SMAA::CreateSampler() {
 
 void SMAA::CreateShaders() {
     // These match the order of the SMAAStage enum
-    constexpr std::array vert_shader_sources{
+    constexpr static std::array vert_shader_sources{
         ARRAY_TO_SPAN(SMAA_EDGE_DETECTION_VERT_SPV),
         ARRAY_TO_SPAN(SMAA_BLENDING_WEIGHT_CALCULATION_VERT_SPV),
         ARRAY_TO_SPAN(SMAA_NEIGHBORHOOD_BLENDING_VERT_SPV),
     };
-    constexpr std::array frag_shader_sources{
+    constexpr static std::array frag_shader_sources{
         ARRAY_TO_SPAN(SMAA_EDGE_DETECTION_FRAG_SPV),
         ARRAY_TO_SPAN(SMAA_BLENDING_WEIGHT_CALCULATION_FRAG_SPV),
         ARRAY_TO_SPAN(SMAA_NEIGHBORHOOD_BLENDING_FRAG_SPV),
@@ -675,8 +676,8 @@ void SMAA::UploadImages(Scheduler& scheduler) {
         return;
     }
 
-    constexpr VkExtent2D area_extent{AREATEX_WIDTH, AREATEX_HEIGHT};
-    constexpr VkExtent2D search_extent{SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT};
+    constexpr static VkExtent2D area_extent{AREATEX_WIDTH, AREATEX_HEIGHT};
+    constexpr static VkExtent2D search_extent{SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT};
 
     UploadImage(m_device, m_allocator, scheduler, m_static_images[Area], area_extent,
                 VK_FORMAT_R8G8_UNORM, ARRAY_TO_SPAN(areaTexBytes));

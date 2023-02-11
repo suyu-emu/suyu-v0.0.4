@@ -21,8 +21,8 @@ Result KCapabilities::InitializeForKIP(std::span<const u32> kern_caps, KPageTabl
     m_program_type = 0;
 
     // Initial processes may run on all cores.
-    constexpr u64 VirtMask = Core::Hardware::VirtualCoreMask;
-    constexpr u64 PhysMask = Core::Hardware::ConvertVirtualCoreMaskToPhysical(VirtMask);
+    constexpr static u64 VirtMask = Core::Hardware::VirtualCoreMask;
+    constexpr static u64 PhysMask = Core::Hardware::ConvertVirtualCoreMaskToPhysical(VirtMask);
 
     m_core_mask = VirtMask;
     m_phys_core_mask = PhysMask;
@@ -170,7 +170,7 @@ Result KCapabilities::MapIoPage_(const u32 cap, KPageTable* page_table) {
 template <typename F>
 Result KCapabilities::ProcessMapRegionCapability(const u32 cap, F f) {
     // Define the allowed memory regions.
-    constexpr std::array<KMemoryRegionType, 4> MemoryRegions{
+    constexpr static std::array<KMemoryRegionType, 4> MemoryRegions{
         KMemoryRegionType_None,
         KMemoryRegionType_KernelTraceBuffer,
         KMemoryRegionType_OnMemoryBootImage,

@@ -109,7 +109,7 @@ bool NfcProtocol::HasAmiibo() {
 }
 
 DriverResult NfcProtocol::WaitUntilNfcIsReady() {
-    constexpr std::size_t timeout_limit = 10;
+    constexpr static std::size_t timeout_limit = 10;
     MCUCommandResponse output{};
     std::size_t tries = 0;
 
@@ -131,7 +131,7 @@ DriverResult NfcProtocol::WaitUntilNfcIsReady() {
 
 DriverResult NfcProtocol::StartPolling(TagFoundData& data) {
     LOG_DEBUG(Input, "Start Polling for tag");
-    constexpr std::size_t timeout_limit = 7;
+    constexpr static std::size_t timeout_limit = 7;
     MCUCommandResponse output{};
     std::size_t tries = 0;
 
@@ -155,7 +155,7 @@ DriverResult NfcProtocol::StartPolling(TagFoundData& data) {
 }
 
 DriverResult NfcProtocol::ReadTag(const TagFoundData& data) {
-    constexpr std::size_t timeout_limit = 10;
+    constexpr static std::size_t timeout_limit = 10;
     MCUCommandResponse output{};
     std::size_t tries = 0;
 
@@ -224,7 +224,7 @@ DriverResult NfcProtocol::ReadTag(const TagFoundData& data) {
 }
 
 DriverResult NfcProtocol::GetAmiiboData(std::vector<u8>& ntag_data) {
-    constexpr std::size_t timeout_limit = 10;
+    constexpr static std::size_t timeout_limit = 10;
     MCUCommandResponse output{};
     std::size_t tries = 0;
 

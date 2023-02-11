@@ -63,7 +63,7 @@ public:
     }
 
     bool UpdateMotion(SDL_ControllerSensorEvent event) {
-        constexpr float gravity_constant = 9.80665f;
+        constexpr static float gravity_constant = 9.80665f;
         std::scoped_lock lock{mutex};
         const u64 time_difference = event.timestamp - last_motion_update;
         last_motion_update = event.timestamp;
@@ -109,7 +109,7 @@ public:
     }
 
     bool RumblePlay(const Common::Input::VibrationStatus vibration) {
-        constexpr u32 rumble_max_duration_ms = 1000;
+        constexpr static u32 rumble_max_duration_ms = 1000;
         if (sdl_controller) {
             return SDL_GameControllerRumble(
                        sdl_controller.get(), static_cast<u16>(vibration.low_amplitude),
@@ -616,7 +616,7 @@ bool SDLDriver::IsVibrationEnabled(const PadIdentifier& identifier) {
     const auto joystick =
         GetSDLJoystickByGUID(identifier.guid.RawString(), static_cast<int>(identifier.port));
 
-    constexpr Common::Input::VibrationStatus test_vibration{
+    constexpr static Common::Input::VibrationStatus test_vibration{
         .low_amplitude = 1,
         .low_frequency = 160.0f,
         .high_amplitude = 1,
@@ -624,7 +624,7 @@ bool SDLDriver::IsVibrationEnabled(const PadIdentifier& identifier) {
         .type = Common::Input::VibrationAmplificationType::Exponential,
     };
 
-    constexpr Common::Input::VibrationStatus zero_vibration{
+    constexpr static Common::Input::VibrationStatus zero_vibration{
         .low_amplitude = 0,
         .low_frequency = 160.0f,
         .high_amplitude = 0,

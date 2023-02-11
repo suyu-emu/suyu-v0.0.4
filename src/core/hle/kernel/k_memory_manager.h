@@ -121,7 +121,7 @@ public:
     }
 
     size_t GetSize(Pool pool) {
-        constexpr Direction GetSizeDirection = Direction::FromFront;
+        constexpr static Direction GetSizeDirection = Direction::FromFront;
         size_t total = 0;
         for (auto* manager = this->GetFirstManager(pool, GetSizeDirection); manager != nullptr;
              manager = this->GetNextManager(manager, GetSizeDirection)) {
@@ -142,7 +142,7 @@ public:
     size_t GetFreeSize(Pool pool) {
         KScopedLightLock lk(m_pool_locks[static_cast<size_t>(pool)]);
 
-        constexpr Direction GetSizeDirection = Direction::FromFront;
+        constexpr static Direction GetSizeDirection = Direction::FromFront;
         size_t total = 0;
         for (auto* manager = this->GetFirstManager(pool, GetSizeDirection); manager != nullptr;
              manager = this->GetNextManager(manager, GetSizeDirection)) {
@@ -154,7 +154,7 @@ public:
     void DumpFreeList(Pool pool) {
         KScopedLightLock lk(m_pool_locks[static_cast<size_t>(pool)]);
 
-        constexpr Direction DumpDirection = Direction::FromFront;
+        constexpr static Direction DumpDirection = Direction::FromFront;
         for (auto* manager = this->GetFirstManager(pool, DumpDirection); manager != nullptr;
              manager = this->GetNextManager(manager, DumpDirection)) {
             manager->DumpFreeList();

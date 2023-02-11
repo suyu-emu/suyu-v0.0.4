@@ -27,8 +27,8 @@ constexpr std::array<u8, 3> PitchBySrcQuality = {4, 8, 4};
 template <typename T>
 static u32 DecodePcm(Core::Memory::Memory& memory, std::span<s16> out_buffer,
                      const DecodeArg& req) {
-    constexpr s32 min{std::numeric_limits<s16>::min()};
-    constexpr s32 max{std::numeric_limits<s16>::max()};
+    constexpr static s32 min{std::numeric_limits<s16>::min()};
+    constexpr static s32 max{std::numeric_limits<s16>::max()};
 
     if (req.buffer == 0 || req.buffer_size == 0) {
         return 0;
@@ -101,8 +101,8 @@ static u32 DecodePcm(Core::Memory::Memory& memory, std::span<s16> out_buffer,
  */
 static u32 DecodeAdpcm(Core::Memory::Memory& memory, std::span<s16> out_buffer,
                        const DecodeArg& req) {
-    constexpr u32 SamplesPerFrame{14};
-    constexpr u32 NibblesPerFrame{16};
+    constexpr static u32 SamplesPerFrame{14};
+    constexpr static u32 NibblesPerFrame{16};
 
     if (req.buffer == 0 || req.buffer_size == 0) {
         return 0;

@@ -942,7 +942,7 @@ void FSP_SRV::ReadSaveDataFileSystemExtraDataWithMaskBySaveDataAttribute(
 
     const auto parameters = rp.PopRaw<Parameters>();
     // Stub this to None for now, backend needs an impl to read/write the SaveDataExtraData
-    constexpr auto flags = static_cast<u32>(FileSys::SaveDataFlags::None);
+    constexpr static auto flags = static_cast<u32>(FileSys::SaveDataFlags::None);
 
     LOG_WARNING(Service_FS,
                 "(STUBBED) called, flags={}, space_id={}, attribute.title_id={:016X}\n"

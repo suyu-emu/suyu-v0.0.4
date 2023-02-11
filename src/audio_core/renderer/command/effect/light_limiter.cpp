@@ -50,8 +50,8 @@ static void ApplyLightLimiterEffect(const LightLimiterInfo::ParameterVersion2& p
                                     std::vector<std::span<const s32>>& inputs,
                                     std::vector<std::span<s32>>& outputs, const u32 sample_count,
                                     LightLimiterInfo::StatisticsInternal* statistics) {
-    constexpr s64 min{std::numeric_limits<s32>::min()};
-    constexpr s64 max{std::numeric_limits<s32>::max()};
+    constexpr static s64 min{std::numeric_limits<s32>::min()};
+    constexpr static s64 max{std::numeric_limits<s32>::max()};
 
     const auto recip_estimate = [](f64 a) -> f64 {
         s32 q, s;

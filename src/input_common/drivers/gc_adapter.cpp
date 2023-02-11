@@ -223,8 +223,8 @@ void GCAdapter::AdapterScanThread(std::stop_token stop_token) {
 }
 
 bool GCAdapter::Setup() {
-    constexpr u16 nintendo_vid = 0x057e;
-    constexpr u16 gc_adapter_pid = 0x0337;
+    constexpr static u16 nintendo_vid = 0x057e;
+    constexpr static u16 gc_adapter_pid = 0x0337;
     usb_adapter_handle =
         std::make_unique<LibUSBDeviceHandle>(libusb_ctx->get(), nintendo_vid, gc_adapter_pid);
     if (!usb_adapter_handle->get()) {
@@ -346,7 +346,7 @@ void GCAdapter::UpdateVibrations() {
     // Use 8 states to keep the switching between on/off fast enough for
     // a human to feel different vibration strenght
     // More states == more rumble strengths == slower update time
-    constexpr u8 vibration_states = 8;
+    constexpr static u8 vibration_states = 8;
 
     vibration_counter = (vibration_counter + 1) % vibration_states;
 
@@ -363,7 +363,7 @@ void GCAdapter::SendVibrations() {
         return;
     }
     s32 size{};
-    constexpr u8 rumble_command = 0x11;
+    constexpr static u8 rumble_command = 0x11;
     const u8 p1 = pads[0].enable_vibration;
     const u8 p2 = pads[1].enable_vibration;
     const u8 p3 = pads[2].enable_vibration;

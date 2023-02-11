@@ -9,8 +9,8 @@
 namespace Service::Nvidia::NvCore {
 
 SyncpointManager::SyncpointManager(Tegra::Host1x::Host1x& host1x_) : host1x{host1x_} {
-    constexpr u32 VBlank0SyncpointId{26};
-    constexpr u32 VBlank1SyncpointId{27};
+    constexpr static u32 VBlank0SyncpointId{26};
+    constexpr static u32 VBlank1SyncpointId{27};
 
     // Reserve both vblank syncpoints as client managed as they use Continuous Mode
     // Refer to section 14.3.5.3 of the TRM for more information on Continuous Mode

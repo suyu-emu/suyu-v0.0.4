@@ -35,7 +35,7 @@ bool IsAmiiboValid(const EncryptedNTAG215File& ntag_file) {
     LOG_DEBUG(Service_NFP, "tag_CFG1=0x{0:x}", ntag_file.CFG1);
 
     // Validate UUID
-    constexpr u8 CT = 0x88; // As defined in `ISO / IEC 14443 - 3`
+    constexpr static u8 CT = 0x88; // As defined in `ISO / IEC 14443 - 3`
     if ((CT ^ ntag_file.uuid.uid[0] ^ ntag_file.uuid.uid[1] ^ ntag_file.uuid.uid[2]) !=
         ntag_file.uuid.uid[3]) {
         return false;
@@ -247,7 +247,7 @@ void Cipher(const DerivedKeys& keys, const NTAG215File& in_data, NTAG215File& ou
     mbedtls_aes_setkey_enc(&aes, keys.aes_key.data(), aes_key_size);
     memcpy(nonce_counter.data(), keys.aes_iv.data(), sizeof(keys.aes_iv));
 
-    constexpr std::size_t encrypted_data_size = HMAC_TAG_START - SETTINGS_START;
+    constexpr static std::size_t encrypted_data_size = HMAC_TAG_START - SETTINGS_START;
     mbedtls_aes_crypt_ctr(&aes, encrypted_data_size, &nc_off, nonce_counter.data(),
                           stream_block.data(),
                           reinterpret_cast<const unsigned char*>(&in_data.settings),
@@ -317,13 +317,13 @@ bool DecodeAmiibo(const EncryptedNTAG215File& encrypted_tag_data, NTAG215File& t
     Cipher(data_keys, encoded_data, tag_data);
 
     // Regenerate tag HMAC. Note: order matters, data HMAC depends on tag HMAC!
-    constexpr std::size_t input_length = DYNAMIC_LOCK_START - UUID_START;
+    constexpr static std::size_t input_length = DYNAMIC_LOCK_START - UUID_START;
     mbedtls_md_hmac(mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), tag_keys.hmac_key.data(),
                     sizeof(HmacKey), reinterpret_cast<const unsigned char*>(&tag_data.uid),
                     input_length, reinterpret_cast<unsigned char*>(&tag_data.hmac_tag));
 
     // Regenerate data HMAC
-    constexpr std::size_t input_length2 = DYNAMIC_LOCK_START - WRITE_COUNTER_START;
+    constexpr static std::size_t input_length2 = DYNAMIC_LOCK_START - WRITE_COUNTER_START;
     mbedtls_md_hmac(mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), data_keys.hmac_key.data(),
                     sizeof(HmacKey),
                     reinterpret_cast<const unsigned char*>(&tag_data.write_counter), input_length2,
@@ -357,8 +357,8 @@ bool EncodeAmiibo(const NTAG215File& tag_data, EncryptedNTAG215File& encrypted_t
     NTAG215File encoded_tag_data{};
 
     // Generate tag HMAC
-    constexpr std::size_t input_length = DYNAMIC_LOCK_START - UUID_START;
-    constexpr std::size_t input_length2 = HMAC_TAG_START - WRITE_COUNTER_START;
+    constexpr static std::size_t input_length = DYNAMIC_LOCK_START - UUID_START;
+    constexpr static std::size_t input_length2 = HMAC_TAG_START - WRITE_COUNTER_START;
     mbedtls_md_hmac(mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), tag_keys.hmac_key.data(),
                     sizeof(HmacKey), reinterpret_cast<const unsigned char*>(&tag_data.uid),
                     input_length, reinterpret_cast<unsigned char*>(&encoded_tag_data.hmac_tag));

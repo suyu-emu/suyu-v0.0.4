@@ -126,9 +126,9 @@ Device::Device(Core::Frontend::EmuWindow& emu_window) {
     const bool is_intel = vendor_name == "Intel";
 
 #ifdef __unix__
-    constexpr bool is_linux = true;
+    constexpr static bool is_linux = true;
 #else
-    constexpr bool is_linux = false;
+    constexpr static bool is_linux = false;
 #endif
 
     bool disable_fast_buffer_sub_data = false;

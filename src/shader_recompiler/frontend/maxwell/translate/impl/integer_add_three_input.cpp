@@ -19,7 +19,7 @@ enum class Half : u64 {
 };
 
 [[nodiscard]] IR::U32 IntegerHalf(IR::IREmitter& ir, const IR::U32& value, Half half) {
-    constexpr bool is_signed{false};
+    constexpr static bool is_signed{false};
     switch (half) {
     case Half::All:
         return value;

@@ -439,7 +439,7 @@ void Controller_NPad::RequestPadStateUpdate(Core::HID::NpadIdType npad_id) {
     using btn = Core::HID::NpadButton;
     pad_entry.npad_buttons.raw = btn::None;
     if (controller_type != Core::HID::NpadStyleIndex::JoyconLeft) {
-        constexpr btn right_button_mask = btn::A | btn::B | btn::X | btn::Y | btn::StickR | btn::R |
+        constexpr static btn right_button_mask = btn::A | btn::B | btn::X | btn::Y | btn::StickR | btn::R |
                                           btn::ZR | btn::Plus | btn::StickRLeft | btn::StickRUp |
                                           btn::StickRRight | btn::StickRDown;
         pad_entry.npad_buttons.raw = button_state.raw & right_button_mask;
@@ -447,7 +447,7 @@ void Controller_NPad::RequestPadStateUpdate(Core::HID::NpadIdType npad_id) {
     }
 
     if (controller_type != Core::HID::NpadStyleIndex::JoyconRight) {
-        constexpr btn left_button_mask =
+        constexpr static btn left_button_mask =
             btn::Left | btn::Up | btn::Right | btn::Down | btn::StickL | btn::L | btn::ZL |
             btn::Minus | btn::StickLLeft | btn::StickLUp | btn::StickLRight | btn::StickLDown;
         pad_entry.npad_buttons.raw |= button_state.raw & left_button_mask;
@@ -759,7 +759,7 @@ Core::HID::NpadStyleTag Controller_NPad::GetSupportedStyleSet() const {
 }
 
 Result Controller_NPad::SetSupportedNpadIdTypes(std::span<const u8> data) {
-    constexpr std::size_t max_number_npad_ids = 0xa;
+    constexpr static std::size_t max_number_npad_ids = 0xa;
     const auto length = data.size();
     ASSERT(length > 0 && (length % sizeof(u32)) == 0);
     const std::size_t elements = length / sizeof(u32);

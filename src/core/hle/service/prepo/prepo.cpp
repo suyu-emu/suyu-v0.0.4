@@ -116,7 +116,7 @@ private:
     void GetTransmissionStatus(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_PREPO, "(STUBBED) called");
 
-        constexpr s32 status = 0;
+        constexpr static s32 status = 0;
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(ResultSuccess);
@@ -126,7 +126,7 @@ private:
     void GetSystemSessionId(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_PREPO, "(STUBBED) called");
 
-        constexpr u64 system_session_id = 0;
+        constexpr static u64 system_session_id = 0;
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(ResultSuccess);
         rb.Push(system_session_id);

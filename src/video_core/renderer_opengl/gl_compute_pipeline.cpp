@@ -162,7 +162,8 @@ void ComputePipeline::Configure() {
     buffer_cache.UnbindComputeTextureBuffers();
     size_t texbuf_index{};
     const auto add_buffer{[&](const auto& desc) {
-        constexpr bool is_image = std::is_same_v<decltype(desc), const ImageBufferDescriptor&>;
+        constexpr static bool is_image =
+            std::is_same_v<decltype(desc), const ImageBufferDescriptor&>;
         for (u32 i = 0; i < desc.count; ++i) {
             bool is_written{false};
             if constexpr (is_image) {
