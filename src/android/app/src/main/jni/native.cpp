@@ -24,6 +24,7 @@
 #include "core/file_sys/vfs_real.h"
 #include "core/hid/hid_core.h"
 #include "core/hle/service/filesystem/filesystem.h"
+#include "core/loader/loader.h"
 #include "core/perf_stats.h"
 #include "jni/config.h"
 #include "jni/emu_window/emu_window.h"
@@ -34,7 +35,11 @@ namespace {
 
 class EmulationSession final {
 public:
-    EmulationSession() = default;
+    EmulationSession() {
+        m_system.Initialize();
+        m_vfs = std::make_shared<FileSys::RealVfsFilesystem>();
+    }
+
     ~EmulationSession() = default;
 
     static EmulationSession& GetInstance() {
@@ -42,151 +47,205 @@ public:
     }
 
     const Core::System& System() const {
-        return system;
+        return m_system;
     }
 
     Core::System& System() {
-        return system;
+        return m_system;
     }
 
     const EmuWindow_Android& Window() const {
-        return *window;
+        return *m_window;
     }
 
     EmuWindow_Android& Window() {
-        return *window;
+        return *m_window;
     }
 
     ANativeWindow* NativeWindow() const {
-        return native_window;
+        return m_native_window;
     }
 
-    void SetNativeWindow(ANativeWindow* native_window_) {
-        native_window = native_window_;
+    void SetNativeWindow(ANativeWindow* m_native_window_) {
+        m_native_window = m_native_window_;
     }
 
     bool IsRunning() const {
-        std::scoped_lock lock(mutex);
-        return is_running;
+        std::scoped_lock lock(m_mutex);
+        return m_is_running;
     }
 
     const Core::PerfStatsResults& PerfStats() const {
-        std::scoped_lock perf_stats_lock(perf_stats_mutex);
-        return perf_stats;
+        std::scoped_lock m_perf_stats_lock(m_perf_stats_mutex);
+        return m_perf_stats;
     }
 
     void SurfaceChanged() {
         if (!IsRunning()) {
             return;
         }
-        window->OnSurfaceChanged(native_window);
+        m_window->OnSurfaceChanged(m_native_window);
     }
 
     Core::SystemResultStatus InitializeEmulation(const std::string& filepath) {
-        std::scoped_lock lock(mutex);
+        std::scoped_lock lock(m_mutex);
 
         // Loads the configuration.
         Config{};
 
         // Create the render window.
-        window = std::make_unique<EmuWindow_Android>(&input_subsystem, native_window);
+        m_window = std::make_unique<EmuWindow_Android>(&m_input_subsystem, m_native_window);
 
         // Initialize system.
-        system.SetShuttingDown(false);
-        system.Initialize();
-        system.ApplySettings();
-        system.HIDCore().ReloadInputDevices();
-        system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
-        system.SetFilesystem(std::make_shared<FileSys::RealVfsFilesystem>());
-        system.GetFileSystemController().CreateFactories(*system.GetFilesystem());
+        m_system.SetShuttingDown(false);
+        m_system.Initialize();
+        m_system.ApplySettings();
+        m_system.HIDCore().ReloadInputDevices();
+        m_system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
+        m_system.SetFilesystem(std::make_shared<FileSys::RealVfsFilesystem>());
+        m_system.GetFileSystemController().CreateFactories(*m_system.GetFilesystem());
 
         // Load the ROM.
-        load_result = system.Load(EmulationSession::GetInstance().Window(), filepath);
-        if (load_result != Core::SystemResultStatus::Success) {
-            return load_result;
+        m_load_result = m_system.Load(EmulationSession::GetInstance().Window(), filepath);
+        if (m_load_result != Core::SystemResultStatus::Success) {
+            return m_load_result;
         }
 
         // Complete initialization.
-        system.GPU().Start();
-        system.GetCpuManager().OnGpuReady();
-        system.RegisterExitCallback([&] { HaltEmulation(); });
+        m_system.GPU().Start();
+        m_system.GetCpuManager().OnGpuReady();
+        m_system.RegisterExitCallback([&] { HaltEmulation(); });
 
         return Core::SystemResultStatus::Success;
     }
 
     void ShutdownEmulation() {
-        std::scoped_lock lock(mutex);
+        std::scoped_lock lock(m_mutex);
 
-        is_running = false;
+        m_is_running = false;
 
         // Unload user input.
-        system.HIDCore().UnloadInputDevices();
+        m_system.HIDCore().UnloadInputDevices();
 
         // Shutdown the main emulated process
-        if (load_result == Core::SystemResultStatus::Success) {
-            system.DetachDebugger();
-            system.ShutdownMainProcess();
-            detached_tasks.WaitForAllTasks();
-            load_result = Core::SystemResultStatus::ErrorNotInitialized;
+        if (m_load_result == Core::SystemResultStatus::Success) {
+            m_system.DetachDebugger();
+            m_system.ShutdownMainProcess();
+            m_detached_tasks.WaitForAllTasks();
+            m_load_result = Core::SystemResultStatus::ErrorNotInitialized;
         }
 
         // Tear down the render window.
-        window.reset();
+        m_window.reset();
+    }
+
+    void PauseEmulation() {
+        std::scoped_lock lock(m_mutex);
+        m_system.Pause();
+    }
+
+    void UnPauseEmulation() {
+        std::scoped_lock lock(m_mutex);
+        m_system.Run();
     }
 
     void HaltEmulation() {
-        std::scoped_lock lock(mutex);
-        is_running = false;
-        cv.notify_one();
+        std::scoped_lock lock(m_mutex);
+        m_is_running = false;
+        m_cv.notify_one();
     }
 
     void RunEmulation() {
         {
-            std::scoped_lock lock(mutex);
-            is_running = true;
+            std::scoped_lock lock(m_mutex);
+            m_is_running = true;
         }
 
-        void(system.Run());
+        void(m_system.Run());
 
-        if (system.DebuggerEnabled()) {
-            system.InitializeDebugger();
+        if (m_system.DebuggerEnabled()) {
+            m_system.InitializeDebugger();
         }
 
         while (true) {
             {
-                std::unique_lock lock(mutex);
-                if (cv.wait_for(lock, std::chrono::milliseconds(100),
-                                [&]() { return !is_running; })) {
+                std::unique_lock lock(m_mutex);
+                if (m_cv.wait_for(lock, std::chrono::milliseconds(100),
+                                  [&]() { return !m_is_running; })) {
                     // Emulation halted.
                     break;
                 }
             }
             {
                 // Refresh performance stats.
-                std::scoped_lock perf_stats_lock(perf_stats_mutex);
-                perf_stats = system.GetAndResetPerfStats();
+                std::scoped_lock m_perf_stats_lock(m_perf_stats_mutex);
+                m_perf_stats = m_system.GetAndResetPerfStats();
             }
         }
+    }
+
+    std::string GetRomTitle(const std::string& path) {
+        return GetRomMetadata(path).title;
+    }
+
+    std::vector<u8> GetRomIcon(const std::string& path) {
+        return GetRomMetadata(path).icon;
+    }
+
+    void ResetRomMetadata() {
+        m_rom_metadata_cache.clear();
+    }
+
+private:
+    struct RomMetadata {
+        std::string title;
+        std::vector<u8> icon;
+    };
+
+    RomMetadata GetRomMetadata(const std::string& path) {
+        if (auto search = m_rom_metadata_cache.find(path); search != m_rom_metadata_cache.end()) {
+            return search->second;
+        }
+
+        return CacheRomMetadata(path);
+    }
+
+    RomMetadata CacheRomMetadata(const std::string& path) {
+        const auto file = Core::GetGameFileFromPath(m_vfs, path);
+        const auto loader = Loader::GetLoader(EmulationSession::GetInstance().System(), file, 0, 0);
+
+        RomMetadata entry;
+        loader->ReadTitle(entry.title);
+        loader->ReadIcon(entry.icon);
+
+        m_rom_metadata_cache[path] = entry;
+
+        return entry;
     }
 
 private:
     static EmulationSession s_instance;
 
-    ANativeWindow* native_window{};
+    // Frontend management
+    std::unordered_map<std::string, RomMetadata> m_rom_metadata_cache;
 
-    InputCommon::InputSubsystem input_subsystem;
-    Common::DetachedTasks detached_tasks;
-    Core::System system;
+    // Window management
+    std::unique_ptr<EmuWindow_Android> m_window;
+    ANativeWindow* m_native_window{};
 
-    Core::PerfStatsResults perf_stats{};
+    // Core emulation
+    Core::System m_system;
+    InputCommon::InputSubsystem m_input_subsystem;
+    Common::DetachedTasks m_detached_tasks;
+    Core::PerfStatsResults m_perf_stats{};
+    std::shared_ptr<FileSys::RealVfsFilesystem> m_vfs;
+    Core::SystemResultStatus m_load_result{Core::SystemResultStatus::ErrorNotInitialized};
+    bool m_is_running{};
 
-    std::unique_ptr<EmuWindow_Android> window;
-    std::condition_variable_any cv;
-    bool is_running{};
-    Core::SystemResultStatus load_result{Core::SystemResultStatus::ErrorNotInitialized};
-
-    mutable std::mutex perf_stats_mutex;
-    mutable std::mutex mutex;
+    // Synchronization
+    std::condition_variable_any m_cv;
+    mutable std::mutex m_perf_stats_mutex;
+    mutable std::mutex m_mutex;
 };
 
 /*static*/ EmulationSession EmulationSession::s_instance;
@@ -275,14 +334,23 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_ReloadKeys(JNIEnv* env,
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_UnPauseEmulation([[maybe_unused]] JNIEnv* env,
-                                                            [[maybe_unused]] jclass clazz) {}
+                                                            [[maybe_unused]] jclass clazz) {
+    EmulationSession::GetInstance().UnPauseEmulation();
+}
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_PauseEmulation([[maybe_unused]] JNIEnv* env,
-                                                          [[maybe_unused]] jclass clazz) {}
+                                                          [[maybe_unused]] jclass clazz) {
+    EmulationSession::GetInstance().PauseEmulation();
+}
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_StopEmulation([[maybe_unused]] JNIEnv* env,
                                                          [[maybe_unused]] jclass clazz) {
     EmulationSession::GetInstance().HaltEmulation();
+}
+
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_ResetRomMetadata([[maybe_unused]] JNIEnv* env,
+                                                            [[maybe_unused]] jclass clazz) {
+    EmulationSession::GetInstance().ResetRomMetadata();
 }
 
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_IsRunning([[maybe_unused]] JNIEnv* env,
@@ -347,16 +415,21 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchMoved([[maybe_unused]] JNIEnv*
     }
 }
 
-jintArray Java_org_yuzu_yuzu_1emu_NativeLibrary_GetIcon([[maybe_unused]] JNIEnv* env,
-                                                        [[maybe_unused]] jclass clazz,
-                                                        [[maybe_unused]] jstring j_file) {
-    return {};
+jbyteArray Java_org_yuzu_yuzu_1emu_NativeLibrary_GetIcon([[maybe_unused]] JNIEnv* env,
+                                                         [[maybe_unused]] jclass clazz,
+                                                         [[maybe_unused]] jstring j_filename) {
+    auto icon_data = EmulationSession::GetInstance().GetRomIcon(GetJString(env, j_filename));
+    jbyteArray icon = env->NewByteArray(static_cast<jsize>(icon_data.size()));
+    env->SetByteArrayRegion(icon, 0, env->GetArrayLength(icon),
+                            reinterpret_cast<jbyte*>(icon_data.data()));
+    return icon;
 }
 
 jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_GetTitle([[maybe_unused]] JNIEnv* env,
                                                        [[maybe_unused]] jclass clazz,
                                                        [[maybe_unused]] jstring j_filename) {
-    return env->NewStringUTF("");
+    auto title = EmulationSession::GetInstance().GetRomTitle(GetJString(env, j_filename));
+    return env->NewStringUTF(title.c_str());
 }
 
 jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_GetDescription([[maybe_unused]] JNIEnv* env,

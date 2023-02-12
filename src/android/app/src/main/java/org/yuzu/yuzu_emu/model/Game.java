@@ -47,7 +47,7 @@ public final class Game {
                 cursor.getString(GameDatabase.GAME_COLUMN_REGIONS),
                 cursor.getString(GameDatabase.GAME_COLUMN_PATH),
                 cursor.getString(GameDatabase.GAME_COLUMN_GAME_ID),
-                cursor.getString(GameDatabase.GAME_COLUMN_COMPANY));
+                cursor.getString(GameDatabase.GAME_COLUMN_CAPTION));
     }
 
     public String getTitle() {

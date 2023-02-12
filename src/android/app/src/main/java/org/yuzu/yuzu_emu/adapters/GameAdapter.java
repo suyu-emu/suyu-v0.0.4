@@ -86,11 +86,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
                         mCursor.getString(GameDatabase.GAME_COLUMN_PATH));
 
                 holder.textGameTitle.setText(mCursor.getString(GameDatabase.GAME_COLUMN_TITLE).replaceAll("[\\t\\n\\r]+", " "));
-                holder.textCompany.setText(mCursor.getString(GameDatabase.GAME_COLUMN_COMPANY));
-
-                String filepath = mCursor.getString(GameDatabase.GAME_COLUMN_PATH);
-                String filename = FileUtil.getFilename(YuzuApplication.getAppContext(), filepath);
-                holder.textFileName.setText(filename);
+                holder.textGameCaption.setText(mCursor.getString(GameDatabase.GAME_COLUMN_CAPTION));
 
                 // TODO These shouldn't be necessary once the move to a DB-based model is complete.
                 holder.gameId = mCursor.getString(GameDatabase.GAME_COLUMN_GAME_ID);
@@ -98,7 +94,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
                 holder.title = mCursor.getString(GameDatabase.GAME_COLUMN_TITLE);
                 holder.description = mCursor.getString(GameDatabase.GAME_COLUMN_DESCRIPTION);
                 holder.regions = mCursor.getString(GameDatabase.GAME_COLUMN_REGIONS);
-                holder.company = mCursor.getString(GameDatabase.GAME_COLUMN_COMPANY);
+                holder.company = mCursor.getString(GameDatabase.GAME_COLUMN_CAPTION);
 
                 final int backgroundColorId = isValidGame(holder.path) ? R.color.view_background : R.color.view_disabled;
                 View itemView = holder.getItemView();

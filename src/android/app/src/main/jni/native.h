@@ -19,6 +19,9 @@ JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_PauseEmulation(JNIE
 JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_StopEmulation(JNIEnv* env,
                                                                            jclass clazz);
 
+JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_ResetRomMetadata(JNIEnv* env,
+                                                                              jclass clazz);
+
 JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_IsRunning(JNIEnv* env,
                                                                            jclass clazz);
 
@@ -39,8 +42,9 @@ JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchEvent(JN
 JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchMoved(JNIEnv* env, jclass clazz,
                                                                           jfloat x, jfloat y);
 
-JNIEXPORT jintArray JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_GetIcon(JNIEnv* env, jclass clazz,
-                                                                          jstring j_file);
+JNIEXPORT jbyteArray JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_GetIcon(JNIEnv* env,
+                                                                           jclass clazz,
+                                                                           jstring j_file);
 
 JNIEXPORT jstring JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_GetTitle(JNIEnv* env, jclass clazz,
                                                                          jstring j_filename);

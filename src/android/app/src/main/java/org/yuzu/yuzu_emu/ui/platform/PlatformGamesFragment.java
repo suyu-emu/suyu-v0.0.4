@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.TextView;
 
 import androidx.core.content.ContextCompat;
@@ -13,6 +14,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import org.yuzu.yuzu_emu.NativeLibrary;
 import org.yuzu.yuzu_emu.YuzuApplication;
 import org.yuzu.yuzu_emu.R;
 import org.yuzu.yuzu_emu.adapters.GameAdapter;
@@ -43,19 +45,34 @@ public final class PlatformGamesFragment extends Fragment implements PlatformGam
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
-        int columns = getResources().getInteger(R.integer.game_grid_columns);
-        RecyclerView.LayoutManager layoutManager = new GridLayoutManager(getActivity(), columns);
         mAdapter = new GameAdapter();
 
-        mRecyclerView.setLayoutManager(layoutManager);
-        mRecyclerView.setAdapter(mAdapter);
-        mRecyclerView.addItemDecoration(new GameAdapter.SpacesItemDecoration(ContextCompat.getDrawable(getActivity(), R.drawable.gamelist_divider), 1));
+        // Organize our grid layout based on the current view.
+        if (isAdded()) {
+            view.getViewTreeObserver()
+                    .addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                        @Override
+                        public void onGlobalLayout() {
+                            if (view.getMeasuredWidth() == 0) {
+                                return;
+                            }
+
+                            int columns = view.getMeasuredWidth() /
+                                    requireContext().getResources().getDimensionPixelSize(R.dimen.card_width);
+                            if (columns == 0) {
+                                columns = 1;
+                            }
+                            view.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                            GridLayoutManager layoutManager = new GridLayoutManager(getActivity(), columns);
+                            mRecyclerView.setLayoutManager(layoutManager);
+                            mRecyclerView.setAdapter(mAdapter);
+                        }
+                    });
+        }
 
         // Add swipe down to refresh gesture
-        final SwipeRefreshLayout pullToRefresh = view.findViewById(R.id.refresh_grid_games);
+        final SwipeRefreshLayout pullToRefresh = view.findViewById(R.id.swipe_refresh);
         pullToRefresh.setOnRefreshListener(() -> {
-            GameDatabase databaseHelper = YuzuApplication.databaseHelper;
-            databaseHelper.scanLibrary(databaseHelper.getWritableDatabase());
             refresh();
             pullToRefresh.setRefreshing(false);
         });
@@ -63,6 +80,8 @@ public final class PlatformGamesFragment extends Fragment implements PlatformGam
 
     @Override
     public void refresh() {
+        GameDatabase databaseHelper = YuzuApplication.databaseHelper;
+        databaseHelper.scanLibrary(databaseHelper.getWritableDatabase());
         mPresenter.refresh();
         updateTextView();
     }

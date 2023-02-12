@@ -161,6 +161,7 @@ public final class MainActivity extends AppCompatActivity implements MainView {
                     if (FileUtil.copyUriToInternalStorage(this, result.getData(), dstPath, "prod.keys")) {
                         if (NativeLibrary.ReloadKeys()) {
                             Toast.makeText(this, R.string.install_keys_success, Toast.LENGTH_SHORT).show();
+                            refreshFragment();
                         } else {
                             Toast.makeText(this, R.string.install_keys_failure, Toast.LENGTH_SHORT).show();
                             launchFileListActivity(MainPresenter.REQUEST_INSTALL_KEYS);
@@ -184,6 +185,7 @@ public final class MainActivity extends AppCompatActivity implements MainView {
 
     private void refreshFragment() {
         if (mPlatformGamesFragment != null) {
+            NativeLibrary.ResetRomMetadata();
             mPlatformGamesFragment.refresh();
         }
     }

@@ -141,9 +141,9 @@ public final class NativeLibrary {
      * Gets the embedded icon within the given ROM.
      *
      * @param filename the file path to the ROM.
-     * @return an integer array containing the color data for the icon.
+     * @return a byte array containing the JPEG data for the icon.
      */
-    public static native int[] GetIcon(String filename);
+    public static native byte[] GetIcon(String filename);
 
     /**
      * Gets the embedded title of the given ISO/ROM.
@@ -203,6 +203,11 @@ public final class NativeLibrary {
      * Stops emulation.
      */
     public static native void StopEmulation();
+
+    /**
+     * Resets the in-memory ROM metadata cache.
+     */
+    public static native void ResetRomMetadata();
 
     /**
      * Returns true if emulation is running (or is paused).

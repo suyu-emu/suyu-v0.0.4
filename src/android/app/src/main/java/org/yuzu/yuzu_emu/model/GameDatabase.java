@@ -29,7 +29,7 @@ public final class GameDatabase extends SQLiteOpenHelper {
     public static final int GAME_COLUMN_DESCRIPTION = 3;
     public static final int GAME_COLUMN_REGIONS = 4;
     public static final int GAME_COLUMN_GAME_ID = 5;
-    public static final int GAME_COLUMN_COMPANY = 6;
+    public static final int GAME_COLUMN_CAPTION = 6;
     public static final int FOLDER_COLUMN_PATH = 1;
     public static final String KEY_DB_ID = "_id";
     public static final String KEY_GAME_PATH = "path";
@@ -175,6 +175,9 @@ public final class GameDatabase extends SQLiteOpenHelper {
         if (depth <= 0) {
             return;
         }
+
+        // Ensure keys are loaded so that ROM metadata can be decrypted.
+        NativeLibrary.ReloadKeys();
 
         MinimalDocumentFile[] children = FileUtil.listFiles(context, parent);
         for (MinimalDocumentFile file : children) {
