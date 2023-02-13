@@ -90,7 +90,8 @@ public:
         // Handle pseudo-handles.
         if constexpr (std::derived_from<KProcess, T>) {
             if (handle == Svc::PseudoHandle::CurrentProcess) {
-                auto* const cur_process = GetCurrentProcessPointer(m_kernel);
+                //! FIXME: this is the wrong process!
+                auto* const cur_process = m_kernel.ApplicationProcess();
                 ASSERT(cur_process != nullptr);
                 return cur_process;
             }
