@@ -159,10 +159,6 @@ public final class InputOverlayDrawableJoystick {
         int fingerPositionY = (int) event.getY(pointerIndex);
 
         int scale = 1;
-        if (mJoystickType == ButtonType.STICK_C) {
-            // C-stick is scaled down to be half the size of the circle pad
-            scale = 2;
-        }
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
@@ -203,11 +199,6 @@ public final class InputOverlayDrawableJoystick {
     private void SetInnerBounds() {
         int X = getVirtBounds().centerX() + (int) ((axises[0]) * (getVirtBounds().width() / 2));
         int Y = getVirtBounds().centerY() + (int) ((axises[1]) * (getVirtBounds().height() / 2));
-
-        if (mJoystickType == ButtonType.STICK_LEFT) {
-            X += 1;
-            Y += 1;
-        }
 
         if (X > getVirtBounds().centerX() + (getVirtBounds().width() / 2))
             X = getVirtBounds().centerX() + (getVirtBounds().width() / 2);

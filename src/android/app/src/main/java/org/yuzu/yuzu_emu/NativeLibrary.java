@@ -619,30 +619,22 @@ public final class NativeLibrary {
         public static final int BUTTON_B = 1;
         public static final int BUTTON_X = 2;
         public static final int BUTTON_Y = 3;
-        public static final int BUTTON_START = 11;
-        public static final int BUTTON_SELECT = 12;
-        public static final int BUTTON_HOME = 19;
-        public static final int BUTTON_ZL = 9;
-        public static final int BUTTON_ZR = 10;
-        public static final int DPAD_UP = 14;
-        public static final int DPAD_DOWN = 16;
-        public static final int DPAD_LEFT = 13;
-        public static final int DPAD_RIGHT = 15;
-        public static final int STICK_LEFT = 5;
-        public static final int STICK_LEFT_UP = 714;
-        public static final int STICK_LEFT_DOWN = 715;
-        public static final int STICK_LEFT_LEFT = 716;
-        public static final int STICK_LEFT_RIGHT = 717;
-        public static final int STICK_C = 6;
-        public static final int STICK_C_UP = 719;
-        public static final int STICK_C_DOWN = 720;
-        public static final int STICK_C_LEFT = 771;
-        public static final int STICK_C_RIGHT = 772;
-        public static final int TRIGGER_L = 7;
-        public static final int TRIGGER_R = 8;
-        public static final int DPAD = 780;
-        public static final int BUTTON_DEBUG = 781;
-        public static final int BUTTON_GPIO14 = 782;
+        public static final int STICK_L = 4;
+        public static final int STICK_R = 5;
+        public static final int TRIGGER_L = 6;
+        public static final int TRIGGER_R = 7;
+        public static final int TRIGGER_ZL = 8;
+        public static final int TRIGGER_ZR = 9;
+        public static final int BUTTON_PLUS = 10;
+        public static final int BUTTON_MINUS = 11;
+        public static final int DPAD_LEFT = 12;
+        public static final int DPAD_UP = 13;
+        public static final int DPAD_RIGHT = 14;
+        public static final int DPAD_DOWN = 15;
+        public static final int BUTTON_SL = 16;
+        public static final int BUTTON_SR = 17;
+        public static final int BUTTON_HOME = 18;
+        public static final int BUTTON_CAPTURE = 19;
     }
 
     /**
