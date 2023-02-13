@@ -16,6 +16,10 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -38,20 +42,19 @@ import java.util.Set;
  * Draws the interactive input overlay on top of the
  * {@link SurfaceView} that is rendering emulation.
  */
-public final class InputOverlay extends SurfaceView implements OnTouchListener {
+public final class InputOverlay extends SurfaceView implements OnTouchListener, SensorEventListener {
     private final Set<InputOverlayDrawableButton> overlayButtons = new HashSet<>();
     private final Set<InputOverlayDrawableDpad> overlayDpads = new HashSet<>();
     private final Set<InputOverlayDrawableJoystick> overlayJoysticks = new HashSet<>();
 
     private boolean mIsInEditMode = false;
-    private InputOverlayDrawableButton mButtonBeingConfigured;
-    private InputOverlayDrawableDpad mDpadBeingConfigured;
-    private InputOverlayDrawableJoystick mJoystickBeingConfigured;
 
     private SharedPreferences mPreferences;
 
-    // Stores the ID of the pointer that interacted with the 3DS touchscreen.
-    private int mTouchscreenPointerId = -1;
+    private float[] gyro = new float[3];
+    private float[] accel = new float[3];
+
+    private long motionTimestamp;
 
     /**
      * Constructor
@@ -67,11 +70,11 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
             defaultOverlay();
         }
 
-        // Reset 3ds touchscreen pointer ID
-        mTouchscreenPointerId = -1;
-
         // Load the controls.
         refreshControls();
+
+        // Set the on motion sensor listener.
+        setMotionSensorListener(context);
 
         // Set the on touch listener.
         setOnTouchListener(this);
@@ -82,6 +85,20 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
         // Request focus for the overlay so it has priority on presses.
         requestFocus();
     }
+
+    private void setMotionSensorListener(Context context) {
+        SensorManager sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+        Sensor gyro_sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+        Sensor accel_sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
+        if (gyro_sensor != null) {
+            sensorManager.registerListener(this, gyro_sensor, SensorManager.SENSOR_DELAY_GAME);
+        }
+        if (accel_sensor != null) {
+            sensorManager.registerListener(this, accel_sensor, SensorManager.SENSOR_DELAY_GAME);
+        }
+    }
+
 
     /**
      * Resizes a {@link Bitmap} by a given scale factor
@@ -425,6 +442,36 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
     public boolean onTouchWhileEditing(MotionEvent event) {
         // TODO: Reimplement this
         return true;
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+            accel[0] = -event.values[1] / SensorManager.GRAVITY_EARTH;
+            accel[1] = event.values[0] / SensorManager.GRAVITY_EARTH;
+            accel[2] = -event.values[2] / SensorManager.GRAVITY_EARTH;
+        }
+
+        if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
+            // Investigate why sensor value is off by 12x
+            gyro[0] = event.values[1] / 12.0f;
+            gyro[1] = -event.values[0] / 12.0f;
+            gyro[2] = event.values[2] / 12.0f;
+        }
+
+        // Only update state on accelerometer data
+        if (event.sensor.getType() != Sensor.TYPE_ACCELEROMETER) {
+            return;
+        }
+
+        long delta_timestamp = (event.timestamp - motionTimestamp) / 1000;
+        motionTimestamp = event.timestamp;
+        NativeLibrary.onGamePadMotionEvent(NativeLibrary.Player1Device, delta_timestamp, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2]);
+        NativeLibrary.onGamePadMotionEvent(NativeLibrary.ConsoleDevice, delta_timestamp, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2]);
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int i) {
     }
 
     private void addOverlayControls(String orientation) {

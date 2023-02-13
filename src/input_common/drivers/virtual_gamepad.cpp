@@ -39,6 +39,22 @@ void VirtualGamepad::SetStickPosition(std::size_t player_index, VirtualStick axi
     SetStickPosition(player_index, static_cast<int>(axis_id), x_value, y_value);
 }
 
+void VirtualGamepad::SetMotionState(std::size_t player_index, u64 delta_timestamp, float gyro_x,
+                                    float gyro_y, float gyro_z, float accel_x, float accel_y,
+                                    float accel_z) {
+    const auto identifier = GetIdentifier(player_index);
+    const BasicMotion motion_data{
+        .gyro_x = gyro_x,
+        .gyro_y = gyro_y,
+        .gyro_z = gyro_z,
+        .accel_x = accel_x,
+        .accel_y = accel_y,
+        .accel_z = accel_z,
+        .delta_timestamp = delta_timestamp,
+    };
+    SetMotion(identifier, 0, motion_data);
+}
+
 void VirtualGamepad::ResetControllers() {
     for (std::size_t i = 0; i < PlayerIndexCount; i++) {
         SetStickPosition(i, VirtualStick::Left, 0.0f, 0.0f);
