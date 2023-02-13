@@ -638,6 +638,14 @@ public final class NativeLibrary {
     }
 
     /**
+     * Stick type for use in onTouchEvent
+     */
+    public static final class StickType {
+        public static final int STICK_L = 0;
+        public static final int STICK_R = 1;
+    }
+
+    /**
      * Button states
      */
     public static final class ButtonState {

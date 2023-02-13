@@ -26,8 +26,8 @@ import android.view.View;
 import android.view.View.OnTouchListener;
 
 import org.yuzu.yuzu_emu.NativeLibrary;
-import org.yuzu.yuzu_emu.NativeLibrary.ButtonState;
 import org.yuzu.yuzu_emu.NativeLibrary.ButtonType;
+import org.yuzu.yuzu_emu.NativeLibrary.StickType;
 import org.yuzu.yuzu_emu.R;
 import org.yuzu.yuzu_emu.utils.EmulationMenuSettings;
 
@@ -271,10 +271,11 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
      * @param defaultResInner Resource ID for the default inner image of the joystick (the one you actually move around).
      * @param pressedResInner Resource ID for the pressed inner image of the joystick.
      * @param joystick        Identifier for which joystick this is.
+     * @param button          Identifier for which joystick button this is.
      * @return the initialized {@link InputOverlayDrawableJoystick}.
      */
     private static InputOverlayDrawableJoystick initializeOverlayJoystick(Context context,
-                                                                          int resOuter, int defaultResInner, int pressedResInner, int joystick, String orientation) {
+                                                                          int resOuter, int defaultResInner, int pressedResInner, int joystick, int button, String orientation) {
         // Resources handle for fetching the initial Drawable resource.
         final Resources res = context.getResources();
 
@@ -294,8 +295,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 
         // The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
         // These were set in the input overlay configuration menu.
-        int drawableX = (int) sPrefs.getFloat(joystick + orientation + "-X", 0f);
-        int drawableY = (int) sPrefs.getFloat(joystick + orientation + "-Y", 0f);
+        int drawableX = (int) sPrefs.getFloat(button + orientation + "-X", 0f);
+        int drawableY = (int) sPrefs.getFloat(button + orientation + "-Y", 0f);
 
         float outerScale = 1.3f;
 
@@ -309,7 +310,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
         final InputOverlayDrawableJoystick overlayDrawable
                 = new InputOverlayDrawableJoystick(res, bitmapOuter,
                 bitmapInnerDefault, bitmapInnerPressed,
-                outerRect, innerRect, joystick);
+                outerRect, innerRect, joystick, button);
 
         // Need to set the image's position
         overlayDrawable.setPosition(drawableX, drawableY);
@@ -386,12 +387,12 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
         }
 
         for (InputOverlayDrawableJoystick joystick : overlayJoysticks) {
-            joystick.TrackEvent(event);
-            int axisID = joystick.getId();
-            float[] axises = joystick.getAxisValues();
-
-            NativeLibrary
-                    .onGamePadMoveEvent(NativeLibrary.TouchScreenDevice, axisID, axises[0], axises[1]);
+            if (!joystick.updateStatus(event)) {
+                continue;
+            }
+            int axisID = joystick.getJoystickId();
+            NativeLibrary.onGamePadMoveEvent(NativeLibrary.TouchScreenDevice, axisID, joystick.getXAxis(), joystick.getYAxis());
+            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, joystick.getButtonId(), joystick.getButtonStatus());
         }
 
         invalidate();
@@ -455,11 +456,11 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
         if (mPreferences.getBoolean("buttonToggle11", true)) {
             overlayJoysticks.add(initializeOverlayJoystick(getContext(), R.drawable.stick_main_range,
                     R.drawable.stick_main, R.drawable.stick_main_pressed,
-                    ButtonType.STICK_L, orientation));
+                    StickType.STICK_L, ButtonType.STICK_L, orientation));
         }
         if (mPreferences.getBoolean("buttonToggle12", true)) {
             overlayJoysticks.add(initializeOverlayJoystick(getContext(), R.drawable.stick_main_range,
-                    R.drawable.stick_main, R.drawable.stick_main_pressed, ButtonType.STICK_R, orientation));
+                    R.drawable.stick_main, R.drawable.stick_main_pressed, StickType.STICK_R, ButtonType.STICK_R, orientation));
         }
         if (mPreferences.getBoolean("buttonToggle13", true)) {
             overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.button_a,
