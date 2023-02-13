@@ -369,29 +369,10 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
         }
 
         for (InputOverlayDrawableButton button : overlayButtons) {
-            // Determine the button state to apply based on the MotionEvent action flag.
-            switch (event.getAction() & MotionEvent.ACTION_MASK) {
-                case MotionEvent.ACTION_DOWN:
-                case MotionEvent.ACTION_POINTER_DOWN:
-                    // If a pointer enters the bounds of a button, press that button.
-                    if (button.getBounds()
-                            .contains((int) event.getX(pointerIndex), (int) event.getY(pointerIndex))) {
-                        button.setPressedState(true);
-                        button.setTrackId(event.getPointerId(pointerIndex));
-                        NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(),
-                                ButtonState.PRESSED);
-                    }
-                    break;
-                case MotionEvent.ACTION_UP:
-                case MotionEvent.ACTION_POINTER_UP:
-                    // If a pointer ends, release the button it was pressing.
-                    if (button.getTrackId() == event.getPointerId(pointerIndex)) {
-                        button.setPressedState(false);
-                        NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(),
-                                ButtonState.RELEASED);
-                    }
-                    break;
+            if (!button.updateStatus(event)) {
+                continue;
             }
+            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(), button.getStatus());
         }
 
         for (InputOverlayDrawableDpad dpad : overlayDpads) {
@@ -516,135 +497,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
     }
 
     public boolean onTouchWhileEditing(MotionEvent event) {
-        int pointerIndex = event.getActionIndex();
-        int fingerPositionX = (int) event.getX(pointerIndex);
-        int fingerPositionY = (int) event.getY(pointerIndex);
-
-        String orientation =
-                getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT ?
-                        "-Portrait" : "";
-
-        // Maybe combine Button and Joystick as subclasses of the same parent?
-        // Or maybe create an interface like IMoveableHUDControl?
-
-        for (InputOverlayDrawableButton button : overlayButtons) {
-            // Determine the button state to apply based on the MotionEvent action flag.
-            switch (event.getAction() & MotionEvent.ACTION_MASK) {
-                case MotionEvent.ACTION_DOWN:
-                case MotionEvent.ACTION_POINTER_DOWN:
-                    // If no button is being moved now, remember the currently touched button to move.
-                    if (mButtonBeingConfigured == null &&
-                            button.getBounds().contains(fingerPositionX, fingerPositionY)) {
-                        mButtonBeingConfigured = button;
-                        mButtonBeingConfigured.onConfigureTouch(event);
-                    }
-                    break;
-                case MotionEvent.ACTION_MOVE:
-                    if (mButtonBeingConfigured != null) {
-                        mButtonBeingConfigured.onConfigureTouch(event);
-                        invalidate();
-                        return true;
-                    }
-                    break;
-
-                case MotionEvent.ACTION_UP:
-                case MotionEvent.ACTION_POINTER_UP:
-                    if (mButtonBeingConfigured == button) {
-                        // Persist button position by saving new place.
-                        saveControlPosition(mButtonBeingConfigured.getId(),
-                                mButtonBeingConfigured.getBounds().left,
-                                mButtonBeingConfigured.getBounds().top, orientation);
-                        mButtonBeingConfigured = null;
-                    }
-                    break;
-            }
-        }
-
-        for (InputOverlayDrawableDpad dpad : overlayDpads) {
-            // Determine the button state to apply based on the MotionEvent action flag.
-            switch (event.getAction() & MotionEvent.ACTION_MASK) {
-                case MotionEvent.ACTION_DOWN:
-                case MotionEvent.ACTION_POINTER_DOWN:
-                    // If no button is being moved now, remember the currently touched button to move.
-                    if (mButtonBeingConfigured == null &&
-                            dpad.getBounds().contains(fingerPositionX, fingerPositionY)) {
-                        mDpadBeingConfigured = dpad;
-                        mDpadBeingConfigured.onConfigureTouch(event);
-                    }
-                    break;
-                case MotionEvent.ACTION_MOVE:
-                    if (mDpadBeingConfigured != null) {
-                        mDpadBeingConfigured.onConfigureTouch(event);
-                        invalidate();
-                        return true;
-                    }
-                    break;
-
-                case MotionEvent.ACTION_UP:
-                case MotionEvent.ACTION_POINTER_UP:
-                    if (mDpadBeingConfigured == dpad) {
-                        // Persist button position by saving new place.
-                        saveControlPosition(mDpadBeingConfigured.getId(0),
-                                mDpadBeingConfigured.getBounds().left, mDpadBeingConfigured.getBounds().top,
-                                orientation);
-                        mDpadBeingConfigured = null;
-                    }
-                    break;
-            }
-        }
-
-        for (InputOverlayDrawableJoystick joystick : overlayJoysticks) {
-            switch (event.getAction()) {
-                case MotionEvent.ACTION_DOWN:
-                case MotionEvent.ACTION_POINTER_DOWN:
-                    if (mJoystickBeingConfigured == null &&
-                            joystick.getBounds().contains(fingerPositionX, fingerPositionY)) {
-                        mJoystickBeingConfigured = joystick;
-                        mJoystickBeingConfigured.onConfigureTouch(event);
-                    }
-                    break;
-                case MotionEvent.ACTION_MOVE:
-                    if (mJoystickBeingConfigured != null) {
-                        mJoystickBeingConfigured.onConfigureTouch(event);
-                        invalidate();
-                    }
-                    break;
-                case MotionEvent.ACTION_UP:
-                case MotionEvent.ACTION_POINTER_UP:
-                    if (mJoystickBeingConfigured != null) {
-                        saveControlPosition(mJoystickBeingConfigured.getId(),
-                                mJoystickBeingConfigured.getBounds().left,
-                                mJoystickBeingConfigured.getBounds().top, orientation);
-                        mJoystickBeingConfigured = null;
-                    }
-                    break;
-            }
-        }
-
+        // TODO: Reimplement this
         return true;
-    }
-
-    private void setDpadState(InputOverlayDrawableDpad dpad, boolean up, boolean down, boolean left,
-                              boolean right) {
-        if (up) {
-            if (left)
-                dpad.setState(InputOverlayDrawableDpad.STATE_PRESSED_UP_LEFT);
-            else if (right)
-                dpad.setState(InputOverlayDrawableDpad.STATE_PRESSED_UP_RIGHT);
-            else
-                dpad.setState(InputOverlayDrawableDpad.STATE_PRESSED_UP);
-        } else if (down) {
-            if (left)
-                dpad.setState(InputOverlayDrawableDpad.STATE_PRESSED_DOWN_LEFT);
-            else if (right)
-                dpad.setState(InputOverlayDrawableDpad.STATE_PRESSED_DOWN_RIGHT);
-            else
-                dpad.setState(InputOverlayDrawableDpad.STATE_PRESSED_DOWN);
-        } else if (left) {
-            dpad.setState(InputOverlayDrawableDpad.STATE_PRESSED_LEFT);
-        } else if (right) {
-            dpad.setState(InputOverlayDrawableDpad.STATE_PRESSED_RIGHT);
-        }
     }
 
     private void addOverlayControls(String orientation) {

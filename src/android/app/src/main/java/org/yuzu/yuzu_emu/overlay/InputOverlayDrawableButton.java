@@ -13,16 +13,22 @@ import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.view.MotionEvent;
 
+import org.yuzu.yuzu_emu.NativeLibrary.ButtonState;
+
+
 /**
  * Custom {@link BitmapDrawable} that is capable
  * of storing it's own ID.
  */
 public final class InputOverlayDrawableButton {
-    // The ID identifying what type of button this Drawable represents.
-    private int mButtonType;
+    // The ID value what type of button this Drawable represents.
+    private int mButtonId;
+
+    // The ID value what motion event is tracking
     private int mTrackId;
-    private int mPreviousTouchX, mPreviousTouchY;
-    private int mControlPositionX, mControlPositionY;
+
+    // The drawable position on the screen
+    private int mButtonPositionX, mButtonPositionY;
     private int mWidth;
     private int mHeight;
     private BitmapDrawable mDefaultStateBitmap;
@@ -35,60 +41,57 @@ public final class InputOverlayDrawableButton {
      * @param res                {@link Resources} instance.
      * @param defaultStateBitmap {@link Bitmap} to use with the default state Drawable.
      * @param pressedStateBitmap {@link Bitmap} to use with the pressed state Drawable.
-     * @param buttonType         Identifier for this type of button.
+     * @param buttonId           Identifier for this type of button.
      */
     public InputOverlayDrawableButton(Resources res, Bitmap defaultStateBitmap,
-                                      Bitmap pressedStateBitmap, int buttonType) {
+                                      Bitmap pressedStateBitmap, int buttonId) {
         mDefaultStateBitmap = new BitmapDrawable(res, defaultStateBitmap);
         mPressedStateBitmap = new BitmapDrawable(res, pressedStateBitmap);
-        mButtonType = buttonType;
+        mButtonId = buttonId;
+        mTrackId = -1;
 
         mWidth = mDefaultStateBitmap.getIntrinsicWidth();
         mHeight = mDefaultStateBitmap.getIntrinsicHeight();
     }
 
     /**
-     * Gets this InputOverlayDrawableButton's button ID.
+     * Updates button status based on the motion event.
      *
-     * @return this InputOverlayDrawableButton's button ID.
+     * @return true if value was changed
      */
-    public int getId() {
-        return mButtonType;
-    }
-
-    public int getTrackId() {
-        return mTrackId;
-    }
-
-    public void setTrackId(int trackId) {
-        mTrackId = trackId;
-    }
-
-    public boolean onConfigureTouch(MotionEvent event) {
+    public boolean updateStatus(MotionEvent event) {
         int pointerIndex = event.getActionIndex();
-        int fingerPositionX = (int) event.getX(pointerIndex);
-        int fingerPositionY = (int) event.getY(pointerIndex);
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                mPreviousTouchX = fingerPositionX;
-                mPreviousTouchY = fingerPositionY;
-                break;
-            case MotionEvent.ACTION_MOVE:
-                mControlPositionX += fingerPositionX - mPreviousTouchX;
-                mControlPositionY += fingerPositionY - mPreviousTouchY;
-                setBounds(mControlPositionX, mControlPositionY, getWidth() + mControlPositionX,
-                        getHeight() + mControlPositionY);
-                mPreviousTouchX = fingerPositionX;
-                mPreviousTouchY = fingerPositionY;
-                break;
+        int xPosition = (int) event.getX(pointerIndex);
+        int yPosition = (int) event.getY(pointerIndex);
+        int pointerId = event.getPointerId(pointerIndex);
+        int motion_event = event.getAction() & MotionEvent.ACTION_MASK;
+        boolean isActionDown = motion_event == MotionEvent.ACTION_DOWN || motion_event == MotionEvent.ACTION_POINTER_DOWN;
+        boolean isActionUp = motion_event == MotionEvent.ACTION_UP || motion_event == MotionEvent.ACTION_POINTER_UP;
 
+        if (isActionDown) {
+            if (!getBounds().contains(xPosition, yPosition)) {
+                return false;
+            }
+            mPressedState = true;
+            mTrackId = pointerId;
+            return true;
         }
-        return true;
+
+        if (isActionUp) {
+            if (mTrackId != pointerId) {
+                return false;
+            }
+            mPressedState = false;
+            mTrackId = -1;
+            return true;
+        }
+
+        return false;
     }
 
     public void setPosition(int x, int y) {
-        mControlPositionX = x;
-        mControlPositionY = y;
+        mButtonPositionX = x;
+        mButtonPositionY = y;
     }
 
     public void draw(Canvas canvas) {
@@ -104,7 +107,24 @@ public final class InputOverlayDrawableButton {
         mPressedStateBitmap.setBounds(left, top, right, bottom);
     }
 
-    public Rect getBounds() {
+    /**
+     * Gets this InputOverlayDrawableButton's button ID.
+     *
+     * @return this InputOverlayDrawableButton's button ID.
+     */
+    public int getId() {
+        return mButtonId;
+    }
+
+    public int getTrackId() {
+        return mTrackId;
+    }
+
+    public int getStatus() {
+        return mPressedState ? ButtonState.PRESSED : ButtonState.RELEASED;
+    }
+
+    private Rect getBounds() {
         return mDefaultStateBitmap.getBounds();
     }
 
@@ -114,9 +134,5 @@ public final class InputOverlayDrawableButton {
 
     public int getHeight() {
         return mHeight;
-    }
-
-    public void setPressedState(boolean isPressed) {
-        mPressedState = isPressed;
     }
 }
