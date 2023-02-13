@@ -266,11 +266,11 @@ public final class NativeLibrary {
                             coreErrorAlertLock.notify();
                         }
                     }).setOnDismissListener(dialog -> {
-                coreErrorAlertResult = true;
-                synchronized (coreErrorAlertLock) {
-                    coreErrorAlertLock.notify();
-                }
-            }).create();
+                        coreErrorAlertResult = true;
+                        synchronized (coreErrorAlertLock) {
+                            coreErrorAlertLock.notify();
+                        }
+                    }).create();
         }
     }
 
@@ -287,6 +287,7 @@ public final class NativeLibrary {
 
     /**
      * Handles a core error.
+     *
      * @return true: continue; false: abort
      */
     public static boolean OnCoreError(CoreError error, String details) {
