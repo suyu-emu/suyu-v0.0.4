@@ -358,60 +358,55 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_IsRunning([[maybe_unused]] JNIEnv
     return static_cast<jboolean>(EmulationSession::GetInstance().IsRunning());
 }
 
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadEvent([[maybe_unused]] JNIEnv* env,
-                                                              [[maybe_unused]] jclass clazz,
-                                                              [[maybe_unused]] jstring j_device,
-                                                              jint j_button, jint action) {
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadButtonEvent([[maybe_unused]] JNIEnv* env,
+                                                                    [[maybe_unused]] jclass clazz,
+                                                                    [[maybe_unused]] jint j_device,
+                                                                    jint j_button, jint action) {
     if (EmulationSession::GetInstance().IsRunning()) {
-        EmulationSession::GetInstance().Window().OnGamepadEvent(j_button, action != 0);
+        EmulationSession::GetInstance().Window().OnGamepadButtonEvent(j_device,j_button, action != 0);
     }
     return static_cast<jboolean>(true);
 }
 
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadMoveEvent([[maybe_unused]] JNIEnv* env,
-                                                                  [[maybe_unused]] jclass clazz,
-                                                                  jstring j_device, jint axis,
-                                                                  jfloat x, jfloat y) {
-    // Clamp joystick movement to supported minimum and maximum.
-    x = std::clamp(x, -1.f, 1.f);
-    y = std::clamp(-y, -1.f, 1.f);
-
-    // Clamp the input to a circle.
-    float r = x * x + y * y;
-    if (r > 1.0f) {
-        r = std::sqrt(r);
-        x /= r;
-        y /= r;
-    }
-
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadJoystickEvent([[maybe_unused]] JNIEnv* env,
+                                                                      [[maybe_unused]] jclass clazz,
+                                                                      jint j_device, jint stick_id,
+                                                                      jfloat x, jfloat y) {
     if (EmulationSession::GetInstance().IsRunning()) {
-        EmulationSession::GetInstance().Window().OnGamepadMoveEvent(x, y);
+        EmulationSession::GetInstance().Window().OnGamepadJoystickEvent(j_device,stick_id, x, y);
     }
-    return static_cast<jboolean>(false);
+    return static_cast<jboolean>(true);
 }
 
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadAxisEvent([[maybe_unused]] JNIEnv* env,
-                                                                  [[maybe_unused]] jclass clazz,
-                                                                  jstring j_device, jint axis_id,
-                                                                  jfloat axis_val) {
-    return {};
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadMotionEvent([[maybe_unused]] JNIEnv* env,
+                                                                    [[maybe_unused]] jclass clazz, jint j_device,jlong delta_timestamp, jfloat gyro_x, jfloat gyro_y,
+                                                                    jfloat gyro_z, jfloat accel_x, jfloat accel_y, jfloat accel_z){
+    if (EmulationSession::GetInstance().IsRunning()) {
+        EmulationSession::GetInstance().Window().OnGamepadMotionEvent(j_device,delta_timestamp, gyro_x, gyro_y,gyro_z,accel_x,accel_y,accel_z);
+    }
+    return static_cast<jboolean>(true);
 }
 
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchEvent([[maybe_unused]] JNIEnv* env,
-                                                            [[maybe_unused]] jclass clazz, jfloat x,
-                                                            jfloat y, jboolean pressed) {
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchPressed([[maybe_unused]] JNIEnv* env,
+                                                          [[maybe_unused]] jclass clazz, jint id, jfloat x,
+                                                          jfloat y) {
     if (EmulationSession::GetInstance().IsRunning()) {
-        return static_cast<jboolean>(
-            EmulationSession::GetInstance().Window().OnTouchEvent(x, y, pressed));
+        EmulationSession::GetInstance().Window().OnTouchPressed(id, x, y);
     }
-    return static_cast<jboolean>(false);
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchMoved([[maybe_unused]] JNIEnv* env,
-                                                        [[maybe_unused]] jclass clazz, jfloat x,
+                                                        [[maybe_unused]] jclass clazz, jint id, jfloat x,
                                                         jfloat y) {
     if (EmulationSession::GetInstance().IsRunning()) {
-        EmulationSession::GetInstance().Window().OnTouchMoved(x, y);
+        EmulationSession::GetInstance().Window().OnTouchMoved(id, x, y);
+    }
+}
+
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchReleased([[maybe_unused]] JNIEnv* env,
+                                                           [[maybe_unused]] jclass clazz, jint id) {
+    if (EmulationSession::GetInstance().IsRunning()) {
+        EmulationSession::GetInstance().Window().OnTouchReleased(id);
     }
 }
 

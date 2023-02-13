@@ -19,10 +19,13 @@ public:
     ~EmuWindow_Android();
 
     void OnSurfaceChanged(ANativeWindow* surface);
-    bool OnTouchEvent(float x, float y, bool pressed);
-    void OnTouchMoved(float x, float y);
-    void OnGamepadEvent(int button, bool pressed);
-    void OnGamepadMoveEvent(float x, float y);
+    void OnTouchPressed(int id, float x, float y);
+    void OnTouchMoved(int id, float x, float y);
+    void OnTouchReleased(int id);
+    void OnGamepadButtonEvent(int player_index, int button_id, bool pressed);
+    void OnGamepadJoystickEvent(int player_index, int stick_id, float x, float y);
+    void OnGamepadMotionEvent(int player_index, u64 delta_timestamp, float gyro_x, float gyro_y,
+                              float gyro_z, float accel_x, float accel_y, float accel_z);
     void OnFrameDisplayed() override {}
 
     std::unique_ptr<Core::Frontend::GraphicsContext> CreateSharedContext() const override {
@@ -33,14 +36,6 @@ public:
     };
 
 private:
-    float NormalizeX(float x) const {
-        return std::clamp(x / window_width, 0.f, 1.f);
-    }
-
-    float NormalizeY(float y) const {
-        return std::clamp(y / window_height, 0.f, 1.f);
-    }
-
     InputCommon::InputSubsystem* input_subsystem{};
 
     ANativeWindow* render_window{};

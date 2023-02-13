@@ -42,9 +42,17 @@ import static android.Manifest.permission.RECORD_AUDIO;
  */
 public final class NativeLibrary {
     /**
-     * Default touchscreen device
+     * Default controller id for each device
      */
-    public static final String TouchScreenDevice = "Touchscreen";
+    public static final int Player1Device = 0;
+    public static final int Player2Device = 1;
+    public static final int Player3Device = 2;
+    public static final int Player4Device = 3;
+    public static final int Player5Device = 4;
+    public static final int Player6Device = 5;
+    public static final int Player7Device = 6;
+    public static final int Player8Device = 7;
+    public static final int ConsoleDevice = 8;
     public static WeakReference<EmulationActivity> sEmulationActivity = new WeakReference<>(null);
 
     private static boolean alertResult = false;
@@ -90,36 +98,37 @@ public final class NativeLibrary {
      * @param Action Mask identifying which action is happening (button pressed down, or button released).
      * @return If we handled the button press.
      */
-    public static native boolean onGamePadEvent(String Device, int Button, int Action);
+    public static native boolean onGamePadButtonEvent(int Device, int Button, int Action);
 
     /**
-     * Handles gamepad movement events.
+     * Handles joystick movement events.
      *
      * @param Device The device ID of the gamepad.
      * @param Axis   The axis ID
      * @param x_axis The value of the x-axis represented by the given ID.
-     * @param y_axis The value of the y-axis represented by the given ID
+     * @param y_axis The value of the y-axis represented by the given ID.
      */
-    public static native boolean onGamePadMoveEvent(String Device, int Axis, float x_axis, float y_axis);
+    public static native boolean onGamePadJoystickEvent(int Device, int Axis, float x_axis, float y_axis);
 
     /**
-     * Handles gamepad movement events.
+     * Handles motion events.
      *
-     * @param Device   The device ID of the gamepad.
-     * @param Axis_id  The axis ID
-     * @param axis_val The value of the axis represented by the given ID.
+     * @param delta_timestamp         The finger id corresponding to this event
+     * @param gyro_x,gyro_y,gyro_z    The value of the accelerometer sensor.
+     * @param accel_x,accel_y,accel_z The value of the y-axis
      */
-    public static native boolean onGamePadAxisEvent(String Device, int Axis_id, float axis_val);
+
+    public static native boolean onGamePadMotionEvent(int Device, long delta_timestamp, float gyro_x, float gyro_y,
+                                                      float gyro_z, float accel_x, float accel_y, float accel_z);
 
     /**
-     * Handles touch events.
+     * Handles touch press events.
      *
-     * @param x_axis  The value of the x-axis.
-     * @param y_axis  The value of the y-axis
-     * @param pressed To identify if the touch held down or released.
-     * @return true if the pointer is within the touchscreen
+     * @param finger_id The finger id corresponding to this event
+     * @param x_axis    The value of the x-axis.
+     * @param y_axis    The value of the y-axis.
      */
-    public static native boolean onTouchEvent(float x_axis, float y_axis, boolean pressed);
+    public static native void onTouchPressed(int finger_id, float x_axis, float y_axis);
 
     /**
      * Handles touch movement.
@@ -127,7 +136,14 @@ public final class NativeLibrary {
      * @param x_axis The value of the instantaneous x-axis.
      * @param y_axis The value of the instantaneous y-axis.
      */
-    public static native void onTouchMoved(float x_axis, float y_axis);
+    public static native void onTouchMoved(int finger_id, float x_axis, float y_axis);
+
+    /**
+     * Handles touch release events.
+     *
+     * @param finger_id The finger id corresponding to this event
+     */
+    public static native void onTouchReleased(int finger_id);
 
     public static native void ReloadSettings();
 
