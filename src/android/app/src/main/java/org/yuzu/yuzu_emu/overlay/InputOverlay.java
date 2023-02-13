@@ -341,34 +341,6 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
             return onTouchWhileEditing(event);
         }
 
-        int pointerIndex = event.getActionIndex();
-
-        if (mPreferences.getBoolean("isTouchEnabled", true)) {
-            switch (event.getAction() & MotionEvent.ACTION_MASK) {
-                case MotionEvent.ACTION_DOWN:
-                case MotionEvent.ACTION_POINTER_DOWN:
-                    if (NativeLibrary.onTouchEvent(event.getX(pointerIndex), event.getY(pointerIndex), true)) {
-                        mTouchscreenPointerId = event.getPointerId(pointerIndex);
-                    }
-                    break;
-                case MotionEvent.ACTION_UP:
-                case MotionEvent.ACTION_POINTER_UP:
-                    if (mTouchscreenPointerId == event.getPointerId(pointerIndex)) {
-                        // We don't really care where the touch has been released. We only care whether it has been
-                        // released or not.
-                        NativeLibrary.onTouchEvent(0, 0, false);
-                        mTouchscreenPointerId = -1;
-                    }
-                    break;
-            }
-
-            for (int i = 0; i < event.getPointerCount(); i++) {
-                if (mTouchscreenPointerId == event.getPointerId(i)) {
-                    NativeLibrary.onTouchMoved(event.getX(i), event.getY(i));
-                }
-            }
-        }
-
         for (InputOverlayDrawableButton button : overlayButtons) {
             if (!button.updateStatus(event)) {
                 continue;
@@ -395,9 +367,59 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
             NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, joystick.getButtonId(), joystick.getButtonStatus());
         }
 
+        if (!mPreferences.getBoolean("isTouchEnabled", true)) {
+            return true;
+        }
+
+        int pointerIndex = event.getActionIndex();
+        int xPosition = (int) event.getX(pointerIndex);
+        int yPosition = (int) event.getY(pointerIndex);
+        int pointerId = event.getPointerId(pointerIndex);
+        int motion_event = event.getAction() & MotionEvent.ACTION_MASK;
+        boolean isActionDown = motion_event == MotionEvent.ACTION_DOWN || motion_event == MotionEvent.ACTION_POINTER_DOWN;
+        boolean isActionMove = motion_event == MotionEvent.ACTION_MOVE;
+        boolean isActionUp = motion_event == MotionEvent.ACTION_UP || motion_event == MotionEvent.ACTION_POINTER_UP;
+
+        if (isActionDown && !isTouchInputConsumed(pointerId)) {
+            NativeLibrary.onTouchEvent(xPosition, yPosition, true);
+        }
+
+        if (isActionMove) {
+            for (int i = 0; i < event.getPointerCount(); i++) {
+                int fingerId = event.getPointerId(i);
+                if (isTouchInputConsumed(fingerId)) {
+                    continue;
+                }
+                NativeLibrary.onTouchMoved(event.getX(i), event.getY(i));
+            }
+        }
+
+        if (isActionUp && !isTouchInputConsumed(pointerId)) {
+            NativeLibrary.onTouchEvent(xPosition, yPosition, false);
+        }
+
         invalidate();
 
         return true;
+    }
+
+    private boolean isTouchInputConsumed(int track_id) {
+        for (InputOverlayDrawableButton button : overlayButtons) {
+            if (button.getTrackId() == track_id) {
+                return true;
+            }
+        }
+        for (InputOverlayDrawableDpad dpad : overlayDpads) {
+            if (dpad.getTrackId() == track_id) {
+                return true;
+            }
+        }
+        for (InputOverlayDrawableJoystick joystick : overlayJoysticks) {
+            if (joystick.getTrackId() == track_id) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean onTouchWhileEditing(MotionEvent event) {
