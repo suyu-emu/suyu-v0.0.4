@@ -121,7 +121,7 @@ PerfStatsResults PerfStats::GetAndResetStats(microseconds current_system_time_us
 double PerfStats::GetLastFrameTimeScale() const {
     std::scoped_lock lock{object_mutex};
 
-    constexpr static double FRAME_LENGTH = 1.0 / 60;
+    constexpr double FRAME_LENGTH = 1.0 / 60;
     return duration_cast<DoubleSecs>(previous_frame_length).count() / FRAME_LENGTH;
 }
 

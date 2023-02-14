@@ -20,8 +20,8 @@ void DeviceSinkCommand::Dump([[maybe_unused]] const ADSP::CommandListProcessor& 
 }
 
 void DeviceSinkCommand::Process(const ADSP::CommandListProcessor& processor) {
-    constexpr static s32 min = std::numeric_limits<s16>::min();
-    constexpr static s32 max = std::numeric_limits<s16>::max();
+    constexpr s32 min = std::numeric_limits<s16>::min();
+    constexpr s32 max = std::numeric_limits<s16>::max();
 
     auto stream{processor.GetOutputSinkStream()};
     stream->SetSystemChannels(input_count);

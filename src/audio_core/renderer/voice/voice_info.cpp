@@ -177,7 +177,7 @@ void VoiceInfo::UpdateWaveBuffer(std::span<BehaviorInfo::ErrorInfo> error_info,
 
     switch (sample_format_) {
     case SampleFormat::PcmInt16: {
-        constexpr static auto byte_size{GetSampleFormatByteSize(SampleFormat::PcmInt16)};
+        constexpr auto byte_size{GetSampleFormatByteSize(SampleFormat::PcmInt16)};
         if (wave_buffer_internal.start_offset * byte_size > wave_buffer_internal.size ||
             wave_buffer_internal.end_offset * byte_size > wave_buffer_internal.size) {
             LOG_ERROR(Service_Audio, "Invalid PCM16 start/end wavebuffer sizes!");
@@ -188,7 +188,7 @@ void VoiceInfo::UpdateWaveBuffer(std::span<BehaviorInfo::ErrorInfo> error_info,
     } break;
 
     case SampleFormat::PcmFloat: {
-        constexpr static auto byte_size{GetSampleFormatByteSize(SampleFormat::PcmFloat)};
+        constexpr auto byte_size{GetSampleFormatByteSize(SampleFormat::PcmFloat)};
         if (wave_buffer_internal.start_offset * byte_size > wave_buffer_internal.size ||
             wave_buffer_internal.end_offset * byte_size > wave_buffer_internal.size) {
             LOG_ERROR(Service_Audio, "Invalid PCMFloat start/end wavebuffer sizes!");

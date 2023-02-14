@@ -132,7 +132,7 @@ Result SetMemoryAttribute(Core::System& system, VAddr address, u64 size, u32 mas
     R_UNLESS((address < address + size), ResultInvalidCurrentMemory);
 
     // Validate the attribute and mask.
-    constexpr static u32 SupportedMask = static_cast<u32>(MemoryAttribute::Uncached);
+    constexpr u32 SupportedMask = static_cast<u32>(MemoryAttribute::Uncached);
     R_UNLESS((mask | attr) == mask, ResultInvalidCombination);
     R_UNLESS((mask | attr | SupportedMask) == SupportedMask, ResultInvalidCombination);
 

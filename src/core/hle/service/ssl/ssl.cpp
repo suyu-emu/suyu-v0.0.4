@@ -103,7 +103,7 @@ private:
         const auto certificate_format = rp.PopEnum<CertificateFormat>();
         [[maybe_unused]] const auto pkcs_12_certificates = ctx.ReadBuffer(0);
 
-        constexpr static u64 server_id = 0;
+        constexpr u64 server_id = 0;
 
         LOG_WARNING(Service_SSL, "(STUBBED) called, certificate_format={}", certificate_format);
 
@@ -122,7 +122,7 @@ private:
             return std::span<const u8>{};
         }();
 
-        constexpr static u64 client_id = 0;
+        constexpr u64 client_id = 0;
 
         LOG_WARNING(Service_SSL, "(STUBBED) called");
 

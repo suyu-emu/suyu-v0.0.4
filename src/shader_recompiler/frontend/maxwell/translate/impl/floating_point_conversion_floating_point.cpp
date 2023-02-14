@@ -48,7 +48,7 @@ void F2F(TranslatorVisitor& v, u64 insn, const IR::F16F32F64& src_a, bool abs) {
         BitField<8, 2, FloatFormat> dst_size;
 
         [[nodiscard]] RoundingOp RoundingOperation() const {
-            constexpr static u64 rounding_mask = 0x0B;
+            constexpr u64 rounding_mask = 0x0B;
             return static_cast<RoundingOp>(rounding_op.Value() & rounding_mask);
         }
     } const f2f{insn};

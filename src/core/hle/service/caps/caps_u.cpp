@@ -77,8 +77,8 @@ void CAPS_U::GetAlbumContentsFileListForApplication(Kernel::HLERequestContext& c
 
     // TODO: Update this when we implement the album.
     // Currently we do not have a method of accessing album entries, set this to 0 for now.
-    constexpr static u32 total_entries_1{};
-    constexpr static u32 total_entries_2{};
+    constexpr u32 total_entries_1{};
+    constexpr u32 total_entries_2{};
 
     LOG_WARNING(
         Service_Capture,

@@ -495,9 +495,9 @@ VkResult Free(VkDevice device, VkCommandPool handle, Span<VkCommandBuffer> buffe
 Instance Instance::Create(u32 version, Span<const char*> layers, Span<const char*> extensions,
                           InstanceDispatch& dispatch) {
 #ifdef __APPLE__
-    constexpr static VkFlags ci_flags{VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR};
+    constexpr VkFlags ci_flags{VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR};
 #else
-    constexpr static VkFlags ci_flags{};
+    constexpr VkFlags ci_flags{};
 #endif
 
     const VkApplicationInfo application_info{

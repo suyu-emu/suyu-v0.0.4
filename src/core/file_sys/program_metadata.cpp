@@ -97,7 +97,7 @@ Loader::ResultStatus ProgramMetadata::Load(VirtualFile file) {
 
 /*static*/ ProgramMetadata ProgramMetadata::GetDefault() {
     // Allow use of cores 0~3 and thread priorities 1~63.
-    constexpr static u32 default_thread_info_capability = 0x30007F7;
+    constexpr u32 default_thread_info_capability = 0x30007F7;
 
     ProgramMetadata result;
 

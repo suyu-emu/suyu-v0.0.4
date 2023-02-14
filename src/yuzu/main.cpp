@@ -219,7 +219,7 @@ static void LogRuntimes() {
 #ifdef _MSC_VER
     // It is possible that the name of the dll will change.
     // vcruntime140.dll is for 2015 and onwards
-    constexpr static char runtime_dll_name[] = "vcruntime140.dll";
+    static constexpr char runtime_dll_name[] = "vcruntime140.dll";
     UINT sz = GetFileVersionInfoSizeA(runtime_dll_name, nullptr);
     bool runtime_version_inspection_worked = false;
     if (sz > 0) {
@@ -4490,8 +4490,8 @@ static void SetHighDPIAttributes() {
 
     // Recommended minimum width and height for proper window fit.
     // Any screen with a lower resolution than this will still have a scale of 1.
-    constexpr static float minimum_width = 1350.0f;
-    constexpr static float minimum_height = 900.0f;
+    constexpr float minimum_width = 1350.0f;
+    constexpr float minimum_height = 900.0f;
 
     const float width_ratio = std::max(1.0f, real_width / minimum_width);
     const float height_ratio = std::max(1.0f, real_height / minimum_height);

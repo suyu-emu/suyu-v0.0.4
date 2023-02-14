@@ -45,7 +45,7 @@ CoreTiming::~CoreTiming() {
 }
 
 void CoreTiming::ThreadEntry(CoreTiming& instance) {
-    constexpr static char name[] = "HostTiming";
+    static constexpr char name[] = "HostTiming";
     MicroProfileOnThreadCreate(name);
     Common::SetCurrentThreadName(name);
     Common::SetCurrentThreadPriority(Common::ThreadPriority::Critical);

@@ -361,7 +361,7 @@ struct System::Impl {
         // Log last frame performance stats if game was loded
         if (perf_stats) {
             const auto perf_results = GetAndResetPerfStats();
-            constexpr static auto performance = Common::Telemetry::FieldType::Performance;
+            constexpr auto performance = Common::Telemetry::FieldType::Performance;
 
             telemetry_session->AddField(performance, "Shutdown_EmulationSpeed",
                                         perf_results.emulation_speed * 100.0);

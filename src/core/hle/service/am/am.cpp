@@ -1086,7 +1086,7 @@ private:
 
         // We require a non-zero handle to be valid. Using 0xdeadbeef allows us to trace if this is
         // actually used anywhere
-        constexpr static u64 handle = 0xdeadbeef;
+        constexpr u64 handle = 0xdeadbeef;
 
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(ResultSuccess);
@@ -1570,7 +1570,7 @@ void IApplicationFunctions::GetDisplayVersion(Kernel::HLERequestContext& ctx) {
         const auto& version = res.first->GetVersionString();
         std::copy(version.begin(), version.end(), version_string.begin());
     } else {
-        constexpr static char default_version[]{"1.0.0"};
+        static constexpr char default_version[]{"1.0.0"};
         std::memcpy(version_string.data(), default_version, sizeof(default_version));
     }
 
@@ -1638,7 +1638,7 @@ void IApplicationFunctions::GetDesiredLanguage(Kernel::HLERequestContext& ctx) {
 void IApplicationFunctions::IsGamePlayRecordingSupported(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
-    constexpr static bool gameplay_recording_supported = false;
+    constexpr bool gameplay_recording_supported = false;
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);

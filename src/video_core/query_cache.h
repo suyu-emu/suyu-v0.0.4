@@ -281,7 +281,7 @@ public:
     explicit HostCounterBase(std::shared_ptr<HostCounter> dependency_)
         : dependency{std::move(dependency_)}, depth{dependency ? (dependency->Depth() + 1) : 0} {
         // Avoid nesting too many dependencies to avoid a stack overflow when these are deleted.
-        constexpr static u64 depth_threshold = 96;
+        constexpr u64 depth_threshold = 96;
         if (depth > depth_threshold) {
             depth = 0;
             base_result = dependency->Query();

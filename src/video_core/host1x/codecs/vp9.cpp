@@ -283,7 +283,7 @@ void VP9::EncodeTermSubExp(VpxRangeEncoder& writer, s32 value) {
     } else {
         value -= 64;
 
-        constexpr static s32 size = 8;
+        constexpr s32 size = 8;
 
         const s32 mask = (1 << size) - 191;
 
@@ -307,7 +307,7 @@ bool VP9::WriteLessThan(VpxRangeEncoder& writer, s32 value, s32 test) {
 void VP9::WriteCoefProbabilityUpdate(VpxRangeEncoder& writer, s32 tx_mode,
                                      const std::array<u8, 1728>& new_prob,
                                      const std::array<u8, 1728>& old_prob) {
-    constexpr static u32 block_bytes = 2 * 2 * 6 * 6 * 3;
+    constexpr u32 block_bytes = 2 * 2 * 6 * 6 * 3;
 
     const auto needs_update = [&](u32 base_index) {
         return !std::equal(new_prob.begin() + base_index,

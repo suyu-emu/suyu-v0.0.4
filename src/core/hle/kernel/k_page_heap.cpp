@@ -68,7 +68,7 @@ PAddr KPageHeap::AllocateByRandom(s32 index, size_t num_pages, size_t align_page
     const size_t align_shift = std::countr_zero(align_size);
 
     // Decide on a block to allocate from.
-    constexpr static size_t MinimumPossibleAlignmentsForRandomAllocation = 4;
+    constexpr size_t MinimumPossibleAlignmentsForRandomAllocation = 4;
     {
         // By default, we'll want to look at all blocks larger than our current one.
         s32 max_blocks = static_cast<s32>(m_num_blocks);

@@ -512,7 +512,7 @@ void IGeneralService::GetInternetConnectionStatus(Kernel::HLERequestContext& ctx
     };
     static_assert(sizeof(Output) == 0x3, "Output has incorrect size.");
 
-    constexpr static Output out{};
+    constexpr Output out{};
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);

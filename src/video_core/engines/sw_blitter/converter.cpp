@@ -694,16 +694,16 @@ private:
         };
         const auto force_to_fp16 = [](f32 base_value) {
             u32 tmp = Common::BitCast<u32>(base_value);
-            constexpr static size_t fp32_mantissa_bits = 23;
-            constexpr static size_t fp16_mantissa_bits = 10;
-            constexpr static size_t mantissa_mask =
+            constexpr size_t fp32_mantissa_bits = 23;
+            constexpr size_t fp16_mantissa_bits = 10;
+            constexpr size_t mantissa_mask =
                 ~((1ULL << (fp32_mantissa_bits - fp16_mantissa_bits)) - 1ULL);
             tmp = tmp & static_cast<u32>(mantissa_mask);
             // TODO: force the exponent within the range of half float. Not needed in UNORM / SNORM
             return Common::BitCast<f32>(tmp);
         };
         const auto from_fp_n = [&sign_extend](u32 base_value, size_t bits, size_t mantissa) {
-            constexpr static size_t fp32_mantissa_bits = 23;
+            constexpr size_t fp32_mantissa_bits = 23;
             size_t shift_towards = fp32_mantissa_bits - mantissa;
             const u32 new_value =
                 static_cast<u32>(sign_extend(base_value, bits) << shift_towards) & (~(1U << 31));
@@ -770,7 +770,7 @@ private:
                           component_mask[which_component];
         };
         const auto to_fp_n = [](f32 base_value, size_t bits, size_t mantissa) {
-            constexpr static size_t fp32_mantissa_bits = 23;
+            constexpr size_t fp32_mantissa_bits = 23;
             u32 tmp_value = Common::BitCast<u32>(std::max(base_value, 0.0f));
             size_t shift_towards = fp32_mantissa_bits - mantissa;
             return tmp_value >> shift_towards;

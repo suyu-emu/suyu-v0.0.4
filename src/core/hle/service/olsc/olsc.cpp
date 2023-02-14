@@ -55,7 +55,7 @@ private:
         LOG_WARNING(Service_OLSC, "(STUBBED) called");
 
         // backup_setting is set to 0 since real value is unknown
-        constexpr static u64 backup_setting = 0;
+        constexpr u64 backup_setting = 0;
 
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(ResultSuccess);

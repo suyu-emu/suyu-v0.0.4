@@ -254,7 +254,7 @@ struct KernelCore::Impl {
         system_resource_limit->Reserve(LimitableResource::PhysicalMemoryMax, kernel_size);
 
         // Reserve secure applet memory, introduced in firmware 5.0.0
-        constexpr static u64 secure_applet_memory_size{4_MiB};
+        constexpr u64 secure_applet_memory_size{4_MiB};
         ASSERT(system_resource_limit->Reserve(LimitableResource::PhysicalMemoryMax,
                                               secure_applet_memory_size));
     }
@@ -477,9 +477,9 @@ struct KernelCore::Impl {
         const VAddr code_end_virt_addr = KernelVirtualAddressCodeEnd;
 
         // Setup the containing kernel region.
-        constexpr static size_t KernelRegionSize = 1_GiB;
-        constexpr static size_t KernelRegionAlign = 1_GiB;
-        constexpr static VAddr kernel_region_start =
+        constexpr size_t KernelRegionSize = 1_GiB;
+        constexpr size_t KernelRegionAlign = 1_GiB;
+        constexpr VAddr kernel_region_start =
             Common::AlignDown(code_start_virt_addr, KernelRegionAlign);
         size_t kernel_region_size = KernelRegionSize;
         if (!(kernel_region_start + KernelRegionSize - 1 <= KernelVirtualAddressSpaceLast)) {
@@ -489,12 +489,11 @@ struct KernelCore::Impl {
             kernel_region_start, kernel_region_size, KMemoryRegionType_Kernel));
 
         // Setup the code region.
-        constexpr static size_t CodeRegionAlign = PageSize;
-        constexpr static VAddr code_region_start =
+        constexpr size_t CodeRegionAlign = PageSize;
+        constexpr VAddr code_region_start =
             Common::AlignDown(code_start_virt_addr, CodeRegionAlign);
-        constexpr static VAddr code_region_end =
-            Common::AlignUp(code_end_virt_addr, CodeRegionAlign);
-        constexpr static size_t code_region_size = code_region_end - code_region_start;
+        constexpr VAddr code_region_end = Common::AlignUp(code_end_virt_addr, CodeRegionAlign);
+        constexpr size_t code_region_size = code_region_end - code_region_start;
         ASSERT(memory_layout->GetVirtualMemoryRegionTree().Insert(
             code_region_start, code_region_size, KMemoryRegionType_KernelCode));
 
@@ -525,8 +524,8 @@ struct KernelCore::Impl {
         }
 
         // Decide on the actual size for the misc region.
-        constexpr static size_t MiscRegionAlign = KernelAslrAlignment;
-        constexpr static size_t MiscRegionMinimumSize = 32_MiB;
+        constexpr size_t MiscRegionAlign = KernelAslrAlignment;
+        constexpr size_t MiscRegionMinimumSize = 32_MiB;
         const size_t misc_region_size = Common::AlignUp(
             std::max(misc_region_needed_size, MiscRegionMinimumSize), MiscRegionAlign);
         ASSERT(misc_region_size > 0);
@@ -542,8 +541,8 @@ struct KernelCore::Impl {
         const bool use_extra_resources = KSystemControl::Init::ShouldIncreaseThreadResourceLimit();
 
         // Setup the stack region.
-        constexpr static size_t StackRegionSize = 14_MiB;
-        constexpr static size_t StackRegionAlign = KernelAslrAlignment;
+        constexpr size_t StackRegionSize = 14_MiB;
+        constexpr size_t StackRegionAlign = KernelAslrAlignment;
         const VAddr stack_region_start =
             memory_layout->GetVirtualMemoryRegionTree().GetRandomAlignedRegion(
                 StackRegionSize, StackRegionAlign, KMemoryRegionType_Kernel);
@@ -564,7 +563,7 @@ struct KernelCore::Impl {
         const PAddr code_end_phys_addr = code_start_phys_addr + code_region_size;
         const PAddr slab_start_phys_addr = code_end_phys_addr;
         const PAddr slab_end_phys_addr = slab_start_phys_addr + slab_region_size;
-        constexpr static size_t SlabRegionAlign = KernelAslrAlignment;
+        constexpr size_t SlabRegionAlign = KernelAslrAlignment;
         const size_t slab_region_needed_size =
             Common::AlignUp(code_end_phys_addr + slab_region_size, SlabRegionAlign) -
             Common::AlignDown(code_end_phys_addr, SlabRegionAlign);
@@ -576,8 +575,8 @@ struct KernelCore::Impl {
             slab_region_start, slab_region_size, KMemoryRegionType_KernelSlab));
 
         // Setup the temp region.
-        constexpr static size_t TempRegionSize = 128_MiB;
-        constexpr static size_t TempRegionAlign = KernelAslrAlignment;
+        constexpr size_t TempRegionSize = 128_MiB;
+        constexpr size_t TempRegionAlign = KernelAslrAlignment;
         const VAddr temp_region_start =
             memory_layout->GetVirtualMemoryRegionTree().GetRandomAlignedRegion(
                 TempRegionSize, TempRegionAlign, KMemoryRegionType_Kernel);
@@ -657,7 +656,7 @@ struct KernelCore::Impl {
         ASSERT(linear_extents.GetEndAddress() != 0);
 
         // Setup the linear mapping region.
-        constexpr static size_t LinearRegionAlign = 1_GiB;
+        constexpr size_t LinearRegionAlign = 1_GiB;
         const PAddr aligned_linear_phys_start =
             Common::AlignDown(linear_extents.GetAddress(), LinearRegionAlign);
         const size_t linear_region_size =
@@ -738,11 +737,11 @@ struct KernelCore::Impl {
     void InitializeHackSharedMemory() {
         // Setup memory regions for emulated processes
         // TODO(bunnei): These should not be hardcoded regions initialized within the kernel
-        constexpr static std::size_t hid_size{0x40000};
-        constexpr static std::size_t font_size{0x1100000};
-        constexpr static std::size_t irs_size{0x8000};
-        constexpr static std::size_t time_size{0x1000};
-        constexpr static std::size_t hidbus_size{0x1000};
+        constexpr std::size_t hid_size{0x40000};
+        constexpr std::size_t font_size{0x1100000};
+        constexpr std::size_t irs_size{0x8000};
+        constexpr std::size_t time_size{0x1000};
+        constexpr std::size_t hidbus_size{0x1000};
 
         hid_shared_mem = KSharedMemory::Create(system.Kernel());
         font_shared_mem = KSharedMemory::Create(system.Kernel());

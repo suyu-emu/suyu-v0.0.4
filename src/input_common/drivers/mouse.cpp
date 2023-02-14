@@ -37,7 +37,7 @@ Mouse::Mouse(std::string input_engine_) : InputEngine(std::move(input_engine_)) 
 
 void Mouse::UpdateThread(std::stop_token stop_token) {
     Common::SetCurrentThreadName("Mouse");
-    constexpr static int update_time = 10;
+    constexpr int update_time = 10;
     while (!stop_token.stop_requested()) {
         if (Settings::values.mouse_panning && !Settings::values.mouse_enabled) {
             // Slow movement by 4%

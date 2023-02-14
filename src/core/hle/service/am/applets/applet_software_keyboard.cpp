@@ -1180,7 +1180,7 @@ void SoftwareKeyboard::ReplyChangedStringV2() {
         .cursor_position{current_cursor_position},
     };
 
-    constexpr static u8 flag = 0;
+    constexpr u8 flag = 0;
 
     std::memcpy(reply.data() + REPLY_BASE_SIZE, current_text.data(),
                 current_text.size() * sizeof(char16_t));
@@ -1204,7 +1204,7 @@ void SoftwareKeyboard::ReplyMovedCursorV2() {
         .cursor_position{current_cursor_position},
     };
 
-    constexpr static u8 flag = 0;
+    constexpr u8 flag = 0;
 
     std::memcpy(reply.data() + REPLY_BASE_SIZE, current_text.data(),
                 current_text.size() * sizeof(char16_t));
@@ -1232,7 +1232,7 @@ void SoftwareKeyboard::ReplyChangedStringUtf8V2() {
         .cursor_position{current_cursor_position},
     };
 
-    constexpr static u8 flag = 0;
+    constexpr u8 flag = 0;
 
     std::memcpy(reply.data() + REPLY_BASE_SIZE, utf8_current_text.data(), utf8_current_text.size());
     std::memcpy(reply.data() + REPLY_BASE_SIZE + REPLY_UTF8_SIZE, &changed_string_arg,
@@ -1257,7 +1257,7 @@ void SoftwareKeyboard::ReplyMovedCursorUtf8V2() {
         .cursor_position{current_cursor_position},
     };
 
-    constexpr static u8 flag = 0;
+    constexpr u8 flag = 0;
 
     std::memcpy(reply.data() + REPLY_BASE_SIZE, utf8_current_text.data(), utf8_current_text.size());
     std::memcpy(reply.data() + REPLY_BASE_SIZE + REPLY_UTF8_SIZE, &moved_cursor_arg,

@@ -1109,9 +1109,9 @@ void RasterizerVulkan::UpdateDepthBiasEnable(Tegra::Engines::Maxwell3D::Regs& re
     if (!state_tracker.TouchDepthBiasEnable()) {
         return;
     }
-    constexpr static size_t POINT = 0;
-    constexpr static size_t LINE = 1;
-    constexpr static size_t POLYGON = 2;
+    constexpr size_t POINT = 0;
+    constexpr size_t LINE = 1;
+    constexpr size_t POLYGON = 2;
     static constexpr std::array POLYGON_OFFSET_ENABLE_LUT = {
         POINT,   // Points
         LINE,    // Lines

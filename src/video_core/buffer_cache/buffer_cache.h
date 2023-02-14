@@ -890,8 +890,8 @@ void BufferCache<P>::CommitAsyncFlushesHigh() {
                                 buffer_id,
                             });
                             // Align up to avoid cache conflicts
-                            constexpr static u64 align = 8ULL;
-                            constexpr static u64 mask = ~(align - 1ULL);
+                            constexpr u64 align = 8ULL;
+                            constexpr u64 mask = ~(align - 1ULL);
                             total_size_bytes += (new_size + align - 1) & mask;
                             largest_copy = std::max(largest_copy, new_size);
                         };
@@ -1843,8 +1843,8 @@ void BufferCache<P>::DownloadBufferMemory(Buffer& buffer, VAddr cpu_addr, u64 si
                 .size = new_size,
             });
             // Align up to avoid cache conflicts
-            constexpr static u64 align = 256ULL;
-            constexpr static u64 mask = ~(align - 1ULL);
+            constexpr u64 align = 256ULL;
+            constexpr u64 mask = ~(align - 1ULL);
             total_size_bytes += (new_size + align - 1) & mask;
             largest_copy = std::max(largest_copy, new_size);
         };

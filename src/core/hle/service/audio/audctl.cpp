@@ -77,7 +77,7 @@ void AudCtl::GetTargetVolumeMin(Kernel::HLERequestContext& ctx) {
 
     // This service function is currently hardcoded on the
     // actual console to this value (as of 8.0.0).
-    constexpr static s32 target_min_volume = 0;
+    constexpr s32 target_min_volume = 0;
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);
@@ -89,7 +89,7 @@ void AudCtl::GetTargetVolumeMax(Kernel::HLERequestContext& ctx) {
 
     // This service function is currently hardcoded on the
     // actual console to this value (as of 8.0.0).
-    constexpr static s32 target_max_volume = 15;
+    constexpr s32 target_max_volume = 15;
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(ResultSuccess);

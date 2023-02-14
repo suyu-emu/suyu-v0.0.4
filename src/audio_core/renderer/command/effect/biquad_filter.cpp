@@ -20,8 +20,8 @@ namespace AudioCore::AudioRenderer {
 void ApplyBiquadFilterFloat(std::span<s32> output, std::span<const s32> input,
                             std::array<s16, 3>& b_, std::array<s16, 2>& a_,
                             VoiceState::BiquadFilterState& state, const u32 sample_count) {
-    constexpr static f64 min{std::numeric_limits<s32>::min()};
-    constexpr static f64 max{std::numeric_limits<s32>::max()};
+    constexpr f64 min{std::numeric_limits<s32>::min()};
+    constexpr f64 max{std::numeric_limits<s32>::max()};
     std::array<f64, 3> b{Common::FixedPoint<50, 14>::from_base(b_[0]).to_double(),
                          Common::FixedPoint<50, 14>::from_base(b_[1]).to_double(),
                          Common::FixedPoint<50, 14>::from_base(b_[2]).to_double()};
@@ -61,8 +61,8 @@ void ApplyBiquadFilterFloat(std::span<s32> output, std::span<const s32> input,
 static void ApplyBiquadFilterInt(std::span<s32> output, std::span<const s32> input,
                                  std::array<s16, 3>& b, std::array<s16, 2>& a,
                                  VoiceState::BiquadFilterState& state, const u32 sample_count) {
-    constexpr static s64 min{std::numeric_limits<s32>::min()};
-    constexpr static s64 max{std::numeric_limits<s32>::max()};
+    constexpr s64 min{std::numeric_limits<s32>::min()};
+    constexpr s64 max{std::numeric_limits<s32>::max()};
 
     for (u32 i = 0; i < sample_count; i++) {
         const s64 in_sample{input[i]};

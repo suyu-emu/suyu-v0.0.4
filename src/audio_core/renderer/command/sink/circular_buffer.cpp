@@ -21,8 +21,8 @@ void CircularBufferSinkCommand::Dump([[maybe_unused]] const ADSP::CommandListPro
 }
 
 void CircularBufferSinkCommand::Process(const ADSP::CommandListProcessor& processor) {
-    constexpr static s32 min{std::numeric_limits<s16>::min()};
-    constexpr static s32 max{std::numeric_limits<s16>::max()};
+    constexpr s32 min{std::numeric_limits<s16>::min()};
+    constexpr s32 max{std::numeric_limits<s16>::max()};
 
     std::vector<s16> output(processor.sample_count);
     for (u32 channel = 0; channel < input_count; channel++) {

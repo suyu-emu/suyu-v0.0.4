@@ -193,7 +193,7 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
         return ResultSuccess;
 
     case InfoType::ThreadTickCount: {
-        constexpr static u64 num_cpus = 4;
+        constexpr u64 num_cpus = 4;
         if (info_sub_id != 0xFFFFFFFFFFFFFFFF && info_sub_id >= num_cpus) {
             LOG_ERROR(Kernel_SVC, "Core count is out of range, expected {} but got {}", num_cpus,
                       info_sub_id);

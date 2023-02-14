@@ -35,8 +35,8 @@ public:
     }
 
     void Run(const std::vector<InputCommon::CemuhookUDP::Response::TouchPad> touch_movement_path) {
-        constexpr static size_t HeaderSize = sizeof(InputCommon::CemuhookUDP::Header);
-        constexpr static size_t PadDataSize =
+        constexpr size_t HeaderSize = sizeof(InputCommon::CemuhookUDP::Header);
+        constexpr size_t PadDataSize =
             sizeof(InputCommon::CemuhookUDP::Message<InputCommon::CemuhookUDP::Response::PadData>);
 
         REQUIRE(touch_movement_path.size() > 0);

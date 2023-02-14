@@ -76,7 +76,7 @@ void TestControl1::ExecuteThread(u32 id) {
  *  doing all the work required.
  */
 TEST_CASE("Fibers::Setup", "[common]") {
-    constexpr static std::size_t num_threads = 7;
+    constexpr std::size_t num_threads = 7;
     TestControl1 test_control{};
     test_control.thread_fibers.resize(num_threads);
     test_control.work_fibers.resize(num_threads);

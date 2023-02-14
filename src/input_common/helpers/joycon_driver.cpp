@@ -129,7 +129,7 @@ void JoyconDriver::InputThread(std::stop_token stop_token) {
     input_thread_running = true;
 
     // Max update rate is 5ms, ensure we are always able to read a bit faster
-    constexpr static int ThreadDelay = 2;
+    constexpr int ThreadDelay = 2;
     std::vector<u8> buffer(MaxBufferSize);
 
     while (!stop_token.stop_requested()) {
@@ -548,7 +548,7 @@ DriverResult JoyconDriver::GetDeviceType(SDL_hid_device_info* device_info,
         {0x2007, ControllerType::Right},
         {0x2009, ControllerType::Pro},
     };
-    constexpr static u16 nintendo_vendor_id = 0x057e;
+    constexpr u16 nintendo_vendor_id = 0x057e;
 
     controller_type = ControllerType::None;
     if (device_info->vendor_id != nintendo_vendor_id) {

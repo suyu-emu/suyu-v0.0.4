@@ -34,7 +34,7 @@ static u64 GenerateTelemetryId() {
     mbedtls_entropy_context entropy;
     mbedtls_entropy_init(&entropy);
     mbedtls_ctr_drbg_context ctr_drbg;
-    constexpr static std::array<char, 18> personalization{{"yuzu Telemetry ID"}};
+    static constexpr std::array<char, 18> personalization{{"yuzu Telemetry ID"}};
 
     mbedtls_ctr_drbg_init(&ctr_drbg);
     ASSERT(mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
@@ -225,7 +225,7 @@ void TelemetrySession::AddInitialInfo(Loader::AppLoader& app_loader,
     Telemetry::AppendOSInfo(field_collection);
 
     // Log user configuration information
-    constexpr static auto field_type = Telemetry::FieldType::UserConfig;
+    constexpr auto field_type = Telemetry::FieldType::UserConfig;
     AddField(field_type, "Audio_SinkId", Settings::values.sink_id.GetValue());
     AddField(field_type, "Core_UseMultiCore", Settings::values.use_multi_core.GetValue());
     AddField(field_type, "Renderer_Backend",

@@ -209,7 +209,7 @@ private:
 
 std::size_t WorkerBufferSize(u32 channel_count) {
     ASSERT_MSG(channel_count == 1 || channel_count == 2, "Invalid channel count");
-    constexpr static int num_streams = 1;
+    constexpr int num_streams = 1;
     const int num_stereo_streams = channel_count == 2 ? 1 : 0;
     return opus_multistream_decoder_get_size(num_streams, num_stereo_streams);
 }

@@ -129,7 +129,7 @@ DriverResult CalibrationProtocol::GetImuCalibration(MotionCalibration& calibrati
 
 DriverResult CalibrationProtocol::GetRingCalibration(RingCalibration& calibration,
                                                      s16 current_value) {
-    constexpr static s16 DefaultRingRange{800};
+    constexpr s16 DefaultRingRange{800};
 
     // TODO: Get default calibration form ring itself
     if (ring_data_max == 0 && ring_data_min == 0) {
@@ -168,8 +168,8 @@ u16 CalibrationProtocol::GetYAxisCalibrationValue(std::span<u8> block) const {
 }
 
 void CalibrationProtocol::ValidateCalibration(JoyStickCalibration& calibration) {
-    constexpr static u16 DefaultStickCenter{0x800};
-    constexpr static u16 DefaultStickRange{0x6cc};
+    constexpr u16 DefaultStickCenter{0x800};
+    constexpr u16 DefaultStickRange{0x6cc};
 
     calibration.x.center = ValidateValue(calibration.x.center, DefaultStickCenter);
     calibration.x.max = ValidateValue(calibration.x.max, DefaultStickRange);
@@ -181,9 +181,9 @@ void CalibrationProtocol::ValidateCalibration(JoyStickCalibration& calibration) 
 }
 
 void CalibrationProtocol::ValidateCalibration(MotionCalibration& calibration) {
-    constexpr static s16 DefaultAccelerometerScale{0x4000};
-    constexpr static s16 DefaultGyroScale{0x3be7};
-    constexpr static s16 DefaultOffset{0};
+    constexpr s16 DefaultAccelerometerScale{0x4000};
+    constexpr s16 DefaultGyroScale{0x3be7};
+    constexpr s16 DefaultOffset{0};
 
     for (auto& sensor : calibration.accelerometer) {
         sensor.scale = ValidateValue(sensor.scale, DefaultAccelerometerScale);

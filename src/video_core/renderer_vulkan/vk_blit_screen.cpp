@@ -175,7 +175,7 @@ VkSemaphore BlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer,
         const u8* const host_ptr = cpu_memory.GetPointer(framebuffer_addr);
 
         // TODO(Rodrigo): Read this from HLE
-        constexpr static u32 block_height_log2 = 4;
+        constexpr u32 block_height_log2 = 4;
         const u32 bytes_per_pixel = GetBytesPerPixel(framebuffer);
         const u64 linear_size{GetSizeInBytes(framebuffer)};
         const u64 tiled_size{Tegra::Texture::CalculateSize(true, bytes_per_pixel,
@@ -1482,7 +1482,7 @@ u64 BlitScreen::CalculateBufferSize(const Tegra::FramebufferConfig& framebuffer)
 
 u64 BlitScreen::GetRawImageOffset(const Tegra::FramebufferConfig& framebuffer,
                                   std::size_t image_index) const {
-    constexpr static auto first_image_offset = static_cast<u64>(sizeof(BufferData));
+    constexpr auto first_image_offset = static_cast<u64>(sizeof(BufferData));
     return first_image_offset + GetSizeInBytes(framebuffer) * image_index;
 }
 

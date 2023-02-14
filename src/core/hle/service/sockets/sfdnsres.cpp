@@ -92,7 +92,7 @@ static std::vector<u8> SerializeAddrInfo(const addrinfo* addrinfo, s32 result_co
         static_assert(sizeof(SerializedResponseHeader) == 0x18,
                       "Response header size must be 0x18 bytes");
 
-        constexpr static auto header_size = sizeof(SerializedResponseHeader);
+        constexpr auto header_size = sizeof(SerializedResponseHeader);
         const auto addr_size =
             current->ai_addr && current->ai_addrlen > 0 ? current->ai_addrlen : 4;
         const auto canonname_size = current->ai_canonname ? strlen(current->ai_canonname) + 1 : 1;
@@ -103,7 +103,7 @@ static std::vector<u8> SerializeAddrInfo(const addrinfo* addrinfo, s32 result_co
         // Header in network byte order
         SerializedResponseHeader header{};
 
-        constexpr static auto HEADER_MAGIC = 0xBEEFCAFE;
+        constexpr auto HEADER_MAGIC = 0xBEEFCAFE;
         header.magic = htonl(HEADER_MAGIC);
         header.family = htonl(current->ai_family);
         header.flags = htonl(current->ai_flags);

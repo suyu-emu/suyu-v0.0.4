@@ -670,7 +670,7 @@ ResultVal<std::vector<MiiInfoElement>> MiiManager::GetDefault(SourceFlag source_
 }
 
 Result MiiManager::GetIndex([[maybe_unused]] const CharInfo& info, u32& index) {
-    constexpr static u32 INVALID_INDEX{0xFFFFFFFF};
+    constexpr u32 INVALID_INDEX{0xFFFFFFFF};
 
     index = INVALID_INDEX;
 

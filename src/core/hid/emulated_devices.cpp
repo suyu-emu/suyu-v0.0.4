@@ -213,7 +213,7 @@ void EmulatedDevices::SetKeyboardButton(const Common::Input::CallbackStatus& cal
 }
 
 void EmulatedDevices::UpdateKey(std::size_t key_index, bool status) {
-    constexpr static std::size_t KEYS_PER_BYTE = 8;
+    constexpr std::size_t KEYS_PER_BYTE = 8;
     auto& entry = device_status.keyboard_state.key[key_index / KEYS_PER_BYTE];
     const u8 mask = static_cast<u8>(1 << (key_index % KEYS_PER_BYTE));
     if (status) {

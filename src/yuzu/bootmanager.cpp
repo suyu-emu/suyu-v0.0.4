@@ -720,7 +720,7 @@ void GRenderWindow::TouchEndEvent() {
 
 void GRenderWindow::InitializeCamera() {
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0)) && YUZU_USE_QT_MULTIMEDIA
-    constexpr static auto camera_update_ms = std::chrono::milliseconds{50}; // (50ms, 20Hz)
+    constexpr auto camera_update_ms = std::chrono::milliseconds{50}; // (50ms, 20Hz)
     if (!Settings::values.enable_ir_sensor) {
         return;
     }
