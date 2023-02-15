@@ -41,7 +41,7 @@ static void PutSIMDRegister(std::array<u32, 64>& simd_regs, size_t offset, const
 
 // For sample XML files see the GDB source /gdb/features
 // This XML defines what the registers are for this specific ARM device
-constexpr std::string_view GDBStubA64::GetTargetXML() const {
+std::string_view GDBStubA64::GetTargetXML() const {
     return R"(<?xml version="1.0"?>
 <!DOCTYPE target SYSTEM "gdb-target.dtd">
 <target version="1.0">
@@ -267,7 +267,7 @@ u32 GDBStubA64::BreakpointInstruction() const {
     return 0xd4200000;
 }
 
-constexpr std::string_view GDBStubA32::GetTargetXML() const {
+std::string_view GDBStubA32::GetTargetXML() const {
     return R"(<?xml version="1.0"?>
 <!DOCTYPE target SYSTEM "gdb-target.dtd">
 <target version="1.0">
