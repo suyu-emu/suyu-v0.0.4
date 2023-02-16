@@ -1271,6 +1271,7 @@ void GMainWindow::ConnectWidgetEvents() {
     connect(game_list, &GameList::ShowList, this, &GMainWindow::OnGameListShowList);
     connect(game_list, &GameList::PopulatingCompleted,
             [this] { multiplayer_state->UpdateGameList(game_list->GetModel()); });
+    connect(game_list, &GameList::SaveConfig, this, &GMainWindow::OnSaveConfig);
 
     connect(game_list, &GameList::OpenPerGameGeneralRequested, this,
             &GMainWindow::OnGameListOpenPerGameProperties);
@@ -2654,6 +2655,8 @@ void GMainWindow::OnGameListAddDirectory() {
     } else {
         LOG_WARNING(Frontend, "Selected directory is already in the game list");
     }
+
+    OnSaveConfig();
 }
 
 void GMainWindow::OnGameListShowList(bool show) {
@@ -3380,6 +3383,7 @@ void GMainWindow::OnConfigureTas() {
         return;
     } else if (result == QDialog::Accepted) {
         dialog.ApplyConfiguration();
+        OnSaveConfig();
     }
 }
 
