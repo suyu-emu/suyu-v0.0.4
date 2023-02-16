@@ -1165,6 +1165,14 @@ void GMainWindow::InitializeHotkeys() {
         Settings::values.use_speed_limit.SetValue(!Settings::values.use_speed_limit.GetValue());
     });
     connect_shortcut(QStringLiteral("Toggle Mouse Panning"), [&] {
+        if (Settings::values.mouse_enabled) {
+            Settings::values.mouse_panning = false;
+            QMessageBox::warning(
+                this, tr("Emulated mouse is enabled"),
+                tr("Real mouse input and mouse panning are incompatible. Please disable the "
+                   "emulated mouse in input advanced settings to allow mouse panning."));
+            return;
+        }
         Settings::values.mouse_panning = !Settings::values.mouse_panning;
         if (Settings::values.mouse_panning) {
             render_window->installEventFilter(render_window);

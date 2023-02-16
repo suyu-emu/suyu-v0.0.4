@@ -645,7 +645,10 @@ void GRenderWindow::mousePressEvent(QMouseEvent* event) {
     const auto pos = mapFromGlobal(QCursor::pos());
     const auto [touch_x, touch_y] = MapToTouchScreen(pos.x(), pos.y());
     const auto button = QtButtonToMouseButton(event->button());
-    input_subsystem->GetMouse()->PressButton(pos.x(), pos.y(), touch_x, touch_y, button);
+
+    input_subsystem->GetMouse()->PressMouseButton(button);
+    input_subsystem->GetMouse()->PressButton(pos.x(), pos.y(), button);
+    input_subsystem->GetMouse()->PressTouchButton(touch_x, touch_y, button);
 
     emit MouseActivity();
 }
@@ -661,7 +664,10 @@ void GRenderWindow::mouseMoveEvent(QMouseEvent* event) {
     const auto [touch_x, touch_y] = MapToTouchScreen(pos.x(), pos.y());
     const int center_x = width() / 2;
     const int center_y = height() / 2;
-    input_subsystem->GetMouse()->MouseMove(pos.x(), pos.y(), touch_x, touch_y, center_x, center_y);
+
+    input_subsystem->GetMouse()->MouseMove(touch_x, touch_y);
+    input_subsystem->GetMouse()->TouchMove(touch_x, touch_y);
+    input_subsystem->GetMouse()->Move(pos.x(), pos.y(), center_x, center_y);
 
     if (Settings::values.mouse_panning && !Settings::values.mouse_enabled) {
         QCursor::setPos(mapToGlobal(QPoint{center_x, center_y}));
