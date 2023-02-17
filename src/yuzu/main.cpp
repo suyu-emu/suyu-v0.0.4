@@ -3018,8 +3018,10 @@ void GMainWindow::OnRestartGame() {
     if (!system->IsPoweredOn()) {
         return;
     }
-    // Make a copy since BootGame edits game_path
-    BootGame(QString(current_game_path));
+    // Make a copy since ShutdownGame edits game_path
+    const auto current_game = QString(current_game_path);
+    ShutdownGame();
+    BootGame(current_game);
 }
 
 void GMainWindow::OnPauseGame() {
