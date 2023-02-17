@@ -5,6 +5,7 @@
 #include "core/core.h"
 #include "core/hle/kernel/k_client_port.h"
 #include "core/hle/kernel/k_client_session.h"
+#include "core/hle/kernel/k_object_name.h"
 #include "core/hle/kernel/k_port.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/svc.h"
@@ -74,10 +75,57 @@ Result ConnectToPort(Core::System& system, Handle* out_handle, Handle port) {
     R_THROW(ResultNotImplemented);
 }
 
-Result ManageNamedPort(Core::System& system, Handle* out_server_handle, uint64_t name,
+Result ManageNamedPort(Core::System& system, Handle* out_server_handle, uint64_t user_name,
                        int32_t max_sessions) {
-    UNIMPLEMENTED();
-    R_THROW(ResultNotImplemented);
+    // Copy the provided name from user memory to kernel memory.
+    std::array<char, KObjectName::NameLengthMax> name{};
+    system.Memory().ReadBlock(user_name, name.data(), sizeof(name));
+
+    // Validate that sessions and name are valid.
+    R_UNLESS(max_sessions >= 0, ResultOutOfRange);
+    R_UNLESS(name[sizeof(name) - 1] == '\x00', ResultOutOfRange);
+
+    if (max_sessions > 0) {
+        // Get the current handle table.
+        auto& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();
+
+        // Create a new port.
+        KPort* port = KPort::Create(system.Kernel());
+        R_UNLESS(port != nullptr, ResultOutOfResource);
+
+        // Initialize the new port.
+        port->Initialize(max_sessions, false, "");
+
+        // Register the port.
+        KPort::Register(system.Kernel(), port);
+
+        // Ensure that our only reference to the port is in the handle table when we're done.
+        SCOPE_EXIT({
+            port->GetClientPort().Close();
+            port->GetServerPort().Close();
+        });
+
+        // Register the handle in the table.
+        R_TRY(handle_table.Add(out_server_handle, std::addressof(port->GetServerPort())));
+        ON_RESULT_FAILURE {
+            handle_table.Remove(*out_server_handle);
+        };
+
+        // Create a new object name.
+        R_TRY(KObjectName::NewFromName(system.Kernel(), std::addressof(port->GetClientPort()),
+                                       name.data()));
+    } else /* if (max_sessions == 0) */ {
+        // Ensure that this else case is correct.
+        ASSERT(max_sessions == 0);
+
+        // If we're closing, there's no server handle.
+        *out_server_handle = InvalidHandle;
+
+        // Delete the object.
+        R_TRY(KObjectName::Delete<KClientPort>(system.Kernel(), name.data()));
+    }
+
+    R_SUCCEED();
 }
 
 Result ConnectToNamedPort64(Core::System& system, Handle* out_handle, uint64_t name) {

@@ -44,6 +44,8 @@ class KHardwareTimer;
 class KLinkedListNode;
 class KMemoryLayout;
 class KMemoryManager;
+class KObjectName;
+class KObjectNameGlobalData;
 class KPageBuffer;
 class KPageBufferSlabHeap;
 class KPort;
@@ -240,6 +242,9 @@ public:
     /// Register the current thread as a non CPU core thread.
     void RegisterHostThread(KThread* existing_thread = nullptr);
 
+    /// Gets global data for KObjectName.
+    KObjectNameGlobalData& ObjectNameGlobalData();
+
     /// Gets the virtual memory manager for the kernel.
     KMemoryManager& MemoryManager();
 
@@ -372,6 +377,8 @@ public:
             return slab_heap_container->page_buffer;
         } else if constexpr (std::is_same_v<T, KThreadLocalPage>) {
             return slab_heap_container->thread_local_page;
+        } else if constexpr (std::is_same_v<T, KObjectName>) {
+            return slab_heap_container->object_name;
         } else if constexpr (std::is_same_v<T, KSessionRequest>) {
             return slab_heap_container->session_request;
         } else if constexpr (std::is_same_v<T, KSecureSystemResource>) {
@@ -443,6 +450,7 @@ private:
         KSlabHeap<KDeviceAddressSpace> device_address_space;
         KSlabHeap<KPageBuffer> page_buffer;
         KSlabHeap<KThreadLocalPage> thread_local_page;
+        KSlabHeap<KObjectName> object_name;
         KSlabHeap<KSessionRequest> session_request;
         KSlabHeap<KSecureSystemResource> secure_system_resource;
         KSlabHeap<KEventInfo> event_info;
