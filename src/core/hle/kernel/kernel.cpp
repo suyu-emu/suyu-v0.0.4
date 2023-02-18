@@ -29,6 +29,7 @@
 #include "core/hle/kernel/k_hardware_timer.h"
 #include "core/hle/kernel/k_memory_layout.h"
 #include "core/hle/kernel/k_memory_manager.h"
+#include "core/hle/kernel/k_object_name.h"
 #include "core/hle/kernel/k_page_buffer.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_resource_limit.h"
@@ -84,6 +85,7 @@ struct KernelCore::Impl {
         InitializeShutdownThreads();
         InitializePhysicalCores();
         InitializePreemption(kernel);
+        InitializeGlobalData(kernel);
 
         // Initialize the Dynamic Slab Heaps.
         {
@@ -193,6 +195,8 @@ struct KernelCore::Impl {
                 registered_objects.clear();
             }
         }
+
+        object_name_global_data.reset();
 
         // Ensure that the object list container is finalized and properly shutdown.
         global_object_list_container->Finalize();
@@ -361,6 +365,10 @@ struct KernelCore::Impl {
                        .IsSuccess());
             shutdown_threads[core_id]->SetName(fmt::format("SuspendThread:{}", core_id));
         }
+    }
+
+    void InitializeGlobalData(KernelCore& kernel) {
+        object_name_global_data = std::make_unique<KObjectNameGlobalData>(kernel);
     }
 
     void MakeApplicationProcess(KProcess* process) {
@@ -838,6 +846,8 @@ struct KernelCore::Impl {
 
     std::unique_ptr<KAutoObjectWithListContainer> global_object_list_container;
 
+    std::unique_ptr<KObjectNameGlobalData> object_name_global_data;
+
     /// Map of named ports managed by the kernel, which can be retrieved using
     /// the ConnectToPort SVC.
     std::unordered_map<std::string, ServiceInterfaceFactory> service_interface_factory;
@@ -1136,6 +1146,10 @@ KThread* KernelCore::GetCurrentEmuThread() const {
 
 void KernelCore::SetCurrentEmuThread(KThread* thread) {
     impl->SetCurrentEmuThread(thread);
+}
+
+KObjectNameGlobalData& KernelCore::ObjectNameGlobalData() {
+    return *impl->object_name_global_data;
 }
 
 KMemoryManager& KernelCore::MemoryManager() {
