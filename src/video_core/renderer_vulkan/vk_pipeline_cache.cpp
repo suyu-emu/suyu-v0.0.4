@@ -114,14 +114,16 @@ Shader::AttributeType CastAttributeType(const FixedPipelineState::VertexAttribut
         return Shader::AttributeType::Disabled;
     case Maxwell::VertexAttribute::Type::SNorm:
     case Maxwell::VertexAttribute::Type::UNorm:
-    case Maxwell::VertexAttribute::Type::UScaled:
-    case Maxwell::VertexAttribute::Type::SScaled:
     case Maxwell::VertexAttribute::Type::Float:
         return Shader::AttributeType::Float;
     case Maxwell::VertexAttribute::Type::SInt:
         return Shader::AttributeType::SignedInt;
     case Maxwell::VertexAttribute::Type::UInt:
         return Shader::AttributeType::UnsignedInt;
+    case Maxwell::VertexAttribute::Type::UScaled:
+        return Shader::AttributeType::UnsignedScaled;
+    case Maxwell::VertexAttribute::Type::SScaled:
+        return Shader::AttributeType::SignedScaled;
     }
     return Shader::AttributeType::Float;
 }
@@ -331,6 +333,7 @@ PipelineCache::PipelineCache(RasterizerVulkan& rasterizer_, const Device& device
         .support_derivative_control = true,
         .support_geometry_shader_passthrough = device.IsNvGeometryShaderPassthroughSupported(),
         .support_native_ndc = device.IsExtDepthClipControlSupported(),
+        .support_scaled_attributes = !device.MustEmulateScaledFormats(),
 
         .warp_size_potentially_larger_than_guest = device.IsWarpSizePotentiallyBiggerThanGuest(),
 

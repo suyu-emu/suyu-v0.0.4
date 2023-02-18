@@ -363,6 +363,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
 
 #ifdef ANDROID
     if (is_adreno) {
+        must_emulate_scaled_formats = true;
+
         LOG_WARNING(Render_Vulkan, "Adreno drivers have broken VK_EXT_extended_dynamic_state");
         extensions.extended_dynamic_state = false;
         loaded_extensions.erase(VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
@@ -391,6 +393,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     }
 
     if (is_arm) {
+        must_emulate_scaled_formats = true;
+
         LOG_WARNING(Render_Vulkan, "ARM drivers have broken VK_EXT_extended_dynamic_state");
         extensions.extended_dynamic_state = false;
         loaded_extensions.erase(VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);

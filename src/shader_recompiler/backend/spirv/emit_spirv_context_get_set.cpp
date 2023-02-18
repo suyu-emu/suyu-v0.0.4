@@ -10,27 +10,6 @@
 
 namespace Shader::Backend::SPIRV {
 namespace {
-struct AttrInfo {
-    Id pointer;
-    Id id;
-    bool needs_cast;
-};
-
-std::optional<AttrInfo> AttrTypes(EmitContext& ctx, u32 index) {
-    const AttributeType type{ctx.runtime_info.generic_input_types.at(index)};
-    switch (type) {
-    case AttributeType::Float:
-        return AttrInfo{ctx.input_f32, ctx.F32[1], false};
-    case AttributeType::UnsignedInt:
-        return AttrInfo{ctx.input_u32, ctx.U32[1], true};
-    case AttributeType::SignedInt:
-        return AttrInfo{ctx.input_s32, ctx.TypeInt(32, true), true};
-    case AttributeType::Disabled:
-        return std::nullopt;
-    }
-    throw InvalidArgument("Invalid attribute type {}", type);
-}
-
 template <typename... Args>
 Id AttrPointer(EmitContext& ctx, Id pointer_type, Id vertex, Id base, Args&&... args) {
     switch (ctx.stage) {
@@ -302,15 +281,26 @@ Id EmitGetAttribute(EmitContext& ctx, IR::Attribute attr, Id vertex) {
     const u32 element{static_cast<u32>(attr) % 4};
     if (IR::IsGeneric(attr)) {
         const u32 index{IR::GenericAttributeIndex(attr)};
-        const std::optional<AttrInfo> type{AttrTypes(ctx, index)};
-        if (!type || !ctx.runtime_info.previous_stage_stores.Generic(index, element)) {
+        const auto& generic{ctx.input_generics.at(index)};
+        if (!ValidId(generic.id)) {
             // Attribute is disabled or varying component is not written
             return ctx.Const(element == 3 ? 1.0f : 0.0f);
         }
-        const Id generic_id{ctx.input_generics.at(index)};
-        const Id pointer{AttrPointer(ctx, type->pointer, vertex, generic_id, ctx.Const(element))};
-        const Id value{ctx.OpLoad(type->id, pointer)};
-        return type->needs_cast ? ctx.OpBitcast(ctx.F32[1], value) : value;
+        const Id pointer{
+            AttrPointer(ctx, generic.pointer_type, vertex, generic.id, ctx.Const(element))};
+        const Id value{ctx.OpLoad(generic.component_type, pointer)};
+        return [&ctx, generic, value]() {
+            switch (generic.load_op) {
+            case InputGenericLoadOp::Bitcast:
+                return ctx.OpBitcast(ctx.F32[1], value);
+            case InputGenericLoadOp::SToF:
+                return ctx.OpConvertSToF(ctx.F32[1], value);
+            case InputGenericLoadOp::UToF:
+                return ctx.OpConvertUToF(ctx.F32[1], value);
+            default:
+                return value;
+            };
+        }();
     }
     switch (attr) {
     case IR::Attribute::PrimitiveId:

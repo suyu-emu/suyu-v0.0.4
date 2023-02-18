@@ -551,6 +551,10 @@ public:
         return cant_blit_msaa;
     }
 
+    bool MustEmulateScaledFormats() const {
+        return must_emulate_scaled_formats;
+    }
+
     bool MustEmulateBGR565() const {
         return must_emulate_bgr565;
     }
@@ -666,6 +670,7 @@ private:
     bool has_nsight_graphics{};             ///< Has Nsight Graphics attached
     bool supports_d24_depth{};              ///< Supports D24 depth buffers.
     bool cant_blit_msaa{};                  ///< Does not support MSAA<->MSAA blitting.
+    bool must_emulate_scaled_formats{};     ///< Requires scaled vertex format emulation
     bool must_emulate_bgr565{};             ///< Emulates BGR565 by swizzling RGB565 format.
     bool dynamic_state3_blending{};         ///< Has all blending features of dynamic_state3.
     bool dynamic_state3_enables{};          ///< Has all enables features of dynamic_state3.
