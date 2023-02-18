@@ -315,6 +315,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool is_nvidia = driver_id == VK_DRIVER_ID_NVIDIA_PROPRIETARY;
     const bool is_mvk = driver_id == VK_DRIVER_ID_MOLTENVK;
     const bool is_adreno = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
+    const bool is_arm = driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
 
     if ((is_mvk || is_adreno) && !is_suitable) {
         LOG_WARNING(Render_Vulkan, "Unsuitable driver is MoltenVK, continuing anyway");
@@ -383,6 +384,12 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         } else {
             LOG_WARNING(Render_Vulkan, "Adreno driver can't be patched to enable BCn textures");
         }
+    }
+
+    if (is_arm) {
+        LOG_WARNING(Render_Vulkan, "ARM drivers have broken VK_EXT_extended_dynamic_state");
+        extensions.extended_dynamic_state = false;
+        loaded_extensions.erase(VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
     }
 #endif // ANDROID
 
