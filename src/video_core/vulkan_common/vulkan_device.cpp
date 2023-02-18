@@ -367,6 +367,10 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         extensions.extended_dynamic_state = false;
         loaded_extensions.erase(VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
 
+        LOG_WARNING(Render_Vulkan, "Adreno drivers have a slow VK_KHR_push_descriptor implementation");
+        extensions.push_descriptor = false;
+        loaded_extensions.erase(VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
+
         // Patch the driver to enable BCn textures.
         const auto major = (properties.properties.driverVersion >> 24) << 2;
         const auto minor = (properties.properties.driverVersion >> 12) & 0xFFFU;
