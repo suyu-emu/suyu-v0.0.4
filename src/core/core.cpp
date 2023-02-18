@@ -939,6 +939,10 @@ const Network::RoomNetwork& System::GetRoomNetwork() const {
     return impl->room_network;
 }
 
+void System::RunServer(std::unique_ptr<Service::ServerManager>&& server_manager) {
+    return impl->kernel.RunServer(std::move(server_manager));
+}
+
 void System::RegisterExecuteProgramCallback(ExecuteProgramCallback&& callback) {
     impl->execute_program_callback = std::move(callback);
 }

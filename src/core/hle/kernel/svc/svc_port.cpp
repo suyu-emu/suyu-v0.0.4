@@ -12,56 +12,40 @@
 
 namespace Kernel::Svc {
 
-/// Connect to an OS service given the port name, returns the handle to the port to out
-Result ConnectToNamedPort(Core::System& system, Handle* out, VAddr port_name_address) {
-    auto& memory = system.Memory();
-    if (!memory.IsValidVirtualAddress(port_name_address)) {
-        LOG_ERROR(Kernel_SVC,
-                  "Port Name Address is not a valid virtual address, port_name_address=0x{:016X}",
-                  port_name_address);
-        return ResultNotFound;
-    }
+Result ConnectToNamedPort(Core::System& system, Handle* out, VAddr user_name) {
+    // Copy the provided name from user memory to kernel memory.
+    auto string_name = system.Memory().ReadCString(user_name, KObjectName::NameLengthMax);
 
-    static constexpr std::size_t PortNameMaxLength = 11;
-    // Read 1 char beyond the max allowed port name to detect names that are too long.
-    const std::string port_name = memory.ReadCString(port_name_address, PortNameMaxLength + 1);
-    if (port_name.size() > PortNameMaxLength) {
-        LOG_ERROR(Kernel_SVC, "Port name is too long, expected {} but got {}", PortNameMaxLength,
-                  port_name.size());
-        return ResultOutOfRange;
-    }
+    std::array<char, KObjectName::NameLengthMax> name{};
+    std::strncpy(name.data(), string_name.c_str(), KObjectName::NameLengthMax - 1);
 
-    LOG_TRACE(Kernel_SVC, "called port_name={}", port_name);
+    // Validate that the name is valid.
+    R_UNLESS(name[sizeof(name) - 1] == '\x00', ResultOutOfRange);
 
     // Get the current handle table.
-    auto& kernel = system.Kernel();
-    auto& handle_table = GetCurrentProcess(kernel).GetHandleTable();
+    auto& handle_table = GetCurrentProcess(system.Kernel()).GetHandleTable();
 
     // Find the client port.
-    auto port = kernel.CreateNamedServicePort(port_name);
-    if (!port) {
-        LOG_ERROR(Kernel_SVC, "tried to connect to unknown port: {}", port_name);
-        return ResultNotFound;
-    }
+    auto port = KObjectName::Find<KClientPort>(system.Kernel(), name.data());
+    R_UNLESS(port.IsNotNull(), ResultNotFound);
 
     // Reserve a handle for the port.
     // NOTE: Nintendo really does write directly to the output handle here.
     R_TRY(handle_table.Reserve(out));
-    auto handle_guard = SCOPE_GUARD({ handle_table.Unreserve(*out); });
+    ON_RESULT_FAILURE {
+        handle_table.Unreserve(*out);
+    };
 
     // Create a session.
-    KClientSession* session{};
+    KClientSession* session;
     R_TRY(port->CreateSession(std::addressof(session)));
-
-    kernel.RegisterNamedServiceHandler(port_name, &port->GetParent()->GetServerPort());
 
     // Register the session in the table, close the extra reference.
     handle_table.Register(*out, session);
     session->Close();
 
     // We succeeded.
-    handle_guard.Cancel();
-    return ResultSuccess;
+    R_SUCCEED();
 }
 
 Result CreatePort(Core::System& system, Handle* out_server, Handle* out_client,
@@ -78,8 +62,11 @@ Result ConnectToPort(Core::System& system, Handle* out_handle, Handle port) {
 Result ManageNamedPort(Core::System& system, Handle* out_server_handle, uint64_t user_name,
                        int32_t max_sessions) {
     // Copy the provided name from user memory to kernel memory.
+    auto string_name = system.Memory().ReadCString(user_name, KObjectName::NameLengthMax);
+
+    // Copy the provided name from user memory to kernel memory.
     std::array<char, KObjectName::NameLengthMax> name{};
-    system.Memory().ReadBlock(user_name, name.data(), sizeof(name));
+    std::strncpy(name.data(), string_name.c_str(), KObjectName::NameLengthMax - 1);
 
     // Validate that sessions and name are valid.
     R_UNLESS(max_sessions >= 0, ResultOutOfRange);
