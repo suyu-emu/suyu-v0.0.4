@@ -71,6 +71,11 @@ JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_SetAppDirectory(JNI
                                                                              jclass clazz,
                                                                              jstring j_directory);
 
+JNIEXPORT void JNICALL
+Java_org_yuzu_yuzu_1emu_NativeLibrary_Java_org_yuzu_yuzu_1emu_NativeLibrary_InitializeGpuDriver(
+    JNIEnv* env, jclass clazz, jstring hook_lib_dir, jstring custom_driver_dir,
+    jstring custom_driver_name, jstring file_redirect_dir);
+
 JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_ReloadKeys(JNIEnv* env,
                                                                             jclass clazz);
 

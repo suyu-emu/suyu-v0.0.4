@@ -5,11 +5,15 @@
 #include <locale>
 #include <string>
 #include <string_view>
+#include <dlfcn.h>
+
+#include <adrenotools/driver.h>
 
 #include <android/api-level.h>
 #include <android/native_window_jni.h>
 
 #include "common/detached_tasks.h"
+#include "common/dynamic_library.h"
 #include "common/fs/path_util.h"
 #include "common/logging/backend.h"
 #include "common/logging/log.h"
@@ -70,6 +74,29 @@ public:
         m_native_window = m_native_window_;
     }
 
+    void InitializeGpuDriver(const std::string& hook_lib_dir, const std::string& custom_driver_dir,
+                             const std::string& custom_driver_name,
+                             const std::string& file_redirect_dir) {
+        void* handle{};
+
+        // Try to load a custom driver.
+        if (custom_driver_name.size()) {
+            handle = adrenotools_open_libvulkan(
+                RTLD_NOW, ADRENOTOOLS_DRIVER_CUSTOM | ADRENOTOOLS_DRIVER_FILE_REDIRECT, nullptr,
+                hook_lib_dir.c_str(), custom_driver_dir.c_str(), custom_driver_name.c_str(),
+                file_redirect_dir.c_str(), nullptr);
+        }
+
+        // Try to load the system driver.
+        if (!handle) {
+            handle = adrenotools_open_libvulkan(RTLD_NOW, ADRENOTOOLS_DRIVER_FILE_REDIRECT, nullptr,
+                                                hook_lib_dir.c_str(), nullptr, nullptr,
+                                                file_redirect_dir.c_str(), nullptr);
+        }
+
+        m_vulkan_library = std::make_shared<Common::DynamicLibrary>(handle);
+    }
+
     bool IsRunning() const {
         std::scoped_lock lock(m_mutex);
         return m_is_running;
@@ -94,7 +121,8 @@ public:
         Config{};
 
         // Create the render window.
-        m_window = std::make_unique<EmuWindow_Android>(&m_input_subsystem, m_native_window);
+        m_window = std::make_unique<EmuWindow_Android>(&m_input_subsystem, m_native_window,
+                                                       m_vulkan_library);
 
         // Initialize system.
         m_system.SetShuttingDown(false);
@@ -242,6 +270,9 @@ private:
     Core::SystemResultStatus m_load_result{Core::SystemResultStatus::ErrorNotInitialized};
     bool m_is_running{};
 
+    // GPU driver parameters
+    std::shared_ptr<Common::DynamicLibrary> m_vulkan_library;
+
     // Synchronization
     std::condition_variable_any m_cv;
     mutable std::mutex m_perf_stats_mutex;
@@ -327,6 +358,14 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_SetAppDirectory(JNIEnv* env,
     Common::FS::SetAppDirectory(GetJString(env, j_directory));
 }
 
+void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_InitializeGpuDriver(
+    JNIEnv* env, [[maybe_unused]] jclass clazz, jstring hook_lib_dir, jstring custom_driver_dir,
+    jstring custom_driver_name, jstring file_redirect_dir) {
+    EmulationSession::GetInstance().InitializeGpuDriver(
+        GetJString(env, hook_lib_dir), GetJString(env, custom_driver_dir),
+        GetJString(env, custom_driver_name), GetJString(env, file_redirect_dir));
+}
+
 jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_ReloadKeys(JNIEnv* env,
                                                           [[maybe_unused]] jclass clazz) {
     Core::Crypto::KeyManager::Instance().ReloadKeys();
@@ -363,7 +402,8 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadButtonEvent([[maybe_unus
                                                                     [[maybe_unused]] jint j_device,
                                                                     jint j_button, jint action) {
     if (EmulationSession::GetInstance().IsRunning()) {
-        EmulationSession::GetInstance().Window().OnGamepadButtonEvent(j_device,j_button, action != 0);
+        EmulationSession::GetInstance().Window().OnGamepadButtonEvent(j_device, j_button,
+                                                                      action != 0);
     }
     return static_cast<jboolean>(true);
 }
@@ -373,31 +413,33 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadJoystickEvent([[maybe_un
                                                                       jint j_device, jint stick_id,
                                                                       jfloat x, jfloat y) {
     if (EmulationSession::GetInstance().IsRunning()) {
-        EmulationSession::GetInstance().Window().OnGamepadJoystickEvent(j_device,stick_id, x, y);
+        EmulationSession::GetInstance().Window().OnGamepadJoystickEvent(j_device, stick_id, x, y);
     }
     return static_cast<jboolean>(true);
 }
 
-jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadMotionEvent([[maybe_unused]] JNIEnv* env,
-                                                                    [[maybe_unused]] jclass clazz, jint j_device,jlong delta_timestamp, jfloat gyro_x, jfloat gyro_y,
-                                                                    jfloat gyro_z, jfloat accel_x, jfloat accel_y, jfloat accel_z){
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadMotionEvent(
+    [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jclass clazz, jint j_device,
+    jlong delta_timestamp, jfloat gyro_x, jfloat gyro_y, jfloat gyro_z, jfloat accel_x,
+    jfloat accel_y, jfloat accel_z) {
     if (EmulationSession::GetInstance().IsRunning()) {
-        EmulationSession::GetInstance().Window().OnGamepadMotionEvent(j_device,delta_timestamp, gyro_x, gyro_y,gyro_z,accel_x,accel_y,accel_z);
+        EmulationSession::GetInstance().Window().OnGamepadMotionEvent(
+            j_device, delta_timestamp, gyro_x, gyro_y, gyro_z, accel_x, accel_y, accel_z);
     }
     return static_cast<jboolean>(true);
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchPressed([[maybe_unused]] JNIEnv* env,
-                                                          [[maybe_unused]] jclass clazz, jint id, jfloat x,
-                                                          jfloat y) {
+                                                          [[maybe_unused]] jclass clazz, jint id,
+                                                          jfloat x, jfloat y) {
     if (EmulationSession::GetInstance().IsRunning()) {
         EmulationSession::GetInstance().Window().OnTouchPressed(id, x, y);
     }
 }
 
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchMoved([[maybe_unused]] JNIEnv* env,
-                                                        [[maybe_unused]] jclass clazz, jint id, jfloat x,
-                                                        jfloat y) {
+                                                        [[maybe_unused]] jclass clazz, jint id,
+                                                        jfloat x, jfloat y) {
     if (EmulationSession::GetInstance().IsRunning()) {
         EmulationSession::GetInstance().Window().OnTouchMoved(id, x, y);
     }

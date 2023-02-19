@@ -3,10 +3,14 @@
 
 #pragma once
 
+#include <memory>
+
 #include "common/dynamic_library.h"
+#include "core/frontend/graphics_context.h"
 
 namespace Vulkan {
 
-Common::DynamicLibrary OpenLibrary();
+std::shared_ptr<Common::DynamicLibrary> OpenLibrary(
+    [[maybe_unused]] Core::Frontend::GraphicsContext* context = nullptr);
 
 } // namespace Vulkan

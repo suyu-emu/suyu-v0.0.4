@@ -3,8 +3,9 @@
 
 #pragma once
 
-#include <optional>
-#include <string>
+#include <memory>
+
+#include "common/dynamic_library.h"
 
 namespace Core::Frontend {
 
@@ -24,16 +25,8 @@ public:
     /// Releases (dunno if this is the "right" word) the context from the caller thread
     virtual void DoneCurrent() {}
 
-    /// Parameters used to configure custom drivers (used by Android only)
-    struct CustomDriverParameters {
-        std::string hook_lib_dir;
-        std::string custom_driver_dir;
-        std::string custom_driver_name;
-        std::string file_redirect_dir;
-    };
-
-    /// Gets custom driver parameters configured by the frontend (used by Android only)
-    virtual std::optional<CustomDriverParameters> GetCustomDriverParameters() {
+    /// Gets the GPU driver library (used by Android only)
+    virtual std::shared_ptr<Common::DynamicLibrary> GetDriverLibrary() {
         return {};
     }
 

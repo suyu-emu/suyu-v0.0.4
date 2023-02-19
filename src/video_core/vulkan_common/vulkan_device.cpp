@@ -314,10 +314,10 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool is_intel_anv = driver_id == VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA;
     const bool is_nvidia = driver_id == VK_DRIVER_ID_NVIDIA_PROPRIETARY;
     const bool is_mvk = driver_id == VK_DRIVER_ID_MOLTENVK;
-    const bool is_adreno = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
-    const bool is_arm = driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
+    const bool is_qualcomm = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY;
+    const bool is_turnip = driver_id == VK_DRIVER_ID_MESA_TURNIP;
 
-    if ((is_mvk || is_adreno) && !is_suitable) {
+    if ((is_mvk || is_qualcomm || is_turnip) && !is_suitable) {
         LOG_WARNING(Render_Vulkan, "Unsuitable driver is MoltenVK, continuing anyway");
     } else if (!is_suitable) {
         throw vk::Exception(VK_ERROR_INCOMPATIBLE_DRIVER);
@@ -362,14 +362,15 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     CollectToolingInfo();
 
 #ifdef ANDROID
-    if (is_adreno) {
+    if (is_qualcomm) {
         must_emulate_scaled_formats = true;
 
         LOG_WARNING(Render_Vulkan, "Adreno drivers have broken VK_EXT_extended_dynamic_state");
         extensions.extended_dynamic_state = false;
         loaded_extensions.erase(VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
 
-        LOG_WARNING(Render_Vulkan, "Adreno drivers have a slow VK_KHR_push_descriptor implementation");
+        LOG_WARNING(Render_Vulkan,
+                    "Adreno drivers have a slow VK_KHR_push_descriptor implementation");
         extensions.push_descriptor = false;
         loaded_extensions.erase(VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
 
@@ -392,6 +393,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         }
     }
 
+    const bool is_arm = driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;
     if (is_arm) {
         must_emulate_scaled_formats = true;
 
@@ -513,7 +515,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         LOG_WARNING(Render_Vulkan, "Intel proprietary drivers do not support MSAA image blits");
         cant_blit_msaa = true;
     }
-    if (is_intel_anv || is_adreno) {
+    if (is_intel_anv || is_qualcomm) {
         LOG_WARNING(Render_Vulkan, "Driver does not support native BGR format");
         must_emulate_bgr565 = true;
     }

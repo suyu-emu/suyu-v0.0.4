@@ -25,9 +25,9 @@ void CheckVulkan() {
     // Just start the Vulkan loader, this will crash if something is wrong
     try {
         Vulkan::vk::InstanceDispatch dld;
-        const Common::DynamicLibrary library = Vulkan::OpenLibrary();
+        const auto library = Vulkan::OpenLibrary();
         const Vulkan::vk::Instance instance =
-            Vulkan::CreateInstance(library, dld, VK_API_VERSION_1_1);
+            Vulkan::CreateInstance(*library, dld, VK_API_VERSION_1_1);
 
     } catch (const Vulkan::vk::Exception& exception) {
         fmt::print(stderr, "Failed to initialize Vulkan: {}\n", exception.what());

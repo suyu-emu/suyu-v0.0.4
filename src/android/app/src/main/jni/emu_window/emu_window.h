@@ -1,21 +1,34 @@
 #pragma once
 
+#include <memory>
+
 #include "core/frontend/emu_window.h"
+#include "core/frontend/graphics_context.h"
 #include "input_common/main.h"
 
 struct ANativeWindow;
 
-class SharedContext_Android : public Core::Frontend::GraphicsContext {
+class GraphicsContext_Android final : public Core::Frontend::GraphicsContext {
 public:
-    SharedContext_Android() = default;
-    ~SharedContext_Android() = default;
-    void MakeCurrent() override {}
-    void DoneCurrent() override {}
+    explicit GraphicsContext_Android(std::shared_ptr<Common::DynamicLibrary> driver_library)
+        : m_driver_library{driver_library} {}
+
+    ~GraphicsContext_Android() = default;
+
+    std::shared_ptr<Common::DynamicLibrary> GetDriverLibrary() override {
+        return m_driver_library;
+    }
+
+private:
+    std::shared_ptr<Common::DynamicLibrary> m_driver_library;
 };
 
-class EmuWindow_Android : public Core::Frontend::EmuWindow {
+class EmuWindow_Android final : public Core::Frontend::EmuWindow {
+
 public:
-    EmuWindow_Android(InputCommon::InputSubsystem* input_subsystem_, ANativeWindow* surface_);
+    EmuWindow_Android(InputCommon::InputSubsystem* input_subsystem, ANativeWindow* surface,
+                      std::shared_ptr<Common::DynamicLibrary> driver_library);
+
     ~EmuWindow_Android();
 
     void OnSurfaceChanged(ANativeWindow* surface);
@@ -29,18 +42,20 @@ public:
     void OnFrameDisplayed() override {}
 
     std::unique_ptr<Core::Frontend::GraphicsContext> CreateSharedContext() const override {
-        return {std::make_unique<SharedContext_Android>()};
+        return {std::make_unique<GraphicsContext_Android>(m_driver_library)};
     }
     bool IsShown() const override {
         return true;
     };
 
 private:
-    InputCommon::InputSubsystem* input_subsystem{};
+    InputCommon::InputSubsystem* m_input_subsystem{};
 
-    ANativeWindow* render_window{};
-    ANativeWindow* host_window{};
+    ANativeWindow* m_render_window{};
+    ANativeWindow* m_host_window{};
 
-    float window_width{};
-    float window_height{};
+    float m_window_width{};
+    float m_window_height{};
+
+    std::shared_ptr<Common::DynamicLibrary> m_driver_library;
 };
