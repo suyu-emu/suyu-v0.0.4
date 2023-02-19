@@ -14,6 +14,7 @@
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/frontend/emu_window.h"
+#include "core/frontend/graphics_context.h"
 #include "core/hle/service/nvdrv/nvdata.h"
 #include "core/perf_stats.h"
 #include "video_core/cdma_pusher.h"

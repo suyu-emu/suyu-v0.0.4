@@ -7,7 +7,7 @@
 #include "common/settings.h"
 #include "common/thread.h"
 #include "core/core.h"
-#include "core/frontend/emu_window.h"
+#include "core/frontend/graphics_context.h"
 #include "video_core/control/scheduler.h"
 #include "video_core/dma_pusher.h"
 #include "video_core/gpu.h"

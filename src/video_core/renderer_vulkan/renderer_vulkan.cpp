@@ -16,7 +16,7 @@
 #include "common/settings.h"
 #include "common/telemetry.h"
 #include "core/core_timing.h"
-#include "core/frontend/emu_window.h"
+#include "core/frontend/graphics_context.h"
 #include "core/telemetry_session.h"
 #include "video_core/gpu.h"
 #include "video_core/renderer_vulkan/renderer_vulkan.h"

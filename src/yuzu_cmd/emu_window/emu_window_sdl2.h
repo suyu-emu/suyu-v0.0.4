@@ -4,7 +4,9 @@
 #pragma once
 
 #include <utility>
+
 #include "core/frontend/emu_window.h"
+#include "core/frontend/graphics_context.h"
 
 struct SDL_Window;
 

@@ -4,6 +4,7 @@
 #pragma once
 
 #include "core/frontend/emu_window.h"
+#include "core/frontend/graphics_context.h"
 #include "shader_recompiler/frontend/ir/basic_block.h"
 #include "shader_recompiler/frontend/maxwell/control_flow.h"
 
