@@ -21,11 +21,11 @@
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/nvdrv/nvdata.h"
-#include "core/hle/service/nvflinger/binder.h"
-#include "core/hle/service/nvflinger/buffer_queue_producer.h"
-#include "core/hle/service/nvflinger/hos_binder_driver_server.h"
-#include "core/hle/service/nvflinger/nvflinger.h"
-#include "core/hle/service/nvflinger/parcel.h"
+#include "core/hle/service/nvnflinger/binder.h"
+#include "core/hle/service/nvnflinger/buffer_queue_producer.h"
+#include "core/hle/service/nvnflinger/hos_binder_driver_server.h"
+#include "core/hle/service/nvnflinger/nvnflinger.h"
+#include "core/hle/service/nvnflinger/parcel.h"
 #include "core/hle/service/server_manager.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/vi/vi.h"
@@ -73,7 +73,7 @@ static_assert(sizeof(NativeWindow) == 0x28, "NativeWindow has wrong size");
 
 class IHOSBinderDriver final : public ServiceFramework<IHOSBinderDriver> {
 public:
-    explicit IHOSBinderDriver(Core::System& system_, NVFlinger::HosBinderDriverServer& server_)
+    explicit IHOSBinderDriver(Core::System& system_, Nvnflinger::HosBinderDriverServer& server_)
         : ServiceFramework{system_, "IHOSBinderDriver"}, server(server_) {
         static const FunctionInfo functions[] = {
             {0, &IHOSBinderDriver::TransactParcel, "TransactParcel"},
@@ -126,7 +126,7 @@ private:
     }
 
 private:
-    NVFlinger::HosBinderDriverServer& server;
+    Nvnflinger::HosBinderDriverServer& server;
 };
 
 class ISystemDisplayService final : public ServiceFramework<ISystemDisplayService> {
@@ -232,7 +232,7 @@ private:
 
 class IManagerDisplayService final : public ServiceFramework<IManagerDisplayService> {
 public:
-    explicit IManagerDisplayService(Core::System& system_, NVFlinger::NVFlinger& nv_flinger_)
+    explicit IManagerDisplayService(Core::System& system_, Nvnflinger::Nvnflinger& nv_flinger_)
         : ServiceFramework{system_, "IManagerDisplayService"}, nv_flinger{nv_flinger_} {
         // clang-format off
         static const FunctionInfo functions[] = {
@@ -383,13 +383,13 @@ private:
         rb.Push(ResultSuccess);
     }
 
-    NVFlinger::NVFlinger& nv_flinger;
+    Nvnflinger::Nvnflinger& nv_flinger;
 };
 
 class IApplicationDisplayService final : public ServiceFramework<IApplicationDisplayService> {
 public:
-    IApplicationDisplayService(Core::System& system_, NVFlinger::NVFlinger& nv_flinger_,
-                               NVFlinger::HosBinderDriverServer& hos_binder_driver_server_)
+    IApplicationDisplayService(Core::System& system_, Nvnflinger::Nvnflinger& nv_flinger_,
+                               Nvnflinger::HosBinderDriverServer& hos_binder_driver_server_)
         : ServiceFramework{system_, "IApplicationDisplayService"}, nv_flinger{nv_flinger_},
           hos_binder_driver_server{hos_binder_driver_server_} {
 
@@ -774,8 +774,8 @@ private:
         }
     }
 
-    NVFlinger::NVFlinger& nv_flinger;
-    NVFlinger::HosBinderDriverServer& hos_binder_driver_server;
+    Nvnflinger::Nvnflinger& nv_flinger;
+    Nvnflinger::HosBinderDriverServer& hos_binder_driver_server;
 };
 
 static bool IsValidServiceAccess(Permission permission, Policy policy) {
@@ -791,8 +791,8 @@ static bool IsValidServiceAccess(Permission permission, Policy policy) {
 }
 
 void detail::GetDisplayServiceImpl(HLERequestContext& ctx, Core::System& system,
-                                   NVFlinger::NVFlinger& nv_flinger,
-                                   NVFlinger::HosBinderDriverServer& hos_binder_driver_server,
+                                   Nvnflinger::Nvnflinger& nv_flinger,
+                                   Nvnflinger::HosBinderDriverServer& hos_binder_driver_server,
                                    Permission permission) {
     IPC::RequestParser rp{ctx};
     const auto policy = rp.PopEnum<Policy>();
@@ -809,8 +809,8 @@ void detail::GetDisplayServiceImpl(HLERequestContext& ctx, Core::System& system,
     rb.PushIpcInterface<IApplicationDisplayService>(system, nv_flinger, hos_binder_driver_server);
 }
 
-void LoopProcess(Core::System& system, NVFlinger::NVFlinger& nv_flinger,
-                 NVFlinger::HosBinderDriverServer& hos_binder_driver_server) {
+void LoopProcess(Core::System& system, Nvnflinger::Nvnflinger& nv_flinger,
+                 Nvnflinger::HosBinderDriverServer& hos_binder_driver_server) {
     auto server_manager = std::make_unique<ServerManager>(system);
 
     server_manager->RegisterNamedService(

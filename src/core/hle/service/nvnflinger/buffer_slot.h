@@ -9,7 +9,7 @@
 #include <memory>
 
 #include "common/common_types.h"
-#include "core/hle/service/nvflinger/ui/fence.h"
+#include "core/hle/service/nvnflinger/ui/fence.h"
 
 namespace Service::android {
 

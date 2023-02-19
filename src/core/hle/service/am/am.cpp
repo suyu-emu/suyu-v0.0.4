@@ -30,7 +30,7 @@
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/ns/ns.h"
-#include "core/hle/service/nvflinger/nvflinger.h"
+#include "core/hle/service/nvnflinger/nvnflinger.h"
 #include "core/hle/service/pm/pm.h"
 #include "core/hle/service/server_manager.h"
 #include "core/hle/service/sm/sm.h"
@@ -251,10 +251,9 @@ IDebugFunctions::IDebugFunctions(Core::System& system_)
 
 IDebugFunctions::~IDebugFunctions() = default;
 
-ISelfController::ISelfController(Core::System& system_, NVFlinger::NVFlinger& nvflinger_)
-    : ServiceFramework{system_, "ISelfController"}, nvflinger{nvflinger_}, service_context{
-                                                                               system,
-                                                                               "ISelfController"} {
+ISelfController::ISelfController(Core::System& system_, Nvnflinger::Nvnflinger& nvnflinger_)
+    : ServiceFramework{system_, "ISelfController"}, nvnflinger{nvnflinger_},
+      service_context{system, "ISelfController"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &ISelfController::Exit, "Exit"},
@@ -470,8 +469,8 @@ void ISelfController::CreateManagedDisplayLayer(HLERequestContext& ctx) {
 
     // TODO(Subv): Find out how AM determines the display to use, for now just
     // create the layer in the Default display.
-    const auto display_id = nvflinger.OpenDisplay("Default");
-    const auto layer_id = nvflinger.CreateLayer(*display_id);
+    const auto display_id = nvnflinger.OpenDisplay("Default");
+    const auto layer_id = nvnflinger.CreateLayer(*display_id);
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(ResultSuccess);
@@ -488,8 +487,8 @@ void ISelfController::CreateManagedDisplaySeparableLayer(HLERequestContext& ctx)
     // Outputting 1 layer id instead of the expected 2 has not been observed to cause any adverse
     // side effects.
     // TODO: Support multiple layers
-    const auto display_id = nvflinger.OpenDisplay("Default");
-    const auto layer_id = nvflinger.CreateLayer(*display_id);
+    const auto display_id = nvnflinger.OpenDisplay("Default");
+    const auto layer_id = nvnflinger.CreateLayer(*display_id);
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(ResultSuccess);
@@ -1826,7 +1825,7 @@ void IApplicationFunctions::PrepareForJit(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
-void LoopProcess(NVFlinger::NVFlinger& nvflinger, Core::System& system) {
+void LoopProcess(Nvnflinger::Nvnflinger& nvnflinger, Core::System& system) {
     auto message_queue = std::make_shared<AppletMessageQueue>(system);
     // Needed on game boot
     message_queue->PushMessage(AppletMessageQueue::AppletMessage::FocusStateChanged);
@@ -1834,9 +1833,9 @@ void LoopProcess(NVFlinger::NVFlinger& nvflinger, Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
 
     server_manager->RegisterNamedService(
-        "appletAE", std::make_shared<AppletAE>(nvflinger, message_queue, system));
+        "appletAE", std::make_shared<AppletAE>(nvnflinger, message_queue, system));
     server_manager->RegisterNamedService(
-        "appletOE", std::make_shared<AppletOE>(nvflinger, message_queue, system));
+        "appletOE", std::make_shared<AppletOE>(nvnflinger, message_queue, system));
     server_manager->RegisterNamedService("idle:sys", std::make_shared<IdleSys>(system));
     server_manager->RegisterNamedService("omm", std::make_shared<OMM>(system));
     server_manager->RegisterNamedService("spsm", std::make_shared<SPSM>(system));

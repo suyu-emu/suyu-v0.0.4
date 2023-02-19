@@ -10,8 +10,8 @@
 #include <memory>
 
 #include "common/common_types.h"
-#include "core/hle/service/nvflinger/consumer_base.h"
-#include "core/hle/service/nvflinger/status.h"
+#include "core/hle/service/nvnflinger/consumer_base.h"
+#include "core/hle/service/nvnflinger/status.h"
 
 namespace Service::android {
 

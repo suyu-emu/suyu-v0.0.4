@@ -13,10 +13,10 @@ namespace Service {
 class HLERequestContext;
 }
 
-namespace Service::NVFlinger {
+namespace Service::Nvnflinger {
 class HosBinderDriverServer;
-class NVFlinger;
-} // namespace Service::NVFlinger
+class Nvnflinger;
+} // namespace Service::Nvnflinger
 
 namespace Service::VI {
 
@@ -43,12 +43,12 @@ enum class Policy {
 
 namespace detail {
 void GetDisplayServiceImpl(HLERequestContext& ctx, Core::System& system,
-                           NVFlinger::NVFlinger& nv_flinger,
-                           NVFlinger::HosBinderDriverServer& hos_binder_driver_server,
+                           Nvnflinger::Nvnflinger& nv_flinger,
+                           Nvnflinger::HosBinderDriverServer& hos_binder_driver_server,
                            Permission permission);
 } // namespace detail
 
-void LoopProcess(Core::System& system, NVFlinger::NVFlinger& nv_flinger,
-                 NVFlinger::HosBinderDriverServer& hos_binder_driver_server);
+void LoopProcess(Core::System& system, Nvnflinger::Nvnflinger& nv_flinger,
+                 Nvnflinger::HosBinderDriverServer& hos_binder_driver_server);
 
 } // namespace Service::VI

@@ -9,13 +9,13 @@
 
 #include "common/common_types.h"
 #include "core/hle/service/kernel_helpers.h"
-#include "core/hle/service/nvflinger/binder.h"
+#include "core/hle/service/nvnflinger/binder.h"
 
 namespace Core {
 class System;
 }
 
-namespace Service::NVFlinger {
+namespace Service::Nvnflinger {
 
 class HosBinderDriverServer final {
 public:
@@ -34,4 +34,4 @@ private:
     u64 last_id{};
 };
 
-} // namespace Service::NVFlinger
+} // namespace Service::Nvnflinger

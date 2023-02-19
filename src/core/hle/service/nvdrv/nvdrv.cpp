@@ -23,7 +23,7 @@
 #include "core/hle/service/nvdrv/nvdrv.h"
 #include "core/hle/service/nvdrv/nvdrv_interface.h"
 #include "core/hle/service/nvdrv/nvmemp.h"
-#include "core/hle/service/nvflinger/nvflinger.h"
+#include "core/hle/service/nvnflinger/nvnflinger.h"
 #include "core/hle/service/server_manager.h"
 #include "video_core/gpu.h"
 
@@ -42,7 +42,7 @@ void EventInterface::FreeEvent(Kernel::KEvent* event) {
     module.service_context.CloseEvent(event);
 }
 
-void LoopProcess(NVFlinger::NVFlinger& nvflinger, Core::System& system) {
+void LoopProcess(Nvnflinger::Nvnflinger& nvnflinger, Core::System& system) {
     auto server_manager = std::make_unique<ServerManager>(system);
     auto module = std::make_shared<Module>(system);
     server_manager->RegisterNamedService("nvdrv", std::make_shared<NVDRV>(system, module, "nvdrv"));
@@ -53,7 +53,7 @@ void LoopProcess(NVFlinger::NVFlinger& nvflinger, Core::System& system) {
     server_manager->RegisterNamedService("nvdrv:t",
                                          std::make_shared<NVDRV>(system, module, "nvdrv:t"));
     server_manager->RegisterNamedService("nvmemp", std::make_shared<NVMEMP>(system));
-    nvflinger.SetNVDrvInstance(module);
+    nvnflinger.SetNVDrvInstance(module);
     ServerManager::RunServer(std::move(server_manager));
 }
 

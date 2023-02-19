@@ -12,9 +12,9 @@
 #include <mutex>
 
 #include "common/common_types.h"
-#include "core/hle/service/nvflinger/buffer_queue_defs.h"
-#include "core/hle/service/nvflinger/consumer_listener.h"
-#include "core/hle/service/nvflinger/status.h"
+#include "core/hle/service/nvnflinger/buffer_queue_defs.h"
+#include "core/hle/service/nvnflinger/consumer_listener.h"
+#include "core/hle/service/nvnflinger/status.h"
 
 namespace Service::android {
 

@@ -8,7 +8,7 @@
 
 #include "common/common_funcs.h"
 #include "common/common_types.h"
-#include "core/hle/service/nvflinger/pixel_format.h"
+#include "core/hle/service/nvnflinger/pixel_format.h"
 
 namespace Service::android {
 

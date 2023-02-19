@@ -28,10 +28,10 @@ namespace FileSystem {
 class FileSystemController;
 }
 
-namespace NVFlinger {
+namespace Nvnflinger {
 class HosBinderDriverServer;
-class NVFlinger;
-} // namespace NVFlinger
+class Nvnflinger;
+} // namespace Nvnflinger
 
 namespace SM {
 class ServiceManager;
@@ -228,8 +228,8 @@ public:
     void KillNVNFlinger();
 
 private:
-    std::unique_ptr<NVFlinger::HosBinderDriverServer> hos_binder_driver_server;
-    std::unique_ptr<NVFlinger::NVFlinger> nv_flinger;
+    std::unique_ptr<Nvnflinger::HosBinderDriverServer> hos_binder_driver_server;
+    std::unique_ptr<Nvnflinger::Nvnflinger> nv_flinger;
 };
 
 } // namespace Service

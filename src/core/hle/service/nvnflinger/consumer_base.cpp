@@ -6,11 +6,11 @@
 
 #include "common/assert.h"
 #include "common/logging/log.h"
-#include "core/hle/service/nvflinger/buffer_item.h"
-#include "core/hle/service/nvflinger/buffer_queue_consumer.h"
-#include "core/hle/service/nvflinger/buffer_queue_core.h"
-#include "core/hle/service/nvflinger/consumer_base.h"
-#include "core/hle/service/nvflinger/ui/graphic_buffer.h"
+#include "core/hle/service/nvnflinger/buffer_item.h"
+#include "core/hle/service/nvnflinger/buffer_queue_consumer.h"
+#include "core/hle/service/nvnflinger/buffer_queue_core.h"
+#include "core/hle/service/nvnflinger/consumer_base.h"
+#include "core/hle/service/nvnflinger/ui/graphic_buffer.h"
 
 namespace Service::android {
 
@@ -28,7 +28,7 @@ void ConsumerBase::Connect(bool controlled_by_app) {
 }
 
 void ConsumerBase::FreeBufferLocked(s32 slot_index) {
-    LOG_DEBUG(Service_NVFlinger, "slot_index={}", slot_index);
+    LOG_DEBUG(Service_Nvnflinger, "slot_index={}", slot_index);
 
     slots[slot_index].graphic_buffer = nullptr;
     slots[slot_index].fence = Fence::NoFence();
@@ -36,17 +36,17 @@ void ConsumerBase::FreeBufferLocked(s32 slot_index) {
 }
 
 void ConsumerBase::OnFrameAvailable(const BufferItem& item) {
-    LOG_DEBUG(Service_NVFlinger, "called");
+    LOG_DEBUG(Service_Nvnflinger, "called");
 }
 
 void ConsumerBase::OnFrameReplaced(const BufferItem& item) {
-    LOG_DEBUG(Service_NVFlinger, "called");
+    LOG_DEBUG(Service_Nvnflinger, "called");
 }
 
 void ConsumerBase::OnBuffersReleased() {
     std::scoped_lock lock{mutex};
 
-    LOG_DEBUG(Service_NVFlinger, "called");
+    LOG_DEBUG(Service_Nvnflinger, "called");
 
     if (is_abandoned) {
         // Nothing to do if we're already abandoned.
@@ -77,7 +77,7 @@ Status ConsumerBase::AcquireBufferLocked(BufferItem* item, std::chrono::nanoseco
     slots[item->slot].frame_number = item->frame_number;
     slots[item->slot].fence = item->fence;
 
-    LOG_DEBUG(Service_NVFlinger, "slot={}", item->slot);
+    LOG_DEBUG(Service_Nvnflinger, "slot={}", item->slot);
 
     return Status::NoError;
 }
@@ -85,7 +85,7 @@ Status ConsumerBase::AcquireBufferLocked(BufferItem* item, std::chrono::nanoseco
 Status ConsumerBase::AddReleaseFenceLocked(s32 slot,
                                            const std::shared_ptr<GraphicBuffer>& graphic_buffer,
                                            const Fence& fence) {
-    LOG_DEBUG(Service_NVFlinger, "slot={}", slot);
+    LOG_DEBUG(Service_Nvnflinger, "slot={}", slot);
 
     // If consumer no longer tracks this graphic_buffer, we can safely
     // drop this fence, as it will never be received by the producer.
@@ -109,7 +109,7 @@ Status ConsumerBase::ReleaseBufferLocked(s32 slot,
         return Status::NoError;
     }
 
-    LOG_DEBUG(Service_NVFlinger, "slot={}", slot);
+    LOG_DEBUG(Service_Nvnflinger, "slot={}", slot);
     Status err = consumer->ReleaseBuffer(slot, slots[slot].frame_number, slots[slot].fence);
     if (err == Status::StaleBufferSlot) {
         FreeBufferLocked(slot);

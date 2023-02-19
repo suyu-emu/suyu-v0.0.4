@@ -6,7 +6,7 @@
 
 #include "common/assert.h"
 
-#include "core/hle/service/nvflinger/buffer_queue_core.h"
+#include "core/hle/service/nvnflinger/buffer_queue_core.h"
 
 namespace Service::android {
 
@@ -82,7 +82,7 @@ s32 BufferQueueCore::GetPreallocatedBufferCountLocked() const {
 }
 
 void BufferQueueCore::FreeBufferLocked(s32 slot) {
-    LOG_DEBUG(Service_NVFlinger, "slot {}", slot);
+    LOG_DEBUG(Service_Nvnflinger, "slot {}", slot);
 
     slots[slot].graphic_buffer.reset();
 

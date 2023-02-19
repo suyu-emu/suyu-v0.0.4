@@ -16,8 +16,8 @@ class KReadableEvent;
 class KTransferMemory;
 } // namespace Kernel
 
-namespace Service::NVFlinger {
-class NVFlinger;
+namespace Service::Nvnflinger {
+class Nvnflinger;
 }
 
 namespace Service::AM {
@@ -154,7 +154,7 @@ public:
 
 class ISelfController final : public ServiceFramework<ISelfController> {
 public:
-    explicit ISelfController(Core::System& system_, NVFlinger::NVFlinger& nvflinger_);
+    explicit ISelfController(Core::System& system_, Nvnflinger::Nvnflinger& nvnflinger_);
     ~ISelfController() override;
 
 private:
@@ -191,7 +191,7 @@ private:
         Disable = 2,
     };
 
-    NVFlinger::NVFlinger& nvflinger;
+    Nvnflinger::Nvnflinger& nvnflinger;
 
     KernelHelpers::ServiceContext service_context;
 
@@ -397,6 +397,6 @@ public:
     ~IProcessWindingController() override;
 };
 
-void LoopProcess(NVFlinger::NVFlinger& nvflinger, Core::System& system);
+void LoopProcess(Nvnflinger::Nvnflinger& nvnflinger, Core::System& system);
 
 } // namespace Service::AM
