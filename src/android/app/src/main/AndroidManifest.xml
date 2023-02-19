@@ -27,6 +27,7 @@
         android:supportsRtl="true"
         android:isGame="true"
         android:banner="@mipmap/ic_launcher"
+        android:extractNativeLibs="true"
         android:requestLegacyExternalStorage="true">
 
         <activity

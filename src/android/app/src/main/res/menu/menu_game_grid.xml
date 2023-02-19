@@ -18,6 +18,11 @@
                 android:icon="@drawable/ic_install"
                 android:title="@string/install_keys"
                 app:showAsAction="ifRoom" />
+            <item
+                android:id="@+id/button_select_gpu_driver"
+                android:icon="@drawable/ic_settings_core"
+                android:title="@string/select_gpu_driver"
+                app:showAsAction="ifRoom" />
         </menu>
     </item>
     <item

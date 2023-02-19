@@ -9,6 +9,7 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -22,6 +23,7 @@ import org.yuzu.yuzu_emu.utils.AddDirectoryHelper;
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization;
 import org.yuzu.yuzu_emu.utils.FileBrowserHelper;
 import org.yuzu.yuzu_emu.utils.FileUtil;
+import org.yuzu.yuzu_emu.utils.GpuDriverHelper;
 import org.yuzu.yuzu_emu.utils.PicassoUtils;
 import org.yuzu.yuzu_emu.utils.StartupHandler;
 import org.yuzu.yuzu_emu.utils.ThemeUtil;
@@ -128,6 +130,41 @@ public final class MainActivity extends AppCompatActivity implements MainView {
                         MainPresenter.REQUEST_INSTALL_KEYS,
                         R.string.install_keys);
                 break;
+            case MainPresenter.REQUEST_SELECT_GPU_DRIVER:
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+                // Get the driver name for the dialog message.
+                String driverName = GpuDriverHelper.getCustomDriverName();
+                if (driverName == null) {
+                    driverName = getString(R.string.system_gpu_driver);
+                }
+
+                // Set the dialog message and title.
+                builder.setTitle(getString(R.string.select_gpu_driver_title));
+                builder.setMessage(driverName);
+
+                // Cancel button is a no-op.
+                builder.setNegativeButton(android.R.string.cancel, null);
+
+                // Select the default system driver.
+                builder.setPositiveButton(R.string.select_gpu_driver_default, (dialogInterface, i) ->
+                {
+                    GpuDriverHelper.installDefaultDriver(this);
+                    Toast.makeText(this, R.string.select_gpu_driver_use_default, Toast.LENGTH_SHORT).show();
+                });
+
+                // Use the file picker to install a custom driver.
+                builder.setNeutralButton(R.string.select_gpu_driver_install, (dialogInterface, i) -> {
+                    FileBrowserHelper.openFilePicker(this,
+                            MainPresenter.REQUEST_SELECT_GPU_DRIVER,
+                            R.string.select_gpu_driver);
+                });
+
+                // Show the dialog.
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
+
+                break;
         }
     }
 
@@ -163,9 +200,23 @@ public final class MainActivity extends AppCompatActivity implements MainView {
                             Toast.makeText(this, R.string.install_keys_success, Toast.LENGTH_SHORT).show();
                             refreshFragment();
                         } else {
-                            Toast.makeText(this, R.string.install_keys_failure, Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, R.string.install_keys_failure, Toast.LENGTH_LONG).show();
                             launchFileListActivity(MainPresenter.REQUEST_INSTALL_KEYS);
                         }
+                    }
+                }
+                break;
+
+            case MainPresenter.REQUEST_SELECT_GPU_DRIVER:
+                if (resultCode == MainActivity.RESULT_OK) {
+                    int takeFlags = (Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    getContentResolver().takePersistableUriPermission(Uri.parse(result.getDataString()), takeFlags);
+                    GpuDriverHelper.installCustomDriver(this, result.getData());
+                    String driverName = GpuDriverHelper.getCustomDriverName();
+                    if (driverName != null) {
+                        Toast.makeText(this, getString(R.string.select_gpu_driver_install_success) + " " + driverName, Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, R.string.select_gpu_driver_error, Toast.LENGTH_LONG).show();
                     }
                 }
                 break;

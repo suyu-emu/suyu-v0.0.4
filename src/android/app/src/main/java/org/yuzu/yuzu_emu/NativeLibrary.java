@@ -181,7 +181,7 @@ public final class NativeLibrary {
 
     public static native void SetAppDirectory(String directory);
 
-    public static native void SetGpuDriverParameters(String hookLibDir, String customDriverDir, String customDriverName, String fileRedirectDir);
+    public static native void InitializeGpuDriver(String hookLibDir, String customDriverDir, String customDriverName, String fileRedirectDir);
 
     public static native boolean ReloadKeys();
 

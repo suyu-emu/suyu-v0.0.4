@@ -13,6 +13,7 @@ import android.os.Build;
 import org.yuzu.yuzu_emu.model.GameDatabase;
 import org.yuzu.yuzu_emu.utils.DocumentsTree;
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization;
+import org.yuzu.yuzu_emu.utils.GpuDriverHelper;
 
 public class YuzuApplication extends Application {
     public static GameDatabase databaseHelper;
@@ -43,7 +44,7 @@ public class YuzuApplication extends Application {
         documentsTree = new DocumentsTree();
 
         DirectoryInitialization.start(getApplicationContext());
-
+        GpuDriverHelper.initializeDriverParameters(getApplicationContext());
         NativeLibrary.LogDeviceInfo();
 
         // TODO(bunnei): Disable notifications until we support app suspension.
