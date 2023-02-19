@@ -7,7 +7,6 @@
 #include "common/settings.h"
 #include "core/core.h"
 #include "core/hle/ipc.h"
-#include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_server_port.h"
 #include "core/hle/kernel/kernel.h"
@@ -31,6 +30,7 @@
 #include "core/hle/service/glue/glue.h"
 #include "core/hle/service/grc/grc.h"
 #include "core/hle/service/hid/hid.h"
+#include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/jit/jit.h"
 #include "core/hle/service/lbl/lbl.h"
 #include "core/hle/service/ldn/ldn.h"
@@ -117,7 +117,7 @@ void ServiceFrameworkBase::RegisterHandlersBaseTipc(const FunctionInfoBase* func
     }
 }
 
-void ServiceFrameworkBase::ReportUnimplementedFunction(Kernel::HLERequestContext& ctx,
+void ServiceFrameworkBase::ReportUnimplementedFunction(HLERequestContext& ctx,
                                                        const FunctionInfoBase* info) {
     auto cmd_buf = ctx.CommandBuffer();
     std::string function_name = info == nullptr ? fmt::format("{}", ctx.GetCommand()) : info->name;
@@ -140,7 +140,7 @@ void ServiceFrameworkBase::ReportUnimplementedFunction(Kernel::HLERequestContext
     }
 }
 
-void ServiceFrameworkBase::InvokeRequest(Kernel::HLERequestContext& ctx) {
+void ServiceFrameworkBase::InvokeRequest(HLERequestContext& ctx) {
     auto itr = handlers.find(ctx.GetCommand());
     const FunctionInfoBase* info = itr == handlers.end() ? nullptr : &itr->second;
     if (info == nullptr || info->handler_callback == nullptr) {
@@ -151,7 +151,7 @@ void ServiceFrameworkBase::InvokeRequest(Kernel::HLERequestContext& ctx) {
     handler_invoker(this, info->handler_callback, ctx);
 }
 
-void ServiceFrameworkBase::InvokeRequestTipc(Kernel::HLERequestContext& ctx) {
+void ServiceFrameworkBase::InvokeRequestTipc(HLERequestContext& ctx) {
     boost::container::flat_map<u32, FunctionInfoBase>::iterator itr;
 
     itr = handlers_tipc.find(ctx.GetCommand());
@@ -166,7 +166,7 @@ void ServiceFrameworkBase::InvokeRequestTipc(Kernel::HLERequestContext& ctx) {
 }
 
 Result ServiceFrameworkBase::HandleSyncRequest(Kernel::KServerSession& session,
-                                               Kernel::HLERequestContext& ctx) {
+                                               HLERequestContext& ctx) {
     const auto guard = LockService();
 
     Result result = ResultSuccess;

@@ -12,8 +12,6 @@
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "common/scratch_buffer.h"
-#include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/kernel/k_auto_object.h"
 #include "core/hle/kernel/k_handle_table.h"
 #include "core/hle/kernel/k_process.h"
@@ -21,17 +19,19 @@
 #include "core/hle/kernel/k_server_session.h"
 #include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
+#include "core/hle/service/hle_ipc.h"
+#include "core/hle/service/ipc_helpers.h"
 #include "core/memory.h"
 
-namespace Kernel {
+namespace Service {
 
-SessionRequestHandler::SessionRequestHandler(KernelCore& kernel_, const char* service_name_)
+SessionRequestHandler::SessionRequestHandler(Kernel::KernelCore& kernel_, const char* service_name_)
     : kernel{kernel_} {}
 
 SessionRequestHandler::~SessionRequestHandler() = default;
 
-SessionRequestManager::SessionRequestManager(KernelCore& kernel_,
-                                             Service::ServerManager& server_manager_)
+SessionRequestManager::SessionRequestManager(Kernel::KernelCore& kernel_,
+                                             ServerManager& server_manager_)
     : kernel{kernel_}, server_manager{server_manager_} {}
 
 SessionRequestManager::~SessionRequestManager() = default;
@@ -51,7 +51,7 @@ bool SessionRequestManager::HasSessionRequestHandler(const HLERequestContext& co
     }
 }
 
-Result SessionRequestManager::CompleteSyncRequest(KServerSession* server_session,
+Result SessionRequestManager::CompleteSyncRequest(Kernel::KServerSession* server_session,
                                                   HLERequestContext& context) {
     Result result = ResultSuccess;
 
@@ -79,7 +79,7 @@ Result SessionRequestManager::CompleteSyncRequest(KServerSession* server_session
     return result;
 }
 
-Result SessionRequestManager::HandleDomainSyncRequest(KServerSession* server_session,
+Result SessionRequestManager::HandleDomainSyncRequest(Kernel::KServerSession* server_session,
                                                       HLERequestContext& context) {
     if (!context.HasDomainMessageHeader()) {
         return ResultSuccess;
@@ -124,16 +124,17 @@ Result SessionRequestManager::HandleDomainSyncRequest(KServerSession* server_ses
     return ResultSuccess;
 }
 
-HLERequestContext::HLERequestContext(KernelCore& kernel_, Core::Memory::Memory& memory_,
-                                     KServerSession* server_session_, KThread* thread_)
+HLERequestContext::HLERequestContext(Kernel::KernelCore& kernel_, Core::Memory::Memory& memory_,
+                                     Kernel::KServerSession* server_session_,
+                                     Kernel::KThread* thread_)
     : server_session(server_session_), thread(thread_), kernel{kernel_}, memory{memory_} {
     cmd_buf[0] = 0;
 }
 
 HLERequestContext::~HLERequestContext() = default;
 
-void HLERequestContext::ParseCommandBuffer(const KHandleTable& handle_table, u32_le* src_cmdbuf,
-                                           bool incoming) {
+void HLERequestContext::ParseCommandBuffer(const Kernel::KHandleTable& handle_table,
+                                           u32_le* src_cmdbuf, bool incoming) {
     IPC::RequestParser rp(src_cmdbuf);
     command_header = rp.PopRaw<IPC::CommandHeader>();
 
@@ -253,8 +254,8 @@ void HLERequestContext::ParseCommandBuffer(const KHandleTable& handle_table, u32
     rp.Skip(1, false); // The command is actually an u64, but we don't use the high part.
 }
 
-Result HLERequestContext::PopulateFromIncomingCommandBuffer(const KHandleTable& handle_table,
-                                                            u32_le* src_cmdbuf) {
+Result HLERequestContext::PopulateFromIncomingCommandBuffer(
+    const Kernel::KHandleTable& handle_table, u32_le* src_cmdbuf) {
     ParseCommandBuffer(handle_table, src_cmdbuf, true);
 
     if (command_header->IsCloseCommand()) {
@@ -267,7 +268,7 @@ Result HLERequestContext::PopulateFromIncomingCommandBuffer(const KHandleTable& 
     return ResultSuccess;
 }
 
-Result HLERequestContext::WriteToOutgoingCommandBuffer(KThread& requesting_thread) {
+Result HLERequestContext::WriteToOutgoingCommandBuffer(Kernel::KThread& requesting_thread) {
     auto current_offset = handles_offset;
     auto& owner_process = *requesting_thread.GetOwnerProcess();
     auto& handle_table = owner_process.GetHandleTable();
@@ -528,4 +529,4 @@ std::string HLERequestContext::Description() const {
     return s.str();
 }
 
-} // namespace Kernel
+} // namespace Service

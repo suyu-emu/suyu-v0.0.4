@@ -29,9 +29,9 @@ public:
     const std::shared_ptr<AppletMessageQueue>& GetMessageQueue() const;
 
 private:
-    void OpenSystemAppletProxy(Kernel::HLERequestContext& ctx);
-    void OpenLibraryAppletProxy(Kernel::HLERequestContext& ctx);
-    void OpenLibraryAppletProxyOld(Kernel::HLERequestContext& ctx);
+    void OpenSystemAppletProxy(HLERequestContext& ctx);
+    void OpenLibraryAppletProxy(HLERequestContext& ctx);
+    void OpenLibraryAppletProxyOld(HLERequestContext& ctx);
 
     NVFlinger::NVFlinger& nvflinger;
     std::shared_ptr<AppletMessageQueue> msg_queue;

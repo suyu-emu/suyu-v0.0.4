@@ -20,7 +20,7 @@ VI_S::VI_S(Core::System& system_, NVFlinger::NVFlinger& nv_flinger_,
 
 VI_S::~VI_S() = default;
 
-void VI_S::GetDisplayService(Kernel::HLERequestContext& ctx) {
+void VI_S::GetDisplayService(HLERequestContext& ctx) {
     LOG_DEBUG(Service_VI, "called");
 
     detail::GetDisplayServiceImpl(ctx, system, nv_flinger, hos_binder_driver_server,

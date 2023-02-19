@@ -9,10 +9,6 @@ namespace Core {
 class System;
 }
 
-namespace Kernel {
-class HLERequestContext;
-}
-
 namespace Service::NVFlinger {
 class HosBinderDriverServer;
 class NVFlinger;
@@ -27,7 +23,7 @@ public:
     ~VI_M() override;
 
 private:
-    void GetDisplayService(Kernel::HLERequestContext& ctx);
+    void GetDisplayService(HLERequestContext& ctx);
 
     NVFlinger::NVFlinger& nv_flinger;
     NVFlinger::HosBinderDriverServer& hos_binder_driver_server;

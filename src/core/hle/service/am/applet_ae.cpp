@@ -3,9 +3,9 @@
 
 #include "common/logging/log.h"
 #include "core/core.h"
-#include "core/hle/ipc_helpers.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applet_ae.h"
+#include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/nvflinger/nvflinger.h"
 
 namespace Service::AM {
@@ -36,7 +36,7 @@ public:
     }
 
 private:
-    void GetCommonStateGetter(Kernel::HLERequestContext& ctx) {
+    void GetCommonStateGetter(HLERequestContext& ctx) {
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
@@ -44,7 +44,7 @@ private:
         rb.PushIpcInterface<ICommonStateGetter>(system, msg_queue);
     }
 
-    void GetSelfController(Kernel::HLERequestContext& ctx) {
+    void GetSelfController(HLERequestContext& ctx) {
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
@@ -52,7 +52,7 @@ private:
         rb.PushIpcInterface<ISelfController>(system, nvflinger);
     }
 
-    void GetWindowController(Kernel::HLERequestContext& ctx) {
+    void GetWindowController(HLERequestContext& ctx) {
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
@@ -60,7 +60,7 @@ private:
         rb.PushIpcInterface<IWindowController>(system);
     }
 
-    void GetAudioController(Kernel::HLERequestContext& ctx) {
+    void GetAudioController(HLERequestContext& ctx) {
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
@@ -68,7 +68,7 @@ private:
         rb.PushIpcInterface<IAudioController>(system);
     }
 
-    void GetDisplayController(Kernel::HLERequestContext& ctx) {
+    void GetDisplayController(HLERequestContext& ctx) {
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
@@ -76,7 +76,7 @@ private:
         rb.PushIpcInterface<IDisplayController>(system);
     }
 
-    void GetProcessWindingController(Kernel::HLERequestContext& ctx) {
+    void GetProcessWindingController(HLERequestContext& ctx) {
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
@@ -84,7 +84,7 @@ private:
         rb.PushIpcInterface<IProcessWindingController>(system);
     }
 
-    void GetDebugFunctions(Kernel::HLERequestContext& ctx) {
+    void GetDebugFunctions(HLERequestContext& ctx) {
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
@@ -92,7 +92,7 @@ private:
         rb.PushIpcInterface<IDebugFunctions>(system);
     }
 
-    void GetLibraryAppletCreator(Kernel::HLERequestContext& ctx) {
+    void GetLibraryAppletCreator(HLERequestContext& ctx) {
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
@@ -100,7 +100,7 @@ private:
         rb.PushIpcInterface<ILibraryAppletCreator>(system);
     }
 
-    void GetApplicationFunctions(Kernel::HLERequestContext& ctx) {
+    void GetApplicationFunctions(HLERequestContext& ctx) {
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
@@ -140,7 +140,7 @@ public:
     }
 
 private:
-    void GetCommonStateGetter(Kernel::HLERequestContext& ctx) {
+    void GetCommonStateGetter(HLERequestContext& ctx) {
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
@@ -148,7 +148,7 @@ private:
         rb.PushIpcInterface<ICommonStateGetter>(system, msg_queue);
     }
 
-    void GetSelfController(Kernel::HLERequestContext& ctx) {
+    void GetSelfController(HLERequestContext& ctx) {
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
@@ -156,7 +156,7 @@ private:
         rb.PushIpcInterface<ISelfController>(system, nvflinger);
     }
 
-    void GetWindowController(Kernel::HLERequestContext& ctx) {
+    void GetWindowController(HLERequestContext& ctx) {
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
@@ -164,7 +164,7 @@ private:
         rb.PushIpcInterface<IWindowController>(system);
     }
 
-    void GetAudioController(Kernel::HLERequestContext& ctx) {
+    void GetAudioController(HLERequestContext& ctx) {
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
@@ -172,7 +172,7 @@ private:
         rb.PushIpcInterface<IAudioController>(system);
     }
 
-    void GetDisplayController(Kernel::HLERequestContext& ctx) {
+    void GetDisplayController(HLERequestContext& ctx) {
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
@@ -180,7 +180,7 @@ private:
         rb.PushIpcInterface<IDisplayController>(system);
     }
 
-    void GetDebugFunctions(Kernel::HLERequestContext& ctx) {
+    void GetDebugFunctions(HLERequestContext& ctx) {
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
@@ -188,7 +188,7 @@ private:
         rb.PushIpcInterface<IDebugFunctions>(system);
     }
 
-    void GetLibraryAppletCreator(Kernel::HLERequestContext& ctx) {
+    void GetLibraryAppletCreator(HLERequestContext& ctx) {
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
@@ -196,7 +196,7 @@ private:
         rb.PushIpcInterface<ILibraryAppletCreator>(system);
     }
 
-    void GetHomeMenuFunctions(Kernel::HLERequestContext& ctx) {
+    void GetHomeMenuFunctions(HLERequestContext& ctx) {
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
@@ -204,7 +204,7 @@ private:
         rb.PushIpcInterface<IHomeMenuFunctions>(system);
     }
 
-    void GetGlobalStateController(Kernel::HLERequestContext& ctx) {
+    void GetGlobalStateController(HLERequestContext& ctx) {
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
@@ -212,7 +212,7 @@ private:
         rb.PushIpcInterface<IGlobalStateController>(system);
     }
 
-    void GetApplicationCreator(Kernel::HLERequestContext& ctx) {
+    void GetApplicationCreator(HLERequestContext& ctx) {
         LOG_DEBUG(Service_AM, "called");
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
@@ -224,7 +224,7 @@ private:
     std::shared_ptr<AppletMessageQueue> msg_queue;
 };
 
-void AppletAE::OpenSystemAppletProxy(Kernel::HLERequestContext& ctx) {
+void AppletAE::OpenSystemAppletProxy(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
@@ -232,7 +232,7 @@ void AppletAE::OpenSystemAppletProxy(Kernel::HLERequestContext& ctx) {
     rb.PushIpcInterface<ISystemAppletProxy>(nvflinger, msg_queue, system);
 }
 
-void AppletAE::OpenLibraryAppletProxy(Kernel::HLERequestContext& ctx) {
+void AppletAE::OpenLibraryAppletProxy(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
@@ -240,7 +240,7 @@ void AppletAE::OpenLibraryAppletProxy(Kernel::HLERequestContext& ctx) {
     rb.PushIpcInterface<ILibraryAppletProxy>(nvflinger, msg_queue, system);
 }
 
-void AppletAE::OpenLibraryAppletProxyOld(Kernel::HLERequestContext& ctx) {
+void AppletAE::OpenLibraryAppletProxyOld(HLERequestContext& ctx) {
     LOG_DEBUG(Service_AM, "called");
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};

@@ -29,7 +29,7 @@ public:
     const std::shared_ptr<AppletMessageQueue>& GetMessageQueue() const;
 
 private:
-    void OpenApplicationProxy(Kernel::HLERequestContext& ctx);
+    void OpenApplicationProxy(HLERequestContext& ctx);
 
     NVFlinger::NVFlinger& nvflinger;
     std::shared_ptr<AppletMessageQueue> msg_queue;

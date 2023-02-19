@@ -9,7 +9,7 @@ namespace Core {
 class System;
 }
 
-namespace Kernel {
+namespace Service {
 class HLERequestContext;
 }
 
@@ -42,7 +42,7 @@ enum class Policy {
 };
 
 namespace detail {
-void GetDisplayServiceImpl(Kernel::HLERequestContext& ctx, Core::System& system,
+void GetDisplayServiceImpl(HLERequestContext& ctx, Core::System& system,
                            NVFlinger::NVFlinger& nv_flinger,
                            NVFlinger::HosBinderDriverServer& hos_binder_driver_server,
                            Permission permission);

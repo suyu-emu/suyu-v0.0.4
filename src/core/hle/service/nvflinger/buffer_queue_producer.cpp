@@ -8,10 +8,10 @@
 #include "common/logging/log.h"
 #include "common/settings.h"
 #include "core/core.h"
-#include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/kernel.h"
+#include "core/hle/service/hle_ipc.h"
 #include "core/hle/service/kernel_helpers.h"
 #include "core/hle/service/nvdrv/core/nvmap.h"
 #include "core/hle/service/nvflinger/buffer_queue_core.h"
@@ -813,7 +813,7 @@ Status BufferQueueProducer::SetPreallocatedBuffer(s32 slot,
     return Status::NoError;
 }
 
-void BufferQueueProducer::Transact(Kernel::HLERequestContext& ctx, TransactionId code, u32 flags) {
+void BufferQueueProducer::Transact(HLERequestContext& ctx, TransactionId code, u32 flags) {
     Status status{Status::NoError};
     InputParcel parcel_in{ctx.ReadBuffer()};
     OutputParcel parcel_out{};

@@ -158,7 +158,6 @@ add_library(core STATIC
     hid/motion_input.h
     hle/api_version.h
     hle/ipc.h
-    hle/ipc_helpers.h
     hle/kernel/board/nintendo/nx/k_memory_layout.h
     hle/kernel/board/nintendo/nx/k_system_control.cpp
     hle/kernel/board/nintendo/nx/k_system_control.h
@@ -168,8 +167,6 @@ add_library(core STATIC
     hle/kernel/svc_results.h
     hle/kernel/global_scheduler_context.cpp
     hle/kernel/global_scheduler_context.h
-    hle/kernel/hle_ipc.cpp
-    hle/kernel/hle_ipc.h
     hle/kernel/init/init_slab_setup.cpp
     hle/kernel/init/init_slab_setup.h
     hle/kernel/initial_process.h
@@ -680,6 +677,9 @@ add_library(core STATIC
     hle/service/ptm/ptm.h
     hle/service/ptm/ts.cpp
     hle/service/ptm/ts.h
+    hle/service/hle_ipc.cpp
+    hle/service/hle_ipc.h
+    hle/service/ipc_helpers.h
     hle/service/kernel_helpers.cpp
     hle/service/kernel_helpers.h
     hle/service/mutex.cpp
