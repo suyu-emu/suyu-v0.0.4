@@ -192,7 +192,6 @@ void Config::ReadValues() {
 
     // Renderer
     ReadSetting("Renderer", Settings::values.renderer_backend);
-    ReadSetting("Renderer", Settings::values.renderer_force_max_clock);
     ReadSetting("Renderer", Settings::values.renderer_debug);
     ReadSetting("Renderer", Settings::values.renderer_shader_feedback);
     ReadSetting("Renderer", Settings::values.enable_nsight_aftermath);
@@ -222,6 +221,10 @@ void Config::ReadValues() {
     ReadSetting("Renderer", Settings::values.bg_red);
     ReadSetting("Renderer", Settings::values.bg_green);
     ReadSetting("Renderer", Settings::values.bg_blue);
+
+    // Enable force_max_clock by default on Android
+    Settings::values.renderer_force_max_clock =
+        config->GetBoolean("Renderer", "force_max_clock", true);
 
     // Audio
     ReadSetting("Audio", Settings::values.sink_id);

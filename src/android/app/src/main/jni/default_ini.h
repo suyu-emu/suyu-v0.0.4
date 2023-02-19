@@ -249,6 +249,10 @@ backend =
 
 # Enable graphics API debugging mode.
 # 0 (default): Disabled, 1: Enabled
+force_max_clock =
+
+# Enable graphics API debugging mode.
+# 0 (default): Disabled, 1: Enabled
 debug =
 
 # Enable shader feedback.

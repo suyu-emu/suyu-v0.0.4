@@ -47,6 +47,7 @@ public final class SettingsFile {
     public static final String KEY_RENDERER_ASPECT_RATIO = "aspect_ratio";
     public static final String KEY_RENDERER_ACCURACY = "gpu_accuracy";
     public static final String KEY_RENDERER_ASYNCHRONOUS_SHADERS = "use_asynchronous_shaders";
+    public static final String KEY_RENDERER_FORCE_MAX_CLOCK = "force_max_clock";
     public static final String KEY_RENDERER_USE_SPEED_LIMIT = "use_speed_limit";
     public static final String KEY_RENDERER_SPEED_LIMIT = "speed_limit";
     // Audio
