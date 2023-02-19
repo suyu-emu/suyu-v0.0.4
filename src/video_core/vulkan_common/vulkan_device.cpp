@@ -365,12 +365,12 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     if (is_qualcomm) {
         must_emulate_scaled_formats = true;
 
-        LOG_WARNING(Render_Vulkan, "Adreno drivers have broken VK_EXT_extended_dynamic_state");
+        LOG_WARNING(Render_Vulkan, "Qualcomm drivers have broken VK_EXT_extended_dynamic_state");
         extensions.extended_dynamic_state = false;
         loaded_extensions.erase(VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
 
         LOG_WARNING(Render_Vulkan,
-                    "Adreno drivers have a slow VK_KHR_push_descriptor implementation");
+                    "Qualcomm drivers have a slow VK_KHR_push_descriptor implementation");
         extensions.push_descriptor = false;
         loaded_extensions.erase(VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
 
@@ -436,7 +436,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             loaded_extensions.erase(VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
         }
     }
-    if (extensions.extended_dynamic_state2 && is_radv) {
+    if (extensions.extended_dynamic_state2 && (is_radv || is_qualcomm)) {
         const u32 version = (properties.properties.driverVersion << 3) >> 3;
         if (version < VK_MAKE_API_VERSION(0, 22, 3, 1)) {
             LOG_WARNING(
