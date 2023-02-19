@@ -106,7 +106,8 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
             doneButton.setOnClickListener(v -> stopConfiguringControls());
         }
 
-        // Show/hide the "Show FPS" overlay
+        // Setup overlay.
+        resetInputOverlay();
         updateShowFpsOverlay();
 
         // The new Surface created here will get passed to the native code via onSurfaceChanged.
