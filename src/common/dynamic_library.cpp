@@ -22,6 +22,8 @@ DynamicLibrary::DynamicLibrary(const char* filename) {
     void(Open(filename));
 }
 
+DynamicLibrary::DynamicLibrary(void* handle_) : handle{handle_} {}
+
 DynamicLibrary::DynamicLibrary(DynamicLibrary&& rhs) noexcept
     : handle{std::exchange(rhs.handle, nullptr)} {}
 
