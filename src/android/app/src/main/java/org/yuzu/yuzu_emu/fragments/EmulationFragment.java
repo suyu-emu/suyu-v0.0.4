@@ -195,11 +195,10 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
             {
                 final double[] perfStats = NativeLibrary.GetPerfStats();
                 if (perfStats[FPS] > 0) {
-                    mPerfStats.setText(String.format("FPS: %d Speed: %d%%", (int) (perfStats[FPS]),
-                            (int) (perfStats[SPEED] * 100.0)));
+                    mPerfStats.setText(String.format("FPS: %.1f", perfStats[FPS]));
                 }
 
-                perfStatsUpdateHandler.postDelayed(perfStatsUpdater, 3000);
+                perfStatsUpdateHandler.postDelayed(perfStatsUpdater, 100);
             };
             perfStatsUpdateHandler.post(perfStatsUpdater);
 

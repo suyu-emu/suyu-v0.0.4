@@ -198,7 +198,7 @@ public:
         while (true) {
             {
                 std::unique_lock lock(m_mutex);
-                if (m_cv.wait_for(lock, std::chrono::milliseconds(100),
+                if (m_cv.wait_for(lock, std::chrono::milliseconds(800),
                                   [&]() { return !m_is_running; })) {
                     // Emulation halted.
                     break;
