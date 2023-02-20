@@ -318,7 +318,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     const bool is_turnip = driver_id == VK_DRIVER_ID_MESA_TURNIP;
 
     if ((is_mvk || is_qualcomm || is_turnip) && !is_suitable) {
-        LOG_WARNING(Render_Vulkan, "Unsuitable driver is MoltenVK, continuing anyway");
+        LOG_WARNING(Render_Vulkan, "Unsuitable driver, continuing anyway");
     } else if (!is_suitable) {
         throw vk::Exception(VK_ERROR_INCOMPATIBLE_DRIVER);
     }
