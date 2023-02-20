@@ -27,7 +27,7 @@ public final class DirectoryInitialization {
 
         if (directoryState != DirectoryInitializationState.YUZU_DIRECTORIES_INITIALIZED) {
             initializeInternalStorage(context);
-            NativeLibrary.CreateConfigFile();
+            NativeLibrary.InitializeEmulation();
             directoryState = DirectoryInitializationState.YUZU_DIRECTORIES_INITIALIZED;
         }
 

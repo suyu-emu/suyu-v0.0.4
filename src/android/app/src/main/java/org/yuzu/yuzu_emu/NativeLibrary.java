@@ -185,8 +185,7 @@ public final class NativeLibrary {
 
     public static native boolean ReloadKeys();
 
-    // Create the config.ini file.
-    public static native void CreateConfigFile();
+    public static native void InitializeEmulation();
 
     public static native int DefaultCPUCore();
 

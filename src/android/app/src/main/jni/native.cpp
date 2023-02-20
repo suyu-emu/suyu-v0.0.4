@@ -40,7 +40,6 @@ namespace {
 class EmulationSession final {
 public:
     EmulationSession() {
-        m_system.Initialize();
         m_vfs = std::make_shared<FileSys::RealVfsFilesystem>();
     }
 
@@ -126,7 +125,6 @@ public:
 
         // Initialize system.
         m_system.SetShuttingDown(false);
-        m_system.Initialize();
         m_system.ApplySettings();
         m_system.HIDCore().ReloadInputDevices();
         m_system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
@@ -498,9 +496,12 @@ jstring Java_org_yuzu_yuzu_1emu_NativeLibrary_GetGitRevision([[maybe_unused]] JN
     return {};
 }
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_CreateConfigFile
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_InitializeEmulation
     [[maybe_unused]] (JNIEnv* env, [[maybe_unused]] jclass clazz) {
+    // Create the default config.ini.
     Config{};
+    // Initialize the emulated system.
+    EmulationSession::GetInstance().System().Initialize();
 }
 
 jint Java_org_yuzu_yuzu_1emu_NativeLibrary_DefaultCPUCore([[maybe_unused]] JNIEnv* env,

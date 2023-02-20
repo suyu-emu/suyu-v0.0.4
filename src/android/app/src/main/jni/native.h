@@ -86,8 +86,8 @@ JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_SetSysDirectory(JNI
                                                                              jclass clazz,
                                                                              jstring path);
 
-JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_CreateConfigFile(JNIEnv* env,
-                                                                              jclass clazz);
+JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_InitializeEmulation(JNIEnv* env,
+                                                                                 jclass clazz);
 
 JNIEXPORT jint JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_DefaultCPUCore(JNIEnv* env,
                                                                             jclass clazz);
