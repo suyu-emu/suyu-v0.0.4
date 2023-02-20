@@ -49,6 +49,7 @@ public final class SettingsFile {
     public static final String KEY_RENDERER_ASYNCHRONOUS_SHADERS = "use_asynchronous_shaders";
     public static final String KEY_RENDERER_FORCE_MAX_CLOCK = "force_max_clock";
     public static final String KEY_RENDERER_USE_SPEED_LIMIT = "use_speed_limit";
+    public static final String KEY_RENDERER_DEBUG = "debug";
     public static final String KEY_RENDERER_SPEED_LIMIT = "speed_limit";
     // Audio
     public static final String KEY_AUDIO_VOLUME = "volume";

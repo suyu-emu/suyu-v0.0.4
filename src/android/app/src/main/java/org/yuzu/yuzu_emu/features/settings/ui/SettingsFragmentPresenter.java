@@ -162,6 +162,7 @@ public final class SettingsFragmentPresenter {
         Setting rendererAspectRation = rendererSection.getSetting(SettingsFile.KEY_RENDERER_ASPECT_RATIO);
         Setting rendererForceMaxClocks = rendererSection.getSetting(SettingsFile.KEY_RENDERER_FORCE_MAX_CLOCK);
         Setting rendererAsynchronousShaders = rendererSection.getSetting(SettingsFile.KEY_RENDERER_ASYNCHRONOUS_SHADERS);
+        Setting rendererDebug = rendererSection.getSetting(SettingsFile.KEY_RENDERER_DEBUG);
 
         sl.add(new SingleChoiceSetting(SettingsFile.KEY_RENDERER_BACKEND, Settings.SECTION_RENDERER, R.string.renderer_api, 0, R.array.rendererApiNames, R.array.rendererApiValues, 1, rendererBackend));
         sl.add(new SingleChoiceSetting(SettingsFile.KEY_RENDERER_ACCURACY, Settings.SECTION_RENDERER, R.string.renderer_accuracy, 0, R.array.rendererAccuracyNames, R.array.rendererAccuracyValues, 1, rendererAccuracy));
@@ -169,6 +170,7 @@ public final class SettingsFragmentPresenter {
         sl.add(new SingleChoiceSetting(SettingsFile.KEY_RENDERER_ASPECT_RATIO, Settings.SECTION_RENDERER, R.string.renderer_aspect_ratio, 0, R.array.rendererAspectRatioNames, R.array.rendererAspectRatioValues, 0, rendererAspectRation));
         sl.add(new CheckBoxSetting(SettingsFile.KEY_RENDERER_FORCE_MAX_CLOCK, Settings.SECTION_RENDERER, R.string.renderer_force_max_clock, R.string.renderer_force_max_clock_description, true, rendererForceMaxClocks));
         sl.add(new CheckBoxSetting(SettingsFile.KEY_RENDERER_ASYNCHRONOUS_SHADERS, Settings.SECTION_RENDERER, R.string.renderer_asynchronous_shaders, R.string.renderer_asynchronous_shaders_description, false, rendererAsynchronousShaders));
+        sl.add(new CheckBoxSetting(SettingsFile.KEY_RENDERER_DEBUG, Settings.SECTION_RENDERER, R.string.renderer_debug, R.string.renderer_debug_description, false, rendererDebug));
     }
 
     private void addAudioSettings(ArrayList<SettingsItem> sl) {

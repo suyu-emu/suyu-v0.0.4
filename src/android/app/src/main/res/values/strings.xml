@@ -33,6 +33,8 @@
     <string name="renderer_force_max_clock_description">Forces the GPU to run at the maximum possible clocks (thermal constraints will still be applied).</string>
     <string name="renderer_asynchronous_shaders">Use asynchronous shaders</string>
     <string name="renderer_asynchronous_shaders_description">Compiles shaders asynchronously, which will reduce stutter but may introduce glitches.</string>
+    <string name="renderer_debug">Enable graphics debugging</string>
+    <string name="renderer_debug_description">When checked, the graphics API enters a slower debugging mode.</string>
 
     <!-- Audio settings strings -->
     <string name="audio_volume">Volume</string>

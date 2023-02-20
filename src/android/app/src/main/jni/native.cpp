@@ -77,20 +77,27 @@ public:
                              const std::string& custom_driver_name,
                              const std::string& file_redirect_dir) {
         void* handle{};
+        const char* file_redirect_dir_{};
+        int featureFlags{};
+
+        // Enable driver file redirection when renderer debugging is enabled.
+        if (Settings::values.renderer_debug && file_redirect_dir.size()) {
+            featureFlags |= ADRENOTOOLS_DRIVER_FILE_REDIRECT;
+            file_redirect_dir_ = file_redirect_dir.c_str();
+        }
 
         // Try to load a custom driver.
         if (custom_driver_name.size()) {
             handle = adrenotools_open_libvulkan(
-                RTLD_NOW, ADRENOTOOLS_DRIVER_CUSTOM | ADRENOTOOLS_DRIVER_FILE_REDIRECT, nullptr,
-                hook_lib_dir.c_str(), custom_driver_dir.c_str(), custom_driver_name.c_str(),
-                file_redirect_dir.c_str(), nullptr);
+                RTLD_NOW, featureFlags | ADRENOTOOLS_DRIVER_CUSTOM, nullptr, hook_lib_dir.c_str(),
+                custom_driver_dir.c_str(), custom_driver_name.c_str(), file_redirect_dir_, nullptr);
         }
 
         // Try to load the system driver.
         if (!handle) {
-            handle = adrenotools_open_libvulkan(RTLD_NOW, ADRENOTOOLS_DRIVER_FILE_REDIRECT, nullptr,
-                                                hook_lib_dir.c_str(), nullptr, nullptr,
-                                                file_redirect_dir.c_str(), nullptr);
+            handle =
+                adrenotools_open_libvulkan(RTLD_NOW, featureFlags, nullptr, hook_lib_dir.c_str(),
+                                           nullptr, nullptr, file_redirect_dir_, nullptr);
         }
 
         m_vulkan_library = std::make_shared<Common::DynamicLibrary>(handle);
