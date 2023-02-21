@@ -76,7 +76,7 @@ void DiscordImpl::Update() {
         // New Check for game cover
         httplib::Client cli(game_cover_url);
 
-        if (auto res = cli.Head(fmt::format("/images/game/boxart/{}.png", icon_name).c_str())) {
+        if (auto res = cli.Head(fmt::format("/images/game/boxart/{}.png", icon_name))) {
             if (res->status == 200) {
                 game_cover_url += fmt::format("/images/game/boxart/{}.png", icon_name);
             } else {
