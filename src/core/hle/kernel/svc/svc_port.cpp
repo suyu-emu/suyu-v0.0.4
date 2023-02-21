@@ -65,7 +65,7 @@ Result ConnectToNamedPort(Core::System& system, Handle* out, VAddr port_name_add
 }
 
 Result CreatePort(Core::System& system, Handle* out_server, Handle* out_client,
-                  int32_t max_sessions, bool is_light, uintptr_t name) {
+                  int32_t max_sessions, bool is_light, uint64_t name) {
     UNIMPLEMENTED();
     R_THROW(ResultNotImplemented);
 }
