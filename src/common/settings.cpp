@@ -76,6 +76,13 @@ void LogSettings() {
     log_setting("Debugging_GDBStub", values.use_gdbstub.GetValue());
     log_setting("Input_EnableMotion", values.motion_enabled.GetValue());
     log_setting("Input_EnableVibration", values.vibration_enabled.GetValue());
+    log_setting("Input_EnableTouch", values.touchscreen.enabled);
+    log_setting("Input_EnableMouse", values.mouse_enabled.GetValue());
+    log_setting("Input_EnableKeyboard", values.keyboard_enabled.GetValue());
+    log_setting("Input_EnableRingController", values.enable_ring_controller.GetValue());
+    log_setting("Input_EnableIrSensor", values.enable_ir_sensor.GetValue());
+    log_setting("Input_EnableCustomJoycon", values.enable_joycon_driver.GetValue());
+    log_setting("Input_EnableCustomProController", values.enable_procon_driver.GetValue());
     log_setting("Input_EnableRawInput", values.enable_raw_input.GetValue());
 }
 
