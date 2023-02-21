@@ -45,7 +45,6 @@ private:
     ResultVal<Kernel::KClientSession*> GetServiceImpl(Kernel::HLERequestContext& ctx);
 
     ServiceManager& service_manager;
-    bool is_initialized{};
     Kernel::KernelCore& kernel;
 };
 
