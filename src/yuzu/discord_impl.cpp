@@ -75,6 +75,8 @@ void DiscordImpl::Update() {
 
         // New Check for game cover
         httplib::Client cli(game_cover_url);
+        cli.set_connection_timeout(std::chrono::seconds(3));
+        cli.set_read_timeout(std::chrono::seconds(3));
 
         if (auto res = cli.Head(fmt::format("/images/game/boxart/{}.png", icon_name))) {
             if (res->status == 200) {
