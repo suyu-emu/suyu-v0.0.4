@@ -112,7 +112,7 @@ Result KConditionVariable::SignalToAddress(VAddr addr) {
 
         // Remove waiter thread.
         s32 num_waiters{};
-        KThread* next_owner_thread =
+        KThread* const next_owner_thread =
             owner_thread->RemoveWaiterByKey(std::addressof(num_waiters), addr);
 
         // Determine the next tag.
@@ -122,25 +122,25 @@ Result KConditionVariable::SignalToAddress(VAddr addr) {
             if (num_waiters > 1) {
                 next_value |= Svc::HandleWaitMask;
             }
-
-            // Write the value to userspace.
-            Result result{ResultSuccess};
-            if (WriteToUser(system, addr, std::addressof(next_value))) [[likely]] {
-                result = ResultSuccess;
-            } else {
-                result = ResultInvalidCurrentMemory;
-            }
-
-            // Signal the next owner thread.
-            next_owner_thread->EndWait(result);
-            return result;
-        } else {
-            // Just write the value to userspace.
-            R_UNLESS(WriteToUser(system, addr, std::addressof(next_value)),
-                     ResultInvalidCurrentMemory);
-
-            return ResultSuccess;
         }
+
+        // Synchronize memory before proceeding.
+        std::atomic_thread_fence(std::memory_order_seq_cst);
+
+        // Write the value to userspace.
+        Result result{ResultSuccess};
+        if (WriteToUser(system, addr, std::addressof(next_value))) [[likely]] {
+            result = ResultSuccess;
+        } else {
+            result = ResultInvalidCurrentMemory;
+        }
+
+        // If necessary, signal the next owner thread.
+        if (next_owner_thread != nullptr) {
+            next_owner_thread->EndWait(result);
+        }
+
+        R_RETURN(result);
     }
 }
 
