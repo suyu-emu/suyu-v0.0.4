@@ -131,7 +131,7 @@ VAddr InitializeSlabHeap(Core::System& system, KMemoryLayout& memory_layout, VAd
 }
 
 size_t CalculateSlabHeapGapSize() {
-    constexpr size_t KernelSlabHeapGapSize = 2_MiB - 320_KiB;
+    constexpr size_t KernelSlabHeapGapSize = 2_MiB - 356_KiB;
     static_assert(KernelSlabHeapGapSize <= KernelSlabHeapGapsSizeMax);
     return KernelSlabHeapGapSize;
 }
