@@ -198,7 +198,9 @@ void KConditionVariable::SignalImpl(KThread* thread) {
     u32 prev_tag{};
     bool can_access{};
     {
-        // TODO(bunnei): We should disable interrupts here via KScopedInterruptDisable.
+        // NOTE: If scheduler lock is not held here, interrupt disable is required.
+        // KScopedInterruptDisable di;
+
         // TODO(bunnei): We should call CanAccessAtomic(..) here.
         can_access = true;
         if (can_access) [[likely]] {
