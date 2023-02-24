@@ -595,7 +595,13 @@ public:
 
     [[nodiscard]] Result GetThreadContext3(std::vector<u8>& out);
 
-    [[nodiscard]] KThread* RemoveWaiterByKey(bool* out_has_waiters, VAddr key);
+    [[nodiscard]] KThread* RemoveUserWaiterByKey(bool* out_has_waiters, VAddr key) {
+        return this->RemoveWaiterByKey(out_has_waiters, key, false);
+    }
+
+    [[nodiscard]] KThread* RemoveKernelWaiterByKey(bool* out_has_waiters, VAddr key) {
+        return this->RemoveWaiterByKey(out_has_waiters, key, true);
+    }
 
     [[nodiscard]] VAddr GetAddressKey() const {
         return address_key;
@@ -666,6 +672,9 @@ public:
     }
 
 private:
+    [[nodiscard]] KThread* RemoveWaiterByKey(bool* out_has_waiters, VAddr key,
+                                             bool is_kernel_address_key);
+
     static constexpr size_t PriorityInheritanceCountMax = 10;
     union SyncObjectBuffer {
         std::array<KSynchronizationObject*, Svc::ArgumentHandleCountMax> sync_objects{};
@@ -850,7 +859,7 @@ public:
     }
 
     void AddHeldLock(LockWithPriorityInheritanceInfo* lock_info);
-    LockWithPriorityInheritanceInfo* FindHeldLock(VAddr address_key);
+    LockWithPriorityInheritanceInfo* FindHeldLock(VAddr address_key, bool is_kernel_address_key);
 
 private:
     using LockWithPriorityInheritanceInfoList =
@@ -926,6 +935,7 @@ public:
         condvar_key = cv_key;
         address_key = address;
         address_key_value = value;
+        is_kernel_address_key = false;
     }
 
     void ClearConditionVariable() {

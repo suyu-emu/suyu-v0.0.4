@@ -157,7 +157,7 @@ bool KProcess::ReleaseUserException(KThread* thread) {
 
         // Remove waiter thread.
         bool has_waiters{};
-        if (KThread* next = thread->RemoveWaiterByKey(
+        if (KThread* next = thread->RemoveKernelWaiterByKey(
                 std::addressof(has_waiters),
                 reinterpret_cast<uintptr_t>(std::addressof(exception_thread)));
             next != nullptr) {

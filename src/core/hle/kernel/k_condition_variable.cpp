@@ -113,7 +113,7 @@ Result KConditionVariable::SignalToAddress(VAddr addr) {
         // Remove waiter thread.
         bool has_waiters{};
         KThread* const next_owner_thread =
-            owner_thread->RemoveWaiterByKey(std::addressof(has_waiters), addr);
+            owner_thread->RemoveUserWaiterByKey(std::addressof(has_waiters), addr);
 
         // Determine the next tag.
         u32 next_value{};
@@ -283,7 +283,7 @@ Result KConditionVariable::Wait(VAddr addr, u64 key, u32 value, s64 timeout) {
             // Remove waiter thread.
             bool has_waiters{};
             KThread* next_owner_thread =
-                cur_thread->RemoveWaiterByKey(std::addressof(has_waiters), addr);
+                cur_thread->RemoveUserWaiterByKey(std::addressof(has_waiters), addr);
 
             // Update for the next owner thread.
             u32 next_value{};

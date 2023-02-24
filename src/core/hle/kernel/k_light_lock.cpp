@@ -91,7 +91,7 @@ void KLightLock::UnlockSlowPath(uintptr_t _cur_thread) {
 
         // Get the next owner.
         bool has_waiters;
-        KThread* next_owner = owner_thread->RemoveWaiterByKey(
+        KThread* next_owner = owner_thread->RemoveKernelWaiterByKey(
             std::addressof(has_waiters), reinterpret_cast<uintptr_t>(std::addressof(tag)));
 
         // Pass the lock to the next owner.

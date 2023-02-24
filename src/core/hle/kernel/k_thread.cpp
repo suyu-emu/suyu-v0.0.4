@@ -933,12 +933,14 @@ void KThread::AddHeldLock(LockWithPriorityInheritanceInfo* lock_info) {
     held_lock_info_list.push_front(*lock_info);
 }
 
-KThread::LockWithPriorityInheritanceInfo* KThread::FindHeldLock(VAddr address_key_) {
+KThread::LockWithPriorityInheritanceInfo* KThread::FindHeldLock(VAddr address_key_,
+                                                                bool is_kernel_address_key_) {
     ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(kernel));
 
     // Try to find an existing held lock.
     for (auto& held_lock : held_lock_info_list) {
-        if (held_lock.GetAddressKey() == address_key_) {
+        if (held_lock.GetAddressKey() == address_key_ &&
+            held_lock.GetIsKernelAddressKey() == is_kernel_address_key_) {
             return std::addressof(held_lock);
         }
     }
@@ -961,7 +963,7 @@ void KThread::AddWaiterImpl(KThread* thread) {
     }
 
     // Get the relevant lock info.
-    auto* lock_info = this->FindHeldLock(address_key_);
+    auto* lock_info = this->FindHeldLock(address_key_, is_kernel_address_key_);
     if (lock_info == nullptr) {
         // Create a new lock for the address key.
         lock_info =
@@ -1067,11 +1069,11 @@ void KThread::RemoveWaiter(KThread* thread) {
     }
 }
 
-KThread* KThread::RemoveWaiterByKey(bool* out_has_waiters, VAddr key) {
+KThread* KThread::RemoveWaiterByKey(bool* out_has_waiters, VAddr key, bool is_kernel_address_key_) {
     ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(kernel));
 
     // Get the relevant lock info.
-    auto* lock_info = this->FindHeldLock(key);
+    auto* lock_info = this->FindHeldLock(key, is_kernel_address_key_);
     if (lock_info == nullptr) {
         *out_has_waiters = false;
         return nullptr;
