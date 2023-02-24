@@ -63,6 +63,7 @@ IAppletResource::IAppletResource(Core::System& system_,
     MakeControllerWithServiceContext<Controller_NPad>(HidController::NPad, shared_memory);
     MakeController<Controller_Gesture>(HidController::Gesture, shared_memory);
     MakeController<Controller_ConsoleSixAxis>(HidController::ConsoleSixAxisSensor, shared_memory);
+    MakeController<Controller_Stubbed>(HidController::DebugMouse, shared_memory);
     MakeControllerWithServiceContext<Controller_Palma>(HidController::Palma, shared_memory);
 
     // Homebrew doesn't try to activate some controllers, so we activate them by default
@@ -74,6 +75,7 @@ IAppletResource::IAppletResource(Core::System& system_,
     GetController<Controller_Stubbed>(HidController::CaptureButton).SetCommonHeaderOffset(0x5000);
     GetController<Controller_Stubbed>(HidController::InputDetector).SetCommonHeaderOffset(0x5200);
     GetController<Controller_Stubbed>(HidController::UniquePad).SetCommonHeaderOffset(0x5A00);
+    GetController<Controller_Stubbed>(HidController::DebugMouse).SetCommonHeaderOffset(0x3DC00);
 
     // Register update callbacks
     npad_update_event = Core::Timing::CreateEvent(
@@ -236,6 +238,7 @@ Hid::Hid(Core::System& system_)
         {1, &Hid::ActivateDebugPad, "ActivateDebugPad"},
         {11, &Hid::ActivateTouchScreen, "ActivateTouchScreen"},
         {21, &Hid::ActivateMouse, "ActivateMouse"},
+        {26, nullptr, "ActivateDebugMouse"},
         {31, &Hid::ActivateKeyboard, "ActivateKeyboard"},
         {32, &Hid::SendKeyboardLockKeyEvent, "SendKeyboardLockKeyEvent"},
         {40, nullptr, "AcquireXpadIdEventHandle"},
@@ -2380,6 +2383,8 @@ public:
             {20, nullptr, "DeactivateMouse"},
             {21, nullptr, "SetMouseAutoPilotState"},
             {22, nullptr, "UnsetMouseAutoPilotState"},
+            {25, nullptr, "SetDebugMouseAutoPilotState"},
+            {26, nullptr, "UnsetDebugMouseAutoPilotState"},
             {30, nullptr, "DeactivateKeyboard"},
             {31, nullptr, "SetKeyboardAutoPilotState"},
             {32, nullptr, "UnsetKeyboardAutoPilotState"},
@@ -2495,6 +2500,7 @@ public:
             {2000, nullptr, "DeactivateDigitizer"},
             {2001, nullptr, "SetDigitizerAutoPilotState"},
             {2002, nullptr, "UnsetDigitizerAutoPilotState"},
+            {2002, nullptr, "ReloadFirmwareDebugSettings"},
         };
         // clang-format on
 
