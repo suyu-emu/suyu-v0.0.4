@@ -542,14 +542,19 @@ void QtControllerSelectorDialog::UpdateControllerState(std::size_t player_index)
     const auto player_connected = player_groupboxes[player_index]->isChecked() &&
                                   controller_type != Core::HID::NpadStyleIndex::Handheld;
 
+    if (controller->GetNpadStyleIndex(true) == controller_type &&
+        controller->IsConnected(true) == player_connected) {
+        return;
+    }
+
     // Disconnect the controller first.
     UpdateController(controller, controller_type, false);
 
     // Handheld
     if (player_index == 0) {
-        auto* handheld = system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
-        UpdateController(handheld, controller_type, false);
         if (controller_type == Core::HID::NpadStyleIndex::Handheld) {
+            auto* handheld =
+                system.HIDCore().GetEmulatedController(Core::HID::NpadIdType::Handheld);
             UpdateController(handheld, Core::HID::NpadStyleIndex::Handheld,
                              player_groupboxes[player_index]->isChecked());
         }
