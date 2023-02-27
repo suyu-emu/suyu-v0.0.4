@@ -56,6 +56,8 @@ option(YUZU_USE_BUNDLED_VCPKG "Use vcpkg for yuzu dependencies" "${MSVC}")
 
 option(YUZU_CHECK_SUBMODULES "Check if submodules are present" ON)
 
+option(YUZU_ENABLE_LTO "Enable link-time optimization" OFF)
+
 CMAKE_DEPENDENT_OPTION(YUZU_USE_FASTER_LD "Check if a faster linker is available" ON "NOT WIN32" OFF)
 
 if (YUZU_USE_BUNDLED_VCPKG)
