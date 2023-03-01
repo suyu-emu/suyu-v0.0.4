@@ -10,10 +10,6 @@ namespace Core {
 class System;
 }
 
-namespace Service::SM {
-class ServiceManager;
-}
-
 namespace Service::Sockets {
 
 enum class Errno : u32 {
@@ -99,7 +95,6 @@ struct Linger {
     u32 linger;
 };
 
-/// Registers all Sockets services with the specified service manager.
-void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system);
+void LoopProcess(Core::System& system);
 
 } // namespace Service::Sockets

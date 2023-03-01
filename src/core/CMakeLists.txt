@@ -293,8 +293,6 @@ add_library(core STATIC
     hle/kernel/physical_memory.h
     hle/kernel/process_capability.cpp
     hle/kernel/process_capability.h
-    hle/kernel/service_thread.cpp
-    hle/kernel/service_thread.h
     hle/kernel/slab_helpers.h
     hle/kernel/svc.cpp
     hle/kernel/svc.h
@@ -684,6 +682,10 @@ add_library(core STATIC
     hle/service/ptm/ts.h
     hle/service/kernel_helpers.cpp
     hle/service/kernel_helpers.h
+    hle/service/mutex.cpp
+    hle/service/mutex.h
+    hle/service/server_manager.cpp
+    hle/service/server_manager.h
     hle/service/service.cpp
     hle/service/service.h
     hle/service/set/set.cpp

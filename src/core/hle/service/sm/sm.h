@@ -4,6 +4,7 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 
@@ -50,9 +51,6 @@ private:
 
 class ServiceManager {
 public:
-    static Kernel::KClientPort& InterfaceFactory(ServiceManager& self, Core::System& system);
-    static void SessionHandler(ServiceManager& self, Kernel::KServerPort* server_port);
-
     explicit ServiceManager(Kernel::KernelCore& kernel_);
     ~ServiceManager();
 
@@ -73,16 +71,25 @@ public:
 
     void InvokeControlRequest(Kernel::HLERequestContext& context);
 
+    void SetDeferralEvent(Kernel::KEvent* deferral_event_) {
+        deferral_event = deferral_event_;
+    }
+
 private:
     std::shared_ptr<SM> sm_interface;
     std::unique_ptr<Controller> controller_interface;
 
     /// Map of registered services, retrieved using GetServicePort.
+    std::mutex lock;
     std::unordered_map<std::string, Kernel::SessionRequestHandlerPtr> registered_services;
     std::unordered_map<std::string, Kernel::KPort*> service_ports;
 
     /// Kernel context
     Kernel::KernelCore& kernel;
+    Kernel::KEvent* deferral_event{};
 };
+
+/// Runs SM services.
+void LoopProcess(Core::System& system);
 
 } // namespace Service::SM

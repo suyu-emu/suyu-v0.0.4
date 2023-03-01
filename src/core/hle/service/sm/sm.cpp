@@ -12,6 +12,7 @@
 #include "core/hle/kernel/k_scoped_resource_reservation.h"
 #include "core/hle/kernel/k_server_port.h"
 #include "core/hle/result.h"
+#include "core/hle/service/server_manager.h"
 #include "core/hle/service/sm/sm.h"
 #include "core/hle/service/sm/sm_controller.h"
 
@@ -22,12 +23,18 @@ constexpr Result ERR_ALREADY_REGISTERED(ErrorModule::SM, 4);
 constexpr Result ERR_INVALID_NAME(ErrorModule::SM, 6);
 constexpr Result ERR_SERVICE_NOT_REGISTERED(ErrorModule::SM, 7);
 
-ServiceManager::ServiceManager(Kernel::KernelCore& kernel_) : kernel{kernel_} {}
+ServiceManager::ServiceManager(Kernel::KernelCore& kernel_) : kernel{kernel_} {
+    controller_interface = std::make_unique<Controller>(kernel.System());
+}
 
 ServiceManager::~ServiceManager() {
     for (auto& [name, port] : service_ports) {
         port->GetClientPort().Close();
         port->GetServerPort().Close();
+    }
+
+    if (deferral_event) {
+        deferral_event->Close();
     }
 }
 
@@ -43,21 +50,12 @@ static Result ValidateServiceName(const std::string& name) {
     return ResultSuccess;
 }
 
-Kernel::KClientPort& ServiceManager::InterfaceFactory(ServiceManager& self, Core::System& system) {
-    self.sm_interface = std::make_shared<SM>(self, system);
-    self.controller_interface = std::make_unique<Controller>(system);
-    return self.sm_interface->CreatePort();
-}
-
-void ServiceManager::SessionHandler(ServiceManager& self, Kernel::KServerPort* server_port) {
-    self.sm_interface->AcceptSession(server_port);
-}
-
 Result ServiceManager::RegisterService(std::string name, u32 max_sessions,
                                        Kernel::SessionRequestHandlerPtr handler) {
 
     CASCADE_CODE(ValidateServiceName(name));
 
+    std::scoped_lock lk{lock};
     if (registered_services.find(name) != registered_services.end()) {
         LOG_ERROR(Service_SM, "Service is already registered! service={}", name);
         return ERR_ALREADY_REGISTERED;
@@ -68,6 +66,9 @@ Result ServiceManager::RegisterService(std::string name, u32 max_sessions,
 
     service_ports.emplace(name, port);
     registered_services.emplace(name, handler);
+    if (deferral_event) {
+        deferral_event->Signal();
+    }
 
     return ResultSuccess;
 }
@@ -75,6 +76,7 @@ Result ServiceManager::RegisterService(std::string name, u32 max_sessions,
 Result ServiceManager::UnregisterService(const std::string& name) {
     CASCADE_CODE(ValidateServiceName(name));
 
+    std::scoped_lock lk{lock};
     const auto iter = registered_services.find(name);
     if (iter == registered_services.end()) {
         LOG_ERROR(Service_SM, "Server is not registered! service={}", name);
@@ -89,9 +91,11 @@ Result ServiceManager::UnregisterService(const std::string& name) {
 
 ResultVal<Kernel::KPort*> ServiceManager::GetServicePort(const std::string& name) {
     CASCADE_CODE(ValidateServiceName(name));
+
+    std::scoped_lock lk{lock};
     auto it = service_ports.find(name);
     if (it == service_ports.end()) {
-        LOG_ERROR(Service_SM, "Server is not registered! service={}", name);
+        LOG_WARNING(Service_SM, "Server is not registered! service={}", name);
         return ERR_SERVICE_NOT_REGISTERED;
     }
 
@@ -108,7 +112,7 @@ ResultVal<Kernel::KPort*> ServiceManager::GetServicePort(const std::string& name
 void SM::Initialize(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_SM, "called");
 
-    is_initialized = true;
+    ctx.GetManager()->SetIsInitializedForSm();
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(ResultSuccess);
@@ -116,6 +120,11 @@ void SM::Initialize(Kernel::HLERequestContext& ctx) {
 
 void SM::GetService(Kernel::HLERequestContext& ctx) {
     auto result = GetServiceImpl(ctx);
+    if (ctx.GetIsDeferred()) {
+        // Don't overwrite the command buffer.
+        return;
+    }
+
     if (result.Succeeded()) {
         IPC::ResponseBuilder rb{ctx, 2, 0, 1, IPC::ResponseBuilder::Flags::AlwaysMoveHandles};
         rb.Push(result.Code());
@@ -128,6 +137,11 @@ void SM::GetService(Kernel::HLERequestContext& ctx) {
 
 void SM::GetServiceTipc(Kernel::HLERequestContext& ctx) {
     auto result = GetServiceImpl(ctx);
+    if (ctx.GetIsDeferred()) {
+        // Don't overwrite the command buffer.
+        return;
+    }
+
     IPC::ResponseBuilder rb{ctx, 2, 0, 1, IPC::ResponseBuilder::Flags::AlwaysMoveHandles};
     rb.Push(result.Code());
     rb.PushMoveObjects(result.Succeeded() ? result.Unwrap() : nullptr);
@@ -145,7 +159,7 @@ static std::string PopServiceName(IPC::RequestParser& rp) {
 }
 
 ResultVal<Kernel::KClientSession*> SM::GetServiceImpl(Kernel::HLERequestContext& ctx) {
-    if (!is_initialized) {
+    if (!ctx.GetManager()->GetIsInitializedForSm()) {
         return ERR_NOT_INITIALIZED;
     }
 
@@ -154,10 +168,15 @@ ResultVal<Kernel::KClientSession*> SM::GetServiceImpl(Kernel::HLERequestContext&
 
     // Find the named port.
     auto port_result = service_manager.GetServicePort(name);
-    auto service = service_manager.GetService<Kernel::SessionRequestHandler>(name);
-    if (port_result.Failed() || !service) {
-        LOG_ERROR(Service_SM, "called service={} -> error 0x{:08X}", name, port_result.Code().raw);
-        return port_result.Code();
+    if (port_result.Code() == ERR_INVALID_NAME) {
+        LOG_ERROR(Service_SM, "Invalid service name '{}'", name);
+        return ERR_INVALID_NAME;
+    }
+
+    if (port_result.Failed()) {
+        LOG_INFO(Service_SM, "Waiting for service {} to become available", name);
+        ctx.SetIsDeferred();
+        return ERR_SERVICE_NOT_REGISTERED;
     }
     auto& port = port_result.Unwrap();
 
@@ -167,7 +186,6 @@ ResultVal<Kernel::KClientSession*> SM::GetServiceImpl(Kernel::HLERequestContext&
         LOG_ERROR(Service_SM, "called service={} -> error 0x{:08X}", name, result.raw);
         return result;
     }
-    service->AcceptSession(&port->GetServerPort());
 
     LOG_DEBUG(Service_SM, "called service={} -> session={}", name, session->GetId());
 
@@ -212,7 +230,7 @@ void SM::UnregisterService(Kernel::HLERequestContext& ctx) {
 }
 
 SM::SM(ServiceManager& service_manager_, Core::System& system_)
-    : ServiceFramework{system_, "sm:", ServiceThreadType::Default, 4},
+    : ServiceFramework{system_, "sm:", 4},
       service_manager{service_manager_}, kernel{system_.Kernel()} {
     RegisterHandlers({
         {0, &SM::Initialize, "Initialize"},
@@ -231,5 +249,17 @@ SM::SM(ServiceManager& service_manager_, Core::System& system_)
 }
 
 SM::~SM() = default;
+
+void LoopProcess(Core::System& system) {
+    auto& service_manager = system.ServiceManager();
+    auto server_manager = std::make_unique<ServerManager>(system);
+
+    Kernel::KEvent* deferral_event{};
+    server_manager->ManageDeferral(&deferral_event);
+    service_manager.SetDeferralEvent(deferral_event);
+
+    server_manager->ManageNamedPort("sm:", std::make_shared<SM>(system.ServiceManager(), system));
+    ServerManager::RunServer(std::move(server_manager));
+}
 
 } // namespace Service::SM

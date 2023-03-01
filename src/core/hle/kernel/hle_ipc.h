@@ -31,12 +31,8 @@ class ResponseBuilder;
 
 namespace Service {
 class ServiceFrameworkBase;
-}
-
-enum class ServiceThreadType {
-    Default,
-    CreateNew,
-};
+class ServerManager;
+} // namespace Service
 
 namespace Kernel {
 
@@ -53,9 +49,6 @@ class KThread;
 class KReadableEvent;
 class KSession;
 class SessionRequestManager;
-class ServiceThread;
-
-enum class ThreadWakeupReason;
 
 /**
  * Interface implemented by HLE Session handlers.
@@ -64,8 +57,7 @@ enum class ThreadWakeupReason;
  */
 class SessionRequestHandler : public std::enable_shared_from_this<SessionRequestHandler> {
 public:
-    SessionRequestHandler(KernelCore& kernel_, const char* service_name_,
-                          ServiceThreadType thread_type);
+    SessionRequestHandler(KernelCore& kernel_, const char* service_name_);
     virtual ~SessionRequestHandler();
 
     /**
@@ -79,17 +71,8 @@ public:
     virtual Result HandleSyncRequest(Kernel::KServerSession& session,
                                      Kernel::HLERequestContext& context) = 0;
 
-    void AcceptSession(KServerPort* server_port);
-    void RegisterSession(KServerSession* server_session,
-                         std::shared_ptr<SessionRequestManager> manager);
-
-    ServiceThread& GetServiceThread() const {
-        return service_thread;
-    }
-
 protected:
     KernelCore& kernel;
-    ServiceThread& service_thread;
 };
 
 using SessionRequestHandlerWeakPtr = std::weak_ptr<SessionRequestHandler>;
@@ -102,7 +85,7 @@ using SessionRequestHandlerPtr = std::shared_ptr<SessionRequestHandler>;
  */
 class SessionRequestManager final {
 public:
-    explicit SessionRequestManager(KernelCore& kernel);
+    explicit SessionRequestManager(KernelCore& kernel, Service::ServerManager& server_manager);
     ~SessionRequestManager();
 
     bool IsDomain() const {
@@ -155,23 +138,36 @@ public:
         session_handler = std::move(handler);
     }
 
-    ServiceThread& GetServiceThread() const {
-        return session_handler->GetServiceThread();
-    }
-
     bool HasSessionRequestHandler(const HLERequestContext& context) const;
 
     Result HandleDomainSyncRequest(KServerSession* server_session, HLERequestContext& context);
     Result CompleteSyncRequest(KServerSession* server_session, HLERequestContext& context);
 
+    Service::ServerManager& GetServerManager() {
+        return server_manager;
+    }
+
+    // TODO: remove this when sm: is implemented with the proper IUserInterface
+    // abstraction, creating a new C++ handler object for each session:
+
+    bool GetIsInitializedForSm() const {
+        return is_initialized_for_sm;
+    }
+
+    void SetIsInitializedForSm() {
+        is_initialized_for_sm = true;
+    }
+
 private:
     bool convert_to_domain{};
     bool is_domain{};
+    bool is_initialized_for_sm{};
     SessionRequestHandlerPtr session_handler;
     std::vector<SessionRequestHandlerPtr> domain_handlers;
 
 private:
     KernelCore& kernel;
+    Service::ServerManager& server_manager;
 };
 
 /**
@@ -374,6 +370,14 @@ public:
         return manager.lock();
     }
 
+    bool GetIsDeferred() const {
+        return is_deferred;
+    }
+
+    void SetIsDeferred(bool is_deferred_ = true) {
+        is_deferred = is_deferred_;
+    }
+
 private:
     friend class IPC::ResponseBuilder;
 
@@ -408,6 +412,7 @@ private:
     u32 domain_offset{};
 
     std::weak_ptr<SessionRequestManager> manager{};
+    bool is_deferred{false};
 
     KernelCore& kernel;
     Core::Memory::Memory& memory;

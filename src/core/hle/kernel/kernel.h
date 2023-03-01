@@ -9,6 +9,8 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+#include "common/polyfill_thread.h"
 #include "core/hardware_properties.h"
 #include "core/hle/kernel/k_auto_object.h"
 #include "core/hle/kernel/k_slab_heap.h"
@@ -23,6 +25,10 @@ namespace Core::Timing {
 class CoreTiming;
 struct EventType;
 } // namespace Core::Timing
+
+namespace Service {
+class ServerManager;
+}
 
 namespace Service::SM {
 class ServiceManager;
@@ -65,13 +71,6 @@ class KTransferMemory;
 class KWorkerTaskManager;
 class KCodeMemory;
 class PhysicalCore;
-class ServiceThread;
-class Synchronization;
-
-using ServiceInterfaceFactory =
-    std::function<KClientPort&(Service::SM::ServiceManager&, Core::System&)>;
-
-using ServiceInterfaceHandlerFn = std::function<void(Service::SM::ServiceManager&, KServerPort*)>;
 
 namespace Init {
 struct KSlabResourceCounts;
@@ -80,15 +79,8 @@ struct KSlabResourceCounts;
 template <typename T>
 class KSlabHeap;
 
-using EmuThreadHandle = uintptr_t;
-constexpr EmuThreadHandle EmuThreadHandleInvalid{};
-constexpr EmuThreadHandle EmuThreadHandleReserved{1ULL << 63};
-
 /// Represents a single instance of the kernel.
 class KernelCore {
-private:
-    using NamedPortTable = std::unordered_map<std::string, KClientPort*>;
-
 public:
     /// Constructs an instance of the kernel using the given System
     /// instance as a context for any necessary system-related state,
@@ -196,18 +188,6 @@ public:
 
     void InvalidateCpuInstructionCacheRange(VAddr addr, std::size_t size);
 
-    /// Registers a named HLE service, passing a factory used to open a port to that service.
-    void RegisterNamedService(std::string name, ServiceInterfaceFactory&& factory);
-
-    /// Registers a setup function for the named HLE service.
-    void RegisterInterfaceForNamedService(std::string name, ServiceInterfaceHandlerFn&& handler);
-
-    /// Opens a port to a service previously registered with RegisterNamedService.
-    KClientPort* CreateNamedServicePort(std::string name);
-
-    /// Accepts a session on a port created by CreateNamedServicePort.
-    void RegisterNamedServiceHandler(std::string name, KServerPort* server_port);
-
     /// Registers all kernel objects with the global emulation state, this is purely for tracking
     /// leaks after emulation has been shutdown.
     void RegisterKernelObject(KAutoObject* object);
@@ -224,8 +204,8 @@ public:
     /// destroyed during the current emulation session.
     void UnregisterInUseObject(KAutoObject* object);
 
-    /// Determines whether or not the given port is a valid named port.
-    bool IsValidNamedPort(NamedPortTable::const_iterator port) const;
+    // Runs the given server manager until shutdown.
+    void RunServer(std::unique_ptr<Service::ServerManager>&& server_manager);
 
     /// Gets the current host_thread/guest_thread pointer.
     KThread* GetCurrentEmuThread() const;
@@ -241,6 +221,12 @@ public:
 
     /// Register the current thread as a non CPU core thread.
     void RegisterHostThread(KThread* existing_thread = nullptr);
+
+    void RunOnGuestCoreProcess(std::string&& process_name, std::function<void()> func);
+
+    std::jthread RunOnHostCoreProcess(std::string&& process_name, std::function<void()> func);
+
+    std::jthread RunOnHostCoreThread(std::string&& thread_name, std::function<void()> func);
 
     /// Gets global data for KObjectName.
     KObjectNameGlobalData& ObjectNameGlobalData();
@@ -309,33 +295,6 @@ public:
     void EnterSVCProfile();
 
     void ExitSVCProfile();
-
-    /**
-     * Creates a host thread to execute HLE service requests, which are used to execute service
-     * routines asynchronously. While these are allocated per ServerSession, these need to be owned
-     * and managed outside of ServerSession to avoid a circular dependency. In general, most
-     * services can just use the default service thread, and not need their own host service thread.
-     * See GetDefaultServiceThread.
-     * @param name String name for the ServerSession creating this thread, used for debug
-     * purposes.
-     * @returns A reference to the newly created service thread.
-     */
-    Kernel::ServiceThread& CreateServiceThread(const std::string& name);
-
-    /**
-     * Gets the default host service thread, which executes HLE service requests. Unless service
-     * requests need to block on the host, the default service thread should be used in favor of
-     * creating a new service thread.
-     * @returns A reference to the default service thread.
-     */
-    Kernel::ServiceThread& GetDefaultServiceThread() const;
-
-    /**
-     * Releases a HLE service thread, instructing KernelCore to free it. This should be called when
-     * the ServerSession associated with the thread is destroyed.
-     * @param service_thread Service thread to release.
-     */
-    void ReleaseServiceThread(Kernel::ServiceThread& service_thread);
 
     /// Workaround for single-core mode when preempting threads while idle.
     bool IsPhantomModeForSingleCore() const;
