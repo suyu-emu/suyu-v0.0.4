@@ -81,4 +81,9 @@ std::unique_ptr<WallClock> CreateBestMatchingClock(u64 emulated_cpu_frequency,
 
 #endif
 
+std::unique_ptr<WallClock> CreateStandardWallClock(u64 emulated_cpu_frequency,
+                                                   u64 emulated_clock_frequency) {
+    return std::make_unique<StandardWallClock>(emulated_cpu_frequency, emulated_clock_frequency);
+}
+
 } // namespace Common
