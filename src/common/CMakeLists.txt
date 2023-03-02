@@ -113,6 +113,8 @@ add_library(common STATIC
     socket_types.h
     spin_lock.cpp
     spin_lock.h
+    steady_clock.cpp
+    steady_clock.h
     stream.cpp
     stream.h
     string_util.cpp
