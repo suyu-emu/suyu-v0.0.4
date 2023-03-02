@@ -144,6 +144,14 @@ add_library(common STATIC
     zstd_compression.h
 )
 
+if (WIN32)
+  target_sources(common PRIVATE
+    windows/timer_resolution.cpp
+    windows/timer_resolution.h
+  )
+  target_link_libraries(common PRIVATE ntdll)
+endif()
+
 if(ARCHITECTURE_x86_64)
     target_sources(common
         PRIVATE
