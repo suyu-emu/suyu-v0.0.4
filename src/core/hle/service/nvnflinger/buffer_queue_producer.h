@@ -12,13 +12,13 @@
 
 #include "common/common_funcs.h"
 #include "core/hle/service/nvdrv/nvdata.h"
-#include "core/hle/service/nvflinger/binder.h"
-#include "core/hle/service/nvflinger/buffer_queue_defs.h"
-#include "core/hle/service/nvflinger/buffer_slot.h"
-#include "core/hle/service/nvflinger/graphic_buffer_producer.h"
-#include "core/hle/service/nvflinger/pixel_format.h"
-#include "core/hle/service/nvflinger/status.h"
-#include "core/hle/service/nvflinger/window.h"
+#include "core/hle/service/nvnflinger/binder.h"
+#include "core/hle/service/nvnflinger/buffer_queue_defs.h"
+#include "core/hle/service/nvnflinger/buffer_slot.h"
+#include "core/hle/service/nvnflinger/graphic_buffer_producer.h"
+#include "core/hle/service/nvnflinger/pixel_format.h"
+#include "core/hle/service/nvnflinger/status.h"
+#include "core/hle/service/nvnflinger/window.h"
 
 namespace Kernel {
 class KernelCore;
@@ -46,7 +46,7 @@ public:
                                  Service::Nvidia::NvCore::NvMap& nvmap_);
     ~BufferQueueProducer();
 
-    void Transact(Kernel::HLERequestContext& ctx, android::TransactionId code, u32 flags) override;
+    void Transact(HLERequestContext& ctx, android::TransactionId code, u32 flags) override;
 
     Kernel::KReadableEvent& GetNativeHandle() override;
 

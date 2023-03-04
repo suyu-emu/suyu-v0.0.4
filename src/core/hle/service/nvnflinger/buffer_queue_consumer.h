@@ -10,8 +10,8 @@
 #include <memory>
 
 #include "common/common_types.h"
-#include "core/hle/service/nvflinger/buffer_queue_defs.h"
-#include "core/hle/service/nvflinger/status.h"
+#include "core/hle/service/nvnflinger/buffer_queue_defs.h"
+#include "core/hle/service/nvnflinger/status.h"
 
 namespace Service::Nvidia::NvCore {
 class NvMap;

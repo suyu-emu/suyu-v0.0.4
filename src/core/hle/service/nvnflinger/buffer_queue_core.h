@@ -13,11 +13,11 @@
 #include <set>
 #include <vector>
 
-#include "core/hle/service/nvflinger/buffer_item.h"
-#include "core/hle/service/nvflinger/buffer_queue_defs.h"
-#include "core/hle/service/nvflinger/pixel_format.h"
-#include "core/hle/service/nvflinger/status.h"
-#include "core/hle/service/nvflinger/window.h"
+#include "core/hle/service/nvnflinger/buffer_item.h"
+#include "core/hle/service/nvnflinger/buffer_queue_defs.h"
+#include "core/hle/service/nvnflinger/pixel_format.h"
+#include "core/hle/service/nvnflinger/status.h"
+#include "core/hle/service/nvnflinger/window.h"
 
 namespace Service::android {
 

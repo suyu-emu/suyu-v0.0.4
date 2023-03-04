@@ -35,20 +35,18 @@ class ServerManager;
 } // namespace Service
 
 namespace Kernel {
-
-class Domain;
-class HLERequestContext;
 class KAutoObject;
 class KernelCore;
-class KEvent;
 class KHandleTable;
-class KServerPort;
-class KProcess;
 class KServerSession;
 class KThread;
-class KReadableEvent;
-class KSession;
-class SessionRequestManager;
+} // namespace Kernel
+
+namespace Service {
+
+using Handle = Kernel::Handle;
+
+class HLERequestContext;
 
 /**
  * Interface implemented by HLE Session handlers.
@@ -57,7 +55,7 @@ class SessionRequestManager;
  */
 class SessionRequestHandler : public std::enable_shared_from_this<SessionRequestHandler> {
 public:
-    SessionRequestHandler(KernelCore& kernel_, const char* service_name_);
+    SessionRequestHandler(Kernel::KernelCore& kernel_, const char* service_name_);
     virtual ~SessionRequestHandler();
 
     /**
@@ -69,10 +67,10 @@ public:
      * @returns Result the result code of the translate operation.
      */
     virtual Result HandleSyncRequest(Kernel::KServerSession& session,
-                                     Kernel::HLERequestContext& context) = 0;
+                                     HLERequestContext& context) = 0;
 
 protected:
-    KernelCore& kernel;
+    Kernel::KernelCore& kernel;
 };
 
 using SessionRequestHandlerWeakPtr = std::weak_ptr<SessionRequestHandler>;
@@ -85,7 +83,8 @@ using SessionRequestHandlerPtr = std::shared_ptr<SessionRequestHandler>;
  */
 class SessionRequestManager final {
 public:
-    explicit SessionRequestManager(KernelCore& kernel, Service::ServerManager& server_manager);
+    explicit SessionRequestManager(Kernel::KernelCore& kernel,
+                                   Service::ServerManager& server_manager);
     ~SessionRequestManager();
 
     bool IsDomain() const {
@@ -140,8 +139,9 @@ public:
 
     bool HasSessionRequestHandler(const HLERequestContext& context) const;
 
-    Result HandleDomainSyncRequest(KServerSession* server_session, HLERequestContext& context);
-    Result CompleteSyncRequest(KServerSession* server_session, HLERequestContext& context);
+    Result HandleDomainSyncRequest(Kernel::KServerSession* server_session,
+                                   HLERequestContext& context);
+    Result CompleteSyncRequest(Kernel::KServerSession* server_session, HLERequestContext& context);
 
     Service::ServerManager& GetServerManager() {
         return server_manager;
@@ -166,33 +166,18 @@ private:
     std::vector<SessionRequestHandlerPtr> domain_handlers;
 
 private:
-    KernelCore& kernel;
+    Kernel::KernelCore& kernel;
     Service::ServerManager& server_manager;
 };
 
 /**
  * Class containing information about an in-flight IPC request being handled by an HLE service
- * implementation. Services should avoid using old global APIs (e.g. Kernel::GetCommandBuffer()) and
- * when possible use the APIs in this class to service the request.
- *
- * HLE handle protocol
- * ===================
- *
- * To avoid needing HLE services to keep a separate handle table, or having to directly modify the
- * requester's table, a tweaked protocol is used to receive and send handles in requests. The kernel
- * will decode the incoming handles into object pointers and insert a id in the buffer where the
- * handle would normally be. The service then calls GetIncomingHandle() with that id to get the
- * pointer to the object. Similarly, instead of inserting a handle into the command buffer, the
- * service calls AddOutgoingHandle() and stores the returned id where the handle would normally go.
- *
- * The end result is similar to just giving services their own real handle tables, but since these
- * ids are local to a specific context, it avoids requiring services to manage handles for objects
- * across multiple calls and ensuring that unneeded handles are cleaned up.
+ * implementation.
  */
 class HLERequestContext {
 public:
-    explicit HLERequestContext(KernelCore& kernel, Core::Memory::Memory& memory,
-                               KServerSession* session, KThread* thread);
+    explicit HLERequestContext(Kernel::KernelCore& kernel, Core::Memory::Memory& memory,
+                               Kernel::KServerSession* session, Kernel::KThread* thread);
     ~HLERequestContext();
 
     /// Returns a pointer to the IPC command buffer for this request.
@@ -209,10 +194,11 @@ public:
     }
 
     /// Populates this context with data from the requesting process/thread.
-    Result PopulateFromIncomingCommandBuffer(const KHandleTable& handle_table, u32_le* src_cmdbuf);
+    Result PopulateFromIncomingCommandBuffer(const Kernel::KHandleTable& handle_table,
+                                             u32_le* src_cmdbuf);
 
     /// Writes data from this context back to the requesting process/thread.
-    Result WriteToOutgoingCommandBuffer(KThread& requesting_thread);
+    Result WriteToOutgoingCommandBuffer(Kernel::KThread& requesting_thread);
 
     [[nodiscard]] u32_le GetHipcCommand() const {
         return command;
@@ -339,11 +325,11 @@ public:
         return incoming_move_handles.at(index);
     }
 
-    void AddMoveObject(KAutoObject* object) {
+    void AddMoveObject(Kernel::KAutoObject* object) {
         outgoing_move_objects.emplace_back(object);
     }
 
-    void AddCopyObject(KAutoObject* object) {
+    void AddCopyObject(Kernel::KAutoObject* object) {
         outgoing_copy_objects.emplace_back(object);
     }
 
@@ -362,7 +348,7 @@ public:
 
     [[nodiscard]] std::string Description() const;
 
-    [[nodiscard]] KThread& GetThread() {
+    [[nodiscard]] Kernel::KThread& GetThread() {
         return *thread;
     }
 
@@ -381,17 +367,18 @@ public:
 private:
     friend class IPC::ResponseBuilder;
 
-    void ParseCommandBuffer(const KHandleTable& handle_table, u32_le* src_cmdbuf, bool incoming);
+    void ParseCommandBuffer(const Kernel::KHandleTable& handle_table, u32_le* src_cmdbuf,
+                            bool incoming);
 
     std::array<u32, IPC::COMMAND_BUFFER_LENGTH> cmd_buf;
     Kernel::KServerSession* server_session{};
-    KThread* thread;
+    Kernel::KThread* thread;
 
     std::vector<Handle> incoming_move_handles;
     std::vector<Handle> incoming_copy_handles;
 
-    std::vector<KAutoObject*> outgoing_move_objects;
-    std::vector<KAutoObject*> outgoing_copy_objects;
+    std::vector<Kernel::KAutoObject*> outgoing_move_objects;
+    std::vector<Kernel::KAutoObject*> outgoing_copy_objects;
     std::vector<SessionRequestHandlerPtr> outgoing_domain_objects;
 
     std::optional<IPC::CommandHeader> command_header;
@@ -414,8 +401,8 @@ private:
     std::weak_ptr<SessionRequestManager> manager{};
     bool is_deferred{false};
 
-    KernelCore& kernel;
+    Kernel::KernelCore& kernel;
     Core::Memory::Memory& memory;
 };
 
-} // namespace Kernel
+} // namespace Service

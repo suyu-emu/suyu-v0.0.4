@@ -8,18 +8,18 @@
 #include "common/logging/log.h"
 #include "common/settings.h"
 #include "core/core.h"
-#include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/kernel/k_event.h"
 #include "core/hle/kernel/k_readable_event.h"
 #include "core/hle/kernel/kernel.h"
+#include "core/hle/service/hle_ipc.h"
 #include "core/hle/service/kernel_helpers.h"
 #include "core/hle/service/nvdrv/core/nvmap.h"
-#include "core/hle/service/nvflinger/buffer_queue_core.h"
-#include "core/hle/service/nvflinger/buffer_queue_producer.h"
-#include "core/hle/service/nvflinger/consumer_listener.h"
-#include "core/hle/service/nvflinger/parcel.h"
-#include "core/hle/service/nvflinger/ui/graphic_buffer.h"
-#include "core/hle/service/nvflinger/window.h"
+#include "core/hle/service/nvnflinger/buffer_queue_core.h"
+#include "core/hle/service/nvnflinger/buffer_queue_producer.h"
+#include "core/hle/service/nvnflinger/consumer_listener.h"
+#include "core/hle/service/nvnflinger/parcel.h"
+#include "core/hle/service/nvnflinger/ui/graphic_buffer.h"
+#include "core/hle/service/nvnflinger/window.h"
 #include "core/hle/service/vi/vi.h"
 
 namespace Service::android {
@@ -37,20 +37,20 @@ BufferQueueProducer::~BufferQueueProducer() {
 }
 
 Status BufferQueueProducer::RequestBuffer(s32 slot, std::shared_ptr<GraphicBuffer>* buf) {
-    LOG_DEBUG(Service_NVFlinger, "slot {}", slot);
+    LOG_DEBUG(Service_Nvnflinger, "slot {}", slot);
 
     std::scoped_lock lock{core->mutex};
 
     if (core->is_abandoned) {
-        LOG_ERROR(Service_NVFlinger, "BufferQueue has been abandoned");
+        LOG_ERROR(Service_Nvnflinger, "BufferQueue has been abandoned");
         return Status::NoInit;
     }
     if (slot < 0 || slot >= BufferQueueDefs::NUM_BUFFER_SLOTS) {
-        LOG_ERROR(Service_NVFlinger, "slot index {} out of range [0, {})", slot,
+        LOG_ERROR(Service_Nvnflinger, "slot index {} out of range [0, {})", slot,
                   BufferQueueDefs::NUM_BUFFER_SLOTS);
         return Status::BadValue;
     } else if (slots[slot].buffer_state != BufferState::Dequeued) {
-        LOG_ERROR(Service_NVFlinger, "slot {} is not owned by the producer (state = {})", slot,
+        LOG_ERROR(Service_Nvnflinger, "slot {} is not owned by the producer (state = {})", slot,
                   slots[slot].buffer_state);
         return Status::BadValue;
     }
@@ -62,7 +62,7 @@ Status BufferQueueProducer::RequestBuffer(s32 slot, std::shared_ptr<GraphicBuffe
 }
 
 Status BufferQueueProducer::SetBufferCount(s32 buffer_count) {
-    LOG_DEBUG(Service_NVFlinger, "count = {}", buffer_count);
+    LOG_DEBUG(Service_Nvnflinger, "count = {}", buffer_count);
 
     std::shared_ptr<IConsumerListener> listener;
     {
@@ -70,12 +70,12 @@ Status BufferQueueProducer::SetBufferCount(s32 buffer_count) {
         core->WaitWhileAllocatingLocked();
 
         if (core->is_abandoned) {
-            LOG_ERROR(Service_NVFlinger, "BufferQueue has been abandoned");
+            LOG_ERROR(Service_Nvnflinger, "BufferQueue has been abandoned");
             return Status::NoInit;
         }
 
         if (buffer_count > BufferQueueDefs::NUM_BUFFER_SLOTS) {
-            LOG_ERROR(Service_NVFlinger, "buffer_count {} too large (max {})", buffer_count,
+            LOG_ERROR(Service_Nvnflinger, "buffer_count {} too large (max {})", buffer_count,
                       BufferQueueDefs::NUM_BUFFER_SLOTS);
             return Status::BadValue;
         }
@@ -83,7 +83,7 @@ Status BufferQueueProducer::SetBufferCount(s32 buffer_count) {
         // There must be no dequeued buffers when changing the buffer count.
         for (s32 s{}; s < BufferQueueDefs::NUM_BUFFER_SLOTS; ++s) {
             if (slots[s].buffer_state == BufferState::Dequeued) {
-                LOG_ERROR(Service_NVFlinger, "buffer owned by producer");
+                LOG_ERROR(Service_Nvnflinger, "buffer owned by producer");
                 return Status::BadValue;
             }
         }
@@ -96,7 +96,7 @@ Status BufferQueueProducer::SetBufferCount(s32 buffer_count) {
 
         const s32 min_buffer_slots = core->GetMinMaxBufferCountLocked(false);
         if (buffer_count < min_buffer_slots) {
-            LOG_ERROR(Service_NVFlinger, "requested buffer count {} is less than minimum {}",
+            LOG_ERROR(Service_Nvnflinger, "requested buffer count {} is less than minimum {}",
                       buffer_count, min_buffer_slots);
             return Status::BadValue;
         }
@@ -127,14 +127,14 @@ Status BufferQueueProducer::WaitForFreeSlotThenRelock(bool async, s32* found, St
 
     while (try_again) {
         if (core->is_abandoned) {
-            LOG_ERROR(Service_NVFlinger, "BufferQueue has been abandoned");
+            LOG_ERROR(Service_Nvnflinger, "BufferQueue has been abandoned");
             return Status::NoInit;
         }
 
         const s32 max_buffer_count = core->GetMaxBufferCountLocked(async);
         if (async && core->override_max_buffer_count) {
             if (core->override_max_buffer_count < max_buffer_count) {
-                LOG_ERROR(Service_NVFlinger, "async mode is invalid with buffer count override");
+                LOG_ERROR(Service_Nvnflinger, "async mode is invalid with buffer count override");
                 return Status::BadValue;
             }
         }
@@ -176,7 +176,7 @@ Status BufferQueueProducer::WaitForFreeSlotThenRelock(bool async, s32* found, St
         // Producers are not allowed to dequeue more than one buffer if they did not set a buffer
         // count
         if (!core->override_max_buffer_count && dequeued_count) {
-            LOG_ERROR(Service_NVFlinger,
+            LOG_ERROR(Service_Nvnflinger,
                       "can't dequeue multiple buffers without setting the buffer count");
             return Status::InvalidOperation;
         }
@@ -188,7 +188,7 @@ Status BufferQueueProducer::WaitForFreeSlotThenRelock(bool async, s32* found, St
             const s32 new_undequeued_count = max_buffer_count - (dequeued_count + 1);
             const s32 min_undequeued_count = core->GetMinUndequeuedBufferCountLocked(async);
             if (new_undequeued_count < min_undequeued_count) {
-                LOG_ERROR(Service_NVFlinger,
+                LOG_ERROR(Service_Nvnflinger,
                           "min undequeued buffer count({}) exceeded (dequeued={} undequeued={})",
                           min_undequeued_count, dequeued_count, new_undequeued_count);
                 return Status::InvalidOperation;
@@ -200,7 +200,7 @@ Status BufferQueueProducer::WaitForFreeSlotThenRelock(bool async, s32* found, St
         // outrun the consumer. Wait here if it looks like we have too many buffers queued up.
         const bool too_many_buffers = core->queue.size() > static_cast<size_t>(max_buffer_count);
         if (too_many_buffers) {
-            LOG_ERROR(Service_NVFlinger, "queue size is {}, waiting", core->queue.size());
+            LOG_ERROR(Service_Nvnflinger, "queue size is {}, waiting", core->queue.size());
         }
 
         // If no buffer is found, or if the queue has too many buffers outstanding, wait for a
@@ -226,11 +226,11 @@ Status BufferQueueProducer::WaitForFreeSlotThenRelock(bool async, s32* found, St
 
 Status BufferQueueProducer::DequeueBuffer(s32* out_slot, Fence* out_fence, bool async, u32 width,
                                           u32 height, PixelFormat format, u32 usage) {
-    LOG_DEBUG(Service_NVFlinger, "async={} w={} h={} format={}, usage={}", async ? "true" : "false",
-              width, height, format, usage);
+    LOG_DEBUG(Service_Nvnflinger, "async={} w={} h={} format={}, usage={}",
+              async ? "true" : "false", width, height, format, usage);
 
     if ((width != 0 && height == 0) || (width == 0 && height != 0)) {
-        LOG_ERROR(Service_NVFlinger, "invalid size: w={} h={}", width, height);
+        LOG_ERROR(Service_Nvnflinger, "invalid size: w={} h={}", width, height);
         return Status::BadValue;
     }
 
@@ -255,7 +255,7 @@ Status BufferQueueProducer::DequeueBuffer(s32* out_slot, Fence* out_fence, bool 
 
         // This should not happen
         if (found == BufferQueueCore::INVALID_BUFFER_SLOT) {
-            LOG_ERROR(Service_NVFlinger, "no available buffer slots");
+            LOG_ERROR(Service_Nvnflinger, "no available buffer slots");
             return Status::Busy;
         }
 
@@ -287,11 +287,11 @@ Status BufferQueueProducer::DequeueBuffer(s32* out_slot, Fence* out_fence, bool 
     }
 
     if ((return_flags & Status::BufferNeedsReallocation) != Status::None) {
-        LOG_DEBUG(Service_NVFlinger, "allocating a new buffer for slot {}", *out_slot);
+        LOG_DEBUG(Service_Nvnflinger, "allocating a new buffer for slot {}", *out_slot);
 
         auto graphic_buffer = std::make_shared<GraphicBuffer>(width, height, format, usage);
         if (graphic_buffer == nullptr) {
-            LOG_ERROR(Service_NVFlinger, "creating GraphicBuffer failed");
+            LOG_ERROR(Service_Nvnflinger, "creating GraphicBuffer failed");
             return Status::NoMemory;
         }
 
@@ -299,7 +299,7 @@ Status BufferQueueProducer::DequeueBuffer(s32* out_slot, Fence* out_fence, bool 
             std::scoped_lock lock{core->mutex};
 
             if (core->is_abandoned) {
-                LOG_ERROR(Service_NVFlinger, "BufferQueue has been abandoned");
+                LOG_ERROR(Service_Nvnflinger, "BufferQueue has been abandoned");
                 return Status::NoInit;
             }
 
@@ -312,32 +312,32 @@ Status BufferQueueProducer::DequeueBuffer(s32* out_slot, Fence* out_fence, bool 
         return_flags |= Status::BufferNeedsReallocation;
     }
 
-    LOG_DEBUG(Service_NVFlinger, "returning slot={} frame={}, flags={}", *out_slot,
+    LOG_DEBUG(Service_Nvnflinger, "returning slot={} frame={}, flags={}", *out_slot,
               slots[*out_slot].frame_number, return_flags);
 
     return return_flags;
 }
 
 Status BufferQueueProducer::DetachBuffer(s32 slot) {
-    LOG_DEBUG(Service_NVFlinger, "slot {}", slot);
+    LOG_DEBUG(Service_Nvnflinger, "slot {}", slot);
 
     std::scoped_lock lock{core->mutex};
 
     if (core->is_abandoned) {
-        LOG_ERROR(Service_NVFlinger, "BufferQueue has been abandoned");
+        LOG_ERROR(Service_Nvnflinger, "BufferQueue has been abandoned");
         return Status::NoInit;
     }
 
     if (slot < 0 || slot >= BufferQueueDefs::NUM_BUFFER_SLOTS) {
-        LOG_ERROR(Service_NVFlinger, "slot {} out of range [0, {})", slot,
+        LOG_ERROR(Service_Nvnflinger, "slot {} out of range [0, {})", slot,
                   BufferQueueDefs::NUM_BUFFER_SLOTS);
         return Status::BadValue;
     } else if (slots[slot].buffer_state != BufferState::Dequeued) {
-        LOG_ERROR(Service_NVFlinger, "slot {} is not owned by the producer (state = {})", slot,
+        LOG_ERROR(Service_Nvnflinger, "slot {} is not owned by the producer (state = {})", slot,
                   slots[slot].buffer_state);
         return Status::BadValue;
     } else if (!slots[slot].request_buffer_called) {
-        LOG_ERROR(Service_NVFlinger, "buffer in slot {} has not been requested", slot);
+        LOG_ERROR(Service_Nvnflinger, "buffer in slot {} has not been requested", slot);
         return Status::BadValue;
     }
 
@@ -350,10 +350,10 @@ Status BufferQueueProducer::DetachBuffer(s32 slot) {
 Status BufferQueueProducer::DetachNextBuffer(std::shared_ptr<GraphicBuffer>* out_buffer,
                                              Fence* out_fence) {
     if (out_buffer == nullptr) {
-        LOG_ERROR(Service_NVFlinger, "out_buffer must not be nullptr");
+        LOG_ERROR(Service_Nvnflinger, "out_buffer must not be nullptr");
         return Status::BadValue;
     } else if (out_fence == nullptr) {
-        LOG_ERROR(Service_NVFlinger, "out_fence must not be nullptr");
+        LOG_ERROR(Service_Nvnflinger, "out_fence must not be nullptr");
         return Status::BadValue;
     }
 
@@ -361,7 +361,7 @@ Status BufferQueueProducer::DetachNextBuffer(std::shared_ptr<GraphicBuffer>* out
     core->WaitWhileAllocatingLocked();
 
     if (core->is_abandoned) {
-        LOG_ERROR(Service_NVFlinger, "BufferQueue has been abandoned");
+        LOG_ERROR(Service_Nvnflinger, "BufferQueue has been abandoned");
         return Status::NoInit;
     }
 
@@ -380,7 +380,7 @@ Status BufferQueueProducer::DetachNextBuffer(std::shared_ptr<GraphicBuffer>* out
         return Status::NoMemory;
     }
 
-    LOG_DEBUG(Service_NVFlinger, "Detached slot {}", found);
+    LOG_DEBUG(Service_Nvnflinger, "Detached slot {}", found);
 
     *out_buffer = slots[found].graphic_buffer;
     *out_fence = slots[found].fence;
@@ -393,10 +393,10 @@ Status BufferQueueProducer::DetachNextBuffer(std::shared_ptr<GraphicBuffer>* out
 Status BufferQueueProducer::AttachBuffer(s32* out_slot,
                                          const std::shared_ptr<GraphicBuffer>& buffer) {
     if (out_slot == nullptr) {
-        LOG_ERROR(Service_NVFlinger, "out_slot must not be nullptr");
+        LOG_ERROR(Service_Nvnflinger, "out_slot must not be nullptr");
         return Status::BadValue;
     } else if (buffer == nullptr) {
-        LOG_ERROR(Service_NVFlinger, "Cannot attach nullptr buffer");
+        LOG_ERROR(Service_Nvnflinger, "Cannot attach nullptr buffer");
         return Status::BadValue;
     }
 
@@ -413,13 +413,13 @@ Status BufferQueueProducer::AttachBuffer(s32* out_slot,
 
     // This should not happen
     if (found == BufferQueueCore::INVALID_BUFFER_SLOT) {
-        LOG_ERROR(Service_NVFlinger, "No available buffer slots");
+        LOG_ERROR(Service_Nvnflinger, "No available buffer slots");
         return Status::Busy;
     }
 
     *out_slot = found;
 
-    LOG_DEBUG(Service_NVFlinger, "Returning slot {} flags={}", *out_slot, return_flags);
+    LOG_DEBUG(Service_Nvnflinger, "Returning slot {} flags={}", *out_slot, return_flags);
 
     slots[*out_slot].graphic_buffer = buffer;
     slots[*out_slot].buffer_state = BufferState::Dequeued;
@@ -451,7 +451,7 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
     case NativeWindowScalingMode::NoScaleCrop:
         break;
     default:
-        LOG_ERROR(Service_NVFlinger, "unknown scaling mode {}", scaling_mode);
+        LOG_ERROR(Service_Nvnflinger, "unknown scaling mode {}", scaling_mode);
         return Status::BadValue;
     }
 
@@ -464,38 +464,38 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
         std::scoped_lock lock{core->mutex};
 
         if (core->is_abandoned) {
-            LOG_ERROR(Service_NVFlinger, "BufferQueue has been abandoned");
+            LOG_ERROR(Service_Nvnflinger, "BufferQueue has been abandoned");
             return Status::NoInit;
         }
 
         const s32 max_buffer_count = core->GetMaxBufferCountLocked(async);
         if (async && core->override_max_buffer_count) {
             if (core->override_max_buffer_count < max_buffer_count) {
-                LOG_ERROR(Service_NVFlinger, "async mode is invalid with "
-                                             "buffer count override");
+                LOG_ERROR(Service_Nvnflinger, "async mode is invalid with "
+                                              "buffer count override");
                 return Status::BadValue;
             }
         }
 
         if (slot < 0 || slot >= max_buffer_count) {
-            LOG_ERROR(Service_NVFlinger, "slot index {} out of range [0, {})", slot,
+            LOG_ERROR(Service_Nvnflinger, "slot index {} out of range [0, {})", slot,
                       max_buffer_count);
             return Status::BadValue;
         } else if (slots[slot].buffer_state != BufferState::Dequeued) {
-            LOG_ERROR(Service_NVFlinger,
+            LOG_ERROR(Service_Nvnflinger,
                       "slot {} is not owned by the producer "
                       "(state = {})",
                       slot, slots[slot].buffer_state);
             return Status::BadValue;
         } else if (!slots[slot].request_buffer_called) {
-            LOG_ERROR(Service_NVFlinger,
+            LOG_ERROR(Service_Nvnflinger,
                       "slot {} was queued without requesting "
                       "a buffer",
                       slot);
             return Status::BadValue;
         }
 
-        LOG_DEBUG(Service_NVFlinger,
+        LOG_DEBUG(Service_Nvnflinger,
                   "slot={} frame={} time={} crop=[{},{},{},{}] transform={} scale={}", slot,
                   core->frame_counter + 1, timestamp, crop.Left(), crop.Top(), crop.Right(),
                   crop.Bottom(), transform, scaling_mode);
@@ -506,7 +506,7 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
         [[maybe_unused]] const bool unused = crop.Intersect(buffer_rect, &cropped_rect);
 
         if (cropped_rect != crop) {
-            LOG_ERROR(Service_NVFlinger, "crop rect is not contained within the buffer in slot {}",
+            LOG_ERROR(Service_Nvnflinger, "crop rect is not contained within the buffer in slot {}",
                       slot);
             return Status::BadValue;
         }
@@ -598,21 +598,21 @@ Status BufferQueueProducer::QueueBuffer(s32 slot, const QueueBufferInput& input,
 }
 
 void BufferQueueProducer::CancelBuffer(s32 slot, const Fence& fence) {
-    LOG_DEBUG(Service_NVFlinger, "slot {}", slot);
+    LOG_DEBUG(Service_Nvnflinger, "slot {}", slot);
 
     std::scoped_lock lock{core->mutex};
 
     if (core->is_abandoned) {
-        LOG_ERROR(Service_NVFlinger, "BufferQueue has been abandoned");
+        LOG_ERROR(Service_Nvnflinger, "BufferQueue has been abandoned");
         return;
     }
 
     if (slot < 0 || slot >= BufferQueueDefs::NUM_BUFFER_SLOTS) {
-        LOG_ERROR(Service_NVFlinger, "slot index {} out of range [0, {})", slot,
+        LOG_ERROR(Service_Nvnflinger, "slot index {} out of range [0, {})", slot,
                   BufferQueueDefs::NUM_BUFFER_SLOTS);
         return;
     } else if (slots[slot].buffer_state != BufferState::Dequeued) {
-        LOG_ERROR(Service_NVFlinger, "slot {} is not owned by the producer (state = {})", slot,
+        LOG_ERROR(Service_Nvnflinger, "slot {} is not owned by the producer (state = {})", slot,
                   slots[slot].buffer_state);
         return;
     }
@@ -629,12 +629,12 @@ Status BufferQueueProducer::Query(NativeWindow what, s32* out_value) {
     std::scoped_lock lock{core->mutex};
 
     if (out_value == nullptr) {
-        LOG_ERROR(Service_NVFlinger, "outValue was nullptr");
+        LOG_ERROR(Service_Nvnflinger, "outValue was nullptr");
         return Status::BadValue;
     }
 
     if (core->is_abandoned) {
-        LOG_ERROR(Service_NVFlinger, "BufferQueue has been abandoned");
+        LOG_ERROR(Service_Nvnflinger, "BufferQueue has been abandoned");
         return Status::NoInit;
     }
 
@@ -666,7 +666,7 @@ Status BufferQueueProducer::Query(NativeWindow what, s32* out_value) {
         return Status::BadValue;
     }
 
-    LOG_DEBUG(Service_NVFlinger, "what = {}, value = {}", what, value);
+    LOG_DEBUG(Service_Nvnflinger, "what = {}, value = {}", what, value);
 
     *out_value = static_cast<s32>(value);
 
@@ -678,26 +678,26 @@ Status BufferQueueProducer::Connect(const std::shared_ptr<IProducerListener>& li
                                     QueueBufferOutput* output) {
     std::scoped_lock lock{core->mutex};
 
-    LOG_DEBUG(Service_NVFlinger, "api = {} producer_controlled_by_app = {}", api,
+    LOG_DEBUG(Service_Nvnflinger, "api = {} producer_controlled_by_app = {}", api,
               producer_controlled_by_app);
 
     if (core->is_abandoned) {
-        LOG_ERROR(Service_NVFlinger, "BufferQueue has been abandoned");
+        LOG_ERROR(Service_Nvnflinger, "BufferQueue has been abandoned");
         return Status::NoInit;
     }
 
     if (core->consumer_listener == nullptr) {
-        LOG_ERROR(Service_NVFlinger, "BufferQueue has no consumer");
+        LOG_ERROR(Service_Nvnflinger, "BufferQueue has no consumer");
         return Status::NoInit;
     }
 
     if (output == nullptr) {
-        LOG_ERROR(Service_NVFlinger, "output was nullptr");
+        LOG_ERROR(Service_Nvnflinger, "output was nullptr");
         return Status::BadValue;
     }
 
     if (core->connected_api != NativeWindowApi::NoConnectedApi) {
-        LOG_ERROR(Service_NVFlinger, "already connected (cur = {} req = {})", core->connected_api,
+        LOG_ERROR(Service_Nvnflinger, "already connected (cur = {} req = {})", core->connected_api,
                   api);
         return Status::BadValue;
     }
@@ -714,7 +714,7 @@ Status BufferQueueProducer::Connect(const std::shared_ptr<IProducerListener>& li
         core->connected_producer_listener = listener;
         break;
     default:
-        LOG_ERROR(Service_NVFlinger, "unknown api = {}", api);
+        LOG_ERROR(Service_Nvnflinger, "unknown api = {}", api);
         status = Status::BadValue;
         break;
     }
@@ -727,7 +727,7 @@ Status BufferQueueProducer::Connect(const std::shared_ptr<IProducerListener>& li
 }
 
 Status BufferQueueProducer::Disconnect(NativeWindowApi api) {
-    LOG_DEBUG(Service_NVFlinger, "api = {}", api);
+    LOG_DEBUG(Service_Nvnflinger, "api = {}", api);
 
     Status status = Status::NoError;
     std::shared_ptr<IConsumerListener> listener;
@@ -762,13 +762,13 @@ Status BufferQueueProducer::Disconnect(NativeWindowApi api) {
                 buffer_wait_event->Signal();
                 listener = core->consumer_listener;
             } else {
-                LOG_ERROR(Service_NVFlinger, "still connected to another api (cur = {} req = {})",
+                LOG_ERROR(Service_Nvnflinger, "still connected to another api (cur = {} req = {})",
                           core->connected_api, api);
                 status = Status::BadValue;
             }
             break;
         default:
-            LOG_ERROR(Service_NVFlinger, "unknown api = {}", api);
+            LOG_ERROR(Service_Nvnflinger, "unknown api = {}", api);
             status = Status::BadValue;
             break;
         }
@@ -784,7 +784,7 @@ Status BufferQueueProducer::Disconnect(NativeWindowApi api) {
 
 Status BufferQueueProducer::SetPreallocatedBuffer(s32 slot,
                                                   const std::shared_ptr<GraphicBuffer>& buffer) {
-    LOG_DEBUG(Service_NVFlinger, "slot {}", slot);
+    LOG_DEBUG(Service_Nvnflinger, "slot {}", slot);
 
     if (slot < 0 || slot >= BufferQueueDefs::NUM_BUFFER_SLOTS) {
         return Status::BadValue;
@@ -813,7 +813,7 @@ Status BufferQueueProducer::SetPreallocatedBuffer(s32 slot,
     return Status::NoError;
 }
 
-void BufferQueueProducer::Transact(Kernel::HLERequestContext& ctx, TransactionId code, u32 flags) {
+void BufferQueueProducer::Transact(HLERequestContext& ctx, TransactionId code, u32 flags) {
     Status status{Status::NoError};
     InputParcel parcel_in{ctx.ReadBuffer()};
     OutputParcel parcel_out{};
@@ -914,7 +914,7 @@ void BufferQueueProducer::Transact(Kernel::HLERequestContext& ctx, TransactionId
         break;
     }
     case TransactionId::GetBufferHistory:
-        LOG_WARNING(Service_NVFlinger, "(STUBBED) called, transaction=GetBufferHistory");
+        LOG_WARNING(Service_Nvnflinger, "(STUBBED) called, transaction=GetBufferHistory");
         break;
     default:
         ASSERT_MSG(false, "Unimplemented TransactionId {}", code);

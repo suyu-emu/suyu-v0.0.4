@@ -4,8 +4,8 @@
 // Parts of this implementation were based on:
 // https://cs.android.com/android/platform/superproject/+/android-5.1.1_r38:frameworks/native/libs/gui/IGraphicBufferProducer.cpp
 
-#include "core/hle/service/nvflinger/graphic_buffer_producer.h"
-#include "core/hle/service/nvflinger/parcel.h"
+#include "core/hle/service/nvnflinger/graphic_buffer_producer.h"
+#include "core/hle/service/nvnflinger/parcel.h"
 
 namespace Service::android {
 

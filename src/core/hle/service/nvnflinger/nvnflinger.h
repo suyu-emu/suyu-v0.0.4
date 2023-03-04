@@ -42,12 +42,12 @@ class BufferQueueCore;
 class BufferQueueProducer;
 } // namespace Service::android
 
-namespace Service::NVFlinger {
+namespace Service::Nvnflinger {
 
-class NVFlinger final {
+class Nvnflinger final {
 public:
-    explicit NVFlinger(Core::System& system_, HosBinderDriverServer& hos_binder_driver_server_);
-    ~NVFlinger();
+    explicit Nvnflinger(Core::System& system_, HosBinderDriverServer& hos_binder_driver_server_);
+    ~Nvnflinger();
 
     void ShutdownLayers();
 
@@ -152,4 +152,4 @@ private:
     HosBinderDriverServer& hos_binder_driver_server;
 };
 
-} // namespace Service::NVFlinger
+} // namespace Service::Nvnflinger

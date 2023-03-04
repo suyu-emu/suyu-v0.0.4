@@ -9,8 +9,8 @@
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/math_util.h"
-#include "core/hle/service/nvflinger/ui/fence.h"
-#include "core/hle/service/nvflinger/window.h"
+#include "core/hle/service/nvnflinger/ui/fence.h"
+#include "core/hle/service/nvnflinger/window.h"
 
 namespace Service::android {
 

@@ -4,9 +4,9 @@
 #include <mutex>
 
 #include "common/common_types.h"
-#include "core/hle/service/nvflinger/hos_binder_driver_server.h"
+#include "core/hle/service/nvnflinger/hos_binder_driver_server.h"
 
-namespace Service::NVFlinger {
+namespace Service::Nvnflinger {
 
 HosBinderDriverServer::HosBinderDriverServer(Core::System& system_)
     : service_context(system_, "HosBinderDriverServer") {}
@@ -33,4 +33,4 @@ android::IBinder* HosBinderDriverServer::TryGetProducer(u64 id) {
     return {};
 }
 
-} // namespace Service::NVFlinger
+} // namespace Service::Nvnflinger

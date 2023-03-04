@@ -6,11 +6,11 @@
 
 #include "common/logging/log.h"
 #include "core/hle/service/nvdrv/core/nvmap.h"
-#include "core/hle/service/nvflinger/buffer_item.h"
-#include "core/hle/service/nvflinger/buffer_queue_consumer.h"
-#include "core/hle/service/nvflinger/buffer_queue_core.h"
-#include "core/hle/service/nvflinger/producer_listener.h"
-#include "core/hle/service/nvflinger/ui/graphic_buffer.h"
+#include "core/hle/service/nvnflinger/buffer_item.h"
+#include "core/hle/service/nvnflinger/buffer_queue_consumer.h"
+#include "core/hle/service/nvnflinger/buffer_queue_core.h"
+#include "core/hle/service/nvnflinger/producer_listener.h"
+#include "core/hle/service/nvnflinger/ui/graphic_buffer.h"
 
 namespace Service::android {
 
@@ -31,7 +31,7 @@ Status BufferQueueConsumer::AcquireBuffer(BufferItem* out_buffer,
         }))};
 
     if (num_acquired_buffers >= core->max_acquired_buffer_count + 1) {
-        LOG_ERROR(Service_NVFlinger, "max acquired buffer count reached: {} (max {})",
+        LOG_ERROR(Service_Nvnflinger, "max acquired buffer count reached: {} (max {})",
                   num_acquired_buffers, core->max_acquired_buffer_count);
         return Status::InvalidOperation;
     }
@@ -57,12 +57,12 @@ Status BufferQueueConsumer::AcquireBuffer(BufferItem* out_buffer,
             if (desired_present < expected_present.count() - MAX_REASONABLE_NSEC ||
                 desired_present > expected_present.count()) {
                 // This buffer is set to display in the near future, or desired_present is garbage.
-                LOG_DEBUG(Service_NVFlinger, "nodrop desire={} expect={}", desired_present,
+                LOG_DEBUG(Service_Nvnflinger, "nodrop desire={} expect={}", desired_present,
                           expected_present.count());
                 break;
             }
 
-            LOG_DEBUG(Service_NVFlinger, "drop desire={} expect={} size={}", desired_present,
+            LOG_DEBUG(Service_Nvnflinger, "drop desire={} expect={} size={}", desired_present,
                       expected_present.count(), core->queue.size());
 
             if (core->StillTracking(*front)) {
@@ -78,19 +78,19 @@ Status BufferQueueConsumer::AcquireBuffer(BufferItem* out_buffer,
         const auto desired_present = front->timestamp;
         if (desired_present > expected_present.count() &&
             desired_present < expected_present.count() + MAX_REASONABLE_NSEC) {
-            LOG_DEBUG(Service_NVFlinger, "defer desire={} expect={}", desired_present,
+            LOG_DEBUG(Service_Nvnflinger, "defer desire={} expect={}", desired_present,
                       expected_present.count());
             return Status::PresentLater;
         }
 
-        LOG_DEBUG(Service_NVFlinger, "accept desire={} expect={}", desired_present,
+        LOG_DEBUG(Service_Nvnflinger, "accept desire={} expect={}", desired_present,
                   expected_present.count());
     }
 
     const auto slot = front->slot;
     *out_buffer = *front;
 
-    LOG_DEBUG(Service_NVFlinger, "acquiring slot={}", slot);
+    LOG_DEBUG(Service_Nvnflinger, "acquiring slot={}", slot);
 
     // If the buffer has previously been acquired by the consumer, set graphic_buffer to nullptr to
     // avoid unnecessarily remapping this buffer on the consumer side.
@@ -109,7 +109,7 @@ Status BufferQueueConsumer::AcquireBuffer(BufferItem* out_buffer,
 
 Status BufferQueueConsumer::ReleaseBuffer(s32 slot, u64 frame_number, const Fence& release_fence) {
     if (slot < 0 || slot >= BufferQueueDefs::NUM_BUFFER_SLOTS) {
-        LOG_ERROR(Service_NVFlinger, "slot {} out of range", slot);
+        LOG_ERROR(Service_Nvnflinger, "slot {} out of range", slot);
         return Status::BadValue;
     }
 
@@ -127,7 +127,7 @@ Status BufferQueueConsumer::ReleaseBuffer(s32 slot, u64 frame_number, const Fenc
         auto current(core->queue.begin());
         while (current != core->queue.end()) {
             if (current->slot == slot) {
-                LOG_ERROR(Service_NVFlinger, "buffer slot {} pending release is currently queued",
+                LOG_ERROR(Service_Nvnflinger, "buffer slot {} pending release is currently queued",
                           slot);
                 return Status::BadValue;
             }
@@ -140,7 +140,7 @@ Status BufferQueueConsumer::ReleaseBuffer(s32 slot, u64 frame_number, const Fenc
 
         listener = core->connected_producer_listener;
 
-        LOG_DEBUG(Service_NVFlinger, "releasing slot {}", slot);
+        LOG_DEBUG(Service_Nvnflinger, "releasing slot {}", slot);
 
         core->SignalDequeueCondition();
     }
@@ -156,16 +156,16 @@ Status BufferQueueConsumer::ReleaseBuffer(s32 slot, u64 frame_number, const Fenc
 Status BufferQueueConsumer::Connect(std::shared_ptr<IConsumerListener> consumer_listener,
                                     bool controlled_by_app) {
     if (consumer_listener == nullptr) {
-        LOG_ERROR(Service_NVFlinger, "consumer_listener may not be nullptr");
+        LOG_ERROR(Service_Nvnflinger, "consumer_listener may not be nullptr");
         return Status::BadValue;
     }
 
-    LOG_DEBUG(Service_NVFlinger, "controlled_by_app={}", controlled_by_app);
+    LOG_DEBUG(Service_Nvnflinger, "controlled_by_app={}", controlled_by_app);
 
     std::scoped_lock lock{core->mutex};
 
     if (core->is_abandoned) {
-        LOG_ERROR(Service_NVFlinger, "BufferQueue has been abandoned");
+        LOG_ERROR(Service_Nvnflinger, "BufferQueue has been abandoned");
         return Status::NoInit;
     }
 
@@ -177,14 +177,14 @@ Status BufferQueueConsumer::Connect(std::shared_ptr<IConsumerListener> consumer_
 
 Status BufferQueueConsumer::GetReleasedBuffers(u64* out_slot_mask) {
     if (out_slot_mask == nullptr) {
-        LOG_ERROR(Service_NVFlinger, "out_slot_mask may not be nullptr");
+        LOG_ERROR(Service_Nvnflinger, "out_slot_mask may not be nullptr");
         return Status::BadValue;
     }
 
     std::scoped_lock lock{core->mutex};
 
     if (core->is_abandoned) {
-        LOG_ERROR(Service_NVFlinger, "BufferQueue has been abandoned");
+        LOG_ERROR(Service_Nvnflinger, "BufferQueue has been abandoned");
         return Status::NoInit;
     }
 
@@ -205,7 +205,7 @@ Status BufferQueueConsumer::GetReleasedBuffers(u64* out_slot_mask) {
         ++current;
     }
 
-    LOG_DEBUG(Service_NVFlinger, "returning mask {}", mask);
+    LOG_DEBUG(Service_Nvnflinger, "returning mask {}", mask);
     *out_slot_mask = mask;
     return Status::NoError;
 }

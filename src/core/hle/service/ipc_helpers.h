@@ -10,11 +10,11 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "core/hle/ipc.h"
-#include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/kernel/k_process.h"
 #include "core/hle/kernel/k_resource_limit.h"
 #include "core/hle/kernel/k_session.h"
 #include "core/hle/result.h"
+#include "core/hle/service/hle_ipc.h"
 #include "core/hle/service/server_manager.h"
 
 namespace IPC {
@@ -23,14 +23,14 @@ constexpr Result ERR_REMOTE_PROCESS_DEAD{ErrorModule::HIPC, 301};
 
 class RequestHelperBase {
 protected:
-    Kernel::HLERequestContext* context = nullptr;
+    Service::HLERequestContext* context = nullptr;
     u32* cmdbuf;
     u32 index = 0;
 
 public:
     explicit RequestHelperBase(u32* command_buffer) : cmdbuf(command_buffer) {}
 
-    explicit RequestHelperBase(Kernel::HLERequestContext& ctx)
+    explicit RequestHelperBase(Service::HLERequestContext& ctx)
         : context(&ctx), cmdbuf(ctx.CommandBuffer()) {}
 
     void Skip(u32 size_in_words, bool set_to_null) {
@@ -68,7 +68,7 @@ public:
         AlwaysMoveHandles = 1,
     };
 
-    explicit ResponseBuilder(Kernel::HLERequestContext& ctx, u32 normal_params_size_,
+    explicit ResponseBuilder(Service::HLERequestContext& ctx, u32 normal_params_size_,
                              u32 num_handles_to_copy_ = 0, u32 num_objects_to_move_ = 0,
                              Flags flags = Flags::None)
         : RequestHelperBase(ctx), normal_params_size(normal_params_size_),
@@ -157,7 +157,7 @@ public:
             auto* session = Kernel::KSession::Create(kernel);
             session->Initialize(nullptr, iface->GetServiceName());
 
-            auto next_manager = std::make_shared<Kernel::SessionRequestManager>(
+            auto next_manager = std::make_shared<Service::SessionRequestManager>(
                 kernel, manager->GetServerManager());
             next_manager->SetSessionHandler(iface);
             manager->GetServerManager().RegisterSession(&session->GetServerSession(), next_manager);
@@ -347,7 +347,7 @@ class RequestParser : public RequestHelperBase {
 public:
     explicit RequestParser(u32* command_buffer) : RequestHelperBase(command_buffer) {}
 
-    explicit RequestParser(Kernel::HLERequestContext& ctx) : RequestHelperBase(ctx) {
+    explicit RequestParser(Service::HLERequestContext& ctx) : RequestHelperBase(ctx) {
         // TIPC does not have data payload offset
         if (!ctx.IsTipc()) {
             ASSERT_MSG(ctx.GetDataPayloadOffset(), "context is incomplete");
