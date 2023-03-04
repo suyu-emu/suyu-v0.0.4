@@ -108,6 +108,9 @@ if (YUZU_USE_BUNDLED_VCPKG)
     if (ANDROID)
         set(VCPKG_TARGET_TRIPLET "arm64-android")
         set(ENV{ANDROID_NDK_HOME} "${ANDROID_NDK}")
+        # this is to avoid CMake using the host pkg-config to find the host
+        # libraries when building for Android targets
+        set(PKG_CONFIG_EXECUTABLE "aarch64-none-linux-android-pkg-config" CACHE FILEPATH "" FORCE)
         list(APPEND VCPKG_MANIFEST_FEATURES "android")
     endif()
 
