@@ -18,6 +18,15 @@ NTSYSAPI LONG NTAPI NtSetTimerResolution(ULONG DesiredResolution, BOOLEAN SetRes
 NTSYSAPI LONG NTAPI NtDelayExecution(BOOLEAN Alertable, PLARGE_INTEGER DelayInterval);
 }
 
+// Defines for compatibility with older Windows 10 SDKs.
+
+#ifndef PROCESS_POWER_THROTTLING_EXECUTION_SPEED
+#define PROCESS_POWER_THROTTLING_EXECUTION_SPEED 0x1
+#endif
+#ifndef PROCESS_POWER_THROTTLING_IGNORE_TIMER_RESOLUTION
+#define PROCESS_POWER_THROTTLING_IGNORE_TIMER_RESOLUTION 0x4
+#endif
+
 namespace Common::Windows {
 
 namespace {
@@ -51,6 +60,18 @@ TimerResolution GetTimerResolution() {
     };
 }
 
+void SetHighQoS() {
+    // https://learn.microsoft.com/en-us/windows/win32/procthread/quality-of-service
+    PROCESS_POWER_THROTTLING_STATE PowerThrottling{
+        .Version{PROCESS_POWER_THROTTLING_CURRENT_VERSION},
+        .ControlMask{PROCESS_POWER_THROTTLING_EXECUTION_SPEED |
+                     PROCESS_POWER_THROTTLING_IGNORE_TIMER_RESOLUTION},
+        .StateMask{},
+    };
+    SetProcessInformation(GetCurrentProcess(), ProcessPowerThrottling, &PowerThrottling,
+                          sizeof(PROCESS_POWER_THROTTLING_STATE));
+}
+
 } // Anonymous namespace
 
 nanoseconds GetMinimumTimerResolution() {
@@ -74,6 +95,7 @@ nanoseconds SetCurrentTimerResolution(nanoseconds timer_resolution) {
 }
 
 nanoseconds SetCurrentTimerResolutionToMaximum() {
+    SetHighQoS();
     return SetCurrentTimerResolution(GetMaximumTimerResolution());
 }
 
