@@ -351,8 +351,8 @@ PipelineCache::PipelineCache(RasterizerVulkan& rasterizer_, const Device& device
         .has_broken_signed_operations = false,
         .has_broken_fp16_float_controls = driver_id == VK_DRIVER_ID_NVIDIA_PROPRIETARY,
         .ignore_nan_fp_comparisons = false,
-        .has_broken_spirv_subgroup_mask_vector_extract_dynamic = driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY
-    };
+        .has_broken_spirv_subgroup_mask_vector_extract_dynamic =
+            driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY};
     host_info = Shader::HostTranslateInfo{
         .support_float16 = device.IsFloat16Supported(),
         .support_int64 = device.IsShaderInt64Supported(),
