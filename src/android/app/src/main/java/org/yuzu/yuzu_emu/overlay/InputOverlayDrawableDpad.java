@@ -178,7 +178,7 @@ public final class InputOverlayDrawableDpad {
         // Pressed up right
         if (mUpButtonState && !mLeftButtonState && mRightButtonState) {
             canvas.save();
-            canvas.rotate(180, px, py);
+            canvas.rotate(90, px, py);
             mPressedTwoDirectionsStateBitmap.draw(canvas);
             canvas.restore();
             return;

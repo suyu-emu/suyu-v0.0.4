@@ -15,7 +15,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.VectorDrawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -28,6 +30,8 @@ import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnTouchListener;
+
+import androidx.core.content.ContextCompat;
 
 import org.yuzu.yuzu_emu.NativeLibrary;
 import org.yuzu.yuzu_emu.NativeLibrary.ButtonType;
@@ -103,21 +107,28 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener, 
     /**
      * Resizes a {@link Bitmap} by a given scale factor
      *
-     * @param context The current {@link Context}
-     * @param bitmap  The {@link Bitmap} to scale.
-     * @param scale   The scale factor for the bitmap.
+     * @param vectorDrawable The {@link Bitmap} to scale.
+     * @param scale          The scale factor for the bitmap.
      * @return The scaled {@link Bitmap}
      */
-    public static Bitmap resizeBitmap(Context context, Bitmap bitmap, float scale) {
-        // Determine the button size based on the smaller screen dimension.
-        // This makes sure the buttons are the same size in both portrait and landscape.
-        DisplayMetrics dm = context.getResources().getDisplayMetrics();
-        int minDimension = Math.min(dm.widthPixels, dm.heightPixels);
+    private static Bitmap getBitmap(VectorDrawable vectorDrawable, float scale) {
+        Bitmap bitmap = Bitmap.createBitmap((int) (vectorDrawable.getIntrinsicWidth() * scale),
+                (int) (vectorDrawable.getIntrinsicHeight() * scale), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        vectorDrawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        vectorDrawable.draw(canvas);
+        return bitmap;
+    }
 
-        return Bitmap.createScaledBitmap(bitmap,
-                (int) (minDimension * scale),
-                (int) (minDimension * scale),
-                true);
+    private static Bitmap getBitmap(Context context, int drawableId, float scale) {
+        Drawable drawable = ContextCompat.getDrawable(context, drawableId);
+        if (drawable instanceof BitmapDrawable) {
+            return BitmapFactory.decodeResource(context.getResources(), drawableId);
+        } else if (drawable instanceof VectorDrawable) {
+            return getBitmap((VectorDrawable) drawable, scale);
+        } else {
+            throw new IllegalArgumentException("unsupported drawable type");
+        }
     }
 
     /**
@@ -166,16 +177,16 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener, 
             case ButtonType.BUTTON_CAPTURE:
             case ButtonType.BUTTON_PLUS:
             case ButtonType.BUTTON_MINUS:
-                scale = 0.08f;
+                scale = 0.35f;
                 break;
             case ButtonType.TRIGGER_L:
             case ButtonType.TRIGGER_R:
             case ButtonType.TRIGGER_ZL:
             case ButtonType.TRIGGER_ZR:
-                scale = 0.18f;
+                scale = 0.38f;
                 break;
             default:
-                scale = 0.11f;
+                scale = 0.40f;
                 break;
         }
 
@@ -183,10 +194,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener, 
         scale /= 100;
 
         // Initialize the InputOverlayDrawableButton.
-        final Bitmap defaultStateBitmap =
-                resizeBitmap(context, BitmapFactory.decodeResource(res, defaultResId), scale);
-        final Bitmap pressedStateBitmap =
-                resizeBitmap(context, BitmapFactory.decodeResource(res, pressedResId), scale);
+        final Bitmap defaultStateBitmap = getBitmap(context, defaultResId, scale);
+        final Bitmap pressedStateBitmap = getBitmap(context, pressedResId, scale);
         final InputOverlayDrawableButton overlayDrawable =
                 new InputOverlayDrawableButton(res, defaultStateBitmap, pressedStateBitmap, buttonId);
 
@@ -243,20 +252,17 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener, 
         final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
 
         // Decide scale based on button ID and user preference
-        float scale = 0.23f;
+        float scale = 0.40f;
 
         scale *= (sPrefs.getInt("controlScale", 50) + 50);
         scale /= 100;
 
         // Initialize the InputOverlayDrawableDpad.
-        final Bitmap defaultStateBitmap =
-                resizeBitmap(context, BitmapFactory.decodeResource(res, defaultResId), scale);
-        final Bitmap pressedOneDirectionStateBitmap =
-                resizeBitmap(context, BitmapFactory.decodeResource(res, pressedOneDirectionResId),
-                        scale);
-        final Bitmap pressedTwoDirectionsStateBitmap =
-                resizeBitmap(context, BitmapFactory.decodeResource(res, pressedTwoDirectionsResId),
-                        scale);
+        final Bitmap defaultStateBitmap = getBitmap(context, defaultResId, scale);
+        final Bitmap pressedOneDirectionStateBitmap = getBitmap(context, pressedOneDirectionResId,
+                scale);
+        final Bitmap pressedTwoDirectionsStateBitmap = getBitmap(context, pressedTwoDirectionsResId,
+                scale);
         final InputOverlayDrawableDpad overlayDrawable =
                 new InputOverlayDrawableDpad(res, defaultStateBitmap,
                         pressedOneDirectionStateBitmap, pressedTwoDirectionsStateBitmap,
@@ -300,15 +306,14 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener, 
         final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
 
         // Decide scale based on user preference
-        float scale = 0.275f;
+        float scale = 0.35f;
         scale *= (sPrefs.getInt("controlScale", 50) + 50);
         scale /= 100;
 
         // Initialize the InputOverlayDrawableJoystick.
-        final Bitmap bitmapOuter =
-                resizeBitmap(context, BitmapFactory.decodeResource(res, resOuter), scale);
-        final Bitmap bitmapInnerDefault = BitmapFactory.decodeResource(res, defaultResInner);
-        final Bitmap bitmapInnerPressed = BitmapFactory.decodeResource(res, pressedResInner);
+        final Bitmap bitmapOuter = getBitmap(context, resOuter, scale);
+        final Bitmap bitmapInnerDefault = getBitmap(context, defaultResInner, 1.0f);
+        final Bitmap bitmapInnerPressed = getBitmap(context, pressedResInner, 1.0f);
 
         // The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
         // These were set in the input overlay configuration menu.
@@ -320,7 +325,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener, 
         // Now set the bounds for the InputOverlayDrawableJoystick.
         // This will dictate where on the screen (and the what the size) the InputOverlayDrawableJoystick will be.
         int outerSize = bitmapOuter.getWidth();
-        Rect outerRect = new Rect(drawableX, drawableY, drawableX + (int) (outerSize / outerScale), drawableY + (int) (outerSize / outerScale));
+        Rect outerRect = new Rect(drawableX, drawableY, drawableX + outerSize, drawableY + outerSize);
         Rect innerRect = new Rect(0, 0, (int) (outerSize / outerScale), (int) (outerSize / outerScale));
 
         // Send the drawableId to the joystick so it can be referenced when saving control position.
@@ -476,68 +481,68 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener, 
 
     private void addOverlayControls(String orientation) {
         if (mPreferences.getBoolean("buttonToggle0", true)) {
-            overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.button_a,
-                    R.drawable.button_a_pressed, ButtonType.BUTTON_A, orientation));
+            overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.facebutton_a,
+                    R.drawable.facebutton_a_depressed, ButtonType.BUTTON_A, orientation));
         }
         if (mPreferences.getBoolean("buttonToggle1", true)) {
-            overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.button_b,
-                    R.drawable.button_b_pressed, ButtonType.BUTTON_B, orientation));
+            overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.facebutton_b,
+                    R.drawable.facebutton_b_depressed, ButtonType.BUTTON_B, orientation));
         }
         if (mPreferences.getBoolean("buttonToggle2", true)) {
-            overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.button_x,
-                    R.drawable.button_x_pressed, ButtonType.BUTTON_X, orientation));
+            overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.facebutton_x,
+                    R.drawable.facebutton_x_depressed, ButtonType.BUTTON_X, orientation));
         }
         if (mPreferences.getBoolean("buttonToggle3", true)) {
-            overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.button_y,
-                    R.drawable.button_y_pressed, ButtonType.BUTTON_Y, orientation));
+            overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.facebutton_y,
+                    R.drawable.facebutton_y_depressed, ButtonType.BUTTON_Y, orientation));
         }
         if (mPreferences.getBoolean("buttonToggle4", true)) {
-            overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.button_l,
-                    R.drawable.button_l_pressed, ButtonType.TRIGGER_L, orientation));
+            overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.l_shoulder,
+                    R.drawable.l_shoulder_depressed, ButtonType.TRIGGER_L, orientation));
         }
         if (mPreferences.getBoolean("buttonToggle5", true)) {
-            overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.button_r,
-                    R.drawable.button_r_pressed, ButtonType.TRIGGER_R, orientation));
+            overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.r_shoulder,
+                    R.drawable.r_shoulder_depressed, ButtonType.TRIGGER_R, orientation));
         }
         if (mPreferences.getBoolean("buttonToggle6", true)) {
-            overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.button_zl,
-                    R.drawable.button_zl_pressed, ButtonType.TRIGGER_ZL, orientation));
+            overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.zl_trigger,
+                    R.drawable.zl_trigger_depressed, ButtonType.TRIGGER_ZL, orientation));
         }
         if (mPreferences.getBoolean("buttonToggle7", true)) {
-            overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.button_zr,
-                    R.drawable.button_zr_pressed, ButtonType.TRIGGER_ZR, orientation));
+            overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.zr_trigger,
+                    R.drawable.zr_trigger_depressed, ButtonType.TRIGGER_ZR, orientation));
         }
         if (mPreferences.getBoolean("buttonToggle8", true)) {
-            overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.button_start,
-                    R.drawable.button_start_pressed, ButtonType.BUTTON_PLUS, orientation));
+            overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.facebutton_plus,
+                    R.drawable.facebutton_plus_depressed, ButtonType.BUTTON_PLUS, orientation));
         }
         if (mPreferences.getBoolean("buttonToggle9", true)) {
-            overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.button_select,
-                    R.drawable.button_select_pressed, ButtonType.BUTTON_MINUS, orientation));
+            overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.facebutton_minus,
+                    R.drawable.facebutton_minus_depressed, ButtonType.BUTTON_MINUS, orientation));
         }
         if (mPreferences.getBoolean("buttonToggle10", true)) {
-            overlayDpads.add(initializeOverlayDpad(getContext(), R.drawable.dpad,
-                    R.drawable.dpad_pressed_one_direction,
-                    R.drawable.dpad_pressed_two_directions,
+            overlayDpads.add(initializeOverlayDpad(getContext(), R.drawable.dpad_standard,
+                    R.drawable.dpad_standard_cardinal_depressed,
+                    R.drawable.dpad_standard_diagonal_depressed,
                     ButtonType.DPAD_UP, ButtonType.DPAD_DOWN,
                     ButtonType.DPAD_LEFT, ButtonType.DPAD_RIGHT, orientation));
         }
         if (mPreferences.getBoolean("buttonToggle11", true)) {
-            overlayJoysticks.add(initializeOverlayJoystick(getContext(), R.drawable.stick_main_range,
-                    R.drawable.stick_main, R.drawable.stick_main_pressed,
+            overlayJoysticks.add(initializeOverlayJoystick(getContext(), R.drawable.joystick_range,
+                    R.drawable.joystick, R.drawable.joystick_depressed,
                     StickType.STICK_L, ButtonType.STICK_L, orientation));
         }
         if (mPreferences.getBoolean("buttonToggle12", true)) {
-            overlayJoysticks.add(initializeOverlayJoystick(getContext(), R.drawable.stick_main_range,
-                    R.drawable.stick_main, R.drawable.stick_main_pressed, StickType.STICK_R, ButtonType.STICK_R, orientation));
+            overlayJoysticks.add(initializeOverlayJoystick(getContext(), R.drawable.joystick_range,
+                    R.drawable.joystick, R.drawable.joystick_depressed, StickType.STICK_R, ButtonType.STICK_R, orientation));
         }
         if (mPreferences.getBoolean("buttonToggle13", true)) {
-            overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.button_a,
-                    R.drawable.button_a, ButtonType.BUTTON_HOME, orientation));
+            overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.facebutton_home,
+                    R.drawable.facebutton_home_depressed, ButtonType.BUTTON_HOME, orientation));
         }
         if (mPreferences.getBoolean("buttonToggle14", true)) {
-            overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.button_a,
-                    R.drawable.button_a, ButtonType.BUTTON_CAPTURE, orientation));
+            overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.facebutton_screenshot,
+                    R.drawable.facebutton_screenshot_depressed, ButtonType.BUTTON_CAPTURE, orientation));
         }
     }
 

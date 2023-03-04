@@ -17,13 +17,13 @@
     <integer name="SWITCH_STICK_R_X">715</integer>
     <integer name="SWITCH_STICK_R_Y">740</integer>
     <integer name="SWITCH_TRIGGER_L_X">13</integer>
-    <integer name="SWITCH_TRIGGER_L_Y">0</integer>
+    <integer name="SWITCH_TRIGGER_L_Y">125</integer>
     <integer name="SWITCH_TRIGGER_R_X">895</integer>
-    <integer name="SWITCH_TRIGGER_R_Y">0</integer>
+    <integer name="SWITCH_TRIGGER_R_Y">125</integer>
     <integer name="SWITCH_TRIGGER_ZL_X">13</integer>
-    <integer name="SWITCH_TRIGGER_ZL_Y">115</integer>
+    <integer name="SWITCH_TRIGGER_ZL_Y">0</integer>
     <integer name="SWITCH_TRIGGER_ZR_X">895</integer>
-    <integer name="SWITCH_TRIGGER_ZR_Y">115</integer>
+    <integer name="SWITCH_TRIGGER_ZR_Y">0</integer>
     <integer name="SWITCH_BUTTON_MINUS_X">440</integer>
     <integer name="SWITCH_BUTTON_MINUS_Y">850</integer>
     <integer name="SWITCH_BUTTON_PLUS_X">520</integer>
