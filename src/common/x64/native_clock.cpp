@@ -53,11 +53,11 @@ u64 EstimateRDTSCFrequency() {
     FencedRDTSC();
 
     // Get the current time.
-    const auto start_time = Common::SteadyClock::Now();
+    const auto start_time = Common::RealTimeClock::Now();
     const u64 tsc_start = FencedRDTSC();
     // Wait for 250 milliseconds.
     std::this_thread::sleep_for(std::chrono::milliseconds{250});
-    const auto end_time = Common::SteadyClock::Now();
+    const auto end_time = Common::RealTimeClock::Now();
     const u64 tsc_end = FencedRDTSC();
     // Calculate differences.
     const u64 timer_diff = static_cast<u64>(
@@ -75,13 +75,13 @@ NativeClock::NativeClock(u64 emulated_cpu_frequency_, u64 emulated_clock_frequen
     // Thread to re-adjust the RDTSC frequency after 30 seconds has elapsed.
     time_sync_thread = std::jthread{[this](std::stop_token token) {
         // Get the current time.
-        const auto start_time = Common::SteadyClock::Now();
+        const auto start_time = Common::RealTimeClock::Now();
         const u64 tsc_start = FencedRDTSC();
         // Wait for 30 seconds.
         if (!Common::StoppableTimedWait(token, std::chrono::seconds{30})) {
             return;
         }
-        const auto end_time = Common::SteadyClock::Now();
+        const auto end_time = Common::RealTimeClock::Now();
         const u64 tsc_end = FencedRDTSC();
         // Calculate differences.
         const u64 timer_diff = static_cast<u64>(
