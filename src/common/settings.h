@@ -503,7 +503,7 @@ struct Values {
     Setting<bool> tas_loop{false, "tas_loop"};
 
     Setting<bool> mouse_panning{false, "mouse_panning"};
-    Setting<u8, true> mouse_panning_sensitivity{10, 1, 100, "mouse_panning_sensitivity"};
+    Setting<u8, true> mouse_panning_sensitivity{50, 1, 100, "mouse_panning_sensitivity"};
     Setting<bool> mouse_enabled{false, "mouse_enabled"};
 
     Setting<bool> emulate_analog_keyboard{false, "emulate_analog_keyboard"};
