@@ -186,7 +186,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener, 
                 scale = 0.38f;
                 break;
             default:
-                scale = 0.40f;
+                scale = 0.43f;
                 break;
         }
 
@@ -215,10 +215,10 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener, 
 
         // Now set the bounds for the InputOverlayDrawableButton.
         // This will dictate where on the screen (and the what the size) the InputOverlayDrawableButton will be.
-        overlayDrawable.setBounds(drawableX, drawableY, drawableX + width, drawableY + height);
+        overlayDrawable.setBounds(drawableX - (width / 2), drawableY - (height / 2), drawableX + (width / 2), drawableY + (height / 2));
 
         // Need to set the image's position
-        overlayDrawable.setPosition(drawableX, drawableY);
+        overlayDrawable.setPosition(drawableX - (width / 2), drawableY - (height / 2));
 
         return overlayDrawable;
     }
@@ -278,10 +278,10 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener, 
 
         // Now set the bounds for the InputOverlayDrawableDpad.
         // This will dictate where on the screen (and the what the size) the InputOverlayDrawableDpad will be.
-        overlayDrawable.setBounds(drawableX, drawableY, drawableX + width, drawableY + height);
+        overlayDrawable.setBounds(drawableX - (width / 2), drawableY - (height / 2), drawableX + (width / 2), drawableY + (height / 2));
 
         // Need to set the image's position
-        overlayDrawable.setPosition(drawableX, drawableY);
+        overlayDrawable.setPosition(drawableX - (width / 2), drawableY - (height / 2));
 
         return overlayDrawable;
     }
@@ -306,7 +306,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener, 
         final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
 
         // Decide scale based on user preference
-        float scale = 0.35f;
+        float scale = 0.40f;
         scale *= (sPrefs.getInt("controlScale", 50) + 50);
         scale /= 100;
 
@@ -320,12 +320,12 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener, 
         int drawableX = (int) sPrefs.getFloat(button + orientation + "-X", 0f);
         int drawableY = (int) sPrefs.getFloat(button + orientation + "-Y", 0f);
 
-        float outerScale = 1.3f;
+        float outerScale = 1.66f;
 
         // Now set the bounds for the InputOverlayDrawableJoystick.
         // This will dictate where on the screen (and the what the size) the InputOverlayDrawableJoystick will be.
         int outerSize = bitmapOuter.getWidth();
-        Rect outerRect = new Rect(drawableX, drawableY, drawableX + outerSize, drawableY + outerSize);
+        Rect outerRect = new Rect(drawableX - (outerSize / 2), drawableY - (outerSize / 2), drawableX + (outerSize / 2), drawableY + (outerSize / 2));
         Rect innerRect = new Rect(0, 0, (int) (outerSize / outerScale), (int) (outerSize / outerScale));
 
         // Send the drawableId to the joystick so it can be referenced when saving control position.
@@ -362,12 +362,13 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener, 
         if (isInEditMode()) {
             return onTouchWhileEditing(event);
         }
-
+        boolean should_update_view = false;
         for (InputOverlayDrawableButton button : overlayButtons) {
             if (!button.updateStatus(event)) {
                 continue;
             }
             NativeLibrary.onGamePadButtonEvent(NativeLibrary.Player1Device, button.getId(), button.getStatus());
+            should_update_view = true;
         }
 
         for (InputOverlayDrawableDpad dpad : overlayDpads) {
@@ -378,6 +379,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener, 
             NativeLibrary.onGamePadButtonEvent(NativeLibrary.Player1Device, dpad.getDownId(), dpad.getDownStatus());
             NativeLibrary.onGamePadButtonEvent(NativeLibrary.Player1Device, dpad.getLeftId(), dpad.getLeftStatus());
             NativeLibrary.onGamePadButtonEvent(NativeLibrary.Player1Device, dpad.getRightId(), dpad.getRightStatus());
+            should_update_view = true;
         }
 
         for (InputOverlayDrawableJoystick joystick : overlayJoysticks) {
@@ -387,6 +389,11 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener, 
             int axisID = joystick.getJoystickId();
             NativeLibrary.onGamePadJoystickEvent(NativeLibrary.Player1Device, axisID, joystick.getXAxis(), joystick.getYAxis());
             NativeLibrary.onGamePadButtonEvent(NativeLibrary.Player1Device, joystick.getButtonId(), joystick.getButtonStatus());
+            should_update_view = true;
+        }
+
+        if (should_update_view) {
+            invalidate();
         }
 
         if (!mPreferences.getBoolean("isTouchEnabled", true)) {
@@ -419,8 +426,6 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener, 
         if (isActionUp && !isTouchInputConsumed(pointerId)) {
             NativeLibrary.onTouchReleased(pointerId);
         }
-
-        invalidate();
 
         return true;
     }
@@ -536,11 +541,11 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener, 
             overlayJoysticks.add(initializeOverlayJoystick(getContext(), R.drawable.joystick_range,
                     R.drawable.joystick, R.drawable.joystick_depressed, StickType.STICK_R, ButtonType.STICK_R, orientation));
         }
-        if (mPreferences.getBoolean("buttonToggle13", true)) {
+        if (mPreferences.getBoolean("buttonToggle13", false)) {
             overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.facebutton_home,
                     R.drawable.facebutton_home_depressed, ButtonType.BUTTON_HOME, orientation));
         }
-        if (mPreferences.getBoolean("buttonToggle14", true)) {
+        if (mPreferences.getBoolean("buttonToggle14", false)) {
             overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.facebutton_screenshot,
                     R.drawable.facebutton_screenshot_depressed, ButtonType.BUTTON_CAPTURE, orientation));
         }
@@ -580,7 +585,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener, 
         if (!mPreferences.getBoolean("OverlayInit", false)) {
             defaultOverlayLandscape();
         }
-
+        resetButtonPlacement();
         SharedPreferences.Editor sPrefsEditor = mPreferences.edit();
         sPrefsEditor.putBoolean("OverlayInit", true);
         sPrefsEditor.apply();
@@ -596,7 +601,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener, 
         // Get screen size
         Display display = ((Activity) getContext()).getWindowManager().getDefaultDisplay();
         DisplayMetrics outMetrics = new DisplayMetrics();
-        display.getMetrics(outMetrics);
+        display.getRealMetrics(outMetrics);
         float maxX = outMetrics.heightPixels;
         float maxY = outMetrics.widthPixels;
         // Height and width changes depending on orientation. Use the larger value for height.
@@ -605,6 +610,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener, 
             maxX = maxY;
             maxY = tmp;
         }
+
         Resources res = getResources();
 
         // Each value is a percent from max X/Y stored as an int. Have to bring that value down
@@ -621,8 +627,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener, 
         sPrefsEditor.putFloat(ButtonType.TRIGGER_ZL + "-Y", (((float) res.getInteger(R.integer.SWITCH_TRIGGER_ZL_Y) / 1000) * maxY));
         sPrefsEditor.putFloat(ButtonType.TRIGGER_ZR + "-X", (((float) res.getInteger(R.integer.SWITCH_TRIGGER_ZR_X) / 1000) * maxX));
         sPrefsEditor.putFloat(ButtonType.TRIGGER_ZR + "-Y", (((float) res.getInteger(R.integer.SWITCH_TRIGGER_ZR_Y) / 1000) * maxY));
-        sPrefsEditor.putFloat(ButtonType.DPAD_UP + "-X", (((float) res.getInteger(R.integer.SWITCH_BUTTON_UP_X) / 1000) * maxX));
-        sPrefsEditor.putFloat(ButtonType.DPAD_UP + "-Y", (((float) res.getInteger(R.integer.SWITCH_BUTTON_UP_Y) / 1000) * maxY));
+        sPrefsEditor.putFloat(ButtonType.DPAD_UP + "-X", (((float) res.getInteger(R.integer.SWITCH_BUTTON_DPAD_X) / 1000) * maxX));
+        sPrefsEditor.putFloat(ButtonType.DPAD_UP + "-Y", (((float) res.getInteger(R.integer.SWITCH_BUTTON_DPAD_Y) / 1000) * maxY));
         sPrefsEditor.putFloat(ButtonType.TRIGGER_L + "-X", (((float) res.getInteger(R.integer.SWITCH_TRIGGER_L_X) / 1000) * maxX));
         sPrefsEditor.putFloat(ButtonType.TRIGGER_L + "-Y", (((float) res.getInteger(R.integer.SWITCH_TRIGGER_L_Y) / 1000) * maxY));
         sPrefsEditor.putFloat(ButtonType.TRIGGER_R + "-X", (((float) res.getInteger(R.integer.SWITCH_TRIGGER_R_X) / 1000) * maxX));

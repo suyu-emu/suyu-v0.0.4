@@ -67,6 +67,7 @@ public final class InputOverlayDrawableButton {
         int motion_event = event.getAction() & MotionEvent.ACTION_MASK;
         boolean isActionDown = motion_event == MotionEvent.ACTION_DOWN || motion_event == MotionEvent.ACTION_POINTER_DOWN;
         boolean isActionUp = motion_event == MotionEvent.ACTION_UP || motion_event == MotionEvent.ACTION_POINTER_UP;
+        boolean current_state = mPressedState;
 
         if (isActionDown) {
             if (!getBounds().contains(xPosition, yPosition)) {

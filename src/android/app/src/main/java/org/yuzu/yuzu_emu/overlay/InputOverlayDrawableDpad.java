@@ -121,12 +121,16 @@ public final class InputOverlayDrawableDpad {
             maxY -= getBounds().centerY();
             final float AxisX = touchX / maxX;
             final float AxisY = touchY / maxY;
+            final boolean up_state = mUpButtonState;
+            final boolean down_state = mDownButtonState;
+            final boolean left_state = mLeftButtonState;
+            final boolean right_state = mRightButtonState;
 
             mUpButtonState = AxisY < -InputOverlayDrawableDpad.VIRT_AXIS_DEADZONE;
             mDownButtonState = AxisY > InputOverlayDrawableDpad.VIRT_AXIS_DEADZONE;
             mLeftButtonState = AxisX < -InputOverlayDrawableDpad.VIRT_AXIS_DEADZONE;
             mRightButtonState = AxisX > InputOverlayDrawableDpad.VIRT_AXIS_DEADZONE;
-            return true;
+            return up_state != mUpButtonState || down_state != mDownButtonState || left_state != mLeftButtonState || right_state != mRightButtonState;
         }
 
         return false;

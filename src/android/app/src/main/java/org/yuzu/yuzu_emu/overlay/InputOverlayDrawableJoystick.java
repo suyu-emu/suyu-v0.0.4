@@ -140,6 +140,8 @@ public final class InputOverlayDrawableJoystick {
             maxY -= getVirtBounds().centerY();
             final float AxisX = touchX / maxX;
             final float AxisY = touchY / maxY;
+            final float oldXAxis = mXAxis;
+            final float oldYAxis = mYAxis;
 
             // Clamp the circle pad input to a circle
             final float angle = (float) Math.atan2(AxisY, AxisX);
@@ -150,7 +152,7 @@ public final class InputOverlayDrawableJoystick {
             mXAxis = ((float) Math.cos(angle) * radius);
             mYAxis = ((float) Math.sin(angle) * radius);
             SetInnerBounds();
-            return true;
+            return oldXAxis != mXAxis && oldYAxis != mYAxis;
         }
 
         return false;
