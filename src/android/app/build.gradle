@@ -63,7 +63,6 @@ android {
         // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
         relWithDebInfo {
             initWith release
-            applicationIdSuffix ".debug"
             versionNameSuffix '-debug'
             signingConfig signingConfigs.debug
             minifyEnabled false
@@ -76,7 +75,6 @@ android {
         // Attaches 'debug' suffix to version and package name, allowing installation alongside the release build.
         debug {
             // TODO If this is ever modified, change application_id in debug/strings.xml
-            applicationIdSuffix ".debug"
             versionNameSuffix '-debug'
             debuggable true
             jniDebuggable true
@@ -85,11 +83,7 @@ android {
 
     flavorDimensions "version"
     productFlavors {
-        canary {
-            dimension "version"
-            applicationIdSuffix ".canary"
-        }
-        nightly {
+        mainline {
             dimension "version"
         }
     }
