@@ -72,13 +72,13 @@ NativeClock::NativeClock(u64 emulated_cpu_frequency_, u64 emulated_clock_frequen
                          u64 rtsc_frequency_)
     : WallClock(emulated_cpu_frequency_, emulated_clock_frequency_, true), rtsc_frequency{
                                                                                rtsc_frequency_} {
-    // Thread to re-adjust the RDTSC frequency after 30 seconds has elapsed.
+    // Thread to re-adjust the RDTSC frequency after 10 seconds has elapsed.
     time_sync_thread = std::jthread{[this](std::stop_token token) {
         // Get the current time.
         const auto start_time = Common::RealTimeClock::Now();
         const u64 tsc_start = FencedRDTSC();
-        // Wait for 30 seconds.
-        if (!Common::StoppableTimedWait(token, std::chrono::seconds{30})) {
+        // Wait for 10 seconds.
+        if (!Common::StoppableTimedWait(token, std::chrono::seconds{10})) {
             return;
         }
         const auto end_time = Common::RealTimeClock::Now();
