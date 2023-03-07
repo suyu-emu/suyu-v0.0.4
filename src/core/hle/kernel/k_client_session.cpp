@@ -29,7 +29,7 @@ Result KClientSession::SendSyncRequest() {
     SCOPE_EXIT({ request->Close(); });
 
     // Initialize the request.
-    request->Initialize(nullptr, GetCurrentThread(m_kernel).GetTLSAddress(), MessageBufferSize);
+    request->Initialize(nullptr, GetCurrentThread(m_kernel).GetTlsAddress(), MessageBufferSize);
 
     // Send the request.
     R_RETURN(m_parent->GetServerSession().OnRequest(request));

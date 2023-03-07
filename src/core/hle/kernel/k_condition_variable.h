@@ -41,16 +41,16 @@ private:
     ThreadTree m_tree{};
 };
 
-inline void BeforeUpdatePriority(const KernelCore& kernel, KConditionVariable::ThreadTree* tree,
+inline void BeforeUpdatePriority(KernelCore& kernel, KConditionVariable::ThreadTree* tree,
                                  KThread* thread) {
-    ASSERT(kernel.GlobalSchedulerContext().IsLocked());
+    ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(kernel));
 
     tree->erase(tree->iterator_to(*thread));
 }
 
-inline void AfterUpdatePriority(const KernelCore& kernel, KConditionVariable::ThreadTree* tree,
+inline void AfterUpdatePriority(KernelCore& kernel, KConditionVariable::ThreadTree* tree,
                                 KThread* thread) {
-    ASSERT(kernel.GlobalSchedulerContext().IsLocked());
+    ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(kernel));
 
     tree->insert(*thread);
 }

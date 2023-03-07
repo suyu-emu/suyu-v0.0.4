@@ -52,7 +52,6 @@ void SetupMainThread(Core::System& system, KProcess& owner_process, u32 priority
     Handle thread_handle{};
     owner_process.GetHandleTable().Add(std::addressof(thread_handle), thread);
 
-    thread->SetName("main");
     thread->GetContext32().cpu_registers[0] = 0;
     thread->GetContext64().cpu_registers[0] = 0;
     thread->GetContext32().cpu_registers[1] = thread_handle;

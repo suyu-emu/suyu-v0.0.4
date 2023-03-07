@@ -411,7 +411,7 @@ void KScheduler::ScheduleImpl() {
     m_switch_cur_thread = cur_thread;
     m_switch_highest_priority_thread = highest_priority_thread;
     m_switch_from_schedule = true;
-    Common::Fiber::YieldTo(cur_thread->host_context, *m_switch_fiber);
+    Common::Fiber::YieldTo(cur_thread->m_host_context, *m_switch_fiber);
 
     // Returning from ScheduleImpl occurs after this thread has been scheduled again.
 }
@@ -450,7 +450,7 @@ void KScheduler::ScheduleImplFiber() {
 
         // We want to try to lock the highest priority thread's context.
         // Try to take it.
-        while (!highest_priority_thread->context_guard.try_lock()) {
+        while (!highest_priority_thread->m_context_guard.try_lock()) {
             // The highest priority thread's context is already locked.
             // Check if we need scheduling. If we don't, we can retry directly.
             if (m_state.needs_scheduling.load(std::memory_order_seq_cst)) {
@@ -468,7 +468,7 @@ void KScheduler::ScheduleImplFiber() {
         if (m_state.needs_scheduling.load(std::memory_order_seq_cst)) {
             // Our switch failed.
             // We should unlock the thread context, and then retry.
-            highest_priority_thread->context_guard.unlock();
+            highest_priority_thread->m_context_guard.unlock();
             goto retry;
         } else {
             break;
@@ -489,7 +489,7 @@ void KScheduler::ScheduleImplFiber() {
     Reload(highest_priority_thread);
 
     // Reload the host thread.
-    Common::Fiber::YieldTo(m_switch_fiber, *highest_priority_thread->host_context);
+    Common::Fiber::YieldTo(m_switch_fiber, *highest_priority_thread->m_host_context);
 }
 
 void KScheduler::Unload(KThread* thread) {
@@ -497,13 +497,13 @@ void KScheduler::Unload(KThread* thread) {
     cpu_core.SaveContext(thread->GetContext32());
     cpu_core.SaveContext(thread->GetContext64());
     // Save the TPIDR_EL0 system register in case it was modified.
-    thread->SetTPIDR_EL0(cpu_core.GetTPIDR_EL0());
+    thread->SetTpidrEl0(cpu_core.GetTPIDR_EL0());
     cpu_core.ClearExclusiveState();
 
     // Check if the thread is terminated by checking the DPC flags.
     if ((thread->GetStackParameters().dpc_flags & static_cast<u32>(DpcFlag::Terminated)) == 0) {
         // The thread isn't terminated, so we want to unlock it.
-        thread->context_guard.unlock();
+        thread->m_context_guard.unlock();
     }
 }
 
@@ -511,8 +511,8 @@ void KScheduler::Reload(KThread* thread) {
     auto& cpu_core = m_kernel.System().ArmInterface(m_core_id);
     cpu_core.LoadContext(thread->GetContext32());
     cpu_core.LoadContext(thread->GetContext64());
-    cpu_core.SetTlsAddress(thread->GetTLSAddress());
-    cpu_core.SetTPIDR_EL0(thread->GetTPIDR_EL0());
+    cpu_core.SetTlsAddress(thread->GetTlsAddress());
+    cpu_core.SetTPIDR_EL0(thread->GetTpidrEl0());
     cpu_core.LoadWatchpointArray(thread->GetOwnerProcess()->GetWatchpoints());
     cpu_core.ClearExclusiveState();
 }

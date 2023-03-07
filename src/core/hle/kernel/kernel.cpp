@@ -214,7 +214,6 @@ struct KernelCore::Impl {
             cores[i] = std::make_unique<Kernel::PhysicalCore>(i, system, *schedulers[i]);
 
             auto* main_thread{Kernel::KThread::Create(system.Kernel())};
-            main_thread->SetName(fmt::format("MainThread:{}", core));
             main_thread->SetCurrentCore(core);
             ASSERT(Kernel::KThread::InitializeMainThread(system, main_thread, core).IsSuccess());
 
@@ -356,7 +355,6 @@ struct KernelCore::Impl {
             ASSERT(KThread::InitializeHighPriorityThread(system, shutdown_threads[core_id], {}, {},
                                                          core_id)
                        .IsSuccess());
-            shutdown_threads[core_id]->SetName(fmt::format("SuspendThread:{}", core_id));
         }
     }
 
@@ -390,7 +388,6 @@ struct KernelCore::Impl {
     KThread* GetHostDummyThread(KThread* existing_thread) {
         auto initialize = [this](KThread* thread) {
             ASSERT(KThread::InitializeDummyThread(thread, nullptr).IsSuccess());
-            thread->SetName(fmt::format("DummyThread:{}", next_host_thread_id++));
             return thread;
         };
 

@@ -177,7 +177,6 @@ Result KConditionVariable::WaitForAddress(Handle handle, VAddr addr, u32 value) 
         // Begin waiting.
         cur_thread->BeginWait(std::addressof(wait_queue));
         cur_thread->SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::ConditionVar);
-        cur_thread->SetMutexWaitAddressForDebugging(addr);
     }
 
     // Close our reference to the owner thread, now that the wait is over.
@@ -324,7 +323,6 @@ Result KConditionVariable::Wait(VAddr addr, u64 key, u32 value, s64 timeout) {
         wait_queue.SetHardwareTimer(timer);
         cur_thread->BeginWait(std::addressof(wait_queue));
         cur_thread->SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::ConditionVar);
-        cur_thread->SetMutexWaitAddressForDebugging(addr);
     }
 
     // Get the wait result.

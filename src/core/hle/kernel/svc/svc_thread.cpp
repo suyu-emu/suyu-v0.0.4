@@ -59,9 +59,6 @@ Result CreateThread(Core::System& system, Handle* out_handle, VAddr entry_point,
                                             priority, core_id, std::addressof(process)));
     }
 
-    // Set the thread name for debugging purposes.
-    thread->SetName(fmt::format("thread[entry_point={:X}, handle={:X}]", entry_point, *out_handle));
-
     // Commit the thread reservation.
     thread_reservation.Commit();
 
@@ -252,7 +249,7 @@ Result GetThreadList(Core::System& system, s32* out_num_threads, VAddr out_threa
 
     auto list_iter = thread_list.cbegin();
     for (std::size_t i = 0; i < copy_amount; ++i, ++list_iter) {
-        memory.Write64(out_thread_ids, (*list_iter)->GetThreadID());
+        memory.Write64(out_thread_ids, (*list_iter)->GetThreadId());
         out_thread_ids += sizeof(u64);
     }
 

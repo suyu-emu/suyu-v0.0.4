@@ -226,7 +226,7 @@ Result KServerSession::SendReply(bool is_hle) {
             KThread* server_thread{GetCurrentThreadPointer(m_kernel)};
             UNIMPLEMENTED_IF(server_thread->GetOwnerProcess() != client_thread->GetOwnerProcess());
 
-            auto* src_msg_buffer = memory.GetPointer(server_thread->GetTLSAddress());
+            auto* src_msg_buffer = memory.GetPointer(server_thread->GetTlsAddress());
             auto* dst_msg_buffer = memory.GetPointer(client_message);
             std::memcpy(dst_msg_buffer, src_msg_buffer, client_buffer_size);
         }
@@ -334,7 +334,7 @@ Result KServerSession::ReceiveRequest(std::shared_ptr<Service::HLERequestContext
         UNIMPLEMENTED_IF(server_thread->GetOwnerProcess() != client_thread->GetOwnerProcess());
 
         auto* src_msg_buffer = memory.GetPointer(client_message);
-        auto* dst_msg_buffer = memory.GetPointer(server_thread->GetTLSAddress());
+        auto* dst_msg_buffer = memory.GetPointer(server_thread->GetTlsAddress());
         std::memcpy(dst_msg_buffer, src_msg_buffer, client_buffer_size);
     }
 
