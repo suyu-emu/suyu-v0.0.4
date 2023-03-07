@@ -15,15 +15,15 @@ namespace Kernel {
 KSharedMemory::KSharedMemory(KernelCore& kernel_) : KAutoObjectWithSlabHeapAndContainer{kernel_} {}
 KSharedMemory::~KSharedMemory() = default;
 
-Result KSharedMemory::Initialize(Core::DeviceMemory& device_memory_, KProcess* owner_process_,
-                                 Svc::MemoryPermission owner_permission_,
-                                 Svc::MemoryPermission user_permission_, std::size_t size_) {
+Result KSharedMemory::Initialize(Core::DeviceMemory& device_memory, KProcess* owner_process,
+                                 Svc::MemoryPermission owner_permission,
+                                 Svc::MemoryPermission user_permission, std::size_t size) {
     // Set members.
-    owner_process = owner_process_;
-    device_memory = &device_memory_;
-    owner_permission = owner_permission_;
-    user_permission = user_permission_;
-    size = Common::AlignUp(size_, PageSize);
+    m_owner_process = owner_process;
+    m_device_memory = std::addressof(device_memory);
+    m_owner_permission = owner_permission;
+    m_user_permission = user_permission;
+    m_size = Common::AlignUp(size, PageSize);
 
     const size_t num_pages = Common::DivideUp(size, PageSize);
 
@@ -32,7 +32,7 @@ Result KSharedMemory::Initialize(Core::DeviceMemory& device_memory_, KProcess* o
 
     // Reserve memory for ourselves.
     KScopedResourceReservation memory_reservation(reslimit, LimitableResource::PhysicalMemoryMax,
-                                                  size_);
+                                                  size);
     R_UNLESS(memory_reservation.Succeeded(), ResultLimitReached);
 
     // Allocate the memory.
@@ -40,26 +40,26 @@ Result KSharedMemory::Initialize(Core::DeviceMemory& device_memory_, KProcess* o
     //! HACK: Open continuous mapping from sysmodule pool.
     auto option = KMemoryManager::EncodeOption(KMemoryManager::Pool::Secure,
                                                KMemoryManager::Direction::FromBack);
-    physical_address = kernel.MemoryManager().AllocateAndOpenContinuous(num_pages, 1, option);
-    R_UNLESS(physical_address != 0, ResultOutOfMemory);
+    m_physical_address = kernel.MemoryManager().AllocateAndOpenContinuous(num_pages, 1, option);
+    R_UNLESS(m_physical_address != 0, ResultOutOfMemory);
 
     //! Insert the result into our page group.
-    page_group.emplace(kernel, &kernel.GetSystemSystemResource().GetBlockInfoManager());
-    page_group->AddBlock(physical_address, num_pages);
+    m_page_group.emplace(kernel, &kernel.GetSystemSystemResource().GetBlockInfoManager());
+    m_page_group->AddBlock(m_physical_address, num_pages);
 
     // Commit our reservation.
     memory_reservation.Commit();
 
     // Set our resource limit.
-    resource_limit = reslimit;
-    resource_limit->Open();
+    m_resource_limit = reslimit;
+    m_resource_limit->Open();
 
     // Mark initialized.
-    is_initialized = true;
+    m_is_initialized = true;
 
     // Clear all pages in the memory.
-    for (const auto& block : *page_group) {
-        std::memset(device_memory_.GetPointer<void>(block.GetAddress()), 0, block.GetSize());
+    for (const auto& block : *m_page_group) {
+        std::memset(m_device_memory->GetPointer<void>(block.GetAddress()), 0, block.GetSize());
     }
 
     R_SUCCEED();
@@ -67,12 +67,12 @@ Result KSharedMemory::Initialize(Core::DeviceMemory& device_memory_, KProcess* o
 
 void KSharedMemory::Finalize() {
     // Close and finalize the page group.
-    page_group->Close();
-    page_group->Finalize();
+    m_page_group->Close();
+    m_page_group->Finalize();
 
     // Release the memory reservation.
-    resource_limit->Release(LimitableResource::PhysicalMemoryMax, size);
-    resource_limit->Close();
+    m_resource_limit->Release(LimitableResource::PhysicalMemoryMax, m_size);
+    m_resource_limit->Close();
 
     // Perform inherited finalization.
     KAutoObjectWithSlabHeapAndContainer<KSharedMemory, KAutoObjectWithList>::Finalize();
@@ -81,26 +81,27 @@ void KSharedMemory::Finalize() {
 Result KSharedMemory::Map(KProcess& target_process, VAddr address, std::size_t map_size,
                           Svc::MemoryPermission map_perm) {
     // Validate the size.
-    R_UNLESS(size == map_size, ResultInvalidSize);
+    R_UNLESS(m_size == map_size, ResultInvalidSize);
 
     // Validate the permission.
     const Svc::MemoryPermission test_perm =
-        &target_process == owner_process ? owner_permission : user_permission;
+        std::addressof(target_process) == m_owner_process ? m_owner_permission : m_user_permission;
     if (test_perm == Svc::MemoryPermission::DontCare) {
         ASSERT(map_perm == Svc::MemoryPermission::Read || map_perm == Svc::MemoryPermission::Write);
     } else {
         R_UNLESS(map_perm == test_perm, ResultInvalidNewMemoryPermission);
     }
 
-    R_RETURN(target_process.PageTable().MapPageGroup(address, *page_group, KMemoryState::Shared,
+    R_RETURN(target_process.PageTable().MapPageGroup(address, *m_page_group, KMemoryState::Shared,
                                                      ConvertToKMemoryPermission(map_perm)));
 }
 
 Result KSharedMemory::Unmap(KProcess& target_process, VAddr address, std::size_t unmap_size) {
     // Validate the size.
-    R_UNLESS(size == unmap_size, ResultInvalidSize);
+    R_UNLESS(m_size == unmap_size, ResultInvalidSize);
 
-    R_RETURN(target_process.PageTable().UnmapPageGroup(address, *page_group, KMemoryState::Shared));
+    R_RETURN(
+        target_process.PageTable().UnmapPageGroup(address, *m_page_group, KMemoryState::Shared));
 }
 
 } // namespace Kernel

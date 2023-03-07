@@ -47,14 +47,14 @@ public:
             }
 
         private:
-            VAddr m_client_address;
-            VAddr m_server_address;
-            size_t m_size;
-            KMemoryState m_state;
+            VAddr m_client_address{};
+            VAddr m_server_address{};
+            size_t m_size{};
+            KMemoryState m_state{};
         };
 
     public:
-        explicit SessionMappings(KernelCore& kernel_) : kernel(kernel_) {}
+        explicit SessionMappings(KernelCore& kernel) : m_kernel(kernel) {}
 
         void Initialize() {}
         void Finalize();
@@ -149,8 +149,8 @@ public:
         }
 
     private:
-        KernelCore& kernel;
-        std::array<Mapping, NumStaticMappings> m_static_mappings;
+        KernelCore& m_kernel;
+        std::array<Mapping, NumStaticMappings> m_static_mappings{};
         Mapping* m_mappings{};
         u8 m_num_send{};
         u8 m_num_recv{};

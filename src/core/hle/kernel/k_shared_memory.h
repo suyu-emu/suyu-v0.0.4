@@ -54,7 +54,7 @@ public:
      * @return A pointer to the shared memory block from the specified offset
      */
     u8* GetPointer(std::size_t offset = 0) {
-        return device_memory->GetPointer<u8>(physical_address + offset);
+        return m_device_memory->GetPointer<u8>(m_physical_address + offset);
     }
 
     /**
@@ -63,26 +63,26 @@ public:
      * @return A pointer to the shared memory block from the specified offset
      */
     const u8* GetPointer(std::size_t offset = 0) const {
-        return device_memory->GetPointer<u8>(physical_address + offset);
+        return m_device_memory->GetPointer<u8>(m_physical_address + offset);
     }
 
     void Finalize() override;
 
     bool IsInitialized() const override {
-        return is_initialized;
+        return m_is_initialized;
     }
-    static void PostDestroy([[maybe_unused]] uintptr_t arg) {}
+    static void PostDestroy(uintptr_t arg) {}
 
 private:
-    Core::DeviceMemory* device_memory{};
-    KProcess* owner_process{};
-    std::optional<KPageGroup> page_group{};
-    Svc::MemoryPermission owner_permission{};
-    Svc::MemoryPermission user_permission{};
-    PAddr physical_address{};
-    std::size_t size{};
-    KResourceLimit* resource_limit{};
-    bool is_initialized{};
+    Core::DeviceMemory* m_device_memory{};
+    KProcess* m_owner_process{};
+    std::optional<KPageGroup> m_page_group{};
+    Svc::MemoryPermission m_owner_permission{};
+    Svc::MemoryPermission m_user_permission{};
+    PAddr m_physical_address{};
+    std::size_t m_size{};
+    KResourceLimit* m_resource_limit{};
+    bool m_is_initialized{};
 };
 
 } // namespace Kernel
