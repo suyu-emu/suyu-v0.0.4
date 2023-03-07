@@ -28,10 +28,10 @@ class KResourceLimit final
     KERNEL_AUTOOBJECT_TRAITS(KResourceLimit, KAutoObject);
 
 public:
-    explicit KResourceLimit(KernelCore& kernel_);
+    explicit KResourceLimit(KernelCore& kernel);
     ~KResourceLimit() override;
 
-    void Initialize(const Core::Timing::CoreTiming* core_timing_);
+    void Initialize(const Core::Timing::CoreTiming* core_timing);
     void Finalize() override;
 
     s64 GetLimitValue(LimitableResource which) const;
@@ -50,14 +50,14 @@ public:
 
 private:
     using ResourceArray = std::array<s64, static_cast<std::size_t>(LimitableResource::Count)>;
-    ResourceArray limit_values{};
-    ResourceArray current_values{};
-    ResourceArray current_hints{};
-    ResourceArray peak_values{};
-    mutable KLightLock lock;
-    s32 waiter_count{};
-    KLightConditionVariable cond_var;
-    const Core::Timing::CoreTiming* core_timing{};
+    ResourceArray m_limit_values{};
+    ResourceArray m_current_values{};
+    ResourceArray m_current_hints{};
+    ResourceArray m_peak_values{};
+    mutable KLightLock m_lock;
+    s32 m_waiter_count{};
+    KLightConditionVariable m_cond_var;
+    const Core::Timing::CoreTiming* m_core_timing{};
 };
 
 KResourceLimit* CreateResourceLimitForProcess(Core::System& system, s64 physical_memory_size);
