@@ -23,6 +23,8 @@
     <string name="init_time_description">If the \"System clock type\" setting is set to \"Simulated clock\", this changes the fixed date and time to start at.</string>
     <string name="emulated_region">Emulated region</string>
     <string name="emulated_language">Emulated language</string>
+    <string name="select_rtc_date">Select RTC Date</string>
+    <string name="select_rtc_time">Select RTC Time</string>
 
     <!-- Graphics settings strings -->
     <string name="renderer_api">API</string>
