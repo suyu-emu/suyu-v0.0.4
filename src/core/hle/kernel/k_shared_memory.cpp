@@ -74,9 +74,6 @@ void KSharedMemory::Finalize() {
     // Release the memory reservation.
     m_resource_limit->Release(LimitableResource::PhysicalMemoryMax, m_size);
     m_resource_limit->Close();
-
-    // Perform inherited finalization.
-    KAutoObjectWithSlabHeapAndContainer<KSharedMemory, KAutoObjectWithList>::Finalize();
 }
 
 Result KSharedMemory::Map(KProcess& target_process, VAddr address, std::size_t map_size,

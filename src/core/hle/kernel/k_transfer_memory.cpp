@@ -30,10 +30,7 @@ Result KTransferMemory::Initialize(VAddr address, std::size_t size,
     R_SUCCEED();
 }
 
-void KTransferMemory::Finalize() {
-    // Perform inherited finalization.
-    KAutoObjectWithSlabHeapAndContainer<KTransferMemory, KAutoObjectWithList>::Finalize();
-}
+void KTransferMemory::Finalize() {}
 
 void KTransferMemory::PostDestroy(uintptr_t arg) {
     KProcess* owner = reinterpret_cast<KProcess*>(arg);
