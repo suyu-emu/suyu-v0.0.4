@@ -45,7 +45,7 @@ Result KCodeMemory::Initialize(Core::DeviceMemory& device_memory, VAddr addr, si
     m_is_mapped = false;
 
     // We succeeded.
-    return ResultSuccess;
+    R_SUCCEED();
 }
 
 void KCodeMemory::Finalize() {
@@ -80,7 +80,7 @@ Result KCodeMemory::Map(VAddr address, size_t size) {
     // Mark ourselves as mapped.
     m_is_mapped = true;
 
-    return ResultSuccess;
+    R_SUCCEED();
 }
 
 Result KCodeMemory::Unmap(VAddr address, size_t size) {
@@ -97,7 +97,7 @@ Result KCodeMemory::Unmap(VAddr address, size_t size) {
     // Mark ourselves as unmapped.
     m_is_mapped = false;
 
-    return ResultSuccess;
+    R_SUCCEED();
 }
 
 Result KCodeMemory::MapToOwner(VAddr address, size_t size, Svc::MemoryPermission perm) {
@@ -131,7 +131,7 @@ Result KCodeMemory::MapToOwner(VAddr address, size_t size, Svc::MemoryPermission
     // Mark ourselves as mapped.
     m_is_owner_mapped = true;
 
-    return ResultSuccess;
+    R_SUCCEED();
 }
 
 Result KCodeMemory::UnmapFromOwner(VAddr address, size_t size) {
@@ -147,7 +147,7 @@ Result KCodeMemory::UnmapFromOwner(VAddr address, size_t size) {
     // Mark ourselves as unmapped.
     m_is_owner_mapped = false;
 
-    return ResultSuccess;
+    R_SUCCEED();
 }
 
 } // namespace Kernel
