@@ -926,6 +926,7 @@ private:
     ThreadWaitReasonForDebugging wait_reason_for_debugging{};
     uintptr_t argument{};
     VAddr stack_top{};
+    std::string name{};
 
 public:
     using ConditionVariableThreadTreeType = ConditionVariableThreadTree;

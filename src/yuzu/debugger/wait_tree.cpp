@@ -182,10 +182,9 @@ bool WaitTreeExpandableItem::IsExpandable() const {
 }
 
 QString WaitTreeSynchronizationObject::GetText() const {
-    return tr("[%1] %2 %3")
+    return tr("[%1] %2")
         .arg(object.GetId())
-        .arg(QString::fromStdString(object.GetTypeObj().GetName()),
-             QString::fromStdString(object.GetName()));
+        .arg(QString::fromStdString(object.GetTypeObj().GetName()));
 }
 
 std::unique_ptr<WaitTreeSynchronizationObject> WaitTreeSynchronizationObject::make(

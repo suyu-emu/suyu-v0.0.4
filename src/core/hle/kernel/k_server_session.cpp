@@ -33,18 +33,12 @@ KServerSession::KServerSession(KernelCore& kernel_)
 
 KServerSession::~KServerSession() = default;
 
-void KServerSession::Initialize(KSession* parent_session_, std::string&& name_) {
-    // Set member variables.
-    parent = parent_session_;
-    name = std::move(name_);
-}
-
 void KServerSession::Destroy() {
-    parent->OnServerClosed();
+    m_parent->OnServerClosed();
 
     this->CleanupRequests();
 
-    parent->Close();
+    m_parent->Close();
 }
 
 void KServerSession::OnClientClosed() {
@@ -144,7 +138,7 @@ bool KServerSession::IsSignaled() const {
     ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(kernel));
 
     // If the client is closed, we're always signaled.
-    if (parent->IsClientClosed()) {
+    if (m_parent->IsClientClosed()) {
         return true;
     }
 
@@ -161,7 +155,7 @@ Result KServerSession::OnRequest(KSessionRequest* request) {
         KScopedSchedulerLock sl{kernel};
 
         // Ensure that we can handle new requests.
-        R_UNLESS(!parent->IsServerClosed(), ResultSessionClosed);
+        R_UNLESS(!m_parent->IsServerClosed(), ResultSessionClosed);
 
         // Check that we're not terminating.
         R_UNLESS(!GetCurrentThread(kernel).IsTerminationRequested(), ResultTerminationRequested);
@@ -219,7 +213,7 @@ Result KServerSession::SendReply(bool is_hle) {
     KEvent* event = request->GetEvent();
 
     // Check whether we're closed.
-    const bool closed = (client_thread == nullptr || parent->IsClientClosed());
+    const bool closed = (client_thread == nullptr || m_parent->IsClientClosed());
 
     Result result = ResultSuccess;
     if (!closed) {
@@ -294,7 +288,7 @@ Result KServerSession::ReceiveRequest(std::shared_ptr<Service::HLERequestContext
         KScopedSchedulerLock sl{kernel};
 
         // Ensure that we can service the request.
-        R_UNLESS(!parent->IsClientClosed(), ResultSessionClosed);
+        R_UNLESS(!m_parent->IsClientClosed(), ResultSessionClosed);
 
         // Ensure we aren't already servicing a request.
         R_UNLESS(m_current_request == nullptr, ResultNotFound);

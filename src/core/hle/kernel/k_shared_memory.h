@@ -28,7 +28,7 @@ public:
 
     Result Initialize(Core::DeviceMemory& device_memory_, KProcess* owner_process_,
                       Svc::MemoryPermission owner_permission_,
-                      Svc::MemoryPermission user_permission_, std::size_t size_, std::string name_);
+                      Svc::MemoryPermission user_permission_, std::size_t size_);
 
     /**
      * Maps a shared memory block to an address in the target process' address space

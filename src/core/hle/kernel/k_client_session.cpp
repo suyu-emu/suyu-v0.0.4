@@ -17,8 +17,8 @@ KClientSession::KClientSession(KernelCore& kernel_)
 KClientSession::~KClientSession() = default;
 
 void KClientSession::Destroy() {
-    parent->OnClientClosed();
-    parent->Close();
+    m_parent->OnClientClosed();
+    m_parent->Close();
 }
 
 void KClientSession::OnServerClosed() {}
@@ -33,7 +33,7 @@ Result KClientSession::SendSyncRequest() {
     request->Initialize(nullptr, GetCurrentThread(kernel).GetTLSAddress(), MessageBufferSize);
 
     // Send the request.
-    return parent->GetServerSession().OnRequest(request);
+    R_RETURN(m_parent->GetServerSession().OnRequest(request));
 }
 
 } // namespace Kernel

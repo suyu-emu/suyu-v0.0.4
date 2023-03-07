@@ -742,16 +742,15 @@ struct KernelCore::Impl {
         hidbus_shared_mem = KSharedMemory::Create(system.Kernel());
 
         hid_shared_mem->Initialize(system.DeviceMemory(), nullptr, Svc::MemoryPermission::None,
-                                   Svc::MemoryPermission::Read, hid_size, "HID:SharedMemory");
+                                   Svc::MemoryPermission::Read, hid_size);
         font_shared_mem->Initialize(system.DeviceMemory(), nullptr, Svc::MemoryPermission::None,
-                                    Svc::MemoryPermission::Read, font_size, "Font:SharedMemory");
+                                    Svc::MemoryPermission::Read, font_size);
         irs_shared_mem->Initialize(system.DeviceMemory(), nullptr, Svc::MemoryPermission::None,
-                                   Svc::MemoryPermission::Read, irs_size, "IRS:SharedMemory");
+                                   Svc::MemoryPermission::Read, irs_size);
         time_shared_mem->Initialize(system.DeviceMemory(), nullptr, Svc::MemoryPermission::None,
-                                    Svc::MemoryPermission::Read, time_size, "Time:SharedMemory");
+                                    Svc::MemoryPermission::Read, time_size);
         hidbus_shared_mem->Initialize(system.DeviceMemory(), nullptr, Svc::MemoryPermission::None,
-                                      Svc::MemoryPermission::Read, hidbus_size,
-                                      "HidBus:SharedMemory");
+                                      Svc::MemoryPermission::Read, hidbus_size);
     }
 
     std::mutex registered_objects_lock;

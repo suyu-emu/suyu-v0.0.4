@@ -164,17 +164,12 @@ public:
         }
     }
 
-    const std::string& GetName() const {
-        return name;
-    }
-
 private:
     void RegisterWithKernel();
     void UnregisterWithKernel();
 
 protected:
     KernelCore& kernel;
-    std::string name;
 
 private:
     std::atomic<u32> m_ref_count{};
@@ -206,10 +201,6 @@ public:
 public:
     virtual u64 GetId() const {
         return reinterpret_cast<u64>(this);
-    }
-
-    virtual const std::string& GetName() const {
-        return name;
     }
 
 private:

@@ -12,7 +12,7 @@ namespace Kernel::Svc {
 namespace {
 
 template <typename T>
-Result CreateSession(Core::System& system, Handle* out_server, Handle* out_client, u64 name) {
+Result CreateSession(Core::System& system, Handle* out_server, Handle* out_client, uint64_t name) {
     auto& process = GetCurrentProcess(system.Kernel());
     auto& handle_table = process.GetHandleTable();
 
@@ -59,7 +59,7 @@ Result CreateSession(Core::System& system, Handle* out_server, Handle* out_clien
     R_UNLESS(session != nullptr, ResultOutOfResource);
 
     // Initialize the session.
-    session->Initialize(nullptr, fmt::format("{}", name));
+    session->Initialize(nullptr, name);
 
     // Commit the session reservation.
     session_reservation.Commit();

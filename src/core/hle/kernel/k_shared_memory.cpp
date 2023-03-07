@@ -17,15 +17,13 @@ KSharedMemory::~KSharedMemory() = default;
 
 Result KSharedMemory::Initialize(Core::DeviceMemory& device_memory_, KProcess* owner_process_,
                                  Svc::MemoryPermission owner_permission_,
-                                 Svc::MemoryPermission user_permission_, std::size_t size_,
-                                 std::string name_) {
+                                 Svc::MemoryPermission user_permission_, std::size_t size_) {
     // Set members.
     owner_process = owner_process_;
     device_memory = &device_memory_;
     owner_permission = owner_permission_;
     user_permission = user_permission_;
     size = Common::AlignUp(size_, PageSize);
-    name = std::move(name_);
 
     const size_t num_pages = Common::DivideUp(size, PageSize);
 
@@ -64,7 +62,7 @@ Result KSharedMemory::Initialize(Core::DeviceMemory& device_memory_, KProcess* o
         std::memset(device_memory_.GetPointer<void>(block.GetAddress()), 0, block.GetSize());
     }
 
-    return ResultSuccess;
+    R_SUCCEED();
 }
 
 void KSharedMemory::Finalize() {
@@ -94,15 +92,15 @@ Result KSharedMemory::Map(KProcess& target_process, VAddr address, std::size_t m
         R_UNLESS(map_perm == test_perm, ResultInvalidNewMemoryPermission);
     }
 
-    return target_process.PageTable().MapPageGroup(address, *page_group, KMemoryState::Shared,
-                                                   ConvertToKMemoryPermission(map_perm));
+    R_RETURN(target_process.PageTable().MapPageGroup(address, *page_group, KMemoryState::Shared,
+                                                     ConvertToKMemoryPermission(map_perm)));
 }
 
 Result KSharedMemory::Unmap(KProcess& target_process, VAddr address, std::size_t unmap_size) {
     // Validate the size.
     R_UNLESS(size == unmap_size, ResultInvalidSize);
 
-    return target_process.PageTable().UnmapPageGroup(address, *page_group, KMemoryState::Shared);
+    R_RETURN(target_process.PageTable().UnmapPageGroup(address, *page_group, KMemoryState::Shared));
 }
 
 } // namespace Kernel

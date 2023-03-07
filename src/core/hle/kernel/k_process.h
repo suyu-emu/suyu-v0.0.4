@@ -395,6 +395,10 @@ public:
         return watchpoints;
     }
 
+    const std::string& GetName() {
+        return name;
+    }
+
 private:
     void PinThread(s32 core_id, KThread* thread) {
         ASSERT(0 <= core_id && core_id < static_cast<s32>(Core::Hardware::NUM_CPU_CORES));
@@ -498,6 +502,8 @@ private:
     s64 schedule_count{};
 
     size_t memory_release_hint{};
+
+    std::string name{};
 
     bool is_signaled{};
     bool is_suspended{};
