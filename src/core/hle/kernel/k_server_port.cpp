@@ -12,7 +12,7 @@
 
 namespace Kernel {
 
-KServerPort::KServerPort(KernelCore& kernel_) : KSynchronizationObject{kernel_} {}
+KServerPort::KServerPort(KernelCore& kernel) : KSynchronizationObject{kernel} {}
 KServerPort::~KServerPort() = default;
 
 void KServerPort::Initialize(KPort* parent) {
@@ -35,7 +35,7 @@ void KServerPort::CleanupSessions() {
         // Get the last session in the list
         KServerSession* session = nullptr;
         {
-            KScopedSchedulerLock sl{kernel};
+            KScopedSchedulerLock sl{m_kernel};
             if (!m_session_list.empty()) {
                 session = std::addressof(m_session_list.front());
                 m_session_list.pop_front();
@@ -74,7 +74,7 @@ bool KServerPort::IsSignaled() const {
 void KServerPort::EnqueueSession(KServerSession* session) {
     ASSERT(!this->IsLight());
 
-    KScopedSchedulerLock sl{kernel};
+    KScopedSchedulerLock sl{m_kernel};
 
     // Add the session to our queue.
     m_session_list.push_back(*session);
@@ -86,7 +86,7 @@ void KServerPort::EnqueueSession(KServerSession* session) {
 KServerSession* KServerPort::AcceptSession() {
     ASSERT(!this->IsLight());
 
-    KScopedSchedulerLock sl{kernel};
+    KScopedSchedulerLock sl{m_kernel};
 
     // Return the first session in the list.
     if (m_session_list.empty()) {

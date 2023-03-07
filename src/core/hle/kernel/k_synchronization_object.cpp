@@ -17,9 +17,9 @@ namespace {
 
 class ThreadQueueImplForKSynchronizationObjectWait final : public KThreadQueueWithoutEndWait {
 public:
-    ThreadQueueImplForKSynchronizationObjectWait(KernelCore& kernel_, KSynchronizationObject** o,
+    ThreadQueueImplForKSynchronizationObjectWait(KernelCore& kernel, KSynchronizationObject** o,
                                                  KSynchronizationObject::ThreadListNode* n, s32 c)
-        : KThreadQueueWithoutEndWait(kernel_), m_objects(o), m_nodes(n), m_count(c) {}
+        : KThreadQueueWithoutEndWait(kernel), m_objects(o), m_nodes(n), m_count(c) {}
 
     void NotifyAvailable(KThread* waiting_thread, KSynchronizationObject* signaled_object,
                          Result wait_result) override {
@@ -144,13 +144,12 @@ Result KSynchronizationObject::Wait(KernelCore& kernel, s32* out_index,
     R_RETURN(thread->GetWaitResult());
 }
 
-KSynchronizationObject::KSynchronizationObject(KernelCore& kernel_)
-    : KAutoObjectWithList{kernel_} {}
+KSynchronizationObject::KSynchronizationObject(KernelCore& kernel) : KAutoObjectWithList{kernel} {}
 
 KSynchronizationObject::~KSynchronizationObject() = default;
 
 void KSynchronizationObject::NotifyAvailable(Result result) {
-    KScopedSchedulerLock sl(kernel);
+    KScopedSchedulerLock sl(m_kernel);
 
     // If we're not signaled, we've nothing to notify.
     if (!this->IsSignaled()) {
@@ -168,7 +167,7 @@ std::vector<KThread*> KSynchronizationObject::GetWaitingThreadsForDebugging() co
 
     // If debugging, dump the list of waiters.
     {
-        KScopedSchedulerLock lock(kernel);
+        KScopedSchedulerLock lock(m_kernel);
         for (auto* cur_node = m_thread_list_head; cur_node != nullptr; cur_node = cur_node->next) {
             threads.emplace_back(cur_node->thread);
         }

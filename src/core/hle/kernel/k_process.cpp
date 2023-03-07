@@ -126,7 +126,7 @@ u64 KProcess::GetTotalPhysicalMemoryAvailable() {
     const u64 capacity{resource_limit->GetFreeValue(LimitableResource::PhysicalMemoryMax) +
                        page_table.GetNormalMemorySize() + GetSystemResourceSize() + image_size +
                        main_thread_stack_size};
-    if (const auto pool_size = kernel.MemoryManager().GetSize(KMemoryManager::Pool::Application);
+    if (const auto pool_size = m_kernel.MemoryManager().GetSize(KMemoryManager::Pool::Application);
         capacity != pool_size) {
         LOG_WARNING(Kernel, "capacity {} != application pool size {}", capacity, pool_size);
     }
@@ -150,7 +150,7 @@ u64 KProcess::GetTotalPhysicalMemoryUsedWithoutSystemResource() {
 }
 
 bool KProcess::ReleaseUserException(KThread* thread) {
-    KScopedSchedulerLock sl{kernel};
+    KScopedSchedulerLock sl{m_kernel};
 
     if (exception_thread == thread) {
         exception_thread = nullptr;
@@ -164,7 +164,7 @@ bool KProcess::ReleaseUserException(KThread* thread) {
             next->EndWait(ResultSuccess);
         }
 
-        KScheduler::SetSchedulerUpdateNeeded(kernel);
+        KScheduler::SetSchedulerUpdateNeeded(m_kernel);
 
         return true;
     } else {
@@ -173,11 +173,11 @@ bool KProcess::ReleaseUserException(KThread* thread) {
 }
 
 void KProcess::PinCurrentThread(s32 core_id) {
-    ASSERT(kernel.GlobalSchedulerContext().IsLocked());
+    ASSERT(m_kernel.GlobalSchedulerContext().IsLocked());
 
     // Get the current thread.
     KThread* cur_thread =
-        kernel.Scheduler(static_cast<std::size_t>(core_id)).GetSchedulerCurrentThread();
+        m_kernel.Scheduler(static_cast<std::size_t>(core_id)).GetSchedulerCurrentThread();
 
     // If the thread isn't terminated, pin it.
     if (!cur_thread->IsTerminationRequested()) {
@@ -186,27 +186,27 @@ void KProcess::PinCurrentThread(s32 core_id) {
         cur_thread->Pin(core_id);
 
         // An update is needed.
-        KScheduler::SetSchedulerUpdateNeeded(kernel);
+        KScheduler::SetSchedulerUpdateNeeded(m_kernel);
     }
 }
 
 void KProcess::UnpinCurrentThread(s32 core_id) {
-    ASSERT(kernel.GlobalSchedulerContext().IsLocked());
+    ASSERT(m_kernel.GlobalSchedulerContext().IsLocked());
 
     // Get the current thread.
     KThread* cur_thread =
-        kernel.Scheduler(static_cast<std::size_t>(core_id)).GetSchedulerCurrentThread();
+        m_kernel.Scheduler(static_cast<std::size_t>(core_id)).GetSchedulerCurrentThread();
 
     // Unpin it.
     cur_thread->Unpin();
     UnpinThread(core_id, cur_thread);
 
     // An update is needed.
-    KScheduler::SetSchedulerUpdateNeeded(kernel);
+    KScheduler::SetSchedulerUpdateNeeded(m_kernel);
 }
 
 void KProcess::UnpinThread(KThread* thread) {
-    ASSERT(kernel.GlobalSchedulerContext().IsLocked());
+    ASSERT(m_kernel.GlobalSchedulerContext().IsLocked());
 
     // Get the thread's core id.
     const auto core_id = thread->GetActiveCore();
@@ -216,7 +216,7 @@ void KProcess::UnpinThread(KThread* thread) {
     thread->Unpin();
 
     // An update is needed.
-    KScheduler::SetSchedulerUpdateNeeded(kernel);
+    KScheduler::SetSchedulerUpdateNeeded(m_kernel);
 }
 
 Result KProcess::AddSharedMemory(KSharedMemory* shmem, [[maybe_unused]] VAddr address,
@@ -234,7 +234,7 @@ Result KProcess::AddSharedMemory(KSharedMemory* shmem, [[maybe_unused]] VAddr ad
     }
 
     if (shemen_info == nullptr) {
-        shemen_info = KSharedMemoryInfo::Allocate(kernel);
+        shemen_info = KSharedMemoryInfo::Allocate(m_kernel);
         R_UNLESS(shemen_info != nullptr, ResultOutOfMemory);
 
         shemen_info->Initialize(shmem);
@@ -265,7 +265,7 @@ void KProcess::RemoveSharedMemory(KSharedMemory* shmem, [[maybe_unused]] VAddr a
 
     if (shemen_info->Close()) {
         shared_memory_list.erase(iter);
-        KSharedMemoryInfo::Free(kernel, shemen_info);
+        KSharedMemoryInfo::Free(m_kernel, shemen_info);
     }
 
     // Close a reference to the shared memory.
@@ -298,7 +298,7 @@ u64 KProcess::GetFreeThreadCount() const {
 Result KProcess::Reset() {
     // Lock the process and the scheduler.
     KScopedLightLock lk(state_lock);
-    KScopedSchedulerLock sl{kernel};
+    KScopedSchedulerLock sl{m_kernel};
 
     // Validate that we're in a state that we can reset.
     R_UNLESS(state != State::Terminated, ResultInvalidState);
@@ -313,7 +313,7 @@ Result KProcess::SetActivity(ProcessActivity activity) {
     // Lock ourselves and the scheduler.
     KScopedLightLock lk{state_lock};
     KScopedLightLock list_lk{list_lock};
-    KScopedSchedulerLock sl{kernel};
+    KScopedSchedulerLock sl{m_kernel};
 
     // Validate our state.
     R_UNLESS(state != State::Terminating, ResultInvalidState);
@@ -366,7 +366,7 @@ Result KProcess::LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std:
     // Initialize process address space
     if (const Result result{page_table.InitializeForProcess(
             metadata.GetAddressSpaceType(), false, false, false, KMemoryManager::Pool::Application,
-            0x8000000, code_size, &kernel.GetAppSystemResource(), resource_limit)};
+            0x8000000, code_size, &m_kernel.GetAppSystemResource(), resource_limit)};
         result.IsError()) {
         R_RETURN(result);
     }
@@ -421,7 +421,7 @@ void KProcess::Run(s32 main_thread_priority, u64 stack_size) {
 
     ChangeState(State::Running);
 
-    SetupMainThread(kernel.System(), *this, main_thread_priority, main_thread_stack_top);
+    SetupMainThread(m_kernel.System(), *this, main_thread_priority, main_thread_stack_top);
 }
 
 void KProcess::PrepareForTermination() {
@@ -432,7 +432,7 @@ void KProcess::PrepareForTermination() {
             if (thread->GetOwnerProcess() != this)
                 continue;
 
-            if (thread == GetCurrentThreadPointer(kernel))
+            if (thread == GetCurrentThreadPointer(m_kernel))
                 continue;
 
             // TODO(Subv): When are the other running/ready threads terminated?
@@ -443,7 +443,7 @@ void KProcess::PrepareForTermination() {
         }
     };
 
-    stop_threads(kernel.System().GlobalSchedulerContext().GetThreadList());
+    stop_threads(m_kernel.System().GlobalSchedulerContext().GetThreadList());
 
     this->DeleteThreadLocalRegion(plr_address);
     plr_address = 0;
@@ -471,7 +471,7 @@ void KProcess::Finalize() {
             shmem->Close();
 
             it = shared_memory_list.erase(it);
-            KSharedMemoryInfo::Free(kernel, info);
+            KSharedMemoryInfo::Free(m_kernel, info);
         }
     }
 
@@ -494,7 +494,7 @@ Result KProcess::CreateThreadLocalRegion(VAddr* out) {
 
     // See if we can get a region from a partially used TLP.
     {
-        KScopedSchedulerLock sl{kernel};
+        KScopedSchedulerLock sl{m_kernel};
 
         if (auto it = partially_used_tlp_tree.begin(); it != partially_used_tlp_tree.end()) {
             tlr = it->Reserve();
@@ -512,12 +512,12 @@ Result KProcess::CreateThreadLocalRegion(VAddr* out) {
     }
 
     // Allocate a new page.
-    tlp = KThreadLocalPage::Allocate(kernel);
+    tlp = KThreadLocalPage::Allocate(m_kernel);
     R_UNLESS(tlp != nullptr, ResultOutOfMemory);
-    auto tlp_guard = SCOPE_GUARD({ KThreadLocalPage::Free(kernel, tlp); });
+    auto tlp_guard = SCOPE_GUARD({ KThreadLocalPage::Free(m_kernel, tlp); });
 
     // Initialize the new page.
-    R_TRY(tlp->Initialize(kernel, this));
+    R_TRY(tlp->Initialize(m_kernel, this));
 
     // Reserve a TLR.
     tlr = tlp->Reserve();
@@ -525,7 +525,7 @@ Result KProcess::CreateThreadLocalRegion(VAddr* out) {
 
     // Insert into our tree.
     {
-        KScopedSchedulerLock sl{kernel};
+        KScopedSchedulerLock sl{m_kernel};
         if (tlp->IsAllUsed()) {
             fully_used_tlp_tree.insert(*tlp);
         } else {
@@ -544,7 +544,7 @@ Result KProcess::DeleteThreadLocalRegion(VAddr addr) {
 
     // Release the region.
     {
-        KScopedSchedulerLock sl{kernel};
+        KScopedSchedulerLock sl{m_kernel};
 
         // Try to find the page in the partially used list.
         auto it = partially_used_tlp_tree.find_key(Common::AlignDown(addr, PageSize));
@@ -581,7 +581,7 @@ Result KProcess::DeleteThreadLocalRegion(VAddr addr) {
     if (page_to_free != nullptr) {
         page_to_free->Finalize();
 
-        KThreadLocalPage::Free(kernel, page_to_free);
+        KThreadLocalPage::Free(m_kernel, page_to_free);
     }
 
     R_SUCCEED();
@@ -639,8 +639,8 @@ void KProcess::LoadModule(CodeSet code_set, VAddr base_addr) {
         page_table.SetProcessMemoryPermission(segment.addr + base_addr, segment.size, permission);
     };
 
-    kernel.System().Memory().WriteBlock(*this, base_addr, code_set.memory.data(),
-                                        code_set.memory.size());
+    m_kernel.System().Memory().WriteBlock(*this, base_addr, code_set.memory.data(),
+                                          code_set.memory.size());
 
     ReprotectSegment(code_set.CodeSegment(), Svc::MemoryPermission::ReadExecute);
     ReprotectSegment(code_set.RODataSegment(), Svc::MemoryPermission::Read);
@@ -648,14 +648,14 @@ void KProcess::LoadModule(CodeSet code_set, VAddr base_addr) {
 }
 
 bool KProcess::IsSignaled() const {
-    ASSERT(kernel.GlobalSchedulerContext().IsLocked());
+    ASSERT(m_kernel.GlobalSchedulerContext().IsLocked());
     return is_signaled;
 }
 
-KProcess::KProcess(KernelCore& kernel_)
-    : KAutoObjectWithSlabHeapAndContainer{kernel_}, page_table{kernel_.System()},
-      handle_table{kernel_}, address_arbiter{kernel_.System()}, condition_var{kernel_.System()},
-      state_lock{kernel_}, list_lock{kernel_} {}
+KProcess::KProcess(KernelCore& kernel)
+    : KAutoObjectWithSlabHeapAndContainer{kernel}, page_table{m_kernel.System()},
+      handle_table{m_kernel}, address_arbiter{m_kernel.System()}, condition_var{m_kernel.System()},
+      state_lock{m_kernel}, list_lock{m_kernel} {}
 
 KProcess::~KProcess() = default;
 

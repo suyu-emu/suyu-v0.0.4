@@ -149,7 +149,7 @@ private:
         KInterruptTaskManager* interrupt_task_manager{nullptr};
     };
 
-    KernelCore& kernel;
+    KernelCore& m_kernel;
     SchedulingState m_state;
     bool m_is_active{false};
     s32 m_core_id{0};

@@ -11,7 +11,7 @@
 
 namespace Kernel {
 
-KClientPort::KClientPort(KernelCore& kernel_) : KSynchronizationObject{kernel_} {}
+KClientPort::KClientPort(KernelCore& kernel) : KSynchronizationObject{kernel} {}
 KClientPort::~KClientPort() = default;
 
 void KClientPort::Initialize(KPort* parent, s32 max_sessions) {
@@ -23,7 +23,7 @@ void KClientPort::Initialize(KPort* parent, s32 max_sessions) {
 }
 
 void KClientPort::OnSessionFinalized() {
-    KScopedSchedulerLock sl{kernel};
+    KScopedSchedulerLock sl{m_kernel};
 
     if (const auto prev = m_num_sessions--; prev == m_max_sessions) {
         this->NotifyAvailable();
@@ -58,12 +58,12 @@ Result KClientPort::CreateSession(KClientSession** out) {
 
     // Reserve a new session from the resource limit.
     //! FIXME: we are reserving this from the wrong resource limit!
-    KScopedResourceReservation session_reservation(kernel.ApplicationProcess()->GetResourceLimit(),
-                                                   LimitableResource::SessionCountMax);
+    KScopedResourceReservation session_reservation(
+        m_kernel.ApplicationProcess()->GetResourceLimit(), LimitableResource::SessionCountMax);
     R_UNLESS(session_reservation.Succeeded(), ResultLimitReached);
 
     // Allocate a session normally.
-    session = KSession::Create(kernel);
+    session = KSession::Create(m_kernel);
 
     // Check that we successfully created a session.
     R_UNLESS(session != nullptr, ResultOutOfResource);
@@ -105,7 +105,7 @@ Result KClientPort::CreateSession(KClientSession** out) {
     session_reservation.Commit();
 
     // Register the session.
-    KSession::Register(kernel, session);
+    KSession::Register(m_kernel, session);
     ON_RESULT_FAILURE {
         session->GetClientSession().Close();
         session->GetServerSession().Close();

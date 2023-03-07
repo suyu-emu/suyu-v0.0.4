@@ -68,7 +68,7 @@ class KProcess final : public KAutoObjectWithSlabHeapAndContainer<KProcess, KWor
     KERNEL_AUTOOBJECT_TRAITS(KProcess, KSynchronizationObject);
 
 public:
-    explicit KProcess(KernelCore& kernel_);
+    explicit KProcess(KernelCore& kernel);
     ~KProcess() override;
 
     enum class State {

@@ -21,7 +21,7 @@ class KSystemResource : public KAutoObject {
     KERNEL_AUTOOBJECT_TRAITS(KSystemResource, KAutoObject);
 
 public:
-    explicit KSystemResource(KernelCore& kernel_) : KAutoObject(kernel_) {}
+    explicit KSystemResource(KernelCore& kernel) : KAutoObject(kernel) {}
 
 protected:
     void SetSecureResource() {
@@ -87,8 +87,8 @@ private:
 class KSecureSystemResource final
     : public KAutoObjectWithSlabHeap<KSecureSystemResource, KSystemResource> {
 public:
-    explicit KSecureSystemResource(KernelCore& kernel_)
-        : KAutoObjectWithSlabHeap<KSecureSystemResource, KSystemResource>(kernel_) {
+    explicit KSecureSystemResource(KernelCore& kernel)
+        : KAutoObjectWithSlabHeap<KSecureSystemResource, KSystemResource>(kernel) {
         // Mark ourselves as being a secure resource.
         this->SetSecureResource();
     }

@@ -23,10 +23,10 @@ class KTransferMemory final
     KERNEL_AUTOOBJECT_TRAITS(KTransferMemory, KAutoObject);
 
 public:
-    explicit KTransferMemory(KernelCore& kernel_);
+    explicit KTransferMemory(KernelCore& kernel);
     ~KTransferMemory() override;
 
-    Result Initialize(VAddr address_, std::size_t size_, Svc::MemoryPermission owner_perm_);
+    Result Initialize(VAddr address, std::size_t size, Svc::MemoryPermission owner_perm);
 
     void Finalize() override;
 

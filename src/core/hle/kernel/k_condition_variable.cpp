@@ -57,8 +57,8 @@ bool UpdateLockAtomic(Core::System& system, u32* out, VAddr address, u32 if_zero
 
 class ThreadQueueImplForKConditionVariableWaitForAddress final : public KThreadQueue {
 public:
-    explicit ThreadQueueImplForKConditionVariableWaitForAddress(KernelCore& kernel_)
-        : KThreadQueue(kernel_) {}
+    explicit ThreadQueueImplForKConditionVariableWaitForAddress(KernelCore& kernel)
+        : KThreadQueue(kernel) {}
 
     void CancelWait(KThread* waiting_thread, Result wait_result, bool cancel_timer_task) override {
         // Remove the thread as a waiter from its owner.
@@ -75,8 +75,8 @@ private:
 
 public:
     explicit ThreadQueueImplForKConditionVariableWaitConditionVariable(
-        KernelCore& kernel_, KConditionVariable::ThreadTree* t)
-        : KThreadQueue(kernel_), m_tree(t) {}
+        KernelCore& kernel, KConditionVariable::ThreadTree* t)
+        : KThreadQueue(kernel), m_tree(t) {}
 
     void CancelWait(KThread* waiting_thread, Result wait_result, bool cancel_timer_task) override {
         // Remove the thread as a waiter from its owner.

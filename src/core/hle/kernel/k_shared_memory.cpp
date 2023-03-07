@@ -12,7 +12,7 @@
 
 namespace Kernel {
 
-KSharedMemory::KSharedMemory(KernelCore& kernel_) : KAutoObjectWithSlabHeapAndContainer{kernel_} {}
+KSharedMemory::KSharedMemory(KernelCore& kernel) : KAutoObjectWithSlabHeapAndContainer{kernel} {}
 KSharedMemory::~KSharedMemory() = default;
 
 Result KSharedMemory::Initialize(Core::DeviceMemory& device_memory, KProcess* owner_process,
@@ -28,7 +28,7 @@ Result KSharedMemory::Initialize(Core::DeviceMemory& device_memory, KProcess* ow
     const size_t num_pages = Common::DivideUp(size, PageSize);
 
     // Get the resource limit.
-    KResourceLimit* reslimit = kernel.GetSystemResourceLimit();
+    KResourceLimit* reslimit = m_kernel.GetSystemResourceLimit();
 
     // Reserve memory for ourselves.
     KScopedResourceReservation memory_reservation(reslimit, LimitableResource::PhysicalMemoryMax,
@@ -40,11 +40,11 @@ Result KSharedMemory::Initialize(Core::DeviceMemory& device_memory, KProcess* ow
     //! HACK: Open continuous mapping from sysmodule pool.
     auto option = KMemoryManager::EncodeOption(KMemoryManager::Pool::Secure,
                                                KMemoryManager::Direction::FromBack);
-    m_physical_address = kernel.MemoryManager().AllocateAndOpenContinuous(num_pages, 1, option);
+    m_physical_address = m_kernel.MemoryManager().AllocateAndOpenContinuous(num_pages, 1, option);
     R_UNLESS(m_physical_address != 0, ResultOutOfMemory);
 
     //! Insert the result into our page group.
-    m_page_group.emplace(kernel, &kernel.GetSystemSystemResource().GetBlockInfoManager());
+    m_page_group.emplace(m_kernel, &m_kernel.GetSystemSystemResource().GetBlockInfoManager());
     m_page_group->AddBlock(m_physical_address, num_pages);
 
     // Commit our reservation.

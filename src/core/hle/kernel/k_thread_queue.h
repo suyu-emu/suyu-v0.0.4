@@ -31,7 +31,7 @@ private:
 
 class KThreadQueueWithoutEndWait : public KThreadQueue {
 public:
-    explicit KThreadQueueWithoutEndWait(KernelCore& kernel_) : KThreadQueue(kernel_) {}
+    explicit KThreadQueueWithoutEndWait(KernelCore& kernel) : KThreadQueue(kernel) {}
 
     void EndWait(KThread* waiting_thread, Result wait_result) override final;
 };

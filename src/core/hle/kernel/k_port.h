@@ -19,7 +19,7 @@ class KPort final : public KAutoObjectWithSlabHeapAndContainer<KPort, KAutoObjec
     KERNEL_AUTOOBJECT_TRAITS(KPort, KAutoObject);
 
 public:
-    explicit KPort(KernelCore& kernel_);
+    explicit KPort(KernelCore& kernel);
     ~KPort() override;
 
     static void PostDestroy(uintptr_t arg) {}

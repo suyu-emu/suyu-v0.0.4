@@ -7,8 +7,8 @@
 
 namespace Kernel {
 
-KPort::KPort(KernelCore& kernel_)
-    : KAutoObjectWithSlabHeapAndContainer{kernel_}, m_server{kernel_}, m_client{kernel_} {}
+KPort::KPort(KernelCore& kernel)
+    : KAutoObjectWithSlabHeapAndContainer{kernel}, m_server{kernel}, m_client{kernel} {}
 
 KPort::~KPort() = default;
 
@@ -29,7 +29,7 @@ void KPort::Initialize(s32 max_sessions, bool is_light, uintptr_t name) {
 }
 
 void KPort::OnClientClosed() {
-    KScopedSchedulerLock sl{kernel};
+    KScopedSchedulerLock sl{m_kernel};
 
     if (m_state == State::Normal) {
         m_state = State::ClientClosed;
@@ -37,7 +37,7 @@ void KPort::OnClientClosed() {
 }
 
 void KPort::OnServerClosed() {
-    KScopedSchedulerLock sl{kernel};
+    KScopedSchedulerLock sl{m_kernel};
 
     if (m_state == State::Normal) {
         m_state = State::ServerClosed;
@@ -45,12 +45,12 @@ void KPort::OnServerClosed() {
 }
 
 bool KPort::IsServerClosed() const {
-    KScopedSchedulerLock sl{kernel};
+    KScopedSchedulerLock sl{m_kernel};
     return m_state == State::ServerClosed;
 }
 
 Result KPort::EnqueueSession(KServerSession* session) {
-    KScopedSchedulerLock sl{kernel};
+    KScopedSchedulerLock sl{m_kernel};
 
     R_UNLESS(m_state == State::Normal, ResultPortClosed);
 

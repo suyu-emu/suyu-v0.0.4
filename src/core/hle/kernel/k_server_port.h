@@ -22,7 +22,7 @@ class KServerPort final : public KSynchronizationObject {
     KERNEL_AUTOOBJECT_TRAITS(KServerPort, KSynchronizationObject);
 
 public:
-    explicit KServerPort(KernelCore& kernel_);
+    explicit KServerPort(KernelCore& kernel);
     ~KServerPort() override;
 
     void Initialize(KPort* parent);

@@ -8,23 +8,23 @@
 
 namespace Kernel {
 
-KTransferMemory::KTransferMemory(KernelCore& kernel_)
-    : KAutoObjectWithSlabHeapAndContainer{kernel_} {}
+KTransferMemory::KTransferMemory(KernelCore& kernel)
+    : KAutoObjectWithSlabHeapAndContainer{kernel} {}
 
 KTransferMemory::~KTransferMemory() = default;
 
-Result KTransferMemory::Initialize(VAddr address_, std::size_t size_,
-                                   Svc::MemoryPermission owner_perm_) {
+Result KTransferMemory::Initialize(VAddr address, std::size_t size,
+                                   Svc::MemoryPermission owner_perm) {
     // Set members.
-    m_owner = GetCurrentProcessPointer(kernel);
+    m_owner = GetCurrentProcessPointer(m_kernel);
 
     // TODO(bunnei): Lock for transfer memory
 
     // Set remaining tracking members.
     m_owner->Open();
-    m_owner_perm = owner_perm_;
-    m_address = address_;
-    m_size = size_;
+    m_owner_perm = owner_perm;
+    m_address = address;
+    m_size = size;
     m_is_initialized = true;
 
     R_SUCCEED();

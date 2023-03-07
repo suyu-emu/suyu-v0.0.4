@@ -28,8 +28,8 @@ namespace Kernel {
 
 using ThreadQueueImplForKServerSessionRequest = KThreadQueue;
 
-KServerSession::KServerSession(KernelCore& kernel_)
-    : KSynchronizationObject{kernel_}, m_lock{kernel_} {}
+KServerSession::KServerSession(KernelCore& kernel)
+    : KSynchronizationObject{kernel}, m_lock{m_kernel} {}
 
 KServerSession::~KServerSession() = default;
 
@@ -56,7 +56,7 @@ void KServerSession::OnClientClosed() {
 
         // Get the next request.
         {
-            KScopedSchedulerLock sl{kernel};
+            KScopedSchedulerLock sl{m_kernel};
 
             if (m_current_request != nullptr && m_current_request != prev_request) {
                 // Set the request, open a reference as we process it.
@@ -135,7 +135,7 @@ void KServerSession::OnClientClosed() {
 }
 
 bool KServerSession::IsSignaled() const {
-    ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(kernel));
+    ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(m_kernel));
 
     // If the client is closed, we're always signaled.
     if (m_parent->IsClientClosed()) {
@@ -148,17 +148,17 @@ bool KServerSession::IsSignaled() const {
 
 Result KServerSession::OnRequest(KSessionRequest* request) {
     // Create the wait queue.
-    ThreadQueueImplForKServerSessionRequest wait_queue{kernel};
+    ThreadQueueImplForKServerSessionRequest wait_queue{m_kernel};
 
     {
         // Lock the scheduler.
-        KScopedSchedulerLock sl{kernel};
+        KScopedSchedulerLock sl{m_kernel};
 
         // Ensure that we can handle new requests.
         R_UNLESS(!m_parent->IsServerClosed(), ResultSessionClosed);
 
         // Check that we're not terminating.
-        R_UNLESS(!GetCurrentThread(kernel).IsTerminationRequested(), ResultTerminationRequested);
+        R_UNLESS(!GetCurrentThread(m_kernel).IsTerminationRequested(), ResultTerminationRequested);
 
         // Get whether we're empty.
         const bool was_empty = m_request_list.empty();
@@ -176,11 +176,11 @@ Result KServerSession::OnRequest(KSessionRequest* request) {
         R_SUCCEED_IF(request->GetEvent() != nullptr);
 
         // This is a synchronous request, so we should wait for our request to complete.
-        GetCurrentThread(kernel).SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::IPC);
-        GetCurrentThread(kernel).BeginWait(&wait_queue);
+        GetCurrentThread(m_kernel).SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::IPC);
+        GetCurrentThread(m_kernel).BeginWait(&wait_queue);
     }
 
-    return GetCurrentThread(kernel).GetWaitResult();
+    return GetCurrentThread(m_kernel).GetWaitResult();
 }
 
 Result KServerSession::SendReply(bool is_hle) {
@@ -190,7 +190,7 @@ Result KServerSession::SendReply(bool is_hle) {
     // Get the request.
     KSessionRequest* request;
     {
-        KScopedSchedulerLock sl{kernel};
+        KScopedSchedulerLock sl{m_kernel};
 
         // Get the current request.
         request = m_current_request;
@@ -222,8 +222,8 @@ Result KServerSession::SendReply(bool is_hle) {
             // HLE servers write directly to a pointer to the thread command buffer. Therefore
             // the reply has already been written in this case.
         } else {
-            Core::Memory::Memory& memory{kernel.System().Memory()};
-            KThread* server_thread{GetCurrentThreadPointer(kernel)};
+            Core::Memory::Memory& memory{m_kernel.System().Memory()};
+            KThread* server_thread{GetCurrentThreadPointer(m_kernel)};
             UNIMPLEMENTED_IF(server_thread->GetOwnerProcess() != client_thread->GetOwnerProcess());
 
             auto* src_msg_buffer = memory.GetPointer(server_thread->GetTLSAddress());
@@ -264,7 +264,7 @@ Result KServerSession::SendReply(bool is_hle) {
             event->Signal();
         } else {
             // End the client thread's wait.
-            KScopedSchedulerLock sl{kernel};
+            KScopedSchedulerLock sl{m_kernel};
 
             if (!client_thread->IsTerminationRequested()) {
                 client_thread->EndWait(client_result);
@@ -285,7 +285,7 @@ Result KServerSession::ReceiveRequest(std::shared_ptr<Service::HLERequestContext
     KThread* client_thread;
 
     {
-        KScopedSchedulerLock sl{kernel};
+        KScopedSchedulerLock sl{m_kernel};
 
         // Ensure that we can service the request.
         R_UNLESS(!m_parent->IsClientClosed(), ResultSessionClosed);
@@ -319,18 +319,18 @@ Result KServerSession::ReceiveRequest(std::shared_ptr<Service::HLERequestContext
     // bool recv_list_broken = false;
 
     // Receive the message.
-    Core::Memory::Memory& memory{kernel.System().Memory()};
+    Core::Memory::Memory& memory{m_kernel.System().Memory()};
     if (out_context != nullptr) {
         // HLE request.
         u32* cmd_buf{reinterpret_cast<u32*>(memory.GetPointer(client_message))};
         *out_context =
-            std::make_shared<Service::HLERequestContext>(kernel, memory, this, client_thread);
+            std::make_shared<Service::HLERequestContext>(m_kernel, memory, this, client_thread);
         (*out_context)->SetSessionRequestManager(manager);
         (*out_context)
             ->PopulateFromIncomingCommandBuffer(client_thread->GetOwnerProcess()->GetHandleTable(),
                                                 cmd_buf);
     } else {
-        KThread* server_thread{GetCurrentThreadPointer(kernel)};
+        KThread* server_thread{GetCurrentThreadPointer(m_kernel)};
         UNIMPLEMENTED_IF(server_thread->GetOwnerProcess() != client_thread->GetOwnerProcess());
 
         auto* src_msg_buffer = memory.GetPointer(client_message);
@@ -350,7 +350,7 @@ void KServerSession::CleanupRequests() {
         // Get the next request.
         KSessionRequest* request = nullptr;
         {
-            KScopedSchedulerLock sl{kernel};
+            KScopedSchedulerLock sl{m_kernel};
 
             if (m_current_request) {
                 // Choose the current request if we have one.
@@ -401,7 +401,7 @@ void KServerSession::CleanupRequests() {
                 event->Signal();
             } else {
                 // End the client thread's wait.
-                KScopedSchedulerLock sl{kernel};
+                KScopedSchedulerLock sl{m_kernel};
 
                 if (!client_thread->IsTerminationRequested()) {
                     client_thread->EndWait(ResultSessionClosed);

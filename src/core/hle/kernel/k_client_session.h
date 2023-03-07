@@ -30,7 +30,7 @@ class KClientSession final
     KERNEL_AUTOOBJECT_TRAITS(KClientSession, KAutoObject);
 
 public:
-    explicit KClientSession(KernelCore& kernel_);
+    explicit KClientSession(KernelCore& kernel);
     ~KClientSession() override;
 
     void Initialize(KSession* parent) {

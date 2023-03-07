@@ -128,7 +128,7 @@ public:
     static constexpr s32 IdleThreadPriority = Svc::LowestThreadPriority + 1;
     static constexpr s32 DummyThreadPriority = Svc::LowestThreadPriority + 2;
 
-    explicit KThread(KernelCore& kernel_);
+    explicit KThread(KernelCore& kernel);
     ~KThread() override;
 
 public:
@@ -494,12 +494,12 @@ public:
     }
 
     void DisableDispatch() {
-        ASSERT(GetCurrentThread(kernel).GetDisableDispatchCount() >= 0);
+        ASSERT(GetCurrentThread(m_kernel).GetDisableDispatchCount() >= 0);
         this->GetStackParameters().disable_count++;
     }
 
     void EnableDispatch() {
-        ASSERT(GetCurrentThread(kernel).GetDisableDispatchCount() > 0);
+        ASSERT(GetCurrentThread(m_kernel).GetDisableDispatchCount() > 0);
         this->GetStackParameters().disable_count--;
     }
 
@@ -970,9 +970,9 @@ public:
 
 class KScopedDisableDispatch {
 public:
-    [[nodiscard]] explicit KScopedDisableDispatch(KernelCore& kernel_) : kernel{kernel_} {
+    [[nodiscard]] explicit KScopedDisableDispatch(KernelCore& kernel) : m_kernel{kernel} {
         // If we are shutting down the kernel, none of this is relevant anymore.
-        if (kernel.IsShuttingDown()) {
+        if (m_kernel.IsShuttingDown()) {
             return;
         }
         GetCurrentThread(kernel).DisableDispatch();
@@ -981,7 +981,7 @@ public:
     ~KScopedDisableDispatch();
 
 private:
-    KernelCore& kernel;
+    KernelCore& m_kernel;
 };
 
 inline void KTimerTask::OnTimer() {

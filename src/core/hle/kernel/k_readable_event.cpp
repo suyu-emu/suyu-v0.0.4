@@ -11,7 +11,7 @@
 
 namespace Kernel {
 
-KReadableEvent::KReadableEvent(KernelCore& kernel_) : KSynchronizationObject{kernel_} {}
+KReadableEvent::KReadableEvent(KernelCore& kernel) : KSynchronizationObject{kernel} {}
 
 KReadableEvent::~KReadableEvent() = default;
 
@@ -25,7 +25,7 @@ void KReadableEvent::Initialize(KEvent* parent) {
 }
 
 bool KReadableEvent::IsSignaled() const {
-    ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(kernel));
+    ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(m_kernel));
 
     return m_is_signaled;
 }
@@ -33,7 +33,7 @@ bool KReadableEvent::IsSignaled() const {
 void KReadableEvent::Destroy() {
     if (m_parent) {
         {
-            KScopedSchedulerLock sl{kernel};
+            KScopedSchedulerLock sl{m_kernel};
             m_parent->OnReadableEventDestroyed();
         }
         m_parent->Close();
@@ -41,7 +41,7 @@ void KReadableEvent::Destroy() {
 }
 
 Result KReadableEvent::Signal() {
-    KScopedSchedulerLock lk{kernel};
+    KScopedSchedulerLock lk{m_kernel};
 
     if (!m_is_signaled) {
         m_is_signaled = true;
@@ -58,7 +58,7 @@ Result KReadableEvent::Clear() {
 }
 
 Result KReadableEvent::Reset() {
-    KScopedSchedulerLock lk{kernel};
+    KScopedSchedulerLock lk{m_kernel};
 
     R_UNLESS(m_is_signaled, ResultInvalidState);
 

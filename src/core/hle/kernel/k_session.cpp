@@ -9,8 +9,8 @@
 
 namespace Kernel {
 
-KSession::KSession(KernelCore& kernel_)
-    : KAutoObjectWithSlabHeapAndContainer{kernel_}, m_server{kernel_}, m_client{kernel_} {}
+KSession::KSession(KernelCore& kernel)
+    : KAutoObjectWithSlabHeapAndContainer{kernel}, m_server{kernel}, m_client{kernel} {}
 KSession::~KSession() = default;
 
 void KSession::Initialize(KClientPort* client_port, uintptr_t name) {
@@ -34,7 +34,7 @@ void KSession::Initialize(KClientPort* client_port, uintptr_t name) {
 
     // Set our owner process.
     //! FIXME: this is the wrong process!
-    m_process = kernel.ApplicationProcess();
+    m_process = m_kernel.ApplicationProcess();
     m_process->Open();
 
     // Set our port.

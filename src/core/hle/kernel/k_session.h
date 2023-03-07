@@ -18,7 +18,7 @@ class KSession final : public KAutoObjectWithSlabHeapAndContainer<KSession, KAut
     KERNEL_AUTOOBJECT_TRAITS(KSession, KAutoObject);
 
 public:
-    explicit KSession(KernelCore& kernel_);
+    explicit KSession(KernelCore& kernel);
     ~KSession() override;
 
     void Initialize(KClientPort* port, uintptr_t name);

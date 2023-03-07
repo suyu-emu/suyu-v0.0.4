@@ -29,7 +29,7 @@ class KCodeMemory final
     KERNEL_AUTOOBJECT_TRAITS(KCodeMemory, KAutoObject);
 
 public:
-    explicit KCodeMemory(KernelCore& kernel_);
+    explicit KCodeMemory(KernelCore& kernel);
 
     Result Initialize(Core::DeviceMemory& device_memory, VAddr address, size_t size);
     void Finalize() override;

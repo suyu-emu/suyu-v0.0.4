@@ -23,7 +23,7 @@ class KSharedMemory final
     KERNEL_AUTOOBJECT_TRAITS(KSharedMemory, KAutoObject);
 
 public:
-    explicit KSharedMemory(KernelCore& kernel_);
+    explicit KSharedMemory(KernelCore& kernel);
     ~KSharedMemory() override;
 
     Result Initialize(Core::DeviceMemory& device_memory_, KProcess* owner_process_,

@@ -158,7 +158,7 @@ public:
     };
 
 public:
-    explicit KSessionRequest(KernelCore& kernel_) : KAutoObject(kernel_), m_mappings(kernel_) {}
+    explicit KSessionRequest(KernelCore& kernel) : KAutoObject(kernel), m_mappings(kernel) {}
 
     static KSessionRequest* Create(KernelCore& kernel) {
         KSessionRequest* req = KSessionRequest::Allocate(kernel);
@@ -170,13 +170,13 @@ public:
 
     void Destroy() override {
         this->Finalize();
-        KSessionRequest::Free(kernel, this);
+        KSessionRequest::Free(m_kernel, this);
     }
 
     void Initialize(KEvent* event, uintptr_t address, size_t size) {
         m_mappings.Initialize();
 
-        m_thread = GetCurrentThreadPointer(kernel);
+        m_thread = GetCurrentThreadPointer(m_kernel);
         m_event = event;
         m_address = address;
         m_size = size;
