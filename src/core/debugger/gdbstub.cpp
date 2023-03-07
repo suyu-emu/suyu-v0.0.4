@@ -756,7 +756,7 @@ void GDBStub::HandleRcmd(const std::vector<u8>& command) {
 
         reply = fmt::format("Process:     {:#x} ({})\n"
                             "Program Id:  {:#018x}\n",
-                            process->GetProcessID(), process->GetName(), process->GetProgramID());
+                            process->GetProcessId(), process->GetName(), process->GetProgramId());
         reply +=
             fmt::format("Layout:\n"
                         "  Alias: {:#012x} - {:#012x}\n"

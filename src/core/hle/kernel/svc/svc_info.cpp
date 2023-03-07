@@ -103,7 +103,7 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
             R_SUCCEED();
 
         case InfoType::ProgramId:
-            *result = process->GetProgramID();
+            *result = process->GetProgramId();
             R_SUCCEED();
 
         case InfoType::UserExceptionContextAddress:

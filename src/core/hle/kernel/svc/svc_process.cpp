@@ -11,7 +11,7 @@ namespace Kernel::Svc {
 void ExitProcess(Core::System& system) {
     auto* current_process = GetCurrentProcessPointer(system.Kernel());
 
-    LOG_INFO(Kernel_SVC, "Process {} exiting", current_process->GetProcessID());
+    LOG_INFO(Kernel_SVC, "Process {} exiting", current_process->GetProcessId());
     ASSERT_MSG(current_process->GetState() == KProcess::State::Running,
                "Process has already exited");
 
@@ -80,7 +80,7 @@ Result GetProcessList(Core::System& system, s32* out_num_processes, VAddr out_pr
         std::min(static_cast<std::size_t>(out_process_ids_size), num_processes);
 
     for (std::size_t i = 0; i < copy_amount; ++i) {
-        memory.Write64(out_process_ids, process_list[i]->GetProcessID());
+        memory.Write64(out_process_ids, process_list[i]->GetProcessId());
         out_process_ids += sizeof(u64);
     }
 
