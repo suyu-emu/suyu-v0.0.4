@@ -46,7 +46,7 @@ public:
     void Release(LimitableResource which, s64 value);
     void Release(LimitableResource which, s64 value, s64 hint);
 
-    static void PostDestroy([[maybe_unused]] uintptr_t arg) {}
+    static void PostDestroy(uintptr_t arg) {}
 
 private:
     using ResourceArray = std::array<s64, static_cast<std::size_t>(LimitableResource::Count)>;

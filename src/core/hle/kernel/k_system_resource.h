@@ -99,7 +99,7 @@ public:
     bool IsInitialized() const {
         return m_is_initialized;
     }
-    static void PostDestroy([[maybe_unused]] uintptr_t arg) {}
+    static void PostDestroy(uintptr_t arg) {}
 
     size_t CalculateRequiredSecureMemorySize() const {
         return CalculateRequiredSecureMemorySize(m_resource_size, m_resource_pool);

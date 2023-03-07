@@ -44,7 +44,7 @@ public:
 
     /// Returns a list of all threads managed by the scheduler
     /// This is only safe to iterate while holding the scheduler lock
-    [[nodiscard]] const std::vector<KThread*>& GetThreadList() const {
+    const std::vector<KThread*>& GetThreadList() const {
         return m_thread_list;
     }
 
@@ -64,7 +64,7 @@ public:
     void RegisterDummyThreadForWakeup(KThread* thread);
     void WakeupWaitingDummyThreads();
 
-    [[nodiscard]] LockType& SchedulerLock() {
+    LockType& SchedulerLock() {
         return m_scheduler_lock;
     }
 

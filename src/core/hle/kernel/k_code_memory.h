@@ -42,7 +42,7 @@ public:
     bool IsInitialized() const override {
         return m_is_initialized;
     }
-    static void PostDestroy([[maybe_unused]] uintptr_t arg) {}
+    static void PostDestroy(uintptr_t arg) {}
 
     KProcess* GetOwner() const override {
         return m_owner;
