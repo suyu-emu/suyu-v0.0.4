@@ -132,7 +132,7 @@ protected:
 
 template <typename Derived, typename Base>
 class KAutoObjectWithSlabHeapAndContainer : public Base {
-    static_assert(std::is_base_of<KAutoObjectWithList, Base>::value);
+    static_assert(std::is_base_of_v<KAutoObjectWithList, Base>);
 
 private:
     static Derived* Allocate(KernelCore& kernel) {
@@ -144,18 +144,18 @@ private:
     }
 
 public:
-    KAutoObjectWithSlabHeapAndContainer(KernelCore& kernel_) : Base(kernel_), kernel(kernel_) {}
+    KAutoObjectWithSlabHeapAndContainer(KernelCore& kernel_) : Base(kernel_) {}
     virtual ~KAutoObjectWithSlabHeapAndContainer() {}
 
     virtual void Destroy() override {
         const bool is_initialized = this->IsInitialized();
         uintptr_t arg = 0;
         if (is_initialized) {
-            kernel.ObjectListContainer().Unregister(this);
+            Base::kernel.ObjectListContainer().Unregister(this);
             arg = this->GetPostDestroyArgument();
             this->Finalize();
         }
-        Free(kernel, static_cast<Derived*>(this));
+        Free(Base::kernel, static_cast<Derived*>(this));
         if (is_initialized) {
             Derived::PostDestroy(arg);
         }
@@ -169,7 +169,7 @@ public:
     }
 
     size_t GetSlabIndex() const {
-        return SlabHeap<Derived>(kernel).GetObjectIndex(static_cast<const Derived*>(this));
+        return SlabHeap<Derived>(Base::kernel).GetObjectIndex(static_cast<const Derived*>(this));
     }
 
 public:
@@ -209,9 +209,6 @@ public:
     static size_t GetNumRemaining(KernelCore& kernel) {
         return kernel.SlabHeap<Derived>().GetNumRemaining();
     }
-
-protected:
-    KernelCore& kernel;
 };
 
 } // namespace Kernel

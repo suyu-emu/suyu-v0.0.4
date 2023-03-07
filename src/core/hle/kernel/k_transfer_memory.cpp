@@ -16,18 +16,18 @@ KTransferMemory::~KTransferMemory() = default;
 Result KTransferMemory::Initialize(VAddr address_, std::size_t size_,
                                    Svc::MemoryPermission owner_perm_) {
     // Set members.
-    owner = GetCurrentProcessPointer(kernel);
+    m_owner = GetCurrentProcessPointer(kernel);
 
     // TODO(bunnei): Lock for transfer memory
 
     // Set remaining tracking members.
-    owner->Open();
-    owner_perm = owner_perm_;
-    address = address_;
-    size = size_;
-    is_initialized = true;
+    m_owner->Open();
+    m_owner_perm = owner_perm_;
+    m_address = address_;
+    m_size = size_;
+    m_is_initialized = true;
 
-    return ResultSuccess;
+    R_SUCCEED();
 }
 
 void KTransferMemory::Finalize() {

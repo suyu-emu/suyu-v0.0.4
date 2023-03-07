@@ -31,33 +31,33 @@ public:
     void Finalize() override;
 
     bool IsInitialized() const override {
-        return is_initialized;
+        return m_is_initialized;
     }
 
     uintptr_t GetPostDestroyArgument() const override {
-        return reinterpret_cast<uintptr_t>(owner);
+        return reinterpret_cast<uintptr_t>(m_owner);
     }
 
     static void PostDestroy(uintptr_t arg);
 
     KProcess* GetOwner() const override {
-        return owner;
+        return m_owner;
     }
 
     VAddr GetSourceAddress() const {
-        return address;
+        return m_address;
     }
 
     size_t GetSize() const {
-        return is_initialized ? size : 0;
+        return m_is_initialized ? m_size : 0;
     }
 
 private:
-    KProcess* owner{};
-    VAddr address{};
-    Svc::MemoryPermission owner_perm{};
-    size_t size{};
-    bool is_initialized{};
+    KProcess* m_owner{};
+    VAddr m_address{};
+    Svc::MemoryPermission m_owner_perm{};
+    size_t m_size{};
+    bool m_is_initialized{};
 };
 
 } // namespace Kernel

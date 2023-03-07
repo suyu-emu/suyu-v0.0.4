@@ -71,26 +71,26 @@ void KSynchronizationObject::Finalize() {
     KAutoObject::Finalize();
 }
 
-Result KSynchronizationObject::Wait(KernelCore& kernel_ctx, s32* out_index,
+Result KSynchronizationObject::Wait(KernelCore& kernel, s32* out_index,
                                     KSynchronizationObject** objects, const s32 num_objects,
                                     s64 timeout) {
     // Allocate space on stack for thread nodes.
     std::vector<ThreadListNode> thread_nodes(num_objects);
 
     // Prepare for wait.
-    KThread* thread = GetCurrentThreadPointer(kernel_ctx);
+    KThread* thread = GetCurrentThreadPointer(kernel);
     KHardwareTimer* timer{};
-    ThreadQueueImplForKSynchronizationObjectWait wait_queue(kernel_ctx, objects,
-                                                            thread_nodes.data(), num_objects);
+    ThreadQueueImplForKSynchronizationObjectWait wait_queue(kernel, objects, thread_nodes.data(),
+                                                            num_objects);
 
     {
         // Setup the scheduling lock and sleep.
-        KScopedSchedulerLockAndSleep slp(kernel_ctx, std::addressof(timer), thread, timeout);
+        KScopedSchedulerLockAndSleep slp(kernel, std::addressof(timer), thread, timeout);
 
         // Check if the thread should terminate.
         if (thread->IsTerminationRequested()) {
             slp.CancelSleep();
-            return ResultTerminationRequested;
+            R_THROW(ResultTerminationRequested);
         }
 
         // Check if any of the objects are already signaled.
@@ -100,21 +100,21 @@ Result KSynchronizationObject::Wait(KernelCore& kernel_ctx, s32* out_index,
             if (objects[i]->IsSignaled()) {
                 *out_index = i;
                 slp.CancelSleep();
-                return ResultSuccess;
+                R_THROW(ResultSuccess);
             }
         }
 
         // Check if the timeout is zero.
         if (timeout == 0) {
             slp.CancelSleep();
-            return ResultTimedOut;
+            R_THROW(ResultTimedOut);
         }
 
         // Check if waiting was canceled.
         if (thread->IsWaitCancelled()) {
             slp.CancelSleep();
             thread->ClearWaitCancelled();
-            return ResultCancelled;
+            R_THROW(ResultCancelled);
         }
 
         // Add the waiters.
@@ -141,7 +141,7 @@ Result KSynchronizationObject::Wait(KernelCore& kernel_ctx, s32* out_index,
     *out_index = thread->GetSyncedIndex();
 
     // Get the wait result.
-    return thread->GetWaitResult();
+    R_RETURN(thread->GetWaitResult());
 }
 
 KSynchronizationObject::KSynchronizationObject(KernelCore& kernel_)
@@ -158,7 +158,7 @@ void KSynchronizationObject::NotifyAvailable(Result result) {
     }
 
     // Iterate over each thread.
-    for (auto* cur_node = thread_list_head; cur_node != nullptr; cur_node = cur_node->next) {
+    for (auto* cur_node = m_thread_list_head; cur_node != nullptr; cur_node = cur_node->next) {
         cur_node->thread->NotifyAvailable(this, result);
     }
 }
@@ -169,7 +169,7 @@ std::vector<KThread*> KSynchronizationObject::GetWaitingThreadsForDebugging() co
     // If debugging, dump the list of waiters.
     {
         KScopedSchedulerLock lock(kernel);
-        for (auto* cur_node = thread_list_head; cur_node != nullptr; cur_node = cur_node->next) {
+        for (auto* cur_node = m_thread_list_head; cur_node != nullptr; cur_node = cur_node->next) {
             threads.emplace_back(cur_node->thread);
         }
     }
