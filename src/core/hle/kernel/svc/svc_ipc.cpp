@@ -19,7 +19,7 @@ Result SendSyncRequest(Core::System& system, Handle handle) {
 
     LOG_TRACE(Kernel_SVC, "called handle=0x{:08X}({})", handle, session->GetName());
 
-    return session->SendSyncRequest();
+    R_RETURN(session->SendSyncRequest());
 }
 
 Result SendSyncRequestWithUserBuffer(Core::System& system, uint64_t message_buffer,
@@ -82,7 +82,7 @@ Result ReplyAndReceive(Core::System& system, s32* out_index, uint64_t handles_ad
         Result result = KSynchronizationObject::Wait(kernel, &index, objs.data(),
                                                      static_cast<s32>(objs.size()), timeout_ns);
         if (result == ResultTimedOut) {
-            return result;
+            R_RETURN(result);
         }
 
         // Receive the request.
@@ -97,7 +97,7 @@ Result ReplyAndReceive(Core::System& system, s32* out_index, uint64_t handles_ad
         }
 
         *out_index = index;
-        return result;
+        R_RETURN(result);
     }
 }
 

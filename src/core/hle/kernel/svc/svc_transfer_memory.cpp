@@ -67,9 +67,7 @@ Result CreateTransferMemory(Core::System& system, Handle* out, VAddr address, u6
     KTransferMemory::Register(kernel, trmem);
 
     // Add the transfer memory to the handle table.
-    R_TRY(handle_table.Add(out, trmem));
-
-    return ResultSuccess;
+    R_RETURN(handle_table.Add(out, trmem));
 }
 
 Result MapTransferMemory(Core::System& system, Handle trmem_handle, uint64_t address, uint64_t size,

@@ -15,8 +15,8 @@ Result QueryMemory(Core::System& system, uint64_t out_memory_info, PageInfo* out
               out_memory_info, query_address);
 
     // Query memory is just QueryProcessMemory on the current process.
-    return QueryProcessMemory(system, out_memory_info, out_page_info, CurrentProcess,
-                              query_address);
+    R_RETURN(
+        QueryProcessMemory(system, out_memory_info, out_page_info, CurrentProcess, query_address));
 }
 
 Result QueryProcessMemory(Core::System& system, uint64_t out_memory_info, PageInfo* out_page_info,
@@ -27,7 +27,7 @@ Result QueryProcessMemory(Core::System& system, uint64_t out_memory_info, PageIn
     if (process.IsNull()) {
         LOG_ERROR(Kernel_SVC, "Process handle does not exist, process_handle=0x{:08X}",
                   process_handle);
-        return ResultInvalidHandle;
+        R_THROW(ResultInvalidHandle);
     }
 
     auto& memory{system.Memory()};

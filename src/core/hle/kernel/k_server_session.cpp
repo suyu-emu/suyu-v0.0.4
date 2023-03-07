@@ -272,7 +272,7 @@ Result KServerSession::SendReply(bool is_hle) {
         }
     }
 
-    return result;
+    R_RETURN(result);
 }
 
 Result KServerSession::ReceiveRequest(std::shared_ptr<Service::HLERequestContext>* out_context,
@@ -339,7 +339,7 @@ Result KServerSession::ReceiveRequest(std::shared_ptr<Service::HLERequestContext
     }
 
     // We succeeded.
-    return ResultSuccess;
+    R_SUCCEED();
 }
 
 void KServerSession::CleanupRequests() {

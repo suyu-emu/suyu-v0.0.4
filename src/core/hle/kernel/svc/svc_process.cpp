@@ -47,7 +47,7 @@ Result GetProcessId(Core::System& system, u64* out_process_id, Handle handle) {
     // Get the process id.
     *out_process_id = process->GetId();
 
-    return ResultSuccess;
+    R_SUCCEED();
 }
 
 Result GetProcessList(Core::System& system, s32* out_num_processes, VAddr out_process_ids,
@@ -60,7 +60,7 @@ Result GetProcessList(Core::System& system, s32* out_num_processes, VAddr out_pr
         LOG_ERROR(Kernel_SVC,
                   "Supplied size outside [0, 0x0FFFFFFF] range. out_process_ids_size={}",
                   out_process_ids_size);
-        return ResultOutOfRange;
+        R_THROW(ResultOutOfRange);
     }
 
     auto& kernel = system.Kernel();
@@ -70,7 +70,7 @@ Result GetProcessList(Core::System& system, s32* out_num_processes, VAddr out_pr
                                         out_process_ids, total_copy_size)) {
         LOG_ERROR(Kernel_SVC, "Address range outside address space. begin=0x{:016X}, end=0x{:016X}",
                   out_process_ids, out_process_ids + total_copy_size);
-        return ResultInvalidCurrentMemory;
+        R_THROW(ResultInvalidCurrentMemory);
     }
 
     auto& memory = system.Memory();
@@ -85,7 +85,7 @@ Result GetProcessList(Core::System& system, s32* out_num_processes, VAddr out_pr
     }
 
     *out_num_processes = static_cast<u32>(num_processes);
-    return ResultSuccess;
+    R_SUCCEED();
 }
 
 Result GetProcessInfo(Core::System& system, s64* out, Handle process_handle,
@@ -97,17 +97,17 @@ Result GetProcessInfo(Core::System& system, s64* out, Handle process_handle,
     if (process.IsNull()) {
         LOG_ERROR(Kernel_SVC, "Process handle does not exist, process_handle=0x{:08X}",
                   process_handle);
-        return ResultInvalidHandle;
+        R_THROW(ResultInvalidHandle);
     }
 
     if (info_type != ProcessInfoType::ProcessState) {
         LOG_ERROR(Kernel_SVC, "Expected info_type to be ProcessState but got {} instead",
                   info_type);
-        return ResultInvalidEnumValue;
+        R_THROW(ResultInvalidEnumValue);
     }
 
     *out = static_cast<s64>(process->GetState());
-    return ResultSuccess;
+    R_SUCCEED();
 }
 
 Result CreateProcess(Core::System& system, Handle* out_handle, uint64_t parameters, uint64_t caps,

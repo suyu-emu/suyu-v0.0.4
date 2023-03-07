@@ -48,24 +48,22 @@ Result KReadableEvent::Signal() {
         this->NotifyAvailable();
     }
 
-    return ResultSuccess;
+    R_SUCCEED();
 }
 
 Result KReadableEvent::Clear() {
     this->Reset();
 
-    return ResultSuccess;
+    R_SUCCEED();
 }
 
 Result KReadableEvent::Reset() {
     KScopedSchedulerLock lk{kernel};
 
-    if (!m_is_signaled) {
-        return ResultInvalidState;
-    }
+    R_UNLESS(m_is_signaled, ResultInvalidState);
 
     m_is_signaled = false;
-    return ResultSuccess;
+    R_SUCCEED();
 }
 
 } // namespace Kernel

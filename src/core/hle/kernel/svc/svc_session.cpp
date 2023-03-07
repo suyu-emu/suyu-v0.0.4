@@ -25,7 +25,7 @@ Result CreateSession(Core::System& system, Handle* out_server, Handle* out_clien
     if (session_reservation.Succeeded()) {
         session = T::Create(system.Kernel());
     } else {
-        return ResultLimitReached;
+        R_THROW(ResultLimitReached);
 
         // // We couldn't reserve a session. Check that we support dynamically expanding the
         // // resource limit.
@@ -77,15 +77,13 @@ Result CreateSession(Core::System& system, Handle* out_server, Handle* out_clien
     // Add the server session to the handle table.
     R_TRY(handle_table.Add(out_server, &session->GetServerSession()));
 
-    // Add the client session to the handle table.
-    const auto result = handle_table.Add(out_client, &session->GetClientSession());
-
-    if (!R_SUCCEEDED(result)) {
-        // Ensure that we maintain a clean handle state on exit.
+    // Ensure that we maintain a clean handle state on exit.
+    ON_RESULT_FAILURE {
         handle_table.Remove(*out_server);
-    }
+    };
 
-    return result;
+    // Add the client session to the handle table.
+    R_RETURN(handle_table.Add(out_client, &session->GetClientSession()));
 }
 
 } // namespace
@@ -94,9 +92,9 @@ Result CreateSession(Core::System& system, Handle* out_server, Handle* out_clien
                      u64 name) {
     if (is_light) {
         // return CreateSession<KLightSession>(system, out_server, out_client, name);
-        return ResultNotImplemented;
+        R_THROW(ResultNotImplemented);
     } else {
-        return CreateSession<KSession>(system, out_server, out_client, name);
+        R_RETURN(CreateSession<KSession>(system, out_server, out_client, name));
     }
 }
 
