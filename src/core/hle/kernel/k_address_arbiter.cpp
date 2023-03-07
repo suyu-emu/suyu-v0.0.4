@@ -141,7 +141,7 @@ Result KAddressArbiter::SignalAndIncrementIfEqual(VAddr addr, s32 value, s32 cou
 
         // Check the userspace value.
         s32 user_value{};
-        R_UNLESS(UpdateIfEqual(m_system, &user_value, addr, value, value + 1),
+        R_UNLESS(UpdateIfEqual(m_system, std::addressof(user_value), addr, value, value + 1),
                  ResultInvalidCurrentMemory);
         R_UNLESS(user_value == value, ResultInvalidState);
 
@@ -201,9 +201,9 @@ Result KAddressArbiter::SignalAndModifyByWaitingCountIfEqual(VAddr addr, s32 val
         s32 user_value{};
         bool succeeded{};
         if (value != new_value) {
-            succeeded = UpdateIfEqual(m_system, &user_value, addr, value, new_value);
+            succeeded = UpdateIfEqual(m_system, std::addressof(user_value), addr, value, new_value);
         } else {
-            succeeded = ReadFromUser(m_system, &user_value, addr);
+            succeeded = ReadFromUser(m_system, std::addressof(user_value), addr);
         }
 
         R_UNLESS(succeeded, ResultInvalidCurrentMemory);
@@ -244,9 +244,9 @@ Result KAddressArbiter::WaitIfLessThan(VAddr addr, s32 value, bool decrement, s6
         s32 user_value{};
         bool succeeded{};
         if (decrement) {
-            succeeded = DecrementIfLessThan(m_system, &user_value, addr, value);
+            succeeded = DecrementIfLessThan(m_system, std::addressof(user_value), addr, value);
         } else {
-            succeeded = ReadFromUser(m_system, &user_value, addr);
+            succeeded = ReadFromUser(m_system, std::addressof(user_value), addr);
         }
 
         if (!succeeded) {
@@ -297,7 +297,7 @@ Result KAddressArbiter::WaitIfEqual(VAddr addr, s32 value, s64 timeout) {
 
         // Read the value from userspace.
         s32 user_value{};
-        if (!ReadFromUser(m_system, &user_value, addr)) {
+        if (!ReadFromUser(m_system, std::addressof(user_value), addr)) {
             slp.CancelSleep();
             R_THROW(ResultInvalidCurrentMemory);
         }

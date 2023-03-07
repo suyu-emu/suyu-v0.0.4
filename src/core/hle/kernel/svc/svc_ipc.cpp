@@ -79,7 +79,7 @@ Result ReplyAndReceive(Core::System& system, s32* out_index, uint64_t handles_ad
     while (true) {
         // Wait for an object.
         s32 index;
-        Result result = KSynchronizationObject::Wait(kernel, &index, objs.data(),
+        Result result = KSynchronizationObject::Wait(kernel, std::addressof(index), objs.data(),
                                                      static_cast<s32>(objs.size()), timeout_ns);
         if (result == ResultTimedOut) {
             R_RETURN(result);

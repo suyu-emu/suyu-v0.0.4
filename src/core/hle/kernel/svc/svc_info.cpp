@@ -153,7 +153,7 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
         }
 
         Handle resource_handle{};
-        R_TRY(handle_table.Add(&resource_handle, resource_limit));
+        R_TRY(handle_table.Add(std::addressof(resource_handle), resource_limit));
 
         *result = resource_handle;
         R_SUCCEED();
@@ -234,7 +234,7 @@ Result GetInfo(Core::System& system, u64* result, InfoType info_id_type, Handle 
 
         // Get a new handle for the current process.
         Handle tmp;
-        R_TRY(handle_table.Add(&tmp, current_process));
+        R_TRY(handle_table.Add(std::addressof(tmp), current_process));
 
         // Set the output.
         *result = tmp;

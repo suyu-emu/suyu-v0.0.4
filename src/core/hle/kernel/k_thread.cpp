@@ -930,14 +930,14 @@ Result KThread::GetThreadContext3(std::vector<u8>& out) {
                 context.pstate &= 0xFF0FFE20;
 
                 out.resize(sizeof(context));
-                std::memcpy(out.data(), &context, sizeof(context));
+                std::memcpy(out.data(), std::addressof(context), sizeof(context));
             } else {
                 // Mask away mode bits, interrupt bits, IL bit, and other reserved bits.
                 auto context = GetContext32();
                 context.cpsr &= 0xFF0FFE20;
 
                 out.resize(sizeof(context));
-                std::memcpy(out.data(), &context, sizeof(context));
+                std::memcpy(out.data(), std::addressof(context), sizeof(context));
             }
         }
     }

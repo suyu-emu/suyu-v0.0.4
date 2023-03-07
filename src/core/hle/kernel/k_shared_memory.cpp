@@ -44,7 +44,8 @@ Result KSharedMemory::Initialize(Core::DeviceMemory& device_memory, KProcess* ow
     R_UNLESS(m_physical_address != 0, ResultOutOfMemory);
 
     //! Insert the result into our page group.
-    m_page_group.emplace(m_kernel, &m_kernel.GetSystemSystemResource().GetBlockInfoManager());
+    m_page_group.emplace(m_kernel,
+                         std::addressof(m_kernel.GetSystemSystemResource().GetBlockInfoManager()));
     m_page_group->AddBlock(m_physical_address, num_pages);
 
     // Commit our reservation.

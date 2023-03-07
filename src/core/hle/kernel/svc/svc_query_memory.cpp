@@ -33,7 +33,7 @@ Result QueryProcessMemory(Core::System& system, uint64_t out_memory_info, PageIn
     auto& memory{system.Memory()};
     const auto memory_info{process->PageTable().QueryInfo(address).GetSvcMemoryInfo()};
 
-    memory.WriteBlock(out_memory_info, &memory_info, sizeof(memory_info));
+    memory.WriteBlock(out_memory_info, std::addressof(memory_info), sizeof(memory_info));
 
     //! This is supposed to be part of the QueryInfo call.
     *out_page_info = {};

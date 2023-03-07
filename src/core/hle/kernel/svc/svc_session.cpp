@@ -21,7 +21,8 @@ Result CreateSession(Core::System& system, Handle* out_server, Handle* out_clien
 
     // Reserve a new session from the process resource limit.
     // FIXME: LimitableResource_SessionCountMax
-    KScopedResourceReservation session_reservation(&process, LimitableResource::SessionCountMax);
+    KScopedResourceReservation session_reservation(std::addressof(process),
+                                                   LimitableResource::SessionCountMax);
     if (session_reservation.Succeeded()) {
         session = T::Create(system.Kernel());
     } else {
@@ -30,7 +31,7 @@ Result CreateSession(Core::System& system, Handle* out_server, Handle* out_clien
         // // We couldn't reserve a session. Check that we support dynamically expanding the
         // // resource limit.
         // R_UNLESS(process.GetResourceLimit() ==
-        //          &system.Kernel().GetSystemResourceLimit(), ResultLimitReached);
+        //          std::addressof(system.Kernel().GetSystemResourceLimit()), ResultLimitReached);
         // R_UNLESS(KTargetSystem::IsDynamicResourceLimitsEnabled(), ResultLimitReached());
 
         // // Try to allocate a session from unused slab memory.
@@ -75,7 +76,7 @@ Result CreateSession(Core::System& system, Handle* out_server, Handle* out_clien
     T::Register(system.Kernel(), session);
 
     // Add the server session to the handle table.
-    R_TRY(handle_table.Add(out_server, &session->GetServerSession()));
+    R_TRY(handle_table.Add(out_server, std::addressof(session->GetServerSession())));
 
     // Ensure that we maintain a clean handle state on exit.
     ON_RESULT_FAILURE {
@@ -83,7 +84,7 @@ Result CreateSession(Core::System& system, Handle* out_server, Handle* out_clien
     };
 
     // Add the client session to the handle table.
-    R_RETURN(handle_table.Add(out_client, &session->GetClientSession()));
+    R_RETURN(handle_table.Add(out_client, std::addressof(session->GetClientSession())));
 }
 
 } // namespace

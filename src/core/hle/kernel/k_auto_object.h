@@ -195,7 +195,7 @@ public:
     }
 
     friend bool operator<(const KAutoObjectWithList& left, const KAutoObjectWithList& right) {
-        return &left < &right;
+        return KAutoObjectWithList::Compare(left, right) < 0;
     }
 
 public:

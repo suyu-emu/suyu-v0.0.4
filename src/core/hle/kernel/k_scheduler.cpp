@@ -149,7 +149,7 @@ void KScheduler::Initialize(KThread* main_thread, KThread* idle_thread, s32 core
     m_core_id = core_id;
     m_idle_thread = idle_thread;
     // m_state.idle_thread_stack = m_idle_thread->GetStackTop();
-    // m_state.interrupt_task_manager = &kernel.GetInterruptTaskManager();
+    // m_state.interrupt_task_manager = std::addressof(kernel.GetInterruptTaskManager());
 
     // Insert the main thread into the priority queue.
     // {

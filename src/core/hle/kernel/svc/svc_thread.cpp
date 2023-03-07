@@ -42,9 +42,9 @@ Result CreateThread(Core::System& system, Handle* out_handle, VAddr entry_point,
     R_UNLESS(process.CheckThreadPriority(priority), ResultInvalidPriority);
 
     // Reserve a new thread from the process resource limit (waiting up to 100ms).
-    KScopedResourceReservation thread_reservation(&process, LimitableResource::ThreadCountMax, 1,
-                                                  system.CoreTiming().GetGlobalTimeNs().count() +
-                                                      100000000);
+    KScopedResourceReservation thread_reservation(
+        std::addressof(process), LimitableResource::ThreadCountMax, 1,
+        system.CoreTiming().GetGlobalTimeNs().count() + 100000000);
     R_UNLESS(thread_reservation.Succeeded(), ResultLimitReached);
 
     // Create the thread.
@@ -56,7 +56,7 @@ Result CreateThread(Core::System& system, Handle* out_handle, VAddr entry_point,
     {
         KScopedLightLock lk{process.GetStateLock()};
         R_TRY(KThread::InitializeUserThread(system, thread, entry_point, arg, stack_bottom,
-                                            priority, core_id, &process));
+                                            priority, core_id, std::addressof(process)));
     }
 
     // Set the thread name for debugging purposes.

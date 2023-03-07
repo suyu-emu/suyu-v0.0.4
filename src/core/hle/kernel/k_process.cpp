@@ -44,12 +44,13 @@ void SetupMainThread(Core::System& system, KProcess& owner_process, u32 priority
     SCOPE_EXIT({ thread->Close(); });
 
     ASSERT(KThread::InitializeUserThread(system, thread, entry_point, 0, stack_top, priority,
-                                         owner_process.GetIdealCoreId(), &owner_process)
+                                         owner_process.GetIdealCoreId(),
+                                         std::addressof(owner_process))
                .IsSuccess());
 
     // Register 1 must be a handle to the main thread
     Handle thread_handle{};
-    owner_process.GetHandleTable().Add(&thread_handle, thread);
+    owner_process.GetHandleTable().Add(std::addressof(thread_handle), thread);
 
     thread->SetName("main");
     thread->GetContext32().cpu_registers[0] = 0;
@@ -366,7 +367,7 @@ Result KProcess::LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std:
     // Initialize process address space
     if (const Result result{page_table.InitializeForProcess(
             metadata.GetAddressSpaceType(), false, false, false, KMemoryManager::Pool::Application,
-            0x8000000, code_size, &m_kernel.GetAppSystemResource(), resource_limit)};
+            0x8000000, code_size, std::addressof(m_kernel.GetAppSystemResource()), resource_limit)};
         result.IsError()) {
         R_RETURN(result);
     }

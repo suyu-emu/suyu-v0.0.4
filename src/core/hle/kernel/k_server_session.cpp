@@ -115,7 +115,7 @@ void KServerSession::OnClientClosed() {
 
             // // Get the process and page table.
             // KProcess *client_process = thread->GetOwnerProcess();
-            // auto &client_pt = client_process->GetPageTable();
+            // auto& client_pt = client_process->GetPageTable();
 
             // // Reply to the request.
             // ReplyAsyncError(client_process, request->GetAddress(), request->GetSize(),
@@ -177,7 +177,7 @@ Result KServerSession::OnRequest(KSessionRequest* request) {
 
         // This is a synchronous request, so we should wait for our request to complete.
         GetCurrentThread(m_kernel).SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::IPC);
-        GetCurrentThread(m_kernel).BeginWait(&wait_queue);
+        GetCurrentThread(m_kernel).BeginWait(std::addressof(wait_queue));
     }
 
     return GetCurrentThread(m_kernel).GetWaitResult();
@@ -248,7 +248,7 @@ Result KServerSession::SendReply(bool is_hle) {
         if (event != nullptr) {
             // // Get the client process/page table.
             // KProcess *client_process             = client_thread->GetOwnerProcess();
-            // KPageTable *client_page_table        = &client_process->PageTable();
+            // KPageTable *client_page_table        = std::addressof(client_process->PageTable());
 
             // // If we need to, reply with an async error.
             // if (R_FAILED(client_result)) {
@@ -297,7 +297,7 @@ Result KServerSession::ReceiveRequest(std::shared_ptr<Service::HLERequestContext
         R_UNLESS(!m_request_list.empty(), ResultNotFound);
 
         // Pop the first request from the list.
-        request = &m_request_list.front();
+        request = std::addressof(m_request_list.front());
         m_request_list.pop_front();
 
         // Get the thread for the request.
@@ -358,7 +358,7 @@ void KServerSession::CleanupRequests() {
                 m_current_request = nullptr;
             } else if (!m_request_list.empty()) {
                 // Pop the request from the front of the list.
-                request = &m_request_list.front();
+                request = std::addressof(m_request_list.front());
                 m_request_list.pop_front();
             }
         }
@@ -381,7 +381,8 @@ void KServerSession::CleanupRequests() {
         // KProcess *client_process             = (client_thread != nullptr) ?
         //                                         client_thread->GetOwnerProcess() : nullptr;
         // KProcessPageTable *client_page_table = (client_process != nullptr) ?
-        //                                         &client_process->GetPageTable() : nullptr;
+        //                                         std::addressof(client_process->GetPageTable())
+        //                                         : nullptr;
 
         // Cleanup the mappings.
         // Result result = CleanupMap(request, server_process, client_page_table);

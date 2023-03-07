@@ -119,7 +119,7 @@ bool KResourceLimit::Reserve(LimitableResource which, s64 value, s64 timeout) {
         if (m_current_hints[index] + value <= m_limit_values[index] &&
             (timeout < 0 || m_core_timing->GetGlobalTimeNs().count() < timeout)) {
             m_waiter_count++;
-            m_cond_var.Wait(&m_lock, timeout, false);
+            m_cond_var.Wait(std::addressof(m_lock), timeout, false);
             m_waiter_count--;
         } else {
             break;
@@ -154,7 +154,7 @@ void KResourceLimit::Release(LimitableResource which, s64 value, s64 hint) {
 
 KResourceLimit* CreateResourceLimitForProcess(Core::System& system, s64 physical_memory_size) {
     auto* resource_limit = KResourceLimit::Create(system.Kernel());
-    resource_limit->Initialize(&system.CoreTiming());
+    resource_limit->Initialize(std::addressof(system.CoreTiming()));
 
     // Initialize default resource limit values.
     // TODO(bunnei): These values are the system defaults, the limits for service processes are
