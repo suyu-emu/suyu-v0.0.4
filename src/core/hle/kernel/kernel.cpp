@@ -1320,7 +1320,6 @@ const Core::System& KernelCore::System() const {
 struct KernelCore::SlabHeapContainer {
     KSlabHeap<KClientSession> client_session;
     KSlabHeap<KEvent> event;
-    KSlabHeap<KLinkedListNode> linked_list_node;
     KSlabHeap<KPort> port;
     KSlabHeap<KProcess> process;
     KSlabHeap<KResourceLimit> resource_limit;
@@ -1347,8 +1346,6 @@ KSlabHeap<T>& KernelCore::SlabHeap() {
         return slab_heap_container->client_session;
     } else if constexpr (std::is_same_v<T, KEvent>) {
         return slab_heap_container->event;
-    } else if constexpr (std::is_same_v<T, KLinkedListNode>) {
-        return slab_heap_container->linked_list_node;
     } else if constexpr (std::is_same_v<T, KPort>) {
         return slab_heap_container->port;
     } else if constexpr (std::is_same_v<T, KProcess>) {
@@ -1390,7 +1387,6 @@ KSlabHeap<T>& KernelCore::SlabHeap() {
 
 template KSlabHeap<KClientSession>& KernelCore::SlabHeap();
 template KSlabHeap<KEvent>& KernelCore::SlabHeap();
-template KSlabHeap<KLinkedListNode>& KernelCore::SlabHeap();
 template KSlabHeap<KPort>& KernelCore::SlabHeap();
 template KSlabHeap<KProcess>& KernelCore::SlabHeap();
 template KSlabHeap<KResourceLimit>& KernelCore::SlabHeap();
