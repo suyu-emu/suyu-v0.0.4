@@ -13,7 +13,7 @@
     </style>
 
     <!-- Inherit from the material theme -->
-    <style name="YuzuBase" parent="Theme.AppCompat.DayNight.NoActionBar">
+    <style name="YuzuBase" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Main theme colors -->
         <item name="colorSurface">@color/view_background</item>
         <item name="colorOnSurface">@color/view_text</item>
@@ -34,7 +34,7 @@
     </style>
 
     <!-- Same as above, but use default action bar, and mandate margins. -->
-    <style name="YuzuSettingsBase" parent="Theme.AppCompat.DayNight">
+    <style name="YuzuSettingsBase" parent="Theme.Material3.DayNight">
         <item name="colorSurface">@color/view_background</item>
         <item name="colorOnSurface">@color/view_text</item>
         <item name="colorPrimary">@color/citra_orange</item>
@@ -43,7 +43,7 @@
     </style>
 
     <!-- Inherit from the Base Citra Dialog Theme -->
-    <style name="YuzuEmulationBase" parent="Theme.AppCompat.DayNight">
+    <style name="YuzuEmulationBase" parent="Theme.Material3.DayNight">
         <item name="colorSurface">@color/view_background</item>
         <item name="colorOnSurface">@color/view_text</item>
         <item name="colorPrimary">@color/citra_orange</item>
@@ -61,7 +61,7 @@
         <item name="android:windowAllowReturnTransitionOverlap">true</item>
     </style>
 
-    <style name="FilePickerAlertDialogTheme" parent="Theme.AppCompat.DayNight.Dialog.Alert">
+    <style name="FilePickerAlertDialogTheme" parent="Theme.Material3.DayNight.Dialog.Alert">
         <item name="colorSurface">@color/view_background</item>
         <item name="colorOnSurface">@color/view_text</item>
         <item name="colorPrimary">@color/citra_orange</item>
@@ -70,7 +70,3 @@
     </style>
 
 </resources>
-
-
-
-
