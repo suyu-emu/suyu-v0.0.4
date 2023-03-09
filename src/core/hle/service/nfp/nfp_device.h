@@ -47,10 +47,12 @@ public:
     Result GetCommonInfo(CommonInfo& common_info) const;
     Result GetModelInfo(ModelInfo& model_info) const;
     Result GetRegisterInfo(RegisterInfo& register_info) const;
+    Result GetAdminInfo(AdminInfo& admin_info) const;
 
-    Result SetNicknameAndOwner(const AmiiboName& amiibo_name);
+    Result DeleteRegisterInfo();
+    Result SetRegisterInfoPrivate(const AmiiboName& amiibo_name);
     Result RestoreAmiibo();
-    Result DeleteAllData();
+    Result Format();
 
     Result OpenApplicationArea(u32 access_id);
     Result GetApplicationAreaId(u32& application_area_id) const;
@@ -76,6 +78,9 @@ private:
     AmiiboName GetAmiiboName(const AmiiboSettings& settings) const;
     void SetAmiiboName(AmiiboSettings& settings, const AmiiboName& amiibo_name);
     AmiiboDate GetAmiiboDate(s64 posix_time) const;
+    u64 RemoveVersionByte(u64 application_id) const;
+    void UpdateSettingsCrc();
+    u32 CalculateCrc(std::span<const u8>);
 
     bool is_controller_set{};
     int callback_key;
