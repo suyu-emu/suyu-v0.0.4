@@ -386,10 +386,10 @@ struct KernelCore::Impl {
 
     // Gets the dummy KThread for the caller, allocating a new one if this is the first time
     KThread* GetHostDummyThread(KThread* existing_thread) {
-        auto initialize = [this](KThread* thread) {
+        const auto initialize{[](KThread* thread) {
             ASSERT(KThread::InitializeDummyThread(thread, nullptr).IsSuccess());
             return thread;
-        };
+        }};
 
         thread_local KThread raw_thread{system.Kernel()};
         thread_local KThread* thread = existing_thread ? existing_thread : initialize(&raw_thread);
