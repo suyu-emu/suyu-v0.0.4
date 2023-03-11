@@ -1,8 +1,6 @@
-/**
- * Copyright 2013 Dolphin Emulator Project
- * Licensed under GPLv2+
- * Refer to the license.txt file included.
- */
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.yuzu.yuzu_emu.overlay
 
 import android.content.res.Resources

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 package org.yuzu.yuzu_emu.utils
 
 import org.json.JSONException
@@ -26,6 +29,7 @@ class GpuDriverMetadata(metadataFilePath: String) {
             driverVersion = json.getString("driverVersion")
             minApi = json.getInt("minApi")
             libraryName = json.getString("libraryName")
+            Log.info("Guh")
         } catch (e: JSONException) {
             // JSON is malformed, ignore and treat as unsupported metadata.
         } catch (e: IOException) {
