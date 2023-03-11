@@ -508,26 +508,28 @@ public final class NativeLibrary {
         final int Success = 0;
         final int ErrorNotInitialized = 1;
         final int ErrorGetLoader = 2;
-        final int ErrorSystemMode = 3;
-        final int ErrorLoader = 4;
-        final int ErrorLoader_ErrorEncrypted = 5;
-        final int ErrorLoader_ErrorInvalidFormat = 6;
-        final int ErrorSystemFiles = 7;
-        final int ErrorVideoCore = 8;
-        final int ErrorVideoCore_ErrorGenericDrivers = 9;
-        final int ErrorVideoCore_ErrorBelowGL33 = 10;
-        final int ShutdownRequested = 11;
-        final int ErrorUnknown = 12;
+        final int ErrorSystemFiles = 3;
+        final int ErrorSharedFont = 4;
+        final int ErrorVideoCore = 5;
+        final int ErrorUnknown = 6;
+        final int ErrorLoader = 7;
 
-        int captionId = R.string.loader_error_invalid_format;
-        if (resultCode == ErrorLoader_ErrorEncrypted) {
-            captionId = R.string.loader_error_encrypted;
+        int captionId;
+        int descriptionId;
+        switch (resultCode) {
+            case ErrorVideoCore:
+                captionId = R.string.loader_error_video_core;
+                descriptionId = R.string.loader_error_video_core_description;
+                break;
+            default:
+                captionId = R.string.loader_error_encrypted;
+                descriptionId = R.string.loader_error_encrypted_roms_description;
+                if (!ReloadKeys()) {
+                    descriptionId = R.string.loader_error_encrypted_keys_description;
+                }
+                break;
         }
 
-        String formatedText = "Please follow the guides to redump your <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-cartridge-games\">game cartidges</a> or <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-installed-titles-eshop\">installed titles</a>.";
-        if (!ReloadKeys()) {
-            formatedText = "Please ensure your <a href=\"https://yuzu-emu.org/help/quickstart/#dumping-prodkeys-and-titlekeys\">prod.keys</a> file is installed so that games can be decrypted.";
-        }
         final EmulationActivity emulationActivity = sEmulationActivity.get();
         if (emulationActivity == null) {
             Log.warning("[NativeLibrary] EmulationActivity is null, can't exit.");
@@ -536,7 +538,7 @@ public final class NativeLibrary {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(emulationActivity)
                 .setTitle(captionId)
-                .setMessage(Html.fromHtml(formatedText, Html.FROM_HTML_MODE_LEGACY))
+                .setMessage(Html.fromHtml(emulationActivity.getString(descriptionId), Html.FROM_HTML_MODE_LEGACY))
                 .setPositiveButton(android.R.string.ok, (dialog, whichButton) -> emulationActivity.finish())
                 .setOnDismissListener(dialogInterface -> emulationActivity.finish());
         emulationActivity.runOnUiThread(() -> {
