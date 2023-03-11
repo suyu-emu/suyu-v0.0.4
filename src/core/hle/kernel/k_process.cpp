@@ -137,16 +137,16 @@ u64 KProcess::GetTotalPhysicalMemoryAvailable() {
 }
 
 u64 KProcess::GetTotalPhysicalMemoryAvailableWithoutSystemResource() {
-    return GetTotalPhysicalMemoryAvailable() - GetSystemResourceSize();
+    return this->GetTotalPhysicalMemoryAvailable() - this->GetSystemResourceSize();
 }
 
 u64 KProcess::GetTotalPhysicalMemoryUsed() {
     return m_image_size + m_main_thread_stack_size + m_page_table.GetNormalMemorySize() +
-           GetSystemResourceSize();
+           this->GetSystemResourceSize();
 }
 
 u64 KProcess::GetTotalPhysicalMemoryUsedWithoutSystemResource() {
-    return GetTotalPhysicalMemoryUsed() - GetSystemResourceUsage();
+    return this->GetTotalPhysicalMemoryUsed() - this->GetSystemResourceUsage();
 }
 
 bool KProcess::ReleaseUserException(KThread* thread) {
@@ -182,7 +182,7 @@ void KProcess::PinCurrentThread(s32 core_id) {
     // If the thread isn't terminated, pin it.
     if (!cur_thread->IsTerminationRequested()) {
         // Pin it.
-        PinThread(core_id, cur_thread);
+        this->PinThread(core_id, cur_thread);
         cur_thread->Pin(core_id);
 
         // An update is needed.
@@ -199,7 +199,7 @@ void KProcess::UnpinCurrentThread(s32 core_id) {
 
     // Unpin it.
     cur_thread->Unpin();
-    UnpinThread(core_id, cur_thread);
+    this->UnpinThread(core_id, cur_thread);
 
     // An update is needed.
     KScheduler::SetSchedulerUpdateNeeded(m_kernel);
@@ -212,7 +212,7 @@ void KProcess::UnpinThread(KThread* thread) {
     const auto core_id = thread->GetActiveCore();
 
     // Unpin it.
-    UnpinThread(core_id, thread);
+    this->UnpinThread(core_id, thread);
     thread->Unpin();
 
     // An update is needed.
@@ -330,7 +330,7 @@ Result KProcess::SetActivity(ProcessActivity activity) {
         }
 
         // Set ourselves as suspended.
-        SetSuspended(true);
+        this->SetSuspended(true);
     } else {
         ASSERT(activity == ProcessActivity::Runnable);
 
@@ -343,7 +343,7 @@ Result KProcess::SetActivity(ProcessActivity activity) {
         }
 
         // Set ourselves as resumed.
-        SetSuspended(false);
+        this->SetSuspended(false);
     }
 
     R_SUCCEED();
@@ -457,7 +457,7 @@ void KProcess::PrepareForTermination() {
                                   m_main_thread_stack_size + m_image_size);
     }
 
-    ChangeState(State::Terminated);
+    this->ChangeState(State::Terminated);
 }
 
 void KProcess::Finalize() {
@@ -489,7 +489,7 @@ void KProcess::Finalize() {
     m_page_table.Finalize();
 
     // Perform inherited finalization.
-    KAutoObjectWithSlabHeapAndContainer<KProcess, KWorkerTask>::Finalize();
+    KSynchronizationObject::Finalize();
 }
 
 Result KProcess::CreateThreadLocalRegion(VAddr* out) {

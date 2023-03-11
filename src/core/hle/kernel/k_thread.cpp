@@ -206,7 +206,7 @@ Result KThread::Initialize(KThreadFunction func, uintptr_t arg, VAddr user_stack
     m_argument = arg;
 
     // Clear our stack parameters.
-    std::memset(static_cast<void*>(std::addressof(GetStackParameters())), 0,
+    std::memset(static_cast<void*>(std::addressof(this->GetStackParameters())), 0,
                 sizeof(StackParameters));
 
     // Set parent, if relevant.
@@ -774,13 +774,13 @@ void KThread::WaitCancel() {
 
 void KThread::TrySuspend() {
     ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(m_kernel));
-    ASSERT(IsSuspendRequested());
+    ASSERT(this->IsSuspendRequested());
 
     // Ensure that we have no waiters.
-    if (GetNumKernelWaiters() > 0) {
+    if (this->GetNumKernelWaiters() > 0) {
         return;
     }
-    ASSERT(GetNumKernelWaiters() == 0);
+    ASSERT(this->GetNumKernelWaiters() == 0);
 
     // Perform the suspend.
     this->UpdateState();
@@ -916,7 +916,7 @@ Result KThread::GetThreadContext3(std::vector<u8>& out) {
         KScopedSchedulerLock sl{m_kernel};
 
         // Verify that we're suspended.
-        R_UNLESS(IsSuspendRequested(SuspendType::Thread), ResultInvalidState);
+        R_UNLESS(this->IsSuspendRequested(SuspendType::Thread), ResultInvalidState);
 
         // If we're not terminating, get the thread's user context.
         if (!this->IsTerminationRequested()) {
@@ -951,14 +951,14 @@ void KThread::AddHeldLock(LockWithPriorityInheritanceInfo* lock_info) {
     m_held_lock_info_list.push_front(*lock_info);
 }
 
-KThread::LockWithPriorityInheritanceInfo* KThread::FindHeldLock(VAddr address_key_,
-                                                                bool is_kernel_address_key_) {
+KThread::LockWithPriorityInheritanceInfo* KThread::FindHeldLock(VAddr address_key,
+                                                                bool is_kernel_address_key) {
     ASSERT(KScheduler::IsSchedulerLockedByCurrentThread(m_kernel));
 
     // Try to find an existing held lock.
     for (auto& held_lock : m_held_lock_info_list) {
-        if (held_lock.GetAddressKey() == address_key_ &&
-            held_lock.GetIsKernelAddressKey() == is_kernel_address_key_) {
+        if (held_lock.GetAddressKey() == address_key &&
+            held_lock.GetIsKernelAddressKey() == is_kernel_address_key) {
             return std::addressof(held_lock);
         }
     }
@@ -1166,7 +1166,7 @@ Result KThread::Run() {
 
         // If we're not a kernel thread and we've been asked to suspend, suspend ourselves.
         if (KProcess* owner = this->GetOwnerProcess(); owner != nullptr) {
-            if (IsUserThread() && IsSuspended()) {
+            if (this->IsUserThread() && this->IsSuspended()) {
                 this->UpdateState();
             }
             owner->IncrementRunningThreadCount();
@@ -1201,7 +1201,7 @@ void KThread::Exit() {
         m_suspend_allowed_flags = 0;
 
         // Start termination.
-        StartTermination();
+        this->StartTermination();
 
         // Register the thread as a work task.
         KWorkerTaskManager::AddTask(m_kernel, KWorkerTaskManager::WorkerType::Exit, this);
@@ -1285,7 +1285,7 @@ Result KThread::Sleep(s64 timeout) {
     ASSERT(this == GetCurrentThreadPointer(m_kernel));
     ASSERT(timeout > 0);
 
-    ThreadQueueImplForKThreadSleep wait_queue_(m_kernel);
+    ThreadQueueImplForKThreadSleep wait_queue(m_kernel);
     KHardwareTimer* timer{};
     {
         // Setup the scheduling lock and sleep.
@@ -1298,9 +1298,9 @@ Result KThread::Sleep(s64 timeout) {
         }
 
         // Wait for the sleep to end.
-        wait_queue_.SetHardwareTimer(timer);
-        this->BeginWait(std::addressof(wait_queue_));
-        SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::Sleep);
+        wait_queue.SetHardwareTimer(timer);
+        this->BeginWait(std::addressof(wait_queue));
+        this->SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::Sleep);
     }
 
     R_SUCCEED();
@@ -1335,7 +1335,7 @@ void KThread::DummyThreadEndWait() {
 
 void KThread::BeginWait(KThreadQueue* queue) {
     // Set our state as waiting.
-    SetState(ThreadState::Waiting);
+    this->SetState(ThreadState::Waiting);
 
     // Set our wait queue.
     m_wait_queue = queue;
@@ -1381,7 +1381,7 @@ void KThread::SetState(ThreadState state) {
     KScopedSchedulerLock sl{m_kernel};
 
     // Clear debugging state
-    SetWaitReasonForDebugging({});
+    this->SetWaitReasonForDebugging({});
 
     const ThreadState old_state = m_thread_state.load(std::memory_order_relaxed);
     m_thread_state.store(
