@@ -40,8 +40,6 @@ static bool IsValidLocale(u32 region_index, u32 language_index) {
 ConfigureSystem::ConfigureSystem(Core::System& system_, QWidget* parent)
     : QWidget(parent), ui{std::make_unique<Ui::ConfigureSystem>()}, system{system_} {
     ui->setupUi(this);
-    connect(ui->button_regenerate_console_id, &QPushButton::clicked, this,
-            &ConfigureSystem::RefreshConsoleID);
 
     connect(ui->rng_seed_checkbox, &QCheckBox::stateChanged, this, [this](int state) {
         ui->rng_seed_edit->setEnabled(state == Qt::Checked);
@@ -75,9 +73,6 @@ ConfigureSystem::ConfigureSystem(Core::System& system_, QWidget* parent)
     connect(ui->combo_language, qOverload<int>(&QComboBox::currentIndexChanged), this,
             locale_check);
     connect(ui->combo_region, qOverload<int>(&QComboBox::currentIndexChanged), this, locale_check);
-
-    ui->label_console_id->setVisible(Settings::IsConfiguringGlobal());
-    ui->button_regenerate_console_id->setVisible(Settings::IsConfiguringGlobal());
 
     SetupPerGameUI();
 
@@ -200,23 +195,6 @@ void ConfigureSystem::ApplyConfiguration() {
             break;
         }
     }
-}
-
-void ConfigureSystem::RefreshConsoleID() {
-    QMessageBox::StandardButton reply;
-    QString warning_text = tr("This will replace your current virtual Switch with a new one. "
-                              "Your current virtual Switch will not be recoverable. "
-                              "This might have unexpected effects in games. This might fail, "
-                              "if you use an outdated config savegame. Continue?");
-    reply = QMessageBox::critical(this, tr("Warning"), warning_text,
-                                  QMessageBox::No | QMessageBox::Yes);
-    if (reply == QMessageBox::No) {
-        return;
-    }
-
-    u64 console_id{};
-    ui->label_console_id->setText(
-        tr("Console ID: 0x%1").arg(QString::number(console_id, 16).toUpper()));
 }
 
 void ConfigureSystem::SetupPerGameUI() {
