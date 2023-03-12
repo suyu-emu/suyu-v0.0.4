@@ -1,0 +1,3 @@
+[codespell]
+skip = ./.git,./build,./dist,./Doxyfile,./externals,./LICENSES
+ignore-words-list = aci,allright,ba,deques,froms,hda,inout,lod,masia,nax,nd,pullrequests,pullrequest,te,transfered,unstall,uscaled,zink
