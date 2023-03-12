@@ -85,7 +85,7 @@ Result CreateEvent(Core::System& system, Handle* out_write, Handle* out_read) {
     // Add the event to the handle table.
     R_TRY(handle_table.Add(out_write, event));
 
-    // Ensure that we maintaing a clean handle state on exit.
+    // Ensure that we maintain a clean handle state on exit.
     auto handle_guard = SCOPE_GUARD({ handle_table.Remove(*out_write); });
 
     // Add the readable event to the handle table.
