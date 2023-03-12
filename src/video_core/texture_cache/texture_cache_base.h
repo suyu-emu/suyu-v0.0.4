@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
@@ -119,6 +119,7 @@ class TextureCache : public VideoCommon::ChannelSetupCaches<TextureCacheChannelI
     using Sampler = typename P::Sampler;
     using Framebuffer = typename P::Framebuffer;
     using AsyncBuffer = typename P::AsyncBuffer;
+    using BufferType = typename P::BufferType;
 
     struct BlitImages {
         ImageId dst_id;
@@ -214,6 +215,9 @@ public:
     [[nodiscard]] std::pair<Image*, BufferImageCopy> DmaBufferImageCopy(
         const Tegra::DMA::ImageCopy& copy_info, const Tegra::DMA::BufferOperand& buffer_operand,
         const Tegra::DMA::ImageOperand& image_operand, ImageId image_id, bool modifies_image);
+
+    void DownloadImageIntoBuffer(Image* image, BufferType buffer, size_t buffer_offset,
+                                 std::span<const VideoCommon::BufferImageCopy> copies);
 
     /// Return true when a CPU region is modified from the GPU
     [[nodiscard]] bool IsRegionGpuModified(VAddr addr, size_t size);

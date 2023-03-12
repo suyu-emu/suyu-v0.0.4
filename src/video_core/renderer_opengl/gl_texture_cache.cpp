@@ -801,32 +801,34 @@ void Image::UploadMemory(const ImageBufferMap& map,
     UploadMemory(map.buffer, map.offset, copies);
 }
 
-void Image::DownloadMemory(GLuint buffer_handle, size_t buffer_offset,
+void Image::DownloadMemory(std::span<GLuint> buffer_handles, size_t buffer_offset,
                            std::span<const VideoCommon::BufferImageCopy> copies) {
     const bool is_rescaled = True(flags & ImageFlagBits::Rescaled);
     if (is_rescaled) {
         ScaleDown();
     }
     glMemoryBarrier(GL_PIXEL_BUFFER_BARRIER_BIT); // TODO: Move this to its own API
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, buffer_handle);
-    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    for (auto buffer_handle : buffer_handles) {
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, buffer_handle);
+        glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
-    u32 current_row_length = std::numeric_limits<u32>::max();
-    u32 current_image_height = std::numeric_limits<u32>::max();
+        u32 current_row_length = std::numeric_limits<u32>::max();
+        u32 current_image_height = std::numeric_limits<u32>::max();
 
-    for (const VideoCommon::BufferImageCopy& copy : copies) {
-        if (copy.image_subresource.base_level >= gl_num_levels) {
-            continue;
+        for (const VideoCommon::BufferImageCopy& copy : copies) {
+            if (copy.image_subresource.base_level >= gl_num_levels) {
+                continue;
+            }
+            if (current_row_length != copy.buffer_row_length) {
+                current_row_length = copy.buffer_row_length;
+                glPixelStorei(GL_PACK_ROW_LENGTH, current_row_length);
+            }
+            if (current_image_height != copy.buffer_image_height) {
+                current_image_height = copy.buffer_image_height;
+                glPixelStorei(GL_PACK_IMAGE_HEIGHT, current_image_height);
+            }
+            CopyImageToBuffer(copy, buffer_offset);
         }
-        if (current_row_length != copy.buffer_row_length) {
-            current_row_length = copy.buffer_row_length;
-            glPixelStorei(GL_PACK_ROW_LENGTH, current_row_length);
-        }
-        if (current_image_height != copy.buffer_image_height) {
-            current_image_height = copy.buffer_image_height;
-            glPixelStorei(GL_PACK_IMAGE_HEIGHT, current_image_height);
-        }
-        CopyImageToBuffer(copy, buffer_offset);
     }
     if (is_rescaled) {
         ScaleUp(true);
@@ -835,7 +837,10 @@ void Image::DownloadMemory(GLuint buffer_handle, size_t buffer_offset,
 
 void Image::DownloadMemory(ImageBufferMap& map,
                            std::span<const VideoCommon::BufferImageCopy> copies) {
-    DownloadMemory(map.buffer, map.offset, copies);
+    std::array buffers{
+        map.buffer,
+    };
+    DownloadMemory(buffers, map.offset, copies);
 }
 
 GLuint Image::StorageHandle() noexcept {

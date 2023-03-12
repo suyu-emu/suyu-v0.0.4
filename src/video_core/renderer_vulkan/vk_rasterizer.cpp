@@ -793,7 +793,7 @@ bool AccelerateDMA::DmaBufferImageCopy(const Tegra::DMA::ImageCopy& copy_info,
     if constexpr (IS_IMAGE_UPLOAD) {
         image->UploadMemory(buffer->Handle(), offset, copy_span);
     } else {
-        image->DownloadMemory(buffer->Handle(), offset, copy_span);
+        texture_cache.DownloadImageIntoBuffer(image, buffer->Handle(), offset, copy_span);
     }
     return true;
 }

@@ -1,10 +1,11 @@
-// SPDX-FileCopyrightText: Copyright 2019 yuzu Emulator Project
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <algorithm>
 #include <array>
 #include <span>
 #include <vector>
+#include <boost/container/small_vector.hpp>
 
 #include "common/bit_cast.h"
 #include "common/bit_util.h"
@@ -1341,16 +1342,20 @@ void Image::UploadMemory(const StagingBufferRef& map, std::span<const BufferImag
     UploadMemory(map.buffer, map.offset, copies);
 }
 
-void Image::DownloadMemory(VkBuffer buffer, VkDeviceSize offset,
+void Image::DownloadMemory(std::span<VkBuffer> buffers_span, VkDeviceSize offset,
                            std::span<const VideoCommon::BufferImageCopy> copies) {
     const bool is_rescaled = True(flags & ImageFlagBits::Rescaled);
     if (is_rescaled) {
         ScaleDown();
     }
+    boost::container::small_vector<VkBuffer, 1> buffers_vector{};
+    for (auto& buffer : buffers_span) {
+        buffers_vector.push_back(buffer);
+    }
     std::vector vk_copies = TransformBufferImageCopies(copies, offset, aspect_mask);
     scheduler->RequestOutsideRenderPassOperationContext();
-    scheduler->Record([buffer, image = *original_image, aspect_mask = aspect_mask,
-                       vk_copies](vk::CommandBuffer cmdbuf) {
+    scheduler->Record([buffers = std::move(buffers_vector), image = *original_image,
+                       aspect_mask = aspect_mask, vk_copies](vk::CommandBuffer cmdbuf) {
         const VkImageMemoryBarrier read_barrier{
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .pNext = nullptr,
@@ -1368,6 +1373,20 @@ void Image::DownloadMemory(VkBuffer buffer, VkDeviceSize offset,
                 .baseArrayLayer = 0,
                 .layerCount = VK_REMAINING_ARRAY_LAYERS,
             },
+        };
+        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                               0, read_barrier);
+
+        for (auto buffer : buffers) {
+            cmdbuf.CopyImageToBuffer(image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, buffer,
+                                     vk_copies);
+        }
+
+        const VkMemoryBarrier memory_write_barrier{
+            .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
         };
         const VkImageMemoryBarrier image_write_barrier{
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -1387,15 +1406,6 @@ void Image::DownloadMemory(VkBuffer buffer, VkDeviceSize offset,
                 .layerCount = VK_REMAINING_ARRAY_LAYERS,
             },
         };
-        const VkMemoryBarrier memory_write_barrier{
-            .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
-            .pNext = nullptr,
-            .srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT,
-            .dstAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
-        };
-        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                               0, read_barrier);
-        cmdbuf.CopyImageToBuffer(image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, buffer, vk_copies);
         cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
                                0, memory_write_barrier, nullptr, image_write_barrier);
     });
@@ -1405,7 +1415,10 @@ void Image::DownloadMemory(VkBuffer buffer, VkDeviceSize offset,
 }
 
 void Image::DownloadMemory(const StagingBufferRef& map, std::span<const BufferImageCopy> copies) {
-    DownloadMemory(map.buffer, map.offset, copies);
+    std::array buffers{
+        map.buffer,
+    };
+    DownloadMemory(buffers, map.offset, copies);
 }
 
 bool Image::IsRescaled() const noexcept {

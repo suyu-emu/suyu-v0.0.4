@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2021 yuzu Emulator Project
+// SPDX-FileCopyrightText: 2023 yuzu Emulator Project
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
@@ -831,6 +831,16 @@ std::pair<typename TextureCache<P>::Image*, BufferImageCopy> TextureCache<P>::Dm
             },
     };
     return {image, copy};
+}
+
+template <class P>
+void TextureCache<P>::DownloadImageIntoBuffer(
+    typename TextureCache<P>::Image* image, typename TextureCache<P>::BufferType buffer,
+    size_t buffer_offset, std::span<const VideoCommon::BufferImageCopy> copies) {
+    std::array buffers{
+        buffer,
+    };
+    image->DownloadMemory(buffers, buffer_offset, copies);
 }
 
 template <class P>

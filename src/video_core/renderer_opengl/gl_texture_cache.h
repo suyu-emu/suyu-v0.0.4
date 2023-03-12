@@ -212,7 +212,7 @@ public:
     void UploadMemory(const ImageBufferMap& map,
                       std::span<const VideoCommon::BufferImageCopy> copies);
 
-    void DownloadMemory(GLuint buffer_handle, size_t buffer_offset,
+    void DownloadMemory(std::span<GLuint> buffer_handle, size_t buffer_offset,
                         std::span<const VideoCommon::BufferImageCopy> copies);
 
     void DownloadMemory(ImageBufferMap& map, std::span<const VideoCommon::BufferImageCopy> copies);
@@ -376,6 +376,7 @@ struct TextureCacheParams {
     using Sampler = OpenGL::Sampler;
     using Framebuffer = OpenGL::Framebuffer;
     using AsyncBuffer = u32;
+    using BufferType = GLuint;
 };
 
 using TextureCache = VideoCommon::TextureCache<TextureCacheParams>;
