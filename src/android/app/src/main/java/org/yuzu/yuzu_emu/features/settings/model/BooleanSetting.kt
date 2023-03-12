@@ -8,5 +8,5 @@ class BooleanSetting(
     section: String,
     var value: Boolean
 ) : Setting(key, section) {
-    override val valueAsString = if (value) "True" else "False"
+    override val valueAsString get() = if (value) "True" else "False"
 }

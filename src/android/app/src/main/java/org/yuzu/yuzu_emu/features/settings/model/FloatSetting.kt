@@ -8,5 +8,5 @@ class FloatSetting(
     section: String,
     var value: Float
 ) : Setting(key, section) {
-    override val valueAsString = value.toString()
+    override val valueAsString get() = value.toString()
 }

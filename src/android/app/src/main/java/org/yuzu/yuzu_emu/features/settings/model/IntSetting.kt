@@ -8,5 +8,5 @@ class IntSetting(
     section: String,
     var value: Int
 ) : Setting(key, section) {
-    override val valueAsString = value.toString()
+    override val valueAsString get() = value.toString()
 }

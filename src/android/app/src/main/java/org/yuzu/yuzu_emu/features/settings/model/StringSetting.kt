@@ -8,5 +8,5 @@ class StringSetting(
     section: String,
     var value: String
 ) : Setting(key, section) {
-    override var valueAsString = value
+    override val valueAsString get() = value
 }
