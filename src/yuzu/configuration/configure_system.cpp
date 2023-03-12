@@ -116,14 +116,12 @@ void ConfigureSystem::SetConfiguration() {
         ui->combo_language->setCurrentIndex(Settings::values.language_index.GetValue());
         ui->combo_region->setCurrentIndex(Settings::values.region_index.GetValue());
         ui->combo_time_zone->setCurrentIndex(Settings::values.time_zone_index.GetValue());
-        ui->combo_sound->setCurrentIndex(Settings::values.sound_index.GetValue());
     } else {
         ConfigurationShared::SetPerGameSetting(ui->combo_language,
                                                &Settings::values.language_index);
         ConfigurationShared::SetPerGameSetting(ui->combo_region, &Settings::values.region_index);
         ConfigurationShared::SetPerGameSetting(ui->combo_time_zone,
                                                &Settings::values.time_zone_index);
-        ConfigurationShared::SetPerGameSetting(ui->combo_sound, &Settings::values.sound_index);
 
         ConfigurationShared::SetHighlight(ui->label_language,
                                           !Settings::values.language_index.UsingGlobal());
@@ -131,8 +129,6 @@ void ConfigureSystem::SetConfiguration() {
                                           !Settings::values.region_index.UsingGlobal());
         ConfigurationShared::SetHighlight(ui->label_timezone,
                                           !Settings::values.time_zone_index.UsingGlobal());
-        ConfigurationShared::SetHighlight(ui->label_sound,
-                                          !Settings::values.sound_index.UsingGlobal());
     }
 }
 
@@ -164,7 +160,6 @@ void ConfigureSystem::ApplyConfiguration() {
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.region_index, ui->combo_region);
     ConfigurationShared::ApplyPerGameSetting(&Settings::values.time_zone_index,
                                              ui->combo_time_zone);
-    ConfigurationShared::ApplyPerGameSetting(&Settings::values.sound_index, ui->combo_sound);
 
     if (Settings::IsConfiguringGlobal()) {
         // Guard if during game and set to game-specific value
@@ -202,7 +197,6 @@ void ConfigureSystem::SetupPerGameUI() {
         ui->combo_language->setEnabled(Settings::values.language_index.UsingGlobal());
         ui->combo_region->setEnabled(Settings::values.region_index.UsingGlobal());
         ui->combo_time_zone->setEnabled(Settings::values.time_zone_index.UsingGlobal());
-        ui->combo_sound->setEnabled(Settings::values.sound_index.UsingGlobal());
         ui->rng_seed_checkbox->setEnabled(Settings::values.rng_seed.UsingGlobal());
         ui->rng_seed_edit->setEnabled(Settings::values.rng_seed.UsingGlobal());
 
@@ -215,8 +209,6 @@ void ConfigureSystem::SetupPerGameUI() {
                                             Settings::values.region_index.GetValue(true));
     ConfigurationShared::SetColoredComboBox(ui->combo_time_zone, ui->label_timezone,
                                             Settings::values.time_zone_index.GetValue(true));
-    ConfigurationShared::SetColoredComboBox(ui->combo_sound, ui->label_sound,
-                                            Settings::values.sound_index.GetValue(true));
 
     ConfigurationShared::SetColoredTristate(
         ui->rng_seed_checkbox, Settings::values.rng_seed.UsingGlobal(),

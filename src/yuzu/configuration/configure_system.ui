@@ -439,32 +439,6 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="1">
-           <widget class="QComboBox" name="combo_sound">
-            <item>
-             <property name="text">
-              <string>Mono</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Stereo</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Surround</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_sound">
-            <property name="text">
-             <string>Sound output mode</string>
-            </property>
-           </widget>
-          </item>
           <item row="4" column="1">
            <widget class="QDateTimeEdit" name="custom_rtc_edit">
             <property name="minimumDate">
