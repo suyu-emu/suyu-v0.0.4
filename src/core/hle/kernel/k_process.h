@@ -235,7 +235,7 @@ public:
         total_process_running_time_ticks += ticks;
     }
 
-    /// Gets the process schedule count, used for thread yelding
+    /// Gets the process schedule count, used for thread yielding
     s64 GetScheduledCount() const {
         return schedule_count;
     }

@@ -81,7 +81,7 @@ Result CreateSession(Core::System& system, Handle* out_server, Handle* out_clien
     const auto result = handle_table.Add(out_client, &session->GetClientSession());
 
     if (!R_SUCCEEDED(result)) {
-        // Ensure that we maintaing a clean handle state on exit.
+        // Ensure that we maintain a clean handle state on exit.
         handle_table.Remove(*out_server);
     }
 

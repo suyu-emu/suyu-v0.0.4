@@ -40,7 +40,7 @@ def parse_imports(file_name):
 
 def parse_imports_recursive(file_name, path_list=[]):
     q = queue.Queue()  # create a FIFO queue
-    # file_name can be a string or a list for the convience
+    # file_name can be a string or a list for the convenience
     if isinstance(file_name, str):
         q.put(file_name)
     elif isinstance(file_name, list):
