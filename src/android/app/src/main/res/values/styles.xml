@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <!-- Custom button styles -->
     <style name="InGameMenuOption" parent="Widget.Material3.Button.TextButton">
         <item name="android:layout_width">match_parent</item>
@@ -12,61 +13,9 @@
         <item name="android:paddingRight">32dp</item>
     </style>
 
-    <!-- Inherit from the material theme -->
-    <style name="YuzuBase" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Main theme colors -->
-        <item name="colorSurface">@color/view_background</item>
-        <item name="colorOnSurface">@color/view_text</item>
-        <!-- Branding color for the app bar -->
-        <item name="colorPrimary">@color/citra_orange</item>
-        <!-- Darker variant for the status bar and contextual app bars -->
-        <item name="colorPrimaryDark">@color/citra_orange_dark</item>
-        <item name="colorAccent">@color/citra_accent</item>
-
-        <item name="titleTextColor">@color/yuzu_logo_text_color</item>
-
-        <!-- Enable window content transitions -->
-        <item name="android:windowContentTransitions">true</item>
-        <item name="android:windowAllowEnterTransitionOverlap">true</item>
-        <item name="android:windowAllowReturnTransitionOverlap">true</item>
-
-        <item name="android:colorControlHighlight">?attr/colorAccent</item>
-    </style>
-
-    <!-- Same as above, but use default action bar, and mandate margins. -->
-    <style name="YuzuSettingsBase" parent="Theme.Material3.DayNight">
-        <item name="colorSurface">@color/view_background</item>
-        <item name="colorOnSurface">@color/view_text</item>
-        <item name="colorPrimary">@color/citra_orange</item>
-        <item name="colorPrimaryDark">@color/citra_orange_dark</item>
-        <item name="colorAccent">@color/citra_accent</item>
-    </style>
-
-    <!-- Inherit from the Base Citra Dialog Theme -->
-    <style name="YuzuEmulationBase" parent="Theme.Material3.DayNight">
-        <item name="colorSurface">@color/view_background</item>
-        <item name="colorOnSurface">@color/view_text</item>
-        <item name="colorPrimary">@color/citra_orange</item>
-        <item name="colorPrimaryDark">@color/citra_orange_dark</item>
-        <item name="colorAccent">@color/citra_accent</item>
-        <item name="android:windowTranslucentNavigation">true</item>
-        <item name="android:windowBackground">@android:color/black</item>
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
-        <item name="android:windowFullscreen">true</item>
-
-        <!-- Enable window content transitions -->
-        <item name="android:windowContentTransitions">true</item>
-        <item name="android:windowAllowEnterTransitionOverlap">true</item>
-        <item name="android:windowAllowReturnTransitionOverlap">true</item>
-    </style>
-
-    <style name="FilePickerAlertDialogTheme" parent="Theme.Material3.DayNight.Dialog.Alert">
-        <item name="colorSurface">@color/view_background</item>
-        <item name="colorOnSurface">@color/view_text</item>
-        <item name="colorPrimary">@color/citra_orange</item>
-        <item name="colorPrimaryDark">@color/citra_orange_dark</item>
-        <item name="colorAccent">@color/citra_accent</item>
+    <style name="YuzuSlider" parent="Widget.Material3.Slider">
+        <item name="tickVisible">false</item>
+        <item name="labelBehavior">gone</item>
     </style>
 
 </resources>

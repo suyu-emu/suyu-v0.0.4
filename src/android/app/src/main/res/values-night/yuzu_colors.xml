@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="yuzu_primary">#FFB4A8</color>
+    <color name="yuzu_onPrimary">#680200</color>
+    <color name="yuzu_primaryContainer">#930300</color>
+    <color name="yuzu_onPrimaryContainer">#FFDAD4</color>
+    <color name="yuzu_secondary">#E7BDB6</color>
+    <color name="yuzu_onSecondary">#442925</color>
+    <color name="yuzu_secondaryContainer">#5D3F3A</color>
+    <color name="yuzu_onSecondaryContainer">#FFDAD4</color>
+    <color name="yuzu_tertiary">#DEC48C</color>
+    <color name="yuzu_onTertiary">#3E2E04</color>
+    <color name="yuzu_tertiaryContainer">#564419</color>
+    <color name="yuzu_onTertiaryContainer">#FBE0A6</color>
+    <color name="yuzu_error">#FFB4AB</color>
+    <color name="yuzu_errorContainer">#93000A</color>
+    <color name="yuzu_onError">#690005</color>
+    <color name="yuzu_onErrorContainer">#FFDAD6</color>
+    <color name="yuzu_background">#201A19</color>
+    <color name="yuzu_onBackground">#EDE0DD</color>
+    <color name="yuzu_surface">#201A19</color>
+    <color name="yuzu_onSurface">#EDE0DD</color>
+    <color name="yuzu_surfaceVariant">#534341</color>
+    <color name="yuzu_onSurfaceVariant">#D8C2BE</color>
+    <color name="yuzu_outline">#A08C89</color>
+    <color name="yuzu_inverseOnSurface">#201A19</color>
+    <color name="yuzu_inverseSurface">#EDE0DD</color>
+    <color name="yuzu_inversePrimary">#BF0500</color>
+    <color name="yuzu_shadow">#000000</color>
+    <color name="yuzu_surfaceTint">#FFB4A8</color>
+    <color name="yuzu_outlineVariant">#534341</color>
+    <color name="yuzu_scrim">#000000</color>
+
+</resources>
