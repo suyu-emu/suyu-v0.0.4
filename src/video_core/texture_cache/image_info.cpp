@@ -114,78 +114,79 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
     }
 }
 
-ImageInfo::ImageInfo(const Maxwell3D::Regs& regs, size_t index) noexcept {
-    const auto& rt = regs.rt[index];
-    format = VideoCore::Surface::PixelFormatFromRenderTargetFormat(rt.format);
+ImageInfo::ImageInfo(const Tegra::Engines::Maxwell3D::Regs::RenderTargetConfig& ct,
+                     Tegra::Texture::MsaaMode msaa_mode) noexcept {
+    format = VideoCore::Surface::PixelFormatFromRenderTargetFormat(ct.format);
     rescaleable = false;
-    if (rt.tile_mode.is_pitch_linear) {
-        ASSERT(rt.tile_mode.dim_control ==
+    if (ct.tile_mode.is_pitch_linear) {
+        ASSERT(ct.tile_mode.dim_control ==
                Maxwell3D::Regs::TileMode::DimensionControl::DepthDefinesArray);
         type = ImageType::Linear;
-        pitch = rt.width;
+        pitch = ct.width;
         size = Extent3D{
             .width = pitch / BytesPerBlock(format),
-            .height = rt.height,
+            .height = ct.height,
             .depth = 1,
         };
         return;
     }
-    size.width = rt.width;
-    size.height = rt.height;
-    layer_stride = rt.array_pitch * 4;
+    size.width = ct.width;
+    size.height = ct.height;
+    layer_stride = ct.array_pitch * 4;
     maybe_unaligned_layer_stride = layer_stride;
-    num_samples = NumSamples(regs.anti_alias_samples_mode);
+    num_samples = NumSamples(msaa_mode);
     block = Extent3D{
-        .width = rt.tile_mode.block_width,
-        .height = rt.tile_mode.block_height,
-        .depth = rt.tile_mode.block_depth,
+        .width = ct.tile_mode.block_width,
+        .height = ct.tile_mode.block_height,
+        .depth = ct.tile_mode.block_depth,
     };
-    if (rt.tile_mode.dim_control ==
+    if (ct.tile_mode.dim_control ==
         Maxwell3D::Regs::TileMode::DimensionControl::DepthDefinesDepth) {
         type = ImageType::e3D;
-        size.depth = rt.depth;
+        size.depth = ct.depth;
     } else {
         rescaleable = block.depth == 0;
         rescaleable &= size.height > 256;
         downscaleable = size.height > 512;
         type = ImageType::e2D;
-        resources.layers = rt.depth;
+        resources.layers = ct.depth;
     }
 }
 
-ImageInfo::ImageInfo(const Tegra::Engines::Maxwell3D::Regs& regs) noexcept {
-    format = VideoCore::Surface::PixelFormatFromDepthFormat(regs.zeta.format);
-    size.width = regs.zeta_size.width;
-    size.height = regs.zeta_size.height;
+ImageInfo::ImageInfo(const Tegra::Engines::Maxwell3D::Regs::Zeta& zt,
+                     const Tegra::Engines::Maxwell3D::Regs::ZetaSize& zt_size,
+                     Tegra::Texture::MsaaMode msaa_mode) noexcept {
+    format = VideoCore::Surface::PixelFormatFromDepthFormat(zt.format);
+    size.width = zt_size.width;
+    size.height = zt_size.height;
     rescaleable = false;
     resources.levels = 1;
-    layer_stride = regs.zeta.array_pitch * 4;
+    layer_stride = zt.array_pitch * 4;
     maybe_unaligned_layer_stride = layer_stride;
-    num_samples = NumSamples(regs.anti_alias_samples_mode);
+    num_samples = NumSamples(msaa_mode);
     block = Extent3D{
-        .width = regs.zeta.tile_mode.block_width,
-        .height = regs.zeta.tile_mode.block_height,
-        .depth = regs.zeta.tile_mode.block_depth,
+        .width = zt.tile_mode.block_width,
+        .height = zt.tile_mode.block_height,
+        .depth = zt.tile_mode.block_depth,
     };
-    if (regs.zeta.tile_mode.is_pitch_linear) {
-        ASSERT(regs.zeta.tile_mode.dim_control ==
+    if (zt.tile_mode.is_pitch_linear) {
+        ASSERT(zt.tile_mode.dim_control ==
                Maxwell3D::Regs::TileMode::DimensionControl::DepthDefinesArray);
         type = ImageType::Linear;
         pitch = size.width * BytesPerBlock(format);
-    } else if (regs.zeta.tile_mode.dim_control ==
+    } else if (zt.tile_mode.dim_control ==
                Maxwell3D::Regs::TileMode::DimensionControl::DepthDefinesDepth) {
-        ASSERT(regs.zeta.tile_mode.is_pitch_linear == 0);
-        ASSERT(regs.zeta_size.dim_control ==
-               Maxwell3D::Regs::ZetaSize::DimensionControl::ArraySizeOne);
+        ASSERT(zt.tile_mode.is_pitch_linear == 0);
+        ASSERT(zt_size.dim_control == Maxwell3D::Regs::ZetaSize::DimensionControl::ArraySizeOne);
         type = ImageType::e3D;
-        size.depth = regs.zeta_size.depth;
+        size.depth = zt_size.depth;
     } else {
-        ASSERT(regs.zeta_size.dim_control ==
+        ASSERT(zt_size.dim_control ==
                Maxwell3D::Regs::ZetaSize::DimensionControl::DepthDefinesArray);
         rescaleable = block.depth == 0;
         downscaleable = size.height > 512;
         type = ImageType::e2D;
-        resources.layers = regs.zeta_size.depth;
+        resources.layers = zt_size.depth;
     }
 }
 
