@@ -51,7 +51,7 @@ class SettingsAdapter(
                 HeaderViewHolder(view, this)
             }
             SettingsItem.TYPE_CHECKBOX -> {
-                view = inflater.inflate(R.layout.list_item_setting_checkbox, parent, false)
+                view = inflater.inflate(R.layout.list_item_setting_switch, parent, false)
                 CheckBoxSettingViewHolder(view, this)
             }
             SettingsItem.TYPE_SINGLE_CHOICE, SettingsItem.TYPE_STRING_SINGLE_CHOICE -> {
@@ -105,7 +105,6 @@ class SettingsAdapter(
 
     fun onBooleanClick(item: CheckBoxSetting, position: Int, checked: Boolean) {
         val setting = item.setChecked(checked)
-        notifyItemChanged(position)
         if (setting != null) {
             fragmentView.putSetting(setting)
         }

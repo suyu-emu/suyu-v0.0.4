@@ -4,8 +4,9 @@
 package org.yuzu.yuzu_emu.features.settings.ui.viewholder
 
 import android.view.View
-import android.widget.CheckBox
+import android.widget.CompoundButton
 import android.widget.TextView
+import com.google.android.material.materialswitch.MaterialSwitch
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.features.settings.model.view.CheckBoxSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
@@ -16,12 +17,12 @@ class CheckBoxSettingViewHolder(itemView: View, adapter: SettingsAdapter) :
     private lateinit var item: CheckBoxSetting
     private lateinit var textSettingName: TextView
     private lateinit var textSettingDescription: TextView
-    private lateinit var checkbox: CheckBox
+    private lateinit var switch: MaterialSwitch
 
     override fun findViews(root: View) {
         textSettingName = root.findViewById(R.id.text_setting_name)
         textSettingDescription = root.findViewById(R.id.text_setting_description)
-        checkbox = root.findViewById(R.id.checkbox)
+        switch = root.findViewById(R.id.switch_widget)
     }
 
     override fun bind(item: SettingsItem) {
@@ -34,11 +35,13 @@ class CheckBoxSettingViewHolder(itemView: View, adapter: SettingsAdapter) :
             textSettingDescription.text = ""
             textSettingDescription.visibility = View.GONE
         }
-        checkbox.isChecked = this.item.isChecked
+        switch.isChecked = this.item.isChecked
+        switch.setOnCheckedChangeListener { _: CompoundButton, _: Boolean ->
+            adapter.onBooleanClick(item, bindingAdapterPosition, switch.isChecked)
+        }
     }
 
     override fun onClick(clicked: View) {
-        checkbox.toggle()
-        adapter.onBooleanClick(item, bindingAdapterPosition, checkbox.isChecked)
+        switch.toggle()
     }
 }

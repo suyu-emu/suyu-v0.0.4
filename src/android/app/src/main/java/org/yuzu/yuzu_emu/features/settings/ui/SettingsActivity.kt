@@ -3,15 +3,17 @@
 
 package org.yuzu.yuzu_emu.features.settings.ui
 
-import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.view.Menu
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.features.settings.model.Settings
@@ -19,12 +21,15 @@ import org.yuzu.yuzu_emu.features.settings.ui.SettingsFragment.Companion.newInst
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.DirectoryStateReceiver
 import org.yuzu.yuzu_emu.utils.EmulationMenuSettings
+import org.yuzu.yuzu_emu.utils.ThemeHelper
 
 class SettingsActivity : AppCompatActivity(), SettingsActivityView {
     private val presenter = SettingsActivityPresenter(this)
-    private var dialog: ProgressDialog? = null
+    private var dialog: AlertDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeHelper.setTheme(this)
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
         val launcher = intent
@@ -33,6 +38,7 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
         presenter.onCreate(savedInstanceState, menuTag!!, gameID!!)
 
         // Show "Back" button in the action bar for navigation
+        setSupportActionBar(findViewById(R.id.toolbar_settings))
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
     }
 
@@ -123,9 +129,15 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
 
     override fun showLoading() {
         if (dialog == null) {
-            dialog = ProgressDialog(this)
-            dialog!!.setMessage(getString(R.string.load_settings))
-            dialog!!.isIndeterminate = true
+            val root = layoutInflater.inflate(R.layout.dialog_progress_bar, null)
+            val progressBar = root.findViewById<LinearProgressIndicator>(R.id.progress_bar)
+            progressBar.isIndeterminate = true
+
+            dialog = MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.load_settings)
+                .setView(root)
+                .setCancelable(false)
+                .create()
         }
         dialog!!.show()
     }

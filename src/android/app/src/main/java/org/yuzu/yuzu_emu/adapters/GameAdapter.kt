@@ -8,9 +8,9 @@ import android.database.DataSetObserver
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.color.MaterialColors
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.activities.EmulationActivity.Companion.launch
 import org.yuzu.yuzu_emu.model.GameDatabase
@@ -68,11 +68,11 @@ class GameAdapter : RecyclerView.Adapter<GameViewHolder>(), View.OnClickListener
                 holder.regions = cursor!!.getString(GameDatabase.GAME_COLUMN_REGIONS)
                 holder.company = cursor!!.getString(GameDatabase.GAME_COLUMN_CAPTION)
                 val backgroundColorId =
-                    if (isValidGame(holder.path!!)) R.color.view_background else R.color.view_disabled
+                    if (isValidGame(holder.path!!)) R.attr.colorSurface else R.attr.colorErrorContainer
                 val itemView = holder.itemView
                 itemView.setBackgroundColor(
-                    ContextCompat.getColor(
-                        itemView.context,
+                    MaterialColors.getColor(
+                        itemView,
                         backgroundColorId
                     )
                 )

@@ -29,6 +29,7 @@ import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.fragments.EmulationFragment
 import org.yuzu.yuzu_emu.fragments.MenuFragment
 import org.yuzu.yuzu_emu.utils.ControllerMappingHelper
+import org.yuzu.yuzu_emu.utils.ThemeHelper
 import kotlin.math.roundToInt
 
 open class EmulationActivity : AppCompatActivity() {
@@ -50,6 +51,8 @@ open class EmulationActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeHelper.setTheme(this)
+
         super.onCreate(savedInstanceState)
         if (savedInstanceState == null) {
             // Get params we were passed

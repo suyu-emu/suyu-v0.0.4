@@ -27,6 +27,8 @@ class MainActivity : AppCompatActivity(), MainView {
     private val presenter = MainPresenter(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemeHelper.setTheme(this)
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         findViews()

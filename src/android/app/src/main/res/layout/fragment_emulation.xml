@@ -6,6 +6,17 @@
     tools:context="org.yuzu.yuzu_emu.fragments.EmulationFragment">
 
     <!-- This is what everything is rendered to during emulation -->
+    <Button
+        android:id="@+id/done_control_config"
+        style="@style/Widget.Material3.Button.Icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:padding="@dimen/spacing_small"
+        android:text="@string/emulation_done"
+        android:visibility="gone" />
+
+    <!-- This is the onscreen input overlay -->
     <SurfaceView
         android:id="@+id/surface_emulation"
         android:layout_width="match_parent"
@@ -13,20 +24,12 @@
         android:focusable="false"
         android:focusableInTouchMode="false" />
 
-    <!-- This is the onscreen input overlay -->
-    <org.yuzu.yuzu_emu.overlay.InputOverlay
-        android:id="@+id/surface_input_overlay"
-        android:layout_height="match_parent"
-        android:layout_width="match_parent"
-        android:focusable="true"
-        android:focusableInTouchMode="true" />
-
     <TextView
         android:id="@+id/show_fps_text"
-        android:layout_marginStart="18dp"
-        android:layout_marginTop="2dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="18dp"
+        android:layout_marginTop="2dp"
         android:clickable="false"
         android:linksClickable="false"
         android:longClickable="false"
@@ -34,15 +37,11 @@
         android:textColor="@android:color/white"
         android:textSize="12sp" />
 
-    <Button
-        android:id="@+id/done_control_config"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:padding="@dimen/spacing_small"
-        android:background="@color/citra_orange"
-        android:text="@string/emulation_done"
-        android:visibility="gone" />
+    <org.yuzu.yuzu_emu.overlay.InputOverlay
+        android:id="@+id/surface_input_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:focusable="true"
+        android:focusableInTouchMode="true" />
 
 </FrameLayout>
-t>

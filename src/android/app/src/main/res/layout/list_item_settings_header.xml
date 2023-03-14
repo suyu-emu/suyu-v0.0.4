@@ -6,13 +6,14 @@
 
     <TextView
         android:id="@+id/text_header_name"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        android:layout_marginStart="@dimen/spacing_large"
+        android:layout_gravity="start|center_vertical"
+        android:layout_marginHorizontal="@dimen/spacing_large"
         android:layout_marginBottom="@dimen/spacing_small"
         android:layout_marginTop="@dimen/spacing_small"
-        android:textColor="?android:colorAccent"
+        android:textColor="?attr/colorPrimary"
+        android:textAlignment="viewStart"
         android:textStyle="bold"
         tools:text="CPU Settings" />
 
