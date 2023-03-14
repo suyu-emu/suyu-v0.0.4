@@ -8,20 +8,24 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.view.Menu
+import android.view.View
+import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsFragment.Companion.newInstance
-import org.yuzu.yuzu_emu.utils.DirectoryInitialization
-import org.yuzu.yuzu_emu.utils.DirectoryStateReceiver
-import org.yuzu.yuzu_emu.utils.EmulationMenuSettings
-import org.yuzu.yuzu_emu.utils.ThemeHelper
+import org.yuzu.yuzu_emu.utils.*
 
 class SettingsActivity : AppCompatActivity(), SettingsActivityView {
     private val presenter = SettingsActivityPresenter(this)
@@ -32,6 +36,9 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         val launcher = intent
         val gameID = launcher.getStringExtra(ARG_GAME_ID)
         val menuTag = launcher.getStringExtra(ARG_MENU_TAG)
@@ -40,6 +47,8 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
         // Show "Back" button in the action bar for navigation
         setSupportActionBar(findViewById(R.id.toolbar_settings))
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+
+        setInsets()
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -184,6 +193,17 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
 
     private val fragment: SettingsFragment?
         get() = supportFragmentManager.findFragmentByTag(FRAGMENT_TAG) as SettingsFragment?
+
+    private fun setInsets() {
+        val appBar = findViewById<AppBarLayout>(R.id.appbar_settings)
+        val frame = findViewById<FrameLayout>(R.id.frame_content)
+        ViewCompat.setOnApplyWindowInsetsListener(frame) { view: View, windowInsets: WindowInsetsCompat ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.updatePadding(left = insets.left, right = insets.right)
+            InsetsHelper.insetAppBar(insets, appBar)
+            windowInsets
+        }
+    }
 
     companion object {
         private const val ARG_MENU_TAG = "menu_tag"

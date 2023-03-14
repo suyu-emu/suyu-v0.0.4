@@ -8,6 +8,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -24,6 +27,8 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
     private val presenter = SettingsFragmentPresenter(this)
     private var activityView: SettingsActivityView? = null
     private var adapter: SettingsAdapter? = null
+
+    private lateinit var recyclerView: RecyclerView
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -50,7 +55,7 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val manager = LinearLayoutManager(activity)
-        val recyclerView = view.findViewById<RecyclerView>(R.id.list_settings)
+        recyclerView = view.findViewById(R.id.list_settings)
         recyclerView.adapter = adapter
         recyclerView.layoutManager = manager
         val dividerDecoration = MaterialDividerItemDecoration(requireContext(), LinearLayoutManager.VERTICAL)
@@ -58,6 +63,8 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
         recyclerView.addItemDecoration(dividerDecoration)
         val activity = activity as SettingsActivityView?
         presenter.onViewCreated(activity!!.settings)
+
+        setInsets()
     }
 
     override fun onDetach() {
@@ -104,6 +111,14 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
 
     override fun onSettingChanged() {
         activityView!!.onSettingChanged()
+    }
+
+    private fun setInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(recyclerView) { view: View, windowInsets: WindowInsetsCompat ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.updatePadding(bottom = insets.bottom)
+            windowInsets
+        }
     }
 
     companion object {

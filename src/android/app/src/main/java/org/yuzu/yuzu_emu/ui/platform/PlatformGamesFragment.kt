@@ -10,6 +10,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.widget.TextView
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -17,6 +20,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.adapters.GameAdapter
+import org.yuzu.yuzu_emu.utils.InsetsHelper
 
 class PlatformGamesFragment : Fragment(), PlatformGamesView {
     private val presenter = PlatformGamesPresenter(this)
@@ -65,6 +69,8 @@ class PlatformGamesFragment : Fragment(), PlatformGamesView {
             refresh()
             pullToRefresh.isRefreshing = false
         }
+
+        setInsets()
     }
 
     override fun refresh() {
@@ -89,6 +95,14 @@ class PlatformGamesFragment : Fragment(), PlatformGamesView {
     private fun findViews(root: View) {
         recyclerView = root.findViewById(R.id.grid_games)
         textView = root.findViewById(R.id.gamelist_empty_text)
+    }
+
+    private fun setInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(recyclerView) { view: View, windowInsets: WindowInsetsCompat ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.updatePadding(bottom = insets.bottom)
+            windowInsets
+        }
     }
 
     companion object {

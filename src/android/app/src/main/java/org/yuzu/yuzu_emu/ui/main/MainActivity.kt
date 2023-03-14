@@ -9,9 +9,17 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
+import com.google.android.material.appbar.AppBarLayout
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
@@ -31,6 +39,9 @@ class MainActivity : AppCompatActivity(), MainView {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         findViews()
         setSupportActionBar(toolbar)
         presenter.onCreate()
@@ -50,6 +61,8 @@ class MainActivity : AppCompatActivity(), MainView {
 
         // Dismiss previous notifications (should not happen unless a crash occurred)
         EmulationActivity.tryDismissRunningNotification(this)
+
+        setInsets()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -229,5 +242,16 @@ class MainActivity : AppCompatActivity(), MainView {
     override fun onDestroy() {
         EmulationActivity.tryDismissRunningNotification(this)
         super.onDestroy()
+    }
+
+    private fun setInsets() {
+        val appBar = findViewById<AppBarLayout>(R.id.appbar_main)
+        val frame = findViewById<FrameLayout>(R.id.games_platform_frame)
+        ViewCompat.setOnApplyWindowInsetsListener(frame) { view: View, windowInsets: WindowInsetsCompat ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.updatePadding(left = insets.left, right = insets.right)
+            InsetsHelper.insetAppBar(insets, appBar)
+            windowInsets
+        }
     }
 }
