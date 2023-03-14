@@ -17,10 +17,10 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.google.android.material.color.MaterialColors
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.adapters.GameAdapter
-import org.yuzu.yuzu_emu.utils.InsetsHelper
 
 class PlatformGamesFragment : Fragment(), PlatformGamesView {
     private val presenter = PlatformGamesPresenter(this)
@@ -69,6 +69,14 @@ class PlatformGamesFragment : Fragment(), PlatformGamesView {
             refresh()
             pullToRefresh.isRefreshing = false
         }
+
+        // Set theme color to the refresh animation's background
+        pullToRefresh.setProgressBackgroundColorSchemeColor(
+            MaterialColors.getColor(pullToRefresh, R.attr.colorPrimary)
+        )
+        pullToRefresh.setColorSchemeColors(
+            MaterialColors.getColor(pullToRefresh, R.attr.colorOnPrimary)
+        )
 
         setInsets()
     }
