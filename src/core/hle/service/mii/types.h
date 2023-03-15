@@ -365,7 +365,8 @@ struct Ver3StoreData {
     } appearance_bits11;
 
     std::array<u16_le, 0xA> author_name;
-    INSERT_PADDING_BYTES(0x4);
+    INSERT_PADDING_BYTES(0x2);
+    u16_be crc;
 };
 static_assert(sizeof(Ver3StoreData) == 0x60, "Ver3StoreData is an invalid size");
 

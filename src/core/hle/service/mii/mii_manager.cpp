@@ -585,6 +585,8 @@ Ver3StoreData MiiManager::ConvertCharInfoToV3(const CharInfo& mii) const {
     mii_v3.appearance_bits11.mole_x_position.Assign(mii.mole_x);
     mii_v3.appearance_bits11.mole_y_position.Assign(mii.mole_y);
 
+    mii_v3.crc = GenerateCrc16(&mii_v3, sizeof(Ver3StoreData) - sizeof(u16));
+
     // TODO: Validate mii_v3 data
 
     return mii_v3;
