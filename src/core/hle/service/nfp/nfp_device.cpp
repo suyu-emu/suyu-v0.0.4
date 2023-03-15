@@ -685,6 +685,11 @@ Result NfpDevice::RecreateApplicationArea(u32 access_id, std::span<const u8> dat
         return WrongDeviceState;
     }
 
+    if (is_app_area_open) {
+        LOG_ERROR(Service_NFP, "Application area is open");
+        return WrongDeviceState;
+    }
+
     if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
         LOG_ERROR(Service_NFP, "Amiibo is read only", device_state);
         return WrongDeviceState;
@@ -715,6 +720,7 @@ Result NfpDevice::RecreateApplicationArea(u32 access_id, std::span<const u8> dat
     tag_data.settings.settings.appdata_initialized.Assign(1);
     tag_data.application_area_id = access_id;
     tag_data.unknown = {};
+    tag_data.unknown2 = {};
 
     UpdateRegisterInfoCrc();
 
@@ -750,6 +756,10 @@ Result NfpDevice::DeleteApplicationArea() {
     rng.GenerateRandomBytes(&tag_data.application_id_byte, sizeof(u8));
     tag_data.settings.settings.appdata_initialized.Assign(0);
     tag_data.unknown = {};
+    tag_data.unknown2 = {};
+    is_app_area_open = false;
+
+    UpdateRegisterInfoCrc();
 
     return Flush();
 }
