@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <style name="Theme.Yuzu.Splash.Main" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/yuzu_surface</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_yuzu</item>
+        <item name="postSplashScreenTheme">@style/Theme.Yuzu.Main</item>
+    </style>
+
     <style name="Theme.Yuzu" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/yuzu_primary</item>
         <item name="colorOnPrimary">@color/yuzu_onPrimary</item>

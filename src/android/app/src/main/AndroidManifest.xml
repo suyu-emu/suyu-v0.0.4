@@ -32,7 +32,7 @@
         <activity
             android:name="org.yuzu.yuzu_emu.ui.main.MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.Yuzu.Main"
+            android:theme="@style/Theme.Yuzu.Splash.Main"
             android:resizeableActivity="false">
 
             <!-- This intentfilter marks this Activity as the one that gets launched from Home screen. -->
