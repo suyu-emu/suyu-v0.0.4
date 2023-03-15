@@ -5,17 +5,27 @@ package org.yuzu.yuzu_emu.adapters
 
 import android.database.Cursor
 import android.database.DataSetObserver
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
+import coil.load
 import com.google.android.material.color.MaterialColors
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.activities.EmulationActivity.Companion.launch
 import org.yuzu.yuzu_emu.model.GameDatabase
 import org.yuzu.yuzu_emu.utils.Log
-import org.yuzu.yuzu_emu.utils.PicassoUtils
 import org.yuzu.yuzu_emu.viewholders.GameViewHolder
 import java.util.*
 import java.util.stream.Stream
@@ -25,7 +35,8 @@ import java.util.stream.Stream
  * ContentProviders and Loaders, allows for efficient display of a limited view into a (possibly)
  * large dataset.
  */
-class GameAdapter : RecyclerView.Adapter<GameViewHolder>(), View.OnClickListener {
+class GameAdapter(private val activity: AppCompatActivity) : RecyclerView.Adapter<GameViewHolder>(),
+    View.OnClickListener {
     private var cursor: Cursor? = null
     private val observer: GameDataSetObserver?
     private var isDatasetValid = false
@@ -51,10 +62,21 @@ class GameAdapter : RecyclerView.Adapter<GameViewHolder>(), View.OnClickListener
     override fun onBindViewHolder(holder: GameViewHolder, position: Int) {
         if (isDatasetValid) {
             if (cursor!!.moveToPosition(position)) {
-                PicassoUtils.loadGameIcon(
-                    holder.imageIcon,
-                    cursor!!.getString(GameDatabase.GAME_COLUMN_PATH)
-                )
+                holder.imageIcon.scaleType = ImageView.ScaleType.CENTER_CROP
+                activity.lifecycleScope.launch {
+                    withContext(Dispatchers.IO) {
+                        val uri =
+                            Uri.parse(cursor!!.getString(GameDatabase.GAME_COLUMN_PATH)).toString()
+                        val bitmap = decodeGameIcon(uri)
+                        withContext(Dispatchers.Main) {
+                            holder.imageIcon.load(bitmap) {
+                                error(R.drawable.no_icon)
+                                crossfade(true)
+                            }
+                        }
+                    }
+                }
+
                 holder.textGameTitle.text =
                     cursor!!.getString(GameDatabase.GAME_COLUMN_TITLE)
                         .replace("[\\t\\n\\r]+".toRegex(), " ")
@@ -163,6 +185,16 @@ class GameAdapter : RecyclerView.Adapter<GameViewHolder>(), View.OnClickListener
             .noneMatch { suffix: String? ->
                 path.lowercase(Locale.getDefault()).endsWith(suffix!!)
             }
+    }
+
+    private fun decodeGameIcon(uri: String): Bitmap {
+        val data = NativeLibrary.GetIcon(uri)
+        return BitmapFactory.decodeByteArray(
+            data,
+            0,
+            data.size,
+            BitmapFactory.Options()
+        )
     }
 
     private inner class GameDataSetObserver : DataSetObserver() {

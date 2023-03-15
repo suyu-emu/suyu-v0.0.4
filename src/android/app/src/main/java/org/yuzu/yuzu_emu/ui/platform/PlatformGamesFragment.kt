@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -40,7 +41,7 @@ class PlatformGamesFragment : Fragment(), PlatformGamesView {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        adapter = GameAdapter()
+        adapter = GameAdapter(requireActivity() as AppCompatActivity)
 
         // Organize our grid layout based on the current view.
         if (isAdded) {

@@ -57,7 +57,6 @@ class MainActivity : AppCompatActivity(), MainView {
                 PlatformGamesFragment.TAG
             ) as PlatformGamesFragment?
         }
-        PicassoUtils.init()
 
         // Dismiss previous notifications (should not happen unless a crash occurred)
         EmulationActivity.tryDismissRunningNotification(this)
