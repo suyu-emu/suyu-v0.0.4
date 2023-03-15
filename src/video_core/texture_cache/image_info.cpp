@@ -14,6 +14,7 @@
 
 namespace VideoCommon {
 
+using Tegra::Engines::Fermi2D;
 using Tegra::Engines::Maxwell3D;
 using Tegra::Texture::TextureType;
 using Tegra::Texture::TICEntry;
@@ -114,13 +115,13 @@ ImageInfo::ImageInfo(const TICEntry& config) noexcept {
     }
 }
 
-ImageInfo::ImageInfo(const Tegra::Engines::Maxwell3D::Regs::RenderTargetConfig& ct,
+ImageInfo::ImageInfo(const Maxwell3D::Regs::RenderTargetConfig& ct,
                      Tegra::Texture::MsaaMode msaa_mode) noexcept {
     format = VideoCore::Surface::PixelFormatFromRenderTargetFormat(ct.format);
     rescaleable = false;
     if (ct.tile_mode.is_pitch_linear) {
         ASSERT(ct.tile_mode.dim_control ==
-               Maxwell3D::Regs::TileMode::DimensionControl::DepthDefinesArray);
+               Maxwell3D::Regs::TileMode::DimensionControl::DefineArraySize);
         type = ImageType::Linear;
         pitch = ct.width;
         size = Extent3D{
@@ -140,8 +141,7 @@ ImageInfo::ImageInfo(const Tegra::Engines::Maxwell3D::Regs::RenderTargetConfig& 
         .height = ct.tile_mode.block_height,
         .depth = ct.tile_mode.block_depth,
     };
-    if (ct.tile_mode.dim_control ==
-        Maxwell3D::Regs::TileMode::DimensionControl::DepthDefinesDepth) {
+    if (ct.tile_mode.dim_control == Maxwell3D::Regs::TileMode::DimensionControl::DefineDepthSize) {
         type = ImageType::e3D;
         size.depth = ct.depth;
     } else {
@@ -153,8 +153,7 @@ ImageInfo::ImageInfo(const Tegra::Engines::Maxwell3D::Regs::RenderTargetConfig& 
     }
 }
 
-ImageInfo::ImageInfo(const Tegra::Engines::Maxwell3D::Regs::Zeta& zt,
-                     const Tegra::Engines::Maxwell3D::Regs::ZetaSize& zt_size,
+ImageInfo::ImageInfo(const Maxwell3D::Regs::Zeta& zt, const Maxwell3D::Regs::ZetaSize& zt_size,
                      Tegra::Texture::MsaaMode msaa_mode) noexcept {
     format = VideoCore::Surface::PixelFormatFromDepthFormat(zt.format);
     size.width = zt_size.width;
@@ -171,30 +170,34 @@ ImageInfo::ImageInfo(const Tegra::Engines::Maxwell3D::Regs::Zeta& zt,
     };
     if (zt.tile_mode.is_pitch_linear) {
         ASSERT(zt.tile_mode.dim_control ==
-               Maxwell3D::Regs::TileMode::DimensionControl::DepthDefinesArray);
+               Maxwell3D::Regs::TileMode::DimensionControl::DefineArraySize);
         type = ImageType::Linear;
         pitch = size.width * BytesPerBlock(format);
     } else if (zt.tile_mode.dim_control ==
-               Maxwell3D::Regs::TileMode::DimensionControl::DepthDefinesDepth) {
-        ASSERT(zt.tile_mode.is_pitch_linear == 0);
-        ASSERT(zt_size.dim_control == Maxwell3D::Regs::ZetaSize::DimensionControl::ArraySizeOne);
+               Maxwell3D::Regs::TileMode::DimensionControl::DefineDepthSize) {
+        ASSERT(zt_size.dim_control == Maxwell3D::Regs::ZetaSize::DimensionControl::ArraySizeIsOne);
         type = ImageType::e3D;
         size.depth = zt_size.depth;
     } else {
-        ASSERT(zt_size.dim_control ==
-               Maxwell3D::Regs::ZetaSize::DimensionControl::DepthDefinesArray);
         rescaleable = block.depth == 0;
         downscaleable = size.height > 512;
         type = ImageType::e2D;
-        resources.layers = zt_size.depth;
+        switch (zt_size.dim_control) {
+        case Maxwell3D::Regs::ZetaSize::DimensionControl::DefineArraySize:
+            resources.layers = zt_size.depth;
+            break;
+        case Maxwell3D::Regs::ZetaSize::DimensionControl::ArraySizeIsOne:
+            resources.layers = 1;
+            break;
+        }
     }
 }
 
-ImageInfo::ImageInfo(const Tegra::Engines::Fermi2D::Surface& config) noexcept {
+ImageInfo::ImageInfo(const Fermi2D::Surface& config) noexcept {
     UNIMPLEMENTED_IF_MSG(config.layer != 0, "Surface layer is not zero");
     format = VideoCore::Surface::PixelFormatFromRenderTargetFormat(config.format);
     rescaleable = false;
-    if (config.linear == Tegra::Engines::Fermi2D::MemoryLayout::Pitch) {
+    if (config.linear == Fermi2D::MemoryLayout::Pitch) {
         type = ImageType::Linear;
         size = Extent3D{
             .width = config.pitch / VideoCore::Surface::BytesPerBlock(format),
