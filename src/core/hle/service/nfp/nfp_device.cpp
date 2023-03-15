@@ -471,6 +471,7 @@ Result NfpDevice::SetRegisterInfoPrivate(const AmiiboName& amiibo_name) {
     }
 
     Service::Mii::MiiManager manager;
+    const auto mii = manager.BuildDefault(0);
     auto& settings = tag_data.settings;
 
     if (tag_data.settings.settings.amiibo_initialized == 0) {
@@ -479,9 +480,10 @@ Result NfpDevice::SetRegisterInfoPrivate(const AmiiboName& amiibo_name) {
     }
 
     SetAmiiboName(settings, amiibo_name);
-    tag_data.owner_mii = manager.ConvertCharInfoToV3(manager.BuildDefault(0));
+    tag_data.owner_mii = manager.BuildFromStoreData(mii);
+    tag_data.mii_extension = manager.SetFromStoreData(mii);
     tag_data.unknown = 0;
-    tag_data.unknown2[6] = 0;
+    tag_data.unknown2 = {};
     settings.country_code_id = 0;
     settings.settings.font_region.Assign(0);
     settings.settings.amiibo_initialized.Assign(1);
@@ -840,7 +842,8 @@ void NfpDevice::UpdateRegisterInfoCrc() {
         Mii::Ver3StoreData mii;
         u8 application_id_byte;
         u8 unknown;
-        std::array<u32, 0x7> unknown2;
+        Mii::NfpStoreDataExtension mii_extension;
+        std::array<u32, 0x5> unknown2;
     };
     static_assert(sizeof(CrcData) == 0x7e, "CrcData is an invalid size");
 #pragma pack(pop)
@@ -849,6 +852,7 @@ void NfpDevice::UpdateRegisterInfoCrc() {
         .mii = tag_data.owner_mii,
         .application_id_byte = tag_data.application_id_byte,
         .unknown = tag_data.unknown,
+        .mii_extension = tag_data.mii_extension,
         .unknown2 = tag_data.unknown2,
     };
 
