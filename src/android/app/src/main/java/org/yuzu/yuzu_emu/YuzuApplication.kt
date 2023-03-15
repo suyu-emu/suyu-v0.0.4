@@ -8,9 +8,12 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import org.yuzu.yuzu_emu.model.GameDatabase
-import org.yuzu.yuzu_emu.utils.DirectoryInitialization.start
+import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.DocumentsTree
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper
+import java.io.File
+
+fun Context.getPublicFilesDir() : File = getExternalFilesDir(null) ?: filesDir
 
 class YuzuApplication : Application() {
     private fun createNotificationChannel() {
@@ -36,7 +39,7 @@ class YuzuApplication : Application() {
         super.onCreate()
         application = this
         documentsTree = DocumentsTree()
-        start(applicationContext)
+        DirectoryInitialization.start(applicationContext)
         GpuDriverHelper.initializeDriverParameters(applicationContext)
         NativeLibrary.LogDeviceInfo()
 
@@ -50,10 +53,10 @@ class YuzuApplication : Application() {
 
         @JvmField
         var documentsTree: DocumentsTree? = null
-        private var application: YuzuApplication? = null
+        lateinit var application: YuzuApplication
 
         @JvmStatic
         val appContext: Context
-            get() = application!!.applicationContext
+            get() = application.applicationContext
     }
 }
