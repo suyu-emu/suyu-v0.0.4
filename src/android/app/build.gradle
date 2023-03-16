@@ -10,7 +10,6 @@ plugins {
  */
 def autoVersion = (int) (((new Date().getTime() / 1000) - 1451606400) / 10)
 def buildType
-def abiFilter = "arm64-v8a" //, "x86"
 
 android {
     namespace 'org.yuzu.yuzu_emu'
@@ -44,7 +43,7 @@ android {
         targetSdkVersion 33
         versionCode autoVersion
         versionName getVersion()
-        ndk.abiFilters abiFilter
+        ndk.abiFilters "arm64-v8a", "x86_64"
     }
 
     signingConfigs {
@@ -115,7 +114,7 @@ android {
                         "-DYUZU_USE_BUNDLED_VCPKG=ON",
                         "-DYUZU_USE_BUNDLED_FFMPEG=ON"
 
-                abiFilters abiFilter
+                abiFilters "arm64-v8a", "x86_64"
             }
         }
     }

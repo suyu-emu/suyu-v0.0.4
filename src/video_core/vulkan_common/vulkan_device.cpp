@@ -18,7 +18,7 @@
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
-#ifdef ANDROID
+#if defined(ANDROID) && defined(ARCHITECTURE_arm64)
 #include <adrenotools/bcenabler.h>
 #endif
 
@@ -374,6 +374,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         extensions.push_descriptor = false;
         loaded_extensions.erase(VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
 
+#ifdef ARCHITECTURE_arm64
         // Patch the driver to enable BCn textures.
         const auto major = (properties.properties.driverVersion >> 24) << 2;
         const auto minor = (properties.properties.driverVersion >> 12) & 0xFFFU;
@@ -391,6 +392,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
         } else {
             LOG_WARNING(Render_Vulkan, "Adreno driver can't be patched to enable BCn textures");
         }
+#endif // ARCHITECTURE_arm64
     }
 
     const bool is_arm = driver_id == VK_DRIVER_ID_ARM_PROPRIETARY;

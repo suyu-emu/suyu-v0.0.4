@@ -7,7 +7,9 @@
 #include <string_view>
 #include <dlfcn.h>
 
+#ifdef ARCHITECTURE_arm64
 #include <adrenotools/driver.h>
+#endif
 
 #include <android/api-level.h>
 #include <android/native_window_jni.h>
@@ -76,6 +78,7 @@ public:
     void InitializeGpuDriver(const std::string& hook_lib_dir, const std::string& custom_driver_dir,
                              const std::string& custom_driver_name,
                              const std::string& file_redirect_dir) {
+#ifdef ARCHITECTURE_arm64
         void* handle{};
         const char* file_redirect_dir_{};
         int featureFlags{};
@@ -101,6 +104,7 @@ public:
         }
 
         m_vulkan_library = std::make_shared<Common::DynamicLibrary>(handle);
+#endif
     }
 
     bool IsRunning() const {
