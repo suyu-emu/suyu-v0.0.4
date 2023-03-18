@@ -205,6 +205,10 @@ void SinkStream::ProcessAudioOutAndRender(std::span<s16> output_buffer, std::siz
     // If we're paused or going to shut down, we don't want to consume buffers as coretiming is
     // paused and we'll desync, so just play silence.
     if (system.IsPaused() || system.IsShuttingDown()) {
+        if (system.IsShuttingDown()) {
+            release_cv.notify_one();
+        }
+
         static constexpr std::array<s16, 6> silence{};
         for (size_t i = frames_written; i < num_frames; i++) {
             std::memcpy(&output_buffer[i * frame_size], &silence[0], frame_size_bytes);
@@ -240,6 +244,12 @@ void SinkStream::ProcessAudioOutAndRender(std::span<s16> output_buffer, std::siz
             }
             // Successfully dequeued a new buffer.
             queued_buffers--;
+
+            {
+                std::unique_lock lk{release_mutex};
+            }
+
+            release_cv.notify_one();
         }
 
         // Get the minimum frames available between the currently playing buffer, and the
@@ -301,6 +311,11 @@ u64 SinkStream::GetExpectedPlayedSampleCount() {
                                  (TargetSampleRate * time_delta) / std::chrono::seconds{1}};
 
     return std::min<u64>(exp_played_sample_count, max_played_sample_count);
+}
+
+void SinkStream::WaitFreeSpace() {
+    std::unique_lock lk{release_mutex};
+    release_cv.wait(lk, [this]() { return queued_buffers < max_queue_size || system.IsShuttingDown(); });
 }
 
 } // namespace AudioCore::Sink

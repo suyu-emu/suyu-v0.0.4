@@ -16,6 +16,7 @@
 #include "common/reader_writer_queue.h"
 #include "common/ring_buffer.h"
 #include "common/thread.h"
+#include "common/polyfill_thread.h"
 
 namespace Core {
 class System;
@@ -219,6 +220,11 @@ public:
      */
     u64 GetExpectedPlayedSampleCount();
 
+    /**
+     * Waits for free space in the sample ring buffer
+     */
+    void WaitFreeSpace();
+
 protected:
     /// Core system
     Core::System& system;
@@ -258,6 +264,9 @@ private:
     f32 system_volume{1.0f};
     /// Set via IAudioDevice service calls
     f32 device_volume{1.0f};
+    /// Signalled when ring buffer entries are consumed
+    std::condition_variable release_cv;
+    std::mutex release_mutex;
     std::mutex stall_guard;
     std::unique_lock<std::mutex> stalled_lock;
 };
