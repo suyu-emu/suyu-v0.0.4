@@ -15,7 +15,6 @@ MICROPROFILE_DEFINE(Audio_RenderSystemManager, "Audio", "Render System Manager",
                     MP_RGB(60, 19, 97));
 
 namespace AudioCore::AudioRenderer {
-constexpr std::chrono::nanoseconds RENDER_TIME{5'000'000UL};
 
 SystemManager::SystemManager(Core::System& core_)
     : core{core_}, adsp{core.AudioCore().GetADSP()}, mailbox{adsp.GetRenderMailbox()},

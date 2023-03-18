@@ -14,6 +14,8 @@
 #include "common/fixed_point.h"
 #include "common/settings.h"
 #include "core/core.h"
+#include "core/core_timing.h"
+#include "core/core_timing_util.h"
 
 namespace AudioCore::Sink {
 
@@ -198,6 +200,7 @@ void SinkStream::ProcessAudioOutAndRender(std::span<s16> output_buffer, std::siz
     const std::size_t frame_size = num_channels;
     const std::size_t frame_size_bytes = frame_size * sizeof(s16);
     size_t frames_written{0};
+    size_t actual_frames_written{0};
 
     // If we're paused or going to shut down, we don't want to consume buffers as coretiming is
     // paused and we'll desync, so just play silence.
@@ -248,6 +251,7 @@ void SinkStream::ProcessAudioOutAndRender(std::span<s16> output_buffer, std::siz
                            frames_available * frame_size);
 
         frames_written += frames_available;
+        actual_frames_written += frames_available;
         playing_buffer.frames_played += frames_available;
 
         // If that's all the frames in the current buffer, add its samples and mark it as
@@ -259,6 +263,13 @@ void SinkStream::ProcessAudioOutAndRender(std::span<s16> output_buffer, std::siz
 
     std::memcpy(&last_frame[0], &output_buffer[(frames_written - 1) * frame_size],
                 frame_size_bytes);
+
+    {
+        std::scoped_lock lk{sample_count_lock};
+        last_sample_count_update_time = Core::Timing::CyclesToUs(system.CoreTiming().GetClockTicks());
+        min_played_sample_count = max_played_sample_count;
+        max_played_sample_count += actual_frames_written;
+    }
 
     if (system.IsMulticore() && queued_buffers <= max_queue_size) {
         Unstall();
@@ -280,6 +291,16 @@ void SinkStream::Unstall() {
     }
     system.UnstallApplication();
     stalled_lock.unlock();
+}
+
+u64 SinkStream::GetExpectedPlayedSampleCount() {
+    std::scoped_lock lk{sample_count_lock};
+    auto cur_time{Core::Timing::CyclesToUs(system.CoreTiming().GetClockTicks())};
+    auto time_delta{cur_time - last_sample_count_update_time};
+    auto exp_played_sample_count{min_played_sample_count +
+                                 (TargetSampleRate * time_delta) / std::chrono::seconds{1}};
+
+    return std::min<u64>(exp_played_sample_count, max_played_sample_count);
 }
 
 } // namespace AudioCore::Sink

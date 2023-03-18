@@ -5,6 +5,7 @@
 
 #include <array>
 #include <atomic>
+#include <chrono>
 #include <memory>
 #include <mutex>
 #include <span>
@@ -14,6 +15,7 @@
 #include "common/common_types.h"
 #include "common/reader_writer_queue.h"
 #include "common/ring_buffer.h"
+#include "common/thread.h"
 
 namespace Core {
 class System;
@@ -210,6 +212,13 @@ public:
      */
     void Unstall();
 
+    /**
+     * Get the total number of samples expected to have been played by this stream.
+     *
+     * @return The number of samples.
+     */
+    u64 GetExpectedPlayedSampleCount();
+
 protected:
     /// Core system
     Core::System& system;
@@ -237,6 +246,14 @@ private:
     std::atomic<u32> queued_buffers{};
     /// The ring size for audio out buffers (usually 4, rarely 2 or 8)
     u32 max_queue_size{};
+    /// Locks access to sample count tracking info
+    std::mutex sample_count_lock;
+    /// Minimum number of total samples that have been played since the last callback
+    u64 min_played_sample_count{};
+    /// Maximum number of total samples that can be played since the last callback
+    u64 max_played_sample_count{};
+    /// The time the two above tracking variables were last written to
+    std::chrono::microseconds last_sample_count_update_time{};
     /// Set by the audio render/in/out system which uses this stream
     f32 system_volume{1.0f};
     /// Set via IAudioDevice service calls
