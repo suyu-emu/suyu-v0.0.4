@@ -80,7 +80,7 @@ private:
     AmiiboDate GetAmiiboDate(s64 posix_time) const;
     u64 RemoveVersionByte(u64 application_id) const;
     void UpdateSettingsCrc();
-    u32 CalculateCrc(std::span<const u8>);
+    void UpdateRegisterInfoCrc();
 
     bool is_controller_set{};
     int callback_key;
