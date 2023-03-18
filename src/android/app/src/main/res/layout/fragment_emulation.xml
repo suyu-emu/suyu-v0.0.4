@@ -24,6 +24,13 @@
         android:focusable="false"
         android:focusableInTouchMode="false" />
 
+    <org.yuzu.yuzu_emu.overlay.InputOverlay
+        android:id="@+id/surface_input_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:focusable="true"
+        android:focusableInTouchMode="true" />
+
     <TextView
         android:id="@+id/show_fps_text"
         android:layout_width="wrap_content"
@@ -36,12 +43,5 @@
         android:shadowColor="@android:color/black"
         android:textColor="@android:color/white"
         android:textSize="12sp" />
-
-    <org.yuzu.yuzu_emu.overlay.InputOverlay
-        android:id="@+id/surface_input_overlay"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:focusable="true"
-        android:focusableInTouchMode="true" />
 
 </FrameLayout>
