@@ -118,7 +118,7 @@ u64 ThreadManager::PushCommand(CommandData&& command_data, bool block) {
 
     std::unique_lock lk(state.write_lock);
     const u64 fence{++state.last_fence};
-    state.queue.Push(std::move(command_data), fence, block);
+    state.queue.EmplaceWait(std::move(command_data), fence, block);
 
     if (block) {
         Common::CondvarWait(state.cv, lk, thread.get_stop_token(), [this, fence] {
