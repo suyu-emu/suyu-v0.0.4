@@ -72,12 +72,12 @@ open class EmulationActivity : AppCompatActivity() {
         setContentView(R.layout.activity_emulation)
 
         // Find or create the EmulationFragment
-        var emulationFragment =
+        emulationFragment =
             supportFragmentManager.findFragmentById(R.id.frame_emulation_fragment) as EmulationFragment?
         if (emulationFragment == null) {
             emulationFragment = EmulationFragment.newInstance(path)
             supportFragmentManager.beginTransaction()
-                .add(R.id.frame_emulation_fragment, emulationFragment)
+                .add(R.id.frame_emulation_fragment, emulationFragment!!)
                 .commit()
         }
         title = selectedTitle
