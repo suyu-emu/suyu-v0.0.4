@@ -29,7 +29,6 @@ class GpuDriverMetadata(metadataFilePath: String) {
             driverVersion = json.getString("driverVersion")
             minApi = json.getInt("minApi")
             libraryName = json.getString("libraryName")
-            Log.info("Guh")
         } catch (e: JSONException) {
             // JSON is malformed, ignore and treat as unsupported metadata.
         } catch (e: IOException) {

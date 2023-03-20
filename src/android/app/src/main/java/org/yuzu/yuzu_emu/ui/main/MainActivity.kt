@@ -17,15 +17,21 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.databinding.ActivityMainBinding
+import org.yuzu.yuzu_emu.databinding.DialogProgressBarBinding
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity
 import org.yuzu.yuzu_emu.model.GameProvider
 import org.yuzu.yuzu_emu.ui.platform.PlatformGamesFragment
 import org.yuzu.yuzu_emu.utils.*
+import java.io.IOException
 
 class MainActivity : AppCompatActivity(), MainView {
     private var platformGamesFragment: PlatformGamesFragment? = null
@@ -200,20 +206,40 @@ class MainActivity : AppCompatActivity(), MainView {
                     Uri.parse(result!!.dataString),
                     takeFlags
                 )
-                GpuDriverHelper.installCustomDriver(this, result.data)
-                val driverName = GpuDriverHelper.customDriverName
-                if (driverName != null) {
-                    Toast.makeText(
-                        this,
-                        getString(R.string.select_gpu_driver_install_success, driverName),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                } else {
-                    Toast.makeText(
-                        this,
-                        R.string.select_gpu_driver_error,
-                        Toast.LENGTH_LONG
-                    ).show()
+
+                val progressBinding = DialogProgressBarBinding.inflate(layoutInflater)
+                progressBinding.progressBar.isIndeterminate = true
+                val installationDialog = MaterialAlertDialogBuilder(this)
+                    .setTitle(R.string.installing_driver)
+                    .setView(progressBinding.root)
+                    .show()
+
+                lifecycleScope.launch {
+                    withContext(Dispatchers.IO) {
+                        // Ignore file exceptions when a user selects an invalid zip
+                        try {
+                            GpuDriverHelper.installCustomDriver(applicationContext, result.data)
+                        } catch (_: IOException) {}
+
+                        withContext(Dispatchers.Main) {
+                            installationDialog.dismiss()
+
+                            val driverName = GpuDriverHelper.customDriverName
+                            if (driverName != null) {
+                                Toast.makeText(
+                                    applicationContext,
+                                    getString(R.string.select_gpu_driver_install_success, driverName),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                Toast.makeText(
+                                    applicationContext,
+                                    R.string.select_gpu_driver_error,
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        }
+                    }
                 }
             }
         }

@@ -98,11 +98,7 @@ object GpuDriverHelper {
         )
 
         // Unzip the driver.
-        try {
-            unzip(driverInstallationPath + DRIVER_INTERNAL_FILENAME, driverInstallationPath!!)
-        } catch (e: IOException) {
-            throw RuntimeException(e)
-        }
+        unzip(driverInstallationPath + DRIVER_INTERNAL_FILENAME, driverInstallationPath!!)
 
         // Initialize the driver parameters.
         initializeDriverParameters(context)
@@ -111,7 +107,6 @@ object GpuDriverHelper {
     // Parse the custom driver metadata to retrieve the name.
     val customDriverName: String?
         get() {
-            // Parse the custom driver metadata to retrieve the name.
             val metadata = GpuDriverMetadata(driverInstallationPath + META_JSON_FILENAME)
             return metadata.name
         }

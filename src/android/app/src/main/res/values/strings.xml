@@ -68,6 +68,7 @@
     <string name="select_gpu_driver_use_default">Using default GPU driver</string>
     <string name="select_gpu_driver_error">Invalid driver selected, using system default!</string>
     <string name="system_gpu_driver">System GPU driver</string>
+    <string name="installing_driver">Installing driver…</string>
 
     <!-- Preferences Screen -->
     <string name="preferences_settings">Settings</string>
