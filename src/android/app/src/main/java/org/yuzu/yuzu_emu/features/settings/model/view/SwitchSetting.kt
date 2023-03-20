@@ -10,8 +10,8 @@ import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Setting
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsFragmentView
 
-class CheckBoxSetting : SettingsItem {
-    override val type = TYPE_CHECKBOX
+class SwitchSetting : SettingsItem {
+    override val type = TYPE_SWITCH
 
     private var defaultValue: Boolean
     private var showPerformanceWarning: Boolean

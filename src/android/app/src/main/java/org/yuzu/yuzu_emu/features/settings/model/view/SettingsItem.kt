@@ -23,7 +23,7 @@ abstract class SettingsItem(
 
     companion object {
         const val TYPE_HEADER = 0
-        const val TYPE_CHECKBOX = 1
+        const val TYPE_SWITCH = 1
         const val TYPE_SINGLE_CHOICE = 2
         const val TYPE_SLIDER = 3
         const val TYPE_SUBMENU = 4

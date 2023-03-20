@@ -139,7 +139,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
         val cpuAccuracy = cpuSection!!.getSetting(SettingsFile.KEY_CPU_ACCURACY)
         sl.apply {
             add(
-                CheckBoxSetting(
+                SwitchSetting(
                     SettingsFile.KEY_RENDERER_USE_SPEED_LIMIT,
                     Settings.SECTION_RENDERER,
                     frameLimitEnable,
@@ -184,7 +184,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
         val language = systemSection.getSetting(SettingsFile.KEY_LANGUAGE_INDEX)
         sl.apply {
             add(
-                CheckBoxSetting(
+                SwitchSetting(
                     SettingsFile.KEY_USE_DOCKED_MODE,
                     Settings.SECTION_SYSTEM,
                     dockedMode,
@@ -283,7 +283,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 )
             )
             add(
-                CheckBoxSetting(
+                SwitchSetting(
                     SettingsFile.KEY_RENDERER_FORCE_MAX_CLOCK,
                     Settings.SECTION_RENDERER,
                     rendererForceMaxClocks,
@@ -293,7 +293,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 )
             )
             add(
-                CheckBoxSetting(
+                SwitchSetting(
                     SettingsFile.KEY_RENDERER_ASYNCHRONOUS_SHADERS,
                     Settings.SECTION_RENDERER,
                     rendererAsynchronousShaders,
@@ -303,7 +303,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                 )
             )
             add(
-                CheckBoxSetting(
+                SwitchSetting(
                     SettingsFile.KEY_RENDERER_DEBUG,
                     Settings.SECTION_RENDERER,
                     rendererDebug,

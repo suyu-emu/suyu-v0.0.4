@@ -8,13 +8,13 @@ import android.widget.CompoundButton
 import android.widget.TextView
 import com.google.android.material.materialswitch.MaterialSwitch
 import org.yuzu.yuzu_emu.R
-import org.yuzu.yuzu_emu.features.settings.model.view.CheckBoxSetting
+import org.yuzu.yuzu_emu.features.settings.model.view.SwitchSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
 
-class CheckBoxSettingViewHolder(itemView: View, adapter: SettingsAdapter) :
+class SwitchSettingViewHolder(itemView: View, adapter: SettingsAdapter) :
     SettingViewHolder(itemView, adapter) {
-    private lateinit var item: CheckBoxSetting
+    private lateinit var item: SwitchSetting
     private lateinit var textSettingName: TextView
     private lateinit var textSettingDescription: TextView
     private lateinit var switch: MaterialSwitch
@@ -26,7 +26,7 @@ class CheckBoxSettingViewHolder(itemView: View, adapter: SettingsAdapter) :
     }
 
     override fun bind(item: SettingsItem) {
-        this.item = item as CheckBoxSetting
+        this.item = item as SwitchSetting
         textSettingName.setText(item.nameId)
         if (item.descriptionId!! > 0) {
             textSettingDescription.setText(item.descriptionId)
