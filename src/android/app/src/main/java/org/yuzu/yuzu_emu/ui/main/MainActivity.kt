@@ -10,29 +10,28 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
-import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.activities.EmulationActivity
+import org.yuzu.yuzu_emu.databinding.ActivityMainBinding
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity
 import org.yuzu.yuzu_emu.model.GameProvider
 import org.yuzu.yuzu_emu.ui.platform.PlatformGamesFragment
 import org.yuzu.yuzu_emu.utils.*
 
 class MainActivity : AppCompatActivity(), MainView {
-    private lateinit var toolbar: Toolbar
     private var platformGamesFragment: PlatformGamesFragment? = null
     private val presenter = MainPresenter(this)
+
+    private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -41,12 +40,13 @@ class MainActivity : AppCompatActivity(), MainView {
         ThemeHelper.setTheme(this)
 
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        findViews()
-        setSupportActionBar(toolbar)
+        setSupportActionBar(binding.toolbarMain)
         presenter.onCreate()
         if (savedInstanceState == null) {
             StartupHandler.handleInit(this)
@@ -81,11 +81,6 @@ class MainActivity : AppCompatActivity(), MainView {
         presenter.addDirIfNeeded(AddDirectoryHelper(this))
     }
 
-    // TODO: Replace with view binding
-    private fun findViews() {
-        toolbar = findViewById(R.id.toolbar_main)
-    }
-
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_game_grid, menu)
         return true
@@ -95,7 +90,7 @@ class MainActivity : AppCompatActivity(), MainView {
      * MainView
      */
     override fun setVersionString(version: String) {
-        toolbar.subtitle = version
+        binding.toolbarMain.subtitle = version
     }
 
     override fun refresh() {
@@ -247,12 +242,10 @@ class MainActivity : AppCompatActivity(), MainView {
     }
 
     private fun setInsets() {
-        val appBar = findViewById<AppBarLayout>(R.id.appbar_main)
-        val frame = findViewById<FrameLayout>(R.id.games_platform_frame)
-        ViewCompat.setOnApplyWindowInsetsListener(frame) { view: View, windowInsets: WindowInsetsCompat ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.gamesPlatformFrame) { view: View, windowInsets: WindowInsetsCompat ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.updatePadding(left = insets.left, right = insets.right)
-            InsetsHelper.insetAppBar(insets, appBar)
+            InsetsHelper.insetAppBar(insets, binding.appbarMain)
             windowInsets
         }
     }

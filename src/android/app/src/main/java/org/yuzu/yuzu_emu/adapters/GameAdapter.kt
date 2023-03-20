@@ -24,6 +24,8 @@ import kotlinx.coroutines.withContext
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.activities.EmulationActivity.Companion.launch
+import org.yuzu.yuzu_emu.databinding.CardGameBinding
+import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.model.GameDatabase
 import org.yuzu.yuzu_emu.utils.Log
 import org.yuzu.yuzu_emu.viewholders.GameViewHolder
@@ -51,25 +53,24 @@ class GameAdapter(private val activity: AppCompatActivity) : RecyclerView.Adapte
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GameViewHolder {
         // Create a new view.
-        val gameCard = LayoutInflater.from(parent.context)
-            .inflate(R.layout.card_game, parent, false)
-        gameCard.setOnClickListener(this)
+        val binding = CardGameBinding.inflate(LayoutInflater.from(parent.context))
+        binding.root.setOnClickListener(this)
 
         // Use that view to create a ViewHolder.
-        return GameViewHolder(gameCard)
+        return GameViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: GameViewHolder, position: Int) {
         if (isDatasetValid) {
             if (cursor!!.moveToPosition(position)) {
-                holder.imageIcon.scaleType = ImageView.ScaleType.CENTER_CROP
+                holder.binding.imageGameScreen.scaleType = ImageView.ScaleType.CENTER_CROP
                 activity.lifecycleScope.launch {
                     withContext(Dispatchers.IO) {
                         val uri =
                             Uri.parse(cursor!!.getString(GameDatabase.GAME_COLUMN_PATH)).toString()
                         val bitmap = decodeGameIcon(uri)
                         withContext(Dispatchers.Main) {
-                            holder.imageIcon.load(bitmap) {
+                            holder.binding.imageGameScreen.load(bitmap) {
                                 error(R.drawable.no_icon)
                                 crossfade(true)
                             }
@@ -77,20 +78,23 @@ class GameAdapter(private val activity: AppCompatActivity) : RecyclerView.Adapte
                     }
                 }
 
-                holder.textGameTitle.text =
+                holder.binding.textGameTitle.text =
                     cursor!!.getString(GameDatabase.GAME_COLUMN_TITLE)
                         .replace("[\\t\\n\\r]+".toRegex(), " ")
-                holder.textGameCaption.text = cursor!!.getString(GameDatabase.GAME_COLUMN_CAPTION)
+                holder.binding.textGameCaption.text = cursor!!.getString(GameDatabase.GAME_COLUMN_CAPTION)
 
                 // TODO These shouldn't be necessary once the move to a DB-based model is complete.
-                holder.gameId = cursor!!.getString(GameDatabase.GAME_COLUMN_GAME_ID)
-                holder.path = cursor!!.getString(GameDatabase.GAME_COLUMN_PATH)
-                holder.title = cursor!!.getString(GameDatabase.GAME_COLUMN_TITLE)
-                holder.description = cursor!!.getString(GameDatabase.GAME_COLUMN_DESCRIPTION)
-                holder.regions = cursor!!.getString(GameDatabase.GAME_COLUMN_REGIONS)
-                holder.company = cursor!!.getString(GameDatabase.GAME_COLUMN_CAPTION)
+                val game = Game(
+                    cursor!!.getString(GameDatabase.GAME_COLUMN_TITLE),
+                    cursor!!.getString(GameDatabase.GAME_COLUMN_DESCRIPTION),
+                    cursor!!.getString(GameDatabase.GAME_COLUMN_REGIONS),
+                    cursor!!.getString(GameDatabase.GAME_COLUMN_PATH),
+                    cursor!!.getString(GameDatabase.GAME_COLUMN_GAME_ID),
+                    cursor!!.getString(GameDatabase.GAME_COLUMN_CAPTION)
+                )
+                holder.game = game
                 val backgroundColorId =
-                    if (isValidGame(holder.path!!)) R.attr.colorSurface else R.attr.colorErrorContainer
+                    if (isValidGame(holder.game.path)) R.attr.colorSurface else R.attr.colorErrorContainer
                 val itemView = holder.itemView
                 itemView.setBackgroundColor(
                     MaterialColors.getColor(
@@ -177,7 +181,7 @@ class GameAdapter(private val activity: AppCompatActivity) : RecyclerView.Adapte
      */
     override fun onClick(view: View) {
         val holder = view.tag as GameViewHolder
-        launch((view.context as FragmentActivity), holder.path, holder.title)
+        launch((view.context as FragmentActivity), holder.game.path, holder.game.title)
     }
 
     private fun isValidGame(path: String): Boolean {

@@ -9,7 +9,6 @@ import android.content.IntentFilter
 import android.os.Bundle
 import android.view.Menu
 import android.view.View
-import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -18,11 +17,11 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.progressindicator.LinearProgressIndicator
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.databinding.ActivitySettingsBinding
+import org.yuzu.yuzu_emu.databinding.DialogProgressBarBinding
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsFragment.Companion.newInstance
 import org.yuzu.yuzu_emu.utils.*
@@ -31,11 +30,15 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
     private val presenter = SettingsActivityPresenter(this)
     private var dialog: AlertDialog? = null
 
+    private lateinit var binding: ActivitySettingsBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         ThemeHelper.setTheme(this)
 
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_settings)
+
+        binding = ActivitySettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
@@ -45,7 +48,7 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
         presenter.onCreate(savedInstanceState, menuTag!!, gameID!!)
 
         // Show "Back" button in the action bar for navigation
-        setSupportActionBar(findViewById(R.id.toolbar_settings))
+        setSupportActionBar(binding.toolbarSettings)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
         setInsets()
@@ -138,13 +141,12 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
 
     override fun showLoading() {
         if (dialog == null) {
-            val root = layoutInflater.inflate(R.layout.dialog_progress_bar, null)
-            val progressBar = root.findViewById<LinearProgressIndicator>(R.id.progress_bar)
-            progressBar.isIndeterminate = true
+            val loadingBinding = DialogProgressBarBinding.inflate(layoutInflater)
+            loadingBinding.progressBar.isIndeterminate = true
 
             dialog = MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.load_settings)
-                .setView(root)
+                .setView(loadingBinding.root)
                 .setCancelable(false)
                 .create()
         }
@@ -195,12 +197,10 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
         get() = supportFragmentManager.findFragmentByTag(FRAGMENT_TAG) as SettingsFragment?
 
     private fun setInsets() {
-        val appBar = findViewById<AppBarLayout>(R.id.appbar_settings)
-        val frame = findViewById<FrameLayout>(R.id.frame_content)
-        ViewCompat.setOnApplyWindowInsetsListener(frame) { view: View, windowInsets: WindowInsetsCompat ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.frameContent) { view: View, windowInsets: WindowInsetsCompat ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.updatePadding(left = insets.left, right = insets.right)
-            InsetsHelper.insetAppBar(insets, appBar)
+            InsetsHelper.insetAppBar(insets, binding.appbarSettings)
             windowInsets
         }
     }

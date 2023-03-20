@@ -9,35 +9,33 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.color.MaterialColors
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.adapters.GameAdapter
+import org.yuzu.yuzu_emu.databinding.FragmentGridBinding
 
 class PlatformGamesFragment : Fragment(), PlatformGamesView {
     private val presenter = PlatformGamesPresenter(this)
     private var adapter: GameAdapter? = null
-    private lateinit var recyclerView: RecyclerView
-    private lateinit var textView: TextView
+
+    private var _binding: FragmentGridBinding? = null
+    private val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        val rootView = inflater.inflate(R.layout.fragment_grid, container, false)
-        findViews(rootView)
+    ): View {
         presenter.onCreateView()
-        return rootView
+        _binding = FragmentGridBinding.inflate(inflater)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -58,28 +56,32 @@ class PlatformGamesFragment : Fragment(), PlatformGamesView {
                         }
                         view.viewTreeObserver.removeOnGlobalLayoutListener(this)
                         val layoutManager = GridLayoutManager(activity, columns)
-                        recyclerView.layoutManager = layoutManager
-                        recyclerView.adapter = adapter
+                        binding.gridGames.layoutManager = layoutManager
+                        binding.gridGames.adapter = adapter
                     }
                 })
         }
 
         // Add swipe down to refresh gesture
-        val pullToRefresh = view.findViewById<SwipeRefreshLayout>(R.id.swipe_refresh)
-        pullToRefresh.setOnRefreshListener {
+        binding.swipeRefresh.setOnRefreshListener {
             refresh()
-            pullToRefresh.isRefreshing = false
+            binding.swipeRefresh.isRefreshing = false
         }
 
         // Set theme color to the refresh animation's background
-        pullToRefresh.setProgressBackgroundColorSchemeColor(
-            MaterialColors.getColor(pullToRefresh, R.attr.colorPrimary)
+        binding.swipeRefresh.setProgressBackgroundColorSchemeColor(
+            MaterialColors.getColor(binding.swipeRefresh, R.attr.colorPrimary)
         )
-        pullToRefresh.setColorSchemeColors(
-            MaterialColors.getColor(pullToRefresh, R.attr.colorOnPrimary)
+        binding.swipeRefresh.setColorSchemeColors(
+            MaterialColors.getColor(binding.swipeRefresh, R.attr.colorOnPrimary)
         )
 
         setInsets()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun refresh() {
@@ -97,17 +99,12 @@ class PlatformGamesFragment : Fragment(), PlatformGamesView {
     }
 
     private fun updateTextView() {
-        textView.visibility =
+        binding.gamelistEmptyText.visibility =
             if (adapter!!.itemCount == 0) View.VISIBLE else View.GONE
     }
 
-    private fun findViews(root: View) {
-        recyclerView = root.findViewById(R.id.grid_games)
-        textView = root.findViewById(R.id.gamelist_empty_text)
-    }
-
     private fun setInsets() {
-        ViewCompat.setOnApplyWindowInsetsListener(recyclerView) { view: View, windowInsets: WindowInsetsCompat ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.gridGames) { view: View, windowInsets: WindowInsetsCompat ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.updatePadding(bottom = insets.bottom)
             windowInsets

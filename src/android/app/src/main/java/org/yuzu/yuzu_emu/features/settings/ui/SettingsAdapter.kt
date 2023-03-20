@@ -9,7 +9,6 @@ import android.icu.util.Calendar
 import android.icu.util.TimeZone
 import android.text.format.DateFormat
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
@@ -20,6 +19,10 @@ import com.google.android.material.slider.Slider
 import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat
 import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.databinding.DialogSliderBinding
+import org.yuzu.yuzu_emu.databinding.ListItemSettingBinding
+import org.yuzu.yuzu_emu.databinding.ListItemSettingSwitchBinding
+import org.yuzu.yuzu_emu.databinding.ListItemSettingsHeaderBinding
 import org.yuzu.yuzu_emu.features.settings.model.FloatSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.*
 import org.yuzu.yuzu_emu.features.settings.ui.viewholder.*
@@ -43,37 +46,29 @@ class SettingsAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SettingViewHolder {
-        val view: View
         val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
             SettingsItem.TYPE_HEADER -> {
-                view = inflater.inflate(R.layout.list_item_settings_header, parent, false)
-                HeaderViewHolder(view, this)
+                HeaderViewHolder(ListItemSettingsHeaderBinding.inflate(inflater), this)
             }
-            SettingsItem.TYPE_CHECKBOX -> {
-                view = inflater.inflate(R.layout.list_item_setting_switch, parent, false)
-                SwitchSettingViewHolder(view, this)
+            SettingsItem.TYPE_SWITCH -> {
+                SwitchSettingViewHolder(ListItemSettingSwitchBinding.inflate(inflater), this)
             }
             SettingsItem.TYPE_SINGLE_CHOICE, SettingsItem.TYPE_STRING_SINGLE_CHOICE -> {
-                view = inflater.inflate(R.layout.list_item_setting, parent, false)
-                SingleChoiceViewHolder(view, this)
+                SingleChoiceViewHolder(ListItemSettingBinding.inflate(inflater), this)
             }
             SettingsItem.TYPE_SLIDER -> {
-                view = inflater.inflate(R.layout.list_item_setting, parent, false)
-                SliderViewHolder(view, this)
+                SliderViewHolder(ListItemSettingBinding.inflate(inflater), this)
             }
             SettingsItem.TYPE_SUBMENU -> {
-                view = inflater.inflate(R.layout.list_item_setting, parent, false)
-                SubmenuViewHolder(view, this)
+                SubmenuViewHolder(ListItemSettingBinding.inflate(inflater), this)
             }
             SettingsItem.TYPE_DATETIME_SETTING -> {
-                view = inflater.inflate(R.layout.list_item_setting, parent, false)
-                DateTimeViewHolder(view, this)
+                DateTimeViewHolder(ListItemSettingBinding.inflate(inflater), this)
             }
             else -> {
                 // TODO: Create an error view since we can't return null now
-                view = inflater.inflate(R.layout.list_item_settings_header, parent, false)
-                HeaderViewHolder(view, this)
+                HeaderViewHolder(ListItemSettingsHeaderBinding.inflate(inflater), this)
             }
         }
     }
@@ -191,15 +186,13 @@ class SettingsAdapter(
         sliderProgress = item.selectedValue
 
         val inflater = LayoutInflater.from(context)
-        val sliderLayout = inflater.inflate(R.layout.dialog_slider, null)
-        val sliderView = sliderLayout.findViewById<Slider>(R.id.slider)
+        val sliderBinding = DialogSliderBinding.inflate(inflater)
 
-        textSliderValue = sliderLayout.findViewById(R.id.text_value)
+        textSliderValue = sliderBinding.textValue
         textSliderValue!!.text = sliderProgress.toString()
-        val units = sliderLayout.findViewById<TextView>(R.id.text_units)
-        units.text = item.units
+        sliderBinding.textUnits.text = item.units
 
-        sliderView.apply {
+        sliderBinding.slider.apply {
             valueFrom = item.min.toFloat()
             valueTo = item.max.toFloat()
             value = sliderProgress.toFloat()
@@ -211,11 +204,11 @@ class SettingsAdapter(
 
         dialog = MaterialAlertDialogBuilder(context)
             .setTitle(item.nameId)
-            .setView(sliderLayout)
+            .setView(sliderBinding.root)
             .setPositiveButton(android.R.string.ok, this)
             .setNegativeButton(android.R.string.cancel, defaultCancelListener)
             .setNeutralButton(R.string.slider_default) { dialog: DialogInterface, which: Int ->
-                sliderView.value = item.defaultValue.toFloat()
+                sliderBinding.slider.value = item.defaultValue.toFloat()
                 onClick(dialog, which)
             }
             .show()

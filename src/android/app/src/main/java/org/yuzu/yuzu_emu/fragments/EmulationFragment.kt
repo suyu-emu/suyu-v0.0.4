@@ -10,8 +10,6 @@ import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.view.*
-import android.widget.Button
-import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -20,8 +18,8 @@ import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.activities.EmulationActivity
+import org.yuzu.yuzu_emu.databinding.FragmentEmulationBinding
 import org.yuzu.yuzu_emu.features.settings.model.Settings
-import org.yuzu.yuzu_emu.overlay.InputOverlay
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization.DirectoryInitializationState
 import org.yuzu.yuzu_emu.utils.DirectoryStateReceiver
@@ -29,12 +27,13 @@ import org.yuzu.yuzu_emu.utils.Log
 
 class EmulationFragment : Fragment(), SurfaceHolder.Callback, Choreographer.FrameCallback {
     private lateinit var preferences: SharedPreferences
-    private var inputOverlay: InputOverlay? = null
     private lateinit var emulationState: EmulationState
     private var directoryStateReceiver: DirectoryStateReceiver? = null
     private var emulationActivity: EmulationActivity? = null
-    private lateinit var perfStats: TextView
     private var perfStatsUpdater: (() -> Unit)? = null
+
+    private var _binding: FragmentEmulationBinding? = null
+    private val binding get() = _binding!!
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -66,22 +65,19 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, Choreographer.Fram
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        val contents = inflater.inflate(R.layout.fragment_emulation, container, false)
-        val surfaceView = contents.findViewById<SurfaceView>(R.id.surface_emulation)
-        surfaceView.holder.addCallback(this)
-        inputOverlay = contents.findViewById(R.id.surface_input_overlay)
-        perfStats = contents.findViewById(R.id.show_fps_text)
-        perfStats.setTextColor(Color.YELLOW)
-        val doneButton = contents.findViewById<Button>(R.id.done_control_config)
-        doneButton?.setOnClickListener { stopConfiguringControls() }
+    ): View {
+        _binding = FragmentEmulationBinding.inflate(layoutInflater)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        binding.surfaceEmulation.holder.addCallback(this)
+        binding.showFpsText.setTextColor(Color.YELLOW)
+        binding.doneControlConfig.setOnClickListener { stopConfiguringControls() }
 
         // Setup overlay.
         resetInputOverlay()
         updateShowFpsOverlay()
-
-        // The new Surface created here will get passed to the native code via onSurfaceChanged.
-        return contents
     }
 
     override fun onResume() {
@@ -106,6 +102,11 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, Choreographer.Fram
         }
         Choreographer.getInstance().removeFrameCallback(this)
         super.onPause()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onDetach() {
@@ -144,7 +145,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, Choreographer.Fram
     }
 
     fun refreshInputOverlay() {
-        inputOverlay!!.refreshControls()
+        binding.surfaceInputOverlay.refreshControls()
     }
 
     fun resetInputOverlay() {
@@ -152,7 +153,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, Choreographer.Fram
         preferences.edit()
             .putInt(Settings.PREF_CONTROL_SCALE, 50)
             .apply()
-        inputOverlay!!.resetButtonPlacement()
+        binding.surfaceInputOverlay.resetButtonPlacement()
     }
 
     private fun updateShowFpsOverlay() {
@@ -165,17 +166,17 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, Choreographer.Fram
             perfStatsUpdater = {
                 val perfStats = NativeLibrary.GetPerfStats()
                 if (perfStats[FPS] > 0) {
-                    this.perfStats.text = String.format("FPS: %.1f", perfStats[FPS])
+                    binding.showFpsText.text = String.format("FPS: %.1f", perfStats[FPS])
                 }
                 perfStatsUpdateHandler.postDelayed(perfStatsUpdater!!, 100)
             }
             perfStatsUpdateHandler.post(perfStatsUpdater!!)
-            perfStats.visibility = View.VISIBLE
+            binding.showFpsText.visibility = View.VISIBLE
         } else {
             if (perfStatsUpdater != null) {
                 perfStatsUpdateHandler.removeCallbacks(perfStatsUpdater!!)
             }
-            perfStats.visibility = View.GONE
+            binding.showFpsText.visibility = View.GONE
         }
     }
 
@@ -203,18 +204,17 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, Choreographer.Fram
     }
 
     fun startConfiguringControls() {
-        requireView().findViewById<View>(R.id.done_control_config).visibility =
-            View.VISIBLE
-        inputOverlay!!.setIsInEditMode(true)
+        binding.doneControlConfig.visibility = View.VISIBLE
+        binding.surfaceInputOverlay.setIsInEditMode(true)
     }
 
     fun stopConfiguringControls() {
-        requireView().findViewById<View>(R.id.done_control_config).visibility = View.GONE
-        inputOverlay!!.setIsInEditMode(false)
+        binding.doneControlConfig.visibility = View.GONE
+        binding.surfaceInputOverlay.setIsInEditMode(false)
     }
 
     val isConfiguringControls: Boolean
-        get() = inputOverlay!!.isInEditMode
+        get() = binding.surfaceInputOverlay.isInEditMode
 
     private class EmulationState(private val mGamePath: String?) {
         private var state: State

@@ -8,11 +8,9 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Rect
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
-import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.annotation.IntDef
 import androidx.appcompat.app.AppCompatActivity
@@ -21,10 +19,10 @@ import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
 import androidx.preference.PreferenceManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.slider.Slider
 import com.google.android.material.slider.Slider.OnChangeListener
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
+import org.yuzu.yuzu_emu.databinding.DialogSliderBinding
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.fragments.EmulationFragment
 import org.yuzu.yuzu_emu.fragments.MenuFragment
@@ -139,27 +137,22 @@ open class EmulationActivity : AppCompatActivity() {
     }
 
     private fun adjustScale() {
-        val inflater = LayoutInflater.from(this)
-        val view = inflater.inflate(R.layout.dialog_slider, null)
-        val slider = view.findViewById<Slider>(R.id.slider)
-        val textValue = view.findViewById<TextView>(R.id.text_value)
-        val units = view.findViewById<TextView>(R.id.text_units)
-
-        slider.valueTo = 150F
-        slider.value = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+        val sliderBinding = DialogSliderBinding.inflate(layoutInflater)
+        sliderBinding.slider.valueTo = 150F
+        sliderBinding.slider.value = PreferenceManager.getDefaultSharedPreferences(applicationContext)
             .getInt(Settings.PREF_CONTROL_SCALE, 50).toFloat()
-        slider.addOnChangeListener(OnChangeListener { _, value, _ ->
-            textValue.text = value.toString()
+        sliderBinding.slider.addOnChangeListener(OnChangeListener { _, value, _ ->
+            sliderBinding.textValue.text = value.toString()
             setControlScale(value.toInt())
         })
-        textValue.text = slider.value.toString()
-        units.text = "%"
+        sliderBinding.textValue.text = sliderBinding.slider.value.toString()
+        sliderBinding.textUnits.text = "%"
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.emulation_control_scale)
-            .setView(view)
+            .setView(sliderBinding.root)
             .setNegativeButton(android.R.string.cancel, null)
             .setPositiveButton(android.R.string.ok) { _: DialogInterface?, _: Int ->
-                setControlScale(slider.value.toInt())
+                setControlScale(sliderBinding.slider.value.toInt())
             }
             .setNeutralButton(R.string.slider_default) { _: DialogInterface?, _: Int ->
                 setControlScale(50)

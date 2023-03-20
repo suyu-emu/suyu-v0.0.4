@@ -13,15 +13,7 @@ abstract class SettingViewHolder(itemView: View, protected val adapter: Settings
 
     init {
         itemView.setOnClickListener(this)
-        findViews(itemView)
     }
-
-    /**
-     * Gets handles to all this ViewHolder's child views using their XML-defined identifiers.
-     *
-     * @param root The newly inflated top-level view.
-     */
-    protected abstract fun findViews(root: View)
 
     /**
      * Called by the adapter to set this ViewHolder's child views to display the list item
