@@ -8,15 +8,10 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Rect
 import android.os.Bundle
-import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
-import androidx.activity.OnBackPressedCallback
-import androidx.annotation.IntDef
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.FragmentManager
 import androidx.preference.PreferenceManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider.OnChangeListener
@@ -25,8 +20,9 @@ import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.DialogSliderBinding
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.fragments.EmulationFragment
-import org.yuzu.yuzu_emu.fragments.MenuFragment
+import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.utils.ControllerMappingHelper
+import org.yuzu.yuzu_emu.utils.SerializableHelper.parcelable
 import org.yuzu.yuzu_emu.utils.ThemeHelper
 import kotlin.math.roundToInt
 
@@ -37,10 +33,10 @@ open class EmulationActivity : AppCompatActivity() {
     //private Intent foregroundService;
 
     var isActivityRecreated = false
-    private var selectedTitle: String? = null
-    private var path: String? = null
     private var menuVisible = false
     private var emulationFragment: EmulationFragment? = null
+
+    private lateinit var game: Game
 
     override fun onDestroy() {
         // TODO(bunnei): Disable notifications until we support app suspension.
@@ -54,9 +50,7 @@ open class EmulationActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         if (savedInstanceState == null) {
             // Get params we were passed
-            val gameToEmulate = intent
-            path = gameToEmulate.getStringExtra(EXTRA_SELECTED_GAME)
-            selectedTitle = gameToEmulate.getStringExtra(EXTRA_SELECTED_TITLE)
+            game = intent.parcelable(EXTRA_SELECTED_GAME)!!
             isActivityRecreated = false
         } else {
             isActivityRecreated = true
@@ -73,34 +67,26 @@ open class EmulationActivity : AppCompatActivity() {
         emulationFragment =
             supportFragmentManager.findFragmentById(R.id.frame_emulation_fragment) as EmulationFragment?
         if (emulationFragment == null) {
-            emulationFragment = EmulationFragment.newInstance(path)
+            emulationFragment = EmulationFragment.newInstance(game)
             supportFragmentManager.beginTransaction()
                 .add(R.id.frame_emulation_fragment, emulationFragment!!)
                 .commit()
         }
-        title = selectedTitle
+        title = game.title
 
         // Start a foreground service to prevent the app from getting killed in the background
         // TODO(bunnei): Disable notifications until we support app suspension.
         //foregroundService = new Intent(EmulationActivity.this, ForegroundService.class);
         //startForegroundService(foregroundService);
-
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                toggleMenu()
-            }
-        })
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        outState.putString(EXTRA_SELECTED_GAME, path)
-        outState.putString(EXTRA_SELECTED_TITLE, selectedTitle)
+        outState.putParcelable(EXTRA_SELECTED_GAME, game)
         super.onSaveInstanceState(outState)
     }
 
     private fun restoreState(savedInstanceState: Bundle) {
-        path = savedInstanceState.getString(EXTRA_SELECTED_GAME)
-        selectedTitle = savedInstanceState.getString(EXTRA_SELECTED_TITLE)
+        game = savedInstanceState.parcelable(EXTRA_SELECTED_GAME)!!
 
         // If an alert prompt was in progress when state was restored, retry displaying it
         NativeLibrary.retryDisplayAlertPrompt()
@@ -110,6 +96,8 @@ open class EmulationActivity : AppCompatActivity() {
         window.attributes.layoutInDisplayCutoutMode =
             WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
 
+        window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
+
         // It would be nice to use IMMERSIVE_STICKY, but that doesn't show the toolbar.
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
                 View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
@@ -117,15 +105,6 @@ open class EmulationActivity : AppCompatActivity() {
                 View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
                 View.SYSTEM_UI_FLAG_FULLSCREEN or
                 View.SYSTEM_UI_FLAG_IMMERSIVE
-    }
-
-    fun handleMenuAction(action: Int) {
-        when (action) {
-            MENU_ACTION_EXIT -> {
-                emulationFragment!!.stopEmulation()
-                finish()
-            }
-        }
     }
 
     private fun editControlsPlacement() {
@@ -176,94 +155,14 @@ open class EmulationActivity : AppCompatActivity() {
             .show()
     }
 
-    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
-        if (event.actionMasked == MotionEvent.ACTION_DOWN) {
-            var anyMenuClosed = false
-            var submenu = supportFragmentManager.findFragmentById(R.id.frame_submenu)
-            if (submenu != null && areCoordinatesOutside(submenu.view, event.x, event.y)) {
-                closeSubmenu()
-                submenu = null
-                anyMenuClosed = true
-            }
-            if (submenu == null) {
-                val menu = supportFragmentManager.findFragmentById(R.id.frame_menu)
-                if (menu != null && areCoordinatesOutside(menu.view, event.x, event.y)) {
-                    closeMenu()
-                    anyMenuClosed = true
-                }
-            }
-            if (anyMenuClosed) {
-                return true
-            }
-        }
-        return super.dispatchTouchEvent(event)
-    }
-
-    @Retention(AnnotationRetention.SOURCE)
-    @IntDef(
-        MENU_ACTION_EDIT_CONTROLS_PLACEMENT,
-        MENU_ACTION_TOGGLE_CONTROLS,
-        MENU_ACTION_ADJUST_SCALE,
-        MENU_ACTION_EXIT,
-        MENU_ACTION_SHOW_FPS,
-        MENU_ACTION_RESET_OVERLAY,
-        MENU_ACTION_SHOW_OVERLAY,
-        MENU_ACTION_OPEN_SETTINGS
-    )
-    annotation class MenuAction
-
-    private fun closeSubmenu(): Boolean {
-        return supportFragmentManager.popBackStackImmediate(
-            BACKSTACK_NAME_SUBMENU,
-            FragmentManager.POP_BACK_STACK_INCLUSIVE
-        )
-    }
-
-    private fun closeMenu(): Boolean {
-        menuVisible = false
-        return supportFragmentManager.popBackStackImmediate(
-            BACKSTACK_NAME_MENU,
-            FragmentManager.POP_BACK_STACK_INCLUSIVE
-        )
-    }
-
-    private fun toggleMenu() {
-        if (!closeMenu()) {
-            val fragment: Fragment = MenuFragment.newInstance()
-            supportFragmentManager.beginTransaction()
-                .setCustomAnimations(
-                    R.animator.menu_slide_in_from_start,
-                    R.animator.menu_slide_out_to_start,
-                    R.animator.menu_slide_in_from_start,
-                    R.animator.menu_slide_out_to_start
-                )
-                .add(R.id.frame_menu, fragment)
-                .addToBackStack(BACKSTACK_NAME_MENU)
-                .commit()
-            menuVisible = true
-        }
-    }
-
     companion object {
-        private const val BACKSTACK_NAME_MENU = "menu"
-        private const val BACKSTACK_NAME_SUBMENU = "submenu"
         const val EXTRA_SELECTED_GAME = "SelectedGame"
-        const val EXTRA_SELECTED_TITLE = "SelectedTitle"
-        const val MENU_ACTION_EDIT_CONTROLS_PLACEMENT = 0
-        const val MENU_ACTION_TOGGLE_CONTROLS = 1
-        const val MENU_ACTION_ADJUST_SCALE = 2
-        const val MENU_ACTION_EXIT = 3
-        const val MENU_ACTION_SHOW_FPS = 4
-        const val MENU_ACTION_RESET_OVERLAY = 6
-        const val MENU_ACTION_SHOW_OVERLAY = 7
-        const val MENU_ACTION_OPEN_SETTINGS = 8
         private const val EMULATION_RUNNING_NOTIFICATION = 0x1000
 
         @JvmStatic
-        fun launch(activity: FragmentActivity, path: String?, title: String?) {
+        fun launch(activity: FragmentActivity, game: Game) {
             val launcher = Intent(activity, EmulationActivity::class.java)
-            launcher.putExtra(EXTRA_SELECTED_GAME, path)
-            launcher.putExtra(EXTRA_SELECTED_TITLE, title)
+            launcher.putExtra(EXTRA_SELECTED_GAME, game)
             activity.startActivity(launcher)
         }
 

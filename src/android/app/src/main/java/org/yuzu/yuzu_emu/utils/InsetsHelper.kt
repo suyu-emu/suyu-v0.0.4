@@ -1,7 +1,9 @@
 package org.yuzu.yuzu_emu.utils
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
+import android.graphics.Rect
 import android.view.ViewGroup.MarginLayoutParams
 import androidx.core.graphics.Insets
 import com.google.android.material.appbar.AppBarLayout
@@ -26,5 +28,11 @@ object InsetsHelper {
         return if (resourceId != 0) {
             resources.getInteger(resourceId)
         } else 0
+    }
+
+    fun getBottomPaddingRequired(activity: Activity): Int {
+        val visibleFrame = Rect()
+        activity.window.decorView.getWindowVisibleDisplayFrame(visibleFrame)
+        return visibleFrame.bottom - visibleFrame.top - activity.resources.displayMetrics.heightPixels
     }
 }

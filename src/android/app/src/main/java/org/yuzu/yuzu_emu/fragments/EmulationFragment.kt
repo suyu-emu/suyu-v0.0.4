@@ -10,7 +10,14 @@ import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.view.*
+import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
+import androidx.appcompat.widget.PopupMenu
+import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.Insets
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.preference.PreferenceManager
@@ -20,10 +27,15 @@ import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.databinding.FragmentEmulationBinding
 import org.yuzu.yuzu_emu.features.settings.model.Settings
+import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity
+import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
+import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization.DirectoryInitializationState
 import org.yuzu.yuzu_emu.utils.DirectoryStateReceiver
+import org.yuzu.yuzu_emu.utils.InsetsHelper
 import org.yuzu.yuzu_emu.utils.Log
+import org.yuzu.yuzu_emu.utils.SerializableHelper.parcelable
 
 class EmulationFragment : Fragment(), SurfaceHolder.Callback, Choreographer.FrameCallback {
     private lateinit var preferences: SharedPreferences
@@ -34,6 +46,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, Choreographer.Fram
 
     private var _binding: FragmentEmulationBinding? = null
     private val binding get() = _binding!!
+
+    private lateinit var game: Game
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -54,8 +68,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, Choreographer.Fram
         // So this fragment doesn't restart on configuration changes; i.e. rotation.
         retainInstance = true
         preferences = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
-        val gamePath = requireArguments().getString(KEY_GAMEPATH)
-        emulationState = EmulationState(gamePath)
+        game = requireArguments().parcelable(EmulationActivity.EXTRA_SELECTED_GAME)!!
+        emulationState = EmulationState(game.path)
     }
 
     /**
@@ -78,6 +92,57 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, Choreographer.Fram
         // Setup overlay.
         resetInputOverlay()
         updateShowFpsOverlay()
+
+        binding.inGameMenu.getHeaderView(0).findViewById<TextView>(R.id.text_game_title).text =
+            game.title
+        binding.inGameMenu.setNavigationItemSelectedListener {
+            when (it.itemId) {
+                R.id.menu_pause_emulation -> {
+                    if (emulationState.isPaused) {
+                        emulationState.run(false)
+                        it.title = resources.getString(R.string.emulation_pause)
+                        it.icon = ResourcesCompat.getDrawable(
+                            resources,
+                            R.drawable.ic_pause,
+                            requireContext().theme
+                        )
+                    } else {
+                        emulationState.pause()
+                        it.title = resources.getString(R.string.emulation_unpause)
+                        it.icon = ResourcesCompat.getDrawable(
+                            resources,
+                            R.drawable.ic_play,
+                            requireContext().theme
+                        )
+                    }
+                    true
+                }
+                R.id.menu_settings -> {
+                    SettingsActivity.launch(requireContext(), SettingsFile.FILE_NAME_CONFIG, "")
+                    true
+                }
+                R.id.menu_overlay_controls -> {
+                    showOverlayOptions()
+                    true
+                }
+                R.id.menu_exit -> {
+                    requireActivity().finish()
+                    emulationState.stop()
+                    true
+                }
+                else -> true
+            }
+        }
+
+        setInsets()
+
+        requireActivity().onBackPressedDispatcher.addCallback(
+            requireActivity(),
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    if (binding.drawerLayout.isOpen) binding.drawerLayout.close() else binding.drawerLayout.open()
+                }
+            })
     }
 
     override fun onResume() {
@@ -202,8 +267,30 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, Choreographer.Fram
         NativeLibrary.DoFrame()
     }
 
-    fun stopEmulation() {
-        emulationState.stop()
+    private fun showOverlayOptions() {
+        val anchor = binding.inGameMenu.findViewById<View>(R.id.menu_overlay_controls)
+        val popup = PopupMenu(requireContext(), anchor)
+
+        popup.menuInflater.inflate(R.menu.menu_overlay_options, popup.menu)
+
+        popup.setOnMenuItemClickListener {
+            when (it.itemId) {
+                R.id.menu_edit_overlay -> {
+                    binding.drawerLayout.close()
+                    binding.surfaceInputOverlay.requestFocus()
+                    startConfiguringControls()
+                    true
+                }
+                R.id.menu_reset_overlay -> {
+                    binding.drawerLayout.close()
+                    resetInputOverlay()
+                    true
+                }
+                else -> true
+            }
+        }
+
+        popup.show()
     }
 
     fun startConfiguringControls() {
@@ -218,6 +305,27 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, Choreographer.Fram
 
     val isConfiguringControls: Boolean
         get() = binding.surfaceInputOverlay.isInEditMode
+
+    private fun setInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.inGameMenu) { v: View, windowInsets: WindowInsetsCompat ->
+            val cutInsets: Insets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
+            var left = 0
+            var right = 0
+            if (ViewCompat.getLayoutDirection(v) == ViewCompat.LAYOUT_DIRECTION_LTR) {
+                left = cutInsets.left
+            } else {
+                right = cutInsets.right
+            }
+
+            // Don't use padding if the navigation bar isn't in the way
+            if (InsetsHelper.getBottomPaddingRequired(requireActivity()) > 0) {
+                v.setPadding(left, cutInsets.top, right, 0)
+            } else {
+                v.setPadding(left, cutInsets.top, right, 0)
+            }
+            windowInsets
+        }
+    }
 
     private class EmulationState(private val mGamePath: String?) {
         private var state: State
@@ -340,12 +448,11 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, Choreographer.Fram
     }
 
     companion object {
-        private const val KEY_GAMEPATH = "gamepath"
         private val perfStatsUpdateHandler = Handler()
 
-        fun newInstance(gamePath: String?): EmulationFragment {
+        fun newInstance(game: Game): EmulationFragment {
             val args = Bundle()
-            args.putString(KEY_GAMEPATH, gamePath)
+            args.putParcelable(EmulationActivity.EXTRA_SELECTED_GAME, game)
             val fragment = EmulationFragment()
             fragment.arguments = args
             return fragment

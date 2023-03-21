@@ -13,7 +13,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
@@ -23,8 +22,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
-import org.yuzu.yuzu_emu.activities.EmulationActivity.Companion.launch
 import org.yuzu.yuzu_emu.databinding.CardGameBinding
+import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.model.GameDatabase
 import org.yuzu.yuzu_emu.utils.Log
@@ -181,7 +180,7 @@ class GameAdapter(private val activity: AppCompatActivity) : RecyclerView.Adapte
      */
     override fun onClick(view: View) {
         val holder = view.tag as GameViewHolder
-        launch((view.context as FragmentActivity), holder.game.path, holder.game.title)
+        EmulationActivity.launch((view.context as AppCompatActivity), holder.game)
     }
 
     private fun isValidGame(path: String): Boolean {

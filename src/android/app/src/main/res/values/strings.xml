@@ -87,6 +87,10 @@
     <string name="emulation_toggle_controls">Toggle Controls</string>
     <string name="emulation_control_scale">Adjust Scale</string>
     <string name="emulation_touch_overlay_reset">Reset Overlay</string>
+    <string name="emulation_touch_overlay_edit">Edit Overlay</string>
+    <string name="emulation_pause">Pause Emulation</string>
+    <string name="emulation_unpause">Unpause Emulation</string>
+    <string name="emulation_input_overlay">Input Overlay</string>
 
     <string name="load_settings">Loading Settings…</string>
 
