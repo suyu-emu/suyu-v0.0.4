@@ -191,7 +191,7 @@ class GameAdapter(private val activity: AppCompatActivity) : RecyclerView.Adapte
             }
     }
 
-    private fun decodeGameIcon(uri: String): Bitmap {
+    private fun decodeGameIcon(uri: String): Bitmap? {
         val data = NativeLibrary.GetIcon(uri)
         return BitmapFactory.decodeByteArray(
             data,
