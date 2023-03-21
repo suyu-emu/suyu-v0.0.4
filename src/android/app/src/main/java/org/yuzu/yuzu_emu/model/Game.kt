@@ -5,9 +5,12 @@ package org.yuzu.yuzu_emu.model
 
 import android.content.ContentValues
 import android.database.Cursor
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 import java.nio.file.Paths
 import java.util.HashSet
 
+@Parcelize
 class Game(
     val title: String,
     val description: String,
@@ -15,7 +18,7 @@ class Game(
     val path: String,
     val gameId: String,
     val company: String
-) {
+) : Parcelable {
     companion object {
         val extensions: Set<String> = HashSet(
             listOf(".xci", ".nsp", ".nca", ".nro")
