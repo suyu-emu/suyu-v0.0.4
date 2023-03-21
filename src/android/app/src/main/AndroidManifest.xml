@@ -54,7 +54,7 @@
             android:resizeableActivity="false"
             android:theme="@style/Theme.Yuzu.Main"
             android:launchMode="singleTop"
-            android:screenOrientation="landscape"/>
+            android:screenOrientation="userLandscape" />
 
         <service android:name="org.yuzu.yuzu_emu.utils.ForegroundService"/>
 

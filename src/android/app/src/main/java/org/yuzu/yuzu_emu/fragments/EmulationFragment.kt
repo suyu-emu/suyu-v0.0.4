@@ -153,7 +153,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, Choreographer.Fram
         preferences.edit()
             .putInt(Settings.PREF_CONTROL_SCALE, 50)
             .apply()
-        binding.surfaceInputOverlay.resetButtonPlacement()
+        binding.surfaceInputOverlay.post { binding.surfaceInputOverlay.resetButtonPlacement() }
     }
 
     private fun updateShowFpsOverlay() {

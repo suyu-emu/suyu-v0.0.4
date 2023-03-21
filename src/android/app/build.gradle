@@ -138,6 +138,7 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1"
     implementation "io.coil-kt:coil:2.2.2"
     implementation 'androidx.core:core-splashscreen:1.0.0'
+    implementation 'androidx.window:window:1.0.0'
 
     // Allows FRP-style asynchronous operations in Android.
     implementation 'io.reactivex:rxandroid:1.2.1'

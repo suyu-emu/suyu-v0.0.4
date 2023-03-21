@@ -40,6 +40,8 @@
         <item name="android:navigationBarColor">@android:color/transparent</item>
 
         <item name="sliderStyle">@style/YuzuSlider</item>
+
+        <item name="android:windowLayoutInDisplayCutoutMode">default</item>
     </style>
 
     <!-- Trick for API >= 29 specific changes -->

@@ -18,14 +18,16 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.os.Build
 import android.util.AttributeSet
-import android.util.DisplayMetrics
 import android.view.MotionEvent
 import android.view.SurfaceView
 import android.view.View
 import android.view.View.OnTouchListener
+import android.view.WindowInsets
 import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
+import androidx.window.layout.WindowMetricsCalculator
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.NativeLibrary.ButtonType
 import org.yuzu.yuzu_emu.NativeLibrary.StickType
@@ -33,7 +35,6 @@ import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.utils.EmulationMenuSettings
-
 
 /**
  * Draws the interactive input overlay on top of the
@@ -51,7 +52,22 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
     private val accel = FloatArray(3)
     private var motionTimestamp: Long = 0
 
-    init {
+    private lateinit var windowInsets: WindowInsets
+
+    private fun setMotionSensorListener(context: Context) {
+        val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        val gyroSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
+        val accelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+
+        sensorManager.registerListener(this, gyroSensor, SensorManager.SENSOR_DELAY_GAME)
+        sensorManager.registerListener(this, accelSensor, SensorManager.SENSOR_DELAY_GAME)
+    }
+
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        super.onLayout(changed, left, top, right, bottom)
+
+        windowInsets = rootWindowInsets
+
         if (!preferences.getBoolean(Settings.PREF_OVERLAY_INIT, false)) {
             defaultOverlay()
         }
@@ -70,18 +86,6 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
 
         // Request focus for the overlay so it has priority on presses.
         requestFocus()
-    }
-
-    private fun setMotionSensorListener(context: Context) {
-        val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        val gyroSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
-        val accelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-        if (gyroSensor != null) {
-            sensorManager.registerListener(this, gyroSensor, SensorManager.SENSOR_DELAY_GAME)
-        }
-        if (accelSensor != null) {
-            sensorManager.registerListener(this, accelSensor, SensorManager.SENSOR_DELAY_GAME)
-        }
     }
 
     override fun draw(canvas: Canvas) {
@@ -483,141 +487,169 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
 
     private fun defaultOverlayLandscape() {
         // Get screen size
-        val display = (context as Activity).windowManager.defaultDisplay
-        val outMetrics = DisplayMetrics()
-        display.getRealMetrics(outMetrics)
-        var maxX = outMetrics.heightPixels.toFloat()
-        var maxY = outMetrics.widthPixels.toFloat()
-        // Height and width changes depending on orientation. Use the larger value for height.
-        if (maxY > maxX) {
-            val tmp = maxX
-            maxX = maxY
-            maxY = tmp
+        val windowMetrics =
+            WindowMetricsCalculator.getOrCreate().computeCurrentWindowMetrics(context as Activity)
+        var maxY = windowMetrics.bounds.height().toFloat()
+        var maxX = windowMetrics.bounds.width().toFloat()
+        var minY = 0
+        var minX = 0
+
+        // If we have API access, calculate the safe area to draw the overlay
+        var cutoutLeft = 0
+        var cutoutBottom = 0
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val insets = windowInsets.displayCutout!!
+            maxY =
+                if (insets.boundingRectTop.bottom != 0) insets.boundingRectTop.bottom.toFloat() else maxY
+            maxX =
+                if (insets.boundingRectRight.left != 0) insets.boundingRectRight.left.toFloat() else maxX
+            minX = insets.boundingRectLeft.right - insets.boundingRectLeft.left
+            minY = insets.boundingRectBottom.top - insets.boundingRectBottom.bottom
+
+            cutoutLeft = insets.boundingRectRight.right - insets.boundingRectRight.left
+            cutoutBottom = insets.boundingRectTop.top - insets.boundingRectTop.bottom
         }
-        val res = resources
+
+        // This makes sure that if we have an inset on one side of the screen, we mirror it on
+        // the other side. Since removing space from one of the max values messes with the scale,
+        // we also have to account for it using our min values.
+        if (maxX.toInt() != windowMetrics.bounds.width()) minX += cutoutLeft
+        if (maxY.toInt() != windowMetrics.bounds.height()) minY += cutoutBottom
+        if (minX > 0 && maxX.toInt() == windowMetrics.bounds.width()) {
+            maxX -= (minX * 2)
+        } else if (minX > 0) {
+            maxX -= minX
+        }
+        if (minY > 0 && maxY.toInt() == windowMetrics.bounds.height()) {
+            maxY -= (minY * 2)
+        } else if (minY > 0) {
+            maxY -= minY
+        }
 
         // Each value is a percent from max X/Y stored as an int. Have to bring that value down
         // to a decimal before multiplying by MAX X/Y.
         preferences.edit()
             .putFloat(
                 ButtonType.BUTTON_A.toString() + "-X",
-                res.getInteger(R.integer.SWITCH_BUTTON_A_X).toFloat() / 1000 * maxX
+                resources.getInteger(R.integer.SWITCH_BUTTON_A_X).toFloat() / 1000 * maxX + minX
             )
             .putFloat(
                 ButtonType.BUTTON_A.toString() + "-Y",
-                res.getInteger(R.integer.SWITCH_BUTTON_A_Y).toFloat() / 1000 * maxY
+                resources.getInteger(R.integer.SWITCH_BUTTON_A_Y).toFloat() / 1000 * maxY + minY
             )
             .putFloat(
                 ButtonType.BUTTON_B.toString() + "-X",
-                res.getInteger(R.integer.SWITCH_BUTTON_B_X).toFloat() / 1000 * maxX
+                resources.getInteger(R.integer.SWITCH_BUTTON_B_X).toFloat() / 1000 * maxX + minX
             )
             .putFloat(
                 ButtonType.BUTTON_B.toString() + "-Y",
-                res.getInteger(R.integer.SWITCH_BUTTON_B_Y).toFloat() / 1000 * maxY
+                resources.getInteger(R.integer.SWITCH_BUTTON_B_Y).toFloat() / 1000 * maxY + minY
             )
             .putFloat(
                 ButtonType.BUTTON_X.toString() + "-X",
-                res.getInteger(R.integer.SWITCH_BUTTON_X_X).toFloat() / 1000 * maxX
+                resources.getInteger(R.integer.SWITCH_BUTTON_X_X).toFloat() / 1000 * maxX + minX
             )
             .putFloat(
                 ButtonType.BUTTON_X.toString() + "-Y",
-                res.getInteger(R.integer.SWITCH_BUTTON_X_Y).toFloat() / 1000 * maxY
+                resources.getInteger(R.integer.SWITCH_BUTTON_X_Y).toFloat() / 1000 * maxY + minY
             )
             .putFloat(
                 ButtonType.BUTTON_Y.toString() + "-X",
-                res.getInteger(R.integer.SWITCH_BUTTON_Y_X).toFloat() / 1000 * maxX
+                resources.getInteger(R.integer.SWITCH_BUTTON_Y_X).toFloat() / 1000 * maxX + minX
             )
             .putFloat(
                 ButtonType.BUTTON_Y.toString() + "-Y",
-                res.getInteger(R.integer.SWITCH_BUTTON_Y_Y).toFloat() / 1000 * maxY
+                resources.getInteger(R.integer.SWITCH_BUTTON_Y_Y).toFloat() / 1000 * maxY + minY
             )
             .putFloat(
                 ButtonType.TRIGGER_ZL.toString() + "-X",
-                res.getInteger(R.integer.SWITCH_TRIGGER_ZL_X).toFloat() / 1000 * maxX
+                resources.getInteger(R.integer.SWITCH_TRIGGER_ZL_X).toFloat() / 1000 * maxX + minX
             )
             .putFloat(
                 ButtonType.TRIGGER_ZL.toString() + "-Y",
-                res.getInteger(R.integer.SWITCH_TRIGGER_ZL_Y).toFloat() / 1000 * maxY
+                resources.getInteger(R.integer.SWITCH_TRIGGER_ZL_Y).toFloat() / 1000 * maxY + minY
             )
             .putFloat(
                 ButtonType.TRIGGER_ZR.toString() + "-X",
-                res.getInteger(R.integer.SWITCH_TRIGGER_ZR_X).toFloat() / 1000 * maxX
+                resources.getInteger(R.integer.SWITCH_TRIGGER_ZR_X).toFloat() / 1000 * maxX + minX
             )
             .putFloat(
                 ButtonType.TRIGGER_ZR.toString() + "-Y",
-                res.getInteger(R.integer.SWITCH_TRIGGER_ZR_Y).toFloat() / 1000 * maxY
+                resources.getInteger(R.integer.SWITCH_TRIGGER_ZR_Y).toFloat() / 1000 * maxY + minY
             )
             .putFloat(
                 ButtonType.DPAD_UP.toString() + "-X",
-                res.getInteger(R.integer.SWITCH_BUTTON_DPAD_X).toFloat() / 1000 * maxX
+                resources.getInteger(R.integer.SWITCH_BUTTON_DPAD_X).toFloat() / 1000 * maxX + minX
             )
             .putFloat(
                 ButtonType.DPAD_UP.toString() + "-Y",
-                res.getInteger(R.integer.SWITCH_BUTTON_DPAD_Y).toFloat() / 1000 * maxY
+                resources.getInteger(R.integer.SWITCH_BUTTON_DPAD_Y).toFloat() / 1000 * maxY + minY
             )
             .putFloat(
                 ButtonType.TRIGGER_L.toString() + "-X",
-                res.getInteger(R.integer.SWITCH_TRIGGER_L_X).toFloat() / 1000 * maxX
+                resources.getInteger(R.integer.SWITCH_TRIGGER_L_X).toFloat() / 1000 * maxX + minX
             )
             .putFloat(
                 ButtonType.TRIGGER_L.toString() + "-Y",
-                res.getInteger(R.integer.SWITCH_TRIGGER_L_Y).toFloat() / 1000 * maxY
+                resources.getInteger(R.integer.SWITCH_TRIGGER_L_Y).toFloat() / 1000 * maxY + minY
             )
             .putFloat(
                 ButtonType.TRIGGER_R.toString() + "-X",
-                res.getInteger(R.integer.SWITCH_TRIGGER_R_X).toFloat() / 1000 * maxX
+                resources.getInteger(R.integer.SWITCH_TRIGGER_R_X).toFloat() / 1000 * maxX + minX
             )
             .putFloat(
                 ButtonType.TRIGGER_R.toString() + "-Y",
-                res.getInteger(R.integer.SWITCH_TRIGGER_R_Y).toFloat() / 1000 * maxY
+                resources.getInteger(R.integer.SWITCH_TRIGGER_R_Y).toFloat() / 1000 * maxY + minY
             )
             .putFloat(
                 ButtonType.BUTTON_PLUS.toString() + "-X",
-                res.getInteger(R.integer.SWITCH_BUTTON_PLUS_X).toFloat() / 1000 * maxX
+                resources.getInteger(R.integer.SWITCH_BUTTON_PLUS_X).toFloat() / 1000 * maxX + minX
             )
             .putFloat(
                 ButtonType.BUTTON_PLUS.toString() + "-Y",
-                res.getInteger(R.integer.SWITCH_BUTTON_PLUS_Y).toFloat() / 1000 * maxY
+                resources.getInteger(R.integer.SWITCH_BUTTON_PLUS_Y).toFloat() / 1000 * maxY + minY
             )
             .putFloat(
                 ButtonType.BUTTON_MINUS.toString() + "-X",
-                res.getInteger(R.integer.SWITCH_BUTTON_MINUS_X).toFloat() / 1000 * maxX
+                resources.getInteger(R.integer.SWITCH_BUTTON_MINUS_X).toFloat() / 1000 * maxX + minX
             )
             .putFloat(
                 ButtonType.BUTTON_MINUS.toString() + "-Y",
-                res.getInteger(R.integer.SWITCH_BUTTON_MINUS_Y).toFloat() / 1000 * maxY
+                resources.getInteger(R.integer.SWITCH_BUTTON_MINUS_Y).toFloat() / 1000 * maxY + minY
             )
             .putFloat(
                 ButtonType.BUTTON_HOME.toString() + "-X",
-                res.getInteger(R.integer.SWITCH_BUTTON_HOME_X).toFloat() / 1000 * maxX
+                resources.getInteger(R.integer.SWITCH_BUTTON_HOME_X).toFloat() / 1000 * maxX + minX
             )
             .putFloat(
                 ButtonType.BUTTON_HOME.toString() + "-Y",
-                res.getInteger(R.integer.SWITCH_BUTTON_HOME_Y).toFloat() / 1000 * maxY
+                resources.getInteger(R.integer.SWITCH_BUTTON_HOME_Y).toFloat() / 1000 * maxY + minY
             )
             .putFloat(
                 ButtonType.BUTTON_CAPTURE.toString() + "-X",
-                res.getInteger(R.integer.SWITCH_BUTTON_CAPTURE_X).toFloat() / 1000 * maxX
+                resources.getInteger(R.integer.SWITCH_BUTTON_CAPTURE_X)
+                    .toFloat() / 1000 * maxX + minX
             )
             .putFloat(
                 ButtonType.BUTTON_CAPTURE.toString() + "-Y",
-                res.getInteger(R.integer.SWITCH_BUTTON_CAPTURE_Y).toFloat() / 1000 * maxY
+                resources.getInteger(R.integer.SWITCH_BUTTON_CAPTURE_Y)
+                    .toFloat() / 1000 * maxY + minY
             )
             .putFloat(
                 ButtonType.STICK_R.toString() + "-X",
-                res.getInteger(R.integer.SWITCH_STICK_R_X).toFloat() / 1000 * maxX
+                resources.getInteger(R.integer.SWITCH_STICK_R_X).toFloat() / 1000 * maxX + minX
             )
             .putFloat(
                 ButtonType.STICK_R.toString() + "-Y",
-                res.getInteger(R.integer.SWITCH_STICK_R_Y).toFloat() / 1000 * maxY
+                resources.getInteger(R.integer.SWITCH_STICK_R_Y).toFloat() / 1000 * maxY + minY
             )
             .putFloat(
                 ButtonType.STICK_L.toString() + "-X",
-                res.getInteger(R.integer.SWITCH_STICK_L_X).toFloat() / 1000 * maxX
+                resources.getInteger(R.integer.SWITCH_STICK_L_X).toFloat() / 1000 * maxX + minX
             )
             .putFloat(
                 ButtonType.STICK_L.toString() + "-Y",
-                res.getInteger(R.integer.SWITCH_STICK_L_Y).toFloat() / 1000 * maxY
+                resources.getInteger(R.integer.SWITCH_STICK_L_Y).toFloat() / 1000 * maxY + minY
             )
             .commit()
         // We want to commit right away, otherwise the overlay could load before this is saved.
