@@ -19,8 +19,6 @@
     <!-- System settings strings -->
     <string name="use_docked_mode">Docked mode</string>
     <string name="use_docked_mode_description">Emulates in docked mode, which increases the resolution at the expense of performance.</string>
-    <string name="init_time">System clock starting time override</string>
-    <string name="init_time_description">If the \"System clock type\" setting is set to \"Simulated clock\", this changes the fixed date and time to start at.</string>
     <string name="emulated_region">Emulated region</string>
     <string name="emulated_language">Emulated language</string>
     <string name="select_rtc_date">Select RTC Date</string>
@@ -43,12 +41,10 @@
     <string name="audio_volume_description">Specifies the volume of audio output.</string>
 
     <!-- Miscellaneous -->
-    <string name="clear">Clear</string>
     <string name="slider_default">Default</string>
     <string name="ini_saved">Saved settings</string>
     <string name="gameid_saved">Saved settings for %1$s</string>
     <string name="error_saving">Error saving %1$s.ini: %2$s</string>
-    <string name="loading">Loading...</string>
 
     <!-- Game Grid Screen-->
     <string name="grid_menu_core_settings">Settings</string>
@@ -90,18 +86,13 @@
     <string name="emulation_done">Done</string>
     <string name="emulation_toggle_controls">Toggle Controls</string>
     <string name="emulation_control_scale">Adjust Scale</string>
-    <string name="emulation_swap_screens">Swap Screens</string>
     <string name="emulation_touch_overlay_reset">Reset Overlay</string>
-    <string name="emulation_close_game_message">Are you sure that you would like to close the current game?</string>
 
     <string name="load_settings">Loading Settings...</string>
 
     <string name="external_storage_not_mounted">The external storage needs to be available in order to use yuzu</string>
 
-    <string name="select_dir">Select This Directory</string>
     <string name="empty_gamelist">No files were found or no game directory has been selected yet.</string>
-
-    <string name="do_not_show_this_again">Do not show this again</string>
 
     <!-- Software keyboard -->
     <string name="software_keyboard">Software Keyboard</string>
