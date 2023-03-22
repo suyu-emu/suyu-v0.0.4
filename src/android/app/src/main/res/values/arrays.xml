@@ -2,40 +2,6 @@
 
 <!-- All lists for ListPreference keys/values are placed here -->
 <resources>
-    <string-array name="systemClockNames" translatable="true">
-        <item>Device clock</item>
-        <item>Simulated clock</item>
-    </string-array>
-
-    <integer-array name="systemClockValues" translatable="false">
-        <item>0</item>
-        <item>1</item>
-    </integer-array>
-
-    <string-array name="designNames" translatable="true">
-        <item>Light</item>
-        <item>Dark</item>
-        <item>System default</item>
-    </string-array>
-
-    <integer-array name="designValues" translatable="false">
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
-    </integer-array>
-
-    <!-- Pre-Android 10 does not support System Default -->
-    <string-array name="designNamesOld" translatable="true">
-        <item>Light</item>
-        <item>Dark</item>
-    </string-array>
-
-    <!-- Pre-Android 10 does not support System Default -->
-    <integer-array name="designValuesOld" translatable="false">
-        <item>0</item>
-        <item>1</item>
-    </integer-array>
-
     <string-array name="regionNames">
         <item>Auto-select</item>
         <item>Japan</item>
