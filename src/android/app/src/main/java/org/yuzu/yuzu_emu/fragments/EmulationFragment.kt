@@ -168,7 +168,10 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, Choreographer.Fram
                 if (perfStats[FPS] > 0) {
                     binding.showFpsText.text = String.format("FPS: %.1f", perfStats[FPS])
                 }
-                perfStatsUpdateHandler.postDelayed(perfStatsUpdater!!, 100)
+
+                if (!emulationState.isStopped) {
+                    perfStatsUpdateHandler.postDelayed(perfStatsUpdater!!, 100)
+                }
             }
             perfStatsUpdateHandler.post(perfStatsUpdater!!)
             binding.showFpsText.visibility = View.VISIBLE
