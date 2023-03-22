@@ -266,6 +266,30 @@ std::unordered_map<VkFormat, VkFormatProperties> GetFormatProperties(vk::Physica
     return format_properties;
 }
 
+void OverrideBcnFormats(std::unordered_map<VkFormat, VkFormatProperties>& format_properties) {
+    // These properties are extracted from Adreno driver 512.687.0
+    constexpr VkFormatFeatureFlags tiling_features{
+        VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_BLIT_SRC_BIT |
+        VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT | VK_FORMAT_FEATURE_TRANSFER_SRC_BIT |
+        VK_FORMAT_FEATURE_TRANSFER_DST_BIT};
+
+    constexpr VkFormatFeatureFlags buffer_features{VK_FORMAT_FEATURE_UNIFORM_TEXEL_BUFFER_BIT};
+
+    static constexpr std::array bcn_formats{
+        VK_FORMAT_BC1_RGBA_SRGB_BLOCK, VK_FORMAT_BC1_RGBA_UNORM_BLOCK, VK_FORMAT_BC2_SRGB_BLOCK,
+        VK_FORMAT_BC2_UNORM_BLOCK,     VK_FORMAT_BC3_SRGB_BLOCK,       VK_FORMAT_BC3_UNORM_BLOCK,
+        VK_FORMAT_BC4_SNORM_BLOCK,     VK_FORMAT_BC4_UNORM_BLOCK,      VK_FORMAT_BC5_SNORM_BLOCK,
+        VK_FORMAT_BC5_UNORM_BLOCK,     VK_FORMAT_BC6H_SFLOAT_BLOCK,    VK_FORMAT_BC6H_UFLOAT_BLOCK,
+        VK_FORMAT_BC7_SRGB_BLOCK,      VK_FORMAT_BC7_UNORM_BLOCK,
+    };
+
+    for (const auto format : bcn_formats) {
+        format_properties[format].linearTilingFeatures = tiling_features;
+        format_properties[format].optimalTilingFeatures = tiling_features;
+        format_properties[format].bufferFeatures = buffer_features;
+    }
+}
+
 NvidiaArchitecture GetNvidiaArchitecture(vk::PhysicalDevice physical,
                                          const std::set<std::string, std::less<>>& exts) {
     if (exts.contains(VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME)) {
@@ -390,8 +414,10 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
 
         if (patch_status == ADRENOTOOLS_BCN_PATCH) {
             LOG_INFO(Render_Vulkan, "Patching Adreno driver to support BCn texture formats");
-            if (!adrenotools_patch_bcn(
+            if (adrenotools_patch_bcn(
                     reinterpret_cast<void*>(dld.vkGetPhysicalDeviceFormatProperties))) {
+                OverrideBcnFormats(format_properties);
+            } else {
                 LOG_ERROR(Render_Vulkan, "Patch failed! Driver code may now crash");
             }
         } else if (patch_status == ADRENOTOOLS_BCN_BLOB) {
