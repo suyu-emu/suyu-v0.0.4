@@ -28,7 +28,7 @@
         android:layout_marginStart="@dimen/spacing_large"
         android:layout_marginTop="@dimen/spacing_small"
         android:layout_toStartOf="@+id/switch_widget"
-        android:textAlignment="textStart"
+        android:textAlignment="viewStart"
         tools:text="@string/frame_limit_enable_description" />
 
     <TextView
@@ -43,6 +43,7 @@
         android:layout_marginTop="@dimen/spacing_large"
         android:layout_toStartOf="@+id/switch_widget"
         android:textSize="16sp"
+        android:textAlignment="viewStart"
         tools:text="@string/frame_limit_enable" />
 
 </RelativeLayout>
