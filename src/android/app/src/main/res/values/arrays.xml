@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<!-- All lists for ListPreference keys/values are placed here -->
 <resources>
+
     <string-array name="regionNames">
-        <item>Auto-select</item>
-        <item>Japan</item>
-        <item>USA</item>
-        <item>Europe</item>
-        <item>Australia</item>
-        <item>China</item>
-        <item>Korea</item>
-        <item>Taiwan</item>
+        <item>@string/region_auto</item>
+        <item>@string/region_japan</item>
+        <item>@string/region_usa</item>
+        <item>@string/region_europe</item>
+        <item>@string/region_australia</item>
+        <item>@string/region_china</item>
+        <item>@string/region_korea</item>
+        <item>@string/region_taiwan</item>
     </string-array>
 
     <integer-array name="regionValues">
@@ -25,24 +24,24 @@
     </integer-array>
 
     <string-array name="languageNames">
-        <item>Japanese (日本語)</item>
-        <item>English</item>
-        <item>French (Français)</item>
-        <item>German (Deutsch)</item>
-        <item>Italian (Italiano)</item>
-        <item>Spanish (Español)</item>
-        <item>Chinese (简体中文)</item>
-        <item>Korean (한국어)</item>
-        <item>Dutch (Nederlands)</item>
-        <item>Portuguese (Português)</item>
-        <item>Russian (Русский)</item>
-        <item>Taiwanese (台湾)</item>
-        <item>British English</item>
-        <item>Canadian French (Français canadien)</item>
-        <item>Latin American Spanish (Español latinoamericano)</item>
-        <item>Simplified Chinese (简体中文)</item>
-        <item>Traditional Chinese (正體中文))</item>
-        <item>Brazilian Portuguese (Portugues do Brasil)</item>
+        <item>@string/language_japanese</item>
+        <item>@string/language_english</item>
+        <item>@string/language_french</item>
+        <item>@string/langauge_german</item>
+        <item>@string/language_italian</item>
+        <item>@string/language_spanish</item>
+        <item>@string/language_chinese</item>
+        <item>@string/language_korean</item>
+        <item>@string/language_dutch</item>
+        <item>@string/language_portuguese</item>
+        <item>@string/language_russian</item>
+        <item>@string/language_taiwanese</item>
+        <item>@string/language_british_english</item>
+        <item>@string/language_canadian_french</item>
+        <item>@string/language_latin_american_spanish</item>
+        <item>@string/language_simplified_chinese</item>
+        <item>@string/language_traditional_chinese</item>
+        <item>@string/language_brazilian_portuguese</item>
     </string-array>
 
     <integer-array name="languageValues">
@@ -67,8 +66,8 @@
     </integer-array>
 
     <string-array name="rendererApiNames">
-        <item>Vulkan</item>
-        <item>None</item>
+        <item>@string/renderer_vulkan</item>
+        <item>@string/renderer_none</item>
     </string-array>
 
     <integer-array name="rendererApiValues">
@@ -77,9 +76,9 @@
     </integer-array>
 
     <string-array name="rendererAccuracyNames">
-        <item>Normal</item>
-        <item>High</item>
-        <item>Extreme (Slow)</item>
+        <item>@string/renderer_accuracy_normal</item>
+        <item>@string/renderer_accuracy_high</item>
+        <item>@string/renderer_accuracy_extreme</item>
     </string-array>
 
     <integer-array name="rendererAccuracyValues">
@@ -89,12 +88,12 @@
     </integer-array>
 
     <string-array name="rendererResolutionNames">
-        <item>0.5X (360p/540p)</item>
-        <item>0.75X (540p/810p)</item>
-        <item>1X (720p/1080p)</item>
-        <item>2X (1440p/2160p) (Slow)</item>
-        <item>3X (2160p/3240p) (Slow)</item>
-        <item>4X (2880p/4320p) (Slow)</item>
+        <item>@string/resolution_half</item>
+        <item>@string/resolution_three_quarter</item>
+        <item>@string/resolution_one</item>
+        <item>@string/resolution_two</item>
+        <item>@string/resolution_three</item>
+        <item>@string/resolution_four</item>
     </string-array>
 
     <integer-array name="rendererResolutionValues">
@@ -107,11 +106,11 @@
     </integer-array>
 
     <string-array name="rendererAspectRatioNames">
-        <item>Default (16:9)</item>
-        <item>Force 4:3</item>
-        <item>Force 21:9</item>
-        <item>Force 16:10</item>
-        <item>Stretch to Window</item>
+        <item>@string/ratio_default</item>
+        <item>@string/ratio_force_four_three</item>
+        <item>@string/ratio_force_twenty_one_nine</item>
+        <item>@string/ratio_force_sixteen_ten</item>
+        <item>@string/ratio_stretch</item>
     </string-array>
 
     <integer-array name="rendererAspectRatioValues">
@@ -123,10 +122,10 @@
     </integer-array>
 
     <string-array name="cpuAccuracyNames">
-        <item>Auto</item>
-        <item>Accurate</item>
-        <item>Unsafe</item>
-        <item>Paranoid (Slow)</item>
+        <item>@string/cpu_accuracy_auto</item>
+        <item>@string/cpu_accuracy_accurate</item>
+        <item>@string/cpu_accuracy_unsafe</item>
+        <item>@string/cpu_accuracy_paranoid</item>
     </string-array>
 
     <integer-array name="cpuAccuracyValues">
@@ -135,4 +134,5 @@
         <item>2</item>
         <item>3</item>
     </integer-array>
+
 </resources>
