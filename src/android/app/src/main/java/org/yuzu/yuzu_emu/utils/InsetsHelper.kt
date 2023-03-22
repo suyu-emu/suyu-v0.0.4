@@ -1,5 +1,6 @@
 package org.yuzu.yuzu_emu.utils
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.view.ViewGroup.MarginLayoutParams
 import androidx.core.graphics.Insets
@@ -17,6 +18,7 @@ object InsetsHelper {
         appBarLayout.layoutParams = mlpAppBar
     }
 
+    @SuppressLint("DiscouragedApi")
     fun getSystemGestureType(context: Context): Int {
         val resources = context.resources
         val resourceId =
