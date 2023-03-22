@@ -24,6 +24,7 @@ import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.fragments.EmulationFragment
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.utils.ControllerMappingHelper
+import org.yuzu.yuzu_emu.utils.NfcReader
 import org.yuzu.yuzu_emu.utils.SerializableHelper.parcelable
 import org.yuzu.yuzu_emu.utils.ThemeHelper
 import kotlin.math.roundToInt
@@ -37,6 +38,7 @@ open class EmulationActivity : AppCompatActivity() {
     var isActivityRecreated = false
     private var menuVisible = false
     private var emulationFragment: EmulationFragment? = null
+    private lateinit var nfcReader: NfcReader
 
     private lateinit var game: Game
 
@@ -76,6 +78,9 @@ open class EmulationActivity : AppCompatActivity() {
         }
         title = game.title
 
+        nfcReader = NfcReader(this)
+        nfcReader.initialize()
+
         // Start a foreground service to prevent the app from getting killed in the background
         // TODO(bunnei): Disable notifications until we support app suspension.
         //foregroundService = new Intent(EmulationActivity.this, ForegroundService.class);
@@ -103,6 +108,21 @@ open class EmulationActivity : AppCompatActivity() {
             }
         }
         return super.onKeyDown(keyCode, event)
+    }
+    override fun onResume() {
+        super.onResume()
+        nfcReader.startScanning()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        nfcReader.stopScanning()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        nfcReader.onNewIntent(intent)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

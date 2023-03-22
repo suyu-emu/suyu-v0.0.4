@@ -112,6 +112,7 @@ class MainActivity : AppCompatActivity(), MainView {
         when (request) {
             MainPresenter.REQUEST_ADD_DIRECTORY -> getGamesDirectory.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data)
             MainPresenter.REQUEST_INSTALL_KEYS -> getProdKey.launch(arrayOf("*/*"))
+            MainPresenter.REQUEST_INSTALL_AMIIBO_KEYS -> getAmiiboKey.launch(arrayOf("*/*"))
             MainPresenter.REQUEST_SELECT_GPU_DRIVER -> {
                 // Get the driver name for the dialog message.
                 var driverName = GpuDriverHelper.customDriverName
@@ -215,6 +216,37 @@ class MainActivity : AppCompatActivity(), MainView {
                     Toast.makeText(
                         this,
                         R.string.install_keys_failure,
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        }
+
+    private val getAmiiboKey =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
+            if (result == null)
+                return@registerForActivityResult
+
+            val takeFlags =
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
+            contentResolver.takePersistableUriPermission(
+                result,
+                takeFlags
+            )
+
+            val dstPath = DirectoryInitialization.userDirectory + "/keys/"
+            if (FileUtil.copyUriToInternalStorage(this, result, dstPath, "key_retail.bin")) {
+                if (NativeLibrary.ReloadKeys()) {
+                    Toast.makeText(
+                        this,
+                        R.string.install_keys_success,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    refreshFragment()
+                } else {
+                    Toast.makeText(
+                        this,
+                        R.string.install_amiibo_keys_failure,
                         Toast.LENGTH_LONG
                     ).show()
                 }

@@ -451,6 +451,26 @@ jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadMotionEvent(
     return static_cast<jboolean>(true);
 }
 
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onReadNfcTag(
+        [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jclass clazz, jbyteArray j_data) {
+    jboolean isCopy{false};
+    std::span<u8> data(reinterpret_cast<u8 *>(env->GetByteArrayElements(j_data, &isCopy)),
+                       static_cast<size_t>(env->GetArrayLength(j_data)));
+
+    if (EmulationSession::GetInstance().IsRunning()) {
+        EmulationSession::GetInstance().Window().OnReadNfcTag(data);
+    }
+    return static_cast<jboolean>(true);
+}
+
+jboolean Java_org_yuzu_yuzu_1emu_NativeLibrary_onRemoveNfcTag(
+        [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jclass clazz) {
+    if (EmulationSession::GetInstance().IsRunning()) {
+        EmulationSession::GetInstance().Window().OnRemoveNfcTag();
+    }
+    return static_cast<jboolean>(true);
+}
+
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_onTouchPressed([[maybe_unused]] JNIEnv* env,
                                                           [[maybe_unused]] jclass clazz, jint id,
                                                           jfloat x, jfloat y) {

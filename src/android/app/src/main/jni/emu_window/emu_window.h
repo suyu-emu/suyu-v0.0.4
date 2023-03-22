@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <span>
 
 #include "core/frontend/emu_window.h"
 #include "core/frontend/graphics_context.h"
@@ -39,6 +40,8 @@ public:
     void OnGamepadJoystickEvent(int player_index, int stick_id, float x, float y);
     void OnGamepadMotionEvent(int player_index, u64 delta_timestamp, float gyro_x, float gyro_y,
                               float gyro_z, float accel_x, float accel_y, float accel_z);
+    void OnReadNfcTag(std::span<u8> data);
+    void OnRemoveNfcTag();
     void OnFrameDisplayed() override {}
 
     std::unique_ptr<Core::Frontend::GraphicsContext> CreateSharedContext() const override {

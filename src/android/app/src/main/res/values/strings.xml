@@ -52,8 +52,10 @@
     <!-- Add Directory Screen-->
     <string name="select_game_folder">Select game folder</string>
     <string name="install_keys">Install keys</string>
+    <string name="install_amiibo_keys">Install amiibo keys</string>
     <string name="install_keys_success">Keys successfully installed</string>
     <string name="install_keys_failure">Keys file (prod.keys) is invalid</string>
+    <string name="install_amiibo_keys_failure">Keys file (key_retail.bin) is invalid</string>
 
     <!-- GPU driver installation -->
     <string name="select_gpu_driver">Select GPU driver</string>

@@ -124,6 +124,18 @@ public final class NativeLibrary {
                                                       float gyro_z, float accel_x, float accel_y, float accel_z);
 
     /**
+     * Signals and load a nfc tag
+     *
+     * @param data         Byte array containing all the data from a nfc tag
+     */
+    public static native boolean onReadNfcTag(byte[] data);
+
+    /**
+     * Removes current loaded nfc tag
+     */
+    public static native boolean onRemoveNfcTag();
+
+    /**
      * Handles touch press events.
      *
      * @param finger_id The finger id corresponding to this event

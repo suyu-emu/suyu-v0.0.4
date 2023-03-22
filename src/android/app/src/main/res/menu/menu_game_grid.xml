@@ -23,6 +23,12 @@
                 app:showAsAction="ifRoom" />
 
             <item
+                android:id="@+id/button_install_amiibo_keys"
+                android:icon="@drawable/ic_install"
+                android:title="@string/install_amiibo_keys"
+                app:showAsAction="ifRoom" />
+
+            <item
                 android:id="@+id/button_select_gpu_driver"
                 android:icon="@drawable/ic_settings"
                 android:title="@string/select_gpu_driver"

@@ -73,10 +73,7 @@ VirtualAmiibo::State VirtualAmiibo::GetCurrentState() const {
 VirtualAmiibo::Info VirtualAmiibo::LoadAmiibo(const std::string& filename) {
     const Common::FS::IOFile nfc_file{filename, Common::FS::FileAccessMode::Read,
                                       Common::FS::FileType::BinaryFile};
-
-    if (state != State::WaitingForAmiibo) {
-        return Info::WrongDeviceState;
-    }
+    std::vector<u8> data{};
 
     if (!nfc_file.IsOpen()) {
         return Info::UnableToLoad;
@@ -101,7 +98,28 @@ VirtualAmiibo::Info VirtualAmiibo::LoadAmiibo(const std::string& filename) {
     }
 
     file_path = filename;
+    return LoadAmiibo(data);
+}
+
+VirtualAmiibo::Info VirtualAmiibo::LoadAmiibo(std::span<u8> data) {
+    if (state != State::WaitingForAmiibo) {
+        return Info::WrongDeviceState;
+    }
+
+    switch (data.size_bytes()) {
+        case AmiiboSize:
+        case AmiiboSizeWithoutPassword:
+            nfc_data.resize(AmiiboSize);
+            break;
+        case MifareSize:
+            nfc_data.resize(MifareSize);
+            break;
+        default:
+            return Info::NotAnAmiibo;
+    }
+
     state = State::AmiiboIsOpen;
+    memcpy(nfc_data.data(),data.data(),data.size_bytes());
     SetNfc(identifier, {Common::Input::NfcState::NewAmiibo, nfc_data});
     return Info::Success;
 }

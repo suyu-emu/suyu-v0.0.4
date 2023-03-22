@@ -2,6 +2,7 @@
 
 #include "common/logging/log.h"
 #include "input_common/drivers/touch_screen.h"
+#include "input_common/drivers/virtual_amiibo.h"
 #include "input_common/drivers/virtual_gamepad.h"
 #include "input_common/main.h"
 #include "jni/emu_window/emu_window.h"
@@ -36,7 +37,15 @@ void EmuWindow_Android::OnGamepadMotionEvent(int player_index, u64 delta_timesta
                                              float gyro_y, float gyro_z, float accel_x,
                                              float accel_y, float accel_z) {
     m_input_subsystem->GetVirtualGamepad()->SetMotionState(
-        player_index, delta_timestamp, gyro_x, gyro_y, gyro_z, accel_x, accel_y, accel_z);
+            player_index, delta_timestamp, gyro_x, gyro_y, gyro_z, accel_x, accel_y, accel_z);
+}
+
+void EmuWindow_Android::OnReadNfcTag(std::span<u8> data) {
+    m_input_subsystem->GetVirtualAmiibo()->LoadAmiibo(data);
+}
+
+void EmuWindow_Android::OnRemoveNfcTag() {
+    m_input_subsystem->GetVirtualAmiibo()->CloseAmiibo();
 }
 
 EmuWindow_Android::EmuWindow_Android(InputCommon::InputSubsystem* input_subsystem,

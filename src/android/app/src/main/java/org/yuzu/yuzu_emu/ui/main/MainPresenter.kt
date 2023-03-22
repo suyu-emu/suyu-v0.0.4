@@ -36,6 +36,10 @@ class MainPresenter(private val view: MainView) {
                 launchFileListActivity(REQUEST_INSTALL_KEYS)
                 return true
             }
+            R.id.button_install_amiibo_keys -> {
+                launchFileListActivity(REQUEST_INSTALL_AMIIBO_KEYS)
+                return true
+            }
             R.id.button_select_gpu_driver -> {
                 launchFileListActivity(REQUEST_SELECT_GPU_DRIVER)
                 return true
@@ -64,6 +68,7 @@ class MainPresenter(private val view: MainView) {
     companion object {
         const val REQUEST_ADD_DIRECTORY = 1
         const val REQUEST_INSTALL_KEYS = 2
-        const val REQUEST_SELECT_GPU_DRIVER = 3
+        const val REQUEST_INSTALL_AMIIBO_KEYS = 3
+        const val REQUEST_SELECT_GPU_DRIVER = 4
     }
 }
