@@ -28,8 +28,5 @@
     <color name="yuzu_inverseSurface">#EDE0DD</color>
     <color name="yuzu_inversePrimary">#BF0500</color>
     <color name="yuzu_shadow">#000000</color>
-    <color name="yuzu_surfaceTint">#FFB4A8</color>
-    <color name="yuzu_outlineVariant">#534341</color>
-    <color name="yuzu_scrim">#000000</color>
 
 </resources>
