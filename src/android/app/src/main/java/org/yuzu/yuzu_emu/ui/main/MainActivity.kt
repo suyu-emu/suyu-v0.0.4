@@ -5,12 +5,12 @@ package org.yuzu.yuzu_emu.ui.main
 
 import android.content.DialogInterface
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
@@ -110,16 +110,8 @@ class MainActivity : AppCompatActivity(), MainView {
 
     override fun launchFileListActivity(request: Int) {
         when (request) {
-            MainPresenter.REQUEST_ADD_DIRECTORY -> FileBrowserHelper.openDirectoryPicker(
-                this,
-                MainPresenter.REQUEST_ADD_DIRECTORY,
-                R.string.select_game_folder
-            )
-            MainPresenter.REQUEST_INSTALL_KEYS -> FileBrowserHelper.openFilePicker(
-                this,
-                MainPresenter.REQUEST_INSTALL_KEYS,
-                R.string.install_keys
-            )
+            MainPresenter.REQUEST_ADD_DIRECTORY -> getGamesDirectory.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data)
+            MainPresenter.REQUEST_INSTALL_KEYS -> getProdKey.launch(arrayOf("*/*"))
             MainPresenter.REQUEST_SELECT_GPU_DRIVER -> {
                 // Get the driver name for the dialog message.
                 var driverName = GpuDriverHelper.customDriverName
@@ -140,107 +132,9 @@ class MainActivity : AppCompatActivity(), MainView {
                         ).show()
                     }
                     .setNeutralButton(R.string.select_gpu_driver_install) { _: DialogInterface?, _: Int ->
-                        FileBrowserHelper.openFilePicker(
-                            this,
-                            MainPresenter.REQUEST_SELECT_GPU_DRIVER,
-                            R.string.select_gpu_driver
-                        )
+                        getDriver.launch(arrayOf("application/zip"))
                     }
                     .show()
-            }
-        }
-    }
-
-    /**
-     * @param requestCode An int describing whether the Activity that is returning did so successfully.
-     * @param resultCode  An int describing what Activity is giving us this callback.
-     * @param result      The information the returning Activity is providing us.
-     */
-    override fun onActivityResult(requestCode: Int, resultCode: Int, result: Intent?) {
-        super.onActivityResult(requestCode, resultCode, result)
-        when (requestCode) {
-            MainPresenter.REQUEST_ADD_DIRECTORY -> if (resultCode == RESULT_OK) {
-                val takeFlags =
-                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
-                contentResolver.takePersistableUriPermission(
-                    Uri.parse(result!!.dataString),
-                    takeFlags
-                )
-                // When a new directory is picked, we currently will reset the existing games
-                // database. This effectively means that only one game directory is supported.
-                // TODO(bunnei): Consider fixing this in the future, or removing code for this.
-                contentResolver.insert(GameProvider.URI_RESET, null)
-                // Add the new directory
-                presenter.onDirectorySelected(FileBrowserHelper.getSelectedDirectory(result))
-            }
-            MainPresenter.REQUEST_INSTALL_KEYS -> if (resultCode == RESULT_OK) {
-                val takeFlags =
-                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
-                contentResolver.takePersistableUriPermission(
-                    Uri.parse(result!!.dataString),
-                    takeFlags
-                )
-                val dstPath = DirectoryInitialization.userDirectory + "/keys/"
-                if (FileUtil.copyUriToInternalStorage(this, result.data, dstPath, "prod.keys")) {
-                    if (NativeLibrary.ReloadKeys()) {
-                        Toast.makeText(
-                            this,
-                            R.string.install_keys_success,
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        refreshFragment()
-                    } else {
-                        Toast.makeText(
-                            this,
-                            R.string.install_keys_failure,
-                            Toast.LENGTH_LONG
-                        ).show()
-                        launchFileListActivity(MainPresenter.REQUEST_INSTALL_KEYS)
-                    }
-                }
-            }
-            MainPresenter.REQUEST_SELECT_GPU_DRIVER -> if (resultCode == RESULT_OK) {
-                val takeFlags =
-                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
-                contentResolver.takePersistableUriPermission(
-                    Uri.parse(result!!.dataString),
-                    takeFlags
-                )
-
-                val progressBinding = DialogProgressBarBinding.inflate(layoutInflater)
-                progressBinding.progressBar.isIndeterminate = true
-                val installationDialog = MaterialAlertDialogBuilder(this)
-                    .setTitle(R.string.installing_driver)
-                    .setView(progressBinding.root)
-                    .show()
-
-                lifecycleScope.launch {
-                    withContext(Dispatchers.IO) {
-                        // Ignore file exceptions when a user selects an invalid zip
-                        try {
-                            GpuDriverHelper.installCustomDriver(applicationContext, result.data)
-                        } catch (_: IOException) {}
-
-                        withContext(Dispatchers.Main) {
-                            installationDialog.dismiss()
-
-                            val driverName = GpuDriverHelper.customDriverName
-                            if (driverName != null) {
-                                Toast.makeText(
-                                    applicationContext,
-                                    getString(R.string.select_gpu_driver_install_success, driverName),
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            } else {
-                                Toast.makeText(
-                                    applicationContext,
-                                    R.string.select_gpu_driver_error,
-                                    Toast.LENGTH_LONG
-                                ).show()
-                            }
-                        }
-                    }
-                }
             }
         }
     }
@@ -275,4 +169,107 @@ class MainActivity : AppCompatActivity(), MainView {
             windowInsets
         }
     }
+
+    private val getGamesDirectory =
+        registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { result ->
+            if (result == null)
+                return@registerForActivityResult
+
+            val takeFlags =
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
+            contentResolver.takePersistableUriPermission(
+                result,
+                takeFlags
+            )
+
+            // When a new directory is picked, we currently will reset the existing games
+            // database. This effectively means that only one game directory is supported.
+            // TODO(bunnei): Consider fixing this in the future, or removing code for this.
+            contentResolver.insert(GameProvider.URI_RESET, null)
+            // Add the new directory
+            presenter.onDirectorySelected(result.toString())
+        }
+
+    private val getProdKey =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
+            if (result == null)
+                return@registerForActivityResult
+
+            val takeFlags =
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
+            contentResolver.takePersistableUriPermission(
+                result,
+                takeFlags
+            )
+
+            val dstPath = DirectoryInitialization.userDirectory + "/keys/"
+            if (FileUtil.copyUriToInternalStorage(this, result, dstPath, "prod.keys")) {
+                if (NativeLibrary.ReloadKeys()) {
+                    Toast.makeText(
+                        this,
+                        R.string.install_keys_success,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    refreshFragment()
+                } else {
+                    Toast.makeText(
+                        this,
+                        R.string.install_keys_failure,
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        }
+
+    private val getDriver =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { result ->
+            if (result == null)
+                return@registerForActivityResult
+
+            val takeFlags =
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION
+            contentResolver.takePersistableUriPermission(
+                result,
+                takeFlags
+            )
+
+            val progressBinding = DialogProgressBarBinding.inflate(layoutInflater)
+            progressBinding.progressBar.isIndeterminate = true
+            val installationDialog = MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.installing_driver)
+                .setView(progressBinding.root)
+                .show()
+
+            lifecycleScope.launch {
+                withContext(Dispatchers.IO) {
+                    // Ignore file exceptions when a user selects an invalid zip
+                    try {
+                        GpuDriverHelper.installCustomDriver(applicationContext, result)
+                    } catch (_: IOException) {
+                    }
+
+                    withContext(Dispatchers.Main) {
+                        installationDialog.dismiss()
+
+                        val driverName = GpuDriverHelper.customDriverName
+                        if (driverName != null) {
+                            Toast.makeText(
+                                applicationContext,
+                                getString(
+                                    R.string.select_gpu_driver_install_success,
+                                    driverName
+                                ),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } else {
+                            Toast.makeText(
+                                applicationContext,
+                                R.string.select_gpu_driver_error,
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+                }
+            }
+        }
 }
