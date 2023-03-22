@@ -35,7 +35,7 @@ object StartupHandler {
             val alert = MaterialAlertDialogBuilder(parent)
                 .setMessage(Html.fromHtml(parent.resources.getString(R.string.app_disclaimer)))
                 .setTitle(R.string.app_name)
-                .setIcon(R.mipmap.ic_launcher)
+                .setIcon(R.drawable.ic_launcher)
                 .setPositiveButton(android.R.string.ok, null)
                 .setOnDismissListener {
                     handleStartupPromptDismiss(parent)
