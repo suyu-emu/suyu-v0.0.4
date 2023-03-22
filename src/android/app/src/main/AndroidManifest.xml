@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-feature
         android:name="android.hardware.touchscreen"
         android:required="false"/>
@@ -22,7 +23,9 @@
         android:supportsRtl="true"
         android:isGame="true"
         android:banner="@mipmap/ic_launcher"
-        android:extractNativeLibs="true">
+        android:extractNativeLibs="true"
+        android:fullBackupContent="@xml/data_extraction_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules_api_31">
 
         <activity
             android:name="org.yuzu.yuzu_emu.ui.main.MainActivity"
