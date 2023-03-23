@@ -4,58 +4,37 @@
 package org.yuzu.yuzu_emu.features.settings.ui
 
 import android.text.TextUtils
+import androidx.appcompat.app.AppCompatActivity
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.features.settings.model.Setting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
-import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.*
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 
 class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) {
     private var menuTag: String? = null
     private lateinit var gameId: String
-    private var settings: Settings? = null
     private var settingsList: ArrayList<SettingsItem>? = null
+
+    private val settingsActivity get() = fragmentView.activityView as AppCompatActivity
+    private val settings get() = fragmentView.activityView!!.settings
 
     fun onCreate(menuTag: String, gameId: String) {
         this.gameId = gameId
         this.menuTag = menuTag
     }
 
-    fun onViewCreated(settings: Settings) {
-        setSettings(settings)
-    }
-
-    fun putSetting(setting: Setting) {
-        settings!!.getSection(setting.section)!!.putSetting(setting)
-    }
-
-    private fun asStringSetting(setting: Setting?): StringSetting? {
-        if (setting == null) {
-            return null
-        }
-        val stringSetting = StringSetting(setting.key, setting.section, setting.valueAsString)
-        putSetting(stringSetting)
-        return stringSetting
-    }
-
-    fun loadDefaultSettings() {
+    fun onViewCreated() {
         loadSettingsList()
     }
 
-    fun setSettings(settings: Settings) {
-        if (settingsList == null) {
-            this.settings = settings
-            loadSettingsList()
-        } else {
-            fragmentView.fragmentActivity.setTitle(R.string.preferences_settings)
-            fragmentView.showSettingsList(settingsList!!)
-        }
+    fun putSetting(setting: Setting) {
+        settings.getSection(setting.section)!!.putSetting(setting)
     }
 
-    private fun loadSettingsList() {
+    fun loadSettingsList() {
         if (!TextUtils.isEmpty(gameId)) {
-            fragmentView.fragmentActivity.title = "Game Settings: $gameId"
+            settingsActivity.title = "Game Settings: $gameId"
         }
         val sl = ArrayList<SettingsItem>()
         if (menuTag == null) {
@@ -77,7 +56,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
     }
 
     private fun addConfigSettings(sl: ArrayList<SettingsItem>) {
-        fragmentView.fragmentActivity.setTitle(R.string.preferences_settings)
+        settingsActivity.setTitle(R.string.preferences_settings)
         sl.apply {
             add(
                 SubmenuSetting(
@@ -119,12 +98,12 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
     }
 
     private fun addGeneralSettings(sl: ArrayList<SettingsItem>) {
-        fragmentView.fragmentActivity.setTitle(R.string.preferences_general)
-        val rendererSection = settings!!.getSection(Settings.SECTION_RENDERER)
+        settingsActivity.setTitle(R.string.preferences_general)
+        val rendererSection = settings.getSection(Settings.SECTION_RENDERER)
         val frameLimitEnable =
             rendererSection!!.getSetting(SettingsFile.KEY_RENDERER_USE_SPEED_LIMIT)
         val frameLimitValue = rendererSection.getSetting(SettingsFile.KEY_RENDERER_SPEED_LIMIT)
-        val cpuSection = settings!!.getSection(Settings.SECTION_CPU)
+        val cpuSection = settings.getSection(Settings.SECTION_CPU)
         val cpuAccuracy = cpuSection!!.getSetting(SettingsFile.KEY_CPU_ACCURACY)
         sl.apply {
             add(
@@ -166,8 +145,8 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
     }
 
     private fun addSystemSettings(sl: ArrayList<SettingsItem>) {
-        fragmentView.fragmentActivity.setTitle(R.string.preferences_system)
-        val systemSection = settings!!.getSection(Settings.SECTION_SYSTEM)
+        settingsActivity.setTitle(R.string.preferences_system)
+        val systemSection = settings.getSection(Settings.SECTION_SYSTEM)
         val dockedMode = systemSection!!.getSetting(SettingsFile.KEY_USE_DOCKED_MODE)
         val region = systemSection.getSetting(SettingsFile.KEY_REGION_INDEX)
         val language = systemSection.getSetting(SettingsFile.KEY_LANGUAGE_INDEX)
@@ -210,8 +189,8 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
     }
 
     private fun addGraphicsSettings(sl: ArrayList<SettingsItem>) {
-        fragmentView.fragmentActivity.setTitle(R.string.preferences_graphics)
-        val rendererSection = settings!!.getSection(Settings.SECTION_RENDERER)
+        settingsActivity.setTitle(R.string.preferences_graphics)
+        val rendererSection = settings.getSection(Settings.SECTION_RENDERER)
         val rendererBackend = rendererSection!!.getSetting(SettingsFile.KEY_RENDERER_BACKEND)
         val rendererAccuracy = rendererSection.getSetting(SettingsFile.KEY_RENDERER_ACCURACY)
         val rendererResolution = rendererSection.getSetting(SettingsFile.KEY_RENDERER_RESOLUTION)
@@ -305,8 +284,8 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
     }
 
     private fun addAudioSettings(sl: ArrayList<SettingsItem>) {
-        fragmentView.fragmentActivity.setTitle(R.string.preferences_audio)
-        val audioSection = settings!!.getSection(Settings.SECTION_AUDIO)
+        settingsActivity.setTitle(R.string.preferences_audio)
+        val audioSection = settings.getSection(Settings.SECTION_AUDIO)
         val audioVolume = audioSection!!.getSetting(SettingsFile.KEY_AUDIO_VOLUME)
         sl.add(
             SliderSetting(

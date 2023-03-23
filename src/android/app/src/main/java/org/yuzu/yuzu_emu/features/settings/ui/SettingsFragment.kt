@@ -12,7 +12,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.divider.MaterialDividerItemDecoration
 import org.yuzu.yuzu_emu.databinding.FragmentSettingsBinding
@@ -21,10 +20,9 @@ import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
 
 class SettingsFragment : Fragment(), SettingsFragmentView {
-    override lateinit var fragmentActivity: FragmentActivity
+    override var activityView: SettingsActivityView? = null
 
-    private val presenter = SettingsFragmentPresenter(this)
-    private var activityView: SettingsActivityView? = null
+    private val fragmentPresenter = SettingsFragmentPresenter(this)
     private var settingsAdapter: SettingsAdapter? = null
 
     private var _binding: FragmentSettingsBinding? = null
@@ -32,15 +30,14 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        activityView = context as SettingsActivityView
-        fragmentActivity = requireActivity()
+        activityView = requireActivity() as SettingsActivityView
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val menuTag = requireArguments().getString(ARGUMENT_MENU_TAG)
         val gameId = requireArguments().getString(ARGUMENT_GAME_ID)
-        presenter.onCreate(menuTag!!, gameId!!)
+        fragmentPresenter.onCreate(menuTag!!, gameId!!)
     }
 
     override fun onCreateView(
@@ -61,8 +58,7 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
             layoutManager = LinearLayoutManager(activity)
             addItemDecoration(dividerDecoration)
         }
-        val activity = activity as SettingsActivityView?
-        presenter.onViewCreated(activity!!.settings)
+        fragmentPresenter.onViewCreated()
 
         setInsets()
     }
@@ -75,16 +71,12 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
         }
     }
 
-    override fun onSettingsFileLoaded(settings: Settings) {
-        presenter.setSettings(settings)
-    }
-
     override fun showSettingsList(settingsList: ArrayList<SettingsItem>) {
-        settingsAdapter!!.setSettings(settingsList)
+        settingsAdapter!!.setSettingsList(settingsList)
     }
 
-    override fun loadDefaultSettings() {
-        presenter.loadDefaultSettings()
+    override fun loadSettingsList() {
+        fragmentPresenter.loadSettingsList()
     }
 
     override fun loadSubMenu(menuKey: String) {
@@ -100,7 +92,7 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
     }
 
     override fun putSetting(setting: Setting) {
-        presenter.putSetting(setting)
+        fragmentPresenter.putSetting(setting)
     }
 
     override fun onSettingChanged() {

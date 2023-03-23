@@ -12,6 +12,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -93,7 +94,7 @@ class SettingsAdapter(
         return getItem(position).type
     }
 
-    fun setSettings(settings: ArrayList<SettingsItem>?) {
+    fun setSettingsList(settings: ArrayList<SettingsItem>?) {
         this.settings = settings
         notifyDataSetChanged()
     }
@@ -144,7 +145,7 @@ class SettingsAdapter(
         calendar.timeZone = TimeZone.getTimeZone("UTC")
 
         var timeFormat: Int = TimeFormat.CLOCK_12H
-        if (DateFormat.is24HourFormat(fragmentView.fragmentActivity)) {
+        if (DateFormat.is24HourFormat(fragmentView.activityView as AppCompatActivity)) {
             timeFormat = TimeFormat.CLOCK_24H
         }
 
@@ -161,7 +162,7 @@ class SettingsAdapter(
 
         datePicker.addOnPositiveButtonClickListener {
             timePicker.show(
-                fragmentView.fragmentActivity.supportFragmentManager,
+                (fragmentView.activityView as AppCompatActivity).supportFragmentManager,
                 "TimePicker"
             )
         }
@@ -177,7 +178,7 @@ class SettingsAdapter(
             item.setSelectedValue(rtcString)
             clickedItem = null
         }
-        datePicker.show(fragmentView.fragmentActivity.supportFragmentManager, "DatePicker")
+        datePicker.show((fragmentView.activityView as AppCompatActivity).supportFragmentManager, "DatePicker")
     }
 
     fun onSliderClick(item: SliderSetting, position: Int) {

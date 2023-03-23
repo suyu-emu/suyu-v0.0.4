@@ -35,11 +35,7 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
 
     private val settingsViewModel: SettingsViewModel by viewModels()
 
-    override var settings: Settings
-        get() = settingsViewModel.settings
-        set(settings) {
-            settingsViewModel.settings = settings
-        }
+    override val settings: Settings get() = settingsViewModel.settings
 
     override fun onCreate(savedInstanceState: Bundle?) {
         ThemeHelper.setTheme(this)
@@ -179,14 +175,14 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
         ).show()
     }
 
-    override fun onSettingsFileLoaded(settings: Settings) {
+    override fun onSettingsFileLoaded() {
         val fragment: SettingsFragmentView? = settingsFragment
-        fragment?.onSettingsFileLoaded(settings)
+        fragment?.loadSettingsList()
     }
 
     override fun onSettingsFileNotFound() {
         val fragment: SettingsFragmentView? = settingsFragment
-        fragment?.loadDefaultSettings()
+        fragment?.loadSettingsList()
     }
 
     override fun showToastMessage(message: String, is_long: Boolean) {

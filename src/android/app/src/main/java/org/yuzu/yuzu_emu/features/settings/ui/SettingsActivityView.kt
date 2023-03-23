@@ -24,19 +24,17 @@ interface SettingsActivityView {
      * loaded from disk, so that each Fragment doesn't need to perform its own
      * read operation.
      *
-     * @return A possibly null HashMap of Settings.
+     * @return A HashMap of Settings.
      */
-    var settings: Settings
+    val settings: Settings
 
     /**
-     * Called when an asynchronous load operation completes.
-     *
-     * @param settings The (possibly null) result of the ini load operation.
+     * Called when a load operation completes.
      */
-    fun onSettingsFileLoaded(settings: Settings)
+    fun onSettingsFileLoaded()
 
     /**
-     * Called when an asynchronous load operation fails.
+     * Called when a load operation fails.
      */
     fun onSettingsFileNotFound()
 

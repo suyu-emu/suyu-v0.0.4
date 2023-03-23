@@ -3,9 +3,7 @@
 
 package org.yuzu.yuzu_emu.features.settings.ui
 
-import androidx.fragment.app.FragmentActivity
 import org.yuzu.yuzu_emu.features.settings.model.Setting
-import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
 
 /**
@@ -14,14 +12,6 @@ import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
  */
 interface SettingsFragmentView {
     /**
-     * Called by the containing Activity to notify the Fragment that an
-     * asynchronous load operation completed.
-     *
-     * @param settings The (possibly null) result of the ini load operation.
-     */
-    fun onSettingsFileLoaded(settings: Settings)
-
-    /**
      * Pass an ArrayList to the View so that it can be displayed on screen.
      *
      * @param settingsList The result of converting the HashMap to an ArrayList
@@ -29,15 +19,14 @@ interface SettingsFragmentView {
     fun showSettingsList(settingsList: ArrayList<SettingsItem>)
 
     /**
-     * Called by the containing Activity when an asynchronous load operation fails.
-     * Instructs the Fragment to load the settings screen with defaults selected.
+     * Instructs the Fragment to load the settings screen.
      */
-    fun loadDefaultSettings()
+    fun loadSettingsList()
 
     /**
      * @return The Fragment's containing activity.
      */
-    val fragmentActivity: FragmentActivity
+    val activityView: SettingsActivityView?
 
     /**
      * Tell the Fragment to tell the containing Activity to show a new

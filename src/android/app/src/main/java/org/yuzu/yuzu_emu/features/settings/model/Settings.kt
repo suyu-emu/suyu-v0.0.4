@@ -13,6 +13,8 @@ import java.util.*
 class Settings {
     private var gameId: String? = null
 
+    var isLoaded = false
+
     /**
      * A HashMap<String></String>, SettingSection> that constructs a new SettingSection instead of returning null
      * when getting a key not already in the map
@@ -43,6 +45,7 @@ class Settings {
         if (!TextUtils.isEmpty(gameId)) {
             loadCustomGameSettings(gameId!!, view)
         }
+        isLoaded = true
     }
 
     private fun loadYuzuSettings(view: SettingsActivityView) {
