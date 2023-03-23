@@ -1,159 +1,249 @@
-// SPDX-FileCopyrightText: Copyright (c) 2020 Erik Rigtorp <erik@rigtorp.se>
-// SPDX-License-Identifier: MIT
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #pragma once
 
 #include <atomic>
-#include <bit>
 #include <condition_variable>
-#include <memory>
+#include <cstddef>
 #include <mutex>
 #include <new>
-#include <type_traits>
-#include <utility>
 
 #include "common/polyfill_thread.h"
 
 namespace Common {
 
-#if defined(__cpp_lib_hardware_interference_size)
-constexpr size_t hardware_interference_size = std::hardware_destructive_interference_size;
-#else
-constexpr size_t hardware_interference_size = 64;
-#endif
+namespace detail {
+constexpr size_t DefaultCapacity = 0x1000;
+} // namespace detail
 
-template <typename T, size_t capacity = 0x400>
-class MPSCQueue {
+template <typename T, size_t Capacity = detail::DefaultCapacity>
+class SPSCQueue {
+    static_assert((Capacity & (Capacity - 1)) == 0, "Capacity must be a power of two.");
+
 public:
-    explicit MPSCQueue() : allocator{std::allocator<Slot<T>>()} {
-        // Allocate one extra slot to prevent false sharing on the last slot
-        slots = allocator.allocate(capacity + 1);
-        // Allocators are not required to honor alignment for over-aligned types
-        // (see http://eel.is/c++draft/allocator.requirements#10) so we verify
-        // alignment here
-        if (reinterpret_cast<uintptr_t>(slots) % alignof(Slot<T>) != 0) {
-            allocator.deallocate(slots, capacity + 1);
-            throw std::bad_alloc();
-        }
-        for (size_t i = 0; i < capacity; ++i) {
-            std::construct_at(&slots[i]);
-        }
-        static_assert(std::has_single_bit(capacity), "capacity must be an integer power of 2");
-        static_assert(alignof(Slot<T>) == hardware_interference_size,
-                      "Slot must be aligned to cache line boundary to prevent false sharing");
-        static_assert(sizeof(Slot<T>) % hardware_interference_size == 0,
-                      "Slot size must be a multiple of cache line size to prevent "
-                      "false sharing between adjacent slots");
-        static_assert(sizeof(MPSCQueue) % hardware_interference_size == 0,
-                      "Queue size must be a multiple of cache line size to "
-                      "prevent false sharing between adjacent queues");
+    template <typename... Args>
+    bool TryEmplace(Args&&... args) {
+        return Emplace<PushMode::Try>(std::forward<Args>(args)...);
     }
 
-    ~MPSCQueue() noexcept {
-        for (size_t i = 0; i < capacity; ++i) {
-            std::destroy_at(&slots[i]);
-        }
-        allocator.deallocate(slots, capacity + 1);
+    template <typename... Args>
+    void EmplaceWait(Args&&... args) {
+        Emplace<PushMode::Wait>(std::forward<Args>(args)...);
     }
 
-    // The queue must be both non-copyable and non-movable
-    MPSCQueue(const MPSCQueue&) = delete;
-    MPSCQueue& operator=(const MPSCQueue&) = delete;
-
-    MPSCQueue(MPSCQueue&&) = delete;
-    MPSCQueue& operator=(MPSCQueue&&) = delete;
-
-    void Push(const T& v) noexcept {
-        static_assert(std::is_nothrow_copy_constructible_v<T>,
-                      "T must be nothrow copy constructible");
-        emplace(v);
+    bool TryPop(T& t) {
+        return Pop<PopMode::Try>(t);
     }
 
-    template <typename P, typename = std::enable_if_t<std::is_nothrow_constructible_v<T, P&&>>>
-    void Push(P&& v) noexcept {
-        emplace(std::forward<P>(v));
+    void PopWait(T& t) {
+        Pop<PopMode::Wait>(t);
     }
 
-    void Pop(T& v, std::stop_token stop) noexcept {
-        auto const tail = tail_.fetch_add(1);
-        auto& slot = slots[idx(tail)];
-        if (!slot.turn.test()) {
-            std::unique_lock lock{cv_mutex};
-            Common::CondvarWait(cv, lock, stop, [&slot] { return slot.turn.test(); });
-        }
-        v = slot.move();
-        slot.destroy();
-        slot.turn.clear();
-        slot.turn.notify_one();
+    void PopWait(T& t, std::stop_token stop_token) {
+        Pop<PopMode::WaitWithStopToken>(t, stop_token);
+    }
+
+    T PopWait() {
+        T t;
+        Pop<PopMode::Wait>(t);
+        return t;
+    }
+
+    T PopWait(std::stop_token stop_token) {
+        T t;
+        Pop<PopMode::WaitWithStopToken>(t, stop_token);
+        return t;
     }
 
 private:
-    template <typename U = T>
-    struct Slot {
-        ~Slot() noexcept {
-            if (turn.test()) {
-                destroy();
-            }
-        }
-
-        template <typename... Args>
-        void construct(Args&&... args) noexcept {
-            static_assert(std::is_nothrow_constructible_v<U, Args&&...>,
-                          "T must be nothrow constructible with Args&&...");
-            std::construct_at(reinterpret_cast<U*>(&storage), std::forward<Args>(args)...);
-        }
-
-        void destroy() noexcept {
-            static_assert(std::is_nothrow_destructible_v<U>, "T must be nothrow destructible");
-            std::destroy_at(reinterpret_cast<U*>(&storage));
-        }
-
-        U&& move() noexcept {
-            return reinterpret_cast<U&&>(storage);
-        }
-
-        // Align to avoid false sharing between adjacent slots
-        alignas(hardware_interference_size) std::atomic_flag turn{};
-        struct aligned_store {
-            struct type {
-                alignas(U) unsigned char data[sizeof(U)];
-            };
-        };
-        typename aligned_store::type storage;
+    enum class PushMode {
+        Try,
+        Wait,
+        Count,
     };
 
+    enum class PopMode {
+        Try,
+        Wait,
+        WaitWithStopToken,
+        Count,
+    };
+
+    template <PushMode Mode, typename... Args>
+    bool Emplace(Args&&... args) {
+        const size_t write_index = m_write_index.load(std::memory_order::relaxed);
+
+        if constexpr (Mode == PushMode::Try) {
+            // Check if we have free slots to write to.
+            if ((write_index - m_read_index.load(std::memory_order::acquire)) == Capacity) {
+                return false;
+            }
+        } else if constexpr (Mode == PushMode::Wait) {
+            // Wait until we have free slots to write to.
+            std::unique_lock lock{producer_cv_mutex};
+            producer_cv.wait(lock, [this, write_index] {
+                return (write_index - m_read_index.load(std::memory_order::acquire)) < Capacity;
+            });
+        } else {
+            static_assert(Mode < PushMode::Count, "Invalid PushMode.");
+        }
+
+        // Determine the position to write to.
+        const size_t pos = write_index % Capacity;
+
+        // Emplace into the queue.
+        std::construct_at(std::addressof(m_data[pos]), std::forward<Args>(args)...);
+
+        // Increment the write index.
+        ++m_write_index;
+
+        // Notify the consumer that we have pushed into the queue.
+        std::scoped_lock lock{consumer_cv_mutex};
+        consumer_cv.notify_one();
+
+        return true;
+    }
+
+    template <PopMode Mode>
+    bool Pop(T& t, [[maybe_unused]] std::stop_token stop_token = {}) {
+        const size_t read_index = m_read_index.load(std::memory_order::relaxed);
+
+        if constexpr (Mode == PopMode::Try) {
+            // Check if the queue is empty.
+            if (read_index == m_write_index.load(std::memory_order::acquire)) {
+                return false;
+            }
+        } else if constexpr (Mode == PopMode::Wait) {
+            // Wait until the queue is not empty.
+            std::unique_lock lock{consumer_cv_mutex};
+            consumer_cv.wait(lock, [this, read_index] {
+                return read_index != m_write_index.load(std::memory_order::acquire);
+            });
+        } else if constexpr (Mode == PopMode::WaitWithStopToken) {
+            // Wait until the queue is not empty.
+            std::unique_lock lock{consumer_cv_mutex};
+            Common::CondvarWait(consumer_cv, lock, stop_token, [this, read_index] {
+                return read_index != m_write_index.load(std::memory_order::acquire);
+            });
+            if (stop_token.stop_requested()) {
+                return false;
+            }
+        } else {
+            static_assert(Mode < PopMode::Count, "Invalid PopMode.");
+        }
+
+        // Determine the position to read from.
+        const size_t pos = read_index % Capacity;
+
+        // Pop the data off the queue, moving it.
+        t = std::move(m_data[pos]);
+
+        // Increment the read index.
+        ++m_read_index;
+
+        // Notify the producer that we have popped off the queue.
+        std::scoped_lock lock{producer_cv_mutex};
+        producer_cv.notify_one();
+
+        return true;
+    }
+
+    alignas(128) std::atomic_size_t m_read_index{0};
+    alignas(128) std::atomic_size_t m_write_index{0};
+
+    std::array<T, Capacity> m_data;
+
+    std::condition_variable_any producer_cv;
+    std::mutex producer_cv_mutex;
+    std::condition_variable_any consumer_cv;
+    std::mutex consumer_cv_mutex;
+};
+
+template <typename T, size_t Capacity = detail::DefaultCapacity>
+class MPSCQueue {
+public:
     template <typename... Args>
-    void emplace(Args&&... args) noexcept {
-        static_assert(std::is_nothrow_constructible_v<T, Args&&...>,
-                      "T must be nothrow constructible with Args&&...");
-        auto const head = head_.fetch_add(1);
-        auto& slot = slots[idx(head)];
-        slot.turn.wait(true);
-        slot.construct(std::forward<Args>(args)...);
-        slot.turn.test_and_set();
-        cv.notify_one();
+    bool TryEmplace(Args&&... args) {
+        std::scoped_lock lock{write_mutex};
+        return spsc_queue.TryEmplace(std::forward<Args>(args)...);
     }
 
-    constexpr size_t idx(size_t i) const noexcept {
-        return i & mask;
+    template <typename... Args>
+    void EmplaceWait(Args&&... args) {
+        std::scoped_lock lock{write_mutex};
+        spsc_queue.EmplaceWait(std::forward<Args>(args)...);
     }
 
-    static constexpr size_t mask = capacity - 1;
+    bool TryPop(T& t) {
+        return spsc_queue.TryPop(t);
+    }
 
-    // Align to avoid false sharing between head_ and tail_
-    alignas(hardware_interference_size) std::atomic<size_t> head_{0};
-    alignas(hardware_interference_size) std::atomic<size_t> tail_{0};
+    void PopWait(T& t) {
+        spsc_queue.PopWait(t);
+    }
 
-    std::mutex cv_mutex;
-    std::condition_variable_any cv;
+    void PopWait(T& t, std::stop_token stop_token) {
+        spsc_queue.PopWait(t, stop_token);
+    }
 
-    Slot<T>* slots;
-    [[no_unique_address]] std::allocator<Slot<T>> allocator;
+    T PopWait() {
+        return spsc_queue.PopWait();
+    }
 
-    static_assert(std::is_nothrow_copy_assignable_v<T> || std::is_nothrow_move_assignable_v<T>,
-                  "T must be nothrow copy or move assignable");
+    T PopWait(std::stop_token stop_token) {
+        return spsc_queue.PopWait(stop_token);
+    }
 
-    static_assert(std::is_nothrow_destructible_v<T>, "T must be nothrow destructible");
+private:
+    SPSCQueue<T, Capacity> spsc_queue;
+    std::mutex write_mutex;
+};
+
+template <typename T, size_t Capacity = detail::DefaultCapacity>
+class MPMCQueue {
+public:
+    template <typename... Args>
+    bool TryEmplace(Args&&... args) {
+        std::scoped_lock lock{write_mutex};
+        return spsc_queue.TryEmplace(std::forward<Args>(args)...);
+    }
+
+    template <typename... Args>
+    void EmplaceWait(Args&&... args) {
+        std::scoped_lock lock{write_mutex};
+        spsc_queue.EmplaceWait(std::forward<Args>(args)...);
+    }
+
+    bool TryPop(T& t) {
+        std::scoped_lock lock{read_mutex};
+        return spsc_queue.TryPop(t);
+    }
+
+    void PopWait(T& t) {
+        std::scoped_lock lock{read_mutex};
+        spsc_queue.PopWait(t);
+    }
+
+    void PopWait(T& t, std::stop_token stop_token) {
+        std::scoped_lock lock{read_mutex};
+        spsc_queue.PopWait(t, stop_token);
+    }
+
+    T PopWait() {
+        std::scoped_lock lock{read_mutex};
+        return spsc_queue.PopWait();
+    }
+
+    T PopWait(std::stop_token stop_token) {
+        std::scoped_lock lock{read_mutex};
+        return spsc_queue.PopWait(stop_token);
+    }
+
+private:
+    SPSCQueue<T, Capacity> spsc_queue;
+    std::mutex write_mutex;
+    std::mutex read_mutex;
 };
 
 } // namespace Common
