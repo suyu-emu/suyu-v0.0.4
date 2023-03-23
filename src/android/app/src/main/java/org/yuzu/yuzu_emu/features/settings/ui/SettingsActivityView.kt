@@ -26,14 +26,14 @@ interface SettingsActivityView {
      *
      * @return A possibly null HashMap of Settings.
      */
-    var settings: Settings?
+    var settings: Settings
 
     /**
      * Called when an asynchronous load operation completes.
      *
      * @param settings The (possibly null) result of the ini load operation.
      */
-    fun onSettingsFileLoaded(settings: Settings?)
+    fun onSettingsFileLoaded(settings: Settings)
 
     /**
      * Called when an asynchronous load operation fails.

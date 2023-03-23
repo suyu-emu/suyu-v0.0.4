@@ -22,19 +22,8 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
         this.menuTag = menuTag
     }
 
-    fun onViewCreated(settings: Settings?) {
+    fun onViewCreated(settings: Settings) {
         setSettings(settings)
-    }
-
-    /**
-     * If the screen is rotated, the Activity will forget the settings map. This fragment
-     * won't, though; so rather than have the Activity reload from disk, have the fragment pass
-     * the settings map back to the Activity.
-     */
-    fun onAttach() {
-        if (settings != null) {
-            fragmentView.passSettingsToActivity(settings!!)
-        }
     }
 
     fun putSetting(setting: Setting) {
@@ -54,8 +43,8 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
         loadSettingsList()
     }
 
-    fun setSettings(settings: Settings?) {
-        if (settingsList == null && settings != null) {
+    fun setSettings(settings: Settings) {
+        if (settingsList == null) {
             this.settings = settings
             loadSettingsList()
         } else {

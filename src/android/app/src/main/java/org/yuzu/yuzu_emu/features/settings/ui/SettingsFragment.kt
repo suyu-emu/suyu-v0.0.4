@@ -34,7 +34,6 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
         super.onAttach(context)
         activityView = context as SettingsActivityView
         fragmentActivity = requireActivity()
-        presenter.onAttach()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,14 +75,8 @@ class SettingsFragment : Fragment(), SettingsFragmentView {
         }
     }
 
-    override fun onSettingsFileLoaded(settings: Settings?) {
+    override fun onSettingsFileLoaded(settings: Settings) {
         presenter.setSettings(settings)
-    }
-
-    override fun passSettingsToActivity(settings: Settings) {
-        if (activityView != null) {
-            activityView!!.settings = settings
-        }
     }
 
     override fun showSettingsList(settingsList: ArrayList<SettingsItem>) {

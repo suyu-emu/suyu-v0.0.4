@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.View
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -23,7 +24,7 @@ import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.ActivitySettingsBinding
 import org.yuzu.yuzu_emu.databinding.DialogProgressBarBinding
 import org.yuzu.yuzu_emu.features.settings.model.Settings
-import org.yuzu.yuzu_emu.features.settings.ui.SettingsFragment.Companion.newInstance
+import org.yuzu.yuzu_emu.features.settings.model.SettingsViewModel
 import org.yuzu.yuzu_emu.utils.*
 
 class SettingsActivity : AppCompatActivity(), SettingsActivityView {
@@ -31,6 +32,14 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
     private var dialog: AlertDialog? = null
 
     private lateinit var binding: ActivitySettingsBinding
+
+    private val settingsViewModel: SettingsViewModel by viewModels()
+
+    override var settings: Settings
+        get() = settingsViewModel.settings
+        set(settings) {
+            settingsViewModel.settings = settings
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         ThemeHelper.setTheme(this)
@@ -93,9 +102,10 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
     }
 
     override fun showSettingsFragment(menuTag: String, addToStack: Boolean, gameId: String) {
-        if (!addToStack && fragment != null) {
+        if (!addToStack && settingsFragment != null) {
             return
         }
+
         val transaction = supportFragmentManager.beginTransaction()
         if (addToStack) {
             if (areSystemAnimationsEnabled()) {
@@ -108,7 +118,11 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
             }
             transaction.addToBackStack(null)
         }
-        transaction.replace(R.id.frame_content, newInstance(menuTag, gameId), FRAGMENT_TAG)
+        transaction.replace(
+            R.id.frame_content,
+            SettingsFragment.newInstance(menuTag, gameId),
+            FRAGMENT_TAG
+        )
         transaction.commit()
     }
 
@@ -165,19 +179,13 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
         ).show()
     }
 
-    override var settings: Settings?
-        get() = presenter.settings
-        set(settings) {
-            presenter.settings = settings
-        }
-
-    override fun onSettingsFileLoaded(settings: Settings?) {
-        val fragment: SettingsFragmentView? = fragment
+    override fun onSettingsFileLoaded(settings: Settings) {
+        val fragment: SettingsFragmentView? = settingsFragment
         fragment?.onSettingsFileLoaded(settings)
     }
 
     override fun onSettingsFileNotFound() {
-        val fragment: SettingsFragmentView? = fragment
+        val fragment: SettingsFragmentView? = settingsFragment
         fragment?.loadDefaultSettings()
     }
 
@@ -193,7 +201,7 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
         presenter.onSettingChanged()
     }
 
-    private val fragment: SettingsFragment?
+    private val settingsFragment: SettingsFragment?
         get() = supportFragmentManager.findFragmentByTag(FRAGMENT_TAG) as SettingsFragment?
 
     private fun setInsets() {

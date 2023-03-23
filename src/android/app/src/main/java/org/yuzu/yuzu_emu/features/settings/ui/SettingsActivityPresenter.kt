@@ -16,17 +16,17 @@ import org.yuzu.yuzu_emu.utils.Log
 import java.io.File
 
 class SettingsActivityPresenter(private val activityView: SettingsActivityView) {
-    var settings: Settings? = Settings()
+    val settings: Settings get() = activityView.settings
+
     private var shouldSave = false
     private var directoryStateReceiver: DirectoryStateReceiver? = null
     private lateinit var menuTag: String
     private lateinit var gameId: String
 
     fun onCreate(savedInstanceState: Bundle?, menuTag: String, gameId: String) {
-        if (savedInstanceState == null) {
-            this.menuTag = menuTag
-            this.gameId = gameId
-        } else {
+        this.menuTag = menuTag
+        this.gameId = gameId
+        if (savedInstanceState != null) {
             shouldSave = savedInstanceState.getBoolean(KEY_SHOULD_SAVE)
         }
     }
@@ -36,11 +36,11 @@ class SettingsActivityPresenter(private val activityView: SettingsActivityView) 
     }
 
     private fun loadSettingsUI() {
-        if (settings!!.isEmpty) {
+        if (settings.isEmpty) {
             if (!TextUtils.isEmpty(gameId)) {
-                settings!!.loadSettings(gameId, activityView)
+                settings.loadSettings(gameId, activityView)
             } else {
-                settings!!.loadSettings(activityView)
+                settings.loadSettings(activityView)
             }
         }
         activityView.showSettingsFragment(menuTag, false, gameId)
@@ -81,9 +81,9 @@ class SettingsActivityPresenter(private val activityView: SettingsActivityView) 
             activityView.stopListeningToDirectoryInitializationService(directoryStateReceiver!!)
             directoryStateReceiver = null
         }
-        if (settings != null && finishing && shouldSave) {
+        if (finishing && shouldSave) {
             Log.debug("[SettingsActivity] Settings activity stopping. Saving settings to INI...")
-            settings!!.saveSettings(activityView)
+            settings.saveSettings(activityView)
         }
         NativeLibrary.ReloadSettings()
     }

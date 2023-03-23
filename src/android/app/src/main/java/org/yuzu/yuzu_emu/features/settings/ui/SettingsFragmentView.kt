@@ -19,16 +19,7 @@ interface SettingsFragmentView {
      *
      * @param settings The (possibly null) result of the ini load operation.
      */
-    fun onSettingsFileLoaded(settings: Settings?)
-
-    /**
-     * Pass a settings HashMap to the containing activity, so that it can
-     * share the HashMap with other SettingsFragments; useful so that rotations
-     * do not require an additional load operation.
-     *
-     * @param settings An ArrayList containing all the settings HashMaps.
-     */
-    fun passSettingsToActivity(settings: Settings)
+    fun onSettingsFileLoaded(settings: Settings)
 
     /**
      * Pass an ArrayList to the View so that it can be displayed on screen.
