@@ -41,7 +41,6 @@
 
         <activity
             android:name="org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity"
-            android:configChanges="orientation|screenSize|uiMode"
             android:theme="@style/Theme.Yuzu.Main"
             android:label="@string/preferences_settings"/>
 
