@@ -99,6 +99,9 @@ class PlatformGamesFragment : Fragment(), PlatformGamesView {
     }
 
     private fun updateTextView() {
+        if (_binding == null)
+            return
+
         binding.gamelistEmptyText.visibility =
             if (adapter!!.itemCount == 0) View.VISIBLE else View.GONE
     }
