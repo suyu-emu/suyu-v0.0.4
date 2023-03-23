@@ -8,22 +8,20 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.color.MaterialColors
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.adapters.GameAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentGridBinding
+import org.yuzu.yuzu_emu.layout.AutofitGridLayoutManager
 
 class PlatformGamesFragment : Fragment(), PlatformGamesView {
     private val presenter = PlatformGamesPresenter(this)
-    private var adapter: GameAdapter? = null
 
     private var _binding: FragmentGridBinding? = null
     private val binding get() = _binding!!
@@ -39,27 +37,12 @@ class PlatformGamesFragment : Fragment(), PlatformGamesView {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        adapter = GameAdapter(requireActivity() as AppCompatActivity)
-
-        // Organize our grid layout based on the current view.
-        if (isAdded) {
-            view.viewTreeObserver
-                .addOnGlobalLayoutListener(object : OnGlobalLayoutListener {
-                    override fun onGlobalLayout() {
-                        if (view.measuredWidth == 0) {
-                            return
-                        }
-                        var columns = view.measuredWidth /
-                                requireContext().resources.getDimensionPixelSize(R.dimen.card_width)
-                        if (columns == 0) {
-                            columns = 1
-                        }
-                        view.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                        val layoutManager = GridLayoutManager(activity, columns)
-                        binding.gridGames.layoutManager = layoutManager
-                        binding.gridGames.adapter = adapter
-                    }
-                })
+        binding.gridGames.apply {
+            layoutManager = AutofitGridLayoutManager(
+                requireContext(),
+                requireContext().resources.getDimensionPixelSize(R.dimen.card_width)
+            )
+            adapter = GameAdapter(requireActivity() as AppCompatActivity)
         }
 
         // Add swipe down to refresh gesture
@@ -92,8 +75,8 @@ class PlatformGamesFragment : Fragment(), PlatformGamesView {
     }
 
     override fun showGames(games: Cursor) {
-        if (adapter != null) {
-            adapter!!.swapCursor(games)
+        if (binding.gridGames.adapter != null) {
+            (binding.gridGames.adapter as GameAdapter).swapCursor(games)
         }
         updateTextView()
     }
@@ -103,7 +86,7 @@ class PlatformGamesFragment : Fragment(), PlatformGamesView {
             return
 
         binding.gamelistEmptyText.visibility =
-            if (adapter!!.itemCount == 0) View.VISIBLE else View.GONE
+            if ((binding.gridGames.adapter as GameAdapter).itemCount == 0) View.VISIBLE else View.GONE
     }
 
     private fun setInsets() {
