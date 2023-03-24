@@ -45,9 +45,15 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
     private val overlayButtons: MutableSet<InputOverlayDrawableButton> = HashSet()
     private val overlayDpads: MutableSet<InputOverlayDrawableDpad> = HashSet()
     private val overlayJoysticks: MutableSet<InputOverlayDrawableJoystick> = HashSet()
+
     private var inEditMode = false
+    private var buttonBeingConfigured: InputOverlayDrawableButton? = null
+    private var dpadBeingConfigured: InputOverlayDrawableDpad? = null
+    private var joystickBeingConfigured: InputOverlayDrawableJoystick? = null
+
     private val preferences: SharedPreferences =
         PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
+
     private val gyro = FloatArray(3)
     private val accel = FloatArray(3)
     private var motionTimestamp: Long = 0
@@ -114,7 +120,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
             }
             NativeLibrary.onGamePadButtonEvent(
                 NativeLibrary.Player1Device,
-                button.id,
+                button.buttonId,
                 button.status
             )
             shouldUpdateView = true
@@ -224,8 +230,109 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
         return false
     }
 
-    private fun onTouchWhileEditing(event: MotionEvent?): Boolean {
-        // TODO: Reimplement this
+    private fun onTouchWhileEditing(event: MotionEvent): Boolean {
+        val pointerIndex = event.actionIndex
+        val fingerPositionX = event.getX(pointerIndex).toInt()
+        val fingerPositionY = event.getY(pointerIndex).toInt()
+
+        // TODO: Provide support for portrait layout
+        //val orientation =
+        //    if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) "-Portrait" else ""
+
+        for (button in overlayButtons) {
+            // Determine the button state to apply based on the MotionEvent action flag.
+            when (event.action and MotionEvent.ACTION_MASK) {
+                MotionEvent.ACTION_DOWN,
+                MotionEvent.ACTION_POINTER_DOWN ->
+                    // If no button is being moved now, remember the currently touched button to move.
+                    if (buttonBeingConfigured == null &&
+                        button.bounds.contains(
+                            fingerPositionX,
+                            fingerPositionY
+                        )
+                    ) {
+                        buttonBeingConfigured = button
+                        buttonBeingConfigured!!.onConfigureTouch(event)
+                    }
+                MotionEvent.ACTION_MOVE -> if (buttonBeingConfigured != null) {
+                    buttonBeingConfigured!!.onConfigureTouch(event)
+                    invalidate()
+                    return true
+                }
+                MotionEvent.ACTION_UP,
+                MotionEvent.ACTION_POINTER_UP -> if (buttonBeingConfigured === button) {
+                    // Persist button position by saving new place.
+                    saveControlPosition(
+                        buttonBeingConfigured!!.buttonId,
+                        buttonBeingConfigured!!.bounds.centerX(),
+                        buttonBeingConfigured!!.bounds.centerY(),
+                        ""
+                    )
+                    buttonBeingConfigured = null
+                }
+            }
+        }
+
+        for (dpad in overlayDpads) {
+            // Determine the button state to apply based on the MotionEvent action flag.
+            when (event.action and MotionEvent.ACTION_MASK) {
+                MotionEvent.ACTION_DOWN,
+                MotionEvent.ACTION_POINTER_DOWN ->
+                    // If no button is being moved now, remember the currently touched button to move.
+                    if (buttonBeingConfigured == null &&
+                        dpad.bounds.contains(fingerPositionX, fingerPositionY)
+                    ) {
+                        dpadBeingConfigured = dpad
+                        dpadBeingConfigured!!.onConfigureTouch(event)
+                    }
+                MotionEvent.ACTION_MOVE -> if (dpadBeingConfigured != null) {
+                    dpadBeingConfigured!!.onConfigureTouch(event)
+                    invalidate()
+                    return true
+                }
+                MotionEvent.ACTION_UP,
+                MotionEvent.ACTION_POINTER_UP -> if (dpadBeingConfigured === dpad) {
+                    // Persist button position by saving new place.
+                    saveControlPosition(
+                        dpadBeingConfigured!!.upId,
+                        dpadBeingConfigured!!.bounds.centerX(),
+                        dpadBeingConfigured!!.bounds.centerY(),
+                        ""
+                    )
+                    dpadBeingConfigured = null
+                }
+            }
+        }
+
+        for (joystick in overlayJoysticks) {
+            when (event.action) {
+                MotionEvent.ACTION_DOWN,
+                MotionEvent.ACTION_POINTER_DOWN -> if (joystickBeingConfigured == null &&
+                    joystick.bounds.contains(
+                        fingerPositionX,
+                        fingerPositionY
+                    )
+                ) {
+                    joystickBeingConfigured = joystick
+                    joystickBeingConfigured!!.onConfigureTouch(event)
+                }
+                MotionEvent.ACTION_MOVE -> if (joystickBeingConfigured != null) {
+                    joystickBeingConfigured!!.onConfigureTouch(event)
+                    invalidate()
+                }
+                MotionEvent.ACTION_UP,
+                MotionEvent.ACTION_POINTER_UP -> if (joystickBeingConfigured != null) {
+                    saveControlPosition(
+                        joystickBeingConfigured!!.buttonId,
+                        joystickBeingConfigured!!.bounds.centerX(),
+                        joystickBeingConfigured!!.bounds.centerY(),
+                        ""
+                    )
+                    joystickBeingConfigured = null
+                }
+            }
+        }
+
         return true
     }
 

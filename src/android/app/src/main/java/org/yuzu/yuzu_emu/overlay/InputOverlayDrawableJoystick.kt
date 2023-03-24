@@ -39,31 +39,39 @@ class InputOverlayDrawableJoystick(
     val joystickId: Int,
     val buttonId: Int
 ) {
-
     // The ID value what motion event is tracking
     var trackId = -1
+
     var xAxis = 0f
     private var yAxis = 0f
-    private var controlPositionX = 0
-    private var controlPositionY = 0
+
     val width: Int
     val height: Int
+
     private var virtBounds: Rect
-    private val origBounds: Rect
+    private var origBounds: Rect
+
     private val outerBitmap: BitmapDrawable
     private val defaultStateInnerBitmap: BitmapDrawable
     private val pressedStateInnerBitmap: BitmapDrawable
+
+    private var previousTouchX = 0
+    private var previousTouchY = 0
+    var controlPositionX = 0
+    var controlPositionY = 0
+
     private val boundsBoxBitmap: BitmapDrawable
+
     private var pressedState = false
 
     // TODO: Add button support
     val buttonStatus: Int
         get() =
             NativeLibrary.ButtonState.RELEASED
-    var bounds: Rect?
+    var bounds: Rect
         get() = outerBitmap.bounds
         set(bounds) {
-            outerBitmap.bounds = bounds!!
+            outerBitmap.bounds = bounds
         }
 
     // Nintendo joysticks have y axis inverted
@@ -83,7 +91,7 @@ class InputOverlayDrawableJoystick(
         bounds = rectOuter
         defaultStateInnerBitmap.bounds = rectInner
         pressedStateInnerBitmap.bounds = rectInner
-        virtBounds = bounds!!
+        virtBounds = bounds
         origBounds = outerBitmap.copyBounds()
         boundsBoxBitmap.alpha = 0
         boundsBoxBitmap.bounds = virtBounds
@@ -106,8 +114,9 @@ class InputOverlayDrawableJoystick(
             motionEvent == MotionEvent.ACTION_DOWN || motionEvent == MotionEvent.ACTION_POINTER_DOWN
         val isActionUp =
             motionEvent == MotionEvent.ACTION_UP || motionEvent == MotionEvent.ACTION_POINTER_UP
+
         if (isActionDown) {
-            if (!bounds!!.contains(xPosition, yPosition)) {
+            if (!bounds.contains(xPosition, yPosition)) {
                 return false
             }
             pressedState = true
@@ -122,6 +131,7 @@ class InputOverlayDrawableJoystick(
             boundsBoxBitmap.bounds = virtBounds
             trackId = pointerId
         }
+
         if (isActionUp) {
             if (trackId != pointerId) {
                 return false
@@ -147,7 +157,9 @@ class InputOverlayDrawableJoystick(
             trackId = -1
             return true
         }
+
         if (trackId == -1) return false
+
         for (i in 0 until event.pointerCount) {
             if (trackId != event.getPointerId(i)) {
                 continue
@@ -177,6 +189,50 @@ class InputOverlayDrawableJoystick(
             return oldXAxis != xAxis && oldYAxis != yAxis
         }
         return false
+    }
+
+    fun onConfigureTouch(event: MotionEvent): Boolean {
+        val pointerIndex = event.actionIndex
+        val fingerPositionX = event.getX(pointerIndex).toInt()
+        val fingerPositionY = event.getY(pointerIndex).toInt()
+
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                previousTouchX = fingerPositionX
+                previousTouchY = fingerPositionY
+                controlPositionX = fingerPositionX - (width / 2)
+                controlPositionY = fingerPositionY - (height / 2)
+            }
+            MotionEvent.ACTION_MOVE -> {
+                controlPositionX += fingerPositionX - previousTouchX
+                controlPositionY += fingerPositionY - previousTouchY
+                bounds = Rect(
+                    controlPositionX,
+                    controlPositionY,
+                    outerBitmap.intrinsicWidth + controlPositionX,
+                    outerBitmap.intrinsicHeight + controlPositionY
+                )
+                virtBounds = Rect(
+                    controlPositionX,
+                    controlPositionY,
+                    outerBitmap.intrinsicWidth + controlPositionX,
+                    outerBitmap.intrinsicHeight + controlPositionY
+                )
+                setInnerBounds()
+                bounds = Rect(
+                    Rect(
+                        controlPositionX,
+                        controlPositionY,
+                        outerBitmap.intrinsicWidth + controlPositionX,
+                        outerBitmap.intrinsicHeight + controlPositionY
+                    )
+                )
+                previousTouchX = fingerPositionX
+                previousTouchY = fingerPositionY
+            }
+        }
+        origBounds = outerBitmap.copyBounds()
+        return true
     }
 
     private fun setInnerBounds() {

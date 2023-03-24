@@ -45,13 +45,19 @@ class InputOverlayDrawableDpad(
     val leftId: Int
     val rightId: Int
     var trackId: Int
-    private var controlPositionX = 0
-    private var controlPositionY = 0
+
     val width: Int
     val height: Int
+
     private val defaultStateBitmap: BitmapDrawable
     private val pressedOneDirectionStateBitmap: BitmapDrawable
     private val pressedTwoDirectionsStateBitmap: BitmapDrawable
+
+    private var previousTouchX = 0
+    private var previousTouchY = 0
+    private var controlPositionX = 0
+    private var controlPositionY = 0
+
     private var upButtonState = false
     private var downButtonState = false
     private var leftButtonState = false
@@ -214,6 +220,32 @@ class InputOverlayDrawableDpad(
         get() = if (leftButtonState) ButtonState.PRESSED else ButtonState.RELEASED
     val rightStatus: Int
         get() = if (rightButtonState) ButtonState.PRESSED else ButtonState.RELEASED
+
+    fun onConfigureTouch(event: MotionEvent): Boolean {
+        val pointerIndex = event.actionIndex
+        val fingerPositionX = event.getX(pointerIndex).toInt()
+        val fingerPositionY = event.getY(pointerIndex).toInt()
+
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                previousTouchX = fingerPositionX
+                previousTouchY = fingerPositionY
+            }
+            MotionEvent.ACTION_MOVE -> {
+                controlPositionX += fingerPositionX - previousTouchX
+                controlPositionY += fingerPositionY - previousTouchY
+                setBounds(
+                    controlPositionX,
+                    controlPositionY,
+                    width + controlPositionX,
+                    height + controlPositionY
+                )
+                previousTouchX = fingerPositionX
+                previousTouchY = fingerPositionY
+            }
+        }
+        return true
+    }
 
     fun setPosition(x: Int, y: Int) {
         controlPositionX = x

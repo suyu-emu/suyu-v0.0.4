@@ -90,7 +90,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, Choreographer.Fram
         binding.doneControlConfig.setOnClickListener { stopConfiguringControls() }
 
         // Setup overlay.
-        resetInputOverlay()
         updateShowFpsOverlay()
 
         binding.inGameMenu.getHeaderView(0).findViewById<TextView>(R.id.text_game_title).text =

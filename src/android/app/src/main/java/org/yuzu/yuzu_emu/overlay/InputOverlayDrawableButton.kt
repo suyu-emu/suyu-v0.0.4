@@ -24,32 +24,30 @@ class InputOverlayDrawableButton(
     res: Resources,
     defaultStateBitmap: Bitmap,
     pressedStateBitmap: Bitmap,
-    buttonId: Int
+    val buttonId: Int
 ) {
-    /**
-     * Gets this InputOverlayDrawableButton's button ID.
-     *
-     * @return this InputOverlayDrawableButton's button ID.
-     */
-    // The ID value what type of button this Drawable represents.
-    val id: Int
-
     // The ID value what motion event is tracking
     var trackId: Int
 
     // The drawable position on the screen
     private var buttonPositionX = 0
     private var buttonPositionY = 0
+
     val width: Int
     val height: Int
+
     private val defaultStateBitmap: BitmapDrawable
     private val pressedStateBitmap: BitmapDrawable
     private var pressedState = false
 
+    private var previousTouchX = 0
+    private var previousTouchY = 0
+    var controlPositionX = 0
+    var controlPositionY = 0
+
     init {
         this.defaultStateBitmap = BitmapDrawable(res, defaultStateBitmap)
         this.pressedStateBitmap = BitmapDrawable(res, pressedStateBitmap)
-        id = buttonId
         trackId = -1
         width = this.defaultStateBitmap.intrinsicWidth
         height = this.defaultStateBitmap.intrinsicHeight
@@ -104,6 +102,34 @@ class InputOverlayDrawableButton(
     private val currentStateBitmapDrawable: BitmapDrawable
         get() = if (pressedState) pressedStateBitmap else defaultStateBitmap
 
+    fun onConfigureTouch(event: MotionEvent): Boolean {
+        val pointerIndex = event.actionIndex
+        val fingerPositionX = event.getX(pointerIndex).toInt()
+        val fingerPositionY = event.getY(pointerIndex).toInt()
+
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                previousTouchX = fingerPositionX
+                previousTouchY = fingerPositionY
+                controlPositionX = fingerPositionX - (width / 2)
+                controlPositionY = fingerPositionY - (height / 2)
+            }
+            MotionEvent.ACTION_MOVE -> {
+                controlPositionX += fingerPositionX - previousTouchX
+                controlPositionY += fingerPositionY - previousTouchY
+                setBounds(
+                    controlPositionX,
+                    controlPositionY,
+                    width + controlPositionX,
+                    height + controlPositionY
+                )
+                previousTouchX = fingerPositionX
+                previousTouchY = fingerPositionY
+            }
+        }
+        return true
+    }
+
     fun setBounds(left: Int, top: Int, right: Int, bottom: Int) {
         defaultStateBitmap.setBounds(left, top, right, bottom)
         pressedStateBitmap.setBounds(left, top, right, bottom)
@@ -111,6 +137,6 @@ class InputOverlayDrawableButton(
 
     val status: Int
         get() = if (pressedState) ButtonState.PRESSED else ButtonState.RELEASED
-    private val bounds: Rect
+    val bounds: Rect
         get() = defaultStateBitmap.bounds
 }
