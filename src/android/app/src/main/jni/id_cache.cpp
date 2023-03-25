@@ -4,6 +4,7 @@
 #include <jni.h>
 
 #include "common/fs/fs_android.h"
+#include "jni/applets/software_keyboard.h"
 #include "jni/id_cache.h"
 
 static JavaVM* s_java_vm;
@@ -63,6 +64,9 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     // Initialize Android Storage
     Common::FS::Android::RegisterCallbacks(env, s_native_library_class);
 
+    // Initialize applets
+    SoftwareKeyboard::InitJNI(env);
+
     return JNI_VERSION;
 }
 
@@ -75,6 +79,9 @@ void JNI_OnUnload(JavaVM* vm, void* reserved) {
     // UnInitialize Android Storage
     Common::FS::Android::UnRegisterCallbacks();
     env->DeleteGlobalRef(s_native_library_class);
+
+    // UnInitialze applets
+    SoftwareKeyboard::CleanupJNI(env);
 }
 
 #ifdef __cplusplus

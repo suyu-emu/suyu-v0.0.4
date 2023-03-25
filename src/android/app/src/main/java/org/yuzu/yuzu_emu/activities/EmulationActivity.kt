@@ -8,8 +8,10 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Rect
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
+import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentActivity
 import androidx.preference.PreferenceManager
@@ -78,6 +80,29 @@ open class EmulationActivity : AppCompatActivity() {
         // TODO(bunnei): Disable notifications until we support app suspension.
         //foregroundService = new Intent(EmulationActivity.this, ForegroundService.class);
         //startForegroundService(foregroundService);
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+        if (event.action == android.view.KeyEvent.ACTION_DOWN) {
+            if (keyCode == android.view.KeyEvent.KEYCODE_ENTER) {
+                // Special case, we do not support multiline input, dismiss the keyboard.
+                val overlayView: View =
+                    this.findViewById<View>(R.id.surface_input_overlay)
+                val im =
+                    overlayView.context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+                im.hideSoftInputFromWindow(overlayView.windowToken, 0);
+            } else {
+                val textChar = event.getUnicodeChar();
+                if (textChar == 0) {
+                    // No text, button input.
+                    NativeLibrary.SubmitInlineKeyboardInput(keyCode);
+                } else {
+                    // Text submitted.
+                    NativeLibrary.SubmitInlineKeyboardText(textChar.toChar().toString());
+                }
+            }
+        }
+        return super.onKeyDown(keyCode, event)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

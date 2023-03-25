@@ -23,15 +23,29 @@
 #include "common/scm_rev.h"
 #include "common/scope_exit.h"
 #include "common/settings.h"
+#include "common/string_util.h"
 #include "core/core.h"
 #include "core/cpu_manager.h"
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/vfs_real.h"
+#include "core/frontend/applets/cabinet.h"
+#include "core/frontend/applets/controller.h"
+#include "core/frontend/applets/error.h"
+#include "core/frontend/applets/general_frontend.h"
+#include "core/frontend/applets/mii_edit.h"
+#include "core/frontend/applets/profile_select.h"
+#include "core/frontend/applets/software_keyboard.h"
+#include "core/frontend/applets/web_browser.h"
 #include "core/hid/hid_core.h"
+#include "core/hle/service/am/applet_ae.h"
+#include "core/hle/service/am/applet_oe.h"
+#include "core/hle/service/am/applets/applets.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/loader.h"
 #include "core/perf_stats.h"
+#include "jni/android_common/android_common.h"
+#include "jni/applets/software_keyboard.h"
 #include "jni/config.h"
 #include "jni/emu_window/emu_window.h"
 #include "jni/id_cache.h"
@@ -135,11 +149,24 @@ public:
                                                        m_vulkan_library);
 
         // Initialize system.
+        auto android_keyboard = std::make_unique<SoftwareKeyboard::AndroidKeyboard>();
+        m_software_keyboard = android_keyboard.get();
         m_system.SetShuttingDown(false);
         m_system.ApplySettings();
         m_system.HIDCore().ReloadInputDevices();
         m_system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
         m_system.SetFilesystem(std::make_shared<FileSys::RealVfsFilesystem>());
+        m_system.SetAppletFrontendSet({
+            nullptr,                     // Amiibo Settings
+            nullptr,                     // Controller Selector
+            nullptr,                     // Error Display
+            nullptr,                     // Mii Editor
+            nullptr,                     // Parental Controls
+            nullptr,                     // Photo Viewer
+            nullptr,                     // Profile Selector
+            std::move(android_keyboard), // Software Keyboard
+            nullptr,                     // Web Browser
+        });
         m_system.GetFileSystemController().CreateFactories(*m_system.GetFilesystem());
 
         // Load the ROM.
@@ -233,6 +260,10 @@ public:
         m_rom_metadata_cache.clear();
     }
 
+    SoftwareKeyboard::AndroidKeyboard* SoftwareKeyboard() {
+        return m_software_keyboard;
+    }
+
 private:
     struct RomMetadata {
         std::string title;
@@ -278,6 +309,7 @@ private:
     std::shared_ptr<FileSys::RealVfsFilesystem> m_vfs;
     Core::SystemResultStatus m_load_result{Core::SystemResultStatus::ErrorNotInitialized};
     bool m_is_running{};
+    SoftwareKeyboard::AndroidKeyboard* m_software_keyboard{};
 
     // GPU driver parameters
     std::shared_ptr<Common::DynamicLibrary> m_vulkan_library;
@@ -289,25 +321,6 @@ private:
 };
 
 /*static*/ EmulationSession EmulationSession::s_instance;
-
-std::string UTF16ToUTF8(std::u16string_view input) {
-    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
-    return convert.to_bytes(input.data(), input.data() + input.size());
-}
-
-std::string GetJString(JNIEnv* env, jstring jstr) {
-    if (!jstr) {
-        return {};
-    }
-
-    const jchar* jchars = env->GetStringChars(jstr, nullptr);
-    const jsize length = env->GetStringLength(jstr);
-    const std::u16string_view string_view(reinterpret_cast<const char16_t*>(jchars), length);
-    const std::string converted_string = UTF16ToUTF8(string_view);
-    env->ReleaseStringChars(jstr, jchars);
-
-    return converted_string;
-}
 
 } // Anonymous namespace
 
@@ -603,6 +616,17 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_LogDeviceInfo([[maybe_unused]] JNIEnv
                                                          [[maybe_unused]] jclass clazz) {
     LOG_INFO(Frontend, "yuzu Version: {}-{}", Common::g_scm_branch, Common::g_scm_desc);
     LOG_INFO(Frontend, "Host OS: Android API level {}", android_get_device_api_level());
+}
+
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_SubmitInlineKeyboardText(JNIEnv* env, jclass clazz,
+                                                                    jstring j_text) {
+    const std::u16string input = Common::UTF8ToUTF16(GetJString(env, j_text));
+    EmulationSession::GetInstance().SoftwareKeyboard()->SubmitInlineKeyboardText(input);
+}
+
+void Java_org_yuzu_yuzu_1emu_NativeLibrary_SubmitInlineKeyboardInput(JNIEnv* env, jclass clazz,
+                                                                     jint j_key_code) {
+    EmulationSession::GetInstance().SoftwareKeyboard()->SubmitInlineKeyboardInput(j_key_code);
 }
 
 } // extern "C"

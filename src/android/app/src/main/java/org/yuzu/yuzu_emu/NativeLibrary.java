@@ -633,6 +633,18 @@ public final class NativeLibrary {
     public static native void LogDeviceInfo();
 
     /**
+     * Submits inline keyboard text. Called on input for buttons that result text.
+     * @param text Text to submit to the inline software keyboard implementation.
+     */
+    public static native void SubmitInlineKeyboardText(String text);
+
+    /**
+     * Submits inline keyboard input. Used to indicate keys pressed that are not text.
+     * @param key_code Android Key Code associated with the keyboard input.
+     */
+    public static native void SubmitInlineKeyboardInput(int key_code);
+
+    /**
      * Button type for use in onTouchEvent
      */
     public static final class ButtonType {

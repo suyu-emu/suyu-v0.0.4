@@ -1,4 +1,8 @@
 add_library(yuzu-android SHARED
+    android_common/android_common.cpp
+    android_common/android_common.h
+    applets/software_keyboard.cpp
+    applets/software_keyboard.h
     config.cpp
     config.h
     default_ini.h

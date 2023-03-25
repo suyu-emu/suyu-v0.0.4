@@ -1,22 +1,28 @@
-// Copyright 2020 Citra Emulator Project
-// Licensed under GPLv2 or any later version
-// Refer to the license.txt file included.
+// SPDX-FileCopyrightText: Copyright 2023 yuzu Emulator Project
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 package org.yuzu.yuzu_emu.applets;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Rect;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.ResultReceiver;
 import android.text.InputFilter;
-import android.text.Spanned;
+import android.text.InputType;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
+import android.view.WindowInsets;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.view.ViewCompat;
 import androidx.fragment.app.DialogFragment;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -25,69 +31,63 @@ import org.yuzu.yuzu_emu.YuzuApplication;
 import org.yuzu.yuzu_emu.NativeLibrary;
 import org.yuzu.yuzu_emu.R;
 import org.yuzu.yuzu_emu.activities.EmulationActivity;
-import org.yuzu.yuzu_emu.utils.Log;
 
 import java.util.Objects;
 
 public final class SoftwareKeyboard {
-    /// Corresponds to Frontend::ButtonConfig
-    private interface ButtonConfig {
-        int Single = 0; /// Ok button
-        int Dual = 1;   /// Cancel | Ok buttons
-        int Triple = 2; /// Cancel | I Forgot | Ok buttons
-        int None = 3;   /// No button (returned by swkbdInputText in special cases)
-    }
+    /// Corresponds to Service::AM::Applets::SwkbdType
+    private interface SwkbdType {
+        int Normal = 0;
+        int NumberPad = 1;
+        int Qwerty = 2;
+        int Unknown3 = 3;
+        int Latin = 4;
+        int SimplifiedChinese = 5;
+        int TraditionalChinese = 6;
+        int Korean = 7;
+    };
 
-    /// Corresponds to Frontend::ValidationError
-    public enum ValidationError {
-        None,
-        // Button Selection
-        ButtonOutOfRange,
-        // Configured Filters
-        MaxDigitsExceeded,
-        AtSignNotAllowed,
-        PercentNotAllowed,
-        BackslashNotAllowed,
-        ProfanityNotAllowed,
-        CallbackFailed,
-        // Allowed Input Type
-        FixedLengthRequired,
-        MaxLengthExceeded,
-        BlankInputNotAllowed,
-        EmptyInputNotAllowed,
-    }
+    /// Corresponds to Service::AM::Applets::SwkbdPasswordMode
+    private interface SwkbdPasswordMode {
+        int Disabled = 0;
+        int Enabled = 1;
+    };
+
+    /// Corresponds to Service::AM::Applets::SwkbdResult
+    private interface SwkbdResult {
+        int Ok = 0;
+        int Cancel = 1;
+    };
 
     public static class KeyboardConfig implements java.io.Serializable {
-        public int button_config;
+        public String ok_text;
+        public String header_text;
+        public String sub_text;
+        public String guide_text;
+        public String initial_text;
+        public short left_optional_symbol_key;
+        public short right_optional_symbol_key;
         public int max_text_length;
-        public boolean multiline_mode; /// True if the keyboard accepts multiple lines of input
-        public String hint_text;       /// Displayed in the field as a hint before
-        @Nullable
-        public String[] button_text; /// Contains the button text that the caller provides
+        public int min_text_length;
+        public int initial_cursor_position;
+        public int type;
+        public int password_mode;
+        public int text_draw_type;
+        public int key_disable_flags;
+        public boolean use_blur_background;
+        public boolean enable_backspace_button;
+        public boolean enable_return_button;
+        public boolean disable_cancel_button;
     }
 
     /// Corresponds to Frontend::KeyboardData
     public static class KeyboardData {
-        public int button;
+        public int result;
         public String text;
 
-        private KeyboardData(int button, String text) {
-            this.button = button;
+        private KeyboardData(int result, String text) {
+            this.result = result;
             this.text = text;
-        }
-    }
-
-    private static class Filter implements InputFilter {
-        @Override
-        public CharSequence filter(CharSequence source, int start, int end, Spanned dest,
-                                   int dstart, int dend) {
-            String text = new StringBuilder(dest)
-                    .replace(dstart, dend, source.subSequence(start, end).toString())
-                    .toString();
-            if (ValidateFilters(text) == ValidationError.None) {
-                return null; // Accept replacement
-            }
-            return dest.subSequence(dstart, dend); // Request the subsequence to be unchanged
         }
     }
 
@@ -113,60 +113,65 @@ public final class SoftwareKeyboard {
                             R.dimen.dialog_margin);
 
             KeyboardConfig config = Objects.requireNonNull(
-                    (KeyboardConfig) Objects.requireNonNull(getArguments()).getSerializable("config"));
+                    (KeyboardConfig) requireArguments().getSerializable("config"));
 
             // Set up the input
             EditText editText = new EditText(YuzuApplication.getAppContext());
-            editText.setHint(config.hint_text);
-            editText.setSingleLine(!config.multiline_mode);
+            editText.setHint(config.initial_text);
+            editText.setSingleLine(!config.enable_return_button);
             editText.setLayoutParams(params);
-            editText.setFilters(new InputFilter[]{
-                    new Filter(), new InputFilter.LengthFilter(config.max_text_length)});
+            editText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(config.max_text_length)});
+
+            // Handle input type
+            int input_type = 0;
+            switch (config.type)
+            {
+                case SwkbdType.Normal:
+                case SwkbdType.Qwerty:
+                case SwkbdType.Unknown3:
+                case SwkbdType.Latin:
+                case SwkbdType.SimplifiedChinese:
+                case SwkbdType.TraditionalChinese:
+                case SwkbdType.Korean:
+                default:
+                    input_type = InputType.TYPE_CLASS_TEXT;
+                    if (config.password_mode == SwkbdPasswordMode.Enabled)
+                    {
+                        input_type |= InputType.TYPE_TEXT_VARIATION_PASSWORD;
+                    }
+                    break;
+                case SwkbdType.NumberPad:
+                    input_type = InputType.TYPE_CLASS_NUMBER;
+                    if (config.password_mode == SwkbdPasswordMode.Enabled)
+                    {
+                        input_type |= InputType.TYPE_NUMBER_VARIATION_PASSWORD;
+                    }
+                    break;
+            }
+
+            // Apply input type
+            editText.setInputType(input_type);
 
             FrameLayout container = new FrameLayout(emulationActivity);
             container.addView(editText);
 
+            String headerText = config.header_text.isEmpty() ? emulationActivity.getString(R.string.software_keyboard) : config.header_text;
+            String okText = config.header_text.isEmpty() ? emulationActivity.getString(android.R.string.ok) : config.ok_text;
+
             MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(emulationActivity)
-                    .setTitle(R.string.software_keyboard)
+                    .setTitle(headerText)
                     .setView(container);
             setCancelable(false);
 
-            switch (config.button_config) {
-                case ButtonConfig.Triple: {
-                    final String text = config.button_text[1].isEmpty()
-                            ? emulationActivity.getString(R.string.i_forgot)
-                            : config.button_text[1];
-                    builder.setNeutralButton(text, null);
-                }
-                // fallthrough
-                case ButtonConfig.Dual: {
-                    final String text = config.button_text[0].isEmpty()
-                            ? emulationActivity.getString(android.R.string.cancel)
-                            : config.button_text[0];
-                    builder.setNegativeButton(text, null);
-                }
-                // fallthrough
-                case ButtonConfig.Single: {
-                    final String text = config.button_text[2].isEmpty()
-                            ? emulationActivity.getString(android.R.string.ok)
-                            : config.button_text[2];
-                    builder.setPositiveButton(text, null);
-                    break;
-                }
-            }
+            builder.setPositiveButton(okText, null);
+            builder.setNegativeButton(emulationActivity.getString(android.R.string.cancel), null);
 
             final AlertDialog dialog = builder.create();
             dialog.create();
             if (dialog.getButton(DialogInterface.BUTTON_POSITIVE) != null) {
                 dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener((view) -> {
-                    data.button = config.button_config;
+                    data.result = SwkbdResult.Ok;
                     data.text = editText.getText().toString();
-                    final ValidationError error = ValidateInput(data.text);
-                    if (error != ValidationError.None) {
-                        HandleValidationError(config, error);
-                        return;
-                    }
-
                     dialog.dismiss();
 
                     synchronized (finishLock) {
@@ -176,7 +181,7 @@ public final class SoftwareKeyboard {
             }
             if (dialog.getButton(DialogInterface.BUTTON_NEUTRAL) != null) {
                 dialog.getButton(DialogInterface.BUTTON_NEUTRAL).setOnClickListener((view) -> {
-                    data.button = 1;
+                    data.result = SwkbdResult.Ok;
                     dialog.dismiss();
                     synchronized (finishLock) {
                         finishLock.notifyAll();
@@ -185,7 +190,7 @@ public final class SoftwareKeyboard {
             }
             if (dialog.getButton(DialogInterface.BUTTON_NEGATIVE) != null) {
                 dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setOnClickListener((view) -> {
-                    data.button = 0;
+                    data.result = SwkbdResult.Cancel;
                     dialog.dismiss();
                     synchronized (finishLock) {
                         finishLock.notifyAll();
@@ -200,49 +205,42 @@ public final class SoftwareKeyboard {
     private static KeyboardData data;
     private static final Object finishLock = new Object();
 
-    private static void ExecuteImpl(KeyboardConfig config) {
+    private static void ExecuteNormalImpl(KeyboardConfig config) {
         final EmulationActivity emulationActivity = NativeLibrary.sEmulationActivity.get();
 
-        data = new KeyboardData(0, "");
+        data = new KeyboardData(SwkbdResult.Cancel, "");
 
         KeyboardDialogFragment fragment = KeyboardDialogFragment.newInstance(config);
         fragment.show(emulationActivity.getSupportFragmentManager(), "keyboard");
     }
 
-    private static void HandleValidationError(KeyboardConfig config, ValidationError error) {
+    private static void ExecuteInlineImpl(KeyboardConfig config) {
         final EmulationActivity emulationActivity = NativeLibrary.sEmulationActivity.get();
-        String message = "";
-        switch (error) {
-            case FixedLengthRequired:
-                message =
-                        emulationActivity.getString(R.string.fixed_length_required, config.max_text_length);
-                break;
-            case MaxLengthExceeded:
-                message =
-                        emulationActivity.getString(R.string.max_length_exceeded, config.max_text_length);
-                break;
-            case BlankInputNotAllowed:
-                message = emulationActivity.getString(R.string.blank_input_not_allowed);
-                break;
-            case EmptyInputNotAllowed:
-                message = emulationActivity.getString(R.string.empty_input_not_allowed);
-                break;
-        }
 
-        new MaterialAlertDialogBuilder(emulationActivity)
-                .setTitle(R.string.software_keyboard)
-                .setMessage(message)
-                .setPositiveButton(android.R.string.ok, null)
-                .show();
+        var overlayView = emulationActivity.findViewById(R.id.surface_input_overlay);
+        InputMethodManager im = (InputMethodManager)overlayView.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        im.showSoftInput(overlayView, InputMethodManager.SHOW_FORCED);
+
+        // There isn't a good way to know that the IMM is dismissed, so poll every 500ms to submit inline keyboard result.
+        final Handler handler = new Handler();
+        final int delayMs = 500;
+        handler.postDelayed(new Runnable() {
+            public void run() {
+                var insets = ViewCompat.getRootWindowInsets(overlayView);
+                var isKeyboardVisible = insets.isVisible(WindowInsets.Type.ime());
+                if (isKeyboardVisible) {
+                    handler.postDelayed(this, delayMs);
+                    return;
+                }
+
+                // No longer visible, submit the result.
+                NativeLibrary.SubmitInlineKeyboardInput(android.view.KeyEvent.KEYCODE_ENTER);
+            }
+        }, delayMs);
     }
 
-    public static KeyboardData Execute(KeyboardConfig config) {
-        if (config.button_config == ButtonConfig.None) {
-            Log.error("Unexpected button config None");
-            return new KeyboardData(0, "");
-        }
-
-        NativeLibrary.sEmulationActivity.get().runOnUiThread(() -> ExecuteImpl(config));
+    public static KeyboardData ExecuteNormal(KeyboardConfig config) {
+        NativeLibrary.sEmulationActivity.get().runOnUiThread(() -> ExecuteNormalImpl(config));
 
         synchronized (finishLock) {
             try {
@@ -254,13 +252,13 @@ public final class SoftwareKeyboard {
         return data;
     }
 
+    public static void ExecuteInline(KeyboardConfig config) {
+        NativeLibrary.sEmulationActivity.get().runOnUiThread(() -> ExecuteInlineImpl(config));
+    }
+
     public static void ShowError(String error) {
         NativeLibrary.displayAlertMsg(
                 YuzuApplication.getAppContext().getResources().getString(R.string.software_keyboard),
                 error, false);
     }
-
-    private static native ValidationError ValidateFilters(String text);
-
-    private static native ValidationError ValidateInput(String text);
 }

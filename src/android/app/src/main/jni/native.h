@@ -133,6 +133,12 @@ JNIEXPORT jdoubleArray JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_GetPerfStat
 JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_LogDeviceInfo(JNIEnv* env,
                                                                            jclass clazz);
 
+JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_SubmitInlineKeyboardText(
+    JNIEnv* env, jclass clazz, jstring j_text);
+
+JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_SubmitInlineKeyboardInput(
+    JNIEnv* env, jclass clazz, jint j_key_code);
+
 #ifdef __cplusplus
 }
 #endif
