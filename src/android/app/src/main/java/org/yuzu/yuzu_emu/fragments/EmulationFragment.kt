@@ -33,6 +33,7 @@ import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization.DirectoryInitializationState
 import org.yuzu.yuzu_emu.utils.DirectoryStateReceiver
+import org.yuzu.yuzu_emu.utils.EmulationMenuSettings
 import org.yuzu.yuzu_emu.utils.InsetsHelper
 import org.yuzu.yuzu_emu.utils.Log
 import org.yuzu.yuzu_emu.utils.SerializableHelper.parcelable
@@ -221,8 +222,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, Choreographer.Fram
     }
 
     private fun updateShowFpsOverlay() {
-        // TODO: Create a setting so that this actually works...
-        if (true) {
+        if (EmulationMenuSettings.showFps) {
             val SYSTEM_FPS = 0
             val FPS = 1
             val FRAMETIME = 2
@@ -238,6 +238,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, Choreographer.Fram
                 }
             }
             perfStatsUpdateHandler.post(perfStatsUpdater!!)
+            binding.showFpsText.text = resources.getString(R.string.emulation_game_loading)
             binding.showFpsText.visibility = View.VISIBLE
         } else {
             if (perfStatsUpdater != null) {

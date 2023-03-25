@@ -91,6 +91,7 @@
     <string name="emulation_pause">Pause Emulation</string>
     <string name="emulation_unpause">Unpause Emulation</string>
     <string name="emulation_input_overlay">Input Overlay</string>
+    <string name="emulation_game_loading">Game loading…</string>
 
     <string name="load_settings">Loading Settings…</string>
 
