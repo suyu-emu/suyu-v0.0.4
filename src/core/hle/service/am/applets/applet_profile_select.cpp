@@ -74,7 +74,7 @@ void ProfileSelect::SelectionComplete(std::optional<Common::UUID> uuid) {
 }
 
 Result ProfileSelect::RequestExit() {
-    this->SelectionComplete(std::nullopt);
+    frontend.Close();
     R_SUCCEED();
 }
 

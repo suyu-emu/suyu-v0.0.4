@@ -771,7 +771,7 @@ void SoftwareKeyboard::ExitKeyboard() {
 }
 
 Result SoftwareKeyboard::RequestExit() {
-    this->ExitKeyboard();
+    frontend.Close();
     R_SUCCEED();
 }
 

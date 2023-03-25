@@ -136,7 +136,7 @@ void MiiEdit::MiiEditOutputForCharInfoEditing(MiiEditResult result,
 }
 
 Result MiiEdit::RequestExit() {
-    this->MiiEditOutput(MiiEditResult::Cancel, -1);
+    frontend.Close();
     R_SUCCEED();
 }
 

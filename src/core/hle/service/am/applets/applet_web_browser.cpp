@@ -364,7 +364,7 @@ void WebBrowser::WebBrowserExit(WebExitReason exit_reason, std::string last_url)
 }
 
 Result WebBrowser::RequestExit() {
-    this->WebBrowserExit(WebExitReason::ExitRequested);
+    frontend.Close();
     R_SUCCEED();
 }
 

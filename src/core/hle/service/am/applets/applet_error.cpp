@@ -210,7 +210,7 @@ void Error::DisplayCompleted() {
 }
 
 Result Error::RequestExit() {
-    this->DisplayCompleted();
+    frontend.Close();
     R_SUCCEED();
 }
 

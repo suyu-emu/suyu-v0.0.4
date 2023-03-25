@@ -263,7 +263,7 @@ void Controller::ConfigurationComplete() {
 }
 
 Result Controller::RequestExit() {
-    this->ConfigurationComplete();
+    frontend.Close();
     R_SUCCEED();
 }
 

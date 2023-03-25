@@ -175,7 +175,7 @@ void Cabinet::Cancel() {
 }
 
 Result Cabinet::RequestExit() {
-    this->Cancel();
+    frontend.Close();
     R_SUCCEED();
 }
 

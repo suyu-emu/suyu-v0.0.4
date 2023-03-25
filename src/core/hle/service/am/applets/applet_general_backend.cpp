@@ -151,7 +151,7 @@ void Auth::AuthFinished(bool is_successful) {
 }
 
 Result Auth::RequestExit() {
-    this->AuthFinished(false);
+    frontend.Close();
     R_SUCCEED();
 }
 
@@ -208,7 +208,7 @@ void PhotoViewer::ViewFinished() {
 }
 
 Result PhotoViewer::RequestExit() {
-    this->ViewFinished();
+    frontend.Close();
     R_SUCCEED();
 }
 
