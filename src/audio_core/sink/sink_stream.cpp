@@ -245,9 +245,7 @@ void SinkStream::ProcessAudioOutAndRender(std::span<s16> output_buffer, std::siz
             // Successfully dequeued a new buffer.
             queued_buffers--;
 
-            {
-                std::unique_lock lk{release_mutex};
-            }
+            { std::unique_lock lk{release_mutex}; }
 
             release_cv.notify_one();
         }
@@ -276,7 +274,8 @@ void SinkStream::ProcessAudioOutAndRender(std::span<s16> output_buffer, std::siz
 
     {
         std::scoped_lock lk{sample_count_lock};
-        last_sample_count_update_time = Core::Timing::CyclesToUs(system.CoreTiming().GetClockTicks());
+        last_sample_count_update_time =
+            Core::Timing::CyclesToUs(system.CoreTiming().GetClockTicks());
         min_played_sample_count = max_played_sample_count;
         max_played_sample_count += actual_frames_written;
     }
@@ -315,7 +314,8 @@ u64 SinkStream::GetExpectedPlayedSampleCount() {
 
 void SinkStream::WaitFreeSpace() {
     std::unique_lock lk{release_mutex};
-    release_cv.wait(lk, [this]() { return queued_buffers < max_queue_size || system.IsShuttingDown(); });
+    release_cv.wait(
+        lk, [this]() { return queued_buffers < max_queue_size || system.IsShuttingDown(); });
 }
 
 } // namespace AudioCore::Sink

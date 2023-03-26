@@ -16,7 +16,6 @@
 #include "common/reader_writer_queue.h"
 #include "common/ring_buffer.h"
 #include "common/thread.h"
-#include "common/polyfill_thread.h"
 
 namespace Core {
 class System;
