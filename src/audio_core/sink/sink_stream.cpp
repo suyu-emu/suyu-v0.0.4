@@ -151,10 +151,6 @@ void SinkStream::ProcessAudioIn(std::span<const s16> input_buffer, std::size_t n
         return;
     }
 
-    if (queued_buffers > max_queue_size) {
-        Stall();
-    }
-
     while (frames_written < num_frames) {
         // If the playing buffer has been consumed or has no frames, we need a new one
         if (playing_buffer.consumed || playing_buffer.frames == 0) {
@@ -189,10 +185,6 @@ void SinkStream::ProcessAudioIn(std::span<const s16> input_buffer, std::size_t n
     }
 
     std::memcpy(&last_frame[0], &input_buffer[(frames_written - 1) * frame_size], frame_size_bytes);
-
-    if (queued_buffers <= max_queue_size) {
-        Unstall();
-    }
 }
 
 void SinkStream::ProcessAudioOutAndRender(std::span<s16> output_buffer, std::size_t num_frames) {
@@ -214,20 +206,6 @@ void SinkStream::ProcessAudioOutAndRender(std::span<s16> output_buffer, std::siz
             std::memcpy(&output_buffer[i * frame_size], &silence[0], frame_size_bytes);
         }
         return;
-    }
-
-    // Due to many frames being queued up with nvdec (5 frames or so?), a lot of buffers also get
-    // queued up (30+) but not all at once, which causes constant stalling here, so just let the
-    // video play out without attempting to stall.
-    // Can hopefully remove this later with a more complete NVDEC implementation.
-    const auto nvdec_active{system.AudioCore().IsNVDECActive()};
-
-    // Core timing cannot be paused in single-core mode, so Stall ends up being called over and over
-    // and never recovers to a normal state, so just skip attempting to sync things on single-core.
-    if (system.IsMulticore() && !nvdec_active && queued_buffers > max_queue_size) {
-        Stall();
-    } else if (system.IsMulticore() && queued_buffers <= max_queue_size) {
-        Unstall();
     }
 
     while (frames_written < num_frames) {
@@ -279,27 +257,6 @@ void SinkStream::ProcessAudioOutAndRender(std::span<s16> output_buffer, std::siz
         min_played_sample_count = max_played_sample_count;
         max_played_sample_count += actual_frames_written;
     }
-
-    if (system.IsMulticore() && queued_buffers <= max_queue_size) {
-        Unstall();
-    }
-}
-
-void SinkStream::Stall() {
-    std::scoped_lock lk{stall_guard};
-    if (stalled_lock) {
-        return;
-    }
-    stalled_lock = system.StallApplication();
-}
-
-void SinkStream::Unstall() {
-    std::scoped_lock lk{stall_guard};
-    if (!stalled_lock) {
-        return;
-    }
-    system.UnstallApplication();
-    stalled_lock.unlock();
 }
 
 u64 SinkStream::GetExpectedPlayedSampleCount() {

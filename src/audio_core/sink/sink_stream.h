@@ -55,9 +55,7 @@ struct SinkBuffer {
 class SinkStream {
 public:
     explicit SinkStream(Core::System& system_, StreamType type_) : system{system_}, type{type_} {}
-    virtual ~SinkStream() {
-        Unstall();
-    }
+    virtual ~SinkStream() {}
 
     /**
      * Finalize the sink stream.
@@ -203,16 +201,6 @@ public:
     void ProcessAudioOutAndRender(std::span<s16> output_buffer, std::size_t num_frames);
 
     /**
-     * Stall core processes if the audio thread falls too far behind.
-     */
-    void Stall();
-
-    /**
-     * Unstall core processes.
-     */
-    void Unstall();
-
-    /**
      * Get the total number of samples expected to have been played by this stream.
      *
      * @return The number of samples.
@@ -266,8 +254,6 @@ private:
     /// Signalled when ring buffer entries are consumed
     std::condition_variable release_cv;
     std::mutex release_mutex;
-    std::mutex stall_guard;
-    std::unique_lock<std::mutex> stalled_lock;
 };
 
 using SinkStreamPtr = std::unique_ptr<SinkStream>;
