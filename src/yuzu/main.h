@@ -165,7 +165,7 @@ signals:
 
     void AmiiboSettingsFinished(bool is_success, const std::string& name);
 
-    void ControllerSelectorReconfigureFinished();
+    void ControllerSelectorReconfigureFinished(bool is_success);
 
     void ErrorDisplayFinished();
 

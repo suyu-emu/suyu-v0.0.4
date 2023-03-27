@@ -634,15 +634,16 @@ void GMainWindow::ControllerSelectorReconfigureControllers(
                                       Qt::WindowStaysOnTopHint | Qt::WindowTitleHint |
                                       Qt::WindowSystemMenuHint);
     controller_applet->setWindowModality(Qt::WindowModal);
-    controller_applet->exec();
-
-    emit ControllerSelectorReconfigureFinished();
+    bool is_success = controller_applet->exec() != QDialog::Rejected;
 
     // Don't forget to apply settings.
+    system->HIDCore().DisableAllControllerConfiguration();
     system->ApplySettings();
     config->Save();
 
     UpdateStatusButtons();
+
+    emit ControllerSelectorReconfigureFinished(is_success);
 }
 
 void GMainWindow::ControllerSelectorRequestExit() {
