@@ -75,6 +75,9 @@ class PlatformGamesFragment : Fragment(), PlatformGamesView {
     }
 
     override fun showGames(games: Cursor) {
+        if (_binding == null)
+            return
+
         if (binding.gridGames.adapter != null) {
             (binding.gridGames.adapter as GameAdapter).swapCursor(games)
         }
