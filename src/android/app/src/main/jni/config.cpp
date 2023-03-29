@@ -222,6 +222,10 @@ void Config::ReadValues() {
     ReadSetting("Renderer", Settings::values.bg_green);
     ReadSetting("Renderer", Settings::values.bg_blue);
 
+    // Disable shader cache by default on Android
+    Settings::values.use_disk_shader_cache =
+        config->GetBoolean("Renderer", "use_disk_shader_cache", false);
+
     // Enable force_max_clock by default on Android
     Settings::values.renderer_force_max_clock =
         config->GetBoolean("Renderer", "force_max_clock", true);
