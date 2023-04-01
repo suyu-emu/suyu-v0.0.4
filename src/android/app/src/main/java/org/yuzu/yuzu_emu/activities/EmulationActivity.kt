@@ -83,22 +83,22 @@ open class EmulationActivity : AppCompatActivity() {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
-        if (event.action == android.view.KeyEvent.ACTION_DOWN) {
-            if (keyCode == android.view.KeyEvent.KEYCODE_ENTER) {
+        if (event.action == KeyEvent.ACTION_DOWN) {
+            if (keyCode == KeyEvent.KEYCODE_ENTER) {
                 // Special case, we do not support multiline input, dismiss the keyboard.
                 val overlayView: View =
-                    this.findViewById<View>(R.id.surface_input_overlay)
+                    this.findViewById(R.id.surface_input_overlay)
                 val im =
                     overlayView.context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-                im.hideSoftInputFromWindow(overlayView.windowToken, 0);
+                im.hideSoftInputFromWindow(overlayView.windowToken, 0)
             } else {
-                val textChar = event.getUnicodeChar();
+                val textChar = event.unicodeChar
                 if (textChar == 0) {
                     // No text, button input.
-                    NativeLibrary.SubmitInlineKeyboardInput(keyCode);
+                    NativeLibrary.SubmitInlineKeyboardInput(keyCode)
                 } else {
                     // Text submitted.
-                    NativeLibrary.SubmitInlineKeyboardText(textChar.toChar().toString());
+                    NativeLibrary.SubmitInlineKeyboardText(textChar.toChar().toString())
                 }
             }
         }
