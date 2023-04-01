@@ -362,6 +362,13 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
     CollectToolingInfo();
 
 #ifdef ANDROID
+    if (is_qualcomm || is_turnip) {
+        LOG_WARNING(Render_Vulkan,
+                    "Qualcomm and Turnip drivers have broken VK_EXT_custom_border_color");
+        extensions.custom_border_color = false;
+        loaded_extensions.erase(VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
+    }
+
     if (is_qualcomm) {
         must_emulate_scaled_formats = true;
 
