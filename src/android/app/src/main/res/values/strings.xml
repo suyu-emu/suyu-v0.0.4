@@ -85,6 +85,7 @@
     <string name="emulation_exit">Exit Emulation</string>
     <string name="emulation_done">Done</string>
     <string name="emulation_toggle_controls">Toggle Controls</string>
+    <string name="emulation_toggle_all">Toggle All</string>
     <string name="emulation_control_scale">Adjust Scale</string>
     <string name="emulation_touch_overlay_reset">Reset Overlay</string>
     <string name="emulation_touch_overlay_edit">Edit Overlay</string>
@@ -172,5 +173,12 @@
     <string name="cpu_accuracy_accurate">Accurate</string>
     <string name="cpu_accuracy_unsafe">Unsafe</string>
     <string name="cpu_accuracy_paranoid">Paranoid (Slow)</string>
+
+    <!-- Gamepad Buttons -->
+    <string name="gamepad_d_pad">D-Pad</string>
+    <string name="gamepad_left_stick">Left Stick</string>
+    <string name="gamepad_right_stick">Right Stick</string>
+    <string name="gamepad_home">Home</string>
+    <string name="gamepad_screenshot">Screenshot</string>
 
 </resources>

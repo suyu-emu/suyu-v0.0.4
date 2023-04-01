@@ -57,6 +57,6 @@ object EmulationMenuSettings {
         set(value) {
             preferences.edit()
                 .putBoolean(Settings.PREF_MENU_SETTINGS_SHOW_OVERLAY, value)
-                .apply()
+                .commit()
         }
 }

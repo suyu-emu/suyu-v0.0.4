@@ -135,4 +135,22 @@
         <item>3</item>
     </integer-array>
 
+    <string-array name="gamepadButtons">
+        <item>A</item>
+        <item>B</item>
+        <item>X</item>
+        <item>Y</item>
+        <item>L</item>
+        <item>R</item>
+        <item>ZL</item>
+        <item>ZR</item>
+        <item>+</item>
+        <item>-</item>
+        <item>@string/gamepad_d_pad</item>
+        <item>@string/gamepad_left_stick</item>
+        <item>@string/gamepad_right_stick</item>
+        <item>@string/gamepad_home</item>
+        <item>@string/gamepad_screenshot</item>
+    </string-array>
+
 </resources>

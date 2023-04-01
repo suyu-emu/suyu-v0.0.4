@@ -21,6 +21,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.preference.PreferenceManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
@@ -30,12 +31,8 @@ import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.model.Game
-import org.yuzu.yuzu_emu.utils.DirectoryInitialization
+import org.yuzu.yuzu_emu.utils.*
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization.DirectoryInitializationState
-import org.yuzu.yuzu_emu.utils.DirectoryStateReceiver
-import org.yuzu.yuzu_emu.utils.EmulationMenuSettings
-import org.yuzu.yuzu_emu.utils.InsetsHelper
-import org.yuzu.yuzu_emu.utils.Log
 import org.yuzu.yuzu_emu.utils.SerializableHelper.parcelable
 
 class EmulationFragment : Fragment(), SurfaceHolder.Callback, Choreographer.FrameCallback {
@@ -279,6 +276,35 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, Choreographer.Fram
                     binding.drawerLayout.close()
                     binding.surfaceInputOverlay.requestFocus()
                     startConfiguringControls()
+                    true
+                }
+                R.id.menu_toggle_controls -> {
+                    val preferences =
+                        PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
+                    val optionsArray = BooleanArray(15)
+                    for (i in 0..14) {
+                        optionsArray[i] = preferences.getBoolean("buttonToggle$i", i < 13)
+                    }
+
+                    MaterialAlertDialogBuilder(requireContext())
+                        .setTitle(R.string.emulation_toggle_controls)
+                        .setMultiChoiceItems(
+                            R.array.gamepadButtons,
+                            optionsArray
+                        ) { _, indexSelected, isChecked ->
+                            preferences.edit()
+                                .putBoolean("buttonToggle$indexSelected", isChecked)
+                                .commit()
+                        }
+                        .setPositiveButton(android.R.string.ok) { _, _ ->
+                            refreshInputOverlay()
+                        }
+                        .setNeutralButton(R.string.emulation_toggle_all) { _, _ ->
+                            EmulationMenuSettings.showOverlay = !EmulationMenuSettings.showOverlay
+                            refreshInputOverlay()
+                        }
+                        .show()
+
                     true
                 }
                 R.id.menu_reset_overlay -> {
