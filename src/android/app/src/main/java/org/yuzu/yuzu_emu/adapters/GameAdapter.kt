@@ -62,21 +62,6 @@ class GameAdapter(private val activity: AppCompatActivity) : RecyclerView.Adapte
     override fun onBindViewHolder(holder: GameViewHolder, position: Int) {
         if (isDatasetValid) {
             if (cursor!!.moveToPosition(position)) {
-                holder.binding.imageGameScreen.scaleType = ImageView.ScaleType.CENTER_CROP
-                activity.lifecycleScope.launch {
-                    withContext(Dispatchers.IO) {
-                        val uri =
-                            Uri.parse(cursor!!.getString(GameDatabase.GAME_COLUMN_PATH)).toString()
-                        val bitmap = decodeGameIcon(uri)
-                        withContext(Dispatchers.Main) {
-                            holder.binding.imageGameScreen.load(bitmap) {
-                                error(R.drawable.no_icon)
-                                crossfade(true)
-                            }
-                        }
-                    }
-                }
-
                 // TODO These shouldn't be necessary once the move to a DB-based model is complete.
                 val game = Game(
                     cursor!!.getString(GameDatabase.GAME_COLUMN_TITLE),
@@ -87,6 +72,15 @@ class GameAdapter(private val activity: AppCompatActivity) : RecyclerView.Adapte
                     cursor!!.getString(GameDatabase.GAME_COLUMN_CAPTION)
                 )
                 holder.game = game
+
+                holder.binding.imageGameScreen.scaleType = ImageView.ScaleType.CENTER_CROP
+                activity.lifecycleScope.launch {
+                    val bitmap = decodeGameIcon(game.path)
+                    holder.binding.imageGameScreen.load(bitmap) {
+                        error(R.drawable.no_icon)
+                        crossfade(true)
+                    }
+                }
 
                 holder.binding.textGameTitle.text = game.title.replace("[\\t\\n\\r]+".toRegex(), " ")
                 holder.binding.textGameCaption.text = game.company
