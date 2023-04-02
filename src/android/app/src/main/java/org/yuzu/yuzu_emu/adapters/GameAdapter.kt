@@ -77,11 +77,6 @@ class GameAdapter(private val activity: AppCompatActivity) : RecyclerView.Adapte
                     }
                 }
 
-                holder.binding.textGameTitle.text =
-                    cursor!!.getString(GameDatabase.GAME_COLUMN_TITLE)
-                        .replace("[\\t\\n\\r]+".toRegex(), " ")
-                holder.binding.textGameCaption.text = cursor!!.getString(GameDatabase.GAME_COLUMN_CAPTION)
-
                 // TODO These shouldn't be necessary once the move to a DB-based model is complete.
                 val game = Game(
                     cursor!!.getString(GameDatabase.GAME_COLUMN_TITLE),
@@ -92,6 +87,14 @@ class GameAdapter(private val activity: AppCompatActivity) : RecyclerView.Adapte
                     cursor!!.getString(GameDatabase.GAME_COLUMN_CAPTION)
                 )
                 holder.game = game
+
+                holder.binding.textGameTitle.text = game.title.replace("[\\t\\n\\r]+".toRegex(), " ")
+                holder.binding.textGameCaption.text = game.company
+
+                if (game.company.isEmpty()) {
+                    holder.binding.textGameCaption.visibility = View.GONE
+                }
+
                 val backgroundColorId =
                     if (isValidGame(holder.game.path)) R.attr.colorSurface else R.attr.colorErrorContainer
                 val itemView = holder.itemView
