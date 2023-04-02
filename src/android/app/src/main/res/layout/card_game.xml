@@ -18,8 +18,8 @@
     <com.google.android.material.card.MaterialCardView
         style="?attr/materialCardViewElevatedStyle"
         android:id="@+id/card_game_art"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
+        android:layout_width="140dp"
+        android:layout_height="140dp"
         app:cardCornerRadius="4dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
