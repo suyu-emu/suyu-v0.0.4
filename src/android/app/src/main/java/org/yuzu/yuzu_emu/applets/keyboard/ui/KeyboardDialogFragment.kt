@@ -63,7 +63,7 @@ class KeyboardDialogFragment : DialogFragment() {
         val headerText =
             config.header_text!!.ifEmpty { resources.getString(R.string.software_keyboard) }
         val okText =
-            if (config.header_text!!.isEmpty()) resources.getString(android.R.string.ok) else config.ok_text!!
+            config.ok_text!!.ifEmpty { resources.getString(android.R.string.ok) }
 
         return MaterialAlertDialogBuilder(requireContext())
             .setTitle(headerText)
