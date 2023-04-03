@@ -85,7 +85,7 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
         presenter.onStop(isFinishing)
 
         // Update framebuffer layout when closing the settings
-        NativeLibrary.NotifyOrientationChange(
+        NativeLibrary.notifyOrientationChange(
             EmulationMenuSettings.landscapeScreenLayout,
             windowManager.defaultDisplay.rotation
         )

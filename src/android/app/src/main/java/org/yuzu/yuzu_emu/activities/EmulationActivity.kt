@@ -100,10 +100,10 @@ open class EmulationActivity : AppCompatActivity() {
                 val textChar = event.unicodeChar
                 if (textChar == 0) {
                     // No text, button input.
-                    NativeLibrary.SubmitInlineKeyboardInput(keyCode)
+                    NativeLibrary.submitInlineKeyboardInput(keyCode)
                 } else {
                     // Text submitted.
-                    NativeLibrary.SubmitInlineKeyboardText(textChar.toChar().toString())
+                    NativeLibrary.submitInlineKeyboardText(textChar.toChar().toString())
                 }
             }
         }
@@ -132,9 +132,6 @@ open class EmulationActivity : AppCompatActivity() {
 
     private fun restoreState(savedInstanceState: Bundle) {
         game = savedInstanceState.parcelable(EXTRA_SELECTED_GAME)!!
-
-        // If an alert prompt was in progress when state was restored, retry displaying it
-        NativeLibrary.retryDisplayAlertPrompt()
     }
 
     private fun enableFullscreenImmersive() {

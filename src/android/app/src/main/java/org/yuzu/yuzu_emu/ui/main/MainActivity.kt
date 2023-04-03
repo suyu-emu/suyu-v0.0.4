@@ -142,7 +142,7 @@ class MainActivity : AppCompatActivity(), MainView {
 
     private fun refreshFragment() {
         if (platformGamesFragment != null) {
-            NativeLibrary.ResetRomMetadata()
+            NativeLibrary.resetRomMetadata()
             platformGamesFragment!!.refresh()
         }
     }
@@ -194,7 +194,7 @@ class MainActivity : AppCompatActivity(), MainView {
 
             val dstPath = DirectoryInitialization.userDirectory + "/keys/"
             if (FileUtil.copyUriToInternalStorage(this, result, dstPath, "prod.keys")) {
-                if (NativeLibrary.ReloadKeys()) {
+                if (NativeLibrary.reloadKeys()) {
                     Toast.makeText(
                         this,
                         R.string.install_keys_success,
@@ -225,7 +225,7 @@ class MainActivity : AppCompatActivity(), MainView {
 
             val dstPath = DirectoryInitialization.userDirectory + "/keys/"
             if (FileUtil.copyUriToInternalStorage(this, result, dstPath, "key_retail.bin")) {
-                if (NativeLibrary.ReloadKeys()) {
+                if (NativeLibrary.reloadKeys()) {
                     Toast.makeText(
                         this,
                         R.string.install_keys_success,

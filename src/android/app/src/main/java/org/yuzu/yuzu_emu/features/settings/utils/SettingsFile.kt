@@ -155,7 +155,7 @@ object SettingsFile {
             val sortedKeySet: Set<String> = TreeSet(settings.keys)
             for (settingKey in sortedKeySet) {
                 val setting = settings[settingKey]
-                NativeLibrary.SetUserSetting(
+                NativeLibrary.setUserSetting(
                     gameId, mapSectionNameFromIni(
                         section.name
                     ), setting!!.key, setting.valueAsString

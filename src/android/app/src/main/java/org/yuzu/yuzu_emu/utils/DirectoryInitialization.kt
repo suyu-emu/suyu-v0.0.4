@@ -16,7 +16,7 @@ object DirectoryInitialization {
     fun start(context: Context) {
         if (!areDirectoriesReady) {
             initializeInternalStorage(context)
-            NativeLibrary.InitializeEmulation()
+            NativeLibrary.initializeEmulation()
             areDirectoriesReady = true
         }
     }
@@ -30,7 +30,7 @@ object DirectoryInitialization {
     private fun initializeInternalStorage(context: Context) {
         try {
             userPath = context.getExternalFilesDir(null)!!.canonicalPath
-            NativeLibrary.SetAppDirectory(userPath)
+            NativeLibrary.setAppDirectory(userPath!!)
         } catch (e: IOException) {
             e.printStackTrace()
         }

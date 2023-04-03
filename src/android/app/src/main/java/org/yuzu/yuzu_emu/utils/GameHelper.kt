@@ -22,7 +22,7 @@ object GameHelper {
         val gamesUri = Uri.parse(gamesDir)
 
         // Ensure keys are loaded so that ROM metadata can be decrypted.
-        NativeLibrary.ReloadKeys()
+        NativeLibrary.reloadKeys()
 
         val children = FileUtil.listFiles(context, gamesUri)
         for (file in children) {
@@ -44,13 +44,13 @@ object GameHelper {
     }
 
     private fun getGame(filePath: String): Game {
-        var name = NativeLibrary.GetTitle(filePath)
+        var name = NativeLibrary.getTitle(filePath)
 
         // If the game's title field is empty, use the filename.
         if (name.isEmpty()) {
             name = filePath.substring(filePath.lastIndexOf("/") + 1)
         }
-        var gameId = NativeLibrary.GetGameId(filePath)
+        var gameId = NativeLibrary.getGameId(filePath)
 
         // If the game's ID field is empty, use the filename without extension.
         if (gameId.isEmpty()) {
@@ -62,11 +62,11 @@ object GameHelper {
 
         return Game(
             name,
-            NativeLibrary.GetDescription(filePath).replace("\n", " "),
-            NativeLibrary.GetRegions(filePath),
+            NativeLibrary.getDescription(filePath).replace("\n", " "),
+            NativeLibrary.getRegions(filePath),
             filePath,
             gameId,
-            NativeLibrary.GetCompany(filePath)
+            NativeLibrary.getCompany(filePath)
         )
     }
 }

@@ -48,7 +48,7 @@ object SoftwareKeyboard {
                 }
 
                 // No longer visible, submit the result.
-                NativeLibrary.SubmitInlineKeyboardInput(KeyEvent.KEYCODE_ENTER)
+                NativeLibrary.submitInlineKeyboardInput(KeyEvent.KEYCODE_ENTER)
             }
         }, delayMs.toLong())
     }

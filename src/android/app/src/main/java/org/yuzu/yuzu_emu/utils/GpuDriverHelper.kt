@@ -67,7 +67,7 @@ object GpuDriverHelper {
         hookLibPath = context.applicationInfo.nativeLibraryDir + "/"
 
         // Initialize GPU driver.
-        NativeLibrary.InitializeGpuDriver(
+        NativeLibrary.initializeGpuDriver(
             hookLibPath,
             driverInstallationPath,
             customDriverLibraryName,

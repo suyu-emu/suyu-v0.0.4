@@ -182,7 +182,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             val FRAMETIME = 2
             val SPEED = 3
             perfStatsUpdater = {
-                val perfStats = NativeLibrary.GetPerfStats()
+                val perfStats = NativeLibrary.getPerfStats()
                 if (perfStats[FPS] > 0 && _binding != null) {
                     binding.showFpsText.text = String.format("FPS: %.1f", perfStats[FPS])
                 }
@@ -333,7 +333,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             if (state != State.STOPPED) {
                 Log.debug("[EmulationFragment] Stopping emulation.")
                 state = State.STOPPED
-                NativeLibrary.StopEmulation()
+                NativeLibrary.stopEmulation()
             } else {
                 Log.warning("[EmulationFragment] Stop called while already stopped.")
             }
@@ -347,8 +347,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 Log.debug("[EmulationFragment] Pausing emulation.")
 
                 // Release the surface before pausing, since emulation has to be running for that.
-                NativeLibrary.SurfaceDestroyed()
-                NativeLibrary.PauseEmulation()
+                NativeLibrary.surfaceDestroyed()
+                NativeLibrary.pauseEmulation()
             } else {
                 Log.warning("[EmulationFragment] Pause called while already paused.")
             }
@@ -357,7 +357,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
         @Synchronized
         fun run(isActivityRecreated: Boolean) {
             if (isActivityRecreated) {
-                if (NativeLibrary.IsRunning()) {
+                if (NativeLibrary.isRunning()) {
                     state = State.PAUSED
                 }
             } else {
@@ -390,7 +390,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                 Log.debug("[EmulationFragment] Surface destroyed.")
                 when (state) {
                     State.RUNNING -> {
-                        NativeLibrary.SurfaceDestroyed()
+                        NativeLibrary.surfaceDestroyed()
                         state = State.PAUSED
                     }
                     State.PAUSED -> Log.warning("[EmulationFragment] Surface cleared while emulation paused.")
@@ -403,17 +403,17 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
             runWhenSurfaceIsValid = false
             when (state) {
                 State.STOPPED -> {
-                    NativeLibrary.SurfaceChanged(surface)
+                    NativeLibrary.surfaceChanged(surface)
                     val mEmulationThread = Thread({
                         Log.debug("[EmulationFragment] Starting emulation thread.")
-                        NativeLibrary.Run(mGamePath)
+                        NativeLibrary.run(mGamePath)
                     }, "NativeEmulation")
                     mEmulationThread.start()
                 }
                 State.PAUSED -> {
                     Log.debug("[EmulationFragment] Resuming emulation.")
-                    NativeLibrary.SurfaceChanged(surface)
-                    NativeLibrary.UnPauseEmulation()
+                    NativeLibrary.surfaceChanged(surface)
+                    NativeLibrary.unPauseEmulation()
                 }
                 else -> Log.debug("[EmulationFragment] Bug, run called while already running.")
             }

@@ -93,7 +93,7 @@ class GameAdapter(private val activity: AppCompatActivity, var games: ArrayList<
     }
 
     private fun decodeGameIcon(uri: String): Bitmap? {
-        val data = NativeLibrary.GetIcon(uri)
+        val data = NativeLibrary.getIcon(uri)
         return BitmapFactory.decodeByteArray(
             data,
             0,

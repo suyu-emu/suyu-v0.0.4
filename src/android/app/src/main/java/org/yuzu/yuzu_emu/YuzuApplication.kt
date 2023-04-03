@@ -40,7 +40,7 @@ class YuzuApplication : Application() {
         documentsTree = DocumentsTree()
         DirectoryInitialization.start(applicationContext)
         GpuDriverHelper.initializeDriverParameters(applicationContext)
-        NativeLibrary.LogDeviceInfo()
+        NativeLibrary.logDeviceInfo()
 
         // TODO(bunnei): Disable notifications until we support app suspension.
         //createNotificationChannel();
