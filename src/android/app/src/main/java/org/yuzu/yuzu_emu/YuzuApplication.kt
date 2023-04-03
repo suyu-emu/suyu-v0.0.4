@@ -7,7 +7,6 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import org.yuzu.yuzu_emu.model.GameDatabase
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
 import org.yuzu.yuzu_emu.utils.DocumentsTree
 import org.yuzu.yuzu_emu.utils.GpuDriverHelper
@@ -45,12 +44,9 @@ class YuzuApplication : Application() {
 
         // TODO(bunnei): Disable notifications until we support app suspension.
         //createNotificationChannel();
-        databaseHelper = GameDatabase(this)
     }
 
     companion object {
-        var databaseHelper: GameDatabase? = null
-
         @JvmField
         var documentsTree: DocumentsTree? = null
         lateinit var application: YuzuApplication

@@ -17,10 +17,7 @@ interface MainView {
      */
     fun setVersionString(version: String)
 
-    /**
-     * Tell the view to refresh its contents.
-     */
-    fun refresh()
     fun launchSettingsActivity(menuTag: String)
+
     fun launchFileListActivity(request: Int)
 }

@@ -18,6 +18,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
+import androidx.preference.PreferenceManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -28,7 +29,6 @@ import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.databinding.ActivityMainBinding
 import org.yuzu.yuzu_emu.databinding.DialogProgressBarBinding
 import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity
-import org.yuzu.yuzu_emu.model.GameProvider
 import org.yuzu.yuzu_emu.ui.platform.PlatformGamesFragment
 import org.yuzu.yuzu_emu.utils.*
 import java.io.IOException
@@ -82,11 +82,6 @@ class MainActivity : AppCompatActivity(), MainView {
         )
     }
 
-    override fun onResume() {
-        super.onResume()
-        presenter.addDirIfNeeded(AddDirectoryHelper(this))
-    }
-
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_game_grid, menu)
         return true
@@ -97,11 +92,6 @@ class MainActivity : AppCompatActivity(), MainView {
      */
     override fun setVersionString(version: String) {
         binding.toolbarMain.subtitle = version
-    }
-
-    override fun refresh() {
-        contentResolver.insert(GameProvider.URI_REFRESH, null)
-        refreshFragment()
     }
 
     override fun launchSettingsActivity(menuTag: String) {
@@ -185,10 +175,9 @@ class MainActivity : AppCompatActivity(), MainView {
 
             // When a new directory is picked, we currently will reset the existing games
             // database. This effectively means that only one game directory is supported.
-            // TODO(bunnei): Consider fixing this in the future, or removing code for this.
-            contentResolver.insert(GameProvider.URI_RESET, null)
-            // Add the new directory
-            presenter.onDirectorySelected(result.toString())
+            PreferenceManager.getDefaultSharedPreferences(applicationContext).edit()
+                .putString(GameHelper.KEY_GAME_PATH, result.toString())
+                .apply()
         }
 
     private val getProdKey =

@@ -3,7 +3,6 @@
 
 package org.yuzu.yuzu_emu.ui.platform
 
-import android.database.Cursor
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -13,36 +12,40 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.color.MaterialColors
 import org.yuzu.yuzu_emu.R
-import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.adapters.GameAdapter
 import org.yuzu.yuzu_emu.databinding.FragmentGridBinding
 import org.yuzu.yuzu_emu.layout.AutofitGridLayoutManager
+import org.yuzu.yuzu_emu.model.GamesViewModel
+import org.yuzu.yuzu_emu.utils.GameHelper
 
-class PlatformGamesFragment : Fragment(), PlatformGamesView {
-    private val presenter = PlatformGamesPresenter(this)
-
+class PlatformGamesFragment : Fragment() {
     private var _binding: FragmentGridBinding? = null
     private val binding get() = _binding!!
+
+    private lateinit var gamesViewModel: GamesViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        presenter.onCreateView()
         _binding = FragmentGridBinding.inflate(inflater)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        gamesViewModel = ViewModelProvider(requireActivity())[GamesViewModel::class.java]
+
         binding.gridGames.apply {
             layoutManager = AutofitGridLayoutManager(
                 requireContext(),
                 requireContext().resources.getDimensionPixelSize(R.dimen.card_width)
             )
-            adapter = GameAdapter(requireActivity() as AppCompatActivity)
+            adapter =
+                GameAdapter(requireActivity() as AppCompatActivity, gamesViewModel.games.value!!)
         }
 
         // Add swipe down to refresh gesture
@@ -59,7 +62,19 @@ class PlatformGamesFragment : Fragment(), PlatformGamesView {
             MaterialColors.getColor(binding.swipeRefresh, R.attr.colorOnPrimary)
         )
 
+        gamesViewModel.games.observe(viewLifecycleOwner) {
+            (binding.gridGames.adapter as GameAdapter).swapData(it)
+            updateTextView()
+        }
+
         setInsets()
+
+        refresh()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        refresh()
     }
 
     override fun onDestroyView() {
@@ -67,20 +82,8 @@ class PlatformGamesFragment : Fragment(), PlatformGamesView {
         _binding = null
     }
 
-    override fun refresh() {
-        val databaseHelper = YuzuApplication.databaseHelper
-        databaseHelper!!.scanLibrary(databaseHelper.writableDatabase)
-        presenter.refresh()
-        updateTextView()
-    }
-
-    override fun showGames(games: Cursor) {
-        if (_binding == null)
-            return
-
-        if (binding.gridGames.adapter != null) {
-            (binding.gridGames.adapter as GameAdapter).swapCursor(games)
-        }
+    fun refresh() {
+        gamesViewModel.setGames(GameHelper.getGames())
         updateTextView()
     }
 

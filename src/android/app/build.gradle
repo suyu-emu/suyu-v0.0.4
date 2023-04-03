@@ -140,10 +140,6 @@ dependencies {
     implementation "io.coil-kt:coil:2.2.2"
     implementation 'androidx.core:core-splashscreen:1.0.0'
     implementation 'androidx.window:window:1.0.0'
-
-    // Allows FRP-style asynchronous operations in Android.
-    implementation 'io.reactivex:rxandroid:1.2.1'
-    implementation 'com.nononsenseapps:filepicker:4.2.1'
     implementation 'org.ini4j:ini4j:0.5.4'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
