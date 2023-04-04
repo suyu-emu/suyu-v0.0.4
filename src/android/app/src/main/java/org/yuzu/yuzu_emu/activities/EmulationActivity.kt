@@ -4,9 +4,14 @@
 package org.yuzu.yuzu_emu.activities
 
 import android.app.Activity
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Rect
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.os.Bundle
 import android.view.*
 import android.view.KeyEvent
@@ -29,7 +34,7 @@ import org.yuzu.yuzu_emu.utils.SerializableHelper.parcelable
 import org.yuzu.yuzu_emu.utils.ThemeHelper
 import kotlin.math.roundToInt
 
-open class EmulationActivity : AppCompatActivity() {
+open class EmulationActivity : AppCompatActivity(), SensorEventListener {
     private var controllerMappingHelper: ControllerMappingHelper? = null
 
     // TODO(bunnei): Disable notifications until we support app suspension.
@@ -40,6 +45,10 @@ open class EmulationActivity : AppCompatActivity() {
     private var emulationFragment: EmulationFragment? = null
     private lateinit var nfcReader: NfcReader
     private lateinit var inputHandler: InputHandler
+
+    private val gyro = FloatArray(3)
+    private val accel = FloatArray(3)
+    private var motionTimestamp: Long = 0
 
     private lateinit var game: Game
 
@@ -160,6 +169,49 @@ open class EmulationActivity : AppCompatActivity() {
         return inputHandler.dispatchGenericMotionEvent(event)
     }
 
+    override fun onSensorChanged(event: SensorEvent) {
+        if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+            accel[0] = -event.values[1] / SensorManager.GRAVITY_EARTH
+            accel[1] = event.values[0] / SensorManager.GRAVITY_EARTH
+            accel[2] = -event.values[2] / SensorManager.GRAVITY_EARTH
+        }
+        if (event.sensor.type == Sensor.TYPE_GYROSCOPE) {
+            // Investigate why sensor value is off by 6x
+            gyro[0] = event.values[1] / 6.0f
+            gyro[1] = -event.values[0] / 6.0f
+            gyro[2] = event.values[2] / 6.0f
+        }
+
+        // Only update state on accelerometer data
+        if (event.sensor.type != Sensor.TYPE_ACCELEROMETER) {
+            return
+        }
+        val deltaTimestamp = (event.timestamp - motionTimestamp) / 1000
+        motionTimestamp = event.timestamp
+        NativeLibrary.onGamePadMotionEvent(
+            NativeLibrary.Player1Device,
+            deltaTimestamp,
+            gyro[0],
+            gyro[1],
+            gyro[2],
+            accel[0],
+            accel[1],
+            accel[2]
+        )
+        NativeLibrary.onGamePadMotionEvent(
+            NativeLibrary.ConsoleDevice,
+            deltaTimestamp,
+            gyro[0],
+            gyro[1],
+            gyro[2],
+            accel[0],
+            accel[1],
+            accel[2]
+        )
+    }
+
+    override fun onAccuracyChanged(sensor: Sensor, i: Int) {}
+
     private fun restoreState(savedInstanceState: Bundle) {
         game = savedInstanceState.parcelable(EXTRA_SELECTED_GAME)!!
     }
@@ -210,6 +262,23 @@ open class EmulationActivity : AppCompatActivity() {
                 setControlScale(50)
             }
             .show()
+    }
+
+    private fun startMotionSensorListener() {
+        val sensorManager = this.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        val gyroSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
+        val accelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        sensorManager.registerListener(this, gyroSensor, SensorManager.SENSOR_DELAY_GAME)
+        sensorManager.registerListener(this, accelSensor, SensorManager.SENSOR_DELAY_GAME)
+    }
+
+    private fun stopMotionSensorListener() {
+        val sensorManager = this.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        val gyroSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
+        val accelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+
+        sensorManager.unregisterListener(this, gyroSensor)
+        sensorManager.unregisterListener(this, accelSensor)
     }
 
     private fun setControlScale(scale: Int) {

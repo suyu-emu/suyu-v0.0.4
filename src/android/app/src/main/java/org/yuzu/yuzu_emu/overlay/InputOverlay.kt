@@ -12,10 +12,6 @@ import android.graphics.Canvas
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.VectorDrawable
-import android.hardware.Sensor
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
-import android.hardware.SensorManager
 import android.os.Build
 import android.util.AttributeSet
 import android.view.MotionEvent
@@ -41,7 +37,7 @@ import kotlin.math.min
  * [SurfaceView] that is rendering emulation.
  */
 class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context, attrs),
-    OnTouchListener, SensorEventListener {
+    OnTouchListener {
     private val overlayButtons: MutableSet<InputOverlayDrawableButton> = HashSet()
     private val overlayDpads: MutableSet<InputOverlayDrawableDpad> = HashSet()
     private val overlayJoysticks: MutableSet<InputOverlayDrawableJoystick> = HashSet()
@@ -54,20 +50,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
     private val preferences: SharedPreferences =
         PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
 
-    private val gyro = FloatArray(3)
-    private val accel = FloatArray(3)
-    private var motionTimestamp: Long = 0
-
     private lateinit var windowInsets: WindowInsets
-
-    private fun setMotionSensorListener(context: Context) {
-        val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        val gyroSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
-        val accelSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-
-        sensorManager.registerListener(this, gyroSensor, SensorManager.SENSOR_DELAY_GAME)
-        sensorManager.registerListener(this, accelSensor, SensorManager.SENSOR_DELAY_GAME)
-    }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
@@ -80,9 +63,6 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
 
         // Load the controls.
         refreshControls()
-
-        // Set the on motion sensor listener.
-        setMotionSensorListener(context)
 
         // Set the on touch listener.
         setOnTouchListener(this)
@@ -338,48 +318,6 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
         return true
     }
 
-    override fun onSensorChanged(event: SensorEvent) {
-        if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
-            accel[0] = -event.values[1] / SensorManager.GRAVITY_EARTH
-            accel[1] = event.values[0] / SensorManager.GRAVITY_EARTH
-            accel[2] = -event.values[2] / SensorManager.GRAVITY_EARTH
-        }
-        if (event.sensor.type == Sensor.TYPE_GYROSCOPE) {
-            // Investigate why sensor value is off by 12x
-            gyro[0] = event.values[1] / 12.0f
-            gyro[1] = -event.values[0] / 12.0f
-            gyro[2] = event.values[2] / 12.0f
-        }
-
-        // Only update state on accelerometer data
-        if (event.sensor.type != Sensor.TYPE_ACCELEROMETER) {
-            return
-        }
-        val deltaTimestamp = (event.timestamp - motionTimestamp) / 1000
-        motionTimestamp = event.timestamp
-        NativeLibrary.onGamePadMotionEvent(
-            NativeLibrary.Player1Device,
-            deltaTimestamp,
-            gyro[0],
-            gyro[1],
-            gyro[2],
-            accel[0],
-            accel[1],
-            accel[2]
-        )
-        NativeLibrary.onGamePadMotionEvent(
-            NativeLibrary.ConsoleDevice,
-            deltaTimestamp,
-            gyro[0],
-            gyro[1],
-            gyro[2],
-            accel[0],
-            accel[1],
-            accel[2]
-        )
-    }
-
-    override fun onAccuracyChanged(sensor: Sensor, i: Int) {}
     private fun addOverlayControls(orientation: String) {
         if (preferences.getBoolean(Settings.PREF_BUTTON_TOGGLE_0, true)) {
             overlayButtons.add(
