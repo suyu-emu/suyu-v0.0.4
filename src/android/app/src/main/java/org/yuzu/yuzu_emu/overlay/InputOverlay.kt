@@ -758,8 +758,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                 ButtonType.STICK_L.toString() + "-Y",
                 resources.getInteger(R.integer.SWITCH_STICK_L_Y).toFloat() / 1000 * maxY + minY
             )
-            .commit()
-        // We want to commit right away, otherwise the overlay could load before this is saved.
+            .apply()
     }
 
     override fun isInEditMode(): Boolean {

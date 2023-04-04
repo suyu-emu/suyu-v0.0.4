@@ -249,7 +249,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                         ) { _, indexSelected, isChecked ->
                             preferences.edit()
                                 .putBoolean("buttonToggle$indexSelected", isChecked)
-                                .commit()
+                                .apply()
                         }
                         .setPositiveButton(android.R.string.ok) { _, _ ->
                             refreshInputOverlay()
