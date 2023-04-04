@@ -5,31 +5,25 @@ package org.yuzu.yuzu_emu.features.settings.ui
 
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.os.Bundle
 import android.view.Menu
 import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.ActivitySettingsBinding
-import org.yuzu.yuzu_emu.databinding.DialogProgressBarBinding
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.model.SettingsViewModel
 import org.yuzu.yuzu_emu.utils.*
 
 class SettingsActivity : AppCompatActivity(), SettingsActivityView {
     private val presenter = SettingsActivityPresenter(this)
-    private var dialog: AlertDialog? = null
 
     private lateinit var binding: ActivitySettingsBinding
 
@@ -132,47 +126,6 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
             android.provider.Settings.Global.TRANSITION_ANIMATION_SCALE, 1f
         )
         return duration != 0f && transition != 0f
-    }
-
-    override fun startDirectoryInitializationService(
-        receiver: DirectoryStateReceiver?,
-        filter: IntentFilter
-    ) {
-        LocalBroadcastManager.getInstance(this).registerReceiver(
-            receiver!!,
-            filter
-        )
-        DirectoryInitialization.start(this)
-    }
-
-    override fun stopListeningToDirectoryInitializationService(receiver: DirectoryStateReceiver) {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver)
-    }
-
-    override fun showLoading() {
-        if (dialog == null) {
-            val loadingBinding = DialogProgressBarBinding.inflate(layoutInflater)
-            loadingBinding.progressBar.isIndeterminate = true
-
-            dialog = MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.load_settings)
-                .setView(loadingBinding.root)
-                .setCancelable(false)
-                .create()
-        }
-        dialog!!.show()
-    }
-
-    override fun hideLoading() {
-        dialog!!.dismiss()
-    }
-
-    override fun showExternalStorageNotMountedHint() {
-        Toast.makeText(
-            this,
-            R.string.external_storage_not_mounted,
-            Toast.LENGTH_SHORT
-        ).show()
     }
 
     override fun onSettingsFileLoaded() {

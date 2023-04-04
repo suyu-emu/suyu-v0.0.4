@@ -3,9 +3,7 @@
 
 package org.yuzu.yuzu_emu.features.settings.ui
 
-import android.content.IntentFilter
 import org.yuzu.yuzu_emu.features.settings.model.Settings
-import org.yuzu.yuzu_emu.utils.DirectoryStateReceiver
 
 /**
  * Abstraction for the Activity that manages SettingsFragments.
@@ -56,37 +54,4 @@ interface SettingsActivityView {
      * unless this has been called, the Activity will not save to disk.
      */
     fun onSettingChanged()
-
-    /**
-     * Show loading dialog while loading the settings
-     */
-    fun showLoading()
-
-    /**
-     * Hide the loading the dialog
-     */
-    fun hideLoading()
-
-    /**
-     * Show a hint to the user that the app needs the external storage to be mounted
-     */
-    fun showExternalStorageNotMountedHint()
-
-    /**
-     * Start the DirectoryInitialization and listen for the result.
-     *
-     * @param receiver the broadcast receiver for the DirectoryInitialization
-     * @param filter   the Intent broadcasts to be received.
-     */
-    fun startDirectoryInitializationService(
-        receiver: DirectoryStateReceiver?,
-        filter: IntentFilter
-    )
-
-    /**
-     * Stop listening to the DirectoryInitialization.
-     *
-     * @param receiver The broadcast receiver to unregister.
-     */
-    fun stopListeningToDirectoryInitializationService(receiver: DirectoryStateReceiver)
 }

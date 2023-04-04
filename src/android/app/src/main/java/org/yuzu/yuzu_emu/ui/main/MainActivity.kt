@@ -41,7 +41,7 @@ class MainActivity : AppCompatActivity(), MainView {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
-        splashScreen.setKeepOnScreenCondition { !DirectoryInitialization.areDirectoriesReady() }
+        splashScreen.setKeepOnScreenCondition { !DirectoryInitialization.areDirectoriesReady }
 
         ThemeHelper.setTheme(this)
 

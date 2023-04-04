@@ -4,14 +4,13 @@
 package org.yuzu.yuzu_emu.fragments
 
 import android.content.Context
-import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
 import android.view.*
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.res.ResourcesCompat
@@ -19,7 +18,6 @@ import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.preference.PreferenceManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.yuzu.yuzu_emu.NativeLibrary
@@ -32,13 +30,11 @@ import org.yuzu.yuzu_emu.features.settings.ui.SettingsActivity
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.utils.*
-import org.yuzu.yuzu_emu.utils.DirectoryInitialization.DirectoryInitializationState
 import org.yuzu.yuzu_emu.utils.SerializableHelper.parcelable
 
-class EmulationFragment : Fragment(), SurfaceHolder.Callback, Choreographer.FrameCallback {
+class EmulationFragment : Fragment(), SurfaceHolder.Callback {
     private lateinit var preferences: SharedPreferences
     private lateinit var emulationState: EmulationState
-    private var directoryStateReceiver: DirectoryStateReceiver? = null
     private var emulationActivity: EmulationActivity? = null
     private var perfStatsUpdater: (() -> Unit)? = null
 
@@ -144,25 +140,16 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, Choreographer.Fram
 
     override fun onResume() {
         super.onResume()
-        Choreographer.getInstance().postFrameCallback(this)
-        if (DirectoryInitialization.areDirectoriesReady()) {
-            emulationState.run(emulationActivity!!.isActivityRecreated)
-        } else {
-            setupDirectoriesThenStartEmulation()
+        if (!DirectoryInitialization.areDirectoriesReady) {
+            DirectoryInitialization.start(requireContext())
         }
+        emulationState.run(emulationActivity!!.isActivityRecreated)
     }
 
     override fun onPause() {
-        if (directoryStateReceiver != null) {
-            LocalBroadcastManager.getInstance(requireActivity()).unregisterReceiver(
-                directoryStateReceiver!!
-            )
-            directoryStateReceiver = null
-        }
         if (emulationState.isRunning) {
             emulationState.pause()
         }
-        Choreographer.getInstance().removeFrameCallback(this)
         super.onPause()
     }
 
@@ -174,36 +161,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, Choreographer.Fram
     override fun onDetach() {
         NativeLibrary.clearEmulationActivity()
         super.onDetach()
-    }
-
-    private fun setupDirectoriesThenStartEmulation() {
-        val statusIntentFilter = IntentFilter(
-            DirectoryInitialization.BROADCAST_ACTION
-        )
-        directoryStateReceiver =
-            DirectoryStateReceiver { directoryInitializationState: DirectoryInitializationState ->
-                if (directoryInitializationState ==
-                    DirectoryInitializationState.YUZU_DIRECTORIES_INITIALIZED
-                ) {
-                    emulationState.run(emulationActivity!!.isActivityRecreated)
-                } else if (directoryInitializationState ==
-                    DirectoryInitializationState.CANT_FIND_EXTERNAL_STORAGE
-                ) {
-                    Toast.makeText(
-                        context,
-                        R.string.external_storage_not_mounted,
-                        Toast.LENGTH_SHORT
-                    )
-                        .show()
-                }
-            }
-
-        // Registers the DirectoryStateReceiver and its intent filters
-        LocalBroadcastManager.getInstance(requireActivity()).registerReceiver(
-            directoryStateReceiver!!,
-            statusIntentFilter
-        )
-        DirectoryInitialization.start(requireContext())
     }
 
     fun refreshInputOverlay() {
@@ -257,11 +214,6 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, Choreographer.Fram
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
         emulationState.clearSurface()
-    }
-
-    override fun doFrame(frameTimeNanos: Long) {
-        Choreographer.getInstance().postFrameCallback(this)
-        NativeLibrary.DoFrame()
     }
 
     private fun showOverlayOptions() {
@@ -474,7 +426,7 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback, Choreographer.Fram
     }
 
     companion object {
-        private val perfStatsUpdateHandler = Handler()
+        private val perfStatsUpdateHandler = Handler(Looper.myLooper()!!)
 
         fun newInstance(game: Game): EmulationFragment {
             val args = Bundle()

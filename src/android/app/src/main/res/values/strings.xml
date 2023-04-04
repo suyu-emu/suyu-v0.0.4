@@ -98,8 +98,6 @@
 
     <string name="load_settings">Loading Settings…</string>
 
-    <string name="external_storage_not_mounted">The external storage needs to be available in order to use yuzu</string>
-
     <string name="empty_gamelist">No files were found or no game directory has been selected yet.</string>
 
     <!-- Software keyboard -->

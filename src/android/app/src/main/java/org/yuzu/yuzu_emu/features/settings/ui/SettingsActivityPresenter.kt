@@ -3,15 +3,13 @@
 
 package org.yuzu.yuzu_emu.features.settings.ui
 
-import android.content.IntentFilter
+import android.content.Context
 import android.os.Bundle
 import android.text.TextUtils
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
 import org.yuzu.yuzu_emu.utils.DirectoryInitialization
-import org.yuzu.yuzu_emu.utils.DirectoryInitialization.DirectoryInitializationState
-import org.yuzu.yuzu_emu.utils.DirectoryStateReceiver
 import org.yuzu.yuzu_emu.utils.Log
 import java.io.File
 
@@ -19,7 +17,6 @@ class SettingsActivityPresenter(private val activityView: SettingsActivityView) 
     val settings: Settings get() = activityView.settings
 
     private var shouldSave = false
-    private var directoryStateReceiver: DirectoryStateReceiver? = null
     private lateinit var menuTag: String
     private lateinit var gameId: String
 
@@ -54,33 +51,14 @@ class SettingsActivityPresenter(private val activityView: SettingsActivityView) 
             Log.error(DirectoryInitialization.userDirectory + "/config/" + SettingsFile.FILE_NAME_CONFIG + ".ini")
             Log.error("yuzu config file could not be found!")
         }
-        if (DirectoryInitialization.areDirectoriesReady()) {
-            loadSettingsUI()
-        } else {
-            activityView.showLoading()
-            val statusIntentFilter = IntentFilter(DirectoryInitialization.BROADCAST_ACTION)
-            directoryStateReceiver =
-                DirectoryStateReceiver { directoryInitializationState: DirectoryInitializationState ->
-                    if (directoryInitializationState == DirectoryInitializationState.YUZU_DIRECTORIES_INITIALIZED) {
-                        activityView.hideLoading()
-                        loadSettingsUI()
-                    } else if (directoryInitializationState == DirectoryInitializationState.CANT_FIND_EXTERNAL_STORAGE) {
-                        activityView.showExternalStorageNotMountedHint()
-                        activityView.hideLoading()
-                    }
-                }
-            activityView.startDirectoryInitializationService(
-                directoryStateReceiver,
-                statusIntentFilter
-            )
+
+        if (!DirectoryInitialization.areDirectoriesReady) {
+            DirectoryInitialization.start(activityView as Context)
         }
+        loadSettingsUI()
     }
 
     fun onStop(finishing: Boolean) {
-        if (directoryStateReceiver != null) {
-            activityView.stopListeningToDirectoryInitializationService(directoryStateReceiver!!)
-            directoryStateReceiver = null
-        }
         if (finishing && shouldSave) {
             Log.debug("[SettingsActivity] Settings activity stopping. Saving settings to INI...")
             settings.saveSettings(activityView)

@@ -367,8 +367,6 @@ void Java_org_yuzu_yuzu_1emu_NativeLibrary_SurfaceDestroyed(JNIEnv* env,
     EmulationSession::GetInstance().SurfaceChanged();
 }
 
-void Java_org_yuzu_yuzu_1emu_NativeLibrary_DoFrame(JNIEnv* env, [[maybe_unused]] jclass clazz) {}
-
 void Java_org_yuzu_yuzu_1emu_NativeLibrary_NotifyOrientationChange(JNIEnv* env,
                                                                    [[maybe_unused]] jclass clazz,
                                                                    jint layout_option,

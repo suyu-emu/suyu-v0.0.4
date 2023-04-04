@@ -142,7 +142,6 @@ dependencies {
     implementation 'androidx.window:window:1.0.0'
     implementation 'org.ini4j:ini4j:0.5.4'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
 }
 
