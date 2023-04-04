@@ -127,7 +127,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
         }
 
         for (dpad in overlayDpads) {
-            if (!dpad.updateStatus(event, EmulationMenuSettings.dpadSlideEnable)) {
+            if (!dpad.updateStatus(event, EmulationMenuSettings.dpadSlide)) {
                 continue
             }
             NativeLibrary.onGamePadButtonEvent(

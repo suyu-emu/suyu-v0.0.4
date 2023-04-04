@@ -26,7 +26,7 @@ object EmulationMenuSettings {
                 .putBoolean(Settings.PREF_MENU_SETTINGS_JOYSTICK_REL_CENTER, value)
                 .apply()
         }
-    var dpadSlideEnable: Boolean
+    var dpadSlide: Boolean
         get() = preferences.getBoolean(Settings.PREF_MENU_SETTINGS_DPAD_SLIDE, true)
         set(value) {
             preferences.edit()

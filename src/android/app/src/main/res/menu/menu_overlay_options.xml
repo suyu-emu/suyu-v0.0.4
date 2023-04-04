@@ -15,6 +15,11 @@
         android:checkable="true" />
 
     <item
+        android:id="@+id/menu_dpad_slide"
+        android:title="@string/emulation_dpad_slide"
+        android:checkable="true" />
+
+    <item
         android:id="@+id/menu_reset_overlay"
         android:title="@string/emulation_touch_overlay_reset" />
 
