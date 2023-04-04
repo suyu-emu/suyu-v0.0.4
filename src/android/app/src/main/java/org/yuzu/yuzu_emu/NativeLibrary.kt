@@ -43,6 +43,21 @@ object NativeLibrary {
     const val Player8Device = 7
     const val ConsoleDevice = 8
 
+    /**
+     * Controller type for each device
+     */
+    const val ProController = 3
+    const val Handheld = 4
+    const val JoyconDual = 5
+    const val JoyconLeft = 6
+    const val JoyconRight = 7
+    const val GameCube = 8
+    const val Pokeball = 9
+    const val NES = 10
+    const val SNES = 11
+    const val N64 = 12
+    const val SegaGenesis = 13
+
     @JvmField
     var sEmulationActivity = WeakReference<EmulationActivity?>(null)
 
@@ -69,6 +84,33 @@ object NativeLibrary {
             YuzuApplication.documentsTree!!.getFileSize(path)
         } else getFileSize(appContext, path)
     }
+
+    /**
+     * Returns true if pro controller isn't available and handheld is
+     */
+    external fun isHandheldOnly(): Boolean
+
+    /**
+     * Changes controller type for a specific device.
+     *
+     * @param Device The input descriptor of the gamepad.
+     * @param Type The NpadStyleIndex of the gamepad.
+     */
+    external fun setDeviceType(Device: Int, Type: Int): Boolean
+
+    /**
+     * Handles event when a gamepad is connected.
+     *
+     * @param Device The input descriptor of the gamepad.
+     */
+    external fun onGamePadConnectEvent(Device: Int): Boolean
+
+    /**
+     * Handles event when a gamepad is disconnected.
+     *
+     * @param Device The input descriptor of the gamepad.
+     */
+    external fun onGamePadDisconnectEvent(Device: Int): Boolean
 
     /**
      * Handles button press events for a gamepad.

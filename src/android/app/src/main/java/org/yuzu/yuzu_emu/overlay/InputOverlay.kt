@@ -113,13 +113,15 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
         }
 
         var shouldUpdateView = false
+        val playerIndex =
+            if (NativeLibrary.isHandheldOnly()) NativeLibrary.ConsoleDevice else NativeLibrary.Player1Device
 
         for (button in overlayButtons) {
             if (!button.updateStatus(event)) {
                 continue
             }
             NativeLibrary.onGamePadButtonEvent(
-                NativeLibrary.Player1Device,
+                playerIndex,
                 button.buttonId,
                 button.status
             )
@@ -131,22 +133,22 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                 continue
             }
             NativeLibrary.onGamePadButtonEvent(
-                NativeLibrary.Player1Device,
+                playerIndex,
                 dpad.upId,
                 dpad.upStatus
             )
             NativeLibrary.onGamePadButtonEvent(
-                NativeLibrary.Player1Device,
+                playerIndex,
                 dpad.downId,
                 dpad.downStatus
             )
             NativeLibrary.onGamePadButtonEvent(
-                NativeLibrary.Player1Device,
+                playerIndex,
                 dpad.leftId,
                 dpad.leftStatus
             )
             NativeLibrary.onGamePadButtonEvent(
-                NativeLibrary.Player1Device,
+                playerIndex,
                 dpad.rightId,
                 dpad.rightStatus
             )
@@ -159,13 +161,13 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
             }
             val axisID = joystick.joystickId
             NativeLibrary.onGamePadJoystickEvent(
-                NativeLibrary.Player1Device,
+                playerIndex,
                 axisID,
                 joystick.xAxis,
                 joystick.realYAxis
             )
             NativeLibrary.onGamePadButtonEvent(
-                NativeLibrary.Player1Device,
+                playerIndex,
                 joystick.buttonId,
                 joystick.buttonStatus
             )

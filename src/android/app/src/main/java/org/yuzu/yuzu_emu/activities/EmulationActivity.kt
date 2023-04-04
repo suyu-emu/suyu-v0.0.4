@@ -8,9 +8,9 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Rect
 import android.os.Bundle
+import android.view.*
 import android.view.KeyEvent
-import android.view.View
-import android.view.WindowManager
+import android.view.MotionEvent
 import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
@@ -23,6 +23,7 @@ import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.fragments.EmulationFragment
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.utils.ControllerMappingHelper
+import org.yuzu.yuzu_emu.utils.InputHandler
 import org.yuzu.yuzu_emu.utils.NfcReader
 import org.yuzu.yuzu_emu.utils.SerializableHelper.parcelable
 import org.yuzu.yuzu_emu.utils.ThemeHelper
@@ -38,6 +39,7 @@ open class EmulationActivity : AppCompatActivity() {
     private var menuVisible = false
     private var emulationFragment: EmulationFragment? = null
     private lateinit var nfcReader: NfcReader
+    private lateinit var inputHandler: InputHandler
 
     private lateinit var game: Game
 
@@ -80,6 +82,9 @@ open class EmulationActivity : AppCompatActivity() {
         nfcReader = NfcReader(this)
         nfcReader.initialize()
 
+        inputHandler = InputHandler()
+        inputHandler.initialize()
+
         // Start a foreground service to prevent the app from getting killed in the background
         // TODO(bunnei): Disable notifications until we support app suspension.
         //foregroundService = new Intent(EmulationActivity.this, ForegroundService.class);
@@ -108,6 +113,7 @@ open class EmulationActivity : AppCompatActivity() {
         }
         return super.onKeyDown(keyCode, event)
     }
+
     override fun onResume() {
         super.onResume()
         nfcReader.startScanning()
@@ -127,6 +133,29 @@ open class EmulationActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putParcelable(EXTRA_SELECTED_GAME, game)
         super.onSaveInstanceState(outState)
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        // Handling the case where the back button is pressed.
+        if (event.keyCode == KeyEvent.KEYCODE_BACK) {
+            onBackPressedDispatcher.onBackPressed()
+            return true
+        }
+
+        return inputHandler.dispatchKeyEvent(event)
+    }
+
+    override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
+        if (event.source and InputDevice.SOURCE_CLASS_JOYSTICK === 0) {
+            return super.dispatchGenericMotionEvent(event)
+        }
+
+        // Don't attempt to do anything if we are disconnecting a device.
+        if (event.actionMasked == MotionEvent.ACTION_CANCEL) {
+            return true
+        }
+
+        return inputHandler.dispatchGenericMotionEvent(event)
     }
 
     private fun restoreState(savedInstanceState: Bundle) {
@@ -159,8 +188,9 @@ open class EmulationActivity : AppCompatActivity() {
     private fun adjustScale() {
         val sliderBinding = DialogSliderBinding.inflate(layoutInflater)
         sliderBinding.slider.valueTo = 150F
-        sliderBinding.slider.value = PreferenceManager.getDefaultSharedPreferences(applicationContext)
-            .getInt(Settings.PREF_CONTROL_SCALE, 50).toFloat()
+        sliderBinding.slider.value =
+            PreferenceManager.getDefaultSharedPreferences(applicationContext)
+                .getInt(Settings.PREF_CONTROL_SCALE, 50).toFloat()
         sliderBinding.slider.addOnChangeListener(OnChangeListener { _, value, _ ->
             sliderBinding.textValue.text = value.toString()
             setControlScale(value.toInt())

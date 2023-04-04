@@ -25,6 +25,18 @@ JNIEXPORT void JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_ResetRomMetadata(JN
 JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_IsRunning(JNIEnv* env,
                                                                            jclass clazz);
 
+JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_isHandheldOnly(
+        JNIEnv* env, jclass clazz);
+
+JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_setDeviceType(
+        JNIEnv* env, jclass clazz, jstring j_device, jstring j_type);
+
+JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadConnectEvent(
+        JNIEnv* env, jclass clazz, jstring j_device);
+
+JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadDisconnectEvent(
+        JNIEnv* env, jclass clazz, jstring j_device);
+
 JNIEXPORT jboolean JNICALL Java_org_yuzu_yuzu_1emu_NativeLibrary_onGamePadEvent(
     JNIEnv* env, jclass clazz, jstring j_device, jint j_button, jint action);
 
