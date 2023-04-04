@@ -207,8 +207,6 @@ object NativeLibrary {
 
     external fun surfaceDestroyed()
 
-    external fun doFrame()
-
     /**
      * Unpauses emulation from a paused state.
      */
