@@ -35,6 +35,8 @@ import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.YuzuApplication
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.utils.EmulationMenuSettings
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Draws the interactive input overlay on top of the
@@ -769,28 +771,37 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
         /**
          * Resizes a [Bitmap] by a given scale factor
          *
-         * @param vectorDrawable The {@link Bitmap} to scale.
-         * @param scale          The scale factor for the bitmap.
-         * @return The scaled [Bitmap]
+         * @param context       Context for getting the vector drawable
+         * @param drawableId    The ID of the drawable to scale.
+         * @param scale         The scale factor for the bitmap.
+         * @return              The scaled [Bitmap]
          */
-        private fun getBitmap(vectorDrawable: VectorDrawable, scale: Float): Bitmap {
+        private fun getBitmap(context: Context, drawableId: Int, scale: Float): Bitmap {
+            val vectorDrawable = ContextCompat.getDrawable(context, drawableId) as VectorDrawable
+
             val bitmap = Bitmap.createBitmap(
                 (vectorDrawable.intrinsicWidth * scale).toInt(),
                 (vectorDrawable.intrinsicHeight * scale).toInt(),
                 Bitmap.Config.ARGB_8888
             )
-            val canvas = Canvas(bitmap)
+
+            val dm = context.resources.displayMetrics
+            val minScreenDimension = min(dm.widthPixels, dm.heightPixels)
+
+            val maxBitmapDimension = max(bitmap.width, bitmap.height)
+            val bitmapScale = scale * minScreenDimension / maxBitmapDimension
+
+            val scaledBitmap = Bitmap.createScaledBitmap(
+                bitmap,
+                (bitmap.width * bitmapScale).toInt(),
+                (bitmap.height * bitmapScale).toInt(),
+                true
+            )
+
+            val canvas = Canvas(scaledBitmap)
             vectorDrawable.setBounds(0, 0, canvas.width, canvas.height)
             vectorDrawable.draw(canvas)
-            return bitmap
-        }
-
-        private fun getBitmap(context: Context, drawableId: Int, scale: Float): Bitmap {
-            return when (val drawable = ContextCompat.getDrawable(context, drawableId)) {
-                is BitmapDrawable -> BitmapFactory.decodeResource(context.resources, drawableId)
-                is VectorDrawable -> getBitmap(drawable, scale)
-                else -> throw IllegalArgumentException("Unsupported drawable type")
-            }
+            return scaledBitmap
         }
 
         /**
@@ -845,12 +856,12 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
                 ButtonType.BUTTON_HOME,
                 ButtonType.BUTTON_CAPTURE,
                 ButtonType.BUTTON_PLUS,
-                ButtonType.BUTTON_MINUS -> 0.35f
+                ButtonType.BUTTON_MINUS -> 0.07f
                 ButtonType.TRIGGER_L,
                 ButtonType.TRIGGER_R,
                 ButtonType.TRIGGER_ZL,
-                ButtonType.TRIGGER_ZR -> 0.38f
-                else -> 0.43f
+                ButtonType.TRIGGER_ZR -> 0.26f
+                else -> 0.11f
             }
             scale *= (sPrefs.getInt(Settings.PREF_CONTROL_SCALE, 50) + 50).toFloat()
             scale /= 100f
@@ -910,7 +921,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
             val sPrefs = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
 
             // Decide scale based on button ID and user preference
-            var scale = 0.40f
+            var scale = 0.25f
             scale *= (sPrefs.getInt(Settings.PREF_CONTROL_SCALE, 50) + 50).toFloat()
             scale /= 100f
 
@@ -980,7 +991,7 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
             val sPrefs = PreferenceManager.getDefaultSharedPreferences(YuzuApplication.appContext)
 
             // Decide scale based on user preference
-            var scale = 0.40f
+            var scale = 0.3f
             scale *= (sPrefs.getInt(Settings.PREF_CONTROL_SCALE, 50) + 50).toFloat()
             scale /= 100f
 
