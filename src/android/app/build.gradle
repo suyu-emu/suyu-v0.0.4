@@ -47,6 +47,9 @@ android {
         versionCode autoVersion
         versionName getVersion()
         ndk.abiFilters "arm64-v8a", "x86_64"
+
+        buildConfigField "String", "GIT_HASH", "\"${getGitHash()}\""
+        buildConfigField "String", "BRANCH", "\"${getBranch()}\""
     }
 
     signingConfigs {
@@ -162,4 +165,26 @@ def getVersion() {
     }
 
     return versionName
+}
+
+def getGitHash() {
+    try {
+        def gitHash = 'git rev-parse HEAD'.execute([], project.rootDir).text.trim()
+        return gitHash
+    } catch (Exception e) {
+        logger.error(e + ': Cannot find git, defaulting to dummy build hash')
+    }
+
+    return '0'
+}
+
+def getBranch() {
+    try {
+        def branch = 'git rev-parse --abbrev-ref HEAD'.execute([], project.rootDir).text.trim()
+        return branch
+    } catch (Exception e) {
+        logger.error(e + ': Cannot find git, defaulting to dummy branch')
+    }
+
+    return 'main'
 }
