@@ -222,6 +222,8 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
 
         popup.menuInflater.inflate(R.menu.menu_overlay_options, popup.menu)
 
+        popup.menu.findItem(R.id.menu_rel_stick_center).isChecked = EmulationMenuSettings.joystickRelCenter
+
         popup.setOnMenuItemClickListener {
             when (it.itemId) {
                 R.id.menu_edit_overlay -> {
@@ -257,6 +259,11 @@ class EmulationFragment : Fragment(), SurfaceHolder.Callback {
                         }
                         .show()
 
+                    true
+                }
+                R.id.menu_rel_stick_center -> {
+                    it.isChecked = !it.isChecked
+                    EmulationMenuSettings.joystickRelCenter = it.isChecked
                     true
                 }
                 R.id.menu_reset_overlay -> {
