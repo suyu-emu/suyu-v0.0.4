@@ -14,6 +14,10 @@
             domain="external"
             path="." />
 
+        <include
+            domain="sharedpref"
+            path="." />
+
     </cloud-backup>
 
     <device-transfer>
@@ -28,6 +32,10 @@
 
         <include
             domain="external"
+            path="." />
+
+        <include
+            domain="sharedpref"
             path="." />
 
     </device-transfer>

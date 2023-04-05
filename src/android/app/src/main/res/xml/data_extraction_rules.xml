@@ -13,4 +13,8 @@
         domain="external"
         path="." />
 
+    <include
+        domain="sharedpref"
+        path="." />
+
 </full-backup-content>
