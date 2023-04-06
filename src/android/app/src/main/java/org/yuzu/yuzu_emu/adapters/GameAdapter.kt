@@ -3,6 +3,7 @@
 
 package org.yuzu.yuzu_emu.adapters
 
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.view.LayoutInflater
@@ -11,29 +12,25 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.AsyncDifferConfig
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.CardGameBinding
 import org.yuzu.yuzu_emu.activities.EmulationActivity
 import org.yuzu.yuzu_emu.model.Game
-import kotlin.collections.ArrayList
+import org.yuzu.yuzu_emu.adapters.GameAdapter.GameViewHolder
 
-/**
- * This adapter gets its information from a database Cursor. This fact, paired with the usage of
- * ContentProviders and Loaders, allows for efficient display of a limited view into a (possibly)
- * large dataset.
- */
-class GameAdapter(private val activity: AppCompatActivity, var games: ArrayList<Game>) :
-    RecyclerView.Adapter<GameAdapter.GameViewHolder>(),
+class GameAdapter(private val activity: AppCompatActivity) :
+    ListAdapter<Game, GameViewHolder>(AsyncDifferConfig.Builder(DiffCallback()).build()),
     View.OnClickListener {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GameViewHolder {
         // Create a new view.
-        val binding = CardGameBinding.inflate(LayoutInflater.from(parent.context))
+        val binding = CardGameBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         binding.root.setOnClickListener(this)
 
         // Use that view to create a ViewHolder.
@@ -41,12 +38,10 @@ class GameAdapter(private val activity: AppCompatActivity, var games: ArrayList<
     }
 
     override fun onBindViewHolder(holder: GameViewHolder, position: Int) {
-        holder.bind(games[position])
+        holder.bind(currentList[position])
     }
 
-    override fun getItemCount(): Int {
-        return games.size
-    }
+    override fun getItemCount(): Int = currentList.size
 
     /**
      * Launches the game that was clicked on.
@@ -55,7 +50,7 @@ class GameAdapter(private val activity: AppCompatActivity, var games: ArrayList<
      */
     override fun onClick(view: View) {
         val holder = view.tag as GameViewHolder
-        EmulationActivity.launch((view.context as AppCompatActivity), holder.game)
+        EmulationActivity.launch(activity, holder.game)
     }
 
     inner class GameViewHolder(val binding: CardGameBinding) :
@@ -74,7 +69,6 @@ class GameAdapter(private val activity: AppCompatActivity, var games: ArrayList<
                 val bitmap = decodeGameIcon(game.path)
                 binding.imageGameScreen.load(bitmap) {
                     error(R.drawable.no_icon)
-                    crossfade(true)
                 }
             }
 
@@ -87,9 +81,15 @@ class GameAdapter(private val activity: AppCompatActivity, var games: ArrayList<
         }
     }
 
-    fun swapData(games: ArrayList<Game>) {
-        this.games = games
-        notifyDataSetChanged()
+    private class DiffCallback : DiffUtil.ItemCallback<Game>() {
+        override fun areItemsTheSame(oldItem: Game, newItem: Game): Boolean {
+            return oldItem.gameId == newItem.gameId
+        }
+
+        @SuppressLint("DiffUtilEquals")
+        override fun areContentsTheSame(oldItem: Game, newItem: Game): Boolean {
+            return oldItem == newItem
+        }
     }
 
     private fun decodeGameIcon(uri: String): Bitmap? {

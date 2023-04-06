@@ -155,6 +155,9 @@ dependencies {
     implementation("org.ini4j:ini4j:0.5.4")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+    implementation("androidx.navigation:navigation-fragment-ktx:2.5.3")
+    implementation("androidx.navigation:navigation-ui-ktx:2.5.3")
+    implementation("info.debatty:java-string-similarity:2.0.0")
 }
 
 fun getVersion(): String {

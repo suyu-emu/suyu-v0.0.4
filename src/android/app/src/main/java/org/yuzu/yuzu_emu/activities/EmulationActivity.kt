@@ -13,7 +13,6 @@ import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.FragmentActivity
 import androidx.preference.PreferenceManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider.OnChangeListener
@@ -202,7 +201,7 @@ open class EmulationActivity : AppCompatActivity() {
         private const val EMULATION_RUNNING_NOTIFICATION = 0x1000
 
         @JvmStatic
-        fun launch(activity: FragmentActivity, game: Game) {
+        fun launch(activity: AppCompatActivity, game: Game) {
             val launcher = Intent(activity, EmulationActivity::class.java)
             launcher.putExtra(EXTRA_SELECTED_GAME, game)
             activity.startActivity(launcher)

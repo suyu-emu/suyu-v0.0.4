@@ -15,7 +15,7 @@ import org.yuzu.yuzu_emu.R
 import kotlin.math.roundToInt
 
 object ThemeHelper {
-    private const val NAV_BAR_ALPHA = 0.9f
+    const val SYSTEM_BAR_ALPHA = 0.9f
 
     @JvmStatic
     fun setTheme(activity: AppCompatActivity) {
@@ -29,10 +29,6 @@ object ThemeHelper {
         windowController.isAppearanceLightNavigationBars = isLightMode
 
         activity.window.statusBarColor = ContextCompat.getColor(activity, android.R.color.transparent)
-
-        val navigationBarColor =
-            MaterialColors.getColor(activity.window.decorView, R.attr.colorSurface)
-        setNavigationBarColor(activity, navigationBarColor)
     }
 
     @JvmStatic
@@ -48,7 +44,7 @@ object ThemeHelper {
         } else if (gestureType == InsetsHelper.THREE_BUTTON_NAVIGATION ||
             gestureType == InsetsHelper.TWO_BUTTON_NAVIGATION
         ) {
-            activity.window.navigationBarColor = getColorWithOpacity(color, NAV_BAR_ALPHA)
+            activity.window.navigationBarColor = getColorWithOpacity(color, SYSTEM_BAR_ALPHA)
         } else {
             activity.window.navigationBarColor = ContextCompat.getColor(
                 activity.applicationContext,
@@ -58,7 +54,7 @@ object ThemeHelper {
     }
 
     @ColorInt
-    private fun getColorWithOpacity(@ColorInt color: Int, alphaFactor: Float): Int {
+    fun getColorWithOpacity(@ColorInt color: Int, alphaFactor: Float): Int {
         return Color.argb(
             (alphaFactor * Color.alpha(color)).roundToInt(), Color.red(color),
             Color.green(color), Color.blue(color)

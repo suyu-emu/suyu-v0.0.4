@@ -15,6 +15,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
+import com.google.android.material.color.MaterialColors
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.databinding.ActivitySettingsBinding
@@ -49,6 +50,11 @@ class SettingsActivity : AppCompatActivity(), SettingsActivityView {
         // Show "Back" button in the action bar for navigation
         setSupportActionBar(binding.toolbarSettings)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+
+        ThemeHelper.setNavigationBarColor(
+            this,
+            MaterialColors.getColor(window.decorView, R.attr.colorSurface)
+        )
 
         setInsets()
     }
