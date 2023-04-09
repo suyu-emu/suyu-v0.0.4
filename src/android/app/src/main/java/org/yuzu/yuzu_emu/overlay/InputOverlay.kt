@@ -8,10 +8,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Rect
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.VectorDrawable
 import android.hardware.Sensor
@@ -606,8 +604,8 @@ class InputOverlay(context: Context, attrs: AttributeSet?) : SurfaceView(context
         // If we have API access, calculate the safe area to draw the overlay
         var cutoutLeft = 0
         var cutoutBottom = 0
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val insets = windowInsets.displayCutout!!
+        val insets = windowInsets.displayCutout
+        if (insets != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             maxY =
                 if (insets.boundingRectTop.bottom != 0) insets.boundingRectTop.bottom.toFloat() else maxY
             maxX =
