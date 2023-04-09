@@ -38,6 +38,7 @@
 #include "core/frontend/applets/software_keyboard.h"
 #include "core/frontend/applets/web_browser.h"
 #include "core/hid/hid_core.h"
+#include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/applet_ae.h"
 #include "core/hle/service/am/applet_oe.h"
 #include "core/hle/service/am/applets/applets.h"
@@ -168,6 +169,9 @@ public:
             nullptr,                     // Web Browser
         });
         m_system.GetFileSystemController().CreateFactories(*m_system.GetFilesystem());
+
+        // Initialize account manager
+        m_profile_manager = std::make_unique<Service::Account::ProfileManager>();
 
         // Load the ROM.
         m_load_result = m_system.Load(EmulationSession::GetInstance().Window(), filepath);
@@ -310,6 +314,7 @@ private:
     Core::SystemResultStatus m_load_result{Core::SystemResultStatus::ErrorNotInitialized};
     bool m_is_running{};
     SoftwareKeyboard::AndroidKeyboard* m_software_keyboard{};
+    std::unique_ptr<Service::Account::ProfileManager> m_profile_manager;
 
     // GPU driver parameters
     std::shared_ptr<Common::DynamicLibrary> m_vulkan_library;
