@@ -158,7 +158,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     dockedMode,
                     R.string.use_docked_mode,
                     R.string.use_docked_mode_description,
-                    true,
+                    false,
                 )
             )
             add(
@@ -223,7 +223,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     0,
                     R.array.rendererAccuracyNames,
                     R.array.rendererAccuracyValues,
-                    1
+                    0
                 )
             )
             add(

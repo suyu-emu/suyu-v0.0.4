@@ -139,11 +139,12 @@ void Config::ReadValues() {
     ReadSetting("Data Storage", Settings::values.gamecard_path);
 
     // System
-    ReadSetting("System", Settings::values.use_docked_mode);
-
     ReadSetting("System", Settings::values.current_user);
     Settings::values.current_user = std::clamp<int>(Settings::values.current_user.GetValue(), 0,
                                                     Service::Account::MAX_USERS - 1);
+
+    // Disable docked mode by default on Android
+    Settings::values.use_docked_mode = config->GetBoolean("System", "use_docked_mode", false);
 
     const auto rng_seed_enabled = config->GetBoolean("System", "rng_seed_enabled", false);
     if (rng_seed_enabled) {
@@ -208,7 +209,6 @@ void Config::ReadValues() {
     ReadSetting("Renderer", Settings::values.use_speed_limit);
     ReadSetting("Renderer", Settings::values.speed_limit);
     ReadSetting("Renderer", Settings::values.use_disk_shader_cache);
-    ReadSetting("Renderer", Settings::values.gpu_accuracy);
     ReadSetting("Renderer", Settings::values.use_asynchronous_gpu_emulation);
     ReadSetting("Renderer", Settings::values.vsync_mode);
     ReadSetting("Renderer", Settings::values.shader_backend);
@@ -217,6 +217,10 @@ void Config::ReadValues() {
     ReadSetting("Renderer", Settings::values.accelerate_astc);
     ReadSetting("Renderer", Settings::values.use_fast_gpu_time);
     ReadSetting("Renderer", Settings::values.use_vulkan_driver_pipeline_cache);
+
+    // Use GPU accuracy normal by default on Android
+    Settings::values.gpu_accuracy = static_cast<Settings::GPUAccuracy>(config->GetInteger(
+        "Renderer", "gpu_accuracy", static_cast<u32>(Settings::GPUAccuracy::Normal)));
 
     ReadSetting("Renderer", Settings::values.bg_red);
     ReadSetting("Renderer", Settings::values.bg_green);
