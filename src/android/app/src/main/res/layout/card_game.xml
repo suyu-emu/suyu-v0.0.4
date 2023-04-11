@@ -28,28 +28,13 @@
         <ImageView
             android:id="@+id/image_game_screen"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1" />
-
-        <TextView
-            android:id="@+id/text_game_title_inner"
-            style="@style/TextAppearance.Material3.BodyLarge"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:ellipsize="end"
-            android:gravity="center"
-            android:maxLines="2"
-            android:paddingLeft="2dp"
-            android:paddingRight="2dp"
-            android:paddingTop="8dp"
-            android:visibility="visible"
-            tools:text="Super Mario Odyssey" />
+            android:layout_height="match_parent" />
 
     </com.google.android.material.card.MaterialCardView>
 
-    <TextView
-        android:id="@+id/text_game_title"
+    <com.google.android.material.textview.MaterialTextView
         style="@style/TextAppearance.Material3.BodyLarge"
+        android:id="@+id/text_game_title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:ellipsize="end"
@@ -61,9 +46,9 @@
         app:layout_constraintTop_toBottomOf="@+id/card_game_art"
         tools:text="Super Mario Odyssey" />
 
-    <TextView
-        android:id="@+id/text_game_caption"
+    <com.google.android.material.textview.MaterialTextView
         style="@style/TextAppearance.Material3.BodyMedium"
+        android:id="@+id/text_game_caption"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:ellipsize="end"
