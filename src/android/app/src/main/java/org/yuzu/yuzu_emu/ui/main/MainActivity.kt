@@ -9,6 +9,7 @@ import android.view.ViewGroup.MarginLayoutParams
 import android.view.animation.PathInterpolator
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -41,6 +42,8 @@ class MainActivity : AppCompatActivity() {
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
+        window.statusBarColor =
+            ContextCompat.getColor(applicationContext, android.R.color.transparent)
         ThemeHelper.setNavigationBarColor(
             this,
             ElevationOverlayProvider(binding.navigationBar.context).compositeOverlay(
@@ -80,6 +83,25 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showNavigation(visible: Boolean) {
+        // TODO: This should be decoupled from navigation in the future
+        binding.statusBarShade.animate().apply {
+            if (visible) {
+                binding.statusBarShade.visibility = View.VISIBLE
+                binding.statusBarShade.translationY = binding.statusBarShade.height.toFloat() * -2
+                duration = 300
+                translationY(0f)
+                interpolator = PathInterpolator(0.05f, 0.7f, 0.1f, 1f)
+            } else {
+                duration = 300
+                translationY(binding.navigationBar.height.toFloat() * -2)
+                interpolator = PathInterpolator(0.3f, 0f, 0.8f, 0.15f)
+            }
+        }.withEndAction {
+            if (!visible) {
+                binding.statusBarShade.visibility = View.INVISIBLE
+            }
+        }.start()
+
         binding.navigationBar.animate().apply {
             if (visible) {
                 binding.navigationBar.visibility = View.VISIBLE

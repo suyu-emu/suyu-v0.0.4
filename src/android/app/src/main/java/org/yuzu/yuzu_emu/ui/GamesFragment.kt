@@ -9,7 +9,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -27,7 +26,6 @@ import org.yuzu.yuzu_emu.layout.AutofitGridLayoutManager
 import org.yuzu.yuzu_emu.model.Game
 import org.yuzu.yuzu_emu.model.GamesViewModel
 import org.yuzu.yuzu_emu.model.HomeViewModel
-import org.yuzu.yuzu_emu.utils.ThemeHelper
 import java.util.Locale
 
 class GamesFragment : Fragment() {
@@ -145,21 +143,9 @@ class GamesFragment : Fragment() {
         _binding = null
     }
 
-    private fun searchShown() {
-        homeViewModel.setNavigationVisible(false)
-        requireActivity().window.statusBarColor =
-            ContextCompat.getColor(requireContext(), android.R.color.transparent)
-    }
+    private fun searchShown() = homeViewModel.setNavigationVisible(false)
 
-    private fun searchHidden() {
-        homeViewModel.setNavigationVisible(true)
-        requireActivity().window.statusBarColor = ThemeHelper.getColorWithOpacity(
-            MaterialColors.getColor(
-                binding.root,
-                R.attr.colorSurface
-            ), ThemeHelper.SYSTEM_BAR_ALPHA
-        )
-    }
+    private fun searchHidden() = homeViewModel.setNavigationVisible(true)
 
     private inner class ScoredGame(val score: Double, val item: Game)
 

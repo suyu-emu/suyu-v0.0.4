@@ -87,13 +87,6 @@ class OptionsFragment : Fragment() {
             adapter = HomeOptionAdapter(requireActivity() as AppCompatActivity, optionsList)
         }
 
-        requireActivity().window.statusBarColor = ThemeHelper.getColorWithOpacity(
-            MaterialColors.getColor(
-                binding.root,
-                R.attr.colorSurface
-            ), ThemeHelper.SYSTEM_BAR_ALPHA
-        )
-
         setInsets()
     }
 
