@@ -42,6 +42,7 @@ object NativeLibrary {
     const val Player8Device = 7
     const val ConsoleDevice = 8
 
+    @JvmField
     var sEmulationActivity = WeakReference<EmulationActivity?>(null)
 
     init {

@@ -36,6 +36,7 @@ object SettingsFile {
     const val KEY_RENDERER_RESOLUTION = "resolution_setup"
     const val KEY_RENDERER_ASPECT_RATIO = "aspect_ratio"
     const val KEY_RENDERER_ACCURACY = "gpu_accuracy"
+    const val KEY_RENDERER_USE_DISK_SHADER_CACHE = "use_disk_shader_cache"
     const val KEY_RENDERER_ASYNCHRONOUS_SHADERS = "use_asynchronous_shaders"
     const val KEY_RENDERER_FORCE_MAX_CLOCK = "force_max_clock"
     const val KEY_RENDERER_USE_SPEED_LIMIT = "use_speed_limit"

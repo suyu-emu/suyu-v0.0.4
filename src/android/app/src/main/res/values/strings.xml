@@ -35,6 +35,8 @@
     <string name="renderer_asynchronous_shaders_description">Compiles shaders asynchronously, which will reduce stutter but may introduce glitches.</string>
     <string name="renderer_debug">Enable graphics debugging</string>
     <string name="renderer_debug_description">When checked, the graphics API enters a slower debugging mode.</string>
+    <string name="use_disk_shader_cache">Use disk shader cache</string>
+    <string name="use_disk_shader_cache_description">Reduce stuttering by storing and loading generated shaders to disk.</string>
 
     <!-- Audio settings strings -->
     <string name="audio_volume">Volume</string>
@@ -45,6 +47,7 @@
     <string name="ini_saved">Saved settings</string>
     <string name="gameid_saved">Saved settings for %1$s</string>
     <string name="error_saving">Error saving %1$s.ini: %2$s</string>
+    <string name="loading">Loading...</string>
 
     <!-- Game Grid Screen-->
     <string name="grid_menu_core_settings">Settings</string>
@@ -182,5 +185,9 @@
     <string name="gamepad_right_stick">Right Stick</string>
     <string name="gamepad_home">Home</string>
     <string name="gamepad_screenshot">Screenshot</string>
+
+    <!-- Disk shader cache -->
+    <string name="preparing_shaders">Preparing shaders</string>
+    <string name="building_shaders">Building shaders</string>
 
 </resources>

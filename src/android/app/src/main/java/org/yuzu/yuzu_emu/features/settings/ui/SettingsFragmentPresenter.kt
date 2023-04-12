@@ -196,6 +196,8 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
         val rendererResolution = rendererSection.getSetting(SettingsFile.KEY_RENDERER_RESOLUTION)
         val rendererAspectRatio =
             rendererSection.getSetting(SettingsFile.KEY_RENDERER_ASPECT_RATIO)
+        val rendererUseDiskShaderCache =
+            rendererSection.getSetting(SettingsFile.KEY_RENDERER_USE_DISK_SHADER_CACHE)
         val rendererForceMaxClocks =
             rendererSection.getSetting(SettingsFile.KEY_RENDERER_FORCE_MAX_CLOCK)
         val rendererAsynchronousShaders =
@@ -248,6 +250,16 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.array.rendererAspectRatioNames,
                     R.array.rendererAspectRatioValues,
                     0
+                )
+            )
+            add(
+                SwitchSetting(
+                    SettingsFile.KEY_RENDERER_USE_DISK_SHADER_CACHE,
+                    Settings.SECTION_RENDERER,
+                    rendererUseDiskShaderCache,
+                    R.string.use_disk_shader_cache,
+                    R.string.use_disk_shader_cache_description,
+                    true
                 )
             )
             add(

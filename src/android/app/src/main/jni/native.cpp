@@ -51,6 +51,7 @@
 #include "jni/emu_window/emu_window.h"
 #include "jni/id_cache.h"
 #include "video_core/rasterizer_interface.h"
+#include "video_core/renderer_base.h"
 
 namespace {
 
@@ -229,6 +230,15 @@ public:
             m_is_running = true;
         }
 
+        // Load the disk shader cache.
+        if (Settings::values.use_disk_shader_cache.GetValue()) {
+            LoadDiskCacheProgress(VideoCore::LoadCallbackStage::Prepare, 0, 0);
+            m_system.Renderer().ReadRasterizer()->LoadDiskResources(
+                m_system.GetApplicationProcessProgramID(), std::stop_token{},
+                LoadDiskCacheProgress);
+            LoadDiskCacheProgress(VideoCore::LoadCallbackStage::Complete, 0, 0);
+        }
+
         void(m_system.Run());
 
         if (m_system.DebuggerEnabled()) {
@@ -293,6 +303,14 @@ private:
         m_rom_metadata_cache[path] = entry;
 
         return entry;
+    }
+
+private:
+    static void LoadDiskCacheProgress(VideoCore::LoadCallbackStage stage, int progress, int max) {
+        JNIEnv* env = IDCache::GetEnvForThread();
+        env->CallStaticVoidMethod(IDCache::GetDiskCacheProgressClass(),
+                                  IDCache::GetDiskCacheLoadProgress(), static_cast<jint>(stage),
+                                  static_cast<jint>(progress), static_cast<jint>(max));
     }
 
 private:
