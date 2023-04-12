@@ -330,6 +330,8 @@ PipelineCache::PipelineCache(RasterizerVulkan& rasterizer_, const Device& device
         .lower_left_origin_mode = false,
         .need_declared_frag_colors = false,
         .need_gather_subpixel_offset = driver_id == VK_DRIVER_ID_AMD_PROPRIETARY ||
+                                       driver_id == VK_DRIVER_ID_AMD_OPEN_SOURCE ||
+                                       driver_id == VK_DRIVER_ID_MESA_RADV ||
                                        driver_id == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS ||
                                        driver_id == VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA,
 
