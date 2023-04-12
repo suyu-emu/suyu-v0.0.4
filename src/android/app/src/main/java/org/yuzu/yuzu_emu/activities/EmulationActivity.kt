@@ -117,11 +117,13 @@ open class EmulationActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         nfcReader.startScanning()
+        startMotionSensorListener()
     }
 
     override fun onPause() {
         super.onPause()
         nfcReader.stopScanning()
+        stopMotionSensorListener()
     }
 
     override fun onNewIntent(intent: Intent) {

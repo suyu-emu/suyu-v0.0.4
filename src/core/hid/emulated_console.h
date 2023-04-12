@@ -29,10 +29,10 @@ struct ConsoleMotionInfo {
     MotionInput emulated{};
 };
 
-using ConsoleMotionDevices = std::unique_ptr<Common::Input::InputDevice>;
+using ConsoleMotionDevices = std::array<std::unique_ptr<Common::Input::InputDevice>, 2>;
 using TouchDevices = std::array<std::unique_ptr<Common::Input::InputDevice>, MaxTouchDevices>;
 
-using ConsoleMotionParams = Common::ParamPackage;
+using ConsoleMotionParams = std::array<Common::ParamPackage, 2>;
 using TouchParams = std::array<Common::ParamPackage, MaxTouchDevices>;
 
 using ConsoleMotionValues = ConsoleMotionInfo;
