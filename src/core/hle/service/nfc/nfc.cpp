@@ -8,11 +8,82 @@
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/nfc/mifare_user.h"
 #include "core/hle/service/nfc/nfc.h"
-#include "core/hle/service/nfc/nfc_user.h"
+#include "core/hle/service/nfc/nfc_interface.h"
 #include "core/hle/service/server_manager.h"
 #include "core/hle/service/service.h"
 
 namespace Service::NFC {
+
+class IUser final : public Interface {
+public:
+    explicit IUser(Core::System& system_) : Interface(system_, "IUser") {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, &Interface::Initialize, "InitializeOld"},
+            {1, &Interface::Finalize, "FinalizeOld"},
+            {2, &Interface::GetState, "GetStateOld"},
+            {3, &Interface::IsNfcEnabled, "IsNfcEnabledOld"},
+            {400, &Interface::Initialize, "Initialize"},
+            {401, &Interface::Finalize, "Finalize"},
+            {402, &Interface::GetState, "GetState"},
+            {403, &Interface::IsNfcEnabled, "IsNfcEnabled"},
+            {404, &Interface::ListDevices, "ListDevices"},
+            {405, &Interface::GetDeviceState, "GetDeviceState"},
+            {406, &Interface::GetNpadId, "GetNpadId"},
+            {407, &Interface::AttachAvailabilityChangeEvent, "AttachAvailabilityChangeEvent"},
+            {408, &Interface::StartDetection, "StartDetection"},
+            {409, &Interface::StopDetection, "StopDetection"},
+            {410, &Interface::GetTagInfo, "GetTagInfo"},
+            {411, &Interface::AttachActivateEvent, "AttachActivateEvent"},
+            {412, &Interface::AttachDeactivateEvent, "AttachDeactivateEvent"},
+            {1000, nullptr, "ReadMifare"},
+            {1001, nullptr, "WriteMifare"},
+            {1300, &Interface::SendCommandByPassThrough, "SendCommandByPassThrough"},
+            {1301, nullptr, "KeepPassThroughSession"},
+            {1302, nullptr, "ReleasePassThroughSession"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+};
+
+class ISystem final : public Interface {
+public:
+    explicit ISystem(Core::System& system_) : Interface{system_, "ISystem"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, &Interface::Initialize, "InitializeOld"},
+            {1, &Interface::Finalize, "FinalizeOld"},
+            {2, &Interface::GetState, "GetStateOld"},
+            {3, &Interface::IsNfcEnabled, "IsNfcEnabledOld"},
+            {100, nullptr, "SetNfcEnabledOld"},
+            {400, &Interface::Initialize, "Initialize"},
+            {401, &Interface::Finalize, "Finalize"},
+            {402, &Interface::GetState, "GetState"},
+            {403, &Interface::IsNfcEnabled, "IsNfcEnabled"},
+            {404, &Interface::ListDevices, "ListDevices"},
+            {405, &Interface::GetDeviceState, "GetDeviceState"},
+            {406, &Interface::GetNpadId, "GetNpadId"},
+            {407, &Interface::AttachAvailabilityChangeEvent, "AttachAvailabilityChangeEvent"},
+            {408, &Interface::StartDetection, "StartDetection"},
+            {409, &Interface::StopDetection, "StopDetection"},
+            {410, &Interface::GetTagInfo, "GetTagInfo"},
+            {411, &Interface::AttachActivateEvent, "AttachActivateEvent"},
+            {412, &Interface::AttachDeactivateEvent, "AttachDeactivateEvent"},
+            {500, nullptr, "SetNfcEnabled"},
+            {510, nullptr, "OutputTestWave"},
+            {1000, nullptr, "ReadMifare"},
+            {1001, nullptr, "WriteMifare"},
+            {1300, &Interface::SendCommandByPassThrough, "SendCommandByPassThrough"},
+            {1301, nullptr, "KeepPassThroughSession"},
+            {1302, nullptr, "ReleasePassThroughSession"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+};
 
 class IAm final : public ServiceFramework<IAm> {
 public:
@@ -92,43 +163,6 @@ private:
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
         rb.PushIpcInterface<IUser>(system);
-    }
-};
-
-class ISystem final : public ServiceFramework<ISystem> {
-public:
-    explicit ISystem(Core::System& system_) : ServiceFramework{system_, "ISystem"} {
-        // clang-format off
-        static const FunctionInfo functions[] = {
-            {0, nullptr, "Initialize"},
-            {1, nullptr, "Finalize"},
-            {2, nullptr, "GetStateOld"},
-            {3, nullptr, "IsNfcEnabledOld"},
-            {100, nullptr, "SetNfcEnabledOld"},
-            {400, nullptr, "InitializeSystem"},
-            {401, nullptr, "FinalizeSystem"},
-            {402, nullptr, "GetState"},
-            {403, nullptr, "IsNfcEnabled"},
-            {404, nullptr, "ListDevices"},
-            {405, nullptr, "GetDeviceState"},
-            {406, nullptr, "GetNpadId"},
-            {407, nullptr, "AttachAvailabilityChangeEvent"},
-            {408, nullptr, "StartDetection"},
-            {409, nullptr, "StopDetection"},
-            {410, nullptr, "GetTagInfo"},
-            {411, nullptr, "AttachActivateEvent"},
-            {412, nullptr, "AttachDeactivateEvent"},
-            {500, nullptr, "SetNfcEnabled"},
-            {510, nullptr, "OutputTestWave"},
-            {1000, nullptr, "ReadMifare"},
-            {1001, nullptr, "WriteMifare"},
-            {1300, nullptr, "SendCommandByPassThrough"},
-            {1301, nullptr, "KeepPassThroughSession"},
-            {1302, nullptr, "ReleasePassThroughSession"},
-        };
-        // clang-format on
-
-        RegisterHandlers(functions);
     }
 };
 

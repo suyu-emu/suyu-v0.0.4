@@ -152,16 +152,10 @@ private:
     void CreateUserInterface(HLERequestContext& ctx) {
         LOG_DEBUG(Service_NFP, "called");
 
-        if (user_interface == nullptr) {
-            user_interface = std::make_shared<IUser>(system);
-        }
-
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
-        rb.PushIpcInterface<IUser>(user_interface);
+        rb.PushIpcInterface<IUser>(system);
     }
-
-    std::shared_ptr<IUser> user_interface;
 };
 
 class ISystemManager final : public ServiceFramework<ISystemManager> {
@@ -180,16 +174,10 @@ private:
     void CreateSystemInterface(HLERequestContext& ctx) {
         LOG_DEBUG(Service_NFP, "called");
 
-        if (system_interface == nullptr) {
-            system_interface = std::make_shared<ISystem>(system);
-        }
-
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
-        rb.PushIpcInterface<ISystem>(system_interface);
+        rb.PushIpcInterface<ISystem>(system);
     }
-
-    std::shared_ptr<ISystem> system_interface;
 };
 
 class IDebugManager final : public ServiceFramework<IDebugManager> {
@@ -208,16 +196,10 @@ private:
     void CreateDebugInterface(HLERequestContext& ctx) {
         LOG_DEBUG(Service_NFP, "called");
 
-        if (system_interface == nullptr) {
-            system_interface = std::make_shared<IDebug>(system);
-        }
-
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(ResultSuccess);
-        rb.PushIpcInterface<IDebug>(system_interface);
+        rb.PushIpcInterface<IDebug>(system);
     }
-
-    std::shared_ptr<IDebug> system_interface;
 };
 
 void LoopProcess(Core::System& system) {

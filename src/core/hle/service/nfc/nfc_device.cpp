@@ -11,7 +11,6 @@
 #include "core/hle/service/ipc_helpers.h"
 #include "core/hle/service/nfc/nfc_device.h"
 #include "core/hle/service/nfc/nfc_result.h"
-#include "core/hle/service/nfc/nfc_user.h"
 
 namespace Service::NFC {
 NfcDevice::NfcDevice(Core::HID::NpadIdType npad_id_, Core::System& system_,

@@ -13,16 +13,10 @@
 namespace Service::NFC {
 class NfcDevice;
 
-class IUser final : public ServiceFramework<IUser> {
+class Interface : public ServiceFramework<Interface> {
 public:
-    explicit IUser(Core::System& system_);
-    ~IUser();
-
-private:
-    enum class State : u32 {
-        NonInitialized,
-        Initialized,
-    };
+    explicit Interface(Core::System& system_, const char* name);
+    ~Interface();
 
     void Initialize(HLERequestContext& ctx);
     void Finalize(HLERequestContext& ctx);
@@ -38,6 +32,12 @@ private:
     void AttachActivateEvent(HLERequestContext& ctx);
     void AttachDeactivateEvent(HLERequestContext& ctx);
     void SendCommandByPassThrough(HLERequestContext& ctx);
+
+private:
+    enum class State : u32 {
+        NonInitialized,
+        Initialized,
+    };
 
     std::optional<std::shared_ptr<NfcDevice>> GetNfcDevice(u64 handle);
 
