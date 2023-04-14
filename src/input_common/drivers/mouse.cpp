@@ -135,7 +135,7 @@ void Mouse::Move(int x, int y, int center_x, int center_y) {
 
         auto mouse_change =
             (Common::MakeVec(x, y) - Common::MakeVec(center_x, center_y)).Cast<float>();
-        last_motion_change += {-mouse_change.y, -mouse_change.x, last_motion_change.z};
+        last_motion_change += {-mouse_change.y, -mouse_change.x, 0};
 
         const auto move_distance = mouse_change.Length();
         if (move_distance == 0) {
