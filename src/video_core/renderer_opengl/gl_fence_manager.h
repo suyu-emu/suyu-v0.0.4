@@ -30,7 +30,17 @@ private:
 };
 
 using Fence = std::shared_ptr<GLInnerFence>;
-using GenericFenceManager = VideoCommon::FenceManager<Fence, TextureCache, BufferCache, QueryCache>;
+
+struct FenceManagerParams {
+    using FenceType = Fence;
+    using BufferCacheType = BufferCache;
+    using TextureCacheType = TextureCache;
+    using QueryCacheType = QueryCache;
+
+    static constexpr bool HAS_ASYNC_CHECK = false;
+};
+
+using GenericFenceManager = VideoCommon::FenceManager<FenceManagerParams>;
 
 class FenceManagerOpenGL final : public GenericFenceManager {
 public:

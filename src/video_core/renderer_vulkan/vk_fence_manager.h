@@ -40,7 +40,16 @@ private:
 };
 using Fence = std::shared_ptr<InnerFence>;
 
-using GenericFenceManager = VideoCommon::FenceManager<Fence, TextureCache, BufferCache, QueryCache>;
+struct FenceManagerParams {
+    using FenceType = Fence;
+    using BufferCacheType = BufferCache;
+    using TextureCacheType = TextureCache;
+    using QueryCacheType = QueryCache;
+
+    static constexpr bool HAS_ASYNC_CHECK = true;
+};
+
+using GenericFenceManager = VideoCommon::FenceManager<FenceManagerParams>;
 
 class FenceManager final : public GenericFenceManager {
 public:

@@ -173,15 +173,18 @@ public:
     }
 
     void CommitAsyncFlushes() {
+        std::unique_lock lock{mutex};
         committed_flushes.push_back(uncommitted_flushes);
         uncommitted_flushes.reset();
     }
 
     bool HasUncommittedFlushes() const {
+        std::unique_lock lock{mutex};
         return uncommitted_flushes != nullptr;
     }
 
     bool ShouldWaitAsyncFlushes() const {
+        std::unique_lock lock{mutex};
         if (committed_flushes.empty()) {
             return false;
         }
@@ -189,6 +192,7 @@ public:
     }
 
     void PopAsyncFlushes() {
+        std::unique_lock lock{mutex};
         if (committed_flushes.empty()) {
             return;
         }
@@ -265,7 +269,7 @@ private:
 
     VideoCore::RasterizerInterface& rasterizer;
 
-    std::recursive_mutex mutex;
+    mutable std::recursive_mutex mutex;
 
     std::unordered_map<u64, std::vector<CachedQuery>> cached_queries;
 
