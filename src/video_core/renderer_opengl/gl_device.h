@@ -176,6 +176,10 @@ public:
         return vendor_name == "ATI Technologies Inc.";
     }
 
+    bool IsIntel() const {
+        return vendor_name == "Intel";
+    }
+
     bool CanReportMemoryUsage() const {
         return can_report_memory;
     }

@@ -52,6 +52,10 @@ struct Profile {
     bool need_declared_frag_colors{};
     /// Prevents fast math optimizations that may cause inaccuracies
     bool need_fastmath_off{};
+    /// Some GPU vendors use a different rounding precision when calculating texture pixel
+    /// coordinates with the 16.8 format in the ImageGather instruction than the Maxwell
+    /// architecture. Applying an offset does fix this mismatching rounding behaviour.
+    bool need_gather_subpixel_offset{};
 
     /// OpFClamp is broken and OpFMax + OpFMin should be used instead
     bool has_broken_spirv_clamp{};
