@@ -217,7 +217,8 @@ public:
         const Tegra::DMA::ImageOperand& image_operand, ImageId image_id, bool modifies_image);
 
     void DownloadImageIntoBuffer(Image* image, BufferType buffer, size_t buffer_offset,
-                                 std::span<const VideoCommon::BufferImageCopy> copies);
+                                 std::span<const VideoCommon::BufferImageCopy> copies,
+                                 GPUVAddr address = 0, size_t size = 0);
 
     /// Return true when a CPU region is modified from the GPU
     [[nodiscard]] bool IsRegionGpuModified(VAddr addr, size_t size);
@@ -428,17 +429,31 @@ private:
     u64 critical_memory;
     size_t critical_gc;
 
+    struct BufferDownload {
+        GPUVAddr address;
+        size_t size;
+    };
+
+    struct PendingDownload {
+        bool is_swizzle;
+        size_t async_buffer_id;
+        SlotId object_id;
+    };
+
     SlotVector<Image> slot_images;
     SlotVector<ImageMapView> slot_map_views;
     SlotVector<ImageView> slot_image_views;
     SlotVector<ImageAlloc> slot_image_allocs;
     SlotVector<Sampler> slot_samplers;
     SlotVector<Framebuffer> slot_framebuffers;
+    SlotVector<BufferDownload> slot_buffer_downloads;
 
     // TODO: This data structure is not optimal and it should be reworked
-    std::vector<ImageId> uncommitted_downloads;
-    std::deque<std::vector<ImageId>> committed_downloads;
-    std::deque<std::optional<AsyncBuffer>> async_buffers;
+
+    std::vector<PendingDownload> uncommitted_downloads;
+    std::deque<std::vector<PendingDownload>> committed_downloads;
+    std::vector<AsyncBuffer> uncommitted_async_buffers;
+    std::deque<std::vector<AsyncBuffer>> async_buffers;
 
     struct LRUItemParams {
         using ObjectType = ImageId;

@@ -1342,17 +1342,19 @@ void Image::UploadMemory(const StagingBufferRef& map, std::span<const BufferImag
     UploadMemory(map.buffer, map.offset, copies);
 }
 
-void Image::DownloadMemory(std::span<VkBuffer> buffers_span, VkDeviceSize offset,
+void Image::DownloadMemory(std::span<VkBuffer> buffers_span, std::span<VkDeviceSize> offsets_span,
                            std::span<const VideoCommon::BufferImageCopy> copies) {
     const bool is_rescaled = True(flags & ImageFlagBits::Rescaled);
     if (is_rescaled) {
         ScaleDown();
     }
     boost::container::small_vector<VkBuffer, 1> buffers_vector{};
-    for (auto& buffer : buffers_span) {
-        buffers_vector.push_back(buffer);
+    boost::container::small_vector<std::vector<VkBufferImageCopy>, 1> vk_copies;
+    for (size_t index = 0; index < buffers_span.size(); index++) {
+        buffers_vector.emplace_back(buffers_span[index]);
+        vk_copies.emplace_back(
+            TransformBufferImageCopies(copies, offsets_span[index], aspect_mask));
     }
-    std::vector vk_copies = TransformBufferImageCopies(copies, offset, aspect_mask);
     scheduler->RequestOutsideRenderPassOperationContext();
     scheduler->Record([buffers = std::move(buffers_vector), image = *original_image,
                        aspect_mask = aspect_mask, vk_copies](vk::CommandBuffer cmdbuf) {
@@ -1377,9 +1379,9 @@ void Image::DownloadMemory(std::span<VkBuffer> buffers_span, VkDeviceSize offset
         cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
                                0, read_barrier);
 
-        for (auto buffer : buffers) {
-            cmdbuf.CopyImageToBuffer(image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, buffer,
-                                     vk_copies);
+        for (size_t index = 0; index < buffers.size(); index++) {
+            cmdbuf.CopyImageToBuffer(image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, buffers[index],
+                                     vk_copies[index]);
         }
 
         const VkMemoryBarrier memory_write_barrier{
@@ -1418,7 +1420,10 @@ void Image::DownloadMemory(const StagingBufferRef& map, std::span<const BufferIm
     std::array buffers{
         map.buffer,
     };
-    DownloadMemory(buffers, map.offset, copies);
+    std::array offsets{
+        map.offset,
+    };
+    DownloadMemory(buffers, offsets, copies);
 }
 
 bool Image::IsRescaled() const noexcept {
