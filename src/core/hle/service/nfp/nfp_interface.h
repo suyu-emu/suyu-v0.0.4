@@ -20,8 +20,10 @@ public:
 
     void Initialize(HLERequestContext& ctx);
     void InitializeSystem(HLERequestContext& ctx);
+    void InitializeDebug(HLERequestContext& ctx);
     void Finalize(HLERequestContext& ctx);
     void FinalizeSystem(HLERequestContext& ctx);
+    void FinalizeDebug(HLERequestContext& ctx);
     void ListDevices(HLERequestContext& ctx);
     void StartDetection(HLERequestContext& ctx);
     void StopDetection(HLERequestContext& ctx);
@@ -52,6 +54,13 @@ public:
     void DeleteRegisterInfo(HLERequestContext& ctx);
     void DeleteApplicationArea(HLERequestContext& ctx);
     void ExistsApplicationArea(HLERequestContext& ctx);
+    void GetAll(HLERequestContext& ctx);
+    void SetAll(HLERequestContext& ctx);
+    void FlushDebug(HLERequestContext& ctx);
+    void BreakTag(HLERequestContext& ctx);
+    void ReadBackupData(HLERequestContext& ctx);
+    void WriteBackupData(HLERequestContext& ctx);
+    void WriteNtf(HLERequestContext& ctx);
 
 private:
     enum class State : u32 {

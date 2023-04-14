@@ -90,8 +90,8 @@ public:
     explicit IDebug(Core::System& system_) : Interface(system_, "NFP:IDebug") {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "InitializeDebug"},
-            {1, nullptr, "FinalizeDebug"},
+            {0, &IDebug::InitializeDebug, "InitializeDebug"},
+            {1, &IDebug::FinalizeDebug, "FinalizeDebug"},
             {2, &IDebug::ListDevices, "ListDevices"},
             {3, &IDebug::StartDetection, "StartDetection"},
             {4, &IDebug::StopDetection, "StopDetection"},
@@ -122,10 +122,10 @@ public:
             {104, &IDebug::DeleteRegisterInfo, "DeleteRegisterInfo"},
             {105, &IDebug::DeleteApplicationArea, "DeleteApplicationArea"},
             {106, &IDebug::ExistsApplicationArea, "ExistsApplicationArea"},
-            {200, nullptr, "GetAll"},
-            {201, nullptr, "SetAll"},
-            {202, nullptr, "FlushDebug"},
-            {203, nullptr, "BreakTag"},
+            {200, &IDebug::GetAll, "GetAll"},
+            {201, &IDebug::SetAll, "SetAll"},
+            {202, &IDebug::FlushDebug, "FlushDebug"},
+            {203, &IDebug::BreakTag, "BreakTag"},
             {204, nullptr, "ReadBackupData"},
             {205, nullptr, "WriteBackupData"},
             {206, nullptr, "WriteNtf"},

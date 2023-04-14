@@ -41,7 +41,10 @@ public:
     Result StopDetection();
     Result Mount(MountTarget mount_target);
     Result Unmount();
+
     Result Flush();
+    Result FlushDebug();
+    Result FlushWithBreak(BreakType break_type);
 
     Result GetTagInfo(TagInfo& tag_info) const;
     Result GetCommonInfo(CommonInfo& common_info) const;
@@ -63,6 +66,13 @@ public:
     Result RecreateApplicationArea(u32 access_id, std::span<const u8> data);
     Result DeleteApplicationArea();
     Result ExistApplicationArea(bool& has_application_area);
+
+    Result GetAll(NfpData& data) const;
+    Result SetAll(const NfpData& data);
+    Result BreakTag(BreakType break_type);
+    Result ReadBackupData();
+    Result WriteBackupData();
+    Result WriteNtf();
 
     u64 GetHandle() const;
     u32 GetApplicationAreaSize() const;
