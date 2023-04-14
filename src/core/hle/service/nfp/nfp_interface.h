@@ -19,7 +19,9 @@ public:
     ~Interface() override;
 
     void Initialize(HLERequestContext& ctx);
+    void InitializeSystem(HLERequestContext& ctx);
     void Finalize(HLERequestContext& ctx);
+    void FinalizeSystem(HLERequestContext& ctx);
     void ListDevices(HLERequestContext& ctx);
     void StartDetection(HLERequestContext& ctx);
     void StopDetection(HLERequestContext& ctx);
@@ -43,6 +45,13 @@ public:
     void GetApplicationAreaSize(HLERequestContext& ctx);
     void AttachAvailabilityChangeEvent(HLERequestContext& ctx);
     void RecreateApplicationArea(HLERequestContext& ctx);
+    void Format(HLERequestContext& ctx);
+    void GetAdminInfo(HLERequestContext& ctx);
+    void GetRegisterInfoPrivate(HLERequestContext& ctx);
+    void SetRegisterInfoPrivate(HLERequestContext& ctx);
+    void DeleteRegisterInfo(HLERequestContext& ctx);
+    void DeleteApplicationArea(HLERequestContext& ctx);
+    void ExistsApplicationArea(HLERequestContext& ctx);
 
 private:
     enum class State : u32 {

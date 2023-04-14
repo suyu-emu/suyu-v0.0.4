@@ -354,6 +354,15 @@ struct RegisterInfo {
 };
 static_assert(sizeof(RegisterInfo) == 0x100, "RegisterInfo is an invalid size");
 
+struct RegisterInfoPrivate {
+    Service::Mii::MiiStoreData mii_store_data;
+    WriteDate creation_date;
+    AmiiboName amiibo_name;
+    u8 font_region;
+    INSERT_PADDING_BYTES(0x8E);
+};
+static_assert(sizeof(RegisterInfoPrivate) == 0x100, "RegisterInfoPrivate is an invalid size");
+
 struct AdminInfo {
     u64 application_id;
     u32 application_area_id;

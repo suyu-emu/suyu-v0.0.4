@@ -47,6 +47,7 @@ public:
     Result GetCommonInfo(CommonInfo& common_info) const;
     Result GetModelInfo(ModelInfo& model_info) const;
     Result GetRegisterInfo(RegisterInfo& register_info) const;
+    Result GetRegisterInfoPrivate(RegisterInfoPrivate& register_info) const;
     Result GetAdminInfo(AdminInfo& admin_info) const;
 
     Result DeleteRegisterInfo();
@@ -61,6 +62,7 @@ public:
     Result CreateApplicationArea(u32 access_id, std::span<const u8> data);
     Result RecreateApplicationArea(u32 access_id, std::span<const u8> data);
     Result DeleteApplicationArea();
+    Result ExistApplicationArea(bool& has_application_area);
 
     u64 GetHandle() const;
     u32 GetApplicationAreaSize() const;

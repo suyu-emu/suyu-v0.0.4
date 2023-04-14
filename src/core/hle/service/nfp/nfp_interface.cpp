@@ -40,7 +40,33 @@ void Interface::Initialize(HLERequestContext& ctx) {
     rb.Push(ResultSuccess);
 }
 
+void Interface::InitializeSystem(HLERequestContext& ctx) {
+    LOG_INFO(Service_NFP, "called");
+
+    state = State::Initialized;
+
+    for (auto& device : devices) {
+        device->Initialize();
+    }
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
 void Interface::Finalize(HLERequestContext& ctx) {
+    LOG_INFO(Service_NFP, "called");
+
+    state = State::NonInitialized;
+
+    for (auto& device : devices) {
+        device->Finalize();
+    }
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ResultSuccess);
+}
+
+void Interface::FinalizeSystem(HLERequestContext& ctx) {
     LOG_INFO(Service_NFP, "called");
 
     state = State::NonInitialized;
@@ -629,6 +655,182 @@ void Interface::RecreateApplicationArea(HLERequestContext& ctx) {
     const auto result = device.value()->RecreateApplicationArea(access_id, data);
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(result);
+}
+
+void Interface::Format(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto device_handle{rp.Pop<u64>()};
+    LOG_DEBUG(Service_NFP, "called, device_handle={}", device_handle);
+
+    if (state == State::NonInitialized) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(NfcDisabled);
+        return;
+    }
+
+    auto device = GetNfpDevice(device_handle);
+
+    if (!device.has_value()) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(DeviceNotFound);
+        return;
+    }
+
+    const auto result = device.value()->Format();
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
+}
+
+void Interface::GetAdminInfo(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto device_handle{rp.Pop<u64>()};
+    LOG_INFO(Service_NFP, "called, device_handle={}", device_handle);
+
+    if (state == State::NonInitialized) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(NfcDisabled);
+        return;
+    }
+
+    auto device = GetNfpDevice(device_handle);
+
+    if (!device.has_value()) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(DeviceNotFound);
+        return;
+    }
+
+    AdminInfo admin_info{};
+    const auto result = device.value()->GetAdminInfo(admin_info);
+    ctx.WriteBuffer(admin_info);
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
+}
+
+void Interface::GetRegisterInfoPrivate(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto device_handle{rp.Pop<u64>()};
+    LOG_INFO(Service_NFP, "called, device_handle={}", device_handle);
+
+    if (state == State::NonInitialized) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(NfcDisabled);
+        return;
+    }
+
+    auto device = GetNfpDevice(device_handle);
+
+    if (!device.has_value()) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(DeviceNotFound);
+        return;
+    }
+
+    RegisterInfoPrivate register_info{};
+    const auto result = device.value()->GetRegisterInfoPrivate(register_info);
+    ctx.WriteBuffer(register_info);
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
+}
+
+void Interface::SetRegisterInfoPrivate(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto device_handle{rp.Pop<u64>()};
+    const auto buffer{ctx.ReadBuffer()};
+    LOG_DEBUG(Service_NFP, "called, device_handle={}, buffer_size={}", device_handle,
+              buffer.size());
+
+    if (state == State::NonInitialized) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(NfcDisabled);
+        return;
+    }
+
+    auto device = GetNfpDevice(device_handle);
+
+    if (!device.has_value()) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(DeviceNotFound);
+        return;
+    }
+
+    const auto result = device.value()->SetRegisterInfoPrivate({});
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
+}
+
+void Interface::DeleteRegisterInfo(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto device_handle{rp.Pop<u64>()};
+    LOG_DEBUG(Service_NFP, "called, device_handle={}", device_handle);
+
+    if (state == State::NonInitialized) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(NfcDisabled);
+        return;
+    }
+
+    auto device = GetNfpDevice(device_handle);
+
+    if (!device.has_value()) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(DeviceNotFound);
+        return;
+    }
+
+    const auto result = device.value()->DeleteRegisterInfo();
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
+}
+
+void Interface::DeleteApplicationArea(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto device_handle{rp.Pop<u64>()};
+    LOG_DEBUG(Service_NFP, "called, device_handle={}", device_handle);
+
+    if (state == State::NonInitialized) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(NfcDisabled);
+        return;
+    }
+
+    auto device = GetNfpDevice(device_handle);
+
+    if (!device.has_value()) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(DeviceNotFound);
+        return;
+    }
+
+    const auto result = device.value()->DeleteApplicationArea();
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(result);
+}
+
+void Interface::ExistsApplicationArea(HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto device_handle{rp.Pop<u64>()};
+    LOG_DEBUG(Service_NFP, "called, device_handle={}", device_handle);
+
+    if (state == State::NonInitialized) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(NfcDisabled);
+        return;
+    }
+
+    auto device = GetNfpDevice(device_handle);
+
+    if (!device.has_value()) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(DeviceNotFound);
+        return;
+    }
+
+    bool has_application_area = false;
+    const auto result = device.value()->ExistApplicationArea(has_application_area);
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(result);
+    rb.Push(has_application_area);
 }
 
 std::optional<std::shared_ptr<NfpDevice>> Interface::GetNfpDevice(u64 handle) {
