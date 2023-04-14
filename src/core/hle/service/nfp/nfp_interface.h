@@ -13,16 +13,10 @@
 namespace Service::NFP {
 class NfpDevice;
 
-class IUser final : public ServiceFramework<IUser> {
+class Interface : public ServiceFramework<Interface> {
 public:
-    explicit IUser(Core::System& system_);
-    ~IUser();
-
-private:
-    enum class State : u32 {
-        NonInitialized,
-        Initialized,
-    };
+    explicit Interface(Core::System& system_, const char* name);
+    ~Interface() override;
 
     void Initialize(HLERequestContext& ctx);
     void Finalize(HLERequestContext& ctx);
@@ -49,6 +43,12 @@ private:
     void GetApplicationAreaSize(HLERequestContext& ctx);
     void AttachAvailabilityChangeEvent(HLERequestContext& ctx);
     void RecreateApplicationArea(HLERequestContext& ctx);
+
+private:
+    enum class State : u32 {
+        NonInitialized,
+        Initialized,
+    };
 
     std::optional<std::shared_ptr<NfpDevice>> GetNfpDevice(u64 handle);
 
