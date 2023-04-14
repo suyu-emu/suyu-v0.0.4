@@ -6,7 +6,7 @@
 #include "common/logging/log.h"
 #include "common/settings.h"
 #include "core/hle/service/ipc_helpers.h"
-#include "core/hle/service/nfc/mifare_user.h"
+#include "core/hle/service/nfc/mifare_interface.h"
 #include "core/hle/service/nfc/nfc.h"
 #include "core/hle/service/nfc/nfc_interface.h"
 #include "core/hle/service/server_manager.h"
@@ -16,7 +16,7 @@ namespace Service::NFC {
 
 class IUser final : public Interface {
 public:
-    explicit IUser(Core::System& system_) : Interface(system_, "IUser") {
+    explicit IUser(Core::System& system_) : Interface(system_, "NFC::IUser") {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &Interface::Initialize, "InitializeOld"},
@@ -50,7 +50,7 @@ public:
 
 class ISystem final : public Interface {
 public:
-    explicit ISystem(Core::System& system_) : Interface{system_, "ISystem"} {
+    explicit ISystem(Core::System& system_) : Interface{system_, "NFC::ISystem"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &Interface::Initialize, "InitializeOld"},
@@ -78,6 +78,32 @@ public:
             {1300, &Interface::SendCommandByPassThrough, "SendCommandByPassThrough"},
             {1301, nullptr, "KeepPassThroughSession"},
             {1302, nullptr, "ReleasePassThroughSession"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+};
+
+class MFIUser final : public MFInterface {
+public:
+    explicit MFIUser(Core::System& system_) : MFInterface{system_, "NFC::MFInterface"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, &MFIUser::Initialize, "Initialize"},
+            {1, &MFIUser::Finalize, "Finalize"},
+            {2, &MFIUser::ListDevices, "ListDevices"},
+            {3, &MFIUser::StartDetection, "StartDetection"},
+            {4, &MFIUser::StopDetection, "StopDetection"},
+            {5, &MFIUser::Read, "Read"},
+            {6, &MFIUser::Write, "Write"},
+            {7, &MFIUser::GetTagInfo, "GetTagInfo"},
+            {8, &MFIUser::GetActivateEventHandle, "GetActivateEventHandle"},
+            {9, &MFIUser::GetDeactivateEventHandle, "GetDeactivateEventHandle"},
+            {10, &MFIUser::GetState, "GetState"},
+            {11, &MFIUser::GetDeviceState, "GetDeviceState"},
+            {12, &MFIUser::GetNpadId, "GetNpadId"},
+            {13, &MFIUser::GetAvailabilityChangeEventHandle, "GetAvailabilityChangeEventHandle"},
         };
         // clang-format on
 

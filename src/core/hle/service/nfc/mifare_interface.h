@@ -13,16 +13,10 @@
 namespace Service::NFC {
 class NfcDevice;
 
-class MFIUser final : public ServiceFramework<MFIUser> {
+class MFInterface : public ServiceFramework<MFInterface> {
 public:
-    explicit MFIUser(Core::System& system_);
-    ~MFIUser();
-
-private:
-    enum class State : u32 {
-        NonInitialized,
-        Initialized,
-    };
+    explicit MFInterface(Core::System& system_, const char* name);
+    ~MFInterface();
 
     void Initialize(HLERequestContext& ctx);
     void Finalize(HLERequestContext& ctx);
@@ -38,6 +32,12 @@ private:
     void GetDeviceState(HLERequestContext& ctx);
     void GetNpadId(HLERequestContext& ctx);
     void GetAvailabilityChangeEventHandle(HLERequestContext& ctx);
+
+private:
+    enum class State : u32 {
+        NonInitialized,
+        Initialized,
+    };
 
     std::optional<std::shared_ptr<NfcDevice>> GetNfcDevice(u64 handle);
 
