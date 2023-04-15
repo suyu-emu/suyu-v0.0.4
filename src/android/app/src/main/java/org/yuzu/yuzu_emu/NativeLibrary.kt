@@ -11,6 +11,7 @@ import android.text.method.LinkMovementMethod
 import android.view.Surface
 import android.view.View
 import android.widget.TextView
+import androidx.annotation.Keep
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.yuzu.yuzu_emu.YuzuApplication.Companion.appContext
@@ -53,6 +54,7 @@ object NativeLibrary {
         }
     }
 
+    @Keep
     @JvmStatic
     fun openContentUri(path: String?, openmode: String?): Int {
         return if (isNativePath(path!!)) {
@@ -60,6 +62,7 @@ object NativeLibrary {
         } else openContentUri(appContext, path, openmode)
     }
 
+    @Keep
     @JvmStatic
     fun getSize(path: String?): Long {
         return if (isNativePath(path!!)) {
@@ -340,6 +343,7 @@ object NativeLibrary {
         return coreErrorAlertResult
     }
 
+    @Keep
     @JvmStatic
     fun exitEmulationActivity(resultCode: Int) {
         val Success = 0

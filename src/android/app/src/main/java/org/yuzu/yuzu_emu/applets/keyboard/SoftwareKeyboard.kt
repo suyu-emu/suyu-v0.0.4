@@ -10,12 +10,14 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.WindowInsets
 import android.view.inputmethod.InputMethodManager
+import androidx.annotation.Keep
 import androidx.core.view.ViewCompat
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.applets.keyboard.ui.KeyboardDialogFragment
 import java.io.Serializable
 
+@Keep
 object SoftwareKeyboard {
     lateinit var data: KeyboardData
     val dataLock = Object()
@@ -91,6 +93,7 @@ object SoftwareKeyboard {
         Cancel
     }
 
+    @Keep
     data class KeyboardConfig(
         var ok_text: String? = null,
         var header_text: String? = null,
@@ -113,5 +116,6 @@ object SoftwareKeyboard {
     ) : Serializable
 
     // Corresponds to Frontend::KeyboardData
+    @Keep
     data class KeyboardData(var result: Int, var text: String)
 }

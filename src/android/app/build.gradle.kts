@@ -78,6 +78,12 @@ android {
         // Signed by release key, allowing for upload to Play Store.
         release {
             signingConfig = signingConfigs.getByName("debug")
+            isMinifyEnabled = true
+            isDebuggable = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android.txt"),
+                "proguard-rules.pro"
+            )
         }
 
         // builds a release build that doesn't need signing
@@ -86,7 +92,6 @@ android {
             initWith(getByName("release"))
             versionNameSuffix = "-debug"
             signingConfig = signingConfigs.getByName("debug")
-            isMinifyEnabled = false
             enableAndroidTestCoverage = false
             isDebuggable = true
             isJniDebuggable = true

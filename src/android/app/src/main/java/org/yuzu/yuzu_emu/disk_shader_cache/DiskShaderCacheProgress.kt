@@ -3,10 +3,12 @@
 
 package org.yuzu.yuzu_emu.disk_shader_cache
 
+import androidx.annotation.Keep
 import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.R
 import org.yuzu.yuzu_emu.disk_shader_cache.ui.ShaderProgressDialogFragment
 
+@Keep
 object DiskShaderCacheProgress {
     val finishLock = Object()
     private lateinit var fragment: ShaderProgressDialogFragment
