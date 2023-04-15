@@ -4,6 +4,8 @@
 #pragma once
 
 #include <atomic>
+#include <condition_variable>
+#include <mutex>
 #include <thread>
 
 #include "common/common_types.h"
@@ -29,11 +31,6 @@ public:
         return gpu_tick.load(std::memory_order_acquire);
     }
 
-    /// Returns the timeline semaphore handle.
-    [[nodiscard]] VkSemaphore Handle() const noexcept {
-        return *semaphore;
-    }
-
     /// Returns true when a tick has been hit by the GPU.
     [[nodiscard]] bool IsFree(u64 tick) const noexcept {
         return KnownGpuTick() >= tick;
@@ -45,37 +42,24 @@ public:
     }
 
     /// Refresh the known GPU tick
-    void Refresh() {
-        u64 this_tick{};
-        u64 counter{};
-        do {
-            this_tick = gpu_tick.load(std::memory_order_acquire);
-            counter = semaphore.GetCounter();
-            if (counter < this_tick) {
-                return;
-            }
-        } while (!gpu_tick.compare_exchange_weak(this_tick, counter, std::memory_order_release,
-                                                 std::memory_order_relaxed));
-    }
+    void Refresh();
 
     /// Waits for a tick to be hit on the GPU
-    void Wait(u64 tick) {
-        // No need to wait if the GPU is ahead of the tick
-        if (IsFree(tick)) {
-            return;
-        }
-        // Update the GPU tick and try again
-        Refresh();
-        if (IsFree(tick)) {
-            return;
-        }
-        // If none of the above is hit, fallback to a regular wait
-        while (!semaphore.Wait(tick)) {
-        }
-        Refresh();
-    }
+    void Wait(u64 tick);
+
+    /// Submits the device graphics queue, updating the tick as necessary
+    VkResult SubmitQueue(vk::CommandBuffer& cmdbuf, VkSemaphore signal_semaphore,
+                         VkSemaphore wait_semaphore, u64 host_tick);
 
 private:
+    VkResult SubmitQueueTimeline(vk::CommandBuffer& cmdbuf, VkSemaphore signal_semaphore,
+                                 VkSemaphore wait_semaphore, u64 host_tick);
+    VkResult SubmitQueueFence(vk::CommandBuffer& cmdbuf, VkSemaphore signal_semaphore,
+                              VkSemaphore wait_semaphore, u64 host_tick);
+
+private:
+    const Device& device;             ///< Device.
+    vk::Fence fence;                  ///< Fence.
     vk::Semaphore semaphore;          ///< Timeline semaphore.
     std::atomic<u64> gpu_tick{0};     ///< Current known GPU tick.
     std::atomic<u64> current_tick{1}; ///< Current logical tick.

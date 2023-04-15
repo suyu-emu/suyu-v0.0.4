@@ -145,7 +145,6 @@
     FEATURE_NAME(robustness2, robustImageAccess2)                                                  \
     FEATURE_NAME(shader_demote_to_helper_invocation, shaderDemoteToHelperInvocation)               \
     FEATURE_NAME(shader_draw_parameters, shaderDrawParameters)                                     \
-    FEATURE_NAME(timeline_semaphore, timelineSemaphore)                                            \
     FEATURE_NAME(variable_pointer, variablePointers)                                               \
     FEATURE_NAME(variable_pointer, variablePointersStorageBuffer)
 
@@ -158,6 +157,7 @@
     FEATURE_NAME(provoking_vertex, provokingVertexLast)                                            \
     FEATURE_NAME(shader_float16_int8, shaderFloat16)                                               \
     FEATURE_NAME(shader_float16_int8, shaderInt8)                                                  \
+    FEATURE_NAME(timeline_semaphore, timelineSemaphore)                                            \
     FEATURE_NAME(transform_feedback, transformFeedback)                                            \
     FEATURE_NAME(uniform_buffer_standard_layout, uniformBufferStandardLayout)                      \
     FEATURE_NAME(vertex_input_dynamic_state, vertexInputDynamicState)
@@ -491,6 +491,10 @@ public:
     /// Returns true if the device supports VK_KHR_shader_atomic_int64.
     bool IsExtShaderAtomicInt64Supported() const {
         return extensions.shader_atomic_int64;
+    }
+
+    bool HasTimelineSemaphore() const {
+        return features.timeline_semaphore.timelineSemaphore;
     }
 
     /// Returns the minimum supported version of SPIR-V.
