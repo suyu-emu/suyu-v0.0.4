@@ -472,7 +472,8 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
             dynamic_state3_enables = false;
         }
     }
-    if (extensions.vertex_input_dynamic_state && is_radv) {
+    if (extensions.vertex_input_dynamic_state && (is_radv || is_qualcomm)) {
+        // Qualcomm S8gen2 drivers do not properly support vertex_input_dynamic_state.
         // TODO(ameerj): Blacklist only offending driver versions
         // TODO(ameerj): Confirm if RDNA1 is affected
         const bool is_rdna2 =
