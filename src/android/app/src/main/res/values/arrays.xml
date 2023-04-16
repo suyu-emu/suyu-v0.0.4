@@ -121,6 +121,36 @@
         <item>4</item>
     </integer-array>
 
+    <string-array name="rendererScalingFilterNames">
+        <item>@string/scaling_filter_nearest_neighbor</item>
+        <item>@string/scaling_filter_bilinear</item>
+        <item>@string/scaling_filter_bicubic</item>
+        <item>@string/scaling_filter_gaussian</item>
+        <item>@string/scaling_filter_scale_force</item>
+        <item>@string/scaling_filter_fsr</item>
+    </string-array>
+
+    <integer-array name="rendererScalingFilterValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+    </integer-array>
+
+    <string-array name="rendererAntiAliasingNames">
+        <item>@string/anti_aliasing_none</item>
+        <item>@string/anti_aliasing_fxaa</item>
+        <item>@string/anti_aliasing_smaa</item>
+    </string-array>
+
+    <integer-array name="rendererAntiAliasingValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
+
     <string-array name="cpuAccuracyNames">
         <item>@string/cpu_accuracy_auto</item>
         <item>@string/cpu_accuracy_accurate</item>

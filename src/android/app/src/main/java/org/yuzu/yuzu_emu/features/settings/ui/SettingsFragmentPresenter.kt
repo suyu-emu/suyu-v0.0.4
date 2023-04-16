@@ -194,6 +194,10 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
         val rendererBackend = rendererSection!!.getSetting(SettingsFile.KEY_RENDERER_BACKEND)
         val rendererAccuracy = rendererSection.getSetting(SettingsFile.KEY_RENDERER_ACCURACY)
         val rendererResolution = rendererSection.getSetting(SettingsFile.KEY_RENDERER_RESOLUTION)
+        val rendererScalingFilter =
+            rendererSection.getSetting(SettingsFile.KEY_RENDERER_SCALING_FILTER)
+        val rendererAntiAliasing =
+            rendererSection.getSetting(SettingsFile.KEY_RENDERER_ANTI_ALIASING)
         val rendererAspectRatio =
             rendererSection.getSetting(SettingsFile.KEY_RENDERER_ASPECT_RATIO)
         val rendererUseDiskShaderCache =
@@ -238,6 +242,30 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     R.array.rendererResolutionNames,
                     R.array.rendererResolutionValues,
                     2
+                )
+            )
+            add(
+                SingleChoiceSetting(
+                    SettingsFile.KEY_RENDERER_SCALING_FILTER,
+                    Settings.SECTION_RENDERER,
+                    rendererScalingFilter,
+                    R.string.renderer_scaling_filter,
+                    0,
+                    R.array.rendererScalingFilterNames,
+                    R.array.rendererScalingFilterValues,
+                    1
+                )
+            )
+            add(
+                SingleChoiceSetting(
+                    SettingsFile.KEY_RENDERER_ANTI_ALIASING,
+                    Settings.SECTION_RENDERER,
+                    rendererAntiAliasing,
+                    R.string.renderer_anti_aliasing,
+                    0,
+                    R.array.rendererAntiAliasingNames,
+                    R.array.rendererAntiAliasingValues,
+                    0
                 )
             )
             add(
