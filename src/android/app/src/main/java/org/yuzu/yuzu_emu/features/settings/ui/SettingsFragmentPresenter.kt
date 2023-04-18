@@ -6,7 +6,9 @@ package org.yuzu.yuzu_emu.features.settings.ui
 import android.text.TextUtils
 import androidx.appcompat.app.AppCompatActivity
 import org.yuzu.yuzu_emu.R
-import org.yuzu.yuzu_emu.features.settings.model.Setting
+import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
+import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
+import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.model.view.*
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
@@ -28,8 +30,11 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
         loadSettingsList()
     }
 
-    fun putSetting(setting: Setting) {
-        settings.getSection(setting.section)!!.putSetting(setting)
+    fun putSetting(setting: AbstractSetting) {
+        val section = settings.getSection(setting.section!!)!!
+        if (section.getSetting(setting.key!!) == null) {
+            section.putSetting(setting)
+        }
     }
 
     fun loadSettingsList() {
@@ -61,7 +66,6 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
             add(
                 SubmenuSetting(
                     null,
-                    null,
                     R.string.preferences_general,
                     0,
                     Settings.SECTION_GENERAL
@@ -69,7 +73,6 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
             )
             add(
                 SubmenuSetting(
-                    null,
                     null,
                     R.string.preferences_system,
                     0,
@@ -79,7 +82,6 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
             add(
                 SubmenuSetting(
                     null,
-                    null,
                     R.string.preferences_graphics,
                     0,
                     Settings.SECTION_RENDERER
@@ -87,7 +89,6 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
             )
             add(
                 SubmenuSetting(
-                    null,
                     null,
                     R.string.preferences_audio,
                     0,
@@ -99,45 +100,36 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
 
     private fun addGeneralSettings(sl: ArrayList<SettingsItem>) {
         settingsActivity.setTitle(R.string.preferences_general)
-        val rendererSection = settings.getSection(Settings.SECTION_RENDERER)
-        val frameLimitEnable =
-            rendererSection!!.getSetting(SettingsFile.KEY_RENDERER_USE_SPEED_LIMIT)
-        val frameLimitValue = rendererSection.getSetting(SettingsFile.KEY_RENDERER_SPEED_LIMIT)
-        val cpuSection = settings.getSection(Settings.SECTION_CPU)
-        val cpuAccuracy = cpuSection!!.getSetting(SettingsFile.KEY_CPU_ACCURACY)
         sl.apply {
             add(
                 SwitchSetting(
-                    SettingsFile.KEY_RENDERER_USE_SPEED_LIMIT,
-                    Settings.SECTION_RENDERER,
-                    frameLimitEnable,
+                    IntSetting.RENDERER_USE_SPEED_LIMIT,
                     R.string.frame_limit_enable,
                     R.string.frame_limit_enable_description,
+                    IntSetting.RENDERER_USE_SPEED_LIMIT.key,
                     true
                 )
             )
             add(
                 SliderSetting(
-                    SettingsFile.KEY_RENDERER_SPEED_LIMIT,
-                    Settings.SECTION_RENDERER,
-                    frameLimitValue,
+                    IntSetting.RENDERER_SPEED_LIMIT,
                     R.string.frame_limit_slider,
                     R.string.frame_limit_slider_description,
                     1,
                     200,
                     "%",
+                    IntSetting.RENDERER_SPEED_LIMIT.key,
                     100
                 )
             )
             add(
                 SingleChoiceSetting(
-                    SettingsFile.KEY_CPU_ACCURACY,
-                    Settings.SECTION_CPU,
-                    cpuAccuracy,
+                    IntSetting.CPU_ACCURACY,
                     R.string.cpu_accuracy,
                     0,
                     R.array.cpuAccuracyNames,
                     R.array.cpuAccuracyValues,
+                    IntSetting.CPU_ACCURACY.key,
                     0
                 )
             )
@@ -146,42 +138,35 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
 
     private fun addSystemSettings(sl: ArrayList<SettingsItem>) {
         settingsActivity.setTitle(R.string.preferences_system)
-        val systemSection = settings.getSection(Settings.SECTION_SYSTEM)
-        val dockedMode = systemSection!!.getSetting(SettingsFile.KEY_USE_DOCKED_MODE)
-        val region = systemSection.getSetting(SettingsFile.KEY_REGION_INDEX)
-        val language = systemSection.getSetting(SettingsFile.KEY_LANGUAGE_INDEX)
         sl.apply {
             add(
                 SwitchSetting(
-                    SettingsFile.KEY_USE_DOCKED_MODE,
-                    Settings.SECTION_SYSTEM,
-                    dockedMode,
+                    IntSetting.USE_DOCKED_MODE,
                     R.string.use_docked_mode,
                     R.string.use_docked_mode_description,
-                    false,
+                    IntSetting.USE_DOCKED_MODE.key,
+                    false
                 )
             )
             add(
                 SingleChoiceSetting(
-                    SettingsFile.KEY_REGION_INDEX,
-                    Settings.SECTION_SYSTEM,
-                    region,
+                    IntSetting.REGION_INDEX,
                     R.string.emulated_region,
                     0,
                     R.array.regionNames,
                     R.array.regionValues,
+                    IntSetting.REGION_INDEX.key,
                     -1
                 )
             )
             add(
                 SingleChoiceSetting(
-                    SettingsFile.KEY_LANGUAGE_INDEX,
-                    Settings.SECTION_SYSTEM,
-                    language,
+                    IntSetting.LANGUAGE_INDEX,
                     R.string.emulated_language,
                     0,
                     R.array.languageNames,
                     R.array.languageValues,
+                    IntSetting.LANGUAGE_INDEX.key,
                     1
                 )
             )
@@ -190,133 +175,106 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
 
     private fun addGraphicsSettings(sl: ArrayList<SettingsItem>) {
         settingsActivity.setTitle(R.string.preferences_graphics)
-        val rendererSection = settings.getSection(Settings.SECTION_RENDERER)
-        val rendererBackend = rendererSection!!.getSetting(SettingsFile.KEY_RENDERER_BACKEND)
-        val rendererAccuracy = rendererSection.getSetting(SettingsFile.KEY_RENDERER_ACCURACY)
-        val rendererResolution = rendererSection.getSetting(SettingsFile.KEY_RENDERER_RESOLUTION)
-        val rendererScalingFilter =
-            rendererSection.getSetting(SettingsFile.KEY_RENDERER_SCALING_FILTER)
-        val rendererAntiAliasing =
-            rendererSection.getSetting(SettingsFile.KEY_RENDERER_ANTI_ALIASING)
-        val rendererAspectRatio =
-            rendererSection.getSetting(SettingsFile.KEY_RENDERER_ASPECT_RATIO)
-        val rendererUseDiskShaderCache =
-            rendererSection.getSetting(SettingsFile.KEY_RENDERER_USE_DISK_SHADER_CACHE)
-        val rendererForceMaxClocks =
-            rendererSection.getSetting(SettingsFile.KEY_RENDERER_FORCE_MAX_CLOCK)
-        val rendererAsynchronousShaders =
-            rendererSection.getSetting(SettingsFile.KEY_RENDERER_ASYNCHRONOUS_SHADERS)
-        val rendererDebug = rendererSection.getSetting(SettingsFile.KEY_RENDERER_DEBUG)
         sl.apply {
             add(
                 SingleChoiceSetting(
-                    SettingsFile.KEY_RENDERER_BACKEND,
-                    Settings.SECTION_RENDERER,
-                    rendererBackend,
+                    IntSetting.RENDERER_BACKEND,
                     R.string.renderer_api,
                     0,
                     R.array.rendererApiNames,
                     R.array.rendererApiValues,
+                    IntSetting.RENDERER_BACKEND.key,
                     1
                 )
             )
             add(
                 SingleChoiceSetting(
-                    SettingsFile.KEY_RENDERER_ACCURACY,
-                    Settings.SECTION_RENDERER,
-                    rendererAccuracy,
+                    IntSetting.RENDERER_ACCURACY,
                     R.string.renderer_accuracy,
                     0,
                     R.array.rendererAccuracyNames,
                     R.array.rendererAccuracyValues,
+                    IntSetting.RENDERER_ACCURACY.key,
                     0
                 )
             )
             add(
                 SingleChoiceSetting(
-                    SettingsFile.KEY_RENDERER_RESOLUTION,
-                    Settings.SECTION_RENDERER,
-                    rendererResolution,
+                    IntSetting.RENDERER_RESOLUTION,
                     R.string.renderer_resolution,
                     0,
                     R.array.rendererResolutionNames,
                     R.array.rendererResolutionValues,
+                    IntSetting.RENDERER_RESOLUTION.key,
                     2
                 )
             )
             add(
                 SingleChoiceSetting(
-                    SettingsFile.KEY_RENDERER_SCALING_FILTER,
-                    Settings.SECTION_RENDERER,
-                    rendererScalingFilter,
+                    IntSetting.RENDERER_SCALING_FILTER,
                     R.string.renderer_scaling_filter,
                     0,
                     R.array.rendererScalingFilterNames,
                     R.array.rendererScalingFilterValues,
+                    IntSetting.RENDERER_SCALING_FILTER.key,
                     1
                 )
             )
             add(
                 SingleChoiceSetting(
-                    SettingsFile.KEY_RENDERER_ANTI_ALIASING,
-                    Settings.SECTION_RENDERER,
-                    rendererAntiAliasing,
+                    IntSetting.RENDERER_ANTI_ALIASING,
                     R.string.renderer_anti_aliasing,
                     0,
                     R.array.rendererAntiAliasingNames,
                     R.array.rendererAntiAliasingValues,
+                    IntSetting.RENDERER_ANTI_ALIASING.key,
                     0
                 )
             )
             add(
                 SingleChoiceSetting(
-                    SettingsFile.KEY_RENDERER_ASPECT_RATIO,
-                    Settings.SECTION_RENDERER,
-                    rendererAspectRatio,
+                    IntSetting.RENDERER_ASPECT_RATIO,
                     R.string.renderer_aspect_ratio,
                     0,
                     R.array.rendererAspectRatioNames,
                     R.array.rendererAspectRatioValues,
+                    IntSetting.RENDERER_ASPECT_RATIO.key,
                     0
                 )
             )
             add(
                 SwitchSetting(
-                    SettingsFile.KEY_RENDERER_USE_DISK_SHADER_CACHE,
-                    Settings.SECTION_RENDERER,
-                    rendererUseDiskShaderCache,
+                    IntSetting.RENDERER_USE_DISK_SHADER_CACHE,
                     R.string.use_disk_shader_cache,
                     R.string.use_disk_shader_cache_description,
+                    IntSetting.RENDERER_USE_DISK_SHADER_CACHE.key,
                     true
                 )
             )
             add(
                 SwitchSetting(
-                    SettingsFile.KEY_RENDERER_FORCE_MAX_CLOCK,
-                    Settings.SECTION_RENDERER,
-                    rendererForceMaxClocks,
+                    IntSetting.RENDERER_FORCE_MAX_CLOCK,
                     R.string.renderer_force_max_clock,
                     R.string.renderer_force_max_clock_description,
+                    IntSetting.RENDERER_FORCE_MAX_CLOCK.key,
                     true
                 )
             )
             add(
                 SwitchSetting(
-                    SettingsFile.KEY_RENDERER_ASYNCHRONOUS_SHADERS,
-                    Settings.SECTION_RENDERER,
-                    rendererAsynchronousShaders,
+                    IntSetting.RENDERER_ASYNCHRONOUS_SHADERS,
                     R.string.renderer_asynchronous_shaders,
                     R.string.renderer_asynchronous_shaders_description,
+                    IntSetting.RENDERER_ASYNCHRONOUS_SHADERS.key,
                     false
                 )
             )
             add(
                 SwitchSetting(
-                    SettingsFile.KEY_RENDERER_DEBUG,
-                    Settings.SECTION_RENDERER,
-                    rendererDebug,
+                    IntSetting.RENDERER_DEBUG,
                     R.string.renderer_debug,
                     R.string.renderer_debug_description,
+                    IntSetting.RENDERER_DEBUG.key,
                     false
                 )
             )
@@ -325,18 +283,15 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
 
     private fun addAudioSettings(sl: ArrayList<SettingsItem>) {
         settingsActivity.setTitle(R.string.preferences_audio)
-        val audioSection = settings.getSection(Settings.SECTION_AUDIO)
-        val audioVolume = audioSection!!.getSetting(SettingsFile.KEY_AUDIO_VOLUME)
         sl.add(
             SliderSetting(
-                SettingsFile.KEY_AUDIO_VOLUME,
-                Settings.SECTION_AUDIO,
-                audioVolume,
+                IntSetting.AUDIO_VOLUME,
                 R.string.audio_volume,
                 R.string.audio_volume_description,
                 0,
                 100,
                 "%",
+                IntSetting.AUDIO_VOLUME.key,
                 100
             )
         )

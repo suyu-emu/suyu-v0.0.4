@@ -21,32 +21,7 @@ import java.util.*
  */
 object SettingsFile {
     const val FILE_NAME_CONFIG = "config"
-    const val KEY_DESIGN = "design"
 
-    // CPU
-    const val KEY_CPU_ACCURACY = "cpu_accuracy"
-
-    // System
-    const val KEY_USE_DOCKED_MODE = "use_docked_mode"
-    const val KEY_REGION_INDEX = "region_index"
-    const val KEY_LANGUAGE_INDEX = "language_index"
-    const val KEY_RENDERER_BACKEND = "backend"
-
-    // Renderer
-    const val KEY_RENDERER_RESOLUTION = "resolution_setup"
-    const val KEY_RENDERER_SCALING_FILTER = "scaling_filter"
-    const val KEY_RENDERER_ANTI_ALIASING = "anti_aliasing"
-    const val KEY_RENDERER_ASPECT_RATIO = "aspect_ratio"
-    const val KEY_RENDERER_ACCURACY = "gpu_accuracy"
-    const val KEY_RENDERER_USE_DISK_SHADER_CACHE = "use_disk_shader_cache"
-    const val KEY_RENDERER_ASYNCHRONOUS_SHADERS = "use_asynchronous_shaders"
-    const val KEY_RENDERER_FORCE_MAX_CLOCK = "force_max_clock"
-    const val KEY_RENDERER_USE_SPEED_LIMIT = "use_speed_limit"
-    const val KEY_RENDERER_DEBUG = "debug"
-    const val KEY_RENDERER_SPEED_LIMIT = "speed_limit"
-
-    // Audio
-    const val KEY_AUDIO_VOLUME = "volume"
     private val sectionsMap = BiMap<String?, String?>()
 
     /**
@@ -75,7 +50,7 @@ object SettingsFile {
                     current = sectionFromLine(line!!, isCustomGame)
                     sections[current.name] = current
                 } else if (current != null) {
-                    val setting = settingFromLine(current, line!!)
+                    val setting = settingFromLine(line!!)
                     if (setting != null) {
                         current.putSetting(setting)
                     }
@@ -201,11 +176,10 @@ object SettingsFile {
      * For a line of text, determines what type of data is being represented, and returns
      * a Setting object containing this data.
      *
-     * @param current The section currently being parsed by the consuming method.
      * @param line    The line of text being parsed.
      * @return A typed Setting containing the key/value contained in the line.
      */
-    private fun settingFromLine(current: SettingSection, line: String): Setting? {
+    private fun settingFromLine(line: String): AbstractSetting? {
         val splitLine = line.split("=".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
         if (splitLine.size != 2) {
             Log.warning("Skipping invalid config line \"$line\"")
@@ -217,17 +191,25 @@ object SettingsFile {
             Log.warning("Skipping null value in config line \"$line\"")
             return null
         }
-        try {
-            val valueAsInt = value.toInt()
-            return IntSetting(key, current.name, valueAsInt)
-        } catch (_: NumberFormatException) {
+
+        val booleanSetting = BooleanSetting.from(key)
+        if (booleanSetting != null) {
+            booleanSetting.boolean = value.toBoolean()
+            return booleanSetting
         }
-        try {
-            val valueAsFloat = value.toFloat()
-            return FloatSetting(key, current.name, valueAsFloat)
-        } catch (_: NumberFormatException) {
+
+        val intSetting = IntSetting.from(key)
+        if (intSetting != null) {
+            intSetting.int = value.toInt()
+            return intSetting
         }
-        return StringSetting(key, current.name, value)
+
+        val floatSetting = FloatSetting.from(key)
+        if (floatSetting != null) {
+            floatSetting.float = value.toFloat()
+            return floatSetting
+        }
+        return StringSetting.from(key)
     }
 
     /**

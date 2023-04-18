@@ -3,67 +3,42 @@
 
 package org.yuzu.yuzu_emu.features.settings.model.view
 
-import org.yuzu.yuzu_emu.R
-import org.yuzu.yuzu_emu.YuzuApplication
+import org.yuzu.yuzu_emu.features.settings.model.AbstractBooleanSetting
+import org.yuzu.yuzu_emu.features.settings.model.AbstractIntSetting
+import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
 import org.yuzu.yuzu_emu.features.settings.model.BooleanSetting
 import org.yuzu.yuzu_emu.features.settings.model.IntSetting
-import org.yuzu.yuzu_emu.features.settings.model.Setting
-import org.yuzu.yuzu_emu.features.settings.ui.SettingsFragmentView
+import org.yuzu.yuzu_emu.utils.Log
 
-class SwitchSetting : SettingsItem {
+class SwitchSetting(
+    setting: AbstractSetting,
+    titleId: Int,
+    descriptionId: Int,
+    val key: String? = null,
+    val defaultValue: Boolean? = null
+) : SettingsItem(setting, titleId, descriptionId) {
     override val type = TYPE_SWITCH
-
-    private var defaultValue: Boolean
-    private var showPerformanceWarning: Boolean
-    private var fragmentView: SettingsFragmentView? = null
-
-    constructor(
-        key: String,
-        section: String,
-        setting: Setting?,
-        titleId: Int,
-        descriptionId: Int,
-        defaultValue: Boolean
-    ) : super(key, section, setting, titleId, descriptionId) {
-        this.defaultValue = defaultValue
-        showPerformanceWarning = false
-    }
-
-    constructor(
-        key: String,
-        section: String,
-        titleId: Int,
-        descriptionId: Int,
-        defaultValue: Boolean,
-        setting: Setting,
-        show_performance_warning: Boolean,
-        view: SettingsFragmentView
-    ) : super(key, section, setting, titleId, descriptionId) {
-        this.defaultValue = defaultValue
-        fragmentView = view
-        showPerformanceWarning = show_performance_warning
-    }
 
     val isChecked: Boolean
         get() {
             if (setting == null) {
-                return defaultValue
+                return defaultValue!!
             }
 
             // Try integer setting
             try {
-                val setting = setting as IntSetting
-                return setting.value == 1
+                val setting = setting as AbstractIntSetting
+                return setting.int == 1
             } catch (_: ClassCastException) {
             }
 
             // Try boolean setting
             try {
-                val setting = setting as BooleanSetting
-                return setting.value
+                val setting = setting as AbstractBooleanSetting
+                return setting.boolean
             } catch (_: ClassCastException) {
             }
-            return defaultValue
+            return defaultValue!!
         }
 
     /**
@@ -71,24 +46,20 @@ class SwitchSetting : SettingsItem {
      * initializes a new one and returns it, so it can be added to the Hashmap.
      *
      * @param checked Pretty self explanatory.
-     * @return null if overwritten successfully; otherwise, a newly created BooleanSetting.
+     * @return the existing setting with the new value applied.
      */
-    fun setChecked(checked: Boolean): IntSetting? {
-        // Show a performance warning if the setting has been disabled
-        if (showPerformanceWarning && !checked) {
-            fragmentView!!.showToastMessage(
-                YuzuApplication.appContext.getString(R.string.performance_warning), true
-            )
+    fun setChecked(checked: Boolean): AbstractSetting {
+        // Try integer setting
+        try {
+            val setting = setting as AbstractIntSetting
+            setting.int = if (checked) 1 else 0
+            return setting
+        } catch (_: ClassCastException) {
         }
 
-        return if (setting == null) {
-            val newSetting = IntSetting(key!!, section!!, if (checked) 1 else 0)
-            setting = newSetting
-            newSetting
-        } else {
-            val newSetting = setting as IntSetting
-            newSetting.value = if (checked) 1 else 0
-            null
-        }
+        // Try boolean setting
+        val setting = setting as AbstractBooleanSetting
+        setting.boolean = checked
+        return setting
     }
 }

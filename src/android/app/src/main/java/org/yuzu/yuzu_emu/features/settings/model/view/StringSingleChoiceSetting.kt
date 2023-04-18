@@ -3,19 +3,19 @@
 
 package org.yuzu.yuzu_emu.features.settings.model.view
 
-import org.yuzu.yuzu_emu.features.settings.model.Setting
+import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
+import org.yuzu.yuzu_emu.features.settings.model.AbstractStringSetting
 import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 
 class StringSingleChoiceSetting(
-    key: String,
-    section: String,
-    setting: Setting?,
+    val key: String? = null,
+    setting: AbstractSetting?,
     titleId: Int,
     descriptionId: Int,
     val choicesId: Array<String>,
     private val valuesId: Array<String>?,
-    private val defaultValue: String
-) : SettingsItem(key, section, setting, titleId, descriptionId) {
+    private val defaultValue: String? = null
+) : SettingsItem(setting, titleId, descriptionId) {
     override val type = TYPE_STRING_SINGLE_CHOICE
 
     fun getValueAt(index: Int): String? {
@@ -28,9 +28,9 @@ class StringSingleChoiceSetting(
     val selectedValue: String
         get() = if (setting != null) {
             val setting = setting as StringSetting
-            setting.value
+            setting.string
         } else {
-            defaultValue
+            defaultValue!!
         }
     val selectValueIndex: Int
         get() {
@@ -48,17 +48,11 @@ class StringSingleChoiceSetting(
      * initializes a new one and returns it, so it can be added to the Hashmap.
      *
      * @param selection New value of the int.
-     * @return null if overwritten successfully otherwise; a newly created IntSetting.
+     * @return the existing setting with the new value applied.
      */
-    fun setSelectedValue(selection: String?): StringSetting? {
-        return if (setting == null) {
-            val newSetting = StringSetting(key!!, section!!, selection!!)
-            setting = newSetting
-            newSetting
-        } else {
-            val newSetting = setting as StringSetting
-            newSetting.value = selection!!
-            null
-        }
+    fun setSelectedValue(selection: String): AbstractStringSetting {
+        val stringSetting = setting as AbstractStringSetting
+        stringSetting.string = selection
+        return stringSetting
     }
 }

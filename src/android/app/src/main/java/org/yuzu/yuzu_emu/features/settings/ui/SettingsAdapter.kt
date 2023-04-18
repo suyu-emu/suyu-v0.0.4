@@ -101,9 +101,7 @@ class SettingsAdapter(
 
     fun onBooleanClick(item: SwitchSetting, position: Int, checked: Boolean) {
         val setting = item.setChecked(checked)
-        if (setting != null) {
-            fragmentView.putSetting(setting)
-        }
+        fragmentView.putSetting(setting)
         fragmentView.onSettingChanged()
     }
 
@@ -209,7 +207,7 @@ class SettingsAdapter(
             .setPositiveButton(android.R.string.ok, this)
             .setNegativeButton(android.R.string.cancel, defaultCancelListener)
             .setNeutralButton(R.string.slider_default) { dialog: DialogInterface, which: Int ->
-                sliderBinding.slider.value = item.defaultValue.toFloat()
+                sliderBinding.slider.value = item.defaultValue!!.toFloat()
                 onClick(dialog, which)
             }
             .show()
@@ -230,19 +228,15 @@ class SettingsAdapter(
 
                 // Get the backing Setting, which may be null (if for example it was missing from the file)
                 val setting = scSetting.setSelectedValue(value)
-                if (setting != null) {
-                    fragmentView.putSetting(setting)
-                }
+                fragmentView.putSetting(setting)
                 closeDialog()
             }
             is StringSingleChoiceSetting -> {
                 val scSetting = clickedItem as StringSingleChoiceSetting
                 val value = scSetting.getValueAt(which)
                 if (scSetting.selectedValue != value) fragmentView.onSettingChanged()
-                val setting = scSetting.setSelectedValue(value)
-                if (setting != null) {
-                    fragmentView.putSetting(setting)
-                }
+                val setting = scSetting.setSelectedValue(value!!)
+                fragmentView.putSetting(setting)
                 closeDialog()
             }
             is SliderSetting -> {
@@ -253,14 +247,10 @@ class SettingsAdapter(
                 if (sliderSetting.setting is FloatSetting) {
                     val value = sliderProgress.toFloat()
                     val setting = sliderSetting.setSelectedValue(value)
-                    if (setting != null) {
-                        fragmentView.putSetting(setting)
-                    }
+                    fragmentView.putSetting(setting)
                 } else {
                     val setting = sliderSetting.setSelectedValue(sliderProgress)
-                    if (setting != null) {
-                        fragmentView.putSetting(setting)
-                    }
+                    fragmentView.putSetting(setting)
                 }
                 closeDialog()
             }

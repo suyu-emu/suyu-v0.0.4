@@ -3,36 +3,30 @@
 
 package org.yuzu.yuzu_emu.features.settings.model.view
 
-import org.yuzu.yuzu_emu.features.settings.model.Setting
+import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
+import org.yuzu.yuzu_emu.features.settings.model.AbstractStringSetting
 import org.yuzu.yuzu_emu.features.settings.model.StringSetting
 
 class DateTimeSetting(
-    key: String,
-    section: String,
+    val key: String? = null,
+    setting: AbstractSetting?,
     titleId: Int,
     descriptionId: Int,
-    private val defaultValue: String,
-    setting: Setting
-) : SettingsItem(key, section, setting, titleId, descriptionId) {
+    private val defaultValue: String? = null
+) : SettingsItem(setting, titleId, descriptionId) {
     override val type = TYPE_DATETIME_SETTING
 
     val value: String
         get() = if (setting != null) {
             val setting = setting as StringSetting
-            setting.value
+            setting.string
         } else {
-            defaultValue
+            defaultValue!!
         }
 
-    fun setSelectedValue(datetime: String): StringSetting? {
-        return if (setting == null) {
-            val newSetting = StringSetting(key!!, section!!, datetime)
-            setting = newSetting
-            newSetting
-        } else {
-            val newSetting = setting as StringSetting
-            newSetting.value = datetime
-            null
-        }
+    fun setSelectedValue(datetime: String): AbstractStringSetting {
+        val stringSetting = setting as AbstractStringSetting
+        stringSetting.string = datetime
+        return stringSetting
     }
 }

@@ -3,7 +3,7 @@
 
 package org.yuzu.yuzu_emu.features.settings.ui
 
-import org.yuzu.yuzu_emu.features.settings.model.Setting
+import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
 import org.yuzu.yuzu_emu.features.settings.model.view.SettingsItem
 
 /**
@@ -49,7 +49,7 @@ interface SettingsFragmentView {
      *
      * @param setting The (possibly previously missing) new setting.
      */
-    fun putSetting(setting: Setting)
+    fun putSetting(setting: AbstractSetting)
 
     /**
      * Have the fragment tell the containing Activity that a setting was modified.

@@ -3,10 +3,32 @@
 
 package org.yuzu.yuzu_emu.features.settings.model
 
-class StringSetting(
-    key: String,
-    section: String,
-    var value: String
-) : Setting(key, section) {
-    override val valueAsString get() = value
+enum class StringSetting(
+    override val key: String,
+    override val section: String,
+    defaultValue: String
+) : AbstractStringSetting {
+    // No string settings currently exist
+    EMPTY_SETTING("", "", "");
+
+    override var string: String = defaultValue
+
+    override val valueAsString: String
+        get() = string
+
+    override val isRuntimeEditable: Boolean
+        get() {
+            for (setting in NOT_RUNTIME_EDITABLE) {
+                if (setting == this) {
+                    return false
+                }
+            }
+            return true
+        }
+
+    companion object {
+        private val NOT_RUNTIME_EDITABLE = emptyList<StringSetting>()
+
+        fun from(key: String): StringSetting? = StringSetting.values().firstOrNull { it.key == key }
+    }
 }

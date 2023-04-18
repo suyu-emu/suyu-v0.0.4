@@ -3,19 +3,17 @@
 
 package org.yuzu.yuzu_emu.features.settings.model.view
 
-import org.yuzu.yuzu_emu.features.settings.model.Setting
+import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
 
 /**
  * ViewModel abstraction for an Item in the RecyclerView powering SettingsFragments.
- * Each one corresponds to a [Setting] object, so this class's subclasses
+ * Each one corresponds to a [AbstractSetting] object, so this class's subclasses
  * should vaguely correspond to those subclasses. There are a few with multiple analogues
  * and a few with none (Headers, for example, do not correspond to anything in the ini
  * file.)
  */
 abstract class SettingsItem(
-    val key: String?,
-    val section: String?,
-    var setting: Setting?,
+    var setting: AbstractSetting?,
     val nameId: Int,
     val descriptionId: Int?
 ) {

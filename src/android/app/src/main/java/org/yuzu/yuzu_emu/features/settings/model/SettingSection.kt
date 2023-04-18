@@ -8,15 +8,15 @@ package org.yuzu.yuzu_emu.features.settings.model
  * internally stored as a HashMap.
  */
 class SettingSection(val name: String) {
-    val settings = HashMap<String, Setting>()
+    val settings = HashMap<String, AbstractSetting>()
 
     /**
      * Convenience method; inserts a value directly into the backing HashMap.
      *
      * @param setting The Setting to be inserted.
      */
-    fun putSetting(setting: Setting) {
-        settings[setting.key] = setting
+    fun putSetting(setting: AbstractSetting) {
+        settings[setting.key!!] = setting
     }
 
     /**
@@ -25,7 +25,7 @@ class SettingSection(val name: String) {
      * @param key Used to retrieve the Setting.
      * @return A Setting object (you should probably cast this before using)
      */
-    fun getSetting(key: String): Setting? {
+    fun getSetting(key: String): AbstractSetting? {
         return settings[key]
     }
 
