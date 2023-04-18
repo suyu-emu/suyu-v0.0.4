@@ -11,10 +11,10 @@ import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
 
 class DateTimeViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAdapter) :
     SettingViewHolder(binding.root, adapter) {
-    private lateinit var item: DateTimeSetting
+    private lateinit var setting: DateTimeSetting
 
     override fun bind(item: SettingsItem) {
-        this.item = item as DateTimeSetting
+        setting = item as DateTimeSetting
         binding.textSettingName.setText(item.nameId)
         if (item.descriptionId!! > 0) {
             binding.textSettingDescription.setText(item.descriptionId)
@@ -25,6 +25,8 @@ class DateTimeViewHolder(val binding: ListItemSettingBinding, adapter: SettingsA
     }
 
     override fun onClick(clicked: View) {
-        adapter.onDateTimeClick(item, bindingAdapterPosition)
+        if (setting.isEditable) {
+            adapter.onDateTimeClick(setting, bindingAdapterPosition)
+        }
     }
 }

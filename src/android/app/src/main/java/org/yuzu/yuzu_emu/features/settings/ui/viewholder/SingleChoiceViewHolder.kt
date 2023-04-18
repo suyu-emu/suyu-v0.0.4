@@ -12,10 +12,10 @@ import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
 
 class SingleChoiceViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAdapter) :
     SettingViewHolder(binding.root, adapter) {
-    private lateinit var item: SettingsItem
+    private lateinit var setting: SettingsItem
 
     override fun bind(item: SettingsItem) {
-        this.item = item
+        setting = item
         binding.textSettingName.setText(item.nameId)
         binding.textSettingDescription.visibility = View.VISIBLE
         if (item.descriptionId!! > 0) {
@@ -34,14 +34,18 @@ class SingleChoiceViewHolder(val binding: ListItemSettingBinding, adapter: Setti
     }
 
     override fun onClick(clicked: View) {
-        if (item is SingleChoiceSetting) {
+        if (!setting.isEditable) {
+            return
+        }
+
+        if (setting is SingleChoiceSetting) {
             adapter.onSingleChoiceClick(
-                (item as SingleChoiceSetting),
+                (setting as SingleChoiceSetting),
                 bindingAdapterPosition
             )
-        } else if (item is StringSingleChoiceSetting) {
+        } else if (setting is StringSingleChoiceSetting) {
             adapter.onStringSingleChoiceClick(
-                (item as StringSingleChoiceSetting),
+                (setting as StringSingleChoiceSetting),
                 bindingAdapterPosition
             )
         }

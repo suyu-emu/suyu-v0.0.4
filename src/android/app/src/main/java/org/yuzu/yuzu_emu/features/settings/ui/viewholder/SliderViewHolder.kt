@@ -11,10 +11,10 @@ import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
 
 class SliderViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAdapter) :
     SettingViewHolder(binding.root, adapter) {
-    private lateinit var item: SliderSetting
+    private lateinit var setting: SliderSetting
 
     override fun bind(item: SettingsItem) {
-        this.item = item as SliderSetting
+        setting = item as SliderSetting
         binding.textSettingName.setText(item.nameId)
         if (item.descriptionId!! > 0) {
             binding.textSettingDescription.setText(item.descriptionId)
@@ -25,6 +25,8 @@ class SliderViewHolder(val binding: ListItemSettingBinding, adapter: SettingsAda
     }
 
     override fun onClick(clicked: View) {
-        adapter.onSliderClick(item, bindingAdapterPosition)
+        if (setting.isEditable) {
+            adapter.onSliderClick(setting, bindingAdapterPosition)
+        }
     }
 }

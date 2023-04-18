@@ -3,6 +3,7 @@
 
 package org.yuzu.yuzu_emu.features.settings.model.view
 
+import org.yuzu.yuzu_emu.NativeLibrary
 import org.yuzu.yuzu_emu.features.settings.model.AbstractSetting
 
 /**
@@ -18,6 +19,12 @@ abstract class SettingsItem(
     val descriptionId: Int?
 ) {
     abstract val type: Int
+
+    val isEditable: Boolean
+        get() {
+            if (!NativeLibrary.isRunning()) return true
+            return setting?.isRuntimeEditable ?: false
+        }
 
     companion object {
         const val TYPE_HEADER = 0

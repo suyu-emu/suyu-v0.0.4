@@ -13,8 +13,10 @@ import org.yuzu.yuzu_emu.features.settings.ui.SettingsAdapter
 class SwitchSettingViewHolder(val binding: ListItemSettingSwitchBinding, adapter: SettingsAdapter) :
     SettingViewHolder(binding.root, adapter) {
 
+    private lateinit var setting: SwitchSetting
+
     override fun bind(item: SettingsItem) {
-        val setting = item as SwitchSetting
+        setting = item as SwitchSetting
         binding.textSettingName.setText(item.nameId)
         if (item.descriptionId!! > 0) {
             binding.textSettingDescription.setText(item.descriptionId)
@@ -27,9 +29,13 @@ class SwitchSettingViewHolder(val binding: ListItemSettingSwitchBinding, adapter
         binding.switchWidget.setOnCheckedChangeListener { _: CompoundButton, _: Boolean ->
             adapter.onBooleanClick(item, bindingAdapterPosition, binding.switchWidget.isChecked)
         }
+
+        binding.switchWidget.isEnabled = setting.isEditable
     }
 
     override fun onClick(clicked: View) {
-        binding.switchWidget.toggle()
+        if (setting.isEditable) {
+            binding.switchWidget.toggle()
+        }
     }
 }
