@@ -367,8 +367,8 @@ int main(int argc, char** argv) {
     if (auto room = network.GetRoom().lock()) {
         AnnounceMultiplayerRoom::GameInfo preferred_game_info{.name = preferred_game,
                                                               .id = preferred_game_id};
-        if (!room->Create(room_name, room_description, bind_address, port, password, max_members, username,
-                          preferred_game_info, std::move(verify_backend), ban_list,
+        if (!room->Create(room_name, room_description, bind_address, port, password, max_members,
+                          username, preferred_game_info, std::move(verify_backend), ban_list,
                           enable_yuzu_mods)) {
             LOG_INFO(Network, "Failed to create room: ");
             return -1;
