@@ -212,45 +212,13 @@ void Scheduler::SubmitExecution(VkSemaphore signal_semaphore, VkSemaphore wait_s
     const u64 signal_value = master_semaphore->NextTick();
     Record([signal_semaphore, wait_semaphore, signal_value, this](vk::CommandBuffer cmdbuf) {
         cmdbuf.End();
-        const VkSemaphore timeline_semaphore = master_semaphore->Handle();
-
-        const u32 num_signal_semaphores = signal_semaphore ? 2U : 1U;
-        const std::array signal_values{signal_value, u64(0)};
-        const std::array signal_semaphores{timeline_semaphore, signal_semaphore};
-
-        const u32 num_wait_semaphores = wait_semaphore ? 2U : 1U;
-        const std::array wait_values{signal_value - 1, u64(1)};
-        const std::array wait_semaphores{timeline_semaphore, wait_semaphore};
-        static constexpr std::array<VkPipelineStageFlags, 2> wait_stage_masks{
-            VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-        };
-
-        const VkTimelineSemaphoreSubmitInfo timeline_si{
-            .sType = VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO,
-            .pNext = nullptr,
-            .waitSemaphoreValueCount = num_wait_semaphores,
-            .pWaitSemaphoreValues = wait_values.data(),
-            .signalSemaphoreValueCount = num_signal_semaphores,
-            .pSignalSemaphoreValues = signal_values.data(),
-        };
-        const VkSubmitInfo submit_info{
-            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-            .pNext = &timeline_si,
-            .waitSemaphoreCount = num_wait_semaphores,
-            .pWaitSemaphores = wait_semaphores.data(),
-            .pWaitDstStageMask = wait_stage_masks.data(),
-            .commandBufferCount = 1,
-            .pCommandBuffers = cmdbuf.address(),
-            .signalSemaphoreCount = num_signal_semaphores,
-            .pSignalSemaphores = signal_semaphores.data(),
-        };
 
         if (on_submit) {
             on_submit();
         }
 
-        switch (const VkResult result = device.GetGraphicsQueue().Submit(submit_info)) {
+        switch (const VkResult result = master_semaphore->SubmitQueue(
+                    cmdbuf, signal_semaphore, wait_semaphore, signal_value)) {
         case VK_SUCCESS:
             break;
         case VK_ERROR_DEVICE_LOST:
