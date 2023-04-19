@@ -225,7 +225,8 @@ int main(int argc, char** argv) {
     InitializeLogging(log_file);
 
     while (optind < argc) {
-        int arg = getopt_long(argc, argv, "n:d:s:p:m:w:g:u:t:a:i:l:hv", long_options, &option_index);
+        int arg =
+            getopt_long(argc, argv, "n:d:s:p:m:w:g:u:t:a:i:l:hv", long_options, &option_index);
         if (arg != -1) {
             switch (static_cast<char>(arg)) {
             case 'n':
