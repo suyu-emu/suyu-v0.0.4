@@ -109,6 +109,12 @@ enum class AppAreaVersion : u8 {
     NotSet = 0xFF,
 };
 
+enum class BreakType : u32 {
+    Normal,
+    Unknown1,
+    Unknown2,
+};
+
 enum class CabinetMode : u8 {
     StartNicknameAndOwnerSettings,
     StartGameDataEraser,
@@ -179,6 +185,12 @@ struct AmiiboDate {
             .month = GetMonth(),
             .day = GetDay(),
         };
+    }
+
+    void SetWriteDate(const WriteDate& write_date) {
+        SetYear(write_date.year);
+        SetMonth(write_date.month);
+        SetDay(write_date.day);
     }
 
     void SetYear(u16 year) {
@@ -354,6 +366,15 @@ struct RegisterInfo {
 };
 static_assert(sizeof(RegisterInfo) == 0x100, "RegisterInfo is an invalid size");
 
+struct RegisterInfoPrivate {
+    Service::Mii::MiiStoreData mii_store_data;
+    WriteDate creation_date;
+    AmiiboName amiibo_name;
+    u8 font_region;
+    INSERT_PADDING_BYTES(0x8E);
+};
+static_assert(sizeof(RegisterInfoPrivate) == 0x100, "RegisterInfoPrivate is an invalid size");
+
 struct AdminInfo {
     u64 application_id;
     u32 application_area_id;
@@ -365,6 +386,39 @@ struct AdminInfo {
     INSERT_PADDING_BYTES(0x28);
 };
 static_assert(sizeof(AdminInfo) == 0x40, "AdminInfo is an invalid size");
+
+#pragma pack(1)
+// This is nn::nfp::NfpData
+struct NfpData {
+    u8 magic;
+    INSERT_PADDING_BYTES(0x1);
+    u8 write_counter;
+    INSERT_PADDING_BYTES(0x1);
+    u32 settings_crc;
+    INSERT_PADDING_BYTES(0x38);
+    CommonInfo common_info;
+    Service::Mii::Ver3StoreData mii_char_info;
+    Service::Mii::NfpStoreDataExtension mii_store_data_extension;
+    WriteDate creation_date;
+    std::array<u16_be, amiibo_name_length> amiibo_name;
+    u16 amiibo_name_null_terminated;
+    Settings settings;
+    u8 unknown1;
+    u32 register_info_crc;
+    std::array<u32, 5> unknown2;
+    INSERT_PADDING_BYTES(0x64);
+    u64 application_id;
+    u32 access_id;
+    u16 settings_crc_counter;
+    u8 font_region;
+    PackedTagType tag_type;
+    AppAreaVersion console_type;
+    u8 application_id_byte;
+    INSERT_PADDING_BYTES(0x2E);
+    ApplicationArea application_area;
+};
+static_assert(sizeof(NfpData) == 0x298, "NfpData is an invalid size");
+#pragma pack()
 
 struct SectorKey {
     MifareCmd command;

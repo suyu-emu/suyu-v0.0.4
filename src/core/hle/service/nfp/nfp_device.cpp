@@ -29,7 +29,6 @@
 #include "core/hle/service/nfp/amiibo_crypto.h"
 #include "core/hle/service/nfp/nfp_device.h"
 #include "core/hle/service/nfp/nfp_result.h"
-#include "core/hle/service/nfp/nfp_user.h"
 #include "core/hle/service/time/time_manager.h"
 #include "core/hle/service/time/time_zone_content_manager.h"
 #include "core/hle/service/time/time_zone_types.h"
@@ -241,6 +240,42 @@ Result NfpDevice::Flush() {
 
     tag_data.write_counter++;
 
+    FlushWithBreak(BreakType::Normal);
+
+    is_data_moddified = false;
+
+    return ResultSuccess;
+}
+
+Result NfpDevice::FlushDebug() {
+    if (device_state != DeviceState::TagMounted) {
+        LOG_ERROR(Service_NFC, "Wrong device state {}", device_state);
+        if (device_state == DeviceState::TagRemoved) {
+            return TagRemoved;
+        }
+        return WrongDeviceState;
+    }
+
+    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+        LOG_ERROR(Service_NFC, "Amiibo is read only", device_state);
+        return WrongDeviceState;
+    }
+
+    tag_data.write_counter++;
+
+    FlushWithBreak(BreakType::Normal);
+
+    is_data_moddified = false;
+
+    return ResultSuccess;
+}
+
+Result NfpDevice::FlushWithBreak(BreakType break_type) {
+    if (break_type != BreakType::Normal) {
+        LOG_ERROR(Service_NFC, "Break type not implemented {}", break_type);
+        return WrongDeviceState;
+    }
+
     std::vector<u8> data(sizeof(EncryptedNTAG215File));
     if (is_plain_amiibo) {
         memcpy(data.data(), &tag_data, sizeof(tag_data));
@@ -257,8 +292,6 @@ Result NfpDevice::Flush() {
         LOG_ERROR(Service_NFP, "Error writing to file");
         return WriteAmiiboFailed;
     }
-
-    is_data_moddified = false;
 
     return ResultSuccess;
 }
@@ -409,6 +442,38 @@ Result NfpDevice::GetRegisterInfo(RegisterInfo& register_info) const {
     // TODO: Validate this data
     register_info = {
         .mii_char_info = manager.ConvertV3ToCharInfo(tag_data.owner_mii),
+        .creation_date = settings.init_date.GetWriteDate(),
+        .amiibo_name = GetAmiiboName(settings),
+        .font_region = settings.settings.font_region,
+    };
+
+    return ResultSuccess;
+}
+
+Result NfpDevice::GetRegisterInfoPrivate(RegisterInfoPrivate& register_info) const {
+    if (device_state != DeviceState::TagMounted) {
+        LOG_ERROR(Service_NFP, "Wrong device state {}", device_state);
+        if (device_state == DeviceState::TagRemoved) {
+            return TagRemoved;
+        }
+        return WrongDeviceState;
+    }
+
+    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+        LOG_ERROR(Service_NFP, "Amiibo is read only", device_state);
+        return WrongDeviceState;
+    }
+
+    if (tag_data.settings.settings.amiibo_initialized == 0) {
+        return RegistrationIsNotInitialized;
+    }
+
+    Service::Mii::MiiManager manager;
+    const auto& settings = tag_data.settings;
+
+    // TODO: Validate and complete this data
+    register_info = {
+        .mii_store_data = {},
         .creation_date = settings.init_date.GetWriteDate(),
         .amiibo_name = GetAmiiboName(settings),
         .font_region = settings.settings.font_region,
@@ -805,6 +870,159 @@ Result NfpDevice::DeleteApplicationArea() {
     UpdateRegisterInfoCrc();
 
     return Flush();
+}
+
+Result NfpDevice::ExistApplicationArea(bool& has_application_area) {
+    if (device_state != DeviceState::TagMounted) {
+        LOG_ERROR(Service_NFC, "Wrong device state {}", device_state);
+        if (device_state == DeviceState::TagRemoved) {
+            return TagRemoved;
+        }
+        return WrongDeviceState;
+    }
+
+    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+        LOG_ERROR(Service_NFC, "Amiibo is read only", device_state);
+        return WrongDeviceState;
+    }
+
+    has_application_area = tag_data.settings.settings.appdata_initialized.Value() != 0;
+
+    return ResultSuccess;
+}
+
+Result NfpDevice::GetAll(NfpData& data) const {
+    if (device_state != DeviceState::TagMounted) {
+        LOG_ERROR(Service_NFC, "Wrong device state {}", device_state);
+        if (device_state == DeviceState::TagRemoved) {
+            return TagRemoved;
+        }
+        return WrongDeviceState;
+    }
+
+    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+        LOG_ERROR(Service_NFC, "Amiibo is read only", device_state);
+        return WrongDeviceState;
+    }
+
+    CommonInfo common_info{};
+    Service::Mii::MiiManager manager;
+    const u64 application_id = tag_data.application_id;
+
+    GetCommonInfo(common_info);
+
+    data = {
+        .magic = tag_data.constant_value,
+        .write_counter = tag_data.write_counter,
+        .settings_crc = tag_data.settings.crc,
+        .common_info = common_info,
+        .mii_char_info = tag_data.owner_mii,
+        .mii_store_data_extension = tag_data.mii_extension,
+        .creation_date = tag_data.settings.init_date.GetWriteDate(),
+        .amiibo_name = tag_data.settings.amiibo_name,
+        .amiibo_name_null_terminated = 0,
+        .settings = tag_data.settings.settings,
+        .unknown1 = tag_data.unknown,
+        .register_info_crc = tag_data.register_info_crc,
+        .unknown2 = tag_data.unknown2,
+        .application_id = application_id,
+        .access_id = tag_data.application_area_id,
+        .settings_crc_counter = tag_data.settings.crc_counter,
+        .font_region = tag_data.settings.settings.font_region,
+        .tag_type = PackedTagType::Type2,
+        .console_type =
+            static_cast<AppAreaVersion>(application_id >> application_id_version_offset & 0xf),
+        .application_id_byte = tag_data.application_id_byte,
+        .application_area = tag_data.application_area,
+    };
+
+    return ResultSuccess;
+}
+
+Result NfpDevice::SetAll(const NfpData& data) {
+    if (device_state != DeviceState::TagMounted) {
+        LOG_ERROR(Service_NFC, "Wrong device state {}", device_state);
+        if (device_state == DeviceState::TagRemoved) {
+            return TagRemoved;
+        }
+        return WrongDeviceState;
+    }
+
+    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+        LOG_ERROR(Service_NFC, "Amiibo is read only", device_state);
+        return WrongDeviceState;
+    }
+
+    tag_data.constant_value = data.magic;
+    tag_data.write_counter = data.write_counter;
+    tag_data.settings.crc = data.settings_crc;
+    tag_data.settings.write_date.SetWriteDate(data.common_info.last_write_date);
+    tag_data.write_counter = data.common_info.write_counter;
+    tag_data.amiibo_version = data.common_info.version;
+    tag_data.owner_mii = data.mii_char_info;
+    tag_data.mii_extension = data.mii_store_data_extension;
+    tag_data.settings.init_date.SetWriteDate(data.creation_date);
+    tag_data.settings.amiibo_name = data.amiibo_name;
+    tag_data.settings.settings = data.settings;
+    tag_data.unknown = data.unknown1;
+    tag_data.register_info_crc = data.register_info_crc;
+    tag_data.unknown2 = data.unknown2;
+    tag_data.application_id = data.application_id;
+    tag_data.application_area_id = data.access_id;
+    tag_data.settings.crc_counter = data.settings_crc_counter;
+    tag_data.settings.settings.font_region.Assign(data.font_region);
+    tag_data.application_id_byte = data.application_id_byte;
+    tag_data.application_area = data.application_area;
+
+    return ResultSuccess;
+}
+
+Result NfpDevice::BreakTag(BreakType break_type) {
+    if (device_state != DeviceState::TagMounted) {
+        LOG_ERROR(Service_NFC, "Wrong device state {}", device_state);
+        if (device_state == DeviceState::TagRemoved) {
+            return TagRemoved;
+        }
+        return WrongDeviceState;
+    }
+
+    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+        LOG_ERROR(Service_NFC, "Amiibo is read only", device_state);
+        return WrongDeviceState;
+    }
+
+    // TODO: Complete this implementation
+
+    return FlushWithBreak(break_type);
+}
+
+Result NfpDevice::ReadBackupData() {
+    // Not implemented
+    return ResultSuccess;
+}
+
+Result NfpDevice::WriteBackupData() {
+    // Not implemented
+    return ResultSuccess;
+}
+
+Result NfpDevice::WriteNtf() {
+    if (device_state != DeviceState::TagMounted) {
+        LOG_ERROR(Service_NFC, "Wrong device state {}", device_state);
+        if (device_state == DeviceState::TagRemoved) {
+            return TagRemoved;
+        }
+        return WrongDeviceState;
+    }
+
+    if (mount_target == MountTarget::None || mount_target == MountTarget::Rom) {
+        LOG_ERROR(Service_NFC, "Amiibo is read only", device_state);
+        return WrongDeviceState;
+    }
+
+    // Not implemented
+
+    return ResultSuccess;
 }
 
 u64 NfpDevice::GetHandle() const {

@@ -570,10 +570,10 @@ add_library(core STATIC
     hle/service/nfp/nfp.h
     hle/service/nfp/nfp_device.cpp
     hle/service/nfp/nfp_device.h
+    hle/service/nfp/nfp_interface.cpp
+    hle/service/nfp/nfp_interface.h
     hle/service/nfp/nfp_result.h
     hle/service/nfp/nfp_types.h
-    hle/service/nfp/nfp_user.cpp
-    hle/service/nfp/nfp_user.h
     hle/service/ngct/ngct.cpp
     hle/service/ngct/ngct.h
     hle/service/nifm/nifm.cpp

@@ -13,19 +13,17 @@
 namespace Service::NFP {
 class NfpDevice;
 
-class IUser final : public ServiceFramework<IUser> {
+class Interface : public ServiceFramework<Interface> {
 public:
-    explicit IUser(Core::System& system_);
-    ~IUser();
-
-private:
-    enum class State : u32 {
-        NonInitialized,
-        Initialized,
-    };
+    explicit Interface(Core::System& system_, const char* name);
+    ~Interface() override;
 
     void Initialize(HLERequestContext& ctx);
+    void InitializeSystem(HLERequestContext& ctx);
+    void InitializeDebug(HLERequestContext& ctx);
     void Finalize(HLERequestContext& ctx);
+    void FinalizeSystem(HLERequestContext& ctx);
+    void FinalizeDebug(HLERequestContext& ctx);
     void ListDevices(HLERequestContext& ctx);
     void StartDetection(HLERequestContext& ctx);
     void StopDetection(HLERequestContext& ctx);
@@ -49,6 +47,26 @@ private:
     void GetApplicationAreaSize(HLERequestContext& ctx);
     void AttachAvailabilityChangeEvent(HLERequestContext& ctx);
     void RecreateApplicationArea(HLERequestContext& ctx);
+    void Format(HLERequestContext& ctx);
+    void GetAdminInfo(HLERequestContext& ctx);
+    void GetRegisterInfoPrivate(HLERequestContext& ctx);
+    void SetRegisterInfoPrivate(HLERequestContext& ctx);
+    void DeleteRegisterInfo(HLERequestContext& ctx);
+    void DeleteApplicationArea(HLERequestContext& ctx);
+    void ExistsApplicationArea(HLERequestContext& ctx);
+    void GetAll(HLERequestContext& ctx);
+    void SetAll(HLERequestContext& ctx);
+    void FlushDebug(HLERequestContext& ctx);
+    void BreakTag(HLERequestContext& ctx);
+    void ReadBackupData(HLERequestContext& ctx);
+    void WriteBackupData(HLERequestContext& ctx);
+    void WriteNtf(HLERequestContext& ctx);
+
+private:
+    enum class State : u32 {
+        NonInitialized,
+        Initialized,
+    };
 
     std::optional<std::shared_ptr<NfpDevice>> GetNfpDevice(u64 handle);
 
