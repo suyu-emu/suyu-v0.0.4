@@ -143,9 +143,15 @@ class GamesFragment : Fragment() {
         _binding = null
     }
 
-    private fun searchShown() = homeViewModel.setNavigationVisible(false)
+    private fun searchShown() {
+        homeViewModel.setNavigationVisibility(false)
+        homeViewModel.setStatusBarShadeVisibility(false)
+    }
 
-    private fun searchHidden() = homeViewModel.setNavigationVisible(true)
+    private fun searchHidden() {
+        homeViewModel.setNavigationVisibility(true)
+        homeViewModel.setStatusBarShadeVisibility(true)
+    }
 
     private inner class ScoredGame(val score: Double, val item: Game)
 

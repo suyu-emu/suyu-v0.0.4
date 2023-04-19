@@ -75,6 +75,9 @@ class MainActivity : AppCompatActivity() {
         homeViewModel.navigationVisible.observe(this) { visible ->
             showNavigation(visible)
         }
+        homeViewModel.statusBarShadeVisible.observe(this) { visible ->
+            showStatusBarShade(visible)
+        }
 
         // Dismiss previous notifications (should not happen unless a crash occurred)
         EmulationActivity.tryDismissRunningNotification(this)
@@ -83,25 +86,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showNavigation(visible: Boolean) {
-        // TODO: This should be decoupled from navigation in the future
-        binding.statusBarShade.animate().apply {
-            if (visible) {
-                binding.statusBarShade.visibility = View.VISIBLE
-                binding.statusBarShade.translationY = binding.statusBarShade.height.toFloat() * -2
-                duration = 300
-                translationY(0f)
-                interpolator = PathInterpolator(0.05f, 0.7f, 0.1f, 1f)
-            } else {
-                duration = 300
-                translationY(binding.navigationBar.height.toFloat() * -2)
-                interpolator = PathInterpolator(0.3f, 0f, 0.8f, 0.15f)
-            }
-        }.withEndAction {
-            if (!visible) {
-                binding.statusBarShade.visibility = View.INVISIBLE
-            }
-        }.start()
-
         binding.navigationBar.animate().apply {
             if (visible) {
                 binding.navigationBar.visibility = View.VISIBLE
@@ -117,6 +101,26 @@ class MainActivity : AppCompatActivity() {
         }.withEndAction {
             if (!visible) {
                 binding.navigationBar.visibility = View.INVISIBLE
+            }
+        }.start()
+    }
+
+    private fun showStatusBarShade(visible: Boolean) {
+        binding.statusBarShade.animate().apply {
+            if (visible) {
+                binding.statusBarShade.visibility = View.VISIBLE
+                binding.statusBarShade.translationY = binding.statusBarShade.height.toFloat() * -2
+                duration = 300
+                translationY(0f)
+                interpolator = PathInterpolator(0.05f, 0.7f, 0.1f, 1f)
+            } else {
+                duration = 300
+                translationY(binding.navigationBar.height.toFloat() * -2)
+                interpolator = PathInterpolator(0.3f, 0f, 0.8f, 0.15f)
+            }
+        }.withEndAction {
+            if (!visible) {
+                binding.statusBarShade.visibility = View.INVISIBLE
             }
         }.start()
     }
