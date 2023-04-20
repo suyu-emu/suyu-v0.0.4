@@ -235,4 +235,10 @@
     <string name="theme_default">Default</string>
     <string name="theme_material_you">Material You</string>
 
+    <!-- Theme Modes -->
+    <string name="change_theme_mode">Change Theme Mode</string>
+    <string name="theme_mode_follow_system">Follow System</string>
+    <string name="theme_mode_light">Light</string>
+    <string name="theme_mode_dark">Dark</string>
+
 </resources>

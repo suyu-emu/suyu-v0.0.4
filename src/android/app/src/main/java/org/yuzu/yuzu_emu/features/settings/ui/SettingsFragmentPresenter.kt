@@ -16,6 +16,7 @@ import org.yuzu.yuzu_emu.features.settings.model.IntSetting
 import org.yuzu.yuzu_emu.features.settings.model.Settings
 import org.yuzu.yuzu_emu.features.settings.model.view.*
 import org.yuzu.yuzu_emu.features.settings.utils.SettingsFile
+import org.yuzu.yuzu_emu.utils.ThemeHelper
 
 class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) {
     private var menuTag: String? = null
@@ -355,6 +356,30 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                     )
                 )
             }
+
+            val themeMode: AbstractIntSetting = object : AbstractIntSetting {
+                override var int: Int
+                    get() = preferences.getInt(Settings.PREF_THEME_MODE, -1)
+                    set(value) {
+                        preferences.edit().putInt(Settings.PREF_THEME_MODE, value).apply()
+                        ThemeHelper.setThemeMode(settingsActivity)
+                    }
+                override val key: String? = null
+                override val section: String? = null
+                override val isRuntimeEditable: Boolean = true
+                override val valueAsString: String
+                    get() = preferences.getInt(Settings.PREF_THEME_MODE, -1).toString()
+            }
+
+            add(
+                SingleChoiceSetting(
+                    themeMode,
+                    R.string.change_theme_mode,
+                    0,
+                    R.array.themeModeEntries,
+                    R.array.themeModeValues
+                )
+            )
         }
     }
 }
