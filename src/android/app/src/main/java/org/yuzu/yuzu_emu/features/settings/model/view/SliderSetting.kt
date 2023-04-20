@@ -27,8 +27,8 @@ class SliderSetting(
         get() {
             val setting = setting ?: return defaultValue!!
             return when (setting) {
-                is IntSetting -> setting.int
-                is FloatSetting -> setting.float.roundToInt()
+                is AbstractIntSetting -> setting.int
+                is AbstractFloatSetting -> setting.float.roundToInt()
                 else -> {
                     Log.error("[SliderSetting] Error casting setting type.")
                     -1

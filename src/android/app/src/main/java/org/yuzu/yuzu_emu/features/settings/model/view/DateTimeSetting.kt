@@ -18,7 +18,7 @@ class DateTimeSetting(
 
     val value: String
         get() = if (setting != null) {
-            val setting = setting as StringSetting
+            val setting = setting as AbstractStringSetting
             setting.string
         } else {
             defaultValue!!

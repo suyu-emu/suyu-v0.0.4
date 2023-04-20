@@ -19,7 +19,7 @@ class SingleChoiceSetting(
 
     val selectedValue: Int
         get() = if (setting != null) {
-            val setting = setting as IntSetting
+            val setting = setting as AbstractIntSetting
             setting.int
         } else {
             defaultValue!!
