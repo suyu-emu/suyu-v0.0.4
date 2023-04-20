@@ -18,7 +18,7 @@
             android:layout_height="128dp"
             android:layout_margin="64dp"
             android:layout_gravity="center_horizontal"
-            android:src="@drawable/ic_yuzu_themed" />
+            android:src="@drawable/ic_yuzu_full" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/options_list"
